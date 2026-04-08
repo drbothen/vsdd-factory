@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 — Wave 3: Design system, UX, and market intelligence
+
+- Ported 13 skills for UI-heavy projects and product-intelligence workflows
+- **Design & UX:** `design-drift-detection`, `design-system-bootstrap`, `multi-variant-design`, `storybook-mcp-integration`, `responsive-validation`, `ui-completeness-check`, `ui-quality-gate`, `ux-heuristic-evaluation`
+- **Market & customer:** `competitive-monitoring`, `customer-feedback-ingestion`, `intelligence-synthesis`, `market-intelligence-assessment`, `analytics-integration`
+- `templates/design-system/` already present from initial extraction
+
+Total skills: 83.
+
 ## 0.3.0 — Wave 2: Skill coverage (feature-mode + maintenance)
 
 - Ported 39 skills from dark-factory workflow catalogue
