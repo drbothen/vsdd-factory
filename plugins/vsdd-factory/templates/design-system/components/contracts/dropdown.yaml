@@ -1,0 +1,40 @@
+# Component Contract: Dropdown
+
+component: Dropdown
+description: "Select dropdown with optional search and multi-select"
+category: interactive
+
+variants:
+  - select
+  - multi-select
+  - searchable
+  - grouped
+
+states:
+  required:
+    - closed
+    - open
+    - searching
+    - no-results
+    - loading
+
+accessibility:
+  role: listbox
+  trigger_role: combobox
+  aria_expanded: "true when open, false when closed"
+  aria_activedescendant: "ID of highlighted option"
+  keyboard:
+    - "Enter/Space opens dropdown"
+    - "Arrow keys navigate options"
+    - "Enter selects highlighted option"
+    - "Escape closes dropdown"
+    - "Type-ahead selects matching option"
+  multi_select: "aria-selected=true on chosen items, selection count announced"
+
+test_requirements:
+  - "All 5 required states render"
+  - "Keyboard navigation through all options"
+  - "Type-ahead search works"
+  - "No-results state has helpful message"
+  - "Loading state shows spinner"
+  - "Multi-select tracks selection count"

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "if": "Edit(.factory/specs/verification-properties/**)|Write(.factory/specs/verification-properties/**)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/protect-vp.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

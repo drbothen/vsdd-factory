@@ -1,0 +1,37 @@
+# Component Contract: Tabs
+
+component: Tabs
+description: "Tabbed content navigation"
+category: interactive
+
+variants:
+  - default
+  - contained
+  - underline
+  - vertical
+
+states:
+  required:
+    - default
+    - active-tab
+    - disabled-tab
+
+accessibility:
+  role: tablist
+  tab_role: tab
+  panel_role: tabpanel
+  aria_selected: "true on active tab"
+  aria_controls: "tab references its panel ID"
+  aria_labelledby: "panel references its tab ID"
+  keyboard:
+    - "Arrow keys move between tabs"
+    - "Enter/Space activates tab (manual mode)"
+    - "Home/End go to first/last tab"
+  disabled_tab: "aria-disabled=true, skipped by arrow key navigation"
+
+test_requirements:
+  - "All 3 required states render"
+  - "Arrow key navigation between tabs"
+  - "Panel content updates on tab change"
+  - "Disabled tabs skipped in navigation"
+  - "Correct ARIA roles and relationships"

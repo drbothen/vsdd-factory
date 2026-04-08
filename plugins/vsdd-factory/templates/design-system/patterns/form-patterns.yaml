@@ -1,0 +1,49 @@
+# Form Patterns
+# Standard form layouts and validation patterns.
+
+patterns:
+  - name: inline-validation
+    description: "Validate on blur, show errors immediately"
+    rules:
+      - "Validate each field on blur"
+      - "Show error below field with error icon + red text"
+      - "Associate error via aria-describedby"
+      - "Do NOT validate on every keystroke (annoying)"
+      - "Validate full form on submit attempt"
+      - "Focus first error field on submit failure"
+      - "Error message is specific: 'Email must include @' not 'Invalid input'"
+
+  - name: multi-step-form
+    description: "Wizard/stepper for complex forms"
+    rules:
+      - "Show progress indicator (step N of M)"
+      - "Each step has own validation"
+      - "Back button preserves entered data"
+      - "Review step before final submit"
+      - "Keyboard navigable between steps"
+      - "aria-current=step on active step"
+
+  - name: search-form
+    description: "Search with results"
+    rules:
+      - "Search input has role=searchbox"
+      - "Results announced via aria-live=polite"
+      - "No results state shows helpful suggestions"
+      - "Loading state shows skeleton results"
+      - "Debounce input (300ms minimum)"
+
+  - name: confirmation-pattern
+    description: "Destructive action confirmation"
+    rules:
+      - "Modal with clear description of consequences"
+      - "Require explicit confirmation (type name, click confirm)"
+      - "Danger button for confirm, secondary for cancel"
+      - "Cancel is default focus"
+
+async_states:
+  description: "Every form with server interaction MUST handle these states"
+  required:
+    - idle: "Default form state, ready for input"
+    - submitting: "Button shows loading, inputs disabled"
+    - success: "Success message, optional redirect"
+    - error: "Error message with retry option, form data preserved"

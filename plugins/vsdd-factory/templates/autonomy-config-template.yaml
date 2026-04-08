@@ -1,0 +1,33 @@
+# .factory/autonomy-config.yaml
+# Budget and autonomy configuration for the Dark Factory pipeline.
+# Copy this template to the target project's .factory/ directory.
+#
+# Created by devops-engineer during repo initialization (DF-027).
+# Modified by orchestrator or human as project evolves.
+
+budget:
+  # Maximum budget for the entire pipeline run (USD)
+  max_usd: 500
+
+  # Underspend floor -- advisory warning if total spend is below this.
+  # Low spend may indicate adversarial review was not thorough enough.
+  min_usd: 50
+
+  # Tiered budget response thresholds (fraction of max_usd)
+  #   0 to warn_threshold:     No action. Log costs.
+  #   warn to alert_threshold: WARN notification to human. No model changes.
+  #   alert to pause_threshold: ALERT. Downgrade NON-CRITICAL agents only.
+  #   pause to 1.0:            PAUSE pipeline. BLOCKING notification.
+  #   > 1.0:                   HARD STOP. No agent spawns allowed.
+  warn_threshold: 0.70
+  alert_threshold: 0.85
+  pause_threshold: 0.95
+
+  # Protected agents are NEVER downgraded regardless of budget pressure.
+  # Their output quality depends critically on model capability.
+  protected_agents:
+    - adversary          # adversarial quality depends on model
+    - holdout-evaluator  # holdout integrity depends on model
+    - formal-verifier    # proof quality depends on model
+    - pr-reviewer        # cognitive diversity depends on model
+    - security-reviewer  # security analysis depends on model

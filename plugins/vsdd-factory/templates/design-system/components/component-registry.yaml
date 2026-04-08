@@ -1,0 +1,83 @@
+# Component Registry Template
+# This file is copied into .factory/design-system/components/ during bootstrap.
+# Lists all available components with their contract files.
+# Agents MUST check this registry before creating new components.
+
+registry_version: "1.0.0"
+generated_by: "design-system-bootstrap skill"
+
+components:
+  # --- Interactive ---
+  - name: Button
+    contract: "contracts/button.yaml"
+    category: interactive
+    variants: [primary, secondary, ghost, danger]
+    status: available
+
+  - name: FormField
+    contract: "contracts/form-field.yaml"
+    category: interactive
+    variants: [text, email, password, number, textarea, select]
+    status: available
+
+  - name: Modal
+    contract: "contracts/modal.yaml"
+    category: interactive
+    variants: [dialog, alert, confirmation, drawer]
+    status: available
+
+  - name: Navigation
+    contract: "contracts/navigation.yaml"
+    category: interactive
+    variants: [top-bar, sidebar, bottom-nav, breadcrumb, tabs]
+    status: available
+
+  # --- Data Display ---
+  - name: DataTable
+    contract: "contracts/data-table.yaml"
+    category: data-display
+    variants: [basic, sortable, filterable, paginated]
+    status: available
+
+  - name: Card
+    contract: "contracts/card.yaml"
+    category: data-display
+    variants: [default, interactive, media, stat]
+    status: available
+
+  - name: List
+    contract: "contracts/list.yaml"
+    category: data-display
+    variants: [simple, avatar, action, nested]
+    status: available
+
+  # --- Feedback ---
+  - name: Toast
+    contract: "contracts/toast.yaml"
+    category: feedback
+    variants: [info, success, warning, error]
+    status: available
+
+  - name: Alert
+    contract: "contracts/alert.yaml"
+    category: feedback
+    variants: [info, success, warning, error]
+    status: available
+
+  - name: Dropdown
+    contract: "contracts/dropdown.yaml"
+    category: interactive
+    variants: [select, multi-select, searchable, grouped]
+    status: available
+
+  - name: Tabs
+    contract: "contracts/tabs.yaml"
+    category: interactive
+    variants: [default, contained, underline, vertical]
+    status: available
+
+# Instructions for agents:
+# - implementer: Call list-all-documentation (Storybook MCP) before creating new components.
+#   If a matching component exists, use it. Only create new components when justified.
+# - ux-designer: Reference components by registry name in UX specs (e.g., "Button/primary").
+# - test-writer: Generate stories for all variants x states per contract.

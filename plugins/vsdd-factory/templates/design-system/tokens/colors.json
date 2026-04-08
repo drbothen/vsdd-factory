@@ -1,0 +1,74 @@
+{
+  "$schema": "design-token",
+  "$description": "Color palette with contrast matrix. All values must satisfy WCAG AA requirements. Agents MUST use token names, not hex values.",
+  "colors": {
+    "primary": {
+      "50": { "value": "#e8f0fe", "usage": "Primary tint backgrounds" },
+      "100": { "value": "#d2e3fc", "usage": "Primary hover backgrounds" },
+      "200": { "value": "#aecbfa", "usage": "Primary light accents" },
+      "300": { "value": "#8ab4f8", "usage": "Primary medium accents" },
+      "400": { "value": "#669df6", "usage": "Primary interactive elements" },
+      "500": { "value": "#4285f4", "usage": "Primary default" },
+      "600": { "value": "#1a73e8", "usage": "Primary buttons, links", "contrast_on_white": 4.6, "wcag_aa_text": true, "wcag_aa_ui": true },
+      "700": { "value": "#1967d2", "usage": "Primary hover state" },
+      "800": { "value": "#185abc", "usage": "Primary active state" },
+      "900": { "value": "#174ea6", "usage": "Primary dark accents" }
+    },
+    "neutral": {
+      "0": { "value": "#ffffff", "usage": "Backgrounds, cards" },
+      "50": { "value": "#f8f9fa", "usage": "Subtle backgrounds" },
+      "100": { "value": "#f1f3f4", "usage": "Disabled backgrounds" },
+      "200": { "value": "#e8eaed", "usage": "Borders, dividers" },
+      "300": { "value": "#dadce0", "usage": "Strong borders" },
+      "400": { "value": "#bdc1c6", "usage": "Placeholder text" },
+      "500": { "value": "#9aa0a6", "usage": "Secondary text" },
+      "600": { "value": "#80868b", "usage": "Icons, captions" },
+      "700": { "value": "#5f6368", "usage": "Body text", "contrast_on_white": 4.6, "wcag_aa_text": true },
+      "800": { "value": "#3c4043", "usage": "Headings" },
+      "900": { "value": "#202124", "usage": "Primary text", "contrast_on_white": 15.4, "wcag_aa_text": true }
+    },
+    "semantic": {
+      "success": {
+        "value": "#1e8e3e",
+        "contrast_on_white": 4.5,
+        "wcag_aa_text": true,
+        "usage": "Success states, confirmations"
+      },
+      "warning": {
+        "value": "#f9ab00",
+        "contrast_on_white": 2.1,
+        "wcag_aa_text": false,
+        "wcag_aa_ui": true,
+        "usage": "Warning states (pair with icon/text, never color-only)"
+      },
+      "error": {
+        "value": "#d93025",
+        "contrast_on_white": 5.1,
+        "wcag_aa_text": true,
+        "usage": "Error states, destructive actions, validation failures"
+      },
+      "info": {
+        "value": "#1a73e8",
+        "contrast_on_white": 4.6,
+        "wcag_aa_text": true,
+        "usage": "Informational states, tips"
+      }
+    },
+    "dark_mode": {
+      "$description": "Token swaps for prefers-color-scheme: dark",
+      "background": { "value": "#202124" },
+      "surface": { "value": "#292a2d" },
+      "surface_variant": { "value": "#3c4043" },
+      "on_background": { "value": "#e8eaed" },
+      "on_surface": { "value": "#e8eaed" },
+      "primary": { "value": "#8ab4f8" },
+      "error": { "value": "#f28b82" },
+      "success": { "value": "#81c995" }
+    }
+  },
+  "_agent_instructions": {
+    "ux-designer": "Reference colors as 'primary.600' or 'semantic.error', never as hex values",
+    "implementer": "Use CSS custom properties: var(--color-primary-600). Never hardcode hex values.",
+    "test-writer": "Test that rendered styles reference token CSS variables, not hardcoded hex"
+  }
+}

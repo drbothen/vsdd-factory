@@ -1,0 +1,43 @@
+{
+  "$schema": "design-token",
+  "$description": "Spacing scale based on 4px unit with 8px grid. All spacing must use these tokens.",
+  "spacing": {
+    "unit": 4,
+    "grid": 8,
+    "scale": {
+      "0": { "value": "0px", "usage": "No spacing" },
+      "1": { "value": "4px", "usage": "Tight inline spacing" },
+      "2": { "value": "8px", "usage": "Compact element spacing" },
+      "3": { "value": "12px", "usage": "Default inline spacing" },
+      "4": { "value": "16px", "usage": "Standard element spacing" },
+      "5": { "value": "20px", "usage": "Comfortable element spacing" },
+      "6": { "value": "24px", "usage": "Section padding" },
+      "8": { "value": "32px", "usage": "Large section spacing" },
+      "10": { "value": "40px", "usage": "Section dividers" },
+      "12": { "value": "48px", "usage": "Page section spacing" },
+      "16": { "value": "64px", "usage": "Major section spacing" },
+      "20": { "value": "80px", "usage": "Page-level spacing" },
+      "24": { "value": "96px", "usage": "Hero section spacing" }
+    }
+  },
+  "inset": {
+    "$description": "Padding presets for containers",
+    "compact": { "value": "8px", "usage": "Badges, tags, compact buttons" },
+    "default": { "value": "16px", "usage": "Cards, form fields, standard containers" },
+    "comfortable": { "value": "24px", "usage": "Modals, dialogs, panels" },
+    "spacious": { "value": "32px", "usage": "Page sections, hero areas" }
+  },
+  "gap": {
+    "$description": "Flex/grid gap presets",
+    "tight": { "value": "4px", "usage": "Icon + text pairs" },
+    "compact": { "value": "8px", "usage": "Related element groups" },
+    "default": { "value": "16px", "usage": "Standard list/grid gaps" },
+    "relaxed": { "value": "24px", "usage": "Card grids, form sections" },
+    "spacious": { "value": "32px", "usage": "Major content sections" }
+  },
+  "_constraints": {
+    "all_values_must_be_multiples_of": 4,
+    "grid_alignment": "8px grid preferred for layout",
+    "no_arbitrary_values": "Use scale tokens only. If none fit, propose new token."
+  }
+}

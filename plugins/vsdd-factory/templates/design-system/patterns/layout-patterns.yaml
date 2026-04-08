@@ -1,0 +1,76 @@
+# Layout Patterns
+# Approved layout compositions. Agents MUST use these patterns unless explicitly justified.
+
+patterns:
+  - name: sidebar-layout
+    description: "Sidebar + main content area"
+    structure: |
+      <div class="layout-sidebar">
+        <nav class="sidebar" aria-label="Main navigation">...</nav>
+        <main class="content">...</main>
+      </div>
+    responsive:
+      mobile: "Sidebar collapses to hamburger menu"
+      tablet: "Sidebar collapsed by default, expandable"
+      desktop: "Sidebar visible"
+    tokens: "sidebar width: 240px (expanded), 64px (collapsed)"
+
+  - name: top-nav-layout
+    description: "Top navigation bar + content area"
+    structure: |
+      <header class="top-nav" role="banner">...</header>
+      <main class="content">...</main>
+    responsive:
+      mobile: "Top nav collapses to hamburger"
+      desktop: "Full horizontal nav"
+
+  - name: dashboard-grid
+    description: "Card grid for dashboards and overviews"
+    structure: |
+      <main class="dashboard-grid">
+        <section class="stat-cards" aria-label="Key metrics">...</section>
+        <section class="charts" aria-label="Charts">...</section>
+        <section class="tables" aria-label="Data">...</section>
+      </main>
+    responsive:
+      mobile: "Single column stack"
+      tablet: "2-column grid"
+      desktop: "3-4 column grid"
+
+  - name: form-layout
+    description: "Standard form with sections"
+    structure: |
+      <form>
+        <fieldset><legend>Section title</legend>...</fieldset>
+        <div class="form-actions">
+          <Button variant="secondary">Cancel</Button>
+          <Button variant="primary" type="submit">Save</Button>
+        </div>
+      </form>
+    constraints:
+      - "Single column on mobile"
+      - "2-column optional on desktop for short fields"
+      - "Actions right-aligned (LTR) or left-aligned (RTL)"
+      - "Primary action last (rightmost in LTR)"
+
+  - name: split-view
+    description: "List/detail split view (master-detail)"
+    structure: |
+      <div class="split-view">
+        <aside class="list-panel" aria-label="Item list">...</aside>
+        <main class="detail-panel" aria-label="Item details">...</main>
+      </div>
+    responsive:
+      mobile: "Stacked -- list view, tap to detail view with back button"
+      desktop: "Side by side"
+
+  - name: centered-content
+    description: "Centered narrow content (auth pages, settings)"
+    structure: |
+      <main class="centered-content" style="max-width: var(--container-narrow)">
+        ...
+      </main>
+    constraints:
+      - "Max width: 720px"
+      - "Centered horizontally"
+      - "Generous vertical padding"

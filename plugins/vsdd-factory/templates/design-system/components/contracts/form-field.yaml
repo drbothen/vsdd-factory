@@ -1,0 +1,91 @@
+# Component Contract: FormField
+# All form field implementations MUST satisfy this contract.
+
+component: FormField
+description: "Form input with label, validation, and helper text"
+category: interactive
+
+variants:
+  - text
+  - email
+  - password
+  - number
+  - textarea
+  - select
+
+required_props:
+  - name: label
+    type: string
+    description: "Visible label text (rendered as <label> element)"
+  - name: name
+    type: string
+    description: "Form field name attribute"
+
+optional_props:
+  - name: type
+    type: enum
+    values: [text, email, password, number, textarea, select]
+    default: text
+  - name: placeholder
+    type: string
+    description: "Placeholder text (NEVER used as label substitute)"
+  - name: required
+    type: boolean
+    default: false
+  - name: disabled
+    type: boolean
+    default: false
+  - name: readonly
+    type: boolean
+    default: false
+  - name: error
+    type: string
+    description: "Error message (triggers error state)"
+  - name: helperText
+    type: string
+    description: "Helper text below input"
+  - name: value
+    type: string
+  - name: onChange
+    type: function
+
+states:
+  required:
+    - default
+    - focus
+    - filled
+    - error
+    - disabled
+    - readonly
+  optional:
+    - loading  # For async validation
+
+accessibility:
+  label_element: "<label for='id'> (explicit association, NOT placeholder-as-label)"
+  required_indicator: "Visual asterisk + aria-required=true"
+  error_association: "aria-describedby pointing to error message element"
+  helper_association: "aria-describedby pointing to helper text"
+  keyboard: [Tab to navigate, Enter to submit form]
+  focus_visible: required
+  min_touch_target: 48px
+
+design_tokens:
+  border: "color-neutral-300 (default), color-primary-600 (focus), color-semantic-error (error)"
+  background: "color-neutral-0 (default), color-neutral-100 (disabled)"
+  text: "color-neutral-900"
+  label: "type-scale.label"
+  input_text: "type-scale.body"
+  error_text: "type-scale.caption + color-semantic-error"
+  helper_text: "type-scale.caption + color-neutral-600"
+  padding: "component-sizes.input.{size}"
+  border_radius: "border-radius-sm"
+
+test_requirements:
+  - "Label element explicitly associated via for/id"
+  - "Placeholder never used as sole label"
+  - "Error message associated via aria-describedby"
+  - "Required fields have aria-required=true and visual indicator"
+  - "Disabled state has aria-disabled=true"
+  - "Focus ring visible on keyboard focus"
+  - "Renders all 6 required states"
+  - "Touch target >= 48px"

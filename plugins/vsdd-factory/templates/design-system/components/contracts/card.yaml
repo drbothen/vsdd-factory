@@ -1,0 +1,31 @@
+# Component Contract: Card
+
+component: Card
+description: "Content container with optional interactivity"
+category: data-display
+
+variants:
+  - default     # Static content card
+  - interactive # Clickable card (link or button behavior)
+  - media       # Card with image/video header
+  - stat        # Metric/statistic card
+
+states:
+  required:
+    - default
+    - hover       # Interactive variant only
+    - selected    # Selectable context only
+    - loading     # Skeleton placeholder
+    - skeleton    # Initial load state
+
+accessibility:
+  interactive_card: "role=link or role=button with full keyboard support"
+  heading: "Card title as heading (correct hierarchy level)"
+  focus_visible: "required for interactive variant"
+
+test_requirements:
+  - "All 5 required states render"
+  - "Interactive variant has keyboard support"
+  - "Skeleton state shows placeholder shapes"
+  - "Loading state distinct from skeleton"
+  - "Correct heading level in card title"

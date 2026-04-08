@@ -1,0 +1,79 @@
+# UI Traceability Matrix Template (DF-037 D3)
+# Tracks every UI element from UX spec -> story -> component -> test -> visual evidence.
+# Maintained by ui-completeness-check skill.
+# Zero gaps required before convergence.
+
+version: "1.0.0"
+product: "${product.name}"
+last_updated: "${timestamp}"
+last_check: "${timestamp}"
+
+summary:
+  screens_specified: 0
+  screens_implemented: 0
+  screens_verified: 0
+  fidelity_score: 0.0
+  total_gaps: 0
+
+screens:
+  - id: SCR-001
+    name: "Screen Name"
+    ux_spec_ref: "ux-spec.md#section"
+    wireframe_ref: ".factory/diagrams/exported/screen.png"
+    story_ids: []
+    status: specified  # specified | story-created | implemented | tested | verified
+
+    components:
+      - id: CMP-001
+        name: "ComponentName"
+        component_contract: "design-system/components/contracts/name.yaml"
+        story_id: "STORY-NNN"
+        states:
+          - name: default
+            implemented: false
+            tested: false
+            screenshot: null
+          # Add all required states from component contract
+
+    interactions:
+      - id: INT-001
+        description: "User action description"
+        ux_spec_ref: "ux-spec.md#interactions"
+        e2e_test: null
+        tested: false
+
+    responsive:
+      - breakpoint: 375
+        tested: false
+        screenshot: null
+      - breakpoint: 768
+        tested: false
+        screenshot: null
+      - breakpoint: 1024
+        tested: false
+        screenshot: null
+      - breakpoint: 1440
+        tested: false
+        screenshot: null
+
+    accessibility:
+      axe_clean: false
+      keyboard_navigable: false
+      screen_reader_tested: false
+      touch_targets_valid: false
+
+    performance:
+      lcp_ms: null
+      cls: null
+      fid_ms: null
+      meets_targets: false
+
+# Gap tracking
+gaps: []
+  # - id: GAP-001
+  #   screen: SCR-001
+  #   component: CMP-001
+  #   type: state_missing | interaction_untested | responsive_untested | a11y_failure | performance_failure
+  #   description: "Description of gap"
+  #   fix_story: null  # FIX-UI-NNN when created
+  #   resolved: false

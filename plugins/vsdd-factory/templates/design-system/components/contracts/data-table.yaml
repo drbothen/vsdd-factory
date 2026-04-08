@@ -1,0 +1,37 @@
+# Component Contract: DataTable
+
+component: DataTable
+description: "Tabular data display with sorting, filtering, pagination"
+category: data-display
+
+variants:
+  - basic
+  - sortable
+  - filterable
+  - paginated
+
+states:
+  required:
+    - default
+    - loading
+    - empty
+    - error
+    - sorting
+    - filtering
+
+accessibility:
+  role: table
+  caption: "Required -- describes table content"
+  headers: "scope=col for column headers, scope=row for row headers"
+  sortable_headers: "aria-sort=ascending|descending|none"
+  keyboard: [Tab to headers, Enter to sort, arrow keys in cells]
+  responsive: "On mobile: stacked cards or horizontal scroll with sticky first column"
+
+test_requirements:
+  - "All 6 required states render"
+  - "Loading state shows skeleton rows (not blank)"
+  - "Empty state shows message with CTA"
+  - "Error state shows message with retry button"
+  - "Sort toggled via keyboard on headers"
+  - "Table caption present"
+  - "Responsive behavior at mobile breakpoint"

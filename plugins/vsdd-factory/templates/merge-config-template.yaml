@@ -1,0 +1,68 @@
+# .factory/merge-config.yaml
+# Controls code delivery behavior for this project.
+# Copy this template to the target project's .factory/ directory.
+#
+# Created by devops-engineer during repo initialization (DF-024).
+# Modified by orchestrator or human as project evolves.
+
+# Autonomy level for merge decisions
+# 3   = All PRs require human PR review before merge
+# 3.5 = Low-risk auto-merge; medium/high-risk human review
+# 4   = Full auto-merge (AI review only, no human gate)
+autonomy_level: 4
+
+# Branch configuration
+default_branch: develop
+branch_prefix: "feature/"
+
+# PR configuration
+squash_merge: true
+delete_branch_on_merge: true
+
+# AI PR review
+pr_review_model: "litellm/pr-review/primary"  # 4th model family
+max_review_cycles: 3
+
+# Restricted file patterns (always flag for human attention regardless of autonomy level)
+restricted_file_patterns:
+  - "*.lock"
+  - "Cargo.toml"
+  - "package.json"
+  - ".github/**"
+  - "Dockerfile"
+  - "docker-compose*.yml"
+  - ".env*"
+  - "CODEOWNERS"
+
+# Risk classification thresholds for Level 3.5 conditional auto-merge
+risk_thresholds:
+  low:
+    max_files_changed: 10
+    max_lines_changed: 500
+    no_restricted_files: true
+    min_test_coverage_pct: 80
+  medium:
+    max_files_changed: 25
+    max_lines_changed: 1500
+  # Anything above medium thresholds = high risk (always requires human review)
+
+# =============================================================================
+# Notification configuration (DF-027)
+# =============================================================================
+# Channel for human notifications (BLOCKING, ESCALATION, WARNING, INFO)
+notifications:
+  channel: github-issues   # default — no extra setup required
+  # Options: github-issues, slack, discord, email, terminal
+  # slack_webhook: https://hooks.slack.com/services/...
+  # discord_webhook: https://discord.com/api/webhooks/...
+  # email: team@example.com
+
+# =============================================================================
+# Tool installation preference (DF-027)
+# =============================================================================
+# Controls how dx-engineer handles missing tools
+tool_install:
+  mode: ask-each           # Options: auto, ask-each, manual
+  # auto: install missing tools automatically (security audit still required)
+  # ask-each: ask human for each missing tool (default)
+  # manual: report missing tools, human installs manually

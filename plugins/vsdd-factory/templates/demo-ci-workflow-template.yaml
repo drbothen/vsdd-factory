@@ -1,0 +1,97 @@
+# .github/workflows/demo-generation.yml
+# Auto-generates demo recordings when code changes
+# Triggered by: push to develop, PR creation, manual dispatch
+
+name: Generate Demos
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.factory/demo-scripts/**'
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  generate-demos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install VHS
+        uses: charmbracelet/vhs-action@latest
+        with:
+          install-only: true
+
+      - name: Install ffmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Build project
+        run: |
+          # Language-specific build command
+          # Rust: cargo build --release
+          # Node: npm ci && npm run build
+          # Python: pip install -e .
+          echo "Build step — customize per project"
+
+      - name: Record CLI demos
+        if: hashFiles('.factory/demo-scripts/*.tape') != ''
+        run: |
+          for tape in .factory/demo-scripts/*.tape; do
+            echo "Recording: $tape"
+            vhs "$tape"
+          done
+
+      - name: Record browser demos
+        if: hashFiles('playwright.config.*') != ''
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --project=demo --reporter=html
+
+      - name: Post-process recordings
+        run: |
+          mkdir -p demos/optimized
+          for webm in .factory/demo-recordings/*.webm; do
+            [ -f "$webm" ] || continue
+            base=$(basename "$webm" .webm)
+            # Optimize WebM
+            ffmpeg -i "$webm" -c:v libvpx-vp9 -crf 30 -b:v 0 \
+              -vf "scale=1280:-2" -an -threads 0 \
+              "demos/optimized/${base}.webm" -y
+            # Generate GIF fallback
+            ffmpeg -i "$webm" \
+              -vf "fps=15,scale=800:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
+              -loop 0 "demos/optimized/${base}.gif" -y
+          done
+
+      - name: Upload demo artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-recordings
+          path: demos/optimized/
+          retention-days: 30
+
+      - name: Comment on PR with demo evidence
+        if: github.event_name == 'pull_request'
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            ## Demo Evidence
+
+            Demo recordings generated from acceptance criteria.
+
+            **Artifacts:** Download from the [Actions run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+            <details>
+            <summary>Demo recordings list</summary>
+
+            $(ls demos/optimized/*.gif 2>/dev/null | while read f; do
+              echo "- $(basename $f)"
+            done)
+
+            </details>

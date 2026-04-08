@@ -1,0 +1,18 @@
+{
+  "name": "vsdd-factory",
+  "owner": {
+    "name": "drbothen"
+  },
+  "metadata": {
+    "description": "VSDD dark factory marketplace — spec-driven SDLC pipeline plugins for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "vsdd-factory",
+      "source": "./plugins/vsdd-factory",
+      "description": "Full VSDD pipeline: brownfield ingest, spec crystallization, decomposition, TDD delivery, adversarial review, holdout eval, formal verification, release.",
+      "category": "sdlc",
+      "tags": ["vsdd", "spec-driven", "tdd", "factory"]
+    }
+  ]
+}

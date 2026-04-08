@@ -1,0 +1,38 @@
+# Navigation Patterns
+# Standard navigation structures and behaviors.
+
+patterns:
+  - name: primary-navigation
+    description: "Main app navigation"
+    rules:
+      - "Max 7 top-level items (cognitive load)"
+      - "Active item visually distinct (not color-only)"
+      - "aria-current=page on active page"
+      - "Mobile: hamburger menu or bottom nav"
+      - "Keyboard: Tab to nav, arrow keys between items"
+
+  - name: breadcrumb
+    description: "Location trail"
+    rules:
+      - "Uses <nav aria-label='Breadcrumb'>"
+      - "Items separated by > or / (not color-only)"
+      - "Last item is current page (aria-current=page, not a link)"
+      - "Max 4 levels visible (collapse middle on mobile)"
+
+  - name: pagination
+    description: "Page-based navigation for lists"
+    rules:
+      - "Previous/Next buttons always visible"
+      - "Current page indicated with aria-current=page"
+      - "Show page count: 'Page 3 of 12'"
+      - "Keyboard navigable"
+      - "Skip to first/last page links"
+
+  - name: tab-navigation
+    description: "Content section tabs"
+    rules:
+      - "Uses tablist/tab/tabpanel ARIA pattern"
+      - "Arrow keys switch tabs"
+      - "Tab content lazy-loaded if heavy"
+      - "Active tab visually distinct"
+      - "Disabled tabs have aria-disabled"

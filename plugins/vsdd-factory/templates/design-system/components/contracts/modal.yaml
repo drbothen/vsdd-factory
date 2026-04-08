@@ -1,0 +1,77 @@
+# Component Contract: Modal
+# All modal/dialog implementations MUST satisfy this contract.
+
+component: Modal
+description: "Overlay dialog for focused interactions"
+category: interactive
+
+variants:
+  - dialog        # Standard content dialog
+  - alert         # Non-dismissable alert
+  - confirmation  # Confirm/cancel action
+  - drawer        # Side-sliding panel
+
+required_props:
+  - name: title
+    type: string
+    description: "Modal heading (used as aria-labelledby)"
+  - name: isOpen
+    type: boolean
+    description: "Controls visibility"
+  - name: onClose
+    type: function
+    description: "Close handler"
+
+optional_props:
+  - name: variant
+    type: enum
+    values: [dialog, alert, confirmation, drawer]
+    default: dialog
+  - name: size
+    type: enum
+    values: [sm, md, lg, full]
+    default: md
+  - name: closeOnOverlay
+    type: boolean
+    default: true
+  - name: closeOnEscape
+    type: boolean
+    default: true
+
+states:
+  required:
+    - closed
+    - opening
+    - open
+    - closing
+
+accessibility:
+  role: dialog
+  aria_modal: true
+  aria_labelledby: "title element"
+  focus_trap: "Focus MUST be trapped inside modal when open"
+  focus_return: "Focus MUST return to trigger element on close"
+  keyboard:
+    - "Escape closes (unless alert variant)"
+    - "Tab cycles within modal only"
+    - "Shift+Tab reverse cycles"
+  first_focus: "First focusable element or close button"
+
+design_tokens:
+  overlay: "rgba(0, 0, 0, 0.5)"
+  background: "color-neutral-0"
+  border_radius: "border-radius-lg"
+  shadow: "elevation.shadows.xl"
+  padding: "spacing.inset.comfortable"
+  z_index: "z-index.modal"
+  transition: "motion.duration.slow motion.easing.ease_out"
+
+test_requirements:
+  - "Focus trapped when open"
+  - "Focus returns to trigger on close"
+  - "Escape key closes (dialog/confirmation/drawer)"
+  - "Escape key does NOT close alert variant"
+  - "Overlay click closes when closeOnOverlay=true"
+  - "aria-modal=true when open"
+  - "Background scroll locked when open"
+  - "All 4 states render correctly"

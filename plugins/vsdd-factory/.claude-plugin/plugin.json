@@ -1,0 +1,12 @@
+{
+  "name": "vsdd-factory",
+  "description": "Verified Spec-Driven Development (VSDD) dark factory for software — full SDLC pipeline: brownfield ingest, spec crystallization, story decomposition, TDD delivery, adversarial review, holdout evaluation, formal verification, and release gating.",
+  "version": "0.1.0",
+  "author": {
+    "name": "drbothen"
+  },
+  "homepage": "https://github.com/drbothen/vsdd-factory",
+  "repository": "https://github.com/drbothen/vsdd-factory",
+  "license": "MIT",
+  "keywords": ["vsdd", "spec-driven", "tdd", "factory", "sdlc", "agents", "pipeline"]
+}

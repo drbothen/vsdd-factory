@@ -1,0 +1,31 @@
+# Component Contract: Alert (inline)
+
+component: Alert
+description: "Inline contextual alert/banner"
+category: feedback
+
+variants:
+  - info
+  - success
+  - warning
+  - error
+
+states:
+  required:
+    - info
+    - success
+    - warning
+    - error
+    - dismissing
+
+accessibility:
+  role: alert
+  aria_live: "assertive for error, polite for others"
+  color_independence: "Icon + text required alongside color"
+  dismiss: "Optional close button with aria-label"
+
+test_requirements:
+  - "All 4 semantic variants render with icon + text"
+  - "Correct aria-live region"
+  - "Dismissing respects prefers-reduced-motion"
+  - "Color is not sole state indicator"

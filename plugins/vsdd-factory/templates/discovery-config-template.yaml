@@ -1,0 +1,72 @@
+# Discovery Engine Configuration
+# Copy to .factory/discovery-config.yaml and customize for your product.
+# All sections are optional — unconfigured channels are skipped gracefully.
+
+# Schedule (how often each ingestion runs)
+schedule:
+  market_research: "weekly"
+  feedback_ingestion: "daily"
+  competitive_monitoring: "weekly"
+  analytics_integration: "weekly"
+  full_synthesis: "weekly"
+
+# Customer Feedback Channels
+user_channels:
+  github:
+    enabled: true
+    repo: ""  # e.g., "org/product"
+    labels_include: ["bug", "enhancement", "feature-request", "feedback"]
+    labels_exclude: ["wontfix", "duplicate"]
+
+  slack:
+    enabled: false
+    workspace: ""
+    channels: []  # e.g., ["#product-feedback", "#bug-reports"]
+    bot_token_env: "SLACK_BOT_TOKEN"
+
+  discord:
+    enabled: false
+    server_id: ""
+    channels: []  # e.g., ["feedback", "bug-reports"]
+    bot_token_env: "DISCORD_BOT_TOKEN"
+
+  app_store:
+    enabled: false
+    ios_app_id: ""
+    android_package: ""
+
+  review_sites:
+    enabled: false
+    g2_product_url: ""
+    capterra_product_url: ""
+
+  surveys:
+    enabled: false
+    csv_directory: ".factory/surveys/"
+    expected_columns: ["timestamp", "user_id", "question", "response", "nps_score"]
+
+# Competitive Monitoring
+competitors:
+  # - name: "Competitor A"
+  #   url: "https://competitor-a.com"
+  #   github: "org/repo"
+  #   pricing_url: "https://competitor-a.com/pricing"
+  #   crunchbase: "competitor-a"
+
+# Usage Analytics
+analytics:
+  enabled: false
+  # CSV/JSON export mode
+  export_directory: ".factory/analytics/"
+  # Optional API mode
+  api_endpoint: ""
+  api_key_env: ""
+  metrics:
+    - "feature_adoption"
+    - "error_rates"
+    - "user_journey_dropoff"
+
+# Post-Feature Validation
+post_feature_validation:
+  enabled: true
+  check_intervals: [7, 30, 90]  # days after feature ships

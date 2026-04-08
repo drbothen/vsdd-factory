@@ -1,0 +1,91 @@
+# Component Contract: Button
+# All Button implementations MUST satisfy this contract.
+
+component: Button
+description: "Interactive button element for user actions"
+category: interactive
+
+variants:
+  - primary    # High-emphasis action (one per form/section)
+  - secondary  # Medium-emphasis alternative action
+  - ghost      # Low-emphasis, minimal visual weight
+  - danger     # Destructive actions (delete, remove)
+
+required_props:
+  - name: label
+    type: string
+    description: "Visible button text (also used as default aria-label)"
+  - name: onClick
+    type: function
+    description: "Click handler"
+
+optional_props:
+  - name: variant
+    type: enum
+    values: [primary, secondary, ghost, danger]
+    default: primary
+  - name: size
+    type: enum
+    values: [sm, md, lg]
+    default: md
+  - name: disabled
+    type: boolean
+    default: false
+  - name: loading
+    type: boolean
+    default: false
+  - name: icon
+    type: component
+    position: [leading, trailing]
+  - name: type
+    type: enum
+    values: [button, submit, reset]
+    default: button
+  - name: fullWidth
+    type: boolean
+    default: false
+
+states:
+  required:
+    - default
+    - hover
+    - active
+    - focus
+    - disabled
+    - loading
+  optional:
+    - icon-only  # Requires aria-label override
+
+accessibility:
+  role: button
+  keyboard: [Enter, Space]
+  focus_visible: required
+  min_touch_target: 48px
+  aria_label: "from label prop"
+  disabled_state: "aria-disabled=true, not removed from tab order"
+  loading_state: "aria-busy=true, aria-label includes loading status"
+
+performance:
+  max_bundle_size: "2KB"
+  no_layout_shift: true
+
+design_tokens:
+  background: "color-primary-{variant}"
+  text: "color-neutral-0 (primary/danger) or color-neutral-900 (secondary/ghost)"
+  border_radius: "border-radius-md"
+  padding: "component-sizes.button.{size}"
+  font: "type-scale.label"
+  transition: "motion.duration.fast motion.easing.ease_out"
+  shadow_hover: "elevation.shadows.sm"
+  focus_ring: "accessibility.focus.ring"
+
+test_requirements:
+  - "Renders all 4 variants"
+  - "Renders all 3 sizes"
+  - "Shows loading spinner when loading=true"
+  - "Prevents click when disabled or loading"
+  - "Focus ring visible on keyboard focus"
+  - "Touch target >= 48px"
+  - "Uses semantic <button> element"
+  - "aria-disabled set when disabled"
+  - "aria-busy set when loading"

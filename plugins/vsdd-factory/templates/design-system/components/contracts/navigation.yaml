@@ -1,0 +1,70 @@
+# Component Contract: Navigation
+# All navigation implementations MUST satisfy this contract.
+
+component: Navigation
+description: "Site/app navigation patterns"
+category: interactive
+
+variants:
+  - top-bar     # Horizontal top navigation
+  - sidebar     # Vertical side navigation
+  - bottom-nav  # Mobile bottom tab bar
+  - breadcrumb  # Location trail
+  - tabs        # Content section tabs
+
+required_props:
+  - name: items
+    type: array
+    description: "Navigation items with label, href/onClick, optional icon"
+  - name: activeItem
+    type: string
+    description: "Currently active item identifier"
+
+optional_props:
+  - name: variant
+    type: enum
+    values: [top-bar, sidebar, bottom-nav, breadcrumb, tabs]
+    default: top-bar
+  - name: collapsed
+    type: boolean
+    default: false
+    description: "Sidebar collapsed state"
+  - name: logo
+    type: component
+    description: "Brand logo for top-bar variant"
+
+states:
+  required:
+    - default
+    - active-item
+    - collapsed
+    - expanded
+  optional:
+    - mobile-menu-open
+
+accessibility:
+  role: navigation
+  aria_label: "Descriptive label (e.g., 'Main navigation', 'Breadcrumb')"
+  keyboard:
+    - "Tab enters nav, arrow keys move between items"
+    - "Enter/Space activates item"
+    - "Escape closes mobile menu"
+  active_item: "aria-current=page for current page link"
+  mobile: "Hamburger menu has aria-expanded and aria-controls"
+  landmarks: "<nav> element with unique aria-label"
+
+design_tokens:
+  background: "color-neutral-0 (top-bar), color-neutral-50 (sidebar)"
+  active_indicator: "color-primary-600"
+  text: "color-neutral-700 (inactive), color-primary-600 (active)"
+  font: "type-scale.label"
+  spacing: "spacing.gap.compact"
+  z_index: "z-index.sticky"
+
+test_requirements:
+  - "Uses <nav> semantic element"
+  - "aria-current=page on active item"
+  - "Keyboard navigation with arrow keys"
+  - "Mobile hamburger has aria-expanded"
+  - "Collapsed sidebar accessible"
+  - "All variants render with correct landmarks"

@@ -1,0 +1,93 @@
+# project.yaml — Dark Factory Multi-Repo Project Manifest
+# This file sits above individual repos and describes the project structure.
+# For single-repo projects, this file is OPTIONAL — the factory works without it.
+
+project:
+  name: "acme-platform"
+  description: "Acme Platform — API server, web frontend, and multi-language SDKs"
+  version: "1.0.0"
+
+# Repositories in this project
+repos:
+  api-server:
+    path: "./api-server"                    # Relative to this file
+    language: "rust"
+    framework: "axum"
+    role: "primary"                         # Primary service — others depend on this
+    contracts:
+      produces:
+        - type: "openapi"
+          path: "./api-server/openapi.yaml"
+          consumers: [frontend, sdk-typescript, sdk-python]
+      consumes: []                          # Doesn't consume other repos' contracts
+
+  frontend:
+    path: "./frontend"
+    language: "typescript"
+    framework: "nextjs"
+    role: "consumer"
+    contracts:
+      produces: []
+      consumes:
+        - type: "openapi"
+          source_repo: "api-server"
+          path: "./api-server/openapi.yaml"
+
+  sdk-typescript:
+    path: "./sdk-typescript"
+    language: "typescript"
+    framework: "none"
+    role: "generated"                       # SDK generated from contracts
+    contracts:
+      consumes:
+        - type: "openapi"
+          source_repo: "api-server"
+          path: "./api-server/openapi.yaml"
+    generation:
+      tool: "fern"                          # SDK generation tool (see DF-013)
+      source_contract: "./api-server/openapi.yaml"
+
+  sdk-python:
+    path: "./sdk-python"
+    language: "python"
+    framework: "none"
+    role: "generated"
+    contracts:
+      consumes:
+        - type: "openapi"
+          source_repo: "api-server"
+          path: "./api-server/openapi.yaml"
+    generation:
+      tool: "fern"
+      source_contract: "./api-server/openapi.yaml"
+
+# Cross-repo dependency graph (drives wave computation)
+dependency_graph:
+  # Wave 0: No dependencies — build first
+  - repo: "api-server"
+    depends_on: []
+
+  # Wave 1: Depends on api-server contracts being stable
+  - repo: "frontend"
+    depends_on: ["api-server"]
+    dependency_type: "contract"             # Depends on API contract, not implementation
+
+  - repo: "sdk-typescript"
+    depends_on: ["api-server"]
+    dependency_type: "generation"           # Generated from API contract
+
+  - repo: "sdk-python"
+    depends_on: ["api-server"]
+    dependency_type: "generation"
+
+# Integration testing
+integration:
+  compose_file: "./docker-compose.integration.yml"
+  test_command: "npm run test:integration"
+  test_dir: "./integration-tests"
+
+# Factory configuration
+factory:
+  project_factory_dir: "./.factory-project"   # Project-level factory state
+  per_repo_factory_dirs: true                  # Each repo also has .factory/
+  shared_holdout_scenarios: true               # Holdout scenarios test the integrated system

@@ -1,0 +1,28 @@
+{
+  "$schema": "design-token",
+  "$description": "Animation and transition tokens. All motion must respect prefers-reduced-motion.",
+  "duration": {
+    "instant": { "value": "0ms", "usage": "State changes that should feel immediate" },
+    "fast": { "value": "100ms", "usage": "Hover, focus, active state changes" },
+    "normal": { "value": "200ms", "usage": "Standard transitions (dropdowns, tooltips)" },
+    "slow": { "value": "300ms", "usage": "Page transitions, modals opening" },
+    "deliberate": { "value": "500ms", "usage": "Complex animations, onboarding" }
+  },
+  "easing": {
+    "ease_out": { "value": "cubic-bezier(0.0, 0.0, 0.2, 1)", "usage": "Elements entering view" },
+    "ease_in": { "value": "cubic-bezier(0.4, 0.0, 1, 1)", "usage": "Elements leaving view" },
+    "ease_in_out": { "value": "cubic-bezier(0.4, 0.0, 0.2, 1)", "usage": "Elements moving on screen" },
+    "spring": { "value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)", "usage": "Playful, bouncy interactions" }
+  },
+  "reduced_motion": {
+    "$description": "When prefers-reduced-motion: reduce is active, ALL animations must either be disabled or replaced with simple opacity transitions.",
+    "enforcement": "global",
+    "css": "@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }",
+    "exceptions": "None. No animation is essential enough to override user preference."
+  },
+  "_agent_instructions": {
+    "implementer": "Always include prefers-reduced-motion media query. Use transition tokens, never arbitrary durations.",
+    "test-writer": "Test that animations are disabled when prefers-reduced-motion is set.",
+    "e2e-tester": "Validate reduced-motion behavior in contextual variant tests."
+  }
+}

@@ -1,0 +1,36 @@
+# Component Contract: Toast/Alert notification
+
+component: Toast
+description: "Non-blocking notification message"
+category: feedback
+
+variants:
+  - info
+  - success
+  - warning
+  - error
+
+states:
+  required:
+    - info
+    - success
+    - warning
+    - error
+    - dismissing
+
+accessibility:
+  role: status
+  aria_live: polite
+  error_variant_role: alert
+  error_variant_aria_live: assertive
+  dismiss: "Close button with aria-label='Dismiss notification'"
+  auto_dismiss: "Only for info/success, minimum 5 seconds, never for errors"
+  color_independence: "Icon required alongside color for each variant"
+
+test_requirements:
+  - "All 4 semantic variants render with distinct icon and color"
+  - "aria-live=polite for info/success/warning"
+  - "aria-live=assertive for error"
+  - "Dismiss button has accessible label"
+  - "Error toasts do not auto-dismiss"
+  - "Dismissing animation respects prefers-reduced-motion"

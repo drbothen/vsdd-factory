@@ -1,0 +1,86 @@
+# Design System Global Constraints
+# These rules apply to ALL UI generation. Agents MUST comply.
+
+version: "1.0.0"
+
+token_enforcement:
+  rule: "All styles MUST use design tokens. No hardcoded CSS values for tokenized properties."
+  exceptions:
+    - "Custom CSS allowed only when no token exists for the property"
+    - "Custom CSS must be logged with justification in commit message"
+    - "Custom CSS reviewed at wave gate for potential token creation"
+
+component_enforcement:
+  rule: "Agents MUST use registered components. New components require justification."
+  reuse_first:
+    - "Before creating ANY new component, check component-registry.yaml"
+    - "If Storybook MCP available: call list-all-documentation first"
+    - "New component creation requires: justification + component contract + story file"
+
+semantic_html:
+  rule: "Semantic HTML is mandatory. Divs are for layout grouping only."
+  required:
+    - "<button> for clickable actions (not <div onClick>)"
+    - "<a> for navigation (not <span onClick>)"
+    - "<nav> for navigation regions"
+    - "<main> for primary content"
+    - "<header>/<footer> for page structure"
+    - "<section> with heading for content sections"
+    - "<form> with <fieldset>/<legend> for form groups"
+    - "<table> for tabular data (not for layout)"
+    - "<ul>/<ol> for lists"
+
+accessibility_baseline:
+  wcag_level: "AA"
+  target_level: "AAA where feasible"
+  rules:
+    - "All images have alt text"
+    - "All forms have explicit labels"
+    - "All interactive elements keyboard accessible"
+    - "All pages navigable by screen reader"
+    - "Color is never the sole indicator"
+    - "Motion respects prefers-reduced-motion"
+    - "Touch targets >= 48px on mobile"
+    - "Focus visible on all interactive elements"
+    - "Heading hierarchy: no skipped levels"
+    - "ARIA used correctly (semantic HTML first)"
+
+performance_baseline:
+  lcp: "< 2.5s"
+  fid: "< 100ms"
+  cls: "< 0.1"
+  tti: "< 3.8s"
+  bundle_per_route: "< 200KB JS"
+  image_optimization:
+    - "WebP format"
+    - "Responsive srcset"
+    - "Lazy loading for below-fold"
+    - "Blur placeholder (BlurHash/LQIP)"
+
+async_state_requirements:
+  rule: "Every component that fetches data MUST implement all 4 async states"
+  states:
+    loading: "Skeleton screen or spinner (NEVER blank page)"
+    success: "Populated with data"
+    empty: "'No items to display' with actionable CTA"
+    error: "Error message + retry button"
+
+contextual_adaptation:
+  required:
+    - "prefers-reduced-motion: disable/simplify all animations"
+    - "prefers-color-scheme: dark: dark mode token swap"
+    - "prefers-contrast: more: increased contrast ratios, thicker borders"
+    - "Touch device: 48px minimum touch targets"
+  optional:
+    - "Save-Data header: reduced assets, no video autoplay"
+    - "print: print-friendly stylesheet"
+
+responsive_requirements:
+  breakpoints: [375, 768, 1024, 1440]
+  rules:
+    - "No horizontal scroll at any breakpoint"
+    - "Touch targets >= 48px on mobile/tablet"
+    - "Text readable at every breakpoint (min 16px on mobile)"
+    - "Navigation usable at every breakpoint"
+    - "Forms single column on mobile"
+    - "Content max-width enforced on wide screens"

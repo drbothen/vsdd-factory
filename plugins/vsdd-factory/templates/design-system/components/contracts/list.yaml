@@ -1,0 +1,32 @@
+# Component Contract: List
+
+component: List
+description: "Ordered/unordered list of items"
+category: data-display
+
+variants:
+  - simple
+  - avatar
+  - action
+  - nested
+
+states:
+  required:
+    - default
+    - loading
+    - empty
+    - error
+    - paginating
+
+accessibility:
+  role: list
+  item_role: listitem
+  interactive_items: "If items are clickable, each is role=link or role=button"
+  keyboard: [Tab between interactive items, Enter to activate]
+
+test_requirements:
+  - "All 5 required states render"
+  - "Loading shows skeleton items (not blank)"
+  - "Empty shows message with CTA"
+  - "Error shows message with retry"
+  - "Correct list semantics (<ul>/<ol>)"

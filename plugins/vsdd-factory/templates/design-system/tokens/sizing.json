@@ -1,0 +1,53 @@
+{
+  "$schema": "design-token",
+  "$description": "Component sizing and breakpoint definitions. All size values must use these tokens.",
+  "breakpoints": {
+    "mobile": { "value": 375, "label": "Mobile", "min_touch_target": "48px" },
+    "tablet": { "value": 768, "label": "Tablet", "min_touch_target": "48px" },
+    "desktop": { "value": 1024, "label": "Desktop" },
+    "wide": { "value": 1440, "label": "Wide Desktop" }
+  },
+  "container": {
+    "max_width": { "value": "1200px", "usage": "Main content container" },
+    "narrow": { "value": "720px", "usage": "Prose content, forms" },
+    "wide": { "value": "1400px", "usage": "Dashboard, data-heavy pages" }
+  },
+  "component_sizes": {
+    "button": {
+      "sm": { "height": "32px", "padding_x": "12px", "font_size": "0.875rem" },
+      "md": { "height": "40px", "padding_x": "16px", "font_size": "0.875rem" },
+      "lg": { "height": "48px", "padding_x": "24px", "font_size": "1rem" }
+    },
+    "input": {
+      "sm": { "height": "32px", "padding_x": "8px" },
+      "md": { "height": "40px", "padding_x": "12px" },
+      "lg": { "height": "48px", "padding_x": "16px" }
+    },
+    "avatar": {
+      "xs": { "size": "24px" },
+      "sm": { "size": "32px" },
+      "md": { "size": "40px" },
+      "lg": { "size": "56px" },
+      "xl": { "size": "80px" }
+    },
+    "icon": {
+      "sm": { "size": "16px" },
+      "md": { "size": "20px" },
+      "lg": { "size": "24px" },
+      "xl": { "size": "32px" }
+    }
+  },
+  "touch_target": {
+    "minimum": "48px",
+    "recommended": "48px",
+    "enforcement": "All interactive elements on touch devices MUST meet minimum"
+  },
+  "border_radius": {
+    "none": { "value": "0px" },
+    "sm": { "value": "4px", "usage": "Inputs, small elements" },
+    "md": { "value": "8px", "usage": "Cards, buttons, containers" },
+    "lg": { "value": "12px", "usage": "Modals, large cards" },
+    "xl": { "value": "16px", "usage": "Hero sections, featured cards" },
+    "full": { "value": "9999px", "usage": "Pills, avatars, round buttons" }
+  }
+}

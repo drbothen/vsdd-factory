@@ -1,0 +1,115 @@
+{
+  "$schema": "design-token",
+  "$description": "Typography scale. All type styles must use these tokens. Agents MUST NOT use arbitrary font sizes or weights.",
+  "font_families": {
+    "heading": {
+      "value": "var(--font-heading)",
+      "fallback": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    },
+    "body": {
+      "value": "var(--font-body)",
+      "fallback": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    },
+    "mono": {
+      "value": "var(--font-mono)",
+      "fallback": "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace"
+    }
+  },
+  "type_scale": {
+    "display-1": {
+      "family": "var(--font-heading)",
+      "size": "3.5rem",
+      "weight": 800,
+      "line_height": 1.1,
+      "letter_spacing": "-0.02em",
+      "min_contrast": 4.5,
+      "usage": "Hero sections, landing page headers"
+    },
+    "heading-1": {
+      "family": "var(--font-heading)",
+      "size": "2rem",
+      "weight": 700,
+      "line_height": 1.2,
+      "letter_spacing": "-0.01em",
+      "min_contrast": 4.5,
+      "usage": "Page titles (one per page)"
+    },
+    "heading-2": {
+      "family": "var(--font-heading)",
+      "size": "1.5rem",
+      "weight": 600,
+      "line_height": 1.3,
+      "min_contrast": 4.5,
+      "usage": "Section headings"
+    },
+    "heading-3": {
+      "family": "var(--font-heading)",
+      "size": "1.25rem",
+      "weight": 600,
+      "line_height": 1.4,
+      "min_contrast": 4.5,
+      "usage": "Subsection headings"
+    },
+    "heading-4": {
+      "family": "var(--font-heading)",
+      "size": "1.125rem",
+      "weight": 600,
+      "line_height": 1.4,
+      "min_contrast": 4.5,
+      "usage": "Card headings, minor sections"
+    },
+    "body-large": {
+      "family": "var(--font-body)",
+      "size": "1.125rem",
+      "weight": 400,
+      "line_height": 1.6,
+      "min_contrast": 4.5,
+      "usage": "Lead paragraphs, introductions"
+    },
+    "body": {
+      "family": "var(--font-body)",
+      "size": "1rem",
+      "weight": 400,
+      "line_height": 1.5,
+      "min_contrast": 4.5,
+      "usage": "Default body text"
+    },
+    "body-small": {
+      "family": "var(--font-body)",
+      "size": "0.875rem",
+      "weight": 400,
+      "line_height": 1.5,
+      "min_contrast": 4.5,
+      "usage": "Secondary text, metadata"
+    },
+    "caption": {
+      "family": "var(--font-body)",
+      "size": "0.75rem",
+      "weight": 400,
+      "line_height": 1.4,
+      "min_contrast": 4.5,
+      "usage": "Captions, helper text, timestamps"
+    },
+    "label": {
+      "family": "var(--font-body)",
+      "size": "0.875rem",
+      "weight": 500,
+      "line_height": 1.2,
+      "letter_spacing": "0.01em",
+      "min_contrast": 4.5,
+      "usage": "Form labels, button text, nav items"
+    },
+    "code": {
+      "family": "var(--font-mono)",
+      "size": "0.875rem",
+      "weight": 400,
+      "line_height": 1.6,
+      "usage": "Inline code, code blocks"
+    }
+  },
+  "_constraints": {
+    "min_body_size_mobile": "16px",
+    "max_line_length_prose": "80ch",
+    "heading_hierarchy": "h1 > h2 > h3 > h4 (no skipped levels)"
+  }
+}

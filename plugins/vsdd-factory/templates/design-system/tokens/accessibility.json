@@ -1,0 +1,71 @@
+{
+  "$schema": "design-token",
+  "$description": "Accessibility tokens for focus styles, reduced-motion, and high-contrast mode.",
+  "focus": {
+    "ring": {
+      "width": "2px",
+      "style": "solid",
+      "color": "var(--color-primary-600)",
+      "offset": "2px",
+      "css": "outline: 2px solid var(--color-primary-600); outline-offset: 2px;",
+      "usage": "All focusable elements MUST show this focus ring on :focus-visible"
+    },
+    "ring_inverted": {
+      "color": "#ffffff",
+      "usage": "Focus ring on dark backgrounds"
+    }
+  },
+  "high_contrast": {
+    "$description": "Token overrides for prefers-contrast: more",
+    "border_width": "2px",
+    "min_contrast_ratio": 7.0,
+    "text_decoration_links": "underline",
+    "enforcement": "When prefers-contrast: more, increase all border widths and ensure AAA contrast ratios"
+  },
+  "color_independence": {
+    "$description": "Color must NEVER be the sole indicator of state",
+    "rules": [
+      "Error states: red color + error icon + error text",
+      "Success states: green color + checkmark icon + success text",
+      "Warning states: amber color + warning icon + warning text",
+      "Selected states: color change + checkmark or border change",
+      "Links: color + underline (not color-only)"
+    ]
+  },
+  "touch_targets": {
+    "minimum_size": "48px",
+    "minimum_spacing": "8px",
+    "enforcement": "All interactive elements on touch devices"
+  },
+  "heading_hierarchy": {
+    "rules": [
+      "Exactly one h1 per page",
+      "No skipped heading levels (h1 -> h3 without h2 is invalid)",
+      "Heading level reflects document outline, not visual size"
+    ]
+  },
+  "aria": {
+    "rules": [
+      "Semantic HTML first: <button> not <div role='button'>",
+      "ARIA only when semantic HTML insufficient",
+      "All interactive custom elements must have role, keyboard, and state management",
+      "No ARIA soup: every aria attribute must serve a purpose",
+      "Live regions for dynamic content updates"
+    ]
+  },
+  "keyboard": {
+    "rules": [
+      "All interactive elements reachable via Tab",
+      "Enter/Space activates buttons and links",
+      "Escape closes modals, dropdowns, popovers",
+      "Arrow keys navigate within composite widgets (tabs, menus, listboxes)",
+      "Focus trapped in modals until dismissed",
+      "Focus returns to trigger element when modal closes"
+    ]
+  },
+  "_agent_instructions": {
+    "implementer": "Use semantic HTML. Apply focus ring token to all interactive elements. Never remove outline without replacing it.",
+    "accessibility-auditor": "Check all rules in this file at every validation point.",
+    "test-writer": "Generate tests for keyboard navigation, focus management, screen reader announcements, and heading hierarchy."
+  }
+}
