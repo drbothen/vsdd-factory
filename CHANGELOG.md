@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.5.0 — Wave 4: Enforcement layer (hooks)
+
+Ported dark-factory's OpenClaw runtime extensions to Claude Code hooks. This is the "make the wrong thing impossible" wave — recovering the enforcement discipline that was missing from the initial extract.
+
+**New hooks** (in `plugins/vsdd-factory/hooks/`):
+
+- `brownfield-discipline.sh` (PreToolUse) — blocks edits to `.reference/**`
+- `protect-bc.sh` (PreToolUse) — blocks edits to green Behavioral Contracts
+- `red-gate.sh` (PreToolUse) — enforces TDD red-before-green when `.factory/red-gate-state.json` declares strict mode; opt-in per project
+- `purity-check.sh` (PostToolUse, warn) — flags side-effect patterns in pure-core paths (`*/pure/**`, `*/core/**`, `*_pure.rs`, `*.pure.ts`, `*/kernel/*`)
+- `regression-gate.sh` (PostToolUse) — records cargo/pytest/npm/go test outcomes to `.factory/regression-state.json`, warns on pass→fail transitions
+- `handoff-validator.sh` (SubagentStop) — warns on empty/truncated subagent output
+- `session-learning.sh` (Stop) — appends session-end markers to `.factory/sidecar-learning.md`
+
+**Wired existing hooks**:
+
+- `protect-vp.sh` (PreToolUse, Edit|Write) — already shipped, now registered
+- `verify-git-push.sh` (PreToolUse, Bash) — registered
+- `check-factory-commit.sh` (PreToolUse, Bash) — registered
+
+All hooks follow `.claude/rules/bash.md`: `set -euo pipefail`, jq-based JSON parsing with stderr guards, no `eval`, tool availability checks, STDERR-EXEMPT tags where stderr suppression is intentional. All 10 hooks pass `bash -n` syntax checks and basic smoke tests.
+
+**Not portable** (needs API-level integration Claude Code doesn't expose):
+
+- Cost tracker, attention heatmap, tiered-context enforcement, full sidecar-learning synthesis — will ship as doc stubs in Wave 6.
+
 ## 0.4.0 — Wave 3: Design system, UX, and market intelligence
 
 - Ported 13 skills for UI-heavy projects and product-intelligence workflows

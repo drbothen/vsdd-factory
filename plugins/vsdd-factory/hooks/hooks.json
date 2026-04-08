@@ -3,13 +3,46 @@
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
-        "if": "Edit(.factory/specs/verification-properties/**)|Write(.factory/specs/verification-properties/**)",
         "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/protect-vp.sh",
-            "timeout": 5
-          }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/brownfield-discipline.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/protect-vp.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/protect-bc.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/red-gate.sh", "timeout": 5 }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/verify-git-push.sh", "timeout": 10 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/check-factory-commit.sh", "timeout": 5 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/purity-check.sh", "timeout": 5 }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/regression-gate.sh", "timeout": 5 }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/handoff-validator.sh", "timeout": 5 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-learning.sh", "timeout": 5 }
         ]
       }
     ]
