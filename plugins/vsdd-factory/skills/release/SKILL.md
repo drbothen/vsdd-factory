@@ -1,155 +1,183 @@
 ---
 name: release
-description: Release workflow — merge develop to main, tag version, generate changelog, create GitHub release. Only run after convergence check passes (Phase 6 complete).
-argument-hint: "[version]"
-disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+description: >
+  Release pipeline: semver determination, CHANGELOG generation, git tagging,
+  GitHub Release creation, registry publishing, and post-release docs update.
 ---
 
-# Release
+# Release Pipeline
 
-Merge `develop` into `main`, tag, and publish a GitHub release.
+## When This Skill Runs
 
-## Templates
-
-Read and follow the output format in:
-- `.claude/templates/release-notes-template.md` — release notes structure
-- `.claude/templates/cycle-manifest-template.md` — cycle completion record
+After convergence is achieved and human approval is granted. The orchestrator
+spawns the devops-engineer to execute the release.
 
 ## Prerequisites
 
-1. **Convergence check must pass.** Read `.factory/cycles/<current>/convergence-report.md` and verify all 7 dimensions are CONVERGED. If not, abort and tell the user what's missing.
+- Convergence report shows all dimensions CONVERGED
+- Human has approved deployment via the convergence human-approval gate
+- `gh` CLI installed and authenticated
+- CI/CD release workflow exists at `.github/workflows/release.yml`
 
-2. **All PRs merged to develop.** No open PRs targeting develop.
-   ```bash
-   gh pr list --base develop --state open
-   ```
+## Workflow
 
-3. **All tests pass on develop.**
-   ```bash
-   git checkout develop && cargo test --release
-   ```
+### Step 1: Determine Semver Version
 
-## Input
+Read story types from `STORY-INDEX.md` (or `.factory/stories/`):
 
-`$ARGUMENTS` — version number (e.g., `1.0.0`). Must follow semver.
-
-If no version provided, read the convergence report cycle name (e.g., `v1.0.0-greenfield`) and extract the version. Ask the user to confirm.
-
-## Process
-
-### 1. Version Validation
-
-- Verify version follows semver (MAJOR.MINOR.PATCH)
-- Check no existing tag with this version: `git tag -l "v<version>"`
-- If tag exists, abort
-
-### 2. Generate Changelog
-
-Collect changes from develop since last release tag (or since beginning if first release):
-
-```bash
-git log main..develop --oneline --no-merges
+```
+Version determination rules:
+  - Any story with "feat" type       -> MINOR bump
+  - Only stories with "fix" type     -> PATCH bump
+  - Any story flagged breaking_change -> MAJOR bump
+  - First release (no prior tags)    -> 1.0.0 (or 0.1.0 if pre-stable)
 ```
 
-Group by conventional commit type:
-- **Features** (feat)
-- **Bug Fixes** (fix)
-- **Performance** (perf)
-- **Breaking Changes** (feat! / fix! / BREAKING CHANGE footer)
-- **Other** (docs, refactor, test, chore)
+Check current version:
+```bash
+git describe --tags --abbrev=0 2>/dev/null || echo "no prior release"
+```
 
-Write to `CHANGELOG.md` (on develop, before merge):
+Present the proposed version to the orchestrator for confirmation before
+proceeding.
+
+### Step 2: Generate CHANGELOG.md
+
+Parse git log since last tag (or initial commit if first release):
+
+```bash
+git log $(git describe --tags --abbrev=0 2>/dev/null)..HEAD \
+  --pretty=format:"%s (%h)" --no-merges
+```
+
+Group entries by commit type:
 
 ```markdown
 # Changelog
 
-## [<version>] - <YYYY-MM-DD>
+## [vX.Y.Z] - YYYY-MM-DD
 
 ### Features
-- <description> (<commit hash>)
+- feat(STORY-NNN): [description] (#PR_NUMBER)
 
 ### Bug Fixes
-- ...
+- fix(FIX-P4-NNN): [description] (#PR_NUMBER)
+
+### Security
+- fix(FIX-P5-NNN): [description] (#PR_NUMBER)
 
 ### Breaking Changes
-- ...
+- [description with migration guide]
+
+### Quality Evidence
+- Convergence: 7/7 dimensions CONVERGED after N adversarial passes
+- Tests: NNN passing, NN% coverage
+- Mutation kill rate: NN%
+- Holdout satisfaction: 0.NN
+- Formal proofs: N/N verified
+- Security findings: 0 CRIT/HIGH
 ```
 
-Commit: `chore: update changelog for v<version>`
+Commit the CHANGELOG:
+```bash
+git add CHANGELOG.md
+git commit -m "docs: update CHANGELOG for vX.Y.Z"
+```
 
-### 3. Merge to Main
+### Step 3: Tag and Push
 
 ```bash
-git checkout main
-git merge develop --no-ff -m "release: v<version>"
+git tag -a vX.Y.Z -m "Release vX.Y.Z: [summary]"
+git push origin develop    # CHANGELOG commit
+git push origin vX.Y.Z     # tag triggers release.yml workflow
 ```
 
-Use `--no-ff` to preserve the merge commit as a release boundary.
-
-### 4. Tag
+### Step 4: Wait for Release CI
 
 ```bash
-git tag -a "v<version>" -m "Release v<version>"
+# Wait for the release workflow triggered by the tag push
+gh run watch
 ```
 
-### 5. Update Factory State
+If the release build fails:
+1. Diagnose the failure from CI logs
+2. Fix via the fix-pr-delivery flow
+3. Delete the failed tag, re-tag after fix merges
+4. Re-push the tag
 
-Write cycle manifest to `.factory/cycles/<current>/cycle-manifest.md`:
-- Stories delivered
-- BCs implemented
-- VPs verified
-- Spec changes
-- Lessons learned
-
-Update STATE.md: phase → `release`, pipeline → `COMPLETED`.
-
-Commit factory artifacts.
-
-### 6. Push
-
-**Ask the user before pushing.** Show what will be pushed:
-
-```
-Ready to push:
-  main     → origin/main (merge commit + tag)
-  develop  → origin/develop (changelog)
-  v<version> tag
-
-Push now? (y/n)
-```
-
-If approved:
-```bash
-git push origin main develop --tags
-```
-
-### 7. Create GitHub Release
+### Step 5: Create GitHub Release
 
 ```bash
-gh release create "v<version>" \
-  --title "v<version>" \
-  --notes-file CHANGELOG.md \
-  --target main
+gh release create vX.Y.Z \
+  --title "vX.Y.Z: [release title]" \
+  --notes-file .factory/release/CHANGELOG-vX.Y.Z.md \
+  --attach .factory/demo-evidence/final-journey/*.gif
 ```
 
-### 8. Post-Release
+The release includes:
+- Release notes from CHANGELOG
+- Built binaries (uploaded by release.yml CI)
+- Demo GIF from final journey recording
+- Convergence summary
 
-- Tell the user the release URL
-- Remind about post-release tasks:
-  - Update CLAUDE.md if architecture changed
-  - Close related Jira tickets
-  - Notify stakeholders
+### Step 6: Post-Release Updates
 
-## Output
+1. **Update README.md version badge:**
+   ```markdown
+   ![Version](https://img.shields.io/badge/version-vX.Y.Z-blue)
+   ```
 
-```
-Release v<version> complete:
-  Tag:     v<version>
-  Release: <GitHub release URL>
-  Stories: <N> delivered
-  BCs:     <N> implemented
-  
-  develop and main are now in sync.
-  Next cycle starts from develop.
-```
+2. **Update installation instructions** (if version-specific):
+   ```bash
+   cargo install product-name@X.Y.Z
+   # or
+   npm install product-name@X.Y.Z
+   ```
+
+3. **Commit docs update:**
+   ```bash
+   git add README.md
+   git commit -m "docs: update version badge and install instructions for vX.Y.Z"
+   git push origin develop
+   ```
+
+### Step 7: Registry Publishing (Handled by CI)
+
+The `release.yml` workflow handles publishing to registries:
+- **Rust:** `cargo publish` to crates.io
+- **Node.js:** `npm publish` to npm
+- **Python:** `twine upload` to PyPI
+- **Docker:** `docker push` to GHCR
+
+If CI publishing fails, the devops-engineer can publish manually after
+diagnosing the issue.
+
+## Release Notes Template
+
+Use `templates/release-notes-template.md` for the GitHub Release body.
+Include:
+- Highlights (2-3 sentence summary)
+- Features, bug fixes, security fixes
+- Quality evidence table
+- Demo GIF
+- Breaking changes with migration guide
+- Link to convergence report
+
+## Output Artifacts
+
+| Artifact | Path | Description |
+|----------|------|-------------|
+| CHANGELOG entry | `CHANGELOG.md` | Versioned release notes |
+| Git tag | `vX.Y.Z` | Annotated release tag |
+| GitHub Release | `gh release` | Release with binaries + demo evidence |
+| README update | `README.md` | Version badge + install instructions |
+
+## Quality Gate Criteria
+
+- [ ] Semver version determined from story types and confirmed by orchestrator
+- [ ] CHANGELOG.md generated and committed
+- [ ] Git tag created with annotated message
+- [ ] release.yml CI passed
+- [ ] GitHub Release created with binaries and demo evidence
+- [ ] README.md version badge updated
+- [ ] Registry publishing succeeded (if applicable)
