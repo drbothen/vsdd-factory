@@ -1,6 +1,30 @@
 # Pass 3: Behavioral Contracts
 
-_Phase B convergence round 2._
+_Phase B convergence round 3 — **CONVERGED**. 2 contract amendments (no new contracts), 5 nitpicks. Protocol minimum satisfied; round 3 is terminal for passes 2 and 3._
+
+## Changes from round 2
+
+Round 3 read the full bodies of `skills/executing-plans/SKILL.md` (70 LOC), `skills/subagent-driven-development/SKILL.md` (278 LOC past cited ranges), both SDD fixtures (`tests/subagent-driven-dev/{go-fractals,svelte-todo}/`), `tests/subagent-driven-dev/run-test.sh`, `tests/claude-code/test-subagent-driven-development.sh`, and `tests/claude-code/test-subagent-driven-development-integration.sh`. Round 3 adds two contract amendments (to BC-DRAFT-007 and BC-DRAFT-011) and declares both passes converged. No new domain entities discovered.
+
+### BC-DRAFT-007 Amendment: Terminal final-code-reviewer pass
+
+**Additional post-condition:** After ALL per-task two-stage reviews complete and before `finishing-a-development-branch`, SDD dispatches ONE MORE code-reviewer subagent over the entire implementation ("Dispatch final code reviewer subagent for entire implementation"). This is a third review checkpoint distinct from the per-task pair. Only after the final reviewer returns does the controller invoke `superpowers:finishing-a-development-branch`.
+**Evidence:** `skills/subagent-driven-development/SKILL.md:63, 82-83, 195-197`
+**Confidence:** HIGH
+
+### BC-DRAFT-011 Amendment: Ordered BLOCKED remediation ladder
+
+**Additional post-condition for BLOCKED status:** Controller MUST apply remediation in this order before escalating: (1) if context problem → provide more context, re-dispatch same model; (2) if needs more reasoning → re-dispatch with more capable model; (3) if task too large → break into smaller pieces; (4) if plan itself is wrong → escalate to human. Absolute rule: "Never ignore an escalation or force the same model to retry without changes" (`SKILL.md:118`). DONE_WITH_CONCERNS has a parallel decision split: correctness/scope concerns → fix before review; observational concerns (e.g., "this file is getting large") → note and proceed.
+**Evidence:** `skills/subagent-driven-development/SKILL.md:102-118`
+**Confidence:** HIGH
+
+### Round 3 nitpicks (recorded, not promoted to contracts)
+
+- **SDD fixture triple format:** Each SDD test under `tests/subagent-driven-dev/<name>/` consists of exactly three files: `design.md`, `plan.md`, `scaffold.sh`. Runner scaffolds via `scaffold.sh <outdir>/project`, then dispatches the literal prompt `"Execute this plan using superpowers:subagent-driven-development. The plan is at: <plan-path>"` via `claude -p --output-format stream-json --verbose --dangerously-skip-permissions` (`tests/subagent-driven-dev/run-test.sh:36-81`). Language-specific verification: go-fractals → `go test ./...`; svelte-todo → `npm test && npx playwright test` (`run-test.sh:102-105`).
+- **executing-plans subagent-availability advisory:** `executing-plans/SKILL.md:14` instructs the agent to TELL the human partner that superpowers "works much better with access to subagents" and to prefer `subagent-driven-development` when available. Advisory nudge, not hard contract.
+- **executing-plans terminal handoff:** `executing-plans/SKILL.md:32-38` mandates `finishing-a-development-branch` as the REQUIRED SUB-SKILL after all tasks — already covered by BC-DRAFT-027.
+- **Integration test assertions** (`tests/claude-code/test-subagent-driven-development-integration.sh:189-267`): asserts session transcript contains `"name":"Skill".*"skill":"superpowers:subagent-driven-development"`, Task tool count ≥ 2, TodoWrite count ≥ 1, git commit count > 2, and NO extra math functions beyond spec (`divide`/`power`/`subtract`). Extra-feature check is graded WARN, not FAIL — tests spec-reviewer effectiveness without gating the build.
+- **Unit test assertions** (`tests/claude-code/test-subagent-driven-development.sh:36, 87, 131`): nine assertions via `run_claude` including ordering (`spec.*compliance` BEFORE `code.*quality`), skeptical reviewer attitude (`not trust|skeptical|suspiciously`), negative assertion that subagents do NOT read files. These are compliance tests against already-captured normative contracts.
 
 ## Changes from round 1
 
