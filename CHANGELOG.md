@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.10.1 — Step-file content fill
+
+Closes the last deferred item from 0.9.0: empty `steps/` placeholder stubs in three skills now carry real per-step playbooks.
+
+### 17 step files expanded (1566 LOC)
+
+The three facilitation / inspection skills (`brainstorming`, `artifact-detection`, `guided-brief-creation`) had `## Step-File Decomposition` tables referencing per-step files that were 3-6 line placeholders. The parent SKILL.md carried the high-level flow; the step files existed only as stubs.
+
+Each step file is now a 58-130 line self-contained playbook the orchestrator can load on demand when executing that specific step. Structure per file:
+
+- **Inputs** — what previous steps produced, files to read, expected state
+- **Outputs** — exact artifact paths and formats
+- **Procedure** — specific moves, exact elicitation questions (for facilitation skills), exact commands and glob patterns (for inspection skills)
+- **Decision points** — branches with criteria, where applicable
+- **Failure modes** — step-level failures (distinct from whole-skill failures in parent SKILL.md)
+- **Quality gate** — short checklist before advancing
+- **Hand-off** — what to pass to the next step
+
+**brainstorming (6 files, 487 LOC):** session setup, technique selection, facilitated ideation, synthesis, direction selection, report writing. Includes exact opening questions, transition phrases, SCAMPER/reverse-brainstorming/mind-mapping/constraint-removal scripts, and the verbatim markdown template for `brainstorming-report.md`.
+
+**artifact-detection (5 files, 510 LOC):** scan, classify, validate, gap analysis, route decision. Includes exact glob patterns per artifact type, explicit validation checklists (rewritten from the SKILL.md prose as iterable rules), DF-020/DF-021 format-migration handling, and verbatim templates for `artifact-inventory.md`, `gap-analysis.md`, and `routing-decision.md`.
+
+**guided-brief-creation (6 files, 569 LOC):** understand intent, contextual discovery, guided elicitation, draft review, adversarial review, finalize. Includes exact section-by-section elicitation questions, research-agent / adversary dispatch criteria, market-intel integration points, and verbatim structures for `product-brief.md` and `elicitation-notes.md`.
+
+### Cross-step dependencies surfaced
+
+Step files make explicit several dependencies that were implicit in the prose:
+
+- **artifact-detection format flags propagate** — format detection in step 1b (FR-NNN vs BC-S.SS.NNN, old vs DF-021-sharded architecture) flows into step 3 validation rules and step 5 routing decisions
+- **guided-brief-creation market-intel reference** — `market-intel.md` is read in step 3 and again in step 5 adversarial review for differentiation and risk signals
+- **guided-brief-creation adversarial loopback** — step 5 feedback can send the agent back to step 3 (re-elicitation) or step 4 (redraft)
+
+### Meta
+
+- No SKILL.md files modified. Step-file decomposition tables unchanged.
+- All 59 tests still pass. No new tests added for step-file content (content is prose, not behavior).
+- Full analysis report at `.factory/semport/STEPS-REPORT.md`.
+
 ## 0.10.0 — Deferred remediation: commands, hook envelopes, structural tests
 
 Closes out the remaining P1/P2 items deferred from 0.9.0.
