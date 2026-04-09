@@ -12,12 +12,12 @@ Transform the product brief (and optional domain spec) into a comprehensive PRD 
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/prd-template.md` — PRD structure
-- `.claude/templates/behavioral-contract-template.md` — BC-S.SS.NNN format
-- `.claude/templates/prd-supplement-error-taxonomy-template.md` — error taxonomy
-- `.claude/templates/prd-supplement-interface-definitions-template.md` — interface definitions
-- `.claude/templates/prd-supplement-nfr-catalog-template.md` — non-functional requirements
-- `.claude/templates/module-criticality-template.md` — module criticality classification
+- `${CLAUDE_PLUGIN_ROOT}/templates/prd-template.md` — PRD structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/behavioral-contract-template.md` — BC-S.SS.NNN format
+- `${CLAUDE_PLUGIN_ROOT}/templates/prd-supplement-error-taxonomy-template.md` — error taxonomy
+- `${CLAUDE_PLUGIN_ROOT}/templates/prd-supplement-interface-definitions-template.md` — interface definitions
+- `${CLAUDE_PLUGIN_ROOT}/templates/prd-supplement-nfr-catalog-template.md` — non-functional requirements
+- `${CLAUDE_PLUGIN_ROOT}/templates/module-criticality-template.md` — module criticality classification
 
 ## Prerequisites
 

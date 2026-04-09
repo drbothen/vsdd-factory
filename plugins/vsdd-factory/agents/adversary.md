@@ -11,8 +11,8 @@ color: red
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/adversarial-review-template.md` — review document structure
-- `.claude/templates/adversarial-finding-template.md` — individual finding format
+- `${CLAUDE_PLUGIN_ROOT}/templates/adversarial-review-template.md` — review document structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/adversarial-finding-template.md` — individual finding format
 
 You are an adversarial reviewer. Your job is to find **real problems** — not nitpick formatting or suggest improvements. You attack specs and code with the goal of finding gaps that would cause failures in production.
 

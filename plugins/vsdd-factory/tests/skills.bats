@@ -108,3 +108,39 @@ setup() {
   grep -qF "Phase 1" "$AGENT"
   grep -qF "Phase 2" "$AGENT"
 }
+
+# ---------- Template path portability ----------
+#
+# Templates live at ${CLAUDE_PLUGIN_ROOT}/templates/ in the plugin. The
+# legacy `.claude/templates/` path only resolves inside corverax (where the
+# plugin was originally developed) — a clean install of vsdd-factory would
+# not have that directory. Every template reference in skills and agents
+# must use ${CLAUDE_PLUGIN_ROOT}/templates/ so the plugin is portable.
+
+@test "no skill references the non-portable .claude/templates/ path" {
+  SKILLS_DIR="${BATS_TEST_DIRNAME}/../skills"
+  ! grep -rq "\.claude/templates/" "$SKILLS_DIR"
+}
+
+@test "no agent references the non-portable .claude/templates/ path" {
+  AGENTS_DIR="${BATS_TEST_DIRNAME}/../agents"
+  ! grep -rq "\.claude/templates/" "$AGENTS_DIR"
+}
+
+@test "every referenced template actually exists in plugin templates/" {
+  PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
+  missing=0
+  # Extract every ${CLAUDE_PLUGIN_ROOT}/templates/<file>.md reference
+  # from skills and agents, strip the prefix, check the file exists.
+  while IFS= read -r ref; do
+    [ -z "$ref" ] && continue
+    if [ ! -f "${PLUGIN_ROOT}/${ref}" ]; then
+      echo "MISSING: ${ref}" >&2
+      missing=$((missing + 1))
+    fi
+  done < <(grep -rho '\${CLAUDE_PLUGIN_ROOT}/templates/[a-zA-Z0-9_/-]*\.md' \
+             "${PLUGIN_ROOT}/skills" "${PLUGIN_ROOT}/agents" \
+             | sed 's|${CLAUDE_PLUGIN_ROOT}/||' \
+             | sort -u)
+  [ "$missing" -eq 0 ]
+}

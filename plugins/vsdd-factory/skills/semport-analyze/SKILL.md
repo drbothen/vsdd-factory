@@ -11,7 +11,7 @@ Semantic code porting analysis. Scans a reference codebase and produces translat
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/gene-transfusion-assessment-template.md` — assessment structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/gene-transfusion-assessment-template.md` — assessment structure
 
 ## Input
 

@@ -12,7 +12,7 @@ Check cross-file consistency across all factory artifacts.
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/consistency-report-template.md` — consistency validation report
+- `${CLAUDE_PLUGIN_ROOT}/templates/consistency-report-template.md` — consistency validation report
 
 ## Checks
 

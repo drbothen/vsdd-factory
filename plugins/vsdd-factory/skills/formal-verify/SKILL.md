@@ -12,10 +12,10 @@ Phase 5 quality gate. Run multiple verification techniques against the codebase.
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/fuzz-report-template.md` — fuzz testing report
-- `.claude/templates/security-review-template.md` — security scan findings
-- `.claude/templates/security-scan-report-template.md` — security scan report
-- `.claude/templates/verification-gap-analysis-template.md` — verification coverage gaps
+- `${CLAUDE_PLUGIN_ROOT}/templates/fuzz-report-template.md` — fuzz testing report
+- `${CLAUDE_PLUGIN_ROOT}/templates/security-review-template.md` — security scan findings
+- `${CLAUDE_PLUGIN_ROOT}/templates/security-scan-report-template.md` — security scan report
+- `${CLAUDE_PLUGIN_ROOT}/templates/verification-gap-analysis-template.md` — verification coverage gaps
 
 ## Techniques
 

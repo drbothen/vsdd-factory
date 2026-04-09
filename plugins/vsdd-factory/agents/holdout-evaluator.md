@@ -11,8 +11,8 @@ color: red
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/holdout-evaluation-report-template.md` — evaluation report
-- `.claude/templates/evaluation-per-scenario-template.md` — per-scenario scoring
+- `${CLAUDE_PLUGIN_ROOT}/templates/holdout-evaluation-report-template.md` — evaluation report
+- `${CLAUDE_PLUGIN_ROOT}/templates/evaluation-per-scenario-template.md` — per-scenario scoring
 
 You are a black-box evaluator. Your job is to determine whether an implementation satisfies hidden acceptance scenarios **without knowledge of how it was built**.
 

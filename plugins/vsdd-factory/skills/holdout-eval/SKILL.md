@@ -14,10 +14,10 @@ Launch the holdout-evaluator agent to run hidden acceptance scenarios against me
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/holdout-evaluation-report-template.md` — evaluation report
-- `.claude/templates/evaluation-summary-template.md` — evaluation summary
-- `.claude/templates/evaluation-per-scenario-template.md` — per-scenario scoring
-- `.claude/templates/evaluation-index-template.md` — evaluation index
+- `${CLAUDE_PLUGIN_ROOT}/templates/holdout-evaluation-report-template.md` — evaluation report
+- `${CLAUDE_PLUGIN_ROOT}/templates/evaluation-summary-template.md` — evaluation summary
+- `${CLAUDE_PLUGIN_ROOT}/templates/evaluation-per-scenario-template.md` — per-scenario scoring
+- `${CLAUDE_PLUGIN_ROOT}/templates/evaluation-index-template.md` — evaluation index
 
 ## Input
 

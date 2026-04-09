@@ -12,9 +12,9 @@ Maintain behavioral clones of critical subsystems.
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/dtu-assessment-template.md` — DTU assessment structure
-- `.claude/templates/dtu-clone-spec-template.md` — per-clone specification
-- `.claude/templates/dtu-fidelity-report-template.md` — fidelity comparison report DTU clones are simplified reimplementations that capture the essential behavior — when the clone and the real implementation diverge, something has drifted.
+- `${CLAUDE_PLUGIN_ROOT}/templates/dtu-assessment-template.md` — DTU assessment structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/dtu-clone-spec-template.md` — per-clone specification
+- `${CLAUDE_PLUGIN_ROOT}/templates/dtu-fidelity-report-template.md` — fidelity comparison report DTU clones are simplified reimplementations that capture the essential behavior — when the clone and the real implementation diverge, something has drifted.
 
 ## Concept
 

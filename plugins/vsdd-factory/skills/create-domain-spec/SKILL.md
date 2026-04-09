@@ -12,9 +12,9 @@ Build an L2 domain specification that models the problem space independent of im
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/L2-domain-spec-template.md` — L2 domain spec structure
-- `.claude/templates/L2-domain-spec-index-template.md` — index for sharded domain specs
-- `.claude/templates/L2-domain-spec-section-template.md` — per-section format This bridges the product brief (what we're building) and the PRD (how it behaves).
+- `${CLAUDE_PLUGIN_ROOT}/templates/L2-domain-spec-template.md` — L2 domain spec structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/L2-domain-spec-index-template.md` — index for sharded domain specs
+- `${CLAUDE_PLUGIN_ROOT}/templates/L2-domain-spec-section-template.md` — per-section format This bridges the product brief (what we're building) and the PRD (how it behaves).
 
 ## Prerequisites
 

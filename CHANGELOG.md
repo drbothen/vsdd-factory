@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.10.2 — Template path portability fix
+
+Closes a portability hole that would have broken clean installs.
+
+### The bug
+
+Skills and agents referenced templates as `.claude/templates/<name>.md` — a path that only exists inside corverax, where the plugin was originally developed and `.claude/templates/` is pre-populated. A clean install of vsdd-factory into any other project would ship the templates at `plugins/vsdd-factory/templates/` (where they actually live) but every skill referencing `.claude/templates/...` would fail the lookup.
+
+59 references across 24 files were affected:
+
+- 20 skills: `research`, `semport-analyze`, `brownfield-ingest`, `create-brief`, `create-story`, `create-domain-spec`, `create-architecture`, `create-prd`, `adversarial-review`, `holdout-eval`, `state-update`, `record-demo`, `pr-create`, `decompose-stories`, `track-debt`, `convergence-check`, `validate-consistency`, `deliver-story`, `dtu-validate`, `formal-verify`
+- 4 agents: `validate-extraction`, `research-agent`, `adversary`, `holdout-evaluator`
+
+### The fix
+
+All 59 references rewritten from `.claude/templates/<name>` to `${CLAUDE_PLUGIN_ROOT}/templates/<name>` — the Claude Code canonical environment variable for the plugin root directory. Agents shell-expand the variable when reading via bash, and the path resolves to the real template location that ships with the plugin regardless of install target.
+
+### Regression guards (3 new tests)
+
+`tests/skills.bats` grew a "Template path portability" section with three tests:
+
+- `no skill references the non-portable .claude/templates/ path` — grep-based regression guard
+- `no agent references the non-portable .claude/templates/ path` — same
+- `every referenced template actually exists in plugin templates/` — extracts every `${CLAUDE_PLUGIN_ROOT}/templates/<file>` reference from skills and agents, strips the prefix, and asserts the file exists at `plugins/vsdd-factory/templates/<file>`. Caught zero dangling references on first run.
+
+Test suite now **62 tests**, all pass.
+
+### Note for future skill authors
+
+When citing a template in a new skill or agent, use:
+
+```
+- `${CLAUDE_PLUGIN_ROOT}/templates/<name>.md` — <description>
+```
+
+The `.claude/templates/` prefix is never portable and is now a test failure.
+
 ## 0.10.1 — Step-file content fill
 
 Closes the last deferred item from 0.9.0: empty `steps/` placeholder stubs in three skills now carry real per-step playbooks.

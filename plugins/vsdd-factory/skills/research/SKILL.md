@@ -14,7 +14,7 @@ Spawn the research-agent to conduct external research. Supports multiple runs �
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/domain-research-template.md` — research report structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/domain-research-template.md` — research report structure
 
 ## Input
 

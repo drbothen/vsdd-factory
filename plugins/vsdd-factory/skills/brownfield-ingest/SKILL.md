@@ -41,7 +41,7 @@ Then create TodoWrite entries for Phase A (7 passes), Phase B (deepening — add
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/recovered-architecture-template.md` — recovered architecture format
+- `${CLAUDE_PLUGIN_ROOT}/templates/recovered-architecture-template.md` — recovered architecture format
 
 ## Input
 

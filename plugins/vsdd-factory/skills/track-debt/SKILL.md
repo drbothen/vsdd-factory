@@ -13,7 +13,7 @@ Manage the technical debt register at `.factory/tech-debt-register.md`.
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/tech-debt-register-template.md` — debt register structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/tech-debt-register-template.md` — debt register structure
 
 ## Commands
 

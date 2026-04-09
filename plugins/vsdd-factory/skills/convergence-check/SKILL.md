@@ -12,8 +12,8 @@ Phase 6 validation. Assess all 7 dimensions to determine if the project has conv
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/convergence-report-template.md` — convergence report structure
-- `.claude/templates/release-notes-template.md` — release notes format
+- `${CLAUDE_PLUGIN_ROOT}/templates/convergence-report-template.md` — convergence report structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/release-notes-template.md` — release notes format
 
 ## The 7 Dimensions
 

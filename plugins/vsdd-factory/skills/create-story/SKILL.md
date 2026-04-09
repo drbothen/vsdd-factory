@@ -13,7 +13,7 @@ Flesh out a single story into a sprint-ready specification.
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/story-template.md` — STORY-NNN format
+- `${CLAUDE_PLUGIN_ROOT}/templates/story-template.md` — STORY-NNN format
 
 ## Input
 

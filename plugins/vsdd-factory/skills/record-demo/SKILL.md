@@ -13,9 +13,9 @@ Capture visual evidence that a story's acceptance criteria are satisfied.
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/demo-evidence-report-template.md` — demo report structure
-- `.claude/templates/demo-playwright-template.spec.ts` — Playwright test template
-- `.claude/templates/demo-tape-template.tape` — VHS tape template for terminal recording
+- `${CLAUDE_PLUGIN_ROOT}/templates/demo-evidence-report-template.md` — demo report structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/demo-playwright-template.spec.ts` — Playwright test template
+- `${CLAUDE_PLUGIN_ROOT}/templates/demo-tape-template.tape` — VHS tape template for terminal recording
 
 ## Input
 

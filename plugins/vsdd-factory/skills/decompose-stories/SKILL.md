@@ -12,11 +12,11 @@ Break the PRD and architecture into implementable stories organized by dependenc
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/story-template.md` — STORY-NNN format
-- `.claude/templates/epic-template.md` — epic structure
-- `.claude/templates/wave-schedule-template.md` — wave schedule
-- `.claude/templates/holdout-scenario-template.md` — hidden acceptance scenarios
-- `.claude/templates/traceability-matrix-template.md` — requirement traceability
+- `${CLAUDE_PLUGIN_ROOT}/templates/story-template.md` — STORY-NNN format
+- `${CLAUDE_PLUGIN_ROOT}/templates/epic-template.md` — epic structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/wave-schedule-template.md` — wave schedule
+- `${CLAUDE_PLUGIN_ROOT}/templates/holdout-scenario-template.md` — hidden acceptance scenarios
+- `${CLAUDE_PLUGIN_ROOT}/templates/traceability-matrix-template.md` — requirement traceability
 
 ## Prerequisites
 

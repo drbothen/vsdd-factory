@@ -13,8 +13,8 @@ Update `.factory/STATE.md` to reflect pipeline progress.
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/state-template.md` — STATE.md structure
-- `.claude/templates/factory-project-state-template.md` — project state tracking Called by other skills at phase transitions.
+- `${CLAUDE_PLUGIN_ROOT}/templates/state-template.md` — STATE.md structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/factory-project-state-template.md` — project state tracking Called by other skills at phase transitions.
 
 ## Input
 

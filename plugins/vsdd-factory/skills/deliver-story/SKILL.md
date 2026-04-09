@@ -77,7 +77,7 @@ Dispatch `test-writer` with task: "Write failing tests in `.worktrees/STORY-NNN/
 
 If Red Gate fails, dispatch a new test-writer to fix the tests. Do not proceed to implementation until Red Gate is green (i.e., tests are correctly red).
 
-Record the Red Gate outcome in `.factory/stories/red-gate-log.md` following `.claude/templates/red-gate-log-template.md`.
+Record the Red Gate outcome in `.factory/stories/red-gate-log.md` following `${CLAUDE_PLUGIN_ROOT}/templates/red-gate-log-template.md`.
 
 ### Step 4 — Implement (implementer)
 
@@ -101,7 +101,7 @@ Dispatch `implementer` with task: "Push `feature/STORY-NNN-<desc>` to remote ori
 
 ### Step 7 — PR lifecycle (pr-manager)
 
-Dispatch `pr-manager` with task: "Run the full PR process for STORY-NNN. Feature branch: `feature/STORY-NNN-<desc>`. Target: `develop`. Follow your 9-step process: populate PR description from `.claude/templates/pr-description-template.md`, verify demo evidence, create PR via github-ops, security review, pr-reviewer convergence loop, wait for CI, dependency check, merge. Do NOT skip any step."
+Dispatch `pr-manager` with task: "Run the full PR process for STORY-NNN. Feature branch: `feature/STORY-NNN-<desc>`. Target: `develop`. Follow your 9-step process: populate PR description from `${CLAUDE_PLUGIN_ROOT}/templates/pr-description-template.md`, verify demo evidence, create PR via github-ops, security review, pr-reviewer convergence loop, wait for CI, dependency check, merge. Do NOT skip any step."
 
 **Do not compose the PR body yourself.** pr-manager owns the full PR lifecycle and uses its own templates. Your job here is delegation, not authorship.
 
@@ -188,9 +188,9 @@ Next: /wave-gate wave-N when all wave stories are complete.
 
 ## Templates
 
-- `.claude/templates/red-gate-log-template.md` — Red Gate verification log
-- `.claude/templates/cycle-manifest-template.md` — cycle tracking
-- `.claude/templates/pr-description-template.md` — PR body (owned by pr-manager, referenced here)
+- `${CLAUDE_PLUGIN_ROOT}/templates/red-gate-log-template.md` — Red Gate verification log
+- `${CLAUDE_PLUGIN_ROOT}/templates/cycle-manifest-template.md` — cycle tracking
+- `${CLAUDE_PLUGIN_ROOT}/templates/pr-description-template.md` — PR body (owned by pr-manager, referenced here)
 
 ## Source of Truth
 

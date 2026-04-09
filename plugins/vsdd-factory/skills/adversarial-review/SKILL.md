@@ -42,9 +42,9 @@ Then create TodoWrite entries: one per planned pass (minimum 2).
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/adversarial-review-template.md` — review document structure
-- `.claude/templates/adversarial-review-index-template.md` — review index
-- `.claude/templates/adversarial-finding-template.md` — individual finding format
+- `${CLAUDE_PLUGIN_ROOT}/templates/adversarial-review-template.md` — review document structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/adversarial-review-index-template.md` — review index
+- `${CLAUDE_PLUGIN_ROOT}/templates/adversarial-finding-template.md` — individual finding format
 
 ## Target
 

@@ -12,7 +12,7 @@ Guide the user through creating a product brief — the L1 foundation that every
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/product-brief-template.md` — L1 product brief structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/product-brief-template.md` — L1 product brief structure
 
 ## Before Starting
 

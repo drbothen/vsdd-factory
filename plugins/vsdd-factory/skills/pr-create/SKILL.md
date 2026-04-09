@@ -13,7 +13,7 @@ Generate a structured PR for a completed story.
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/pr-description-template.md` — PR body structure with mermaid diagrams and traceability
+- `${CLAUDE_PLUGIN_ROOT}/templates/pr-description-template.md` — PR body structure with mermaid diagrams and traceability
 
 ## Input
 

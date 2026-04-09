@@ -12,10 +12,10 @@ Design the system architecture based on the PRD and behavioral contracts. Archit
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/architecture-template.md` — full architecture document
-- `.claude/templates/architecture-index-template.md` — ARCH-INDEX format
-- `.claude/templates/architecture-section-template.md` — per-section ARCH-NN format
-- `.claude/templates/L4-verification-property-template.md` — VP-NNN format
+- `${CLAUDE_PLUGIN_ROOT}/templates/architecture-template.md` — full architecture document
+- `${CLAUDE_PLUGIN_ROOT}/templates/architecture-index-template.md` — ARCH-INDEX format
+- `${CLAUDE_PLUGIN_ROOT}/templates/architecture-section-template.md` — per-section ARCH-NN format
+- `${CLAUDE_PLUGIN_ROOT}/templates/L4-verification-property-template.md` — VP-NNN format
 
 ## Prerequisites
 

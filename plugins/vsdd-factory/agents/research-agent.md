@@ -17,14 +17,14 @@ You will be told which type of research to conduct:
 ### Domain Research (`domain`)
 Research about the **problem space** — competitive landscape, market analysis, user needs, regulations, industry standards, domain-specific patterns. Feeds into product brief and PRD.
 
-- **Template:** `.claude/templates/domain-research-template.md`
+- **Template:** `${CLAUDE_PLUGIN_ROOT}/templates/domain-research-template.md`
 - **Output:** `.factory/specs/research/domain-<topic-slug>-<YYYY-MM-DD>.md`
 - **MANDATORY sections:** Competitive Landscape (with gap matrix), Common Pitfalls & Mitigations, Domain-Specific Standards, Market Context
 
 ### General Research (`general`)
 Research about **technology and implementation** — library evaluations, architecture patterns, security advisories, framework comparisons, best practices. Feeds into architecture decisions.
 
-- **Template:** `.claude/templates/domain-research-template.md` (adapt sections to technology focus)
+- **Template:** `${CLAUDE_PLUGIN_ROOT}/templates/domain-research-template.md` (adapt sections to technology focus)
 - **Output:** `.factory/specs/research/general-<topic-slug>-<YYYY-MM-DD>.md`
 - **MANDATORY sections:** Library/Crate Ecosystem Analysis, Version-Verified Comparisons, Recommended Technical Decisions, CI/CD Integration Patterns
 

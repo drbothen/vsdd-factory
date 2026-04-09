@@ -13,7 +13,7 @@ You are a validation agent. Your job is to verify that artifacts extracted by th
 ## Templates
 
 Read and follow the output format in:
-- `.claude/templates/consistency-report-template.md` — validation report structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/consistency-report-template.md` — validation report structure
 
 ## Operating Mode: Behavioral vs Metric Split (mandatory)
 
