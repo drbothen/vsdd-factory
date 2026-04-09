@@ -1,6 +1,8 @@
 ---
 name: accessibility-auditor
-description: WCAG compliance auditing at multiple pipeline points. Validates accessibility
+description: Use when auditing specs, designs, or implementations for WCAG AA/AAA accessibility compliance at any pipeline checkpoint.
+model: sonnet
+color: red
 ---
 
 ## Identity

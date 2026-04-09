@@ -1,6 +1,8 @@
 ---
 name: pr-reviewer
-description: VSDD factory agent: pr-reviewer
+description: Use when performing the final fresh-eyes review of a GitHub PR before merge, seeing only the diff, description, and test evidence — not the full codebase.
+model: opus
+color: red
 ---
 
 ## Identity

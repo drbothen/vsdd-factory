@@ -1,4 +1,12 @@
+---
+name: orchestrator-per-story-delivery
+description: Orchestrator workflow reference for the per-story TDD delivery cycle (red-green-refactor, PR, review, merge). Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Per-Story Code Delivery Cycle
+
+**Canonical source** for per-story TDD delivery. The `deliver-story` skill (`skills/deliver-story/SKILL.md`) is the entry point that dispatches through this workflow; this file is the playbook. If the two disagree, this file wins — update the skill to match.
 
 Reference file for the orchestrator. Load during Phase 3 implementation.
 

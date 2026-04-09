@@ -1,130 +1,197 @@
 ---
 name: deliver-story
-description: Execute per-story TDD delivery — create worktree, generate stubs, write failing tests (red), implement to green, create PR. Full test-first implementation workflow for a single story.
+description: Use when delivering a single story through the VSDD TDD pipeline. Dispatches fresh specialist subagents (test-writer → implementer → demo-recorder → pr-manager → devops-engineer) via the per-story-delivery orchestrator workflow. Each step runs in isolated context to preserve reasoning quality and prevent context exhaustion.
 argument-hint: "[STORY-NNN]"
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+allowed-tools: Read, Bash, Glob, Grep, AskUserQuestion, Task
 ---
 
 # Deliver Story
 
-Full TDD delivery for a single story. This is the core implementation workflow.
+<EXTREMELY-IMPORTANT>
+This skill is a **dispatcher**, not an implementer. It does not write code, write tests, create worktrees, or open PRs directly. It reads the canonical workflow from `agents/orchestrator/per-story-delivery.md` and delegates each step to a fresh specialist subagent.
 
-## Templates
+**Single-context delivery is a correctness bug**, not a shortcut. A single agent running all 9 steps suffers context exhaustion, loses the Red Gate discipline, and mixes test-writing judgment with implementation judgment — which is exactly what the specialist split is designed to prevent.
+</EXTREMELY-IMPORTANT>
 
-Read and follow the output format in:
-- `.claude/templates/red-gate-log-template.md` — red gate verification log
-- `.claude/templates/cycle-manifest-template.md` — cycle tracking
+## The Iron Law
+
+> **NO IMPLEMENTATION WITHOUT RED GATE VERIFICATION FIRST**
+
+Violating the letter of the rule is violating the spirit of the rule. "I already know what the tests will say" is not a Red Gate.
+
+## Announce at Start
+
+Before any other action, say verbatim:
+
+> I'm using the deliver-story skill to dispatch STORY-NNN through the per-story-delivery orchestrator workflow.
+
+Then create a TodoWrite entry per step in the workflow. Mark each in-progress before dispatching and completed after the subagent returns.
 
 ## Input
 
 `$ARGUMENTS` — story ID (e.g., `STORY-001`)
 
-## Prerequisites
+## Prerequisites (check before dispatching anything)
 
-- Story must be `ready` in STORY-INDEX.md
-- All dependency stories must be `completed`
-- Sprint state must show this story as `pending` or `in-progress`
+- Story status is `ready` in `.factory/stories/STORY-INDEX.md`
+- All dependency stories are `completed` (read `depends_on` from the story file)
+- Sprint state shows this story as `pending` or `in-progress`
+- Story has a Token Budget Estimate section (dispatch story-writer to add one if missing)
+- Story acceptance criteria trace to behavioral contracts (BC-S.SS.NNN)
 
-## Delivery Steps
+If any prerequisite fails, STOP and report to the user. Do not dispatch anything.
 
-### 1. Create Worktree
+## Canonical Source
 
-Follow the `worktree-protocol` rule (`.claude/rules/worktree-protocol.md`). Use the `/worktree-manage` skill:
+The step-by-step workflow lives in **`agents/orchestrator/per-story-delivery.md`** and is the authoritative source. This skill is the entry point; the orchestrator file is the playbook. If the two ever disagree, the orchestrator file wins.
 
-```
-/worktree-manage create STORY-NNN <description>
-```
+Read the orchestrator file at the start of every dispatch. Do not cache it between runs — it may have been updated.
 
-This creates `.worktrees/STORY-NNN/` on branch `feature/STORY-NNN-<desc>` from `develop`. If `develop` doesn't exist, worktree-manage creates it from `main`.
+## Dispatch Sequence
 
-Verify the worktree is ready before proceeding:
-```bash
-cd .worktrees/STORY-NNN && git branch --show-current
-```
+For each step below, launch a **fresh subagent** via the Task tool. Pass only the minimum context needed (see Context Discipline below). Wait for completion and verify the step's exit condition before dispatching the next one.
 
-### 2. Generate Stubs
+### Step 1 — Create worktree (devops-engineer)
 
-In the worktree, create the module structure from the story's file list:
-- Create directories
-- Create stub files with types and function signatures
-- Stubs must **compile** but not implement logic (return `todo!()` or `unimplemented!()`)
+Dispatch `devops-engineer` with task: "Create worktree `.worktrees/STORY-NNN/` on branch `feature/STORY-NNN-<desc>` from `develop`."
 
-Commit: `feat(STORY-NNN): add module stubs`
+**Exit condition:** `git worktree list` shows the new worktree on the correct branch. Verify before proceeding.
 
-### 3. Red Phase — Write Failing Tests
+### Step 2 — Generate stubs (test-writer as Stub Architect)
 
-For each acceptance criterion / behavioral contract:
-- Write a test that exercises the behavior
-- The test must **fail** (red) because stubs don't implement logic
-- Tests must be specific — test the contract, not the implementation
+Dispatch `test-writer` with task: "Create compilable stubs in `.worktrees/STORY-NNN/` matching the story's file list. Use `todo!()` or `unimplemented!()` bodies. Commit: `feat(STORY-NNN): add module stubs`."
 
-Commit: `test(STORY-NNN): add failing tests for <BC-ref>`
+**Exit condition:** `cargo check` passes inside the worktree. If it fails, dispatch a new test-writer to fix stubs — do not proceed until clean.
 
-**Red Gate**: Run tests and verify they fail for the right reasons (not compilation errors).
+### Step 3 — Write failing tests (test-writer as Test Writer)
 
-```bash
-cd .worktrees/STORY-NNN && cargo test 2>&1
-```
+Dispatch `test-writer` with task: "Write failing tests in `.worktrees/STORY-NNN/` for each acceptance criterion / BC. Commit: `test(STORY-NNN): add failing tests for <BC-ref>`."
 
-All tests should fail with assertion errors, not build errors.
+**Red Gate (mandatory).** After dispatch returns, independently run `cd .worktrees/STORY-NNN && cargo test` and verify:
 
-### 4. Green Phase — Implement
+- Tests compile
+- All new tests fail
+- Tests fail with **assertion errors**, not build errors
+- The failure messages reference the behavior under test (not "not yet implemented")
 
-For each failing test:
-1. Write the minimum code to make that test pass
-2. Run the test suite
-3. Micro-commit on each test pass: `feat(STORY-NNN): implement <behavior>`
+If Red Gate fails, dispatch a new test-writer to fix the tests. Do not proceed to implementation until Red Gate is green (i.e., tests are correctly red).
 
-Do NOT write code that isn't covered by a test. The test defines the contract.
+Record the Red Gate outcome in `.factory/stories/red-gate-log.md` following `.claude/templates/red-gate-log-template.md`.
 
-### 5. Refactor Phase
+### Step 4 — Implement (implementer)
 
-With all tests green:
-- Clean up implementation (extract functions, improve names)
-- Ensure code follows project conventions (`.claude/rules/rust.md`)
-- Run full lint: `cargo clippy --workspace --all-targets --all-features -- -D warnings`
+Dispatch `implementer` with task: "Implement in `.worktrees/STORY-NNN/` via TDD. For each failing test, write the minimum code to make it pass. Micro-commit per test: `feat(STORY-NNN): implement <behavior>`. Do not write code not covered by a test."
 
-Commit: `refactor(STORY-NNN): clean up implementation`
+If the story has `implementation_strategy: gene-transfusion`, include in the task: "Read `.factory/semport/<module>/<module>-target-design.md` and the reference source files listed in the story. Use the translation strategy. Mark uncertain translations `// SEMPORT-REVIEW`."
 
-### 6. Gene Transfusion (if applicable)
+**Exit condition:** all tests green, clippy clean, `cargo +nightly fmt --all --check` clean, zero `todo!()` / `unimplemented!()` in production code.
 
-If story has `implementation_strategy: gene-transfusion`:
-- Read `.factory/semport/<module>-target-design.md`
-- Read the reference source files listed in the story's tasks (paths into `.reference/<project>/`)
-- Use the translation strategy instead of from-scratch coding
-- Still follow Red→Green→Refactor — tests validate the translation
-- Mark `// SEMPORT-REVIEW` on uncertain translations
-- When the semport summary is insufficient, go read the actual code in `.reference/<project>/` — the summary is a map, not a substitute
+### Step 5 — Record demos (demo-recorder)
 
-### 7. Verify
+Dispatch `demo-recorder` with task: "Record per-AC demos in `.worktrees/STORY-NNN/docs/demo-evidence/`. Use VHS for CLI or Playwright for web. Capture both success and error paths. Generate `docs/demo-evidence/evidence-report.md`."
 
-- All tests pass
-- Clippy clean
-- Format clean: `cargo +nightly fmt --all --check`
-- No `todo!()` or `unimplemented!()` remaining in production code
+**Exit condition:** every acceptance criterion has at least one demo artifact referenced in the evidence report.
 
-### 8. Create PR
+### Step 6 — Push feature branch (implementer)
 
-Use `/pr-create` or create manually:
-- Title: `feat(STORY-NNN): <story title>`
-- Body: story context, mermaid dependency diagram, BC traceability
-- Target: `develop`
+Dispatch `implementer` with task: "Push `feature/STORY-NNN-<desc>` to remote origin."
 
-### 9. Update State
+**Exit condition:** `git ls-remote origin feature/STORY-NNN-<desc>` returns the expected SHA.
 
-- Update sprint-state.yaml: story status → `in-review`
-- Update STORY-INDEX.md
-- Commit state changes to factory-artifacts
+### Step 7 — PR lifecycle (pr-manager)
+
+Dispatch `pr-manager` with task: "Run the full PR process for STORY-NNN. Feature branch: `feature/STORY-NNN-<desc>`. Target: `develop`. Follow your 9-step process: populate PR description from `.claude/templates/pr-description-template.md`, verify demo evidence, create PR via github-ops, security review, pr-reviewer convergence loop, wait for CI, dependency check, merge. Do NOT skip any step."
+
+**Do not compose the PR body yourself.** pr-manager owns the full PR lifecycle and uses its own templates. Your job here is delegation, not authorship.
+
+**Exit condition:** pr-manager reports the PR merged (or reports a blocker that requires human intervention).
+
+### Step 8 — Cleanup (devops-engineer)
+
+Dispatch `devops-engineer` with task: "Remove worktree `.worktrees/STORY-NNN/` and delete local branch `feature/STORY-NNN-<desc>`."
+
+**Exit condition:** `git worktree list` no longer shows the worktree; `git branch --list 'feature/STORY-NNN-*'` returns empty for this story.
+
+### Step 9 — State update
+
+Update `.factory/stories/sprint-state.yaml`: story status → `completed`.
+Update `.factory/stories/STORY-INDEX.md`: status column for this story.
+Commit to `factory-artifacts` branch: `factory(phase-3): STORY-NNN delivered`.
+
+## Context Discipline for Dispatches
+
+Pass only the specific files each specialist needs. Never pass the whole story file to every agent — that causes context exhaustion and topic drift.
+
+| Specialist | Pass these files |
+|---|---|
+| devops-engineer | worktree protocol rules |
+| test-writer (stubs) | story file, dependency-graph.md, api-surface.md, relevant BC files |
+| test-writer (tests) | story file, api-surface.md, test-vectors.md, relevant BC files |
+| implementer | story file, module-decomposition.md, dependency-graph.md, api-surface.md, relevant BC files |
+| demo-recorder | story file, acceptance criteria extract only |
+| pr-manager | story ID, feature branch name, PR template path |
+
+If a story is too large to fit any specialist's budget (≥60% of target model's context window), STOP and dispatch story-writer to split it before proceeding.
+
+## Task Sizing Rules
+
+From `agents/orchestrator/per-story-delivery.md`:
+
+- S/M stories (1-5 points) → max 2 stories per agent
+- L/XL stories (8-13 points) → exactly 1 story per agent
+- NEVER combine "write code" and "run full test suite" in one dispatch
+- If an agent times out, dispatch a new agent with narrower scope — do not retry the same prompt
+
+## Story Split Recovery
+
+If pr-manager returns "diff too large, recommend split":
+
+1. Dispatch `github-ops` to close the PR with label `split-needed`
+2. KEEP the worktree — the work is preserved
+3. Ask the human to approve the split
+4. If approved: dispatch `story-writer` to split, then resume per-story delivery on each split story
+5. If rejected: the human can override — add a note to `review-findings.md` and tell pr-manager to continue the review loop
+
+## Red Flags
+
+Stop and check yourself if you find yourself thinking any of these:
+
+| Thought | Reality |
+|---|---|
+| "I'll just run the tests myself before dispatching test-writer" | That skips the Red Gate specialization. Dispatch. |
+| "This story is small, one agent can do the whole thing" | Story size is orthogonal to specialist split. Dispatch each step. |
+| "I already know what the implementation will look like, let me write it inline" | Your knowledge is not a Red Gate. Dispatch the test-writer first. |
+| "The test-writer wrote bad tests, I'll fix them myself" | Dispatch a new test-writer with narrower scope. Do not hand-edit specialist output. |
+| "pr-manager is taking too long, let me create the PR" | pr-manager owns the 9-step process. Wait or escalate to the human. |
+| "The orchestrator file says X but I think Y is better" | Update the orchestrator file in a separate PR first, then re-run. |
+| "Red Gate failed because the tests are too strict, let me relax them" | Red Gate failure means the test OR the understanding of the contract is wrong. Investigate. |
+| "I'll skip demo-recording and do it after the merge" | Demos are part of the merge gate. Dispatch demo-recorder before pr-manager. |
+| "The worktree cleanup can wait until later" | Stale worktrees accumulate. Dispatch devops-engineer now. |
+| "This feels like a lot of context switching" | That's the feature. Fresh context per specialist is what prevents single-agent drift. |
 
 ## After Delivery
 
 Tell the user:
+
 ```
 Story STORY-NNN delivered:
-  Tests: <N> passing
-  Commits: <N> (TDD progression)
-  PR: <link or instructions>
+  Red Gate:       PASSED (see .factory/stories/red-gate-log.md)
+  Implementation: <N> micro-commits
+  Demos:          <N> artifacts in docs/demo-evidence/
+  PR:             #<N> merged to develop
+  Worktree:       cleaned up
+  State:          sprint-state.yaml updated
 
-Next: PR review, then `/worktree-manage cleanup STORY-NNN` after merge.
+Next: /wave-gate wave-N when all wave stories are complete.
 ```
+
+## Templates
+
+- `.claude/templates/red-gate-log-template.md` — Red Gate verification log
+- `.claude/templates/cycle-manifest-template.md` — cycle tracking
+- `.claude/templates/pr-description-template.md` — PR body (owned by pr-manager, referenced here)
+
+## Source of Truth
+
+`agents/orchestrator/per-story-delivery.md` is the canonical workflow. This skill is the entry point that enforces dispatch discipline; the orchestrator file is the playbook specialists follow. Keep them in sync.

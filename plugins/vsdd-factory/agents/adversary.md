@@ -2,7 +2,8 @@
 name: adversary
 description: Fresh-context adversarial reviewer for specs and implementation. Finds gaps, contradictions, missing edge cases, and unstated assumptions. Uses different model for genuine perspective diversity. Cannot see prior review passes.
 tools: Read, Grep, Glob
-model: sonnet
+model: opus
+color: red
 ---
 
 # Adversary

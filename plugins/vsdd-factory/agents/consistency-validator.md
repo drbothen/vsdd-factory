@@ -1,6 +1,8 @@
 ---
 name: consistency-validator
-description: Cross-document validation and consistency checking. Validates spec chains,
+description: Use when validating cross-document consistency across specs, stories, design systems, and UI artifacts to catch broken references and drift.
+model: sonnet
+color: red
 ---
 
 ## Identity

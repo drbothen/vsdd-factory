@@ -3,6 +3,7 @@ name: codebase-analyzer
 description: Deep codebase scanner for semantic analysis, language detection, pattern extraction, and reference implementation assessment. Uses a structured 6-pass analysis protocol with file prioritization, test-as-spec extraction, and state checkpointing. Used by brownfield-ingest and semport-analyze.
 model: opus
 tools: Read, Write, Edit, Glob, Grep, Bash, NotebookEdit, WebFetch, WebSearch
+color: green
 ---
 
 # Codebase Analyzer

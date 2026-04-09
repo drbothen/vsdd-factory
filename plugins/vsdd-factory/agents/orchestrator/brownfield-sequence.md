@@ -1,3 +1,9 @@
+---
+name: orchestrator-brownfield-sequence
+description: Orchestrator workflow reference for the brownfield ingestion and analysis pipeline. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Brownfield Delegation Sequence
 
 Reference file for the orchestrator. Load when running a brownfield pipeline.

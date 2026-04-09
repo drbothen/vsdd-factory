@@ -1,6 +1,8 @@
 ---
 name: formal-verifier
-description: VSDD factory agent: formal-verifier
+description: Use when running the formal hardening phase — mathematical proofs, fuzzing, mutation testing, and security scanning against an implementation that has already passed TDD and adversarial review.
+model: opus
+color: red
 ---
 
 ## Identity

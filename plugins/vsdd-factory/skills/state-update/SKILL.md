@@ -2,6 +2,7 @@
 name: state-update
 description: Update .factory/STATE.md with pipeline phase transitions and commit to factory-artifacts branch. Internal skill called by other skills — not invoked directly by users.
 user-invocable: false
+disable-model-invocation: true
 allowed-tools: Bash, Read, Edit
 ---
 

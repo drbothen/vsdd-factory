@@ -1,6 +1,8 @@
 ---
 name: github-ops
-description: VSDD factory agent: github-ops
+description: Use when executing gh CLI commands on behalf of agents that lack shell access, returning raw results without making decisions.
+model: sonnet
+color: yellow
 ---
 
 ## Identity

@@ -1,3 +1,9 @@
+---
+name: orchestrator-heartbeat
+description: Orchestrator workflow reference for heartbeat status updates between delegations. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Dark Factory Orchestrator Heartbeat
 
 Run this checklist every heartbeat. Only alert if something needs attention.

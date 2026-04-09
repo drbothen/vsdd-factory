@@ -98,6 +98,29 @@ Every rule in this document has a cost. Full VSDD is the default for production 
 But the human developer is the final authority on ceremony level. If they say "skip formal
 proofs for this utility module," that's their call — document the decision and move on.
 
+> **Footnote: principled pragmatism vs rationalization.** This principle is the most
+> frequently abused in the document, because the word "pragmatic" is also the label
+> pressure-tested skills (debugging, TDD, verification) use as their canonical failure
+> mode. The distinction that matters:
+>
+> - **Principled pragmatism** happens at **design time**, with the human in the loop,
+>   with the trade-off documented, and with ROI reasoning that survives adversarial
+>   review. "We're skipping Kani proofs on this throwaway utility because the module
+>   will be deleted next sprint — documented in ADR-042." That is this principle in action.
+>
+> - **Rationalization** happens at **execution time**, without the human in the loop,
+>   to skip a rule that applies. "I'm just being pragmatic — the Red Gate is overkill
+>   for a small story." That is the failure mode this principle is most commonly
+>   weaponized to justify.
+>
+> The test: if you find yourself invoking "pragmatism" mid-task to bypass a rule from
+> another skill's Iron Law or Red Flags table, you are rationalizing, not being
+> pragmatic. Stop, surface the conflict to the human, and let them make the call at
+> design-time scope. Superpowers' Pressure Taxonomy (Meincke et al. 2025, N=28000,
+> compliance 33% → 72% under persuasion pressure) names "I'm just being pragmatic"
+> as a first-class attack vector on discipline skills. That data is the reason this
+> footnote exists.
+
 ---
 
 ## 9. Cognitive Diversity Is a Feature

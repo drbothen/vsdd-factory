@@ -1,6 +1,8 @@
 ---
 name: dx-engineer
-description: VSDD factory agent: dx-engineer
+description: Use when preparing the development environment for the pipeline — installing tools, configuring direnv, validating API key names, and running pre-flight checks.
+model: sonnet
+color: blue
 ---
 
 ## Identity

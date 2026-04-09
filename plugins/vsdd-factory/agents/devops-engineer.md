@@ -1,6 +1,8 @@
 ---
 name: devops-engineer
-description: VSDD factory agent: devops-engineer
+description: Use when creating or maintaining CI/CD pipelines, container configurations, deployment scripts, and monitoring setup for the factory and its products.
+model: sonnet
+color: yellow
 ---
 
 ## Identity

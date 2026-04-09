@@ -1,6 +1,8 @@
 ---
 name: business-analyst
-description: VSDD factory agent: business-analyst
+description: Use when synthesizing the L2 Domain Specification from a product brief and domain research, producing sharded capability, entity, and invariant docs.
+model: sonnet
+color: blue
 ---
 
 ## Identity

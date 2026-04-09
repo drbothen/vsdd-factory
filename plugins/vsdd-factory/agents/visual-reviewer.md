@@ -1,6 +1,8 @@
 ---
 name: visual-reviewer
-description: Visual verification of demos, screenshots, and UI fidelity. Uses multimodal
+description: Use when visually verifying demos, screenshots, and UI fidelity with multimodal comparison for regression detection.
+model: sonnet
+color: red
 ---
 
 ## Identity

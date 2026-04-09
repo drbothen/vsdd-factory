@@ -1,6 +1,8 @@
 ---
 name: spec-reviewer
-description: VSDD factory agent: spec-reviewer
+description: Use when providing a constructive second-opinion review of Phase 1 specs or Phase 2 story decomposition with cognitive diversity from a different model family.
+model: opus
+color: red
 ---
 
 ## Identity

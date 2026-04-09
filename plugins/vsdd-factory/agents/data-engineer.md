@@ -1,6 +1,8 @@
 ---
 name: data-engineer
-description: VSDD factory agent: data-engineer
+description: Use when designing schemas, writing reversible migrations, or verifying data-layer integrity while preserving the pure-core / effectful-I/O boundary.
+model: sonnet
+color: green
 ---
 
 ## Identity

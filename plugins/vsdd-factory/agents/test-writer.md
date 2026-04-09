@@ -1,6 +1,8 @@
 ---
 name: test-writer
-description: VSDD factory agent: test-writer
+description: Use when generating TDD test suites from behavioral contracts (BC-S.SS.NNN), including full state coverage for UI component contracts.
+model: sonnet
+color: green
 ---
 
 ## Identity

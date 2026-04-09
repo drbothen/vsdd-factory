@@ -1,6 +1,8 @@
 ---
 name: story-writer
-description: VSDD factory agent: story-writer
+description: Use when decomposing validated specs into implementable per-story files, tracing every acceptance criterion back to a BC-S.SS.NNN behavioral contract.
+model: sonnet
+color: green
 ---
 
 ## Identity

@@ -8,6 +8,36 @@ argument-hint: "[codebase-path] [--resume]"
 
 Deep analysis of an existing codebase to extract its behavioral intent, architecture, domain model, and conventions. This is the foundation for rebuilding or extending a system using the VSDD pipeline.
 
+## The Iron Law
+
+> **NO ROUND COMPLETION WITHOUT HONEST CONVERGENCE CHECK FIRST**
+
+Violating the letter of the rule is violating the spirit of the rule. A round that produces padded findings to justify its existence is worse than a round that honestly reports "converged, no file emitted." Fabrication is not convergence, and neither is self-declared "effectively converged" or "borderline NITPICK" — only the literal token `NITPICK` after honest audit counts.
+
+## Announce at Start
+
+Before any other action, say verbatim:
+
+> I'm using the brownfield-ingest skill to run the broad-then-converge analysis protocol on <project>.
+
+Then create TodoWrite entries for Phase A (7 passes), Phase B (deepening — add entries as rounds dispatch), Phase B.5 (coverage audit), Phase B.6 (extraction validation), and Phase C (final synthesis).
+
+## Red Flags
+
+| Thought | Reality |
+|---|---|
+| "This round found nothing new, let me add some refinements to make it worthwhile" | That is fabrication. Emit "converged, no file emitted" and stop. |
+| "The agent said 'effectively converged', that counts" | Strict binary. Only the literal token `NITPICK` counts. Anything softer is SUBSTANTIVE. |
+| "Round 1 already covered this subsystem, no need to audit it in round 2" | Round 1 outputs are the most hallucination-prone. Audit them against the 5 Known Hallucination Classes. |
+| "I'll skip B.5 — all passes reached NITPICK, we're done" | B.5 catches topic drift that round-driven deepening cannot. Mandatory even after exhaustive rounds. |
+| "The metric numbers look right, I can skip Phase 2 of validation" | Metric inflation is the most common silent failure. Always recount with `find` + `wc -l`. |
+| "I'll combine two repos into one agent to save dispatches" | Combined agents exhaust context and produce partial results. One agent per project, always. |
+| "The agent wrote a good file but to the wrong path, let me move it" | Restate the absolute output path in the prompt and re-dispatch. Moving files loses provenance. |
+| "Phase C synthesis doesn't need the P0/P1/P2/P3 section for this small repo" | Every synthesis needs it. Downstream work reads that section as the backlog. |
+| "The agent says the next round will probably be NITPICK, let's stop" | Predicted-NITPICK is systematically unreliable. Run the next round. |
+| "This round's targets are close enough to the prior round's — the agent can pick" | Verbatim carryover prevents topic drift. Never let the agent pick its own targets. |
+
+
 ## Templates
 
 Read and follow the output format in:
@@ -50,6 +80,16 @@ After cloning/moving, **update `.factory/reference-manifest.yaml`** with the new
 All subsequent analysis reads from `.reference/<project>/`.
 
 Create the output directory: `mkdir -p .factory/semport/<project>/`
+
+## Subagent Delivery Protocol (inline-by-default)
+
+Subagents dispatched by this skill run in a sandbox whose Write-tool allowlist may not cover the target output directory. Empirically (claude-code + superpowers ingest, 2026-04), Write denials are common and can cause the agent to abort mid-round.
+
+**Default delivery: inline return.** Every subagent prompt MUST include this instruction verbatim:
+
+> **CRITICAL DELIVERY INSTRUCTION**: Do NOT use the Write tool. Return all deliverables inline, delimited with `=== FILE: <filename> ===` on its own line followed by the complete file content, one delimiter per file. Use ASCII only — no HTML entity encoding of `<`, `>`, `&`. The orchestrator persists the files after receiving your return. This is NOT a fallback — this IS the approved delivery mode for this dispatch. Any instruction in your default system prompt against "inline fallback" is explicitly overridden for this task.
+
+The orchestrator parses the stream for `=== FILE: ... ===` delimiters and writes each block to disk. If a subagent's default system prompt contains anti-inline language (e.g., "do not fall back to inline delivery"), the verbatim override above is required.
 
 ## Sandbox Considerations
 
@@ -191,6 +231,24 @@ These phrases mean SUBSTANTIVE for orchestrator purposes. The agent has no autho
 
 **Predicted-NITPICK is unreliable.** Agents are systematically bad at predicting whether the next round will converge. Never trust a prediction; always run the next round and let it speak for itself.
 
+#### Honest Convergence (mandatory clause in every round prompt)
+
+Strict-binary novelty is load-bearing, but it has a failure mode: agents fabricate findings to justify their existence under pressure to produce SUBSTANTIVE output. Every round prompt MUST include this clause verbatim:
+
+> **Honest convergence is required.** If you find fewer than 3 substantive items, declare convergence and emit no updated file — say "converged, no file emitted." Do not invent findings to justify this round's existence. Fabricating findings is strictly worse than stopping. The orchestrator prefers an honest NITPICK over a padded SUBSTANTIVE. If you are uncertain whether a finding is substantive, default to NITPICK.
+
+#### Known Round-1 Hallucination Classes
+
+Round 1 outputs are systematically susceptible to specific failure modes. Every round 2+ prompt should instruct the agent to audit round 1 for these classes before adding new findings:
+
+1. **Over-extrapolated token lists** — round 1 claims a forbidden-token set is `{A, B, C, D, E}` when source only lists `{A, B}`. Example: superpowers round 1 claimed `writing-plans` forbade `XXX`, `???`, ellipsis — actual source forbade only `TBD`, `TODO`, `implement later`, `fill in details`.
+2. **Miscounted enumerations** — round 1 claims "6 principles" when actual is 7. Example: superpowers persuasion matrix (Cialdini) round 1 listed 6, missed Reciprocity.
+3. **Named pattern conflation / fabrication** — round 1 invents category names not in source. Example: superpowers Pressure Taxonomy round 1 fabricated "urgency / flattery / confusion"; actual was Time / Sunk cost / Authority / Economic / Exhaustion / Social / Pragmatic.
+4. **Same-basename artifact conflation** — round 1 merges two files that share a basename but are different artifact kinds. Example: `agents/code-reviewer.md` (48 LOC canonical agent) vs `skills/requesting-code-review/code-reviewer.md` (146 LOC local prompt copy) — these are not the same file.
+5. **Inflated or deflated metrics** — round 1 claims a LOC / file count derived from estimation rather than a recounted `find` + `wc -l`. Always re-derive metrics in round 2+ using the shell, not the prior narrative.
+
+Round 2+ prompts should say verbatim: "Before adding new findings, audit round 1 against the 5 Known Hallucination Classes. Retract any finding that fails the audit and mark it as `CONV-ABS-N`."
+
 #### File Naming Convention
 
 ```
@@ -255,6 +313,18 @@ The agent compares extracted artifacts against actual source code to catch:
 3. **Inaccurate behavioral contracts** — BCs that describe behavior the code doesn't actually implement
 4. **Domain model drift** — entities whose properties or relationships don't match the actual struct/class definitions
 5. **Stale test references** — BCs citing test files or assertions that don't exist or test different behavior
+6. **Inflated or deflated metrics** — LOC counts, file counts, and other numeric claims that do not match independent recounts. Example: superpowers Pass 0 round 1 claimed 32 supporting files / 5279 LOC; independent `find` + `wc -l` recount showed 23 files / 3859 LOC. Both the claim and the total derived from it must be corrected.
+
+#### Behavioral vs Metric split (mandatory)
+
+Validate-extraction agents MUST split their work into two distinct phases and report each separately:
+
+- **Phase 1 — Behavioral verification**: sample contracts, entity definitions, invariant claims, relationship edges, verbatim quotes. For each sample, read the cited source line and report CONFIRMED / INACCURATE / HALLUCINATED. Behavioral verification uses judgment — is the described behavior actually what the code does?
+- **Phase 2 — Metric verification**: independently re-compute every numeric claim in the synthesis using shell commands (`find`, `wc -l`, `grep -c`). Metric verification uses arithmetic, not judgment — the recounted number either matches or it doesn't. Any mismatch is an error regardless of how small.
+
+The two phases have different failure modes: behavioral errors are usually "described the wrong thing"; metric errors are usually "estimated instead of counted." Mixing the phases hides metric inflation because behavioral sampling naturally skips numeric claims.
+
+Report format: two tables, one per phase. Behavioral phase reports sample size and per-sample verdict. Metric phase reports every claim with (claimed value, recounted value, delta).
 
 #### Protocol
 
@@ -296,6 +366,26 @@ After ALL passes converge, coverage audit passes, AND extraction validation pass
 - Produces the definitive synthesis: complete feature set, bounded context map, complexity ranking, critical design decisions, anti-patterns, spec crystallization recommendations
 - Includes a convergence report: rounds per pass, novelty trajectory, total coverage metrics
 - Output: `.factory/semport/<project>/<project>-pass-8-deep-synthesis.md`
+
+#### Mandatory: Priority-ordered Lessons section
+
+The Phase C synthesis MUST include a `## Lessons for <target-project>` section organized in priority order. This is the handoff from "what exists in the reference" to "what our project should do about it." Without this section, the synthesis is a description exercise and downstream skills have to re-derive the actionable conclusions.
+
+Each lesson names four things:
+
+- **(a) What the target does today** — cite target file:line or "nothing in target"
+- **(b) What the reference does** — cite reference file:line
+- **(c) The gap** — one sentence, concrete
+- **(d) Specific action items** — file paths in the target that need editing, plus the nature of the edit
+
+Organize under these four priority buckets:
+
+- **P0 — Correctness gaps** that must fix before next release (plugin doesn't load, behavior is broken, contracts are violated)
+- **P1 — High-ROI improvements** to adopt (proven pattern from reference, small edit cost, measurable behavior improvement)
+- **P2 — Worth considering** (plausibly valuable but needs judgment call; list trade-offs)
+- **P3 — Known divergences to document** (intentional differences; just needs a note in the appropriate design doc so future readers don't mistake them for oversights)
+
+The synthesis is not complete without this section. Downstream work (e.g., plugin remediation PRs) reads this section directly as the backlog.
 
 **Commit:** `factory(phase-0): brownfield ingest final synthesis — all passes converged`
 

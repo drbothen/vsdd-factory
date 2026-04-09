@@ -1,3 +1,9 @@
+---
+name: orchestrator-maintenance-sequence
+description: Orchestrator workflow reference for the maintenance-sweep delegation sequence (Path 10). Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Maintenance Delegation Sequence (Path 10)
 
 Reference file for the orchestrator. Load when running maintenance sweeps.

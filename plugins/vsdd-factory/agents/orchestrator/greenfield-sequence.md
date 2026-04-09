@@ -1,3 +1,9 @@
+---
+name: orchestrator-greenfield-sequence
+description: Orchestrator workflow reference for the full greenfield VSDD pipeline from brief through release. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Greenfield Delegation Sequence
 
 Reference file for the orchestrator. Load when running a greenfield pipeline.

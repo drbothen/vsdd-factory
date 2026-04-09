@@ -3,6 +3,7 @@ name: research-agent
 description: Conduct external research — technology evaluations, library comparisons, security advisory lookups, architecture pattern research, and domain research. Always cites sources, verifies library versions against registries, and flags inconclusive findings.
 tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, mcp__perplexity__search, mcp__perplexity__reason, mcp__perplexity__deep_research, mcp__context7__resolve-library-id, mcp__context7__query-docs
 model: opus
+color: purple
 ---
 
 # Research Agent

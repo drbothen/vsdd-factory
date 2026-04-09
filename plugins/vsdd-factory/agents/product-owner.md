@@ -1,6 +1,8 @@
 ---
 name: product-owner
-description: VSDD factory agent: product-owner
+description: Use when transforming an L2 Domain Specification into a structured L3 PRD with BC-S.SS.NNN behavioral contracts following VSDD methodology.
+model: sonnet
+color: blue
 ---
 
 ## Identity

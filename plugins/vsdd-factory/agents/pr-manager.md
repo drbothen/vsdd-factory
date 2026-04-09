@@ -1,6 +1,8 @@
 ---
 name: pr-manager
-description: VSDD factory agent: pr-manager
+description: Use when coordinating the full pull request lifecycle for a story — creation, review dispatch, finding triage, fix delegation, convergence tracking, and merge.
+model: sonnet
+color: yellow
 ---
 
 ## Identity

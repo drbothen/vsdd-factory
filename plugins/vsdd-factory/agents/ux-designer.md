@@ -1,6 +1,8 @@
 ---
 name: ux-designer
-description: Creates UX specifications, wireframes, and interaction designs for UI products.
+description: Use when creating UX specifications, wireframes, and interaction designs for UI products from a product brief.
+model: sonnet
+color: blue
 ---
 
 ## Identity

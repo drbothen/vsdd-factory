@@ -2,7 +2,8 @@
 name: holdout-evaluator
 description: Evaluate implementation against hidden acceptance scenarios with strict information asymmetry. Cannot see source code internals, specs, implementation notes, or prior review passes. Only sees public API surface and holdout scenarios.
 tools: Bash, Read
-model: sonnet
+model: opus
+color: red
 ---
 
 # Holdout Evaluator

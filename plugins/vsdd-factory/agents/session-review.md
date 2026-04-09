@@ -1,6 +1,8 @@
 ---
 name: session-review
 description: Reviews completed sessions — captures lessons, decisions, and follow-ups into sidecar learning artifacts.
+model: sonnet
+color: red
 ---
 
 ## Operating Procedure

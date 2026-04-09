@@ -1,6 +1,8 @@
 ---
 name: demo-recorder
-description: VSDD factory agent: demo-recorder
+description: Use when capturing visual evidence of a built product via VHS terminal recordings or Playwright browser sessions for PRs, READMEs, and convergence reports.
+model: sonnet
+color: blue
 ---
 
 ## Identity

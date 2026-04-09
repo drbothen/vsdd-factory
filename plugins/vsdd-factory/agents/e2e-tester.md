@@ -1,6 +1,8 @@
 ---
 name: e2e-tester
-description: End-to-end testing of user journeys, visual validation, and browser-based
+description: Use when executing end-to-end user journey tests, visual validation, and Playwright/Cypress browser suites against a running application.
+model: sonnet
+color: blue
 ---
 
 ## Identity

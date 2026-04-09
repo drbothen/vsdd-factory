@@ -1,6 +1,8 @@
 ---
 name: state-manager
-description: VSDD factory agent: state-manager
+description: Use when updating the pipeline STATE.md with phase transitions and maintaining the .factory/ directory structure on behalf of the orchestrator.
+model: sonnet
+color: yellow
 ---
 
 ## Identity

@@ -1,3 +1,9 @@
+---
+name: orchestrator-multi-repo
+description: Orchestrator workflow reference for coordinating pipelines across multiple repositories. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Multi-Repo Orchestration
 
 Reference file for the orchestrator. Load when project_type is multi-repo.

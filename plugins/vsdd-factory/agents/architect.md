@@ -1,6 +1,8 @@
 ---
 name: architect
-description: VSDD factory agent: architect
+description: Use when designing system architecture from domain specs and PRDs, producing ADRs, subsystem decomposition, and verification-ready design artifacts.
+model: sonnet
+color: green
 ---
 
 ## Identity

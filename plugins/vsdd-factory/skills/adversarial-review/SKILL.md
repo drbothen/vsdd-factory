@@ -11,6 +11,34 @@ agent: adversary
 
 Launch the adversary agent to review specs or implementation with fresh context.
 
+## The Iron Law
+
+> **NO APPROVAL WITHOUT FRESH-CONTEXT REVIEW FIRST**
+
+Violating the letter of the rule is violating the spirit of the rule. Fresh context means the adversary has not seen prior review passes, the author's explanations, or the orchestrator's summary. Loading any of those contaminates the asymmetry the pattern depends on.
+
+## Announce at Start
+
+Before any other action, say verbatim:
+
+> I'm using the adversarial-review skill to launch a fresh-context adversary pass on <target>.
+
+Then create TodoWrite entries: one per planned pass (minimum 2).
+
+## Red Flags
+
+| Thought | Reality |
+|---|---|
+| "I already reviewed this, I can skip the adversary pass" | Self-review is not adversarial review. Dispatch. |
+| "The spec is obviously correct, one pass is enough" | Minimum is 2. The rule exists because round 1 systematically misses things. |
+| "Let me summarize the prior pass for the adversary to save tokens" | That destroys fresh context. Dispatch with only the target artifact. |
+| "The adversary found nothing, let's call it done" | Zero findings after a short prompt is a prompt bug, not convergence. Re-dispatch with sharper scope. |
+| "This finding isn't really critical, I'll downgrade it" | Severity is the adversary's call, not the orchestrator's. Record as-is. |
+| "The same finding keeps appearing, the adversary is stuck" | It keeps appearing because it isn't fixed. Fix it, then re-run. |
+| "Novelty is LOW after one pass, we've converged" | Minimum 2 passes. No exceptions. |
+| "Let me tell the adversary what the prior reviewer found" | Information asymmetry is the mechanism. Do not leak prior findings. |
+
+
 ## Templates
 
 Read and follow the output format in:

@@ -1,6 +1,8 @@
 ---
 name: dtu-validator
-description: VSDD factory agent: dtu-validator
+description: Use when validating Digital Twin Universe behavioral clones against the real third-party services they replicate, producing fidelity scores.
+model: sonnet
+color: red
 ---
 
 ## Identity

@@ -10,6 +10,34 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 
 Orchestrate the post-wave quality gate. All checks must pass before the next wave can begin.
 
+## The Iron Law
+
+> **NO WAVE ADVANCE WITHOUT ALL SIX GATES PASSING FIRST**
+
+Violating the letter of the rule is violating the spirit of the rule. "Close enough" is not passing. A gate that was skipped, mocked, or partially verified counts as failed.
+
+## Announce at Start
+
+Before any other action, say verbatim:
+
+> I'm using the wave-gate skill to run the post-wave integration gate for wave-N.
+
+Then create a TodoWrite entry per gate (six entries). Mark each in-progress before running and completed only after its pass criteria are independently verified.
+
+## Red Flags
+
+| Thought | Reality |
+|---|---|
+| "Gate 2 doesn't apply to this wave, skip it entirely" | Skip means report `SKIP` with the reason. Do not delete the gate from the output. |
+| "One test failure is flaky, let me re-run just that test" | Flaky tests are findings. Record the flake, fix or quarantine, then re-run Gate 1. |
+| "The adversary only found HIGH severity, that's not blocking" | HIGH without remediation is a tech debt entry that must be filed before advancing. |
+| "Demo evidence exists for most ACs, we'll backfill the rest" | Missing demo evidence blocks the gate. Dispatch demo-recorder for the missing ACs. |
+| "Holdout scored 0.84, that's basically 0.85" | 0.85 is the threshold. 0.84 fails. No rounding. |
+| "Let me run the gates in a different order to save time" | Gate order is load-bearing. Test suite first because everything else assumes it passes. |
+| "I'll advance the wave now and circle back to fix Gate 5 later" | Advancing with a failed gate means the next wave builds on unverified ground. Do not. |
+| "The test suite passed on my branch, I can skip the develop run" | Gate 1 runs on `develop` specifically to catch merge-order surprises. Run it there. |
+
+
 ## Input
 
 `$ARGUMENTS` — wave identifier (e.g., `wave-1`, `wave-2`)

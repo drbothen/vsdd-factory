@@ -1,3 +1,9 @@
+---
+name: orchestrator-steady-state
+description: Orchestrator workflow reference for steady-state operations once a project is in ongoing maintenance. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Steady-State Operations
 
 Reference file for the orchestrator. Load after v1.0.0 release or when

@@ -1,3 +1,9 @@
+---
+name: orchestrator-discovery-sequence
+description: Orchestrator workflow reference for the discovery-engine sequence (Path 8). Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Discovery Delegation Sequence (Path 8)
 
 Reference file for the orchestrator. Load when running autonomous discovery.

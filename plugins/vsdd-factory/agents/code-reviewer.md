@@ -1,6 +1,8 @@
 ---
 name: code-reviewer
-description: VSDD factory agent: code-reviewer
+description: Use when performing constructive code review on a PR or diff with cognitive diversity from a different model family, producing classified findings without modifying code.
+model: sonnet
+color: red
 ---
 
 ## Identity

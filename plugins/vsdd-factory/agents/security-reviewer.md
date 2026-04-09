@@ -1,6 +1,8 @@
 ---
 name: security-reviewer
-description: VSDD factory agent: security-reviewer
+description: Use when performing manual application security review or triaging automated scan results, citing CWE/CVE numbers and classifying severity for every finding.
+model: sonnet
+color: red
 ---
 
 ## Identity

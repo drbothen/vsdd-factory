@@ -1,6 +1,8 @@
 ---
 name: performance-engineer
-description: Performance optimization, benchmarking, and Core Web Vitals enforcement.
+description: Use when running benchmarks, detecting performance regressions, and enforcing Core Web Vitals or other perf budgets against an implementation.
+model: sonnet
+color: yellow
 ---
 
 ## Identity

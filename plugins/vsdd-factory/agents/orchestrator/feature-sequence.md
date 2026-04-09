@@ -1,3 +1,9 @@
+---
+name: orchestrator-feature-sequence
+description: Orchestrator workflow reference for the feature-mode delivery sequence on existing codebases. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
+disable-model-invocation: true
+---
+
 # Feature Mode Delegation Sequence
 
 Reference file for the orchestrator. Load when running feature mode (Path 3).
