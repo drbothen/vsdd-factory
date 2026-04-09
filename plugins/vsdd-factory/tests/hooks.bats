@@ -67,8 +67,10 @@ teardown() {
   echo "# VP-001" > .factory/specs/verification-properties/VP-001.md
   echo "Status: green" >> .factory/specs/verification-properties/VP-001.md
   run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/verification-properties/VP-001.md\"}}" | "'"$HOOKS"'/protect-vp.sh"'
-  [ "$status" -eq 2 ]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
   [[ "$output" == *"immutable"* ]]
+  [[ "$output" == *"supersede"* ]]
 }
 
 # ---------- protect-bc ----------
@@ -89,8 +91,10 @@ teardown() {
   echo "# BC-1.01.001" > .factory/specs/behavioral-contracts/BC-1.01.001.md
   echo "Status: green" >> .factory/specs/behavioral-contracts/BC-1.01.001.md
   run bash -c 'echo "{\"tool_input\":{\"file_path\":\".factory/specs/behavioral-contracts/BC-1.01.001.md\"}}" | "'"$HOOKS"'/protect-bc.sh"'
-  [ "$status" -eq 2 ]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
   [[ "$output" == *"immutable"* ]]
+  [[ "$output" == *"supersede"* ]]
 }
 
 # ---------- red-gate ----------

@@ -6,8 +6,8 @@
 # "Status: green" are immutable per spec-format rules. Non-green contracts
 # are freely editable.
 #
-# Exits 2 (block) only when the file matches a BC path AND already exists on
-# disk AND contains a `Status: green` line. Otherwise exits 0.
+# Emits a PreToolUse JSON envelope with permissionDecision — "deny" for a
+# protected green BC, "allow" otherwise.
 
 set -euo pipefail
 
@@ -19,18 +19,33 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
-if [[ ! "$FILE_PATH" =~ \.factory/specs/behavioral-contracts/BC-.*\.md$ ]]; then
+emit_allow() {
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}\n'
   exit 0
+}
+
+emit_deny() {
+  local reason="$1"
+  jq -nc --arg reason "$reason" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: $reason
+    }
+  }'
+  exit 0
+}
+
+if [[ ! "$FILE_PATH" =~ \.factory/specs/behavioral-contracts/BC-.*\.md$ ]]; then
+  emit_allow
 fi
 
 if [[ ! -f "$FILE_PATH" ]]; then
-  exit 0
+  emit_allow
 fi
 
 if grep -q "^Status: green" "$FILE_PATH"; then
-  echo "Blocked: $FILE_PATH has Status: green and is immutable." >&2
-  echo "To change a green BC, create a new BC that supersedes it per spec-format.md." >&2
-  exit 2
+  emit_deny "Blocked: $FILE_PATH has Status: green and is immutable per spec-format.md. To change a green BC, create a new BC that supersedes it. The old BC stays on disk; reference it from the new BC's 'Supersedes:' field."
 fi
 
-exit 0
+emit_allow

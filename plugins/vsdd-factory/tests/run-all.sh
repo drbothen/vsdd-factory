@@ -34,4 +34,8 @@ echo "== Bin tests =="
 bats tests/bin.bats
 
 echo
+echo "== Skill structure tests =="
+bats tests/skills.bats
+
+echo
 echo "All tests passed."
