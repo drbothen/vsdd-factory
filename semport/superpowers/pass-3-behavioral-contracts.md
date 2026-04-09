@@ -1,18 +1,25 @@
 # Pass 3: Behavioral Contracts
 
-_Phase B convergence round 1._
+_Phase B convergence round 2._
+
+## Changes from round 1
+
+Round 1 added 24 contracts (BC-DRAFT-010 through BC-DRAFT-033). Round 2 adds 13 new contracts (BC-DRAFT-034 through BC-DRAFT-047) covering: Plan Document required header/schema, No-Placeholders ban, inline plan self-review, writing-plans execution handoff, worktree directory-ignore + baseline-test + precedence, implementer file-growth escalation, implementer in-over-your-head STOP, code-review severity triage, skill-triggering test pass semantics, Anthropic-compliance PR rejection, deprecation-shim response contract. Expands round 1 BC-DRAFT-004 with TDD sub-gates (Verify RED / Verify GREEN).
 
 ## Changes from Phase A
 
-Phase A captured 9 BC-DRAFTs. Round 1 adds 24 new contracts (BC-DRAFT-010 through BC-DRAFT-033), a tension-audit section, and expands Phase A's BC-DRAFT-005 (debugging) and BC-DRAFT-006 (verification) into sub-contracts per phase/step. Source scan now includes subagent prompt files, session-start bash, OpenCode plugin, and writing-skills meta-contracts.
+Phase A captured 9 BC-DRAFTs. Round 1 added 24 new contracts, a tension-audit section, and expanded BC-DRAFT-005 / BC-DRAFT-006 into sub-contracts.
 
-Superpowers does not have formal behavioral contract files (no BC-S.SS.NNN structure). Its contracts are encoded in:
+Superpowers does not have formal behavioral contract files. Its contracts are encoded in:
 
 1. **Skill markdown** — Iron Laws, HARD-GATEs, checklists, red-flag tables
 2. **Subagent prompt templates** — implementer, spec-reviewer, code-quality-reviewer
 3. **Hook script** — bootstrap injection + legacy warning
 4. **OpenCode plugin** — config-hook + first-user-message transform
 5. **Tests** — prompts + assertion scripts validating skill trigger + follow-through
+6. **(Round 2)** **Agent file** — `agents/code-reviewer.md` with six-part mandate and Critical/Important/Minor taxonomy
+7. **(Round 2)** **Plan document schema** — `writing-plans/SKILL.md` encodes a machine-readable header directive naming the required execution skill
+8. **(Round 2)** **Contributor guidelines (`CLAUDE.md`)** — governance contracts (no third-party deps, no Anthropic-compliance PRs, etc.)
 
 ## Contracts from Skills (HIGH confidence)
 
@@ -38,8 +45,13 @@ Superpowers does not have formal behavioral contract files (no BC-S.SS.NNN struc
 ### BC-DRAFT-004: No production code without a failing test (TDD Iron Law)
 **Pre:** Implementing feature/bugfix/refactor
 **Post:** A test existed and was observed to fail before corresponding production code was written
-**Error case:** Code written before test → delete it, start over; no "adapt while writing tests"
-**Evidence:** `skills/test-driven-development/SKILL.md:33-45`
+**Error case:** Code written before test → delete it, start over; no "adapt while writing tests", no "keep as reference"
+**Sub-contracts (round 2):**
+- **Verify-RED gate** (`test-driven-development/SKILL.md:114-128`): after writing the test, agent MUST execute it and observe failure for the correct reason (feature missing, not typo, not pre-existing behavior). If the test passes immediately, it was testing existing behavior; fix the test. If it errors, fix the error until it fails correctly.
+- **Verify-GREEN gate** (`SKILL.md:168-184`): after implementing, agent MUST re-run and observe (a) target test passes, (b) all other tests still pass, (c) output pristine — no warnings/errors. Any regression: fix immediately, not "later".
+- **Exception protocol** (`SKILL.md:24-29`): only throwaway prototypes, generated code, and configuration files may skip TDD, and ONLY after asking the human partner.
+- **Debugging integration** (`SKILL.md:351-355`): bugs MUST be reproduced via a failing test before any fix attempt. "Never fix bugs without a test."
+**Evidence:** `skills/test-driven-development/SKILL.md:33-45, 114-128, 168-184, 24-29, 328-340, 351-355`
 **Confidence:** HIGH
 
 ### BC-DRAFT-005: Systematic debugging phase-ordering with architectural escape valve
@@ -57,8 +69,8 @@ Superpowers does not have formal behavioral contract files (no BC-S.SS.NNN struc
 
 ### BC-DRAFT-007: Per-task fresh subagent + strict-order two-stage review
 **Pre:** Executing a plan with independent tasks under SDD
-**Post:** Each task dispatched to fresh implementer subagent; on implementer DONE, spec compliance reviewer dispatched; ONLY after spec reviewer returns ✅, code quality reviewer dispatched. Review loops until both return ✅. All three subagents receive precisely crafted context, never parent history.
-**Error case:** Starting code quality review before spec compliance ✅ = forbidden (`SKILL.md:247`)
+**Post:** Each task dispatched to fresh implementer subagent; on implementer DONE, spec compliance reviewer dispatched; ONLY after spec reviewer returns correct, code quality reviewer dispatched. Review loops until both return correct. All three subagents receive precisely crafted context, never parent history.
+**Error case:** Starting code quality review before spec compliance correct = forbidden (`SKILL.md:247`)
 **Evidence:** `skills/subagent-driven-development/SKILL.md:6-13, 42-85, 247`
 **Confidence:** HIGH
 
@@ -90,41 +102,39 @@ Superpowers does not have formal behavioral contract files (no BC-S.SS.NNN struc
 
 ### BC-DRAFT-012: Spec reviewer MUST verify by reading code, NOT by trusting implementer report (adversarial)
 **Pre:** Spec reviewer subagent dispatched after implementer DONE
-**Post:** Reviewer reads actual code files, compares to requirements line-by-line, ignores implementer's claims. Default framing: "The implementer finished suspiciously quickly. Their report may be incomplete, inaccurate, or optimistic."
-**Evidence:** `skills/subagent-driven-development/spec-reviewer-prompt.md:21-37, 56`
+**Post:** Reviewer reads actual code files, compares to requirements line-by-line, ignores implementer's claims. Default framing: "The implementer finished suspiciously quickly. Their report may be incomplete, inaccurate, or optimistic." Reviewer returns either a spec-compliant signal, OR a list of specific missing/extra items with file:line references.
+**Evidence:** `skills/subagent-driven-development/spec-reviewer-prompt.md:21-37, 56-61`
 **Confidence:** HIGH
 
-### BC-DRAFT-013: Quality review MUST NOT start before spec review returns ✅
+### BC-DRAFT-013: Quality review MUST NOT start before spec review returns correct
 **Pre:** SDD task has been reviewed by spec-reviewer
-**Post:** Code quality reviewer is dispatched ONLY if spec reviewer returned ✅. If ❌, implementer fixes + spec re-review first.
-**Evidence:** `skills/subagent-driven-development/SKILL.md:247`; `code-quality-reviewer-prompt.md:7`
+**Post:** Code quality reviewer is dispatched ONLY if spec reviewer returned a correct signal. If issues found, implementer fixes + spec re-review first. Quality reviewer additionally checks: one-responsibility-per-file, unit decomposability, plan-structure adherence, newly-created-large-files (not pre-existing file sizes).
+**Evidence:** `skills/subagent-driven-development/SKILL.md:247`; `code-quality-reviewer-prompt.md:7, 20-24`
 **Confidence:** HIGH
 
 ## Meta-Contracts from writing-skills (HIGH confidence)
 
 ### BC-DRAFT-014: No skill (new or edited) without a failing pressure test
 **Pre:** Creating or editing any SKILL.md
-**Post:** A pressure-test scenario was run with a subagent WITHOUT the skill, baseline rationalizations were captured verbatim, then the skill was written to address those specific rationalizations
-**Error case:** Skill written before testing → delete, start over. Applies to additions, edits, "documentation updates".
-**Evidence:** `skills/writing-skills/SKILL.md:374-393`
+**Post:** A pressure-test scenario was run with a subagent WITHOUT the skill, baseline rationalizations were captured verbatim, then the skill was written to address those specific rationalizations. **Pressure scenario MUST combine 3+ pressures drawn from {Time, Sunk cost, Authority, Economic, Exhaustion, Social, Pragmatic}** (`testing-skills-with-subagents.md:130-141`). Agent behavior must be documented word-for-word, not summarized.
+**Evidence:** `skills/writing-skills/SKILL.md:374-393`; `skills/writing-skills/testing-skills-with-subagents.md:1-116, 130-141`
 **Confidence:** HIGH
 
 ### BC-DRAFT-015: Skill descriptions MUST NOT summarize workflow
 **Pre:** Authoring a skill's YAML description field
 **Post:** Description contains ONLY triggering conditions ("Use when..."). Does NOT summarize what the skill does or its workflow.
-**Rationale:** Empirically validated — workflow-summarizing descriptions cause Claude to follow the description shortcut and SKIP the skill body. "code review between tasks" caused ONE review; "Use when executing implementation plans with independent tasks" caused correct TWO reviews.
 **Evidence:** `skills/writing-skills/SKILL.md:150-172`
 **Confidence:** HIGH
 
 ### BC-DRAFT-016: Discipline skills MUST include rationalization table + red flags list
 **Pre:** Authoring a skill that enforces discipline (Iron Law-class)
-**Post:** Skill contains (a) a rationalization table with excuses and rebuttals captured from baseline testing, (b) a red flags list enabling agent self-check, (c) explicit loophole closures ("don't keep as reference", "delete means delete"), (d) "violating the letter = violating the spirit" clause
-**Evidence:** `skills/writing-skills/SKILL.md:459-531`
+**Post:** Skill contains (a) rationalization table, (b) red flags list, (c) explicit loophole closures, (d) "violating the letter = violating the spirit" clause. **Round 2 addendum:** discipline skills MUST use Authority + Commitment + Social Proof language and MUST NOT use Liking (creates sycophancy) or heavy Reciprocity (feels manipulative) (`persuasion-principles.md:126-133`).
+**Evidence:** `skills/writing-skills/SKILL.md:459-531`; `persuasion-principles.md:126-165`
 **Confidence:** HIGH
 
 ### BC-DRAFT-017: Skills MUST NOT use `@` force-loading references to other skills
 **Pre:** Cross-referencing another skill from within a skill
-**Post:** Reference by name with explicit requirement marker ("**REQUIRED SUB-SKILL:** Use superpowers:test-driven-development"); no `@skills/...` which force-loads 200k+ context
+**Post:** Reference by name with explicit requirement marker; no `@skills/...` which force-loads 200k+ context
 **Evidence:** `skills/writing-skills/SKILL.md:278-288`
 **Confidence:** HIGH
 
@@ -132,150 +142,186 @@ Superpowers does not have formal behavioral contract files (no BC-S.SS.NNN struc
 
 ### BC-DRAFT-018: Brainstorming terminal state is writing-plans exclusively
 **Pre:** Brainstorming checklist complete + user approved spec
-**Post:** writing-plans is invoked. NO other skill (not frontend-design, not mcp-builder, not any implementation skill) is invoked as the next step.
+**Post:** writing-plans is invoked. NO other skill is invoked as the next step.
 **Evidence:** `skills/brainstorming/SKILL.md:66`
-**Confidence:** HIGH
 
 ### BC-DRAFT-019: Visual Companion offer MUST be its own message
-**Pre:** Agent anticipates upcoming visual questions in brainstorming
-**Post:** Offer message contains ONLY the offer text — no clarifying questions, no context summaries, no combined content. Agent waits for response before continuing.
 **Evidence:** `skills/brainstorming/SKILL.md:152-154`
-**Confidence:** HIGH
 
 ### BC-DRAFT-020: Per-question visual-vs-terminal decision
-**Pre:** User has accepted visual companion; agent about to ask next brainstorming question
-**Post:** Agent decides per-question: browser if "user would understand better by SEEING than reading" (mockups, layouts, diagrams); terminal otherwise (requirements, concepts, tradeoffs). UI-topic questions are not automatically visual.
-**Evidence:** `skills/brainstorming/SKILL.md:156-162`
-**Confidence:** HIGH
+**Post:** Agent decides per-question: browser if "user would understand better by SEEING than reading"; terminal otherwise. Round 2: content written to visual-companion is a **fragment by default**, full HTML documents only when frame-template override is needed.
+**Evidence:** `skills/brainstorming/SKILL.md:156-162`; `brainstorming/visual-companion.md:27-31`
 
 ## Receiving-Code-Review Contracts (HIGH confidence)
 
 ### BC-DRAFT-021: Unclear review items halt ALL implementation
-**Pre:** Multi-item code review received; any item unclear
-**Post:** STOP — no items implemented. Ask for clarification on unclear items FIRST. "Items may be related. Partial understanding = wrong implementation."
 **Evidence:** `skills/receiving-code-review/SKILL.md:42-48`
-**Confidence:** HIGH
 
 ### BC-DRAFT-022: Forbidden gratitude class in review responses
-**Pre:** Responding to code review feedback
-**Post:** Agent does NOT emit "You're absolutely right", "Great point", "Thanks [anything]", or any gratitude expression. Catch-and-delete rule: if about to type "Thanks", DELETE IT.
-**Evidence:** `skills/receiving-code-review/SKILL.md:28-33, 132-148`; CLAUDE.md violation reference
-**Confidence:** HIGH
+**Evidence:** `skills/receiving-code-review/SKILL.md:28-33, 132-148`
 
 ### BC-DRAFT-023: YAGNI check before implementing "proper" features
-**Pre:** External reviewer suggests "implementing X properly" with features
-**Post:** Agent greps codebase for actual usage. If unused, proposes removal (YAGNI). If used, then implements properly.
 **Evidence:** `skills/receiving-code-review/SKILL.md:88-98`
-**Confidence:** HIGH
 
 ## Finishing-a-Development-Branch Contracts (HIGH confidence)
 
 ### BC-DRAFT-024: Tests MUST pass before presenting completion options
-**Pre:** Implementation claimed complete; about to present options
-**Post:** Full test suite run fresh; tests pass. If failing, STOP — do not present options, report failures and require fix.
 **Evidence:** `skills/finishing-a-development-branch/SKILL.md:18-38`
-**Confidence:** HIGH
 
 ### BC-DRAFT-025: Exactly 4 options, no explanation added
-**Pre:** Tests verified passing
-**Post:** Agent presents exactly these options: (1) merge locally, (2) push+PR, (3) keep as-is, (4) discard. No added explanation.
 **Evidence:** `skills/finishing-a-development-branch/SKILL.md:50-64`
-**Confidence:** HIGH
 
 ### BC-DRAFT-026: Discard requires typed "discard" confirmation
-**Pre:** User selects Option 4
-**Post:** Agent requires user to type the exact string "discard" before any destructive action. If anything else typed, abort.
 **Evidence:** `skills/finishing-a-development-branch/SKILL.md:116-124`
-**Confidence:** HIGH
 
 ### BC-DRAFT-027: executing-plans MUST invoke finishing-a-development-branch as terminal step
-**Pre:** All tasks in a plan executed under executing-plans
-**Post:** Agent invokes finishing-a-development-branch as the completion step (not manual merge/PR).
 **Evidence:** `skills/executing-plans/SKILL.md:34-38`
-**Confidence:** HIGH
 
 ## SDD Safety Contracts (HIGH confidence)
 
 ### BC-DRAFT-028: SDD MUST NOT start on main/master without explicit user consent
-**Pre:** About to begin SDD execution
-**Post:** Agent verifies current branch; if main or master, obtains explicit user consent before proceeding. Also: using-git-worktrees invoked BEFORE any implementer dispatch.
 **Evidence:** `skills/subagent-driven-development/SKILL.md:237, 268`
-**Confidence:** HIGH
 
 ### BC-DRAFT-029: SDD MUST NOT dispatch multiple implementer subagents in parallel
-**Pre:** Executing SDD with multiple tasks
-**Post:** Implementer subagents dispatched strictly sequentially. Parallel dispatch forbidden — conflicts. (Contrast: dispatching-parallel-agents is for independent INVESTIGATIONS only.)
 **Evidence:** `skills/subagent-driven-development/SKILL.md:240`
-**Confidence:** HIGH
 
 ### BC-DRAFT-030: Controller provides full task text inline; subagent MUST NOT read plan file
-**Pre:** Dispatching implementer subagent for a task
-**Post:** The controller extracted and included full task text in the prompt. Implementer does NOT read the plan file — avoids file-reading overhead and context pollution.
 **Evidence:** `skills/subagent-driven-development/SKILL.md:241`; `implementer-prompt.md:9-18`
-**Confidence:** HIGH
 
 ## Bootstrap & Platform Contracts (HIGH confidence)
 
 ### BC-DRAFT-031: Bootstrap injection JSON shape is platform-conditional
-**Pre:** SessionStart hook fires
 **Post:** Hook emits exactly ONE of three JSON shapes based on env-var detection:
 - `CURSOR_PLUGIN_ROOT` set → `{"additional_context": "..."}`
 - `CLAUDE_PLUGIN_ROOT` set && `COPILOT_CLI` unset → `{"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": "..."}}`
 - otherwise → `{"additionalContext": "..."}` (SDK standard, Copilot CLI)
-Emitting both `additional_context` and `hookSpecificOutput` would cause Claude Code to double-inject (no dedup).
 **Evidence:** `hooks/session-start:40-55`
-**Confidence:** HIGH
 
 ### BC-DRAFT-032: Legacy skills dir triggers first-reply warning
-**Pre:** SessionStart detects `~/.config/superpowers/skills` exists
-**Post:** Hook injects an `<important-reminder>` the agent MUST surface in its FIRST reply telling the user to migrate custom skills to `~/.claude/skills`
 **Evidence:** `hooks/session-start:12-15`
-**Confidence:** HIGH
 
 ### BC-DRAFT-033: OpenCode bootstrap injects into first user message, idempotently
-**Pre:** OpenCode session starts; `experimental.chat.messages.transform` fires
-**Post:** Bootstrap injected into first USER message (not system — avoids token bloat #750 and multi-system-message breakage on Qwen #894). Guarded by substring check on `EXTREMELY_IMPORTANT`; no double-injection. Also: skills path auto-registered via `config` hook into `config.skills.paths` (no symlinks required).
 **Evidence:** `.opencode/plugins/superpowers.js:84-110`
+
+## Round 2 — Plan Document Contracts (HIGH confidence)
+
+### BC-DRAFT-034: Plan header is MANDATORY and declares the required execution sub-skill
+**Pre:** Writing a plan file via writing-plans
+**Post:** The plan file begins with a header block containing (a) title, (b) a `> **For agentic workers:**` directive naming `REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans`, (c) `**Goal:**`, (d) `**Architecture:**`, (e) `**Tech Stack:**`. Any later execution agent reads this header to determine which skill should run the plan.
+**Evidence:** `skills/writing-plans/SKILL.md:47-61`
 **Confidence:** HIGH
 
-## Contracts from Tests (HIGH confidence; behavioral assertions)
+### BC-DRAFT-035: No-placeholders contract in plan documents
+**Pre:** Plan being written
+**Post:** Plan contains NO tokens from the forbidden set: "TBD", "TODO", "implement later", "fill in details", "Add appropriate error handling", "add validation", "handle edge cases", "Write tests for the above" without code, "Similar to Task N" without inlined code, steps describing WHAT without HOW (no code block), references to types/functions/methods not defined in any task.
+**Evidence:** `skills/writing-plans/SKILL.md:106-120`
+**Confidence:** HIGH
 
-- `tests/skill-triggering/prompts/` — 6 prompt files (dispatching-parallel-agents, executing-plans, requesting-code-review, systematic-debugging, test-driven-development, writing-plans) encode implicit phrasing that must auto-trigger the matching skill. Assertions in `tests/skill-triggering/run-test.sh`.
-- `tests/explicit-skill-requests/prompts/` — explicit phrasing must trigger skill even under abbreviation ("SDD means", `i-know-what-sdd-means.txt`).
-- `tests/claude-code/test-subagent-driven-development.sh` + `-integration.sh` — SDD dispatches correct subagent sequence.
-- `tests/subagent-driven-dev/{go-fractals,svelte-todo}/` — end-to-end: scaffolded project + pre-written plan.md/design.md → agent should execute plan using SDD.
-- `tests/opencode/test-priority.sh` — validates skill priority ordering (process skills first).
-- `tests/brainstorm-server/*.test.js` — unit tests for the brainstorm visual-companion websocket server.
+### BC-DRAFT-036: Plan self-review is an inline 3-check, NOT a subagent dispatch
+**Pre:** Plan draft complete
+**Post:** Author runs the 3-check pass themselves: (1) spec-coverage, (2) placeholder-scan, (3) type-consistency.
+**Distinguishing rule:** Explicitly NOT the SDD two-stage review. "This is a checklist you run yourself — not a subagent dispatch." (`writing-plans/SKILL.md:124`)
+**Evidence:** `skills/writing-plans/SKILL.md:122-132`
+**Confidence:** HIGH
 
-## Contracts from Contributor Guidelines (CLAUDE.md)
+### BC-DRAFT-037: Writing-plans MUST end with explicit execution handoff offering exactly two options
+**Pre:** Plan saved
+**Post:** Agent presents: (1) Subagent-Driven (recommended) — maps to `REQUIRED SUB-SKILL: superpowers:subagent-driven-development`; (2) Inline Execution — maps to `REQUIRED SUB-SKILL: superpowers:executing-plans`. No other options. No default. Agent waits for choice.
+**Evidence:** `skills/writing-plans/SKILL.md:134-152`
+**Confidence:** HIGH
 
-`CLAUDE.md` encodes meta-contracts about skill modification:
+## Round 2 — Worktree Contracts (HIGH confidence)
 
-- Skill content is carefully tuned; changes require eval evidence (`CLAUDE.md:68-75`)
-- "human partner" terminology is deliberate and not interchangeable (`CLAUDE.md:77-78`)
-- Third-party dependencies forbidden (`CLAUDE.md:31-33`)
-- Anthropic skill-authoring "compliance" PRs explicitly rejected (`CLAUDE.md:35-37`)
+### BC-DRAFT-038: Project-local worktree directory MUST be gitignore-covered before creation
+**Pre:** About to create a worktree under `.worktrees/` or `worktrees/`
+**Post:** `git check-ignore` confirms the directory is ignored. If NOT, agent adds the line to `.gitignore`, commits, then proceeds. Global directory `~/.config/superpowers/worktrees/<project>/` is exempt.
+**Rationale:** Prevents accidentally committing worktree contents. Codifies Jesse's "Fix broken things immediately" rule.
+**Evidence:** `skills/using-git-worktrees/SKILL.md:52-70`
+**Confidence:** HIGH
+
+### BC-DRAFT-039: Clean-baseline test gate on new worktree
+**Pre:** Worktree created and project setup run
+**Post:** Full test suite runs in the fresh worktree; if all pass, agent reports "ready". If any fail, agent STOPS and asks human partner whether to proceed or investigate.
+**Evidence:** `skills/using-git-worktrees/SKILL.md:120-134, 168-172`
+**Confidence:** HIGH
+
+### BC-DRAFT-040: Worktree directory selection follows deterministic precedence
+**Post:** (1) existing `.worktrees/` or `worktrees/` (tie → `.worktrees/`); (2) else grep `CLAUDE.md` for a `worktree.*director` preference; (3) else ask human partner.
+**Evidence:** `skills/using-git-worktrees/SKILL.md:17-49, 144-156`
+**Confidence:** HIGH
+
+## Round 2 — Implementer Escalation Contracts (HIGH confidence)
+
+### BC-DRAFT-041: Implementer MUST NOT unilaterally split files beyond plan intent
+**Pre:** Implementer working on a task; a file being created grows beyond the plan's intended scope
+**Post:** Implementer does NOT split the file on its own. It reports status DONE_WITH_CONCERNS and flags the file-size concern.
+**Evidence:** `skills/subagent-driven-development/implementer-prompt.md:45-56`
+**Confidence:** HIGH
+
+### BC-DRAFT-042: Implementer MUST stop and escalate when in over its head
+**Pre:** Implementer encounters ANY of: architectural decisions with multiple valid approaches, code understanding needs beyond provided context, uncertainty about correctness, restructuring not anticipated by the plan, repeated file reads without progress
+**Post:** Implementer STOPS. Reports status BLOCKED or NEEDS_CONTEXT with (a) specifically what it is stuck on, (b) what it tried, (c) what kind of help it needs.
+**Evidence:** `skills/subagent-driven-development/implementer-prompt.md:58-72`
+**Confidence:** HIGH
+
+## Round 2 — Code Review Dispatch Contracts (HIGH confidence)
+
+### BC-DRAFT-043: Code-review feedback triage follows 3-tier severity taxonomy
+**Pre:** Code-reviewer subagent/agent returns findings
+**Post:** Agent categorizes each finding as Critical / Important / Minor (Suggestions) and acts accordingly: Critical → fix immediately; Important → fix before next task; Minor → note for later. Push back with technical reasoning if reviewer is wrong.
+**Evidence:** `skills/requesting-code-review/SKILL.md:43-48, 92-104`; `agents/code-reviewer.md:37-40`
+**Confidence:** HIGH
+
+### BC-DRAFT-044: Requesting-code-review passes a precisely crafted context, never session history
+**Pre:** About to dispatch code-reviewer
+**Post:** Agent computes `BASE_SHA` and `HEAD_SHA` from git so the reviewer sees exactly the diff in scope. Dispatches via Task tool using the `code-reviewer.md` template filled with `{WHAT_WAS_IMPLEMENTED}`, `{PLAN_OR_REQUIREMENTS}`, `{BASE_SHA}`, `{HEAD_SHA}`, `{DESCRIPTION}`. Mandatory invocation points: after each SDD task, after completing a major feature, before merge to main.
+**Evidence:** `skills/requesting-code-review/SKILL.md:8, 14-17, 26-42`
+**Confidence:** HIGH
+
+## Round 2 — Test Assertion Contracts (HIGH confidence)
+
+### BC-DRAFT-045: Skill-triggering test pass condition is a stream-json tool-invocation match
+**Pre:** Running `tests/skill-triggering/run-test.sh <skill-name> <prompt-file>` against a prompt that does NOT mention the skill by name
+**Post:** Test PASSES if and only if the recorded stream-json log contains BOTH `"name":"Skill"` AND a `"skill":"(namespace:)?<skill-name>"` tool invocation. The assertion uses `grep -qE` against a regex `'"skill":"([^"]*:)?<SKILL_NAME>"'`. Timeout 300s, max-turns default 3.
+**Evidence:** `tests/skill-triggering/run-test.sh:57-68`
+**Confidence:** HIGH
+
+## Round 2 — Governance / Contributor Contracts (HIGH confidence)
+
+### BC-DRAFT-046: Anthropic-compliance skill PRs are rejected without eval evidence
+**Pre:** PR modifies skill content to conform to Anthropic's published skill-authoring guidance
+**Post:** PR is closed/rejected unless it includes extensive eval evidence showing the change improves outcomes. This applies even if `anthropic-best-practices.md` appears to support the change — that file is reference material, not authority.
+**Evidence:** `CLAUDE.md:35-37, 67-74`
+**Confidence:** HIGH
+
+### BC-DRAFT-047: Deprecation-shim commands MUST respond by naming the replacement skill
+**Pre:** User invokes `/brainstorm`, `/write-plan`, or `/execute-plan`
+**Post:** Agent responds by telling the human partner the command is deprecated and should ask for the corresponding skill instead. Agent does NOT execute any work under the shim.
+**Evidence:** `commands/brainstorm.md:1-6`; `commands/write-plan.md:1-6`; `commands/execute-plan.md:1-6`
+**Confidence:** HIGH
 
 ## Tension Audit
 
-**T1: "Skills are mandatory" (BC-002, BC-014) vs "User instructions override skills" (BC-008).**
-Resolution: explicit priority order in `using-superpowers.md:19-26`. User > skills > default. Skills are mandatory relative to the default system prompt, NOT relative to user instructions. No true conflict.
+**T1: "Skills are mandatory" (BC-002) vs "User instructions override" (BC-008).** Resolution: priority order user > skills > default. No conflict.
 
-**T2: "SDD sequential implementer dispatch" (BC-029) vs "dispatching-parallel-agents parallel dispatch" (implicit from that skill).**
-Resolution: scope-distinguished. Parallel dispatch is for independent INVESTIGATIONS (read-only bug triage across unrelated domains). Sequential dispatch is for IMPLEMENTATION under SDD. The skills are for different phases.
+**T2: SDD sequential dispatch (BC-029) vs parallel-agents skill.** Resolution: scope-distinguished (implementation vs investigation). No conflict.
 
-**T3: "Verify before completion" (BC-006) vs agent social pressure to respond quickly.**
-Resolution: verification-before-completion codifies this as an Iron Law with rationalization table explicitly countering "I'm tired", "just this once", "confidence enough". No conflict — social pressure is the adversary the skill addresses.
+**T3: Verify before completion vs social pressure.** Resolution: pressure is the adversary the skill addresses. No conflict.
 
-**T4: "Receiving-code-review push back when wrong" (BC-022, forbidden gratitude) vs typical politeness.**
-Resolution: the skill treats politeness as performative agreement and forbids it by name. Technical correctness > social comfort is the explicit principle (`SKILL.md:10-12`). No conflict — the "tension" IS the contract.
+**T4: Push back when wrong (BC-022) vs politeness.** Resolution: skill forbids performative politeness. Technical correctness > social comfort. The tension IS the contract.
 
-**T5: Implementer self-review (BC-010) vs spec reviewer "don't trust the report" (BC-012).**
-Resolution: defense in depth. Self-review catches what the implementer knows. Spec reviewer catches what the implementer doesn't know or misrepresents. Adversarial layer is intentional. No conflict.
+**T5: Implementer self-review (BC-010) vs spec reviewer "don't trust the report" (BC-012).** Resolution: defense in depth. Intentional adversarial layer. No conflict.
+
+**T6 (round 2): writing-plans inline Self-Review (BC-036) vs SDD two-stage subagent review (BC-007, BC-012, BC-013).** Resolution: different phases. Plan self-review is authorial (BEFORE implementation). SDD two-stage review is post-implementation. The plan explicitly says "This is a checklist you run yourself — not a subagent dispatch." No conflict.
+
+**T7 (round 2): `anthropic-best-practices.md` reference file vs BC-DRAFT-046 rejection of compliance PRs.** Resolution: the Anthropic guidance file is reference material retained for contrast, not authority. CLAUDE.md:35-37 explicitly states the project's philosophy "differs" and that compliance-restructuring PRs require eval evidence. Deliberate tension, not contradiction.
+
+**T8 (round 2): Persuasion-principles "use Authority + Commitment" vs Anthropic best-practices "concise, avoid over-explaining".** Resolution: different axes. Persuasion governs imperative tone; Anthropic guidance governs token budget. Skills can be both concise AND authoritative. Writing-skills wins ties per CLAUDE.md:35-37.
 
 ## Gaps
 
-- No machine-readable contract index. Contracts are prose inside skills, prompt files, hook scripts, and a JS plugin.
-- Compliance is ultimately probabilistic (model adherence to instructions); mitigation is adversarial pressure testing (per writing-skills), not type-system enforcement.
-- `tests/skill-triggering/run-test.sh` scoring and assertion format not yet extracted into formal contracts.
-- Third-party dependency ban (CLAUDE.md:31-33) is a repo-level policy contract but not attached to a skill.
+- No machine-readable contract index. Contracts are prose inside skills, prompt files, hook scripts, a JS plugin, and a plan-document schema.
+- Compliance is ultimately probabilistic; mitigation is adversarial pressure testing, not type-system enforcement.
+- `executing-plans/SKILL.md` full body not yet extracted into formal contracts (batch size, checkpoint semantics).
+- `skills/subagent-driven-development/SKILL.md` body past cited line ranges not yet fully extracted.
+- `tests/subagent-driven-dev/{go-fractals,svelte-todo}/` scaffolding-format contract not yet extracted.
