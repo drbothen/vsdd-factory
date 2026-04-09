@@ -1,0 +1,267 @@
+# Getting Started with vsdd-factory
+
+This guide walks you through installing the VSDD plugin, running your first session,
+and understanding the core concepts you need before starting a project.
+
+---
+
+## Prerequisites
+
+### Required
+
+- **Claude Code CLI** -- the plugin runs inside Claude Code sessions. Install from
+  [claude.ai/code](https://claude.ai/code).
+- **git** -- the factory uses git worktrees to isolate pipeline state from your source code.
+- **jq** -- JSON processing, used by hooks and bin helpers.
+- **yq** -- YAML processing, used by workflow parsing and wave-state queries.
+
+### Optional (for running tests)
+
+- **bats-core** -- the plugin's test suite uses [bats](https://github.com/bats-core/bats-core).
+  Install via your package manager (`brew install bats-core` on macOS).
+
+### Language-specific (depends on your target project)
+
+- **Rust projects:** Rust 1.85+, `cargo-clippy`, `cargo-fmt` (nightly), `cargo-mutants`,
+  `cargo-fuzz`, Kani verifier
+- **TypeScript projects:** Node.js, npm/pnpm, Stryker, fast-check
+- **Python projects:** Python 3.11+, Hypothesis, mutmut, Semgrep
+
+You do not need all of these up front. The `/setup-env` command checks what is available
+and reports what is missing for your target project's language.
+
+---
+
+## Installation
+
+### From the Claude Code plugin marketplace
+
+```shell
+/plugin marketplace add drbothen/vsdd-factory
+/plugin install vsdd-factory@vsdd-factory
+```
+
+This installs the plugin globally. It is available in every Claude Code session.
+
+### Local development mode
+
+If you are working on the plugin itself, or want to test a local copy:
+
+```bash
+claude --plugin-dir ./plugins/vsdd-factory
+```
+
+This loads the plugin from the local directory instead of the installed marketplace version.
+
+---
+
+## First session
+
+Every Claude Code session with the VSDD plugin should start with the same three steps.
+
+### Step 1: Check factory health
+
+```
+/factory-health
+```
+
+This command verifies that the `.factory/` git worktree exists and is properly mounted on
+the `factory-artifacts` orphan branch. If anything is wrong, it auto-repairs:
+
+- Creates the `factory-artifacts` orphan branch if missing
+- Mounts the `.factory/` worktree if missing
+- Creates `STATE.md` if missing
+- Creates the directory structure (`specs/`, `stories/`, `cycles/`, etc.) if missing
+
+Run this at the start of every session. It is fast and idempotent.
+
+### Step 2: Check environment
+
+```
+/setup-env
+```
+
+This verifies your toolchain: git configuration, language-specific tools, MCP server
+availability, and shell tool versions. Run this the first time you use the plugin, and
+again after installing or upgrading tools.
+
+### Step 3: Read pipeline state
+
+```
+Read .factory/STATE.md
+```
+
+STATE.md is the single source of truth for where the pipeline left off. It tells you the
+current phase, what was completed, and what to do next. Every skill reads it before acting
+and updates it after phase transitions.
+
+---
+
+## Session start flow
+
+```mermaid
+graph LR
+    A["/factory-health"] --> B{Healthy?}
+    B -->|Yes| C["/setup-env"]
+    B -->|No| D["Auto-repair"]
+    D --> C
+    C --> E["Read STATE.md"]
+    E --> F["Resume pipeline"]
+```
+
+---
+
+## Understanding the factory worktree
+
+The `.factory/` directory is not an ordinary directory. It is a **git worktree** mounted
+on an orphan branch called `factory-artifacts`. This means:
+
+- `.factory/` has its own git history, separate from your `main` and `develop` branches.
+- Specs, stories, and pipeline state are version-controlled but never pollute your source
+  code branches.
+- You commit factory changes with `cd .factory && git add -A && git commit -m "factory(...): ..."`.
+- The factory branch has no parent -- it was created with `git checkout --orphan`.
+
+This separation is deliberate. Your source code lives on `develop` (and `main` for releases).
+Your pipeline artifacts live on `factory-artifacts`. They share a git repository but have
+independent histories.
+
+### What lives in `.factory/`
+
+| Directory | Purpose | Lifecycle |
+|-----------|---------|-----------|
+| `specs/` | Product brief, domain spec, PRD, BCs, VPs, architecture | Living -- always current truth |
+| `stories/` | Story files, epics, dependency graph, sprint state | Accumulating -- grows each cycle |
+| `cycles/` | Per-pipeline-run artifacts (adversarial reviews, convergence reports) | Cycle-scoped -- immutable after close |
+| `holdout-scenarios/` | Hidden acceptance scenarios for information-asymmetric testing | Living -- some retired after evaluation |
+| `semport/` | Semantic porting artifacts from brownfield ingestion | Living |
+| `demo-evidence/` | Visual review tracking per story | Accumulating |
+| `STATE.md` | Pipeline progress tracker | Critical -- updated at every transition |
+
+### What does NOT live in `.factory/`
+
+Source code. Tests. Build artifacts. These live in your normal branches (`develop`, feature
+branches, `main`). The factory holds specs and state, never implementation.
+
+---
+
+## Your first brownfield ingest
+
+If you have an existing codebase you want to analyze before building on it:
+
+```
+/brownfield-ingest ../path/to/existing-codebase
+```
+
+This runs the broad-then-converge analysis protocol:
+
+1. **Phase A (Broad Sweep):** 7 passes analyzing inventory, architecture, domain model,
+   behavioral contracts, NFRs, conventions, and a synthesis.
+2. **Phase B (Convergence Deepening):** Each pass iterates until novelty decays to NITPICK.
+   Domain model and behavioral contracts deepen first (highest value), then the rest.
+3. **Phase C (Final Synthesis):** Definitive synthesis incorporating all convergence rounds,
+   with a prioritized lessons section (P0/P1/P2/P3 buckets).
+
+The codebase is cloned into `.reference/<project>/` and all analysis outputs go to
+`.factory/semport/<project>/`. The analysis feeds directly into Phase 1 spec crystallization.
+
+Expect this to take significant time and token budget for large codebases. The protocol
+dispatches subagents for each pass and validates findings with a separate extraction-validation
+agent.
+
+---
+
+## Your first greenfield project
+
+If you are starting from scratch with no existing codebase:
+
+### 1. Create a product brief
+
+```
+/create-brief
+```
+
+This runs a guided Q&A session. You describe your product vision, target users, scope,
+and constraints. The output is `.factory/specs/product-brief.md`.
+
+### 2. Create a domain specification
+
+```
+/create-domain-spec
+```
+
+Reads the product brief and produces the L2 domain spec: entities, relationships, processes,
+invariants, capabilities (CAP-NNN), domain invariants (DI-NNN), and failure modes (FM-NNN).
+
+### 3. Create a PRD
+
+```
+/create-prd
+```
+
+Elaborates the brief and domain spec into testable requirements with behavioral contracts
+(BC-S.SS.NNN). Also produces PRD supplements (error taxonomy, interface definitions, NFRs).
+
+### 4. Create architecture
+
+```
+/create-architecture
+```
+
+Designs the system architecture from the PRD and BCs. Makes ADR-style decisions with
+rationale. Creates verification properties (VP-NNN) with proof methods and feasibility
+assessments.
+
+### 5. Review adversarially
+
+```
+/adversarial-review specs
+```
+
+Spawns an adversary agent (different model family, fresh context) to tear into the specs.
+Iterates until novelty decays. Fix findings, re-review, until the adversary can only
+produce nitpicks.
+
+### 6. Decompose into stories
+
+```
+/decompose-stories
+```
+
+Breaks the specs into epics, stories, and waves. Each story maps to behavioral contracts
+and has acceptance criteria, tasks, and dependency ordering.
+
+### 7. Deliver stories
+
+```
+/deliver-story STORY-001
+```
+
+This dispatches the full TDD pipeline for a single story: worktree creation, stub generation,
+test writing, Red Gate verification, implementation, demo recording, and PR creation.
+
+---
+
+## Understanding modes
+
+The VSDD pipeline supports four operating modes, selected based on what you are building:
+
+| Mode | When to use | Entry point |
+|------|-------------|-------------|
+| **Greenfield** | New project from scratch | `/create-brief` |
+| **Brownfield** | Rebuilding or extending an existing codebase | `/brownfield-ingest` |
+| **Feature** | Adding a feature to an existing VSDD-managed project | `/mode-decision-guide` |
+| **Maintenance** | Bug fixes, dependency updates, routine maintenance | `/maintenance-sweep` |
+
+The `/mode-decision-guide` command helps you choose the right mode if you are unsure. Each
+mode uses the same phases but may skip or streamline some (for example, a maintenance sweep
+does not need full spec crystallization).
+
+---
+
+## Next steps
+
+- [Pipeline Overview](pipeline-overview.md) -- the full phase map with detailed descriptions
+- [Configuration](configuration.md) -- directory layout, STATE.md, hook behavior
+- [Troubleshooting](troubleshooting.md) -- common issues and fixes
+- [Glossary](glossary.md) -- VSDD terminology reference
