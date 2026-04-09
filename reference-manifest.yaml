@@ -1,0 +1,16 @@
+# Reference Manifest — records every codebase cloned into .reference/
+# for brownfield-ingest. Use to rebuild .reference/ on a fresh checkout.
+
+references:
+  - name: claude-code
+    url: https://github.com/anthropics/claude-code
+    cloned: 2026-04-08
+    depth: 1
+    focus: plugins
+    status: pending
+  - name: superpowers
+    url: https://github.com/obra/superpowers
+    cloned: 2026-04-08
+    depth: 1
+    focus: full
+    status: pending
