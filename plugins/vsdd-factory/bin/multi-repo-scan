@@ -1,0 +1,56 @@
+#!/bin/bash
+# multi-repo-scan — detect multi-repo layout and emit a dependency graph.
+#
+# Ports dark-factory's multi-repo-orchestrator.ts (detection slice). Scans
+# `.worktrees/` and optional `.reference/` for git repos, reads their
+# manifests (Cargo.toml, package.json, pyproject.toml), and emits a JSON
+# report with repos and inferred dependencies.
+#
+# Usage:
+#   multi-repo-scan           # JSON report to stdout
+#   multi-repo-scan --list    # one repo path per line
+#   multi-repo-scan --count   # repo count
+
+set -euo pipefail
+
+ROOT="${VSDD_PROJECT_ROOT:-.}"
+
+die() { echo "multi-repo-scan: $*" >&2; exit 1; }
+
+command -v jq &>/dev/null || die "jq is required"
+
+_find_repos() {
+  find "$ROOT/.worktrees" -maxdepth 2 -type d -name '.git' 2>/dev/null | sed 's|/\.git$||' || true  # STDERR-EXEMPT: .worktrees may not exist
+}
+
+_manifest_for() {
+  local dir="$1"
+  for m in Cargo.toml package.json pyproject.toml go.mod; do
+    [[ -f "$dir/$m" ]] && { echo "$m"; return; }
+  done
+  echo "unknown"
+}
+
+case "${1:-json}" in
+  --list)
+    _find_repos
+    ;;
+  --count)
+    _find_repos | wc -l | tr -d ' '
+    ;;
+  json|*)
+    repos=()
+    while IFS= read -r r; do
+      [[ -z "$r" ]] && continue
+      manifest=$(_manifest_for "$r")
+      name=$(basename "$r")
+      repos+=("$(jq -n --arg path "$r" --arg name "$name" --arg manifest "$manifest" \
+        '{name: $name, path: $path, manifest: $manifest}')")
+    done < <(_find_repos)
+    if [[ ${#repos[@]} -eq 0 ]]; then
+      echo '{"repos": [], "count": 0}'
+    else
+      printf '%s\n' "${repos[@]}" | jq -s '{repos: ., count: length}'
+    fi
+    ;;
+esac

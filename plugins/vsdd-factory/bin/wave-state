@@ -1,0 +1,63 @@
+#!/bin/bash
+# wave-state — query .factory/stories/sprint-state.yaml and report wave readiness.
+#
+# Usage:
+#   wave-state current      # prints the active wave number
+#   wave-state stories [N]  # lists stories in wave N (defaults to current)
+#   wave-state ready [N]    # reports readiness: ready_count / total_count, exit 0 if all ready
+#   wave-state summary      # compact one-line summary
+#
+# Ports dark-factory's wave-orchestrator.ts (read-only slice). Wave scheduling
+# decisions remain the orchestrator agent's job; this tool is telemetry.
+
+set -euo pipefail
+
+STATE_FILE="${VSDD_SPRINT_STATE:-.factory/stories/sprint-state.yaml}"
+
+die() { echo "wave-state: $*" >&2; exit 1; }
+
+if ! command -v yq &>/dev/null; then die "yq is required"; fi
+if [[ ! -f "$STATE_FILE" ]]; then die "not found: $STATE_FILE"; fi
+
+[[ $# -ge 1 ]] || die "usage: wave-state <current|stories|ready|summary> [args]"
+CMD="$1"; shift || true
+
+_current() {
+  yq eval '.current_wave // .active_wave // 1' "$STATE_FILE"
+}
+
+_stories_for_wave() {
+  local n="$1"
+  yq eval ".waves[] | select(.number == $n) | .stories[]" "$STATE_FILE" 2>/dev/null || \
+    yq eval ".stories[] | select(.wave == $n) | .id" "$STATE_FILE"
+}
+
+case "$CMD" in
+  current)
+    _current
+    ;;
+  stories)
+    n="${1:-$(_current)}"
+    _stories_for_wave "$n"
+    ;;
+  ready)
+    n="${1:-$(_current)}"
+    total=0; ready=0
+    while IFS= read -r sid; do
+      [[ -z "$sid" ]] && continue
+      total=$((total+1))
+      status=$(yq eval ".stories[] | select(.id == \"$sid\") | .status // \"unknown\"" "$STATE_FILE")
+      [[ "$status" == "ready" ]] && ready=$((ready+1))
+    done < <(_stories_for_wave "$n")
+    echo "wave=$n ready=$ready total=$total"
+    [[ "$ready" == "$total" && "$total" -gt 0 ]] && exit 0 || exit 1
+    ;;
+  summary)
+    cur=$(_current)
+    total_waves=$(yq eval '.waves | length // 0' "$STATE_FILE")
+    echo "wave=$cur/$total_waves state=$STATE_FILE"
+    ;;
+  *)
+    die "unknown command: $CMD"
+    ;;
+esac

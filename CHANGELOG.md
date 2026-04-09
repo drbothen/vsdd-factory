@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.7.0 — Wave 6: Runtime helpers and not-portable documentation
+
+Finishes the runtime-extension port. Ships bin helpers for the extensions that map to bash+jq+yq, wraps them in skills, and documents the four that cannot be ported.
+
+**New bin helpers** (`plugins/vsdd-factory/bin/`):
+
+- `research-cache` — SHA-keyed disk cache for Perplexity/Context7 query results at `.factory/research-cache/`. Subcommands: `get`, `put`, `has`, `key`, `clear`, `stats`. Ports `research-cache.ts`.
+- `wave-state` — read-only query of `.factory/stories/sprint-state.yaml`. Subcommands: `current`, `stories`, `ready`, `summary`. Read-only slice of `wave-orchestrator.ts`.
+- `multi-repo-scan` — detects multi-repo layouts from `.worktrees/`, reports repos with manifest types. Read-only slice of `multi-repo-orchestrator.ts`.
+
+**New skill wrappers**:
+
+- `research-cache-ops` — operates the research cache from within a session
+- `wave-status` — reports wave readiness with recommendations
+- `multi-repo-health` — detects multi-repo layouts and cross-checks against `.factory/stories/`
+
+**Not-portable documentation** (`docs/not-portable.md`):
+
+Documents why four dark-factory extensions cannot port to Claude Code's plugin primitives:
+
+- `cost-tracker.ts` — no `PreModelCall` hook
+- `attention-heatmap.ts` — no read-event hooks
+- `tiered-context.ts` — Claude Code manages context natively
+- `sidecar-learning.ts` (full synthesis) — `Stop` hook has no transcript access; partial marker-only port shipped in Wave 4
+
+All bin helpers follow `bash.md`: `set -euo pipefail`, stderr guards, STDERR-EXEMPT tags, tool availability checks. Pass `bash -n` syntax checks and basic smoke tests.
+
+Total skills: 91. Total bin helpers: 4.
+
 ## 0.6.0 — Wave 5: Orchestrator + workflow data (Lobster replacement)
 
 Replaces dark-factory's Lobster workflow DSL with "Lobster-as-data" driven by the orchestrator agent and a bash helper.
