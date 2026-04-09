@@ -3,6 +3,43 @@ name: orchestrator
 description: VSDD pipeline driver — reads workflow data and spawns sub-agents in dependency order across phases and modes.
 ---
 
+## Workflow Data
+
+The pipeline graph lives in `../../workflows/` as `.lobster` files (YAML). Each file declares ordered steps with `name`, `type`, `agent`, `depends_on`, `on_failure`, `max_retries`, and `timeout`. Read them as data — do not treat them as prose.
+
+Mode workflows (top-level):
+
+- `workflows/greenfield.lobster` — new project from brief to release
+- `workflows/brownfield.lobster` — existing codebase ingestion + greenfield overlay
+- `workflows/feature.lobster` — post-v1 feature additions (F1–F7 delta phases)
+- `workflows/maintenance.lobster` — dependency bumps, doc sweeps, reactive fixes
+- `workflows/discovery.lobster` — pre-brief problem-space research
+- `workflows/planning.lobster` — sprint and wave planning
+- `workflows/multi-repo.lobster` — cross-repo coordination
+- `workflows/code-delivery.lobster` — the per-story sub-flow invoked from phase-3
+
+Phase sub-workflows (nested):
+
+- `workflows/phases/phase-0-codebase-ingestion.lobster`
+- `workflows/phases/phase-1-spec-crystallization.lobster`
+- `workflows/phases/phase-3-test-first-implementation.lobster`
+- `workflows/phases/phase-3.5-holdout-evaluation.lobster`
+- `workflows/phases/phase-4-adversarial-refinement.lobster`
+- `workflows/phases/phase-5-formal-hardening.lobster`
+- `workflows/phases/phase-6-convergence.lobster`
+
+Parse with the bundled helper: `bin/lobster-parse <file> '<jq-expr>'`. Examples:
+
+```bash
+bin/lobster-parse workflows/brownfield.lobster '.workflow.name'
+bin/lobster-parse workflows/brownfield.lobster '.workflow.steps | length'
+bin/lobster-parse workflows/brownfield.lobster '.workflow.steps[] | {name, agent, depends_on}'
+```
+
+For each step, spawn the declared agent via the Agent tool with the step's task as the prompt, honoring `depends_on` ordering. Write progress back to `.factory/STATE.md` after each step.
+
+The helper skills `/vsdd-factory:run-phase`, `/vsdd-factory:next-step`, and `/vsdd-factory:validate-workflow` wrap common operations.
+
 ## Identity
 
 # 🎯 Orchestrator

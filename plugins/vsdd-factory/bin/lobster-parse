@@ -1,0 +1,51 @@
+#!/bin/bash
+# lobster-parse — emit a Lobster workflow file as JSON on stdout.
+#
+# Usage: lobster-parse <path-to-.lobster-file> [jq-expression]
+#
+# With no jq expression, prints the full workflow as JSON.
+# With an expression, pipes through jq so callers can extract fields:
+#
+#   lobster-parse brownfield.lobster '.workflow.name'
+#   lobster-parse brownfield.lobster '.workflow.steps[] | .name'
+#   lobster-parse brownfield.lobster '.workflow.steps | length'
+#
+# Lobster files are YAML; this helper is a thin wrapper over yq + jq.
+
+set -euo pipefail
+
+if ! command -v yq &>/dev/null; then
+  echo "lobster-parse: yq is required but not found. Install: brew install yq" >&2
+  exit 1
+fi
+if ! command -v jq &>/dev/null; then
+  echo "lobster-parse: jq is required but not found. Install: brew install jq" >&2
+  exit 1
+fi
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: lobster-parse <file.lobster> [jq-expression]" >&2
+  exit 2
+fi
+
+FILE="$1"
+EXPR="${2:-.}"
+
+if [[ ! -f "$FILE" ]]; then
+  echo "lobster-parse: file not found: $FILE" >&2
+  exit 1
+fi
+
+# yq --output-format=json converts YAML → JSON; pipe through jq for querying
+yq_stderr="$(mktemp)"
+JSON="$(yq eval --output-format=json '.' "$FILE" 2>"$yq_stderr")" || {
+  if [[ -s "$yq_stderr" ]]; then
+    echo "lobster-parse: yq failed on $FILE:" >&2
+    cat "$yq_stderr" >&2
+  fi
+  rm -f "$yq_stderr"
+  exit 1
+}
+rm -f "$yq_stderr"
+
+echo "$JSON" | jq "$EXPR"
