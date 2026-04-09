@@ -1,0 +1,47 @@
+name: plugin-validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq bats
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Syntax check shell scripts
+        run: |
+          set -e
+          for f in plugins/vsdd-factory/hooks/*.sh plugins/vsdd-factory/bin/*; do
+            bash -n "$f"
+          done
+          echo "all scripts ok"
+
+      - name: Run hook tests
+        run: bats plugins/vsdd-factory/tests/hooks.bats
+
+      - name: Run bin tests
+        run: bats plugins/vsdd-factory/tests/bin.bats
+
+      - name: Validate marketplace JSON
+        run: |
+          jq empty .claude-plugin/marketplace.json
+          jq empty plugins/vsdd-factory/.claude-plugin/plugin.json
+          jq empty plugins/vsdd-factory/hooks/hooks.json
+
+      - name: Parse all workflow files
+        run: |
+          for f in plugins/vsdd-factory/workflows/*.lobster plugins/vsdd-factory/workflows/phases/*.lobster; do
+            plugins/vsdd-factory/bin/lobster-parse "$f" '.workflow.name' >/dev/null
+          done
+          echo "all workflows parse"
