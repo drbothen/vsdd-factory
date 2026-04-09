@@ -225,7 +225,7 @@ Plugin --1:1-- plugin.json
 | BC-DRAFT-A02 | HIGH | Agents may declare a `tools:` whitelist — format ambiguous (TENSION-04) | `agent-development/SKILL.md:149`, `pr-review-toolkit/agents/silent-failure-hunter.md:4` |
 | BC-DRAFT-A03 | HIGH | `model: inherit` delegates to parent session model | `agent-development/SKILL.md` |
 | BC-DRAFT-A04 | MEDIUM | Description should include 2-3 `<example>` dialogue blocks | `agent-development/SKILL.md` |
-| BC-DRAFT-A05 | HIGH | `name` must be 3-50 chars, `[a-z0-9-]`, start/end alphanumeric, no underscores. `description` 10-5000 chars. System prompt body 20-10000 chars | `agent-development/SKILL.md:69-80,264-273` |
+| BC-DRAFT-A05 | HIGH | `name` must be 3-50 chars, `[a-z0-9-]`, start/end alphanumeric, no underscores. `description` 10-5000 chars. System prompt body 20-10000 chars | `agent-development/SKILL.md:64-80,264-273` (prose; regex `^[a-z0-9]([a-z0-9-]*[a-z0-9])?$` is a faithful reconstruction, not a verbatim extract) |
 | BC-DRAFT-A06 | HIGH | `model` enum `{inherit,sonnet,opus,haiku}`. `color` **required**, enum `{blue,cyan,green,yellow,magenta,red}` | `agent-development/SKILL.md:128-141,351-357` |
 
 ### 4.4 Skill

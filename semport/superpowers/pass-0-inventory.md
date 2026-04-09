@@ -15,12 +15,12 @@ _Phase B convergence round 2 — supersedes pass-0-inventory-deep-r1.md. Consoli
 
 ## Total LOC
 
-- skills + agents + commands + hooks: **8630** lines (markdown + bash + JSON)
+- skills + agents + commands + hooks: **~7210** lines (markdown + bash + JSON)
 - 14 SKILL.md files: **3159** lines total
-- 32 skill supporting files: **5279** lines total (round 2 measurement)
-- `.opencode/plugins/superpowers.js`: 112 LOC (separate, not counted in 8630)
+- 23 skill supporting files: **3859** lines total (validate-extraction corrected)
+- `.opencode/plugins/superpowers.js`: 112 LOC (separate)
 
-Skills/ subtotal 8438 = 3159 SKILLs + 5279 supporting (verified).
+Skills/ subtotal **7018** = 3159 SKILLs + 3859 supporting (validate-extraction corrected; round 2 claimed 8438 / 32-file count, which was inflated).
 
 ## Skills Inventory (14)
 

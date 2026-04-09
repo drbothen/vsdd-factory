@@ -6,7 +6,7 @@ _Phase C — Final Synthesis. Supersedes the Phase A `pass-6-synthesis.md`. Cons
 
 ## 1. Executive Summary
 
-Superpowers is a **behavior-shaping plugin, not a pipeline**. Its entire value is injecting the right markdown into the right agent context at the right time and making it rhetorically impossible for the agent to rationalize its way out of the discipline. The "runtime" is one bash hook (`hooks/session-start`) that reads one markdown file (`skills/using-superpowers/SKILL.md`), wraps it in `<EXTREMELY_IMPORTANT>`, JSON-escapes it, and emits a platform-conditional JSON shape (`hooks/session-start:40-67`). Everything else — 14 skills, 1 agent, ~8.6k LOC of markdown + bash + one 112-LOC JS shim for OpenCode — is content the agent reads on demand via a platform-provided Skill Activation Mechanism. There is no orchestrator. There is no scheduler. There is no phase gate. **The agent itself is the orchestrator**, and the skills are priority-ordered behavioral constraints it applies to itself.
+Superpowers is a **behavior-shaping plugin, not a pipeline**. Its entire value is injecting the right markdown into the right agent context at the right time and making it rhetorically impossible for the agent to rationalize its way out of the discipline. The "runtime" is one bash hook (`hooks/session-start`) that reads one markdown file (`skills/using-superpowers/SKILL.md`), wraps it in `<EXTREMELY_IMPORTANT>`, JSON-escapes it, and emits a platform-conditional JSON shape (`hooks/session-start:40-67`). Everything else — 14 skills, 1 agent, ~7k LOC of markdown + bash + one 112-LOC JS shim for OpenCode — is content the agent reads on demand via a platform-provided Skill Activation Mechanism. There is no orchestrator. There is no scheduler. There is no phase gate. **The agent itself is the orchestrator**, and the skills are priority-ordered behavioral constraints it applies to itself.
 
 The central thesis has four load-bearing claims: **(a)** skills are code that shapes agent behavior, not prose (`CLAUDE.md:69`); **(b)** Iron Laws + Red Flags tables are the sole enforcement mechanism, substituting rhetorical saturation for type-system or runtime checks; **(c)** skill content is **empirically tuned** via adversarial pressure testing against fresh subagents, not author-designed — carefully-tuned content is protected by a governance NFR requiring before/after eval evidence for any edit (`CLAUDE.md:67-74`); **(d)** the agent is a **parahuman** whose compliance can be moved by the same Cialdini persuasion principles that move humans, empirically validated in Meincke et al. 2025 (N=28,000 AI conversations, compliance rate 33% → 72%, p < .001, cited at `skills/writing-skills/persuasion-principles.md:7`).
 
@@ -86,15 +86,17 @@ Symlink + `@./` import = deliberate **manifest deduplication**: one source of tr
 
 ### 2.5 Skill Composition Model and Size Distribution
 
-14 `SKILL.md` files (3159 LOC) + 32 supporting files (5279 LOC). **62% of skill content lives in adjacent supporting files**; SKILL.md is entry-point contract, real knowledge payload is in sibling markdown. Three "library-class" skills:
+14 `SKILL.md` files (3159 LOC) + 23 supporting files (3859 LOC). **55% of skill content lives in adjacent supporting files**; SKILL.md is entry-point contract, real knowledge payload is in sibling markdown. Three "library-class" skills:
 
 | Skill | Supporting LOC | % of supporting total |
 |---|---|---|
-| writing-skills | 2249 | 43% |
-| brainstorming | 996 | 19% |
-| systematic-debugging | 959 | 18% |
+| writing-skills | 1910 | 50% |
+| systematic-debugging | 734 | 19% |
+| brainstorming | 336 | 9% |
 
-These three account for 4204 of the 5279 supporting LOC (80%). Six skills have zero supporting files. `writing-skills/anthropic-best-practices.md` is 1150 lines — single largest content file in the repo, larger than any SKILL.md.
+These three account for 2980 of the 3859 supporting LOC (77%). Six skills have zero supporting files. `writing-skills/anthropic-best-practices.md` is 1150 lines — single largest content file in the repo, larger than any SKILL.md.
+
+_(Round 2 of Phase B pass-0 inventory over-counted supporting files at 32 / 5279 LOC; validate-extraction corrected this to 23 / 3859 LOC. Behavioral and architectural claims elsewhere in the synthesis are unaffected.)_
 
 ### 2.6 Skill-Chain Dependency Graph (21 edges, load-bearing)
 
