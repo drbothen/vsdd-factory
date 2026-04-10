@@ -67,6 +67,13 @@ The vsdd-factory plugin installs the complete VSDD pipeline into any Claude Code
 /plugin install vsdd-factory@vsdd-factory
 ```
 
+### Update to latest version
+
+```shell
+/plugin marketplace update drbothen/vsdd-factory
+/plugin update vsdd-factory@vsdd-factory
+```
+
 ### Start every session with
 
 ```
