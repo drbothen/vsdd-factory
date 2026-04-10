@@ -62,7 +62,7 @@ your source code.
 
 ### Setting it up manually
 
-The `/factory-health` command creates this automatically. If you need to set it up manually:
+The `/vsdd-factory:factory-health` command creates this automatically. If you need to set it up manually:
 
 ```bash
 # Create the orphan branch
@@ -123,14 +123,14 @@ Example structure:
 - STORY-007: ready
 ```
 
-Do not edit STATE.md by hand unless recovering from a corrupt state. Use `/state-update`
+Do not edit STATE.md by hand unless recovering from a corrupt state. Use `/vsdd-factory:state-update`
 or let skills manage it automatically.
 
 ---
 
 ## reference-manifest.yaml
 
-When `/brownfield-ingest` clones external codebases into `.reference/`, it records each
+When `/vsdd-factory:brownfield-ingest` clones external codebases into `.reference/`, it records each
 entry in `.factory/reference-manifest.yaml`:
 
 ```yaml

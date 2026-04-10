@@ -50,27 +50,27 @@ The vsdd-factory plugin ships 34 agent definitions: 24 specialist agents and 10 
 
 **architect** -- Spawned during Phase 1b to design system architecture from domain specs and PRDs. Produces ADR-style decisions, sharded ARCH-NN sections, component diagrams, and verification-ready design artifacts.
 
-**codebase-analyzer** -- Deep analysis agent used by `/brownfield-ingest` and `/semport-analyze`. Runs a structured 6-pass protocol with file prioritization, test-as-spec extraction, and state checkpointing. Has broad tool access including Bash for running analysis commands in `.reference/` directories.
+**codebase-analyzer** -- Deep analysis agent used by `/vsdd-factory:brownfield-ingest` and `/vsdd-factory:semport-analyze`. Runs a structured 6-pass protocol with file prioritization, test-as-spec extraction, and state checkpointing. Has broad tool access including Bash for running analysis commands in `.reference/` directories.
 
 **data-engineer** -- Designs schemas and writes reversible migrations while preserving the pure-core / effectful-I/O boundary. Spawned during implementation when data layer work is needed.
 
-**implementer** -- The TDD workhorse. Picks the next failing test, writes the minimum code to make it pass, and micro-commits each step. Spawned by `/deliver-story` after the test-writer has written failing tests.
+**implementer** -- The TDD workhorse. Picks the next failing test, writes the minimum code to make it pass, and micro-commits each step. Spawned by `/vsdd-factory:deliver-story` after the test-writer has written failing tests.
 
-**story-writer** -- Decomposes validated specs into per-story files. Every acceptance criterion traces back to a BC-S.SS.NNN behavioral contract. Spawned by `/decompose-stories`.
+**story-writer** -- Decomposes validated specs into per-story files. Every acceptance criterion traces back to a BC-S.SS.NNN behavioral contract. Spawned by `/vsdd-factory:decompose-stories`.
 
-**test-writer** -- Generates TDD test suites from behavioral contracts. Covers unit tests, edge case tests, integration tests, and property-based tests. For UI products, includes full state coverage for component contracts. Spawned by `/deliver-story` as the first implementation step.
+**test-writer** -- Generates TDD test suites from behavioral contracts. Covers unit tests, edge case tests, integration tests, and property-based tests. For UI products, includes full state coverage for component contracts. Spawned by `/vsdd-factory:deliver-story` as the first implementation step.
 
 ### Reviewers (red)
 
-**adversary** -- The cornerstone of VSDD quality. Fresh-context adversarial reviewer that cannot see prior review passes. Uses a different model family for genuine perspective diversity. Spawned by `/adversarial-review` with strict information asymmetry via `context: fork`.
+**adversary** -- The cornerstone of VSDD quality. Fresh-context adversarial reviewer that cannot see prior review passes. Uses a different model family for genuine perspective diversity. Spawned by `/vsdd-factory:adversarial-review` with strict information asymmetry via `context: fork`.
 
 **code-reviewer** -- Constructive code review with cognitive diversity from a different model family. Produces classified findings without modifying code. Spawned during the PR review cycle.
 
-**consistency-validator** -- Validates cross-document consistency across specs, stories, design systems, and UI artifacts. Catches broken references and drift. Spawned by `/validate-consistency` and `/maintenance-sweep`.
+**consistency-validator** -- Validates cross-document consistency across specs, stories, design systems, and UI artifacts. Catches broken references and drift. Spawned by `/vsdd-factory:validate-consistency` and `/vsdd-factory:maintenance-sweep`.
 
-**formal-verifier** -- Runs the Phase 5 hardening gauntlet: Kani proofs, cargo-fuzz, cargo-mutants, and semgrep. Spawned by `/formal-verify`.
+**formal-verifier** -- Runs the Phase 5 hardening gauntlet: Kani proofs, cargo-fuzz, cargo-mutants, and semgrep. Spawned by `/vsdd-factory:formal-verify`.
 
-**holdout-evaluator** -- Evaluates implementation against hidden acceptance scenarios. Operates under strict information asymmetry: cannot see source code internals, specs, implementation notes, or prior reviews. Only sees the public API surface and holdout scenarios. Spawned by `/holdout-eval`.
+**holdout-evaluator** -- Evaluates implementation against hidden acceptance scenarios. Operates under strict information asymmetry: cannot see source code internals, specs, implementation notes, or prior reviews. Only sees the public API surface and holdout scenarios. Spawned by `/vsdd-factory:holdout-eval`.
 
 **pr-reviewer** -- Fresh-eyes PR review seeing only the diff, PR description, and test evidence -- not the full codebase. Spawned during the merge gate.
 

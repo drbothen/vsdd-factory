@@ -61,10 +61,10 @@ graph TD
 
 ## Per-Story Delivery: The 9-Step Specialist Dispatch
 
-The `/deliver-story` skill is a dispatcher, not an implementer. It reads the canonical workflow from `agents/orchestrator/per-story-delivery.md` and delegates each step to a fresh specialist subagent. Single-context delivery is a correctness bug -- a single agent running all 9 steps suffers context exhaustion and loses the specialist discipline.
+The `/vsdd-factory:deliver-story` skill is a dispatcher, not an implementer. It reads the canonical workflow from `agents/orchestrator/per-story-delivery.md` and delegates each step to a fresh specialist subagent. Single-context delivery is a correctness bug -- a single agent running all 9 steps suffers context exhaustion and loses the specialist discipline.
 
 ```
-/deliver-story STORY-001
+/vsdd-factory:deliver-story STORY-001
 ```
 
 ```mermaid
@@ -120,9 +120,9 @@ git worktree add .worktrees/STORY-001 -b feature/STORY-001-add-workflow-engine d
 You can also manage worktrees directly:
 
 ```
-/worktree-manage create STORY-001
-/worktree-manage list
-/worktree-manage cleanup STORY-001
+/vsdd-factory:worktree-manage create STORY-001
+/vsdd-factory:worktree-manage list
+/vsdd-factory:worktree-manage cleanup STORY-001
 ```
 
 ### Step 2: Generate Stubs (test-writer as Stub Architect)
@@ -207,7 +207,7 @@ The orchestrator delegates this entirely -- it does not compose the PR body or r
 **Exit condition:** PR merged, or a blocker reported that requires human intervention.
 
 ```
-/pr-create STORY-001
+/vsdd-factory:pr-create STORY-001
 ```
 
 ### Step 8: Cleanup (devops-engineer)
@@ -215,7 +215,7 @@ The orchestrator delegates this entirely -- it does not compose the PR body or r
 The worktree and local branch are removed.
 
 ```
-/worktree-manage cleanup STORY-001
+/vsdd-factory:worktree-manage cleanup STORY-001
 ```
 
 **Exit condition:** `git worktree list` no longer shows the worktree; `git branch --list 'feature/STORY-001-*'` returns empty.
@@ -261,7 +261,7 @@ When a PR is too large (>500 lines diff), the pr-manager recommends a split:
 After all stories in a wave are merged to `develop`, the wave gate runs six sequential checks. All must pass before the next wave can begin.
 
 ```
-/wave-gate wave-1
+/vsdd-factory:wave-gate wave-1
 ```
 
 ### The Iron Law
@@ -275,7 +275,7 @@ A gate that was skipped, mocked, or partially verified counts as failed. "Close 
 | **1. Test Suite** | `cargo test`, `cargo clippy`, `cargo fmt` on `develop` (not a feature branch -- catches merge-order surprises) | All tests pass, clippy clean, format clean |
 | **2. DTU Validation** | CRITICAL/HIGH modules touched by this wave compared against DTU clones | All clones in sync, or SKIP if no DTU-covered modules |
 | **3. Adversarial Review** | Fresh-context adversary reviews `git diff <pre-wave>..develop` | No CRITICAL findings. HIGH findings filed as tech debt. |
-| **4. Demo Evidence** | Verify demo reports exist for all stories and cover all ACs | All ACs have evidence. Missing triggers `/record-demo`. |
+| **4. Demo Evidence** | Verify demo reports exist for all stories and cover all ACs | All ACs have evidence. Missing triggers `/vsdd-factory:record-demo`. |
 | **5. Holdout Evaluation** | Holdout evaluator (cannot see specs or source) runs hidden scenarios | Mean >= 0.85, every critical scenario >= 0.60. No rounding. |
 | **6. State Update** | Update sprint-state.yaml and STATE.md | Automatic after gates 1-5 pass |
 
@@ -284,7 +284,7 @@ A gate that was skipped, mocked, or partially verified counts as failed. "Close 
 If any gate fails, the wave gate stops and reports the blocking issue. Fix the problem and re-run:
 
 ```
-/wave-gate wave-1
+/vsdd-factory:wave-gate wave-1
 ```
 
 The gate sequence restarts from Gate 1 because fixes may have introduced regressions. Gate order is load-bearing -- the test suite runs first because everything else assumes it passes.
@@ -317,7 +317,7 @@ For Gate 3 (adversarial) failures, fix PRs target `develop` and go through per-s
 ## Example: Delivering One Story
 
 ```
-> /deliver-story STORY-003
+> /vsdd-factory:deliver-story STORY-003
 
 I'm using the deliver-story skill to dispatch STORY-003 through the
 per-story-delivery orchestrator workflow.
@@ -367,12 +367,12 @@ Story STORY-003 delivered:
   PR:             #47 merged to develop
   Worktree:       cleaned up
 
-Next: /deliver-story STORY-004 or /wave-gate wave-1 when all wave stories are complete.
+Next: /vsdd-factory:deliver-story STORY-004 or /vsdd-factory:wave-gate wave-1 when all wave stories are complete.
 ```
 
 ## What Comes Next
 
 After all waves complete their gates:
 
-- Run `/adversarial-review implementation` for a full-codebase adversarial review (Phase 4)
+- Run `/vsdd-factory:adversarial-review implementation` for a full-codebase adversarial review (Phase 4)
 - If this was the last wave and Phase 4 converges, proceed to Phase 5 (Formal Hardening) and Phase 6 (Convergence)

@@ -27,7 +27,7 @@ and understanding the core concepts you need before starting a project.
 - **TypeScript projects:** Node.js, npm/pnpm, Stryker, fast-check
 - **Python projects:** Python 3.11+, Hypothesis, mutmut, Semgrep
 
-You do not need all of these up front. The `/setup-env` command checks what is available
+You do not need all of these up front. The `/vsdd-factory:setup-env` command checks what is available
 and reports what is missing for your target project's language.
 
 ---
@@ -62,7 +62,7 @@ Every Claude Code session with the VSDD plugin should start with the same three 
 ### Step 1: Check factory health
 
 ```
-/factory-health
+/vsdd-factory:factory-health
 ```
 
 This command verifies that the `.factory/` git worktree exists and is properly mounted on
@@ -78,7 +78,7 @@ Run this at the start of every session. It is fast and idempotent.
 ### Step 2: Check environment
 
 ```
-/setup-env
+/vsdd-factory:setup-env
 ```
 
 This verifies your toolchain: git configuration, language-specific tools, MCP server
@@ -101,8 +101,8 @@ and updates it after phase transitions.
 
 ```mermaid
 graph LR
-    A["/factory-health"] --> B{Healthy?}
-    B -->|Yes| C["/setup-env"]
+    A["/vsdd-factory:factory-health"] --> B{Healthy?}
+    B -->|Yes| C["/vsdd-factory:setup-env"]
     B -->|No| D["Auto-repair"]
     D --> C
     C --> E["Read STATE.md"]
@@ -150,7 +150,7 @@ branches, `main`). The factory holds specs and state, never implementation.
 If you have an existing codebase you want to analyze before building on it:
 
 ```
-/brownfield-ingest ../path/to/existing-codebase
+/vsdd-factory:brownfield-ingest ../path/to/existing-codebase
 ```
 
 This runs the broad-then-converge analysis protocol:
@@ -178,7 +178,7 @@ If you are starting from scratch with no existing codebase:
 ### 1. Create a product brief
 
 ```
-/create-brief
+/vsdd-factory:create-brief
 ```
 
 This runs a guided Q&A session. You describe your product vision, target users, scope,
@@ -187,7 +187,7 @@ and constraints. The output is `.factory/specs/product-brief.md`.
 ### 2. Create a domain specification
 
 ```
-/create-domain-spec
+/vsdd-factory:create-domain-spec
 ```
 
 Reads the product brief and produces the L2 domain spec: entities, relationships, processes,
@@ -196,7 +196,7 @@ invariants, capabilities (CAP-NNN), domain invariants (DI-NNN), and failure mode
 ### 3. Create a PRD
 
 ```
-/create-prd
+/vsdd-factory:create-prd
 ```
 
 Elaborates the brief and domain spec into testable requirements with behavioral contracts
@@ -205,7 +205,7 @@ Elaborates the brief and domain spec into testable requirements with behavioral 
 ### 4. Create architecture
 
 ```
-/create-architecture
+/vsdd-factory:create-architecture
 ```
 
 Designs the system architecture from the PRD and BCs. Makes ADR-style decisions with
@@ -215,7 +215,7 @@ assessments.
 ### 5. Review adversarially
 
 ```
-/adversarial-review specs
+/vsdd-factory:adversarial-review specs
 ```
 
 Spawns an adversary agent (different model family, fresh context) to tear into the specs.
@@ -225,7 +225,7 @@ produce nitpicks.
 ### 6. Decompose into stories
 
 ```
-/decompose-stories
+/vsdd-factory:decompose-stories
 ```
 
 Breaks the specs into epics, stories, and waves. Each story maps to behavioral contracts
@@ -234,7 +234,7 @@ and has acceptance criteria, tasks, and dependency ordering.
 ### 7. Deliver stories
 
 ```
-/deliver-story STORY-001
+/vsdd-factory:deliver-story STORY-001
 ```
 
 This dispatches the full TDD pipeline for a single story: worktree creation, stub generation,
@@ -248,12 +248,12 @@ The VSDD pipeline supports four operating modes, selected based on what you are 
 
 | Mode | When to use | Entry point |
 |------|-------------|-------------|
-| **Greenfield** | New project from scratch | `/create-brief` |
-| **Brownfield** | Rebuilding or extending an existing codebase | `/brownfield-ingest` |
-| **Feature** | Adding a feature to an existing VSDD-managed project | `/mode-decision-guide` |
-| **Maintenance** | Bug fixes, dependency updates, routine maintenance | `/maintenance-sweep` |
+| **Greenfield** | New project from scratch | `/vsdd-factory:create-brief` |
+| **Brownfield** | Rebuilding or extending an existing codebase | `/vsdd-factory:brownfield-ingest` |
+| **Feature** | Adding a feature to an existing VSDD-managed project | `/vsdd-factory:mode-decision-guide` |
+| **Maintenance** | Bug fixes, dependency updates, routine maintenance | `/vsdd-factory:maintenance-sweep` |
 
-The `/mode-decision-guide` command helps you choose the right mode if you are unsure. Each
+The `/vsdd-factory:mode-decision-guide` command helps you choose the right mode if you are unsure. Each
 mode uses the same phases but may skip or streamline some (for example, a maintenance sweep
 does not need full spec crystallization).
 

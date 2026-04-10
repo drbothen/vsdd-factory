@@ -14,7 +14,7 @@ Enter Phase 2 when:
 
 ```mermaid
 graph TD
-    SPECS[Phase 1 Specs] --> DECOMPOSE["/decompose-stories"]
+    SPECS[Phase 1 Specs] --> DECOMPOSE["/vsdd-factory:decompose-stories"]
 
     subgraph "Decomposition"
         DECOMPOSE --> EPICS[Define epics]
@@ -27,8 +27,8 @@ graph TD
     end
 
     HOLDOUT --> REFINE{Stories need detail?}
-    REFINE -->|Yes| CREATE["/create-story STORY-NNN"]
-    CREATE --> SCHEDULE["/wave-scheduling"]
+    REFINE -->|Yes| CREATE["/vsdd-factory:create-story STORY-NNN"]
+    CREATE --> SCHEDULE["/vsdd-factory:wave-scheduling"]
     REFINE -->|No| SCHEDULE
     SCHEDULE --> GATE{All Wave 1 ready?}
     GATE -->|No| CREATE
@@ -42,12 +42,12 @@ graph TD
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Decompose Stories (`/decompose-stories`)
+### Step 1: Decompose Stories (`/vsdd-factory:decompose-stories`)
 
 This is the primary decomposition command. It reads the full spec set and produces all story artifacts in a single pass.
 
 ```
-/decompose-stories
+/vsdd-factory:decompose-stories
 ```
 
 **Prerequisites:** The skill reads `.factory/specs/prd.md`, behavioral contracts in `.factory/specs/behavioral-contracts/`, and architecture docs in `.factory/specs/architecture/`. Phase 1 must be complete.
@@ -110,12 +110,12 @@ Output: `.factory/holdout-scenarios/wave-scenarios/` and `.factory/holdout-scena
 
 When `.factory/reference-manifest.yaml` exists, stories that implement behavior extracted from a reference repo are tagged `implementation_strategy: gene-transfusion` with a reference to the relevant `.factory/semport/<project>/` artifacts. Stories that diverge from reference behavior are tagged `implementation_strategy: from-scratch` with a note explaining the divergence.
 
-### Step 2: Refine Individual Stories (`/create-story STORY-NNN`)
+### Step 2: Refine Individual Stories (`/vsdd-factory:create-story STORY-NNN`)
 
-After decomposition, individual stories may need more detail before they are sprint-ready. The `/create-story` command fleshes out a single story.
+After decomposition, individual stories may need more detail before they are sprint-ready. The `/vsdd-factory:create-story` command fleshes out a single story.
 
 ```
-/create-story STORY-001
+/vsdd-factory:create-story STORY-001
 ```
 
 The skill reads the story stub, related behavioral contracts, relevant architecture sections, and dependency stories. It then ensures the story has:
@@ -139,12 +139,12 @@ The skill reads the story stub, related behavioral contracts, relevant architect
 
 If a story is rated XL, the skill recommends splitting and asks for your approval.
 
-### Step 3: Wave Scheduling (`/wave-scheduling`)
+### Step 3: Wave Scheduling (`/vsdd-factory:wave-scheduling`)
 
 The wave scheduling skill computes the implementation order from the dependency graph, with parallel group sub-partitioning.
 
 ```
-/wave-scheduling
+/vsdd-factory:wave-scheduling
 ```
 
 The algorithm:
@@ -255,11 +255,11 @@ Before marking any story as `ready`, the skill runs a 14-point completeness chec
 13. Project-specific vs generic separation
 14. Prerequisites listed
 
-A story that fails this checklist needs refinement via `/create-story` before implementation.
+A story that fails this checklist needs refinement via `/vsdd-factory:create-story` before implementation.
 
 ## What Comes Next
 
 After Phase 2 completes:
 
-- Run `/deliver-story STORY-NNN` for each Wave 1 story to begin Phase 3 implementation
-- After all Wave 1 stories are merged, run `/wave-gate wave-1` before starting Wave 2
+- Run `/vsdd-factory:deliver-story STORY-NNN` for each Wave 1 story to begin Phase 3 implementation
+- After all Wave 1 stories are merged, run `/vsdd-factory:wave-gate wave-1` before starting Wave 2

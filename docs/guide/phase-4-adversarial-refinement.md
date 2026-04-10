@@ -40,7 +40,7 @@ Self-review does not count as adversarial review. Summarizing prior passes for t
 
 ## Full Implementation Review vs. Phase 1 Spec Review
 
-Phase 1 uses `/adversarial-review specs` to review specifications before any code is written. Phase 4 uses `/adversarial-review implementation` to review the finished codebase against those same specs.
+Phase 1 uses `/vsdd-factory:adversarial-review specs` to review specifications before any code is written. Phase 4 uses `/vsdd-factory:adversarial-review implementation` to review the finished codebase against those same specs.
 
 The implementation review is broader. The adversary reads all spec documents first, then reviews source code looking for:
 
@@ -53,7 +53,7 @@ The implementation review is broader. The adversary reads all spec documents fir
 Run the review:
 
 ```
-/adversarial-review implementation
+/vsdd-factory:adversarial-review implementation
 ```
 
 ## Information Asymmetry
@@ -97,12 +97,12 @@ The quantitative convergence criteria (from CONVERGENCE.md) define LOW as:
 
 ## Handling Findings
 
-Findings are written to `.factory/cycles/<current>/adversarial-reviews/` using the adversarial finding template.
+Findings are written to `.factory/cycles/<current>/vsdd-factory:adversarial-reviews/` using the adversarial finding template.
 
 | Finding Severity | Action |
 |-----------------|--------|
 | **CRITICAL** | Create a fix PR immediately via `/fix-pr-delivery`. Blocks Phase 5. |
-| **HIGH** | Fix now or log to tech debt register with `/track-debt add`. |
+| **HIGH** | Fix now or log to tech debt register with `/vsdd-factory:track-debt add`. |
 | **MEDIUM** | Fix if effort is low, otherwise log to tech debt. |
 | **LOW** | Document in the review findings. No action required. |
 
@@ -154,7 +154,7 @@ Phase 4 is complete when the adversary reports LOW novelty on the implementation
 - All CRITICAL and HIGH findings addressed via fix PRs
 - Fix PRs merged to develop and tests passing
 
-Record the gate result in STATE.md via `/state-update` and proceed to Phase 5.
+Record the gate result in STATE.md via `/vsdd-factory:state-update` and proceed to Phase 5.
 
 ## Zero-Findings Warning
 

@@ -77,8 +77,8 @@ The vsdd-factory plugin installs the complete VSDD pipeline into any Claude Code
 ### Start every session with
 
 ```
-/factory-health          # verify .factory/ worktree is mounted
-/setup-env               # verify toolchain (first time or after changes)
+/vsdd-factory:factory-health          # verify .factory/ worktree is mounted
+/vsdd-factory:setup-env               # verify toolchain (first time or after changes)
 ```
 
 Then read `.factory/STATE.md` to understand where the pipeline left off.
@@ -130,7 +130,7 @@ graph TD
 |----------|-------|-------------|
 | **Agents** | 33 | Specialist personas (adversary, implementer, test-writer, architect, etc.) |
 | **Skills** | 91 | Phase workflows, cross-cutting operations, design/UX, market intelligence |
-| **Commands** | 47 | Slash-command entry points (`/deliver-story`, `/factory-health`, etc.) |
+| **Commands** | 47 | Slash-command entry points (`/vsdd-factory:deliver-story`, `/vsdd-factory:factory-health`, etc.) |
 | **Hooks** | 10 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, etc.) |
 | **Templates** | 108 | Output format definitions for every artifact type |
 | **Workflows** | 15 | Lobster-as-data files defining phase and mode sequences |
@@ -144,13 +144,13 @@ See [docs/guide/pipeline-overview.md](docs/guide/pipeline-overview.md) for the f
 
 | Phase | Entry command | Artifacts produced | Quality gate |
 |-------|--------------|-------------------|-------------|
-| **0 -- Brownfield Ingest** | `/brownfield-ingest <path>` | Per-pass analysis docs, synthesis, lessons | Extraction validation (behavioral + metric) |
-| **1 -- Spec Crystallization** | `/create-brief`, `/create-domain-spec`, `/create-prd`, `/create-architecture` | Product brief, domain spec, PRD, BCs, VPs, architecture | Adversarial spec review (novelty decay) |
-| **2 -- Story Decomposition** | `/decompose-stories` | Stories, epics, dependency graph, wave schedule, holdout scenarios | Human approval, adversary review |
-| **3 -- TDD Delivery** | `/deliver-story STORY-NNN` | Implementation, tests, demo evidence, PRs | Wave gate (tests + adversarial + holdout) |
-| **4 -- Adversarial Refinement** | `/adversarial-review implementation` | Finding reports, fix PRs | Novelty decay across 2+ passes |
-| **5 -- Formal Hardening** | `/formal-verify`, `/perf-check` | Proof reports, fuzz results, mutation scores | All proofs pass, kill rate thresholds met |
-| **6 -- Convergence** | `/convergence-check`, `/release` | Convergence report, changelog, GitHub release | All 5 dimensions CONVERGED |
+| **0 -- Brownfield Ingest** | `/vsdd-factory:brownfield-ingest <path>` | Per-pass analysis docs, synthesis, lessons | Extraction validation (behavioral + metric) |
+| **1 -- Spec Crystallization** | `/vsdd-factory:create-brief`, `/vsdd-factory:create-domain-spec`, `/vsdd-factory:create-prd`, `/vsdd-factory:create-architecture` | Product brief, domain spec, PRD, BCs, VPs, architecture | Adversarial spec review (novelty decay) |
+| **2 -- Story Decomposition** | `/vsdd-factory:decompose-stories` | Stories, epics, dependency graph, wave schedule, holdout scenarios | Human approval, adversary review |
+| **3 -- TDD Delivery** | `/vsdd-factory:deliver-story STORY-NNN` | Implementation, tests, demo evidence, PRs | Wave gate (tests + adversarial + holdout) |
+| **4 -- Adversarial Refinement** | `/vsdd-factory:adversarial-review implementation` | Finding reports, fix PRs | Novelty decay across 2+ passes |
+| **5 -- Formal Hardening** | `/vsdd-factory:formal-verify`, `/vsdd-factory:perf-check` | Proof reports, fuzz results, mutation scores | All proofs pass, kill rate thresholds met |
+| **6 -- Convergence** | `/vsdd-factory:convergence-check`, `/vsdd-factory:release` | Convergence report, changelog, GitHub release | All 5 dimensions CONVERGED |
 
 ## Directory structure
 

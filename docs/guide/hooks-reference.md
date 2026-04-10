@@ -100,7 +100,7 @@ Validates that subagent output is non-empty and structurally plausible. Warns to
 
 **Event:** Stop
 
-At session end, appends a timestamped learning stub to `.factory/sidecar-learning.md`. The actual synthesis is done by the `/session-review` skill; this hook ensures a marker exists so nothing is silently lost when sessions end abruptly. Non-blocking and safe to fail.
+At session end, appends a timestamped learning stub to `.factory/sidecar-learning.md`. The actual synthesis is done by the `/vsdd-factory:session-review` skill; this hook ensures a marker exists so nothing is silently lost when sessions end abruptly. Non-blocking and safe to fail.
 
 ---
 

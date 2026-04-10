@@ -8,7 +8,7 @@ Common issues and their fixes when working with the VSDD factory plugin.
 
 **Symptom:** Skills report that `.factory/` does not exist or is not a git worktree.
 
-**Fix:** Run `/factory-health`. It will auto-create the `factory-artifacts` orphan branch
+**Fix:** Run `/vsdd-factory:factory-health`. It will auto-create the `factory-artifacts` orphan branch
 and mount the worktree. If auto-repair fails, mount manually:
 
 ```bash
@@ -44,7 +44,7 @@ use only standard tools (`git`, `jq`, `yq`, `grep`, `find`, `wc`, `bash`).
 
 **Fix:** Approve the command when Claude Code prompts for permission. If a specific tool
 is consistently blocked, check that it is installed and available on your PATH. The
-`/setup-env` command reports missing tools.
+`/vsdd-factory:setup-env` command reports missing tools.
 
 ---
 
@@ -124,7 +124,7 @@ Write, or failed silently.
 **Common issues:**
 
 - **"command not found: yq"** -- Install yq: `brew install yq` on macOS, or download from
-  the [yq releases page](https://github.com/mikefarah/yq/releases).
+  the [yq releases page](https://github.com/mikefarah/yq/vsdd-factory:releases).
 - **Hook tests expecting specific exit codes** -- The `protect-vp.sh` and `protect-bc.sh`
   hooks use `permissionDecision:deny` JSON output (exit 0), not exit code 2. Tests assert
   on the JSON output, not the exit code.
@@ -152,7 +152,7 @@ manually edited incorrectly.
    git add STATE.md
    git commit -m "factory(recovery): correct STATE.md to match actual pipeline state"
    ```
-4. Run `/factory-health` to verify the directory structure is intact.
+4. Run `/vsdd-factory:factory-health` to verify the directory structure is intact.
 
 ---
 

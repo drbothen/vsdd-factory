@@ -10,7 +10,7 @@ Convergence means the project satisfies all quality criteria simultaneously. It 
 
 ```mermaid
 graph TD
-    START[Phase 5 Complete<br/>All verification PASS]:::start --> CHECK[/convergence-check]
+    START[Phase 5 Complete<br/>All verification PASS]:::start --> CHECK[/vsdd-factory:convergence-check]
 
     CHECK --> D1[Dimension 1: Spec]:::dim
     CHECK --> D2[Dimension 2: Tests]:::dim
@@ -34,7 +34,7 @@ graph TD
     FIX --> CHECK
 
     CONVERGED --> APPROVE[Human approval]:::decision
-    APPROVE --> RELEASE[/release]:::action
+    APPROVE --> RELEASE[/vsdd-factory:release]:::action
 
     classDef start fill:#d4edda,stroke:#155724
     classDef dim fill:#cce5ff,stroke:#004085
@@ -53,7 +53,7 @@ The adversary's critiques are nitpicks about wording, not missing behavior or ve
 - Median finding severity below 2.0 and strictly decreasing for 3+ passes
 - All findings addressed or explicitly accepted
 
-The `/convergence-check` command reads `.factory/cycles/<current>/adversarial-reviews/` to assess this.
+The `/vsdd-factory:convergence-check` command reads `.factory/cycles/<current>/vsdd-factory:adversarial-reviews/` to assess this.
 
 ### Dimension 2: Test Convergence
 
@@ -71,7 +71,7 @@ The code matches the spec. No known gaps remain.
 
 **Pass criteria:**
 - All tests green, clean build, clean lint
-- No spec drift (verified by `/spec-drift`)
+- No spec drift (verified by `/vsdd-factory:spec-drift`)
 - All code review findings addressed
 - No `todo!()`, `unimplemented!()`, or `FIXME` in production code
 
@@ -90,7 +90,7 @@ Formal methods confirm the implementation is correct.
 Demo evidence proves the system works as intended.
 
 **Pass criteria:**
-- Demo recordings exist for every story (from `/record-demo`)
+- Demo recordings exist for every story (from `/vsdd-factory:record-demo`)
 - Each acceptance criterion has visual evidence
 - Design system compliance verified (if applicable)
 
@@ -115,7 +115,7 @@ Documentation matches the current implementation.
 ## Running the Convergence Check
 
 ```
-/convergence-check
+/vsdd-factory:convergence-check
 ```
 
 This reads all prior phase artifacts and produces a convergence report at `.factory/cycles/<current>/convergence-report.md` with a per-dimension table:
@@ -136,7 +136,7 @@ Overall: NOT CONVERGED
 
 ## When NOT Converged
 
-If any dimension fails, the report lists the specific remaining items with severity and estimated effort. Fix the items and re-run `/convergence-check`.
+If any dimension fails, the report lists the specific remaining items with severity and estimated effort. Fix the items and re-run `/vsdd-factory:convergence-check`.
 
 Common fixes by dimension:
 
@@ -144,9 +144,9 @@ Common fixes by dimension:
 |-----------|-------------|
 | Spec | Run another adversary pass, update specs |
 | Tests | Add tests for surviving mutants, improve coverage |
-| Implementation | Fix TODOs, run `/spec-drift` and address gaps |
+| Implementation | Fix TODOs, run `/vsdd-factory:spec-drift` and address gaps |
 | Verification | Fix failing Kani harnesses, address fuzz crashes |
-| Visual | Run `/record-demo` for stories missing evidence |
+| Visual | Run `/vsdd-factory:record-demo` for stories missing evidence |
 | Performance | Profile and optimize, adjust budgets if justified |
 | Documentation | Update README, regenerate API docs |
 
@@ -162,7 +162,7 @@ All convergence criteria are advisory. The human operator can override any asses
 After convergence is achieved and the human approves:
 
 ```
-/release
+/vsdd-factory:release
 ```
 
 The release skill executes this sequence:
@@ -191,14 +191,14 @@ git push origin vX.Y.Z     # tag triggers release CI
 
 ### Step 4: Wait for Release CI
 
-The tag push triggers `.github/workflows/release.yml`. Monitor with `gh run watch`. If the build fails, diagnose from CI logs, fix via `/fix-pr-delivery`, delete the failed tag, and re-tag after the fix merges.
+The tag push triggers `.github/workflows/vsdd-factory:release.yml`. Monitor with `gh run watch`. If the build fails, diagnose from CI logs, fix via `/fix-pr-delivery`, delete the failed tag, and re-tag after the fix merges.
 
 ### Step 5: Create GitHub Release
 
 ```bash
 gh release create vX.Y.Z \
   --title "vX.Y.Z: [release title]" \
-  --notes-file .factory/release/CHANGELOG-vX.Y.Z.md
+  --notes-file .factory/vsdd-factory:release/CHANGELOG-vX.Y.Z.md
 ```
 
 The release includes release notes, built binaries (uploaded by CI), demo evidence, and the convergence summary.
@@ -221,8 +221,8 @@ Handled by the release CI workflow. The pipeline supports `cargo publish` (crate
 After a successful release:
 
 1. **STATE.md update** -- the state-update skill marks the pipeline as COMPLETED
-2. **Session review** -- run `/session-review` for post-pipeline analysis and improvement proposals
-3. **Next cycle** -- if planning additional work, the project transitions to Feature Mode (`/mode-decision-guide`) for incremental changes, or starts a new greenfield cycle for major new capabilities
+2. **Session review** -- run `/vsdd-factory:session-review` for post-pipeline analysis and improvement proposals
+3. **Next cycle** -- if planning additional work, the project transitions to Feature Mode (`/vsdd-factory:mode-decision-guide`) for incremental changes, or starts a new greenfield cycle for major new capabilities
 
 ## Progressive Autonomy
 

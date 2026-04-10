@@ -11,7 +11,7 @@ artifacts, and must pass a quality gate before the next phase begins.
 ```mermaid
 graph TD
     subgraph "Phase 0: Brownfield Ingest"
-        BI["/brownfield-ingest"]
+        BI["/vsdd-factory:brownfield-ingest"]
         BI --> BA["Phase A:\nBroad Sweep\n(7 passes)"]
         BA --> BB["Phase B:\nConvergence\nDeepening"]
         BB --> BC["Phase C:\nFinal Synthesis"]
@@ -19,35 +19,35 @@ graph TD
     end
 
     subgraph "Phase 1: Spec Crystallization"
-        CB["/create-brief"]
-        CDS["/create-domain-spec"]
-        CP["/create-prd"]
-        CA["/create-architecture"]
-        AR1["/adversarial-review specs"]
+        CB["/vsdd-factory:create-brief"]
+        CDS["/vsdd-factory:create-domain-spec"]
+        CP["/vsdd-factory:create-prd"]
+        CA["/vsdd-factory:create-architecture"]
+        AR1["/vsdd-factory:adversarial-review specs"]
         CB --> CDS --> CP --> CA --> AR1
         AR1 -->|"findings"| CP
         AR1 -->|"converged"| P1DONE(("Specs locked"))
     end
 
     subgraph "Phase 2: Story Decomposition"
-        DS["/decompose-stories"]
-        CS["/create-story STORY-NNN"]
+        DS["/vsdd-factory:decompose-stories"]
+        CS["/vsdd-factory:create-story STORY-NNN"]
         DS --> CS
         CS --> P2DONE(("Stories ready"))
     end
 
     subgraph "Phase 3: TDD Delivery"
-        DEL["/deliver-story STORY-NNN"]
-        WG["/wave-gate wave-N"]
+        DEL["/vsdd-factory:deliver-story STORY-NNN"]
+        WG["/vsdd-factory:wave-gate wave-N"]
         DEL --> WG
         WG -->|"FAIL"| DEL
     end
 
     subgraph "Phase 4-6: Hardening & Release"
-        AR2["/adversarial-review\nimplementation"]
-        FV["/formal-verify"]
-        CC["/convergence-check"]
-        REL["/release"]
+        AR2["/vsdd-factory:adversarial-review\nimplementation"]
+        FV["/vsdd-factory:formal-verify"]
+        CC["/vsdd-factory:convergence-check"]
+        REL["/vsdd-factory:release"]
         AR2 --> FV --> CC
         CC -->|"NOT CONVERGED"| AR2
         CC -->|"CONVERGED"| REL
@@ -71,7 +71,7 @@ graph TD
 
 **Goal:** Understand an existing codebase before building specs against it.
 
-**Entry:** `/brownfield-ingest <codebase-path>`
+**Entry:** `/vsdd-factory:brownfield-ingest <codebase-path>`
 
 The broad-then-converge protocol runs 7 analysis passes (inventory, architecture, domain
 model, behavioral contracts, NFRs, conventions, synthesis), then deepens each pass through
@@ -94,7 +94,7 @@ code, using both behavioral judgment (sampling contracts for accuracy) and metri
 
 **Goal:** Produce the complete specification set that everything else builds from.
 
-**Entry:** `/create-brief` (or `/research <topic>` for domain investigation first)
+**Entry:** `/vsdd-factory:create-brief` (or `/vsdd-factory:research <topic>` for domain investigation first)
 
 This phase walks through five sequential steps:
 1. **Product brief** -- guided Q&A capturing vision, users, scope, constraints
@@ -116,14 +116,14 @@ Contracts, L4 Verification Properties. Every lower level traces to the one above
 
 **Goal:** Break specs into implementable, dependency-ordered stories grouped into waves.
 
-**Entry:** `/decompose-stories`
+**Entry:** `/vsdd-factory:decompose-stories`
 
 Reads the PRD, BCs, architecture, and VPs. Produces epics (3-7 per PRD), stories with
 acceptance criteria tracing to BCs, a dependency graph, and a wave schedule. Also generates
 holdout scenarios -- hidden acceptance tests that the builder agents never see, used for
 information-asymmetric evaluation in Phase 3.
 
-Individual stories can be refined with `/create-story STORY-NNN` to flesh out tasks,
+Individual stories can be refined with `/vsdd-factory:create-story STORY-NNN` to flesh out tasks,
 dev notes, and file lists.
 
 **Artifacts:** `.factory/stories/` -- STORY-INDEX.md, STORY-NNN.md, epics.md, dependency-graph.md, sprint-state.yaml; `.factory/holdout-scenarios/`
@@ -136,7 +136,7 @@ dev notes, and file lists.
 
 **Goal:** Implement stories using strict TDD, one wave at a time.
 
-**Entry:** `/deliver-story STORY-NNN` (per story), `/wave-gate wave-N` (after all stories in a wave)
+**Entry:** `/vsdd-factory:deliver-story STORY-NNN` (per story), `/vsdd-factory:wave-gate wave-N` (after all stories in a wave)
 
 For each story, the deliver-story skill dispatches a sequence of fresh specialist subagents:
 devops-engineer (worktree), test-writer (stubs + tests), Red Gate verification, implementer,
@@ -160,7 +160,7 @@ After all stories in a wave are merged to `develop`, the wave gate runs six chec
 
 **Goal:** Fresh-eyes review of the full implementation.
 
-**Entry:** `/adversarial-review implementation`
+**Entry:** `/vsdd-factory:adversarial-review implementation`
 
 Spawns an adversary agent from a different model family with a fresh context window. The
 adversary reviews spec fidelity, test quality, code quality, and security surface. Findings
@@ -169,7 +169,7 @@ must reference specific files and line numbers -- ungrounded findings are discou
 Iterates until novelty decays (minimum 2 passes, maximum 5). Critical findings generate
 fix PRs targeting `develop`.
 
-**Artifacts:** `.factory/cycles/<ver>/adversarial-reviews/`
+**Artifacts:** `.factory/cycles/<ver>/vsdd-factory:adversarial-reviews/`
 
 **Gate:** Novelty < 0.15 for 2+ consecutive passes AND median severity below 2.0.
 
@@ -179,7 +179,7 @@ fix PRs targeting `develop`.
 
 **Goal:** Mathematical and empirical verification of the implementation.
 
-**Entry:** `/formal-verify`, `/perf-check`
+**Entry:** `/vsdd-factory:formal-verify`, `/vsdd-factory:perf-check`
 
 - **Kani proofs** for pure core functions (absence of panics, overflow, bounds)
 - **Fuzz testing** with cargo-fuzz (parsers, deserializers, state machines)
@@ -199,7 +199,7 @@ fix PRs targeting `develop`.
 
 **Goal:** Confirm all five convergence dimensions are satisfied, then release.
 
-**Entry:** `/convergence-check`, then `/release <version>`
+**Entry:** `/vsdd-factory:convergence-check`, then `/vsdd-factory:release <version>`
 
 The convergence check evaluates five independent dimensions:
 
@@ -229,16 +229,16 @@ These skills are available at any point in the pipeline:
 
 | Command | Purpose |
 |---------|---------|
-| `/factory-health` | Validate and auto-repair the `.factory/` worktree |
-| `/setup-env` | Verify toolchain and environment |
-| `/track-debt add <desc>` | Log a known issue to `.factory/tech-debt-register.md` |
-| `/track-debt list` | Review current debt items |
-| `/validate-consistency` | Check for stale references, broken IDs, mismatched counts across specs |
-| `/spec-drift` | Compare implementation against specs to find divergences |
-| `/worktree-manage list` | List active git worktrees |
-| `/next-step` | Read STATE.md and the active workflow, propose the next action |
-| `/wave-status` | Report wave readiness with recommendations |
-| `/mode-decision-guide` | Help choose the right operating mode |
+| `/vsdd-factory:factory-health` | Validate and auto-repair the `.factory/` worktree |
+| `/vsdd-factory:setup-env` | Verify toolchain and environment |
+| `/vsdd-factory:track-debt add <desc>` | Log a known issue to `.factory/tech-debt-register.md` |
+| `/vsdd-factory:track-debt list` | Review current debt items |
+| `/vsdd-factory:validate-consistency` | Check for stale references, broken IDs, mismatched counts across specs |
+| `/vsdd-factory:spec-drift` | Compare implementation against specs to find divergences |
+| `/vsdd-factory:worktree-manage list` | List active git worktrees |
+| `/vsdd-factory:next-step` | Read STATE.md and the active workflow, propose the next action |
+| `/vsdd-factory:wave-status` | Report wave readiness with recommendations |
+| `/vsdd-factory:mode-decision-guide` | Help choose the right operating mode |
 
 ---
 
@@ -253,9 +253,9 @@ Common shortcuts:
 - **Skip Phase 0** if you are building greenfield with no reference codebase.
 - **Skip Phase 5 (formal hardening)** for utility modules, prototypes, or low-risk code.
   Document the decision in an ADR.
-- **Reduce adversarial passes** for small, well-understood changes. The `/quick-dev-routing`
+- **Reduce adversarial passes** for small, well-understood changes. The `/vsdd-factory:quick-dev-routing`
   command identifies changes with zero blast radius that can bypass full adversarial review.
-- **Use feature mode** (`/mode-decision-guide`) for adding features to an existing
+- **Use feature mode** (`/vsdd-factory:mode-decision-guide`) for adding features to an existing
   VSDD-managed project -- it runs a scoped delta analysis instead of full spec crystallization.
 
 The key constraint: any skipped phase must be a conscious, documented decision by the human

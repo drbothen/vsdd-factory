@@ -42,7 +42,7 @@ graph TD
 Kani is a model checker for Rust that proves properties hold for all possible inputs within a bounded search space.
 
 ```
-/formal-verify
+/vsdd-factory:formal-verify
 ```
 
 **What Kani proves:**
@@ -118,7 +118,7 @@ cargo deny check
 Run after the four verification tracks complete:
 
 ```
-/perf-check
+/vsdd-factory:perf-check
 ```
 
 This validates six metrics against budgets defined in `.factory/specs/prd-supplements/performance-budgets.md`:
@@ -132,16 +132,16 @@ This validates six metrics against budgets defined in `.factory/specs/prd-supple
 | Benchmark regressions | Under 10% vs baseline |
 | Memory (peak RSS) | No unbounded growth |
 
-If no benchmarks exist, `/perf-check` reports that and recommends creating them.
+If no benchmarks exist, `/vsdd-factory:perf-check` reports that and recommends creating them.
 
 **Artifacts:** `.factory/cycles/<current>/performance-report.md`
 
 ## DTU Validation
 
-If Digital Twin Universe clones exist (created via `/dtu-creation` during Phase 1b or Phase 3), run DTU validation to confirm behavioral equivalence between the real implementation and the simplified DTU clones.
+If Digital Twin Universe clones exist (created via `/vsdd-factory:dtu-creation` during Phase 1b or Phase 3), run DTU validation to confirm behavioral equivalence between the real implementation and the simplified DTU clones.
 
 ```
-/dtu-validate
+/vsdd-factory:dtu-validate
 ```
 
 DTU clones are minimal, obviously-correct reimplementations of the same behavioral contracts. When both implementations agree, confidence is high. When they diverge, one has a bug.
@@ -163,7 +163,7 @@ Phase 5 produces two primary reports:
 
 ## Prerequisites
 
-Verification tools must be installed. Run `/setup-env` to check availability:
+Verification tools must be installed. Run `/vsdd-factory:setup-env` to check availability:
 
 ```bash
 cargo install cargo-kani
@@ -173,7 +173,7 @@ pip install semgrep    # or brew install semgrep
 cargo install cargo-deny
 ```
 
-If a tool is not installed, `/formal-verify` reports which tools are missing and skips that section. It never fails silently.
+If a tool is not installed, `/vsdd-factory:formal-verify` reports which tools are missing and skips that section. It never fails silently.
 
 ## Quality Gate
 

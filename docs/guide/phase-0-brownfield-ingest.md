@@ -73,7 +73,7 @@ Phase D (Vision Disposition) is deferred until after a product brief exists. It 
 Before starting brownfield ingest, verify:
 
 1. **The plugin is installed.** The `vsdd-factory` plugin must be available in your Claude Code session.
-2. **Factory health.** Run `/factory-health` to confirm `.factory/` is mounted and STATE.md exists.
+2. **Factory health.** Run `/vsdd-factory:factory-health` to confirm `.factory/` is mounted and STATE.md exists.
 3. **Source access.** You need a Git URL or local path to the codebase you want to analyze.
 
 ## Step-by-Step Walkthrough
@@ -83,13 +83,13 @@ Before starting brownfield ingest, verify:
 The skill automatically clones or copies the target codebase into `.reference/<project>/`. All analysis reads from this directory.
 
 ```
-/brownfield-ingest https://github.com/org/repo-name
+/vsdd-factory:brownfield-ingest https://github.com/org/repo-name
 ```
 
 Or for a local path:
 
 ```
-/brownfield-ingest ../my-existing-project
+/vsdd-factory:brownfield-ingest ../my-existing-project
 ```
 
 The skill updates `.factory/reference-manifest.yaml` with the URL, commit SHA, and date so the reference can be reconstructed on a new machine.
@@ -187,7 +187,7 @@ Maximum 3 refinement iterations. If inaccuracies are found, the analysis artifac
 After all passes converge, coverage audit passes, and extraction validation passes, a final synthesis incorporates everything:
 
 ```
-/brownfield-ingest <project>   (this runs automatically as the final step)
+/vsdd-factory:brownfield-ingest <project>   (this runs automatically as the final step)
 ```
 
 Output: `.factory/semport/<project>/<project>-pass-8-deep-synthesis.md`
@@ -216,8 +216,8 @@ Each lesson cites: (a) what the target does today, (b) what the reference does, 
 Phase D is not part of the initial brownfield ingest. It runs after a product brief exists, via a separate command:
 
 ```
-/disposition-pass <project>
-/disposition-pass --all --rollup
+/vsdd-factory:disposition-pass <project>
+/vsdd-factory:disposition-pass --all --rollup
 ```
 
 The disposition pass re-examines every ingested repo through the product vision lens and sorts each capability into one of four buckets: **Model** (adopt as-is), **Take but reimplement** (right idea, rebuild cleanly), **Enhance** (take and extend), or **Leave behind** (reject with reason).
@@ -276,10 +276,10 @@ These are the rationalization patterns that indicate the protocol is being viola
 A typical brownfield ingest session for a medium-sized project:
 
 ```
-> /factory-health
+> /vsdd-factory:factory-health
 Factory health: OK
 
-> /brownfield-ingest https://github.com/org/payment-service
+> /vsdd-factory:brownfield-ingest https://github.com/org/payment-service
 
 I'm using the brownfield-ingest skill to run the broad-then-converge
 analysis protocol on payment-service.
@@ -325,29 +325,29 @@ Phase C: Final Synthesis
 
 Brownfield ingest complete: payment-service
   Artifacts in .factory/semport/payment-service/
-  Use these as inputs for /create-brief and /create-domain-spec.
+  Use these as inputs for /vsdd-factory:create-brief and /vsdd-factory:create-domain-spec.
 ```
 
 ## Troubleshooting
 
 **Sandbox write denials.** If a subagent fails with a Write-tool error, the inline delivery protocol should handle this automatically. If you see `=== FILE: ... ===` delimiters in agent output but no file on disk, the orchestrator's parsing may have failed -- check the agent output and manually save the content.
 
-**Context exhaustion.** If an agent produces truncated or incoherent output, the codebase may be too large for a single pass. The skill handles this by dispatching fresh agents per round, but very large monorepos may need the `--incremental` flag on `/semport-analyze` to process modules individually.
+**Context exhaustion.** If an agent produces truncated or incoherent output, the codebase may be too large for a single pass. The skill handles this by dispatching fresh agents per round, but very large monorepos may need the `--incremental` flag on `/vsdd-factory:semport-analyze` to process modules individually.
 
 **Combined-repo anti-pattern.** Never combine multiple repos into a single agent invocation. Combined agents exhaust context before completing all projects, producing partial results that must be discarded. When processing multiple repos, launch separate agents (up to 10 concurrent).
 
-**Stale reference.** If the reference codebase has been updated since ingestion, re-run `/brownfield-ingest` with the same path. The skill will detect existing artifacts and offer to resume or start fresh. Check `.factory/reference-manifest.yaml` for the recorded commit SHA.
+**Stale reference.** If the reference codebase has been updated since ingestion, re-run `/vsdd-factory:brownfield-ingest` with the same path. The skill will detect existing artifacts and offer to resume or start fresh. Check `.factory/reference-manifest.yaml` for the recorded commit SHA.
 
 **Resuming after interruption.** Use the `--resume` flag to continue from the last completed pass or deepening round:
 
 ```
-/brownfield-ingest payment-service --resume
+/vsdd-factory:brownfield-ingest payment-service --resume
 ```
 
 ## What Comes Next
 
 After brownfield ingest completes:
 
-- Run `/create-brief` to define the product vision (Phase 1)
-- After the brief exists, run `/disposition-pass <project>` to decide what to Model, Reimplement, Enhance, or Leave Behind (Phase D)
-- Brownfield artifacts feed directly into `/create-domain-spec` and `/create-prd`
+- Run `/vsdd-factory:create-brief` to define the product vision (Phase 1)
+- After the brief exists, run `/vsdd-factory:disposition-pass <project>` to decide what to Model, Reimplement, Enhance, or Leave Behind (Phase D)
+- Brownfield artifacts feed directly into `/vsdd-factory:create-domain-spec` and `/vsdd-factory:create-prd`

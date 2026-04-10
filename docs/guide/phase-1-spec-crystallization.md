@@ -17,14 +17,14 @@ Enter Phase 1 when:
 ```mermaid
 graph TD
     subgraph "Research"
-        R1["/research domain topic"]
-        R2["/research general topic"]
+        R1["/vsdd-factory:research domain topic"]
+        R2["/vsdd-factory:research general topic"]
     end
 
     subgraph "Brief"
-        B1["/create-brief"]
-        B2["/guided-brief-creation"]
-        B1 --> VB["/validate-brief"]
+        B1["/vsdd-factory:create-brief"]
+        B2["/vsdd-factory:guided-brief-creation"]
+        B1 --> VB["/vsdd-factory:validate-brief"]
         B2 --> VB
     end
 
@@ -33,10 +33,10 @@ graph TD
     R1 --> B2
     R2 --> B2
 
-    VB --> DS["/create-domain-spec"]
-    DS --> PRD["/create-prd"]
-    PRD --> ARCH["/create-architecture"]
-    ARCH --> ADV["/adversarial-review specs"]
+    VB --> DS["/vsdd-factory:create-domain-spec"]
+    DS --> PRD["/vsdd-factory:create-prd"]
+    PRD --> ARCH["/vsdd-factory:create-architecture"]
+    ARCH --> ADV["/vsdd-factory:adversarial-review specs"]
 
     ADV --> CONV{Novelty LOW?}
     CONV -->|No, fix findings| PRD
@@ -65,57 +65,57 @@ The contract chain provides full traceability: L1 Brief leads to L2 Capability l
 
 ## Step-by-Step Walkthrough
 
-### Step 1: Research (`/research`)
+### Step 1: Research (`/vsdd-factory:research`)
 
 Run as many research sessions as needed before writing the brief. Research comes in two flavors:
 
 **Domain research** investigates the problem space:
 
 ```
-/research domain competitive landscape for CLI AI orchestration tools
-/research domain user needs for multi-agent workflow automation
+/vsdd-factory:research domain competitive landscape for CLI AI orchestration tools
+/vsdd-factory:research domain user needs for multi-agent workflow automation
 ```
 
 **General research** investigates technology and implementation options:
 
 ```
-/research Rust workflow engine comparison -- xstate-rs vs saga-rs vs custom
-/research general security advisories for tokio 1.x
+/vsdd-factory:research Rust workflow engine comparison -- xstate-rs vs saga-rs vs custom
+/vsdd-factory:research general security advisories for tokio 1.x
 ```
 
-Each run spawns the `research-agent` with MCP tool access (Perplexity, Context7, Tavily). Results write to `.factory/specs/research/`:
+Each run spawns the `research-agent` with MCP tool access (Perplexity, Context7, Tavily). Results write to `.factory/specs/vsdd-factory:research/`:
 
 - Domain: `domain-<slug>-<YYYY-MM-DD>.md`
 - General: `general-<slug>-<YYYY-MM-DD>.md`
 
 The research index (`RESEARCH-INDEX.md`) tracks all runs. Subsequent skills read this index to avoid asking questions the research already answers.
 
-### Step 2: Product Brief (`/create-brief` or `/guided-brief-creation`)
+### Step 2: Product Brief (`/vsdd-factory:create-brief` or `/vsdd-factory:guided-brief-creation`)
 
 The brief is the L1 foundation that everything else builds on.
 
-**Use `/create-brief`** for a structured Q&A session. The skill asks questions one at a time across six areas: vision and problem, users and personas, core value proposition, success criteria, constraints, and prior art. It reads existing research to avoid redundant questions.
+**Use `/vsdd-factory:create-brief`** for a structured Q&A session. The skill asks questions one at a time across six areas: vision and problem, users and personas, core value proposition, success criteria, constraints, and prior art. It reads existing research to avoid redundant questions.
 
 ```
-/create-brief
+/vsdd-factory:create-brief
 ```
 
-**Use `/guided-brief-creation`** for a more facilitated, conversational approach. This skill draws out your vision through staged elicitation -- understand intent first, then fill sections through conversation, then draft and review. It includes an optional adversarial review of the brief itself.
+**Use `/vsdd-factory:guided-brief-creation`** for a more facilitated, conversational approach. This skill draws out your vision through staged elicitation -- understand intent first, then fill sections through conversation, then draft and review. It includes an optional adversarial review of the brief itself.
 
 ```
-/guided-brief-creation
+/vsdd-factory:guided-brief-creation
 ```
 
 Both produce `.factory/specs/product-brief.md` (or `.factory/planning/product-brief.md` for guided creation).
 
 **When brownfield artifacts exist**, the skill reads `.factory/semport/` synthesis files and uses them as starting context. It validates extracted knowledge with you rather than asking from scratch.
 
-### Step 3: Validate Brief (`/validate-brief`)
+### Step 3: Validate Brief (`/vsdd-factory:validate-brief`)
 
 Before proceeding, validate the brief against six checks:
 
 ```
-/validate-brief
+/vsdd-factory:validate-brief
 ```
 
 | Check | What It Catches |
@@ -129,12 +129,12 @@ Before proceeding, validate the brief against six checks:
 
 Output: `.factory/planning/brief-validation.md` with per-section PASS/FAIL/WEAK/BLOATED status and a token estimate.
 
-### Step 4: Domain Specification (`/create-domain-spec`)
+### Step 4: Domain Specification (`/vsdd-factory:create-domain-spec`)
 
 The L2 domain spec models the problem space independent of implementation choices. It bridges the brief (what to build) and the PRD (how it behaves).
 
 ```
-/create-domain-spec
+/vsdd-factory:create-domain-spec
 ```
 
 The skill uses a two-pass extraction approach, working with you interactively:
@@ -159,12 +159,12 @@ Output is always sharded:
   ubiquitous-language.md
 ```
 
-### Step 5: PRD with Behavioral Contracts (`/create-prd`)
+### Step 5: PRD with Behavioral Contracts (`/vsdd-factory:create-prd`)
 
 The PRD transforms the brief and domain spec into testable requirements. This is where behavioral contracts (BCs) are born.
 
 ```
-/create-prd
+/vsdd-factory:create-prd
 ```
 
 The process:
@@ -189,12 +189,12 @@ Output:
 
 When reference repos exist, BCs that trace to ingested behavior include a `Source: <project>/<file>:<function>` reference in their Traceability section.
 
-### Step 6: Architecture (`/create-architecture`)
+### Step 6: Architecture (`/vsdd-factory:create-architecture`)
 
 Design the system architecture from the PRD and behavioral contracts. Architecture is sharded into numbered section files.
 
 ```
-/create-architecture
+/vsdd-factory:create-architecture
 ```
 
 The process:
@@ -229,12 +229,12 @@ Output:
 
 When reference repos exist, ADRs note whether they adopt or diverge from reference approaches: "Reference: payment-service uses event sourcing. We chose CQRS without event sourcing because..."
 
-### Step 7: Adversarial Review (`/adversarial-review specs`)
+### Step 7: Adversarial Review (`/vsdd-factory:adversarial-review specs`)
 
 The complete spec set is reviewed by the adversary agent in a fresh context window. The adversary has not seen your prior work, explanations, or summaries.
 
 ```
-/adversarial-review specs
+/vsdd-factory:adversarial-review specs
 ```
 
 The adversary reads all spec documents (brief, domain spec, PRD, supplements, BCs, VPs, architecture) and attacks looking for:
@@ -260,7 +260,7 @@ Fresh context means the adversary has not seen prior review passes, the author's
 - Maximum 5 passes before escalating to human.
 - Findings from prior passes must not be leaked to subsequent adversary instances.
 
-Findings write to `.factory/cycles/<current>/adversarial-reviews/`.
+Findings write to `.factory/cycles/<current>/vsdd-factory:adversarial-reviews/`.
 
 ## Artifact Traceability
 
@@ -302,17 +302,17 @@ Phase 1 is complete when:
 ## Example Command Sequence
 
 ```
-/research domain competitive landscape for task orchestration
-/research general Rust async runtime comparison 2026
-/create-brief
-/validate-brief
-/create-domain-spec
-/create-prd
-/create-architecture
-/adversarial-review specs
+/vsdd-factory:research domain competitive landscape for task orchestration
+/vsdd-factory:research general Rust async runtime comparison 2026
+/vsdd-factory:create-brief
+/vsdd-factory:validate-brief
+/vsdd-factory:create-domain-spec
+/vsdd-factory:create-prd
+/vsdd-factory:create-architecture
+/vsdd-factory:adversarial-review specs
   # Pass 1: 8 findings (3 critical, 5 high)
   # Fix critical findings in specs
-/adversarial-review specs
+/vsdd-factory:adversarial-review specs
   # Pass 2: 2 findings (both medium -- refinements)
   # Novelty: LOW -- Phase 1 complete
 ```
@@ -321,5 +321,5 @@ Phase 1 is complete when:
 
 After Phase 1 completes:
 
-- Run `/decompose-stories` to break specs into implementable stories (Phase 2)
-- If brownfield ingest was done, run `/disposition-pass` before decomposition to inform which stories use gene-transfusion vs from-scratch
+- Run `/vsdd-factory:decompose-stories` to break specs into implementable stories (Phase 2)
+- If brownfield ingest was done, run `/vsdd-factory:disposition-pass` before decomposition to inform which stories use gene-transfusion vs from-scratch
