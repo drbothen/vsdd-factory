@@ -3,6 +3,6 @@ description: Record visual demo evidence for story acceptance criteria using Pla
 argument-hint: "[STORY-NNN]"
 ---
 
-Use the `record-demo` skill via the Skill tool.
+Use the `vsdd-factory record-demo` skill via the Skill tool.
 
 Arguments: $ARGUMENTS

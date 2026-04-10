@@ -3,6 +3,6 @@ description: Conduct external research — domain analysis or technology evaluat
 argument-hint: "[domain|general] <topic>"
 ---
 
-Use the `research` skill via the Skill tool.
+Use the `vsdd-factory research` skill via the Skill tool.
 
 Arguments: $ARGUMENTS
