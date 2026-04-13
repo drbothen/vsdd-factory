@@ -5,6 +5,10 @@ disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
+## Hard Gate
+
+Do NOT skip to architecture design or story decomposition. Every behavioral contract MUST be defined with testable preconditions and postconditions before proceeding.
+
 # Create PRD
 
 Transform the product brief (and optional domain spec) into a comprehensive PRD with behavioral contracts.
@@ -126,6 +130,17 @@ One file per contract, following `spec-format.md` format.
 ### BC Index (`.factory/specs/behavioral-contracts/BC-INDEX.md`)
 
 Table of all contracts with status tracking.
+
+## Self-Review (before adversarial review)
+
+Before routing to adversarial review, check your own work:
+
+1. **Placeholder scan:** Any "TBD", "TODO", incomplete BCs, or vague preconditions/postconditions? Fix them now.
+2. **Internal consistency:** Do BC IDs match the PRD index? Do subsystem numbers align across files? Does the error taxonomy cover all error cases referenced in BCs?
+3. **Scope check:** Is each BC focused on a single behavior, or are any trying to cover multiple concerns?
+4. **Ambiguity check:** Could any precondition or postcondition be interpreted two different ways? Pick one and make it explicit.
+
+Fix issues inline. This is a cheap filter — catch obvious gaps before spending tokens on the adversary.
 
 ## After Writing
 
