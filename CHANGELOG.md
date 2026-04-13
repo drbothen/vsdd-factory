@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.12.0 — Early-phase quality gaps + visual companion
+
+### Added
+- **visual-companion skill** (`/vsdd-factory:visual-companion`) — browser-based mockups, diagrams, and interactive A/B choices during brainstorming, brief creation, and architecture design. Ported from superpowers. Optional, requires Node.js.
+- **Tiered visual tooling strategy** — early-phase skills auto-detect available tools (visual-companion → excalidraw-export → Mermaid → ASCII) with no hard dependencies
+- **Pre-adversarial self-review checklist** — added to create-brief, create-prd, create-architecture, and create-domain-spec to catch obvious gaps before the expensive adversary loop
+- **Hard gate language** — explicit "do NOT skip to next phase" guards in brainstorming, guided-brief-creation, create-brief, create-prd, and create-architecture
+- **Anti-pattern + Red Flags table** — brainstorming skill now calls out the "too simple to brainstorm" rationalization with a 7-row cognitive trap table
+
+### Changed
+- FACTORY.md documents visual companion in project tooling section
+- VSDD.md references visual companion in Tooling section
+
 ## 0.11.0 — CLAUDE.md scaffolding skill
 
 ### Added
