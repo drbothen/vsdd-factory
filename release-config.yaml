@@ -1,0 +1,44 @@
+schema: 1
+
+project:
+  name: vsdd-factory
+  strategy: unified
+
+packages:
+  - name: vsdd-factory
+    path: plugins/vsdd-factory
+    version_sources:
+      - file: .claude-plugin/plugin.json
+        format: json
+        path: "version"
+    publish: null
+
+global_version_sources:
+  - file: README.md
+    format: regex
+    path: "version-([0-9.]+)-green"
+  - file: .claude-plugin/marketplace.json
+    format: json
+    path: "plugins[0].version"
+
+pre_release:
+  - name: "BATS test suite"
+    command: "cd plugins/vsdd-factory/tests && ./run-all.sh"
+  - name: "Shellcheck hooks"
+    command: "shellcheck plugins/vsdd-factory/hooks/*.sh"
+  - name: "Plugin structure validation"
+    command: "test -f plugins/vsdd-factory/.claude-plugin/plugin.json"
+  - name: "Lobster workflow parsing"
+    command: |
+      for f in plugins/vsdd-factory/workflows/*.lobster plugins/vsdd-factory/workflows/phases/*.lobster; do
+        plugins/vsdd-factory/bin/lobster-parse "$f" '.workflow.name' >/dev/null
+      done
+
+quality_gates:
+  mode: standard
+
+changelog:
+  file: CHANGELOG.md
+  format: keep-a-changelog
+
+ci_workflow: .github/workflows/release.yml
