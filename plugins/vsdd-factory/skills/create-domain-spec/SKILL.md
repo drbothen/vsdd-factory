@@ -104,6 +104,17 @@ Always shard into an index + sections:
 
 Use `L2-domain-spec-index-template.md` for the index and `L2-domain-spec-section-template.md` for each section. Add or remove sections as needed — these are the common ones, not a fixed list.
 
+## Self-Review (before adversarial review)
+
+Before routing to the next pipeline stage, check your own work:
+
+1. **Placeholder scan:** Any "TBD", "TODO", incomplete entity definitions, or vague invariants? Fix them now.
+2. **Internal consistency:** Do entity relationships in `entities.md` match references in `capabilities.md`? Does the ubiquitous language glossary cover all terms used in other sections?
+3. **Scope check:** Are bounded contexts clearly delineated? Is each section focused on one aspect of the domain?
+4. **Ambiguity check:** Could any invariant or business rule be interpreted two different ways? Pick one and make it explicit.
+
+Fix issues inline. This is a cheap filter — catch obvious gaps before the next stage.
+
 ## After Writing
 
 1. Commit to factory-artifacts.
