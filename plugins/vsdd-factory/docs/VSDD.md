@@ -288,3 +288,4 @@ L1 Product Brief
 ## Tooling
 
 - **Project context:** `/vsdd-factory:scaffold-claude-md` — auto-detects and generates a project-specific `CLAUDE.md` with build, test, git, and reference information.
+- **Visual companion:** `/vsdd-factory:visual-companion` — browser-based mockups and interactive options during early pipeline stages. Optional, requires Node.js.

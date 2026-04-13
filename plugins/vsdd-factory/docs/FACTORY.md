@@ -143,6 +143,10 @@ Run `/vsdd-factory:scaffold-claude-md` to auto-detect and generate this file. It
 
 This file is maintained by the project owner and is not managed by the plugin.
 
+### Visual Companion (optional)
+
+`/vsdd-factory:visual-companion` provides a browser-based tool for showing mockups, diagrams, and interactive choices during brainstorming, brief creation, and architecture design. Requires Node.js. Early-phase skills automatically detect availability and fall back to Mermaid code blocks, excalidraw-export, or ASCII text when the visual companion isn't available.
+
 ## Operating Rules
 
 ### Pipeline Discipline
