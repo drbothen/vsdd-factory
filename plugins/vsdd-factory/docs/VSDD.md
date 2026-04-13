@@ -282,3 +282,9 @@ L1 Product Brief
 - **TDD Prompt Discipline:** Builder is explicitly instructed: "You are operating under
   strict TDD. Write tests FIRST. Do NOT write implementation code until all tests fail.
   When implementing, write the MINIMUM code to pass each test."
+
+---
+
+## Tooling
+
+- **Project context:** `/vsdd-factory:scaffold-claude-md` — auto-detects and generates a project-specific `CLAUDE.md` with build, test, git, and reference information.
