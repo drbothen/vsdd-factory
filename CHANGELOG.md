@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.10.3 — Release infrastructure and CI/CD
+
+### Added
+- **Release workflow** (`.github/workflows/release.yml`) — tag-triggered validation + GitHub Release with CHANGELOG excerpt
+- **Release config** (`.factory/release-config.yaml`) — declarative release manifest on factory-artifacts branch
+- **Release skill rewrite** — config-driven, 3 modes (init/release/dry-run), quality gate spectrum
+- Retroactive git tags and GitHub Releases for all 12 prior versions (v0.1.0 through v0.10.2)
+- Version field in marketplace.json for release validation
+- Factory-artifacts mount step in CI and release workflows
+
+### Changed
+- CI workflow renamed from `plugin-validation.yml` to `ci.yml` for cross-repo consistency
+- Bump `actions/checkout` from v4 to v6 (Node.js 20 deprecation)
+
 ## 0.10.2 — Template path portability fix
 
 Closes a portability hole that would have broken clean installs.
