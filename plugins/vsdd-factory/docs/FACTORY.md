@@ -135,6 +135,14 @@ export DARK_FACTORY_HOME=/opt/dark-factory    # or wherever you cloned it
 Agents resolve engine paths (templates, skills) relative to `$DARK_FACTORY_HOME`.
 Target project paths are resolved relative to the workspace.
 
+### Project-Specific Instructions (CLAUDE.md)
+
+The vsdd-factory plugin provides methodology, principles, rules, and agent instructions automatically. Project-specific context — build commands, git workflow, toolchain, and reference links — lives in a `CLAUDE.md` at the project root.
+
+Run `/vsdd-factory:scaffold-claude-md` to auto-detect and generate this file. It inspects your project for language markers, task runners, CI configs, git branch strategy, and documentation, then presents a draft for your approval.
+
+This file is maintained by the project owner and is not managed by the plugin.
+
 ## Operating Rules
 
 ### Pipeline Discipline
