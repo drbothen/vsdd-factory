@@ -5,6 +5,10 @@ disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
+## Hard Gate
+
+Do NOT skip to story decomposition or implementation. Purity boundaries MUST be drawn and verification properties MUST be defined before proceeding.
+
 # Create Architecture
 
 Design the system architecture based on the PRD and behavioral contracts. Architecture is sharded into numbered section files, not a single monolith.
@@ -30,6 +34,22 @@ If `.factory/reference-manifest.yaml` exists, ingested codebases informed the re
 - Read `.factory/semport/<project>/` architecture and convention passes to understand how reference repos solved similar problems.
 - When adopting or deliberately diverging from a reference repo's approach, document it in the ADR: `Reference: <project> uses <approach>. We chose <alternative> because <rationale>.`
 - Use `.reference/<project>/` to inspect actual implementations when the semport summary doesn't cover enough detail for a decision.
+
+## Visual Tooling
+
+When visual content would help the human understand architecture options, use the best available tool. No hard dependency on any single tool.
+
+| Tier | Tool | Check | Best for |
+|------|------|-------|----------|
+| 1 | `/vsdd-factory:visual-companion` | Node.js available, user accepts | Interactive component diagrams, side-by-side architecture comparisons |
+| 2 | `/vsdd-factory:excalidraw-export` | Excalidraw skill loaded | Architecture diagrams, dependency graphs, data flow |
+| 3 | Mermaid code blocks | Always available | Sequence diagrams, component diagrams, state machines |
+| 4 | ASCII/text | Always available | Simple dependency trees, layer diagrams |
+
+Before using Tier 1, ask the human once:
+> "I can show architecture diagrams in a browser for this. Want to try it? (Requires Node.js and opening a local URL)"
+
+If they decline or Node.js isn't available, fall back to the next tier.
 
 ## Process
 
@@ -99,6 +119,17 @@ Write sharded files to `.factory/specs/architecture/` following `spec-format.md`
 Write ARCH-INDEX.md linking all sections.
 
 Write VP files to `.factory/specs/verification-properties/` with VP-INDEX.md.
+
+## Self-Review (before adversarial review)
+
+Before routing to adversarial review, check your own work:
+
+1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague decisions? Fix them now.
+2. **Internal consistency:** Do ARCH section cross-references resolve? Do VP traces point to real BCs? Is the dependency graph acyclic?
+3. **Scope check:** Does every module have a clear single responsibility? Are purity boundaries drawn for all modules?
+4. **Ambiguity check:** Could any architecture decision be interpreted two different ways? Make the chosen option and rationale explicit.
+
+Fix issues inline. This is a cheap filter — catch obvious gaps before spending tokens on the adversary.
 
 ## After Writing
 
