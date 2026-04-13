@@ -25,6 +25,9 @@ Per-project opt-in. Enabling the plugin alone does not change your default Claud
    - How to deactivate (`/vsdd-factory:deactivate`)
    - Reminder that this only affects the current project (`.claude/settings.local.json` is per-project)
 
+5. **Suggest CLAUDE.md scaffolding.** If no `CLAUDE.md` exists at the project root, print:
+   > "Tip: Run `/vsdd-factory:scaffold-claude-md` to auto-generate project-specific build, test, and git instructions for Claude Code."
+
 ## Notes
 
 - This is intentionally local, not shared. `settings.local.json` is typically gitignored, so teammates opt in individually.
@@ -33,4 +36,5 @@ Per-project opt-in. Enabling the plugin alone does not change your default Claud
 ## See also
 
 - `/vsdd-factory:deactivate` — reverse this
+- `/vsdd-factory:scaffold-claude-md` — generate a project-specific CLAUDE.md
 - Orchestrator agent: `${CLAUDE_PLUGIN_ROOT}/agents/orchestrator/orchestrator.md`
