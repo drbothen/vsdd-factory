@@ -5,6 +5,10 @@ disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
+## Hard Gate
+
+Do NOT skip to PRD creation or architecture design. Every discovery section MUST be explored with the human. Do not auto-fill sections from assumptions.
+
 # Create Product Brief
 
 Guide the user through creating a product brief — the L1 foundation that everything else builds on.
@@ -100,6 +104,17 @@ Write to `.factory/specs/product-brief.md`:
 ## Open Questions
 <Things we need to resolve before moving to PRD>
 ```
+
+## Self-Review (before adversarial review)
+
+Before routing to the next pipeline stage, check your own work:
+
+1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them now.
+2. **Internal consistency:** Does the scope match the success criteria? Do constraints align with the value proposition?
+3. **Scope check:** Is this brief focused enough for a single PRD, or does it describe multiple independent products?
+4. **Ambiguity check:** Could any requirement be interpreted two different ways? Pick one and make it explicit.
+
+Fix issues inline. This is a cheap filter — catch obvious gaps before the next stage.
 
 ## After Writing
 
