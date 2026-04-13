@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.0 — CLAUDE.md scaffolding skill
+
+### Added
+- **scaffold-claude-md skill** (`/vsdd-factory:scaffold-claude-md`) — auto-detects project language, build/test/lint commands, git workflow, and project references to generate a project-specific `CLAUDE.md`
+- Activate skill now suggests `scaffold-claude-md` when no `CLAUDE.md` exists
+- Optional `scaffold-claude-md` step in greenfield and brownfield workflows
+
+### Changed
+- FACTORY.md documents CLAUDE.md scaffolding in project setup section
+- VSDD.md references the new skill in Tooling section
+
 ## 0.10.3 — Release infrastructure and CI/CD
 
 ### Added
