@@ -9,6 +9,7 @@
   "plugins": [
     {
       "name": "vsdd-factory",
+      "version": "0.10.2",
       "source": "./plugins/vsdd-factory",
       "description": "Full VSDD pipeline: brownfield ingest, spec crystallization, decomposition, TDD delivery, adversarial review, holdout eval, formal verification, release.",
       "category": "sdlc",
