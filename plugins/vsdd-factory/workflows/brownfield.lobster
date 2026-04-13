@@ -95,10 +95,22 @@ workflow:
           - "FACTORY_WORKTREE_HEALTH: PASS"
           - ".factory/ is a valid git worktree on factory-artifacts branch"
 
+    # =========================================================================
+    # Project Instructions (CLAUDE.md)
+    # Optional: generates project-specific CLAUDE.md if not present.
+    # =========================================================================
+
+    - name: scaffold-claude-md
+      type: skill
+      skill: "skills/scaffold-claude-md/SKILL.md"
+      depends_on: [factory-worktree-gate]
+      condition: "!file_exists('CLAUDE.md')"
+      optional: true
+
     - name: state-initialization
       type: agent
       agent: state-manager
-      depends_on: [factory-worktree-gate]
+      depends_on: [factory-worktree-gate, scaffold-claude-md]
       task: >
         Initialize STATE.md: pipeline: STARTED, phase: pre-0,
         product: [name], mode: brownfield, timestamp.
