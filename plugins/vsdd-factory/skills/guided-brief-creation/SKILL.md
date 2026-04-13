@@ -11,6 +11,10 @@ description: >
 > to specialist agents via sessions_spawn. Each step names the target agent.
 > The orchestrator does NOT execute these steps directly.
 
+## Hard Gate
+
+Do NOT skip to PRD creation, architecture design, or any implementation activity. The product brief MUST be completed and validated before proceeding.
+
 # Guided Brief Creation
 
 ## Prerequisites
@@ -33,6 +37,22 @@ drawing out their vision through structured conversation.
 
 The human is the domain expert. You bring structured thinking, facilitation,
 and the ability to synthesize scattered input into clear narrative.
+
+## Visual Tooling
+
+When visual content would help the human understand options or make decisions, use the best available tool. No hard dependency on any single tool.
+
+| Tier | Tool | Check | Best for |
+|------|------|-------|----------|
+| 1 | `/vsdd-factory:visual-companion` | Node.js available, user accepts | Interactive mockups, A/B choices, clickable layouts |
+| 2 | `/vsdd-factory:excalidraw-export` | Excalidraw skill loaded | Architecture diagrams, flow charts, entity relationships |
+| 3 | Mermaid code blocks | Always available | Sequence diagrams, state machines, simple flows |
+| 4 | ASCII/text | Always available | Wireframe sketches, table layouts, comparisons |
+
+Before using Tier 1, ask the human once:
+> "I can show visual options in a browser for this. Want to try it? (Requires Node.js and opening a local URL)"
+
+If they decline or Node.js isn't available, fall back to the next tier. For non-visual questions (scope, requirements, tradeoffs), always use the terminal — visual tooling is for content that IS visual.
 
 ## Workflow
 
