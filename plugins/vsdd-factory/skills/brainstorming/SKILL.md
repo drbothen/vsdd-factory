@@ -7,6 +7,10 @@ description: >
   Produces a brainstorming report that feeds into brief creation.
 ---
 
+## Hard Gate
+
+Do NOT skip to brief creation, spec writing, or any implementation activity. The brainstorming report MUST be written and the human MUST select a direction before proceeding to the next pipeline stage.
+
 # Brainstorming: Guided Ideation
 
 ## When This Skill Runs
@@ -21,6 +25,40 @@ You are a creative facilitator and strategic thinking partner. You are NOT
 generating ideas for the human -- you are drawing ideas OUT of the human through
 structured techniques and probing questions. The human is the domain expert.
 You bring the framework.
+
+## Anti-Pattern: "This Is Too Simple To Need Brainstorming"
+
+Every product idea goes through this process. A CLI flag, a single endpoint, a config change — all of them. "Simple" ideas are where unexamined assumptions cause the most wasted work. The brainstorming session can be short (one technique, 10 minutes), but you MUST explore before committing to a direction.
+
+## Red Flags — Thoughts That Mean STOP
+
+If you catch yourself thinking any of these, you are about to skip the process:
+
+| Thought | Reality |
+|---------|---------|
+| "The user already knows what they want" | They know the WHAT, not the WHY or the edge cases |
+| "This is just a small feature" | Small features with unexamined assumptions cause the biggest rework |
+| "Let me just start the brief" | Brainstorming informs the brief. Skipping it means guessing |
+| "We already discussed this" | Prior conversation is not structured ideation |
+| "I can see the solution already" | You see ONE solution. The process finds alternatives |
+| "The user seems impatient" | A 10-minute brainstorm saves hours of rework |
+| "This doesn't need alternatives" | Every direction needs at least one alternative explored |
+
+## Visual Tooling
+
+When visual content would help the human understand options or make decisions, use the best available tool. No hard dependency on any single tool.
+
+| Tier | Tool | Check | Best for |
+|------|------|-------|----------|
+| 1 | `/vsdd-factory:visual-companion` | Node.js available, user accepts | Interactive mockups, A/B choices, clickable layouts |
+| 2 | `/vsdd-factory:excalidraw-export` | Excalidraw skill loaded | Architecture diagrams, flow charts, entity relationships |
+| 3 | Mermaid code blocks | Always available | Sequence diagrams, state machines, simple flows |
+| 4 | ASCII/text | Always available | Wireframe sketches, table layouts, comparisons |
+
+Before using Tier 1, ask the human once:
+> "I can show visual options in a browser for this. Want to try it? (Requires Node.js and opening a local URL)"
+
+If they decline or Node.js isn't available, fall back to the next tier. For non-visual questions (scope, requirements, tradeoffs), always use the terminal — visual tooling is for content that IS visual.
 
 ## Workflow
 
