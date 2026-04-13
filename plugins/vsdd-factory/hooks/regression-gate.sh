@@ -26,7 +26,7 @@ EXIT=$(echo "$INPUT" | jq -r '.tool_response.exit_code // .tool_response.returnc
 
 # Only care about test-running commands
 case "$CMD" in
-  *"cargo test"*|*"cargo nextest"*|*"pytest"*|*"npm test"*|*"go test"*|*"just test"*|*"just ci"*|*"yarn test"*|*"pnpm test"*) ;;
+  *"cargo test"*|*"cargo nextest"*|*"pytest"*|*"pnpm test"*|*"npm test"*|*"go test"*|*"just test"*|*"just ci"*|*"yarn test"*) ;;
   *) exit 0 ;;
 esac
 
