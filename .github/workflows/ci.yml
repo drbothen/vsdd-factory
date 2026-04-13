@@ -1,4 +1,4 @@
-name: plugin-validation
+name: ci
 
 on:
   push:
@@ -10,7 +10,12 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
+      - name: Mount factory artifacts
+        run: |
+          git fetch origin factory-artifacts
+          git worktree add .factory origin/factory-artifacts
 
       - name: Install tools
         run: |
