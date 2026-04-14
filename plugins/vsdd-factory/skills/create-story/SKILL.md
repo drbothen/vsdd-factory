@@ -6,6 +6,10 @@ disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
+## Hard Gate
+
+Do NOT skip to implementation or deliver the story before it is fully elaborated. Every mandatory section MUST be completed — no stub stories.
+
 # Create Story
 
 Flesh out a single story into a sprint-ready specification.
@@ -77,9 +81,32 @@ Rate the story:
 
 If XL, recommend splitting and ask the user.
 
+## Plan Failures
+
+These patterns invalidate a story. If you catch any, fix before proceeding:
+
+- "TBD", "TODO", or "implement later" in any section
+- "Add appropriate error handling" without specifying which errors
+- "Write tests for the above" without actual test descriptions
+- "Similar to STORY-NNN" without repeating the relevant details
+- Acceptance criteria without testable assertions
+- File list that says "and other files as needed"
+- Tasks that describe what to do without specifying how
+
 ## Output
 
 Updated `.factory/stories/STORY-NNN.md` with full specification.
+
+## Self-Review (before delivery)
+
+Before marking this story as sprint-ready, check your own work:
+
+1. **Completeness:** All mandatory template sections filled with real content?
+2. **Consistency:** Do BC references exist in BC-INDEX? Do file paths match architecture?
+3. **Testability:** Every acceptance criterion has a testable assertion?
+4. **Context budget:** Token estimate present and under 60% of agent context?
+
+Fix issues inline. This is a cheap filter — catch obvious gaps before delivery.
 
 ## After Writing
 
