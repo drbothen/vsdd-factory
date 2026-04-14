@@ -50,6 +50,17 @@ graph TD
     style DONE fill:#d4edda
 ```
 
+### Visual Tooling
+
+The brainstorming, guided-brief-creation, and create-architecture skills support visual tooling for interactive mockups and diagrams. When visual content would help you make decisions, the agent offers the best available tool:
+
+1. **Visual companion** (`/vsdd-factory:visual-companion`) — interactive browser-based mockups. Requires Node.js.
+2. **Excalidraw export** — architecture diagrams and flow charts
+3. **Mermaid code blocks** — sequence diagrams, state machines
+4. **ASCII/text** — simple comparisons and wireframes
+
+The agent auto-detects availability and falls back gracefully. No setup required — just accept when offered.
+
 ## The Spec Hierarchy
 
 VSDD uses a four-level specification hierarchy. Each level builds on the one above it:
@@ -228,6 +239,17 @@ Output:
 | `.factory/specs/verification-properties/VP-NNN.md` | Individual verification properties |
 
 When reference repos exist, ADRs note whether they adopt or diverge from reference approaches: "Reference: payment-service uses event sourcing. We chose CQRS without event sourcing because..."
+
+### Self-Review Before Adversarial Review
+
+Each spec creation skill (create-brief, create-prd, create-architecture, create-domain-spec) runs a 4-point self-review before routing to the adversary:
+
+1. **Placeholder scan** — no TBDs, TODOs, or incomplete sections
+2. **Internal consistency** — IDs match across files, no contradictions
+3. **Scope check** — focused enough for the next pipeline stage
+4. **Ambiguity check** — no requirements interpretable two ways
+
+This catches obvious gaps cheaply before spending tokens on the adversarial review loop.
 
 ### Step 7: Adversarial Review (`/vsdd-factory:adversarial-review specs`)
 
