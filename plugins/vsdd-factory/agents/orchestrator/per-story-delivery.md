@@ -117,6 +117,10 @@ For each story in the current wave:
 
 Only after Red Gate verified -> spawn implementer for STORY-NNN
 
+## Verification Discipline
+
+After every specialist dispatch, independently verify the exit condition before proceeding. Agent reports are claims — verification output is evidence. Run the verification command yourself and read the full output.
+
 ## Model Selection
 
 Use the least powerful model that can handle each specialist dispatch. Mechanical tasks (worktree ops, stubs, demo recording) use fast/cheap models. Tasks requiring BC understanding or multi-file coordination use standard models. Review triage and architectural judgment use the most capable model.
