@@ -166,8 +166,8 @@ h1 { color: #333; } p { color: #666; } code { background: #f0f0f0; padding: 2px 
 
   let html = fs.readFileSync(path.join(DIST_DIR, 'index.html'), 'utf-8');
   const wsUrl = 'ws://' + URL_HOST + ':' + PORT;
-  html = html.replace('__ACTIVE_FILE__', fileName);
-  html = html.replace('__WS_URL__', wsUrl);
+  const injection = '<script>window.__ACTIVE_FILE__=' + JSON.stringify(fileName) + ';window.__WS_URL__=' + JSON.stringify(wsUrl) + ';</script>';
+  html = html.replace('</head>', injection + '\n</head>');
 
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
@@ -191,7 +191,9 @@ h1 { color: #333; } p { color: #666; }</style>
 
   const manifest = fs.readFileSync(filePath, 'utf-8');
   let html = fs.readFileSync(path.join(DIST_DIR, 'index.html'), 'utf-8');
-  html = html.replace('__MANIFEST__', manifest);
+  const wsUrl = 'ws://' + URL_HOST + ':' + PORT;
+  const injection = '<script>window.__MANIFEST__=' + manifest + ';window.__WS_URL__=' + JSON.stringify(wsUrl) + ';</script>';
+  html = html.replace('</head>', injection + '\n</head>');
 
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
