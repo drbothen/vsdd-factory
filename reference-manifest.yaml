@@ -1,16 +1,23 @@
-# Reference Manifest — records every codebase cloned into .reference/
-# for brownfield-ingest. Use to rebuild .reference/ on a fresh checkout.
+# Reference Manifest
+# Source of truth for rebuilding .reference/ on a new system.
+# To rebuild: for each entry, run `git clone --depth=<depth> <url> .reference/<project>`
+# Updated by /brownfield-ingest (Step 0) when new repos are added.
 
-references:
-  - name: claude-code
+repos:
+  claude-code:
     url: https://github.com/anthropics/claude-code
-    cloned: 2026-04-08
+    commit: ""
+    ingested: 2026-04-08
     depth: 1
     focus: plugins
     status: pending
-  - name: superpowers
+    note: ""
+
+  superpowers:
     url: https://github.com/obra/superpowers
-    cloned: 2026-04-08
+    commit: ""
+    ingested: 2026-04-08
     depth: 1
     focus: full
-    status: pending
+    status: analyzed
+    note: "Gap analysis completed v0.11.0-v0.16.0 — brainstorming, writing-plans, subagent-driven, remaining skills"
