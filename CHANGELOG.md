@@ -8,6 +8,15 @@
 - **Verification discipline** — deliver-story and per-story-delivery now enforce independent verification of agent claims before proceeding (agent reports are claims, test output is evidence)
 - **Review feedback guidance** — implementer and test-writer agents now have explicit guidance for receiving code review (verify before implementing, push back when wrong, BC is source of truth)
 
+### Documentation
+- Getting started guide now includes scaffold-claude-md as Step 4
+- Cross-cutting skills guide documents visual-companion, systematic-debugging, and writing-skills
+- Phase 1 guide documents visual tooling and self-review checklists
+- Phase 2 guide documents scope check, plan failures, and self-review
+- Phase 3 guide documents verification discipline, agent status protocol, model selection, review feedback handling, and debugging reference
+- Agents reference documents the standard status protocol and self-review
+- README skill count updated to 95
+
 ## 0.14.0 — Agent dispatch quality gaps
 
 ### Added
