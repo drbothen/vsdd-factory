@@ -79,23 +79,28 @@ const URL_HOST = process.env.VISUAL_COMPANION_URL_HOST || (HOST === '127.0.0.1' 
 const SESSION_DIR = process.env.VISUAL_COMPANION_DIR || '/tmp/visual-companion';
 const CONTENT_DIR = path.join(SESSION_DIR, 'content');
 const STATE_DIR = path.join(SESSION_DIR, 'state');
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+const EXCALIDRAW_AVAILABLE = fs.existsSync(path.join(DIST_DIR, 'index.html'));
 let ownerPid = process.env.VISUAL_COMPANION_OWNER_PID ? Number(process.env.VISUAL_COMPANION_OWNER_PID) : null;
+
+const SCREEN_EXTENSIONS = ['.html', '.excalidraw'];
 
 const MIME_TYPES = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.svg': 'image/svg+xml'
+  '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.svg': 'image/svg+xml',
+  '.excalidraw': 'application/json'
 };
 
 // ========== Templates and Constants ==========
 
 const WAITING_PAGE = `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Brainstorm Companion</title>
+<head><meta charset="utf-8"><title>VSDD Visual Companion</title>
 <style>body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; }
 h1 { color: #333; } p { color: #666; }</style>
 </head>
-<body><h1>Brainstorm Companion</h1>
+<body><h1>VSDD Visual Companion</h1>
 <p>Waiting for the agent to push a screen...</p></body></html>`;
 
 const frameTemplate = fs.readFileSync(path.join(__dirname, 'frame-template.html'), 'utf-8');
@@ -115,35 +120,191 @@ function wrapInFrame(content) {
 
 function getNewestScreen() {
   const files = fs.readdirSync(CONTENT_DIR)
-    .filter(f => f.endsWith('.html'))
+    .filter(f => {
+      const ext = path.extname(f).toLowerCase();
+      return SCREEN_EXTENSIONS.includes(ext) || f === 'screen.json';
+    })
     .map(f => {
       const fp = path.join(CONTENT_DIR, f);
-      return { path: fp, mtime: fs.statSync(fp).mtime.getTime() };
+      return { name: f, path: fp, mtime: fs.statSync(fp).mtime.getTime() };
     })
     .sort((a, b) => b.mtime - a.mtime);
-  return files.length > 0 ? files[0].path : null;
+  return files.length > 0 ? files[0] : null;
 }
 
 // ========== HTTP Request Handler ==========
 
-function handleRequest(req, res) {
-  touchActivity();
-  if (req.method === 'GET' && req.url === '/') {
-    const screenFile = getNewestScreen();
-    let html = screenFile
-      ? (raw => isFullDocument(raw) ? raw : wrapInFrame(raw))(fs.readFileSync(screenFile, 'utf-8'))
-      : WAITING_PAGE;
+function serveHtml(res, filePath) {
+  let html = fs.readFileSync(filePath, 'utf-8');
+  html = isFullDocument(html) ? html : wrapInFrame(html);
 
-    if (html.includes('</body>')) {
-      html = html.replace('</body>', helperInjection + '\n</body>');
-    } else {
-      html += helperInjection;
-    }
+  if (html.includes('</body>')) {
+    html = html.replace('</body>', helperInjection + '\n</body>');
+  } else {
+    html += helperInjection;
+  }
 
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(html);
+}
+
+function serveExcalidraw(res, fileName) {
+  if (!EXCALIDRAW_AVAILABLE) {
+    const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>VSDD Visual Companion</title>
+<style>body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; }
+h1 { color: #333; } p { color: #666; } code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; }</style>
+</head>
+<body><h1>Excalidraw Viewer Not Installed</h1>
+<p>The <code>.excalidraw</code> file <strong>${fileName}</strong> was detected, but the Excalidraw viewer has not been built yet.</p>
+<p>Run the setup script to build the viewer, then reload this page.</p></body></html>`;
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);
-  } else if (req.method === 'GET' && req.url.startsWith('/files/')) {
-    const fileName = req.url.slice(7);
+    return;
+  }
+
+  let html = fs.readFileSync(path.join(DIST_DIR, 'index.html'), 'utf-8');
+  const wsUrl = 'ws://' + URL_HOST + ':' + PORT;
+  html = html.replace('__ACTIVE_FILE__', fileName);
+  html = html.replace('__WS_URL__', wsUrl);
+
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(html);
+}
+
+function serveManifest(res, filePath) {
+  if (!EXCALIDRAW_AVAILABLE) {
+    const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>VSDD Visual Companion</title>
+<style>body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; }
+h1 { color: #333; } p { color: #666; }</style>
+</head>
+<body><h1>Manifest Viewer Not Installed</h1>
+<p>A <code>screen.json</code> manifest was detected, but the viewer has not been built yet.</p>
+<p>Run the setup script to build the viewer, then reload this page.</p></body></html>`;
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html);
+    return;
+  }
+
+  const manifest = fs.readFileSync(filePath, 'utf-8');
+  let html = fs.readFileSync(path.join(DIST_DIR, 'index.html'), 'utf-8');
+  html = html.replace('__MANIFEST__', manifest);
+
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(html);
+}
+
+function handleRequest(req, res) {
+  touchActivity();
+  const url = new URL(req.url, 'http://' + req.headers.host);
+  const pathname = url.pathname;
+
+  // Root route — file-type detection
+  if (req.method === 'GET' && pathname === '/') {
+    const screen = getNewestScreen();
+    if (!screen) {
+      let html = WAITING_PAGE;
+      if (html.includes('</body>')) {
+        html = html.replace('</body>', helperInjection + '\n</body>');
+      } else {
+        html += helperInjection;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(html);
+      return;
+    }
+
+    const ext = path.extname(screen.name).toLowerCase();
+    if (ext === '.html') {
+      serveHtml(res, screen.path);
+    } else if (ext === '.excalidraw') {
+      serveExcalidraw(res, screen.name);
+    } else if (screen.name === 'screen.json') {
+      serveManifest(res, screen.path);
+    } else {
+      serveHtml(res, screen.path);
+    }
+    return;
+  }
+
+  // API: list files in content dir
+  if (req.method === 'GET' && pathname === '/api/files') {
+    const files = fs.readdirSync(CONTENT_DIR)
+      .filter(f => {
+        const ext = path.extname(f).toLowerCase();
+        return SCREEN_EXTENSIONS.includes(ext) || f === 'screen.json';
+      })
+      .map(f => {
+        const fp = path.join(CONTENT_DIR, f);
+        const stat = fs.statSync(fp);
+        return { name: f, size: stat.size, mtime: stat.mtime.toISOString() };
+      });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(files));
+    return;
+  }
+
+  // API: get drawing JSON by name
+  if (req.method === 'GET' && pathname.startsWith('/api/drawing/')) {
+    const name = decodeURIComponent(pathname.slice('/api/drawing/'.length));
+    const filePath = path.join(CONTENT_DIR, path.basename(name));
+    if (!fs.existsSync(filePath)) {
+      res.writeHead(404);
+      res.end('Not found');
+      return;
+    }
+    const content = fs.readFileSync(filePath, 'utf-8');
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(content);
+    return;
+  }
+
+  // Serve specific HTML screen by name
+  if (req.method === 'GET' && pathname.startsWith('/html/')) {
+    const name = decodeURIComponent(pathname.slice('/html/'.length));
+    const filePath = path.join(CONTENT_DIR, path.basename(name));
+    if (!fs.existsSync(filePath)) {
+      res.writeHead(404);
+      res.end('Not found');
+      return;
+    }
+    serveHtml(res, filePath);
+    return;
+  }
+
+  // Serve static assets from dist/
+  if (req.method === 'GET' && pathname.startsWith('/assets/')) {
+    if (!EXCALIDRAW_AVAILABLE) {
+      res.writeHead(404);
+      res.end('Not found');
+      return;
+    }
+    const assetPath = path.join(DIST_DIR, pathname);
+    const resolved = path.resolve(assetPath);
+    // Prevent directory traversal
+    if (!resolved.startsWith(path.resolve(DIST_DIR))) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+    if (!fs.existsSync(resolved)) {
+      res.writeHead(404);
+      res.end('Not found');
+      return;
+    }
+    const ext = path.extname(resolved).toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': contentType });
+    res.end(fs.readFileSync(resolved));
+    return;
+  }
+
+  // Legacy /files/ route
+  if (req.method === 'GET' && pathname.startsWith('/files/')) {
+    const fileName = pathname.slice(7);
     const filePath = path.join(CONTENT_DIR, path.basename(fileName));
     if (!fs.existsSync(filePath)) {
       res.writeHead(404);
@@ -154,10 +315,11 @@ function handleRequest(req, res) {
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
     res.writeHead(200, { 'Content-Type': contentType });
     res.end(fs.readFileSync(filePath));
-  } else {
-    res.writeHead(404);
-    res.end('Not found');
+    return;
   }
+
+  res.writeHead(404);
+  res.end('Not found');
 }
 
 // ========== WebSocket Connection Handling ==========
@@ -231,6 +393,21 @@ function handleMessage(text) {
   }
   touchActivity();
   console.log(JSON.stringify({ source: 'user-event', ...event }));
+
+  // Handle drawing save-back from Excalidraw editor
+  if (event.type === 'drawing-updated' && event.file && event.data) {
+    const safeName = path.basename(event.file);
+    const filePath = path.join(CONTENT_DIR, safeName);
+    try {
+      const json = typeof event.data === 'string' ? event.data : JSON.stringify(event.data, null, 2);
+      fs.writeFileSync(filePath, json);
+      console.log(JSON.stringify({ type: 'drawing-saved', file: filePath }));
+    } catch (e) {
+      console.error('Failed to save drawing:', e.message);
+    }
+    return;
+  }
+
   if (event.choice) {
     const eventsFile = path.join(STATE_DIR, 'events');
     fs.appendFileSync(eventsFile, JSON.stringify(event) + '\n');
@@ -267,14 +444,19 @@ function startServer() {
   // macOS fs.watch reports 'rename' for both new files and overwrites,
   // so we can't rely on eventType alone.
   const knownFiles = new Set(
-    fs.readdirSync(CONTENT_DIR).filter(f => f.endsWith('.html'))
+    fs.readdirSync(CONTENT_DIR).filter(f => {
+      const ext = path.extname(f).toLowerCase();
+      return SCREEN_EXTENSIONS.includes(ext);
+    })
   );
 
   const server = http.createServer(handleRequest);
   server.on('upgrade', handleUpgrade);
 
   const watcher = fs.watch(CONTENT_DIR, (eventType, filename) => {
-    if (!filename || !filename.endsWith('.html')) return;
+    if (!filename) return;
+    const ext = path.extname(filename).toLowerCase();
+    if (!SCREEN_EXTENSIONS.includes(ext)) return;
 
     if (debounceTimers.has(filename)) clearTimeout(debounceTimers.get(filename));
     debounceTimers.set(filename, setTimeout(() => {
