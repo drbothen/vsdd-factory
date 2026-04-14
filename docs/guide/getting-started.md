@@ -95,6 +95,16 @@ STATE.md is the single source of truth for where the pipeline left off. It tells
 current phase, what was completed, and what to do next. Every skill reads it before acting
 and updates it after phase transitions.
 
+### Step 4: Generate project instructions (first time only)
+
+```
+/vsdd-factory:scaffold-claude-md
+```
+
+This auto-detects your project's language, build/test/lint commands, git workflow, and key documentation, then generates a `CLAUDE.md` at the project root. This file gives Claude Code the context it needs to build and navigate your specific project. Run this once when you first set up a project — re-run anytime to regenerate.
+
+The plugin provides methodology, principles, and rules automatically. The `CLAUDE.md` covers project-specific context only: toolchain, commands, and references.
+
 ---
 
 ## Session start flow
@@ -106,7 +116,10 @@ graph LR
     B -->|No| D["Auto-repair"]
     D --> C
     C --> E["Read STATE.md"]
-    E --> F["Resume pipeline"]
+    E --> G{CLAUDE.md exists?}
+    G -->|Yes| F["Resume pipeline"]
+    G -->|No| H["/vsdd-factory:scaffold-claude-md"]
+    H --> F
 ```
 
 ---
