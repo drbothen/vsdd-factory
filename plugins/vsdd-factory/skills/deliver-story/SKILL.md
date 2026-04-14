@@ -134,6 +134,23 @@ Pass only the specific files each specialist needs. Never pass the whole story f
 
 If a story is too large to fit any specialist's budget (≥60% of target model's context window), STOP and dispatch story-writer to split it before proceeding.
 
+## Model Selection
+
+Use the least powerful model that can handle each dispatch:
+
+| Task | Complexity signal | Model tier |
+|------|------------------|------------|
+| Worktree creation/cleanup | Always mechanical | Fast (cheapest) |
+| Test stubs | Mostly mechanical, clear spec | Fast |
+| Failing tests | Requires BC understanding | Standard |
+| TDD implementation (S/M story) | Clear spec, 1-2 files | Standard |
+| TDD implementation (L/XL story) | Multi-file, integration | Capable |
+| Demo recording | Mechanical, follows patterns | Fast |
+| PR lifecycle | Coordination, judgment calls | Standard |
+| Review triage | Requires codebase understanding | Capable |
+
+If an agent reports BLOCKED or produces low-quality output, re-dispatch with the next tier up — not the same tier.
+
 ## Task Sizing Rules
 
 From `agents/orchestrator/per-story-delivery.md`:
@@ -169,6 +186,10 @@ Stop and check yourself if you find yourself thinking any of these:
 | "I'll skip demo-recording and do it after the merge" | Demos are part of the merge gate. Dispatch demo-recorder before pr-manager. |
 | "The worktree cleanup can wait until later" | Stale worktrees accumulate. Dispatch devops-engineer now. |
 | "This feels like a lot of context switching" | That's the feature. Fresh context per specialist is what prevents single-agent drift. |
+| "I'll dispatch the implementer and reviewer at the same time" | Sequential, not parallel. Spec compliance review MUST complete before code quality review. |
+| "Both stories can share an implementer agent" | Fresh agent per story. Shared context causes cross-contamination. |
+| "The spec reviewer said it's fine, skip the code quality review" | Two-stage review is mandatory. Spec compliance and code quality check different things. |
+| "I'll retry with the same model, maybe it'll work this time" | If an agent failed, something needs to change — more context, stronger model, or narrower scope. |
 
 ## After Delivery
 
