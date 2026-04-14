@@ -42,7 +42,8 @@ When visual content would help the human understand architecture options, use th
 | Tier | Tool | Check | Best for |
 |------|------|-------|----------|
 | 1 | `/vsdd-factory:visual-companion` | Node.js available, user accepts | Interactive component diagrams, side-by-side architecture comparisons |
-| 2 | `/vsdd-factory:excalidraw-export` | Excalidraw skill loaded | Architecture diagrams, dependency graphs, data flow |
+| 1 | `/vsdd-factory:visual-companion` (excalidraw) | Setup completed | Architecture diagrams, dependency graphs, interactive editing |
+| 2 | `/vsdd-factory:create-excalidraw` | Always available | Generate .excalidraw files for offline viewing in excalidraw.com or VS Code |
 | 3 | Mermaid code blocks | Always available | Sequence diagrams, component diagrams, state machines |
 | 4 | ASCII/text | Always available | Simple dependency trees, layer diagrams |
 

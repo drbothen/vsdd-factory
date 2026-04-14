@@ -51,7 +51,8 @@ When visual content would help the human understand options or make decisions, u
 | Tier | Tool | Check | Best for |
 |------|------|-------|----------|
 | 1 | `/vsdd-factory:visual-companion` | Node.js available, user accepts | Interactive mockups, A/B choices, clickable layouts |
-| 2 | `/vsdd-factory:excalidraw-export` | Excalidraw skill loaded | Architecture diagrams, flow charts, entity relationships |
+| 1 | `/vsdd-factory:visual-companion` (excalidraw) | Setup completed | Architecture diagrams, entity relationships, interactive editing |
+| 2 | `/vsdd-factory:create-excalidraw` | Always available | Generate .excalidraw files for offline viewing in excalidraw.com or VS Code |
 | 3 | Mermaid code blocks | Always available | Sequence diagrams, state machines, simple flows |
 | 4 | ASCII/text | Always available | Wireframe sketches, table layouts, comparisons |
 

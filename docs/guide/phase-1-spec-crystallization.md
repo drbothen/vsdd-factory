@@ -55,9 +55,10 @@ graph TD
 The brainstorming, guided-brief-creation, and create-architecture skills support visual tooling for interactive mockups and diagrams. When visual content would help you make decisions, the agent offers the best available tool:
 
 1. **Visual companion** (`/vsdd-factory:visual-companion`) — interactive browser-based mockups. Requires Node.js.
-2. **Excalidraw export** — architecture diagrams and flow charts
-3. **Mermaid code blocks** — sequence diagrams, state machines
-4. **ASCII/text** — simple comparisons and wireframes
+2. **Visual companion excalidraw mode** (`/vsdd-factory:visual-companion` excalidraw) — architecture diagrams, entity relationships, and interactive editing. Requires setup.
+3. **Create excalidraw** (`/vsdd-factory:create-excalidraw`) — generate `.excalidraw` files for offline viewing in excalidraw.com or VS Code. Always available.
+4. **Mermaid code blocks** — sequence diagrams, state machines
+5. **ASCII/text** — simple comparisons and wireframes
 
 The agent auto-detects availability and falls back gracefully. No setup required — just accept when offered.
 

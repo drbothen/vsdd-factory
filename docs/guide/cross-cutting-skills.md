@@ -222,7 +222,8 @@ Browser-based visual companion for showing mockups, diagrams, and interactive A/
 | Tier | Tool | Requirement |
 |------|------|-------------|
 | 1 | `/vsdd-factory:visual-companion` | Node.js + user consent |
-| 2 | `/vsdd-factory:excalidraw-export` | Excalidraw skill |
+| 1 | `/vsdd-factory:visual-companion` (excalidraw) | Setup completed |
+| 2 | `/vsdd-factory:create-excalidraw` | Always available |
 | 3 | Mermaid code blocks | Always available |
 | 4 | ASCII/text | Always available |
 
