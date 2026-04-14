@@ -5,6 +5,10 @@ disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
+## Hard Gate
+
+Do NOT skip to implementation or story delivery. ALL stories MUST be decomposed, dependency-ordered into waves, and approved before any code is written.
+
 # Decompose Stories
 
 Break the PRD and architecture into implementable stories organized by dependency waves.
@@ -30,6 +34,10 @@ If `.factory/reference-manifest.yaml` exists, reference implementations inform s
 - Stories that implement behavior extracted from a reference repo should be tagged `implementation_strategy: gene-transfusion` and include a `Reference Source` field pointing to the relevant `.factory/semport/<project>/` artifacts.
 - Stories that diverge from reference behavior should be tagged `implementation_strategy: from-scratch` and note the divergence in Dev Notes.
 - When estimating complexity, factor in whether the reference implementation can be adapted vs. needs to be reimagined.
+
+## Scope Check
+
+Before decomposing, verify the PRD describes a single product. If it contains multiple independent products or platforms, stop and split the PRD first — each product gets its own decomposition cycle.
 
 ## Process
 
@@ -127,6 +135,29 @@ For each wave, create hidden acceptance scenarios in `.factory/holdout-scenarios
 - Focus on critical-path behaviors and edge cases
 
 Write `.factory/holdout-scenarios/HS-INDEX.md`.
+
+## Plan Failures
+
+These patterns invalidate a story. If you catch any, fix before proceeding:
+
+- "TBD", "TODO", or "implement later" in any section
+- "Add appropriate error handling" without specifying which errors
+- "Write tests for the above" without actual test descriptions
+- "Similar to STORY-NNN" without repeating the relevant details
+- Acceptance criteria without testable assertions
+- File list that says "and other files as needed"
+- Tasks that describe what to do without specifying how
+
+## Self-Review (before adversarial review)
+
+Before routing to adversarial review, check your own work:
+
+1. **Spec coverage:** Does every BC in the PRD trace to at least one story? List any gaps.
+2. **Placeholder scan:** Any "TBD", stub stories, or incomplete dependency mappings? Fix them.
+3. **Consistency:** Do story IDs match the index? Do wave assignments respect dependencies?
+4. **Sizing:** Any story over 13 points? Any story estimated over 60% of agent context window?
+
+Fix issues inline. This is a cheap filter — catch obvious gaps before spending tokens on the adversary.
 
 ## Output Summary
 
