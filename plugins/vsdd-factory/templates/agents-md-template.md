@@ -84,6 +84,27 @@ prompt gets highest compliance.]
   artifacts, contradictory requirements, three consecutive failures]
 - Include: what you tried, what failed, and why you cannot proceed
 
+**It is always OK to stop and say "this is too hard for me."** Bad work is worse than no work. You will not be penalized for escalating.
+
+Stop and escalate when:
+- The task requires architectural decisions with multiple valid approaches
+- You need to understand code beyond what was provided and can't find clarity
+- You feel uncertain about whether your approach is correct
+- You've been reading file after file without making progress
+
+## Reporting
+
+When done, report with one of these statuses:
+
+| Status | Meaning | What happens next |
+|--------|---------|-------------------|
+| **DONE** | Work complete, confident in quality | Proceed to review |
+| **DONE_WITH_CONCERNS** | Work complete but doubts remain | Dispatcher reads concerns before proceeding |
+| **NEEDS_CONTEXT** | Missing information not provided | Dispatcher provides context, re-dispatches |
+| **BLOCKED** | Cannot complete the task | Dispatcher assesses: more context, stronger model, or task split |
+
+Include: what you implemented, files changed, test results, and any concerns.
+
 ## Information Wall
 
 (OPTIONAL — only for agents with architectural isolation requirements)
