@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.14.0 — Agent dispatch quality gaps
+
+### Added
+- **Standard agent status protocol** (DONE/DONE_WITH_CONCERNS/NEEDS_CONTEXT/BLOCKED) — agents-md-template, implementer, test-writer, pr-manager all report structured status codes
+- **"Over your head" escalation language** — agents-md-template, implementer, test-writer explicitly encourage early escalation over bad work
+- **Pre-handoff self-review checklists** — implementer (completeness, TDD, YAGNI), test-writer (coverage, behavior vs implementation, naming), pr-manager (description accuracy, traceability, demo evidence)
+- **Model selection guidance** — deliver-story and per-story-delivery.md include tier mapping (fast/standard/capable) per dispatch task type
+- **Extended Red Flags** — deliver-story adds 4 new dispatch anti-patterns (parallel dispatch, shared agents, skipped reviews, same-model retry)
+
 ## 0.13.0 — Story decomposition quality gaps
 
 ### Added
