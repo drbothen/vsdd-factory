@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.15.0 — Systematic debugging, verification discipline, and writing-skills
+
+### Added
+- **systematic-debugging skill** — 4-phase root cause investigation process adapted from superpowers, with BC-aware debugging and "3+ fixes = architectural problem" escalation rule
+- **writing-skills skill** — TDD methodology for creating and maintaining skills (RED-GREEN-REFACTOR applied to process documentation), with CSO guidance and rationalization resistance patterns
+- **Verification discipline** — deliver-story and per-story-delivery now enforce independent verification of agent claims before proceeding (agent reports are claims, test output is evidence)
+- **Review feedback guidance** — implementer and test-writer agents now have explicit guidance for receiving code review (verify before implementing, push back when wrong, BC is source of truth)
+
 ## 0.14.0 — Agent dispatch quality gaps
 
 ### Added

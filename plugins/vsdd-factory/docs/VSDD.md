@@ -289,3 +289,5 @@ L1 Product Brief
 
 - **Project context:** `/vsdd-factory:scaffold-claude-md` — auto-detects and generates a project-specific `CLAUDE.md` with build, test, git, and reference information.
 - **Visual companion:** `/vsdd-factory:visual-companion` — browser-based mockups and interactive options during early pipeline stages. Optional, requires Node.js.
+- **Systematic debugging:** `/vsdd-factory:systematic-debugging` — 4-phase root cause investigation for any bug, test failure, or unexpected behavior. Enforces investigation before fixes.
+- **Writing skills:** `/vsdd-factory:writing-skills` — TDD methodology for creating and maintaining plugin skills. RED-GREEN-REFACTOR applied to process documentation.
