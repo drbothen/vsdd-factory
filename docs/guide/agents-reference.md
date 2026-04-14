@@ -44,6 +44,34 @@ The vsdd-factory plugin ships 34 agent definitions: 24 specialist agents and 10 
 
 ---
 
+## Agent Status Protocol
+
+All specialist agents report structured status codes when completing a task. The orchestrator and dispatcher skills use these to decide next steps.
+
+| Status | Meaning | Dispatcher action |
+|--------|---------|-------------------|
+| **DONE** | Work complete, confident in quality | Proceed to review or next step |
+| **DONE_WITH_CONCERNS** | Work complete but doubts remain | Read concerns before proceeding |
+| **NEEDS_CONTEXT** | Missing information not provided | Provide context, re-dispatch |
+| **BLOCKED** | Cannot complete the task | Assess: more context, stronger model, or task split |
+
+**Key rules:**
+- Never ignore DONE_WITH_CONCERNS — the agent flagged something for a reason
+- Never retry BLOCKED with the same model and same context — something must change
+- NEEDS_CONTEXT is not a failure — it's an agent asking for help before producing bad work
+
+Agents are explicitly encouraged to escalate early: "It is always OK to stop and say this is too hard for me. Bad work is worse than no work."
+
+### Self-Review Before Reporting
+
+All specialist agents (implementer, test-writer, pr-manager) run a pre-handoff self-review before reporting status:
+
+- **Implementer:** Completeness, TDD discipline, YAGNI, naming patterns
+- **Test-writer:** BC coverage, behavior vs implementation, failure reasons, test naming
+- **PR manager:** Description accuracy, AC coverage, traceability, finding resolution
+
+---
+
 ## Agents by Function
 
 ### Builders (green)
