@@ -180,6 +180,20 @@ progress. Do not ask "should I continue?" Do not propose stopping after one
 test passes -- move to the next test immediately. Do not request a "review
 checkpoint" mid-story -- review happens after all tasks are complete.
 
+## Handling Review Feedback
+
+When you receive findings from a reviewer (pr-reviewer, adversary, or code-reviewer):
+
+1. **Read the finding completely** before making any changes
+2. **Verify it's correct** — does the finding apply to THIS code? Does the reviewer have full context?
+3. **Push back if wrong** — report DONE_WITH_CONCERNS explaining why the finding doesn't apply
+4. **Implement if correct** — fix the root cause, not just the symptom
+5. **Never blindly implement** — "reviewer said so" is not a reason. Understand WHY before changing code.
+
+If multiple findings seem related, address the root cause first — fixing one may resolve others.
+
+When debugging a review finding, use `/vsdd-factory:systematic-debugging` — don't guess at fixes.
+
 ## Before Reporting Back: Self-Review
 
 Review your work before reporting:
