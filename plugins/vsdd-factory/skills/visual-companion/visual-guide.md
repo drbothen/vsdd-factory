@@ -268,6 +268,39 @@ ${CLAUDE_PLUGIN_ROOT}/skills/visual-companion/scripts/stop-server.sh $SESSION_DI
 
 If the session used `--project-dir`, mockup files persist in `.factory/visual-companion/` for later reference. Only `/tmp` sessions get deleted on stop.
 
+## Excalidraw Files
+
+The visual companion renders `.excalidraw` files as interactive canvases when excalidraw setup is complete.
+
+### Writing .excalidraw Files
+
+Use `/vsdd-factory:create-excalidraw` for the full element type reference and styling guide. Write `.excalidraw` JSON to the session's `screen_dir` — the server detects the extension and serves the excalidraw editor.
+
+### Interactive Editing
+
+When the user modifies a diagram in the browser (drag, resize, add elements), changes are sent back via WebSocket and saved to the `.excalidraw` file. The agent reads the updated file on its next turn using the Read tool.
+
+### Mixing HTML and Excalidraw
+
+You can push both `.html` and `.excalidraw` files in the same session. The history sidebar shows all files. The server serves each in the appropriate mode based on extension.
+
+### Save-Back Format
+
+Updated `.excalidraw` files maintain the standard structure:
+
+```json
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "vsdd-visual-companion",
+  "elements": [...],
+  "appState": {...},
+  "files": {}
+}
+```
+
+The agent can read this JSON and inspect individual elements by ID to understand user modifications.
+
 ## Reference
 
 - Frame template (CSS reference): `${CLAUDE_PLUGIN_ROOT}/skills/visual-companion/scripts/frame-template.html`
