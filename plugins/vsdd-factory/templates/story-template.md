@@ -24,6 +24,8 @@ assumption_validations: []     # ASM-NNN IDs this story validates
 risk_mitigations: []           # R-NNN IDs this story mitigates
 ---
 
+> **Execute:** `/vsdd-factory:deliver-story STORY-NNN`
+
 # STORY-NNN: [Title]
 
 > **One-per-file:** Each story lives in its own file.
