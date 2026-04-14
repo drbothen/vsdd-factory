@@ -38,4 +38,8 @@ echo "== Skill structure tests =="
 bats tests/skills.bats
 
 echo
+echo "== Visual companion tests =="
+bats tests/visual-companion.bats
+
+echo
 echo "All tests passed."
