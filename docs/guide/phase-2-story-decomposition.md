@@ -110,6 +110,22 @@ Output: `.factory/holdout-scenarios/wave-scenarios/` and `.factory/holdout-scena
 
 When `.factory/reference-manifest.yaml` exists, stories that implement behavior extracted from a reference repo are tagged `implementation_strategy: gene-transfusion` with a reference to the relevant `.factory/semport/<project>/` artifacts. Stories that diverge from reference behavior are tagged `implementation_strategy: from-scratch` with a note explaining the divergence.
 
+### Scope Check
+
+Before decomposing, the skill verifies the PRD describes a single product. If it contains multiple independent products, decomposition stops and recommends splitting the PRD first.
+
+### Plan Failures
+
+Stories are validated against an explicit anti-pattern list. These patterns invalidate a story:
+
+- "TBD", "TODO", or "implement later" in any section
+- "Add appropriate error handling" without specifying which errors
+- "Write tests for the above" without actual test descriptions
+- "Similar to STORY-NNN" without repeating the relevant details
+- Acceptance criteria without testable assertions
+- File list that says "and other files as needed"
+- Tasks that describe what to do without specifying how
+
 ### Step 2: Refine Individual Stories (`/vsdd-factory:create-story STORY-NNN`)
 
 After decomposition, individual stories may need more detail before they are sprint-ready. The `/vsdd-factory:create-story` command fleshes out a single story.
@@ -225,6 +241,14 @@ Key properties:
 - **Derived from BCs but phrased differently.** They test the same behavior but from an end-user perspective, catching cases where the implementation satisfies the letter of the BC but not the spirit.
 - **Scored 0.0-1.0.** The wave gate threshold is mean >= 0.85 with every critical scenario >= 0.60.
 - **Focused on critical paths and edge cases.** Density is proportional to module criticality.
+
+### Self-Review
+
+Both decompose-stories and create-story run self-review checklists before adversarial review:
+
+**decompose-stories:** spec coverage (every BC in a story?), placeholder scan, consistency (IDs match index?), sizing (any story over 13 points?)
+
+**create-story:** completeness (all template sections filled?), consistency (BC refs exist?), testability (every AC testable?), context budget (under 60% of agent context?)
 
 ## Quality Gate
 
