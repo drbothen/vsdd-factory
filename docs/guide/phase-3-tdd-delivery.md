@@ -150,6 +150,17 @@ The Red Gate outcome is recorded in `.factory/stories/red-gate-log.md`.
 
 Commit: `test(STORY-001): add failing tests for BC-1.01.001`
 
+### Verification Discipline
+
+The deliver-story dispatcher never trusts agent reports at face value. After every specialist dispatch:
+
+1. Run the verification command independently (test suite, build, lint)
+2. Read the full output — not just the summary
+3. Compare against the expected exit condition for that step
+4. Only then proceed to the next dispatch
+
+"Agent says all tests pass" is a claim. `cargo test` output showing 34/34 pass is evidence.
+
 ### Step 4: Implement via TDD (implementer)
 
 The implementer writes the minimum code to make each failing test pass, one at a time. This is strict TDD -- no code without a covering test.
@@ -206,6 +217,18 @@ The orchestrator delegates this entirely -- it does not compose the PR body or r
 
 **Exit condition:** PR merged, or a blocker reported that requires human intervention.
 
+### Handling Review Feedback
+
+When implementer or test-writer agents receive review findings, they follow a structured process:
+
+1. **Read completely** before changing anything
+2. **Verify correctness** — does the finding apply to this code?
+3. **Push back if wrong** — report DONE_WITH_CONCERNS with explanation
+4. **Implement if correct** — fix root cause, not symptom
+5. **Never blindly implement** — understand WHY before changing
+
+The behavioral contract (BC) is always the source of truth. If a reviewer and a BC disagree, the BC wins.
+
 ```
 /vsdd-factory:pr-create STORY-001
 ```
@@ -223,6 +246,19 @@ The worktree and local branch are removed.
 ### Step 9: State Update
 
 Sprint state and story index are updated to reflect completion. Committed to factory-artifacts: `factory(phase-3): STORY-001 delivered`.
+
+### Agent Status Protocol
+
+All specialist agents (implementer, test-writer, pr-manager) report structured status codes:
+
+| Status | Meaning | Dispatcher action |
+|--------|---------|-------------------|
+| **DONE** | Work complete, confident | Proceed to next step |
+| **DONE_WITH_CONCERNS** | Work complete, doubts remain | Read concerns before proceeding |
+| **NEEDS_CONTEXT** | Missing information | Provide context, re-dispatch |
+| **BLOCKED** | Cannot complete | Assess: more context, stronger model, or task split |
+
+Never ignore a DONE_WITH_CONCERNS or BLOCKED status. Address the concern before proceeding.
 
 ## Context Discipline
 
@@ -245,6 +281,23 @@ If a story exceeds 60% of the target model's context window, the orchestrator st
 - L/XL stories (8-13 points): exactly 1 story per agent
 - Never combine "write code" and "run full test suite" in one dispatch
 - If an agent times out, dispatch a new agent with narrower scope (do not retry the same prompt)
+
+### Model Selection
+
+The dispatcher uses the least powerful model that can handle each task:
+
+| Task | Model tier |
+|------|------------|
+| Worktree creation/cleanup | Fast (cheapest) |
+| Test stubs | Fast |
+| Failing tests | Standard |
+| TDD implementation (S/M) | Standard |
+| TDD implementation (L/XL) | Capable |
+| Demo recording | Fast |
+| PR lifecycle | Standard |
+| Review triage | Capable |
+
+If an agent reports BLOCKED, re-dispatch with the next tier up — not the same tier.
 
 ## Story Split Recovery
 
@@ -290,6 +343,10 @@ If any gate fails, the wave gate stops and reports the blocking issue. Fix the p
 The gate sequence restarts from Gate 1 because fixes may have introduced regressions. Gate order is load-bearing -- the test suite runs first because everything else assumes it passes.
 
 For Gate 3 (adversarial) failures, fix PRs target `develop` and go through per-story delivery. For Gate 5 (holdout) failures, investigate whether the implementation satisfies the spirit of the BC or only the letter.
+
+### When Implementation Fails
+
+If the implementer hits bugs during TDD, the `/vsdd-factory:systematic-debugging` skill provides a structured 4-phase approach: root cause investigation, pattern analysis, hypothesis testing, and implementation with a failing test. The skill enforces "no fixes without investigation first" and escalates after 3 failed fix attempts (indicating an architectural problem, not a simple bug).
 
 ## Red Flags
 
