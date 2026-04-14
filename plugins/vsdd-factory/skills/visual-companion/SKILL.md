@@ -105,5 +105,4 @@ Write a `screen.json` manifest to show multiple files side-by-side:
 ## See Also
 
 - `visual-guide.md` — CSS classes, event format, design tips
-- `/vsdd-factory:excalidraw-export` — for static architecture diagrams
 - `/vsdd-factory:create-excalidraw` — generate .excalidraw JSON files programmatically

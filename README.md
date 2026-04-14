@@ -227,6 +227,7 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 | [Pipeline Overview](docs/guide/pipeline-overview.md) | Full phase map with Mermaid diagrams |
 | [Configuration](docs/guide/configuration.md) | Factory directory layout, STATE.md, hooks, templates |
 | [Troubleshooting](docs/guide/troubleshooting.md) | Common issues and fixes |
+| [Visual Companion](docs/guide/visual-companion.md) | Browser-based mockups, excalidraw diagrams, interactive design |
 | [Glossary](docs/guide/glossary.md) | VSDD terminology reference |
 
 ### Internal reference docs (in the plugin)
