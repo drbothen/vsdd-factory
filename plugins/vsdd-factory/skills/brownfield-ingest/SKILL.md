@@ -75,7 +75,7 @@ Before any analysis, ensure the codebase is available in `.reference/<project>/`
 2. **If input is a local path outside `.reference/`:** Copy or move to `.reference/<project>/`.
 3. **If input is already in `.reference/`:** No action needed.
 
-After cloning/moving, **update `.factory/reference-manifest.yaml`** with the new entry (URL, commit SHA, date). This manifest is the source of truth for rebuilding `.reference/` on a new system.
+After cloning/moving, **update `.factory/reference-manifest.yaml`** following `${CLAUDE_PLUGIN_ROOT}/templates/reference-manifest-template.yaml`. Add the new entry under `repos:` with url, commit SHA, ingested date, depth, focus, and status. This manifest is the source of truth for rebuilding `.reference/` on a new system.
 
 All subsequent analysis reads from `.reference/<project>/`.
 
