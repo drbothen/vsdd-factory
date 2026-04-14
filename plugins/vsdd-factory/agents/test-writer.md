@@ -280,6 +280,18 @@ When writing tests for a story that has a populated "Previous Story Intelligence
 - Apply established patterns to test structure and assertions
 - Avoid repeating discovered gotchas in test design
 
+## Handling Review Feedback
+
+When you receive findings from a reviewer:
+
+1. **Read the finding completely** before making any changes
+2. **Verify it's correct** — does the finding apply to these tests? Does the reviewer understand the BC being tested?
+3. **Push back if wrong** — report DONE_WITH_CONCERNS explaining why the finding doesn't apply
+4. **Implement if correct** — fix the test to correctly exercise the BC, not just to silence the reviewer
+5. **Never blindly implement** — "reviewer said so" is not a reason. The BC is the source of truth.
+
+If a reviewer says a test is wrong, check the BC first. The BC defines what's correct — not the reviewer's intuition.
+
 ## Before Reporting Back: Self-Review
 
 Review your work before reporting:
