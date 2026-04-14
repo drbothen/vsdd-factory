@@ -117,6 +117,12 @@ For each story in the current wave:
 
 Only after Red Gate verified -> spawn implementer for STORY-NNN
 
+## Model Selection
+
+Use the least powerful model that can handle each specialist dispatch. Mechanical tasks (worktree ops, stubs, demo recording) use fast/cheap models. Tasks requiring BC understanding or multi-file coordination use standard models. Review triage and architectural judgment use the most capable model.
+
+If an agent reports BLOCKED or DONE_WITH_CONCERNS, consider re-dispatching with a stronger model before splitting the task.
+
 ## Adversarial Pass Context Injection
 
 When spawning the adversary for Pass 2+:
