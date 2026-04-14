@@ -37,9 +37,53 @@ bash setup.sh
 
 This installs React and the excalidraw component (~300KB gzipped) and builds the viewer. Takes about 20 seconds.
 
+### How the server routes content
+
+```mermaid
+graph TD
+    AGENT["Agent writes file"] --> EXT{File extension?}
+    EXT -->|.html| FRAME["Wrap in HTML frame\n+ click tracking"]
+    EXT -->|.excalidraw| REACT["Serve React app\n+ excalidraw canvas"]
+    EXT -->|screen.json| MANIFEST["Serve composed\nmulti-pane view"]
+    FRAME --> BROWSER["Browser auto-reloads"]
+    REACT --> BROWSER
+    MANIFEST --> BROWSER
+    BROWSER --> USER["User sees content"]
+
+    style AGENT fill:#2d6a4f,color:#fff
+    style FRAME fill:#1d3557,color:#fff
+    style REACT fill:#1d3557,color:#fff
+    style MANIFEST fill:#1d3557,color:#fff
+    style BROWSER fill:#40916c,color:#fff
+    style USER fill:#40916c,color:#fff
+```
+
 ---
 
 ## How It Works
+
+### The interaction loop
+
+```mermaid
+graph LR
+    subgraph Terminal
+        A1["Agent pushes screen"] --> A2["You respond"]
+    end
+
+    subgraph Browser
+        B1["Content appears"] --> B2["You interact"]
+    end
+
+    A1 -.->|file written| B1
+    B2 -.->|WebSocket events| A2
+    A2 --> A3["Agent reads text\n+ browser events"]
+    A3 --> A1
+
+    style A1 fill:#2d6a4f,color:#fff
+    style A3 fill:#2d6a4f,color:#fff
+    style B1 fill:#1d3557,color:#fff
+    style B2 fill:#1d3557,color:#fff
+```
 
 1. **The agent offers the companion** — when visual questions are coming up, you'll see:
    > "I can show visual options in a browser for this. Want to try it?"
