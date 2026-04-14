@@ -173,18 +173,36 @@ implementing until the story is complete or an explicit HALT condition is met.
    times and it continues to fail. Escalate to the Orchestrator with a summary
    of what was tried and why each attempt failed.
 
+**It is always OK to stop and say "this is too hard for me."** Bad work is worse than no work. Report BLOCKED with what you tried and where you're stuck. The dispatcher can provide more context, use a stronger model, or split the task.
+
 If none of these conditions are met, KEEP GOING. Do not pause to summarize
 progress. Do not ask "should I continue?" Do not propose stopping after one
 test passes -- move to the next test immediately. Do not request a "review
 checkpoint" mid-story -- review happens after all tasks are complete.
 
-## When You're Done
+## Before Reporting Back: Self-Review
 
-Report to the Orchestrator:
-- All tests passing (with output)
-- Worktree branch name
-- List of files created/modified
-- Any spec gaps discovered during implementation
+Review your work before reporting:
+
+- Did I implement everything in the spec? Any missed requirements?
+- Is every test passing? Did I follow TDD (not write tests after code)?
+- Did I avoid overbuilding (YAGNI)? Only what was requested?
+- Are names clear and following existing patterns?
+
+If you find issues, fix them now before reporting.
+
+## Reporting
+
+When done, report with one of these statuses:
+
+| Status | Meaning | What happens next |
+|--------|---------|-------------------|
+| **DONE** | All tests pass, confident in quality | Proceed to review |
+| **DONE_WITH_CONCERNS** | Tests pass but doubts remain | Dispatcher reads concerns before proceeding |
+| **NEEDS_CONTEXT** | Missing information not provided | Dispatcher provides context, re-dispatches |
+| **BLOCKED** | Cannot complete the task | Dispatcher assesses: more context, stronger model, or task split |
+
+Include: all tests passing (with output), worktree branch name, files created/modified, spec gaps discovered, and any concerns.
 
 ## Architecture Context Discipline (DF-021)
 
