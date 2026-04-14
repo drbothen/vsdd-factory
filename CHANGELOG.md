@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.13.0 — Story decomposition quality gaps
+
+### Added
+- **Hard gate language** — decompose-stories and create-story block premature implementation
+- **Scope decomposition check** — decompose-stories verifies PRD describes a single product before breaking it down
+- **"Plan Failures" anti-pattern list** — both skills explicitly ban "TBD", vague error handling, untestable ACs, and 4 other story-invalidating patterns
+- **Self-review checklists** — decompose-stories checks spec coverage, consistency, and sizing; create-story checks completeness, testability, and context budget
+- **Execution reference** in story template — points to `/vsdd-factory:deliver-story STORY-NNN`
+
 ## 0.12.0 — Early-phase quality gaps + visual companion
 
 ### Added
