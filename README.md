@@ -129,7 +129,7 @@ graph TD
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 34 | Specialist personas (adversary, implementer, test-writer, architect, etc.) |
-| **Skills** | 95 | Phase workflows, cross-cutting operations, design/UX, market intelligence |
+| **Skills** | 96 | Phase workflows, cross-cutting operations, design/UX, market intelligence |
 | **Commands** | 47 | Slash-command entry points (`/vsdd-factory:deliver-story`, `/vsdd-factory:factory-health`, etc.) |
 | **Hooks** | 10 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, etc.) |
 | **Templates** | 108 | Output format definitions for every artifact type |

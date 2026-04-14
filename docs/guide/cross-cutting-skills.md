@@ -229,6 +229,16 @@ Browser-based visual companion for showing mockups, diagrams, and interactive A/
 
 If the visual companion isn't available, skills fall back automatically. No hard dependency.
 
+### `/vsdd-factory:create-excalidraw`
+
+Generate `.excalidraw` JSON files for architecture diagrams, entity relationships, and flow charts. Files can be opened in excalidraw.com, VS Code (with the excalidraw extension), or rendered interactively in the visual companion browser.
+
+```
+/vsdd-factory:create-excalidraw
+```
+
+Includes element type reference (rectangle, ellipse, diamond, arrow, text), styling guide, layout helpers, and arrow binding documentation. Output to `.factory/diagrams/`.
+
 ---
 
 ## Debugging
