@@ -128,8 +128,8 @@ graph TD
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Agents** | 33 | Specialist personas (adversary, implementer, test-writer, architect, etc.) |
-| **Skills** | 91 | Phase workflows, cross-cutting operations, design/UX, market intelligence |
+| **Agents** | 34 | Specialist personas (adversary, implementer, test-writer, architect, etc.) |
+| **Skills** | 95 | Phase workflows, cross-cutting operations, design/UX, market intelligence |
 | **Commands** | 47 | Slash-command entry points (`/vsdd-factory:deliver-story`, `/vsdd-factory:factory-health`, etc.) |
 | **Hooks** | 10 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, etc.) |
 | **Templates** | 108 | Output format definitions for every artifact type |
@@ -160,7 +160,7 @@ plugins/vsdd-factory/
     plugin.json              # Plugin manifest (name, version, license)
   agents/
     orchestrator/            # Orchestrator + 9 mode-sequence sub-files
-    adversary.md             # 33 specialist agent definitions
+    adversary.md             # 34 specialist agent definitions
     implementer.md
     test-writer.md
     ...
