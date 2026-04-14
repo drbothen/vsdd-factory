@@ -36,6 +36,16 @@ Validate and provision the development environment. Checks required tools (rustc
 
 Produces a categorized status report showing installed versions, missing tools with install commands, and MCP server availability.
 
+### `/vsdd-factory:scaffold-claude-md`
+
+Auto-detect project context and generate a `CLAUDE.md` at the project root. Inspects your project for language markers (`Cargo.toml`, `package.json`, `pyproject.toml`, `go.mod`), task runners (`Justfile`, `Makefile`), CI configs, git branch strategy, and documentation. Presents a draft for confirmation before writing.
+
+```
+/vsdd-factory:scaffold-claude-md
+```
+
+The plugin provides methodology, principles, and rules automatically. This skill generates project-specific context only: build/test/lint commands, git workflow, and reference links. Re-run anytime to regenerate.
+
 ### `/vsdd-factory:session-review`
 
 Post-pipeline analysis that reviews the complete factory run and produces improvement proposals. Analyzes 8 dimensions: cost, timing, convergence, agent behavior, gate outcomes, wall integrity, quality signals, and cross-run patterns. Proposals are categorized (cost, timing, convergence, agent, gate, wall, quality, pattern, workflow, template) and routed to the human for approval, deferral, or rejection.
@@ -197,6 +207,52 @@ Produces `.factory/specs/vsdd-factory:research/domain-<topic>-<date>.md` or `.fa
 
 ---
 
+## Visual Tooling
+
+### `/vsdd-factory:visual-companion`
+
+Browser-based visual companion for showing mockups, diagrams, and interactive A/B choices during brainstorming, brief creation, and architecture design. Runs a local Node.js server that watches for HTML files and serves them with live reload and WebSocket-based interaction tracking.
+
+```
+/vsdd-factory:visual-companion
+```
+
+**Optional** — requires Node.js. The early-phase skills (brainstorming, guided-brief-creation, create-architecture) automatically detect available visual tools using a tiered strategy:
+
+| Tier | Tool | Requirement |
+|------|------|-------------|
+| 1 | `/vsdd-factory:visual-companion` | Node.js + user consent |
+| 2 | `/vsdd-factory:excalidraw-export` | Excalidraw skill |
+| 3 | Mermaid code blocks | Always available |
+| 4 | ASCII/text | Always available |
+
+If the visual companion isn't available, skills fall back automatically. No hard dependency.
+
+---
+
+## Debugging
+
+### `/vsdd-factory:systematic-debugging`
+
+4-phase root cause investigation for any bug, test failure, or unexpected behavior. Enforces investigation before fixes.
+
+```
+/vsdd-factory:systematic-debugging
+```
+
+**The four phases:**
+
+1. **Root Cause Investigation** — read errors, reproduce, check changes, trace data flow
+2. **Pattern Analysis** — find working examples, compare, identify differences
+3. **Hypothesis Testing** — form single hypothesis, test minimally, one variable at a time
+4. **Implementation** — write failing test first, implement single fix, verify
+
+**The 3-fix rule:** If 3+ fixes fail, this is an architectural problem, not a failed hypothesis. The skill escalates rather than continuing to guess.
+
+BC-aware: when a bug violates a behavioral contract, the skill traces from the violated clause back to the implementation.
+
+---
+
 ## Wave Status
 
 ### `/vsdd-factory:wave-status`
@@ -206,3 +262,22 @@ Report current wave readiness from `.factory/stories/sprint-state.yaml`. Shows w
 ```
 /vsdd-factory:wave-status
 ```
+
+---
+
+## Plugin Development
+
+### `/vsdd-factory:writing-skills`
+
+TDD methodology for creating and maintaining plugin skills. Applies RED-GREEN-REFACTOR to process documentation: write pressure scenarios first, verify agents fail without the skill, then write the skill.
+
+```
+/vsdd-factory:writing-skills
+```
+
+Use when creating new skills for the vsdd-factory plugin or editing existing ones. The skill covers:
+- When to create a skill vs adding to an existing agent
+- SKILL.md structure and frontmatter conventions
+- CSO (Claude Search Optimization) for skill discovery
+- Pressure scenario testing methodology
+- Rationalization resistance patterns (Red Flags tables, anti-pattern lists)
