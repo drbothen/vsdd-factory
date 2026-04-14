@@ -134,6 +134,19 @@ Pass only the specific files each specialist needs. Never pass the whole story f
 
 If a story is too large to fit any specialist's budget (≥60% of target model's context window), STOP and dispatch story-writer to split it before proceeding.
 
+## Verification Discipline
+
+Never trust agent reports at face value. After every specialist dispatch:
+
+1. **Run the verification command yourself** — test suite, build, lint
+2. **Read the FULL output** — not just the summary
+3. **Compare against the expected exit condition** for that step
+4. **Only then proceed** to the next dispatch
+
+Agent says "all tests pass" is a CLAIM, not EVIDENCE. `cargo test` output showing 34/34 pass is evidence.
+
+If verification reveals the agent's report was inaccurate, dispatch a new agent to fix — do not trust subsequent claims from the same session.
+
 ## Model Selection
 
 Use the least powerful model that can handle each dispatch:
