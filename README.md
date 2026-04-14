@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.15.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.16.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -195,13 +195,14 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (62 across 3 suites)
+# All tests (80 across 4 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
-bats plugins/vsdd-factory/tests/hooks.bats     # 28 hook enforcement tests
-bats plugins/vsdd-factory/tests/skills.bats     # 21 structural tests (Iron Laws, Red Flags, templates)
-bats plugins/vsdd-factory/tests/bin.bats        # 13 bin helper tests
+bats plugins/vsdd-factory/tests/hooks.bats              # 28 hook enforcement tests
+bats plugins/vsdd-factory/tests/skills.bats              # 21 structural tests (Iron Laws, Red Flags, templates)
+bats plugins/vsdd-factory/tests/bin.bats                 # 13 bin helper tests
+bats plugins/vsdd-factory/tests/visual-companion.bats    # 18 visual companion server tests
 ```
 
 ### Syntax checking

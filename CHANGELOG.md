@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.16.0 — Excalidraw integration + visual companion testing
+
+### Added
+- **Excalidraw integration** in visual companion — `.excalidraw` files render as interactive canvases in the browser with user editing and WebSocket save-back
+- **create-excalidraw skill** (`/vsdd-factory:create-excalidraw`) — generate `.excalidraw` JSON files for architecture diagrams, entity relationships, and flow charts
+- **History sidebar** — collapsible panel showing all past screens (HTML and excalidraw), click to navigate
+- **Composed views** — `screen.json` manifest for multi-pane layouts (split, side-by-side)
+- **setup.sh** — one-time setup script installs React + excalidraw dependencies and builds the viewer
+- **18 visual companion tests** — server routes, file-type detection, API endpoints, file serving
+- React app scaffold (Vite + React 18 + @excalidraw/excalidraw v0.18)
+
+### Fixed
+- Server `__ACTIVE_FILE__` and `__MANIFEST__` injection now uses script tag insertion instead of string replacement
+- Tiered visual tooling tables corrected across 5 files — replaced incorrect excalidraw-export reference with proper tiers (visual-companion excalidraw mode, create-excalidraw standalone, Mermaid, ASCII)
+
+### Changed
+- Visual companion server now supports `.html`, `.excalidraw`, and `screen.json` file types (was HTML-only)
+- `/api/files` endpoint returns all screen files with metadata
+- `/api/drawing/<name>` endpoint serves raw excalidraw JSON
+- `/html/<name>` endpoint serves individual HTML files (for iframe embedding)
+- Test suite now 80 tests across 4 suites (was 62 across 3)
+
 ## 0.15.0 — Systematic debugging, verification discipline, and writing-skills
 
 ### Added
