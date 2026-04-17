@@ -31,7 +31,7 @@ The vsdd-factory plugin ships 34 agent definitions: 24 specialist agents and 10 
 | `product-owner` | sonnet | blue | L2 Domain Spec to L3 PRD with BC-S.SS.NNN contracts |
 | `research-agent` | opus | purple | External research via Perplexity, Context7, Tavily |
 | `security-reviewer` | sonnet | red | Application security review with CWE/CVE classification |
-| `session-review` | sonnet | red | Post-session lessons, decisions, and follow-ups |
+| `session-reviewer` | sonnet | red | Post-session lessons, decisions, and follow-ups |
 | `spec-reviewer` | opus | red | Constructive second-opinion review of Phase 1/2 specs |
 | `spec-steward` | sonnet | yellow | Spec versioning, traceability, and governance enforcement |
 | `state-manager` | sonnet | yellow | STATE.md updates and .factory/ directory maintenance |
@@ -114,7 +114,7 @@ All specialist agents (implementer, test-writer, pr-manager) run a pre-handoff s
 
 **dtu-validator** -- Validates DTU behavioral clones against real third-party services, producing fidelity scores.
 
-**session-review** -- Post-pipeline analysis of the complete factory run across 8 dimensions. Produces improvement proposals.
+**session-reviewer** -- Post-pipeline analysis of the complete factory run across 8 dimensions. Produces improvement proposals.
 
 ### Ops (yellow)
 
