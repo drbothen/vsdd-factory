@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.16.1 — Reference manifest template + documentation fixes
+
+### Added
+- **reference-manifest-template.yaml** — standardized template for `.factory/reference-manifest.yaml` combining corverax and vsdd-factory formats (url, commit SHA, ingested date, depth, focus, status)
+- End-user guide for visual companion (`docs/guide/visual-companion.md`) with Mermaid workflow diagrams
+
+### Fixed
+- Brownfield-ingest skill now references the template for manifest format
+- Removed stale `/vsdd-factory:excalidraw-export` reference from visual companion See Also
+- Added visual companion to README documentation table
+
 ## 0.16.0 — Excalidraw integration + visual companion testing
 
 ### Added
