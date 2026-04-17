@@ -76,6 +76,12 @@ P1-06. Spawn architect: "DTU assessment" (MANDATORY — always produces dtu-asse
     - If NO external dependencies found: produce dtu-assessment.md with "DTU_REQUIRED: false"
       and rationale (e.g., "pure library, no external I/O")
     - Gate: dtu-assessment.md MUST exist before Phase 2 gate approval
+P1-06b. Spawn devops-engineer: "CI/CD pipeline setup" (MANDATORY — always produces .github/workflows/)
+    - Read architecture/ARCH-INDEX.md for language, framework, deployment topology
+    - Create ci.yml, release.yml, security.yml
+    - Update branch protection with CI status checks
+    - Produce cicd-setup.md documenting what was created
+    - Gate: .github/workflows/ci.yml MUST exist before Phase 2 gate
 P1-07. Spawn architect: "Gene transfusion assessment" (if reference implementations exist)
 
 ### Multi-Repo Transition (if architect identifies multi-service topology)
