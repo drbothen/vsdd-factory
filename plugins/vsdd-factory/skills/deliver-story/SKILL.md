@@ -183,6 +183,17 @@ If pr-manager returns "diff too large, recommend split":
 4. If approved: dispatch `story-writer` to split, then resume per-story delivery on each split story
 5. If rejected: the human can override — add a note to `review-findings.md` and tell pr-manager to continue the review loop
 
+## Prism Phase 3 Lessons (apply to ALL projects)
+
+### Verification After Every Fix
+
+After dispatching an agent to fix an adversarial finding, independently verify the fix:
+1. Read the modified file to confirm the change landed
+2. Grep for the original finding pattern to confirm it's gone
+3. Grep for unintended side effects (truncated content, wrong context replacements)
+
+In Prism, S-1.13 was emptied by a bad sed replacement, requiring a full rewrite from scratch. Multiple "fixed" findings recurred because the fix was a phantom — the text changed but the semantic meaning didn't.
+
 ## Red Flags
 
 Stop and check yourself if you find yourself thinking any of these:
