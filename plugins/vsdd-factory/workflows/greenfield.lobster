@@ -133,7 +133,7 @@ workflow:
       depends_on: [phase-1-spec-crystallization]
       task: "Assess external service dependencies. Produce dtu-assessment.md.
              Spawn research-agent for API specs of DTU candidates."
-      condition: "architecture.has_external_deps == true"
+      # MANDATORY: always produces dtu-assessment.md (DTU_REQUIRED: true/false with rationale)
 
     # Gene Transfusion Assessment (after architecture design in Phase 1)
     - name: phase-1-gene-transfusion-assessment
@@ -383,6 +383,9 @@ workflow:
           - "Every FM-NNN has at least one holdout scenario"
           - "ASM/R Traceability section passes"
           - "PRD Out of Scope not violated by any story AC"
+          - "dtu-assessment.md exists in .factory/specs/"
+          - "If DTU_REQUIRED: true, at least one service classified with fidelity level"
+          - "If DTU_REQUIRED: false, rationale documented in dtu-assessment.md"
         fail_action: block
 
     # Gemini story review — constructive 3rd perspective after adversary remediation
@@ -480,6 +483,23 @@ workflow:
         fail_action: block
 
     # =========================================================================
+    # Pre-Phase 4: DTU Clone Existence Check
+    # If dtu-assessment.md says DTU_REQUIRED: true, verify clones are built
+    # and validated before implementation begins.
+    # =========================================================================
+
+    - name: pre-phase-4-dtu-gate
+      type: gate
+      depends_on: [dx-engineer-preflight-gate]
+      condition: "dtu_assessment.DTU_REQUIRED == true"
+      gate:
+        criteria:
+          - "dtu-creation skill has been run"
+          - "docker-compose.dtu.yml exists"
+          - "At least one clone validation-report.md shows fidelity >= threshold"
+        fail_action: block
+
+    # =========================================================================
     # Phase 3: Per-Story Code Delivery (Wave-Based with Worktrees)
     # =========================================================================
     #
@@ -489,7 +509,7 @@ workflow:
 
     - name: phase-3-per-story-delivery
       type: loop
-      depends_on: [dx-engineer-preflight-gate]
+      depends_on: [dx-engineer-preflight-gate, pre-phase-4-dtu-gate]
       timeout: "12h"
       loop:
         for_each: wave in wave-schedule.md
