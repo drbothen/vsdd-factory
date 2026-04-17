@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.19.0 — Complete command coverage + activate agent ID fix
+
+### Added
+- **49 missing command files** — every skill now has a corresponding slash command for full autocomplete coverage
+- Delegation reference commands (12) route through the orchestrator instead of bouncing
+- Execution commands (37) invoke skills directly via the Skill tool
+
+### Fixed
+- **Activate skill writes correct 3-segment agent ID** (`vsdd-factory:orchestrator:orchestrator`). The 2-segment form (`vsdd-factory:orchestrator`) silently fell back to plain Claude because the orchestrator lives in a subdirectory.
+- **Delegation command files** (dtu-creation, guided-brief-creation) now route through the orchestrator instead of trying to execute delegation-reference skills directly
+
 ## 0.18.0 — DTU assessment gate enforcement + command syntax fix
 
 ### Added
