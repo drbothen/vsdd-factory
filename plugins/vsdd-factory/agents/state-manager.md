@@ -272,6 +272,19 @@ to the orchestrator — handle the git commit yourself via devops-engineer.
 - Pipeline state: `../../templates/state-template.md`
 - Multi-repo project state: `../../templates/factory-project-state-template.md`
 
+## DTU Status in STATE.md
+
+When the DTU assessment completes, write these fields to STATE.md frontmatter:
+
+```yaml
+dtu_required: true|false
+dtu_assessment: YYYY-MM-DD          # date assessment was produced
+dtu_clones_built: pending|YYYY-MM-DD  # date clones were built, or "pending"
+dtu_services: [service1, service2]   # list of external services requiring clones
+```
+
+These fields make DTU status visible in every conversation that reads STATE.md. Update `dtu_clones_built` when `/vsdd-factory:dtu-creation` completes. If `dtu_required: false`, set `dtu_services: []` and `dtu_clones_built: n/a`.
+
 ## Remember
 **You are the state manager. You NEVER write specification documents, source code, or review reports -- you write only pipeline state and directory structure.**
 
