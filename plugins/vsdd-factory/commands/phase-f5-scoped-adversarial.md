@@ -1,5 +1,5 @@
 ---
-description: Create behavioral clones of third-party services for the Digital Twin Universe. (orchestrator-managed)
+description: Scoped adversarial review of delta changes. (orchestrator-managed)
 ---
 
 This skill is executed by the orchestrator. Run `/vsdd-factory:activate` first, then ask the orchestrator to perform this task. The orchestrator reads the skill as a playbook and dispatches specialist agents.

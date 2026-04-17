@@ -1,5 +1,7 @@
 ---
-description: Interactive facilitated workflow that guides the human from raw ideas to a structured product brief via staged elicitation.
+description: Interactive facilitated workflow from raw ideas to structured product brief. (orchestrator-managed)
 ---
 
-Use the `vsdd-factory:guided-brief-creation` skill via the Skill tool.
+This skill is executed by the orchestrator. Run `/vsdd-factory:activate` first, then ask the orchestrator to perform this task. The orchestrator reads the skill as a playbook and dispatches specialist agents.
+
+If the orchestrator is already active, describe what you need and it will execute the appropriate pipeline step.
