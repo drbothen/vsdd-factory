@@ -241,25 +241,26 @@ Commit at these transitions:
 
 ## Git Operations
 
-You CANNOT execute git commands directly (no exec access). After writing files
-to `.factory/`, spawn devops-engineer for all git operations:
+You commit factory artifacts directly. After writing files to `.factory/`:
 
-```
-sessions_spawn({ runtime: "subagent", agentId: "devops-engineer", cwd: "<project-path>",
-  task: "cd <project-path>/.factory && git add -A && git commit -m 'artifacts: <description>' && git push origin factory-artifacts"
-})
+```bash
+cd .factory
+git add -A
+git commit -m "factory(<phase>): <description>"
+git push origin factory-artifacts
 ```
 
-Do this at every phase gate after writing artifacts. Do NOT report failure
-to the orchestrator — handle the git commit yourself via devops-engineer.
+Do this at every phase gate after writing artifacts. You own the commit — no need to spawn devops-engineer for factory commits.
+
+- You ONLY execute git commands inside `.factory/` — `git add`, `git commit`, `git push`
+- You NEVER execute git commands outside `.factory/` (source code branches are devops-engineer's scope)
+- You NEVER run non-git shell commands (no `cargo`, `npm`, `curl`, etc.)
 
 ## Tool Access
 
-- Profile: `coding`
-- Available: `read`, `write`, `edit`, `apply_patch`
-- Denied: `exec`, `process`
-- You can read and write files but CANNOT execute shell commands
-- Spawn devops-engineer for all git operations (commit, push, tag)
+- Profile: `full`
+- Available: `read`, `write`, `edit`, `apply_patch`, `exec`
+- You have shell access ONLY for git operations in `.factory/`
 - Write only to your designated output paths under `.factory/`
 
 ## Failure & Escalation
