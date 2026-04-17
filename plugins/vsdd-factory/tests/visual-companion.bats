@@ -10,24 +10,38 @@ setup() {
   STATE_DIR="$SESSION_DIR/state"
   mkdir -p "$CONTENT_DIR" "$STATE_DIR"
 
-  # Pick a random high port
-  PORT=$((49152 + RANDOM % 16383))
+  # Pick a port using PID to avoid collisions across parallel test runs
+  PORT=$((49152 + ($$ % 16383)))
 
-  # Start server in background
-  env VISUAL_COMPANION_DIR="$SESSION_DIR" \
-      VISUAL_COMPANION_HOST="127.0.0.1" \
-      VISUAL_COMPANION_URL_HOST="localhost" \
-      VISUAL_COMPANION_PORT="$PORT" \
-      node "$SCRIPTS/server.cjs" &
-  SERVER_PID=$!
-  echo "$SERVER_PID" > "$STATE_DIR/server.pid"
+  # Start server with retry on port collision
+  for attempt in 1 2 3; do
+    env VISUAL_COMPANION_DIR="$SESSION_DIR" \
+        VISUAL_COMPANION_HOST="127.0.0.1" \
+        VISUAL_COMPANION_URL_HOST="localhost" \
+        VISUAL_COMPANION_PORT="$PORT" \
+        node "$SCRIPTS/server.cjs" &
+    SERVER_PID=$!
+    echo "$SERVER_PID" > "$STATE_DIR/server.pid"
 
-  # Wait for server to be ready
-  for i in $(seq 1 50); do
-    if curl -s "http://localhost:$PORT/" >/dev/null 2>&1; then
+    # Wait for server to be ready
+    started=false
+    for i in $(seq 1 50); do
+      if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+        break  # Server died (likely port collision)
+      fi
+      if curl -s "http://localhost:$PORT/" >/dev/null 2>&1; then
+        started=true
+        break
+      fi
+      sleep 0.1
+    done
+
+    if [ "$started" = "true" ]; then
       break
     fi
-    sleep 0.1
+
+    # Port collision — try next port
+    PORT=$((PORT + 1))
   done
 }
 
