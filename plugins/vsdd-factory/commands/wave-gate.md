@@ -3,6 +3,6 @@ description: Run the post-wave integration gate — full test suite, adversarial
 argument-hint: "[wave-N]"
 ---
 
-Use the `vsdd-factory wave-gate` skill via the Skill tool.
+Use the `vsdd-factory:wave-gate` skill via the Skill tool.
 
 Arguments: $ARGUMENTS

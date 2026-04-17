@@ -3,6 +3,6 @@ description: Run holdout evaluation against merged wave code via the holdout-eva
 argument-hint: "[wave-N]"
 ---
 
-Use the `vsdd-factory holdout-eval` skill via the Skill tool.
+Use the `vsdd-factory:holdout-eval` skill via the Skill tool.
 
 Arguments: $ARGUMENTS

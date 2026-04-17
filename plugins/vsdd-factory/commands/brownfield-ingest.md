@@ -3,6 +3,6 @@ description: Analyze an existing codebase using the broad-then-converge analysis
 argument-hint: "[codebase-path] [--resume]"
 ---
 
-Use the `vsdd-factory brownfield-ingest` skill via the Skill tool.
+Use the `vsdd-factory:brownfield-ingest` skill via the Skill tool.
 
 Arguments: $ARGUMENTS

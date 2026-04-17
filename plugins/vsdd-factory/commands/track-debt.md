@@ -3,6 +3,6 @@ description: Manage the technical debt register — add, list, or resolve items 
 argument-hint: "[add|list|resolve] [description]"
 ---
 
-Use the `vsdd-factory track-debt` skill via the Skill tool.
+Use the `vsdd-factory:track-debt` skill via the Skill tool.
 
 Arguments: $ARGUMENTS

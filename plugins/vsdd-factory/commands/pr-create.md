@@ -3,6 +3,6 @@ description: Create a pull request with story context, mermaid diagrams, and beh
 argument-hint: "[STORY-NNN]"
 ---
 
-Use the `vsdd-factory pr-create` skill via the Skill tool.
+Use the `vsdd-factory:pr-create` skill via the Skill tool.
 
 Arguments: $ARGUMENTS

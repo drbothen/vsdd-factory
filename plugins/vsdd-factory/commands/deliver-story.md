@@ -3,6 +3,6 @@ description: Deliver a single story through the VSDD TDD pipeline via fresh spec
 argument-hint: "[STORY-NNN]"
 ---
 
-Use the `vsdd-factory deliver-story` skill via the Skill tool.
+Use the `vsdd-factory:deliver-story` skill via the Skill tool.
 
 Arguments: $ARGUMENTS
