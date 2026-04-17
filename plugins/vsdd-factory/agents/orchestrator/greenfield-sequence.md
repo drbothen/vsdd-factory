@@ -70,7 +70,12 @@ P1-05. Spawn architect: "SHARDED architecture -> .factory/specs/architecture/ di
     ARCH-INDEX.md frontmatter — either 'single-service' or 'multi-service'.
     If multi-service, system-overview.md MUST include a Service Boundaries section
     listing each service, its tech stack, and inter-service contracts."
-P1-06. Spawn architect: "DTU assessment" (if external dependencies detected)
+P1-06. Spawn architect: "DTU assessment" (MANDATORY — always produces dtu-assessment.md)
+    - Scan dependency-graph.md External Dependency Summary for HTTP clients, SDKs, auth providers
+    - If external dependencies found: produce dtu-assessment.md with fidelity classifications
+    - If NO external dependencies found: produce dtu-assessment.md with "DTU_REQUIRED: false"
+      and rationale (e.g., "pure library, no external I/O")
+    - Gate: dtu-assessment.md MUST exist before Phase 2 gate approval
 P1-07. Spawn architect: "Gene transfusion assessment" (if reference implementations exist)
 
 ### Multi-Repo Transition (if architect identifies multi-service topology)
@@ -136,7 +141,10 @@ P3-02. For each wave: run per-story delivery cycle from per-story-delivery.md
 
 ## Phase 3.5: Holdout Evaluation
 
-P3H-01. Spawn dtu-validator: "Start DTU clones" (if applicable)
+P3H-01. Spawn dtu-validator: "Start DTU clones" (if dtu-assessment.md has DTU_REQUIRED: true)
+    Pre-check: verify dtu-creation has been run, docker-compose.dtu.yml exists,
+    at least one clone validation-report.md shows fidelity >= threshold.
+    If DTU_REQUIRED: false in dtu-assessment.md, skip with logged reason.
 P3H-02. Spawn holdout-evaluator: "Evaluate all holdout scenarios"
 
 ## Phase 4: Adversarial Refinement
