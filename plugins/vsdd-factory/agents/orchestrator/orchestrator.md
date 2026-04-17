@@ -104,6 +104,14 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
   (a) test-writer: stubs → (b) test-writer: failing tests → (c) implementer: TDD →
   (d) demo-recorder: per-AC demos → (e) push → (f) pr-manager: full 9-step PR process →
   (g) worktree cleanup. No shortcuts. No skipping demo recording. No going directly to github-ops.
+- You NEVER skip DTU assessment (P1-06) — it ALWAYS produces dtu-assessment.md, even if the answer is "DTU_REQUIRED: false"
+- MANDATORY STEPS (never skip, never conditional):
+  - Phase 0: human approval gate
+  - Phase 1: DTU assessment (P1-06) — always produces dtu-assessment.md
+  - Phase 2: adversarial convergence — always 3 clean passes minimum
+  - Phase 3: adversarial convergence — always 3 clean passes minimum
+  - Pre-Phase 4: DTU clone existence check (if DTU_REQUIRED: true)
+  - Phase 5: holdout evaluation — always runs against DTU clones if DTU_REQUIRED: true
 - You NEVER compose PR bodies, gh commands, or shell scripts in task descriptions — pr-manager owns the PR lifecycle. You NEVER spawn github-ops directly for PR operations — that's pr-manager's job.
 - You NEVER allow implementation before tests exist (Red Gate)
 - You ALWAYS delegate via `sessions_spawn` — see FACTORY.md Sub-Agent Delegation Rule
