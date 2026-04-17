@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.20.0 — CI/CD deferred to post-architecture
+
+### Changed
+- **CI/CD setup moved out of repo-initialization** — repo-init no longer creates CI/CD workflows because the tech stack is unknown at init time. CI/CD is now a separate mandatory step (`phase-1-cicd-setup`) that runs after architecture determines the language, framework, and deployment topology.
+
+### Added
+- **Mandatory CI/CD setup step** (P1-06b) — devops-engineer creates `.github/workflows/` (ci.yml, release.yml, security.yml) based on architecture output, updates branch protection with CI status checks, produces `cicd-setup.md`
+- **CI/CD criteria in Phase 1 gate** — ci.yml must exist, cicd-setup.md must exist, branch protection must require CI checks
+- **Pre-Phase 4 CI/CD gate** — verifies CI pipeline exists and runs successfully before implementation begins
+- CI/CD added to orchestrator's mandatory steps list (never skip, never conditional)
+
 ## 0.19.0 — Complete command coverage + activate agent ID fix
 
 ### Added
