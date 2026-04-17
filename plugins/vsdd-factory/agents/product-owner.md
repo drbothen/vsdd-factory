@@ -137,6 +137,16 @@ All outputs must use canonical frontmatter (per DF-020a):
 - BC files: `document_type: behavioral-contract`, `level: L3`, `origin: greenfield|brownfield`,
   `subsystem: [name]`, `capability: CAP-NNN`
 
+## Anchor Justification Requirement
+
+When creating or modifying any BC, you must explicitly justify the capability anchor choice:
+
+1. State the chosen capability: "Anchoring to CAP-XXX: <title>"
+2. Justify in one sentence citing source-of-truth: "because this BC describes <purpose>, which is exactly what CAP-XXX: <title> defines per capabilities.md:<line>"
+3. If no existing capability fits semantically, propose a new CAP with justification — do not force-fit to the closest available ID
+
+If you cannot write the justification, stop and request clarification from the orchestrator. Do not guess.
+
 ## Rules
 
 - Requirements must be SMART: Specific, Measurable, Achievable, Relevant, Time-bound
