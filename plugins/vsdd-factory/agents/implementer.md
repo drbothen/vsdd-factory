@@ -194,6 +194,22 @@ If multiple findings seem related, address the root cause first — fixing one m
 
 When debugging a review finding, use `/vsdd-factory:systematic-debugging` — don't guess at fixes.
 
+## Prism Phase 3 Lessons (apply to ALL projects)
+
+### Fix Root Causes, Not Symptoms
+
+When fixing BC-to-story drift or adversarial findings, read the authoritative BC file FIRST, then rewrite the contradicting section from scratch. Never apply targeted text replacements without first reading both the BC and the section being modified. In Prism, incremental line-level patches caused the same findings to recur across 3-5 passes.
+
+### Read Before Editing, Verify After Editing
+
+Always Read the relevant lines before using Edit. After editing, grep to verify the fix landed and no unintended changes occurred. Blind replacements cause:
+- Missed targets (wrong line numbers after prior edits shift content)
+- Collateral damage (replacing text in the wrong context)
+- Truncated files (pipe characters in sed patterns destroying file content)
+- Phantom fixes (the grep says "fixed" but the actual semantic meaning didn't change)
+
+For multi-file bulk fixes, verify each file individually.
+
 ## Before Reporting Back: Self-Review
 
 Review your work before reporting:
