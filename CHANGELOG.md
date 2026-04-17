@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.20.1 — State-manager direct git commits
+
+### Changed
+- **State-manager now has shell access** for direct `.factory/` git commits. No longer spawns devops-engineer for every STATE.md update. Shell access is scoped: git commands inside `.factory/` only, no non-git commands, no source code branches.
+
 ## 0.20.0 — CI/CD deferred to post-architecture
 
 ### Changed
