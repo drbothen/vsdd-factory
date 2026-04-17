@@ -31,15 +31,16 @@ workflow:
   steps:
     # =========================================================================
     # Repo Initialization (FIRST — .factory/ must exist before any artifacts)
-    # Includes CI/CD setup (DF-025), factory-artifacts orphan branch, worktree.
+    # Factory-artifacts orphan branch, worktree. CI/CD deferred to post-arch.
     # =========================================================================
 
     - name: repo-initialization
       type: skill
       skill: "skills/repo-initialization/SKILL.md"
       depends_on: []
-      # Includes: repo creation, CI/CD setup, branch protection,
+      # Includes: repo creation, branch protection,
       # .factory/ worktree on factory-artifacts branch
+      # NOTE: CI/CD setup deferred to phase-1-cicd-setup (after architecture)
 
     # =========================================================================
     # Factory Worktree Health Check (BLOCKING)
@@ -146,6 +147,27 @@ workflow:
              Spawn research-agent for reference docs, license, and
              test coverage of each candidate."
 
+    # =========================================================================
+    # CI/CD Pipeline Setup (MANDATORY — after architecture determines tech stack)
+    # Creates .github/workflows/ based on architecture language, stack, and
+    # service topology. Cannot run during repo-init because tech stack is unknown.
+    # =========================================================================
+
+    - name: phase-1-cicd-setup
+      type: agent
+      agent: devops-engineer
+      depends_on: [phase-1-spec-crystallization]
+      task: >
+        Create CI/CD pipelines based on the architecture:
+        1. Read architecture/ARCH-INDEX.md for language, framework, deployment topology
+        2. Create .github/workflows/ci.yml (lint, test, build on PR)
+        3. Create .github/workflows/release.yml (build + publish on tag)
+        4. Create .github/workflows/security.yml (weekly audit + PR check)
+        5. Update branch protection to require CI status checks
+        6. Produce .factory/specs/cicd-setup.md documenting what was created
+        Gate: .github/workflows/ci.yml MUST exist. cicd-setup.md MUST exist.
+      # MANDATORY: always produces CI/CD workflows and cicd-setup.md
+
     # --- DF-037: Design System Bootstrap (UI products, Phase 1) ---
     - name: phase-1-design-system-bootstrap
       type: skill
@@ -197,7 +219,7 @@ workflow:
 
     - name: phase-1-gate
       type: gate
-      depends_on: [phase-1-spec-crystallization, architect-feasibility-review, prd-revision, phase-1-dtu-assessment, phase-1-gene-transfusion-assessment, phase-1-design-system-approval, phase-1-heuristic-evaluation]
+      depends_on: [phase-1-spec-crystallization, architect-feasibility-review, prd-revision, phase-1-dtu-assessment, phase-1-gene-transfusion-assessment, phase-1-cicd-setup, phase-1-design-system-approval, phase-1-heuristic-evaluation]
       gate:
         criteria:
           - "All requirements have unique IDs and numerical targets"
@@ -214,6 +236,9 @@ workflow:
           - "Gene transfusion assessment completed (gene-transfusion-assessment.md exists)"
           - "Design system bootstrapped and approved (if UI product, DF-037 D2)"
           - "Heuristic evaluation score >= 0.7 on UX spec (if UI product, DF-037 D6)"
+          - "CI/CD pipelines created (.github/workflows/ci.yml exists)"
+          - "cicd-setup.md exists in .factory/specs/ documenting CI/CD configuration"
+          - "Branch protection requires CI status checks"
           - "Every ASM-NNN has Status, Validation Method, and Impact populated"
           - "Every R-NNN has Status, Category, and Mitigation populated"
           - "Every R-NNN NFR candidate has corresponding NFR-NNN"
@@ -499,6 +524,16 @@ workflow:
           - "At least one clone validation-report.md shows fidelity >= threshold"
         fail_action: block
 
+    - name: pre-phase-4-cicd-gate
+      type: gate
+      depends_on: [dx-engineer-preflight-gate]
+      gate:
+        criteria:
+          - ".github/workflows/ci.yml exists and is valid"
+          - "Branch protection requires CI status checks on develop"
+          - "CI pipeline runs successfully on current develop branch"
+        fail_action: block
+
     # =========================================================================
     # Phase 3: Per-Story Code Delivery (Wave-Based with Worktrees)
     # =========================================================================
@@ -509,7 +544,7 @@ workflow:
 
     - name: phase-3-per-story-delivery
       type: loop
-      depends_on: [dx-engineer-preflight-gate, pre-phase-4-dtu-gate]
+      depends_on: [dx-engineer-preflight-gate, pre-phase-4-dtu-gate, pre-phase-4-cicd-gate]
       timeout: "12h"
       loop:
         for_each: wave in wave-schedule.md
