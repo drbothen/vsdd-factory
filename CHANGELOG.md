@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.22.0 — Semantic Anchoring Integrity
+
+### Added
+- **Adversary: Semantic Anchoring Audit** — new scan category verifying anchors are semantically correct, not just syntactically valid. 4-level severity matrix (CRITICAL/HIGH/MEDIUM/LOW). Mis-anchoring ALWAYS blocks convergence — never deferred as "Observation."
+- **Consistency-validator: Anchor Semantic Audit** — verifies BC↔capability, story↔subsystem, VP↔anchor_story, and traceability table semantic correctness beyond structural ID matching
+- **Product-owner: Anchor Justification Requirement** — must explicitly justify capability anchor choice citing source-of-truth when creating/modifying BCs
+- **Story-writer: Anchor Justification Requirement** — must justify subsystem, dependency, and VP anchor choices with specific technical reasons
+- **Architect: Anchor Justification Requirement** — must justify ADR references, subsystem assignments, and crate ownership claims. Planned-but-not-created crates must be marked `[PLANNED]`
+
 ## 0.21.0 — Orchestrator sync
 
 ### Fixed
