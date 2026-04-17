@@ -97,6 +97,20 @@ These patterns invalidate a story. If you catch any, fix before proceeding:
 
 Updated `.factory/stories/STORY-NNN.md` with full specification.
 
+## Prism Phase 3 Lessons (apply to ALL projects)
+
+### Centralized Version Pins
+
+The story MUST include the external dependency table from `dependency-graph.md` verbatim in its "Library & Framework Requirements" section. Do not invent version numbers — reference the centralized pin. Version mismatches were the most persistent finding class in Prism (7 passes to resolve).
+
+### Forbidden Dependencies Section
+
+Every story MUST include a "Forbidden Dependencies" section listing crates/packages that must NOT appear in the implementing module's dependency graph. State these as compile-time enforcement rules. Example: "prism-spec-engine must NOT depend on DataFusion — export descriptors and register in prism-query instead."
+
+### Error Taxonomy Compliance
+
+Stories MUST only reference error codes from the error taxonomy (`prd-supplements/error-taxonomy.md`). Do not invent codes outside the taxonomy or reuse codes with wrong semantics. If a new error code is needed, explicitly flag it: "NEW — add E-xxx-NNN to taxonomy with description: ..."
+
 ## Self-Review (before delivery)
 
 Before marking this story as sprint-ready, check your own work:
