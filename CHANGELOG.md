@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.21.0 — Orchestrator sync
+
+### Fixed
+- **Agent routing table** — added missing `codebase-analyzer` and `validate-extraction` agents, fixed `session-review` → `session-reviewer` to match agent filename, removed duplicate `product-owner` entry
+- **Agents reference doc** — corrected `session-review` → `session-reviewer`
+
+### Added
+- **Cross-cutting skills reference** in orchestrator — table of 9 skills available at any pipeline point (scaffold-claude-md, visual-companion, create-excalidraw, systematic-debugging, writing-skills, validate-consistency, spec-drift, research, track-debt)
+
+### Changed
+- **State-manager delegation description** updated — orchestrator now documents that state-manager owns `.factory/` commits directly (no devops-engineer roundtrip)
+
 ## 0.20.1 — State-manager direct git commits
 
 ### Changed
