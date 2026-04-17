@@ -158,9 +158,8 @@ Always give agents the full absolute path to every file they need to read or wri
 
 | Task Type | Agent ID |
 |-----------|----------|
-| Product brief from human input | product-owner |
+| Product brief, L3 PRD, behavioral contracts, holdout scenarios | product-owner |
 | Market analysis, L2 domain spec | business-analyst |
-| L3 PRD, behavioral contracts, holdout scenarios | product-owner |
 | Architecture, DTU assessment, gene transfusion | architect |
 | UX spec, design system | ux-designer |
 | Story decomposition | story-writer |
@@ -168,6 +167,8 @@ Always give agents the full absolute path to every file they need to read or wri
 | Adversarial review | adversary |
 | Constructive spec/story review | spec-reviewer |
 | Code review | code-reviewer |
+| Deep codebase scanning, semantic analysis | codebase-analyzer |
+| Brownfield extraction validation | validate-extraction |
 | Test stubs, failing tests | test-writer |
 | TDD implementation | implementer |
 | E2E browser tests | e2e-tester |
@@ -180,7 +181,7 @@ Always give agents the full absolute path to every file they need to read or wri
 | DTU clone validation | dtu-validator |
 | Repo setup, worktrees, CI/CD, release | devops-engineer |
 | Toolchain preflight, env setup | dx-engineer |
-| STATE.md updates, .factory/ structure | state-manager |
+| STATE.md updates, .factory/ commits | state-manager |
 | Spec governance, versioning | spec-steward |
 | Documentation generation | technical-writer |
 | External research (has direct MCP access) | research-agent |
@@ -189,14 +190,33 @@ Always give agents the full absolute path to every file they need to read or wri
 | Data schemas, migrations | data-engineer |
 | Accessibility audit | accessibility-auditor |
 | Visual regression | visual-reviewer |
-| Post-pipeline analysis | session-review |
+| Post-pipeline analysis | session-reviewer |
 
 ### State Manager Delegation
 
-For all STATE.md and `.factory/` structure updates, spawn state-manager:
+For all STATE.md and `.factory/` structure updates, spawn state-manager.
+State-manager has direct shell access for git operations in `.factory/` —
+it commits factory artifacts directly without spawning devops-engineer.
+
 ```
 sessions_spawn({ runtime: "subagent", agentId: "state-manager", cwd: "<resolved-project-path>", task: "cd <resolved-project-path> && PHASE_TRANSITION: phase-1 → PASSED" })
 ```
+
+### Cross-Cutting Skills Reference
+
+These skills are available at any point in the pipeline:
+
+| Skill | Purpose |
+|-------|---------|
+| `/vsdd-factory:scaffold-claude-md` | Auto-generate project-specific CLAUDE.md |
+| `/vsdd-factory:visual-companion` | Browser-based mockups and excalidraw diagrams (optional, Node.js) |
+| `/vsdd-factory:create-excalidraw` | Generate .excalidraw JSON files for diagrams |
+| `/vsdd-factory:systematic-debugging` | 4-phase root cause investigation for bugs |
+| `/vsdd-factory:writing-skills` | TDD methodology for creating plugin skills |
+| `/vsdd-factory:validate-consistency` | Cross-document consistency validation |
+| `/vsdd-factory:spec-drift` | Compare implementation against spec documents |
+| `/vsdd-factory:research` | External research via Perplexity, Context7, Tavily |
+| `/vsdd-factory:track-debt` | Technical debt register management |
 
 ## Operating Loop
 
