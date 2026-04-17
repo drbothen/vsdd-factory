@@ -224,6 +224,17 @@ findings breakdown.
 | 55 | BC Lifecycle Field Coherence | If BC `lifecycle_status: deprecated` then `deprecated_by` must be non-null. If `lifecycle_status: retired` then `retired` must be non-null. If `lifecycle_status: active` then `deprecated`, `deprecated_by`, `retired`, `removed` must all be null | Minor |
 | 56 | FM-NNN to Holdout Coverage | Every FM-NNN in the L2 Domain Spec Section 8 (Failure Modes) must have at least one holdout scenario that exercises the failure mode | Major |
 
+### Anchor Semantic Audit
+
+Beyond structural consistency (IDs exist, counts match), verify semantic correctness of every anchor:
+
+1. BC-INDEX: for each BC, read the BC's purpose and confirm its declared capability actually describes that purpose per capabilities.md
+2. Stories: for each story, read its scope and confirm each SS-ID in `subsystems:` actually owns that scope per ARCH-INDEX Subsystem Registry
+3. VPs: for each VP, confirm `anchor_story` is the story that builds the test vehicle (not an architectural ancestor)
+4. Traceability tables: for each row, confirm the description matches the target artifact's actual title per the source-of-truth index
+
+Report semantic mismatches at MEDIUM severity or higher.
+
 ## Drift Detection
 
 Beyond static consistency, detect drift between spec versions:
