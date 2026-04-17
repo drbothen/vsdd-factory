@@ -179,117 +179,14 @@ fi
     factory-artifacts orphan branch created. .factory/ mounted as worktree."
    ```
 
-### Step 4: CI/CD Pipeline Setup
+### CI/CD Setup (deferred to post-architecture)
 
-After the repo is created and initial structure committed, the orchestrator
-gathers CI/CD preferences and the devops-engineer creates the pipeline.
+CI/CD pipeline creation is deferred until after architecture is produced (Phase 1, P1-05).
+At repo init time, the language, stack, and service topology are unknown. The devops-engineer
+creates CI/CD workflows as a separate mandatory step (`phase-1-cicd-setup`) after the
+architect determines the tech stack.
 
-#### Orchestrator CI/CD Questions
-
-The orchestrator asks the human (in addition to repo questions above):
-
-1. **CI provider?**
-   - GitHub Actions (default)
-   - GitLab CI
-   - Other (provide config template)
-
-2. **Target platforms?** (auto-detected from tech stack)
-   - Rust: linux-x64, macos-arm64, windows-x64
-   - Node.js: linux-x64, macos-arm64
-   - Python: linux-x64, macos-arm64
-
-3. **Package registries?** (auto-detected from tech stack)
-   - Rust: crates.io
-   - Node.js: npm
-   - Python: PyPI
-   - Docker: GHCR (GitHub Container Registry)
-   - None
-
-4. **Deploy target?**
-   - None (library/CLI -- default)
-   - Kubernetes (Helm chart)
-   - Fly.io
-   - Vercel
-   - Cloudflare Workers
-   - AWS Lambda
-
-#### DevOps-Engineer Creates CI/CD Workflows
-
-The devops-engineer creates `.github/workflows/`:
-
-1. **`ci.yml`** -- CI pipeline:
-   ```yaml
-   name: CI
-   on:
-     push: { branches: [feature/*, fix/*] }
-     pull_request: { branches: [develop] }
-   jobs:
-     lint:
-       # clippy / eslint / ruff (based on tech stack)
-     test:
-       # cargo test / npm test / pytest
-       # Coverage report (uploaded as artifact)
-     build:
-       # cargo build --release / npm run build
-       # Matrix: [platform targets from init]
-   ```
-
-2. **`release.yml`** -- Release pipeline:
-   ```yaml
-   name: Release
-   on:
-     push: { tags: ['v*'] }
-   jobs:
-     build:
-       # Build release binaries (matrix: platforms)
-       # Run tests (final verification)
-     publish:
-       # Upload binaries to GitHub Release
-       # Publish to registries (crates.io / npm / PyPI)
-       # Push Docker image (if configured)
-   permissions:
-     contents: write
-   ```
-
-3. **`security.yml`** -- Security audit:
-   ```yaml
-   name: Security Audit
-   on:
-     schedule: [{ cron: '0 6 * * 1' }]  # Weekly Monday 6am
-     pull_request: { branches: [develop] }
-   jobs:
-     audit:
-       # cargo audit / npm audit
-       # Semgrep with auto rules
-       # License check (cargo deny / license-checker)
-     report:
-       # Post findings as PR comment (if PR trigger)
-       # Create issue (if schedule trigger + findings)
-   ```
-
-#### Branch Protection Update (with CI checks)
-
-After CI workflows are committed, update branch protection to require CI
-status checks:
-
-```bash
-gh api repos/ORG/REPO/branches/develop/protection -X PUT \
-  --input - <<EOF
-{
-  "required_status_checks": {
-    "strict": true,
-    "contexts": ["CI / lint", "CI / test", "CI / build"]
-  },
-  "required_pull_request_reviews": {
-    "required_approving_review_count": 0
-  },
-  "enforce_admins": false,
-  "restrictions": null
-}
-EOF
-```
-
-### Step 5: Multi-Repo Initialization (if applicable)
+### Step 4: Multi-Repo Initialization (if applicable)
 
 When architect's architecture output includes `deployment_topology: multi-service`
 and human confirms multi-repo:
@@ -375,7 +272,7 @@ Spawn state-manager to create the project-level directory structure:
 The unified Phase 1 specs from `.factory/specs/` are moved to `.factory-project/specs/`
 since they represent the product as a whole, not a single service.
 
-### Step 6: DX Engineer Environment Setup (DF-027)
+### Step 5: DX Engineer Environment Setup (DF-027)
 
 After repo is created, orchestrator spawns dx-engineer for environment setup:
 
@@ -462,10 +359,6 @@ After repo is created, orchestrator spawns dx-engineer for environment setup:
 - mcporter installed and MCP servers configured
 - LLM health check passed (all 3 model families reachable)
 - Git rerere enabled
-- `.github/workflows/ci.yml` -- lint, test, build on PR
-- `.github/workflows/release.yml` -- build + publish on tag
-- `.github/workflows/security.yml` -- weekly audit + PR check
-- Branch protection requiring CI status checks
 - Orchestrator notified of completion
 
 ### Excalidraw MCP (UI Products)
