@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.17.0 — Prism Phase 3 lessons learned
+
+### Added
+- **8 lessons from Prism Phase 3 adversarial convergence** (29 passes, 46 stories, 167 BCs, 38 VPs) codified across 6 agent/skill files:
+  - **story-writer:** must read source BC files (not summaries), use centralized version pins from dependency-graph.md, include forbidden dependencies section, use only existing error codes from taxonomy, pre-validate new stories against invariant list
+  - **adversary:** accumulate confirmed invariants across passes (monotonically growing list)
+  - **adversarial-review:** fix root causes not symptoms (rewrite from BC, don't patch lines), accumulate invariants, pre-validate new scope additions
+  - **implementer:** fix root causes from BC source, read before editing and verify after editing
+  - **deliver-story:** verify every fix landed correctly (read file, grep for pattern, check for side effects)
+  - **create-story:** centralized version pins, forbidden dependencies section, error taxonomy compliance
+
 ## 0.16.1 — Reference manifest template + documentation fixes
 
 ### Added
