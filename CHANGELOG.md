@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.18.0 — DTU assessment gate enforcement + command syntax fix
+
+### Added
+- **DTU assessment is now mandatory** (P1-06) — always produces `dtu-assessment.md`, even if the answer is "DTU_REQUIRED: false" with rationale. Prevents silent skip that occurred in Prism.
+- **DTU checks in Phase 2 gate** — `dtu-assessment.md` must exist, fidelity classifications required if DTU_REQUIRED, rationale required if not
+- **Pre-Phase 4 DTU clone existence gate** — if DTU_REQUIRED: true, verifies clones are built and validated before implementation begins
+- **Mandatory steps list** in orchestrator — explicit "never skip, never conditional" list covering DTU assessment, adversarial convergence, holdout evaluation
+- **DTU status in STATE.md** — state-manager writes `dtu_required`, `dtu_assessment`, `dtu_clones_built`, `dtu_services` fields for visibility across sessions
+
+### Fixed
+- **All 47 command files** now use colon syntax (`vsdd-factory:skill-name`) instead of space syntax (`vsdd-factory skill-name`). The space syntax caused "Unknown skill" errors when commands delegated to skills via the Skill tool.
+
 ## 0.17.0 — Prism Phase 3 lessons learned
 
 ### Added
