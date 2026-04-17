@@ -15,7 +15,7 @@ Per-project opt-in. Enabling the plugin alone does not change your default Claud
 
 3. **Merge the agent default.** Write back the file with:
    ```json
-   { "agent": "vsdd-factory:orchestrator" }
+   { "agent": "vsdd-factory:orchestrator:orchestrator" }
    ```
    merged into the existing contents. Preserve all other keys.
 
