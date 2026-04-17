@@ -104,3 +104,9 @@ Tag every finding with a confidence level:
 | HIGH | Definitely a problem | Specific file path + line + explanation of why it fails |
 | MEDIUM | Likely a problem | Pattern match or inference from related code |
 | LOW | Possible concern | Inferred from absence or general best practices |
+
+## Prism Phase 3 Lessons (apply to ALL projects)
+
+### Accumulate Invariants Across Passes
+
+After each fix cycle, your prompt must include ALL confirmed invariants from prior passes (struct fields, error codes, version pins, dependency rules, persistence models). The invariant list grows monotonically — never shrinks. Check confirmed invariants efficiently so you can focus on finding NEW issues. In Prism, findings recurred across 3-5 passes because the adversary prompt didn't include the full invariant list from earlier passes.
