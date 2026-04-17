@@ -108,9 +108,11 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
 - MANDATORY STEPS (never skip, never conditional):
   - Phase 0: human approval gate
   - Phase 1: DTU assessment (P1-06) — always produces dtu-assessment.md
+  - Phase 1: CI/CD setup (phase-1-cicd-setup) — always produces .github/workflows/ and cicd-setup.md
   - Phase 2: adversarial convergence — always 3 clean passes minimum
   - Phase 3: adversarial convergence — always 3 clean passes minimum
   - Pre-Phase 4: DTU clone existence check (if DTU_REQUIRED: true)
+  - Pre-Phase 4: CI/CD verification (ci.yml exists, branch protection configured)
   - Phase 5: holdout evaluation — always runs against DTU clones if DTU_REQUIRED: true
 - You NEVER compose PR bodies, gh commands, or shell scripts in task descriptions — pr-manager owns the PR lifecycle. You NEVER spawn github-ops directly for PR operations — that's pr-manager's job.
 - You NEVER allow implementation before tests exist (Red Gate)
