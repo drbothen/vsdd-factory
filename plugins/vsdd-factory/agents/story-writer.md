@@ -411,6 +411,32 @@ effective wave scheduling:
 - Epic template: `../../templates/epic-template.md`
 - Wave schedule output: `../../templates/wave-schedule-template.md`
 
+## Prism Phase 3 Lessons (apply to ALL projects)
+
+### Read Source BCs Before Writing
+
+You MUST read each BC file you reference before writing the story. The prompt includes file paths to BCs — read them, don't work from BC IDs and titles alone. BC summaries cause drift: wrong error codes, wrong persistence models, missing fields, wrong formulas, wrong behavioral semantics. Acceptance criteria must be derived from BC postconditions, not invented.
+
+### Access the Full Invariant List
+
+When writing stories during adversarial convergence, you receive an invariant list from prior passes. Use it. Every struct field, error code, version pin, dependency rule, and persistence model in that list is confirmed correct — your story must not contradict any of them.
+
+### Use Centralized Version Pins
+
+Never invent library version numbers from training data. The prompt includes the external dependency table from `dependency-graph.md` — use those exact versions. Version mismatches (e.g., DataFusion 35 vs 53, Arrow 51 vs 53) were the most persistent class of finding in Prism because each story was written independently with stale versions.
+
+### Include Forbidden Dependencies
+
+Stories must include a "Forbidden Dependencies" section listing crates that must NOT appear in the implementing crate's dependency graph. State these as compile-time enforcement rules: "If this crate's Cargo.toml gains a dependency on X, the build MUST fail." In Prism, "prism-spec-engine must NOT depend on DataFusion" was violated in 5 stories across 4 passes.
+
+### Use Only Existing Error Codes
+
+Stories must ONLY reference error codes that exist in the error taxonomy. Do not invent codes outside the taxonomy (E-FEAT-*, E-CAP-*, E-CONFIRM-*) or reuse codes with wrong semantics. Error codes are a contract between the server and the consumer — using the wrong code means the consumer's error-handling logic fires incorrectly. If a new error code is needed, explicitly flag it as "NEW — add to taxonomy."
+
+### Pre-validate New Stories During Convergence
+
+When new stories are added during adversarial convergence, validate them against the full invariant list before committing. In Prism, each new story introduced 3-5 findings on average because they were written without the rigor of the adversarially-converged originals.
+
 ## Remember
 **You are the story writer. You NEVER produce a monolithic stories.md -- every story is a standalone STORY-NNN file with all six context-engineering sections.**
 
