@@ -19,16 +19,25 @@ traces_to: ARCH-INDEX.md
 
 ## Coverage by Module
 
-| Module | Criticality | Kani Proofs | Proptest | Fuzz Targets | Coverage Target | VPs |
-|--------|------------|-------------|----------|-------------|----------------|-----|
+| Module | Criticality | [Method 1] | [Method 2] | [Method N] | Coverage Target | VPs |
+|--------|------------|------------|------------|------------|----------------|-----|
 | [module-name] | CRITICAL/HIGH/MEDIUM/LOW | [count] | [count] | [count] | [percentage] | VP-NNN, VP-NNN (method annotation) |
+
+**Method columns are project-specific.** Use the verification methods from your tooling selection. Examples by language:
+
+| Language | Typical columns |
+|----------|----------------|
+| Rust | Kani Proofs, Proptest, Fuzz Targets |
+| TypeScript | fast-check, Stryker |
+| Python | Hypothesis, mutmut |
+| Multi-language | Model Checking, Property Tests, Fuzz Tests |
+
+The `validate-vp-consistency.sh` hook auto-detects method columns from the header — no configuration needed. It identifies columns between "Module"/"Criticality" and "Coverage Target"/"VPs" as method columns and validates their sums against VP-INDEX Summary.
 
 **Column definitions:**
 - **Module:** Module name from `module-decomposition.md`
 - **Criticality:** From `module-criticality.md` (CRITICAL ≥95%, HIGH ≥90%, MEDIUM ≥80%, LOW ≥70%)
-- **Kani Proofs:** Count of VPs verified via Kani model checking in this module
-- **Proptest:** Count of VPs verified via property-based testing in this module
-- **Fuzz Targets:** Count of VPs verified via fuzz testing in this module
+- **[Method N]:** Count of VPs verified via this method in this module. One column per verification method used in the project.
 - **Coverage Target:** Kill-rate target from criticality classification
 - **VPs:** VP-NNN IDs assigned to this module, with method annotation where multiple methods used (e.g., "VP-024 (proptest); VP-038 (fuzz)")
 
@@ -42,11 +51,12 @@ traces_to: ARCH-INDEX.md
 
 | Method | Planned Count | P0 | P1 |
 |--------|--------------|----|----|
-| Kani proofs | [count] | [P0 count] | [P1 count] |
-| Proptest properties | [count] | [P0 count] | [P1 count] |
-| Fuzz targets | [count] | [P0 count] | [P1 count] |
-| Integration test VPs | [count] | [P0 count] | [P1 count] |
+| [Method 1 name] | [count] | [P0 count] | [P1 count] |
+| [Method 2 name] | [count] | [P0 count] | [P1 count] |
+| [Method N name] | [count] | [P0 count] | [P1 count] |
 | **Total VPs** | **[total]** | **[P0 total]** | **[P1 total]** |
+
+**Method names must match VP-INDEX Summary labels** (normalized to snake_case by the hook). For example, a "Coverage by Module" column named "Kani Proofs" matches a Summary row named "Kani proofs" (both normalize to `kani_proofs`).
 
 **Arithmetic invariant:** Total must equal sum of method rows. P0 + P1 must equal Planned Count per row. All counts must match VP-INDEX Summary.
 

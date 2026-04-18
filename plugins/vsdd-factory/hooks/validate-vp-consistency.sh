@@ -136,46 +136,53 @@ done < "${ERRFILE}.declared"
 rm -f "${ERRFILE}.tools" "${ERRFILE}.declared"
 
 # --- Check (d): Coverage matrix per-method column sums match VP-INDEX Summary totals ---
-# (Defect 3 fix — replaced generic $3..$5 with per-method named column extraction)
 #
-# Coverage matrix header: | Module | Criticality | Kani Proofs | Proptest | Fuzz Targets | Coverage Target | VPs |
-# With -F'|' and leading pipe: $2=Module, $3=Criticality, $4=Kani, $5=Proptest, $6=Fuzz
+# Generalized approach: discover numeric columns from the Coverage by Module header,
+# sum each column across data rows, then compare against VP-INDEX Summary per-method
+# totals. Works for any verification tool names (Kani, CBMC, Hypothesis, etc.).
 #
-# Data rows: any row where $2 is a module name (not header/separator/summary).
-# We identify data rows by: starts with |, not a separator (---), not a header
-# (Module/Method/Total/Count/Gap/Invariant/BC), and $2 is non-empty after trim.
+# Step 1: Extract column-name → column-sum pairs from Coverage by Module section.
+# Step 2: For each column, look up the matching VP-INDEX Summary entry.
+# Step 3: Compare sums.
 
-# Detect column positions for Kani/Proptest/Fuzz from the header row.
-# Handles both 5-column (| Module | Kani | Proptest | Fuzz | VPs |) and
-# 7-column (| Module | Criticality | Kani Proofs | Proptest | Fuzz Targets | Coverage | VPs |) formats.
-SUMS=$(awk -F'|' '
-  # Find the header row containing Kani to determine column positions
-  !found_header && /[Kk]ani/ {
+awk -F'|' '
+  # Detect the Coverage by Module header row (contains "Module" + at least one other column)
+  !found_header && /Module/ && /\|.*\|.*\|/ {
     for (i=1; i<=NF; i++) {
-      h = $i; gsub(/^[ \t]+|[ \t]+$/, "", h); h = tolower(h)
-      if (h ~ /kani/) kani_col = i
-      if (h ~ /proptest/) proptest_col = i
-      if (h ~ /fuzz/) fuzz_col = i
+      h = $i; gsub(/^[ \t]+|[ \t]+$/, "", h)
+      # Skip non-method columns: empty, Module, Criticality, Coverage, VPs, separators
+      lh = tolower(h)
+      if (h == "" || lh == "module" || lh ~ /criticality/ || lh ~ /coverage/ || lh ~ /^vps?$/) continue
+      # Remaining columns are verification method columns — record position and name
+      col_name[i] = h
+      col_count++
     }
-    found_header = 1
+    if (col_count > 0) found_header = 1
     next
   }
   # Skip separator rows
-  found_header && /^[|].*---/ { next }
-  # Stop at next ## heading
+  found_header && /---/ { next }
+  # Stop at next ## heading (exit Coverage by Module section)
   found_header && /^##/ { exit }
-  # Data rows
+  # Data rows: sum each method column
   found_header && /^\|/ {
     m = $2; gsub(/^[ \t]+|[ \t]+$/, "", m)
     if (m == "" || m ~ /^\*/ || m ~ /[Tt]otal/) next
-    if (kani_col) { gsub(/^[ \t]+|[ \t]+$/, "", $kani_col); if ($kani_col ~ /^[0-9]+$/) kani += $kani_col }
-    if (proptest_col) { gsub(/^[ \t]+|[ \t]+$/, "", $proptest_col); if ($proptest_col ~ /^[0-9]+$/) proptest += $proptest_col }
-    if (fuzz_col) { gsub(/^[ \t]+|[ \t]+$/, "", $fuzz_col); if ($fuzz_col ~ /^[0-9]+$/) fuzz += $fuzz_col }
+    for (i in col_name) {
+      gsub(/^[ \t]+|[ \t]+$/, "", $i)
+      if ($i ~ /^[0-9]+$/) sums[i] += $i
+    }
   }
-  END { print kani+0, proptest+0, fuzz+0 }
-' "$COVERAGE_MATRIX")
-
-read -r MATRIX_KANI MATRIX_PROPTEST MATRIX_FUZZ <<< "$SUMS"
+  END {
+    for (i in col_name) {
+      # Normalize column name to snake_case for matching against VP-INDEX Summary
+      label = tolower(col_name[i])
+      gsub(/[^a-z0-9]+/, "_", label)
+      sub(/^_|_$/, "", label)
+      print label, sums[i]+0
+    }
+  }
+' "$COVERAGE_MATRIX" > "${ERRFILE}.matrix_sums"
 
 # Helper: extract a per-method total from VP-INDEX Summary section
 get_summary_total() {
@@ -191,19 +198,25 @@ get_summary_total() {
   ' "$VP_INDEX"
 }
 
-INDEX_KANI=$(get_summary_total kani)
-INDEX_PROPTEST=$(get_summary_total proptest)
-INDEX_FUZZ=$(get_summary_total fuzz)
+# Compare each matrix column sum against VP-INDEX Summary.
+# Uses get_summary_total for each method, with partial matching for label variants
+# (e.g., matrix header "Kani Proofs" → snake_case "kani_proofs", VP-INDEX Summary
+# label "Kani" → snake_case "kani"). Partial match: either contains the other.
+while read -r method_label matrix_sum; do
+  if [[ -z "$method_label" ]]; then continue; fi
+  # Try exact match first
+  index_total=$(get_summary_total "$method_label")
+  # If no exact match, try partial: strip trailing _proofs, _targets, _properties, etc.
+  if [[ -z "$index_total" ]]; then
+    short_label=$(echo "$method_label" | sed 's/_proofs$//;s/_targets$//;s/_properties$//;s/_test$//;s/_vps$//')
+    index_total=$(get_summary_total "$short_label")
+  fi
+  if [[ -n "$index_total" ]] && [[ "$index_total" =~ ^[0-9]+$ ]] && [[ "$matrix_sum" -ne "$index_total" ]]; then
+    echo "coverage-matrix: $method_label column sum ($matrix_sum) != VP-INDEX total ($index_total)" >> "$ERRFILE"
+  fi
+done < "${ERRFILE}.matrix_sums"
 
-if [[ -n "$INDEX_KANI" && "$MATRIX_KANI" -ne "$INDEX_KANI" ]]; then
-  echo "coverage-matrix: Kani column sum ($MATRIX_KANI) != VP-INDEX Kani total ($INDEX_KANI)" >> "$ERRFILE"
-fi
-if [[ -n "$INDEX_PROPTEST" && "$MATRIX_PROPTEST" -ne "$INDEX_PROPTEST" ]]; then
-  echo "coverage-matrix: Proptest column sum ($MATRIX_PROPTEST) != VP-INDEX Proptest total ($INDEX_PROPTEST)" >> "$ERRFILE"
-fi
-if [[ -n "$INDEX_FUZZ" && "$MATRIX_FUZZ" -ne "$INDEX_FUZZ" ]]; then
-  echo "coverage-matrix: Fuzz column sum ($MATRIX_FUZZ) != VP-INDEX Fuzz total ($INDEX_FUZZ)" >> "$ERRFILE"
-fi
+rm -f "${ERRFILE}.matrix_sums"
 
 # --- Check (e): VPs in coverage matrix exist in VP-INDEX ---
 MATRIX_VPS=$(grep -oE 'VP-[0-9]+' "$COVERAGE_MATRIX" | sort -u || true)

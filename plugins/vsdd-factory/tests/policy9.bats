@@ -103,7 +103,8 @@ setup() {
   INPUT=$(jq -nc --arg fp "$VP_INDEX" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | '$HOOK' 2>&1"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"Fuzz column sum"* ]]
+  [[ "$output" == *"fuzz"* ]]
+  [[ "$output" == *"column sum"* ]]
   [[ "$output" == *"POLICY 9 VIOLATION"* ]]
 }
 
