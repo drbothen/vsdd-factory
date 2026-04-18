@@ -245,3 +245,17 @@ Hooks cannot be individually disabled through configuration. They are wired in
 
 The `red-gate.sh` hook is opt-in: it only activates when `.factory/red-gate-state.json`
 exists and declares strict mode. Other hooks are always active.
+
+---
+
+## Agent Permission Model
+
+Each agent has a tool profile that determines what it can do. See [Agents Reference](agents-reference.md#agent-permission-model) for the full matrix.
+
+Key points:
+- **Spec producers** (product-owner, story-writer, architect) write markdown files but cannot execute shell commands. State-manager commits their work.
+- **Code producers** (implementer, test-writer) have full shell access to compile, run tests, and commit in worktrees.
+- **State-manager** has scoped shell access for git operations in `.factory/` only. It runs LAST in every burst to prevent version-race regressions.
+- **pr-manager** delegates all GitHub CLI operations to github-ops via subagent dispatch.
+
+The permission model is documented in [FACTORY.md](../../plugins/vsdd-factory/docs/FACTORY.md) under "Agent Permission Model."
