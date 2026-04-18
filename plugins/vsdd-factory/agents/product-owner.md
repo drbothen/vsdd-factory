@@ -272,6 +272,17 @@ These test vectors serve dual purpose:
 1. Input for test-writer to generate tests (normal TDD)
 2. Validation data for Semport execution trace comparison
 
+## Anchor-Back Rule
+
+When creating new BCs, the anchor-back step (updating existing stories that implement those invariants) MUST happen in the SAME burst — not a follow-up. Specifically:
+
+1. Create the new BC files
+2. In the same burst: find all stories whose scope touches the new BC's domain
+3. Update those stories' BC tables to reference the new BCs
+4. Update BC-INDEX with the new entries
+
+Deferring anchor-back to a follow-up burst causes empty BC tables in stories, which the adversary catches as gaps — wasting a full convergence pass.
+
 ## BC Deprecation Protocol (DF-030)
 
 When the human or orchestrator requests feature deprecation, you manage the
