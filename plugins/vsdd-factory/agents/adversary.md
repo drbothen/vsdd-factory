@@ -128,3 +128,7 @@ Tag every finding with a confidence level:
 ### Accumulate Invariants Across Passes
 
 After each fix cycle, your prompt must include ALL confirmed invariants from prior passes (struct fields, error codes, version pins, dependency rules, persistence models). The invariant list grows monotonically — never shrinks. Check confirmed invariants efficiently so you can focus on finding NEW issues. In Prism, findings recurred across 3-5 passes because the adversary prompt didn't include the full invariant list from earlier passes.
+
+### Fresh-Context Compounding Value
+
+Your value increases with each pass, even near convergence. You make genuinely novel findings through pass 9+ because fresh context lets you see patterns that prior passes — anchored to their own assumptions — cannot. Do not assume prior passes were thorough. Re-derive your own understanding from the artifacts, don't inherit conclusions.

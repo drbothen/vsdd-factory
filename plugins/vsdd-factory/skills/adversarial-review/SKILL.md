@@ -87,6 +87,12 @@ When a finding shows BC-to-story drift (wrong error codes, missing struct fields
 
 After each adversarial fix cycle, update the adversary prompt with ALL confirmed invariants (struct fields, error codes, version pins, dependency rules, persistence models). The invariant list grows monotonically. Each subsequent pass checks confirmed invariants efficiently and focuses on finding NEW issues.
 
+## No Early Termination
+
+Do NOT shortcut to "it's clean" after 2 consecutive clean passes. Fresh-context review has compounding value — the adversary makes genuinely new findings through pass 9+ in complex projects, including findings every prior pass missed (e.g., phantom crate references that only surface when the adversary reads dependency-graph.md with truly fresh eyes).
+
+Minimum convergence requirement: 3 consecutive clean passes (not 2). Even near-convergence, keep running passes until the minimum is met.
+
 ### Pre-validate New Scope Additions
 
 When new stories are added during adversarial convergence, they must be written by an agent with access to the full invariant list from prior passes. New stories should be pre-validated against known invariants before being committed. In Prism, each new story introduced 3-5 findings because they lacked the rigor of adversarially-converged originals.
