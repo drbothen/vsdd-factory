@@ -1,0 +1,10 @@
+---
+document_type: behavioral-contract
+subsystem: CoreEngine
+capability: CAP-001
+---
+
+# BC-2.01.002: Output Encoding
+
+## Postconditions
+1. All output properly encoded
