@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.30.1 — Fix Policy 9 hook defects + verification templates
+
+### Fixed
+
+- **validate-vp-consistency.sh Defect 1:** Multi-word Summary labels (e.g., "Integration test") triggered `set -u` abort on arithmetic comparison. All Policy 9 arithmetic enforcement (Checks c/d/e) was silently disabled. Fixed by normalizing labels to snake_case + defensive non-integer guard.
+- **validate-vp-consistency.sh Defect 2:** EXIT trap clobbered non-zero exit codes to 0. Now preserves original rc through trap.
+- **validate-vp-consistency.sh Defect 3:** Check (d) summed wrong columns (Criticality+Kani+Proptest, missing Fuzz). Replaced with header-detected column positions that find Kani/Proptest/Fuzz by name in the header row, handling any column layout.
+- **Test fixtures** rebuilt from template format (was ad-hoc 5-column format that no project produces)
+
+### Added
+
+- **verification-coverage-matrix-template.md** — 7-column template with column definitions, arithmetic invariant rules, coverage gaps table, and domain invariant verification map
+- **verification-architecture-template.md** — Provable Properties Catalog, P0/P1 lists, purity boundary, verification tooling tables
+- **2 real-world regression tests** in policy9.bats (multi-word labels, fuzz column drift)
+- **2 new test fixture sets** (policy-9-realworld, policy-9-fuzz-drift) matching template format
+
+### Changed
+
+- Architect agent references new templates for verification-coverage-matrix and verification-architecture sections
+- Templates: 110 → 112
+
 ## 0.30.0 — Quality of life + comprehensive guardrails audit complete (Tier 5)
 
 ### Added
