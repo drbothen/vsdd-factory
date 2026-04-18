@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.23.0 — Comprehensive documentation update + Prism lessons + DTU taxonomy + agent permission model
+
+### Added
+- **12 Prism Phase 3 lessons** codified across agents and skills:
+  - State-manager-last ordering, path-prefix verification, burst splitting (>8 artifacts), BC anchor-back in same burst
+  - Fresh-context consistency audit at every gate, universal DTU integration surface taxonomy, BC retirement checklist, trajectory monotonicity, single source of truth rule
+  - Structured human review questions at every gate, minimum 3 clean passes for convergence
+- **Universal DTU integration surface taxonomy** — 6 mandatory categories (inbound data, outbound operations, identity & access, persistence & state, observability & export, enrichment & lookup) replacing project-specific categories
+- **Agent permission model** documented in FACTORY.md, agents-reference, and configuration guide — spec producers (coding), code producers (full), coordinators (restricted), infrastructure (full)
+- **Semantic Anchoring Integrity** — adversary, consistency-validator, product-owner, story-writer, architect enforce semantic correctness of all anchors
+- **DTU assessment gate** mandatory in Phase 1 (P1-06) with pre-Phase 4 clone existence check
+- **CI/CD deferred to post-architecture** (P1-06b) with pre-Phase 4 verification gate
+- **Complete command coverage** — all 96 skills now have slash commands (was 47)
+- **Activate agent ID fix** — 3-segment format (`vsdd-factory:orchestrator:orchestrator`)
+- **Glossary entries** for semantic anchoring, convergence trajectory, integration surface taxonomy, single source of truth, anchor justification, trajectory monotonicity
+
+### Changed
+- **Getting-started guide** now includes `/activate` as Step 2, scaffold-claude-md as Step 5
+- **Cross-cutting skills guide** expanded from ~25 to all 96 skills organized into 20 categories
+- **Commands reference** expanded from ~47 to all 96 commands organized by category
+- **Phase 1 guide** documents mandatory DTU assessment, CI/CD setup, anchor justification, consistency audit
+- **Pipeline overview** documents DTU gate, CI/CD gate, consistency audit, pre-Phase 4 gates
+- **README counts** corrected: commands 47→96, agents 34→33, templates 108→109
+
+### Fixed
+- **Command files** use colon syntax (`vsdd-factory:skill-name`) — was space syntax causing "Unknown skill" errors
+- **Delegation commands** route through orchestrator instead of bouncing
+- **Agent permissions** — product-owner, story-writer, architect reverted to `coding` profile (state-manager owns `.factory/` commits)
+- **All project-specific references** removed from agent and skill files — generic examples only
+- **Session-reviewer** agent name corrected throughout (was `session-review`)
+
 ## 0.22.0 — Semantic Anchoring Integrity
 
 ### Added
