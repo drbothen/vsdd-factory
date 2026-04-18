@@ -17,6 +17,7 @@ set -euo pipefail
 
 ERRFILE=$(mktemp)
 # Preserve exit code through EXIT trap (Defect 2 fix)
+# shellcheck disable=SC2154  # rc is assigned inside the trap via $?
 trap 'rc=$?; rm -f "$ERRFILE" "${ERRFILE}.tools" "${ERRFILE}.declared" 2>/dev/null; exit $rc' EXIT
 
 if ! command -v jq &>/dev/null; then
