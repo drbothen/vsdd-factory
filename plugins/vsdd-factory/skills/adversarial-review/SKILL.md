@@ -53,6 +53,20 @@ Parse `$ARGUMENTS` to determine review target:
 - `implementation` — review source code against specs
 - If no argument, default to `specs`
 
+## Filename Collision Guard (MANDATORY pre-flight)
+
+Before writing any review file, the orchestrator MUST check for filename collisions:
+
+1. **Compute the target path:** `.factory/cycles/<current-cycle>/adversarial-reviews/pass-<N>.md`
+2. **Check if the target path exists.** If yes AND the existing file's content differs from what would be written:
+   - **REFUSE the write.** Do not overwrite.
+   - Emit a clear error: `"Collision: <target-path> already exists with different content. Use a different cycle name or pass number."`
+   - Point the caller to the cycle bootstrap skill (`/vsdd-factory:factory-cycles-bootstrap`) to set up a new cycle directory.
+3. **Check for legacy flat files.** If `.factory/specs/adversarial-review-pass-*.md` files exist (pre-cycle layout), warn:
+   - `"Legacy review files found in .factory/specs/. Consider running /vsdd-factory:factory-cycles-bootstrap to migrate to cycle-keyed layout."`
+
+This prevents silent overwrites of historical reviews in long-lived projects where Phase-1 and Phase-3 reviews coexist. A future enhancement would automate this as a preflight helper script.
+
 ## For Spec Review
 
 Read all spec documents:
