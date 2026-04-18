@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.24.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.24.1-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -180,7 +180,7 @@ plugins/vsdd-factory/
   templates/                 # 108 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (133 tests)
+  tests/                     # bats test suites (138 tests)
   fixtures/                  # Test fixtures (smoke-project)
 ```
 
@@ -195,7 +195,7 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (133 across 5 suites)
+# All tests (138 across 5 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
@@ -203,7 +203,7 @@ bats plugins/vsdd-factory/tests/hooks.bats              # 28 hook enforcement te
 bats plugins/vsdd-factory/tests/skills.bats              # 21 structural tests (Iron Laws, Red Flags, templates)
 bats plugins/vsdd-factory/tests/bin.bats                 # 13 bin helper tests
 bats plugins/vsdd-factory/tests/visual-companion.bats    # 18 visual companion server tests
-bats plugins/vsdd-factory/tests/permissions.bats         # 53 permission model + governance policy tests
+bats plugins/vsdd-factory/tests/permissions.bats         # 58 permission model + governance policy tests
 ```
 
 ### Syntax checking

@@ -66,6 +66,7 @@ Review whether any drift patterns observed in this run warrant a new governance 
 - `architecture_is_subsystem_name_source_of_truth` — Did any subsystem references use non-registry names?
 - `bc_h1_is_title_source_of_truth` — Did any BC references use stale or enriched-only titles?
 - `bc_array_changes_propagate_to_body_and_acs` — Did any story frontmatter `bcs:` changes fail to propagate to body BC tables and ACs?
+- `vp_index_is_vp_catalog_source_of_truth` — Did any VP-INDEX changes fail to propagate to verification-architecture.md or verification-coverage-matrix.md?
 
 **New policy candidates:** If a specific class of drift recurred across 3+ bursts or 2+ adversarial passes, it is a policy candidate. Document: the drift pattern, incident examples, which agents failed to enforce, and the proposed policy statement.
 

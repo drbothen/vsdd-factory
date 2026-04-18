@@ -293,6 +293,20 @@ Policy flags are top-level integrity rules that prevent specific classes of drif
 - **Validation criteria:** Consistency-validator criterion 76
 - **Enforcing agents:** product-owner (BC subsystem validation), architect (subsystem scope verification), story-writer (SS-ID justification), adversary (subsystem label sync review axis), consistency-validator (criterion 76)
 
+#### vp_index_is_vp_catalog_source_of_truth
+
+- **Value:** `true` (always enforced)
+- **Severity floor:** HIGH (blocking)
+- **Symmetric with:** `architecture_is_subsystem_name_source_of_truth` (subsystem names), `bc_h1_is_title_source_of_truth` (BC titles), `bc_array_changes_propagate_to_body_and_acs` (story frontmatter)
+- **Enforces:**
+  - VP-INDEX.md is the authoritative VP enumeration — changes must propagate to architecture anchor docs in the same burst
+  - `verification-architecture.md` Provable Properties Catalog must match VP-INDEX (VP rows, P0/P1 lists, totals)
+  - `verification-coverage-matrix.md` VP-to-Module table and totals must match VP-INDEX
+  - VP-INDEX arithmetic self-consistency (total = sum of per-tool counts = row count)
+- **Validation criteria:** Consistency-validator criteria 78, 79, 80
+- **Enforcing agents:** architect (propagation obligation), adversary (VP-INDEX ↔ arch-doc review axis), product-owner (VP citation change handoff), consistency-validator (criteria 78-80)
+- **Orchestrator rule:** When a burst involves VP additions, retirements, module reassignments, or tool changes, architect must update both architecture anchor docs in the same burst
+
 ### Hierarchical Specification
 
 All specs follow a 4-level hierarchy:

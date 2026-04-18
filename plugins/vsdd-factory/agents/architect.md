@@ -326,6 +326,18 @@ When the orchestrator triggers a deprecation cycle:
 3. Update module-criticality.md (remove or reclassify deprecated module)
 4. Update dependency-graph.md (remove deprecated module's edges)
 
+### VP-INDEX Propagation Obligation (vp_index_is_vp_catalog_source_of_truth)
+
+VP-INDEX.md is the authoritative enumeration of verification properties. Any change to VP-INDEX — VP addition, retirement, module reassignment, tool change (kani/proptest/fuzz/integration), phase reassignment (P0/P1), or total count — MUST propagate in the SAME burst to every architecture document that cites VPs:
+
+1. **`verification-architecture.md`** — Provable Properties Catalog table (VP rows), P0/P1 enumeration lists, any summary counts or grand totals
+2. **`verification-coverage-matrix.md`** — VP-to-Module table rows, per-module Kani/Proptest/Fuzz/Integration counts, Totals row (grand total + per-tool column totals)
+3. **Any other `architecture/*.md`** that embeds a VP reference — grep `VP-[0-9]` across `architecture/` before committing
+
+When modifying `verification-architecture.md` or `verification-coverage-matrix.md`, ALWAYS verify against VP-INDEX as the source of truth for counts and module assignments.
+
+**Arithmetic invariant:** VP-INDEX total must equal the sum of per-tool counts, which must equal the VP row count. If these diverge, the VP-INDEX itself is inconsistent — fix before propagating.
+
 ### Artifact Path References (DF-030)
 
 Architecture artifacts reside in `.factory/specs/architecture/`:

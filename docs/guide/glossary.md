@@ -131,6 +131,9 @@ Red (failing test) then Green (minimum implementation) then Refactor.
 **Trajectory Monotonicity**
 See Convergence Trajectory.
 
+**VP-INDEX Source of Truth**
+Governance policy that VP-INDEX.md is the authoritative enumeration of verification properties. Any change to VP-INDEX (additions, retirements, module reassignments, tool changes, phase changes) must propagate to `verification-architecture.md` and `verification-coverage-matrix.md` in the same burst. Enforced by policy `vp_index_is_vp_catalog_source_of_truth`.
+
 **VP (Verification Property)**
 A machine-verifiable property that must hold in the implementation. Numbered as VP-NNN.
 Part of the L4 specification level. Types include invariant, precondition, postcondition,

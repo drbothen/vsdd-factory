@@ -333,3 +333,24 @@ _check_no_inline_shell() {
 @test "policy: bc_array_propagation criteria 67-69 in consistency-validator" {
   grep -q 'Story Frontmatter-Body BC Coherence (Criteria 67-69)' "$AGENTS/consistency-validator.md"
 }
+
+# Policy 9: vp_index_is_vp_catalog_source_of_truth
+@test "policy: vp_index SOT in architect" {
+  grep -q 'vp_index_is_vp_catalog_source_of_truth' "$AGENTS/architect.md"
+}
+
+@test "policy: vp_index SOT review axis in adversary" {
+  grep -q 'VP-INDEX.*Architecture Document Coherence' "$AGENTS/adversary.md"
+}
+
+@test "policy: vp_index SOT handoff in product-owner" {
+  grep -q 'vp_index_is_vp_catalog_source_of_truth' "$AGENTS/product-owner.md"
+}
+
+@test "policy: vp_index SOT criteria 78-80 in consistency-validator" {
+  grep -q 'VP-INDEX.*Architecture Document Coherence (Criteria 78-80)' "$AGENTS/consistency-validator.md"
+}
+
+@test "policy: vp_index SOT in FACTORY.md" {
+  grep -q 'vp_index_is_vp_catalog_source_of_truth' "${BATS_TEST_DIRNAME}/../docs/FACTORY.md"
+}

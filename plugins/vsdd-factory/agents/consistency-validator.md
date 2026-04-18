@@ -111,7 +111,7 @@ before loading individual detail files:
 - Validation gate result: PASS or FAIL with blocking findings listed
 
 ### Success Criteria
-- All criteria (1-77) checked; no criterion skipped
+- All criteria (1-80) checked; no criterion skipped
 - Zero unresolved FAIL results on CRITICAL-severity criteria before gate passes
 - Every finding includes specific artifact references and remediation guidance
 - Consistency score (0-100%) computed and reported
@@ -126,7 +126,7 @@ Write your report to `.factory/cycles/vX.Y.Z/consistency-report.md` using the
 canonical template. The report must include all summary checks and the full
 findings breakdown.
 
-## Validation Criteria (77)
+## Validation Criteria (80)
 
 ### L1 to L2 to L3 to L4 Chain Validation (Criteria 1-8)
 
@@ -335,6 +335,16 @@ Mis-anchoring is NEVER an "Observation" or "deferred post-v1." It ALWAYS blocks 
 | # | Criterion | What to Check | Severity |
 |---|-----------|--------------|----------|
 | 77 | No ID reuse across artifact lifecycle | Scan all index files (BC-INDEX, VP-INDEX, STORY-INDEX, HS-INDEX) for retired/removed IDs. Verify no active artifact reuses a retired ID. Verify retired entries have `replaced_by:` or removal justification. Verify filename slugs have not changed for any artifact that was renamed (git history check if available). | Major |
+
+### VP-INDEX ↔ Architecture Document Coherence (Criteria 78-80)
+
+| # | Criterion | What to Check | Severity |
+|---|-----------|--------------|----------|
+| 78 | VP-INDEX self-consistency | VP-INDEX total count must equal the sum of per-tool counts (kani + proptest + fuzz + integration) and must equal the actual VP row count. Arithmetic divergence = VP-INDEX itself is inconsistent. | Critical |
+| 79 | VP-INDEX → verification-architecture.md completeness | For each VP in VP-INDEX, verify it appears in `architecture/verification-architecture.md` Provable Properties Catalog with matching module, phase (P0/P1), and tool. Missing or mismatched entries = VP added/changed without arch-doc propagation. | Major |
+| 80 | VP-INDEX → verification-coverage-matrix.md completeness | For each VP in VP-INDEX, verify it appears in `architecture/verification-coverage-matrix.md` VP-to-Module table under its authoritative module row. Sum module rows per tool column — must equal VP-INDEX per-tool totals exactly. Every module in VP-INDEX must have a row in the coverage matrix (including DTU modules). | Major |
+
+**Relationship to existing criteria:** Criterion 7 checks that VPs link to BCs. Criteria 78-80 check that VP-INDEX changes propagate to the two architecture documents that embed VP catalogs and coverage matrices. This catches the specific drift class where VP-INDEX is updated but downstream architecture anchors are not.
 
 ## Failure & Escalation
 

@@ -137,6 +137,17 @@ Every adversarial pass on specs must verify source-of-truth title consistency:
 2. **BC subsystem ↔ ARCH-INDEX sync:** For sampled BCs, verify the `subsystem:` frontmatter matches the exact canonical name in ARCH-INDEX Subsystem Registry. Label drift is **HIGH** severity.
 3. **H1 ↔ postcondition consistency:** For sampled BCs, verify the H1 title accurately describes what the postconditions specify. A misleading title is **HIGH** severity.
 
+### VP-INDEX ↔ Architecture Document Coherence Review Axis
+
+Every adversarial pass on specs must verify VP-INDEX propagation to architecture docs:
+
+1. **VP-INDEX self-consistency:** Confirm total VP count equals the sum of per-tool counts (kani + proptest + fuzz + integration) and equals the actual row count. Arithmetic divergence is **HIGH** severity.
+2. **VP-INDEX → verification-architecture.md:** For each VP in VP-INDEX, confirm it appears in the Provable Properties Catalog with matching module, phase (P0/P1), and tool. Missing or mismatched entries are **HIGH** severity.
+3. **VP-INDEX → verification-coverage-matrix.md:** For each VP in VP-INDEX, confirm it appears in the VP-to-Module table under its authoritative module row. Sum module rows per tool column — must equal VP-INDEX per-tool totals exactly. Mismatched totals are **HIGH** severity.
+4. **Reverse check:** For each VP cited in architecture docs, confirm it exists in VP-INDEX. Orphaned architecture references to removed/retired VPs are **MEDIUM** severity.
+
+This axis catches the specific class of drift where VP-INDEX changes (additions, retirements, module reassignments) fail to propagate to the two architecture anchor documents. This gap can survive many adversarial passes because prior passes tend to focus on BC-INDEX/STORY-INDEX/PRD coherence, not architecture docs that cite VPs.
+
 ### Invariant-to-BC Orphan Detection Review Axis
 
 Every adversarial pass on specs must verify domain invariant coverage:

@@ -332,6 +332,14 @@ When you un-retire BCs, re-anchor BCs across stories, or create new BCs that ind
 
 This separation exists because story body updates (BC tables, AC traces, Token Budget counts) require reading the current body and making targeted edits — story-writer's core competency, not yours. Attempting both roles in one agent causes drift between frontmatter and body.
 
+## VP Citation Change Handoff (vp_index_is_vp_catalog_source_of_truth)
+
+When VP citations change in BC bodies (typically when domain invariants add verification obligations, or when BCs are retired/un-retired affecting VP scope), note in your task output:
+
+"VP citations changed in: [list BC IDs]. Architect must propagate to VP-INDEX, verification-architecture.md, and verification-coverage-matrix.md under `vp_index_is_vp_catalog_source_of_truth` policy."
+
+This ensures the orchestrator dispatches architect AFTER you complete for VP-related changes, preventing the class of drift where VP-INDEX is updated but architecture anchor docs are not.
+
 ## BC Deprecation Protocol (DF-030)
 
 When the human or orchestrator requests feature deprecation, you manage the

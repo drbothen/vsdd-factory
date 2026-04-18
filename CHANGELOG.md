@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.24.1 — Policy 9: VP-INDEX source of truth
+
+### Added
+
+- **Policy 9: `vp_index_is_vp_catalog_source_of_truth`** — VP-INDEX.md is the authoritative VP enumeration; changes must propagate to verification-architecture.md and verification-coverage-matrix.md in the same burst
+- **Architect agent:** VP-INDEX propagation obligation — must touch VP-INDEX AND both architecture anchor docs in the same output
+- **Adversary agent:** VP-INDEX ↔ architecture document coherence review axis (4-point verification: self-consistency, catalog match, coverage matrix match, reverse check)
+- **Product-owner agent:** VP citation change handoff — notes arch-doc propagation obligation when VP citations change in BCs
+- **Consistency-validator criteria 78-80:** VP-INDEX self-consistency (arithmetic), VP-INDEX → verification-architecture.md completeness, VP-INDEX → verification-coverage-matrix.md completeness
+- **5 BATS tests** for policy 9 presence in architect, adversary, product-owner, consistency-validator, FACTORY.md
+- **Glossary term:** VP-INDEX Source of Truth
+
+### Changed
+
+- Consistency-validator criteria count: 77 → 80
+- Session-review template: added policy 9 to governance policy audit checklist
+- README: test count 133 → 138
+
 ## 0.24.0 — 8 governance policies formalized + permission model regression tests
 
 ### Added
