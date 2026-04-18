@@ -482,8 +482,16 @@ workflow:
       depends_on: [phase-2-state-backup]
       approval:
         prompt: >
-          Phase 2 Story Decomposition is complete. Please review the story breakdown,
-          dependency graph, and consistency report. Approve to proceed to implementation.
+          Phase 2 Story Decomposition is complete. Review stories, dependency graph,
+          wave schedule, and holdout scenarios.
+          
+          Questions for review:
+          - Story coverage: are ALL BCs covered? Any intentional gaps?
+          - DTU scope: does dtu-assessment.md cover all integration surfaces (sensors, actions, infusions, log forwarding)?
+          - Wave ordering: does the dependency graph make sense for your team's workflow?
+          - Naming: are subsystem IDs, error codes, and crate names consistent with Phase 1 decisions?
+          
+          Approve to proceed to Phase 3 implementation.
         artifacts:
           - ".factory/stories/epics.md"
           - ".factory/stories/dependency-graph.md"
