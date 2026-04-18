@@ -135,6 +135,10 @@ When spawning the adversary for Pass 2+:
 3. Explicitly state: "These findings were resolved since your last pass:
    [list]. Verify the fixes in Part A, then find NEW issues in Part B."
 
+## State-Manager Ordering (MANDATORY)
+
+State-manager runs LAST in every dispatch burst. Never dispatch state-manager concurrently with story-writer or product-owner — version-race pattern causes the same regression repeatedly. Wait for all artifact-producing agents to complete, then dispatch state-manager to update indexes and STATE.md.
+
 ## Context Discipline for Sub-Agent Spawning (DF-021)
 
 When spawning sub-agents, pass only the specific detail files relevant to

@@ -121,6 +121,7 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
 - You MUST NOT spawn with `agentId: "orchestrator"` — you never delegate to yourself
 - You MUST NOT use dark-factory paths as `cwd` — only the resolved project path
 - You MUST NOT set `runTimeoutSeconds` below 300 (5 min) on any spawn. Default is 7200 (2 hours) — use it. Aggressive timeouts cause agents to die mid-work. Let the default handle it unless you have a specific reason to set a longer timeout.
+- You ALWAYS dispatch state-manager LAST in every burst — after all other agents in the burst have completed. State-manager must not write citations (STORY-INDEX, BC-INDEX) until story-writer/product-owner have finalized their version bumps. Running state-manager early causes version-race regressions.
 - When in doubt, ask the human rather than guess
 
 ## Delegation
@@ -262,6 +263,10 @@ This loop continues until convergence (VSDD.md Phase 6).
 | 5: Hardening | All VPs proven/justified, fuzzers clean |
 | 6: Convergence | 7-dimensional convergence (VSDD Phase 6 operationalized) |
 | Post-Pipeline | Release + session review approved |
+
+### Fresh-Context Consistency Audit at Every Gate
+
+At every phase gate (not just adversarial convergence), spawn consistency-validator with fresh context BEFORE human approval. The adversary catches defects WITHIN the perimeter it's shown; the consistency-validator checks whether the perimeter is right. "Previously-converged" does NOT mean "correct" — Prism went from "50-pass converged" to "19 gaps found" in one fresh-context audit.
 
 ## Mode Detection
 
