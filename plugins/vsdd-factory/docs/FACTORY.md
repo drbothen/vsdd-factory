@@ -196,6 +196,19 @@ If any check fails, STOP immediately and report the error. Do not attempt to fix
 - **Context Reset:** The Adversary gets a fresh context window on every review pass
 - **Five-Dimensional Convergence:** Not done until specs, tests, implementation, AND formal proofs all survive adversarial review
 
+### Single Source of Truth Rule
+
+Every metric (BC count, story count, wave summary, VP count) has ONE authoritative source. All other documents cite the authoritative source — they do not re-derive the value.
+
+| Metric | Authoritative Source | Cites (do not re-derive) |
+|--------|---------------------|--------------------------|
+| BC count | BC-INDEX.md | PRD, STORY-INDEX, STATE.md |
+| Story count | STORY-INDEX.md | STATE.md Wave Summary |
+| VP count | VP-INDEX.md | ARCH-INDEX, STATE.md |
+| Wave assignment | sprint-state.yaml | STORY-INDEX, STATE.md |
+
+When updating a count, update the authoritative source FIRST, then propagate to citing documents. State-manager should auto-generate denormalized copies from the authoritative source where possible.
+
 ### Hierarchical Specification
 
 All specs follow a 4-level hierarchy:
@@ -334,6 +347,36 @@ Wall" section documenting excluded paths and rationale. The wall is enforced in
 Soft instructions alone are insufficient for wall enforcement (same lesson as the
 orchestrator non-coding rule from DF-023). Walls must be structurally enforced
 through context exclusion.
+
+### Agent Permission Model
+
+Agents are assigned tool profiles based on their role, not their convenience. The principle: separate "who writes files" from "who commits them."
+
+| Role | Agents | Profile | Shell access | Commits |
+|------|--------|---------|-------------|---------|
+| **Spec producers** | product-owner, story-writer, architect | `coding` | No | State-manager commits `.factory/` artifacts |
+| **Code producers** | implementer, test-writer | `full` | Yes — compile, test, commit in worktrees | Direct commits in feature branch worktrees |
+| **Coordinators** | orchestrator, pr-manager | Restricted | No — delegate everything | pr-manager spawns github-ops for gh operations |
+| **Infrastructure** | devops-engineer, state-manager | `full` | Yes — git, gh, tooling | devops-engineer owns repo/CI/CD; state-manager owns `.factory/` branch |
+| **Reviewers** | adversary, code-reviewer, pr-reviewer, spec-reviewer, consistency-validator, holdout-evaluator | `coding` or `read-only` | Read artifacts, write findings | No commits — findings go to `.factory/` via state-manager |
+
+**Why spec producers don't get shell access:**
+
+1. **They write markdown, not code.** They never need to compile, run tests, or execute build tools.
+2. **Centralized commits prevent version-race regressions.** If product-owner, story-writer, and state-manager all commit independently, citation version mismatches occur (e.g., state-manager writes STORY-INDEX citations BEFORE story-writer bumps the version).
+3. **State-manager runs LAST in every burst** (Lesson 1). It sees all written files and commits atomically.
+4. **Audit trail is cleaner.** All `.factory/` commits come from state-manager — one committer, predictable history.
+
+**Why code producers get shell access:**
+
+1. **They must compile and run tests.** Implementer runs `cargo test` after each TDD step. Test-writer runs `cargo check` to verify stubs compile.
+2. **They work in isolated worktrees** on feature branches — different git lifecycle than `.factory/`.
+3. **Their commits are per-story**, not per-burst — different granularity than spec artifacts.
+
+**Why coordinators don't execute:**
+
+1. **Orchestrator is a scheduler, not a doer.** It reads workflow data and dispatches agents. If it could write files, it would bypass specialist boundaries.
+2. **pr-manager is a project manager for PRs.** It triages findings and delegates fixes. It spawns github-ops for all `gh` and `git` commands — same principle as orchestrator spawning specialists.
 
 ### File Conventions
 - All specs use Markdown with YAML frontmatter
