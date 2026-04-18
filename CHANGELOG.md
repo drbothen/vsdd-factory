@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.30.0 — Quality of life + comprehensive guardrails audit complete (Tier 5)
+
+### Added
+
+- **Policy reference matrix + violation playbook** (`docs/guide/policy-reference.md`) — single-page quick reference for all 9 policies with enforcement matrix (hook, criteria, agents) and per-policy step-by-step fix procedures
+- **register-artifact skill** — automates INDEX file registration after creating BCs, VPs, stories, or holdout scenarios. Supports batch registration. 4 BATS tests.
+- **recover-state skill** — reconstructs `.factory/STATE.md` from artifacts on disk when corrupted or missing. 9-step procedure with backup, artifact scanning, phase determination, user validation, and `--dry-run` option. 7 BATS tests.
+
+### Changed
+
+- Skills: 96 → 101, Commands: 96 → 101, Templates: 109 → 110
+- Test count: 292 → 303 across 9 suites
+
+### Audit Summary
+
+This release completes the 5-tier comprehensive guardrails audit:
+- **Tier 1 (v0.27.0):** 3 data safety hooks — destructive command guard, branch protection, factory branch guard
+- **Tier 2 (v0.27.1):** 3 policy enforcement hooks — subsystem names, BC titles, story-BC sync
+- **Tier 3 (v0.28.0):** All 33 agents standardized with Tool Access, Failure & Escalation, Remember, AGENT-SOUL.md
+- **Tier 4 (v0.29.0):** 31 hook robustness + error contract tests, orchestrator FACTORY.md refs
+- **Tier 5 (v0.30.0):** Policy reference docs, register-artifact skill, recover-state skill
+
+Total impact: 16 hooks (was 11), 303 tests (was 133), 101 skills (was 96), all agents standardized.
+
 ## 0.29.0 — Testing gaps + orchestrator standardization (Tier 3-4)
 
 ### Added
