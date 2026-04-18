@@ -85,11 +85,11 @@ Draft actual formal property definitions alongside the behavioral spec:
 - TLA+ invariant definitions
 
 #### Verification Coverage Matrix
-Map every VP to its target module/function and track coverage status:
+Map every VP to its target module and track per-method coverage status.
+Use the template at `../../templates/verification-coverage-matrix-template.md`.
 
-| VP ID | Module | Function | Proof Method | Status |
-|-------|--------|----------|-------------|--------|
-| VP-001 | [module] | [function] | kani | draft |
+Use the template at `../../templates/verification-architecture-template.md` for the
+verification-architecture.md section (Provable Properties Catalog, P0/P1 lists, tooling).
 
 ## Architecture Feasibility Report (`.factory/specs/architecture-feasibility-report.md`)
 

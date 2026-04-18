@@ -88,6 +88,25 @@ setup() {
   bash -n "$HOOK"
 }
 
+# ---------- Real-world fixture: multi-word labels + 7-column matrix ----------
+
+@test "policy-9: realworld fixture passes (multi-word labels, consistent)" {
+  VP_INDEX="$FIXTURES/policy-9-realworld/specs/verification-properties/VP-INDEX.md"
+  INPUT=$(jq -nc --arg fp "$VP_INDEX" '{tool_input: {file_path: $fp}}')
+  run bash -c "echo '$INPUT' | '$HOOK' 2>&1"
+  [ "$status" -eq 0 ]
+  [[ -z "$output" ]]
+}
+
+@test "policy-9: fuzz-drift fixture detects column arithmetic mismatch" {
+  VP_INDEX="$FIXTURES/policy-9-fuzz-drift/specs/verification-properties/VP-INDEX.md"
+  INPUT=$(jq -nc --arg fp "$VP_INDEX" '{tool_input: {file_path: $fp}}')
+  run bash -c "echo '$INPUT' | '$HOOK' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"Fuzz column sum"* ]]
+  [[ "$output" == *"POLICY 9 VIOLATION"* ]]
+}
+
 @test "policy-9: hooks.json wires validate-vp-consistency" {
   jq -e '.hooks.PostToolUse[0].hooks[] | select(.command | contains("validate-vp-consistency"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
 }
