@@ -194,7 +194,7 @@ Templates are read-only during pipeline execution. If you need to customize outp
 
 ## Hook behavior
 
-The plugin registers 10 hooks across four lifecycle events. Each hook enforces a specific
+The plugin registers 13 hooks across four lifecycle events. Each hook enforces a specific
 discipline.
 
 ### PreToolUse hooks (Edit|Write)
@@ -205,12 +205,14 @@ discipline.
 | `protect-vp.sh` | Blocks edits to verification properties with `Status: green` (immutable once proven) |
 | `protect-bc.sh` | Blocks edits to behavioral contracts with `Status: green` |
 | `red-gate.sh` | Enforces TDD red-before-green when `.factory/red-gate-state.json` declares strict mode |
+| `factory-branch-guard.sh` | Blocks writes to `.factory/` when not mounted as worktree on `factory-artifacts` branch |
 
 ### PreToolUse hooks (Bash)
 
 | Hook | What it enforces |
 |------|-----------------|
-| `verify-git-push.sh` | Prompts verification before `git push` |
+| `destructive-command-guard.sh` | Blocks `rm -rf` on protected paths (.factory/, src/, tests/), `rm` on INDEX/STATE files, `git reset --hard`, `git clean -f`, `git checkout -- .` |
+| `verify-git-push.sh` | Blocks force push (`--force`/`-f`) and direct push to protected branches (main, master, develop) |
 | `check-factory-commit.sh` | Reminds to update STATE.md when committing to `.factory/` |
 
 ### PostToolUse hooks (Edit|Write)
@@ -218,6 +220,7 @@ discipline.
 | Hook | What it enforces |
 |------|-----------------|
 | `purity-check.sh` | Warns on side-effect patterns in pure-core paths (`*/pure/**`, `*/core/**`) |
+| `validate-vp-consistency.sh` | Validates VP-INDEX ↔ verification-architecture ↔ coverage-matrix consistency (Policy 9) |
 
 ### PostToolUse hooks (Bash)
 

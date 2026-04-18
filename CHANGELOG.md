@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.27.0 — Data safety hooks (Tier 1)
+
+### Added
+
+- **destructive-command-guard.sh** — PreToolUse Bash hook blocking `rm -rf` on protected paths (.factory/, src/, tests/), `rm` on source-of-truth files (STATE.md, *-INDEX.md, prd.md), `git reset --hard`, `git clean -f`, `git checkout -- .`, `git restore .`, `git rm` on spec/story paths. Each block message includes the safe alternative. 46 BATS tests.
+- **factory-branch-guard.sh** — PreToolUse Edit|Write hook blocking writes to `.factory/` when not mounted as git worktree on `factory-artifacts` branch. Also guards `.factory-project/` for multi-repo projects. Block messages include the exact recovery command. 6 BATS tests.
+- **verify-git-push.sh** enhanced — now blocks direct push to protected branches (main, master, develop) in addition to force push. Block messages suggest the PR workflow. 10 BATS tests.
+
+### Changed
+
+- Hook count: 10 → 13
+- Test count: 161 → 223 across 7 suites
+- hooks-reference.md: complete rewrite covering all 13 hooks with detail sections
+- configuration.md: updated hook tables with all new hooks
+- README: updated hook count, test count, suite count, suite listings
+
 ## 0.26.0 — Policy registry, cycle management, scoped reviews
 
 ### Added

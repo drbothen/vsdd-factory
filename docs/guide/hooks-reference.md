@@ -1,6 +1,6 @@
 # Hooks Reference
 
-The vsdd-factory plugin ships 10 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
+The vsdd-factory plugin ships 13 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
 
 ---
 
@@ -12,9 +12,12 @@ The vsdd-factory plugin ships 10 hook scripts wired through `hooks.json`. Hooks 
 | `protect-vp.sh` | PreToolUse | Edit\|Write | Green Verification Properties are immutable | Yes |
 | `protect-bc.sh` | PreToolUse | Edit\|Write | Green Behavioral Contracts are immutable | Yes |
 | `red-gate.sh` | PreToolUse | Edit\|Write | TDD red-before-green discipline | Yes (when strict mode active) |
-| `verify-git-push.sh` | PreToolUse | Bash | Warn before `git push`, block `--force` | Conditional |
+| `factory-branch-guard.sh` | PreToolUse | Edit\|Write | `.factory/` writes only allowed on `factory-artifacts` worktree | Yes |
+| `destructive-command-guard.sh` | PreToolUse | Bash | Blocks `rm -rf` on protected paths, `git reset --hard`, `git clean -f`, `rm` on INDEX/STATE files | Yes |
+| `verify-git-push.sh` | PreToolUse | Bash | Blocks force push and direct push to protected branches (main, master, develop) | Yes |
 | `check-factory-commit.sh` | PreToolUse | Bash | Remind about STATE.md after `.factory/` commits | No (advisory) |
 | `purity-check.sh` | PostToolUse | Edit\|Write | Pure-core boundary -- no side effects in pure modules | No (warn-only) |
+| `validate-vp-consistency.sh` | PostToolUse | Edit\|Write | VP-INDEX ↔ verification-architecture ↔ coverage-matrix consistency (Policy 9) | Yes (exit 2 on mismatch) |
 | `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) |
 | `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) |
 | `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) |
@@ -64,13 +67,49 @@ When mode is `"off"` or the state file does not exist, the hook allows all edits
 
 **Debugging:** Check `.factory/red-gate-state.json`. If strict mode is active and your edit is blocked, add the file to the `red` array or switch mode to `"off"`.
 
+### factory-branch-guard.sh
+
+**Event:** PreToolUse on Edit or Write
+
+Blocks writes to `.factory/` paths when the directory is not mounted as a git worktree on the `factory-artifacts` branch. Prevents artifacts from being committed to the wrong branch (develop, main) when the worktree is missing or misconfigured. Also guards `.factory-project/` for multi-repo projects (expects `factory-project-artifacts` branch).
+
+**Checks:**
+1. Does `.factory/.git` exist? (worktree marker file)
+2. Is the worktree on `factory-artifacts` branch?
+
+**Debugging:** Run `git -C .factory rev-parse --abbrev-ref HEAD` to check the branch. If wrong: `cd .factory && git checkout factory-artifacts`. If `.factory/.git` is missing: `git worktree add .factory factory-artifacts`.
+
+### destructive-command-guard.sh
+
+**Event:** PreToolUse on Bash
+
+Blocks destructive shell commands that could cause irreversible data loss. Each block message includes a suggestion for the safe alternative.
+
+**Blocked operations:**
+- `rm -rf` / `rm -r` targeting `.factory/`, `src/`, `tests/` (allows build dirs like `target/`, `node_modules/`)
+- `rm` targeting source-of-truth files (STATE.md, BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md, prd.md)
+- `git reset --hard` (suggest `git stash` or `git reset --soft`)
+- `git clean -f` / `git clean -fd` (suggest `git clean -n` dry-run first)
+- `git checkout -- .` / `git restore .` (suggest targeting specific files)
+- `git rm -r` on `.factory/specs/` or `.factory/stories/`
+
+**Allowed operations:** `rm -rf target/`, `rm -rf .worktrees/STORY-NNN/`, `rm` of temp files, `git reset --soft`, `git clean -n`, `git stash`.
+
+**Debugging:** If blocked, read the suggestion in the error message. Most blocks have a safe alternative that achieves the same goal.
+
 ### verify-git-push.sh
 
 **Event:** PreToolUse on Bash
 
-Intercepts `git push` commands. Blocks force pushes (`--force` or `-f`). For normal pushes, injects a reminder to ensure `cargo test`, `clippy`, and `fmt` are clean before pushing.
+Intercepts `git push` commands. Blocks force pushes (`--force` or `-f`) and direct pushes to protected branches (main, master, develop). For normal pushes to feature branches, injects a reminder to ensure tests pass before pushing.
 
-**Debugging:** If a push is blocked, check for `--force` in the command. Force pushes require removal of the flag.
+**Blocked operations:**
+- `git push origin main` / `master` / `develop` — bypasses PR/review gates
+- `git push --force` / `-f` — overwrites remote history
+
+Block messages suggest the PR workflow: push to a feature branch and create a PR.
+
+**Debugging:** If blocked, push to a feature branch instead (`git push origin feature/STORY-NNN`) and create a PR (`gh pr create --base main`).
 
 ### check-factory-commit.sh
 
@@ -83,6 +122,23 @@ Advisory hook that fires after `git commit` commands involving `.factory/`. If S
 **Event:** PostToolUse on Edit or Write
 
 Enforces the pure-core boundary from SOUL.md. Files under `*/pure/**`, `*/core/**`, or ending in `_pure.rs` / `.pure.ts` are scanned for known side-effect patterns (I/O, network, global state mutation). Emits a warning to stderr when violations are found. Non-blocking by design -- architectural drift is surfaced, not enforced. The regression gate and CI catch hard failures.
+
+### validate-vp-consistency.sh
+
+**Event:** PostToolUse on Edit or Write
+
+Enforces Policy 9 (`vp_index_is_vp_catalog_source_of_truth`). After any edit to VP-INDEX.md, verification-architecture.md, or verification-coverage-matrix.md, validates consistency across all three files.
+
+**Checks:**
+1. Every VP in VP-INDEX appears in verification-architecture.md Provable Properties Catalog
+2. Every VP in VP-INDEX appears in verification-coverage-matrix.md VP-to-Module table
+3. VP-INDEX per-tool summary totals match actual row counts
+4. Coverage matrix Totals row matches data row sums
+5. VPs referenced in coverage matrix exist in VP-INDEX (reverse check)
+
+Exits non-zero (exit 2) on mismatch with a diagnostic listing the specific discrepancy. Tested with 3 fixture sets (green, canary with column drift, missing-VP).
+
+**Debugging:** Read the error output — it names the specific VP, file, and mismatch. Fix the inconsistency and re-save. The hook re-validates on each edit.
 
 ### regression-gate.sh
 

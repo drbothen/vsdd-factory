@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.26.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.27.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -131,7 +131,7 @@ graph TD
 | **Agents** | 33 | Specialist personas + 10 orchestrator workflow files |
 | **Skills** | 96 | Phase workflows, cross-cutting operations, design/UX, market intelligence |
 | **Commands** | 96 | Slash-command entry points — every skill has a corresponding command |
-| **Hooks** | 10 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, etc.) |
+| **Hooks** | 13 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, etc.) |
 | **Templates** | 109 | Output format definitions for every artifact type |
 | **Workflows** | 15 | Lobster-as-data files defining phase and mode sequences |
 | **Bin helpers** | 4 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan) |
@@ -180,7 +180,7 @@ plugins/vsdd-factory/
   templates/                 # 108 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (161 tests)
+  tests/                     # bats test suites (223 tests)
   fixtures/                  # Test fixtures (smoke-project)
 ```
 
@@ -195,16 +195,17 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (152 across 6 suites)
+# All tests (223 across 7 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
-bats plugins/vsdd-factory/tests/hooks.bats              # 28 hook enforcement tests
+bats plugins/vsdd-factory/tests/hooks.bats              # 44 hook enforcement tests
 bats plugins/vsdd-factory/tests/skills.bats              # 33 structural tests (Iron Laws, Red Flags, templates, policies)
 bats plugins/vsdd-factory/tests/bin.bats                 # 13 bin helper tests
 bats plugins/vsdd-factory/tests/visual-companion.bats    # 18 visual companion server tests
 bats plugins/vsdd-factory/tests/permissions.bats         # 58 permission model + governance policy tests
 bats plugins/vsdd-factory/tests/policy9.bats             # 11 VP-INDEX consistency hook tests
+bats plugins/vsdd-factory/tests/destructive-guard.bats   # 46 destructive command guard tests
 ```
 
 ### Syntax checking
@@ -218,7 +219,7 @@ done
 ### CI
 
 GitHub Actions runs on every push and PR to main. The workflow installs tools, syntax-checks
-all shell scripts, runs all six bats test suites, validates JSON manifests, and parses
+all shell scripts, runs all seven bats test suites, validates JSON manifests, and parses
 every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 
 ## Documentation
