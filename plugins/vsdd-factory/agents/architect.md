@@ -181,50 +181,37 @@ The human confirms or overrides the multi-repo recommendation before repos are c
 
 ## DTU Assessment
 
-After producing api-surface.md, assess external service dependencies:
+After producing api-surface.md, assess ALL external service dependencies across every integration surface.
 
-### Step 1: Identify External Dependencies
+### Step 1: Identify External Dependencies by Integration Surface
 
-Scan api-surface.md and module-decomposition.md for:
-- HTTP client calls to external URLs
-- SDK imports for third-party services (aws-sdk, stripe, octokit, etc.)
-- Webhook receivers from external services
-- OAuth/OIDC providers
-- Database services (if external: DynamoDB, Supabase, etc.)
-- Message queue services (if external: SQS, RabbitMQ cloud, etc.)
+Scan api-surface.md, module-decomposition.md, and dependency-graph.md. Classify every external dependency by its business role — not by protocol. An external REST API could be an inbound data source, an outbound action, or an enrichment lookup depending on how your product uses it.
 
-### Step 2: Classify Each Dependency
+**MANDATORY — assess ALL six categories:**
 
-For each external dependency, determine:
+| Category | Data flow | What to scan for |
+|----------|-----------|-----------------|
+| **Inbound data sources** | External → Product | APIs polled, feeds consumed, webhooks received, sensor data, event streams |
+| **Outbound operations** | Product → External | Notifications, ticketing, payments, command execution, file delivery |
+| **Identity & access** | Bidirectional | OAuth/OIDC providers, API key managers, credential stores, SSO |
+| **Persistence & state** | Product ↔ Storage | External databases, caches, object stores, message queues |
+| **Observability & export** | Product → Monitoring | Log aggregators, metrics platforms, tracing backends, analytics |
+| **Enrichment & lookup** | External → Product | Threat intel, geocoding, pricing services, NVD, license databases |
 
-| Field | Value |
-|-------|-------|
-| Service name | e.g., Stripe |
-| Integration type | REST API / GraphQL / WebSocket / Webhook / SDK |
-| Usage scope | Read-only / CRUD / Complex workflow / Reliability-critical |
-| Recommended fidelity | L1 (shape) / L2 (stateful) / L3 (behavioral) / L4 (adversarial) |
-| DTU needed? | yes / no (e.g., no if it's a simple static config endpoint) |
-| Justification | Why this fidelity level |
+If a category has no services, state "None identified — rationale: ..." Do NOT omit categories.
 
-### Fidelity Decision Matrix
+### Step 2: Classify Fidelity per Dependency
 
 | Usage Scope | Examples | Fidelity |
 |-------------|----------|----------|
-| Read-only, low frequency | Fetch config, check status | L1 (API Shape) -- or skip DTU |
+| Read-only, low frequency | Fetch config, check status | L1 (API Shape) — or skip DTU |
 | CRUD operations | Create/read/update/delete resources | L2 (Stateful) |
 | Complex workflows | OAuth flows, webhook chains, pagination | L3 (Behavioral) |
 | Reliability-critical | Payment processing, auth/session mgmt | L4 (Adversarial) |
 
 ### Step 3: Produce DTU Assessment
 
-Write `.factory/specs/dtu-assessment.md` using `../../templates/dtu-assessment-template.md`:
-
-| Service | Type | Scope | Fidelity | DTU? | Justification |
-|---------|------|-------|----------|------|---------------|
-| Stripe | REST API | Payment processing | L4 | YES | Reliability-critical, need failure injection |
-| GitHub API | REST API | Issue/PR CRUD | L2 | YES | Stateful CRUD, need consistent state |
-| SendGrid | REST API | Fire-and-forget email | L1 | NO | Simple POST, mock sufficient |
-| Okta | REST + OAuth | Auth + session mgmt | L3 | YES | Complex OAuth flow + token lifecycle |
+Write `.factory/specs/dtu-assessment.md` using `../../templates/dtu-assessment-template.md`. The template has mandatory sections for each integration surface category. Fill every section — do not skip.
 
 ### Step 4: Spawn Research Agent for API Specs
 
@@ -236,18 +223,8 @@ For each service marked DTU=YES:
 ### No External Dependencies?
 
 If the product has zero external service dependencies (e.g., a pure CLI tool
-that processes local files), write:
-
-```markdown
-# DTU Assessment: [Product Name]
-
-## Result: NO DTU REQUIRED
-
-This product has no external service dependencies. All inputs are local
-files/stdin, all outputs are local files/stdout. No behavioral clones needed.
-```
-
-Skip all DTU-related steps in Phase 2 and beyond.
+that processes local files), write dtu-assessment.md with `DTU_REQUIRED: false`
+and rationale for each category: "None identified — pure local I/O."
 
 ## Gene Transfusion Assessment
 
