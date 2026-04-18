@@ -46,4 +46,8 @@ echo "== Permission model tests =="
 bats tests/permissions.bats
 
 echo
+echo "== Policy 9 VP-consistency tests =="
+bats tests/policy9.bats
+
+echo
 echo "All tests passed."

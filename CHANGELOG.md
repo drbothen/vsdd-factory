@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.25.0 — Policy 9 lint hook + adversarial-review skill hardening
+
+### Added
+
+- **Policy 9 lint hook** (`hooks/validate-vp-consistency.sh`) — PostToolUse hook that validates VP-INDEX.md ↔ verification-architecture.md ↔ verification-coverage-matrix.md consistency on every edit. Checks: (a) every VP-INDEX VP appears in both arch docs, (b) per-tool summary totals match row counts, (c) coverage matrix Totals row matches data row sums, (d) no orphaned VP references in coverage matrix. Wired into hooks.json PostToolUse.
+- **Architect source-of-truth invariants table** — consolidates ARCH-INDEX (subsystem names), BC H1 (titles), VP-INDEX (VP catalog) as the three authoritative sources with their downstream documents. Cross-links to validate-vp-consistency.sh as automated enforcer.
+- **Adversarial-review post-adversary persistence** — explicit orchestrator step to capture adversary findings and dispatch state-manager to persist them to `.factory/cycles/<cycle>/adversarial-reviews/pass-<N>.md`. Prevents findings loss when adversary (read-only agent) returns chat text that disappears on session boundary.
+- **Adversarial-review filename collision guard** — pre-flight check refuses to overwrite existing review files with different content. Points to cycle bootstrap skill for resolution. Warns about legacy flat-file layout.
+- **11 BATS tests** for Policy 9 hook (3 fixture sets: green, canary with fuzz column drift, missing-VP)
+- **3 BATS tests** for adversarial-review persistence + collision guard presence
+
+### Changed
+
+- README: test count 138 → 152, suite count 5 → 6
+- run-all.sh: includes policy9.bats suite
+
 ## 0.24.1 — Policy 9: VP-INDEX source of truth
 
 ### Added
