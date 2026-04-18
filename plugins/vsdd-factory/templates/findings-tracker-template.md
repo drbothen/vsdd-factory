@@ -23,4 +23,4 @@ traces_to: ""
 
 | ID | Severity | Title | Status | Resolution Pass | Notes |
 |----|----------|-------|--------|----------------|-------|
-| ADV-P[N]-NNN | [severity] | [title] | [open/resolved/dismissed/deferred] | [pass] | [notes] |
+| ADV-<CYCLE>-P[N]-[SEV]-NNN | [severity] | [title] | [open/resolved/dismissed/deferred] | [pass] | [notes] |

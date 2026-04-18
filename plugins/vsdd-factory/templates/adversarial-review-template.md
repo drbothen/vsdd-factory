@@ -15,17 +15,32 @@ previous_review: null
 
 # Adversarial Review: [Project Name] (Pass [N])
 
+## Finding ID Convention
+
+Finding IDs use the format: `ADV-<CYCLE>-P<PASS>-<SEV>-<SEQ>`
+
+- `ADV`: Fixed prefix identifying adversarial findings
+- `<CYCLE>`: Cycle prefix from `.factory/current-cycle` (e.g., `P1CONV`, `P3PATCH`)
+  - If no current-cycle file exists, omit the cycle segment (falls back to `ADV-P<PASS>-<SEV>-<SEQ>`)
+- `<PASS>`: Two-digit pass number (e.g., `P01`, `P24`)
+- `<SEV>`: Severity abbreviation (`CRIT`, `HIGH`, `MED`, `LOW`)
+- `<SEQ>`: Three-digit sequence within the pass (e.g., `001`)
+
+Examples: `ADV-P1CONV-P03-CRIT-001`, `ADV-P3PATCH-P24-HIGH-002`, `ADV-P01-MED-003` (no cycle)
+
+The cycle prefix prevents ID collisions when multiple convergence cycles coexist in the same project.
+
 ## Part A — Fix Verification (pass >= 2 only)
 
 | ID | Previous Severity | Status | Notes |
 |----|-------------------|--------|-------|
-| ADV-P[N-1]-001 | CRITICAL | RESOLVED / PARTIALLY_RESOLVED / UNRESOLVED | [evidence] |
+| ADV-<CYCLE>-P[N-1]-[SEV]-001 | CRITICAL | RESOLVED / PARTIALLY_RESOLVED / UNRESOLVED | [evidence] |
 
 ## Part B — New Findings (or all findings for pass 1)
 
 ### CRITICAL
 
-#### ADV-[PN]-001: [Finding Title]
+#### ADV-<CYCLE>-P[N]-CRIT-001: [Finding Title]
 - **Severity:** CRITICAL
 - **Category:** [contradictions|interface-gaps|security-surface|concurrency|
                  verification-gaps|missing-edge-cases|ambiguous-language|
@@ -37,13 +52,13 @@ previous_review: null
 - **Proposed Fix:** [how to fix it]
 
 ### HIGH
-#### ADV-[PN]-002: ...
+#### ADV-<CYCLE>-P[N]-HIGH-001: ...
 
 ### MEDIUM
-#### ADV-[PN]-003: ...
+#### ADV-<CYCLE>-P[N]-MED-001: ...
 
 ### LOW
-#### ADV-[PN]-004: ...
+#### ADV-<CYCLE>-P[N]-LOW-001: ...
 
 ## Summary
 

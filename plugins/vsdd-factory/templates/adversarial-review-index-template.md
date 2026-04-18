@@ -19,14 +19,14 @@ severity_distribution: { CRIT: 0, HIGH: 0, MED: 0, LOW: 0 }
 
 | ID | Severity | Category | Title | Status | Depends On | Blocks |
 |----|----------|----------|-------|--------|-----------|--------|
-| ADV-P[N]-001 | [severity] | [category] | [title] | open | -- | [IDs] |
+| ADV-<CYCLE>-P[N]-001 | [severity] | [category] | [title] | open | -- | [IDs] |
 
 ## Dependency Graph
 
 ```text
 [Finding dependency DAG. Example:]
-ADV-P[N]-001 --blocks--> ADV-P[N]-005
-ADV-P[N]-003 --blocks--> ADV-P[N]-012
+ADV-<CYCLE>-P[N]-001 --blocks--> ADV-<CYCLE>-P[N]-005
+ADV-<CYCLE>-P[N]-003 --blocks--> ADV-<CYCLE>-P[N]-012
 [All other findings are independent]
 ```
 
