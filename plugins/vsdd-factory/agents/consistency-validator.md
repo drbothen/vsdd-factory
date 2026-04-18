@@ -111,7 +111,7 @@ before loading individual detail files:
 - Validation gate result: PASS or FAIL with blocking findings listed
 
 ### Success Criteria
-- All criteria (1-66) checked; no criterion skipped
+- All criteria (1-77) checked; no criterion skipped
 - Zero unresolved FAIL results on CRITICAL-severity criteria before gate passes
 - Every finding includes specific artifact references and remediation guidance
 - Consistency score (0-100%) computed and reported
@@ -126,7 +126,7 @@ Write your report to `.factory/cycles/vX.Y.Z/consistency-report.md` using the
 canonical template. The report must include all summary checks and the full
 findings breakdown.
 
-## Validation Criteria (33)
+## Validation Criteria (77)
 
 ### L1 to L2 to L3 to L4 Chain Validation (Criteria 1-8)
 
@@ -293,6 +293,48 @@ Report consistency score (0-100%) and list all violations with remediation.
 | 64 | No monolithic files when sharded equivalent required | Reject `domain-spec-L2.md` (must be `domain-spec/` dir), reject monolithic `architecture.md` (must be `architecture/` dir), reject monolithic `ux-spec.md` (must be `ux-spec/` dir). Flag as CRITICAL with remediation instruction. | Critical |
 | 65 | No orphaned intermediate artifacts | `requirements-analysis.md`, `domain-analysis.md` must not exist as standalone files — content belongs in L2 domain-spec sections. Flag for cleanup. | Major |
 | 66 | All 4 PRD supplements exist | `prd-supplements/` must contain interface-definitions.md, error-taxonomy.md, test-vectors.md, nfr-catalog.md — all 4 required | Major |
+
+### Story Frontmatter-Body BC Coherence (Criteria 67-69)
+
+| # | Criterion | What to Check | Severity |
+|---|-----------|--------------|----------|
+| 67 | Frontmatter bcs: → Body BC table completeness | For each story: parse `bcs:` frontmatter array. For each BC ID, verify it appears as a row in the story body's Behavioral Contracts table. Missing rows = frontmatter changed without body propagation. | Major |
+| 68 | Frontmatter bcs: → AC trace completeness | For each story: parse `bcs:` frontmatter array. For each BC ID, verify at least one AC in the story body contains `(traces to BC-S.SS.NNN` matching that BC. Missing traces = BC added to frontmatter but no acceptance criterion written. | Major |
+| 69 | Body BC table / AC traces → Frontmatter completeness (reverse) | For each story: scan body for BC IDs in the Behavioral Contracts table and in AC trace annotations. For each BC ID found in the body, verify it appears in `bcs:` frontmatter. Orphaned body references = BC removed from frontmatter but body not cleaned up. | Major |
+
+**Evidence format:** For each violation, report `file:line` for both the frontmatter `bcs:` array and the missing/orphaned body reference.
+
+**Relationship to existing criteria:** Criteria 5 and 6 check that stories _have_ BCs and ACs trace _to_ BCs. Criteria 67-69 check that the _same set_ of BCs appears in both representations — frontmatter and body — bidirectionally. This catches the specific drift class where one representation is updated without the other.
+
+### Semantic Anchoring Integrity (Criteria 70-73)
+
+| # | Criterion | What to Check | Severity |
+|---|-----------|--------------|----------|
+| 70 | BC capability anchor is semantically correct | For each BC in BC-INDEX, read the BC's purpose and confirm its declared capability (CAP-NNN) actually describes that purpose per capabilities.md. Mis-anchor that would mislead an implementer = Critical. | Critical / Major |
+| 71 | Story subsystem anchor is semantically correct | For each story, read its scope and confirm each SS-ID in `subsystems:` actually owns that scope per ARCH-INDEX Subsystem Registry. | Major |
+| 72 | VP anchor story builds the test vehicle | For each VP, confirm `anchor_story` is the story where the test code will live, not an architectural ancestor. | Major |
+| 73 | Traceability table descriptions match source-of-truth titles | For each row in traceability tables, confirm the description matches the target artifact's actual title per its authoritative index (BC-INDEX, ARCH-INDEX, VP-INDEX). | Major |
+
+Mis-anchoring is NEVER an "Observation" or "deferred post-v1." It ALWAYS blocks convergence.
+
+### Invariant-to-BC Traceability (Criteria 74)
+
+| # | Criterion | What to Check | Severity |
+|---|-----------|--------------|----------|
+| 74 | Every domain invariant (DI-NNN) cited by at least one BC | For each DI-NNN in `domain-spec/invariants.md`, verify at least one BC file cites it in the Traceability section's L2 Invariants field. Orphan invariants (DI declared but no BC enforces it) = drift. Also verify: each invariant's Scope/enforcer column names BCs that actually cite it back (bidirectional). | Major |
+
+### Source-of-Truth Title Sync (Criteria 75-76)
+
+| # | Criterion | What to Check | Severity |
+|---|-----------|--------------|----------|
+| 75 | BC file H1 heading matches BC-INDEX title | For each BC in `behavioral-contracts/`, read the H1 heading (`# BC-S.SS.NNN: <title>`) and compare to the title column in BC-INDEX.md. Any mismatch = title drift. Also check: PRD section 2/5 table titles, story body BC-table titles must all match the H1. Title enrichment (e.g., "(Fail-Closed)") must live IN the H1, not only in downstream indexes. | Major |
+| 76 | BC subsystem labels match ARCH-INDEX canonical names | For each BC, verify the `subsystem:` frontmatter field and BC-INDEX subsystem column use the exact name from ARCH-INDEX Subsystem Registry. Drift = label used in BC doesn't match canonical form. | Major |
+
+### Append-Only ID Integrity (Criteria 77)
+
+| # | Criterion | What to Check | Severity |
+|---|-----------|--------------|----------|
+| 77 | No ID reuse across artifact lifecycle | Scan all index files (BC-INDEX, VP-INDEX, STORY-INDEX, HS-INDEX) for retired/removed IDs. Verify no active artifact reuses a retired ID. Verify retired entries have `replaced_by:` or removal justification. Verify filename slugs have not changed for any artifact that was renamed (git history check if available). | Major |
 
 ## Failure & Escalation
 

@@ -55,6 +55,7 @@ Agents are assigned tool profiles based on their role. The principle: separate "
 | Coordinators | orchestrator, pr-manager | Restricted | No — delegate everything | pr-manager spawns github-ops |
 | Infrastructure | devops-engineer, state-manager | `full` | Yes — git, gh, tooling | Own repo and `.factory/` ops |
 | Reviewers | adversary, code-reviewer, pr-reviewer, etc. | `coding`/read-only | Read artifacts, write findings | Via state-manager |
+| Tool-based reviewers | accessibility-auditor | `full` | Yes — runs axe-core, lighthouse, pa11y | No commits — findings via state-manager |
 
 **Why this separation matters:** If multiple agents commit independently, version-race regressions occur (e.g., state-manager writes citations before story-writer bumps the version). Centralizing `.factory/` commits in state-manager (which runs LAST in every burst) prevents this.
 

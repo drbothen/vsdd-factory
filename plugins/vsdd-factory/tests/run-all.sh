@@ -42,4 +42,8 @@ echo "== Visual companion tests =="
 bats tests/visual-companion.bats
 
 echo
+echo "== Permission model tests =="
+bats tests/permissions.bats
+
+echo
 echo "All tests passed."

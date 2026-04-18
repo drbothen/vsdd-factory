@@ -48,6 +48,12 @@ Retrieve: git show vX.Y.Z:specs/prd.md
 |----|-------------|----------|--------|
 | TD-NNN | [description] | P0/P1/P2 | [source] |
 
+## Governance Policies Adopted
+
+| Policy | Adopted In | Incident Reference | Generalization |
+|--------|-----------|-------------------|----------------|
+| [policy_flag_name] | Burst/Pass N | [finding IDs] | [one-line generalization] |
+
 ## Notes
 
 [Any cycle-specific observations, lessons learned, or follow-up items.]

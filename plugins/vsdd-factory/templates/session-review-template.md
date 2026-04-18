@@ -54,6 +54,21 @@ stories_delivered: [N]
 ## 8. Pattern Detection
 [Findings from cross-run comparison]
 
+## 9. Governance Policy Audit
+Review whether any drift patterns observed in this run warrant a new governance policy or strengthen an existing one.
+
+**Existing policies to verify enforcement:**
+- `append_only_numbering` — Were any IDs renumbered, reused, or filename slugs changed?
+- `lift_invariants_to_bcs` — Are there orphan domain invariants with no enforcing BC?
+- `state_manager_runs_last` — Did state-manager always commit last in every burst?
+- `semantic_anchoring_integrity` — Were any anchors syntactically valid but semantically wrong?
+- `creators_justify_anchors` — Did creator agents justify every anchor choice against source-of-truth?
+- `architecture_is_subsystem_name_source_of_truth` — Did any subsystem references use non-registry names?
+- `bc_h1_is_title_source_of_truth` — Did any BC references use stale or enriched-only titles?
+- `bc_array_changes_propagate_to_body_and_acs` — Did any story frontmatter `bcs:` changes fail to propagate to body BC tables and ACs?
+
+**New policy candidates:** If a specific class of drift recurred across 3+ bursts or 2+ adversarial passes, it is a policy candidate. Document: the drift pattern, incident examples, which agents failed to enforce, and the proposed policy statement.
+
 ---
 
 ## Improvement Proposals

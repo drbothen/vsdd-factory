@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.24.0 — 8 governance policies formalized + permission model regression tests
+
+### Added
+
+- **Governance policy registry** in FACTORY.md — 8 top-level integrity policies with enforcing agents, validation criteria, and severity floors
+- **8 governance policies** formally integrated into agent prompts:
+  - `append_only_numbering` — IDs never renumbered, filename slugs immutable (product-owner, spec-steward, criterion 77)
+  - `lift_invariants_to_bcs` — every DI-NNN must be cited by at least one BC (product-owner, adversary, criterion 74)
+  - `state_manager_runs_last` — already present, verified across all agents
+  - `semantic_anchoring_integrity` — formalized as criteria 70-73 (was unnumbered)
+  - `creators_justify_anchors` — added to business-analyst for CAP-NNN creation
+  - `architecture_is_subsystem_name_source_of_truth` — added product-owner BC subsystem validation, criterion 76
+  - `bc_h1_is_title_source_of_truth` — added product-owner enrichment rule, adversary title sync axis, criterion 75
+  - `bc_array_changes_propagate_to_body_and_acs` — story-writer, product-owner, adversary, criteria 67-69
+- **permissions.bats** — new test suite (53 tests) covering agent permission model and governance policy presence
+  - Profile enforcement: spec producers `coding`, code producers `full`, coordinators restricted
+  - Tool-profile coherence: coding-profile agents have no shell commands in code blocks or inline backticks
+  - Policy presence: each of 8 policies verified in correct agent prompts
+- **Consistency-validator criteria 67-77** — 11 new validation criteria for governance policy enforcement
+- **3 new adversary review axes** — BC title/subsystem sync, invariant-to-BC orphan detection, story frontmatter-body coherence
+- **Glossary terms** — Append-Only Numbering, Governance Policy, Invariant Lifting
+
+### Changed
+
+- **accessibility-auditor** profile: `coding` → `full` (needs shell for axe-core, lighthouse, pa11y, eslint jsx-a11y)
+- **FACTORY.md** permission model table: added "Tool-based reviewers" row for accessibility-auditor
+- **Consistency-validator** criteria count: 66 → 77
+- **Session-review template**: governance policy audit section expanded to cover all 8 policies
+- **Cycle-manifest template**: added "Governance Policies Adopted" section
+- **README.md**: test count 62 → 133, suite count 3 → 5
+
+### Fixed
+
+- **story-writer** pre-commit verification: changed "grep the story file" to "read the story file" (story-writer has `coding` profile, no shell access)
+- **accessibility-auditor** tool-profile mismatch: was told to run `npx` commands but had `coding` profile (no exec)
+
 ## 0.23.0 — Comprehensive documentation update + Prism lessons + DTU taxonomy + agent permission model
 
 ### Added

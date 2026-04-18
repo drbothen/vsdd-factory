@@ -255,6 +255,7 @@ Each agent has a tool profile that determines what it can do. See [Agents Refere
 Key points:
 - **Spec producers** (product-owner, story-writer, architect) write markdown files but cannot execute shell commands. State-manager commits their work.
 - **Code producers** (implementer, test-writer) have full shell access to compile, run tests, and commit in worktrees.
+- **Tool-based reviewers** (accessibility-auditor) have `full` profile because they run automated tools (axe-core, lighthouse, pa11y) but still delegate commits to state-manager.
 - **State-manager** has scoped shell access for git operations in `.factory/` only. It runs LAST in every burst to prevent version-race regressions.
 - **pr-manager** delegates all GitHub CLI operations to github-ops via subagent dispatch.
 

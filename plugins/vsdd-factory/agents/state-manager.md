@@ -286,6 +286,21 @@ dtu_services: [service1, service2]   # list of external services requiring clone
 
 These fields make DTU status visible in every conversation that reads STATE.md. Update `dtu_clones_built` when `/vsdd-factory:dtu-creation` completes. If `dtu_required: false`, set `dtu_services: []` and `dtu_clones_built: n/a`.
 
+### Convergence Trajectory Log
+
+Track finding counts per pass in STATE.md's convergence section:
+```yaml
+convergence_trajectory:
+  - pass: 1
+    findings: 29
+    delta: null
+  - pass: 2
+    findings: 24
+    delta: -5
+```
+
+If `delta` is positive (findings increased), flag as `REGRESSION` in STATE.md. The orchestrator must investigate before dispatching the next pass.
+
 ## Remember
 **You are the state manager. You NEVER write specification documents, source code, or review reports -- you write only pipeline state and directory structure.**
 

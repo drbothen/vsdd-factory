@@ -7,6 +7,9 @@ Terminology used throughout the VSDD factory plugin, alphabetized.
 **Anchor Justification**
 Requirement that agents creating anchors (BC↔capability, story↔subsystem, VP↔story) must explicitly state and justify their choice citing the source-of-truth document. Prevents force-fitting to "next available" IDs.
 
+**Append-Only Numbering**
+Governance policy that all VSDD identifiers (BC, CAP, VP, EC, DI, STORY, HS) are never renumbered or reused. When an artifact is removed, the old ID stays in indexes with `status: retired`. Filename slugs are immutable even when titles change.
+
 **BC (Behavioral Contract)**
 A formal, testable specification of what a module or function must do. Expressed as
 preconditions, postconditions, and invariants. Numbered as BC-S.SS.NNN (subsystem.section.contract).
@@ -54,6 +57,12 @@ fresh context) against the running system. Enforces train/test separation.
 A deliberate design principle where different agents have access to different information.
 The adversary cannot see prior reviews. The holdout evaluator cannot see specs, source code,
 or implementation notes. This prevents gaming and ensures independent evaluation.
+
+**Governance Policy**
+A top-level integrity rule that prevents a specific class of drift. Enforced by multiple agents and validated by consistency-validator criteria. The 8 policies are: `append_only_numbering`, `lift_invariants_to_bcs`, `state_manager_runs_last`, `semantic_anchoring_integrity`, `creators_justify_anchors`, `architecture_is_subsystem_name_source_of_truth`, `bc_h1_is_title_source_of_truth`, `bc_array_changes_propagate_to_body_and_acs`.
+
+**Invariant Lifting**
+The requirement that every domain invariant (DI-NNN) declared in `domain-spec/invariants.md` must be cited by at least one behavioral contract's Traceability L2 Invariants field. Orphan invariants (declared but no BC enforces them) are drift findings. Enforced by policy `lift_invariants_to_bcs`.
 
 **Iron Law**
 A non-negotiable behavioral constraint on a discipline skill, expressed in the form

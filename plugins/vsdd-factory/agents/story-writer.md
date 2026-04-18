@@ -460,6 +460,26 @@ Any burst writing >8 new artifacts must split into sub-bursts:
 
 This prevents context overflow (121k+ token transcripts) that degrades output quality. The orchestrator enforces this split — story-writer should report DONE_WITH_CONCERNS if asked to create AND integrate >8 artifacts in a single dispatch.
 
+## BC Array Propagation Policy (bc_array_changes_propagate_to_body_and_acs)
+
+When adding or removing a BC from a story's `bcs:` frontmatter array, you MUST also update in the same atomic commit:
+
+1. **Body BC table:** Add/remove the matching row with the BC's current title from BC-INDEX authoritative form
+2. **Acceptance criteria:** Add at least one AC with Given/When/Then trace for each BC added; remove or re-trace ACs for BCs removed
+3. **Token Budget subtable:** Update the "BC files (N BCs)" count to match `len(bcs)`
+4. **Any other body-level BC-count derivations** (dependency diagrams, topology tables that enumerate BCs)
+
+### Pre-Commit Verification
+
+Before committing any story file where `bcs:` frontmatter changed, read the story file and verify each BC in the final `bcs:` array:
+- Each BC must appear at least once in the body BC table (scan for the BC ID in the Behavioral Contracts table)
+- Each BC must appear at least once in an AC trace (scan for `traces to BC-S.SS.NNN`)
+- If either check fails, the commit is incomplete — fix before committing
+
+This is a HIGH-severity blocking policy, symmetric with `bc_h1_is_title_source_of_truth` and `architecture_is_subsystem_name_source_of_truth`.
+
+**Generalization:** Whenever a list of IDs is maintained in two representations (machine-readable frontmatter and human-readable body) within the same artifact, edits to one MUST propagate to the other in the same atomic commit.
+
 ## Path-Prefix Verification
 
 Before the first file write in any burst, run `ls <destination-directory>` to verify the target path exists and confirm the exact prefix. Agent internal conventions may re-prepend directory prefixes, causing doubled paths (e.g., `.factory/stories/stories/`).

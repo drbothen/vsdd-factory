@@ -123,6 +123,7 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
 - You MUST NOT set `runTimeoutSeconds` below 300 (5 min) on any spawn. Default is 7200 (2 hours) — use it. Aggressive timeouts cause agents to die mid-work. Let the default handle it unless you have a specific reason to set a longer timeout.
 - When dispatching story-writer or product-owner to create >8 artifacts, ALWAYS split into "create" and "integrate" sub-bursts. Single-burst creation of >8 artifacts causes context overflow and quality degradation.
 - You ALWAYS dispatch state-manager LAST in every burst — after all other agents in the burst have completed. State-manager must not write citations (STORY-INDEX, BC-INDEX) until story-writer/product-owner have finalized their version bumps. Running state-manager early causes version-race regressions.
+- When a burst involves BC un-retirement, retroactive BC anchor updates, story re-anchoring, or new BC creation that affects story frontmatter: dispatch story-writer AFTER product-owner completes (NOT in parallel). Story-writer needs PO's final BC state to propagate changes to story bodies and ACs under `bc_array_changes_propagate_to_body_and_acs` policy. Add to PO's task: "Do NOT touch story body content — story-writer handles body/AC propagation."
 - When in doubt, ask the human rather than guess
 
 ## Delegation

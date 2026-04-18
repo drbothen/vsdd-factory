@@ -94,6 +94,23 @@ Each BC in the index gets:
 - A priority (P0/P1/P2)
 - A link to the full contract file
 
+## BC H1 Title Authority (bc_h1_is_title_source_of_truth)
+
+Each BC file's H1 heading (`# BC-S.SS.NNN: <title>`) is the **authoritative title**. When creating or modifying BCs:
+
+1. **H1 is the single source.** All downstream references (BC-INDEX title column, PRD section 2/5 tables, story body BC tables) must use the H1 title verbatim.
+2. **Enrichment goes INTO the H1.** If a downstream index adds policy-relevant context (e.g., "(Fail-Closed for Writes)", "(100-Token Active Cap)"), that enrichment must be moved INTO the BC file's H1 heading — not left as index-only context.
+3. **H1 and postconditions must be internally consistent.** The H1 title must accurately describe what the BC's postconditions actually specify.
+4. **After modifying any BC H1:** update BC-INDEX title column in the same commit.
+
+Title drift between the H1 and downstream references is HIGH severity.
+
+## Subsystem Name Validation (architecture_is_subsystem_name_source_of_truth)
+
+When setting the `subsystem:` frontmatter field on any BC file, you MUST use the exact canonical name from `architecture/ARCH-INDEX.md` Subsystem Registry. Do not abbreviate, rephrase, or invent subsystem names. If the architecture hasn't been produced yet (Phase 1a, before architect runs), use the L2 domain subsystem name from `capabilities.md` and flag it for architect reconciliation in Phase 1b.
+
+Subsystem-label drift between BCs and ARCH-INDEX is HIGH severity — it causes misrouted implementation and review work.
+
 ## Per-File BC Output
 
 Each behavioral contract is written to its own file:
@@ -136,6 +153,28 @@ All outputs must use canonical frontmatter (per DF-020a):
 - PRD: `document_type: prd`, `level: L3`, `traces_to: domain-spec-L2.md`, `phase: 1a`
 - BC files: `document_type: behavioral-contract`, `level: L3`, `origin: greenfield|brownfield`,
   `subsystem: [name]`, `capability: CAP-NNN`
+
+## Append-Only ID and Slug Protection (append_only_numbering)
+
+BC, CAP, VP, EC, and all other VSDD identifiers are **never renumbered**. When an artifact is removed, refactored, or replaced:
+
+1. The old ID remains in indexes with `status: retired` or `status: removed` and strikethrough formatting
+2. New artifacts get new sequential IDs — never reuse an old ID
+3. **Filename slugs are immutable.** Even when a BC's H1 title changes, the filename keeps its original slug. Example: `BC-2.1.001-parse-markdown.md` stays named that even if the BC is renamed to "Parse Documents"
+4. Use `replaced_by: BC-S.SS.NNN` to link old→new when replacing
+
+This prevents broken cross-references across stories, indexes, traceability matrices, and git history.
+
+## Invariant Lifting Obligation (lift_invariants_to_bcs)
+
+Every domain invariant (DI-NNN) in `domain-spec/invariants.md` must be enforced by at least one behavioral contract. When creating or modifying BCs:
+
+1. **Read `invariants.md` before writing BCs.** For each DI-NNN, identify which BCs enforce it.
+2. **Cite DI-NNNs in BC Traceability.** Each BC's Traceability section must include an "L2 Invariants" field listing the DI-NNNs it enforces.
+3. **Verify bidirectional coverage.** Each invariant's Scope column names enforcer BCs — those BCs must cite the invariant back. If an invariant names a BC as enforcer but that BC doesn't cite it, that's an orphan gap.
+4. **No orphan invariants.** After producing all BCs, verify every DI-NNN appears in at least one BC's L2 Invariants field. If an invariant has no enforcing BC, either create a BC for it or flag it with justification.
+
+Orphan invariants are invisible until adversarial review catches them — lifting them at creation time prevents a full convergence pass of rework.
 
 ## Anchor Justification Requirement
 
@@ -282,6 +321,16 @@ When creating new BCs, the anchor-back step (updating existing stories that impl
 4. Update BC-INDEX with the new entries
 
 Deferring anchor-back to a follow-up burst causes empty BC tables in stories, which the adversary catches as gaps — wasting a full convergence pass.
+
+## BC Array Propagation Handoff (bc_array_changes_propagate_to_body_and_acs)
+
+When you un-retire BCs, re-anchor BCs across stories, or create new BCs that induce changes to story `bcs:` frontmatter arrays:
+
+1. **Do NOT touch story body content directly.** You modify frontmatter `bcs:` arrays only.
+2. **Story-writer handles body/AC propagation.** The orchestrator dispatches story-writer AFTER you complete, so story-writer has your final BC state to sync.
+3. **Add to your task output:** "Stories affected by BC changes: [list STORY-NNN IDs]. Story-writer must propagate under bc_array_changes_propagate_to_body_and_acs policy."
+
+This separation exists because story body updates (BC tables, AC traces, Token Budget counts) require reading the current body and making targeted edits — story-writer's core competency, not yours. Attempting both roles in one agent causes drift between frontmatter and body.
 
 ## BC Deprecation Protocol (DF-030)
 

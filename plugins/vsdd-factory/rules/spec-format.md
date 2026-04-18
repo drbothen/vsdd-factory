@@ -182,3 +182,15 @@ Supplementary documents live in `.factory/specs/prd-supplements/`:
 ## Wave
 <Wave number for scheduling>
 ```
+
+## BC Retirement Checklist
+
+When retiring a BC (replacing with a new BC or removing scope), ALL of these artifacts must be updated in the SAME burst:
+
+1. **BC-INDEX.md** — mark as `status: retired` with `replaces:` or `replaced_by:` reference
+2. **STORY-INDEX.md** — update traceability matrix: remove old BC, add replacement BC
+3. **Implementing story frontmatter** — update `behavioral_contracts:` array
+4. **Implementing story AC prose** — rewrite acceptance criteria referencing the retired BC
+5. **Replacement BC's Related BCs section** — add `replaces: BC-X.XX.XXX` with rationale
+
+Partial propagation causes multi-pass rework. The adversary will find each missing update as a separate finding.

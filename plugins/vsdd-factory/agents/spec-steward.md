@@ -188,6 +188,17 @@ Spec version bumps:
 - Architecture restructured: MAJOR
 - Typo/formatting fix: PATCH
 
+## Append-Only ID and Slug Protection (append_only_numbering)
+
+All VSDD identifiers (BC, CAP, VP, EC, DI, ASM, R, FM, STORY, HS) are **append-only**:
+
+1. **Never renumber.** When an artifact is removed or replaced, the old ID stays in indexes with `status: retired` or `status: removed`
+2. **Never reuse.** A retired ID is permanently consumed — new artifacts get the next sequential ID
+3. **Filename slugs are immutable.** Even when an artifact's title changes, the filename keeps its original slug. This protects git history, cross-references, and external links
+4. **Retirement requires traceability.** Use `replaced_by:` and `replaces:` fields to link old↔new
+
+When you detect an ID reuse or filename rename during governance sweeps, flag it as a HIGH-severity finding.
+
 ## Critical Rules
 
 - NEVER allow a spec change without a version bump

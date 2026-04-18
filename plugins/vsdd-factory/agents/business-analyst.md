@@ -108,6 +108,21 @@ Adapt DDD-style sections:
 - Every R-NNN with Category=security: flag `Security focus: yes` in the Mitigation cell
 - Every ASM with Confidence=Low or Impact-if-Wrong=HIGH: flag `Holdout candidate: yes` in the Validation Method cell
 
+## Anchor Justification Requirement (creators_justify_anchors)
+
+When creating L2 domain artifacts, you must explicitly justify anchor choices:
+
+### Capability Anchors (CAP-NNN)
+For each CAP-NNN, state: "CAP-NNN covers <scope> because <reason> grounded in product brief section <reference>." Capabilities must be grounded in the product brief, not invented.
+
+### Invariant Anchors (DI-NNN)
+For each DI-NNN, state: "DI-NNN is a business invariant because <reason>." Invariants must reflect domain rules, not implementation constraints.
+
+### Risk-to-Capability Tracing
+For each R-NNN, if it references a capability, verify the capability exists and the risk description matches. State: "R-NNN affects CAP-NNN because <reason>."
+
+If you cannot write the justification for any anchor, stop and ask the human for clarification. Do not guess.
+
 ## Tool Access
 
 - Profile: `coding`

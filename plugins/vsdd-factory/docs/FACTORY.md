@@ -209,6 +209,90 @@ Every metric (BC count, story count, wave summary, VP count) has ONE authoritati
 
 When updating a count, update the authoritative source FIRST, then propagate to citing documents. State-manager should auto-generate denormalized copies from the authoritative source where possible.
 
+### Governance Policies
+
+Policy flags are top-level integrity rules that prevent specific classes of drift. Each policy is enforced by multiple agents and validated by consistency-validator criteria.
+
+#### bc_array_changes_propagate_to_body_and_acs
+
+- **Value:** `true` (always enforced)
+- **Severity floor:** HIGH (blocking)
+- **Symmetric with:** `bc_h1_is_title_source_of_truth`, `architecture_is_subsystem_name_source_of_truth`
+- **Enforces:**
+  - Story frontmatter `bcs:` array ↔ body Behavioral Contracts table: bidirectional completeness
+  - Story frontmatter `bcs:` array ↔ AC trace annotations: bidirectional completeness
+  - Story body Token Budget "N BCs" count == `len(bcs)`
+- **Review axis:** story-frontmatter-body coherence
+- **Validation criteria:** Consistency-validator criteria 67, 68, 69
+- **Enforcing agents:** story-writer (pre-commit verification), adversary (5+ story sampling per pass), consistency-validator (criteria 67-69), product-owner (handoff to story-writer)
+- **Orchestrator rule:** When a burst involves BC un-retirement, re-anchoring, or new BC creation affecting stories, dispatch story-writer AFTER product-owner completes (not in parallel)
+
+**Generalization:** Whenever a list of IDs is maintained in two representations (machine-readable frontmatter and human-readable body) within the same artifact, edits to one MUST propagate to the other in the same atomic commit.
+
+#### append_only_numbering
+
+- **Value:** `true` (always enforced)
+- **Severity floor:** HIGH (blocking)
+- **Enforces:**
+  - All VSDD identifiers (BC, CAP, VP, EC, DI, ASM, R, FM, STORY, HS) are never renumbered
+  - Retired/removed IDs stay in indexes with `status: retired/removed` — never reused
+  - Filename slugs are immutable — even when titles change, filenames keep original slugs
+  - Retirement requires `replaced_by:` / `replaces:` traceability
+- **Validation criteria:** Consistency-validator criterion 32 (cross-cycle conflicts), criterion 77 (ID reuse)
+- **Enforcing agents:** product-owner (slug protection rule), spec-steward (append-only governance), consistency-validator (criteria 32, 77)
+
+#### lift_invariants_to_bcs
+
+- **Value:** `true` (always enforced)
+- **Severity floor:** MEDIUM (blocking at 3+ orphans)
+- **Enforces:**
+  - Every DI-NNN in `domain-spec/invariants.md` cited by at least one BC's Traceability L2 Invariants field
+  - Bidirectional: invariant Scope/enforcer column names BCs that cite it back
+  - Orphan invariants (declared but no BC enforces) are drift findings
+- **Validation criteria:** Consistency-validator criterion 74
+- **Enforcing agents:** product-owner (invariant lifting obligation), adversary (orphan detection review axis), consistency-validator (criterion 74)
+
+#### semantic_anchoring_integrity
+
+- **Value:** `true` (always enforced)
+- **Severity floor:** MEDIUM (CRITICAL when mis-anchor misleads implementer)
+- **Enforces:**
+  - Every anchor claim (BC→CAP, BC→Subsystem, VP→anchor_story, traceability descriptions) must be semantically correct, not just syntactically valid
+  - Mis-anchoring is NEVER an "Observation" or "deferred post-v1" — it always blocks convergence
+- **Validation criteria:** Consistency-validator criteria 70, 71, 72, 73
+- **Enforcing agents:** adversary (semantic anchoring audit), consistency-validator (criteria 70-73), orchestrator (human review gate question)
+
+#### creators_justify_anchors
+
+- **Value:** `true` (always enforced)
+- **Severity floor:** MEDIUM (blocking)
+- **Enforces:**
+  - Agents creating anchors must justify each choice against the source-of-truth artifact
+  - Mechanical citation without body substantiation is a finding
+  - "Stop and ask" clause: if justification cannot be written, agent must stop rather than guess
+- **Enforcing agents:** product-owner (BC→CAP justification), architect (ADR/subsystem/crate justification), story-writer (SS-ID/dependency/VP justification), business-analyst (CAP-NNN justification)
+
+#### bc_h1_is_title_source_of_truth
+
+- **Value:** `true` (always enforced)
+- **Severity floor:** HIGH (blocking)
+- **Enforces:**
+  - BC file H1 heading is the authoritative title — all downstream references must match verbatim
+  - Title enrichment must be moved INTO the H1, not left as index-only context
+  - H1 and postconditions must be internally consistent
+- **Validation criteria:** Consistency-validator criterion 75
+- **Enforcing agents:** product-owner (H1 authority rule, enrichment-into-H1), adversary (title sync review axis), consistency-validator (criterion 75)
+
+#### architecture_is_subsystem_name_source_of_truth
+
+- **Value:** `true` (always enforced)
+- **Severity floor:** HIGH (blocking)
+- **Enforces:**
+  - ARCH-INDEX Subsystem Registry is the authoritative source for subsystem names
+  - All references (BC-INDEX, BC frontmatter, PRD, stories) must use the registry name verbatim
+- **Validation criteria:** Consistency-validator criterion 76
+- **Enforcing agents:** product-owner (BC subsystem validation), architect (subsystem scope verification), story-writer (SS-ID justification), adversary (subsystem label sync review axis), consistency-validator (criterion 76)
+
 ### Hierarchical Specification
 
 All specs follow a 4-level hierarchy:
@@ -359,6 +443,7 @@ Agents are assigned tool profiles based on their role, not their convenience. Th
 | **Coordinators** | orchestrator, pr-manager | Restricted | No — delegate everything | pr-manager spawns github-ops for gh operations |
 | **Infrastructure** | devops-engineer, state-manager | `full` | Yes — git, gh, tooling | devops-engineer owns repo/CI/CD; state-manager owns `.factory/` branch |
 | **Reviewers** | adversary, code-reviewer, pr-reviewer, spec-reviewer, consistency-validator, holdout-evaluator | `coding` or `read-only` | Read artifacts, write findings | No commits — findings go to `.factory/` via state-manager |
+| **Tool-based reviewers** | accessibility-auditor | `full` | Yes — runs axe-core, lighthouse, pa11y, eslint jsx-a11y | No commits — findings go to `.factory/` via state-manager |
 
 **Why spec producers don't get shell access:**
 

@@ -260,10 +260,9 @@ Write findings to `.factory/cycles/**/hardening/accessibility-audit.md`:
 
 ## Tool Access
 
-- Profile: `coding`
-- Available: `read`, `write`, `edit`, `apply_patch`
-- Denied: `exec`, `process`
-- You can read and write files but CANNOT execute shell commands
+- Profile: `full`
+- Available: `read`, `write`, `edit`, `apply_patch`, `exec`
+- Shell access required for automated accessibility tools (axe-core, lighthouse, pa11y, eslint jsx-a11y, storybook test-runner)
 - Write only to your designated output paths under `.factory/`
 
 ## Failure & Escalation

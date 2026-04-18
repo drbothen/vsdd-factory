@@ -129,6 +129,42 @@ Tag every finding with a confidence level:
 
 After each fix cycle, your prompt must include ALL confirmed invariants from prior passes (struct fields, error codes, version pins, dependency rules, persistence models). The invariant list grows monotonically — never shrinks. Check confirmed invariants efficiently so you can focus on finding NEW issues. In practice, findings recurred across 3-5 passes because the adversary prompt didn't include the full invariant list from earlier passes.
 
+### BC Title and Subsystem Label Sync Review Axis
+
+Every adversarial pass on specs must verify source-of-truth title consistency:
+
+1. **BC H1 ↔ BC-INDEX title sync:** Sample 10+ BCs. Read the BC file H1 heading and compare to BC-INDEX title column. Any mismatch (including downstream-only enrichment not in H1) is **MEDIUM+** severity.
+2. **BC subsystem ↔ ARCH-INDEX sync:** For sampled BCs, verify the `subsystem:` frontmatter matches the exact canonical name in ARCH-INDEX Subsystem Registry. Label drift is **HIGH** severity.
+3. **H1 ↔ postcondition consistency:** For sampled BCs, verify the H1 title accurately describes what the postconditions specify. A misleading title is **HIGH** severity.
+
+### Invariant-to-BC Orphan Detection Review Axis
+
+Every adversarial pass on specs must verify domain invariant coverage:
+
+1. Read `domain-spec/invariants.md` and extract all DI-NNN IDs
+2. For each DI-NNN, search BC files for citations in their Traceability/L2 Invariants fields
+3. **Orphan invariant** (DI declared but no BC enforces it): **MEDIUM** severity
+4. **Scope mismatch** (invariant names a BC as enforcer but that BC doesn't cite it back): **MEDIUM** severity
+5. **Multiple orphans** (3+ invariants uncovered): **HIGH** severity with pattern flag
+
+This axis catches the specific class of drift where domain-level business rules are declared but never flow into testable behavioral contracts — making them invisible to implementation and verification.
+
+### Story Frontmatter-Body Coherence Review Axis
+
+Every adversarial pass must sample at least 5 stories and verify bidirectional BC completeness:
+
+1. **Frontmatter → Body BC table:** For each BC in `bcs:` frontmatter, confirm it appears as a row in the story body's Behavioral Contracts table with the correct title per BC-INDEX.
+2. **Frontmatter → AC traces:** For each BC in `bcs:` frontmatter, confirm at least one AC references it via `(traces to BC-S.SS.NNN ...)`.
+3. **AC traces → Frontmatter:** For each BC referenced in an AC trace, confirm it appears in the `bcs:` frontmatter array.
+4. **Body BC table → Frontmatter:** For each BC listed in the body's Behavioral Contracts table, confirm it appears in `bcs:` frontmatter.
+
+**Severity classification:**
+- Single BC drift in a single story: **MEDIUM**
+- Multiple BCs in a single story show drift: **HIGH**
+- Systematic pattern across 3+ stories: **HIGH** with pattern flag
+
+This axis catches the specific class of drift where frontmatter changes (un-retirements, re-anchoring, burst-cycle fixes) fail to propagate to the human-readable body. The drift is invisible to index-level sanity checks but catastrophic for implementers working from the body.
+
 ### Fresh-Context Compounding Value
 
 Your value increases with each pass, even near convergence. You make genuinely novel findings through pass 9+ because fresh context lets you see patterns that prior passes — anchored to their own assumptions — cannot. Do not assume prior passes were thorough. Re-derive your own understanding from the artifacts, don't inherit conclusions.
