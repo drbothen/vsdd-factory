@@ -220,6 +220,36 @@ setup() {
   [ -f "${BATS_TEST_DIRNAME}/../commands/register-artifact.md" ]
 }
 
+# ---------- Recover state ----------
+
+@test "recover-state skill exists" {
+  [ -f "$SKILLS/recover-state/SKILL.md" ]
+}
+
+@test "recover-state has artifact scanning procedure" {
+  grep -qF "Scan artifact directories" "$SKILLS/recover-state/SKILL.md"
+}
+
+@test "recover-state has phase determination logic" {
+  grep -qF "Determine current phase" "$SKILLS/recover-state/SKILL.md"
+}
+
+@test "recover-state has backup step" {
+  grep -qF "Backup existing STATE.md" "$SKILLS/recover-state/SKILL.md"
+}
+
+@test "recover-state has dry-run option" {
+  grep -qF -- "--dry-run" "$SKILLS/recover-state/SKILL.md"
+}
+
+@test "recover-state has validation step before writing" {
+  grep -qF "Does this look correct?" "$SKILLS/recover-state/SKILL.md"
+}
+
+@test "recover-state command file exists" {
+  [ -f "${BATS_TEST_DIRNAME}/../commands/recover-state.md" ]
+}
+
 @test "policies-template policy 9 references validate-vp-consistency.sh" {
   hook=$(yq '.policies[] | select(.id == 9) | .lint_hook' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml")
   [ "$hook" = "hooks/validate-vp-consistency.sh" ]
