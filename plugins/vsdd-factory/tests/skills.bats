@@ -144,3 +144,19 @@ setup() {
              | sort -u)
   [ "$missing" -eq 0 ]
 }
+
+# ---------- Adversarial review persistence ----------
+
+@test "adversarial-review has Post-Adversary Persistence section" {
+  grep -qF "Post-Adversary Persistence (MANDATORY)" "$SKILLS/adversarial-review/SKILL.md"
+}
+
+@test "adversarial-review persistence dispatches state-manager" {
+  grep -qF "Dispatch state-manager" "$SKILLS/adversarial-review/SKILL.md"
+}
+
+# ---------- Adversarial review collision guard ----------
+
+@test "adversarial-review has collision guard" {
+  grep -qF "Collision Guard" "$SKILLS/adversarial-review/SKILL.md"
+}

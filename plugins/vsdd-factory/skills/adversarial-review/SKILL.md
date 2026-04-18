@@ -70,6 +70,22 @@ Attack with the adversary protocol. Write findings to `.factory/cycles/<current>
 
 Read specs first, then review source code against them. Focus on spec drift and silent failures.
 
+## Post-Adversary Persistence (MANDATORY)
+
+The adversary agent has only Read/Grep/Glob tools — it cannot write files. After the adversary returns findings as chat text, the orchestrator MUST persist them:
+
+1. **Capture the adversary's full output** verbatim (do not summarize or filter)
+2. **Determine the target path:** `.factory/cycles/<current-cycle>/adversarial-reviews/pass-<N>.md`
+   - Read `.factory/current-cycle` for the cycle name (e.g., `v1.0.0-greenfield`)
+   - If no current-cycle file exists, use the active cycle from STATE.md
+   - `<N>` is the pass number (1-based, sequential within the cycle)
+3. **Dispatch state-manager** to write the findings file at the target path
+4. **Dispatch state-manager** to update the adversarial review index (`ADV-P<N>-INDEX.md`) in the same cycle directory
+
+**Decision rationale:** Option (a) chosen over granting adversary scoped Write access because: (1) preserves fresh-context information asymmetry — adversary never sees its own prior files; (2) state-manager already owns all `.factory/` commits; (3) no harness support for path-scoped tool allowlists.
+
+If the orchestrator skips this step, findings are lost when the conversation context resets. This was observed in practice when direct adversary spawns returned findings as chat text that disappeared on session boundary.
+
 ## Pass Management
 
 - Each review is a numbered pass (ADV-P1, ADV-P2, etc.)
