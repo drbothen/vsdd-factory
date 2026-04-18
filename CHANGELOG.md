@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.27.1 — Policy enforcement hooks (Tier 2)
+
+### Added
+
+- **validate-subsystem-names.sh** (Policy 6) — PostToolUse hook verifying BC `subsystem:` and story `subsystems:` fields match ARCH-INDEX Subsystem Registry canonical names. Error messages list all valid names.
+- **validate-bc-title.sh** (Policy 7) — PostToolUse hook verifying BC file H1 heading matches BC-INDEX title column. Shows both titles on mismatch.
+- **validate-story-bc-sync.sh** (Policy 8) — PostToolUse hook verifying bidirectional BC completeness between story frontmatter `bcs:` array, body BC table, and AC trace annotations. Identifies specific missing BCs.
+- **28 BATS tests** for all three hooks with shared fixtures (ARCH-INDEX, BC-INDEX, good/bad BC and story files)
+
+### Changed
+
+- Hook count: 13 → 16
+- Test count: 223 → 251 across 8 suites
+- hooks-reference.md, configuration.md: updated with all new hooks
+
+### Analysis (Finding #6 conclusions)
+
+Policies 1-5 remain gate-only (consistency-validator criteria). Research confirmed:
+- Policy 1 (append_only_numbering): requires git history scan — too expensive for edit-time
+- Policy 2 (lift_invariants_to_bcs): requires cross-file scan of all BCs — blocks intermediate states
+- Policy 3 (state_manager_runs_last): temporal ordering — not a file-content check
+- Policy 4 (semantic_anchoring_integrity): requires semantic judgment — only adversary can assess
+- Policy 5 (creators_justify_anchors): can check presence but not correctness — adversary review is appropriate
+
 ## 0.27.0 — Data safety hooks (Tier 1)
 
 ### Added

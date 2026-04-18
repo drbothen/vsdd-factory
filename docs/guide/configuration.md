@@ -194,7 +194,7 @@ Templates are read-only during pipeline execution. If you need to customize outp
 
 ## Hook behavior
 
-The plugin registers 13 hooks across four lifecycle events. Each hook enforces a specific
+The plugin registers 16 hooks across four lifecycle events. Each hook enforces a specific
 discipline.
 
 ### PreToolUse hooks (Edit|Write)
@@ -221,6 +221,9 @@ discipline.
 |------|-----------------|
 | `purity-check.sh` | Warns on side-effect patterns in pure-core paths (`*/pure/**`, `*/core/**`) |
 | `validate-vp-consistency.sh` | Validates VP-INDEX ↔ verification-architecture ↔ coverage-matrix consistency (Policy 9) |
+| `validate-subsystem-names.sh` | Verifies BC/story subsystem fields match ARCH-INDEX canonical names (Policy 6) |
+| `validate-bc-title.sh` | Verifies BC file H1 heading matches BC-INDEX title (Policy 7) |
+| `validate-story-bc-sync.sh` | Verifies story frontmatter bcs: ↔ body BC table ↔ AC traces bidirectional completeness (Policy 8) |
 
 ### PostToolUse hooks (Bash)
 

@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.27.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.27.1-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -131,7 +131,7 @@ graph TD
 | **Agents** | 33 | Specialist personas + 10 orchestrator workflow files |
 | **Skills** | 96 | Phase workflows, cross-cutting operations, design/UX, market intelligence |
 | **Commands** | 96 | Slash-command entry points — every skill has a corresponding command |
-| **Hooks** | 13 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, etc.) |
+| **Hooks** | 16 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, etc.) |
 | **Templates** | 109 | Output format definitions for every artifact type |
 | **Workflows** | 15 | Lobster-as-data files defining phase and mode sequences |
 | **Bin helpers** | 4 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan) |
@@ -180,7 +180,7 @@ plugins/vsdd-factory/
   templates/                 # 108 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (223 tests)
+  tests/                     # bats test suites (251 tests)
   fixtures/                  # Test fixtures (smoke-project)
 ```
 
@@ -195,7 +195,7 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (223 across 7 suites)
+# All tests (251 across 8 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
@@ -206,6 +206,7 @@ bats plugins/vsdd-factory/tests/visual-companion.bats    # 18 visual companion s
 bats plugins/vsdd-factory/tests/permissions.bats         # 58 permission model + governance policy tests
 bats plugins/vsdd-factory/tests/policy9.bats             # 11 VP-INDEX consistency hook tests
 bats plugins/vsdd-factory/tests/destructive-guard.bats   # 46 destructive command guard tests
+bats plugins/vsdd-factory/tests/policy-enforcement.bats  # 28 policy 6/7/8 enforcement hook tests
 ```
 
 ### Syntax checking

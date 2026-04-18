@@ -1,6 +1,6 @@
 # Hooks Reference
 
-The vsdd-factory plugin ships 13 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
+The vsdd-factory plugin ships 16 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
 
 ---
 
@@ -18,6 +18,9 @@ The vsdd-factory plugin ships 13 hook scripts wired through `hooks.json`. Hooks 
 | `check-factory-commit.sh` | PreToolUse | Bash | Remind about STATE.md after `.factory/` commits | No (advisory) |
 | `purity-check.sh` | PostToolUse | Edit\|Write | Pure-core boundary -- no side effects in pure modules | No (warn-only) |
 | `validate-vp-consistency.sh` | PostToolUse | Edit\|Write | VP-INDEX ↔ verification-architecture ↔ coverage-matrix consistency (Policy 9) | Yes (exit 2 on mismatch) |
+| `validate-subsystem-names.sh` | PostToolUse | Edit\|Write | BC/story subsystem fields match ARCH-INDEX canonical names (Policy 6) | Yes (exit 2 on mismatch) |
+| `validate-bc-title.sh` | PostToolUse | Edit\|Write | BC file H1 heading matches BC-INDEX title (Policy 7) | Yes (exit 2 on mismatch) |
+| `validate-story-bc-sync.sh` | PostToolUse | Edit\|Write | Story frontmatter bcs: ↔ body BC table ↔ AC traces sync (Policy 8) | Yes (exit 2 on mismatch) |
 | `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) |
 | `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) |
 | `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) |
@@ -139,6 +142,40 @@ Enforces Policy 9 (`vp_index_is_vp_catalog_source_of_truth`). After any edit to 
 Exits non-zero (exit 2) on mismatch with a diagnostic listing the specific discrepancy. Tested with 3 fixture sets (green, canary with column drift, missing-VP).
 
 **Debugging:** Read the error output — it names the specific VP, file, and mismatch. Fix the inconsistency and re-save. The hook re-validates on each edit.
+
+### validate-subsystem-names.sh
+
+**Event:** PostToolUse on Edit or Write
+
+Enforces Policy 6 (`architecture_is_subsystem_name_source_of_truth`). After any edit to BC files (`BC-*.md`) or story files (`STORY-*.md`), extracts the `subsystem:` (BC) or `subsystems:` (story) field and verifies it matches a canonical name from `ARCH-INDEX.md` Subsystem Registry.
+
+If ARCH-INDEX doesn't exist yet (architecture not produced), the hook passes silently. Error messages list all available canonical names so the agent can self-correct.
+
+**Debugging:** Read the error — it names the invalid subsystem and lists valid options. Use the exact canonical name from ARCH-INDEX.
+
+### validate-bc-title.sh
+
+**Event:** PostToolUse on Edit or Write
+
+Enforces Policy 7 (`bc_h1_is_title_source_of_truth`). After any edit to a BC file (`BC-*.md`, not BC-INDEX), extracts the H1 heading (`# BC-S.SS.NNN: <title>`) and compares it to the title column in `BC-INDEX.md`.
+
+If BC-INDEX doesn't exist yet, the hook passes silently. Skips BC-INDEX.md itself. Error messages show both the H1 title and the BC-INDEX title so the agent knows which to fix.
+
+**Debugging:** The H1 is authoritative. If they differ, update BC-INDEX to match the H1, not the other way around.
+
+### validate-story-bc-sync.sh
+
+**Event:** PostToolUse on Edit or Write
+
+Enforces Policy 8 (`bc_array_changes_propagate_to_body_and_acs`). After any edit to a story file (`STORY-*.md`), verifies bidirectional BC completeness:
+
+1. Every BC in frontmatter `bcs:` appears in the body BC table
+2. Every BC in frontmatter `bcs:` has at least one AC trace annotation
+3. Every BC in the body BC table appears in frontmatter `bcs:`
+
+Skips stories with no `bcs:` field (early creation). Error messages identify the specific missing BCs.
+
+**Debugging:** Read the error — it names which BCs are missing from which representation. Add the missing rows to the body BC table and/or AC trace annotations.
 
 ### regression-gate.sh
 
