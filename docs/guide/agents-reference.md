@@ -1,6 +1,6 @@
 # Agents Reference
 
-The vsdd-factory plugin ships 34 agent definitions: 24 specialist agents and 10 orchestrator workflow files. Agents are spawned by the orchestrator or by skills that need specialist behavior.
+The vsdd-factory plugin ships 33 specialist agent definitions and 10 orchestrator workflow files. Agents are spawned by the orchestrator or by skills that need specialist behavior.
 
 ---
 
@@ -41,6 +41,22 @@ The vsdd-factory plugin ships 34 agent definitions: 24 specialist agents and 10 
 | `ux-designer` | sonnet | blue | UX specifications, wireframes, interaction design |
 | `validate-extraction` | sonnet | red | Verify extracted artifacts against actual code (max 3 iterations) |
 | `visual-reviewer` | sonnet | red | Visual verification of demos and UI fidelity |
+
+---
+
+## Agent Permission Model
+
+Agents are assigned tool profiles based on their role. The principle: separate "who writes files" from "who commits them."
+
+| Role | Agents | Profile | Shell access | Commits |
+|------|--------|---------|-------------|---------|
+| Spec producers | product-owner, story-writer, architect | `coding` | No | State-manager commits `.factory/` |
+| Code producers | implementer, test-writer | `full` | Yes — compile, test, commit | Direct in worktrees |
+| Coordinators | orchestrator, pr-manager | Restricted | No — delegate everything | pr-manager spawns github-ops |
+| Infrastructure | devops-engineer, state-manager | `full` | Yes — git, gh, tooling | Own repo and `.factory/` ops |
+| Reviewers | adversary, code-reviewer, pr-reviewer, etc. | `coding`/read-only | Read artifacts, write findings | Via state-manager |
+
+**Why this separation matters:** If multiple agents commit independently, version-race regressions occur (e.g., state-manager writes citations before story-writer bumps the version). Centralizing `.factory/` commits in state-manager (which runs LAST in every burst) prevents this.
 
 ---
 
