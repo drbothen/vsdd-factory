@@ -7,7 +7,8 @@
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/brownfield-discipline.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/protect-vp.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/protect-bc.sh", "timeout": 5 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/red-gate.sh", "timeout": 5 }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/red-gate.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/factory-branch-guard.sh", "timeout": 5 }
         ]
       },
       {

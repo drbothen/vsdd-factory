@@ -277,3 +277,40 @@ teardown() {
   run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin main\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
   [[ "$output" == *"gh pr create"* ]]
 }
+
+# ---------- factory-branch-guard ----------
+
+@test "factory-branch-guard: allows non-.factory paths" {
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"src/main.rs\"}}" | "'"$HOOKS"'/factory-branch-guard.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "factory-branch-guard: blocks .factory/ write when no worktree" {
+  # .factory/ exists as plain dir (created in setup) but no .git marker
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/specs/prd.md\"}}" | "'"$HOOKS"'/factory-branch-guard.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+  [[ "$output" == *"not mounted as a git worktree"* ]]
+}
+
+@test "factory-branch-guard: block message includes recovery command" {
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/STATE.md\"}}" | "'"$HOOKS"'/factory-branch-guard.sh" 2>&1'
+  [[ "$output" == *"git worktree add"* ]]
+}
+
+@test "factory-branch-guard: allows .factory/ write when worktree exists" {
+  # Simulate worktree by creating .git marker file
+  echo "gitdir: /fake/path" > .factory/.git
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'$WORK'/.factory/specs/prd.md\"}}" | "'"$HOOKS"'/factory-branch-guard.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "factory-branch-guard: allows empty file path" {
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"\"}}" | "'"$HOOKS"'/factory-branch-guard.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "factory-branch-guard: allows missing file path" {
+  run bash -c 'echo "{\"tool_input\":{}}" | "'"$HOOKS"'/factory-branch-guard.sh"'
+  [ "$status" -eq 0 ]
+}
