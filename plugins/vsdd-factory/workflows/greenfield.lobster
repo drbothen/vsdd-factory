@@ -217,9 +217,20 @@ workflow:
       condition: "feature_type in ['ui', 'full-stack']"
       # D6: Nielsen's 10 heuristics on UX spec. Scores < 0.7 flag for remediation.
 
+    - name: phase-1-consistency-audit
+      type: agent
+      agent: consistency-validator
+      depends_on: [phase-1-spec-crystallization, phase-1-dtu-assessment, phase-1-cicd-setup]
+      task: >
+        Fresh-context consistency audit of ALL Phase 1 artifacts.
+        Check: BC↔capability anchors, story↔subsystem anchors, VP↔story anchors,
+        traceability table descriptions, crate/file path references.
+        Verify semantic correctness, not just structural validity.
+      # MANDATORY: runs before every phase gate, not just adversarial convergence
+
     - name: phase-1-gate
       type: gate
-      depends_on: [phase-1-spec-crystallization, architect-feasibility-review, prd-revision, phase-1-dtu-assessment, phase-1-gene-transfusion-assessment, phase-1-cicd-setup, phase-1-design-system-approval, phase-1-heuristic-evaluation]
+      depends_on: [phase-1-spec-crystallization, architect-feasibility-review, prd-revision, phase-1-dtu-assessment, phase-1-gene-transfusion-assessment, phase-1-cicd-setup, phase-1-design-system-approval, phase-1-heuristic-evaluation, phase-1-consistency-audit]
       gate:
         criteria:
           - "All requirements have unique IDs and numerical targets"
@@ -380,9 +391,21 @@ workflow:
         exclude:
           - ".factory/holdout-scenarios/**"
 
+    - name: phase-2-consistency-audit
+      type: agent
+      agent: consistency-validator
+      depends_on: [phase-2-adversarial-review]
+      task: >
+        Fresh-context consistency audit of ALL Phase 2 artifacts.
+        Check: story↔BC coverage, AC↔BC precondition/postcondition anchors,
+        VP↔story anchors, dependency graph acyclicity, wave assignments,
+        traceability matrix completeness. Verify semantic correctness,
+        not just structural validity.
+      # MANDATORY: runs before every phase gate, not just adversarial convergence
+
     - name: phase-2-gate
       type: gate
-      depends_on: [phase-2-adversarial-review]
+      depends_on: [phase-2-adversarial-review, phase-2-consistency-audit]
       gate:
         criteria:
           - "Every PRD requirement covered by at least one story"
@@ -858,9 +881,20 @@ workflow:
              Spawn dtu-validator for fidelity scoring against real APIs.
              Produce fidelity-report.md per clone."
 
+    - name: phase-3-consistency-audit
+      type: agent
+      agent: consistency-validator
+      depends_on: [phase-3-per-story-delivery, phase-3-dtu-validation]
+      task: >
+        Fresh-context consistency audit of ALL Phase 3 artifacts.
+        Check: implementation↔spec alignment, test coverage↔story AC,
+        purity boundary compliance, PR merge status, wave integration results.
+        Verify semantic correctness, not just structural validity.
+      # MANDATORY: runs before every phase gate, not just adversarial convergence
+
     - name: phase-3-gate
       type: gate
-      depends_on: [phase-3-per-story-delivery, phase-3-dtu-validation]
+      depends_on: [phase-3-per-story-delivery, phase-3-dtu-validation, phase-3-consistency-audit]
       gate:
         criteria:
           - "Red Gate passed -- all tests failed before implementation"
