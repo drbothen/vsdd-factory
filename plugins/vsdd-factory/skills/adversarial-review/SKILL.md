@@ -2,7 +2,7 @@
 name: adversarial-review
 description: Launch a fresh-context adversarial review of specs or implementation. Uses the adversary agent with information asymmetry to find gaps, contradictions, and missing edge cases. Minimum 2 passes to convergence.
 argument-hint: "[specs|implementation]"
-disable-model-invocation: true
+disable-model-invocation: false
 context: fork
 agent: adversary
 ---
@@ -10,6 +10,8 @@ agent: adversary
 # Adversarial Review
 
 Launch the adversary agent to review specs or implementation with fresh context.
+
+**Invocation:** This skill can be invoked by the orchestrator autonomously (during Phase 1d, Phase 4 convergence, and between fix bursts) or by the user via `/vsdd-factory:adversarial-review`. The `disable-model-invocation: false` setting allows orchestrator-initiated invocation, which is required for autonomous VSDD convergence loops. The user can still invoke it directly at any time.
 
 ## The Iron Law
 
