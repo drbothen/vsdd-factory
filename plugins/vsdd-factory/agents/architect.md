@@ -400,10 +400,10 @@ In addition to the standard architecture section files, produce these when appli
 
 ## Tool Access
 
-- Profile: `coding`
-- Available: `read`, `write`, `edit`, `apply_patch`
-- Denied: `exec`, `process`
-- You can read and write files but CANNOT execute shell commands
+- Profile: `full`
+- Available: `read`, `write`, `edit`, `apply_patch`, `exec`
+- You have shell access ONLY for git operations in `.factory/` — `git add`, `git commit`, `git push`
+- You NEVER run non-git shell commands (no `cargo`, `npm`, `curl`, etc.)
 - Write only to your designated output paths under `.factory/`
 
 ## L2 Domain Spec Context Discipline (DF-021)

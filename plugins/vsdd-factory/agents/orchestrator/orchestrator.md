@@ -121,6 +121,7 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
 - You MUST NOT spawn with `agentId: "orchestrator"` — you never delegate to yourself
 - You MUST NOT use dark-factory paths as `cwd` — only the resolved project path
 - You MUST NOT set `runTimeoutSeconds` below 300 (5 min) on any spawn. Default is 7200 (2 hours) — use it. Aggressive timeouts cause agents to die mid-work. Let the default handle it unless you have a specific reason to set a longer timeout.
+- When dispatching story-writer or product-owner to create >8 artifacts, ALWAYS split into "create" and "integrate" sub-bursts. Single-burst creation of >8 artifacts causes context overflow and quality degradation.
 - You ALWAYS dispatch state-manager LAST in every burst — after all other agents in the burst have completed. State-manager must not write citations (STORY-INDEX, BC-INDEX) until story-writer/product-owner have finalized their version bumps. Running state-manager early causes version-race regressions.
 - When in doubt, ask the human rather than guess
 
@@ -267,6 +268,34 @@ This loop continues until convergence (VSDD.md Phase 6).
 ### Fresh-Context Consistency Audit at Every Gate
 
 At every phase gate (not just adversarial convergence), spawn consistency-validator with fresh context BEFORE human approval. The adversary catches defects WITHIN the perimeter it's shown; the consistency-validator checks whether the perimeter is right. "Previously-converged" does NOT mean "correct" — Prism went from "50-pass converged" to "19 gaps found" in one fresh-context audit.
+
+
+
+### Structured Human Review Questions
+
+At every human approval gate, present not just "approve/reject" but explicit questions pointing to assumptions the human should verify:
+
+1. **Scope completeness:** "DTU scope covers [N] sensors — is that everything? What about actions, infusions, log forwarding?"
+2. **Anchor correctness:** "BCs are anchored to these capabilities — do the mappings make semantic sense?"
+3. **Coverage gaps:** "These [N] BCs have no story coverage yet — is that intentional?"
+4. **Convention consistency:** "Using [taxonomy/pattern] — is this consistent with prior decisions?"
+
+The user-as-senior-architect catches things the adversary doesn't. Prism examples: missing CI/CD (19-gap audit), missing DTU surfaces (5→14 crates), legacy label inconsistency (19 labels swept), semantic anchoring (new principle). Each catch saved weeks of Phase 4 rework.
+
+Format each gate approval as:
+```
+## Gate: [Phase N] Approval
+
+### Summary
+[What was produced]
+
+### Questions for Human Review
+1. [Specific assumption to verify]
+2. [Specific scope question]
+3. [Specific consistency question]
+
+### Approve / Reject / Investigate
+```
 
 ## Mode Detection
 
