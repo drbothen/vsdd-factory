@@ -201,6 +201,25 @@ setup() {
   [ "$total" -eq "$unique" ]
 }
 
+@test "register-artifact skill exists" {
+  [ -f "$SKILLS/register-artifact/SKILL.md" ]
+}
+
+@test "register-artifact covers BC, VP, story, holdout types" {
+  grep -qF "behavioral-contracts/BC-" "$SKILLS/register-artifact/SKILL.md"
+  grep -qF "verification-properties/VP-" "$SKILLS/register-artifact/SKILL.md"
+  grep -qF "stories/STORY-" "$SKILLS/register-artifact/SKILL.md"
+  grep -qF "holdout-scenarios/HS-" "$SKILLS/register-artifact/SKILL.md"
+}
+
+@test "register-artifact has duplicate check" {
+  grep -qF "Check for duplicates" "$SKILLS/register-artifact/SKILL.md"
+}
+
+@test "register-artifact command file exists" {
+  [ -f "${BATS_TEST_DIRNAME}/../commands/register-artifact.md" ]
+}
+
 @test "policies-template policy 9 references validate-vp-consistency.sh" {
   hook=$(yq '.policies[] | select(.id == 9) | .lint_hook' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml")
   [ "$hook" = "hooks/validate-vp-consistency.sh" ]
