@@ -4,6 +4,9 @@ description: Orchestrator workflow reference for heartbeat status updates betwee
 disable-model-invocation: true
 ---
 
+> **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
+
+
 # Dark Factory Orchestrator Heartbeat
 
 Run this checklist every heartbeat. Only alert if something needs attention.

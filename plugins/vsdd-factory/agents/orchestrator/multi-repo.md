@@ -4,6 +4,9 @@ description: Orchestrator workflow reference for coordinating pipelines across m
 disable-model-invocation: true
 ---
 
+> **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
+
+
 # Multi-Repo Orchestration
 
 Reference file for the orchestrator. Load when project_type is multi-repo.

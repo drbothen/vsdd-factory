@@ -4,6 +4,9 @@ description: Orchestrator workflow reference for the discovery-engine sequence (
 disable-model-invocation: true
 ---
 
+> **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
+
+
 # Discovery Delegation Sequence (Path 8)
 
 Reference file for the orchestrator. Load when running autonomous discovery.

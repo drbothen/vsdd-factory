@@ -4,6 +4,9 @@ description: Orchestrator workflow reference for the maintenance-sweep delegatio
 disable-model-invocation: true
 ---
 
+> **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
+
+
 # Maintenance Delegation Sequence (Path 10)
 
 Reference file for the orchestrator. Load when running maintenance sweeps.

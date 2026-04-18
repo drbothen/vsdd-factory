@@ -4,6 +4,9 @@ description: Orchestrator workflow reference for the brownfield ingestion and an
 disable-model-invocation: true
 ---
 
+> **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
+
+
 # Brownfield Delegation Sequence
 
 Reference file for the orchestrator. Load when running a brownfield pipeline.

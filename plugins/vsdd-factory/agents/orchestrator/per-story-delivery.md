@@ -4,6 +4,9 @@ description: Orchestrator workflow reference for the per-story TDD delivery cycl
 disable-model-invocation: true
 ---
 
+> **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
+
+
 # Per-Story Code Delivery Cycle
 
 **Canonical source** for per-story TDD delivery. The `deliver-story` skill (`skills/deliver-story/SKILL.md`) is the entry point that dispatches through this workflow; this file is the playbook. If the two disagree, this file wins — update the skill to match.

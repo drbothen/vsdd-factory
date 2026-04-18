@@ -389,6 +389,17 @@ _check_no_inline_shell() {
   [ "$fail" -eq 0 ]
 }
 
+@test "all orchestrator files reference FACTORY.md" {
+  fail=0
+  for f in "$AGENTS"/orchestrator/*.md; do
+    if ! grep -q 'FACTORY.md' "$f"; then
+      echo "MISSING: $(basename "$f") — no FACTORY.md reference" >&2
+      fail=$((fail+1))
+    fi
+  done
+  [ "$fail" -eq 0 ]
+}
+
 @test "all agents reference AGENT-SOUL.md" {
   fail=0
   for f in "$AGENTS"/*.md; do

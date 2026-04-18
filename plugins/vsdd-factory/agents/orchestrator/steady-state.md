@@ -4,6 +4,9 @@ description: Orchestrator workflow reference for steady-state operations once a 
 disable-model-invocation: true
 ---
 
+> **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
+
+
 # Steady-State Operations
 
 Reference file for the orchestrator. Load after v1.0.0 release or when
