@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.26.0 — Policy registry, cycle management, scoped reviews
+
+### Added
+
+- **Policy registry** (`/vsdd-factory:policy-registry`) — declarative `.factory/policies.yaml` with init, list, validate, show commands. 9 baseline policies with `verification_steps` field providing step-by-step check procedures the adversary executes per-policy.
+- **Policy add** (`/vsdd-factory:policy-add`) — register new governance policies mid-cycle with schema validation, sequential ID assignment, and verification steps
+- **policies-template.yaml** — complete template with 9 baseline policies, verification steps, lint hook references, and scope declarations
+- **Adversarial-review policy auto-loading** — orchestrator reads `policies.yaml` and injects full policy rubric (with verification steps) into every adversary dispatch, replacing manual copy-pasting
+- **Cycle layout bootstrap** (`/vsdd-factory:factory-cycles-bootstrap`) — migrate from flat `specs/adversarial-review-pass-*.md` layout to cycle-keyed directories with `git mv` for history preservation
+- **Scoped adversarial review** (`--scope` parameter) — `full` (default), `diff-from:<commit>` (focus on changed files), `paths:<pattern>` (target specific subsystems)
+- **Cycle-prefixed finding IDs** — `ADV-<CYCLE>-P<PASS>-<SEV>-<SEQ>` format prevents ID collisions across multi-cycle projects
+
+### Changed
+
+- **adversarial-review** `disable-model-invocation` set to `false` — enables orchestrator-initiated invocation for autonomous convergence loops
+- **Orchestrator** updated with policy rubric loading directive and new cross-cutting skills
+- Finding ID format in 4 templates updated from `ADV-P[N]-NNN` to cycle-prefixed format
+- README: test count 152 → 161, skills.bats 24 → 33
+
 ## 0.25.0 — Policy 9 lint hook + adversarial-review skill hardening
 
 ### Added
