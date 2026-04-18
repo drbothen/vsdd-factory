@@ -67,6 +67,9 @@ prompt gets highest compliance.]
 - **Load:** `[specific file or pattern]` — [why]
 - **Do NOT load:** `[specific file or pattern]` — [why not / whose scope]
 
+### Path Verification
+Before first file write, verify destination: `ls <dest-dir>`. Include one explicit full-path example in dispatch prompts to prevent path-prefix doubling.
+
 ## Failure & Escalation
 
 [Cascading autonomy: try to self-correct before escalating.]

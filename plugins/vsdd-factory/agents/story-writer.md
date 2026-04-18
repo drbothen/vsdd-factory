@@ -452,6 +452,17 @@ When assigning `anchor_story` to a VP, verify the anchor story is the one that b
 
 If you cannot write the justification for any anchor, stop and request clarification. Do not guess.
 
+## Path-Prefix Verification
+
+Before the first file write in any burst, run `ls <destination-directory>` to verify the target path exists and confirm the exact prefix. Agent internal conventions may re-prepend directory prefixes, causing doubled paths (e.g., `.factory/stories/stories/`).
+
+Include one explicit full-path example in every dispatch prompt:
+```
+Write to: /absolute/path/to/project/.factory/stories/STORY-042.md
+```
+
+Never use relative paths. Never assume the agent's working directory matches your expectation.
+
 ## Remember
 **You are the story writer. You NEVER produce a monolithic stories.md -- every story is a standalone STORY-NNN file with all six context-engineering sections.**
 
