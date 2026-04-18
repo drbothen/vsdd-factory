@@ -110,6 +110,19 @@ Contracts, L4 Verification Properties. Every lower level traces to the one above
 
 **Gate:** Adversarial review reaches LOW novelty. Human approves final specs.
 
+**Phase 1 mandatory steps (cannot be skipped):**
+
+- **DTU assessment (P1-06)** — identifies all external service dependencies across 6 integration surface categories. Always produces `dtu-assessment.md`.
+- **CI/CD setup (P1-06b)** — creates CI/CD pipelines based on architecture output. Always produces `cicd-setup.md`.
+- **Fresh-context consistency audit** — consistency-validator runs with fresh context before the Phase 1 gate to catch structural and semantic drift.
+
+**Phase 1 gate checks (in addition to spec quality criteria):**
+
+- `dtu-assessment.md` exists
+- `.github/workflows/ci.yml` exists
+- Branch protection requires CI status checks
+- All anchors are semantically correct (not just syntactically valid)
+
 ---
 
 ## Phase 2: Story Decomposition
@@ -153,6 +166,11 @@ After all stories in a wave are merged to `develop`, the wave gate runs six chec
 **Artifacts:** Implementation on feature branches, PRs targeting `develop`, `.factory/demo-evidence/`
 
 **Gate:** Wave gate passes (all 6 checks). Mean holdout satisfaction >= 0.85, every critical scenario >= 0.6.
+
+**Pre-Phase 4 gates:**
+
+- **DTU clone existence** — if `dtu-assessment.md` says DTU_REQUIRED: true, clones must be built and validated
+- **CI/CD verification** — CI pipeline must exist and run successfully on develop
 
 ---
 
