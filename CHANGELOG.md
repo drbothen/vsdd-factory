@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.28.0 — Agent standardization (Tier 3)
+
+### Added
+
+- **Tool Access sections** for 5 agents missing them: adversary (`read-only`), codebase-analyzer (`full`), holdout-evaluator (`restricted`), research-agent (`full`), validate-extraction (`full`)
+- **Failure & Escalation sections** for 6 agents missing them (adversary, codebase-analyzer, holdout-evaluator, validate-extraction, implementer, plus research-agent already had one)
+- **Remember + AGENT-SOUL.md closing** for all 5 newly standardized agents
+- **4 structural completeness tests** — verify ALL 33 agents have: Tool Access, Failure & Escalation, Remember, AGENT-SOUL.md reference
+- **5 profile tests** for newly documented agent profiles
+
+### Changed
+
+- Test count: 251 → 260 across 8 suites
+- All 33 agents now have consistent structure: Tool Access, Failure & Escalation, Remember, AGENT-SOUL.md
+
 ## 0.27.1 — Policy enforcement hooks (Tier 2)
 
 ### Added
