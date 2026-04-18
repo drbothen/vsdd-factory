@@ -219,3 +219,61 @@ teardown() {
   [ "$status" -eq 0 ]
   [ ! -f sidecar-learning.md ]
 }
+
+# ---------- verify-git-push ----------
+
+@test "verify-git-push: allows push to feature branch" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin feature/STORY-001\"}}" | "'"$HOOKS"'/verify-git-push.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "verify-git-push: allows push to factory-artifacts" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin factory-artifacts\"}}" | "'"$HOOKS"'/verify-git-push.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "verify-git-push: allows push with -u (set upstream)" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push -u origin my-branch\"}}" | "'"$HOOKS"'/verify-git-push.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "verify-git-push: blocks push to main" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin main\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+  [[ "$output" == *"protected branch"* ]]
+}
+
+@test "verify-git-push: blocks push to master" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin master\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"protected branch"* ]]
+}
+
+@test "verify-git-push: blocks push to develop" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin develop\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"protected branch"* ]]
+}
+
+@test "verify-git-push: blocks force push" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push --force origin feature/x\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+  [[ "$output" == *"Force push"* ]]
+}
+
+@test "verify-git-push: blocks force push with -f flag" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin feature/x -f\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
+  [ "$status" -eq 2 ]
+}
+
+@test "verify-git-push: allows non-push git commands" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git status\"}}" | "'"$HOOKS"'/verify-git-push.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "verify-git-push: block message suggests PR workflow" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin main\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
+  [[ "$output" == *"gh pr create"* ]]
+}
