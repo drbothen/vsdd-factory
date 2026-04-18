@@ -75,7 +75,17 @@ the `factory-artifacts` orphan branch. If anything is wrong, it auto-repairs:
 
 Run this at the start of every session. It is fast and idempotent.
 
-### Step 2: Check environment
+### Step 2: Activate the orchestrator
+
+```
+/vsdd-factory:activate
+```
+
+This sets the VSDD orchestrator as your default agent for this project. The orchestrator drives the pipeline — it reads workflow data, dispatches specialist agents, and enforces quality gates. Without activation, you can still use individual skills manually, but the orchestrator won't coordinate them.
+
+Activation writes to `.claude/settings.local.json` (per-project, gitignored). Teammates activate individually. To deactivate: `/vsdd-factory:deactivate`.
+
+### Step 3: Check environment
 
 ```
 /vsdd-factory:setup-env
@@ -85,7 +95,7 @@ This verifies your toolchain: git configuration, language-specific tools, MCP se
 availability, and shell tool versions. Run this the first time you use the plugin, and
 again after installing or upgrading tools.
 
-### Step 3: Read pipeline state
+### Step 4: Read pipeline state
 
 ```
 Read .factory/STATE.md
@@ -95,7 +105,7 @@ STATE.md is the single source of truth for where the pipeline left off. It tells
 current phase, what was completed, and what to do next. Every skill reads it before acting
 and updates it after phase transitions.
 
-### Step 4: Generate project instructions (first time only)
+### Step 5: Generate project instructions (first time only)
 
 ```
 /vsdd-factory:scaffold-claude-md
@@ -112,14 +122,15 @@ The plugin provides methodology, principles, and rules automatically. The `CLAUD
 ```mermaid
 graph LR
     A["/vsdd-factory:factory-health"] --> B{Healthy?}
-    B -->|Yes| C["/vsdd-factory:setup-env"]
+    B -->|Yes| C["/vsdd-factory:activate"]
     B -->|No| D["Auto-repair"]
     D --> C
-    C --> E["Read STATE.md"]
-    E --> G{CLAUDE.md exists?}
-    G -->|Yes| F["Resume pipeline"]
-    G -->|No| H["/vsdd-factory:scaffold-claude-md"]
-    H --> F
+    C --> E["/vsdd-factory:setup-env"]
+    E --> F["Read STATE.md"]
+    F --> G{CLAUDE.md exists?}
+    G -->|Yes| H["Resume pipeline"]
+    G -->|No| I["/vsdd-factory:scaffold-claude-md"]
+    I --> H
 ```
 
 ---
