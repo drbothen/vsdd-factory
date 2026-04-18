@@ -4,6 +4,9 @@ Terminology used throughout the VSDD factory plugin, alphabetized.
 
 ---
 
+**Anchor Justification**
+Requirement that agents creating anchors (BC↔capability, story↔subsystem, VP↔story) must explicitly state and justify their choice citing the source-of-truth document. Prevents force-fitting to "next available" IDs.
+
 **BC (Behavioral Contract)**
 A formal, testable specification of what a module or function must do. Expressed as
 preconditions, postconditions, and invariants. Numbered as BC-S.SS.NNN (subsystem.section.contract).
@@ -18,6 +21,9 @@ semantic understanding that feeds into spec crystallization.
 The state where further review produces no meaningful new findings. Measured quantitatively
 across five dimensions (spec, tests, implementation, verification, holdout). The pipeline
 is complete when all five dimensions independently report CONVERGED.
+
+**Convergence Trajectory**
+The monotonically decreasing sequence of finding counts across adversarial passes (e.g., 29→24→21→7→4→3→2→0). If findings increase between passes, this is a regression that blocks further convergence.
 
 **DTU (Digital Twin Universe)**
 A clone of a reference implementation used for behavioral equivalence testing. DTU clones
@@ -54,6 +60,9 @@ A non-negotiable behavioral constraint on a discipline skill, expressed in the f
 "NO [verb] [scope] WITHOUT [prerequisite] FIRST." Each of the four discipline skills
 (`deliver-story`, `brownfield-ingest`, `adversarial-review`, `wave-gate`) has one Iron Law.
 
+**Integration Surface Taxonomy**
+The six universal categories used in DTU assessment to classify external system dependencies by data flow direction and business role: inbound data sources, outbound operations, identity & access, persistence & state, observability & export, enrichment & lookup.
+
 **NITPICK**
 The strict-binary novelty classification for a convergence round where findings are cosmetic
 or trivial. The counterpart of SUBSTANTIVE. Only the literal token NITPICK counts --
@@ -79,6 +88,12 @@ The process of extracting behavioral intent from a reference implementation and 
 a translation strategy to a target language. Used when porting existing systems. Distinct
 from brownfield ingest, which understands what exists; semport translates it.
 
+**Semantic Anchoring**
+The principle that every anchor in the spec system (BC↔capability, story↔subsystem, VP↔story, traceability descriptions) must be semantically correct, not merely syntactically valid. An anchor must make sense if you read both source and target. Mis-anchoring always blocks convergence.
+
+**Single Source of Truth**
+The rule that every metric (BC count, story count, VP count, wave assignment) has one authoritative source document. All other documents cite the authoritative source — they do not independently re-derive the value.
+
 **SOUL (Agent Principles)**
 The set of governing principles that every agent in the factory follows. Defined in
 AGENT-SOUL.md. Includes Spec Supremacy, Verification-First Architecture, Red Before Green,
@@ -103,6 +118,9 @@ NITPICK is SUBSTANTIVE.
 The discipline of writing tests before implementation. In VSDD, this is enforced by the
 Red Gate: all tests must fail before any implementation code is written. The cycle is
 Red (failing test) then Green (minimum implementation) then Refactor.
+
+**Trajectory Monotonicity**
+See Convergence Trajectory.
 
 **VP (Verification Property)**
 A machine-verifiable property that must hold in the implementation. Numbered as VP-NNN.
