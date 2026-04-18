@@ -241,6 +241,30 @@ Output:
 
 When reference repos exist, ADRs note whether they adopt or diverge from reference approaches: "Reference: payment-service uses event sourcing. We chose CQRS without event sourcing because..."
 
+### Mandatory DTU Assessment
+
+After architecture is produced, the architect runs a mandatory DTU (Digital Twin Universe) assessment. This identifies ALL external service dependencies across six integration surface categories:
+
+1. **Inbound data sources** — APIs polled, feeds consumed, webhooks received
+2. **Outbound operations** — notifications, ticketing, payments
+3. **Identity & access** — OAuth/OIDC, API key managers, credential stores
+4. **Persistence & state** — external databases, caches, message queues
+5. **Observability & export** — log aggregators, metrics, tracing
+6. **Enrichment & lookup** — threat intel, geocoding, pricing services
+
+The assessment always produces `dtu-assessment.md` — even if the answer is "no external dependencies." This step cannot be skipped. See [Glossary](glossary.md) for DTU and Integration Surface Taxonomy definitions.
+
+### Mandatory CI/CD Setup
+
+After architecture determines the tech stack, the devops-engineer creates CI/CD pipelines:
+
+- `.github/workflows/ci.yml` — lint, test, build on PR
+- `.github/workflows/release.yml` — build + publish on tag
+- `.github/workflows/security.yml` — weekly audit + PR check
+- Branch protection updated to require CI status checks
+
+CI/CD setup is deferred from repo initialization to this point because the language, framework, and deployment topology are unknown until the architect produces the architecture. This step always produces `cicd-setup.md`.
+
 ### Self-Review Before Adversarial Review
 
 Each spec creation skill (create-brief, create-prd, create-architecture, create-domain-spec) runs a 4-point self-review before routing to the adversary:
@@ -251,6 +275,16 @@ Each spec creation skill (create-brief, create-prd, create-architecture, create-
 4. **Ambiguity check** — no requirements interpretable two ways
 
 This catches obvious gaps cheaply before spending tokens on the adversarial review loop.
+
+### Anchor Justification Requirement
+
+When creating specs, agents must justify every anchor choice:
+
+- **product-owner:** justifies BC↔capability anchors citing capabilities.md
+- **architect:** justifies subsystem assignments and crate ownership
+- **story-writer:** justifies story↔subsystem and VP↔story anchors
+
+If an anchor can't be justified against the source-of-truth, the agent stops and flags it rather than guessing. See [Glossary](glossary.md) for Semantic Anchoring definition.
 
 ### Step 7: Adversarial Review (`/vsdd-factory:adversarial-review specs`)
 
