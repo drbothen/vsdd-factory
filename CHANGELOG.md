@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.29.0 — Testing gaps + orchestrator standardization (Tier 3-4)
+
+### Added
+
+- **FACTORY.md references** for all 9 orchestrator sequence files (brownfield, discovery, feature, greenfield, heartbeat, maintenance, multi-repo, per-story-delivery, steady-state)
+- **hook-robustness.bats** — 31 tests verifying all 7 enforcement hooks handle: empty JSON, missing fields, nonexistent files, empty files, malformed frontmatter, and produce correct error contract (BLOCKED / POLICY N VIOLATION keywords)
+- **BATS test** verifying all orchestrator files reference FACTORY.md
+
+### Changed
+
+- Test count: 260 → 292 across 9 suites
+- README: updated test counts, suite counts, suite listings
+
 ## 0.28.0 — Agent standardization (Tier 3)
 
 ### Added

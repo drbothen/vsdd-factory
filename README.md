@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.28.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.29.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -180,7 +180,7 @@ plugins/vsdd-factory/
   templates/                 # 108 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (260 tests)
+  tests/                     # bats test suites (292 tests)
   fixtures/                  # Test fixtures (smoke-project)
 ```
 
@@ -195,7 +195,7 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (251 across 8 suites)
+# All tests (292 across 9 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
@@ -207,6 +207,7 @@ bats plugins/vsdd-factory/tests/permissions.bats         # 67 permission model +
 bats plugins/vsdd-factory/tests/policy9.bats             # 11 VP-INDEX consistency hook tests
 bats plugins/vsdd-factory/tests/destructive-guard.bats   # 46 destructive command guard tests
 bats plugins/vsdd-factory/tests/policy-enforcement.bats  # 28 policy 6/7/8 enforcement hook tests
+bats plugins/vsdd-factory/tests/hook-robustness.bats     # 31 hook robustness + error contract tests
 ```
 
 ### Syntax checking
@@ -220,7 +221,7 @@ done
 ### CI
 
 GitHub Actions runs on every push and PR to main. The workflow installs tools, syntax-checks
-all shell scripts, runs all seven bats test suites, validates JSON manifests, and parses
+all shell scripts, runs all nine bats test suites, validates JSON manifests, and parses
 every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 
 ## Documentation
