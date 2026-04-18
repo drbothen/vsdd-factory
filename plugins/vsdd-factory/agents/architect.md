@@ -422,7 +422,7 @@ For each ADR cited in a section, verify the ADR's decision is actually relevant 
 For each module assigned to a subsystem, verify the subsystem's declared scope covers the module's purpose. State: "Module X belongs to SS-YY because <reason> per Subsystem Registry."
 
 ### Crate Ownership
-For each crate/package referenced, verify it exists in the workspace. Do not reference planned-but-not-yet-created crates without marking them as `[PLANNED]`. Do not reference crates that will never exist (e.g., prism-observability when observability lives in prism-core).
+For each crate/package referenced, verify it exists in the workspace. Do not reference planned-but-not-yet-created crates without marking them as `[PLANNED]`. Do not reference crates that will never exist (e.g., e.g., a planned module that doesn't exist in the workspace).
 
 If you cannot justify an anchor, stop and flag it rather than guessing.
 

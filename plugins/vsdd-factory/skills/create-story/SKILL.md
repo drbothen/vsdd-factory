@@ -97,15 +97,15 @@ These patterns invalidate a story. If you catch any, fix before proceeding:
 
 Updated `.factory/stories/STORY-NNN.md` with full specification.
 
-## Prism Phase 3 Lessons (apply to ALL projects)
+## Lessons Learned (apply to ALL projects)
 
 ### Centralized Version Pins
 
-The story MUST include the external dependency table from `dependency-graph.md` verbatim in its "Library & Framework Requirements" section. Do not invent version numbers — reference the centralized pin. Version mismatches were the most persistent finding class in Prism (7 passes to resolve).
+The story MUST include the external dependency table from `dependency-graph.md` verbatim in its "Library & Framework Requirements" section. Do not invent version numbers — reference the centralized pin. Version mismatches were the most persistent finding class in practice (multiple passes to resolve).
 
 ### Forbidden Dependencies Section
 
-Every story MUST include a "Forbidden Dependencies" section listing crates/packages that must NOT appear in the implementing module's dependency graph. State these as compile-time enforcement rules. Example: "prism-spec-engine must NOT depend on DataFusion — export descriptors and register in prism-query instead."
+Every story MUST include a "Forbidden Dependencies" section listing crates/packages that must NOT appear in the implementing module's dependency graph. State these as compile-time enforcement rules. Example: "core-engine must NOT depend on query-runtime — export descriptors and register in the query module instead."
 
 ### Error Taxonomy Compliance
 

@@ -194,11 +194,11 @@ If multiple findings seem related, address the root cause first — fixing one m
 
 When debugging a review finding, use `/vsdd-factory:systematic-debugging` — don't guess at fixes.
 
-## Prism Phase 3 Lessons (apply to ALL projects)
+## Lessons Learned (apply to ALL projects)
 
 ### Fix Root Causes, Not Symptoms
 
-When fixing BC-to-story drift or adversarial findings, read the authoritative BC file FIRST, then rewrite the contradicting section from scratch. Never apply targeted text replacements without first reading both the BC and the section being modified. In Prism, incremental line-level patches caused the same findings to recur across 3-5 passes.
+When fixing BC-to-story drift or adversarial findings, read the authoritative BC file FIRST, then rewrite the contradicting section from scratch. Never apply targeted text replacements without first reading both the BC and the section being modified. In practice, incremental line-level patches caused the same findings to recur across 3-5 passes.
 
 ### Read Before Editing, Verify After Editing
 

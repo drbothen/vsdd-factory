@@ -77,11 +77,11 @@ Read specs first, then review source code against them. Focus on spec drift and 
 - When novelty is LOW (findings are refinements, not gaps), report convergence
 - Minimum 2 passes, maximum 5 before escalating
 
-## Prism Phase 3 Lessons (apply to ALL projects)
+## Lessons Learned (apply to ALL projects)
 
 ### Fix Root Causes, Not Symptoms
 
-When a finding shows BC-to-story drift (wrong error codes, missing struct fields, wrong formulas), the fix MUST be: read the authoritative BC, then rewrite the contradicting story section from scratch. Never apply targeted text replacements without first reading both the BC and the story section. In Prism, incremental line-level patches caused the same findings to recur across 3-5 passes (S-3.01 security limits survived 3 fix attempts; S-3.04 alias system required 6 passes before a full rewrite resolved it in one pass).
+When a finding shows BC-to-story drift (wrong error codes, missing struct fields, wrong formulas), the fix MUST be: read the authoritative BC, then rewrite the contradicting story section from scratch. Never apply targeted text replacements without first reading both the BC and the story section. In practice, incremental line-level patches caused the same findings to recur across 3-5 passes (S-3.01 security limits survived 3 fix attempts; S-3.04 alias system required 6 passes before a full rewrite resolved it in one pass).
 
 ### Accumulate Invariants Across Passes
 
@@ -93,6 +93,15 @@ Do NOT shortcut to "it's clean" after 2 consecutive clean passes. Fresh-context 
 
 Minimum convergence requirement: 3 consecutive clean passes (not 2). Even near-convergence, keep running passes until the minimum is met.
 
+## Trajectory Monotonicity
+
+Finding counts must decrease monotonically across passes. If any pass shows MORE findings than the previous pass, this is a regression — stop and investigate root cause before proceeding. Possible causes:
+- New scope was added without pre-validation against the invariant list
+- A fix introduced a new defect
+- The adversary's perimeter expanded unexpectedly
+
+Do NOT continue convergence passes until the regression is explained and resolved.
+
 ### Pre-validate New Scope Additions
 
-When new stories are added during adversarial convergence, they must be written by an agent with access to the full invariant list from prior passes. New stories should be pre-validated against known invariants before being committed. In Prism, each new story introduced 3-5 findings because they lacked the rigor of adversarially-converged originals.
+When new stories are added during adversarial convergence, they must be written by an agent with access to the full invariant list from prior passes. New stories should be pre-validated against known invariants before being committed. In practice, each new story introduced 3-5 findings because they lacked the rigor of adversarially-converged originals.

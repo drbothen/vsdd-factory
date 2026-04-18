@@ -411,7 +411,7 @@ effective wave scheduling:
 - Epic template: `../../templates/epic-template.md`
 - Wave schedule output: `../../templates/wave-schedule-template.md`
 
-## Prism Phase 3 Lessons (apply to ALL projects)
+## Lessons Learned (apply to ALL projects)
 
 ### Read Source BCs Before Writing
 
@@ -423,11 +423,11 @@ When writing stories during adversarial convergence, you receive an invariant li
 
 ### Use Centralized Version Pins
 
-Never invent library version numbers from training data. The prompt includes the external dependency table from `dependency-graph.md` — use those exact versions. Version mismatches (e.g., DataFusion 35 vs 53, Arrow 51 vs 53) were the most persistent class of finding in Prism because each story was written independently with stale versions.
+Never invent library version numbers from training data. The prompt includes the external dependency table from `dependency-graph.md` — use those exact versions. Version mismatches (e.g., DataFusion 35 vs 53, Arrow 51 vs 53) were the most persistent class of finding in practice because each story was written independently with stale versions.
 
 ### Include Forbidden Dependencies
 
-Stories must include a "Forbidden Dependencies" section listing crates that must NOT appear in the implementing crate's dependency graph. State these as compile-time enforcement rules: "If this crate's Cargo.toml gains a dependency on X, the build MUST fail." In Prism, "prism-spec-engine must NOT depend on DataFusion" was violated in 5 stories across 4 passes.
+Stories must include a "Forbidden Dependencies" section listing crates that must NOT appear in the implementing crate's dependency graph. State these as compile-time enforcement rules: "If this crate's Cargo.toml gains a dependency on X, the build MUST fail." In practice, "e.g., core-engine must NOT depend on query-runtime" was violated in 5 stories across 4 passes.
 
 ### Use Only Existing Error Codes
 
@@ -435,7 +435,7 @@ Stories must ONLY reference error codes that exist in the error taxonomy. Do not
 
 ### Pre-validate New Stories During Convergence
 
-When new stories are added during adversarial convergence, validate them against the full invariant list before committing. In Prism, each new story introduced 3-5 findings on average because they were written without the rigor of the adversarially-converged originals.
+When new stories are added during adversarial convergence, validate them against the full invariant list before committing. In practice, each new story introduced 3-5 findings on average because they were written without the rigor of the adversarially-converged originals.
 
 ## Anchor Justification Requirement
 

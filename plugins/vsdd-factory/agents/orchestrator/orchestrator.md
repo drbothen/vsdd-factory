@@ -267,7 +267,7 @@ This loop continues until convergence (VSDD.md Phase 6).
 
 ### Fresh-Context Consistency Audit at Every Gate
 
-At every phase gate (not just adversarial convergence), spawn consistency-validator with fresh context BEFORE human approval. The adversary catches defects WITHIN the perimeter it's shown; the consistency-validator checks whether the perimeter is right. "Previously-converged" does NOT mean "correct" — Prism went from "50-pass converged" to "19 gaps found" in one fresh-context audit.
+At every phase gate (not just adversarial convergence), spawn consistency-validator with fresh context BEFORE human approval. The adversary catches defects WITHIN the perimeter it's shown; the consistency-validator checks whether the perimeter is right. "Previously-converged" does NOT mean "correct" — A project went from "50-pass converged" to "19 gaps found" in one fresh-context audit.
 
 
 
@@ -280,7 +280,7 @@ At every human approval gate, present not just "approve/reject" but explicit que
 3. **Coverage gaps:** "These [N] BCs have no story coverage yet — is that intentional?"
 4. **Convention consistency:** "Using [taxonomy/pattern] — is this consistent with prior decisions?"
 
-The user-as-senior-architect catches things the adversary doesn't. Prism examples: missing CI/CD (19-gap audit), missing DTU surfaces (5→14 crates), legacy label inconsistency (19 labels swept), semantic anchoring (new principle). Each catch saved weeks of Phase 4 rework.
+The user-as-senior-architect catches things the adversary doesn't. Real-world examples: missing CI/CD (19-gap audit), missing DTU surfaces (5→14 crates), legacy label inconsistency (19 labels swept), semantic anchoring (new principle). Each catch saved weeks of Phase 4 rework.
 
 Format each gate approval as:
 ```
