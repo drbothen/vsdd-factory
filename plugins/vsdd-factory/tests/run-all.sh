@@ -58,4 +58,8 @@ echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 
 echo
+echo "== Hook robustness tests =="
+bats tests/hook-robustness.bats
+
+echo
 echo "All tests passed."
