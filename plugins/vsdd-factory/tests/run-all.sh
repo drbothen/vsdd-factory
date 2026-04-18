@@ -50,4 +50,8 @@ echo "== Policy 9 VP-consistency tests =="
 bats tests/policy9.bats
 
 echo
+echo "== Destructive command guard tests =="
+bats tests/destructive-guard.bats
+
+echo
 echo "All tests passed."
