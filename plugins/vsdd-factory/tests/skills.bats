@@ -160,3 +160,48 @@ setup() {
 @test "adversarial-review has collision guard" {
   grep -qF "Collision Guard" "$SKILLS/adversarial-review/SKILL.md"
 }
+
+@test "adversarial-review has policy rubric auto-loading" {
+  grep -qF "Policy Rubric Auto-Loading (MANDATORY)" "$SKILLS/adversarial-review/SKILL.md"
+}
+
+@test "adversarial-review has scoped review parameter" {
+  grep -qF -- "--scope=full" "$SKILLS/adversarial-review/SKILL.md"
+  grep -qF -- "--scope=diff-from" "$SKILLS/adversarial-review/SKILL.md"
+  grep -qF -- "--scope=paths" "$SKILLS/adversarial-review/SKILL.md"
+}
+
+# ---------- Policy registry ----------
+
+@test "policy-registry skill exists" {
+  [ -f "$SKILLS/policy-registry/SKILL.md" ]
+}
+
+@test "policy-add skill exists" {
+  [ -f "$SKILLS/policy-add/SKILL.md" ]
+}
+
+@test "policies-template.yaml is valid YAML" {
+  yq '.' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml" >/dev/null
+}
+
+@test "policies-template has 9 baseline policies" {
+  count=$(yq '.policies | length' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml")
+  [ "$count" -eq 9 ]
+}
+
+@test "policies-template policy IDs are sequential 1-9" {
+  ids=$(yq '.policies[].id' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml" | sort -n | tr '\n' ',')
+  [ "$ids" = "1,2,3,4,5,6,7,8,9," ]
+}
+
+@test "policies-template policy names are unique" {
+  total=$(yq '.policies[].name' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml" | wc -l | tr -d ' ')
+  unique=$(yq '.policies[].name' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml" | sort -u | wc -l | tr -d ' ')
+  [ "$total" -eq "$unique" ]
+}
+
+@test "policies-template policy 9 references validate-vp-consistency.sh" {
+  hook=$(yq '.policies[] | select(.id == 9) | .lint_hook' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml")
+  [ "$hook" = "hooks/validate-vp-consistency.sh" ]
+}

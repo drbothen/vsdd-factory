@@ -220,6 +220,8 @@ These skills are available at any point in the pipeline:
 | `/vsdd-factory:spec-drift` | Compare implementation against spec documents |
 | `/vsdd-factory:research` | External research via Perplexity, Context7, Tavily |
 | `/vsdd-factory:track-debt` | Technical debt register management |
+| `/vsdd-factory:policy-registry` | View, validate, manage governance policy registry |
+| `/vsdd-factory:policy-add` | Register a new governance policy mid-cycle |
 
 ## Operating Loop
 
@@ -232,6 +234,19 @@ These skills are available at any point in the pipeline:
 6. If gate passes: advance to next phase, spawn state-manager to update STATE.md
 7. If gate fails: spawn the appropriate agent again with feedback
 8. Report status to the human at each phase transition
+
+## Policy Rubric Loading (MANDATORY for adversary dispatch)
+
+Before every adversary dispatch, read `.factory/policies.yaml` (if it exists) and inject all policies into the adversary's task prompt under a `## Project Policy Rubric` heading. Format each policy as:
+
+```
+POLICY <id> (<name>): <description>
+Severity: <severity>. Scope: <scope>.
+```
+
+This ensures the adversary checks project-specific policies without manual copy-pasting. See the adversarial-review SKILL.md "Policy Rubric Auto-Loading" section for the full procedure.
+
+If `.factory/policies.yaml` doesn't exist, the adversary still has baseline policies baked into its agent prompt.
 
 ## VSDD Feedback Routing (see VSDD.md Feedback Integration Loop)
 

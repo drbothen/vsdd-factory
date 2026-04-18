@@ -101,6 +101,27 @@ This prevents silent overwrites of historical reviews in long-lived projects whe
 
 Attack with the adversary protocol. Write findings to `.factory/cycles/<current>/adversarial-reviews/`.
 
+## Policy Rubric Auto-Loading (MANDATORY)
+
+Before dispatching the adversary, the orchestrator MUST load the project's policy registry and inject it into the adversary's task prompt:
+
+1. **Read `.factory/policies.yaml`** — if the file doesn't exist, skip (policies are also baked into agent prompts as a fallback)
+2. **For each policy**, format as a rubric block:
+   ```
+   POLICY <id> (<name>): <description>
+   Severity: <severity>. Scope: <scope>.
+   Verification steps:
+     1. <step 1>
+     2. <step 2>
+     ...
+   ```
+3. **Append all rubric blocks** under a `## Project Policy Rubric` heading in the adversary's task prompt
+4. **The adversary must execute the verification steps** for each policy and report compliance per-policy in its findings. Verification steps give the adversary the concrete procedure — not just the rule name, but HOW to check it.
+
+This replaces manual copy-pasting of policy text into every adversary dispatch. The registry is the single source of truth for which policies a project has adopted.
+
+**Why both agent prompts AND policies.yaml?** Agent prompts carry the enforcement logic (what to do when a violation is found — severity classification, fix procedure, escalation rules). The registry carries the catalog (which policies exist, what they cover, what scope they apply to). The adversary needs both: the logic from its prompt to know HOW to check, and the catalog from policies.yaml to know WHAT to check for this specific project.
+
 ## For Implementation Review
 
 Read specs first, then review source code against them. Focus on spec drift and silent failures. Scope flags apply here too — `--scope=paths:src/security/` focuses on a specific module.
