@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.30.2 — Generalize Policy 9 hook for multi-project portability
+
+### Changed
+
+- **validate-vp-consistency.sh Check (d):** Replaced hardcoded Kani/Proptest/Fuzz column detection with generic header-based discovery. Auto-detects ALL verification method columns from the Coverage by Module header row. Works for any tool names (Kani, CBMC, Hypothesis, fast-check, Stryker, etc.).
+- **verification-coverage-matrix-template.md:** Method columns are now documented as project-specific with language-specific examples. Hook auto-detects — no configuration needed.
+- Removed dependency on `.declared` temp file for Check (d) — uses `get_summary_total` directly with partial label matching.
+
 ## 0.30.1 — Fix Policy 9 hook defects + verification templates
 
 ### Fixed
