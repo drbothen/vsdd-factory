@@ -326,6 +326,18 @@ When the orchestrator triggers a deprecation cycle:
 3. Update module-criticality.md (remove or reclassify deprecated module)
 4. Update dependency-graph.md (remove deprecated module's edges)
 
+### Source-of-Truth Invariants
+
+Three authoritative sources govern naming and enumeration across all VSDD artifacts. Before editing any anchor document, read the source of truth first. After editing, re-read and verify symmetry before committing.
+
+| Source of Truth | Authoritative For | Downstream Documents That Must Match |
+|-----------------|-------------------|--------------------------------------|
+| **ARCH-INDEX.md** Subsystem Registry | Subsystem names | BC-INDEX subsystem column, BC frontmatter `subsystem:`, PRD subsystem tables, story `subsystems:` |
+| **BC file H1 heading** | BC title | BC-INDEX title column, PRD §2/§5 tables, story body BC tables |
+| **VP-INDEX.md** | VP catalog (IDs, modules, tools, phases, counts) | `verification-architecture.md` Provable Properties Catalog + P0 list, `verification-coverage-matrix.md` VP-to-Module table + Totals row |
+
+The `validate-vp-consistency.sh` hook (`${CLAUDE_PLUGIN_ROOT}/hooks/validate-vp-consistency.sh`) automatically enforces VP-INDEX ↔ arch-doc symmetry on every edit to any of the three VP source files.
+
 ### VP-INDEX Propagation Obligation (vp_index_is_vp_catalog_source_of_truth)
 
 VP-INDEX.md is the authoritative enumeration of verification properties. Any change to VP-INDEX — VP addition, retirement, module reassignment, tool change (kani/proptest/fuzz/integration), phase reassignment (P0/P1), or total count — MUST propagate in the SAME burst to every architecture document that cites VPs:
