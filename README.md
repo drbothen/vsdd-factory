@@ -128,11 +128,11 @@ graph TD
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Agents** | 34 | Specialist personas (adversary, implementer, test-writer, architect, etc.) |
+| **Agents** | 33 | Specialist personas + 10 orchestrator workflow files |
 | **Skills** | 96 | Phase workflows, cross-cutting operations, design/UX, market intelligence |
-| **Commands** | 47 | Slash-command entry points (`/vsdd-factory:deliver-story`, `/vsdd-factory:factory-health`, etc.) |
+| **Commands** | 96 | Slash-command entry points — every skill has a corresponding command |
 | **Hooks** | 10 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, etc.) |
-| **Templates** | 108 | Output format definitions for every artifact type |
+| **Templates** | 109 | Output format definitions for every artifact type |
 | **Workflows** | 15 | Lobster-as-data files defining phase and mode sequences |
 | **Bin helpers** | 4 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan) |
 | **Rules** | 8 | Coding standards (Rust, Bash, git commits, spec format, etc.) |
