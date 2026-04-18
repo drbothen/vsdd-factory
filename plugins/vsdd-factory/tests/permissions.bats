@@ -90,6 +90,26 @@ setup() {
   ! grep -q 'tools:.*Write\|tools:.*Edit\|tools:.*Bash\|tools:.*exec' "$AGENTS/adversary.md"
 }
 
+@test "adversary has read-only profile documented" {
+  grep -q 'Profile: `read-only`' "$AGENTS/adversary.md"
+}
+
+@test "codebase-analyzer has full profile" {
+  grep -q 'Profile: `full`' "$AGENTS/codebase-analyzer.md"
+}
+
+@test "holdout-evaluator has restricted profile" {
+  grep -q 'Profile: `restricted`' "$AGENTS/holdout-evaluator.md"
+}
+
+@test "research-agent has full profile" {
+  grep -q 'Profile: `full`' "$AGENTS/research-agent.md"
+}
+
+@test "validate-extraction has full profile" {
+  grep -q 'Profile: `full`' "$AGENTS/validate-extraction.md"
+}
+
 @test "consistency-validator has coding profile" {
   grep -q 'Profile: `coding`' "$AGENTS/consistency-validator.md"
 }
@@ -332,6 +352,52 @@ _check_no_inline_shell() {
 
 @test "policy: bc_array_propagation criteria 67-69 in consistency-validator" {
   grep -q 'Story Frontmatter-Body BC Coherence (Criteria 67-69)' "$AGENTS/consistency-validator.md"
+}
+
+# ---------- Agent structural completeness ----------
+
+@test "all agents have Tool Access section" {
+  fail=0
+  for f in "$AGENTS"/*.md; do
+    if ! grep -q '## Tool Access' "$f"; then
+      echo "MISSING: $(basename "$f") — no ## Tool Access section" >&2
+      fail=$((fail+1))
+    fi
+  done
+  [ "$fail" -eq 0 ]
+}
+
+@test "all agents have Failure & Escalation section" {
+  fail=0
+  for f in "$AGENTS"/*.md; do
+    if ! grep -q '## Failure' "$f"; then
+      echo "MISSING: $(basename "$f") — no ## Failure section" >&2
+      fail=$((fail+1))
+    fi
+  done
+  [ "$fail" -eq 0 ]
+}
+
+@test "all agents have Remember section" {
+  fail=0
+  for f in "$AGENTS"/*.md; do
+    if ! grep -q '## Remember' "$f"; then
+      echo "MISSING: $(basename "$f") — no ## Remember section" >&2
+      fail=$((fail+1))
+    fi
+  done
+  [ "$fail" -eq 0 ]
+}
+
+@test "all agents reference AGENT-SOUL.md" {
+  fail=0
+  for f in "$AGENTS"/*.md; do
+    if ! grep -q 'AGENT-SOUL' "$f"; then
+      echo "MISSING: $(basename "$f") — no AGENT-SOUL.md reference" >&2
+      fail=$((fail+1))
+    fi
+  done
+  [ "$fail" -eq 0 ]
 }
 
 # Policy 9: vp_index_is_vp_catalog_source_of_truth
