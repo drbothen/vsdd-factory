@@ -452,6 +452,14 @@ When assigning `anchor_story` to a VP, verify the anchor story is the one that b
 
 If you cannot write the justification for any anchor, stop and request clarification. Do not guess.
 
+## Burst Splitting Rule
+
+Any burst writing >8 new artifacts must split into sub-bursts:
+- **Sub-burst A (Create):** Write the new artifact files only
+- **Sub-burst B (Integrate):** Update indexes, cross-references, and traceability tables
+
+This prevents context overflow (121k+ token transcripts) that degrades output quality. The orchestrator enforces this split — story-writer should report DONE_WITH_CONCERNS if asked to create AND integrate >8 artifacts in a single dispatch.
+
 ## Path-Prefix Verification
 
 Before the first file write in any burst, run `ls <destination-directory>` to verify the target path exists and confirm the exact prefix. Agent internal conventions may re-prepend directory prefixes, causing doubled paths (e.g., `.factory/stories/stories/`).
