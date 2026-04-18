@@ -46,12 +46,29 @@ Read and follow the output format in:
 - `${CLAUDE_PLUGIN_ROOT}/templates/adversarial-review-index-template.md` — review index
 - `${CLAUDE_PLUGIN_ROOT}/templates/adversarial-finding-template.md` — individual finding format
 
-## Target
+## Target and Scope
 
-Parse `$ARGUMENTS` to determine review target:
-- `specs` — review all documents in `.factory/specs/`
+Parse `$ARGUMENTS` to determine review target and scope:
+
+**Target** (first positional argument):
+- `specs` — review spec documents (default)
 - `implementation` — review source code against specs
-- If no argument, default to `specs`
+
+**Scope** (optional, after target):
+- `--scope=full` — read all documents in the target domain. Use for convergence candidates. This is the default.
+- `--scope=diff-from:<commit>` — focus on files changed since `<commit>`. Use between fix bursts to verify the last burst's changes. The adversary receives ONLY the changed files plus their immediate dependencies (parent BC, parent index).
+- `--scope=paths:<pattern>` — focus on specific paths (e.g., `specs/architecture/`, `specs/behavioral-contracts/BC-2.05.*`). Use for targeted verification of a specific subsystem or domain.
+
+Examples:
+```
+/vsdd-factory:adversarial-review specs
+/vsdd-factory:adversarial-review specs --scope=full
+/vsdd-factory:adversarial-review specs --scope=diff-from:abc1234
+/vsdd-factory:adversarial-review specs --scope=paths:specs/architecture/
+/vsdd-factory:adversarial-review implementation --scope=paths:src/security/
+```
+
+When `--scope` is not `full`, note the scope limitation in the review output header so readers know the review was targeted, not comprehensive.
 
 ## Filename Collision Guard (MANDATORY pre-flight)
 
@@ -69,7 +86,7 @@ This prevents silent overwrites of historical reviews in long-lived projects whe
 
 ## For Spec Review
 
-Read all spec documents:
+**Full scope** — read all spec documents:
 1. `.factory/specs/product-brief.md`
 2. `.factory/specs/domain-spec/L2-INDEX.md` → read index, then all sections (if exists)
 3. `.factory/specs/prd.md`
@@ -78,11 +95,15 @@ Read all spec documents:
 6. `.factory/specs/verification-properties/*`
 7. `.factory/specs/architecture/*`
 
+**Diff scope** (`--scope=diff-from:<commit>`) — read only files changed since the specified commit, plus their parent indexes (BC-INDEX, ARCH-INDEX, etc.). This focuses the adversary on verifying the latest fix burst without diluting attention across the full spec corpus.
+
+**Path scope** (`--scope=paths:<pattern>`) — read only files matching the specified glob pattern. Useful for targeted subsystem review.
+
 Attack with the adversary protocol. Write findings to `.factory/cycles/<current>/adversarial-reviews/`.
 
 ## For Implementation Review
 
-Read specs first, then review source code against them. Focus on spec drift and silent failures.
+Read specs first, then review source code against them. Focus on spec drift and silent failures. Scope flags apply here too — `--scope=paths:src/security/` focuses on a specific module.
 
 ## Post-Adversary Persistence (MANDATORY)
 
