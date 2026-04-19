@@ -194,7 +194,7 @@ Templates are read-only during pipeline execution. If you need to customize outp
 
 ## Hook behavior
 
-The plugin registers 17 hooks across four lifecycle events. Each hook enforces a specific
+The plugin registers 19 hooks across four lifecycle events. Each hook enforces a specific
 discipline.
 
 ### PreToolUse hooks (Edit|Write)
@@ -225,6 +225,8 @@ discipline.
 | `validate-bc-title.sh` | Verifies BC file H1 heading matches BC-INDEX title (Policy 7) |
 | `validate-story-bc-sync.sh` | Verifies story frontmatter bcs: ↔ body BC table ↔ AC traces bidirectional completeness (Policy 8) |
 | `validate-template-compliance.sh` | Verifies every .factory/ artifact has required frontmatter fields and section headings from its template |
+| `validate-finding-format.sh` | Blocks legacy finding/fix ID formats (ADV-NNN, STORY-NNN-FIX); only current formats accepted |
+| `validate-input-hash.sh` | Advisory: warns when `.factory/` artifacts have `inputs:` but missing or stale `input-hash` |
 
 ### PostToolUse hooks (Bash)
 

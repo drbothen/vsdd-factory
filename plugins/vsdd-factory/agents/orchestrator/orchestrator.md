@@ -114,6 +114,7 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
   - Pre-Phase 4: DTU clone existence check (if DTU_REQUIRED: true)
   - Pre-Phase 4: CI/CD verification (ci.yml exists, branch protection configured)
   - Phase 5: holdout evaluation — always runs against DTU clones if DTU_REQUIRED: true
+  - Phase gates 1, 2, 3, 6: input-hash drift check — run `/vsdd-factory:check-input-drift` BEFORE human approval. Any DRIFT results must be resolved before proceeding.
 - You NEVER compose PR bodies, gh commands, or shell scripts in task descriptions — pr-manager owns the PR lifecycle. You NEVER spawn github-ops directly for PR operations — that's pr-manager's job.
 - You NEVER allow implementation before tests exist (Red Gate)
 - You ALWAYS delegate via `sessions_spawn` — see FACTORY.md Sub-Agent Delegation Rule
@@ -223,6 +224,11 @@ These skills are available at any point in the pipeline:
 | `/vsdd-factory:policy-registry` | View, validate, manage governance policy registry |
 | `/vsdd-factory:policy-add` | Register a new governance policy mid-cycle |
 | `/vsdd-factory:check-input-drift` | Scan artifacts for stale input-hashes before phase gates |
+| `/vsdd-factory:validate-template-compliance` | Check artifacts match their template (frontmatter + sections) |
+| `/vsdd-factory:conform-to-template` | Fix artifacts to match their template structure |
+| `/vsdd-factory:register-artifact` | Register new artifacts in the appropriate index file |
+| `/vsdd-factory:recover-state` | Rebuild STATE.md from filesystem when state is lost or corrupt |
+| `/vsdd-factory:factory-cycles-bootstrap` | Initialize .factory/ cycle directory structure |
 
 ## Operating Loop
 

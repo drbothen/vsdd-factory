@@ -16,9 +16,17 @@ workflow:
       skill: "skills/phase-6-convergence/SKILL.md"
       depends_on: []
 
+    - name: input-hash-drift-check
+      type: skill
+      skill: "skills/check-input-drift/SKILL.md"
+      depends_on: [convergence-assessment]
+      description: >
+        Final drift check before convergence gate. All artifacts must have
+        current input-hashes — stale hashes indicate unresolved spec drift.
+
     - name: convergence-gate
       type: gate
-      depends_on: [convergence-assessment]
+      depends_on: [convergence-assessment, input-hash-drift-check]
       gate:
         criteria:
           - "Spec dimension: CONVERGED"

@@ -57,9 +57,17 @@ workflow:
             skill: "skills/phase-1d-adversarial-spec-review/SKILL.md"
             depends_on: [spawn-adversary]
 
+    - name: input-hash-drift-check
+      type: skill
+      skill: "skills/check-input-drift/SKILL.md"
+      depends_on: [adversarial-spec-review]
+      description: >
+        Scan all .factory/specs/ artifacts for stale input-hashes.
+        Any DRIFT results must be resolved before human approval.
+
     - name: human-approval
       type: human-approval
-      depends_on: [adversarial-spec-review]
+      depends_on: [input-hash-drift-check]
       approval:
         prompt: >
           Phase 1 Spec Crystallization is complete. Review the spec package.

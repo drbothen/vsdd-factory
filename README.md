@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.33.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.38.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -129,12 +129,12 @@ graph TD
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 33 | Specialist personas + 10 orchestrator workflow files |
-| **Skills** | 103 | Phase workflows, cross-cutting operations, design/UX, market intelligence, policy management |
-| **Commands** | 101 | Slash-command entry points — every skill has a corresponding command |
-| **Hooks** | 16 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, etc.) |
-| **Templates** | 127 | Output format definitions for every artifact type |
+| **Skills** | 104 | Phase workflows, cross-cutting operations, design/UX, market intelligence, policy management |
+| **Commands** | 104 | Slash-command entry points — every skill has a corresponding command |
+| **Hooks** | 19 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, template compliance, finding format, input-hash drift, etc.) |
+| **Templates** | 94 | Output format definitions for every artifact type |
 | **Workflows** | 15 | Lobster-as-data files defining phase and mode sequences |
-| **Bin helpers** | 4 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan) |
+| **Bin helpers** | 5 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan, compute-input-hash) |
 | **Rules** | 8 | Coding standards (Rust, Bash, git commits, spec format, etc.) |
 | **Docs** | 5 | Methodology, factory protocol, convergence criteria, agent principles |
 
@@ -165,22 +165,22 @@ plugins/vsdd-factory/
     test-writer.md
     ...
   skills/
-    brownfield-ingest/       # 103 skill directories, each with SKILL.md
+    brownfield-ingest/       # 104 skill directories, each with SKILL.md
     deliver-story/
     factory-health/
     ...
-  commands/                  # 103 slash-command wrappers
+  commands/                  # 104 slash-command wrappers
   hooks/
     hooks.json               # Hook wiring (PreToolUse, PostToolUse, SubagentStop, Stop)
-    protect-vp.sh            # 16 enforcement hooks
+    protect-vp.sh            # 19 enforcement hooks
     red-gate.sh
     ...
-  bin/                       # 4 shell utilities
+  bin/                       # 5 shell utilities
   workflows/                 # 15 Lobster workflow files (YAML-as-data)
-  templates/                 # 127 artifact output templates
+  templates/                 # 94 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (342 tests)
+  tests/                     # bats test suites (381 tests across 12 suites)
   fixtures/                  # Test fixtures (smoke-project, policy-9, policy-enforcement)
 ```
 
@@ -195,20 +195,22 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (292 across 9 suites)
+# All tests (381 across 12 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
-bats plugins/vsdd-factory/tests/hooks.bats              # 44 hook enforcement tests
-bats plugins/vsdd-factory/tests/skills.bats              # 33 structural tests (Iron Laws, Red Flags, templates, policies)
+bats plugins/vsdd-factory/tests/hooks.bats              # 54 hook enforcement tests
+bats plugins/vsdd-factory/tests/skills.bats              # 52 structural tests (Iron Laws, Red Flags, templates, policies)
 bats plugins/vsdd-factory/tests/bin.bats                 # 13 bin helper tests
 bats plugins/vsdd-factory/tests/visual-companion.bats    # 18 visual companion server tests
-bats plugins/vsdd-factory/tests/permissions.bats         # 67 permission model + governance policy + structural completeness tests
-bats plugins/vsdd-factory/tests/policy9.bats             # 11 VP-INDEX consistency hook tests
-bats plugins/vsdd-factory/tests/destructive-guard.bats   # 46 destructive command guard tests
-bats plugins/vsdd-factory/tests/policy-enforcement.bats  # 28 policy 6/7/8 enforcement hook tests
-bats plugins/vsdd-factory/tests/hook-robustness.bats     # 31 hook robustness + error contract tests
+bats plugins/vsdd-factory/tests/permissions.bats         # 68 permission model + governance policy + structural completeness tests
+bats plugins/vsdd-factory/tests/policy9.bats             # 13 VP-INDEX consistency hook tests
+bats plugins/vsdd-factory/tests/destructive-guard.bats   # 51 destructive command guard tests
+bats plugins/vsdd-factory/tests/policy-enforcement.bats  # 30 policy 6/7/8 enforcement hook tests
+bats plugins/vsdd-factory/tests/hook-robustness.bats     # 34 hook robustness + error contract tests
 bats plugins/vsdd-factory/tests/template-compliance.bats # 14 template compliance hook tests
+bats plugins/vsdd-factory/tests/finding-format.bats      # 12 finding format validation tests
+bats plugins/vsdd-factory/tests/input-hash.bats          # 22 input-hash drift detection tests
 ```
 
 ### Syntax checking
@@ -261,7 +263,7 @@ Contributions are welcome. Before submitting a PR:
    `adversarial-review`, `wave-gate`) each have an Iron Law and a Red Flags table. These
    are empirically anchored -- do not weaken them without eval evidence.
 
-2. **Run the test suite.** All 328 bats tests must pass. New skills need structural tests
+2. **Run the test suite.** All 381 bats tests must pass. New skills need structural tests
    for any Iron Laws, Red Flags, or template references they introduce.
 
 3. **Use portable template paths.** Reference templates as

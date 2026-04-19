@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.38.0 — Orchestrator audit + workflow drift checks
+
+### Added
+
+- **Input-hash drift checks in lobster workflows** — phase-1, phase-3, phase-6 now include `input-hash-drift-check` step before gates/human approval
+- **Orchestrator mandatory step** — input-hash drift check required at phase gates 1, 2, 3, 6
+- **5 cross-cutting skills** added to orchestrator reference: `validate-template-compliance`, `conform-to-template`, `register-artifact`, `recover-state`, `factory-cycles-bootstrap`
+- **validate-finding-format.sh** and **validate-input-hash.sh** detail sections in hooks-reference.md
+
+### Changed
+
+- README counts updated: 104 skills, 104 commands, 19 hooks, 94 templates, 5 bin helpers, 381 tests across 12 suites
+- hooks-reference.md updated: 17 → 19 hooks with full detail sections
+- configuration.md updated: 17 → 19 hooks in PostToolUse table
+
 ## 0.37.0 — Input-hash drift detection tooling
 
 ### Added

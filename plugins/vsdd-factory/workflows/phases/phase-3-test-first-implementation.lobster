@@ -16,9 +16,17 @@ workflow:
       skill: "skills/phase-3-test-first-implementation/SKILL.md"
       depends_on: []
 
+    - name: input-hash-drift-check
+      type: skill
+      skill: "skills/check-input-drift/SKILL.md"
+      depends_on: [test-first-implementation]
+      description: >
+        Verify spec artifacts have not drifted since implementation began.
+        Stale input-hashes indicate specs changed without downstream updates.
+
     - name: implementation-gate
       type: gate
-      depends_on: [test-first-implementation]
+      depends_on: [test-first-implementation, input-hash-drift-check]
       gate:
         criteria:
           - "Red Gate passed -- all tests failed before implementation"

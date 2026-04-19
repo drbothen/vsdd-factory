@@ -1,6 +1,6 @@
 # Hooks Reference
 
-The vsdd-factory plugin ships 17 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
+The vsdd-factory plugin ships 19 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
 
 ---
 
@@ -22,6 +22,8 @@ The vsdd-factory plugin ships 17 hook scripts wired through `hooks.json`. Hooks 
 | `validate-bc-title.sh` | PostToolUse | Edit\|Write | BC file H1 heading matches BC-INDEX title (Policy 7) | Yes (exit 2 on mismatch) |
 | `validate-story-bc-sync.sh` | PostToolUse | Edit\|Write | Story frontmatter bcs: ↔ body BC table ↔ AC traces sync (Policy 8) | Yes (exit 2 on mismatch) |
 | `validate-template-compliance.sh` | PostToolUse | Edit\|Write | Artifact has required frontmatter fields and section headings from its template | Yes (exit 2 on missing) |
+| `validate-finding-format.sh` | PostToolUse | Edit\|Write | Only current finding/fix ID formats accepted (blocks legacy ADV-NNN, STORY-NNN-FIX) | Yes (exit 2 on legacy format) |
+| `validate-input-hash.sh` | PostToolUse | Edit\|Write | Warns when `.factory/` artifacts have `inputs:` but missing/stale `input-hash` | No (advisory) |
 | `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) |
 | `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) |
 | `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) |
@@ -191,6 +193,37 @@ Validates that every artifact file written to `.factory/` contains the required 
 Skips INDEX files, non-`.factory/` paths, and YAML/JSON config files.
 
 **Debugging:** Read the warning — it lists exactly which frontmatter fields and sections are missing, and suggests running `/vsdd-factory:conform-to-template` to add them.
+
+### validate-finding-format.sh
+
+**Event:** PostToolUse on Edit or Write
+
+Validates that finding and fix IDs in `.factory/` files use only the current format. Blocks legacy formats that were deprecated during the ID formalization effort.
+
+**Blocked formats (legacy):**
+- `ADV-NNN` — bare finding ID without cycle/pass/severity
+- `ADV-P[N]-NNN` — missing cycle and severity
+- `STORY-NNN-FIX` — old fix format
+
+**Accepted formats (current):**
+- `ADV-<CYCLE>-P[N]-[SEV]-NNN` — full finding ID with cycle, pass, severity
+- `FIX-P[N]-NNN` — current fix format
+
+**Debugging:** Read the error — it identifies the legacy ID and shows the current format pattern. Replace with the current format.
+
+### validate-input-hash.sh
+
+**Event:** PostToolUse on Edit or Write
+
+Advisory hook that checks `.factory/` artifacts for input-hash drift. After any write to a `.factory/` markdown file with an `inputs:` frontmatter field, checks whether the `input-hash` field is present and current.
+
+**What it checks:**
+1. File has `inputs:` but `input-hash` is `"[md5]"` or `null` → warns "no computed input-hash"
+2. File has `inputs:` and a stored hash → runs `compute-input-hash --check` to detect drift
+
+**Not blocking** — the write proceeds regardless. The hook surfaces drift so agents can act on it. Use `/vsdd-factory:check-input-drift` for a batch scan at phase gates.
+
+**Debugging:** Run `compute-input-hash <file> --update` to recompute and store the current hash.
 
 ### regression-gate.sh
 
