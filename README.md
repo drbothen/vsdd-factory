@@ -180,7 +180,7 @@ plugins/vsdd-factory/
   templates/                 # 124 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (328 tests)
+  tests/                     # bats test suites (342 tests)
   fixtures/                  # Test fixtures (smoke-project, policy-9, policy-enforcement)
 ```
 
@@ -208,6 +208,7 @@ bats plugins/vsdd-factory/tests/policy9.bats             # 11 VP-INDEX consisten
 bats plugins/vsdd-factory/tests/destructive-guard.bats   # 46 destructive command guard tests
 bats plugins/vsdd-factory/tests/policy-enforcement.bats  # 28 policy 6/7/8 enforcement hook tests
 bats plugins/vsdd-factory/tests/hook-robustness.bats     # 31 hook robustness + error contract tests
+bats plugins/vsdd-factory/tests/template-compliance.bats # 14 template compliance hook tests
 ```
 
 ### Syntax checking
@@ -221,7 +222,7 @@ done
 ### CI
 
 GitHub Actions runs on every push and PR to main. The workflow installs tools, syntax-checks
-all shell scripts, runs all nine bats test suites, validates JSON manifests, and parses
+all shell scripts, runs all ten bats test suites, validates JSON manifests, and parses
 every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 
 ## Documentation

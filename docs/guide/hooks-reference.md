@@ -1,6 +1,6 @@
 # Hooks Reference
 
-The vsdd-factory plugin ships 16 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
+The vsdd-factory plugin ships 17 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
 
 ---
 
@@ -21,6 +21,7 @@ The vsdd-factory plugin ships 16 hook scripts wired through `hooks.json`. Hooks 
 | `validate-subsystem-names.sh` | PostToolUse | Edit\|Write | BC/story subsystem fields match ARCH-INDEX canonical names (Policy 6) | Yes (exit 2 on mismatch) |
 | `validate-bc-title.sh` | PostToolUse | Edit\|Write | BC file H1 heading matches BC-INDEX title (Policy 7) | Yes (exit 2 on mismatch) |
 | `validate-story-bc-sync.sh` | PostToolUse | Edit\|Write | Story frontmatter bcs: ↔ body BC table ↔ AC traces sync (Policy 8) | Yes (exit 2 on mismatch) |
+| `validate-template-compliance.sh` | PostToolUse | Edit\|Write | Artifact has required frontmatter fields and section headings from its template | Yes (exit 2 on missing) |
 | `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) |
 | `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) |
 | `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) |
@@ -176,6 +177,20 @@ Enforces Policy 8 (`bc_array_changes_propagate_to_body_and_acs`). After any edit
 Skips stories with no `bcs:` field (early creation). Error messages identify the specific missing BCs.
 
 **Debugging:** Read the error — it names which BCs are missing from which representation. Add the missing rows to the body BC table and/or AC trace annotations.
+
+### validate-template-compliance.sh
+
+**Event:** PostToolUse on Edit or Write
+
+Validates that every artifact file written to `.factory/` contains the required frontmatter fields and section headings defined by its corresponding template. Resolves templates by reading the file's `document_type` frontmatter and matching against template files in `${CLAUDE_PLUGIN_ROOT}/templates/`. Falls back to path-pattern matching for files without `document_type` (e.g., `stories/STORY-*.md` → `story-template.md`).
+
+**What it checks:**
+1. Required frontmatter fields present (keys only, not values)
+2. Required H2 section headings present (skips conditional/optional sections)
+
+Skips INDEX files, non-`.factory/` paths, and YAML/JSON config files.
+
+**Debugging:** Read the warning — it lists exactly which frontmatter fields and sections are missing, and suggests running `/vsdd-factory:conform-to-template` to add them.
 
 ### regression-gate.sh
 
