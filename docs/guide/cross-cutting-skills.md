@@ -188,6 +188,38 @@ Cross-document validation skill. Checks alignment between PRD, architecture, UX 
 
 ---
 
+## Governance & Policy
+
+### `/vsdd-factory:policy-registry`
+
+View, validate, and manage the project's `.factory/policies.yaml` governance policy registry. Supports `list`, `validate`, `show <name>`, and `init` commands. The `init` command populates the registry with the 9 baseline policies including verification steps for each.
+
+### `/vsdd-factory:policy-add`
+
+Register a new governance policy mid-cycle. Validates schema, assigns sequential ID, and prompts for description, severity, enforcement mechanisms, scope, lint hook, and verification steps.
+
+### `/vsdd-factory:validate-template-compliance`
+
+Audit whether artifact files conform to their corresponding templates. Three-level check: frontmatter fields, section headings, and table column headers. Resolves templates via `document_type` frontmatter or file path pattern. Supports single files or directory-wide scans.
+
+### `/vsdd-factory:conform-to-template`
+
+Fix structural gaps in an artifact file by adding missing frontmatter fields, section headings, and `[TODO]` placeholders from its template. Never deletes content, always shows diff before applying, creates backup. Reports table/order mismatches for manual fix.
+
+### `/vsdd-factory:register-artifact`
+
+Register a newly created artifact (BC, VP, story, holdout scenario) in its corresponding INDEX file. Extracts metadata from frontmatter and appends the correct INDEX row. Supports batch registration.
+
+### `/vsdd-factory:recover-state`
+
+Reconstruct `.factory/STATE.md` from artifacts on disk when corrupted or missing. Scans artifact directories, determines pipeline phase from artifact presence, extracts counts from INDEX files, and presents reconstructed state for user approval. Supports `--dry-run`.
+
+### `/vsdd-factory:factory-cycles-bootstrap`
+
+Migrate from flat adversarial-review layout to cycle-keyed directory structure. Archives historical reviews via `git mv` (preserving history), creates new cycle directory, and sets `.factory/current-cycle` pointer.
+
+---
+
 ## Visual Tooling
 
 ### `/vsdd-factory:visual-companion`

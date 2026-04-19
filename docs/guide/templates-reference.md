@@ -1,6 +1,6 @@
 # Templates Reference
 
-The vsdd-factory plugin ships 108 template files in `plugins/vsdd-factory/templates/`. Templates define the exact output structure for every artifact the pipeline produces. Skills reference templates via `${CLAUDE_PLUGIN_ROOT}/templates/<name>` and agents read them before generating output.
+The vsdd-factory plugin ships 124 template files in `plugins/vsdd-factory/templates/`. Templates define the exact output structure for every artifact the pipeline produces. Skills reference templates via `${CLAUDE_PLUGIN_ROOT}/templates/<name>` and agents read them before generating output.
 
 ---
 

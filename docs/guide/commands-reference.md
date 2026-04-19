@@ -1,6 +1,6 @@
 # Commands Reference
 
-The vsdd-factory plugin ships 96 slash commands. Each command dispatches to a corresponding skill. Run any command by typing its name in Claude Code.
+The vsdd-factory plugin ships 103 slash commands. Each command dispatches to a corresponding skill. Run any command by typing its name in Claude Code.
 
 All commands are prefixed with `/` when invoked. If you have multiple plugins installed, use the fully qualified form `/vsdd-factory:<command-name>` to avoid ambiguity.
 
@@ -169,6 +169,20 @@ Commands are organized by category below.
 |---------|-------------|
 | `/vsdd-factory:track-debt` | Manage the technical debt register (add, list, resolve). |
 | `/vsdd-factory:analytics-integration` | Ingest product analytics data to identify adoption and error patterns. |
+
+---
+
+## Governance & Policy
+
+| Command | Description |
+|---------|-------------|
+| `/vsdd-factory:policy-registry` | View, validate, and manage the project's governance policy registry. |
+| `/vsdd-factory:policy-add` | Register a new governance policy in the project's policy registry. |
+| `/vsdd-factory:validate-template-compliance` | Audit whether artifact files conform to their corresponding templates. |
+| `/vsdd-factory:conform-to-template` | Fix structural gaps in an artifact file by adding missing template structure. |
+| `/vsdd-factory:register-artifact` | Register a newly created artifact in its INDEX file. |
+| `/vsdd-factory:recover-state` | Reconstruct STATE.md from artifacts on disk when corrupted or missing. |
+| `/vsdd-factory:factory-cycles-bootstrap` | Migrate from flat adversarial-review layout to cycle-keyed directory structure. |
 
 ---
 

@@ -159,29 +159,29 @@ plugins/vsdd-factory/
   .claude-plugin/
     plugin.json              # Plugin manifest (name, version, license)
   agents/
-    orchestrator/            # Orchestrator + 9 mode-sequence sub-files
-    adversary.md             # 34 specialist agent definitions
+    orchestrator/            # Orchestrator + 10 workflow reference files
+    adversary.md             # 33 specialist agent definitions
     implementer.md
     test-writer.md
     ...
   skills/
-    brownfield-ingest/       # 91 skill directories, each with SKILL.md
+    brownfield-ingest/       # 103 skill directories, each with SKILL.md
     deliver-story/
     factory-health/
     ...
-  commands/                  # 47 slash-command wrappers
+  commands/                  # 103 slash-command wrappers
   hooks/
     hooks.json               # Hook wiring (PreToolUse, PostToolUse, SubagentStop, Stop)
-    protect-vp.sh            # 10 enforcement hooks
+    protect-vp.sh            # 16 enforcement hooks
     red-gate.sh
     ...
   bin/                       # 4 shell utilities
   workflows/                 # 15 Lobster workflow files (YAML-as-data)
-  templates/                 # 108 artifact output templates
+  templates/                 # 124 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (319 tests)
-  fixtures/                  # Test fixtures (smoke-project)
+  tests/                     # bats test suites (328 tests)
+  fixtures/                  # Test fixtures (smoke-project, policy-9, policy-enforcement)
 ```
 
 ## Development
@@ -234,6 +234,9 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 | [Troubleshooting](docs/guide/troubleshooting.md) | Common issues and fixes |
 | [Visual Companion](docs/guide/visual-companion.md) | Browser-based mockups, excalidraw diagrams, interactive design |
 | [Glossary](docs/guide/glossary.md) | VSDD terminology reference |
+| [Policy Reference](docs/guide/policy-reference.md) | Governance policies, enforcement matrix, violation playbooks |
+| [Hooks Reference](docs/guide/hooks-reference.md) | All 16 hooks with trigger behavior and debugging |
+| [Agents Reference](docs/guide/agents-reference.md) | Agent permission model, status protocol, all 33 agents |
 
 ### Internal reference docs (in the plugin)
 
@@ -256,7 +259,7 @@ Contributions are welcome. Before submitting a PR:
    `adversarial-review`, `wave-gate`) each have an Iron Law and a Red Flags table. These
    are empirically anchored -- do not weaken them without eval evidence.
 
-2. **Run the test suite.** All 62 bats tests must pass. New skills need structural tests
+2. **Run the test suite.** All 328 bats tests must pass. New skills need structural tests
    for any Iron Laws, Red Flags, or template references they introduce.
 
 3. **Use portable template paths.** Reference templates as

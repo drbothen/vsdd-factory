@@ -178,7 +178,7 @@ resolves correctly regardless of where the plugin is installed.
 
 ## Template customization
 
-The plugin ships 108 templates in `plugins/vsdd-factory/templates/`. These define the
+The plugin ships 124 templates in `plugins/vsdd-factory/templates/`. These define the
 exact output format for every artifact type: behavioral contracts, architecture sections,
 PRDs, adversarial findings, holdout evaluations, demo reports, convergence reports, and more.
 
