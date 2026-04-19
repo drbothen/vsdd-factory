@@ -241,10 +241,31 @@ _run_hook() {
 # A hook crashing (exit 1) looks like an error, not a policy violation.
 # All hooks should exit 0 (allow) or 2 (block) — never 1.
 
+@test "contract: validate-finding-format says ID FORMAT VIOLATION" {
+  WORK=$(mktemp -d)
+  mkdir -p "$WORK/.factory/cycles/v1/adversarial-reviews"
+  echo "## ADV-001: Legacy finding" > "$WORK/.factory/cycles/v1/adversarial-reviews/pass-1.md"
+  INPUT=$(jq -nc --arg fp "$WORK/.factory/cycles/v1/adversarial-reviews/pass-1.md" '{tool_input: {file_path: $fp}}')
+  _run_hook "validate-finding-format.sh" "$INPUT"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"ID FORMAT VIOLATION"* ]]
+  rm -rf "$WORK"
+}
+
+@test "robustness: validate-finding-format handles empty JSON" {
+  _run_hook "validate-finding-format.sh" '{}'
+  [ "$status" -eq 0 ]
+}
+
+@test "robustness: validate-finding-format handles missing file_path" {
+  _run_hook "validate-finding-format.sh" '{"tool_input":{}}'
+  [ "$status" -eq 0 ]
+}
+
 @test "contract: all hooks pass syntax check" {
   for hook in destructive-command-guard verify-git-push factory-branch-guard \
               validate-vp-consistency validate-subsystem-names validate-bc-title \
-              validate-story-bc-sync; do
+              validate-story-bc-sync validate-template-compliance validate-finding-format; do
     bash -n "$HOOKS/$hook.sh"
   done
 }

@@ -172,6 +172,63 @@ setup() {
   rm -rf "$WORK"
 }
 
+@test "P8: detects drift with canonical behavioral_contracts: field" {
+  WORK=$(mktemp -d)
+  mkdir -p "$WORK/stories"
+  cat > "$WORK/stories/STORY-099.md" << 'FIXTURE'
+---
+story_id: STORY-099
+behavioral_contracts: [BC-1.01.001, BC-1.01.002]
+---
+
+# STORY-099: Test
+
+## Behavioral Contracts
+
+| BC | Title |
+|----|-------|
+| BC-1.01.001 | Test |
+
+## Acceptance Criteria
+
+### AC-001 (traces to BC-1.01.001)
+Test.
+FIXTURE
+  INPUT=$(jq -nc --arg fp "$WORK/stories/STORY-099.md" '{tool_input: {file_path: $fp}}')
+  run bash -c "echo '$INPUT' | '$HOOKS/validate-story-bc-sync.sh' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BC-1.01.002"* ]]
+  rm -rf "$WORK"
+}
+
+@test "P8: reads legacy bcs: field (functional compatibility)" {
+  WORK=$(mktemp -d)
+  mkdir -p "$WORK/stories"
+  cat > "$WORK/stories/STORY-098.md" << 'FIXTURE'
+---
+story_id: STORY-098
+bcs: [BC-1.01.001]
+---
+
+# STORY-098: Test
+
+## Behavioral Contracts
+
+| BC | Title |
+|----|-------|
+| BC-1.01.001 | Test |
+
+## Acceptance Criteria
+
+### AC-001 (traces to BC-1.01.001)
+Test.
+FIXTURE
+  INPUT=$(jq -nc --arg fp "$WORK/stories/STORY-098.md" '{tool_input: {file_path: $fp}}')
+  run bash -c "echo '$INPUT' | '$HOOKS/validate-story-bc-sync.sh' 2>&1"
+  [ "$status" -eq 0 ]
+  rm -rf "$WORK"
+}
+
 @test "P8: hook is executable" {
   [ -x "$HOOKS/validate-story-bc-sync.sh" ]
 }
