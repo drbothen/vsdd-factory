@@ -3,7 +3,7 @@ document_type: story
 level: ops
 story_id: "STORY-NNN"
 epic_id: "EPIC-NNN"
-version: "1.0"
+version: "1.1"
 status: draft
 producer: story-writer
 timestamp: YYYY-MM-DDTHH:MM:SS
@@ -14,11 +14,18 @@ traces_to: prd.md
 points: "[1-13]"
 depends_on: []
 blocks: []
-behavioral_contracts: []
-verification_properties: []
+behavioral_contracts: []       # canonical field name
+verification_properties: []    # canonical field name
+# Migration aliases: bcs → behavioral_contracts, vps → verification_properties
+# Accept both during transition — conform-to-template will normalize.
 priority: "P0|P1|P2"
 # Lifecycle fields (DF-030)
 cycle: vX.Y.Z                  # cycle that created this story (e.g., v1.0.0-greenfield)
+# Planning extensions (optional — v1.1)
+wave: null                     # wave-schedule number for parallel execution
+crate: null                    # target Rust crate or language-equivalent module
+subsystems: []                 # which subsystems this story touches (from ARCH-INDEX)
+estimated_days: null            # planning estimate (complements points)
 # ASM/R traceability (optional)
 assumption_validations: []     # ASM-NNN IDs this story validates
 risk_mitigations: []           # R-NNN IDs this story mitigates
@@ -67,7 +74,10 @@ postcondition, or invariant). This ensures full coverage of BCs by stories.
 |-----------|--------|---------------|
 | [component_id] | [module_path] | pure-core / effectful-shell |
 
-## UX Screens
+## UX Screens (Required only for UI stories)
+
+<!-- v1.1: Marked conditional. Omit for non-UI stories (CLI tools, APIs, libraries). -->
+
 - [SCR-NNN] -- [screen name]
 
 ## Design System Components (DF-037, UI stories only)
@@ -145,9 +155,12 @@ before starting and after completing each test cycle._
 
 ## Library & Framework Requirements (MANDATORY)
 
-| Dependency | Version Constraint | Why This Version | Import Pattern |
-|-----------|-------------------|-----------------|----------------|
-| [library] | [>= X.Y.Z] | [feature or fix needed] | [how to import] |
+<!-- v1.1: Simplified from "Dependency/Version Constraint/Why This Version/Import Pattern".
+     Accept old headers during migration — conform-to-template will normalize. -->
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| [library/framework] | [>= X.Y.Z] | [why this version is required] |
 
 _From architecture.md technology stack. Prevents version drift across stories.
 The story-writer populates this from the architecture doc AND runs web research
@@ -155,9 +168,12 @@ to verify versions are current._
 
 ## File Structure Requirements (MANDATORY)
 
-| File | Purpose | Pre-exists? |
-|------|---------|------------|
-| [path/to/file] | [what this file does] | [YES -- dependency / NO -- this story creates it] |
+<!-- v1.1: Simplified from "File/Purpose/Pre-exists?". Action column is more actionable.
+     Accept old headers during migration — conform-to-template will normalize. -->
+
+| File | Action | Purpose |
+|------|--------|---------|
+| [path/to/file] | create / modify / delete / relocate | [what this file does] |
 
 _Maps which files this story reads, creates, or modifies. Prevents the
 implementer from creating files in unexpected locations or missing dependencies._
