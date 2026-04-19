@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.35.0 — Complete ID system formalization + Subsystem Registry
+
+### Added
+
+- **Subsystem Registry** in ARCH-INDEX template with formal SS-NN ID format, lifecycle documentation, and naming rules
+- **31-entry ID Format Reference** in FACTORY.md (was 16) — every ID system in the plugin now formally documented
+- **ID Scope Definitions** — Lifecycle (append-only), Cycle (resets), Local (scoped to parent)
+- **Legacy ID Formats** migration table — ADV-NNN, STORY-NNN-FIX mapped to current formats
+- **3 new templates:** holdout-scenario-index (HS-INDEX with WHS section), epic-index, fix
+- **5 glossary terms:** Epic, Fix PR, Gap Register, ID Scope, Wave Holdout Scenario
+
+### Changed
+
+- **Subsystem references now use SS-NN IDs** (was human-readable names). BC `subsystem:` and story `subsystems:` fields hold SS-IDs, not names.
+- **validate-subsystem-names.sh** hook matches SS-NN IDs against ARCH-INDEX registry. Error messages show `SS-01 (Core Engine)` pairs.
+- **Language-agnostic terminology:** "Crate" → "module/package" across agents and templates. Story field `crate:` → `target_module:` (migration alias accepted).
+- Templates: 124 → 127
+- Policy 6 enforcement: validates SS-IDs, not names
+
 ## 0.34.0 — Template v1.1 schema update (Prism-validated improvements)
 
 ### Changed — Template Schema Updates
