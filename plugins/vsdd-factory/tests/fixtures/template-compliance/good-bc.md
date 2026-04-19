@@ -26,6 +26,11 @@ removal_reason: ""
 
 # BC-2.01.001: Input Validation
 
+## Description
+
+This behavioral contract covers input validation for the core engine.
+
+
 ## Preconditions
 
 1. Input must be non-null

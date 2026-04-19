@@ -111,6 +111,18 @@ When setting the `subsystem:` frontmatter field on any BC file, you MUST use the
 
 Subsystem-label drift between BCs and ARCH-INDEX is HIGH severity — it causes misrouted implementation and review work.
 
+## BC Anchor Sections (v1.1 template)
+
+When creating BCs, include these sections in addition to the core Preconditions/Postconditions/Invariants:
+
+- **## Description** — 2-3 sentence summary (first body section, before Preconditions)
+- **## Related BCs** — bullet list of sibling BC IDs with relationship type (composes with, depends on, supersedes)
+- **## Architecture Anchors** — bullet list of architecture file references
+- **## Story Anchor** — implementing story ID (filled after story decomposition)
+- **## VP Anchors** — VP IDs that verify this contract (filled after VP creation)
+
+These are marked "(Recommended)" in the template. Include them when information is available — they provide machine-extractable cross-references that improve consistency-validator coverage and adversary review.
+
 ## Per-File BC Output
 
 Each behavioral contract is written to its own file:

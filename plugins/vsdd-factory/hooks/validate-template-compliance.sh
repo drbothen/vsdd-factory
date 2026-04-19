@@ -151,7 +151,7 @@ done
 
 # --- Step 6: Extract required H2 sections from template ---
 # Only check sections that aren't conditional (skip those with "only" in the heading)
-TEMPLATE_SECTIONS=$(grep '^## ' "$TEMPLATE" | sed 's/^## //' | grep -vi 'only\|optional' || true)
+TEMPLATE_SECTIONS=$(grep '^## ' "$TEMPLATE" | sed 's/^## //' | grep -vi 'only\|optional\|recommended\|conditional' || true)
 
 # --- Step 7: Extract H2 sections from written file ---
 FILE_SECTIONS=$(grep '^## ' "$FILE_PATH" | sed 's/^## //' || true)

@@ -368,6 +368,17 @@ Gene transfusion stories have NO special scheduling requirements.
 They go in the same wave their dependencies dictate. The transfusion
 happens INSIDE the implementer step, not as a separate pre-step.
 
+## Story Template v1.1 Extensions
+
+When producing stories, populate these optional frontmatter fields when the information is available:
+
+- **`wave:`** — wave-schedule number (set during wave scheduling, not at decomposition)
+- **`crate:`** — target Rust crate or language-equivalent module (from architecture module-decomposition)
+- **`subsystems:`** — which subsystems this story touches (from ARCH-INDEX Subsystem Registry — must use canonical names per Policy 6)
+- **`estimated_days:`** — planning estimate (complements story points for project planning)
+
+These fields are OPTIONAL — stories are valid without them. The `behavioral_contracts` and `verification_properties` fields remain canonical; accept `bcs` and `vps` as input aliases but always write the canonical names.
+
 ## Wave Scheduling Awareness
 
 When producing stories, be aware that downstream tooling (DF-022 wave scheduler)
