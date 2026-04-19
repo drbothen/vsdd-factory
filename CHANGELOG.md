@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.36.0 — Strict ID enforcement + comprehensive ID reference
+
+### Added
+
+- **validate-finding-format.sh** — PostToolUse hook blocking legacy ADV-NNN, ADV-P[N]-NNN, and STORY-NNN-FIX formats. Only current formats accepted: `ADV-<CYCLE>-P[N]-[SEV]-NNN` and `FIX-P[N]-NNN`. 15 tests.
+- **docs/guide/id-reference.md** — comprehensive reference documenting all 30 ID formats with scope rules, producer, registry, hook validation, and detailed descriptions for key IDs
+
+### Changed
+
+- **All migration graces removed.** Only current formats accepted:
+  - `behavioral_contracts` (not `bcs`), `target_module` (not `crate`)
+  - `document_type: domain-spec-index` (not `domain-spec-section`)
+  - `SS-NN` IDs (not subsystem names)
+  - Current table headers only (no legacy acceptance)
+  - Legacy ADV/FIX ID formats removed from FACTORY.md
+- **validate-story-bc-sync.sh** reads both `behavioral_contracts:` and `bcs:` functionally (finds data regardless of field name — template-compliance hook flags the wrong name separately)
+- Hooks: 17 → 18, Tests: 342 → 359, Suites: 10 → 11
+
 ## 0.35.0 — Complete ID system formalization + Subsystem Registry
 
 ### Added
