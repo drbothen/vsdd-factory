@@ -11,15 +11,18 @@ description: >
 
 | Scenario | Mode | Why |
 |----------|------|-----|
-| New product from scratch | Greenfield (Phases 1-6) | No existing artifacts to preserve |
+| New product from scratch | Greenfield (Phases 1-7) | No existing artifacts to preserve |
 | Adding a feature to shipped product | Feature Mode (Phases F1-F7) | Scoped delta, regression protection |
-| Major architectural rework | Greenfield (Phases 1-6) | Too many changes to scope as delta |
+| Major architectural rework | Greenfield (Phases 1-7) | Too many changes to scope as delta |
 | Bug fix | Feature Mode (minimal) | Scoped to affected module |
 | Performance optimization | Feature Mode | Scoped to hot paths |
-| Migration (database, framework) | Greenfield (Phases 1-6) | Cross-cutting, affects everything |
+| Migration (database, framework) | Greenfield (Phases 1-7) | Cross-cutting, affects everything |
 | Existing codebase, first VSDD run | Brownfield (Phase 0) + Greenfield | Need to ingest first, then build |
 | Adding to factory-built product | Feature Mode (Phases F1-F7) | Full VSDD artifacts already exist |
 | Refactoring without behavior change | Feature Mode (minimal) | Tests protect behavior, verify no regression |
+| Multi-repo project | Multi-repo | Coordinates per-repo pipelines via project.yaml |
+| Scheduled quality audit | Maintenance | 10 sweep types run on schedule |
+| Research new opportunities | Discovery | Autonomous idea evaluation and brief creation |
 
 ## Decision Flowchart
 
@@ -27,12 +30,12 @@ description: >
 START: What are you building?
 |
 +-- "I have a product brief and no existing code"
-|   +-> GREENFIELD MODE (Phases 1-6)
+|   +-> GREENFIELD MODE (Phases 1-7)
 |
 +-- "I have an existing codebase I want to extend"
 |   +-> Has the factory ingested this codebase before?
 |       +-- NO -> BROWNFIELD MODE first (Phase 0)
-|       |         Then: Greenfield (Phases 1-6) for first feature
+|       |         Then: Greenfield (Phases 1-7) for first feature
 |       |         Then: Feature Mode for subsequent features
 |       +-- YES -> FEATURE MODE (Phases F1-F7)
 |
@@ -40,14 +43,28 @@ START: What are you building?
 |   +-> FEATURE MODE (Phases F1-F7)
 |
 +-- "I need a major rework / migration / architecture change"
-|   +-> GREENFIELD MODE (Phases 1-6)
+|   +-> GREENFIELD MODE (Phases 1-7)
 |       Even on existing code -- the delta is too large to scope
 |
 +-- "I just need a bug fix"
-    +-> FEATURE MODE (minimal)
-        Phase F1 (delta analysis) -> F4 (fix) -> F5 (review) -> F7 (converge)
-        Skip F2 (spec unchanged), F3 (no new stories), F6 (hardening optional)
+|   +-> FEATURE MODE (minimal)
+|       Phase F1 (delta analysis) -> F4 (fix) -> F5 (review) -> F7 (converge)
+|       Skip F2 (spec unchanged), F3 (no new stories), F6 (hardening optional)
+|
++-- "This project spans multiple repos"
+|   +-> MULTI-REPO MODE
+|       Reads project.yaml, computes repo-level waves, runs per-repo pipelines
+|
++-- "I want the system to find new opportunities"
+|   +-> DISCOVERY MODE
+|       Autonomous research, idea scoring, brief generation
+|
++-- "I want to run quality sweeps"
+    +-> MAINTENANCE MODE
+        10 sweep types, opens fix PRs automatically
 ```
+
+**Note:** Planning is not a standalone mode — it runs automatically as the front-end of greenfield and brownfield modes. It detects existing artifacts, validates quality, and routes to the correct mode.
 
 ## Quantitative Heuristics
 
@@ -102,7 +119,7 @@ The typical long-term workflow for an existing codebase:
 
 ```
 Day 1:     Brownfield Mode (Env → Repo Verify → Phase 0) -> Project Context
-Day 2-3:   Greenfield Mode (Phases 1-6 + Release) -> First feature shipped
+Day 2-3:   Greenfield Mode (Phases 1-7 + Release) -> First feature shipped
 Day 4+:    Feature Mode (Env → F1-F7 + Release) -> Incremental features
 Periodic:  Greenfield Mode -> Major reworks, migrations, architecture changes
 Ongoing:   Maintenance Sweep (9 sweeps weekly) -> Quality assurance
@@ -110,7 +127,7 @@ Ongoing:   Maintenance Sweep (9 sweeps weekly) -> Quality assurance
 ```
 
 1. **First engagement:** Brownfield Mode (Phase 0) to ingest the existing codebase
-2. **First feature:** Greenfield (Phases 1-6) to establish VSDD baseline
+2. **First feature:** Greenfield (Phases 1-7) to establish VSDD baseline
 3. **Subsequent features:** Feature Mode (Phases F1-F7) for incremental additions
 4. **Major reworks:** Greenfield when the delta is too large to scope
 5. **Continuous:** Feature Mode becomes the steady-state operation

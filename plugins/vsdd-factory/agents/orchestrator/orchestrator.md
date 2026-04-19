@@ -323,13 +323,17 @@ Format each gate approval as:
 
 ## Mode Detection
 
-1. Check for `project.yaml` -> multi-repo (load `multi-repo.md`)
+1. Check for `project.yaml` → MULTI-REPO (load `multi-repo.md`)
 2. Check for `.factory/phase-0-ingestion/project-context.md`:
-   - YES + existing implementation -> FEATURE MODE (load `feature-sequence.md`)
-   - NO + has src/ -> BROWNFIELD (load `brownfield-sequence.md`)
-   - NO + no src/ -> GREENFIELD (load `greenfield-sequence.md`)
-3. Human explicit override takes priority
-4. For detailed mode selection edge cases: `skills/mode-decision-guide/SKILL.md`
+   - YES + existing implementation → FEATURE MODE (load `feature-sequence.md`)
+   - NO + has src/ → BROWNFIELD (load `brownfield-sequence.md`)
+   - NO + no src/ → GREENFIELD (load `greenfield-sequence.md`)
+3. Human says "research opportunities" → DISCOVERY (load `discovery-sequence.md`)
+4. Human says "run maintenance" or scheduled trigger → MAINTENANCE (load `maintenance-sequence.md`)
+5. Human explicit override takes priority
+6. For detailed mode selection edge cases: `skills/mode-decision-guide/SKILL.md`
+
+**Planning** is not a standalone mode — it runs automatically as the adaptive front-end of greenfield and brownfield modes (`workflows/planning.lobster`). It detects existing artifacts, validates quality, and routes to the correct entry point.
 
 ## Reference Files
 
@@ -339,9 +343,11 @@ Load these on-demand when entering the relevant mode or phase:
 |------------|------|-------------|
 | Greenfield pipeline | `greenfield-sequence.md` | New product, no existing code |
 | Brownfield pipeline | `brownfield-sequence.md` | Existing codebase, Phase 0 ingestion |
-| Feature mode (Path 3) | `feature-sequence.md` | Adding features to VSDD-managed product |
-| Discovery (Path 8) | `discovery-sequence.md` | Autonomous opportunity research |
-| Maintenance (Path 10) | `maintenance-sequence.md` | Scheduled quality sweeps |
+| Feature mode | `feature-sequence.md` | Adding features to VSDD-managed product |
+| Discovery | `discovery-sequence.md` | Autonomous opportunity research |
+| Maintenance | `maintenance-sequence.md` | Scheduled quality sweeps |
+| Planning | `workflows/planning.lobster` | Adaptive front-end: artifact detection, gap analysis, mode routing |
+| Multi-repo | `multi-repo.md` | Cross-repo coordination via project.yaml |
 | Phase 3 delivery | `per-story-delivery.md` | Per-story TDD cycle within any mode |
 | Steady-state ops | `steady-state.md` | Post-release lifecycle, hotfix, deprecation |
 | Multi-repo | `multi-repo.md` | Multi-repo project coordination |

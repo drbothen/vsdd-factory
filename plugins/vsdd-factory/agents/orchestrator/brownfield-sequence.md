@@ -125,7 +125,7 @@ Spawn codebase-analyzer + ux-designer + accessibility-auditor:
 "Extract design system from existing codebase — tokens, contracts, constraints."
 HUMAN approves design system.
 
-## Transition to Greenfield Phases 1-6
+## Transition to Greenfield Phases 1-7
 
 Spawn state-manager: "Prepare Phase 1 context from Phase 0 output. Ensure all
 Phase 0 artifacts are committed and accessible."

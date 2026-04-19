@@ -312,7 +312,7 @@ workflow:
         5. Include design system if bootstrapped (DF-037 D2)
 
     # =========================================================================
-    # Phases 1-6: Standard VSDD (imported from greenfield)
+    # Phases 1-7: Standard VSDD (imported from greenfield)
     # All cross-cutting infrastructure applies via greenfield.lobster:
     # - Agent tiers (T1/T2/T3)
     # - Per-story delivery (worktree -> PR -> merge)
