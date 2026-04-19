@@ -1,9 +1,10 @@
 workflow:
   name: phase-5-formal-hardening
   description: >
-    Phase 5 decomposed into reusable sub-workflow. Kani proofs, fuzzing,
-    mutation testing, and security scanning based on toolchain-state.yaml.
-  version: "1.0.0"
+    Phase 5: Formal Hardening. Four verification techniques (Kani proofs,
+    fuzz testing, mutation testing, security scanning) with state-manager
+    backups for crash recovery.
+  version: "2.0.0"
 
   defaults:
     on_failure: escalate
@@ -11,14 +12,74 @@ workflow:
     timeout: "4h"
 
   steps:
-    - name: formal-hardening
+    # === Step A: Kani Proofs ===
+
+    - name: kani-proofs
       type: skill
-      skill: "skills/phase-5-formal-hardening/SKILL.md"
+      skill: "skills/formal-verify/steps/step-a-kani-proofs.md"
       depends_on: []
+      timeout: "2h"
+
+    - name: backup-kani-proofs
+      type: agent
+      agent: state-manager
+      depends_on: [kani-proofs]
+      task: >
+        Commit Kani proof harnesses and results to factory-artifacts.
+        Update STATE.md: phase: 5, step: kani-proofs, status: complete.
+
+    # === Step B: Fuzz Testing ===
+
+    - name: fuzz-testing
+      type: skill
+      skill: "skills/formal-verify/steps/step-b-fuzz-testing.md"
+      depends_on: [backup-kani-proofs]
+      timeout: "2h"
+
+    - name: backup-fuzz-testing
+      type: agent
+      agent: state-manager
+      depends_on: [fuzz-testing]
+      task: >
+        Commit fuzz targets and results to factory-artifacts.
+        Update STATE.md: phase: 5, step: fuzz-testing, status: complete.
+
+    # === Step C: Mutation Testing ===
+
+    - name: mutation-testing
+      type: skill
+      skill: "skills/formal-verify/steps/step-c-mutation-testing.md"
+      depends_on: [backup-fuzz-testing]
+      timeout: "1h"
+
+    - name: backup-mutation-testing
+      type: agent
+      agent: state-manager
+      depends_on: [mutation-testing]
+      task: >
+        Commit mutation testing results to factory-artifacts.
+        Update STATE.md: phase: 5, step: mutation-testing, status: complete.
+
+    # === Step D: Security Scan ===
+
+    - name: security-scan
+      type: skill
+      skill: "skills/formal-verify/steps/step-d-security-scan.md"
+      depends_on: [backup-mutation-testing]
+
+    - name: backup-security-scan
+      type: agent
+      agent: state-manager
+      depends_on: [security-scan]
+      task: >
+        Commit security scan results to factory-artifacts.
+        Update STATE.md: phase: 5, step: security-scan, status: complete.
+
+    # === Hardening Gate ===
 
     - name: hardening-gate
       type: gate
-      depends_on: [formal-hardening]
+      depends_on: [backup-security-scan]
       gate:
         criteria:
           - "All Kani proofs pass"

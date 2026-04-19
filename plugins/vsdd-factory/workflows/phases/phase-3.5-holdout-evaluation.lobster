@@ -22,7 +22,7 @@ workflow:
 
     - name: holdout-evaluation
       type: skill
-      skill: "skills/phase-3.5-holdout-evaluation/SKILL.md"
+      skill: "skills/holdout-eval/SKILL.md"
       depends_on: [scenario-rotation]
 
     - name: holdout-gate

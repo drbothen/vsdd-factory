@@ -35,7 +35,7 @@ workflow:
 
           - name: triage-and-fix
             type: skill
-            skill: "skills/phase-4-adversarial-refinement/SKILL.md"
+            skill: "skills/adversarial-review/SKILL.md"
             depends_on: [adversary-code-review]
 
     - name: gemini-secondary-review
