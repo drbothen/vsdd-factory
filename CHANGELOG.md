@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.34.0 — Template v1.1 schema update (Prism-validated improvements)
+
+### Changed — Template Schema Updates
+
+All changes are additive or header renames with migration acceptance. Existing artifacts remain valid.
+
+- **behavioral-contract-template.md (v1.1):** Added `## Description` (required), `## Related BCs`, `## Architecture Anchors`, `## Story Anchor`, `## VP Anchors` (Recommended)
+- **story-template.md (v1.1):** Added optional frontmatter: wave, crate, subsystems, estimated_days. UX Screens conditional. Table header simplifications with migration acceptance.
+- **module-criticality-template.md (v1.1):** Added Module Inventory, Per-Module Risk Assessment, Dependency Graph, Implementation Priority, Cross-Cutting Concerns (Recommended), Anti-Patterns (Conditional)
+- **verification-architecture-template.md (v1.1):** Sections allow inline OR reference-to-shard
+- **L2-domain-spec-index-template.md (v1.1):** Clarified canonical document_type, strengthened sections: as REQUIRED
+
+### Updated — Companion Changes
+
+- product-owner and story-writer agents updated for v1.1 template guidance
+- validate-template-compliance hook filters Recommended/Conditional sections
+
 ## 0.33.0 — Template compliance enforcement hook
 
 ### Added
