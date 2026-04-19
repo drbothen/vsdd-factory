@@ -14,16 +14,14 @@ traces_to: prd.md
 points: "[1-13]"
 depends_on: []
 blocks: []
-behavioral_contracts: []       # canonical field name
-verification_properties: []    # canonical field name
-# Migration aliases: bcs → behavioral_contracts, vps → verification_properties
-# Accept both during transition — conform-to-template will normalize.
+behavioral_contracts: []
+verification_properties: []
 priority: "P0|P1|P2"
 # Lifecycle fields (DF-030)
 cycle: vX.Y.Z                  # cycle that created this story (e.g., v1.0.0-greenfield)
 # Planning extensions (optional — v1.1)
 wave: null                     # wave-schedule number for parallel execution
-target_module: null             # target module/package/crate name (migration: accept 'crate' as alias)
+target_module: null             # target module/package/crate name
 subsystems: []                 # which subsystems this story touches (from ARCH-INDEX)
 estimated_days: null            # planning estimate (complements points)
 # ASM/R traceability (optional)
@@ -155,9 +153,6 @@ before starting and after completing each test cycle._
 
 ## Library & Framework Requirements (MANDATORY)
 
-<!-- v1.1: Simplified from "Dependency/Version Constraint/Why This Version/Import Pattern".
-     Accept old headers during migration — conform-to-template will normalize. -->
-
 | Tool | Version | Purpose |
 |------|---------|---------|
 | [library/framework] | [>= X.Y.Z] | [why this version is required] |
@@ -167,9 +162,6 @@ The story-writer populates this from the architecture doc AND runs web research
 to verify versions are current._
 
 ## File Structure Requirements (MANDATORY)
-
-<!-- v1.1: Simplified from "File/Purpose/Pre-exists?". Action column is more actionable.
-     Accept old headers during migration — conform-to-template will normalize. -->
 
 | File | Action | Purpose |
 |------|--------|---------|

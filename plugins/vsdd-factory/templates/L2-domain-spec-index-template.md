@@ -1,7 +1,5 @@
 ---
-document_type: domain-spec-index    # canonical value — NOT domain-spec-section
-# Migration: accept document_type: domain-spec-section with section: "index"
-# as legacy-acceptable. conform-to-template will normalize to domain-spec-index.
+document_type: domain-spec-index
 level: L2
 version: "1.1"
 status: draft

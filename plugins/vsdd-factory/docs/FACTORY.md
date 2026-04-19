@@ -374,7 +374,6 @@ Rules:
 | Holdout | HS-NNN | Holdout scenario (lifecycle-tracked) | HS-001: Malformed input injection | Lifecycle |
 | Holdout | WHS-W[N]-NNN | Wave holdout scenario (wave-scoped) | WHS-W2-001: Wave 2 integration check | Cycle (resets) |
 | Reviews | ADV-<CYCLE>-P[N]-[SEV]-NNN | Adversarial finding (cycle-prefixed) | ADV-P1CONV-P03-CRIT-001 | Cycle |
-| Reviews | ADV-P[N]-NNN | Adversarial finding (legacy, no cycle prefix) | ADV-P2-001: Cross-doc drift | Cycle (legacy) |
 | Reviews | CR-NNN | Code review finding | CR-001: Column diagnostic wrong | Cycle |
 | Reviews | SEC-NNN | Security finding | SEC-001: SSRF guard missing | Cycle |
 | Reviews | FIX-P[N]-NNN | Fix PR from phase N review | FIX-P4-001: Fix BC timeout handling | Lifecycle |
@@ -393,14 +392,6 @@ Rules:
 | **Lifecycle** | Continuous across all cycles. Never renumbered, never reused (Policy 1). Retired IDs stay in indexes. | Append-only sequential |
 | **Cycle** | Resets per convergence cycle. Prefix identifies the cycle (e.g., `ADV-P1CONV-P03-CRIT-001`). | Sequential within cycle |
 | **Local** | Scoped to a parent artifact. EC-NNN is local to its BC file. AC-NNN is local to its story. CMP/ELM/INT are local to their SCR. | Sequential within parent |
-
-### Legacy ID Formats
-
-| Legacy Format | Current Format | Migration |
-|---------------|---------------|-----------|
-| `ADV-NNN` | `ADV-<CYCLE>-P[N]-[SEV]-NNN` | Accept legacy in existing artifacts. New findings use cycle-prefixed format. |
-| `ADV-P[N]-NNN` | `ADV-<CYCLE>-P[N]-[SEV]-NNN` | Accept during transition. `conform-to-template` normalizes. |
-| `STORY-NNN-FIX-001` | `FIX-P[N]-NNN` | Story-level fixes use `FIX-P[N]-NNN`. The phase prefix indicates origin (P4=adversarial, P5=hardening). |
 
 ### Priority Scale
 

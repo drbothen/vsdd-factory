@@ -1,8 +1,8 @@
 ---
 document_type: story
 story_id: STORY-003
-subsystems: [Core Engine]
-bcs: [BC-2.01.001, BC-2.01.003, BC-2.01.005]
+subsystems: [SS-01]
+behavioral_contracts: [BC-2.01.001, BC-2.01.003, BC-2.01.005]
 ---
 
 # STORY-003: Missing BC in body

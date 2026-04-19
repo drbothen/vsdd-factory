@@ -66,4 +66,8 @@ echo "== Template compliance hook tests =="
 bats tests/template-compliance.bats
 
 echo
+echo "== Finding format hook tests =="
+bats tests/finding-format.bats
+
+echo
 echo "All tests passed."

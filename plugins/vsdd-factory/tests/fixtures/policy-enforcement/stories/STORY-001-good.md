@@ -2,7 +2,7 @@
 document_type: story
 story_id: STORY-001
 subsystems: [SS-01, SS-02]
-bcs: [BC-2.01.001, BC-2.01.003]
+behavioral_contracts: [BC-2.01.001, BC-2.01.003]
 ---
 
 # STORY-001: Implement Input Processing

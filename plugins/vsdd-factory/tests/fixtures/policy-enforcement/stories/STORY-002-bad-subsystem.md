@@ -2,7 +2,7 @@
 document_type: story
 story_id: STORY-002
 subsystems: [SS-01, SS-99]
-bcs: [BC-2.01.001]
+behavioral_contracts: [BC-2.01.001]
 ---
 
 # STORY-002: Implement Auth

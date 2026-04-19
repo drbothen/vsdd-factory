@@ -11,7 +11,7 @@ input-hash: "[md5]"              # advisory — used for drift detection, not ga
 traces_to: domain-spec/L2-INDEX.md
 origin: greenfield|brownfield    # metadata-only — does not affect BC semantics or downstream consumption
 extracted_from: "[source file path -- brownfield only, omit for greenfield]"
-subsystem: "SS-NN"              # SS-ID from ARCH-INDEX Subsystem Registry (migration: accept names during transition)
+subsystem: "SS-NN"              # SS-ID from ARCH-INDEX Subsystem Registry
 capability: "CAP-NNN"
 # Lifecycle fields (DF-030)
 lifecycle_status: active        # active | deprecated | retired | removed

@@ -2,12 +2,12 @@
 # validate-story-bc-sync.sh — PostToolUse hook for Policy 8
 #
 # Validates bidirectional BC completeness in story files:
-# - Every BC in frontmatter bcs: array appears in body BC table
-# - Every BC in frontmatter bcs: array has at least one AC trace
-# - Every BC in body BC table appears in frontmatter bcs: array
+# - Every BC in frontmatter behavioral_contracts: array appears in body BC table
+# - Every BC in frontmatter behavioral_contracts: array has at least one AC trace
+# - Every BC in body BC table appears in frontmatter behavioral_contracts: array
 #
 # Trigger: PostToolUse on Edit|Write to STORY-*.md files.
-# Exit 0 on pass (or if story has no bcs: field yet).
+# Exit 0 on pass (or if story has no behavioral_contracts: field yet).
 # Exit 2 on mismatch with diagnostic on stderr.
 #
 # Deterministic, <200ms, no LLM.
@@ -36,11 +36,12 @@ if [[ "$FILE_PATH" == *"STORY-INDEX"* ]]; then
   exit 0
 fi
 
-# Extract BCs from frontmatter bcs: array
+# Extract BCs from frontmatter — accepts both 'behavioral_contracts:' (canonical)
+# and 'bcs:' (legacy). Template compliance hook flags wrong field name separately.
 FRONTMATTER_BCS=$(awk '
   /^---$/{ fm++; next }
-  fm==1 && /^bcs:/ {
-    # Inline array: bcs: [BC-2.01.001, BC-2.01.003]
+  fm==1 && /^(bcs|behavioral_contracts):/ {
+    # Inline array: behavioral_contracts: [BC-2.01.001, BC-2.01.003]
     if (/\[/) {
       gsub(/.*\[/, "")
       gsub(/\].*/, "")
@@ -82,17 +83,17 @@ trap 'rm -f "$ERRFILE"' EXIT
 # Check 1: Every BC in frontmatter appears in body BC table
 for bc in $FRONTMATTER_BCS; do
   if [[ -n "$BODY_BCS" ]] && ! echo "$BODY_BCS" | grep -qxF "$bc"; then
-    echo "$bc is in frontmatter bcs: but missing from body Behavioral Contracts table" >> "$ERRFILE"
+    echo "$bc is in frontmatter behavioral_contracts: but missing from body Behavioral Contracts table" >> "$ERRFILE"
   fi
 done
 
 # Check 2: Every BC in frontmatter has at least one AC trace
 for bc in $FRONTMATTER_BCS; do
   if [[ -n "$AC_BCS" ]] && ! echo "$AC_BCS" | grep -qxF "$bc"; then
-    echo "$bc is in frontmatter bcs: but has no AC trace annotation (traces to $bc)" >> "$ERRFILE"
+    echo "$bc is in frontmatter behavioral_contracts: but has no AC trace annotation (traces to $bc)" >> "$ERRFILE"
   elif [[ -z "$AC_BCS" ]] && [[ -n "$BODY_BCS" ]]; then
     # Body exists (has BC table) but no AC traces at all
-    echo "$bc is in frontmatter bcs: but has no AC trace annotation (traces to $bc)" >> "$ERRFILE"
+    echo "$bc is in frontmatter behavioral_contracts: but has no AC trace annotation (traces to $bc)" >> "$ERRFILE"
   fi
 done
 
@@ -100,7 +101,7 @@ done
 if [[ -n "$BODY_BCS" ]]; then
   for bc in $BODY_BCS; do
     if ! echo "$FRONTMATTER_BCS" | grep -qxF "$bc"; then
-      echo "$bc is in body Behavioral Contracts table but missing from frontmatter bcs: array" >> "$ERRFILE"
+      echo "$bc is in body Behavioral Contracts table but missing from frontmatter behavioral_contracts: array" >> "$ERRFILE"
     fi
   done
 fi
@@ -110,7 +111,7 @@ if [[ -s "$ERRFILE" ]]; then
   while IFS= read -r line; do
     echo "  - $line" >&2
   done < "$ERRFILE"
-  echo "Fix: ensure frontmatter bcs: array, body BC table, and AC traces all reference the same set of BCs." >&2
+  echo "Fix: ensure frontmatter behavioral_contracts: array, body BC table, and AC traces all reference the same set of BCs." >&2
   exit 2
 fi
 
