@@ -250,6 +250,47 @@ setup() {
   [ -f "${BATS_TEST_DIRNAME}/../commands/recover-state.md" ]
 }
 
+# ---------- Template compliance ----------
+
+@test "validate-template-compliance skill exists" {
+  [ -f "$SKILLS/validate-template-compliance/SKILL.md" ]
+}
+
+@test "validate-template-compliance has three-level check" {
+  grep -qF "Frontmatter Compliance" "$SKILLS/validate-template-compliance/SKILL.md"
+  grep -qF "Section Compliance" "$SKILLS/validate-template-compliance/SKILL.md"
+  grep -qF "Table Column Compliance" "$SKILLS/validate-template-compliance/SKILL.md"
+}
+
+@test "validate-template-compliance has file-to-template mapping" {
+  grep -qF "behavioral-contracts/BC-*.md" "$SKILLS/validate-template-compliance/SKILL.md"
+  grep -qF "stories/STORY-*.md" "$SKILLS/validate-template-compliance/SKILL.md"
+  grep -qF "verification-coverage-matrix.md" "$SKILLS/validate-template-compliance/SKILL.md"
+}
+
+@test "validate-template-compliance command file exists" {
+  [ -f "${BATS_TEST_DIRNAME}/../commands/validate-template-compliance.md" ]
+}
+
+@test "conform-to-template skill exists" {
+  [ -f "$SKILLS/conform-to-template/SKILL.md" ]
+}
+
+@test "conform-to-template has safety guarantees" {
+  grep -qF "Never deletes content" "$SKILLS/conform-to-template/SKILL.md"
+  grep -qF "Always shows changes before applying" "$SKILLS/conform-to-template/SKILL.md"
+  grep -qF "Creates backup before modifying" "$SKILLS/conform-to-template/SKILL.md"
+}
+
+@test "conform-to-template has planned changes presentation" {
+  grep -qF "Planned Changes" "$SKILLS/conform-to-template/SKILL.md"
+  grep -qF "Apply these changes?" "$SKILLS/conform-to-template/SKILL.md"
+}
+
+@test "conform-to-template command file exists" {
+  [ -f "${BATS_TEST_DIRNAME}/../commands/conform-to-template.md" ]
+}
+
 @test "policies-template policy 9 references validate-vp-consistency.sh" {
   hook=$(yq '.policies[] | select(.id == 9) | .lint_hook' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml")
   [ "$hook" = "hooks/validate-vp-consistency.sh" ]
