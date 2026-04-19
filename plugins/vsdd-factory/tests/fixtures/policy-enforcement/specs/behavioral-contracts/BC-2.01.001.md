@@ -1,6 +1,6 @@
 ---
 document_type: behavioral-contract
-subsystem: Core Engine
+subsystem: SS-01
 capability: CAP-001
 ---
 

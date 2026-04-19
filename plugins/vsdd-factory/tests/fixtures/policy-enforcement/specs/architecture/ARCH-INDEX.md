@@ -2,9 +2,9 @@
 
 ## Subsystem Registry
 
-| Subsystem Name | Module | Description |
-|----------------|--------|-------------|
-| Core Engine | core-engine | Central processing |
-| Auth Module | auth-module | Authentication and authorization |
-| API Gateway | api-gateway | Request routing |
-| Alert Engine | alert-engine | Alerting subsystem |
+| SS ID | Name | Architecture Doc | Implementing Modules | Phase Introduced |
+|-------|------|-----------------|---------------------|-----------------|
+| SS-01 | Core Engine | system-overview.md | core-engine | Phase 1 |
+| SS-02 | Auth Module | security.md | auth-module | Phase 1 |
+| SS-03 | API Gateway | api-surface.md | api-gateway | Phase 1 |
+| SS-04 | Alert Engine | operations.md | alert-engine | Phase 1 |

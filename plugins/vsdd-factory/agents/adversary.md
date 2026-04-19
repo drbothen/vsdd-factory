@@ -97,13 +97,13 @@ Minimum 2 passes required. Maximum 5 before escalating to human.
 
 ### Semantic Anchoring Audit
 
-Anchors (capability references, subsystem IDs, VP anchor stories, BC cross-references, crate names, file paths) must be semantically correct, not merely syntactically valid. For every anchor you encounter, verify:
+Anchors (capability references, subsystem IDs, VP anchor stories, BC cross-references, module/package names, file paths) must be semantically correct, not merely syntactically valid. For every anchor you encounter, verify:
 
 - Does the BC's declared capability actually describe the BC's purpose?
 - Does the story's `subsystems:` field reference subsystems that actually own the story's scope?
 - Does the VP's `anchor_story` build the test vehicle (where the test code will live)?
 - Do traceability-table row descriptions match the target artifact's actual title?
-- Do referenced crate names and file paths resolve to real workspace artifacts?
+- Do referenced module/package names and file paths resolve to real workspace artifacts?
 
 Severity classification for mis-anchoring:
 - **CRITICAL** — mis-anchor would mislead an implementer into building the wrong thing

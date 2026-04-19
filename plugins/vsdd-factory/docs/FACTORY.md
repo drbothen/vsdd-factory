@@ -288,8 +288,8 @@ Policy flags are top-level integrity rules that prevent specific classes of drif
 - **Value:** `true` (always enforced)
 - **Severity floor:** HIGH (blocking)
 - **Enforces:**
-  - ARCH-INDEX Subsystem Registry is the authoritative source for subsystem names
-  - All references (BC-INDEX, BC frontmatter, PRD, stories) must use the registry name verbatim
+  - ARCH-INDEX Subsystem Registry is the authoritative source for subsystem SS-NN IDs
+  - All references (BC frontmatter `subsystem:`, story frontmatter `subsystems:`) must use SS-NN IDs from the registry
 - **Validation criteria:** Consistency-validator criterion 76
 - **Enforcing agents:** product-owner (BC subsystem validation), architect (subsystem scope verification), story-writer (SS-ID justification), adversary (subsystem label sync review axis), consistency-validator (criterion 76)
 
@@ -360,6 +360,7 @@ Rules:
 | L2 | ASM-NNN | Assumption requiring validation | ASM-001: pulldown-cmark byte offsets accurate |
 | L2 | R-NNN | Risk | R-001: GitHub slug algorithm changes |
 | L2 | FM-NNN | Failure mode | FM-001: DNS resolution failure |
+| L3 | SS-NN | Architecture subsystem | SS-01: Sensor Adapters |
 | L3 | BC-S.SS.NNN | Behavioral contract (hierarchical) | BC-2.3.045: Notification timeout handling |
 | L3 | NFR-NNN | Non-functional requirement | NFR-001: Parse 1000 files in <= 2s |
 | L3 | E-xxx-NNN | Error taxonomy | E-NET-001: DNS lookup failed |

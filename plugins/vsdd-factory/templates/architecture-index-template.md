@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: YYYY-MM-DDTHH:MM:SS
@@ -41,6 +41,33 @@ deployment_topology: single-service   # single-service | multi-service
 | Verification plan for a module | verification-architecture.md + purity-boundary-map.md + tooling-selection.md |
 | Full module picture | module-decomposition.md + purity-boundary-map.md + verification-coverage-matrix.md |
 | Story decomposition input | module-decomposition.md + dependency-graph.md |
+
+## Subsystem Registry
+
+> **Source of truth** for subsystem names and IDs. BC frontmatter `subsystem:`,
+> BC-INDEX subsystem column, story `subsystems:` fields, and PRD subsystem
+> references MUST all use the exact Name from this table (Policy 6:
+> `architecture_is_subsystem_name_source_of_truth`).
+>
+> The `validate-subsystem-names.sh` hook enforces this automatically.
+
+| SS ID | Name | Architecture Doc | Implementing Modules | Phase Introduced |
+|-------|------|-----------------|---------------------|-----------------|
+| SS-01 | [subsystem name] | [section-file.md] | [module/package/crate names] | Phase 1 |
+| SS-02 | [subsystem name] | [section-file.md] | [module/package/crate names] | Phase 1 |
+
+**ID format:** `SS-NN` (two-digit sequential, append-only per Policy 1).
+
+**Naming rules:**
+- Names are human-readable, title-case (e.g., "Sensor Adapters", "Query Execution")
+- Names are stable — once assigned, a subsystem name does not change
+- If a subsystem is retired, mark it `(retired)` in the Name column; do not remove the row
+- New subsystems added in later phases get the next sequential SS-ID
+
+**Lifecycle:**
+- **Phase 1a (PO):** BCs are grouped by L2 domain capabilities. Subsystem names at this stage are preliminary domain names.
+- **Phase 1b (Architect):** The architect creates this registry, mapping domain groupings to architecture subsystems. This is the moment subsystem names become canonical. The architect may rename domain groupings to match architecture boundaries.
+- **Phase 2+ (Story Writer):** Stories reference subsystem names from this registry via `subsystems:` frontmatter. Must use exact canonical Name.
 
 ## Architecture Decisions
 

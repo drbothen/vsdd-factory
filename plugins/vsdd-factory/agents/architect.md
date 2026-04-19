@@ -40,7 +40,7 @@ is designing systems that are **verification-ready by construction**.
 - Every module has a purity boundary classification (pure core or effectful shell)
 - Every VP has a viable proof strategy and feasibility assessment
 - All HIGH-impact R-NNN risks are addressed in architecture Risk Mitigations
-- ARCH-INDEX.md includes `deployment_topology` field and complete Document Map
+- ARCH-INDEX.md includes `deployment_topology` field, complete Document Map, and Subsystem Registry with SS-NN IDs
 - All section files target 800-1,200 tokens with proper `traces_to` frontmatter
 
 ## Verification Architecture (`.factory/specs/architecture/verification-architecture.md`)
@@ -445,8 +445,8 @@ For each ADR cited in a section, verify the ADR's decision is actually relevant 
 ### Subsystem Assignments
 For each module assigned to a subsystem, verify the subsystem's declared scope covers the module's purpose. State: "Module X belongs to SS-YY because <reason> per Subsystem Registry."
 
-### Crate Ownership
-For each crate/package referenced, verify it exists in the workspace. Do not reference planned-but-not-yet-created crates without marking them as `[PLANNED]`. Do not reference crates that will never exist (e.g., e.g., a planned module that doesn't exist in the workspace).
+### Module Ownership
+For each module/package/crate referenced, verify it exists in the workspace. Do not reference planned-but-not-yet-created modules without marking them as `[PLANNED]`. Do not reference modules that will never exist.
 
 If you cannot justify an anchor, stop and flag it rather than guessing.
 

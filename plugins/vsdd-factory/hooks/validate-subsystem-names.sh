@@ -2,7 +2,7 @@
 # validate-subsystem-names.sh — PostToolUse hook for Policy 6
 #
 # Validates that subsystem: fields in BC files and subsystems: fields in
-# story files match the canonical names from ARCH-INDEX.md Subsystem Registry.
+# story files match canonical SS-NN IDs from ARCH-INDEX.md Subsystem Registry.
 #
 # Trigger: PostToolUse on Edit|Write to BC-*.md or STORY-*.md files.
 # Exit 0 on pass (or if ARCH-INDEX doesn't exist yet).
@@ -48,20 +48,33 @@ if [[ ! -f "$ARCH_INDEX" ]]; then
   exit 0
 fi
 
-# Extract canonical subsystem names from ARCH-INDEX
-# Look for table rows in the Subsystem Registry section
-CANONICAL_NAMES=$(awk '
+# Extract canonical SS-NN IDs from ARCH-INDEX Subsystem Registry
+# Table format: | SS ID | Name | Architecture Doc | Implementing Modules | Phase |
+# Column 2 (after leading pipe) = SS ID
+CANONICAL_IDS=$(awk '
   /[Ss]ubsystem.*[Rr]egistry/ { found=1; next }
   found && /^#[^|]/ { exit }
-  found && /^\|/ && !/---/ && !/[Ss]ubsystem.*[Nn]ame/ {
+  found && /^\|/ && !/---/ && !/SS.*ID/ {
     split($0, cols, "|")
     gsub(/^[ \t]+|[ \t]+$/, "", cols[2])
-    if (cols[2] != "" && cols[2] !~ /^\*/) print cols[2]
+    if (cols[2] ~ /^SS-[0-9]+$/) print cols[2]
   }
 ' "$ARCH_INDEX")
 
-# If no canonical names found, skip (ARCH-INDEX may have different format)
-if [[ -z "$CANONICAL_NAMES" ]]; then
+# Also build an ID→Name map for error messages
+CANONICAL_MAP=$(awk '
+  /[Ss]ubsystem.*[Rr]egistry/ { found=1; next }
+  found && /^#[^|]/ { exit }
+  found && /^\|/ && !/---/ && !/SS.*ID/ {
+    split($0, cols, "|")
+    gsub(/^[ \t]+|[ \t]+$/, "", cols[2])
+    gsub(/^[ \t]+|[ \t]+$/, "", cols[3])
+    if (cols[2] ~ /^SS-[0-9]+$/) print cols[2] " (" cols[3] ")"
+  }
+' "$ARCH_INDEX")
+
+# If no canonical IDs found, skip (ARCH-INDEX may not have registry yet)
+if [[ -z "$CANONICAL_IDS" ]]; then
   exit 0
 fi
 
@@ -81,8 +94,8 @@ if [[ "$FILE_PATH" == *"BC-"* ]]; then
   ' "$FILE_PATH")
 
   if [[ -n "$SUBSYSTEM" ]]; then
-    if ! echo "$CANONICAL_NAMES" | grep -qxF "$SUBSYSTEM"; then
-      ERRORS="BC file subsystem: \"$SUBSYSTEM\" does not match any canonical name in ARCH-INDEX Subsystem Registry."
+    if ! echo "$CANONICAL_IDS" | grep -qxF "$SUBSYSTEM"; then
+      ERRORS="BC file subsystem: \"$SUBSYSTEM\" does not match any SS-ID in ARCH-INDEX Subsystem Registry."
     fi
   fi
 fi
@@ -115,8 +128,8 @@ if [[ "$FILE_PATH" == *"STORY-"* ]]; then
 
   if [[ -n "$STORY_SUBSYSTEMS" ]]; then
     while IFS= read -r ss; do
-      if [[ -n "$ss" ]] && ! echo "$CANONICAL_NAMES" | grep -qxF "$ss"; then
-        ERRORS="${ERRORS:+$ERRORS\n}Story subsystems: \"$ss\" does not match any canonical name in ARCH-INDEX Subsystem Registry."
+      if [[ -n "$ss" ]] && ! echo "$CANONICAL_IDS" | grep -qxF "$ss"; then
+        ERRORS="${ERRORS:+$ERRORS\n}Story subsystems: \"$ss\" does not match any SS-ID in ARCH-INDEX Subsystem Registry."
       fi
     done <<< "$STORY_SUBSYSTEMS"
   fi
@@ -127,9 +140,9 @@ if [[ -n "$ERRORS" ]]; then
   echo -e "$ERRORS" | while IFS= read -r line; do
     echo "  - $line" >&2
   done
-  echo "Fix: use exact names from ARCH-INDEX.md Subsystem Registry. Available names:" >&2
-  echo "$CANONICAL_NAMES" | while IFS= read -r name; do
-    echo "    - $name" >&2
+  echo "Fix: use SS-NN IDs from ARCH-INDEX.md Subsystem Registry. Available:" >&2
+  echo "$CANONICAL_MAP" | while IFS= read -r entry; do
+    echo "    - $entry" >&2
   done
   exit 2
 fi

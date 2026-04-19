@@ -373,7 +373,7 @@ happens INSIDE the implementer step, not as a separate pre-step.
 When producing stories, populate these optional frontmatter fields when the information is available:
 
 - **`wave:`** — wave-schedule number (set during wave scheduling, not at decomposition)
-- **`crate:`** — target Rust crate or language-equivalent module (from architecture module-decomposition)
+- **`target_module:`** — target module/package/crate name (from architecture module-decomposition; migration: accept `crate` as alias)
 - **`subsystems:`** — which subsystems this story touches (from ARCH-INDEX Subsystem Registry — must use canonical names per Policy 6)
 - **`estimated_days:`** — planning estimate (complements story points for project planning)
 
@@ -432,7 +432,7 @@ Never invent library version numbers from training data. The prompt includes the
 
 ### Include Forbidden Dependencies
 
-Stories must include a "Forbidden Dependencies" section listing crates that must NOT appear in the implementing crate's dependency graph. State these as compile-time enforcement rules: "If this crate's Cargo.toml gains a dependency on X, the build MUST fail." In practice, "e.g., core-engine must NOT depend on query-runtime" was violated in 5 stories across 4 passes.
+Stories must include a "Forbidden Dependencies" section listing modules/packages that must NOT appear in the implementing module's dependency graph. State these as build-time enforcement rules: "If this module gains a dependency on X, the build MUST fail." Example: "core-engine must NOT depend on query-runtime."
 
 ### Use Only Existing Error Codes
 

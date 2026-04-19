@@ -23,7 +23,7 @@ priority: "P0|P1|P2"
 cycle: vX.Y.Z                  # cycle that created this story (e.g., v1.0.0-greenfield)
 # Planning extensions (optional — v1.1)
 wave: null                     # wave-schedule number for parallel execution
-crate: null                    # target Rust crate or language-equivalent module
+target_module: null             # target module/package/crate name (migration: accept 'crate' as alias)
 subsystems: []                 # which subsystems this story touches (from ARCH-INDEX)
 estimated_days: null            # planning estimate (complements points)
 # ASM/R traceability (optional)

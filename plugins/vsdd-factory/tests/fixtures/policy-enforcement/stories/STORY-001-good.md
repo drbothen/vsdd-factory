@@ -1,7 +1,7 @@
 ---
 document_type: story
 story_id: STORY-001
-subsystems: [Core Engine, Auth Module]
+subsystems: [SS-01, SS-02]
 bcs: [BC-2.01.001, BC-2.01.003]
 ---
 

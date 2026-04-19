@@ -105,11 +105,11 @@ Each BC file's H1 heading (`# BC-S.SS.NNN: <title>`) is the **authoritative titl
 
 Title drift between the H1 and downstream references is HIGH severity.
 
-## Subsystem Name Validation (architecture_is_subsystem_name_source_of_truth)
+## Subsystem ID Validation (architecture_is_subsystem_name_source_of_truth)
 
-When setting the `subsystem:` frontmatter field on any BC file, you MUST use the exact canonical name from `architecture/ARCH-INDEX.md` Subsystem Registry. Do not abbreviate, rephrase, or invent subsystem names. If the architecture hasn't been produced yet (Phase 1a, before architect runs), use the L2 domain subsystem name from `capabilities.md` and flag it for architect reconciliation in Phase 1b.
+When setting the `subsystem:` frontmatter field on any BC file, you MUST use the SS-NN ID from `architecture/ARCH-INDEX.md` Subsystem Registry. Do not use subsystem names — use the ID (e.g., `SS-01`, not `Sensor Adapters`). If the architecture hasn't been produced yet (Phase 1a, before architect runs), use a placeholder like `SS-TBD` and flag it for architect assignment in Phase 1b.
 
-Subsystem-label drift between BCs and ARCH-INDEX is HIGH severity — it causes misrouted implementation and review work.
+Subsystem ID drift between BCs and ARCH-INDEX is HIGH severity — it causes misrouted implementation and review work.
 
 ## BC Anchor Sections (v1.1 template)
 
@@ -164,7 +164,7 @@ NFRs are cross-cutting concerns that apply across subsystems:
 All outputs must use canonical frontmatter (per DF-020a):
 - PRD: `document_type: prd`, `level: L3`, `traces_to: domain-spec-L2.md`, `phase: 1a`
 - BC files: `document_type: behavioral-contract`, `level: L3`, `origin: greenfield|brownfield`,
-  `subsystem: [name]`, `capability: CAP-NNN`
+  `subsystem: SS-NN` (from ARCH-INDEX Subsystem Registry), `capability: CAP-NNN`
 
 ## Append-Only ID and Slug Protection (append_only_numbering)
 

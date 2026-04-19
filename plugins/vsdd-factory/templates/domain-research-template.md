@@ -35,7 +35,7 @@ output_dir: .factory/specs/research/
 |---------|--------------|----------------|----------------|
 | | planned | yes/no | yes/no |
 
-## 2. Library/Crate Ecosystem Analysis
+## 2. Library/Package Ecosystem Analysis
 
 | Library | Version | Purpose | Pros | Cons | Recommendation |
 |---------|---------|---------|------|------|---------------|

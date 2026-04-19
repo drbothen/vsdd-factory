@@ -26,7 +26,7 @@ Research about **technology and implementation** — library evaluations, archit
 
 - **Template:** `${CLAUDE_PLUGIN_ROOT}/templates/domain-research-template.md` (adapt sections to technology focus)
 - **Output:** `.factory/specs/research/general-<topic-slug>-<YYYY-MM-DD>.md`
-- **MANDATORY sections:** Library/Crate Ecosystem Analysis, Version-Verified Comparisons, Recommended Technical Decisions, CI/CD Integration Patterns
+- **MANDATORY sections:** Library/Package Ecosystem Analysis, Version-Verified Comparisons, Recommended Technical Decisions, CI/CD Integration Patterns
 
 ### Output Conventions
 

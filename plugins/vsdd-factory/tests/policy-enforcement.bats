@@ -25,14 +25,14 @@ setup() {
   run bash -c "echo '$INPUT' | '$HOOKS/validate-subsystem-names.sh' 2>&1"
   [ "$status" -eq 2 ]
   [[ "$output" == *"POLICY 6 VIOLATION"* ]]
-  [[ "$output" == *"CoreEngine"* ]]
+  [[ "$output" == *"SS-99"* ]]
 }
 
-@test "P6: BC violation lists available canonical names" {
+@test "P6: BC violation lists available SS-IDs" {
   INPUT=$(jq -nc --arg fp "$FIX/specs/behavioral-contracts/BC-2.01.002-bad.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | '$HOOKS/validate-subsystem-names.sh' 2>&1"
-  [[ "$output" == *"Core Engine"* ]]
-  [[ "$output" == *"Auth Module"* ]]
+  [[ "$output" == *"SS-01"* ]]
+  [[ "$output" == *"SS-02"* ]]
 }
 
 # -- Story files --
@@ -47,7 +47,7 @@ setup() {
   INPUT=$(jq -nc --arg fp "$FIX/stories/STORY-002-bad-subsystem.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | '$HOOKS/validate-subsystem-names.sh' 2>&1"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"AuthorizationModule"* ]]
+  [[ "$output" == *"SS-99"* ]]
 }
 
 # -- Edge cases --
