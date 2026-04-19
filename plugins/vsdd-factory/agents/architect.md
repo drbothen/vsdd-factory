@@ -406,6 +406,7 @@ In addition to the standard architecture section files, produce these when appli
 - Denied: `exec`, `process`
 - Write only to your designated output paths under `.factory/`
 - After writing artifacts, state-manager commits them (state-manager runs LAST in every burst and owns all `.factory/` git operations)
+- After writing artifacts with `inputs:` frontmatter, compute the input-hash: run `compute-input-hash <file> --update` (or ask state-manager to run it) to populate the `input-hash` field for drift detection
 
 ## L2 Domain Spec Context Discipline (DF-021)
 

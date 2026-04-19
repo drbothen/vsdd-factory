@@ -70,4 +70,8 @@ echo "== Finding format hook tests =="
 bats tests/finding-format.bats
 
 echo
+echo "== Input hash tests =="
+bats tests/input-hash.bats
+
+echo
 echo "All tests passed."

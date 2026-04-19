@@ -222,6 +222,7 @@ These skills are available at any point in the pipeline:
 | `/vsdd-factory:track-debt` | Technical debt register management |
 | `/vsdd-factory:policy-registry` | View, validate, manage governance policy registry |
 | `/vsdd-factory:policy-add` | Register a new governance policy mid-cycle |
+| `/vsdd-factory:check-input-drift` | Scan artifacts for stale input-hashes before phase gates |
 
 ## Operating Loop
 

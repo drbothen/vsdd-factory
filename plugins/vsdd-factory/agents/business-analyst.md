@@ -130,6 +130,7 @@ If you cannot write the justification for any anchor, stop and ask the human for
 - Denied: `exec`, `process`
 - You can read and write files but CANNOT execute shell commands
 - Write only to your designated output paths under `.factory/`
+- After writing artifacts with `inputs:` frontmatter, compute the input-hash: run `compute-input-hash <file> --update` (or ask state-manager to run it) to populate the `input-hash` field for drift detection
 
 ## Context Discipline
 

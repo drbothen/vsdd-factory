@@ -1,0 +1,190 @@
+#!/bin/bash
+# compute-input-hash — compute MD5 hash of an artifact's input files.
+#
+# Usage:
+#   compute-input-hash <artifact-file>          # print the hash
+#   compute-input-hash <artifact-file> --update  # compute and write into frontmatter
+#   compute-input-hash <artifact-file> --check   # compare stored vs computed
+#
+# Reads the `inputs:` frontmatter field, resolves file paths relative to the
+# artifact's directory, concatenates their contents, and outputs a 7-char
+# short MD5 hash (git-SHA-ish style).
+#
+# Exit codes:
+#   0 — success (or match for --check)
+#   1 — usage error or missing inputs
+#   2 — mismatch (--check only)
+
+set -euo pipefail
+
+die() { echo "compute-input-hash: $*" >&2; exit 1; }
+
+usage() {
+  echo "Usage: compute-input-hash <artifact-file> [--update|--check]"
+  echo ""
+  echo "Commands:"
+  echo "  (default)   Print the computed hash to stdout"
+  echo "  --update    Compute and write the hash into the file's input-hash frontmatter"
+  echo "  --check     Compare stored input-hash against computed; exit 2 on mismatch"
+  exit 1
+}
+
+[[ $# -lt 1 ]] && usage
+FILE="$1"
+MODE="${2:-print}"
+[[ ! -f "$FILE" ]] && die "file not found: $FILE"
+
+# --- Extract inputs: from frontmatter ---
+# Handles both inline array [file1, file2] and multi-line - file1 forms
+INPUTS=$(awk '
+  /^---$/{ fm++; next }
+  fm==1 && /^inputs:/ {
+    if (/\[/) {
+      # Inline: inputs: [file1.md, file2.md]
+      gsub(/.*\[/, "")
+      gsub(/\].*/, "")
+      gsub(/,/, "\n")
+      gsub(/["'"'"' \t]/, "")
+      print
+    }
+    in_arr=1
+    next
+  }
+  fm==1 && in_arr && /^  *- / {
+    sub(/^  *- */, "")
+    gsub(/["'"'"' \t]/, "")
+    print
+  }
+  fm==1 && in_arr && /^[^ -]/ { exit }
+' "$FILE" | grep -v '^$' || true)
+
+if [[ -z "$INPUTS" ]]; then
+  if [[ "$MODE" == "--check" ]]; then
+    echo "compute-input-hash: no inputs: field in $FILE — skipping" >&2
+    exit 0
+  fi
+  die "no inputs: field found in frontmatter of $FILE"
+fi
+
+# --- Resolve file paths relative to artifact's parent directory ---
+ARTIFACT_DIR=$(dirname "$FILE")
+
+# For .factory/ artifacts, resolve paths relative to the .factory/ root
+# e.g., if FILE is .factory/specs/prd.md with inputs: [domain-spec/L2-INDEX.md]
+#        resolve to .factory/specs/domain-spec/L2-INDEX.md
+# Also try .factory/ root for absolute-ish paths like architecture/ARCH-INDEX.md
+FACTORY_ROOT=""
+case "$FILE" in
+  *.factory/*) FACTORY_ROOT="${FILE%%/.factory/*}/.factory" ;;
+esac
+
+CONCAT=""
+MISSING=0
+while IFS= read -r input_file; do
+  [[ -z "$input_file" ]] && continue
+
+  # Try paths in order: relative to artifact, relative to specs/, relative to .factory/
+  RESOLVED=""
+  for base in "$ARTIFACT_DIR" "$ARTIFACT_DIR/.." "${FACTORY_ROOT:+$FACTORY_ROOT/specs}" "$FACTORY_ROOT"; do
+    [[ -z "$base" ]] && continue
+    if [[ -f "$base/$input_file" ]]; then
+      RESOLVED="$base/$input_file"
+      break
+    fi
+  done
+
+  if [[ -z "$RESOLVED" ]]; then
+    # Input file doesn't exist — skip it (may not be produced yet)
+    MISSING=$((MISSING + 1))
+    continue
+  fi
+
+  CONCAT="${CONCAT}$(cat "$RESOLVED")"
+done <<< "$INPUTS"
+
+if [[ -z "$CONCAT" ]]; then
+  if [[ "$MODE" == "--check" ]]; then
+    echo "compute-input-hash: no input files found for $FILE — skipping" >&2
+    exit 0
+  fi
+  die "none of the input files exist: $INPUTS"
+fi
+
+# --- Compute short MD5 hash (7 chars) ---
+if command -v md5sum &>/dev/null; then
+  HASH=$(echo -n "$CONCAT" | md5sum | cut -c1-7)
+elif command -v md5 &>/dev/null; then
+  # macOS
+  HASH=$(echo -n "$CONCAT" | md5 | cut -c1-7)
+else
+  die "neither md5sum nor md5 available"
+fi
+
+# --- Execute mode ---
+case "$MODE" in
+  print|--print)
+    echo "$HASH"
+    if [[ "$MISSING" -gt 0 ]]; then
+      echo "compute-input-hash: warning: $MISSING input file(s) not found (may not be produced yet)" >&2
+    fi
+    ;;
+
+  --update)
+    # Read current input-hash value
+    CURRENT=$(awk '
+      /^---$/{ fm++; next }
+      fm==1 && /^input-hash:/ {
+        sub(/^input-hash:[ \t]*/, "")
+        gsub(/["'"'"']/, "")
+        print
+        exit
+      }
+    ' "$FILE")
+
+    if [[ "$CURRENT" == "$HASH" ]]; then
+      echo "compute-input-hash: $FILE input-hash already current ($HASH)" >&2
+      exit 0
+    fi
+
+    # Update the frontmatter in place
+    if [[ -z "$CURRENT" ]] || [[ "$CURRENT" == "[md5]" ]] || [[ "$CURRENT" == "null" ]]; then
+      # Field exists with placeholder — replace
+      sed -i.bak "s/^input-hash:.*/input-hash: \"$HASH\"/" "$FILE"
+    else
+      # Field exists with old hash — replace
+      sed -i.bak "s/^input-hash:.*/input-hash: \"$HASH\"/" "$FILE"
+    fi
+    rm -f "${FILE}.bak"
+    echo "$HASH"
+    echo "compute-input-hash: updated $FILE input-hash → $HASH" >&2
+    ;;
+
+  --check)
+    STORED=$(awk '
+      /^---$/{ fm++; next }
+      fm==1 && /^input-hash:/ {
+        sub(/^input-hash:[ \t]*/, "")
+        gsub(/["'"'"']/, "")
+        print
+        exit
+      }
+    ' "$FILE")
+
+    if [[ -z "$STORED" ]] || [[ "$STORED" == "[md5]" ]] || [[ "$STORED" == "null" ]]; then
+      echo "compute-input-hash: $FILE has no input-hash (not yet computed)" >&2
+      exit 0
+    fi
+
+    if [[ "$STORED" == "$HASH" ]]; then
+      exit 0
+    else
+      echo "compute-input-hash: DRIFT — $FILE input-hash $STORED ≠ computed $HASH" >&2
+      echo "  Inputs may have changed since this artifact was produced." >&2
+      exit 2
+    fi
+    ;;
+
+  *)
+    usage
+    ;;
+esac
