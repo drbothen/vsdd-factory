@@ -68,6 +68,30 @@ if jq -e --arg f "$REL" '.red // [] | index($f)' "$STATE_FILE" >/dev/null; then
   exit 0
 fi
 
+# Try stripping absolute path prefix to get repo-relative path
+# Handles: /abs/path/to/project/src/lib.rs → src/lib.rs
+if [[ "$FILE_PATH" == /* ]]; then
+  # Try stripping PWD prefix
+  REPO_REL="${FILE_PATH#"$PWD/"}"
+  if [[ "$REPO_REL" != "$FILE_PATH" ]]; then
+    if jq -e --arg f "$REPO_REL" '.red // [] | index($f)' "$STATE_FILE" >/dev/null; then
+      exit 0
+    fi
+  fi
+  # Try stripping git root prefix
+  if command -v git &>/dev/null; then
+    GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+    if [[ -n "$GIT_ROOT" ]]; then
+      GIT_REL="${FILE_PATH#"$GIT_ROOT/"}"
+      if [[ "$GIT_REL" != "$FILE_PATH" ]]; then
+        if jq -e --arg f "$GIT_REL" '.red // [] | index($f)' "$STATE_FILE" >/dev/null; then
+          exit 0
+        fi
+      fi
+    fi
+  fi
+fi
+
 echo "Blocked: red-gate is in strict mode and $FILE_PATH is not in the red list." >&2
 echo "Write a failing test for this code first, then add the path to .factory/red-gate-state.json under .red[]." >&2
 echo "To disable strict mode for this session, set .mode to \"off\" in $STATE_FILE." >&2

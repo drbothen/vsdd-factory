@@ -284,3 +284,30 @@ _run_hook() {
   run bash -c "echo '$input' | '$HOOK' 2>&1"
   [ "$status" -eq 0 ]
 }
+
+# ---------- Complex bash constructs ----------
+
+@test "blocks rm -rf .factory inside subshell" {
+  _run_hook "bash -c 'rm -rf .factory/specs/'"
+  [ "$status" -eq 2 ]
+}
+
+@test "blocks rm -rf .factory in pipe chain" {
+  _run_hook "ls .factory/ && rm -rf .factory/specs/"
+  [ "$status" -eq 2 ]
+}
+
+@test "blocks rm -rf .factory after cd" {
+  _run_hook "cd /tmp && rm -rf .factory/"
+  [ "$status" -eq 2 ]
+}
+
+@test "blocks git reset --hard in multi-command" {
+  _run_hook "git stash && git reset --hard HEAD~1"
+  [ "$status" -eq 2 ]
+}
+
+@test "blocks rm STATE.md with full path" {
+  _run_hook "rm /Users/josh/dev/project/.factory/STATE.md"
+  [ "$status" -eq 2 ]
+}

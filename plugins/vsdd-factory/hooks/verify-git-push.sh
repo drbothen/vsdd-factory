@@ -34,10 +34,14 @@ if [[ "$COMMAND" != *"git push"* ]]; then
 fi
 
 # --- Block force push ---
-if [[ "$COMMAND" == *"--force"* ]] || [[ "$COMMAND" == *" -f "* ]] || [[ "$COMMAND" == *" -f"$'\n'* ]] || [[ "$COMMAND" =~ " -f"$ ]]; then
+# Allow --force-with-lease (safe force push — only overwrites if remote matches local expectation)
+# Block --force and -f (unconditional force push — overwrites regardless)
+if [[ "$COMMAND" == *"--force-with-lease"* ]]; then
+  : # Allowed — safe force push
+elif [[ "$COMMAND" == *"--force"* ]] || [[ "$COMMAND" == *" -f "* ]] || [[ "$COMMAND" == *" -f"$'\n'* ]] || [[ "$COMMAND" =~ " -f"$ ]]; then
   echo "BLOCKED by verify-git-push:" >&2
   echo "  Force push (--force / -f) overwrites remote history irreversibly." >&2
-  echo "  Suggestion: Use 'git push --force-with-lease' if you must, or push to a new branch." >&2
+  echo "  Suggestion: Use 'git push --force-with-lease' for safe force push, or push to a new branch." >&2
   exit 2
 fi
 

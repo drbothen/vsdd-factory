@@ -135,6 +135,26 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
+# ---------- red-gate: absolute paths ----------
+
+@test "red-gate: allows absolute path when in red list (PWD-stripped)" {
+  echo '{"mode":"strict","red":["src/lib.rs"]}' > .factory/red-gate-state.json
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'"$WORK"'/src/lib.rs\"}}" | "'"$HOOKS"'/red-gate.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "red-gate: blocks absolute path when not in red list" {
+  echo '{"mode":"strict","red":[]}' > .factory/red-gate-state.json
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'"$WORK"'/src/lib.rs\"}}" | "'"$HOOKS"'/red-gate.sh"'
+  [ "$status" -eq 2 ]
+}
+
+@test "red-gate: allows absolute test path unconditionally" {
+  echo '{"mode":"strict","red":[]}' > .factory/red-gate-state.json
+  run bash -c 'echo "{\"tool_input\":{\"file_path\":\"'"$WORK"'/tests/foo_test.rs\"}}" | "'"$HOOKS"'/red-gate.sh"'
+  [ "$status" -eq 0 ]
+}
+
 # ---------- purity-check ----------
 
 @test "purity-check: no-op on non-pure path" {
@@ -276,6 +296,40 @@ teardown() {
 @test "verify-git-push: block message suggests PR workflow" {
   run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin main\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
   [[ "$output" == *"gh pr create"* ]]
+}
+
+@test "verify-git-push: allows --force-with-lease (safe force push)" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push --force-with-lease origin feature/x\"}}" | "'"$HOOKS"'/verify-git-push.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "verify-git-push: blocks -f at end of command" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git push origin feature/x -f\"}}" | "'"$HOOKS"'/verify-git-push.sh" 2>&1'
+  [ "$status" -eq 2 ]
+}
+
+# ---------- check-factory-commit ----------
+
+@test "check-factory-commit: allows non-commit commands" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git status\"}}" | "'"$HOOKS"'/check-factory-commit.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "check-factory-commit: allows commit outside .factory" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"git commit -m fix\"}}" | "'"$HOOKS"'/check-factory-commit.sh"'
+  [ "$status" -eq 0 ]
+}
+
+@test "check-factory-commit: warns on .factory commit without STATE.md" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"cd .factory && git commit -m artifacts\"}}" | "'"$HOOKS"'/check-factory-commit.sh"'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"STATE.md"* ]]
+}
+
+@test "check-factory-commit: silent when STATE.md is in commit" {
+  run bash -c 'echo "{\"tool_input\":{\"command\":\"cd .factory && git add STATE.md && git commit -m update\"}}" | "'"$HOOKS"'/check-factory-commit.sh"'
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"STATE.md was not updated"* ]]
 }
 
 # ---------- factory-branch-guard ----------
