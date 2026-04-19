@@ -14,11 +14,11 @@ Drives a single phase from its `.lobster` workflow file. This is the executable 
 - `phase-0-codebase-ingestion`
 - `phase-1-spec-crystallization`
 - `phase-2-story-decomposition`
-- `phase-3-test-first-implementation`
-- `phase-3.5-holdout-evaluation`
-- `phase-4-adversarial-refinement`
-- `phase-5-formal-hardening`
-- `phase-6-convergence`
+- `phase-3-tdd-implementation`
+- `phase-4-holdout-evaluation`
+- `phase-5-adversarial-refinement`
+- `phase-6-formal-hardening`
+- `phase-7-convergence`
 
 Or a mode workflow: `greenfield`, `brownfield`, `feature`, `maintenance`, `discovery`, `planning`, `multi-repo`, `code-delivery`.
 

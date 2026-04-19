@@ -1,5 +1,5 @@
 workflow:
-  name: phase-3-test-first-implementation
+  name: phase-3-tdd-implementation
   description: >
     Phase 3: Test-First Implementation. Per-story TDD delivery through specialist
     subagents (devops-engineer, test-writer, implementer, demo-recorder, pr-manager).

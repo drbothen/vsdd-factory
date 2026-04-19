@@ -1,5 +1,5 @@
 workflow:
-  name: phase-4-adversarial-refinement
+  name: phase-5-adversarial-refinement
   description: >
     Phase 4 decomposed into reusable sub-workflow. Multi-model adversarial
     review loop with GPT-5.4 primary and Gemini 3.1 Pro secondary pass.

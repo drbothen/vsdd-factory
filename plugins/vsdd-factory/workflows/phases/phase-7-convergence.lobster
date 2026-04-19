@@ -1,5 +1,5 @@
 workflow:
-  name: phase-6-convergence
+  name: phase-7-convergence
   description: >
     Phase 6: 7-Dimensional Convergence Assessment. Each dimension is checked
     independently with state-manager backups for crash recovery. Followed by
@@ -24,7 +24,7 @@ workflow:
       agent: state-manager
       depends_on: [spec-convergence]
       task: >
-        Update STATE.md: phase: 6, step: spec-convergence, status: complete.
+        Update STATE.md: phase: 7, step: spec-convergence, status: complete.
 
     # === Dimension 2: Test Convergence ===
 
@@ -38,7 +38,7 @@ workflow:
       agent: state-manager
       depends_on: [test-convergence]
       task: >
-        Update STATE.md: phase: 6, step: test-convergence, status: complete.
+        Update STATE.md: phase: 7, step: test-convergence, status: complete.
 
     # === Dimension 3: Implementation Convergence ===
 
@@ -52,7 +52,7 @@ workflow:
       agent: state-manager
       depends_on: [implementation-convergence]
       task: >
-        Update STATE.md: phase: 6, step: implementation-convergence, status: complete.
+        Update STATE.md: phase: 7, step: implementation-convergence, status: complete.
 
     # === Dimension 4: Verification Convergence ===
 
@@ -66,7 +66,7 @@ workflow:
       agent: state-manager
       depends_on: [verification-convergence]
       task: >
-        Update STATE.md: phase: 6, step: verification-convergence, status: complete.
+        Update STATE.md: phase: 7, step: verification-convergence, status: complete.
 
     # === Dimension 5: Visual Convergence ===
 
@@ -80,7 +80,7 @@ workflow:
       agent: state-manager
       depends_on: [visual-convergence]
       task: >
-        Update STATE.md: phase: 6, step: visual-convergence, status: complete.
+        Update STATE.md: phase: 7, step: visual-convergence, status: complete.
 
     # === Dimension 6: Performance Convergence ===
 
@@ -94,7 +94,7 @@ workflow:
       agent: state-manager
       depends_on: [performance-convergence]
       task: >
-        Update STATE.md: phase: 6, step: performance-convergence, status: complete.
+        Update STATE.md: phase: 7, step: performance-convergence, status: complete.
 
     # === Dimension 7: Documentation Convergence ===
 
@@ -109,7 +109,7 @@ workflow:
       depends_on: [documentation-convergence]
       task: >
         Commit convergence report to factory-artifacts.
-        Update STATE.md: phase: 6, step: documentation-convergence, status: complete.
+        Update STATE.md: phase: 7, step: documentation-convergence, status: complete.
 
     # === Convergence Gate ===
 

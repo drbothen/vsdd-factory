@@ -1,5 +1,5 @@
 ---
-name: step-b-convergence-deepening
+name: step-c-convergence-deepening
 description: Iteratively deepen each broad sweep pass until novelty decays to NITPICK. Strict binary enforcement — only the literal token NITPICK counts as convergence.
 ---
 

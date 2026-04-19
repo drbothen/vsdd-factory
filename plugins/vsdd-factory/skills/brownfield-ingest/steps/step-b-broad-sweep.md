@@ -1,5 +1,5 @@
 ---
-name: step-a-broad-sweep
+name: step-b-broad-sweep
 description: Run 7 broad analysis passes (Inventory, Architecture, Domain Model, Behavioral Contracts, NFRs, Conventions, Synthesis) over the reference codebase.
 ---
 

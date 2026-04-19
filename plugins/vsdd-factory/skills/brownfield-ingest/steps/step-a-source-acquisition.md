@@ -1,5 +1,5 @@
 ---
-name: step-0-source-acquisition
+name: step-a-source-acquisition
 description: Clone or copy the target codebase into .reference/ and update the reference manifest.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: step-b5-coverage-audit
+name: step-d-coverage-audit
 description: Grep-driven coverage audit verifying all source directories have analysis coverage. Catches topic drift that round-driven deepening misses.
 ---
 

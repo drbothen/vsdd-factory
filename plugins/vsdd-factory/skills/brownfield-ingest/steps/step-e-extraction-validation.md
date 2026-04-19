@@ -1,5 +1,5 @@
 ---
-name: step-b6-extraction-validation
+name: step-e-extraction-validation
 description: Validate accuracy of extracted artifacts against actual source code. Behavioral + metric verification split.
 ---
 

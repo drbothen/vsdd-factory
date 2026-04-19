@@ -1,5 +1,5 @@
 ---
-name: step-c-final-synthesis
+name: step-f-final-synthesis
 description: Produce the definitive synthesis incorporating all broad passes, deepening rounds, coverage audit, and extraction validation results.
 ---
 

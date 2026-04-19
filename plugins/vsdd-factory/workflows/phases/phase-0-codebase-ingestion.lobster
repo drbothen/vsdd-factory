@@ -13,11 +13,11 @@ workflow:
     timeout: "4h"
 
   steps:
-    # === Step 0: Source Acquisition ===
+    # === Step A: Source Acquisition ===
 
     - name: source-acquisition
       type: skill
-      skill: "skills/brownfield-ingest/steps/step-0-source-acquisition.md"
+      skill: "skills/brownfield-ingest/steps/step-a-source-acquisition.md"
       depends_on: []
 
     - name: backup-source-acquisition
@@ -28,11 +28,11 @@ workflow:
         Commit source acquisition artifacts to factory-artifacts.
         Update STATE.md: phase: 0, step: source-acquisition, status: complete.
 
-    # === Step A: Broad Sweep (Passes 0-6) ===
+    # === Step B: Broad Sweep (Passes 0-6) ===
 
     - name: broad-sweep
       type: skill
-      skill: "skills/brownfield-ingest/steps/step-a-broad-sweep.md"
+      skill: "skills/brownfield-ingest/steps/step-b-broad-sweep.md"
       depends_on: [backup-source-acquisition]
       timeout: "2h"
 
@@ -44,11 +44,11 @@ workflow:
         Commit broad sweep artifacts (7 pass files) to factory-artifacts.
         Update STATE.md: phase: 0, step: broad-sweep, status: complete.
 
-    # === Step B: Convergence Deepening ===
+    # === Step C: Convergence Deepening ===
 
     - name: convergence-deepening
       type: skill
-      skill: "skills/brownfield-ingest/steps/step-b-convergence-deepening.md"
+      skill: "skills/brownfield-ingest/steps/step-c-convergence-deepening.md"
       depends_on: [backup-broad-sweep]
       timeout: "8h"
 
@@ -60,11 +60,11 @@ workflow:
         Commit all deepening round artifacts to factory-artifacts.
         Update STATE.md: phase: 0, step: convergence-deepening, status: complete.
 
-    # === Step B.5: Coverage Audit ===
+    # === Step D: Coverage Audit ===
 
     - name: coverage-audit
       type: skill
-      skill: "skills/brownfield-ingest/steps/step-b5-coverage-audit.md"
+      skill: "skills/brownfield-ingest/steps/step-d-coverage-audit.md"
       depends_on: [backup-convergence-deepening]
       timeout: "2h"
 
@@ -76,11 +76,11 @@ workflow:
         Commit coverage audit artifacts to factory-artifacts.
         Update STATE.md: phase: 0, step: coverage-audit, status: complete.
 
-    # === Step B.6: Extraction Validation ===
+    # === Step E: Extraction Validation ===
 
     - name: extraction-validation
       type: skill
-      skill: "skills/brownfield-ingest/steps/step-b6-extraction-validation.md"
+      skill: "skills/brownfield-ingest/steps/step-e-extraction-validation.md"
       depends_on: [backup-coverage-audit]
       timeout: "1h"
 
@@ -92,11 +92,11 @@ workflow:
         Commit extraction validation artifacts to factory-artifacts.
         Update STATE.md: phase: 0, step: extraction-validation, status: complete.
 
-    # === Step C: Final Synthesis ===
+    # === Step F: Final Synthesis ===
 
     - name: final-synthesis
       type: skill
-      skill: "skills/brownfield-ingest/steps/step-c-final-synthesis.md"
+      skill: "skills/brownfield-ingest/steps/step-f-final-synthesis.md"
       depends_on: [backup-extraction-validation]
       timeout: "1h"
 

@@ -1,5 +1,5 @@
 workflow:
-  name: phase-5-formal-hardening
+  name: phase-6-formal-hardening
   description: >
     Phase 5: Formal Hardening. Four verification techniques (Kani proofs,
     fuzz testing, mutation testing, security scanning) with state-manager
@@ -26,7 +26,7 @@ workflow:
       depends_on: [kani-proofs]
       task: >
         Commit Kani proof harnesses and results to factory-artifacts.
-        Update STATE.md: phase: 5, step: kani-proofs, status: complete.
+        Update STATE.md: phase: 6, step: kani-proofs, status: complete.
 
     # === Step B: Fuzz Testing ===
 
@@ -42,7 +42,7 @@ workflow:
       depends_on: [fuzz-testing]
       task: >
         Commit fuzz targets and results to factory-artifacts.
-        Update STATE.md: phase: 5, step: fuzz-testing, status: complete.
+        Update STATE.md: phase: 6, step: fuzz-testing, status: complete.
 
     # === Step C: Mutation Testing ===
 
@@ -58,7 +58,7 @@ workflow:
       depends_on: [mutation-testing]
       task: >
         Commit mutation testing results to factory-artifacts.
-        Update STATE.md: phase: 5, step: mutation-testing, status: complete.
+        Update STATE.md: phase: 6, step: mutation-testing, status: complete.
 
     # === Step D: Security Scan ===
 
@@ -73,7 +73,7 @@ workflow:
       depends_on: [security-scan]
       task: >
         Commit security scan results to factory-artifacts.
-        Update STATE.md: phase: 5, step: security-scan, status: complete.
+        Update STATE.md: phase: 6, step: security-scan, status: complete.
 
     # === Hardening Gate ===
 

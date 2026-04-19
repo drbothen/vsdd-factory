@@ -1,5 +1,5 @@
 workflow:
-  name: phase-3-5-holdout-evaluation
+  name: phase-4-holdout-evaluation
   description: >
     Phase 3.5 decomposed into reusable sub-workflow. Scenario rotation and
     holdout evaluation with information asymmetry wall enforcement.
