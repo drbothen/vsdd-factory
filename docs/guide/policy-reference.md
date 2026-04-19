@@ -103,15 +103,15 @@ Quick-reference for all 9 governance policies. When you see a `POLICY N VIOLATIO
 
 **Error:** `POLICY 6 VIOLATION (architecture_is_subsystem_name_source_of_truth)` from `validate-subsystem-names.sh`
 
-**What happened:** A BC file's `subsystem:` field or a story file's `subsystems:` field uses a name that doesn't match the canonical names in `ARCH-INDEX.md` Subsystem Registry.
+**What happened:** A BC file's `subsystem:` field or a story file's `subsystems:` field uses an SS-ID that doesn't exist in `ARCH-INDEX.md` Subsystem Registry.
 
 **How to fix:**
-1. Read the error — it shows the invalid name AND lists all valid canonical names
+1. Read the error — it shows the invalid SS-ID AND lists all valid IDs with names (e.g., `SS-01 (Core Engine)`)
 2. Open the BC or story file
-3. Change the `subsystem:` (BC) or `subsystems:` (story) field to the exact canonical name from ARCH-INDEX
+3. Change the `subsystem:` (BC) or `subsystems:` (story) field to the correct SS-NN ID from ARCH-INDEX
 4. Save — the hook will re-validate on the next edit
 
-**Common causes:** Typos ("CoreEngine" vs "Core Engine"), abbreviations ("Auth" vs "Auth Module"), stale names after architecture refactoring.
+**Common causes:** Using a subsystem name instead of ID ("Core Engine" vs "SS-01"), typos in ID ("SS-1" vs "SS-01"), referencing a subsystem that hasn't been registered yet.
 
 ---
 

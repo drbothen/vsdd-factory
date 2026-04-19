@@ -28,14 +28,23 @@ is complete when all five dimensions independently report CONVERGED.
 **Convergence Trajectory**
 The monotonically decreasing sequence of finding counts across adversarial passes (e.g., 29→24→21→7→4→3→2→0). If findings increase between passes, this is a regression that blocks further convergence.
 
+**Epic (EPIC-NNN)**
+A group of related stories that deliver a coherent product capability. Epics map to L2 domain capabilities (CAP-NNN) and subsystems (SS-NN). Lifecycle-scoped ID.
+
 **DTU (Digital Twin Universe)**
 A clone of a reference implementation used for behavioral equivalence testing. DTU clones
 are compared against the new implementation to verify that ported behavior is preserved.
+
+**Fix PR (FIX-P[N]-NNN)**
+A pull request created to address an adversarial finding, hardening issue, or convergence gap. The phase prefix indicates origin: P4 = adversarial refinement, P5 = formal hardening, P6 = convergence. Lifecycle-scoped ID.
 
 **Factory Artifacts**
 The orphan git branch (`factory-artifacts`) that holds all pipeline state, specs, stories,
 and evaluation artifacts. Mounted as a worktree at `.factory/` in the target project.
 Separate from `main` and `develop`.
+
+**Gap Register (GAP-NNN)**
+A deferred requirement that cannot be implemented in the current cycle. Gap entries are tracked in traceability matrices with justification (minimum 10 characters) and a resolution target version. Lifecycle-scoped ID — gaps persist until resolved.
 
 **Fresh Context**
 A deliberate constraint on adversarial review: the adversary agent starts each review pass
@@ -52,6 +61,9 @@ target language and architecture.
 A hidden acceptance test created during story decomposition that the builder and test-writer
 agents never see. Evaluated by an independent holdout-evaluator agent (different model,
 fresh context) against the running system. Enforces train/test separation.
+
+**ID Scope**
+The persistence boundary of a VSDD identifier. Lifecycle-scoped IDs (BC, VP, STORY, SS) are append-only and never reused across cycles. Cycle-scoped IDs (ADV findings, WHS) reset per convergence cycle. Local IDs (EC, AC, CMP) are scoped to a parent artifact.
 
 **Information Asymmetry**
 A deliberate design principle where different agents have access to different information.
@@ -150,6 +162,9 @@ A group of stories scheduled for parallel implementation within a single deliver
 Stories within a wave have no dependencies on each other (only on stories from prior waves).
 After all stories in a wave are merged, a wave gate validates the wave before the next
 wave begins.
+
+**Wave Holdout Scenario (WHS-W[N]-NNN)**
+A holdout scenario scoped to a specific wave within a convergence cycle. Unlike lifecycle-scoped HS-NNN scenarios, WHS IDs reset per cycle. Used for per-wave integration verification.
 
 **Wave Gate**
 The quality checkpoint after all stories in a wave are merged. Runs six checks: full test

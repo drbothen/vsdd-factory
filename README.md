@@ -132,7 +132,7 @@ graph TD
 | **Skills** | 103 | Phase workflows, cross-cutting operations, design/UX, market intelligence, policy management |
 | **Commands** | 101 | Slash-command entry points — every skill has a corresponding command |
 | **Hooks** | 16 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, etc.) |
-| **Templates** | 124 | Output format definitions for every artifact type |
+| **Templates** | 127 | Output format definitions for every artifact type |
 | **Workflows** | 15 | Lobster-as-data files defining phase and mode sequences |
 | **Bin helpers** | 4 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan) |
 | **Rules** | 8 | Coding standards (Rust, Bash, git commits, spec format, etc.) |
@@ -177,7 +177,7 @@ plugins/vsdd-factory/
     ...
   bin/                       # 4 shell utilities
   workflows/                 # 15 Lobster workflow files (YAML-as-data)
-  templates/                 # 124 artifact output templates
+  templates/                 # 127 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
   tests/                     # bats test suites (342 tests)
