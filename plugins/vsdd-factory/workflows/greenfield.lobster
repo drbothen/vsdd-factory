@@ -354,13 +354,71 @@ workflow:
         timeout: "24h"
 
     # =========================================================================
-    # Phase 2: Story Decomposition
+    # Multi-Repo Topology Check (after Phase 1 architecture)
+    # If architect set deployment_topology: multi-service in ARCH-INDEX.md,
+    # transition to multi-repo mode. Human confirms before repos are created.
+    # =========================================================================
+
+    - name: multi-repo-topology-check
+      type: agent
+      agent: orchestrator
+      depends_on: [phase-1-human-approval]
+      task: >
+        Read .factory/specs/architecture/ARCH-INDEX.md frontmatter.
+        Check deployment_topology field:
+        - If 'single-service' or field absent: set MULTI_REPO=false, continue.
+        - If 'multi-service': present architect's Service Boundaries section
+          to human for confirmation. Include the service table from
+          system-overview.md showing each service's tech stack, role,
+          and dependencies.
+
+    - name: multi-repo-human-confirmation
+      type: human-approval
+      depends_on: [multi-repo-topology-check]
+      condition: "deployment_topology == 'multi-service'"
+      approval:
+        prompt: >
+          The architect identified a multi-service topology. Review the
+          service boundaries and confirm whether to split into multiple
+          repositories or continue as a mono-repo.
+        artifacts:
+          - ".factory/specs/architecture/ARCH-INDEX.md"
+          - ".factory/specs/architecture/system-overview.md"
+        timeout: "24h"
+
+    - name: multi-repo-transition
+      type: agent
+      agent: devops-engineer
+      depends_on: [multi-repo-human-confirmation]
+      condition: "human_approved_multi_repo == true"
+      task: >
+        Create per-service repos from architect's service map in
+        .factory/specs/architecture/system-overview.md Service Boundaries.
+        Set up .factory/ worktree in each repo.
+        Create .factory-project/ worktree in primary repo.
+        Generate project.yaml with repo entries, dependencies, and modes.
+
+    - name: multi-repo-state-migration
+      type: agent
+      agent: state-manager
+      depends_on: [multi-repo-transition]
+      condition: "human_approved_multi_repo == true"
+      task: >
+        Move unified specs from .factory/specs/ to .factory-project/specs/.
+        Initialize .factory-project/STATE.md.
+        Record project_type: multi-repo in STATE.md.
+        STOP: switch to multi-repo.lobster for per-repo Phase 1
+        refinement and Phase 2+.
+
+    # =========================================================================
+    # Phase 2: Story Decomposition (single-repo continues here)
     # =========================================================================
 
     - name: phase-2-story-decomposition
       type: skill
       skill: "skills/phase-2-story-decomposition/SKILL.md"
-      depends_on: [phase-1-human-approval]
+      depends_on: [phase-1-human-approval, multi-repo-topology-check]
+      condition: "deployment_topology != 'multi-service' OR human_approved_multi_repo == false"
 
     - name: phase-2-consistency-check
       type: agent

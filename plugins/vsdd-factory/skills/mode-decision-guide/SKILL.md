@@ -66,6 +66,8 @@ START: What are you building?
 
 **Note:** Planning is not a standalone mode — it runs automatically as the front-end of greenfield and brownfield modes. It detects existing artifacts, validates quality, and routes to the correct mode.
 
+**Note:** You don't need to choose multi-repo upfront. Start with greenfield — during Phase 1 architecture, the architect analyzes deployment topology. If the product requires multiple independent services (different stacks, independent release cycles, service boundaries), the architect sets `deployment_topology: multi-service` in ARCH-INDEX.md. The orchestrator detects this after Phase 1 and transitions to multi-repo mode automatically (with human confirmation).
+
 ## Quantitative Heuristics
 
 When the mode is not obvious, use these heuristics:

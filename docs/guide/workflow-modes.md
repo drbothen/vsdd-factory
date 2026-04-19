@@ -43,6 +43,7 @@ graph TD
     PLAN -->|"existing .factory/"| FT
 
     GF -->|"per story"| CD
+    GF -->|"architect: multi-service"| MR
     BF -->|"after Phase 0"| GF
     FT -->|"per story"| CD
     MT -->|"fix PRs"| CD
@@ -83,6 +84,16 @@ graph TD
 
 This is the reference path — all other modes are subsets or variations.
 
+### Greenfield → Multi-Repo Transition
+
+During Phase 1, the architect analyzes the product's deployment topology. If the architecture requires multiple independent services (different tech stacks, independent release cycles, service-oriented design), the architect sets `deployment_topology: multi-service` in ARCH-INDEX.md.
+
+After Phase 1 architecture (step P1-05), the orchestrator checks this field:
+- **`single-service`** — continue with single-repo greenfield
+- **`multi-service`** — present the architect's service boundaries to the human for confirmation. If confirmed, devops-engineer creates per-service repos and `project.yaml`, then the pipeline switches to multi-repo mode
+
+This means you don't need to know upfront whether your project is multi-repo. Start with greenfield — the architect will identify it during architecture design and the pipeline will transition automatically.
+
 **Entry:** Start a new session and describe your product idea, or run `/vsdd-factory:create-brief`.
 
 ---
@@ -103,6 +114,17 @@ Phase 0 produces a project context document, recovered architecture, convention 
 **Entry:** `/vsdd-factory:brownfield-ingest <path-or-url>`
 
 **Key difference from greenfield:** Phase 0 output constrains Phase 1. Specs only cover what's new or changing — existing behavior is inherited from the analysis.
+
+### Brownfield → Multi-Repo
+
+If your existing project is already split across multiple repositories:
+
+1. **Create `project.yaml`** at the project root listing all repos, their paths/URLs, and dependencies
+2. The multi-repo workflow detects `project.yaml` and classifies each repo independently — repos with existing source run brownfield (Phase 0), empty repos run greenfield
+3. Each brownfield repo runs Phase 0 in parallel, followed by a **project-level synthesis** that merges findings across all repos
+4. After Phase 0, the pipeline continues with per-repo Phase 1-7 coordinated by cross-repo gates
+
+If you start brownfield on a **single repo** and the architect discovers multi-service topology during Phase 1, the same greenfield → multi-repo transition applies (see Greenfield section above).
 
 ---
 
