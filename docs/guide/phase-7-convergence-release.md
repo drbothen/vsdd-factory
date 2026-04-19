@@ -1,8 +1,8 @@
-# Phase 6: Convergence and Release
+# Phase 7: Convergence and Release
 
-## When to Enter Phase 6
+## When to Enter Phase 7
 
-Enter Phase 6 after all Phase 5 verification reports show PASS. Kani proofs are green, fuzz testing found no crashes, mutation kill rate meets thresholds, security scans are clean, and performance budgets are met.
+Enter Phase 7 after all Phase 5 verification reports show PASS. Kani proofs are green, fuzz testing found no crashes, mutation kill rate meets thresholds, security scans are clean, and performance budgets are met.
 
 ## The 7 Dimensions of Convergence
 

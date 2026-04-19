@@ -295,3 +295,113 @@ setup() {
   hook=$(yq '.policies[] | select(.id == 9) | .lint_hook' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml")
   [ "$hook" = "hooks/validate-vp-consistency.sh" ]
 }
+
+# ---------- Lobster skill path resolution ----------
+
+@test "all skill: paths in phase lobster files resolve to existing files" {
+  local missing=0
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  while IFS= read -r path; do
+    if [ ! -f "$plugin_root/$path" ]; then
+      echo "MISSING: $path" >&2
+      missing=$((missing + 1))
+    fi
+  done < <(grep -rh 'skill:' "$plugin_root/workflows/phases/"*.lobster \
+    | sed 's/.*skill: *"//' | sed 's/".*//' | sort -u)
+  [ "$missing" -eq 0 ]
+}
+
+@test "all skill: paths in top-level lobster files resolve to existing files" {
+  local missing=0
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  while IFS= read -r path; do
+    if [ ! -f "$plugin_root/$path" ]; then
+      echo "MISSING: $path" >&2
+      missing=$((missing + 1))
+    fi
+  done < <(grep -rh 'skill:' \
+    "$plugin_root/workflows/greenfield.lobster" \
+    "$plugin_root/workflows/brownfield.lobster" \
+    "$plugin_root/workflows/feature.lobster" \
+    "$plugin_root/workflows/multi-repo.lobster" \
+    2>/dev/null | sed 's/.*skill: *"//' | sed 's/".*//' | sort -u)
+  [ "$missing" -eq 0 ]
+}
+
+# ---------- Phase entry-point skills ----------
+
+@test "all 8 phase entry-point skills exist" {
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  [ -f "$plugin_root/skills/phase-0-codebase-ingestion/SKILL.md" ]
+  [ -f "$plugin_root/skills/phase-1-spec-crystallization/SKILL.md" ]
+  [ -f "$plugin_root/skills/phase-2-story-decomposition/SKILL.md" ]
+  [ -f "$plugin_root/skills/phase-3-tdd-implementation/SKILL.md" ]
+  [ -f "$plugin_root/skills/phase-4-holdout-evaluation/SKILL.md" ]
+  [ -f "$plugin_root/skills/phase-5-adversarial-refinement/SKILL.md" ]
+  [ -f "$plugin_root/skills/phase-6-formal-hardening/SKILL.md" ]
+  [ -f "$plugin_root/skills/phase-7-convergence/SKILL.md" ]
+}
+
+@test "each phase entry-point skill references its sub-workflow" {
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  grep -q "phase-0-codebase-ingestion.lobster" "$plugin_root/skills/phase-0-codebase-ingestion/SKILL.md"
+  grep -q "phase-1-spec-crystallization.lobster" "$plugin_root/skills/phase-1-spec-crystallization/SKILL.md"
+  grep -q "phase-2-story-decomposition.lobster" "$plugin_root/skills/phase-2-story-decomposition/SKILL.md"
+  grep -q "phase-3-tdd-implementation.lobster" "$plugin_root/skills/phase-3-tdd-implementation/SKILL.md"
+  grep -q "phase-4-holdout-evaluation.lobster" "$plugin_root/skills/phase-4-holdout-evaluation/SKILL.md"
+  grep -q "phase-5-adversarial-refinement.lobster" "$plugin_root/skills/phase-5-adversarial-refinement/SKILL.md"
+  grep -q "phase-6-formal-hardening.lobster" "$plugin_root/skills/phase-6-formal-hardening/SKILL.md"
+  grep -q "phase-7-convergence.lobster" "$plugin_root/skills/phase-7-convergence/SKILL.md"
+}
+
+@test "all 8 phase lobster files exist with matching names" {
+  local wf="${BATS_TEST_DIRNAME}/../workflows/phases"
+  [ -f "$wf/phase-0-codebase-ingestion.lobster" ]
+  [ -f "$wf/phase-1-spec-crystallization.lobster" ]
+  [ -f "$wf/phase-2-story-decomposition.lobster" ]
+  [ -f "$wf/phase-3-tdd-implementation.lobster" ]
+  [ -f "$wf/phase-4-holdout-evaluation.lobster" ]
+  [ -f "$wf/phase-5-adversarial-refinement.lobster" ]
+  [ -f "$wf/phase-6-formal-hardening.lobster" ]
+  [ -f "$wf/phase-7-convergence.lobster" ]
+}
+
+@test "no old phase numbering in lobster files" {
+  local wf="${BATS_TEST_DIRNAME}/../workflows"
+  # No fractional phases
+  ! grep -rq 'phase-3\.5\|phase-3-5' "$wf/"
+  # No old phase-4-adversarial (should be phase-5)
+  ! grep -rq 'phase-4-adversarial' "$wf/"
+  # No old phase-5-formal (should be phase-6)
+  ! grep -rq 'phase-5-formal' "$wf/"
+  # No old phase-6-convergence (should be phase-7)
+  ! grep -rq 'phase-6-convergence' "$wf/"
+}
+
+# ---------- Step file structure ----------
+
+@test "all phases with step files have _shared-context.md" {
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  [ -f "$plugin_root/skills/brownfield-ingest/steps/_shared-context.md" ]
+  [ -f "$plugin_root/skills/decompose-stories/steps/_shared-context.md" ]
+  [ -f "$plugin_root/skills/deliver-story/steps/_shared-context.md" ]
+  [ -f "$plugin_root/skills/formal-verify/steps/_shared-context.md" ]
+  [ -f "$plugin_root/skills/convergence-check/steps/_shared-context.md" ]
+}
+
+@test "phase 0-7 step files use pure alphabetic naming" {
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  local bad=0
+  for skill_dir in brownfield-ingest decompose-stories deliver-story formal-verify convergence-check; do
+    local steps_dir="$plugin_root/skills/$skill_dir/steps"
+    [ -d "$steps_dir" ] || continue
+    while IFS= read -r f; do
+      name=$(basename "$f")
+      if [[ "$name" == step-[0-9]* ]] || [[ "$name" == *[0-9][0-9]* ]]; then
+        echo "BAD: $f (numeric or sub-step ID)" >&2
+        bad=$((bad + 1))
+      fi
+    done < <(find "$steps_dir" -name 'step-*.md' -not -name '_*')
+  done
+  [ "$bad" -eq 0 ]
+}

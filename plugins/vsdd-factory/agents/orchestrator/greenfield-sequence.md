@@ -156,9 +156,9 @@ P3H-01. Spawn dtu-validator: "Start DTU clones" (if dtu-assessment.md has DTU_RE
     If DTU_REQUIRED: false in dtu-assessment.md, skip with logged reason.
 P3H-02. Spawn holdout-evaluator: "Evaluate all holdout scenarios"
 
-## Phase 4: Adversarial Refinement
+## Phase 5: Adversarial Refinement
 
-P4-01. Adversarial code review loop (max 10 passes per VSDD.md Phase 4):
+P4-01. Adversarial code review loop (max 10 passes per VSDD.md Phase 6):
     a. Spawn adversary: "Fresh context code review (ADV-PN-NNN, Part A: verify fixes, Part B: find new)"
     b. Classify fixes: transparent vs behavior-changing
     c. Spawn code-reviewer: "Constructive code review (CR-NNN)"
@@ -169,9 +169,9 @@ P4-01. Adversarial code review loop (max 10 passes per VSDD.md Phase 4):
     h. If behavior-changing fixes → spawn holdout-evaluator: "Regression check"
     i. Go back to (a) with fresh adversary context
 
-## Phase 5: Formal Hardening
+## Phase 6: Formal Hardening
 
-P5-01. Formal hardening loop (per VSDD.md Phase 5 — all results feed back into Phase 4):
+P5-01. Formal hardening loop (per VSDD.md Phase 6 — all results feed back into Phase 4):
     a. Spawn formal-verifier: "Per-file VP-NNN proofs (Kani, proptest, fuzz)"
        VP locking on proof pass (git tag vp-verified-VP-NNN)
     b. Spawn formal-verifier: "Security scan" → security-reviewer triages HIGH/CRIT
@@ -180,7 +180,7 @@ P5-01. Formal hardening loop (per VSDD.md Phase 5 — all results feed back into
     e. If failures → Fix PR delivery (FIX-P5-NNN), re-run ONLY failing checks
     f. Go back to (d)
 
-## Phase 6: Convergence
+## Phase 7: Convergence
 
 P6-01. Convergence loop (max 10 cycles):
     a. Spawn consistency-validator: "7-dimensional convergence report"

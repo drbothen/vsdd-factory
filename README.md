@@ -132,13 +132,13 @@ graph TD
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 33 | Specialist personas + 10 orchestrator workflow files |
-| **Skills** | 104 | Phase workflows, cross-cutting operations, design/UX, market intelligence, policy management |
-| **Commands** | 104 | Slash-command entry points — every skill has a corresponding command |
+| **Skills** | 112 | Phase entry points, phase workflows, cross-cutting operations, design/UX, market intelligence, policy management |
+| **Commands** | 104 | Slash-command entry points — work skills have corresponding commands |
 | **Hooks** | 19 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, template compliance, finding format, input-hash drift, etc.) |
 | **Templates** | 94 | Output format definitions for every artifact type |
-| **Workflows** | 15 | Lobster-as-data files defining phase and mode sequences |
+| **Workflows** | 16 | Lobster-as-data files defining phase and mode sequences |
 | **Bin helpers** | 5 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan, compute-input-hash) |
-| **Rules** | 8 | Coding standards (Rust, Bash, git commits, spec format, etc.) |
+| **Rules** | 9 | Coding standards (Rust, Bash, git commits, spec format, step decomposition, etc.) |
 | **Docs** | 5 | Methodology, factory protocol, convergence criteria, agent principles |
 
 See [docs/guide/pipeline-overview.md](docs/guide/pipeline-overview.md) for the full phase map.
@@ -169,7 +169,7 @@ plugins/vsdd-factory/
     test-writer.md
     ...
   skills/
-    brownfield-ingest/       # 104 skill directories, each with SKILL.md
+    brownfield-ingest/       # 112 skill directories, each with SKILL.md
     deliver-story/
     factory-health/
     ...
@@ -184,7 +184,7 @@ plugins/vsdd-factory/
   templates/                 # 94 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (384 tests across 12 suites)
+  tests/                     # bats test suites (392 tests across 12 suites)
   fixtures/                  # Test fixtures (smoke-project, policy-9, policy-enforcement)
 ```
 
@@ -199,12 +199,12 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (384 across 12 suites)
+# All tests (392 across 12 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
 bats plugins/vsdd-factory/tests/hooks.bats              # 54 hook enforcement tests
-bats plugins/vsdd-factory/tests/skills.bats              # 52 structural tests (Iron Laws, Red Flags, templates, policies)
+bats plugins/vsdd-factory/tests/skills.bats              # 60 structural tests (Iron Laws, Red Flags, templates, policies)
 bats plugins/vsdd-factory/tests/bin.bats                 # 13 bin helper tests
 bats plugins/vsdd-factory/tests/visual-companion.bats    # 18 visual companion server tests
 bats plugins/vsdd-factory/tests/permissions.bats         # 68 permission model + governance policy + structural completeness tests
@@ -267,7 +267,7 @@ Contributions are welcome. Before submitting a PR:
    `adversarial-review`, `wave-gate`) each have an Iron Law and a Red Flags table. These
    are empirically anchored -- do not weaken them without eval evidence.
 
-2. **Run the test suite.** All 384 bats tests must pass. New skills need structural tests
+2. **Run the test suite.** All 392 bats tests must pass. New skills need structural tests
    for any Iron Laws, Red Flags, or template references they introduce.
 
 3. **Use portable template paths.** Reference templates as

@@ -24,7 +24,7 @@ traces_to: ""
 | **Target Workspace** | |
 | **Started** | YYYY-MM-DDTHH:MM:SS |
 | **Last Updated** | YYYY-MM-DDTHH:MM:SS |
-| **Current Phase** | [1a/1b/2/3/3.5/4/5/6] |
+| **Current Phase** | [0/1/2/3/4/5/6/7] |
 | **Current Step** | |
 
 ## Phase Progress
@@ -33,11 +33,11 @@ traces_to: ""
 |-------|--------|---------|-----------|------|---------------------|
 | 1: Spec Crystallization | not-started / in-progress / passed / blocked | | | | [22→6→0 converged] |
 | 2: Story Decomposition | | | | | |
-| 3: Test-First Implementation | | | | | |
-| 3.5: Holdout Evaluation | | | | | |
-| 4: Adversarial Refinement | | | | | |
-| 5: Formal Hardening | | | | | |
-| 6: Convergence | | | | | |
+| 3: TDD Implementation | | | | | |
+| 4: Holdout Evaluation | | | | | |
+| 5: Adversarial Refinement | | | | | |
+| 6: Formal Hardening | | | | | |
+| 7: Convergence | | | | | |
 
 ## Current Phase Steps
 

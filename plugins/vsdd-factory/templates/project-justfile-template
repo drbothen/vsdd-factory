@@ -43,14 +43,14 @@ status:
         echo "No pipeline state found. Run 'just start' to begin."
     fi
 
-# Show convergence report (after Phase 6)
+# Show convergence report (after Phase 7)
 convergence:
     #!/usr/bin/env bash
     set -euo pipefail
-    if [ -f .factory/phase-6-convergence/convergence-report.md ]; then
-        cat .factory/phase-6-convergence/convergence-report.md
+    if [ -f .factory/phase-7-convergence/convergence-report.md ]; then
+        cat .factory/phase-7-convergence/convergence-report.md
     else
-        echo "No convergence report yet. Pipeline must reach Phase 6."
+        echo "No convergence report yet. Pipeline must reach Phase 7."
     fi
 
 # List all pipeline artifacts

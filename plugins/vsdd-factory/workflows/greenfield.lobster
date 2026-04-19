@@ -919,7 +919,7 @@ workflow:
     # Runs on merged develop after all waves complete
     # =========================================================================
 
-    - name: phase-3-5-scenario-rotation
+    - name: phase-4-scenario-rotation
       type: agent
       depends_on: [phase-3-gate]
       agent: orchestrator
@@ -933,22 +933,22 @@ workflow:
         across-run behavior.
 
     # DTU clones must be running before holdout evaluation
-    - name: phase-3-5-dtu-startup
+    - name: phase-4-dtu-startup
       type: agent
       agent: devops-engineer
-      depends_on: [phase-3-5-scenario-rotation]
+      depends_on: [phase-4-scenario-rotation]
       condition: "dtu_assessment.has_candidates == true"
       task: "Ensure DTU clones running. Source dtu-env.sh.
              Configure SUT to use clones instead of real services."
 
-    - name: phase-3-5-holdout-evaluation
+    - name: phase-4-holdout-evaluation
       type: skill
       skill: "skills/phase-4-holdout-evaluation/SKILL.md"
-      depends_on: [phase-3-5-scenario-rotation, phase-3-5-dtu-startup]
+      depends_on: [phase-4-scenario-rotation, phase-4-dtu-startup]
 
-    - name: phase-3-5-gate
+    - name: phase-4-gate
       type: gate
-      depends_on: [phase-3-5-holdout-evaluation]
+      depends_on: [phase-4-holdout-evaluation]
       gate:
         criteria:
           - "Holdout evaluator used different model family (GPT-5.4, not Claude)"
@@ -965,10 +965,10 @@ workflow:
     # Phase 4 Demo Recording (DF-018)
     # =========================================================================
 
-    - name: phase-3-5-demo-recording
+    - name: phase-4-demo-recording
       type: skill
       skill: "skills/demo-recording/SKILL.md"
-      depends_on: [phase-3-5-gate]
+      depends_on: [phase-4-gate]
       condition: "config.demo_recording.enabled != false"
       timeout: "30m"
 
@@ -983,7 +983,7 @@ workflow:
 
     - name: phase-5-adversarial-refinement
       type: loop
-      depends_on: [phase-3-5-gate]
+      depends_on: [phase-4-gate]
       loop:
         max_iterations: 10
         exit_condition: "adversary.verdict == 'CONVERGENCE_REACHED'"

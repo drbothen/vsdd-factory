@@ -256,7 +256,7 @@ workflow:
 
     - name: semport-translation
       type: skill
-      skill: "skills/semport/SKILL.md"
+      skill: "skills/semport-analyze/SKILL.md"
       depends_on: [detect-cross-language-porting]
       condition: "brownfield.needs_semport == true"
       timeout: "4h"

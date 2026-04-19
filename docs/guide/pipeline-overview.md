@@ -167,14 +167,14 @@ After all stories in a wave are merged to `develop`, the wave gate runs six chec
 
 **Gate:** Wave gate passes (all 6 checks). Mean holdout satisfaction >= 0.85, every critical scenario >= 0.6.
 
-**Pre-Phase 4 gates:**
+**Pre-Phase 5 gates:**
 
 - **DTU clone existence** — if `dtu-assessment.md` says DTU_REQUIRED: true, clones must be built and validated
 - **CI/CD verification** — CI pipeline must exist and run successfully on develop
 
 ---
 
-## Phase 4: Adversarial Refinement
+## Phase 5: Adversarial Refinement
 
 **Goal:** Fresh-eyes review of the full implementation.
 
@@ -193,7 +193,7 @@ fix PRs targeting `develop`.
 
 ---
 
-## Phase 5: Formal Hardening
+## Phase 6: Formal Hardening
 
 **Goal:** Mathematical and empirical verification of the implementation.
 
@@ -213,7 +213,7 @@ fix PRs targeting `develop`.
 
 ---
 
-## Phase 6: Convergence and Release
+## Phase 7: Convergence and Release
 
 **Goal:** Confirm all five convergence dimensions are satisfied, then release.
 

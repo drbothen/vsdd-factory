@@ -1,8 +1,8 @@
-# Phase 4: Adversarial Refinement
+# Phase 5: Adversarial Refinement
 
-## When to Enter Phase 4
+## When to Enter Phase 5
 
-Enter Phase 4 after all implementation waves have passed their wave gates in Phase 3. Every story is merged to `develop`, holdout evaluations have passed, and the full test suite is green. The code has survived TDD -- now it faces the gauntlet.
+Enter Phase 5 after all implementation waves have passed their wave gates in Phase 3. Every story is merged to `develop`, holdout evaluations have passed, and the full test suite is green. The code has survived TDD -- now it faces the gauntlet.
 
 ## Overview
 
@@ -18,7 +18,7 @@ graph TD
     ASSESS2 -->|HIGH| TRIAGE2[Triage findings]
     TRIAGE2 --> FIX2[Fix PRs targeting develop]:::action
     FIX2 --> ADVN[ADV-PN: Additional passes]:::review
-    ASSESS2 -->|LOW| GATE[Phase 4 Gate: PASS]:::gate
+    ASSESS2 -->|LOW| GATE[Phase 5 Gate: PASS]:::gate
     ADVN --> ASSESSN{Novelty<br/>assessment}:::decision
     ASSESSN -->|LOW| GATE
     ASSESSN -->|HIGH + pass 5| ESCALATE[Escalate to human]:::gate
@@ -34,13 +34,13 @@ graph TD
 
 > NO APPROVAL WITHOUT FRESH-CONTEXT REVIEW FIRST
 
-This is not a guideline. It is the mechanism Phase 4 depends on. Fresh context means the adversary agent has not seen prior review passes, the author's explanations, or the orchestrator's summary. Loading any of those contaminates the information asymmetry the pattern requires.
+This is not a guideline. It is the mechanism Phase 5 depends on. Fresh context means the adversary agent has not seen prior review passes, the author's explanations, or the orchestrator's summary. Loading any of those contaminates the information asymmetry the pattern requires.
 
 Self-review does not count as adversarial review. Summarizing prior passes for the adversary destroys the fresh context. Zero findings after a short prompt is a prompt failure, not convergence.
 
 ## Full Implementation Review vs. Phase 1 Spec Review
 
-Phase 1 uses `/vsdd-factory:adversarial-review specs` to review specifications before any code is written. Phase 4 uses `/vsdd-factory:adversarial-review implementation` to review the finished codebase against those same specs.
+Phase 1 uses `/vsdd-factory:adversarial-review specs` to review specifications before any code is written. Phase 5 uses `/vsdd-factory:adversarial-review implementation` to review the finished codebase against those same specs.
 
 The implementation review is broader. The adversary reads all spec documents first, then reviews source code looking for:
 
@@ -147,7 +147,7 @@ Watch for these patterns that indicate the adversarial review process is failing
 
 ## Quality Gate
 
-Phase 4 is complete when the adversary reports LOW novelty on the implementation review. Specifically:
+Phase 5 is complete when the adversary reports LOW novelty on the implementation review. Specifically:
 
 - Minimum 2 adversary passes completed
 - Latest pass findings are refinements (wording, style), not missing behavior
