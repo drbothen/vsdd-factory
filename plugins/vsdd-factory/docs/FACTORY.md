@@ -352,24 +352,55 @@ Rules:
 
 ### ID Format Reference
 
-| Level | ID Format | Meaning | Example |
-|-------|-----------|---------|---------|
-| L2 | CAP-NNN | Domain capability | CAP-001: Parse markdown files |
-| L2 | DI-NNN | Domain invariant | DI-001: URL extraction preserves position |
-| L2 | DEC-NNN | Domain edge case | DEC-001: Empty .md file (0 bytes) |
-| L2 | ASM-NNN | Assumption requiring validation | ASM-001: pulldown-cmark byte offsets accurate |
-| L2 | R-NNN | Risk | R-001: GitHub slug algorithm changes |
-| L2 | FM-NNN | Failure mode | FM-001: DNS resolution failure |
-| L3 | SS-NN | Architecture subsystem | SS-01: Sensor Adapters |
-| L3 | BC-S.SS.NNN | Behavioral contract (hierarchical) | BC-2.3.045: Notification timeout handling |
-| L3 | NFR-NNN | Non-functional requirement | NFR-001: Parse 1000 files in <= 2s |
-| L3 | E-xxx-NNN | Error taxonomy | E-NET-001: DNS lookup failed |
-| L4 | VP-NNN | Verification property | VP-001: Slug GitHub-equivalence |
-| Stories | AC-NNN | Acceptance criterion (traces to BC) | AC-001 (traces to BC-2.1.001) |
-| Reviews | ADV-NNN | Adversarial finding (single pass) | ADV-001: Contradiction in BC-030 |
-| Reviews | ADV-PN-NNN | Adversarial finding (pass N) | ADV-P2-001: Cross-doc drift |
-| Reviews | CR-NNN | Code review finding | CR-001: Column diagnostic wrong |
-| Reviews | SEC-NNN | Security finding | SEC-001: SSRF guard missing |
+| Level | ID Format | Meaning | Example | Scope |
+|-------|-----------|---------|---------|-------|
+| L2 | CAP-NNN | Domain capability | CAP-001: Parse markdown files | Lifecycle |
+| L2 | DI-NNN | Domain invariant | DI-001: URL extraction preserves position | Lifecycle |
+| L2 | DEC-NNN | Domain edge case | DEC-001: Empty .md file (0 bytes) | Lifecycle |
+| L2 | ASM-NNN | Assumption requiring validation | ASM-001: pulldown-cmark byte offsets accurate | Lifecycle |
+| L2 | R-NNN | Risk | R-001: GitHub slug algorithm changes | Lifecycle |
+| L2 | FM-NNN | Failure mode | FM-001: DNS resolution failure | Lifecycle |
+| L3 | SS-NN | Architecture subsystem | SS-01: Sensor Adapters | Lifecycle |
+| L3 | BC-S.SS.NNN | Behavioral contract (hierarchical) | BC-2.3.045: Notification timeout handling | Lifecycle |
+| L3 | NFR-NNN | Non-functional requirement | NFR-001: Parse 1000 files in <= 2s | Lifecycle |
+| L3 | E-xxx-NNN | Error taxonomy | E-NET-001: DNS lookup failed | Lifecycle |
+| L3 | EC-NNN | Edge case (within BC) | EC-001: Empty input | Local to BC |
+| L4 | VP-NNN | Verification property | VP-001: Slug GitHub-equivalence | Lifecycle |
+| Stories | STORY-NNN | Story | STORY-001: Implement input validation | Lifecycle |
+| Stories | EPIC-NNN | Epic | EPIC-001: Core Engine | Lifecycle |
+| Stories | AC-NNN | Acceptance criterion (traces to BC) | AC-001 (traces to BC-2.1.001) | Local to story |
+| Stories | EAC-NNN | Epic acceptance criterion | EAC-001: All core APIs operational | Local to epic |
+| Stories | GAP-NNN | Gap register entry (deferred requirement) | GAP-001: External API not available in v1 | Lifecycle |
+| Holdout | HS-NNN | Holdout scenario (lifecycle-tracked) | HS-001: Malformed input injection | Lifecycle |
+| Holdout | WHS-W[N]-NNN | Wave holdout scenario (wave-scoped) | WHS-W2-001: Wave 2 integration check | Cycle (resets) |
+| Reviews | ADV-<CYCLE>-P[N]-[SEV]-NNN | Adversarial finding (cycle-prefixed) | ADV-P1CONV-P03-CRIT-001 | Cycle |
+| Reviews | ADV-P[N]-NNN | Adversarial finding (legacy, no cycle prefix) | ADV-P2-001: Cross-doc drift | Cycle (legacy) |
+| Reviews | CR-NNN | Code review finding | CR-001: Column diagnostic wrong | Cycle |
+| Reviews | SEC-NNN | Security finding | SEC-001: SSRF guard missing | Cycle |
+| Reviews | FIX-P[N]-NNN | Fix PR from phase N review | FIX-P4-001: Fix BC timeout handling | Lifecycle |
+| Ops | TD-NNN | Tech debt register entry | TD-001: Refactor auth middleware | Lifecycle |
+| Ops | EVAL-NNN | Holdout evaluation result | EVAL-HS-001-P1: HS-001 pass 1 result | Cycle |
+| UX | SCR-NNN | UX screen specification | SCR-001: Dashboard overview | Lifecycle |
+| UX | CMP-NNN | UI component (within screen) | CMP-001: AlertCard | Local to SCR |
+| UX | ELM-NNN | UI element (within screen) | ELM-001: severity-badge | Local to SCR |
+| UX | INT-NNN | UI interaction (within screen) | INT-001: click-to-expand | Local to SCR |
+| Architecture | AD-NNN | Architecture decision | AD-001: Use Kani for model checking | Lifecycle |
+
+### ID Scope Definitions
+
+| Scope | Meaning | Numbering Rule |
+|-------|---------|---------------|
+| **Lifecycle** | Continuous across all cycles. Never renumbered, never reused (Policy 1). Retired IDs stay in indexes. | Append-only sequential |
+| **Cycle** | Resets per convergence cycle. Prefix identifies the cycle (e.g., `ADV-P1CONV-P03-CRIT-001`). | Sequential within cycle |
+| **Local** | Scoped to a parent artifact. EC-NNN is local to its BC file. AC-NNN is local to its story. CMP/ELM/INT are local to their SCR. | Sequential within parent |
+
+### Legacy ID Formats
+
+| Legacy Format | Current Format | Migration |
+|---------------|---------------|-----------|
+| `ADV-NNN` | `ADV-<CYCLE>-P[N]-[SEV]-NNN` | Accept legacy in existing artifacts. New findings use cycle-prefixed format. |
+| `ADV-P[N]-NNN` | `ADV-<CYCLE>-P[N]-[SEV]-NNN` | Accept during transition. `conform-to-template` normalizes. |
+| `STORY-NNN-FIX-001` | `FIX-P[N]-NNN` | Story-level fixes use `FIX-P[N]-NNN`. The phase prefix indicates origin (P4=adversarial, P5=hardening). |
 
 ### Priority Scale
 
