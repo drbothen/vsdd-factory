@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.38.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.38.1-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -180,7 +180,7 @@ plugins/vsdd-factory/
   templates/                 # 94 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (381 tests across 12 suites)
+  tests/                     # bats test suites (384 tests across 12 suites)
   fixtures/                  # Test fixtures (smoke-project, policy-9, policy-enforcement)
 ```
 
@@ -195,7 +195,7 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (381 across 12 suites)
+# All tests (384 across 12 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
@@ -210,7 +210,7 @@ bats plugins/vsdd-factory/tests/policy-enforcement.bats  # 30 policy 6/7/8 enfor
 bats plugins/vsdd-factory/tests/hook-robustness.bats     # 34 hook robustness + error contract tests
 bats plugins/vsdd-factory/tests/template-compliance.bats # 14 template compliance hook tests
 bats plugins/vsdd-factory/tests/finding-format.bats      # 12 finding format validation tests
-bats plugins/vsdd-factory/tests/input-hash.bats          # 22 input-hash drift detection tests
+bats plugins/vsdd-factory/tests/input-hash.bats          # 25 input-hash drift detection tests
 ```
 
 ### Syntax checking
@@ -263,7 +263,7 @@ Contributions are welcome. Before submitting a PR:
    `adversarial-review`, `wave-gate`) each have an Iron Law and a Red Flags table. These
    are empirically anchored -- do not weaken them without eval evidence.
 
-2. **Run the test suite.** All 381 bats tests must pass. New skills need structural tests
+2. **Run the test suite.** All 384 bats tests must pass. New skills need structural tests
    for any Iron Laws, Red Flags, or template references they introduce.
 
 3. **Use portable template paths.** Reference templates as

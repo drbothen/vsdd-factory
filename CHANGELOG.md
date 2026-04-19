@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.38.1 — Fix compute-input-hash path resolution
+
+### Fixed
+
+- **compute-input-hash** now searches `.factory/phase-0-ingestion/`, `.factory/stories/`, and `.factory/holdout-scenarios/` when resolving input paths. Previously only searched artifact dir, parent, specs/, and .factory/ root — causing silent partial hashes for artifacts referencing brownfield ingestion outputs, stories, or holdout scenarios.
+
+### Added
+
+- 3 new BATS tests for path resolution: phase-0-ingestion, stories, holdout-scenarios (Tests: 381 → 384)
+
 ## 0.38.0 — Orchestrator audit + workflow drift checks
 
 ### Added

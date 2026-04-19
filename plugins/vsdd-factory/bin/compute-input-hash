@@ -83,9 +83,15 @@ MISSING=0
 while IFS= read -r input_file; do
   [[ -z "$input_file" ]] && continue
 
-  # Try paths in order: relative to artifact, relative to specs/, relative to .factory/
+  # Try paths in order: relative to artifact, parent dir, specs/, stories/,
+  # phase-0-ingestion/, holdout-scenarios/, .factory/ root
   RESOLVED=""
-  for base in "$ARTIFACT_DIR" "$ARTIFACT_DIR/.." "${FACTORY_ROOT:+$FACTORY_ROOT/specs}" "$FACTORY_ROOT"; do
+  for base in "$ARTIFACT_DIR" "$ARTIFACT_DIR/.." \
+    "${FACTORY_ROOT:+$FACTORY_ROOT/specs}" \
+    "${FACTORY_ROOT:+$FACTORY_ROOT/stories}" \
+    "${FACTORY_ROOT:+$FACTORY_ROOT/phase-0-ingestion}" \
+    "${FACTORY_ROOT:+$FACTORY_ROOT/holdout-scenarios}" \
+    "$FACTORY_ROOT"; do
     [[ -z "$base" ]] && continue
     if [[ -f "$base/$input_file" ]]; then
       RESOLVED="$base/$input_file"

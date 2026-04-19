@@ -10,11 +10,17 @@ setup() {
   # Create a mini .factory/ structure
   mkdir -p "$WORK/.factory/specs/domain-spec"
   mkdir -p "$WORK/.factory/specs/behavioral-contracts"
+  mkdir -p "$WORK/.factory/specs/verification-properties"
   mkdir -p "$WORK/.factory/stories"
+  mkdir -p "$WORK/.factory/phase-0-ingestion"
+  mkdir -p "$WORK/.factory/holdout-scenarios"
 
   # Create source files
   echo "# Product Brief" > "$WORK/.factory/specs/product-brief.md"
   echo "# L2 Index" > "$WORK/.factory/specs/domain-spec/L2-INDEX.md"
+  echo "# Recovered Architecture" > "$WORK/.factory/phase-0-ingestion/recovered-architecture.md"
+  echo "# Story S-1.03" > "$WORK/.factory/stories/S-1.03-capability-resolution.md"
+  echo "# Holdout HS-001" > "$WORK/.factory/holdout-scenarios/HS-001.md"
 }
 
 teardown() {
@@ -141,6 +147,42 @@ EOF
 
 @test "compute-input-hash: passes syntax check" {
   bash -n "$BIN"
+}
+
+@test "compute-input-hash: resolves inputs in phase-0-ingestion/" {
+  cat > "$WORK/.factory/specs/architecture-concept.md" << 'EOF'
+---
+inputs: [recovered-architecture.md, product-brief.md]
+input-hash: "[md5]"
+---
+EOF
+  run "$BIN" "$WORK/.factory/specs/architecture-concept.md"
+  [ "$status" -eq 0 ]
+  [[ "${#output}" -eq 7 ]]
+}
+
+@test "compute-input-hash: resolves inputs in stories/" {
+  cat > "$WORK/.factory/specs/verification-properties/VP-042.md" << 'EOF'
+---
+inputs: [S-1.03-capability-resolution.md]
+input-hash: "[md5]"
+---
+EOF
+  run "$BIN" "$WORK/.factory/specs/verification-properties/VP-042.md"
+  [ "$status" -eq 0 ]
+  [[ "${#output}" -eq 7 ]]
+}
+
+@test "compute-input-hash: resolves inputs in holdout-scenarios/" {
+  cat > "$WORK/.factory/specs/holdout-eval.md" << 'EOF'
+---
+inputs: [HS-001.md]
+input-hash: "[md5]"
+---
+EOF
+  run "$BIN" "$WORK/.factory/specs/holdout-eval.md"
+  [ "$status" -eq 0 ]
+  [[ "${#output}" -eq 7 ]]
 }
 
 # ===== hooks/validate-input-hash.sh =====
