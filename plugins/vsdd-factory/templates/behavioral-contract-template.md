@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: "[agent-id]"
 timestamp: YYYY-MM-DDTHH:MM:SS
@@ -30,6 +30,12 @@ removal_reason: null             # why removed
 > **One-per-file:** Each behavioral contract lives in its own file.
 > Filename convention: `BC-S.SS.NNN.md` (e.g., `BC-2.3.045.md`)
 > Numbering: BC-S.SS.NNN where S = PRD section, SS = subsection (L2 subsystem), NNN = sequential.
+
+## Description
+
+[2-3 sentence summary of what this behavioral contract covers. Provides quick
+context without reading the full preconditions/postconditions. Especially useful
+when scanning BC-INDEX or reviewing anchor justifications.]
 
 ## Preconditions
 
@@ -80,6 +86,30 @@ removal_reason: null             # why removed
 | L2 Domain Invariants | DI-NNN (if applicable) |
 | Architecture Module | [module name] (filled by architect) |
 | Stories | STORY-NNN (filled by story-writer) |
+
+## Related BCs (Recommended)
+
+<!-- v1.1: Added for machine-extractable cross-references. Supplements the Traceability table. -->
+
+- [BC-S.SS.NNN] — [relationship: composes with / depends on / supersedes / related to]
+
+## Architecture Anchors (Recommended)
+
+<!-- v1.1: Added for direct links to architecture section files. -->
+
+- `architecture/[section-name].md#[anchor]` — [what aspect this BC relates to]
+
+## Story Anchor (Recommended)
+
+<!-- v1.1: Added for direct link to implementing story. -->
+
+[STORY-NNN] — [short story title]
+
+## VP Anchors (Recommended)
+
+<!-- v1.1: Added for direct links to verification properties. -->
+
+- [VP-NNN] — [property description]
 
 ---
 
