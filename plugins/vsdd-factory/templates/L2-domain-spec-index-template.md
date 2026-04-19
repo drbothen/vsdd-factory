@@ -1,7 +1,9 @@
 ---
-document_type: domain-spec-index
+document_type: domain-spec-index    # canonical value — NOT domain-spec-section
+# Migration: accept document_type: domain-spec-section with section: "index"
+# as legacy-acceptable. conform-to-template will normalize to domain-spec-index.
 level: L2
-version: "1.0"
+version: "1.1"
 status: draft
 producer: business-analyst
 timestamp: YYYY-MM-DDTHH:MM:SS
@@ -9,10 +11,10 @@ phase: 1a
 inputs: [product-brief.md, research/RESEARCH-INDEX.md]
 input-hash: "[md5]"
 traces_to: product-brief.md
-sections:
-  - capabilities.md
-  - entities.md
-  - invariants.md
+sections:                          # REQUIRED — enumerated list of shard files
+  - capabilities.md                # Each entry is a section file in domain-spec/
+  - entities.md                    # The business-analyst must populate this list
+  - invariants.md                  # with ALL produced section files.
   - events.md
   - edge-cases.md
   - assumptions.md
