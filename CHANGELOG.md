@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.33.0 — Template compliance enforcement hook
+
+### Added
+
+- **validate-template-compliance.sh** — PostToolUse hook that automatically validates every Write to `.factory/**/*.md` against its corresponding template. Checks required frontmatter fields and H2 section headings. Resolves templates via `document_type` frontmatter or path-pattern fallback. Warning messages suggest `/vsdd-factory:conform-to-template` for fixes.
+- **14 BATS tests** with 4 fixtures (compliant BC, non-compliant BC, non-compliant story, holdout with no frontmatter)
+
+### Changed
+
+- Hooks: 16 → 17
+- Tests: 328 → 342 across 10 suites
+
+### Context
+
+Built in response to Prism template compliance audit showing 0% strict compliance across stories (76 FAIL) and holdout scenarios (8 FAIL). The hook catches these drift patterns at write time — agents see the warning immediately and can self-correct.
+
 ## 0.32.0 — Template compliance skills + hook integration audit
 
 ### Added
