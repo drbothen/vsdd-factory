@@ -236,6 +236,7 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 | Guide | Description |
 |-------|-------------|
 | [Getting Started](docs/guide/getting-started.md) | Installation, first session, first project |
+| [Workflow Modes](docs/guide/workflow-modes.md) | All 8 workflow modes — when to use each, what phases they run |
 | [Pipeline Overview](docs/guide/pipeline-overview.md) | Full phase map with Mermaid diagrams |
 | [Configuration](docs/guide/configuration.md) | Factory directory layout, STATE.md, hooks, templates |
 | [Troubleshooting](docs/guide/troubleshooting.md) | Common issues and fixes |
@@ -243,7 +244,7 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 | [Glossary](docs/guide/glossary.md) | VSDD terminology reference |
 | [Policy Reference](docs/guide/policy-reference.md) | Governance policies, enforcement matrix, violation playbooks |
 | [ID Reference](docs/guide/id-reference.md) | All 30 identifier formats with scope, producer, registry, validation |
-| [Hooks Reference](docs/guide/hooks-reference.md) | All 18 hooks with trigger behavior and debugging |
+| [Hooks Reference](docs/guide/hooks-reference.md) | All 19 hooks with trigger behavior and debugging |
 | [Agents Reference](docs/guide/agents-reference.md) | Agent permission model, status protocol, all 33 agents |
 
 ### Internal reference docs (in the plugin)
