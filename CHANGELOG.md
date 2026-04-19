@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.37.0 — Input-hash drift detection tooling
+
+### Added
+
+- **bin/compute-input-hash** — 7-char MD5 hash from `inputs:` files. `--update` writes to frontmatter, `--check` compares (exit 2 on drift).
+- **validate-input-hash.sh** — PostToolUse hook warning on missing/stale input-hash. Advisory.
+- **check-input-drift skill** — batch scan + report. Optional `--fix`.
+- **22 BATS tests** for all three components.
+
+### Changed
+
+- Producer agents updated to compute input-hash after writing
+- Hooks: 18 → 19, Tests: 359 → 380, Suites: 11 → 12, Skills: 103 → 105
+
 ## 0.36.0 — Strict ID enforcement + comprehensive ID reference
 
 ### Added
