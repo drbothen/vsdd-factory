@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.31.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.32.0-green.svg)](CHANGELOG.md)
 
 ---
 
@@ -129,7 +129,7 @@ graph TD
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 33 | Specialist personas + 10 orchestrator workflow files |
-| **Skills** | 101 | Phase workflows, cross-cutting operations, design/UX, market intelligence, policy management |
+| **Skills** | 103 | Phase workflows, cross-cutting operations, design/UX, market intelligence, policy management |
 | **Commands** | 101 | Slash-command entry points — every skill has a corresponding command |
 | **Hooks** | 16 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, etc.) |
 | **Templates** | 124 | Output format definitions for every artifact type |

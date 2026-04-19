@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.32.0 — Template compliance skills + hook integration audit
+
+### Added
+
+- **validate-template-compliance skill** — read-only audit checking artifact files against their templates at three levels: frontmatter fields, section headings, table column headers. Resolves templates via `document_type` frontmatter or file path patterns. Reports PASS/WARN/FAIL per file with aggregate summary.
+- **conform-to-template skill** — remediation skill that fixes structural gaps by adding missing frontmatter fields, section headings, and `[TODO]` placeholders. Safety guarantees: never deletes content, always shows diff before applying, creates backup. Reports table/order mismatches for manual fix.
+- **8 BATS tests** for both skills (structure, three-level check, mapping, safety guarantees, commands)
+
+### Fixed
+
+- **handoff-validator.sh:** Was reading `.result` / `.output` / `.tool_response` but Claude Code SubagentStop sends `last_assistant_message`. Hook was always seeing empty content. Fixed with correct field + legacy fallback.
+
+### Changed
+
+- Skills: 101 → 103, Commands: 101 → 103
+- Tests: 319 → 328
+
+### Hook Integration Audit Results
+
+Verified all 16 hooks parse correct JSON fields per Claude Code documentation:
+- Edit|Write hooks: `tool_input.file_path` — all 10 correct
+- Bash hooks: `tool_input.command` — all 4 correct
+- SubagentStop: `last_assistant_message` — fixed (was wrong)
+- PostToolUse hooks correctly use exit 2 for prominent warnings (edits can't be undone)
+
 ## 0.31.0 — Template extraction + hook trigger fixes
 
 ### Added
