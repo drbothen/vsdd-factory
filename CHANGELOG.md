@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.39.0 — Workflow standardization + phase renumbering
+
+### Changed
+
+- **Phase renumbering**: Eliminated fractional Phase 3.5. Pipeline is now 8 phases (0-7): Codebase Ingestion, Spec Crystallization, Story Decomposition, TDD Implementation, Holdout Evaluation, Adversarial Refinement, Formal Hardening, Convergence.
+- **Step decomposition**: All phases decomposed into step files with `_shared-context.md` and state-manager crash recovery. 30 step files across 5 work skills.
+- **Three-layer architecture**: Top-level lobster → phase entry-point skill → phase sub-workflow lobster → step files.
+- **Pure alphabetic step naming**: All step IDs use `step-a-`, `step-b-`, etc. No numeric or sub-step IDs.
+
+### Added
+
+- **8 phase entry-point skills** (`phase-0-codebase-ingestion` through `phase-7-convergence`) bridging top-level lobsters to phase sub-workflows
+- **`phase-2-story-decomposition.lobster`** — previously missing phase sub-workflow
+- **`rules/step-decomposition.md`** — comprehensive standard for phase numbering, step naming, workflow structure
+- **8 structural BATS tests** for lobster path resolution, phase entry-point skills, no old numbering, shared-context, alphabetic naming
+- Renamed `docs/guide/phase-4-adversarial-refinement.md` → `phase-5-adversarial-refinement.md`
+- Renamed `docs/guide/phase-6-convergence-release.md` → `phase-7-convergence-release.md`
+
+### Fixed
+
+- **20 broken skill paths** in lobster workflow files (referenced non-existent phase skill directories)
+- **~150 old phase number references** across 47 files
+- `semport/SKILL.md` → `semport-analyze/SKILL.md` in brownfield.lobster
+- README Mermaid diagram now shows all 8 phases
+- Skills: 104 → 112, Workflows: 15 → 16, Rules: 8 → 9, Tests: 384 → 392
+
 ## 0.38.1 — Fix compute-input-hash path resolution
 
 ### Fixed
