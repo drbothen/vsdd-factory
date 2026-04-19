@@ -62,4 +62,8 @@ echo "== Hook robustness tests =="
 bats tests/hook-robustness.bats
 
 echo
+echo "== Template compliance hook tests =="
+bats tests/template-compliance.bats
+
+echo
 echo "All tests passed."
