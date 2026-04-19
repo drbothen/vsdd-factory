@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.31.0 — Template extraction + hook trigger fixes
+
+### Added
+
+- **12 new templates** extracted from inline format definitions:
+  - HIGH: story-index, traceability-matrices, extraction-validation
+  - MEDIUM: spec-drift-report, formal-verification, performance-report, implementation-readiness, design-drift, brief-validation, research-index
+  - LOW: agent-file-review, consistency-validation-report
+- **14 new BATS tests** for hook trigger edge cases:
+  - check-factory-commit: 4 tests (was zero coverage)
+  - red-gate: 3 absolute path tests
+  - destructive-command-guard: 5 complex bash construct tests
+  - verify-git-push: 2 edge case tests (--force-with-lease, -f at end)
+
+### Fixed
+
+- **verify-git-push:** `--force-with-lease` (safe force push) was incorrectly blocked because it substring-matched `--force`. Now allowed.
+- **red-gate:** Absolute file paths from Claude Code tool_input never matched relative paths in `.red[]` array. Added PWD and git-root prefix stripping.
+
+### Changed
+
+- 13 agent/skill files updated to reference new templates instead of inline format definitions
+- Templates: 112 → 124
+- Tests: 305 → 319
+
 ## 0.30.2 — Generalize Policy 9 hook for multi-project portability
 
 ### Changed
