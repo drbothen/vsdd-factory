@@ -47,15 +47,7 @@ You break validated specs into implementable stories.
 | `epics.md` | `.factory/stories/` | Epic decomposition table |
 | `dependency-graph.md` | `.factory/stories/` | Dependency graph with topological order, traceability matrices, and gap register |
 
-**Story Index format:**
-```markdown
-# Story Index
-
-| Story ID | Title | Epic | Points | Priority | Depends On | Status |
-|----------|-------|------|--------|----------|------------|--------|
-| STORY-001 | [title] | EPIC-001 | 5 | P0 | -- | draft |
-| STORY-002 | [title] | EPIC-001 | 8 | P1 | STORY-001 | draft |
-```
+**Story Index format:** Use `../../templates/story-index-template.md`
 
 ### Success Criteria
 - Every AC traces to a BC-S.SS.NNN clause (precondition/postcondition/invariant)
@@ -410,6 +402,8 @@ effective wave scheduling:
 
 - Epic template: `../../templates/epic-template.md`
 - Wave schedule output: `../../templates/wave-schedule-template.md`
+- Story index: `../../templates/story-index-template.md`
+- Traceability matrices: `../../templates/traceability-matrices-template.md`
 
 ## Lessons Learned (apply to ALL projects)
 

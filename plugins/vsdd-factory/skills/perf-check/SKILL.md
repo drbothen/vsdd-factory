@@ -93,6 +93,10 @@ Define in `.factory/specs/prd-supplements/performance-budgets.md` (if exists):
 | Debug build time | < 60s | ... |
 | Test suite time | < 120s | ... |
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/performance-report-template.md` for the performance report format.
+
 ## Output
 
 Write to `.factory/cycles/<current>/performance-report.md`:

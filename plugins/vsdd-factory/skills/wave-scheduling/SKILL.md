@@ -54,6 +54,10 @@ Produce `wave-schedule.md` under `.factory/cycles/**/implementation/`:
 | 2 | A | STORY-004, STORY-005 | 2 stories | 2 stories |
 | ... | | | | |
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/wave-schedule-template.md` for the wave schedule output format.
+
 ## Quality Gate
 
 - [ ] All stories assigned to a wave (none orphaned)

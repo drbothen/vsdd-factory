@@ -116,6 +116,10 @@ Severity thresholds: Critical (>10), Warning (5-10), Pass (<5).
 - Accessibility requirements are documented
 - All form inputs have validation rules
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/implementation-readiness-template.md` for the implementation readiness report format.
+
 ## Output
 
 Write readiness report to `.factory/planning/readiness-report.md`:

@@ -58,6 +58,10 @@ Find inconsistent usage across pages:
 - Inconsistent spacing between similar elements
 - Typography styles varying for same content type
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/design-drift-template.md` for the design drift report format.
+
 ## Output
 
 Write to `.factory/maintenance/design-drift.md`:

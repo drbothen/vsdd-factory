@@ -59,6 +59,10 @@ Research about **technology and implementation** — library evaluations, archit
 - Domain spec (`.factory/specs/domain-spec/L2-INDEX.md`) for targeted research (if exists)
 - Prior research in `.factory/specs/research/` — read the index to avoid duplicating past work
 
+## Templates
+
+- Research index: `../../templates/research-index-template.md`
+
 ## Research Methods Section (MANDATORY)
 
 Every research report MUST end with a `## Research Methods` section documenting:

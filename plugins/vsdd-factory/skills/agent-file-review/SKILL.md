@@ -150,6 +150,10 @@ Other agents receive work from the orchestrator — they don't spawn sub-agents.
 Exception: agents that legitimately delegate (e.g., research-agent delegating
 to ) may have spawn references.
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/agent-file-review-template.md` for the agent file review report format.
+
 ## Output Format
 
 ```markdown

@@ -45,6 +45,10 @@ For each architecture decision:
 - Code that exists but has no spec coverage (unspecified behavior)
 - Specs that exist but have no implementation (missing behavior)
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/spec-drift-report-template.md` for the spec drift report format.
+
 ## Output
 
 Write to `.factory/cycles/<current>/spec-drift-report.md`:

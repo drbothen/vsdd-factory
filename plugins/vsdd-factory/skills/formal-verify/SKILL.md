@@ -107,6 +107,10 @@ semgrep --config auto --config p/rust-security src/
 
 Report findings by severity.
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/formal-verification-template.md` for the formal verification report format.
+
 ## Output
 
 Write to `.factory/cycles/<current>/formal-verification-report.md`:

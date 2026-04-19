@@ -120,6 +120,10 @@ Validate the brief's audience and pain claims against market intel findings:
 - If market intel identified risks not addressed in the brief, flag them
 - If differentiation opportunities exist that the brief doesn't leverage, note them
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/brief-validation-template.md` for the brief validation report format.
+
 ## Output
 
 Write validation report to `.factory/planning/brief-validation.md`:

@@ -58,6 +58,10 @@ Read and follow the output format in:
 - Entity names in stories match domain-spec/ubiquitous-language.md
 - Module names in architecture match story file lists
 
+## Templates
+
+Use `${CLAUDE_PLUGIN_ROOT}/templates/consistency-validation-report-template.md` for the consistency validation report format.
+
 ## Output
 
 ```markdown
