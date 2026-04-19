@@ -183,23 +183,29 @@ teardown() {
 
 # ---------- handoff-validator ----------
 
-@test "handoff-validator: warns on empty result" {
-  run bash -c 'echo "{\"subagent_name\":\"adversary\",\"result\":\"\"}" | "'"$HOOKS"'/handoff-validator.sh"'
+@test "handoff-validator: warns on empty result (correct field)" {
+  run bash -c 'echo "{\"agent_type\":\"adversary\",\"last_assistant_message\":\"\"}" | "'"$HOOKS"'/handoff-validator.sh"'
   [ "$status" -eq 0 ]
   [[ "$output" == *"empty"* ]]
 }
 
-@test "handoff-validator: warns on tiny result" {
-  run bash -c 'echo "{\"subagent_name\":\"adversary\",\"result\":\"ok\"}" | "'"$HOOKS"'/handoff-validator.sh"'
+@test "handoff-validator: warns on tiny result (correct field)" {
+  run bash -c 'echo "{\"agent_type\":\"adversary\",\"last_assistant_message\":\"ok\"}" | "'"$HOOKS"'/handoff-validator.sh"'
   [ "$status" -eq 0 ]
   [[ "$output" == *"Suspiciously short"* ]]
 }
 
-@test "handoff-validator: silent on normal result" {
+@test "handoff-validator: silent on normal result (correct field)" {
   long="This is a legitimate-looking subagent response with more than forty characters."
-  run bash -c 'echo "{\"subagent_name\":\"adversary\",\"result\":\"'"$long"'\"}" | "'"$HOOKS"'/handoff-validator.sh"'
+  run bash -c 'echo "{\"agent_type\":\"adversary\",\"last_assistant_message\":\"'"$long"'\"}" | "'"$HOOKS"'/handoff-validator.sh"'
   [ "$status" -eq 0 ]
   [ -z "$output" ]
+}
+
+@test "handoff-validator: fallback field compatibility (legacy result field)" {
+  run bash -c 'echo "{\"subagent_name\":\"adversary\",\"result\":\"ok\"}" | "'"$HOOKS"'/handoff-validator.sh"'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Suspiciously short"* ]]
 }
 
 # ---------- regression-gate ----------

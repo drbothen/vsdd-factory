@@ -22,8 +22,10 @@ if ! command -v jq &>/dev/null; then
 fi
 
 INPUT=$(cat)
-AGENT=$(echo "$INPUT" | jq -r '.subagent_name // .agent_type // "unknown"')
-RESULT=$(echo "$INPUT" | jq -r '.result // .output // .tool_response // empty')
+# SubagentStop sends: agent_type, last_assistant_message
+# Fallback fields for compatibility with potential format variations
+AGENT=$(echo "$INPUT" | jq -r '.agent_type // .subagent_name // "unknown"')
+RESULT=$(echo "$INPUT" | jq -r '.last_assistant_message // .result // .output // empty')
 
 TRIMMED=$(echo -n "$RESULT" | tr -d '[:space:]')
 LEN=${#TRIMMED}
