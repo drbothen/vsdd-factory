@@ -13,6 +13,7 @@ Drives a single phase from its `.lobster` workflow file. This is the executable 
 
 - `phase-0-codebase-ingestion`
 - `phase-1-spec-crystallization`
+- `phase-2-story-decomposition`
 - `phase-3-test-first-implementation`
 - `phase-3.5-holdout-evaluation`
 - `phase-4-adversarial-refinement`

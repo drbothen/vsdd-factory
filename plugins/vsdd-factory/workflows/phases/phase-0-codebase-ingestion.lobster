@@ -1,249 +1,118 @@
 workflow:
   name: phase-0-codebase-ingestion
   description: >
-    Brownfield Mode Phase 0: Analyze existing codebase to produce project context
-    document. Runs before the greenfield pipeline (Phases 1-6) for brownfield projects.
-
-    Includes per-step state-manager commits for crash recovery (DF-031 D4),
-    security audit step (DF-031 D2), adversarial review (DF-031 D12),
-    consistency validation (DF-031 D5), and cost monitoring (DF-031 D9).
-  version: "2.0.0"
+    Brownfield Mode Phase 0: Analyze existing codebase using the broad-then-converge
+    protocol. Steps follow brownfield-ingest skill's internal phases: source acquisition,
+    broad sweep (7 passes), convergence deepening, coverage audit, extraction validation,
+    and final synthesis. State-manager commits after each step for crash recovery.
+  version: "3.0.0"
 
   defaults:
     on_failure: escalate
-    timeout: "1h"
-
-  plugins:
-    - cost-tracker:
-        phase: 0
-        tier_response:
-          warn: 70
-          pause: 95
+    max_retries: 2
+    timeout: "4h"
 
   steps:
-    # === Step 0a: Project Discovery ===
+    # === Step 0: Source Acquisition ===
 
-    - name: step-0a-project-discovery
+    - name: source-acquisition
       type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0a-project-discovery.md"
+      skill: "skills/brownfield-ingest/steps/step-0-source-acquisition.md"
       depends_on: []
-      cost_metadata:
-        phase: 0
-        step: "0a"
 
-    - name: backup-0a
+    - name: backup-source-acquisition
       type: agent
       agent: state-manager
-      depends_on: [step-0a-project-discovery]
+      depends_on: [source-acquisition]
       task: >
-        Commit artifacts for step 0a to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0a, status: complete.
+        Commit source acquisition artifacts to factory-artifacts.
+        Update STATE.md: phase: 0, step: source-acquisition, status: complete.
 
-    # === Step 0b: Architecture Recovery ===
+    # === Step A: Broad Sweep (Passes 0-6) ===
 
-    - name: step-0b-architecture-recovery
+    - name: broad-sweep
       type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0b-architecture-recovery.md"
-      depends_on: [backup-0a]
-      cost_metadata:
-        phase: 0
-        step: "0b"
+      skill: "skills/brownfield-ingest/steps/step-a-broad-sweep.md"
+      depends_on: [backup-source-acquisition]
+      timeout: "2h"
 
-    - name: backup-0b
+    - name: backup-broad-sweep
       type: agent
       agent: state-manager
-      depends_on: [step-0b-architecture-recovery]
+      depends_on: [broad-sweep]
       task: >
-        Commit artifacts for step 0b to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0b, status: complete.
+        Commit broad sweep artifacts (7 pass files) to factory-artifacts.
+        Update STATE.md: phase: 0, step: broad-sweep, status: complete.
 
-    # === Step 0c: Convention Extraction ===
+    # === Step B: Convergence Deepening ===
 
-    - name: step-0c-convention-extraction
+    - name: convergence-deepening
       type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0c-convention-extraction.md"
-      depends_on: [backup-0a, backup-0b]
-      cost_metadata:
-        phase: 0
-        step: "0c"
+      skill: "skills/brownfield-ingest/steps/step-b-convergence-deepening.md"
+      depends_on: [backup-broad-sweep]
+      timeout: "8h"
 
-    - name: backup-0c
+    - name: backup-convergence-deepening
       type: agent
       agent: state-manager
-      depends_on: [step-0c-convention-extraction]
+      depends_on: [convergence-deepening]
       task: >
-        Commit artifacts for step 0c to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0c, status: complete.
+        Commit all deepening round artifacts to factory-artifacts.
+        Update STATE.md: phase: 0, step: convergence-deepening, status: complete.
 
-    # === Step 0d: Spec Reverse-Engineering + spec-steward Review ===
+    # === Step B.5: Coverage Audit ===
 
-    - name: step-0d-spec-reverse-engineering
+    - name: coverage-audit
       type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0d-spec-reverse-engineering.md"
-      depends_on: [backup-0b, backup-0c]
-      cost_metadata:
-        phase: 0
-        step: "0d"
+      skill: "skills/brownfield-ingest/steps/step-b5-coverage-audit.md"
+      depends_on: [backup-convergence-deepening]
+      timeout: "2h"
 
-    - name: backup-0d
+    - name: backup-coverage-audit
       type: agent
       agent: state-manager
-      depends_on: [step-0d-spec-reverse-engineering]
+      depends_on: [coverage-audit]
       task: >
-        Commit artifacts for step 0d to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0d, status: complete.
+        Commit coverage audit artifacts to factory-artifacts.
+        Update STATE.md: phase: 0, step: coverage-audit, status: complete.
 
-    # === Step 0e: Verification Gap Analysis ===
+    # === Step B.6: Extraction Validation ===
 
-    - name: step-0e-verification-gap-analysis
+    - name: extraction-validation
       type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0e-verification-gap-analysis.md"
-      depends_on: [backup-0d]
-      cost_metadata:
-        phase: 0
-        step: "0e"
+      skill: "skills/brownfield-ingest/steps/step-b6-extraction-validation.md"
+      depends_on: [backup-coverage-audit]
+      timeout: "1h"
 
-    - name: backup-0e
+    - name: backup-extraction-validation
       type: agent
       agent: state-manager
-      depends_on: [step-0e-verification-gap-analysis]
+      depends_on: [extraction-validation]
       task: >
-        Commit artifacts for step 0e to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0e, status: complete.
+        Commit extraction validation artifacts to factory-artifacts.
+        Update STATE.md: phase: 0, step: extraction-validation, status: complete.
 
-    # === Step 0e-sec: Security & Dependency Audit ===
+    # === Step C: Final Synthesis ===
 
-    - name: step-0e-sec-security-audit
+    - name: final-synthesis
       type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0e-sec-security-audit.md"
-      depends_on: [backup-0e]
-      cost_metadata:
-        phase: 0
-        step: "0e-sec"
+      skill: "skills/brownfield-ingest/steps/step-c-final-synthesis.md"
+      depends_on: [backup-extraction-validation]
+      timeout: "1h"
 
-    - name: backup-0e-sec
+    - name: backup-final-synthesis
       type: agent
       agent: state-manager
-      depends_on: [step-0e-sec-security-audit]
+      depends_on: [final-synthesis]
       task: >
-        Commit artifacts for step 0e-sec to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0e-sec, status: complete.
-
-    - name: security-audit-gate
-      type: human-approval
-      depends_on: [backup-0e-sec]
-      approval:
-        prompt: >
-          Security & dependency audit complete. Any security finding requires
-          human decision: fix now (Wave 1 story), accept risk, or abort.
-          Review .factory/phase-0-ingestion/security-audit.md.
-        artifacts:
-          - ".factory/phase-0-ingestion/security-audit.md"
-        timeout: "48h"
-
-    # === Step 0e.5: Module Criticality Classification ===
-
-    - name: step-0e5-module-criticality
-      type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0e5-module-criticality.md"
-      depends_on: [security-audit-gate]
-      cost_metadata:
-        phase: 0
-        step: "0e.5"
-
-    - name: backup-0e5
-      type: agent
-      agent: state-manager
-      depends_on: [step-0e5-module-criticality]
-      task: >
-        Commit artifacts for step 0e.5 to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0e.5, status: complete.
-
-    # === Step 0f-pre: Holdout Scenario Seeding ===
-
-    - name: step-0f-pre-holdout-seeding
-      type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0f-pre-holdout-seeding.md"
-      depends_on: [backup-0d, backup-0e5]
-      cost_metadata:
-        phase: 0
-        step: "0f-pre"
-
-    - name: backup-0f-pre
-      type: agent
-      agent: state-manager
-      depends_on: [step-0f-pre-holdout-seeding]
-      task: >
-        Commit artifacts for step 0f-pre to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0f-pre, status: complete.
-
-    # === Step 0f: Project Context Synthesis ===
-
-    - name: step-0f-project-context
-      type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0f-project-context.md"
-      depends_on: [backup-0e, backup-0e-sec, backup-0e5, backup-0f-pre]
-      cost_metadata:
-        phase: 0
-        step: "0f"
-
-    - name: backup-0f
-      type: agent
-      agent: state-manager
-      depends_on: [step-0f-project-context]
-      task: >
-        Commit artifacts for step 0f to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0f, status: complete.
-
-    # === Step 0f-adv: Adversarial Review (GPT-5.4, Information Asymmetry Wall) ===
-
-    - name: step-0f-adv-adversarial-review
-      type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0f-adv-adversarial-review.md"
-      depends_on: [backup-0f]
-      cost_metadata:
-        phase: 0
-        step: "0f-adv"
-      context:
-        exclude:
-          - "target_codebase/**"
-
-    - name: backup-0f-adv
-      type: agent
-      agent: state-manager
-      depends_on: [step-0f-adv-adversarial-review]
-      task: >
-        Commit artifacts for step 0f-adv to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0f-adv, status: complete.
-
-    # === Step 0f-post: Consistency Validation (fix loop) ===
-
-    - name: step-0f-post-consistency-validation
-      type: skill
-      skill: "skills/phase-0-codebase-ingestion/steps/step-0f-post-consistency-validation.md"
-      depends_on: [backup-0f-adv]
-      cost_metadata:
-        phase: 0
-        step: "0f-post"
-      retry:
-        max_attempts: 10
-        on_failure: >
-          Route validation failures to originating agents for correction,
-          then re-run consistency validation.
-
-    - name: backup-0f-post
-      type: agent
-      agent: state-manager
-      depends_on: [step-0f-post-consistency-validation]
-      task: >
-        Commit artifacts for step 0f-post to factory-artifacts.
-        Update STATE.md: phase: 0, step: 0f-post, status: complete.
+        Commit final synthesis to factory-artifacts.
+        Update STATE.md: phase: 0, step: final-synthesis, status: complete.
 
     # === Phase 0 Gate ===
 
     - name: phase-0-gate
       type: gate
-      depends_on: [backup-0f-post]
+      depends_on: [backup-final-synthesis]
       gate:
         criteria:
           - "Project context document exists at .factory/phase-0-ingestion/project-context.md"
@@ -251,14 +120,20 @@ workflow:
           - "At least one behavioral contract exists in .factory/phase-0-ingestion/behavioral-contracts/"
           - "All behavioral contracts use BC-S.SS.NNN format with origin: recovered"
           - "Security audit complete at .factory/phase-0-ingestion/security-audit.md"
-          - "Adversarial review complete at .factory/phase-0-ingestion/adversarial-review-0.md"
           - "Consistency validation passed at .factory/phase-0-ingestion/validation-report.md"
           - "Holdout scenarios seeded in .factory/holdout-scenarios/"
         fail_action: block
 
-    - name: phase-0-human-approval
-      type: human-approval
+    - name: input-hash-drift-check
+      type: skill
+      skill: "skills/check-input-drift/SKILL.md"
       depends_on: [phase-0-gate]
+      description: >
+        Scan Phase 0 artifacts for stale input-hashes before human approval.
+
+    - name: human-approval
+      type: human-approval
+      depends_on: [input-hash-drift-check]
       approval:
         prompt: "Review the project context document. Is the recovered architecture accurate? Are conventions correct? Are restricted areas correctly identified?"
         artifacts:
@@ -266,7 +141,6 @@ workflow:
           - ".factory/phase-0-ingestion/recovered-architecture.md"
           - ".factory/phase-0-ingestion/conventions.md"
           - ".factory/phase-0-ingestion/security-audit.md"
-          - ".factory/phase-0-ingestion/adversarial-review-0.md"
           - ".factory/phase-0-ingestion/validation-report.md"
           - ".factory/module-criticality.md"
         timeout: "24h"
