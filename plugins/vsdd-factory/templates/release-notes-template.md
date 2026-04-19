@@ -44,4 +44,4 @@ timestamp: YYYY-MM-DDTHH:MM:SS
 
 ## Convergence Report
 
-[Link to .factory/phase-6-convergence/convergence-report.md]
+[Link to .factory/phase-7-convergence/convergence-report.md]

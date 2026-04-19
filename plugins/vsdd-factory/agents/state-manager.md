@@ -93,7 +93,7 @@ The orchestrator sends you structured update commands:
 - `PHASE_TRANSITION: phase-1 → PASSED`
 - `FILE_REGISTERED: .factory/specs/prd.md (1,150 lines)`
 - `GATE_VERDICT: phase-2 → PASSED (consistency-validator)`
-- `SKIP_JUSTIFICATION: phase-3.5 scenario HS-017 skipped — requires network`
+- `SKIP_JUSTIFICATION: phase-4 scenario HS-017 skipped — requires network`
 - `CYCLE_INIT: vX.Y.Z-feature-NAME` -- create cycle directory + manifest
 - `CYCLE_ARCHIVE: vX.Y.Z-feature-NAME` -- archive operational artifacts
 - `STEADY_STATE_HANDOFF: vX.Y.Z` -- archive greenfield, enable maintenance
@@ -234,7 +234,7 @@ Commit at these transitions:
 - Phase 1 spec crystallization complete
 - Phase 2 story decomposition complete
 - Each wave gate pass (Phase 3)
-- Phase 3.5 holdout evaluation complete
+- Phase 4 holdout evaluation complete
 - Phase 4 adversarial refinement complete
 - Phase 5 formal hardening complete
 - Phase 6 convergence complete (final artifacts)

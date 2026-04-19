@@ -798,7 +798,7 @@ workflow:
                 depends_on: [wave-full-test]
                 task: >
                   Re-evaluate holdout scenarios that touch any module modified
-                  by wave N stories. Compare to Phase 3.5 baseline.
+                  by wave N stories. Compare to Phase 4 baseline.
                   Report regressions.
 
               # 4. Wave-level demo (integration user flows)
@@ -915,7 +915,7 @@ workflow:
         fail_action: block
 
     # =========================================================================
-    # Phase 3.5: Holdout Evaluation (with scenario rotation)
+    # Phase 4: Holdout Evaluation (with scenario rotation)
     # Runs on merged develop after all waves complete
     # =========================================================================
 
@@ -943,7 +943,7 @@ workflow:
 
     - name: phase-3-5-holdout-evaluation
       type: skill
-      skill: "skills/phase-3.5-holdout-evaluation/SKILL.md"
+      skill: "skills/phase-4-holdout-evaluation/SKILL.md"
       depends_on: [phase-3-5-scenario-rotation, phase-3-5-dtu-startup]
 
     - name: phase-3-5-gate
@@ -962,7 +962,7 @@ workflow:
         fail_action: block
 
     # =========================================================================
-    # Phase 3.5 Demo Recording (DF-018)
+    # Phase 4 Demo Recording (DF-018)
     # =========================================================================
 
     - name: phase-3-5-demo-recording
@@ -981,7 +981,7 @@ workflow:
     # Any findings create fix PRs through the same per-story delivery flow.
     # =========================================================================
 
-    - name: phase-4-adversarial-refinement
+    - name: phase-5-adversarial-refinement
       type: loop
       depends_on: [phase-3-5-gate]
       loop:
@@ -1020,7 +1020,7 @@ workflow:
 
           - name: triage-and-fix
             type: skill
-            skill: "skills/phase-4-adversarial-refinement/SKILL.md"
+            skill: "skills/phase-5-adversarial-refinement/SKILL.md"
             depends_on: [adversary-code-review]
 
           # Fix PRs for Phase 4 findings
@@ -1030,9 +1030,9 @@ workflow:
             depends_on: [triage-and-fix]
             condition: "phase4.has_findings == true"
 
-    - name: phase-4-gemini-review
+    - name: phase-5-gemini-review
       type: agent
-      depends_on: [phase-4-adversarial-refinement]
+      depends_on: [phase-5-adversarial-refinement]
       agent: code-reviewer
       model_tier: review
       task: >
@@ -1059,8 +1059,8 @@ workflow:
 
     - name: phase-4b-holdout-regression
       type: skill
-      skill: "skills/phase-3.5-holdout-evaluation/SKILL.md"
-      depends_on: [phase-4-adversarial-refinement]
+      skill: "skills/phase-4-holdout-evaluation/SKILL.md"
+      depends_on: [phase-5-adversarial-refinement]
       condition: "phase4.has_behavior_changing_fixes == true"
       context:
         note: "This is a REGRESSION check, not a full evaluation.
@@ -1076,10 +1076,10 @@ workflow:
     # Phase 5: Formal Hardening
     # =========================================================================
 
-    - name: phase-5-formal-hardening
+    - name: phase-6-formal-hardening
       type: skill
-      skill: "skills/phase-5-formal-hardening/SKILL.md"
-      depends_on: [phase-4-adversarial-refinement, phase-4-gemini-review]
+      skill: "skills/phase-6-formal-hardening/SKILL.md"
+      depends_on: [phase-5-adversarial-refinement, phase-5-gemini-review]
       timeout: "4h"
       context:
         include:
@@ -1097,14 +1097,14 @@ workflow:
     - name: phase-5-fix-delivery
       type: skill
       skill: "skills/fix-pr-delivery/SKILL.md"
-      depends_on: [phase-5-formal-hardening]
+      depends_on: [phase-6-formal-hardening]
       condition: "phase5.has_findings == true"
 
     # DTU adversarial testing with L4 clones
-    - name: phase-5-dtu-adversarial
+    - name: phase-6-dtu-adversarial
       type: agent
       agent: formal-verifier
-      depends_on: [phase-5-formal-hardening]
+      depends_on: [phase-6-formal-hardening]
       condition: "dtu_clones.has_l4 == true"
       task: "Run adversarial testing against L4 DTU clones.
              dtu-validator configures failure injection, latency injection,
@@ -1113,7 +1113,7 @@ workflow:
 
     - name: phase-5-gate
       type: gate
-      depends_on: [phase-5-formal-hardening, phase-5-dtu-adversarial]
+      depends_on: [phase-6-formal-hardening, phase-6-dtu-adversarial]
       gate:
         criteria:
           - "All Kani proofs pass"
@@ -1167,14 +1167,14 @@ workflow:
     # Phase 6: Convergence
     # =========================================================================
 
-    - name: phase-6-convergence
+    - name: phase-7-convergence
       type: skill
-      skill: "skills/phase-6-convergence/SKILL.md"
+      skill: "skills/phase-7-convergence/SKILL.md"
       depends_on: [phase-5-gate, phase-6-ui-fix-delivery]
 
     - name: phase-6-gate
       type: gate
-      depends_on: [phase-6-convergence]
+      depends_on: [phase-7-convergence]
       gate:
         criteria:
           - "Spec dimension: CONVERGED"

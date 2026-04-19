@@ -96,30 +96,33 @@ graph TD
     P0["Phase 0\nBrownfield Ingest"]
     P1["Phase 1\nSpec Crystallization"]
     P2["Phase 2\nStory Decomposition"]
-    P3["Phase 3\nTDD Delivery"]
-    P4["Phase 4\nAdversarial Refinement"]
-    P5["Phase 5\nFormal Hardening"]
-    P6["Phase 6\nConvergence & Release"]
+    P3["Phase 3\nTDD Implementation"]
+    P4["Phase 4\nHoldout Evaluation"]
+    P5["Phase 5\nAdversarial Refinement"]
+    P6["Phase 6\nFormal Hardening"]
+    P7["Phase 7\nConvergence & Release"]
 
     P0 -->|"existing codebase"| P1
     START(("New project")) -->|"greenfield"| P1
     P1 -->|"specs locked"| P2
     P2 -->|"stories ready"| P3
     P3 -->|"wave merged"| P4
-    P4 -->|"findings fixed"| P3
-    P4 -->|"converged"| P5
-    P5 -->|"proofs pass"| P6
-    P5 -->|"issues found"| P4
-    P6 -->|"not converged"| P3
-    P6 -->|"CONVERGED"| RELEASE(("Release"))
+    P4 -->|"holdout pass"| P5
+    P5 -->|"findings fixed"| P3
+    P5 -->|"converged"| P6
+    P6 -->|"proofs pass"| P7
+    P6 -->|"issues found"| P5
+    P7 -->|"not converged"| P3
+    P7 -->|"CONVERGED"| RELEASE(("Release"))
 
     style P0 fill:#2d6a4f,color:#fff
     style P1 fill:#2d6a4f,color:#fff
     style P2 fill:#2d6a4f,color:#fff
     style P3 fill:#2d6a4f,color:#fff
-    style P4 fill:#c9184a,color:#fff
+    style P4 fill:#e9c46a,color:#000
     style P5 fill:#c9184a,color:#fff
-    style P6 fill:#1d3557,color:#fff
+    style P6 fill:#c9184a,color:#fff
+    style P7 fill:#1d3557,color:#fff
     style START fill:#40916c,color:#fff
     style RELEASE fill:#40916c,color:#fff
 ```
@@ -147,10 +150,11 @@ See [docs/guide/pipeline-overview.md](docs/guide/pipeline-overview.md) for the f
 | **0 -- Brownfield Ingest** | `/vsdd-factory:brownfield-ingest <path>` | Per-pass analysis docs, synthesis, lessons | Extraction validation (behavioral + metric) |
 | **1 -- Spec Crystallization** | `/vsdd-factory:create-brief`, `/vsdd-factory:create-domain-spec`, `/vsdd-factory:create-prd`, `/vsdd-factory:create-architecture` | Product brief, domain spec, PRD, BCs, VPs, architecture | Adversarial spec review (novelty decay) |
 | **2 -- Story Decomposition** | `/vsdd-factory:decompose-stories` | Stories, epics, dependency graph, wave schedule, holdout scenarios | Human approval, adversary review |
-| **3 -- TDD Delivery** | `/vsdd-factory:deliver-story STORY-NNN` | Implementation, tests, demo evidence, PRs | Wave gate (tests + adversarial + holdout) |
-| **4 -- Adversarial Refinement** | `/vsdd-factory:adversarial-review implementation` | Finding reports, fix PRs | Novelty decay across 2+ passes |
-| **5 -- Formal Hardening** | `/vsdd-factory:formal-verify`, `/vsdd-factory:perf-check` | Proof reports, fuzz results, mutation scores | All proofs pass, kill rate thresholds met |
-| **6 -- Convergence** | `/vsdd-factory:convergence-check`, `/vsdd-factory:release` | Convergence report, changelog, GitHub release | All 5 dimensions CONVERGED |
+| **3 -- TDD Implementation** | `/vsdd-factory:deliver-story STORY-NNN` | Implementation, tests, demo evidence, PRs | Wave gate (tests + adversarial + holdout) |
+| **4 -- Holdout Evaluation** | `/vsdd-factory:holdout-eval` | Holdout evaluations, satisfaction scores | Mean satisfaction >= 0.85, must-pass >= 0.6 |
+| **5 -- Adversarial Refinement** | `/vsdd-factory:adversarial-review implementation` | Finding reports, fix PRs | Novelty decay across 2+ passes |
+| **6 -- Formal Hardening** | `/vsdd-factory:formal-verify`, `/vsdd-factory:perf-check` | Proof reports, fuzz results, mutation scores | All proofs pass, kill rate thresholds met |
+| **7 -- Convergence** | `/vsdd-factory:convergence-check`, `/vsdd-factory:release` | Convergence report, changelog, GitHub release | All 7 dimensions CONVERGED |
 
 ## Directory structure
 

@@ -22,11 +22,12 @@ Phase sub-workflows (nested):
 
 - `workflows/phases/phase-0-codebase-ingestion.lobster`
 - `workflows/phases/phase-1-spec-crystallization.lobster`
-- `workflows/phases/phase-3-test-first-implementation.lobster`
-- `workflows/phases/phase-3.5-holdout-evaluation.lobster`
-- `workflows/phases/phase-4-adversarial-refinement.lobster`
-- `workflows/phases/phase-5-formal-hardening.lobster`
-- `workflows/phases/phase-6-convergence.lobster`
+- `workflows/phases/phase-2-story-decomposition.lobster`
+- `workflows/phases/phase-3-tdd-implementation.lobster`
+- `workflows/phases/phase-4-holdout-evaluation.lobster`
+- `workflows/phases/phase-5-adversarial-refinement.lobster`
+- `workflows/phases/phase-6-formal-hardening.lobster`
+- `workflows/phases/phase-7-convergence.lobster`
 
 Parse with the bundled helper: `bin/lobster-parse <file> '<jq-expr>'`. Examples:
 
@@ -281,11 +282,11 @@ This loop continues until convergence (VSDD.md Phase 6).
 | 0: Codebase Ingestion | Human approves Phase 0 context |
 | 1: Spec Crystallization | Human approves spec package |
 | 2: Story Decomposition | Human approves stories |
-| 3: Implementation | All waves pass integration gates |
-| 3.5: Holdout Eval | Mean satisfaction >= 0.85, must-pass >= 0.6 |
-| 4: Adversarial | Finding decay to zero |
-| 5: Hardening | All VPs proven/justified, fuzzers clean |
-| 6: Convergence | 7-dimensional convergence (VSDD Phase 6 operationalized) |
+| 3: TDD Implementation | All waves pass integration gates |
+| 4: Holdout Eval | Mean satisfaction >= 0.85, must-pass >= 0.6 |
+| 5: Adversarial | Finding decay to zero |
+| 6: Hardening | All VPs proven/justified, fuzzers clean |
+| 7: Convergence | 7-dimensional convergence (VSDD Phase 7 operationalized) |
 | Post-Pipeline | Release + session review approved |
 
 ### Fresh-Context Consistency Audit at Every Gate

@@ -49,7 +49,7 @@ Evaluate convergence across all five VSDD dimensions, scoped to the delta:
 - Metric: all proofs pass, fuzz clean, audit clean
 
 **Dimension 5: Holdout Convergence**
-- Run holdout scenarios (Phase 3.5 pattern) against the updated system
+- Run holdout scenarios (Phase 4 pattern) against the updated system
 - Mean satisfaction score >= 0.85 across delta-relevant scenarios
 - No must-pass scenario below 0.6 satisfaction
 - Regression holdout scenarios (brownfield baseline) still pass

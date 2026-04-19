@@ -27,7 +27,7 @@ Read and follow the output format in:
 
 - After all stories in a wave are merged to `develop`
 - Before starting the next wave
-- This is Phase 3.5 — between implementation and adversarial refinement
+- This is Phase 4 — between implementation and adversarial refinement
 
 ## What the Evaluator Receives
 

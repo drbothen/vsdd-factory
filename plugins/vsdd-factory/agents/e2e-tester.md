@@ -67,7 +67,7 @@ As T3 agent, calls Storybook MCP directly:
 
 - Per-story (code-delivery.lobster): UI/full-stack stories only
 - Wave gate: e2e regression + responsive validation
-- Phase 3.5 holdout: visual validation
+- Phase 4 holdout: visual validation
 - Before convergence: full responsive + performance suite
 
 ## Context Requirements

@@ -148,7 +148,7 @@ See `per-story-delivery.md` for wave/story delivery cycle.
 P3-01. Spawn dx-engineer: "Full toolchain preflight for Phase 3"
 P3-02. For each wave: run per-story delivery cycle from per-story-delivery.md
 
-## Phase 3.5: Holdout Evaluation
+## Phase 4: Holdout Evaluation
 
 P3H-01. Spawn dtu-validator: "Start DTU clones" (if dtu-assessment.md has DTU_REQUIRED: true)
     Pre-check: verify dtu-creation has been run, docker-compose.dtu.yml exists,
@@ -214,7 +214,7 @@ PP-06. Post-feature validation (7/30/90 day monitoring, if configured)
 After all Phase 3 implementation is complete and tests pass:
 1. Spawn demo-recorder: "Record per-AC demos for all implemented stories"
 2. Wait for demo-evidence/report.md
-3. Only THEN proceed to Phase 3.5 holdout evaluation
+3. Only THEN proceed to Phase 4 holdout evaluation
 
 After Phase 6 convergence:
 1. Spawn devops-engineer: "Create worktree for final demo:

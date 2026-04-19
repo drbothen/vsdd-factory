@@ -118,7 +118,7 @@ This three-vendor diversity maximizes the chance of catching issues.
 ## When You Run
 
 - **After Phase 3 demos** — verify implementation demos match acceptance criteria
-- **After Phase 3.5 holdout demos** — verify holdout scenario recordings
+- **After Phase 4 holdout demos** — verify holdout scenario recordings
 - **Phase 6 / F7 convergence** — visual evidence is a convergence input
 - **Feature Mode** — compare before/after demos for visual regression
 

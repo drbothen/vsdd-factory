@@ -375,7 +375,7 @@ workflow:
 
     - name: cross-repo-holdout
       type: skill
-      skill: "skills/phase-3.5-holdout-evaluation/SKILL.md"
+      skill: "skills/phase-4-holdout-evaluation/SKILL.md"
       depends_on: [cross-repo-docker-env]
       context:
         exclude:
@@ -403,7 +403,7 @@ workflow:
           # Cannot see any repo's Phase 3 TDD logs or per-repo adversary history
           - "**/.factory/cycles/**/implementation/**"
           - "**/.factory/semport/**"
-          - "**/.factory/phase-4-adversarial/**"
+          - "**/.factory/phase-5-adversarial/**"
 
     - name: cross-repo-security
       type: agent
@@ -473,7 +473,7 @@ workflow:
 
     - name: cross-repo-convergence
       type: skill
-      skill: "skills/phase-6-convergence/SKILL.md"
+      skill: "skills/phase-7-convergence/SKILL.md"
       depends_on: [integration-gate]
 
     - name: convergence-human-approval

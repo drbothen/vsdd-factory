@@ -799,7 +799,7 @@ Replaces dark-factory's Lobster workflow DSL with "Lobster-as-data" driven by th
 
 - **Workflow corpus** — shipped all 15 `.lobster` files as data under `plugins/vsdd-factory/workflows/`:
   - Mode workflows: greenfield, brownfield, feature, maintenance, discovery, planning, multi-repo, code-delivery
-  - Phase sub-workflows: phase-0-codebase-ingestion, phase-1-spec-crystallization, phase-3-test-first-implementation, phase-3.5-holdout-evaluation, phase-4-adversarial-refinement, phase-5-formal-hardening, phase-6-convergence
+  - Phase sub-workflows: phase-0-codebase-ingestion, phase-1-spec-crystallization, phase-3-tdd-implementation, phase-3.5-holdout-evaluation, phase-4-adversarial-refinement, phase-5-formal-hardening, phase-6-convergence
 - **`bin/lobster-parse`** — bash helper wrapping `yq` + `jq` that emits workflow files as JSON with optional jq expressions. Lobster files parse cleanly as YAML.
 - **Orchestrator agent updated** — added a Workflow Data section that points at the `workflows/` corpus and documents the lobster-parse helper with worked examples.
 - **Five new skills** in `skills/`:

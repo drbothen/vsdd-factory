@@ -91,8 +91,8 @@ $DARK_FACTORY_HOME/              ← Engine (installed once, never forked)
 ```
 
 > **Migration note (DF-030):** The phase-based directories (`phase-1-spec/`,
-> `phase-2-stories/`, `phase-3-implementation/`, `phase-4-adversarial/`,
-> `phase-5-hardening/`, `phase-6-convergence/`) are replaced by the lifecycle-aware
+> `phase-2-stories/`, `phase-3-implementation/`, `phase-5-adversarial/`,
+> `phase-5-hardening/`, `phase-7-convergence/`) are replaced by the lifecycle-aware
 > structure above. Living specs move to `specs/`, stories to `stories/`, and
 > operational artifacts to `cycles/vX.Y.Z-name/`. See the Artifact Path Migration
 > table in DF-030 for the complete mapping.
@@ -684,9 +684,9 @@ Cycle-scoped numbering (resets per cycle):
 | `.factory/phase-2-stories/sprint-state.yaml` | `.factory/stories/sprint-state.yaml` |
 | `.factory/phase-2-stories/consistency-report.md` | `.factory/cycles/vX.Y.Z/consistency-report.md` |
 | `.factory/phase-3-implementation/` | `.factory/cycles/vX.Y.Z/implementation/` |
-| `.factory/phase-4-adversarial/` | `.factory/cycles/vX.Y.Z/adversarial-reviews/` |
+| `.factory/phase-5-adversarial/` | `.factory/cycles/vX.Y.Z/adversarial-reviews/` |
 | `.factory/phase-5-hardening/` | `.factory/cycles/vX.Y.Z/hardening/` |
-| `.factory/phase-6-convergence/` | `.factory/cycles/vX.Y.Z/convergence/` |
+| `.factory/phase-7-convergence/` | `.factory/cycles/vX.Y.Z/convergence/` |
 | `.factory/module-criticality.md` | `.factory/specs/module-criticality.md` |
 
 Paths unchanged: `.factory/STATE.md`, `.factory/cost-summary.md`,

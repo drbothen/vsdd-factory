@@ -125,7 +125,7 @@ Phase Progress:
   Phase 1b: PASSED (architecture + 7 sections)
   Phase 2:  PASSED (28 stories in 4 waves)
   Phase 3:  IN PROGRESS (Wave 2: 8/12 stories merged)
-  Phase 3.5-6: NOT STARTED
+  Phase 4-7: NOT STARTED
 
 Artifact Counts:
   BCs: 42 (from BC-INDEX)

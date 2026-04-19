@@ -1022,7 +1022,7 @@ workflow:
 
     - name: holdout-evaluation
       type: skill
-      skill: "skills/phase-3.5-holdout-evaluation/SKILL.md"
+      skill: "skills/phase-4-holdout-evaluation/SKILL.md"
       depends_on: [build-gate]
       context:
         exclude:
@@ -1113,7 +1113,7 @@ workflow:
 
           - name: holdout-regression-f5
             type: skill
-            skill: "skills/phase-3.5-holdout-evaluation/SKILL.md"
+            skill: "skills/phase-4-holdout-evaluation/SKILL.md"
             depends_on: [fix-pr-delivery-f5]
             condition: "f5.has_behavior_changing_fixes == true"
 

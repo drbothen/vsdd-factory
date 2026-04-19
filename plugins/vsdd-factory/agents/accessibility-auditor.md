@@ -58,7 +58,7 @@ workspace access.
 | Component generation | Component contracts | Contract compliance validation |
 | Per-story | Rendered page | axe-core scan (zero violations) |
 | Wave gate | Wave build | Full WCAG audit + keyboard walkthrough |
-| Phase 3.5 holdout | Running app | A11y scenarios (screen reader tasks) |
+| Phase 4 holdout | Running app | A11y scenarios (screen reader tasks) |
 | F6 hardening | Hardened build | Final automated + manual review |
 | Maintenance | Current build | Regression scan (Sweep 9) |
 

@@ -19,7 +19,7 @@ Read and follow the output format in:
 ## Input
 
 The calling skill provides:
-- `phase`: New phase identifier (e.g., `phase-1`, `phase-2`, `phase-3.5`)
+- `phase`: New phase identifier (e.g., `phase-1`, `phase-2`, `phase-4`)
 - `status`: Phase status (e.g., `in-progress`, `completed`, `blocked`)
 - `notes`: Optional notes about the transition
 
@@ -82,7 +82,7 @@ git commit -m "factory(<phase>): <status> — <brief description>"
 | `phase-1` | Spec Crystallization |
 | `phase-2` | Story Decomposition |
 | `phase-3` | Test-First Implementation (per wave) |
-| `phase-3.5` | Holdout Evaluation |
+| `phase-4` | Holdout Evaluation |
 | `phase-4` | Adversarial Refinement |
 | `phase-5` | Formal Hardening |
 | `phase-6` | Convergence |
