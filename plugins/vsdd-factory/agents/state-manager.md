@@ -78,8 +78,61 @@ breaks artifact backup and the branch lifecycle.
 - `.factory/STATE.md` -- phase status, file manifest, gate verdicts, product backlog
 - `.factory/` directory creation (lifecycle-aware structure per DF-030)
 - `.factory/cycles/vX.Y.Z-name/cycle-manifest.md` -- per-cycle delivery summaries
+- `.factory/cycles/<cycle>/burst-log.md` -- per-burst narratives
+- `.factory/cycles/<cycle>/convergence-trajectory.md` -- finding counts per pass
+- `.factory/cycles/<cycle>/lessons.md` -- retrospective lessons
+- `.factory/cycles/<cycle>/session-checkpoints.md` -- archived session resume checkpoints
+- `.factory/cycles/<cycle>/blocking-issues-resolved.md` -- closed blocking issues
 - `.factory/tech-debt-register.md` -- technical debt tracking
 - `.factory/cost-summary.md` -- cumulative cost across ALL cycles
+
+## Content Routing Rules (STATE.md vs Cycle Files)
+
+> **STATE.md must stay under 200 lines.** A hook blocks writes above 500 lines.
+> STATE.md is read at every session start. Every line costs tokens on every session.
+
+### What goes in STATE.md (current status — lean)
+
+| Content | STATE.md Section | Max Size |
+|---------|-----------------|----------|
+| Frontmatter (project, phase, status) | YAML header | ~30 lines |
+| Phase Progress table (1 row per phase) | Phase Progress | ~12 rows |
+| Current Phase Steps (last 5 steps only) | Current Phase Steps | ~8 rows |
+| Open decisions | Decisions Log | unbounded (small) |
+| Skipped steps | Skip Log | unbounded (small) |
+| **Open** blocking issues only | Blocking Issues | ~5 rows |
+| Latest session resume checkpoint only | Session Resume Checkpoint | ~30 lines |
+| Convergence counter + latest trajectory summary | Phase Progress row | 1 line |
+
+### What goes in cycle files (historical — unlimited)
+
+| Content | Target File | When to Write |
+|---------|------------|---------------|
+| Burst narratives (agent dispatch, files touched, versions bumped) | `cycles/<cycle>/burst-log.md` | After every burst |
+| Per-pass adversary findings summary (count, severity, novelty) | `cycles/<cycle>/convergence-trajectory.md` | After every adversary pass |
+| Full adversary findings | `cycles/<cycle>/adversarial-reviews/pass-N.md` | After every adversary pass |
+| Session resume checkpoints (all except latest) | `cycles/<cycle>/session-checkpoints.md` | When a new checkpoint replaces the old one |
+| Lessons learned / retrospective | `cycles/<cycle>/lessons.md` | After each lesson is captured |
+| Resolved blocking issues | `cycles/<cycle>/blocking-issues-resolved.md` | When a blocker is closed |
+
+### STATE.md Update Protocol
+
+When the orchestrator sends you an update:
+
+1. **Phase transition:** Update the Phase Progress table row. One-line change.
+2. **Burst complete:** Append burst narrative to `cycles/<cycle>/burst-log.md`. Update Current Phase Steps in STATE.md (keep last 5 only, archive older rows to burst-log).
+3. **Adversary pass complete:** Append pass summary to `cycles/<cycle>/convergence-trajectory.md`. Update the Phase Progress Finding Progression column in STATE.md with the trajectory shorthand (e.g., `29→24→21→7→4→3`). Update convergence counter.
+4. **Lesson learned:** Append to `cycles/<cycle>/lessons.md`. Do NOT append to STATE.md.
+5. **Blocking issue resolved:** Move from STATE.md Blocking Issues to `cycles/<cycle>/blocking-issues-resolved.md`.
+6. **Session checkpoint:** Replace the previous checkpoint in STATE.md with the new one. Archive the old checkpoint to `cycles/<cycle>/session-checkpoints.md`.
+
+### Anti-Patterns (NEVER do these)
+
+- **NEVER** append full burst narratives to STATE.md
+- **NEVER** add per-pass adversary finding details to STATE.md frontmatter
+- **NEVER** keep more than 1 session resume checkpoint in STATE.md
+- **NEVER** keep resolved blocking issues in STATE.md
+- **NEVER** accumulate lessons learned in STATE.md
 
 ## What You NEVER Write
 

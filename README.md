@@ -132,9 +132,9 @@ graph TD
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 33 | Specialist personas + 10 orchestrator workflow files |
-| **Skills** | 112 | Phase entry points, phase workflows, cross-cutting operations, design/UX, market intelligence, policy management |
-| **Commands** | 104 | Slash-command entry points — work skills have corresponding commands |
-| **Hooks** | 19 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, template compliance, finding format, input-hash drift, etc.) |
+| **Skills** | 114 | Phase entry points, phase workflows, cross-cutting operations, design/UX, market intelligence, policy management, state health |
+| **Commands** | 106 | Slash-command entry points — work skills have corresponding commands |
+| **Hooks** | 20 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, template compliance, finding format, input-hash drift, state size, etc.) |
 | **Templates** | 94 | Output format definitions for every artifact type |
 | **Workflows** | 16 | Lobster-as-data files defining phase and mode sequences |
 | **Bin helpers** | 5 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan, compute-input-hash) |
@@ -184,7 +184,7 @@ plugins/vsdd-factory/
   templates/                 # 94 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (392 tests across 12 suites)
+  tests/                     # bats test suites (425 tests across 13 suites)
   fixtures/                  # Test fixtures (smoke-project, policy-9, policy-enforcement)
 ```
 

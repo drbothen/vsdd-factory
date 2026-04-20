@@ -31,7 +31,8 @@
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-story-bc-sync.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-template-compliance.sh", "timeout": 10 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-finding-format.sh", "timeout": 5 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-input-hash.sh", "timeout": 10 }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-input-hash.sh", "timeout": 10 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-state-size.sh", "timeout": 5 }
         ]
       },
       {

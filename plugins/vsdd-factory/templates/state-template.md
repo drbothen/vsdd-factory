@@ -1,15 +1,35 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "1.0"
+version: "2.0"
 status: draft
-producer: "[agent-id]"
+producer: state-manager
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: 1a
+phase: 1
 inputs: []
-input-hash: "[md5]"
+input-hash: "[live-state]"
 traces_to: ""
+project: "[project-name]"
+mode: "[greenfield|brownfield|feature|maintenance|discovery|multi-repo]"
+current_step: ""
+current_cycle: ""
+dtu_required: false
 ---
+
+<!--
+  STATE.md SIZE BUDGET: Keep this file under 200 lines.
+  A hook warns at 200 and blocks at 500 (unless compacting).
+  
+  Historical content belongs in cycle files, NOT here:
+  - Burst narratives → cycles/<cycle>/burst-log.md
+  - Adversary pass details → cycles/<cycle>/convergence-trajectory.md
+  - Old session checkpoints → cycles/<cycle>/session-checkpoints.md
+  - Lessons learned → cycles/<cycle>/lessons.md
+  - Resolved blockers → cycles/<cycle>/blocking-issues-resolved.md
+  
+  Run /vsdd-factory:compact-state if this file grows past 200 lines.
+  See state-manager agent "Content Routing Rules" for the full policy.
+-->
 
 # Pipeline State: [Product Name]
 
@@ -22,8 +42,8 @@ traces_to: ""
 | **Mode** | greenfield / brownfield / feature |
 | **Language** | |
 | **Target Workspace** | |
-| **Started** | YYYY-MM-DDTHH:MM:SS |
-| **Last Updated** | YYYY-MM-DDTHH:MM:SS |
+| **Started** | YYYY-MM-DD |
+| **Last Updated** | YYYY-MM-DD |
 | **Current Phase** | [0/1/2/3/4/5/6/7] |
 | **Current Step** | |
 
@@ -31,21 +51,22 @@ traces_to: ""
 
 | Phase | Status | Started | Completed | Gate | Finding Progression |
 |-------|--------|---------|-----------|------|---------------------|
-| 1: Spec Crystallization | not-started / in-progress / passed / blocked | | | | [22→6→0 converged] |
-| 2: Story Decomposition | | | | | |
-| 3: TDD Implementation | | | | | |
-| 4: Holdout Evaluation | | | | | |
-| 5: Adversarial Refinement | | | | | |
-| 6: Formal Hardening | | | | | |
-| 7: Convergence | | | | | |
+| 0: Codebase Ingestion | not-started | | | | |
+| 1: Spec Crystallization | not-started | | | | |
+| 2: Story Decomposition | not-started | | | | |
+| 3: TDD Implementation | not-started | | | | |
+| 4: Holdout Evaluation | not-started | | | | |
+| 5: Adversarial Refinement | not-started | | | | |
+| 6: Formal Hardening | not-started | | | | |
+| 7: Convergence | not-started | | | | |
 
 ## Current Phase Steps
 
-| Step | Agent | Status | Output | File Size |
-|------|-------|--------|--------|-----------|
-| | | | | |
+<!-- Keep last 5 rows only. Archive older rows to cycles/<cycle>/burst-log.md. -->
 
-> File Size column tracks artifact bloat. PRDs over 100KB may need splitting.
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| | | | |
 
 ## Decisions Log
 
@@ -61,6 +82,29 @@ traces_to: ""
 
 ## Blocking Issues
 
+<!-- Open issues only. Move resolved issues to cycles/<cycle>/blocking-issues-resolved.md. -->
+
 | ID | Issue | Severity | Blocking Phase | Owner | Resolution |
 |----|-------|----------|---------------|-------|------------|
-| BLK-001 | [issue description] | [critical/high/medium] | [phase] | [owner] | [status/plan] |
+
+## Session Resume Checkpoint
+
+<!-- Keep ONLY the latest checkpoint. Archive prior checkpoints to cycles/<cycle>/session-checkpoints.md. -->
+
+| Field | Value |
+|-------|-------|
+| **Date** | YYYY-MM-DD |
+| **Position** | [phase, step, what's next] |
+| **Convergence counter** | [N of 3] |
+
+## Historical Content
+
+<!-- This section is populated by /vsdd-factory:compact-state when extracting historical content. -->
+
+| Content | Location |
+|---------|----------|
+| Burst history | `cycles/<cycle>/burst-log.md` |
+| Convergence trajectory | `cycles/<cycle>/convergence-trajectory.md` |
+| Session checkpoints | `cycles/<cycle>/session-checkpoints.md` |
+| Lessons learned | `cycles/<cycle>/lessons.md` |
+| Resolved blockers | `cycles/<cycle>/blocking-issues-resolved.md` |
