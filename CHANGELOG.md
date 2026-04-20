@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.41.3 — Restore adversary agent model tier
+
+### Fixed
+
+- **adversary.md** — `model: adversary` (invalid tier) restored to `model: opus`
+
 ## 0.41.2 — Cycle file templates for state management
 
 ### Added

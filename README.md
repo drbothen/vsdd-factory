@@ -3,7 +3,7 @@
 **Verified Spec-Driven Development (VSDD) -- a dark factory for software, packaged as a Claude Code plugin.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.41.2-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.41.3-green.svg)](CHANGELOG.md)
 
 ---
 
