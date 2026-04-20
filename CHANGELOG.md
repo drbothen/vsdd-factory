@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.40.0 — Full pipeline path verification + workflow mode documentation
+
+### Added
+
+- **docs/guide/pipeline-paths.md** — definitive routing reference documenting all 14 paths through the factory with step traces, gate criteria, Mermaid routing diagram, and transition logic
+- **docs/guide/workflow-modes.md** — all 8 workflow modes with routing diagram, per-mode documentation, mode detection logic, greenfield→multi-repo and brownfield→multi-repo transition explanations
+- **Greenfield→multi-repo transition** formalized as 4 lobster steps: topology-check, human-confirmation, repo-transition, state-migration
+- **Brownfield→multi-repo auto hand-off** — `multi-repo-handoff-check` step detects if greenfield sub-workflow triggered multi-repo transition
+
+### Fixed
+
+- `wave-integration-gate` schema: `type: skill` → `type: compound` in greenfield + feature lobster (had no `skill:` path)
+- Multi-repo `wave-0`/`wave-1` steps parameterized with `${repo.name}` and `${repo.mode}` (was hardcoded `api-server`/`frontend`)
+- Brownfield `depends_on` on conditional steps: uses `wait_for_optional` for `semport-validation-gate` and `brownfield-design-system-approval`
+- Maintenance description: updated from "9 sweep types" to "11 sweep types" (sweeps 10-11 were added but description not updated)
+- Planning + multi-repo added to orchestrator Mode Detection and Reference Files table
+- Mode-decision-guide: added multi-repo, maintenance, discovery to decision table + flowchart
+- All "Phases 1-6" references updated to "Phases 1-7"
+
+### Path Trace Results
+
+14 paths traced. Zero broken file references. All `skill:` paths resolve, all `agent:` names resolve, all `sub_workflow:` references resolve.
+
 ## 0.39.0 — Workflow standardization + phase renumbering
 
 ### Changed
