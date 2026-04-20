@@ -135,7 +135,7 @@ graph TD
 | **Skills** | 114 | Phase entry points, phase workflows, cross-cutting operations, design/UX, market intelligence, policy management, state health |
 | **Commands** | 106 | Slash-command entry points — work skills have corresponding commands |
 | **Hooks** | 22 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, template compliance, finding format, input-hash drift, state size, novelty assessment, convergence tracker, etc.) |
-| **Templates** | 94 | Output format definitions for every artifact type |
+| **Templates** | 99 | Output format definitions for every artifact type |
 | **Workflows** | 16 | Lobster-as-data files defining phase and mode sequences |
 | **Bin helpers** | 5 | Shell utilities (lobster-parse, research-cache, wave-state, multi-repo-scan, compute-input-hash) |
 | **Rules** | 9 | Coding standards (Rust, Bash, git commits, spec format, step decomposition, etc.) |

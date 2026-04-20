@@ -73,6 +73,17 @@ Recovery: git worktree add .factory-project factory-project-artifacts
 **Do NOT create .factory/ or .factory-project/ as regular directories.** This
 breaks artifact backup and the branch lifecycle.
 
+## Templates
+
+Read and follow the output format in:
+- `${CLAUDE_PLUGIN_ROOT}/templates/state-template.md` — STATE.md structure
+- `${CLAUDE_PLUGIN_ROOT}/templates/burst-log-template.md` — burst narrative log
+- `${CLAUDE_PLUGIN_ROOT}/templates/convergence-trajectory-template.md` — finding progression + per-pass details
+- `${CLAUDE_PLUGIN_ROOT}/templates/session-checkpoints-template.md` — archived session checkpoints
+- `${CLAUDE_PLUGIN_ROOT}/templates/lessons-template.md` — lessons learned by category
+- `${CLAUDE_PLUGIN_ROOT}/templates/blocking-issues-resolved-template.md` — resolved blocking issues
+- `${CLAUDE_PLUGIN_ROOT}/templates/cycle-manifest-template.md` — per-cycle delivery summaries
+
 ## What You Write
 
 - `.factory/STATE.md` -- phase status, file manifest, gate verdicts, product backlog

@@ -9,6 +9,15 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 Extract historical content from a bloated STATE.md into proper cycle-scoped files, leaving a lean status document.
 
+## Templates
+
+Read and follow the output format in:
+- `${CLAUDE_PLUGIN_ROOT}/templates/burst-log-template.md` — burst narrative log
+- `${CLAUDE_PLUGIN_ROOT}/templates/convergence-trajectory-template.md` — finding progression + per-pass details
+- `${CLAUDE_PLUGIN_ROOT}/templates/session-checkpoints-template.md` — archived session resume checkpoints
+- `${CLAUDE_PLUGIN_ROOT}/templates/lessons-template.md` — lessons learned by category
+- `${CLAUDE_PLUGIN_ROOT}/templates/blocking-issues-resolved-template.md` — resolved blocking issues
+
 ## Announce at Start
 
 Before any other action, say verbatim:
@@ -54,38 +63,15 @@ For each extractable section:
    - Appended content is timestamped: `## Extracted from STATE.md on <date>`
 3. **Preserve chronological order** in the target file
 
-#### Burst Log Format
+#### Output Formats
 
-```markdown
-# Burst Log — <cycle-name>
+Each cycle file follows its template (see Templates section above). Key points:
 
-## Burst 1 (YYYY-MM-DD)
-<burst narrative from STATE.md>
-
-## Burst 2 (YYYY-MM-DD)
-<burst narrative from STATE.md>
-...
-```
-
-#### Convergence Trajectory Format
-
-```markdown
-# Convergence Trajectory — <cycle-name>
-
-## Finding Progression
-
-| Pass | Date | Findings | CRIT | HIGH | MED | LOW | Novelty | Counter |
-|------|------|----------|------|------|-----|-----|---------|---------|
-| 1 | YYYY-MM-DD | 29 | 6 | 9 | 9 | 5 | HIGH | 0/3 |
-| 2 | YYYY-MM-DD | 24 | 6 | 7 | 6 | 5 | HIGH | 0/3 |
-...
-
-## Per-Pass Details
-
-### Pass 1 (YYYY-MM-DD)
-<pass details from STATE.md>
-...
-```
+- **Burst log** — one `## Burst N` section per burst, with agents, files, versions, summary
+- **Convergence trajectory** — Finding Progression table (one row per pass) + Per-Pass Details sections. Convert `adversary_pass_*` frontmatter fields to table rows.
+- **Session checkpoints** — one section per archived checkpoint with spec versions, state, and resume prompt
+- **Lessons** — numbered entries organized by category (agent, process, infrastructure) with discovery dates
+- **Blocking issues resolved** — table rows moved from STATE.md with resolution date added
 
 ### Step 4: Slim STATE.md
 
