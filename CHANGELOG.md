@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.41.1 — Post-release bugfixes
+
+### Fixed
+
+- **Command files** — `check-state-health.md` and `compact-state.md` had empty body text after frontmatter, causing `cache_control cannot be set for empty text blocks` API error when invoked
+- **convergence-tracker.sh** — replaced `ls` with `find` to satisfy shellcheck SC2012
+
 ## 0.41.0 — Adversarial review hardening + state management + convergence enforcement
 
 ### Added
