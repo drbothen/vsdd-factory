@@ -5,7 +5,7 @@ version: "1.0"
 status: pending|approved|rejected
 producer: formal-verifier
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: 5|6
+phase: 6|7
 inputs: [VP-NNN.md]
 input-hash: "[md5]"
 traces_to: VP-NNN.md

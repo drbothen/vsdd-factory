@@ -322,7 +322,7 @@ EOF
 
 ## Release Execution
 
-After Phase 6 convergence + human approval, the orchestrator spawns you for
+After Phase 7 convergence + human approval, the orchestrator spawns you for
 the release pipeline:
 
 1. **Determine semver version** from story types in STORY-INDEX.md:

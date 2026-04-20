@@ -5,7 +5,7 @@ version: "1.0"
 status: draft
 producer: formal-verifier
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: 5
+phase: 6
 inputs: []
 input-hash: "[md5]"
 traces_to: ""

@@ -5,7 +5,7 @@ version: "1.0"
 status: draft
 producer: spec-steward
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: 4
+phase: 5
 inputs: [behavioral-contracts/, architecture/]
 traces_to: prd.md
 ---

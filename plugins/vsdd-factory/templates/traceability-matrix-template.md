@@ -5,7 +5,7 @@ version: "1.0"
 status: draft
 producer: "[agent-id]"
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: 6
+phase: 7
 inputs: []
 input-hash: "[md5]"
 traces_to: ""

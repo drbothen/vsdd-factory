@@ -5,7 +5,7 @@ version: "1.0"
 status: "in-progress|complete"
 producer: holdout-evaluator
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: "3.5|4"
+phase: "4|5"
 inputs: ["holdout-scenarios/", "implementation source"]
 traces_to: HS-INDEX.md
 ---

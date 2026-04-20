@@ -42,9 +42,9 @@ iterations compound correctness — each pass genuinely improves the artifact.
   **pause the pipeline** and resume when the primary model is available than to continue
   with an underpowered model that compounds errors
 - The `cost-tracker` plugin (DF-009) detects underspend conditions — if a pipeline
-  completes Phase 4 with total spend below 10% of budget, it warns that adversarial
+  completes Phase 5 with total spend below 10% of budget, it warns that adversarial
   review may not have been thorough enough
-- Holdout evaluation (Phase 4) must ALWAYS use frontier models (GPT-5.4 or Gemini 3.1 Pro)
+- Holdout evaluation (Phase 4) must ALWAYS use frontier models
   because satisfaction scoring requires deep behavioral reasoning that small models cannot provide
 
 ## Fallback Behavior (Three-Tier)

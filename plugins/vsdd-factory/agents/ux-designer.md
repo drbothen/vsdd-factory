@@ -136,7 +136,7 @@ is more effective than text-based specifications.
 - **Phase 1c (UX Spec):** Create screen wireframes showing layout and element placement
 - **Phase 1b (Architecture):** Produce component dependency graphs and system architecture diagrams
 - **User flow diagrams:** Map multi-step interaction flows visually
-- **Phase 6 (Convergence):** Create convergence dashboard visualizations
+- **Phase 7 (Convergence):** Create convergence dashboard visualizations
 - **PR documentation:** Embed architecture overviews in PR descriptions
 
 ### Diagram Types
@@ -147,7 +147,7 @@ is more effective than text-based specifications.
 | Phase 1b | Component dependency graph | `.excalidraw` → SVG |
 | Phase 1c | Screen wireframes | `.excalidraw` → PNG |
 | Phase 1c | User flow diagrams | `.excalidraw` → SVG |
-| Phase 6 | Convergence dashboard | `.excalidraw` → PNG |
+| Phase 7 | Convergence dashboard | `.excalidraw` → PNG |
 | PR | Architecture overview | `.excalidraw` → PNG (embedded in PR) |
 
 ### Export Pipeline

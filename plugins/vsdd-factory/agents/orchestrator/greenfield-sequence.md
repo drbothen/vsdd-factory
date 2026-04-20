@@ -216,7 +216,7 @@ After all Phase 3 implementation is complete and tests pass:
 2. Wait for demo-evidence/report.md
 3. Only THEN proceed to Phase 4 holdout evaluation
 
-After Phase 6 convergence:
+After Phase 7 convergence:
 1. Spawn devops-engineer: "Create worktree for final demo:
    `git worktree add .worktrees/final-demo -b demo/final-journey develop`"
 2. Spawn demo-recorder: "Record final user journey demo in .worktrees/final-demo/"

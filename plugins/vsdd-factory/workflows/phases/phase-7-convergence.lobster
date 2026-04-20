@@ -1,7 +1,7 @@
 workflow:
   name: phase-7-convergence
   description: >
-    Phase 6: 7-Dimensional Convergence Assessment. Each dimension is checked
+    Phase 7: 7-Dimensional Convergence Assessment. Each dimension is checked
     independently with state-manager backups for crash recovery. Followed by
     demo recording, visual review, and human approval.
   version: "2.0.0"

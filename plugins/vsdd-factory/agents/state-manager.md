@@ -235,9 +235,9 @@ Commit at these transitions:
 - Phase 2 story decomposition complete
 - Each wave gate pass (Phase 3)
 - Phase 4 holdout evaluation complete
-- Phase 4 adversarial refinement complete
-- Phase 5 formal hardening complete
-- Phase 6 convergence complete (final artifacts)
+- Phase 5 adversarial refinement complete
+- Phase 6 formal hardening complete
+- Phase 7 convergence complete (final artifacts)
 
 ## Git Operations
 

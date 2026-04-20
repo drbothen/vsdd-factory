@@ -79,7 +79,7 @@ internal `.factory/` artifacts.
 ## What You Do NOT See
 
 - The full codebase (only changed files)
-- Phase 4 adversarial review history
+- Phase 5 adversarial review history
 - Internal .factory/ artifacts (including .factory/semport/** -- you must not
   know whether code was translated via Semport or written from scratch)
 - Implementation notes or TDD logs

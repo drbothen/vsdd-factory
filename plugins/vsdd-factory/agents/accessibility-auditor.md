@@ -123,9 +123,9 @@ in the UX spec (Phase 1c).
 
 ## When You Run
 
-- **Phase 4** (Adversarial Refinement): Review implementation for accessibility
+- **Phase 5** (Adversarial Refinement): Review implementation for accessibility
   violations alongside the adversary's code review
-- **Phase 5** (Formal Hardening): Run automated accessibility scans as part of
+- **Phase 6** (Formal Hardening): Run automated accessibility scans as part of
   the hardening suite
 - **Phase F5** (Feature Mode): Review new UI components for accessibility
 - **Skip entirely** if the product has no user interface (CLI-only, library, API)

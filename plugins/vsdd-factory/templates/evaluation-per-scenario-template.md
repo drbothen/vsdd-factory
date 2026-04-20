@@ -7,7 +7,7 @@ version: "1.0"
 status: "pass|fail"
 producer: holdout-evaluator
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: "3.5"
+phase: 4
 inputs: ["HS-NNN.md", "implementation source"]
 traces_to: "EVAL-INDEX.md"
 source_scenario: "HS-NNN.md"

@@ -5,7 +5,7 @@ version: "1.0"
 status: draft
 producer: formal-verifier
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: 5
+phase: 6
 inputs: [verification-properties/, architecture/verification-architecture.md]
 traces_to: VP-INDEX.md
 ---

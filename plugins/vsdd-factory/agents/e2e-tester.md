@@ -120,7 +120,7 @@ property tests, and focused integration tests, YOU handle full user journeys.
   the full system against acceptance criteria
 - **Phase F4** (Feature Mode): Write E2E tests for the new feature that exercise
   the full user journey including interactions with existing features
-- **Phase 5/F6** (Hardening): Run E2E suite as part of regression validation
+- **Phase 6/F6** (Hardening): Run E2E suite as part of regression validation
 
 ## Your Test Types
 

@@ -5,7 +5,7 @@ version: "1.0"
 status: draft
 producer: performance-engineer
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: 5
+phase: 6
 inputs: [prd-supplements/nfr-catalog.md]
 traces_to: prd.md
 ---

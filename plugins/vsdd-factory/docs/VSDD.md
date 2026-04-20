@@ -178,7 +178,7 @@ The test suite is the safety net.
 
 ---
 
-## Phase 4 — Adversarial Refinement (The VDD Roast)
+## Phase 5 — Adversarial Refinement (The VDD Roast)
 
 *The code survived testing. Now it faces the gauntlet.*
 
@@ -210,11 +210,11 @@ to the Adversary in a **fresh context window**.
 - Implementation flaws → Return to Phase 3d. Refactor, tests must still pass.
 - New edge cases → Add to Edge Case Catalog, write failing tests, implement.
 
-This loop continues until convergence (Phase 6).
+This loop continues until convergence (Phase 7).
 
 ---
 
-## Phase 5 — Formal Hardening
+## Phase 6 — Formal Hardening
 
 The verification architecture designed in Phase 1b is now executed against the
 battle-tested implementation.
@@ -230,13 +230,13 @@ battle-tested implementation.
 - **Purity Boundary Audit:** Final check that purity boundaries from Phase 1b are
   respected. Side effects that crept into the pure core → flagged and refactored.
 
-All results feed back into Phase 4 if issues are found.
+All results feed back into Phase 5 if issues are found.
 
 ---
 
-## Phase 6 — Convergence (The Exit Signal)
+## Phase 7 — Convergence (The Exit Signal)
 
-VSDD's hallucination-based termination, extended across all five dimensions:
+VSDD's hallucination-based termination, extended across all seven dimensions:
 
 | Dimension | Convergence Signal |
 |-----------|-------------------|

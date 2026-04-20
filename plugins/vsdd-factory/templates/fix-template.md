@@ -5,10 +5,10 @@ version: "1.0"
 status: open
 producer: pr-manager
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: "4|5|6"
+phase: "5|6|7"
 fix_id: "FIX-P[N]-NNN"
 source_finding: "ADV-<CYCLE>-P[N]-[SEV]-NNN"
-source_phase: "4|5|6"
+source_phase: "5|6|7"
 severity: "CRIT|HIGH|MED|LOW"
 traces_to: ""
 ---

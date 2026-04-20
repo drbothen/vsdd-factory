@@ -457,9 +457,9 @@ blocks and documented in each agent's `AGENTS.md`.
 | security-reviewer (PR) | 3b | Implementer notes/session logs | Independent security assessment |
 | security-reviewer (wave) | 3c | Per-story PR review comments | Fresh cross-story analysis |
 | wave adversary | 3c | Per-story PR review comments | Fresh integration analysis |
-| Phase 4 adversary | 4 | TDD logs, wave schedule, own prior passes | Fresh attacker perspective |
-| code-reviewer (Gemini) | 4 | Adversary findings | Independent secondary review |
-| formal-verifier | 5 | Adversary findings | Specification-driven verification |
+| Phase 5 adversary | 5 | TDD logs, wave schedule, own prior passes | Fresh attacker perspective |
+| code-reviewer (Gemini) | 5 | Adversary findings | Independent secondary review |
+| formal-verifier | 6 | Adversary findings | Specification-driven verification |
 
 **Convention:** Each walled agent's `AGENTS.md` includes an "Information Asymmetry
 Wall" section documenting excluded paths and rationale. The wall is enforced in
@@ -581,8 +581,8 @@ Proactive and reactive security review occurs at four points in the pipeline:
 |---|-------|---------|------|----------------|
 | 1 | Per-story PR | Story touches CRIT/HIGH module | No impl reasoning | PR diff for CWE/OWASP |
 | 2 | Wave integration | Wave has CRIT/HIGH stories | No per-story reviews | Combined wave diff for cross-story attack surfaces |
-| 3 | Phase 4 | Adversary finds security findings | No impl reasoning | Deep CWE/OWASP analysis |
-| 4 | Phase 5 | Security scan finds HIGH/CRIT | -- | Triage scan findings |
+| 3 | Phase 5 | Adversary finds security findings | No impl reasoning | Deep CWE/OWASP analysis |
+| 4 | Phase 6 | Security scan finds HIGH/CRIT | -- | Triage scan findings |
 
 Module criticality is classified in `.factory/specs/module-criticality.md` during Phase 1.
 
@@ -694,7 +694,7 @@ Paths unchanged: `.factory/STATE.md`, `.factory/cost-summary.md`,
 
 ### Release Process
 
-After Phase 6 convergence and human approval, the devops-engineer executes the
+After Phase 7 convergence and human approval, the devops-engineer executes the
 release pipeline:
 
 1. Determine semver version from story types (feat -> MINOR, fix -> PATCH, breaking -> MAJOR)
@@ -713,7 +713,7 @@ Release notes follow `templates/release-notes-template.md`. See
 | Spec Approval | After Phase 1d (adversarial spec review) | Review and approve final spec |
 | Architecture Sign-off | After Phase 1b (verification architecture) | Approve purity boundaries and tech choices |
 | Story Approval | After Phase 2 (story decomposition) | Review and approve story breakdown |
-| Production Deploy | After Phase 6 (convergence) | Authorize deployment |
+| Production Deploy | After Phase 7 (convergence) | Authorize deployment |
 
 ### Interactive Work vs. Shift Work
 
@@ -837,11 +837,11 @@ factory-artifacts branch lifecycle.
 
 ### Fix PR Naming Convention (Phases 4-6)
 
-When Phases 4, 5, or 6 find issues on merged develop, fix tasks use the naming
+When Phases 5, 6, or 7 find issues on merged develop, fix tasks use the naming
 pattern `FIX-P[phase]-NNN`:
-- **FIX-P4-NNN:** Fixes from Phase 4 adversarial review findings
-- **FIX-P5-NNN:** Fixes from Phase 5 formal hardening findings
-- **FIX-P6-NNN:** Fixes from Phase 6 convergence failure routing
+- **FIX-P5-NNN:** Fixes from Phase 5 adversarial review findings
+- **FIX-P6-NNN:** Fixes from Phase 6 formal hardening findings
+- **FIX-P7-NNN:** Fixes from Phase 7 convergence failure routing
 
 Fix PRs follow the same delivery rigor as story PRs (worktree, AI review,
 security review if applicable) but skip stubs, Red Gate, and wave integration

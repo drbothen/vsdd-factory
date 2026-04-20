@@ -1,7 +1,7 @@
 workflow:
   name: phase-6-formal-hardening
   description: >
-    Phase 5: Formal Hardening. Four verification techniques (Kani proofs,
+    Phase 6: Formal Hardening. Four verification techniques (Kani proofs,
     fuzz testing, mutation testing, security scanning) with state-manager
     backups for crash recovery.
   version: "2.0.0"

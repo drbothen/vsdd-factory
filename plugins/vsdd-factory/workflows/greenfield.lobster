@@ -1149,7 +1149,7 @@ workflow:
            or documented justification"
 
     # =========================================================================
-    # Phase 5: Formal Hardening
+    # Phase 6: Formal Hardening
     # =========================================================================
 
     - name: phase-6-formal-hardening
@@ -1240,7 +1240,7 @@ workflow:
       condition: "feature_type in ['ui', 'full-stack'] and ui_quality_gate.has_failures == true"
 
     # =========================================================================
-    # Phase 6: Convergence
+    # Phase 7: Convergence
     # =========================================================================
 
     - name: phase-7-convergence

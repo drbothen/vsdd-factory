@@ -25,8 +25,8 @@ last_updated: YYYY-MM-DDTHH:MM:SS
 
 | Source | Detection Agent | Description |
 |--------|----------------|-------------|
-| Phase 4 deferred | adversary | Finding deferred as "fix later" from adversarial review |
-| Phase 5 deferred | formal-verifier | Finding deferred from formal hardening |
+| Phase 5 deferred | adversary | Finding deferred as "fix later" from adversarial review |
+| Phase 6 deferred | formal-verifier | Finding deferred from formal hardening |
 | Spec drift | spec-steward | BC postcondition not enforced in code |
 | Dependency | security-reviewer | Major version bump available or vulnerability |
 | DTU fidelity | dtu-validator | Real API changed, clone is stale |

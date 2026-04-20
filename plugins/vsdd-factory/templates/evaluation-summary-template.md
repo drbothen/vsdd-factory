@@ -5,7 +5,7 @@ version: "1.0"
 status: "PASS|FAIL"
 producer: holdout-evaluator
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: "3.5"
+phase: 4
 inputs: ["evaluations/pass-*/"]
 traces_to: EVAL-INDEX.md
 ---

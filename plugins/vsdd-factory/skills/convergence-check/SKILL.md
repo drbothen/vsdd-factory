@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 # Convergence Check
 
-Phase 6 validation. Assess all 7 dimensions to determine if the project has converged.
+Phase 7 validation. Assess all 7 dimensions to determine if the project has converged.
 
 ## Templates
 
