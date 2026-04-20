@@ -103,6 +103,25 @@ cd .factory && git status --porcelain
 - **Uncommitted changes**: Warn the user — there are uncommitted factory artifacts.
 - **Diverged from remote**: Warn — manual resolution needed.
 
+### 8. STATE.md health
+
+Check STATE.md size and content routing compliance:
+
+```bash
+wc -l < .factory/STATE.md
+```
+
+- **≤ 200 lines**: Healthy.
+- **201-500 lines**: Warn — recommend `/vsdd-factory:compact-state`.
+- **501+ lines**: Error — STATE.md is bloated with historical content. Must compact before proceeding.
+
+Also check for content that shouldn't be in STATE.md:
+- Count `## Burst` or `## Pass` section headers — more than 10 means burst narratives are accumulating
+- Count `## Session Resume Checkpoint` headers — more than 1 means old checkpoints aren't archived
+- Count `adversary_pass_` frontmatter fields — more than 5 means per-pass tracking is in frontmatter
+
+If any issues found, report them and recommend `/vsdd-factory:compact-state`.
+
 ## Output
 
 Report a summary:
@@ -112,6 +131,7 @@ Factory Health: ✓ HEALTHY
   Branch:    factory-artifacts (orphan)
   Worktree:  .factory/ mounted
   STATE.md:  present (phase: <current phase>)
+  State size: <N> lines (healthy | warning | bloated)
   Structure: all directories present
   Sync:      clean | uncommitted changes | diverged
 ```

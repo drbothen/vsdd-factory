@@ -232,6 +232,8 @@ These skills are available at any point in the pipeline:
 | `/vsdd-factory:conform-to-template` | Fix artifacts to match their template structure |
 | `/vsdd-factory:register-artifact` | Register new artifacts in the appropriate index file |
 | `/vsdd-factory:recover-state` | Rebuild STATE.md from filesystem when state is lost or corrupt |
+| `/vsdd-factory:check-state-health` | Validate STATE.md structure, size, phase numbering, content routing |
+| `/vsdd-factory:compact-state` | Extract historical content from STATE.md to cycle files (bloat fix) |
 | `/vsdd-factory:factory-cycles-bootstrap` | Initialize .factory/ cycle directory structure |
 
 ## Operating Loop
