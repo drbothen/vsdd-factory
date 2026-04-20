@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.41.2 — Cycle file templates for state management
+
+### Added
+
+- **5 new templates** for cycle-scoped state files: `burst-log-template.md`, `convergence-trajectory-template.md`, `session-checkpoints-template.md`, `lessons-template.md`, `blocking-issues-resolved-template.md`
+- Template references added to `compact-state` skill and `state-manager` agent (99 templates total)
+
 ## 0.41.1 — Post-release bugfixes
 
 ### Fixed
