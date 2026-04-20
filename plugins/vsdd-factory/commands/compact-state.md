@@ -1,6 +1,5 @@
 ---
-name: compact-state
 description: Extract historical content from STATE.md into cycle files. Slims STATE.md to under 200 lines.
-user_invocable: true
-skill: compact-state
 ---
+
+Use the `vsdd-factory:compact-state` skill via the Skill tool.

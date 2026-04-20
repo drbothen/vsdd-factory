@@ -1,6 +1,5 @@
 ---
-name: check-state-health
 description: Validate STATE.md structure, size, phase numbering, and content routing compliance.
-user_invocable: true
-skill: check-state-health
 ---
+
+Use the `vsdd-factory:check-state-health` skill via the Skill tool.
