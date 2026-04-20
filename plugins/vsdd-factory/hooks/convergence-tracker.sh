@@ -137,7 +137,7 @@ if [[ "$VERDICT" == "CONVERGENCE_REACHED" ]]; then
   CLEAN_STREAK=0
 
   # Find all pass files, sorted by pass number descending
-  PASS_FILES=$(ls "$REVIEW_DIR"/pass-*.md 2>/dev/null | sort -t'-' -k2 -n -r || true)
+  PASS_FILES=$(find "$REVIEW_DIR" -maxdepth 1 -name 'pass-*.md' 2>/dev/null | sort -t'-' -k2 -n -r || true)
 
   if [[ -n "$PASS_FILES" ]]; then
     for pf in $PASS_FILES; do
