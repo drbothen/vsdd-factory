@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.41.0 — Adversarial review hardening + state management + convergence enforcement
+
+### Added
+
+- **Per-story adversarial review** — full convergence loop in `code-delivery.lobster` after implementation, before demo recording. Scoped to story diff with information asymmetry walls
+- **Phase 2 adversarial convergence loop** — added to `phase-2-story-decomposition.lobster` (was missing entirely)
+- **Wave-level adversarial convergence** — upgraded from single-pass to full convergence loop in both `greenfield.lobster` and `feature.lobster`
+- **`validate-novelty-assessment.sh` hook** (21st) — blocks adversarial review files missing the structured Novelty Assessment section (pass, novelty score, trajectory, verdict)
+- **`convergence-tracker.sh` hook** (22nd) — lightweight convergence rule enforcement: trajectory monotonicity, minimum 3 clean passes, novelty ≤ 0.15 for CONVERGENCE_REACHED, zero-findings first pass warning
+- **`validate-state-size.sh` hook** (20th) — warns at 200 lines, blocks at 500 lines (allows compaction writes that reduce size)
+- **`check-state-health` skill + command** — 7-check diagnostic (existence, frontmatter, size, phase numbering, structure, content routing, convergence counter)
+- **`compact-state` skill + command** — extracts historical content from bloated STATE.md to cycle-scoped files (burst-log, convergence-trajectory, session-checkpoints, lessons, blocking-issues-resolved)
+- **Content routing rules** in state-manager agent — explicit routing tables and anti-patterns preventing STATE.md bloat
+- **STATE.md health check** (check 8) wired into `factory-health` — catches bloat at every session start
+- **CONVERGENCE.md Dimensions 6-7** — Visual Convergence (demo evidence) and Documentation Convergence (CHANGELOG, README, API docs)
+- **Adversarial review template** updated with structured Novelty Assessment section (7 required fields)
+- **State template v2.0** — Phase 0 included, size budget comment, Historical Content section, session checkpoint limit
+- 68 new BATS tests across 3 new suites (state-health: 33, novelty-assessment: 18, convergence-tracker: 17)
+
+### Fixed
+
+- **Phase 1d step files** — rewrote 5 empty stubs into full alphabetic step files (a-e) with `_shared-context.md` containing Iron Law, Red Flags, convergence protocol, persistence protocol
+- **Phase F5 step files** — enriched 8 thin files into full alphabetic step files (a-h) with `_shared-context.md` containing DF-025 walls, DF-013 multi-repo, holdout regression, security touchpoint
+- **Orchestrator mandatory checks** — corrected all phase references (1d, 2, 3, 4, 5), added per-story and wave-level adversarial as mandatory steps
+- **Stale phase references** swept across ~30 files: agents (7), docs (VSDD.md, FACTORY.md), templates (14), skills (4), lobster files (5), orchestrator sequences
+- **CONVERGENCE.md autonomy config** — fixed phase numbering (3.5→4, 4→5, 5→6, 6→7)
+- **adversary.md** — `model: opus` → `model: adversary`, "Phase 4" → "Phase 5"
+- **Prompt template** renamed `phase-4-code-review.md` → `phase-5-code-review.md`
+- **Template frontmatter** — 4 adversarial templates updated from `phase: 1d|2|4` to `1d|2|5`
+
+### Changed
+
+- 460 tests across 15 suites (was 392 across 12)
+- 22 hooks (was 19)
+- 116 skills (was 112), 108 commands (was 104)
+
 ## 0.40.0 — Full pipeline path verification + workflow mode documentation
 
 ### Added
