@@ -33,7 +33,8 @@
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-finding-format.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-input-hash.sh", "timeout": 10 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-state-size.sh", "timeout": 5 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-novelty-assessment.sh", "timeout": 5 }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-novelty-assessment.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/convergence-tracker.sh", "timeout": 10 }
         ]
       },
       {
