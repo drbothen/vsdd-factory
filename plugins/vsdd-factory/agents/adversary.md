@@ -93,7 +93,7 @@ After each pass, assess **novelty decay**: are new findings substantive or just 
 Novelty: LOW — findings are refinements, not gaps. Spec has converged.
 ```
 
-Minimum 2 passes required. Maximum 5 before escalating to human.
+Minimum 3 clean passes required. Maximum 10 before escalating to human.
 
 ### Semantic Anchoring Audit
 

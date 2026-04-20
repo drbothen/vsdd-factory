@@ -7,7 +7,26 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 # Formal Verification & Hardening
 
-Phase 5 quality gate. Run multiple verification techniques against the codebase.
+Phase 6 quality gate. Run multiple verification techniques against the codebase.
+
+## The Iron Law
+
+> **NO HARDENING SIGN-OFF WITHOUT ALL PROOF HARNESSES PASSING**
+
+Every VP in the Provable Properties Catalog must have a passing proof harness, a saturated fuzz campaign, and a mutation kill rate meeting its module's criticality tier. A proof that was skipped, a fuzz target that wasn't run, or a surviving mutant that wasn't classified is a gap, not a pass. VP withdrawal requires formal justification via the VP withdrawal template.
+
+## Red Flags
+
+| Thought | Reality |
+|---|---|
+| "The proofs pass on the happy path, that's enough" | Proofs must cover ALL valid inputs at the specified bound. Happy path is not a bound. |
+| "Mutation kill rate is close to the target, the survivors are equivalent" | Classify every survivor. Only verified equivalent mutants are excluded from the rate. |
+| "Fuzz testing ran for 30 seconds, no crashes" | Saturation requires 5 minutes per fuzz target AND stable coverage. 30 seconds is not saturation. |
+| "This VP is too hard to prove, let me skip it" | Use the VP withdrawal template. Withdrawal requires justification and human approval. |
+| "Security scan found only LOW findings, that's clean" | Clean means zero CRITICAL and zero HIGH. LOW findings are documented but don't block. |
+| "The pure core has one small side effect, it's fine" | Purity boundary violations are always findings. Refactor or reclassify the module. |
+| "We already ran proofs in Phase 5, no need to re-run" | Adversarial fixes in Phase 5 may have changed the code. Re-run proofs on current code. |
+| "Cargo audit shows a vulnerability but it's in a dev dependency" | Dev dependencies execute during CI. Audit ALL dependencies. |
 
 ## Templates
 

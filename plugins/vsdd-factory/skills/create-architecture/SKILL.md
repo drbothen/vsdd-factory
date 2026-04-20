@@ -5,9 +5,24 @@ disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
-## Hard Gate
+## The Iron Law
 
-Do NOT skip to story decomposition or implementation. Purity boundaries MUST be drawn and verification properties MUST be defined before proceeding.
+> **NO ARCHITECTURE WITHOUT VERIFICATION FEASIBILITY ASSESSMENT**
+
+Every architecture decision must include a verification feasibility assessment: can the chosen approach be proven correct? Where are the purity boundaries? What is provable vs. testable-only? Do NOT skip to story decomposition or implementation — purity boundaries MUST be drawn and verification properties MUST be defined before proceeding. Architecture decisions are the most expensive to reverse.
+
+## Red Flags
+
+| Thought | Reality |
+|---|---|
+| "The architecture is obvious from the requirements" | Obvious architectures still need purity boundaries and VP assignments. Document them. |
+| "Verification properties can be defined later during implementation" | VPs inform architecture. A design that can't be verified must be redesigned NOW, not after implementation. |
+| "This module doesn't need a purity classification" | Every module must be classified (pure core, boundary, infrastructure). No exceptions. |
+| "The ADR rationale is clear from context" | ADR rationale must be explicit. Future readers don't have your context. |
+| "Let me skip the feasibility report — the architecture is straightforward" | The feasibility report catches verification gaps before they become implementation problems. |
+| "One big architecture document is easier to write" | Architecture is sharded into ARCH-NN section files. Monoliths drift and overwhelm context. |
+| "I can use the reference repo's architecture directly" | Reference architectures inform decisions but divergences must be documented in ADRs with rationale. |
+| "Module criticality can default to MEDIUM everywhere" | Default MEDIUM masks CRITICAL modules (auth, crypto, state machines). Classify deliberately. |
 
 # Create Architecture
 

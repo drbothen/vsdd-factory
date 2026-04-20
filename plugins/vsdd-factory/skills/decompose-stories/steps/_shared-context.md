@@ -7,9 +7,24 @@ description: Shared context loaded by all decompose-stories step files. Contains
 
 This file is loaded by every step in the decompose-stories skill. It contains cross-cutting constraints that apply to all steps.
 
-## Hard Gate
+## The Iron Law
 
-Do NOT skip to implementation or story delivery. ALL stories MUST be decomposed, dependency-ordered into waves, and approved before any code is written.
+> **NO STORY WITHOUT BC TRACEABILITY FIRST**
+
+Every story must trace to at least one behavioral contract. Every AC must trace to a BC precondition or postcondition. A story that cannot answer "which BC does this implement?" is a story that cannot be verified. Do NOT skip to implementation or story delivery — ALL stories MUST be decomposed, dependency-ordered into waves, and approved before any code is written.
+
+## Red Flags
+
+| Thought | Reality |
+|---|---|
+| "This story is obvious, I don't need to trace it to a BC" | Untraced stories drift from the spec. Trace it. |
+| "The dependency graph looks right, I don't need to verify acyclicity" | Circular dependencies deadlock wave scheduling. Verify programmatically. |
+| "This story is too big but I'll split it during implementation" | Stories over 13 points must be split NOW. Implementation is too late. |
+| "All BCs are covered, I can skip the coverage check" | BC-to-story coverage gaps are the #1 source of missing features. Verify every BC has a story. |
+| "The wave schedule is obvious from the dependency graph" | Wave scheduling must respect dependency ordering AND resource constraints. Verify both. |
+| "Holdout scenarios can wait until after decomposition" | Holdout scenarios inform story completeness. Write them alongside stories. |
+| "This acceptance criterion is clear enough without a BC trace" | "Clear enough" becomes "ambiguous enough" during implementation. Add the trace. |
+| "I'll add the missing stories in the next cycle" | Missing stories compound. The adversary will find them — fix now. |
 
 ## Templates
 
