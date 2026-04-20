@@ -55,47 +55,76 @@ This loads the plugin from the local directory instead of the installed marketpl
 
 ---
 
-## First session
+## First-time project setup
 
-Every Claude Code session with the VSDD plugin should start with the same three steps.
+Run these once when you first connect a project to the VSDD factory.
 
-### Step 1: Check factory health
+### 1. Check factory health
 
 ```
 /vsdd-factory:factory-health
 ```
 
-This command verifies that the `.factory/` git worktree exists and is properly mounted on
-the `factory-artifacts` orphan branch. If anything is wrong, it auto-repairs:
+Verifies that the `.factory/` git worktree exists and is properly mounted on the
+`factory-artifacts` orphan branch. If anything is wrong, it auto-repairs:
 
 - Creates the `factory-artifacts` orphan branch if missing
 - Mounts the `.factory/` worktree if missing
 - Creates `STATE.md` if missing
 - Creates the directory structure (`specs/`, `stories/`, `cycles/`, etc.) if missing
 
-Run this at the start of every session. It is fast and idempotent.
-
-### Step 2: Activate the orchestrator
-
-```
-/vsdd-factory:activate
-```
-
-This sets the VSDD orchestrator as your default agent for this project. The orchestrator drives the pipeline — it reads workflow data, dispatches specialist agents, and enforces quality gates. Without activation, you can still use individual skills manually, but the orchestrator won't coordinate them.
-
-Activation writes to `.claude/settings.local.json` (per-project, gitignored). Teammates activate individually. To deactivate: `/vsdd-factory:deactivate`.
-
-### Step 3: Check environment
+### 2. Check environment
 
 ```
 /vsdd-factory:setup-env
 ```
 
-This verifies your toolchain: git configuration, language-specific tools, MCP server
-availability, and shell tool versions. Run this the first time you use the plugin, and
-again after installing or upgrading tools.
+Verifies your toolchain: git configuration, language-specific tools, MCP server
+availability, and shell tool versions. Reports what is missing for your project's language.
 
-### Step 4: Read pipeline state
+### 3. Activate the orchestrator
+
+```
+/vsdd-factory:activate
+```
+
+Sets the VSDD orchestrator as your default agent for this project. The orchestrator drives
+the pipeline — it reads workflow data, dispatches specialist agents, and enforces quality
+gates. Without activation, you can still use individual skills manually, but the
+orchestrator won't coordinate them.
+
+Activation writes to `.claude/settings.local.json` (per-project, gitignored). Teammates
+activate individually. To deactivate: `/vsdd-factory:deactivate`.
+
+### 4. Generate project instructions
+
+```
+/vsdd-factory:scaffold-claude-md
+```
+
+Auto-detects your project's language, build/test/lint commands, git workflow, and key
+documentation, then generates a `CLAUDE.md` at the project root. This file gives Claude
+Code the context it needs to build and navigate your specific project.
+
+The plugin provides methodology, principles, and rules automatically. The `CLAUDE.md`
+covers project-specific context only: toolchain, commands, and references. Re-run anytime
+to regenerate.
+
+---
+
+## Every session
+
+Run these two steps at the start of every Claude Code session.
+
+### 1. Check factory health
+
+```
+/vsdd-factory:factory-health
+```
+
+Fast and idempotent. Verifies the worktree is mounted and STATE.md exists.
+
+### 2. Read pipeline state
 
 ```
 Read .factory/STATE.md
@@ -105,32 +134,22 @@ STATE.md is the single source of truth for where the pipeline left off. It tells
 current phase, what was completed, and what to do next. Every skill reads it before acting
 and updates it after phase transitions.
 
-### Step 5: Generate project instructions (first time only)
-
-```
-/vsdd-factory:scaffold-claude-md
-```
-
-This auto-detects your project's language, build/test/lint commands, git workflow, and key documentation, then generates a `CLAUDE.md` at the project root. This file gives Claude Code the context it needs to build and navigate your specific project. Run this once when you first set up a project — re-run anytime to regenerate.
-
-The plugin provides methodology, principles, and rules automatically. The `CLAUDE.md` covers project-specific context only: toolchain, commands, and references.
-
 ---
 
 ## Session start flow
 
 ```mermaid
-graph LR
-    A["/vsdd-factory:factory-health"] --> B{Healthy?}
-    B -->|Yes| C["/vsdd-factory:activate"]
-    B -->|No| D["Auto-repair"]
-    D --> C
-    C --> E["/vsdd-factory:setup-env"]
-    E --> F["Read STATE.md"]
-    F --> G{CLAUDE.md exists?}
-    G -->|Yes| H["Resume pipeline"]
-    G -->|No| I["/vsdd-factory:scaffold-claude-md"]
-    I --> H
+graph TD
+    subgraph "First time only"
+        A1["/vsdd-factory:factory-health"] --> A2["/vsdd-factory:setup-env"]
+        A2 --> A3["/vsdd-factory:activate"]
+        A3 --> A4["/vsdd-factory:scaffold-claude-md"]
+    end
+
+    subgraph "Every session"
+        B1["/vsdd-factory:factory-health"] --> B2["Read STATE.md"]
+        B2 --> B3["Resume pipeline"]
+    end
 ```
 
 ---
