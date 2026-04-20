@@ -179,11 +179,14 @@ If you have an existing codebase you want to analyze before building on it:
 
 This runs the broad-then-converge analysis protocol:
 
-1. **Phase A (Broad Sweep):** 7 passes analyzing inventory, architecture, domain model,
+1. **Step A (Source Acquisition):** Clone or copy the codebase into `.reference/`.
+2. **Step B (Broad Sweep):** 7 passes analyzing inventory, architecture, domain model,
    behavioral contracts, NFRs, conventions, and a synthesis.
-2. **Phase B (Convergence Deepening):** Each pass iterates until novelty decays to NITPICK.
+3. **Step C (Convergence Deepening):** Each pass iterates until novelty decays to NITPICK.
    Domain model and behavioral contracts deepen first (highest value), then the rest.
-3. **Phase C (Final Synthesis):** Definitive synthesis incorporating all convergence rounds,
+4. **Step D (Coverage Audit):** Grep-driven verification that all source directories have analysis coverage.
+5. **Step E (Extraction Validation):** Behavioral + metric accuracy check against actual source.
+6. **Step F (Final Synthesis):** Definitive synthesis incorporating all convergence rounds,
    with a prioritized lessons section (P0/P1/P2/P3 buckets).
 
 The codebase is cloned into `.reference/<project>/` and all analysis outputs go to
@@ -268,23 +271,31 @@ test writing, Red Gate verification, implementation, demo recording, and PR crea
 
 ## Understanding modes
 
-The VSDD pipeline supports four operating modes, selected based on what you are building:
+The VSDD pipeline supports 8 workflow modes:
 
 | Mode | When to use | Entry point |
 |------|-------------|-------------|
 | **Greenfield** | New project from scratch | `/vsdd-factory:create-brief` |
-| **Brownfield** | Rebuilding or extending an existing codebase | `/vsdd-factory:brownfield-ingest` |
-| **Feature** | Adding a feature to an existing VSDD-managed project | `/vsdd-factory:mode-decision-guide` |
-| **Maintenance** | Bug fixes, dependency updates, routine maintenance | `/vsdd-factory:maintenance-sweep` |
+| **Brownfield** | Existing codebase to extend or rebuild | `/vsdd-factory:brownfield-ingest` |
+| **Feature** | Adding to a VSDD-managed project | Orchestrator auto-detects |
+| **Maintenance** | Scheduled quality sweeps | `/vsdd-factory:maintenance-sweep` |
+| **Discovery** | Autonomous opportunity research | `/vsdd-factory:discovery-engine` |
+| **Planning** | Adaptive front-end (runs automatically) | Embedded in greenfield/brownfield |
+| **Multi-Repo** | Cross-repo coordination | Auto-detected from `project.yaml` |
+| **Code Delivery** | Per-story TDD (sub-workflow) | `/vsdd-factory:deliver-story` |
 
-The `/vsdd-factory:mode-decision-guide` command helps you choose the right mode if you are unsure. Each
-mode uses the same phases but may skip or streamline some (for example, a maintenance sweep
-does not need full spec crystallization).
+The pipeline has 8 phases numbered 0-7: Codebase Ingestion, Spec Crystallization, Story Decomposition, TDD Implementation, Holdout Evaluation, Adversarial Refinement, Formal Hardening, and Convergence. Different modes run different subsets of these phases.
+
+You don't need to choose multi-repo upfront — if the architect discovers multi-service topology during Phase 1, the pipeline transitions automatically (with your confirmation).
+
+See [Workflow Modes](workflow-modes.md) for detailed descriptions and [Pipeline Paths](pipeline-paths.md) for all 14 possible routes through the factory.
 
 ---
 
 ## Next steps
 
+- [Workflow Modes](workflow-modes.md) -- all 8 modes with routing diagram and mode detection logic
+- [Pipeline Paths](pipeline-paths.md) -- all 14 paths through the factory with step traces
 - [Pipeline Overview](pipeline-overview.md) -- the full phase map with detailed descriptions
 - [Configuration](configuration.md) -- directory layout, STATE.md, hook behavior
 - [Troubleshooting](troubleshooting.md) -- common issues and fixes
