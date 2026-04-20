@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.42.0 — Iron Laws and Red Flags for all critical pipeline skills
+
+### Added
+
+- **5 new Iron Laws** with Red Flags tables for critical skills:
+  - `decompose-stories`: NO STORY WITHOUT BC TRACEABILITY FIRST (8 flags)
+  - `holdout-eval`: NO HOLDOUT EVALUATION WITHOUT INFORMATION ASYMMETRY FIRST (8 flags)
+  - `convergence-check`: NO RELEASE WITHOUT ALL SEVEN DIMENSIONS CONVERGED (8 flags)
+  - `formal-verify`: NO HARDENING SIGN-OFF WITHOUT ALL PROOF HARNESSES PASSING (8 flags)
+  - `create-architecture`: NO ARCHITECTURE WITHOUT VERIFICATION FEASIBILITY ASSESSMENT (8 flags)
+- Total: 9 Iron Laws, 80 Red Flag entries across the pipeline
+
+### Fixed
+
+- **Minimum pass count inconsistency** — adversarial-review SKILL.md and adversary.md both said "Minimum 2 passes", now correctly say "Minimum 3 clean passes" matching CONVERGENCE.md and all convergence hooks
+- **Maximum pass escalation** — "Maximum 5" → "Maximum 10" matching convergence loop `max_iterations` in all lobster files
+
 ## 0.41.3 — Restore adversary agent model tier
 
 ### Fixed
