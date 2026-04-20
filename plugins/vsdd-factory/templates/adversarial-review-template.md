@@ -72,3 +72,23 @@ The cycle prefix prevents ID collisions when multiple convergence cycles coexist
 **Overall Assessment:** [pass / pass-with-findings / block]
 **Convergence:** [CONVERGENCE_REACHED / findings remain — iterate]
 **Readiness:** [ready for next phase / requires revision]
+
+## Novelty Assessment
+
+| Field | Value |
+|-------|-------|
+| **Pass** | [N] |
+| **New findings** | [count of genuinely new findings] |
+| **Duplicate/variant findings** | [count of duplicate or minor-variant findings] |
+| **Novelty score** | [N(i) / (N(i) + D(i))] |
+| **Median severity** | [1.0-5.0 scale] |
+| **Trajectory** | [e.g., 29→24→21→7→4→3] |
+| **Verdict** | [CONVERGENCE_REACHED / FINDINGS_REMAIN] |
+
+<!--
+  This section is MANDATORY. The validate-novelty-assessment hook
+  blocks adversarial review files missing this section or its required fields.
+  
+  Novelty score = new / (new + duplicate). Converged when < 0.15 for 2+ passes.
+  See CONVERGENCE.md Dimension 1 for the full quantitative criteria.
+-->
