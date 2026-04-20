@@ -807,31 +807,49 @@ workflow:
                   including prior waves. Report results.
                   Any failure = wave integration issue.
 
-              # 2. Wave-level adversarial review (combined diff)
+              # 2. Wave-level adversarial review (convergence loop on combined diff)
               - name: wave-adversarial-review
-                type: agent
-                agent: adversary
+                type: loop
                 depends_on: [wave-full-test]
-                model_tier: adversary
-                task: >
-                  Review the combined diff of all wave N stories merged to
-                  develop. Fresh context. Focus on cross-story integration
-                  issues, inconsistencies, shared state mutations, and API
-                  contract mismatches.
-                  Write findings to .factory/cycles/**/implementation/
-                    wave-N-integration-review.md
-                context:
-                  include:
-                    - ".factory/specs/architecture/ARCH-INDEX.md"
-                    - ".factory/specs/architecture/*.md"
-                    - ".factory/specs/behavioral-contracts/**"
-                    - ".factory/specs/prd.md"
-                    - ".factory/specs/prd-supplements/**"
-                    - "src/**"
-                    - "tests/**"
-                  exclude:
-                    # ▓ WALL: wave adversary cannot see per-story PR reviews
-                    - ".factory/code-delivery/*/review-findings.md"
+                loop:
+                  max_iterations: 10
+                  exit_condition: "adversary.verdict == 'CONVERGENCE_REACHED'"
+                  steps:
+                    - name: spawn-wave-adversary
+                      type: agent
+                      agent: adversary
+                      model_tier: adversary
+                      task: >
+                        Review the combined diff of all wave N stories merged to
+                        develop. Fresh context. Focus on cross-story integration
+                        issues, inconsistencies, shared state mutations, and API
+                        contract mismatches.
+                        Write findings to .factory/cycles/**/implementation/
+                          wave-N-integration-review.md
+                        Report CONVERGENCE_REACHED if findings are cosmetic only.
+                      context:
+                        include:
+                          - ".factory/specs/architecture/ARCH-INDEX.md"
+                          - ".factory/specs/architecture/*.md"
+                          - ".factory/specs/behavioral-contracts/**"
+                          - ".factory/specs/prd.md"
+                          - ".factory/specs/prd-supplements/**"
+                          - "src/**"
+                          - "tests/**"
+                        exclude:
+                          # ▓ WALL: wave adversary cannot see per-story PR reviews
+                          - ".factory/code-delivery/*/review-findings.md"
+                          # ▓ WALL: no prior wave adversarial history
+                          - ".factory/cycles/**/implementation/wave-*-integration-review.md"
+
+                    - name: fix-wave-adversary-findings
+                      type: agent
+                      agent: implementer
+                      depends_on: [spawn-wave-adversary]
+                      condition: "adversary.has_blocking_findings == true"
+                      task: >
+                        Fix adversary findings on wave integration. Re-run
+                        tests to verify fixes don't break anything.
 
               # 2b. Wave-level security review (if wave has CRIT/HIGH stories)
               - name: wave-security-review
@@ -1031,7 +1049,7 @@ workflow:
       timeout: "30m"
 
     # =========================================================================
-    # Phase 4: Adversarial Refinement
+    # Phase 5: Adversarial Refinement
     # =========================================================================
 
     # =========================================================================

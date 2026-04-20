@@ -110,12 +110,15 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
   - Phase 0: human approval gate
   - Phase 1: DTU assessment (P1-06) — always produces dtu-assessment.md
   - Phase 1: CI/CD setup (phase-1-cicd-setup) — always produces .github/workflows/ and cicd-setup.md
-  - Phase 2: adversarial convergence — always 3 clean passes minimum
-  - Phase 3: adversarial convergence — always 3 clean passes minimum
-  - Pre-Phase 4: DTU clone existence check (if DTU_REQUIRED: true)
-  - Pre-Phase 4: CI/CD verification (ci.yml exists, branch protection configured)
-  - Phase 5: holdout evaluation — always runs against DTU clones if DTU_REQUIRED: true
-  - Phase gates 1, 2, 3, 6: input-hash drift check — run `/vsdd-factory:check-input-drift` BEFORE human approval. Any DRIFT results must be resolved before proceeding.
+  - Phase 1d: adversarial spec convergence — always 3 clean passes minimum
+  - Phase 2: adversarial story convergence — always 3 clean passes minimum
+  - Pre-Phase 3: DTU clone existence check (if DTU_REQUIRED: true)
+  - Pre-Phase 3: CI/CD verification (ci.yml exists, branch protection configured)
+  - Phase 3: per-story adversarial convergence — always 3 clean passes minimum per story
+  - Phase 3: wave-level adversarial convergence — always 3 clean passes minimum per wave
+  - Phase 4: holdout evaluation — always runs against DTU clones if DTU_REQUIRED: true
+  - Phase 5: adversarial implementation convergence — always 3 clean passes minimum
+  - Phase gates 1, 2, 3, 7: input-hash drift check — run `/vsdd-factory:check-input-drift` BEFORE human approval. Any DRIFT results must be resolved before proceeding.
 - You NEVER compose PR bodies, gh commands, or shell scripts in task descriptions — pr-manager owns the PR lifecycle. You NEVER spawn github-ops directly for PR operations — that's pr-manager's job.
 - You NEVER allow implementation before tests exist (Red Gate)
 - You ALWAYS delegate via `sessions_spawn` — see FACTORY.md Sub-Agent Delegation Rule

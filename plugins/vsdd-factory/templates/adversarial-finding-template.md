@@ -8,7 +8,7 @@ category: "spec-gap|consistency|completeness|edge-case|security|performance"
 status: "open|in-progress|resolved|dismissed|deferred"
 producer: adversary
 timestamp: YYYY-MM-DDTHH:MM:SS
-phase: "1d|2|4"
+phase: "1d|2|5"
 traces_to: "ADV-<CYCLE>-P[N]-INDEX.md"
 source_artifacts: ["BC-S.SS.NNN", "VP-NNN", "STORY-NNN"]
 depends_on: []

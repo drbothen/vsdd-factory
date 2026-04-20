@@ -387,12 +387,14 @@ setup() {
   [ -f "$plugin_root/skills/deliver-story/steps/_shared-context.md" ]
   [ -f "$plugin_root/skills/formal-verify/steps/_shared-context.md" ]
   [ -f "$plugin_root/skills/convergence-check/steps/_shared-context.md" ]
+  [ -f "$plugin_root/skills/phase-1d-adversarial-spec-review/steps/_shared-context.md" ]
+  [ -f "$plugin_root/skills/phase-f5-scoped-adversarial/steps/_shared-context.md" ]
 }
 
 @test "phase 0-7 step files use pure alphabetic naming" {
   local plugin_root="${BATS_TEST_DIRNAME}/.."
   local bad=0
-  for skill_dir in brownfield-ingest decompose-stories deliver-story formal-verify convergence-check; do
+  for skill_dir in brownfield-ingest decompose-stories deliver-story formal-verify convergence-check phase-1d-adversarial-spec-review phase-f5-scoped-adversarial; do
     local steps_dir="$plugin_root/skills/$skill_dir/steps"
     [ -d "$steps_dir" ] || continue
     while IFS= read -r f; do

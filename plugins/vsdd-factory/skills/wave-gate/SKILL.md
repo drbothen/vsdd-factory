@@ -145,4 +145,4 @@ Tell the user:
 - Wave N is complete
 - Next wave stories are unblocked
 - Use `/deliver-story STORY-NNN` to start the next wave
-- Or if this was the last wave, proceed to Phase 4: `/adversarial-review implementation` for full codebase review
+- Or if this was the last wave, proceed to Phase 5: `/adversarial-review implementation` for full codebase review

@@ -95,13 +95,63 @@ workflow:
           Use Semport translation workflow instead of writing from scratch.
 
     # =========================================================================
+    # Step 4a: Per-Story Adversarial Review (convergence loop on story diff)
+    # =========================================================================
+
+    - name: per-story-adversarial-review
+      type: loop
+      depends_on: [implement]
+      loop:
+        max_iterations: 10
+        exit_condition: "adversary.verdict == 'CONVERGENCE_REACHED'"
+        steps:
+          - name: spawn-adversary-story-code
+            type: agent
+            agent: adversary
+            model_tier: adversary
+            task: >
+              Review implementation for story [story_id] with fresh context.
+              Scope: only files changed in [worktree_path]. Check spec fidelity
+              against story acceptance criteria and BCs, test quality, code
+              quality, security surface.
+              Report CONVERGENCE_REACHED if findings are cosmetic only.
+            context:
+              include:
+                - "[worktree_path]/src/**"
+                - "[worktree_path]/tests/**"
+                - ".factory/stories/[story_id].md"
+                - ".factory/specs/behavioral-contracts/**"
+                - ".factory/specs/verification-properties/**"
+                - ".factory/specs/architecture/ARCH-INDEX.md"
+              exclude:
+                # ▓ WALL: no implementation reasoning
+                - ".factory/cycles/**/implementation/implementer-notes*"
+                - ".factory/cycles/**/implementation/red-gate-log*"
+                # ▓ WALL: no prior adversarial history (fresh eyes)
+                - ".factory/cycles/**/adversarial-reviews/**"
+                # ▓ WALL: no semport history (DF-028)
+                - ".factory/semport/**"
+                # ▓ WALL: no holdout scenarios (train/test separation)
+                - ".factory/holdout-scenarios/**"
+
+          - name: fix-story-code-findings
+            type: agent
+            agent: implementer
+            depends_on: [spawn-adversary-story-code]
+            condition: "adversary.has_blocking_findings == true"
+            task: >
+              Fix adversary findings in [worktree_path].
+              Re-run tests to verify fixes don't break anything.
+              Micro-commit each fix.
+
+    # =========================================================================
     # Step 5: E2E Tests (UI/full-stack only)
     # =========================================================================
 
     - name: e2e-tests
       type: agent
       agent: e2e-tester
-      depends_on: [implement]
+      depends_on: [per-story-adversarial-review]
       condition: "feature_type in ['ui', 'full-stack']"
       task: >
         Run browser-based e2e tests for [story_id] in [worktree_path].
@@ -115,7 +165,7 @@ workflow:
     - name: storybook-story-generation
       type: agent
       agent: test-writer
-      depends_on: [implement]
+      depends_on: [per-story-adversarial-review]
       condition: "feature_type in ['ui', 'full-stack'] and storybook.available == true"
       task: >
         For each UI component created/modified in [story_id]:
@@ -156,7 +206,7 @@ workflow:
     - name: per-story-ui-quality-gate
       type: agent
       agent: consistency-validator
-      depends_on: [implement, storybook-component-tests]
+      depends_on: [per-story-adversarial-review, storybook-component-tests]
       condition: "feature_type in ['ui', 'full-stack']"
       task: >
         Per-story UI quality gate (lightweight):
@@ -174,7 +224,7 @@ workflow:
     - name: demo-recording
       type: agent
       agent: demo-recorder
-      depends_on: [implement]
+      depends_on: [per-story-adversarial-review]
       task: >
         Record per-AC demo evidence for [story_id] in [worktree_path]:
         1. Read story acceptance criteria

@@ -1,6 +1,6 @@
 # Convergence Criteria
 
-Formalized, quantitative criteria for five-dimensional convergence in the Dark Factory VSDD pipeline. These criteria replace subjective assessments ("adversary says it's done") with measurable thresholds grounded in finding decay curves, mutation kill rates, formal proof coverage, and cost-benefit analysis.
+Formalized, quantitative criteria for seven-dimensional convergence in the Dark Factory VSDD pipeline. These criteria replace subjective assessments ("adversary says it's done") with measurable thresholds grounded in finding decay curves, mutation kill rates, formal proof coverage, and cost-benefit analysis.
 
 All criteria are ADVISORY. The human operator can override any convergence assessment. When overriding a NOT_CONVERGED assessment, the override and its rationale are recorded in the convergence report.
 
@@ -260,6 +260,54 @@ Practical implications:
 
 ---
 
+## Dimension 6: Visual Convergence
+
+Objective criteria for demo and visual evidence completeness.
+
+### Demo Evidence Coverage
+
+Every story must have demo evidence covering all acceptance criteria:
+- Per-AC demo recording (GIF/WebM via VHS or Playwright)
+- Evidence report linking each AC to its demo artifact
+- Design system compliance (if applicable) — components use design tokens, meet accessibility standards
+
+**Converged when:** 100% of stories have demo reports AND all ACs in every story have corresponding evidence entries.
+
+### Visual Regression
+
+If design system exists:
+- Component contract compliance verified
+- No visual regressions from prior wave
+- Storybook component tests pass (if applicable)
+
+**Converged when:** Zero visual regressions AND component contract compliance at 100%.
+
+---
+
+## Dimension 7: Documentation Convergence
+
+Objective criteria for documentation completeness and accuracy.
+
+### Required Documentation
+
+- CLAUDE.md updated with current architecture, commands, and project references
+- API documentation generated and current (if applicable)
+- README reflects shipped features and current state
+- CHANGELOG entries exist for all shipped changes
+
+**Converged when:** All required documentation exists AND no stale references (no TODO/FIXME in docs, no references to removed features).
+
+### Documentation Accuracy
+
+- No references to deleted or renamed modules
+- No stale version numbers
+- No references to old phase numbers or removed workflow steps
+- Links resolve (no broken internal references)
+
+**Converged when:** Zero stale references AND all internal links resolve.
+
+---
+
 ## Progressive Autonomy (Auto-Merge Graduation)
 
 The pipeline starts with human approval at every gate. As confidence builds, gates can be progressively automated based on tracked metrics.
@@ -305,7 +353,7 @@ Track these metrics over the last 20 pipeline runs. When AutonomyScore >= 0.85 A
 | **Holdout satisfaction** | Mean >= 0.85 for 20 consecutive runs, std dev < 0.15 | `.factory/holdout-evaluation/summary.md` |
 | **False positive rate** | < 5% (high satisfaction but code broken) | Human override log |
 | **Human override rate** | < 10% (human rejects auto-approved code) | Human override log |
-| **Adversarial convergence speed** | Converges in <= 3 passes for 15/20 runs | Phase 4 pass count |
+| **Adversarial convergence speed** | Converges in <= 3 passes for 15/20 runs | Phase 5 pass count |
 | **Regression rate** | Zero regressions in last 20 runs | Phase F4 regression logs |
 
 ### Metrics for Level 3.5 -> 4 (Full Autonomy)
@@ -330,11 +378,11 @@ autonomy_level: 3  # Current level (human sets this)
 phase_gates:
   phase_1_spec:     human     # Always human at Level 3
   phase_2_stories:  human     # Always human at Level 3
-  phase_3_impl:     human     # -> "auto" at Level 3.5
-  phase_3.5_holdout: auto     # Always auto (metric-gated)
-  phase_4_adversary: human    # -> "auto" at Level 3.5
-  phase_5_hardening: auto     # Always auto (metric-gated)
-  phase_6_converge:  human    # -> "auto" at Level 4
+  phase_3_impl:      human    # -> "auto" at Level 3.5
+  phase_4_holdout:   auto     # Always auto (metric-gated)
+  phase_5_adversary: human    # -> "auto" at Level 3.5
+  phase_6_hardening: auto     # Always auto (metric-gated)
+  phase_7_converge:  human    # -> "auto" at Level 4
 
 # Any team member can still block before merge window closes
 merge_window_minutes: 30
@@ -448,11 +496,11 @@ Run convergence assessment:
 
 ### Overall Convergence
 
-The pipeline has converged when ALL FIVE dimensions report CONVERGED.
+The pipeline has converged when ALL SEVEN dimensions report CONVERGED.
 
 If any dimension reports NOT_CONVERGED, the Orchestrator must:
 1. Identify which dimension(s) are not converged
-2. Route work to the appropriate agent (Adversary for Dimensions 1/3, Formal Verifier for Dimensions 2/4)
+2. Route work to the appropriate agent (Adversary for Dimensions 1/3, Formal Verifier for Dimensions 2/4, demo-recorder for Dimension 6, doc-writer for Dimension 7)
 3. Run the next iteration
 4. Re-assess convergence
 

@@ -11,7 +11,7 @@ agent: adversary
 
 Launch the adversary agent to review specs or implementation with fresh context.
 
-**Invocation:** This skill can be invoked by the orchestrator autonomously (during Phase 1d, Phase 4 convergence, and between fix bursts) or by the user via `/vsdd-factory:adversarial-review`. The `disable-model-invocation: false` setting allows orchestrator-initiated invocation, which is required for autonomous VSDD convergence loops. The user can still invoke it directly at any time.
+**Invocation:** This skill can be invoked by the orchestrator autonomously (during Phase 1d, Phase 5 convergence, and between fix bursts) or by the user via `/vsdd-factory:adversarial-review`. The `disable-model-invocation: false` setting allows orchestrator-initiated invocation, which is required for autonomous VSDD convergence loops. The user can still invoke it directly at any time.
 
 ## The Iron Law
 

@@ -27,7 +27,7 @@ Read and follow the output format in:
 
 - After all stories in a wave are merged to `develop`
 - Before starting the next wave
-- This is Phase 4 — between implementation and adversarial refinement
+- This is Phase 4 (Holdout Evaluation) — between implementation (Phase 3) and adversarial refinement (Phase 5)
 
 ## What the Evaluator Receives
 
@@ -55,5 +55,5 @@ The holdout-evaluator agent sees ONLY:
 
 Results written to `.factory/holdout-scenarios/evaluations/wave-<N>/`.
 
-If PASS: proceed to next wave or Phase 4 (adversarial refinement).
+If PASS: proceed to next wave or Phase 5 (adversarial refinement).
 If FAIL: report gaps, create remediation stories.

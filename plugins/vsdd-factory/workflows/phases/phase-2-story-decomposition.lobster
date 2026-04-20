@@ -104,12 +104,52 @@ workflow:
           - "At least one holdout scenario per wave"
         fail_action: block
 
+    # === Adversarial Story Review (convergence loop) ===
+
+    - name: adversarial-story-review
+      type: loop
+      depends_on: [decomposition-gate]
+      loop:
+        max_iterations: 10
+        exit_condition: "adversary.verdict == 'CONVERGENCE_REACHED'"
+        steps:
+          - name: spawn-adversary-story-review
+            type: agent
+            agent: adversary
+            model_tier: adversary
+            task: >
+              Review story breakdown with fresh context. Check for missing
+              stories, oversized stories, insufficient verification properties,
+              dependency ordering issues, BC coverage gaps, AC↔BC traceability,
+              holdout scenario completeness.
+              Write findings to .factory/stories/adversarial-reviews/ as
+              per-finding files with ADV-P[N]-INDEX.md.
+              Report CONVERGENCE_REACHED if findings are cosmetic only.
+            context:
+              include:
+                - ".factory/stories/**"
+                - ".factory/specs/behavioral-contracts/**"
+                - ".factory/specs/verification-properties/**"
+                - ".factory/specs/prd.md"
+                - ".factory/specs/prd-supplements/**"
+                - ".factory/specs/architecture/ARCH-INDEX.md"
+              exclude:
+                # ▓ WALL: no holdout scenarios (train/test separation)
+                - ".factory/holdout-scenarios/**"
+                # ▓ WALL: no prior adversarial history (fresh eyes)
+                - ".factory/stories/adversarial-reviews/**"
+
+          - name: fix-story-findings
+            type: skill
+            skill: "skills/decompose-stories/SKILL.md"
+            depends_on: [spawn-adversary-story-review]
+
     # === Input-Hash Drift Check ===
 
     - name: input-hash-drift-check
       type: skill
       skill: "skills/check-input-drift/SKILL.md"
-      depends_on: [decomposition-gate]
+      depends_on: [adversarial-story-review]
       description: >
         Scan story and holdout artifacts for stale input-hashes.
 

@@ -805,17 +805,36 @@ workflow:
                   existing + all prior waves). Any failure = wave integration issue.
 
               - name: wave-adversarial-review
-                type: agent
-                agent: adversary
+                type: loop
                 depends_on: [wave-full-test]
-                model_tier: adversary
-                task: >
-                  Review combined wave diff on develop. Fresh context.
-                  Focus on cross-story integration issues.
-                context:
-                  exclude:
-                    # Information asymmetry wall: wave adversary cannot see per-story PR reviews
-                    - ".factory/code-delivery/*/review-findings.md"
+                loop:
+                  max_iterations: 10
+                  exit_condition: "adversary.verdict == 'CONVERGENCE_REACHED'"
+                  steps:
+                    - name: spawn-wave-adversary
+                      type: agent
+                      agent: adversary
+                      model_tier: adversary
+                      task: >
+                        Review combined wave diff on develop. Fresh context.
+                        Focus on cross-story integration issues, inconsistencies,
+                        shared state mutations, and API contract mismatches.
+                        Report CONVERGENCE_REACHED if findings are cosmetic only.
+                      context:
+                        exclude:
+                          # ▓ WALL: wave adversary cannot see per-story PR reviews
+                          - ".factory/code-delivery/*/review-findings.md"
+                          # ▓ WALL: no prior wave adversarial history
+                          - ".factory/cycles/**/implementation/wave-*-integration-review.md"
+
+                    - name: fix-wave-adversary-findings
+                      type: agent
+                      agent: implementer
+                      depends_on: [spawn-wave-adversary]
+                      condition: "adversary.has_blocking_findings == true"
+                      task: >
+                        Fix adversary findings on wave integration. Re-run
+                        tests to verify fixes don't break anything.
 
               - name: wave-security-review
                 type: agent

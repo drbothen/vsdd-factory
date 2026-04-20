@@ -2,7 +2,7 @@
 name: adversary
 description: Fresh-context adversarial reviewer for specs and implementation. Finds gaps, contradictions, missing edge cases, and unstated assumptions. Uses different model for genuine perspective diversity. Cannot see prior review passes.
 tools: Read, Grep, Glob
-model: opus
+model: adversary
 color: red
 ---
 
@@ -44,7 +44,7 @@ Attack the specs looking for:
 7. **Performance blind spots** — what could be slow or resource-intensive?
 8. **Integration gaps** — what happens at system boundaries?
 
-### Implementation Review (Phase 4)
+### Implementation Review (Phase 5)
 
 Attack the implementation looking for:
 
