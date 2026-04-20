@@ -162,7 +162,7 @@ This is the **steady-state operating mode** — most development work after the 
 
 **Use when:** Running scheduled quality sweeps to catch drift, vulnerabilities, and regressions.
 
-**What it does:** 10 independent sweep types that run on a schedule:
+**What it does:** 11 independent sweep types that run on a schedule:
 
 | Sweep | What It Checks |
 |-------|---------------|
@@ -176,6 +176,7 @@ This is the **steady-state operating mode** — most development work after the 
 | 8. Overdue tech debt | Tech debt items past their target resolution date |
 | 9. Accessibility regression | A11y violations introduced since last audit |
 | 10. Design drift | Token overrides, component misuse, pattern violations |
+| 11. Risk & assumption monitoring | Stale ASM-NNN validations, unmitigated R-NNN risks |
 
 Each sweep can open fix PRs through the code-delivery sub-workflow automatically.
 

@@ -237,6 +237,7 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 |-------|-------------|
 | [Getting Started](docs/guide/getting-started.md) | Installation, first session, first project |
 | [Workflow Modes](docs/guide/workflow-modes.md) | All 8 workflow modes — when to use each, what phases they run |
+| [Pipeline Paths](docs/guide/pipeline-paths.md) | All 14 routing paths through the factory with step traces |
 | [Pipeline Overview](docs/guide/pipeline-overview.md) | Full phase map with Mermaid diagrams |
 | [Configuration](docs/guide/configuration.md) | Factory directory layout, STATE.md, hooks, templates |
 | [Troubleshooting](docs/guide/troubleshooting.md) | Common issues and fixes |

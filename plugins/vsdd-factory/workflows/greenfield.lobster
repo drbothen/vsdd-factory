@@ -794,7 +794,7 @@ workflow:
 
           # --- Wave Integration Gate (after all stories in wave merged) ---
           - name: wave-integration-gate
-            type: skill
+            type: compound
             depends_on: [per-story-delivery]
             steps:
               # 1. Full test suite on merged develop

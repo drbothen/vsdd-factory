@@ -280,7 +280,7 @@ workflow:
     - name: brownfield-design-system-extract
       type: skill
       skill: "skills/design-system-bootstrap/SKILL.md"
-      depends_on: [brownfield-market-review, semport-validation-gate]
+      depends_on: [brownfield-market-review]
       condition: "routing.choice == 'feature' and feature_type in ['ui', 'full-stack']"
       # D2 brownfield flow: Extract design system from existing codebase.
       # codebase-analyzer extracts styles -> ux-designer normalizes to tokens ->
@@ -301,7 +301,8 @@ workflow:
     - name: brownfield-to-greenfield-transition
       type: agent
       agent: state-manager
-      depends_on: [brownfield-market-review, semport-validation-gate, brownfield-design-system-approval]
+      depends_on: [brownfield-market-review]
+      wait_for_optional: [semport-validation-gate, brownfield-design-system-approval]
       condition: "routing.choice == 'feature'"
       task: >
         Prepare Phase 1 context from Phase 0 output:
@@ -336,6 +337,30 @@ workflow:
       sub_workflow: "greenfield.lobster"
       depends_on: [brownfield-to-greenfield-transition]
       condition: "routing.choice == 'feature'"
+
+    # =========================================================================
+    # Multi-Repo Hand-Off (if greenfield's Phase 1 triggered multi-repo transition)
+    # Greenfield's multi-repo-state-migration step sets project_type: multi-repo
+    # in STATE.md and generates project.yaml. If that happened, the greenfield
+    # sub-workflow exited early and we need to launch multi-repo.lobster.
+    # =========================================================================
+
+    - name: multi-repo-handoff-check
+      type: agent
+      agent: orchestrator
+      depends_on: [greenfield-pipeline]
+      task: >
+        Check if greenfield pipeline triggered a multi-repo transition:
+        1. Does project.yaml exist?
+        2. Does STATE.md contain project_type: multi-repo?
+        If both: set MULTI_REPO_HANDOFF=true.
+        If not: set MULTI_REPO_HANDOFF=false (single-repo, pipeline complete).
+
+    - name: multi-repo-pipeline
+      type: sub-workflow
+      sub_workflow: "multi-repo.lobster"
+      depends_on: [multi-repo-handoff-check]
+      condition: "MULTI_REPO_HANDOFF == true"
 
     # =========================================================================
     # POST-PIPELINE: Session Review (DF-036)

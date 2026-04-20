@@ -246,37 +246,44 @@ workflow:
 
     # =========================================================================
     # Wave 0: Primary Services (no cross-repo dependencies)
-    # Per-repo sub-workflows with cwd
+    # Per-repo sub-workflows with cwd. Iterates over repos classified
+    # into wave 0 by compute-repo-waves. Each repo runs its classified
+    # mode (greenfield/brownfield/feature) via the appropriate sub-workflow.
     # =========================================================================
 
     - name: wave-0-spec
-      type: skill
-      skill: "skills/phase-1-spec-crystallization/SKILL.md"
+      type: parallel-foreach
+      collection: "repo_waves[0]"
       depends_on: [market-intel-review]
-      cwd: "./api-server"
-      condition: "repo_waves[0].includes('api-server')"
+      iterator:
+        - name: "wave-0-spec-${repo.name}"
+          type: skill
+          skill: "skills/phase-1-spec-crystallization/SKILL.md"
+          cwd: "./${repo.name}"
 
     - name: wave-0-spec-approval
       type: human-approval
       depends_on: [wave-0-spec]
       approval:
         prompt: >
-          Wave 0 (api-server) spec crystallization complete. Review the spec package
-          including API contracts (OpenAPI). These contracts will be used by consumer
-          repos in Wave 1. Approve to proceed.
+          Wave 0 spec crystallization complete for all primary repos.
+          Review each repo's spec package including API contracts.
+          These contracts will be used by consumer repos in Wave 1.
         artifacts:
-          - "./api-server/.factory/specs/prd.md"
-          - "./api-server/.factory/specs/architecture/ARCH-INDEX.md"
-          - "./api-server/openapi.yaml"
+          - "./${repo.name}/.factory/specs/prd.md"
+          - "./${repo.name}/.factory/specs/architecture/ARCH-INDEX.md"
 
     - name: wave-0-impl
-      type: sub-workflow
-      sub_workflow: "greenfield.lobster"
+      type: parallel-foreach
+      collection: "repo_waves[0]"
       depends_on: [wave-0-spec-approval]
-      cwd: "./api-server"
-      cost_monitoring:
-        repo: "api-server"
-      # All cross-cutting infrastructure applies per-repo via greenfield.lobster
+      iterator:
+        - name: "wave-0-impl-${repo.name}"
+          type: sub-workflow
+          sub_workflow: "${repo.mode}.lobster"
+          cwd: "./${repo.name}"
+          cost_monitoring:
+            repo: "${repo.name}"
 
     - name: wave-0-state-commit
       type: agent
@@ -285,7 +292,7 @@ workflow:
       task: >
         Commit wave 0 artifacts to factory-project-artifacts.
         Update .factory-project/STATE.md: wave-0 complete.
-        Update per-repo STATE.md for api-server.
+        Update per-repo STATE.md for each wave 0 repo.
 
     # =========================================================================
     # Contract Change Detection (after wave 0 implementation)
@@ -308,15 +315,19 @@ workflow:
     # Per-repo sub-workflows with cwd and mode classification
     # =========================================================================
 
-    - name: wave-1-frontend
-      type: sub-workflow
-      sub_workflow: "greenfield.lobster"
+    - name: wave-1-consumers
+      type: parallel-foreach
+      collection: "repo_waves[1].where(role != 'generated')"
       depends_on: [wave-0-spec-approval]
-      cwd: "./frontend"
-      cost_monitoring:
-        repo: "frontend"
-      # Mode determined by per-repo classification (mixed mode support)
+      iterator:
+        - name: "wave-1-impl-${repo.name}"
+          type: sub-workflow
+          sub_workflow: "${repo.mode}.lobster"
+          cwd: "./${repo.name}"
+          cost_monitoring:
+            repo: "${repo.name}"
       # Consumer repos start after wave 0 spec approval (contract dependency)
+      # Mode determined by per-repo classification (mixed mode support)
 
     - name: wave-1-sdk-gen
       type: skill
@@ -344,11 +355,11 @@ workflow:
     - name: wave-1-state-commit
       type: agent
       agent: state-manager
-      depends_on: [wave-1-frontend, wave-1-sdk-gen]
+      depends_on: [wave-1-consumers, wave-1-sdk-gen]
       task: >
         Commit wave 1 artifacts to factory-project-artifacts.
         Update .factory-project/STATE.md: wave-1 complete.
-        Update per-repo STATE.md for frontend and SDK repos.
+        Update per-repo STATE.md for all wave 1 repos.
 
     # =========================================================================
     # Cross-Repo Integration Gate
@@ -359,7 +370,7 @@ workflow:
     - name: cross-repo-docker-env
       type: agent
       agent: devops-engineer
-      depends_on: [wave-0-impl, wave-1-frontend, wave-1-sdk-gen]
+      depends_on: [wave-0-impl, wave-1-consumers, wave-1-sdk-gen]
       task: >
         Start Docker Compose integration environment with all repos.
         Verify all services start and communicate.

@@ -1,19 +1,12 @@
 workflow:
   name: maintenance-sweep
   description: >
-    Background quality sweeps that run on a schedule. Detects dependency
-    vulnerabilities, documentation drift, pattern inconsistencies, stale holdout
-    scenarios, performance regressions, DTU clone fidelity drift, spec coherence
-    violations, overdue tech debt, and accessibility regressions. Opens fix PRs
-    through the per-story delivery flow (code-delivery.lobster).
-
-    Cross-cutting infrastructure (DF-020-028) applies throughout. See
-    docs/factory-paths.md Cross-Cutting Infrastructure section for shared baseline.
-    Key additions from DF-029: 9 sweep types (4 new), dependency audit split
-    (dx-engineer runs + security-reviewer analyzes), state-manager commits,
-    fix PRs via code-delivery.lobster, notification integration, crash recovery.
-    DF-037 additions: Sweep 10 (design drift detection for UI products --
-    token overrides, component misuse, pattern violations, emergent patterns).
+    Background quality sweeps that run on a schedule. 11 sweep types covering
+    dependency vulnerabilities, documentation drift, pattern inconsistencies,
+    stale holdout scenarios, performance regressions, DTU clone fidelity drift,
+    spec coherence violations, overdue tech debt, accessibility regressions,
+    design drift, and risk/assumption monitoring. Opens fix PRs through the
+    per-story delivery flow (code-delivery.lobster).
   version: "2.0.0"
 
   defaults:

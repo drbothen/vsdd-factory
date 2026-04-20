@@ -794,7 +794,7 @@ workflow:
 
           # --- Wave Integration Gate ---
           - name: wave-integration-gate
-            type: skill
+            type: compound
             depends_on: [per-story-delivery]
             steps:
               - name: wave-full-test
