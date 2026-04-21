@@ -39,7 +39,7 @@ while IFS= read -r line; do
   LINE_NUM=$((LINE_NUM + 1))
 
   # Count unescaped pipes: remove escaped pipes (\|) then count |
-  clean=$(echo "$line" | sed 's/\\|//g')
+  clean="${line//\\|/}"
   pipe_count=$(echo "$clean" | tr -cd '|' | wc -c | tr -d ' ')
 
   # Detect table header (line with pipes, followed by separator)

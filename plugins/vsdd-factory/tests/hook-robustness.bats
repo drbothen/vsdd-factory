@@ -269,3 +269,18 @@ _run_hook() {
     bash -n "$HOOKS/$hook.sh"
   done
 }
+
+@test "contract: all hooks and bin scripts pass shellcheck" {
+  if ! command -v shellcheck &>/dev/null; then
+    skip "shellcheck not installed"
+  fi
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  local failures=0
+  for f in "$plugin_root"/hooks/*.sh "$plugin_root"/bin/*; do
+    [ -f "$f" ] || continue
+    if ! shellcheck "$f" 2>&1; then
+      failures=$((failures + 1))
+    fi
+  done
+  [ "$failures" -eq 0 ]
+}
