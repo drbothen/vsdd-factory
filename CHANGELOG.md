@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.43.0 — Corpus lint hooks + comprehensive glossary
+
+### Added
+
+- **4 new corpus lint hooks** targeting recurring adversarial finding defect classes:
+  - `validate-table-cell-count.sh` — blocks markdown table rows with mismatched pipe count (caught 134 BCs in one Prism pass)
+  - `validate-changelog-monotonicity.sh` — blocks duplicate versions, ascending order, date inversions, frontmatter mismatch
+  - `validate-state-pin-freshness.sh` — blocks STATE.md version pins that don't match actual artifact versions
+  - `validate-index-self-reference.sh` — warns when INDEX/burst-log edited without current burst row
+- Extended `validate-input-hash.sh` — now blocks non-7-char hashes and non-lowercase-hex characters (caught 23 files in one pass)
+- 45 new BATS tests across corpus-lint.bats (35) and edge cases (10) — 505 total across 16 suites
+- **Glossary expanded to 110 entries** — added all spec levels (L1-L4), all 8 phases (0-7), architecture concepts (Purity Boundary, Pure Core, Effectful Shell), convergence metrics (Confidence Score, Hallucination Fingerprinting, MVR, Satisfaction Score), operational concepts (Burst, Per-Story Delivery Flow, Model Tier), and verification tools (Kani, Semgrep)
+
+### Fixed
+
+- `validate-input-hash.sh` null handling — `null` is not a valid placeholder (warns), only `[live-state]` and `[pending-recompute]` silently skip
+- 26 hooks total, 505 tests across 16 suites
+
 ## 0.42.0 — Iron Laws and Red Flags for all critical pipeline skills
 
 ### Added
