@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.46.1 — Strip .factory/ prefix from input paths
+
+### Fixed
+
+- **compute-input-hash** — inputs with `.factory/` prefix (e.g., `inputs: [.factory/specs/prd.md]`) resolved to double-nested paths that don't exist. Now strips the prefix when FACTORY_ROOT is known, falls back to original if stripping fails. 534 tests.
+
 ## 0.46.0 — Input resolution mode + partial hash safety
 
 ### Added
