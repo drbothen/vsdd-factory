@@ -2,18 +2,20 @@
 # compute-input-hash — compute MD5 hash of an artifact's input files.
 #
 # Usage:
-#   compute-input-hash <artifact-file>          # print the hash
-#   compute-input-hash <artifact-file> --update  # compute and write into frontmatter
-#   compute-input-hash <artifact-file> --check   # compare stored vs computed
+#   compute-input-hash <artifact-file>              # print the hash
+#   compute-input-hash <artifact-file> --update     # compute and write into frontmatter
+#   compute-input-hash <artifact-file> --check      # compare stored vs computed
+#   compute-input-hash --scan <root-dir>            # walk dir, report drift
+#   compute-input-hash --scan <root-dir> --update   # walk dir + update stale hashes
 #
 # Reads the `inputs:` frontmatter field, resolves file paths relative to the
 # artifact's directory, concatenates their contents, and outputs a 7-char
 # short MD5 hash (git-SHA-ish style).
 #
 # Exit codes:
-#   0 — success (or match for --check)
-#   1 — usage error or missing inputs
-#   2 — mismatch (--check only)
+#   0 — success (or match for --check, or clean scan, or --scan --update all ok)
+#   1 — usage error, missing inputs, or --scan --update had failures
+#   2 — mismatch (--check) or --scan found stale files (report mode)
 
 set -euo pipefail
 
@@ -21,15 +23,86 @@ die() { echo "compute-input-hash: $*" >&2; exit 1; }
 
 usage() {
   echo "Usage: compute-input-hash <artifact-file> [--update|--check]"
+  echo "       compute-input-hash --scan <root-dir> [--update]"
   echo ""
-  echo "Commands:"
+  echo "Per-file commands:"
   echo "  (default)   Print the computed hash to stdout"
   echo "  --update    Compute and write the hash into the file's input-hash frontmatter"
   echo "  --check     Compare stored input-hash against computed; exit 2 on mismatch"
+  echo ""
+  echo "Scan commands:"
+  echo "  --scan <dir>           Walk dir, report drift summary"
+  echo "  --scan <dir> --update  Walk dir + update all stale hashes"
   exit 1
 }
 
 [[ $# -lt 1 ]] && usage
+
+# === --scan mode: batch walk a directory and report/fix drift ===
+
+if [[ "$1" == "--scan" ]]; then
+  [[ $# -lt 2 ]] && die "--scan requires a directory argument"
+  ROOT="$2"
+  SCAN_MODE="${3:-report}"
+  [[ ! -d "$ROOT" ]] && die "directory not found: $ROOT"
+
+  SELF="$0"
+  if [[ ! -x "$SELF" ]]; then
+    SELF=$(command -v "$0" 2>/dev/null || true)
+    [[ -z "$SELF" ]] && die "cannot resolve self for recursive invocation"
+  fi
+
+  TOTAL=0 MATCH=0 STALE=0 UNCOMPUTED=0 NOINPUT=0 UPDATED=0 UPDATE_FAILED=0
+
+  while IFS= read -r f; do
+    fname=$(basename "$f")
+    case "$fname" in
+      INDEX.md|*-INDEX.md|*-index.md) continue ;;
+    esac
+
+    TOTAL=$((TOTAL + 1))
+
+    if OUT=$("$SELF" "$f" --check 2>&1); then CHECK_EC=0; else CHECK_EC=$?; fi
+
+    if [[ "$CHECK_EC" -eq 0 ]]; then
+      if echo "$OUT" | grep -q "no input-hash\|not yet computed"; then
+        UNCOMPUTED=$((UNCOMPUTED + 1))
+        [[ "$SCAN_MODE" == "report" ]] && echo "  UNCOMPUTED: $f" >&2
+      elif echo "$OUT" | grep -q "no input files found\|no inputs:\|skipping"; then
+        NOINPUT=$((NOINPUT + 1))
+      else
+        MATCH=$((MATCH + 1))
+      fi
+    elif [[ "$CHECK_EC" -eq 2 ]]; then
+      STALE=$((STALE + 1))
+      if [[ "$SCAN_MODE" == "--update" ]]; then
+        if FIX_OUT=$("$SELF" "$f" --update 2>&1); then
+          UPDATED=$((UPDATED + 1))
+        else
+          UPDATE_FAILED=$((UPDATE_FAILED + 1))
+          echo "  UPDATE_FAILED: $f — $FIX_OUT" >&2
+        fi
+      else
+        echo "  STALE: $f" >&2
+      fi
+    else
+      NOINPUT=$((NOINPUT + 1))
+    fi
+  done < <(grep -rlE "^input-hash:" "$ROOT" --include="*.md" 2>/dev/null || true)
+
+  echo "TOTAL=$TOTAL MATCH=$MATCH STALE=$STALE UNCOMPUTED=$UNCOMPUTED NOINPUT=$NOINPUT UPDATED=$UPDATED UPDATE_FAILED=$UPDATE_FAILED"
+
+  if [[ "$SCAN_MODE" == "--update" ]]; then
+    [[ "$UPDATE_FAILED" -gt 0 ]] && exit 1
+    exit 0
+  else
+    [[ "$STALE" -gt 0 ]] && exit 2
+    exit 0
+  fi
+fi
+
+# === Per-file mode (existing behavior) ===
+
 FILE="$1"
 MODE="${2:-print}"
 [[ ! -f "$FILE" ]] && die "file not found: $FILE"

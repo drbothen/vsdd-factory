@@ -30,16 +30,37 @@ If the current MD5 of `domain-spec/L2-INDEX.md + prd.md` differs from `be246a0`,
 
 ### Step 1: Scan artifacts
 
-Find all `.factory/**/*.md` files with both `inputs:` and `input-hash:` frontmatter fields.
+Run one command — the binary handles all iteration internally:
 
-Skip:
-- Files without `inputs:` field (no upstream dependencies to track)
-- Files with `input-hash: null` or `input-hash: "[md5]"` (hash never computed — report separately)
-- INDEX files (auto-generated, no input-hash)
+```bash
+${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash --scan .factory
+```
 
-### Step 2: Recompute hashes
+This walks all `.factory/**/*.md` files with `input-hash:` frontmatter, skips INDEX files, recomputes each hash via the per-file `--check` path, and reports a summary line:
 
-For each artifact, run:
+```
+TOTAL=423 MATCH=400 STALE=3 UNCOMPUTED=15 NOINPUT=5 UPDATED=0 UPDATE_FAILED=0
+```
+
+Stale and uncomputed files are listed on stderr. Exit codes: 0 = clean, 2 = drift found.
+
+**Do NOT iterate manually with inline bash loops.** Claude Code's harness auto-backgrounds multi-line shell commands and kills them before output flushes. The `--scan` flag moves all iteration into the binary.
+
+The binary skips:
+- Files without `input-hash:` frontmatter field
+- INDEX-class files (INDEX.md, BC-INDEX.md, STORY-INDEX.md, etc.)
+
+And tallies five categories from each file's `--check` result:
+- **MATCH** — hash matches (exit 0, no warnings)
+- **STALE** — hash mismatch (exit 2, drift detected)
+- **UNCOMPUTED** — hash is null or `[md5]` placeholder (never computed)
+- **NOINPUT** — input files don't exist or no inputs field
+- **errors** — counted as NOINPUT defensively
+
+### Step 2: Per-file check (individual artifacts)
+
+To check a single artifact without scanning the full tree:
+
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash <file> --check
 ```
@@ -72,10 +93,21 @@ N artifacts verified current.
 
 ### Step 4: Fix (optional)
 
-If `--fix` is passed:
-1. For each stale artifact, run `compute-input-hash <file> --update` to recompute the hash
-2. Report which hashes were updated
-3. Note: updating the hash does NOT re-derive the artifact's content — it just acknowledges the current input state. If the content needs updating, that's a separate task for the producing agent.
+If `--fix` is passed, run with `--update` to batch-remediate all stale hashes:
+
+```bash
+${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash --scan .factory --update
+```
+
+This recomputes and writes the hash for all STALE files. Exit 0 if all updates succeeded, exit 1 if any failed. The summary line includes UPDATED and UPDATE_FAILED counts.
+
+For a single file:
+
+```bash
+${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash <file> --update
+```
+
+Note: updating the hash does NOT re-derive the artifact's content — it just acknowledges the current input state. If the content needs updating, that's a separate task for the producing agent.
 
 ## Integration
 
