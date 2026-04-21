@@ -65,12 +65,15 @@ if [[ -z "$PLUGIN_ROOT" ]]; then
 fi
 HASH_TOOL="$PLUGIN_ROOT/bin/compute-input-hash"
 
-# --- Case 1: No hash or placeholder → remind ---
-if [[ -z "$STORED_HASH" ]] || [[ "$STORED_HASH" == "[md5]" ]] || [[ "$STORED_HASH" == "null" ]] || [[ "$STORED_HASH" == "[live-state]" ]] || [[ "$STORED_HASH" == "[pending-recompute]" ]]; then
-  if [[ "$STORED_HASH" == "[md5]" ]]; then
-    echo "input-hash: artifact $(basename "$FILE_PATH") has inputs: but no computed input-hash." >&2
-    echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
-  fi
+# --- Case 1: Intentional placeholders → skip silently ---
+if [[ "$STORED_HASH" == "[live-state]" ]] || [[ "$STORED_HASH" == "[pending-recompute]" ]]; then
+  exit 0
+fi
+
+# --- Case 1a: Missing, template placeholder, or null → warn ---
+if [[ -z "$STORED_HASH" ]] || [[ "$STORED_HASH" == "[md5]" ]] || [[ "$STORED_HASH" == "null" ]]; then
+  echo "input-hash: artifact $(basename "$FILE_PATH") has inputs: but no computed input-hash." >&2
+  echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
   exit 0
 fi
 
