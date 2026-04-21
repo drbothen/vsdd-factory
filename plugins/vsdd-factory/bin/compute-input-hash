@@ -201,6 +201,13 @@ MISSING_FILES=""
 while IFS= read -r input_file; do
   [[ -z "$input_file" ]] && continue
 
+  # Strip .factory/ prefix if present — inputs may use .factory/-relative paths
+  # (e.g., inputs: [.factory/specs/prd.md]) but the resolver works from FACTORY_ROOT
+  stripped_input="$input_file"
+  if [[ -n "$FACTORY_ROOT" ]]; then
+    stripped_input="${input_file#.factory/}"
+  fi
+
   # Try paths in order: relative to artifact, parent dir, specs/, stories/,
   # phase-0-ingestion/, holdout-scenarios/, .factory/ root
   RESOLVED=""
@@ -211,7 +218,12 @@ while IFS= read -r input_file; do
     "${FACTORY_ROOT:+$FACTORY_ROOT/holdout-scenarios}" \
     "$FACTORY_ROOT"; do
     [[ -z "$base" ]] && continue
-    if [[ -f "$base/$input_file" ]]; then
+    if [[ -f "$base/$stripped_input" ]]; then
+      RESOLVED="$base/$stripped_input"
+      break
+    fi
+    # Also try the original (unstripped) in case stripping was wrong
+    if [[ "$stripped_input" != "$input_file" ]] && [[ -f "$base/$input_file" ]]; then
       RESOLVED="$base/$input_file"
       break
     fi

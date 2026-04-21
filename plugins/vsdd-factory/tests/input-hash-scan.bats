@@ -227,6 +227,31 @@ EOF
 }
 
 # ========================================================================
+# ========================================================================
+# .factory/ prefix stripping in inputs
+# ========================================================================
+
+@test "scan: resolves inputs with .factory/ prefix" {
+  # Artifact references input with .factory/ prefix
+  cat > "$WORK/.factory/specs/behavioral-contracts/test.md" << EOF
+---
+inputs: [.factory/specs/source.md]
+input-hash: "aaaaaaa"
+---
+# Test
+EOF
+  run "$BIN" "$WORK/.factory/specs/behavioral-contracts/test.md" --resolve 2>&1
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"resolved"* ]]
+}
+
+@test "scan: resolves inputs without .factory/ prefix (unchanged)" {
+  _make_artifact "$WORK/.factory/specs/behavioral-contracts/test.md" "aaaaaaa" "source.md"
+  run "$BIN" "$WORK/.factory/specs/behavioral-contracts/test.md" --resolve 2>&1
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"resolved"* ]]
+}
+
 # --scan summary line format
 # ========================================================================
 
