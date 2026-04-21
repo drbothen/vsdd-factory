@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.44.0 — Batch input-hash drift scanning
+
+### Added
+
+- **`compute-input-hash --scan <dir>`** — batch drift detection that walks all `.factory/**/*.md` artifacts in one command. Avoids Claude Code's multi-line shell auto-backgrounding issue that killed inline bash loops before output flushed.
+- **`compute-input-hash --scan <dir> --update`** — batch remediation of all stale hashes
+- Summary line output: `TOTAL=N MATCH=N STALE=N UNCOMPUTED=N NOINPUT=N UPDATED=N UPDATE_FAILED=N`
+- 14 new BATS tests (input-hash-scan.bats) — 520 tests across 17 suites
+
+### Changed
+
+- `check-input-drift` skill updated: uses `--scan` instead of manual iteration, documents both batch and per-file modes
+- All existing per-file invocations (`<file>`, `<file> --update`, `<file> --check`) unchanged
+
 ## 0.43.1 — Shellcheck gate + post-release fixes
 
 ### Added
