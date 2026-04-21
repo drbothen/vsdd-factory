@@ -32,7 +32,7 @@ case "$FILE_PATH" in
 esac
 
 # Find STATE.md — walk up from the cycle dir
-FACTORY_DIR=$(echo "$FILE_PATH" | sed 's|/cycles/.*||')
+FACTORY_DIR="${FILE_PATH%%/cycles/*}"
 STATE_FILE="$FACTORY_DIR/STATE.md"
 
 if [[ ! -f "$STATE_FILE" ]]; then
