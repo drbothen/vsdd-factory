@@ -57,7 +57,28 @@ And tallies five categories from each file's `--check` result:
 - **NOINPUT** — input files don't exist or no inputs field
 - **errors** — counted as NOINPUT defensively
 
-### Step 2: Per-file check (individual artifacts)
+### Step 2: Resolve inputs (debug missing inputs)
+
+If NOINPUT count is high, diagnose which inputs can't be found:
+
+```bash
+# Batch: find all files with unresolvable inputs
+${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash --scan .factory --resolve
+```
+
+Output: `TOTAL=N RESOLVABLE=N UNRESOLVABLE=N`. Stderr lists each unresolvable file with the specific missing input names. Exit 0 if all resolvable, exit 1 if any missing.
+
+For a single file:
+
+```bash
+${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash <file> --resolve
+```
+
+Reports either "all N inputs resolved" (exit 0) or "N MISSING — file1.md, file2.md" (exit 1).
+
+**Note:** Files with missing inputs cannot have their hash computed or checked. The binary refuses to hash partial input sets — a partial hash would produce false MATCH results when compared against another partial hash computed from the same incomplete set.
+
+### Step 3: Per-file check (individual artifacts)
 
 To check a single artifact without scanning the full tree:
 
@@ -65,9 +86,9 @@ To check a single artifact without scanning the full tree:
 ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash <file> --check
 ```
 
-This reads the `inputs:` field, concatenates the current contents of those files, computes the MD5, and compares against the stored `input-hash`.
+This reads the `inputs:` field, concatenates the current contents of those files, computes the MD5, and compares against the stored `input-hash`. If any inputs are missing, the check is skipped (reported as PARTIAL on stderr).
 
-### Step 3: Report
+### Step 4: Report (present to user)
 
 ```
 ## Input Drift Report
@@ -91,7 +112,7 @@ This reads the `inputs:` field, concatenates the current contents of those files
 N artifacts verified current.
 ```
 
-### Step 4: Fix (optional)
+### Step 5: Fix (optional)
 
 If `--fix` is passed, run with `--update` to batch-remediate all stale hashes:
 
@@ -109,9 +130,9 @@ ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash <file> --update
 
 Note: updating the hash does NOT re-derive the artifact's content — it just acknowledges the current input state. If the content needs updating, that's a separate task for the producing agent.
 
-**Important:** Before running `--update` on >3 files, complete Step 5 (Triage cluster drift) to determine if content review by producing agents is required. Bulk `--update` without triage can mask semantic drift in spec artifacts.
+**Important:** Before running `--update` on >3 files, complete Step 6 (Triage cluster drift) to determine if content review by producing agents is required. Bulk `--update` without triage can mask semantic drift in spec artifacts.
 
-### Step 5: Triage cluster drift before bulk --update
+### Step 6: Triage cluster drift before bulk --update
 
 If the Step 1 report shows ANY of these patterns, treat as a content-review signal and **STOP before running --update**:
 
@@ -122,7 +143,7 @@ If the Step 1 report shows ANY of these patterns, treat as a content-review sign
 - The PRD plus its supplements drift together
 - An entire VP module (all VPs traceable to one architectural decision) drifts
 
-**Single-file or scattered drift** (1-3 unrelated files): use Step 4 `--update` directly — these are typically incidental edits to upstream files that don't carry semantic change.
+**Single-file or scattered drift** (1-3 unrelated files): use Step 5 `--update` directly — these are typically incidental edits to upstream files that don't carry semantic change.
 
 #### Triage procedure for cluster drift
 
@@ -175,9 +196,9 @@ If the Step 1 report shows ANY of these patterns, treat as a content-review sign
    ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash --scan .factory
    ```
 
-#### When to skip Step 5
+#### When to skip Step 6
 
-Step 5 is mandatory for cluster-drift patterns. Skip it ONLY if:
+Step 6 is mandatory for cluster-drift patterns. Skip it ONLY if:
 - The user has explicitly directed "bulk update, no investigation"
 - The drift is in `cycles/`, `sidecar-learning.md`, or other non-spec bookkeeping files where content review adds no value
 - All stale files are placeholder UNCOMPUTED (`input-hash: null`) being populated for the first time

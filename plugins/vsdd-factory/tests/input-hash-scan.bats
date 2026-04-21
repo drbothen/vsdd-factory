@@ -230,6 +230,47 @@ EOF
 # --scan summary line format
 # ========================================================================
 
+# ========================================================================
+# --resolve mode: check if inputs are resolvable
+# ========================================================================
+
+@test "resolve: per-file reports all inputs resolved" {
+  _make_artifact "$WORK/.factory/specs/behavioral-contracts/test.md" "aaaaaaa" "source.md"
+  run "$BIN" "$WORK/.factory/specs/behavioral-contracts/test.md" --resolve 2>&1
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all"*"resolved"* ]]
+}
+
+@test "resolve: per-file reports missing inputs by name" {
+  _make_artifact "$WORK/.factory/specs/behavioral-contracts/test.md" "aaaaaaa" "nonexistent.md"
+  run "$BIN" "$WORK/.factory/specs/behavioral-contracts/test.md" --resolve 2>&1
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"MISSING"* ]]
+  [[ "$output" == *"nonexistent.md"* ]]
+}
+
+@test "resolve: scan reports unresolvable count" {
+  _make_artifact "$WORK/.factory/specs/behavioral-contracts/good.md" "aaaaaaa" "source.md"
+  _make_artifact "$WORK/.factory/specs/behavioral-contracts/bad.md" "aaaaaaa" "nonexistent.md"
+
+  run "$BIN" --scan "$WORK/.factory" --resolve 2>&1
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"UNRESOLVABLE=1"* ]]
+  [[ "$output" == *"RESOLVABLE=1"* ]]
+}
+
+@test "resolve: scan exit 0 when all resolvable" {
+  _make_artifact "$WORK/.factory/specs/behavioral-contracts/good.md" "aaaaaaa" "source.md"
+
+  run "$BIN" --scan "$WORK/.factory" --resolve
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"UNRESOLVABLE=0"* ]]
+}
+
+# ========================================================================
+# Summary line format
+# ========================================================================
+
 @test "scan: stdout is single summary line with all fields" {
   _make_artifact "$WORK/.factory/specs/behavioral-contracts/test.md" "[md5]" "source.md"
   "$BIN" "$WORK/.factory/specs/behavioral-contracts/test.md" --update

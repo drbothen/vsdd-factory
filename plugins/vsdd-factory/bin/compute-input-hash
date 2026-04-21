@@ -5,8 +5,10 @@
 #   compute-input-hash <artifact-file>              # print the hash
 #   compute-input-hash <artifact-file> --update     # compute and write into frontmatter
 #   compute-input-hash <artifact-file> --check      # compare stored vs computed
+#   compute-input-hash <artifact-file> --resolve    # list resolved + missing inputs
 #   compute-input-hash --scan <root-dir>            # walk dir, report drift
 #   compute-input-hash --scan <root-dir> --update   # walk dir + update stale hashes
+#   compute-input-hash --scan <root-dir> --resolve  # walk dir, report unresolvable inputs
 #
 # Reads the `inputs:` frontmatter field, resolves file paths relative to the
 # artifact's directory, concatenates their contents, and outputs a 7-char
@@ -22,17 +24,19 @@ set -euo pipefail
 die() { echo "compute-input-hash: $*" >&2; exit 1; }
 
 usage() {
-  echo "Usage: compute-input-hash <artifact-file> [--update|--check]"
-  echo "       compute-input-hash --scan <root-dir> [--update]"
+  echo "Usage: compute-input-hash <artifact-file> [--update|--check|--resolve]"
+  echo "       compute-input-hash --scan <root-dir> [--update|--resolve]"
   echo ""
   echo "Per-file commands:"
   echo "  (default)   Print the computed hash to stdout"
   echo "  --update    Compute and write the hash into the file's input-hash frontmatter"
   echo "  --check     Compare stored input-hash against computed; exit 2 on mismatch"
+  echo "  --resolve   List all inputs with resolution status (FOUND/MISSING + resolved path)"
   echo ""
   echo "Scan commands:"
-  echo "  --scan <dir>           Walk dir, report drift summary"
-  echo "  --scan <dir> --update  Walk dir + update all stale hashes"
+  echo "  --scan <dir>            Walk dir, report drift summary"
+  echo "  --scan <dir> --update   Walk dir + update all stale hashes"
+  echo "  --scan <dir> --resolve  Walk dir, report files with unresolvable inputs"
   exit 1
 }
 
@@ -52,6 +56,39 @@ if [[ "$1" == "--scan" ]]; then
     [[ -z "$SELF" ]] && die "cannot resolve self for recursive invocation"
   fi
 
+  # --scan --resolve: batch check input resolution (no hashing)
+  if [[ "$SCAN_MODE" == "--resolve" ]]; then
+    TOTAL=0
+    RESOLVABLE=0
+    UNRESOLVABLE=0
+
+    while IFS= read -r f; do
+      fname=$(basename "$f")
+      case "$fname" in
+        INDEX.md|*-INDEX.md|*-index.md) continue ;;
+      esac
+
+      TOTAL=$((TOTAL + 1))
+
+      if OUT=$("$SELF" "$f" --resolve 2>&1); then
+        if echo "$OUT" | grep -q "MISSING"; then
+          UNRESOLVABLE=$((UNRESOLVABLE + 1))
+          echo "$OUT" | grep "MISSING" >&2
+        else
+          RESOLVABLE=$((RESOLVABLE + 1))
+        fi
+      else
+        UNRESOLVABLE=$((UNRESOLVABLE + 1))
+        echo "  ERROR: $f — $OUT" >&2
+      fi
+    done < <(grep -rlE "^input-hash:" "$ROOT" --include="*.md" 2>/dev/null || true)
+
+    echo "TOTAL=$TOTAL RESOLVABLE=$RESOLVABLE UNRESOLVABLE=$UNRESOLVABLE"
+    [[ "$UNRESOLVABLE" -gt 0 ]] && exit 1
+    exit 0
+  fi
+
+  # --scan report or --scan --update: drift detection
   TOTAL=0 MATCH=0 STALE=0 UNCOMPUTED=0 NOINPUT=0 UPDATED=0 UPDATE_FAILED=0
 
   while IFS= read -r f; do
@@ -68,6 +105,9 @@ if [[ "$1" == "--scan" ]]; then
       if echo "$OUT" | grep -q "no input-hash\|not yet computed"; then
         UNCOMPUTED=$((UNCOMPUTED + 1))
         [[ "$SCAN_MODE" == "report" ]] && echo "  UNCOMPUTED: $f" >&2
+      elif echo "$OUT" | grep -q "PARTIAL"; then
+        NOINPUT=$((NOINPUT + 1))
+        [[ "$SCAN_MODE" == "report" ]] && echo "  PARTIAL: $f — $(echo "$OUT" | grep 'PARTIAL' | head -1)" >&2
       elif echo "$OUT" | grep -q "no input files found\|no inputs:\|skipping"; then
         NOINPUT=$((NOINPUT + 1))
       else
@@ -136,7 +176,7 @@ INPUTS=$(awk '
 ' "$FILE" | grep -v '^$' || true)
 
 if [[ -z "$INPUTS" ]]; then
-  if [[ "$MODE" == "--check" ]]; then
+  if [[ "$MODE" == "--check" ]] || [[ "$MODE" == "--resolve" ]]; then
     echo "compute-input-hash: no inputs: field in $FILE — skipping" >&2
     exit 0
   fi
@@ -157,6 +197,7 @@ esac
 
 CONCAT=""
 MISSING=0
+MISSING_FILES=""
 while IFS= read -r input_file; do
   [[ -z "$input_file" ]] && continue
 
@@ -177,8 +218,8 @@ while IFS= read -r input_file; do
   done
 
   if [[ -z "$RESOLVED" ]]; then
-    # Input file doesn't exist — skip it (may not be produced yet)
     MISSING=$((MISSING + 1))
+    MISSING_FILES="${MISSING_FILES:+$MISSING_FILES, }$input_file"
     continue
   fi
 
@@ -186,11 +227,37 @@ while IFS= read -r input_file; do
 done <<< "$INPUTS"
 
 if [[ -z "$CONCAT" ]]; then
+  if [[ "$MODE" == "--resolve" ]]; then
+    echo "compute-input-hash: $(basename "$FILE"): $MISSING MISSING — $MISSING_FILES" >&2
+    exit 1
+  fi
   if [[ "$MODE" == "--check" ]]; then
-    echo "compute-input-hash: no input files found for $FILE — skipping" >&2
+    echo "compute-input-hash: no input files found for $FILE — skipping (missing: $MISSING_FILES)" >&2
     exit 0
   fi
-  die "none of the input files exist: $INPUTS"
+  die "none of the input files exist: $MISSING_FILES"
+fi
+
+# --- --resolve mode: report input resolution status and exit ---
+if [[ "$MODE" == "--resolve" ]]; then
+  if [[ "$MISSING" -gt 0 ]]; then
+    echo "compute-input-hash: $(basename "$FILE"): $MISSING MISSING — $MISSING_FILES" >&2
+    exit 1
+  else
+    TOTAL_INPUTS=$(echo "$INPUTS" | grep -c -v '^$' || true)
+    echo "compute-input-hash: $(basename "$FILE"): all $TOTAL_INPUTS inputs resolved" >&2
+    exit 0
+  fi
+fi
+
+# --- Refuse to hash with missing inputs ---
+if [[ "$MISSING" -gt 0 ]]; then
+  echo "compute-input-hash: PARTIAL — $MISSING input(s) not found for $(basename "$FILE"): $MISSING_FILES" >&2
+  if [[ "$MODE" == "--check" ]]; then
+    echo "  Hash comparison skipped — cannot verify against incomplete inputs." >&2
+    exit 0
+  fi
+  die "cannot compute hash with missing inputs: $MISSING_FILES"
 fi
 
 # --- Compute short MD5 hash (7 chars) ---
@@ -207,9 +274,6 @@ fi
 case "$MODE" in
   print|--print)
     echo "$HASH"
-    if [[ "$MISSING" -gt 0 ]]; then
-      echo "compute-input-hash: warning: $MISSING input file(s) not found (may not be produced yet)" >&2
-    fi
     ;;
 
   --update)

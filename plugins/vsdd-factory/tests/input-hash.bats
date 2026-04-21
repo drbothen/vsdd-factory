@@ -270,8 +270,8 @@ EOF
   grep -qF "compute-input-hash" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
 }
 
-@test "check-input-drift has cluster drift triage (Step 5)" {
-  grep -q "Step 5.*[Tt]riage cluster drift" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
+@test "check-input-drift has cluster drift triage (Step 6)" {
+  grep -q "Step 6.*[Tt]riage cluster drift" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
 }
 
 @test "check-input-drift lists all 7 producing agent dispatch targets" {
@@ -287,13 +287,13 @@ EOF
 }
 
 @test "check-input-drift warns before bulk update >3 files" {
-  grep -q "Before running.*--update.*on >3 files.*Step 5" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
+  grep -q "Before running.*--update.*on >3 files.*Step 6" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
 }
 
 @test "check-input-drift has task template for dispatched agents" {
   grep -q "Do NOT touch input-hash frontmatter" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
 }
 
-@test "check-input-drift documents when to skip Step 5" {
-  grep -q "When to skip Step 5" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
+@test "check-input-drift documents when to skip Step 6" {
+  grep -q "When to skip Step 6" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
 }
