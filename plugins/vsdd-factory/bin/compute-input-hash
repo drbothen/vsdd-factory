@@ -198,19 +198,15 @@ esac
 CONCAT=""
 MISSING=0
 MISSING_FILES=""
-while IFS= read -r input_file; do
-  [[ -z "$input_file" ]] && continue
 
-  # Strip .factory/ prefix if present — inputs may use .factory/-relative paths
-  # (e.g., inputs: [.factory/specs/prd.md]) but the resolver works from FACTORY_ROOT
-  stripped_input="$input_file"
+# --- Helper: resolve a single input file against search paths ---
+_resolve_one() {
+  local input_file="$1"
+  local stripped_input="$input_file"
   if [[ -n "$FACTORY_ROOT" ]]; then
     stripped_input="${input_file#.factory/}"
   fi
 
-  # Try paths in order: relative to artifact, parent dir, specs/, stories/,
-  # phase-0-ingestion/, holdout-scenarios/, .factory/ root
-  RESOLVED=""
   for base in "$ARTIFACT_DIR" "$ARTIFACT_DIR/.." \
     "${FACTORY_ROOT:+$FACTORY_ROOT/specs}" \
     "${FACTORY_ROOT:+$FACTORY_ROOT/stories}" \
@@ -219,15 +215,70 @@ while IFS= read -r input_file; do
     "$FACTORY_ROOT"; do
     [[ -z "$base" ]] && continue
     if [[ -f "$base/$stripped_input" ]]; then
-      RESOLVED="$base/$stripped_input"
-      break
+      echo "$base/$stripped_input"
+      return 0
     fi
-    # Also try the original (unstripped) in case stripping was wrong
     if [[ "$stripped_input" != "$input_file" ]] && [[ -f "$base/$input_file" ]]; then
-      RESOLVED="$base/$input_file"
-      break
+      echo "$base/$input_file"
+      return 0
     fi
   done
+  return 1
+}
+
+# --- Helper: expand glob/directory input to sorted file list ---
+_expand_glob() {
+  local pattern="$1"
+  local stripped="${pattern#.factory/}"
+
+  for base in "$ARTIFACT_DIR" "$ARTIFACT_DIR/.." \
+    "${FACTORY_ROOT:+$FACTORY_ROOT/specs}" \
+    "${FACTORY_ROOT:+$FACTORY_ROOT/stories}" \
+    "${FACTORY_ROOT:+$FACTORY_ROOT}" \
+    "$ARTIFACT_DIR"; do
+    [[ -z "$base" ]] && continue
+
+    local full="$base/$stripped"
+
+    # Directory input (ends with /): find all .md files inside, sorted
+    if [[ "$pattern" == */ ]] && [[ -d "$full" ]]; then
+      find "$full" -name '*.md' -type f 2>/dev/null | LC_ALL=C sort
+      return 0
+    fi
+
+    # Glob input (contains * or **): expand with find, sorted for determinism
+    if [[ "$pattern" == *"*"* ]]; then
+      # Convert glob to find pattern: behavioral-contracts/** → behavioral-contracts/ -name *.md
+      local dir="${full%%\**}"
+      if [[ -d "$dir" ]]; then
+        find "$dir" -name '*.md' -type f 2>/dev/null | LC_ALL=C sort
+        return 0
+      fi
+    fi
+  done
+  return 1
+}
+
+while IFS= read -r input_file; do
+  [[ -z "$input_file" ]] && continue
+
+  # Detect glob or directory inputs and expand them
+  if [[ "$input_file" == *"*"* ]] || [[ "$input_file" == */ ]]; then
+    EXPANDED=$(_expand_glob "$input_file" || true)
+    if [[ -z "$EXPANDED" ]]; then
+      MISSING=$((MISSING + 1))
+      MISSING_FILES="${MISSING_FILES:+$MISSING_FILES, }$input_file"
+      continue
+    fi
+    while IFS= read -r expanded_file; do
+      [[ -z "$expanded_file" ]] && continue
+      CONCAT="${CONCAT}$(cat "$expanded_file")"
+    done <<< "$EXPANDED"
+    continue
+  fi
+
+  # Single file resolution
+  RESOLVED=$(_resolve_one "$input_file" || true)
 
   if [[ -z "$RESOLVED" ]]; then
     MISSING=$((MISSING + 1))

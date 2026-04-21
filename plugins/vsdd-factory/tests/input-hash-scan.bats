@@ -227,6 +227,71 @@ EOF
 }
 
 # ========================================================================
+# Glob / directory expansion in inputs
+# ========================================================================
+
+@test "glob: expands directory input (trailing /)" {
+  mkdir -p "$WORK/.factory/specs/domain-spec"
+  echo "section 1 content" > "$WORK/.factory/specs/domain-spec/section-1.md"
+  echo "section 2 content" > "$WORK/.factory/specs/domain-spec/section-2.md"
+
+  cat > "$WORK/.factory/specs/test-glob.md" << 'EOF'
+---
+inputs: [domain-spec/]
+input-hash: "[md5]"
+---
+# Test
+EOF
+  run "$BIN" "$WORK/.factory/specs/test-glob.md"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ ^[0-9a-f]{7}$ ]]
+}
+
+@test "glob: expands ** wildcard" {
+  echo "bc content 1" > "$WORK/.factory/specs/behavioral-contracts/BC-1.md"
+  echo "bc content 2" > "$WORK/.factory/specs/behavioral-contracts/BC-2.md"
+
+  cat > "$WORK/.factory/specs/test-glob.md" << 'EOF'
+---
+inputs: [behavioral-contracts/**]
+input-hash: "[md5]"
+---
+# Test
+EOF
+  run "$BIN" "$WORK/.factory/specs/test-glob.md"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ ^[0-9a-f]{7}$ ]]
+}
+
+@test "glob: produces deterministic hash (sorted expansion)" {
+  echo "bc a" > "$WORK/.factory/specs/behavioral-contracts/BC-A.md"
+  echo "bc z" > "$WORK/.factory/specs/behavioral-contracts/BC-Z.md"
+
+  cat > "$WORK/.factory/specs/test-glob.md" << 'EOF'
+---
+inputs: [behavioral-contracts/**]
+input-hash: "[md5]"
+---
+# Test
+EOF
+  HASH1=$("$BIN" "$WORK/.factory/specs/test-glob.md")
+  HASH2=$("$BIN" "$WORK/.factory/specs/test-glob.md")
+  [ "$HASH1" = "$HASH2" ]
+}
+
+@test "glob: missing glob directory reports MISSING" {
+  cat > "$WORK/.factory/specs/test-glob.md" << 'EOF'
+---
+inputs: [nonexistent-dir/]
+input-hash: "[md5]"
+---
+# Test
+EOF
+  run "$BIN" "$WORK/.factory/specs/test-glob.md" --resolve 2>&1
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"MISSING"* ]]
+}
+
 # ========================================================================
 # .factory/ prefix stripping in inputs
 # ========================================================================
