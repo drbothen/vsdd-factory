@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.43.1 — Shellcheck gate + post-release fixes
+
+### Added
+
+- **Shellcheck gate test** in hook-robustness.bats — runs shellcheck on all hooks and bin scripts, catches SC2001/SC2012 before release (506 tests)
+
+### Fixed
+
+- `validate-index-self-reference.sh` — sed → parameter expansion (shellcheck SC2001)
+- `validate-table-cell-count.sh` — sed → parameter expansion (shellcheck SC2001)
+
 ## 0.43.0 — Corpus lint hooks + comprehensive glossary
 
 ### Added
