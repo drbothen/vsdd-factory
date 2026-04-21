@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.47.0 — Glob/directory expansion for input-hash + docs update
+
+### Added
+
+- **Glob/directory expansion** in `compute-input-hash` — artifacts can now use `inputs: [behavioral-contracts/**]` (recursive glob) or `inputs: [domain-spec/]` (directory) instead of listing every file. Expansion uses `find` + `LC_ALL=C sort` for deterministic ordering.
+- 4 new glob tests (directory expansion, ** wildcard, deterministic hash, missing glob directory)
+
+### Changed
+
+- README updated: 116 skills, 108 commands, 26 hooks, 99 templates, 538 tests across 17 suites. All per-suite test counts updated. Contributing section: 9 Iron Laws, 80 Red Flags.
+- hooks-reference.md: updated from 19 to 26 hooks with 8 new entries
+- id-reference.md: ADV producer "Phase 1d/2/3/5", FIX producer "Phase 5/6/7", enforcement table expanded with 8 new hooks
+- 538 tests across 17 suites
+
 ## 0.46.1 — Strip .factory/ prefix from input paths
 
 ### Fixed
