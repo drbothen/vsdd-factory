@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.45.1 — Fix absolute vs relative path bug in compute-input-hash
+
+### Fixed
+
+- **compute-input-hash** — absolute paths to `--scan` produced 62 false-positive STALE results vs 2 correct with relative paths. Root cause: `FACTORY_ROOT` pattern match behaved differently with relative vs absolute file paths. Fix: canonicalize `FILE` to absolute via `cd+pwd` before resolution logic runs. Both paths now produce identical results.
+- 2 regression tests added (path identity + different-cwd scan)
+- 527 tests across 17 suites
+
 ## 0.45.0 — Cluster drift triage for input-hash scanning
 
 ### Added
