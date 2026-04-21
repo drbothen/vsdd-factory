@@ -132,8 +132,8 @@ graph TD
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Agents** | 33 | Specialist personas + 10 orchestrator workflow files |
-| **Skills** | 114 | Phase entry points, phase workflows, cross-cutting operations, design/UX, market intelligence, policy management, state health |
-| **Commands** | 106 | Slash-command entry points — work skills have corresponding commands |
+| **Skills** | 116 | Phase entry points, phase workflows, cross-cutting operations, design/UX, market intelligence, policy management, state health, input drift |
+| **Commands** | 108 | Slash-command entry points — work skills have corresponding commands |
 | **Hooks** | 26 | Enforcement layer (protect VPs, Red Gate, brownfield discipline, destructive command guard, branch protection, factory branch guard, VP consistency, subsystem names, BC titles, story-BC sync, template compliance, finding format, input-hash drift + format, state size, novelty assessment, convergence tracker, table cell count, changelog monotonicity, state pin freshness, index self-reference) |
 | **Templates** | 99 | Output format definitions for every artifact type |
 | **Workflows** | 16 | Lobster-as-data files defining phase and mode sequences |
@@ -152,7 +152,7 @@ See [docs/guide/pipeline-overview.md](docs/guide/pipeline-overview.md) for the f
 | **2 -- Story Decomposition** | `/vsdd-factory:decompose-stories` | Stories, epics, dependency graph, wave schedule, holdout scenarios | Human approval, adversary review |
 | **3 -- TDD Implementation** | `/vsdd-factory:deliver-story STORY-NNN` | Implementation, tests, demo evidence, PRs | Wave gate (tests + adversarial + holdout) |
 | **4 -- Holdout Evaluation** | `/vsdd-factory:holdout-eval` | Holdout evaluations, satisfaction scores | Mean satisfaction >= 0.85, must-pass >= 0.6 |
-| **5 -- Adversarial Refinement** | `/vsdd-factory:adversarial-review implementation` | Finding reports, fix PRs | Novelty decay across 2+ passes |
+| **5 -- Adversarial Refinement** | `/vsdd-factory:adversarial-review implementation` | Finding reports, fix PRs | Novelty decay, min 3 clean passes |
 | **6 -- Formal Hardening** | `/vsdd-factory:formal-verify`, `/vsdd-factory:perf-check` | Proof reports, fuzz results, mutation scores | All proofs pass, kill rate thresholds met |
 | **7 -- Convergence** | `/vsdd-factory:convergence-check`, `/vsdd-factory:release` | Convergence report, changelog, GitHub release | All 7 dimensions CONVERGED |
 
@@ -169,20 +169,20 @@ plugins/vsdd-factory/
     test-writer.md
     ...
   skills/
-    brownfield-ingest/       # 112 skill directories, each with SKILL.md
+    brownfield-ingest/       # 116 skill directories, each with SKILL.md
     deliver-story/
     factory-health/
     ...
-  commands/                  # 104 slash-command wrappers
+  commands/                  # 108 slash-command wrappers
   hooks/
     hooks.json               # Hook wiring (PreToolUse, PostToolUse, SubagentStop, Stop)
-    protect-vp.sh            # 19 enforcement hooks
+    protect-vp.sh            # 26 enforcement hooks
     red-gate.sh
     ...
   bin/                       # 5 shell utilities
-  workflows/                 # 15 Lobster workflow files (YAML-as-data)
-  templates/                 # 94 artifact output templates
-  rules/                     # 8 coding/process standard files
+  workflows/                 # 16 Lobster workflow files (YAML-as-data)
+  templates/                 # 99 artifact output templates
+  rules/                     # 9 coding/process standard files
   docs/                      # Methodology and protocol docs
   tests/                     # bats test suites (520 tests across 17 suites)
   fixtures/                  # Test fixtures (smoke-project, policy-9, policy-enforcement)
@@ -199,7 +199,7 @@ plugins/vsdd-factory/
 ### Running tests
 
 ```bash
-# All tests (392 across 12 suites)
+# All tests (534 across 17 suites)
 bats plugins/vsdd-factory/tests/*.bats
 
 # Individual suites
@@ -211,10 +211,15 @@ bats plugins/vsdd-factory/tests/permissions.bats         # 68 permission model +
 bats plugins/vsdd-factory/tests/policy9.bats             # 13 VP-INDEX consistency hook tests
 bats plugins/vsdd-factory/tests/destructive-guard.bats   # 51 destructive command guard tests
 bats plugins/vsdd-factory/tests/policy-enforcement.bats  # 30 policy 6/7/8 enforcement hook tests
-bats plugins/vsdd-factory/tests/hook-robustness.bats     # 34 hook robustness + error contract tests
+bats plugins/vsdd-factory/tests/hook-robustness.bats     # 35 hook robustness + error contract + shellcheck tests
 bats plugins/vsdd-factory/tests/template-compliance.bats # 14 template compliance hook tests
 bats plugins/vsdd-factory/tests/finding-format.bats      # 12 finding format validation tests
-bats plugins/vsdd-factory/tests/input-hash.bats          # 25 input-hash drift detection tests
+bats plugins/vsdd-factory/tests/input-hash.bats          # 31 input-hash drift + cluster triage tests
+bats plugins/vsdd-factory/tests/input-hash-scan.bats     # 22 batch scan + resolve + path consistency tests
+bats plugins/vsdd-factory/tests/state-health.bats        # 33 STATE.md size enforcement + state health tests
+bats plugins/vsdd-factory/tests/novelty-assessment.bats  # 18 novelty assessment format validation tests
+bats plugins/vsdd-factory/tests/convergence-tracker.bats # 17 convergence rule enforcement tests
+bats plugins/vsdd-factory/tests/corpus-lint.bats         # 45 corpus lint hook tests (table cells, changelog, pin freshness, self-ref)
 ```
 
 ### Syntax checking
@@ -227,8 +232,8 @@ done
 
 ### CI
 
-GitHub Actions runs on every push and PR to main. The workflow installs tools, syntax-checks
-all shell scripts, runs all ten bats test suites, validates JSON manifests, and parses
+GitHub Actions runs on every push and PR to main. The workflow installs tools, shellcheck-validates
+all shell scripts, runs all 17 bats test suites, validates JSON manifests, and parses
 every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 
 ## Documentation
@@ -245,7 +250,7 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 | [Glossary](docs/guide/glossary.md) | VSDD terminology reference |
 | [Policy Reference](docs/guide/policy-reference.md) | Governance policies, enforcement matrix, violation playbooks |
 | [ID Reference](docs/guide/id-reference.md) | All 30 identifier formats with scope, producer, registry, validation |
-| [Hooks Reference](docs/guide/hooks-reference.md) | All 19 hooks with trigger behavior and debugging |
+| [Hooks Reference](docs/guide/hooks-reference.md) | All 26 hooks with trigger behavior and debugging |
 | [Agents Reference](docs/guide/agents-reference.md) | Agent permission model, status protocol, all 33 agents |
 
 ### Internal reference docs (in the plugin)
@@ -265,11 +270,10 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 
 Contributions are welcome. Before submitting a PR:
 
-1. **Read the Iron Laws.** The four discipline skills (`deliver-story`, `brownfield-ingest`,
-   `adversarial-review`, `wave-gate`) each have an Iron Law and a Red Flags table. These
-   are empirically anchored -- do not weaken them without eval evidence.
+1. **Read the Iron Laws.** Nine critical skills each have an Iron Law and a Red Flags table
+   (80 entries total). These are empirically anchored -- do not weaken them without eval evidence.
 
-2. **Run the test suite.** All 392 bats tests must pass. New skills need structural tests
+2. **Run the test suite.** All 534 bats tests must pass. New skills need structural tests
    for any Iron Laws, Red Flags, or template references they introduce.
 
 3. **Use portable template paths.** Reference templates as

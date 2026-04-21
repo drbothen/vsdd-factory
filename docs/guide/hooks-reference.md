@@ -1,6 +1,6 @@
 # Hooks Reference
 
-The vsdd-factory plugin ships 19 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
+The vsdd-factory plugin ships 26 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
 
 ---
 
@@ -23,7 +23,14 @@ The vsdd-factory plugin ships 19 hook scripts wired through `hooks.json`. Hooks 
 | `validate-story-bc-sync.sh` | PostToolUse | Edit\|Write | Story frontmatter bcs: ↔ body BC table ↔ AC traces sync (Policy 8) | Yes (exit 2 on mismatch) |
 | `validate-template-compliance.sh` | PostToolUse | Edit\|Write | Artifact has required frontmatter fields and section headings from its template | Yes (exit 2 on missing) |
 | `validate-finding-format.sh` | PostToolUse | Edit\|Write | Only current finding/fix ID formats accepted (blocks legacy ADV-NNN, STORY-NNN-FIX) | Yes (exit 2 on legacy format) |
-| `validate-input-hash.sh` | PostToolUse | Edit\|Write | Warns when `.factory/` artifacts have `inputs:` but missing/stale `input-hash` | No (advisory) |
+| `validate-input-hash.sh` | PostToolUse | Edit\|Write | Warns on missing/stale `input-hash`; blocks non-7-char or non-lowercase-hex format | Partial (format=block, drift=advisory) |
+| `validate-state-size.sh` | PostToolUse | Edit\|Write | STATE.md line count enforcement — warns >200, blocks >500 (allows compaction writes) | Yes (>500 and growing) |
+| `validate-novelty-assessment.sh` | PostToolUse | Edit\|Write | Adversarial review files must have Novelty Assessment section with required fields | Yes (exit 2 on missing) |
+| `convergence-tracker.sh` | PostToolUse | Edit\|Write | Convergence rule enforcement — trajectory monotonicity, min 3 clean passes, novelty ≤ 0.15, zero-findings warning | Partial (premature CONVERGENCE=block, regression=warn) |
+| `validate-table-cell-count.sh` | PostToolUse | Edit\|Write | Markdown table rows must have same pipe count as header (catches unescaped pipes in cells) | Yes (exit 2 on mismatch) |
+| `validate-changelog-monotonicity.sh` | PostToolUse | Edit\|Write | Changelog versions descending, no duplicates, dates non-increasing, frontmatter version matches top row | Yes (exit 2 on violation) |
+| `validate-state-pin-freshness.sh` | PostToolUse | Edit\|Write | STATE.md version pins must match actual artifact file versions | Yes (exit 2 on mismatch) |
+| `validate-index-self-reference.sh` | PostToolUse | Edit\|Write | INDEX.md/burst-log.md edits should reference current pass/burst | No (advisory warning) |
 | `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) |
 | `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) |
 | `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) |

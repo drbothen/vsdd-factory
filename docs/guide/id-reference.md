@@ -138,7 +138,7 @@ These IDs are meaningful only within their parent file. EC-001 in BC-2.01.001 is
 
 - **Level:** Reviews
 - **Format:** `ADV-` + cycle prefix + `-P` + pass number + `-` + severity + `-` + three-digit sequential
-- **Producer:** adversary during Phase 1d/4
+- **Producer:** adversary during Phase 1d/2/3/5
 - **Registry:** `cycles/<cycle>/adversarial-reviews/ADV-INDEX.md`
 - **Referenced by:** Fix PRs (`source_finding:`), convergence reports
 - **Hook validation:** `validate-finding-format.sh` — blocks legacy ADV-NNN and ADV-P[N]-NNN formats
@@ -149,12 +149,12 @@ These IDs are meaningful only within their parent file. EC-001 in BC-2.01.001 is
 
 - **Level:** Reviews
 - **Format:** `FIX-P` + source phase + `-` + three-digit sequential
-- **Producer:** pr-manager during Phase 4/5/6
+- **Producer:** pr-manager during Phase 5/6/7
 - **Registry:** None (tracked in cycle manifests)
 - **Referenced by:** Adversarial reviews (resolution tracking)
 - **Hook validation:** `validate-finding-format.sh` — blocks legacy STORY-NNN-FIX format
-- **Example:** `FIX-P4-001: Fix BC-2.01.005 timeout handling`
-- **Phase codes:** P4 = adversarial, P5 = hardening, P6 = convergence
+- **Example:** `FIX-P5-001: Fix BC-2.01.005 timeout handling`
+- **Phase codes:** P5 = adversarial, P6 = hardening, P7 = convergence
 
 ---
 
@@ -170,5 +170,13 @@ These IDs are meaningful only within their parent file. EC-001 in BC-2.01.001 is
 | `validate-template-compliance.sh` | Correct frontmatter field names | behavioral_contracts (not bcs), target_module (not crate) |
 | `protect-bc.sh` | Green BC immutability | BC-S.SS.NNN |
 | `protect-vp.sh` | Green VP immutability | VP-NNN |
+| `validate-novelty-assessment.sh` | Adversarial review has Novelty Assessment section | ADV review files |
+| `convergence-tracker.sh` | Convergence rules (monotonicity, min 3 clean, novelty ≤ 0.15) | ADV review files |
+| `validate-input-hash.sh` | Input-hash format (7-char lowercase hex) + drift | All `.factory/` artifacts |
+| `validate-changelog-monotonicity.sh` | Changelog version ordering + frontmatter sync | All `.factory/` artifacts with changelog |
+| `validate-table-cell-count.sh` | Markdown table pipe count consistency | All `.factory/` artifacts |
+| `validate-state-pin-freshness.sh` | STATE.md version pins match artifact versions | STATE.md |
+| `validate-state-size.sh` | STATE.md line count (warn >200, block >500) | STATE.md |
+| `validate-index-self-reference.sh` | INDEX/burst-log references current pass/burst | cycle INDEX.md, burst-log.md |
 
 IDs not validated by hooks are checked at phase gates by the consistency-validator (80 criteria).
