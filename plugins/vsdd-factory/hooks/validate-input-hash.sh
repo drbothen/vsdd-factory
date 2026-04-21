@@ -66,10 +66,25 @@ fi
 HASH_TOOL="$PLUGIN_ROOT/bin/compute-input-hash"
 
 # --- Case 1: No hash or placeholder → remind ---
-if [[ -z "$STORED_HASH" ]] || [[ "$STORED_HASH" == "[md5]" ]] || [[ "$STORED_HASH" == "null" ]]; then
-  echo "input-hash: artifact $(basename "$FILE_PATH") has inputs: but no computed input-hash." >&2
-  echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
+if [[ -z "$STORED_HASH" ]] || [[ "$STORED_HASH" == "[md5]" ]] || [[ "$STORED_HASH" == "null" ]] || [[ "$STORED_HASH" == "[live-state]" ]] || [[ "$STORED_HASH" == "[pending-recompute]" ]]; then
+  if [[ "$STORED_HASH" == "[md5]" ]]; then
+    echo "input-hash: artifact $(basename "$FILE_PATH") has inputs: but no computed input-hash." >&2
+    echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
+  fi
   exit 0
+fi
+
+# --- Case 1b: Hash format validation — must be 7-char lowercase hex ---
+HASH_LEN=${#STORED_HASH}
+if [[ "$HASH_LEN" -ne 7 ]]; then
+  echo "input-hash FORMAT: $(basename "$FILE_PATH") hash \"$STORED_HASH\" is $HASH_LEN chars; canonical is 7-char truncated MD5." >&2
+  echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
+  exit 2
+fi
+if ! echo "$STORED_HASH" | grep -qE '^[0-9a-f]{7}$'; then
+  echo "input-hash FORMAT: $(basename "$FILE_PATH") hash \"$STORED_HASH\" contains invalid chars; must be lowercase hex [0-9a-f]." >&2
+  echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
+  exit 2
 fi
 
 # --- Case 2: Hash exists → verify if possible ---

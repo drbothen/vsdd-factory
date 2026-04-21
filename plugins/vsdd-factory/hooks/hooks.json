@@ -34,7 +34,11 @@
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-input-hash.sh", "timeout": 10 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-state-size.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-novelty-assessment.sh", "timeout": 5 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/convergence-tracker.sh", "timeout": 10 }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/convergence-tracker.sh", "timeout": 10 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-table-cell-count.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-changelog-monotonicity.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-state-pin-freshness.sh", "timeout": 10 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-index-self-reference.sh", "timeout": 5 }
         ]
       },
       {
