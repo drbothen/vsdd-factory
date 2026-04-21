@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.45.0 — Cluster drift triage for input-hash scanning
+
+### Added
+
+- **Step 5: Triage cluster drift** in `check-input-drift` skill — recognizes patterns where multiple related artifacts drift simultaneously (all domain-spec shards, all BCs for a subsystem, PRD + supplements) and routes to producing agents for content review before hash bumping
+- Dispatch table mapping 7 artifact types to producing agents (business-analyst, product-owner, architect, story-writer)
+- Task template for dispatched agents with content review instructions
+- Common Cluster Drift Patterns reference table (7 patterns)
+- Warning gate: Step 4 `--update` on >3 files requires Step 5 triage first
+- 6 new BATS tests — 526 tests across 17 suites
+
 ## 0.44.0 — Batch input-hash drift scanning
 
 ### Added
