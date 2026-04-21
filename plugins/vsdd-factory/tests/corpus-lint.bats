@@ -83,6 +83,45 @@ EOF
   [ "$status" -eq 0 ]
 }
 
+@test "table-cell-count: handles multiple tables in one file" {
+  cat > "$WORK/.factory/specs/test.md" << 'EOF'
+| A | B |
+|---|---|
+| 1 | 2 |
+
+Some text.
+
+| X | Y | Z |
+|---|---|---|
+| 1 | 2 | 3 |
+EOF
+  _run_hook validate-table-cell-count.sh "$WORK/.factory/specs/test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "table-cell-count: catches broken row in second table" {
+  cat > "$WORK/.factory/specs/test.md" << 'EOF'
+| A | B |
+|---|---|
+| 1 | 2 |
+
+| X | Y | Z |
+|---|---|---|
+| 1 | broken | extra | pipe |
+EOF
+  _run_hook validate-table-cell-count.sh "$WORK/.factory/specs/test.md"
+  [ "$status" -eq 2 ]
+}
+
+@test "table-cell-count: passes header-only table (no data rows)" {
+  cat > "$WORK/.factory/specs/test.md" << 'EOF'
+| A | B | C |
+|---|---|---|
+EOF
+  _run_hook validate-table-cell-count.sh "$WORK/.factory/specs/test.md"
+  [ "$status" -eq 0 ]
+}
+
 # ========================================================================
 # validate-changelog-monotonicity.sh
 # ========================================================================
@@ -175,6 +214,41 @@ EOF
   [ "$status" -eq 0 ]
 }
 
+@test "changelog-monotonicity: blocks ascending version order" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-test.md" << 'EOF'
+---
+version: "1.3"
+---
+# BC Test
+## Changelog
+| Version | Burst | Date | Author | Change |
+|---------|-------|------|--------|--------|
+| 1.1 | pass-1 | 2026-04-18 | po | First |
+| 1.2 | pass-5 | 2026-04-19 | po | Second |
+| 1.3 | pass-10 | 2026-04-20 | po | Third |
+EOF
+  _run_hook validate-changelog-monotonicity.sh "$WORK/.factory/specs/behavioral-contracts/BC-test.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"Frontmatter version"* ]]
+}
+
+@test "changelog-monotonicity: allows same-day entries" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-test.md" << 'EOF'
+---
+version: "1.3"
+---
+# BC Test
+## Changelog
+| Version | Burst | Date | Author | Change |
+|---------|-------|------|--------|--------|
+| 1.3 | pass-10 | 2026-04-20 | po | Third |
+| 1.2 | pass-5 | 2026-04-20 | po | Second |
+| 1.1 | pass-1 | 2026-04-20 | po | Initial |
+EOF
+  _run_hook validate-changelog-monotonicity.sh "$WORK/.factory/specs/behavioral-contracts/BC-test.md"
+  [ "$status" -eq 0 ]
+}
+
 @test "changelog-monotonicity: passes file without changelog" {
   cat > "$WORK/.factory/specs/behavioral-contracts/BC-test.md" << 'EOF'
 ---
@@ -244,6 +318,19 @@ input-hash: "[pending-recompute]"
 EOF
   _run_hook validate-input-hash.sh "$WORK/.factory/specs/test.md"
   [ "$status" -eq 0 ]
+}
+
+@test "input-hash: blocks 6-char hash (too short)" {
+  cat > "$WORK/.factory/specs/test.md" << 'EOF'
+---
+inputs: [prd.md]
+input-hash: "abc123"
+---
+# Test
+EOF
+  _run_hook validate-input-hash.sh "$WORK/.factory/specs/test.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"6 chars"* ]]
 }
 
 @test "input-hash: allows live-state placeholder" {
@@ -328,6 +415,45 @@ EOF
   [ "$status" -eq 0 ]
 }
 
+@test "state-pin-freshness: reports multiple stale pins" {
+  cat > "$WORK/.factory/stories/STORY-INDEX.md" << 'EOF'
+---
+version: "1.30"
+---
+EOF
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-INDEX.md" << 'EOF'
+---
+version: "4.10"
+---
+EOF
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+story_index_version: "1.28"
+bc_index_version: "4.08"
+---
+EOF
+  _run_hook validate-state-pin-freshness.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"story_index_version"* ]]
+  [[ "$output" == *"bc_index_version"* ]]
+}
+
+@test "state-pin-freshness: checks vp_index_version" {
+  cat > "$WORK/.factory/specs/verification-properties/VP-INDEX.md" << 'EOF'
+---
+version: "1.6"
+---
+EOF
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+vp_index_version: "1.5"
+---
+EOF
+  _run_hook validate-state-pin-freshness.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"vp_index_version"* ]]
+}
+
 @test "state-pin-freshness: skips missing artifacts" {
   cat > "$WORK/.factory/STATE.md" << 'EOF'
 ---
@@ -407,6 +533,36 @@ EOF
   [ "$status" -eq 0 ]
   [[ "$output" == *"SELF-REFERENCE"* ]]
   [[ "$output" == *"burst-39"* ]]
+}
+
+@test "index-self-reference: handles compound current_step" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+current_step: "Phase 2 patch cycle ��� pass-72 remediation landed; counter 0/3; pass-73 pending"
+---
+EOF
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+| pass-71 | complete | 3 |
+EOF
+  _run_hook validate-index-self-reference.sh "$WORK/.factory/cycles/phase-2-patch/INDEX.md"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"SELF-REFERENCE"* ]]
+  [[ "$output" == *"pass-72"* ]]
+}
+
+@test "index-self-reference: skips when no current_step in STATE" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+phase: 2
+status: in_progress
+---
+EOF
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+| pass-71 | complete | 3 |
+EOF
+  _run_hook validate-index-self-reference.sh "$WORK/.factory/cycles/phase-2-patch/INDEX.md"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"SELF-REFERENCE"* ]]
 }
 
 @test "index-self-reference: passes when burst-log has current burst" {

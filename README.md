@@ -184,7 +184,7 @@ plugins/vsdd-factory/
   templates/                 # 94 artifact output templates
   rules/                     # 8 coding/process standard files
   docs/                      # Methodology and protocol docs
-  tests/                     # bats test suites (495 tests across 16 suites)
+  tests/                     # bats test suites (505 tests across 16 suites)
   fixtures/                  # Test fixtures (smoke-project, policy-9, policy-enforcement)
 ```
 
