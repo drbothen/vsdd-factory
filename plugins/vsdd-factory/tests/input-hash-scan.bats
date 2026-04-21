@@ -203,6 +203,30 @@ EOF
 }
 
 # ========================================================================
+# Path consistency: absolute vs relative must produce identical results
+# ========================================================================
+
+@test "scan: absolute and relative paths produce identical results" {
+  _make_artifact "$WORK/.factory/specs/behavioral-contracts/test.md" "aaaaaaa" "source.md"
+
+  # Absolute path
+  ABS_OUT=$("$BIN" --scan "$WORK/.factory" 2>/dev/null || true)
+
+  # Relative path (cd to parent first)
+  REL_OUT=$(cd "$WORK" && "$BIN" --scan .factory 2>/dev/null || true)
+
+  [ "$ABS_OUT" = "$REL_OUT" ]
+}
+
+@test "scan: works from a different working directory" {
+  _make_artifact "$WORK/.factory/specs/behavioral-contracts/test.md" "aaaaaaa" "source.md"
+
+  # Run from /tmp instead of the project root
+  OUT=$(cd /tmp && "$BIN" --scan "$WORK/.factory" 2>/dev/null || true)
+  [[ "$OUT" == *"STALE=1"* ]]
+}
+
+# ========================================================================
 # --scan summary line format
 # ========================================================================
 

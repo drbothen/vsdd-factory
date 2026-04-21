@@ -107,6 +107,10 @@ FILE="$1"
 MODE="${2:-print}"
 [[ ! -f "$FILE" ]] && die "file not found: $FILE"
 
+# Canonicalize to absolute path so input resolution works from any cwd.
+# Uses directory cd+pwd (portable) rather than realpath (not on all systems).
+FILE="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
+
 # --- Extract inputs: from frontmatter ---
 # Handles both inline array [file1, file2] and multi-line - file1 forms
 INPUTS=$(awk '
