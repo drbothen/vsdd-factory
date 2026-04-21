@@ -57,26 +57,38 @@ And tallies five categories from each file's `--check` result:
 - **NOINPUT** — input files don't exist or no inputs field
 - **errors** — counted as NOINPUT defensively
 
-### Step 2: Resolve inputs (debug missing inputs)
+### Step 2: Resolve all inputs (MANDATORY)
 
-If NOINPUT count is high, diagnose which inputs can't be found:
+Before interpreting drift results, verify that all artifact inputs can be resolved. Files with missing inputs cannot be hashed or checked — the binary refuses to hash partial input sets because a partial hash produces false MATCH results.
+
+**Always run resolve after scan:**
 
 ```bash
-# Batch: find all files with unresolvable inputs
 ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash --scan .factory --resolve
 ```
 
 Output: `TOTAL=N RESOLVABLE=N UNRESOLVABLE=N`. Stderr lists each unresolvable file with the specific missing input names. Exit 0 if all resolvable, exit 1 if any missing.
 
-For a single file:
+**If UNRESOLVABLE > 0, diagnose before proceeding:**
 
-```bash
-${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash <file> --resolve
-```
+1. For each unresolvable file, check the missing input name:
+   ```bash
+   ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash <file> --resolve
+   ```
+   Reports "N MISSING — file1.md, file2.md" with the exact input names that can't be found.
 
-Reports either "all N inputs resolved" (exit 0) or "N MISSING — file1.md, file2.md" (exit 1).
+2. Common causes of unresolvable inputs:
+   - **Input not yet produced** — upstream artifact hasn't been created yet (normal early in pipeline)
+   - **Input renamed** — upstream file was renamed but downstream `inputs:` frontmatter wasn't updated
+   - **Input path wrong** — typo or incorrect relative path in `inputs:` field
+   - **Input deleted** — upstream artifact was retired/removed but downstream still references it
 
-**Note:** Files with missing inputs cannot have their hash computed or checked. The binary refuses to hash partial input sets — a partial hash would produce false MATCH results when compared against another partial hash computed from the same incomplete set.
+3. For each cause:
+   - **Not yet produced:** No action — NOINPUT is expected. The hash will be computed when the input exists.
+   - **Renamed/wrong path:** Fix the `inputs:` frontmatter in the affected artifact to point to the correct file.
+   - **Deleted:** Either remove the deleted input from the `inputs:` list, or create a replacement artifact.
+
+**Do NOT skip this step.** A high NOINPUT count from Step 1 may mask real STALE files — if an input can't be found, the binary can't check whether the hash drifted, so the file silently drops out of drift detection.
 
 ### Step 3: Per-file check (individual artifacts)
 

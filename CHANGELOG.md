@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.46.0 — Input resolution mode + partial hash safety
+
+### Added
+
+- **`compute-input-hash --resolve`** — per-file and batch mode to check if all inputs are resolvable, naming specific missing files
+- **`--scan <dir> --resolve`** — batch find all artifacts with unresolvable inputs (TOTAL/RESOLVABLE/UNRESOLVABLE)
+
+### Fixed
+
+- **Refuse partial hashing** — binary no longer silently hashes incomplete input sets. Missing inputs produce PARTIAL warning; hash/update/print all refuse to proceed. Prevents false MATCH from two partial hashes agreeing.
+- **Named missing files** — all warnings now list the specific missing input file names (was just a count)
+- **Warn in all modes** — missing input warnings fire in check, update, and print modes (was print-only)
+
+### Changed
+
+- `check-input-drift` skill: Step 2 (Resolve inputs) is now MANDATORY before interpreting drift results. Documents common causes (not yet produced, renamed, wrong path, deleted) with fix actions. Steps renumbered 1-6.
+- 532 tests across 17 suites
+
 ## 0.45.1 — Fix absolute vs relative path bug in compute-input-hash
 
 ### Fixed
