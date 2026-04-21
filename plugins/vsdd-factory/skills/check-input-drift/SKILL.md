@@ -109,6 +109,93 @@ ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash <file> --update
 
 Note: updating the hash does NOT re-derive the artifact's content — it just acknowledges the current input state. If the content needs updating, that's a separate task for the producing agent.
 
+**Important:** Before running `--update` on >3 files, complete Step 5 (Triage cluster drift) to determine if content review by producing agents is required. Bulk `--update` without triage can mask semantic drift in spec artifacts.
+
+### Step 5: Triage cluster drift before bulk --update
+
+If the Step 1 report shows ANY of these patterns, treat as a content-review signal and **STOP before running --update**:
+
+**Cluster patterns that signal upstream content change:**
+- All shards of a sharded spec drift simultaneously (e.g., all of `.factory/specs/domain-spec/*.md`)
+- All artifacts for a single subsystem drift (e.g., all `BC-2.14.*` files)
+- More than 5 artifacts with the same upstream input drift together
+- The PRD plus its supplements drift together
+- An entire VP module (all VPs traceable to one architectural decision) drifts
+
+**Single-file or scattered drift** (1-3 unrelated files): use Step 4 `--update` directly — these are typically incidental edits to upstream files that don't carry semantic change.
+
+#### Triage procedure for cluster drift
+
+1. **Identify the upstream change.** For each cluster, find the input file most likely to have changed:
+   ```bash
+   # See what changed in suspected upstream since artifact was produced
+   git -C .factory log -p --since="<oldest-stale-artifact-date>" -- <upstream-input>
+   ```
+
+2. **Read the diff yourself first.** If the upstream change is purely cosmetic (whitespace, typo fix, formatting), proceed with `--update`. If it's semantic (new requirement, removed assumption, modified invariant), escalate.
+
+3. **Dispatch the producing agent** for content review based on artifact type:
+
+   | Stale Artifact Type | Producing Agent |
+   |---|---|
+   | L2 domain-spec shards | business-analyst |
+   | PRD or PRD supplements | product-owner |
+   | Behavioral contracts (BCs) | product-owner |
+   | Architecture docs | architect |
+   | Verification properties | architect |
+   | Stories | story-writer |
+   | Holdout scenarios | product-owner |
+
+4. **Task template for the dispatched agent:**
+
+   ```
+   The following artifacts have stale input-hash, indicating their
+   upstream inputs have changed:
+     - <list of stale files>
+   Upstream change is in: <input-file>
+   Diff: <git diff output>
+
+   Review each artifact against the new upstream state. For each:
+   - If content is still semantically correct against new inputs:
+     no edit needed (hash will be bumped after).
+   - If content needs update: edit in place, bump artifact version,
+     add changelog row.
+
+   Do NOT touch input-hash frontmatter — that is bumped via
+   compute-input-hash --update after your content review completes.
+   ```
+
+5. **After content review completes**, run `--update` to bump the hashes:
+   ```bash
+   ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash --scan .factory --update
+   ```
+
+6. **Re-scan** to verify zero drift and confirm no cascading staleness was introduced by content edits:
+   ```bash
+   ${CLAUDE_PLUGIN_ROOT}/bin/compute-input-hash --scan .factory
+   ```
+
+#### When to skip Step 5
+
+Step 5 is mandatory for cluster-drift patterns. Skip it ONLY if:
+- The user has explicitly directed "bulk update, no investigation"
+- The drift is in `cycles/`, `sidecar-learning.md`, or other non-spec bookkeeping files where content review adds no value
+- All stale files are placeholder UNCOMPUTED (`input-hash: null`) being populated for the first time
+
+---
+
+## Common Cluster Drift Patterns (Reference)
+
+| Pattern Observed | Likely Upstream Change | Dispatch |
+|---|---|---|
+| All `domain-spec/*.md` drift | Product brief or L2-INDEX edit | business-analyst |
+| All `BC-X.YY.*` files for one subsystem | Subsystem definition edit | product-owner |
+| PRD + PRD supplements drift together | PRD body or domain-spec edit | product-owner |
+| All VPs in one verification family drift | Architecture decision changed | architect |
+| All wave-N stories drift simultaneously | Wave manifest or epic edit | story-writer |
+| Holdout scenarios drift | BC or AC edit | product-owner |
+| `cycles/phase-*-*/*.md` drift | Cycle bookkeeping (safe to bump) | Use `--update` directly |
+
 ## Integration
 
 - The `validate-input-hash.sh` PostToolUse hook provides per-file warnings at edit time
