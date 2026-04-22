@@ -1015,3 +1015,55 @@ EOF
 @test "demo-evidence-scoped: hooks.json wires the hook" {
   grep -q "validate-demo-evidence-story-scoped.sh" "$PLUGIN_ROOT/hooks/hooks.json"
 }
+
+# ========================================================================
+# validate-factory-path-root.sh
+# ========================================================================
+
+@test "factory-path-root: passes syntax check" {
+  run bash -n "$HOOKS/validate-factory-path-root.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "factory-path-root: passes write to project root .factory/" {
+  _run_hook validate-factory-path-root.sh "/home/user/project/.factory/STATE.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "factory-path-root: passes write to nested .factory/ path" {
+  _run_hook validate-factory-path-root.sh "/home/user/project/.factory/cycles/phase-3/STORY-001/implementation/red-gate-log.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "factory-path-root: blocks write to .worktrees/STORY-NNN/.factory/" {
+  _run_hook validate-factory-path-root.sh "/home/user/project/.worktrees/STORY-001/.factory/STATE.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"FACTORY PATH ERROR"* ]]
+  [[ "$output" == *"worktree instead of project root"* ]]
+}
+
+@test "factory-path-root: blocks worktree .factory/ with nested path" {
+  _run_hook validate-factory-path-root.sh "/home/user/project/.worktrees/STORY-042/.factory/cycles/phase-3/STORY-042/implementation/red-gate-log.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *".worktrees/STORY-042"* ]]
+}
+
+@test "factory-path-root: shows expected path in error" {
+  _run_hook validate-factory-path-root.sh "/home/user/project/.worktrees/STORY-001/.factory/stories/red-gate-log.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"stories/red-gate-log.md"* ]]
+}
+
+@test "factory-path-root: ignores non-.factory/ writes" {
+  _run_hook validate-factory-path-root.sh "/home/user/project/src/main.rs"
+  [ "$status" -eq 0 ]
+}
+
+@test "factory-path-root: ignores docs/ writes in worktrees" {
+  _run_hook validate-factory-path-root.sh "/home/user/project/.worktrees/STORY-001/docs/demo-evidence/S-0.01/AC-001.gif"
+  [ "$status" -eq 0 ]
+}
+
+@test "factory-path-root: hooks.json wires the hook" {
+  grep -q "validate-factory-path-root.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+}

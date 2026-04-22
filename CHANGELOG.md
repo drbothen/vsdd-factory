@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.54.0 — Unify red-gate-log path + factory path root guard
+
+### Fixed
+
+- **Red-gate-log path unified** — three conflicting paths (`.factory/stories/`, `.factory/phase-f4-implementation/`, `.factory/cycles/**/implementation/`) consolidated to `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md` across deliver-story skill, step files, phase-3 guide, per-story-delivery orchestrator, and phase-f4 skill.
+
+### Added
+
+- **`validate-factory-path-root.sh`** (PostToolUse on Write/Edit) — blocks `.factory/` writes that resolve inside `.worktrees/STORY-NNN/.factory/` instead of the project root. Catches agents using relative paths from inside story worktrees. Diagnostic shows the expected absolute path.
+- 8 new BATS tests for factory path root validation
+- 691 tests across 21 suites, 0 failures
+
 ## 0.53.0 — Wave gate completeness enforcement + GATE_CHECK telemetry
 
 ### Added
