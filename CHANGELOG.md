@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.52.0 — Wave gate enforcement + PR lifecycle hooks + AI attribution blocker
+
+### Added
+
+- **Wave gate enforcement** (3 hooks):
+  - `validate-wave-gate-prerequisite.sh` (PreToolUse on Agent) — blocks Wave N+1 worker dispatch if Wave N gate not passed/deferred
+  - `update-wave-state-on-merge.sh` (SubagentStop on pr-manager) — auto-updates wave-state.yaml when stories merge, flips gate_status to pending when all wave stories merged
+  - `warn-pending-wave-gate.sh` (Stop) — session-end reminder for pending gates
+  - `wave-state-template.yaml` — structured wave lifecycle tracker template
+
+- **PR lifecycle enforcement** (3 hooks):
+  - `validate-pr-description-completeness.sh` (PostToolUse on Write) — blocks incomplete PR descriptions missing required sections or containing unresolved template placeholders
+  - `validate-pr-review-posted.sh` (SubagentStop on pr-reviewer) — blocks if pr-reviewer didn't write pr-review.md or used `gh pr comment` instead of `gh pr review`
+  - `validate-pr-merge-prerequisites.sh` (PreToolUse on Agent) — blocks merge dispatch if evidence trail (pr-description.md, pr-review.md, security-review.md) is missing
+
+- **`block-ai-attribution.sh`** (PreToolUse on Bash) — blocks git commits containing Co-Authored-By: Claude/GPT/Gemini, "Generated with Claude Code", or noreply@anthropic.com patterns
+
+- 80 new BATS tests across 2 test files (37 wave-gate + 43 PR lifecycle)
+- 672 tests across 21 suites, 0 failures
+
 ## 0.51.0 — PR manager completion guard hook (FM4 detection)
 
 ### Added

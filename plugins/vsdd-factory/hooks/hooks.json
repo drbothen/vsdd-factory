@@ -14,12 +14,14 @@
       {
         "matcher": "Agent",
         "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-wave-gate-prerequisite.sh", "timeout": 10 }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-wave-gate-prerequisite.sh", "timeout": 10 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-pr-merge-prerequisites.sh", "timeout": 10 }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/block-ai-attribution.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/destructive-command-guard.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/verify-git-push.sh", "timeout": 10 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/check-factory-commit.sh", "timeout": 5 }
@@ -47,7 +49,8 @@
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-index-self-reference.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-state-index-status-coherence.sh", "timeout": 10 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-anchor-capabilities-union.sh", "timeout": 10 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-demo-evidence-story-scoped.sh", "timeout": 5 }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-demo-evidence-story-scoped.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-pr-description-completeness.sh", "timeout": 5 }
         ]
       },
       {
@@ -62,7 +65,8 @@
         "hooks": [
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/handoff-validator.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pr-manager-completion-guard.sh", "timeout": 5 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/update-wave-state-on-merge.sh", "timeout": 10 }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/update-wave-state-on-merge.sh", "timeout": 10 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-pr-review-posted.sh", "timeout": 5 }
         ]
       }
     ],
