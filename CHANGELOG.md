@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.50.0 — Replace sessions_spawn with Agent tool + pr-manager hardening
+
+### Fixed
+
+- **pr-manager agent** — replaced all 13 `sessions_spawn` calls with `Agent(subagent_type=...)` syntax. Added COORDINATOR RULE meta-instruction, explicit continuation clauses after every sub-agent spawn (prevents premature exit on reviewer APPROVE), merge pre-authorization (`AUTHORIZE_MERGE=yes`), and STEP_COMPLETE instrumentation for all 9 steps.
+- **sessions_spawn removed project-wide** — all references across 22 files (orchestrator, FACTORY.md, pr-reviewer, security-reviewer, code-delivery, 12 skill boilerplate lines, templates) replaced with Agent tool syntax. Zero `sessions_spawn` references remain.
+
+### Changed
+
+- FACTORY.md Sub-Agent Delegation Rule rewritten for Agent tool pattern
+- Orchestrator delegation section updated with Agent tool examples
+- agent-file-review audit rule updated to reflect pr-manager as legitimate Agent tool user
+
 ## 0.49.0 — Per-story demo evidence scoping (POL-010)
 
 ### Added
