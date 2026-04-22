@@ -29,11 +29,14 @@ Reference file for the orchestrator. Load during Phase 3 implementation.
    f. Spawn pr-manager: "Run the full PR process for STORY-NNN.
       Feature branch: feature/STORY-NNN. Target: develop.
       Project path: <resolved-project-path>.
+      AUTHORIZE_MERGE=yes.
       Follow your 9-step process: populate PR description from template,
       verify demo evidence, create PR via github-ops, security review,
-      pr-reviewer convergence loop, wait for CI, dependency check, merge.
-      Do NOT skip any step. Read ../../templates/pr-description-template.md
-      for the PR body format."
+      pr-reviewer convergence loop, wait for CI, dependency check, merge,
+      post-merge cleanup. Execute ALL 9 steps — emit STEP_COMPLETE for each.
+      Do NOT skip any step. Do NOT exit when a sub-agent returns APPROVE —
+      that is step 5's input, not your completion signal.
+      Read ../../templates/pr-description-template.md for the PR body format."
       NOTE: Do NOT compose the PR body or gh commands in this task —
       pr-manager owns the full PR lifecycle and uses its own templates.
    g. Spawn devops-engineer: "Remove worktree .worktrees/STORY-NNN"
