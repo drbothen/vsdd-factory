@@ -114,7 +114,26 @@ If all gates pass:
 - Update STATE.md with wave completion
 - Commit to factory-artifacts
 
+## Telemetry
+
+After completing each gate, emit a structured GATE_CHECK line. The
+`validate-wave-gate-completeness` hook validates these are present in
+the gate report before allowing `gate_status: passed` in wave-state.yaml.
+
+```
+GATE_CHECK: gate=1 name=test-suite status=pass note=<N> tests, 0 failures
+GATE_CHECK: gate=2 name=dtu-validation status=skip note=no critical modules in wave
+GATE_CHECK: gate=3 name=adversarial-review status=pass note=novelty LOW, 0 critical
+GATE_CHECK: gate=4 name=demo-evidence status=pass note=<N> stories, all ACs covered
+GATE_CHECK: gate=5 name=holdout-eval status=pass note=mean 0.92, min critical 0.78
+GATE_CHECK: gate=6 name=state-update status=pass note=sprint-state updated
+```
+
+Valid status values: `pass`, `fail`, `skip` (with mandatory reason in note).
+
 ## Output
+
+Include both the human-readable summary AND the GATE_CHECK lines in the gate report:
 
 ```
 Wave Gate: wave-N
@@ -124,6 +143,14 @@ Wave Gate: wave-N
   Gate 3 — Adversarial:      ✅ PASS (novelty LOW, 0 critical findings)
   Gate 4 — Demo Evidence:    ✅ PASS (<N> stories, all ACs covered)
   Gate 5 — Holdout Eval:     ✅ PASS (mean: 0.92, min critical: 0.78)
+  Gate 6 — State Update:     ✅ PASS (sprint-state.yaml updated)
+
+  GATE_CHECK: gate=1 name=test-suite status=pass note=<N> tests, 0 failures
+  GATE_CHECK: gate=2 name=dtu-validation status=pass note=2 clones in sync
+  GATE_CHECK: gate=3 name=adversarial-review status=pass note=novelty LOW, 0 critical
+  GATE_CHECK: gate=4 name=demo-evidence status=pass note=<N> stories, all ACs covered
+  GATE_CHECK: gate=5 name=holdout-eval status=pass note=mean 0.92, min critical 0.78
+  GATE_CHECK: gate=6 name=state-update status=pass note=sprint-state updated
 
   WAVE GATE: ✅ PASSED — ready for wave-<N+1>
 ```
@@ -131,6 +158,10 @@ Wave Gate: wave-N
 Or on failure:
 
 ```
+  GATE_CHECK: gate=1 name=test-suite status=pass note=42 tests
+  GATE_CHECK: gate=2 name=dtu-validation status=skip note=no critical modules
+  GATE_CHECK: gate=3 name=adversarial-review status=fail note=1 CRITICAL finding
+
   WAVE GATE: ❌ FAILED at Gate 3
 
   Blocking findings:

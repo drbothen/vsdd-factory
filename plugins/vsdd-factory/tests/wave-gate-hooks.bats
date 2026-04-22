@@ -513,6 +513,166 @@ waves:
 }
 
 # ========================================================================
+# validate-wave-gate-completeness: PostToolUse on wave-state.yaml
+# ========================================================================
+
+@test "gate-completeness: passes syntax check" {
+  run bash -n "$HOOKS/validate-wave-gate-completeness.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "gate-completeness: hook is executable" {
+  [ -x "$HOOKS/validate-wave-gate-completeness.sh" ]
+}
+
+@test "gate-completeness: hooks.json wires under PostToolUse" {
+  jq -e '.hooks.PostToolUse[] | .hooks[] | select(.command | contains("validate-wave-gate-completeness"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
+}
+
+@test "gate-completeness: passes when gate report has all 6 gates" {
+  mkdir -p "$WORK/.factory/cycles/wave-gates"
+  cat > "$WORK/.factory/cycles/wave-gates/wave-0a.md" << 'EOF'
+# Wave Gate: wave-0a
+
+Gate 1 — Test Suite: PASS (42 tests)
+Gate 2 — DTU Validation: SKIP (no critical modules)
+Gate 3 — Adversarial Review: PASS (0 critical)
+Gate 4 — Demo Evidence: PASS (2 stories)
+Gate 5 — Holdout Eval: PASS (mean 0.92)
+Gate 6 — State Update: PASS
+
+GATE_CHECK: gate=1 name=test-suite status=pass note=42 tests
+GATE_CHECK: gate=2 name=dtu-validation status=skip note=no critical modules
+GATE_CHECK: gate=3 name=adversarial-review status=pass note=0 critical
+GATE_CHECK: gate=4 name=demo-evidence status=pass note=2 stories
+GATE_CHECK: gate=5 name=holdout-eval status=pass note=mean 0.92
+GATE_CHECK: gate=6 name=state-update status=pass note=done
+EOF
+  _write_wave_state "current_wave: wave_1
+next_gate_required: null
+waves:
+  wave_0a:
+    stories: [S-0.01]
+    stories_merged: [S-0.01]
+    gate_status: passed
+    gate_report: cycles/wave-gates/wave-0a.md"
+
+  INPUT=$(jq -nc --arg fp "$WORK/.factory/wave-state.yaml" '{tool_input: {file_path: $fp}}')
+  run bash -c "cd '$WORK/.factory' && echo '$INPUT' | '$HOOKS/validate-wave-gate-completeness.sh' 2>&1"
+  [ "$status" -eq 0 ]
+}
+
+@test "gate-completeness: blocks when gate report missing Gate 3" {
+  mkdir -p "$WORK/.factory/cycles/wave-gates"
+  cat > "$WORK/.factory/cycles/wave-gates/wave-0a.md" << 'EOF'
+Gate 1 — Test Suite: PASS
+Gate 2 — DTU Validation: SKIP
+Gate 4 — Demo Evidence: PASS
+Gate 5 — Holdout Eval: PASS
+Gate 6 — State Update: PASS
+EOF
+  _write_wave_state "current_wave: wave_1
+next_gate_required: null
+waves:
+  wave_0a:
+    stories: [S-0.01]
+    stories_merged: [S-0.01]
+    gate_status: passed
+    gate_report: cycles/wave-gates/wave-0a.md"
+
+  INPUT=$(jq -nc --arg fp "$WORK/.factory/wave-state.yaml" '{tool_input: {file_path: $fp}}')
+  run bash -c "cd '$WORK/.factory' && echo '$INPUT' | '$HOOKS/validate-wave-gate-completeness.sh' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"Gate 3"* ]]
+  [[ "$output" == *"Adversarial"* ]]
+}
+
+@test "gate-completeness: blocks when gate_report path missing" {
+  _write_wave_state "current_wave: wave_1
+next_gate_required: null
+waves:
+  wave_0a:
+    stories: [S-0.01]
+    stories_merged: [S-0.01]
+    gate_status: passed"
+
+  INPUT=$(jq -nc --arg fp "$WORK/.factory/wave-state.yaml" '{tool_input: {file_path: $fp}}')
+  run bash -c "cd '$WORK/.factory' && echo '$INPUT' | '$HOOKS/validate-wave-gate-completeness.sh' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"no gate_report"* ]]
+}
+
+@test "gate-completeness: blocks when gate report file not found" {
+  _write_wave_state "current_wave: wave_1
+next_gate_required: null
+waves:
+  wave_0a:
+    stories: [S-0.01]
+    stories_merged: [S-0.01]
+    gate_status: passed
+    gate_report: cycles/wave-gates/nonexistent.md"
+
+  INPUT=$(jq -nc --arg fp "$WORK/.factory/wave-state.yaml" '{tool_input: {file_path: $fp}}')
+  run bash -c "cd '$WORK/.factory' && echo '$INPUT' | '$HOOKS/validate-wave-gate-completeness.sh' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"not found"* ]]
+}
+
+@test "gate-completeness: ignores non-wave-state files" {
+  INPUT=$(jq -nc --arg fp "$WORK/.factory/STATE.md" '{tool_input: {file_path: $fp}}')
+  run bash -c "echo '$INPUT' | '$HOOKS/validate-wave-gate-completeness.sh' 2>&1"
+  [ "$status" -eq 0 ]
+}
+
+@test "gate-completeness: passes with GATE_CHECK telemetry lines only" {
+  mkdir -p "$WORK/.factory/cycles/wave-gates"
+  cat > "$WORK/.factory/cycles/wave-gates/wave-0a.md" << 'EOF'
+GATE_CHECK: gate=1 name=test-suite status=pass note=ok
+GATE_CHECK: gate=2 name=dtu status=skip note=na
+GATE_CHECK: gate=3 name=adversarial status=pass note=ok
+GATE_CHECK: gate=4 name=demo status=pass note=ok
+GATE_CHECK: gate=5 name=holdout status=pass note=ok
+GATE_CHECK: gate=6 name=state status=pass note=ok
+EOF
+  _write_wave_state "current_wave: wave_1
+next_gate_required: null
+waves:
+  wave_0a:
+    stories: [S-0.01]
+    stories_merged: [S-0.01]
+    gate_status: passed
+    gate_report: cycles/wave-gates/wave-0a.md"
+
+  INPUT=$(jq -nc --arg fp "$WORK/.factory/wave-state.yaml" '{tool_input: {file_path: $fp}}')
+  run bash -c "cd '$WORK/.factory' && echo '$INPUT' | '$HOOKS/validate-wave-gate-completeness.sh' 2>&1"
+  [ "$status" -eq 0 ]
+}
+
+@test "gate-completeness: blocks when only 3 of 6 gates present" {
+  mkdir -p "$WORK/.factory/cycles/wave-gates"
+  cat > "$WORK/.factory/cycles/wave-gates/wave-0a.md" << 'EOF'
+Gate 1 — Test Suite: PASS
+Gate 4 — Demo Evidence: PASS
+Gate 6 — State Update: PASS
+EOF
+  _write_wave_state "current_wave: wave_1
+next_gate_required: null
+waves:
+  wave_0a:
+    stories: [S-0.01]
+    stories_merged: [S-0.01]
+    gate_status: passed
+    gate_report: cycles/wave-gates/wave-0a.md"
+
+  INPUT=$(jq -nc --arg fp "$WORK/.factory/wave-state.yaml" '{tool_input: {file_path: $fp}}')
+  run bash -c "cd '$WORK/.factory' && echo '$INPUT' | '$HOOKS/validate-wave-gate-completeness.sh' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"Gate 2"* ]]
+  [[ "$output" == *"Gate 3"* ]]
+  [[ "$output" == *"Gate 5"* ]]
+}
+
+# ========================================================================
 # Template existence
 # ========================================================================
 
