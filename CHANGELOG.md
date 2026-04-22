@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.51.0 — PR manager completion guard hook (FM4 detection)
+
+### Added
+
+- **`pr-manager-completion-guard.sh`** — SubagentStop hook that detects FM4 (pr-manager exiting before completing all 9 lifecycle steps). Blocks the stop via exit 2 and injects a continuation prompt with the next step hint. Accepts 8+ STEP_COMPLETE emissions as complete (allows one N/A skip). Passes through legitimate BLOCKED exits.
+- 22 new BATS tests covering: scope filtering, full completion, partial exits at steps 0/1/3/5/7/8, BLOCKED passthrough, agent name matching variants, edge cases
+- 592 tests across 19 suites, 0 failures
+
 ## 0.50.0 — Replace sessions_spawn with Agent tool + pr-manager hardening
 
 ### Fixed
