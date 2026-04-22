@@ -38,7 +38,9 @@
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-table-cell-count.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-changelog-monotonicity.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-state-pin-freshness.sh", "timeout": 10 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-index-self-reference.sh", "timeout": 5 }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-index-self-reference.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-state-index-status-coherence.sh", "timeout": 10 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-anchor-capabilities-union.sh", "timeout": 10 }
         ]
       },
       {

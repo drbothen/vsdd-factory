@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.48.0 — Semantic drift lint hooks
+
+### Added
+
+- **`validate-state-index-status-coherence.sh`** — PostToolUse hook detecting drift between STATE.md `convergence_status:` frontmatter and cycle INDEX.md `**Status:**` lines. Normalizes underscores/hyphens and case for comparison, trims trailing descriptions after em-dash. Warning only (exit 1) — state transitions often land at different commits within the same burst.
+- **`validate-anchor-capabilities-union.sh`** — PostToolUse hook enforcing the invariant that a story's `anchor_capabilities:` must equal the sorted union of `capability:` fields across all referenced BCs. Handles dual-anchor BCs with CSV capabilities, warns (but doesn't block) on missing BC files. Block on mismatch (exit 2) with BC→CAP mapping diagnostic.
+- 22 new BATS tests covering both hooks (pass, fail, edge cases, wiring)
+
 ## 0.47.0 — Glob/directory expansion for input-hash + docs update
 
 ### Added

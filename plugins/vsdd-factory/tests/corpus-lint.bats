@@ -601,3 +601,368 @@ EOF
 @test "corpus-lint: hooks.json wires validate-index-self-reference" {
   grep -q "validate-index-self-reference.sh" "$PLUGIN_ROOT/hooks/hooks.json"
 }
+
+# ========================================================================
+# validate-state-index-status-coherence.sh
+# ========================================================================
+
+@test "state-index-coherence: passes syntax check" {
+  run bash -n "$HOOKS/validate-state-index-status-coherence.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "state-index-coherence: passes when STATE and INDEX agree" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+convergence_status: PASS_98_REMEDIATED_AWAITING_PASS_99
+---
+# STATE
+EOF
+  mkdir -p "$WORK/.factory/cycles/phase-2-patch"
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+# Phase 2 Patch Cycle
+**Status:** PASS-98-REMEDIATED-AWAITING-PASS-99
+EOF
+  _run_hook validate-state-index-status-coherence.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "state-index-coherence: passes when no cycle INDEX exists" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+convergence_status: PASS_5_IN_PROGRESS
+---
+# STATE
+EOF
+  # No cycles directory — new project
+  _run_hook validate-state-index-status-coherence.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "state-index-coherence: warns when INDEX lags behind STATE" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+convergence_status: PASS_99_IN_PROGRESS
+---
+EOF
+  mkdir -p "$WORK/.factory/cycles/phase-2-patch"
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+# Phase 2 Patch Cycle
+**Status:** PASS-97-REMEDIATED — awaiting pass-98
+EOF
+  _run_hook validate-state-index-status-coherence.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"COHERENCE WARNING"* ]]
+}
+
+@test "state-index-coherence: warns when STATE lags behind INDEX" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+convergence_status: PASS_97_REMEDIATED
+---
+EOF
+  mkdir -p "$WORK/.factory/cycles/phase-2-patch"
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+# Phase 2 Patch Cycle
+**Status:** PASS-99-IN-PROGRESS
+EOF
+  _run_hook validate-state-index-status-coherence.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"COHERENCE WARNING"* ]]
+}
+
+@test "state-index-coherence: fires when INDEX.md is edited" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+convergence_status: PASS_99_IN_PROGRESS
+---
+EOF
+  mkdir -p "$WORK/.factory/cycles/phase-2-patch"
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+# Phase 2 Patch Cycle
+**Status:** PASS-97-REMEDIATED
+EOF
+  # Fire on INDEX.md edit (not STATE.md)
+  _run_hook validate-state-index-status-coherence.sh "$WORK/.factory/cycles/phase-2-patch/INDEX.md"
+  [ "$status" -eq 1 ]
+}
+
+@test "state-index-coherence: ignores non-factory files" {
+  echo "---" > "$WORK/STATE.md"
+  echo "convergence_status: PASS_1" >> "$WORK/STATE.md"
+  echo "---" >> "$WORK/STATE.md"
+  _run_hook validate-state-index-status-coherence.sh "$WORK/STATE.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "state-index-coherence: skips when no convergence_status field" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+phase: 2
+status: in_progress
+---
+EOF
+  mkdir -p "$WORK/.factory/cycles/phase-2-patch"
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+**Status:** PASS-5-IN-PROGRESS
+EOF
+  _run_hook validate-state-index-status-coherence.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "state-index-coherence: handles case-insensitive comparison" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+convergence_status: Pass_5_In_Progress
+---
+EOF
+  mkdir -p "$WORK/.factory/cycles/phase-2-patch"
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+**Status:** pass-5-in-progress
+EOF
+  _run_hook validate-state-index-status-coherence.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "state-index-coherence: trims description after em-dash" {
+  cat > "$WORK/.factory/STATE.md" << 'EOF'
+---
+convergence_status: PASS_10_COMPLETE
+---
+EOF
+  mkdir -p "$WORK/.factory/cycles/phase-2-patch"
+  cat > "$WORK/.factory/cycles/phase-2-patch/INDEX.md" << 'EOF'
+**Status:** PASS-10-COMPLETE — all findings resolved
+EOF
+  _run_hook validate-state-index-status-coherence.sh "$WORK/.factory/STATE.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "state-index-coherence: hooks.json wires the hook" {
+  grep -q "validate-state-index-status-coherence.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+}
+
+# ========================================================================
+# validate-anchor-capabilities-union.sh
+# ========================================================================
+
+@test "anchor-caps-union: passes syntax check" {
+  run bash -n "$HOOKS/validate-anchor-capabilities-union.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "anchor-caps-union: passes single-anchor all same CAP" {
+  # Create 3 BCs all with CAP-007
+  for i in 001 002 003; do
+    cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.${i}-test.md" << EOF
+---
+capability: CAP-007
+---
+# BC
+EOF
+  done
+  cat > "$WORK/.factory/stories/S-001-test.md" << 'EOF'
+---
+anchor_bcs: [BC-2.04.001, BC-2.04.002, BC-2.04.003]
+anchor_capabilities: [CAP-007]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-001-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "anchor-caps-union: passes multi-anchor with sorted CAPs" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.001-a.md" << 'EOF'
+---
+capability: CAP-005
+---
+EOF
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.002-b.md" << 'EOF'
+---
+capability: CAP-006
+---
+EOF
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.003-c.md" << 'EOF'
+---
+capability: CAP-007
+---
+EOF
+  cat > "$WORK/.factory/stories/S-002-test.md" << 'EOF'
+---
+anchor_bcs: [BC-2.04.001, BC-2.04.002, BC-2.04.003]
+anchor_capabilities: [CAP-005, CAP-006, CAP-007]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-002-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "anchor-caps-union: passes dual-anchor BC with CSV capability" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.001-dual.md" << 'EOF'
+---
+capability: "CAP-030, CAP-032"
+---
+EOF
+  cat > "$WORK/.factory/stories/S-003-test.md" << 'EOF'
+---
+anchor_bcs: [BC-2.04.001]
+anchor_capabilities: [CAP-030, CAP-032]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-003-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "anchor-caps-union: blocks wrong capability" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.001-x.md" << 'EOF'
+---
+capability: CAP-006
+---
+EOF
+  cat > "$WORK/.factory/stories/S-004-test.md" << 'EOF'
+---
+anchor_bcs: [BC-2.04.001]
+anchor_capabilities: [CAP-005]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-004-test.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"UNION VIOLATION"* ]]
+  [[ "$output" == *"CAP-006"* ]]
+}
+
+@test "anchor-caps-union: blocks incomplete capabilities" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.001-y.md" << 'EOF'
+---
+capability: CAP-005
+---
+EOF
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.002-y.md" << 'EOF'
+---
+capability: CAP-006
+---
+EOF
+  cat > "$WORK/.factory/stories/S-005-test.md" << 'EOF'
+---
+anchor_bcs: [BC-2.04.001, BC-2.04.002]
+anchor_capabilities: [CAP-005]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-005-test.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"UNION VIOLATION"* ]]
+  [[ "$output" == *"CAP-006"* ]]
+}
+
+@test "anchor-caps-union: blocks spurious capability" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.001-z.md" << 'EOF'
+---
+capability: CAP-005
+---
+EOF
+  cat > "$WORK/.factory/stories/S-006-test.md" << 'EOF'
+---
+anchor_bcs: [BC-2.04.001]
+anchor_capabilities: [CAP-004, CAP-005]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-006-test.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"UNION VIOLATION"* ]]
+}
+
+@test "anchor-caps-union: skips story with no anchor_bcs" {
+  cat > "$WORK/.factory/stories/S-007-test.md" << 'EOF'
+---
+anchor_capabilities: [CAP-005]
+---
+# Story with no anchor_bcs
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-007-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "anchor-caps-union: skips non-story files" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-test.md" << 'EOF'
+---
+capability: CAP-005
+---
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/specs/behavioral-contracts/BC-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "anchor-caps-union: warns but passes when BC file not found" {
+  cat > "$WORK/.factory/stories/S-008-test.md" << 'EOF'
+---
+anchor_bcs: [BC-9.99.999]
+anchor_capabilities: [CAP-001]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-008-test.md"
+  # Should pass (not block) — BC may be new/not yet created
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"not found"* ]]
+}
+
+@test "anchor-caps-union: handles behavioral_contracts field name" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.001-alt.md" << 'EOF'
+---
+capability: CAP-007
+---
+EOF
+  cat > "$WORK/.factory/stories/S-009-test.md" << 'EOF'
+---
+behavioral_contracts: [BC-2.04.001]
+anchor_capabilities: [CAP-007]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-009-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "anchor-caps-union: handles STORY- prefix files" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.001-st.md" << 'EOF'
+---
+capability: CAP-007
+---
+EOF
+  cat > "$WORK/.factory/stories/STORY-001-test.md" << 'EOF'
+---
+anchor_bcs: [BC-2.04.001]
+anchor_capabilities: [CAP-007]
+---
+# Story
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/STORY-001-test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "anchor-caps-union: shows BC→CAP mapping in error" {
+  cat > "$WORK/.factory/specs/behavioral-contracts/BC-2.04.001-map.md" << 'EOF'
+---
+capability: CAP-006
+---
+EOF
+  cat > "$WORK/.factory/stories/S-010-test.md" << 'EOF'
+---
+anchor_bcs: [BC-2.04.001]
+anchor_capabilities: [CAP-005]
+---
+EOF
+  _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-010-test.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BC-2.04.001:CAP-006"* ]]
+}
+
+@test "anchor-caps-union: hooks.json wires the hook" {
+  grep -q "validate-anchor-capabilities-union.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+}
