@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.53.0 — Wave gate completeness enforcement + GATE_CHECK telemetry
+
+### Added
+
+- **`validate-wave-gate-completeness.sh`** (PostToolUse on Write to wave-state.yaml) — blocks marking gate_status: passed unless the gate report contains evidence of all 6 gates (test suite, DTU validation, adversarial review, demo evidence, holdout evaluation, state update). Accepts both human-readable "Gate N" headings and structured GATE_CHECK telemetry lines.
+- **GATE_CHECK telemetry** added to wave-gate skill — structured `GATE_CHECK: gate=N name=<name> status=<pass|fail|skip> note=<reason>` lines emitted after each gate, enabling mechanical validation by the completeness hook.
+- 10 new BATS tests for gate completeness validation
+- 682 tests across 21 suites, 0 failures
+
 ## 0.52.0 — Wave gate enforcement + PR lifecycle hooks + AI attribution blocker
 
 ### Added
