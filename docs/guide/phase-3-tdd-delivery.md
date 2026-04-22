@@ -146,7 +146,7 @@ The test-writer writes tests for each acceptance criterion and behavioral contra
 
 If the Red Gate fails, a new test-writer is dispatched with narrower scope. The orchestrator does not proceed to implementation until the Red Gate passes.
 
-The Red Gate outcome is recorded in `.factory/stories/red-gate-log.md`.
+The Red Gate outcome is recorded in `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md`.
 
 Commit: `test(STORY-001): add failing tests for BC-1.01.001`
 

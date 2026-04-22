@@ -120,7 +120,7 @@ For each story in the current wave:
 4. Spawn test-writer: "Write failing tests for STORY-NNN" (Test Writer)
 5. Wait for completion. Verify cargo test compiles + all tests fail.
 6. If Red Gate fails: spawn new test-writer to fix tests
-7. Record both steps in red-gate-log
+7. Record both steps in `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md`
 
 Only after Red Gate verified -> spawn implementer for STORY-NNN
 

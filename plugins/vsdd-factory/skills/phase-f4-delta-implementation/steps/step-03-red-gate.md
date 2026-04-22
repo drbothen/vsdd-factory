@@ -13,11 +13,11 @@ Run the new tests to verify they fail before implementation (TDD Red phase).
    - The feature already exists (re-evaluate scope in F1)
    - The tests are vacuously true (fix the tests)
 3. Red Gate failure is enforced by `plugins/src/red-gate.ts`
-4. Record Red Gate results in `.factory/phase-f4-implementation/red-gate-log.md`
+4. Record Red Gate results in `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md`
 
 ## Outputs
 
-- `.factory/phase-f4-implementation/red-gate-log.md`
+- `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md`
 
 ## Completion Criteria
 

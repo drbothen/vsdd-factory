@@ -26,7 +26,7 @@ After dispatch returns, **independently** run the test suite and verify:
 
 If Red Gate fails, dispatch a new test-writer to fix the tests. **Do not proceed to implementation until Red Gate is green** (i.e., tests are correctly red).
 
-Record the Red Gate outcome in `.factory/stories/red-gate-log.md` following `${CLAUDE_PLUGIN_ROOT}/templates/red-gate-log-template.md`.
+Record the Red Gate outcome in `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md` following `${CLAUDE_PLUGIN_ROOT}/templates/red-gate-log-template.md`.
 
 ## Exit Condition
 
@@ -35,5 +35,5 @@ Red Gate PASSED — tests compile, all fail with assertion errors, failure messa
 ## Artifacts
 
 - Test files in `.worktrees/STORY-NNN/`
-- `.factory/stories/red-gate-log.md` — Red Gate verification log
+- `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md` — Red Gate verification log
 - Commit on feature branch

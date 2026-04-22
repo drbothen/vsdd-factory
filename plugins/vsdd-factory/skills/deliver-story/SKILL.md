@@ -77,7 +77,7 @@ Dispatch `test-writer` with task: "Write failing tests in `.worktrees/STORY-NNN/
 
 If Red Gate fails, dispatch a new test-writer to fix the tests. Do not proceed to implementation until Red Gate is green (i.e., tests are correctly red).
 
-Record the Red Gate outcome in `.factory/stories/red-gate-log.md` following `${CLAUDE_PLUGIN_ROOT}/templates/red-gate-log-template.md`.
+Record the Red Gate outcome in `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md` following `${CLAUDE_PLUGIN_ROOT}/templates/red-gate-log-template.md`.
 
 ### Step 4 — Implement (implementer)
 
@@ -221,7 +221,7 @@ Tell the user:
 
 ```
 Story STORY-NNN delivered:
-  Red Gate:       PASSED (see .factory/stories/red-gate-log.md)
+  Red Gate:       PASSED (see .factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md)
   Implementation: <N> micro-commits
   Demos:          <N> artifacts in docs/demo-evidence/<STORY-ID>/
   PR:             #<N> merged to develop

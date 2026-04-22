@@ -35,7 +35,7 @@ Tell the user:
 
 ```
 Story STORY-NNN delivered:
-  Red Gate:       PASSED (see .factory/stories/red-gate-log.md)
+  Red Gate:       PASSED (see .factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md)
   Implementation: <N> micro-commits
   Demos:          <N> artifacts in docs/demo-evidence/<STORY-ID>/
   PR:             #<N> merged to develop

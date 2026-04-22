@@ -143,8 +143,8 @@ When Phase F4 implementation changes an API contract (OpenAPI spec, protobuf, Gr
 ## Output Artifacts
 
 - `.factory/phase-f4-implementation/regression-baseline.md`
-- `.factory/phase-f4-implementation/red-gate-log.md`
-- `.factory/phase-f4-implementation/regression-log.md`
+- `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md`
+- `.factory/cycles/<cycle-id>/<story-id>/implementation/regression-log.md`
 - `.factory/phase-f4-implementation/summary.md`
 - New test files (in project test directory)
 - New implementation files (in project source directory)
