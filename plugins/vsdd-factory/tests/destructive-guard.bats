@@ -263,7 +263,7 @@ _run_hook() {
 }
 
 @test "hooks.json wires destructive-command-guard" {
-  jq -e '.hooks.PreToolUse[1].hooks[] | select(.command | contains("destructive-command-guard"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+  jq -e '.hooks.PreToolUse[] | .hooks[] | select(.command | contains("destructive-command-guard"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
 }
 
 @test "hook provides fix suggestions in block messages" {

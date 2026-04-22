@@ -1,0 +1,29 @@
+# .factory/wave-state.yaml — Structured wave lifecycle tracker
+#
+# Tracks which wave is current, which gates are pending, and per-wave
+# story merge + gate status. Consumed by:
+#   - validate-wave-gate-prerequisite.sh (PreToolUse hook — blocks N+1 if N gate pending)
+#   - update-wave-state-on-merge.sh (SubagentStop hook — auto-appends merged stories)
+#   - warn-pending-wave-gate.sh (Stop hook — session-end safety net)
+#
+# State transitions (driven by state-manager or hooks):
+#   story merges        → append to stories_merged
+#   all stories merged  → gate_status: pending, set next_gate_required
+#   gate report filed   → gate_status: passed, clear next_gate_required
+#   gate explicitly     → gate_status: deferred (with rationale field)
+#     deferred
+#
+# Initialize with: copy this template to .factory/wave-state.yaml
+# Update via: state-manager agent or update-wave-state-on-merge hook
+
+current_wave: wave_0a           # where NEW dispatches should target
+next_gate_required: null        # set to wave_N when merges complete but gate not run
+
+waves:
+  wave_0a:
+    stories: []                 # story IDs assigned to this wave
+    stories_merged: []          # story IDs whose PRs have merged
+    gate_status: not_started    # not_started | pending | passed | deferred | failed
+    gate_date: null             # ISO date when gate completed
+    gate_report: null           # path to gate report file
+    rationale: null             # human-readable reason (required for deferred status)
