@@ -96,12 +96,12 @@ is append-only during Feature Mode:
 
 ```markdown
 # Existing chain (DO NOT MODIFY):
-FR-001 -> VP-001 -> TALLY-abc -> test_auth -> src/auth.rs -> ADV-PASS-3 -> KANI-auth-PASS
-FR-002 -> VP-002 -> TALLY-def -> test_session -> src/session.rs -> ADV-PASS-2 -> KANI-session-PASS
+FR-001 -> VP-001 -> test_auth -> src/auth.rs -> ADV-PASS-3 -> KANI-auth-PASS
+FR-002 -> VP-002 -> test_session -> src/session.rs -> ADV-PASS-2 -> KANI-session-PASS
 
 # Feature: Notification System (appended YYYY-MM-DD, spec v1.3.0):
-FR-025 -> VP-014 -> TALLY-xyz -> test_notification_delivery -> src/notification_service.rs -> ADV-PASS-1 -> KANI-notification-PASS
-FR-026 -> VP-015 -> TALLY-uvw -> test_notification_preferences -> src/notification_preferences.rs -> ADV-PASS-1 -> KANI-preferences-PASS
+FR-025 -> VP-014 -> test_notification_delivery -> src/notification_service.rs -> ADV-PASS-1 -> KANI-notification-PASS
+FR-026 -> VP-015 -> test_notification_preferences -> src/notification_preferences.rs -> ADV-PASS-1 -> KANI-preferences-PASS
 
 # Cross-references:
 FR-025 depends_on FR-001
@@ -113,9 +113,9 @@ STORY-010 extends STORY-003
 Before Phase F7 convergence, verify that every new requirement has a complete chain
 spanning L1→L4:
 
-| L1 Section | L2 CAP | L3 BC | Requirement | VP | Tracker | Test | Impl | Adversarial | Proof |
-|------------|--------|-------|-------------|-----|---------|------|------|-------------|-------|
-| Notifications | CAP-012 | BC-3.01.001 | FR-025 | VP-014 | TALLY-xyz | test_BC_3_01_001_delivery | notification_service.rs | ADV-PASS-1 | KANI-notification-PASS |
+| L1 Section | L2 CAP | L3 BC | Requirement | VP | Test | Impl | Adversarial | Proof |
+|------------|--------|-------|-------------|-----|------|------|-------------|-------|
+| Notifications | CAP-012 | BC-3.01.001 | FR-025 | VP-014 | test_BC_3_01_001_delivery | notification_service.rs | ADV-PASS-1 | KANI-notification-PASS |
 
 Any gap in the chain means convergence is not achieved. The missing link must be
 filled before Phase F7 can complete.

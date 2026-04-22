@@ -15,11 +15,11 @@
  * - Viewport: 1280x720 for consistent PR rendering
  *
  * Usage:
- *   npx playwright test docs/demo-evidence/AC-NNN-description.spec.ts
+ *   npx playwright test docs/demo-evidence/{STORY_ID}/AC-NNN-description.spec.ts
  *
  * Output:
- *   docs/demo-evidence/AC-NNN-description.webm  (video)
- *   docs/demo-evidence/AC-NNN-description.png   (screenshot)
+ *   docs/demo-evidence/{STORY_ID}/AC-NNN-description.webm  (video)
+ *   docs/demo-evidence/{STORY_ID}/AC-NNN-description.png   (screenshot)
  */
 
 import { test, expect } from '@playwright/test';
@@ -55,7 +55,7 @@ test('{ac_id}: {ac_description} (success path)', async ({ page }) => {
 
   // Screenshot: initial state
   await page.screenshot({
-    path: 'docs/demo-evidence/{ac_id}-01-initial.png',
+    path: 'docs/demo-evidence/{STORY_ID}/{ac_id}-01-initial.png',
     fullPage: true,
   });
 
@@ -69,7 +69,7 @@ test('{ac_id}: {ac_description} (success path)', async ({ page }) => {
 
   // Screenshot: result state
   await page.screenshot({
-    path: 'docs/demo-evidence/{ac_id}-02-result.png',
+    path: 'docs/demo-evidence/{STORY_ID}/{ac_id}-02-result.png',
     fullPage: true,
   });
 });
@@ -88,7 +88,7 @@ test('{ac_id}: {ac_description} (error path)', async ({ page }) => {
 
   // Screenshot: error state
   await page.screenshot({
-    path: 'docs/demo-evidence/{ac_id}-03-error.png',
+    path: 'docs/demo-evidence/{STORY_ID}/{ac_id}-03-error.png',
     fullPage: true,
   });
 });

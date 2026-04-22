@@ -37,7 +37,7 @@ Tell the user:
 Story STORY-NNN delivered:
   Red Gate:       PASSED (see .factory/stories/red-gate-log.md)
   Implementation: <N> micro-commits
-  Demos:          <N> artifacts in docs/demo-evidence/
+  Demos:          <N> artifacts in docs/demo-evidence/<STORY-ID>/
   PR:             #<N> merged to develop
   Worktree:       cleaned up
   State:          sprint-state.yaml updated

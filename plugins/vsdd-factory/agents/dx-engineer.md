@@ -52,7 +52,7 @@ machine-level setup that no other agent covers.
 - Installed and version-verified toolchain (language tools, security tools, demo tools)
 - `.env.example` (committed template), `.env` (gitignored), `.envrc` (direnv config)
 - LLM health report confirming all 3 model families are reachable
-- MCP preflight validation results (Perplexity, Context7, Tally, Playwright)
+- MCP preflight validation results (Perplexity, Context7, Playwright)
 
 ### Success Criteria
 - All required tools installed and meeting minimum version requirements
@@ -185,7 +185,6 @@ Verify MCP servers are accessible via mcporter:
   mcporter installed -> check (ClawHub skill)
   Perplexity MCP -> mcporter call perplexity.perplexity_search query="health check"
   Context7 MCP -> mcporter call context7.resolve-library-id name="react"
-  Tally MCP -> mcporter call tally.list_rules
   Playwright MCP -> mcporter call playwright.browser_install
 
 Sub-agent validation:

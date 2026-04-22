@@ -89,7 +89,7 @@ If the story has `implementation_strategy: gene-transfusion`, include in the tas
 
 ### Step 5 — Record demos (demo-recorder)
 
-Dispatch `demo-recorder` with task: "Record per-AC demos in `.worktrees/STORY-NNN/docs/demo-evidence/`. Use VHS for CLI or Playwright for web. Capture both success and error paths. Generate `docs/demo-evidence/evidence-report.md`."
+Dispatch `demo-recorder` with task: "Record per-AC demos in `.worktrees/STORY-NNN/docs/demo-evidence/<STORY-ID>/`. Use VHS for CLI or Playwright for web. Capture both success and error paths. Generate `docs/demo-evidence/<STORY-ID>/evidence-report.md`."
 
 **Exit condition:** every acceptance criterion has at least one demo artifact referenced in the evidence report.
 
@@ -223,7 +223,7 @@ Tell the user:
 Story STORY-NNN delivered:
   Red Gate:       PASSED (see .factory/stories/red-gate-log.md)
   Implementation: <N> micro-commits
-  Demos:          <N> artifacts in docs/demo-evidence/
+  Demos:          <N> artifacts in docs/demo-evidence/<STORY-ID>/
   PR:             #<N> merged to develop
   Worktree:       cleaned up
   State:          sprint-state.yaml updated

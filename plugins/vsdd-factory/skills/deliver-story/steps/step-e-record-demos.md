@@ -11,7 +11,7 @@ description: Dispatch demo-recorder to capture per-AC demo artifacts covering su
 
 **Agent:** `demo-recorder` (model tier: Fast)
 
-**Task:** "Record per-AC demos in `.worktrees/STORY-NNN/docs/demo-evidence/`. Use VHS for CLI or Playwright for web. Capture both success and error paths. Generate `docs/demo-evidence/evidence-report.md`."
+**Task:** "Record per-AC demos in `.worktrees/STORY-NNN/docs/demo-evidence/<STORY-ID>/`. Use VHS for CLI or Playwright for web. Capture both success and error paths. Generate `docs/demo-evidence/<STORY-ID>/evidence-report.md`."
 
 **Context to pass:** Story file, acceptance criteria extract only.
 
@@ -21,5 +21,5 @@ Every acceptance criterion has at least one demo artifact referenced in the evid
 
 ## Artifacts
 
-- Demo recordings in `.worktrees/STORY-NNN/docs/demo-evidence/`
-- `docs/demo-evidence/evidence-report.md` — evidence index
+- Demo recordings in `.worktrees/STORY-NNN/docs/demo-evidence/<STORY-ID>/`
+- `docs/demo-evidence/<STORY-ID>/evidence-report.md` — evidence index

@@ -15,8 +15,8 @@
 
 # === Output Configuration ===
 # Always produce BOTH formats
-Output docs/demo-evidence/AC-NNN-{description}.gif
-Output docs/demo-evidence/AC-NNN-{description}.webm
+Output docs/demo-evidence/{STORY_ID}/AC-NNN-{description}.gif
+Output docs/demo-evidence/{STORY_ID}/AC-NNN-{description}.webm
 
 # === Dependency Check ===
 # Verify required tools exist before recording

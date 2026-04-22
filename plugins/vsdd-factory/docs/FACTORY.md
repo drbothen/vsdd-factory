@@ -503,7 +503,7 @@ Agents are assigned tool profiles based on their role, not their convenience. Th
 ### File Conventions
 - All specs use Markdown with YAML frontmatter
 - All artifacts include producer, timestamp, and input-hash metadata
-- Tally findings track the full VSDD traceability chain
+- All artifacts track the full VSDD traceability chain via frontmatter
 
 ### Specification Artifact File Conventions
 
@@ -874,12 +874,12 @@ stub -> test -> implement -> demo -> push -> PR -> AI review -> merge
 3. Demo-recorder records per-AC demos in worktree:
    - CLI products: VHS `.tape` → `.gif` + `.webm`
    - Web products: Playwright `.spec.ts` → `.webm` + `.png`
-   - Output: `docs/demo-evidence/` (committed to feature branch, visible in PR diff)
+   - Output: `docs/demo-evidence/<STORY-ID>/` (committed to feature branch, visible in PR diff)
    - Both success AND error paths for each AC
 4. Implementer pushes with `--force-with-lease`
 5. PR-manager runs full 9-step process:
    a. Populate PR description from template (embeds demo .gif thumbnails)
-   b. Verify demo evidence gate (`docs/demo-evidence/evidence-report.md` exists)
+   b. Verify demo evidence gate (`docs/demo-evidence/<STORY-ID>/evidence-report.md` exists)
    c. Create PR via github-ops
    d. Security review (security-reviewer posts formal review)
    e. PR review convergence loop (pr-reviewer posts formal review, max 10 cycles)
@@ -1041,7 +1041,7 @@ LiteLLM config includes verified RPM/TPM per model tier:
 
 ### MCP Access for All Agents
 
-MCP servers (Perplexity, Context7, Tally, Playwright) are configured in
+MCP servers (Perplexity, Context7, Playwright) are configured in
 `openclaw.json` under `mcp.servers`. All agents — including sub-agents
 spawned via `sessions_spawn` — have direct access to MCP tools. No
 mcporter or  middleman is needed.
@@ -1050,7 +1050,6 @@ Available MCP tools:
 - `perplexity_search`, `perplexity_ask`, `perplexity_research`, `perplexity_reason`
 - `resolve-library-id`, `query-docs` (Context7)
 - `browser_*` (Playwright)
-- Tally finding tracker tools
 
 ## L2 Domain Spec and UX Spec Sharding (DF-021 Extension)
 

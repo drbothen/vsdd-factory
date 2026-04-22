@@ -20,7 +20,7 @@ description: >
 
 - Story implementation complete: all tests pass in the worktree
 - Worktree exists at `.worktrees/STORY-NNN/` with feature branch
-- Demo evidence recorded in worktree (docs/demo-evidence/)
+- Demo evidence recorded in worktree (docs/demo-evidence/<STORY-ID>/)
 - `.factory/merge-config.yaml` exists (or defaults apply)
 
 ## Workflow
@@ -46,18 +46,19 @@ Before creating the PR, record demo evidence in the worktree:
    - Full-stack: VHS for CLI parts, Playwright for web parts
 3. For each AC: create recording script from template, execute, verify output
 4. Record BOTH success AND error paths for each AC
-5. Generate `docs/demo-evidence/evidence-report.md`
+5. Generate `docs/demo-evidence/<STORY-ID>/evidence-report.md`
 6. Commit to feature branch:
    ```bash
    cd .worktrees/STORY-NNN/
-   git add docs/demo-evidence/
+   git add docs/demo-evidence/<STORY-ID>/
    git commit -m "evidence(STORY-NNN): add demo recordings"
    ```
 
-Demo artifacts go to `docs/demo-evidence/` (committed to feature branch, NOT `.factory/`).
+Demo artifacts go to `docs/demo-evidence/<STORY-ID>/` (committed to feature branch, NOT `.factory/`).
+The per-story subfolder prevents evidence-report.md collisions across stories.
 They appear in the PR diff — `.gif` files render inline on GitHub.
 
-**Gate:** `docs/demo-evidence/evidence-report.md` exists, at least 1 recording
+**Gate:** `docs/demo-evidence/<STORY-ID>/evidence-report.md` exists, at least 1 recording
 (`.gif`/`.webm`, NOT `.txt`) per AC, both success and error paths.
 
 ### Step 3: Push Branch to Remote
@@ -87,7 +88,7 @@ populated with data from `.factory/` artifacts:
 
 - **Spec traceability:** Read from `.factory/stories/stories/STORY-NNN.md`
 - **Test evidence:** Read from test execution output + coverage report
-- **Demo evidence:** Embedded GIF thumbnails from `docs/demo-evidence/`
+- **Demo evidence:** Embedded GIF thumbnails from `docs/demo-evidence/<STORY-ID>/`
 - **Mermaid diagrams:**
   - Architecture change diagram (graph TD)
   - Story dependency diagram (graph LR, showing merged/pending/blocked)
@@ -221,8 +222,8 @@ Per-story delivery artifacts:
 
 Committed to feature branch (in PR diff):
 ```
-docs/demo-evidence/
-  ├── AC-001-[description].gif
+docs/demo-evidence/<STORY-ID>/
+  ├��─ AC-001-[description].gif
   ├── AC-001-[description].webm
   ├── AC-001-[description].tape
   └── evidence-report.md

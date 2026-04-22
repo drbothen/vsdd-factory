@@ -124,7 +124,7 @@ Kani verifies:
 - State machine invariants
 - Custom property assertions
 
-If a proof fails -> file a Tally finding and route back to Phase 4.
+If a proof fails -> file an adversarial finding (ADV-*) and route back to Phase 4.
 
 ### 2. Fuzz Testing
 

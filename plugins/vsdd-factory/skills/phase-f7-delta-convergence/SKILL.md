@@ -78,7 +78,7 @@ Update the traceability chain to include the new feature using 4-level hierarchy
 
 For each new requirement:
 ```
-BC-S.SS.NNN -> VP-NNN -> TALLY-xxx -> test_xxx -> src/xxx.rs -> ADV-PASS-N -> KANI-xxx-PASS
+BC-S.SS.NNN -> VP-NNN -> test_xxx -> src/xxx.rs -> ADV-PASS-N -> KANI-xxx-PASS
 ```
 
 For cross-references (new feature depends on existing feature):

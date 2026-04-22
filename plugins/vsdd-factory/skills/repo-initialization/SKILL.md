@@ -333,8 +333,6 @@ After repo is created, orchestrator spawns dx-engineer for environment setup:
      --command "npx" --args "-y @anthropic/perplexity-mcp"
    mcporter config add context7 --transport stdio \
      --command "npx" --args "-y @anthropic/context7-mcp"
-   mcporter config add tally --transport stdio \
-     --command "npx" --args "-y tally-mcp"
    mcporter config add playwright --transport stdio \
      --command "npx" --args "-y @anthropic/playwright-mcp"
    ```
@@ -344,7 +342,7 @@ After repo is created, orchestrator spawns dx-engineer for environment setup:
    Block if any model is unavailable.
 
 9. **MCP preflight:**
-    Verify mcporter can reach Perplexity, Context7, Tally, Playwright.
+    Verify mcporter can reach Perplexity, Context7, Playwright.
     Spawn test  to confirm sub-agent MCP access works.
 
 ## Output

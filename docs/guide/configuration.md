@@ -44,7 +44,7 @@ your-project/
       wave-scenarios/
       evaluations/
     semport/                    # Brownfield ingestion artifacts
-    demo-evidence/              # Per-story demo reports
+    demo-evidence/<STORY-ID>/   # Per-story demo reports (scoped by story ID)
     dtu-clones/                 # Digital twin universe clones
     tech-debt-register.md       # Tracked debt items
     reference-manifest.yaml     # External codebase references

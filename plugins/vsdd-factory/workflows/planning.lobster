@@ -36,7 +36,7 @@ workflow:
         Run environment setup:
         1. Install tools (direnv, just, lefthook, mcporter)
         2. LLM health check (Claude, GPT-5.4, Gemini — all REQUIRED)
-        3. MCP preflight (mcporter call → verify Perplexity, Context7, Tally)
+        3. MCP preflight (mcporter call → verify Perplexity, Context7)
         4. Supply chain audit via security-reviewer (before installs)
         Block on any security finding or missing required model.
       timeout: "15m"

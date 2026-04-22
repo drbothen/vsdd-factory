@@ -16,7 +16,6 @@ into a single AI-orchestrated pipeline:
 |------|--------|-------|----------|
 | **The Architect** | Human Developer | N/A | Strategic vision, domain expertise, acceptance authority |
 | **The Builder** | Claude agents | Opus/Sonnet | Spec authorship, test generation, code implementation |
-| **The Tracker** | Tally | Haiku | Hierarchical bead chains — every artifact maps to a bead |
 | **The Adversary** | GPT-5.4 | Different family | Hyper-critical reviewer. Fresh context every pass. |
 | **The Verifier** | Formal tools | Sonnet + local | Kani, cargo-fuzz, cargo-mutants, Semgrep |
 
@@ -131,7 +130,7 @@ With an airtight spec, break it into implementable units:
   - Architecture component mappings
   - UX screen references (if applicable)
   - Dependency graph (must be acyclic)
-  - Tally bead ID for traceability
+  - Input-hash for traceability
 
 **Quality Gate:** Human approves story breakdown. Adversary reviews for gaps.
 

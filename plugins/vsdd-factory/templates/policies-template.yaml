@@ -145,3 +145,16 @@ policies:
       - "For each VP in VP-INDEX, verify it appears in verification-coverage-matrix.md VP-to-Module table"
       - "Sum coverage matrix per-tool columns — must equal VP-INDEX per-tool totals"
       - "Reverse check: every VP in arch docs must exist in VP-INDEX"
+
+  - id: 10
+    name: demo_evidence_story_scoped
+    description: "All demo-recorder output MUST live under docs/demo-evidence/<STORY-ID>/. No flat files at docs/demo-evidence/*.md."
+    adopted: baseline
+    severity: HIGH
+    enforced_by: [adversary-prompt, consistency-validator, pr-reviewer, lint-hook]
+    scope: [story, demo-evidence, pr]
+    lint_hook: hooks/validate-demo-evidence-story-scoped.sh
+    verification_steps:
+      - "For each story's feature branch, verify docs/demo-evidence/<STORY-ID>/ exists"
+      - "Verify NO files exist at docs/demo-evidence/*.md — only subfolders"
+      - "Cross-check: subfolder name matches the story's frontmatter story_id"

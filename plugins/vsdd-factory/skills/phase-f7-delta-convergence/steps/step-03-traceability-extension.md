@@ -11,7 +11,7 @@ Update the traceability chain to include the new feature, appending new links.
 
 1. For each new requirement, build the full chain using 4-level hierarchy:
    ```
-   BC-S.SS.NNN -> VP-NNN -> TALLY-xxx -> test_xxx -> src/xxx.rs -> ADV-PASS-N -> KANI-xxx-PASS
+   BC-S.SS.NNN -> VP-NNN -> test_xxx -> src/xxx.rs -> ADV-PASS-N -> KANI-xxx-PASS
    ```
 2. For cross-references (new feature depends on existing feature):
    ```

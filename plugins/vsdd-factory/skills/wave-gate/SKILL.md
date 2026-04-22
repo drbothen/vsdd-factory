@@ -92,7 +92,7 @@ Launch `/adversarial-review implementation` scoped to the wave's changes.
 ### Gate 4: Demo Evidence
 
 For each story in this wave, verify demo evidence exists:
-- Check `.factory/demo-evidence/STORY-NNN-demo-report.md`
+- Check `.factory/demo-evidence/STORY-NNN/demo-report.md`
 - Verify all acceptance criteria have evidence entries
 
 If any story is missing demo evidence, run `/record-demo STORY-NNN` for each missing story.

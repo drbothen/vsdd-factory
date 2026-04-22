@@ -43,7 +43,7 @@ Record terminal session using `script` or `asciinema`:
 script -q /tmp/demo-ac-1.txt bash -c '<command that demonstrates AC>'
 
 # Using asciinema (if available)
-asciinema rec .factory/demo-evidence/STORY-NNN-AC-1.cast -c '<command>'
+asciinema rec .factory/demo-evidence/STORY-NNN/AC-1.cast -c '<command>'
 ```
 
 #### Web Applications
@@ -52,11 +52,11 @@ Use Playwright MCP tools to:
 1. Navigate to the relevant page
 2. Perform the action described in the AC
 3. Screenshot the result
-4. Save to `.factory/demo-evidence/STORY-NNN-AC-<N>.png`
+4. Save to `.factory/demo-evidence/STORY-NNN/AC-<N>.png`
 
 ### 3. Create Demo Report
 
-Write to `.factory/demo-evidence/STORY-NNN-demo-report.md`:
+Write to `.factory/demo-evidence/STORY-NNN/demo-report.md`:
 
 ```markdown
 # Demo Evidence: STORY-NNN — <title>
@@ -80,7 +80,7 @@ Write to `.factory/demo-evidence/STORY-NNN-demo-report.md`:
 
 ```bash
 cd .factory
-git add demo-evidence/STORY-NNN-*
+git add demo-evidence/STORY-NNN/
 git commit -m "factory(phase-3): demo evidence for STORY-NNN"
 ```
 

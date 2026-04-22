@@ -231,7 +231,7 @@ workflow:
         2. For each AC: create VHS .tape (CLI) or Playwright spec (web)
         3. Execute to produce .gif + .webm
         4. Generate evidence report
-        5. Commit: git add docs/demo-evidence/
+        5. Commit: git add docs/demo-evidence/<STORY-ID>/
       timeout: "30m"
 
     # =========================================================================

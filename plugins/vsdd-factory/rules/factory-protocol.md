@@ -51,7 +51,7 @@ A git worktree mounted on the orphan `factory-artifacts` branch. It holds all pi
 ├── semport/                          # Semantic porting artifacts (per-project subfolders)
 │   └── <project>/                    # One folder per ingested codebase
 ├── code-delivery/                    # Per-story PR templates
-├── demo-evidence/                    # Visual review tracking
+├── demo-evidence/<STORY-ID>/         # Per-story visual review tracking
 └── dtu-clones/                       # Digital twin universe clones
 ```
 

@@ -44,7 +44,7 @@ Includes a workspace isolation guard that prevents accidental operation inside t
 
 ### `/vsdd-factory:setup-env`
 
-Validate and provision the development environment. Checks required tools (rustc 1.85+, cargo, rustfmt nightly, clippy, git, gh, just, jq), optional tools (cargo-kani, cargo-fuzz, cargo-mutants, cargo-deny, semgrep, lefthook, hyperfine), MCP server health (Perplexity, Tavily, Playwright, Tally), and git configuration. Run this on first setup or after tooling changes.
+Validate and provision the development environment. Checks required tools (rustc 1.85+, cargo, rustfmt nightly, clippy, git, gh, just, jq), optional tools (cargo-kani, cargo-fuzz, cargo-mutants, cargo-deny, semgrep, lefthook, hyperfine), MCP server health (Perplexity, Tavily, Playwright), and git configuration. Run this on first setup or after tooling changes.
 
 ```
 /vsdd-factory:setup-env

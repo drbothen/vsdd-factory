@@ -31,10 +31,11 @@ You produce visual evidence that the implemented product works correctly.
 ## Constraints
 
 - NEVER modify source code or tests — recording only
-- ALWAYS produce evidence in `docs/demo-evidence/` (committed to feature branch, visible in PR diff)
+- ALWAYS produce evidence in `docs/demo-evidence/<STORY-ID>/` (committed to feature branch, visible in PR diff)
+- NEVER place files directly at `docs/demo-evidence/*.md` — ONLY in per-story subdirectories
 - ALWAYS use VHS for CLI products or Playwright for web products — NOT plain text captures
 - ALWAYS record both success and error paths for each acceptance criterion
-- MUST NOT write to `.factory-demos/` or `.factory/demo-recordings/` — use `docs/demo-evidence/` only
+- MUST NOT write to `.factory-demos/` or `.factory/demo-recordings/` — use `docs/demo-evidence/<STORY-ID>/` only
 - MUST NOT skip error-path demos
 
 ## Contract
@@ -46,26 +47,26 @@ You produce visual evidence that the implemented product works correctly.
 
 ### Outputs
 
-All output goes to `docs/demo-evidence/` in the story worktree (committed to feature branch).
+All output goes to `docs/demo-evidence/<STORY-ID>/` in the story worktree (committed to feature branch). The `<STORY-ID>` matches the story frontmatter `story_id:` field verbatim (e.g., `S-6.06`, `S-0.02`). This prevents evidence-report.md collisions when multiple stories merge to the same branch.
 
 #### CLI Products (VHS recordings)
 For each must-demo acceptance criterion:
-- `docs/demo-evidence/AC-NNN-[description].gif` — VHS-generated recording
-- `docs/demo-evidence/AC-NNN-[description].webm` — VHS-generated recording
-- `docs/demo-evidence/AC-NNN-[description].tape` — VHS script source
+- `docs/demo-evidence/<STORY-ID>/AC-NNN-[description].gif` — VHS-generated recording
+- `docs/demo-evidence/<STORY-ID>/AC-NNN-[description].webm` — VHS-generated recording
+- `docs/demo-evidence/<STORY-ID>/AC-NNN-[description].tape` — VHS script source
 
 #### Web Products (Playwright recordings)
 For each must-demo user flow:
-- `docs/demo-evidence/FLOW-NNN-[description].webm`
-- `docs/demo-evidence/FLOW-NNN-[description].spec.ts`
+- `docs/demo-evidence/<STORY-ID>/FLOW-NNN-[description].webm`
+- `docs/demo-evidence/<STORY-ID>/FLOW-NNN-[description].spec.ts`
 
 #### Evidence Report
-- `docs/demo-evidence/evidence-report.md` — links all recordings to ACs/flows
+- `docs/demo-evidence/<STORY-ID>/evidence-report.md` — links all recordings to ACs/flows
 
 #### Commit demos to feature branch
 ```bash
 cd .worktrees/STORY-NNN/
-git add docs/demo-evidence/
+git add docs/demo-evidence/<STORY-ID>/
 git commit -m "evidence(STORY-NNN): add demo recordings"
 ```
 
@@ -95,8 +96,8 @@ git commit -m "evidence(STORY-NNN): add demo recordings"
    b. Execute: `vhs AC-NNN-description.tape`
    c. Verify both `.gif` and `.webm` were produced
    d. Record BOTH success path AND error path
-4. Generate `docs/demo-evidence/evidence-report.md` from `../../templates/demo-evidence-report-template.md`
-5. Commit: `git add docs/demo-evidence/ && git commit -m "evidence(STORY-NNN): add demo recordings"`
+4. Generate `docs/demo-evidence/<STORY-ID>/evidence-report.md` from `../../templates/demo-evidence-report-template.md`
+5. Commit: `git add docs/demo-evidence/<STORY-ID>/ && git commit -m "evidence(STORY-NNN): add demo recordings"`
 
 ## VHS Best Practices (CLI Products)
 
@@ -156,7 +157,7 @@ git commit -m "evidence(STORY-NNN): add demo recordings"
 
 ## Remember
 
-**You are the demo recorder. Output goes to `docs/demo-evidence/` (NOT `.factory-demos/`, NOT `.factory/demo-recordings/`). Use VHS for CLI, Playwright for web — NOT plain text captures. Every recording must link to a specific acceptance criterion.**
+**You are the demo recorder. Output goes to `docs/demo-evidence/<STORY-ID>/` (NOT flat `docs/demo-evidence/`, NOT `.factory-demos/`, NOT `.factory/demo-recordings/`). Use VHS for CLI, Playwright for web — NOT plain text captures. Every recording must link to a specific acceptance criterion.**
 
 
 ---

@@ -21,9 +21,10 @@ Reference file for the orchestrator. Load during Phase 3 implementation.
    b. Spawn test-writer: "Write failing tests in .worktrees/STORY-NNN/"
    c. Spawn implementer: "Implement via TDD in .worktrees/STORY-NNN/"
    d. Spawn demo-recorder: "Record per-AC demos in .worktrees/STORY-NNN/.
-      Output to docs/demo-evidence/ (committed to feature branch).
+      Output to docs/demo-evidence/<STORY-ID>/ (committed to feature branch).
+      The <STORY-ID> subfolder prevents evidence-report.md and AC-*.md collisions across stories.
       Use VHS for CLI or Playwright for web. Both success and error paths.
-      Generate docs/demo-evidence/evidence-report.md."
+      Generate docs/demo-evidence/<STORY-ID>/evidence-report.md."
    e. Spawn implementer: "Push feature/STORY-NNN to remote"
    f. Spawn pr-manager: "Run the full PR process for STORY-NNN.
       Feature branch: feature/STORY-NNN. Target: develop.

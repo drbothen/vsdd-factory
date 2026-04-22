@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.49.0 — Per-story demo evidence scoping (POL-010)
+
+### Added
+
+- **POL-010: `demo_evidence_story_scoped`** — all demo-recorder output must live under `docs/demo-evidence/<STORY-ID>/`, preventing evidence-report.md collisions across stories
+- **`validate-demo-evidence-story-scoped.sh`** — PostToolUse lint hook that blocks flat-level file creation at `docs/demo-evidence/*.md`
+- Policy entry added to `policies-template.yaml` (id: 10)
+
+### Changed
+
+- **demo-recorder agent** — output root changed from `docs/demo-evidence/` to `docs/demo-evidence/<STORY-ID>/`, constraint added forbidding flat-level files
+- **per-story-delivery orchestrator** — task prompt updated with `<STORY-ID>` subfolder and collision-prevention explanation
+- **deliver-story skill + steps** — all path references updated to per-story scoped
+- **code-delivery skill** — paths, gates, and tree diagram updated
+- **pr-manager, pr-reviewer agents** — evidence gate paths updated
+- **record-demo skill** — output paths updated to per-story scoped
+- **demo-recording skill** — internal factory paths unchanged (`.factory/demo-evidence/`)
+- **Templates** — demo-tape-template.tape, demo-playwright-template.spec.ts output paths updated with `{STORY_ID}` placeholder
+- **Workflows** — greenfield.lobster, code-delivery.lobster commit paths updated
+- **Docs** — phase-3-tdd-delivery.md, FACTORY.md, configuration.md, factory-protocol.md updated
+- Removed Tally MCP dependency — all 27 references across 18 files removed. Traceability chain simplified: `BC → VP → test → src → ADV → KANI` (TALLY-xxx link was redundant)
+
 ## 0.48.0 — Semantic drift lint hooks
 
 ### Added

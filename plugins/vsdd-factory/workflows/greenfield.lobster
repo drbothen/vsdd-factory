@@ -577,7 +577,7 @@ workflow:
         3. Validate .env product keys (names only, never values)
         4. Run key health checks (pass/fail only)
         5. Verify LLM availability (Claude, GPT-5.4, Gemini -- all REQUIRED)
-        6. MCP preflight (mcporter -> Perplexity, Context7, Tally, Playwright, Excalidraw)
+        6. MCP preflight (mcporter -> Perplexity, Context7, Playwright, Excalidraw)
         7. If UI product: run skills/toolchain-provisioning/SKILL.md for Storybook MCP + Excalidraw MCP
         8. If UI product: run skills/storybook-mcp-integration/SKILL.md for Storybook setup
         9. SHA pinning check (--locked, .tool-versions, Docker SHA digests)
@@ -683,7 +683,7 @@ workflow:
                 depends_on: [implementer-step]
                 task: >
                   Record per-AC demos for STORY-NNN in .worktrees/STORY-NNN/.
-                  Commit evidence to docs/demo-evidence/ on the feature branch.
+                  Commit evidence to docs/demo-evidence/<STORY-ID>/ on the feature branch.
                 timeout: "30m"
 
               - name: push-branch

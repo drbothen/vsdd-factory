@@ -82,7 +82,7 @@ The system is not done until ALL FIVE dimensions independently survive adversari
 Every artifact links back through the VSDD contract chain:
 
 ```
-Spec Requirement → Verification Property → Tally Bead → Test Case
+Spec Requirement → Verification Property → Test Case
     → Implementation → Adversarial Review → Formal Proof
 ```
 

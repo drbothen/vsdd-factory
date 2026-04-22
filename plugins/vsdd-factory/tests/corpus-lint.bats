@@ -966,3 +966,52 @@ EOF
 @test "anchor-caps-union: hooks.json wires the hook" {
   grep -q "validate-anchor-capabilities-union.sh" "$PLUGIN_ROOT/hooks/hooks.json"
 }
+
+# ========================================================================
+# validate-demo-evidence-story-scoped.sh
+# ========================================================================
+
+@test "demo-evidence-scoped: passes syntax check" {
+  run bash -n "$HOOKS/validate-demo-evidence-story-scoped.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "demo-evidence-scoped: passes file in story subdirectory" {
+  mkdir -p "$WORK/docs/demo-evidence/S-0.02"
+  echo "# Evidence" > "$WORK/docs/demo-evidence/S-0.02/evidence-report.md"
+  _run_hook validate-demo-evidence-story-scoped.sh "$WORK/docs/demo-evidence/S-0.02/evidence-report.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "demo-evidence-scoped: blocks flat-level file" {
+  mkdir -p "$WORK/docs/demo-evidence"
+  echo "# Evidence" > "$WORK/docs/demo-evidence/evidence-report.md"
+  _run_hook validate-demo-evidence-story-scoped.sh "$WORK/docs/demo-evidence/evidence-report.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"POL-010"* ]]
+}
+
+@test "demo-evidence-scoped: blocks flat AC file" {
+  mkdir -p "$WORK/docs/demo-evidence"
+  echo "# AC" > "$WORK/docs/demo-evidence/AC-001-test.md"
+  _run_hook validate-demo-evidence-story-scoped.sh "$WORK/docs/demo-evidence/AC-001-test.md"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"POL-010"* ]]
+}
+
+@test "demo-evidence-scoped: passes non-demo-evidence file" {
+  echo "test" > "$WORK/.factory/specs/test.md"
+  _run_hook validate-demo-evidence-story-scoped.sh "$WORK/.factory/specs/test.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "demo-evidence-scoped: passes gif in story subdirectory" {
+  mkdir -p "$WORK/docs/demo-evidence/S-6.06"
+  echo "gif content" > "$WORK/docs/demo-evidence/S-6.06/AC-001-test.gif"
+  _run_hook validate-demo-evidence-story-scoped.sh "$WORK/docs/demo-evidence/S-6.06/AC-001-test.gif"
+  [ "$status" -eq 0 ]
+}
+
+@test "demo-evidence-scoped: hooks.json wires the hook" {
+  grep -q "validate-demo-evidence-story-scoped.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+}

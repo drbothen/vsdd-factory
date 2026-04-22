@@ -92,7 +92,7 @@ MCP Servers:
   ✅ perplexity — API key set
   ⚠️ tavily — API key not set
   ✅ playwright — available
-  ✅ tally — available
+
 
 Git Config:
   ✅ rerere.enabled = true

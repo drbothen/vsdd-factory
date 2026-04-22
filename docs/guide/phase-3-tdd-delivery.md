@@ -189,7 +189,7 @@ For each acceptance criterion, the demo-recorder captures visual evidence:
 - **Web applications:** Screenshots via Playwright MCP tools
 - Both success and error paths
 
-Output: `docs/demo-evidence/evidence-report.md` in the story worktree.
+Output: `docs/demo-evidence/<STORY-ID>/evidence-report.md` in the story worktree.
 
 **Exit condition:** Every acceptance criterion has at least one demo artifact referenced in the evidence report.
 
@@ -401,7 +401,7 @@ Step 4 (implementer): TDD implementation
 
 Step 5 (demo-recorder): Evidence captured
   4 AC demonstrations (CLI recordings)
-  Evidence report: docs/demo-evidence/evidence-report.md
+  Evidence report: docs/demo-evidence/<STORY-ID>/evidence-report.md
 
 Step 6 (implementer): Branch pushed to origin
 

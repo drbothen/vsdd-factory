@@ -251,8 +251,8 @@ traces_to: ""
 | Implementation files | {n} |
 | Adversarial review passes | {n} |
 | Formal proofs | {n} |
-| Tally findings (total) | {n} |
-| Tally findings (resolved) | {n} |
+| Adversarial findings (total) | {n} |
+| Adversarial findings (resolved) | {n} |
 
 ---
 

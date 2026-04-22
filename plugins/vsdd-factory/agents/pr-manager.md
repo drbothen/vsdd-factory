@@ -46,7 +46,7 @@ findings, delegate fixes, track convergence, and execute merge.
 - Story spec (`STORY-NNN.md`) with acceptance criteria and dependency graph
 - Implementation branch name (worktree branch from implementer)
 - Review findings from pr-reviewer (severity-classified comments)
-- Demo evidence from `docs/demo-evidence/`
+- Demo evidence from `docs/demo-evidence/<STORY-ID>/`
 - Convergence data from prior review cycles (if any)
 
 ### Outputs
@@ -95,7 +95,7 @@ file paths. See FACTORY.md Sub-Agent Delegation Rule.
    **Mermaid diagrams:** Generate Architecture Changes (graph TD), Story Dependencies
    (graph LR), and Spec Traceability (flowchart LR) diagrams inline in the description.
    GitHub renders Mermaid natively — no execution needed.
-2. **Verify demo evidence** -- Check `docs/demo-evidence/evidence-report.md` exists in
+2. **Verify demo evidence** -- Check `docs/demo-evidence/<STORY-ID>/evidence-report.md` exists in
    the feature branch. If missing, spawn demo-recorder before creating the PR.
    Gate: at least 1 recording per AC.
 3. **Create PR** -- Spawn github-ops: `gh pr create --body-file <pr-description.md>`.
@@ -128,7 +128,7 @@ Read the PR template from the engine: `../../templates/pr-description-template.m
 (relative to your workspace). Populate it with:
 - Story traceability (BC -> AC -> Test -> Implementation)
 - Test evidence (pass count, coverage, mutation kill rate)
-- Demo evidence (embedded GIF thumbnails from `docs/demo-evidence/`)
+- Demo evidence (embedded GIF thumbnails from `docs/demo-evidence/<STORY-ID>/`)
 - Mermaid diagrams:
   - Architecture change diagram (graph TD)
   - Dependency graph (which stories this PR depends on / blocks)

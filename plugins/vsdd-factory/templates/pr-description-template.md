@@ -288,8 +288,8 @@ git push origin develop
 <summary><strong>Full VSDD Contract Chain</strong></summary>
 
 ```
-{FR-001} -> {VP-001} -> {TALLY-abc123} -> {test_name()} -> {src/file.rs:42} -> ADV-PASS-3-OK -> KANI-PASS
-{FR-002} -> {VP-002} -> {TALLY-def456} -> {test_name()} -> {src/file.rs:55} -> ADV-PASS-2-FIXED -> KANI-PASS
+{FR-001} -> {VP-001} -> {test_name()} -> {src/file.rs:42} -> ADV-PASS-3-OK -> KANI-PASS
+{FR-002} -> {VP-002} -> {test_name()} -> {src/file.rs:55} -> ADV-PASS-2-FIXED -> KANI-PASS
 ```
 
 </details>

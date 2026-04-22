@@ -109,7 +109,7 @@ For each PR, evaluate all 8 items:
 1. **Diff Coherence** -- All changes relate to this story. No unrelated changes.
 2. **Description Accuracy** -- PR body matches actual changes.
 3. **Test Coverage** -- Changed lines have test coverage.
-4. **Demo Evidence** -- `docs/demo-evidence/` contains recordings for every AC.
+4. **Demo Evidence** -- `docs/demo-evidence/<STORY-ID>/` contains recordings for every AC.
    Check: evidence-report.md exists, at least 1 `.gif`/`.webm` per AC, both success
    and error paths recorded. If demos are `.txt` files or missing, flag as BLOCKING.
 5. **Commit Quality** -- Conventional format, story ID, clear messages.
