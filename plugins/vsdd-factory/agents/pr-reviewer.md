@@ -131,22 +131,12 @@ Do NOT use `gh pr comment` — use `gh pr review` which creates a proper review 
 
 **If blocking findings exist (REQUEST_CHANGES):**
 ```
-sessions_spawn({
-  runtime: "subagent",
-  agentId: "github-ops",
-  cwd: "<project-path>",
-  task: "cd <project-path> && gh pr review PR_NUMBER --request-changes --body-file <project-path>/.factory/code-delivery/STORY-NNN/pr-review.md"
-})
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr review PR_NUMBER --request-changes --body-file <project-path>/.factory/code-delivery/STORY-NNN/pr-review.md")
 ```
 
 **If no blocking findings (APPROVE):**
 ```
-sessions_spawn({
-  runtime: "subagent",
-  agentId: "github-ops",
-  cwd: "<project-path>",
-  task: "cd <project-path> && gh pr review PR_NUMBER --approve --body-file <project-path>/.factory/code-delivery/STORY-NNN/pr-review.md"
-})
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr review PR_NUMBER --approve --body-file <project-path>/.factory/code-delivery/STORY-NNN/pr-review.md")
 ```
 
 CRITICAL RULES:

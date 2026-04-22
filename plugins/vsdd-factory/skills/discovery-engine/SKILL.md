@@ -8,7 +8,7 @@ description: >
 ---
 
 > **Delegation Reference:** This skill describes work the orchestrator delegates
-> to specialist agents via sessions_spawn. Each step names the target agent.
+> to specialist agents via the Agent tool. Each step names the target agent.
 > The orchestrator does NOT execute these steps directly.
 
 # Discovery Engine
@@ -208,7 +208,7 @@ Adaptive Planning Pipeline → Collaborative Discovery or Guided Brief Creation
 ---
 
 > **Delegation Reference:** This skill describes work the orchestrator delegates
-> to specialist agents via sessions_spawn. Each step names the target agent.
+> to specialist agents via the Agent tool. Each step names the target agent.
 > The orchestrator does NOT execute these steps directly.
 
 ## Output Artifacts
@@ -259,7 +259,7 @@ intelligence data) default to evidence_strength = 0.3 (market scan level).
 ---
 
 > **Delegation Reference:** This skill describes work the orchestrator delegates
-> to specialist agents via sessions_spawn. Each step names the target agent.
+> to specialist agents via the Agent tool. Each step names the target agent.
 > The orchestrator does NOT execute these steps directly.
 
 ## Routing Decisions

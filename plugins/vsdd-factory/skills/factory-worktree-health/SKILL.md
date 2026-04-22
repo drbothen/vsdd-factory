@@ -42,7 +42,7 @@ Before ANY git commands, verify you are in the target project — NOT the engine
 CWD=$(pwd)
 if [[ "$CWD" == *"dark-factory"* ]]; then
   echo "FATAL: Running in dark-factory engine directory ($CWD). Refusing to proceed."
-  echo "Fix: orchestrator must set cwd to the resolved project path in sessions_spawn."
+  echo "Fix: orchestrator must set cwd to the resolved project path in Agent tool."
   exit 1
 fi
 

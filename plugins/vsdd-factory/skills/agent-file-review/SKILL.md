@@ -111,7 +111,7 @@ Scan for sections that contradict each other:
 
 Check if the AGENTS.md repeats rules that are already in FACTORY.md.
 Common duplications:
-- Sub-Agent Delegation Rule (sessions_spawn syntax)
+- Sub-Agent Delegation Rule (Agent tool syntax)
 - VSDD constraints (Red Before Green, Spec Supremacy)
 - Artifact path conventions
 
@@ -142,13 +142,14 @@ Check for DF-021 context discipline:
 For agents that should have information walls (adversary, holdout-evaluator,
 code-reviewer, spec-reviewer), check that the wall is documented.
 
-### 15. No sessions_spawn in Non-Orchestrator Agents (WARN if found)
+### 15. Agent Tool Usage in Non-Orchestrator Agents (WARN if unexpected)
 
-Only the orchestrator should contain `sessions_spawn` references.
-Other agents receive work from the orchestrator — they don't spawn sub-agents.
+Most agents receive work from the orchestrator and don't spawn sub-agents.
+Only coordinator agents (orchestrator, pr-manager) should contain Agent tool
+dispatch references.
 
-Exception: agents that legitimately delegate (e.g., research-agent delegating
-to ) may have spawn references.
+Exception: agents that legitimately delegate (e.g., pr-manager spawning
+github-ops, research-agent delegating to sub-agents) may have Agent tool references.
 
 ## Templates
 

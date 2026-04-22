@@ -19,7 +19,7 @@ description: >
 ---
 
 > **Delegation Reference:** This skill describes work the orchestrator
-> delegates to specialist agents via sessions_spawn. Each step names the
+> delegates to specialist agents via the Agent tool. Each step names the
 > target agent role. The orchestrator does NOT execute these steps directly
 > — it spawns the named agent for each step and reviews the output.
 

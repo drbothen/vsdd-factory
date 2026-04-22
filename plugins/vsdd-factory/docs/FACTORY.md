@@ -159,23 +159,19 @@ This file is maintained by the project owner and is not managed by the plugin.
 
 ### Sub-Agent Delegation Rule (CRITICAL)
 
-**Every `sessions_spawn` call MUST include `runtime: "subagent"`, `agentId`, and `cwd`.**
-This is non-negotiable. All three fields are required to delegate to a specialist agent.
-Omitting `runtime` or `agentId` causes the spawn to create a copy of the calling agent.
+**Every sub-agent dispatch MUST use the Agent tool with `subagent_type` and an explicit prompt.**
+This is non-negotiable. The `subagent_type` identifies which specialist to spawn.
 
-**The `cwd` parameter alone is NOT reliable.** Agents default to their `workspace` dir
-(inside dark-factory). The `write` tool resolves relative paths from the workspace, not
-from `cwd`. To guarantee correct file operations:
+To guarantee correct file operations:
 
-1. Prepend `cd <project-path> &&` in the task text
-2. Specify ALL file paths as **absolute paths** in the task description
+1. Prepend `cd <project-path> &&` in the prompt text
+2. Specify ALL file paths as **absolute paths** in the prompt
 
 ```
-sessions_spawn({ runtime: "subagent", agentId: "business-analyst", cwd: "<resolved-project-path>", task: "cd <resolved-project-path> && Write analysis to <resolved-project-path>/.factory/planning/market-context.md" })
+Agent(subagent_type="vsdd-factory:business-analyst", prompt="cd <resolved-project-path> && Write analysis to <resolved-project-path>/.factory/planning/market-context.md")
 ```
 
-Call `agents_list` on startup to discover valid agent IDs. The orchestrator
-MUST NOT use `agentId: "orchestrator"` — it delegates, never to itself.
+The orchestrator MUST NOT spawn itself — it delegates to specialist agents only.
 
 ### Workspace Isolation Rule (CRITICAL)
 
@@ -1043,7 +1039,7 @@ LiteLLM config includes verified RPM/TPM per model tier:
 
 MCP servers (Perplexity, Context7, Playwright) are configured in
 `openclaw.json` under `mcp.servers`. All agents — including sub-agents
-spawned via `sessions_spawn` — have direct access to MCP tools. No
+spawned via the Agent tool — have direct access to MCP tools. No
 mcporter or  middleman is needed.
 
 Available MCP tools:

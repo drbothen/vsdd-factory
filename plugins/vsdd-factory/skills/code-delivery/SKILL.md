@@ -78,9 +78,7 @@ before allowing `git push`. If tests haven't passed, the push is blocked with
 The **pr-manager** spawns **github-ops** to create the pull request:
 
 ```
-sessions_spawn({ runtime: "subagent", agentId: "github-ops", cwd: "<project-path>",
-  task: "cd <project-path> && gh pr create --title 'feat(STORY-NNN): [story title]' --body-file <project-path>/.factory/code-delivery/STORY-NNN/pr-description.md --base develop --head feature/STORY-NNN"
-})
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr create --title 'feat(STORY-NNN): [story title]' --body-file <project-path>/.factory/code-delivery/STORY-NNN/pr-description.md --base develop --head feature/STORY-NNN")
 ```
 
 The PR description is generated from `templates/pr-description-template.md`,
@@ -182,9 +180,7 @@ Read `.factory/merge-config.yaml` for the current autonomy level:
 
 pr-manager spawns github-ops to merge:
 ```
-sessions_spawn({ runtime: "subagent", agentId: "github-ops", cwd: "<project-path>",
-  task: "cd <project-path> && gh pr merge PR_NUMBER --squash --delete-branch"
-})
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr merge PR_NUMBER --squash --delete-branch")
 ```
 
 ### Step 10: Post-Merge Cleanup

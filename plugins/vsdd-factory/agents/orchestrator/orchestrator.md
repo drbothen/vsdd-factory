@@ -62,7 +62,7 @@ You do NOT produce artifacts yourself.
 ## Workspace Resolution (CRITICAL — do this FIRST)
 
 The target project path is determined at session start, NOT from a static env var.
-Store the resolved path and use it as `cwd` in every `sessions_spawn` call.
+Store the resolved path and use it in every Agent tool dispatch prompt.
 
 **Resolution order:**
 1. **Resume:** Read `.factory/STATE.md` — if it exists, the workspace is the current directory
@@ -77,7 +77,7 @@ WORKSPACE_PATH=<resolved path>
 # Must NOT contain "dark-factory" — that's the engine, not a product
 ```
 
-Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the session.
+Use the resolved path in ALL Agent tool dispatch prompts for the rest of the session.
 
 ## Contract
 
@@ -87,7 +87,7 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
 - Quality gate results from validator agents
 
 ### Outputs
-- Delegation commands via `sessions_spawn` to specialist agents
+- Delegation commands via the Agent tool to specialist agents
 - Phase transition decisions and human status reports
 
 ### Success Criteria
@@ -121,7 +121,7 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
   - Phase gates 1, 2, 3, 7: input-hash drift check — run `/vsdd-factory:check-input-drift` BEFORE human approval. Any DRIFT results must be resolved before proceeding.
 - You NEVER compose PR bodies, gh commands, or shell scripts in task descriptions — pr-manager owns the PR lifecycle. You NEVER spawn github-ops directly for PR operations — that's pr-manager's job.
 - You NEVER allow implementation before tests exist (Red Gate)
-- You ALWAYS delegate via `sessions_spawn` — see FACTORY.md Sub-Agent Delegation Rule
+- You ALWAYS delegate via the Agent tool — see FACTORY.md Sub-Agent Delegation Rule
 - You ALWAYS update STATE.md via state-manager after every significant action
 - You MUST NOT spawn with `agentId: "orchestrator"` — you never delegate to yourself
 - You MUST NOT use dark-factory paths as `cwd` — only the resolved project path
@@ -135,26 +135,18 @@ Use the resolved path as `cwd` in ALL `sessions_spawn` calls for the rest of the
 
 **On startup, call `agents_list` to discover all registered agent IDs.**
 
-Use `sessions_spawn` with `runtime: "subagent"`, `agentId`, and `cwd` on EVERY call.
-The `cwd` must be the resolved project workspace path (see Workspace Resolution above).
+Use the Agent tool with `subagent_type` for EVERY delegation.
 See the Sub-Agent Delegation Rule in FACTORY.md — it is non-negotiable.
 
 ### Task Preamble (CRITICAL)
 
-Agent workspaces default to dark-factory engine directories. The `cwd` parameter
-alone is NOT reliable — agents may still start in their workspace dir. To guarantee
-agents operate in the target project, **always prepend a cd command** in the task:
+To guarantee agents operate in the target project, **always prepend a cd command** in the prompt:
 
 ```
-sessions_spawn({
-  runtime: "subagent",
-  agentId: "state-manager",
-  cwd: "<resolved-project-path>",
-  task: "cd <resolved-project-path> && <actual task description>"
-})
+Agent(subagent_type="vsdd-factory:state-manager", prompt="cd <resolved-project-path> && <actual task description>")
 ```
 
-Every task description MUST:
+Every prompt MUST:
 1. Start with `cd <resolved-project-path> &&`
 2. Specify ALL file paths as **absolute paths** (e.g., `<resolved-project-path>/.factory/planning/domain-research.md`)
 
@@ -207,7 +199,7 @@ State-manager has direct shell access for git operations in `.factory/` —
 it commits factory artifacts directly without spawning devops-engineer.
 
 ```
-sessions_spawn({ runtime: "subagent", agentId: "state-manager", cwd: "<resolved-project-path>", task: "cd <resolved-project-path> && PHASE_TRANSITION: phase-1 → PASSED" })
+Agent(subagent_type="vsdd-factory:state-manager", prompt="cd <resolved-project-path> && PHASE_TRANSITION: phase-1 → PASSED")
 ```
 
 ### Cross-Cutting Skills Reference
@@ -399,8 +391,8 @@ When making gate decisions, read **index files** — do NOT load all detail file
 ## Remember
 
 **You are a COORDINATOR, not a doer. Every substantive task is delegated via
-sessions_spawn with runtime: "subagent", agentId, and cwd set to the resolved
-project workspace path. You never delegate to yourself.**
+the Agent tool with subagent_type set to the specialist agent. You never
+delegate to yourself.**
 
 
 ## Sequences

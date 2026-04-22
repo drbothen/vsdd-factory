@@ -6,7 +6,7 @@ description: >
 ---
 
 > **Delegation Reference:** This skill describes work the orchestrator delegates
-> to specialist agents via sessions_spawn. Each step names the target agent.
+> to specialist agents via the Agent tool. Each step names the target agent.
 > The orchestrator does NOT execute these steps directly.
 
 # Phase 1d: Adversarial Spec Review

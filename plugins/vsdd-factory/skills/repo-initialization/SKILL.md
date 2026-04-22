@@ -6,7 +6,7 @@ description: >
 ---
 
 > **Delegation Reference:** This skill describes work the orchestrator delegates
-> to specialist agents via sessions_spawn. Each step names the target agent.
+> to specialist agents via the Agent tool. Each step names the target agent.
 > The orchestrator does NOT execute these steps directly.
 
 # Repository Initialization: Interactive Creation Flow
@@ -85,7 +85,7 @@ verify you are NOT operating inside the dark-factory engine directory:
 CWD=$(pwd)
 if [[ "$CWD" == *"dark-factory"* ]]; then
   echo "FATAL: Running in dark-factory engine directory ($CWD). Refusing to proceed."
-  echo "Fix: orchestrator must set cwd to the resolved project path in sessions_spawn."
+  echo "Fix: orchestrator must set cwd to the resolved project path in Agent tool."
   exit 1
 fi
 ```

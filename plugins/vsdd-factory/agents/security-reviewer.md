@@ -124,12 +124,7 @@ Action: CWE/OWASP analysis of changed lines
 Output: Write findings to `<project-path>/.factory/code-delivery/STORY-NNN/security-review.md`.
   Then spawn `github-ops` (exact name) to post a formal GitHub review:
   ```
-  sessions_spawn({
-    runtime: "subagent",
-    agentId: "github-ops",
-    cwd: "<project-path>",
-    task: "cd <project-path> && gh pr review PR_NUMBER --request-changes --body-file <project-path>/.factory/code-delivery/STORY-NNN/security-review.md"
-  })
+  Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr review PR_NUMBER --request-changes --body-file <project-path>/.factory/code-delivery/STORY-NNN/security-review.md")
   ```
   If no security findings: `gh pr review PR_NUMBER --approve --body 'Security review: no findings.'`
   CRITICAL: Use `gh pr review` (NOT `gh pr comment`). Agent name is `github-ops` (NOT `github`).
