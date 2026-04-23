@@ -1,5 +1,77 @@
 # Changelog
 
+## 0.75.0 — Subagent dashboard + PR duration pairing + honest ROI fallback
+
+Three backlog items closed in one release, plus a honest admission on a
+known limitation.
+
+### Added
+
+- **`tools/observability/grafana-dashboards/factory-subagents.json`** —
+  new "Factory Subagents — Usage & Exit Classes" dashboard. 8 panels:
+  total dispatches, unique subagent types, ok/non-ok stop counts,
+  top-15 invocation bargauge, exit-class distribution stacked bars,
+  per-subagent activity timeline, and a recent-events log feed.
+  Closes backlog task #91.
+
+- **`hooks/capture-pr-activity.sh`** — PR duration pairing. On
+  `gh pr merge` success, the hook now scans recent
+  `.factory/logs/events-*.jsonl` files for a matching `pr.opened`
+  event with the same `pr_number`, computes the elapsed time, and
+  attaches `open_to_merge_seconds` to the emitted `pr.merged` event.
+  Bounded to last 7 days of log files for runtime. Absurd durations
+  (>30 days, negative) are rejected to protect against PR-number
+  collisions across weeks. 3 new bats tests (18 total for this hook).
+
+- **`tools/observability/grafana-dashboards/factory-prs.json`** —
+  two new panels using the new duration data:
+  - "Avg open→merge duration" (stat, seconds) — uses LogQL `unwrap
+    attributes_open_to_merge_seconds` + sum/count division to compute
+    mean.
+  - "PRs with duration recorded" (stat) — how many `pr.merged`
+    events actually carried a duration, so users can see data
+    coverage without being misled by a tiny sample.
+
+### Fixed / Changed
+
+- **`tools/observability/grafana-dashboards/factory-roi.json`** —
+  replaced the two broken cross-datasource derived panels
+  ("Cost per PR merged" and "Cost per story touched") with
+  markdown text panels that explain how to compute the ratio from
+  the raw stats above. The underlying problem: Grafana v10.4.2's
+  `calculateField` binary transform doesn't reliably resolve field
+  references across mixed Prometheus+Loki frames. Multiple patterns
+  were tried (joinByField, merge, seriesToColumns, legendFormat
+  rename, Value #A naming) — none produced a reliable divide.
+  "Cost per commit" (Prom-native, real division) is unchanged and
+  remains the one working derived ratio.
+
+### Known limitation & follow-up
+
+- Cross-datasource cost-per-X panels deferred to task #105: emit
+  Prometheus-native counters for factory events (PRs merged,
+  stories touched). Once those metrics exist, divisions become
+  Prom-native and the text panels can become real stat panels.
+
+- Task #104: adding `grafana/grafana-image-renderer` to the
+  observability stack. Makes panel verification programmatic for
+  future debugging (this release's ROI-transform debugging would
+  have been ~5× faster with it).
+
+### Verified live
+
+All 7 dashboards load in Grafana's "VSDD Factory" folder. The new
+duration panel renders "N/A" until a PR open→merge cycle completes
+with both events captured. All 82 bats tests pass (suite grew with
+3 new PR-duration cases + 2 updated ROI-dashboard cases).
+
+### Migration
+
+`factory-obs down && factory-obs up` (or `docker restart
+vsdd-obs-grafana`) to reload the new dashboards. Existing hook events
+are untouched — the duration pairing only affects future `pr.merged`
+emissions.
+
 ## 0.74.0 — Factory ROI dashboard (Phase C — cost/ROI series complete)
 
 Completes the three-phase cost-and-ROI build-out. Phase A (v0.72.0)
