@@ -22,10 +22,10 @@
     {
       "id": 1,
       "title": "PR workflows dispatched",
-      "description": "Count of agent.start events where the subagent is vsdd-factory:pr-manager. Each dispatch represents one attempt to process a PR through the 10-step PR workflow.",
+      "description": "Count of agent.start events where the subagent is vsdd-factory:pr-manager. Each dispatch represents one attempt to process a PR through the 10-step PR workflow. Not the same as 'PRs opened' — a dispatch is the factory's attempt; an open is the actual `gh pr create` command succeeding.",
       "type": "stat",
       "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "gridPos": { "h": 4, "w": 5, "x": 0, "y": 0 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -59,11 +59,89 @@
     },
     {
       "id": 2,
-      "title": "PR workflows blocked / incomplete",
-      "description": "Count of pr-manager-completion-guard block events. Fires when a pr-manager subagent stopped before completing all 10 steps of the PR workflow (e.g., crashed at step 7, or ran out of context before step 10).",
+      "title": "PRs opened",
+      "description": "Count of pr.opened events — fires when a `gh pr create` Bash command succeeds (regardless of whether the factory's pr-manager made the call or a human did it directly). The direct capture signal, distinct from 'PR workflows dispatched' which counts pr-manager attempts whether or not a PR actually got opened.",
       "type": "stat",
       "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "gridPos": { "h": 4, "w": 5, "x": 5, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.opened\"} [$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "PRs merged",
+      "description": "Count of pr.merged events — fires when a `gh pr merge` Bash command succeeds. Direct capture (v0.73.1+), not inferred from subagent output. Catches merges whether or not the factory's pr-manager performed them.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 5, "x": 10, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} [$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "PR workflows blocked / incomplete",
+      "description": "Count of pr-manager-completion-guard block events. Fires when a pr-manager subagent stopped before completing all 10 steps of the PR workflow.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 5, "x": 15, "y": 0 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -98,50 +176,12 @@
       ]
     },
     {
-      "id": 3,
-      "title": "PRs merged",
-      "description": "Count of update-wave-state-on-merge hook.action events. Fires when the pr-manager workflow successfully completes a merge and the factory updates its wave state. This is the authoritative 'PR landed' signal today.",
-      "type": "stat",
-      "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "blue", "value": null }
-            ]
-          }
-        }
-      },
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",hook=\"update-wave-state-on-merge\"} [$__range]))"
-        }
-      ]
-    },
-    {
       "id": 4,
       "title": "Incomplete rate",
       "description": "Ratio of blocked PR workflows to dispatched. 0 = every dispatch completed all 10 steps; 1 = every dispatch was blocked before step 10. Low is good. Approximation — a single dispatch can trigger multiple block events, and crashed dispatches without a block don't count as blocked. Use alongside the absolute counts.",
       "type": "gauge",
       "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },

@@ -176,7 +176,7 @@
     {
       "id": 10,
       "title": "PRs merged",
-      "description": "Count of update-wave-state-on-merge hook.action events — the authoritative 'PR landed' signal today. Drill into the Factory PRs dashboard for workflow dispatch counts, completion ratio, and stall-step distribution. `noValue: 0` here because a zero-merge day is a meaningful observation, not missing data.",
+      "description": "Count of pr.merged events — direct signal from `gh pr merge` Bash captures (v0.73.1+). Drill into the Factory PRs dashboard for opened vs merged, dispatch counts, incomplete rate, and stall-step distribution. `noValue: 0` here because a zero-merge day is a meaningful observation, not missing data.",
       "type": "stat",
       "datasource": { "type": "loki", "uid": "loki" },
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
@@ -207,7 +207,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",hook=\"update-wave-state-on-merge\"} [$__range]))"
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} [$__range]))"
         }
       ]
     },

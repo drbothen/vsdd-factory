@@ -39,23 +39,24 @@ Before any other action, say verbatim:
 
 | Arg | Effect |
 |---|---|
-| `on` (default) | Write the five OTEL env vars into `.claude/settings.local.json`. |
-| `off` | Remove those five keys (preserves any other `env` entries). |
-| `status` | Print which of the five keys are currently set and their values. |
+| `on` (default) | Write the six OTEL env vars into `.claude/settings.local.json`. |
+| `off` | Remove those six keys (preserves any other `env` entries). |
+| `status` | Print which of the six keys are currently set and their values. |
 
 If the user passes something else, show `status` and a usage hint.
 
 ## The env vars
 
-Five keys, all strings, all go under the `env` object:
+Six keys, all strings, all go under the `env` object:
 
 | Key | Value | Why |
 |---|---|---|
 | `CLAUDE_CODE_ENABLE_TELEMETRY` | `"1"` | Master enable flag. |
-| `OTEL_METRICS_EXPORTER` | `"otlp"` | Metrics go to the collector (absorbed by debug pipeline for now). |
+| `OTEL_METRICS_EXPORTER` | `"otlp"` | Metrics go to the collector (forwarded to Prometheus in v0.72.0+). |
 | `OTEL_LOGS_EXPORTER` | `"otlp"` | Logs go to Loki via the collector. |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `"http/protobuf"` | Must match the receiver — compose exposes 4318 HTTP, not 4317 gRPC. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `"http://localhost:4318"` | Host the collector is bound to. Override via `VSDD_OBS_OTLP_HTTP_PORT` if 4318 is remapped. |
+| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | `"cumulative"` | Prometheus (via `prometheusremotewrite`) only accepts cumulative counters. Claude's SDK defaults to delta temporality, which the collector then rejects with `invalid temporality and type combination`. This env var tells the SDK to emit cumulative at source. `deltatocumulative` processor would do the conversion in-flight, but it's not available in collector-contrib v0.94.0 — so we normalize at source. |
 
 ## Execute — `on`
 
@@ -70,7 +71,8 @@ Five keys, all strings, all go under the `env` object:
        "OTEL_METRICS_EXPORTER": "otlp",
        "OTEL_LOGS_EXPORTER": "otlp",
        "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-       "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318"
+       "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318",
+       "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative"
    })' .claude/settings.local.json > .claude/settings.local.json.tmp \
      && mv .claude/settings.local.json.tmp .claude/settings.local.json
    ```
@@ -95,7 +97,8 @@ Five keys, all strings, all go under the `env` object:
        .env.OTEL_METRICS_EXPORTER,
        .env.OTEL_LOGS_EXPORTER,
        .env.OTEL_EXPORTER_OTLP_PROTOCOL,
-       .env.OTEL_EXPORTER_OTLP_ENDPOINT
+       .env.OTEL_EXPORTER_OTLP_ENDPOINT,
+       .env.OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
    ) | if (.env | length) == 0 then del(.env) else . end' \
      .claude/settings.local.json > .claude/settings.local.json.tmp \
      && mv .claude/settings.local.json.tmp .claude/settings.local.json

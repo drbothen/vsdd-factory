@@ -22,7 +22,7 @@
     {
       "id": 1,
       "title": "Total cost",
-      "description": "Sum of claude_code_cost_usage_total across all models and query sources in the selected range. Values come from Claude's OTel SDK in USD — no pricing table needed on our side.",
+      "description": "Sum of claude_code_cost_usage_USD_total across all models and query sources in the selected range. Values come from Claude's OTel SDK in USD — no pricing table needed on our side.",
       "type": "stat",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 4, "w": 5, "x": 0, "y": 0 },
@@ -56,7 +56,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_cost_usage_total[$__range]))"
+          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))"
         }
       ]
     },
@@ -135,7 +135,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_token_usage_total{type=\"input\"}[$__range]))"
+          "expr": "sum(increase(claude_code_token_usage_tokens_total{type=\"input\"}[$__range]))"
         }
       ]
     },
@@ -175,7 +175,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_token_usage_total{type=\"output\"}[$__range]))"
+          "expr": "sum(increase(claude_code_token_usage_tokens_total{type=\"output\"}[$__range]))"
         }
       ]
     },
@@ -217,7 +217,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_token_usage_total{type=\"cacheRead\"}[$__range])) / (sum(increase(claude_code_token_usage_total{type=\"input\"}[$__range])) + sum(increase(claude_code_token_usage_total{type=\"cacheRead\"}[$__range])))"
+          "expr": "sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])) / (sum(increase(claude_code_token_usage_tokens_total{type=\"input\"}[$__range])) + sum(increase(claude_code_token_usage_tokens_total{type=\"cacheRead\"}[$__range])))"
         }
       ]
     },
@@ -254,7 +254,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by (model) (increase(claude_code_cost_usage_total[$__interval]))",
+          "expr": "sum by (model) (increase(claude_code_cost_usage_USD_total[$__interval]))",
           "legendFormat": "{{model}}"
         }
       ]
@@ -292,7 +292,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by (model) (increase(claude_code_cost_usage_total[$__range]))",
+          "expr": "sum by (model) (increase(claude_code_cost_usage_USD_total[$__range]))",
           "legendFormat": "{{model}}"
         }
       ]
@@ -324,7 +324,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by (type) (increase(claude_code_token_usage_total[$__range]))",
+          "expr": "sum by (type) (increase(claude_code_token_usage_tokens_total[$__range]))",
           "legendFormat": "{{type}}"
         }
       ]
@@ -445,7 +445,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_active_time_total[$__range]))"
+          "expr": "sum(increase(claude_code_active_time_seconds_total[$__range]))"
         }
       ]
     },
@@ -486,7 +486,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_cost_usage_total[$__range])) / sum(increase(claude_code_commit_count_total[$__range]))"
+          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range])) / sum(increase(claude_code_commit_count_total[$__range]))"
         }
       ]
     }

@@ -331,10 +331,14 @@ setup() {
   [ "$non_prom" -eq 0 ]
 }
 
-@test "dashboard: claude-cost queries claude_code_cost_usage_total" {
-  grep -q "claude_code_cost_usage_total" "$OBS_DIR/grafana-dashboards/claude-cost.json"
+@test "dashboard: claude-cost queries claude_code_cost_usage_USD_total" {
+  # OTel→Prometheus converter appends the unit ('USD' for cost, 'tokens'
+  # for token counts, 'seconds' for active time) between the metric name
+  # and `_total`. Verified live against the running Prometheus label
+  # index — see v0.73.1 release notes.
+  grep -q "claude_code_cost_usage_USD_total" "$OBS_DIR/grafana-dashboards/claude-cost.json"
 }
 
-@test "dashboard: claude-cost queries claude_code_token_usage_total" {
-  grep -q "claude_code_token_usage_total" "$OBS_DIR/grafana-dashboards/claude-cost.json"
+@test "dashboard: claude-cost queries claude_code_token_usage_tokens_total" {
+  grep -q "claude_code_token_usage_tokens_total" "$OBS_DIR/grafana-dashboards/claude-cost.json"
 }
