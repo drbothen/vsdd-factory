@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.71.1 — Claude dashboard queries fixed against real Claude OTel shape
+
+v0.71.0 shipped the `claude-overview.json` dashboard with queries based
+on docs-level assumptions about Claude Code's OTel shape. Real data
+showed the shape differs: Claude emits attribute keys with dots
+(`attributes.session.id`, `attributes.event.name`, `attributes.tool_name`),
+and Loki's `| json` operator flattens them with underscores
+(`attributes_session_id`, `attributes_event_name`, `attributes_tool_name`).
+Queries that assumed bare `session_id` / `tool_name` returned empty.
+
+### Fixed
+
+- **`tools/observability/grafana-dashboards/claude-overview.json`** —
+  queries now use the flattened attribute paths Loki actually produces:
+  - Panel 2 (Unique sessions): `attributes_session_id` — resolved to 2.
+  - Panel 3 (Tool invocations): filters on
+    `attributes_event_name = "tool_result"` — resolved to 2.
+  - Panel 4 (API requests): filters on
+    `attributes_event_name = "api_request"` — resolved to 3.
+  - Panel 5 (Events over time): breakdown by `attributes_event_name`.
+  - Panel 6 (Top tools): `attributes_tool_name` — resolved to Bash = 3.
+
+Verified live against real prism-session Claude data.
+
+### Event names observed in real Claude data (v2.1.118)
+
+For reference when building future dashboards:
+`user_prompt`, `api_request`, `api_response`, `tool_result`,
+`tool_decision`, `hook_execution_start`, `hook_execution_complete`,
+`mcp_server_connection`.
+
+Memory reference `claude-code-otel-reference` updated with the full
+attribute shape.
+
+### Migration
+
+Restart Grafana (or `factory-obs down && up`) to pick up the corrected
+dashboard JSON.
+
 ## 0.71.0 — Claude dashboard + CI parity check + release script
 
 Bundles three pieces of release-hygiene + observability work that have
