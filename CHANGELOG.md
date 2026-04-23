@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.59.0 — Observability Phase 2c: instrument PreToolUse Agent guards
+
+Instruments the two hooks that govern subagent dispatch. Adds 2 reason
+codes. Both hooks now emit rich structured context that makes Wave gate
+and PR merge failures diagnosable without scrolling logs.
+
+### Changed
+
+- **`validate-wave-gate-prerequisite.sh`** — reason
+  `wave_gate_prerequisite_not_passed`. Event carries `subagent`,
+  `story_id`, `target_wave`, `blocking_wave`, `blocking_status`. Makes
+  it trivial to aggregate which wave gates are blocking which
+  downstream stories.
+- **`validate-pr-merge-prerequisites.sh`** — reason
+  `pr_merge_evidence_missing`. Event carries `story_id`, `delivery_dir`,
+  and a comma-separated `missing` field listing which evidence files
+  are absent (`pr-description.md`, `pr-review.md`, `security-review.md`).
+  The unrelated advisory warning (directory entirely absent) still
+  fires unchanged and does not emit an event.
+
+### Added (tests)
+
+- **`tests/agent-guards-emission.bats`** (new) — 11 tests covering
+  per-hook emission paths and the standard failure-tolerance regressions
+  (`CLAUDE_PLUGIN_ROOT` unset, path broken, `VSDD_TELEMETRY=off`).
+  Also tests the "passed gate" and "complete delivery" no-op cases.
+- 870 tests across 24 suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — registry grown from 41 to 43
+  reason codes; Phase 2c marked shipped in the roadmap.
+- **`docs/guide/hooks-reference.md`** — added rows for both Agent-matcher
+  hooks (previously uncounted); Instrumented column ticked.
+
+### Not yet instrumented
+
+- Phase 2d: 21 PostToolUse validators (bulk)
+- Phase 2e: 6 SubagentStop + Stop hooks
+
 ## 0.58.0 — Observability Phase 2b: instrument PreToolUse Edit|Write guards
 
 Continues the instrumentation pass. Five more hooks now emit structured
