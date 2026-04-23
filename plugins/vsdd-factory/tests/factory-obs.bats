@@ -365,21 +365,21 @@ setup() {
   grep -q "event_type=\\\\\"pr.merged\\\\\"" "$OBS_DIR/grafana-dashboards/factory-roi.json"
 }
 
-@test "dashboard: factory-roi has cost-per-X derived panels" {
-  # Three derived ratio panels are load-bearing for the ROI narrative.
-  jq -e '.panels[] | select(.title == "Cost per PR merged")' \
-    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
+@test "dashboard: factory-roi has Cost per commit derived panel (Prom-native)" {
+  # Only Cost per commit is a reliably-computed derived panel (Prom-native
+  # division). Cross-datasource cost-per-PR / cost-per-story are text
+  # fallbacks — see the separate 'manual cost-per-X text panels' test.
   jq -e '.panels[] | select(.title == "Cost per commit")' \
-    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
-  jq -e '.panels[] | select(.title == "Cost per story touched")' \
     "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
 }
 
-@test "dashboard: factory-roi mixed-datasource panels use joinByField + calculateField transforms" {
-  # The cross-datasource cost-per-X stat panels depend on Grafana transforms
-  # to divide the two queries. Missing transforms = broken derived values.
-  local count
-  count=$(jq '[.panels[] | select(.datasource.uid == "-- Mixed --") | .transformations] | length' \
-    "$OBS_DIR/grafana-dashboards/factory-roi.json")
-  [ "$count" -ge 2 ]
+@test "dashboard: factory-roi has manual cost-per-X text panels" {
+  # v0.75.0: cross-datasource divide via Grafana transforms is unreliable in
+  # Grafana v10.4.2 for our Prom+Loki shape. Cost per PR / per story panels
+  # are text fallbacks explaining how to compute from raw stats above. Only
+  # Cost per commit is a real derived stat (Prom-native division).
+  jq -e '.panels[] | select(.title == "Cost per PR merged (manual)")' \
+    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per story touched (manual)")' \
+    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
 }

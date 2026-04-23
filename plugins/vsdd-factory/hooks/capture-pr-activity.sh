@@ -52,6 +52,49 @@ _emit() {
   return 0
 }
 
+# Resolve the log directory the same way emit-event does (v0.70+):
+# explicit VSDD_LOG_DIR wins; else main worktree's .factory/logs; else cwd.
+# Used only for the PR open→merge duration lookup. Failure silently returns
+# the empty string — the merge event just won't get an open_to_merge_seconds
+# field.
+_resolve_log_dir() {
+  if [ -n "${VSDD_LOG_DIR:-}" ]; then
+    printf '%s' "$VSDD_LOG_DIR"
+    return 0
+  fi
+  local main_wt
+  main_wt=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}' 2>/dev/null)
+  if [ -n "$main_wt" ] && [ -d "$main_wt" ]; then
+    printf '%s' "${main_wt}/.factory/logs"
+    return 0
+  fi
+  printf '%s' ".factory/logs"
+}
+
+# Given a PR number, scan the last few event files for the most recent
+# pr.opened event with a matching pr_number and emit its ts_epoch on stdout.
+# Prints nothing if no match. Bounded to ~7 files (week+) to cap runtime.
+_find_opened_ts_epoch() {
+  local pr_number="$1"
+  local log_dir
+  log_dir=$(_resolve_log_dir)
+  if [ -z "$log_dir" ] || [ ! -d "$log_dir" ]; then
+    return 0
+  fi
+  # Search newest files first, stop at first match.
+  local match
+  # shellcheck disable=SC2012
+  for f in $(ls -t "$log_dir"/events-*.jsonl 2>/dev/null | head -7); do
+    match=$(grep -F '"type":"pr.opened"' "$f" 2>/dev/null \
+      | grep -F "\"pr_number\":\"$pr_number\"" \
+      | tail -1)
+    if [ -n "$match" ]; then
+      echo "$match" | jq -r '.ts_epoch // empty' 2>/dev/null
+      return 0
+    fi
+  done
+}
+
 # Extract a GitHub PR URL (format: https://github.com/<owner>/<repo>/pull/<N>)
 # from either stdout or the command itself.
 _extract_pr_url() {
@@ -122,11 +165,28 @@ if [[ "$COMMAND" =~ (^|[;&|[:space:]])gh[[:space:]]+pr[[:space:]]+merge([[:space
     exit 0
   fi
 
+  # Open→merge duration (v0.75+). Look back in the events file(s) for a
+  # matching pr.opened event with the same pr_number. If found, include
+  # the elapsed time as open_to_merge_seconds. Silent no-op on failure —
+  # the pr.merged event still emits without the duration field.
+  OPEN_EPOCH=$(_find_opened_ts_epoch "$PR_NUMBER")
+  NOW_EPOCH=$(date +%s 2>/dev/null || true)
+  DURATION_ARG=()
+  if [ -n "$OPEN_EPOCH" ] && [ -n "$NOW_EPOCH" ]; then
+    DURATION=$((NOW_EPOCH - OPEN_EPOCH))
+    # Reject absurd values (negative or wildly large) — likely a PR
+    # number collision across weeks, not a real duration.
+    if [ "$DURATION" -ge 0 ] && [ "$DURATION" -lt 2592000 ]; then  # 30 days
+      DURATION_ARG=(open_to_merge_seconds="$DURATION")
+    fi
+  fi
+
   _emit type=pr.merged hook=capture-pr-activity matcher=Bash \
         ${PR_URL:+pr_url="$PR_URL"} \
         pr_number="$PR_NUMBER" \
         ${PR_REPO:+pr_repo="$PR_REPO"} \
-        ${MERGE_STRATEGY:+merge_strategy="$MERGE_STRATEGY"}
+        ${MERGE_STRATEGY:+merge_strategy="$MERGE_STRATEGY"} \
+        "${DURATION_ARG[@]}"
   exit 0
 fi
 

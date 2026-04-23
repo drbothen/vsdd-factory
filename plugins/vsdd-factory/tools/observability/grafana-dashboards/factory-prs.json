@@ -304,6 +304,67 @@
           "maxLines": 100
         }
       ]
+    },
+    {
+      "id": 11,
+      "title": "Avg open→merge duration",
+      "description": "Average seconds between pr.opened and pr.merged events for PRs that completed in the selected range. Computed from the `open_to_merge_seconds` field that capture-pr-activity adds to pr.merged events by looking back for a matching pr.opened by pr_number (v0.75+). Shows N/A for ranges where no merge had a paired open.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 22 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "noValue": "N/A",
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(sum_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | json | unwrap attributes_open_to_merge_seconds [$__range])) / sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | json | attributes_open_to_merge_seconds != \"\" [$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "PRs with duration recorded",
+      "description": "Count of pr.merged events where we found a matching pr.opened and captured the duration. If this is much less than 'PRs merged' total, many merges lack a preceding open event in the logs (opened before observability started, opened in a different project, etc.) — the avg duration is only over this subset.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 22 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} | json | attributes_open_to_merge_seconds != \"\" [$__range]))"
+        }
+      ]
     }
   ],
   "refresh": "30s",

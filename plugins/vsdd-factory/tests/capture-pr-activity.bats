@@ -184,3 +184,58 @@ _run_hook() {
   run _run_hook
   [ "$status" -eq 0 ]
 }
+
+# ---------- Open→merge duration pairing (v0.75+) ----------
+
+@test "pr.merged computes open_to_merge_seconds from prior pr.opened with same pr_number" {
+  # Seed a pr.opened event 60 seconds ago into the log file, then fire the
+  # merge hook for the same PR number. Expect open_to_merge_seconds = ~60.
+  local past_epoch
+  past_epoch=$(($(date +%s) - 60))
+  local today
+  today=$(date +%Y-%m-%d)
+  cat > "$TMP_LOGDIR/events-${today}.jsonl" <<JSONL
+{"type":"pr.opened","hook":"capture-pr-activity","pr_number":"500","pr_url":"https://github.com/o/r/pull/500","ts_epoch":${past_epoch},"schema_version":1}
+JSONL
+  _set_input 'gh pr merge https://github.com/o/r/pull/500 --squash' 'Merged!'
+  run _run_hook
+  [ "$status" -eq 0 ]
+  local event duration
+  event=$(_last_event)
+  [ "$(echo "$event" | jq -r '.type')" = "pr.merged" ]
+  [ "$(echo "$event" | jq -r '.pr_number')" = "500" ]
+  duration=$(echo "$event" | jq -r '.open_to_merge_seconds // "missing"')
+  # Duration should be 59-61 seconds (allowing ±1s jitter).
+  [ "$duration" != "missing" ]
+  [ "$duration" -ge 58 ]
+  [ "$duration" -le 62 ]
+}
+
+@test "pr.merged without a prior pr.opened omits open_to_merge_seconds" {
+  # No seed — the merge should still emit, just without the duration field.
+  _set_input 'gh pr merge 999 --squash' ''
+  run _run_hook
+  [ "$status" -eq 0 ]
+  local event
+  event=$(_last_event)
+  [ "$(echo "$event" | jq -r '.type')" = "pr.merged" ]
+  [ "$(echo "$event" | jq -r '.open_to_merge_seconds // "missing"')" = "missing" ]
+}
+
+@test "pr.merged rejects absurd durations (>30d) from stale pr.opened events" {
+  # Seed a pr.opened event 40 days ago — stale. The hook should NOT use it.
+  local way_past
+  way_past=$(($(date +%s) - 3456000))  # 40 days
+  local today
+  today=$(date +%Y-%m-%d)
+  cat > "$TMP_LOGDIR/events-${today}.jsonl" <<JSONL
+{"type":"pr.opened","hook":"capture-pr-activity","pr_number":"700","pr_url":"https://github.com/o/r/pull/700","ts_epoch":${way_past},"schema_version":1}
+JSONL
+  _set_input 'gh pr merge 700 --squash' ''
+  run _run_hook
+  [ "$status" -eq 0 ]
+  local event
+  event=$(_last_event)
+  [ "$(echo "$event" | jq -r '.type')" = "pr.merged" ]
+  [ "$(echo "$event" | jq -r '.open_to_merge_seconds // "missing"')" = "missing" ]
+}

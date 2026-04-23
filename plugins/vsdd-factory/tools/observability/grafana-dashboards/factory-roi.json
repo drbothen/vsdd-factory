@@ -147,56 +147,14 @@
     },
     {
       "id": 5,
-      "title": "Cost per PR merged",
-      "description": "Derived: total cost / PRs merged. Cross-datasource — Prometheus cost joined with Loki event count via Grafana transformation. Shows 'N/A' when no PRs merged (division by zero).",
-      "type": "stat",
-      "datasource": { "type": "datasource", "uid": "-- Mixed --" },
+      "title": "Cost per PR merged (manual)",
+      "description": "Cross-datasource division (Prometheus cost / Loki PR count) isn't reliably computable via Grafana's calculateField transform in v10.4.2 for this field-naming pattern. Until we emit a Prometheus-native PR count metric, compute manually from the Total cost and PRs merged stats above.",
+      "type": "text",
       "gridPos": { "h": 4, "w": 8, "x": 0, "y": 4 },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "noValue": "N/A",
-          "unit": "currencyUSD",
-          "decimals": 4,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
-          }
-        }
-      },
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "refId": "COST",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))"
-        },
-        {
-          "refId": "PRS",
-          "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} [$__range]))"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "joinByField",
-          "options": { "byField": "Time", "mode": "outer" }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "binary",
-            "binary": { "left": "COST", "operator": "/", "right": "PRS" },
-            "alias": "Cost per PR",
-            "replaceFields": true
-          }
-        }
-      ]
+        "mode": "markdown",
+        "content": "### Cost per PR merged\n\nCompute: **Total cost ÷ PRs merged** (see stats above).\n\nGrafana's cross-datasource `calculateField` transform doesn't reliably divide Prometheus (cost) by Loki (event count) in this setup. Tracked as a follow-up: emit a Prometheus-native PR count metric so this becomes a native division."
+      }
     },
     {
       "id": 6,
@@ -233,53 +191,14 @@
     },
     {
       "id": 7,
-      "title": "Cost per story touched",
-      "description": "Derived: total cost / distinct stories. Cross-datasource. A 'story touched' is any agent.start event carrying a story_id — working on a story, not completing it, so interpret this as 'spend per story under active work' rather than 'spend per story finished'.",
-      "type": "stat",
-      "datasource": { "type": "datasource", "uid": "-- Mixed --" },
+      "title": "Cost per story touched (manual)",
+      "description": "Same cross-datasource limitation as 'Cost per PR merged' — compute manually from Total cost and Stories touched above. Tracked for follow-up: emit a Prometheus-native story-count metric.",
+      "type": "text",
       "gridPos": { "h": 4, "w": 8, "x": 16, "y": 4 },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "noValue": "N/A",
-          "unit": "currencyUSD",
-          "decimals": 4,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
-          }
-        }
-      },
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "refId": "COST",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))"
-        },
-        {
-          "refId": "STORIES",
-          "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count(count by (attributes_story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_story_id != \"\" [$__range])))"
-        }
-      ],
-      "transformations": [
-        { "id": "joinByField", "options": { "byField": "Time", "mode": "outer" } },
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "binary",
-            "binary": { "left": "COST", "operator": "/", "right": "STORIES" },
-            "alias": "Cost per story",
-            "replaceFields": true
-          }
-        }
-      ]
+        "mode": "markdown",
+        "content": "### Cost per story touched\n\nCompute: **Total cost ÷ Stories touched** (see stats above).\n\nA 'story touched' = any `agent.start` event carrying a `story_id`. Interpret as 'spend per story under active work' rather than 'spend per story finished'."
+      }
     },
     {
       "id": 8,
