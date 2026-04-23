@@ -83,10 +83,22 @@ processors:
   # wins the label, which silently breaks every dashboard query of the
   # form `{service_name="vsdd-factory"}`. Action must be `upsert` so this
   # overrides the SDK/collector default.
+  #
+  # The `loki.resource.labels` hint tells the Loki exporter to promote the
+  # listed resource attributes to Loki stream labels rather than leaving
+  # them as structured metadata. The bundled factory-overview dashboard
+  # queries event_type, hook, reason, and severity as Loki labels (stream
+  # selectors and `by()` groupings), so they MUST be labels, not
+  # structured metadata. Cardinality is bounded: ~4 event_types,
+  # ~40 hooks, ~70 reasons, ~4 severities — total streams stay local-Loki
+  # friendly.
   resource:
     attributes:
       - key: service.name
         value: vsdd-factory
+        action: upsert
+      - key: loki.resource.labels
+        value: event_type, hook, reason, severity
         action: upsert
 
   # Same rules for Claude's pipeline — `service.name` dotted, `upsert`.
