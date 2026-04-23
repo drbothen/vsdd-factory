@@ -21,6 +21,13 @@ INPUT=$(cat)
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
 [[ "$TOOL" != "Bash" ]] && exit 0
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 EXIT=$(echo "$INPUT" | jq -r '.tool_response.exit_code // .tool_response.returncode // empty')
 
@@ -57,6 +64,8 @@ jq -n --arg s "$STATUS" --arg t "$TS" --arg c "$CMD" \
 
 # Warn on regression
 if [[ "$PRIOR" == "pass" && "$STATUS" == "fail" ]]; then
+  _emit type=hook.block hook=regression-gate matcher=Bash \
+        reason=regression_gate_pass_to_fail severity=warn command="$CMD"
   echo "regression-gate: suite transitioned pass → fail." >&2
   echo "  command: $CMD" >&2
   echo "  recorded: $STATE_FILE" >&2

@@ -26,6 +26,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -43,6 +50,8 @@ if [[ "$FILE_PATH" == *".worktrees/"*"/.factory/"* ]]; then
   WORKTREE=$(echo "$FILE_PATH" | grep -oE '\.worktrees/[^/]+' | head -1 || true)
   RELATIVE="${FILE_PATH##*/.factory/}"
 
+  _emit type=hook.block hook=validate-factory-path-root matcher=PostToolUse \
+        reason=factory_path_worktree_relative file_path="$FILE_PATH" worktree="$WORKTREE"
   echo "FACTORY PATH ERROR — writing to worktree instead of project root:" >&2
   echo "  Got:      $FILE_PATH" >&2
   echo "  Expected: <project-root>/.factory/$RELATIVE" >&2

@@ -20,6 +20,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -76,6 +83,8 @@ fi
 
 # --- Report ---
 if [[ -n "$ERRORS" ]]; then
+  _emit type=hook.block hook=validate-novelty-assessment matcher=PostToolUse \
+        reason=novelty_assessment_incomplete file_path="$FILE_PATH"
   echo "NOVELTY ASSESSMENT VIOLATION:" >&2
   echo -e "$ERRORS" | while IFS= read -r line; do
     echo "  - $line" >&2

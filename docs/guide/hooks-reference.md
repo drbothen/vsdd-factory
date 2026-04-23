@@ -24,23 +24,28 @@ The **Instrumented** column indicates whether the hook emits structured block ev
 | `check-factory-commit.sh` | PreToolUse | Bash | Remind about STATE.md after `.factory/` commits | No (advisory) | — |
 | `validate-wave-gate-prerequisite.sh` | PreToolUse | Agent | Blocks Wave N+1 worker dispatch if Wave N gate is pending | Yes | ✓ (1 code) |
 | `validate-pr-merge-prerequisites.sh` | PreToolUse | Agent | Blocks github-ops merge dispatch if pr-description/pr-review/security-review evidence is missing | Yes | ✓ (1 code) |
-| `purity-check.sh` | PostToolUse | Edit\|Write | Pure-core boundary -- no side effects in pure modules | No (warn-only) | — |
+| `purity-check.sh` | PostToolUse | Edit\|Write | Pure-core boundary -- no side effects in pure modules | No (warn-only) | ✓ (1 code, severity=warn) |
 | `validate-vp-consistency.sh` | PostToolUse | Edit\|Write | VP-INDEX ↔ verification-architecture ↔ coverage-matrix consistency (Policy 9) | Yes (exit 2 on mismatch) | ✓ (1 code) |
 | `validate-subsystem-names.sh` | PostToolUse | Edit\|Write | BC/story subsystem fields match ARCH-INDEX canonical names (Policy 6) | Yes (exit 2 on mismatch) | ✓ (1 code) |
 | `validate-bc-title.sh` | PostToolUse | Edit\|Write | BC file H1 heading matches BC-INDEX title (Policy 7) | Yes (exit 2 on mismatch) | ✓ (1 code) |
 | `validate-story-bc-sync.sh` | PostToolUse | Edit\|Write | Story frontmatter bcs: ↔ body BC table ↔ AC traces sync (Policy 8) | Yes (exit 2 on mismatch) | ✓ (1 code) |
 | `validate-template-compliance.sh` | PostToolUse | Edit\|Write | Artifact has required frontmatter fields and section headings from its template | Yes (exit 2 on missing) | ✓ (1 code) |
 | `validate-finding-format.sh` | PostToolUse | Edit\|Write | Only current finding/fix ID formats accepted (blocks legacy ADV-NNN, STORY-NNN-FIX) | Yes (exit 2 on legacy format) | ✓ (1 code) |
-| `validate-input-hash.sh` | PostToolUse | Edit\|Write | Warns on missing/stale `input-hash`; blocks non-7-char or non-lowercase-hex format | Partial (format=block, drift=advisory) | — |
+| `validate-input-hash.sh` | PostToolUse | Edit\|Write | Warns on missing/stale `input-hash`; blocks non-7-char or non-lowercase-hex format | Partial (format=block, drift=advisory) | ✓ (1 code, format-block only) |
 | `validate-state-size.sh` | PostToolUse | Edit\|Write | STATE.md line count enforcement — warns >200, blocks >500 (allows compaction writes) | Yes (>500 and growing) | ✓ (1 code) |
-| `validate-novelty-assessment.sh` | PostToolUse | Edit\|Write | Adversarial review files must have Novelty Assessment section with required fields | Yes (exit 2 on missing) | — |
-| `convergence-tracker.sh` | PostToolUse | Edit\|Write | Convergence rule enforcement — trajectory monotonicity, min 3 clean passes, novelty ≤ 0.15, zero-findings warning | Partial (premature CONVERGENCE=block, regression=warn) | — |
+| `validate-novelty-assessment.sh` | PostToolUse | Edit\|Write | Adversarial review files must have Novelty Assessment section with required fields | Yes (exit 2 on missing) | ✓ (1 code) |
+| `convergence-tracker.sh` | PostToolUse | Edit\|Write | Convergence rule enforcement — trajectory monotonicity, min 3 clean passes, novelty ≤ 0.15, zero-findings warning | Partial (premature CONVERGENCE=block, regression=warn) | ✓ (1 code, block only) |
 | `validate-table-cell-count.sh` | PostToolUse | Edit\|Write | Markdown table rows must have same pipe count as header (catches unescaped pipes in cells) | Yes (exit 2 on mismatch) | ✓ (1 code) |
 | `validate-changelog-monotonicity.sh` | PostToolUse | Edit\|Write | Changelog versions descending, no duplicates, dates non-increasing, frontmatter version matches top row | Yes (exit 2 on violation) | ✓ (1 code) |
 | `validate-state-pin-freshness.sh` | PostToolUse | Edit\|Write | STATE.md version pins must match actual artifact file versions | Yes (exit 2 on mismatch) | ✓ (1 code) |
 | `validate-state-index-status-coherence.sh` | PostToolUse | Edit\|Write | STATE.md convergence_status ↔ cycles/\*/INDEX.md Status | Exit 1 (warn only) | ✓ (1 code, severity=warn) |
 | `validate-index-self-reference.sh` | PostToolUse | Edit\|Write | INDEX.md/burst-log.md edits should reference current pass/burst | No (advisory warning) | — |
-| `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) | — |
+| `validate-anchor-capabilities-union.sh` | PostToolUse | Edit\|Write | Story `anchor_capabilities:` = sorted union of referenced BCs' `capability:` fields | Yes (exit 2 on mismatch) | ✓ (1 code) |
+| `validate-demo-evidence-story-scoped.sh` | PostToolUse | Edit\|Write | Demo evidence files live under `docs/demo-evidence/<STORY-ID>/` (POL-010) | Yes (exit 2 on flat file) | ✓ (1 code) |
+| `validate-pr-description-completeness.sh` | PostToolUse | Edit\|Write | PR description has required sections + no placeholder tokens | Yes (exit 2 on incomplete) | ✓ (1 code) |
+| `validate-wave-gate-completeness.sh` | PostToolUse | Edit\|Write | `gate_status: passed` requires evidence of all 6 gates in the report | Yes (exit 2 on incomplete) | ✓ (1 code) |
+| `validate-factory-path-root.sh` | PostToolUse | Edit\|Write | `.factory/` writes use absolute project-root path, not worktree-relative | Yes (exit 2 on worktree-relative) | ✓ (1 code) |
+| `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) | ✓ (1 code, severity=warn) |
 | `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) | — |
 | `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) | — |
 

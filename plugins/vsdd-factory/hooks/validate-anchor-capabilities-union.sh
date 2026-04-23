@@ -23,6 +23,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -160,6 +167,9 @@ EXPECTED=$(echo "$ALL_CAPS" | sort -u | tr '\n' ',' | sed 's/,$//')
 ACTUAL=$(echo "$ANCHOR_CAPS" | sort -u | tr '\n' ',' | sed 's/,$//')
 
 if [[ "$EXPECTED" != "$ACTUAL" ]]; then
+  _emit type=hook.block hook=validate-anchor-capabilities-union matcher=PostToolUse \
+        reason=anchor_capabilities_mismatch file_path="$FILE_PATH" \
+        expected="$EXPECTED" actual="$ACTUAL"
   echo "ANCHOR CAPABILITIES UNION VIOLATION in $(basename "$FILE_PATH"):" >&2
   echo "  Expected (from BCs): [$EXPECTED]" >&2
   echo "  Actual (frontmatter): [$ACTUAL]" >&2

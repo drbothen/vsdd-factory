@@ -286,6 +286,23 @@ existing one is not a good fit.
 
 Note: `validate-index-self-reference.sh` is a pure advisory hook (always exits 0, stderr only) and does not emit structured events. Its warnings are meant to be read directly from the transcript.
 
+### Workflow / specialized validators (PostToolUse)
+
+| Code | Hook | Triggers on |
+|------|------|-------------|
+| `pure_core_boundary_violation` | `purity-check.sh` | File under `*/pure/**`, `*/core/**`, `*_pure.rs`, or `*.pure.ts` contains a side-effect pattern (`std::fs`, `println!`, `reqwest`, `tokio::spawn`, `process.env`, `fs.readFile`, etc.). **`severity=warn`** (hook is advisory). Event carries `patterns` (space-joined list of matched patterns). |
+| `input_hash_invalid_format` | `validate-input-hash.sh` | Stored `input-hash:` in frontmatter is not 7-char lowercase hex. Event carries `stored_hash`, `hash_len`, and `issue` (`length` or `chars`). |
+| `novelty_assessment_incomplete` | `validate-novelty-assessment.sh` | Adversarial review file missing `## Novelty Assessment` section or its required fields (Pass / Novelty score / Trajectory / Verdict) |
+| `convergence_rule_violation` | `convergence-tracker.sh` | `CONVERGENCE_REACHED` verdict violates one of: novelty ≤ 0.15, zero CRIT/HIGH findings, minimum 3 consecutive clean passes. Event carries `verdict` and `novelty_score`. |
+| `anchor_capabilities_mismatch` | `validate-anchor-capabilities-union.sh` | Story `anchor_capabilities:` ≠ sorted union of `capability:` fields across referenced BCs. Event carries `expected` and `actual`. |
+| `demo_evidence_not_story_scoped` | `validate-demo-evidence-story-scoped.sh` | Demo evidence file written directly to `docs/demo-evidence/*.md` instead of `docs/demo-evidence/<STORY-ID>/*.md` (POL-010) |
+| `pr_description_incomplete` | `validate-pr-description-completeness.sh` | `pr-description.md` missing required sections (Architecture Changes / Story Dependencies / Spec Traceability / Test Evidence / Demo Evidence / Pre-Merge Checklist) or contains unresolved `{placeholder}` tokens |
+| `wave_gate_incomplete` | `validate-wave-gate-completeness.sh` | `wave-state.yaml` marked `gate_status: passed` but the referenced `gate_report` is missing, missing evidence for all 6 gates, or absent entirely |
+| `factory_path_worktree_relative` | `validate-factory-path-root.sh` | `.factory/` write resolved to a path inside `.worktrees/STORY-NNN/.factory/` instead of the project root. Event carries `worktree`. |
+| `regression_gate_pass_to_fail` | `regression-gate.sh` | Test suite transitioned pass → fail (tracked via `.factory/regression-state.json`). **`severity=warn`** — this is telemetry-only; the hook never blocks. Event carries `command`. |
+
+**PostToolUse validator instrumentation is now complete.** 21 of 22 hooks emit events; `validate-index-self-reference.sh` remains intentionally uninstrumented because it is a pure stderr advisory with no structured signal.
+
 ---
 
 ## Instrumenting your own hook
@@ -390,7 +407,7 @@ happy path — impact on normal sessions is zero.
 | 2c | Instrument 2 PreToolUse Agent guards | Shipped in [v0.59.0](../../CHANGELOG.md) |
 | 2d.1 | Instrument 4 policy validators (Policy 6/7/8/9) | Shipped in [v0.60.0](../../CHANGELOG.md) |
 | 2d.2 | Instrument 7 structural validators | Shipped in [v0.61.0](../../CHANGELOG.md) |
-| 2d.3 | Instrument 10 workflow/specialized validators | Planned |
+| 2d.3 | Instrument 10 workflow/specialized validators | Shipped in [v0.62.0](../../CHANGELOG.md) |
 | 2e | Instrument 6 SubagentStop + Stop hooks | Planned |
 | 3 | `bin/factory-query` canned queries + `bin/factory-report` | Planned |
 | 4 | `/factory-health` slash command | Planned |

@@ -20,6 +20,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -80,11 +87,17 @@ fi
 # --- Case 1b: Hash format validation — must be 7-char lowercase hex ---
 HASH_LEN=${#STORED_HASH}
 if [[ "$HASH_LEN" -ne 7 ]]; then
+  _emit type=hook.block hook=validate-input-hash matcher=PostToolUse \
+        reason=input_hash_invalid_format file_path="$FILE_PATH" \
+        stored_hash="$STORED_HASH" hash_len="$HASH_LEN" issue=length
   echo "input-hash FORMAT: $(basename "$FILE_PATH") hash \"$STORED_HASH\" is $HASH_LEN chars; canonical is 7-char truncated MD5." >&2
   echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
   exit 2
 fi
 if ! echo "$STORED_HASH" | grep -qE '^[0-9a-f]{7}$'; then
+  _emit type=hook.block hook=validate-input-hash matcher=PostToolUse \
+        reason=input_hash_invalid_format file_path="$FILE_PATH" \
+        stored_hash="$STORED_HASH" issue=chars
   echo "input-hash FORMAT: $(basename "$FILE_PATH") hash \"$STORED_HASH\" contains invalid chars; must be lowercase hex [0-9a-f]." >&2
   echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
   exit 2

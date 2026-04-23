@@ -25,6 +25,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -169,6 +176,9 @@ if [[ -n "$WARNINGS" ]]; then
 fi
 
 if [[ -n "$ERRORS" ]]; then
+  _emit type=hook.block hook=convergence-tracker matcher=PostToolUse \
+        reason=convergence_rule_violation file_path="$FILE_PATH" \
+        verdict="${VERDICT:-}" novelty_score="${NOVELTY_SCORE:-}"
   echo "CONVERGENCE RULE VIOLATION — BLOCKED:" >&2
   echo -e "$ERRORS" | while IFS= read -r line; do
     echo "  ✗ $line" >&2

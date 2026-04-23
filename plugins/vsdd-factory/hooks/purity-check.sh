@@ -21,6 +21,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -60,6 +67,9 @@ for p in "${PATTERNS[@]}"; do
 done
 
 if (( ${#HITS[@]} > 0 )); then
+  _emit type=hook.block hook=purity-check matcher=PostToolUse \
+        reason=pure_core_boundary_violation file_path="$FILE_PATH" severity=warn \
+        patterns="${HITS[*]}"
   echo "purity-check: $FILE_PATH is in a pure-core path but contains side-effect patterns:" >&2
   for h in "${HITS[@]}"; do
     echo "  - $h" >&2
