@@ -5,6 +5,10 @@ apiVersion: 1
 
 datasources:
   - name: Loki
+    # uid must stay "loki" — the bundled factory-overview dashboard
+    # references this datasource by uid in all 16 panels. Changing the uid
+    # will break the dashboard with "datasource loki not found".
+    uid: loki
     type: loki
     access: proxy
     url: http://loki:3100

@@ -1,10 +1,18 @@
-# OpenTelemetry Collector configuration for vsdd-factory event log.
+# OpenTelemetry Collector configuration for the vsdd-factory local stack.
 #
-# Reads .factory/logs/events-*.jsonl (mounted read-only at /var/log/factory),
-# parses each line as a JSON event, and ships the result to Loki.
+# Two input sources feed the same Loki instance with distinct service_name:
 #
-# The file_storage extension persists read offsets across restarts so events
-# aren't re-ingested after a container restart.
+#   1. filelog receiver   — tails .factory/logs/events-*.jsonl (our hook events)
+#                           → tagged service_name=vsdd-factory
+#   2. otlp receiver      — accepts Claude Code's native OTel export
+#                           → tagged service_name=claude-code
+#
+# Metrics and traces from the OTLP receiver are absorbed by the debug
+# exporter (no persistent storage). Add a Prometheus exporter + Prometheus
+# container to compose if metrics persistence becomes important.
+#
+# The file_storage extension persists filelog read offsets across restarts
+# so hook events aren't re-ingested after a container restart.
 
 extensions:
   file_storage:
@@ -50,16 +58,38 @@ receivers:
         to: resource.severity
         if: 'attributes.severity != nil'
 
+  # OTLP receiver for Claude Code's native telemetry. The http endpoint is
+  # what Claude exports to when OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf.
+  # Compose exposes 4318 on the host; Claude Code in the host process
+  # targets http://localhost:4318. gRPC (4317) is also enabled for users
+  # who prefer that protocol, but compose does not expose 4317 by default.
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
 processors:
   batch:
     send_batch_size: 100
     timeout: 5s
-  # Add a global service label so Loki's stream selector is consistent.
+
+  # Tag hook-event logs with service_name=vsdd-factory so Loki stream
+  # selectors can distinguish them from Claude's native telemetry.
   resource:
     attributes:
       - key: service_name
         value: vsdd-factory
         action: insert
+
+  # Tag Claude Code's native OTel logs with service_name=claude-code so
+  # they're queryable separately in Grafana (LogQL: {service_name="claude-code"}).
+  resource/claude:
+    attributes:
+      - key: service_name
+        value: claude-code
+        action: upsert
 
 exporters:
   loki:
@@ -72,13 +102,39 @@ exporters:
       instance: true
       level: true
 
+  # Absorbs Claude's metrics and traces at basic verbosity — they show up
+  # in the collector's stdout but are not persisted. Swap for prometheus
+  # (metrics) or a tempo exporter (traces) if you need to query them.
+  debug:
+    verbosity: basic
+
 service:
   extensions: [file_storage]
   pipelines:
+    # Hook events from .factory/logs → Loki, tagged vsdd-factory.
     logs:
       receivers: [filelog]
       processors: [batch, resource]
       exporters: [loki]
+
+    # Claude Code's native OTel logs → Loki, tagged claude-code.
+    # Includes api_request_body, api_response_body, tool_result, prompt
+    # (when OTEL_LOG_USER_PROMPTS=1), and session events.
+    logs/claude:
+      receivers: [otlp]
+      processors: [batch, resource/claude]
+      exporters: [loki]
+
+    # Metrics and traces from Claude → debug (no persistent backend yet).
+    # Pipelines must exist or the OTLP receiver rejects the signal type.
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
   telemetry:
     logs:
       level: info
