@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.57.1 — Observability docs (docs-only patch)
+
+Documentation catch-up for the observability work shipped in 0.56.0 and
+0.57.0. No code or behavior changes.
+
+### Added
+
+- **`docs/guide/observability.md`** (new) — single-page user + developer
+  reference. Covers: env-var controls, log location and rotation, event
+  schema, `jq` query recipes, the full reason-code registry (35 codes as
+  of 0.57.0), "how to instrument your own hook" recipe, safety
+  guarantees, and the Phase 2-6 roadmap.
+
+### Changed
+
+- **`docs/guide/hooks-reference.md`** — added `protect-secrets.sh` row
+  (missing since 0.55.0), added `block-ai-attribution.sh` row, added new
+  "Instrumented" column showing which hooks emit to the event log (4
+  ticked, 18 pending), added pointer to observability guide. A broader
+  audit to reconcile the hook count with the current plugin is deferred
+  to an end-of-Phase-2 cleanup release.
+- **`docs/guide/configuration.md`** — expanded `destructive-command-guard`
+  description with all v0.55.0 additions, added `protect-secrets` rows
+  under both Bash and Read matcher sections, added `block-ai-attribution`,
+  added new "Environment variables" section documenting `VSDD_TELEMETRY`,
+  `VSDD_LOG_DIR`, and `CLAUDE_PLUGIN_ROOT`.
+- **`README.md`** — added `Observability` row to the user guide table;
+  retitled Hooks Reference description to mention instrumentation.
+
 ## 0.57.0 — Observability Phase 2a: instrument PreToolUse Bash guards
 
 First use of the `emit-event` helper shipped in 0.56.0. Four PreToolUse
