@@ -1,5 +1,64 @@
 # Changelog
 
+## 0.67.0 — Observability Phase 6.1: session ID injection + factory-replay
+
+Foundation for session-scoped analysis. Events now carry `session_id`
+auto-injected from Claude Code's `$CLAUDE_SESSION_ID` env var, enabling
+replay of what a specific session fired. Unblocks Phase 6.2 (agent SLOs)
+and 6.3 (flame graphs) — both need session grouping to be meaningful.
+
+### Changed
+
+- **`bin/emit-event`** — auto-injects `session_id` field from env vars
+  with priority order:
+  1. Caller-provided `session_id=` arg (highest priority)
+  2. `$VSDD_SESSION_ID` (test / override)
+  3. `$CLAUDE_SESSION_ID` (Claude Code native env var)
+  4. No session_id (event is orphan, still valid)
+
+  Purely additive schema change. Events emitted before 0.67 lack
+  `session_id` and simply group under `(no-session)` in replay views.
+
+### Added
+
+- **`bin/factory-replay`** — session replay CLI. Three subcommands:
+  - `sessions [--days N] [--limit N] [--tsv]` — list distinct sessions
+    with event count + first/last timestamps, sorted by recency.
+  - `show <session_id> [--limit N]` — chronological playback of a
+    specific session. Pass `(no-session)` to see orphan events.
+  - `latest [--limit N]` — replay the most recent session with a
+    session_id.
+
+  Output is a readable ts / severity / hook / reason / context table.
+  Gracefully handles missing log dir, empty log dir, and "only orphan
+  events" cases.
+
+### Updated (schema)
+
+- **`docs/guide/observability.md`** — event schema table now includes
+  the optional `session_id` field with priority rules.
+
+### Added (tests)
+
+- **`tests/emit-event.bats`** — 5 new tests (40 total) covering
+  session_id auto-injection priority: `VSDD_SESSION_ID` override,
+  `CLAUDE_SESSION_ID` fallback, env-var precedence (VSDD wins), caller
+  override beats env, absence when neither set.
+- **`tests/factory-replay.bats`** (new) — 16 tests: subcommand
+  structure, session listing + sort order, session filtering, orphan
+  event handling, chronological ordering in `show`, latest with/without
+  sessions, empty-state graceful handling.
+- 1038 tests across 33 suites, 0 failures.
+
+### Deferred to Phase 6.2 / 6.3
+
+- Agent duration tracking — needs hooks at both PreToolUse Agent
+  (dispatch) and SubagentStop (return), plus a correlation ID so start
+  and end events can be paired. Planned for Phase 6.2.
+- Flame graph visualization — needs OTel tracing spans, which means
+  adding Tempo to the Docker stack and changing the emission layer
+  from logs to traces. Bigger architectural shift. Planned for 6.3.
+
 ## 0.66.0 — Observability Phase 5: local Docker stack (Grafana dashboards)
 
 The visual layer on top of the event log. Opt-in Docker stack that tails
