@@ -137,11 +137,11 @@
     {
       "id": 3,
       "title": "Commits",
-      "description": "Git commits produced via Claude's tool use. From claude_code_commit_count_total.",
+      "description": "Count of commit.made events from the capture-commit-activity hook (v0.77.0+). Replaces the previously-used claude_code_commit_count_total Prometheus metric, which Claude Code's OTel SDK doesn't actually emit in our environment. Includes --amend commits.",
       "type": "stat",
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "loki",
+        "uid": "loki"
       },
       "gridPos": {
         "h": 4,
@@ -149,6 +149,16 @@
         "x": 12,
         "y": 0
       },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"commit.made\"}[$__range]))"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -164,11 +174,12 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -176,18 +187,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true,
+        "justifyMode": "auto"
       },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(increase(claude_code_commit_count_total[$__range]))"
-        }
-      ]
+      "pluginVersion": "13.0.1"
     },
     {
       "id": 4,
@@ -334,18 +338,54 @@
     {
       "id": 6,
       "title": "Cost per commit",
-      "description": "Derived: total cost / commits. Both metrics from Prometheus — native division. Tends to be the most stable ROI signal because commits are high-frequency, so the ratio stabilizes quickly.",
+      "description": "Cross-datasource divide: A = sum(cost) from Prometheus, B = count(commit.made) from Loki's capture-commit-activity stream, C = $A / $B. v0.77.0 rebuild — the original Prom-native query used claude_code_commit_count_total, which never appears in our Prometheus (Claude's SDK doesn't emit it). Now computed from hook-captured commits so the panel reflects reality.",
       "type": "stat",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
       "gridPos": {
         "h": 4,
         "w": 8,
         "x": 8,
         "y": 4
       },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))",
+          "instant": true,
+          "hide": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"commit.made\"}[$__range]))",
+          "queryType": "instant",
+          "hide": false
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "type": "math",
+          "expression": "$A / $B",
+          "hide": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterByRefId",
+          "options": {
+            "include": "C"
+          }
+        }
+      ],
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -363,7 +403,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "options": {
         "colorMode": "value",
@@ -375,18 +416,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true,
+        "justifyMode": "auto"
       },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range])) / sum(increase(claude_code_commit_count_total[$__range]))"
-        }
-      ]
+      "pluginVersion": "13.0.1"
     },
     {
       "id": 7,
@@ -488,7 +522,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -539,7 +573,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -606,7 +640,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -665,7 +699,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -697,6 +731,67 @@
           "legendFormat": "{{attributes_subagent}}"
         }
       ]
+    },
+    {
+      "id": 12,
+      "title": "Cost per active hour",
+      "description": "Extrapolated from Claude SDK's `claude_code_active_time_seconds_total` counter, which measures **sustained compute time only** (streaming-response + tool-execution windows), NOT wall-clock session engagement. Typical sessions accumulate only seconds to a few minutes of active time. The headline number is therefore the **sustained-compute rate** — what an hour of uninterrupted Claude work would cost if extrapolated from the rate observed in the range — not an actual hourly spend. Useful as a stable cost-per-compute signal; complements Cost per PR / Cost per commit, which measure cost per output unit.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range])) / (sum(increase(claude_code_active_time_seconds_total[$__range])) / 3600)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true,
+        "justifyMode": "auto"
+      },
+      "pluginVersion": "13.0.1"
     }
   ],
   "refresh": "30s",

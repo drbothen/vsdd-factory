@@ -378,12 +378,47 @@ setup() {
   grep -q "event_type=\\\\\"pr.merged\\\\\"" "$OBS_DIR/grafana-dashboards/factory-roi.json"
 }
 
-@test "dashboard: factory-roi has Cost per commit derived panel (Prom-native)" {
-  # Only Cost per commit is a reliably-computed derived panel (Prom-native
-  # division). Cross-datasource cost-per-PR / cost-per-story are text
-  # fallbacks — see the separate 'manual cost-per-X text panels' test.
-  jq -e '.panels[] | select(.title == "Cost per commit")' \
-    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
+@test "dashboard: factory-roi Cost per commit uses capture-commit-activity stream (v0.77.0+)" {
+  # In v0.77.0 this panel was rebuilt. The original ran a Prom-native
+  # division against claude_code_commit_count_total — a metric documented
+  # upstream but never emitted by Claude's SDK in our environment, so the
+  # panel silently read N/A from v0.74.0 through v0.76.1. We now compute
+  # it as a cross-datasource divide: Prometheus cost (A) / Loki commit.made
+  # event count (B) via server-side expression refC = "$A / $B".
+  local roi="$OBS_DIR/grafana-dashboards/factory-roi.json"
+  jq -e '.panels[] | select(.title == "Cost per commit") | select(.type == "stat")' "$roi" >/dev/null
+  # Must have the three-refId shape.
+  jq -e '.panels[] | select(.title == "Cost per commit") | .targets[] | select(.refId == "A" and .datasource.type == "prometheus")' "$roi" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per commit") | .targets[] | select(.refId == "B" and .datasource.type == "loki" and (.expr | contains("event_type=\"commit.made\"")))' "$roi" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per commit") | .targets[] | select(.refId == "C" and .expression == "$A / $B")' "$roi" >/dev/null
+  # Must NOT reference the dead Prom metric anywhere in the panel.
+  ! jq -e '.panels[] | select(.title == "Cost per commit") | .targets[] | select(.expr // "" | contains("claude_code_commit_count_total"))' "$roi" >/dev/null
+}
+
+@test "dashboard: factory-roi Commits stat uses Loki commit.made stream (v0.77.0+)" {
+  # Sibling of the Cost per commit rebuild — the raw commit count panel
+  # also shifts from the dead Prom metric to Loki's commit.made events.
+  local roi="$OBS_DIR/grafana-dashboards/factory-roi.json"
+  jq -e '.panels[] | select(.title == "Commits") | .datasource.type' "$roi" | grep -q loki
+  jq -e '.panels[] | select(.title == "Commits") | .targets[] | select(.expr | contains("event_type=\"commit.made\""))' "$roi" >/dev/null
+  ! jq -e '.panels[] | select(.title == "Commits") | .targets[] | select(.expr // "" | contains("claude_code_commit_count_total"))' "$roi" >/dev/null
+}
+
+@test "dashboard: factory-roi has Cost per active hour panel (v0.77.0+)" {
+  # Companion to Cost per commit — pure Prom-native, independent of git
+  # workflow. Uses cost / (active_time/3600).
+  local roi="$OBS_DIR/grafana-dashboards/factory-roi.json"
+  jq -e '.panels[] | select(.title == "Cost per active hour") | select(.type == "stat")' "$roi" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per active hour") | .targets[] | select(.expr | contains("claude_code_cost_usage_USD_total") and contains("claude_code_active_time_seconds_total") and contains("3600"))' "$roi" >/dev/null
+}
+
+@test "hook: capture-commit-activity exists, is executable, and registered" {
+  local hook="${BATS_TEST_DIRNAME}/../hooks/capture-commit-activity.sh"
+  [ -x "$hook" ]
+  bash -n "$hook"
+  # Registered under PostToolUse Bash matcher.
+  jq -e '.hooks.PostToolUse[] | select(.matcher == "Bash") | .hooks[] | select(.command | contains("capture-commit-activity.sh"))' \
+    "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
 }
 
 # ---------- Observability stack upgrade (v0.76.0) ----------
