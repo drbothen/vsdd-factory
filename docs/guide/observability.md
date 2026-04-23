@@ -93,6 +93,7 @@ Guaranteed fields:
 |-------|------|-------|
 | `type` | string | Event category. `hook.block` (the default — a hook caught something, whether exit-2 hard block or exit-0/1 severity=warn advisory) or `hook.action` (a state-change signal, like a wave merge being recorded — not an anomaly). Future: `hook.error`, `phase.start`/`end`, `subagent.start`/`end`. |
 | `session_id` | string (optional) | Auto-injected by `emit-event` from `$VSDD_SESSION_ID` or `$CLAUDE_SESSION_ID` when present (v0.67+). Groups events emitted within one Claude Code session. Callers can override via explicit `session_id=` arg. Absent when neither env var is set — events will group under `(no-session)` in replay. |
+| `ts_epoch` | integer | Unix timestamp in seconds (v0.68+). Added alongside `ts` for portable duration math — parsing the tz-offset `ts` string varies across platforms. Tools should prefer `ts_epoch` for arithmetic. |
 | `schema_version` | integer | Currently `1`. Incremented on breaking schema changes. |
 | `ts` | string | ISO-8601 local timestamp with timezone offset. POSIX-portable format. |
 | `hook` | string | Filename stem of the emitting hook (e.g. `destructive-command-guard`). |
@@ -196,6 +197,37 @@ the `.factory/` worktree structure (branch, mount, orphan status, etc.).
 The two skills are complementary: `factory-health` answers "is the
 worktree set up correctly?" while `factory-dashboard` answers "what's the
 pipeline doing right now?".
+
+### `bin/factory-sla` — agent duration tracking
+
+Shipped in [v0.68.0](../../CHANGELOG.md). Pairs `agent.start` events
+(emitted by `track-agent-start.sh`, PreToolUse on every Agent dispatch)
+with `agent.stop` events (emitted by `track-agent-stop.sh`, SubagentStop)
+to derive per-invocation subagent durations.
+
+```bash
+# Aggregate stats per subagent: count, min, p50, p90, p99, max, mean (seconds)
+factory-sla summary --days 7
+
+# List each matched pair with start/stop/duration/exit/story
+factory-sla durations --subagent pr-manager --limit 20
+
+# Filter to a specific session
+factory-sla durations --session sess-abc-123
+
+# Show starts that don't yet have a matching stop (in-flight or orphaned)
+factory-sla open
+```
+
+Pairing rule: for each `(session_id, subagent)` combination, each
+`agent.stop` pairs with the most recent unpaired `agent.start`. Stacks
+nest correctly if the same subagent is dispatched multiple times in one
+session.
+
+The `open` subcommand surfaces starts without matching stops — either
+in-flight dispatches (normal if the stack is still running) or cases
+where a subagent exited without the SubagentStop hook firing (shouldn't
+happen but worth checking if it shows orphans persistently).
 
 ### `bin/factory-replay` — session replay
 
@@ -552,6 +584,6 @@ happy path — impact on normal sessions is zero.
 | 4 | `/factory-dashboard` slash command | Shipped in [v0.65.0](../../CHANGELOG.md) |
 | 5 | Local Docker observability stack (OTel Collector + Loki + Grafana) | Shipped in [v0.66.0](../../CHANGELOG.md) |
 | 6.1 | Session ID injection + `factory-replay` | Shipped in [v0.67.0](../../CHANGELOG.md) |
-| 6.2 | Agent SLO tracking (duration per subagent) | Planned |
+| 6.2 | Agent SLO tracking + `factory-sla` + browser-in-tests fix | Shipped in [v0.68.0](../../CHANGELOG.md) |
 | 6.3 | Pipeline flame graphs (Tempo integration) | Planned |
 | 6 | Session replay, agent SLO tracking, pipeline flame graphs | Planned |

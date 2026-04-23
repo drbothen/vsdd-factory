@@ -195,6 +195,18 @@ _logfile() {
   [ "$(jq -r '.schema_version' < "$f")" = "1" ]
 }
 
+@test "emit-event: emitted event has ts_epoch (integer)" {
+  run "$HELPER" type=test
+  local f
+  f=$(_logfile)
+  local epoch
+  epoch=$(jq -r '.ts_epoch' < "$f")
+  [[ "$epoch" =~ ^[0-9]+$ ]]
+  # Sanity: epoch is somewhere in the last/next few years
+  [ "$epoch" -gt 1600000000 ]
+  [ "$epoch" -lt 2600000000 ]
+}
+
 # ---------- Successful emission: field handling ----------
 
 @test "emit-event: caller fields appear in output" {

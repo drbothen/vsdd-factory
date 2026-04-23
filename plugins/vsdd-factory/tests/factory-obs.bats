@@ -50,13 +50,16 @@ setup() {
 }
 
 @test "factory-obs: dashboard subcommand prints URL without requiring docker" {
-  run "$TOOL" dashboard
+  # VSDD_OBS_OPEN_BROWSER=0 ensures the subcommand doesn't try to launch a
+  # browser window during test runs. BATS captures stdout so -t 1 would be
+  # false anyway, but set the flag explicitly to document intent.
+  VSDD_OBS_OPEN_BROWSER=0 run "$TOOL" dashboard
   [ "$status" -eq 0 ]
   [[ "$output" == *"http://localhost:"* ]]
 }
 
 @test "factory-obs: custom VSDD_OBS_GRAFANA_PORT reflected in dashboard URL" {
-  VSDD_OBS_GRAFANA_PORT=8080 run "$TOOL" dashboard
+  VSDD_OBS_OPEN_BROWSER=0 VSDD_OBS_GRAFANA_PORT=8080 run "$TOOL" dashboard
   [[ "$output" == *"http://localhost:8080"* ]]
 }
 

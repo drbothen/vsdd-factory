@@ -87,9 +87,13 @@ done
 # --- Timestamp + schema version -------------------------------------------
 TS=$(date +%Y-%m-%dT%H:%M:%S%z 2>/dev/null) || exit 0
 [ -n "$TS" ] || exit 0
+# Unix epoch seconds for portable duration math. Added in v0.68 — parsing
+# the tz-offset `ts` string in jq/awk is awkward across platforms, so
+# callers that compute durations should prefer ts_epoch.
+TS_EPOCH=$(date +%s 2>/dev/null) || exit 0
 
-jq_args+=(--arg _ts "$TS")
-filter="${filter} | .ts = \$_ts | .schema_version = 1"
+jq_args+=(--arg _ts "$TS" --arg _ts_epoch "$TS_EPOCH")
+filter="${filter} | .ts = \$_ts | .ts_epoch = (\$_ts_epoch | tonumber) | .schema_version = 1"
 
 # --- Auto-inject session_id from env if caller didn't provide one ----------
 # Priority order: caller-provided key (already in filter) > VSDD_SESSION_ID

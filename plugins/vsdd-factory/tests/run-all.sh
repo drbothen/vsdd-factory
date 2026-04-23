@@ -106,6 +106,14 @@ echo "== factory-replay (session replay) tests =="
 bats tests/factory-replay.bats
 
 echo
+echo "== Agent tracking hooks (track-agent-start/stop) tests =="
+bats tests/agent-tracking.bats
+
+echo
+echo "== factory-sla (agent SLO) tests =="
+bats tests/factory-sla.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 

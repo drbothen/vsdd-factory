@@ -124,11 +124,21 @@ cmd_dashboard() {
   local port="${VSDD_OBS_GRAFANA_PORT:-3000}"
   local url="http://localhost:${port}"
   echo "$url"
-  # Try to open in the default browser (best-effort)
-  if command -v open >/dev/null 2>&1; then
-    open "$url" 2>/dev/null || true
-  elif command -v xdg-open >/dev/null 2>&1; then
-    xdg-open "$url" 2>/dev/null || true
+  # Only launch a browser when running interactively. This prevents tests
+  # and non-TTY CI invocations from popping browser windows.
+  # Override via VSDD_OBS_OPEN_BROWSER: "1" forces, "0" suppresses, unset = auto.
+  local should_open
+  case "${VSDD_OBS_OPEN_BROWSER:-auto}" in
+    1|true|yes) should_open=1 ;;
+    0|false|no) should_open=0 ;;
+    *) if [ -t 1 ]; then should_open=1; else should_open=0; fi ;;
+  esac
+  if [ "$should_open" = "1" ]; then
+    if command -v open >/dev/null 2>&1; then
+      open "$url" 2>/dev/null || true
+    elif command -v xdg-open >/dev/null 2>&1; then
+      xdg-open "$url" 2>/dev/null || true
+    fi
   fi
 }
 

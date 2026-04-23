@@ -14,6 +14,7 @@
       {
         "matcher": "Agent",
         "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/track-agent-start.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-wave-gate-prerequisite.sh", "timeout": 10 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-pr-merge-prerequisites.sh", "timeout": 10 }
         ]
@@ -72,6 +73,7 @@
     "SubagentStop": [
       {
         "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/track-agent-stop.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/handoff-validator.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pr-manager-completion-guard.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/update-wave-state-on-merge.sh", "timeout": 10 },

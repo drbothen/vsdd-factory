@@ -1,0 +1,301 @@
+#!/bin/bash
+# factory-sla — agent duration tracking from the event log.
+#
+# Pairs `agent.start` (emitted by track-agent-start.sh, PreToolUse Agent)
+# with `agent.stop` (emitted by track-agent-stop.sh, SubagentStop) to derive
+# per-invocation subagent durations. Pairing is done by session_id +
+# subagent, matching the most recent unpaired start for each stop.
+#
+# Subcommands:
+#   durations [--session SID] [--subagent NAME] [--days N] [--limit N] [--tsv]
+#     One row per matched pair. Columns: session / subagent / start_ts /
+#     stop_ts / duration_sec / exit_class / story_id.
+#
+#   summary [--days N] [--tsv]
+#     Aggregate stats per subagent: count, min, p50, p90, p99, max, mean.
+#
+#   open [--tsv]
+#     agent.start events that don't yet have a matching agent.stop —
+#     either currently running or the subagent exited without the hook
+#     firing (shouldn't happen if track-agent-stop is wired).
+#
+#   help
+#
+# Reads events from $VSDD_LOG_DIR (default .factory/logs/). Requires jq.
+# Portable — uses ts_epoch (emit-event v0.68+) for duration math instead
+# of parsing the tz-offset ts string.
+
+set -u
+
+usage() {
+  cat <<'EOF'
+Usage:
+  factory-sla durations [--session SID] [--subagent NAME] [--days N] [--limit N] [--tsv]
+  factory-sla summary   [--days N] [--tsv]
+  factory-sla open      [--tsv]
+  factory-sla help
+
+Env:
+  VSDD_LOG_DIR  (default: .factory/logs)
+
+Examples:
+  factory-sla summary --days 7
+  factory-sla durations --subagent pr-manager --limit 20
+  factory-sla open
+EOF
+}
+
+LOG_DIR="${VSDD_LOG_DIR:-.factory/logs}"
+
+_date_n_days_ago() {
+  local n="$1"
+  if date -v-1d +%Y-%m-%d >/dev/null 2>&1; then
+    date -v-"${n}"d +%Y-%m-%d
+  else
+    date -d "${n} days ago" +%Y-%m-%d
+  fi
+}
+
+_collect_logs() {
+  local days="${1:-}"
+  LOG_FILES=()
+  if [ ! -d "$LOG_DIR" ]; then return 0; fi
+  local cutoff=""
+  if [ -n "$days" ] && [ "$days" -gt 0 ] 2>/dev/null; then
+    cutoff=$(_date_n_days_ago "$days")
+  fi
+  for f in "$LOG_DIR"/events-*.jsonl; do
+    [ -e "$f" ] || continue
+    if [ -n "$cutoff" ]; then
+      local fname fdate
+      fname=$(basename "$f")
+      fdate="${fname#events-}"
+      fdate="${fdate%.jsonl}"
+      if [[ "$fdate" < "$cutoff" ]]; then continue; fi
+    fi
+    LOG_FILES+=("$f")
+  done
+}
+
+_stream() {
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then return 0; fi
+  cat "${LOG_FILES[@]}"
+}
+
+# Emit paired rows as TSV to stdout: session \t subagent \t start_ts \t
+# start_epoch \t stop_ts \t stop_epoch \t duration_sec \t exit_class \t story_id
+#
+# Pairing rule: scan events in chronological order. For each agent.start,
+# push onto a stack keyed by (session, subagent). For each agent.stop,
+# pop the top of the matching stack and emit a row. Unmatched starts are
+# returned separately via --open-out.
+#
+# Awk implementation: constant-time per event, O(n) total.
+_pair_events() {
+  _stream | jq -c 'select(.type == "agent.start" or .type == "agent.stop")' 2>/dev/null \
+    | jq -rs 'sort_by(.ts_epoch // 0) | .[] | [
+          .type,
+          (.session_id // "(no-session)"),
+          (.subagent // "unknown"),
+          (.ts // ""),
+          (.ts_epoch // 0),
+          (.exit_class // ""),
+          (.story_id // "")
+        ] | @tsv' 2>/dev/null \
+    | awk -F'\t' '
+        BEGIN { OFS = "\t" }
+        {
+          type = $1; sid = $2; sub_ = $3; ts = $4; epoch = $5 + 0
+          exitc = $6; story = $7
+          key = sid "|" sub_
+
+          if (type == "agent.start") {
+            top = ++top_of[key]
+            stack_ts[key, top] = ts
+            stack_epoch[key, top] = epoch
+            stack_story[key, top] = story
+          } else if (type == "agent.stop") {
+            if (top_of[key] > 0) {
+              top = top_of[key]--
+              s_ts = stack_ts[key, top]
+              s_epoch = stack_epoch[key, top]
+              s_story = stack_story[key, top]
+              dur = epoch - s_epoch
+              if (dur < 0) dur = 0
+              # Prefer story_id from the start event if present.
+              if (s_story != "") story = s_story
+              print sid, sub_, s_ts, s_epoch, ts, epoch, dur, exitc, story
+            }
+            # else: stop with no matching start — drop (orphan)
+          }
+        }
+        # After stream, orphan starts remain in stack_epoch. Emit them via
+        # OPEN: prefix so caller can filter.
+        END {
+          for (k in top_of) {
+            while (top_of[k] > 0) {
+              top = top_of[k]--
+              split(k, parts, "|")
+              print "OPEN", parts[1], parts[2], stack_ts[k, top], stack_epoch[k, top], "", "", "", stack_story[k, top]
+            }
+          }
+        }'
+}
+
+# --- durations ---
+cmd_durations() {
+  local session="" subagent="" days="" limit=50 tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --session) session="$2"; shift 2 ;;
+      --subagent) subagent="$2"; shift 2 ;;
+      --days) days="$2"; shift 2 ;;
+      --limit) limit="$2"; shift 2 ;;
+      --tsv) tsv=1; shift ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs "$days"
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR${days:+ (last $days days)}"
+    return 0
+  fi
+
+  local out
+  out=$(_pair_events | awk -F'\t' '$1 != "OPEN"' \
+    | awk -F'\t' -v s="$session" -v a="$subagent" '
+        (s == "" || $1 == s) && (a == "" || $2 == a) { print }' \
+    | sort -t$'\t' -k3,3 \
+    | tail -"$limit")
+
+  if [ -z "$out" ]; then
+    echo "(no matched start/stop pairs)"
+    return 0
+  fi
+
+  if [ "$tsv" -eq 1 ]; then
+    echo "$out"
+  else
+    {
+      printf 'Session\tSubagent\tStart\tStop\tDuration\tExit\tStory\n'
+      echo "$out" | awk -F'\t' '{
+        dur = $7 "s"
+        printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $5, dur, $8, $9
+      }'
+    } | column -t -s $'\t'
+  fi
+}
+
+# --- summary ---
+cmd_summary() {
+  local days="" tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --days) days="$2"; shift 2 ;;
+      --tsv) tsv=1; shift ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs "$days"
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR${days:+ (last $days days)}"
+    return 0
+  fi
+
+  # Extract (subagent, duration) tuples, compute per-subagent p50/p90/p99/etc.
+  # in awk using sorted arrays.
+  local out
+  out=$(_pair_events | awk -F'\t' '$1 != "OPEN" { print $2 "\t" $7 }' \
+    | sort -t$'\t' -k1,1 -k2,2n \
+    | awk -F'\t' '
+        function pct(arr, n, p,   idx) {
+          idx = int((p / 100.0) * (n - 1)) + 1
+          if (idx < 1) idx = 1
+          if (idx > n) idx = n
+          return arr[idx]
+        }
+        {
+          if ($1 != cur && cur != "") { emit() }
+          cur = $1
+          vals[++count] = $2 + 0
+          sum += $2 + 0
+        }
+        END { if (cur != "") emit() }
+
+        function emit() {
+          # Sort vals[1..count] ascending (already sorted by outer sort)
+          min = vals[1]
+          max = vals[count]
+          p50 = pct(vals, count, 50)
+          p90 = pct(vals, count, 90)
+          p99 = pct(vals, count, 99)
+          mean = sum / count
+          printf "%s\t%d\t%d\t%d\t%d\t%d\t%d\t%.1f\n", cur, count, min, p50, p90, p99, max, mean
+          # Reset
+          delete vals
+          count = 0
+          sum = 0
+        }')
+
+  if [ -z "$out" ]; then
+    echo "(no matched start/stop pairs)"
+    return 0
+  fi
+
+  if [ "$tsv" -eq 1 ]; then
+    echo "$out"
+  else
+    {
+      printf 'Subagent\tN\tMin(s)\tP50(s)\tP90(s)\tP99(s)\tMax(s)\tMean(s)\n'
+      echo "$out"
+    } | column -t -s $'\t'
+  fi
+}
+
+# --- open ---
+cmd_open() {
+  local tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --tsv) tsv=1; shift ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs ""
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR"
+    return 0
+  fi
+
+  local out
+  out=$(_pair_events | awk -F'\t' '$1 == "OPEN" { print $2, $3, $4, $9 }' OFS=$'\t')
+  if [ -z "$out" ]; then
+    echo "(no open starts — all agent dispatches have matching stops)"
+    return 0
+  fi
+  if [ "$tsv" -eq 1 ]; then
+    echo "$out"
+  else
+    { printf 'Session\tSubagent\tStart\tStory\n'; echo "$out"; } | column -t -s $'\t'
+  fi
+}
+
+# --- Dispatch ---
+if ! command -v jq >/dev/null 2>&1; then
+  echo "factory-sla: jq is required" >&2
+  exit 1
+fi
+
+if [ $# -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+sub="$1"; shift
+case "$sub" in
+  durations) cmd_durations "$@" ;;
+  summary) cmd_summary "$@" ;;
+  open) cmd_open "$@" ;;
+  help|--help|-h) usage ;;
+  *) echo "unknown subcommand: $sub" >&2; usage >&2; exit 1 ;;
+esac
