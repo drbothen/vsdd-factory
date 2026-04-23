@@ -44,6 +44,25 @@ jobs:
           jq empty plugins/vsdd-factory/.claude-plugin/plugin.json
           jq empty plugins/vsdd-factory/hooks/hooks.json
 
+      - name: Verify version parity across plugin.json and marketplace.json
+        run: |
+          # Catches the v0.68.1/v0.69.0 failure mode: plugin.json bumped
+          # but marketplace.json left stale, which silently fails the tag-
+          # triggered Release workflow later. Fail fast on main push / PRs
+          # so the drift is visible before it reaches a tag.
+          PLUGIN_VERSION=$(jq -r '.version' plugins/vsdd-factory/.claude-plugin/plugin.json)
+          MKT_VERSION=$(jq -r '.plugins[0].version // empty' .claude-plugin/marketplace.json)
+          if [ -z "$PLUGIN_VERSION" ] || [ -z "$MKT_VERSION" ]; then
+            echo "::error::Could not read versions (plugin.json=$PLUGIN_VERSION, marketplace.json=$MKT_VERSION)"
+            exit 1
+          fi
+          if [ "$PLUGIN_VERSION" != "$MKT_VERSION" ]; then
+            echo "::error::Version drift: plugin.json=$PLUGIN_VERSION marketplace.json=$MKT_VERSION"
+            echo "Run scripts/bump-version.sh to sync both files."
+            exit 1
+          fi
+          echo "Version parity ok: $PLUGIN_VERSION"
+
       - name: Parse all workflow files
         run: |
           for f in plugins/vsdd-factory/workflows/*.lobster plugins/vsdd-factory/workflows/phases/*.lobster; do
