@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.61.0 — Observability Phase 2d.2: instrument structural validators
+
+Instruments 7 of 8 structural PostToolUse validators. Introduces a
+`severity` field on emitted events for advisory-level hooks that exit 1
+rather than 2 (so dashboards can distinguish hard blocks from warnings).
+
+### Changed
+
+- **`validate-template-compliance.sh`** — reason `template_noncompliant`.
+  Event carries `template` (template basename) and `missing_keys` for
+  aggregating "which fields do agents forget most often."
+- **`validate-finding-format.sh`** — reason `finding_id_legacy_format`.
+- **`validate-table-cell-count.sh`** — reason `table_cell_count_mismatch`.
+- **`validate-changelog-monotonicity.sh`** — reason `changelog_not_monotonic`.
+- **`validate-state-size.sh`** — reason `state_bloat`. Event carries
+  `line_count` and `limit` to track how far over the bound the file grew.
+- **`validate-state-pin-freshness.sh`** — reason `state_version_pin_drift`.
+- **`validate-state-index-status-coherence.sh`** — reason
+  `state_index_status_drift`, **`severity=warn`** (hook exits 1, not 2).
+  First use of the severity field — lets dashboards filter warn-vs-block.
+
+### Not instrumented (intentional)
+
+- **`validate-index-self-reference.sh`** — pure advisory: always exits 0,
+  emits stderr only, doesn't flag a structured anomaly. Nothing
+  machine-actionable to emit. Documented in the registry.
+
+### Added (tests)
+
+- **`tests/structural-validators-emission.bats`** (new) — 13 tests.
+  895 tests across 26 suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — registry grown from 47 to 54 codes;
+  roadmap marks 2d.2 shipped.
+- **`docs/guide/hooks-reference.md`** — Instrumented column ticked for
+  all 7 structural validators (6 exit-2 + 1 exit-1 warn); added row for
+  `validate-state-index-status-coherence.sh` (was previously missing).
+
+### Not yet instrumented
+
+- Phase 2d.3: 10 workflow/specialized validators (purity-check, input-hash,
+  novelty-assessment, convergence-tracker, anchor-capabilities-union,
+  demo-evidence-story-scoped, pr-description-completeness,
+  wave-gate-completeness, factory-path-root, regression-gate).
+- Phase 2e: 6 SubagentStop + Stop hooks.
+
 ## 0.60.0 — Observability Phase 2d.1: instrument policy validators
 
 Starts the PostToolUse validator instrumentation pass. Phase 2d is
