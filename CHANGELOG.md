@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.69.1 — Release workflow fix: sync marketplace.json version
+
+Patch release. Unblocks the GitHub Release workflow, which has been
+silently failing on every tag push since v0.68.1 because
+`.claude-plugin/marketplace.json` was not bumped alongside
+`plugins/vsdd-factory/.claude-plugin/plugin.json`. The plugin itself
+still installs correctly via the tag — only the Releases-page entry
+was missing.
+
+### Fixed
+
+- **`.claude-plugin/marketplace.json`** — bumped `plugins[0].version`
+  from `0.68.0` to `0.69.1` to match `plugin.json`. The release
+  workflow validates tag ↔ marketplace.json AND tag ↔ plugin.json;
+  any drift fails the job and skips the GitHub Release creation step.
+
+### Process note
+
+Future releases MUST bump all three version fields in lockstep:
+- `plugins/vsdd-factory/.claude-plugin/plugin.json` — plugin itself
+- `.claude-plugin/marketplace.json` — marketplace entry
+- `CHANGELOG.md` — new section heading
+
+No v0.68.1 / v0.69.0 GitHub Release entries will be backfilled; the
+tags remain the source of truth and installs continue to work
+unchanged.
+
 ## 0.69.0 — Claude Code native telemetry → factory observability stack
 
 Turns the local observability stack into a two-stream feed. Hook events
