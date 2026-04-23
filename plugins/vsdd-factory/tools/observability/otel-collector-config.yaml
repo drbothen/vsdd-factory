@@ -1,0 +1,79 @@
+# OpenTelemetry Collector configuration for vsdd-factory event log.
+#
+# Reads .factory/logs/events-*.jsonl (mounted read-only at /var/log/factory),
+# parses each line as a JSON event, and ships the result to Loki.
+#
+# The file_storage extension persists read offsets across restarts so events
+# aren't re-ingested after a container restart.
+
+extensions:
+  file_storage:
+    directory: /var/lib/otelcol
+
+receivers:
+  filelog:
+    include:
+      - /var/log/factory/events-*.jsonl
+    # Start from the first line the first time. On subsequent starts, the
+    # file_storage extension remembers the last offset.
+    start_at: beginning
+    storage: file_storage
+    # Each line is a standalone JSON event.
+    multiline:
+      line_start_pattern: ^\{
+    operators:
+      # Parse the JSON body into structured attributes.
+      - type: json_parser
+        parse_from: body
+        timestamp:
+          parse_from: attributes.ts
+          layout_type: strptime
+          layout: '%Y-%m-%dT%H:%M:%S%z'
+      # Promote useful fields from body attributes into log record attributes
+      # so they're queryable in Loki as labels or structured metadata.
+      - type: move
+        from: attributes.type
+        to: resource.event_type
+      - type: move
+        from: attributes.hook
+        to: resource.hook
+      - type: move
+        from: attributes.reason
+        to: resource.reason
+      - type: copy
+        from: attributes.severity
+        to: resource.severity
+        if: 'attributes.severity != nil'
+
+processors:
+  batch:
+    send_batch_size: 100
+    timeout: 5s
+  # Add a global service label so Loki's stream selector is consistent.
+  resource:
+    attributes:
+      - key: service_name
+        value: vsdd-factory
+        action: insert
+
+exporters:
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    # Loki labels — keep cardinality low. hook/reason go as structured
+    # metadata via default_labels_enabled below rather than labels.
+    default_labels_enabled:
+      exporter: true
+      job: true
+      instance: true
+      level: true
+
+service:
+  extensions: [file_storage]
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: [batch, resource]
+      exporters: [loki]
+  telemetry:
+    logs:
+      level: info

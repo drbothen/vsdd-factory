@@ -98,6 +98,10 @@ echo "== factory-dashboard CLI tests =="
 bats tests/factory-dashboard.bats
 
 echo
+echo "== factory-obs + observability stack tests =="
+bats tests/factory-obs.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 

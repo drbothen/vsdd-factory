@@ -1,0 +1,81 @@
+# Local observability stack for vsdd-factory
+#
+# Services:
+#   otel-collector  — tails .factory/logs/events-*.jsonl, ships to Loki
+#   loki            — log storage
+#   grafana         — UI with preconfigured datasource + starter dashboards
+#
+# Start with: bin/factory-obs up
+# Or directly: docker compose -f plugins/vsdd-factory/tools/observability/docker-compose.yml up -d
+#
+# All data is local. No cloud services. Volumes persist across restarts.
+#
+# Environment overrides:
+#   VSDD_FACTORY_LOGS       — path to .factory/logs/ on the host (default:
+#                             three directories up from this file, i.e.
+#                             the project root's .factory/logs)
+#   VSDD_OBS_GRAFANA_PORT   — host port for Grafana UI (default 3000)
+#   VSDD_OBS_LOKI_PORT      — host port for Loki HTTP API (default 3100)
+#   VSDD_OBS_OTLP_HTTP_PORT — host port for OTLP HTTP receiver (default 4318)
+
+services:
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: vsdd-obs-loki
+    ports:
+      - "${VSDD_OBS_LOKI_PORT:-3100}:3100"
+    volumes:
+      - loki-data:/loki
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.94.0
+    container_name: vsdd-obs-collector
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      # Event log — tail .factory/logs/events-*.jsonl from the host.
+      # Default resolves to the project root's .factory/logs/.
+      - ${VSDD_FACTORY_LOGS:-../../../../.factory/logs}:/var/log/factory:ro
+      - ./otel-collector-config.yaml:/etc/otel/config.yaml:ro
+      # State directory for the file_storage extension (remembers last offset)
+      - collector-state:/var/lib/otelcol
+    ports:
+      # OTLP HTTP — for Claude Code's native OTel emission, if enabled
+      - "${VSDD_OBS_OTLP_HTTP_PORT:-4318}:4318"
+    depends_on:
+      loki:
+        condition: service_healthy
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: vsdd-obs-grafana
+    ports:
+      - "${VSDD_OBS_GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - ./grafana-provisioning:/etc/grafana/provisioning:ro
+      - ./grafana-dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    environment:
+      # Anonymous admin access for local-only dev. If exposing beyond
+      # localhost, switch to proper auth.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
+    depends_on:
+      loki:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  loki-data:
+  grafana-data:
+  collector-state:

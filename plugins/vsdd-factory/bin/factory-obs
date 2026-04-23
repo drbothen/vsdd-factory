@@ -1,0 +1,151 @@
+#!/bin/bash
+# factory-obs — lifecycle manager for the local observability stack.
+#
+# Wraps `docker compose` against tools/observability/docker-compose.yml.
+# The stack (otel-collector + Loki + Grafana) tails .factory/logs/ and
+# renders the observability event log in a local Grafana UI.
+#
+# Subcommands:
+#   up        — start the stack in the background
+#   down      — stop the stack (keeps volumes)
+#   reset     — stop + wipe volumes (fresh Grafana, empties Loki)
+#   status    — docker compose ps
+#   logs      — tail collector + grafana logs (Ctrl-C to exit)
+#   dashboard — print the Grafana URL (and open browser if possible)
+#   help      — show usage
+#
+# Requires: docker + docker compose plugin (or docker-compose v1).
+# Reads events from .factory/logs/ relative to cwd. Override via
+# VSDD_FACTORY_LOGS.
+#
+# Portable bash. Works on macOS and Linux.
+
+set -u
+
+usage() {
+  cat <<'EOF'
+Usage:
+  factory-obs up         start the observability stack
+  factory-obs down       stop the stack (keeps volumes)
+  factory-obs reset      stop + wipe volumes
+  factory-obs status     docker compose ps
+  factory-obs logs       tail collector/grafana logs
+  factory-obs dashboard  print + open the Grafana URL
+  factory-obs help
+
+Env:
+  VSDD_FACTORY_LOGS        path to .factory/logs (default: ./.factory/logs)
+  VSDD_OBS_GRAFANA_PORT    Grafana host port (default 3000)
+  VSDD_OBS_LOKI_PORT       Loki host port (default 3100)
+  VSDD_OBS_OTLP_HTTP_PORT  OTLP HTTP receiver port (default 4318)
+
+Data: Grafana dashboards at http://localhost:${VSDD_OBS_GRAFANA_PORT:-3000}
+(anonymous admin access for local dev).
+EOF
+}
+
+# --- Resolve plugin + compose paths ---
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
+if [ -z "$PLUGIN_ROOT" ]; then
+  PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+OBS_DIR="$PLUGIN_ROOT/tools/observability"
+COMPOSE_FILE="$OBS_DIR/docker-compose.yml"
+
+if [ ! -f "$COMPOSE_FILE" ]; then
+  echo "factory-obs: compose file not found at $COMPOSE_FILE" >&2
+  exit 1
+fi
+
+# --- Resolve docker compose command (v2 subcommand or v1 binary) ---
+_dc() {
+  if docker compose version >/dev/null 2>&1; then
+    docker compose -f "$COMPOSE_FILE" "$@"
+  elif command -v docker-compose >/dev/null 2>&1; then
+    docker-compose -f "$COMPOSE_FILE" "$@"
+  else
+    echo "factory-obs: docker compose not found. Install Docker Desktop or the docker-compose v2 plugin." >&2
+    return 127
+  fi
+}
+
+# --- Resolve host log dir and pass via env ---
+_prep_env() {
+  # Default the logs path to the cwd's .factory/logs unless overridden.
+  if [ -z "${VSDD_FACTORY_LOGS:-}" ]; then
+    local candidate
+    candidate="$(pwd)/.factory/logs"
+    if [ -d "$candidate" ]; then
+      export VSDD_FACTORY_LOGS="$candidate"
+    else
+      # Create it so docker doesn't create it with root-owned perms
+      mkdir -p "$candidate" 2>/dev/null || true
+      export VSDD_FACTORY_LOGS="$candidate"
+    fi
+  fi
+}
+
+cmd_up() {
+  _prep_env
+  echo "factory-obs: starting stack..."
+  echo "  VSDD_FACTORY_LOGS = $VSDD_FACTORY_LOGS"
+  _dc up -d
+  local rc=$?
+  if [ "$rc" -ne 0 ]; then return "$rc"; fi
+  echo ""
+  echo "factory-obs: up. Grafana: http://localhost:${VSDD_OBS_GRAFANA_PORT:-3000}"
+  echo "  • Dashboard: Factory Overview (auto-provisioned)"
+  echo "  • Log in as admin / admin (anonymous access also enabled)"
+  echo "  • Events from $VSDD_FACTORY_LOGS will appear within ~10 seconds"
+}
+
+cmd_down() {
+  _prep_env
+  _dc down
+}
+
+cmd_reset() {
+  _prep_env
+  echo "factory-obs: stopping and removing volumes..."
+  _dc down -v
+}
+
+cmd_status() {
+  _prep_env
+  _dc ps
+}
+
+cmd_logs() {
+  _prep_env
+  _dc logs -f --tail=50 otel-collector grafana
+}
+
+cmd_dashboard() {
+  local port="${VSDD_OBS_GRAFANA_PORT:-3000}"
+  local url="http://localhost:${port}"
+  echo "$url"
+  # Try to open in the default browser (best-effort)
+  if command -v open >/dev/null 2>&1; then
+    open "$url" 2>/dev/null || true
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" 2>/dev/null || true
+  fi
+}
+
+# --- Dispatch ---
+if [ $# -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+sub="$1"; shift
+case "$sub" in
+  up) cmd_up "$@" ;;
+  down) cmd_down "$@" ;;
+  reset) cmd_reset "$@" ;;
+  status|ps) cmd_status "$@" ;;
+  logs) cmd_logs "$@" ;;
+  dashboard|open) cmd_dashboard "$@" ;;
+  help|--help|-h) usage ;;
+  *) echo "unknown subcommand: $sub" >&2; usage >&2; exit 1 ;;
+esac

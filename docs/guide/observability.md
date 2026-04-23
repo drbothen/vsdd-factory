@@ -196,6 +196,37 @@ The two skills are complementary: `factory-health` answers "is the
 worktree set up correctly?" while `factory-dashboard` answers "what's the
 pipeline doing right now?".
 
+### `bin/factory-obs` + Docker stack — Grafana dashboards
+
+Opt-in, shipped in [v0.66.0](../../CHANGELOG.md). Starts a 3-container
+Docker stack (OTel Collector + Loki + Grafana) that tails
+`.factory/logs/events-*.jsonl` and renders a preconfigured Grafana
+dashboard.
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" up         # start
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" dashboard  # open browser
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" logs       # tail container logs
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" down       # stop (keeps volumes)
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" reset      # stop + wipe volumes
+```
+
+Requires Docker + the `docker compose` plugin (or `docker-compose` v1
+as fallback). Default ports: Grafana 3000, Loki 3100, OTLP HTTP 4318 —
+override via `VSDD_OBS_GRAFANA_PORT`, `VSDD_OBS_LOKI_PORT`,
+`VSDD_OBS_OTLP_HTTP_PORT`.
+
+The starter dashboard (`Factory Overview`) has stat panels for total
+events / hard blocks / warn blocks / actions, a stacked time series of
+events by type, a top-block-reasons table, a per-hook bar gauge, and a
+live log stream of recent events. All panels query Loki via LogQL.
+
+**This stack is opt-in and optional.** The file-based CLIs
+(`factory-query`, `factory-report`, `factory-dashboard`) work without
+Docker against the same event log. See
+`plugins/vsdd-factory/tools/observability/README.md` for quickstart,
+troubleshooting, and architecture details.
+
 ### `bin/factory-report` — markdown summaries
 
 Produces markdown output suitable for pasting into PRs, Slack, or piping
@@ -496,5 +527,5 @@ happy path — impact on normal sessions is zero.
 | 2e | Instrument 5 SubagentStop + Stop hooks (Phase 2 COMPLETE) | Shipped in [v0.63.0](../../CHANGELOG.md) |
 | 3 | `bin/factory-query` canned queries + `bin/factory-report` | Shipped in [v0.64.0](../../CHANGELOG.md) |
 | 4 | `/factory-dashboard` slash command | Shipped in [v0.65.0](../../CHANGELOG.md) |
-| 5 | Local Docker observability stack (OTel Collector + Grafana LGTM) | Planned |
+| 5 | Local Docker observability stack (OTel Collector + Loki + Grafana) | Shipped in [v0.66.0](../../CHANGELOG.md) |
 | 6 | Session replay, agent SLO tracking, pipeline flame graphs | Planned |

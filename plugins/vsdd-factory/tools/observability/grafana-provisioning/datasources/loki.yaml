@@ -1,0 +1,14 @@
+# Preconfigured Loki datasource for Grafana.
+# Auto-loaded on container start via /etc/grafana/provisioning/datasources/.
+
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: true
+    editable: true
+    jsonData:
+      maxLines: 5000
