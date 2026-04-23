@@ -1,5 +1,92 @@
 # Changelog
 
+## 0.63.0 — Observability Phase 2e: instrument SubagentStop + Stop hooks (Phase 2 COMPLETE)
+
+**Phase 2 of the observability plan is complete.** Every hook decision
+point in vsdd-factory that carries a meaningful structured signal now
+emits a `hook.block` or `hook.action` event. Registry: 70 reason codes
+across 30 instrumented hooks.
+
+### New: `hook.action` event type
+
+Introduced for passive state-change signals that aren't anomalies.
+`update-wave-state-on-merge` emits `type=hook.action` when a story merge
+is recorded — the event is telemetry, not a caught issue. Dashboards
+that count "blocks" filter `type=hook.block`; dashboards that visualize
+pipeline activity include both types.
+
+### Changed
+
+- **`handoff-validator.sh`** (SubagentStop) — two reasons,
+  `severity=warn`: `subagent_empty_result` (zero non-ws chars) and
+  `subagent_truncated_result` (<40 non-ws chars; event carries `result_len`).
+- **`pr-manager-completion-guard.sh`** (SubagentStop) — reason
+  `pr_manager_incomplete_lifecycle`. Event carries `step_count`, `last_step`,
+  `next_step` — aggregate to find where pr-manager most often exits early.
+- **`update-wave-state-on-merge.sh`** (SubagentStop) — `type=hook.action`
+  with reason `wave_merge_recorded`. Event carries `story_id`, `wave`,
+  `total` (stories in wave), `merged` (merged so far), `gate_transitioned`
+  (bool: whether this merge flipped `gate_status` to `pending`). Python
+  body now writes structured key=value lines to stdout which the shell
+  forwards to `emit-event`, keeping emission in bash.
+- **`validate-pr-review-posted.sh`** (SubagentStop) — reason
+  `pr_review_not_posted`.
+- **`warn-pending-wave-gate.sh`** (Stop) — reason
+  `pending_wave_gate_at_session_end`, `severity=warn`. Event carries
+  `pending_waves` (comma-separated).
+
+### Not instrumented (intentional)
+
+- **`session-learning.sh`** (Stop) — passive append-only hook. Writes a
+  timestamp marker to `sidecar-learning.md` every session end with no
+  anomaly detection logic. Nothing structured to emit. Documented in
+  observability registry.
+
+### Added (tests)
+
+- **`tests/stop-hooks-emission.bats`** (new) — 12 tests covering all
+  five instrumented stop-family hooks, the `hook.action` event type,
+  severity=warn cases, and the standard `VSDD_TELEMETRY=off` regression.
+- 920 tests across 28 suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — registry grown from 64 to 70 reason
+  codes; added new "SubagentStop and Stop hooks" section; documented
+  `hook.action` event type alongside `hook.block`; Phase 2 roadmap fully
+  marked shipped across all sub-phases (2a → 2e).
+- **`docs/guide/hooks-reference.md`** — added rows for four previously
+  uncounted SubagentStop hooks; Instrumented column ticked for all five.
+
+### Phase 2 summary
+
+| Sub-phase | Hooks | New codes | Release |
+|-----------|-------|-----------|---------|
+| 1 (foundation) | — | — | 0.56.0 |
+| 2a (PreToolUse Bash) | 4 | 35 | 0.57.0 |
+| 2b (PreToolUse Edit\|Write) | 5 | 6 | 0.58.0 |
+| 2c (PreToolUse Agent) | 2 | 2 | 0.59.0 |
+| 2d.1 (Policy validators) | 4 | 4 | 0.60.0 |
+| 2d.2 (Structural validators) | 7 | 7 | 0.61.0 |
+| 2d.3 (Workflow validators) | 10 | 10 | 0.62.0 |
+| 2e (SubagentStop + Stop) | 5 | 6 | 0.63.0 |
+| **Total** | **37 emission sites across 30 hooks** | **70 codes** | — |
+
+Two hooks remain intentionally uninstrumented: `check-factory-commit.sh`
+(advisory-only hint, no anomaly detection) and
+`validate-index-self-reference.sh` + `session-learning.sh` (pure stderr
+advisories / passive appends with no structured signal).
+
+### What's next
+
+- **Phase 3** — `bin/factory-query` CLI with canned queries against the
+  event log; `bin/factory-report` daily/weekly/per-cycle summaries.
+- **Phase 4** — `/factory-health` slash command (text dashboard from
+  STATE.md + wave-state.yaml + recent events).
+- **Phase 5** — Opt-in Docker observability stack (OTel Collector +
+  Grafana LGTM single-container) with preconfigured dashboards.
+- **Phase 6** — Session replay, agent SLO tracking, pipeline flame graphs.
+
 ## 0.62.0 — Observability Phase 2d.3: instrument workflow validators (PostToolUse complete)
 
 Final sub-release of Phase 2d. Instruments the remaining 10 PostToolUse
