@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.60.0 — Observability Phase 2d.1: instrument policy validators
+
+Starts the PostToolUse validator instrumentation pass. Phase 2d is
+sub-split into three releases (policy, structural, workflow) to keep
+each diff bisectable.
+
+### Changed
+
+- **`validate-subsystem-names.sh`** (Policy 6) — reason
+  `policy6_subsystem_name_mismatch`.
+- **`validate-bc-title.sh`** (Policy 7) — reason `policy7_bc_title_mismatch`.
+  Event carries `bc_id`, `h1_title`, `index_title` — an immediate diff
+  of which title drifted from which authoritative source.
+- **`validate-story-bc-sync.sh`** (Policy 8) — reason
+  `policy8_bc_array_desync`.
+- **`validate-vp-consistency.sh`** (Policy 9) — reason
+  `policy9_vp_inconsistency`.
+
+Each event carries `matcher=PostToolUse` and `file_path=<path to the
+edited file>`.
+
+### Added (tests)
+
+- **`tests/policy-validators-emission.bats`** (new) — 12 tests covering
+  per-hook emission paths, the standard failure-tolerance regressions,
+  and three "clean scenario emits no event" no-op cases. 882 tests
+  across 25 suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — registry grown from 43 to 47 reason
+  codes; roadmap split Phase 2d into 2d.1/2d.2/2d.3 sub-phases.
+- **`docs/guide/hooks-reference.md`** — Instrumented column ticked for
+  all 4 policy validators.
+
+### Not yet instrumented
+
+- Phase 2d.2: 8 structural validators (template-compliance, finding-format,
+  table-cell-count, changelog-monotonicity, state-size, state-pin-freshness,
+  state-index-status-coherence, index-self-reference).
+- Phase 2d.3: 10 workflow/specialized validators (purity-check, input-hash,
+  novelty-assessment, convergence-tracker, anchor-capabilities-union,
+  demo-evidence-story-scoped, pr-description-completeness,
+  wave-gate-completeness, factory-path-root, regression-gate).
+- Phase 2e: 6 SubagentStop + Stop hooks.
+
 ## 0.59.0 — Observability Phase 2c: instrument PreToolUse Agent guards
 
 Instruments the two hooks that govern subagent dispatch. Adds 2 reason
