@@ -1,5 +1,80 @@
 # Changelog
 
+## 0.72.0 — Prometheus + Factory Today dashboard (Phase A of cost/ROI series)
+
+Phase A of the three-phase cost-and-ROI observability build-out. Lays
+the metrics-storage foundation (Prometheus) and ships the first new
+dashboard (unified daily activity view). Cost dashboard lands in
+v0.72.1; ROI in v0.72.2.
+
+### Added
+
+- **`tools/observability/prometheus-config.yaml`** — minimal Prometheus
+  config. Acts as a remote_write sink only; no scrape jobs beyond a
+  self-scrape. 30-day retention set on the command line in compose.
+
+- **`tools/observability/docker-compose.yml`** — new `prometheus`
+  service (`prom/prometheus:v2.54.0`), port 9090 (env-overridable via
+  `VSDD_OBS_PROMETHEUS_PORT`). Started with
+  `--web.enable-remote-write-receiver` so the collector can push
+  metrics over OTLP. Health-checked. `otel-collector` and `grafana`
+  both depend on it being healthy before starting — prevents the
+  collector's first push getting a connection-refused.
+
+- **`tools/observability/otel-collector-config.yaml`** — new
+  `prometheusremotewrite` exporter pushing to
+  `http://prometheus:9090/api/v1/write`.
+  `resource_to_telemetry_conversion.enabled: true` so resource
+  attributes (`service.name`, session id, model) surface as labels on
+  every metric. Metrics pipeline now exports to both Prometheus AND
+  the existing `debug` exporter — stdout visibility retained alongside
+  persistence.
+
+- **`tools/observability/grafana-provisioning/datasources/prometheus.yaml`** —
+  Prometheus datasource with pinned `uid: prometheus` (same convention
+  as the loki datasource).
+
+- **`tools/observability/grafana-dashboards/factory-today.json`** —
+  unified daily activity dashboard. 9 panels, all Loki-backed
+  (Prometheus-backed cost/ROI panels live on dedicated dashboards in
+  v0.72.1+):
+  - Events today (total across both streams)
+  - Hook blocks (factory guards)
+  - Tool calls (Claude)
+  - Unique Claude sessions
+  - Activity timeline stacked by `service_name`
+  - Top hooks fired
+  - Top tools used
+  - Stories touched today (parsed from `agent.start.story_id`)
+  - Recent significant events (`hook.block` + `hook.action`)
+
+  Default time range is "today" (`now/d` to `now`) — wall-clock
+  midnight-to-now rather than the typical rolling 24h window.
+
+- **`bin/factory-obs`** — help text and `up` confirmation now mention
+  Prometheus URL and `VSDD_OBS_PROMETHEUS_PORT`.
+
+- **`tests/factory-obs.bats`** — 14 new tests covering the Prometheus
+  service definition, collector wiring, datasource provisioning, and
+  the factory-today dashboard. Total suite size now 45 tests.
+
+### Verified live
+
+Stack restarted against prism's active event stream; confirmed all four
+containers healthy, both datasources provisioned, Prometheus
+remote_write accepting pushes (invalid-samples counter = 0), collector
+emitting no errors. Claude metrics populate on next Claude-session
+activity (metrics batch on a 60s default interval).
+
+### Migration
+
+Existing installs: `factory-obs down && factory-obs up` to pick up the
+new service. First start pulls the Prometheus image (~250MB). If port
+9090 is in use, set `VSDD_OBS_PROMETHEUS_PORT=<alternate>` before `up`.
+
+No breaking changes. Logs-to-Loki continues working even if Prometheus
+is down — pipelines are independent.
+
 ## 0.71.1 — Claude dashboard queries fixed against real Claude OTel shape
 
 v0.71.0 shipped the `claude-overview.json` dashboard with queries based
