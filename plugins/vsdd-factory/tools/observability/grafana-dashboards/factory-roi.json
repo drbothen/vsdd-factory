@@ -792,6 +792,128 @@
         "justifyMode": "auto"
       },
       "pluginVersion": "13.0.1"
+    },
+    {
+      "id": 13,
+      "title": "Cost per active minute",
+      "description": "Same signal as Cost per active hour, re-unit to minutes. Math: cost / (active_time / 60). Claude's `active_time` counts sustained compute time (streaming + tool-execution), so this is the per-minute burst rate, not what you'd actually pay per wall-clock minute.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range])) / (sum(increase(claude_code_active_time_seconds_total[$__range])) / 60)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true,
+        "justifyMode": "auto"
+      },
+      "pluginVersion": "13.0.1"
+    },
+    {
+      "id": 14,
+      "title": "Cost per active second",
+      "description": "Same signal as Cost per active hour, re-unit to seconds. Math: cost / active_time. This is the most raw reading — roughly the per-second rate you're paying while Claude is actively computing. Typical for Opus 4.7 lands ~$0.50–$2.00/sec depending on context size.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range])) / sum(increase(claude_code_active_time_seconds_total[$__range]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true,
+        "justifyMode": "auto"
+      },
+      "pluginVersion": "13.0.1"
     }
   ],
   "refresh": "30s",

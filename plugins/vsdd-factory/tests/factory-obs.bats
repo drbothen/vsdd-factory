@@ -412,6 +412,23 @@ setup() {
   jq -e '.panels[] | select(.title == "Cost per active hour") | .targets[] | select(.expr | contains("claude_code_cost_usage_USD_total") and contains("claude_code_active_time_seconds_total") and contains("3600"))' "$roi" >/dev/null
 }
 
+@test "dashboard: factory-roi has Cost per active minute + second re-unit panels (v0.77.1+)" {
+  # Same signal as Cost per active hour, re-unit to minute + second so
+  # the displayed number is intuitive at typical Claude usage patterns
+  # ($50-ish/min, <$1/sec). All three share a row at y=8.
+  local roi="$OBS_DIR/grafana-dashboards/factory-roi.json"
+  jq -e '.panels[] | select(.title == "Cost per active minute") | select(.type == "stat")' "$roi" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per active minute") | .targets[] | select(.expr | contains("claude_code_active_time_seconds_total") and contains("/ 60"))' "$roi" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per active second") | select(.type == "stat")' "$roi" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per active second") | .targets[] | select(.expr | contains("claude_code_active_time_seconds_total"))' "$roi" >/dev/null
+  # Per-second query must NOT have a divisor on active_time (raw seconds).
+  ! jq -e '.panels[] | select(.title == "Cost per active second") | .targets[] | select(.expr | contains("/ 60") or contains("/ 3600"))' "$roi" >/dev/null
+  # All three panels share y=8 (same row).
+  local row_count
+  row_count=$(jq -r '[.panels[] | select(.title | test("^Cost per active ")) | .gridPos.y] | unique | length' "$roi")
+  [ "$row_count" -eq 1 ]
+}
+
 @test "hook: capture-commit-activity exists, is executable, and registered" {
   local hook="${BATS_TEST_DIRNAME}/../hooks/capture-commit-activity.sh"
   [ -x "$hook" ]
