@@ -1,5 +1,82 @@
 # Changelog
 
+## 0.66.0 — Observability Phase 5: local Docker stack (Grafana dashboards)
+
+The visual layer on top of the event log. Opt-in Docker stack that tails
+`.factory/logs/events-*.jsonl` and renders preconfigured Grafana
+dashboards. Three containers: OTel Collector, Loki, Grafana. No cloud
+services, no telemetry leaves your machine.
+
+### Added
+
+- **`plugins/vsdd-factory/tools/observability/`** — ships with vsdd-factory:
+  - `docker-compose.yml` — 3-service stack. Health-checked. Configurable
+    ports via env vars. Default: Grafana 3000, Loki 3100, OTLP HTTP 4318.
+  - `otel-collector-config.yaml` — `filelog` receiver tails
+    `events-*.jsonl`, JSON-parses each line, promotes
+    `type`/`hook`/`reason`/`severity` to resource attributes, exports
+    to Loki. Uses the `file_storage` extension to track ingest offsets
+    across restarts (no duplicate ingestion).
+  - `grafana-provisioning/datasources/loki.yaml` — preconfigured Loki
+    datasource.
+  - `grafana-provisioning/dashboards/provider.yaml` — dashboard
+    provisioning pointing at a mounted `/var/lib/grafana/dashboards`.
+  - `grafana-dashboards/factory-overview.json` — starter dashboard with
+    8 panels: total events / blocks (hard) / blocks (warn) / actions
+    stat tiles, stacked time series of events by type, top-block-reasons
+    table, blocks-by-hook bar gauge, and a live log stream.
+  - `README.md` — quickstart, architecture diagram, troubleshooting,
+    uninstall.
+
+- **`bin/factory-obs`** — lifecycle CLI: `up` / `down` / `reset` / `status`
+  / `logs` / `dashboard`. Auto-detects `docker compose` (v2 subcommand)
+  or `docker-compose` (v1 binary). Sets `VSDD_FACTORY_LOGS` to the
+  project's `.factory/logs/` if unset. `dashboard` prints the Grafana URL
+  and opens the browser on macOS / Linux.
+
+### Design decisions
+
+- **Why not `grafana/otel-lgtm` single-container?** Separate services
+  give us precise provisioning paths (Grafana provisioning APIs vary by
+  distribution) and standard images that are well-documented. The
+  overhead of one extra container is negligible compared to easier
+  troubleshooting.
+- **Why no Prometheus/metrics backend?** Loki's `count_over_time` covers
+  every current visualization. If future dashboards need true time
+  series (histograms, quantiles), Mimir can be added later without
+  breaking anything.
+- **Why anonymous admin access in Grafana?** Deliberate — this stack is
+  local-only dev. The README flags what to change if exposing beyond
+  localhost.
+
+### Added (tests)
+
+- **`tests/factory-obs.bats`** (new) — 32 tests. Verifies script syntax
+  + help + error paths (no Docker required), compose file structure
+  (services / images / dependencies / volume mounts / ports), collector
+  config (receivers / exporters / pipelines), Grafana provisioning YAML,
+  and dashboard JSON (parseable, stable UID, all panels reference Loki,
+  every target has an expr).
+
+  End-to-end Docker runs are intentionally NOT tested in CI — BATS
+  environments often don't have Docker and starting real containers in
+  tests is flaky. Full validation is per the README's "testing without
+  docker" section.
+
+- 1006 tests across 32 suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — new "factory-obs + Docker stack"
+  section describing the opt-in flow; roadmap marks Phase 5 shipped.
+
+### What's next
+
+- **Phase 6** — Session replay from the event log, agent SLO tracking,
+  pipeline flame graphs. Some parts (replay) can layer on top of
+  `factory-query` without Docker; others (flame graphs) benefit from
+  Tempo, which could be added to the stack as a future release.
+
 ## 0.65.0 — Observability Phase 4: /factory-dashboard slash command
 
 Live pipeline dashboard as a single command. Combines STATE.md, wave-state.yaml,
