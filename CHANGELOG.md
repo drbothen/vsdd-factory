@@ -1,5 +1,132 @@
 # Changelog
 
+## 0.76.0 — Observability stack upgrade: Grafana v13 + OTel 0.149 + Loki 3.6 + Prom v3
+
+Coordinated major-version bump of the entire local observability stack.
+The headline outcome: **Factory ROI's `Cost per PR merged` and `Cost per
+story touched` panels now compute real values end-to-end** — the first
+time cross-datasource Prometheus ÷ Loki math has worked since we tried
+it in v0.74.0. Along the way: simplified Claude telemetry UX, closed
+two backlog items, and fixed several breaking changes that the stack
+upgrade surfaced.
+
+### Version pins (docker-compose.yml)
+
+- **Grafana** `10.4.2` → `13.0.1` — unlocks server-side expression
+  queries (`datasource: { type: "__expr__" }`), which is the canonical
+  v11+ pattern for cross-datasource math. This is what finally makes
+  cost-per-X panels computable.
+- **OTel Collector Contrib** `0.94.0` → `0.149.0` — unlocks the
+  `deltatocumulative` processor (added in 0.115). With it wired into
+  the metrics pipeline, Claude's DELTA-temporality counters are
+  converted in-flight before Prometheus's `remote_write` receiver
+  sees them, so `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE`
+  is no longer required at the Claude side.
+- **Loki** `3.0.0` → `3.6.10` — the image is now full distroless (no
+  shell, no `wget`, no probes). We replaced the Docker `HEALTHCHECK`
+  with a one-shot `loki-ready` init container that polls `/ready`
+  from a busybox image on the shared network; downstream services
+  (otel-collector, grafana) wait on `loki-ready` via
+  `condition: service_completed_successfully`.
+- **Prometheus** `v2.54.0` → `v3.5.2` — `remote_write` receive +
+  PromQL query APIs we use are stable across v2→v3.
+
+### Added
+
+- **`tools/observability/loki-config.yaml`** — previously used Loki's
+  built-in defaults. Now we ship an explicit config that:
+  - Raises `reject_old_samples_max_age` to 30 days so the collector
+    can backfill historical `.factory/logs/events-*.jsonl` entries
+    across a stack restart without Loki 400-ing whole batches. This
+    was a hidden data-loss path under the old default (~2h window).
+  - Declares the Loki-side `otlp_config.resource_attributes`
+    promotion list (`service.name`, `event_type`, `hook`, `reason`,
+    `severity`). Previously we relied on the collector's standalone
+    `loki` exporter honoring a `loki.resource.labels` hint attribute.
+    That exporter was removed in collector-contrib ~0.112, so we
+    ship the labels via Loki's native OTLP ingester and let Loki
+    own the label decision.
+
+- **`tools/observability/docker-compose.yml` `renderer` service** —
+  Grafana Image Renderer 3.11.0 sidecar is now part of the default
+  stack. Enables `/render/d-solo/...` for programmatic PNG/PDF export
+  of any panel. Shared auth token with Grafana
+  (`GF_RENDERING_RENDERER_TOKEN` ↔ `AUTH_TOKEN`) since Grafana v11+
+  refuses the library default. Closes backlog task #104.
+
+- **`tools/observability/docker-compose.yml` `loki-ready` service** —
+  tiny busybox init container that polls Loki's HTTP `/ready`
+  endpoint and exits 0. Downstream services gate on it via
+  `service_completed_successfully`. Replaces the broken
+  `wget`-based `HEALTHCHECK` that Loki 3.6's distroless image can
+  no longer run.
+
+### Fixed
+
+- **`otel-collector-config.yaml` metrics pipeline** — wired the
+  `deltatocumulative` processor (ordered before
+  `prometheusremotewrite`). Claude's metrics (cost, token counts,
+  session durations) now land in Prometheus without the temporality
+  env-var workaround.
+
+- **`otel-collector-config.yaml` logs exporter** — switched from the
+  removed `loki:` exporter to `otlphttp/loki:` targeting
+  `http://loki:3100/otlp`. Loki 3.x's native OTLP ingester appends
+  `/v1/logs` automatically.
+
+- **`otel-collector-config.yaml` move operators** — added
+  `if: 'attributes.type != nil'` guard on the `move` that promotes
+  the event `type` to `resource.event_type`. collector-contrib 0.149
+  is strictly-failing where 0.94 was lenient: a single malformed
+  event with no `type` field (e.g. one written by an
+  incorrectly-invoked emit-event) would otherwise halt the entire
+  filelog tailer for that cycle. Matches the existing guards on
+  `hook`, `reason`, `severity`.
+
+- **`grafana-dashboards/factory-roi.json`** — the two markdown
+  fallback panels are **back to real stat panels**, each doing a
+  live Prometheus-cost / Loki-count division via a server-side
+  expression query. Structure:
+  - refA: Prometheus instant query (`sum(increase(...[$__range]))`)
+  - refB: Loki instant query (`sum(count_over_time(...[$__range]))`)
+  - refC: `__expr__` math query with `expression: "$A / $B"`
+  - `filterByRefId` transform keeps only C for display
+
+  This pattern works on every Grafana version from 9.x forward —
+  the reason we weren't using it earlier is that nobody had reached
+  for server-side expressions. Unblocks real cost-per-X visibility
+  in the ROI dashboard without requiring task #105 (Prom-native
+  counters) to land.
+
+### Removed
+
+- **`otel-collector-config.yaml` `attributes/loki-label-hint`
+  processor** — dead code after the `loki` exporter's removal. Loki
+  now owns label promotion via its own `otlp_config`. Pipeline is
+  simpler: `[batch, resource]` instead of
+  `[batch, resource, attributes/loki-label-hint]`.
+
+### Changed
+
+- **`skills/claude-telemetry/SKILL.md`** — the env var list is back
+  down to 5 (from 6). `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE`
+  is obsolete now that `deltatocumulative` runs in the collector.
+  The `on` path prunes the legacy key on re-run for users who
+  configured it via an earlier release; `off` also cleans it up.
+  `status` flags the legacy key as stale if present.
+
+### Notes
+
+- Historical events in `.factory/logs/events-*.jsonl` older than
+  about 6 hours at the time of stack restart may not be re-indexed
+  into Loki. The collector's file_storage remembers the last offset,
+  and Loki's 30d acceptance window doesn't apply retroactively to
+  events that were briefly rejected on a prior run. Fresh events
+  flow normally.
+
+- Total bats tests: **1129** (up from 1117 at v0.75.0 — 12 new
+  tests cover the upgrade surface).
+
 ## 0.75.0 — Subagent dashboard + PR duration pairing + honest ROI fallback
 
 Three backlog items closed in one release, plus a honest admission on a
