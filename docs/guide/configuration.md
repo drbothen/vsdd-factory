@@ -211,9 +211,17 @@ discipline.
 
 | Hook | What it enforces |
 |------|-----------------|
-| `destructive-command-guard.sh` | Blocks `rm -rf` on protected paths (.factory/, src/, tests/), `rm` on INDEX/STATE files, `git reset --hard`, `git clean -f`, `git checkout -- .` |
+| `destructive-command-guard.sh` | Blocks catastrophic `rm` targets (`/`, `~`, `$HOME`, `*`), `rm -rf` on protected paths (`.factory/`, `src/`, `tests/`), SoT clobbering redirects (`> STATE.md`, `truncate`, `cp /dev/null`), `find -delete` on protected paths, `git reset --hard`, `git clean -f`, `git checkout -- .`, `git stash drop/clear`, `git branch -D main`, `git filter-branch/repo`, `git reflog expire --expire=now`, `git gc --prune=now`, `git worktree remove --force`, `--no-verify`/`--no-gpg-sign`, `gh repo/release/pr/issue` destructive ops, `curl\|bash`, recursive `chmod/chown` on protected paths |
+| `protect-secrets.sh` | Blocks reading `.env`/`.env.*`/`.envrc` (allows templates), copying/archiving real `.env` files, echoing secret-shaped env vars (`$*_TOKEN`, `$*_SECRET`, etc.), `env \| grep` for secrets |
 | `verify-git-push.sh` | Blocks force push (`--force`/`-f`) and direct push to protected branches (main, master, develop) |
+| `block-ai-attribution.sh` | Blocks git commits containing `Co-Authored-By: Claude`/Anthropic/GPT/OpenAI/Gemini patterns or "Generated with Claude Code" attribution |
 | `check-factory-commit.sh` | Reminds to update STATE.md when committing to `.factory/` |
+
+### PreToolUse hooks (Read)
+
+| Hook | What it enforces |
+|------|-----------------|
+| `protect-secrets.sh` | Blocks direct `Read` of `.env` files (templates still allowed) |
 
 ### PostToolUse hooks (Edit|Write)
 
@@ -254,6 +262,26 @@ Hooks cannot be individually disabled through configuration. They are wired in
 
 The `red-gate.sh` hook is opt-in: it only activates when `.factory/red-gate-state.json`
 exists and declares strict mode. Other hooks are always active.
+
+---
+
+## Environment variables
+
+### Observability
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `VSDD_TELEMETRY` | `on` | Set to `off` to disable the structured event log written by instrumented hooks (see [observability guide](observability.md)). Hooks continue to block identically; only the log write is skipped. |
+| `VSDD_LOG_DIR` | `.factory/logs` | Override the directory where daily event logs are written. Must be writable; if not, emission silently drops. |
+
+Both variables are read per-hook-invocation, so they can be toggled
+mid-session (`export VSDD_TELEMETRY=off`, then `unset VSDD_TELEMETRY`).
+
+### Plugin discovery
+
+| Variable | Set by | Effect |
+|----------|--------|--------|
+| `CLAUDE_PLUGIN_ROOT` | Claude Code | Absolute path to the plugin directory. Hooks use this to locate `bin/emit-event`. Unset in test/non-Claude-Code contexts; the `_emit` wrapper no-ops when unset. |
 
 ---
 

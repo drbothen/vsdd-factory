@@ -1,39 +1,45 @@
 # Hooks Reference
 
-The vsdd-factory plugin ships 26 hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
+The vsdd-factory plugin ships hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
+
+The **Instrumented** column indicates whether the hook emits structured block events to `.factory/logs/events-YYYY-MM-DD.jsonl` via `bin/emit-event`. See the [observability guide](observability.md) for the event schema, reason-code registry, and query recipes.
+
+> **Note:** This reference table currently undercounts. A doc audit reconciling every hook script in `plugins/vsdd-factory/hooks/` with this page is tracked in the observability roadmap (end-of-Phase-2 cleanup release).
 
 ---
 
 ## Hook Summary
 
-| Hook | Event | Matcher | What It Enforces | Blocking |
-|------|-------|---------|-----------------|----------|
-| `brownfield-discipline.sh` | PreToolUse | Edit\|Write | `.reference/` directories are read-only | Yes |
-| `protect-vp.sh` | PreToolUse | Edit\|Write | Green Verification Properties are immutable | Yes |
-| `protect-bc.sh` | PreToolUse | Edit\|Write | Green Behavioral Contracts are immutable | Yes |
-| `red-gate.sh` | PreToolUse | Edit\|Write | TDD red-before-green discipline | Yes (when strict mode active) |
-| `factory-branch-guard.sh` | PreToolUse | Edit\|Write | `.factory/` writes only allowed on `factory-artifacts` worktree | Yes |
-| `destructive-command-guard.sh` | PreToolUse | Bash | Blocks `rm -rf` on protected paths, `git reset --hard`, `git clean -f`, `rm` on INDEX/STATE files | Yes |
-| `verify-git-push.sh` | PreToolUse | Bash | Blocks force push and direct push to protected branches (main, master, develop) | Yes |
-| `check-factory-commit.sh` | PreToolUse | Bash | Remind about STATE.md after `.factory/` commits | No (advisory) |
-| `purity-check.sh` | PostToolUse | Edit\|Write | Pure-core boundary -- no side effects in pure modules | No (warn-only) |
-| `validate-vp-consistency.sh` | PostToolUse | Edit\|Write | VP-INDEX ↔ verification-architecture ↔ coverage-matrix consistency (Policy 9) | Yes (exit 2 on mismatch) |
-| `validate-subsystem-names.sh` | PostToolUse | Edit\|Write | BC/story subsystem fields match ARCH-INDEX canonical names (Policy 6) | Yes (exit 2 on mismatch) |
-| `validate-bc-title.sh` | PostToolUse | Edit\|Write | BC file H1 heading matches BC-INDEX title (Policy 7) | Yes (exit 2 on mismatch) |
-| `validate-story-bc-sync.sh` | PostToolUse | Edit\|Write | Story frontmatter bcs: ↔ body BC table ↔ AC traces sync (Policy 8) | Yes (exit 2 on mismatch) |
-| `validate-template-compliance.sh` | PostToolUse | Edit\|Write | Artifact has required frontmatter fields and section headings from its template | Yes (exit 2 on missing) |
-| `validate-finding-format.sh` | PostToolUse | Edit\|Write | Only current finding/fix ID formats accepted (blocks legacy ADV-NNN, STORY-NNN-FIX) | Yes (exit 2 on legacy format) |
-| `validate-input-hash.sh` | PostToolUse | Edit\|Write | Warns on missing/stale `input-hash`; blocks non-7-char or non-lowercase-hex format | Partial (format=block, drift=advisory) |
-| `validate-state-size.sh` | PostToolUse | Edit\|Write | STATE.md line count enforcement — warns >200, blocks >500 (allows compaction writes) | Yes (>500 and growing) |
-| `validate-novelty-assessment.sh` | PostToolUse | Edit\|Write | Adversarial review files must have Novelty Assessment section with required fields | Yes (exit 2 on missing) |
-| `convergence-tracker.sh` | PostToolUse | Edit\|Write | Convergence rule enforcement — trajectory monotonicity, min 3 clean passes, novelty ≤ 0.15, zero-findings warning | Partial (premature CONVERGENCE=block, regression=warn) |
-| `validate-table-cell-count.sh` | PostToolUse | Edit\|Write | Markdown table rows must have same pipe count as header (catches unescaped pipes in cells) | Yes (exit 2 on mismatch) |
-| `validate-changelog-monotonicity.sh` | PostToolUse | Edit\|Write | Changelog versions descending, no duplicates, dates non-increasing, frontmatter version matches top row | Yes (exit 2 on violation) |
-| `validate-state-pin-freshness.sh` | PostToolUse | Edit\|Write | STATE.md version pins must match actual artifact file versions | Yes (exit 2 on mismatch) |
-| `validate-index-self-reference.sh` | PostToolUse | Edit\|Write | INDEX.md/burst-log.md edits should reference current pass/burst | No (advisory warning) |
-| `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) |
-| `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) |
-| `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) |
+| Hook | Event | Matcher | What It Enforces | Blocking | Instrumented |
+|------|-------|---------|-----------------|----------|--------------|
+| `brownfield-discipline.sh` | PreToolUse | Edit\|Write | `.reference/` directories are read-only | Yes | — |
+| `protect-vp.sh` | PreToolUse | Edit\|Write | Green Verification Properties are immutable | Yes | — |
+| `protect-bc.sh` | PreToolUse | Edit\|Write | Green Behavioral Contracts are immutable | Yes | — |
+| `red-gate.sh` | PreToolUse | Edit\|Write | TDD red-before-green discipline | Yes (when strict mode active) | — |
+| `factory-branch-guard.sh` | PreToolUse | Edit\|Write | `.factory/` writes only allowed on `factory-artifacts` worktree | Yes | — |
+| `destructive-command-guard.sh` | PreToolUse | Bash | Blocks catastrophic `rm` targets, `rm -rf` on protected paths, SoT clobbering redirects, `find -delete`, dangerous git/gh operations, `--no-verify`, `curl\|bash` | Yes | ✓ (27 codes) |
+| `protect-secrets.sh` | PreToolUse | Bash + Read | Blocks reads/copies of `.env` files, echoing secret-shaped env vars, `env \| grep` for secrets | Yes | ✓ (6 codes) |
+| `verify-git-push.sh` | PreToolUse | Bash | Blocks force push (`--force`/`-f`) and direct push to protected branches (main, master, develop) | Yes | ✓ (2 codes) |
+| `block-ai-attribution.sh` | PreToolUse | Bash | Blocks git commits containing `Co-Authored-By: Claude`/AI attribution patterns | Yes | ✓ (2 codes) |
+| `check-factory-commit.sh` | PreToolUse | Bash | Remind about STATE.md after `.factory/` commits | No (advisory) | — |
+| `purity-check.sh` | PostToolUse | Edit\|Write | Pure-core boundary -- no side effects in pure modules | No (warn-only) | — |
+| `validate-vp-consistency.sh` | PostToolUse | Edit\|Write | VP-INDEX ↔ verification-architecture ↔ coverage-matrix consistency (Policy 9) | Yes (exit 2 on mismatch) | — |
+| `validate-subsystem-names.sh` | PostToolUse | Edit\|Write | BC/story subsystem fields match ARCH-INDEX canonical names (Policy 6) | Yes (exit 2 on mismatch) | — |
+| `validate-bc-title.sh` | PostToolUse | Edit\|Write | BC file H1 heading matches BC-INDEX title (Policy 7) | Yes (exit 2 on mismatch) | — |
+| `validate-story-bc-sync.sh` | PostToolUse | Edit\|Write | Story frontmatter bcs: ↔ body BC table ↔ AC traces sync (Policy 8) | Yes (exit 2 on mismatch) | — |
+| `validate-template-compliance.sh` | PostToolUse | Edit\|Write | Artifact has required frontmatter fields and section headings from its template | Yes (exit 2 on missing) | — |
+| `validate-finding-format.sh` | PostToolUse | Edit\|Write | Only current finding/fix ID formats accepted (blocks legacy ADV-NNN, STORY-NNN-FIX) | Yes (exit 2 on legacy format) | — |
+| `validate-input-hash.sh` | PostToolUse | Edit\|Write | Warns on missing/stale `input-hash`; blocks non-7-char or non-lowercase-hex format | Partial (format=block, drift=advisory) | — |
+| `validate-state-size.sh` | PostToolUse | Edit\|Write | STATE.md line count enforcement — warns >200, blocks >500 (allows compaction writes) | Yes (>500 and growing) | — |
+| `validate-novelty-assessment.sh` | PostToolUse | Edit\|Write | Adversarial review files must have Novelty Assessment section with required fields | Yes (exit 2 on missing) | — |
+| `convergence-tracker.sh` | PostToolUse | Edit\|Write | Convergence rule enforcement — trajectory monotonicity, min 3 clean passes, novelty ≤ 0.15, zero-findings warning | Partial (premature CONVERGENCE=block, regression=warn) | — |
+| `validate-table-cell-count.sh` | PostToolUse | Edit\|Write | Markdown table rows must have same pipe count as header (catches unescaped pipes in cells) | Yes (exit 2 on mismatch) | — |
+| `validate-changelog-monotonicity.sh` | PostToolUse | Edit\|Write | Changelog versions descending, no duplicates, dates non-increasing, frontmatter version matches top row | Yes (exit 2 on violation) | — |
+| `validate-state-pin-freshness.sh` | PostToolUse | Edit\|Write | STATE.md version pins must match actual artifact file versions | Yes (exit 2 on mismatch) | — |
+| `validate-index-self-reference.sh` | PostToolUse | Edit\|Write | INDEX.md/burst-log.md edits should reference current pass/burst | No (advisory warning) | — |
+| `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) | — |
+| `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) | — |
+| `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) | — |
 
 ---
 

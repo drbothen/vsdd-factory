@@ -250,7 +250,8 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 | [Glossary](docs/guide/glossary.md) | VSDD terminology reference |
 | [Policy Reference](docs/guide/policy-reference.md) | Governance policies, enforcement matrix, violation playbooks |
 | [ID Reference](docs/guide/id-reference.md) | All 30 identifier formats with scope, producer, registry, validation |
-| [Hooks Reference](docs/guide/hooks-reference.md) | All 26 hooks with trigger behavior and debugging |
+| [Hooks Reference](docs/guide/hooks-reference.md) | Hook scripts — trigger behavior, instrumentation status, debugging |
+| [Observability](docs/guide/observability.md) | Event log schema, reason-code registry, query recipes, safety guarantees |
 | [Agents Reference](docs/guide/agents-reference.md) | Agent permission model, status protocol, all 33 agents |
 
 ### Internal reference docs (in the plugin)
