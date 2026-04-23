@@ -1,5 +1,72 @@
 # Changelog
 
+## 0.70.0 — Worktree-aware log dir: events aggregate into main repo's `.factory/logs/`
+
+Previously, hooks running inside a git worktree wrote their events to
+`<worktree>/.factory/logs/`, so the activity stream fragmented across
+every linked worktree. If the observability stack was started from
+inside a worktree, it tailed only that one worktree's events — and
+other worktrees' activity was invisible. Debugging this consumed real
+time (prism's main repo had 4 events; its active worktree had 95).
+
+This release fixes the fragmentation by making every event-producing
+and event-consuming tool resolve to the **main worktree's**
+`.factory/logs/` by default.
+
+### Changed
+
+- **`bin/emit-event`** — resolves the main worktree via
+  `git worktree list --porcelain | awk '/^worktree /{print $2; exit}'`
+  (first entry is always the main worktree). Events from any linked
+  worktree now land in `<main-worktree>/.factory/logs/`. Explicit
+  `VSDD_LOG_DIR` still wins; fallback to cwd's `.factory/logs/` if
+  git is unavailable or cwd isn't a repo.
+
+- **`bin/factory-query`**, **`bin/factory-report`**, **`bin/factory-replay`**,
+  **`bin/factory-sla`** — same resolution so queries see the unified
+  event stream from every worktree regardless of which one you're
+  sitting in.
+
+- **`bin/factory-dashboard`** — when `--factory PATH` is passed
+  explicitly, log resolution honors that path (caller scoped the run).
+  When `--factory` is default, uses the main-worktree resolution. This
+  preserves the existing escape hatch.
+
+- **`bin/factory-obs`** — the Docker stack now mounts the main
+  worktree's `.factory/logs/` by default, so the collector tails the
+  aggregated stream. Restart required: `factory-obs down && up`.
+
+### Added (tests)
+
+- **`tests/emit-event.bats`** — 3 new tests covering the resolution
+  matrix: `VSDD_LOG_DIR` explicit override wins; main-worktree
+  resolution fires inside a git worktree; graceful fallback to cwd
+  when git is unavailable. Each test builds a temp repo + worktree
+  via `git worktree add` so it doesn't rely on the surrounding
+  repo's state.
+
+### Migration
+
+Existing installs need a one-time migration to see the aggregated
+stream:
+
+```bash
+# Stop the stack, then rebind to the main worktree's logs
+factory-obs down
+cd <main-repo-root>  # or simply re-run `factory-obs up` from any worktree
+factory-obs up
+```
+
+Historical events in `<worktree>/.factory/logs/events-*.jsonl` files
+are not moved automatically — they stay where they are. If you want
+them aggregated, copy or symlink them into
+`<main-repo>/.factory/logs/` before starting the stack (the filelog
+receiver will ingest them like any other event file).
+
+Setting `VSDD_LOG_DIR` or `VSDD_FACTORY_LOGS` preserves the pre-v0.70
+behavior for anyone who needs per-worktree isolation. The fallback to
+cwd for non-git directories is unchanged.
+
 ## 0.69.2 — Observability stack: fix service.name label so dashboards resolve
 
 Patch release. Fixes a silent-data bug in the local observability stack
