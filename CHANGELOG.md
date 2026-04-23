@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.72.3 — Factory PRs dashboard + Factory Today cross-reference
+
+Dedicated dashboard for PR workflow signals, built on the events we
+already capture. Complements Factory Today (general activity) and
+feeds the upcoming cost/ROI story in Phases B and C.
+
+### Added
+
+- **`tools/observability/grafana-dashboards/factory-prs.json`** — new
+  "Factory PRs" dashboard at URL path `factory-prs`, 7 panels:
+  - PR workflows dispatched (stat) — `agent.start` events with
+    `attributes_subagent="vsdd-factory:pr-manager"`
+  - PR workflows blocked / incomplete (stat) — `pr-manager-completion-guard`
+    block events
+  - PRs merged (stat) — `update-wave-state-on-merge` hook events
+  - Completion ratio (gauge) — approximate, 1 - (blocked / dispatched)
+  - PR workflow activity timeline (timeseries)
+  - Where PR workflows stall (bargauge) — distribution of `attributes_last_step`
+    from completion-guard blocks; shows which of the 10 PR workflow
+    steps the pr-manager is most likely to stop at
+  - Recent PR workflow events (logs) — filtered to pr-manager activity
+
+- **`tools/observability/grafana-dashboards/factory-today.json`** — new
+  "PRs merged" stat panel (id 10) in the top row, so the top-line
+  number appears on the daily overview without needing to switch
+  dashboards. Top-row stats resized from `w=6 × 4` to `w=5 × 4 + w=4`
+  to fit.
+
+- **`tests/factory-obs.bats`** — 7 new tests covering the PRs
+  dashboard file, UID stability, panel count, Loki-only queries, and
+  the cross-reference stat on Factory Today. Suite now 52 tests.
+
+### Backlog items captured (not shipped here)
+
+Two signal-coverage gaps surfaced during build that are deferred to
+after Phase B (cost) and Phase C (ROI):
+1. Richer PR instrumentation — explicit "PR opened" events (new hook
+   on `gh pr create` Bash invocations), PR URL/number capture, paired
+   open-to-merge duration. Needed to make "cost per PR" truly
+   meaningful.
+2. Per-subagent usage dashboard — ranked panel showing every subagent
+   type by invocation count, avg duration, and exit class mix. Uses
+   existing `agent.start` / `agent.stop` events.
+
+### Migration
+
+Restart Grafana or `factory-obs down && up` to load the new dashboard.
+The PRs-merged stat on Factory Today will populate as soon as the
+`update-wave-state-on-merge` hook fires in any instrumented worktree.
+
 ## 0.72.2 — Factory Today bargauge number + label correctness
 
 Two follow-on fixes for the Factory Today dashboard based on live
