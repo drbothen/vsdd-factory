@@ -26,7 +26,15 @@
 #
 # Environment:
 #   VSDD_TELEMETRY=off   disable emission entirely (line-1 short-circuit)
-#   VSDD_LOG_DIR=<path>  override log directory (default: .factory/logs)
+#   VSDD_LOG_DIR=<path>  override log directory (explicit absolute path wins)
+#
+# Log directory resolution (v0.70 and later):
+#   1. $VSDD_LOG_DIR if set (explicit override, unchanged behavior)
+#   2. <main-worktree>/.factory/logs when inside a git worktree, so all
+#      worktrees aggregate into one event stream. Resolved via
+#      `git worktree list --porcelain` (first entry is always the main).
+#   3. ./.factory/logs relative to cwd (pre-v0.70 behavior, fallback when
+#      git is unavailable or cwd isn't a repo).
 #
 # Portability:
 #   POSIX-portable date formats only. Atomic append relies on POSIX guarantee
@@ -52,7 +60,20 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 # --- Resolve log dir and ensure it's writable -----------------------------
-LOG_DIR="${VSDD_LOG_DIR:-.factory/logs}"
+# Prefer explicit override. Otherwise try the main worktree's .factory/logs
+# so all linked worktrees aggregate into the same event stream. Fall back
+# to cwd if git is unavailable or cwd isn't a repo. Every step swallows
+# errors — failure must not break vsdd-factory.
+if [ -n "${VSDD_LOG_DIR:-}" ]; then
+  LOG_DIR="$VSDD_LOG_DIR"
+else
+  MAIN_WT=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}' 2>/dev/null)
+  if [ -n "$MAIN_WT" ] && [ -d "$MAIN_WT" ]; then
+    LOG_DIR="${MAIN_WT}/.factory/logs"
+  else
+    LOG_DIR=".factory/logs"
+  fi
+fi
 mkdir -p "$LOG_DIR" 2>/dev/null || exit 0
 if [ ! -w "$LOG_DIR" ]; then
   exit 0

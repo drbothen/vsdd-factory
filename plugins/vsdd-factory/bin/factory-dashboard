@@ -25,11 +25,12 @@
 set -u
 
 FACTORY_DIR=".factory"
+FACTORY_DIR_EXPLICIT=0
 DAYS=7
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --factory) FACTORY_DIR="$2"; shift 2 ;;
+    --factory) FACTORY_DIR="$2"; FACTORY_DIR_EXPLICIT=1; shift 2 ;;
     --days) DAYS="$2"; shift 2 ;;
     -h|--help)
       cat <<'EOF'
@@ -58,9 +59,24 @@ export CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT"
 STATE_FILE="$FACTORY_DIR/STATE.md"
 WAVE_STATE="$FACTORY_DIR/wave-state.yaml"
 
-# Default VSDD_LOG_DIR to <factory>/logs if unset.
+# Default VSDD_LOG_DIR if unset. Priority:
+#   1. Explicit VSDD_LOG_DIR — caller overrode, respect it.
+#   2. If --factory was explicitly passed, use <factory>/logs (caller
+#      scoped the whole run to that factory).
+#   3. Else prefer the main worktree's .factory/logs/ so dashboards show
+#      the aggregated event stream from every linked worktree (v0.70).
+#   4. Fall back to cwd's <factory>/logs if git is unavailable.
 if [ -z "${VSDD_LOG_DIR:-}" ]; then
-  export VSDD_LOG_DIR="$FACTORY_DIR/logs"
+  if [ "$FACTORY_DIR_EXPLICIT" = "1" ]; then
+    export VSDD_LOG_DIR="$FACTORY_DIR/logs"
+  else
+    MAIN_WT=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}' 2>/dev/null)
+    if [ -n "$MAIN_WT" ] && [ -d "$MAIN_WT" ]; then
+      export VSDD_LOG_DIR="${MAIN_WT}/.factory/logs"
+    else
+      export VSDD_LOG_DIR="$FACTORY_DIR/logs"
+    fi
+  fi
 fi
 
 # --- Helpers ---

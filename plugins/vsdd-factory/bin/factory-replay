@@ -35,7 +35,18 @@ Examples:
 EOF
 }
 
-LOG_DIR="${VSDD_LOG_DIR:-.factory/logs}"
+# See factory-query / emit-event for resolution rationale: main worktree's
+# .factory/logs/ unless VSDD_LOG_DIR is set or git is unavailable.
+if [ -n "${VSDD_LOG_DIR:-}" ]; then
+  LOG_DIR="$VSDD_LOG_DIR"
+else
+  MAIN_WT=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}' 2>/dev/null)
+  if [ -n "$MAIN_WT" ] && [ -d "$MAIN_WT" ]; then
+    LOG_DIR="${MAIN_WT}/.factory/logs"
+  else
+    LOG_DIR=".factory/logs"
+  fi
+fi
 
 _date_n_days_ago() {
   local n="$1"

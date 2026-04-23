@@ -365,3 +365,46 @@ _logfile() {
   sid=$(jq -r '.session_id // "ABSENT"' < "$f")
   [ "$sid" = "ABSENT" ]
 }
+
+# ---------- Worktree-aware log dir resolution (v0.70) ----------
+
+@test "emit-event: VSDD_LOG_DIR explicit override still wins over worktree resolution" {
+  # setup() already sets VSDD_LOG_DIR; this proves it's respected even when
+  # run inside a git repo where the worktree resolver would otherwise fire.
+  run "$HELPER" type=test
+  [ "$status" -eq 0 ]
+  [ -n "$(_logfile)" ]
+  # No file should appear under any other .factory/logs dir.
+}
+
+@test "emit-event: resolves to main worktree's .factory/logs when unset and in a worktree" {
+  # Build a temporary repo with a linked worktree, then invoke emit-event
+  # from inside the worktree WITHOUT VSDD_LOG_DIR and verify the event lands
+  # in the MAIN repo's .factory/logs — not the worktree's.
+  unset VSDD_LOG_DIR
+  local main_repo="$(mktemp -d)"
+  ( cd "$main_repo" && git init -q && git commit --allow-empty -q -m init )
+  local linked="$(mktemp -d)"
+  rm -rf "$linked"  # git worktree add creates the dir
+  ( cd "$main_repo" && git worktree add -q -b wt-test "$linked" HEAD )
+
+  ( cd "$linked" && "$HELPER" type=worktree-test )
+
+  # Event must be in main, not in the linked worktree.
+  [ -n "$(ls "$main_repo"/.factory/logs/events-*.jsonl 2>/dev/null | head -1)" ]
+  [ -z "$(ls "$linked"/.factory/logs/events-*.jsonl 2>/dev/null | head -1)" ]
+
+  # Cleanup worktree + main
+  ( cd "$main_repo" && git worktree remove -f "$linked" 2>/dev/null ) || true
+  rm -rf "$main_repo" "$linked"
+}
+
+@test "emit-event: falls back to cwd/.factory/logs when git is unavailable" {
+  # Sandbox an empty dir that is NOT a git repo. emit-event must silently
+  # fall back to <cwd>/.factory/logs — not crash, not write to cwd.
+  unset VSDD_LOG_DIR
+  local sandbox="$(mktemp -d)"
+  ( cd "$sandbox" && "$HELPER" type=no-git-test )
+  [ -n "$(ls "$sandbox"/.factory/logs/events-*.jsonl 2>/dev/null | head -1)" ]
+  rm -rf "$sandbox"
+}

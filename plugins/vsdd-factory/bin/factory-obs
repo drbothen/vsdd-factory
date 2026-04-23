@@ -71,17 +71,22 @@ _dc() {
 
 # --- Resolve host log dir and pass via env ---
 _prep_env() {
-  # Default the logs path to the cwd's .factory/logs unless overridden.
+  # Default the logs path to the MAIN WORKTREE's .factory/logs if we're
+  # inside a git worktree, so the collector tails the aggregated event
+  # stream from every linked worktree (v0.70). Falls back to cwd if
+  # git is unavailable or cwd isn't a repo. Explicit override still wins.
   if [ -z "${VSDD_FACTORY_LOGS:-}" ]; then
     local candidate
-    candidate="$(pwd)/.factory/logs"
-    if [ -d "$candidate" ]; then
-      export VSDD_FACTORY_LOGS="$candidate"
+    local main_wt
+    main_wt=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}' 2>/dev/null)
+    if [ -n "$main_wt" ] && [ -d "$main_wt" ]; then
+      candidate="${main_wt}/.factory/logs"
     else
-      # Create it so docker doesn't create it with root-owned perms
-      mkdir -p "$candidate" 2>/dev/null || true
-      export VSDD_FACTORY_LOGS="$candidate"
+      candidate="$(pwd)/.factory/logs"
     fi
+    # Pre-create so Docker doesn't mint a root-owned bind mount.
+    mkdir -p "$candidate" 2>/dev/null || true
+    export VSDD_FACTORY_LOGS="$candidate"
   fi
 }
 

@@ -64,7 +64,19 @@ _date_n_days_ago() {
 }
 
 # --- Log file discovery ---
-LOG_DIR="${VSDD_LOG_DIR:-.factory/logs}"
+# Match emit-event's resolution: explicit VSDD_LOG_DIR wins, otherwise
+# prefer the main worktree's .factory/logs/ so queries see the full event
+# stream from every linked worktree. Fall back to cwd if not in a git repo.
+if [ -n "${VSDD_LOG_DIR:-}" ]; then
+  LOG_DIR="$VSDD_LOG_DIR"
+else
+  MAIN_WT=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}' 2>/dev/null)
+  if [ -n "$MAIN_WT" ] && [ -d "$MAIN_WT" ]; then
+    LOG_DIR="${MAIN_WT}/.factory/logs"
+  else
+    LOG_DIR=".factory/logs"
+  fi
+fi
 
 # Collect list of log files, optionally filtered by date range.
 # Sets global LOG_FILES array.
