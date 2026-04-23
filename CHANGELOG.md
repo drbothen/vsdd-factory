@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.72.5 — Fix broken gauge query on Factory PRs dashboard
+
+Factory PRs shipped in v0.72.3 with a Completion Ratio gauge whose
+LogQL query was malformed. The query tried `1 - (blocked/dispatched)`
+to invert the ratio, but LogQL doesn't accept a scalar on the left
+of a top-level binary operation. Grafana rendered
+`parse error at line 1, col 1: syntax error: unexpected IDENTIFIER`.
+
+### Fixed
+
+- **`tools/observability/grafana-dashboards/factory-prs.json`** —
+  - Renamed "Completion ratio" → "Incomplete rate" (panel id 4).
+    Semantics flipped: low is good (0 = every dispatch finished all
+    10 steps), high is bad (1 = every dispatch blocked before step
+    10). Color thresholds inverted accordingly: green/yellow/red at
+    0 / 0.3 / 0.7.
+  - Query rewritten as `blocked / dispatched` — pure vector/vector
+    division, LogQL-compatible. Verified live with real data: returns
+    `0.5` for the current state (1 blocked / 2 dispatched).
+  - `noValue: "0"` added so fresh installs with no PR activity render
+    "0%" instead of "No data".
+
+### Why not just fix the subtraction?
+
+LogQL does support binary operations between two aggregated queries,
+but not with a literal scalar on the left at top level. Possible
+rewrites that work:
+- `(dispatched - blocked) / dispatched`
+- `scalar(blocked) / scalar(dispatched)` wrapped differently
+
+Both are more fragile than just showing the blocked ratio directly.
+"Incomplete rate" is the same information with cleaner semantics and
+a simpler query.
+
+### Migration
+
+Restart Grafana or `factory-obs down && up`. Browser may cache the
+old dashboard — hard-reload if the panel still shows the error.
+
 ## 0.72.4 — Stat panels show "0" instead of "No data" for zero counts
 
 User-reported: the "PRs merged" stat on Factory Today rendered
