@@ -21,6 +21,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -107,6 +114,8 @@ if [[ -n "$BODY_BCS" ]]; then
 fi
 
 if [[ -s "$ERRFILE" ]]; then
+  _emit type=hook.block hook=validate-story-bc-sync matcher=PostToolUse \
+        reason=policy8_bc_array_desync file_path="$FILE_PATH"
   echo "POLICY 8 VIOLATION (bc_array_changes_propagate_to_body_and_acs):" >&2
   while IFS= read -r line; do
     echo "  - $line" >&2

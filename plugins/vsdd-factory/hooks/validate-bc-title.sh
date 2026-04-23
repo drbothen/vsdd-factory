@@ -20,6 +20,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -79,6 +86,9 @@ fi
 
 # Compare titles
 if [[ "$H1_TITLE" != "$INDEX_TITLE" ]]; then
+  _emit type=hook.block hook=validate-bc-title matcher=PostToolUse \
+        reason=policy7_bc_title_mismatch file_path="$FILE_PATH" \
+        bc_id="$BC_ID" h1_title="$H1_TITLE" index_title="$INDEX_TITLE"
   echo "POLICY 7 VIOLATION (bc_h1_is_title_source_of_truth):" >&2
   echo "  - BC file H1 title: \"$H1_TITLE\"" >&2
   echo "  - BC-INDEX title:   \"$INDEX_TITLE\"" >&2

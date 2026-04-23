@@ -263,6 +263,15 @@ existing one is not a good fit.
 |------|-------------|
 | `pr_merge_evidence_missing` | `Agent` dispatch to `github-ops` with a "merge" prompt when `.factory/code-delivery/<STORY-ID>/` is missing `pr-description.md`, `pr-review.md`, or `security-review.md`. Event carries `story_id`, `delivery_dir`, and a comma-separated `missing` field listing which files are absent. |
 
+### Policy validators (PostToolUse Edit|Write)
+
+| Code | Hook | Triggers on |
+|------|------|-------------|
+| `policy6_subsystem_name_mismatch` | `validate-subsystem-names.sh` | BC `subsystem:` or story `subsystems:` references an SS-ID not in `ARCH-INDEX.md` Subsystem Registry |
+| `policy7_bc_title_mismatch` | `validate-bc-title.sh` | BC file H1 title differs from `BC-INDEX.md` entry. Event carries `bc_id`, `h1_title`, `index_title` for quick diff. |
+| `policy8_bc_array_desync` | `validate-story-bc-sync.sh` | Story frontmatter `behavioral_contracts:` ↔ body BC table ↔ AC trace annotations are out of sync |
+| `policy9_vp_inconsistency` | `validate-vp-consistency.sh` | `VP-INDEX.md` ↔ `verification-architecture.md` ↔ `verification-coverage-matrix.md` have inconsistent VP IDs or column totals |
+
 ---
 
 ## Instrumenting your own hook
@@ -365,7 +374,9 @@ happy path — impact on normal sessions is zero.
 | 2a | Instrument 4 PreToolUse Bash guards | Shipped in [v0.57.0](../../CHANGELOG.md) |
 | 2b | Instrument 5 PreToolUse Edit|Write guards | Shipped in [v0.58.0](../../CHANGELOG.md) |
 | 2c | Instrument 2 PreToolUse Agent guards | Shipped in [v0.59.0](../../CHANGELOG.md) |
-| 2d | Instrument 21 PostToolUse validators | Planned |
+| 2d.1 | Instrument 4 policy validators (Policy 6/7/8/9) | Shipped in [v0.60.0](../../CHANGELOG.md) |
+| 2d.2 | Instrument 8 structural validators | Planned |
+| 2d.3 | Instrument 10 workflow/specialized validators | Planned |
 | 2e | Instrument 6 SubagentStop + Stop hooks | Planned |
 | 3 | `bin/factory-query` canned queries + `bin/factory-report` | Planned |
 | 4 | `/factory-health` slash command | Planned |
