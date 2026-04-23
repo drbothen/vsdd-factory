@@ -1,5 +1,65 @@
 # Changelog
 
+## 0.65.0 — Observability Phase 4: /factory-dashboard slash command
+
+Live pipeline dashboard as a single command. Combines STATE.md, wave-state.yaml,
+and the event log into one markdown view.
+
+### Added
+
+- **`bin/factory-dashboard`** — shell script that produces a markdown
+  pipeline dashboard. Sections:
+  - Project metadata (phase, mode, status, current step, STATE.md size
+    with >200/>500-line warnings)
+  - Waves table (each wave with gate status glyph, merged/total stories,
+    next-gate marker)
+  - Recent activity (factory-query stats + top-5 block reasons for the
+    lookback window)
+  - Pending wave gates (scraped from the most recent log's
+    `pending_wave_gate_at_session_end` events)
+  - Health checks (✓/✗ for each data source)
+
+  Every section handles "missing" gracefully — no STATE.md, no
+  wave-state.yaml, no event log, missing `python3` (falls back cleanly)
+  all produce clean notices rather than errors.
+
+- **`skills/factory-dashboard/SKILL.md`** + **`commands/factory-dashboard.md`**
+  — slash command `/vsdd-factory:factory-dashboard` invokes the script.
+
+### Naming
+
+Chose `factory-dashboard` to avoid collision with the pre-existing
+`factory-health` skill (which validates the `.factory/` worktree
+structure — different purpose). The two complement each other:
+- `/vsdd-factory:factory-health` — is the worktree set up correctly?
+- `/vsdd-factory:factory-dashboard` — what's the pipeline doing right now?
+
+### Flags
+
+- `--factory PATH` — point at an alternate `.factory/` (e.g., a second
+  project opened in the same session).
+- `--days N` — change the event-log lookback window (default 7).
+
+### Added (tests)
+
+- **`tests/factory-dashboard.bats`** (new) — 16 tests covering:
+  structural checks, empty state, STATE-only state, wave-state parsing
+  (including malformed YAML graceful degradation), event integration,
+  health-check glyphs, size-threshold warnings, and both flags.
+- 974 tests across 31 suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — new section on
+  `/factory-dashboard` with usage examples and a note clarifying its
+  distinction from `/factory-health`; roadmap marks Phase 4 shipped.
+
+### What's next
+
+- **Phase 5** — Opt-in Docker observability stack (Grafana LGTM
+  single-container) with preconfigured dashboards.
+- **Phase 6** — Session replay, agent SLO tracking, pipeline flame graphs.
+
 ## 0.64.0 — Observability Phase 3: factory-query + factory-report CLIs
 
 First shipped tooling on top of the event log. Two new binaries query
