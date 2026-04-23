@@ -21,6 +21,13 @@ INPUT=$(cat)
 AGENT=$(echo "$INPUT" | jq -r '.agent_type // .subagent_name // "unknown"')
 RESULT=$(echo "$INPUT" | jq -r '.last_assistant_message // .result // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 # Scope: only pr-reviewer
 case "$AGENT" in
   *pr-reviewer*|*pr_reviewer*|*pr-review-triage*) ;;
@@ -49,6 +56,8 @@ if echo "$RESULT" | grep -qE "gh pr review" && ! echo "$RESULT" | grep -qE "appr
 fi
 
 if [[ -n "$ERRORS" ]]; then
+  _emit type=hook.block hook=validate-pr-review-posted matcher=SubagentStop \
+        reason=pr_review_not_posted subagent="$AGENT"
   echo "PR REVIEW POSTING INCOMPLETE:" >&2
   echo -e "$ERRORS" | while IFS= read -r line; do
     echo "  - $line" >&2

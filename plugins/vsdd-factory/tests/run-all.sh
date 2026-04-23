@@ -82,6 +82,10 @@ echo "== Workflow validators emission tests =="
 bats tests/workflow-validators-emission.bats
 
 echo
+echo "== SubagentStop/Stop hooks emission tests =="
+bats tests/stop-hooks-emission.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 

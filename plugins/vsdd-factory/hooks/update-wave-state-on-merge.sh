@@ -21,6 +21,13 @@ INPUT=$(cat)
 AGENT=$(echo "$INPUT" | jq -r '.agent_type // .subagent_name // "unknown"')
 RESULT=$(echo "$INPUT" | jq -r '.last_assistant_message // .result // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 # Scope: only pr-manager
 case "$AGENT" in
   *pr-manager*|*pr_manager*) ;;
@@ -51,8 +58,11 @@ if [[ -z "$WAVE_STATE" ]] || [[ ! -f "$WAVE_STATE" ]]; then
   exit 0  # no wave-state file
 fi
 
-# Update wave-state.yaml via python3
-python3 -c "
+# Update wave-state.yaml via python3.
+# Python writes three sentinel lines to stdout (if any transition happened)
+# that the shell script then forwards to emit-event. Keeps all emission
+# in bash, avoiding need for python3 to know about emit-event.
+UPDATE_RESULT=$(python3 -c "
 import yaml, sys, datetime
 
 wave_state_path = '$WAVE_STATE'
@@ -73,19 +83,39 @@ for wave_name, wave_data in state['waves'].items():
         merged.append(story_id)
         wave_data['stories_merged'] = merged
         changed = True
+        gate_transitioned = False
 
         # Check if all stories in wave are now merged
         if set(stories) == set(merged):
             if wave_data.get('gate_status') in ('not_started', None):
                 wave_data['gate_status'] = 'pending'
                 state['next_gate_required'] = wave_name
+                gate_transitioned = True
                 sys.stderr.write(f'update-wave-state-on-merge: all stories in {wave_name} merged. gate_status → pending.\n')
                 sys.stderr.write(f'  Run the wave integration gate before starting the next wave.\n')
+
+        # Emit structured result to stdout for the shell to forward
+        print(f'WAVE={wave_name}')
+        print(f'TOTAL={len(stories)}')
+        print(f'MERGED={len(merged)}')
+        print(f'GATE_TRANSITIONED={gate_transitioned}')
         break
 
 if changed:
     with open(wave_state_path, 'w') as f:
         yaml.dump(state, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
-" 2>&2 || true
+" 2>&2 || true)
+
+# Forward structured result to emit-event as a hook.action event
+if [ -n "$UPDATE_RESULT" ]; then
+  EVENT_WAVE=$(echo "$UPDATE_RESULT" | grep '^WAVE=' | cut -d= -f2-)
+  EVENT_TOTAL=$(echo "$UPDATE_RESULT" | grep '^TOTAL=' | cut -d= -f2-)
+  EVENT_MERGED=$(echo "$UPDATE_RESULT" | grep '^MERGED=' | cut -d= -f2-)
+  EVENT_GATE_TRANSITIONED=$(echo "$UPDATE_RESULT" | grep '^GATE_TRANSITIONED=' | cut -d= -f2-)
+  _emit type=hook.action hook=update-wave-state-on-merge matcher=SubagentStop \
+        reason=wave_merge_recorded story_id="$STORY_ID" wave="$EVENT_WAVE" \
+        total="$EVENT_TOTAL" merged="$EVENT_MERGED" \
+        gate_transitioned="$EVENT_GATE_TRANSITIONED"
+fi
 
 exit 0

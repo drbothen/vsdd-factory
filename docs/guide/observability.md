@@ -91,7 +91,7 @@ Guaranteed fields:
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `type` | string | Event category. Currently always `hook.block`. Future: `hook.pass`, `hook.advice`, `hook.error`, `phase.start`/`end`, `subagent.start`/`end`. |
+| `type` | string | Event category. `hook.block` (the default — a hook caught something, whether exit-2 hard block or exit-0/1 severity=warn advisory) or `hook.action` (a state-change signal, like a wave merge being recorded — not an anomaly). Future: `hook.error`, `phase.start`/`end`, `subagent.start`/`end`. |
 | `schema_version` | integer | Currently `1`. Incremented on breaking schema changes. |
 | `ts` | string | ISO-8601 local timestamp with timezone offset. POSIX-portable format. |
 | `hook` | string | Filename stem of the emitting hook (e.g. `destructive-command-guard`). |
@@ -303,6 +303,25 @@ Note: `validate-index-self-reference.sh` is a pure advisory hook (always exits 0
 
 **PostToolUse validator instrumentation is now complete.** 21 of 22 hooks emit events; `validate-index-self-reference.sh` remains intentionally uninstrumented because it is a pure stderr advisory with no structured signal.
 
+### SubagentStop and Stop hooks
+
+Unlike block-type hooks, some SubagentStop hooks emit purely informational
+state-change events. For those, the event carries `type=hook.action`
+instead of `type=hook.block`. Dashboards that count "blocks" should filter
+`type=hook.block`; dashboards that count pipeline activity should include
+both types.
+
+| Code | Hook | Event type | Triggers on |
+|------|------|-----------|-------------|
+| `subagent_empty_result` | `handoff-validator.sh` | `hook.block` (`severity=warn`) | SubagentStop: subagent returned zero non-whitespace characters |
+| `subagent_truncated_result` | `handoff-validator.sh` | `hook.block` (`severity=warn`) | SubagentStop: subagent returned fewer than 40 non-whitespace characters. Event carries `result_len`. |
+| `pr_manager_incomplete_lifecycle` | `pr-manager-completion-guard.sh` | `hook.block` | SubagentStop on pr-manager: fewer than 8 `STEP_COMPLETE` emissions and no `BLOCKED` status. Event carries `step_count`, `last_step`, `next_step` so the dashboard can identify where pr-manager most commonly stops early. |
+| `pr_review_not_posted` | `validate-pr-review-posted.sh` | `hook.block` | SubagentStop on pr-reviewer: `pr-review.md` write not detected, or `gh pr comment` used in place of `gh pr review`, or review posted without `--approve`/`--request-changes` verdict |
+| `wave_merge_recorded` | `update-wave-state-on-merge.sh` | `hook.action` | SubagentStop on pr-manager: a story just merged and was recorded in `wave-state.yaml`. Event carries `story_id`, `wave`, `total` (stories in wave), `merged` (stories merged so far), and `gate_transitioned` (bool — whether this merge flipped `gate_status` to `pending`). |
+| `pending_wave_gate_at_session_end` | `warn-pending-wave-gate.sh` | `hook.block` (`severity=warn`) | Stop: one or more waves in `wave-state.yaml` have `gate_status: pending`. Event carries `pending_waves` (comma-separated). |
+
+Note: `session-learning.sh` (Stop) is a passive append-only hook — it writes a timestamp marker to `sidecar-learning.md` but produces no anomaly signal, so it does not emit structured events.
+
 ---
 
 ## Instrumenting your own hook
@@ -408,6 +427,7 @@ happy path — impact on normal sessions is zero.
 | 2d.1 | Instrument 4 policy validators (Policy 6/7/8/9) | Shipped in [v0.60.0](../../CHANGELOG.md) |
 | 2d.2 | Instrument 7 structural validators | Shipped in [v0.61.0](../../CHANGELOG.md) |
 | 2d.3 | Instrument 10 workflow/specialized validators | Shipped in [v0.62.0](../../CHANGELOG.md) |
+| 2e | Instrument 5 SubagentStop + Stop hooks (Phase 2 COMPLETE) | Shipped in [v0.63.0](../../CHANGELOG.md) |
 | 2e | Instrument 6 SubagentStop + Stop hooks | Planned |
 | 3 | `bin/factory-query` canned queries + `bin/factory-report` | Planned |
 | 4 | `/factory-health` slash command | Planned |

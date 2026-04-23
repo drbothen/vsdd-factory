@@ -27,16 +27,27 @@ INPUT=$(cat)
 AGENT=$(echo "$INPUT" | jq -r '.agent_type // .subagent_name // "unknown"')
 RESULT=$(echo "$INPUT" | jq -r '.last_assistant_message // .result // .output // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 TRIMMED=$(echo -n "$RESULT" | tr -d '[:space:]')
 LEN=${#TRIMMED}
 
 if (( LEN == 0 )); then
+  _emit type=hook.block hook=handoff-validator matcher=SubagentStop \
+        reason=subagent_empty_result severity=warn subagent="$AGENT"
   echo "handoff-validator: subagent '$AGENT' returned an empty result." >&2
   echo "  This is a silent-failure risk — verify before continuing." >&2
   exit 0
 fi
 
 if (( LEN < 40 )); then
+  _emit type=hook.block hook=handoff-validator matcher=SubagentStop \
+        reason=subagent_truncated_result severity=warn subagent="$AGENT" result_len="$LEN"
   echo "handoff-validator: subagent '$AGENT' returned only $LEN non-whitespace characters." >&2
   echo "  Suspiciously short — verify the subagent completed its task." >&2
 fi

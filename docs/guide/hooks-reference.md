@@ -46,7 +46,11 @@ The **Instrumented** column indicates whether the hook emits structured block ev
 | `validate-wave-gate-completeness.sh` | PostToolUse | Edit\|Write | `gate_status: passed` requires evidence of all 6 gates in the report | Yes (exit 2 on incomplete) | ✓ (1 code) |
 | `validate-factory-path-root.sh` | PostToolUse | Edit\|Write | `.factory/` writes use absolute project-root path, not worktree-relative | Yes (exit 2 on worktree-relative) | ✓ (1 code) |
 | `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) | ✓ (1 code, severity=warn) |
-| `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) | — |
+| `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) | ✓ (2 codes, severity=warn) |
+| `pr-manager-completion-guard.sh` | SubagentStop | pr-manager | Detect FM4: pr-manager exiting before 8+ STEP_COMPLETE emissions | Yes (exit 2 on early exit) | ✓ (1 code) |
+| `update-wave-state-on-merge.sh` | SubagentStop | pr-manager | Append merged story to wave-state.yaml; flip gate_status to pending when wave complete | No (state update) | ✓ (1 code, hook.action) |
+| `validate-pr-review-posted.sh` | SubagentStop | pr-reviewer | Verify pr-review.md written and formal `gh pr review` verdict posted | Yes (exit 2 on incomplete) | ✓ (1 code) |
+| `warn-pending-wave-gate.sh` | Stop | (all) | Session-end reminder if any wave has gate_status: pending | No (advisory) | ✓ (1 code, severity=warn) |
 | `session-learning.sh` | Stop | (all) | Append learning marker to `.factory/sidecar-learning.md` | No (non-blocking) | — |
 
 ---

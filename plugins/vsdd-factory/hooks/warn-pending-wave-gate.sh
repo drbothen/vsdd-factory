@@ -22,6 +22,13 @@ if [[ ! -f "$WAVE_STATE" ]]; then
   exit 0
 fi
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 PENDING=$(python3 -c "
 import yaml, sys
 
@@ -41,6 +48,9 @@ if pending:
 " 2>/dev/null || true)
 
 if [[ -n "$PENDING" ]]; then
+  _emit type=hook.block hook=warn-pending-wave-gate matcher=Stop \
+        reason=pending_wave_gate_at_session_end severity=warn \
+        pending_waves="$PENDING"
   echo "" >&2
   echo "WAVE GATE REMINDER:" >&2
   IFS=',' read -ra WAVES <<< "$PENDING"

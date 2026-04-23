@@ -25,6 +25,13 @@ INPUT=$(cat)
 AGENT=$(echo "$INPUT" | jq -r '.agent_type // .subagent_name // "unknown"')
 RESULT=$(echo "$INPUT" | jq -r '.last_assistant_message // .result // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 # Scope: only pr-manager subagents
 case "$AGENT" in
   *pr-manager*|*pr_manager*) ;;
@@ -69,6 +76,9 @@ case $NEXT_STEP in
 esac
 
 # Block the stop and inject continuation via stderr
+_emit type=hook.block hook=pr-manager-completion-guard matcher=SubagentStop \
+      reason=pr_manager_incomplete_lifecycle subagent="$AGENT" \
+      step_count="$STEP_COUNT" last_step="$LAST_STEP" next_step="$NEXT_STEP"
 echo "" >&2
 echo "pr-manager-completion-guard: FM4 guard fired." >&2
 echo "" >&2
