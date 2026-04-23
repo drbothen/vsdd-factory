@@ -1,5 +1,87 @@
 # Changelog
 
+## 0.77.0 — Fix Cost per commit (real signal) + add Cost per active hour
+
+Replaces a ghost panel that had been showing N/A since v0.74.0, and adds
+one complementary Prom-native ROI panel.
+
+### The bug we uncovered
+
+The Factory ROI dashboard's "Cost per commit" and "Commits" stat panels
+both depended on `claude_code_commit_count_total` — a Prometheus counter
+that's listed in Claude Code's OTel metric reference but **never
+actually emitted by the SDK in our sessions**. Across the full 30-day
+Prometheus retention, the series was empty. The panels silently read
+"N/A" and "0" from v0.74.0 through v0.76.1 even while sessions were
+actively committing. Our test only verified the panels *existed*, not
+that their metrics resolved.
+
+### Fixed
+
+- **`hooks/capture-commit-activity.sh`** — new `PostToolUse` Bash hook,
+  modeled on `capture-pr-activity.sh`. Matches `git commit` invocations
+  (with word-boundary anchoring so `git commit-tree`, echoed text, and
+  aliases don't spuriously trigger) and emits a structured
+  `commit.made` event on success:
+  - `commit_sha` — parsed from the `[<branch> <sha>]` preamble git
+    prints on successful commits.
+  - `branch` — first token of the same preamble; supports `feature/x`,
+    `HEAD detached at <prev> <new>`, and `(root-commit)` shapes.
+  - `message_subject` — first-line text after the preamble.
+  - `amended="true"` — flagged when `--amend` was in the command, so
+    downstream panels can exclude amends if desired.
+
+  Failed commits are no-ops (pre-commit hook rejections shouldn't
+  count against cost-per-commit). `git commit --dry-run` is a no-op.
+  Absent/malformed `[<branch> <sha>]` preambles are no-ops. 21 bats
+  tests cover structural, positive, filter-tightness, malformed-stdout,
+  and graceful-degradation paths.
+
+- **`grafana-dashboards/factory-roi.json` — Commits panel (id=3)** —
+  datasource switched from Prometheus to Loki, query switched to
+  `sum(count_over_time({service_name="vsdd-factory",event_type="commit.made"}[$__range]))`.
+  Now reports the count that actually happened in the range.
+
+- **`grafana-dashboards/factory-roi.json` — Cost per commit panel
+  (id=6)** — rebuilt using the same cross-datasource pattern we
+  proved out in v0.76.0:
+  - refA = `sum(increase(claude_code_cost_usage_USD_total[$__range]))`
+    (Prometheus instant).
+  - refB = `sum(count_over_time({service_name="vsdd-factory",event_type="commit.made"}[$__range]))`
+    (Loki instant).
+  - refC = `__expr__` math with `expression: "$A / $B"`.
+  - `filterByRefId` transform keeps only C for display.
+
+  Verified end-to-end via the renderer sidecar: rendered **$0.3263**
+  over a 24h window against live data. First time this panel has
+  computed a real number since v0.74.0 shipped.
+
+### Added
+
+- **`grafana-dashboards/factory-roi.json` — Cost per active hour
+  panel (id=12)** — new Prom-native stat, independent of git
+  workflow:
+  `cost / (active_time / 3600)`. Uses
+  `claude_code_active_time_seconds_total`, which Claude's SDK DOES
+  emit reliably. The panel description flags an important subtlety:
+  `active_time` measures **sustained compute time** (streaming-response
+  and tool-execution windows), not wall-clock session engagement. A
+  typical session accumulates seconds-to-minutes of "active time", so
+  the headline number represents the **sustained-compute hourly rate**,
+  not an actual hourly spend. Useful as a stable rate signal,
+  complementing cost-per-output-unit (PR / commit / story) panels.
+
+### Notes
+
+- Layout shift on Factory ROI: the new Cost-per-active-hour row pushes
+  the `Cost over time` / `Output over time` timeseries from y=8 to
+  y=12, and the `Cost by query source` / `Subagent dispatch efficiency`
+  row from y=16 to y=20. No panels deleted.
+
+- Total bats tests: **1153** (up from 1129 at v0.76.1 — 21 new for
+  the commit hook, 3 new for the ROI panel shapes, 1 adjusted for the
+  rebuilt Cost per commit).
+
 ## 0.76.1 — CI test-infra fix for Release workflow
 
 Tiny release that unblocks the `Release` GitHub Actions workflow. No
