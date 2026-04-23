@@ -1,0 +1,276 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "title": "PR workflows dispatched",
+      "description": "Count of agent.start events where the subagent is vsdd-factory:pr-manager. Each dispatch represents one attempt to process a PR through the 10-step PR workflow.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent = \"vsdd-factory:pr-manager\" [$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "PR workflows blocked / incomplete",
+      "description": "Count of pr-manager-completion-guard block events. Fires when a pr-manager subagent stopped before completing all 10 steps of the PR workflow (e.g., crashed at step 7, or ran out of context before step 10).",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",hook=\"pr-manager-completion-guard\",event_type=\"hook.block\"} [$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "PRs merged",
+      "description": "Count of update-wave-state-on-merge hook.action events. Fires when the pr-manager workflow successfully completes a merge and the factory updates its wave state. This is the authoritative 'PR landed' signal today.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",hook=\"update-wave-state-on-merge\"} [$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Completion ratio",
+      "description": "Approximation: 1 - (blocked / dispatched). Not exact — a single dispatch can trigger multiple block events, and crashed dispatches without a block are counted as successful. Use alongside the absolute counts, not instead of them.",
+      "type": "gauge",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "green", "value": 0.9 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "clamp_min(1 - (sum(count_over_time({service_name=\"vsdd-factory\",hook=\"pr-manager-completion-guard\",event_type=\"hook.block\"} [$__range])) / clamp_min(sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent = \"vsdd-factory:pr-manager\" [$__range])), 1)), 0)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "PR workflow activity timeline",
+      "description": "Rate of pr-manager subagent dispatches over time. Each bar is a timebucket; height is the dispatch count in that bucket. Useful for spotting PR bursts vs. quiet periods.",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "lineWidth": 1,
+            "pointSize": 3
+          },
+          "displayName": "PR workflow dispatches"
+        }
+      },
+      "options": {
+        "legend": {
+          "calcs": ["sum"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent = \"vsdd-factory:pr-manager\" [$__interval]))"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Where PR workflows stall",
+      "description": "For each blocked/incomplete workflow, which step number did the pr-manager reach before stopping? Reveals systematic failure modes — e.g., if most blocks show last_step=7, step 7 is where the workflow is fragile. 10 steps total; 10 = completed.",
+      "type": "bargauge",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "displayName": "stopped at step ${__field.labels.attributes_last_step}"
+        }
+      },
+      "options": {
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (attributes_last_step) (count_over_time({service_name=\"vsdd-factory\",hook=\"pr-manager-completion-guard\"} | json | attributes_last_step != \"\" [$__range])))",
+          "legendFormat": "step {{attributes_last_step}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Recent PR workflow events",
+      "description": "Raw log feed filtered to pr-manager dispatches, completion-guard blocks, and merge actions. Useful for root-cause investigation when a PR workflow behaves unexpectedly.",
+      "type": "logs",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 12 },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"vsdd-factory\"} |~ \"pr-manager|update-wave-state-on-merge\"",
+          "maxLines": 100
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["vsdd-factory", "prs", "observability"],
+  "templating": { "list": [] },
+  "time": { "from": "now/d", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Factory PRs",
+  "uid": "factory-prs",
+  "version": 1,
+  "weekStart": ""
+}

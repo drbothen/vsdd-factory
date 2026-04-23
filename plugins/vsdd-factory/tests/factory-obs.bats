@@ -267,3 +267,41 @@ setup() {
     "$OBS_DIR/grafana-dashboards/factory-today.json")
   [ "$non_loki" -eq 0 ]
 }
+
+# ---------- Factory PRs dashboard (v0.72.3) ----------
+
+@test "dashboard: factory-prs.json parses" {
+  python3 -c "import json; json.load(open('$OBS_DIR/grafana-dashboards/factory-prs.json'))"
+}
+
+@test "dashboard: factory-prs has stable UID" {
+  [ "$(jq -r .uid "$OBS_DIR/grafana-dashboards/factory-prs.json")" = "factory-prs" ]
+}
+
+@test "dashboard: factory-prs has at least 5 panels" {
+  local n
+  n=$(jq '.panels | length' "$OBS_DIR/grafana-dashboards/factory-prs.json")
+  [ "$n" -ge 5 ]
+}
+
+@test "dashboard: factory-prs all panels reference loki datasource" {
+  local non_loki
+  non_loki=$(jq '[.panels[] | select(.datasource.uid != "loki" and (.datasource.type // "") != "grafana")] | length' \
+    "$OBS_DIR/grafana-dashboards/factory-prs.json")
+  [ "$non_loki" -eq 0 ]
+}
+
+@test "dashboard: factory-prs queries pr-manager-completion-guard" {
+  grep -q "pr-manager-completion-guard" "$OBS_DIR/grafana-dashboards/factory-prs.json"
+}
+
+@test "dashboard: factory-prs queries update-wave-state-on-merge" {
+  grep -q "update-wave-state-on-merge" "$OBS_DIR/grafana-dashboards/factory-prs.json"
+}
+
+@test "dashboard: factory-today cross-references PRs merged" {
+  # PRs merged stat must be present on Factory Today so users see the
+  # top-line number without jumping between dashboards.
+  jq -e '.panels[] | select(.title == "PRs merged")' \
+    "$OBS_DIR/grafana-dashboards/factory-today.json" >/dev/null
+}

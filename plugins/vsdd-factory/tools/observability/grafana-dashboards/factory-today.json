@@ -25,7 +25,7 @@
       "description": "Every event from the factory — hook events (vsdd-factory) plus Claude OTel logs (claude-code) — since the selected time range start.",
       "type": "stat",
       "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "gridPos": { "h": 4, "w": 5, "x": 0, "y": 0 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -62,7 +62,7 @@
       "description": "Hard blocks raised by factory guard hooks — destructive-command-guard, protect-secrets, block-ai-attribution, etc. Routine volume during AI-assisted commits.",
       "type": "stat",
       "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "gridPos": { "h": 4, "w": 5, "x": 5, "y": 0 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -101,7 +101,7 @@
       "description": "Claude OTel tool_result events — every Bash, Edit, Read, etc. tool invocation.",
       "type": "stat",
       "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "gridPos": { "h": 4, "w": 5, "x": 10, "y": 0 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -138,7 +138,7 @@
       "description": "Distinct Claude Code sessions observed in the selected range. Useful for spotting long-running sessions vs. many short ones.",
       "type": "stat",
       "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "gridPos": { "h": 4, "w": 5, "x": 15, "y": 0 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -166,6 +166,43 @@
         {
           "refId": "A",
           "expr": "count(count by (attributes_session_id) (count_over_time({service_name=\"claude-code\"} | json | attributes_session_id != \"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "PRs merged",
+      "description": "Count of update-wave-state-on-merge hook.action events — the authoritative 'PR landed' signal today. Drill into the Factory PRs dashboard for workflow dispatch counts, completion ratio, and stall-step distribution.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",hook=\"update-wave-state-on-merge\"} [$__range]))"
         }
       ]
     },
