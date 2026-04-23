@@ -1,5 +1,71 @@
 # Changelog
 
+## 0.64.0 — Observability Phase 3: factory-query + factory-report CLIs
+
+First shipped tooling on top of the event log. Two new binaries query
+and summarize the structured events accumulated by instrumented hooks.
+
+### Added
+
+- **`bin/factory-query`** — canned queries against the event log. Six
+  subcommands:
+  - `top [--days N] [--limit N] [--tsv]` — top block reasons and hooks.
+  - `recent [--limit N] [--severity warn|block|any] [--type T] [--tsv]`
+    — latest events with optional filters. Action events display as
+    `severity=action` to distinguish from block/warn.
+  - `grep <reason_code>` — emit matching events as JSONL.
+  - `hooks [--days N] [--tsv]` — block counts per hook.
+  - `stats [--days N]` — aggregate: total / blocks (hard/warn) / actions /
+    unique reasons / unique hooks / log file count / first & last dates.
+  - `reasons [--days N] [--tsv]` — every unique (type, severity, hook,
+    reason) combination with counts.
+
+  All subcommands default to human-readable aligned tables; `--tsv`
+  produces pipe-friendly output. `--days N` filters by log file date
+  stamp (portable — avoids `date -d` / `date -v` syntax differences).
+
+- **`bin/factory-report`** — markdown summaries. Three subcommands:
+  - `daily [--date YYYY-MM-DD]` — single-day summary (default: today).
+  - `weekly [--end YYYY-MM-DD]` — trailing 7-day summary ending at today
+    (or explicit end date).
+  - `range --from YYYY-MM-DD --to YYYY-MM-DD` — arbitrary date range.
+
+  Each report contains: summary totals, top block reasons table, hook
+  activity table, wave merges table (if any `wave_merge_recorded` events
+  in range), and session-end gate warnings table (if any). Output is
+  clean markdown — paste directly into PRs or Slack, or pipe through
+  `glow`/`mdcat` for rendered terminal output.
+
+### Added (tests)
+
+- **`tests/factory-query.bats`** (new) — 21 tests. Covers all
+  subcommands, flag combinations, empty log dir, missing log dir,
+  date filtering, TSV format, and action-type severity labeling.
+- **`tests/factory-report.bats`** (new) — 17 tests. Covers daily /
+  weekly / range variants, markdown structure, all section types,
+  empty states, and argument validation.
+- 958 tests across 30 suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — new "Querying logs" section with
+  examples for both CLIs; roadmap marks Phase 3 shipped.
+
+### Notes
+
+- Both CLIs are read-only. They never write to the log or to `.factory/`.
+- Both gracefully handle missing log dir, no events, and unparseable
+  events (jq silently skips malformed lines).
+- No new external dependencies beyond `jq` (already required by hooks).
+
+### What's next
+
+- **Phase 4** — `/factory-health` slash command: live pipeline dashboard
+  from `STATE.md` + `wave-state.yaml` + recent events.
+- **Phase 5** — Opt-in Docker observability stack (Grafana LGTM
+  single-container) with preconfigured dashboards.
+- **Phase 6** — Session replay, agent SLO tracking, pipeline flame graphs.
+
 ## 0.63.0 — Observability Phase 2e: instrument SubagentStop + Stop hooks (Phase 2 COMPLETE)
 
 **Phase 2 of the observability plan is complete.** Every hook decision
