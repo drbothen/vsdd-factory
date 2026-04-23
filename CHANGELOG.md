@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.72.4 — Stat panels show "0" instead of "No data" for zero counts
+
+User-reported: the "PRs merged" stat on Factory Today rendered
+"No data" even when the answer was unambiguously "zero PRs merged
+today." Grafana treats a Loki `count_over_time` that returns no
+matching streams as null, and null → "No data" by default. But a
+zero-count is a meaningful observation, not missing data — the
+display should say "0."
+
+### Fixed
+
+- All stat panels across `factory-overview.json`,
+  `factory-today.json`, `factory-prs.json`, and `claude-overview.json`
+  now set `fieldConfig.defaults.noValue: "0"`. Zero-result queries
+  render as "0" instead of "No data", making the semantic
+  distinction honest: "we know the count is zero" vs. "the query
+  errored / no data exists."
+
+Doesn't affect gauge, bargauge, or logs panels — only stat panels,
+which have a binary "show a number" mode where zero-vs-null
+ambiguity matters.
+
+### Migration
+
+Restart Grafana or `factory-obs down && up` to pick up the dashboard
+changes. No query or data-model changes.
+
 ## 0.72.3 — Factory PRs dashboard + Factory Today cross-reference
 
 Dedicated dashboard for PR workflow signals, built on the events we
