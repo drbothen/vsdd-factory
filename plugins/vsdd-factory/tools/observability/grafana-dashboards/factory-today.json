@@ -29,6 +29,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -66,6 +67,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -105,6 +107,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -142,6 +145,7 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -172,13 +176,14 @@
     {
       "id": 10,
       "title": "PRs merged",
-      "description": "Count of update-wave-state-on-merge hook.action events — the authoritative 'PR landed' signal today. Drill into the Factory PRs dashboard for workflow dispatch counts, completion ratio, and stall-step distribution.",
+      "description": "Count of update-wave-state-on-merge hook.action events — the authoritative 'PR landed' signal today. Drill into the Factory PRs dashboard for workflow dispatch counts, completion ratio, and stall-step distribution. `noValue: 0` here because a zero-merge day is a meaningful observation, not missing data.",
       "type": "stat",
       "datasource": { "type": "loki", "uid": "loki" },
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
