@@ -54,6 +54,10 @@ echo "== Destructive command guard tests =="
 bats tests/destructive-guard.bats
 
 echo
+echo "== Protect secrets hook tests =="
+bats tests/protect-secrets.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 
