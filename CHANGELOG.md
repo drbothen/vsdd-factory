@@ -1,5 +1,61 @@
 # Changelog
 
+## 0.57.0 — Observability Phase 2a: instrument PreToolUse Bash guards
+
+First use of the `emit-event` helper shipped in 0.56.0. Four PreToolUse
+Bash guards now emit a structured `hook.block` event at every decision
+point, tagged with a stable `reason` code for aggregation and dashboards.
+
+### Changed
+
+- **`destructive-command-guard.sh`** — all 27 `block()` call sites now
+  carry a reason code; `block()` emits a `hook.block` event before exiting.
+  Reason codes: `catastrophic_root`, `protected_path_delete`, `sot_delete`,
+  `sot_clobber_redirect`, `sot_truncate_colon`, `sot_truncate_cmd`,
+  `sot_clobber_cpnull`, `find_delete_protected`, `git_reset_hard`,
+  `git_clean_force`, `git_checkout_dot`, `git_restore_dot`,
+  `git_stash_discard`, `git_branch_d_protected`, `git_filter_history`,
+  `git_reflog_expire`, `git_gc_prune_now`, `git_worktree_force`,
+  `git_no_verify`, `git_no_gpg_sign`, `git_rm_protected`,
+  `gh_repo_delete`, `gh_release_delete`, `gh_pr_close`, `gh_issue_delete`,
+  `rce_pipe_to_shell`, `recursive_permission_change`.
+- **`protect-secrets.sh`** — 6 reason codes: `env_file_read_direct`
+  (Read tool), `env_file_read_shell` (cat/less/grep/etc. on .env),
+  `env_file_copy` (cp/mv of real .env source), `env_file_archive`
+  (tar/zip of .env), `secret_var_echo`, `secret_var_grep`.
+- **`verify-git-push.sh`** — refactored inline `echo; exit 2` sites into a
+  shared `block()` function; 2 reason codes: `git_push_force`,
+  `git_push_protected`.
+- **`block-ai-attribution.sh`** — same refactor; 2 codes:
+  `ai_attribution_coauthored`, `ai_attribution_generated`.
+
+Every event carries `type=hook.block`, `hook=<name>`, `matcher=<Bash|Read>`,
+`reason=<code>`, `command=<original>`, plus the auto-injected `ts` and
+`schema_version` from `bin/emit-event`.
+
+### Safety guarantees (preserved from 0.56.0)
+
+- Each hook still blocks identically when `emit-event` is missing, broken,
+  or disabled. The emission is always `2>/dev/null || true`.
+- `VSDD_TELEMETRY=off` short-circuits emission at line 1 of `emit-event`.
+- Missing `CLAUDE_PLUGIN_ROOT` → silent no-op, hook still blocks.
+
+### Added (tests)
+
+- 8 new emission tests in `tests/destructive-guard.bats` (105 total),
+  including three "hook still blocks when emit-event is broken" regressions.
+- 7 new emission tests in `tests/protect-secrets.bats` (62 total).
+- 842 tests across 22 suites, 0 failures.
+
+### Not yet instrumented (coming in later sub-phases)
+
+- `check-factory-commit.sh` — advisory-only, emits `additionalContext`
+  hints but never blocks. Will get a `hook.advice` event type in a later pass.
+- Phase 2b: PreToolUse Edit|Write guards (5 hooks).
+- Phase 2c: PreToolUse Agent guards (2 hooks).
+- Phase 2d: PostToolUse validators (21 hooks).
+- Phase 2e: SubagentStop + Stop hooks (6 hooks).
+
 ## 0.56.0 — Observability Phase 1: emit-event safety scaffold
 
 First increment of the local-first observability plan. Ships the foundation
