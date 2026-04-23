@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.68.1 — Observability stack: first-run fixes + /factory-obs skill
+
+Two shippable fixes found while smoke-testing `factory-obs up` on a clean
+machine, plus a convenience skill so the stack can be driven from a slash
+command.
+
+### Fixed
+
+- **`tools/observability/docker-compose.yml`** — the otel-collector crashed
+  with `permission denied` on `/var/lib/otelcol/receiver_filelog_` on first
+  run. The `otel/opentelemetry-collector-contrib:0.94.0` image runs as UID
+  10001, but Docker creates the `collector-state` named volume root-owned,
+  so the collector couldn't persist its filelog offsets and entered a
+  crash loop. Added `user: "0:0"` to the otel-collector service. This is a
+  local-only dev stack and the volume is isolated from the host, so it
+  doesn't grant host privileges.
+
+- **`tools/observability/otel-collector-config.yaml`** — the `move`
+  operators for `attributes.hook` and `attributes.reason` threw
+  `field does not exist` errors on events that don't carry those fields
+  (`agent.start`, `agent.stop`). Added `if: 'attributes.X != nil'` guards
+  matching the pattern already used for `severity`. Errors are gone from
+  collector logs; hook.block / hook.action events continue to promote
+  `hook` and `reason` to resource attributes as before.
+
+### Added
+
+- **`skills/factory-obs/SKILL.md`** + **`commands/factory-obs.md`** — new
+  `/vsdd-factory:factory-obs` slash command. Accepts the same subcommand
+  surface as the binary (`up` / `down` / `reset` / `status` / `logs` /
+  `dashboard` / `help`) and defaults to `up` when called with no args.
+  `disable-model-invocation: true` — only fires on explicit user request,
+  matching the `factory-dashboard` pattern for infrastructure commands
+  that side-effect Docker.
+
+### Migration
+
+No breaking changes. Users who already have the stack running with the
+old compose should run `factory-obs reset && factory-obs up` to recreate
+the collector-state volume with the new `user:` directive. The reset
+loses the collector's filelog read-offsets, so events already in the
+`.factory/logs/events-*.jsonl` files will be re-ingested (duplicates in
+Loki for the short pre-reset window). Fresh installs are unaffected.
+
 ## 0.68.0 — Observability Phase 6.2: agent SLO tracking + factory-sla
 
 Derives per-invocation subagent durations by pairing new `agent.start` and
