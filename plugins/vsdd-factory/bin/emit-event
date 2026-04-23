@@ -91,6 +91,19 @@ TS=$(date +%Y-%m-%dT%H:%M:%S%z 2>/dev/null) || exit 0
 jq_args+=(--arg _ts "$TS")
 filter="${filter} | .ts = \$_ts | .schema_version = 1"
 
+# --- Auto-inject session_id from env if caller didn't provide one ----------
+# Priority order: caller-provided key (already in filter) > VSDD_SESSION_ID
+# (test override) > CLAUDE_SESSION_ID (set by Claude Code). Silent no-op if
+# none are set. If caller explicitly passed session_id=, we don't override.
+# Filter uses the ["key"]= form (see key-iteration loop above).
+if [[ "$filter" != *'["session_id"]'* ]]; then
+  SID="${VSDD_SESSION_ID:-${CLAUDE_SESSION_ID:-}}"
+  if [ -n "$SID" ]; then
+    jq_args+=(--arg _sid "$SID")
+    filter="${filter} | .session_id = \$_sid"
+  fi
+fi
+
 # --- Emit ------------------------------------------------------------------
 EVENT=$(jq -cn "${jq_args[@]}" "$filter" 2>/dev/null)
 if [ -z "$EVENT" ]; then

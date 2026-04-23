@@ -306,3 +306,50 @@ _logfile() {
   # Should still have type field, but no field from the sanitized-to-empty key
   [ "$(jq -r '.type' < "$f")" = "test" ]
 }
+
+# ---------- Session ID auto-injection (v0.67+) ----------
+
+@test "emit-event: VSDD_SESSION_ID auto-injects session_id field" {
+  VSDD_SESSION_ID="sess-test-xyz" run "$HELPER" type=test
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  [ "$(jq -r '.session_id' < "$f")" = "sess-test-xyz" ]
+}
+
+@test "emit-event: CLAUDE_SESSION_ID is also recognized" {
+  unset VSDD_SESSION_ID || true
+  CLAUDE_SESSION_ID="claude-sess-abc" run "$HELPER" type=test
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  [ "$(jq -r '.session_id' < "$f")" = "claude-sess-abc" ]
+}
+
+@test "emit-event: VSDD_SESSION_ID wins over CLAUDE_SESSION_ID" {
+  VSDD_SESSION_ID=override CLAUDE_SESSION_ID=claude run "$HELPER" type=test
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  [ "$(jq -r '.session_id' < "$f")" = "override" ]
+}
+
+@test "emit-event: caller-provided session_id beats env vars" {
+  VSDD_SESSION_ID=env-value run "$HELPER" type=test session_id=caller-value
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  [ "$(jq -r '.session_id' < "$f")" = "caller-value" ]
+}
+
+@test "emit-event: no session_id when neither env nor caller provides one" {
+  unset VSDD_SESSION_ID CLAUDE_SESSION_ID || true
+  run "$HELPER" type=test
+  [ "$status" -eq 0 ]
+  local f
+  f=$(_logfile)
+  # When neither set, session_id should be absent (null via jq)
+  local sid
+  sid=$(jq -r '.session_id // "ABSENT"' < "$f")
+  [ "$sid" = "ABSENT" ]
+}

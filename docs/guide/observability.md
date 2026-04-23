@@ -92,6 +92,7 @@ Guaranteed fields:
 | Field | Type | Notes |
 |-------|------|-------|
 | `type` | string | Event category. `hook.block` (the default — a hook caught something, whether exit-2 hard block or exit-0/1 severity=warn advisory) or `hook.action` (a state-change signal, like a wave merge being recorded — not an anomaly). Future: `hook.error`, `phase.start`/`end`, `subagent.start`/`end`. |
+| `session_id` | string (optional) | Auto-injected by `emit-event` from `$VSDD_SESSION_ID` or `$CLAUDE_SESSION_ID` when present (v0.67+). Groups events emitted within one Claude Code session. Callers can override via explicit `session_id=` arg. Absent when neither env var is set — events will group under `(no-session)` in replay. |
 | `schema_version` | integer | Currently `1`. Incremented on breaking schema changes. |
 | `ts` | string | ISO-8601 local timestamp with timezone offset. POSIX-portable format. |
 | `hook` | string | Filename stem of the emitting hook (e.g. `destructive-command-guard`). |
@@ -195,6 +196,28 @@ the `.factory/` worktree structure (branch, mount, orphan status, etc.).
 The two skills are complementary: `factory-health` answers "is the
 worktree set up correctly?" while `factory-dashboard` answers "what's the
 pipeline doing right now?".
+
+### `bin/factory-replay` — session replay
+
+Shipped in [v0.67.0](../../CHANGELOG.md). Groups events by `session_id`
+and renders a chronological playback of what fired during that session.
+
+```bash
+# List sessions, most recent first
+factory-replay sessions --days 7
+
+# Replay a specific session
+factory-replay show sess-abc-123
+
+# Replay the most recent session
+factory-replay latest
+```
+
+Events emitted before v0.67 (without `session_id`) group under
+`(no-session)` — still queryable, just not per-session.
+
+This is the foundation for Phase 6 capabilities (agent SLO tracking,
+pipeline flame graphs) that need session-scoped event grouping.
 
 ### `bin/factory-obs` + Docker stack — Grafana dashboards
 
@@ -528,4 +551,7 @@ happy path — impact on normal sessions is zero.
 | 3 | `bin/factory-query` canned queries + `bin/factory-report` | Shipped in [v0.64.0](../../CHANGELOG.md) |
 | 4 | `/factory-dashboard` slash command | Shipped in [v0.65.0](../../CHANGELOG.md) |
 | 5 | Local Docker observability stack (OTel Collector + Loki + Grafana) | Shipped in [v0.66.0](../../CHANGELOG.md) |
+| 6.1 | Session ID injection + `factory-replay` | Shipped in [v0.67.0](../../CHANGELOG.md) |
+| 6.2 | Agent SLO tracking (duration per subagent) | Planned |
+| 6.3 | Pipeline flame graphs (Tempo integration) | Planned |
 | 6 | Session replay, agent SLO tracking, pipeline flame graphs | Planned |

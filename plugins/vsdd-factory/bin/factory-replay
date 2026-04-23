@@ -1,0 +1,243 @@
+#!/bin/bash
+# factory-replay — reconstruct a session's hook activity from the event log.
+#
+# Groups events by session_id (auto-injected by emit-event v0.67+ from
+# $CLAUDE_SESSION_ID) and renders a chronological playback of what happened.
+#
+# Events emitted before v0.67 lack session_id and are grouped under
+# `(no-session)`.
+#
+# Subcommands:
+#   sessions [--days N]    — list sessions with event count + time range
+#   show <session_id>       — chronological replay of one session
+#   latest                  — replay the most recent session
+#   help
+#
+# Reads events from $VSDD_LOG_DIR (default .factory/logs/). Requires jq.
+
+set -u
+
+usage() {
+  cat <<'EOF'
+Usage:
+  factory-replay sessions [--days N] [--limit N] [--tsv]
+  factory-replay show <session_id> [--limit N]
+  factory-replay latest [--limit N]
+  factory-replay help
+
+Env:
+  VSDD_LOG_DIR  (default: .factory/logs)
+
+Examples:
+  factory-replay sessions --days 7
+  factory-replay latest
+  factory-replay show sess-abc-123
+EOF
+}
+
+LOG_DIR="${VSDD_LOG_DIR:-.factory/logs}"
+
+_date_n_days_ago() {
+  local n="$1"
+  if date -v-1d +%Y-%m-%d >/dev/null 2>&1; then
+    date -v-"${n}"d +%Y-%m-%d
+  else
+    date -d "${n} days ago" +%Y-%m-%d
+  fi
+}
+
+_collect_logs() {
+  # Sets LOG_FILES. Optional $1 = days to filter.
+  local days="${1:-}"
+  LOG_FILES=()
+  if [ ! -d "$LOG_DIR" ]; then return 0; fi
+  local cutoff=""
+  if [ -n "$days" ] && [ "$days" -gt 0 ] 2>/dev/null; then
+    cutoff=$(_date_n_days_ago "$days")
+  fi
+  for f in "$LOG_DIR"/events-*.jsonl; do
+    [ -e "$f" ] || continue
+    if [ -n "$cutoff" ]; then
+      local fname fdate
+      fname=$(basename "$f")
+      fdate="${fname#events-}"
+      fdate="${fdate%.jsonl}"
+      if [[ "$fdate" < "$cutoff" ]]; then continue; fi
+    fi
+    LOG_FILES+=("$f")
+  done
+}
+
+_stream() {
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then return 0; fi
+  cat "${LOG_FILES[@]}"
+}
+
+# --- sessions ---
+cmd_sessions() {
+  local days="" limit=50 tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --days) days="$2"; shift 2 ;;
+      --limit) limit="$2"; shift 2 ;;
+      --tsv) tsv=1; shift ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs "$days"
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR${days:+ (last $days days)}"
+    return 0
+  fi
+
+  # For each session (including "(no-session)" for missing), emit:
+  #   session_id \t count \t first_ts \t last_ts
+  # Then sort by last_ts descending.
+  local out
+  out=$(_stream \
+    | jq -r '[.session_id // "(no-session)", .ts] | @tsv' 2>/dev/null \
+    | awk -F'\t' '
+        {
+          sid = $1; ts = $2
+          count[sid]++
+          if (first[sid] == "" || ts < first[sid]) first[sid] = ts
+          if (ts > last[sid])  last[sid]  = ts
+        }
+        END {
+          for (sid in count) {
+            printf "%s\t%d\t%s\t%s\n", sid, count[sid], first[sid], last[sid]
+          }
+        }' \
+    | sort -t$'\t' -k4,4 -r \
+    | head -"$limit")
+
+  if [ -z "$out" ]; then
+    echo "(no sessions recorded yet — events emitted before v0.67 lack session_id)"
+    return 0
+  fi
+
+  if [ "$tsv" -eq 1 ]; then
+    echo "$out"
+  else
+    { printf 'Session\tEvents\tFirst\tLast\n'; printf '%s\n' "$out"; } | column -t -s $'\t'
+  fi
+}
+
+# --- show ---
+cmd_show() {
+  local sid="" limit=200
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --limit) limit="$2"; shift 2 ;;
+      --*) echo "unknown flag: $1" >&2; return 1 ;;
+      *) sid="$1"; shift ;;
+    esac
+  done
+  if [ -z "$sid" ]; then
+    echo "usage: factory-replay show <session_id>" >&2
+    return 1
+  fi
+  _collect_logs ""
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR"
+    return 0
+  fi
+
+  # Special-case "(no-session)" to mean events without session_id; otherwise
+  # filter to the specific sid. Inside single quotes, `$sid` is a jq variable
+  # reference bound below via --arg, not a bash expansion — that's exactly
+  # why we use single quotes here.
+  local match_filter
+  if [ "$sid" = "(no-session)" ]; then
+    match_filter='select(.session_id == null or .session_id == "")'
+  else
+    # shellcheck disable=SC2016
+    match_filter='select(.session_id == $sid)'
+  fi
+
+  local count
+  count=$(_stream | jq -r --arg sid "$sid" "$match_filter | .ts" 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$count" -eq 0 ]; then
+    echo "(no events with session_id=$sid)"
+    return 0
+  fi
+
+  echo "# Replay: session $sid"
+  echo ""
+  echo "_$count event(s)_"
+  echo ""
+
+  # Render events chronologically as a markdown-ish timeline.
+  _stream | jq -r --arg sid "$sid" "
+    $match_filter
+    | [
+        .ts,
+        .type,
+        (if .type == \"hook.action\" then \"action\" else (.severity // \"block\") end),
+        (.hook // \"-\"),
+        (.reason // \"-\"),
+        (.command // .file_path // .story_id // \"\"
+          | if (type == \"string\" and length > 80) then .[0:77] + \"...\" else . end)
+      ]
+    | @tsv
+  " 2>/dev/null \
+    | sort -t$'\t' -k1,1 \
+    | head -"$limit" \
+    | awk -F'\t' '
+        BEGIN { prev_ts = "" }
+        {
+          ts = $1; type = $2; sev = $3; hook = $4; reason = $5; ctx = $6
+          # Trim microseconds/tz for display
+          sub(/[+-][0-9]+$/, "", ts)
+          printf "%s  %-6s  %-32s  %-35s  %s\n", ts, sev, hook, reason, ctx
+        }'
+}
+
+# --- latest ---
+cmd_latest() {
+  local limit=200
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --limit) limit="$2"; shift 2 ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs ""
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR"
+    return 0
+  fi
+
+  local latest_sid
+  latest_sid=$(_stream \
+    | jq -r 'select(.session_id != null and .session_id != "") | [.session_id, .ts] | @tsv' 2>/dev/null \
+    | sort -t$'\t' -k2,2 -r \
+    | head -1 \
+    | awk -F'\t' '{print $1}')
+
+  if [ -z "$latest_sid" ]; then
+    echo "(no sessions recorded — events emitted before v0.67 lack session_id, or VSDD_SESSION_ID/CLAUDE_SESSION_ID not set)"
+    return 0
+  fi
+  cmd_show "$latest_sid" --limit "$limit"
+}
+
+# --- Dispatch ---
+if ! command -v jq >/dev/null 2>&1; then
+  echo "factory-replay: jq is required" >&2
+  exit 1
+fi
+
+if [ $# -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+sub="$1"; shift
+case "$sub" in
+  sessions) cmd_sessions "$@" ;;
+  show) cmd_show "$@" ;;
+  latest) cmd_latest "$@" ;;
+  help|--help|-h) usage ;;
+  *) echo "unknown subcommand: $sub" >&2; usage >&2; exit 1 ;;
+esac

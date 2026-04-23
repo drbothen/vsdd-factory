@@ -102,6 +102,10 @@ echo "== factory-obs + observability stack tests =="
 bats tests/factory-obs.bats
 
 echo
+echo "== factory-replay (session replay) tests =="
+bats tests/factory-replay.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 
