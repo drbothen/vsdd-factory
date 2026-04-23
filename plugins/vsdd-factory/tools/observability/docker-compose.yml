@@ -1,9 +1,12 @@
 # Local observability stack for vsdd-factory
 #
 # Services:
-#   otel-collector  — tails .factory/logs/events-*.jsonl, ships to Loki
+#   otel-collector  — tails .factory/logs/events-*.jsonl, ships to Loki;
+#                     receives OTLP from Claude Code, ships metrics to
+#                     Prometheus and logs to Loki
 #   loki            — log storage
-#   grafana         — UI with preconfigured datasource + starter dashboards
+#   prometheus      — metrics storage (for cost/usage tracking)
+#   grafana         — UI with preconfigured datasources + starter dashboards
 #
 # Start with: bin/factory-obs up
 # Or directly: docker compose -f plugins/vsdd-factory/tools/observability/docker-compose.yml up -d
@@ -11,12 +14,13 @@
 # All data is local. No cloud services. Volumes persist across restarts.
 #
 # Environment overrides:
-#   VSDD_FACTORY_LOGS       — path to .factory/logs/ on the host (default:
-#                             three directories up from this file, i.e.
-#                             the project root's .factory/logs)
-#   VSDD_OBS_GRAFANA_PORT   — host port for Grafana UI (default 3000)
-#   VSDD_OBS_LOKI_PORT      — host port for Loki HTTP API (default 3100)
-#   VSDD_OBS_OTLP_HTTP_PORT — host port for OTLP HTTP receiver (default 4318)
+#   VSDD_FACTORY_LOGS          — path to .factory/logs/ on the host (default:
+#                                three directories up from this file, i.e.
+#                                the project root's .factory/logs)
+#   VSDD_OBS_GRAFANA_PORT      — host port for Grafana UI (default 3000)
+#   VSDD_OBS_LOKI_PORT         — host port for Loki HTTP API (default 3100)
+#   VSDD_OBS_OTLP_HTTP_PORT    — host port for OTLP HTTP receiver (default 4318)
+#   VSDD_OBS_PROMETHEUS_PORT   — host port for Prometheus UI/API (default 9090)
 
 services:
   loki:
@@ -55,7 +59,32 @@ services:
     depends_on:
       loki:
         condition: service_healthy
+      prometheus:
+        condition: service_healthy
     restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    container_name: vsdd-obs-prometheus
+    ports:
+      - "${VSDD_OBS_PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus-config.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      # Accept remote_write pushes from the otel-collector. Without this
+      # flag, the collector's prometheusremotewrite exporter gets a 404.
+      - --web.enable-remote-write-receiver
+      - --web.enable-lifecycle
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   grafana:
     image: grafana/grafana:10.4.2
@@ -78,9 +107,12 @@ services:
     depends_on:
       loki:
         condition: service_healthy
+      prometheus:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
   loki-data:
   grafana-data:
   collector-state:
+  prometheus-data:

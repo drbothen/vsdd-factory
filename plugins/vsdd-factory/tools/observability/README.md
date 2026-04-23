@@ -29,10 +29,12 @@ Default URLs:
 |---------|-----|-------|
 | Grafana UI | http://localhost:3000 | Anonymous admin, or admin/admin |
 | Loki API | http://localhost:3100 | Log query endpoint |
+| Prometheus | http://localhost:9090 | Metrics (Claude token usage, costs) |
 | OTLP HTTP | http://localhost:4318 | For Claude Code native OTel, if enabled |
 
 Override any of these via env vars:
 - `VSDD_OBS_GRAFANA_PORT=8080 factory-obs up`
+- `VSDD_OBS_PROMETHEUS_PORT=19090 factory-obs up`
 - `VSDD_FACTORY_LOGS=/path/to/other/.factory/logs factory-obs up`
 
 ## Architecture

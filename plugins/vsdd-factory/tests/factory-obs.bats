@@ -188,8 +188,82 @@ setup() {
   [ -f "$OBS_DIR/README.md" ]
 }
 
-@test "README: mentions all three core services" {
+@test "README: mentions all four core services" {
   grep -q 'otel-collector' "$OBS_DIR/README.md"
   grep -q 'loki' "$OBS_DIR/README.md"
+  grep -q -i 'prometheus' "$OBS_DIR/README.md"
   grep -q 'grafana' "$OBS_DIR/README.md"
+}
+
+# ---------- Prometheus (v0.72) ----------
+
+@test "compose: has prometheus service" {
+  grep -q 'prometheus:' "$OBS_DIR/docker-compose.yml"
+}
+
+@test "compose: prometheus enables remote_write receiver" {
+  grep -q -- '--web.enable-remote-write-receiver' "$OBS_DIR/docker-compose.yml"
+}
+
+@test "compose: prometheus-data volume declared" {
+  grep -q 'prometheus-data:' "$OBS_DIR/docker-compose.yml"
+}
+
+@test "compose: otel-collector depends_on prometheus" {
+  # Sanity-check the block ordering so the collector doesn't start before
+  # prometheus is healthy (otherwise remote_write fails on first push).
+  awk '/^  otel-collector:/,/^  [a-z]+:/ {print}' "$OBS_DIR/docker-compose.yml" \
+    | grep -q 'prometheus:'
+}
+
+@test "prometheus config: file exists and parses" {
+  [ -f "$OBS_DIR/prometheus-config.yaml" ]
+  yq -e . "$OBS_DIR/prometheus-config.yaml" >/dev/null
+}
+
+@test "collector config: has prometheusremotewrite exporter" {
+  grep -q 'prometheusremotewrite:' "$OBS_DIR/otel-collector-config.yaml"
+}
+
+@test "collector config: metrics pipeline uses prometheusremotewrite" {
+  awk '/metrics:/,/traces:|logs:/' "$OBS_DIR/otel-collector-config.yaml" \
+    | grep -q prometheusremotewrite
+}
+
+@test "grafana: prometheus datasource file exists and parses" {
+  local f="$OBS_DIR/grafana-provisioning/datasources/prometheus.yaml"
+  [ -f "$f" ]
+  yq -e . "$f" >/dev/null
+}
+
+@test "grafana: prometheus datasource uid is prometheus" {
+  local f="$OBS_DIR/grafana-provisioning/datasources/prometheus.yaml"
+  # Dashboards that reference datasource by uid will break if this changes.
+  [ "$(yq -r '.datasources[0].uid' "$f")" = "prometheus" ]
+}
+
+# ---------- Factory Today dashboard (v0.72) ----------
+
+@test "dashboard: factory-today.json parses" {
+  python3 -c "import json; json.load(open('$OBS_DIR/grafana-dashboards/factory-today.json'))"
+}
+
+@test "dashboard: factory-today has stable UID" {
+  [ "$(jq -r .uid "$OBS_DIR/grafana-dashboards/factory-today.json")" = "factory-today" ]
+}
+
+@test "dashboard: factory-today has at least 5 panels" {
+  local n
+  n=$(jq '.panels | length' "$OBS_DIR/grafana-dashboards/factory-today.json")
+  [ "$n" -ge 5 ]
+}
+
+@test "dashboard: factory-today all panels reference loki datasource" {
+  # All panels on the today dashboard are Loki-backed (by design — Prometheus
+  # panels live on the cost dashboard). If one ever references prometheus,
+  # revisit this test.
+  local non_loki
+  non_loki=$(jq '[.panels[] | select(.datasource.uid != "loki" and (.datasource.type // "") != "grafana")] | length' \
+    "$OBS_DIR/grafana-dashboards/factory-today.json")
+  [ "$non_loki" -eq 0 ]
 }

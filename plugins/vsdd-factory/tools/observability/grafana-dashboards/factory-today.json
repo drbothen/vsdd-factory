@@ -1,0 +1,332 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Events today (all)",
+      "description": "Every event from the factory — hook events (vsdd-factory) plus Claude OTel logs (claude-code) — since the selected time range start.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=~\"vsdd-factory|claude-code\"}[$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Hook blocks (factory)",
+      "description": "Hard blocks raised by factory guard hooks — destructive-command-guard, protect-secrets, block-ai-attribution, etc. Routine volume during AI-assisted commits.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"hook.block\"}[$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Tool calls (Claude)",
+      "description": "Claude OTel tool_result events — every Bash, Edit, Read, etc. tool invocation.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({service_name=\"claude-code\"} | json | attributes_event_name = \"tool_result\" [$__range]))"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Unique Claude sessions",
+      "description": "Distinct Claude Code sessions observed in the selected range. Useful for spotting long-running sessions vs. many short ones.",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (attributes_session_id) (count_over_time({service_name=\"claude-code\"} | json | attributes_session_id != \"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Activity timeline",
+      "description": "Events over time split by source. vsdd-factory = guard hooks firing; claude-code = Claude's own tool calls and API events. Quiet lines = idle; bursts = active development windows.",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "lineWidth": 1,
+            "pointSize": 3,
+            "spanNulls": false,
+            "stacking": { "mode": "normal", "group": "A" }
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "calcs": ["sum"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name) (count_over_time({service_name=~\"vsdd-factory|claude-code\"} [$__interval]))",
+          "legendFormat": "{{service_name}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Top hooks fired (factory)",
+      "description": "Top 10 factory hooks by fire count. Includes both hook.block and hook.action. High volume on a single hook often indicates a repeated attempted action (e.g., many block-ai-attribution fires = many AI-attributed commit attempts).",
+      "type": "bargauge",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["sum"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (hook) (count_over_time({service_name=\"vsdd-factory\"} [$__range])))",
+          "legendFormat": "{{hook}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Top tools used (Claude)",
+      "description": "Top 10 Claude tools ranked by invocation count — Bash, Edit, Read, Grep, Agent, etc.",
+      "type": "bargauge",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["sum"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (attributes_tool_name) (count_over_time({service_name=\"claude-code\"} | json | attributes_tool_name != \"\" [$__range])))",
+          "legendFormat": "{{attributes_tool_name}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Stories touched today",
+      "description": "Factory stories (e.g., S-1.12, S-6.20) that had at least one agent dispatched against them. Parsed from track-agent-start events which extract story_id from the subagent prompt.",
+      "type": "bargauge",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["sum"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(15, sum by (story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | story_id != \"\" [$__range])))",
+          "legendFormat": "{{story_id}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Recent significant events",
+      "description": "Hook blocks, hook actions, and Claude tool errors — the events most likely to need attention. Recent events at the top.",
+      "type": "logs",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"vsdd-factory\",event_type=~\"hook.block|hook.action\"}",
+          "maxLines": 100
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["vsdd-factory", "activity", "observability"],
+  "templating": { "list": [] },
+  "time": { "from": "now/d", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Factory Today — Unified Activity",
+  "uid": "factory-today",
+  "version": 1,
+  "weekStart": ""
+}

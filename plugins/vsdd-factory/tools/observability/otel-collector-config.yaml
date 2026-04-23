@@ -125,11 +125,28 @@ exporters:
       instance: true
       level: true
 
-  # Absorbs Claude's metrics and traces at basic verbosity — they show up
-  # in the collector's stdout but are not persisted. Swap for prometheus
-  # (metrics) or a tempo exporter (traces) if you need to query them.
+  # Debug is kept alongside prometheusremotewrite so collector stdout
+  # still shows what's flowing, useful for troubleshooting.
   debug:
     verbosity: basic
+
+  # Prometheus remote_write — persists Claude's metrics (token counts,
+  # tool invocation counters, session durations, cost estimates if
+  # emitted). Prometheus must be started with
+  # --web.enable-remote-write-receiver for this endpoint to exist;
+  # docker-compose.yml sets that flag on the prometheus service.
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+    # Promote resource attributes to Prometheus labels on every metric.
+    # Default behavior is false, which keeps resource attrs as target_info
+    # metadata only — ugly to query. We want service.name, session.id,
+    # etc. as actual labels.
+    resource_to_telemetry_conversion:
+      enabled: true
+    # Local dev — no TLS, no auth, localhost-only. Do NOT enable this
+    # exporter without tls/auth if you expose the stack beyond localhost.
+    tls:
+      insecure: true
 
 service:
   extensions: [file_storage]
@@ -150,12 +167,14 @@ service:
       processors: [batch, resource/claude]
       exporters: [loki]
 
-    # Metrics and traces from Claude → debug (no persistent backend yet).
-    # Pipelines must exist or the OTLP receiver rejects the signal type.
+    # Metrics from Claude → Prometheus (persistent) + debug (stdout
+    # visibility). The resource/claude processor ensures service.name is
+    # claude-code on the metrics too. Add Tempo later if you want to
+    # persist traces; for now they only show in collector stdout.
     metrics:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [debug]
+      processors: [batch, resource/claude]
+      exporters: [prometheusremotewrite, debug]
     traces:
       receivers: [otlp]
       processors: [batch]

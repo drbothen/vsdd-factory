@@ -1,0 +1,23 @@
+# Prometheus configuration for vsdd-factory local observability stack.
+#
+# Minimal config — Prometheus here is a metrics sink, not a scraper. The
+# OTel Collector pushes via remote_write, so we don't define any scrape
+# jobs. Just set a reasonable scrape_interval for Prometheus's own
+# self-scrape (default) and let everything else flow through.
+#
+# Retention is set on the command line in docker-compose.yml
+# (--storage.tsdb.retention.time=30d) rather than here.
+
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  external_labels:
+    # Lets operators distinguish which host a scrape batch came from when
+    # exporting to a federated Prometheus. Harmless for local use.
+    monitor: "vsdd-factory-local"
+
+# Self-scrape so we can see Prometheus's own health in Grafana.
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

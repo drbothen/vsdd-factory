@@ -1,0 +1,21 @@
+# Preconfigured Prometheus datasource for Grafana.
+# Auto-loaded on container start via /etc/grafana/provisioning/datasources/.
+#
+# Bundled dashboards reference this datasource by `uid: prometheus`.
+# Changing the uid will break every Prometheus-backed dashboard panel
+# with "datasource prometheus not found" (same failure mode as loki.yaml).
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: false
+    editable: true
+    jsonData:
+      # Use the Prometheus HTTP API; no fancy auth.
+      httpMethod: POST
+      timeInterval: 30s

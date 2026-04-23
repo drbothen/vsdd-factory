@@ -34,13 +34,16 @@ Usage:
   factory-obs help
 
 Env:
-  VSDD_FACTORY_LOGS        path to .factory/logs (default: ./.factory/logs)
-  VSDD_OBS_GRAFANA_PORT    Grafana host port (default 3000)
-  VSDD_OBS_LOKI_PORT       Loki host port (default 3100)
-  VSDD_OBS_OTLP_HTTP_PORT  OTLP HTTP receiver port (default 4318)
+  VSDD_FACTORY_LOGS         path to .factory/logs (default: ./.factory/logs)
+  VSDD_OBS_GRAFANA_PORT     Grafana host port (default 3000)
+  VSDD_OBS_LOKI_PORT        Loki host port (default 3100)
+  VSDD_OBS_OTLP_HTTP_PORT   OTLP HTTP receiver port (default 4318)
+  VSDD_OBS_PROMETHEUS_PORT  Prometheus host port (default 9090)
 
-Data: Grafana dashboards at http://localhost:${VSDD_OBS_GRAFANA_PORT:-3000}
-(anonymous admin access for local dev).
+Data:
+  Grafana dashboards: http://localhost:${VSDD_OBS_GRAFANA_PORT:-3000}
+  Prometheus UI:      http://localhost:${VSDD_OBS_PROMETHEUS_PORT:-9090}
+(anonymous admin access on Grafana for local dev).
 EOF
 }
 
@@ -98,8 +101,10 @@ cmd_up() {
   local rc=$?
   if [ "$rc" -ne 0 ]; then return "$rc"; fi
   echo ""
-  echo "factory-obs: up. Grafana: http://localhost:${VSDD_OBS_GRAFANA_PORT:-3000}"
-  echo "  • Dashboard: Factory Overview (auto-provisioned)"
+  echo "factory-obs: up."
+  echo "  • Grafana:    http://localhost:${VSDD_OBS_GRAFANA_PORT:-3000}"
+  echo "  • Prometheus: http://localhost:${VSDD_OBS_PROMETHEUS_PORT:-9090}"
+  echo "  • Dashboards: Factory Overview, Claude Code Overview, Factory Today (auto-provisioned)"
   echo "  • Log in as admin / admin (anonymous access also enabled)"
   echo "  • Events from $VSDD_FACTORY_LOGS will appear within ~10 seconds"
 }
