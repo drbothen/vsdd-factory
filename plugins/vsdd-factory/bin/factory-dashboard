@@ -1,0 +1,244 @@
+#!/bin/bash
+# factory-dashboard — live pipeline dashboard for the VSDD factory.
+#
+# Named to avoid collision with the pre-existing `/factory-health` skill,
+# which validates the .factory/ worktree and STATE.md structure.
+#
+# Combines three data sources into a single markdown report:
+#   1. .factory/STATE.md frontmatter (current phase, mode, step)
+#   2. .factory/wave-state.yaml (per-wave gate status + merge progress)
+#   3. Event log via factory-query (recent block/warn/action counts)
+#
+# Output is markdown, suitable for rendering via `glow` or pasting into
+# chat. Every section gracefully handles "missing" — no STATE.md,
+# no wave-state.yaml, or no event log all produce clean "not initialized"
+# notices rather than errors.
+#
+# Usage:
+#   factory-dashboard                 # default: show dashboard
+#   factory-dashboard --days N        # override event-log lookback (default 7)
+#   factory-dashboard --factory PATH  # override .factory/ location (default ./.factory)
+#
+# Portable bash. Requires jq. python3 optional (only needed for wave-state
+# parsing; gracefully degrades if missing).
+
+set -u
+
+FACTORY_DIR=".factory"
+DAYS=7
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --factory) FACTORY_DIR="$2"; shift 2 ;;
+    --days) DAYS="$2"; shift 2 ;;
+    -h|--help)
+      cat <<'EOF'
+Usage:
+  factory-dashboard [--factory PATH] [--days N]
+
+Env:
+  VSDD_LOG_DIR   override event log directory (default: <factory>/logs)
+EOF
+      exit 0
+      ;;
+    *) echo "unknown flag: $1" >&2; exit 1 ;;
+  esac
+done
+
+# Resolve helpers. CLAUDE_PLUGIN_ROOT points to plugin dir in Claude Code
+# sessions; fall back to this script's own dir for CLI use.
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
+if [ -z "$PLUGIN_ROOT" ]; then
+  PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+FACTORY_QUERY="$PLUGIN_ROOT/bin/factory-query"
+# Export CLAUDE_PLUGIN_ROOT so sub-commands (factory-query) inherit it too.
+export CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT"
+
+STATE_FILE="$FACTORY_DIR/STATE.md"
+WAVE_STATE="$FACTORY_DIR/wave-state.yaml"
+
+# Default VSDD_LOG_DIR to <factory>/logs if unset.
+if [ -z "${VSDD_LOG_DIR:-}" ]; then
+  export VSDD_LOG_DIR="$FACTORY_DIR/logs"
+fi
+
+# --- Helpers ---
+_fm() {
+  # Extract a single frontmatter field value from a file. $1=field, $2=file
+  if [ ! -f "$2" ]; then return 0; fi
+  awk -v f="$1" '
+    /^---$/{ fm++; next }
+    fm==1 && $0 ~ "^"f":" {
+      sub(/^[^:]+:[ \t]*/, "")
+      gsub(/["'"'"']/, "")
+      gsub(/^[ \t]+|[ \t]+$/, "")
+      print
+      exit
+    }
+  ' "$2"
+}
+
+_emoji() {
+  # Map a status string to an emoji-free verdict glyph.
+  case "$1" in
+    passed|green|complete|ok|healthy) echo "✓" ;;
+    failed|red|blocked) echo "✗" ;;
+    pending|in_progress|warning) echo "⚠" ;;
+    deferred|skipped|na) echo "—" ;;
+    not_started|unknown|"") echo "·" ;;
+    *) echo "?" ;;
+  esac
+}
+
+_now() { date '+%Y-%m-%d %H:%M:%S'; }
+
+# --- Render ---
+echo "# Factory dashboard"
+echo ""
+echo "_Generated at $(_now)_"
+echo ""
+
+# --- Section: Project metadata ---
+echo "## Project"
+echo ""
+if [ -f "$STATE_FILE" ]; then
+  PROJECT=$(_fm project "$STATE_FILE")
+  MODE=$(_fm mode "$STATE_FILE")
+  PHASE=$(_fm phase "$STATE_FILE")
+  STATUS=$(_fm status "$STATE_FILE")
+  CURRENT_STEP=$(_fm current_step "$STATE_FILE")
+  CURRENT_CYCLE=$(_fm current_cycle "$STATE_FILE")
+  STATE_LINES=$(wc -l < "$STATE_FILE" | tr -d ' ')
+
+  echo "| Field | Value |"
+  echo "|-------|-------|"
+  [ -n "$PROJECT" ] && echo "| project | \`$PROJECT\` |"
+  [ -n "$MODE" ] && echo "| mode | $MODE |"
+  [ -n "$PHASE" ] && echo "| phase | $PHASE |"
+  [ -n "$STATUS" ] && echo "| status | $(_emoji "$STATUS") $STATUS |"
+  [ -n "$CURRENT_STEP" ] && echo "| current_step | $CURRENT_STEP |"
+  [ -n "$CURRENT_CYCLE" ] && echo "| current_cycle | \`$CURRENT_CYCLE\` |"
+  echo "| STATE.md size | $STATE_LINES lines |"
+
+  # Size warnings
+  if [ "$STATE_LINES" -gt 500 ] 2>/dev/null; then
+    echo ""
+    echo "> ⚠ STATE.md exceeds 500 lines. Run \`/vsdd-factory:compact-state\`."
+  elif [ "$STATE_LINES" -gt 200 ] 2>/dev/null; then
+    echo ""
+    echo "> ℹ STATE.md over 200 lines. Consider compacting soon."
+  fi
+else
+  echo "_No \`$STATE_FILE\` — factory not initialized for this project._"
+fi
+echo ""
+
+# --- Section: Waves ---
+echo "## Waves"
+echo ""
+if [ ! -f "$WAVE_STATE" ]; then
+  echo "_No \`$WAVE_STATE\` — no wave-based workflow in this project._"
+elif ! command -v python3 >/dev/null 2>&1; then
+  echo "_python3 unavailable; cannot parse wave-state.yaml._"
+else
+  WAVE_OUT=$(python3 - "$WAVE_STATE" <<'PY'
+import sys, yaml
+try:
+    with open(sys.argv[1]) as f:
+        state = yaml.safe_load(f) or {}
+except Exception as e:
+    print(f"ERROR:{e}")
+    sys.exit(0)
+waves = state.get("waves") or {}
+if not waves:
+    sys.exit(0)
+next_gate = state.get("next_gate_required", "")
+for name, data in waves.items():
+    stories = data.get("stories") or []
+    merged = data.get("stories_merged") or []
+    status = data.get("gate_status") or "not_started"
+    is_next = name == next_gate
+    print(f"{name}\t{status}\t{len(merged)}\t{len(stories)}\t{'yes' if is_next else ''}")
+PY
+)
+  if [ -z "$WAVE_OUT" ]; then
+    echo "_No waves declared in wave-state.yaml._"
+  elif [[ "$WAVE_OUT" == ERROR:* ]]; then
+    echo "_Could not parse wave-state.yaml: ${WAVE_OUT#ERROR:}_"
+  else
+    echo "| Wave | Gate | Merged | Total | Next gate |"
+    echo "|------|------|-------:|------:|-----------|"
+    while IFS=$'\t' read -r name status merged total is_next; do
+      local_glyph=$(_emoji "$status")
+      echo "| \`$name\` | $local_glyph $status | $merged | $total | ${is_next:--} |"
+    done <<< "$WAVE_OUT"
+  fi
+fi
+echo ""
+
+# --- Section: Recent activity (from event log) ---
+echo "## Recent activity (last $DAYS days)"
+echo ""
+if [ ! -d "$VSDD_LOG_DIR" ]; then
+  echo "_No event log at \`$VSDD_LOG_DIR\` — instrumentation disabled or no events yet._"
+elif [ -z "$(ls "$VSDD_LOG_DIR"/events-*.jsonl 2>/dev/null)" ]; then
+  echo "_No events yet in \`$VSDD_LOG_DIR\`. Hook-fired activity will accumulate here._"
+elif [ ! -x "$FACTORY_QUERY" ]; then
+  echo "_factory-query not found at \`$FACTORY_QUERY\`._"
+else
+  # Stats block (indented as code for fixed-width)
+  echo '```'
+  "$FACTORY_QUERY" stats --days "$DAYS"
+  echo '```'
+  echo ""
+
+  # Top reasons — emit as markdown table by post-processing TSV
+  TOP_TSV=$("$FACTORY_QUERY" top --days "$DAYS" --limit 5 --tsv 2>/dev/null)
+  if [ -n "$TOP_TSV" ]; then
+    echo "### Top block reasons"
+    echo ""
+    echo "| Count | Reason | Hook |"
+    echo "|------:|--------|------|"
+    # factory-query top --tsv emits two blocks: reasons then hooks. For the
+    # dashboard we only show the reasons section (first 5 lines with 3 fields).
+    echo "$TOP_TSV" | awk -F'\t' 'NF == 3 {printf "| %s | `%s` | `%s` |\n", $1, $2, $3}' | head -5
+    echo ""
+  fi
+fi
+
+# --- Section: Pending gate reminders (last 24h worth of Stop warnings) ---
+if [ -d "$VSDD_LOG_DIR" ] && [ -n "$(ls "$VSDD_LOG_DIR"/events-*.jsonl 2>/dev/null)" ]; then
+  # Look for pending_wave_gate_at_session_end in the most recent log file only.
+  # Filenames are events-YYYY-MM-DD.jsonl so lex sort == chronological.
+  LATEST_LOG=$(find "$VSDD_LOG_DIR" -maxdepth 1 -name 'events-*.jsonl' 2>/dev/null | sort | tail -1)
+  if [ -n "$LATEST_LOG" ]; then
+    PENDING_EVENTS=$(jq -r 'select(.reason == "pending_wave_gate_at_session_end") | .pending_waves' "$LATEST_LOG" 2>/dev/null | sort -u | head -5 || true)
+    if [ -n "$PENDING_EVENTS" ]; then
+      echo "## Pending wave gates (from recent session-end checks)"
+      echo ""
+      while IFS= read -r waves; do
+        [ -z "$waves" ] && continue
+        echo "- \`$waves\`"
+      done <<< "$PENDING_EVENTS"
+      echo ""
+      echo "Run \`/vsdd-factory:wave-gate\` to close out pending gates."
+      echo ""
+    fi
+  fi
+fi
+
+# --- Section: Health checks ---
+echo "## Health checks"
+echo ""
+for check in "STATE.md:$STATE_FILE" "wave-state.yaml:$WAVE_STATE" "factory-query:$FACTORY_QUERY" "Event log dir:$VSDD_LOG_DIR"; do
+  label="${check%%:*}"
+  path="${check#*:}"
+  if [ -e "$path" ]; then
+    echo "- ✓ $label — \`$path\`"
+  else
+    echo "- ✗ $label — \`$path\` (missing)"
+  fi
+done
+echo ""
+echo "_Run \`factory-query help\` for more canned queries, or \`factory-report weekly\` for a broader summary._"

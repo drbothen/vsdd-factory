@@ -94,6 +94,10 @@ echo "== factory-report CLI tests =="
 bats tests/factory-report.bats
 
 echo
+echo "== factory-dashboard CLI tests =="
+bats tests/factory-dashboard.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 

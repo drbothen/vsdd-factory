@@ -159,6 +159,43 @@ jq -r '.reason' .factory/logs/events-*.jsonl | sort | uniq -c | sort -rn | head
 jq -r 'select(.ts | startswith("2026-04-22T14"))' .factory/logs/events-*.jsonl
 ```
 
+### `/factory-dashboard` slash command — live pipeline dashboard
+
+The highest-level view. Combines three data sources into a single markdown
+page: STATE.md frontmatter, wave-state.yaml, and the event log.
+
+From inside a Claude Code session:
+
+```
+/vsdd-factory:factory-dashboard
+```
+
+Or from the shell directly:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-dashboard"
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-dashboard" --days 30
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-dashboard" --factory /path/to/other/.factory
+```
+
+Dashboard sections:
+- **Project** — phase, mode, status, current step, STATE.md size
+- **Waves** — each wave with gate status, merged/total stories, next-gate flag
+- **Recent activity** — event counts + top block reasons (default 7-day window)
+- **Pending wave gates** — session-end warnings from the most recent log
+- **Health checks** — ✓/✗ for each data source
+
+All sections gracefully handle missing data — a fresh project with no
+STATE.md produces a clean "factory not initialized" notice rather than
+an error. Useful as a session-start orientation page or a "why is X
+failing?" triage view.
+
+Not to be confused with `/vsdd-factory:factory-health`, which validates
+the `.factory/` worktree structure (branch, mount, orphan status, etc.).
+The two skills are complementary: `factory-health` answers "is the
+worktree set up correctly?" while `factory-dashboard` answers "what's the
+pipeline doing right now?".
+
 ### `bin/factory-report` — markdown summaries
 
 Produces markdown output suitable for pasting into PRs, Slack, or piping
@@ -458,6 +495,6 @@ happy path — impact on normal sessions is zero.
 | 2d.3 | Instrument 10 workflow/specialized validators | Shipped in [v0.62.0](../../CHANGELOG.md) |
 | 2e | Instrument 5 SubagentStop + Stop hooks (Phase 2 COMPLETE) | Shipped in [v0.63.0](../../CHANGELOG.md) |
 | 3 | `bin/factory-query` canned queries + `bin/factory-report` | Shipped in [v0.64.0](../../CHANGELOG.md) |
-| 4 | `/factory-health` slash command | Planned |
+| 4 | `/factory-dashboard` slash command | Shipped in [v0.65.0](../../CHANGELOG.md) |
 | 5 | Local Docker observability stack (OTel Collector + Grafana LGTM) | Planned |
 | 6 | Session replay, agent SLO tracking, pipeline flame graphs | Planned |
