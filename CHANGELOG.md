@@ -1,5 +1,69 @@
 # Changelog
 
+## 0.71.0 — Claude dashboard + CI parity check + release script
+
+Bundles three pieces of release-hygiene + observability work that have
+been on the backlog since the v0.68.1/v0.69.0 release-workflow incident
+and v0.69.0's introduction of Claude OTel ingestion without a matching
+dashboard:
+
+1. **CI parity check** — the missing gate that would have caught v0.68.1
+   and v0.69.0 before tag push.
+2. **`scripts/bump-version.sh`** — atomic release helper so the lockstep
+   rule (plugin.json ↔ marketplace.json ↔ CHANGELOG) can't be forgotten
+   by accident.
+3. **`claude-overview.json` Grafana dashboard** — first-pass dashboard
+   for the `claude-code` service pipeline wired in v0.69.0. Queries
+   don't assume Claude's full label schema yet — they use `| json`
+   parsing so they work against whatever structured-metadata shape
+   Claude's OTel SDK produces.
+
+### Added
+
+- **`.github/workflows/ci.yml`** — new step `Verify version parity across
+  plugin.json and marketplace.json`. Runs on every push to main + PRs.
+  Fails fast with an actionable message pointing at
+  `scripts/bump-version.sh` if `plugin.json.version` and
+  `marketplace.json.plugins[0].version` drift. This catches the failure
+  mode that bit v0.68.1 (silent Release workflow failure on tag push)
+  at the earliest possible moment — on the commit that introduces the
+  drift, not at the tag two commits later.
+
+- **`scripts/bump-version.sh`** — one-command version bump that updates
+  plugin.json, marketplace.json, and prepends a CHANGELOG heading stub
+  with today's date. Validates semver format. Refuses to run if either
+  version file has uncommitted changes (prevents clobbering
+  work-in-progress). Does **not** commit or tag — the operator reviews
+  the diff and stages manually. This release dogfoods the script.
+
+- **`tools/observability/grafana-dashboards/claude-overview.json`** —
+  new Grafana dashboard at URL path `claude-code-overview`, auto-
+  provisioned under the "VSDD Factory" folder. Seven panels:
+  - Total events (Claude)
+  - Unique sessions (parsed from `session_id` via `| json`)
+  - Tool invocations (matches `tool_result` in body)
+  - API requests (matches `api_request` in body)
+  - Events over time
+  - Top tools used (top 10 by `tool_name`)
+  - Recent events (last 50, raw log)
+  
+  Queries are intentionally forgiving — only `service_name` is assumed
+  to be a promoted Loki label; everything else goes through `| json` so
+  the panels work whatever label schema Claude's SDK produces. Tune to
+  promoted labels later once real data accumulates.
+
+### Migration
+
+No breaking changes. The new dashboard auto-provisions on next
+`factory-obs up`. Existing installs may need `factory-obs down && up`
+to pick up the new `claude-overview.json` file if Grafana's dashboard
+provider doesn't hot-reload for them.
+
+To see Claude telemetry in the new dashboard:
+1. `factory-obs up`
+2. `/vsdd-factory:claude-telemetry on`
+3. Restart your Claude Code session so env vars load.
+
 ## 0.70.3 — Blocks (hard) threshold: yellow at 1+, red at 10+
 
 Cosmetic tweak to the bundled `factory-overview` dashboard. Previously
