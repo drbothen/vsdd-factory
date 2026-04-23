@@ -36,6 +36,11 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.94.0
     container_name: vsdd-obs-collector
+    # Run as root so the collector can write to the root-owned named volume
+    # (collector-state). The image runs as UID 10001 by default, which cannot
+    # write to a fresh Docker-created named volume. Local-only dev stack; the
+    # volume is isolated from the host, so this doesn't grant host privileges.
+    user: "0:0"
     command: ["--config=/etc/otel/config.yaml"]
     volumes:
       # Event log — tail .factory/logs/events-*.jsonl from the host.

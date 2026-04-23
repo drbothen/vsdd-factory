@@ -34,12 +34,17 @@ receivers:
       - type: move
         from: attributes.type
         to: resource.event_type
+      # hook/reason are only on hook.block / hook.action events — agent.start
+      # and agent.stop don't have them. Guard with `if:` so the collector
+      # doesn't spam warnings.
       - type: move
         from: attributes.hook
         to: resource.hook
+        if: 'attributes.hook != nil'
       - type: move
         from: attributes.reason
         to: resource.reason
+        if: 'attributes.reason != nil'
       - type: copy
         from: attributes.severity
         to: resource.severity
