@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.76.1 — CI test-infra fix for Release workflow
+
+Tiny release that unblocks the `Release` GitHub Actions workflow. No
+runtime code changes; safe to consume alongside v0.76.0.
+
+### Fixed
+
+- `tests/emit-event.bats` — the worktree-resolution test at
+  `@test "emit-event: resolves to main worktree's .factory/logs…"`
+  was making a `git commit --allow-empty` inside a fresh `mktemp -d`
+  repo, which fails on GitHub Actions runners because they don't
+  have a global git identity. Set `GIT_AUTHOR_*` / `GIT_COMMITTER_*`
+  env vars at test scope so the commit succeeds without touching
+  the runner's git config. This had been silently failing the
+  `Release` workflow since v0.75.0 — both v0.75.0 and v0.76.0 have
+  valid tags but no GitHub Release artifact as a result. v0.76.1
+  is the first release that should produce a GitHub Release
+  automatically again.
+
+### Migration
+
+No breaking changes. If you're on v0.76.0, the only difference at
+v0.76.1 is the test file. No dashboard, skill, hook, or collector
+config changes.
+
 ## 0.76.0 — Observability stack upgrade: Grafana v13 + OTel 0.149 + Loki 3.6 + Prom v3
 
 Coordinated major-version bump of the entire local observability stack.
