@@ -381,6 +381,16 @@ _logfile() {
   # Build a temporary repo with a linked worktree, then invoke emit-event
   # from inside the worktree WITHOUT VSDD_LOG_DIR and verify the event lands
   # in the MAIN repo's .factory/logs — not the worktree's.
+  #
+  # GHA runners don't have a global git identity pre-configured, so the
+  # `git commit` in this test fails with "Author identity unknown" unless
+  # we inject one via env vars. Setting them at the test scope only (not
+  # via `git config --global`) keeps the runner's state untouched and
+  # works identically on a dev machine.
+  export GIT_AUTHOR_NAME="bats-test"
+  export GIT_AUTHOR_EMAIL="bats@test.local"
+  export GIT_COMMITTER_NAME="bats-test"
+  export GIT_COMMITTER_EMAIL="bats@test.local"
   unset VSDD_LOG_DIR
   local main_repo="$(mktemp -d)"
   ( cd "$main_repo" && git init -q && git commit --allow-empty -q -m init )
