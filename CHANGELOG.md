@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.55.0 — Harden destructive-command-guard + add protect-secrets hook
+
+### Added
+
+- **`destructive-command-guard.sh` — Tier 1 guards** (new):
+  - Catastrophic root targets: `rm -rf /`, `/*`, `~`, `~/`, `$HOME`, `*`, `.*` (and flag-order variants)
+  - Clobbering redirects to source-of-truth files: `> STATE.md`, `: > STATE.md`, `truncate -s 0`, `cp /dev/null`. `>>` (append) and `sed -i` remain allowed.
+  - `find … -delete` and `find … -exec rm` on `.factory`, `src/`, `tests/`
+  - `git stash drop` / `git stash clear`
+  - `git branch -D main|master|develop`
+  - `git filter-branch` / `git filter-repo`
+- **`destructive-command-guard.sh` — Tier 2 guards** (new):
+  - `--no-verify` on `git commit|merge|rebase|cherry-pick|am`, plus `--no-gpg-sign` on commit
+  - `gh repo delete`, `gh release delete`, `gh pr close`, `gh issue delete`
+  - `git reflog expire --expire=now` and `git gc --prune=now`
+  - `git worktree remove --force` outside `.worktrees/`
+  - Pipe-to-interpreter RCE pattern: `curl|wget|fetch ... | bash|sh|zsh|python|perl|ruby`
+- **`destructive-command-guard.sh` — Tier 3 guards** (new):
+  - Recursive `chmod -R` / `chown -R` / `--recursive` on `.factory`, `src/`, `tests/`, `.git/`
+- **`protect-secrets.sh`** (new PreToolUse hook, matches Bash and Read):
+  - Blocks `Read` of `.env`, `.env.*`, `.envrc` (allows `.env.example` / `.sample` / `.template`)
+  - Blocks `cat|less|more|head|tail|bat|xxd|od|strings|grep|awk|sed` on real .env files
+  - Blocks `cp|mv|rsync|scp` when the **source** is a real .env (allows template-bootstrap like `cp .env.example .env`)
+  - Blocks `tar|zip` that archive real .env files
+  - Blocks `echo|printf` of secret-shaped env vars (`$*_TOKEN`, `$*_SECRET`, `$*_PASSWORD`, `$*_API_KEY`, `$*_PRIVATE_KEY`, `$*_ACCESS_KEY`, `$*_CREDENTIAL`, `$*_AUTH`)
+  - Blocks `env|printenv|set | grep` for secret-shaped names
+  - Allows existence checks (`ls .env*`, `test -f .env`, `[ -f .env ]`) and sourcing (`source .env`, `. .env`)
+
+### Fixed
+
+- **`destructive-command-guard.sh` — bare `.factory` match** — `rm -rf .factory` (no trailing slash) previously slipped through the substring check; now caught via regex that handles end-of-command, slash, or separator boundary.
+- **`destructive-command-guard.sh` — long-form recursive flag** — `rm --recursive` is now recognized alongside `-r`, `-R`, `-rf`, `-fr`, `-Rf`, `-fR`.
+
+### Added (tests)
+
+- 41 new tests in `tests/destructive-guard.bats` (catastrophic roots, SoT redirection, find-delete, git-stash-drop, git-branch-D, history rewriters, --no-verify, gh destructive, curl|bash, recursive chmod/chown) — 97 tests total in suite
+- `tests/protect-secrets.bats` (new) — 55 tests covering Read + Bash paths, cp source-vs-destination semantics, secret env echo/grep
+- `run-all.sh` wires the new protect-secrets suite
+- 792 tests across 21 suites, 0 failures
+
 ## 0.54.0 — Unify red-gate-log path + factory path root guard
 
 ### Fixed
