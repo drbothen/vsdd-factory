@@ -66,6 +66,10 @@ echo "== Edit|Write guards emission tests =="
 bats tests/edit-guards-emission.bats
 
 echo
+echo "== Agent guards emission tests =="
+bats tests/agent-guards-emission.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 

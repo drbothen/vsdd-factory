@@ -22,6 +22,8 @@ The **Instrumented** column indicates whether the hook emits structured block ev
 | `verify-git-push.sh` | PreToolUse | Bash | Blocks force push (`--force`/`-f`) and direct push to protected branches (main, master, develop) | Yes | ✓ (2 codes) |
 | `block-ai-attribution.sh` | PreToolUse | Bash | Blocks git commits containing `Co-Authored-By: Claude`/AI attribution patterns | Yes | ✓ (2 codes) |
 | `check-factory-commit.sh` | PreToolUse | Bash | Remind about STATE.md after `.factory/` commits | No (advisory) | — |
+| `validate-wave-gate-prerequisite.sh` | PreToolUse | Agent | Blocks Wave N+1 worker dispatch if Wave N gate is pending | Yes | ✓ (1 code) |
+| `validate-pr-merge-prerequisites.sh` | PreToolUse | Agent | Blocks github-ops merge dispatch if pr-description/pr-review/security-review evidence is missing | Yes | ✓ (1 code) |
 | `purity-check.sh` | PostToolUse | Edit\|Write | Pure-core boundary -- no side effects in pure modules | No (warn-only) | — |
 | `validate-vp-consistency.sh` | PostToolUse | Edit\|Write | VP-INDEX ↔ verification-architecture ↔ coverage-matrix consistency (Policy 9) | Yes (exit 2 on mismatch) | — |
 | `validate-subsystem-names.sh` | PostToolUse | Edit\|Write | BC/story subsystem fields match ARCH-INDEX canonical names (Policy 6) | Yes (exit 2 on mismatch) | — |

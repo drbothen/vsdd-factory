@@ -33,6 +33,13 @@ fi
 SUBAGENT=$(echo "$INPUT" | jq -r '.tool_input.subagent_type // ""')
 PROMPT=$(echo "$INPUT" | jq -r '.tool_input.prompt // ""')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 # Scope: only worker-agent dispatches that do story work
 case "$SUBAGENT" in
   *test-writer*|*implementer*|*demo-recorder*|*pr-manager*|*devops-engineer*) ;;
@@ -110,6 +117,10 @@ for name, data in state['waves'].items():
         print(name); break
 " 2>/dev/null || true)
 
+  _emit type=hook.block hook=validate-wave-gate-prerequisite matcher=Agent \
+        reason=wave_gate_prerequisite_not_passed \
+        subagent="$SUBAGENT" story_id="$STORY_ID" target_wave="$TARGET_WAVE" \
+        blocking_wave="$BLOCKING_WAVE" blocking_status="$BLOCKING_STATUS"
   echo "" >&2
   echo "wave-gate-prerequisite: BLOCKED." >&2
   echo "" >&2

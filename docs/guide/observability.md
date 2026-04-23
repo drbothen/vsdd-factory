@@ -249,7 +249,19 @@ existing one is not a good fit.
 | Code | Triggers on |
 |------|-------------|
 | `factory_not_worktree` | `Edit`/`Write` to a `.factory/`-prefixed path when `.factory/` lacks the `.git` worktree marker |
-| `factory_wrong_branch` | `Edit`/`Write` to `.factory/` when the worktree is on a branch other than `factory-artifacts` (or `factory-project-artifacts` for the `.factory-project` variant) |
+| `factory_wrong_branch` | `Edit`/`Write` to `.factory/` when the worktree is on a branch other than `factory-artifacts` (or `factory-project-artifacts` for the `.factory-project` variant). Event also carries `current_branch` and `expected_branch`. |
+
+### `validate-wave-gate-prerequisite.sh`
+
+| Code | Triggers on |
+|------|-------------|
+| `wave_gate_prerequisite_not_passed` | `Agent` dispatch of a worker subagent (test-writer / implementer / demo-recorder / pr-manager / devops-engineer) for a story whose wave has an earlier wave with `gate_status` other than `passed`/`deferred`. Event carries `subagent`, `story_id`, `target_wave`, `blocking_wave`, `blocking_status`. |
+
+### `validate-pr-merge-prerequisites.sh`
+
+| Code | Triggers on |
+|------|-------------|
+| `pr_merge_evidence_missing` | `Agent` dispatch to `github-ops` with a "merge" prompt when `.factory/code-delivery/<STORY-ID>/` is missing `pr-description.md`, `pr-review.md`, or `security-review.md`. Event carries `story_id`, `delivery_dir`, and a comma-separated `missing` field listing which files are absent. |
 
 ---
 
@@ -352,7 +364,7 @@ happy path — impact on normal sessions is zero.
 | 1 | `bin/emit-event` safety scaffold + tests | Shipped in [v0.56.0](../../CHANGELOG.md) |
 | 2a | Instrument 4 PreToolUse Bash guards | Shipped in [v0.57.0](../../CHANGELOG.md) |
 | 2b | Instrument 5 PreToolUse Edit|Write guards | Shipped in [v0.58.0](../../CHANGELOG.md) |
-| 2c | Instrument 2 PreToolUse Agent guards | Planned |
+| 2c | Instrument 2 PreToolUse Agent guards | Shipped in [v0.59.0](../../CHANGELOG.md) |
 | 2d | Instrument 21 PostToolUse validators | Planned |
 | 2e | Instrument 6 SubagentStop + Stop hooks | Planned |
 | 3 | `bin/factory-query` canned queries + `bin/factory-report` | Planned |

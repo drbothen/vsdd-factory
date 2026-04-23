@@ -29,6 +29,13 @@ fi
 SUBAGENT=$(echo "$INPUT" | jq -r '.tool_input.subagent_type // ""')
 PROMPT=$(echo "$INPUT" | jq -r '.tool_input.prompt // ""')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 # Scope: only github-ops dispatches that contain "merge"
 case "$SUBAGENT" in
   *github-ops*) ;;
@@ -69,15 +76,18 @@ if [[ -z "$DELIVERY_DIR" ]]; then
 fi
 
 ERRORS=""
+MISSING_FILES=""  # comma-separated list of basenames for structured emission
 
 # Check 1: pr-description.md exists
 if [[ ! -f "$DELIVERY_DIR/pr-description.md" ]]; then
   ERRORS="${ERRORS:+$ERRORS\n}Missing: $DELIVERY_DIR/pr-description.md (PR description not populated)"
+  MISSING_FILES="${MISSING_FILES:+$MISSING_FILES,}pr-description.md"
 fi
 
 # Check 2: pr-review.md exists
 if [[ ! -f "$DELIVERY_DIR/pr-review.md" ]]; then
   ERRORS="${ERRORS:+$ERRORS\n}Missing: $DELIVERY_DIR/pr-review.md (PR review not conducted)"
+  MISSING_FILES="${MISSING_FILES:+$MISSING_FILES,}pr-review.md"
 fi
 
 # Check 3: security-review.md exists (or security noted as clean elsewhere)
@@ -86,13 +96,18 @@ if [[ ! -f "$DELIVERY_DIR/security-review.md" ]]; then
   if [[ -f "$DELIVERY_DIR/pr-description.md" ]]; then
     if ! grep -qiE "security.*clean|security.*no finding|security.*pass|no security" "$DELIVERY_DIR/pr-description.md"; then
       ERRORS="${ERRORS:+$ERRORS\n}Missing: $DELIVERY_DIR/security-review.md (security review not conducted)"
+      MISSING_FILES="${MISSING_FILES:+$MISSING_FILES,}security-review.md"
     fi
   else
     ERRORS="${ERRORS:+$ERRORS\n}Missing: $DELIVERY_DIR/security-review.md (security review not conducted)"
+    MISSING_FILES="${MISSING_FILES:+$MISSING_FILES,}security-review.md"
   fi
 fi
 
 if [[ -n "$ERRORS" ]]; then
+  _emit type=hook.block hook=validate-pr-merge-prerequisites matcher=Agent \
+        reason=pr_merge_evidence_missing \
+        story_id="$STORY_ID" delivery_dir="$DELIVERY_DIR" missing="$MISSING_FILES"
   echo "" >&2
   echo "PR MERGE PREREQUISITES NOT MET for $STORY_ID:" >&2
   echo -e "$ERRORS" | while IFS= read -r line; do
