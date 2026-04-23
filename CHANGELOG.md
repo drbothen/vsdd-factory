@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.72.2 — Factory Today bargauge number + label correctness
+
+Two follow-on fixes for the Factory Today dashboard based on live
+review. The panels were showing wildly inflated numbers (e.g.,
+`block-ai-attribution = 214` when Loki had only 1 event for that hook)
+and the Top Tools / Stories panels weren't showing their bar labels.
+
+### Root causes
+
+1. **Inflated counts**: all bargauge panels used
+   `"reduceOptions.calcs": ["sum"]`. Grafana range queries against Loki
+   emit a time series of evaluations — each bucket at time T re-runs
+   `count_over_time([$__range])` and returns the range-wide count. With
+   `sum` as the reducer, the panel summed ~180 buckets × actual_count,
+   inflating each bar by 100-200×. Stat panels don't have this issue
+   because they use `lastNotNull`, which takes the most recent bucket
+   (which IS the actual range-wide count).
+
+2. **Missing tool / story labels**: the Top Hooks panel renders labels
+   correctly because it groups by `hook` — a promoted Loki stream label
+   (via the `loki.resource.labels` hint added in v0.70.2). Top Tools
+   and Stories group by `attributes_tool_name` and `attributes_story_id`
+   — fields extracted at query time via `| json`. Grafana's bargauge
+   shows real stream labels automatically but needs an explicit
+   `displayName` override to surface query-extracted fields.
+
+### Fixed
+
+- **`tools/observability/grafana-dashboards/factory-today.json`** —
+  - All three bargauge panels (Top Hooks, Top Tools, Stories): changed
+    `reduceOptions.calcs` from `["sum"]` to `["lastNotNull"]`. Bar
+    values now match the actual event counts in Loki.
+  - Top Tools panel: added
+    `fieldConfig.defaults.displayName: "${__field.labels.attributes_tool_name}"`
+    so bars render with the tool name instead of the full label set.
+  - Stories panel: same pattern with `attributes_story_id`.
+
+### Verified live
+
+Reloaded the dashboard after applying the fix. Numbers now align with
+`wc -l .factory/logs/events-*.jsonl` and with direct Loki queries.
+Stories panel shows `S-1.07` as its bar label; Tools shows `Bash`.
+
+### Migration
+
+Restart Grafana or `factory-obs down && up` to reload the dashboard
+JSON. No data changes — only visual correctness.
+
 ## 0.72.1 — Fix Factory Today stories panel + metrics pipeline verified
 
 Follow-up to v0.72.0. Same class of bug as v0.71.0's Claude-dashboard
