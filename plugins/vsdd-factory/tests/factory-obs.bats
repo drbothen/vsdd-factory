@@ -88,9 +88,20 @@ setup() {
   [[ "$output" == *"grafana/grafana"* ]]
 }
 
-@test "compose: otel-collector depends on loki being healthy" {
-  run yq eval '.services.otel-collector.depends_on.loki.condition' "$OBS_DIR/docker-compose.yml"
-  [ "$output" = "service_healthy" ]
+@test "compose: otel-collector waits for loki-ready init container" {
+  # v0.76.0: Loki 3.6+ is distroless (no wget/curl), so a CMD healthcheck
+  # isn't possible. We gate downstream services on a `loki-ready` init
+  # container that polls /ready from outside and exits 0 once Loki
+  # accepts writes.
+  run yq eval '.services.otel-collector.depends_on.loki-ready.condition' "$OBS_DIR/docker-compose.yml"
+  [ "$output" = "service_completed_successfully" ]
+}
+
+@test "compose: loki-ready init container polls /ready endpoint" {
+  run yq eval '.services.loki-ready.image' "$OBS_DIR/docker-compose.yml"
+  [[ "$output" == *"busybox"* ]]
+  run yq eval '.services.loki-ready.command' "$OBS_DIR/docker-compose.yml"
+  [[ "$output" == *"/ready"* ]]
 }
 
 @test "compose: mounts .factory/logs into collector" {
@@ -119,13 +130,15 @@ setup() {
   [[ "$output" == *"events-*.jsonl"* ]]
 }
 
-@test "collector config: has loki exporter" {
-  run yq eval '.exporters.loki.endpoint' "$OBS_DIR/otel-collector-config.yaml"
-  [[ "$output" == *"loki"* ]]
-  [[ "$output" == *"/loki/api/v1/push"* ]]
+@test "collector config: has otlphttp exporter pointed at Loki's OTLP endpoint" {
+  # v0.76.0: collector-contrib removed the standalone `loki` exporter
+  # around 0.112. We now ship to Loki's native OTLP ingester via
+  # otlphttp/loki; /v1/logs is appended automatically.
+  run yq eval '.exporters["otlphttp/loki"].endpoint' "$OBS_DIR/otel-collector-config.yaml"
+  [[ "$output" == *"loki:3100/otlp"* ]]
 }
 
-@test "collector config: pipeline wires filelog → loki" {
+@test "collector config: pipeline wires filelog → otlphttp/loki" {
   run yq eval '.service.pipelines.logs.receivers' "$OBS_DIR/otel-collector-config.yaml"
   [[ "$output" == *"filelog"* ]]
   run yq eval '.service.pipelines.logs.exporters' "$OBS_DIR/otel-collector-config.yaml"
@@ -373,13 +386,129 @@ setup() {
     "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
 }
 
-@test "dashboard: factory-roi has manual cost-per-X text panels" {
-  # v0.75.0: cross-datasource divide via Grafana transforms is unreliable in
-  # Grafana v10.4.2 for our Prom+Loki shape. Cost per PR / per story panels
-  # are text fallbacks explaining how to compute from raw stats above. Only
-  # Cost per commit is a real derived stat (Prom-native division).
-  jq -e '.panels[] | select(.title == "Cost per PR merged (manual)")' \
+# ---------- Observability stack upgrade (v0.76.0) ----------
+
+@test "compose: Grafana pinned to a 13.x image" {
+  # v0.76.0 upgraded the stack. Grafana must be 13.x — v10 lacks
+  # server-side expression queries for cross-datasource math.
+  run yq -r '.services.grafana.image' "$OBS_DIR/docker-compose.yml"
+  [[ "$output" == grafana/grafana:13.* ]]
+}
+
+@test "compose: otel-collector-contrib pinned to 0.115+ for deltatocumulative" {
+  # The deltatocumulative processor was introduced in collector-contrib 0.115.
+  # Required so we can drop the OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+  # env var from the claude-telemetry skill.
+  run yq -r '.services.otel-collector.image' "$OBS_DIR/docker-compose.yml"
+  local ver="${output##*:}"   # strip image prefix
+  # Expect 0.X.Y where X >= 115.
+  [[ "$ver" =~ ^0\.([0-9]+)\.[0-9]+$ ]]
+  [ "${BASH_REMATCH[1]}" -ge 115 ]
+}
+
+@test "compose: loki pinned to 3.x image" {
+  run yq -r '.services.loki.image' "$OBS_DIR/docker-compose.yml"
+  [[ "$output" == grafana/loki:3.* ]]
+}
+
+@test "compose: prometheus pinned to v3.x image" {
+  run yq -r '.services.prometheus.image' "$OBS_DIR/docker-compose.yml"
+  [[ "$output" == prom/prometheus:v3.* ]]
+}
+
+@test "compose: renderer sidecar is wired with shared auth token" {
+  # Grafana v11+ refuses to start with the default renderer_token. Both
+  # sides (GF_RENDERING_RENDERER_TOKEN on grafana, AUTH_TOKEN on renderer)
+  # must share the same non-default value.
+  local g_token r_token
+  g_token=$(yq -r '.services.grafana.environment.GF_RENDERING_RENDERER_TOKEN' "$OBS_DIR/docker-compose.yml")
+  r_token=$(yq -r '.services.renderer.environment.AUTH_TOKEN' "$OBS_DIR/docker-compose.yml")
+  [ -n "$g_token" ]
+  [ "$g_token" != "null" ]
+  [ "$g_token" = "$r_token" ]
+}
+
+@test "compose: renderer pinned to 3.11.x image" {
+  run yq -r '.services.renderer.image' "$OBS_DIR/docker-compose.yml"
+  [[ "$output" == grafana/grafana-image-renderer:3.11.* ]]
+}
+
+@test "loki config: file exists and parses" {
+  [ -f "$OBS_DIR/loki-config.yaml" ]
+  yq -e . "$OBS_DIR/loki-config.yaml" >/dev/null
+}
+
+@test "loki config: accepts events up to 30 days old" {
+  # Required so that a stack restart can backfill historical events from
+  # .factory/logs/events-*.jsonl without the collector dropping batches
+  # on "entry too far behind" 400s from Loki.
+  run yq -r '.limits_config.reject_old_samples_max_age' "$OBS_DIR/loki-config.yaml"
+  [ "$output" = "720h" ]
+}
+
+@test "loki config: otlp_config promotes 5 factory labels to stream index" {
+  # event_type/hook/reason/severity become stream labels so dashboards can
+  # filter with {event_type="pr.merged"} etc. service.name is also index_label
+  # by default but listing it explicitly is safer against future Loki default
+  # changes.
+  local attrs
+  attrs=$(yq -r '.limits_config.otlp_config.resource_attributes.attributes_config[0].attributes | join(",")' \
+    "$OBS_DIR/loki-config.yaml")
+  [[ "$attrs" == *"service.name"* ]]
+  [[ "$attrs" == *"event_type"* ]]
+  [[ "$attrs" == *"hook"* ]]
+  [[ "$attrs" == *"reason"* ]]
+  [[ "$attrs" == *"severity"* ]]
+}
+
+@test "collector config: metrics pipeline runs deltatocumulative before export" {
+  # Claude's SDK defaults to DELTA temporality, Prometheus requires
+  # CUMULATIVE. deltatocumulative must convert before prometheusremotewrite.
+  local processors
+  processors=$(yq -r '.service.pipelines.metrics.processors | join(",")' "$OBS_DIR/otel-collector-config.yaml")
+  [[ "$processors" == *"deltatocumulative"* ]]
+  # deltatocumulative should be LISTED before the export happens (it's in
+  # the processors list, which runs in declared order).
+  [[ "$processors" =~ deltatocumulative ]]
+}
+
+@test "collector config: has deltatocumulative processor defined" {
+  run yq -e '.processors.deltatocumulative' "$OBS_DIR/otel-collector-config.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "claude-telemetry skill: does NOT list the temporality env var" {
+  # v0.76.0 dropped the 6th env var after deltatocumulative went live.
+  # The temporality key should only appear inside the `del(...)` block
+  # (for backwards-compatible cleanup on re-run) and NOT in the merge
+  # block that sets env values.
+  run grep -c 'OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE' \
+    "${BATS_TEST_DIRNAME}/../skills/claude-telemetry/SKILL.md"
+  # Expected occurrences:
+  #   1× in the v0.76.0 deprecation note
+  #   1× in the `on` jq del(...) block (back-compat pruning)
+  #   1× in the `off` jq del(...) block
+  #   1× in the `status` legacy-key warning
+  # That's 4 references total. More than that means the merge block still
+  # sets it, which is a regression.
+  [ "$output" -le 4 ]
+}
+
+@test "dashboard: factory-roi has cross-datasource Cost per PR / Cost per story derived stat panels" {
+  # v0.76.0: upgraded to Grafana v13, which supports server-side expression
+  # queries (datasource.type="__expr__"). The Cost per PR merged and Cost
+  # per story touched panels use a Prometheus query (A) + a Loki query (B)
+  # + a math expression query (C: "$A / $B"), then filterByRefId keeps
+  # only C. This replaces the markdown text fallbacks that shipped in
+  # v0.73.0–v0.75.0 when v10.4.2's calculateField transform couldn't
+  # reliably divide cross-datasource frames.
+  jq -e '.panels[] | select(.title == "Cost per PR merged") | select(.type == "stat")' \
     "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
-  jq -e '.panels[] | select(.title == "Cost per story touched (manual)")' \
+  jq -e '.panels[] | select(.title == "Cost per story touched") | select(.type == "stat")' \
+    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
+  # Both panels must declare the server-side expression refC.
+  jq -e '.panels[] | select(.title == "Cost per PR merged") | .targets[] | select(.refId == "C" and .expression == "$A / $B")' \
+    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per story touched") | .targets[] | select(.refId == "C" and .expression == "$A / $B")' \
     "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
 }

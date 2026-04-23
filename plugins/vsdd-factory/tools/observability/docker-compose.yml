@@ -24,21 +24,46 @@
 
 services:
   loki:
-    image: grafana/loki:3.0.0
+    image: grafana/loki:3.6.10
     container_name: vsdd-obs-loki
     ports:
       - "${VSDD_OBS_LOKI_PORT:-3100}:3100"
     volumes:
       - loki-data:/loki
+      - ./loki-config.yaml:/etc/loki/local-config.yaml:ro
+    command: ["-config.file=/etc/loki/local-config.yaml"]
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
+    # Loki 3.6+ ships as a full distroless image — no shell, no wget, no
+    # curl, nothing but the `loki` binary itself. Docker's HEALTHCHECK runs
+    # inside the container and requires an executable, so a traditional
+    # healthcheck isn't possible here. Downstream services instead depend
+    # on the `loki-ready` init container, which polls /ready from a
+    # busybox image on the shared network and exits 0 when Loki accepts
+    # traffic. See loki-ready below.
+
+  # One-shot init container. Polls Loki's /ready endpoint from outside
+  # the (distroless) Loki container until it answers, then exits. Services
+  # that require Loki to be accepting writes should declare
+  # `depends_on: { loki-ready: { condition: service_completed_successfully } }`.
+  # busybox is ~5 MB; negligible overhead.
+  loki-ready:
+    image: busybox:1.37
+    container_name: vsdd-obs-loki-ready
+    command:
+      - sh
+      - -c
+      - |
+        echo "loki-ready: waiting for http://loki:3100/ready"
+        until wget -qO- http://loki:3100/ready 2>/dev/null | grep -q "^ready$"; do
+          sleep 2
+        done
+        echo "loki-ready: loki is accepting writes"
+    depends_on:
+      - loki
+    restart: "no"
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.94.0
+    image: otel/opentelemetry-collector-contrib:0.149.0
     container_name: vsdd-obs-collector
     # Run as root so the collector can write to the root-owned named volume
     # (collector-state). The image runs as UID 10001 by default, which cannot
@@ -57,14 +82,14 @@ services:
       # OTLP HTTP — for Claude Code's native OTel emission, if enabled
       - "${VSDD_OBS_OTLP_HTTP_PORT:-4318}:4318"
     depends_on:
-      loki:
-        condition: service_healthy
+      loki-ready:
+        condition: service_completed_successfully
       prometheus:
         condition: service_healthy
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v2.54.0
+    image: prom/prometheus:v3.5.2
     container_name: vsdd-obs-prometheus
     ports:
       - "${VSDD_OBS_PROMETHEUS_PORT:-9090}:9090"
@@ -87,7 +112,7 @@ services:
       retries: 10
 
   grafana:
-    image: grafana/grafana:10.4.2
+    image: grafana/grafana:13.0.1
     container_name: vsdd-obs-grafana
     ports:
       - "${VSDD_OBS_GRAFANA_PORT:-3000}:3000"
@@ -104,11 +129,42 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
+      # Renderer sidecar (v0.76.0). Lets Grafana produce PNG/PDF of any
+      # panel via /render/d-solo/…; used by the /api/ds/query tests and by
+      # anyone who wants to export a panel. Optional — the stack is fully
+      # functional without it, but transform-heavy panels (like Factory ROI's
+      # cross-datasource math) are much easier to verify with it available.
+      GF_RENDERING_SERVER_URL: "http://renderer:8081/render"
+      GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
+      # Grafana 11+ refuses to start with the default renderer_token. It's
+      # a shared-secret between Grafana and the renderer sidecar (used when
+      # Grafana calls back into the renderer); must be set to any non-default
+      # value. This is a local-only dev stack, so we use a static token —
+      # do NOT reuse this value if you expose the renderer beyond localhost.
+      GF_RENDERING_RENDERER_TOKEN: "vsdd-local-renderer-token"
+      GF_LOG_FILTERS: "rendering:debug"
     depends_on:
-      loki:
-        condition: service_healthy
+      loki-ready:
+        condition: service_completed_successfully
       prometheus:
         condition: service_healthy
+    restart: unless-stopped
+
+  # Headless Chromium-based panel renderer. Used for on-demand PDF/PNG
+  # export and, crucially, for verifying transform-heavy panels. Image is
+  # ~280 MB but it's pulled lazily on first render request by default.
+  # Separate container so a renderer crash doesn't take down Grafana.
+  renderer:
+    image: grafana/grafana-image-renderer:3.11.0
+    container_name: vsdd-obs-renderer
+    ports:
+      - "${VSDD_OBS_RENDERER_PORT:-8081}:8081"
+    environment:
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 8081
+      ENABLE_METRICS: "false"
+      # Must match GF_RENDERING_RENDERER_TOKEN on the Grafana side.
+      AUTH_TOKEN: "vsdd-local-renderer-token"
     restart: unless-stopped
 
 volumes:

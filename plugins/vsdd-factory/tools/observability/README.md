@@ -144,7 +144,8 @@ done
 ```bash
 factory-obs reset           # stop containers + wipe volumes
 docker image rm \
-  otel/opentelemetry-collector-contrib:0.94.0 \
-  grafana/loki:3.0.0 \
-  grafana/grafana:10.4.2    # optional: remove images too
+  otel/opentelemetry-collector-contrib:0.149.0 \
+  grafana/loki:3.6.10 \
+  grafana/grafana:13.0.1 \
+  prom/prometheus:v3.5.2    # optional: remove images too
 ```

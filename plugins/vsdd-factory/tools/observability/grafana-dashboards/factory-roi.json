@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -24,30 +27,54 @@
       "title": "Total cost",
       "description": "Dollar spend in the selected range. From Claude's OTel cost metric.",
       "type": "stat",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "noValue": "0",
           "unit": "currencyUSD",
           "decimals": 4,
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           }
         }
       },
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))"
         }
       ]
@@ -57,28 +84,52 @@
       "title": "PRs merged",
       "description": "Count of pr.merged events — direct capture from `gh pr merge` Bash commands via v0.73.1+ hook.",
       "type": "stat",
-      "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "noValue": "0",
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           }
         }
       },
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "loki", "uid": "loki" },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
           "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} [$__range]))"
         }
       ]
@@ -88,28 +139,52 @@
       "title": "Commits",
       "description": "Git commits produced via Claude's tool use. From claude_code_commit_count_total.",
       "type": "stat",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "noValue": "0",
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           }
         }
       },
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "expr": "sum(increase(claude_code_commit_count_total[$__range]))"
         }
       ]
@@ -119,97 +194,307 @@
       "title": "Stories touched",
       "description": "Distinct story IDs (e.g., S-1.07, S-6.20) that had at least one agent.start event with story_id in the selected range.",
       "type": "stat",
-      "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "noValue": "0",
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           }
         }
       },
       "options": {
         "colorMode": "value",
         "graphMode": "none",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "loki", "uid": "loki" },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
           "expr": "count(count by (attributes_story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_story_id != \"\" [$__range])))"
         }
       ]
     },
     {
       "id": 5,
-      "title": "Cost per PR merged (manual)",
-      "description": "Cross-datasource division (Prometheus cost / Loki PR count) isn't reliably computable via Grafana's calculateField transform in v10.4.2 for this field-naming pattern. Until we emit a Prometheus-native PR count metric, compute manually from the Total cost and PRs merged stats above.",
-      "type": "text",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 4 },
+      "title": "Cost per PR merged",
+      "description": "Cross-datasource divide via Grafana server-side expression: A = sum(cost) from Prometheus, B = sum(pr.merged count) from Loki, C = $A / $B.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))",
+          "instant": true,
+          "hide": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"}[$__range]))",
+          "queryType": "instant",
+          "hide": false
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "type": "math",
+          "expression": "$A / $B",
+          "hide": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterByRefId",
+          "options": {
+            "include": "C"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 3,
+          "noValue": "N/A",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "options": {
-        "mode": "markdown",
-        "content": "### Cost per PR merged\n\nCompute: **Total cost ÷ PRs merged** (see stats above).\n\nGrafana's cross-datasource `calculateField` transform doesn't reliably divide Prometheus (cost) by Loki (event count) in this setup. Tracked as a follow-up: emit a Prometheus-native PR count metric so this becomes a native division."
-      }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "wideLayout": true,
+        "justifyMode": "auto"
+      },
+      "pluginVersion": "13.0.1"
     },
     {
       "id": 6,
       "title": "Cost per commit",
       "description": "Derived: total cost / commits. Both metrics from Prometheus — native division. Tends to be the most stable ROI signal because commits are high-frequency, so the ratio stabilizes quickly.",
       "type": "stat",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 4 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 4
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "noValue": "N/A",
           "unit": "currencyUSD",
           "decimals": 4,
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           }
         }
       },
       "options": {
         "colorMode": "value",
         "graphMode": "none",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range])) / sum(increase(claude_code_commit_count_total[$__range]))"
         }
       ]
     },
     {
       "id": 7,
-      "title": "Cost per story touched (manual)",
-      "description": "Same cross-datasource limitation as 'Cost per PR merged' — compute manually from Total cost and Stories touched above. Tracked for follow-up: emit a Prometheus-native story-count metric.",
-      "type": "text",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 4 },
+      "title": "Cost per story touched",
+      "description": "Cross-datasource divide: A = sum(cost) from Prometheus, B = distinct story_id count from Loki agent.start, C = $A / $B.",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(increase(claude_code_cost_usage_USD_total[$__range]))",
+          "instant": true,
+          "hide": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "count(count by (attributes_story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_story_id != \"\" [$__range])))",
+          "queryType": "instant",
+          "hide": false
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "type": "math",
+          "expression": "$A / $B",
+          "hide": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterByRefId",
+          "options": {
+            "include": "C"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 3,
+          "noValue": "N/A",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "options": {
-        "mode": "markdown",
-        "content": "### Cost per story touched\n\nCompute: **Total cost ÷ Stories touched** (see stats above).\n\nA 'story touched' = any `agent.start` event carrying a `story_id`. Interpret as 'spend per story under active work' rather than 'spend per story finished'."
-      }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "wideLayout": true,
+        "justifyMode": "auto"
+      },
+      "pluginVersion": "13.0.1"
     },
     {
       "id": 8,
       "title": "Cost over time",
       "description": "Cost rate ($ per bucket) across the selected range. Compare against the output timeline below to spot high-spend / low-output windows.",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "unit": "currencyUSD",
           "decimals": 4,
           "custom": {
@@ -220,12 +505,22 @@
         }
       },
       "options": {
-        "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "expr": "sum(increase(claude_code_cost_usage_USD_total[$__interval]))",
           "legendFormat": "cost"
         }
@@ -236,11 +531,21 @@
       "title": "Output over time",
       "description": "Agent dispatches, PRs opened, and PRs merged as bars. Aligns with Cost over time so expensive-but-unproductive windows stand out.",
       "type": "timeseries",
-      "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "bars",
             "fillOpacity": 60,
@@ -249,24 +554,40 @@
         }
       },
       "options": {
-        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "loki", "uid": "loki" },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
           "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} [$__interval]))",
           "legendFormat": "agent.start"
         },
         {
           "refId": "B",
-          "datasource": { "type": "loki", "uid": "loki" },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
           "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.opened\"} [$__interval]))",
           "legendFormat": "pr.opened"
         },
         {
           "refId": "C",
-          "datasource": { "type": "loki", "uid": "loki" },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
           "expr": "sum(count_over_time({service_name=\"vsdd-factory\",event_type=\"pr.merged\"} [$__interval]))",
           "legendFormat": "pr.merged"
         }
@@ -277,25 +598,55 @@
       "title": "Cost by query source",
       "description": "Cost split by claude_code.cost.usage.query_source attribute: main (your direct prompts), subagent (Task-tool dispatches), auxiliary (Claude's background work). Tells you where spend actually goes — often subagents dominate on a factory day.",
       "type": "piechart",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "unit": "currencyUSD",
           "decimals": 4
         }
       },
       "options": {
-        "displayLabels": ["name", "percent"],
-        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
         "pieType": "donut",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "expr": "sum by (query_source) (increase(claude_code_cost_usage_USD_total[$__range]))",
           "legendFormat": "{{query_source}}"
         }
@@ -306,23 +657,42 @@
       "title": "Subagent dispatch efficiency",
       "description": "Agent dispatches per subagent type in the range. Read alongside cost-by-query-source to understand where subagent spend goes. Most-invoked subagents are rarely the most expensive — long-running subagents tend to dominate cost even with few dispatches.",
       "type": "bargauge",
-      "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "displayName": "${__field.labels.attributes_subagent}"
         }
       },
       "options": {
         "displayMode": "lcd",
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "loki", "uid": "loki" },
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
           "expr": "topk(10, sum by (attributes_subagent) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_subagent != \"\" [$__range])))",
           "legendFormat": "{{attributes_subagent}}"
         }
@@ -331,9 +701,19 @@
   ],
   "refresh": "30s",
   "schemaVersion": 38,
-  "tags": ["vsdd-factory", "roi", "cost", "observability"],
-  "templating": { "list": [] },
-  "time": { "from": "now/d", "to": "now" },
+  "tags": [
+    "vsdd-factory",
+    "roi",
+    "cost",
+    "observability"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now/d",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "",
   "title": "Factory ROI — Cost vs Output",

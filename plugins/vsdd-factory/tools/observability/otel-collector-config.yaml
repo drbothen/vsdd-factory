@@ -39,9 +39,18 @@ receivers:
           layout: '%Y-%m-%dT%H:%M:%S%z'
       # Promote useful fields from body attributes into log record attributes
       # so they're queryable in Loki as labels or structured metadata.
+      #
+      # Collector-contrib 0.149+ enforces a hard failure on `move` when the
+      # source field is absent: the whole entry is dropped AND the filelog
+      # consumer aborts reading more lines from that file for the cycle.
+      # Pre-0.94 was lenient. Every move below must carry an `if:` guard
+      # so a single malformed event (e.g. one that only has ts/schema_version
+      # because emit-event was invoked with the wrong arg shape) can't halt
+      # the log tailer.
       - type: move
         from: attributes.type
         to: resource.event_type
+        if: 'attributes.type != nil'
       # hook/reason are only on hook.block / hook.action events — agent.start
       # and agent.stop don't have them. Guard with `if:` so the collector
       # doesn't spam warnings.
@@ -75,6 +84,20 @@ processors:
     send_batch_size: 100
     timeout: 5s
 
+  # Convert delta-temporality counters to cumulative in-flight. Claude Code's
+  # SDK defaults to DELTA temporality; Prometheus's remote_write receiver
+  # only accepts CUMULATIVE. Without this processor, Claude's metrics are
+  # rejected at ingest with "invalid temporality and type combination".
+  #
+  # This processor was added to collector-contrib in 0.115+. Before upgrading
+  # the collector image in v0.76.0, we forced the SDK to emit cumulative at
+  # source via OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
+  # (the 6th env var in the claude-telemetry skill). Now that the processor
+  # is available, we normalize server-side — simpler UX, no env var needed.
+  deltatocumulative:
+    max_streams: 1000
+    max_stale: 5m
+
   # Tag hook-event logs with service.name=vsdd-factory. The Loki exporter
   # promotes the OTel semantic-convention resource attribute `service.name`
   # (dotted, NOT `service_name` with an underscore) to the Loki label
@@ -100,30 +123,33 @@ processors:
         value: claude-code
         action: upsert
 
-  # Promote the listed resource attributes to Loki stream labels. The
-  # `loki.resource.labels` HINT is a LOG RECORD attribute (not a resource
-  # attribute) — placing it on the resource silently does nothing. The
-  # Loki exporter reads this hint off each log record at export time and
-  # pulls the named resource attributes up into the stream label set.
-  # Dashboards query these as Loki labels: {event_type="hook.block"} etc.
-  # Cardinality is bounded: ~4 event_types × ~40 hooks × ~70 reasons ×
-  # ~4 severities — local-Loki comfortable.
-  attributes/loki-label-hint:
-    actions:
-      - key: loki.resource.labels
-        value: "event_type, hook, reason, severity"
-        action: upsert
+  # NOTE (v0.76.0): promotion of event_type/hook/reason/severity to Loki
+  # stream labels is now done on the LOKI side via its `distributor.otlp_config`
+  # (see loki-config.yaml → limits_config.otlp_config.resource_attributes).
+  #
+  # Prior to v0.76.0, we added an `attributes/loki-label-hint` processor
+  # here that stamped each log record with a `loki.resource.labels` hint.
+  # The collector's standalone `loki` exporter (removed in 0.112+) read
+  # that hint at export time and promoted the listed resource attributes.
+  # We now ship to Loki via `otlphttp` and Loki's own OTLP ingester owns
+  # the label decision. The hint-processor is deleted as dead code.
 
 exporters:
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
-    # Loki labels — keep cardinality low. hook/reason go as structured
-    # metadata via default_labels_enabled below rather than labels.
-    default_labels_enabled:
-      exporter: true
-      job: true
-      instance: true
-      level: true
+  # Loki's native OTLP ingester. Collector-contrib removed the dedicated
+  # `loki` exporter somewhere around 0.112 — the official migration path
+  # is OTLP-native, which Loki 3.x supports at /otlp/v1/logs (the
+  # otlphttp exporter appends /v1/logs when the base endpoint uses the
+  # OTLP default path suffix).
+  #
+  # Loki's OTLP handler honors the same `loki.resource.labels` /
+  # `loki.attribute.labels` hints that the removed loki exporter did,
+  # so the label promotion done by `attributes/loki-label-hint` below
+  # still works unchanged. `service.name` (dotted resource attribute)
+  # is still the auto-promoted Loki stream label.
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
 
   # Debug is kept alongside prometheusremotewrite so collector stdout
   # still shows what's flowing, useful for troubleshooting.
@@ -152,12 +178,12 @@ service:
   extensions: [file_storage]
   pipelines:
     # Hook events from .factory/logs → Loki, tagged vsdd-factory.
-    # attributes/loki-label-hint must run AFTER resource so service.name
-    # is set, but BEFORE loki so the hint is in place at export time.
+    # Label promotion happens inside Loki via its otlp_config, so the
+    # collector pipeline just needs resource tagging + batch.
     logs:
       receivers: [filelog]
-      processors: [batch, resource, attributes/loki-label-hint]
-      exporters: [loki]
+      processors: [batch, resource]
+      exporters: [otlphttp/loki]
 
     # Claude Code's native OTel logs → Loki, tagged claude-code.
     # Includes api_request_body, api_response_body, tool_result, prompt
@@ -165,7 +191,7 @@ service:
     logs/claude:
       receivers: [otlp]
       processors: [batch, resource/claude]
-      exporters: [loki]
+      exporters: [otlphttp/loki]
 
     # Metrics from Claude → Prometheus (persistent) + debug (stdout
     # visibility). The resource/claude processor ensures service.name is
@@ -173,7 +199,10 @@ service:
     # persist traces; for now they only show in collector stdout.
     metrics:
       receivers: [otlp]
-      processors: [batch, resource/claude]
+      # deltatocumulative must run BEFORE prometheusremotewrite so the
+      # exporter sees cumulative counters. batch runs last to group the
+      # converted series into fewer remote_write calls.
+      processors: [deltatocumulative, resource/claude, batch]
       exporters: [prometheusremotewrite, debug]
     traces:
       receivers: [otlp]

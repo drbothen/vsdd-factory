@@ -1,6 +1,6 @@
 ---
 name: claude-telemetry
-description: Wire Claude Code's native OpenTelemetry export into the local vsdd-factory observability stack. Writes the five OTEL_* env vars to .claude/settings.local.json so Claude ships its tool calls, token counts, and API events to the same Loki that our hook events use. Reversible; local-only.
+description: Wire Claude Code's native OpenTelemetry export into the local vsdd-factory observability stack. Writes five OTEL_* env vars to .claude/settings.local.json so Claude ships its tool calls, token counts, and API events to the same Loki that our hook events use. Reversible; local-only.
 disable-model-invocation: true
 allowed-tools: Read, Write, Bash
 ---
@@ -18,6 +18,14 @@ This skill manages the five environment variables Claude needs to export
 to our collector. It writes them to `.claude/settings.local.json` under
 the `env` block so the current project's Claude sessions pick them up
 on next start.
+
+> **v0.76.0 note**: Earlier releases required a sixth env var,
+> `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative`, to force
+> Claude to emit cumulative counters (Prometheus's `remote_write` receiver
+> rejects delta temporality). As of v0.76.0 the otel-collector runs the
+> `deltatocumulative` processor (available in collector-contrib 0.115+),
+> which converts in-flight. The env var is no longer needed. If you
+> previously ran this skill, `off` → `on` will prune the stale key.
 
 ## Prerequisites
 
@@ -39,15 +47,15 @@ Before any other action, say verbatim:
 
 | Arg | Effect |
 |---|---|
-| `on` (default) | Write the six OTEL env vars into `.claude/settings.local.json`. |
-| `off` | Remove those six keys (preserves any other `env` entries). |
-| `status` | Print which of the six keys are currently set and their values. |
+| `on` (default) | Write the five OTEL env vars into `.claude/settings.local.json`. Also prunes the legacy 6th key if present. |
+| `off` | Remove those five keys, plus the legacy temporality key, from `env` (preserves any other entries). |
+| `status` | Print which of the five keys are currently set and their values. |
 
 If the user passes something else, show `status` and a usage hint.
 
 ## The env vars
 
-Six keys, all strings, all go under the `env` object:
+Five keys, all strings, all go under the `env` object:
 
 | Key | Value | Why |
 |---|---|---|
@@ -56,14 +64,15 @@ Six keys, all strings, all go under the `env` object:
 | `OTEL_LOGS_EXPORTER` | `"otlp"` | Logs go to Loki via the collector. |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `"http/protobuf"` | Must match the receiver — compose exposes 4318 HTTP, not 4317 gRPC. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `"http://localhost:4318"` | Host the collector is bound to. Override via `VSDD_OBS_OTLP_HTTP_PORT` if 4318 is remapped. |
-| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | `"cumulative"` | Prometheus (via `prometheusremotewrite`) only accepts cumulative counters. Claude's SDK defaults to delta temporality, which the collector then rejects with `invalid temporality and type combination`. This env var tells the SDK to emit cumulative at source. `deltatocumulative` processor would do the conversion in-flight, but it's not available in collector-contrib v0.94.0 — so we normalize at source. |
 
 ## Execute — `on`
 
 1. Determine the target file: `<project_root>/.claude/settings.local.json`.
    If `.claude/` doesn't exist, create it.
 2. Read existing contents (or start with `{}` if the file is missing).
-3. Merge the five keys into the `env` object using `jq`:
+3. Merge the five keys into the `env` object using `jq`, and prune the
+   legacy temporality key in case it was written by an earlier version
+   of this skill:
 
    ```bash
    jq '.env = ((.env // {}) + {
@@ -71,9 +80,9 @@ Six keys, all strings, all go under the `env` object:
        "OTEL_METRICS_EXPORTER": "otlp",
        "OTEL_LOGS_EXPORTER": "otlp",
        "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-       "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318",
-       "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative"
-   })' .claude/settings.local.json > .claude/settings.local.json.tmp \
+       "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318"
+   }) | del(.env.OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE)' \
+     .claude/settings.local.json > .claude/settings.local.json.tmp \
      && mv .claude/settings.local.json.tmp .claude/settings.local.json
    ```
 
@@ -89,7 +98,8 @@ Six keys, all strings, all go under the `env` object:
 
 1. Read `.claude/settings.local.json`. If missing or the keys aren't
    present, print "claude-telemetry already off" and exit.
-2. Remove the five keys using `jq`:
+2. Remove the five keys (plus the legacy temporality key in case it's
+   still present from a prior version of this skill) using `jq`:
 
    ```bash
    jq 'del(
@@ -110,7 +120,9 @@ Six keys, all strings, all go under the `env` object:
 
 Read `.claude/settings.local.json` and print which of the five keys are
 set and their values. If any are missing or mismatched, point that out.
-If the file doesn't exist, print "no .claude/settings.local.json — telemetry off".
+If `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` is present,
+flag it as a legacy key — it's no longer needed and the next `on` will
+prune it. If the file doesn't exist, print "no .claude/settings.local.json — telemetry off".
 
 ## Do not touch
 
