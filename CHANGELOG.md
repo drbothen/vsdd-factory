@@ -1,5 +1,84 @@
 # Changelog
 
+## 0.68.0 — Observability Phase 6.2: agent SLO tracking + factory-sla
+
+Derives per-invocation subagent durations by pairing new `agent.start` and
+`agent.stop` telemetry events. Also closes a test-side papercut where
+`factory-obs dashboard` was opening a browser during BATS runs.
+
+### Added
+
+- **`hooks/track-agent-start.sh`** (PreToolUse on Agent matcher) — emits
+  one `agent.start` event per subagent dispatch. Never blocks; exits 0
+  on every path. Fields: `subagent`, `session_id` (auto from env),
+  `story_id` (best-effort extracted from prompt).
+
+- **`hooks/track-agent-stop.sh`** (SubagentStop, all agents) — emits one
+  `agent.stop` event per subagent completion. Classifies `exit_class`
+  into `ok` / `empty` / `blocked` from the subagent's result text.
+  Fields: `subagent`, `session_id`, `exit_class`, `result_len`.
+
+- **`bin/factory-sla`** — duration analysis CLI. Three subcommands:
+  - `durations` — list each matched (start, stop) pair with
+    session / subagent / timestamps / duration_sec / exit class /
+    story_id. Flags: `--session`, `--subagent`, `--days`, `--limit`,
+    `--tsv`.
+  - `summary` — per-subagent aggregate: count, min, p50, p90, p99,
+    max, mean (seconds).
+  - `open` — starts without matching stops (in-flight or orphaned).
+
+  Pairing rule: per `(session_id, subagent)` tuple, each `agent.stop`
+  pairs with the most recent unpaired `agent.start`. Nested dispatches
+  of the same subagent in one session stack correctly.
+
+- **`emit-event`** — new `ts_epoch` field (Unix seconds) alongside `ts`.
+  Additive schema change. Tools computing durations should prefer
+  `ts_epoch` since tz-offset `ts` parsing varies across platforms.
+
+### Fixed
+
+- **`bin/factory-obs dashboard`** — no longer launches a browser in
+  non-interactive contexts (BATS runs, CI). Gated by `[ -t 1 ]` TTY
+  check, with an explicit `VSDD_OBS_OPEN_BROWSER` env var override
+  (`1` forces, `0` suppresses, unset = auto). Tests now pass
+  `VSDD_OBS_OPEN_BROWSER=0` explicitly.
+
+  Side benefit: the dashboard URL was being opened even when the Docker
+  stack wasn't running — browser would show connection-refused. The
+  TTY gate prevents both issues.
+
+### Changed
+
+- **`hooks/hooks.json`** — wires the two new telemetry hooks into the
+  Agent / SubagentStop matchers. They run alongside existing validators
+  (wave-gate-prerequisite, pr-merge-prerequisites, handoff-validator,
+  etc.), not replacing anything.
+
+### Added (tests)
+
+- **`tests/agent-tracking.bats`** (new) — 14 tests: track-agent-start
+  (emission on Agent, story_id extraction, non-Agent no-op,
+  CLAUDE_PLUGIN_ROOT resilience), track-agent-stop (emission,
+  exit_class classification for ok/empty/blocked, resilience), and
+  hooks.json wiring.
+
+- **`tests/factory-sla.bats`** (new) — 21 tests: structural, durations
+  with session/subagent filters, TSV output, exit class display,
+  story_id propagation, summary percentile correctness, open-unmatched
+  detection, empty-state graceful handling.
+
+- **`tests/emit-event.bats`** — 1 new test (41 total) asserting
+  `ts_epoch` is an integer in a sane range.
+
+- 1073 tests across 35 suites, 0 failures.
+
+### Deferred to Phase 6.3
+
+- **Pipeline flame graphs** — would need a shift from logs-based
+  emission to OTel tracing spans (parent/child relationships for nested
+  subagent dispatches), plus adding Tempo to the Docker stack. Bigger
+  architectural move; worth its own release.
+
 ## 0.67.0 — Observability Phase 6.1: session ID injection + factory-replay
 
 Foundation for session-scoped analysis. Events now carry `session_id`
