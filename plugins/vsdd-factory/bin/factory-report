@@ -1,0 +1,254 @@
+#!/bin/bash
+# factory-report — markdown-formatted summary of the observability event log.
+#
+# Subcommands:
+#   daily [--date YYYY-MM-DD]     — single-day report (default: today)
+#   weekly [--end YYYY-MM-DD]     — trailing 7 days ending at --end (default: today)
+#   range --from FROM --to TO     — arbitrary date range
+#   help
+#
+# Output is markdown — good for pasting into PRs, posting to Slack, or piping
+# through `glow` / `mdcat` for pretty rendering.
+#
+# Reads events from $VSDD_LOG_DIR (default .factory/logs/).
+#
+# Portable bash. Requires jq. macOS + Linux + WSL/git-bash.
+
+set -u
+
+usage() {
+  cat <<'EOF'
+Usage:
+  factory-report daily [--date YYYY-MM-DD]
+  factory-report weekly [--end YYYY-MM-DD]
+  factory-report range --from YYYY-MM-DD --to YYYY-MM-DD
+  factory-report help
+
+Env:
+  VSDD_LOG_DIR  (default: .factory/logs)
+
+Output is markdown. Examples:
+  factory-report daily
+  factory-report weekly > weekly-report.md
+  factory-report range --from 2026-04-01 --to 2026-04-22
+EOF
+}
+
+_date_today() { date +%Y-%m-%d; }
+
+_date_n_days_ago() {
+  local n="$1"
+  if date -v-1d +%Y-%m-%d >/dev/null 2>&1; then
+    date -v-"${n}"d +%Y-%m-%d
+  else
+    date -d "${n} days ago" +%Y-%m-%d
+  fi
+}
+
+LOG_DIR="${VSDD_LOG_DIR:-.factory/logs}"
+
+# Collect events between FROM and TO inclusive (YYYY-MM-DD strings).
+# Stream to stdout.
+_stream_range() {
+  local from="$1" to="$2"
+  if [ ! -d "$LOG_DIR" ]; then return 0; fi
+  for f in "$LOG_DIR"/events-*.jsonl; do
+    [ -e "$f" ] || continue
+    local fname
+    fname=$(basename "$f")
+    local fdate="${fname#events-}"
+    fdate="${fdate%.jsonl}"
+    if [[ "$fdate" < "$from" ]] || [[ "$fdate" > "$to" ]]; then
+      continue
+    fi
+    cat "$f"
+  done
+}
+
+# Generate the report body from a streamed event source.
+# Stdin: JSONL event stream. Args: from, to (for header).
+_render_report() {
+  local from="$1" to="$2"
+  local tmp
+  tmp=$(mktemp)
+  cat > "$tmp"
+
+  local total blocks warns actions
+  total=$(wc -l < "$tmp" | tr -d ' ')
+  blocks=$(jq -r 'select(.type == "hook.block" and (.severity // "block") == "block") | .reason' "$tmp" 2>/dev/null | wc -l | tr -d ' ')
+  warns=$(jq -r 'select(.type == "hook.block" and .severity == "warn") | .reason' "$tmp" 2>/dev/null | wc -l | tr -d ' ')
+  actions=$(jq -r 'select(.type == "hook.action") | .reason' "$tmp" 2>/dev/null | wc -l | tr -d ' ')
+
+  echo "# Factory event report"
+  echo ""
+  if [ "$from" = "$to" ]; then
+    echo "**Date:** $from"
+  else
+    echo "**Range:** $from → $to ($(( $(_days_between "$from" "$to") + 1 )) day(s))"
+  fi
+  echo "**Log dir:** \`$LOG_DIR\`"
+  echo ""
+  echo "## Summary"
+  echo ""
+  echo "| Metric | Count |"
+  echo "|--------|------:|"
+  echo "| Total events | $total |"
+  echo "| Blocks (hard) | $blocks |"
+  echo "| Blocks (warn) | $warns |"
+  echo "| Actions | $actions |"
+  echo ""
+
+  if [ "$total" -eq 0 ]; then
+    echo "_No events in this range._"
+    rm -f "$tmp"
+    return 0
+  fi
+
+  echo "## Top block reasons"
+  echo ""
+  local top_reasons
+  top_reasons=$(jq -r 'select(.type == "hook.block") | "\(.hook)\t\(.reason)\t\(.severity // "block")"' "$tmp" 2>/dev/null \
+    | sort | uniq -c | sort -rn | head -10 \
+    | awk '{printf "| %s | `%s` | %s | %s |\n", $1, $3, $4, $2}')
+  if [ -n "$top_reasons" ]; then
+    echo "| Count | Reason | Severity | Hook |"
+    echo "|------:|--------|----------|------|"
+    echo "$top_reasons"
+  else
+    echo "_(none)_"
+  fi
+  echo ""
+
+  echo "## Hook activity"
+  echo ""
+  local by_hook
+  by_hook=$(jq -r '.hook // empty' "$tmp" 2>/dev/null | sort | uniq -c | sort -rn \
+    | awk '{printf "| %s | `%s` |\n", $1, $2}')
+  if [ -n "$by_hook" ]; then
+    echo "| Count | Hook |"
+    echo "|------:|------|"
+    echo "$by_hook"
+  else
+    echo "_(none)_"
+  fi
+  echo ""
+
+  # Wave merges — a particularly interesting slice of hook.action events
+  local wave_merges
+  wave_merges=$(jq -r 'select(.type == "hook.action" and .reason == "wave_merge_recorded") | "\(.ts)\t\(.wave // "?")\t\(.story_id // "?")\t\(.gate_transitioned // "?")"' "$tmp" 2>/dev/null \
+    | sort \
+    | awk -F'\t' '{printf "| %s | `%s` | `%s` | %s |\n", $1, $2, $3, $4}')
+  if [ -n "$wave_merges" ]; then
+    echo "## Wave merges"
+    echo ""
+    echo "| Timestamp | Wave | Story | Gate transitioned |"
+    echo "|-----------|------|-------|-------------------|"
+    echo "$wave_merges"
+    echo ""
+  fi
+
+  # Session-end warnings
+  local session_warns
+  session_warns=$(jq -r 'select(.reason == "pending_wave_gate_at_session_end") | "\(.ts)\t\(.pending_waves // "?")"' "$tmp" 2>/dev/null \
+    | awk -F'\t' '{printf "| %s | `%s` |\n", $1, $2}')
+  if [ -n "$session_warns" ]; then
+    echo "## Session-end gate warnings"
+    echo ""
+    echo "| Timestamp | Pending waves |"
+    echo "|-----------|---------------|"
+    echo "$session_warns"
+    echo ""
+  fi
+
+  rm -f "$tmp"
+}
+
+# Rough day-between calculation for header line. Uses portable date if available.
+_days_between() {
+  local from="$1" to="$2"
+  local from_epoch to_epoch
+  if date -j -f "%Y-%m-%d" "$from" +%s >/dev/null 2>&1; then
+    # BSD
+    from_epoch=$(date -j -f "%Y-%m-%d" "$from" +%s)
+    to_epoch=$(date -j -f "%Y-%m-%d" "$to" +%s)
+  else
+    # GNU
+    from_epoch=$(date -d "$from" +%s)
+    to_epoch=$(date -d "$to" +%s)
+  fi
+  echo $(( (to_epoch - from_epoch) / 86400 ))
+}
+
+# --- Subcommands ---
+cmd_daily() {
+  local d
+  d=$(_date_today)
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --date) d="$2"; shift 2 ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _stream_range "$d" "$d" | _render_report "$d" "$d"
+}
+
+cmd_weekly() {
+  local end from
+  end=$(_date_today)
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --end) end="$2"; shift 2 ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  # 7-day trailing window: from = end - 6 days
+  # Use _date_n_days_ago with today-based math only if end is today.
+  # For arbitrary --end, fall back to portable arithmetic.
+  if [ "$end" = "$(_date_today)" ]; then
+    from=$(_date_n_days_ago 6)
+  else
+    # Compute from = end - 6 days using BSD or GNU date.
+    if date -j -f "%Y-%m-%d" "$end" -v-6d +%Y-%m-%d >/dev/null 2>&1; then
+      from=$(date -j -f "%Y-%m-%d" "$end" -v-6d +%Y-%m-%d)
+    else
+      from=$(date -d "$end - 6 days" +%Y-%m-%d)
+    fi
+  fi
+  _stream_range "$from" "$end" | _render_report "$from" "$end"
+}
+
+cmd_range() {
+  local from="" to=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --from) from="$2"; shift 2 ;;
+      --to) to="$2"; shift 2 ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  if [ -z "$from" ] || [ -z "$to" ]; then
+    echo "usage: factory-report range --from YYYY-MM-DD --to YYYY-MM-DD" >&2
+    return 1
+  fi
+  _stream_range "$from" "$to" | _render_report "$from" "$to"
+}
+
+# --- Dispatch ---
+if ! command -v jq >/dev/null 2>&1; then
+  echo "factory-report: jq is required (brew install jq)" >&2
+  exit 1
+fi
+
+if [ $# -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+sub="$1"; shift
+case "$sub" in
+  daily) cmd_daily "$@" ;;
+  weekly) cmd_weekly "$@" ;;
+  range) cmd_range "$@" ;;
+  help|--help|-h) usage ;;
+  *) echo "unknown subcommand: $sub" >&2; usage >&2; exit 1 ;;
+esac

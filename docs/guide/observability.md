@@ -116,44 +116,73 @@ resulting JSON.
 
 ---
 
-## Querying logs with jq
+## Querying logs
 
-All useful queries against a daily log file are one-line `jq` expressions
-against the stream of JSON objects (use `-s` to slurp into an array, or
-streaming operators for larger files).
+As of v0.64.0 there are two shipped CLIs for summarizing the event log.
+Both read `$VSDD_LOG_DIR` (default `.factory/logs/`) and require `jq`.
 
-### Top block reasons
+### `bin/factory-query` — canned queries
+
+Six focused subcommands:
 
 ```bash
+# Top block reasons and hooks (last 7 days, top 10 each)
+factory-query top --days 7 --limit 10
+
+# Latest 20 events, filtering to warn-severity only
+factory-query recent --limit 20 --severity warn
+
+# All events with a specific reason
+factory-query grep catastrophic_root
+
+# Block counts per hook
+factory-query hooks --days 30
+
+# Aggregate stats: total events, blocks/warns/actions split
+factory-query stats --days 30
+
+# Every unique (type, severity, hook, reason) combination with counts
+factory-query reasons
+```
+
+All subcommands accept `--tsv` for pipe-friendly output. Date filtering
+uses `--days N` which filters by log file date stamp (portable across
+macOS/Linux/WSL without needing `date -d`).
+
+Shortcut for one-off questions — raw `jq` still works:
+
+```bash
+# Top block reasons
 jq -r '.reason' .factory/logs/events-*.jsonl | sort | uniq -c | sort -rn | head
+
+# All events at a given hour
+jq -r 'select(.ts | startswith("2026-04-22T14"))' .factory/logs/events-*.jsonl
 ```
 
-### Blocks per hook
+### `bin/factory-report` — markdown summaries
+
+Produces markdown output suitable for pasting into PRs, Slack, or piping
+through `glow` / `mdcat` for rendered terminal output:
 
 ```bash
-jq -r '.hook' .factory/logs/events-*.jsonl | sort | uniq -c | sort -rn
+# Today's report
+factory-report daily
+
+# Yesterday
+factory-report daily --date 2026-04-21
+
+# Trailing 7 days (ending today)
+factory-report weekly > weekly-report.md
+
+# Arbitrary range
+factory-report range --from 2026-04-01 --to 2026-04-22
 ```
 
-### All catastrophic blocks this week
-
-```bash
-jq -r 'select(.reason == "catastrophic_root") | "\(.ts)\t\(.command)"' \
-  .factory/logs/events-*.jsonl
-```
-
-### Blocks by hour
-
-```bash
-jq -r '.ts | .[0:13]' .factory/logs/events-*.jsonl | sort | uniq -c
-```
-
-### Signal vs noise (blocks per day)
-
-```bash
-for f in .factory/logs/events-*.jsonl; do
-  echo "$(basename $f .jsonl): $(wc -l < $f) events"
-done
-```
+Each report contains: summary totals (events / blocks / warns / actions),
+top block reasons table, hook activity table, wave merges table
+(if any `wave_merge_recorded` events in range), and session-end gate
+warnings table (if any). Empty ranges produce a clean "no events in this
+range" report rather than erroring.
 
 ---
 
@@ -428,8 +457,7 @@ happy path — impact on normal sessions is zero.
 | 2d.2 | Instrument 7 structural validators | Shipped in [v0.61.0](../../CHANGELOG.md) |
 | 2d.3 | Instrument 10 workflow/specialized validators | Shipped in [v0.62.0](../../CHANGELOG.md) |
 | 2e | Instrument 5 SubagentStop + Stop hooks (Phase 2 COMPLETE) | Shipped in [v0.63.0](../../CHANGELOG.md) |
-| 2e | Instrument 6 SubagentStop + Stop hooks | Planned |
-| 3 | `bin/factory-query` canned queries + `bin/factory-report` | Planned |
+| 3 | `bin/factory-query` canned queries + `bin/factory-report` | Shipped in [v0.64.0](../../CHANGELOG.md) |
 | 4 | `/factory-health` slash command | Planned |
 | 5 | Local Docker observability stack (OTel Collector + Grafana LGTM) | Planned |
 | 6 | Session replay, agent SLO tracking, pipeline flame graphs | Planned |

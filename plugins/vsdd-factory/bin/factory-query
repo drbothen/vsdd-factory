@@ -1,0 +1,339 @@
+#!/bin/bash
+# factory-query — canned queries against the observability event log.
+#
+# Reads events from $VSDD_LOG_DIR (default .factory/logs/) and summarizes
+# block/action events captured by instrumented hooks.
+#
+# Subcommands:
+#   top         — top reason codes + hooks by count
+#   recent      — latest events
+#   grep        — events matching a reason code
+#   hooks       — block counts per hook
+#   stats       — aggregate counts (blocks, warns, actions)
+#   reasons     — list all reason codes that have fired, with counts
+#   help        — show usage
+#
+# Flags (varies by subcommand):
+#   --days N     limit to last N days (default: all)
+#   --limit N    cap output rows (default: 10 for top/recent)
+#   --severity S filter: block (default), warn, any
+#   --type T     filter: hook.block, hook.action, any (default any)
+#   --tsv        tab-separated output (pipe-friendly)
+#
+# Portable bash. Requires jq. macOS + Linux + WSL/git-bash.
+
+set -u
+
+# Do NOT set -e — we want graceful handling of empty results, missing files.
+
+usage() {
+  cat <<'EOF'
+Usage:
+  factory-query top [--days N] [--limit N] [--tsv]
+  factory-query recent [--limit N] [--severity warn|block|any] [--type hook.block|hook.action|any] [--tsv]
+  factory-query grep <reason_code> [--limit N] [--tsv]
+  factory-query hooks [--days N] [--tsv]
+  factory-query stats [--days N]
+  factory-query reasons [--days N] [--tsv]
+  factory-query help
+
+Env:
+  VSDD_LOG_DIR  (default: .factory/logs)
+
+Examples:
+  factory-query top --days 7
+  factory-query recent --limit 20 --severity warn
+  factory-query grep catastrophic_root
+  factory-query stats --days 30
+EOF
+}
+
+# --- Portable date helpers ---
+# Return YYYY-MM-DD for today / N days ago. Handles BSD + GNU date.
+_date_today() {
+  date +%Y-%m-%d
+}
+
+_date_n_days_ago() {
+  local n="$1"
+  if date -v-1d +%Y-%m-%d >/dev/null 2>&1; then
+    date -v-"${n}"d +%Y-%m-%d
+  else
+    date -d "${n} days ago" +%Y-%m-%d
+  fi
+}
+
+# --- Log file discovery ---
+LOG_DIR="${VSDD_LOG_DIR:-.factory/logs}"
+
+# Collect list of log files, optionally filtered by date range.
+# Sets global LOG_FILES array.
+_collect_logs() {
+  local days="${1:-}"
+  LOG_FILES=()
+  if [ ! -d "$LOG_DIR" ]; then
+    return 0
+  fi
+  local cutoff=""
+  if [ -n "$days" ] && [ "$days" -gt 0 ] 2>/dev/null; then
+    cutoff=$(_date_n_days_ago "$days")
+  fi
+  # events-YYYY-MM-DD.jsonl sorts lexicographically == chronologically
+  for f in "$LOG_DIR"/events-*.jsonl; do
+    [ -e "$f" ] || continue
+    if [ -n "$cutoff" ]; then
+      # Extract date from filename
+      local fname
+      fname=$(basename "$f")
+      local fdate="${fname#events-}"
+      fdate="${fdate%.jsonl}"
+      # Skip if fdate < cutoff (string compare works for YYYY-MM-DD)
+      if [[ "$fdate" < "$cutoff" ]]; then
+        continue
+      fi
+    fi
+    LOG_FILES+=("$f")
+  done
+}
+
+# Concatenate all matching logs to stdout. Empty output if none.
+_stream() {
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    return 0
+  fi
+  cat "${LOG_FILES[@]}"
+}
+
+# --- Subcommand: top ---
+cmd_top() {
+  local days="" limit=10 tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --days) days="$2"; shift 2 ;;
+      --limit) limit="$2"; shift 2 ;;
+      --tsv) tsv=1; shift ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs "$days"
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR${days:+ (last $days days)}"
+    return 0
+  fi
+
+  echo "== Top reason codes${days:+ (last $days days)} =="
+  local reason_out
+  # jq emits "hook<TAB>reason" lines. uniq -c adds leading count; awk splits
+  # on whitespace (including tab) so $1=count, $2=hook, $3=reason.
+  reason_out=$(_stream | jq -r 'select(.type == "hook.block") | "\(.hook)\t\(.reason)"' 2>/dev/null \
+    | sort | uniq -c | sort -rn | head -"$limit" \
+    | awk '{printf "%s\t%s\t%s\n", $1, $3, $2}')
+  if [ "$tsv" -eq 1 ]; then
+    echo "$reason_out"
+  else
+    { printf 'Count\tReason\tHook\n'; printf '%s\n' "$reason_out"; } | column -t -s $'\t'
+  fi
+
+  echo ""
+  echo "== Top hooks${days:+ (last $days days)} =="
+  local hook_out
+  hook_out=$(_stream | jq -r 'select(.type == "hook.block") | .hook' 2>/dev/null \
+    | sort | uniq -c | sort -rn | head -"$limit" \
+    | awk '{printf "%s\t%s\n", $1, $2}')
+  if [ "$tsv" -eq 1 ]; then
+    echo "$hook_out"
+  else
+    { printf 'Count\tHook\n'; printf '%s\n' "$hook_out"; } | column -t -s $'\t'
+  fi
+}
+
+# --- Subcommand: recent ---
+cmd_recent() {
+  local limit=10 severity=any evtype=any tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --limit) limit="$2"; shift 2 ;;
+      --severity) severity="$2"; shift 2 ;;
+      --type) evtype="$2"; shift 2 ;;
+      --tsv) tsv=1; shift ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs ""
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR"
+    return 0
+  fi
+
+  # Build jq filter
+  local filt='.'
+  if [ "$evtype" != "any" ]; then
+    filt="$filt | select(.type == \"$evtype\")"
+  fi
+  case "$severity" in
+    warn) filt="$filt | select(.severity == \"warn\")" ;;
+    block) filt="$filt | select(.severity != \"warn\")" ;;
+    any) ;;
+    *) echo "unknown severity: $severity (expected: warn, block, any)" >&2; return 1 ;;
+  esac
+
+  local out
+  out=$(_stream | jq -r "$filt | [.ts, (if .type == \"hook.action\" then \"action\" else (.severity // \"block\") end), .hook, .reason] | @tsv" 2>/dev/null \
+    | tail -"$limit")
+
+  if [ -z "$out" ]; then
+    echo "(no matching events)"
+    return 0
+  fi
+  if [ "$tsv" -eq 1 ]; then
+    echo "$out"
+  else
+    { printf 'TS\tSeverity\tHook\tReason\n'; printf '%s\n' "$out"; } | column -t -s $'\t'
+  fi
+}
+
+# --- Subcommand: grep ---
+cmd_grep() {
+  local reason="" limit=50 tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --limit) limit="$2"; shift 2 ;;
+      --tsv) tsv=1; shift ;;
+      --*) echo "unknown flag: $1" >&2; return 1 ;;
+      *) reason="$1"; shift ;;
+    esac
+  done
+  if [ -z "$reason" ]; then
+    echo "usage: factory-query grep <reason_code>" >&2
+    return 1
+  fi
+  _collect_logs ""
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR"
+    return 0
+  fi
+  local out
+  out=$(_stream | jq -c --arg r "$reason" 'select(.reason == $r)' 2>/dev/null \
+    | tail -"$limit")
+  if [ -z "$out" ]; then
+    echo "(no events with reason=$reason)"
+    return 0
+  fi
+  echo "$out"
+}
+
+# --- Subcommand: hooks ---
+cmd_hooks() {
+  local days="" tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --days) days="$2"; shift 2 ;;
+      --tsv) tsv=1; shift ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs "$days"
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR${days:+ (last $days days)}"
+    return 0
+  fi
+  local out
+  out=$(_stream | jq -r '.hook // empty' 2>/dev/null | sort | uniq -c | sort -rn \
+    | awk '{printf "%s\t%s\n", $1, $2}')
+  if [ "$tsv" -eq 1 ]; then
+    echo "$out"
+  else
+    { printf 'Count\tHook\n'; printf '%s\n' "$out"; } | column -t -s $'\t'
+  fi
+}
+
+# --- Subcommand: stats ---
+cmd_stats() {
+  local days=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --days) days="$2"; shift 2 ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs "$days"
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR${days:+ (last $days days)}"
+    return 0
+  fi
+
+  local total blocks warns actions unique_reasons unique_hooks
+  total=$(_stream | jq -r '.type' 2>/dev/null | wc -l | tr -d ' ')
+  blocks=$(_stream | jq -r 'select(.type == "hook.block" and (.severity // "block") == "block") | .reason' 2>/dev/null | wc -l | tr -d ' ')
+  warns=$(_stream | jq -r 'select(.type == "hook.block" and .severity == "warn") | .reason' 2>/dev/null | wc -l | tr -d ' ')
+  actions=$(_stream | jq -r 'select(.type == "hook.action") | .reason' 2>/dev/null | wc -l | tr -d ' ')
+  unique_reasons=$(_stream | jq -r '.reason // empty' 2>/dev/null | sort -u | wc -l | tr -d ' ')
+  unique_hooks=$(_stream | jq -r '.hook // empty' 2>/dev/null | sort -u | wc -l | tr -d ' ')
+
+  local file_count="${#LOG_FILES[@]}"
+  local first last
+  first=$(basename "${LOG_FILES[0]}" .jsonl | sed 's/^events-//')
+  last=$(basename "${LOG_FILES[$((file_count-1))]}" .jsonl | sed 's/^events-//')
+
+  cat <<EOF
+Factory event log statistics${days:+ (last $days days)}
+  Log directory:   $LOG_DIR
+  Daily files:     $file_count   (${first} → ${last})
+  Total events:    $total
+  Blocks (hard):   $blocks
+  Blocks (warn):   $warns
+  Actions:         $actions
+  Unique reasons:  $unique_reasons
+  Unique hooks:    $unique_hooks
+EOF
+}
+
+# --- Subcommand: reasons ---
+cmd_reasons() {
+  local days="" tsv=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --days) days="$2"; shift 2 ;;
+      --tsv) tsv=1; shift ;;
+      *) echo "unknown flag: $1" >&2; return 1 ;;
+    esac
+  done
+  _collect_logs "$days"
+  if [ "${#LOG_FILES[@]}" -eq 0 ]; then
+    echo "No events found in $LOG_DIR${days:+ (last $days days)}"
+    return 0
+  fi
+  local out
+  # Treat hook.action as its own severity tier so it doesn't get grouped with block
+  out=$(_stream | jq -r '"\(.type // "?")\t\(if .type == "hook.action" then "action" else (.severity // "block") end)\t\(.hook // "?")\t\(.reason // "?")"' 2>/dev/null \
+    | sort | uniq -c | sort -rn \
+    | awk '{printf "%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5}')
+  if [ "$tsv" -eq 1 ]; then
+    echo "$out"
+  else
+    { printf 'Count\tType\tSeverity\tHook\tReason\n'; printf '%s\n' "$out"; } | column -t -s $'\t'
+  fi
+}
+
+# --- Dispatch ---
+if ! command -v jq >/dev/null 2>&1; then
+  echo "factory-query: jq is required (brew install jq)" >&2
+  exit 1
+fi
+
+if [ $# -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+sub="$1"; shift
+case "$sub" in
+  top) cmd_top "$@" ;;
+  recent) cmd_recent "$@" ;;
+  grep) cmd_grep "$@" ;;
+  hooks) cmd_hooks "$@" ;;
+  stats) cmd_stats "$@" ;;
+  reasons) cmd_reasons "$@" ;;
+  help|--help|-h) usage ;;
+  *) echo "unknown subcommand: $sub" >&2; usage >&2; exit 1 ;;
+esac

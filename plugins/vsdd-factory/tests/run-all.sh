@@ -86,6 +86,14 @@ echo "== SubagentStop/Stop hooks emission tests =="
 bats tests/stop-hooks-emission.bats
 
 echo
+echo "== factory-query CLI tests =="
+bats tests/factory-query.bats
+
+echo
+echo "== factory-report CLI tests =="
+bats tests/factory-report.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 
