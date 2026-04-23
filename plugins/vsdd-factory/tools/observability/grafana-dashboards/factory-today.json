@@ -221,7 +221,7 @@
         "displayMode": "lcd",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["sum"],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         }
@@ -243,14 +243,15 @@
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 12 },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" }
+          "color": { "mode": "palette-classic" },
+          "displayName": "${__field.labels.attributes_tool_name}"
         }
       },
       "options": {
         "displayMode": "lcd",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["sum"],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         }
@@ -272,14 +273,15 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" }
+          "color": { "mode": "palette-classic" },
+          "displayName": "${__field.labels.attributes_story_id}"
         }
       },
       "options": {
         "displayMode": "lcd",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["sum"],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         }
