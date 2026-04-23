@@ -342,3 +342,44 @@ setup() {
 @test "dashboard: claude-cost queries claude_code_token_usage_tokens_total" {
   grep -q "claude_code_token_usage_tokens_total" "$OBS_DIR/grafana-dashboards/claude-cost.json"
 }
+
+# ---------- Factory ROI dashboard (v0.74.0) ----------
+
+@test "dashboard: factory-roi.json parses" {
+  python3 -c "import json; json.load(open('$OBS_DIR/grafana-dashboards/factory-roi.json'))"
+}
+
+@test "dashboard: factory-roi has stable UID" {
+  [ "$(jq -r .uid "$OBS_DIR/grafana-dashboards/factory-roi.json")" = "factory-roi" ]
+}
+
+@test "dashboard: factory-roi has at least 8 panels" {
+  local n
+  n=$(jq '.panels | length' "$OBS_DIR/grafana-dashboards/factory-roi.json")
+  [ "$n" -ge 8 ]
+}
+
+@test "dashboard: factory-roi queries both cost and pr.merged event" {
+  # Cross-datasource panels are the whole point of this dashboard.
+  grep -q "claude_code_cost_usage_USD_total" "$OBS_DIR/grafana-dashboards/factory-roi.json"
+  grep -q "event_type=\\\\\"pr.merged\\\\\"" "$OBS_DIR/grafana-dashboards/factory-roi.json"
+}
+
+@test "dashboard: factory-roi has cost-per-X derived panels" {
+  # Three derived ratio panels are load-bearing for the ROI narrative.
+  jq -e '.panels[] | select(.title == "Cost per PR merged")' \
+    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per commit")' \
+    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
+  jq -e '.panels[] | select(.title == "Cost per story touched")' \
+    "$OBS_DIR/grafana-dashboards/factory-roi.json" >/dev/null
+}
+
+@test "dashboard: factory-roi mixed-datasource panels use joinByField + calculateField transforms" {
+  # The cross-datasource cost-per-X stat panels depend on Grafana transforms
+  # to divide the two queries. Missing transforms = broken derived values.
+  local count
+  count=$(jq '[.panels[] | select(.datasource.uid == "-- Mixed --") | .transformations] | length' \
+    "$OBS_DIR/grafana-dashboards/factory-roi.json")
+  [ "$count" -ge 2 ]
+}
