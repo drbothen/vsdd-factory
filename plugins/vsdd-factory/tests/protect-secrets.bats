@@ -321,3 +321,89 @@ _run_read() {
   _run_bash "cat .env"
   [[ "$output" == *"Suggestion:"* ]]
 }
+
+# ---------- Emit-event integration ----------
+
+_run_bash_with_emit() {
+  local cmd="$1"
+  local input
+  input=$(jq -nc --arg c "$cmd" '{tool_name: "Bash", tool_input: {command: $c}}')
+  export CLAUDE_PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
+  export VSDD_LOG_DIR="$EMIT_TMPDIR"
+  run bash -c "echo '$input' | '$HOOK' 2>&1"
+  unset CLAUDE_PLUGIN_ROOT VSDD_LOG_DIR
+}
+
+_run_read_with_emit() {
+  local path="$1"
+  local input
+  input=$(jq -nc --arg p "$path" '{tool_name: "Read", tool_input: {file_path: $p}}')
+  export CLAUDE_PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
+  export VSDD_LOG_DIR="$EMIT_TMPDIR"
+  run bash -c "echo '$input' | '$HOOK' 2>&1"
+  unset CLAUDE_PLUGIN_ROOT VSDD_LOG_DIR
+}
+
+@test "emit: Read .env emits env_file_read_direct" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_read_with_emit ".env"
+  [ "$status" -eq 2 ]
+  local logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
+  [ -n "$logfile" ]
+  [ "$(jq -r '.type' < "$logfile")" = "hook.block" ]
+  [ "$(jq -r '.hook' < "$logfile")" = "protect-secrets" ]
+  [ "$(jq -r '.reason' < "$logfile")" = "env_file_read_direct" ]
+  [ "$(jq -r '.matcher' < "$logfile")" = "Read" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: cat .env emits env_file_read_shell" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_bash_with_emit "cat .env"
+  [ "$status" -eq 2 ]
+  local logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
+  [ "$(jq -r '.reason' < "$logfile")" = "env_file_read_shell" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: echo \$GITHUB_TOKEN emits secret_var_echo" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_bash_with_emit 'echo $GITHUB_TOKEN'
+  [ "$status" -eq 2 ]
+  local logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
+  [ "$(jq -r '.reason' < "$logfile")" = "secret_var_echo" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: cp .env /tmp emits env_file_copy" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_bash_with_emit "cp .env /tmp/"
+  [ "$status" -eq 2 ]
+  local logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
+  [ "$(jq -r '.reason' < "$logfile")" = "env_file_copy" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: allowed Read produces NO event" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_read_with_emit "README.md"
+  [ "$status" -eq 0 ]
+  [ -z "$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null)" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: hook still blocks when CLAUDE_PLUGIN_ROOT is unset" {
+  local input
+  input=$(jq -nc --arg p ".env" '{tool_name: "Read", tool_input: {file_path: $p}}')
+  run bash -c "unset CLAUDE_PLUGIN_ROOT; echo '$input' | '$HOOK' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+}
+
+@test "emit: hook still blocks when emit-event path is broken" {
+  local input
+  input=$(jq -nc --arg p ".env" '{tool_name: "Read", tool_input: {file_path: $p}}')
+  run bash -c "CLAUDE_PLUGIN_ROOT='/nonexistent' echo '$input' | '$HOOK' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+}

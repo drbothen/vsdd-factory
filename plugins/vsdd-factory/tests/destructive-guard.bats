@@ -567,3 +567,109 @@ _run_hook() {
   _run_hook "chmod +x plugins/vsdd-factory/hooks/foo.sh"
   [ "$status" -eq 0 ]
 }
+
+# ---------- Emit-event integration ----------
+# These tests verify that (a) events are emitted when the hook blocks, and
+# (b) the hook still blocks correctly even when emit-event is missing or
+# broken. (b) is the critical assertion — failure of the emission path
+# must never change block/pass behavior.
+
+_run_hook_with_emit() {
+  # Like _run_hook, but exports CLAUDE_PLUGIN_ROOT and VSDD_LOG_DIR so events
+  # land in a scratch dir we can inspect. Must export (not `VAR=x cmd`
+  # prefix) because otherwise the var doesn't propagate across the pipe to
+  # the hook binary on the right side.
+  local cmd="$1"
+  local input
+  input=$(jq -nc --arg c "$cmd" '{tool_input: {command: $c}}')
+  export CLAUDE_PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
+  export VSDD_LOG_DIR="$EMIT_TMPDIR"
+  run bash -c "echo '$input' | '$HOOK' 2>&1"
+  unset CLAUDE_PLUGIN_ROOT
+  unset VSDD_LOG_DIR
+}
+
+@test "emit: block event written on rm -rf /" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_hook_with_emit "rm -rf /"
+  local rc=$status
+  local logfile
+  logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
+  [ "$rc" -eq 2 ]
+  [ -n "$logfile" ]
+  local evt
+  evt=$(cat "$logfile")
+  [ "$(echo "$evt" | jq -r '.type')" = "hook.block" ]
+  [ "$(echo "$evt" | jq -r '.hook')" = "destructive-command-guard" ]
+  [ "$(echo "$evt" | jq -r '.reason')" = "catastrophic_root" ]
+  [ "$(echo "$evt" | jq -r '.matcher')" = "Bash" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: reason=git_reset_hard on git reset --hard" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_hook_with_emit "git reset --hard HEAD"
+  [ "$status" -eq 2 ]
+  local logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
+  [ "$(jq -r '.reason' < "$logfile")" = "git_reset_hard" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: reason=sot_delete on rm STATE.md" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_hook_with_emit "rm .factory/STATE.md"
+  [ "$status" -eq 2 ]
+  local logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
+  [ "$(jq -r '.reason' < "$logfile")" = "sot_delete" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: command field carries the original command" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_hook_with_emit "rm -rf .factory/"
+  [ "$status" -eq 2 ]
+  local logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
+  [ "$(jq -r '.command' < "$logfile")" = "rm -rf .factory/" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+@test "emit: allowed commands produce NO event" {
+  EMIT_TMPDIR=$(mktemp -d)
+  _run_hook_with_emit "ls -la"
+  [ "$status" -eq 0 ]
+  [ -z "$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null)" ]
+  rm -rf "$EMIT_TMPDIR"
+}
+
+# --- CRITICAL: hook must still block when emit-event is missing ------------
+
+@test "emit: hook still blocks when CLAUDE_PLUGIN_ROOT is unset" {
+  local input
+  input=$(jq -nc --arg c "rm -rf /" '{tool_input: {command: $c}}')
+  # Explicitly unset CLAUDE_PLUGIN_ROOT
+  run bash -c "unset CLAUDE_PLUGIN_ROOT; echo '$input' | '$HOOK' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+}
+
+@test "emit: hook still blocks when emit-event path is broken" {
+  local input
+  input=$(jq -nc --arg c "rm -rf /" '{tool_input: {command: $c}}')
+  run bash -c "CLAUDE_PLUGIN_ROOT='/nonexistent/path' echo '$input' | '$HOOK' 2>&1"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+}
+
+@test "emit: VSDD_TELEMETRY=off — hook still blocks, no event written" {
+  EMIT_TMPDIR=$(mktemp -d)
+  local input
+  input=$(jq -nc --arg c "rm -rf /" '{tool_input: {command: $c}}')
+  export VSDD_TELEMETRY=off
+  export CLAUDE_PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
+  export VSDD_LOG_DIR="$EMIT_TMPDIR"
+  run bash -c "echo '$input' | '$HOOK' 2>&1"
+  unset VSDD_TELEMETRY CLAUDE_PLUGIN_ROOT VSDD_LOG_DIR
+  [ "$status" -eq 2 ]
+  [ -z "$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null)" ]
+  rm -rf "$EMIT_TMPDIR"
+}
