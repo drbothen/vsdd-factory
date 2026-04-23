@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.77.1 — Factory ROI: Cost per active minute + Cost per active second
+
+Additive re-units for the Cost per active hour panel shipped in v0.77.0.
+Same underlying Claude SDK signal (`claude_code_active_time_seconds_total`),
+different time scales so the displayed value reads naturally for typical
+Claude Code usage patterns.
+
+### Added
+
+- **`grafana-dashboards/factory-roi.json` — Cost per active minute panel
+  (id=13)** — `cost / (active_time / 60)`. Sits alongside Cost per active
+  hour at y=8. Typical reading: tens of dollars per sustained-compute
+  minute with Opus 4.7.
+
+- **`grafana-dashboards/factory-roi.json` — Cost per active second panel
+  (id=14)** — `cost / active_time`. The rawest reading of the same
+  signal. Typical: ~$0.50–$2.00 per second of sustained compute. Useful
+  as a sanity-check — this is roughly what the LLM is charging you in
+  the moment.
+
+All three panels (hour, minute, second) render identical underlying
+math; only the display unit differs. Descriptions on each clarify that
+Claude's `active_time` measures **sustained compute windows**, not
+wall-clock engagement, so these are burst-rate signals rather than
+actual per-hour / per-minute / per-second spend.
+
+### Migration
+
+No breaking changes. Layout unchanged — the two new panels fill empty
+grid slots at x=8, y=8 and x=16, y=8 on the existing row.
+
+Total bats tests: 1154 (up from 1153 at v0.77.0 — one new test covers
+both re-unit panels).
+
 ## 0.77.0 — Fix Cost per commit (real signal) + add Cost per active hour
 
 Replaces a ghost panel that had been showing N/A since v0.74.0, and adds
