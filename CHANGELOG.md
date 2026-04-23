@@ -1,5 +1,101 @@
 # Changelog
 
+## 0.74.0 — Factory ROI dashboard (Phase C — cost/ROI series complete)
+
+Completes the three-phase cost-and-ROI build-out. Phase A (v0.72.0)
+laid the Prometheus foundation and Factory Today. Phase B (v0.73.0)
+shipped the Claude Cost dashboard. Phase C (this release) answers the
+third question in the original trio: **"what was our ROI?"**
+
+### Added
+
+- **`tools/observability/grafana-dashboards/factory-roi.json`** —
+  new "Factory ROI — Cost vs Output" dashboard. 11 panels combining
+  Prometheus (cost) with Loki (output event counts) via Grafana
+  mixed-datasource transformations:
+
+  Top row — raw totals (4 stats):
+  - Total cost (USD, Prometheus)
+  - PRs merged (Loki pr.merged count)
+  - Commits (Prometheus claude_code_commit_count_total)
+  - Stories touched (distinct attributes_story_id on agent.start)
+
+  Derived ratios (3 stats, noValue=N/A):
+  - **Cost per PR merged** — cross-datasource; `joinByField` +
+    `calculateField` Grafana transforms divide Prom cost by Loki count.
+  - **Cost per commit** — Prom-native division
+    (claude_code_cost_usage_USD_total / claude_code_commit_count_total).
+  - **Cost per story touched** — cross-datasource, Prom cost / Loki
+    distinct-story count.
+
+  Trends (2 timeseries):
+  - Cost over time
+  - Output over time (agent.start + pr.opened + pr.merged bars)
+    — designed to read side-by-side with "Cost over time" so
+    expensive-but-unproductive windows stand out visually.
+
+  Breakdown (2):
+  - Cost by query_source (pie: main / subagent / auxiliary) —
+    where the spend actually goes.
+  - Subagent dispatch efficiency (bargauge: top 10 subagents by
+    invocation count).
+
+### Cross-datasource mechanic
+
+Grafana "Mixed" datasource with two targets:
+- `refId: COST` (Prometheus)
+- `refId: PRS` (Loki)
+
+Transformations chain:
+1. `joinByField { byField: "Time", mode: "outer" }` — aligns the
+   two series on the time axis.
+2. `calculateField { binary: { left: COST, operator: "/", right: PRS },
+   replaceFields: true }` — divides and emits a single value field.
+
+Result renders as a stat panel showing a dollar amount. `noValue: "N/A"`
+covers the division-by-zero case for quiet periods.
+
+### ROI story complete
+
+Three dashboards now answer the original questions:
+- **"What did the factory do today?"** — Factory Today (v0.72.0)
+- **"How much did it cost us?"** — Claude Cost & Usage (v0.73.0)
+- **"What was our ROI?"** — Factory ROI (v0.74.0 — this release)
+
+Six dashboards total in the bundle:
+1. Factory Overview (hook events focused)
+2. Claude Code Overview (Claude OTel log events)
+3. Factory Today — Unified Activity
+4. Factory PRs
+5. Claude Cost & Usage
+6. Factory ROI — Cost vs Output
+
+### Added tests
+
+- **`tests/factory-obs.bats`** — 6 new tests covering the ROI
+  dashboard file, UID stability, derived-panel presence, and mixed-
+  datasource transformation plumbing. Suite now at 79 tests.
+
+### Verified
+
+Dashboard loads in Grafana, joins the 6-dashboard list under the VSDD
+Factory folder. Derived ratio panels render "N/A" until denominator
+events appear (expected — the prism session hasn't produced commits
+or PR merges in the current window yet). Cost-over-time timeseries
+populated with real spend ($0.83+).
+
+### Known gap — queued
+
+Open→merge PR duration measurement requires LogQL pairing of
+`pr.opened` and `pr.merged` events by `pr_number`. Backlog (see
+project memory). Approach will likely mirror factory-sla's
+agent-start/stop pairing.
+
+### Migration
+
+`factory-obs down && factory-obs up` (or `docker restart
+vsdd-obs-grafana`) to pick up the new dashboard. No breaking changes.
+
 ## 0.73.1 — PR signal capture hook + cost dashboard metric name fixes + temporality fix
 
 Big follow-up to v0.73.0. Closes backlog task #90 (richer PR signals
