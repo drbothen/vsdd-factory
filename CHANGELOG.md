@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.72.1 — Fix Factory Today stories panel + metrics pipeline verified
+
+Follow-up to v0.72.0. Same class of bug as v0.71.0's Claude-dashboard
+queries: field name mismatch between the raw event JSON and Loki's
+`| json` flattened output.
+
+### Fixed
+
+- **`tools/observability/grafana-dashboards/factory-today.json`** —
+  stories-touched query now uses `attributes_story_id` (Loki's
+  flattened form), not bare `story_id`. Verified live: returns
+  `S-1.07 = 2` against today's prism activity.
+
+### Verified
+
+- **Metrics pipeline end-to-end**: synthetic OTLP push to
+  `http://localhost:4318/v1/metrics` → HTTP 200 → metric appeared in
+  Prometheus as `claude_code_token_usage_synthetic_total` within
+  seconds. The empty Prometheus state in a fresh install is purely a
+  "no Claude session actively emitting" artifact, not a wiring bug.
+
+- **Top tools (Claude) panel**: working as designed. Renders a single
+  large bar when Claude has used only one tool (Bash) in the range;
+  the tool name label sits left of the bar and can crop at narrow
+  window widths.
+
+### Migration
+
+Restart Grafana or `factory-obs down && up` to pick up the dashboard
+fix.
+
 ## 0.72.0 — Prometheus + Factory Today dashboard (Phase A of cost/ROI series)
 
 Phase A of the three-phase cost-and-ROI observability build-out. Lays
