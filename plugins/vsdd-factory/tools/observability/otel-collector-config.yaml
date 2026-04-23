@@ -75,19 +75,27 @@ processors:
     send_batch_size: 100
     timeout: 5s
 
-  # Tag hook-event logs with service_name=vsdd-factory so Loki stream
-  # selectors can distinguish them from Claude's native telemetry.
+  # Tag hook-event logs with service.name=vsdd-factory. The Loki exporter
+  # promotes the OTel semantic-convention resource attribute `service.name`
+  # (dotted, NOT `service_name` with an underscore) to the Loki label
+  # `service_name`. Using the underscore form leaves the attribute as a
+  # plain structured-metadata field while Loki's default "unknown_service"
+  # wins the label, which silently breaks every dashboard query of the
+  # form `{service_name="vsdd-factory"}`. Action must be `upsert` so this
+  # overrides the SDK/collector default.
   resource:
     attributes:
-      - key: service_name
+      - key: service.name
         value: vsdd-factory
-        action: insert
+        action: upsert
 
-  # Tag Claude Code's native OTel logs with service_name=claude-code so
-  # they're queryable separately in Grafana (LogQL: {service_name="claude-code"}).
+  # Same rules for Claude's pipeline — `service.name` dotted, `upsert`.
+  # Claude's SDK already sets `service.name=claude-code` on its own
+  # resource, but we upsert to guarantee the label in case the env
+  # changes or an older Claude build omits it.
   resource/claude:
     attributes:
-      - key: service_name
+      - key: service.name
         value: claude-code
         action: upsert
 
