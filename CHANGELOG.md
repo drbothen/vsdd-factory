@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.56.0 — Observability Phase 1: emit-event safety scaffold
+
+First increment of the local-first observability plan. Ships the foundation
+without instrumenting any hooks yet — the guarantee being proven in this
+release is that **calling the emitter cannot break vsdd-factory** under any
+failure mode.
+
+### Added
+
+- **`bin/emit-event`** — failure-tolerant structured event emitter. Writes
+  one JSON event per invocation to `.factory/logs/events-YYYY-MM-DD.jsonl`.
+  Hard guarantees:
+  - Exits 0 on every path (missing `jq`, missing disk, read-only log dir,
+    malformed args, disk full — all silent drops).
+  - No stdout/stderr on success.
+  - POSIX-portable date format (macOS, Linux, WSL, git-bash).
+  - Atomic append (relies on POSIX PIPE_BUF guarantee, no `flock`).
+  - `VSDD_TELEMETRY=off` kill switch (line-1 short-circuit).
+  - `VSDD_LOG_DIR=<path>` override (default `.factory/logs`).
+  - Args are `key=value` pairs; values may contain any characters (spaces,
+    quotes, newlines, `=`); jq handles escaping.
+  - Auto-adds `ts` (ISO-8601 w/ tz) and `schema_version` (integer) fields.
+
+### Added (tests)
+
+- `tests/emit-event.bats` — 35 tests covering structural checks, exit-code
+  guarantees (garbage args, binary data, 10KB values, 50 field pairs), kill
+  switch, graceful degradation (missing jq, readonly log dir, unwritable
+  parent, auto-creation of deep dirs), emission correctness (valid JSON,
+  ISO-8601 timestamp, schema version, field preservation, quote/backslash
+  escaping, `=` in values, dotted keys stay flat), and append semantics.
+- 827 tests across 22 suites, 0 failures.
+
+### Notes
+
+- Nothing currently calls `emit-event`. Phase 2 will instrument the 21
+  existing hooks to emit events at decision points.
+- Logs land under `.factory/logs/` which is already gitignored on `main`.
+- Target shells: bash on macOS, Linux, WSL, and git-bash. Native PowerShell
+  on Windows is out of scope for Phase 1.
+
 ## 0.55.0 — Harden destructive-command-guard + add protect-secrets hook
 
 ### Added
