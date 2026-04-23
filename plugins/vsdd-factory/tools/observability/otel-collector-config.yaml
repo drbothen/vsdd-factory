@@ -84,21 +84,10 @@ processors:
   # form `{service_name="vsdd-factory"}`. Action must be `upsert` so this
   # overrides the SDK/collector default.
   #
-  # The `loki.resource.labels` hint tells the Loki exporter to promote the
-  # listed resource attributes to Loki stream labels rather than leaving
-  # them as structured metadata. The bundled factory-overview dashboard
-  # queries event_type, hook, reason, and severity as Loki labels (stream
-  # selectors and `by()` groupings), so they MUST be labels, not
-  # structured metadata. Cardinality is bounded: ~4 event_types,
-  # ~40 hooks, ~70 reasons, ~4 severities — total streams stay local-Loki
-  # friendly.
   resource:
     attributes:
       - key: service.name
         value: vsdd-factory
-        action: upsert
-      - key: loki.resource.labels
-        value: event_type, hook, reason, severity
         action: upsert
 
   # Same rules for Claude's pipeline — `service.name` dotted, `upsert`.
@@ -109,6 +98,20 @@ processors:
     attributes:
       - key: service.name
         value: claude-code
+        action: upsert
+
+  # Promote the listed resource attributes to Loki stream labels. The
+  # `loki.resource.labels` HINT is a LOG RECORD attribute (not a resource
+  # attribute) — placing it on the resource silently does nothing. The
+  # Loki exporter reads this hint off each log record at export time and
+  # pulls the named resource attributes up into the stream label set.
+  # Dashboards query these as Loki labels: {event_type="hook.block"} etc.
+  # Cardinality is bounded: ~4 event_types × ~40 hooks × ~70 reasons ×
+  # ~4 severities — local-Loki comfortable.
+  attributes/loki-label-hint:
+    actions:
+      - key: loki.resource.labels
+        value: "event_type, hook, reason, severity"
         action: upsert
 
 exporters:
@@ -132,9 +135,11 @@ service:
   extensions: [file_storage]
   pipelines:
     # Hook events from .factory/logs → Loki, tagged vsdd-factory.
+    # attributes/loki-label-hint must run AFTER resource so service.name
+    # is set, but BEFORE loki so the hint is in place at export time.
     logs:
       receivers: [filelog]
-      processors: [batch, resource]
+      processors: [batch, resource, attributes/loki-label-hint]
       exporters: [loki]
 
     # Claude Code's native OTel logs → Loki, tagged claude-code.
