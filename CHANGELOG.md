@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.69.2 — Observability stack: fix service.name label so dashboards resolve
+
+Patch release. Fixes a silent-data bug in the local observability stack
+that has been present since v0.66.0: all hook events land in Loki with
+the label `service_name=unknown_service` instead of
+`service_name=vsdd-factory`, so every panel in the bundled
+`factory-overview` dashboard returns "No data" even though events are
+flowing through the collector correctly.
+
+### Root cause
+
+`tools/observability/otel-collector-config.yaml` set the resource
+attribute key as `service_name` (underscore). The Loki exporter's label
+promotion rule looks for `service.name` (dotted — the OTel semantic
+convention). When it doesn't find the dotted key, it falls back to
+`service_name=unknown_service` as the Loki label. Our underscore
+attribute was still emitted, but as structured metadata inside the log
+body — not as a queryable Loki label.
+
+### Fixed
+
+- **`tools/observability/otel-collector-config.yaml`** — both `resource`
+  and `resource/claude` processors now set `service.name` (dotted) with
+  `upsert`. Hook events now land with
+  `{service_name="vsdd-factory"}` and Claude's native telemetry with
+  `{service_name="claude-code"}`.
+
+### Migration
+
+Existing installs must `factory-obs down && factory-obs up` to reload
+the collector config. Data already in Loki under `unknown_service`
+remains there (Loki doesn't re-label historical chunks), but new events
+will land under the correct label immediately. If you want the old
+data to disappear, also run `factory-obs reset` — this wipes Loki's
+volume, which is fine for local-dev observability since events are
+authoritative in `.factory/logs/events-*.jsonl`.
+
 ## 0.69.1 — Release workflow fix: sync marketplace.json version
 
 Patch release. Unblocks the GitHub Release workflow, which has been
