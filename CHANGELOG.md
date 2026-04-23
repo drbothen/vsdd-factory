@@ -1,5 +1,69 @@
 # Changelog
 
+## 0.73.0 — Claude Cost & Usage dashboard (Phase B of cost/ROI series)
+
+Phase B of the three-phase cost-and-ROI build-out. Uses the Prometheus
+infrastructure laid in v0.72.0 to answer "how much did Claude cost us?"
+with real dollar figures from Claude's OTel cost metric. ROI dashboard
+lands next in Phase C.
+
+### Added
+
+- **`tools/observability/grafana-dashboards/claude-cost.json`** — new
+  "Claude Cost & Usage" dashboard, 12 Prometheus-backed panels:
+  - Top stats (5): Total cost (USD), Sessions, Input tokens, Output
+    tokens, Cache hit ratio (0-1 gauge).
+  - Cost timeseries by model — spotting which model drives cost.
+  - Cost by model (donut pie) + Token usage by type (horizontal bar
+    chart, input/output/cacheRead/cacheCreation).
+  - Output-count stats (4): Lines added, Commits via Claude, Active
+    session time, Cost per commit (derived).
+  - All stats use `noValue: "0"` / `"N/A"` so empty ranges render
+    cleanly.
+
+### Metrics referenced
+
+Documented Claude metric surface as translated to Prometheus (dots →
+underscores, counters → `_total`):
+
+- `claude_code_cost_usage_total` (USD; model / query_source / speed / effort)
+- `claude_code_token_usage_total` (tokens; type / model / ...)
+- `claude_code_session_count_total`
+- `claude_code_lines_of_code_count_total` (by type added/removed)
+- `claude_code_commit_count_total`
+- `claude_code_active_time_total` (seconds)
+
+Full metric shape captured in the project's Claude-OTel reference
+memory for future dashboard work.
+
+### `claude_code.pull_request.count` distinction
+
+Claude emits this counter for PRs created via its `/install-github-app`
+feature — NOT the factory's `pr-manager` subagent dispatches tracked
+on the Factory PRs dashboard. Different concepts; dashboards do not
+correlate them.
+
+### Verified
+
+`claude-cost.json` parses; all 12 panels reference the Prometheus
+datasource (`uid: prometheus`); metric-name assertions pass in the
+58-test bats suite. End-to-end data flow was verified in v0.72.0 via
+a synthetic OTLP push — dashboard ships empty and populates as real
+Claude activity accumulates.
+
+### Migration
+
+`factory-obs down && factory-obs up` to reload the dashboard
+provisioning. Dashboard appears under the "VSDD Factory" folder in
+Grafana alongside the other four.
+
+### Next: Phase C (ROI)
+
+Will cross-reference factory output signals (PRs merged, wave gates
+passed, agent exit classes) with cost data to produce "cost per X"
+views. Depends on richer PR signals (backlog) for the X to be
+meaningful.
+
 ## 0.72.5 — Fix broken gauge query on Factory PRs dashboard
 
 Factory PRs shipped in v0.72.3 with a Completion Ratio gauge whose
