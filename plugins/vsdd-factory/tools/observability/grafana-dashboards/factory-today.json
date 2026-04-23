@@ -287,8 +287,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(15, sum by (story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | story_id != \"\" [$__range])))",
-          "legendFormat": "{{story_id}}"
+          "expr": "topk(15, sum by (attributes_story_id) (count_over_time({service_name=\"vsdd-factory\",event_type=\"agent.start\"} | json | attributes_story_id != \"\" [$__range])))",
+          "legendFormat": "{{attributes_story_id}}"
         }
       ]
     },
