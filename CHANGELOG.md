@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.70.2 — Loki label hint: move to a log-record processor (fixes v0.70.1)
+
+v0.70.1 placed the `loki.resource.labels` hint on the `resource`
+processor — which silently did nothing. The Loki exporter reads that
+hint off the **log record's** attributes, not the resource's. Verified
+live against the running stack: before this fix, Loki labels were
+only `service_name`, `exporter`, `job`. After this fix, new events
+ship with the full set — `event_type`, `hook`, `reason`, `severity`
+— and the dashboard's filter panels resolve.
+
+### Fixed
+
+- **`tools/observability/otel-collector-config.yaml`** — introduced a
+  new `attributes/loki-label-hint` processor (log-record scope) that
+  sets `loki.resource.labels` on each log record. Wired into the
+  hook-events pipeline after `resource` and before `loki` export.
+  Removed the dead hint from the `resource` processor. Verified
+  label-promotion works in Loki exporter v0.94.0.
+
+### Migration
+
+Existing installs need `factory-obs down && factory-obs up` to reload
+config. Events ingested under v0.70.1 (or earlier) are stuck as
+structured metadata — Loki doesn't retroactively relabel chunks. If
+the old `No data` panels need to clear, `factory-obs reset` wipes the
+Loki volume; `.factory/logs/events-*.jsonl` remains the source of
+truth and the collector re-ingests with correct labels on next start.
+
 ## 0.70.1 — Promote `event_type` / `hook` / `reason` / `severity` to Loki labels
 
 Completes the dashboard-resolution work started in v0.69.2. With the
