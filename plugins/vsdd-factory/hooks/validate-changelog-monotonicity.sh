@@ -20,6 +20,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -141,6 +148,8 @@ if [[ -n "$FM_VERSION" ]] && [[ -n "$FIRST_VERSION" ]]; then
 fi
 
 if [[ -n "$ERRORS" ]]; then
+  _emit type=hook.block hook=validate-changelog-monotonicity matcher=PostToolUse \
+        reason=changelog_not_monotonic file_path="$FILE_PATH"
   echo "CHANGELOG MONOTONICITY VIOLATION in $(basename "$FILE_PATH"):" >&2
   echo -e "$ERRORS" | while IFS= read -r line; do
     echo "  - $line" >&2

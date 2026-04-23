@@ -74,6 +74,10 @@ echo "== Policy validators emission tests =="
 bats tests/policy-validators-emission.bats
 
 echo
+echo "== Structural validators emission tests =="
+bats tests/structural-validators-emission.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 

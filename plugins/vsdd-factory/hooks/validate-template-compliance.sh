@@ -26,6 +26,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -169,6 +176,9 @@ done <<< "$TEMPLATE_SECTIONS"
 
 # --- Step 9: Report ---
 if [[ -n "$MISSING_KEYS" || -n "$MISSING_SECTIONS" ]]; then
+  _emit type=hook.block hook=validate-template-compliance matcher=PostToolUse \
+        reason=template_noncompliant file_path="$FILE_PATH" \
+        template="$TEMPLATE_NAME" missing_keys="$MISSING_KEYS"
   echo "TEMPLATE COMPLIANCE WARNING ($(basename "$FILE_PATH") → $TEMPLATE_NAME):" >&2
   if [[ -n "$MISSING_KEYS" ]]; then
     TOTAL_TMPL=$(echo "$TEMPLATE_KEYS" | wc -w | tr -d ' ')

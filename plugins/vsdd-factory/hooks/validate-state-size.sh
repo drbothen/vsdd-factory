@@ -19,6 +19,13 @@ fi
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
+
 if [[ -z "$FILE_PATH" ]]; then
   exit 0
 fi
@@ -49,6 +56,8 @@ if [[ "$LINE_COUNT" -lt "$PRIOR_COUNT" ]]; then
 fi
 
 if [[ "$LINE_COUNT" -gt 500 ]]; then
+  _emit type=hook.block hook=validate-state-size matcher=PostToolUse \
+        reason=state_bloat file_path="$FILE_PATH" line_count="$LINE_COUNT" limit=500
   echo "STATE.md BLOAT — BLOCKED:" >&2
   echo "  STATE.md has $LINE_COUNT lines (limit: 500)." >&2
   echo "  STATE.md should be a quick status check, not a history log." >&2

@@ -272,6 +272,20 @@ existing one is not a good fit.
 | `policy8_bc_array_desync` | `validate-story-bc-sync.sh` | Story frontmatter `behavioral_contracts:` ↔ body BC table ↔ AC trace annotations are out of sync |
 | `policy9_vp_inconsistency` | `validate-vp-consistency.sh` | `VP-INDEX.md` ↔ `verification-architecture.md` ↔ `verification-coverage-matrix.md` have inconsistent VP IDs or column totals |
 
+### Structural validators (PostToolUse Edit|Write)
+
+| Code | Hook | Triggers on |
+|------|------|-------------|
+| `template_noncompliant` | `validate-template-compliance.sh` | `.factory/*.md` file is missing required frontmatter keys or H2 sections from its template. Event carries `template` (template basename) and `missing_keys`. |
+| `finding_id_legacy_format` | `validate-finding-format.sh` | Adversarial review or fix file contains legacy ID format (e.g. `ADV-NNN`, `STORY-NNN-FIX-NNN`) instead of current `ADV-<CYCLE>-P<N>-<SEV>-<NNN>` / `FIX-P<N>-NNN` |
+| `table_cell_count_mismatch` | `validate-table-cell-count.sh` | Markdown table row has a different unescaped-pipe count from its header (typically an unescaped `\|` inside a cell breaks rendering) |
+| `changelog_not_monotonic` | `validate-changelog-monotonicity.sh` | `## Changelog` table versions not strictly decreasing, dates increasing across rows, duplicate versions, or frontmatter `version:` disagrees with top changelog row |
+| `state_bloat` | `validate-state-size.sh` | `STATE.md` exceeds 500 lines and the current write did not reduce size. Event carries `line_count` and `limit`. |
+| `state_version_pin_drift` | `validate-state-pin-freshness.sh` | `STATE.md` frontmatter version pin (e.g. `bc_index_version:`) disagrees with the referenced artifact's current `version:` |
+| `state_index_status_drift` | `validate-state-index-status-coherence.sh` | `STATE.md` `convergence_status:` does not match the `**Status:**` line of a `cycles/*/INDEX.md`. **Exit 1 (warn-only)** — event carries `severity=warn` to distinguish from hard blocks. |
+
+Note: `validate-index-self-reference.sh` is a pure advisory hook (always exits 0, stderr only) and does not emit structured events. Its warnings are meant to be read directly from the transcript.
+
 ---
 
 ## Instrumenting your own hook
@@ -375,7 +389,7 @@ happy path — impact on normal sessions is zero.
 | 2b | Instrument 5 PreToolUse Edit|Write guards | Shipped in [v0.58.0](../../CHANGELOG.md) |
 | 2c | Instrument 2 PreToolUse Agent guards | Shipped in [v0.59.0](../../CHANGELOG.md) |
 | 2d.1 | Instrument 4 policy validators (Policy 6/7/8/9) | Shipped in [v0.60.0](../../CHANGELOG.md) |
-| 2d.2 | Instrument 8 structural validators | Planned |
+| 2d.2 | Instrument 7 structural validators | Shipped in [v0.61.0](../../CHANGELOG.md) |
 | 2d.3 | Instrument 10 workflow/specialized validators | Planned |
 | 2e | Instrument 6 SubagentStop + Stop hooks | Planned |
 | 3 | `bin/factory-query` canned queries + `bin/factory-report` | Planned |
