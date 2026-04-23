@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.58.0 — Observability Phase 2b: instrument PreToolUse Edit|Write guards
+
+Continues the instrumentation pass. Five more hooks now emit structured
+`hook.block` events. Adds 6 reason codes to the registry. Docs updated
+inline per the Tier-2 cadence.
+
+### Changed
+
+- **`brownfield-discipline.sh`** — reason `reference_readonly`.
+- **`protect-vp.sh`** — reason `vp_green_immutable`. Emission happens
+  inside `emit_deny()`; the existing JSON-envelope `permissionDecision`
+  response format is preserved (this hook emits the envelope instead of
+  exiting 2).
+- **`protect-bc.sh`** — reason `bc_green_immutable`. Same pattern.
+- **`red-gate.sh`** — reason `red_gate_strict_violation`.
+- **`factory-branch-guard.sh`** — reasons `factory_not_worktree` and
+  `factory_wrong_branch`. The second event includes `current_branch` and
+  `expected_branch` as extra fields to aid triage.
+
+Each event carries `type=hook.block`, `hook=<name>`, `matcher=<Edit|Write>`
+(taken from `.tool_name` in the input so emissions distinguish Edit vs.
+Write), `reason=<code>`, `file_path=<path>`.
+
+### Added (tests)
+
+- **`tests/edit-guards-emission.bats`** (new) — 17 tests covering per-hook
+  emission paths and the "still blocks when emit-event is broken"
+  regressions (`CLAUDE_PLUGIN_ROOT` unset, path broken, `VSDD_TELEMETRY=off`).
+- 859 tests across 23 suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — reason-code registry grown from 35
+  to 41 codes; Phase 2b marked shipped in the roadmap.
+- **`docs/guide/hooks-reference.md`** — Instrumented column for all 5
+  Edit|Write guards ticked (9 of 22 hooks in the summary table now ticked;
+  remaining 13 pending Phases 2c–2e).
+
+### Not yet instrumented
+
+- Phase 2c: `validate-wave-gate-prerequisite.sh`, `validate-pr-merge-prerequisites.sh`
+- Phase 2d: 21 PostToolUse validators
+- Phase 2e: `handoff-validator.sh`, `pr-manager-completion-guard.sh`,
+  `update-wave-state-on-merge.sh`, `validate-pr-review-posted.sh`,
+  `session-learning.sh`, `warn-pending-wave-gate.sh`
+
 ## 0.57.1 — Observability docs (docs-only patch)
 
 Documentation catch-up for the observability work shipped in 0.56.0 and
