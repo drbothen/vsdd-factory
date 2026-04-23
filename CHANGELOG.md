@@ -1,5 +1,97 @@
 # Changelog
 
+## 0.73.1 — PR signal capture hook + cost dashboard metric name fixes + temporality fix
+
+Big follow-up to v0.73.0. Closes backlog task #90 (richer PR signals
+via direct Bash capture) and fixes two interacting issues that were
+keeping the Claude Cost dashboard empty despite real Claude activity.
+
+### Added
+
+- **`hooks/capture-pr-activity.sh`** (new PostToolUse Bash hook) —
+  watches for `gh pr create` and `gh pr merge` invocations and emits
+  direct structured events when they succeed. No more inferring PR
+  activity from subagent message text; the signal comes from the
+  actual command.
+  - `type=pr.opened` with fields: `pr_url`, `pr_number`, `pr_repo`,
+    `title` (if `--title` flag present).
+  - `type=pr.merged` with fields: `pr_url`, `pr_number`, `pr_repo`,
+    `merge_strategy` (squash/rebase/merge from flag).
+  - Catches PRs opened or merged *outside* the factory pr-manager
+    workflow (e.g., human-driven merges).
+  - Exit 0 always — advisory, never blocks. Filters on stdout URL
+    presence + command-boundary regex match to avoid false positives
+    (e.g., `echo "gh pr create is useful"` is correctly ignored).
+
+- **`tests/capture-pr-activity.bats`** (new) — 15 bats tests covering
+  create/merge paths, title extraction, merge-strategy flags, the
+  positional-PR-number form (`gh pr merge 42`), regex
+  tightness (echoed mentions don't match), failure-path no-ops, and
+  graceful degradation when `CLAUDE_PLUGIN_ROOT` or emit-event is
+  missing.
+
+- **Factory PRs dashboard** — new "PRs opened" stat panel (id 2). Top
+  row resized to 5 × w=5 + 1 × w=4 to fit. "PRs merged" stat (id 3)
+  and "PR workflows blocked / incomplete" (id 5) rebound to the new
+  grid positions.
+
+### Fixed
+
+- **`skills/claude-telemetry/SKILL.md`** — telemetry `on` subcommand
+  now writes a SIXTH env var:
+  `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative`.
+  Without this, Claude's OTel SDK defaults to DELTA temporality, and
+  the collector's `prometheusremotewrite` exporter rejects every sample
+  with `invalid temporality and type combination` — dropping 7-11
+  metrics per minute silently. The `deltatocumulative` processor that
+  would do the conversion in-flight is not available in
+  collector-contrib v0.94.0; normalizing at source is the only fix.
+
+- **`tools/observability/grafana-dashboards/claude-cost.json`** —
+  every metric-name query updated to match the real Prometheus
+  surface, which includes unit suffixes between the metric name and
+  the `_total` counter marker:
+  - `claude_code_cost_usage_total` → `claude_code_cost_usage_USD_total`
+  - `claude_code_token_usage_total` → `claude_code_token_usage_tokens_total`
+  - `claude_code_active_time_total` → `claude_code_active_time_seconds_total`
+  
+  Verified live against the running Prometheus label index.
+
+- **`tools/observability/grafana-dashboards/factory-today.json`** and
+  **`factory-prs.json`** — PRs-merged and PRs-opened queries now
+  target the direct `event_type=pr.opened` / `event_type=pr.merged`
+  labels instead of the inferred `hook=update-wave-state-on-merge`
+  signal. More accurate for dashboard aggregation; the existing
+  update-wave-state-on-merge hook continues doing its wave-state.yaml
+  work untouched.
+
+### Verified live
+
+- New hook smoke-tested with manual JSON input; emits the correct
+  event shape.
+- Real Claude cost now visible in Prometheus: $0.83 today; token
+  breakdown input=107, output=2610, cacheRead=1.2M, cacheCreation=26K.
+  Cache hit ratio is excellent.
+- All 73 bats tests pass (suite grew from 58 → 73 with the new
+  hook's 15 cases).
+
+### Migration
+
+- Users with existing `claude-telemetry on` state: run
+  `/vsdd-factory:claude-telemetry on` again to write the new sixth
+  env var, then **restart your Claude Code session**. Without the
+  restart, metrics continue to get dropped.
+- `factory-obs down && factory-obs up` (or `docker restart
+  vsdd-obs-grafana`) to reload dashboard provisioning.
+
+### Known gap — queued for follow-up
+
+- Open→merge duration needs LogQL pairing of `pr.opened` and
+  `pr.merged` events by `pr_number`. Non-trivial in LogQL; likely
+  needs a factory-sla-style pairing tool. Queued.
+
+## 0.73.0 — Claude Cost & Usage dashboard (Phase B of cost/ROI series)
+
 ## 0.73.0 — Claude Cost & Usage dashboard (Phase B of cost/ROI series)
 
 Phase B of the three-phase cost-and-ROI build-out. Uses the Prometheus
