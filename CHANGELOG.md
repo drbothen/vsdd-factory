@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.70.1 — Promote `event_type` / `hook` / `reason` / `severity` to Loki labels
+
+Completes the dashboard-resolution work started in v0.69.2. With the
+service.name fix applied, the `Total events` and `Recent events` panels
+started working (confirmed via a screenshot showing 66 events). But
+the filter panels — `Blocks (hard)`, `Blocks (warn)`, `Actions`,
+`Events over time (by type)`, `Top block reasons`, `Blocks by hook` —
+all still showed "No data" because their LogQL queries use
+`event_type`, `hook`, `reason`, and `severity` as Loki **labels** in
+stream selectors and `by()` groupings, but the collector was storing
+them as **structured metadata**. Different syntax; the queries found
+nothing.
+
+### Fixed
+
+- **`tools/observability/otel-collector-config.yaml`** — added the
+  `loki.resource.labels` hint (`"event_type, hook, reason, severity"`)
+  on the `resource` processor. This is the documented Loki-exporter
+  mechanism for promoting resource attributes to stream labels.
+  Cardinality is bounded: ~4 event_types × ~40 hooks × ~70 reasons ×
+  ~4 severities keeps local Loki comfortable.
+
+The `resource/claude` processor is deliberately NOT touched — Claude's
+native telemetry has its own attribute shape and shouldn't be forced
+into our label schema.
+
+### Migration
+
+Existing installs need `factory-obs down && factory-obs up` for the
+collector to reload config. Historical events in Loki stay as
+structured metadata under their old streams (Loki doesn't re-label
+historical chunks); new events start flowing with the promoted labels
+immediately. Run `factory-obs reset` if you want a clean slate —
+`.factory/logs/events-*.jsonl` remains the source of truth.
+
 ## 0.70.0 — Worktree-aware log dir: events aggregate into main repo's `.factory/logs/`
 
 Previously, hooks running inside a git worktree wrote their events to
