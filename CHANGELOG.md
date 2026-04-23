@@ -1,5 +1,82 @@
 # Changelog
 
+## 0.69.0 — Claude Code native telemetry → factory observability stack
+
+Turns the local observability stack into a two-stream feed. Hook events
+(`service_name=vsdd-factory`) remain the interpretation layer. Claude
+Code's native OpenTelemetry export (`service_name=claude-code`) now
+flows into the same Loki, giving a complete "what did the factory do
+today?" activity feed — every tool call, token count, and API event —
+without requiring us to instrument more hooks.
+
+### Fixed
+
+- **`tools/observability/grafana-provisioning/datasources/loki.yaml`** —
+  pinned the Loki datasource UID to `loki`. Without this, Grafana
+  auto-generates a random UID, and the bundled `factory-overview`
+  dashboard (which references the datasource by `"uid": "loki"` in all
+  16 panels) errors with "datasource loki not found" on every panel.
+  Affects existing installs; users should run `factory-obs reset &&
+  factory-obs up` to re-provision the datasource with the pinned UID.
+
+### Added
+
+- **`tools/observability/otel-collector-config.yaml`** — added an `otlp`
+  receiver (HTTP on 4318, gRPC on 4317) and three new pipelines:
+  - `logs/claude` — Claude Code OTel logs → Loki, tagged
+    `service_name=claude-code` via a new `resource/claude` processor.
+    Query in Grafana with `{service_name="claude-code"}`.
+  - `metrics` — Claude's metrics → `debug` exporter (basic verbosity,
+    no persistent backend). Pipelines must exist or the OTLP receiver
+    rejects the signal type. Swap for Prometheus if metrics querying
+    becomes important.
+  - `traces` — symmetric to metrics, opt-in on Claude's side.
+
+- **`skills/claude-telemetry/SKILL.md`** + **`commands/claude-telemetry.md`** —
+  new `/vsdd-factory:claude-telemetry` slash command with three
+  subcommands:
+  - `on` (default) — writes five OTEL env vars
+    (`CLAUDE_CODE_ENABLE_TELEMETRY`, `OTEL_METRICS_EXPORTER`,
+    `OTEL_LOGS_EXPORTER`, `OTEL_EXPORTER_OTLP_PROTOCOL`,
+    `OTEL_EXPORTER_OTLP_ENDPOINT`) into
+    `.claude/settings.local.json` under the `env` block via `jq` merge.
+    Preserves all other `env` entries and top-level keys.
+  - `off` — removes exactly those five keys and deletes `env` if empty.
+  - `status` — prints which of the five keys are currently set.
+  
+  Reversible, per-project, respects `settings.local.json` (gitignored
+  per convention). `disable-model-invocation: true` — fires on explicit
+  request only, matching the `factory-obs` / `activate` pattern for
+  configuration side-effects.
+
+### Defaults and rationale
+
+- Protocol is pinned to `http/protobuf` because `docker-compose.yml`
+  only host-exposes port 4318. Users who want gRPC can remap 4317 and
+  override `OTEL_EXPORTER_OTLP_PROTOCOL` manually.
+- Endpoint is `http://localhost:4318`. If `VSDD_OBS_OTLP_HTTP_PORT` is
+  remapped in compose, users override the endpoint manually — the skill
+  does not read environment variables from the factory-obs layer
+  because the skill writes to user settings, not collector settings.
+- The skill does **not** toggle sensitive-content gates
+  (`OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT`).
+  Users who want those must add them manually. The skill's
+  documentation calls this out explicitly with a privacy note.
+
+### Migration
+
+No breaking changes. Installs on v0.68.x continue to work — the new
+OTLP receiver and pipelines are additive. To start using Claude's
+native telemetry:
+
+1. `factory-obs up` — ensure the stack is current and accepting OTLP.
+2. `/vsdd-factory:claude-telemetry on` — write the env vars.
+3. Restart your Claude Code session.
+4. Query in Grafana with `{service_name="claude-code"}`.
+
+If you're upgrading from <v0.69.0 and your collector container was
+started against the old config, recreate it: `factory-obs down && factory-obs up`.
+
 ## 0.68.1 — Observability stack: first-run fixes + /factory-obs skill
 
 Two shippable fixes found while smoke-testing `factory-obs up` on a clean
