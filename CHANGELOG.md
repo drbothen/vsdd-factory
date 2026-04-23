@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.70.3 — Blocks (hard) threshold: yellow at 1+, red at 10+
+
+Cosmetic tweak to the bundled `factory-overview` dashboard. Previously
+any non-zero count in the `Blocks (hard)` stat panel turned it red,
+which over-reacted to routine hook fires like `block-ai-attribution`
+(normal during AI-assisted commits). New threshold scheme distinguishes
+"some expected activity" from "unusual volume worth investigating":
+
+- `0` → green
+- `1-9` → yellow (expected during active sessions)
+- `10+` → red (elevated, investigate)
+
+### Fixed
+
+- **`tools/observability/grafana-dashboards/factory-overview.json`** —
+  `Blocks (hard)` panel thresholds updated. No query change; just the
+  color mapping. Other panels (`Blocks (warn)`, `Actions`, `Total
+  events`) unchanged.
+
+### Migration
+
+Dashboard is provisioned from this JSON on Grafana startup. Existing
+installs need `factory-obs down && factory-obs up` to reload the
+dashboard file (or `factory-obs reset` if other state is stale).
+
 ## 0.70.2 — Loki label hint: move to a log-record processor (fixes v0.70.1)
 
 v0.70.1 placed the `loki.resource.labels` hint on the `resource`
