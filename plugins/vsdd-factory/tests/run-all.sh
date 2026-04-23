@@ -58,6 +58,10 @@ echo "== Protect secrets hook tests =="
 bats tests/protect-secrets.bats
 
 echo
+echo "== Emit-event helper tests =="
+bats tests/emit-event.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 

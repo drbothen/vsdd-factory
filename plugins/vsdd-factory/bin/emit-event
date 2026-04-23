@@ -1,0 +1,108 @@
+#!/bin/bash
+# emit-event — failure-tolerant structured event emitter for vsdd-factory.
+#
+# Writes one JSON event per invocation to .factory/logs/events-YYYY-MM-DD.jsonl.
+# Designed so hooks and skills can instrument themselves without ever causing
+# vsdd-factory to fail.
+#
+# Contract:
+#   - Exit 0 on every path. Period. Missing jq, missing disk, malformed args,
+#     read-only log dir, disk full — silent drop, always exit 0.
+#   - No output on stdout or stderr on success.
+#   - Never write anywhere except the daily log file.
+#
+# Usage:
+#   emit-event type=hook.block hook=destructive-command-guard reason=rm_root
+#   emit-event type=phase.start phase=deliver story=STORY-001
+#
+# Args are key=value pairs. Each pair becomes a top-level field in the emitted
+# JSON object. Values may contain any characters (spaces, quotes, newlines);
+# jq handles escaping. The split happens on the first `=`, so values may
+# themselves contain `=`.
+#
+# Two fields are always added:
+#   ts              — ISO-8601 local timestamp with timezone offset
+#   schema_version  — integer, currently 1
+#
+# Environment:
+#   VSDD_TELEMETRY=off   disable emission entirely (line-1 short-circuit)
+#   VSDD_LOG_DIR=<path>  override log directory (default: .factory/logs)
+#
+# Portability:
+#   POSIX-portable date formats only. Atomic append relies on POSIX guarantee
+#   that writes under PIPE_BUF (~4KB) on a single write() are not interleaved.
+#   Target platforms: macOS, Linux, WSL, git-bash.
+
+# Do not use `set -e` — we want to swallow every error path.
+set +e
+
+# --- Line-1 kill switch ---------------------------------------------------
+if [ "${VSDD_TELEMETRY:-on}" = "off" ]; then
+  exit 0
+fi
+
+# --- Require at least one arg ---------------------------------------------
+if [ $# -eq 0 ]; then
+  exit 0
+fi
+
+# --- Require jq (silent drop if missing) ----------------------------------
+if ! command -v jq >/dev/null 2>&1; then
+  exit 0
+fi
+
+# --- Resolve log dir and ensure it's writable -----------------------------
+LOG_DIR="${VSDD_LOG_DIR:-.factory/logs}"
+mkdir -p "$LOG_DIR" 2>/dev/null || exit 0
+if [ ! -w "$LOG_DIR" ]; then
+  exit 0
+fi
+
+# --- Build jq args from key=value pairs -----------------------------------
+# Use synthetic jq variable names (v0, v1, ...) so caller keys with dots
+# or other characters don't collide with jq syntax. Caller keys are
+# sanitized to [A-Za-z0-9_.] only.
+jq_args=()
+filter='{}'
+idx=0
+for arg in "$@"; do
+  case "$arg" in
+    *=*) ;;
+    *) continue ;;   # skip args without =
+  esac
+  key="${arg%%=*}"
+  val="${arg#*=}"
+  # Sanitize key (pure-bash, no subshell)
+  key="${key//[^A-Za-z0-9_.]/}"
+  if [ -z "$key" ]; then
+    continue
+  fi
+  var="v${idx}"
+  jq_args+=(--arg "$var" "$val")
+  # Use ["key"] form so keys containing dots stay flat (not nested).
+  filter="${filter} | .[\"${key}\"] = \$${var}"
+  idx=$((idx + 1))
+done
+
+# --- Timestamp + schema version -------------------------------------------
+TS=$(date +%Y-%m-%dT%H:%M:%S%z 2>/dev/null) || exit 0
+[ -n "$TS" ] || exit 0
+
+jq_args+=(--arg _ts "$TS")
+filter="${filter} | .ts = \$_ts | .schema_version = 1"
+
+# --- Emit ------------------------------------------------------------------
+EVENT=$(jq -cn "${jq_args[@]}" "$filter" 2>/dev/null)
+if [ -z "$EVENT" ]; then
+  exit 0
+fi
+
+DAY=$(date +%Y-%m-%d 2>/dev/null) || exit 0
+[ -n "$DAY" ] || exit 0
+LOGFILE="${LOG_DIR}/events-${DAY}.jsonl"
+
+# Atomic append. The redirect itself opens O_WRONLY|O_APPEND; writes under
+# PIPE_BUF are atomic per POSIX, so concurrent hooks don't interleave.
+printf '%s\n' "$EVENT" >> "$LOGFILE" 2>/dev/null
+
+exit 0
