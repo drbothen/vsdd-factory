@@ -305,3 +305,36 @@ setup() {
   jq -e '.panels[] | select(.title == "PRs merged")' \
     "$OBS_DIR/grafana-dashboards/factory-today.json" >/dev/null
 }
+
+# ---------- Claude Cost dashboard (v0.73) ----------
+
+@test "dashboard: claude-cost.json parses" {
+  python3 -c "import json; json.load(open('$OBS_DIR/grafana-dashboards/claude-cost.json'))"
+}
+
+@test "dashboard: claude-cost has stable UID" {
+  [ "$(jq -r .uid "$OBS_DIR/grafana-dashboards/claude-cost.json")" = "claude-cost" ]
+}
+
+@test "dashboard: claude-cost has at least 10 panels" {
+  local n
+  n=$(jq '.panels | length' "$OBS_DIR/grafana-dashboards/claude-cost.json")
+  [ "$n" -ge 10 ]
+}
+
+@test "dashboard: claude-cost all panels reference prometheus datasource" {
+  # Every panel target on this dashboard must hit Prometheus — no Loki
+  # queries belong on the cost dashboard.
+  local non_prom
+  non_prom=$(jq '[.panels[] | .targets[]? | select(.datasource.uid != "prometheus")] | length' \
+    "$OBS_DIR/grafana-dashboards/claude-cost.json")
+  [ "$non_prom" -eq 0 ]
+}
+
+@test "dashboard: claude-cost queries claude_code_cost_usage_total" {
+  grep -q "claude_code_cost_usage_total" "$OBS_DIR/grafana-dashboards/claude-cost.json"
+}
+
+@test "dashboard: claude-cost queries claude_code_token_usage_total" {
+  grep -q "claude_code_token_usage_total" "$OBS_DIR/grafana-dashboards/claude-cost.json"
+}
