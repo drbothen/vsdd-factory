@@ -1,5 +1,68 @@
 # Changelog
 
+## 0.62.0 — Observability Phase 2d.3: instrument workflow validators (PostToolUse complete)
+
+Final sub-release of Phase 2d. Instruments the remaining 10 PostToolUse
+validators. **21 of 22 PostToolUse hooks now emit structured events.**
+Registry has grown to 64 reason codes.
+
+### Changed
+
+- **`purity-check.sh`** — reason `pure_core_boundary_violation`,
+  `severity=warn`. Event carries `patterns` field (space-joined list of
+  matched side-effect idioms) for aggregating "which stdlib boundaries
+  get crossed most often."
+- **`validate-input-hash.sh`** — reason `input_hash_invalid_format`
+  (format-block path only; advisory drift warnings remain stderr-only).
+  Event carries `stored_hash`, `hash_len`, and `issue` (`length`|`chars`).
+- **`validate-novelty-assessment.sh`** — reason `novelty_assessment_incomplete`.
+- **`convergence-tracker.sh`** — reason `convergence_rule_violation`
+  (premature CONVERGENCE_REACHED path). Event carries `verdict` and
+  `novelty_score` for trend aggregation.
+- **`validate-anchor-capabilities-union.sh`** — reason
+  `anchor_capabilities_mismatch`. Event carries `expected` and `actual`
+  so mis-derivations are visible in one jq row.
+- **`validate-demo-evidence-story-scoped.sh`** — reason
+  `demo_evidence_not_story_scoped`.
+- **`validate-pr-description-completeness.sh`** — reason `pr_description_incomplete`.
+- **`validate-wave-gate-completeness.sh`** — reason `wave_gate_incomplete`.
+- **`validate-factory-path-root.sh`** — reason `factory_path_worktree_relative`.
+  Event carries `worktree` for "which stories most commonly trip this."
+- **`regression-gate.sh`** — reason `regression_gate_pass_to_fail`,
+  `severity=warn`. First emission on a Bash-matcher PostToolUse hook;
+  previous PostToolUse emissions were all Edit|Write. Hook never blocks
+  (it's pure telemetry) — the event is the whole point.
+
+### Added (tests)
+
+- **`tests/workflow-validators-emission.bats`** (new) — 13 tests covering
+  per-hook emission, severity=warn variants, `pass→pass` no-op case,
+  and the standard `VSDD_TELEMETRY=off` regression. 908 tests across 27
+  suites, 0 failures.
+
+### Docs
+
+- **`docs/guide/observability.md`** — registry grown from 54 to 64
+  reason codes; Phase 2d fully marked shipped across 2d.1/2d.2/2d.3.
+- **`docs/guide/hooks-reference.md`** — Instrumented column filled for
+  all 10 hooks; added rows for `validate-anchor-capabilities-union.sh`,
+  `validate-demo-evidence-story-scoped.sh`,
+  `validate-pr-description-completeness.sh`,
+  `validate-wave-gate-completeness.sh`, and
+  `validate-factory-path-root.sh` (all previously missing from the
+  summary table).
+
+### Phase 2d status
+
+PostToolUse instrumentation is complete. The factory's hot path — every
+time an agent writes a spec, story, review, PR artifact, or STATE.md —
+now produces a structured audit event when a validator fires.
+
+### Not yet instrumented
+
+- Phase 2e: 6 SubagentStop + Stop hooks (final pass before the tooling
+  / dashboard work begins).
+
 ## 0.61.0 — Observability Phase 2d.2: instrument structural validators
 
 Instruments 7 of 8 structural PostToolUse validators. Introduces a
