@@ -62,6 +62,10 @@ echo "== Emit-event helper tests =="
 bats tests/emit-event.bats
 
 echo
+echo "== Edit|Write guards emission tests =="
+bats tests/edit-guards-emission.bats
+
+echo
 echo "== Policy enforcement hook tests =="
 bats tests/policy-enforcement.bats
 

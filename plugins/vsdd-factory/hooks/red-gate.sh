@@ -23,6 +23,14 @@ fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "Edit|Write"')
+
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
 
 # No file path → allow
 [[ -z "$FILE_PATH" ]] && exit 0
@@ -92,6 +100,7 @@ if [[ "$FILE_PATH" == /* ]]; then
   fi
 fi
 
+_emit type=hook.block hook=red-gate matcher="$TOOL_NAME" reason=red_gate_strict_violation file_path="$FILE_PATH"
 echo "Blocked: red-gate is in strict mode and $FILE_PATH is not in the red list." >&2
 echo "Write a failing test for this code first, then add the path to .factory/red-gate-state.json under .red[]." >&2
 echo "To disable strict mode for this session, set .mode to \"off\" in $STATE_FILE." >&2

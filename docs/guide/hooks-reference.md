@@ -12,11 +12,11 @@ The **Instrumented** column indicates whether the hook emits structured block ev
 
 | Hook | Event | Matcher | What It Enforces | Blocking | Instrumented |
 |------|-------|---------|-----------------|----------|--------------|
-| `brownfield-discipline.sh` | PreToolUse | Edit\|Write | `.reference/` directories are read-only | Yes | — |
-| `protect-vp.sh` | PreToolUse | Edit\|Write | Green Verification Properties are immutable | Yes | — |
-| `protect-bc.sh` | PreToolUse | Edit\|Write | Green Behavioral Contracts are immutable | Yes | — |
-| `red-gate.sh` | PreToolUse | Edit\|Write | TDD red-before-green discipline | Yes (when strict mode active) | — |
-| `factory-branch-guard.sh` | PreToolUse | Edit\|Write | `.factory/` writes only allowed on `factory-artifacts` worktree | Yes | — |
+| `brownfield-discipline.sh` | PreToolUse | Edit\|Write | `.reference/` directories are read-only | Yes | ✓ (1 code) |
+| `protect-vp.sh` | PreToolUse | Edit\|Write | Green Verification Properties are immutable | Yes | ✓ (1 code) |
+| `protect-bc.sh` | PreToolUse | Edit\|Write | Green Behavioral Contracts are immutable | Yes | ✓ (1 code) |
+| `red-gate.sh` | PreToolUse | Edit\|Write | TDD red-before-green discipline | Yes (when strict mode active) | ✓ (1 code) |
+| `factory-branch-guard.sh` | PreToolUse | Edit\|Write | `.factory/` writes only allowed on `factory-artifacts` worktree | Yes | ✓ (2 codes) |
 | `destructive-command-guard.sh` | PreToolUse | Bash | Blocks catastrophic `rm` targets, `rm -rf` on protected paths, SoT clobbering redirects, `find -delete`, dangerous git/gh operations, `--no-verify`, `curl\|bash` | Yes | ✓ (27 codes) |
 | `protect-secrets.sh` | PreToolUse | Bash + Read | Blocks reads/copies of `.env` files, echoing secret-shaped env vars, `env \| grep` for secrets | Yes | ✓ (6 codes) |
 | `verify-git-push.sh` | PreToolUse | Bash | Blocks force push (`--force`/`-f`) and direct push to protected branches (main, master, develop) | Yes | ✓ (2 codes) |

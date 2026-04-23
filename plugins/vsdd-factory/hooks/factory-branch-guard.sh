@@ -28,6 +28,14 @@ fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "Edit|Write"')
+
+_emit() {
+  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
+    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
+  fi
+  return 0
+}
 
 if [[ -z "$FILE_PATH" ]]; then
   exit 0
@@ -59,6 +67,7 @@ fi
 
 # Check 1: Is .factory/ a git worktree? (has .git marker file)
 if [[ ! -e "$FACTORY_DIR/.git" ]]; then
+  _emit type=hook.block hook=factory-branch-guard matcher="$TOOL_NAME" reason=factory_not_worktree file_path="$FILE_PATH" factory_dir="$FACTORY_DIR"
   echo "BLOCKED by factory-branch-guard:" >&2
   echo "  Cannot write to $FACTORY_DIR/ — not mounted as a git worktree." >&2
   echo "  .factory/ must be a worktree on the $EXPECTED_BRANCH branch, not a regular directory." >&2
@@ -70,6 +79,7 @@ fi
 if command -v git &>/dev/null; then
   CURRENT_BRANCH=$(git -C "$FACTORY_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
   if [[ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]] && [[ "$CURRENT_BRANCH" != "unknown" ]]; then
+    _emit type=hook.block hook=factory-branch-guard matcher="$TOOL_NAME" reason=factory_wrong_branch file_path="$FILE_PATH" factory_dir="$FACTORY_DIR" current_branch="$CURRENT_BRANCH" expected_branch="$EXPECTED_BRANCH"
     echo "BLOCKED by factory-branch-guard:" >&2
     echo "  Cannot write to $FACTORY_DIR/ — worktree is on branch '$CURRENT_BRANCH', expected '$EXPECTED_BRANCH'." >&2
     echo "  Artifacts written on the wrong branch will be lost or misplaced." >&2
