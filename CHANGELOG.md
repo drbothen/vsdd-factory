@@ -1,20 +1,22 @@
 # Changelog
 
-## 0.78.1 — TODO: fill in release title (2026-04-23)
+## 0.78.1 — Shellcheck hint fix on v0.78.0 factory-obs
 
-TODO: describe the release.
+Tiny fix release — v0.78.0's Release workflow failed its shellcheck
+contract test because the `_find_factory_root` helper takes an
+optional `$1` that's never passed explicitly (all call sites rely on
+the `$PWD` default). Shellcheck's SC2120/SC2119 info-level checks
+flagged it.
 
 ### Fixed
 
-- 
-
-### Added
-
-- 
+- `bin/factory-obs` — added `# shellcheck disable=SC2120` on
+  `_find_factory_root` with an inline note explaining why the
+  optional-arg pattern is intentional. No behavior change.
 
 ### Migration
 
-No breaking changes.
+No breaking changes. Identical runtime behavior to v0.78.0.
 
 ## 0.78.0 — Multi-factory watch: register/list/unregister + dynamic compose override
 
