@@ -125,7 +125,11 @@ _dc() {
 
 # --- Discover factory root by walking up from a starting directory ---
 # Echoes the absolute path of the nearest ancestor containing .factory/,
-# or empty + returns 1 if none found.
+# or empty + returns 1 if none found. Accepts an optional starting dir
+# as $1; defaults to $PWD. Shellcheck SC2120/SC2119 don't like the
+# optional-arg pattern but all call sites deliberately rely on the
+# $PWD default.
+# shellcheck disable=SC2120
 _find_factory_root() {
   local d
   d=$(cd "${1:-$PWD}" 2>/dev/null && pwd) || return 1
