@@ -113,7 +113,8 @@ Every story in this epic follows it.
 ## Current state (2026-04-24)
 
 - **Spec:** [`v1.0-factory-plugin-kit-design.md`](../../specs/2026-04-24-v1.0-factory-plugin-kit-design.md) — frozen, all Q1–Q7 resolved
-- **Epic:** this file, in progress
-- **Stories drafted:** S-0.1 through S-0.5, S-1.1 (Tier A + Tier B blocker)
-- **Stories pending draft:** S-1.2 through S-5.7
-- **Work in progress:** none yet — design-phase close-out
+- **Epic:** complete
+- **Stories drafted:** all 36 stories (S-0.1 through S-5.7)
+- **Stories pending draft:** none
+- **Work in progress:** none yet — ready to begin implementation of Tier A
+  + S-1.1 in parallel
