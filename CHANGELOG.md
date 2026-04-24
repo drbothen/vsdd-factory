@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.79.1 — bump-version.sh idempotent CHANGELOG guard
+
+Tiny tooling fix. Three releases in a row (v0.76.1 / v0.78.1 /
+v0.79.0) shipped with a stub "TODO: fill in release title" heading
+in their GitHub release notes. Root cause: `scripts/bump-version.sh`
+unconditionally prepended a stub heading to `CHANGELOG.md`, which
+raced with my workflow of writing the real entry beforehand (the
+stub edit collided with my in-progress Edit of the pre-written
+entry, and the stub won).
+
+### Fixed
+
+- **`scripts/bump-version.sh`** — added a guard that checks for an
+  existing `## <new-version>` heading before prepending. If the
+  user (or tooling) already wrote the entry, the script skips the
+  stub injection, preserves the real content, and prints a status
+  line saying the entry was already present. No more racy stub
+  overwrites.
+
+- Also fixed a pre-existing shellcheck SC2059 in the `printf`
+  format-string usage so the script is clean under `shellcheck`
+  (no behavior change, just hygiene).
+
+### Migration
+
+No behavior change for the preferred flow (write CHANGELOG first,
+then run bump-version.sh). The legacy "bump first, edit after" flow
+still works but prints a TODO stub as before — users just need to
+remember to fill it in before committing.
+
 ## 0.79.0 — Observability onboarding: model-invocable skills + one-step setup
 
 Before this release, "register this project with the observability
