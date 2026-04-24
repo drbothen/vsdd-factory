@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.79.0 — TODO: fill in release title (2026-04-23)
+
+TODO: describe the release.
+
+### Fixed
+
+- 
+
+### Added
+
+- 
+
+### Migration
+
+No breaking changes.
+
 ## 0.78.2 — Docs refresh for the observability stack (v0.66 → v0.78)
 
 Documentation-only release. No runtime code or config changes — safe
