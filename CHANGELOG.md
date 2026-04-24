@@ -1,5 +1,65 @@
 # Changelog
 
+## 0.78.2 — Docs refresh for the observability stack (v0.66 → v0.78)
+
+Documentation-only release. No runtime code or config changes — safe
+to skip from a deployment standpoint. Every piece of observability
+documentation was stale by 10+ releases:
+
+- The top-level `README.md` and `docs/guide/observability.md`
+  described the original "3-container" stack from v0.66.0 (OTel +
+  Loki + Grafana) even though v0.78.1 ships 5 services + an init
+  container.
+- `plugins/vsdd-factory/skills/factory-obs/SKILL.md` listed only
+  the original 6 subcommands; missed the 4 new ones from v0.78.0
+  (`register`, `unregister`, `list`, `regenerate`).
+- `plugins/vsdd-factory/tools/observability/README.md`'s
+  architecture diagram still showed the v0.66 topology without
+  Prometheus, the renderer sidecar, or the OTLP metrics path.
+- `docs/guide/hooks-reference.md` was missing `capture-pr-activity.sh`
+  (v0.73.1) and `capture-commit-activity.sh` (v0.77.0) entirely.
+- The observability Roadmap table stopped at v0.68.0.
+
+### Changed
+
+- **`docs/guide/observability.md`** — opening paragraph now reflects
+  v0.78.1 state (5-service stack, 7 dashboards, multi-factory,
+  Prometheus). The "factory-obs + Docker stack" section expanded
+  with the full service list, lifecycle, multi-factory workflow,
+  dashboard catalog, and the `capture-pr-activity` / 
+  `capture-commit-activity` companion-signal hooks. Roadmap table
+  updated with phases 7–13 through v0.78.0 + planned items.
+
+- **`plugins/vsdd-factory/tools/observability/README.md`** —
+  architecture ASCII diagram redrawn to show OTel collector →
+  Loki + Prometheus split and the Grafana + renderer sidecar
+  topology. "What ships" list now covers all 5 services, 7
+  dashboards, and the companion `loki-config.yaml` +
+  `prometheus-config.yaml` artifacts.
+
+- **`plugins/vsdd-factory/skills/factory-obs/SKILL.md`** —
+  description frontmatter updated to name all 5 services and
+  mention multi-factory. Subcommand table now includes `register`,
+  `unregister`, `list`, and `regenerate`. Env-var list expanded
+  with `VSDD_OBS_PROMETHEUS_PORT`, `VSDD_OBS_RENDERER_PORT`, and
+  `VSDD_OBS_REGISTRY`. New "When to use" entries for the registry
+  commands. Non-goals clarified to explain that registration is
+  explicit by design.
+
+- **`docs/guide/hooks-reference.md`** — added rows to the Hook
+  Summary table and new Hook Details sections for
+  `capture-pr-activity.sh` (PR event capture with open→merge
+  duration pairing) and `capture-commit-activity.sh` (commit
+  event capture backing the rebuilt Cost per commit panel).
+
+- **`README.md`** — Observability row in the docs index now
+  mentions the local stack and multi-factory registry, not just
+  the event-log schema.
+
+### Migration
+
+No breaking changes. No runtime behavior change.
+
 ## 0.78.1 — Shellcheck hint fix on v0.78.0 factory-obs
 
 Tiny fix release — v0.78.0's Release workflow failed its shellcheck
