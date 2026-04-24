@@ -110,6 +110,42 @@ The plugin provides methodology, principles, and rules automatically. The `CLAUD
 covers project-specific context only: toolchain, commands, and references. Re-run anytime
 to regenerate.
 
+### 5. (Optional) Wire the project into the observability stack
+
+If you've already installed Docker and plan to use the local Grafana
+dashboards, register this project with the stack in one step:
+
+```
+/vsdd-factory:onboard-observability
+```
+
+This does two things:
+
+1. Runs `factory-obs register` so the project's `.factory/logs/` is
+   tailed by the collector (any factory anywhere on the filesystem —
+   `~/Dev/foo`, `~/work/bar`, `/opt/team/baz`; the plugin makes no
+   parent-directory assumption).
+2. Writes the 5 `OTEL_*` env vars to `.claude/settings.local.json`
+   so this session's Claude Code OTel telemetry (cost, tokens, tool
+   calls) ships to the same Loki / Prometheus.
+
+After onboarding, **restart your Claude Code session** (the OTel env
+vars only take effect on start), then run:
+
+```
+/vsdd-factory:factory-obs up          # start the stack (no-op if running)
+/vsdd-factory:factory-obs dashboard   # open http://localhost:3000
+```
+
+Onboarding is idempotent — safe to re-run anytime. If you only need
+one half (register-only or telemetry-only), use
+`/vsdd-factory:factory-obs register` or `/vsdd-factory:claude-telemetry on`
+directly.
+
+Skip this step if you don't want observability — the factory works
+fine without it, and all the file-based CLIs (`factory-query`,
+`factory-report`, `factory-dashboard`) read the same event log.
+
 ---
 
 ## Every session

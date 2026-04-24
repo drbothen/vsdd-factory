@@ -391,6 +391,39 @@ setup() {
   [ -f "$plugin_root/skills/phase-f5-scoped-adversarial/steps/_shared-context.md" ]
 }
 
+@test "observability skills are model-invocable (v0.79.0+)" {
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  # factory-obs + claude-telemetry + onboard-observability should NOT have
+  # `disable-model-invocation: true`. The orchestrator needs to discover
+  # them automatically when the user says things like "register this
+  # project with the observability stack" or "enable claude telemetry".
+  for skill in factory-obs claude-telemetry onboard-observability; do
+    local f="$plugin_root/skills/$skill/SKILL.md"
+    [ -f "$f" ] || { echo "missing: $f" >&2; return 1; }
+    if grep -q '^disable-model-invocation: true' "$f"; then
+      echo "regression: $skill has disable-model-invocation: true (must be absent or false so the model can auto-invoke it)" >&2
+      return 1
+    fi
+  done
+}
+
+@test "onboard-observability skill exists with expected structure (v0.79.0+)" {
+  local plugin_root="${BATS_TEST_DIRNAME}/.."
+  local f="$plugin_root/skills/onboard-observability/SKILL.md"
+  [ -f "$f" ]
+  # Must describe both halves of the workflow so the model chooses it
+  # over invoking the two sub-skills separately.
+  grep -q 'factory-obs register' "$f"
+  grep -q 'claude-telemetry\|\.claude/settings\.local\.json' "$f"
+  grep -q 'OTEL_EXPORTER_OTLP_ENDPOINT' "$f"
+  # Must state idempotency so re-running is safe.
+  grep -qi 'idempoten' "$f"
+}
+
+@test "onboard-observability command alias exists" {
+  [ -f "${BATS_TEST_DIRNAME}/../commands/onboard-observability.md" ]
+}
+
 @test "phase 0-7 step files use pure alphabetic naming" {
   local plugin_root="${BATS_TEST_DIRNAME}/.."
   local bad=0

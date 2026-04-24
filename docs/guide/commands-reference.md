@@ -259,6 +259,9 @@ Commands are organized by category below.
 | Command | Description |
 |---------|-------------|
 | `/vsdd-factory:jira` | Reference documentation for jira-cli tool. Reference-only. |
+| `/vsdd-factory:factory-obs` | Manage the local observability stack (up / down / reset / status / logs / dashboard) + multi-factory registry (register / unregister / list / regenerate). |
+| `/vsdd-factory:claude-telemetry` | Enable/disable/status Claude Code's native OTel export to the local stack. Writes the 5 `OTEL_*` env vars to `.claude/settings.local.json`. |
+| `/vsdd-factory:onboard-observability` | One-command first-time setup: `factory-obs register` + `claude-telemetry on` for the current project. Idempotent. |
 
 ---
 
