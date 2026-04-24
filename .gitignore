@@ -6,3 +6,7 @@ node_modules/
 .factory/
 # Reference codebases — cloned for brownfield-ingest analysis, never committed to main
 .reference/
+
+# factory-obs generated override file (multi-factory compose layer).
+# Regenerated per-machine from ~/.config/vsdd-factory/watched-factories.
+plugins/vsdd-factory/tools/observability/docker-compose.override.yml

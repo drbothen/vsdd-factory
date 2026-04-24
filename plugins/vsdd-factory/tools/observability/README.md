@@ -35,7 +35,43 @@ Default URLs:
 Override any of these via env vars:
 - `VSDD_OBS_GRAFANA_PORT=8080 factory-obs up`
 - `VSDD_OBS_PROMETHEUS_PORT=19090 factory-obs up`
-- `VSDD_FACTORY_LOGS=/path/to/other/.factory/logs factory-obs up`
+
+## Watching multiple factories (v0.78.0+)
+
+The stack can aggregate events from any number of factory projects,
+wherever they live on the filesystem. Each project is registered
+explicitly via a user-level registry at
+`~/.config/vsdd-factory/watched-factories`:
+
+```bash
+# Register the factory whose root is the current directory
+cd ~/Dev/prism
+factory-obs register
+
+# Or register an absolute path from anywhere
+factory-obs register /opt/work/other-project
+
+# See what's registered
+factory-obs list
+
+# Stop watching one
+factory-obs unregister /opt/work/other-project
+
+# Apply changes (generates docker-compose.override.yml from the
+# registry and (re)starts the collector)
+factory-obs up
+```
+
+Each registered factory lands at `/var/log/factory/<sanitized-name>-<hash>/`
+inside the collector container, and the filelog receiver globs all
+subdirectories. The basename is derived from the project root's final
+path component; the 8-char hash suffix disambiguates projects that
+share a basename but live in different parents.
+
+If the registry is empty when you run `factory-obs up`, the stack
+falls back to watching the current directory (if it's a factory root)
+or the path given by `VSDD_FACTORY_LOGS` — same behavior as earlier
+releases, single-factory.
 
 ## Architecture
 

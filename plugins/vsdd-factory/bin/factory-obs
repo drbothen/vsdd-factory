@@ -2,21 +2,38 @@
 # factory-obs — lifecycle manager for the local observability stack.
 #
 # Wraps `docker compose` against tools/observability/docker-compose.yml.
-# The stack (otel-collector + Loki + Grafana) tails .factory/logs/ and
-# renders the observability event log in a local Grafana UI.
+# The stack (otel-collector + Loki + Prometheus + Grafana + renderer)
+# tails .factory/logs/ from one OR MORE registered factory projects
+# and renders the observability event log in a local Grafana UI.
+#
+# v0.78.0+ multi-factory model:
+#   - The plugin can be installed in any project at any filesystem
+#     location. No assumption about parent directories.
+#   - A user-level registry at ~/.config/vsdd-factory/watched-factories
+#     lists the absolute paths of factory projects to watch.
+#   - `factory-obs register [path]` adds a project to the registry.
+#   - `factory-obs up` reads the registry, generates a docker-compose
+#     override file with one bind mount per registered factory (each
+#     at /var/log/factory/<sanitized-name>/), and starts the stack.
+#   - The collector globs /var/log/factory/*/events-*.jsonl so all
+#     registered factories' event streams flow into the same Loki.
 #
 # Subcommands:
-#   up        — start the stack in the background
-#   down      — stop the stack (keeps volumes)
-#   reset     — stop + wipe volumes (fresh Grafana, empties Loki)
-#   status    — docker compose ps
-#   logs      — tail collector + grafana logs (Ctrl-C to exit)
-#   dashboard — print the Grafana URL (and open browser if possible)
-#   help      — show usage
+#   up            — start the stack in the background
+#   regenerate    — rewrite docker-compose.override.yml from registry
+#                   without starting/restarting the stack (mostly for
+#                   tests + scripting + debugging)
+#   down          — stop the stack (keeps volumes)
+#   reset         — stop + wipe volumes (fresh Grafana, empty Loki)
+#   status        — docker compose ps
+#   logs          — tail collector + grafana logs (Ctrl-C to exit)
+#   dashboard     — print the Grafana URL (and open browser if possible)
+#   register [P]  — add a factory to the watched list (default: cwd)
+#   unregister [P]— remove a factory (default: cwd)
+#   list          — show registered factories + their status
+#   help          — show usage
 #
 # Requires: docker + docker compose plugin (or docker-compose v1).
-# Reads events from .factory/logs/ relative to cwd. Override via
-# VSDD_FACTORY_LOGS.
 #
 # Portable bash. Works on macOS and Linux.
 
@@ -25,16 +42,26 @@ set -u
 usage() {
   cat <<'EOF'
 Usage:
-  factory-obs up         start the observability stack
-  factory-obs down       stop the stack (keeps volumes)
-  factory-obs reset      stop + wipe volumes
-  factory-obs status     docker compose ps
-  factory-obs logs       tail collector/grafana logs
-  factory-obs dashboard  print + open the Grafana URL
+  factory-obs up             start the stack (reads registry)
+  factory-obs regenerate     rewrite docker-compose.override.yml only
+  factory-obs down           stop the stack (keeps volumes)
+  factory-obs reset          stop + wipe volumes
+  factory-obs status         docker compose ps
+  factory-obs logs           tail collector/grafana logs
+  factory-obs dashboard      print + open the Grafana URL
+  factory-obs register [P]   add a factory to the watched list (default cwd)
+  factory-obs unregister [P] remove a factory from the watched list
+  factory-obs list           show registered factories
   factory-obs help
 
+Registry:
+  ~/.config/vsdd-factory/watched-factories  (one abs path per line)
+  Override via VSDD_OBS_REGISTRY=<path> (primarily for tests).
+
 Env:
-  VSDD_FACTORY_LOGS         path to .factory/logs (default: ./.factory/logs)
+  VSDD_FACTORY_LOGS         explicit single-path fallback when no
+                            factories are registered (default: cwd if
+                            cwd has .factory/, else error)
   VSDD_OBS_GRAFANA_PORT     Grafana host port (default 3000)
   VSDD_OBS_LOKI_PORT        Loki host port (default 3100)
   VSDD_OBS_OTLP_HTTP_PORT   OTLP HTTP receiver port (default 4318)
@@ -43,7 +70,7 @@ Env:
 Data:
   Grafana dashboards: http://localhost:${VSDD_OBS_GRAFANA_PORT:-3000}
   Prometheus UI:      http://localhost:${VSDD_OBS_PROMETHEUS_PORT:-9090}
-(anonymous admin access on Grafana for local dev).
+  (anonymous admin access on Grafana for local dev).
 EOF
 }
 
@@ -54,49 +81,213 @@ if [ -z "$PLUGIN_ROOT" ]; then
 fi
 OBS_DIR="$PLUGIN_ROOT/tools/observability"
 COMPOSE_FILE="$OBS_DIR/docker-compose.yml"
+OVERRIDE_FILE="$OBS_DIR/docker-compose.override.yml"
 
 if [ ! -f "$COMPOSE_FILE" ]; then
   echo "factory-obs: compose file not found at $COMPOSE_FILE" >&2
   exit 1
 fi
 
+# --- Registry location ---
+# ~/.config/vsdd-factory/watched-factories by default. Override via
+# VSDD_OBS_REGISTRY (used by bats tests that need isolation).
+_registry_path() {
+  if [ -n "${VSDD_OBS_REGISTRY:-}" ]; then
+    printf '%s' "$VSDD_OBS_REGISTRY"
+    return
+  fi
+  printf '%s' "${XDG_CONFIG_HOME:-$HOME/.config}/vsdd-factory/watched-factories"
+}
+
+_ensure_registry_dir() {
+  local reg dir
+  reg=$(_registry_path)
+  dir=$(dirname "$reg")
+  mkdir -p "$dir" 2>/dev/null || true
+}
+
 # --- Resolve docker compose command (v2 subcommand or v1 binary) ---
+# When an override file exists, include it so multi-factory mounts apply.
 _dc() {
+  local args=( -f "$COMPOSE_FILE" )
+  if [ -f "$OVERRIDE_FILE" ]; then
+    args+=( -f "$OVERRIDE_FILE" )
+  fi
   if docker compose version >/dev/null 2>&1; then
-    docker compose -f "$COMPOSE_FILE" "$@"
+    docker compose "${args[@]}" "$@"
   elif command -v docker-compose >/dev/null 2>&1; then
-    docker-compose -f "$COMPOSE_FILE" "$@"
+    docker-compose "${args[@]}" "$@"
   else
     echo "factory-obs: docker compose not found. Install Docker Desktop or the docker-compose v2 plugin." >&2
     return 127
   fi
 }
 
-# --- Resolve host log dir and pass via env ---
-_prep_env() {
-  # Default the logs path to the MAIN WORKTREE's .factory/logs if we're
-  # inside a git worktree, so the collector tails the aggregated event
-  # stream from every linked worktree (v0.70). Falls back to cwd if
-  # git is unavailable or cwd isn't a repo. Explicit override still wins.
-  if [ -z "${VSDD_FACTORY_LOGS:-}" ]; then
-    local candidate
-    local main_wt
-    main_wt=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}' 2>/dev/null)
-    if [ -n "$main_wt" ] && [ -d "$main_wt" ]; then
-      candidate="${main_wt}/.factory/logs"
-    else
-      candidate="$(pwd)/.factory/logs"
+# --- Discover factory root by walking up from a starting directory ---
+# Echoes the absolute path of the nearest ancestor containing .factory/,
+# or empty + returns 1 if none found.
+_find_factory_root() {
+  local d
+  d=$(cd "${1:-$PWD}" 2>/dev/null && pwd) || return 1
+  while [ -n "$d" ] && [ "$d" != "/" ]; do
+    if [ -d "$d/.factory" ]; then
+      printf '%s' "$d"
+      return 0
     fi
-    # Pre-create so Docker doesn't mint a root-owned bind mount.
-    mkdir -p "$candidate" 2>/dev/null || true
-    export VSDD_FACTORY_LOGS="$candidate"
+    d=$(dirname "$d")
+  done
+  return 1
+}
+
+# --- Derive a docker-compose-safe subdir name from an absolute project path ---
+# Format: <basename>-<8-char-shasum>. The hash disambiguates projects
+# that share a basename (e.g., two "api" checkouts in different parents).
+_safe_name() {
+  local abs="$1"
+  local base
+  base=$(basename "$abs" | tr -c 'a-zA-Z0-9-_' '-' | sed 's/^-*//;s/-*$//')
+  [ -z "$base" ] && base="factory"
+  local hash
+  hash=$(printf '%s' "$abs" | shasum 2>/dev/null | head -c 8)
+  [ -z "$hash" ] && hash="nohash00"
+  printf '%s-%s' "$base" "$hash"
+}
+
+# --- Read registry into one-path-per-line on stdout, skipping blanks/comments ---
+_read_registry() {
+  local reg
+  reg=$(_registry_path)
+  [ -f "$reg" ] || return 0
+  # Drop comments (lines starting with #) and blank lines.
+  grep -vE '^\s*(#|$)' "$reg" 2>/dev/null || true
+}
+
+# --- Write a full registry from stdin (one path per line) ---
+# Rewrites the file atomically via a tempfile.
+_write_registry() {
+  _ensure_registry_dir
+  local reg tmp
+  reg=$(_registry_path)
+  tmp=$(mktemp "${reg}.XXXXXX") || return 1
+  cat > "$tmp"
+  mv "$tmp" "$reg"
+}
+
+# --- Validate a path is a factory root (absolute + .factory/ present) ---
+_validate_factory_root() {
+  local p="$1"
+  case "$p" in
+    /*) ;;
+    *)
+      echo "factory-obs: path must be absolute ($p)" >&2
+      return 1
+      ;;
+  esac
+  if [ ! -d "$p" ]; then
+    echo "factory-obs: directory does not exist: $p" >&2
+    return 1
   fi
+  if [ ! -d "$p/.factory" ]; then
+    echo "factory-obs: no .factory/ subdirectory at $p" >&2
+    return 1
+  fi
+  return 0
+}
+
+# --- Generate docker-compose.override.yml from registry + fallback ---
+#
+# Writes an override file that adds one bind mount per factory to the
+# otel-collector service. Each factory mounts at /var/log/factory/<safe-name>/
+# so the collector's glob (/var/log/factory/*/events-*.jsonl) picks them
+# all up. Returns a human-readable summary on stdout for display.
+_generate_override() {
+  local entries=()
+  # Preferred source: registry entries
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    entries+=( "$line" )
+  done < <(_read_registry)
+
+  # Fallback: if registry is empty, use VSDD_FACTORY_LOGS (explicit
+  # single-path override) or autoresolve from cwd.
+  if [ "${#entries[@]}" -eq 0 ]; then
+    local fallback
+    if [ -n "${VSDD_FACTORY_LOGS:-}" ]; then
+      # Legacy single-path env var points at <root>/.factory/logs.
+      # Derive the project root by stripping the suffix if present.
+      fallback="$VSDD_FACTORY_LOGS"
+      fallback="${fallback%/.factory/logs}"
+      fallback="${fallback%/.factory/logs/}"
+    else
+      fallback=$(_find_factory_root)
+    fi
+    if [ -z "$fallback" ] || [ ! -d "$fallback/.factory" ]; then
+      echo "factory-obs: no factories registered and cwd has no .factory/" >&2
+      echo "factory-obs: run 'factory-obs register' inside a factory project first" >&2
+      return 1
+    fi
+    entries=( "$fallback" )
+  fi
+
+  # Pre-create logs subdirs so Docker doesn't mint root-owned mounts.
+  local mount_lines=""
+  local summary=""
+  local i=0
+  for root in "${entries[@]}"; do
+    if ! _validate_factory_root "$root"; then
+      echo "factory-obs: skipping invalid registry entry: $root" >&2
+      continue
+    fi
+    mkdir -p "$root/.factory/logs" 2>/dev/null || true
+    local name
+    name=$(_safe_name "$root")
+    mount_lines+="      - \"$root/.factory/logs:/var/log/factory/$name:ro\"
+"
+    summary+="  • $name ← $root/.factory/logs
+"
+    i=$((i + 1))
+  done
+
+  if [ "$i" -eq 0 ]; then
+    echo "factory-obs: no valid factories to mount" >&2
+    return 1
+  fi
+
+  cat > "$OVERRIDE_FILE" <<EOF
+# Generated by factory-obs — DO NOT EDIT BY HAND.
+# Regenerated on every \`factory-obs up\` from the registry at
+# \$XDG_CONFIG_HOME/vsdd-factory/watched-factories.
+#
+# Each registered factory gets a read-only bind mount at
+# /var/log/factory/<safe-name>/. The collector's filelog receiver
+# globs /var/log/factory/*/events-*.jsonl so all factories feed one
+# Loki instance with service_name=vsdd-factory.
+services:
+  otel-collector:
+    volumes:
+$mount_lines
+EOF
+
+  printf '%s' "$summary"
+  return 0
+}
+
+# --- Subcommands ---
+
+cmd_regenerate() {
+  local summary
+  summary=$(_generate_override) || return 1
+  echo "factory-obs: wrote $OVERRIDE_FILE"
+  echo "factory-obs: watching factories:"
+  printf '%s' "$summary"
 }
 
 cmd_up() {
-  _prep_env
   echo "factory-obs: starting stack..."
-  echo "  VSDD_FACTORY_LOGS = $VSDD_FACTORY_LOGS"
+  local summary
+  summary=$(_generate_override) || return 1
+  echo "factory-obs: watching factories:"
+  printf '%s' "$summary"
   _dc up -d
   local rc=$?
   if [ "$rc" -ne 0 ]; then return "$rc"; fi
@@ -104,29 +295,27 @@ cmd_up() {
   echo "factory-obs: up."
   echo "  • Grafana:    http://localhost:${VSDD_OBS_GRAFANA_PORT:-3000}"
   echo "  • Prometheus: http://localhost:${VSDD_OBS_PROMETHEUS_PORT:-9090}"
-  echo "  • Dashboards: Factory Overview, Claude Code Overview, Factory Today (auto-provisioned)"
-  echo "  • Log in as admin / admin (anonymous access also enabled)"
-  echo "  • Events from $VSDD_FACTORY_LOGS will appear within ~10 seconds"
+  echo "  • Dashboards auto-provisioned; log in admin / admin"
+  echo "  • Events will appear within ~10 seconds"
 }
 
 cmd_down() {
-  _prep_env
+  # Don't require a valid override for `down`: if the stack was brought
+  # up by this tool, the override still exists; if not, the base compose
+  # is enough to stop any running services.
   _dc down
 }
 
 cmd_reset() {
-  _prep_env
   echo "factory-obs: stopping and removing volumes..."
   _dc down -v
 }
 
 cmd_status() {
-  _prep_env
   _dc ps
 }
 
 cmd_logs() {
-  _prep_env
   _dc logs -f --tail=50 otel-collector grafana
 }
 
@@ -134,9 +323,6 @@ cmd_dashboard() {
   local port="${VSDD_OBS_GRAFANA_PORT:-3000}"
   local url="http://localhost:${port}"
   echo "$url"
-  # Only launch a browser when running interactively. This prevents tests
-  # and non-TTY CI invocations from popping browser windows.
-  # Override via VSDD_OBS_OPEN_BROWSER: "1" forces, "0" suppresses, unset = auto.
   local should_open
   case "${VSDD_OBS_OPEN_BROWSER:-auto}" in
     1|true|yes) should_open=1 ;;
@@ -152,6 +338,112 @@ cmd_dashboard() {
   fi
 }
 
+cmd_register() {
+  local target="${1:-}"
+  if [ -z "$target" ]; then
+    # Autoresolve from cwd.
+    target=$(_find_factory_root) || {
+      echo "factory-obs: no .factory/ found walking up from $PWD" >&2
+      echo "factory-obs: pass an explicit path: factory-obs register /abs/path/to/project" >&2
+      return 1
+    }
+  fi
+  # Normalize to absolute path.
+  if [ -d "$target" ]; then
+    target=$(cd "$target" && pwd)
+  elif [ -e "$target" ]; then
+    :  # will fail validation below
+  fi
+  _validate_factory_root "$target" || return 1
+
+  local reg existing new
+  reg=$(_registry_path)
+  existing=""
+  if [ -f "$reg" ]; then
+    existing=$(cat "$reg")
+  fi
+  # Dedup — if the absolute path is already in the file verbatim, do nothing.
+  if _read_registry | grep -Fxq -- "$target"; then
+    echo "factory-obs: already registered: $target"
+    return 0
+  fi
+  # Seed file with a header comment if it's new.
+  if [ ! -f "$reg" ] || [ -z "$(_read_registry)" ]; then
+    new="# vsdd-factory watched factories. One absolute path per line.
+# Managed by 'factory-obs register' and 'factory-obs unregister'.
+# Lines starting with # are comments.
+"
+  else
+    new="$existing
+"
+  fi
+  new+="$target"
+  _ensure_registry_dir
+  printf '%s\n' "$new" | _write_registry
+  echo "factory-obs: registered $target"
+  echo "factory-obs: run 'factory-obs up' to apply (stack restart needed if already running)"
+}
+
+cmd_unregister() {
+  local target="${1:-}"
+  if [ -z "$target" ]; then
+    target=$(_find_factory_root) || {
+      echo "factory-obs: no .factory/ found walking up from $PWD" >&2
+      echo "factory-obs: pass an explicit path: factory-obs unregister /abs/path/to/project" >&2
+      return 1
+    }
+  fi
+  if [ -d "$target" ]; then
+    target=$(cd "$target" && pwd)
+  fi
+  local reg
+  reg=$(_registry_path)
+  # Treat missing file and path-not-in-file identically — both mean the
+  # target isn't registered, and saying so is more useful than leaking
+  # whether the registry file happens to exist on disk.
+  if [ ! -f "$reg" ] || ! _read_registry | grep -Fxq -- "$target"; then
+    echo "factory-obs: not registered: $target"
+    return 0
+  fi
+  # Rewrite file without the target line, preserving comments.
+  local tmp
+  tmp=$(mktemp) || return 1
+  # shellcheck disable=SC2094
+  awk -v target="$target" 'BEGIN{FS=""}
+    { if ($0 == target) next; print }
+  ' "$reg" > "$tmp"
+  mv "$tmp" "$reg"
+  echo "factory-obs: unregistered $target"
+  echo "factory-obs: run 'factory-obs up' to apply (stack restart needed if already running)"
+}
+
+cmd_list() {
+  local reg
+  reg=$(_registry_path)
+  echo "registry: $reg"
+  if [ ! -f "$reg" ] || [ -z "$(_read_registry)" ]; then
+    echo "  (no factories registered)"
+    return 0
+  fi
+  echo "registered factories:"
+  local n=0
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    local status name
+    if [ -d "$path/.factory" ]; then
+      status="ok"
+    elif [ ! -d "$path" ]; then
+      status="MISSING (directory gone)"
+    else
+      status="MISSING .factory/"
+    fi
+    name=$(_safe_name "$path")
+    printf '  [%s] %s\n    name: %s\n' "$status" "$path" "$name"
+    n=$((n + 1))
+  done < <(_read_registry)
+  echo "total: $n"
+}
+
 # --- Dispatch ---
 if [ $# -eq 0 ]; then
   usage
@@ -161,11 +453,15 @@ fi
 sub="$1"; shift
 case "$sub" in
   up) cmd_up "$@" ;;
+  regenerate) cmd_regenerate "$@" ;;
   down) cmd_down "$@" ;;
   reset) cmd_reset "$@" ;;
   status|ps) cmd_status "$@" ;;
   logs) cmd_logs "$@" ;;
   dashboard|open) cmd_dashboard "$@" ;;
+  register) cmd_register "$@" ;;
+  unregister) cmd_unregister "$@" ;;
+  list|registered) cmd_list "$@" ;;
   help|--help|-h) usage ;;
   *) echo "unknown subcommand: $sub" >&2; usage >&2; exit 1 ;;
 esac

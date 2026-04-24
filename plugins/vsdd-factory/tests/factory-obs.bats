@@ -104,10 +104,25 @@ setup() {
   [[ "$output" == *"/ready"* ]]
 }
 
-@test "compose: mounts .factory/logs into collector" {
-  run yq eval '.services.otel-collector.volumes' "$OBS_DIR/docker-compose.yml"
-  [[ "$output" == *"/var/log/factory"* ]]
-  [[ "$output" == *"ro"* ]]
+@test "compose: base compose no longer hard-codes a .factory/logs bind (v0.78.0+)" {
+  # Multi-factory model: the base compose intentionally does NOT mount
+  # any .factory/logs directory. Per-factory mounts are generated into
+  # docker-compose.override.yml by `factory-obs up` from the user
+  # registry. Scan actual volume values (not raw output with comments)
+  # so documentation-mentions of the path don't break this test.
+  run yq eval -o=json '.services.otel-collector.volumes[]' "$OBS_DIR/docker-compose.yml"
+  [ "$status" -eq 0 ]
+  # No volume entry should point at a .factory/logs path or reference
+  # the obsolete env var.
+  ! grep -q '\.factory/logs' <<<"$output"
+  ! grep -q 'VSDD_FACTORY_LOGS' <<<"$output"
+}
+
+@test "collector config: filelog globs per-factory subdirectories" {
+  # Multi-factory glob — catches each registered factory's events
+  # from /var/log/factory/<safe-name>/events-*.jsonl.
+  run yq eval '.receivers.filelog.include' "$OBS_DIR/otel-collector-config.yaml"
+  [[ "$output" == *"/var/log/factory/*/events-*.jsonl"* ]]
 }
 
 @test "compose: exposes Grafana on port 3000 by default" {

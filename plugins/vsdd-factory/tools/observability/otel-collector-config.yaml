@@ -20,8 +20,14 @@ extensions:
 
 receivers:
   filelog:
+    # Multi-factory glob (v0.78.0+): each registered factory's
+    # .factory/logs/ directory is bind-mounted at
+    # /var/log/factory/<safe-name>/ by factory-obs's generated
+    # docker-compose.override.yml. This glob picks up events from
+    # every factory the user has registered without baking any
+    # parent-directory assumption into the config.
     include:
-      - /var/log/factory/events-*.jsonl
+      - /var/log/factory/*/events-*.jsonl
     # Start from the first line the first time. On subsequent starts, the
     # file_storage extension remembers the last offset.
     start_at: beginning

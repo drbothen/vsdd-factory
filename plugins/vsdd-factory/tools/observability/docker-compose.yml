@@ -14,13 +14,22 @@
 # All data is local. No cloud services. Volumes persist across restarts.
 #
 # Environment overrides:
-#   VSDD_FACTORY_LOGS          — path to .factory/logs/ on the host (default:
-#                                three directories up from this file, i.e.
-#                                the project root's .factory/logs)
 #   VSDD_OBS_GRAFANA_PORT      — host port for Grafana UI (default 3000)
 #   VSDD_OBS_LOKI_PORT         — host port for Loki HTTP API (default 3100)
 #   VSDD_OBS_OTLP_HTTP_PORT    — host port for OTLP HTTP receiver (default 4318)
 #   VSDD_OBS_PROMETHEUS_PORT   — host port for Prometheus UI/API (default 9090)
+#
+# Multi-factory architecture (v0.78.0+):
+#   This base compose file does NOT declare the .factory/logs bind mount
+#   directly. `bin/factory-obs up` reads the user registry at
+#   $XDG_CONFIG_HOME/vsdd-factory/watched-factories, generates a
+#   docker-compose.override.yml alongside this file with one bind mount
+#   per registered factory (each at /var/log/factory/<safe-name>/),
+#   and starts the stack via `docker compose -f base.yml -f override.yml`.
+#   The collector globs /var/log/factory/*/events-*.jsonl so all
+#   factories feed the same Loki. Users should NEVER run
+#   `docker compose -f docker-compose.yml up` directly — the generated
+#   override is what wires the factory logs in.
 
 services:
   loki:
@@ -72,9 +81,11 @@ services:
     user: "0:0"
     command: ["--config=/etc/otel/config.yaml"]
     volumes:
-      # Event log — tail .factory/logs/events-*.jsonl from the host.
-      # Default resolves to the project root's .factory/logs/.
-      - ${VSDD_FACTORY_LOGS:-../../../../.factory/logs}:/var/log/factory:ro
+      # Per-factory .factory/logs/ bind mounts are injected by
+      # factory-obs's generated docker-compose.override.yml (see header
+      # comment). Each watched factory lands at
+      # /var/log/factory/<safe-name>/. The collector's filelog glob
+      # /var/log/factory/*/events-*.jsonl picks them all up.
       - ./otel-collector-config.yaml:/etc/otel/config.yaml:ro
       # State directory for the file_storage extension (remembers last offset)
       - collector-state:/var/lib/otelcol
