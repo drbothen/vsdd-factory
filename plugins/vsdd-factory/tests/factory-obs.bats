@@ -448,8 +448,9 @@ setup() {
   local hook="${BATS_TEST_DIRNAME}/../hooks/capture-commit-activity.sh"
   [ -x "$hook" ]
   bash -n "$hook"
-  # Registered under PostToolUse Bash matcher.
-  jq -e '.hooks.PostToolUse[] | select(.matcher == "Bash") | .hooks[] | select(.command | contains("capture-commit-activity.sh"))' \
+  # Registered under PostToolUse. Matcher is "*" in v0.79.3+ (was "Bash"
+  # in v0.77.0–v0.79.2); see capture-commit-activity.bats for the history.
+  jq -e '.hooks.PostToolUse[] | .hooks[] | select(.command | contains("capture-commit-activity.sh"))' \
     "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
 }
 

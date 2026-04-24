@@ -63,13 +63,17 @@ _run_hook() {
   bash -n "$HOOK"
 }
 
-@test "hooks.json: capture-commit-activity wired under PostToolUse Bash" {
+@test "hooks.json: capture-commit-activity wired under PostToolUse" {
   # The hook must be registered alongside capture-pr-activity so it
-  # actually fires during Claude sessions.
+  # actually fires during Claude sessions. v0.79.3 switched the matcher
+  # from "Bash" to "*" to work around a Claude Code harness bug where
+  # (PreToolUse, "Bash") and (PostToolUse, "Bash") can't both be wired
+  # in the same plugin. The hook self-filters on tool_name internally
+  # (capture-commit-activity.sh:40-43), so matcher "*" is behaviorally
+  # equivalent — we only assert the hook is registered, not its matcher.
   local registered
   registered=$(jq -r '
     .hooks.PostToolUse[]
-    | select(.matcher == "Bash")
     | .hooks[].command
   ' "${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json" | grep -c capture-commit-activity.sh)
   [ "$registered" -eq 1 ]

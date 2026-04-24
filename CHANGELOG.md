@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.79.3 — replace PostToolUse "Bash" matcher with "*" (Claude Code harness workaround)
+
+v0.79.2 reordered the `PostToolUse` array to test whether the bug was
+positional — it wasn't. With `Bash` as the *first* entry and
+`Edit|Write` as the second, `PostToolUse:Bash` was still silent while
+`PostToolUse:Edit|Write` fired normally. Post-restart test in prism
+produced zero `commit.made` events despite the reorder.
+
+Refined bug theory: the Claude Code harness can't wire both
+`(PreToolUse, "Bash")` AND `(PostToolUse, "Bash")` in the same plugin
+— one of them is always dropped. Matches upstream
+[claude-code #52715](https://github.com/anthropics/claude-code/issues/52715)
+where the opposite direction is silent
+(`PreToolUse:Bash` silent, `PostToolUse:Bash` fires). Looks like
+`matcher: "Bash"` gets deduplicated across event types.
+
+### Changed
+
+- **`plugins/vsdd-factory/hooks/hooks.json`** — change the
+  `PostToolUse` Bash-intent matcher from `"Bash"` to `"*"`. The
+  three hooks under that entry (`regression-gate`,
+  `capture-pr-activity`, `capture-commit-activity`) already
+  self-filter on `tool_name` (see `capture-commit-activity.sh:40-43`,
+  `capture-pr-activity.sh:33-35`, `regression-gate.sh:21-22`), so
+  matching every tool and early-exiting for non-Bash is a behavioral
+  no-op — just trades ~6ms per non-Bash tool call for the chance to
+  escape the harness dedup bug. `PreToolUse:Bash` (block-ai-attribution,
+  destructive-command-guard, protect-secrets, verify-git-push,
+  check-factory-commit) stays as-is since it fires fine.
+
+### Migration
+
+No migration needed. Install and **fully restart the Claude Code
+session** (hot-upgrades don't reliably rewire hooks). If `commit.made`
+events appear in `.factory/logs/events-*.jsonl` after the restart,
+the dedup theory is confirmed and the Factory ROI dashboard becomes
+honest.
+
 ## 0.79.2 — reorder PostToolUse matchers (Claude Code harness workaround)
 
 Speculative fix for an observed Claude Code harness bug where the
