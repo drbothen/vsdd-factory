@@ -1,20 +1,89 @@
 # Changelog
 
-## 0.79.0 — TODO: fill in release title (2026-04-23)
+## 0.79.0 — Observability onboarding: model-invocable skills + one-step setup
 
-TODO: describe the release.
-
-### Fixed
-
-- 
+Before this release, "register this project with the observability
+stack" was not discoverable to an orchestrator agent — both
+`factory-obs` and `claude-telemetry` skills had
+`disable-model-invocation: true` in their frontmatter, so the model
+couldn't auto-match the user's request to the skill, and a user had
+to explicitly type `/vsdd-factory:factory-obs register` and
+`/vsdd-factory:claude-telemetry on`. This release makes the
+onboarding flow discoverable and automatable.
 
 ### Added
 
-- 
+- **New `/vsdd-factory:onboard-observability` skill + command alias**
+  (`plugins/vsdd-factory/skills/onboard-observability/SKILL.md`,
+  `plugins/vsdd-factory/commands/onboard-observability.md`).
+  One-command first-time setup that:
+  1. Runs `factory-obs register` on the current project (adds its
+     `.factory/logs/` to the collector's watch list).
+  2. Writes the 5 `OTEL_*` env vars to `.claude/settings.local.json`
+     (same operation as `claude-telemetry on`, inlined so the skill
+     is self-contained).
+  3. Prints a concise summary + next-step reminder (restart Claude
+     to pick up OTel env vars; run `factory-obs up` if the stack
+     isn't already running).
 
-### Migration
+  Idempotent — safe to re-run. Model-invocable — the skill's
+  description matches phrases like "register this project with
+  observability", "set up observability here", "onboard the
+  observability stack".
 
-No breaking changes.
+- **Getting-started guide** (`docs/guide/getting-started.md`) gained
+  a "5. (Optional) Wire the project into the observability stack"
+  step in the first-time setup section, documenting the new skill
+  and the underlying two-step workflow.
+
+- **Commands reference** (`docs/guide/commands-reference.md`) gained
+  an "Infrastructure" row for each of the three observability
+  commands (`factory-obs`, `claude-telemetry`,
+  `onboard-observability`) so they're discoverable in the
+  documented command catalog.
+
+### Changed
+
+- **`factory-obs` skill frontmatter** — removed
+  `disable-model-invocation: true`. The model can now auto-invoke
+  `factory-obs` when the user says things like "start the
+  observability stack", "open the Grafana dashboards", "register
+  this factory", etc. Description copy tightened to cover the new
+  invocation cases.
+
+- **`claude-telemetry` skill frontmatter** — removed
+  `disable-model-invocation: true`. Auto-invocation matches on
+  phrases like "enable Claude telemetry", "turn on Claude OTel
+  export", "why aren't Claude's metrics showing up". Description
+  copy tightened.
+
+### Why this matters for orchestration
+
+An orchestrator agent spun up in a fresh project can now handle the
+observability onboarding request end-to-end with a single user
+phrase. Before: the user had to know the exact slash-command syntax
+and run two separate commands. After: "register this project with
+the observability stack" or "set up observability here" both match
+`onboard-observability` directly, and the agent executes both steps.
+
+### Safety
+
+Flipping `disable-model-invocation` slightly increases noise —
+mentions of "observability" or "telemetry" in an unrelated context
+could now match these skills. Mitigated by the descriptions being
+specific about the use cases ("Use when the user asks to …"). None
+of these skills take destructive actions without explicit user
+intent, and both existing sub-skills already ran without invocation
+gating before — flipping the frontmatter only changes *discovery*.
+
+### Tests
+
+- New `skills.bats` assertions: `factory-obs`, `claude-telemetry`,
+  and `onboard-observability` must NOT have
+  `disable-model-invocation: true` (regression guard). The
+  `onboard-observability` skill must describe both halves of the
+  workflow and state idempotency.
+- Full suite: 1177 tests, all passing.
 
 ## 0.78.2 — Docs refresh for the observability stack (v0.66 → v0.78)
 
