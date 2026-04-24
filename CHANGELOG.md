@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.78.1 — TODO: fill in release title (2026-04-23)
+
+TODO: describe the release.
+
+### Fixed
+
+- 
+
+### Added
+
+- 
+
+### Migration
+
+No breaking changes.
+
 ## 0.78.0 — Multi-factory watch: register/list/unregister + dynamic compose override
 
 The observability stack can now aggregate events from any number of
