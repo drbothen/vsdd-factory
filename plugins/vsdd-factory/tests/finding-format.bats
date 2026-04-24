@@ -100,7 +100,7 @@ Source: STORY-005-FIX-001"
 }
 
 @test "finding-format: hooks.json wires validate-finding-format" {
-  jq -e '.hooks.PostToolUse[0].hooks[] | select(.command | contains("validate-finding-format"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-finding-format"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
 }
 
 # ---------- Edge cases ----------

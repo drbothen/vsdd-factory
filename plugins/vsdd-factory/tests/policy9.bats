@@ -109,5 +109,5 @@ setup() {
 }
 
 @test "policy-9: hooks.json wires validate-vp-consistency" {
-  jq -e '.hooks.PostToolUse[0].hooks[] | select(.command | contains("validate-vp-consistency"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
+  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-vp-consistency"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
 }

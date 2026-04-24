@@ -240,13 +240,13 @@ FIXTURE
 # ===== hooks.json wiring =====
 
 @test "hooks.json wires validate-subsystem-names" {
-  jq -e '.hooks.PostToolUse[0].hooks[] | select(.command | contains("validate-subsystem-names"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-subsystem-names"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
 }
 
 @test "hooks.json wires validate-bc-title" {
-  jq -e '.hooks.PostToolUse[0].hooks[] | select(.command | contains("validate-bc-title"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-bc-title"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
 }
 
 @test "hooks.json wires validate-story-bc-sync" {
-  jq -e '.hooks.PostToolUse[0].hooks[] | select(.command | contains("validate-story-bc-sync"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-story-bc-sync"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
 }
