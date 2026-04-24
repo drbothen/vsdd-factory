@@ -1,5 +1,106 @@
 # Changelog
 
+## 0.78.0 — Multi-factory watch: register/list/unregister + dynamic compose override
+
+The observability stack can now aggregate events from any number of
+factory projects, wherever they live on the filesystem. This fixes a
+blind spot surfaced during the 2026-04-23 live-stack audit: the stack
+was only watching its own `.factory/logs/` because the bind mount was
+hard-coded relative to the plugin's install location. Projects
+installed anywhere else (e.g., `~/Dev/prism`, `~/work/api`, `/opt/team/…`)
+had their hook events silently dropped even while their Claude OTel
+telemetry flowed normally.
+
+### Fixed
+
+- **Silent data loss on additional factories**: any factory project
+  outside the plugin install tree was previously invisible to Loki
+  because the otel-collector's bind mount was anchored to the plugin's
+  own `.factory/logs/`. Now every registered factory is mounted
+  explicitly at `/var/log/factory/<safe-name>/`, and the collector's
+  filelog receiver globs `/var/log/factory/*/events-*.jsonl` to pick
+  them all up.
+
+### Added
+
+- **`bin/factory-obs register [PATH]`** — add a factory to the watched
+  list. With no argument, autoresolves the nearest ancestor directory
+  containing `.factory/` from `cwd`. Refuses relative paths and
+  non-factory directories. Dedups if the absolute path is already
+  registered.
+
+- **`bin/factory-obs unregister [PATH]`** — remove a factory from the
+  watched list. Same `cwd` autoresolution as register. No-op (not an
+  error) when the path isn't registered.
+
+- **`bin/factory-obs list`** — print all registered factories with
+  their safe-names and filesystem status. Flags paths whose
+  `.factory/` subdirectory has gone missing so users can clean up
+  stale entries.
+
+- **`bin/factory-obs regenerate`** — rewrite
+  `tools/observability/docker-compose.override.yml` from the current
+  registry without starting or restarting the stack. Primarily for
+  tests and scripting; `up` always calls it implicitly.
+
+- **Registry file** at `${XDG_CONFIG_HOME:-~/.config}/vsdd-factory/watched-factories`.
+  One absolute path per line, `#` comments allowed. Managed via the
+  CLI; users generally shouldn't edit by hand.
+  Override via `VSDD_OBS_REGISTRY=<path>` (primarily for tests).
+
+### Changed
+
+- **`tools/observability/docker-compose.yml`** — the hard-coded
+  `${VSDD_FACTORY_LOGS:-…}:/var/log/factory:ro` bind mount is removed
+  from the base compose. Per-factory mounts are now injected by the
+  generated override file. The base compose is no longer usable on
+  its own — always use `factory-obs up` (or
+  `docker compose -f base.yml -f override.yml …` with the override
+  already generated).
+
+- **`tools/observability/otel-collector-config.yaml`** — filelog
+  `include` glob changed from `/var/log/factory/events-*.jsonl` to
+  `/var/log/factory/*/events-*.jsonl` to match the per-factory
+  subdirectory layout.
+
+- **`tools/observability/README.md`** — new "Watching multiple
+  factories" section documenting the registry workflow.
+
+### Migration
+
+No action required for single-factory users: running `factory-obs up`
+from inside a factory project still works exactly as before (empty
+registry → autoresolve `cwd`). The `VSDD_FACTORY_LOGS` single-path
+fallback is preserved.
+
+For multi-factory users, the recommended setup is:
+
+```bash
+cd ~/Dev/project-a && factory-obs register
+cd ~/Dev/project-b && factory-obs register
+factory-obs list         # verify
+factory-obs up           # apply
+```
+
+### Notes
+
+- The generated `docker-compose.override.yml` is `.gitignore`-d so
+  each dev machine maintains its own multi-factory layout without
+  leaking into commits.
+- Safe-name format is `<basename>-<8-char-sha>`. Two projects sharing
+  a basename (e.g., `api`) get distinct mounts because the sha
+  derives from the full absolute path.
+
+### Tests
+
+- New `tests/factory-obs-registry.bats` — 19 tests covering register
+  (success, cwd autoresolve, dedup, invalid inputs), unregister,
+  list, regenerate (mount shapes, fallbacks, safe-name disambiguation).
+- Updated `tests/factory-obs.bats` — asserts base compose no longer
+  hard-codes a `.factory/logs` volume, and that the collector's
+  filelog glob uses the multi-factory subdirectory pattern.
+- Full suite: **1193 tests**, all passing.
+
 ## 0.77.1 — Factory ROI: Cost per active minute + Cost per active second
 
 Additive re-units for the Cost per active hour panel shipped in v0.77.0.
