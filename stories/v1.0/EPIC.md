@@ -74,6 +74,29 @@ Tier H (blocks on Tier G)
     └── S-5.7 — 1.0.0 release gate + tag 🏁
 ```
 
+## Parallelism map (execution view)
+
+| Tier | Stories | Can start when |
+|---|---|---|
+| **A** | S-0.1, S-0.2, S-0.3, S-0.4, S-0.5 (5) | **Now** — no dependencies |
+| **B.0** | S-1.1 (1, blocker) | **Now** — parallel with Tier A |
+| **B.x** | S-1.2, S-1.3, S-1.4, S-1.5, S-1.6, S-1.7, S-1.8, S-1.9 (8) | After S-1.1 contracts frozen |
+| **C** | S-2.1, S-2.2, S-2.3, S-2.4, S-2.5, S-2.6, S-2.7 (7) | After Tier B.x contracts frozen |
+| **D** | S-2.8 (1, **`1.0.0-beta.1` gate**) | After Tier C closed |
+| **E** | S-3.1, S-3.2, S-3.3, S-3.4, S-4.1, S-4.2, S-4.3, S-4.4, S-4.5, S-4.6, S-4.7 (11) | After beta.1 shipped + ≥2 weeks of shakedown |
+| **F** | S-4.8 (1, **`1.0.0-rc.1` gate**) | After Tier E closed |
+| **G** | S-5.1, S-5.2, S-5.3, S-5.4, S-5.5, S-5.6 (6) | After rc.1 shipped + ≥1 week of shakedown |
+| **H** | S-5.7 (1, **`1.0.0` gate**) | After Tier G closed |
+
+**Maximum concurrent stories:** 11 (Tier E) — widest fan-out point.
+
+**Estimated total effort:** 5–8 weeks of focused work assuming 2–3 streams
+active concurrently, with mandatory gating windows at beta.1 / rc.1 / 1.0.
+
+**Working "right now" picture:** 6 stories can start today in parallel
+(Tier A's 5 + S-1.1). When S-1.1's workspace + CI scaffolding contracts
+freeze, Tier B.x's 8 stories fan out behind it.
+
 ## Milestone → stories
 
 | Milestone | Stories included |
