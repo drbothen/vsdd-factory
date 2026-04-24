@@ -76,56 +76,83 @@ releases, single-factory.
 ## Architecture
 
 ```
-.factory/logs/events-*.jsonl   ← hooks emit here (phases 1–2)
-           │
-           │  (mounted read-only)
-           ▼
-   ┌──────────────────┐
-   │ otel-collector   │  tails files, parses JSON, ships to Loki
-   │ :4318 OTLP HTTP  │
-   └────────┬─────────┘
-            │
-            ▼
-   ┌──────────────────┐
-   │ Loki             │  stores structured logs
-   │ :3100            │
-   └────────┬─────────┘
-            │
-            ▼
-   ┌──────────────────┐
-   │ Grafana          │  queries Loki, renders dashboards
-   │ :3000            │
-   └──────────────────┘
+.factory/logs/events-*.jsonl        Claude Code (OTel)
+(per registered factory)            (per-session telemetry)
+          │                              │
+          │  (read-only bind mount)      │  OTEL_EXPORTER_OTLP_ENDPOINT
+          ▼                              ▼
+   ┌──────────────────────────────────────────┐
+   │  otel-collector (0.149.0)                │
+   │    filelog receiver  │  otlp receiver    │
+   │    /var/log/factory/*/events-*.jsonl     │
+   │    + deltatocumulative processor         │
+   └────────┬────────────────────┬────────────┘
+            │ logs               │ metrics
+            ▼                    ▼
+   ┌──────────────────┐    ┌──────────────────┐
+   │ Loki 3.6.10      │    │ Prometheus v3    │
+   │ :3100            │    │ :9090 (rw on)    │
+   │ + loki-config    │    │ 30d retention    │
+   └────────┬─────────┘    └────────┬─────────┘
+            │                       │
+            └───────────┬───────────┘
+                        ▼
+               ┌──────────────────┐
+               │ Grafana 13.0.1   │
+               │ :3000            │
+               │ + renderer :8081 │
+               │ 7 dashboards     │
+               └──────────────────┘
 ```
 
-No metrics backend in this minimal stack — Loki's LogQL `count_over_time`
-is sufficient for all current charts. A Prometheus/Mimir container can
-be added in a future release if we need true time-series metrics.
+Loki stores hook events (service_name=vsdd-factory from filelog) and
+Claude's native logs (service_name=claude-code from OTLP). Prometheus
+stores Claude's native metrics (cost, token usage, active time, session
+count). Grafana queries both datasources; dashboards mix Loki LogQL
+and PromQL freely.
+
+A one-shot `loki-ready` busybox init container gates `otel-collector`
+and `grafana` startup on Loki's HTTP `/ready` endpoint (Loki 3.6+ is
+fully distroless and can't run its own `wget`-based healthcheck).
 
 ## What ships
 
-- **`docker-compose.yml`** — 3 services (otel-collector + loki + grafana).
-  Minimal, no cloud dependencies.
-- **`otel-collector-config.yaml`** — tails `.factory/logs/events-*.jsonl`,
-  parses JSON, promotes `type`/`hook`/`reason`/`severity` to resource
-  attributes (which become Loki stream labels), exports to Loki.
-- **`grafana-provisioning/`** — preconfigured Loki datasource and
-  dashboard provider.
-- **`grafana-dashboards/factory-overview.json`** — starter dashboard with:
-  - Total events / Blocks (hard) / Blocks (warn) / Actions stat panels
-  - Events over time stacked by type
-  - Top block reasons table
-  - Blocks by hook bar gauge
-  - Recent events log stream
+- **`docker-compose.yml`** — 5 services + `loki-ready` init container.
+  No `.factory/logs` bind mount — those are injected by the generated
+  `docker-compose.override.yml` (see "Watching multiple factories"
+  above).
+- **`otel-collector-config.yaml`** — filelog receiver globs
+  `/var/log/factory/*/events-*.jsonl`, parses JSON, routes logs to
+  Loki via OTLP and Claude OTel metrics to Prometheus via
+  `prometheusremotewrite` with `deltatocumulative` upstream.
+- **`loki-config.yaml`** — Loki 3.6 distributor config. `otlp_config`
+  promotes `service.name`, `event_type`, `hook`, `reason`, `severity`
+  to stream labels. `reject_old_samples_max_age: 720h` (30d) so a
+  stack restart can backfill historical events.
+- **`prometheus-config.yaml`** — minimal Prometheus config
+  (remote_write receive + self-scrape).
+- **`grafana-provisioning/`** — Loki + Prometheus datasources (pinned
+  UIDs `loki` and `prometheus` so dashboards can reference by UID)
+  and dashboard provider.
+- **`grafana-dashboards/`** — 7 dashboards auto-provisioned on `up`:
+  - `factory-overview.json` — hook event snapshot
+  - `factory-today.json` — unified activity view
+  - `factory-prs.json` — PR lifecycle (open / merge / block / duration)
+  - `factory-subagents.json` — subagent dispatch + exit classes
+  - `claude-cost.json` — 12-panel cost & token tracker
+  - `factory-roi.json` — cost vs output (cost-per-PR / per-commit /
+    per-story / per-active-hour / -minute / -second)
+  - `claude-code-overview.json` — Claude native OTel events
 
 ## Persistent state
 
 - `grafana-data` volume — dashboard annotations, personal preferences.
-- `loki-data` volume — ingested log chunks.
-- `collector-state` volume — the file_storage extension's offset tracking
-  so events aren't re-ingested on container restart.
+- `loki-data` volume — ingested log chunks (30d retention).
+- `prometheus-data` volume — metrics TSDB (30d retention).
+- `collector-state` volume — the file_storage extension's offset
+  tracking so events aren't re-ingested on container restart.
 
-All three survive `factory-obs down`. Use `factory-obs reset` to wipe.
+All survive `factory-obs down`. Use `factory-obs reset` to wipe.
 
 ## Troubleshooting
 

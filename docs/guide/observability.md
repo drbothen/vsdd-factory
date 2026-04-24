@@ -1,12 +1,13 @@
 # Observability
 
-vsdd-factory emits a structured event log every time a hook blocks a tool
-call. Events are JSONL, append-only, and local to your project — nothing
-leaves your machine. The long-term goal is a local dashboard stack
-(Phase 5 of the observability plan) that tails these events and renders
-flame graphs of pipeline cycles, hook heatmaps, and cost curves. As of
-v0.57.0 the foundation is in place: `bin/emit-event` is shipped and four
-hooks are instrumented.
+vsdd-factory emits a structured event log every time a hook blocks a
+tool call. Events are JSONL, append-only, and local to your project —
+nothing leaves your machine. As of v0.78.1 the full observability
+stack is shipping: 30+ instrumented hooks, a 5-service local Docker
+stack (OTel Collector + Loki + Prometheus + Grafana + image
+renderer), 7 auto-provisioned dashboards, Claude Code's native OTel
+metrics piped through for cost / token / session tracking, and
+multi-factory watch via a user-level registry.
 
 This page covers:
 1. [Enabling and disabling emission](#enabling-and-disabling-emission)
@@ -61,14 +62,19 @@ Default location: `.factory/logs/events-YYYY-MM-DD.jsonl`.
 
 ### Retention
 
-There is no automatic retention policy in v0.57.x. Clean up manually:
+The file-based event log has no automatic rotation — clean up
+manually when it gets large:
 
 ```bash
 # Delete logs older than 30 days
 find .factory/logs -name 'events-*.jsonl' -mtime +30 -delete
 ```
 
-A retention policy ships with the Phase 5 dashboard stack.
+Inside the `factory-obs` Docker stack, Loki retains ingested events
+for 30 days (`loki-config.yaml`, `reject_old_samples_max_age: 720h`)
+and Prometheus retains metrics for 30 days
+(`--storage.tsdb.retention.time=30d`). The file-based JSONL log is
+the source of truth; Loki/Prometheus are queryable projections.
 
 ---
 
@@ -253,10 +259,30 @@ pipeline flame graphs) that need session-scoped event grouping.
 
 ### `bin/factory-obs` + Docker stack — Grafana dashboards
 
-Opt-in, shipped in [v0.66.0](../../CHANGELOG.md). Starts a 3-container
-Docker stack (OTel Collector + Loki + Grafana) that tails
-`.factory/logs/events-*.jsonl` and renders a preconfigured Grafana
-dashboard.
+Opt-in, first shipped in [v0.66.0](../../CHANGELOG.md) and expanded
+through v0.78.1. The stack is 5 services:
+
+- **otel-collector** (OTel Collector Contrib 0.149.0) — tails every
+  registered factory's `.factory/logs/events-*.jsonl`, ships logs to
+  Loki and Claude OTel metrics to Prometheus. Runs the
+  `deltatocumulative` processor so Claude's delta-temporality counters
+  land correctly in Prometheus's cumulative store.
+- **loki** (Loki 3.6.10) — structured log storage. OTLP-native
+  ingester; `otlp_config` promotes `service.name`, `event_type`,
+  `hook`, `reason`, `severity` to stream labels. 30d retention.
+- **prometheus** (Prometheus v3.5.2) — metrics storage for Claude
+  OTel (cost, tokens, active time, session count). `remote_write`
+  receive enabled.
+- **grafana** (Grafana 13.0.1) — dashboards + query UI. 7
+  auto-provisioned dashboards (see below).
+- **grafana-image-renderer** (3.11.0) — headless Chromium sidecar
+  that powers `/render/d-solo/…` for panel PNG/PDF export.
+
+Plus a one-shot `loki-ready` busybox init container that gates
+downstream services on Loki's HTTP `/ready` endpoint (Loki 3.6+ is
+fully distroless and can't run its own `wget`-based healthcheck).
+
+#### Lifecycle
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" up         # start
@@ -264,17 +290,83 @@ dashboard.
 "${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" logs       # tail container logs
 "${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" down       # stop (keeps volumes)
 "${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" reset      # stop + wipe volumes
+"${CLAUDE_PLUGIN_ROOT}/bin/factory-obs" status     # docker compose ps
 ```
 
 Requires Docker + the `docker compose` plugin (or `docker-compose` v1
-as fallback). Default ports: Grafana 3000, Loki 3100, OTLP HTTP 4318 —
-override via `VSDD_OBS_GRAFANA_PORT`, `VSDD_OBS_LOKI_PORT`,
-`VSDD_OBS_OTLP_HTTP_PORT`.
+as fallback). Default ports: Grafana 3000, Loki 3100, OTLP HTTP 4318,
+Prometheus 9090, renderer 8081 — each has a `VSDD_OBS_*_PORT` env
+var override.
 
-The starter dashboard (`Factory Overview`) has stat panels for total
-events / hard blocks / warn blocks / actions, a stacked time series of
-events by type, a top-block-reasons table, a per-hook bar gauge, and a
-live log stream of recent events. All panels query Loki via LogQL.
+#### Watching multiple factories (v0.78.0+)
+
+The plugin can be installed in any project at any filesystem
+location — the stack does not assume projects live under a particular
+parent directory. Projects register themselves explicitly:
+
+```bash
+cd ~/Dev/prism         && factory-obs register   # register current project
+cd ~/work/other-thing  && factory-obs register   # register another
+factory-obs list                                   # audit
+factory-obs unregister /path/to/old-thing          # stop watching
+factory-obs up                                     # apply (regenerates
+                                                   # docker-compose.override.yml
+                                                   # from the registry and
+                                                   # (re)starts the stack)
+```
+
+The registry lives at `${XDG_CONFIG_HOME:-~/.config}/vsdd-factory/watched-factories`
+(one absolute path per line). Each registered factory gets bind-mounted
+to `/var/log/factory/<basename>-<8-char-sha>/` inside the collector;
+the filelog receiver globs `/var/log/factory/*/events-*.jsonl` so all
+factories feed the same Loki. The sha disambiguates projects that
+share a basename across different parents.
+
+If the registry is empty, `factory-obs up` falls back to the current
+directory (if it's a factory root) or `$VSDD_FACTORY_LOGS` — the
+same single-factory behavior that shipped in v0.66.0.
+
+#### Dashboards (7)
+
+Auto-provisioned on `up`:
+
+1. **Factory Overview** — hook events snapshot (stat + time series +
+   reason-code table).
+2. **Factory Today — Unified Activity** — events today across all
+   factories, timeline, top hooks, top tools, stories touched, PRs
+   merged, recent significant events.
+3. **Factory PRs** — PR dispatched / merged / blocked, incomplete
+   rate, stall-step distribution, **open→merge duration** (v0.75.0+).
+4. **Factory Subagents — Usage & Exit Classes** — dispatch counts
+   per subagent, exit-class distribution, activity timeline, recent
+   events (v0.75.0).
+5. **Claude Cost & Usage** — 12 Prometheus-backed panels covering
+   total cost, sessions, token usage, cache hit ratio, cost by model
+   (v0.73.0+).
+6. **Factory ROI — Cost vs Output** — cross-datasource cost-per-PR /
+   cost-per-commit / cost-per-story (via Grafana server-side
+   expressions), plus cost per active hour / minute / second
+   (v0.74.0, rebuilt in v0.76.0 + v0.77.0 + v0.77.1).
+7. **Claude Code Overview** — Claude native OTel events — API
+   requests, tool invocations, top tools, session log feed
+   (v0.71.0+).
+
+#### Companion signals
+
+Two `PostToolUse` Bash hooks emit structured events that feed several
+dashboards directly:
+
+- **`capture-pr-activity.sh`** (v0.73.1+) — watches `gh pr create` /
+  `gh pr merge` and emits `pr.opened` / `pr.merged` events. The merge
+  hook additionally computes `open_to_merge_seconds` by looking back
+  in `events-*.jsonl` for a matching `pr.opened` on the same PR
+  number (v0.75.0).
+- **`capture-commit-activity.sh`** (v0.77.0+) — watches `git commit`
+  and emits `commit.made` events with `commit_sha`, `branch`,
+  `message_subject`, and `amended=true` when `--amend` was used.
+  Exists because Claude Code's SDK doesn't actually emit the
+  `claude_code.commit.count` metric upstream's docs list, so we own
+  the signal ourselves.
 
 **This stack is opt-in and optional.** The file-based CLIs
 (`factory-query`, `factory-report`, `factory-dashboard`) work without
@@ -585,5 +677,15 @@ happy path — impact on normal sessions is zero.
 | 5 | Local Docker observability stack (OTel Collector + Loki + Grafana) | Shipped in [v0.66.0](../../CHANGELOG.md) |
 | 6.1 | Session ID injection + `factory-replay` | Shipped in [v0.67.0](../../CHANGELOG.md) |
 | 6.2 | Agent SLO tracking + `factory-sla` + browser-in-tests fix | Shipped in [v0.68.0](../../CHANGELOG.md) |
-| 6.3 | Pipeline flame graphs (Tempo integration) | Planned |
-| 6 | Session replay, agent SLO tracking, pipeline flame graphs | Planned |
+| 7.1 | Claude Code native OTel (logs pipeline) + `claude-telemetry` skill + Claude Code Overview dashboard | Shipped in [v0.69.0](../../CHANGELOG.md) / [v0.71.0](../../CHANGELOG.md) |
+| 7.2 | Worktree-aware log aggregation | Shipped in [v0.70.0](../../CHANGELOG.md) |
+| 8.a | Prometheus in the stack + Factory Today dashboard | Shipped in [v0.72.0](../../CHANGELOG.md) |
+| 8.b | Claude Cost & Usage dashboard | Shipped in [v0.73.0](../../CHANGELOG.md) |
+| 8.c | Factory ROI dashboard | Shipped in [v0.74.0](../../CHANGELOG.md) |
+| 9.a | PR signal capture hook (`capture-pr-activity.sh`) + Factory PRs dashboard | Shipped in [v0.73.1](../../CHANGELOG.md) / [v0.75.0](../../CHANGELOG.md) |
+| 9.b | Factory Subagents dashboard + PR open→merge duration | Shipped in [v0.75.0](../../CHANGELOG.md) |
+| 10.a | Stack upgrade — Grafana 13 + OTel 0.149 + Loki 3.6 + Prometheus v3 + image-renderer sidecar | Shipped in [v0.76.0](../../CHANGELOG.md) |
+| 10.b | Commit signal capture hook (`capture-commit-activity.sh`) + Cost per commit panel rebuild + Cost per active hour / minute / second | Shipped in [v0.77.0](../../CHANGELOG.md) / [v0.77.1](../../CHANGELOG.md) |
+| 11 | Multi-factory watch — `register` / `unregister` / `list` CLI + dynamic compose override | Shipped in [v0.78.0](../../CHANGELOG.md) |
+| 12 | Pipeline flame graphs (Tempo integration) | Planned |
+| 13 | Health self-monitoring (freshness stats + hook-coverage matrix + `factory-obs health` CLI) | Planned (see `project_obs_health_monitoring_backlog.md` in session memory) |

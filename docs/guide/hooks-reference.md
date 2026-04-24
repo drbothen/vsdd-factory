@@ -46,6 +46,8 @@ The **Instrumented** column indicates whether the hook emits structured block ev
 | `validate-wave-gate-completeness.sh` | PostToolUse | Edit\|Write | `gate_status: passed` requires evidence of all 6 gates in the report | Yes (exit 2 on incomplete) | ✓ (1 code) |
 | `validate-factory-path-root.sh` | PostToolUse | Edit\|Write | `.factory/` writes use absolute project-root path, not worktree-relative | Yes (exit 2 on worktree-relative) | ✓ (1 code) |
 | `regression-gate.sh` | PostToolUse | Bash | Track test pass/fail transitions | No (telemetry) | ✓ (1 code, severity=warn) |
+| `capture-pr-activity.sh` | PostToolUse | Bash | Capture `gh pr create` / `gh pr merge` and emit `pr.opened` / `pr.merged` events (with open→merge duration pairing) | No (telemetry) | ✓ (2 event types) |
+| `capture-commit-activity.sh` | PostToolUse | Bash | Capture `git commit` and emit `commit.made` events with sha, branch, subject, and --amend flag | No (telemetry) | ✓ (1 event type) |
 | `handoff-validator.sh` | SubagentStop | (all) | Subagent output is non-empty and structurally plausible | No (warn-only) | ✓ (2 codes, severity=warn) |
 | `pr-manager-completion-guard.sh` | SubagentStop | pr-manager | Detect FM4: pr-manager exiting before 8+ STEP_COMPLETE emissions | Yes (exit 2 on early exit) | ✓ (1 code) |
 | `update-wave-state-on-merge.sh` | SubagentStop | pr-manager | Append merged story to wave-state.yaml; flip gate_status to pending when wave complete | No (state update) | ✓ (1 code, hook.action) |
@@ -255,6 +257,20 @@ Advisory hook that checks `.factory/` artifacts for input-hash drift. After any 
 **Event:** PostToolUse on Bash
 
 Watches Bash commands that run tests (`cargo test`, `pytest`, `npm test`, `go test`, `just test`, `just ci`). Records pass/fail to `.factory/regression-state.json`. If the test suite transitions from pass to fail, emits a warning so the next edit can be informed. This is a telemetry hook consumed by the red-gate when strict mode is active.
+
+### capture-pr-activity.sh
+
+**Event:** PostToolUse on Bash
+
+Shipped in [v0.73.1](../../CHANGELOG.md). Watches `gh pr create` and `gh pr merge` invocations and emits structured `pr.opened` / `pr.merged` events. Extracts PR URL / number / repo from `gh`'s stdout (or the command args as fallback), plus title (`--title "…"`) or merge strategy (`--squash|--rebase|--merge`). Word-boundary anchoring on the regex rejects echoed references in command text.
+
+Since [v0.75.0](../../CHANGELOG.md), `pr.merged` also carries `open_to_merge_seconds` — the hook looks back in the last 7 days of `.factory/logs/events-*.jsonl` for a matching `pr.opened` on the same PR number and computes the elapsed time. Absurd durations (negative or >30 days) are dropped to protect against PR-number collisions across weeks. Advisory (always exits 0); powers the Factory PRs dashboard's duration panels.
+
+### capture-commit-activity.sh
+
+**Event:** PostToolUse on Bash
+
+Shipped in [v0.77.0](../../CHANGELOG.md). Watches `git commit` invocations and emits a `commit.made` event with `commit_sha` + `branch` parsed from the `[<branch> <sha>]` preamble git prints on success, plus `message_subject` from the rest of that line and `amended="true"` when `--amend` was in the command. Failed commits (pre-commit hook rejections) are no-ops; `git commit --dry-run` is a no-op; word-boundary anchoring rejects `git commit-tree` and echoed text. Exists because Claude Code's SDK doesn't actually emit the `claude_code.commit.count` metric its OTel docs list — we own the signal ourselves and feed the Factory ROI dashboard's Commits / Cost per commit panels.
 
 ### handoff-validator.sh
 
