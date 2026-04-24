@@ -38,6 +38,14 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/regression-gate.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/capture-pr-activity.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/capture-commit-activity.sh", "timeout": 5 }
+        ]
+      },
+      {
         "matcher": "Edit|Write",
         "hooks": [
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/purity-check.sh", "timeout": 5 },
@@ -61,14 +69,6 @@
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-pr-description-completeness.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-wave-gate-completeness.sh", "timeout": 10 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-factory-path-root.sh", "timeout": 5 }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/regression-gate.sh", "timeout": 5 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/capture-pr-activity.sh", "timeout": 5 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/capture-commit-activity.sh", "timeout": 5 }
         ]
       }
     ],

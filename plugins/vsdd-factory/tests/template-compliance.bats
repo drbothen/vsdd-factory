@@ -150,5 +150,5 @@ _run_hook() {
 }
 
 @test "template-compliance: hooks.json wires validate-template-compliance" {
-  jq -e '.hooks.PostToolUse[0].hooks[] | select(.command | contains("validate-template-compliance"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-template-compliance"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
 }

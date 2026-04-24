@@ -253,7 +253,7 @@ EOF
 }
 
 @test "input-hash hook: hooks.json wires validate-input-hash" {
-  jq -e '.hooks.PostToolUse[0].hooks[] | select(.command | contains("validate-input-hash"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
+  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-input-hash"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
 }
 
 # ===== check-input-drift skill =====

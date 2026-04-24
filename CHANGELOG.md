@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.79.2 — reorder PostToolUse matchers (Claude Code harness workaround)
+
+Speculative fix for an observed Claude Code harness bug where the
+`PostToolUse` hooks registered under `matcher: "Bash"` were silently
+never dispatched in live sessions — zero emissions across two full
+days despite dozens of real `git commit` and `gh pr` invocations.
+Manual invocation of the hook scripts (piping synthetic payloads into
+them) produced correct output, and `emit-event` wrote events
+correctly. The silence was specific to the `(PostToolUse, Bash)` pair
+while `(PreToolUse, Bash)` and `(PostToolUse, Edit|Write)` both fired
+normally from the same `hooks.json`.
+
+The only meaningful structural difference was position in the
+`PostToolUse` array — `Edit|Write` was the first entry, `Bash` the
+second. Upstream issue
+[claude-code #52715](https://github.com/anthropics/claude-code/issues/52715)
+reports the mirror-image symptom (`PreToolUse` + `Bash` silent while
+`PostToolUse` + `Bash` fires), suggesting a harness-level registration
+bug that drops one `(EventType, "Bash")` pair when multiple matcher
+entries coexist.
+
+### Changed
+
+- **`plugins/vsdd-factory/hooks/hooks.json`** — reordered
+  `PostToolUse` matcher entries so `Bash` is first and `Edit|Write`
+  second. Hook behavior is unchanged; only the array order differs.
+  If this does not restore `capture-commit-activity` /
+  `capture-pr-activity` / `regression-gate` emissions, the fallback
+  plan is to collapse to a single `"*"` matcher entry with internal
+  per-script tool filtering (all three Bash hooks already filter on
+  `tool_name`, so this is a no-op for them).
+
+### Fixed
+
+- **`plugins/vsdd-factory/tests/input-hash.bats`**,
+  **`plugins/vsdd-factory/tests/template-compliance.bats`** —
+  replaced `.hooks.PostToolUse[0]` index lookups with
+  `.hooks.PostToolUse[]` (iterate all entries) so assertions survive
+  future matcher-array ordering changes.
+
+### Migration
+
+No migration needed. Install the new version and **restart the
+Claude Code session** — plugin hot-upgrades mid-session do not
+reliably rewire hooks (that's how we got here).
+
 ## 0.79.1 — bump-version.sh idempotent CHANGELOG guard
 
 Tiny tooling fix. Three releases in a row (v0.76.1 / v0.78.1 /
