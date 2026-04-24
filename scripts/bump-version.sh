@@ -103,30 +103,46 @@ _bump_json() {
 _bump_json "$PLUGIN_JSON"      ".version = \"$NEW_VERSION\""
 _bump_json "$MARKETPLACE_JSON" ".plugins[0].version = \"$NEW_VERSION\""
 
-# --- Prepend CHANGELOG heading ----------------------------------------------
+# --- Prepend CHANGELOG heading (idempotent) ---------------------------------
+# If the CHANGELOG already has a `## $NEW_VERSION` heading (because the author
+# wrote the entry before running bump-version.sh — the preferred flow), skip
+# the stub insertion so we don't duplicate headings. This avoids the race
+# where a post-bump Edit collides with the injected TODO and ships a stale
+# stub in the release notes (happened three times across v0.76.1/v0.78.1/
+# v0.79.0 before this guard landed).
 DATE=$(date +%Y-%m-%d)
 HEADING_LINE="## $NEW_VERSION — ${TITLE:-TODO: fill in release title} ($DATE)"
-STUB="$HEADING_LINE\n\nTODO: describe the release.\n\n### Fixed\n\n- \n\n### Added\n\n- \n\n### Migration\n\nNo breaking changes.\n\n"
 
-CHANGELOG_TMP="${CHANGELOG}.tmp.$$"
-{
-  head -n 1 "$CHANGELOG"
-  echo
-  printf "$STUB"
-  tail -n +3 "$CHANGELOG"
-} > "$CHANGELOG_TMP"
-mv "$CHANGELOG_TMP" "$CHANGELOG"
+if grep -qE "^## $NEW_VERSION([[:space:]]|$)" "$CHANGELOG"; then
+  echo "CHANGELOG.md: ## $NEW_VERSION heading already present — not prepending a stub."
+  CHANGELOG_UPDATED="no (entry already present)"
+else
+  STUB=$(printf '%s\n\nTODO: describe the release.\n\n### Fixed\n\n- \n\n### Added\n\n- \n\n### Migration\n\nNo breaking changes.\n\n' "$HEADING_LINE")
+  CHANGELOG_TMP="${CHANGELOG}.tmp.$$"
+  {
+    head -n 1 "$CHANGELOG"
+    echo
+    printf '%s' "$STUB"
+    tail -n +3 "$CHANGELOG"
+  } > "$CHANGELOG_TMP"
+  mv "$CHANGELOG_TMP" "$CHANGELOG"
+  CHANGELOG_UPDATED="prepended \"$HEADING_LINE\""
+fi
 
 # --- Report -----------------------------------------------------------------
 echo
 echo "Bumped to $NEW_VERSION:"
 echo "  plugin.json      $OLD_PLUGIN -> $NEW_VERSION"
 echo "  marketplace.json $OLD_MKT -> $NEW_VERSION"
-echo "  CHANGELOG.md     prepended \"$HEADING_LINE\""
+echo "  CHANGELOG.md     $CHANGELOG_UPDATED"
 echo
 echo "Next steps:"
-echo "  1. Edit CHANGELOG.md to fill in the TODOs."
+echo "  1. Edit CHANGELOG.md to fill in the TODOs (if a stub was prepended)."
 echo "  2. git add plugins/vsdd-factory/.claude-plugin/plugin.json .claude-plugin/marketplace.json CHANGELOG.md"
 echo "  3. git commit -m \"chore: release v$NEW_VERSION — ${TITLE:-<title>}\""
 echo "  4. git tag -a v$NEW_VERSION -m \"v$NEW_VERSION — ${TITLE:-<title>}\""
 echo "  5. git push origin main && git push origin v$NEW_VERSION"
+echo
+echo "Pro tip: write the real CHANGELOG entry under ## $NEW_VERSION BEFORE running"
+echo "this script. This script detects an existing heading and skips the stub,"
+echo "which eliminates the race that bit v0.76.1 / v0.78.1 / v0.79.0."
