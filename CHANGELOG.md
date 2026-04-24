@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.79.4 — drop matcher field entirely on PostToolUse Bash hooks (Claude Code harness workaround)
+
+v0.79.3 replaced `"matcher": "Bash"` with `"matcher": "*"` and still
+saw zero `commit.made` emissions in prism post-restart. The `"*"`
+literal apparently isn't treated as match-any by Claude Code's
+resolver — it's either rejected silently or hits the same dedup bug.
+
+Reference repo [shanraisshan/claude-code-hooks](https://github.com/shanraisshan/claude-code-hooks)
+uses **no `matcher` field at all** on any of its 27 hook event
+entries (`PreToolUse`, `PostToolUse`, `SubagentStop`, etc.). Their
+dispatcher self-dispatches based on `hook_event_name` and `tool_name`
+from the stdin JSON payload. Verified in production.
+
+### Changed
+
+- **`plugins/vsdd-factory/hooks/hooks.json`** — remove the `matcher`
+  field from the `PostToolUse` Bash-intent entry. The three hooks
+  (`regression-gate`, `capture-pr-activity`, `capture-commit-activity`)
+  already self-filter on `tool_name` internally, so matching every
+  tool invocation (which is what absent-matcher means per the
+  reference implementation) and early-exiting for non-Bash is a
+  no-op for behavior.
+- **`plugins/vsdd-factory/tests/capture-commit-activity.bats`**,
+  **`plugins/vsdd-factory/tests/factory-obs.bats`** — assertions
+  relaxed to "hook is registered under PostToolUse," agnostic to
+  the matcher field (already made this change in v0.79.3 for
+  `select(.matcher == "Bash")`; this confirms they remain correct
+  when the field is absent entirely).
+
+### Rationale
+
+This is the last configuration-only workaround we can try. If this
+doesn't restore dispatch, the bug is upstream harness state that no
+plugin-side change can fix. Any further attempts would require
+rearchitecting the hook system — which is scoped for **v1.0.0**
+(Rust dispatcher, cross-platform support, per-hook toggles, full
+Claude Code event coverage). Design doc to follow.
+
+### Migration
+
+No migration needed. Install and **fully restart the Claude Code
+session** (hot-upgrades don't reliably rewire hooks).
+
 ## 0.79.3 — replace PostToolUse "Bash" matcher with "*" (Claude Code harness workaround)
 
 v0.79.2 reordered the `PostToolUse` array to test whether the bug was
