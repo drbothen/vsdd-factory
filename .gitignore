@@ -30,3 +30,10 @@ __pycache__/
 # be committed. The 5 hooks.json.<platform> files (CI-generated from
 # hooks.json.template by scripts/generate-hooks-json.sh) ARE committed.
 plugins/vsdd-factory/hooks/hooks.json
+
+# WASM plugin binaries the dispatcher loads at runtime. Built from the
+# Rust workspace per release; staged here for local smoke tests. The
+# release workflow ships them; source control does not. Gitignored so
+# `cargo build … --target wasm32-wasip1` followed by a manual `cp`
+# doesn't accidentally land binary diffs in commits.
+plugins/vsdd-factory/hook-plugins/

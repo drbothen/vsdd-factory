@@ -28,12 +28,12 @@ on_error = "continue"
 script_path = "hooks/capture-commit-activity.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "gh", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "capture-pr-activity"
@@ -47,12 +47,12 @@ on_error = "continue"
 script_path = "hooks/capture-pr-activity.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "gh", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "convergence-tracker"
@@ -67,12 +67,12 @@ on_error = "continue"
 script_path = "hooks/convergence-tracker.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "purity-check"
@@ -87,12 +87,12 @@ on_error = "continue"
 script_path = "hooks/purity-check.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "regression-gate"
@@ -106,12 +106,12 @@ on_error = "continue"
 script_path = "hooks/regression-gate.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-anchor-capabilities-union"
@@ -126,12 +126,12 @@ on_error = "continue"
 script_path = "hooks/validate-anchor-capabilities-union.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-bc-title"
@@ -146,12 +146,12 @@ on_error = "continue"
 script_path = "hooks/validate-bc-title.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-changelog-monotonicity"
@@ -166,12 +166,12 @@ on_error = "continue"
 script_path = "hooks/validate-changelog-monotonicity.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-demo-evidence-story-scoped"
@@ -186,12 +186,12 @@ on_error = "continue"
 script_path = "hooks/validate-demo-evidence-story-scoped.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-factory-path-root"
@@ -206,12 +206,12 @@ on_error = "block"
 script_path = "hooks/validate-factory-path-root.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-finding-format"
@@ -226,12 +226,12 @@ on_error = "continue"
 script_path = "hooks/validate-finding-format.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-index-self-reference"
@@ -246,12 +246,12 @@ on_error = "continue"
 script_path = "hooks/validate-index-self-reference.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-input-hash"
@@ -266,12 +266,12 @@ on_error = "block"
 script_path = "hooks/validate-input-hash.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-novelty-assessment"
@@ -286,12 +286,12 @@ on_error = "continue"
 script_path = "hooks/validate-novelty-assessment.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-pr-description-completeness"
@@ -306,12 +306,12 @@ on_error = "continue"
 script_path = "hooks/validate-pr-description-completeness.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-state-index-status-coherence"
@@ -326,12 +326,12 @@ on_error = "continue"
 script_path = "hooks/validate-state-index-status-coherence.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-state-pin-freshness"
@@ -346,12 +346,12 @@ on_error = "continue"
 script_path = "hooks/validate-state-pin-freshness.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-state-size"
@@ -366,12 +366,12 @@ on_error = "continue"
 script_path = "hooks/validate-state-size.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-story-bc-sync"
@@ -386,12 +386,12 @@ on_error = "continue"
 script_path = "hooks/validate-story-bc-sync.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-subsystem-names"
@@ -406,12 +406,12 @@ on_error = "continue"
 script_path = "hooks/validate-subsystem-names.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-table-cell-count"
@@ -426,12 +426,12 @@ on_error = "continue"
 script_path = "hooks/validate-table-cell-count.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-template-compliance"
@@ -446,12 +446,12 @@ on_error = "block"
 script_path = "hooks/validate-template-compliance.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-vp-consistency"
@@ -466,12 +466,12 @@ on_error = "continue"
 script_path = "hooks/validate-vp-consistency.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-wave-gate-completeness"
@@ -486,12 +486,12 @@ on_error = "continue"
 script_path = "hooks/validate-wave-gate-completeness.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 # ---------- PreToolUse ----------
 
@@ -508,12 +508,12 @@ on_error = "block"
 script_path = "hooks/block-ai-attribution.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "brownfield-discipline"
@@ -528,12 +528,12 @@ on_error = "block"
 script_path = "hooks/brownfield-discipline.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "check-factory-commit"
@@ -548,12 +548,12 @@ on_error = "block"
 script_path = "hooks/check-factory-commit.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "destructive-command-guard"
@@ -568,12 +568,12 @@ on_error = "block"
 script_path = "hooks/destructive-command-guard.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "gh", "jq", "curl"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "factory-branch-guard"
@@ -588,12 +588,12 @@ on_error = "block"
 script_path = "hooks/factory-branch-guard.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "protect-bc"
@@ -608,12 +608,12 @@ on_error = "block"
 script_path = "hooks/protect-bc.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "protect-secrets"
@@ -628,12 +628,12 @@ on_error = "block"
 script_path = "hooks/protect-secrets.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "protect-secrets"
@@ -648,12 +648,12 @@ on_error = "block"
 script_path = "hooks/protect-secrets.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "protect-vp"
@@ -668,12 +668,12 @@ on_error = "block"
 script_path = "hooks/protect-vp.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "red-gate"
@@ -688,12 +688,12 @@ on_error = "block"
 script_path = "hooks/red-gate.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "track-agent-start"
@@ -708,12 +708,12 @@ on_error = "continue"
 script_path = "hooks/track-agent-start.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-pr-merge-prerequisites"
@@ -728,12 +728,12 @@ on_error = "block"
 script_path = "hooks/validate-pr-merge-prerequisites.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "gh", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-wave-gate-prerequisite"
@@ -748,12 +748,12 @@ on_error = "block"
 script_path = "hooks/validate-wave-gate-prerequisite.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "verify-git-push"
@@ -768,12 +768,12 @@ on_error = "block"
 script_path = "hooks/verify-git-push.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "git", "gh", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 # ---------- Stop ----------
 
@@ -789,12 +789,12 @@ on_error = "continue"
 script_path = "hooks/session-learning.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "warn-pending-wave-gate"
@@ -808,12 +808,12 @@ on_error = "continue"
 script_path = "hooks/warn-pending-wave-gate.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 # ---------- SubagentStop ----------
 
@@ -829,12 +829,12 @@ on_error = "block"
 script_path = "hooks/handoff-validator.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "pr-manager-completion-guard"
@@ -848,12 +848,12 @@ on_error = "block"
 script_path = "hooks/pr-manager-completion-guard.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "gh", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "track-agent-stop"
@@ -867,12 +867,12 @@ on_error = "continue"
 script_path = "hooks/track-agent-stop.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "update-wave-state-on-merge"
@@ -886,12 +886,12 @@ on_error = "continue"
 script_path = "hooks/update-wave-state-on-merge.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-pr-review-posted"
@@ -905,10 +905,10 @@ on_error = "continue"
 script_path = "hooks/validate-pr-review-posted.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash", "gh", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 

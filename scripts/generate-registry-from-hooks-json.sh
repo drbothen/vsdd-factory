@@ -348,12 +348,12 @@ HEADER
       printf 'script_path = "hooks/%s.sh"\n' "$name"
       printf '\n'
       printf '[hooks.capabilities]\n'
-      printf 'env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]\n'
+      printf 'env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]\n'
       printf '\n'
       printf '[hooks.capabilities.exec_subprocess]\n'
       printf 'binary_allow = [%s]\n' "$bin_array"
       printf 'shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"\n'
-      printf 'env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "VSDD_SESSION_ID"]\n'
+      printf 'env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]\n'
       printf '\n'
     done <<< "$SORTED"
   done <<< "$EVENTS"

@@ -123,82 +123,47 @@ generator-resolved.
 
 ## Known regressions (v1.0.0-beta.1)
 
-S-2.7 ran the validation pass against HEAD `0438b78` (Phase 2 complete:
-S-2.1 + S-2.2 landed). Findings, in severity order:
+None blocking the beta. S-2.7 ran the validation pass and surfaced three
+correctness bugs in the adapter pipeline; all three were fixed in commit
+`c121d07` and pinned by regression tests in
+`plugins/vsdd-factory/tests/regression-v1.0.bats`. Brief history below
+for operators upgrading older snapshots.
 
-### blocker: legacy-bash-adapter cannot round-trip `exec_subprocess` results
+### Resolved during S-2.7
 
-Every bash hook routed through the dispatcher currently fails inside the
-adapter with `HostError::Other(-99)` (subprocess result decode failed).
-The dispatcher reports `exit_code: 1` (`HookResult::Error`) for every
-matched plugin and the bash side effects (e.g. `commit.made`,
-`hook.block` events written by `bin/emit-event`) never happen — the bash
-script never actually executes.
+- **`exec_subprocess` result envelope written to wasm offset 0.** Host
+  wrote the envelope to linear-memory offset 0 and reported `result_ptr
+  = 0`; the SDK's `read_owned_bytes` short-circuits `ptr == 0` to an
+  empty `Vec`, so every bash hook returned `HookResult::Error`. Fixed
+  by switching to a guest-pre-allocated result buffer (same pattern as
+  `session_id` / read-string host fns). FFI signature changed; SDK +
+  host + StoreData-typed handler all updated together. See HOST_ABI.md
+  for the new shape.
+- **`HostContext.plugin_root` was empty.** main.rs read
+  `${CLAUDE_PLUGIN_ROOT}` to find the registry but never wrote it into
+  the host context, so `host::plugin_root()` returned the empty string
+  and relative `script_path` values resolved against bash's cwd
+  instead of the plugin root. Fixed by populating `plugin_root` at
+  startup.
+- **`HostContext.env_view` was empty.** The host's `exec_subprocess`
+  reads names from `ctx.env_view` (a `HashMap`) so the per-plugin
+  `env_allow` capability gate can filter without a syscall per call;
+  main.rs never populated the map. Fixed by projecting the
+  dispatcher's process env into `env_view` once at startup.
 
-**Root cause:** the `vsdd::exec_subprocess` host implementation writes
-the result envelope to wasm linear memory **offset 0** and sets the
-SDK's out-pointer to `0`
-([`crates/factory-dispatcher/src/host/exec_subprocess.rs:81-90`][1] and
-the StoreData mirror at
-[`crates/factory-dispatcher/src/invoke.rs:482-497`][2]). The SDK's
-`read_owned_bytes` short-circuits `ptr == 0` to an empty `Vec`
-([`crates/hook-sdk/src/host.rs:283-291`][3]), so
-`decode_subprocess_result` parses a zero-length buffer and the SDK
-returns `HostError::Other(-99)`. The adapter reports this as a hook
-error and exits 1.
+### Open follow-ups (non-blocking)
 
-**Impact for v1.0.0-beta.1:** every gate hook routed through the adapter
-silently no-ops at the protect-and-emit layer. Direct-bash invocation of
-the same hook still works (proven by the 1245/1245 bats baseline), so
-operators who continue running `hooks.json` (the v0.79.x dispatcher
-shape) are unaffected; operators who switch to the v1.0 dispatcher are
-broken until the bug is fixed.
-
-**Fix path:** the host needs to either (a) call a guest-exported
-allocator to allocate a buffer in linear memory and write the envelope
-into that buffer (typical wasmtime pattern), or (b) write into a
-pre-arranged scratch region that the SDK knows about and reads from. The
-current "offset 0" write also silently clobbers whatever data the wasm
-module had at that address — it's a memory-safety problem in addition
-to a correctness one.
-
-**Tracking:** pinned in `plugins/vsdd-factory/tests/regression-v1.0.bats`
-under the `[BUG]` test names. When the fix lands, flip those assertions
-and remove the `TODO(S-2.7-fixup)` markers.
-
-### important: dispatcher-internal log does not capture wasm plugin stderr
-
-`crates/factory-dispatcher/src/invoke.rs:104-110` allocates a
-`MemoryOutputPipe` for the wasm plugin's stderr but never reads or
-forwards it. When a plugin (including the legacy adapter) panics or
-returns an error message via stderr, the failure mode is invisible to
-the operator beyond the `exit_code: 1` field on `plugin.completed`.
-Combined with the blocker above, this made the legacy-adapter bug much
-harder to diagnose than necessary.
-
-**Fix path:** when a plugin's exit_code is non-zero or it traps,
-include the stderr buffer (truncated) on the `plugin.completed` /
-`plugin.crashed` event. Trivial change once exec_subprocess is fixed.
-
-### suggestion: bench script latency numbers are not yet meaningful
-
-`benches/legacy-adapter-latency.sh` runs end-to-end and reports
-adapter / direct ratios in the 50%-620% range. **These numbers are
-not a fair indicator of the 30% adapter-overhead budget** because the
-adapter currently early-exits in `exec_subprocess` rather than
-launching bash — it pays the wasm instantiation cost but skips the
-bash-subprocess cost, while the "adapter" total includes every other
-plugin matched by the same event. Re-run after the blocker is fixed
-to get a meaningful budget check.
+- **dispatcher-internal log does not capture wasm plugin stderr.**
+  `crates/factory-dispatcher/src/invoke.rs` allocates a
+  `MemoryOutputPipe` for plugin stderr but never reads or forwards it.
+  When a plugin panics or returns an error message via stderr, the
+  failure mode is invisible to the operator beyond `exit_code:1` on
+  `plugin.completed`. Trivial fix; tracked for post-beta.
 
 ## Platform validation status
 
-| Platform | Bats run | Dispatcher smoke | Notes |
-|----------|----------|------------------|-------|
-| macOS arm64 (darwin-aarch64) | 1245/1245 PASS | Routes plugins; legacy-adapter offset-0 bug surfaces | Validation host for S-2.7 |
-| Linux x64 | Tested via CI (`build-dispatcher` matrix) | Not exercised in S-2.7 | Bash hooks are POSIX, expected parity with macOS |
-| Windows x64 | Not run | Not run | Validated via CI build-dispatcher matrix only; full bats run not yet executed on Windows because the bash hooks themselves are POSIX. v1.0.0-beta.1 leaves Windows partial as a documented note per the spec's loose Windows scope. |
-
-[1]: ../../crates/factory-dispatcher/src/host/exec_subprocess.rs
-[2]: ../../crates/factory-dispatcher/src/invoke.rs
-[3]: ../../crates/hook-sdk/src/host.rs
+| Platform                         | Bats run        | Dispatcher smoke                       | Notes |
+|----------------------------------|-----------------|----------------------------------------|-------|
+| macOS arm64 (darwin-aarch64)     | 1245/1245 PASS  | Adapter round-trip verified end-to-end | Validation host for S-2.7 |
+| Linux x64                        | CI (`build-dispatcher` matrix) | Not exercised in S-2.7   | Bash hooks are POSIX; parity with macOS expected |
+| Windows x64                      | Not run         | Not run                                | Validated via CI build-dispatcher matrix only; full bats run not yet executed on Windows because the bash hooks themselves are POSIX. v1.0.0-beta.1 leaves Windows partial as documented scope. |

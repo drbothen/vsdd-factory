@@ -7,19 +7,19 @@
 # the dispatcher → legacy-bash-adapter → bash hook pipeline so a future
 # refactor can't silently regress the path.
 #
-# IMPORTANT: as of v1.0.0-beta.1, S-2.7 discovered a bug where
-# legacy-bash-adapter never round-trips bash output back to the wasm
-# module — the host writes the result envelope to wasm linear memory
-# offset 0 and the SDK's read_owned_bytes short-circuits ptr==0 to an
-# empty Vec. Tests in this file assert the *observed* behavior so the
-# bug surface is durable; once the bug is fixed (S-2.1 / S-2.7 follow-
-# up), the assertions flip to the desired-behavior set marked with
-# TODO(S-2.7-fixup) below.
-#
-# Cross-references:
-# - crates/factory-dispatcher/src/host/exec_subprocess.rs:87 (host bug)
-# - crates/factory-dispatcher/src/invoke.rs:489 (StoreData mirror)
-# - crates/hook-sdk/src/host.rs:283 (SDK ptr==0 short-circuit)
+# History: S-2.7 originally discovered three bugs that prevented the
+# adapter pipeline from working end-to-end. All three were fixed in the
+# same wave of work (commit c121d07):
+# - exec_subprocess wrote the result envelope to wasm memory offset 0
+#   and the SDK short-circuited ptr==0 to an empty Vec, so bash output
+#   never reached the adapter.
+# - HostContext.plugin_root was never populated, so relative
+#   script_path values resolved against bash's cwd instead of the
+#   plugin root.
+# - HostContext.env_view was empty, so per-plugin env_allow always
+#   produced an empty subprocess env.
+# The assertions below describe the post-fix end-state. They are the
+# regression guards that catch any future revert.
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -118,49 +118,40 @@ setup() {
   [ "$with_session" -eq "$total" ]
 }
 
-# ---------- known-bug pins (S-2.7-beta) --------------------------------
-# These tests pin the *current observed* behavior of the broken adapter
-# path so the bug-surface is detectable in CI and a fix flips them
-# obviously. When the host-memory offset-0 bug is fixed (S-2.1
-# follow-up), invert the assertion and remove the TODO line.
+# ---------- adapter round-trip (post-fix end-state) --------------------
+# These tests pin the desired adapter pipeline behavior. Until commit
+# c121d07 they asserted the buggy state with `[BUG]` markers; they now
+# guard the correct round-trip end-state.
 
-@test "regression-v1.0[BUG]: legacy adapter currently exits non-zero (HookResult::Error) for matched bash hooks" {
-  # TODO(S-2.7-fixup): once exec_subprocess writes envelope at a real
-  # guest-allocated buffer instead of wasm memory offset 0, this
-  # assertion flips to expect exit_code: 0 (Continue) for hooks that
-  # exited 0 from bash.
+@test "regression-v1.0: legacy adapter exits 0 (Continue) for a matched bash hook that exited 0" {
   if [ ! -x "$DISPATCHER" ] || [ ! -f "$ADAPTER_WASM" ]; then
     skip "preflight artifacts missing"
   fi
-  envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"bug-test","tool_input":{"command":"echo hi"},"tool_response":{"exit_code":0}}'
+  envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"adapter-ok","tool_input":{"command":"echo hi"},"tool_response":{"exit_code":0}}'
   env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" \
     bash -c "printf '%s' '$envelope' | '$DISPATCHER'" \
     >/dev/null 2>&1
   log="$(ls "$WORK/.factory/logs/dispatcher-internal-"*.jsonl 2>/dev/null | head -1)"
   [ -n "$log" ]
-  # Every plugin.completed should currently report exit_code:1 — that is
-  # SDK exit-code-1 → HookResult::Error returned by the adapter when
-  # exec_subprocess fails to round-trip its envelope.
-  ok="$(grep -c '"exit_code":0' "$log" || true)"
-  err="$(grep -c '"exit_code":1' "$log" || true)"
-  # When the bug is present, ok==0 and err>=1.
-  [ "$ok" -eq 0 ]
-  [ "$err" -ge 1 ]
+  # At least one plugin.completed with exit_code:0 (the bash hook ran
+  # cleanly and the adapter mapped that to HookResult::Continue).
+  ok="$(grep -c '"type":"plugin.completed".*"exit_code":0' "$log" || true)"
+  [ "$ok" -ge 1 ]
 }
 
-@test "regression-v1.0[BUG]: bash-side events do NOT land in events-*.jsonl when routed through the adapter" {
-  # TODO(S-2.7-fixup): once the adapter actually runs bash, hooks like
-  # capture-commit-activity will write commit.made events to
-  # events-YYYY-MM-DD.jsonl and this assertion flips to "do land".
+@test "regression-v1.0: bash-side events land in events-*.jsonl when routed through the adapter" {
   if [ ! -x "$DISPATCHER" ] || [ ! -f "$ADAPTER_WASM" ]; then
     skip "preflight artifacts missing"
   fi
-  envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"sx","tool_input":{"command":"git commit -m x"},"tool_response":{"exit_code":0,"stdout":"[main abc1234] x","stderr":""}}'
+  # capture-commit-activity is on PostToolUse/Bash and writes a
+  # commit.made event for `git commit ...` invocations. With the
+  # adapter actually running bash, the event file should appear.
+  envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"events-land","tool_input":{"command":"git commit -m x"},"tool_response":{"exit_code":0,"stdout":"[main abc1234] x","stderr":""}}'
   env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" \
     bash -c "printf '%s' '$envelope' | '$DISPATCHER'" \
     >/dev/null 2>&1
   count="$(ls "$WORK/.factory/logs/events-"*.jsonl 2>/dev/null | wc -l | tr -d ' ')"
-  [ "$count" -eq 0 ]
+  [ "$count" -ge 1 ]
 }
 
 # ---------- direct-bash side-effect baseline ---------------------------

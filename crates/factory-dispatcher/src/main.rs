@@ -128,7 +128,18 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         trace_id.clone(),
     );
     base_host_ctx.internal_log = Some(internal_log.clone());
-    base_host_ctx.cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    // Plugin subprocess cwd should be the project root, not the
+    // dispatcher's process cwd. v0.79.x bash hooks were spawned by
+    // Claude Code from the project dir, and many of them (including
+    // every hook that calls bin/emit-event) walk `.factory/logs/`
+    // relative to cwd. Falling back to the dispatcher's cwd produces
+    // log writes in surprising places.
+    base_host_ctx.cwd = std::env::var(ENV_PROJECT_DIR)
+        .map(PathBuf::from)
+        .ok()
+        .filter(|p| !p.as_os_str().is_empty())
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_else(|| PathBuf::from("."));
     base_host_ctx.plugin_root = std::env::var(ENV_PLUGIN_ROOT)
         .map(PathBuf::from)
         .unwrap_or_default();
