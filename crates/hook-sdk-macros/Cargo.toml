@@ -1,13 +1,18 @@
 [package]
 name = "vsdd-hook-sdk-macros"
-version = "0.0.1"
+version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "Procedural macros for vsdd-hook-sdk. Internal — use vsdd-hook-sdk's re-exports instead of depending on this crate directly."
-publish = false
+homepage = "https://github.com/drbothen/vsdd-factory"
+documentation = "https://docs.rs/vsdd-hook-sdk-macros"
+readme = "README.md"
+keywords = ["wasm", "plugin", "claude-code", "vsdd", "hook"]
+categories = ["development-tools", "wasm"]
+publish = true
 
 [lib]
 path = "src/lib.rs"

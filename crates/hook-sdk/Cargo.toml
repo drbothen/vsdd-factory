@@ -1,16 +1,18 @@
 [package]
 name = "vsdd-hook-sdk"
-version = "0.0.1"
+version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 description = "SDK for authoring vsdd-factory v1.0 WASM hook plugins. Provides the #[hook] macro, HookPayload / HookResult types, and host function bindings."
+homepage = "https://github.com/drbothen/vsdd-factory"
+documentation = "https://docs.rs/vsdd-hook-sdk"
 readme = "README.md"
-keywords = ["vsdd", "claude-code", "wasm", "hooks", "plugin"]
+keywords = ["wasm", "plugin", "claude-code", "vsdd", "hook"]
 categories = ["development-tools", "wasm"]
-publish = false
+publish = true
 
 [lib]
 path = "src/lib.rs"
@@ -18,7 +20,7 @@ path = "src/lib.rs"
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
-vsdd-hook-sdk-macros = { path = "../hook-sdk-macros", version = "0.0.1" }
+vsdd-hook-sdk-macros = { path = "../hook-sdk-macros", version = "0.1.0" }
 
 [dev-dependencies]
 serde_json.workspace = true
