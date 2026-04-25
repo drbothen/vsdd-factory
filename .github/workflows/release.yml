@@ -74,8 +74,30 @@ jobs:
             echo "Release ${GITHUB_REF_NAME}" > /tmp/release-notes.md
           fi
 
+      - name: Prepend prerelease banner
+        # Prerelease detection mirrors the `prerelease:` flag below — any
+        # tag with a hyphen in its name (semver 2.0 §9 prerelease suffix,
+        # e.g. v1.0.0-beta.1, v1.0.0-rc.2) gets a banner so consumers know
+        # the build is not stable. Stable tags (v1.0.0, v0.79.5) skip this.
+        if: contains(github.ref_name, '-')
+        run: |
+          {
+            echo "> **Pre-release** — this is a development build of vsdd-factory."
+            echo "> Stable releases are the unhyphenated tags (e.g. \`1.0.0\`)."
+            echo "> Use prereleases for early integration only; APIs, schemas, and"
+            echo "> on-disk formats may still change before the matching stable tag."
+            echo ""
+            cat /tmp/release-notes.md
+          } > /tmp/release-notes.with-banner.md
+          mv /tmp/release-notes.with-banner.md /tmp/release-notes.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           body_path: /tmp/release-notes.md
+          # `contains(ref_name, '-')` flags prerelease (semver §9 hyphen marker).
+          # GH treats prerelease=true tags as not "Latest", so marketplace tools
+          # that resolve "/plugin install vsdd-factory@vsdd-factory" continue to
+          # land on the most recent stable until the matching unhyphenated tag
+          # ships. See S-0.2 for full rationale.
           prerelease: ${{ contains(github.ref_name, '-') }}
