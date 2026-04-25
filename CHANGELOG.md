@@ -1,5 +1,61 @@
 # Changelog
 
+## 1.0.0-beta.4 — cache fix + stderr capture + SHA-currency gate (2026-04-25)
+
+Same-day patch on top of beta.3. Three follow-ups from the prior beta
+loop, plus the new state-burst skill suite that codifies the wave-gate
+bookkeeping defect class. None of these change the dispatcher's hot
+path; they each close a paper-cut surface the prior iterations
+exposed.
+
+### Fixed
+
+- **Plugin-cache staleness.** Claude Code's plugin-version cache keys
+  on `plugin.json:version`. Until now, the operator's chore commit
+  bumped that field but the matching binaries didn't exist yet — the
+  bot's binary-bundle commit landed ~2 min later. Consumers fetching
+  in that window cached "version X with X-1 binaries", and the cache
+  never refreshed under that key. Fix: the chore commit no longer
+  touches `plugin.json` or `marketplace.json`. The release workflow's
+  bot commit reads the tag name and writes both JSON fields atomically
+  with the binaries, so consumers never observe `version=X` without
+  the matching binaries. **Operator workflow now commits only
+  `CHANGELOG.md` for the release chore commit.**
+
+### Added
+
+- **Plugin stderr capture on lifecycle events.**
+  `plugin.completed` / `plugin.crashed` / `plugin.timeout` events now
+  carry the captured wasm plugin stderr (truncated to 4 KiB with an
+  explicit `(stderr truncated)` marker). Empty stderr is omitted from
+  the JSON to avoid noise on well-behaved plugins. Diagnoses plugin
+  failures without requiring a manual re-run with stdout/stderr
+  capture.
+- **`vsdd-factory:state-burst` skill** + canonical
+  `verify-sha-currency.sh` template + `state-manager-checklist-template.md`
+  + agent-prompt updates + `docs/lessons-learned/wave-gate-bookkeeping.md`.
+  Codifies the Single Canonical SHA + Two-Commit Protocol that breaks
+  a recurring SHA-drift / narrative-staleness defect class observed
+  across six consecutive remediation passes in real-world dogfood.
+  Operators opt in by copying `templates/verify-sha-currency.sh` into
+  their project's `.factory/hooks/` and instantiating
+  `templates/state-manager-checklist-template.md` as their checklist.
+- **Adversary SHA-currency gate.** The
+  `validate-wave-gate-prerequisite.sh` Claude Code hook now branches
+  on subagent type. Adversary dispatches additionally call
+  `.factory/hooks/verify-sha-currency.sh` (when present) and block on
+  FAIL. Without this, the adversary could dispatch against a dirty
+  factory-artifacts state and report stale-cite drift as "false
+  positive" findings. No-op if the project hasn't installed the
+  verify-sha-currency hook.
+
+### Migration
+
+No breaking changes for plugin authors. **Maintainers cutting
+releases**: `bump-version.sh` no longer modifies `plugin.json` or
+`marketplace.json`. Stage only `CHANGELOG.md` for the chore commit.
+The Release workflow's bot commit handles the JSON bumps.
+
 ## 1.0.0-beta.3 — hook tool_response shape fix (2026-04-25)
 
 Same-day patch on top of beta.2. With the dispatcher's
