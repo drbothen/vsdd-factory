@@ -7,10 +7,18 @@
 //! decisions. Execution (wasmtime instantiation, tokio scheduling,
 //! fuel enforcement) is filled in by S-1.4–S-1.6.
 
+pub mod internal_log;
 pub mod payload;
 pub mod registry;
 pub mod routing;
 
+pub use internal_log::{
+    DEFAULT_RETENTION_DAYS, DISPATCHER_SHUTTING_DOWN, DISPATCHER_STARTED,
+    INTERNAL_CAPABILITY_DENIED, INTERNAL_DISPATCHER_ERROR, INTERNAL_EVENT_SCHEMA_VERSION,
+    INTERNAL_HOST_FUNCTION_PANIC, INTERNAL_SINK_CIRCUIT_CLOSED, INTERNAL_SINK_CIRCUIT_OPENED,
+    INTERNAL_SINK_ERROR, INTERNAL_SINK_QUEUE_FULL, InternalEvent, InternalLog, PLUGIN_COMPLETED,
+    PLUGIN_CRASHED, PLUGIN_INVOKED, PLUGIN_LOAD_FAILED, PLUGIN_LOADED, PLUGIN_TIMEOUT,
+};
 pub use payload::{HookPayload, PayloadError};
 pub use registry::{
     Capabilities, ExecSubprocessCaps, OnError, ReadFileCaps, Registry, RegistryDefaults,
