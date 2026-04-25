@@ -38,6 +38,10 @@ echo "== bump-version.sh tests =="
 bats tests/bump-version.bats
 
 echo
+echo "== generate-hooks-json.sh tests =="
+bats tests/generate-hooks-json.bats
+
+echo
 echo "== Skill structure tests =="
 bats tests/skills.bats
 

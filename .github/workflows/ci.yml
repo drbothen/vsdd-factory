@@ -44,6 +44,14 @@ jobs:
           jq empty plugins/vsdd-factory/.claude-plugin/plugin.json
           jq empty plugins/vsdd-factory/hooks/hooks.json
 
+      - name: Verify hooks.json.<platform> variants match template
+        # Drift check for S-0.4: hooks.json.template is the source of
+        # truth for the v1.0 dispatcher's per-platform hook configs.
+        # CI regenerates the 5 variants and diffs against the committed
+        # files; any drift fails the build with a clean diff so the
+        # operator knows exactly which variant to refresh.
+        run: scripts/generate-hooks-json.sh --check
+
       - name: Verify version parity across plugin.json and marketplace.json
         run: |
           # Catches the v0.68.1/v0.69.0 failure mode: plugin.json bumped

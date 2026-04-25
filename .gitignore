@@ -16,3 +16,9 @@ plugins/vsdd-factory/tools/observability/docker-compose.override.yml
 # directories are not.
 target/
 *.profraw
+
+# v1.0 activation skill copies the right hooks.json.<platform> variant
+# into hooks.json after install — that copy is per-machine and must not
+# be committed. The 5 hooks.json.<platform> files (CI-generated from
+# hooks.json.template by scripts/generate-hooks-json.sh) ARE committed.
+plugins/vsdd-factory/hooks/hooks.json
