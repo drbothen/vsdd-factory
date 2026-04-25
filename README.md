@@ -254,6 +254,16 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 | [Observability](docs/guide/observability.md) | Event log schema, reason-code registry, query recipes, local Docker stack (Loki + Prometheus + Grafana, 7 dashboards), multi-factory registry |
 | [Agents Reference](docs/guide/agents-reference.md) | Agent permission model, status protocol, all 33 agents |
 
+### v1.0 Factory Plugin Kit (in progress)
+
+| Doc | Description |
+|-----|-------------|
+| [v1.0 Index](docs/guide/v1.0-index.md) | Landing page for the v1.0 docs set; links the four below. |
+| [Authoring Hooks](docs/guide/authoring-hooks.md) | Writing WASM hooks against the v1.0 SDK — skeleton, populated as Phase 1–3 stories ship. |
+| [Porting Bash Hooks to WASM](docs/guide/porting-bash-hook-to-wasm.md) | Walkthrough for porting an existing v0.79.x hook — skeleton, populated as Phase 3 ports land. |
+| [Migrating from 0.79.x](docs/guide/migrating-from-0.79.md) | Operator-facing upgrade guide — skeleton, finalized in S-5.5. |
+| [Observability Sinks](docs/guide/observability-sinks.md) | Multi-backend telemetry config — skeleton, populated as Phase 1 + 4 sink drivers ship. |
+
 ### Internal reference docs (in the plugin)
 
 | Doc | Description |
