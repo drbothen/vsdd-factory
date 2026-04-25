@@ -421,8 +421,15 @@ mod tests {
         let now_epoch = now.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64;
 
         // (age_in_days, expected_to_survive_30_day_prune)
+        // Avoid the exact 30-day boundary — the test grabs `now_epoch`
+        // before calling `prune_old`, but `prune_old_inner` re-evaluates
+        // `Local::now()` later, so any sub-second drift between the two
+        // crosses a file at exactly the boundary in or out. Windows
+        // happened to flake this in CI run 24935133658; Unix never had,
+        // but the same race exists. Use 29 / 31 to bracket the boundary
+        // without sitting on it.
         let fixtures: &[(i64, bool)] =
-            &[(1, true), (10, true), (30, true), (31, false), (60, false)];
+            &[(1, true), (10, true), (29, true), (31, false), (60, false)];
 
         let day_secs: i64 = 86_400;
         let mut paths: Vec<(PathBuf, bool)> = Vec::new();
