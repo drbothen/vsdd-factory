@@ -5,6 +5,8 @@ members = [
     "crates/hook-sdk",
     "crates/hook-sdk-macros",
     "crates/hook-plugins/capture-commit-activity",
+    "crates/sink-core",
+    "crates/sink-file",
 ]
 
 [workspace.package]

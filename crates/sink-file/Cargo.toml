@@ -1,0 +1,27 @@
+[package]
+name = "sink-file"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "vsdd-factory v1.0 sink driver: JSONL-append file sink with date-template rotation"
+publish = false
+
+[lib]
+name = "sink_file"
+path = "src/lib.rs"
+
+[dependencies]
+sink-core = { path = "../sink-core", version = "0.0.1" }
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+toml.workspace = true

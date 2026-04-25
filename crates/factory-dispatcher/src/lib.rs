@@ -15,6 +15,7 @@ pub mod payload;
 pub mod plugin_loader;
 pub mod registry;
 pub mod routing;
+pub mod sinks;
 
 pub use engine::{EPOCH_TICK_MS, EngineError, EpochTicker, build_engine};
 pub use host::{HostCallError, HostContext, setup_linker};

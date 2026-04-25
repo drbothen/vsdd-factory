@@ -28,6 +28,8 @@ regex.workspace = true
 chrono.workspace = true
 wasmtime.workspace = true
 wasmtime-wasi.workspace = true
+sink-core = { path = "../sink-core", version = "0.0.1" }
+sink-file = { path = "../sink-file", version = "0.0.1" }
 
 [dev-dependencies]
 tempfile.workspace = true
