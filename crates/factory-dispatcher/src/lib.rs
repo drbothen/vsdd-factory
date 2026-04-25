@@ -12,6 +12,7 @@ pub mod internal_log;
 pub mod payload;
 pub mod registry;
 pub mod routing;
+pub mod sinks;
 
 pub use host::{HostCallError, HostContext, setup_linker};
 pub use internal_log::{

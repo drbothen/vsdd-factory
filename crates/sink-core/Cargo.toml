@@ -1,0 +1,24 @@
+[package]
+name = "sink-core"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "vsdd-factory v1.0 sink trait + routing filter primitives shared by every sink driver"
+publish = false
+
+[lib]
+name = "sink_core"
+path = "src/lib.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+chrono.workspace = true
+
+[dev-dependencies]
+toml.workspace = true
