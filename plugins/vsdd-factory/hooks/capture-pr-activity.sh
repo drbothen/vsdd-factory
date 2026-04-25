@@ -36,12 +36,17 @@ if [[ "$TOOL" != "Bash" ]]; then
 fi
 
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
-EXIT_CODE=$(echo "$INPUT" | jq -r '.tool_response.exit_code // -1')
+# Claude Code's `tool_response` for Bash does NOT include `exit_code`;
+# it sends `interrupted`, `stdout`, `stderr`, `isImage`, `noOutputExpected`.
+# Treat `interrupted: false` (or missing) as success. Fall back to
+# `exit_code == 0` for back-compat with hosts that do send exit_code.
+EXIT_CODE=$(echo "$INPUT" | jq -r '.tool_response.exit_code // empty')
+INTERRUPTED=$(echo "$INPUT" | jq -r '.tool_response.interrupted // empty')
 STDOUT=$(echo "$INPUT" | jq -r '.tool_response.stdout // ""')
 
 # Only consider successful commands — a failed `gh pr create` didn't
 # actually open a PR, and downstream dashboards shouldn't count it.
-if [[ "$EXIT_CODE" != "0" ]]; then
+if [[ "$INTERRUPTED" == "true" ]] || [[ -n "$EXIT_CODE" && "$EXIT_CODE" != "0" ]]; then
   exit 0
 fi
 

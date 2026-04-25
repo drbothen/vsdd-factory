@@ -13,7 +13,7 @@
 #   type=commit.made  hook=capture-commit-activity  matcher=Bash
 #     commit_sha        (from `[<branch> <sha>]` in stdout)
 #     branch            (same source)
-#     message_subject   (stdout's first line, if parseable)
+#     message_subject   (text after the bracket)
 #     amended           "true" when the command included --amend
 #
 # `--amend` commits ARE emitted but flagged via `amended="true"` so the
@@ -21,8 +21,9 @@
 # mutate the previous commit, so for a pure "new commits shipped" count
 # the ROI panel filters them out; other analyses might want them.
 #
-# Failed commits (non-zero exit) are no-ops — a pre-commit hook that
-# rejected the commit should not count against cost-per-commit.
+# Failed commits (non-zero exit OR interrupted=true) are no-ops — a
+# pre-commit hook that rejected the commit should not count against
+# cost-per-commit.
 #
 # Exit 0 on every path — advisory, never blocks.
 #
@@ -43,10 +44,15 @@ if [[ "$TOOL" != "Bash" ]]; then
 fi
 
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
-EXIT_CODE=$(echo "$INPUT" | jq -r '.tool_response.exit_code // -1')
+# Claude Code's `tool_response` for Bash does NOT include `exit_code`;
+# it sends `interrupted`, `stdout`, `stderr`, `isImage`, `noOutputExpected`.
+# Treat `interrupted: false` (or missing) as success. Fall back to
+# `exit_code == 0` for back-compat with hosts that do send exit_code.
+EXIT_CODE=$(echo "$INPUT" | jq -r '.tool_response.exit_code // empty')
+INTERRUPTED=$(echo "$INPUT" | jq -r '.tool_response.interrupted // empty')
 STDOUT=$(echo "$INPUT" | jq -r '.tool_response.stdout // ""')
 
-if [[ "$EXIT_CODE" != "0" ]]; then
+if [[ "$INTERRUPTED" == "true" ]] || [[ -n "$EXIT_CODE" && "$EXIT_CODE" != "0" ]]; then
   exit 0
 fi
 
@@ -57,20 +63,35 @@ if [[ ! "$COMMAND" =~ (^|[;&|[:space:]])git[[:space:]]+commit([[:space:]]|$) ]];
   exit 0
 fi
 
-# Parse the `[<branch> <sha>]` preamble that `git commit` prints on success.
-# Format varies slightly:
+# Parse the `[<branch> <sha>] <message>` preamble that `git commit` prints
+# on success. Format varies slightly:
 #   [main abc1234] commit message     ← normal
 #   [main (root-commit) abc1234] …    ← first commit in a repo
 #   [HEAD detached at abc123 def4567] …  ← detached HEAD
-# We only emit when we can extract a sha — otherwise the command probably
-# didn't actually make a commit (e.g., `git commit --dry-run`, pre-commit
-# hook aborted without exiting non-zero, nothing staged).
 #
-# The sha is the LAST whitespace-separated token inside the brackets.
-FIRST_LINE=$(printf '%s\n' "$STDOUT" | head -n 1)
-if [[ ! "$FIRST_LINE" =~ ^\[([^]]+)\][[:space:]]?(.*)$ ]]; then
+# Scan ALL lines of stdout — when a compound command runs (e.g.,
+# `echo BEFORE; git commit -m foo; echo AFTER`), earlier output appears
+# before the git commit's preamble, so the first line isn't necessarily
+# the bracket line. Validate the last bracket-token is a 7-40 char hex
+# SHA before accepting the line; this skips unrelated `[stuff]` output.
+PREAMBLE_LINE=""
+while IFS= read -r _line; do
+  if [[ "$_line" =~ ^\[([^]]+)\][[:space:]]?(.*)$ ]]; then
+    _bc="${BASH_REMATCH[1]}"
+    _last_token="${_bc##* }"
+    if [[ "$_last_token" =~ ^[0-9a-f]{7,40}$ ]]; then
+      PREAMBLE_LINE="$_line"
+      break
+    fi
+  fi
+done < <(printf '%s\n' "$STDOUT")
+
+if [[ -z "$PREAMBLE_LINE" ]]; then
   exit 0
 fi
+
+# Re-run the regex to populate BASH_REMATCH for downstream parsing.
+[[ "$PREAMBLE_LINE" =~ ^\[([^]]+)\][[:space:]]?(.*)$ ]]
 BRACKET_CONTENTS="${BASH_REMATCH[1]}"
 MESSAGE_SUBJECT="${BASH_REMATCH[2]}"
 
@@ -84,8 +105,8 @@ fi
 COMMIT_SHA="${BRACKET_TOKENS[$BRACKET_LAST_IDX]}"
 BRANCH="${BRACKET_TOKENS[0]}"
 
-# Sanity: sha must be 7+ hex chars. Protects against parsing garbage when
-# someone pipes weird text into stdout that also starts with [.
+# Sanity: sha must be 7+ hex chars. Already verified by the line-scan
+# above, but keep the check defensive in case the regex above is changed.
 if [[ ! "$COMMIT_SHA" =~ ^[0-9a-f]{7,40}$ ]]; then
   exit 0
 fi

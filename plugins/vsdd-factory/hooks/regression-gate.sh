@@ -29,7 +29,12 @@ _emit() {
 }
 
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+# Claude Code's `tool_response` for Bash does NOT include `exit_code`;
+# it sends `interrupted`, `stdout`, `stderr`, `isImage`, `noOutputExpected`.
+# Prefer `exit_code` / `returncode` when the host provides them (back-compat),
+# fall back to the `interrupted` signal under Claude Code.
 EXIT=$(echo "$INPUT" | jq -r '.tool_response.exit_code // .tool_response.returncode // empty')
+INTERRUPTED=$(echo "$INPUT" | jq -r '.tool_response.interrupted // empty')
 
 # Only care about test-running commands
 case "$CMD" in
@@ -42,11 +47,18 @@ STATE_FILE="$STATE_DIR/regression-state.json"
 [[ ! -d "$STATE_DIR" ]] && exit 0
 
 # Determine pass/fail
+# Priority: exit_code (when host sends it) > interrupted (Claude Code shape).
+# When neither is available we silently skip — better to record nothing than
+# to record wrong state.
 STATUS="unknown"
 if [[ "$EXIT" == "0" ]]; then
   STATUS="pass"
 elif [[ -n "$EXIT" && "$EXIT" != "null" ]]; then
   STATUS="fail"
+elif [[ "$INTERRUPTED" == "true" ]]; then
+  STATUS="fail"
+elif [[ "$INTERRUPTED" == "false" ]]; then
+  STATUS="pass"
 fi
 
 [[ "$STATUS" == "unknown" ]] && exit 0
