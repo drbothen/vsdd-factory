@@ -1,5 +1,52 @@
 # Changelog
 
+## 1.0.0-beta.3 — hook tool_response shape fix (2026-04-25)
+
+Same-day patch on top of beta.2. With the dispatcher's
+`hook_event_name` alias in place, the harness was finally invoking
+hooks — but three PostToolUse:Bash hooks were silently no-op'ing
+because their guards expected an `exit_code` field that Claude Code
+doesn't send.
+
+### Fixed
+
+- **`tool_response` shape mismatch in three bash hooks.** Claude Code's
+  harness sends `tool_response` for Bash with `interrupted`, `stdout`,
+  `stderr`, `isImage`, `noOutputExpected` — NOT the `exit_code` field
+  the documented schema implied. The affected hooks bailed when
+  `exit_code` defaulted to `-1`, so even after the dispatcher started
+  parsing envelopes correctly (beta.2), the events never landed.
+  - `capture-commit-activity`, `capture-pr-activity`: prefer
+    `exit_code` when the host sends it (back-compat for any future
+    schema change), fall back to `interrupted` for Claude Code's
+    actual shape.
+  - `regression-gate`: same fallback chain; `interrupted=true` →
+    fail, `interrupted=false` → pass when `exit_code` is absent.
+- **`capture-commit-activity` first-line-only stdout parser.**
+  Compound bash commands (e.g. `echo BEFORE; git commit ...`) put
+  earlier output before the git-commit preamble. The new parser
+  scans every stdout line for the `[<branch> <sha>] <message>`
+  pattern and validates the bracket's last token as a 7–40 char hex
+  SHA before treating the line as a commit.
+
+### Verified end-to-end
+
+Real harness `git commit` invocations produce `commit.made` events
+in `factory-events-*.jsonl`. Confirmed against four prism repo
+commits (4fd662ab, 400fedb5, 7617214d, 3fe36e4b) — first time
+`commit.made` has fired through the v1.0 pipeline against the real
+Claude Code harness.
+
+### Migration
+
+No breaking changes from beta.2. Operators on beta.1 or beta.2
+should `/plugin update vsdd-factory@vsdd-factory:1.0.0-beta.3` and
+re-run `/vsdd-factory:activate`. If Claude Code's plugin cache
+serves stale beta.2 binaries (a known limitation around the
+"chore + bot retag" window), wipe
+`~/.claude/plugins/cache/vsdd-factory/vsdd-factory/1.0.0-beta.2/`
+manually and restart the session.
+
 ## 1.0.0-beta.2 — harness payload schema fix (2026-04-25)
 
 Same-day patch to v1.0.0-beta.1 that closes the gate-4 dogfood
