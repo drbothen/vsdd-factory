@@ -75,7 +75,7 @@
 - `CHANGELOG.md` — 215,328 bytes (~215KB; 4,000+ lines of release history back to v0.x).
 - `Cargo.lock` — 83KB (regular Rust workspace lockfile).
 - `target/` is gitignored (build artifacts).
-- `.factory/specs/` — 8 design docs (1 v1.0 master + 7 from 2026-04-13).
+- `.factory/legacy-design-docs/` — 8 design docs (1 v1.0 master + 7 from 2026-04-13).
 - `.factory/plans/` — 4 plans from 2026-04-13.
 - `.factory/stories/v1.0/` — `EPIC.md` + 41 stories (`S-0.1` through `S-5.7`).
 - `docs/guide/` — 30 reference docs (phase overviews, configuration, troubleshooting).

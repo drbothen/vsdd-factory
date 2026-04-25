@@ -263,7 +263,7 @@ All 10 drift items re-verified against source by extraction-validation Phase 3. 
 - **Observability** (16 NFRs) — always-on internal log, 30-day retention, daily rotation by event ts, 17 event-type constants, schema_version = 1, dispatcher_trace_id propagation, multi-sink fan-out, RoutingFilter (allow-then-deny), per-sink static tags, stderr capture on lifecycle events, file sink path placeholders.
 - **Reliability** (15 NFRs) — non-blocking errors (exit 0 on registry/payload/engine error), per-entry on_error policy, plugin failure isolated, sink failure isolated, internal log best-effort, prune_old defensive, retry/circuit/DLQ pending S-4.4/4.5, cooperative shutdown, atomic write of release artifacts, crash recovery in feature workflow.
 - **Scalability** (6 NFRs) — parallel within tier sequential between, single-shot dispatcher process, per-sink dedicated OS thread, ~3GB binary distribution ceiling over 3 years, per-event payload bounded, multi-instance sinks supported.
-- **Maintainability** (8 NFRs) — workspace dependency pinning, opentelemetry-* lockstep at 0.31, Edition 2024 + rust-version 1.95, schema versioning at every config boundary, deny_unknown_fields universal, thiserror-for-crates / anyhow-at-boundaries, ~180 Rust tests + ~1262 bats, no feature flags.
+- **Maintainability** (8 NFRs) — workspace dependency pinning, opentelemetry-* lockstep at 0.31, Edition 2024 + rust-version 1.95, schema versioning at every config boundary, deny_unknown_fields universal, thiserror-for-crates / anyhow-at-boundaries, 185 Rust tests + ~1262 bats, no feature flags.
 - **Compatibility** (5 NFRs) — 5-platform support, HOST_ABI_VERSION = 1 frozen at v1.0, SDK accepts both `event_name` and `hook_event_name` envelope spellings, activation cross-host re-activation drift warning, Windows native-WASM hooks work without git-bash (post-Tier E).
 - **Auditability** (4 NFRs) — every capability denial recorded, dispatcher_trace_id propagated through every event, factory-events-*.jsonl + dispatcher-internal-*.jsonl as durable trail, bin/emit-event normalizes bash-side emission.
 
@@ -330,6 +330,8 @@ Rust unit tests in same file; full-sentence snake_case test names; one behavior 
 | Bin tools | 12/12 (100%) | MEDIUM |
 | Rules | 9/9 (100%) | MEDIUM |
 | Slash commands | 110/110 enumerated; not deeply walked | LOW-MED |
+
+Note: Skill BCs were extracted in 3 alphabetical batches (skills 1-40 / 41-80 / 81-119). Each batch's individual convergence report referenced "uncovered" sibling slices that were being handled by parallel agents — those references were per-agent local context, not gaps in the final catalog. With all 3 batches merged, 100% of the 119 skills are covered.
 
 **Validation (B.6) outcome:** PASS WITH CAVEATS — 122/125 BCs CONFIRMED (97.6%); 2 INACCURATE (BC-AUDIT-067 PostToolUse→PreToolUse correction; BC-AUDIT-1007 numerical "4 hooks" should be "3"); 1 HALLUCINATED (pass-0 inventory's "13 trybuild tests" — actual is 0). All corrections applied or noted. 41/48 metrics exact match; 7 minor deltas (Rust test count +5 self-corrected, template count off by 2-3, docs/guide -2, design doc path correction `.factory/specs/` → `.factory/legacy-design-docs/`, file LOC systematic ±1, hook-sdk-macros trybuild -13).
 
@@ -410,7 +412,7 @@ Rust unit tests in same file; full-sentence snake_case test names; one behavior 
 
 ### For create-domain-spec / business-analyst
 
-- **Primary input:** `/Users/jmagady/Dev/vsdd-factory/.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md` (the v1.0 master design — frozen, all Q1–Q7 resolved, 5 ADRs explicit). 7 secondary design docs from 2026-04-13 cover earlier-phase decisions (early-phase-gaps, excalidraw-integration, release-infrastructure, scaffold-claude-md, subagent-driven-gaps, writing-plans-gaps).
+- **Primary input:** `/Users/jmagady/Dev/vsdd-factory/.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md` (the v1.0 master design — frozen, all Q1–Q7 resolved, 5 ADRs explicit). 7 secondary design docs from 2026-04-13 cover earlier-phase decisions (early-phase-gaps, excalidraw-integration, release-infrastructure, remaining-superpowers-gaps, scaffold-claude-md, subagent-driven-gaps, writing-plans-gaps).
 - **Entity catalog:** Use `pass-2-domain-model.md` directly. 35 entities (22 Half A — dispatcher runtime; 13 Half B — orchestration framework). Each has fields, invariants, lifecycle, and code citation.
 - **Subsystem boundaries:** Per `pass-1-architecture.md`. Two subsystems share one repo and one version, coupled at 4 contracts (stdin envelope, hooks-registry.toml, observability-config.toml, plugin ABI).
 - **Cross-cut bounded contexts:** Dispatch, Plugin authoring, Sink pipeline, Orchestration, Process/governance — all enumerated in pass-2-domain-model.md table.

@@ -31,7 +31,7 @@ traces_to: "phase-0-ingestion"
 **Validated by:** validate-extraction agent
 **Date:** 2026-04-25
 **Total BCs in catalog:** 1,851
-**Sample size (Phase 1):** 115 (6.2% of catalog)
+**Sample size (Phase 1):** 125 (6.75% of catalog)
 **Source root:** /Users/jmagady/Dev/vsdd-factory/
 
 ---

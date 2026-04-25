@@ -35,7 +35,7 @@ Two distinct convention systems, one per subsystem. Within each, consistency is 
 - **Unit tests:** `#[cfg(test)] mod tests { ... }` block at the bottom of each `.rs` file, exercising only that module's surface.
 - **Integration tests:** `crates/factory-dispatcher/tests/*.rs` — one file per integration scenario (`executor_integration.rs`, `host_functions.rs`, `internal_log_integration.rs`, `loads_legacy_registry.rs`, `routing_integration.rs`, `sinks_file_integration.rs`, `sinks_otel_grpc.rs`).
 - **Test-support shims:** `#[cfg(test)] pub(crate) mod test_support` for helpers shared across unit tests in the same crate.
-- **Trybuild:** `crates/hook-sdk-macros/` uses `trybuild` for compile-fail / pass tests on the proc-macro.
+- **Trybuild:** ~~`crates/hook-sdk-macros/` uses `trybuild` for compile-fail / pass tests on the proc-macro.~~ Corrected: `crates/hook-sdk-macros` has no `trybuild` dependency or test fixtures (claim was hallucinated in pass-0; verified absent by extraction-validation 2026-04-25).
 - **wasm fixtures:** Tests that need a tiny module use `wat::parse_str(...)` to build wasm from textual WAT inline (e.g., `invoke.rs::tests::compile`).
 
 ### Doc comments
@@ -240,7 +240,7 @@ block() {
 - 6 generate-registry bats tests for the registry-generation script.
 
 ### Trybuild (proc-macro)
-- 13 trybuild fixtures for `#[hook]` macro (compile-pass and compile-fail).
+- ~~13 trybuild fixtures for `#[hook]` macro (compile-pass and compile-fail).~~ Corrected: `crates/hook-sdk-macros` has no `trybuild` dependency or test fixtures (13-fixture claim was hallucinated in pass-0; verified absent by extraction-validation 2026-04-25).
 
 ## 4. Design patterns observed
 
