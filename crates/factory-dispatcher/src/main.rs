@@ -2,42 +2,47 @@
 //!
 //! Reads a Claude Code hook envelope from stdin, loads the registry at
 //! `${CLAUDE_PLUGIN_ROOT}/hooks-registry.toml`, selects plugins that
-//! match the event/tool, groups them by priority, and hands them to
-//! the execution layer.
+//! match the event/tool, groups them by priority, and hands them to the
+//! execution layer (S-1.6's `execute_tiers`).
 //!
-//! Execution is stubbed here — S-1.5 (wasmtime) and S-1.6 (tokio
-//! parallel-tier) fill in `run_tiers`. For now, the dispatcher prints
-//! tier metadata and returns `Continue` for every plugin so operators
-//! can smoke-test the routing path before plugins actually execute.
+//! The runtime is a `current_thread` tokio runtime — we don't need a
+//! multi-threaded pool because wasmtime invocations are wrapped in
+//! `spawn_blocking` inside the executor, and the dispatcher's own fan-
+//! in work is trivial. Single-thread keeps startup cost low and avoids
+//! surprising thread pools in a short-lived process.
 //!
-//! Self-telemetry: S-1.7 wires the always-on internal log. Every
-//! dispatcher lifecycle event and every `internal.*` event lands in
-//! `<log_dir>/dispatcher-internal-YYYY-MM-DD.jsonl`. Plugin lifecycle
-//! events wait for S-1.5; sink events for S-1.8.
+//! Self-telemetry: the always-on internal log (S-1.7) is constructed
+//! first so any dispatcher error — including registry load failures —
+//! is durably recorded. Plugin lifecycle events (`plugin.invoked`,
+//! `plugin.completed`, `plugin.timeout`, `plugin.crashed`) are emitted
+//! by the executor; only `dispatcher.*` and `internal.dispatcher_error`
+//! are emitted here.
 
+use std::path::PathBuf;
+use std::sync::Arc;
+
+use factory_dispatcher::engine::{EpochTicker, build_engine};
+use factory_dispatcher::executor::{ExecutorInputs, execute_tiers};
+use factory_dispatcher::host::HostContext;
 use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
     InternalLog,
 };
 use factory_dispatcher::payload::HookPayload;
-use factory_dispatcher::registry::{OnError, Registry};
-use factory_dispatcher::routing::{
-    PluginOutcome, PluginResultStub, group_by_priority, match_plugins,
-};
+use factory_dispatcher::plugin_loader::PluginCache;
+use factory_dispatcher::registry::Registry;
+use factory_dispatcher::routing::{group_by_priority, match_plugins};
 use factory_dispatcher::{HOST_ABI_VERSION, new_trace_id};
-use std::path::PathBuf;
 
 const ENV_PLUGIN_ROOT: &str = "CLAUDE_PLUGIN_ROOT";
 const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
 
-fn main() {
-    // Dispatcher must never propagate a raw panic into Claude Code;
-    // any unhandled error becomes a structured `internal.dispatcher_error`
-    // event and exits 0 (non-blocking).
-    let internal_log = InternalLog::new(resolve_log_dir());
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    let internal_log = Arc::new(InternalLog::new(resolve_log_dir()));
     internal_log.prune_old(DEFAULT_RETENTION_DAYS);
 
-    let code = match run(&internal_log) {
+    let code = match run(internal_log.clone()).await {
         Ok(code) => code,
         Err(err) => {
             emit_dispatcher_error(&internal_log, None, None, &err.to_string());
@@ -47,7 +52,7 @@ fn main() {
     std::process::exit(code);
 }
 
-fn run(internal_log: &InternalLog) -> anyhow::Result<i32> {
+async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     let trace_id = new_trace_id();
     let payload = HookPayload::from_reader(std::io::stdin().lock())?;
 
@@ -56,7 +61,7 @@ fn run(internal_log: &InternalLog) -> anyhow::Result<i32> {
         Ok(r) => r,
         Err(e) => {
             emit_dispatcher_error(
-                internal_log,
+                &internal_log,
                 Some(trace_id.clone()),
                 Some(payload.session_id.clone()),
                 &format!("registry load: {e}"),
@@ -65,9 +70,6 @@ fn run(internal_log: &InternalLog) -> anyhow::Result<i32> {
         }
     };
 
-    // dispatcher.started fires *after* registry load so we can include
-    // loaded_plugin_count. If the registry failed to load, we've
-    // already emitted internal.dispatcher_error above.
     internal_log.write(
         &InternalEvent::now(DISPATCHER_STARTED)
             .with_trace_id(trace_id.clone())
@@ -95,34 +97,61 @@ fn run(internal_log: &InternalLog) -> anyhow::Result<i32> {
         tiers.len(),
     );
 
-    // Execution layer stub — replaced in S-1.5 / S-1.6. For now we
-    // print tier metadata so operators can verify routing end-to-end
-    // without plugins actually executing.
-    let mut any_block = false;
-    for (i, tier) in tiers.iter().enumerate() {
-        for entry in tier {
-            let result = run_plugin_stub(entry.name.clone());
-            eprintln!(
-                "  tier={i} plugin={} outcome={:?}",
-                result.plugin_name, result.outcome,
+    if tiers.is_empty() {
+        return Ok(0);
+    }
+
+    // Execution layer. Build a shared engine + epoch ticker + module
+    // cache per invocation. Keeping the engine short-lived adds a bit
+    // of cold-start cost but sidesteps any global state concerns for
+    // the short-lived dispatcher process. S-1.5's `PluginCache` still
+    // amortizes per-plugin compile cost within a single invocation.
+    let engine = match build_engine() {
+        Ok(e) => e,
+        Err(e) => {
+            emit_dispatcher_error(
+                &internal_log,
+                Some(trace_id.clone()),
+                Some(payload.session_id.clone()),
+                &format!("engine build: {e}"),
             );
-            if matches!(result.outcome, PluginOutcome::Block { .. })
-                && entry.on_error(&registry.defaults) == OnError::Block
-            {
-                any_block = true;
-            }
+            return Ok(0);
         }
-    }
+    };
+    let _ticker = EpochTicker::start(engine.clone());
+    let cache = PluginCache::new(engine.clone());
 
-    Ok(if any_block { 2 } else { 0 })
-}
+    let mut base_host_ctx = HostContext::new(
+        "", // executor overrides per plugin
+        env!("CARGO_PKG_VERSION"),
+        payload.session_id.clone(),
+        trace_id.clone(),
+    );
+    base_host_ctx.internal_log = Some(internal_log.clone());
+    base_host_ctx.cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
 
-fn run_plugin_stub(name: String) -> PluginResultStub {
-    // S-1.5 / S-1.6 will replace this with real wasmtime execution.
-    PluginResultStub {
-        plugin_name: name,
-        outcome: PluginOutcome::Continue,
-    }
+    let payload_json = serde_json::to_vec(&payload)?;
+
+    let inputs = ExecutorInputs {
+        engine: &engine,
+        cache: &cache,
+        registry: &registry,
+        payload_json,
+        base_host_ctx,
+        internal_log: internal_log.clone(),
+    };
+
+    let summary = execute_tiers(inputs, tiers).await;
+
+    eprintln!(
+        "  plugins_run={} total_ms={} block_intent={} exit_code={}",
+        summary.per_plugin_results.len(),
+        summary.total_elapsed_ms,
+        summary.block_intent,
+        summary.exit_code,
+    );
+
+    Ok(summary.exit_code)
 }
 
 fn resolve_registry_path() -> anyhow::Result<PathBuf> {
@@ -165,9 +194,6 @@ fn emit_dispatcher_error(
     }
     log.write(&event);
 
-    // Stderr mirror: even if InternalLog init succeeded, operators
-    // often tail stderr during early bring-up. Keep the line-shape
-    // compatible with the 0.0.1 implementation.
     eprintln!(
         r#"{{"type":"internal.dispatcher_error","message":{:?}}}"#,
         msg

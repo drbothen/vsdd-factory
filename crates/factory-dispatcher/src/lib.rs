@@ -8,6 +8,7 @@
 //! fuel enforcement) is filled in by S-1.4–S-1.6.
 
 pub mod engine;
+pub mod executor;
 pub mod host;
 pub mod internal_log;
 pub mod invoke;
@@ -18,6 +19,7 @@ pub mod routing;
 pub mod sinks;
 
 pub use engine::{EPOCH_TICK_MS, EngineError, EpochTicker, build_engine};
+pub use executor::{ExecutorInputs, PluginOutcome, TierExecutionSummary, execute_tiers};
 pub use host::{HostCallError, HostContext, setup_linker};
 pub use internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_SHUTTING_DOWN, DISPATCHER_STARTED,

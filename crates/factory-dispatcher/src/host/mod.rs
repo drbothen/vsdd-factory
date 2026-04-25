@@ -38,6 +38,13 @@ pub mod read_file;
 /// Per-invocation state available to every host function. Lives in the
 /// wasmtime [`Store`] for the plugin call and is torn down when the
 /// call returns.
+///
+/// `Clone` — cloning is how the per-tier executor (S-1.6) hands each
+/// plugin its own context. Per-plugin fields (`plugin_name`,
+/// `plugin_version`, `capabilities`, `cwd`) are owned; the event queue
+/// and internal log are `Arc`-shared so every clone feeds the same
+/// downstream sink pipeline.
+#[derive(Clone)]
 pub struct HostContext {
     pub plugin_name: String,
     pub plugin_version: String,
