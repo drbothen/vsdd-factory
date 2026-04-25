@@ -130,7 +130,20 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     base_host_ctx.internal_log = Some(internal_log.clone());
     base_host_ctx.cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
 
-    let payload_json = serde_json::to_vec(&payload)?;
+    // The dispatcher's `HookPayload` is the Claude-Code-facing shape;
+    // the plugin-facing shape (mirrored in `vsdd_hook_sdk::HookPayload`)
+    // includes a `dispatcher_trace_id` field the dispatcher just
+    // assigned. Inject it into the serialized JSON before handing off
+    // — plugins built against the SDK reject payloads missing this
+    // field with a hard error.
+    let mut payload_value = serde_json::to_value(&payload)?;
+    if let Some(map) = payload_value.as_object_mut() {
+        map.insert(
+            "dispatcher_trace_id".to_string(),
+            serde_json::Value::String(trace_id.clone()),
+        );
+    }
+    let payload_json = serde_json::to_vec(&payload_value)?;
 
     let inputs = ExecutorInputs {
         engine: &engine,

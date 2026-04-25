@@ -196,14 +196,33 @@ pub struct Registry {
 
 impl Registry {
     /// Load + validate from a filesystem path.
+    ///
+    /// Relative `plugin` paths in entries are resolved against the
+    /// registry file's parent directory — i.e. plugins live under the
+    /// same `${CLAUDE_PLUGIN_ROOT}` as the registry itself. Absolute
+    /// `plugin` paths pass through unchanged for tests / packaging
+    /// flows that produce them deliberately.
     pub fn load(path: &Path) -> Result<Self, RegistryError> {
         if !path.exists() {
             return Err(RegistryError::NotFound(path.to_path_buf()));
         }
         let text = std::fs::read_to_string(path)?;
-        let parsed: Self = toml::from_str(&text)?;
+        let mut parsed: Self = toml::from_str(&text)?;
         parsed.validate()?;
+        if let Some(base) = path.parent() {
+            parsed.resolve_plugin_paths(base);
+        }
         Ok(parsed)
+    }
+
+    /// Resolve every entry's relative `plugin` path against `base`.
+    /// Idempotent — absolute paths pass through unchanged.
+    pub fn resolve_plugin_paths(&mut self, base: &Path) {
+        for entry in &mut self.hooks {
+            if entry.plugin.is_relative() {
+                entry.plugin = base.join(&entry.plugin);
+            }
+        }
     }
 
     /// Parse + validate from a TOML string buffer. Useful for tests.
@@ -396,5 +415,59 @@ priority = 900
     fn load_returns_not_found_for_missing_path() {
         let err = Registry::load(Path::new("/nonexistent/registry.toml")).unwrap_err();
         assert!(matches!(err, RegistryError::NotFound(_)));
+    }
+
+    #[test]
+    fn load_resolves_relative_plugin_paths_against_registry_dir() {
+        // Operators write `plugin = "x.wasm"` in hooks-registry.toml
+        // expecting it to resolve under ${CLAUDE_PLUGIN_ROOT}, not cwd.
+        // Regression for a smoke-test bug where the dispatcher reported
+        // "plugin file not found" for a perfectly valid relative path.
+        let dir = tempfile::tempdir().unwrap();
+        let reg_path = dir.path().join("hooks-registry.toml");
+        std::fs::write(
+            &reg_path,
+            r#"
+schema_version = 1
+
+[[hooks]]
+name = "rel"
+event = "PreToolUse"
+plugin = "rel-plugin.wasm"
+
+[[hooks]]
+name = "abs"
+event = "PreToolUse"
+plugin = "/explicit/absolute/path.wasm"
+"#,
+        )
+        .unwrap();
+        let reg = Registry::load(&reg_path).unwrap();
+        assert_eq!(reg.hooks[0].plugin, dir.path().join("rel-plugin.wasm"));
+        assert_eq!(
+            reg.hooks[1].plugin,
+            PathBuf::from("/explicit/absolute/path.wasm")
+        );
+    }
+
+    #[test]
+    fn resolve_plugin_paths_is_idempotent_for_absolute_paths() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut reg = Registry::parse_str(
+            r#"
+schema_version = 1
+
+[[hooks]]
+name = "x"
+event = "PreToolUse"
+plugin = "/abs/x.wasm"
+"#,
+        )
+        .unwrap();
+        reg.resolve_plugin_paths(dir.path());
+        // Absolute path stays absolute.
+        assert_eq!(reg.hooks[0].plugin, PathBuf::from("/abs/x.wasm"));
+        reg.resolve_plugin_paths(dir.path());
+        assert_eq!(reg.hooks[0].plugin, PathBuf::from("/abs/x.wasm"));
     }
 }
