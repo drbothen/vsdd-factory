@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.0.0-beta.2 — harness payload schema fix (2026-04-25)
+
+Same-day patch to v1.0.0-beta.1 that closes the gate-4 dogfood
+criterion. Beta.1 architecturally worked but couldn't talk to the
+real Claude Code harness because of a field-name mismatch in the
+input envelope schema.
+
+### Fixed
+
+- **Dispatcher rejected real Claude Code harness envelopes.** The
+  dispatcher's `HookPayload` struct deserialized `event_name`, but
+  Claude Code's documented hooks payload uses `hook_event_name`.
+  Every real harness invocation failed at parse time with "missing
+  field `event_name` at line 1 column 320" → zero plugins ran →
+  zero events emitted. Synthetic tests passed because we authored
+  them with `event_name` (the SDK's canonical name) — they didn't
+  catch the harness/dispatcher schema mismatch. Fixed via
+  `#[serde(alias = "hook_event_name")]`. Both spellings now parse;
+  canonical name stays `event_name` so the SDK's payload shape is
+  unchanged.
+
+### Added
+
+- Regression test
+  `payload::tests::accepts_hook_event_name_alias_from_real_harness`
+  pinning the alias against a real-shape envelope. Smoke verified
+  end-to-end: feeding the harness-shape payload to the dispatcher
+  binary produces a clean PostToolUse/Bash dispatch into 3 plugins
+  with `exit_code:0`.
+
+### Migration
+
+No breaking changes from beta.1. Operators on beta.1 should
+`/plugin update vsdd-factory@vsdd-factory:1.0.0-beta.2` and re-run
+`/vsdd-factory:activate` if their `hooks.json` is platform-stale.
+
 ## 1.0.0-beta.1 — Factory Plugin Kit beta (2026-04-25)
 
 First v1.0 pre-release. v0.79.x's bash-hook dispatch model ran into an
