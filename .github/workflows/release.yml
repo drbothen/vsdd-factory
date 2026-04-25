@@ -121,6 +121,15 @@ jobs:
       - name: Build wasm plugin + example (release)
         shell: bash
         run: |
+          # legacy-bash-adapter is the production WASI command every
+          # registry entry routes through (45 of them as of v1.0-beta.1).
+          # Forgetting to build + bundle this is what made the first
+          # beta.1 attempt non-functional — without this .wasm at
+          # plugins/vsdd-factory/hook-plugins/legacy-bash-adapter.wasm,
+          # every plugin load fails. The `--bin legacy-bash-adapter`
+          # form is required because the crate has both [lib] (for
+          # tests) and [[bin]] (the WASI command) targets.
+          cargo build --release --target wasm32-wasip1 -p legacy-bash-adapter --bin legacy-bash-adapter
           cargo build --release --target wasm32-wasip1 -p capture-commit-activity
           cargo build --release --target wasm32-wasip1 -p vsdd-hook-sdk --example hello-hook
 
@@ -135,9 +144,9 @@ jobs:
           fi
           # Bundle the wasm artifacts alongside; commit-binaries copies
           # them into hook-plugins/. They're identical across platforms
-          # (both end up at target/wasm32-wasip1/release/...) so the
-          # one platform that successfully builds them is enough — but
-          # we ship from every entry for redundancy.
+          # so the one platform that successfully builds them is enough
+          # — but we ship from every entry for redundancy.
+          cp target/wasm32-wasip1/release/legacy-bash-adapter.wasm artifact/ 2>/dev/null || true
           cp target/wasm32-wasip1/release/capture_commit_activity.wasm artifact/ 2>/dev/null || true
           cp target/wasm32-wasip1/release/examples/hello-hook.wasm artifact/ 2>/dev/null || true
 
