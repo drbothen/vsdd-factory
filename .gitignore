@@ -17,6 +17,10 @@ plugins/vsdd-factory/tools/observability/docker-compose.override.yml
 target/
 *.profraw
 
+# Python bytecode from CI helper scripts (e.g. scripts/check-platforms-drift.py).
+__pycache__/
+*.pyc
+
 # v1.0 activation skill copies the right hooks.json.<platform> variant
 # into hooks.json after install — that copy is per-machine and must not
 # be committed. The 5 hooks.json.<platform> files (CI-generated from
