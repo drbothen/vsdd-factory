@@ -123,7 +123,7 @@
 | `plugins/vsdd-factory/workflows/*.lobster` + `phases/*.lobster` | Workflow | P0 | 16 files | Top-level mode flows (greenfield/brownfield/feature/...) + 8 phase sub-flows |
 | `plugins/vsdd-factory/templates/*` | Template | P1 | 108+ files | Output-shape templates referenced by skills |
 | `plugins/vsdd-factory/bin/*` | Tool | P1 | 12 binaries | `emit-event`, `factory-dashboard`, `factory-obs`, `factory-query`, `factory-replay`, `factory-report`, `factory-sla`, `lobster-parse`, `multi-repo-scan`, `research-cache`, `wave-state`, `compute-input-hash` |
-| `.factory/specs/2026-04-24-v1.0-factory-plugin-kit-design.md` | Design | P0 | ~1500 | The v1.0 master design — most authoritative intent doc; ADRs, host ABI, sink schema |
+| `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md` | Design | P0 | ~1500 | The v1.0 master design — most authoritative intent doc; ADRs, host ABI, sink schema |
 | `.factory/stories/v1.0/EPIC.md` + `S-*.md` | Backlog | P0 | 42 files | Decomposed v1.0 stories with dependency tiers |
 | `CHANGELOG.md` | History | P0 | ~4000 lines | Authoritative shipped-state truth |
 | `README.md` | Docs | P1 | 15KB | Project overview |
@@ -219,7 +219,7 @@ graph LR
 
 ## 6. Important Read-Only Inputs
 
-- `.factory/specs/2026-04-24-v1.0-factory-plugin-kit-design.md` — the master design doc; all v1.0 work derives from it. ADRs 001–005, host ABI catalog, sink config schema.
+- `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md` — the master design doc; all v1.0 work derives from it. ADRs 001–005, host ABI catalog, sink config schema.
 - `.factory/stories/v1.0/EPIC.md` + `S-*.md` — the decomposition; each story has acceptance criteria.
 - `CHANGELOG.md` — authoritative truth for what has actually shipped (down to commit-level detail).
 - `README.md` — high-level project description; less authoritative than CHANGELOG.

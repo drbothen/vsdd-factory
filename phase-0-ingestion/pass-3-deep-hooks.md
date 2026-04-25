@@ -125,7 +125,7 @@ Note: `check-factory-commit.sh` is registered as **PreToolUse** in `hooks-regist
 **Trigger:** `command -v jq` fails.
 **Behavior:** Prints `jq is required but not found` to stderr, exits **1**. With registry on_error=block, dispatcher treats exit 1 as a block.
 **Exit codes:** 1 (not 0; differs from most hooks).
-**Acceptance:** Hook fails-closed when jq is missing — only 4 hooks do this (`brownfield-discipline`, `protect-bc`, `protect-vp`, `red-gate`, `purity-check` exits 0 instead). Counts as a `block`-policy interaction.
+**Acceptance:** Hook fails-closed when jq is missing — 3 hooks explicitly exit 1 on missing jq: `brownfield-discipline`, `protect-bc`, `red-gate`. `protect-vp` has no jq check at all (would fail under `set -euo pipefail` if jq were referenced and missing). `purity-check` exits 0 gracefully. Counts as a `block`-policy interaction (exit 1 + on_error=block in registry).
 
 ---
 

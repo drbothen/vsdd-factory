@@ -19,7 +19,7 @@ The codebase has high internal consistency, dense Rust test coverage (180 tests 
 
 4. **Sink resilience is partially shipped.** The dispatcher has the constants (`internal.sink_circuit_opened`, `internal.sink_queue_full`, etc.) and the trait scaffolding, plus working file + otel-grpc drivers. The retry / circuit-breaker / dead-letter / HTTP / Datadog / Honeycomb features are scoped for Tier E (S-4.x) and have not shipped.
 
-5. **Internal documentation is dense and load-bearing.** `.factory/specs/2026-04-24-v1.0-factory-plugin-kit-design.md` is a complete-design master with 5 ADRs and 7+ resolved open questions. `EPIC.md` decomposes 41 stories with explicit dependency tiers. `CHANGELOG.md` is 215KB and includes commit-level provenance per release. These artifacts are reliable and should be treated as primary inputs by downstream skills (create-prd, create-domain-spec, etc.).
+5. **Internal documentation is dense and load-bearing.** `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md` is a complete-design master with 5 ADRs and 7+ resolved open questions. `EPIC.md` decomposes 41 stories with explicit dependency tiers. `CHANGELOG.md` is 215KB and includes commit-level provenance per release. These artifacts are reliable and should be treated as primary inputs by downstream skills (create-prd, create-domain-spec, etc.).
 
 ## Confidence assessment
 
@@ -225,7 +225,7 @@ These should be the targets for Phase B convergence rounds:
 
 ## Recommendations for downstream skills
 
-- **create-prd / create-domain-spec:** Use `.factory/specs/2026-04-24-v1.0-factory-plugin-kit-design.md` as primary input. Its 5 ADRs + Open-Questions resolutions ARE the design intent. Cross-check the present pass-6 drift report before assuming any feature exists in code.
+- **create-prd / create-domain-spec:** Use `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md` as primary input. Its 5 ADRs + Open-Questions resolutions ARE the design intent. Cross-check the present pass-6 drift report before assuming any feature exists in code.
 - **create-architecture:** Pass 1's component catalog + layer diagram is the starting point. Pass 5's pattern catalog informs the "design patterns" section.
 - **decompose-stories:** EPIC.md already exists and is high-quality. Use it as input, not a thing to recreate.
 - **semport-analyze:** Not directly applicable (no language port in flight). Could be used downstream if a future operator wants to port the dispatcher to Go.

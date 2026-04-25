@@ -443,7 +443,7 @@ Plus: `plugins/vsdd-factory/tests/regression-v1.0.bats` (11 dispatcher pipeline 
 - **Confidence:** MEDIUM (behavior asserted; script body not fully cited).
 
 ### BC-AUDIT-067: check-factory-commit warns when committing in `.factory/` without STATE.md update
-- **Preconditions:** PostToolUse on Bash, command contains "git commit" AND ".factory" but NOT "STATE.md".
+- **Preconditions:** PreToolUse on Bash, command contains "git commit". Hook is registered as `event = "PreToolUse"` in `hooks-registry.toml` and `hooks.json`. Note: the script header comment incorrectly says `# PostToolUse hook` — this is a documentation error in the script body, not in the registry. The .factory/STATE.md content check still happens, but as advisory output (`additionalContext` JSON) rather than as a precondition filter.
 - **Postconditions:** Outputs `additionalContext` advisory; exit 0 (non-blocking).
 - **Evidence:** `hooks/check-factory-commit.sh` (read directly).
 - **Confidence:** HIGH.
