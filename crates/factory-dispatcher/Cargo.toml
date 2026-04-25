@@ -30,8 +30,16 @@ wasmtime.workspace = true
 wasmtime-wasi.workspace = true
 sink-core = { path = "../sink-core", version = "0.0.1" }
 sink-file = { path = "../sink-file", version = "0.0.1" }
+sink-otel-grpc = { path = "../sink-otel-grpc", version = "0.0.1" }
 
 [dev-dependencies]
 tempfile.workspace = true
 filetime.workspace = true
 wat.workspace = true
+# Mock OTLP receiver for the sinks_otel_grpc integration test (S-1.9).
+# We pull in tokio + tonic + the same proto crate the sink uses so the
+# mock and the real client share message types verbatim.
+tokio.workspace = true
+tonic.workspace = true
+tokio-stream.workspace = true
+opentelemetry-proto.workspace = true
