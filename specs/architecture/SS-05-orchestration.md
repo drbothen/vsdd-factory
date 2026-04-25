@@ -46,7 +46,7 @@ context from STATE.md and the current workflow step.
 | Module / File | Responsibility |
 |---|---|
 | `plugins/vsdd-factory/agents/orchestrator/orchestrator.md` | Main-thread agent; reads `.lobster` workflow; dispatches sub-agents; does NOT produce artifacts |
-| `plugins/vsdd-factory/agents/*.md` (33 files) | Specialist sub-personas; spawned by orchestrator; each encodes a VSDD role |
+| `plugins/vsdd-factory/agents/*.md` (34 files) | Specialist sub-personas; spawned by orchestrator; each encodes a VSDD role |
 | `plugins/vsdd-factory/workflows/greenfield.lobster` | Greenfield product workflow (Phase 0–7 full run) |
 | `plugins/vsdd-factory/workflows/brownfield.lobster` | Brownfield ingest workflow (Phase 0 deep analysis) |
 | `plugins/vsdd-factory/workflows/feature.lobster` | Feature cycle workflow (F1–F7 delta loop) |

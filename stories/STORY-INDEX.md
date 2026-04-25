@@ -105,6 +105,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
+**Draft story policy:** Stories with `status: draft` MAY have empty
+`behavioral_contracts: []` arrays. BC anchoring is deferred to the elaboration phase
+(when status transitions to `ready`). **Source:** Phase 1d pass 3 F-035.
+
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
 **Total story points:** 183 across 41 stories

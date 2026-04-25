@@ -82,8 +82,8 @@ parallel-within-tier execution, always-on telemetry) was enacted in Rust and the
 analyzed by the framework's own brownfield-ingest skill.
 
 **Current shipping milestone:** `1.0.0-beta.4` shipped 2026-04-25 at commit `1907d8f`.
-Tiers A through D (22 stories) are closed. Tiers E through H (19 stories) are the
-active backlog for rc.1 and 1.0 GA.
+Tiers A through D (22 merged + 4 partial stories; 26 total) are substantially closed.
+Tiers E through H (15 draft stories) are the active backlog for rc.1 and 1.0 GA.
 
 ### 1.3 Key Differentiators
 
@@ -880,7 +880,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-002 | Hook payload parsing and event routing | CAP-002 | SS-01 | BC-1.02.001–005 | 5 | shipped | E-1 |
 | FR-003 | Plugin execution lifecycle (epoch/fuel/crash/block) | CAP-002, CAP-011 | SS-01 | BC-1.03.001–016 | 16 | shipped | E-1 |
 | FR-004 | Engine construction (epoch ticker, fuel) | CAP-011 | SS-01 | BC-1.04.001–003 | 3 | shipped | E-1 |
-| FR-005 | Host function surface (cap-gated exec/env/read_file/log/emit) | CAP-002, CAP-008 | SS-01 | BC-1.05.001–034 | 34 | shipped/partial | E-1 |
+| FR-005 | Host function surface (cap-gated exec/env/read_file/log/emit) | CAP-002, CAP-008 | SS-01 | BC-1.05.001–034 | 34 | shipped (CAP-008 deny gates); partial (CAP-002 read_file per DRIFT-001) | E-1 |
 | FR-006 | Internal log (always-on self-telemetry) | CAP-010 | SS-01, SS-03 | BC-1.06.001–010 | 10 | shipped | E-1 |
 | FR-007 | Legacy hook routing compatibility + dispatcher main | CAP-002, CAP-008 | SS-01, SS-04 | BC-1.07.001–BC-1.08.006 | 10 | shipped | E-2 |
 | FR-008 | Plugin cache (mtime-driven, process-lifetime) | CAP-002 | SS-01 | BC-1.09.001–004 | 4 | shipped | E-1 |
@@ -1039,7 +1039,7 @@ verification posture is sufficient for v1.0 GA but not for high-assurance securi
 **Source:** Phase 1d pass 1 F-008.
 
 ### KL-003 — Orphan VPs (VP-024, VP-048, VP-053..VP-057) lack DI parents
-6 of 57 VPs are not derived from domain invariants. They cover cross-cutting concerns
+7 of 57 VPs are not derived from domain invariants. They cover cross-cutting concerns
 (PluginCache mtime, workflow DAG validation) that don't fit the DI lattice cleanly.
 This is acknowledged structural diversity, not a defect.
 **Source:** Phase 1d pass 1 F-009.
@@ -1048,6 +1048,16 @@ This is acknowledged structural diversity, not a defect.
 5 workflow-domain VPs are manual proof method. Could be automated via lobster-parse
 linter in v1.1. No blocker for v1.0.
 **Source:** Phase 1d pass 1 F-015.
+
+### KL-006 — NFR catalog not lifted to L3 spec tree
+
+The 76 NFRs are summarized in PRD §4 and stored in `prd-supplements/nfr-catalog.md`
+(see line 768). Individual VPs (e.g., VP-005, VP-021, VP-044) reference specific
+NFR-SEC-NNN and NFR-PERF-NNN identifiers, but no addressable L3 document enumerates
+those IDs. A reader cannot look up "NFR-SEC-001" in the L3 spec tree.
+**Plan:** Lift NFR catalog to `specs/nfr-catalog.md` with addressable NFR-NNN IDs in v1.1.
+For v1.0, treat the prd-supplement as the authoritative NFR source.
+**Source:** Phase 1d pass 3 F-032.
 
 ### KL-005 — Concurrent self-modification race (vsdd-factory dogfooding)
 **Risk:** vsdd-factory IS its own product. A story modifying hooks-registry.toml or hook scripts can race with active dispatcher invocations.
@@ -1149,9 +1159,10 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.4 (commit 1907d8f, 2026-04-25) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
-| DRIFT items open | 10 (DRIFT-001 through DRIFT-010) |
-| Stories shipped | 22 (Tier A–D) |
-| Stories pending | 19 (Tiers E–H) |
+| DRIFT items open | 11 (DRIFT-001 through DRIFT-011) |
+| Stories shipped (merged) | 22 (Tier A–D fully merged) |
+| Stories partial | 4 (S-2.05, S-3.04, S-4.06, S-5.05) |
+| Stories pending (draft) | 15 (Tiers E–H draft) |
 | CAPs covered | 28 / 28 |
 | FRs defined | 40 |
 | NFRs cataloged | 76 |

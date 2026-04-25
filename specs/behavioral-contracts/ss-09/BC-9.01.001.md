@@ -70,7 +70,7 @@ The release tooling's `bump-version.sh` accepts semver prerelease versions of th
 |-------|-------|
 | L2 Capability | TBD (anchor in Phase 1.5) |
 | L2 Domain Invariants | TBD |
-| Architecture Module | SS-09 — `scripts/generate-registry-from-hooks-json.sh`, release tooling (bump-version.sh) |
+| Architecture Module | SS-09 — `scripts/bump-version.sh` (prerelease semver; see Source Evidence for location TBD) |
 | Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
 
 ### Source Evidence

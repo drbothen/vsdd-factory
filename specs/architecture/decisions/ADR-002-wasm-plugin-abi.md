@@ -63,7 +63,8 @@ surface for plugin authors and adds cognitive overhead.
 - Plugin debugging requires WASI-aware tooling.
 
 ### Status as of v1.0.0-beta.4
-IN-EFFECT. All 45 registry entries load `legacy-bash-adapter.wasm` via this ABI.
+IN-EFFECT. All 45 registry entries load `legacy-bash-adapter.wasm` via this ABI
+(45 entries per `hooks-registry.toml` head as of beta.4; see ARCH-INDEX SS-04 + SS-07 BCs for breakdown).
 `capture-commit-activity.wasm` is a 20-LOC stub (S-3.1 in flight). Plugin target
 triple `wasm32-wasip1` confirmed in `crates/hook-sdk/` and `crates/hook-plugins/`.
 
