@@ -78,11 +78,13 @@ jobs:
           done
           echo "all workflows parse"
 
-  cargo-check:
-    # Rust workspace gates for the v1.0 Factory Plugin Kit (S-1.1). The full
-    # 5-platform matrix arrives in S-2.3; keeping this two-platform for now
-    # so the workspace bootstrap doesn't carry Windows CI complexity.
-    name: cargo (${{ matrix.os }})
+  cargo-host:
+    # Fast-feedback Rust workspace gates (S-1.1) on the two host runners.
+    # Targets ~1-3 min wall-clock; designed to fail before the slower
+    # 5-platform `build-dispatcher` matrix burns runner minutes. The two
+    # jobs intentionally coexist: cargo-host is the pre-flight check,
+    # build-dispatcher (S-2.3) is the full-coverage gate.
+    name: cargo-host (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -133,3 +135,176 @@ jobs:
         # plugin target. If the macro regresses, this catches it before
         # any plugin author sees it.
         run: cargo build -p vsdd-hook-sdk --example hello-hook --target wasm32-wasip1
+
+  platforms-drift:
+    # Single source of truth: ci/platforms.yaml. The build-dispatcher
+    # matrix below duplicates the same 5 (platform, os, target) tuples
+    # inline because GitHub Actions does not natively read external YAML
+    # into matrix: expressions. This job parses both and asserts they
+    # agree — any drift fails fast with a clean diff so the operator
+    # knows exactly which side to refresh.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install yq + python3-yaml
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          python3 -c "import yaml" 2>/dev/null || sudo apt-get update && sudo apt-get install -y python3-yaml
+
+      - name: Lint ci/platforms.yaml is parseable
+        run: |
+          python3 -c "import yaml; yaml.safe_load(open('ci/platforms.yaml'))"
+          echo "ci/platforms.yaml parses ok"
+
+      - name: Compare canonical platforms.yaml vs build-dispatcher matrix
+        run: |
+          # Extract the (platform, os, target, use_cross, run_tests) tuples
+          # from both ci/platforms.yaml and the inline build-dispatcher
+          # matrix in ci.yml, then diff. This catches the drift class
+          # where someone bumps a runner label in one file but forgets
+          # the other, which would otherwise only surface on the next
+          # release-tag build. Failure shows the full diff so the author
+          # sees exactly which line to update.
+          python3 scripts/check-platforms-drift.py
+
+  build-dispatcher:
+    # 5-platform full-coverage build + test gate (S-2.3). Source of truth
+    # for the matrix entries below: ci/platforms.yaml. If you change one,
+    # change both — the platforms-drift job above will fail otherwise.
+    #
+    # Runner label notes (verified 2026-04 against
+    # https://docs.github.com/en/actions/reference/runners/github-hosted-runners):
+    #   - macos-14         : arm64 (Apple Silicon M1)
+    #   - macos-15-intel   : Intel x86_64; macos-13 was retired 2025-12-04
+    #   - macos-latest     : alias for macos-15 (arm64) — NOT used here
+    #                        because the matrix needs explicit arch pinning
+    #   - ubuntu-latest    : x86_64 Linux; aarch64 builds use cross-rs
+    #   - windows-latest   : Windows Server x86_64 with MSVC build tools
+    name: build-dispatcher (${{ matrix.platform }})
+    needs: platforms-drift
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: darwin-arm64
+            os: macos-14
+            target: aarch64-apple-darwin
+            use_cross: false
+            run_tests: true
+            exe_suffix: ""
+          - platform: darwin-x64
+            os: macos-15-intel
+            target: x86_64-apple-darwin
+            use_cross: false
+            run_tests: true
+            exe_suffix: ""
+          - platform: linux-x64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            use_cross: false
+            run_tests: true
+            exe_suffix: ""
+          - platform: linux-arm64
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            use_cross: true
+            # Tests skipped: cargo-cross builds in a Docker image, but
+            # the host runner is x86_64 and cannot exec aarch64 binaries
+            # without qemu-user-static. Native arm64-Linux GH runners
+            # (when affordable) would let us flip this to true.
+            run_tests: false
+            exe_suffix: ""
+          - platform: windows-x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            use_cross: false
+            run_tests: true
+            exe_suffix: ".exe"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        # Pinned to rust-toolchain.toml (1.95.0). `targets:` here adds
+        # both the platform-specific triple AND wasm32-wasip1 in one
+        # rustup invocation — the action handles the union internally.
+        uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: rustfmt, clippy
+          targets: ${{ matrix.target }}, wasm32-wasip1
+
+      - name: Cache cargo
+        # Key includes platform + target so the 5 jobs don't trample
+        # each other's cache. Swatinem/rust-cache@v2 already keys on
+        # Cargo.lock + rust-toolchain.toml under the hood; we add the
+        # matrix axes via shared-key.
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: build-dispatcher-${{ matrix.platform }}-${{ matrix.target }}
+
+      - name: Install cross-rs/cross
+        # Only the linux-arm64 entry sets use_cross=true. cross gives us
+        # a Docker-based aarch64-linux toolchain without any host setup.
+        # Pinning to a specific git rev keeps the build reproducible;
+        # `master` is what cross-rs upstream recommends until they cut a
+        # versioned release that supports the modern Rust + glibc combo.
+        if: matrix.use_cross
+        run: cargo install cross --git https://github.com/cross-rs/cross --rev 588b3c99db52b5a9c5906fab96cfadcf1bde7863
+
+      - name: Build (cargo)
+        if: ${{ !matrix.use_cross }}
+        # `cargo build --release --target X` builds every workspace
+        # member that compiles for X. factory-dispatcher is the binary
+        # we ship; the libraries get built as a side effect (and cached).
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Build (cross)
+        if: matrix.use_cross
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Test (cargo)
+        if: ${{ matrix.run_tests && !matrix.use_cross }}
+        # --workspace runs every package's tests; --all-targets includes
+        # integration + doc tests so the regression coverage matches
+        # cargo-host. We don't pass --target here for native runs because
+        # the host triple equals matrix.target; passing it makes cargo
+        # rebuild std-test infrastructure for no benefit.
+        run: cargo test --release --target ${{ matrix.target }} --workspace
+
+      - name: Build wasm plugin (capture-commit-activity)
+        # WASM plugins are platform-independent — built once on every
+        # matrix entry to prove the plugin still builds against the same
+        # toolchain that built the native dispatcher. Cheap enough to
+        # repeat (~5-10 s with cache) and catches feature-flag drift.
+        run: cargo build -p capture-commit-activity --target wasm32-wasip1 --release
+
+      - name: Build wasm hello-hook example
+        run: cargo build -p vsdd-hook-sdk --example hello-hook --target wasm32-wasip1 --release
+
+      - name: Stage artifacts
+        # Collect the dispatcher binary + every .wasm file into a single
+        # staging dir. `find -maxdepth 1` avoids picking up incremental
+        # build .wasm artifacts under deps/. Windows uses bash via the
+        # default shell on windows-latest, so `cp` works on all 3 OSes.
+        shell: bash
+        run: |
+          set -e
+          mkdir -p artifact-staging
+          cp "target/${{ matrix.target }}/release/factory-dispatcher${{ matrix.exe_suffix }}" artifact-staging/
+          # Glob may not match on a fresh clean build; gate with `ls`.
+          if ls target/wasm32-wasip1/release/*.wasm >/dev/null 2>&1; then
+            cp target/wasm32-wasip1/release/*.wasm artifact-staging/
+          fi
+          ls -la artifact-staging/
+
+      - name: Upload artifacts
+        # 14-day retention is the GH Actions default; explicit for clarity.
+        # S-2.4's release workflow downloads these by name when a tag ships.
+        uses: actions/upload-artifact@v4
+        with:
+          name: factory-dispatcher-${{ matrix.platform }}
+          path: artifact-staging/
+          retention-days: 14
+          if-no-files-found: error

@@ -1,0 +1,77 @@
+# ci/platforms.yaml — canonical source of truth for the 5 v1.0 target
+# platforms. Consumed (in spirit) by:
+#
+#   - .github/workflows/ci.yml             (build-dispatcher matrix)
+#   - .github/workflows/release.yml        (S-2.4 release artifacts; not yet)
+#   - plugins/vsdd-factory/skills/activate/detect-platform.sh
+#       (S-0.3 host detection: maps `uname -s`/`uname -m` to these strings)
+#   - plugins/vsdd-factory/hooks/hooks.json.<platform>
+#       (S-0.4 generated variants, one per platform key below)
+#
+# GitHub Actions does not consume external YAML directly in matrix:
+# expressions, so .github/workflows/ci.yml duplicates the matrix inline.
+# The `platforms-drift` job in ci.yml lints this file against the inline
+# matrix on every run — any change to one without the other fails CI.
+# See S-2.3 for the rationale.
+#
+# Editing rules:
+#   - The `platform` key is the authoritative canonical string. It MUST
+#     match the strings in detect-platform.sh and the hooks.json.<X>
+#     filename suffixes. If you add a 6th platform, add it everywhere.
+#   - `os` is the GitHub Actions runner label. Verify against
+#     https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+#     before merging — Apple deprecates Intel runners on a rolling basis
+#     (macos-13 retired 2025-12-04, macos-15-intel is the current Intel
+#     option as of April 2026; macos-latest -> macos-15 is arm64).
+#   - `target` is the Rust target triple. Must be installable via
+#     `rustup target add` on the chosen runner.
+#   - `use_cross: true` means cross-rs/cross is needed because the GitHub
+#     runner host architecture cannot natively build for `target`. Tests
+#     are skipped for these entries (we can't run aarch64 binaries on an
+#     x86_64 host without QEMU, which adds complexity we don't yet need).
+
+version: 1
+
+platforms:
+  - platform: darwin-arm64
+    os: macos-14
+    target: aarch64-apple-darwin
+    use_cross: false
+    run_tests: true
+
+  - platform: darwin-x64
+    # macos-13 was fully retired by GitHub on 2025-12-04. macos-15-intel
+    # is the supported Intel macOS runner as of April 2026 and is
+    # promised through Fall 2027 (Apple has discontinued x86_64 macOS
+    # support upstream). After that, darwin-x64 ships from a non-GH
+    # runner or stops shipping. See:
+    #   https://github.blog/changelog/2025-09-19-github-actions-macos-13-runner-image-is-closing-down/
+    os: macos-15-intel
+    target: x86_64-apple-darwin
+    use_cross: false
+    run_tests: true
+
+  - platform: linux-x64
+    os: ubuntu-latest
+    target: x86_64-unknown-linux-gnu
+    use_cross: false
+    run_tests: true
+
+  - platform: linux-arm64
+    # ubuntu-latest is x86_64; cross-rs/cross handles the aarch64
+    # toolchain + sysroot via Docker. Native arm64 ubuntu runners are a
+    # paid GH Actions feature; revisit if cost is justified.
+    os: ubuntu-latest
+    target: aarch64-unknown-linux-gnu
+    use_cross: true
+    # Skipped: we cannot exec aarch64 binaries on an x86_64 host without
+    # qemu-user-static + binfmt registration. cargo-cross supports it
+    # but adds 1-2 minutes per job; the dispatcher tests already run on
+    # linux-x64 + darwin-arm64, so the marginal coverage isn't worth it.
+    run_tests: false
+
+  - platform: windows-x64
+    os: windows-latest
+    target: x86_64-pc-windows-msvc
+    use_cross: false
+    run_tests: true

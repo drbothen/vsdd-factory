@@ -48,3 +48,31 @@ walks through that port for an existing v0.79.x hook.
 <!-- TODO(S-3.1, S-3.2, S-3.3): collected gotchas from the first three
      ports — anything subtle (e.g. Windows-path differences, env var
      scoping, exit-code mapping, async vs sync behavior). -->
+
+## Target platforms (S-2.3)
+
+A WASM hook that compiles for `wasm32-wasip1` runs unchanged on every
+platform the v1.0 dispatcher ships for. The dispatcher itself is built
+on the 5-platform CI matrix in `.github/workflows/ci.yml`; the canonical
+list of platforms is `ci/platforms.yaml`:
+
+| platform     | runner          | rust target                  | tests run? |
+| ------------ | --------------- | ---------------------------- | ---------- |
+| darwin-arm64 | macos-14        | aarch64-apple-darwin         | yes        |
+| darwin-x64   | macos-15-intel  | x86_64-apple-darwin          | yes        |
+| linux-x64    | ubuntu-latest   | x86_64-unknown-linux-gnu     | yes        |
+| linux-arm64  | ubuntu-latest   | aarch64-unknown-linux-gnu    | no (cross) |
+| windows-x64  | windows-latest  | x86_64-pc-windows-msvc       | yes        |
+
+As a hook author you ship one `*.wasm` per plugin and the dispatcher
+loads it on every platform. You do NOT need to think about per-platform
+target triples for your plugin code — the only target a hook plugin
+declares is `wasm32-wasip1`. The native targets above are what the host
+dispatcher is compiled for; they constrain which OS runs your plugin
+but never the plugin binary itself.
+
+The linux-arm64 entry uses cross-rs/cross because GitHub-hosted Linux
+runners are still x86_64; tests are skipped for that entry only because
+we cannot natively exec aarch64 binaries on the host. If your plugin
+relies on platform-specific dispatcher behavior (rare), test it on the
+linux-x64 + darwin-arm64 entries instead.
