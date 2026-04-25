@@ -13,9 +13,11 @@
 # Usage:
 #   scripts/bump-version.sh 0.71.0
 #   scripts/bump-version.sh 0.71.0 "Claude dashboard + CI parity check"
+#   scripts/bump-version.sh 1.0.0-beta.1 "Factory Plugin Kit beta"
 #
 # Args:
-#   1: semver version (required; must match N.N.N)
+#   1: semver version (required; matches N.N.N or N.N.N-prerelease per
+#      semver 2.0 §9, e.g., 1.0.0, 1.0.0-beta.1, 1.0.0-rc.2, 1.0.0-alpha)
 #   2: short release title (optional; used in CHANGELOG heading)
 #
 # Exits nonzero if:
@@ -40,14 +42,20 @@ CHANGELOG="$REPO_ROOT/CHANGELOG.md"
 if [ $# -lt 1 ]; then
   echo "usage: $0 <semver-version> [short-title]" >&2
   echo "  e.g.: $0 0.71.0 \"Claude dashboard + CI parity\"" >&2
+  echo "  e.g.: $0 1.0.0-beta.1 \"Factory Plugin Kit beta\"" >&2
   exit 1
 fi
 
 NEW_VERSION="$1"
 TITLE="${2:-}"
 
-if ! [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "error: version must match N.N.N (got: $NEW_VERSION)" >&2
+# Accept semver core (N.N.N) with an optional prerelease suffix (semver 2.0 §9).
+# Prerelease identifier set is dot-separated alphanumerics-and-hyphens, which
+# covers our `beta.N` / `rc.N` / `alpha` / `alpha.1.dev3` use cases. Build
+# metadata (`+...`) is intentionally not accepted — we don't use it and
+# allowing it would let drift into release tooling.
+if ! [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+  echo "error: version must match N.N.N or N.N.N-prerelease (got: $NEW_VERSION)" >&2
   exit 1
 fi
 

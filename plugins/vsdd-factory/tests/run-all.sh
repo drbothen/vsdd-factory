@@ -34,6 +34,10 @@ echo "== Bin tests =="
 bats tests/bin.bats
 
 echo
+echo "== bump-version.sh tests =="
+bats tests/bump-version.bats
+
+echo
 echo "== Skill structure tests =="
 bats tests/skills.bats
 
