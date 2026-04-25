@@ -8,3 +8,13 @@
 pub extern "C" fn on_hook() -> i32 {
     0
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn on_hook_returns_zero_in_stub() {
+        assert_eq!(on_hook(), 0);
+    }
+}
