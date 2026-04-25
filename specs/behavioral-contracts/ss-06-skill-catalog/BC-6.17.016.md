@@ -1,0 +1,129 @@
+---
+document_type: behavioral-contract
+level: L3
+version: "1.1"
+status: draft
+producer: "codebase-analyzer"
+timestamp: 2026-04-25T00:00:00
+phase: 1.4b
+inputs:
+  - .factory/phase-0-ingestion/pass-3-deep-skills-batch-2.md
+  - .factory/specs/behavioral-contracts/bc-id-mapping.md
+input-hash: TBD
+traces_to: domain-spec/L2-INDEX.md
+origin: brownfield
+extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-2.md"
+subsystem: "SS-06"
+capability: "CAP-TBD"
+lifecycle_status: active
+introduced: v1.0.0
+modified: []
+deprecated: null
+deprecated_by: null
+replacement: null
+retired: null
+removed: null
+removal_reason: null
+audit_source_id: "BC-AUDIT-543"
+ss_section: "Feature-mode phase skills (f1-f7)"
+skill: "phase-f3-incremental-stories"
+---
+
+# Behavioral Contract BC-6.17.016: phase-f3-incremental-stories: Story IDs continue existing sequence; per-file STORY-NNN.md, not monolithic
+
+## Description
+
+Story-writer continues ID sequence (if last is STORY-005, new start STORY-006). Each story is a separate per-file STORY-NNN.md (not monolithic). Each story references new/modified BCs (BC-S.SS.NNN), VPs (VP-NNN), testable AC, module criticality, implementation strategy (tdd or gene-transfusion). Acceptance: Five required references per story; per-file storage.
+
+## Preconditions
+
+1. Story creation step.
+
+## Postconditions
+
+1. Story-writer continues ID sequence (if last is STORY-005, new start STORY-006). Each story is a separate per-file STORY-NNN.md (not monolithic). Each story references new/modified BCs (BC-S.SS.NNN), VPs (VP-NNN), testable AC, module criticality, implementation strategy (tdd or gene-transfusion).
+
+## Invariants
+
+1. Five required references per story; per-file storage.
+
+## Edge Cases
+
+| ID | Description | Expected Behavior |
+|----|-------------|-------------------|
+| EC-001 | TBD | TBD |
+
+## Canonical Test Vectors
+
+| Input | Expected Output | Category |
+|-------|----------------|----------|
+| TBD | TBD | happy-path |
+| TBD | TBD | edge-case |
+| TBD | TBD | error |
+
+## Verification Properties
+
+| VP-NNN | Property | Proof Method |
+|--------|----------|-------------|
+| VP-001 | TBD | manual |
+
+## Traceability
+
+| Field | Value |
+|-------|-------|
+| L2 Capability | CAP-TBD |
+| L2 Domain Invariants | TBD |
+| Architecture Module | phase-f3-incremental-stories |
+| Stories | TBD |
+
+## Related BCs (Recommended)
+
+- TBD
+
+## Architecture Anchors (Recommended)
+
+- `architecture/ss-06-skill-catalog.md` — Feature-mode phase skills (f1-f7)
+
+## Story Anchor (Recommended)
+
+TBD
+
+## VP Anchors (Recommended)
+
+- TBD
+
+---
+
+### Brownfield-Specific Sections
+
+#### Source Evidence
+
+| Property | Value |
+|----------|-------|
+| **Path** | `plugins/vsdd-factory/skills/phase-f3-incremental-stories/SKILL.md` |
+| **Confidence** | high |
+| **Extraction Date** | 2026-04-25 |
+| **Audit Source ID** | BC-AUDIT-543 |
+| **Source Line(s)** | 30-46 (Step 2), 134-136 (Quality Gate) |
+| **Source File** | `.factory/phase-0-ingestion/pass-3-deep-skills-batch-2.md` |
+
+#### Evidence Types Used
+
+- **documentation**: extracted from SKILL.md frontmatter and Quality Gate sections
+
+#### Purity Classification
+
+| Property | Assessment |
+|----------|-----------|
+| **I/O operations** | reads + writes (skill orchestrates filesystem and agent dispatch) |
+| **Global state access** | reads global (STATE.md, .factory/ tree) |
+| **Deterministic** | no -- depends on agent execution and human approval |
+| **Thread safety** | not thread-safe |
+| **Overall classification** | effectful shell |
+
+#### Refactoring Notes
+
+This BC describes a skill-level workflow contract. The acceptance criteria
+encode the Quality Gate checks performed by the skill; these can be lifted
+into automated assertions where the skill's underlying procedure is
+deterministic. Adversarial and human-gated steps are explicitly opaque.

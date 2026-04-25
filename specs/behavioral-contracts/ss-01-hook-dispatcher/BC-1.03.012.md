@@ -1,0 +1,103 @@
+---
+document_type: behavioral-contract
+level: L3
+version: "1.0"
+status: draft
+producer: codebase-analyzer
+timestamp: 2026-04-25T00:00:00
+phase: 1.4b
+inputs: [bc-id-mapping.md, pass-3-deep-rust-tests.md]
+input-hash: "[pending-recompute]"
+traces_to: bc-id-mapping.md
+origin: brownfield
+extracted_from: ".factory/phase-0-ingestion/pass-3-deep-rust-tests.md:486"
+subsystem: "SS-01"
+capability: "CAP-TBD"
+lifecycle_status: active
+introduced: v1.0.0-beta.4
+modified: []
+deprecated: null
+deprecated_by: null
+replacement: null
+retired: null
+removed: null
+removal_reason: null
+---
+
+# Behavioral Contract BC-1.03.012: factory-dispatcher::executor (integration)::parallel_happy_path_five_plugins_one_tier — 5 plugins at same priority all return Ok and exit_code=0
+
+## Description
+
+Integration test: 5 minimal WASI plugins compiled to a tempdir, all `priority=100`, all enabled. `execute_tiers(inputs, tiers)` runs them all in one tier; `summary.per_plugin_results.len() == 5`, `exit_code == 0`, `block_intent == false`, every result is `PluginResult::Ok`.
+
+## Preconditions
+
+1. 5 normal-WASI plugins built and listed in a single-tier registry.
+2. Real wasmtime engine is in scope.
+
+## Postconditions
+
+1. `summary.per_plugin_results.len() == 5`.
+2. `summary.exit_code == 0`.
+3. `summary.block_intent == false`.
+4. Every per-plugin result is `PluginResult::Ok`.
+
+## Invariants
+
+1. Same-tier plugins all execute and report results without interfering.
+
+## Edge Cases
+
+| ID | Description | Expected Behavior |
+|----|-------------|-------------------|
+| EC-001 | (No edge cases captured in Phase 0 extraction; to be added in Phase 1.5/test-writer pass) | TBD |
+
+## Canonical Test Vectors
+
+| Input | Expected Output | Category |
+|-------|----------------|----------|
+| 5 plugins at priority 100, all normal | All return Ok, exit_code=0, block_intent=false | happy-path |
+| TBD | TBD | edge-case |
+| TBD | TBD | error |
+
+## Verification Properties
+
+| VP-NNN | Property | Proof Method |
+|--------|----------|-------------|
+| (TBD — to be assigned in Phase 1.6b) | | |
+
+## Traceability
+
+| Field | Value |
+|-------|-------|
+| L2 Capability | TBD (anchor in Phase 1.5) |
+| L2 Domain Invariants | TBD |
+| Architecture Module | SS-01 — `crates/factory-dispatcher/tests/executor_integration.rs` |
+| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+
+### Source Evidence
+
+| Property | Value |
+|----------|-------|
+| **Path** | `crates/factory-dispatcher/tests/executor_integration.rs::parallel_happy_path_five_plugins_one_tier` (lines 91–118) |
+| **Confidence** | HIGH (integration test with real wasmtime) |
+| **Extraction Date** | 2026-04-25 |
+| **Extracted from** | `.factory/phase-0-ingestion/pass-3-deep-rust-tests.md` line `486` |
+
+#### Evidence Types Used
+
+- assertion (integration test)
+
+#### Purity Classification
+
+| Property | Assessment |
+|----------|-----------|
+| **I/O operations** | TBD (Phase 1.6b will refine) |
+| **Global state access** | TBD |
+| **Deterministic** | TBD |
+| **Thread safety** | TBD |
+| **Overall classification** | TBD |
+
+#### Refactoring Notes
+
+(TBD — to be assessed in Phase 1.6b verification properties pass)
