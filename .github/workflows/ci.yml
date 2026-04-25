@@ -113,6 +113,17 @@ jobs:
       - name: cargo test (workspace, all targets)
         run: cargo test --workspace --all-targets
 
+      - name: cargo publish --dry-run (hook-sdk crates) (S-2.5)
+        # Catches publishability regressions every push: missing
+        # README, missing license metadata, broken sibling version
+        # pin, etc. We use `--workspace` because the parent crate
+        # depends on its sibling via path+version, and cargo's
+        # single-crate dry-run cannot resolve the sibling until it's
+        # actually on crates.io. The workspace mode stages both into
+        # a tmp registry and verifies them together. CI is always
+        # clean so we omit `--allow-dirty`.
+        run: cargo publish --dry-run --workspace -p vsdd-hook-sdk-macros -p vsdd-hook-sdk
+
       - name: cargo build (wasm32-wasip1 plugin)
         run: cargo build -p capture-commit-activity --target wasm32-wasip1
 
