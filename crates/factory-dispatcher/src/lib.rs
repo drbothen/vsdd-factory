@@ -7,12 +7,16 @@
 //! decisions. Execution (wasmtime instantiation, tokio scheduling,
 //! fuel enforcement) is filled in by S-1.4–S-1.6.
 
+pub mod engine;
 pub mod host;
 pub mod internal_log;
+pub mod invoke;
 pub mod payload;
+pub mod plugin_loader;
 pub mod registry;
 pub mod routing;
 
+pub use engine::{EPOCH_TICK_MS, EngineError, EpochTicker, build_engine};
 pub use host::{HostCallError, HostContext, setup_linker};
 pub use internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_SHUTTING_DOWN, DISPATCHER_STARTED,
@@ -21,7 +25,9 @@ pub use internal_log::{
     INTERNAL_SINK_ERROR, INTERNAL_SINK_QUEUE_FULL, InternalEvent, InternalLog, PLUGIN_COMPLETED,
     PLUGIN_CRASHED, PLUGIN_INVOKED, PLUGIN_LOAD_FAILED, PLUGIN_LOADED, PLUGIN_TIMEOUT,
 };
+pub use invoke::{InvokeError, InvokeLimits, PluginResult, StoreData, TimeoutCause, invoke_plugin};
 pub use payload::{HookPayload, PayloadError};
+pub use plugin_loader::{PluginCache, PluginLoadError};
 pub use registry::{
     Capabilities, ExecSubprocessCaps, OnError, ReadFileCaps, Registry, RegistryDefaults,
     RegistryEntry, RegistryError,

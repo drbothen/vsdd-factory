@@ -27,7 +27,9 @@ uuid.workspace = true
 regex.workspace = true
 chrono.workspace = true
 wasmtime.workspace = true
+wasmtime-wasi.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
 filetime.workspace = true
+wat.workspace = true

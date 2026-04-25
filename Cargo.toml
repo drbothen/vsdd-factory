@@ -35,6 +35,7 @@ regex = "1"
 tempfile = "3"
 chrono = { version = "0.4", features = ["serde"] }
 filetime = "0.2"
+wat = "1"
 
 [profile.release]
 opt-level = 3
