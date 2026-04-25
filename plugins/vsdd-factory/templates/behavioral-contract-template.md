@@ -28,8 +28,15 @@ removal_reason: null             # why removed
 # Behavioral Contract BC-S.SS.NNN: [Title]
 
 > **One-per-file:** Each behavioral contract lives in its own file.
-> Filename convention: `BC-S.SS.NNN.md` (e.g., `BC-2.3.045.md`)
-> Numbering: BC-S.SS.NNN where S = PRD section, SS = subsection (L2 subsystem), NNN = sequential.
+> Filename: `BC-S.SS.NNN.md` (e.g., `BC-2.03.045.md`)
+> Path: `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md`
+> BCs are sharded into per-subsystem directories. The shard directory name is
+> the bare `SS-NN` identifier in lowercase (e.g., `ss-01/`, `ss-02/`) — NOT
+> the descriptive subsystem name. Subsystem descriptive names live
+> authoritatively in ARCH-INDEX Subsystem Registry and in the
+> `architecture/SS-NN-<name>.md` section files.
+> Numbering: BC-S.SS.NNN where S = PRD section, SS = subsection (L2 subsystem,
+> matches the shard `ss-NN` directory), NNN = sequential.
 
 ## Description
 
@@ -85,7 +92,7 @@ when scanning BC-INDEX or reviewing anchor justifications.]
 | L2 Capability | CAP-NNN |
 | L2 Domain Invariants | DI-NNN (if applicable) |
 | Architecture Module | [module name] (filled by architect) |
-| Stories | STORY-NNN (filled by story-writer) |
+| Stories | S-N.MM (filled by story-writer) |
 
 ## Related BCs (Recommended)
 
@@ -103,7 +110,7 @@ when scanning BC-INDEX or reviewing anchor justifications.]
 
 <!-- v1.1: Added for direct link to implementing story. -->
 
-[STORY-NNN] — [short story title]
+[S-N.MM] — [short story title]
 
 ## VP Anchors (Recommended)
 

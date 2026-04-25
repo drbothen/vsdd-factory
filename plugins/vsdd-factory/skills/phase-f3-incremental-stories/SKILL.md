@@ -30,9 +30,9 @@ Read all existing story specs from `.factory/stories/`:
 ### Step 2: Decompose Feature into Stories
 
 Spawn `story-writer` agent to:
-- Break the PRD delta into implementable per-file stories (STORY-NNN.md)
+- Break the PRD delta into implementable per-file stories (`S-N.MM-<short>.md`)
 - Each story covers one logical unit of work
-- Continue the story ID sequence (if last is STORY-005, new ones start at STORY-006)
+- Continue the story ID sequence within the appropriate section (if the last story in section N is `S-N.05`, new ones start at `S-N.06`; new sections begin at `S-N.01`)
 - Each story must reference:
   - The new/modified behavioral contracts (BC-S.SS.NNN format, DF-020)
   - The verification properties it must uphold (VP-NNN)
@@ -41,7 +41,7 @@ Spawn `story-writer` agent to:
   - Implementation strategy: tdd or gene-transfusion
 
 Use `templates/story-template.md` for each story.
-Write each story as a separate per-file STORY-NNN.md (not monolithic).
+Write each story as a separate per-file `S-N.MM-<short>.md` (not monolithic).
 
 ### Step 3: Dependency Graph Extension
 

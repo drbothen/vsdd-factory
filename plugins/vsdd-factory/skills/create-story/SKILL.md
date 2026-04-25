@@ -1,7 +1,7 @@
 ---
 name: create-story
 description: Create or refine a single story spec with full acceptance criteria, tasks, and implementation details. Takes a story ID and produces a sprint-ready story file.
-argument-hint: "[STORY-NNN]"
+argument-hint: "[S-N.MM]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
@@ -17,15 +17,15 @@ Flesh out a single story into a sprint-ready specification.
 ## Templates
 
 Read and follow the output format in:
-- `${CLAUDE_PLUGIN_ROOT}/templates/story-template.md` — STORY-NNN format
+- `${CLAUDE_PLUGIN_ROOT}/templates/story-template.md` — S-N.MM format
 
 ## Input
 
-`$ARGUMENTS` — story ID (e.g., `STORY-001`)
+`$ARGUMENTS` — story ID (e.g., `S-1.01`)
 
 ## Prerequisites
 
-- Story file should exist in `.factory/stories/STORY-NNN.md` (at least a stub from decomposition)
+- Story file should exist in `.factory/stories/S-N.MM-<short>.md` (at least a stub from decomposition)
 - PRD and architecture docs available for reference
 
 ## Process
@@ -88,14 +88,14 @@ These patterns invalidate a story. If you catch any, fix before proceeding:
 - "TBD", "TODO", or "implement later" in any section
 - "Add appropriate error handling" without specifying which errors
 - "Write tests for the above" without actual test descriptions
-- "Similar to STORY-NNN" without repeating the relevant details
+- "Similar to S-N.MM" without repeating the relevant details
 - Acceptance criteria without testable assertions
 - File list that says "and other files as needed"
 - Tasks that describe what to do without specifying how
 
 ## Output
 
-Updated `.factory/stories/STORY-NNN.md` with full specification.
+Updated `.factory/stories/S-N.MM-<short>.md` with full specification.
 
 ## Lessons Learned (apply to ALL projects)
 
@@ -126,4 +126,4 @@ Fix issues inline. This is a cheap filter — catch obvious gaps before delivery
 
 1. Commit to factory-artifacts.
 2. Update STORY-INDEX.md status to `ready`.
-3. Tell the user: "Story STORY-NNN is sprint-ready. Use `/deliver-story STORY-NNN` to start implementation."
+3. Tell the user: "Story S-N.MM is sprint-ready. Use `/deliver-story S-N.MM` to start implementation."

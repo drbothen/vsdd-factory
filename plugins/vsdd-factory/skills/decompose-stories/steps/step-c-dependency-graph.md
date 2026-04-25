@@ -11,7 +11,7 @@ Analyze story dependencies to determine execution order.
 
 ## Procedure
 
-1. Read all `STORY-NNN.md` files
+1. Read all `S-N.MM-<short>.md` story files
 2. For each story, identify which other stories must complete first
 3. Identify stories that are independent (can run in parallel)
 4. Write the dependency graph:
@@ -20,14 +20,14 @@ Analyze story dependencies to determine execution order.
 # Story Dependency Graph
 
 ## Dependencies
-STORY-002 → STORY-001  (002 depends on 001)
-STORY-003 → STORY-001
-STORY-004 → STORY-002, STORY-003
+S-1.02 → S-1.01  (S-1.02 depends on S-1.01)
+S-1.03 → S-1.01
+S-1.04 → S-1.02, S-1.03
 
 ## Independent Groups
-[STORY-001]           # Wave 1
-[STORY-002, STORY-003] # Wave 2 (both depend on 001)
-[STORY-004]           # Wave 3
+[S-1.01]              # Wave 1
+[S-1.02, S-1.03]      # Wave 2 (both depend on S-1.01)
+[S-1.04]              # Wave 3
 ```
 
 ## Artifacts
