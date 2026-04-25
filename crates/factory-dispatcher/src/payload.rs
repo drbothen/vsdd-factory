@@ -11,6 +11,16 @@ use thiserror::Error;
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct HookPayload {
     /// Claude Code event name — e.g. `"PreToolUse"`, `"SessionEnd"`.
+    ///
+    /// Claude Code's official hooks documentation uses
+    /// `hook_event_name` for this field; `serde(alias)` makes the
+    /// dispatcher accept either spelling so envelopes from the real
+    /// harness parse cleanly. The canonical name remains `event_name`
+    /// (matches `vsdd_hook_sdk::HookPayload`); the alias is for
+    /// dispatcher-input only. Caught when v1.0.0-beta.1 dogfood
+    /// surfaced "missing field `event_name`" errors on every real
+    /// hook invocation.
+    #[serde(alias = "hook_event_name")]
     pub event_name: String,
 
     /// Tool being invoked, when the event is tool-scoped. Empty string
@@ -145,5 +155,23 @@ mod tests {
     fn rejects_malformed_json() {
         let err = HookPayload::from_bytes(b"not json").unwrap_err();
         assert!(matches!(err, PayloadError::Json(_)));
+    }
+
+    #[test]
+    fn accepts_hook_event_name_alias_from_real_harness() {
+        // Claude Code's documented field name is `hook_event_name`, not
+        // `event_name`. The alias on HookPayload.event_name lets the
+        // dispatcher parse envelopes from the real harness without
+        // manual translation. v1.0.0-beta.1 dogfood regression guard.
+        let json = br#"{
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Bash",
+            "session_id": "real-harness-session",
+            "tool_input": {"command": "git commit"},
+            "tool_response": {"exit_code": 0}
+        }"#;
+        let p = HookPayload::from_bytes(json).unwrap();
+        assert_eq!(p.event_name, "PostToolUse");
+        assert_eq!(p.session_id, "real-harness-session");
     }
 }
