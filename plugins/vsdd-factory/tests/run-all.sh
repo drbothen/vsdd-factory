@@ -42,7 +42,7 @@ echo "== generate-hooks-json.sh tests =="
 bats tests/generate-hooks-json.bats
 
 echo
-echo "== activate skill tests =="
+echo "== activate + apply-platform skill tests =="
 bats tests/activate.bats
 
 echo

@@ -39,7 +39,13 @@ Per-project opt-in. Enabling the plugin alone does not change your default Claud
 
    Preserve all other top-level keys.
 
-6. **(v1.0+) Copy the per-platform hooks.json variant into place.** Implementation lands in S-2.6; the contract is that this step copies `${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json.<activated_platform>` to `${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json`. Until S-2.6, this step is skipped — v0.79.x's hooks.json continues to ship as committed.
+6. **Apply the per-platform variant + verify the dispatcher binary.** Run `${CLAUDE_PLUGIN_ROOT}/skills/activate/apply-platform.sh <platform>`. This:
+   - Copies `${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json.<platform>` to `${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json` (the canonical file is gitignored per S-0.4 — it's per-machine).
+   - Verifies the dispatcher binary at `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/<platform>/factory-dispatcher[.exe]` is present and executable.
+
+   Exit codes: `0` success; `1` variant missing (corrupted install); `2` binary missing (release didn't commit it for this platform yet); `3` binary not executable; `4` usage error. Surface the helper's stderr to the user verbatim — it includes restoration instructions for the binary-missing case (pin to 0.79.4 or build locally) which the user needs to act on.
+
+   Until S-2.4 wires the binary commit into the release workflow, exit `2` is the expected outcome on a fresh install. That's the current state of v1.0-beta development; do not silently ignore it — the warning surfaces it for the operator.
 
 7. **Confirm activation.** Print:
    - File written
@@ -68,4 +74,5 @@ If the user invokes the skill with `--dry-run` (or asks for a preview), perform 
 - `/vsdd-factory:scaffold-claude-md` — generate a project-specific CLAUDE.md
 - Orchestrator agent: `${CLAUDE_PLUGIN_ROOT}/agents/orchestrator/orchestrator.md`
 - Detection helper: `${CLAUDE_PLUGIN_ROOT}/skills/activate/detect-platform.sh`
+- Apply helper: `${CLAUDE_PLUGIN_ROOT}/skills/activate/apply-platform.sh`
 - v1.0 design context: `.factory/specs/2026-04-24-v1.0-factory-plugin-kit-design.md`

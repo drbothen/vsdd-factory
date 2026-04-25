@@ -82,16 +82,29 @@ Verifies that the `.factory/` git worktree exists and is properly mounted on the
 Verifies your toolchain: git configuration, language-specific tools, MCP server
 availability, and shell tool versions. Reports what is missing for your project's language.
 
-### 3. Activate the orchestrator
+### 3. Activate (required as of v1.0)
 
 ```
 /vsdd-factory:activate
 ```
 
-Sets the VSDD orchestrator as your default agent for this project. The orchestrator drives
-the pipeline — it reads workflow data, dispatches specialist agents, and enforces quality
-gates. Without activation, you can still use individual skills manually, but the
-orchestrator won't coordinate them.
+**Activation is required after install in v1.0+** — it does two things in one step:
+
+1. **Sets the VSDD orchestrator as your default agent** for this project. The orchestrator
+   drives the pipeline — it reads workflow data, dispatches specialist agents, and enforces
+   quality gates.
+
+2. **Wires the v1.0 dispatcher binary for your platform.** v1.0 ships a single dispatcher
+   binary per platform (`darwin-arm64`, `darwin-x64`, `linux-x64`, `linux-arm64`,
+   `windows-x64`) plus a `hooks.json.<platform>` variant for each. Activation detects your
+   host with `uname`, copies the matching variant to `hooks.json`, and verifies the
+   dispatcher binary is present and executable. If anything is missing, the skill stops
+   with a clear restoration message — it never leaves the workspace half-activated.
+
+In v0.79.x this step was optional (only the orchestrator agent default). In v1.0+ skipping
+it means hook events do not fire because the dispatcher binary is never wired into
+`hooks.json`. Run it once after install, and again if you move the factory to a different
+host (the skill detects platform drift and walks you through the swap).
 
 Activation writes to `.claude/settings.local.json` (per-project, gitignored). Teammates
 activate individually. To deactivate: `/vsdd-factory:deactivate`.

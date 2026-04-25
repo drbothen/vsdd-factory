@@ -10,6 +10,38 @@
 
 setup() {
   HELPER="${BATS_TEST_DIRNAME}/../skills/activate/detect-platform.sh"
+  APPLY="${BATS_TEST_DIRNAME}/../skills/activate/apply-platform.sh"
+}
+
+# Build a synthetic plugin root with the hooks.json variants in place
+# so apply-platform tests don't depend on the real plugin layout.
+_make_synthetic_root() {
+  local root
+  root="$(mktemp -d)"
+  mkdir -p "$root/hooks"
+  mkdir -p "$root/hooks/dispatcher/bin/darwin-arm64"
+  mkdir -p "$root/hooks/dispatcher/bin/darwin-x64"
+  mkdir -p "$root/hooks/dispatcher/bin/linux-x64"
+  mkdir -p "$root/hooks/dispatcher/bin/linux-arm64"
+  mkdir -p "$root/hooks/dispatcher/bin/windows-x64"
+  for p in darwin-arm64 darwin-x64 linux-x64 linux-arm64 windows-x64; do
+    cat > "$root/hooks/hooks.json.$p" <<JSON
+{ "hooks": { "platform": "$p" } }
+JSON
+  done
+  echo "$root"
+}
+
+# Drop a real (executable) dispatcher placeholder into the synthetic
+# root so the binary-existence + executable checks pass.
+_install_fake_binary() {
+  local root="$1" platform="$2"
+  local suffix=""
+  [ "$platform" = "windows-x64" ] && suffix=".exe"
+  local target="$root/hooks/dispatcher/bin/$platform/factory-dispatcher$suffix"
+  echo '#!/bin/sh' > "$target"
+  echo 'exit 0' >> "$target"
+  chmod +x "$target"
 }
 
 # Run helper with mocked uname output. Returns the stdout JSON in $output.
@@ -142,4 +174,123 @@ _detect() {
     darwin-arm64|darwin-x64|linux-x64|linux-arm64|windows-x64) : ;;
     *) echo "unexpected platform: $p" >&2; false ;;
   esac
+}
+
+# ---------- apply-platform structural ----------
+
+@test "apply-platform: file is executable" {
+  [ -x "$APPLY" ]
+}
+
+@test "apply-platform: passes bash syntax check" {
+  bash -n "$APPLY"
+}
+
+@test "apply-platform: --help prints usage" {
+  run "$APPLY" --help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"copy hooks.json.<platform> into place"* ]]
+}
+
+@test "apply-platform: rejects unknown platform" {
+  run "$APPLY" freebsd-x64
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"unsupported platform"* ]]
+}
+
+@test "apply-platform: rejects missing argument" {
+  run "$APPLY"
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"usage:"* ]]
+}
+
+# ---------- apply-platform success path ----------
+
+@test "apply-platform: applies darwin-arm64 with binary present" {
+  root=$(_make_synthetic_root)
+  _install_fake_binary "$root" darwin-arm64
+  run env VSDD_PLUGIN_ROOT_OVERRIDE="$root" "$APPLY" darwin-arm64
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"applied darwin-arm64"* ]]
+  # hooks.json materialized
+  [ -f "$root/hooks/hooks.json" ]
+  grep -q '"platform": "darwin-arm64"' "$root/hooks/hooks.json"
+  rm -rf "$root"
+}
+
+@test "apply-platform: applies windows-x64 with .exe binary" {
+  root=$(_make_synthetic_root)
+  _install_fake_binary "$root" windows-x64
+  run env VSDD_PLUGIN_ROOT_OVERRIDE="$root" "$APPLY" windows-x64
+  [ "$status" -eq 0 ]
+  [ -f "$root/hooks/hooks.json" ]
+  grep -q '"platform": "windows-x64"' "$root/hooks/hooks.json"
+  rm -rf "$root"
+}
+
+# ---------- apply-platform failure paths ----------
+
+@test "apply-platform: missing variant returns code 1 with diagnostic" {
+  root=$(mktemp -d)
+  mkdir -p "$root/hooks/dispatcher/bin/linux-x64"
+  _install_fake_binary "$root" linux-x64
+  run env VSDD_PLUGIN_ROOT_OVERRIDE="$root" "$APPLY" linux-x64
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"missing variant"* ]]
+  rm -rf "$root"
+}
+
+@test "apply-platform: missing binary returns code 2 with restoration hints" {
+  root=$(_make_synthetic_root)
+  # No binary installed.
+  run env VSDD_PLUGIN_ROOT_OVERRIDE="$root" "$APPLY" linux-x64
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"dispatcher binary missing"* ]]
+  [[ "$output" == *"v0.79.4"* ]]
+  [[ "$output" == *"Build the dispatcher locally"* ]]
+  # hooks.json must NOT have been written — fail early, fail clean.
+  [ ! -f "$root/hooks/hooks.json" ]
+  rm -rf "$root"
+}
+
+@test "apply-platform: non-executable binary returns code 3" {
+  root=$(_make_synthetic_root)
+  local target="$root/hooks/dispatcher/bin/linux-x64/factory-dispatcher"
+  echo '#!/bin/sh' > "$target"
+  echo 'exit 0' >> "$target"
+  chmod -x "$target"
+  run env VSDD_PLUGIN_ROOT_OVERRIDE="$root" "$APPLY" linux-x64
+  [ "$status" -eq 3 ]
+  [[ "$output" == *"not executable"* ]]
+  rm -rf "$root"
+}
+
+# ---------- apply-platform --check (verify-only) ----------
+
+@test "apply-platform --check: success does NOT write hooks.json" {
+  root=$(_make_synthetic_root)
+  _install_fake_binary "$root" linux-x64
+  run env VSDD_PLUGIN_ROOT_OVERRIDE="$root" "$APPLY" --check linux-x64
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"variant + binary present"* ]]
+  [ ! -f "$root/hooks/hooks.json" ]
+  rm -rf "$root"
+}
+
+@test "apply-platform --check: missing binary still returns code 2" {
+  root=$(_make_synthetic_root)
+  run env VSDD_PLUGIN_ROOT_OVERRIDE="$root" "$APPLY" --check linux-x64
+  [ "$status" -eq 2 ]
+}
+
+# ---------- regression: cross-platform combinations ----------
+
+@test "apply-platform: every canonical platform applies cleanly" {
+  for p in darwin-arm64 darwin-x64 linux-x64 linux-arm64 windows-x64; do
+    root=$(_make_synthetic_root)
+    _install_fake_binary "$root" "$p"
+    run env VSDD_PLUGIN_ROOT_OVERRIDE="$root" "$APPLY" "$p"
+    [ "$status" -eq 0 ] || { echo "FAIL on $p: $output" >&2; rm -rf "$root"; false; }
+    rm -rf "$root"
+  done
 }
