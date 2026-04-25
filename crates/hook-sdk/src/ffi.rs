@@ -40,8 +40,8 @@ unsafe extern "C" {
         stdin_len: u32,
         timeout_ms: u32,
         max_output_bytes: u32,
-        result_ptr_out: *mut u32,
-        result_len_out: *mut u32,
+        result_buf_ptr: *mut u8,
+        result_buf_cap: u32,
     ) -> i32;
 
     pub safe fn session_id(out_ptr: *mut u8, out_cap: u32) -> u32;
@@ -92,8 +92,8 @@ pub mod host_stubs {
         _stdin_len: u32,
         _timeout_ms: u32,
         _max_output_bytes: u32,
-        _result_ptr_out: *mut u32,
-        _result_len_out: *mut u32,
+        _result_buf_ptr: *mut u8,
+        _result_buf_cap: u32,
     ) -> i32 {
         -1
     }

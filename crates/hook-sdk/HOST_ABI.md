@@ -132,7 +132,7 @@ the bytes and surfaces them to the plugin.
 `max_bytes` and `timeout_ms` are mandatory. Return: `0` on success or a
 negative error code.
 
-### `exec_subprocess(cmd_ptr, cmd_len, args_ptr, args_len, stdin_ptr, stdin_len, timeout_ms, max_output_bytes, result_ptr_out, result_len_out) -> i32`
+### `exec_subprocess(cmd_ptr, cmd_len, args_ptr, args_len, stdin_ptr, stdin_len, timeout_ms, max_output_bytes, result_buf_ptr, result_buf_cap) -> i32`
 
 Run a subprocess against the dispatcher's binary allow-list. `cmd` is the
 basename or absolute path; `args` is a length-prefixed sequence of
@@ -144,14 +144,27 @@ subprocess's stdin. Pass `(_, 0)` for no stdin (the host wires
 uses this to forward the Claude Code hook envelope unchanged to bash
 hooks.
 
-The host writes a result envelope at `(result_ptr_out, result_len_out)`:
+`(result_buf_ptr, result_buf_cap)` points to a guest-pre-allocated
+buffer. The host writes the result envelope into it:
 
 ```
 [ exit_code: i32 LE | stdout_len: u32 LE | stdout: u8 × stdout_len | stderr_len: u32 LE | stderr: u8 × stderr_len ]
 ```
 
-Return: `0` on success or a negative error code. `timeout_ms` and
-`max_output_bytes` are mandatory; truncated output returns `-3`.
+Callers should size the buffer at `max_output_bytes + 16` (12 bytes of
+length headers + 4 bytes slack). The SDK wrapper does this automatically.
+
+Return:
+
+- `> 0` — number of bytes written to the result buffer (the SDK reads
+  exactly that many bytes and decodes the envelope).
+- `0` — never returned in practice; the envelope always carries at
+  least the exit-code header.
+- `< 0` — error code: `-1` capability denied, `-2` timeout, `-3` output
+  larger than `max_output_bytes` (or buffer too small), `-4` invalid
+  argument.
+
+`timeout_ms` and `max_output_bytes` are mandatory.
 
 ### `session_id(out_ptr, out_cap) -> u32`
 ### `dispatcher_trace_id(out_ptr, out_cap) -> u32`

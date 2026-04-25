@@ -129,6 +129,16 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     );
     base_host_ctx.internal_log = Some(internal_log.clone());
     base_host_ctx.cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    base_host_ctx.plugin_root = std::env::var(ENV_PLUGIN_ROOT)
+        .map(PathBuf::from)
+        .unwrap_or_default();
+    // Project the dispatcher's whole process env into the host context's
+    // env_view. The host's exec_subprocess + env host functions look up
+    // names against ctx.env_view (not std::env::var) so per-plugin env
+    // allow-lists can be enforced without a syscall per call. The
+    // capability gate is the registry's `env_allow` field, applied at
+    // call time inside the host fn — env_view is the source pool.
+    base_host_ctx.env_view = std::env::vars().collect();
 
     // The dispatcher's `HookPayload` is the Claude-Code-facing shape;
     // the plugin-facing shape (mirrored in `vsdd_hook_sdk::HookPayload`)

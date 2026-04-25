@@ -24,7 +24,7 @@ use std::time::{Duration, Instant};
 use serde_json::{Map, Value};
 use wasmtime::Linker;
 
-use super::memory::{read_wasm_bytes, read_wasm_string, write_wasm_bytes, write_wasm_u32};
+use super::memory::{read_wasm_bytes, read_wasm_string, write_wasm_bytes};
 use super::{HostCallError, HostCaller, HostContext, codes};
 use crate::registry::ExecSubprocessCaps;
 
@@ -44,8 +44,8 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
              stdin_len: u32,
              timeout_ms: u32,
              max_output_bytes: u32,
-             result_ptr_out: u32,
-             result_len_out: u32|
+             result_buf_ptr: u32,
+             result_buf_cap: u32|
              -> i32 {
                 let cmd = match read_wasm_string(&mut caller, cmd_ptr, cmd_len) {
                     Ok(s) => s,
@@ -78,14 +78,16 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
                     Err(code) => return code,
                 };
 
-                if write_wasm_u32(&mut caller, result_ptr_out, 0).is_err() {
-                    return codes::INVALID_ARGUMENT;
+                // Result protocol: write the envelope into the
+                // guest-provided buffer at (result_buf_ptr, result_buf_cap).
+                // Return the number of bytes written. The previous design
+                // wrote at offset 0 — guest reserved space — and clobbered
+                // wasm runtime state.
+                if envelope.len() as u32 > result_buf_cap {
+                    return codes::OUTPUT_TOO_LARGE;
                 }
-                if write_wasm_u32(&mut caller, result_len_out, envelope.len() as u32).is_err() {
-                    return codes::INVALID_ARGUMENT;
-                }
-                match write_wasm_bytes(&mut caller, 0, envelope.len() as u32, &envelope) {
-                    Ok(_) => codes::OK,
+                match write_wasm_bytes(&mut caller, result_buf_ptr, result_buf_cap, &envelope) {
+                    Ok(written) => written as i32,
                     Err(_) => codes::INVALID_ARGUMENT,
                 }
             },

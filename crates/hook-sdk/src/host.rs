@@ -215,6 +215,14 @@ pub struct SubprocessResult {
 /// Spawn a subprocess against the dispatcher's binary allow-list.
 /// `timeout_ms` and `max_output_bytes` are mandatory. Pass `&[]` for
 /// `stdin` if the subprocess should receive no input (the common case).
+///
+/// Result protocol: the SDK allocates a buffer of
+/// `max_output_bytes + RESULT_ENVELOPE_OVERHEAD`, hands the host a
+/// `(ptr, cap)` pair, and the host writes the result envelope there.
+/// The host's return value is the number of bytes written (positive)
+/// or a negative error code. We avoid the previous "host writes at
+/// offset 0" pattern because offset 0 is reserved guest memory and
+/// writing there clobbers wasm runtime state.
 pub fn exec_subprocess(
     cmd: &str,
     args: &[&str],
@@ -224,9 +232,11 @@ pub fn exec_subprocess(
 ) -> Result<SubprocessResult, HostError> {
     let cmd_bytes = cmd.as_bytes();
     let args_buf = encode_args(args);
-    let mut result_ptr: u32 = 0;
-    let mut result_len: u32 = 0;
-    let code = ffi::exec_subprocess(
+    // Envelope overhead: exit_code (4) + stdout_len (4) + stderr_len (4)
+    // = 12 bytes. Pad a bit; this is a one-shot per-call alloc.
+    let buf_cap = max_output_bytes.saturating_add(RESULT_ENVELOPE_OVERHEAD);
+    let mut buf = vec![0u8; buf_cap as usize];
+    let written = ffi::exec_subprocess(
         cmd_bytes.as_ptr(),
         cmd_bytes.len() as u32,
         args_buf.as_ptr(),
@@ -235,15 +245,20 @@ pub fn exec_subprocess(
         stdin.len() as u32,
         timeout_ms,
         max_output_bytes,
-        &mut result_ptr,
-        &mut result_len,
+        buf.as_mut_ptr(),
+        buf_cap,
     );
-    if code < 0 {
-        return Err(HostError::from_code(code));
+    if written < 0 {
+        return Err(HostError::from_code(written));
     }
-    let owned = read_owned_bytes(result_ptr, result_len);
-    decode_subprocess_result(&owned).ok_or(HostError::Other(-99))
+    buf.truncate(written as usize);
+    decode_subprocess_result(&buf).ok_or(HostError::Other(-99))
 }
+
+/// Bytes the host adds to each subprocess result envelope on top of
+/// the user-controlled `max_output_bytes`. 12 bytes of length headers
+/// (exit_code + stdout_len + stderr_len) plus 4 bytes of slack.
+const RESULT_ENVELOPE_OVERHEAD: u32 = 16;
 
 fn encode_args(args: &[&str]) -> Vec<u8> {
     let mut buf = Vec::with_capacity(args.iter().map(|a| 4 + a.len()).sum::<usize>());

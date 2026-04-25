@@ -439,8 +439,8 @@ fn setup_host_on_store_data(
              stdin_len: u32,
              timeout_ms: u32,
              max_output_bytes: u32,
-             result_ptr_out: u32,
-             result_len_out: u32|
+             result_buf_ptr: u32,
+             result_buf_cap: u32|
              -> i32 {
                 let cmd = match read_wasm_string_sd(&mut caller, cmd_ptr, cmd_len) {
                     Ok(s) => s,
@@ -475,25 +475,16 @@ fn setup_host_on_store_data(
                     Err(code) => return code,
                 };
 
-                // Write the envelope at offset 0 of guest memory and
-                // tell the guest where to find it via the out pointers.
-                // Same protocol as host/exec_subprocess.rs — see that
-                // module for the trade-off note about offset 0.
-                if write_wasm_u32_sd(&mut caller, result_ptr_out, 0).is_err() {
-                    return codes::INVALID_ARGUMENT;
-                }
-                if write_wasm_u32_sd(&mut caller, result_len_out, envelope.len() as u32).is_err() {
-                    return codes::INVALID_ARGUMENT;
-                }
-                let written =
-                    match write_wasm_bytes_sd(&mut caller, 0, envelope.len() as u32, &envelope) {
-                        Ok(n) => n,
-                        Err(_) => return codes::INVALID_ARGUMENT,
-                    };
-                if written != envelope.len() as u32 {
+                // Write the envelope into the guest-provided buffer.
+                // Returns bytes written (positive) on success or a
+                // negative error code. Mirrors host/exec_subprocess.rs.
+                if envelope.len() as u32 > result_buf_cap {
                     return codes::OUTPUT_TOO_LARGE;
                 }
-                codes::OK
+                match write_wasm_bytes_sd(&mut caller, result_buf_ptr, result_buf_cap, &envelope) {
+                    Ok(written) => written as i32,
+                    Err(_) => codes::INVALID_ARGUMENT,
+                }
             },
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
@@ -588,23 +579,6 @@ fn write_wasm_bytes_sd(
             memory_size: data_len,
         })?;
     Ok(needed)
-}
-
-fn write_wasm_u32_sd(
-    caller: &mut Caller<'_, StoreData>,
-    out_ptr: u32,
-    value: u32,
-) -> Result<(), HostCallError> {
-    let bytes = value.to_le_bytes();
-    let written = write_wasm_bytes_sd(caller, out_ptr, bytes.len() as u32, &bytes)?;
-    if written != bytes.len() as u32 {
-        return Err(HostCallError::OutOfBounds {
-            ptr: out_ptr,
-            len: bytes.len() as u32,
-            memory_size: 0,
-        });
-    }
-    Ok(())
 }
 
 /// Per-invocation store data: the HostContext S-1.4 populates plus the
