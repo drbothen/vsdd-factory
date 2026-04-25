@@ -7,11 +7,13 @@
 //! decisions. Execution (wasmtime instantiation, tokio scheduling,
 //! fuel enforcement) is filled in by S-1.4–S-1.6.
 
+pub mod host;
 pub mod internal_log;
 pub mod payload;
 pub mod registry;
 pub mod routing;
 
+pub use host::{HostCallError, HostContext, setup_linker};
 pub use internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_SHUTTING_DOWN, DISPATCHER_STARTED,
     INTERNAL_CAPABILITY_DENIED, INTERNAL_DISPATCHER_ERROR, INTERNAL_EVENT_SCHEMA_VERSION,
