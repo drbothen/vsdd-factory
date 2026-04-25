@@ -111,6 +111,7 @@ if [[ -z "$TEMPLATE" ]]; then
     *holdout-scenarios/HS-*) TEMPLATE="$TEMPLATES/holdout-scenario-template.md" ;;
     *architecture/verification-coverage-matrix*) TEMPLATE="$TEMPLATES/verification-coverage-matrix-template.md" ;;
     *architecture/verification-architecture*) TEMPLATE="$TEMPLATES/verification-architecture-template.md" ;;
+    *architecture/decisions/ADR-*) TEMPLATE="$TEMPLATES/adr-template.md" ;;
     *architecture/*) TEMPLATE="$TEMPLATES/architecture-section-template.md" ;;
     *domain-spec/*) TEMPLATE="$TEMPLATES/L2-domain-spec-section-template.md" ;;
     *prd.md) TEMPLATE="$TEMPLATES/prd-template.md" ;;
