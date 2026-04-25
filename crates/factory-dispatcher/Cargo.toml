@@ -12,3 +12,19 @@ publish = false
 [[bin]]
 name = "factory-dispatcher"
 path = "src/main.rs"
+
+[lib]
+name = "factory_dispatcher"
+path = "src/lib.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
