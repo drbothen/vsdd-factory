@@ -227,9 +227,13 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add plugins/vsdd-factory/hooks/dispatcher/bin/ \
-                  plugins/vsdd-factory/hook-plugins/ \
-                  plugins/vsdd-factory/hooks/hooks.json.*
+          # `-f` because plugins/vsdd-factory/hook-plugins/ is gitignored
+          # for local dev (developers `cargo build … --target wasm32-wasip1`
+          # into it) — the release workflow is the intentional one path
+          # that bundles the wasm artifacts into source control.
+          git add -f plugins/vsdd-factory/hooks/dispatcher/bin/ \
+                     plugins/vsdd-factory/hook-plugins/ \
+                     plugins/vsdd-factory/hooks/hooks.json.*
 
           if git diff --staged --quiet; then
             echo "No binary or generated changes to commit; nothing to retag."
