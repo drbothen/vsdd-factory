@@ -1,0 +1,14 @@
+[package]
+name = "factory-dispatcher"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "vsdd-factory v1.0 dispatcher binary — routes Claude Code hook events to WASM plugins"
+publish = false
+
+[[bin]]
+name = "factory-dispatcher"
+path = "src/main.rs"

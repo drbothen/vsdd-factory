@@ -10,3 +10,9 @@ node_modules/
 # factory-obs generated override file (multi-factory compose layer).
 # Regenerated per-machine from ~/.config/vsdd-factory/watched-factories.
 plugins/vsdd-factory/tools/observability/docker-compose.override.yml
+
+# Rust workspace build outputs. Cargo.lock is checked in (binary-producing
+# workspace) so per-developer reproducibility holds; per-platform target/
+# directories are not.
+target/
+*.profraw

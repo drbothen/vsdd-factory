@@ -69,3 +69,38 @@ jobs:
             plugins/vsdd-factory/bin/lobster-parse "$f" '.workflow.name' >/dev/null
           done
           echo "all workflows parse"
+
+  cargo-check:
+    # Rust workspace gates for the v1.0 Factory Plugin Kit (S-1.1). The full
+    # 5-platform matrix arrives in S-2.3; keeping this two-platform for now
+    # so the workspace bootstrap doesn't carry Windows CI complexity.
+    name: cargo (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        # Pinned in rust-toolchain.toml — keep this version in sync with that file.
+        uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-wasip1
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: cargo fmt --check --all
+        run: cargo fmt --check --all
+
+      - name: cargo clippy (workspace, deny warnings)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: cargo check (workspace, all targets)
+        run: cargo check --workspace --all-targets
+
+      - name: cargo build (wasm32-wasip1 plugin)
+        run: cargo build -p capture-commit-activity --target wasm32-wasip1

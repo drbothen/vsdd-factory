@@ -1,0 +1,14 @@
+[package]
+name = "capture-commit-activity"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: emits commit-activity events to the vsdd-factory observability pipeline"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]

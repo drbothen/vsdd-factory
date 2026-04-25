@@ -1,0 +1,13 @@
+[package]
+name = "vsdd-hook-sdk"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "SDK for authoring vsdd-factory WASM hook plugins"
+publish = false
+
+[lib]
+path = "src/lib.rs"
