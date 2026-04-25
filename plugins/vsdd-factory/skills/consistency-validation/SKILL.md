@@ -11,7 +11,7 @@ description: >
 
 Before loading detail files, validate index files for structural completeness:
 - Check `architecture/ARCH-INDEX.md` references all existing section files
-- Check `behavioral-contracts/BC-INDEX.md` references all BC files
+- Check `behavioral-contracts/BC-INDEX.md` references all BC files (recursive — BCs live in `behavioral-contracts/ss-NN/` shard directories)
 - Check `verification-properties/VP-INDEX.md` references all VP files
 - Check `adversarial-reviews/ADV-P[N]-INDEX.md` references all finding files (if exists)
 - Check `evaluations/EVAL-INDEX.md` references all per-scenario evaluations (if exists)
@@ -130,13 +130,13 @@ Query: cross-reference product brief sections against `domain-spec/L2-INDEX.md` 
 ### Rule 16: L2→L3 Chain Completeness
 Validate that every L2 CAP-NNN maps to at least one L3 BC-S.SS.NNN behavioral contract.
 Report capabilities with no BC coverage.
-Query: cross-reference `domain-spec/L2-INDEX.md` CAP entries against `behavioral-contracts/` files.
+Query: cross-reference `domain-spec/L2-INDEX.md` CAP entries against `behavioral-contracts/ss-NN/` files (recursive).
 
 ### Rule 17: L3→L4 Chain Completeness
 Validate that every L3 BC-S.SS.NNN that requires formal verification maps to at least
 one L4 VP-NNN. Report BCs with missing VP coverage and no documented justification for
 omission.
-Query: cross-reference `behavioral-contracts/` files against `verification-properties/` files.
+Query: cross-reference `behavioral-contracts/ss-NN/` files (recursive) against `verification-properties/` files.
 
 ### Rule 18: L1→L4 Full Chain Integrity
 Validate the complete L1→L2→L3→L4 chain end-to-end. For each L1 section, trace through
@@ -147,7 +147,7 @@ Query: for each L1 section, verify L2 CAP exists, L3 BC exists, and L4 VP exists
 ### Rule 19: BC-to-Story Mapping
 Validate that every L3 BC-S.SS.NNN is covered by at least one story. Report BCs with
 no story mapping.
-Query: cross-reference `behavioral-contracts/` files against story files in `phase-2-stories/stories/`.
+Query: cross-reference `behavioral-contracts/ss-NN/` files (recursive) against story files in `phase-2-stories/stories/`.
 
 ### Rule 20: AC-to-BC Traceability
 Validate that every story AC-NNN traces to a BC precondition or postcondition. Report
@@ -186,7 +186,7 @@ Query: validate .factory/ui-traceability.yaml for completeness.
 Every numbered precondition, postcondition, and invariant clause in every active BC
 must have at least one AC tracing to it. Gap Register entries with non-empty
 justification (min 10 chars) count as covered.
-Query: parse BC files in `behavioral-contracts/` for clause counts (preconditions,
+Query: parse BC files in `behavioral-contracts/ss-NN/` (recursive) for clause counts (preconditions,
 postconditions, invariants). For each clause, grep story files for trace references
 matching the specific BC ID + clause type + clause number. Report uncovered clauses
 with severity: postconditions = Critical, preconditions/invariants = Major.

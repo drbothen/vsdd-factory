@@ -27,8 +27,8 @@ traces_to: STORY-INDEX.md
 
 | Group | Stories | Points | Complexity | Agent Scope |
 |-------|---------|--------|-----------|-------------|
-| A | STORY-001, STORY-002 | 3, 5 | S, M | 2 stories/agent |
-| B | STORY-003 | 13 | XL | 1 story/agent |
+| A | S-1.01, S-1.02 | 3, 5 | S, M | 2 stories/agent |
+| B | S-1.03 | 13 | XL | 1 story/agent |
 
 ### Wave 2 (depends on Wave 1)
 

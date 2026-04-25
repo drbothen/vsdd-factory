@@ -28,7 +28,7 @@ Write `.factory/stories/STORY-INDEX.md`:
 
 | ID | Title | Epic | Wave | Status | Dependencies |
 |----|-------|------|------|--------|-------------|
-| STORY-001 | ... | ... | 1 | draft | none |
+| S-1.01 | ... | E-1 | 1 | draft | none |
 ```
 
 ### 3. Initialize Sprint State
@@ -38,15 +38,15 @@ Write `.factory/stories/sprint-state.yaml`:
 ```yaml
 current_wave: 1
 stories:
-  STORY-001:
+  S-1.01:
     status: pending
     wave: 1
     branch: null
     worktree: null
-  STORY-002:
+  S-1.02:
     status: blocked
     wave: 2
-    blocked_by: [STORY-001]
+    blocked_by: [S-1.01]
 ```
 
 ## Artifacts

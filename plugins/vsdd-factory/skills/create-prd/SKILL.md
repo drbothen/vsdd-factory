@@ -107,7 +107,7 @@ Criticality determines review depth, test coverage requirements, and holdout sce
 ### Subsystem 01: <Name>
 
 #### Section 01: <Name>
-- BC-1.01.001: <title> — see behavioral-contracts/BC-1.01.001.md
+- BC-1.01.001: <title> — see behavioral-contracts/ss-01/BC-1.01.001.md
 - BC-1.01.002: <title>
 
 ## Cross-Cutting Concerns
@@ -123,9 +123,12 @@ Criticality determines review depth, test coverage requirements, and holdout sce
 <Things that need resolution>
 ```
 
-### Individual BCs (`.factory/specs/behavioral-contracts/BC-S.SS.NNN.md`)
+### Individual BCs (`.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md`)
 
-One file per contract, following `spec-format.md` format.
+One file per contract, sharded into per-subsystem `ss-NN/` directories,
+following `spec-format.md` format. Shard directory name is the bare
+`SS-NN` identifier (lowercased) — descriptive subsystem names live in
+ARCH-INDEX Subsystem Registry, not in the directory name.
 
 ### BC Index (`.factory/specs/behavioral-contracts/BC-INDEX.md`)
 

@@ -15,10 +15,38 @@
 
 ### Numbering
 
-- `S` = subsystem (01–99)
-- `SS` = section within subsystem (01–99)
+- `S` = PRD section / top-level subsystem grouping (1–9)
+- `SS` = subsection within the section (matches an L2 subsystem; 01–99)
 - `NNN` = contract number (001–999)
-- Example: `BC-1.01.001` — Subsystem 1, Section 01, Contract 001
+- Example: `BC-1.01.001` — Section 1, Subsection 01, Contract 001
+
+### Sharded Layout
+
+BCs are organized into per-subsystem shard directories under
+`behavioral-contracts/`, one shard per subsystem registered in ARCH-INDEX:
+
+```
+.factory/specs/behavioral-contracts/
+├── BC-INDEX.md
+├── ss-01/
+│   ├── BC-1.01.001.md
+│   ├── BC-1.01.002.md
+│   └── ...
+├── ss-02/
+│   ├── BC-2.02.001.md
+│   └── ...
+└── ss-NN/
+    └── ...
+```
+
+The shard directory name is the **bare `SS-NN` identifier** (lowercased,
+e.g., `ss-01/`) — NOT the descriptive subsystem name (NOT `ss-01-hook-dispatcher/`).
+Subsystem descriptive names live authoritatively in ARCH-INDEX Subsystem
+Registry and in `architecture/SS-NN-<name>.md` section files.
+
+The sharded layout scales to projects with hundreds or thousands of BCs
+without making the directory unbrowsable. Small projects (under ~50 BCs)
+may keep a flat layout, but the canonical convention is sharded.
 
 ### File Format
 
@@ -48,7 +76,7 @@
 
 ## Traceability
 - PRD: <requirement ID or section>
-- Stories: <STORY-NNN references>
+- Stories: <S-N.MM references>
 - VPs: <VP-NNN references>
 ```
 
@@ -59,7 +87,7 @@
 
 | ID | Title | Subsystem | Status | Stories |
 |----|-------|-----------|--------|---------|
-| BC-1.01.001 | ... | ... | draft/reviewed/green | STORY-001 |
+| BC-1.01.001 | ... | ... | draft/reviewed/green | S-1.01 |
 ```
 
 ## Verification Properties (VP-NNN)
@@ -150,13 +178,27 @@ Supplementary documents live in `.factory/specs/prd-supplements/`:
 | `integration-points.md` | External service contracts |
 | `module-criticality.md` | CRITICAL/HIGH/MEDIUM/LOW classification |
 
-## Story Format (STORY-NNN)
+## Story Format (S-N.MM)
+
+### ID Format
+
+- **Stories** use `S-N.MM` (section.story, zero-padded):
+  - `N` = section / epic-grouping (single digit, matches the parent epic `E-N`)
+  - `MM` = zero-padded story number within that section (e.g., `01`, `15`)
+  - Examples: `S-1.01`, `S-3.15`, `S-0.02`
+  - Filename: `S-N.MM-<short-description>.md` (e.g., `S-1.01-foundational-types.md`)
+- **Epics** use `E-N` (single digit). Epic `E-N` directly contains all `S-N.*`
+  stories. Filename: `E-N-<short-description>.md` under `.factory/stories/epics/`.
+- **Story `N` and BC `S` are different hierarchies.** BC `S` (in
+  BC-S.SS.NNN) is the subsystem number; story `N` (in S-N.MM) is the
+  epic/release-milestone grouping. A single story can implement BCs from
+  multiple subsystems via the `subsystems: [SS-NN, ...]` frontmatter array.
 
 ```markdown
-# STORY-NNN: <Title>
+# S-N.MM: <Title>
 
 ## Epic
-<Epic reference>
+<E-N reference>
 
 ## Description
 <User story format: As a..., I want..., so that...>
@@ -177,7 +219,7 @@ Supplementary documents live in `.factory/specs/prd-supplements/`:
 <from-scratch | gene-transfusion>
 
 ## Dependencies
-- <STORY-NNN references>
+- <S-N.MM references>
 
 ## Wave
 <Wave number for scheduling>
