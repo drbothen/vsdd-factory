@@ -42,6 +42,10 @@ echo "== generate-hooks-json.sh tests =="
 bats tests/generate-hooks-json.bats
 
 echo
+echo "== activate skill tests =="
+bats tests/activate.bats
+
+echo
 echo "== Skill structure tests =="
 bats tests/skills.bats
 
