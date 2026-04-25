@@ -131,6 +131,7 @@ async fn execute_tier<'a>(
             Err(e) => {
                 let result = PluginResult::Crashed {
                     trap_string: format!("payload serialize: {e}"),
+                    stderr: String::new(),
                     elapsed_ms: 0,
                     fuel_consumed: 0,
                 };
@@ -160,6 +161,7 @@ async fn execute_tier<'a>(
             Err(e) => {
                 let result = PluginResult::Crashed {
                     trap_string: format!("plugin load failed: {e}"),
+                    stderr: String::new(),
                     elapsed_ms: 0,
                     fuel_consumed: 0,
                 };
@@ -183,6 +185,7 @@ async fn execute_tier<'a>(
             let result = invoke_plugin(&engine, &module, host_ctx.clone(), &payload, limits)
                 .unwrap_or_else(|e| PluginResult::Crashed {
                     trap_string: format!("invoke setup error: {e}"),
+                    stderr: String::new(),
                     elapsed_ms: started.elapsed().as_millis() as u64,
                     fuel_consumed: 0,
                 });
@@ -213,6 +216,7 @@ async fn execute_tier<'a>(
                         on_error: OnError::Continue,
                         result: PluginResult::Crashed {
                             trap_string: format!("spawn_blocking join error: {join_err}"),
+                            stderr: String::new(),
                             elapsed_ms: 0,
                             fuel_consumed: 0,
                         },
@@ -262,20 +266,28 @@ fn emit_lifecycle(
     entry: &RegistryEntry,
     result: &PluginResult,
 ) {
-    let (event_type, elapsed, fuel, extra_fields) = match result {
+    let (event_type, elapsed, fuel, mut extra_fields) = match result {
         PluginResult::Ok {
             exit_code,
             elapsed_ms,
             fuel_consumed,
+            stderr,
             ..
         } => (
             PLUGIN_COMPLETED,
             *elapsed_ms,
             *fuel_consumed,
-            vec![("exit_code".to_string(), serde_json::Value::from(*exit_code))],
+            vec![
+                ("exit_code".to_string(), serde_json::Value::from(*exit_code)),
+                (
+                    "stderr".to_string(),
+                    serde_json::Value::String(stderr.clone()),
+                ),
+            ],
         ),
         PluginResult::Timeout {
             cause,
+            stderr,
             elapsed_ms,
             fuel_consumed,
         } => {
@@ -287,26 +299,43 @@ fn emit_lifecycle(
                 PLUGIN_TIMEOUT,
                 *elapsed_ms,
                 *fuel_consumed,
-                vec![(
-                    "cause".to_string(),
-                    serde_json::Value::String(cause_str.to_string()),
-                )],
+                vec![
+                    (
+                        "cause".to_string(),
+                        serde_json::Value::String(cause_str.to_string()),
+                    ),
+                    (
+                        "stderr".to_string(),
+                        serde_json::Value::String(stderr.clone()),
+                    ),
+                ],
             )
         }
         PluginResult::Crashed {
             trap_string,
+            stderr,
             elapsed_ms,
             fuel_consumed,
         } => (
             PLUGIN_CRASHED,
             *elapsed_ms,
             *fuel_consumed,
-            vec![(
-                "trap".to_string(),
-                serde_json::Value::String(trap_string.clone()),
-            )],
+            vec![
+                (
+                    "trap".to_string(),
+                    serde_json::Value::String(trap_string.clone()),
+                ),
+                (
+                    "stderr".to_string(),
+                    serde_json::Value::String(stderr.clone()),
+                ),
+            ],
         ),
     };
+    // Drop empty stderr from the lifecycle event payload — it's the
+    // common case (well-behaved plugins write nothing to stderr) and a
+    // dangling "stderr": "" field is just visual noise in the log.
+    extra_fields.retain(|(k, v)| k != "stderr" || !v.as_str().map(str::is_empty).unwrap_or(false));
 
     let mut ev = InternalEvent::now(event_type)
         .with_trace_id(&base_ctx.dispatcher_trace_id)
@@ -330,6 +359,7 @@ mod tests {
         let r = PluginResult::Ok {
             exit_code: 2,
             stdout: r#"{"outcome":"block","reason":"policy 9"}"#.to_string(),
+            stderr: String::new(),
             elapsed_ms: 3,
             fuel_consumed: 10,
         };
@@ -341,6 +371,7 @@ mod tests {
         let r = PluginResult::Ok {
             exit_code: 0,
             stdout: r#"{"outcome":"continue"}"#.to_string(),
+            stderr: String::new(),
             elapsed_ms: 2,
             fuel_consumed: 5,
         };
@@ -351,6 +382,7 @@ mod tests {
     fn plugin_requests_block_false_for_crash() {
         let r = PluginResult::Crashed {
             trap_string: "unreachable".to_string(),
+            stderr: "panicked at 'unreachable'".to_string(),
             elapsed_ms: 1,
             fuel_consumed: 0,
         };
@@ -361,6 +393,7 @@ mod tests {
     fn plugin_requests_block_false_for_timeout() {
         let r = PluginResult::Timeout {
             cause: TimeoutCause::Epoch,
+            stderr: String::new(),
             elapsed_ms: 5_000,
             fuel_consumed: 0,
         };

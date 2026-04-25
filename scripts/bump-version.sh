@@ -1,14 +1,20 @@
 #!/bin/bash
-# bump-version.sh — atomically bump the vsdd-factory release version.
+# bump-version.sh — prepare release narrative for the next version.
 #
-# Updates the two version fields that MUST move in lockstep or the
-# Release workflow fails on tag push (see v0.68.1, v0.69.0 fallout):
-#   - plugins/vsdd-factory/.claude-plugin/plugin.json
-#   - .claude-plugin/marketplace.json   (.plugins[0].version)
-#
-# Also prepends a CHANGELOG.md section heading with today's date so the
+# Prepends a CHANGELOG.md section heading with today's date so the
 # release notes have a starting point. Does NOT commit or tag — that's
 # intentional; the caller reviews the diff and stages the changes.
+#
+# v1.0.0-beta.4 cache-staleness fix: this script no longer touches
+# plugins/vsdd-factory/.claude-plugin/plugin.json or .claude-plugin/
+# marketplace.json. Those fields are now written by the Release workflow
+# (.github/workflows/release.yml), in the same bot commit that bundles
+# the dispatcher binaries. This eliminates the race window where the
+# chore commit advertised version X but did not yet have version-X
+# binaries, which caused Claude Code's plugin cache to lock to a stale
+# binary set under version X. With this change, plugin.json:version
+# stays at X-1 during the workflow run; the bot's binary-bundle commit
+# writes X (from the git tag) atomically with the binaries.
 #
 # Usage:
 #   scripts/bump-version.sh 0.71.0
@@ -65,51 +71,25 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-for f in "$PLUGIN_JSON" "$MARKETPLACE_JSON" "$CHANGELOG"; do
+for f in "$CHANGELOG"; do
   if [ ! -f "$f" ]; then
     echo "error: required file missing: $f" >&2
     exit 1
   fi
 done
 
-# Refuse to run if the target files have uncommitted changes. We don't
-# want to quietly clobber work-in-progress.
-for f in "$PLUGIN_JSON" "$MARKETPLACE_JSON"; do
-  if ! git -C "$REPO_ROOT" diff --quiet -- "$f"; then
-    echo "error: $f has uncommitted changes. Commit or stash first." >&2
-    exit 1
-  fi
-done
+# --- Read current versions for context display only -------------------------
+# plugin.json + marketplace.json are no longer touched by this script (the
+# release workflow's bot commit writes them from the git tag). We still
+# read + display the current values so the operator knows what version
+# they're moving away from.
+OLD_PLUGIN=$(jq -r '.version' "$PLUGIN_JSON" 2>/dev/null || echo "(unreadable)")
+OLD_MKT=$(jq -r '.plugins[0].version // empty' "$MARKETPLACE_JSON" 2>/dev/null || echo "(unreadable)")
 
-# --- Read current versions --------------------------------------------------
-OLD_PLUGIN=$(jq -r '.version' "$PLUGIN_JSON")
-OLD_MKT=$(jq -r '.plugins[0].version // empty' "$MARKETPLACE_JSON")
-
-echo "Current versions:"
+echo "Current versions (display-only — workflow bot commit writes these):"
 echo "  plugin.json      = $OLD_PLUGIN"
 echo "  marketplace.json = $OLD_MKT"
 echo "  new              = $NEW_VERSION"
-
-if [ "$OLD_PLUGIN" = "$NEW_VERSION" ] && [ "$OLD_MKT" = "$NEW_VERSION" ]; then
-  echo "Both files already at $NEW_VERSION; nothing to bump."
-  echo "(Not touching CHANGELOG — re-run with version intentionally bumped.)"
-  exit 0
-fi
-
-# --- Atomic bump via temp-file + mv -----------------------------------------
-# jq can't edit in place portably, so we write to a sibling temp file and
-# mv on success. Temp file must be on the same FS as the target for mv
-# to be atomic.
-_bump_json() {
-  local file="$1"
-  local filter="$2"
-  local tmp="${file}.tmp.$$"
-  jq "$filter" "$file" > "$tmp"
-  mv "$tmp" "$file"
-}
-
-_bump_json "$PLUGIN_JSON"      ".version = \"$NEW_VERSION\""
-_bump_json "$MARKETPLACE_JSON" ".plugins[0].version = \"$NEW_VERSION\""
 
 # --- Prepend CHANGELOG heading (idempotent) ---------------------------------
 # If the CHANGELOG already has a `## $NEW_VERSION` heading (because the author
@@ -139,17 +119,26 @@ fi
 
 # --- Report -----------------------------------------------------------------
 echo
-echo "Bumped to $NEW_VERSION:"
-echo "  plugin.json      $OLD_PLUGIN -> $NEW_VERSION"
-echo "  marketplace.json $OLD_MKT -> $NEW_VERSION"
+echo "Prepared $NEW_VERSION:"
 echo "  CHANGELOG.md     $CHANGELOG_UPDATED"
+echo "  plugin.json      unchanged (stays at $OLD_PLUGIN; bot writes from tag)"
+echo "  marketplace.json unchanged (stays at $OLD_MKT; bot writes from tag)"
 echo
 echo "Next steps:"
 echo "  1. Edit CHANGELOG.md to fill in the TODOs (if a stub was prepended)."
-echo "  2. git add plugins/vsdd-factory/.claude-plugin/plugin.json .claude-plugin/marketplace.json CHANGELOG.md"
+echo "  2. git add CHANGELOG.md"
 echo "  3. git commit -m \"chore: release v$NEW_VERSION — ${TITLE:-<title>}\""
 echo "  4. git tag -a v$NEW_VERSION -m \"v$NEW_VERSION — ${TITLE:-<title>}\""
 echo "  5. git push origin main && git push origin v$NEW_VERSION"
+echo
+echo "The Release workflow will:"
+echo "  - Build dispatcher binaries for 5 platforms"
+echo "  - Build legacy-bash-adapter.wasm + plugin wasms"
+echo "  - Write plugin.json:version = $NEW_VERSION (from tag)"
+echo "  - Write marketplace.json:plugins[0].version = $NEW_VERSION"
+echo "  - Commit binaries + JSON updates atomically as github-actions[bot]"
+echo "  - Force-update the tag to point at the bot commit"
+echo "  - Create the GH (pre-)release"
 echo
 echo "Pro tip: write the real CHANGELOG entry under ## $NEW_VERSION BEFORE running"
 echo "this script. This script detects an existing heading and skips the stub,"

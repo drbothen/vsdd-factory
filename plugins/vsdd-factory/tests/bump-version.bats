@@ -1,11 +1,14 @@
 #!/usr/bin/env bats
 # bump-version.bats — tests for scripts/bump-version.sh
 #
-# Covers semver validation (stable + prerelease + malformed), the lockstep
-# write to plugin.json + marketplace.json, and the CHANGELOG idempotent
-# stub guard. The script expects to live at <root>/scripts/bump-version.sh
-# and to derive REPO_ROOT relative to that, so each test stages a minimal
-# fake repo in a temp directory.
+# v1.0.0-beta.4 contract change: the script no longer writes
+# plugin.json or marketplace.json — those are now bumped by the
+# release workflow's bot commit (atomically with the binaries) to
+# eliminate the cache-staleness window. The script's only mutating
+# action is prepending the CHANGELOG.md heading. Tests cover semver
+# validation (stable + prerelease + malformed) and the CHANGELOG
+# idempotent stub guard. JSON files MUST stay at their pre-bump
+# version after the script runs.
 
 setup() {
   REAL_SCRIPT="${BATS_TEST_DIRNAME}/../../../scripts/bump-version.sh"
@@ -58,21 +61,21 @@ teardown() {
 @test "bump-version: accepts N.N.N (stable)" {
   run "$WORK/scripts/bump-version.sh" 0.80.0 "test stable"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Bumped to 0.80.0"* ]]
+  [[ "$output" == *"Prepared 0.80.0"* ]]
 }
 
-@test "bump-version: writes stable version to plugin.json" {
+@test "bump-version: leaves plugin.json alone (workflow bot writes it)" {
   run "$WORK/scripts/bump-version.sh" 0.80.0 "test"
   [ "$status" -eq 0 ]
   v=$(jq -r .version "$WORK/plugins/vsdd-factory/.claude-plugin/plugin.json")
-  [ "$v" = "0.80.0" ]
+  [ "$v" = "0.79.4" ]
 }
 
-@test "bump-version: writes stable version to marketplace.json" {
+@test "bump-version: leaves marketplace.json alone (workflow bot writes it)" {
   run "$WORK/scripts/bump-version.sh" 0.80.0 "test"
   [ "$status" -eq 0 ]
   v=$(jq -r '.plugins[0].version' "$WORK/.claude-plugin/marketplace.json")
-  [ "$v" = "0.80.0" ]
+  [ "$v" = "0.79.4" ]
 }
 
 # ---------- Prerelease accepted ----------
@@ -80,31 +83,25 @@ teardown() {
 @test "bump-version: accepts N.N.N-beta.N" {
   run "$WORK/scripts/bump-version.sh" 1.0.0-beta.1 "Factory Plugin Kit beta"
   [ "$status" -eq 0 ]
-  v=$(jq -r .version "$WORK/plugins/vsdd-factory/.claude-plugin/plugin.json")
-  [ "$v" = "1.0.0-beta.1" ]
-  m=$(jq -r '.plugins[0].version' "$WORK/.claude-plugin/marketplace.json")
-  [ "$m" = "1.0.0-beta.1" ]
+  grep -q '^## 1.0.0-beta.1 ' "$WORK/CHANGELOG.md"
 }
 
 @test "bump-version: accepts N.N.N-rc.N" {
   run "$WORK/scripts/bump-version.sh" 1.0.0-rc.2 "rc"
   [ "$status" -eq 0 ]
-  v=$(jq -r .version "$WORK/plugins/vsdd-factory/.claude-plugin/plugin.json")
-  [ "$v" = "1.0.0-rc.2" ]
+  grep -q '^## 1.0.0-rc.2 ' "$WORK/CHANGELOG.md"
 }
 
 @test "bump-version: accepts N.N.N-alpha (no numeric suffix)" {
   run "$WORK/scripts/bump-version.sh" 1.0.0-alpha "alpha"
   [ "$status" -eq 0 ]
-  v=$(jq -r .version "$WORK/plugins/vsdd-factory/.claude-plugin/plugin.json")
-  [ "$v" = "1.0.0-alpha" ]
+  grep -q '^## 1.0.0-alpha ' "$WORK/CHANGELOG.md"
 }
 
 @test "bump-version: accepts dotted prerelease identifiers" {
   run "$WORK/scripts/bump-version.sh" 1.0.0-beta.1.dev3 "exotic"
   [ "$status" -eq 0 ]
-  v=$(jq -r .version "$WORK/plugins/vsdd-factory/.claude-plugin/plugin.json")
-  [ "$v" = "1.0.0-beta.1.dev3" ]
+  grep -q '^## 1.0.0-beta.1.dev3 ' "$WORK/CHANGELOG.md"
 }
 
 # ---------- Malformed rejected ----------
@@ -181,15 +178,21 @@ MD
   [ "$count" -eq 1 ]
 }
 
-# ---------- Idempotency on JSON files ----------
+# ---------- Idempotency on CHANGELOG ----------
 
-@test "bump-version: re-running with same prerelease version is a no-op" {
+@test "bump-version: re-running with same prerelease version preserves single CHANGELOG heading" {
+  # First bump prepends the heading.
   run "$WORK/scripts/bump-version.sh" 1.0.0-beta.1 "test"
   [ "$status" -eq 0 ]
   git -C "$WORK" -c user.email=t@t -c user.name=t add -A
   git -C "$WORK" -c user.email=t@t -c user.name=t commit -q -m bump
 
+  # Second bump detects the heading and skips the stub.
   run "$WORK/scripts/bump-version.sh" 1.0.0-beta.1 "test"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"already at 1.0.0-beta.1"* ]]
+  [[ "$output" == *"already present"* ]]
+
+  # Exactly one heading remains.
+  count=$(grep -c '^## 1.0.0-beta.1 ' "$WORK/CHANGELOG.md")
+  [ "$count" -eq 1 ]
 }

@@ -40,21 +40,22 @@ jobs:
             shellcheck "$f"
           done
 
-      - name: Validate tag matches plugin.json version
-        run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PLUGIN_VERSION=$(jq -r '.version' plugins/vsdd-factory/.claude-plugin/plugin.json)
-          if [ "$TAG_VERSION" != "$PLUGIN_VERSION" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match plugin.json version $PLUGIN_VERSION"
-            exit 1
-          fi
+      # Note: tag-vs-plugin.json/marketplace.json validation was removed
+      # in v1.0.0-beta.4 along with the cache-staleness fix. plugin.json
+      # and marketplace.json now stay at the *previous* version during
+      # the chore commit; the bot commit (commit-binaries job below)
+      # writes them from the tag atomically with the binaries. So at
+      # validate time the JSONs deliberately disagree with the tag —
+      # asserting otherwise would block every release. CHANGELOG.md is
+      # the only file the operator's chore commit touches.
 
-      - name: Validate tag matches marketplace.json version
+      - name: Validate CHANGELOG.md has the new version heading
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          MKT_VERSION=$(jq -r '.plugins[0].version // empty' .claude-plugin/marketplace.json)
-          if [ -n "$MKT_VERSION" ] && [ "$TAG_VERSION" != "$MKT_VERSION" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match marketplace.json version $MKT_VERSION"
+          if ! grep -qE "^## ${TAG_VERSION}([[:space:]]|$)" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md is missing the ## $TAG_VERSION heading."
+            echo "Run: scripts/bump-version.sh $TAG_VERSION \"<release title>\""
+            echo "then commit CHANGELOG.md and re-tag."
             exit 1
           fi
 
@@ -228,6 +229,38 @@ jobs:
       - name: Regenerate hooks.json.<platform> variants
         run: scripts/generate-hooks-json.sh
 
+      - name: Bump plugin.json + marketplace.json from tag
+        run: |
+          set -e
+          # The chore commit ships only CHANGELOG.md updates — plugin.json
+          # and marketplace.json stay at the previous version. This step
+          # writes the new version (read from the git tag) so the bot's
+          # binary-bundle commit advertises version X atomically with the
+          # version-X binaries.
+          #
+          # This eliminates the cache-staleness race observed in
+          # v1.0.0-beta.2: between the chore commit (plugin.json:version=X,
+          # no binaries) and the bot commit (plugin.json:version=X, real
+          # binaries), Claude Code's plugin cache could lock to version
+          # X with stale (X-1) binaries. With the bump moved here, the
+          # window closes — plugin.json:version=X never exists without
+          # the matching binaries.
+          version="${GITHUB_REF_NAME#v}"
+          echo "Writing version $version into plugin.json + marketplace.json"
+          tmp=$(mktemp)
+          jq ".version = \"$version\"" plugins/vsdd-factory/.claude-plugin/plugin.json > "$tmp"
+          mv "$tmp" plugins/vsdd-factory/.claude-plugin/plugin.json
+          tmp=$(mktemp)
+          jq ".plugins[0].version = \"$version\"" .claude-plugin/marketplace.json > "$tmp"
+          mv "$tmp" .claude-plugin/marketplace.json
+          # Sanity check: verify both files now agree on the new version.
+          plugin_v=$(jq -r '.version' plugins/vsdd-factory/.claude-plugin/plugin.json)
+          mp_v=$(jq -r '.plugins[0].version' .claude-plugin/marketplace.json)
+          [ "$plugin_v" = "$version" ] || { echo "plugin.json version write failed: $plugin_v != $version"; exit 1; }
+          [ "$mp_v" = "$version" ] || { echo "marketplace.json version write failed: $mp_v != $version"; exit 1; }
+          echo "plugin.json      = $plugin_v"
+          echo "marketplace.json = $mp_v"
+
       - name: Commit + retag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -240,7 +273,12 @@ jobs:
           # for local dev (developers `cargo build … --target wasm32-wasip1`
           # into it) — the release workflow is the intentional one path
           # that bundles the wasm artifacts into source control.
-          git add -f plugins/vsdd-factory/hooks/dispatcher/bin/ \
+          # plugin.json + marketplace.json are bumped atomically here too
+          # (see "Bump plugin.json + marketplace.json from tag" above) so
+          # consumers never observe version=X without the matching binaries.
+          git add -f plugins/vsdd-factory/.claude-plugin/plugin.json \
+                     .claude-plugin/marketplace.json \
+                     plugins/vsdd-factory/hooks/dispatcher/bin/ \
                      plugins/vsdd-factory/hook-plugins/ \
                      plugins/vsdd-factory/hooks/hooks.json.*
 

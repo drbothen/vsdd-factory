@@ -40,8 +40,64 @@ _emit() {
   return 0
 }
 
-# Scope: only worker-agent dispatches that do story work
+# Scope split: adversary dispatches go through SHA-currency hygiene
+# (state-manager burst integrity check). Worker-agent dispatches go
+# through the gate-prerequisite check (prior-wave gate must be passed).
+# Other subagents pass through.
 case "$SUBAGENT" in
+  *adversary*)
+    # Locate verify-sha-currency.sh in the same way we find
+    # wave-state.yaml: prefer cwd, then project path extracted from
+    # `cd <path> &&` in the prompt.
+    SHA_HOOK=""
+    if [[ -x ".factory/hooks/verify-sha-currency.sh" ]]; then
+      SHA_HOOK=".factory/hooks/verify-sha-currency.sh"
+      SHA_PROJECT_ROOT="$PWD"
+    else
+      PROJECT_PATH=$(echo "$PROMPT" | grep -oE 'cd [^ ]+' | head -1 | sed 's/^cd //' || true)
+      if [[ -n "$PROJECT_PATH" ]] && [[ -x "$PROJECT_PATH/.factory/hooks/verify-sha-currency.sh" ]]; then
+        SHA_HOOK="$PROJECT_PATH/.factory/hooks/verify-sha-currency.sh"
+        SHA_PROJECT_ROOT="$PROJECT_PATH"
+      fi
+    fi
+
+    if [[ -z "$SHA_HOOK" ]]; then
+      # Project hasn't installed verify-sha-currency.sh yet; skip.
+      # Operators opt in by copying templates/verify-sha-currency.sh
+      # into .factory/hooks/.
+      exit 0
+    fi
+
+    if HOOK_OUTPUT=$(bash "$SHA_HOOK" --project-root "$SHA_PROJECT_ROOT" 2>&1); then
+      # Hook returned 0 (PASS or PASS-with-WARN). Allow the dispatch.
+      exit 0
+    fi
+
+    # Hook returned non-zero — block the dispatch with diagnostic.
+    _emit type=hook.block hook=validate-wave-gate-prerequisite \
+          matcher=Agent reason=sha_currency_failed subagent="$SUBAGENT"
+    {
+      echo ""
+      echo "wave-gate-prerequisite: BLOCKED — SHA currency check failed."
+      echo ""
+      echo "An adversary pass cannot run while the prior remediation burst's"
+      echo "factory-artifacts hygiene is dirty (stale SHA cites, multi-commit"
+      echo "chains, in-progress narrative, or cross-record drift)."
+      echo ""
+      echo "Hook output:"
+      # shellcheck disable=SC2001  # sed is the right tool for line-prefix indentation
+      echo "$HOOK_OUTPUT" | sed 's/^/  /'
+      echo ""
+      echo "Resolve before re-dispatching:"
+      echo "  bash $SHA_HOOK"
+      echo ""
+      echo "If the issue is a multi-commit chain, recover with:"
+      echo "  git -C .factory reset --soft HEAD~N   # collapse extra commits"
+      echo "  # then redo Stage 1 + Stage 2 of the burst protocol"
+      echo "  # (see vsdd-factory:state-burst skill)"
+    } >&2
+    exit 2
+    ;;
   *test-writer*|*implementer*|*demo-recorder*|*pr-manager*|*devops-engineer*) ;;
   *) exit 0 ;;
 esac

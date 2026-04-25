@@ -24,6 +24,14 @@ use crate::host::{HostContext, setup_linker};
 /// `fuel_consumed` is always populated so operators can see how close
 /// normal plugins came to their budget. `elapsed_ms` is wall-clock from
 /// just before `_start` to just after the result is classified.
+///
+/// `stderr` is the plugin's WASI stderr captured during invocation,
+/// truncated to [`STDERR_CAP_BYTES`]. It's the diagnostic signal the
+/// dispatcher emits on `plugin.completed` / `plugin.crashed` /
+/// `plugin.timeout` events; without it, operators see only `exit_code`
+/// and have to re-run with a manual capture to find out why a plugin
+/// exited 1. Field added in v1.0.0-beta.4 after the S-2.7 dogfood loop
+/// ran into exactly that diagnostic gap.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PluginResult {
     Ok {
@@ -31,20 +39,36 @@ pub enum PluginResult {
         exit_code: i32,
         /// Raw stdout (UTF-8 `HookResult` JSON in well-behaved plugins).
         stdout: String,
+        /// Captured stderr, truncated to STDERR_CAP_BYTES.
+        stderr: String,
         elapsed_ms: u64,
         fuel_consumed: u64,
     },
     Timeout {
         cause: TimeoutCause,
+        /// Captured stderr, truncated to STDERR_CAP_BYTES. May contain
+        /// a partial message because the plugin was interrupted.
+        stderr: String,
         elapsed_ms: u64,
         fuel_consumed: u64,
     },
     Crashed {
         trap_string: String,
+        /// Captured stderr, truncated to STDERR_CAP_BYTES. Often the
+        /// most useful field for diagnosing a crash since wasmtime's
+        /// trap_string only surfaces the trap kind, not the plugin's
+        /// own pre-trap diagnostics.
+        stderr: String,
         elapsed_ms: u64,
         fuel_consumed: u64,
     },
 }
+
+/// Truncation cap on per-plugin stderr captured into `PluginResult`.
+/// Operators see this value on `plugin.completed`/`plugin.crashed`/
+/// `plugin.timeout` events. 4 KiB is generous for diagnostic lines
+/// while keeping the internal-log per-event payload bounded.
+pub const STDERR_CAP_BYTES: usize = 4096;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -151,23 +175,33 @@ pub fn invoke_plugin(
     match call_result {
         Ok(()) => {
             let out = stdout_to_string(&stdout);
+            let err_text = stderr_to_string(&stderr);
             Ok(PluginResult::Ok {
                 exit_code: 0,
                 stdout: out,
+                stderr: err_text,
                 elapsed_ms,
                 fuel_consumed,
             })
         }
-        Err(err) => classify_trap(anyhow::Error::from(err), &stdout, elapsed_ms, fuel_consumed),
+        Err(err) => classify_trap(
+            anyhow::Error::from(err),
+            &stdout,
+            &stderr,
+            elapsed_ms,
+            fuel_consumed,
+        ),
     }
 }
 
 fn classify_trap(
     err: anyhow::Error,
     stdout: &MemoryOutputPipe,
+    stderr: &MemoryOutputPipe,
     elapsed_ms: u64,
     fuel_consumed: u64,
 ) -> Result<PluginResult, InvokeError> {
+    let stderr_text = stderr_to_string(stderr);
     // WASI `exit(n)` propagates as an `I32Exit` in wasmtime-wasi's
     // preview-1 glue; non-zero exit is still "Ok" from our POV since
     // the plugin ran to a controlled finish.
@@ -176,6 +210,7 @@ fn classify_trap(
         return Ok(PluginResult::Ok {
             exit_code: exit.0,
             stdout: out,
+            stderr: stderr_text,
             elapsed_ms,
             fuel_consumed,
         });
@@ -184,16 +219,19 @@ fn classify_trap(
         return Ok(match trap {
             Trap::Interrupt => PluginResult::Timeout {
                 cause: TimeoutCause::Epoch,
+                stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
             },
             Trap::OutOfFuel => PluginResult::Timeout {
                 cause: TimeoutCause::Fuel,
+                stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
             },
             other => PluginResult::Crashed {
                 trap_string: other.to_string(),
+                stderr: stderr_text,
                 elapsed_ms,
                 fuel_consumed,
             },
@@ -203,6 +241,7 @@ fn classify_trap(
     // exact diagnostic for operators.
     Ok(PluginResult::Crashed {
         trap_string: format!("{err:#}"),
+        stderr: stderr_text,
         elapsed_ms,
         fuel_consumed,
     })
@@ -213,6 +252,19 @@ fn fuel_consumed_from_store(store: &Store<StoreData>, cap: u64) -> u64 {
         Ok(remaining) => cap.saturating_sub(remaining),
         Err(_) => 0,
     }
+}
+
+/// Read the captured stderr pipe and truncate to STDERR_CAP_BYTES so
+/// the per-event payload stays bounded. Truncation appends an ellipsis
+/// marker so operators can see they only have a partial view.
+fn stderr_to_string(pipe: &MemoryOutputPipe) -> String {
+    let bytes = pipe.contents();
+    if bytes.len() <= STDERR_CAP_BYTES {
+        return String::from_utf8_lossy(&bytes).into_owned();
+    }
+    let mut s = String::from_utf8_lossy(&bytes[..STDERR_CAP_BYTES]).into_owned();
+    s.push_str("\n…(stderr truncated)");
+    s
 }
 
 fn stdout_to_string(pipe: &MemoryOutputPipe) -> String {
