@@ -22,11 +22,13 @@ inputs:
   - .factory/stories/ (41 stories, 6 epics)
 input-hash: "0bf7a64"
 traces_to: .factory/specs/domain-spec/L2-INDEX.md
-supplements:
-  - .factory/specs/prd-supplements/interface-definitions.md
-  - .factory/specs/prd-supplements/error-taxonomy.md
-  - .factory/specs/prd-supplements/test-vectors.md
-  - .factory/specs/prd-supplements/nfr-catalog.md
+supplements: []
+# Supplements deferred — PRD body contains summary versions:
+# interface-definitions → §3 (Functional Requirements, interface contracts per FR)
+# error-taxonomy       → §5 (Behavioral Constraints, error handling rules)
+# test-vectors         → §6 (Quality Attributes, acceptance criteria)
+# nfr-catalog          → §4 (Non-Functional Requirements)
+# Detailed extractions to prd-supplements/ are TBD.
 ---
 
 # Product Requirements Document: vsdd-factory

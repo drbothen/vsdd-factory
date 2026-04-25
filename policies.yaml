@@ -1,0 +1,160 @@
+# .factory/policies.yaml — Declarative governance policy registry
+#
+# Each project maintains its own policy list. The adversarial-review skill
+# auto-loads this file into the adversary's dispatch rubric. Lint hooks
+# read this file to determine which validators to run.
+#
+# Initialize with: /vsdd-factory:policy-registry init
+# Add policies with: /vsdd-factory:policy-add <name>
+# Validate with: /vsdd-factory:policy-registry validate
+#
+# Schema per entry:
+#   id: <integer>              # Sequential policy number
+#   name: <string>             # snake_case policy flag name
+#   description: <string>      # One-line human-readable description
+#   adopted: <string>          # Context where adopted (burst, pass, or date)
+#   severity: <HIGH|MEDIUM>    # Severity floor for violations
+#   enforced_by: [<string>]    # Enforcement mechanisms
+#   scope: [<string>]          # Artifact types this policy covers
+#   lint_hook: <string|null>   # Path to automated hook (relative to plugin root)
+#   verification_steps: [<string>]  # Step-by-step check procedure for the adversary
+#                                   # Baseline policies (1-9) have steps baked into agent
+#                                   # prompts. Custom policies (10+) MUST include steps
+#                                   # here so the adversary knows HOW to verify them.
+
+policies:
+  - id: 1
+    name: append_only_numbering
+    description: "All VSDD identifiers are never renumbered or reused. Retired IDs stay in indexes. Filename slugs are immutable."
+    adopted: baseline
+    severity: HIGH
+    enforced_by: [adversary-prompt, consistency-validator]
+    scope: [bc, vp, di, cap, story, hs]
+    lint_hook: null
+    verification_steps:
+      - "Scan all index files for retired/removed IDs — verify no active artifact reuses a retired ID"
+      - "Verify retired entries have replaced_by or removal justification"
+      - "Check that filename slugs match original creation (compare git log if available)"
+
+  - id: 2
+    name: lift_invariants_to_bcs
+    description: "Every domain invariant (DI-NNN) must be cited by at least one BC's Traceability L2 Invariants field. Orphan invariants are drift."
+    adopted: baseline
+    severity: MEDIUM
+    enforced_by: [adversary-prompt, consistency-validator]
+    scope: [di, bc]
+    lint_hook: null
+    verification_steps:
+      - "Read domain-spec/invariants.md — extract all DI-NNN IDs"
+      - "For each DI-NNN, search BC files for citations in Traceability/L2 Invariants fields"
+      - "Report orphan invariants (DI declared but no BC enforces it)"
+      - "Verify invariant Scope/enforcer column names BCs that cite it back (bidirectional)"
+
+  - id: 3
+    name: state_manager_runs_last
+    description: "State-manager agent must be the last to commit in every burst, preventing version-race regressions."
+    adopted: baseline
+    severity: HIGH
+    enforced_by: [orchestrator-rule]
+    scope: [story, bc, vp, architecture]
+    lint_hook: null
+    verification_steps:
+      - "Review burst commit history — state-manager commits must come after all other agents"
+      - "Check for citation staleness — STORY-INDEX/BC-INDEX versions must match latest story-writer/PO output"
+
+  - id: 4
+    name: semantic_anchoring_integrity
+    description: "Every anchor claim must be semantically correct, not just syntactically valid. Mis-anchoring always blocks convergence."
+    adopted: baseline
+    severity: MEDIUM
+    enforced_by: [adversary-prompt, consistency-validator]
+    scope: [bc, vp, story, architecture]
+    lint_hook: null
+    verification_steps:
+      - "For each BC, verify declared capability actually describes the BC's purpose per capabilities.md"
+      - "For each story, verify subsystems: field references subsystems that own the story's scope per ARCH-INDEX"
+      - "For each VP, verify anchor_story builds the test vehicle (not an architectural ancestor)"
+      - "For traceability table rows, verify descriptions match target artifact's actual title"
+
+  - id: 5
+    name: creators_justify_anchors
+    description: "Agents creating anchors must justify each choice against the source-of-truth artifact. Stop and ask rather than guess."
+    adopted: baseline
+    severity: MEDIUM
+    enforced_by: [adversary-prompt]
+    scope: [bc, vp, story, cap, architecture]
+    lint_hook: null
+    verification_steps:
+      - "Check that BC→CAP anchors include justification citing capabilities.md"
+      - "Check that story→subsystem anchors include justification citing ARCH-INDEX"
+      - "Check that VP→anchor_story assignments justify why that story builds the test vehicle"
+      - "Flag mechanical citations without body substantiation"
+
+  - id: 6
+    name: architecture_is_subsystem_name_source_of_truth
+    description: "ARCH-INDEX Subsystem Registry is the canonical source for subsystem names. All references must match verbatim."
+    adopted: baseline
+    severity: HIGH
+    enforced_by: [adversary-prompt, consistency-validator]
+    scope: [bc, story, prd, architecture]
+    lint_hook: null
+    verification_steps:
+      - "Read ARCH-INDEX Subsystem Registry for canonical subsystem names"
+      - "For sampled BCs, verify subsystem: frontmatter matches registry exactly"
+      - "For sampled stories, verify subsystems: field uses registry names"
+      - "Check BC-INDEX subsystem column matches ARCH-INDEX"
+
+  - id: 7
+    name: bc_h1_is_title_source_of_truth
+    description: "BC file H1 heading is the authoritative BC title. All downstream references must match. Enrichment goes INTO the H1."
+    adopted: baseline
+    severity: HIGH
+    enforced_by: [adversary-prompt, consistency-validator]
+    scope: [bc, story, prd]
+    lint_hook: null
+    verification_steps:
+      - "Sample 10+ BCs — read H1 heading and compare to BC-INDEX title column"
+      - "Check for downstream-only enrichment not present in H1"
+      - "Verify H1 accurately describes what the BC's postconditions specify"
+
+  - id: 8
+    name: bc_array_changes_propagate_to_body_and_acs
+    description: "When a story bcs: frontmatter changes, the same commit must update body BC table, ACs, and Token Budget count."
+    adopted: baseline
+    severity: HIGH
+    enforced_by: [adversary-prompt, consistency-validator]
+    scope: [story, bc]
+    lint_hook: null
+    verification_steps:
+      - "Sample 5+ stories — for each BC in bcs: frontmatter, verify it appears in body BC table"
+      - "For each BC in bcs: frontmatter, verify at least one AC traces to it"
+      - "For each BC in body BC table or AC traces, verify it appears in bcs: frontmatter"
+      - "Verify Token Budget BC count matches len(bcs)"
+
+  - id: 9
+    name: vp_index_is_vp_catalog_source_of_truth
+    description: "VP-INDEX.md is authoritative. Changes must propagate same-burst to verification-architecture.md and verification-coverage-matrix.md."
+    adopted: baseline
+    severity: HIGH
+    enforced_by: [adversary-prompt, lint-hook, consistency-validator]
+    scope: [vp, architecture]
+    lint_hook: hooks/validate-vp-consistency.sh
+    verification_steps:
+      - "Verify VP-INDEX arithmetic: total = sum of per-tool counts = row count"
+      - "For each VP in VP-INDEX, verify it appears in verification-architecture.md Provable Properties Catalog"
+      - "For each VP in VP-INDEX, verify it appears in verification-coverage-matrix.md VP-to-Module table"
+      - "Sum coverage matrix per-tool columns — must equal VP-INDEX per-tool totals"
+      - "Reverse check: every VP in arch docs must exist in VP-INDEX"
+
+  - id: 10
+    name: demo_evidence_story_scoped
+    description: "All demo-recorder output MUST live under docs/demo-evidence/<STORY-ID>/. No flat files at docs/demo-evidence/*.md."
+    adopted: baseline
+    severity: HIGH
+    enforced_by: [adversary-prompt, consistency-validator, pr-reviewer, lint-hook]
+    scope: [story, demo-evidence, pr]
+    lint_hook: hooks/validate-demo-evidence-story-scoped.sh
+    verification_steps:
+      - "For each story's feature branch, verify docs/demo-evidence/<STORY-ID>/ exists"
+      - "Verify NO files exist at docs/demo-evidence/*.md — only subfolders"
+      - "Cross-check: subfolder name matches the story's frontmatter story_id"

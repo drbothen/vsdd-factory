@@ -13,9 +13,13 @@ total_vps: 57
 # VP-INDEX: Verification Properties Master Index
 
 > **Source of truth** for all verification properties.
-> Changes to any VP entry must propagate in the same burst to:
-> - `architecture/verification-architecture.md` (Provable Properties Catalog, P0/P1 lists)
-> - `architecture/verification-coverage-matrix.md` (VP-to-Module table, Totals row)
+> VP-INDEX is currently the authoritative source for the Provable Properties Catalog
+> and VP-to-Module coverage mapping.
+> `architecture/verification-architecture.md` and
+> `architecture/verification-coverage-matrix.md` are deferred — when created,
+> they will be derived from this index. Until then, use:
+> - §Full Index (scope column) as the VP-to-Module coverage table
+> - §Kani Upgrade Candidates / §Property-Test Upgrade Candidates as the P0/P1 priority lists
 
 ## Summary
 
@@ -33,9 +37,9 @@ total_vps: 57
 
 | Method | Count | VPs |
 |--------|-------|-----|
-| unit-test | 34 | VP-001(integration), VP-002..006, VP-007..010, VP-011..014, VP-016..026, VP-027, VP-029..032, VP-034..036, VP-038..042, VP-044..045, VP-049..050, VP-052 |
+| unit-test | 40 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052 |
 | integration | 8 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051 |
-| manual | 8 | VP-015, VP-046..048, VP-053..057 |
+| manual | 9 | VP-015, VP-046..048, VP-053..057 |
 | kani-proof | 0 | — (upgrade candidates: VP-020, VP-023, VP-042) |
 | property-test | 0 | — (upgrade candidates: VP-019, VP-029, VP-032) |
 

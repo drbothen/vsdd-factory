@@ -27,23 +27,41 @@ deployment_topology: single-service
 
 | Section | File | Primary Consumer | Purpose |
 |---------|------|-----------------|---------|
-| System Overview | system-overview.md | orchestrator, all agents | Architecture vision, two-subsystem model, principles |
-| Module Decomposition | module-decomposition.md | story-writer, implementer | Module catalog, Rust crates + plugin layer components |
-| Dependency Graph | dependency-graph.md | story-writer, consistency-validator | Inter-module dependencies, strict-downward direction |
-| API Surface | api-surface.md | test-writer, implementer | Host fn surface, plugin ABI, config schemas |
-| Verification Architecture | verification-architecture.md | formal-verifier, architect | Provable Properties Catalog, proof strategy |
-| Purity Boundary Map | purity-boundary-map.md | implementer, formal-verifier | Pure core / effectful shell classification |
-| Tooling Selection | tooling-selection.md | formal-verifier | Kani, proptest, fuzz tool versions and config |
-| Verification Coverage | verification-coverage-matrix.md | consistency-validator | VP-to-module coverage mapping |
+| SS-01 Hook Dispatcher Core | SS-01-hook-dispatcher.md | implementer, story-writer | Module catalog, host fns, sandbox model, Rust crates |
+| SS-02 Hook SDK & Plugin ABI | SS-02-hook-sdk.md | implementer, plugin authors | SDK API, manifest schema, capability declarations |
+| SS-03 Observability Sinks | SS-03-observability-sinks.md | implementer, story-writer | Sink drivers, fan-out, OTLP/file sink contracts |
+| SS-04 Plugin Ecosystem | SS-04-plugin-ecosystem.md | implementer, story-writer | legacy-bash-adapter, capture-commit-activity plugins |
+| SS-05 Pipeline Orchestration | SS-05-orchestration.md | orchestrator, story-writer | Agents, Lobster workflows, pipeline phase structure |
+| SS-06 Skill Catalog | SS-06-skill-catalog.md | story-writer, skill authors | 119 skills, SKILL.md contract, output routing |
+| SS-07 Hook Bash Layer | SS-07-hook-bash.md | implementer, formal-verifier | 44 bash hooks, registry bindings, exit code semantics |
+| SS-08 Templates & Rules | SS-08-templates-rules.md | story-writer, implementer | 108 templates, 9 rules, template compliance contracts |
+| SS-09 Config & Activation | SS-09-config-activation.md | implementer, story-writer | hooks.json variants, activation skill, CI platform config |
+| SS-10 CLI Tools & Bin | SS-10-cli-tools.md | implementer, story-writer | 12 bin tools, 110 slash-command bindings |
+
+### Future Sections (Deferred)
+
+The following cross-cutting documents were planned but are currently deferred.
+The per-subsystem SS-NN files above collectively cover their content:
+
+| Deferred File | Covered By |
+|---------------|-----------|
+| system-overview.md | ARCH-INDEX §Subsystem Registry + §Component Dependency Map |
+| module-decomposition.md | SS-01..SS-10 section files + §Subsystem Registry |
+| dependency-graph.md | §Component Dependency Map (Mermaid) in this file |
+| api-surface.md | SS-01-hook-dispatcher.md, SS-02-hook-sdk.md |
+| verification-architecture.md | VP-INDEX.md + SS-07-hook-bash.md |
+| purity-boundary-map.md | SS-01..SS-04 section files (purity notes per module) |
+| tooling-selection.md | VP-INDEX §Kani Upgrade Candidates + §Property-Test Upgrade Candidates |
+| verification-coverage-matrix.md | VP-INDEX §Full Index (scope column = module mapping) |
 
 ## Cross-References
 
 | If you need... | Read these together |
 |----------------|-------------------|
 | BC renumbering mapping | Subsystem Registry below (SS-NN → BC-S range) |
-| Implementation plan for a module | module-decomposition.md + dependency-graph.md + api-surface.md |
-| Verification plan for a module | verification-architecture.md + purity-boundary-map.md |
-| Story decomposition input | module-decomposition.md + dependency-graph.md |
+| Implementation plan for a module | SS-NN section file for that subsystem + §Subsystem Registry |
+| Verification plan for a module | VP-INDEX.md + SS-07-hook-bash.md (for hook VPs) |
+| Story decomposition input | SS-NN section files for relevant subsystems + §Component Dependency Map |
 
 ## Subsystem Registry
 
