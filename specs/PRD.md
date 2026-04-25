@@ -120,7 +120,7 @@ active backlog for rc.1 and 1.0 GA.
 - Code review as a service — adversarial review is an internal agent-to-agent quality gate, not a SaaS product
 - Hosted / SaaS deployment of the dispatcher — it runs locally on the developer's machine only
 - Plugin marketplace listing management — installation is via Claude Code's built-in plugin mechanism
-- securecomplex authentication at the dispatcher boundary (Claude Code is the trust boundary; no dispatcher auth)
+- Complex authentication at the dispatcher boundary (Claude Code is the trust boundary; no dispatcher auth)
 
 ---
 

@@ -13,7 +13,7 @@ inputs:
 traces_to: .factory/specs/domain-spec/capabilities.md
 ---
 
-# Story Index — vsdd-factory v1.0.0-greenfield
+# Story Index — vsdd-factory v1.0 (brownfield)
 
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
 > S-N.MM format. This index is the authoritative source for story count and status.
