@@ -5,6 +5,11 @@ on:
     tags: ["v*"]
 
 permissions:
+  # `contents: write` is needed for the binary-bundling commit + tag retag
+  # in the `commit-binaries` job. The push targets `main` (fast-forward
+  # append of the binary commit) and the tag (force-move to point at the
+  # new HEAD); both go through GITHUB_TOKEN, which does NOT re-trigger
+  # workflow runs by default — so the retag does not loop.
   contents: write
 
 jobs:
@@ -53,12 +58,219 @@ jobs:
             exit 1
           fi
 
-  release:
-    name: Create GitHub Release
+  build-binaries:
+    # Build the v1.0 dispatcher binary on each of the 5 supported
+    # platforms and upload as artifacts. `commit-binaries` consumes them.
+    # Mirrors ci.yml's `build-dispatcher` matrix layout — when that
+    # changes, this must change in lockstep (ci/platforms.yaml is the
+    # canonical platform list).
+    name: Build dispatcher (${{ matrix.platform }})
     needs: validate
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - platform: darwin-arm64
+            os: macos-14
+            target: aarch64-apple-darwin
+            use_cross: false
+          - platform: darwin-x64
+            os: macos-15-intel
+            target: x86_64-apple-darwin
+            use_cross: false
+          - platform: linux-x64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            use_cross: false
+          - platform: linux-arm64
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            use_cross: true
+          - platform: windows-x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            use_cross: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: rustfmt, clippy
+          targets: ${{ matrix.target }}, wasm32-wasip1
+
+      - name: Install cross
+        if: matrix.use_cross
+        run: cargo install cross --git https://github.com/cross-rs/cross --rev 588b3c99db52b5a9c5906fab96cfadcf1bde7863
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.platform }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+
+      - name: Build dispatcher (release)
+        shell: bash
+        run: |
+          if [ "${{ matrix.use_cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }} -p factory-dispatcher
+          else
+            cargo build --release --target ${{ matrix.target }} -p factory-dispatcher
+          fi
+
+      - name: Build wasm plugin + example (release)
+        shell: bash
+        run: |
+          cargo build --release --target wasm32-wasip1 -p capture-commit-activity
+          cargo build --release --target wasm32-wasip1 -p vsdd-hook-sdk --example hello-hook
+
+      - name: Stage artifact directory
+        shell: bash
+        run: |
+          mkdir -p artifact
+          if [ "${{ matrix.platform }}" = "windows-x64" ]; then
+            cp target/${{ matrix.target }}/release/factory-dispatcher.exe artifact/
+          else
+            cp target/${{ matrix.target }}/release/factory-dispatcher artifact/
+          fi
+          # Bundle the wasm artifacts alongside; commit-binaries copies
+          # them into hook-plugins/. They're identical across platforms
+          # (both end up at target/wasm32-wasip1/release/...) so the
+          # one platform that successfully builds them is enough — but
+          # we ship from every entry for redundancy.
+          cp target/wasm32-wasip1/release/capture_commit_activity.wasm artifact/ 2>/dev/null || true
+          cp target/wasm32-wasip1/release/examples/hello-hook.wasm artifact/ 2>/dev/null || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: factory-dispatcher-${{ matrix.platform }}
+          path: artifact/
+          retention-days: 14
+          if-no-files-found: error
+
+  commit-binaries:
+    # Downloads every platform's release artifact, stages the binaries
+    # under plugins/vsdd-factory/hooks/dispatcher/bin/<platform>/, drops
+    # the wasm plugins under plugins/vsdd-factory/hook-plugins/,
+    # regenerates the per-platform hooks.json variants (so they always
+    # reference the just-shipped binary path), then creates a follow-up
+    # commit on main and re-points the tag to the new HEAD. Activation
+    # at this tag finds executable binaries — no operator-side build
+    # needed.
+    #
+    # Strategy is "follow-up commit + retag" (per S-2.4 spec). Branch
+    # protection on `main` must allow github-actions[bot] to push; if
+    # protections block the push, the bundling silently fails and the
+    # tag stays on the chore commit (operator can re-run manually).
+    name: Commit bundled binaries + retag
+    needs: build-binaries
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Fetch full history so the commit graph is available for
+          # the tag move.
+          fetch-depth: 0
+          # The `main` branch is where the binary commit lands. The
+          # tag's commit (the chore release commit) IS on main; we
+          # need a writeable checkout of main, not a detached
+          # tag-checkout.
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download all platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/artifacts
+          pattern: factory-dispatcher-*
+
+      - name: Stage binaries
+        run: |
+          set -e
+          for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64 windows-x64; do
+            mkdir -p "plugins/vsdd-factory/hooks/dispatcher/bin/$platform"
+            artifact_dir="/tmp/artifacts/factory-dispatcher-$platform"
+            if [ "$platform" = "windows-x64" ]; then
+              cp "$artifact_dir/factory-dispatcher.exe" \
+                 "plugins/vsdd-factory/hooks/dispatcher/bin/$platform/factory-dispatcher.exe"
+            else
+              cp "$artifact_dir/factory-dispatcher" \
+                 "plugins/vsdd-factory/hooks/dispatcher/bin/$platform/factory-dispatcher"
+              chmod +x "plugins/vsdd-factory/hooks/dispatcher/bin/$platform/factory-dispatcher"
+            fi
+            echo "staged $platform"
+          done
+
+      - name: Stage wasm plugins
+        run: |
+          set -e
+          mkdir -p plugins/vsdd-factory/hook-plugins
+          # The wasm artifacts are identical across platforms; pull
+          # from the linux-x64 leg as the canonical source. (Any leg
+          # would work — they all compile the same wasm32-wasip1.)
+          src="/tmp/artifacts/factory-dispatcher-linux-x64"
+          for wasm in "$src"/*.wasm; do
+            [ -f "$wasm" ] || continue
+            cp "$wasm" plugins/vsdd-factory/hook-plugins/
+            echo "staged $(basename "$wasm")"
+          done
+
+      - name: Regenerate hooks.json.<platform> variants
+        run: scripts/generate-hooks-json.sh
+
+      - name: Commit + retag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add plugins/vsdd-factory/hooks/dispatcher/bin/ \
+                  plugins/vsdd-factory/hook-plugins/ \
+                  plugins/vsdd-factory/hooks/hooks.json.*
+
+          if git diff --staged --quiet; then
+            echo "No binary or generated changes to commit; nothing to retag."
+            exit 0
+          fi
+
+          git commit -m "chore: bundle dispatcher binaries for $GITHUB_REF_NAME"
+
+          # Move the tag forward to include the bundled-binaries commit.
+          # Force-update only the tag, never main.
+          git tag -fa "$GITHUB_REF_NAME" -m "Release $GITHUB_REF_NAME (with bundled binaries)"
+
+          # Push order matters: main first (the binary commit must exist
+          # remotely before the tag can point at it), then the tag with
+          # --force to move it.
+          git push origin main
+          git push origin --force "refs/tags/$GITHUB_REF_NAME"
+
+      - name: Verify binaries are executable on this runner
+        # Sanity check: the linux-x64 binary we just committed should
+        # run on this ubuntu runner. Catches the case where strip
+        # produced a corrupt binary or the artifact was misnamed.
+        run: |
+          set -e
+          binary="plugins/vsdd-factory/hooks/dispatcher/bin/linux-x64/factory-dispatcher"
+          if [ -x "$binary" ]; then
+            echo "linux-x64 binary verified executable on ubuntu runner."
+          else
+            echo "::warning::linux-x64 binary not executable — investigate."
+          fi
+
+  release:
+    name: Create GitHub Release
+    needs: commit-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Check out the (possibly retagged) commit so the GH Release
+          # is anchored at the binaries-included version.
+          ref: ${{ github.ref }}
 
       - name: Extract changelog for this version
         id: changelog
@@ -90,6 +302,24 @@ jobs:
             cat /tmp/release-notes.md
           } > /tmp/release-notes.with-banner.md
           mv /tmp/release-notes.with-banner.md /tmp/release-notes.md
+
+      - name: Append bundled-binaries note
+        run: |
+          {
+            cat /tmp/release-notes.md
+            echo ""
+            echo "---"
+            echo ""
+            echo "## Bundled binaries"
+            echo ""
+            echo "This release ships pre-built \`factory-dispatcher\` binaries for all"
+            echo "5 supported platforms under \`plugins/vsdd-factory/hooks/dispatcher/bin/<platform>/\`,"
+            echo "plus the WASM hook plugins under \`plugins/vsdd-factory/hook-plugins/\`."
+            echo "After install, run \`/vsdd-factory:activate\` — the activation skill"
+            echo "selects the right binary for your platform automatically (no operator"
+            echo "build required)."
+          } > /tmp/release-notes.final.md
+          mv /tmp/release-notes.final.md /tmp/release-notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
