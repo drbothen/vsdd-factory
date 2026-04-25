@@ -54,11 +54,19 @@ pub struct TierExecutionSummary {
 /// Inputs into a single `execute_tiers` call. Borrowing the engine and
 /// cache; owning the registry + payload so the caller can construct
 /// them fresh per invocation.
+///
+/// `payload_value` is the *base* envelope (with `dispatcher_trace_id`
+/// already injected by main.rs). The executor deep-clones it per plugin
+/// and splices in `plugin_config` from the registry entry before
+/// serializing to bytes for invoke. Per-plugin spliced bytes mean two
+/// plugins in the same tier never see each other's config — exactly
+/// what the legacy-bash-adapter (S-2.1) needs to multiplex over a
+/// single shared adapter wasm.
 pub struct ExecutorInputs<'a> {
     pub engine: &'a Engine,
     pub cache: &'a PluginCache,
     pub registry: &'a Registry,
-    pub payload_json: Vec<u8>,
+    pub payload_value: serde_json::Value,
     pub base_host_ctx: HostContext,
     /// Mirror of the dispatcher's internal log, used to emit plugin
     /// lifecycle events. Held in an `Arc` so per-plugin tasks can
@@ -109,7 +117,38 @@ async fn execute_tier<'a>(
             fuel_cap: entry_clone.fuel_cap(&inputs.registry.defaults),
         };
         let on_error = entry_clone.on_error(&inputs.registry.defaults);
-        let payload = inputs.payload_json.clone();
+        // Splice this entry's per-plugin config onto the base envelope.
+        // Cheap clone since `payload_value` is a small JSON tree, and
+        // doing it per-plugin guarantees one entry never sees another's
+        // config — even when several entries share the same wasm
+        // (e.g. multiple legacy-bash-adapter registrations).
+        let mut per_plugin_value = inputs.payload_value.clone();
+        if let Some(map) = per_plugin_value.as_object_mut() {
+            map.insert("plugin_config".to_string(), entry_clone.config_as_json());
+        }
+        let payload = match serde_json::to_vec(&per_plugin_value) {
+            Ok(v) => v,
+            Err(e) => {
+                let result = PluginResult::Crashed {
+                    trap_string: format!("payload serialize: {e}"),
+                    elapsed_ms: 0,
+                    fuel_consumed: 0,
+                };
+                emit_lifecycle(
+                    &inputs.internal_log,
+                    &inputs.base_host_ctx,
+                    &entry_clone,
+                    &result,
+                );
+                join_handles.push(JoinWrap::Ready(PluginOutcome {
+                    plugin_name: entry_clone.name.clone(),
+                    plugin_version: inputs.base_host_ctx.plugin_version.clone(),
+                    on_error,
+                    result,
+                }));
+                continue;
+            }
+        };
         let internal_log = inputs.internal_log.clone();
 
         let mut host_ctx = inputs.base_host_ctx.clone();

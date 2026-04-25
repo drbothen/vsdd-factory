@@ -135,7 +135,8 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // includes a `dispatcher_trace_id` field the dispatcher just
     // assigned. Inject it into the serialized JSON before handing off
     // — plugins built against the SDK reject payloads missing this
-    // field with a hard error.
+    // field with a hard error. The executor splices in `plugin_config`
+    // per plugin from the registry entry; we do not inject it here.
     let mut payload_value = serde_json::to_value(&payload)?;
     if let Some(map) = payload_value.as_object_mut() {
         map.insert(
@@ -143,13 +144,12 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
             serde_json::Value::String(trace_id.clone()),
         );
     }
-    let payload_json = serde_json::to_vec(&payload_value)?;
 
     let inputs = ExecutorInputs {
         engine: &engine,
         cache: &cache,
         registry: &registry,
-        payload_json,
+        payload_value,
         base_host_ctx,
         internal_log: internal_log.clone(),
     };

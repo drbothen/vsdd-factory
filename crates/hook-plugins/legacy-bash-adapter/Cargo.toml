@@ -1,0 +1,26 @@
+[package]
+name = "legacy-bash-adapter"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: bridge that runs unported v0.79.x bash hooks via vsdd-factory's exec_subprocess host fn"
+publish = false
+
+# Hook plugins ship as WASI commands (`_start` entry point), built via
+# `cargo build --target wasm32-wasip1`. The `[lib]` target carries the
+# testable adapter logic + unit tests so we don't have to spin up wasmtime
+# for shape-level coverage; the `[[bin]]` is just the macro-generated
+# entry that calls into the lib.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "legacy-bash-adapter"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde_json = { workspace = true }

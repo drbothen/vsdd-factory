@@ -57,6 +57,7 @@ fn entry_at(path: &std::path::Path, name: &str, priority: u32) -> RegistryEntry 
         fuel_cap: Some(1_000_000_000),
         on_error: None,
         capabilities: Some(Capabilities::default()),
+        config: toml::Value::Table(toml::Table::new()),
     }
 }
 
@@ -81,7 +82,7 @@ fn inputs<'a>(
         engine,
         cache,
         registry,
-        payload_json: b"{}".to_vec(),
+        payload_value: serde_json::json!({}),
         base_host_ctx: base,
         internal_log: internal_log.clone(),
     }

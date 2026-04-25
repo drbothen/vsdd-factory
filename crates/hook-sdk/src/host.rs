@@ -213,10 +213,12 @@ pub struct SubprocessResult {
 }
 
 /// Spawn a subprocess against the dispatcher's binary allow-list.
-/// `timeout_ms` and `max_output_bytes` are mandatory.
+/// `timeout_ms` and `max_output_bytes` are mandatory. Pass `&[]` for
+/// `stdin` if the subprocess should receive no input (the common case).
 pub fn exec_subprocess(
     cmd: &str,
     args: &[&str],
+    stdin: &[u8],
     timeout_ms: u32,
     max_output_bytes: u32,
 ) -> Result<SubprocessResult, HostError> {
@@ -229,6 +231,8 @@ pub fn exec_subprocess(
         cmd_bytes.len() as u32,
         args_buf.as_ptr(),
         args_buf.len() as u32,
+        stdin.as_ptr(),
+        stdin.len() as u32,
         timeout_ms,
         max_output_bytes,
         &mut result_ptr,

@@ -404,10 +404,9 @@ fn setup_host_on_store_data(
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
-    // read_file and exec_subprocess aren't reachable by invoke-path
-    // tests yet (no capability-exerciser plugin in-tree). Register
-    // stubs that return CAPABILITY_DENIED so a misbehaving plugin
-    // fails loudly rather than traps on a missing import.
+    // read_file isn't reachable by any in-tree plugin yet. Register a
+    // stub that returns CAPABILITY_DENIED so a misbehaving plugin fails
+    // loudly rather than traps on a missing import.
     linker
         .func_wrap(
             "vsdd",
@@ -422,20 +421,80 @@ fn setup_host_on_store_data(
              -> i32 { codes::CAPABILITY_DENIED },
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
+
+    // exec_subprocess: real implementation that delegates to the
+    // crate::host::exec_subprocess policy + executor. The legacy-bash-
+    // adapter (S-2.1) needs this path live so it can shell out to bash
+    // hooks; tests in crate::host::exec_subprocess cover the policy.
     linker
         .func_wrap(
             "vsdd",
             "exec_subprocess",
-            |_caller: Caller<'_, StoreData>,
-             _p1: u32,
-             _p2: u32,
-             _p3: u32,
-             _p4: u32,
-             _p5: u32,
-             _p6: u32,
-             _p7: u32,
-             _p8: u32|
-             -> i32 { codes::CAPABILITY_DENIED },
+            |mut caller: Caller<'_, StoreData>,
+             cmd_ptr: u32,
+             cmd_len: u32,
+             args_ptr: u32,
+             args_len: u32,
+             stdin_ptr: u32,
+             stdin_len: u32,
+             timeout_ms: u32,
+             max_output_bytes: u32,
+             result_ptr_out: u32,
+             result_len_out: u32|
+             -> i32 {
+                let cmd = match read_wasm_string_sd(&mut caller, cmd_ptr, cmd_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+                let args_buf = match read_wasm_bytes_sd(&mut caller, args_ptr, args_len) {
+                    Ok(b) => b,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+                let args = match crate::host::exec_subprocess::decode_args(&args_buf) {
+                    Some(a) => a,
+                    None => return codes::INVALID_ARGUMENT,
+                };
+                let stdin_bytes = if stdin_len == 0 {
+                    Vec::new()
+                } else {
+                    match read_wasm_bytes_sd(&mut caller, stdin_ptr, stdin_len) {
+                        Ok(b) => b,
+                        Err(_) => return codes::INVALID_ARGUMENT,
+                    }
+                };
+
+                let envelope = match crate::host::exec_subprocess::run(
+                    &caller.data().host,
+                    &cmd,
+                    &args,
+                    &stdin_bytes,
+                    timeout_ms,
+                    max_output_bytes,
+                ) {
+                    Ok(env) => env,
+                    Err(code) => return code,
+                };
+
+                // Write the envelope at offset 0 of guest memory and
+                // tell the guest where to find it via the out pointers.
+                // Same protocol as host/exec_subprocess.rs — see that
+                // module for the trade-off note about offset 0.
+                if write_wasm_u32_sd(&mut caller, result_ptr_out, 0).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                if write_wasm_u32_sd(&mut caller, result_len_out, envelope.len() as u32).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                let written =
+                    match write_wasm_bytes_sd(&mut caller, 0, envelope.len() as u32, &envelope) {
+                        Ok(n) => n,
+                        Err(_) => return codes::INVALID_ARGUMENT,
+                    };
+                if written != envelope.len() as u32 {
+                    return codes::OUTPUT_TOO_LARGE;
+                }
+                codes::OK
+            },
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
@@ -554,15 +613,6 @@ fn write_wasm_u32_sd(
 pub struct StoreData {
     pub host: HostContext,
     pub wasi: WasiP1Ctx,
-}
-
-// Keep write_wasm_u32_sd reachable from the compiled library even while
-// the read_file / exec_subprocess proxies above still stub out to
-// CAPABILITY_DENIED. Remove this once those branches promote to full
-// enforcement.
-#[allow(dead_code)]
-fn _keep_live() -> fn(&mut Caller<'_, StoreData>, u32, u32) -> Result<(), HostCallError> {
-    write_wasm_u32_sd
 }
 
 #[cfg(test)]

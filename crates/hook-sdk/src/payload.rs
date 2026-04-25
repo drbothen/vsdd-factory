@@ -41,6 +41,15 @@ pub struct HookPayload {
     /// `PreToolUse` and other pre-call events. Schema varies per tool.
     #[serde(default)]
     pub tool_response: Option<serde_json::Value>,
+
+    /// Per-plugin configuration sourced from the registry entry's
+    /// `[hooks.config]` table. Schema is plugin-defined; the dispatcher
+    /// only forwards. Defaults to `Value::Null` when no config block is
+    /// present in the registry. Used by the legacy-bash-adapter (S-2.1)
+    /// to receive its `script_path`, and available to any future plugin
+    /// that needs declarative configuration alongside its registration.
+    #[serde(default)]
+    pub plugin_config: serde_json::Value,
 }
 
 #[cfg(test)]
@@ -120,5 +129,33 @@ mod tests {
         let round: HookPayload = serde_json::from_str(&json).expect("round-trip");
         assert_eq!(round.event_name, original.event_name);
         assert_eq!(round.session_id, original.session_id);
+    }
+
+    #[test]
+    fn plugin_config_defaults_to_null_when_missing() {
+        let p = fixture(
+            r#"{
+                "event_name": "PreToolUse",
+                "session_id": "s",
+                "dispatcher_trace_id": "t"
+            }"#,
+        );
+        assert!(p.plugin_config.is_null());
+    }
+
+    #[test]
+    fn plugin_config_passes_through_when_present() {
+        let p = fixture(
+            r#"{
+                "event_name": "PreToolUse",
+                "session_id": "s",
+                "dispatcher_trace_id": "t",
+                "plugin_config": {"script_path": "hooks/foo.sh"}
+            }"#,
+        );
+        assert_eq!(
+            p.plugin_config.get("script_path").and_then(|v| v.as_str()),
+            Some("hooks/foo.sh"),
+        );
     }
 }

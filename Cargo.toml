@@ -5,6 +5,7 @@ members = [
     "crates/hook-sdk",
     "crates/hook-sdk-macros",
     "crates/hook-plugins/capture-commit-activity",
+    "crates/hook-plugins/legacy-bash-adapter",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",

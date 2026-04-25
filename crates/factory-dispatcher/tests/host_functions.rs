@@ -18,7 +18,7 @@ const WAT_SMOKE: &str = r#"
   (import "vsdd" "env" (func $env (param i32 i32 i32 i32) (result i32)))
   (import "vsdd" "read_file" (func $rf (param i32 i32 i32 i32 i32 i32) (result i32)))
   (import "vsdd" "exec_subprocess"
-    (func $exec (param i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
+    (func $exec (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
   (memory (export "memory") 1)
   (func (export "_start")
     nop))

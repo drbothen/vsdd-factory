@@ -112,7 +112,11 @@ impl Default for RegistryDefaults {
 }
 
 /// A single plugin registration.
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+///
+/// `Eq` was deliberately dropped from the derives when the `config`
+/// field landed: `toml::Value` carries `Float`, which is `PartialEq` but
+/// not `Eq`. Tests use `assert_eq!`, which only needs `PartialEq`.
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct RegistryEntry {
     /// Stable identifier, e.g. `"capture-commit-activity"`. Unique
@@ -159,10 +163,25 @@ pub struct RegistryEntry {
     /// (`log`, `emit_event`, `session_id`, etc.).
     #[serde(default)]
     pub capabilities: Option<Capabilities>,
+
+    /// Per-plugin configuration. The dispatcher forwards this verbatim
+    /// as `plugin_config` on the [`HookPayload`] handed to the plugin.
+    /// Schema is plugin-defined; the registry only carries it through.
+    /// Default is an empty TOML table — distinguishable from "missing"
+    /// by plugin code that wants to require keys (the legacy-bash-
+    /// adapter, S-2.1, demands `script_path`).
+    ///
+    /// [`HookPayload`]: vsdd_hook_sdk::HookPayload
+    #[serde(default = "default_config")]
+    pub config: toml::Value,
 }
 
 fn default_enabled() -> bool {
     true
+}
+
+fn default_config() -> toml::Value {
+    toml::Value::Table(toml::Table::new())
 }
 
 impl RegistryEntry {
@@ -181,10 +200,39 @@ impl RegistryEntry {
     pub fn on_error(&self, defaults: &RegistryDefaults) -> OnError {
         self.on_error.unwrap_or(defaults.on_error)
     }
+
+    /// Convert the registry-side `config` (TOML) into the JSON shape
+    /// that lands on `HookPayload.plugin_config`. JSON-incompatible
+    /// TOML scalars (datetime, NaN/inf floats) flatten to strings or
+    /// null respectively; in practice the registry only carries
+    /// strings, ints, bools, arrays, and tables.
+    pub fn config_as_json(&self) -> serde_json::Value {
+        toml_to_json(&self.config)
+    }
+}
+
+fn toml_to_json(value: &toml::Value) -> serde_json::Value {
+    match value {
+        toml::Value::String(s) => serde_json::Value::String(s.clone()),
+        toml::Value::Integer(i) => serde_json::Value::Number((*i).into()),
+        toml::Value::Float(f) => serde_json::Number::from_f64(*f)
+            .map(serde_json::Value::Number)
+            .unwrap_or(serde_json::Value::Null),
+        toml::Value::Boolean(b) => serde_json::Value::Bool(*b),
+        toml::Value::Datetime(d) => serde_json::Value::String(d.to_string()),
+        toml::Value::Array(arr) => serde_json::Value::Array(arr.iter().map(toml_to_json).collect()),
+        toml::Value::Table(tab) => serde_json::Value::Object(
+            tab.iter()
+                .map(|(k, v)| (k.clone(), toml_to_json(v)))
+                .collect(),
+        ),
+    }
 }
 
 /// The whole parsed registry.
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+///
+/// See [`RegistryEntry`] for why `Eq` is not derived.
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Registry {
     pub schema_version: u32,
@@ -282,6 +330,46 @@ plugin = "plugins/commit.wasm"
         assert_eq!(reg.hooks[0].event, "PostToolUse");
         assert_eq!(reg.hooks[0].tool.as_deref(), Some("Bash"));
         assert!(reg.hooks[0].enabled);
+    }
+
+    #[test]
+    fn config_defaults_to_empty_table_when_absent() {
+        let reg = Registry::parse_str(minimal_toml()).unwrap();
+        assert!(reg.hooks[0].config.is_table());
+        assert_eq!(reg.hooks[0].config.as_table().unwrap().len(), 0);
+        let as_json = reg.hooks[0].config_as_json();
+        assert!(as_json.is_object());
+        assert!(as_json.as_object().unwrap().is_empty());
+    }
+
+    #[test]
+    fn config_block_parses_into_entry() {
+        // Real-shape registry as the legacy-bash-adapter operator
+        // would write — string + nested table.
+        let toml = r#"
+schema_version = 1
+
+[[hooks]]
+name = "validate-template"
+event = "PostToolUse"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+
+[hooks.config]
+script_path = "legacy-hooks/validate-template.sh"
+extra = { key = "value" }
+"#;
+        let reg = Registry::parse_str(toml).unwrap();
+        let cfg = reg.hooks[0].config_as_json();
+        assert_eq!(
+            cfg.get("script_path").and_then(|v| v.as_str()),
+            Some("legacy-hooks/validate-template.sh"),
+        );
+        assert_eq!(
+            cfg.get("extra")
+                .and_then(|v| v.get("key"))
+                .and_then(|v| v.as_str()),
+            Some("value"),
+        );
     }
 
     #[test]

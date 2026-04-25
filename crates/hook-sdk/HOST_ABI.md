@@ -132,11 +132,17 @@ the bytes and surfaces them to the plugin.
 `max_bytes` and `timeout_ms` are mandatory. Return: `0` on success or a
 negative error code.
 
-### `exec_subprocess(cmd_ptr, cmd_len, args_ptr, args_len, timeout_ms, max_output_bytes, result_ptr_out, result_len_out) -> i32`
+### `exec_subprocess(cmd_ptr, cmd_len, args_ptr, args_len, stdin_ptr, stdin_len, timeout_ms, max_output_bytes, result_ptr_out, result_len_out) -> i32`
 
 Run a subprocess against the dispatcher's binary allow-list. `cmd` is the
 basename or absolute path; `args` is a length-prefixed sequence of
 arguments (same encoding as `emit_event`'s fields, key-only).
+
+`(stdin_ptr, stdin_len)` is an optional payload written to the
+subprocess's stdin. Pass `(_, 0)` for no stdin (the host wires
+`Stdio::null()` and skips the write). The legacy-bash-adapter (S-2.1)
+uses this to forward the Claude Code hook envelope unchanged to bash
+hooks.
 
 The host writes a result envelope at `(result_ptr_out, result_len_out)`:
 

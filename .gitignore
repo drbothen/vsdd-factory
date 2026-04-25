@@ -6,6 +6,10 @@ node_modules/
 .factory/
 # Reference codebases — cloned for brownfield-ingest analysis, never committed to main
 .reference/
+# Subagent isolation worktrees — created by Agent(isolation: "worktree") and
+# left behind when the worker process is still attached. They embed a git
+# repo, which `git add -A` would otherwise try to stage as a submodule.
+.claude/worktrees/
 
 # factory-obs generated override file (multi-factory compose layer).
 # Regenerated per-machine from ~/.config/vsdd-factory/watched-factories.
