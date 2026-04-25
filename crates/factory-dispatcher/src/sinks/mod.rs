@@ -25,6 +25,7 @@ use std::path::Path;
 use serde::Deserialize;
 use sink_core::{Sink, SinkEvent};
 use sink_file::{FileSink, FileSinkConfig};
+use sink_otel_grpc::{OtelGrpcConfig, OtelGrpcSink};
 
 pub mod router;
 
@@ -151,9 +152,22 @@ impl SinkRegistry {
                     let sink = FileSink::new(cfg, project_dir.clone())?;
                     sinks.push(Box::new(sink));
                 }
+                "otel-grpc" => {
+                    // S-1.9: OTLP/gRPC log forwarder. Same name-merge
+                    // dance as file: the `name` lives at the stanza
+                    // level, and the driver expects it inside its
+                    // typed config.
+                    let mut merged = stanza.extra.clone();
+                    merged.insert("name".into(), toml::Value::String(stanza.name.clone()));
+                    let cfg: OtelGrpcConfig = merged.try_into().map_err(|e| {
+                        anyhow::anyhow!("otel-grpc sink '{}' config invalid: {}", stanza.name, e)
+                    })?;
+                    let sink = OtelGrpcSink::new(cfg)?;
+                    sinks.push(Box::new(sink));
+                }
                 other => {
                     eprintln!(
-                        "factory-dispatcher: unknown sink type '{}' (stanza '{}'); skipping. Supported in v1.0-beta.1: file",
+                        "factory-dispatcher: unknown sink type '{}' (stanza '{}'); skipping. Supported in v1.0-beta.1: file, otel-grpc",
                         other, stanza.name
                     );
                 }
@@ -265,5 +279,32 @@ mod tests {
         let reg = SinkRegistry::from_config(cfg).unwrap();
         assert_eq!(reg.sinks().len(), 1);
         assert_eq!(reg.sinks()[0].name(), "local-events");
+    }
+
+    #[test]
+    fn load_builds_otel_grpc_sink_from_parsed_config() {
+        // S-1.9: a `type = "otel-grpc"` stanza with an unreachable
+        // endpoint still constructs (worker connects lazily) — the
+        // registry path is what we're exercising here, not the gRPC
+        // round-trip. Endpoint-unreachable behavior is covered in the
+        // integration test in `tests/sinks_otel_grpc.rs`.
+        let mut extra = toml::value::Table::new();
+        extra.insert(
+            "endpoint".into(),
+            toml::Value::String("http://127.0.0.1:1".into()),
+        );
+        let cfg = ObservabilityConfig {
+            schema_version: 1,
+            sinks: vec![SinkStanza {
+                type_: "otel-grpc".into(),
+                name: "local-grafana".into(),
+                extra,
+            }],
+        };
+        let reg = SinkRegistry::from_config(cfg).unwrap();
+        assert_eq!(reg.sinks().len(), 1);
+        assert_eq!(reg.sinks()[0].name(), "local-grafana");
+        // Cleanly drain the worker before the registry drops.
+        reg.shutdown_all();
     }
 }

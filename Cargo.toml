@@ -7,6 +7,7 @@ members = [
     "crates/hook-plugins/capture-commit-activity",
     "crates/sink-core",
     "crates/sink-file",
+    "crates/sink-otel-grpc",
 ]
 
 [workspace.package]
@@ -38,6 +39,17 @@ tempfile = "3"
 chrono = { version = "0.4", features = ["serde"] }
 filetime = "0.2"
 wat = "1"
+# OTLP/gRPC sink (S-1.9). The opentelemetry crate ecosystem moves in
+# lockstep at 0.31 as of April 2026; pin all four together so a
+# cargo-update on one doesn't break the others. `gen-tonic` pulls in
+# the tonic 0.14 + prost 0.14 codegen path that opentelemetry-otlp 0.31
+# itself uses, so the mock OTLP receiver in our integration test can
+# reuse the same generated server stub the dispatcher uses for the
+# client.
+opentelemetry-proto = { version = "0.31", default-features = false, features = ["gen-tonic", "logs"] }
+tonic = "0.14"
+tokio-stream = { version = "0.1", features = ["net"] }
+hostname = "0.4"
 
 [profile.release]
 opt-level = 3
