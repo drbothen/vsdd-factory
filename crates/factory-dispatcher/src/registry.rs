@@ -423,11 +423,19 @@ priority = 900
         // expecting it to resolve under ${CLAUDE_PLUGIN_ROOT}, not cwd.
         // Regression for a smoke-test bug where the dispatcher reported
         // "plugin file not found" for a perfectly valid relative path.
+        // The "absolute" fixture uses tempdir() to get a platform-native
+        // absolute path (Path::is_absolute is platform-defined: POSIX
+        // /paths/ are not absolute on Windows).
         let dir = tempfile::tempdir().unwrap();
         let reg_path = dir.path().join("hooks-registry.toml");
+        let abs_dir = tempfile::tempdir().unwrap();
+        let abs_plugin = abs_dir.path().join("explicit.wasm");
+        assert!(abs_plugin.is_absolute());
+        let abs_str = abs_plugin.to_str().unwrap().replace('\\', "/");
         std::fs::write(
             &reg_path,
-            r#"
+            format!(
+                r#"
 schema_version = 1
 
 [[hooks]]
@@ -438,36 +446,39 @@ plugin = "rel-plugin.wasm"
 [[hooks]]
 name = "abs"
 event = "PreToolUse"
-plugin = "/explicit/absolute/path.wasm"
-"#,
+plugin = "{abs_str}"
+"#
+            ),
         )
         .unwrap();
         let reg = Registry::load(&reg_path).unwrap();
         assert_eq!(reg.hooks[0].plugin, dir.path().join("rel-plugin.wasm"));
-        assert_eq!(
-            reg.hooks[1].plugin,
-            PathBuf::from("/explicit/absolute/path.wasm")
-        );
+        assert_eq!(reg.hooks[1].plugin, PathBuf::from(&abs_str));
     }
 
     #[test]
     fn resolve_plugin_paths_is_idempotent_for_absolute_paths() {
         let dir = tempfile::tempdir().unwrap();
-        let mut reg = Registry::parse_str(
+        let abs_dir = tempfile::tempdir().unwrap();
+        let abs_plugin = abs_dir.path().join("x.wasm");
+        assert!(abs_plugin.is_absolute());
+        let abs_str = abs_plugin.to_str().unwrap().replace('\\', "/");
+        let mut reg = Registry::parse_str(&format!(
             r#"
 schema_version = 1
 
 [[hooks]]
 name = "x"
 event = "PreToolUse"
-plugin = "/abs/x.wasm"
-"#,
-        )
+plugin = "{abs_str}"
+"#
+        ))
         .unwrap();
+        let expected = reg.hooks[0].plugin.clone();
         reg.resolve_plugin_paths(dir.path());
         // Absolute path stays absolute.
-        assert_eq!(reg.hooks[0].plugin, PathBuf::from("/abs/x.wasm"));
+        assert_eq!(reg.hooks[0].plugin, expected);
         reg.resolve_plugin_paths(dir.path());
-        assert_eq!(reg.hooks[0].plugin, PathBuf::from("/abs/x.wasm"));
+        assert_eq!(reg.hooks[0].plugin, expected);
     }
 }
