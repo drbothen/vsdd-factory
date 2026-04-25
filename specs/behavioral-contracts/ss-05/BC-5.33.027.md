@@ -62,7 +62,7 @@ Step `design-drift-scan` (line 242). Type: skill. Skill: `skills/design-drift-de
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step gated by has_ui | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step gated by has_ui | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

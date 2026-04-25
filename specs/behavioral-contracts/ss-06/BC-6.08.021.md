@@ -60,7 +60,7 @@ record-demo: commits evidence to factory-artifacts. Confidence: HIGH. Extracted 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Single commit per story tagged with phase-3 prefix. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Single commit per story tagged with phase-3 prefix. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Single commit per story tagged with phase-3 prefix.
+- [TBD — to be assigned in Phase 1.6c] — Single commit per story tagged with phase-3 prefix.
 
 ---
 

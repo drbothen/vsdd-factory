@@ -67,7 +67,7 @@ After any structural change to phases or steps: 1) `lobster-parse` succeeds on a
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — promote acceptance criterion to a structural/lint test | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — promote acceptance criterion to a structural/lint test | manual |
 
 ## Traceability
 

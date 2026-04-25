@@ -60,7 +60,7 @@ research-cache-ops: six operations (stats/key/has/get/put/clear). Confidence: HI
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill exposes exactly these six operations. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill exposes exactly these six operations. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill exposes exactly these six operations.
+- [TBD — to be assigned in Phase 1.6c] — Skill exposes exactly these six operations.
 
 ---
 

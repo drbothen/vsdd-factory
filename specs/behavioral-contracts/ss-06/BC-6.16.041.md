@@ -60,7 +60,7 @@ run-phase: validates workflow before execution. Confidence: HIGH. Extracted from
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Workflow with no name or zero steps fails before execution. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Workflow with no name or zero steps fails before execution. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow with no name or zero steps fails before execution.
+- [TBD — to be assigned in Phase 1.6c] — Workflow with no name or zero steps fails before execution.
 
 ---
 

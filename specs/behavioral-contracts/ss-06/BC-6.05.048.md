@@ -60,7 +60,7 @@ research: domain vs general routing by first arg. Confidence: HIGH. Extracted fr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Output filename prefix matches (`domain-` vs `general-`). | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Output filename prefix matches (`domain-` vs `general-`). | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Output filename prefix matches (`domain-` vs `general-`).
+- [TBD — to be assigned in Phase 1.6c] — Output filename prefix matches (`domain-` vs `general-`).
 
 ---
 

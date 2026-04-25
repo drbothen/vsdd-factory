@@ -60,7 +60,7 @@ validate-brief: implementation-leakage tech-name scanner. Confidence: HIGH. Extr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each detected token classified by section + severity. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each detected token classified by section + severity. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each detected token classified by section + severity.
+- [TBD — to be assigned in Phase 1.6c] — Each detected token classified by section + severity.
 
 ---
 

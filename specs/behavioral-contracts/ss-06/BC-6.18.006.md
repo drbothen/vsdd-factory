@@ -60,7 +60,7 @@ pr-review-triage: identity & dispatch role. Confidence: HIGH. Extracted from `pl
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill is referenced by pr-manager only; not user-invoked. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill is referenced by pr-manager only; not user-invoked. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill is referenced by pr-manager only; not user-invoked.
+- [TBD — to be assigned in Phase 1.6c] — Skill is referenced by pr-manager only; not user-invoked.
 
 ---
 

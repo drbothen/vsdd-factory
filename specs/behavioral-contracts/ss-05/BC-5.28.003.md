@@ -67,7 +67,7 @@ Workflow contract: greenfield: terminal-step.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``process-review-decisions` (line 1398) — agent: state-manager, depends `[session-review-approval]`. Final post-pipeline housekeeping that processes human review decisions.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``process-review-decisions` (line 1398) — agent: state-manager, depends `[session-review-approval]`. Final post-pipeline housekeeping that processes human review decisions.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``process-review-decisions` (line 1398) — agent: state-manager, depends `[session-review-approval]`. Final post-pipeline housekeeping that processes human review decisions.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``process-review-decisions` (line 1398) — agent: state-manager, depends `[session-review-approval]`. Final post-pipeline housekeeping that processes human review decisions.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

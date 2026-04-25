@@ -68,7 +68,7 @@ activate: aborts on unsupported platform. Skill MUST print `detected_from.raw_un
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "On exit 1 from detect-platform, no settings.local.json mutation occurs and activation is reported aborted." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "On exit 1 from detect-platform, no settings.local.json mutation occurs and activation is reported aborted." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

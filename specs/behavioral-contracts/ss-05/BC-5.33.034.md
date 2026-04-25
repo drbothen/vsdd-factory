@@ -61,7 +61,7 @@ Step `notifications` (line 348). Type: agent. Agent: orchestrator. Depends: `[fi
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Severity mapping matches table | manual |
+| (TBD — to be assigned in Phase 1.6c) | Severity mapping matches table | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

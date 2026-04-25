@@ -68,7 +68,7 @@ design-system-bootstrap: minimal bootstrap fallback when no brand guidelines. Cr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Tokens populated with documented neutral defaults; human-override path documented." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Tokens populated with documented neutral defaults; human-override path documented." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

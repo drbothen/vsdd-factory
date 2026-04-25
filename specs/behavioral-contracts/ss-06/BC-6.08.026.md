@@ -60,7 +60,7 @@ responsive-validation: failure modes (resize/screenshot/auth). Confidence: HIGH.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each failure mode has documented recovery; skill never silently drops a screen. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each failure mode has documented recovery; skill never silently drops a screen. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each failure mode has documented recovery; skill never silently drops a screen.
+- [TBD — to be assigned in Phase 1.6c] — Each failure mode has documented recovery; skill never silently drops a screen.
 
 ---
 

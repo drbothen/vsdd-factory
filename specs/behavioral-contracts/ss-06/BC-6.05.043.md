@@ -65,7 +65,7 @@ Cross-reference findings across at least 2 independent sources. Date-stamp all f
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

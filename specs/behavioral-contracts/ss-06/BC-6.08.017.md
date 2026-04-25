@@ -60,7 +60,7 @@ record-demo: identity & template usage. Confidence: HIGH. Extracted from `plugin
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Frontmatter and template references match the three named templates. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Frontmatter and template references match the three named templates. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Frontmatter and template references match the three named templates.
+- [TBD — to be assigned in Phase 1.6c] — Frontmatter and template references match the three named templates.
 
 ---
 

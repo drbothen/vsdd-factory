@@ -60,7 +60,7 @@ traceability-extension: architecture-section-level references (DF-021). Confiden
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No traceability row points to monolithic ARCH-INDEX.md. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No traceability row points to monolithic ARCH-INDEX.md. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No traceability row points to monolithic ARCH-INDEX.md.
+- [TBD — to be assigned in Phase 1.6c] — No traceability row points to monolithic ARCH-INDEX.md.
 
 ---
 

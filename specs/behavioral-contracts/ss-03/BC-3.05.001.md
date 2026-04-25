@@ -67,7 +67,7 @@ Given ObservabilityConfig with one `type="file"` stanza named "local-events", pa
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given ObservabilityConfig with one `type="file"` stanza named "local-events", path_template, enabled=true. When `SinkReg | manual (existing test: `crates/factory-dispatcher/src/sinks/mod.rs::tests::load_builds_file_sink_from_parsed_config`) |
+| (TBD — to be assigned in Phase 1.6c) | Given ObservabilityConfig with one `type="file"` stanza named "local-events", path_template, enabled=true. When `SinkReg | manual (existing test: `crates/factory-dispatcher/src/sinks/mod.rs::tests::load_builds_file_sink_from_parsed_config`) |
 
 ## Traceability
 

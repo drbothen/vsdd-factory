@@ -60,7 +60,7 @@ wave-gate: 8-row red-flag rationalization table. Confidence: HIGH. Extracted fro
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each rationalization has the explicit counter. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each rationalization has the explicit counter. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each rationalization has the explicit counter.
+- [TBD — to be assigned in Phase 1.6c] — Each rationalization has the explicit counter.
 
 ---
 

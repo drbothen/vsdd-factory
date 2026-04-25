@@ -67,7 +67,7 @@ Given Sink config with tags = `{env: "prod", team: "factory"}`. When One event s
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Sink config with tags = `{env: "prod", team: "factory"}`. When One event submitted + flushed.. Then Written line h | manual (existing test: `crates/sink-file/src/lib.rs::tests::tag_enrichment_writes_tags_onto_every_event`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Sink config with tags = `{env: "prod", team: "factory"}`. When One event submitted + flushed.. Then Written line h | manual (existing test: `crates/sink-file/src/lib.rs::tests::tag_enrichment_writes_tags_onto_every_event`) |
 
 ## Traceability
 

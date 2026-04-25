@@ -60,7 +60,7 @@ ui-completeness-check: state coverage (D4) — 4 async states + per-component-ty
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Quality gate: data-fetching components have all 4 async states; type-specific states match table. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Quality gate: data-fetching components have all 4 async states; type-specific states match table. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Quality gate: data-fetching components have all 4 async states; type-specific states match table.
+- [TBD — to be assigned in Phase 1.6c] — Quality gate: data-fetching components have all 4 async states; type-specific states match table.
 
 ---
 

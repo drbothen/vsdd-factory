@@ -68,7 +68,7 @@ factory-obs: skill identity (manage local observability stack). Manages 5-servic
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "No cloud-service fallback; all data stays local." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "No cloud-service fallback; all data stays local." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

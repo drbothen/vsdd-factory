@@ -65,7 +65,7 @@ Quick decision table maps scenarios to modes (Greenfield Phases 1-7, Brownfield 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

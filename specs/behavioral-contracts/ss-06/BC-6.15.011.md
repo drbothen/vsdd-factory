@@ -60,7 +60,7 @@ writing-skills: vsdd-factory conventions + checklist. Confidence: HIGH. Extracte
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each new skill review uses this checklist. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each new skill review uses this checklist. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each new skill review uses this checklist.
+- [TBD — to be assigned in Phase 1.6c] — Each new skill review uses this checklist.
 
 ---
 

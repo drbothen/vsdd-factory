@@ -60,7 +60,7 @@ recover-state: identity, dry-run, and backup. Confidence: HIGH. Extracted from `
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No write occurs in dry-run; backup created in non-dry-run when prior file exists. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No write occurs in dry-run; backup created in non-dry-run when prior file exists. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No write occurs in dry-run; backup created in non-dry-run when prior file exists.
+- [TBD — to be assigned in Phase 1.6c] — No write occurs in dry-run; backup created in non-dry-run when prior file exists.
 
 ---
 

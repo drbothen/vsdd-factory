@@ -60,7 +60,7 @@ repo-initialization: dx-engineer environment setup (DF-027). Confidence: HIGH. E
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: All eight numbered substeps completed; LLM health blocks if any model unavailable. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: All eight numbered substeps completed; LLM health blocks if any model unavailable. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — All eight numbered substeps completed; LLM health blocks if any model unavailable.
+- [TBD — to be assigned in Phase 1.6c] — All eight numbered substeps completed; LLM health blocks if any model unavailable.
 
 ---
 

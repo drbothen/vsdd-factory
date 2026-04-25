@@ -60,7 +60,7 @@ repo-initialization: CI/CD setup is deferred to post-architecture. Confidence: H
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No `.github/workflows/` is created at repo-initialization time. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No `.github/workflows/` is created at repo-initialization time. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No `.github/workflows/` is created at repo-initialization time.
+- [TBD — to be assigned in Phase 1.6c] — No `.github/workflows/` is created at repo-initialization time.
 
 ---
 

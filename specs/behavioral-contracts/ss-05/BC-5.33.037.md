@@ -59,7 +59,7 @@ Step `session-review` (line 389). Type: skill. Skill: `skills/session-review/SKI
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Single review per run | manual |
+| (TBD — to be assigned in Phase 1.6c) | Single review per run | manual |
 
 ## Traceability
 
@@ -83,7 +83,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

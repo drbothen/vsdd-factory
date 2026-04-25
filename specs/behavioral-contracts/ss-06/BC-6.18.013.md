@@ -60,7 +60,7 @@ release: bootstrap detects markers across five project types. Confidence: HIGH. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Generated config covers any markers found; absent markers do not appear. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Generated config covers any markers found; absent markers do not appear. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Generated config covers any markers found; absent markers do not appear.
+- [TBD — to be assigned in Phase 1.6c] — Generated config covers any markers found; absent markers do not appear.
 
 ---
 

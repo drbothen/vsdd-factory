@@ -62,7 +62,7 @@ Step `usage-analytics` (line 123). Type: skill. Skill: `skills/analytics-integra
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step gated by analytics.enabled | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step gated by analytics.enabled | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -67,7 +67,7 @@ Given Real observability-config.toml with two `type="file"` stanzas (one tagged,
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Real observability-config.toml with two `type="file"` stanzas (one tagged, one filtered) and one unknown `type="da | manual (existing test: `crates/factory-dispatcher/tests/sinks_file_integration.rs::registry_fans_events_to_file_sinks_with_filter_and_tags`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Real observability-config.toml with two `type="file"` stanzas (one tagged, one filtered) and one unknown `type="da | manual (existing test: `crates/factory-dispatcher/tests/sinks_file_integration.rs::registry_fans_events_to_file_sinks_with_filter_and_tags`) |
 
 ## Traceability
 

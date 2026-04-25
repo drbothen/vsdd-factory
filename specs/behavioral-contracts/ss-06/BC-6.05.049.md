@@ -60,7 +60,7 @@ research: pre-run cache scan + post-run index update + factory commit. Confidenc
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Methods section present; index appended; commit message prefix matches. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Methods section present; index appended; commit message prefix matches. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Methods section present; index appended; commit message prefix matches.
+- [TBD — to be assigned in Phase 1.6c] — Methods section present; index appended; commit message prefix matches.
 
 ---
 

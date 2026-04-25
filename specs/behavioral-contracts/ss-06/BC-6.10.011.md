@@ -65,7 +65,7 @@ Scans for conversational filler, wordy phrases, redundant phrases, hedge words. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

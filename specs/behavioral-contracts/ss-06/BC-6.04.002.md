@@ -68,7 +68,7 @@ adversarial-review: announces verbatim before any other action. Before any tool 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "First skill output line matches the verbatim string with `<target>` substituted." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "First skill output line matches the verbatim string with `<target>` substituted." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

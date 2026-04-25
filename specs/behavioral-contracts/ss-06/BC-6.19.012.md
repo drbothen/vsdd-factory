@@ -60,7 +60,7 @@ scaffold-claude-md: CLAUDE.md does NOT duplicate plugin methodology. Confidence:
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Generated CLAUDE.md contains zero references to SOUL.md / rules/ / VSDD phases. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Generated CLAUDE.md contains zero references to SOUL.md / rules/ / VSDD phases. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Generated CLAUDE.md contains zero references to SOUL.md / rules/ / VSDD phases.
+- [TBD — to be assigned in Phase 1.6c] — Generated CLAUDE.md contains zero references to SOUL.md / rules/ / VSDD phases.
 
 ---
 

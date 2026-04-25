@@ -68,7 +68,7 @@ disposition-pass: parallelism in batches of 10 with --all. Launches in batches o
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Concurrent agent count never exceeds 10; batch boundaries observed." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Concurrent agent count never exceeds 10; batch boundaries observed." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

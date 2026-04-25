@@ -60,7 +60,7 @@ writing-skills: when-to-create vs when-not catalogues. Confidence: HIGH. Extract
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Decision documented per these catalogues. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Decision documented per these catalogues. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Decision documented per these catalogues.
+- [TBD — to be assigned in Phase 1.6c] — Decision documented per these catalogues.
 
 ---
 

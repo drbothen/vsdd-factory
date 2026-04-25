@@ -60,7 +60,7 @@ wave-gate: identity, allowed tools, pre-flight. Confidence: HIGH. Extracted from
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill aborts if any wave story is not merged. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill aborts if any wave story is not merged. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill aborts if any wave story is not merged.
+- [TBD — to be assigned in Phase 1.6c] — Skill aborts if any wave story is not merged.
 
 ---
 

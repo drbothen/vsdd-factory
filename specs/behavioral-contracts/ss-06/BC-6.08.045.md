@@ -60,7 +60,7 @@ ui-quality-gate: gate-report.md structure (Gate Level + Result + Checklist + Fai
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Generated report contains all five sections. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Generated report contains all five sections. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Generated report contains all five sections.
+- [TBD — to be assigned in Phase 1.6c] — Generated report contains all five sections.
 
 ---
 

@@ -60,7 +60,7 @@ writing-skills: hard gate (NO SKILL WITHOUT FAILING TEST FIRST). Confidence: HIG
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill creation MUST start with RED-phase pressure scenario. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill creation MUST start with RED-phase pressure scenario. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill creation MUST start with RED-phase pressure scenario.
+- [TBD — to be assigned in Phase 1.6c] — Skill creation MUST start with RED-phase pressure scenario.
 
 ---
 

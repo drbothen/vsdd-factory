@@ -60,7 +60,7 @@ validate-brief: bloat check (<500/<800/<1500 token bands). Confidence: HIGH. Ext
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Bloat score in report; OK/WARNING/OVER label. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Bloat score in report; OK/WARNING/OVER label. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Bloat score in report; OK/WARNING/OVER label.
+- [TBD — to be assigned in Phase 1.6c] — Bloat score in report; OK/WARNING/OVER label.
 
 ---
 

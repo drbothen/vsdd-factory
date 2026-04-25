@@ -68,7 +68,7 @@ create-brief: factory-health prerequisite + research check. Run `/factory-health
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Factory-health invoked first; existing brief triggers update-vs-fresh prompt; research reports consulted before redundant questions." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Factory-health invoked first; existing brief triggers update-vs-fresh prompt; research reports consulted before redundant questions." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

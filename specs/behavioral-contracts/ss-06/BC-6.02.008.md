@@ -61,7 +61,7 @@ Skill quality gates expressed as a "Hard Gate" or "Iron Law" prose section. Skil
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill body declares the invariant under "## Hard Gate" or "## The Iron Law" with imperative wording ("DO NOT skip…", "NO ROUND COMPLETION…"). These are the testable acceptance gates that downstream BC extraction can crystallize.
+- [TBD — to be assigned in Phase 1.6c] — Skill body declares the invariant under "## Hard Gate" or "## The Iron Law" with imperative wording ("DO NOT skip…", "NO ROUND COMPLETION…"). These are the testable acceptance gates that downstream BC extraction can crystallize.
 
 ---
 

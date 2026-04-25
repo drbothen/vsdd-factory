@@ -62,7 +62,7 @@ Step `squash-and-push` (line 241). Type: agent. Agent: implementer. Depends: `[d
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Remote branch contains exactly one new commit after step | manual |
+| (TBD — to be assigned in Phase 1.6c) | Remote branch contains exactly one new commit after step | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

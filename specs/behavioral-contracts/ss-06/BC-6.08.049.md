@@ -60,7 +60,7 @@ ux-heuristic-evaluation: 0.7 threshold + remediation flagging. Confidence: HIGH.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Quality gate: scores below 0.7 flagged; report has remediation items section. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Quality gate: scores below 0.7 flagged; report has remediation items section. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Quality gate: scores below 0.7 flagged; report has remediation items section.
+- [TBD — to be assigned in Phase 1.6c] — Quality gate: scores below 0.7 flagged; report has remediation items section.
 
 ---
 

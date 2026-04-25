@@ -60,7 +60,7 @@ setup-env: MCP env-var prefix check + git config (rerere on). Confidence: HIGH. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Report shows MCP env-var presence + git config rerere status. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Report shows MCP env-var presence + git config rerere status. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Report shows MCP env-var presence + git config rerere status.
+- [TBD — to be assigned in Phase 1.6c] — Report shows MCP env-var presence + git config rerere status.
 
 ---
 

@@ -60,7 +60,7 @@ storybook-mcp-integration: identity & UI-conditional invocation. Confidence: HIG
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill no-op for non-UI products. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill no-op for non-UI products. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill no-op for non-UI products.
+- [TBD — to be assigned in Phase 1.6c] — Skill no-op for non-UI products.
 
 ---
 

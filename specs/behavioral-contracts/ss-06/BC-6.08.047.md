@@ -60,7 +60,7 @@ ux-heuristic-evaluation: Nielsen 10 heuristics with explicit subchecks. Confiden
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Quality gate requires all 10 evaluated and scored. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Quality gate requires all 10 evaluated and scored. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Quality gate requires all 10 evaluated and scored.
+- [TBD — to be assigned in Phase 1.6c] — Quality gate requires all 10 evaluated and scored.
 
 ---
 

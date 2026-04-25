@@ -60,7 +60,7 @@ ui-completeness-check: 3 pipeline points with strictness gradient. Confidence: H
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Strictness escalates per pipeline point. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Strictness escalates per pipeline point. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Strictness escalates per pipeline point.
+- [TBD — to be assigned in Phase 1.6c] — Strictness escalates per pipeline point.
 
 ---
 

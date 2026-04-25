@@ -68,7 +68,7 @@ claude-telemetry: skill identity (manage 5 OTEL_* env vars). Writes 5 OTEL env v
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "`env` block in settings.local.json contains exactly the 5 keys with the documented values." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "`env` block in settings.local.json contains exactly the 5 keys with the documented values." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

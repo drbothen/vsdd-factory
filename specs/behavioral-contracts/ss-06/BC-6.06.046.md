@@ -60,7 +60,7 @@ wave-status: identity & read-only contract. Confidence: HIGH. Extracted from `pl
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill is read-only; advancement is orchestrator's job. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill is read-only; advancement is orchestrator's job. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill is read-only; advancement is orchestrator's job.
+- [TBD — to be assigned in Phase 1.6c] — Skill is read-only; advancement is orchestrator's job.
 
 ---
 

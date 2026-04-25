@@ -65,7 +65,7 @@ Switch to Greenfield when ≥30% files changed, ≥50% components affected, brea
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

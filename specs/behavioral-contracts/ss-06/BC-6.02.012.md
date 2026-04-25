@@ -61,7 +61,7 @@ Skill output paths follow `${CLAUDE_PLUGIN_ROOT}` / `.factory/` placement conven
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Outputs go to `.factory/<subtree>/` (project-local persistence); skill steps NEVER write outside `.factory/` or product working directories. Sandbox patterns: `.factory/specs/`, `.factory/stories/`, `.factory/cycles/`, `.factory/phase-0-ingestion/`, `.factory/semport/`. Plugin-distributed reference content lives at `${CLAUDE_PLUGIN_ROOT}/templates/`.
+- [TBD — to be assigned in Phase 1.6c] — Outputs go to `.factory/<subtree>/` (project-local persistence); skill steps NEVER write outside `.factory/` or product working directories. Sandbox patterns: `.factory/specs/`, `.factory/stories/`, `.factory/cycles/`, `.factory/phase-0-ingestion/`, `.factory/semport/`. Plugin-distributed reference content lives at `${CLAUDE_PLUGIN_ROOT}/templates/`.
 
 ---
 

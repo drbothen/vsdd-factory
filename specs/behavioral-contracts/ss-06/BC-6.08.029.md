@@ -60,7 +60,7 @@ storybook-mcp-integration: 6 MCP tools mapped to agent roles. Confidence: HIGH. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Quality gate verifies all 6 tools responding. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Quality gate verifies all 6 tools responding. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Quality gate verifies all 6 tools responding.
+- [TBD — to be assigned in Phase 1.6c] — Quality gate verifies all 6 tools responding.
 
 ---
 

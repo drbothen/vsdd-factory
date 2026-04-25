@@ -65,7 +65,7 @@ Composite ≥0.7 + evidence ≥0.6 → Brief→Planning. 0.5-0.7 → Backlog. <0
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

@@ -60,7 +60,7 @@ setup-env: identity & frontmatter. Confidence: HIGH. Extracted from `plugins/vsd
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Frontmatter matches. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Frontmatter matches. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Frontmatter matches.
+- [TBD — to be assigned in Phase 1.6c] — Frontmatter matches.
 
 ---
 

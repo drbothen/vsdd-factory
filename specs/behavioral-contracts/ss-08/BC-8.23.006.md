@@ -67,7 +67,7 @@ Module layout: `corverax-{crate}/src/lib.rs` (public API re-exports only), `erro
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — promote acceptance criterion to a structural/lint test | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — promote acceptance criterion to a structural/lint test | manual |
 
 ## Traceability
 

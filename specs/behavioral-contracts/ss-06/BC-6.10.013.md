@@ -65,7 +65,7 @@ Writes `.factory/planning/readiness-report.md` with PASS/FAIL/N/A per dimension 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

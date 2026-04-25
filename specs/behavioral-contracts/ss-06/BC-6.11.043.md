@@ -65,7 +65,7 @@ Lists active policies, checks enforcement coverage, verifies lint hooks exist. F
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

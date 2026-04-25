@@ -60,7 +60,7 @@ release: tag, push (with confirm), CI watch, gh-release verify. Confidence: HIGH
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No push happens without user yes; CI failure surfaces a link and does NOT re-tag. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No push happens without user yes; CI failure surfaces a link and does NOT re-tag. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No push happens without user yes; CI failure surfaces a link and does NOT re-tag.
+- [TBD — to be assigned in Phase 1.6c] — No push happens without user yes; CI failure surfaces a link and does NOT re-tag.
 
 ---
 

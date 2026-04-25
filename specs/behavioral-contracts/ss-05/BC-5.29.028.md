@@ -69,7 +69,7 @@ Workflow contract: brownfield:multi-repo-pipeline.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `multi-repo-pipeline (line 359)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `multi-repo-pipeline (line 359)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -96,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `multi-repo-pipeline (line 359)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `multi-repo-pipeline (line 359)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

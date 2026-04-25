@@ -65,7 +65,7 @@ Executes `${CLAUDE_PLUGIN_ROOT}/workflows/phases/phase-1-spec-crystallization.lo
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

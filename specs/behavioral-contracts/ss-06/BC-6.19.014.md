@@ -60,7 +60,7 @@ sdk-generation: identity & trigger triad. Confidence: HIGH. Extracted from `plug
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each of three triggers invokes the same workflow. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each of three triggers invokes the same workflow. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each of three triggers invokes the same workflow.
+- [TBD — to be assigned in Phase 1.6c] — Each of three triggers invokes the same workflow.
 
 ---
 

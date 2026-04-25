@@ -68,7 +68,7 @@ create-excalidraw: arrow points property required (workaround for export bug). E
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Generated arrows always have non-empty `points` array; bindings round-trip via boundElements." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Generated arrows always have non-empty `points` array; bindings round-trip via boundElements." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

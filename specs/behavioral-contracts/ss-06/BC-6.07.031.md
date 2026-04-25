@@ -68,7 +68,7 @@ decompose-stories: skill identity + iron law (BC traceability). Decomposes PRD a
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Every story file references at least one BC-S.SS.NNN; every AC traces to a clause." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Every story file references at least one BC-S.SS.NNN; every AC traces to a clause." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

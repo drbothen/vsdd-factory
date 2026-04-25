@@ -68,7 +68,7 @@ agent-file-review: batch summary mode. Produces a summary table with columns Age
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Batch summary table is emitted with all 6 columns and agents are sorted by FAIL count descending." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Batch summary table is emitted with all 6 columns and agents are sorted by FAIL count descending." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

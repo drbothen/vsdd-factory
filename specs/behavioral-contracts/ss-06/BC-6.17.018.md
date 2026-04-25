@@ -65,7 +65,7 @@ DTU clone stories in Wave 1 (P0 priority) — external service mocks must exist 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

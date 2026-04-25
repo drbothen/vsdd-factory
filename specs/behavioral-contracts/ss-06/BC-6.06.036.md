@@ -60,7 +60,7 @@ wave-gate: announces protocol verbatim + TodoWrite per gate. Confidence: HIGH. E
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Six TodoWrite entries created; only completed when independently verified. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Six TodoWrite entries created; only completed when independently verified. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Six TodoWrite entries created; only completed when independently verified.
+- [TBD — to be assigned in Phase 1.6c] — Six TodoWrite entries created; only completed when independently verified.
 
 ---
 

@@ -60,7 +60,7 @@ validate-template-compliance: identity & three scopes (file/dir/all). Confidence
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No artifact modified during run. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No artifact modified during run. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No artifact modified during run.
+- [TBD — to be assigned in Phase 1.6c] — No artifact modified during run.
 
 ---
 

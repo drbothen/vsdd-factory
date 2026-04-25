@@ -63,7 +63,7 @@ Step `create-worktree` (line 38). Type: agent. Agent: devops-engineer. Condition
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | create-worktree is idempotent under skip condition | manual |
+| (TBD — to be assigned in Phase 1.6c) | create-worktree is idempotent under skip condition | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

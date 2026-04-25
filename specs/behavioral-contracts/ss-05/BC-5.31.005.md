@@ -66,7 +66,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | All loops have bounded iteration counts | manual / lobster-parse |
+| (TBD — to be assigned in Phase 1.6c) | All loops have bounded iteration counts | manual / lobster-parse |
 | VP-002 | block fail_action halts dependent steps | manual |
 
 ## Traceability
@@ -96,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001 — bounded loops
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002 — block semantics
 
 ---

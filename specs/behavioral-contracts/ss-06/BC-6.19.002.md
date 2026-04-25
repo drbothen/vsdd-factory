@@ -60,7 +60,7 @@ repo-initialization: workspace-isolation guard refuses dark-factory cwd. Confide
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Guard runs before `gh repo create`/`git clone`/`git config`. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Guard runs before `gh repo create`/`git clone`/`git config`. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Guard runs before `gh repo create`/`git clone`/`git config`.
+- [TBD — to be assigned in Phase 1.6c] — Guard runs before `gh repo create`/`git clone`/`git config`.
 
 ---
 

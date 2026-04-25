@@ -60,7 +60,7 @@ register-artifact: refuses to create INDEX file (separation of concerns). Confid
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill returns error rather than creating an INDEX from scratch. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill returns error rather than creating an INDEX from scratch. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill returns error rather than creating an INDEX from scratch.
+- [TBD — to be assigned in Phase 1.6c] — Skill returns error rather than creating an INDEX from scratch.
 
 ---
 

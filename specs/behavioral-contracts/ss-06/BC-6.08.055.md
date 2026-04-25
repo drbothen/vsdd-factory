@@ -60,7 +60,7 @@ visual-companion: excalidraw mode + composed views (screen.json manifest). Confi
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Excalidraw edits round-trip via WebSocket; manifest with layout=split shows both panes. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Excalidraw edits round-trip via WebSocket; manifest with layout=split shows both panes. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Excalidraw edits round-trip via WebSocket; manifest with layout=split shows both panes.
+- [TBD — to be assigned in Phase 1.6c] — Excalidraw edits round-trip via WebSocket; manifest with layout=split shows both panes.
 
 ---
 

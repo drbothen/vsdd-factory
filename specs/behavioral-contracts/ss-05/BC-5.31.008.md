@@ -63,7 +63,7 @@ Step `write-tests` (line 64). Type: agent. Agent: test-writer. Depends: `[genera
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | All new tests fail at completion of write-tests | manual |
+| (TBD — to be assigned in Phase 1.6c) | All new tests fail at completion of write-tests | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

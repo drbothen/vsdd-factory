@@ -65,7 +65,7 @@ Sum all artifacts loaded into agent context during implementation. If total > 60
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

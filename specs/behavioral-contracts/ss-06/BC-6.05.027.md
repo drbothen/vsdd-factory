@@ -65,7 +65,7 @@ Apply DF-017 7-dimension scoring: Value (0.25), Feasibility (0.15), Alignment (0
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

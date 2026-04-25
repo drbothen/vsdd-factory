@@ -67,7 +67,7 @@ Given 3 events submitted: plugin.invoked (a), plugin.completed (a), commit.made 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given 3 events submitted: plugin.invoked (a), plugin.completed (a), commit.made (sha=deadbeef). When flush().. Then File | manual (existing test: `crates/sink-file/src/lib.rs::tests::jsonl_append_preserves_three_events`) |
+| (TBD — to be assigned in Phase 1.6c) | Given 3 events submitted: plugin.invoked (a), plugin.completed (a), commit.made (sha=deadbeef). When flush().. Then File | manual (existing test: `crates/sink-file/src/lib.rs::tests::jsonl_append_preserves_three_events`) |
 
 ## Traceability
 

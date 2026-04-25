@@ -67,7 +67,7 @@ Given Path template points 3 levels deep into a non-existent directory. When Fir
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Path template points 3 levels deep into a non-existent directory. When First event submitted + flushed.. Then Pare | manual (existing test: `crates/sink-file/src/lib.rs::tests::auto_creates_parent_directory`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Path template points 3 levels deep into a non-existent directory. When First event submitted + flushed.. Then Pare | manual (existing test: `crates/sink-file/src/lib.rs::tests::auto_creates_parent_directory`) |
 
 ## Traceability
 

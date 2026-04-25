@@ -60,7 +60,7 @@ register-artifact: idempotent (refuses duplicate ID). Confidence: HIGH. Extracte
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No duplicate row is appended. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No duplicate row is appended. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No duplicate row is appended.
+- [TBD — to be assigned in Phase 1.6c] — No duplicate row is appended.
 
 ---
 

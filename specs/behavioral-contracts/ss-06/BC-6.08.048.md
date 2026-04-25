@@ -60,7 +60,7 @@ ux-heuristic-evaluation: cognitive walkthrough per key task. Confidence: HIGH. E
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each key task has filled YAML object. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each key task has filled YAML object. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each key task has filled YAML object.
+- [TBD — to be assigned in Phase 1.6c] — Each key task has filled YAML object.
 
 ---
 

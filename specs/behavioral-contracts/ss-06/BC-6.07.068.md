@@ -60,7 +60,7 @@ validate-workflow: collects all errors (no early bail) + exit code. Confidence: 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: All errors surfaced in single run; exit code matches outcome. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: All errors surfaced in single run; exit code matches outcome. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — All errors surfaced in single run; exit code matches outcome.
+- [TBD — to be assigned in Phase 1.6c] — All errors surfaced in single run; exit code matches outcome.
 
 ---
 

@@ -63,7 +63,7 @@ Step `e2e-tests` (line 151). Type: agent. Agent: e2e-tester. Depends: `[per-stor
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step gated by feature_type condition | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step gated by feature_type condition | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

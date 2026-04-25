@@ -63,7 +63,7 @@ Step `feature-scoring-value` (line 167). Type: agent. Agent: product-owner. Depe
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Other Delphi scorers' outputs not in scorer context | manual |
+| (TBD — to be assigned in Phase 1.6c) | Other Delphi scorers' outputs not in scorer context | manual |
 
 ## Traceability
 
@@ -89,7 +89,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

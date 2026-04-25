@@ -68,7 +68,7 @@ agent-file-review: token budget thresholds (PASS/WARN/FAIL). Counts words via `w
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Word count check produces exactly one of {PASS, WARN, FAIL} matching the thresholds; FAIL forces split recommendation." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Word count check produces exactly one of {PASS, WARN, FAIL} matching the thresholds; FAIL forces split recommendation." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -60,7 +60,7 @@ wave-scheduling: failure modes (cycle/missing dep/no roots). Confidence: HIGH. E
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each failure halts with explicit message; no partial schedule. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each failure halts with explicit message; no partial schedule. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each failure halts with explicit message; no partial schedule.
+- [TBD — to be assigned in Phase 1.6c] — Each failure halts with explicit message; no partial schedule.
 
 ---
 

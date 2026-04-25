@@ -60,7 +60,7 @@ record-demo: per-AC evidence capture (CLI vs web). Confidence: HIGH. Extracted f
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each AC has at least one evidence artifact (cast, png, or text fallback). | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each AC has at least one evidence artifact (cast, png, or text fallback). | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each AC has at least one evidence artifact (cast, png, or text fallback).
+- [TBD — to be assigned in Phase 1.6c] — Each AC has at least one evidence artifact (cast, png, or text fallback).
 
 ---
 

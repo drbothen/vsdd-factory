@@ -61,7 +61,7 @@ Skill invocation surface is `/vsdd-factory:<skill-name>` slash command. Skill-cl
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Typing `/vsdd-factory:<skill-name>` (where `<skill-name>` matches the frontmatter `name`) invokes the procedure body. The slash-command surface is enumerated separately in `plugins/vsdd-factory/commands/*.md` (110 files in pass-0 inventory).
+- [TBD — to be assigned in Phase 1.6c] — Typing `/vsdd-factory:<skill-name>` (where `<skill-name>` matches the frontmatter `name`) invokes the procedure body. The slash-command surface is enumerated separately in `plugins/vsdd-factory/commands/*.md` (110 files in pass-0 inventory).
 
 ---
 

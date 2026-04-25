@@ -60,7 +60,7 @@ wave-gate: GATE_CHECK telemetry lines (validated by hook). Confidence: HIGH. Ext
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Six GATE_CHECK lines (one per gate) present in report; hook accepts. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Six GATE_CHECK lines (one per gate) present in report; hook accepts. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Six GATE_CHECK lines (one per gate) present in report; hook accepts.
+- [TBD — to be assigned in Phase 1.6c] — Six GATE_CHECK lines (one per gate) present in report; hook accepts.
 
 ---
 

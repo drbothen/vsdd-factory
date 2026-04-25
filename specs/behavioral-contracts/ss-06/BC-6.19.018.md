@@ -60,7 +60,7 @@ sdk-generation: contract-test integration (Pact / Specmatic / Schemathesis / ope
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Contract testing role is documented at each pipeline point per the table. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Contract testing role is documented at each pipeline point per the table. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Contract testing role is documented at each pipeline point per the table.
+- [TBD — to be assigned in Phase 1.6c] — Contract testing role is documented at each pipeline point per the table.
 
 ---
 

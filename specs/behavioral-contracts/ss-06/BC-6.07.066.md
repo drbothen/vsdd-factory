@@ -60,7 +60,7 @@ validate-workflow: identity & static-only contract. Confidence: HIGH. Extracted 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No file edits; no agent/skill spawned. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No file edits; no agent/skill spawned. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No file edits; no agent/skill spawned.
+- [TBD — to be assigned in Phase 1.6c] — No file edits; no agent/skill spawned.
 
 ---
 

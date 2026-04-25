@@ -68,7 +68,7 @@ v3.0.0. VSDD pipeline for existing codebases. Adds Phase 0 (Codebase Ingestion) 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `brownfield-vsdd: identity` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `brownfield-vsdd: identity` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +95,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `brownfield-vsdd: identity`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `brownfield-vsdd: identity`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

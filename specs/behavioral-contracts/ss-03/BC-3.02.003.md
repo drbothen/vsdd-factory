@@ -67,7 +67,7 @@ Given project_dir = `/home/dev/vsdd-factory`, template = `{project}/logs/{date}.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given project_dir = `/home/dev/vsdd-factory`, template = `{project}/logs/{date}.jsonl`. When Resolved.. Then Returns `vs | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_project_basename`) |
+| (TBD — to be assigned in Phase 1.6c) | Given project_dir = `/home/dev/vsdd-factory`, template = `{project}/logs/{date}.jsonl`. When Resolved.. Then Returns `vs | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_project_basename`) |
 
 ## Traceability
 

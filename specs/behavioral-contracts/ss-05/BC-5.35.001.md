@@ -66,7 +66,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Routing always selects exactly one path | manual |
+| (TBD — to be assigned in Phase 1.6c) | Routing always selects exactly one path | manual |
 | VP-002 | environment-setup runs before any artifact detection | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

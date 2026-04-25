@@ -60,7 +60,7 @@ validate-brief: structure check requires 6 sections each meeting minimums. Confi
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Sections failing minimums marked FAIL/WEAK. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Sections failing minimums marked FAIL/WEAK. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Sections failing minimums marked FAIL/WEAK.
+- [TBD — to be assigned in Phase 1.6c] — Sections failing minimums marked FAIL/WEAK.
 
 ---
 

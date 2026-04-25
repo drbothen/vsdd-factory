@@ -60,7 +60,7 @@ session-review: 8 analysis dimensions. Confidence: HIGH. Extracted from `plugins
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Review report has eight named sections. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Review report has eight named sections. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Review report has eight named sections.
+- [TBD — to be assigned in Phase 1.6c] — Review report has eight named sections.
 
 ---
 

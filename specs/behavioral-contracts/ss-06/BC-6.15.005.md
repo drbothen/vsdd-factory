@@ -60,7 +60,7 @@ writing-skills: identity & TDD-for-skills mapping. Confidence: HIGH. Extracted f
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Mapping table is authoritative for the methodology. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Mapping table is authoritative for the methodology. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Mapping table is authoritative for the methodology.
+- [TBD — to be assigned in Phase 1.6c] — Mapping table is authoritative for the methodology.
 
 ---
 

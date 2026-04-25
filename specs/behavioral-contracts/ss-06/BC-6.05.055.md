@@ -60,7 +60,7 @@ semport-analyze: full mode runs codebase-analyzer 6-pass protocol. Confidence: H
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Six pass files exist (pass-0 through pass-6) per project. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Six pass files exist (pass-0 through pass-6) per project. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Six pass files exist (pass-0 through pass-6) per project.
+- [TBD — to be assigned in Phase 1.6c] — Six pass files exist (pass-0 through pass-6) per project.
 
 ---
 

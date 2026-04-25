@@ -60,7 +60,7 @@ session-review: cross-run pattern database + benchmarks. Confidence: HIGH. Extra
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Five named files exist after first run; subsequent runs append. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Five named files exist after first run; subsequent runs append. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Five named files exist after first run; subsequent runs append.
+- [TBD — to be assigned in Phase 1.6c] — Five named files exist after first run; subsequent runs append.
 
 ---
 

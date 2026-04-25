@@ -67,7 +67,7 @@ Given Event with only `type`. When `event_to_log_record`.. Then time_unix_nano =
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Event with only `type`. When `event_to_log_record`.. Then time_unix_nano == 0. | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_to_log_record_missing_ts_yields_zero_timestamp`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Event with only `type`. When `event_to_log_record`.. Then time_unix_nano == 0. | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_to_log_record_missing_ts_yields_zero_timestamp`) |
 
 ## Traceability
 

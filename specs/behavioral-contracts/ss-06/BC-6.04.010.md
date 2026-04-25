@@ -68,7 +68,7 @@ agent-file-review: 15-check list runs all checks. Runs ALL 15 numbered checks: t
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Output table has exactly 15 numbered rows with Check/Result/Details columns." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Output table has exactly 15 numbered rows with Check/Result/Details columns." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

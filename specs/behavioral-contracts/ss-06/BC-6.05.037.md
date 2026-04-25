@@ -65,7 +65,7 @@ Step 1 codebase-analyzer (deps), 2 architect (unified arch), 3 consistency-valid
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

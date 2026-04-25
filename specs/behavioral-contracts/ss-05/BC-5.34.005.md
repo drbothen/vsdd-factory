@@ -62,7 +62,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | integration-gate has 7 criteria | manual |
+| (TBD — to be assigned in Phase 1.6c) | integration-gate has 7 criteria | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

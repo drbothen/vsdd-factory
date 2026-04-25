@@ -60,7 +60,7 @@ track-debt: identity & three commands (add/list/resolve). Confidence: HIGH. Extr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Frontmatter matches; only three commands recognized. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Frontmatter matches; only three commands recognized. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Frontmatter matches; only three commands recognized.
+- [TBD — to be assigned in Phase 1.6c] — Frontmatter matches; only three commands recognized.
 
 ---
 

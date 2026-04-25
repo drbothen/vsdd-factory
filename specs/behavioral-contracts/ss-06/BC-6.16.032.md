@@ -65,7 +65,7 @@ Finding novelty decayed to zero (CONVERGENCE_REACHED); all findings addressed or
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

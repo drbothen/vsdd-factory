@@ -60,7 +60,7 @@ Step `risk-assumption-monitoring` (line 258). Type: agent. Agent: consistency-va
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Findings advisory | manual |
+| (TBD — to be assigned in Phase 1.6c) | Findings advisory | manual |
 
 ## Traceability
 
@@ -84,7 +84,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

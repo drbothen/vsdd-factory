@@ -65,7 +65,7 @@ product-owner appends new BCs using BC-S.SS.NNN format (DF-020 4-level hierarchy
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

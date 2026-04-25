@@ -60,7 +60,7 @@ wave-gate: gate sequence is load-bearing (1→2→3→4→5→6, stop on first f
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Order is fixed; first failure halts. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Order is fixed; first failure halts. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Order is fixed; first failure halts.
+- [TBD — to be assigned in Phase 1.6c] — Order is fixed; first failure halts.
 
 ---
 

@@ -65,7 +65,7 @@ Step `feature-scoring-novelty` (line 193). Type: agent. Agent: adversary. Depend
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Adversary invoked with fresh context | manual |
+| (TBD — to be assigned in Phase 1.6c) | Adversary invoked with fresh context | manual |
 
 ## Traceability
 
@@ -91,7 +91,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

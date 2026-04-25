@@ -61,7 +61,7 @@ Skill bodies MAY include a "Red Flags" table to enumerate fabrication / shortcut
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — A markdown table maps "Thought" (operator's tempting deviation) to "Reality" (the canonical correction). Used as an in-skill counter-narrative tool.
+- [TBD — to be assigned in Phase 1.6c] — A markdown table maps "Thought" (operator's tempting deviation) to "Reality" (the canonical correction). Used as an in-skill counter-narrative tool.
 
 ---
 

@@ -68,7 +68,7 @@ consistency-validation: index-first validation precedes detail loading (DF-021).
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Index references match actual file set; orphans (files not in index) and dangling refs (in index but no file) flagged." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Index references match actual file set; orphans (files not in index) and dangling refs (in index but no file) flagged." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

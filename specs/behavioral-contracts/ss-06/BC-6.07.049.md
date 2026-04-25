@@ -60,7 +60,7 @@ traceability-extension: 7 extension rules (IDs new, links append-only, deprecate
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each rule cross-cuts to traceability-chain.md format. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each rule cross-cuts to traceability-chain.md format. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each rule cross-cuts to traceability-chain.md format.
+- [TBD — to be assigned in Phase 1.6c] — Each rule cross-cuts to traceability-chain.md format.
 
 ---
 

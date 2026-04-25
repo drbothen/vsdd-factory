@@ -67,7 +67,7 @@ Given `RoutingFilter::default()` (both lists empty). When `accepts(<any-name>)` 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given `RoutingFilter::default()` (both lists empty). When `accepts(<any-name>)` is called.. Then Always true. Pass-throu | manual (existing test: `crates/sink-core/src/lib.rs::tests::routing_filter_default_accepts_everything`) |
+| (TBD — to be assigned in Phase 1.6c) | Given `RoutingFilter::default()` (both lists empty). When `accepts(<any-name>)` is called.. Then Always true. Pass-throu | manual (existing test: `crates/sink-core/src/lib.rs::tests::routing_filter_default_accepts_everything`) |
 
 ## Traceability
 

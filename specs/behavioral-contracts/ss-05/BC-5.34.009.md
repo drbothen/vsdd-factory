@@ -66,7 +66,7 @@ Step `compute-repo-waves` (line 79). Type: agent. Agent: orchestrator. Depends: 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Output is a valid topological partitioning | manual |
+| (TBD — to be assigned in Phase 1.6c) | Output is a valid topological partitioning | manual |
 | VP-002 | Contract vs generation dep distinction preserved | manual |
 
 ## Traceability
@@ -91,7 +91,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

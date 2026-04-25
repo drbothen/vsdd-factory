@@ -60,7 +60,7 @@ pr-create: gathers story context before generating body. Confidence: HIGH. Extra
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: PR body cannot be generated without first sourcing the four context items listed. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: PR body cannot be generated without first sourcing the four context items listed. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — PR body cannot be generated without first sourcing the four context items listed.
+- [TBD — to be assigned in Phase 1.6c] — PR body cannot be generated without first sourcing the four context items listed.
 
 ---
 

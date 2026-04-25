@@ -68,7 +68,7 @@ brownfield-ingest: announces verbatim and creates phase A/B/B5/B6/C TodoWrite en
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "First skill output line matches verbatim string AND TodoWrite list contains entries for all 5 phases." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "First skill output line matches verbatim string AND TodoWrite list contains entries for all 5 phases." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -61,7 +61,7 @@ Skills with `argument-hint:` declare inline `$ARGUMENTS[N]` / `$ARGUMENTS` seman
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Frontmatter `argument-hint:` shows the expected shape (e.g., `[STORY-NNN]`, `[<repo>|--all] [--rollup] [--update-vision]`). Body references `$ARGUMENTS[0]`, `$ARGUMENTS[1]`, etc., with explicit type/semantics.
+- [TBD — to be assigned in Phase 1.6c] — Frontmatter `argument-hint:` shows the expected shape (e.g., `[STORY-NNN]`, `[<repo>|--all] [--rollup] [--update-vision]`). Body references `$ARGUMENTS[0]`, `$ARGUMENTS[1]`, etc., with explicit type/semantics.
 
 ---
 

@@ -60,7 +60,7 @@ recover-state: phase decision tree is total and ordered. Confidence: HIGH. Extra
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Reconstructed phase matches a single line of the published tree. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Reconstructed phase matches a single line of the published tree. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Reconstructed phase matches a single line of the published tree.
+- [TBD — to be assigned in Phase 1.6c] — Reconstructed phase matches a single line of the published tree.
 
 ---
 

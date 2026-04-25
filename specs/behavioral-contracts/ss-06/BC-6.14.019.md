@@ -60,7 +60,7 @@ register-artifact: type identification by path pattern (4-row table). Confidence
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Exactly one of the four artifact types is selected, or type-error is reported. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Exactly one of the four artifact types is selected, or type-error is reported. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Exactly one of the four artifact types is selected, or type-error is reported.
+- [TBD — to be assigned in Phase 1.6c] — Exactly one of the four artifact types is selected, or type-error is reported.
 
 ---
 

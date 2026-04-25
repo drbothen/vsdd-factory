@@ -61,7 +61,7 @@ Step `spec-coherence` (line 168). Type: agent. Agent: consistency-validator. Dep
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | 33 distinct checks invoked | manual |
+| (TBD — to be assigned in Phase 1.6c) | 33 distinct checks invoked | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

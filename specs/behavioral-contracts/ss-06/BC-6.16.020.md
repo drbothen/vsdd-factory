@@ -65,7 +65,7 @@ Presents complete spec package (PRD, architecture, UX, BCs, VPs) to adversary (d
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

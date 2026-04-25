@@ -68,7 +68,7 @@ claude-telemetry: prunes legacy temporality key. As of v0.76.0 the deltatocumula
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "After `on`, the legacy key is absent from settings.local.json regardless of prior state." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "After `on`, the legacy key is absent from settings.local.json regardless of prior state." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

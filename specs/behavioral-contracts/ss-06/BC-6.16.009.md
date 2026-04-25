@@ -65,7 +65,7 @@ Uses `${CLAUDE_PLUGIN_ROOT}/bin/lobster-parse <file> '.workflow.steps[] | {name,
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

@@ -63,7 +63,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | DAG acyclic | manual / lobster-parse |
+| (TBD — to be assigned in Phase 1.6c) | DAG acyclic | manual / lobster-parse |
 | VP-002 | maintenance-report has 11 in-edges | manual |
 
 ## Traceability
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

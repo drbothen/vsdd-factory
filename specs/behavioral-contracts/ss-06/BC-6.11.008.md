@@ -68,7 +68,7 @@ factory-health: 8 sequential checks with auto-repair on missing structures. 8 ch
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Each check has explicit auto-repair OR explicit human-action recommendation; missing dirs auto-created." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Each check has explicit auto-repair OR explicit human-action recommendation; missing dirs auto-created." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

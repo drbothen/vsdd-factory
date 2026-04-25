@@ -60,7 +60,7 @@ research-cache-ops: identity & wraps research-cache binary. Confidence: HIGH. Ex
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: All operations invoke the named binary. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: All operations invoke the named binary. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — All operations invoke the named binary.
+- [TBD — to be assigned in Phase 1.6c] — All operations invoke the named binary.
 
 ---
 

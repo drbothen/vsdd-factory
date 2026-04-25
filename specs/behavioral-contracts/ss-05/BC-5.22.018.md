@@ -67,7 +67,7 @@ Workflow contract: phase-2:input-hash-drift-check.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `input-hash-drift-check (line 149)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `input-hash-drift-check (line 149)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `input-hash-drift-check (line 149)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `input-hash-drift-check (line 149)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

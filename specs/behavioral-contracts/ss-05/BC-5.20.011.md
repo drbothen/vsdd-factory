@@ -68,7 +68,7 @@ Commits all deepening-round artifacts across passes 0-5.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``backup-convergence-deepening` (line 55)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``backup-convergence-deepening` (line 55)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +95,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``backup-convergence-deepening` (line 55)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``backup-convergence-deepening` (line 55)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

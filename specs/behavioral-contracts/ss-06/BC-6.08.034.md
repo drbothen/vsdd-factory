@@ -60,7 +60,7 @@ ui-completeness-check: identity, agents, UI gating, zero-gap rule. Confidence: H
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Zero gaps is the convergence gate (not just a warning). | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Zero gaps is the convergence gate (not just a warning). | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Zero gaps is the convergence gate (not just a warning).
+- [TBD — to be assigned in Phase 1.6c] — Zero gaps is the convergence gate (not just a warning).
 
 ---
 

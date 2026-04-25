@@ -67,7 +67,7 @@ Workflow contract: brownfield: entry-point.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``environment-setup` (line 29) — `depends_on: []`. Type: agent, agent: dx-engineer, timeout 30m.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``environment-setup` (line 29) — `depends_on: []`. Type: agent, agent: dx-engineer, timeout 30m.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``environment-setup` (line 29) — `depends_on: []`. Type: agent, agent: dx-engineer, timeout 30m.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``environment-setup` (line 29) — `depends_on: []`. Type: agent, agent: dx-engineer, timeout 30m.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

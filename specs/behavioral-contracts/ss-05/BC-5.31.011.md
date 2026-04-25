@@ -64,7 +64,7 @@ Step `per-story-adversarial-review` (line 101). Type: loop. max_iterations: 10. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Loop terminates in ≤10 iterations | manual |
+| (TBD — to be assigned in Phase 1.6c) | Loop terminates in ≤10 iterations | manual |
 | VP-002 | Excluded paths never appear in adversary context | manual |
 
 ## Traceability
@@ -91,7 +91,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001 — bounded loop
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002 — wall enforcement
 
 ---

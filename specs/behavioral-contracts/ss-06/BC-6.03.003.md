@@ -68,7 +68,7 @@ activate: drift warning on host change. Skill MUST surface a warning that quotes
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Warning string contains both `<persisted>` and `<current>` strings; settings.local.json is updated post-warning." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Warning string contains both `<persisted>` and `<current>` strings; settings.local.json is updated post-warning." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

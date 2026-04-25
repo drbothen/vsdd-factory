@@ -60,7 +60,7 @@ ux-heuristic-evaluation: report path + failure modes. Confidence: HIGH. Extracte
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Output file present with named sections; fail modes documented. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Output file present with named sections; fail modes documented. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Output file present with named sections; fail modes documented.
+- [TBD — to be assigned in Phase 1.6c] — Output file present with named sections; fail modes documented.
 
 ---
 

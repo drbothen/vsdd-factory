@@ -60,7 +60,7 @@ ui-quality-gate: 4 strictness levels (per-story/wave/build/convergence). Confide
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each gate level applies its named subset. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each gate level applies its named subset. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each gate level applies its named subset.
+- [TBD — to be assigned in Phase 1.6c] — Each gate level applies its named subset.
 
 ---
 

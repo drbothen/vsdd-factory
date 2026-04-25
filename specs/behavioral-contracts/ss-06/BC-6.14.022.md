@@ -60,7 +60,7 @@ register-artifact: batch mode aggregates results. Confidence: HIGH. Extracted fr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Output message includes both registered and skipped counts. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Output message includes both registered and skipped counts. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Output message includes both registered and skipped counts.
+- [TBD — to be assigned in Phase 1.6c] — Output message includes both registered and skipped counts.
 
 ---
 

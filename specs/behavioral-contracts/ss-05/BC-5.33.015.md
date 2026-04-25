@@ -62,7 +62,7 @@ Step `holdout-freshness-check` (line 113). Type: agent. Agent: holdout-evaluator
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step gated by has_holdout_scenarios | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step gated by has_holdout_scenarios | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

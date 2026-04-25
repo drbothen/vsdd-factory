@@ -60,7 +60,7 @@ scaffold-claude-md: present-confirm-write loop. Confidence: HIGH. Extracted from
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Write occurs only post-approval; user-requested edits applied before write. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Write occurs only post-approval; user-requested edits applied before write. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Write occurs only post-approval; user-requested edits applied before write.
+- [TBD — to be assigned in Phase 1.6c] — Write occurs only post-approval; user-requested edits applied before write.
 
 ---
 

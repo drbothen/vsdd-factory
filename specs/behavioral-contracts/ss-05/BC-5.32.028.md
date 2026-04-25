@@ -64,7 +64,7 @@ Step `route-approved-ideas` (line 355). Type: agent. Agent: orchestrator. Depend
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Sum of routed ideas equals reviewed count | manual |
+| (TBD — to be assigned in Phase 1.6c) | Sum of routed ideas equals reviewed count | manual |
 
 ## Traceability
 
@@ -90,7 +90,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

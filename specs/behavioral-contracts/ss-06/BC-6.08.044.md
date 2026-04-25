@@ -60,7 +60,7 @@ ui-quality-gate: performance targets (D8 LCP/FID/CLS/TTI/bundle/images). Confide
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each metric measured by Lighthouse CI / build analysis / asset audit. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each metric measured by Lighthouse CI / build analysis / asset audit. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each metric measured by Lighthouse CI / build analysis / asset audit.
+- [TBD — to be assigned in Phase 1.6c] — Each metric measured by Lighthouse CI / build analysis / asset audit.
 
 ---
 

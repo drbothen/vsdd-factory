@@ -68,7 +68,7 @@ code-delivery: autonomy-level-driven merge decision. Reads `.factory/merge-confi
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Merge decision aligns with the autonomy level documented in merge-config.yaml." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Merge decision aligns with the autonomy level documented in merge-config.yaml." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

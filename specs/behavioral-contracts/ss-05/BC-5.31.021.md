@@ -64,7 +64,7 @@ Step `pr-review-convergence` (line 307). Type: loop. max_iterations: 10. exit_co
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Loop terminates ≤ 10 | manual |
+| (TBD — to be assigned in Phase 1.6c) | Loop terminates ≤ 10 | manual |
 | VP-002 | Wall preserved every iteration | manual |
 
 ## Traceability
@@ -89,7 +89,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

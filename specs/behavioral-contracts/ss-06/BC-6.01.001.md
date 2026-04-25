@@ -70,7 +70,7 @@ brownfield-ingest enforces strict-binary novelty. Round results must be exactly 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Only the literal token `NITPICK` (case-sensitive) counts as convergence; all soft / hedged phrases route to SUBSTANTIVE | manual |
+| (TBD — to be assigned in Phase 1.6c) | Only the literal token `NITPICK` (case-sensitive) counts as convergence; all soft / hedged phrases route to SUBSTANTIVE | manual |
 
 ## Traceability
 
@@ -95,7 +95,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — Only the literal token `NITPICK` (case-sensitive) counts as convergence
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

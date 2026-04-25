@@ -67,7 +67,7 @@ Given Empty SinkEvent. When `event_type()`.. Then Returns None.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Empty SinkEvent. When `event_type()`.. Then Returns None. | manual (existing test: `crates/sink-core/src/lib.rs::tests::sink_event_event_type_missing_returns_none`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Empty SinkEvent. When `event_type()`.. Then Returns None. | manual (existing test: `crates/sink-core/src/lib.rs::tests::sink_event_event_type_missing_returns_none`) |
 
 ## Traceability
 

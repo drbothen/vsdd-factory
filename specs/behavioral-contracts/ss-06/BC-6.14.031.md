@@ -60,7 +60,7 @@ track-debt: when-to-add catalogue (6 sources). Confidence: HIGH. Extracted from 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Source-line of each TD entry maps to one of these six categories. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Source-line of each TD entry maps to one of these six categories. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Source-line of each TD entry maps to one of these six categories.
+- [TBD — to be assigned in Phase 1.6c] — Source-line of each TD entry maps to one of these six categories.
 
 ---
 

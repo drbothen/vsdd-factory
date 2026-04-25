@@ -68,7 +68,7 @@ code-delivery: per-AC demo evidence with both success and error paths. For each 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Per-story subfolder exists with evidence-report.md and at least 1 binary recording per AC covering both success and error." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Per-story subfolder exists with evidence-report.md and at least 1 binary recording per AC covering both success and error." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

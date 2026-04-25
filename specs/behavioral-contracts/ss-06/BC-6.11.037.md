@@ -65,7 +65,7 @@ Validates policy name (snake_case), gathers details (description, severity HIGH/
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

@@ -65,7 +65,7 @@ Results written to `.factory/holdout-scenarios/evaluations/wave-<N>/`. PASS → 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

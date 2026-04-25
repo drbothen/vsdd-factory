@@ -63,7 +63,7 @@ Step `demo-recording` (line 224). Type: agent. Agent: demo-recorder. Depends: `[
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step terminates within 30m | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step terminates within 30m | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

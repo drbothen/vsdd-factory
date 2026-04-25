@@ -62,7 +62,7 @@ Step `cleanup-worktree` (line 430). Type: agent. Agent: devops-engineer. Depends
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | No worktree remnants after step | manual |
+| (TBD — to be assigned in Phase 1.6c) | No worktree remnants after step | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

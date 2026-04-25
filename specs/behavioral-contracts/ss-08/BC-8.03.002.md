@@ -67,7 +67,7 @@ Part 1 mandatory sections: `## 1. System Overview`, `## 1b. L2 Domain Capability
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — promote acceptance criterion to a structural/lint test | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — promote acceptance criterion to a structural/lint test | manual |
 
 ## Traceability
 

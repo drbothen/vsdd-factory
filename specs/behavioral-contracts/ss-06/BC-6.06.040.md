@@ -60,7 +60,7 @@ wave-gate: outputs and post-pass guidance. Confidence: HIGH. Extracted from `plu
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Report follows verbatim format; user instruction matches pass/fail. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Report follows verbatim format; user instruction matches pass/fail. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Report follows verbatim format; user instruction matches pass/fail.
+- [TBD — to be assigned in Phase 1.6c] — Report follows verbatim format; user instruction matches pass/fail.
 
 ---
 

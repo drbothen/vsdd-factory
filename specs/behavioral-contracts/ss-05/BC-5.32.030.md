@@ -62,7 +62,7 @@ Step `execute-product-ideas` (line 384). Type: sub-workflow. Sub-workflow: `plan
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Sub-workflow target = planning.lobster | manual |
+| (TBD — to be assigned in Phase 1.6c) | Sub-workflow target = planning.lobster | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

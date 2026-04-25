@@ -60,7 +60,7 @@ toolchain-provisioning: identity & 4 trigger points. Confidence: HIGH. Extracted
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill runs at each named pipeline point. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill runs at each named pipeline point. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill runs at each named pipeline point.
+- [TBD — to be assigned in Phase 1.6c] — Skill runs at each named pipeline point.
 
 ---
 

@@ -65,7 +65,7 @@ For each new requirement: BC-S.SS.NNN → VP-NNN → test_xxx → src/xxx.rs →
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

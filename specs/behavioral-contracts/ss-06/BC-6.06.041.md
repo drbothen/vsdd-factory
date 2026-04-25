@@ -60,7 +60,7 @@ wave-scheduling: identity & topo-sort algorithm. Confidence: HIGH. Extracted fro
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each story belongs to exactly one wave. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each story belongs to exactly one wave. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each story belongs to exactly one wave.
+- [TBD — to be assigned in Phase 1.6c] — Each story belongs to exactly one wave.
 
 ---
 

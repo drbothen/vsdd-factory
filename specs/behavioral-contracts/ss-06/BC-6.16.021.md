@@ -65,7 +65,7 @@ Adversary reviews for: ambiguous language, missing edge cases, implicit unstated
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

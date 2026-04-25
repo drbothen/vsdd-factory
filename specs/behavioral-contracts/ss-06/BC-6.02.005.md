@@ -61,7 +61,7 @@ Skills with `allowed-tools:` whitelist restrict tool surface inside the skill bo
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Inside the skill's procedure, only the listed tools may be invoked. Claude Code enforces the whitelist at tool-dispatch time.
+- [TBD — to be assigned in Phase 1.6c] — Inside the skill's procedure, only the listed tools may be invoked. Claude Code enforces the whitelist at tool-dispatch time.
 
 ---
 

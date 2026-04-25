@@ -65,7 +65,7 @@ Writes `.factory/cycles/<current>/performance-report.md` with summary table (Met
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

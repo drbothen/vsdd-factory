@@ -67,7 +67,7 @@ Given project_dir = `/opt/work/myproj/` (with trailing slash), name="local", tem
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given project_dir = `/opt/work/myproj/` (with trailing slash), name="local", template uses all 3 placeholders. When Reso | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_all_placeholders`) |
+| (TBD — to be assigned in Phase 1.6c) | Given project_dir = `/opt/work/myproj/` (with trailing slash), name="local", template uses all 3 placeholders. When Reso | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_all_placeholders`) |
 
 ## Traceability
 

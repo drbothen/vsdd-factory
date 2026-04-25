@@ -61,7 +61,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Before any other action, the skill emits a verbatim sentence such as "I'm using the wave-gate skill to run the post-wave integration gate for wave-N." Every sampled skill uses an identical convention; the verb tense and skill-name self-reference are part of the contract. This is the orchestrator's auditable handoff signal.
+- [TBD — to be assigned in Phase 1.6c] — Before any other action, the skill emits a verbatim sentence such as "I'm using the wave-gate skill to run the post-wave integration gate for wave-N." Every sampled skill uses an identical convention; the verb tense and skill-name self-reference are part of the contract. This is the orchestrator's auditable handoff signal.
 
 ---
 

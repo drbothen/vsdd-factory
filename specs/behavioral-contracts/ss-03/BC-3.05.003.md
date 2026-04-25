@@ -67,7 +67,7 @@ Given Mock LogsService bound on 127.0.0.1:0; sink configured with batch.size=100
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Mock LogsService bound on 127.0.0.1:0; sink configured with batch.size=100, batch.interval=60s; 10 events submitte | manual (existing test: `crates/factory-dispatcher/tests/sinks_otel_grpc.rs::ten_events_arrive_with_correct_attribute_mapping`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Mock LogsService bound on 127.0.0.1:0; sink configured with batch.size=100, batch.interval=60s; 10 events submitte | manual (existing test: `crates/factory-dispatcher/tests/sinks_otel_grpc.rs::ten_events_arrive_with_correct_attribute_mapping`) |
 
 ## Traceability
 

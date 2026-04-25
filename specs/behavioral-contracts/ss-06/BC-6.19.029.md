@@ -60,7 +60,7 @@ toolchain-provisioning: writes detailed toolchain-state.yaml. Confidence: HIGH. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: YAML schema matches the published example. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: YAML schema matches the published example. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — YAML schema matches the published example.
+- [TBD — to be assigned in Phase 1.6c] — YAML schema matches the published example.
 
 ---
 

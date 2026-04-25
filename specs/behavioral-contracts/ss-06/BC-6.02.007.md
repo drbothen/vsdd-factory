@@ -61,7 +61,7 @@ Skills SHALL link to template files via `${CLAUDE_PLUGIN_ROOT}/templates/...` re
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill body lists relevant template paths under a "Templates" heading, using the `${CLAUDE_PLUGIN_ROOT}/templates/<name>` form (NOT a relative path). The orchestrator resolves this against the active plugin's install location at runtime.
+- [TBD — to be assigned in Phase 1.6c] — Skill body lists relevant template paths under a "Templates" heading, using the `${CLAUDE_PLUGIN_ROOT}/templates/<name>` form (NOT a relative path). The orchestrator resolves this against the active plugin's install location at runtime.
 
 ---
 

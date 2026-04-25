@@ -67,7 +67,7 @@ Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher_trace_id, session_id, plugin_name, plug | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_to_log_record_maps_reserved_fields`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher_trace_id, session_id, plugin_name, plug | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_to_log_record_maps_reserved_fields`) |
 
 ## Traceability
 

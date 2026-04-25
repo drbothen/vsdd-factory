@@ -64,7 +64,7 @@ Step `accessibility-regression` (line 220). Type: agent. Agent: accessibility-au
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Architecture specs never appear in auditor context | manual |
+| (TBD — to be assigned in Phase 1.6c) | Architecture specs never appear in auditor context | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

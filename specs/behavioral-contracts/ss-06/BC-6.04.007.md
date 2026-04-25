@@ -68,7 +68,7 @@ adversarial-review: trajectory monotonicity (findings never increase). Skill MUS
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Pass-over-pass finding count is monotonically non-increasing OR convergence is paused with documented root-cause investigation." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Pass-over-pass finding count is monotonically non-increasing OR convergence is paused with documented root-cause investigation." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

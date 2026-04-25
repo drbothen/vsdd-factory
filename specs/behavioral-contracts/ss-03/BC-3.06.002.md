@@ -67,7 +67,7 @@ Given `SinkEvent::new().insert("type", "commit.made")`. When `event_type()` is c
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given `SinkEvent::new().insert("type", "commit.made")`. When `event_type()` is called.. Then Returns `Some("commit.made" | manual (existing test: `crates/sink-core/src/lib.rs::tests::sink_event_event_type_accessor_reads_type_field`) |
+| (TBD — to be assigned in Phase 1.6c) | Given `SinkEvent::new().insert("type", "commit.made")`. When `event_type()` is called.. Then Returns `Some("commit.made" | manual (existing test: `crates/sink-core/src/lib.rs::tests::sink_event_event_type_accessor_reads_type_field`) |
 
 ## Traceability
 

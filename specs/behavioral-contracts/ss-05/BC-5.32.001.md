@@ -64,7 +64,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | All 7 scoring dimensions are referenced | manual |
+| (TBD — to be assigned in Phase 1.6c) | All 7 scoring dimensions are referenced | manual |
 | VP-002 | All 5 STATE.md fields updated each run | manual |
 
 ## Traceability
@@ -91,7 +91,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

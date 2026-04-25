@@ -69,7 +69,7 @@ Workflow contract: feature:bugfix-f7-human-approval.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `bugfix-f7-human-approval (line 411)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `bugfix-f7-human-approval (line 411)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -96,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `bugfix-f7-human-approval (line 411)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `bugfix-f7-human-approval (line 411)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

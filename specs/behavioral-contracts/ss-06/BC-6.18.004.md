@@ -60,7 +60,7 @@ pr-create: PR creation targets develop with feat-prefixed title. Confidence: HIG
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: `--base develop` is non-overridable; title carries `feat(STORY-NNN):` prefix. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: `--base develop` is non-overridable; title carries `feat(STORY-NNN):` prefix. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — `--base develop` is non-overridable; title carries `feat(STORY-NNN):` prefix.
+- [TBD — to be assigned in Phase 1.6c] — `--base develop` is non-overridable; title carries `feat(STORY-NNN):` prefix.
 
 ---
 

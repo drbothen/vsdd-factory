@@ -63,7 +63,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | on_failure default = skip | manual |
+| (TBD — to be assigned in Phase 1.6c) | on_failure default = skip | manual |
 | VP-002 | maintenance-gate fail_action = warn | manual |
 
 ## Traceability
@@ -89,7 +89,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

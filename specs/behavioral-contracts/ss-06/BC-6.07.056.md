@@ -60,7 +60,7 @@ validate-brief: information density anti-patterns (4 categories + thresholds). C
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Counts per category reported with line refs and rewrites. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Counts per category reported with line refs and rewrites. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Counts per category reported with line refs and rewrites.
+- [TBD — to be assigned in Phase 1.6c] — Counts per category reported with line refs and rewrites.
 
 ---
 

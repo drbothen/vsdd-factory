@@ -60,7 +60,7 @@ track-debt: register format (Active vs Resolved sections). Confidence: HIGH. Ext
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Both sections present; resolve moves entry from Active to Resolved. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Both sections present; resolve moves entry from Active to Resolved. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Both sections present; resolve moves entry from Active to Resolved.
+- [TBD — to be assigned in Phase 1.6c] — Both sections present; resolve moves entry from Active to Resolved.
 
 ---
 

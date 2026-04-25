@@ -59,7 +59,7 @@ Step `load-config` (line 27). Type: agent. Agent: orchestrator. Depends: `[]`. S
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | depends_on empty | manual |
+| (TBD — to be assigned in Phase 1.6c) | depends_on empty | manual |
 
 ## Traceability
 
@@ -84,7 +84,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

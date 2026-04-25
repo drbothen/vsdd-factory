@@ -60,7 +60,7 @@ storybook-mcp-integration: non-React fallback (manifest only). Confidence: HIGH.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Non-React projects do not block; manifest gap noted. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Non-React projects do not block; manifest gap noted. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Non-React projects do not block; manifest gap noted.
+- [TBD — to be assigned in Phase 1.6c] — Non-React projects do not block; manifest gap noted.
 
 ---
 

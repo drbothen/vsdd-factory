@@ -65,7 +65,7 @@ Writes `.factory/planning/product-brief.md` and (if detailed notes captured) `.f
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

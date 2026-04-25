@@ -60,7 +60,7 @@ pr-review-triage: writes review-findings.md with cycle row + triage table. Confi
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Quality-gate criteria require: every finding classified, every finding routed, no findings unclassified, convergence table updated. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Quality-gate criteria require: every finding classified, every finding routed, no findings unclassified, convergence table updated. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Quality-gate criteria require: every finding classified, every finding routed, no findings unclassified, convergence table updated.
+- [TBD — to be assigned in Phase 1.6c] — Quality-gate criteria require: every finding classified, every finding routed, no findings unclassified, convergence table updated.
 
 ---
 

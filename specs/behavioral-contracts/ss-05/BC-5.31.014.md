@@ -63,7 +63,7 @@ Step `storybook-component-tests` (line 176). Type: loop. max_iterations: 10. exi
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Loop terminates ≤10 iterations | manual |
+| (TBD — to be assigned in Phase 1.6c) | Loop terminates ≤10 iterations | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

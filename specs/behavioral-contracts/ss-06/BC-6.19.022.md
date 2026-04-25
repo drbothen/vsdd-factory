@@ -60,7 +60,7 @@ setup-env: tool-check tables (8 required + 8 optional). Confidence: HIGH. Extrac
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Output report enumerates each row of both tables. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Output report enumerates each row of both tables. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Output report enumerates each row of both tables.
+- [TBD — to be assigned in Phase 1.6c] — Output report enumerates each row of both tables.
 
 ---
 

@@ -60,7 +60,7 @@ validate-brief: identity & step-file note. Confidence: HIGH. Extracted from `plu
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No sequential step-file fan-out. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No sequential step-file fan-out. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No sequential step-file fan-out.
+- [TBD — to be assigned in Phase 1.6c] — No sequential step-file fan-out.
 
 ---
 

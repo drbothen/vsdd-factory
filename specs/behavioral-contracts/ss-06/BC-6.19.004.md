@@ -60,7 +60,7 @@ repo-initialization: factory-artifacts orphan worktree pre-check (NOT dark-facto
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: All three post-checks must pass; otherwise FATAL. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: All three post-checks must pass; otherwise FATAL. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — All three post-checks must pass; otherwise FATAL.
+- [TBD — to be assigned in Phase 1.6c] — All three post-checks must pass; otherwise FATAL.
 
 ---
 

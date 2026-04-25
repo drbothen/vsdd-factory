@@ -70,7 +70,7 @@ On successful activation, the activate skill merges activation metadata (`activa
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | settings.local.json after activation contains agent + vsdd-factory.{activated_platform, activated_at, activated_plugin_version} | manual |
+| (TBD — to be assigned in Phase 1.6c) | settings.local.json after activation contains agent + vsdd-factory.{activated_platform, activated_at, activated_plugin_version} | manual |
 | VP-002 | All keys present before activation that are not in the merge payload remain unchanged | manual |
 
 ## Traceability
@@ -98,7 +98,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — settings.local.json activation keys present
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002 — non-payload keys preserved
 
 ---

@@ -68,7 +68,7 @@ Cost monitoring continuous through pipeline (per workflow description line 9-15)
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `greenfield: cost monitoring (workflow-level)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `greenfield: cost monitoring (workflow-level)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +95,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `greenfield: cost monitoring (workflow-level)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `greenfield: cost monitoring (workflow-level)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

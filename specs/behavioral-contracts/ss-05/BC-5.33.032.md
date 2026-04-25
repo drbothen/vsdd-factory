@@ -62,7 +62,7 @@ Step `fix-pr-delivery` (line 311). Type: loop. Depends: `[maintenance-report]`. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Sub-workflow target = code-delivery.lobster | manual |
+| (TBD — to be assigned in Phase 1.6c) | Sub-workflow target = code-delivery.lobster | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

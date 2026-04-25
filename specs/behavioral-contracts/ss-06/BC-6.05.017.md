@@ -68,7 +68,7 @@ discovery-engine: 7-dimension scoring with weights summing to 1.00. Scores ideas
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Each idea has all 7 dimension scores and a composite from weighted average." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Each idea has all 7 dimension scores and a composite from weighted average." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

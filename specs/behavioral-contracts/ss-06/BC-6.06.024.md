@@ -60,7 +60,7 @@ recover-state: requires user approval before write. Confidence: HIGH. Extracted 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: STATE.md is never written without an explicit approve. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: STATE.md is never written without an explicit approve. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — STATE.md is never written without an explicit approve.
+- [TBD — to be assigned in Phase 1.6c] — STATE.md is never written without an explicit approve.
 
 ---
 

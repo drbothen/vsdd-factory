@@ -60,7 +60,7 @@ run-phase: STATE.md update + final summary. Confidence: HIGH. Extracted from `pl
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: STATE.md grows by N lines for an N-step phase; summary contains all four metrics. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: STATE.md grows by N lines for an N-step phase; summary contains all four metrics. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — STATE.md grows by N lines for an N-step phase; summary contains all four metrics.
+- [TBD — to be assigned in Phase 1.6c] — STATE.md grows by N lines for an N-step phase; summary contains all four metrics.
 
 ---
 

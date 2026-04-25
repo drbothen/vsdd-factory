@@ -60,7 +60,7 @@ state-burst: refuses 3rd commit + recovery via `git reset --soft HEAD~2`. Confid
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Any failure path uses reset+redo, never appended commit. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Any failure path uses reset+redo, never appended commit. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Any failure path uses reset+redo, never appended commit.
+- [TBD — to be assigned in Phase 1.6c] — Any failure path uses reset+redo, never appended commit.
 
 ---
 

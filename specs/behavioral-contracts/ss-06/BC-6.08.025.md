@@ -60,7 +60,7 @@ responsive-validation: screenshot evidence + per-screen pass/fail matrix. Confid
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Quality gate: screenshots captured per screen; report shows pass-rate %. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Quality gate: screenshots captured per screen; report shows pass-rate %. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Quality gate: screenshots captured per screen; report shows pass-rate %.
+- [TBD — to be assigned in Phase 1.6c] — Quality gate: screenshots captured per screen; report shows pass-rate %.
 
 ---
 

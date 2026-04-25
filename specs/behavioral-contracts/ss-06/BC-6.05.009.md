@@ -68,7 +68,7 @@ competitive-monitoring: skill identity contract. Monitors competitor activity (r
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Frontmatter declares primary agent research-agent; outputs `.factory/discovery/competitive-update-YYYY-MM-DD.md` and updated baseline." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Frontmatter declares primary agent research-agent; outputs `.factory/discovery/competitive-update-YYYY-MM-DD.md` and updated baseline." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

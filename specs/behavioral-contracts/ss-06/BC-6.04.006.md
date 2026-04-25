@@ -68,7 +68,7 @@ adversarial-review: post-adversary persistence via state-manager. Adversary cann
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Findings file exists at the target path AND the index is updated, both via state-manager subagent dispatch." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Findings file exists at the target path AND the index is updated, both via state-manager subagent dispatch." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

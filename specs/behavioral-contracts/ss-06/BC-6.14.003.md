@@ -68,7 +68,7 @@ artifact-detection: format detection flags FR-NNN legacy for migration. Skill MU
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "When FR-NNN is detected, output includes a "migration required" recommendation; pipeline does not continue without acknowledgment." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "When FR-NNN is detected, output includes a "migration required" recommendation; pipeline does not continue without acknowledgment." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

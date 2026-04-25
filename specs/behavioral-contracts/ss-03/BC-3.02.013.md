@@ -67,7 +67,7 @@ Given Tempdir chmod 0o555. Sink writes into it. When Event submitted + flushed..
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Tempdir chmod 0o555. Sink writes into it. When Event submitted + flushed.. Then `take_failures()` returns at least | manual (existing test: `crates/sink-file/src/lib.rs::tests::read_only_path_records_failure_without_panic` (Unix-only `#[cfg(unix)]`)) |
+| (TBD — to be assigned in Phase 1.6c) | Given Tempdir chmod 0o555. Sink writes into it. When Event submitted + flushed.. Then `take_failures()` returns at least | manual (existing test: `crates/sink-file/src/lib.rs::tests::read_only_path_records_failure_without_panic` (Unix-only `#[cfg(unix)]`)) |
 
 ## Traceability
 

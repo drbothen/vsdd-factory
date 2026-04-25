@@ -68,7 +68,7 @@ create-brief: questions one-at-a-time, multiple choice when possible. Asks quest
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Each question is a separate user prompt; multiple-choice options surfaced where applicable." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Each question is a separate user prompt; multiple-choice options surfaced where applicable." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

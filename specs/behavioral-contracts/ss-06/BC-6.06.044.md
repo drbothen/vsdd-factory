@@ -60,7 +60,7 @@ wave-scheduling: wave-schedule.md output + quality gate. Confidence: HIGH. Extra
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Schedule rows {Wave, Group, Stories, Test-Writer Scope, Implementer Scope}. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Schedule rows {Wave, Group, Stories, Test-Writer Scope, Implementer Scope}. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Schedule rows {Wave, Group, Stories, Test-Writer Scope, Implementer Scope}.
+- [TBD — to be assigned in Phase 1.6c] — Schedule rows {Wave, Group, Stories, Test-Writer Scope, Implementer Scope}.
 
 ---
 

@@ -62,7 +62,7 @@ Step `product-scoring` (line 242). Type: agent. Agent: product-owner. Depends: `
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Scorer reads both upstream inputs | manual |
+| (TBD — to be assigned in Phase 1.6c) | Scorer reads both upstream inputs | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

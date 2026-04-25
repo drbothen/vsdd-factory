@@ -68,7 +68,7 @@ demo-recording: target sizes (WebM <2MB, GIF <5MB, total <25MB). Per-demo target
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "No demo file exceeds the limits; total per-PR <25MB." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "No demo file exceeds the limits; total per-PR <25MB." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

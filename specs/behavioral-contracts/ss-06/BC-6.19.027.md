@@ -60,7 +60,7 @@ toolchain-provisioning: language detection cascade. Confidence: HIGH. Extracted 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Detected languages match the source signals; toolchain-state.yaml written. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Detected languages match the source signals; toolchain-state.yaml written. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Detected languages match the source signals; toolchain-state.yaml written.
+- [TBD — to be assigned in Phase 1.6c] — Detected languages match the source signals; toolchain-state.yaml written.
 
 ---
 

@@ -60,7 +60,7 @@ recover-state: documented limitations are honored (no fabrication). Confidence: 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Reconstructed STATE.md leaves the five enumerated sections empty; commit is delegated to state-manager. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Reconstructed STATE.md leaves the five enumerated sections empty; commit is delegated to state-manager. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Reconstructed STATE.md leaves the five enumerated sections empty; commit is delegated to state-manager.
+- [TBD — to be assigned in Phase 1.6c] — Reconstructed STATE.md leaves the five enumerated sections empty; commit is delegated to state-manager.
 
 ---
 

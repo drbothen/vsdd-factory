@@ -60,7 +60,7 @@ semport-analyze: language idiom mapping table (Python/TS/Rust pairs). Confidence
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Per-module target design references the appropriate row of this table. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Per-module target design references the appropriate row of this table. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Per-module target design references the appropriate row of this table.
+- [TBD — to be assigned in Phase 1.6c] — Per-module target design references the appropriate row of this table.
 
 ---
 

@@ -67,7 +67,7 @@ Given Minimal TOML `name="local-events", enabled=true, path_template="..."`. Whe
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Minimal TOML `name="local-events", enabled=true, path_template="..."`. When Parsed via `toml::from_str::<FileSinkC | manual (existing test: `crates/sink-file/src/lib.rs::tests::config_deserializes_from_toml`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Minimal TOML `name="local-events", enabled=true, path_template="..."`. When Parsed via `toml::from_str::<FileSinkC | manual (existing test: `crates/sink-file/src/lib.rs::tests::config_deserializes_from_toml`) |
 
 ## Traceability
 

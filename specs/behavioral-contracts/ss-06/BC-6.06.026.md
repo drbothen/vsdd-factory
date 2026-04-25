@@ -60,7 +60,7 @@ state-burst: identity & defect-class context. Confidence: HIGH. Extracted from `
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: disable-model-invocation false; allowed-tools Read/Write/Edit/Bash; user-invocable. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: disable-model-invocation false; allowed-tools Read/Write/Edit/Bash; user-invocable. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — disable-model-invocation false; allowed-tools Read/Write/Edit/Bash; user-invocable.
+- [TBD — to be assigned in Phase 1.6c] — disable-model-invocation false; allowed-tools Read/Write/Edit/Bash; user-invocable.
 
 ---
 

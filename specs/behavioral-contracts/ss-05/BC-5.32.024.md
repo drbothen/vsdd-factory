@@ -61,7 +61,7 @@ Step `generate-report` (line 295). Type: agent. Agent: orchestrator. Depends: `[
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Report covers all surviving ideas | manual |
+| (TBD — to be assigned in Phase 1.6c) | Report covers all surviving ideas | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

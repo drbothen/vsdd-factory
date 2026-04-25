@@ -60,7 +60,7 @@ responsive-validation: 4 mandatory breakpoints (375/768/1024/1440). Confidence: 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Quality gate: all 4 breakpoints tested for every screen. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Quality gate: all 4 breakpoints tested for every screen. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Quality gate: all 4 breakpoints tested for every screen.
+- [TBD — to be assigned in Phase 1.6c] — Quality gate: all 4 breakpoints tested for every screen.
 
 ---
 

@@ -63,7 +63,7 @@ Step `create-pr` (line 254). Type: agent. Agent: pr-manager. Depends: `[squash-a
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | PR id is captured for downstream context | manual |
+| (TBD — to be assigned in Phase 1.6c) | PR id is captured for downstream context | manual |
 
 ## Traceability
 
@@ -89,7 +89,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

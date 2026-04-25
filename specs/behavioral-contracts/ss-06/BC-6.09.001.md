@@ -68,7 +68,7 @@ dtu-creation: skill identity (build behavioral clones). Builds behavioral clones
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Outputs include clone spec + clone implementation + Dockerfile + validation report + docker-compose.dtu.yml + dtu-env.sh." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Outputs include clone spec + clone implementation + Dockerfile + validation report + docker-compose.dtu.yml + dtu-env.sh." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

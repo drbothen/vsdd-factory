@@ -68,7 +68,7 @@ v1.0.0. Multi-model adversarial review loop with GPT-5.4 primary and Gemini 3.1 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `phase-5-adversarial-refinement: identity` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `phase-5-adversarial-refinement: identity` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +95,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `phase-5-adversarial-refinement: identity`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `phase-5-adversarial-refinement: identity`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

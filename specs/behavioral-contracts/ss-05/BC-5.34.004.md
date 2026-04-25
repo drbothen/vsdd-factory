@@ -63,7 +63,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | DAG acyclic | manual / lobster-parse |
+| (TBD — to be assigned in Phase 1.6c) | DAG acyclic | manual / lobster-parse |
 | VP-002 | 6 cross-repo gates fan-in to integration-gate | manual |
 
 ## Traceability
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

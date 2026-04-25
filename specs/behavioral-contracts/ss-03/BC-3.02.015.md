@@ -67,7 +67,7 @@ Given 5 events submitted. shutdown() called. When File is read; then a "after" e
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given 5 events submitted. shutdown() called. When File is read; then a "after" event is submitted; file is re-read.. The | manual (existing test: `crates/sink-file/src/lib.rs::tests::shutdown_drains_queued_events`) |
+| (TBD — to be assigned in Phase 1.6c) | Given 5 events submitted. shutdown() called. When File is read; then a "after" event is submitted; file is re-read.. The | manual (existing test: `crates/sink-file/src/lib.rs::tests::shutdown_drains_queued_events`) |
 
 ## Traceability
 

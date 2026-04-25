@@ -60,7 +60,7 @@ release: error-handling catalog. Confidence: HIGH. Extracted from `plugins/vsdd-
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each enumerated failure returns the documented message and abort behavior. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each enumerated failure returns the documented message and abort behavior. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each enumerated failure returns the documented message and abort behavior.
+- [TBD — to be assigned in Phase 1.6c] — Each enumerated failure returns the documented message and abort behavior.
 
 ---
 

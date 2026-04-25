@@ -68,7 +68,7 @@ deactivate: skill identity (inverse of activate). Reverses activate. Clears orch
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "After deactivation, `.claude/settings.local.json` lacks `agent` and `vsdd-factory` keys; hooks.json removed but `hooks.json.<platform>` files remain." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "After deactivation, `.claude/settings.local.json` lacks `agent` and `vsdd-factory` keys; hooks.json removed but `hooks.json.<platform>` files remain." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

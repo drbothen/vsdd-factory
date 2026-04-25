@@ -65,7 +65,7 @@ Adversary evaluates: 3a Spec Fidelity, 3b Regression Risk, 3c Convention Adheren
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

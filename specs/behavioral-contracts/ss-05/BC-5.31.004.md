@@ -65,7 +65,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | DAG is acyclic | manual / lobster-parse |
+| (TBD — to be assigned in Phase 1.6c) | DAG is acyclic | manual / lobster-parse |
 | VP-002 | All `depends_on` references resolve | manual / lobster-parse |
 
 ## Traceability
@@ -93,7 +93,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001 — DAG acyclicity
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002 — dependency resolution
 
 ---

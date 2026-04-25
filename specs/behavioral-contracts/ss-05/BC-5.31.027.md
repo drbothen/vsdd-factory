@@ -62,7 +62,7 @@ Step `delivery-human-approval` (line 418). Type: human-approval. Timeout: 24h. D
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step bounded by 24h timeout | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step bounded by 24h timeout | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

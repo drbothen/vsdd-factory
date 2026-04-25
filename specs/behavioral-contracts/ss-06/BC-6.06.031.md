@@ -60,7 +60,7 @@ state-burst: documented bypass paths. Confidence: HIGH. Extracted from `plugins/
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Bypass record exists when skill is bypassed. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Bypass record exists when skill is bypassed. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Bypass record exists when skill is bypassed.
+- [TBD — to be assigned in Phase 1.6c] — Bypass record exists when skill is bypassed.
 
 ---
 

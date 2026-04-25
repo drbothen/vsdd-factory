@@ -65,7 +65,7 @@ Defines Delta = {NEW, MODIFIED, DEPENDENT} files. Phase-by-phase scope and regre
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

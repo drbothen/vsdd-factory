@@ -59,7 +59,7 @@ Step `state-backup-sweep-6` (line 161). Agent: state-manager. Source 161-166. Pe
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | STATE.md updated | manual |
+| (TBD — to be assigned in Phase 1.6c) | STATE.md updated | manual |
 
 ## Traceability
 
@@ -83,7 +83,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

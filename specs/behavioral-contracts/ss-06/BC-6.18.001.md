@@ -60,7 +60,7 @@ pr-create: identity & invocation contract. Confidence: HIGH. Extracted from `plu
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Frontmatter declares the four allowed-tools and disables model invocation. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Frontmatter declares the four allowed-tools and disables model invocation. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Frontmatter declares the four allowed-tools and disables model invocation.
+- [TBD — to be assigned in Phase 1.6c] — Frontmatter declares the four allowed-tools and disables model invocation.
 
 ---
 

@@ -67,7 +67,7 @@ Given TOML `name = "local-events"` (only). When Parsed via `toml::from_str::<Sin
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given TOML `name = "local-events"` (only). When Parsed via `toml::from_str::<SinkConfigCommon>`.. Then `cfg.enabled == t | manual (existing test: `crates/sink-core/src/lib.rs::tests::sink_config_common_defaults_enabled_true`) |
+| (TBD — to be assigned in Phase 1.6c) | Given TOML `name = "local-events"` (only). When Parsed via `toml::from_str::<SinkConfigCommon>`.. Then `cfg.enabled == t | manual (existing test: `crates/sink-core/src/lib.rs::tests::sink_config_common_defaults_enabled_true`) |
 
 ## Traceability
 

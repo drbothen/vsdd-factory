@@ -70,7 +70,7 @@ brownfield-ingest's "Iron Law": padding or fabricating round content is strictly
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Padding/fabrication is strictly worse than honest NITPICK without file emission | manual |
+| (TBD — to be assigned in Phase 1.6c) | Padding/fabrication is strictly worse than honest NITPICK without file emission | manual |
 
 ## Traceability
 
@@ -95,7 +95,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — Honest convergence check required
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -68,7 +68,7 @@ compact-state: skill identity (extract historical content from STATE.md). Extrac
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Frontmatter declares `disable-model-invocation: false`; allowed-tools include Read, Write, Edit, Bash, Glob, Grep." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Frontmatter declares `disable-model-invocation: false`; allowed-tools include Read, Write, Edit, Bash, Glob, Grep." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

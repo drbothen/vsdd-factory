@@ -67,7 +67,7 @@ Workflow contract: phase-6: entry-point.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``kani-proofs` (line 17) — `depends_on: []`. Type: skill.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``kani-proofs` (line 17) — `depends_on: []`. Type: skill.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``kani-proofs` (line 17) — `depends_on: []`. Type: skill.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``kani-proofs` (line 17) — `depends_on: []`. Type: skill.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

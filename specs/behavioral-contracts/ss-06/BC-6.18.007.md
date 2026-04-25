@@ -60,7 +60,7 @@ pr-review-triage: classification table is complete and exhaustive. Confidence: H
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Every finding maps to exactly one row of the routing table. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Every finding maps to exactly one row of the routing table. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Every finding maps to exactly one row of the routing table.
+- [TBD — to be assigned in Phase 1.6c] — Every finding maps to exactly one row of the routing table.
 
 ---
 

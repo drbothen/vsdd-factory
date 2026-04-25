@@ -60,7 +60,7 @@ toolchain-provisioning: install-priority (lang-native → brew → system) + pkg
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No global install of project-scoped dependency; verification follows install. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No global install of project-scoped dependency; verification follows install. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No global install of project-scoped dependency; verification follows install.
+- [TBD — to be assigned in Phase 1.6c] — No global install of project-scoped dependency; verification follows install.
 
 ---
 

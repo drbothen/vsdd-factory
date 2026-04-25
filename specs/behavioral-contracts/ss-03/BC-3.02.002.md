@@ -67,7 +67,7 @@ Given `{name}.jsonl`, name="audit-archive". When Resolved.. Then Returns `/var/l
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given `{name}.jsonl`, name="audit-archive". When Resolved.. Then Returns `/var/log/audit-archive.jsonl`. | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_name_only`) |
+| (TBD — to be assigned in Phase 1.6c) | Given `{name}.jsonl`, name="audit-archive". When Resolved.. Then Returns `/var/log/audit-archive.jsonl`. | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_name_only`) |
 
 ## Traceability
 

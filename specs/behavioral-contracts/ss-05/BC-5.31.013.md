@@ -62,7 +62,7 @@ Step `storybook-story-generation` (line 165). Type: agent. Agent: test-writer. D
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step runs only when both conditions hold | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step runs only when both conditions hold | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

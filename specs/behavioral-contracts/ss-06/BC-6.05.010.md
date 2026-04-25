@@ -68,7 +68,7 @@ competitive-monitoring: urgency classification HIGH/MEDIUM/LOW. HIGH = competito
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Each detected change carries exactly one HIGH/MED/LOW classification matching the criteria." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Each detected change carries exactly one HIGH/MED/LOW classification matching the criteria." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

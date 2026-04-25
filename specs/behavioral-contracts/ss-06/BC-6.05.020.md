@@ -68,7 +68,7 @@ disposition-pass: 4-bucket mandatory categorization. Every substantive capabilit
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "No capability appears in 2 buckets; every "Leave behind" entry has a reason." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "No capability appears in 2 buckets; every "Leave behind" entry has a reason." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

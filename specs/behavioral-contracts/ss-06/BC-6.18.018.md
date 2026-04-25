@@ -60,7 +60,7 @@ release: dry-run produces complete plan with no side effects. Confidence: HIGH. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Filesystem and git state unchanged after dry-run completion. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Filesystem and git state unchanged after dry-run completion. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Filesystem and git state unchanged after dry-run completion.
+- [TBD — to be assigned in Phase 1.6c] — Filesystem and git state unchanged after dry-run completion.
 
 ---
 

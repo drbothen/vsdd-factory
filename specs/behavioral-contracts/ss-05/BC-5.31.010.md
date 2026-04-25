@@ -63,7 +63,7 @@ Step `implement` (line 86). Type: agent. Agent: implementer. Depends: `[red-gate
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | At step exit, all story tests pass | manual |
+| (TBD — to be assigned in Phase 1.6c) | At step exit, all story tests pass | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

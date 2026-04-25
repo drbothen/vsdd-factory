@@ -61,7 +61,7 @@ Step `state-backup-feature-research` (line 84). Type: agent. Agent: state-manage
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | STATE.md reflects this step's completion | manual |
+| (TBD — to be assigned in Phase 1.6c) | STATE.md reflects this step's completion | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

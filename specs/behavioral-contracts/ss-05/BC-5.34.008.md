@@ -62,7 +62,7 @@ Step `read-project-manifest` (line 69). Type: agent. Agent: orchestrator. Depend
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | All declared repos enumerated post-step | manual |
+| (TBD — to be assigned in Phase 1.6c) | All declared repos enumerated post-step | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

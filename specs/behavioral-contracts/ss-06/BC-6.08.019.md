@@ -60,7 +60,7 @@ record-demo: writes demo-report.md with per-AC table. Confidence: HIGH. Extracte
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Report file exists at the named path with mandatory sections. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Report file exists at the named path with mandatory sections. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Report file exists at the named path with mandatory sections.
+- [TBD — to be assigned in Phase 1.6c] — Report file exists at the named path with mandatory sections.
 
 ---
 

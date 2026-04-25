@@ -60,7 +60,7 @@ ui-quality-gate: comprehensive checklist across 5 dimensions. Confidence: HIGH. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Every checklist item is a row in gate-report.md. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Every checklist item is a row in gate-report.md. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Every checklist item is a row in gate-report.md.
+- [TBD — to be assigned in Phase 1.6c] — Every checklist item is a row in gate-report.md.
 
 ---
 

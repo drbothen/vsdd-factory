@@ -60,7 +60,7 @@ state-update: 4-step procedure (read → frontmatter → history → commit). Co
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each call produces exactly one commit on factory-artifacts. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each call produces exactly one commit on factory-artifacts. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each call produces exactly one commit on factory-artifacts.
+- [TBD — to be assigned in Phase 1.6c] — Each call produces exactly one commit on factory-artifacts.
 
 ---
 

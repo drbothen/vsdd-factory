@@ -60,7 +60,7 @@ quick-dev-routing: identity & qualification gate. Confidence: HIGH. Extracted fr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: A change with any criterion failing routes to standard Feature Mode (F1-F7). | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: A change with any criterion failing routes to standard Feature Mode (F1-F7). | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — A change with any criterion failing routes to standard Feature Mode (F1-F7).
+- [TBD — to be assigned in Phase 1.6c] — A change with any criterion failing routes to standard Feature Mode (F1-F7).
 
 ---
 

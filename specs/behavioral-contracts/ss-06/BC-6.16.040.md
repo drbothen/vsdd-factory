@@ -60,7 +60,7 @@ run-phase: identity & resolution rules. Confidence: HIGH. Extracted from `plugin
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Failure to resolve produces actionable error with file path. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Failure to resolve produces actionable error with file path. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Failure to resolve produces actionable error with file path.
+- [TBD — to be assigned in Phase 1.6c] — Failure to resolve produces actionable error with file path.
 
 ---
 

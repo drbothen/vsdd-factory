@@ -60,7 +60,7 @@ toolchain-provisioning: quality-gate criteria. Confidence: HIGH. Extracted from 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each gate item resolves PASS/FAIL with explicit evidence. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each gate item resolves PASS/FAIL with explicit evidence. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each gate item resolves PASS/FAIL with explicit evidence.
+- [TBD — to be assigned in Phase 1.6c] — Each gate item resolves PASS/FAIL with explicit evidence.
 
 ---
 

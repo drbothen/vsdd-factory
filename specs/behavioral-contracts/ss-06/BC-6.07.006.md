@@ -68,7 +68,7 @@ consistency-validation: 36 numbered rules executed in order. Runs Rules 0-36 in 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Output table contains exactly 36 numbered rule rows with Status (PASS/FAIL) and violation lists." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Output table contains exactly 36 numbered rule rows with Status (PASS/FAIL) and violation lists." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

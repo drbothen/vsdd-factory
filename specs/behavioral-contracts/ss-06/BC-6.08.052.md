@@ -60,7 +60,7 @@ visual-companion: server lifecycle (start/url/state-dir/stop, 30-min auto-exit).
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Session JSON contains all five fields; stop is explicit or auto. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Session JSON contains all five fields; stop is explicit or auto. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Session JSON contains all five fields; stop is explicit or auto.
+- [TBD — to be assigned in Phase 1.6c] — Session JSON contains all five fields; stop is explicit or auto.
 
 ---
 

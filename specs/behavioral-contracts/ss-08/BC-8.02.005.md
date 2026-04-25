@@ -67,7 +67,7 @@ Epic shape. Frontmatter `document_type: epic`, `epic_id: "EPIC-XXX"`. Required s
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — promote acceptance criterion to a structural/lint test | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — promote acceptance criterion to a structural/lint test | manual |
 
 ## Traceability
 

@@ -64,7 +64,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Sub-workflow rejects invocation when any of the 5 typed inputs is missing | manual |
+| (TBD — to be assigned in Phase 1.6c) | Sub-workflow rejects invocation when any of the 5 typed inputs is missing | manual |
 | VP-002 | DF-037 storybook self-healing loop terminates at ≤10 iterations | manual |
 
 ## Traceability
@@ -92,7 +92,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001 — input contract enforcement
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002 — bounded loop termination
 
 ---

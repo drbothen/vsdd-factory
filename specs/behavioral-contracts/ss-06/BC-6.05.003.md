@@ -68,7 +68,7 @@ brownfield-ingest: source acquisition into .reference/. Git URL → `git clone -
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "`.reference/<project>/` exists with source AND `reference-manifest.yaml` has new entry with url/SHA/date/depth/focus/status." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "`.reference/<project>/` exists with source AND `reference-manifest.yaml` has new entry with url/SHA/date/depth/focus/status." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

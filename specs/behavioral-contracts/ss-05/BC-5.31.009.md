@@ -63,7 +63,7 @@ Step `red-gate` (line 73). Type: gate. Depends: `[write-tests]`. fail_action: bl
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Gate blocks unless tests compile and all fail | manual |
+| (TBD — to be assigned in Phase 1.6c) | Gate blocks unless tests compile and all fail | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

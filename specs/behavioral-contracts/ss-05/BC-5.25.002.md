@@ -67,7 +67,7 @@ Workflow contract: phase-5: entry-point.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``adversarial-review-loop` (line 14) — `depends_on: []`. Type: loop.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``adversarial-review-loop` (line 14) — `depends_on: []`. Type: loop.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``adversarial-review-loop` (line 14) — `depends_on: []`. Type: loop.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``adversarial-review-loop` (line 14) — `depends_on: []`. Type: loop.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

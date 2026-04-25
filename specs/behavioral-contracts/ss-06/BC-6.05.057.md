@@ -60,7 +60,7 @@ semport-analyze: validate-extraction agent post-pass (max 3 iterations). Confide
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Validation result is included; refinement halts at iteration 3. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Validation result is included; refinement halts at iteration 3. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Validation result is included; refinement halts at iteration 3.
+- [TBD — to be assigned in Phase 1.6c] — Validation result is included; refinement halts at iteration 3.
 
 ---
 

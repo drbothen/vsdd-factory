@@ -62,7 +62,7 @@ Step `maintenance-report` (line 285). Type: agent. Agent: orchestrator. Depends:
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step has 11 in-edges (one per sweep backup) | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step has 11 in-edges (one per sweep backup) | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

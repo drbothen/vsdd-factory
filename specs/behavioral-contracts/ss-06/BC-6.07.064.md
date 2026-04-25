@@ -60,7 +60,7 @@ validate-template-compliance: report format (per-file detail + summary table + a
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Output template matches `consistency-validation-report-template.md`. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Output template matches `consistency-validation-report-template.md`. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Output template matches `consistency-validation-report-template.md`.
+- [TBD — to be assigned in Phase 1.6c] — Output template matches `consistency-validation-report-template.md`.
 
 ---
 

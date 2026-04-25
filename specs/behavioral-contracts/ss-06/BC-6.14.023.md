@@ -60,7 +60,7 @@ systematic-debugging: identity + hard gate. Confidence: HIGH. Extracted from `pl
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Gate refuses Phase-4 work prior to Phase-1 sign-off. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Gate refuses Phase-4 work prior to Phase-1 sign-off. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Gate refuses Phase-4 work prior to Phase-1 sign-off.
+- [TBD — to be assigned in Phase 1.6c] — Gate refuses Phase-4 work prior to Phase-1 sign-off.
 
 ---
 

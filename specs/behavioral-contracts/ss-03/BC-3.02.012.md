@@ -67,7 +67,7 @@ Given Sink config with `enabled = false`. When Event submitted + flushed.. Then 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Sink config with `enabled = false`. When Event submitted + flushed.. Then Output file does NOT exist. Disabled sin | manual (existing test: `crates/sink-file/src/lib.rs::tests::disabled_sink_drops_every_event`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Sink config with `enabled = false`. When Event submitted + flushed.. Then Output file does NOT exist. Disabled sin | manual (existing test: `crates/sink-file/src/lib.rs::tests::disabled_sink_drops_every_event`) |
 
 ## Traceability
 

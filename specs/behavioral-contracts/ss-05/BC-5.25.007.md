@@ -68,7 +68,7 @@ Reviews codebase for spec fidelity, test quality, code quality, security surface
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `adversary-code-review (line 21)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `adversary-code-review (line 21)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +95,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `adversary-code-review (line 21)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `adversary-code-review (line 21)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

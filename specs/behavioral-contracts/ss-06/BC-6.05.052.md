@@ -60,7 +60,7 @@ research-cache-ops: SHA-256 deterministic key + research-agent integration patte
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Same query yields same key; cached result reused on second invocation. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Same query yields same key; cached result reused on second invocation. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Same query yields same key; cached result reused on second invocation.
+- [TBD — to be assigned in Phase 1.6c] — Same query yields same key; cached result reused on second invocation.
 
 ---
 

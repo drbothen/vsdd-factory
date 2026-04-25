@@ -59,7 +59,7 @@ Step `state-backup-sweep-1` (line 73). Type: agent. Agent: state-manager. Depend
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | STATE.md updated post-step | manual |
+| (TBD — to be assigned in Phase 1.6c) | STATE.md updated post-step | manual |
 
 ## Traceability
 
@@ -83,7 +83,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

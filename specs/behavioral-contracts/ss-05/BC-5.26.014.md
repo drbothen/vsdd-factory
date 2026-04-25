@@ -68,7 +68,7 @@ Verifies Kani proofs pass, fuzz 5min/target with zero crashes, mutation kill rat
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `hardening-gate (line 80)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `hardening-gate (line 80)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +95,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `hardening-gate (line 80)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `hardening-gate (line 80)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

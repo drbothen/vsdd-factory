@@ -66,7 +66,7 @@ Step `per-story-ui-quality-gate` (line 206). Type: agent. Agent: consistency-val
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | All four sub-checks must pass | manual |
+| (TBD — to be assigned in Phase 1.6c) | All four sub-checks must pass | manual |
 
 ## Traceability
 
@@ -91,7 +91,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

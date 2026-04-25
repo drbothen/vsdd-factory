@@ -61,7 +61,7 @@ SKILL.md frontmatter requires `name` and `description`; both are non-empty strin
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — YAML frontmatter (between `---` markers) declares non-empty `name:` and `description:`. Optional fields: `argument-hint:`, `disable-model-invocation:`, `allowed-tools:`, `model:`, `color:`, `tools:`. The frontmatter `name` matches the filesystem directory name (canonical skill identity).
+- [TBD — to be assigned in Phase 1.6c] — YAML frontmatter (between `---` markers) declares non-empty `name:` and `description:`. Optional fields: `argument-hint:`, `disable-model-invocation:`, `allowed-tools:`, `model:`, `color:`, `tools:`. The frontmatter `name` matches the filesystem directory name (canonical skill identity).
 
 ---
 

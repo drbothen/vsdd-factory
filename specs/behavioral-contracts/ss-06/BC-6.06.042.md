@@ -60,7 +60,7 @@ wave-scheduling: parallel groups (≤2 S/M or ≤1 L/XL per group). Confidence: 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No group exceeds the per-size limits. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No group exceeds the per-size limits. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No group exceeds the per-size limits.
+- [TBD — to be assigned in Phase 1.6c] — No group exceeds the per-size limits.
 
 ---
 

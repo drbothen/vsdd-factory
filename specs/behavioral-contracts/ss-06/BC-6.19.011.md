@@ -60,7 +60,7 @@ scaffold-claude-md: four detectors run in priority order. Confidence: HIGH. Extr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each detector outputs a section, with TODO placeholder if nothing found (never omit). | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each detector outputs a section, with TODO placeholder if nothing found (never omit). | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each detector outputs a section, with TODO placeholder if nothing found (never omit).
+- [TBD — to be assigned in Phase 1.6c] — Each detector outputs a section, with TODO placeholder if nothing found (never omit).
 
 ---
 

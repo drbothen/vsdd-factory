@@ -62,7 +62,7 @@ Step `dtu-fidelity-drift` (line 150). Type: agent. Agent: dtu-validator. Depends
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step gated by has_dtu_clones | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step gated by has_dtu_clones | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

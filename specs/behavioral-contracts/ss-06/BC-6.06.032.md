@@ -60,7 +60,7 @@ state-update: identity & internal-only contract. Confidence: HIGH. Extracted fro
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill not invoked directly by `/` slash command. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill not invoked directly by `/` slash command. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill not invoked directly by `/` slash command.
+- [TBD — to be assigned in Phase 1.6c] — Skill not invoked directly by `/` slash command.
 
 ---
 

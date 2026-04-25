@@ -60,7 +60,7 @@ session-review: 10 proposal categories with routing. Confidence: HIGH. Extracted
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Proposal carries category + route per the explicit table. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Proposal carries category + route per the explicit table. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Proposal carries category + route per the explicit table.
+- [TBD — to be assigned in Phase 1.6c] — Proposal carries category + route per the explicit table.
 
 ---
 

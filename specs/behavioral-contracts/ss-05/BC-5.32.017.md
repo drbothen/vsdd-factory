@@ -63,7 +63,7 @@ Step `feature-scoring-feasibility` (line 180). Type: agent. Agent: architect. De
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Independence-of-scoring wall enforced | manual |
+| (TBD — to be assigned in Phase 1.6c) | Independence-of-scoring wall enforced | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

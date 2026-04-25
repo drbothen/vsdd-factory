@@ -60,7 +60,7 @@ worktree-manage: create produces `.worktrees/STORY-NNN/` on `feature/STORY-NNN-<
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: New worktree on feature branch off develop. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: New worktree on feature branch off develop. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — New worktree on feature branch off develop.
+- [TBD — to be assigned in Phase 1.6c] — New worktree on feature branch off develop.
 
 ---
 

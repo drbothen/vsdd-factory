@@ -63,7 +63,7 @@ Step `wait-for-ci` (line 367). Type: loop. max_iterations: 3. exit_condition: `c
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Bounded ≤ 3 iterations | manual |
+| (TBD — to be assigned in Phase 1.6c) | Bounded ≤ 3 iterations | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

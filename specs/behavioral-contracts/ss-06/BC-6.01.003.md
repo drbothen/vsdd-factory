@@ -70,7 +70,7 @@ The activate skill requires that `detect-platform.sh` succeed. Exit 0 yields one
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Activation proceeds iff detect-platform.sh exits 0 with a platform in the 5-platform allowlist | manual |
+| (TBD — to be assigned in Phase 1.6c) | Activation proceeds iff detect-platform.sh exits 0 with a platform in the 5-platform allowlist | manual |
 
 ## Traceability
 
@@ -97,7 +97,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — detect-platform.sh exit-code gating
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -60,7 +60,7 @@ toolchain-provisioning: Storybook + Excalidraw MCP for UI products. Confidence: 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: UI products have both Storybook MCP and Excalidraw MCP entries in toolchain-state. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: UI products have both Storybook MCP and Excalidraw MCP entries in toolchain-state. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — UI products have both Storybook MCP and Excalidraw MCP entries in toolchain-state.
+- [TBD — to be assigned in Phase 1.6c] — UI products have both Storybook MCP and Excalidraw MCP entries in toolchain-state.
 
 ---
 

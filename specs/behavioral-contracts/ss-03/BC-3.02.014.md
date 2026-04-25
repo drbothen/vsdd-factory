@@ -67,7 +67,7 @@ Given Sink with `queue_depth = 2`. 500 events submitted in a tight loop. When Af
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Sink with `queue_depth = 2`. 500 events submitted in a tight loop. When After a 50ms drain delay, `queue_full_coun | manual (existing test: `crates/sink-file/src/lib.rs::tests::backpressure_fills_queue_and_increments_counter`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Sink with `queue_depth = 2`. 500 events submitted in a tight loop. When After a 50ms drain delay, `queue_full_coun | manual (existing test: `crates/sink-file/src/lib.rs::tests::backpressure_fills_queue_and_increments_counter`) |
 
 ## Traceability
 

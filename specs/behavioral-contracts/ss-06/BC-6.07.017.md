@@ -68,7 +68,7 @@ create-brief: writes product-brief.md with 8 named sections + state-update. Writ
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "All 8 sections present; commit created on factory-artifacts; STATE.md transitioned to phase-1." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "All 8 sections present; commit created on factory-artifacts; STATE.md transitioned to phase-1." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

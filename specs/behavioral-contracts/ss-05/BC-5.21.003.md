@@ -68,7 +68,7 @@ Final approval over `prd.md`, `architecture/`, `verification-properties/`, `beha
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``human-approval` (line 148) — depends on `[input-hash-drift-check]`; 24h timeout` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``human-approval` (line 148) — depends on `[input-hash-drift-check]`; 24h timeout` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +95,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``human-approval` (line 148) — depends on `[input-hash-drift-check]`; 24h timeout`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``human-approval` (line 148) — depends on `[input-hash-drift-check]`; 24h timeout`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

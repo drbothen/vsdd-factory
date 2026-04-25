@@ -60,7 +60,7 @@ release: version bump determined from story types when no explicit version. Conf
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Bump category derives from frontmatter rules in priority order; user confirmation required. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Bump category derives from frontmatter rules in priority order; user confirmation required. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Bump category derives from frontmatter rules in priority order; user confirmation required.
+- [TBD — to be assigned in Phase 1.6c] — Bump category derives from frontmatter rules in priority order; user confirmation required.
 
 ---
 

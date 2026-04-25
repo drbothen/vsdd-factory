@@ -65,7 +65,7 @@ TDD implementation scoped to new stories only. Full existing test suite (regress
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

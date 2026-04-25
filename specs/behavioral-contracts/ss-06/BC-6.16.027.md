@@ -65,7 +65,7 @@ Direct work command is `/vsdd-factory:decompose-stories`. Acceptance: Command sy
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

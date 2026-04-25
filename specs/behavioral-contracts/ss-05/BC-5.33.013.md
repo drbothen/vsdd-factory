@@ -60,7 +60,7 @@ Step `pattern-consistency-scan` (line 96). Type: agent. Agent: code-reviewer. mo
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | model_tier=review honored | manual |
+| (TBD — to be assigned in Phase 1.6c) | model_tier=review honored | manual |
 
 ## Traceability
 
@@ -84,7 +84,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

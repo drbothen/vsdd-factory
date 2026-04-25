@@ -60,7 +60,7 @@ session-review: 72h non-blocking timeout. Confidence: HIGH. Extracted from `plug
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Pipeline COMPLETE state achievable without manual approval. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Pipeline COMPLETE state achievable without manual approval. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Pipeline COMPLETE state achievable without manual approval.
+- [TBD — to be assigned in Phase 1.6c] — Pipeline COMPLETE state achievable without manual approval.
 
 ---
 

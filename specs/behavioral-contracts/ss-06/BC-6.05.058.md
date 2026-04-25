@@ -60,7 +60,7 @@ semport-analyze: outputs and post-skill report. Confidence: HIGH. Extracted from
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Output report matches the named template fields. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Output report matches the named template fields. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Output report matches the named template fields.
+- [TBD — to be assigned in Phase 1.6c] — Output report matches the named template fields.
 
 ---
 

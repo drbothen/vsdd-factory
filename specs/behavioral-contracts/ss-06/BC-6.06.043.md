@@ -60,7 +60,7 @@ wave-scheduling: pipeline overlap (Wave N+1 stubs while Wave N implements). Conf
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Stub creation precedes test-writing on same wave. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Stub creation precedes test-writing on same wave. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Stub creation precedes test-writing on same wave.
+- [TBD — to be assigned in Phase 1.6c] — Stub creation precedes test-writing on same wave.
 
 ---
 

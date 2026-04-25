@@ -60,7 +60,7 @@ sdk-generation: outputs and quality gate. Confidence: HIGH. Extracted from `plug
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: All five output artifacts present; gate criteria PASS. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: All five output artifacts present; gate criteria PASS. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — All five output artifacts present; gate criteria PASS.
+- [TBD — to be assigned in Phase 1.6c] — All five output artifacts present; gate criteria PASS.
 
 ---
 

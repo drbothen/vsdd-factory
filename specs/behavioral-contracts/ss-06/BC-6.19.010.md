@@ -60,7 +60,7 @@ scaffold-claude-md: identity & overwrite confirmation. Confidence: HIGH. Extract
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Existing CLAUDE.md never overwritten without explicit user confirmation. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Existing CLAUDE.md never overwritten without explicit user confirmation. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Existing CLAUDE.md never overwritten without explicit user confirmation.
+- [TBD — to be assigned in Phase 1.6c] — Existing CLAUDE.md never overwritten without explicit user confirmation.
 
 ---
 

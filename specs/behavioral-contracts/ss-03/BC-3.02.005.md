@@ -67,7 +67,7 @@ Given project_dir = None, template = `{project}events-{date}.jsonl`. When Resolv
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given project_dir = None, template = `{project}events-{date}.jsonl`. When Resolved.. Then Returns `events-2026-04-24.jso | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_no_project_yields_empty_basename`) |
+| (TBD — to be assigned in Phase 1.6c) | Given project_dir = None, template = `{project}events-{date}.jsonl`. When Resolved.. Then Returns `events-2026-04-24.jso | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_no_project_yields_empty_basename`) |
 
 ## Traceability
 

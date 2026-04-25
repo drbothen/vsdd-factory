@@ -65,7 +65,7 @@ Step `deduplication` (line 263). Type: agent. Agent: consistency-validator. Depe
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Bucketing matches threshold table exactly | manual |
+| (TBD — to be assigned in Phase 1.6c) | Bucketing matches threshold table exactly | manual |
 
 ## Traceability
 
@@ -90,7 +90,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

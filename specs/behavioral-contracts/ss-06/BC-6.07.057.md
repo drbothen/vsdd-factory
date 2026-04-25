@@ -60,7 +60,7 @@ validate-brief: market intel cross-check + report file + overall verdict. Confid
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Report has all three sections + verdict. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Report has all three sections + verdict. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Report has all three sections + verdict.
+- [TBD — to be assigned in Phase 1.6c] — Report has all three sections + verdict.
 
 ---
 

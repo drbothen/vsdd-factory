@@ -65,7 +65,7 @@ Runs four verification techniques: Kani proofs (pure core), cargo-fuzz (parsers/
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

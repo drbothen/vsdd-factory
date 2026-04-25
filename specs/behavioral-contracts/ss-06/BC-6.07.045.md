@@ -60,7 +60,7 @@ spec-versioning: per-story spec_version + drift detection. Confidence: HIGH. Ext
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Drift report rows include story ID, built-against, drift count, severity, action. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Drift report rows include story ID, built-against, drift count, severity, action. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Drift report rows include story ID, built-against, drift count, severity, action.
+- [TBD — to be assigned in Phase 1.6c] — Drift report rows include story ID, built-against, drift count, severity, action.
 
 ---
 

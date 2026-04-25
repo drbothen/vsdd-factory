@@ -60,7 +60,7 @@ systematic-debugging: 4-phase sequence (root cause → pattern → hypothesis �
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each phase produces named artifacts before next phase begins. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each phase produces named artifacts before next phase begins. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each phase produces named artifacts before next phase begins.
+- [TBD — to be assigned in Phase 1.6c] — Each phase produces named artifacts before next phase begins.
 
 ---
 

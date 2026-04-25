@@ -60,7 +60,7 @@ pr-review-triage: ten-cycle escalation cap. Confidence: HIGH. Extracted from `pl
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Convergence table shows escalation row at cycle 10 (or earlier per table semantics). | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Convergence table shows escalation row at cycle 10 (or earlier per table semantics). | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Convergence table shows escalation row at cycle 10 (or earlier per table semantics).
+- [TBD — to be assigned in Phase 1.6c] — Convergence table shows escalation row at cycle 10 (or earlier per table semantics).
 
 ---
 

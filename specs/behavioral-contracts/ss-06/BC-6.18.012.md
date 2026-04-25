@@ -60,7 +60,7 @@ release: announces protocol verbatim. Confidence: HIGH. Extracted from `plugins/
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: First user-visible line is the verbatim announce. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: First user-visible line is the verbatim announce. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — First user-visible line is the verbatim announce.
+- [TBD — to be assigned in Phase 1.6c] — First user-visible line is the verbatim announce.
 
 ---
 

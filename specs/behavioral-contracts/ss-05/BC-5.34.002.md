@@ -59,7 +59,7 @@ Entry-point step `environment-setup` (line 58) with `depends_on: []`. Agent: dx-
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | DAG single-root invariant | manual |
+| (TBD — to be assigned in Phase 1.6c) | DAG single-root invariant | manual |
 
 ## Traceability
 
@@ -84,7 +84,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

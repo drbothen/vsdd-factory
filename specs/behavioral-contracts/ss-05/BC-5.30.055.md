@@ -69,7 +69,7 @@ Per-wave loop iterating over stories; per-story delivery via `code-delivery.lobs
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `phase-f4-delta-implementation (line 764)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `phase-f4-delta-implementation (line 764)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -96,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `phase-f4-delta-implementation (line 764)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `phase-f4-delta-implementation (line 764)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

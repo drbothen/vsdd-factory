@@ -60,7 +60,7 @@ research: identity & sub-agent fork. Confidence: HIGH. Extracted from `plugins/v
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Frontmatter declares `context: fork` and `agent: research-agent`. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Frontmatter declares `context: fork` and `agent: research-agent`. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Frontmatter declares `context: fork` and `agent: research-agent`.
+- [TBD — to be assigned in Phase 1.6c] — Frontmatter declares `context: fork` and `agent: research-agent`.
 
 ---
 

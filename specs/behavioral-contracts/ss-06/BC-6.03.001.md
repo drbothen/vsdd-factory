@@ -68,7 +68,7 @@ activate: skill identity contract. The skill is the per-project opt-in entry poi
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Frontmatter declares `name: activate`; description references "VSDD factory persona" + ".claude/settings.local.json" + "deactivate"." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Frontmatter declares `name: activate`; description references "VSDD factory persona" + ".claude/settings.local.json" + "deactivate"." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

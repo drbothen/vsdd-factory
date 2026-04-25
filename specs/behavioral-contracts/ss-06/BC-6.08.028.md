@@ -60,7 +60,7 @@ storybook-mcp-integration: install + config + register procedure. Confidence: HI
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: All three artifacts (addon installed, main.ts updated, MCP server reachable) present. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: All three artifacts (addon installed, main.ts updated, MCP server reachable) present. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — All three artifacts (addon installed, main.ts updated, MCP server reachable) present.
+- [TBD — to be assigned in Phase 1.6c] — All three artifacts (addon installed, main.ts updated, MCP server reachable) present.
 
 ---
 

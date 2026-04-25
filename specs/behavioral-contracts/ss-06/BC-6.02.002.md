@@ -61,7 +61,7 @@ SKILL.md description supports YAML block scalar (`>` folded) for multi-line text
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Description uses `>` folded scalar, e.g. `description: >\n  Opt in to…`. Resulting parsed `description` is a single string with newlines folded to spaces.
+- [TBD — to be assigned in Phase 1.6c] — Description uses `>` folded scalar, e.g. `description: >\n  Opt in to…`. Resulting parsed `description` is a single string with newlines folded to spaces.
 
 ---
 

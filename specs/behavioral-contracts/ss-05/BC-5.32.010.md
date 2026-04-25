@@ -62,7 +62,7 @@ Step `customer-feedback-ingestion` (line 96). Type: skill. Skill: `skills/custom
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step gated by user_channels condition | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step gated by user_channels condition | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -67,7 +67,7 @@ Workflow contract: phase-1:backup-create-domain-spec.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``backup-create-domain-spec` (line 38)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``backup-create-domain-spec` (line 38)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``backup-create-domain-spec` (line 38)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``backup-create-domain-spec` (line 38)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

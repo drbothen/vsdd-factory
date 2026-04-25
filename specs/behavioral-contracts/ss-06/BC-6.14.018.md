@@ -60,7 +60,7 @@ register-artifact: identity & justification. Confidence: HIGH. Extracted from `p
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill is referenced from agents (story-writer/product-owner/architect) and the consistency check uses INDEX presence. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill is referenced from agents (story-writer/product-owner/architect) and the consistency check uses INDEX presence. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill is referenced from agents (story-writer/product-owner/architect) and the consistency check uses INDEX presence.
+- [TBD — to be assigned in Phase 1.6c] — Skill is referenced from agents (story-writer/product-owner/architect) and the consistency check uses INDEX presence.
 
 ---
 

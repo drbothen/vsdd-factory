@@ -68,7 +68,7 @@ factory-cycles-bootstrap: archives via `git mv` (preserves history). Moves each 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Git log shows the move (not delete + add); INDEX.md exists in historical cycle dir." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Git log shows the move (not delete + add); INDEX.md exists in historical cycle dir." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

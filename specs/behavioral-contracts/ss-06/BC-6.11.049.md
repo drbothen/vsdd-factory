@@ -60,7 +60,7 @@ quick-dev-routing: multi-goal detection precedes routing. Confidence: HIGH. Extr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Routing decision records the multi-goal detection result and chosen path. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Routing decision records the multi-goal detection result and chosen path. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Routing decision records the multi-goal detection result and chosen path.
+- [TBD — to be assigned in Phase 1.6c] — Routing decision records the multi-goal detection result and chosen path.
 
 ---
 

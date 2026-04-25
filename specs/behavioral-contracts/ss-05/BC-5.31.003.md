@@ -63,7 +63,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | DAG has exactly one terminal node | manual |
+| (TBD — to be assigned in Phase 1.6c) | DAG has exactly one terminal node | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001 — DAG single-terminal invariant
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

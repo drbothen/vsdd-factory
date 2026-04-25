@@ -60,7 +60,7 @@ ui-quality-gate: identity, agents, UI conditional. Confidence: HIGH. Extracted f
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill gated by feature_type. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill gated by feature_type. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill gated by feature_type.
+- [TBD — to be assigned in Phase 1.6c] — Skill gated by feature_type.
 
 ---
 

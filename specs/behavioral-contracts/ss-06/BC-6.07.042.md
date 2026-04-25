@@ -60,7 +60,7 @@ spec-drift: writes spec-drift-report.md to current cycle. Confidence: HIGH. Extr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: File exists at named path with all required sections. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: File exists at named path with all required sections. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — File exists at named path with all required sections.
+- [TBD — to be assigned in Phase 1.6c] — File exists at named path with all required sections.
 
 ---
 

@@ -65,7 +65,7 @@ Writes `.factory/phase-f5-adversarial/convergence-summary.md` (rounds per model,
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

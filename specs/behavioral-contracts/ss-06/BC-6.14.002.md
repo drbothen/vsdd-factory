@@ -68,7 +68,7 @@ artifact-detection: 5-tier readiness classification (L0-L4). Classifies project 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Output declares exactly one of {L0, L1, L2, L3, L4} per the artifact set found." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Output declares exactly one of {L0, L1, L2, L3, L4} per the artifact set found." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

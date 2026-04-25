@@ -60,7 +60,7 @@ toolchain-provisioning: precedence rule (architect > verification > manifest > h
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Architect's pinned version wins over manifest default. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Architect's pinned version wins over manifest default. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Architect's pinned version wins over manifest default.
+- [TBD — to be assigned in Phase 1.6c] — Architect's pinned version wins over manifest default.
 
 ---
 

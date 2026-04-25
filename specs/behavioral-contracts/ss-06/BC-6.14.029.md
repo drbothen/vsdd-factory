@@ -60,7 +60,7 @@ track-debt: add assigns next TD-NNN with full metadata. Confidence: HIGH. Extrac
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each new entry has all six fields populated. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each new entry has all six fields populated. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each new entry has all six fields populated.
+- [TBD — to be assigned in Phase 1.6c] — Each new entry has all six fields populated.
 
 ---
 

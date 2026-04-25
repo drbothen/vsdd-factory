@@ -68,7 +68,7 @@ analytics-integration: digest output path and quality gate. Writes `.factory/dis
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Digest exists at expected path with correct frontmatter; quality-gate checklist items are addressed." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Digest exists at expected path with correct frontmatter; quality-gate checklist items are addressed." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

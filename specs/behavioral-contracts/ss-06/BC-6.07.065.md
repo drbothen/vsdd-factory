@@ -60,7 +60,7 @@ validate-template-compliance: documented limitations (no content quality, no val
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill never reports content errors — only structural. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill never reports content errors — only structural. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill never reports content errors — only structural.
+- [TBD — to be assigned in Phase 1.6c] — Skill never reports content errors — only structural.
 
 ---
 

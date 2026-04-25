@@ -60,7 +60,7 @@ ui-completeness-check: ui-traceability.yaml schema (screens with components/inte
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: ui-traceability.yaml validates against this schema. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: ui-traceability.yaml validates against this schema. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — ui-traceability.yaml validates against this schema.
+- [TBD — to be assigned in Phase 1.6c] — ui-traceability.yaml validates against this schema.
 
 ---
 

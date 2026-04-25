@@ -60,7 +60,7 @@ visual-companion: identity, prerequisites, optional setup. Confidence: HIGH. Ext
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill is OPTIONAL; degrades gracefully. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill is OPTIONAL; degrades gracefully. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill is OPTIONAL; degrades gracefully.
+- [TBD — to be assigned in Phase 1.6c] — Skill is OPTIONAL; degrades gracefully.
 
 ---
 

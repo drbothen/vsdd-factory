@@ -62,7 +62,7 @@ Step `performance-regression-scan` (line 134). Type: agent. Agent: performance-e
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step gated by has_benchmarks | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step gated by has_benchmarks | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

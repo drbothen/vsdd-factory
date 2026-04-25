@@ -60,7 +60,7 @@ responsive-validation: critical-failure list is blocking. Confidence: HIGH. Extr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Any one of these failures blocks the gate. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Any one of these failures blocks the gate. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Any one of these failures blocks the gate.
+- [TBD — to be assigned in Phase 1.6c] — Any one of these failures blocks the gate.
 
 ---
 

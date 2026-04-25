@@ -60,7 +60,7 @@ pr-create: post-creation report includes URL + next steps. Confidence: MEDIUM. E
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Output references PR URL string; mentions reviewer/holdout next-step. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Output references PR URL string; mentions reviewer/holdout next-step. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Output references PR URL string; mentions reviewer/holdout next-step.
+- [TBD — to be assigned in Phase 1.6c] — Output references PR URL string; mentions reviewer/holdout next-step.
 
 ---
 

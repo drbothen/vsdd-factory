@@ -67,7 +67,7 @@ Given Sink with allow=["commit.made"]. 3 events submitted: commit.made, plugin.i
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Sink with allow=["commit.made"]. 3 events submitted: commit.made, plugin.invoked, commit.made. When flush().. Then | manual (existing test: `crates/sink-file/src/lib.rs::tests::routing_filter_drops_excluded_events`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Sink with allow=["commit.made"]. 3 events submitted: commit.made, plugin.invoked, commit.made. When flush().. Then | manual (existing test: `crates/sink-file/src/lib.rs::tests::routing_filter_drops_excluded_events`) |
 
 ## Traceability
 

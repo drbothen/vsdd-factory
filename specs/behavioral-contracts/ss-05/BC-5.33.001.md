@@ -64,7 +64,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | 11 sweep types defined | manual |
+| (TBD — to be assigned in Phase 1.6c) | 11 sweep types defined | manual |
 | VP-002 | Fix PRs use code-delivery sub-workflow | manual |
 
 ## Traceability
@@ -91,7 +91,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

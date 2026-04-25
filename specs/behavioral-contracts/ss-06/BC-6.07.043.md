@@ -60,7 +60,7 @@ spec-versioning: identity & semver scheme. Confidence: HIGH. Extracted from `plu
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Every bump categorized into one of three. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Every bump categorized into one of three. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Every bump categorized into one of three.
+- [TBD — to be assigned in Phase 1.6c] — Every bump categorized into one of three.
 
 ---
 

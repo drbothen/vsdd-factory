@@ -60,7 +60,7 @@ Step `state-init` (line 36). Type: agent. Agent: state-manager. Depends: `[load-
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | All 11 sweeps depend on this step | manual |
+| (TBD — to be assigned in Phase 1.6c) | All 11 sweeps depend on this step | manual |
 
 ## Traceability
 
@@ -84,7 +84,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -60,7 +60,7 @@ session-review: failure-mode safety (incomplete logs / missing cost / corrupt pa
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each failure mode produces a defined fallback rather than crashing. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each failure mode produces a defined fallback rather than crashing. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each failure mode produces a defined fallback rather than crashing.
+- [TBD — to be assigned in Phase 1.6c] — Each failure mode produces a defined fallback rather than crashing.
 
 ---
 

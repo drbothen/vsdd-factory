@@ -68,7 +68,7 @@ compact-state: never-deletes safety guarantee. Skill ONLY moves content between 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Sum of extracted content + remaining STATE.md = original content (no loss); abort path tested." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Sum of extracted content + remaining STATE.md = original content (no loss); abort path tested." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

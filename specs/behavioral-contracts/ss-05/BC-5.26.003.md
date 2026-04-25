@@ -67,7 +67,7 @@ Workflow contract: phase-6: terminal-step.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``hardening-gate` (line 80) — gate type, depends `[backup-security-scan]`. fail_action: block.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``hardening-gate` (line 80) — gate type, depends `[backup-security-scan]`. fail_action: block.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``hardening-gate` (line 80) — gate type, depends `[backup-security-scan]`. fail_action: block.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``hardening-gate` (line 80) — gate type, depends `[backup-security-scan]`. fail_action: block.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

@@ -60,7 +60,7 @@ spec-versioning: L4 immutability rules + locked-VP enforcement. Confidence: HIGH
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Modification of locked VP file is detected and treated as CRITICAL. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Modification of locked VP file is detected and treated as CRITICAL. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Modification of locked VP file is detected and treated as CRITICAL.
+- [TBD — to be assigned in Phase 1.6c] — Modification of locked VP file is detected and treated as CRITICAL.
 
 ---
 

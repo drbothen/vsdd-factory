@@ -68,7 +68,7 @@ disposition-pass: skill identity (Pass 9, vision-lens re-examination). Re-examin
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "argument-hint matches `[<repo>|--all] [--rollup] [--update-vision]`; outputs `<repo>-pass-9-corverax-disposition.md`." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "argument-hint matches `[<repo>|--all] [--rollup] [--update-vision]`; outputs `<repo>-pass-9-corverax-disposition.md`." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

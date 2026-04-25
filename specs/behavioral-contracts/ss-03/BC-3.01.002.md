@@ -67,7 +67,7 @@ Warning to stderr; sink skipped; load returns Ok.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — Phase 1.6b will identify formal verification properties | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — Phase 1.6b will identify formal verification properties | manual |
 
 ## Traceability
 

@@ -60,7 +60,7 @@ traceability-extension: identity & chain semantics. Confidence: HIGH. Extracted 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Forward (L1→Proof) and reverse (Proof→L1) navigability both maintained. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Forward (L1→Proof) and reverse (Proof→L1) navigability both maintained. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Forward (L1→Proof) and reverse (Proof→L1) navigability both maintained.
+- [TBD — to be assigned in Phase 1.6c] — Forward (L1→Proof) and reverse (Proof→L1) navigability both maintained.
 
 ---
 

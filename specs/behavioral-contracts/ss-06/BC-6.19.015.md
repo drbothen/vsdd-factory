@@ -60,7 +60,7 @@ sdk-generation: contract validation gates generation. Confidence: HIGH. Extracte
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Generation never starts on an invalid contract. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Generation never starts on an invalid contract. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Generation never starts on an invalid contract.
+- [TBD — to be assigned in Phase 1.6c] — Generation never starts on an invalid contract.
 
 ---
 

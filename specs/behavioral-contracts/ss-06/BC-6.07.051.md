@@ -60,7 +60,7 @@ traceability-extension: chain verification command. Confidence: HIGH. Extracted 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Reference document only — consumed by story-writer + spec-steward. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Reference document only — consumed by story-writer + spec-steward. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Reference document only — consumed by story-writer + spec-steward.
+- [TBD — to be assigned in Phase 1.6c] — Reference document only — consumed by story-writer + spec-steward.
 
 ---
 

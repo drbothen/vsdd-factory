@@ -66,7 +66,7 @@ Distributed as a template for operators to copy into their `.factory/hooks/`. Ve
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — promote acceptance criterion to a structural/lint test | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — promote acceptance criterion to a structural/lint test | manual |
 
 ## Traceability
 

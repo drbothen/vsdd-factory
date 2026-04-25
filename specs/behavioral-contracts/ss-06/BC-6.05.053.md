@@ -60,7 +60,7 @@ semport-analyze: identity, two modes, reference resolution. Confidence: HIGH. Ex
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Mode selection, target-language arg, and `.reference/` resolution all correct. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Mode selection, target-language arg, and `.reference/` resolution all correct. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Mode selection, target-language arg, and `.reference/` resolution all correct.
+- [TBD — to be assigned in Phase 1.6c] — Mode selection, target-language arg, and `.reference/` resolution all correct.
 
 ---
 

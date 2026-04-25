@@ -63,7 +63,7 @@ The single entry-point step of `code-delivery.lobster` is `create-worktree` (lin
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | DAG has exactly one node with no in-edges | manual |
+| (TBD — to be assigned in Phase 1.6c) | DAG has exactly one node with no in-edges | manual |
 
 ## Traceability
 
@@ -88,7 +88,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001 — DAG single-root invariant
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

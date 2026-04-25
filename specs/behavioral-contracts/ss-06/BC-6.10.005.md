@@ -68,7 +68,7 @@ deliver-story: context discipline mapping per specialist. Pass only the minimum 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Each dispatch payload matches the documented per-specialist mapping; no whole-story-file passes to demo-recorder/pr-manager." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Each dispatch payload matches the documented per-specialist mapping; no whole-story-file passes to demo-recorder/pr-manager." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

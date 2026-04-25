@@ -60,7 +60,7 @@ state-burst: Stage 2 global SHA replace + backfill commit. Confidence: HIGH. Ext
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Exactly two commits on burst chain; second contains `backfill` token. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Exactly two commits on burst chain; second contains `backfill` token. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Exactly two commits on burst chain; second contains `backfill` token.
+- [TBD — to be assigned in Phase 1.6c] — Exactly two commits on burst chain; second contains `backfill` token.
 
 ---
 

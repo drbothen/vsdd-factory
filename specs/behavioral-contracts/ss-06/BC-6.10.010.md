@@ -65,7 +65,7 @@ Scans FRs/NFRs for premature technology names. Heuristic: if removing the tech n
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

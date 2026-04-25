@@ -60,7 +60,7 @@ storybook-mcp-integration: T1/T2/T3 access pattern via DF-023+DF-027. Confidence
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: T2 agents do NOT call mcporter directly. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: T2 agents do NOT call mcporter directly. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — T2 agents do NOT call mcporter directly.
+- [TBD — to be assigned in Phase 1.6c] — T2 agents do NOT call mcporter directly.
 
 ---
 

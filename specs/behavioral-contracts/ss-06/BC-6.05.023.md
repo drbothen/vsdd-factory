@@ -68,7 +68,7 @@ disposition-pass: vision SHA tracked in rollup header for staleness. Rollup head
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Rollup frontmatter contains all 3 SHA fields; SHA mismatch is detectable." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Rollup frontmatter contains all 3 SHA fields; SHA mismatch is detectable." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

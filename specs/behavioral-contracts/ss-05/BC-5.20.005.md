@@ -71,7 +71,7 @@ Default `on_failure: escalate`, `max_retries: 2`, `timeout: 4h`. No step overrid
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `workflow-level (defaults)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `workflow-level (defaults)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -98,7 +98,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `workflow-level (defaults)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `workflow-level (defaults)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

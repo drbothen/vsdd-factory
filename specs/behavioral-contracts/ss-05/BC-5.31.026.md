@@ -64,7 +64,7 @@ Step `merge-pr` (line 407). Type: agent. Agent: pr-manager. Depends: `[dependenc
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Action matches autonomy level table | manual |
+| (TBD — to be assigned in Phase 1.6c) | Action matches autonomy level table | manual |
 
 ## Traceability
 
@@ -90,7 +90,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

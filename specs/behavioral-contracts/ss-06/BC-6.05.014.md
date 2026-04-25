@@ -68,7 +68,7 @@ customer-feedback-ingestion: deduplication via 0.80 semantic similarity threshol
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Cluster size ≥2 means similarity computation succeeded; no inflated raw counts in digest." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Cluster size ≥2 means similarity computation succeeded; no inflated raw counts in digest." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

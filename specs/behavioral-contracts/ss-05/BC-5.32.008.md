@@ -62,7 +62,7 @@ Step `feature-research` (line 76). Type: skill. Skill: `skills/discovery-engine/
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Step gated by config flag | manual |
+| (TBD — to be assigned in Phase 1.6c) | Step gated by config flag | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

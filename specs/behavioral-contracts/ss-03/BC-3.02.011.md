@@ -67,7 +67,7 @@ Given Sink configured with `tags = {type: "stomped"}`. Event with `type="commit.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Sink configured with `tags = {type: "stomped"}`. Event with `type="commit.made"` submitted. When Flushed.. Then Fi | manual (existing test: `crates/sink-file/src/lib.rs::tests::tag_enrichment_does_not_overwrite_producer_fields`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Sink configured with `tags = {type: "stomped"}`. Event with `type="commit.made"` submitted. When Flushed.. Then Fi | manual (existing test: `crates/sink-file/src/lib.rs::tests::tag_enrichment_does_not_overwrite_producer_fields`) |
 
 ## Traceability
 

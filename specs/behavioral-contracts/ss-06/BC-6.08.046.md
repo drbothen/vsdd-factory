@@ -60,7 +60,7 @@ ux-heuristic-evaluation: identity, conditional, four pipeline points. Confidence
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill called at each pipeline point per the table. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill called at each pipeline point per the table. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill called at each pipeline point per the table.
+- [TBD — to be assigned in Phase 1.6c] — Skill called at each pipeline point per the table.
 
 ---
 

@@ -68,7 +68,7 @@ create-architecture: VP files written to verification-properties/. Creates VP-NN
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "VP files exist with safety+liveness sections; VP-INDEX.md links them." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "VP files exist with safety+liveness sections; VP-INDEX.md links them." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

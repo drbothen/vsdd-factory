@@ -67,7 +67,7 @@ Given `SinkEvent::new().insert("type", json!(42))`. When `event_type()`.. Then R
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given `SinkEvent::new().insert("type", json!(42))`. When `event_type()`.. Then Returns None. (Type is a string-typed res | manual (existing test: `crates/sink-core/src/lib.rs::tests::sink_event_event_type_non_string_returns_none`) |
+| (TBD — to be assigned in Phase 1.6c) | Given `SinkEvent::new().insert("type", json!(42))`. When `event_type()`.. Then Returns None. (Type is a string-typed res | manual (existing test: `crates/sink-core/src/lib.rs::tests::sink_event_event_type_non_string_returns_none`) |
 
 ## Traceability
 

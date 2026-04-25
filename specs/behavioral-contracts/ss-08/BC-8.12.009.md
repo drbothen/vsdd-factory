@@ -67,7 +67,7 @@ Tested-by `e2e-tester`. Breakpoints: 4 (375, 768, 1024, 1440). Reports `screens 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — promote acceptance criterion to a structural/lint test | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — promote acceptance criterion to a structural/lint test | manual |
 
 ## Traceability
 

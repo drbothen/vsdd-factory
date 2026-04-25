@@ -67,7 +67,7 @@ Given Filter `allow=["Commit.Made"]`. When `accepts("commit.made")` and `accepts
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Filter `allow=["Commit.Made"]`. When `accepts("commit.made")` and `accepts("Commit.Made")`.. Then First false, sec | manual (existing test: `crates/sink-core/src/lib.rs::tests::routing_filter_allow_case_sensitive`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Filter `allow=["Commit.Made"]`. When `accepts("commit.made")` and `accepts("Commit.Made")`.. Then First false, sec | manual (existing test: `crates/sink-core/src/lib.rs::tests::routing_filter_allow_case_sensitive`) |
 
 ## Traceability
 

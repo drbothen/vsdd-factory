@@ -68,7 +68,7 @@ artifact-detection: failure modes (no .factory/, corruption, legacy). Missing `.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Each failure mode is handled per the documented branch rather than crashing or silent fallback." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Each failure mode is handled per the documented branch rather than crashing or silent fallback." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

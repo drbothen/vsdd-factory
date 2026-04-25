@@ -60,7 +60,7 @@ setup-env: factory-health invocation + final missing-tools list. Confidence: HIG
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Report contains "Missing required tools:" and "Missing optional tools:" lines. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Report contains "Missing required tools:" and "Missing optional tools:" lines. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Report contains "Missing required tools:" and "Missing optional tools:" lines.
+- [TBD — to be assigned in Phase 1.6c] — Report contains "Missing required tools:" and "Missing optional tools:" lines.
 
 ---
 

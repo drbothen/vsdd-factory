@@ -65,7 +65,7 @@ Step `feature-debate` (line 206). Type: agent. Agent: adversary. Depends: `[feat
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Disagreement threshold = 0.3 | manual |
+| (TBD — to be assigned in Phase 1.6c) | Disagreement threshold = 0.3 | manual |
 | VP-002 | All ideas classified into one of 6 profiles | manual |
 
 ## Traceability
@@ -92,7 +92,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

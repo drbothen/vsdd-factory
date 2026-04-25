@@ -60,7 +60,7 @@ release: quality-gate modes (standard/vsdd-partial/vsdd-full). Confidence: HIGH.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Failed gate halts before any version bump. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Failed gate halts before any version bump. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Failed gate halts before any version bump.
+- [TBD — to be assigned in Phase 1.6c] — Failed gate halts before any version bump.
 
 ---
 

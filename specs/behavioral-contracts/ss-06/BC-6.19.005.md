@@ -60,7 +60,7 @@ repo-initialization: architect signal table for multi-vs-single-repo. Confidence
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Recommendation cites the strongest matching signal(s). | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Recommendation cites the strongest matching signal(s). | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Recommendation cites the strongest matching signal(s).
+- [TBD — to be assigned in Phase 1.6c] — Recommendation cites the strongest matching signal(s).
 
 ---
 

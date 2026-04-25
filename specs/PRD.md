@@ -132,7 +132,7 @@ active backlog for rc.1 and 1.0 GA.
 > `.factory/specs/behavioral-contracts/ss-NN/`. Status = shipped / partial / pending
 > reflects Pass-8 story-coverage rollup.
 
-### 2.1 Hook Dispatcher Core (SS-01) — CAP-002, CAP-007, CAP-008, CAP-010, CAP-011
+### 2.1 Hook Dispatcher Core (SS-01)
 
 #### FR-001 — Registry loading and schema validation
 
@@ -259,7 +259,7 @@ Status: **shipped** (S-1.05, S-1.06).
 
 ---
 
-### 2.2 Hook SDK and Plugin ABI (SS-02) — CAP-009
+### 2.2 Hook SDK and Plugin ABI (SS-02)
 
 #### FR-009 — Plugin ABI types and host function SDK
 
@@ -285,7 +285,7 @@ Enforces: CAP-009. Status: **shipped** (S-1.03); crates.io publish **partial** (
 
 ---
 
-### 2.3 Observability Sinks (SS-03) — CAP-003, CAP-010
+### 2.3 Observability Sinks (SS-03)
 
 #### FR-010 — Sink registry, routing filter, and config loading
 
@@ -329,7 +329,7 @@ Status: **shipped** (S-1.09). Retry/circuit-breaker: **pending** (S-4.04).
 
 ---
 
-### 2.4 Plugin Ecosystem (SS-04) — CAP-008, CAP-013
+### 2.4 Plugin Ecosystem (SS-04)
 
 #### FR-013 — Legacy bash adapter plugin (multi-instance, bash hook bridge)
 
@@ -359,7 +359,7 @@ Status: **pending** full implementation (S-3.01 stub).
 
 ---
 
-### 2.5 Pipeline Orchestration (SS-05) — CAP-001, CAP-004, CAP-005, CAP-006, CAP-012, CAP-014, CAP-016
+### 2.5 Pipeline Orchestration (SS-05)
 
 #### FR-015 — Lobster workflow format (YAML-based DAG with typed step kinds)
 
@@ -491,7 +491,7 @@ Enforces: CAP-001 (self-orchestrating pipeline). Status: phases 0-1-2-3 are **sh
 
 ---
 
-### 2.6 Skill Catalog (SS-06) — CAP-001, CAP-004–006, CAP-014–027
+### 2.6 Skill Catalog (SS-06)
 
 > SS-06 contains 571 BCs across 119 skills. FRs below group skills by functional
 > family. All BCs in `ss-06/` follow the `BC-6.NN.NNN` prefix scheme.
@@ -578,7 +578,7 @@ Enforces: CAP-022–027. Status: shipped (skills present; WIP on ports). Approx.
 
 ---
 
-### 2.7 Hook Bash Layer (SS-07) — CAP-008, CAP-013, CAP-027
+### 2.7 Hook Bash Layer (SS-07)
 
 #### FR-032 — PreToolUse gate hooks (protect-secrets, destructive-command-guard, branch-guard, BC/VP protection)
 
@@ -618,7 +618,7 @@ Enforces: CAP-004 (BC traceability enforcement). Status: **shipped**. Note: 24 v
 
 ---
 
-### 2.8 Templates and Rules (SS-08) — CAP-014, CAP-016, CAP-025
+### 2.8 Templates and Rules (SS-08)
 
 #### FR-035 — Spec artifact templates (BC, PRD, architecture, ADR, story templates)
 
@@ -646,7 +646,7 @@ Enforces: CAP-014 (methodology discipline). Status: **shipped**.
 
 ---
 
-### 2.9 Configuration and Activation (SS-09) — CAP-007, CAP-028
+### 2.9 Configuration and Activation (SS-09)
 
 #### FR-037 — Platform-aware activation and hooks.json variant management
 
@@ -665,7 +665,7 @@ Enforces: DI-015 (activation gate), CAP-007, CAP-028. Status: **shipped** (S-0.0
 
 ---
 
-### 2.10 CLI Tools and Bin (SS-10) — CAP-003, CAP-010, CAP-027
+### 2.10 CLI Tools and Bin (SS-10)
 
 #### FR-038 — Event emission CLI tool (bin/emit-event)
 
@@ -1003,6 +1003,7 @@ Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x
 | DRIFT-008 | P3 | `plugin.loaded` / `plugin.load_failed` constants declared but never emitted from plugin_loader | Acceptable for 1.0; 1-line emit call |
 | DRIFT-009 | P2 | Adversary SHA-currency gate is opt-in (template only; `hooks/verify-sha-currency.sh` not auto-installed) | Documented as opt-in; CHANGELOG beta.4 |
 | DRIFT-010 | P0 for Windows | 26 unported bash hooks require git-bash on Windows; native ports not yet complete | rc.1 (Tier E, S-3.01–3.03) |
+| DRIFT-011 | LOW | Concurrent self-modification risk (vsdd-factory dogfooding): stories that edit hook scripts or routing config can race with active dispatcher invocations. Acceptable as long as DI-018 holds. | Documented; no code change needed for v1.0. Reassess if Phase 3 TDD encounters race issues. **Source:** Phase 1d pass 1 F-014; documented in DI-018. |
 
 ### 10.2 Pending Milestones (stories not yet shipped)
 
@@ -1021,6 +1022,32 @@ Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x
 | L-P0-002 | Resolve parallel hook-routing table state (DRIFT-004) | Decision pending before 1.0 |
 | L-P0-003 | Backfill BCs for 24+ validate-* hooks (they are contracts without formal BC files) | In-progress (this Phase 1.5 backfill effort) |
 | L-P0-004 | Resolve bin/emit-event shell tool vs host::emit_event host fn duplication (S-3.04 partial) | Pending S-3.04 completion |
+
+### 10.4 Known Limitations (v1.0)
+
+### KL-001 — verification-architecture.md and verification-coverage-matrix.md deferred
+VP-INDEX is the authoritative VP catalog for v1.0. The 2 supplement files referenced in
+ARCH-INDEX Document Map are deferred to v1.1 (cross-cutting documentation extraction).
+POLICY 9 (`vp_index_is_vp_catalog_source_of_truth`) verification step "VP appears in
+verification-architecture.md" is treated as vacuously satisfied while supplements are deferred.
+**Source:** Phase 1d pass 1 F-004.
+
+### KL-002 — All 57 VPs are unit-test or manual; no kani/proptest at v1.0
+KD-002 (sandbox security via WASI capabilities) relies on unit-test verification at v1.0.
+VP-020, VP-023, VP-042 are flagged as kani upgrade candidates for v1.1+. The current
+verification posture is sufficient for v1.0 GA but not for high-assurance security claims.
+**Source:** Phase 1d pass 1 F-008.
+
+### KL-003 — Orphan VPs (VP-024, VP-048, VP-053..VP-057) lack DI parents
+6 of 57 VPs are not derived from domain invariants. They cover cross-cutting concerns
+(PluginCache mtime, workflow DAG validation) that don't fit the DI lattice cleanly.
+This is acknowledged structural diversity, not a defect.
+**Source:** Phase 1d pass 1 F-009.
+
+### KL-004 — Workflow VPs (VP-053..VP-057) are manual-only
+5 workflow-domain VPs are manual proof method. Could be automated via lobster-parse
+linter in v1.1. No blocker for v1.0.
+**Source:** Phase 1d pass 1 F-015.
 
 ---
 

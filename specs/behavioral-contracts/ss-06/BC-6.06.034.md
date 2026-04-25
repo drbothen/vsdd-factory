@@ -60,7 +60,7 @@ state-update: enumerates 5 pipeline statuses + 7 phase IDs. Confidence: HIGH. Ex
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Frontmatter `pipeline:` value is one of the five; phase: is one of the listed. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Frontmatter `pipeline:` value is one of the five; phase: is one of the listed. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Frontmatter `pipeline:` value is one of the five; phase: is one of the listed.
+- [TBD — to be assigned in Phase 1.6c] — Frontmatter `pipeline:` value is one of the five; phase: is one of the listed.
 
 ---
 

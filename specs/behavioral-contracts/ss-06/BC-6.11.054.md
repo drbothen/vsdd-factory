@@ -60,7 +60,7 @@ worktree-manage: cleanup refuses dirty + warns unmerged. Confidence: HIGH. Extra
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Never force-removes dirty worktree; never deletes unmerged branch without confirmation. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Never force-removes dirty worktree; never deletes unmerged branch without confirmation. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Never force-removes dirty worktree; never deletes unmerged branch without confirmation.
+- [TBD — to be assigned in Phase 1.6c] — Never force-removes dirty worktree; never deletes unmerged branch without confirmation.
 
 ---
 

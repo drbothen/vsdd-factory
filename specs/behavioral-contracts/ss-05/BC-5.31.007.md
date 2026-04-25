@@ -64,7 +64,7 @@ Step `generate-stubs` (line 51). Type: agent. Agent: test-writer. Depends: `[cre
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Build passes after generate-stubs | manual |
+| (TBD — to be assigned in Phase 1.6c) | Build passes after generate-stubs | manual |
 
 ## Traceability
 
@@ -89,7 +89,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

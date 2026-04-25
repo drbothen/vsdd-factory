@@ -60,7 +60,7 @@ writing-skills: red-green-refactor cycle for skills + bulletproofing table. Conf
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each new discipline-skill has a rationalization table and red-flags list. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each new discipline-skill has a rationalization table and red-flags list. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each new discipline-skill has a rationalization table and red-flags list.
+- [TBD — to be assigned in Phase 1.6c] — Each new discipline-skill has a rationalization table and red-flags list.
 
 ---
 

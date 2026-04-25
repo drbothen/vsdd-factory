@@ -67,7 +67,7 @@ Given `path_template = ".factory/logs/events-{date}.jsonl"`, fixed_date = 2026-0
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given `path_template = ".factory/logs/events-{date}.jsonl"`, fixed_date = 2026-04-24. When `resolve_path_template`.. The | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_date_only`) |
+| (TBD — to be assigned in Phase 1.6c) | Given `path_template = ".factory/logs/events-{date}.jsonl"`, fixed_date = 2026-04-24. When `resolve_path_template`.. The | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_date_only`) |
 
 ## Traceability
 

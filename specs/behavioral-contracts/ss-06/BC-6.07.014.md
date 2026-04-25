@@ -68,7 +68,7 @@ create-brief: skill identity + hard gate. Creates product brief through guided d
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Brief covers all 6 discovery areas (Vision, Users, Value Proposition, Success Criteria, Constraints, Prior Art); no auto-filled sections." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Brief covers all 6 discovery areas (Vision, Users, Value Proposition, Success Criteria, Constraints, Prior Art); no auto-filled sections." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

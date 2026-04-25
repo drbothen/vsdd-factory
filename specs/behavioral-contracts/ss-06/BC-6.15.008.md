@@ -60,7 +60,7 @@ writing-skills: SKILL.md structure with 6 mandatory sections. Confidence: HIGH. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each new skill carries appropriate sections per its type. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each new skill carries appropriate sections per its type. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each new skill carries appropriate sections per its type.
+- [TBD — to be assigned in Phase 1.6c] — Each new skill carries appropriate sections per its type.
 
 ---
 

@@ -67,7 +67,7 @@ Given Event with `sha=deadbeef` (string), `files_changed=7` (int), `dirty=true` 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Event with `sha=deadbeef` (string), `files_changed=7` (int), `dirty=true` (bool), `score=0.42` (float). When `even | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_attributes_flatten_non_reserved_fields`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Event with `sha=deadbeef` (string), `files_changed=7` (int), `dirty=true` (bool), `score=0.42` (float). When `even | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_attributes_flatten_non_reserved_fields`) |
 
 ## Traceability
 

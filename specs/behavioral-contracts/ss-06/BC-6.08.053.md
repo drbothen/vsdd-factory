@@ -60,7 +60,7 @@ visual-companion: write-loop discipline (Write tool, semantic filenames, no reus
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each screen is in a fresh file; cat/heredoc forbidden. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each screen is in a fresh file; cat/heredoc forbidden. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each screen is in a fresh file; cat/heredoc forbidden.
+- [TBD — to be assigned in Phase 1.6c] — Each screen is in a fresh file; cat/heredoc forbidden.
 
 ---
 

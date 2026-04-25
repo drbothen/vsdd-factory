@@ -60,7 +60,7 @@ sdk-generation: language idiom enforcement (TS async, Py snake_case, Go errors).
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Generated SDK passes per-language idiom checklist (axe of: async/await, snake_case, error returns). | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Generated SDK passes per-language idiom checklist (axe of: async/await, snake_case, error returns). | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Generated SDK passes per-language idiom checklist (axe of: async/await, snake_case, error returns).
+- [TBD — to be assigned in Phase 1.6c] — Generated SDK passes per-language idiom checklist (axe of: async/await, snake_case, error returns).
 
 ---
 

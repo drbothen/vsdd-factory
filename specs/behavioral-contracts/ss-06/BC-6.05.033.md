@@ -65,7 +65,7 @@ L0 → all 5 sections, max depth, 15-30 min. L1 → sections 1, 3, 5. L2 → sec
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

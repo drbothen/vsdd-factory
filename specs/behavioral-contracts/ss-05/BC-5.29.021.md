@@ -70,7 +70,7 @@ Workflow contract: brownfield:semport-translation.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `semport-translation (line 257)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `semport-translation (line 257)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -97,7 +97,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `semport-translation (line 257)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `semport-translation (line 257)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

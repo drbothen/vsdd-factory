@@ -72,7 +72,7 @@ The activate skill invokes `apply-platform.sh <platform>`, which copies the per-
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | apply-platform.sh exit codes are stable: 0/1/2/3/4 with the documented meanings | manual |
+| (TBD — to be assigned in Phase 1.6c) | apply-platform.sh exit codes are stable: 0/1/2/3/4 with the documented meanings | manual |
 | VP-002 | Stderr from apply-platform.sh is surfaced verbatim by the activate skill | manual |
 
 ## Traceability
@@ -99,7 +99,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — apply-platform.sh exit-code contract
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002 — stderr surfacing
 
 ---

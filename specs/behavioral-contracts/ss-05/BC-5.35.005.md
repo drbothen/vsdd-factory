@@ -62,7 +62,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | environment-gate fail_action = block | manual |
+| (TBD — to be assigned in Phase 1.6c) | environment-gate fail_action = block | manual |
 | VP-002 | routing-gate fail_action = block | manual |
 
 ## Traceability
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

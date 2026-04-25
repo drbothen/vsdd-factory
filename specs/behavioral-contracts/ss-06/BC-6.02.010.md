@@ -61,7 +61,7 @@ Skills that dispatch sub-agents declare a "Canonical Source" or single-source-of
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill body identifies a single load-bearing playbook (typically `agents/orchestrator/<flow>.md`) with explicit "if the two ever disagree, the orchestrator file wins." Re-read at the start of every dispatch.
+- [TBD — to be assigned in Phase 1.6c] — Skill body identifies a single load-bearing playbook (typically `agents/orchestrator/<flow>.md`) with explicit "if the two ever disagree, the orchestrator file wins." Re-read at the start of every dispatch.
 
 ---
 

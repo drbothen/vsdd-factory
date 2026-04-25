@@ -65,7 +65,7 @@ Step `security-review` (line 289). Type: agent. Agent: security-reviewer. Depend
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Implementer notes never appear in reviewer context | manual |
+| (TBD — to be assigned in Phase 1.6c) | Implementer notes never appear in reviewer context | manual |
 | VP-002 | Max cycles ≤ 3 | manual |
 
 ## Traceability
@@ -91,7 +91,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

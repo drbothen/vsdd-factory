@@ -61,7 +61,7 @@ Skills with `disable-model-invocation: true` are dispatcher-only — model canno
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Postcondition holds for every sampled skill in evidence | manual |
+| (TBD — to be assigned in Phase 1.6c) | Postcondition holds for every sampled skill in evidence | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Model cannot launch the skill via reasoning; only orchestrator dispatch (Task tool + agent handoff) or explicit slash command invocation activates it.
+- [TBD — to be assigned in Phase 1.6c] — Model cannot launch the skill via reasoning; only orchestrator dispatch (Task tool + agent handoff) or explicit slash command invocation activates it.
 
 ---
 

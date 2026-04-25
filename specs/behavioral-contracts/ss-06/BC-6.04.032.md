@@ -60,7 +60,7 @@ session-review: identity, trigger, primary agent. Confidence: HIGH. Extracted fr
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No top-level workflow can mark COMPLETE before this skill runs. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No top-level workflow can mark COMPLETE before this skill runs. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No top-level workflow can mark COMPLETE before this skill runs.
+- [TBD — to be assigned in Phase 1.6c] — No top-level workflow can mark COMPLETE before this skill runs.
 
 ---
 

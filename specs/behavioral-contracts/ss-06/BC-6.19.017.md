@@ -60,7 +60,7 @@ sdk-generation: tool-format dispatch (OpenAPI/protobuf/GraphQL). Confidence: HIG
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Tool selection follows the explicit mapping table. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Tool selection follows the explicit mapping table. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Tool selection follows the explicit mapping table.
+- [TBD — to be assigned in Phase 1.6c] — Tool selection follows the explicit mapping table.
 
 ---
 

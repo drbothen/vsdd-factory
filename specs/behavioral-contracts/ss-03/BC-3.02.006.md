@@ -67,7 +67,7 @@ Given Template `weird-{date-only.jsonl` (no closing brace). When Resolved.. Then
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Template `weird-{date-only.jsonl` (no closing brace). When Resolved.. Then Returns `weird-{date-only.jsonl` litera | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_unbalanced_brace_treated_literally`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Template `weird-{date-only.jsonl` (no closing brace). When Resolved.. Then Returns `weird-{date-only.jsonl` litera | manual (existing test: `crates/sink-file/src/lib.rs::tests::template_unbalanced_brace_treated_literally`) |
 
 ## Traceability
 

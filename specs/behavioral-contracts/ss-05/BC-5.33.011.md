@@ -59,7 +59,7 @@ Step `doc-drift-scan` (line 80). Type: agent. Agent: consistency-validator. Depe
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Findings advisory only | manual |
+| (TBD — to be assigned in Phase 1.6c) | Findings advisory only | manual |
 
 ## Traceability
 
@@ -83,7 +83,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -65,7 +65,7 @@ Target ≥ 90% kill rate for changed files (≥ 95% for security-critical module
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

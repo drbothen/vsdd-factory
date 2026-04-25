@@ -60,7 +60,7 @@ responsive-validation: identity, agents, conditional UI gating. Confidence: HIGH
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Skill is no-op when feature_type is non-UI. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Skill is no-op when feature_type is non-UI. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Skill is no-op when feature_type is non-UI.
+- [TBD — to be assigned in Phase 1.6c] — Skill is no-op when feature_type is non-UI.
 
 ---
 

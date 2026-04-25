@@ -67,7 +67,7 @@ Workflow contract: greenfield:phase-3-gate.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for `phase-3-gate (line 979)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `phase-3-gate (line 979)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for `phase-3-gate (line 979)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `phase-3-gate (line 979)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

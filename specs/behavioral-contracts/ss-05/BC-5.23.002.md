@@ -67,7 +67,7 @@ Workflow contract: phase-3: entry-point.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``create-worktree` (line 18) — `depends_on: []`. Type: skill, skill: `deliver-story/steps/step-a-create-worktree.md`.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``create-worktree` (line 18) — `depends_on: []`. Type: skill, skill: `deliver-story/steps/step-a-create-worktree.md`.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``create-worktree` (line 18) — `depends_on: []`. Type: skill, skill: `deliver-story/steps/step-a-create-worktree.md`.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``create-worktree` (line 18) — `depends_on: []`. Type: skill, skill: `deliver-story/steps/step-a-create-worktree.md`.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

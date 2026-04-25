@@ -65,7 +65,7 @@ Each story 300-800 tokens covering AC, architectural constraints, 1-2 code refer
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

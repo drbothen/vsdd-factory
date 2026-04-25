@@ -62,7 +62,7 @@ Step `dependency-merge-check` (line 394). Type: agent. Agent: pr-manager. Depend
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Merge always serializes after upstream PRs | manual |
+| (TBD — to be assigned in Phase 1.6c) | Merge always serializes after upstream PRs | manual |
 
 ## Traceability
 
@@ -87,7 +87,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

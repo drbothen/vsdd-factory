@@ -67,7 +67,7 @@ Workflow contract: phase-7: terminal-step.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``human-approval` (line 164) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``human-approval` (line 164) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``human-approval` (line 164) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``human-approval` (line 164) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

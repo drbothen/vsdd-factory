@@ -60,7 +60,7 @@ visual-companion: visual-vs-terminal decision rule. Confidence: HIGH. Extracted 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Rule explicitly cited when choosing browser vs terminal. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Rule explicitly cited when choosing browser vs terminal. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Rule explicitly cited when choosing browser vs terminal.
+- [TBD — to be assigned in Phase 1.6c] — Rule explicitly cited when choosing browser vs terminal.
 
 ---
 

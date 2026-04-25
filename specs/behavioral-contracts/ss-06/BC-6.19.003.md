@@ -60,7 +60,7 @@ repo-initialization: develop branch is the protected default. Confidence: HIGH. 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: New repos report `develop` as protected default. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: New repos report `develop` as protected default. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — New repos report `develop` as protected default.
+- [TBD — to be assigned in Phase 1.6c] — New repos report `develop` as protected default.
 
 ---
 

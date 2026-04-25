@@ -65,7 +65,7 @@ Default config: enabled true; check_intervals [7, 30, 90]; success_criteria adop
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

@@ -60,7 +60,7 @@ pr-create: PR body must follow templated structure with mermaid + traceability t
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Generated PR body contains all six sections and references the BC-table format. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Generated PR body contains all six sections and references the BC-table format. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Generated PR body contains all six sections and references the BC-table format.
+- [TBD — to be assigned in Phase 1.6c] — Generated PR body contains all six sections and references the BC-table format.
 
 ---
 

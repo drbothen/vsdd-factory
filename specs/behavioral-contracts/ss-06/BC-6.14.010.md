@@ -65,7 +65,7 @@ Clean means zero CRITICAL and zero HIGH. LOW findings documented but don't block
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 

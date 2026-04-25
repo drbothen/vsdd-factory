@@ -60,7 +60,7 @@ release: identity, modes, factory worktree pre-flight. Confidence: HIGH. Extract
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Mode selection follows verbatim parse rules; release-config.yaml read precedes any other action. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Mode selection follows verbatim parse rules; release-config.yaml read precedes any other action. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Mode selection follows verbatim parse rules; release-config.yaml read precedes any other action.
+- [TBD — to be assigned in Phase 1.6c] — Mode selection follows verbatim parse rules; release-config.yaml read precedes any other action.
 
 ---
 

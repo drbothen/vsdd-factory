@@ -68,7 +68,7 @@ convergence-tracking: convergence index formula (CI(i)). CI(i) = (Novelty(i) * (
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "CI value is computed via the documented formula and threshold check is applied as documented." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "CI value is computed via the documented formula and threshold check is applied as documented." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -67,7 +67,7 @@ Workflow contract: phase-2: terminal-step.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Workflow YAML field shape matches declared schema for ``human-approval` (line 158) — 24h timeout, depends on `[input-hash-drift-check]`. Approves epics.md, STORY-INDEX.md, dependency-graph.md, wave-schedule.md, sprint-state.yaml, HS-INDEX.md.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``human-approval` (line 158) — 24h timeout, depends on `[input-hash-drift-check]`. Approves epics.md, STORY-INDEX.md, dependency-graph.md, wave-schedule.md, sprint-state.yaml, HS-INDEX.md.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +94,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Workflow YAML field shape matches declared schema for ``human-approval` (line 158) — 24h timeout, depends on `[input-hash-drift-check]`. Approves epics.md, STORY-INDEX.md, dependency-graph.md, wave-schedule.md, sprint-state.yaml, HS-INDEX.md.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``human-approval` (line 158) — 24h timeout, depends on `[input-hash-drift-check]`. Approves epics.md, STORY-INDEX.md, dependency-graph.md, wave-schedule.md, sprint-state.yaml, HS-INDEX.md.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---

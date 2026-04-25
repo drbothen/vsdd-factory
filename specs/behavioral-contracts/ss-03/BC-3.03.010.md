@@ -67,7 +67,7 @@ Given Event with `nested = {inner:"value", n:1}`. When `event_to_log_record`.. T
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Given Event with `nested = {inner:"value", n:1}`. When `event_to_log_record`.. Then Attribute `nested` is StringValue(JS | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_to_log_record_nested_value_serialized_to_string`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Event with `nested = {inner:"value", n:1}`. When `event_to_log_record`.. Then Attribute `nested` is StringValue(JS | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_to_log_record_nested_value_serialized_to_string`) |
 
 ## Traceability
 

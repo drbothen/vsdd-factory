@@ -68,7 +68,7 @@ adversarial-review: minimum 3 consecutive clean passes for convergence. Converge
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Pass count >=3 AND last 3 passes report no substantive findings before convergence is declared." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Pass count >=3 AND last 3 passes report no substantive findings before convergence is declared." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

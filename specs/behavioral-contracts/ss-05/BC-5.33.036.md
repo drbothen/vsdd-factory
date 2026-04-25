@@ -60,7 +60,7 @@ Step `maintenance-gate` (line 373). Type: gate. Depends: `[maintenance-report, s
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | fail_action = warn | manual |
+| (TBD — to be assigned in Phase 1.6c) | fail_action = warn | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

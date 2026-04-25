@@ -60,7 +60,7 @@ spec-drift: scans 4 spec dirs + checks naming + finds orphans. Confidence: HIGH.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Each section of the report covers BCs / architecture / naming / orphans. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Each section of the report covers BCs / architecture / naming / orphans. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Each section of the report covers BCs / architecture / naming / orphans.
+- [TBD — to be assigned in Phase 1.6c] — Each section of the report covers BCs / architecture / naming / orphans.
 
 ---
 

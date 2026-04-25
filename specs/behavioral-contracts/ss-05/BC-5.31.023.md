@@ -62,7 +62,7 @@ Step `brownfield-codeowners-check` (line 354). Type: agent. Agent: consistency-v
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | All changed paths matched to ≥1 codeowner | manual |
+| (TBD — to be assigned in Phase 1.6c) | All changed paths matched to ≥1 codeowner | manual |
 
 ## Traceability
 
@@ -86,7 +86,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

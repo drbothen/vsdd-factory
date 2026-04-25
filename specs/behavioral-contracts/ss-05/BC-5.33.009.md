@@ -60,7 +60,7 @@ Step `dependency-audit-analysis` (line 63). Type: agent. Agent: security-reviewe
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | High/critical findings flagged for auto-fix | manual |
+| (TBD — to be assigned in Phase 1.6c) | High/critical findings flagged for auto-fix | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

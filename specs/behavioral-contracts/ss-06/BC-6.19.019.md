@@ -60,7 +60,7 @@ sdk-generation: contract evolution (semver + breaking detection). Confidence: HI
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Breaking changes route to consumer notification + SDK regeneration + DF-012 integration gate. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Breaking changes route to consumer notification + SDK regeneration + DF-012 integration gate. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Breaking changes route to consumer notification + SDK regeneration + DF-012 integration gate.
+- [TBD — to be assigned in Phase 1.6c] — Breaking changes route to consumer notification + SDK regeneration + DF-012 integration gate.
 
 ---
 

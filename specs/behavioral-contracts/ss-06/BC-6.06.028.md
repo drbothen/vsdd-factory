@@ -60,7 +60,7 @@ state-burst: Stage 1 with `15fa97e6` placeholder + tense rule. Confidence: HIGH.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Hook accepts placeholder hits; Stage-1 commit message lacks `backfill`. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Hook accepts placeholder hits; Stage-1 commit message lacks `backfill`. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Hook accepts placeholder hits; Stage-1 commit message lacks `backfill`.
+- [TBD — to be assigned in Phase 1.6c] — Hook accepts placeholder hits; Stage-1 commit message lacks `backfill`.
 
 ---
 

@@ -60,7 +60,7 @@ repo-initialization: outputs. Confidence: HIGH. Extracted from `plugins/vsdd-fac
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Final report enumerates all bullet artifacts that were produced. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Final report enumerates all bullet artifacts that were produced. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Final report enumerates all bullet artifacts that were produced.
+- [TBD — to be assigned in Phase 1.6c] — Final report enumerates all bullet artifacts that were produced.
 
 ---
 

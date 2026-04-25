@@ -68,7 +68,7 @@ convergence-check: skill identity (Phase 7, 7-dimension validation). Runs 7-dime
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Frontmatter declares disable-model-invocation true; output matches the 7-dimension verdict format." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Frontmatter declares disable-model-invocation true; output matches the 7-dimension verdict format." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

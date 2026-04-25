@@ -63,7 +63,7 @@ removal_reason: null
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Cross-repo walls applied across all walled steps | manual |
+| (TBD — to be assigned in Phase 1.6c) | Cross-repo walls applied across all walled steps | manual |
 | VP-002 | Wave ordering respects all declared dependencies | manual |
 
 ## Traceability
@@ -91,7 +91,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 - VP-002
 
 ---

@@ -60,7 +60,7 @@ ui-completeness-check: 100% fidelity target + fix story generation. Confidence: 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: No gap survives convergence. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: No gap survives convergence. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — No gap survives convergence.
+- [TBD — to be assigned in Phase 1.6c] — No gap survives convergence.
 
 ---
 

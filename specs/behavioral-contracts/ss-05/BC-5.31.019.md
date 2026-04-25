@@ -64,7 +64,7 @@ Step `ai-pr-review` (line 271). Type: agent. Agent: pr-reviewer. Depends: `[crea
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | `.factory/**` paths never appear in reviewer's effective context | manual |
+| (TBD — to be assigned in Phase 1.6c) | `.factory/**` paths never appear in reviewer's effective context | manual |
 
 ## Traceability
 
@@ -89,7 +89,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- VP-001
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

@@ -68,7 +68,7 @@ compact-state: 7-pattern extraction map. Extracts 7 patterns to specific cycle f
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Each detected pattern routes to the documented destination file in `cycles/<cycle>/`." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Each detected pattern routes to the documented destination file in `cycles/<cycle>/`." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

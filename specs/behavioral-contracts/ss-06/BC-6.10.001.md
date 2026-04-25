@@ -68,7 +68,7 @@ deliver-story: skill identity (dispatcher, not implementer). Skill is a DISPATCH
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD — assertion derived from acceptance: "Skill's allowed-tools does NOT include Write/Edit; uses Task tool to dispatch specialists." | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD — assertion derived from acceptance: "Skill's allowed-tools does NOT include Write/Edit; uses Task tool to dispatch specialists." | manual |
 
 ## Traceability
 
@@ -93,7 +93,7 @@ TBD — assigned by story-writer
 
 ## VP Anchors (Recommended)
 
-- VP-001 — TBD
+- (TBD — to be assigned in Phase 1.6c)
 
 ---
 

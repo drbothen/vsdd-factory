@@ -60,7 +60,7 @@ record-demo: tool-unavailable fallback never skips evidence. Confidence: HIGH. E
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | Acceptance: Even with no tools, demo-report.md is produced with text evidence per AC. | manual |
+| (TBD — to be assigned in Phase 1.6c) | Acceptance: Even with no tools, demo-report.md is produced with text evidence per AC. | manual |
 
 ## Traceability
 
@@ -85,7 +85,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [VP-001] — Even with no tools, demo-report.md is produced with text evidence per AC.
+- [TBD — to be assigned in Phase 1.6c] — Even with no tools, demo-report.md is produced with text evidence per AC.
 
 ---
 

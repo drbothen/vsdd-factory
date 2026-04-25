@@ -118,3 +118,15 @@ Justification: DI-016 is a business invariant because configuration leakage betw
 Every `InternalEvent` carries the UUID v4 generated from the stdin envelope. No event is emitted without it, enabling full causal reconstruction of a single hook invocation.
 Enforcement owner: SS-01 (main.rs, executor.rs, emit_event host fn). BC range: BC-1.
 Justification: DI-017 is a business invariant because the trace ID is the audit correlation key — an event without it cannot be attributed to its invoking tool call. Source: pass-2 §BR-trace_id.
+
+### DI-018 — Hook Self-Modification Deferral
+
+**Statement:** Modifications to hook-routing artifacts (hooks-registry.toml, hook script files, or hooks.json variants) made during an active dispatcher invocation MUST be deferred to the next dispatcher invocation. The currently-loaded hook routing table and script paths remain in effect until the dispatcher process exits and re-reads its inputs.
+
+**Rationale:** vsdd-factory is its own product. Phase 3 TDD edits hook scripts. The dispatcher fires on tool calls during agent work. Without this invariant, a story modifying `hooks-registry.toml` mid-burst could observe inconsistent routing.
+
+**Enforcement:** PluginCache mtime-based invalidation (BC-1.09.NNN) applies at plugin-load time. Registry changes between invocations are picked up on next dispatcher start.
+
+**Verification:** VP-NEW-018 (manual; could be promoted to integration test that edits a hook file mid-dispatch and verifies the in-flight dispatcher uses the old script_path).
+
+**Source:** Phase 1d adversary pass 1 finding F-014.

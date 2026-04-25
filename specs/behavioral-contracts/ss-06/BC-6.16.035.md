@@ -65,7 +65,7 @@ All Kani proofs pass; fuzz 5 min/target with zero crashes; mutation kill rate >9
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-001 | TBD | manual |
+| (TBD — to be assigned in Phase 1.6c) | TBD | manual |
 
 ## Traceability
 
