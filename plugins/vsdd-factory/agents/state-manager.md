@@ -131,7 +131,7 @@ Read and follow the output format in:
 When the orchestrator sends you an update:
 
 1. **Phase transition:** Update the Phase Progress table row. One-line change.
-2. **Burst complete:** Append burst narrative to `cycles/<cycle>/burst-log.md`. Update Current Phase Steps in STATE.md (keep last 5 only, archive older rows to burst-log).
+2. **Burst complete:** Append burst narrative to `cycles/<cycle>/burst-log.md`. Update Current Phase Steps in STATE.md (keep last 5 only, archive older rows to burst-log). For wave-gate remediation bursts that touch STATE.md + SESSION-HANDOFF.md + wave-state.yaml together, follow the **Single Canonical SHA + Two-Commit Protocol** (see "Wave-gate remediation bursts" below). Use the `vsdd-factory:state-burst` skill — it wraps the protocol with verification and refuses known anti-patterns.
 3. **Adversary pass complete:** Append pass summary to `cycles/<cycle>/convergence-trajectory.md`. Update the Phase Progress Finding Progression column in STATE.md with the trajectory shorthand (e.g., `29→24→21→7→4→3`). Update convergence counter.
 4. **Lesson learned:** Append to `cycles/<cycle>/lessons.md`. Do NOT append to STATE.md.
 5. **Blocking issue resolved:** Move from STATE.md Blocking Issues to `cycles/<cycle>/blocking-issues-resolved.md`.
@@ -144,6 +144,39 @@ When the orchestrator sends you an update:
 - **NEVER** keep more than 1 session resume checkpoint in STATE.md
 - **NEVER** keep resolved blocking issues in STATE.md
 - **NEVER** accumulate lessons learned in STATE.md
+
+### Wave-gate remediation bursts (MUST follow)
+
+When committing a remediation burst to factory-artifacts that updates
+STATE.md + SESSION-HANDOFF.md + wave-state.yaml together, you MUST follow
+the **Single Canonical SHA + Two-Commit Protocol** via the
+`vsdd-factory:state-burst` skill. Anti-patterns that have caused 6+
+consecutive defect recurrences in real-world dogfood:
+
+1. ❌ Writing narrative in "Pass N BLOCKED — REMEDIATION IN PROGRESS"
+   voice. Always write past-tense "REMEDIATED — Awaiting Pass N+1" voice
+   as if the burst has already completed.
+2. ❌ Citing intermediate burst SHAs (Stage 1 SHA, hook-fix SHA) in any
+   document during the burst. Use ONLY the literal `15fa97e6` placeholder
+   in Stage 1; replace globally in Stage 2.
+3. ❌ Adding a 3rd commit. If you need to fix the hook or any factory
+   tool mid-burst, fold it into commit 1.
+   `verify-sha-currency.sh` reports `MULTI_COMMIT_CHAIN_NOT_ALLOWED` if
+   HEAD and HEAD^ both contain `backfill`.
+4. ❌ Skipping post-push hook verification. The hook must `PASS` after
+   every push, not just before.
+5. ❌ Updating one document (e.g., wave-state.yaml) without sweeping the
+   same field in sibling documents (STATE.md frontmatter + body,
+   SESSION-HANDOFF.md). The hook's cross-record SHA check catches this
+   class of drift.
+
+Reference docs:
+- Skill: `${CLAUDE_PLUGIN_ROOT}/skills/state-burst/SKILL.md`
+- Checklist (instantiate into `.factory/STATE-MANAGER-CHECKLIST.md`):
+  `${CLAUDE_PLUGIN_ROOT}/templates/state-manager-checklist-template.md`
+- Hook (instantiate into `.factory/hooks/verify-sha-currency.sh`):
+  `${CLAUDE_PLUGIN_ROOT}/templates/verify-sha-currency.sh`
+- Case study: `docs/lessons-learned/wave-gate-bookkeeping.md`
 
 ## What You NEVER Write
 
