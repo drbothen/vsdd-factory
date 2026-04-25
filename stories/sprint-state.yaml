@@ -1,0 +1,105 @@
+---
+# Sprint/cycle state for vsdd-factory v1.0.0-greenfield
+# Updated: 2026-04-25 (Phase 1.8 story migration)
+
+current_cycle: v1.0.0-greenfield
+current_milestone: 1.0.0-beta.4
+next_milestone: 1.0.0-rc.1
+
+# Story counts by status
+stories:
+  total: 41
+  merged: 22
+  partial: 4
+  draft: 15
+  blocked: 0
+  in_progress: 0
+
+# Epic completion summary
+epics:
+  E-0:
+    name: Infrastructure Prep
+    stories: 5
+    status: closed
+    milestone: 1.0.0-beta.1
+    merged: 5
+    partial: 0
+    draft: 0
+
+  E-1:
+    name: Dispatcher Foundation
+    stories: 9
+    status: closed
+    milestone: 1.0.0-beta.1
+    merged: 9
+    partial: 0
+    draft: 0
+
+  E-2:
+    name: Legacy Adapter and Beta Release
+    stories: 8
+    status: closed
+    milestone: 1.0.0-beta.1
+    merged: 7
+    partial: 1   # S-2.05 hook-sdk publish (dry-run only)
+    draft: 0
+
+  E-3:
+    name: WASM Port — High-Value Hooks
+    stories: 4
+    status: in_progress
+    milestone: 1.0.0-rc.1
+    merged: 0
+    partial: 1   # S-3.04 emit_event refactor
+    draft: 3
+
+  E-4:
+    name: Observability Sinks and RC Release
+    stories: 8
+    status: draft
+    milestone: 1.0.0-rc.1
+    merged: 0
+    partial: 1   # S-4.06 routing filters
+    draft: 7
+
+  E-5:
+    name: New Hook Events and 1.0.0 Release
+    stories: 7
+    status: draft
+    milestone: 1.0.0
+    merged: 0
+    partial: 1   # S-5.05 migration guide skeleton
+    draft: 6
+
+# Point totals
+points:
+  total: 183
+  merged: 55
+  remaining: 128
+
+# Current work frontier (stories unblocked today)
+frontier:
+  - S-3.04  # emit_event refactor (partial — complete the bash tool retirement)
+  - S-3.01  # capture-commit-activity port (blocked on S-3.04 completion)
+  - S-3.02  # capture-pr-activity port (blocked on S-3.04 completion)
+  - S-3.03  # block-ai-attribution port (blocked on S-3.04 completion)
+  - S-4.01  # sink-http (parallel with E-3)
+  - S-4.06  # routing filters (partial — complete wiring)
+
+# Shipped releases (for reference)
+releases:
+  - version: 1.0.0-beta.1
+    sha: tagged
+    stories_included: [S-0.01, S-0.02, S-0.03, S-0.04, S-0.05, S-1.01, S-1.02, S-1.03, S-1.04, S-1.05, S-1.06, S-1.07, S-1.08, S-1.09, S-2.01, S-2.02, S-2.03, S-2.04, S-2.06, S-2.07, S-2.08]
+
+  - version: 1.0.0-beta.2
+    sha: tagged
+    notes: Bug fixes from beta.1 shakedown
+
+  - version: 1.0.0-beta.3
+    sha: tagged
+    notes: Cache fix + stderr capture
+
+  - version: 1.0.0-beta.4
+    sha: 1907d8f
+    notes: Cache fix + stderr capture + adversary SHA-currency gate
