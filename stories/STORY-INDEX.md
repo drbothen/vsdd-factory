@@ -19,6 +19,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > S-N.MM format. This index is the authoritative source for story count and status.
 > 41 stories across 6 epics (E-0 through E-5).
 
+> **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
+
+> **Cycle field semantics:** Each story's `cycle:` frontmatter records the cycle that ORIGINALLY CREATED that story. For the 22 merged stories migrated in Phase 1.8 (S-N.M -> S-N.MM), `cycle: v1.0.0-greenfield` is preserved as immutable history. The current cycle (`v1.0-brownfield-backfill`) is for backfill of formal specs around already-shipped stories, not for new story creation.
+
 ## Status Summary
 
 | Status | Count |

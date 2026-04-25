@@ -15,7 +15,7 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md#ss-05-pipeline-orchestratio
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/phases/phase-3-tdd-implementation.lobster"
 subsystem: "SS-05"
-capability: "CAP-073"
+capability: "CAP-001"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -75,7 +75,7 @@ Defaults `on_failure: escalate`, retries 2, timeout 4h. `implementation-gate.fai
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-073 |
+| L2 Capability | CAP-001 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-05 Pipeline Orchestration (plugins/vsdd-factory/workflows/phases/phase-3-tdd-implementation.lobster) |
 | Stories | TBD |

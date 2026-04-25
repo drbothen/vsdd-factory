@@ -21,7 +21,7 @@ traces_to: ARCH-INDEX.md
 ## Purpose
 
 The Pipeline Orchestration subsystem is the executive control plane of Subsystem B.
-It contains the orchestrator agent, 33 specialist sub-agents, and 16 Lobster
+It contains the orchestrator agent, 34 specialist sub-agents, and 16 Lobster
 workflow definitions (8 mode-level + 8 phase-level). The orchestrator reads
 `.lobster` workflow files as structured data, resolves step dependencies, and
 dispatches specialist sub-agents via Claude Code's Agent tool. It does not produce

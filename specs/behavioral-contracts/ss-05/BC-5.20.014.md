@@ -15,7 +15,7 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md#ss-05-pipeline-orchestratio
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/phases/phase-0-codebase-ingestion.lobster"
 subsystem: "SS-05"
-capability: "CAP-070"
+capability: "CAP-001"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -75,7 +75,7 @@ Validates the extracted entities/contracts against the source — sanity check t
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-070 |
+| L2 Capability | CAP-001 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-05 Pipeline Orchestration (plugins/vsdd-factory/workflows/phases/phase-0-codebase-ingestion.lobster) |
 | Stories | TBD |

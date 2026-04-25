@@ -1003,7 +1003,7 @@ Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x
 | DRIFT-008 | P3 | `plugin.loaded` / `plugin.load_failed` constants declared but never emitted from plugin_loader | Acceptable for 1.0; 1-line emit call |
 | DRIFT-009 | P2 | Adversary SHA-currency gate is opt-in (template only; `hooks/verify-sha-currency.sh` not auto-installed) | Documented as opt-in; CHANGELOG beta.4 |
 | DRIFT-010 | P0 for Windows | 26 unported bash hooks require git-bash on Windows; native ports not yet complete | rc.1 (Tier E, S-3.01–3.03) |
-| DRIFT-011 | LOW | Concurrent self-modification risk (vsdd-factory dogfooding): stories that edit hook scripts or routing config can race with active dispatcher invocations. Acceptable as long as DI-018 holds. | Documented; no code change needed for v1.0. Reassess if Phase 3 TDD encounters race issues. **Source:** Phase 1d pass 1 F-014; documented in DI-018. |
+| DRIFT-011 | P3 | Concurrent self-modification risk (vsdd-factory dogfooding): stories that edit hook scripts or routing config can race with active dispatcher invocations. | Acceptable for v1.0; mitigated by registry per-invocation read + PluginCache mtime + atomic story-edit commits (see KL-005). Re-evaluate if Phase 3 TDD encounters race issues. **Source:** Phase 1d pass 1 F-014; pass 2 F-018/F-021/F-025 corrections. |
 
 ### 10.2 Pending Milestones (stories not yet shipped)
 
@@ -1048,6 +1048,16 @@ This is acknowledged structural diversity, not a defect.
 5 workflow-domain VPs are manual proof method. Could be automated via lobster-parse
 linter in v1.1. No blocker for v1.0.
 **Source:** Phase 1d pass 1 F-015.
+
+### KL-005 — Concurrent self-modification race (vsdd-factory dogfooding)
+**Risk:** vsdd-factory IS its own product. A story modifying hooks-registry.toml or hook scripts can race with active dispatcher invocations.
+**Mitigations actively in place (not via DI; via system architecture):**
+- The dispatcher process reads `hooks-registry.toml` and resolves `script_path` on each invocation — not at vsdd-factory startup. Stale registry rows cannot persist across invocation boundaries.
+- PluginCache (BC-1.09.001) mtime-invalidates plugin .wasm artifacts. A story that modifies a plugin .wasm forces recompile on the next dispatcher invocation.
+- Story-writer agent commits story-edit transactions atomically (via state-manager Single Canonical SHA + Two-Commit Protocol). The dispatcher's next invocation observes either the pre- or post-commit registry state, never an in-flight intermediate.
+**Why not a DI:** A domain invariant requires an enforcing BC + verification mechanism. The above mitigations are emergent properties of the architecture, not contract-level guarantees. Promoting this to a DI would be aspirational without an enforcing BC.
+**Status for v1.0:** Acceptable. Re-evaluate if Phase 3 TDD encounters race issues.
+**Source:** Phase 1d pass 1 F-014; pass 2 F-018/F-021/F-025 corrections.
 
 ---
 

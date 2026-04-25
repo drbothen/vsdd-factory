@@ -15,7 +15,7 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md#ss-05-pipeline-orchestratio
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/greenfield.lobster"
 subsystem: "SS-05"
-capability: "CAP-078"
+capability: "CAP-001"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -76,7 +76,7 @@ Workflow contract: greenfield:phase-6-ui-quality-gate.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-078 |
+| L2 Capability | CAP-001 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-05 Pipeline Orchestration (plugins/vsdd-factory/workflows/greenfield.lobster) |
 | Stories | TBD |

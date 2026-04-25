@@ -15,7 +15,7 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md#ss-05-pipeline-orchestratio
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/phases/phase-7-convergence.lobster"
 subsystem: "SS-05"
-capability: "CAP-077"
+capability: "CAP-001"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -75,7 +75,7 @@ v2.0.0. 7-Dimensional Convergence Assessment (spec, test, implementation, verifi
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-077 |
+| L2 Capability | CAP-001 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-05 Pipeline Orchestration (plugins/vsdd-factory/workflows/phases/phase-7-convergence.lobster) |
 | Stories | TBD |

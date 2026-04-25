@@ -15,7 +15,7 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md#ss-05-pipeline-orchestratio
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/phases/phase-4-holdout-evaluation.lobster"
 subsystem: "SS-05"
-capability: "CAP-074"
+capability: "CAP-001"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -75,7 +75,7 @@ v1.0.0. Reusable sub-workflow: scenario rotation + holdout evaluation with infor
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-074 |
+| L2 Capability | CAP-001 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-05 Pipeline Orchestration (plugins/vsdd-factory/workflows/phases/phase-4-holdout-evaluation.lobster) |
 | Stories | TBD |

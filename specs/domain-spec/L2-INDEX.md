@@ -27,7 +27,7 @@ sections:
 # L2 Domain Specification: vsdd-factory
 
 > **Sharded artifact (DF-021).** This is the Phase 1.3 brownfield spec backfill
-> synthesis. It derives from 35 entities, 18 invariants, 22 events, and 3 state
+> synthesis. It derives from 35 entities, 17 invariants, 22 events, and 3 state
 > machines produced in Phase 0 ingestion (pass-2-domain-model.md), grounded in
 > the v1.0 master design doc.
 
@@ -49,7 +49,7 @@ workflow management driven by LLM agents.
 | Capabilities | capabilities.md | ~1,200 | product-owner, architect, story-writer | CAP-001..CAP-028 user-facing capability catalog with SS-NN traceability |
 | Edge Cases | edge-cases.md | ~900 | story-writer, test-writer | DEC-001..DEC-018 domain-level exception flows |
 | Domain Events | domain-events.md | ~1,100 | architect, test-writer | DE-001..DE-022 event catalog with producer/consumer/schema |
-| Invariants | invariants.md | ~950 | product-owner, architect | DI-001..DI-018 domain invariants with SS-NN enforcement owner |
+| Invariants | invariants.md | ~950 | product-owner, architect | DI-001..DI-017 domain invariants with SS-NN enforcement owner |
 | Glossary | glossary.md | ~800 | all agents | 22 canonical domain terms for ubiquitous language |
 
 ## Cross-References
@@ -69,7 +69,7 @@ workflow management driven by LLM agents.
 | ID Format | Count | Section | Range |
 |-----------|-------|---------|-------|
 | CAP-NNN | 28 | capabilities.md | CAP-001..CAP-028 |
-| DI-NNN | 18 | invariants.md | DI-001..DI-018 |
+| DI-NNN | 17 | invariants.md | DI-001..DI-017 |
 | DE-NNN | 22 | domain-events.md | DE-001..DE-022 |
 | DEC-NNN | 18 | edge-cases.md | DEC-001..DEC-018 |
 

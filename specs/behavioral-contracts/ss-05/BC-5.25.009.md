@@ -15,7 +15,7 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md#ss-05-pipeline-orchestratio
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/workflows/phases/phase-5-adversarial-refinement.lobster"
 subsystem: "SS-05"
-capability: "CAP-075"
+capability: "CAP-001"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -77,7 +77,7 @@ Secondary review using Gemini 3.1 Pro on fresh context; targets patterns the GPT
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-075 |
+| L2 Capability | CAP-001 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-05 Pipeline Orchestration (plugins/vsdd-factory/workflows/phases/phase-5-adversarial-refinement.lobster) |
 | Stories | TBD |
