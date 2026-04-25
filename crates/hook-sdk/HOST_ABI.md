@@ -1,0 +1,182 @@
+# vsdd-factory Host ABI Reference
+
+This document describes the runtime contract between WASM hook plugins
+and the `factory-dispatcher` host. Plugin authors who use `vsdd-hook-sdk`
+do not call this ABI directly — the SDK's [`host`](src/host.rs) module
+wraps every function in safe, ergonomic Rust. This file exists for:
+
+- ABI version negotiation (`HOST_ABI_VERSION`)
+- Implementers writing alternate-language SDKs (Go, AssemblyScript, etc.)
+- Forensic debugging when a plugin / dispatcher pairing misbehaves
+
+The ABI is **stable as of `HOST_ABI_VERSION = 1`**. Breaking changes
+require a major bump on both `vsdd-hook-sdk` and `factory-dispatcher`
+per the semver commitment (S-5.6).
+
+---
+
+## Negotiation
+
+Every plugin exports a constant `HOST_ABI_VERSION: u32`. The dispatcher
+reads it before any host call and refuses to invoke plugins whose
+version it does not understand. SDK 0.0.x → ABI 1; SDK 1.x → ABI 1;
+SDK 2.x → ABI 2 (when it lands).
+
+The dispatcher's compile-time `HOST_ABI_VERSION` constant is the source
+of truth for what it speaks. The SDK's `vsdd_hook_sdk::HOST_ABI_VERSION`
+constant is the source of truth for what plugins built against that SDK
+expect.
+
+---
+
+## Plugin entry point
+
+WASI preview-1 command convention. The dispatcher invokes the
+auto-generated `_start` function. The `#[hook]` macro emits a `fn main()`
+that drives the user function:
+
+1. Reads stdin to a `Vec<u8>`.
+2. Deserializes JSON into `HookPayload`.
+3. Calls the user's `fn(HookPayload) -> HookResult` with a
+   `std::panic::catch_unwind` boundary so a panicking plugin terminates
+   cleanly rather than aborting the wasmtime store.
+4. Serializes the `HookResult` JSON to stdout.
+5. Calls `std::process::exit` with the result's exit code.
+
+### Stdin envelope (host → plugin)
+
+UTF-8 JSON. Schema:
+
+```json
+{
+  "event_name": "PreToolUse",
+  "tool_name": "Bash",
+  "session_id": "abc-123",
+  "dispatcher_trace_id": "uuidv4",
+  "tool_input": { "...": "tool-specific" },
+  "tool_response": null
+}
+```
+
+`tool_response` is `null` for `PreToolUse` and most pre-call events;
+present for `PostToolUse` and lifecycle events that carry a result.
+
+### Stdout envelope (plugin → host)
+
+UTF-8 JSON, single-line, terminated with `\n`. One of:
+
+```json
+{ "outcome": "continue" }
+{ "outcome": "block",    "reason":  "<short string>" }
+{ "outcome": "error",    "message": "<diagnostic>" }
+```
+
+### Exit code contract
+
+| `outcome` | Exit code | Meaning to dispatcher |
+|---|---|---|
+| `continue` | `0` | Allow the tool call / non-blocking event |
+| `block`    | `2` | Block (PreToolUse / PermissionRequest only) |
+| `error`    | `1` | Plugin failed; non-blocking unless `on_error = "block"` |
+
+---
+
+## Host functions
+
+All host functions are imported under the WASI module name `vsdd`.
+Strings are passed as `(ptr: u32, len: u32)` UTF-8 byte tuples; out-strings
+follow the `(out_ptr: u32, out_cap: u32) -> u32 bytes_written` convention.
+Negative return codes signal errors:
+
+| Code | Meaning |
+|---:|---|
+| `-1` | Capability denied (caller lacks the registry-declared capability) |
+| `-2` | Timeout exceeded the call's `timeout_ms` |
+| `-3` | Output exceeded `max_output_bytes`; truncated |
+| `-4` | Invalid argument (path traversal, unknown env name, etc.) |
+| Other | Reserved for future categorized errors |
+
+### `log(level, msg_ptr, msg_len) -> ()`
+
+Write `msg` (UTF-8) to the dispatcher's internal log at `level`.
+
+| Level | Value |
+|---|---|
+| Trace | 0 |
+| Debug | 1 |
+| Info  | 2 |
+| Warn  | 3 |
+| Error | 4 |
+
+Always succeeds. No return value, no error path.
+
+### `emit_event(type_ptr, type_len, fields_ptr, fields_len) -> ()`
+
+Emit a structured event. `type` is the event name (e.g. `"commit.made"`).
+`fields` is a length-prefixed sequence of UTF-8 key/value pairs:
+
+```
+[ key_len: u32 LE | key: u8 × key_len | value_len: u32 LE | value: u8 × value_len ]+
+```
+
+The dispatcher enriches the event with `dispatcher_trace_id`,
+`session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, and
+`schema_version` automatically.
+
+### `read_file(path_ptr, path_len, max_bytes, timeout_ms, out_ptr_out, out_len_out) -> i32`
+
+Read a file under the dispatcher's read allow-list. The host writes the
+returned buffer's `(ptr, len)` into the two out-params; the SDK copies
+the bytes and surfaces them to the plugin.
+
+`max_bytes` and `timeout_ms` are mandatory. Return: `0` on success or a
+negative error code.
+
+### `exec_subprocess(cmd_ptr, cmd_len, args_ptr, args_len, timeout_ms, max_output_bytes, result_ptr_out, result_len_out) -> i32`
+
+Run a subprocess against the dispatcher's binary allow-list. `cmd` is the
+basename or absolute path; `args` is a length-prefixed sequence of
+arguments (same encoding as `emit_event`'s fields, key-only).
+
+The host writes a result envelope at `(result_ptr_out, result_len_out)`:
+
+```
+[ exit_code: i32 LE | stdout_len: u32 LE | stdout: u8 × stdout_len | stderr_len: u32 LE | stderr: u8 × stderr_len ]
+```
+
+Return: `0` on success or a negative error code. `timeout_ms` and
+`max_output_bytes` are mandatory; truncated output returns `-3`.
+
+### `session_id(out_ptr, out_cap) -> u32`
+### `dispatcher_trace_id(out_ptr, out_cap) -> u32`
+### `plugin_root(out_ptr, out_cap) -> u32`
+### `plugin_version(out_ptr, out_cap) -> u32`
+### `cwd(out_ptr, out_cap) -> u32`
+
+Retrieve a fixed string from the host. The host writes UTF-8 bytes into
+`out_ptr` (up to `out_cap`) and returns the number of bytes written. If
+the value is longer than `out_cap`, the host returns the **required
+capacity** without writing partial data; the SDK re-calls with a larger
+buffer.
+
+### `env(name_ptr, name_len, out_ptr, out_cap) -> i32`
+
+Read a single environment variable. Returns:
+
+- `>= 0` — number of bytes written (`0` = variable unset)
+- `< 0`  — error code (typically `-1` / capability denied if the name is
+  not on the dispatcher's env allow-list)
+
+---
+
+## Future ABI versions
+
+**ABI 2** (post-1.0, tentative) is expected to land alongside the WASI
+preview-2 / component-model migration:
+
+- Component-model exports replace `_start`
+- Strings as Component Model `string` instead of byte tuples
+- Async host functions where it makes sense
+
+ABI 2 will not be back-compatible with ABI 1 plugins; the dispatcher
+will load both during a transition window per the semver commitment.

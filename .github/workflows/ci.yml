@@ -115,3 +115,10 @@ jobs:
 
       - name: cargo build (wasm32-wasip1 plugin)
         run: cargo build -p capture-commit-activity --target wasm32-wasip1
+
+      - name: cargo build (hello-hook example, wasm32-wasip1)
+        # Compiling the example end-to-end exercises the #[hook] macro
+        # expansion + the SDK's stdin/panic/result framing on the real
+        # plugin target. If the macro regresses, this catches it before
+        # any plugin author sees it.
+        run: cargo build -p vsdd-hook-sdk --example hello-hook --target wasm32-wasip1
