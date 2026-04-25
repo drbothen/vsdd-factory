@@ -81,3 +81,42 @@ something goes wrong.
      (activation step missed?), Datadog 401 (sink config / API key?),
      legacy-bash-adapter "command not found" (git-bash missing on
      Windows?), event field schema drift (HOST_ABI_VERSION skew?). -->
+
+## Regenerating `hooks-registry.toml`
+
+The v1.0 dispatcher reads `plugins/vsdd-factory/hooks-registry.toml`
+to decide which hooks fire on which events. During the v0.79.x → v1.0
+migration the file is produced by a generator that reads the historical
+bash-hook inventory at `git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json`
+and emits one `[[hooks]]` entry per bash hook, all routed through
+`legacy-bash-adapter.wasm`.
+
+Run the generator from the repo root:
+
+```bash
+scripts/generate-registry-from-hooks-json.sh
+```
+
+The script is idempotent — re-running it on an unchanged input
+produces byte-identical output. CI re-runs it on every push and fails
+the build if `git diff plugins/vsdd-factory/hooks-registry.toml` is
+non-empty.
+
+**When to re-run:**
+
+- During this migration, almost never. The bash hook inventory is
+  frozen at the historical commit; ongoing maintenance edits the
+  generated TOML directly. The generator exists so the *initial*
+  conversion is auditable, not so it runs continuously.
+- If a bash hook is added or removed (rare during migration), update
+  `git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json` to match
+  reality (or pass an explicit hooks.json path argument), then
+  re-run the generator and review the diff.
+- After 1.0.0 ships, the generator is retired entirely;
+  `hooks-registry.toml` becomes the human-edited source of truth for
+  every native-WASM port (S-2.5+).
+
+**What it can't fix:** entries whose underlying bash script no longer
+exists. The generator hard-fails on script-without-entry or
+entry-without-script — those are operator-resolved drift, not
+generator-resolved.
