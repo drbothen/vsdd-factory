@@ -1,8 +1,8 @@
 ---
 document_type: story
 level: ops
-story_id: "STORY-NNN"
-epic_id: "EPIC-NNN"
+story_id: "S-N.MM"
+epic_id: "E-N"
 version: "1.1"
 status: draft
 producer: story-writer
@@ -29,15 +29,21 @@ assumption_validations: []     # ASM-NNN IDs this story validates
 risk_mitigations: []           # R-NNN IDs this story mitigates
 ---
 
-> **Execute:** `/vsdd-factory:deliver-story STORY-NNN`
+> **Execute:** `/vsdd-factory:deliver-story S-N.MM`
 
-# STORY-NNN: [Title]
+# S-N.MM: [Title]
 
 > **One-per-file:** Each story lives in its own file.
-> Filename convention: `STORY-NNN-[short-description].md`
+> Filename convention: `S-N.MM-[short-description].md` (e.g., `S-1.01-foundational-types.md`).
+> Story IDs use `S-N.MM` format where `N` is the section/epic-grouping (single digit,
+> matches the parent epic `E-N`) and `MM` is the zero-padded story number within that
+> section (e.g., `S-3.05` = section 3, story 5).
+> Story `N` (section/epic) and BC `S` (subsystem number in BC-S.SS.NNN) are
+> intentionally different hierarchies — a story can implement BCs from multiple
+> subsystems via the `subsystems: [SS-NN, ...]` frontmatter array.
 > The story-writer produces individual files under `.factory/stories/`
 > and a companion `STORY-INDEX.md` listing all stories with status and dependencies.
-> Story numbering is continuous across cycles -- no resets (DF-030).
+> Story numbering is append-only across cycles within a section -- no resets (DF-030).
 
 ## Narrative
 - **As a** [actor]
@@ -136,7 +142,7 @@ Target: <= 20-30% of agent context window. If over budget, split the story.
 
 | Story | Key Decisions | Patterns Established | Gotchas Discovered |
 |-------|--------------|---------------------|-------------------|
-| [STORY-NNN] | [decisions made] | [patterns to follow] | [pitfalls to avoid] |
+| [S-N.MM] | [decisions made] | [patterns to follow] | [pitfalls to avoid] |
 
 _Populated by the story-writer from completed stories in the same epic.
 Each new story carries forward lessons from its predecessors to prevent

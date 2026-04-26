@@ -19,7 +19,7 @@ last_updated: YYYY-MM-DDTHH:MM:SS
 
 | ID | Source | Description | Priority | Introduced | Cycle | Story | Due |
 |----|--------|-------------|----------|-----------|-------|-------|-----|
-| TD-001 | [source type] | [description] | P0/P1/P2 | vX.Y.Z | [cycle-id] | STORY-NNN or — | vX.Y.Z or — |
+| TD-001 | [source type] | [description] | P0/P1/P2 | vX.Y.Z | [cycle-id] | S-N.MM or — | vX.Y.Z or — |
 
 ### Source Types
 
@@ -38,7 +38,7 @@ last_updated: YYYY-MM-DDTHH:MM:SS
 
 | ID | Resolved In | Story | Resolution |
 |----|------------|-------|------------|
-| TD-NNN | vX.Y.Z | STORY-NNN | [how it was resolved] |
+| TD-NNN | vX.Y.Z | S-N.MM | [how it was resolved] |
 
 ## Tech Debt as Feature Mode Cycles
 

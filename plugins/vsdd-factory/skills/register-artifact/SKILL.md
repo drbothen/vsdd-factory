@@ -20,9 +20,11 @@ Parse `$ARGUMENTS` for the file path. Determine the artifact type from the path:
 
 | Path Pattern | Type | INDEX File |
 |-------------|------|------------|
-| `behavioral-contracts/BC-*.md` | Behavioral Contract | `behavioral-contracts/BC-INDEX.md` |
+| `behavioral-contracts/ss-NN/BC-*.md` (canonical, sharded) | Behavioral Contract | `behavioral-contracts/BC-INDEX.md` |
+| `behavioral-contracts/BC-*.md` (legacy flat layout) | Behavioral Contract | `behavioral-contracts/BC-INDEX.md` |
 | `verification-properties/VP-*.md` | Verification Property | `verification-properties/VP-INDEX.md` |
-| `stories/STORY-*.md` | Story | `stories/STORY-INDEX.md` |
+| `stories/S-*.md` (canonical, S-N.MM format) | Story | `stories/STORY-INDEX.md` |
+| `stories/STORY-*.md` (legacy STORY-NNN format) | Story | `stories/STORY-INDEX.md` |
 | `holdout-scenarios/HS-*.md` | Holdout Scenario | `holdout-scenarios/HS-INDEX.md` |
 
 If the path doesn't match any pattern, report: "Unrecognized artifact type. This skill registers BCs, VPs, stories, and holdout scenarios."
@@ -90,7 +92,7 @@ Add a new row to the INDEX table matching the existing format:
 
 **STORY-INDEX row:**
 ```
-| STORY-NNN | <title> | <epic_id> | <points> | <priority> | <depends_on> | <status> |
+| S-N.MM | <title> | <epic_id> | <points> | <priority> | <depends_on> | <status> |
 ```
 
 **HS-INDEX row:**
@@ -115,7 +117,7 @@ If `$ARGUMENTS` contains multiple file paths (space-separated), process each one
 Registered N artifacts:
   - BC-2.01.005 → BC-INDEX.md
   - BC-2.01.006 → BC-INDEX.md
-  - STORY-042 → STORY-INDEX.md
+  - S-3.05 → STORY-INDEX.md
 Skipped 1 (already registered):
   - BC-2.01.001
 ```

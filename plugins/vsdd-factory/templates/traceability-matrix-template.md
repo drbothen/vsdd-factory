@@ -17,7 +17,7 @@ traces_to: ""
 
 | L1 Section | L2 CAP-NNN | L3 BC-S.SS.NNN | NFR-NNN | Story | AC-NNN | Test | Source File | VP-NNN | Proof Status |
 |------------|-----------|----------------|---------|-------|--------|------|------------|--------|-------------|
-| [section ref] | CAP-001 | BC-1.01.001 | NFR-001 | STORY-001 | AC-001 | test_BC_1_01_001_xxx | src/module.rs | VP-001 | [proven/pending/withdrawn] |
+| [section ref] | CAP-001 | BC-1.01.001 | NFR-001 | S-1.01 | AC-001 | test_BC_1_01_001_xxx | src/module.rs | VP-001 | [proven/pending/withdrawn] |
 
 ## Reverse Traceability (Proof → L1)
 

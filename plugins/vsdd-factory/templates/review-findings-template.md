@@ -1,13 +1,13 @@
 ---
 document_type: pr-review-findings
-story_id: STORY-NNN
+story_id: S-N.MM
 pr_number: {PR_NUMBER}
 status: "{converged|in-review|escalated}"
 producer: pr-manager
 timestamp: "{YYYY-MM-DDTHH:MM:SS}"
 ---
 
-# PR Review Findings: STORY-NNN (PR #{PR_NUMBER})
+# PR Review Findings: S-N.MM (PR #{PR_NUMBER})
 
 ## Convergence Summary
 

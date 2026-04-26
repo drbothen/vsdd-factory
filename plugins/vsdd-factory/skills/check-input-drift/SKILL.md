@@ -110,14 +110,14 @@ This reads the `inputs:` field, concatenates the current contents of those files
 | Artifact | Stored Hash | Current Hash | Inputs Changed |
 |----------|-------------|-------------|----------------|
 | prd.md | be246a0 | f3a91c2 | domain-spec/L2-INDEX.md |
-| STORY-005.md | a1b2c3d | e4f5g6h | prd.md |
+| S-1.05-foundational-types.md | a1b2c3d | e4f5g6h | prd.md |
 
 ### Uncomputed Hashes (never populated)
 
 | Artifact | Status |
 |----------|--------|
 | BC-2.01.005.md | input-hash: null |
-| STORY-042.md | input-hash: "[md5]" |
+| S-3.05-cost-estimation.md | input-hash: "[md5]" |
 
 ### Current Artifacts (hash matches)
 

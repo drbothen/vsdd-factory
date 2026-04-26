@@ -7,7 +7,7 @@
 ```
 main              ← production releases only
   └── develop     ← integration branch, PRs target here
-       └── feature/STORY-NNN-<desc>  ← per-story work
+       └── feature/S-N.MM-<desc>  ← per-story work
 ```
 
 - `factory-artifacts` is an **orphan branch** — no relationship to main/develop.
@@ -22,26 +22,26 @@ All story worktrees live in `.worktrees/` at the project root:
 
 ```
 .worktrees/
-├── STORY-001/    # git worktree, branch: feature/STORY-001-<desc>
-├── STORY-002/
-└── STORY-003/
+├── S-1.01/    # git worktree, branch: feature/S-1.01-<desc>
+├── S-1.02/
+└── S-1.03/
 ```
 
 ### Creating a Worktree
 
 ```bash
-git worktree add .worktrees/STORY-NNN -b feature/STORY-NNN-<desc> develop
+git worktree add .worktrees/S-N.MM -b feature/S-N.MM-<desc> develop
 ```
 
 - Always branch from `develop`.
-- Branch name must match pattern: `feature/STORY-NNN-<short-description>`.
+- Branch name must match pattern: `feature/S-N.MM-<short-description>`.
 - One worktree per story — never share worktrees between stories.
 
 ### Working in a Worktree
 
 - All implementation for a story happens inside its worktree.
 - Micro-commits per test pass (TDD progression visible in git history).
-- Commit message format: `feat(STORY-NNN): <description>` or `test(STORY-NNN): <description>`.
+- Commit message format: `feat(S-N.MM): <description>` or `test(S-N.MM): <description>`.
 
 ### Merging a Story
 
@@ -49,8 +49,8 @@ git worktree add .worktrees/STORY-NNN -b feature/STORY-NNN-<desc> develop
 2. PR created targeting `develop`.
 3. PR reviewed (adversarial + code review).
 4. Squash merge to `develop`.
-5. Worktree removed: `git worktree remove .worktrees/STORY-NNN`.
-6. Branch cleaned up: `git branch -d feature/STORY-NNN-<desc>`.
+5. Worktree removed: `git worktree remove .worktrees/S-N.MM`.
+6. Branch cleaned up: `git branch -d feature/S-N.MM-<desc>`.
 
 ### Wave Integration
 

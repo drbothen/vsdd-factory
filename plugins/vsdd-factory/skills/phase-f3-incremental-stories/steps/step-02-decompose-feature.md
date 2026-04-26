@@ -13,7 +13,7 @@ Spawn `product-owner` agent to break the PRD delta into implementable stories.
 1. Spawn `product-owner` agent
 2. Break the PRD delta into implementable stories
 3. Each story covers one logical unit of work
-4. Continue the story ID sequence (if last is STORY-005, new ones start at STORY-006)
+4. Continue the story ID sequence within the appropriate section (if the last story in section N is `S-N.05`, new ones start at `S-N.06`)
 5. Each story must reference:
    - The new/modified behavioral contracts it satisfies (BC-S.SS.NNN format, DF-020)
    - The verification properties it must uphold (VP-NNN)

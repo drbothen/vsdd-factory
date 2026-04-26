@@ -10,10 +10,10 @@ agents:
 inputs:
   - .factory/specs/architecture-feasibility-report.md
   - .factory/specs/prd.md
-  - .factory/specs/behavioral-contracts/
+  - .factory/specs/behavioral-contracts/         # sharded into ss-NN/ subdirs
 outputs:
   - .factory/specs/prd.md (updated)
-  - .factory/specs/behavioral-contracts/ (updated)
+  - .factory/specs/behavioral-contracts/ss-NN/   # updated BCs in their shards
 gate: Architect approves or max 3 iterations reached
 ---
 
