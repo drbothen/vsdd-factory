@@ -1,13 +1,13 @@
 ---
 document_type: epic
 epic_id: "E-7"
-version: "1.1"
+version: "1.2"
 prd_capabilities: [CAP-001, CAP-016]
 prd_frs: [FR-042, FR-043]
 status: open
 story_count: 3
 producer: story-writer
-timestamp: 2026-04-26T20:00:00Z
+timestamp: 2026-04-27T00:10:00Z
 phase: 2
 inputs:
   - .factory/STATE.md
@@ -102,7 +102,7 @@ SS-07 (Hook Bash Layer), SS-08 (Templates and Rules).
 
 ## Behavioral Contracts Covered
 
-28 BCs across 5 subsystems (SS-05, SS-06, SS-07, SS-08).
+28 BCs across 4 subsystems (SS-05, SS-06, SS-07, SS-08).
 
 | BC ID | Title | Story |
 |-------|-------|-------|
