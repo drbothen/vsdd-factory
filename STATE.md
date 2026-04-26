@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T12:00:00Z
-phase: post-beta-5-shipped
+timestamp: 2026-04-26T20:00:00Z
+phase: post-beta-6-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "E-7 + S-6.01 spec converged + GREEN done. Next: PR both branches → develop → cut beta.6 release."
+current_step: "v1.0.0-beta.6 SHIPPED 2026-04-26. Next session: implement deferred work (Re-anchor existing stories TD-001, DTU/CI verification TD-010, S-7.03+ tooling stories, Phase 2 wave schedule)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -39,7 +39,7 @@ dtu_services: []
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
 | **Last Updated** | 2026-04-26 |
-| **Current Phase** | post-beta-5-shipped |
+| **Current Phase** | post-beta-6-shipped |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -69,14 +69,15 @@ dtu_services: []
 | E-7 spec convergence (sub-cycle) | COMPLETE | 7 passes, 12→5→1→2→2→0→0 trajectory, CONVERGENCE_REACHED at pass-7 |
 | E-7 GREEN implementation (S-7.01 + S-7.02) | COMPLETE | feat/codify-lessons commit 5b9e4fb; 16/16 bats tests green; 10 plugin source files |
 | S-6.01 GREEN implementation | COMPLETE | feat/create-adr-skill commit 5f0b0fa; 25/25 bats tests green; SKILL.md + commands + driver |
+| Release v1.0.0-beta.6 | COMPLETE | Tag at ae426cd; PR #8/#10/#11/#12 merged; bot bundle commit atomic per beta.4 cache fix; GH Release published |
+| Hotfix: novelty-test fixture path | COMPLETE | PR #10/#11 merged; release workflow re-fire succeeded after fix |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| PR feat/create-adr-skill → develop | pr-manager | pending | TBD |
-| PR feat/codify-lessons → develop | pr-manager | pending | TBD |
-| Cut release/v1.0.0-beta.6 after both PRs merge | devops-engineer | pending | TBD |
+| Beta.6 shipped | devops-engineer | COMPLETE | ae426cd; GH Release v1.0.0-beta.6 published |
+| Determine next session focus | orchestrator + user | pending | TD-001 / TD-010 / S-7.03+ / Phase 2 wave schedule |
 
 ## Identifier Conventions
 
@@ -134,10 +135,11 @@ dtu_services: []
 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
-| main | f1ec5bf | bot binary bundle on top of 2001b97 (PR #5 merge) |
-| develop | faa4aac | PR #4 squash merge content |
+| main | ae426cd | bot bundle for v1.0.0-beta.6 (PR #11 hotfix + PR #12 back-merge) |
+| develop | ae426cd | post-PR-#12 back-merge; plugin.json=1.0.0-beta.6 |
 | factory-artifacts | c50bb0f | 10 ADRs commit |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
+| v1.0.0-beta.6 (tag) | ae426cd | SHIPPED 2026-04-26; GH Release published; prerelease=true |
 
 ## Decisions Log
 
@@ -153,6 +155,7 @@ dtu_services: []
 | D-008 | Codify spec-first-then-TDD discipline + defensive-sweep pattern as plugin source rules | User caught "no BCs/no E-6 epic" gap; F-027 (incomplete defensive sweep) caused 2 wasted passes; lessons should land in agent prompts and consistency-validator | post-1.5 | 2026-04-26 | orchestrator + user |
 | D-009 | E-7 Process Codification — codify lessons learned from S-6.01 sub-cycle as plugin source rules | Self-referential dogfooding — vsdd-factory uses its own VSDD process to improve itself; lessons table from D-008 driven into prompt/rule/hook deliverables | post-1.5 | 2026-04-26 | orchestrator + user |
 | D-010 | E-7 process codification + S-6.01 create-adr skill → bundle into beta.6 release | Both branches ready (specs converged, GREEN tests pass). Bundling reduces release overhead; both deliver self-improvement value (E-7 codifies lessons; S-6.01 closes per-artifact create-* skill gap) | pre-release | 2026-04-26 | orchestrator + user |
+| D-011 | Beta.4 cache-staleness fix prevented broken release; hotfix flow validated | Pre-release validation caught E-7 hook tightening test regression. Bot bundle commit was correctly NOT created (no stale-version-with-X-1-binaries cache poisoning). Hotfix-on-main + delete/recreate-tag flow restored release. End-to-end discipline validated. | release-cycle | 2026-04-26 | orchestrator + user |
 
 
 ## Skip Log
@@ -170,12 +173,11 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-26 |
-| **Position** | E-7 CONVERGED (7 passes, 12→0) + GREEN done (5b9e4fb). S-6.01 GREEN done (5f0b0fa). D-010 logged. |
-| **Convergence counters** | E-7: 12→5→1→2→2→0→0 CONVERGENCE_REACHED pass-7. S-6.01: 19→4→2→1→1→0→0→0 CONVERGENCE_REACHED pass-8. |
-| **Next action** | PR feat/create-adr-skill → develop. PR feat/codify-lessons → develop. Cut release/v1.0.0-beta.6. |
-| **Branches** | feat/create-adr-skill (5f0b0fa); feat/codify-lessons (5b9e4fb). Both GREEN. |
-
-**Lessons Learned (S-6.01 sub-cycle):** All 8 lessons codified into plugin source via E-7 (commit 5b9e4fb). Lessons #1-4, #7-8 → agent prompts + hooks + rules. Lessons #5-6 shipped previously. All CLOSED.
+| **Position** | v1.0.0-beta.6 SHIPPED. Cache will refresh on next session restart. plugin.json=1.0.0-beta.6 across main + develop. |
+| **Release** | Tag ae426cd; GH Release published 2026-04-26 08:41:35 UTC; prerelease=true |
+| **Hotfix** | novelty-test fixture path (PR #10/#11); delete/recreate-tag flow validated |
+| **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.03+ tooling stories; Phase 2 wave schedule |
+| **Next action** | Determined by user — TD-001, TD-010, S-7.03+, or Phase 2 wave decomposition (44 stories ready; 8 epics E-0..E-7 defined). |
 
 ## Release Ladder
 
@@ -186,6 +188,7 @@ dtu_services: []
 | v1.0.0-beta.3 | 2026-04-25 | hook tool_response shape fix |
 | v1.0.0-beta.4 | 2026-04-25 | cache fix + stderr capture + SHA-currency gate |
 | v1.0.0-beta.5 | 2026-04-26 | ADR template + identifier canonicalization phase 1 |
+| v1.0.0-beta.6 | 2026-04-26 | S-6.01 create-adr skill + E-7 process codification + 10 ADRs |
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers) lives in `cycles/v1.0-brownfield-backfill/`.
