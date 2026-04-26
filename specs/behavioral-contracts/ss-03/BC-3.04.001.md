@@ -75,7 +75,7 @@ removal_reason: null
 |-------|-------|
 | L2 Capability | TBD (subsystem L2 spec pending) |
 | L2 Domain Invariants | TBD |
-| Architecture Module | SS-03 (Sink router pass-through and extension point) |
+| Architecture Module | SS-03 (Observability Sinks) — crates/factory-dispatcher/src/sinks/router.rs |
 | Stories | TBD (Phase 2 story-writer pass) |
 
 ## Related BCs (Recommended)

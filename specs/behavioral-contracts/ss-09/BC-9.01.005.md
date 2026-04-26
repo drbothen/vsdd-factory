@@ -73,7 +73,7 @@ The runtime `hooks.json` file is gitignored — the activate skill writes it at 
 | L2 Capability | TBD (anchor in Phase 1.5) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-09 — `plugins/vsdd-factory/hooks/hooks.json*`, `.gitignore`, ADR-009 |
-| Stories | S-0.4 (referenced in source); re-anchor in Phase 1.8 |
+| Stories | S-0.04 (re-anchored in Phase 1.8 from legacy S-0.4) |
 
 ### Source Evidence
 

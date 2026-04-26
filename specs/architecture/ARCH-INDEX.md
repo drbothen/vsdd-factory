@@ -105,14 +105,14 @@ graph TD
     CC["Claude Code (harness)"]
     SS09["SS-09: Configuration and Activation"]
     SS01["SS-01: Hook Dispatcher Core"]
-    SS02["SS-02: Hook SDK & Plugin ABI"]
+    SS02["SS-02: Hook SDK and Plugin ABI"]
     SS03["SS-03: Observability Sinks"]
     SS04["SS-04: Plugin Ecosystem"]
     SS05["SS-05: Pipeline Orchestration"]
     SS06["SS-06: Skill Catalog"]
     SS07["SS-07: Hook Bash Layer"]
-    SS08["SS-08: Templates & Rules"]
-    SS10["SS-10: CLI Tools & Bin"]
+    SS08["SS-08: Templates and Rules"]
+    SS10["SS-10: CLI Tools and Bin"]
 
     CC -->|"reads hooks.json"| SS09
     SS09 -->|"generated variants wire to"| SS01

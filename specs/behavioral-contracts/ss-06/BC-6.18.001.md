@@ -7,7 +7,7 @@ producer: "phase-1-4b-agent-8"
 timestamp: 2026-04-25T00:00:00
 phase: 0d
 inputs: [.factory/phase-0-ingestion/pass-3-deep-skills-batch-3.md]
-input-hash: "TBD"
+input-hash: "e277b60"
 traces_to: domain-spec/L2-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-3.md#L30"
@@ -68,7 +68,7 @@ pr-create: identity & invocation contract. Confidence: HIGH. Extracted from `plu
 |-------|-------|
 | L2 Capability | CAP-TBD |
 | L2 Domain Invariants | TBD |
-| Architecture Module | plugins/vsdd-factory/skills/pr-create/SKILL.md |
+| Architecture Module | SS-06 (Skill Catalog) — plugins/vsdd-factory/skills/pr-create/SKILL.md |
 | Stories | TBD |
 
 ## Related BCs (Recommended)

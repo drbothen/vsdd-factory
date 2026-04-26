@@ -71,7 +71,7 @@ be drawn before implementation design is finalized.
 |-------|-------|
 | L2 Capability | CAP-TBD |
 | L2 Domain Invariants | DI-TBD |
-| Architecture Module | `plugins/vsdd-factory/agents/architect.md` |
+| Architecture Module | SS-05 (Pipeline Orchestration) — plugins/vsdd-factory/agents/architect.md |
 | Stories | TBD |
 
 ## Related BCs (Recommended)

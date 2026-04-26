@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-25T00:00:00Z
-phase: 1d-pending
+phase: 1d-converged
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Phase 1d — Adversarial Spec Review (pending)"
+current_step: "Phase 1d CONVERGED. Next: release/v1.0.0-beta.5"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -39,7 +39,7 @@ dtu_services: []
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
 | **Last Updated** | 2026-04-25 |
-| **Current Phase** | 1d-pending |
+| **Current Phase** | 1d-converged |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -61,16 +61,16 @@ dtu_services: []
 | Phase 1.6b — Verification Properties | COMPLETE | 57 VPs (all draft, VP-001..VP-057) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
-| Phase 1d — Adversarial Spec Review | PENDING | 3 clean passes required |
+| Phase 1d — Adversarial Spec Review | COMPLETE | 6 passes, converged at pass 6 (3 consecutive NITPICK: passes 4-5-6) |
 | Phase 2 — Story Decomposition | not-started | Awaiting Phase 1d completion |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| STATE.md refresh | state-manager | complete | this file |
-| Phase 1.7 extraction validation R2 | consistency-validator | in-progress | fidelity check |
-| Phase 1d adversarial pass 1 | adversarial-reviewer | pending | |
+| Phase 1d adversarial pass 6 | adversarial-reviewer | complete | pass-6.md — CONVERGENCE_REACHED |
+| Phase 1d convergence commit | state-manager | complete | factory-artifacts updated |
+| Next: release/v1.0.0-beta.5 | release-agent | pending | bundle ADR template + canonicalization |
 
 ## Identifier Conventions
 
@@ -156,10 +156,10 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-25 |
-| **Position** | Phase 1.7 extraction validation R2 in flight; Phase 1d (adversarial spec review) is next major gate |
-| **Convergence counter** | 0 of 3 (Phase 1d not started) |
-| **Next action** | Complete Phase 1.7 validation, then dispatch Phase 1d adversarial pass 1 |
-| **After Phase 1d** | Phase 2 story dependency graph + wave schedule based on 41 migrated stories |
+| **Position** | Phase 1d CONVERGED (6 passes, 3 consecutive NITPICK). Specs are stable. |
+| **Convergence counter** | 3 of 3 (passes 4, 5, 6 all NITPICK) — CONVERGENCE_REACHED |
+| **Next action** | release/v1.0.0-beta.5 — bundle ADR template + feat/canonical-identifiers (PR #4) |
+| **After release** | Phase 2 story dependency graph + wave schedule based on 41 migrated stories |
 | **ADR backlog** | 10 deferred ADRs (ADR-004..ADR-013 stubs exist; full write-up after PR #4 lands) |
 
 ## Historical Content
