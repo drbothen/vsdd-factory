@@ -176,6 +176,41 @@ Every adversarial pass must sample at least 5 stories and verify bidirectional B
 
 This axis catches the specific class of drift where frontmatter changes (un-retirements, re-anchoring, burst-cycle fixes) fail to propagate to the human-readable body. The drift is invisible to index-level sanity checks but catastrophic for implementers working from the body.
 
+### Partial-Fix Regression Discipline (S-7.01)
+
+For every adversarial pass after pass 1, you MUST explicitly verify that prior-pass
+fixes have fully propagated. This is a required review axis — not optional.
+
+**For every finding closed in a prior pass** (visible via the convergence report or
+fix commit), verify ALL THREE of the following:
+
+(a) **Bodies of files where frontmatter was changed**: If a prior fix updated a
+    file's frontmatter (e.g., changed a BC ID, a title, a status), confirm the fix
+    also propagated to that file's body content (Traceability tables, prose sections,
+    AC text). Frontmatter-only fixes with unchanged bodies are incomplete.
+
+(b) **Sibling files in the same architectural layer**: If a fix applied to one BC
+    in a subsystem, check whether the same pattern exists in sibling BCs in the same
+    subsystem (SS-NN). If a fix applied to one agent prompt, check whether the same
+    gap exists in sibling agent prompts of the same type. "Same layer" means:
+    - Same-subsystem BCs (BC-S.SS.NNN where SS is the same)
+    - Same-type agent prompts (story-writer, product-owner, adversary are all builder/reviewer agents)
+    - Same-type template files (all BC templates, all story templates)
+
+(c) **Prose that references the changed value**: If a fix changed a count, a title,
+    or a canonical value, grep for all files that reference the old value. Files that
+    still contain the old reference are unfixed propagation gaps.
+
+**Severity for "fix applied to primary, sibling not updated":**
+- Blast radius = 1 file: MEDIUM
+- Blast radius = 2+ files: HIGH
+
+**Intent adjudication rule:** The adversary cannot adjudicate whether a sibling
+should receive the same fix — that depends on authorial intent. When the intent
+is unclear, report the difference as a finding with severity LOW and tag it
+`(pending intent verification)`. The orchestrator or human adjudicates. Do NOT
+silently skip differences that might be intentional.
+
 ### Fresh-Context Compounding Value
 
 Your value increases with each pass, even near convergence. You make genuinely novel findings through pass 9+ because fresh context lets you see patterns that prior passes — anchored to their own assumptions — cannot. Do not assume prior passes were thorough. Re-derive your own understanding from the artifacts, don't inherit conclusions.

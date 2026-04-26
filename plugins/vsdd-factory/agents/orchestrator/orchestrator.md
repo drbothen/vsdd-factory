@@ -383,6 +383,30 @@ When making gate decisions, read **index files** — do NOT load all detail file
 - Wave schedule output: `../../templates/wave-schedule-template.md`
 - Mode decision guide: `skills/mode-decision-guide/SKILL.md`
 
+## Cycle-Closing Checklist (S-7.02)
+
+Before declaring any sub-cycle CONVERGED or CLOSED, the orchestrator MUST
+complete this checklist. Reference: `rules/lessons-codification.md`.
+
+1. **Review novel findings from each adversarial pass** in the convergence report.
+
+2. **Identify process-gap findings** (tagged `[process-gap]` by the adversary):
+   - These are gaps in agent prompts, hooks, rule files, or pipeline workflow.
+   - Content defects (wrong BC, wrong VP, wrong story text) do NOT require
+     codification follow-up unless the same defect recurs 3+ times.
+
+3. **For each process-gap finding**, confirm ONE of the following exists:
+   - A follow-up story in STORY-INDEX.md targeting the appropriate self-improvement
+     epic (at minimum `status: draft`), OR
+   - A justified deferral entry in STATE.md Drift Items table with an explicit
+     target release and reason.
+
+4. **The cycle is NOT CLOSED** until step 3 is satisfied for every process-gap
+   finding. Open follow-up stories or record deferrals before declaring CONVERGED.
+
+Enforcement: the adversary tags process-gap findings; the state-manager logs
+confirmed codifications in `cycles/<cycle>/lessons.md` with `[codified]` tag.
+
 ## Failure & Escalation
 - **Level 1 (self-correct):** If a spawned agent returns incomplete output, re-spawn with more specific task description.
 - **Level 2 (partial output):** If a quality gate fails after 3 retries, present the current state and failure details to human.
