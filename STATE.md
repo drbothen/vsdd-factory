@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-27T02:20:00Z
-phase: s-7-03-pass-8-fixes-applied
+timestamp: 2026-04-27T02:40:00Z
+phase: s-7-03-pass-9-fixes-applied
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-7.03 pass-8 fixes applied (F-301 + Batch A/B sibling). Convergence clock RESET. Next: pass-9 → restart 1 of 3 NITPICK target."
+current_step: "S-7.03 pass-9 fixes applied (F-401 VP-063 + F-402 AC-011 expansion). Convergence clock RESET. Next: pass-10 → 1 of 3 NITPICK target."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (pass-8 fixes applied) |
-| **Current Phase** | s-7-03-pass-8-fixes-applied |
+| **Last Updated** | 2026-04-27 (pass-9 fixes applied) |
+| **Current Phase** | s-7-03-pass-9-fixes-applied |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -61,7 +61,7 @@ dtu_services: []
 | Phase 1.6b — Verification Properties | COMPLETE | 64 VPs (all draft, VP-001..VP-064; +2 for E-7; +2 for S-7.03) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
-| Phase 1d — Adversarial Spec Review | in-progress | 8 passes done; trajectory 25→12→5→2→1→0→0→1; convergence clock RESET (0 of 3) |
+| Phase 1d — Adversarial Spec Review | in-progress | 9 passes done; trajectory 25→12→5→2→1→0→0→1→2; convergence clock RESET (0 of 3) |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
 | Phase 2 — Story Decomposition | not-started | Unblocked; 45 stories (41 migrated + 4 new E-6/E-7) ready for dependency graph + wave schedule |
 | S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
@@ -84,16 +84,18 @@ dtu_services: []
 | S-7.03 adversarial pass-7 | COMPLETE | 0 substantive findings; 8 NITPICK obs (6 carried + 2 novel); verdict NITPICK-only (2 of 3) |
 | S-7.03 adversarial pass-8 | COMPLETE | 1 LOW (F-301 Architecture Compliance Rules off-by-one task refs); 8 NITPICK obs; verdict FINDINGS_REMAIN; convergence clock RESETS |
 | S-7.03 pass-8 fix burst | COMPLETE | F-301 + Batch A/B sibling sweep; story v1.4→v1.5 |
+| S-7.03 adversarial pass-9 | COMPLETE | 2 LOW (F-401 VP-063 task ref sibling miss, F-402 AC-011 enumeration coherence); 8 NITPICK obs; convergence clock RESETS again |
+| S-7.03 pass-9 fix burst | COMPLETE | F-401 + F-402 fixed; story v1.5→v1.6; VP-063 timestamp bump |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-7.03 pass-5 fix burst | state-manager + story-writer | COMPLETE | F-201 fixed (path prefix stripped); story v1.3→v1.4 |
-| S-7.03 adversarial pass-6 | adversarial-reviewer | COMPLETE | 0 substantive findings; 6 NITPICK obs; NITPICK-only (convergence 1 of 3) |
 | S-7.03 adversarial pass-7 | adversarial-reviewer | COMPLETE | 0 substantive findings; 8 NITPICK obs (6 carried + 2 novel); NITPICK-only (convergence 2 of 3) |
 | S-7.03 adversarial pass-8 | adversarial-reviewer | COMPLETE | 1 LOW (F-301 task-ref off-by-one); 8 NITPICK obs; FINDINGS_REMAIN; convergence clock RESETS |
 | S-7.03 pass-8 fix burst | state-manager + story-writer | COMPLETE | F-301 fixed; Batch A/B sibling defect swept; story v1.4→v1.5 |
+| S-7.03 adversarial pass-9 | adversarial-reviewer | COMPLETE | 2 LOW (F-401 VP-063 sibling miss, F-402 AC-011 enumeration); 8 NITPICK obs; FINDINGS_REMAIN; convergence clock RESETS |
+| S-7.03 pass-9 fix burst | state-manager + story-writer | COMPLETE | F-401 VP-063 task-ref + F-402 AC-011 18-test expansion fixed; story v1.5→v1.6 |
 
 ## Identifier Conventions
 
@@ -182,6 +184,7 @@ dtu_services: []
 | D-019 | S-7.03 pass-6 NITPICK-only achieved (0 substantive findings, 6 NITPICK obs); trajectory 25→12→5→2→1→0; convergence step 1 of 3 reached. | Pass-6 is first of 3 consecutive NITPICK-only passes required by ADR-013. Pass-7 and pass-8 must each also be NITPICK-only. No spec/story content changes needed. | adv-pass-6 | 2026-04-27 | state-manager |
 | D-020 | S-7.03 pass-7 NITPICK-only achieved (0 substantive, 8 NITPICK obs); convergence step 2 of 3 reached; trajectory continues monotonic decay 25→12→5→2→1→0→0. | Pass-7 is second of 3 consecutive NITPICK-only passes required by ADR-013. Pass-8 must also be NITPICK-only for CONVERGENCE_REACHED. No spec/story content changes needed. | adv-pass-7 | 2026-04-27 | state-manager |
 | D-021 | S-7.03 pass-8 — fresh-eyes Dimension 2 (dogfooding readiness) caught F-301 task-ref off-by-one; partial-fix-regression sweep also caught Batch A/B task-range drift. Both fixed. Convergence clock RESETS to 0 of 3. Total passes will reach 11 (vs 8 for S-6.01). | Intra-document Architecture Compliance Rules ↔ Tasks cross-reference axis was unprobed by passes 3-7. Pass-8 Dimension 2 lens exposed it. Sibling sweep caught Batch A/B stranding Task 13 in wrong batch. Both fixed atomically in v1.5 per BC-5.36.005-006 partial-fix discipline. | adv-pass-8 | 2026-04-27 | state-manager |
+| D-022 | S-7.03 pass-9 — fresh-context sibling sweep caught F-401 (VP-063 task-ref missed in pass-8 burst) and dogfooding-readiness lens caught F-402 (AC-011 enumeration undercount propagated to DoD/Task 19). Both are novel sub-axes prior passes did not probe. Convergence clock RESETS to 0 of 3. Total passes projected: 12 (S-6.01 was 8). | Inter-document sibling sweep stopped at story-file boundary in pass-8 fix burst; VP-063 was not swept for task-number references. Intra-document AC-vs-AC bats test count coherence was unprobed across all 9 passes. Both defects are real implementer-trap findings. | adv-pass-9 | 2026-04-27 | state-manager |
 
 ## Skip Log
 
@@ -198,10 +201,10 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-27 |
-| **Position** | S-7.03 pass-8 fixes applied (F-301 + Batch A/B sibling). Convergence clock RESET to 0 of 3. v1.0.0-beta.6 SHIPPED. |
+| **Position** | S-7.03 pass-9 fixes applied (F-401 VP-063 + F-402 AC-011 18-test expansion). Convergence clock RESET to 0 of 3. Story v1.6. |
 | **Release** | Tag ae426cd; GH Release published 2026-04-26; prerelease=true |
 | **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.03+ tooling stories; Phase 2 wave schedule |
-| **Next action** | S-7.03 adversarial pass-9 (restart convergence clock — 1 of 3 NITPICK-only target). |
+| **Next action** | S-7.03 adversarial pass-10 (1 of 3 NITPICK-only target; projected total 12 passes). |
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
