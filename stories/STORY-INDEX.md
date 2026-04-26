@@ -56,8 +56,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-1.05 | wasmtime integration + epoch/fuel enforcement | E-1 | 8 | P0 | S-1.01, S-1.02, S-1.04 | merged | 15 |
 | S-1.06 | tokio + parallel-within-tier execution | E-1 | 5 | P0 | S-1.01, S-1.02, S-1.04, S-1.05 | merged | 8 |
 | S-1.07 | dispatcher-internal.jsonl writer | E-1 | 3 | P0 | S-1.01, S-1.02 | merged | 10 |
-| S-1.08 | sink-file driver | E-1 | 5 | P0 | S-1.01, S-1.07 | merged | -- |
-| S-1.09 | sink-otel-grpc driver | E-1 | 5 | P0 | S-1.01, S-1.08 | merged | -- |
+| S-1.08 | sink-file driver | E-1 | 5 | P0 | S-1.01, S-1.07 | merged | 23 |
+| S-1.09 | sink-otel-grpc driver | E-1 | 5 | P0 | S-1.01, S-1.08 | merged | 15 |
 
 ## Epic E-2 — Legacy Adapter and Beta Release (Tier C + D — mostly merged)
 
@@ -83,16 +83,16 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ## Epic E-4 — Observability Sinks and RC Release (Tier E + F — draft/partial)
 
-| Story ID | Title | Epic | Points | Priority | Depends On | Status |
-|----------|-------|------|--------|----------|------------|--------|
-| S-4.01 | sink-http driver | E-4 | 5 | P1 | S-1.08 | draft |
-| S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | draft |
-| S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | draft |
-| S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | draft |
-| S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | draft |
-| S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | partial |
-| S-4.07 | End-to-end observability integration tests | E-4 | 8 | P1 | S-3.01..S-3.04, S-4.01..S-4.06 | draft |
-| S-4.08 | 1.0.0-rc.1 release gate | E-4 | 3 | P0 | S-4.07 + 2-week shakedown | draft |
+| Story ID | Title | Epic | Points | Priority | Depends On | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|-----|
+| S-4.01 | sink-http driver | E-4 | 5 | P1 | S-1.08 | draft | 4 |
+| S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | draft | 2 |
+| S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | draft | 2 |
+| S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | draft | 1 (v1.1 BC creation dep note) |
+| S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | draft | 2 (+ v1.1 candidates) |
+| S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | partial | 6 |
+| S-4.07 | End-to-end observability integration tests | E-4 | 8 | P1 | S-3.01..S-3.04, S-4.01..S-4.06 | draft | 15 |
+| S-4.08 | 1.0.0-rc.1 release gate | E-4 | 3 | P0 | S-4.07 + 2-week shakedown | draft | -- |
 
 ## Epic E-5 — New Hook Events and 1.0.0 Release (Tier G + H — draft/partial)
 
@@ -123,6 +123,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **S-7.03 delivery:** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN. Worktree feat/tdd-discipline-hardening (9b1624b → 121d24c, 9 commits). Spec convergence: 17 adversarial passes.
 
 > **Wave 1 SS-01 re-anchor CONVERGED 3-of-3 at pass-6 (2026-04-26).** 7 stories anchored to SS-01 BCs: S-1.01 (0/justified), S-1.02 (26), S-1.04 (26), S-1.05 (15), S-1.06 (8), S-1.07 (10), S-3.04 (8). 93 unique SS-01 BCs anchored (of 99); 4 deferred to Wave 3 (BC-1.07.003-006); 10 v1.1 BC candidates logged. Trajectory: 10→4→3→1→0→0.
+
+> **Wave 2 SS-03 sinks re-anchor CONVERGED 3-of-3 at pass-13 (2026-04-27).** 9 stories anchored to SS-03 BCs: S-1.08 (23), S-1.09 (15), S-4.01 (4), S-4.02 (2), S-4.03 (2), S-4.04 (1 + v1.1 BC creation dep note), S-4.05 (2 + v1.1 candidates), S-4.06 (6), S-4.07 (15). ~37 unique SS-03 BCs anchored; PRD FR-044 added (per-sink resilience); 32 v1.1 BC candidates logged. Trajectory: 11→1→3→0→1→0→1→2→0→1→0→0→0 (13 passes; 4 reset events).
 
 ---
 
