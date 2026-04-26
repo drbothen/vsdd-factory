@@ -56,8 +56,12 @@ Source: pass-1 §hook-sdk; design doc "WASM plugin ABI". Justification: grounded
 
 **CAP-010 — Always-on dispatcher self-telemetry independent of sink config**
 `dispatcher-internal-YYYY-MM-DD.jsonl` is written for every invocation regardless of whether any sink is configured or healthy. 30-day rotation.
-Subsystems: SS-03, SS-10. Outcome: an operator with a misconfigured OTel sink can still audit hook invocations via the internal log.
+Subsystems: SS-01, SS-03, SS-10. Outcome: an operator with a misconfigured OTel sink can still audit hook invocations via the internal log.
 Source: design doc Q6 Option B; `internal_log.rs`. Justification: grounded in the always-on telemetry ADR (ADR-007).
+<!-- [process-gap] F-007: SS-01 added as dominant implementer (internal_log.rs is in
+     crates/factory-dispatcher/src/). A subsystem-tag drift sweep across all 28 CAPs is
+     recommended — an architect/spec-steward should verify SS assignments for each CAP
+     against ARCH-INDEX.md Subsystem Registry to catch similar drift on other entries. -->
 
 **CAP-013 — Capture post-execution activity (PostToolUse hooks)**
 Bash hooks registered as PostToolUse capture commit metadata, PR activity, and tool errors for audit and observability purposes.
