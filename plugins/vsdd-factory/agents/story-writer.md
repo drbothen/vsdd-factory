@@ -222,7 +222,8 @@ A story's `status:` field MUST NOT be set to `ready` if `behavioral_contracts: [
 is empty (or absent) — `behavioral_contracts` must be non-empty before `ready`.
 The status must remain `draft` until a product-owner has authored and anchored BCs
 for this story (i.e., `behavioral_contracts:` is a non-empty array with canonical
-BC IDs matching `BC-\d+\.\d{2}\.\d{3}`).
+BC IDs matching `BC-\d+\.\d{2}\.\d{3}`). Note: `behavioral_contracts:` is the
+canonical field name; the alias `bcs:` is also accepted — this gate applies to both.
 
 Every entry in `behavioral_contracts:` MUST match the canonical pattern
 `BC-\d+\.\d{2}\.\d{3}` — no BC-TBD placeholders are allowed in a `ready` story.

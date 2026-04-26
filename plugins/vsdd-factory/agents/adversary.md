@@ -75,6 +75,32 @@ Write findings to `.factory/cycles/<current>/adversarial-reviews/`:
 <Are these findings genuinely new, or retreading known issues?>
 ```
 
+### Process-Gap Tagging (S-7.02)
+
+When a finding identifies a gap in **process or tooling** — not a content defect in a
+specific artifact — tag it `[process-gap]` in the finding header or observation text.
+
+A finding qualifies as a process-gap when it identifies a gap in:
+- An agent prompt or workflow step (not a gap in a specific spec artifact)
+- A hook or validation script (missing enforcement)
+- A rule file or governance document (missing policy)
+- A pipeline template (structural gap in output format)
+
+Contrast with a **content defect**: a specific BC, VP, story, or doc with wrong information.
+Content defects are fixed in place — no `[process-gap]` tag needed unless the same defect
+pattern recurs 3+ times (then it becomes a process gap).
+
+**Example:**
+```
+## Observations
+- [process-gap] story-writer.md has no spec-first gate — agents can set status:ready
+  without behavioral_contracts being populated. See rules/lessons-codification.md.
+```
+
+The orchestrator scans for `[process-gap]` tags during the Cycle-Closing Checklist
+(see `agents/orchestrator/orchestrator.md`) to ensure every process gap receives a
+codification follow-up before the cycle is declared CLOSED.
+
 ## Self-Validation Loop (AgenticAKM Pattern)
 
 Before finalizing findings, run a self-validation loop on each finding:

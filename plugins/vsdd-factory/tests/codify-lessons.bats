@@ -56,7 +56,7 @@
   [ -x plugins/vsdd-factory/hooks/validate-count-propagation.sh ]
 }
 
-@test "BC-7.05.001: validate-count-propagation.sh exits 2 on drift" {
+@test "BC-7.05.001-drift: validate-count-propagation.sh exits 2 on drift" {
   # Set up fixture with intentional drift
   TMPTEST=$(mktemp -d)
   cat > "$TMPTEST/BC-INDEX.md" <<'HEREDOC'

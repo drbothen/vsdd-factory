@@ -95,7 +95,7 @@ while IFS= read -r line; do
   if [[ "$IN_BCS" -eq 1 ]]; then
     if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*(BC-[0-9.]+) ]]; then
       BCS_LIST+=("${BASH_REMATCH[1]}")
-      ((BCS_COUNT++))
+      BCS_COUNT=$((BCS_COUNT + 1))
     elif [[ "$line" =~ ^[a-z] ]]; then
       IN_BCS=0  # Another frontmatter key — end of bcs list
     fi
