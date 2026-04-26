@@ -104,7 +104,10 @@ EOF
 # ---------- validate-novelty-assessment.sh ----------
 
 @test "novelty-assessment: emits novelty_assessment_incomplete" {
-  local dir="$SCRATCH/.factory"
+  # Hook matcher (post-E-7 tightening) requires file under
+  # cycles/<key>/adversarial-reviews/ to avoid false-positives on ADRs
+  # whose filenames mention adversarial review (e.g., ADR-013).
+  local dir="$SCRATCH/.factory/cycles/test-cycle/adversarial-reviews"
   mkdir -p "$dir"
   local f="$dir/pass-01.md"
   cat > "$f" <<EOF
