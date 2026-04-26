@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-27T07:00:00Z
-phase: s-7-03-pass-15-nitpick-1of3
+timestamp: 2026-04-27T07:30:00Z
+phase: s-7-03-pass-16-nitpick-2of3
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-7.03 pass-15 NITPICK-only achieved (1 of 3 convergence step). Self-validation withdrew 5 candidates. Next: pass-16 → 2 of 3 NITPICK target."
+current_step: "S-7.03 pass-16 NITPICK-only achieved (2 of 3 convergence step). Self-validation withdrew 11 candidates (highest yet). Next: pass-17 → final NITPICK target → CONVERGENCE_REACHED."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (pass-15 NITPICK-only — convergence step 1 of 3) |
-| **Current Phase** | s-7-03-pass-15-nitpick-1of3 |
+| **Last Updated** | 2026-04-27 (pass-16 NITPICK-only — convergence step 2 of 3) |
+| **Current Phase** | s-7-03-pass-16-nitpick-2of3 |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -61,7 +61,7 @@ dtu_services: []
 | Phase 1.6b — Verification Properties | COMPLETE | 64 VPs (all draft, VP-001..VP-064; +2 for E-7; +2 for S-7.03) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
-| Phase 1d — Adversarial Spec Review | in-progress | 15 passes done; trajectory 25→12→5→2→1→0→0→1→2→4→3→1→1→2→0; convergence clock 1 of 3 |
+| Phase 1d — Adversarial Spec Review | in-progress | 16 passes done; trajectory 25→12→5→2→1→0→0→1→2→4→3→1→1→2→0→0; convergence clock 2 of 3 |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
 | Phase 2 — Story Decomposition | not-started | Unblocked; 45 stories (41 migrated + 4 new E-6/E-7) ready for dependency graph + wave schedule |
 | S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
@@ -97,16 +97,16 @@ dtu_services: []
 | S-7.03 adversarial pass-14 (exhaustive) | COMPLETE | 2 LOW (F-901 PRD per-SS count drift, F-902 VP-064 cargo-mutants skeleton); 8 NITPICK obs |
 | S-7.03 pass-14 fix burst | COMPLETE | F-901 + F-902 fixed; story v2.0→v2.1; D-027 process-gap logged |
 | S-7.03 adversarial pass-15 (exhaustive) | COMPLETE | 0 substantive findings within S-7.03 scope; 5 self-validation withdrawals; 3 out-of-scope (release-cycle/systemic); CONVERGENCE STEP 1 OF 3 REACHED |
+| S-7.03 adversarial pass-16 (exhaustive) | COMPLETE | 0 substantive findings; 11 self-validation withdrawals (highest yet); 3 out-of-scope re-confirmed; CONVERGENCE STEP 2 OF 3 REACHED |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-7.03 adversarial pass-13 (exhaustive) | adversarial-reviewer | COMPLETE | 1 LOW (O-303 verification note BC scope undercount); F-801/F-802 self-withdrawn; FINDINGS_REMAIN; convergence clock RESETS |
-| S-7.03 pass-13 fix burst | state-manager | COMPLETE | O-303 fixed (5 static-check BCs enumerated); story v1.9→v2.0; convergence clock RESET (0 of 3) |
 | S-7.03 adversarial pass-14 (exhaustive) | adversarial-reviewer | COMPLETE | 2 LOW (F-901 PRD per-SS count drift, F-902 VP-064 cargo-mutants skeleton); 8 NITPICK obs; FINDINGS_REMAIN; convergence clock RESETS |
 | S-7.03 pass-14 fix burst | state-manager + product-owner | COMPLETE | F-901 (PRD counts) + F-902 (VP-064 skeleton) fixed; story v2.0→v2.1; D-027 process-gap logged |
 | S-7.03 adversarial pass-15 (exhaustive) | adversarial-reviewer | COMPLETE | 0 substantive findings within S-7.03 scope; 5 self-validation withdrawals; 3 out-of-scope; CONVERGENCE STEP 1 OF 3 |
+| S-7.03 adversarial pass-16 (exhaustive) | adversarial-reviewer | COMPLETE | 0 substantive findings; 11 self-validation withdrawals (highest yet); 3 out-of-scope re-confirmed; CONVERGENCE STEP 2 OF 3 |
 
 ## Identifier Conventions
 
@@ -204,6 +204,7 @@ dtu_services: []
 | D-028 | [process-gap] F-901 revealed PRD is a count consumer NOT in S-7.02 validate-count-propagation.sh hook scope. PRD per-SS footers drifted by 25 BCs (SS-05 Δ=10, SS-06 Δ=14, SS-08 Δ=1). Future work: either (a) extend hook to scan PRD per-SS footer counts, or (b) replace per-SS footer counts in PRD with links to BC-INDEX (canonical source). Tracked for v1.1 hardening backlog. | Structural count-propagation gap analogous to D-024 (VP propagation gap). PRD secondary document consumers are not in hook scope. Fix burst applied minimum-diff PRD updates; root cause tracked here. | pass-14-fix-burst | 2026-04-27 | state-manager |
 | D-029 | S-7.03 pass-15 NITPICK-only — first post-reset clean pass after pass-14 fixes. Trajectory 2→0 expected decay. Adversary self-validation withdrew 5 candidates (incl. PRD beta.4 milestone, capabilities CAP-028 milestone, SS-NN ARCH BC range labels) — all correctly classified as release-cycle/systemic drift not S-7.03 spec foundation. Convergence step 1 of 3. | Pass-15 exhaustive methodology, 14 axis families probed. Increased withdrawal rate (5 vs pass-13's 2) is a convergence signal. Out-of-scope drift correctly excluded. Pass-14 fix verification all clean. | adv-pass-15 | 2026-04-27 | state-manager |
 | D-030 | [process-gap] Out-of-scope observations from pass-15 logged for v1.1 hardening backlog (alongside D-027 PRD count-propagation hook gap): PRD §1.2 milestone references stale (beta.4→beta.6), CAP-028 outcome stale, SS-05/SS-08 architecture documents use deprecated flat BC ID scheme. None blocking S-7.03 convergence. | Release-cycle drift and systemic arch-doc ID scheme staleness are real but out of S-7.03 scope. Tracked here so v1.1 hardening can address them without reopening convergence clock. | adv-pass-15 | 2026-04-27 | state-manager |
+| D-031 | S-7.03 pass-16 NITPICK-only — second consecutive clean pass (after pass-15). Self-validation withdrawal rate climbed: pass-13: 2, pass-14: 2, pass-15: 5, pass-16: 11. Increasing withdrawal rate at late convergence = adversary generates more hypotheses but spec rebuts all. Ideal pattern. Convergence step 2 of 3. | Family O (12 new sub-axes) + Family P (sibling comparison) + Family Q (off-by-one) all clean. Diminishing-returns territory confirmed. Out-of-scope drift items re-confirmed but correctly excluded. Pass-17 final: if NITPICK-only → CONVERGENCE_REACHED. | adv-pass-16 | 2026-04-27 | state-manager |
 
 ## Skip Log
 
@@ -220,10 +221,10 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-27 |
-| **Position** | S-7.03 pass-15 NITPICK-only achieved (1 of 3 convergence step). Story v2.1. 5 self-validation withdrawals; 3 out-of-scope observations logged to D-030. |
+| **Position** | S-7.03 pass-16 NITPICK-only achieved (2 of 3 convergence step). Story v2.1. 11 self-validation withdrawals (highest yet); 3 out-of-scope observations re-confirmed. |
 | **Release** | Tag ae426cd; GH Release published 2026-04-26; prerelease=true |
 | **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.03+ tooling stories; Phase 2 wave schedule; D-028/D-030 v1.1 hardening backlog items |
-| **Next action** | S-7.03 adversarial pass-16 (2 of 3 NITPICK-only target; projected total 17 passes). |
+| **Next action** | S-7.03 adversarial pass-17 (3 of 3 NITPICK-only target → CONVERGENCE_REACHED if clean). |
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
