@@ -40,8 +40,9 @@ VSDD 0–7 phase SDLC.
 The skill catalog is intentionally a standalone subsystem because each `SKILL.md`
 is a discrete behavioral contract — its inputs, outputs, and acceptance criteria
 are independently specifiable and verifiable. This isolation enables the BC count
-for this subsystem (~553 BCs) to scale with skill count rather than being entangled
-with workflow or agent concerns.
+for this subsystem (largest single BC surface in vsdd-factory; see ARCH-INDEX
+Subsystem Registry table for current count) to scale with skill count rather than
+being entangled with workflow or agent concerns.
 
 ## Modules
 

@@ -55,7 +55,7 @@ Milestone: `v1.0.x` (post-1.1 tooling hardening). Subsystems: SS-06, SS-08, SS-1
 
 | Capability ID | Name | Priority |
 |--------------|------|----------|
-| FR-041 | create-adr authoring skill | P1 |
+| CAP-017 | Create and manage formal ADR records (covers FR-041 — create-adr authoring skill) | P1 |
 
 ## Behavioral Contracts Covered
 
