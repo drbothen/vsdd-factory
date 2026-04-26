@@ -60,6 +60,8 @@ Dispatch `devops-engineer` with task: "Create worktree `.worktrees/S-N.MM/` on b
 
 ### Step 2 — Generate stubs (test-writer as Stub Architect)
 
+> **ANTI-PRECEDENT GUARD:** Do not use sibling crates with pre-implemented stubs as templates for your stub work. If you observe that a sibling crate (e.g., a DTU clone or prior story's scaffold) contains full business logic rather than todo!() macros, treat it as a historical anti-pattern. Your stub must use todo!() for all non-trivial function bodies. Anti-precedent evidence: Prism commits aa706543, 6d2d005e, 20b4a12a. Model precedent: e86d03f2.
+
 Dispatch `test-writer` with task: "Create compilable stubs in `.worktrees/S-N.MM/` matching the story's file list. Use `todo!()` or `unimplemented!()` bodies. Commit: `feat(S-N.MM): add module stubs`."
 
 **Exit condition:** `cargo check` passes inside the worktree. If it fails, dispatch a new test-writer to fix stubs — do not proceed until clean.

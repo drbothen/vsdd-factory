@@ -170,6 +170,100 @@ Or on failure:
   Fix these before retrying: /wave-gate wave-N
 ```
 
+## Mutation Testing (facade-mode wave-gate)
+
+This gate runs mutation testing for facade-mode stories and Option-B-elected stories
+as a compensating control for the bypassed Red Gate density check. It enforces the
+≥80% kill-rate floor required by BC-6.21.001 and BC-6.21.002.
+
+### Scan: Which Stories Require Mutation Testing?
+
+Before running mutation tests, scan all stories merged in this wave:
+
+1. Stories with `tdd_mode: facade` in frontmatter (BC-8.30.002)
+2. Stories with `mutation_testing_required: true` in frontmatter (Option B election
+   from BC-8.29.003 EC-001 — low RED_RATIO accepted with mutation obligation)
+
+If the wave has **zero** facade stories AND zero `mutation_testing_required: true`
+stories, skip mutation testing — but emit an explicit log entry (never silent):
+
+```
+no facade stories in wave — mutation testing step skipped
+```
+
+### Tool Availability Check
+
+Before invoking cargo-mutants, verify it is installed:
+
+```bash
+cargo mutants --version 2>/dev/null || echo "NOT_FOUND"
+```
+
+If `cargo-mutants` is not installed, **BLOCK the wave gate** with:
+
+```
+cargo-mutants not found — install with cargo install cargo-mutants
+```
+
+Do not proceed past this check until the tool is available.
+
+### Execution
+
+For each crate that requires mutation testing (from the scan above):
+
+```bash
+cargo mutants -p <crate> --jobs $(command -v nproc >/dev/null && nproc || sysctl -n hw.ncpu || echo 4) --timeout 300
+```
+
+**Cross-platform nproc note:** `nproc` is a GNU coreutils command available on Linux.
+On macOS use `sysctl -n hw.ncpu`. The portable form above handles both automatically.
+
+**Wave-level timeout:** The sum of all per-crate mutation runs must complete within
+60 minutes. If the wave-level budget is exceeded, report partial results and block
+the gate with: `mutation testing budget exceeded (60 min) — partial results at <path>`.
+
+### Report
+
+Write the mutation report for each crate to:
+
+```
+.factory/logs/mutation-report-<wave-id>-<crate>.md
+```
+
+Commit this report as part of the wave PR (BC-6.21.001 invariant 3). The report
+must be committed before the wave gate is declared passing.
+
+### Kill-Rate Gate (BC-6.21.002)
+
+Compute the kill rate using integer-precise arithmetic (avoids float rounding):
+
+```
+killed * 100 / total >= 80
+```
+
+If `killed * 100 / total < 80`, the wave gate **fails**. The threshold is exactly
+80 — no rounding, no "close enough."
+
+All surviving mutants must be dispositioned. Use the following table format in the
+mutation report:
+
+| Mutant | File | Line | Mutation | Disposition (A/B/C) | Notes |
+|--------|------|------|----------|---------------------|-------|
+
+**Disposition A — New test:** Write a new test that kills this mutant and re-run
+`cargo mutants` to confirm the mutant is now killed. Commit the new test before
+closing the disposition.
+
+**Disposition B — Dead-code-equivalent:** Explain the execution condition that makes
+this mutation non-reachable in practice. The explanation must name the specific
+condition, not just assert "unreachable."
+
+**Disposition C — Explicit waiver:** Name the mutant, file, line, and mutation type.
+Justify why killing this mutant is not feasible or not valuable. NO blanket waivers
+are accepted — each surviving mutant requires its own named entry.
+
+Unprocessed surviving mutants (no disposition assigned) block the wave gate merge.
+
 ## After Passing
 
 Tell the user:
