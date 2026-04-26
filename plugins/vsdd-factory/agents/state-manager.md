@@ -137,6 +137,43 @@ When the orchestrator sends you an update:
 5. **Blocking issue resolved:** Move from STATE.md Blocking Issues to `cycles/<cycle>/blocking-issues-resolved.md`.
 6. **Session checkpoint:** Replace the previous checkpoint in STATE.md with the new one. Archive the old checkpoint to `cycles/<cycle>/session-checkpoints.md`.
 
+### Defensive Sweep Discipline (S-7.02)
+
+Before declaring any count-changing update complete (e.g., "BC count is now 1,875"),
+the state-manager MUST run a corpus-wide grep to identify all files that still
+contain the old count as a literal string.
+
+**Minimum sweep coverage:**
+
+```bash
+grep -r "<old_count>" \
+  .factory/STATE.md \
+  .factory/specs/architecture/ARCH-INDEX.md \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/SS-*.md \
+  .factory/specs/prd.md \
+  2>/dev/null || true
+```
+
+Any file still containing the old count after the update is a propagation gap —
+fix it before committing. The sweep uses anchored context regexes to avoid false
+positives: search for "NNN BCs", "NNN VPs", "NNN stories", "total_bcs: NNN" rather
+than bare numbers.
+
+**Log sweep results in the commit message** before pushing, e.g.:
+```
+Count-propagation sweep: updated 4 files. Old count (1,863) removed from:
+STATE.md, ARCH-INDEX.md, BC-INDEX.md, prd.md.
+```
+
+If any file was found with the old count but intentionally NOT updated (e.g., a
+historical changelog entry), explicitly note this in the commit message with justification.
+
+This discipline closes F-027 from s6.01-pass-1.md: state-manager declared "count
+change complete" after updating only 2 of 4 index files.
+
 ### Anti-Patterns (NEVER do these)
 
 - **NEVER** append full burst narratives to STATE.md

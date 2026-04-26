@@ -216,6 +216,32 @@ After producing all stories, update each BC's Traceability section:
 - Fill the "Stories" row with the STORY-NNN IDs that cover the BC
 - This enables bidirectional traceability: BC -> Stories and Stories -> BC
 
+## Spec-First Gate (S-7.01)
+
+A story's `status:` field MUST NOT be set to `ready` if `behavioral_contracts: []`
+is empty (or absent) — `behavioral_contracts` must be non-empty before `ready`.
+The status must remain `draft` until a product-owner has authored and anchored BCs
+for this story (i.e., `behavioral_contracts:` is a non-empty array with canonical
+BC IDs matching `BC-\d+\.\d{2}\.\d{3}`). Note: `behavioral_contracts:` is the
+canonical field name; the alias `bcs:` is also accepted — this gate applies to both.
+
+Every entry in `behavioral_contracts:` MUST match the canonical pattern
+`BC-\d+\.\d{2}\.\d{3}` — no BC-TBD placeholders are allowed in a `ready` story.
+
+**AC↔BC bidirectional traces** must be present before the status=ready transition:
+- Every AC in the story body must cite a BC via `(traces to BC-S.SS.NNN ...)`.
+- Every BC in the `behavioral_contracts:` frontmatter array must be cited by at
+  least one AC in the story body.
+
+If a story is written with `behavioral_contracts: []` during initial decomposition,
+add a frontmatter comment: `# BC status: pending PO authorship`. This signals the
+product-owner that BC authoring is required before this story can be dispatched.
+
+This gate applies to:
+- New stories being written for the first time.
+- Status-transition edits (`draft → ready`).
+- Any burst that changes story `status:` to `ready`.
+
 ## Rules
 
 - No story exceeds 13 story points

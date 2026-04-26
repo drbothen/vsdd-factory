@@ -188,6 +188,33 @@ Every domain invariant (DI-NNN) in `domain-spec/invariants.md` must be enforced 
 
 Orphan invariants are invisible until adversarial review catches them — lifting them at creation time prevents a full convergence pass of rework.
 
+## Capability Anchor Justification (S-7.01)
+
+Every behavioral contract MUST include a **Capability Anchor Justification** row
+in its Traceability section. The justification MUST cite the specific capability
+name and file verbatim from `specs/domain-spec/capabilities.md`. Example:
+
+> CAP-017 ("Create and manage formal ADR records") per capabilities.md §CAP-017
+
+A bare `CAP-NNN` with no verbatim citation is insufficient. The capability name
+must be quoted exactly as it appears in `capabilities.md` — do not paraphrase.
+
+The adversary is explicitly instructed (per adversary policy 5 — Semantic
+Anchoring Audit) to treat a missing or non-verbatim Capability Anchor Justification
+as a MEDIUM-severity finding. This means every BC with a bare `capability: CAP-NNN`
+frontmatter field but no verbatim justification in the Traceability section will
+generate a finding in the next adversarial pass.
+
+**How to write a compliant justification:**
+
+1. Open `specs/domain-spec/capabilities.md` and locate the CAP-NNN entry.
+2. Copy the exact capability title from the H2 or table row.
+3. Write in the BC Traceability section:
+   ```
+   | Capability Anchor Justification | CAP-NNN ("<exact title>") per capabilities.md §CAP-NNN |
+   ```
+4. If no existing capability fits semantically, propose a new CAP — do not force-fit.
+
 ## Anchor Justification Requirement
 
 When creating or modifying any BC, you must explicitly justify the capability anchor choice:

@@ -75,6 +75,32 @@ Write findings to `.factory/cycles/<current>/adversarial-reviews/`:
 <Are these findings genuinely new, or retreading known issues?>
 ```
 
+### Process-Gap Tagging (S-7.02)
+
+When a finding identifies a gap in **process or tooling** — not a content defect in a
+specific artifact — tag it `[process-gap]` in the finding header or observation text.
+
+A finding qualifies as a process-gap when it identifies a gap in:
+- An agent prompt or workflow step (not a gap in a specific spec artifact)
+- A hook or validation script (missing enforcement)
+- A rule file or governance document (missing policy)
+- A pipeline template (structural gap in output format)
+
+Contrast with a **content defect**: a specific BC, VP, story, or doc with wrong information.
+Content defects are fixed in place — no `[process-gap]` tag needed unless the same defect
+pattern recurs 3+ times (then it becomes a process gap).
+
+**Example:**
+```
+## Observations
+- [process-gap] story-writer.md has no spec-first gate — agents can set status:ready
+  without behavioral_contracts being populated. See rules/lessons-codification.md.
+```
+
+The orchestrator scans for `[process-gap]` tags during the Cycle-Closing Checklist
+(see `agents/orchestrator/orchestrator.md`) to ensure every process gap receives a
+codification follow-up before the cycle is declared CLOSED.
+
 ## Self-Validation Loop (AgenticAKM Pattern)
 
 Before finalizing findings, run a self-validation loop on each finding:
@@ -175,6 +201,41 @@ Every adversarial pass must sample at least 5 stories and verify bidirectional B
 - Systematic pattern across 3+ stories: **HIGH** with pattern flag
 
 This axis catches the specific class of drift where frontmatter changes (un-retirements, re-anchoring, burst-cycle fixes) fail to propagate to the human-readable body. The drift is invisible to index-level sanity checks but catastrophic for implementers working from the body.
+
+### Partial-Fix Regression Discipline (S-7.01)
+
+For every adversarial pass after pass 1, you MUST explicitly verify that prior-pass
+fixes have fully propagated. This is a required review axis — not optional.
+
+**For every finding closed in a prior pass** (visible via the convergence report or
+fix commit), verify ALL THREE of the following:
+
+(a) **Bodies of files where frontmatter was changed**: If a prior fix updated a
+    file's frontmatter (e.g., changed a BC ID, a title, a status), confirm the fix
+    also propagated to that file's body content (Traceability tables, prose sections,
+    AC text). Frontmatter-only fixes with unchanged bodies are incomplete.
+
+(b) **Sibling files in the same architectural layer**: If a fix applied to one BC
+    in a subsystem, check whether the same pattern exists in sibling BCs in the same
+    subsystem (SS-NN). If a fix applied to one agent prompt, check whether the same
+    gap exists in sibling agent prompts of the same type. "Same layer" means:
+    - Same-subsystem BCs (BC-S.SS.NNN where SS is the same)
+    - Same-type agent prompts (story-writer, product-owner, adversary are all builder/reviewer agents)
+    - Same-type template files (all BC templates, all story templates)
+
+(c) **Prose that references the changed value**: If a fix changed a count, a title,
+    or a canonical value, grep for all files that reference the old value. Files that
+    still contain the old reference are unfixed propagation gaps.
+
+**Severity for "fix applied to primary, sibling not updated":**
+- Blast radius = 1 file: MEDIUM
+- Blast radius = 2+ files: HIGH
+
+**Intent adjudication rule:** The adversary cannot adjudicate whether a sibling
+should receive the same fix — that depends on authorial intent. When the intent
+is unclear, report the difference as a finding with severity LOW and tag it
+`(pending intent verification)`. The orchestrator or human adjudicates. Do NOT
+silently skip differences that might be intentional.
 
 ### Fresh-Context Compounding Value
 

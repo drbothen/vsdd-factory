@@ -493,6 +493,26 @@ binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
+[[hooks]]
+name = "validate-count-propagation"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+priority = 430
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.config]
+script_path = "hooks/validate-count-propagation.sh"
+
+[hooks.capabilities]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash", "jq"]
+shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+
 # ---------- PreToolUse ----------
 
 [[hooks]]
