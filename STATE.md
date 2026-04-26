@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-27T05:30:00Z
-phase: s-7-03-pass-13-fixes-applied
+timestamp: 2026-04-27T06:00:00Z
+phase: s-7-03-pass-14-fixes-applied
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-7.03 pass-13 (exhaustive methodology) fix applied. O-303 verification note scope expanded. Convergence clock RESET. Next: pass-14 → 1 of 3 NITPICK target."
+current_step: "S-7.03 pass-14 (exhaustive) fixes applied (F-901 PRD counts + F-902 VP-064 skeleton). D-027 process-gap logged. Convergence clock RESET. Next: pass-15 → 1 of 3 NITPICK target."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (pass-13 fixes applied) |
-| **Current Phase** | s-7-03-pass-13-fixes-applied |
+| **Last Updated** | 2026-04-27 (pass-14 fixes applied) |
+| **Current Phase** | s-7-03-pass-14-fixes-applied |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -61,7 +61,7 @@ dtu_services: []
 | Phase 1.6b — Verification Properties | COMPLETE | 64 VPs (all draft, VP-001..VP-064; +2 for E-7; +2 for S-7.03) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
-| Phase 1d — Adversarial Spec Review | in-progress | 13 passes done; trajectory 25→12→5→2→1→0→0→1→2→4→3→1→1; convergence clock RESET (0 of 3) |
+| Phase 1d — Adversarial Spec Review | in-progress | 14 passes done; trajectory 25→12→5→2→1→0→0→1→2→4→3→1→1→2; convergence clock RESET (0 of 3) |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
 | Phase 2 — Story Decomposition | not-started | Unblocked; 45 stories (41 migrated + 4 new E-6/E-7) ready for dependency graph + wave schedule |
 | S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
@@ -94,17 +94,19 @@ dtu_services: []
 | S-7.03 pass-12 fix burst | COMPLETE | F-701 fixed + bidirectional BC↔VP sweep clean across all 13 BCs; story v1.8→v1.9 |
 | S-7.03 adversarial pass-13 (exhaustive) | COMPLETE | 1 LOW (O-303 verification note BC scope undercount) + 1 NITPICK; F-801/F-802 self-withdrawn during validation loop |
 | S-7.03 pass-13 fix burst | COMPLETE | O-303 fixed; story v1.9→v2.0 |
+| S-7.03 adversarial pass-14 (exhaustive) | COMPLETE | 2 LOW (F-901 PRD per-SS count drift, F-902 VP-064 cargo-mutants skeleton); 8 NITPICK obs |
+| S-7.03 pass-14 fix burst | COMPLETE | F-901 + F-902 fixed; story v2.0→v2.1; D-027 process-gap logged |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-7.03 adversarial pass-11 | adversarial-reviewer | COMPLETE | 3 substantive (2 HIGH F-601/F-602 VP-064 scope/traceability, 1 MED F-603 VP-INDEX); 8 NITPICK obs; FINDINGS_REMAIN; convergence clock RESETS |
-| S-7.03 pass-11 fix burst | state-manager + product-owner | COMPLETE | F-601/F-602/F-603 fixed atomically; VP-064 scope+traceability corrected; VP-INDEX scope corrected; story v1.7→v1.8 |
 | S-7.03 adversarial pass-12 | adversarial-reviewer | COMPLETE | 1 MED (F-701 BC-5.38.001 BC→VP forward-ref asymmetry); 8 NITPICK obs; FINDINGS_REMAIN; convergence clock RESETS |
 | S-7.03 pass-12 fix burst | state-manager + product-owner | COMPLETE | F-701 fixed; bidirectional BC↔VP sweep clean; story v1.8→v1.9 |
 | S-7.03 adversarial pass-13 (exhaustive) | adversarial-reviewer | COMPLETE | 1 LOW (O-303 verification note BC scope undercount); F-801/F-802 self-withdrawn; FINDINGS_REMAIN; convergence clock RESETS |
 | S-7.03 pass-13 fix burst | state-manager | COMPLETE | O-303 fixed (5 static-check BCs enumerated); story v1.9→v2.0; convergence clock RESET (0 of 3) |
+| S-7.03 adversarial pass-14 (exhaustive) | adversarial-reviewer | COMPLETE | 2 LOW (F-901 PRD per-SS count drift, F-902 VP-064 cargo-mutants skeleton); 8 NITPICK obs; FINDINGS_REMAIN; convergence clock RESETS |
+| S-7.03 pass-14 fix burst | state-manager + product-owner | COMPLETE | F-901 (PRD counts) + F-902 (VP-064 skeleton) fixed; story v2.0→v2.1; D-027 process-gap logged |
 
 ## Identifier Conventions
 
@@ -198,6 +200,8 @@ dtu_services: []
 | D-024 | S-7.03 pass-11 — pass-1 BC-8.30.002 SS-08→SS-05 re-anchor propagation gap surfaced after 11 passes (VP-064 scope/traceability + VP-INDEX). Aggressive PO sweep applied. Convergence clock RESETS. Total projected passes: 14 (vs S-6.01's 8). Pattern lesson: BC frontmatter subsystem changes must sweep all VPs whose bcs[] include that BC. | Root defect: pass-1 propagated BC-8.30.002 re-anchor to BC frontmatter + BC-INDEX but not to VP-064.scope or VP-064 traceability or VP-INDEX Scope column. VP frontmatter is a less-trafficked review axis; 11 passes elapsed before fresh-eyes lens probed it. | adv-pass-11 | 2026-04-27 | state-manager |
 | D-025 | S-7.03 pass-12 — BC→VP forward-reference asymmetry (mirror of pass-11's VP→BC reverse-direction). F-701 isolated and fixed. Comprehensive bidirectional sweep confirms zero remaining asymmetries. Trajectory monotonic decrease (3→1). Total projected passes: 15. | BC-5.38.001 incorrectly cited VP-064 as its Verification Property; VP-064.bcs[] does not include BC-5.38.001 (they are mutually exclusive: strict-mode vs facade-mode). Fixed to (static-check) pattern matching siblings. BC↔VP bidirectional sweep of all 13 BCs clean post-fix. | adv-pass-12 | 2026-04-27 | state-manager |
 | D-026 | S-7.03 pass-13 — exhaustive methodology (8 axis families, 30+ sub-axes). Self-validation loop withdrew 2 candidate findings (F-801 token budget, F-802 VP-INDEX arithmetic — both verified clean on re-check). Single substantive finding O-303 (story Verification note undercounts static-check BCs from 2 to actual 5). Self-withdrawal pattern is convergence signal. Total projected passes: 16. | Exhaustive axis enumeration broke the "1 novel axis per pass" pattern; found 1 LOW + 1 NITPICK + 2 self-withdrawn. Verification-note BC enumeration coherence (story body summary vs BC frontmatter verification methods) was a sub-axis adjacent to but not previously probed. O-303 fixed by expanding "BC-5.38.004 and BC-5.38.005" → "BC-5.38.001, BC-5.38.004, BC-5.38.005, BC-5.38.006, BC-8.30.001". | adv-pass-13 | 2026-04-27 | state-manager |
+| D-027 | S-7.03 pass-14 — exhaustive methodology surfaced 2 LOW novel findings via sub-axes E.7 (PRD per-SS count footers) and J.6 (VP harness skeleton accuracy). Trajectory 1→2 (small uptick); both genuinely novel sub-axes. Total projected: 17 passes. | PRD per-SS footer counts and VP harness skeleton accuracy were previously unprobed axes. Both findings are real and substantive despite LOW severity. Convergence clock RESETS to 0 of 3. | adv-pass-14 | 2026-04-27 | state-manager |
+| D-028 | [process-gap] F-901 revealed PRD is a count consumer NOT in S-7.02 validate-count-propagation.sh hook scope. PRD per-SS footers drifted by 25 BCs (SS-05 Δ=10, SS-06 Δ=14, SS-08 Δ=1). Future work: either (a) extend hook to scan PRD per-SS footer counts, or (b) replace per-SS footer counts in PRD with links to BC-INDEX (canonical source). Tracked for v1.1 hardening backlog. | Structural count-propagation gap analogous to D-024 (VP propagation gap). PRD secondary document consumers are not in hook scope. Fix burst applied minimum-diff PRD updates; root cause tracked here. | pass-14-fix-burst | 2026-04-27 | state-manager |
 
 ## Skip Log
 
@@ -214,10 +218,10 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-27 |
-| **Position** | S-7.03 pass-13 fixes applied (O-303 verification note BC scope expanded). Convergence clock RESET to 0 of 3. Story v2.0. |
+| **Position** | S-7.03 pass-14 fixes applied (F-901 PRD per-SS counts + F-902 VP-064 skeleton). D-027/D-028 process-gap logged. Convergence clock RESET to 0 of 3. Story v2.1. |
 | **Release** | Tag ae426cd; GH Release published 2026-04-26; prerelease=true |
-| **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.03+ tooling stories; Phase 2 wave schedule |
-| **Next action** | S-7.03 adversarial pass-14 (1 of 3 NITPICK-only target; projected total 16 passes). |
+| **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.03+ tooling stories; Phase 2 wave schedule; D-028 PRD hook-scope extension |
+| **Next action** | S-7.03 adversarial pass-15 (1 of 3 NITPICK-only target; projected total 17 passes). |
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.

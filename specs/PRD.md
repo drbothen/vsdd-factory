@@ -509,14 +509,14 @@ Note: BC-8.29.001–003 and BC-8.30.002 have BC-ID prefixes historically assigne
 Source BCs: `ss-05/BC-5.38.001–006.md` (6 BCs), `ss-08/BC-8.29.001–003.md` (3 BCs, SS-05 reanchored), `ss-08/BC-8.30.002.md` (1 BC, SS-05 reanchored).
 Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-05/` (636 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-05/` (646 BCs total)
 > Demo-recorder, accessibility-auditor, ux-designer agents: BC-5.03.001–018 (18 BCs)
 
 ---
 
 ### 2.6 Skill Catalog (SS-06)
 
-> SS-06 contains 571 BCs across 119 skills. FRs below group skills by functional
+> SS-06 contains 585 BCs across 119 skills. FRs below group skills by functional
 > family. All BCs in `ss-06/` follow the `BC-6.NN.NNN` prefix scheme.
 
 #### FR-023 — Brownfield ingestion skill
@@ -608,7 +608,7 @@ Mutation testing at wave gate for facade-mode stories (Layer 4 of FR-043).
 
 Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-06/` (571 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-06/` (585 BCs total)
 
 ---
 
@@ -686,7 +686,7 @@ Story template contract for the `tdd_mode` frontmatter field (Layer 3 template a
 
 Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-08/` (217 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-08/` (218 BCs total)
 
 ---
 
@@ -823,8 +823,8 @@ A real downstream factory run (Prism project, Wave 2, parallel batch of 5 storie
 | BC-6.21.001 | wave-gate skill must run cargo mutants for every story with tdd_mode=facade in the wave | P1 |
 | BC-6.21.002 | mutation kill rate floor is 80%; surviving mutants must be addressed via test, dead-code confirmation, or explicit waiver | P1 |
 
-Source BCs: `ss-05/BC-5.38.001–006.md` (6 BCs), `ss-08/BC-8.29.001–003.md` (3 BCs), `ss-08/BC-8.30.001–002.md` (2 BCs), `ss-06/BC-6.21.001–002.md` (2 BCs) — 13 BCs total.
-Maps to: SS-05 (Pipeline Orchestration), SS-06 (Skill Catalog), SS-08 (Templates and Rules).
+Source BCs: `ss-05/BC-5.38.001–006.md` (6 BCs), `ss-08/BC-8.29.001–003.md` (3 BCs, SS-05 reanchored), `ss-08/BC-8.30.001.md` (1 BC, SS-08), `ss-08/BC-8.30.002.md` (1 BC, SS-05 reanchored), `ss-06/BC-6.21.001–002.md` (2 BCs) — 13 BCs total.
+Maps to: SS-05 (Pipeline Orchestration), SS-06 (Skill Catalog), SS-08 (Templates and Rules — BC-8.30.001 only).
 Verification Properties: VP-063 (RED_RATIO computation correctness — integration/bats), VP-064 (facade-mode mutation gate enforcement — manual).
 Acceptance: S-7.03 (TDD Discipline Hardening).
 Status: **pending** (E-7 story not yet implemented).

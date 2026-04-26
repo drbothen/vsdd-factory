@@ -117,7 +117,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|---------|
 | S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | ready | -- |
 | S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | ready | -- |
-| S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | ready | 2.0 |
+| S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | ready | 2.1 |
 
 ---
 
