@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0.0-beta.5 SHIPPED. Cache refreshed. Next: 10 deferred ADRs (now unblocked) + Phase 2 plugin canonicalization (test fixtures, workflows, agents)"
+current_step: "v1.0.0-beta.5 SHIPPED. ADR backlog COMPLETE (13/13). Next: create-adr skill story (beta.6 candidate) + Phase 2 story decomposition prep."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -52,7 +52,7 @@ dtu_services: []
 | Phase | Status | Artifact |
 |-------|--------|----------|
 | Phase 0 — Brownfield Ingest | COMPLETE | 1,851 BCs in pass-3-* + pass-8-final-synthesis.md |
-| Phase 1.1 — Architecture Index + ADRs | PARTIAL | ARCH-INDEX (10 SS-NN), 3 of 13 ADRs (10 deferred) |
+| Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
 | Phase 1.4 — BC Migration | COMPLETE | 1,851 BC-S.SS.NNN files in 10 ss-NN/ shards + BC-INDEX.md |
@@ -71,7 +71,8 @@ dtu_services: []
 |------|-------|--------|--------|
 | Phase 1d convergence commit | state-manager | complete | factory-artifacts updated |
 | Release v1.0.0-beta.5 | release-agent | complete | PR #5 merged; tag v1.0.0-beta.5 at 0a95c8c; cache refreshed |
-| Next: ADR backlog (10 deferred) | architect | pending | ADR-004..ADR-013 stubs ready; write-up unblocked |
+| ADR backlog (10 deferred) | architect | complete | ADR-004..013 written; commit c50bb0f on factory-artifacts |
+| Next: create-adr skill story | story-writer | pending | S-N.MM-create-adr-skill.md |
 
 ## Identifier Conventions
 
@@ -85,7 +86,7 @@ dtu_services: []
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 41 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 6 |
-| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 3 of 13 |
+| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 13 |
 
 ## Subsystem Distribution
 
@@ -130,7 +131,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | f1ec5bf | bot binary bundle on top of 2001b97 (PR #5 merge) |
 | develop | faa4aac | PR #4 squash merge content |
-| factory-artifacts | (latest) | STATE refresh commit |
+| factory-artifacts | c50bb0f | 10 ADRs commit |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 
 ## Decisions Log
@@ -141,6 +142,7 @@ dtu_services: []
 | D-002 | BC-S.SS.NNN one-per-file sharding | Enables granular traceability and diff-friendly git history | 1.4 | 2026-04-25 | architect |
 | D-003 | DTU not required | All external services are HTTP APIs with stable public contracts; no clone needed | 1.6a | 2026-04-25 | architect |
 | D-004 | v1.0.0-beta.5 release scope | ADR template + identifier canonicalization phase 1 shipped; phase 2 (test fixtures, workflows, agents) deferred to beta.6 | release | 2026-04-26 | orchestrator |
+| D-005 | Add create-adr skill to v1.0.x roadmap | ADR is the only major artifact without a dedicated authoring skill (compare create-prd, create-story, create-architecture, create-domain-spec); 10-ADR backfill exposed pain points (manual ID allocation, ARCH-INDEX drift, no supersession patcher) | post-1.1 | 2026-04-26 | orchestrator + user |
 
 ## Skip Log
 
@@ -158,11 +160,11 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-26 |
-| **Position** | v1.0.0-beta.5 SHIPPED. Plugin cache refreshed (5 plugins, 110 skills, 74 agents, 45 hooks). |
+| **Position** | v1.0.0-beta.5 SHIPPED. All 13 ADRs written (commit c50bb0f). create-adr skill identified as beta.6 candidate. |
 | **Convergence counter** | 3 of 3 (passes 4, 5, 6 all NITPICK) — CONVERGENCE_REACHED (Phase 1d closed) |
-| **Next action** | Write ADR-004..ADR-013 (10 deferred; ADR template now live in beta.5 cache) |
-| **After ADRs** | Phase 2 story dependency graph + wave schedule based on 41 migrated stories |
-| **ADR backlog** | 10 deferred ADRs UNBLOCKED — stubs exist at specs/architecture/decisions/; write-up in next session |
+| **Next action** | Write story for create-adr skill (per-artifact authoring pattern; closes the ADR-shaped gap in skills inventory). |
+| **After skill story** | Phase 2 story decomposition: dependency graph + wave schedule for 41 migrated stories. |
+| **Skill gap identified** | create-adr skill missing despite 119-skill catalog; identified after 10-ADR brownfield burst exposed manual-process pain (ID allocation, index sync, supersession bookkeeping). |
 | **Note** | 4 of 5 binaries identical to beta.4 (Rust source unchanged — deterministic build verified) |
 
 ## Release Ladder
