@@ -22,6 +22,12 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 | 5 | 2026-04-25 | 4 (4 LOW) | NITPICK — fixes applied |
 | 6 | 2026-04-25 | 4 (4 LOW) | **NITPICK — CONVERGENCE_REACHED** |
 
+## S-6.01 Sub-cycle Adversarial Reviews
+
+| Sub-cycle | Passes | Trajectory | Convergence |
+|-----------|--------|-----------|-------------|
+| s6.01-spec | 8 | 19 → 4 → 2 → 1 → 1 → 0 → 0 → 0 | CONVERGENCE_REACHED 2026-04-26 |
+
 ## Convergence Status
 
 - Phase 0 (ingestion): COMPLETE

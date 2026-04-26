@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T00:00:00Z
+timestamp: 2026-04-26T12:00:00Z
 phase: post-beta-5-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Pass-1 fixes applied to S-6.01 spec scope (12 BCs + 3 VPs + PRD + story + ADR-013). Next: adversarial pass-2."
+current_step: "S-6.01 spec scope CONVERGED (8 passes, 3-NITPICK criterion). Begin GREEN-phase TDD: implementer takes 25 RED tests + writes SKILL.md."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -64,6 +64,7 @@ dtu_services: []
 | Phase 1d — Adversarial Spec Review | COMPLETE | 6 passes, converged at pass 6 (3 consecutive NITPICK: passes 4-5-6) |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
 | Phase 2 — Story Decomposition | not-started | Unblocked; 41 migrated stories ready for dependency graph + wave schedule |
+| S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
 
 ## Current Phase Steps
 
@@ -76,7 +77,8 @@ dtu_services: []
 | Phase 1.5 — PRD update FR-041 + 12 BCs + 3 VPs for S-6.01 | state-manager | complete | BC-6.20.001..012 + VP-058..060 + BC-INDEX/VP-INDEX/ARCH-INDEX updated |
 | Adversarial pass-1 (S-6.01 spec) | adversary | complete | s6.01-pass-1.md (19 findings, MAJOR) |
 | Pass-1 fixes applied (PO + story-writer + orchestrator) | product-owner | complete | BC/VP/PRD/capabilities/S-6.01/ADR-013 updated |
-| Adversarial pass-2 (S-6.01 spec) | adversary | pending | — |
+| S-6.01 adversarial sub-cycle (passes 1-8) | adversary | complete | CONVERGENCE_REACHED, 27 findings closed, 19→4→2→1→1→0→0→0 |
+| GREEN-phase TDD: create-adr SKILL.md + commands binding | implementer | pending | — |
 
 ## Identifier Conventions
 
@@ -149,6 +151,20 @@ dtu_services: []
 | D-005 | Add create-adr skill to v1.0.x roadmap | ADR is the only major artifact without a dedicated authoring skill (compare create-prd, create-story, create-architecture, create-domain-spec); 10-ADR backfill exposed pain points (manual ID allocation, ARCH-INDEX drift, no supersession patcher) | post-1.1 | 2026-04-26 | orchestrator + user |
 | D-006 | Spec-first authoring discipline restored after S-6.01 gap caught | Story scaffolded without BCs initially; user caught the gap; full upstream artifacts (BCs/VPs/FR/epic) backfilled before TDD continued | 1.5 | 2026-04-26 | orchestrator + user |
 | D-007 | Hook validate-novelty-assessment.sh tightened to anchor on cycles/<key>/adversarial-reviews/ directory; ADR-* explicitly skipped | False-positive on ADR-013 (filename contains 'adversarial-review'); fix lands in plugin source for next release | post-adv-pass-1 | 2026-04-26 | orchestrator |
+| D-008 | Codify spec-first-then-TDD discipline + defensive-sweep pattern as plugin source rules | User caught "no BCs/no E-6 epic" gap; F-027 (incomplete defensive sweep) caused 2 wasted passes; lessons should land in agent prompts and consistency-validator | post-1.5 | 2026-04-26 | orchestrator + user |
+
+## Lessons Learned (S-6.01 sub-cycle)
+
+| Lesson | Codification target | Status |
+|--------|---------------------|--------|
+| Spec-first discipline: every story needs BCs/VPs/FR/epic before TDD | story-writer agent prompt + consistency-validator | OPEN |
+| Defensive propagation sweep: count/pattern changes need corpus-wide grep | state-manager agent prompt + new lint hook | OPEN |
+| Capability anchor justification: every BC must cite source-of-truth | product-owner prompt + adversary policy 5 enforcement | OPEN |
+| VP multi-BC convention: source_bc=primary, bcs[]=full list | template documented (commit 7765573); template-compliance hook could enforce | PARTIAL |
+| Hook false-positives on filename matchers | validate-novelty-assessment.sh tightened (commit 7d7d9b8) | DONE |
+| Sub-cycle convergence naming `<scope>-pass-N.md` | ADR-013 amended this session | DONE |
+| Adversary effectiveness on partial-fix regressions (F-023, F-027) | adversary policy: explicit "did fix propagate to sibling files?" check | OPEN |
+| Self-referential dogfooding: novel adversary catch → codify in agent prompts | meta-rule: every novel catch becomes a follow-up to update agent prompts | OPEN |
 
 ## Skip Log
 
@@ -160,17 +176,15 @@ dtu_services: []
 ## Blocking Issues
 
 <!-- No open blockers. -->
-
 ## Session Resume Checkpoint
 
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-26 |
-| **Position** | S-6.01 spec pass-1 fixes applied (18 of 19 findings resolved). ADR-013 amended (F-019). BC-INDEX/VP-INDEX/STATE.md propagated. |
-| **Convergence counter** | Pass-1 MAJOR (19 findings). Pass-2 pending. |
-| **Next action** | Dispatch adversary for S-6.01 pass-2 to verify fixes. |
-| **After pass-2** | If converged: TDD implementation of create-adr skill. If not: remediate + pass-3. |
-| **Hook fix** | validate-novelty-assessment.sh false-positive on ADR-013 resolved (D-007); fix committed on feat/create-adr-skill branch. |
+| **Position** | S-6.01 spec CONVERGED after 8 passes (3-NITPICK criterion met at pass-8). All 27 findings closed. D-008 logged. |
+| **Convergence counter** | 19→4→2→1→1→0→0→0. CONVERGENCE_REACHED. |
+| **Next action** | GREEN-phase TDD: implementer takes 25 RED tests + writes SKILL.md for create-adr skill. |
+| **Branch** | feat/create-adr-skill — all spec artifacts committed; ready for implementation. |
 
 ## Release Ladder
 
@@ -183,11 +197,4 @@ dtu_services: []
 | v1.0.0-beta.5 | 2026-04-26 | ADR template + identifier canonicalization phase 1 |
 
 ## Historical Content
-
-| Content | Location |
-|---------|----------|
-| Burst history | `cycles/v1.0-brownfield-backfill/burst-log.md` |
-| Convergence trajectory | `cycles/v1.0-brownfield-backfill/convergence-trajectory.md` |
-| Session checkpoints | `cycles/v1.0-brownfield-backfill/session-checkpoints.md` |
-| Lessons learned | `cycles/v1.0-brownfield-backfill/lessons.md` |
-| Resolved blockers | `cycles/v1.0-brownfield-backfill/blocking-issues-resolved.md` |
+Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers) lives in `cycles/v1.0-brownfield-backfill/`.
