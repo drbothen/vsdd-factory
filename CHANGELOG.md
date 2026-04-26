@@ -1,5 +1,167 @@
 # Changelog
 
+## 1.0.0-beta.6 — S-6.01 create-adr skill + E-7 process codification (2026-04-26)
+
+This release ships two CONVERGED feature deliveries (S-6.01 + E-7) plus
+substantial spec backfill (10 ADRs, 27 BCs, 5 VPs, 2 FRs, 2 epics, 3 stories).
+The standout meta-property is self-referential dogfooding: vsdd-factory used
+its own VSDD process to find and codify gaps in vsdd-factory itself.
+
+### Added
+
+- **`/vsdd-factory:create-adr` skill (S-6.01).** Closes the per-artifact
+  `create-*` skill family gap (alongside `create-prd`, `create-story`,
+  `create-architecture`, `create-domain-spec`, `create-brief`). Scaffolds
+  new ADR records with: collision-free ID allocation against `decisions/`
+  filesystem AND ARCH-INDEX, frontmatter from `templates/adr-template.md`
+  with `status=proposed` always at creation, optional bidirectional
+  supersession patch (new ADR `supersedes:` ↔ old ADR `superseded_by:`),
+  ARCH-INDEX row insertion in numeric order, optional `--brownfield`
+  annotation, optional `--dry-run` flag, atomic-or-nothing rollback on
+  any failure. Spec converged through 8 adversarial passes (trajectory
+  19 → 4 → 2 → 1 → 1 → 0 → 0 → 0); 26 bats tests cover 8 ACs, 12 BCs
+  (BC-6.20.001-012), 3 VPs (VP-058/059/060).
+- **Process codification (E-7) — 8 lessons codified into plugin source:**
+  - **Spec-First Gate** in `agents/story-writer.md`: blocks
+    `status=ready` without canonical `BC-N.NN.NNN` pattern in
+    `behavioral_contracts:` and AC↔BC bidirectional traces.
+    (BC-5.36.001-002)
+  - **Capability Anchor Justification** in `agents/product-owner.md`:
+    every BC must verbatim-cite `capabilities.md` for its CAP.
+    (BC-5.36.003-004)
+  - **Partial-Fix-Regression discipline** in `agents/adversary.md`:
+    every pass after pass-1 checks prior-pass fix propagation to
+    bodies, sibling files, prose; flags `[process-gap]` for
+    codification follow-up. (BC-5.36.005-006)
+  - **Defensive Sweep discipline** in `agents/state-manager.md`:
+    corpus-wide grep before declaring count-changing update complete.
+    (BC-5.37.001-002)
+  - **Cycle-Closing Checklist** in `agents/orchestrator/orchestrator.md`:
+    references `rules/lessons-codification.md` before declaring
+    sub-cycle CONVERGED. (BC-8.28.002)
+  - **NEW hook `validate-count-propagation.sh`** (BC-7.05.001-002):
+    PostToolUse drift detector across PRD / STATE.md / ARCH-INDEX /
+    BC-INDEX / VP-INDEX. Exits 2 on drift, runs <500ms.
+  - **NEW rule `rules/lessons-codification.md`** (BC-8.28.001):
+    meta-discipline — every novel adversary process catch (not content
+    defect) MUST trigger codification follow-up before sub-cycle closure.
+  - **`validate-template-compliance.sh` extended** (BC-7.05.003) to
+    enforce VP multi-BC `source_bc=primary, bcs[]=full list` convention.
+  - **`hooks-registry.toml`** registers new hook (BC-7.05.004).
+
+  Spec converged through 7 adversarial passes (trajectory
+  12 → 5 → 1 → 2 → 2 → 0 → 0); 16 bats tests cover both stories.
+- **Spec backfill — 10 ADRs (ADR-004..013):** TOML config; multi-sink
+  observability natively in dispatcher; HOST_ABI_VERSION as separate
+  semver constant; always-on dispatcher self-telemetry;
+  parallel-within-tier sequential-between-tier execution;
+  activation-skill-driven platform binary selection; StoreData-typed
+  linker for host functions; dual hooks.json + hooks-registry.toml
+  during migration; legacy-bash-adapter as universal current router;
+  cycle-keyed adversarial review structure.
+- **27 new behavioral contracts** across SS-05/06/07/08 (12 for
+  create-adr, 15 for E-7 codification surfaces).
+- **5 new verification properties** (VP-058..062 — atomicity, ID
+  monotonicity proptest, bidirectional supersession, agent prompt
+  static-check, multi-axis process-codification surface invariant).
+- **2 new functional requirements** (FR-041, FR-042).
+- **2 new epics** (E-6 VSDD Self-Improvement / Tooling Backlog;
+  E-7 Process Codification — Self-Improvement).
+- **L4-verification-property-template.md schema note** pinning
+  `source_bc=primary, bcs[]=full list` convention for multi-BC VPs.
+
+### Fixed
+
+- **`validate-novelty-assessment.sh` false-positive on filename matchers.**
+  Hook was matching `ADR-013-adversarial-review-structure.md` as a
+  review file. Tightened the matcher to anchor on
+  `.factory/cycles/<key>/adversarial-reviews/` directory paths; added
+  explicit skip for `*/architecture/decisions/ADR-*.md`.
+
+### Process Notes
+
+The pass-4 reset on the e7-spec sub-cycle (F-020 SS-09 mis-citation
+across two artifacts) was BC-5.36.005/006 partial-fix-regression
+discipline working as designed: a fresh-perspective adversary caught
+a 2-artifact mis-citation that 3 prior passes missed. The pass-1
+review of E-7 specs caught a meta dogfood failure: PRD body still
+cited "1,863-BC catalog" while the new BCs were being authored to
+codify the very defensive-sweep tooling that detects this drift class.
+Cumulative findings closed: 27 across 15 spec passes total.
+
+### Identifier Counts (post-release)
+
+| Type | Pre-beta.6 | Post-beta.6 |
+|------|-----------|-------------|
+| BCs (total) | 1,851 | 1,878 (+27) |
+| VPs | 57 | 62 (+5) |
+| FRs | 40 | 42 (+2) |
+| Epics | 6 | 8 (+2) |
+| Stories | 41 | 44 (+3) |
+| ADRs | 3 | 13 (+10) |
+
+### Migration
+
+No breaking changes. Codified disciplines apply to NEW spec sub-cycles;
+existing artifacts are not retroactively re-validated.
+
+## 1.0.0-beta.5 — ADR template + identifier canonicalization (2026-04-25)
+
+Same-day patch on top of beta.4. Two coupled improvements emerged from
+the brownfield onboarding of vsdd-factory itself: a missing ADR
+validation template and identifier-convention drift between the
+plugin source and prism's working real-world usage.
+
+### Added
+
+- **`templates/adr-template.md`.** A canonical Architecture Decision
+  Record template declaring `document_type: adr` plus the canonical H2
+  sections (Context, Decision, Rationale, Consequences with
+  Positive/Negative/Status sub-headings, Alternatives Considered,
+  Source / Origin). The `validate-template-compliance.sh` hook's
+  primary lookup-by-document_type now matches ADR files against this
+  template instead of falling through to `architecture-section-template`
+  (which had been validating ADRs against the wrong schema and
+  silently blocking ADR writes during plugin self-onboarding).
+
+### Changed
+
+- **Identifier conventions canonicalized to match prism's working
+  pattern.** Three coupled changes across 26 plugin source files
+  (templates + rules + 12 skills):
+  - **BC shard layout:** flat `behavioral-contracts/BC-*.md` →
+    sharded `behavioral-contracts/ss-NN/BC-*.md`. Required for any
+    project with more than ~50 BCs.
+  - **Story IDs:** `STORY-NNN` → `S-N.MM` (section.story zero-padded;
+    e.g., `S-1.01`, `S-3.15`). Section grouping aligns with epics
+    (`E-N`) and gives BC-anchoring traversal natural shape.
+  - **Epic IDs:** `EPIC-NNN` → `E-N` (single-digit, matches story
+    section number).
+
+  Story `N` (section/epic) and BC `S` (subsystem number) are
+  intentionally different hierarchies — a story can implement BCs
+  from multiple subsystems via its `subsystems: [SS-NN, ...]`
+  frontmatter array. This separation is now documented in
+  `rules/spec-format.md`.
+
+### Notes
+
+- Pre-rc.1 projects using `STORY-NNN` continue to work — the
+  validate-template-compliance hook keys on `document_type`, not ID
+  format. New projects from beta.5 onward should use `S-N.MM` from
+  the start.
+- Phase 2 follow-up (test fixtures, workflows, agents) deferred to a
+  future beta; not in this release.
+
+### How discovered
+
+vsdd-factory underwent its own brownfield onboarding cycle
+(`v1.0-brownfield-backfill`) on 2026-04-25, producing 1,851 BCs
+across 10 subsystems. The flat BC layout broke down at that scale,
+exposing the plugin's stale assumption. Phase 1d adversarial review
+converged in 6 passes (3 consecutive NITPICK), validating both the
+new template and the canonicalized conventions.
+
 ## 1.0.0-beta.4 — cache fix + stderr capture + SHA-currency gate (2026-04-25)
 
 Same-day patch on top of beta.3. Three follow-ups from the prior beta
