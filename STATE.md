@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "E-7 Process Codification: spec foundation complete (2 stories, 15 BCs, 2 VPs, FR-042). Next: adversarial pass-1 on E-7 spec scope."
+current_step: "E-7 + S-6.01 spec converged + GREEN done. Next: PR both branches → develop → cut beta.6 release."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -66,21 +66,17 @@ dtu_services: []
 | Phase 2 — Story Decomposition | not-started | Unblocked; 44 stories (41 migrated + 3 new E-6/E-7) ready for dependency graph + wave schedule |
 | S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
 | E-7 Process Codification spec foundation | COMPLETE | E-7 epic + S-7.01/S-7.02 (status=ready) + 15 BCs + 2 VPs + FR-042 |
+| E-7 spec convergence (sub-cycle) | COMPLETE | 7 passes, 12→5→1→2→2→0→0 trajectory, CONVERGENCE_REACHED at pass-7 |
+| E-7 GREEN implementation (S-7.01 + S-7.02) | COMPLETE | feat/codify-lessons commit 5b9e4fb; 16/16 bats tests green; 10 plugin source files |
+| S-6.01 GREEN implementation | COMPLETE | feat/create-adr-skill commit 5f0b0fa; 25/25 bats tests green; SKILL.md + commands + driver |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| Phase 1d convergence commit | state-manager | complete | factory-artifacts updated |
-| Release v1.0.0-beta.5 | release-agent | complete | PR #5 merged; tag v1.0.0-beta.5 at 0a95c8c; cache refreshed |
-| ADR backlog (10 deferred) | architect | complete | ADR-004..013 written; commit c50bb0f on factory-artifacts |
-| S-6.01 story scaffold | story-writer | complete | S-6.01-create-adr-skill.md; E-6 epic created |
-| Phase 1.5 — PRD update FR-041 + 12 BCs + 3 VPs for S-6.01 | state-manager | complete | BC-6.20.001..012 + VP-058..060 + BC-INDEX/VP-INDEX/ARCH-INDEX updated |
-| Adversarial pass-1 (S-6.01 spec) | adversary | complete | s6.01-pass-1.md (19 findings, MAJOR) |
-| Pass-1 fixes applied (PO + story-writer + orchestrator) | product-owner | complete | BC/VP/PRD/capabilities/S-6.01/ADR-013 updated |
-| S-6.01 adversarial sub-cycle (passes 1-8) | adversary | complete | CONVERGENCE_REACHED, 27 findings closed, 19→4→2→1→1→0→0→0 |
-| GREEN-phase TDD: create-adr SKILL.md + commands binding | implementer | pending | — |
-| Adversarial pass-1 on E-7 spec scope | adversary | pending | — |
+| PR feat/create-adr-skill → develop | pr-manager | pending | TBD |
+| PR feat/codify-lessons → develop | pr-manager | pending | TBD |
+| Cut release/v1.0.0-beta.6 after both PRs merge | devops-engineer | pending | TBD |
 
 ## Identifier Conventions
 
@@ -156,6 +152,7 @@ dtu_services: []
 | D-007 | Hook validate-novelty-assessment.sh tightened to anchor on cycles/<key>/adversarial-reviews/ directory; ADR-* explicitly skipped | False-positive on ADR-013 (filename contains 'adversarial-review'); fix lands in plugin source for next release | post-adv-pass-1 | 2026-04-26 | orchestrator |
 | D-008 | Codify spec-first-then-TDD discipline + defensive-sweep pattern as plugin source rules | User caught "no BCs/no E-6 epic" gap; F-027 (incomplete defensive sweep) caused 2 wasted passes; lessons should land in agent prompts and consistency-validator | post-1.5 | 2026-04-26 | orchestrator + user |
 | D-009 | E-7 Process Codification — codify lessons learned from S-6.01 sub-cycle as plugin source rules | Self-referential dogfooding — vsdd-factory uses its own VSDD process to improve itself; lessons table from D-008 driven into prompt/rule/hook deliverables | post-1.5 | 2026-04-26 | orchestrator + user |
+| D-010 | E-7 process codification + S-6.01 create-adr skill → bundle into beta.6 release | Both branches ready (specs converged, GREEN tests pass). Bundling reduces release overhead; both deliver self-improvement value (E-7 codifies lessons; S-6.01 closes per-artifact create-* skill gap) | pre-release | 2026-04-26 | orchestrator + user |
 
 
 ## Skip Log
@@ -173,10 +170,12 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-26 |
-| **Position** | S-6.01 spec CONVERGED after 8 passes (3-NITPICK criterion met at pass-8). All 27 findings closed. D-008 logged. |
-| **Convergence counter** | 19→4→2→1→1→0→0→0. CONVERGENCE_REACHED. |
-| **Next action** | GREEN-phase TDD: implementer takes 25 RED tests + writes SKILL.md for create-adr skill. |
-| **Branch** | feat/create-adr-skill — all spec artifacts committed; ready for implementation. |
+| **Position** | E-7 CONVERGED (7 passes, 12→0) + GREEN done (5b9e4fb). S-6.01 GREEN done (5f0b0fa). D-010 logged. |
+| **Convergence counters** | E-7: 12→5→1→2→2→0→0 CONVERGENCE_REACHED pass-7. S-6.01: 19→4→2→1→1→0→0→0 CONVERGENCE_REACHED pass-8. |
+| **Next action** | PR feat/create-adr-skill → develop. PR feat/codify-lessons → develop. Cut release/v1.0.0-beta.6. |
+| **Branches** | feat/create-adr-skill (5f0b0fa); feat/codify-lessons (5b9e4fb). Both GREEN. |
+
+**Lessons Learned (S-6.01 sub-cycle):** All 8 lessons codified into plugin source via E-7 (commit 5b9e4fb). Lessons #1-4, #7-8 → agent prompts + hooks + rules. Lessons #5-6 shipped previously. All CLOSED.
 
 ## Release Ladder
 
