@@ -17,7 +17,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
 > S-N.MM format. This index is the authoritative source for story count and status.
-> 41 stories across 6 epics (E-0 through E-5).
+> 42 stories across 7 epics (E-0 through E-6).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -29,8 +29,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 22 |
 | partial | 4 |
-| draft | 15 |
-| **Total** | **41** |
+| draft | 16 |
+| **Total** | **42** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -103,6 +103,12 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft |
 | S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-5.01..S-5.06 + 1-week shakedown | draft |
 
+## Epic E-6 — VSDD Self-Improvement / Tooling Backlog (draft)
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Status |
+|----------|-------|------|--------|----------|------------|--------|
+| S-6.01 | Add create-adr skill for ADR authoring | E-6 | 3 | P1 | -- | draft |
+
 ---
 
 **Draft story policy:** Stories with `status: draft` MAY have empty
@@ -116,7 +122,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 183 across 41 stories
+**Total story points:** 186 across 42 stories
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)
