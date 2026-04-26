@@ -56,14 +56,14 @@ dtu_services: []
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
 | Phase 1.4 — BC Migration | COMPLETE | 1,878 BC-S.SS.NNN files in 10 ss-NN/ shards + BC-INDEX.md (current) |
-| Phase 1.5 — Formal PRD | COMPLETE | 41 FRs (FR-041 added for S-6.01), 76 NFRs, 100% BC traceability |
+| Phase 1.5 — Formal PRD | COMPLETE | 42 FRs (FR-041, FR-042 added), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
 | Phase 1.6b — Verification Properties | COMPLETE | 62 VPs (all draft, VP-001..VP-062; +2 for E-7) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
 | Phase 1d — Adversarial Spec Review | COMPLETE | 6 passes, converged at pass 6 (3 consecutive NITPICK: passes 4-5-6) |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
-| Phase 2 — Story Decomposition | not-started | Unblocked; 41 migrated stories ready for dependency graph + wave schedule |
+| Phase 2 — Story Decomposition | not-started | Unblocked; 44 stories (41 migrated + 3 new E-6/E-7) ready for dependency graph + wave schedule |
 | S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
 | E-7 Process Codification spec foundation | COMPLETE | E-7 epic + S-7.01/S-7.02 (status=ready) + 15 BCs + 2 VPs + FR-042 |
 
@@ -92,8 +92,8 @@ dtu_services: []
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 41 |
-| Epic | E-N | `stories/epics/E-N-<short>.md` | 6 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 44 |
+| Epic | E-N | `stories/epics/E-N-<short>.md` | 8 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 13 |
 
 ## Subsystem Distribution
@@ -106,17 +106,18 @@ dtu_services: []
 | SS-04 | Plugin Ecosystem | BC-4 | 13 |
 | SS-05 | Pipeline Orchestration | BC-5 | 636 |
 | SS-06 | Skill Catalog | BC-6 | 583 |
-| SS-07 | Hook Bash Layer | BC-7 | 195 |
+| SS-07 | Hook Bash Layer | BC-7 | 196 |
 | SS-08 | Templates and Rules | BC-8 | 217 |
-| SS-09 | Configuration and Activation | BC-9 | 6 |
+| SS-09 | Configuration and Activation | BC-9 | 5 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
 | **Total** | | | **1,878** |
 
-## Story Status (41 total)
+## Story Status (44 total)
 
 - **Merged (22):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1)
 - **Partial (4):** S-2.05 (cargo publish dry-run), S-3.04 (host fn done, bash not retired), S-4.06 (RoutingFilter parsed not wired), S-5.05 (skeleton)
 - **Draft / Not Shipped (15):** All Tier E except partials, all Tier F/G/H
+- **Ready (3):** S-6.01 (create-adr skill), S-7.01 (agent prompt discipline), S-7.02 (defensive sweep + hook + meta-rule)
 
 ## Drift Items (open)
 

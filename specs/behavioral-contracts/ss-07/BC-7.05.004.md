@@ -11,7 +11,7 @@ input-hash: ""
 traces_to: .factory/stories/S-7.02-defensive-sweep-hook-meta-rule.md
 origin: greenfield
 extracted_from: ".factory/stories/S-7.02-defensive-sweep-hook-meta-rule.md#AC-003"
-subsystem: "SS-09"
+subsystem: "SS-07"
 capability: "CAP-001"
 lifecycle_status: active
 introduced: v1.0-brownfield-backfill
@@ -22,11 +22,11 @@ replacement: null
 retired: null
 removed: null
 removal_reason: null
-bc_id: BC-9.02.001
-section: "9.02"
+bc_id: BC-7.05.004
+section: "7.05"
 ---
 
-# BC-9.02.001: hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes
+# BC-7.05.004: hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes
 
 ## Description
 

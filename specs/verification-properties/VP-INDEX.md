@@ -110,7 +110,7 @@ total_vps: 62
 | [VP-058](VP-058.md) | create-adr Atomicity — No Partial Repository State After Failure | invariant | integration | SS-06 | — | draft |
 | [VP-059](VP-059.md) | ID Monotonicity — Allocated ADR-NNN is Strictly Greater Than All Existing IDs | invariant | proptest | SS-06 | — | draft |
 | [VP-060](VP-060.md) | Bidirectional Supersession — supersedes ↔ superseded_by is Symmetric After Skill Completion | invariant | integration | SS-06 | — | draft |
-| [VP-061](VP-061.md) | Agent Prompt Discipline Rules Are Present in All Three Agent Files | safety | static-check | SS-05 | — | draft |
+| [VP-061](VP-061.md) | Agent Prompt Discipline Rules Are Present in All Three Agent Files | invariant | static-check | SS-05 | — | draft |
 | [VP-062](VP-062.md) | Count Propagation Invariant — validate-count-propagation.sh Flags Drift and Is Correctly Registered | invariant | integration | SS-07 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)

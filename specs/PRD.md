@@ -35,16 +35,16 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,863-BC catalog produced in Phase 0 ingestion into a
+> It synthesizes the 1,878-BC catalog produced in Phase 0 ingestion into a
 > formal L3 requirements artifact. Section 2 is the primary machine-consumed
 > surface: it groups BCs by functional requirement (FR-NNN) and provides
 > subsystem-level traceability. Agents needing deep BC content load individual
 > `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
 > Sections 3-5 point to supplement files (DF-021 context discipline).
 
-> **BC Index Model:** 1,863 individual BC files live under
+> **BC Index Model:** 1,878 individual BC files live under
 > `.factory/specs/behavioral-contracts/ss-NN/`. Section 2 groups them into
-> 41 logical FRs. Do NOT inline full contract details here — cross-reference only.
+> 42 logical FRs. Do NOT inline full contract details here — cross-reference only.
 
 ---
 
@@ -76,7 +76,7 @@ an 8-phase SDLC pipeline: brief → domain-spec → PRD → architecture → sto
 delivery → adversarial review → convergence.
 
 The product was built with itself. Phase 0 ingestion of this very codebase produced the
-1,863-BC catalog that this PRD synthesizes. This self-referential loop is the ultimate
+1,878-BC catalog that this PRD synthesizes. This self-referential loop is the ultimate
 dogfooding test: every architectural decision (WASM sandbox, capability deny-by-default,
 parallel-within-tier execution, always-on telemetry) was enacted in Rust and then
 analyzed by the framework's own brownfield-ingest skill.
@@ -126,7 +126,7 @@ Tiers E through H (15 draft stories) are the active backlog for rc.1 and 1.0 GA.
 
 ## 2. Behavioral Contracts Index
 
-> BCs are grouped into 41 logical FRs. Each FR maps to one or more CAP-NNN
+> BCs are grouped into 42 logical FRs. Each FR maps to one or more CAP-NNN
 > capabilities, one or more SS-NN subsystems, and the specific BC prefix ranges
 > that implement it. Full BC files live in
 > `.factory/specs/behavioral-contracts/ss-NN/`. Status = shipped / partial / pending
@@ -486,7 +486,7 @@ Status: **shipped** (agents active).
 Source BCs: `ss-05/BC-5.20.001.md` through `BC-5.23.015.md` (53 BCs, with remaining phase workflow BCs).
 Enforces: CAP-001 (self-orchestrating pipeline). Status: phases 0-1-2-3 are **shipped** as workflows.
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-05/` (627 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-05/` (636 BCs total)
 > Demo-recorder, accessibility-auditor, ux-designer agents: BC-5.03.001–018 (18 BCs)
 
 ---
@@ -614,7 +614,7 @@ Enforces: CAP-013. Status: **shipped**.
 Source BCs: `ss-07/BC-7.08.001.md` through (approx. 80 BCs in validate/lifecycle family).
 Enforces: CAP-004 (BC traceability enforcement). Status: **shipped**. Note: 24 validate-* hooks lack formal BC backfill per L-P0-003 — this is the gap being addressed by this Phase 1.5 PRD effort.
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-07/` (192 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-07/` (196 BCs total)
 
 ---
 
@@ -642,7 +642,7 @@ Enforces: CAP-014. Status: **shipped** (105 template files active).
 Source BCs: `ss-08/BC-8.06.001.md` through (approx. 70 BCs in rules family).
 Enforces: CAP-014 (methodology discipline). Status: **shipped**.
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-08/` (215 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-08/` (217 BCs total)
 
 ---
 
@@ -742,14 +742,14 @@ The vsdd-factory pipeline enforces lessons learned from adversarial reviews at t
 | BC-7.05.003 | validate-template-compliance.sh enforces VP multi-BC source_bc convention | P1 |
 | BC-8.28.001 | rules/lessons-codification.md requires codification follow-up for every novel process catch | P1 |
 | BC-8.28.002 | orchestrator cycle-closing checklist references lessons-codification.md rule | P1 |
-| BC-9.02.001 | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | P1 |
+| BC-7.05.004 | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | P1 |
 
-Source BCs: `ss-05/BC-5.36.001-007.md`, `ss-05/BC-5.37.001-002.md`, `ss-07/BC-7.05.001-003.md`, `ss-08/BC-8.28.001-002.md`, `ss-09/BC-9.02.001.md` (15 BCs total).
-Maps to: SS-05 (Pipeline Orchestration), SS-07 (Hook Bash Layer), SS-08 (Templates and Rules), SS-09 (Configuration and Activation).
+Source BCs: `ss-05/BC-5.36.001-007.md`, `ss-05/BC-5.37.001-002.md`, `ss-07/BC-7.05.001-004.md`, `ss-08/BC-8.28.001-002.md` (15 BCs total).
+Maps to: SS-05 (Pipeline Orchestration), SS-07 (Hook Bash Layer), SS-08 (Templates and Rules).
 Acceptance: S-7.01 (5 ACs), S-7.02 (6 ACs).
 Status: **pending** (E-7 stories not yet implemented).
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-05/BC-5.36.*.md`, `ss-05/BC-5.37.*.md`, `ss-07/BC-7.05.*.md`, `ss-08/BC-8.28.*.md`, `ss-09/BC-9.02.*.md`
+> Full contracts: `.factory/specs/behavioral-contracts/ss-05/BC-5.36.*.md`, `ss-05/BC-5.37.*.md`, `ss-07/BC-7.05.*.md`, `ss-08/BC-8.28.*.md`
 
 ---
 
@@ -972,7 +972,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-039 | Factory observability bin tools | CAP-003, CAP-010 | SS-10 | BC-10.02.NNN | ~30 | shipped | E-1 |
 | FR-040 | Workflow infrastructure CLI tools (wave-state, lobster-parse, compute-input-hash) | CAP-001 | SS-10 | BC-10.03.NNN | ~18 | shipped | E-1 |
 | FR-041 | Skill-driven ADR authoring workflow (create-adr skill) | CAP-017 | SS-06, SS-08, SS-10 | BC-6.20.001–012 | 12 | pending | E-6 |
-| FR-042 | Process self-improvement enforcement (agent prompt discipline + count-propagation hook + lessons-codification rule) | CAP-001 | SS-05, SS-07, SS-08, SS-09 | BC-5.36.001–007, BC-5.37.001–002, BC-7.05.001–003, BC-8.28.001–002, BC-9.02.001 | 15 | pending | E-7 |
+| FR-042 | Process self-improvement enforcement (agent prompt discipline + count-propagation hook + lessons-codification rule) | CAP-001 | SS-05, SS-07, SS-08 | BC-5.36.001–007, BC-5.37.001–002, BC-7.05.001–004, BC-8.28.001–002 | 15 | pending | E-7 |
 
 **Total: 42 FRs across 10 subsystems**
 
@@ -1158,7 +1158,7 @@ For v1.0, treat the prd-supplement as the authoritative NFR source.
 
 ### 12.1 Behavioral Contract Verification
 
-All 1,863 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
+All 1,878 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
 
 | Test Type | Coverage Target | Primary Tools |
 |-----------|----------------|---------------|
@@ -1171,7 +1171,7 @@ All 1,863 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is strat
 
 ### 12.2 Phase 0 Validation Provenance
 
-The 1,863-BC catalog was validated by `extraction-validation.md` at 97.6% confirmation rate (122/125 BCs sampled at 6.8% sample rate):
+The 1,878-BC catalog was validated by `extraction-validation.md` at 97.6% confirmation rate (122/125 BCs sampled at 6.8% sample rate):
 - 122 CONFIRMED
 - 2 INACCURATE (corrected: BC-AUDIT-067 PostToolUse→PreToolUse; BC-AUDIT-1007 "4 hooks" → "3")
 - 1 HALLUCINATED (removed: "13 trybuild tests" in pass-0 inventory — actual is 0)
@@ -1212,7 +1212,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Field | Value |
 |-------|-------|
 | Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,863 BCs at phase 1.4c |
+| BC catalog version | 1,878 BCs at phase 1.4c |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.4 (commit 1907d8f, 2026-04-25) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
@@ -1221,7 +1221,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Stories partial | 4 (S-2.05, S-3.04, S-4.06, S-5.05) |
 | Stories pending (draft) | 15 (Tiers E–H draft) |
 | CAPs covered | 28 / 28 |
-| FRs defined | 41 |
+| FRs defined | 42 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
 

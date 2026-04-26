@@ -40,13 +40,13 @@ The story-writer agent prompt must contain a Spec-First Gate rule that prevents 
 
 ## Postconditions
 
-1. The story's `status:` field is set to `draft`, not `ready`.
+1. The story's `status:` field is set to `draft`, not `ready`. The `behavioral_contracts:` field is non-empty AND every entry matches the canonical BC pattern `BC-\d+\.\d{2}\.\d{3}` (i.e., not a `BC-TBD` placeholder, not malformed). Empty array, missing field, or any non-canonical entry blocks the `draft → ready` status transition.
 2. The story file contains an inline note such as `# BC status: pending PO authorship` (or equivalent) adjacent to the `behavioral_contracts: []` field.
 3. No PR or delivery is marked ready for a story with an unpopulated `behavioral_contracts:` array.
 
 ## Invariants
 
-1. The `draft → ready` transition is impossible while `behavioral_contracts: []`.
+1. The `draft → ready` transition is impossible while `behavioral_contracts: []` OR while any entry fails to match `BC-\d+\.\d{2}\.\d{3}` (e.g., `BC-TBD`, malformed IDs, or bare placeholder text are all blocking).
 2. The gate applies to both new story authorship and retrospective status edits.
 3. The Spec-First Gate rule text is present in the story-writer agent prompt's Constraints or Rules section.
 

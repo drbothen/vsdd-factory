@@ -96,7 +96,7 @@ The new Bash hook `validate-count-propagation.sh` must detect when a count value
 
 - BC-5.37.001 — composes with (state-manager manual sweep; this hook automates the same check)
 - BC-7.05.002 — sibling (exit code and diagnostic format specification)
-- BC-9.02.001 — sibling (hook registration in hooks-registry.toml)
+- BC-7.05.004 — sibling (hook registration in hooks-registry.toml)
 
 ## Architecture Anchors
 

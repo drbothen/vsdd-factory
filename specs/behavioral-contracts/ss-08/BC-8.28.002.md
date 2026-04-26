@@ -79,7 +79,7 @@ The orchestrator's cycle-closing checklist (wherever it is defined — as a skil
 | L2 Capability | CAP-001 |
 | Capability Anchor Justification | Anchored to CAP-001 ("Run a self-orchestrating LLM-driven SDLC pipeline") per capabilities.md §CAP-001 — the cycle-closing checklist is a governance checkpoint in the self-orchestrating SDLC defined by CAP-001; this BC ensures the pipeline self-improves by acting on process gaps before declaring a cycle complete. |
 | L2 Domain Invariants | none |
-| Architecture Module | plugins/vsdd-factory/rules/lessons-codification.md |
+| Architecture Module | plugins/vsdd-factory/agents/orchestrator/orchestrator.md (primary — cycle-closing logic lives in the orchestrator sequence); TBD — implementer must identify exact skill/section during S-7.02 delivery and update this field. A task exists in S-7.02 Task 4 to locate the cycle-closing checklist. If the checklist spans multiple documents, all paths must be listed here. |
 | Stories | S-7.02 |
 | Source AC | S-7.02 §AC-004 |
 | FR | FR-042 |
@@ -90,8 +90,9 @@ The orchestrator's cycle-closing checklist (wherever it is defined — as a skil
 
 ## Architecture Anchors
 
-- `plugins/vsdd-factory/rules/lessons-codification.md` — rule document
-- Orchestrator skill/prompt that defines cycle-closing checklist (to be identified by implementer)
+- `plugins/vsdd-factory/rules/lessons-codification.md` — rule document referenced by checklist
+- `plugins/vsdd-factory/agents/orchestrator/orchestrator.md` — primary orchestrator agent (cycle-closing checklist location; verify during implementation)
+- TBD: exact skill/section within orchestrator to be identified by implementer during S-7.02 delivery
 
 ## Story Anchor
 

@@ -44,8 +44,8 @@ The existing `validate-template-compliance.sh` must be extended with a check tha
    ```
    TEMPLATE COMPLIANCE WARNING: VP-NNN has multiple bcs[] but missing or invalid source_bc field.
    ```
-   and exits non-zero.
-2. If `len(bcs) > 1` and `source_bc:` is present but not in `bcs[]`, the script emits the same warning.
+   and exits 2 (per PostToolUse dispatcher convention: 0 = continue, 2 = block).
+2. If `len(bcs) > 1` and `source_bc:` is present but not in `bcs[]`, the script emits the same warning and exits 2.
 3. If `len(bcs) == 1` and `source_bc:` is absent, the script exits 0 (single-BC VPs do not require `source_bc:`).
 4. If `len(bcs) > 1` and `source_bc:` is present and in `bcs[]`, the script exits 0.
 5. The check is scoped to VP files only. Non-VP files must not trigger this check path.
@@ -70,8 +70,8 @@ The existing `validate-template-compliance.sh` must be extended with a check tha
 | Input VP File State | Expected Exit Code | Expected Output | Category |
 |--------------------|--------------------|-----------------|----------|
 | `bcs: [BC-A, BC-B]`, `source_bc: BC-A` | 0 | (passes) | happy-path |
-| `bcs: [BC-A, BC-B]`, no `source_bc:` field | 1 | `TEMPLATE COMPLIANCE WARNING: VP-NNN has multiple bcs[] but missing or invalid source_bc field.` | negative |
-| `bcs: [BC-A, BC-B]`, `source_bc: BC-C` (not in array) | 1 | same warning | negative |
+| `bcs: [BC-A, BC-B]`, no `source_bc:` field | 2 | `TEMPLATE COMPLIANCE WARNING: VP-NNN has multiple bcs[] but missing or invalid source_bc field.` | negative |
+| `bcs: [BC-A, BC-B]`, `source_bc: BC-C` (not in array) | 2 | same warning | negative |
 | `bcs: [BC-A]`, no `source_bc:` field | 0 | (passes — single BC) | happy-path |
 | Non-VP file passed to script | 0 | (VP check not triggered) | scope-guard |
 

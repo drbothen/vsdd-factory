@@ -27,9 +27,9 @@ traces_to: bc-id-mapping.md
 | SS-04 Plugin Ecosystem | BC-4 | 13 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 636 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 583 | ss-06/ |
-| SS-07 Hook Bash Layer | BC-7 | 195 | ss-07/ |
+| SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 217 | ss-08/ |
-| SS-09 Configuration and Activation | BC-9 | 6 | ss-09/ |
+| SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
 | **Total** | | **1878** | |
 
@@ -1666,6 +1666,7 @@ traces_to: bc-id-mapping.md
 | [BC-7.05.001](ss-07/BC-7.05.001.md) | validate-count-propagation.sh detects count drift across index files and exits non-zero | draft | CAP-001 | S-7.02 |
 | [BC-7.05.002](ss-07/BC-7.05.002.md) | validate-count-propagation.sh runs in under 200ms and is deterministic | draft | CAP-001 | S-7.02 |
 | [BC-7.05.003](ss-07/BC-7.05.003.md) | validate-template-compliance.sh enforces VP multi-BC source_bc convention | draft | CAP-001 | S-7.02 |
+| [BC-7.05.004](ss-07/BC-7.05.004.md) | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | draft | CAP-001 | S-7.02 |
 
 ### SS-08 — Templates and Rules (BC-8)
 
@@ -1898,7 +1899,6 @@ traces_to: bc-id-mapping.md
 | [BC-9.01.003](ss-09/BC-9.01.003.md) | release workflow's bot commit atomically writes binaries + plugin.json + marketplace.json | draft | CAP-TBD | TBD |
 | [BC-9.01.004](ss-09/BC-9.01.004.md) | 5-platform CI matrix is the build matrix; drift gated by check-platforms-drift.py | draft | CAP-TBD | TBD |
 | [BC-9.01.005](ss-09/BC-9.01.005.md) | hooks.json is gitignored; hooks.json.template + per-platform variants are committed | draft | CAP-TBD | TBD |
-| [BC-9.02.001](ss-09/BC-9.02.001.md) | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | draft | CAP-001 | S-7.02 |
 
 ### SS-10 — CLI Tools and Bin (BC-10)
 

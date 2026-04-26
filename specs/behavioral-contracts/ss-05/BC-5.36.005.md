@@ -55,7 +55,7 @@ The adversary agent prompt must include a mandatory Partial-Fix Regression revie
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | Prior pass had zero findings (clean pass) | No regression check is needed. Adversary notes "no prior findings to check for regression." |
-| EC-002 | Prior finding fix applied to primary but sibling files are intentionally different (by design) | Adversary must explain WHY the sibling is intentionally different and provide evidence. A bare "sibling differs" claim without justification is still a finding. |
+| EC-002 | Prior finding fix applied to primary but sibling files differ | The adversary cannot adjudicate intent (read-only profile). Adversary always reports the difference as a finding with severity LOW and tag '(pending intent verification)'. The orchestrator or human adjudicates based on a justification artifact (commit message, ADR, design note). The adversary's role is detection; orchestrator/human is adjudication. |
 | EC-003 | Adversary finds a sibling that needs the same fix but was not in the original finding's scope | Reports as a new finding with MEDIUM severity. References the original closed finding for context. |
 | EC-004 | Fix was applied to sibling but the application was incomplete (correct direction but wrong depth) | Reports as a new finding — partial propagation counts as incomplete propagation. |
 
