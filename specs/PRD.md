@@ -696,6 +696,32 @@ Status: **shipped**.
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-10/` (58 BCs total)
 
+#### FR-041 — Skill-driven ADR authoring workflow
+
+The `create-adr` skill (`/vsdd-factory:create-adr`) provides a collision-free, validated, atomic workflow for creating Architecture Decision Records. It allocates the next sequential ADR-NNN by dual-source scan (filesystem + ARCH-INDEX), scaffolds the ADR file from `adr-template.md` with correct frontmatter and verbatim placeholder section bodies, optionally applies bidirectional supersession patches, inserts an ARCH-INDEX row, annotates the Source/Origin section for brownfield context, and runs `validate-template-compliance.sh` as a final gate. All side-effects are atomic: any failure rolls back the repository to its pre-invocation state. This skill eliminates the manual ADR authoring process that was re-exposed during the 10-ADR brownfield backfill burst.
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-6.20.001 | create-adr allocates next sequential ADR-NNN by scanning filesystem and ARCH-INDEX | P1 |
+| BC-6.20.002 | create-adr refuses explicit --id override that already exists | P1 |
+| BC-6.20.003 | create-adr blocks on filesystem-vs-ARCH-INDEX ID mismatch | P1 |
+| BC-6.20.004 | create-adr writes frontmatter with status=proposed (always at creation) | P1 |
+| BC-6.20.005 | create-adr validates subsystems_affected against ARCH-INDEX Subsystem Registry | P1 |
+| BC-6.20.006 | create-adr validates --supersedes ADR-NNN exists before proceeding | P1 |
+| BC-6.20.007 | create-adr bidirectionally patches old ADR's superseded_by on supersession | P1 |
+| BC-6.20.008 | create-adr inserts ARCH-INDEX row in numeric order, pipe-aligned | P1 |
+| BC-6.20.009 | create-adr scaffolds placeholder section bodies verbatim from template (no ghost-writing) | P1 |
+| BC-6.20.010 | create-adr annotates Source/Origin section under --brownfield or implicit-brownfield | P1 |
+| BC-6.20.011 | create-adr runs validate-template-compliance.sh as final gate, blocks on non-zero | P1 |
+| BC-6.20.012 | create-adr is atomic — any partial-state failure rolls back all side-effects | P0 |
+
+Source BCs: `ss-06/BC-6.20.001.md` through `ss-06/BC-6.20.012.md` (12 BCs).
+Maps to: SS-06 (Skill Catalog), SS-08 (Templates and Rules), SS-10 (CLI Tools and Bin).
+Acceptance: S-6.01 (all 8 ACs satisfied).
+Status: **pending** (S-6.01 not yet implemented).
+
+> Full contracts: `.factory/specs/behavioral-contracts/ss-06/BC-6.20.*.md`
+
 ---
 
 ## 3. Interface Definition
@@ -916,8 +942,9 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-038 | Event emission CLI tool (bin/emit-event) | CAP-027 | SS-07, SS-10 | BC-10.01.NNN | ~10 | partial | E-3 |
 | FR-039 | Factory observability bin tools | CAP-003, CAP-010 | SS-10 | BC-10.02.NNN | ~30 | shipped | E-1 |
 | FR-040 | Workflow infrastructure CLI tools (wave-state, lobster-parse, compute-input-hash) | CAP-001 | SS-10 | BC-10.03.NNN | ~18 | shipped | E-1 |
+| FR-041 | Skill-driven ADR authoring workflow (create-adr skill) | CAP-001 | SS-06, SS-08, SS-10 | BC-6.20.001–012 | 12 | pending | E-6 |
 
-**Total: 40 FRs across 10 subsystems**
+**Total: 41 FRs across 10 subsystems**
 
 ---
 

@@ -29,7 +29,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 22 |
 | partial | 4 |
-| draft | 16 |
+| draft | 15 |
+| ready | 1 |
 | **Total** | **42** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -103,11 +104,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft |
 | S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-5.01..S-5.06 + 1-week shakedown | draft |
 
-## Epic E-6 — VSDD Self-Improvement / Tooling Backlog (draft)
+## Epic E-6 — VSDD Self-Improvement / Tooling Backlog (open)
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status |
 |----------|-------|------|--------|----------|------------|--------|
-| S-6.01 | Add create-adr skill for ADR authoring | E-6 | 3 | P1 | -- | draft |
+| S-6.01 | Add create-adr skill for ADR authoring | E-6 | 3 | P1 | -- | ready |
 
 ---
 

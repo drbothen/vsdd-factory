@@ -8,13 +8,13 @@ timestamp: 2026-04-25T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1851
+total_bcs: 1863
 traces_to: bc-id-mapping.md
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,851 behavioral contracts across 10 subsystems.
+> Master index of all 1,863 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -26,12 +26,12 @@ traces_to: bc-id-mapping.md
 | SS-03 Observability Sinks | BC-3 | 49 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 13 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 627 | ss-05/ |
-| SS-06 Skill Catalog | BC-6 | 571 | ss-06/ |
+| SS-06 Skill Catalog | BC-6 | 583 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 192 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 215 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1851** | |
+| **Total** | | **1863** | |
 
 ## Index by subsystem
 
@@ -1445,6 +1445,18 @@ traces_to: bc-id-mapping.md
 | [BC-6.19.030](ss-06/BC-6.19.030.md) | toolchain-provisioning: integration with formal-hardening + multi-repo + new-language | draft | CAP-TBD | TBD |
 | [BC-6.19.031](ss-06/BC-6.19.031.md) | toolchain-provisioning: Storybook + Excalidraw MCP for UI products | draft | CAP-TBD | TBD |
 | [BC-6.19.032](ss-06/BC-6.19.032.md) | toolchain-provisioning: quality-gate criteria | draft | CAP-TBD | TBD |
+| [BC-6.20.001](ss-06/BC-6.20.001.md) | create-adr allocates next sequential ADR-NNN by scanning filesystem and ARCH-INDEX | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.002](ss-06/BC-6.20.002.md) | create-adr refuses explicit --id override that already exists | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.003](ss-06/BC-6.20.003.md) | create-adr blocks on filesystem-vs-ARCH-INDEX ID mismatch | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.004](ss-06/BC-6.20.004.md) | create-adr writes frontmatter with status=proposed (always at creation) | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.005](ss-06/BC-6.20.005.md) | create-adr validates subsystems_affected against ARCH-INDEX Subsystem Registry | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.006](ss-06/BC-6.20.006.md) | create-adr validates --supersedes ADR-NNN exists before proceeding | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.007](ss-06/BC-6.20.007.md) | create-adr bidirectionally patches old ADR's superseded_by on supersession | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.008](ss-06/BC-6.20.008.md) | create-adr inserts ARCH-INDEX row in numeric order, pipe-aligned | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.009](ss-06/BC-6.20.009.md) | create-adr scaffolds placeholder section bodies verbatim from template (no ghost-writing) | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.010](ss-06/BC-6.20.010.md) | create-adr annotates Source/Origin section under --brownfield or implicit-brownfield | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.011](ss-06/BC-6.20.011.md) | create-adr runs validate-template-compliance.sh as final gate, blocks on non-zero | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.012](ss-06/BC-6.20.012.md) | create-adr is atomic — any partial-state failure rolls back all side-effects | draft | CAP-TBD | S-6.01 |
 
 ### SS-07 — Hook Bash Layer (BC-7)
 

@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0.0-beta.5 SHIPPED. ADR backlog COMPLETE (13/13). Next: create-adr skill story (beta.6 candidate) + Phase 2 story decomposition prep."
+current_step: "Spec touchpoints complete for S-6.01 (12 BCs, 3 VPs, FR-041, E-6 epic). Resume TDD with real BC IDs in test names."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 |
+| **Last Updated** | 2026-04-26 (S-6.01 spec backfill) |
 | **Current Phase** | post-beta-5-shipped |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -51,14 +51,14 @@ dtu_services: []
 
 | Phase | Status | Artifact |
 |-------|--------|----------|
-| Phase 0 — Brownfield Ingest | COMPLETE | 1,851 BCs in pass-3-* + pass-8-final-synthesis.md |
+| Phase 0 — Brownfield Ingest | COMPLETE | 1,863 BCs in pass-3-* + pass-8-final-synthesis.md |
 | Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
-| Phase 1.4 — BC Migration | COMPLETE | 1,851 BC-S.SS.NNN files in 10 ss-NN/ shards + BC-INDEX.md |
-| Phase 1.5 — Formal PRD | COMPLETE | 40 FRs, 76 NFRs, 100% BC traceability |
+| Phase 1.4 — BC Migration | COMPLETE | 1,863 BC-S.SS.NNN files in 10 ss-NN/ shards + BC-INDEX.md |
+| Phase 1.5 — Formal PRD | COMPLETE | 41 FRs (FR-041 added for S-6.01), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
-| Phase 1.6b — Verification Properties | COMPLETE | 57 VPs (all draft, VP-001..VP-057) |
+| Phase 1.6b — Verification Properties | COMPLETE | 60 VPs (all draft, VP-001..VP-060; +3 for S-6.01) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
 | Phase 1d — Adversarial Spec Review | COMPLETE | 6 passes, converged at pass 6 (3 consecutive NITPICK: passes 4-5-6) |
@@ -72,15 +72,16 @@ dtu_services: []
 | Phase 1d convergence commit | state-manager | complete | factory-artifacts updated |
 | Release v1.0.0-beta.5 | release-agent | complete | PR #5 merged; tag v1.0.0-beta.5 at 0a95c8c; cache refreshed |
 | ADR backlog (10 deferred) | architect | complete | ADR-004..013 written; commit c50bb0f on factory-artifacts |
-| Next: create-adr skill story | story-writer | pending | S-N.MM-create-adr-skill.md |
+| S-6.01 story scaffold | story-writer | complete | S-6.01-create-adr-skill.md; E-6 epic created |
+| Phase 1.5 — PRD update FR-041 + 12 BCs + 3 VPs for S-6.01 | state-manager | complete | BC-6.20.001..012 + VP-058..060 + BC-INDEX/VP-INDEX/ARCH-INDEX updated |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,851 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 57 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,863 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 60 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
@@ -97,12 +98,12 @@ dtu_services: []
 | SS-03 | Observability Sinks | BC-3 | 49 |
 | SS-04 | Plugin Ecosystem | BC-4 | 13 |
 | SS-05 | Pipeline Orchestration | BC-5 | 627 |
-| SS-06 | Skill Catalog | BC-6 | 571 |
+| SS-06 | Skill Catalog | BC-6 | 583 |
 | SS-07 | Hook Bash Layer | BC-7 | 192 |
 | SS-08 | Templates and Rules | BC-8 | 215 |
 | SS-09 | Configuration and Activation | BC-9 | 5 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
-| **Total** | | | **1,851** |
+| **Total** | | | **1,863** |
 
 ## Story Status (41 total)
 
@@ -143,6 +144,7 @@ dtu_services: []
 | D-003 | DTU not required | All external services are HTTP APIs with stable public contracts; no clone needed | 1.6a | 2026-04-25 | architect |
 | D-004 | v1.0.0-beta.5 release scope | ADR template + identifier canonicalization phase 1 shipped; phase 2 (test fixtures, workflows, agents) deferred to beta.6 | release | 2026-04-26 | orchestrator |
 | D-005 | Add create-adr skill to v1.0.x roadmap | ADR is the only major artifact without a dedicated authoring skill (compare create-prd, create-story, create-architecture, create-domain-spec); 10-ADR backfill exposed pain points (manual ID allocation, ARCH-INDEX drift, no supersession patcher) | post-1.1 | 2026-04-26 | orchestrator + user |
+| D-006 | Spec-first authoring discipline restored after S-6.01 gap caught | Story scaffolded without BCs initially; user caught the gap; full upstream artifacts (BCs/VPs/FR/epic) backfilled before TDD continued | 1.5 | 2026-04-26 | orchestrator + user |
 
 ## Skip Log
 
