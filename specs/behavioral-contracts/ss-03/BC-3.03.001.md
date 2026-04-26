@@ -26,7 +26,7 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-3.03.001: Batch trigger thresholds are independent — `size` (default 100) AND `interval_ms` (default 5000
+# Behavioral Contract BC-3.03.001: Batch trigger thresholds are independent — `size` (default 100) AND `interval_ms` (default 5000ms) — either trigger fires a flush
 
 > Section: OTLP gRPC sink batching and lifecycle
 > Source BC (audit ID): BC-AUDIT-137
@@ -41,7 +41,9 @@ Two independent triggers:
 
 ## Postconditions
 
-1. Two independent triggers:
+1. Size threshold reached → flush triggered (size >= 100 records)
+2. Time threshold reached → flush triggered (elapsed >= 5000ms)
+3. Either trigger is independent — flush fires on whichever fires first
 
 ## Invariants
 

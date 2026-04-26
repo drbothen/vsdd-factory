@@ -27,7 +27,7 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-5.30.001: feature-vsdd: identity
+# Behavioral Contract BC-5.30.001: feature.lobster declares 82 steps across 3 routing tracks (quick-dev, fix-pr, full-feature) with no DAG cycles
 
 ## Description
 
@@ -39,7 +39,10 @@ v3.0.0. Incremental development pipeline scoping work to delta (changed/new code
 
 ## Postconditions
 
-1. v3.0.0.
+1. feature.lobster file parses as valid lobster YAML (validate-workflow.sh exits 0)
+2. Step count = 82 (verifiable via lobster-parse)
+3. 3 routing tracks present: quick-dev, fix-pr, full-feature
+4. depends_on graph is acyclic (lobster-parse topological sort succeeds)
 
 ## Invariants
 

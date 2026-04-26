@@ -9,7 +9,7 @@ phase: 1.4b
 inputs:
   - .factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-input-hash: "TBD"
+input-hash: "f63eb74"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md#L1177"
@@ -76,7 +76,7 @@ deliver-story: skill identity (dispatcher, not implementer). Skill is a DISPATCH
 |-------|-------|
 | L2 Capability | TBD |
 | L2 Domain Invariants | TBD |
-| Architecture Module | plugins/vsdd-factory/skills/deliver-story/SKILL.md |
+| Architecture Module | SS-06 (Skill Catalog) — plugins/vsdd-factory/skills/deliver-story/SKILL.md |
 | Stories | TBD |
 
 ## Related BCs (Recommended)

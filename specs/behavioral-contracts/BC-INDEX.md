@@ -1647,221 +1647,221 @@ traces_to: bc-id-mapping.md
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
-| [BC-8.01.001](ss-08/BC-8.01.001.md) | product-brief-template: governs L1 Product Brief artifact identity | draft |  | TBD |
-| [BC-8.01.002](ss-08/BC-8.01.002.md) | product-brief-template: required frontmatter fields | draft |  | TBD |
-| [BC-8.01.003](ss-08/BC-8.01.003.md) | product-brief-template: required sections | draft |  | TBD |
-| [BC-8.01.004](ss-08/BC-8.01.004.md) | L2-domain-spec-template: deprecated monolithic L2 template kept for reference | draft |  | TBD |
-| [BC-8.01.005](ss-08/BC-8.01.005.md) | L2-domain-spec-template: required sections (legacy 10-section schema) | draft |  | TBD |
-| [BC-8.01.006](ss-08/BC-8.01.006.md) | L2-domain-spec-index-template: sharded L2 index identity | draft |  | TBD |
-| [BC-8.01.007](ss-08/BC-8.01.007.md) | L2-domain-spec-index-template: required sections | draft |  | TBD |
-| [BC-8.01.008](ss-08/BC-8.01.008.md) | L2-domain-spec-section-template: minimal per-section shard | draft |  | TBD |
-| [BC-8.01.009](ss-08/BC-8.01.009.md) | prd-template: governs L3 PRD identity | draft |  | TBD |
-| [BC-8.01.010](ss-08/BC-8.01.010.md) | prd-template: required sections (1 through 7) | draft |  | TBD |
-| [BC-8.01.011](ss-08/BC-8.01.011.md) | prd-supplement-error-taxonomy-template: PRD error-taxonomy supplement | draft |  | TBD |
-| [BC-8.01.012](ss-08/BC-8.01.012.md) | prd-supplement-interface-definitions-template: PRD CLI/JSON/Config supplement | draft |  | TBD |
-| [BC-8.01.013](ss-08/BC-8.01.013.md) | prd-supplement-nfr-catalog-template: PRD non-functional requirements supplement | draft |  | TBD |
-| [BC-8.01.014](ss-08/BC-8.01.014.md) | prd-supplement-test-vectors-template: canonical test vectors supplement | draft |  | TBD |
-| [BC-8.01.015](ss-08/BC-8.01.015.md) | behavioral-contract-template: per-BC structural contract | draft |  | TBD |
-| [BC-8.01.016](ss-08/BC-8.01.016.md) | behavioral-contract-template: optional anchor sections | draft |  | TBD |
-| [BC-8.01.017](ss-08/BC-8.01.017.md) | L4-verification-property-template: VP-NNN identity + lifecycle | draft |  | TBD |
-| [BC-8.02.001](ss-08/BC-8.02.001.md) | story-template: governs STORY-NNN identity | draft |  | TBD |
-| [BC-8.02.002](ss-08/BC-8.02.002.md) | story-template: required sections (10 mandatory) | draft |  | TBD |
-| [BC-8.02.003](ss-08/BC-8.02.003.md) | story-template: optional planning + ASM/R + lifecycle frontmatter blocks | draft |  | TBD |
-| [BC-8.02.004](ss-08/BC-8.02.004.md) | story-index-template: STORY-INDEX identity | draft |  | TBD |
-| [BC-8.02.005](ss-08/BC-8.02.005.md) | epic-template: EPIC-XXX identity | draft |  | TBD |
-| [BC-8.02.006](ss-08/BC-8.02.006.md) | epic-index-template: EPIC-INDEX identity + epic-to-capability mapping | draft |  | TBD |
-| [BC-8.02.007](ss-08/BC-8.02.007.md) | cycle-manifest-template: per-cycle manifest identity | draft |  | TBD |
-| [BC-8.03.001](ss-08/BC-8.03.001.md) | architecture-template: governs L3 architecture document identity | draft |  | TBD |
-| [BC-8.03.002](ss-08/BC-8.03.002.md) | architecture-template: Part 1 sections (1–9, system + data + integration) | draft |  | TBD |
-| [BC-8.03.003](ss-08/BC-8.03.003.md) | architecture-template: Part 2 verification architecture (10–14) | draft |  | TBD |
-| [BC-8.03.004](ss-08/BC-8.03.004.md) | architecture-template: Part 3 module specifications (15) | draft |  | TBD |
-| [BC-8.03.005](ss-08/BC-8.03.005.md) | architecture-index-template: ARCH-INDEX governs sharded architecture index | draft |  | TBD |
-| [BC-8.03.006](ss-08/BC-8.03.006.md) | architecture-section-template: per-section ARCH-NN shard | draft |  | TBD |
-| [BC-8.03.007](ss-08/BC-8.03.007.md) | architecture-feasibility-report-template: pre-architecture feasibility check | draft |  | TBD |
-| [BC-8.03.008](ss-08/BC-8.03.008.md) | verification-architecture-template: verification-arch shard | draft |  | TBD |
-| [BC-8.03.009](ss-08/BC-8.03.009.md) | verification-coverage-matrix-template: coverage matrix shard | draft |  | TBD |
-| [BC-8.03.010](ss-08/BC-8.03.010.md) | verification-gap-analysis-template: brownfield verification gap report | draft |  | TBD |
-| [BC-8.03.011](ss-08/BC-8.03.011.md) | recovered-architecture-template: brownfield recovered architecture | draft |  | TBD |
-| [BC-8.04.001](ss-08/BC-8.04.001.md) | adversarial-review-template: per-pass adversarial review identity | draft |  | TBD |
-| [BC-8.04.002](ss-08/BC-8.04.002.md) | adversarial-review-index-template: per-pass index of findings | draft |  | TBD |
-| [BC-8.04.003](ss-08/BC-8.04.003.md) | adversarial-finding-template: per-finding ADV-N identity | draft |  | TBD |
-| [BC-8.04.004](ss-08/BC-8.04.004.md) | findings-tracker-template: cycle-level findings tracker | draft |  | TBD |
-| [BC-8.04.005](ss-08/BC-8.04.005.md) | fix-template: per-fix FIX-P[N]-NNN identity | draft |  | TBD |
-| [BC-8.04.006](ss-08/BC-8.04.006.md) | convergence-trajectory-template: pass-by-pass finding trajectory | draft |  | TBD |
-| [BC-8.04.007](ss-08/BC-8.04.007.md) | review-findings-template: PR-review findings per story | draft |  | TBD |
-| [BC-8.04.008](ss-08/BC-8.04.008.md) | code-review-template: code-reviewer per-pass output | draft |  | TBD |
-| [BC-8.04.009](ss-08/BC-8.04.009.md) | agent-file-review-template: agent persona doc review | draft |  | TBD |
-| [BC-8.04.010](ss-08/BC-8.04.010.md) | adversary-prompt-templates: subdir governs phase-specific adversary prompt scaffolds | draft |  | TBD |
-| [BC-8.04.011](ss-08/BC-8.04.011.md) | adversary-prompt-templates: required Review Focus + Not-Reviewing sections | draft |  | TBD |
-| [BC-8.04.012](ss-08/BC-8.04.012.md) | adversary-prompt-templates: previous-findings handlebars template | draft |  | TBD |
-| [BC-8.05.001](ss-08/BC-8.05.001.md) | holdout-scenario-template: HS-NNN scenario identity | draft |  | TBD |
-| [BC-8.05.002](ss-08/BC-8.05.002.md) | holdout-scenario-index-template: HS-INDEX scenario catalog | draft |  | TBD |
-| [BC-8.05.003](ss-08/BC-8.05.003.md) | evaluation-per-scenario-template: HS-NNN per-scenario evaluation | draft |  | TBD |
-| [BC-8.05.004](ss-08/BC-8.05.004.md) | evaluation-index-template: per-pass holdout evaluation index | draft |  | TBD |
-| [BC-8.05.005](ss-08/BC-8.05.005.md) | evaluation-summary-template: holdout evaluation final summary | draft |  | TBD |
-| [BC-8.05.006](ss-08/BC-8.05.006.md) | holdout-evaluation-report-template: cycle-level holdout report | draft |  | TBD |
-| [BC-8.06.001](ss-08/BC-8.06.001.md) | convergence-report-template: 7-dimension pipeline convergence scorecard | draft |  | TBD |
-| [BC-8.06.002](ss-08/BC-8.06.002.md) | convergence-report-template: 7 named dimensions | draft |  | TBD |
-| [BC-8.06.003](ss-08/BC-8.06.003.md) | consistency-report-template: 10-section L1→L4 consistency validation | draft |  | TBD |
-| [BC-8.06.004](ss-08/BC-8.06.004.md) | consistency-validation-report-template: minimal consistency-validation gate output | draft |  | TBD |
-| [BC-8.06.005](ss-08/BC-8.06.005.md) | traceability-matrix-template: forward + reverse L1→Proof traceability | draft |  | TBD |
-| [BC-8.06.006](ss-08/BC-8.06.006.md) | traceability-matrices-template: multi-axis traceability collection (BC/VP/NFR/clause/edge/gap) | draft |  | TBD |
-| [BC-8.07.001](ss-08/BC-8.07.001.md) | project-context-template: brownfield project context summary | draft |  | TBD |
-| [BC-8.07.002](ss-08/BC-8.07.002.md) | conventions-template: brownfield conventions extraction | draft |  | TBD |
-| [BC-8.07.003](ss-08/BC-8.07.003.md) | extraction-validation-template: brownfield extraction validation | draft |  | TBD |
-| [BC-8.07.004](ss-08/BC-8.07.004.md) | gene-transfusion-assessment-template: brownfield gene-transfusion candidate assessment | draft |  | TBD |
-| [BC-8.07.005](ss-08/BC-8.07.005.md) | domain-research-template: L2 domain-research report | draft |  | TBD |
-| [BC-8.07.006](ss-08/BC-8.07.006.md) | research-index-template: per-cycle research index | draft |  | TBD |
-| [BC-8.07.007](ss-08/BC-8.07.007.md) | discovery-report-template: discovery-engine periodic report | draft |  | TBD |
-| [BC-8.07.008](ss-08/BC-8.07.008.md) | idea-brief-template: pre-brief idea capture | draft |  | TBD |
-| [BC-8.07.009](ss-08/BC-8.07.009.md) | feature-request-template: feature-mode FR-NNN identity | draft |  | TBD |
-| [BC-8.07.010](ss-08/BC-8.07.010.md) | delta-analysis-report-template: feature-mode delta analysis | draft |  | TBD |
-| [BC-8.08.001](ss-08/BC-8.08.001.md) | demo-evidence-report-template: per-product demo evidence rollup | draft |  | TBD |
-| [BC-8.08.002](ss-08/BC-8.08.002.md) | demo-tape-template: VHS .tape demo recording template | draft |  | TBD |
-| [BC-8.08.003](ss-08/BC-8.08.003.md) | demo-playwright-template: Playwright per-AC video+screenshot demo | draft |  | TBD |
-| [BC-8.08.004](ss-08/BC-8.08.004.md) | demo-ci-workflow-template: GitHub Actions demo-generation workflow | draft |  | TBD |
-| [BC-8.09.001](ss-08/BC-8.09.001.md) | formal-verification-template: formal-verify pass output | draft |  | TBD |
-| [BC-8.09.002](ss-08/BC-8.09.002.md) | fuzz-report-template: fuzz testing per-target report | draft |  | TBD |
-| [BC-8.09.003](ss-08/BC-8.09.003.md) | performance-report-template: perf-check pass output | draft |  | TBD |
-| [BC-8.09.004](ss-08/BC-8.09.004.md) | security-review-template: security-review per-pass output | draft |  | TBD |
-| [BC-8.09.005](ss-08/BC-8.09.005.md) | security-scan-report-template: static-analysis security scan | draft |  | TBD |
-| [BC-8.10.001](ss-08/BC-8.10.001.md) | dtu-assessment-template: DTU assessment for SUT | draft |  | TBD |
-| [BC-8.10.002](ss-08/BC-8.10.002.md) | dtu-clone-spec-template: per-service DTU clone specification | draft |  | TBD |
-| [BC-8.10.003](ss-08/BC-8.10.003.md) | dtu-fidelity-report-template: DTU clone fidelity report | draft |  | TBD |
-| [BC-8.11.001](ss-08/BC-8.11.001.md) | ux-spec-template: deprecated monolithic UX spec | draft |  | TBD |
-| [BC-8.11.002](ss-08/BC-8.11.002.md) | ux-spec-index-template: sharded UX-spec index | draft |  | TBD |
-| [BC-8.11.003](ss-08/BC-8.11.003.md) | ux-spec-screen-template: per-screen SCR-NNN spec | draft |  | TBD |
-| [BC-8.11.004](ss-08/BC-8.11.004.md) | ux-spec-flow-template: per-flow FLOW-NNN spec | draft |  | TBD |
-| [BC-8.12.001](ss-08/BC-8.12.001.md) | design-system/: subdir governs design-token + component-contract + pattern catalog | draft |  | TBD |
-| [BC-8.12.002](ss-08/BC-8.12.002.md) | design-system/constraints.yaml: global UI generation rules | draft |  | TBD |
-| [BC-8.12.003](ss-08/BC-8.12.003.md) | design-system/tokens/: 7 token JSON catalogs | draft |  | TBD |
-| [BC-8.12.004](ss-08/BC-8.12.004.md) | design-system/components/: registry + 11 component contracts | draft |  | TBD |
-| [BC-8.12.005](ss-08/BC-8.12.005.md) | design-system/patterns/: 3 cross-component pattern catalogs | draft |  | TBD |
-| [BC-8.12.006](ss-08/BC-8.12.006.md) | ui-quality/: subdir governs UI quality gate + report templates | draft |  | TBD |
-| [BC-8.12.007](ss-08/BC-8.12.007.md) | ui-quality/gate-report-template: 4-gate-level UI quality gate | draft |  | TBD |
-| [BC-8.12.008](ss-08/BC-8.12.008.md) | ui-quality/heuristic-evaluation-template: 10-heuristic UX evaluation | draft |  | TBD |
-| [BC-8.12.009](ss-08/BC-8.12.009.md) | ui-quality/responsive-report-template: 4-breakpoint responsive validation | draft |  | TBD |
-| [BC-8.12.010](ss-08/BC-8.12.010.md) | ui-quality/completeness-report-template: UI completeness fidelity report | draft |  | TBD |
-| [BC-8.12.011](ss-08/BC-8.12.011.md) | ui-traceability-template: UI element → story → component → test → visual evidence matrix | draft |  | TBD |
-| [BC-8.13.001](ss-08/BC-8.13.001.md) | spec-changelog-template: spec-versioning changelog | draft |  | TBD |
-| [BC-8.13.002](ss-08/BC-8.13.002.md) | spec-drift-report-template: spec-drift report | draft |  | TBD |
-| [BC-8.13.003](ss-08/BC-8.13.003.md) | vp-withdrawal-template: green-VP retirement record | draft |  | TBD |
-| [BC-8.13.004](ss-08/BC-8.13.004.md) | design-drift-template: design-drift detection report | draft |  | TBD |
-| [BC-8.14.001](ss-08/BC-8.14.001.md) | state-template: STATE.md pipeline-state identity | draft |  | TBD |
-| [BC-8.14.002](ss-08/BC-8.14.002.md) | state-manager-checklist-template: wave-gate remediation-burst checklist | draft |  | TBD |
-| [BC-8.14.003](ss-08/BC-8.14.003.md) | burst-log-template: state-burst log | draft |  | TBD |
-| [BC-8.14.004](ss-08/BC-8.14.004.md) | session-checkpoints-template: cycle session resume checkpoints | draft |  | TBD |
-| [BC-8.14.005](ss-08/BC-8.14.005.md) | session-review-template: post-cycle session review | draft |  | TBD |
-| [BC-8.14.006](ss-08/BC-8.14.006.md) | lessons-template: cycle lessons-learned | draft |  | TBD |
-| [BC-8.14.007](ss-08/BC-8.14.007.md) | blocking-issues-resolved-template: cycle blockers-resolved log | draft |  | TBD |
-| [BC-8.14.008](ss-08/BC-8.14.008.md) | wave-schedule-template: per-cycle wave schedule | draft |  | TBD |
-| [BC-8.14.009](ss-08/BC-8.14.009.md) | wave-state-template: wave-state.yaml lifecycle tracker schema | draft |  | TBD |
-| [BC-8.14.010](ss-08/BC-8.14.010.md) | red-gate-log-template: TDD red-gate verification log | draft |  | TBD |
-| [BC-8.15.001](ss-08/BC-8.15.001.md) | pr-description-template: per-story PR description | draft |  | TBD |
-| [BC-8.15.002](ss-08/BC-8.15.002.md) | release-notes-template: per-version release notes | draft |  | TBD |
-| [BC-8.16.001](ss-08/BC-8.16.001.md) | autonomy-config-template: budget + protected-agents schema | draft |  | TBD |
-| [BC-8.16.002](ss-08/BC-8.16.002.md) | merge-config-template: code-delivery autonomy + branch + PR config | draft |  | TBD |
-| [BC-8.16.003](ss-08/BC-8.16.003.md) | policies-template: declarative governance policy registry schema | draft |  | TBD |
-| [BC-8.16.004](ss-08/BC-8.16.004.md) | discovery-config-template: discovery-engine ingestion config | draft |  | TBD |
-| [BC-8.16.005](ss-08/BC-8.16.005.md) | project-manifest-template: multi-repo project.yaml schema | draft |  | TBD |
-| [BC-8.16.006](ss-08/BC-8.16.006.md) | reference-manifest-template: .reference/ rebuild manifest | draft |  | TBD |
-| [BC-8.16.007](ss-08/BC-8.16.007.md) | factory-project-state-template: multi-repo project-level STATE.md | draft |  | TBD |
-| [BC-8.16.008](ss-08/BC-8.16.008.md) | factory-project-structure-template: .factory-project/ multi-repo directory structure | draft |  | TBD |
-| [BC-8.16.009](ss-08/BC-8.16.009.md) | tech-debt-register-template: project tech-debt register | draft |  | TBD |
-| [BC-8.16.010](ss-08/BC-8.16.010.md) | sweep-report-template: maintenance sweep report | draft |  | TBD |
-| [BC-8.16.011](ss-08/BC-8.16.011.md) | project-justfile-template: per-project justfile bootstrap | draft |  | TBD |
-| [BC-8.16.012](ss-08/BC-8.16.012.md) | implementation-readiness-template: pre-implementation readiness gate | draft |  | TBD |
-| [BC-8.16.013](ss-08/BC-8.16.013.md) | brief-validation-template: brief-quality gate report | draft |  | TBD |
-| [BC-8.16.014](ss-08/BC-8.16.014.md) | module-criticality-template: module criticality classification | draft |  | TBD |
-| [BC-8.17.001](ss-08/BC-8.17.001.md) | skill-execution-template: SKILL.md (execution variant) shape | draft |  | TBD |
-| [BC-8.17.002](ss-08/BC-8.17.002.md) | skill-delegation-template: SKILL.md (delegation variant) shape | draft |  | TBD |
-| [BC-8.17.003](ss-08/BC-8.17.003.md) | agents-md-template: AGENTS.md shape | draft |  | TBD |
-| [BC-8.18.001](ss-08/BC-8.18.001.md) | verify-sha-currency.sh: state-manager burst-hygiene gate (template-distributed; opt-in, NOT registered as a vsdd-factory hook) | draft |  | TBD |
-| [BC-8.19.001](ss-08/BC-8.19.001.md) | rules/_index.md: rule include-order via @-references | draft |  | TBD |
-| [BC-8.20.001](ss-08/BC-8.20.001.md) | rules/bash.md: SHALL NOT suppress stderr with `2>/dev/null` in production scripts | draft |  | TBD |
-| [BC-8.20.002](ss-08/BC-8.20.002.md) | rules/bash.md: SHALL NOT use `eval` in shell helpers | draft |  | TBD |
-| [BC-8.20.003](ss-08/BC-8.20.003.md) | rules/bash.md: justfile recipes MUST guard optional tools with `command -v` check | draft |  | TBD |
-| [BC-8.20.004](ss-08/BC-8.20.004.md) | rules/bash.md: test files MUST verify tool dependencies at the top before any assertions | draft |  | TBD |
-| [BC-8.20.005](ss-08/BC-8.20.005.md) | rules/bash.md: negative assertions MUST verify the search tool ran successfully | draft |  | TBD |
-| [BC-8.20.006](ss-08/BC-8.20.006.md) | rules/bash.md: literal-string matching SHALL use `grep -F` | draft |  | TBD |
-| [BC-8.20.007](ss-08/BC-8.20.007.md) | rules/bash.md: test headers SHALL state accurate test counts | draft |  | TBD |
-| [BC-8.20.008](ss-08/BC-8.20.008.md) | rules/bash.md: file-path references SHALL be validated by structural tests | draft |  | TBD |
-| [BC-8.20.009](ss-08/BC-8.20.009.md) | rules/bash.md: every `2>/dev/null` MUST carry a `# STDERR-EXEMPT: <rationale>` tag | draft |  | TBD |
-| [BC-8.20.010](ss-08/BC-8.20.010.md) | rules/bash.md: `just ci` MUST run the same commands as `.github/workflows/ci.yml` | draft |  | TBD |
-| [BC-8.21.001](ss-08/BC-8.21.001.md) | rules/factory-protocol.md: `.factory/` is a git worktree on the orphan `factory-artifacts` branch | draft |  | TBD |
-| [BC-8.21.002](ss-08/BC-8.21.002.md) | rules/factory-protocol.md: `.factory/` directory layout (canonical 8-section structure) | draft |  | TBD |
-| [BC-8.21.003](ss-08/BC-8.21.003.md) | rules/factory-protocol.md: all `.factory/` changes commit to `factory-artifacts`, NOT main/develop | draft |  | TBD |
-| [BC-8.21.004](ss-08/BC-8.21.004.md) | rules/factory-protocol.md: file lifecycle classification (Living / Accumulating / Cycle-scoped / Critical) | draft |  | TBD |
-| [BC-8.21.005](ss-08/BC-8.21.005.md) | rules/factory-protocol.md: NEVER put target project source code in `.factory/` | draft |  | TBD |
-| [BC-8.21.006](ss-08/BC-8.21.006.md) | rules/factory-protocol.md: NEVER modify `.factory/` files from main/develop branch | draft |  | TBD |
-| [BC-8.21.007](ss-08/BC-8.21.007.md) | rules/factory-protocol.md: STATE.md is the single source of truth for pipeline progress | draft |  | TBD |
-| [BC-8.21.008](ss-08/BC-8.21.008.md) | rules/factory-protocol.md: specs are the product, code is disposable (SOUL.md #3 reified) | draft |  | TBD |
-| [BC-8.22.001](ss-08/BC-8.22.001.md) | rules/git-commits.md: all commits MUST follow Conventional Commits | draft |  | TBD |
-| [BC-8.22.002](ss-08/BC-8.22.002.md) | rules/git-commits.md: commit type SHALL be one of 10 known values (feat/fix/docs/style/refactor/perf/test/build/ci/chore) | draft |  | TBD |
-| [BC-8.22.003](ss-08/BC-8.22.003.md) | rules/git-commits.md: description uses imperative present tense, lowercase initial, no period | draft |  | TBD |
-| [BC-8.22.004](ss-08/BC-8.22.004.md) | rules/git-commits.md: scope (optional) is parenthesized after type — `feat(api):` | draft |  | TBD |
-| [BC-8.22.005](ss-08/BC-8.22.005.md) | rules/git-commits.md: body separated from description with blank line; explains motivation + previous behavior contrast | draft |  | TBD |
-| [BC-8.22.006](ss-08/BC-8.22.006.md) | rules/git-commits.md: footers — `Refs:`, `Closes:`, `BREAKING CHANGE:` | draft |  | TBD |
-| [BC-8.22.007](ss-08/BC-8.22.007.md) | rules/git-commits.md: breaking changes — `!` after type/scope OR `BREAKING CHANGE:` footer | draft |  | TBD |
-| [BC-8.22.008](ss-08/BC-8.22.008.md) | rules/git-commits.md: NEVER include AI attribution in commit messages | draft |  | TBD |
-| [BC-8.22.009](ss-08/BC-8.22.009.md) | rules/git-commits.md: NEVER use `gh pr merge --admin` without explicit per-merge user permission | draft |  | TBD |
-| [BC-8.23.001](ss-08/BC-8.23.001.md) | rules/rust.md: every application crate MUST declare `#![forbid(unsafe_code)]` | draft |  | TBD |
-| [BC-8.23.002](ss-08/BC-8.23.002.md) | rules/rust.md: NO `unwrap()` in production code — use `?` or `expect("actionable msg")` | draft |  | TBD |
-| [BC-8.23.003](ss-08/BC-8.23.003.md) | rules/rust.md: NEVER block the async runtime — use `spawn_blocking` for CPU work, `tokio::time::sleep` for delays | draft |  | TBD |
-| [BC-8.23.004](ss-08/BC-8.23.004.md) | rules/rust.md: type design — newtypes for IDs, validated constructors at trust boundaries, `#[non_exhaustive]` on growing enums, UUID v7 for time-ordered IDs | draft |  | TBD |
-| [BC-8.23.005](ss-08/BC-8.23.005.md) | rules/rust.md: error handling — thiserror enums, per-crate `pub type Result<T>`, sanitize `Display` before client send | draft |  | TBD |
-| [BC-8.23.006](ss-08/BC-8.23.006.md) | rules/rust.md: module structure — `lib.rs` is pure re-export barrel; impl in domain modules | draft |  | TBD |
-| [BC-8.23.007](ss-08/BC-8.23.007.md) | rules/rust.md: dependencies declared at workspace level; Edition 2024, MSRV 1.85+; clippy warnings are errors | draft |  | TBD |
-| [BC-8.23.008](ss-08/BC-8.23.008.md) | rules/rust.md: testing — unit/`#[cfg(test)]` in same file, integration in `tests/`, property in `tests/property_*.rs`, snapshot in `tests/snapshot_*.rs` | draft |  | TBD |
-| [BC-8.23.009](ss-08/BC-8.23.009.md) | rules/rust.md: architecture — strictly acyclic dependency graph; no circular deps between crates | draft |  | TBD |
-| [BC-8.24.001](ss-08/BC-8.24.001.md) | rules/spec-format.md: 4-level spec hierarchy (L1 brief / L2 domain / L3 BC / L4 VP) | draft |  | TBD |
-| [BC-8.24.002](ss-08/BC-8.24.002.md) | rules/spec-format.md: BC numbering — `BC-S.SS.NNN` (S=subsystem, SS=section, NNN=contract) | draft |  | TBD |
-| [BC-8.24.003](ss-08/BC-8.24.003.md) | rules/spec-format.md: BC file format SHALL contain Subsystem/Section/Contract/Preconditions/Postconditions/Error Cases/Verification/Traceability sections | draft |  | TBD |
-| [BC-8.24.004](ss-08/BC-8.24.004.md) | rules/spec-format.md: BC-INDEX.md format — table with ID/Title/Subsystem/Status/Stories columns | draft |  | TBD |
-| [BC-8.24.005](ss-08/BC-8.24.005.md) | rules/spec-format.md: VP numbering — sequential `VP-NNN` | draft |  | TBD |
-| [BC-8.24.006](ss-08/BC-8.24.006.md) | rules/spec-format.md: VP file format SHALL contain Property/Type/Scope/Verification Method/Status/Traceability sections | draft |  | TBD |
-| [BC-8.24.007](ss-08/BC-8.24.007.md) | rules/spec-format.md: green VPs are IMMUTABLE — modification requires new VP supersedes old | draft |  | TBD |
-| [BC-8.24.008](ss-08/BC-8.24.008.md) | rules/spec-format.md: architecture is sharded into ARCH-NN sections, NOT a monolith | draft |  | TBD |
-| [BC-8.24.009](ss-08/BC-8.24.009.md) | rules/spec-format.md: ARCH-NN section template — Overview/Decisions/Components/Data Flow/Constraints/Dependencies | draft |  | TBD |
-| [BC-8.24.010](ss-08/BC-8.24.010.md) | rules/spec-format.md: PRD supplements live in `.factory/specs/prd-supplements/` (5 named files) | draft |  | TBD |
-| [BC-8.24.011](ss-08/BC-8.24.011.md) | rules/spec-format.md: STORY-NNN file format — Epic/Description/AC/BCs/VPs/Tasks/Strategy/Dependencies/Wave | draft |  | TBD |
-| [BC-8.24.012](ss-08/BC-8.24.012.md) | rules/spec-format.md: BC retirement requires updating ALL 5 artifacts in same burst | draft |  | TBD |
-| [BC-8.25.001](ss-08/BC-8.25.001.md) | rules/step-decomposition.md: VSDD pipeline has 8 phases numbered 0–7 | draft |  | TBD |
-| [BC-8.25.002](ss-08/BC-8.25.002.md) | rules/step-decomposition.md: phase numbers are sequential integers; no fractional phases ("3.5") | draft |  | TBD |
-| [BC-8.25.003](ss-08/BC-8.25.003.md) | rules/step-decomposition.md: every phase has exactly two skill entry points (work skill + phase entry-point skill) | draft |  | TBD |
-| [BC-8.25.004](ss-08/BC-8.25.004.md) | rules/step-decomposition.md: 4-layer orchestration architecture (lobster → phase entry-point skill → phase sub-workflow → step files) | draft |  | TBD |
-| [BC-8.25.005](ss-08/BC-8.25.005.md) | rules/step-decomposition.md: step IDs are LOWERCASE ALPHABETIC ONLY — `step-a-`, `step-b-`, `step-c-` | draft |  | TBD |
-| [BC-8.25.006](ss-08/BC-8.25.006.md) | rules/step-decomposition.md: step file structure includes `_shared-context.md` + per-step files | draft |  | TBD |
-| [BC-8.25.007](ss-08/BC-8.25.007.md) | rules/step-decomposition.md: lobster step `name:` MUST match the step file ID (without `step-` prefix) | draft |  | TBD |
-| [BC-8.25.008](ss-08/BC-8.25.008.md) | rules/step-decomposition.md: `_shared-context.md` holds constraints applying to ALL steps in the phase | draft |  | TBD |
-| [BC-8.25.009](ss-08/BC-8.25.009.md) | rules/step-decomposition.md: content completeness — no content loss on decomposition | draft |  | TBD |
-| [BC-8.25.010](ss-08/BC-8.25.010.md) | rules/step-decomposition.md: phase sub-workflow lobster pattern — step + state-manager backup + phase gate + input-hash drift check + human-approval | draft |  | TBD |
-| [BC-8.25.011](ss-08/BC-8.25.011.md) | rules/step-decomposition.md: forbidden practices (no fractional phases / numeric step IDs / sub-step numbering / parent gutting / "see parent" deferrals / wired-less step files / shared-context skip) | draft |  | TBD |
-| [BC-8.25.012](ss-08/BC-8.25.012.md) | rules/step-decomposition.md: verification — lobster-parse + path resolution + content completeness + bats + phase-number consistency + grep for old phase numbers | draft |  | TBD |
-| [BC-8.26.001](ss-08/BC-8.26.001.md) | rules/story-completeness.md: 14-check audit before marking a story ready for implementation | draft |  | TBD |
-| [BC-8.26.002](ss-08/BC-8.26.002.md) | rules/story-completeness.md: check 1 — source-of-truth alignment (line-by-line vs architecture docs) | draft |  | TBD |
-| [BC-8.26.003](ss-08/BC-8.26.003.md) | rules/story-completeness.md: check 2 — every file in project structure has Deliverable section OR implementation Task | draft |  | TBD |
-| [BC-8.26.004](ss-08/BC-8.26.004.md) | rules/story-completeness.md: check 3 — technical gotchas documented in Dev Notes (API quirks, version-specific behavior, platform diffs) | draft |  | TBD |
-| [BC-8.26.005](ss-08/BC-8.26.005.md) | rules/story-completeness.md: check 4 — CI/CD workflows complete (workflow YAML deliverables, secrets/branch-protection prerequisites) | draft |  | TBD |
-| [BC-8.26.006](ss-08/BC-8.26.006.md) | rules/story-completeness.md: check 5 — README/user-facing-docs deliverable covers what-it-is/install/quickstart/config/CLI/exit-codes/integration/license | draft |  | TBD |
-| [BC-8.26.007](ss-08/BC-8.26.007.md) | rules/story-completeness.md: check 6 — hosting/infra decisions explicit (org/repo/visibility/branch-strategy/protection/secrets) | draft |  | TBD |
-| [BC-8.26.008](ss-08/BC-8.26.008.md) | rules/story-completeness.md: check 7 — license stated explicitly + consistent across 5 surfaces | draft |  | TBD |
-| [BC-8.26.009](ss-08/BC-8.26.009.md) | rules/story-completeness.md: check 8 — generated output specified (format/sort-order/edge-cases/exit-codes) | draft |  | TBD |
-| [BC-8.26.010](ss-08/BC-8.26.010.md) | rules/story-completeness.md: check 9 — test fixtures defined with directory/config/expected-behavior/AC-coverage | draft |  | TBD |
-| [BC-8.26.011](ss-08/BC-8.26.011.md) | rules/story-completeness.md: check 10 — shell/script rules addressed (or `bash.md` excluded if no shell) | draft |  | TBD |
-| [BC-8.26.012](ss-08/BC-8.26.012.md) | rules/story-completeness.md: check 11 — `.claude/rules/_index.md` references EXACTLY the rules files that exist | draft |  | TBD |
-| [BC-8.26.013](ss-08/BC-8.26.013.md) | rules/story-completeness.md: check 12 — internal consistency (crate names / license text / file paths / config option names / badges / org names match) | draft |  | TBD |
-| [BC-8.26.014](ss-08/BC-8.26.014.md) | rules/story-completeness.md: check 13 — project-specific vs generic separation (tool deliverables use generic names; project-specific config separate) | draft |  | TBD |
-| [BC-8.26.015](ss-08/BC-8.26.015.md) | rules/story-completeness.md: check 14 — prerequisites listed (manual steps, repo creation, branch protection, secrets, external accounts) | draft |  | TBD |
-| [BC-8.26.016](ss-08/BC-8.26.016.md) | rules/story-completeness.md: process — read end-to-end, run each check, fix gaps one at a time with approval, final consistency pass | draft |  | TBD |
-| [BC-8.27.001](ss-08/BC-8.27.001.md) | rules/worktree-protocol.md: branch hierarchy — main (releases) > develop (integration) > feature/STORY-NNN-<desc> | draft |  | TBD |
-| [BC-8.27.002](ss-08/BC-8.27.002.md) | rules/worktree-protocol.md: story worktrees live in `.worktrees/STORY-NNN/` | draft |  | TBD |
-| [BC-8.27.003](ss-08/BC-8.27.003.md) | rules/worktree-protocol.md: worktree creation — `git worktree add .worktrees/STORY-NNN -b feature/STORY-NNN-<desc> develop` | draft |  | TBD |
-| [BC-8.27.004](ss-08/BC-8.27.004.md) | rules/worktree-protocol.md: micro-commits per test pass; commit format `feat(STORY-NNN): <desc>` or `test(STORY-NNN): <desc>` | draft |  | TBD |
-| [BC-8.27.005](ss-08/BC-8.27.005.md) | rules/worktree-protocol.md: merge protocol — tests pass, PR to develop, adversarial+code review, squash-merge, worktree+branch cleanup | draft |  | TBD |
-| [BC-8.27.006](ss-08/BC-8.27.006.md) | rules/worktree-protocol.md: wave integration — full test suite, adversarial review of wave diff, holdout evaluation, wave gate | draft |  | TBD |
-| [BC-8.27.007](ss-08/BC-8.27.007.md) | rules/worktree-protocol.md: `.factory/` worktree is PERMANENT — never remove it | draft |  | TBD |
-| [BC-8.27.008](ss-08/BC-8.27.008.md) | rules/worktree-protocol.md: cleanup rules — remove worktrees promptly, never force-remove with uncommitted changes, audit via `git worktree list` | draft |  | TBD |
+| [BC-8.01.001](ss-08/BC-8.01.001.md) | product-brief-template: governs L1 Product Brief artifact identity | draft | CAP-TBD | TBD |
+| [BC-8.01.002](ss-08/BC-8.01.002.md) | product-brief-template: required frontmatter fields | draft | CAP-TBD | TBD |
+| [BC-8.01.003](ss-08/BC-8.01.003.md) | product-brief-template: required sections | draft | CAP-TBD | TBD |
+| [BC-8.01.004](ss-08/BC-8.01.004.md) | L2-domain-spec-template: deprecated monolithic L2 template kept for reference | draft | CAP-TBD | TBD |
+| [BC-8.01.005](ss-08/BC-8.01.005.md) | L2-domain-spec-template: required sections (legacy 10-section schema) | draft | CAP-TBD | TBD |
+| [BC-8.01.006](ss-08/BC-8.01.006.md) | L2-domain-spec-index-template: sharded L2 index identity | draft | CAP-TBD | TBD |
+| [BC-8.01.007](ss-08/BC-8.01.007.md) | L2-domain-spec-index-template: required sections | draft | CAP-TBD | TBD |
+| [BC-8.01.008](ss-08/BC-8.01.008.md) | L2-domain-spec-section-template: minimal per-section shard | draft | CAP-TBD | TBD |
+| [BC-8.01.009](ss-08/BC-8.01.009.md) | prd-template: governs L3 PRD identity | draft | CAP-TBD | TBD |
+| [BC-8.01.010](ss-08/BC-8.01.010.md) | prd-template: required sections (1 through 7) | draft | CAP-TBD | TBD |
+| [BC-8.01.011](ss-08/BC-8.01.011.md) | prd-supplement-error-taxonomy-template: PRD error-taxonomy supplement | draft | CAP-TBD | TBD |
+| [BC-8.01.012](ss-08/BC-8.01.012.md) | prd-supplement-interface-definitions-template: PRD CLI/JSON/Config supplement | draft | CAP-TBD | TBD |
+| [BC-8.01.013](ss-08/BC-8.01.013.md) | prd-supplement-nfr-catalog-template: PRD non-functional requirements supplement | draft | CAP-TBD | TBD |
+| [BC-8.01.014](ss-08/BC-8.01.014.md) | prd-supplement-test-vectors-template: canonical test vectors supplement | draft | CAP-TBD | TBD |
+| [BC-8.01.015](ss-08/BC-8.01.015.md) | behavioral-contract-template: per-BC structural contract | draft | CAP-TBD | TBD |
+| [BC-8.01.016](ss-08/BC-8.01.016.md) | behavioral-contract-template: optional anchor sections | draft | CAP-TBD | TBD |
+| [BC-8.01.017](ss-08/BC-8.01.017.md) | L4-verification-property-template: VP-NNN identity + lifecycle | draft | CAP-TBD | TBD |
+| [BC-8.02.001](ss-08/BC-8.02.001.md) | story-template: governs STORY-NNN identity | draft | CAP-TBD | TBD |
+| [BC-8.02.002](ss-08/BC-8.02.002.md) | story-template: required sections (10 mandatory) | draft | CAP-TBD | TBD |
+| [BC-8.02.003](ss-08/BC-8.02.003.md) | story-template: optional planning + ASM/R + lifecycle frontmatter blocks | draft | CAP-TBD | TBD |
+| [BC-8.02.004](ss-08/BC-8.02.004.md) | story-index-template: STORY-INDEX identity | draft | CAP-TBD | TBD |
+| [BC-8.02.005](ss-08/BC-8.02.005.md) | epic-template: EPIC-XXX identity | draft | CAP-TBD | TBD |
+| [BC-8.02.006](ss-08/BC-8.02.006.md) | epic-index-template: EPIC-INDEX identity + epic-to-capability mapping | draft | CAP-TBD | TBD |
+| [BC-8.02.007](ss-08/BC-8.02.007.md) | cycle-manifest-template: per-cycle manifest identity | draft | CAP-TBD | TBD |
+| [BC-8.03.001](ss-08/BC-8.03.001.md) | architecture-template: governs L3 architecture document identity | draft | CAP-TBD | TBD |
+| [BC-8.03.002](ss-08/BC-8.03.002.md) | architecture-template: Part 1 sections (1–9, system + data + integration) | draft | CAP-TBD | TBD |
+| [BC-8.03.003](ss-08/BC-8.03.003.md) | architecture-template: Part 2 verification architecture (10–14) | draft | CAP-TBD | TBD |
+| [BC-8.03.004](ss-08/BC-8.03.004.md) | architecture-template: Part 3 module specifications (15) | draft | CAP-TBD | TBD |
+| [BC-8.03.005](ss-08/BC-8.03.005.md) | architecture-index-template: ARCH-INDEX governs sharded architecture index | draft | CAP-TBD | TBD |
+| [BC-8.03.006](ss-08/BC-8.03.006.md) | architecture-section-template: per-section ARCH-NN shard | draft | CAP-TBD | TBD |
+| [BC-8.03.007](ss-08/BC-8.03.007.md) | architecture-feasibility-report-template: pre-architecture feasibility check | draft | CAP-TBD | TBD |
+| [BC-8.03.008](ss-08/BC-8.03.008.md) | verification-architecture-template: verification-arch shard | draft | CAP-TBD | TBD |
+| [BC-8.03.009](ss-08/BC-8.03.009.md) | verification-coverage-matrix-template: coverage matrix shard | draft | CAP-TBD | TBD |
+| [BC-8.03.010](ss-08/BC-8.03.010.md) | verification-gap-analysis-template: brownfield verification gap report | draft | CAP-TBD | TBD |
+| [BC-8.03.011](ss-08/BC-8.03.011.md) | recovered-architecture-template: brownfield recovered architecture | draft | CAP-TBD | TBD |
+| [BC-8.04.001](ss-08/BC-8.04.001.md) | adversarial-review-template: per-pass adversarial review identity | draft | CAP-TBD | TBD |
+| [BC-8.04.002](ss-08/BC-8.04.002.md) | adversarial-review-index-template: per-pass index of findings | draft | CAP-TBD | TBD |
+| [BC-8.04.003](ss-08/BC-8.04.003.md) | adversarial-finding-template: per-finding ADV-N identity | draft | CAP-TBD | TBD |
+| [BC-8.04.004](ss-08/BC-8.04.004.md) | findings-tracker-template: cycle-level findings tracker | draft | CAP-TBD | TBD |
+| [BC-8.04.005](ss-08/BC-8.04.005.md) | fix-template: per-fix FIX-P[N]-NNN identity | draft | CAP-TBD | TBD |
+| [BC-8.04.006](ss-08/BC-8.04.006.md) | convergence-trajectory-template: pass-by-pass finding trajectory | draft | CAP-TBD | TBD |
+| [BC-8.04.007](ss-08/BC-8.04.007.md) | review-findings-template: PR-review findings per story | draft | CAP-TBD | TBD |
+| [BC-8.04.008](ss-08/BC-8.04.008.md) | code-review-template: code-reviewer per-pass output | draft | CAP-TBD | TBD |
+| [BC-8.04.009](ss-08/BC-8.04.009.md) | agent-file-review-template: agent persona doc review | draft | CAP-TBD | TBD |
+| [BC-8.04.010](ss-08/BC-8.04.010.md) | adversary-prompt-templates: subdir governs phase-specific adversary prompt scaffolds | draft | CAP-TBD | TBD |
+| [BC-8.04.011](ss-08/BC-8.04.011.md) | adversary-prompt-templates: required Review Focus + Not-Reviewing sections | draft | CAP-TBD | TBD |
+| [BC-8.04.012](ss-08/BC-8.04.012.md) | adversary-prompt-templates: previous-findings handlebars template | draft | CAP-TBD | TBD |
+| [BC-8.05.001](ss-08/BC-8.05.001.md) | holdout-scenario-template: HS-NNN scenario identity | draft | CAP-TBD | TBD |
+| [BC-8.05.002](ss-08/BC-8.05.002.md) | holdout-scenario-index-template: HS-INDEX scenario catalog | draft | CAP-TBD | TBD |
+| [BC-8.05.003](ss-08/BC-8.05.003.md) | evaluation-per-scenario-template: HS-NNN per-scenario evaluation | draft | CAP-TBD | TBD |
+| [BC-8.05.004](ss-08/BC-8.05.004.md) | evaluation-index-template: per-pass holdout evaluation index | draft | CAP-TBD | TBD |
+| [BC-8.05.005](ss-08/BC-8.05.005.md) | evaluation-summary-template: holdout evaluation final summary | draft | CAP-TBD | TBD |
+| [BC-8.05.006](ss-08/BC-8.05.006.md) | holdout-evaluation-report-template: cycle-level holdout report | draft | CAP-TBD | TBD |
+| [BC-8.06.001](ss-08/BC-8.06.001.md) | convergence-report-template: 7-dimension pipeline convergence scorecard | draft | CAP-TBD | TBD |
+| [BC-8.06.002](ss-08/BC-8.06.002.md) | convergence-report-template: 7 named dimensions | draft | CAP-TBD | TBD |
+| [BC-8.06.003](ss-08/BC-8.06.003.md) | consistency-report-template: 10-section L1→L4 consistency validation | draft | CAP-TBD | TBD |
+| [BC-8.06.004](ss-08/BC-8.06.004.md) | consistency-validation-report-template: minimal consistency-validation gate output | draft | CAP-TBD | TBD |
+| [BC-8.06.005](ss-08/BC-8.06.005.md) | traceability-matrix-template: forward + reverse L1→Proof traceability | draft | CAP-TBD | TBD |
+| [BC-8.06.006](ss-08/BC-8.06.006.md) | traceability-matrices-template: multi-axis traceability collection (BC/VP/NFR/clause/edge/gap) | draft | CAP-TBD | TBD |
+| [BC-8.07.001](ss-08/BC-8.07.001.md) | project-context-template: brownfield project context summary | draft | CAP-TBD | TBD |
+| [BC-8.07.002](ss-08/BC-8.07.002.md) | conventions-template: brownfield conventions extraction | draft | CAP-TBD | TBD |
+| [BC-8.07.003](ss-08/BC-8.07.003.md) | extraction-validation-template: brownfield extraction validation | draft | CAP-TBD | TBD |
+| [BC-8.07.004](ss-08/BC-8.07.004.md) | gene-transfusion-assessment-template: brownfield gene-transfusion candidate assessment | draft | CAP-TBD | TBD |
+| [BC-8.07.005](ss-08/BC-8.07.005.md) | domain-research-template: L2 domain-research report | draft | CAP-TBD | TBD |
+| [BC-8.07.006](ss-08/BC-8.07.006.md) | research-index-template: per-cycle research index | draft | CAP-TBD | TBD |
+| [BC-8.07.007](ss-08/BC-8.07.007.md) | discovery-report-template: discovery-engine periodic report | draft | CAP-TBD | TBD |
+| [BC-8.07.008](ss-08/BC-8.07.008.md) | idea-brief-template: pre-brief idea capture | draft | CAP-TBD | TBD |
+| [BC-8.07.009](ss-08/BC-8.07.009.md) | feature-request-template: feature-mode FR-NNN identity | draft | CAP-TBD | TBD |
+| [BC-8.07.010](ss-08/BC-8.07.010.md) | delta-analysis-report-template: feature-mode delta analysis | draft | CAP-TBD | TBD |
+| [BC-8.08.001](ss-08/BC-8.08.001.md) | demo-evidence-report-template: per-product demo evidence rollup | draft | CAP-TBD | TBD |
+| [BC-8.08.002](ss-08/BC-8.08.002.md) | demo-tape-template: VHS .tape demo recording template | draft | CAP-TBD | TBD |
+| [BC-8.08.003](ss-08/BC-8.08.003.md) | demo-playwright-template: Playwright per-AC video+screenshot demo | draft | CAP-TBD | TBD |
+| [BC-8.08.004](ss-08/BC-8.08.004.md) | demo-ci-workflow-template: GitHub Actions demo-generation workflow | draft | CAP-TBD | TBD |
+| [BC-8.09.001](ss-08/BC-8.09.001.md) | formal-verification-template: formal-verify pass output | draft | CAP-TBD | TBD |
+| [BC-8.09.002](ss-08/BC-8.09.002.md) | fuzz-report-template: fuzz testing per-target report | draft | CAP-TBD | TBD |
+| [BC-8.09.003](ss-08/BC-8.09.003.md) | performance-report-template: perf-check pass output | draft | CAP-TBD | TBD |
+| [BC-8.09.004](ss-08/BC-8.09.004.md) | security-review-template: security-review per-pass output | draft | CAP-TBD | TBD |
+| [BC-8.09.005](ss-08/BC-8.09.005.md) | security-scan-report-template: static-analysis security scan | draft | CAP-TBD | TBD |
+| [BC-8.10.001](ss-08/BC-8.10.001.md) | dtu-assessment-template: DTU assessment for SUT | draft | CAP-TBD | TBD |
+| [BC-8.10.002](ss-08/BC-8.10.002.md) | dtu-clone-spec-template: per-service DTU clone specification | draft | CAP-TBD | TBD |
+| [BC-8.10.003](ss-08/BC-8.10.003.md) | dtu-fidelity-report-template: DTU clone fidelity report | draft | CAP-TBD | TBD |
+| [BC-8.11.001](ss-08/BC-8.11.001.md) | ux-spec-template: deprecated monolithic UX spec | draft | CAP-TBD | TBD |
+| [BC-8.11.002](ss-08/BC-8.11.002.md) | ux-spec-index-template: sharded UX-spec index | draft | CAP-TBD | TBD |
+| [BC-8.11.003](ss-08/BC-8.11.003.md) | ux-spec-screen-template: per-screen SCR-NNN spec | draft | CAP-TBD | TBD |
+| [BC-8.11.004](ss-08/BC-8.11.004.md) | ux-spec-flow-template: per-flow FLOW-NNN spec | draft | CAP-TBD | TBD |
+| [BC-8.12.001](ss-08/BC-8.12.001.md) | design-system/: subdir governs design-token + component-contract + pattern catalog | draft | CAP-TBD | TBD |
+| [BC-8.12.002](ss-08/BC-8.12.002.md) | design-system/constraints.yaml: global UI generation rules | draft | CAP-TBD | TBD |
+| [BC-8.12.003](ss-08/BC-8.12.003.md) | design-system/tokens/: 7 token JSON catalogs | draft | CAP-TBD | TBD |
+| [BC-8.12.004](ss-08/BC-8.12.004.md) | design-system/components/: registry + 11 component contracts | draft | CAP-TBD | TBD |
+| [BC-8.12.005](ss-08/BC-8.12.005.md) | design-system/patterns/: 3 cross-component pattern catalogs | draft | CAP-TBD | TBD |
+| [BC-8.12.006](ss-08/BC-8.12.006.md) | ui-quality/: subdir governs UI quality gate + report templates | draft | CAP-TBD | TBD |
+| [BC-8.12.007](ss-08/BC-8.12.007.md) | ui-quality/gate-report-template: 4-gate-level UI quality gate | draft | CAP-TBD | TBD |
+| [BC-8.12.008](ss-08/BC-8.12.008.md) | ui-quality/heuristic-evaluation-template: 10-heuristic UX evaluation | draft | CAP-TBD | TBD |
+| [BC-8.12.009](ss-08/BC-8.12.009.md) | ui-quality/responsive-report-template: 4-breakpoint responsive validation | draft | CAP-TBD | TBD |
+| [BC-8.12.010](ss-08/BC-8.12.010.md) | ui-quality/completeness-report-template: UI completeness fidelity report | draft | CAP-TBD | TBD |
+| [BC-8.12.011](ss-08/BC-8.12.011.md) | ui-traceability-template: UI element → story → component → test → visual evidence matrix | draft | CAP-TBD | TBD |
+| [BC-8.13.001](ss-08/BC-8.13.001.md) | spec-changelog-template: spec-versioning changelog | draft | CAP-TBD | TBD |
+| [BC-8.13.002](ss-08/BC-8.13.002.md) | spec-drift-report-template: spec-drift report | draft | CAP-TBD | TBD |
+| [BC-8.13.003](ss-08/BC-8.13.003.md) | vp-withdrawal-template: green-VP retirement record | draft | CAP-TBD | TBD |
+| [BC-8.13.004](ss-08/BC-8.13.004.md) | design-drift-template: design-drift detection report | draft | CAP-TBD | TBD |
+| [BC-8.14.001](ss-08/BC-8.14.001.md) | state-template: STATE.md pipeline-state identity | draft | CAP-TBD | TBD |
+| [BC-8.14.002](ss-08/BC-8.14.002.md) | state-manager-checklist-template: wave-gate remediation-burst checklist | draft | CAP-TBD | TBD |
+| [BC-8.14.003](ss-08/BC-8.14.003.md) | burst-log-template: state-burst log | draft | CAP-TBD | TBD |
+| [BC-8.14.004](ss-08/BC-8.14.004.md) | session-checkpoints-template: cycle session resume checkpoints | draft | CAP-TBD | TBD |
+| [BC-8.14.005](ss-08/BC-8.14.005.md) | session-review-template: post-cycle session review | draft | CAP-TBD | TBD |
+| [BC-8.14.006](ss-08/BC-8.14.006.md) | lessons-template: cycle lessons-learned | draft | CAP-TBD | TBD |
+| [BC-8.14.007](ss-08/BC-8.14.007.md) | blocking-issues-resolved-template: cycle blockers-resolved log | draft | CAP-TBD | TBD |
+| [BC-8.14.008](ss-08/BC-8.14.008.md) | wave-schedule-template: per-cycle wave schedule | draft | CAP-TBD | TBD |
+| [BC-8.14.009](ss-08/BC-8.14.009.md) | wave-state-template: wave-state.yaml lifecycle tracker schema | draft | CAP-TBD | TBD |
+| [BC-8.14.010](ss-08/BC-8.14.010.md) | red-gate-log-template: TDD red-gate verification log | draft | CAP-TBD | TBD |
+| [BC-8.15.001](ss-08/BC-8.15.001.md) | pr-description-template: per-story PR description | draft | CAP-TBD | TBD |
+| [BC-8.15.002](ss-08/BC-8.15.002.md) | release-notes-template: per-version release notes | draft | CAP-TBD | TBD |
+| [BC-8.16.001](ss-08/BC-8.16.001.md) | autonomy-config-template: budget + protected-agents schema | draft | CAP-TBD | TBD |
+| [BC-8.16.002](ss-08/BC-8.16.002.md) | merge-config-template: code-delivery autonomy + branch + PR config | draft | CAP-TBD | TBD |
+| [BC-8.16.003](ss-08/BC-8.16.003.md) | policies-template: declarative governance policy registry schema | draft | CAP-TBD | TBD |
+| [BC-8.16.004](ss-08/BC-8.16.004.md) | discovery-config-template: discovery-engine ingestion config | draft | CAP-TBD | TBD |
+| [BC-8.16.005](ss-08/BC-8.16.005.md) | project-manifest-template: multi-repo project.yaml schema | draft | CAP-TBD | TBD |
+| [BC-8.16.006](ss-08/BC-8.16.006.md) | reference-manifest-template: .reference/ rebuild manifest | draft | CAP-TBD | TBD |
+| [BC-8.16.007](ss-08/BC-8.16.007.md) | factory-project-state-template: multi-repo project-level STATE.md | draft | CAP-TBD | TBD |
+| [BC-8.16.008](ss-08/BC-8.16.008.md) | factory-project-structure-template: .factory-project/ multi-repo directory structure | draft | CAP-TBD | TBD |
+| [BC-8.16.009](ss-08/BC-8.16.009.md) | tech-debt-register-template: project tech-debt register | draft | CAP-TBD | TBD |
+| [BC-8.16.010](ss-08/BC-8.16.010.md) | sweep-report-template: maintenance sweep report | draft | CAP-TBD | TBD |
+| [BC-8.16.011](ss-08/BC-8.16.011.md) | project-justfile-template: per-project justfile bootstrap | draft | CAP-TBD | TBD |
+| [BC-8.16.012](ss-08/BC-8.16.012.md) | implementation-readiness-template: pre-implementation readiness gate | draft | CAP-TBD | TBD |
+| [BC-8.16.013](ss-08/BC-8.16.013.md) | brief-validation-template: brief-quality gate report | draft | CAP-TBD | TBD |
+| [BC-8.16.014](ss-08/BC-8.16.014.md) | module-criticality-template: module criticality classification | draft | CAP-TBD | TBD |
+| [BC-8.17.001](ss-08/BC-8.17.001.md) | skill-execution-template: SKILL.md (execution variant) shape | draft | CAP-TBD | TBD |
+| [BC-8.17.002](ss-08/BC-8.17.002.md) | skill-delegation-template: SKILL.md (delegation variant) shape | draft | CAP-TBD | TBD |
+| [BC-8.17.003](ss-08/BC-8.17.003.md) | agents-md-template: AGENTS.md shape | draft | CAP-TBD | TBD |
+| [BC-8.18.001](ss-08/BC-8.18.001.md) | verify-sha-currency.sh: state-manager burst-hygiene gate (template-distributed; opt-in, NOT registered as a vsdd-factory hook) | draft | CAP-TBD | TBD |
+| [BC-8.19.001](ss-08/BC-8.19.001.md) | rules/_index.md: rule include-order via @-references | draft | CAP-TBD | TBD |
+| [BC-8.20.001](ss-08/BC-8.20.001.md) | rules/bash.md: SHALL NOT suppress stderr with `2>/dev/null` in production scripts | draft | CAP-TBD | TBD |
+| [BC-8.20.002](ss-08/BC-8.20.002.md) | rules/bash.md: SHALL NOT use `eval` in shell helpers | draft | CAP-TBD | TBD |
+| [BC-8.20.003](ss-08/BC-8.20.003.md) | rules/bash.md: justfile recipes MUST guard optional tools with `command -v` check | draft | CAP-TBD | TBD |
+| [BC-8.20.004](ss-08/BC-8.20.004.md) | rules/bash.md: test files MUST verify tool dependencies at the top before any assertions | draft | CAP-TBD | TBD |
+| [BC-8.20.005](ss-08/BC-8.20.005.md) | rules/bash.md: negative assertions MUST verify the search tool ran successfully | draft | CAP-TBD | TBD |
+| [BC-8.20.006](ss-08/BC-8.20.006.md) | rules/bash.md: literal-string matching SHALL use `grep -F` | draft | CAP-TBD | TBD |
+| [BC-8.20.007](ss-08/BC-8.20.007.md) | rules/bash.md: test headers SHALL state accurate test counts | draft | CAP-TBD | TBD |
+| [BC-8.20.008](ss-08/BC-8.20.008.md) | rules/bash.md: file-path references SHALL be validated by structural tests | draft | CAP-TBD | TBD |
+| [BC-8.20.009](ss-08/BC-8.20.009.md) | rules/bash.md: every `2>/dev/null` MUST carry a `# STDERR-EXEMPT: <rationale>` tag | draft | CAP-TBD | TBD |
+| [BC-8.20.010](ss-08/BC-8.20.010.md) | rules/bash.md: `just ci` MUST run the same commands as `.github/workflows/ci.yml` | draft | CAP-TBD | TBD |
+| [BC-8.21.001](ss-08/BC-8.21.001.md) | rules/factory-protocol.md: `.factory/` is a git worktree on the orphan `factory-artifacts` branch | draft | CAP-TBD | TBD |
+| [BC-8.21.002](ss-08/BC-8.21.002.md) | rules/factory-protocol.md: `.factory/` directory layout (canonical 8-section structure) | draft | CAP-TBD | TBD |
+| [BC-8.21.003](ss-08/BC-8.21.003.md) | rules/factory-protocol.md: all `.factory/` changes commit to `factory-artifacts`, NOT main/develop | draft | CAP-TBD | TBD |
+| [BC-8.21.004](ss-08/BC-8.21.004.md) | rules/factory-protocol.md: file lifecycle classification (Living / Accumulating / Cycle-scoped / Critical) | draft | CAP-TBD | TBD |
+| [BC-8.21.005](ss-08/BC-8.21.005.md) | rules/factory-protocol.md: NEVER put target project source code in `.factory/` | draft | CAP-TBD | TBD |
+| [BC-8.21.006](ss-08/BC-8.21.006.md) | rules/factory-protocol.md: NEVER modify `.factory/` files from main/develop branch | draft | CAP-TBD | TBD |
+| [BC-8.21.007](ss-08/BC-8.21.007.md) | rules/factory-protocol.md: STATE.md is the single source of truth for pipeline progress | draft | CAP-TBD | TBD |
+| [BC-8.21.008](ss-08/BC-8.21.008.md) | rules/factory-protocol.md: specs are the product, code is disposable (SOUL.md #3 reified) | draft | CAP-TBD | TBD |
+| [BC-8.22.001](ss-08/BC-8.22.001.md) | rules/git-commits.md: all commits MUST follow Conventional Commits | draft | CAP-TBD | TBD |
+| [BC-8.22.002](ss-08/BC-8.22.002.md) | rules/git-commits.md: commit type SHALL be one of 10 known values (feat/fix/docs/style/refactor/perf/test/build/ci/chore) | draft | CAP-TBD | TBD |
+| [BC-8.22.003](ss-08/BC-8.22.003.md) | rules/git-commits.md: description uses imperative present tense, lowercase initial, no period | draft | CAP-TBD | TBD |
+| [BC-8.22.004](ss-08/BC-8.22.004.md) | rules/git-commits.md: scope (optional) is parenthesized after type — `feat(api):` | draft | CAP-TBD | TBD |
+| [BC-8.22.005](ss-08/BC-8.22.005.md) | rules/git-commits.md: body separated from description with blank line; explains motivation + previous behavior contrast | draft | CAP-TBD | TBD |
+| [BC-8.22.006](ss-08/BC-8.22.006.md) | rules/git-commits.md: footers — `Refs:`, `Closes:`, `BREAKING CHANGE:` | draft | CAP-TBD | TBD |
+| [BC-8.22.007](ss-08/BC-8.22.007.md) | rules/git-commits.md: breaking changes — `!` after type/scope OR `BREAKING CHANGE:` footer | draft | CAP-TBD | TBD |
+| [BC-8.22.008](ss-08/BC-8.22.008.md) | rules/git-commits.md: NEVER include AI attribution in commit messages | draft | CAP-TBD | TBD |
+| [BC-8.22.009](ss-08/BC-8.22.009.md) | rules/git-commits.md: NEVER use `gh pr merge --admin` without explicit per-merge user permission | draft | CAP-TBD | TBD |
+| [BC-8.23.001](ss-08/BC-8.23.001.md) | rules/rust.md: every application crate MUST declare `#![forbid(unsafe_code)]` | draft | CAP-TBD | TBD |
+| [BC-8.23.002](ss-08/BC-8.23.002.md) | rules/rust.md: NO `unwrap()` in production code — use `?` or `expect("actionable msg")` | draft | CAP-TBD | TBD |
+| [BC-8.23.003](ss-08/BC-8.23.003.md) | rules/rust.md: NEVER block the async runtime — use `spawn_blocking` for CPU work, `tokio::time::sleep` for delays | draft | CAP-TBD | TBD |
+| [BC-8.23.004](ss-08/BC-8.23.004.md) | rules/rust.md: type design — newtypes for IDs, validated constructors at trust boundaries, `#[non_exhaustive]` on growing enums, UUID v7 for time-ordered IDs | draft | CAP-TBD | TBD |
+| [BC-8.23.005](ss-08/BC-8.23.005.md) | rules/rust.md: error handling — thiserror enums, per-crate `pub type Result<T>`, sanitize `Display` before client send | draft | CAP-TBD | TBD |
+| [BC-8.23.006](ss-08/BC-8.23.006.md) | rules/rust.md: module structure — `lib.rs` is pure re-export barrel; impl in domain modules | draft | CAP-TBD | TBD |
+| [BC-8.23.007](ss-08/BC-8.23.007.md) | rules/rust.md: dependencies declared at workspace level; Edition 2024, MSRV 1.85+; clippy warnings are errors | draft | CAP-TBD | TBD |
+| [BC-8.23.008](ss-08/BC-8.23.008.md) | rules/rust.md: testing — unit/`#[cfg(test)]` in same file, integration in `tests/`, property in `tests/property_*.rs`, snapshot in `tests/snapshot_*.rs` | draft | CAP-TBD | TBD |
+| [BC-8.23.009](ss-08/BC-8.23.009.md) | rules/rust.md: architecture — strictly acyclic dependency graph; no circular deps between crates | draft | CAP-TBD | TBD |
+| [BC-8.24.001](ss-08/BC-8.24.001.md) | rules/spec-format.md: 4-level spec hierarchy (L1 brief / L2 domain / L3 BC / L4 VP) | draft | CAP-TBD | TBD |
+| [BC-8.24.002](ss-08/BC-8.24.002.md) | rules/spec-format.md: BC numbering — `BC-S.SS.NNN` (S=subsystem, SS=section, NNN=contract) | draft | CAP-TBD | TBD |
+| [BC-8.24.003](ss-08/BC-8.24.003.md) | rules/spec-format.md: BC file format SHALL contain Subsystem/Section/Contract/Preconditions/Postconditions/Error Cases/Verification/Traceability sections | draft | CAP-TBD | TBD |
+| [BC-8.24.004](ss-08/BC-8.24.004.md) | rules/spec-format.md: BC-INDEX.md format — table with ID/Title/Subsystem/Status/Stories columns | draft | CAP-TBD | TBD |
+| [BC-8.24.005](ss-08/BC-8.24.005.md) | rules/spec-format.md: VP numbering — sequential `VP-NNN` | draft | CAP-TBD | TBD |
+| [BC-8.24.006](ss-08/BC-8.24.006.md) | rules/spec-format.md: VP file format SHALL contain Property/Type/Scope/Verification Method/Status/Traceability sections | draft | CAP-TBD | TBD |
+| [BC-8.24.007](ss-08/BC-8.24.007.md) | rules/spec-format.md: green VPs are IMMUTABLE — modification requires new VP supersedes old | draft | CAP-TBD | TBD |
+| [BC-8.24.008](ss-08/BC-8.24.008.md) | rules/spec-format.md: architecture is sharded into ARCH-NN sections, NOT a monolith | draft | CAP-TBD | TBD |
+| [BC-8.24.009](ss-08/BC-8.24.009.md) | rules/spec-format.md: ARCH-NN section template — Overview/Decisions/Components/Data Flow/Constraints/Dependencies | draft | CAP-TBD | TBD |
+| [BC-8.24.010](ss-08/BC-8.24.010.md) | rules/spec-format.md: PRD supplements live in `.factory/specs/prd-supplements/` (5 named files) | draft | CAP-TBD | TBD |
+| [BC-8.24.011](ss-08/BC-8.24.011.md) | rules/spec-format.md: STORY-NNN file format — Epic/Description/AC/BCs/VPs/Tasks/Strategy/Dependencies/Wave | draft | CAP-TBD | TBD |
+| [BC-8.24.012](ss-08/BC-8.24.012.md) | rules/spec-format.md: BC retirement requires updating ALL 5 artifacts in same burst | draft | CAP-TBD | TBD |
+| [BC-8.25.001](ss-08/BC-8.25.001.md) | rules/step-decomposition.md: VSDD pipeline has 8 phases numbered 0–7 | draft | CAP-TBD | TBD |
+| [BC-8.25.002](ss-08/BC-8.25.002.md) | rules/step-decomposition.md: phase numbers are sequential integers; no fractional phases ("3.5") | draft | CAP-TBD | TBD |
+| [BC-8.25.003](ss-08/BC-8.25.003.md) | rules/step-decomposition.md: every phase has exactly two skill entry points (work skill + phase entry-point skill) | draft | CAP-TBD | TBD |
+| [BC-8.25.004](ss-08/BC-8.25.004.md) | rules/step-decomposition.md: 4-layer orchestration architecture (lobster → phase entry-point skill → phase sub-workflow → step files) | draft | CAP-TBD | TBD |
+| [BC-8.25.005](ss-08/BC-8.25.005.md) | rules/step-decomposition.md: step IDs are LOWERCASE ALPHABETIC ONLY — `step-a-`, `step-b-`, `step-c-` | draft | CAP-TBD | TBD |
+| [BC-8.25.006](ss-08/BC-8.25.006.md) | rules/step-decomposition.md: step file structure includes `_shared-context.md` + per-step files | draft | CAP-TBD | TBD |
+| [BC-8.25.007](ss-08/BC-8.25.007.md) | rules/step-decomposition.md: lobster step `name:` MUST match the step file ID (without `step-` prefix) | draft | CAP-TBD | TBD |
+| [BC-8.25.008](ss-08/BC-8.25.008.md) | rules/step-decomposition.md: `_shared-context.md` holds constraints applying to ALL steps in the phase | draft | CAP-TBD | TBD |
+| [BC-8.25.009](ss-08/BC-8.25.009.md) | rules/step-decomposition.md: content completeness — no content loss on decomposition | draft | CAP-TBD | TBD |
+| [BC-8.25.010](ss-08/BC-8.25.010.md) | rules/step-decomposition.md: phase sub-workflow lobster pattern — step + state-manager backup + phase gate + input-hash drift check + human-approval | draft | CAP-TBD | TBD |
+| [BC-8.25.011](ss-08/BC-8.25.011.md) | rules/step-decomposition.md: forbidden practices (no fractional phases / numeric step IDs / sub-step numbering / parent gutting / "see parent" deferrals / wired-less step files / shared-context skip) | draft | CAP-TBD | TBD |
+| [BC-8.25.012](ss-08/BC-8.25.012.md) | rules/step-decomposition.md: verification — lobster-parse + path resolution + content completeness + bats + phase-number consistency + grep for old phase numbers | draft | CAP-TBD | TBD |
+| [BC-8.26.001](ss-08/BC-8.26.001.md) | rules/story-completeness.md: 14-check audit before marking a story ready for implementation | draft | CAP-TBD | TBD |
+| [BC-8.26.002](ss-08/BC-8.26.002.md) | rules/story-completeness.md: check 1 — source-of-truth alignment (line-by-line vs architecture docs) | draft | CAP-TBD | TBD |
+| [BC-8.26.003](ss-08/BC-8.26.003.md) | rules/story-completeness.md: check 2 — every file in project structure has Deliverable section OR implementation Task | draft | CAP-TBD | TBD |
+| [BC-8.26.004](ss-08/BC-8.26.004.md) | rules/story-completeness.md: check 3 — technical gotchas documented in Dev Notes (API quirks, version-specific behavior, platform diffs) | draft | CAP-TBD | TBD |
+| [BC-8.26.005](ss-08/BC-8.26.005.md) | rules/story-completeness.md: check 4 — CI/CD workflows complete (workflow YAML deliverables, secrets/branch-protection prerequisites) | draft | CAP-TBD | TBD |
+| [BC-8.26.006](ss-08/BC-8.26.006.md) | rules/story-completeness.md: check 5 — README/user-facing-docs deliverable covers what-it-is/install/quickstart/config/CLI/exit-codes/integration/license | draft | CAP-TBD | TBD |
+| [BC-8.26.007](ss-08/BC-8.26.007.md) | rules/story-completeness.md: check 6 — hosting/infra decisions explicit (org/repo/visibility/branch-strategy/protection/secrets) | draft | CAP-TBD | TBD |
+| [BC-8.26.008](ss-08/BC-8.26.008.md) | rules/story-completeness.md: check 7 — license stated explicitly + consistent across 5 surfaces | draft | CAP-TBD | TBD |
+| [BC-8.26.009](ss-08/BC-8.26.009.md) | rules/story-completeness.md: check 8 — generated output specified (format/sort-order/edge-cases/exit-codes) | draft | CAP-TBD | TBD |
+| [BC-8.26.010](ss-08/BC-8.26.010.md) | rules/story-completeness.md: check 9 — test fixtures defined with directory/config/expected-behavior/AC-coverage | draft | CAP-TBD | TBD |
+| [BC-8.26.011](ss-08/BC-8.26.011.md) | rules/story-completeness.md: check 10 — shell/script rules addressed (or `bash.md` excluded if no shell) | draft | CAP-TBD | TBD |
+| [BC-8.26.012](ss-08/BC-8.26.012.md) | rules/story-completeness.md: check 11 — `.claude/rules/_index.md` references EXACTLY the rules files that exist | draft | CAP-TBD | TBD |
+| [BC-8.26.013](ss-08/BC-8.26.013.md) | rules/story-completeness.md: check 12 — internal consistency (crate names / license text / file paths / config option names / badges / org names match) | draft | CAP-TBD | TBD |
+| [BC-8.26.014](ss-08/BC-8.26.014.md) | rules/story-completeness.md: check 13 — project-specific vs generic separation (tool deliverables use generic names; project-specific config separate) | draft | CAP-TBD | TBD |
+| [BC-8.26.015](ss-08/BC-8.26.015.md) | rules/story-completeness.md: check 14 — prerequisites listed (manual steps, repo creation, branch protection, secrets, external accounts) | draft | CAP-TBD | TBD |
+| [BC-8.26.016](ss-08/BC-8.26.016.md) | rules/story-completeness.md: process — read end-to-end, run each check, fix gaps one at a time with approval, final consistency pass | draft | CAP-TBD | TBD |
+| [BC-8.27.001](ss-08/BC-8.27.001.md) | rules/worktree-protocol.md: branch hierarchy — main (releases) > develop (integration) > feature/STORY-NNN-<desc> | draft | CAP-TBD | TBD |
+| [BC-8.27.002](ss-08/BC-8.27.002.md) | rules/worktree-protocol.md: story worktrees live in `.worktrees/STORY-NNN/` | draft | CAP-TBD | TBD |
+| [BC-8.27.003](ss-08/BC-8.27.003.md) | rules/worktree-protocol.md: worktree creation — `git worktree add .worktrees/STORY-NNN -b feature/STORY-NNN-<desc> develop` | draft | CAP-TBD | TBD |
+| [BC-8.27.004](ss-08/BC-8.27.004.md) | rules/worktree-protocol.md: micro-commits per test pass; commit format `feat(STORY-NNN): <desc>` or `test(STORY-NNN): <desc>` | draft | CAP-TBD | TBD |
+| [BC-8.27.005](ss-08/BC-8.27.005.md) | rules/worktree-protocol.md: merge protocol — tests pass, PR to develop, adversarial+code review, squash-merge, worktree+branch cleanup | draft | CAP-TBD | TBD |
+| [BC-8.27.006](ss-08/BC-8.27.006.md) | rules/worktree-protocol.md: wave integration — full test suite, adversarial review of wave diff, holdout evaluation, wave gate | draft | CAP-TBD | TBD |
+| [BC-8.27.007](ss-08/BC-8.27.007.md) | rules/worktree-protocol.md: `.factory/` worktree is PERMANENT — never remove it | draft | CAP-TBD | TBD |
+| [BC-8.27.008](ss-08/BC-8.27.008.md) | rules/worktree-protocol.md: cleanup rules — remove worktrees promptly, never force-remove with uncommitted changes, audit via `git worktree list` | draft | CAP-TBD | TBD |
 
 ### SS-09 — Configuration and Activation (BC-9)
 
