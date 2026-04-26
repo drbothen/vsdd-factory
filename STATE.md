@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T19:30:00Z
-phase: post-release-v1.0.0-beta.7-SHIPPED
+timestamp: 2026-04-26T22:30:00Z
+phase: wave-1-ss-01-CONVERGED
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "**v1.0.0-beta.7 SHIPPED 2026-04-26 19:15 UTC** — bot retag at b08e085. Bundles S-7.03 TDD Discipline Hardening (third E-7 dogfooding round; 4-layer stub-as-implementation defense). 17-pass spec convergence (project-record). Hotfix PR #15 caught release-time policy violations in stub-architect.md (CI/release validation alignment gap — see task #98). Develop synced via PR #16 back-merge. Next: monitor task #98 (CI alignment), open issue #8 (story re-anchor), task #10 (DTU/CI verification). All worktrees cleaned. Quiet state."
+current_step: "**Wave 1 SS-01 dispatcher-core re-anchor CONVERGED 3-of-3 at pass-6 (2026-04-26).** 7 stories anchored: S-1.01 (0 BCs / pure scaffolding justified), S-1.02 (26), S-1.04 (26), S-1.05 (15), S-1.06 (8), S-1.07 (10), S-3.04 (8). 93 unique SS-01 BCs anchored; 4 deferred to Wave 3 (BC-1.07.003-006); 10 v1.1 BC candidates logged. Trajectory: 10→4→3→1→0→0 (100% reduction sustained 2 passes). Next: Wave 2 SS-03 sinks re-anchor (9 stories — task #100), or pivot to factory-dispatcher implementation if user prefers. Pending task #104 (SS-03/07/10 capability column TD)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (v1.0.0-beta.7 SHIPPED) |
-| **Current Phase** | post-release-v1.0.0-beta.7-SHIPPED |
+| **Last Updated** | 2026-04-26 (Wave 1 SS-01 CONVERGED) |
+| **Current Phase** | wave-1-ss-01-CONVERGED |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -103,16 +103,17 @@ dtu_services: []
 | Release v1.0.0-beta.7 | COMPLETE | Tag at b08e085 (bot retag); chore commit ac5cc11; PR #14 merged (CHANGELOG + hooks-registry script_path fix); hotfix PR #15 merged (stub-architect.md policy); back-merge PR #16 merged; GH Release published 2026-04-26 19:15 UTC |
 | Hotfix: stub-architect.md policy compliance | COMPLETE | PR #15 merged; 5 inline backtick cargo check refs de-backticked + AGENT-SOUL.md footer added |
 | Hiccup: ci.yml/release.yml validation gap | DEFERRED | Tracked as task #98; permissions.bats coverage diverges between ci.yml (PR-time) and release.yml (tag-time) |
+| Wave 1 SS-01 dispatcher-core re-anchor (sub-cycle) | COMPLETE | 6-pass adversarial convergence; 7 stories anchored to 93 unique SS-01 BCs; 10 v1.1 BC candidates; trajectory 10→4→3→1→0→0; commits d373e2b → 754734a → 9a00ee3 → 76bfc42 → f15aa0c |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-7.03 adversarial pass-14 (exhaustive) | adversarial-reviewer | COMPLETE | 2 LOW (F-901 PRD per-SS count drift, F-902 VP-064 cargo-mutants skeleton); 8 NITPICK obs; FINDINGS_REMAIN; convergence clock RESETS |
-| S-7.03 pass-14 fix burst | state-manager + product-owner | COMPLETE | F-901 (PRD counts) + F-902 (VP-064 skeleton) fixed; story v2.0→v2.1; D-027 process-gap logged |
-| S-7.03 adversarial pass-15 (exhaustive) | adversarial-reviewer | COMPLETE | 0 substantive findings within S-7.03 scope; 5 self-validation withdrawals; 3 out-of-scope; CONVERGENCE STEP 1 OF 3 |
-| S-7.03 adversarial pass-16 (exhaustive) | adversarial-reviewer | COMPLETE | 0 substantive findings; 11 self-validation withdrawals (highest yet); 3 out-of-scope re-confirmed; CONVERGENCE STEP 2 OF 3 |
-| S-7.03 adversarial pass-17 (FINAL) | adversarial-reviewer | COMPLETE | **CONVERGENCE_REACHED** — 0 substantive findings; 6 self-validation withdrawals; 3-of-3 NITPICK consecutive achieved; ADR-013 satisfied |
+| Wave 1 SS-01 pass-4 adversarial | adversarial-reviewer | COMPLETE | 1 LOW (F-301 S-1.07 AC#3 mismatch); FINDINGS_REMAIN; convergence step 0 of 3 |
+| Wave 1 SS-01 pass-4 fix burst (F-301) | product-owner | COMPLETE | S-1.07 AC#3 updated to cite BC-1.06.009 + disclaimer; commit f15aa0c |
+| Wave 1 SS-01 pass-5 adversarial | adversarial-reviewer | COMPLETE | 0 findings; 3 NITPICK obs; CONVERGENCE STEP 1 OF 3; convergence_step: 2_of_3 |
+| Wave 1 SS-01 pass-6 adversarial | adversarial-reviewer | COMPLETE | 0 findings; 3 NITPICK obs; **CONVERGENCE_REACHED 3 of 3**; ADR-013 satisfied |
+| Wave 1 SS-01 closeout | state-manager | COMPLETE | pass-6 review persisted; STORY-INDEX BC counts updated; STATE.md advanced to wave-1-ss-01-CONVERGED |
 
 ## Identifier Conventions
 
@@ -216,6 +217,7 @@ dtu_services: []
 | D-032 | **S-7.03 SPEC CONVERGENCE_REACHED at pass-17.** ADR-013 criterion satisfied (3 NITPICK-only consecutive: pass-15 53cc837, pass-16 09b05f2, pass-17 this commit). Trajectory: 25→12→5→2→1→0→0→1→2→4→3→1→1→2→0→0→0. Total 17 passes vs S-6.01's 8 — proportional to S-7.03's 13-BC, 4-layer, multi-subsystem complexity. Spec approved for GREEN-phase TDD implementation. | 4 out-of-scope items (PRD beta.4 milestone, CAP-028 outcome, SS-05/SS-08 arch BC ID schemes, KL-002 VP count) deferred to v1.1 hardening backlog (D-028 + D-030 lineage). | adv-pass-17 | 2026-04-27 | state-manager |
 | D-033 | **S-7.03 GREEN IMPLEMENTATION DELIVERED.** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN across 17 adversarial-spec passes and 9 implementation commits (RED gate 020518b + Batch A d89b928/8cd16e9/f53bf43/3a9614c + Batch B c4413e1/94b653c/fa07d94/121d24c + demo 88c4474). 4-layer TDD discipline defense: Layer 1 anti-precedent guard (stub-architect.md), Layer 2 Red Gate density check (per-story-delivery.md + deliver-story/SKILL.md), Layer 3 validate-red-ratio.sh blocking hook, Layer 4 tdd_mode story-template field + mutation testing wave-gate. Self-referential dogfooding round 3 complete. | E-7 process codification pattern validated for second consecutive cycle. Next release: v1.0.0-beta.7 bundles E-7 round-3 hardening. | delivery | 2026-04-26 | state-manager |
 | D-034 | **v1.0.0-beta.7 SHIPPED** — 9-commit release cycle: release foundation (bb909d4) → hooks-registry script_path fix (f8ab974) → release PR #14 merge (ac5cc11) → hotfix policy (f3646a4) → hotfix PR #15 merge (42d59c3) → bot bundle retag (b08e085) → back-merge PR #16 (ecb6cc6). Tag at b08e085. Hiccup: first tag push failed at Pre-release Validation (permissions.bats: stub-architect.md had 5 inline backtick cargo check refs + missing AGENT-SOUL.md footer); fixed in hotfix PR #15. Second tag push hit transient darwin-x64 DNS failure on static.rust-lang.org; cleared via gh run rerun --failed. CI/release validation alignment gap logged as task #98. | 17-pass spec convergence is project-record (vs S-6.01's 8). Self-referential dogfooding pattern continues for third cycle. | release | 2026-04-26 | orchestrator + user |
+| D-035 | **Wave 1 SS-01 re-anchor CONVERGED at pass-6 (3-of-3)** — 7 stories (S-1.01, S-1.02, S-1.04, S-1.05, S-1.06, S-1.07, S-3.04) anchored to 93 unique SS-01 BCs. 4 BCs deferred to Wave 3 (BC-1.07.003-006). 10 v1.1 BC candidates logged for uncontracted-AC pattern. Trajectory: 10→4→3→1→0→0 (90% reduction at pass-4; 100% sustained passes 5-6). PO commits: d373e2b (initial anchor) → 754734a (pass-1 fix) → 9a00ee3 (pass-2 fix) → 76bfc42 (pass-3 fix + comprehensive sweep) → f15aa0c (pass-4 F-301 adjudication). Adversary commits: 0a9b7fb, 86c7fb6, 8ca7b1e, 24ee5e5, 2064eec. | Re-anchor work converged 2x faster than net-new spec creation (S-7.03: 17 passes vs Wave 1: 6 passes) — confirms re-anchor risk profile is structurally lower. F-104 semantic-faithful convention reduced false positives. Pass-3 comprehensive sweep was the inflection point. | re-anchor | 2026-04-26 | orchestrator + adversary + PO |
 
 ## Skip Log
 
@@ -232,10 +234,10 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-26 |
-| **Position** | **v1.0.0-beta.7 SHIPPED** at b08e085. S-7.03 TDD Discipline Hardening bundled (17-pass spec convergence, 18/18 bats GREEN). Hotfix PR #15 resolved stub-architect.md policy violations caught at release time. Develop synced via PR #16 back-merge at ecb6cc6. |
-| **Release** | Tag b08e085 (bot retag); GH Release published 2026-04-26 19:15 UTC; prerelease=true (v1.0.0-beta.7) |
-| **Deferred work** | task #98 (CI/release validation alignment — permissions.bats gap); task #10 (DTU/CI verification); issue #8 (story re-anchor); D-028/D-030 v1.1 hardening backlog items |
-| **Next action** | Monitor task #98 (CI alignment). Phase 2 story decomposition and wave scheduling unblocked. |
+| **Position** | **Wave 1 SS-01 dispatcher-core re-anchor CONVERGED** at pass-6 (3-of-3 ADR-013). 7 stories anchored to 93 unique SS-01 BCs. STORY-INDEX BC counts updated. factory-artifacts branch advanced. |
+| **Release** | Tag b08e085 (bot retag); GH Release published 2026-04-26 19:15 UTC; prerelease=true (v1.0.0-beta.7) — still current |
+| **Deferred work** | task #98 (CI/release validation alignment); task #100 (Wave 2 SS-03 sinks re-anchor — 9 stories); task #104 (SS-03/07/10 capability column TD); D-028/D-030 v1.1 hardening backlog items |
+| **Next action** | Wave 2 SS-03 sinks re-anchor (task #100), or pivot to factory-dispatcher implementation. |
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.

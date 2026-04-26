@@ -47,17 +47,17 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ## Epic E-1 — Dispatcher Foundation (Tier B.0 + B.x — all merged)
 
-| Story ID | Title | Epic | Points | Priority | Depends On | Status |
-|----------|-------|------|--------|----------|------------|--------|
-| S-1.01 | Cargo workspace + CI scaffolding | E-1 | 5 | P0 | -- | merged |
-| S-1.02 | factory-dispatcher core (stdin, TOML load, routing) | E-1 | 8 | P0 | S-1.01 | merged |
-| S-1.03 | hook-sdk crate (macro, types, bindings) | E-1 | 8 | P0 | S-1.01 | merged |
-| S-1.04 | Host function surface implementation | E-1 | 8 | P0 | S-1.01, S-1.02, S-1.03 | merged |
-| S-1.05 | wasmtime integration + epoch/fuel enforcement | E-1 | 8 | P0 | S-1.01, S-1.02, S-1.04 | merged |
-| S-1.06 | tokio + parallel-within-tier execution | E-1 | 5 | P0 | S-1.01, S-1.02, S-1.04, S-1.05 | merged |
-| S-1.07 | dispatcher-internal.jsonl writer | E-1 | 3 | P0 | S-1.01, S-1.02 | merged |
-| S-1.08 | sink-file driver | E-1 | 5 | P0 | S-1.01, S-1.07 | merged |
-| S-1.09 | sink-otel-grpc driver | E-1 | 5 | P0 | S-1.01, S-1.08 | merged |
+| Story ID | Title | Epic | Points | Priority | Depends On | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|-----|
+| S-1.01 | Cargo workspace + CI scaffolding | E-1 | 5 | P0 | -- | merged | 0 (pure scaffolding, justified) |
+| S-1.02 | factory-dispatcher core (stdin, TOML load, routing) | E-1 | 8 | P0 | S-1.01 | merged | 26 |
+| S-1.03 | hook-sdk crate (macro, types, bindings) | E-1 | 8 | P0 | S-1.01 | merged | -- |
+| S-1.04 | Host function surface implementation | E-1 | 8 | P0 | S-1.01, S-1.02, S-1.03 | merged | 26 |
+| S-1.05 | wasmtime integration + epoch/fuel enforcement | E-1 | 8 | P0 | S-1.01, S-1.02, S-1.04 | merged | 15 |
+| S-1.06 | tokio + parallel-within-tier execution | E-1 | 5 | P0 | S-1.01, S-1.02, S-1.04, S-1.05 | merged | 8 |
+| S-1.07 | dispatcher-internal.jsonl writer | E-1 | 3 | P0 | S-1.01, S-1.02 | merged | 10 |
+| S-1.08 | sink-file driver | E-1 | 5 | P0 | S-1.01, S-1.07 | merged | -- |
+| S-1.09 | sink-otel-grpc driver | E-1 | 5 | P0 | S-1.01, S-1.08 | merged | -- |
 
 ## Epic E-2 — Legacy Adapter and Beta Release (Tier C + D — mostly merged)
 
@@ -74,12 +74,12 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ## Epic E-3 — WASM Port: High-Value Hooks (Tier E — draft/partial)
 
-| Story ID | Title | Epic | Points | Priority | Depends On | Status |
-|----------|-------|------|--------|----------|------------|--------|
-| S-3.04 | emit_event as host function refactor | E-3 | 3 | P0 | S-1.04 | partial |
-| S-3.01 | Port capture-commit-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | draft |
-| S-3.02 | Port capture-pr-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | draft |
-| S-3.03 | Port block-ai-attribution to WASM | E-3 | 3 | P1 | S-2.08, S-3.04 | draft |
+| Story ID | Title | Epic | Points | Priority | Depends On | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|-----|
+| S-3.04 | emit_event as host function refactor | E-3 | 3 | P0 | S-1.04 | partial | 8 |
+| S-3.01 | Port capture-commit-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | draft | -- |
+| S-3.02 | Port capture-pr-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | draft | -- |
+| S-3.03 | Port block-ai-attribution to WASM | E-3 | 3 | P1 | S-2.08, S-3.04 | draft | -- |
 
 ## Epic E-4 — Observability Sinks and RC Release (Tier E + F — draft/partial)
 
@@ -121,6 +121,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | completed | 2.1 |
 
 > **S-7.03 delivery:** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN. Worktree feat/tdd-discipline-hardening (9b1624b → 121d24c, 9 commits). Spec convergence: 17 adversarial passes.
+
+> **Wave 1 SS-01 re-anchor CONVERGED 3-of-3 at pass-6 (2026-04-26).** 7 stories anchored to SS-01 BCs: S-1.01 (0/justified), S-1.02 (26), S-1.04 (26), S-1.05 (15), S-1.06 (8), S-1.07 (10), S-3.04 (8). 93 unique SS-01 BCs anchored (of 99); 4 deferred to Wave 3 (BC-1.07.003-006); 10 v1.1 BC candidates logged. Trajectory: 10→4→3→1→0→0.
 
 ---
 
