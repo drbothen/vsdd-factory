@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-27T01:00:00Z
-phase: s-7-03-pass-5-fixes-applied
+timestamp: 2026-04-27T01:15:00Z
+phase: s-7-03-pass-6-nitpick-1of3
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-7.03 pass-5 fix applied. Trajectory 25→12→5→2→1. Next: pass-6 — aim for 1st of 3 NITPICK target."
+current_step: "S-7.03 pass-6 NITPICK-only (1 of 3 convergence target). Next: pass-7 — aim for 2 of 3 NITPICK-only."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (pass-5 fix burst) |
-| **Current Phase** | s-7-03-pass-5-fixes-applied |
+| **Last Updated** | 2026-04-27 (pass-6 NITPICK-only) |
+| **Current Phase** | s-7-03-pass-6-nitpick-1of3 |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -55,13 +55,13 @@ dtu_services: []
 | Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
-| Phase 1.4 — BC Migration | COMPLETE | 1,878 BC-S.SS.NNN files in 10 ss-NN/ shards (at Phase 1.4 closure; current total 1,891 after E-7 + S-7.03 additions) + BC-INDEX.md |
+| Phase 1.4 — BC Migration | COMPLETE | 1,891 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 = 1,891 current) + BC-INDEX.md |
 | Phase 1.5 — Formal PRD | COMPLETE | 43 FRs (FR-041, FR-042 added; FR-043 added in S-7.03), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
 | Phase 1.6b — Verification Properties | COMPLETE | 64 VPs (all draft, VP-001..VP-064; +2 for E-7; +2 for S-7.03) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
-| Phase 1d — Adversarial Spec Review | COMPLETE | 6 passes, converged at pass 6 (3 consecutive NITPICK: passes 4-5-6) |
+| Phase 1d — Adversarial Spec Review | in-progress | 6 passes done; trajectory 25→12→5→2→1→0; convergence 1 of 3 NITPICK-only |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
 | Phase 2 — Story Decomposition | not-started | Unblocked; 45 stories (41 migrated + 4 new E-6/E-7) ready for dependency graph + wave schedule |
 | S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
@@ -80,15 +80,16 @@ dtu_services: []
 | S-7.03 pass-4 fix burst | COMPLETE | F-101+F-102 fixed via Option C (blockquote moved below rows) |
 | S-7.03 adversarial pass-5 | COMPLETE | 1 finding (F-201 LOW story path prefix); 5 NITPICK obs; verdict FINDINGS_REMAIN |
 | S-7.03 pass-5 fix burst | COMPLETE | F-201 fixed; story v1.3 → v1.4 |
+| S-7.03 adversarial pass-6 | COMPLETE | 0 substantive findings; 6 NITPICK obs; verdict NITPICK-only (1 of 3 convergence target) |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-7.03 adversarial pass-4 | adversarial-reviewer | COMPLETE | 2 findings (F-101 MEDIUM, F-102 LOW); FINDINGS_REMAIN |
 | S-7.03 pass-4 fix burst | state-manager | COMPLETE | F-101+F-102 resolved via Option C — blockquote moved after rows |
 | S-7.03 adversarial pass-5 | adversarial-reviewer | COMPLETE | 1 finding (F-201 LOW story path prefix); 5 NITPICK obs; FINDINGS_REMAIN |
 | S-7.03 pass-5 fix burst | state-manager + story-writer | COMPLETE | F-201 fixed (path prefix stripped); story v1.3→v1.4 |
+| S-7.03 adversarial pass-6 | adversarial-reviewer | COMPLETE | 0 substantive findings; 6 NITPICK obs; NITPICK-only (convergence 1 of 3) |
 
 ## Identifier Conventions
 
@@ -174,6 +175,7 @@ dtu_services: []
 | D-016 | Pass-1 and pass-2 adversarial review files for s7.03 not persisted (audit trail gap detected at pass-3); only pass-3 retroactively persisted from chat content. Reason: adversary agents reported writing but writes did not commit. Investigate adversary tooling next cycle. | Deferred: pass-1 and pass-2 content is not recoverable from disk; gap noted for tooling investigation. | audit-trail | 2026-04-26 | state-manager |
 | D-017 | S-7.03 pass-4 — F-002 Option B (blockquote BEFORE rows) caused GFM table-rendering regression; corrected via Option C (blockquote AFTER rows). Lesson: table annotations should default to SS-08 line 1908 footer-comment pattern (HTML comment after rows), not blockquote before rows. Process-gap O-101 — codify in BC-INDEX template. | In GFM/CommonMark, a blockquote terminates a preceding table block; rows below it become a headerless fragment that renders broken. HTML comments do not terminate tables. Option C (move blockquote after rows) is markdown-native and makes "listed above" phrasing accurate. | pass-4-fix-burst | 2026-04-27 | state-manager |
 | D-018 | S-7.03 pass-5 — F-201 (story References section BC path prefix `plugins/vsdd-factory/.factory/specs/...`) fixed; trajectory 25→12→5→2→1; convergence clock not yet started (pass-5 not NITPICK-only, 1 LOW finding remains). Story bumped v1.3→v1.4. | Path prefix was `plugins/vsdd-factory/.factory/specs/behavioral-contracts/...` — directory does not exist; correct prefix is `.factory/specs/behavioral-contracts/...`. Frontmatter `inputs:` was already correct; defect was in human-readable References section only. | pass-5-fix-burst | 2026-04-27 | state-manager |
+| D-019 | S-7.03 pass-6 NITPICK-only achieved (0 substantive findings, 6 NITPICK obs); trajectory 25→12→5→2→1→0; convergence step 1 of 3 reached. | Pass-6 is first of 3 consecutive NITPICK-only passes required by ADR-013. Pass-7 and pass-8 must each also be NITPICK-only. No spec/story content changes needed. | adv-pass-6 | 2026-04-27 | state-manager |
 
 ## Skip Log
 
@@ -189,12 +191,11 @@ dtu_services: []
 
 | Field | Value |
 |-------|-------|
-| **Date** | 2026-04-26 |
-| **Position** | v1.0.0-beta.6 SHIPPED. Cache will refresh on next session restart. plugin.json=1.0.0-beta.6 across main + develop. |
-| **Release** | Tag ae426cd; GH Release published 2026-04-26 08:41:35 UTC; prerelease=true |
-| **Hotfix** | novelty-test fixture path (PR #10/#11); delete/recreate-tag flow validated |
+| **Date** | 2026-04-27 |
+| **Position** | S-7.03 pass-6 NITPICK-only (convergence 1 of 3). v1.0.0-beta.6 SHIPPED. plugin.json=1.0.0-beta.6 across main + develop. |
+| **Release** | Tag ae426cd; GH Release published 2026-04-26; prerelease=true |
 | **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.03+ tooling stories; Phase 2 wave schedule |
-| **Next action** | S-7.03 adversarial pass-1; or TD-001, TD-010, Phase 2 wave decomposition (45 stories; 8 epics E-0..E-7). |
+| **Next action** | S-7.03 adversarial pass-7 (aim for convergence 2 of 3 NITPICK-only). |
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
