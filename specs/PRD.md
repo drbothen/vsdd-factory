@@ -35,8 +35,8 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,891-BC catalog (1,878 Phase 0 ingestion baseline + 13 added
-> in S-7.03 TDD hardening) into a formal L3 requirements artifact. Section 2 is the
+> It synthesizes the 1,891-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
+> codification + 13 S-7.03 TDD hardening) into a formal L3 requirements artifact. Section 2 is the
 > primary machine-consumed surface: it groups BCs by functional requirement (FR-NNN)
 > and provides subsystem-level traceability. Agents needing deep BC content load
 > individual `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
@@ -76,8 +76,8 @@ an 8-phase SDLC pipeline: brief → domain-spec → PRD → architecture → sto
 delivery → adversarial review → convergence.
 
 The product was built with itself. Phase 0 ingestion of this very codebase produced the
-1,878-BC ingestion baseline that this PRD synthesizes (catalog has since grown to 1,891
-with additions in E-7 and S-7.03). This self-referential loop is the ultimate dogfooding
+1,863-BC pre-E-7 baseline that this PRD synthesizes (catalog has since grown to 1,891
+with additions of 15 BCs in E-7 and 13 BCs in S-7.03). This self-referential loop is the ultimate dogfooding
 test: every architectural decision (WASM sandbox, capability deny-by-default,
 parallel-within-tier execution, always-on telemetry) was enacted in Rust and then
 analyzed by the framework's own brownfield-ingest skill.
@@ -1252,7 +1252,7 @@ All 1,891 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is strat
 
 ### 12.2 Phase 0 Validation Provenance
 
-The 1,878-BC catalog was validated by `extraction-validation.md` at 97.6% confirmation rate (122/125 BCs sampled at 6.8% sample rate):
+The 1,863-BC pre-E-7 baseline catalog was validated by `extraction-validation.md` at 97.6% confirmation rate (122/125 BCs sampled at 6.8% sample rate):
 - 122 CONFIRMED
 - 2 INACCURATE (corrected: BC-AUDIT-067 PostToolUse→PreToolUse; BC-AUDIT-1007 "4 hooks" → "3")
 - 1 HALLUCINATED (removed: "13 trybuild tests" in pass-0 inventory — actual is 0)
@@ -1293,7 +1293,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Field | Value |
 |-------|-------|
 | Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,891 BCs at phase 1.5 (1,878 ingestion baseline + 13 added in S-7.03 TDD hardening) |
+| BC catalog version | 1,891 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.4 (commit 1907d8f, 2026-04-25) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |

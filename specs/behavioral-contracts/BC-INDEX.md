@@ -884,6 +884,10 @@ traces_to: bc-id-mapping.md
 | [BC-5.38.004](ss-05/BC-5.38.004.md) | stub-architect must not use pre-implemented sibling crates as stub templates | draft | CAP-016 | S-7.03 |
 | [BC-5.38.005](ss-05/BC-5.38.005.md) | stub-architect applies self-check before committing any non-todo!() function body | draft | CAP-016 | S-7.03 |
 | [BC-5.38.006](ss-05/BC-5.38.006.md) | deliver-story SKILL.md and per-story-delivery.md Step 2 must contain anti-precedent guard text verbatim | draft | CAP-016 | S-7.03 |
+| [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 | *(file in ss-08/ — historical artifact; authoritative subsystem SS-05)* |
+| [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 | *(file in ss-08/ — historical artifact; authoritative subsystem SS-05)* |
+| [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 | *(file in ss-08/ — historical artifact; authoritative subsystem SS-05)* |
+| [BC-8.30.002](ss-08/BC-8.30.002.md) | tdd_mode=facade modifies per-story-delivery semantics and mandates mutation testing at wave gate | draft | CAP-016 | S-7.03 | *(file in ss-08/ — historical artifact; authoritative subsystem SS-05)* |
 
 ### SS-06 — Skill Catalog (BC-6)
 
@@ -1897,11 +1901,8 @@ traces_to: bc-id-mapping.md
 | [BC-8.27.008](ss-08/BC-8.27.008.md) | rules/worktree-protocol.md: cleanup rules — remove worktrees promptly, never force-remove with uncommitted changes, audit via `git worktree list` | draft | CAP-TBD | TBD |
 | [BC-8.28.001](ss-08/BC-8.28.001.md) | rules/lessons-codification.md requires codification follow-up for every novel process catch | draft | CAP-001 | S-7.02 |
 | [BC-8.28.002](ss-08/BC-8.28.002.md) | orchestrator cycle-closing checklist references lessons-codification.md rule | draft | CAP-001 | S-7.02 |
-| [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
-| [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
-| [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |
 | [BC-8.30.001](ss-08/BC-8.30.001.md) | story template must include tdd_mode field with strict\|facade enum and strict default | draft | CAP-016 | S-7.03 |
-| [BC-8.30.002](ss-08/BC-8.30.002.md) | tdd_mode=facade modifies per-story-delivery semantics and mandates mutation testing at wave gate | draft | CAP-016 | S-7.03 |
+<!-- BC-8.29.001, BC-8.29.002, BC-8.29.003, BC-8.30.002 listed under SS-05 above — authoritative subsystem is SS-05 (files remain in ss-08/ per POLICY 1 append-only) -->
 
 ### SS-09 — Configuration and Activation (BC-9)
 

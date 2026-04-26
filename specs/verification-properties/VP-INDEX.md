@@ -137,5 +137,5 @@ total_vps: 64
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
 - BCs cross-referenced: 95 BC IDs across 64 VPs
-- Test evidence cited: 47 VPs have specific Rust test references
+- Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
 - 15 VPs have TBD test evidence (manual or pending CI automation)

@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T22:00:00Z
-phase: s-7-03-pass-1-fixes-applied
+timestamp: 2026-04-26T23:30:00Z
+phase: s-7-03-pass-2-fixes-applied
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-7.03 pass-1 fixes applied. Next: adversarial pass-2 to verify fixes + sweep for new findings."
+current_step: "S-7.03 pass-2 fixes applied. Next: adversarial pass-3 (1st of 3 NITPICK target)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (pass-1 fix burst) |
-| **Current Phase** | s-7-03-pass-1-fixes-applied |
+| **Last Updated** | 2026-04-26 (pass-2 fix burst) |
+| **Current Phase** | s-7-03-pass-2-fixes-applied |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -73,6 +73,7 @@ dtu_services: []
 | Hotfix: novelty-test fixture path | COMPLETE | PR #10/#11 merged; release workflow re-fire succeeded after fix |
 | S-7.03 spec foundation | COMPLETE | 13 BCs + 2 VPs + FR-043 + story (status=ready) + E-7 epic v1.1 |
 | S-7.03 pass-1 fix burst | COMPLETE | 25 findings, all addressed; SS-05 +4 / SS-08 -4 BC reanchor; VP-063 method proptest→integration; CAP-016 expanded SS-08; story v1.1 |
+| S-7.03 pass-2 fix burst | COMPLETE | 7 substantive findings + 5 obs addressed; BC-INDEX subsystem grouping fixed; PRD narrative reconciled; VP-INDEX Rust-count audited; input-hashes recomputed (3 distinct values) |
 
 ## Current Phase Steps
 
@@ -82,7 +83,8 @@ dtu_services: []
 | S-7.03 spec foundation (13 BCs + 2 VPs + FR-043 + story) | PO + story-writer | COMPLETE | BCs in ss-05/ss-06/ss-08; VP-063/VP-064; prd.md FR-043 |
 | S-7.03 adversarial pass-1 | adversarial-reviewer | COMPLETE | 25 findings — all addressed in fix burst |
 | S-7.03 pass-1 fix burst (index/state updates) | state-manager | COMPLETE | BC-INDEX, ARCH-INDEX, VP-INDEX, STORY-INDEX, STATE.md updated |
-| S-7.03 adversarial pass-2 | adversarial-reviewer | pending | — |
+| S-7.03 adversarial pass-2 | adversarial-reviewer | COMPLETE | 1 HIGH + 4 MEDIUM + 2 LOW + 5 obs addressed in pass-2 fix burst |
+| S-7.03 pass-2 fix burst (index/state updates) | state-manager | COMPLETE | BC-INDEX N-001 moved 4 BCs to SS-05; PRD N-004 math reconciled; VP-INDEX N-006 count 47→46 |
 
 ## Identifier Conventions
 
@@ -163,6 +165,7 @@ dtu_services: []
 | D-011 | Beta.4 cache-staleness fix prevented broken release; hotfix flow validated | Pre-release validation caught E-7 hook tightening test regression. Bot bundle commit was correctly NOT created (no stale-version-with-X-1-binaries cache poisoning). Hotfix-on-main + delete/recreate-tag flow restored release. End-to-end discipline validated. | release-cycle | 2026-04-26 | orchestrator + user |
 | D-012 | S-7.03 (TDD Discipline Hardening) added to E-7 in response to Prism Wave 2 stub-as-impl anti-pattern (3 of 5 stub-architects pre-implemented business logic). Self-referential dogfooding pattern continues. | E-7 process codification must prevent stub-as-implementation; 13 BCs across 3 subsystems (SS-05 anti-precedent guard, SS-08 RED_RATIO gate + tdd_mode frontmatter, SS-06 mutation wave-gate) + 2 VPs (VP-063 proptest, VP-064 manual). | spec-foundation | 2026-04-26 | orchestrator + user |
 | D-013 | S-7.03 spec foundation pass-1 — 4 BCs reanchored SS-08→SS-05 in frontmatter (files stay in ss-08/ per POLICY 1 append-only); VP-063 method changed proptest→integration (production code is shell, not Rust) | BCs BC-8.29.001/002/003 and BC-8.30.002 describe orchestrator pipeline behavior (wave-gate dispatch, RED_RATIO gate), correctly anchored to SS-05. VP-063 tests validate-red-ratio.sh directly via BATS; proptest is infeasible against Bash. | pass-1-fix-burst | 2026-04-26 | state-manager |
+| D-014 | S-7.03 pass-2 — BC-INDEX section grouping moved 4 BCs from SS-08 to SS-05 listing (files stay in ss-08/ per POLICY 1); PRD count narrative reconciled to 1,891 = 1,863 + 15 (E-7) + 13 (S-7.03); input-hashes computed (placeholders detected and replaced) | N-001: BC-INDEX section contradicted frontmatter subsystem. N-004: PRD narrative cited 1,878 pre-E-7 baseline (incorrect; correct is 1,863). N-006: VP-INDEX Rust-count was 47; with VP-063 moved from proptest→integration/bats, correct count is 46. | pass-2-fix-burst | 2026-04-26 | state-manager |
 
 
 ## Skip Log
@@ -186,16 +189,5 @@ dtu_services: []
 | **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.03+ tooling stories; Phase 2 wave schedule |
 | **Next action** | S-7.03 adversarial pass-1; or TD-001, TD-010, Phase 2 wave decomposition (45 stories; 8 epics E-0..E-7). |
 
-## Release Ladder
-
-| Tag | Date | Highlights |
-|-----|------|-----------|
-| v1.0.0-beta.1 | 2026-04-22 | Initial beta |
-| v1.0.0-beta.2 | 2026-04-23 | (per CHANGELOG) |
-| v1.0.0-beta.3 | 2026-04-25 | hook tool_response shape fix |
-| v1.0.0-beta.4 | 2026-04-25 | cache fix + stderr capture + SHA-currency gate |
-| v1.0.0-beta.5 | 2026-04-26 | ADR template + identifier canonicalization phase 1 |
-| v1.0.0-beta.6 | 2026-04-26 | S-6.01 create-adr skill + E-7 process codification + 10 ADRs |
-
 ## Historical Content
-Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers) lives in `cycles/v1.0-brownfield-backfill/`.
+Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
