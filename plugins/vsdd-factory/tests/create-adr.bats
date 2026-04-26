@@ -175,7 +175,7 @@ _run_driver() {
   _run_driver --title "New Decision" --subsystems "SS-06"
   [ "$status" -eq 0 ]
   # The newly written file must contain status: proposed
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -n "$new_file" ]
   grep -q "status: proposed" "$new_file"
 }
@@ -184,7 +184,7 @@ _run_driver() {
   today=$(date +%Y-%m-%d)
   _run_driver --title "New Decision" --subsystems "SS-06"
   [ "$status" -eq 0 ]
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -n "$new_file" ]
   grep -q "date: ${today}" "$new_file"
 }
@@ -220,7 +220,7 @@ _run_driver() {
   _run_driver --title "New Decision" --subsystems "SS-06" --supersedes "ADR-013"
   [ "$status" -ne 0 ]
   # No new ADR-014 file should have been left behind.
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -z "$new_file" ]
   # Must report what it rolled back.
   [[ "$output" == *"rollback"* ]] || [[ "$output" == *"revert"* ]] || [[ "$output" == *"failed"* ]]
@@ -255,7 +255,7 @@ _run_driver() {
   _run_driver --title "Decision <with/special> chars" --subsystems "SS-06"
   [ "$status" -eq 0 ]
   # Slug in the filename must not contain '<', '>', or '/'
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -n "$new_file" ]
   basename "$new_file" | grep -qv '[<>/]'
   # Original title preserved in ARCH-INDEX row
@@ -269,7 +269,7 @@ _run_driver() {
   _run_driver --title "New Decision" --subsystems "SS-06"
   [ "$status" -ne 0 ]
   # No new file should be written.
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -z "$new_file" ]
   # Must mention the missing section in the error output.
   [[ "$output" == *"Architecture Decisions"* ]] || [[ "$output" == *"section"* ]] || [[ "$output" == *"ARCH-INDEX"* ]]
@@ -282,7 +282,7 @@ _run_driver() {
 @test "AC-5 [BC-6.20.009]: scaffold preserves template placeholder text verbatim" {
   _run_driver --title "New Decision" --subsystems "SS-06"
   [ "$status" -eq 0 ]
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -n "$new_file" ]
   # The template contains this exact placeholder; it must appear verbatim.
   grep -q "\[2-5 paragraphs\] Background, forces driving the decision" "$new_file"
@@ -298,6 +298,22 @@ _run_driver() {
   [[ "$output" == *"Consequences"* ]]
   [[ "$output" == *"Alternatives Considered"* ]]
   [[ "$output" == *"Source / Origin"* ]]
+  # SKILL.md Step 11 also requires "Recommended next step:" guidance line
+  [[ "$output" == *"Recommended next step"* ]]
+}
+
+@test "AC-5 [BC-6.20.009, VP-059]: --dry-run prints proposed ID without writing files" {
+  # --dry-run must output proposed ID and write nothing (required by VP-059 harness)
+  _run_driver --title "New Decision" --subsystems "SS-06" --dry-run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"ADR-014"* ]]
+  [[ "$output" == *"Dry-run"* ]]
+  # No new ADR file must have been written
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion  # STDERR-EXEMPT: find on tmpdir; absence is the expected result
+  [ -z "$new_file" ]
+  # ARCH-INDEX must NOT have been modified
+  run grep -c "ADR-014" "$ARCH_INDEX"
+  [ "$output" -eq 0 ]
 }
 
 # ---------------------------------------------------------------------------
@@ -307,7 +323,7 @@ _run_driver() {
 @test "AC-6 [BC-6.20.010]: --brownfield flag injects Source/Origin annotation" {
   _run_driver --title "New Decision" --subsystems "SS-06" --brownfield
   [ "$status" -eq 0 ]
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -n "$new_file" ]
   grep -q "BROWNFIELD" "$new_file"
 }
@@ -315,7 +331,7 @@ _run_driver() {
 @test "AC-6 [BC-6.20.010]: --supersedes implies brownfield annotation" {
   _run_driver --title "New Decision" --subsystems "SS-06" --supersedes "ADR-012"
   [ "$status" -eq 0 ]
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -n "$new_file" ]
   grep -q "BROWNFIELD" "$new_file"
 }
@@ -323,7 +339,7 @@ _run_driver() {
 @test "AC-6 [BC-6.20.010]: no flag, no supersedes, no annotation" {
   _run_driver --title "New Decision" --subsystems "SS-06"
   [ "$status" -eq 0 ]
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -n "$new_file" ]
   # Must NOT contain the brownfield annotation.
   run grep -c "BROWNFIELD" "$new_file"
@@ -353,7 +369,7 @@ _run_driver() {
   [ "$output" -eq 0 ]
 }
 
-@test "AC-7 [BC-6.20.011]: validation fail skips supersession patch" {
+@test "AC-7 [BC-6.20.011]: validation fail reverts supersession patch" {
   export MOCK_VALIDATE_EXIT=1
   _run_driver --title "New Decision" --subsystems "SS-06" --supersedes "ADR-013"
   [ "$status" -ne 0 ]
@@ -388,11 +404,11 @@ _run_driver() {
   chmod 644 "$ARCH_INDEX"
   [ "$status_after" -ne 0 ]
   # New ADR file must have been cleaned up.
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -z "$new_file" ]
 }
 
-@test "AC-8 [BC-6.20.012]: supersession patch fail deletes new file and rolls back index" {
+@test "AC-8 [BC-6.20.012]: supersession patch fail deletes new file (index never written)" {
   # Make ADR-013 read-only so the supersession patch fails mid-flight.
   chmod 444 "$DECISIONS_DIR/ADR-013-adversarial-review-structure.md"
   _run_driver --title "New Decision" --subsystems "SS-06" --supersedes "ADR-013"
@@ -400,7 +416,7 @@ _run_driver() {
   chmod 644 "$DECISIONS_DIR/ADR-013-adversarial-review-structure.md"
   [ "$status_after" -ne 0 ]
   # New file must not exist.
-  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)
+  new_file=$(find "$DECISIONS_DIR" -name "ADR-014-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find on tmpdir; absence/presence is the assertion
   [ -z "$new_file" ]
   # ARCH-INDEX must not contain ADR-014.
   run grep -c "ADR-014" "$ARCH_INDEX"

@@ -139,7 +139,7 @@ validate_subsystems "$SUBSYSTEMS"
 # Validate --supersedes exists (BC-6.20.006)
 # ---------------------------------------------------------------------------
 if [[ -n "$SUPERSEDES" ]]; then
-  supersedes_file=$(find "$DECISIONS_DIR" -maxdepth 1 -name "${SUPERSEDES}-*.md" 2>/dev/null | head -1)
+  supersedes_file=$(find "$DECISIONS_DIR" -maxdepth 1 -name "${SUPERSEDES}-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find warns on missing dir; absence is handled below
   if [[ -z "$supersedes_file" ]]; then
     echo "ERROR: --supersedes ${SUPERSEDES} does not exist in $DECISIONS_DIR." >&2
     exit 1
@@ -167,7 +167,7 @@ while IFS= read -r fname; do
       fs_max=$num
     fi
   fi
-done < <(find "$DECISIONS_DIR" -maxdepth 1 -name "ADR-[0-9][0-9][0-9]-*.md" 2>/dev/null | sort)
+done < <(find "$DECISIONS_DIR" -maxdepth 1 -name "ADR-[0-9][0-9][0-9]-*.md" 2>/dev/null | sort)  # STDERR-EXEMPT: find warns on missing dir; mkdir -p above guards this
 
 idx_max=0
 idx_ids_str=""
@@ -197,7 +197,7 @@ proposed_id=$(printf "ADR-%03d" "$next_num")
 
 # Handle explicit --id override (BC-6.20.002)
 if [[ -n "$EXPLICIT_ID" ]]; then
-  existing=$(find "$DECISIONS_DIR" -maxdepth 1 -name "${EXPLICIT_ID}-*.md" 2>/dev/null | head -1)
+  existing=$(find "$DECISIONS_DIR" -maxdepth 1 -name "${EXPLICIT_ID}-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: find warns on missing dir; absence handled below
   if [[ -n "$existing" ]]; then
     echo "ERROR: ${EXPLICIT_ID} already exists at decisions/$(basename "$existing"). Omit --id to auto-allocate or choose a free ID." >&2
     exit 1
@@ -266,8 +266,8 @@ rollback() {
       restore_content=$(awk -v prev="$OLD_ADR_PREV_VALUE" '
         /^superseded_by:/ { print "superseded_by: " prev; next }
         { print }
-      ' "$PATCHED_OLD_ADR" 2>/dev/null)
-      if printf '%s\n' "$restore_content" > "$PATCHED_OLD_ADR" 2>/dev/null; then
+      ' "$PATCHED_OLD_ADR" 2>/dev/null)  # STDERR-EXEMPT: awk stderr on missing file; writeability already checked
+      if printf '%s\n' "$restore_content" > "$PATCHED_OLD_ADR" 2>/dev/null; then  # STDERR-EXEMPT: write permission already checked above
         echo "Restored $(basename "$PATCHED_OLD_ADR") superseded_by to ${OLD_ADR_PREV_VALUE}." >&2
       else
         echo "WARNING: Could not restore $(basename "$PATCHED_OLD_ADR") superseded_by field." >&2
@@ -279,9 +279,9 @@ rollback() {
 
   if [[ "$INSERTED_INDEX" -eq 1 ]]; then
     if [[ -w "$ARCH_INDEX" ]]; then
-      local tmp_i content_no_row
-      content_no_row=$(grep -v "^| ${proposed_id} " "$ARCH_INDEX" 2>/dev/null)
-      if printf '%s\n' "$content_no_row" > "$ARCH_INDEX" 2>/dev/null; then
+      local content_no_row
+      content_no_row=$(grep -v "^| ${proposed_id} " "$ARCH_INDEX" 2>/dev/null)  # STDERR-EXEMPT: writeability checked above
+      if printf '%s\n' "$content_no_row" > "$ARCH_INDEX" 2>/dev/null; then  # STDERR-EXEMPT: writeability checked above
         echo "Reverted ARCH-INDEX row for ${proposed_id}." >&2
       else
         echo "WARNING: ARCH-INDEX revert failed — manual cleanup required." >&2
@@ -293,7 +293,7 @@ rollback() {
   fi
 
   if [[ "$WROTE_FILE" -eq 1 ]]; then
-    rm -f "$adr_file" 2>/dev/null
+    rm -f "$adr_file" 2>/dev/null  # STDERR-EXEMPT: best-effort cleanup; missing file is acceptable
     echo "Deleted ${proposed_id}-${SLUG}.md." >&2
     WROTE_FILE=0
   fi
@@ -319,7 +319,7 @@ rollback() {
   printf '\n'
   printf '# %s: %s\n' "$proposed_id" "$TITLE"
   printf '%s\n' "$template_body"
-} > "$adr_file" 2>/dev/null || {
+} > "$adr_file" 2>/dev/null || {  # STDERR-EXEMPT: write failure produces no useful stderr; error message below is explicit
   echo "ERROR: Failed to write new ADR file at $adr_file." >&2
   exit 1
 }
@@ -343,7 +343,7 @@ if [[ "$BROWNFIELD" -eq 1 || -n "$SUPERSEDES" ]]; then
       annotation_inserted=1
     fi
   done < "$adr_file"
-  mv "$local_tmp" "$adr_file" 2>/dev/null || {
+  mv "$local_tmp" "$adr_file" 2>/dev/null || {  # STDERR-EXEMPT: mv failure triggers rollback with explicit message
     rollback "Failed to inject brownfield annotation into $adr_file."
   }
 fi
@@ -352,7 +352,7 @@ fi
 # Step 7: Apply supersession patch (BC-6.20.007)
 # ---------------------------------------------------------------------------
 if [[ -n "$SUPERSEDES" ]]; then
-  old_adr_file=$(find "$DECISIONS_DIR" -maxdepth 1 -name "${SUPERSEDES}-*.md" 2>/dev/null | head -1)
+  old_adr_file=$(find "$DECISIONS_DIR" -maxdepth 1 -name "${SUPERSEDES}-*.md" 2>/dev/null | head -1)  # STDERR-EXEMPT: validated to exist at arg-parse time; absence triggers rollback below
   if [[ -z "$old_adr_file" ]]; then
     rollback "Old ADR ${SUPERSEDES} not found for supersession patch."
   fi
@@ -370,12 +370,12 @@ if [[ -n "$SUPERSEDES" ]]; then
   patch_content=$(awk -v new_id="$proposed_id" '
     /^superseded_by:/ { print "superseded_by: " new_id; next }
     { print }
-  ' "$old_adr_file" 2>/dev/null)
+  ' "$old_adr_file" 2>/dev/null)  # STDERR-EXEMPT: awk stderr on unreadable file; writeability already checked above
   if [[ -z "$patch_content" ]]; then
     rollback "Failed to generate supersession patch content for ${SUPERSEDES}."
   fi
 
-  if ! printf '%s\n' "$patch_content" > "$old_adr_file" 2>/dev/null; then
+  if ! printf '%s\n' "$patch_content" > "$old_adr_file" 2>/dev/null; then  # STDERR-EXEMPT: writeability checked above; failure triggers rollback
     rollback "Failed to write supersession patch to ${SUPERSEDES} (permission denied)."
   fi
 fi
@@ -424,7 +424,7 @@ if [[ "$last_adr_line_num" -eq 0 ]]; then
 fi
 
 # Write directly to ARCH_INDEX (not via mv) so read-only file permission fails
-if ! printf '%s' "$updated_index" > "$ARCH_INDEX" 2>/dev/null; then
+if ! printf '%s' "$updated_index" > "$ARCH_INDEX" 2>/dev/null; then  # STDERR-EXEMPT: write failure triggers rollback with explicit message
   rollback "Failed to write ARCH-INDEX (permission denied or read-only file)."
 fi
 INSERTED_INDEX=1
@@ -447,15 +447,15 @@ if [[ "$validate_exit" -ne 0 ]]; then
     restore_content2=$(awk -v prev="$OLD_ADR_PREV_VALUE" '
       /^superseded_by:/ { print "superseded_by: " prev; next }
       { print }
-    ' "$PATCHED_OLD_ADR" 2>/dev/null)
-    if printf '%s\n' "$restore_content2" > "$PATCHED_OLD_ADR" 2>/dev/null; then
+    ' "$PATCHED_OLD_ADR" 2>/dev/null)  # STDERR-EXEMPT: writeability checked by -w guard above
+    if printf '%s\n' "$restore_content2" > "$PATCHED_OLD_ADR" 2>/dev/null; then  # STDERR-EXEMPT: writeability checked by -w guard above
       echo "Restored $(basename "$PATCHED_OLD_ADR") superseded_by to ${OLD_ADR_PREV_VALUE}." >&2
     fi
   fi
 
   if [[ "$INSERTED_INDEX" -eq 1 && -w "$ARCH_INDEX" ]]; then
-    content_no_row=$(grep -v "^| ${proposed_id} " "$ARCH_INDEX" 2>/dev/null)
-    printf '%s\n' "$content_no_row" > "$ARCH_INDEX" 2>/dev/null
+    content_no_row=$(grep -v "^| ${proposed_id} " "$ARCH_INDEX" 2>/dev/null)  # STDERR-EXEMPT: writeability checked by -w guard above
+    printf '%s\n' "$content_no_row" > "$ARCH_INDEX" 2>/dev/null  # STDERR-EXEMPT: writeability checked by -w guard above
     echo "Reverted ARCH-INDEX row for ${proposed_id}." >&2
   fi
 
@@ -470,7 +470,7 @@ fi
 EMIT_BIN="${PLUGIN_ROOT}/bin/emit-event"
 if [[ -x "$EMIT_BIN" ]]; then
   "$EMIT_BIN" "type=adr.scaffolded" "adr_id=${proposed_id}" "slug=${SLUG}" \
-    "subsystems=${SS_JOINED}" "path=${FILE_PATH}" 2>/dev/null || true
+    "subsystems=${SS_JOINED}" "path=${FILE_PATH}" 2>/dev/null || true  # STDERR-EXEMPT: event emission is failure-tolerant per emit-event contract
 fi
 
 # ---------------------------------------------------------------------------
