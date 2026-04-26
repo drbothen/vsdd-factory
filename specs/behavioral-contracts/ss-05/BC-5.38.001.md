@@ -4,7 +4,7 @@ level: L3
 version: "1.0"
 status: draft
 producer: product-owner
-timestamp: 2026-04-26T00:00:00
+timestamp: 2026-04-26T12:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
 input-hash: "a3187d9"
@@ -72,7 +72,7 @@ The stub-architect agent, when creating stub crates or scaffold files, must use 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-064 | facade-mode mutation gate enforces correct wave-gate semantics (verifies complementary contract) | manual |
+| (static-check) | Stub commits adhere to todo!() obligation per dispatch checklist | bats grep / adversarial check |
 
 ## Traceability
 
@@ -114,4 +114,4 @@ S-7.03
 
 ## VP Anchors
 
-- VP-064 — facade-mode mutation gate (covers complementary facade behavior)
+(static check — adversarial coverage sufficient; no formal VP required for this BC)
