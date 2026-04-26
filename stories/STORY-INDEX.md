@@ -4,7 +4,7 @@ level: ops
 version: "1.0"
 status: current
 producer: story-writer
-timestamp: 2026-04-25T00:00:00
+timestamp: 2026-04-26T00:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -18,7 +18,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
 > S-N.MM format. Updated in Phase 2 (story decomposition) with E-7 stories.
 > This index is the authoritative source for story count and status.
-> 44 stories across 8 epics (E-0 through E-7).
+> 45 stories across 8 epics (E-0 through E-7).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -31,8 +31,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | merged | 22 |
 | partial | 4 |
 | draft | 15 |
-| ready | 3 |
-| **Total** | **44** |
+| ready | 4 |
+| **Total** | **45** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -117,6 +117,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|
 | S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | ready |
 | S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | ready |
+| S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | ready |
 
 ---
 
@@ -131,7 +132,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 199 across 44 stories (186 original + 13 E-7)
+**Total story points:** 207 across 45 stories (186 original + 21 E-7)
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

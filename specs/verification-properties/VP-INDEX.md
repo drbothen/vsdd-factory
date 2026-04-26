@@ -4,10 +4,10 @@ level: L4
 version: "1.0"
 status: draft
 producer: architect
-timestamp: 2026-04-25T00:00:00
+timestamp: 2026-04-26T00:00:00
 phase: 1.6b
 traces_to: ARCH-INDEX.md
-total_vps: 62
+total_vps: 64
 ---
 
 # VP-INDEX: Verification Properties Master Index
@@ -33,7 +33,8 @@ total_vps: 62
 | Workflow VPs | 5 | VP-053..VP-057 |
 | Skill Catalog VPs | 3 | VP-058..VP-060 |
 | Process Codification VPs | 2 | VP-061..VP-062 |
-| **Total** | **62** | **VP-001..VP-062** |
+| TDD Discipline VPs | 2 | VP-063..VP-064 |
+| **Total** | **64** | **VP-001..VP-064** |
 
 ## Proof Method Breakdown
 
@@ -41,10 +42,10 @@ total_vps: 62
 |--------|-------|-----|
 | unit-test | 40 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052 |
 | integration | 11 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062 |
-| manual | 9 | VP-015, VP-046..048, VP-053..057 |
+| manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 0 | — (upgrade candidates: VP-020, VP-023, VP-042) |
-| proptest | 1 | VP-059 (upgrade candidates: VP-019, VP-029, VP-032) |
+| proptest | 2 | VP-059, VP-063 (upgrade candidates: VP-019, VP-029, VP-032) |
 
 ## Full Index
 
@@ -112,6 +113,8 @@ total_vps: 62
 | [VP-060](VP-060.md) | Bidirectional Supersession — supersedes ↔ superseded_by is Symmetric After Skill Completion | invariant | integration | SS-06 | — | draft |
 | [VP-061](VP-061.md) | Agent Prompt Discipline Rules Are Present in All Three Agent Files | invariant | static-check | SS-05 | — | draft |
 | [VP-062](VP-062.md) | S-7.02 Process-Codification Surface Invariant — All Codification Artifacts Are Present and Coherent | invariant | integration | SS-05, SS-07, SS-08 | — | draft |
+| [VP-063](VP-063.md) | RED_RATIO computation correctness — monotonic, bounded [0.0, 1.0], boundary-safe at 0.5 threshold | invariant | proptest | SS-08 | — | draft |
+| [VP-064](VP-064.md) | facade-mode mutation gate enforcement — wave-gate skill executes cargo mutants and blocks if kill rate < 80% | safety | manual | SS-06, SS-08 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -133,6 +136,6 @@ total_vps: 62
 ## Traceability
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
-- BCs cross-referenced: 95 BC IDs across 62 VPs
+- BCs cross-referenced: 95 BC IDs across 64 VPs
 - Test evidence cited: 47 VPs have specific Rust test references
-- 13 VPs have TBD test evidence (manual or pending CI automation)
+- 15 VPs have TBD test evidence (manual or pending CI automation)

@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T20:00:00Z
-phase: post-beta-6-shipped
+timestamp: 2026-04-26T21:00:00Z
+phase: s-7-03-spec-foundation
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0.0-beta.6 SHIPPED 2026-04-26. Next session: implement deferred work (Re-anchor existing stories TD-001, DTU/CI verification TD-010, S-7.03+ tooling stories, Phase 2 wave schedule)."
+current_step: "S-7.03 spec foundation COMPLETE (13 BCs + 2 VPs + FR-043 + story + epic update). Next: adversarial pass-1 on S-7.03 spec scope."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -39,7 +39,7 @@ dtu_services: []
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
 | **Last Updated** | 2026-04-26 |
-| **Current Phase** | post-beta-6-shipped |
+| **Current Phase** | s-7-03-spec-foundation |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -56,14 +56,14 @@ dtu_services: []
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
 | Phase 1.4 — BC Migration | COMPLETE | 1,878 BC-S.SS.NNN files in 10 ss-NN/ shards + BC-INDEX.md (current) |
-| Phase 1.5 — Formal PRD | COMPLETE | 42 FRs (FR-041, FR-042 added), 76 NFRs, 100% BC traceability |
+| Phase 1.5 — Formal PRD | COMPLETE | 43 FRs (FR-041, FR-042 added; FR-043 added in S-7.03), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
-| Phase 1.6b — Verification Properties | COMPLETE | 62 VPs (all draft, VP-001..VP-062; +2 for E-7) |
+| Phase 1.6b — Verification Properties | COMPLETE | 64 VPs (all draft, VP-001..VP-064; +2 for E-7; +2 for S-7.03) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
 | Phase 1d — Adversarial Spec Review | COMPLETE | 6 passes, converged at pass 6 (3 consecutive NITPICK: passes 4-5-6) |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
-| Phase 2 — Story Decomposition | not-started | Unblocked; 44 stories (41 migrated + 3 new E-6/E-7) ready for dependency graph + wave schedule |
+| Phase 2 — Story Decomposition | not-started | Unblocked; 45 stories (41 migrated + 4 new E-6/E-7) ready for dependency graph + wave schedule |
 | S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
 | E-7 Process Codification spec foundation | COMPLETE | E-7 epic + S-7.01/S-7.02 (status=ready) + 15 BCs + 2 VPs + FR-042 |
 | E-7 spec convergence (sub-cycle) | COMPLETE | 7 passes, 12→5→1→2→2→0→0 trajectory, CONVERGENCE_REACHED at pass-7 |
@@ -71,25 +71,27 @@ dtu_services: []
 | S-6.01 GREEN implementation | COMPLETE | feat/create-adr-skill commit 5f0b0fa; 25/25 bats tests green; SKILL.md + commands + driver |
 | Release v1.0.0-beta.6 | COMPLETE | Tag at ae426cd; PR #8/#10/#11/#12 merged; bot bundle commit atomic per beta.4 cache fix; GH Release published |
 | Hotfix: novelty-test fixture path | COMPLETE | PR #10/#11 merged; release workflow re-fire succeeded after fix |
+| S-7.03 spec foundation | COMPLETE | 13 BCs + 2 VPs + FR-043 + story (status=ready) + E-7 epic v1.1 |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | Beta.6 shipped | devops-engineer | COMPLETE | ae426cd; GH Release v1.0.0-beta.6 published |
-| Determine next session focus | orchestrator + user | pending | TD-001 / TD-010 / S-7.03+ / Phase 2 wave schedule |
+| S-7.03 spec foundation (13 BCs + 2 VPs + FR-043 + story) | PO + story-writer | COMPLETE | BCs in ss-05/ss-06/ss-08; VP-063/VP-064; prd.md FR-043 |
+| S-7.03 adversarial pass-1 | adversarial-reviewer | pending | — |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,878 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 62 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,891 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 64 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 44 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 45 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 8 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 13 |
 
@@ -101,20 +103,20 @@ dtu_services: []
 | SS-02 | Hook SDK and Plugin ABI | BC-2 | 22 |
 | SS-03 | Observability Sinks | BC-3 | 49 |
 | SS-04 | Plugin Ecosystem | BC-4 | 13 |
-| SS-05 | Pipeline Orchestration | BC-5 | 636 |
-| SS-06 | Skill Catalog | BC-6 | 583 |
+| SS-05 | Pipeline Orchestration | BC-5 | 642 |
+| SS-06 | Skill Catalog | BC-6 | 585 |
 | SS-07 | Hook Bash Layer | BC-7 | 196 |
-| SS-08 | Templates and Rules | BC-8 | 217 |
+| SS-08 | Templates and Rules | BC-8 | 222 |
 | SS-09 | Configuration and Activation | BC-9 | 5 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
-| **Total** | | | **1,878** |
+| **Total** | | | **1,891** |
 
-## Story Status (44 total)
+## Story Status (45 total)
 
 - **Merged (22):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1)
 - **Partial (4):** S-2.05 (cargo publish dry-run), S-3.04 (host fn done, bash not retired), S-4.06 (RoutingFilter parsed not wired), S-5.05 (skeleton)
 - **Draft / Not Shipped (15):** All Tier E except partials, all Tier F/G/H
-- **Ready (3):** S-6.01 (create-adr skill), S-7.01 (agent prompt discipline), S-7.02 (defensive sweep + hook + meta-rule)
+- **Ready (4):** S-6.01 (create-adr skill), S-7.01 (agent prompt discipline), S-7.02 (defensive sweep + hook + meta-rule), S-7.03 (TDD discipline hardening)
 
 ## Drift Items (open)
 
@@ -156,6 +158,7 @@ dtu_services: []
 | D-009 | E-7 Process Codification — codify lessons learned from S-6.01 sub-cycle as plugin source rules | Self-referential dogfooding — vsdd-factory uses its own VSDD process to improve itself; lessons table from D-008 driven into prompt/rule/hook deliverables | post-1.5 | 2026-04-26 | orchestrator + user |
 | D-010 | E-7 process codification + S-6.01 create-adr skill → bundle into beta.6 release | Both branches ready (specs converged, GREEN tests pass). Bundling reduces release overhead; both deliver self-improvement value (E-7 codifies lessons; S-6.01 closes per-artifact create-* skill gap) | pre-release | 2026-04-26 | orchestrator + user |
 | D-011 | Beta.4 cache-staleness fix prevented broken release; hotfix flow validated | Pre-release validation caught E-7 hook tightening test regression. Bot bundle commit was correctly NOT created (no stale-version-with-X-1-binaries cache poisoning). Hotfix-on-main + delete/recreate-tag flow restored release. End-to-end discipline validated. | release-cycle | 2026-04-26 | orchestrator + user |
+| D-012 | S-7.03 (TDD Discipline Hardening) added to E-7 in response to Prism Wave 2 stub-as-impl anti-pattern (3 of 5 stub-architects pre-implemented business logic). Self-referential dogfooding pattern continues. | E-7 process codification must prevent stub-as-implementation; 13 BCs across 3 subsystems (SS-05 anti-precedent guard, SS-08 RED_RATIO gate + tdd_mode frontmatter, SS-06 mutation wave-gate) + 2 VPs (VP-063 proptest, VP-064 manual). | spec-foundation | 2026-04-26 | orchestrator + user |
 
 
 ## Skip Log
@@ -177,7 +180,7 @@ dtu_services: []
 | **Release** | Tag ae426cd; GH Release published 2026-04-26 08:41:35 UTC; prerelease=true |
 | **Hotfix** | novelty-test fixture path (PR #10/#11); delete/recreate-tag flow validated |
 | **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.03+ tooling stories; Phase 2 wave schedule |
-| **Next action** | Determined by user — TD-001, TD-010, S-7.03+, or Phase 2 wave decomposition (44 stories ready; 8 epics E-0..E-7 defined). |
+| **Next action** | S-7.03 adversarial pass-1; or TD-001, TD-010, Phase 2 wave decomposition (45 stories; 8 epics E-0..E-7). |
 
 ## Release Ladder
 

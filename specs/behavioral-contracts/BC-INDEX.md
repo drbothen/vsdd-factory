@@ -4,17 +4,17 @@ level: L3
 version: "1.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-25T00:00:00
+timestamp: 2026-04-26T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1878
+total_bcs: 1891
 traces_to: bc-id-mapping.md
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,878 behavioral contracts across 10 subsystems.
+> Master index of all 1,891 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -25,13 +25,13 @@ traces_to: bc-id-mapping.md
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 22 | ss-02/ |
 | SS-03 Observability Sinks | BC-3 | 49 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 13 | ss-04/ |
-| SS-05 Pipeline Orchestration | BC-5 | 636 | ss-05/ |
-| SS-06 Skill Catalog | BC-6 | 583 | ss-06/ |
+| SS-05 Pipeline Orchestration | BC-5 | 642 | ss-05/ |
+| SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
-| SS-08 Templates and Rules | BC-8 | 217 | ss-08/ |
+| SS-08 Templates and Rules | BC-8 | 222 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1878** | |
+| **Total** | | **1891** | |
 
 ## Index by subsystem
 
@@ -878,6 +878,12 @@ traces_to: bc-id-mapping.md
 | [BC-5.36.007](ss-05/BC-5.36.007.md) | all three agent prompts updated atomically in single delivery; no partial update | draft | CAP-001 | S-7.01 |
 | [BC-5.37.001](ss-05/BC-5.37.001.md) | state-manager runs corpus-wide grep before declaring count change complete | draft | CAP-001 | S-7.02 |
 | [BC-5.37.002](ss-05/BC-5.37.002.md) | state-manager logs sweep results before declaring count-change complete | draft | CAP-001 | S-7.02 |
+| [BC-5.38.001](ss-05/BC-5.38.001.md) | stub-architect commit must contain todo!()/unimplemented!() bodies for all non-trivial function implementations | draft | CAP-016 | S-7.03 |
+| [BC-5.38.002](ss-05/BC-5.38.002.md) | pure data mappings in stub commits may be implemented inline and must be flagged GREEN-BY-DESIGN | draft | CAP-016 | S-7.03 |
+| [BC-5.38.003](ss-05/BC-5.38.003.md) | framework integration wiring may have minimal real code for cargo check; handler business logic must be todo!() | draft | CAP-016 | S-7.03 |
+| [BC-5.38.004](ss-05/BC-5.38.004.md) | stub-architect must not use pre-implemented sibling crates as stub templates | draft | CAP-016 | S-7.03 |
+| [BC-5.38.005](ss-05/BC-5.38.005.md) | stub-architect applies self-check before committing any non-todo!() function body | draft | CAP-016 | S-7.03 |
+| [BC-5.38.006](ss-05/BC-5.38.006.md) | deliver-story SKILL.md and per-story-delivery.md Step 2 must contain anti-precedent guard text verbatim | draft | CAP-016 | S-7.03 |
 
 ### SS-06 — Skill Catalog (BC-6)
 
@@ -1466,6 +1472,8 @@ traces_to: bc-id-mapping.md
 | [BC-6.20.010](ss-06/BC-6.20.010.md) | create-adr annotates Source/Origin section under --brownfield or implicit-brownfield | draft | CAP-017 | S-6.01 |
 | [BC-6.20.011](ss-06/BC-6.20.011.md) | create-adr runs validate-template-compliance.sh as final gate, blocks on non-zero | draft | CAP-017 | S-6.01 |
 | [BC-6.20.012](ss-06/BC-6.20.012.md) | create-adr is atomic — any partial-state failure rolls back all side-effects | draft | CAP-017 | S-6.01 |
+| [BC-6.21.001](ss-06/BC-6.21.001.md) | wave-gate skill must run cargo mutants for every story with tdd_mode=facade in the wave | draft | CAP-016 | S-7.03 |
+| [BC-6.21.002](ss-06/BC-6.21.002.md) | mutation kill rate floor is 80%; surviving mutants must be addressed via test, dead-code confirmation, or explicit waiver | draft | CAP-016 | S-7.03 |
 
 ### SS-07 — Hook Bash Layer (BC-7)
 
@@ -1889,6 +1897,11 @@ traces_to: bc-id-mapping.md
 | [BC-8.27.008](ss-08/BC-8.27.008.md) | rules/worktree-protocol.md: cleanup rules — remove worktrees promptly, never force-remove with uncommitted changes, audit via `git worktree list` | draft | CAP-TBD | TBD |
 | [BC-8.28.001](ss-08/BC-8.28.001.md) | rules/lessons-codification.md requires codification follow-up for every novel process catch | draft | CAP-001 | S-7.02 |
 | [BC-8.28.002](ss-08/BC-8.28.002.md) | orchestrator cycle-closing checklist references lessons-codification.md rule | draft | CAP-001 | S-7.02 |
+| [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
+| [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
+| [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |
+| [BC-8.30.001](ss-08/BC-8.30.001.md) | story template must include tdd_mode field with strict\|facade enum and strict default | draft | CAP-016 | S-7.03 |
+| [BC-8.30.002](ss-08/BC-8.30.002.md) | tdd_mode=facade modifies per-story-delivery semantics and mandates mutation testing at wave gate | draft | CAP-016 | S-7.03 |
 
 ### SS-09 — Configuration and Activation (BC-9)
 
