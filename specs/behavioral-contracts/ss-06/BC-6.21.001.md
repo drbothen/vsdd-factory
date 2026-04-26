@@ -7,10 +7,10 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
-extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-012"
+extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-010"
 subsystem: "SS-06"
 capability: "CAP-016"
 lifecycle_status: active
@@ -53,6 +53,7 @@ The wave-gate skill (`/vsdd-factory:wave-gate`) must, as part of its execution, 
 3. The mutation report must be committed to `.factory/logs/` as part of the wave gate PR. It is an auditable artifact.
 4. If `cargo-mutants` is not installed, wave gate BLOCKS with error "cargo-mutants not found — install with `cargo install cargo-mutants` before running wave gate."
 5. Mutation testing runs on the FINAL implementation state, not intermediate commits. Ensure all step commits for facade stories are applied before running.
+6. Wave-level mutation budget is 60 minutes wall-clock. If projected runtime (estimated total mutants × 300s ÷ jobs) exceeds budget, scope MUST be reduced via `--file` filters BEFORE invocation, not after timeout. The wave-gate skill is responsible for the projection calculation and scope-narrowing decision.
 
 ## Edge Cases
 
@@ -62,6 +63,7 @@ The wave-gate skill (`/vsdd-factory:wave-gate`) must, as part of its execution, 
 | EC-002 | `cargo mutants` times out on a large crate | The timeout-300 flag limits per-mutant time. If the overall run exceeds wave-gate SLA (60 min), reduce crate scope with `--file` or `--function` flags. Log the scoping decision. |
 | EC-003 | A story has `mutation_testing_required: true` (Option B from BC-8.29.003) but `tdd_mode: strict` | Mutation testing is still required — Option B creates the same obligation as facade mode. The same execution applies. |
 | EC-004 | Same crate targeted by two facade stories in the same wave | Run mutation testing once against the combined crate state after both stories are applied. Do not run twice. |
+| EC-005 | Story frontmatter `wave: null` (wave field is null or absent) | The mutation report path uses `<story-id>` instead of `<wave-id>` to avoid the literal string "null" in the filename: `.factory/logs/mutation-report-<story-id>-<crate>.md`. If `wave:` has an integer or string value, that value is used as `<wave-id>`. |
 
 ## Canonical Test Vectors
 
@@ -87,7 +89,7 @@ The wave-gate skill (`/vsdd-factory:wave-gate`) must, as part of its execution, 
 | L2 Domain Invariants | none |
 | Architecture Module | plugins/vsdd-factory/skills/wave-gate/SKILL.md |
 | Stories | S-7.03 |
-| Source AC | S-7.03 §AC-012 |
+| Source AC | S-7.03 §AC-010 |
 | FR | FR-043 |
 
 ## Related BCs

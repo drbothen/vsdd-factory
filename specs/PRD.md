@@ -487,6 +487,28 @@ Status: **shipped** (agents active).
 Source BCs: `ss-05/BC-5.20.001.md` through `BC-5.23.015.md` (53 BCs, with remaining phase workflow BCs).
 Enforces: CAP-001 (self-orchestrating pipeline). Status: phases 0-1-2-3 are **shipped** as workflows.
 
+#### FR-043 (SS-05 slice) — TDD Discipline Hardening — Pipeline Orchestration layer
+
+Anti-precedent guard, Red Gate density check gate, and facade-mode per-story-delivery semantics (Layer 1, 2, and 3 of FR-043).
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-5.38.001 | stub-architect commit must contain todo!()/unimplemented!() bodies for all non-trivial function implementations | P0 |
+| BC-5.38.002 | pure data mappings in stub commits may be implemented inline and must be flagged GREEN-BY-DESIGN | P1 |
+| BC-5.38.003 | framework integration wiring may have minimal real code for cargo check; handler business logic must be todo!() | P1 |
+| BC-5.38.004 | stub-architect must not use pre-implemented sibling crates as stub templates | P0 |
+| BC-5.38.005 | stub-architect applies self-check before committing any non-todo!() function body | P1 |
+| BC-5.38.006 | deliver-story SKILL.md and per-story-delivery.md Step 2 must contain anti-precedent guard text verbatim | P0 |
+| BC-8.29.001 | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | P0 |
+| BC-8.29.002 | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | P1 |
+| BC-8.29.003 | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | P0 |
+| BC-8.30.002 | tdd_mode=facade modifies per-story-delivery semantics and mandates mutation testing at wave gate | P1 |
+
+Note: BC-8.29.001–003 and BC-8.30.002 have BC-ID prefixes historically assigned to SS-08, but are authoritatively SS-05 per subsystem reanchor in adversarial pass-1 review. See individual BC Notes sections for the historical artifact explanation.
+
+Source BCs: `ss-05/BC-5.38.001–006.md` (6 BCs), `ss-08/BC-8.29.001–003.md` (3 BCs, SS-05 reanchored), `ss-08/BC-8.30.002.md` (1 BC, SS-05 reanchored).
+Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
+
 > Full contracts: `.factory/specs/behavioral-contracts/ss-05/` (636 BCs total)
 > Demo-recorder, accessibility-auditor, ux-designer agents: BC-5.03.001–018 (18 BCs)
 
@@ -575,6 +597,17 @@ Enforces: CAP-003 (observability). Status: **shipped** (bin tools present). Appr
 
 Enforces: CAP-022–027. Status: shipped (skills present; WIP on ports). Approx. 370 BCs.
 
+#### FR-043 (SS-06 slice) — TDD Discipline Hardening — Mutation Testing Wave Gate
+
+Mutation testing at wave gate for facade-mode stories (Layer 4 of FR-043).
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-6.21.001 | wave-gate skill must run cargo mutants for every story with tdd_mode=facade in the wave | P1 |
+| BC-6.21.002 | mutation kill rate floor is 80%; surviving mutants must be addressed via test, dead-code confirmation, or explicit waiver | P1 |
+
+Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
+
 > Full contracts: `.factory/specs/behavioral-contracts/ss-06/` (571 BCs total)
 
 ---
@@ -642,6 +675,16 @@ Enforces: CAP-014. Status: **shipped** (105 template files active).
 
 Source BCs: `ss-08/BC-8.06.001.md` through (approx. 70 BCs in rules family).
 Enforces: CAP-014 (methodology discipline). Status: **shipped**.
+
+#### FR-043 (SS-08 slice) — TDD Discipline Hardening — Story Template tdd_mode field
+
+Story template contract for the `tdd_mode` frontmatter field (Layer 3 template artifact of FR-043). This is the only FR-043 BC that remains in SS-08 after adversarial pass-1 reanchor (BC-8.30.002 moved to SS-05; BC-8.29.001–003 moved to SS-05).
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-8.30.001 | story template must include tdd_mode field with strict\|facade enum and strict default | P1 |
+
+Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-08/` (217 BCs total)
 
@@ -782,7 +825,7 @@ A real downstream factory run (Prism project, Wave 2, parallel batch of 5 storie
 
 Source BCs: `ss-05/BC-5.38.001–006.md` (6 BCs), `ss-08/BC-8.29.001–003.md` (3 BCs), `ss-08/BC-8.30.001–002.md` (2 BCs), `ss-06/BC-6.21.001–002.md` (2 BCs) — 13 BCs total.
 Maps to: SS-05 (Pipeline Orchestration), SS-06 (Skill Catalog), SS-08 (Templates and Rules).
-Verification Properties: VP-063 (RED_RATIO computation correctness — proptest), VP-064 (facade-mode mutation gate enforcement — manual).
+Verification Properties: VP-063 (RED_RATIO computation correctness — integration/bats), VP-064 (facade-mode mutation gate enforcement — manual).
 Acceptance: S-7.03 (TDD Discipline Hardening).
 Status: **pending** (E-7 story not yet implemented).
 

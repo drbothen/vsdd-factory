@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
 extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-005"
@@ -47,8 +47,9 @@ Before including any non-`todo!()` function body in a stub commit, the stub-arch
 ## Invariants
 
 1. The self-check question is: "If I include this real implementation, will the test for this function pass trivially without any implementer work?"
-2. "Trivially pass" means: the test would go GREEN at Step 3 Red Gate with this stub, with no implementer action required.
-3. The self-check applies even when the implementation is simple — simplicity does not exempt a function from the check.
+2. The self-check question must appear VERBATIM (not paraphrased). Paraphrased text is not acceptable, mirroring BC-5.38.006 EC-003.
+3. "Trivially pass" means: the test would go GREEN at Step 3 Red Gate with this stub, with no implementer action required.
+4. The self-check applies even when the implementation is simple — simplicity does not exempt a function from the check.
 
 ## Edge Cases
 
@@ -71,6 +72,7 @@ Before including any non-`todo!()` function body in a stub commit, the stub-arch
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | (peer review) | Self-check rule present in stub-architect prompt constraints | adversarial check |
+| BATS-static-check | test_self_check_question_in_stub_architect (S-7.03 AC-011 b) | bats grep |
 
 ## Traceability
 

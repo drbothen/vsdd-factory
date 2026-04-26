@@ -7,10 +7,10 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
-extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-013"
+extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-010"
 subsystem: "SS-06"
 capability: "CAP-016"
 lifecycle_status: active
@@ -95,7 +95,7 @@ After `cargo mutants` runs for a facade-mode crate (BC-6.21.001), the kill rate 
 | L2 Domain Invariants | none |
 | Architecture Module | plugins/vsdd-factory/skills/wave-gate/SKILL.md |
 | Stories | S-7.03 |
-| Source AC | S-7.03 §AC-013 |
+| Source AC | S-7.03 §AC-010 |
 | FR | FR-043 |
 
 ## Related BCs

@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
 extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-003"
@@ -72,7 +72,7 @@ Some framework integration patterns (e.g., Tower `Service` trait impl, Axum rout
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-063 | RED_RATIO correctly excludes WIRING-EXEMPT tests (same mechanism as GREEN-BY-DESIGN) | proptest |
+| VP-063 | RED_RATIO correctly excludes WIRING-EXEMPT tests (same mechanism as GREEN-BY-DESIGN) | integration (bats) |
 
 ## Traceability
 

@@ -14,7 +14,7 @@ inputs:
   - .factory/stories/S-6.01-create-adr-skill.md
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/s6.01-pass-1.md
   - .factory/stories/S-7.03-tdd-discipline-hardening.md
-input-hash: ""
+input-hash: "327e6f3"
 traces_to: .factory/STATE.md#Lessons-Learned
 ---
 

@@ -71,7 +71,7 @@ Source: pass-2 §BehavioralContract; pass-8 §11. Justification: BC traceability
 
 **CAP-016 — Drive TDD delivery with red/green/refactor gate enforcement**
 The deliver-story skill enforces a mandatory red-gate (failing test must exist) before the green-gate (minimum implementation), then refactor + review + demo + merge.
-Subsystems: SS-05, SS-06. Outcome: a story cannot merge without a test that was red before implementation.
+Subsystems: SS-05, SS-06, SS-08. Outcome: a story cannot merge without a test that was red before implementation. SS-08 contribution: the story-template `tdd_mode:` field (BC-8.30.001) enables the pipeline to distinguish strict TDD stories from facade-mode stories at the template/artifact level.
 Source: pass-2 §Skill deliver-story; pass-8 §story lifecycle state machine. Justification: TDD discipline is a core VSDD delivery constraint.
 
 **CAP-028 — Install and update the plugin via Claude Code marketplace**

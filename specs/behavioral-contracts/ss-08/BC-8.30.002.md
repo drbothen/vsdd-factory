@@ -7,11 +7,11 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
-extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-011"
-subsystem: "SS-08"
+extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-009"
+subsystem: "SS-05"
 capability: "CAP-016"
 lifecycle_status: active
 introduced: v1.0-brownfield-backfill
@@ -96,9 +96,9 @@ When a story has `tdd_mode: facade`, the per-story-delivery workflow operates in
 | L2 Capability | CAP-016 |
 | Capability Anchor Justification | CAP-016 ("Drive TDD delivery with red/green/refactor gate enforcement") per capabilities.md §CAP-016 — this BC specifies how CAP-016's gate enforcement adapts for structural facade work where the traditional red/green/refactor cycle is inappropriate, while preserving the quality assurance intent through mutation testing. |
 | L2 Domain Invariants | none |
-| Architecture Module | plugins/vsdd-factory/workflows/phases/per-story-delivery.md, plugins/vsdd-factory/skills/wave-gate/SKILL.md |
+| Architecture Module | plugins/vsdd-factory/workflows/phases/per-story-delivery.md (SS-05 territory), plugins/vsdd-factory/skills/wave-gate/SKILL.md |
 | Stories | S-7.03 |
-| Source AC | S-7.03 §AC-011 |
+| Source AC | S-7.03 §AC-009 |
 | FR | FR-043 |
 
 ## Related BCs
@@ -120,3 +120,7 @@ S-7.03
 ## VP Anchors
 
 - VP-064 — facade-mode mutation gate enforcement
+
+## Notes
+
+**Subsystem Historical Artifact:** The BC-ID prefix `8.30` embeds the original subsystem assignment of SS-08. After adversarial pass-1, this BC was authoritatively re-anchored to **SS-05 (Pipeline Orchestration)** because its primary Architecture Module (`per-story-delivery.md`) governs workflow-phase semantics in SS-05 territory. The `subsystem: SS-05` frontmatter is authoritative; the BC-ID prefix is a historical artifact. Per append_only_numbering policy, the ID is preserved rather than renumbered. (BC-8.30.001 remains correctly in SS-08 because its Architecture Module is `story-template.md`, which is a template artifact in SS-08 territory.)

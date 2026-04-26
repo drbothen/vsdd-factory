@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
 extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-004"
@@ -50,12 +50,13 @@ The stub-architect agent must not use existing sibling crates in the same worksp
    > "ANTI-PRECEDENT GUARD: Do not use sibling crates with pre-implemented stubs as templates for your stub work. If you observe that a sibling crate (e.g., a DTU clone or prior story's scaffold) contains full business logic rather than todo!() macros, treat it as a historical anti-pattern. Your stub must use todo!() for all non-trivial function bodies. Anti-precedent evidence: Prism commits aa706543, 6d2d005e, 20b4a12a. Model precedent: e86d03f2."
 2. The guard text must appear before Step 2 scaffolding instructions in the prompt, not appended as a footnote.
 3. The guard text must name the specific SHA commits as historical evidence — abstract warnings without evidence are insufficient.
+4. This BC's verbatim text §Invariants §1 satisfies BC-5.38.006 invariants 2 and 3 (SHA citations + "ANTI-PRECEDENT GUARD:" label). Modifications must preserve both.
 
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | Sibling crate is a `tdd_mode: facade` story that legitimately has full impl | Guard still applies: stub-architect must not reproduce the impl pattern in a `tdd_mode: strict` story context. |
+| EC-001 | Sibling crate is a `tdd_mode: facade` story that legitimately has full impl | Guard still applies: stub-architect must not COPY the implementation pattern. The sibling facade crate is a structural facade and a legitimate full-impl. The strict-mode story being scaffolded is NOT itself facade-mode; therefore its stub uses todo!() regardless of what the facade sibling does. |
 | EC-002 | No sibling crates exist in workspace | Guard text still required in prompt. Its presence is an invariant regardless of workspace state. |
 | EC-003 | Stub-architect cannot find any reference code and asks for clarification | Expected: stub-architect produces minimal `todo!()` skeletons from the story's spec and BC docs, not from inferred implementations. |
 
@@ -72,6 +73,7 @@ The stub-architect agent must not use existing sibling crates in the same worksp
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | (static-check) | Anti-precedent guard text present verbatim in deliver-story SKILL.md | peer review / adversarial check |
+| BATS-static-check | test_anti_precedent_guard_in_deliver_story_skill (S-7.03 AC-011 a) | bats grep |
 
 ## Traceability
 

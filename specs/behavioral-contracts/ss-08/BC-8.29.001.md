@@ -7,11 +7,11 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
-extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-007"
-subsystem: "SS-08"
+extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-006"
+subsystem: "SS-05"
 capability: "CAP-016"
 lifecycle_status: active
 introduced: v1.0-brownfield-backfill
@@ -80,7 +80,7 @@ Between Step 3 (Red Gate — test-writer runs the test suite against the stub) a
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-063 | RED_RATIO computation is correct, boundary-safe, and monotonic | proptest |
+| VP-063 | RED_RATIO computation is correct, boundary-safe, and monotonic | integration (bats) |
 
 ## Traceability
 
@@ -89,9 +89,9 @@ Between Step 3 (Red Gate — test-writer runs the test suite against the stub) a
 | L2 Capability | CAP-016 |
 | Capability Anchor Justification | CAP-016 ("Drive TDD delivery with red/green/refactor gate enforcement") per capabilities.md §CAP-016 — this BC is the primary quantitative enforcement of CAP-016's red-gate mandate: it specifies the exact threshold and blocking behavior that makes "a story cannot merge without a test that was red before implementation" machine-checkable. |
 | L2 Domain Invariants | none |
-| Architecture Module | plugins/vsdd-factory/workflows/phases/per-story-delivery.md |
+| Architecture Module | plugins/vsdd-factory/workflows/phases/per-story-delivery.md (SS-05 territory) |
 | Stories | S-7.03 |
-| Source AC | S-7.03 §AC-007 |
+| Source AC | S-7.03 §AC-006, AC-007 |
 | FR | FR-043 |
 
 ## Historical Evidence
@@ -117,3 +117,7 @@ S-7.03
 ## VP Anchors
 
 - VP-063 — RED_RATIO computation correctness
+
+## Notes
+
+**Subsystem Historical Artifact:** The BC-ID prefix `8.29` embeds the original subsystem assignment of SS-08 (Templates and Rules). After adversarial pass-1, this BC was authoritatively re-anchored to **SS-05 (Pipeline Orchestration)** because its Architecture Module (`per-story-delivery.md`) lives in SS-05 territory, and the Red Gate density check governs workflow-phase behavior — not template/rules content. The `subsystem: SS-05` frontmatter is authoritative; the BC-ID prefix `8.` is a historical artifact of the original assignment and does not indicate current subsystem ownership. Per append_only_numbering policy, the ID is preserved rather than renumbered.

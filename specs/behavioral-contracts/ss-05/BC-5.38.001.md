@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
 extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-001"
@@ -54,7 +54,7 @@ The stub-architect agent, when creating stub crates or scaffold files, must use 
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | Function has only 1–3 lines of real logic (e.g., `Ok(())` or simple field access) | Allowed in stub. Must be flagged GREEN-BY-DESIGN in stub report. |
+| EC-001 | Function has 1-3 lines of real logic AND meets ALL FOUR BC-5.38.002 invariant 1 criteria (no branching, no I/O, no non-trivial calls, ≤3 lines) | Allowed in stub per BC-5.38.002. Must be flagged GREEN-BY-DESIGN in stub report. |
 | EC-002 | Framework wiring code (e.g., Tower `Service` impl `fn poll_ready`) requires minimal real code for `cargo check` | Allowed for structural minimum only. Business logic inside handlers MUST remain `todo!()`. |
 | EC-003 | Stub-architect looks at a sibling crate (e.g., aa706543 Jira DTU) as a template | MUST NOT reproduce the anti-pattern. The anti-precedent guard text instructs stub-architect to treat sibling pre-implemented stubs as anti-examples. |
 | EC-004 | story has `tdd_mode: facade` | This BC does not apply. See BC-8.30.001 for facade-mode semantics. |

@@ -7,11 +7,11 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
-extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-009"
-subsystem: "SS-08"
+extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-006"
+subsystem: "SS-05"
 capability: "CAP-016"
 lifecycle_status: active
 introduced: v1.0-brownfield-backfill
@@ -58,7 +58,6 @@ When the Red Gate density check (BC-8.29.001) blocks Step 4 and the Red Gate log
 1. The only two remediation options are A and B. No other path (e.g., "proceed anyway without mutation", "defer to next wave") is permissible.
 2. The orchestrator's choice must be documented in the Red Gate log alongside the blocking event.
 3. Option B does not waive the mutation testing — it changes WHEN it occurs (wave gate vs. step gate) but not WHETHER it occurs.
-4. Repeated Option B choices (>2 consecutive stories in the same wave) require escalation to human with root cause analysis.
 
 ## Edge Cases
 
@@ -81,7 +80,7 @@ When the Red Gate density check (BC-8.29.001) blocks Step 4 and the Red Gate log
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-063 | Remediation option selection is correctly branched on RED_RATIO and UNJUSTIFIED count | proptest (decision logic) |
+| VP-063 | Remediation option selection is correctly branched on RED_RATIO and UNJUSTIFIED count | integration (bats) |
 
 ## Traceability
 
@@ -90,9 +89,9 @@ When the Red Gate density check (BC-8.29.001) blocks Step 4 and the Red Gate log
 | L2 Capability | CAP-016 |
 | Capability Anchor Justification | CAP-016 ("Drive TDD delivery with red/green/refactor gate enforcement") per capabilities.md §CAP-016 — this BC closes the loop on CAP-016's gate enforcement by ensuring that when the gate fires, the pipeline has a defined and mandatory decision protocol rather than an advisory that can be silently ignored. |
 | L2 Domain Invariants | none |
-| Architecture Module | plugins/vsdd-factory/workflows/phases/per-story-delivery.md |
+| Architecture Module | plugins/vsdd-factory/workflows/phases/per-story-delivery.md (SS-05 territory) |
 | Stories | S-7.03 |
-| Source AC | S-7.03 §AC-009 |
+| Source AC | S-7.03 §AC-006, AC-007 |
 | FR | FR-043 |
 
 ## Historical Evidence
@@ -117,3 +116,9 @@ S-7.03
 ## VP Anchors
 
 - VP-063 — RED_RATIO decision logic
+
+## Notes
+
+**Advisory (non-blocking):** Repeated Option B choices (>2 consecutive stories in the same wave) SHOULD trigger human escalation with root cause analysis. This is process guidance, not a machine-verifiable invariant. A future story may add cross-wave Option B tracking via sprint-state.yaml augmentation.
+
+**Subsystem Historical Artifact:** The BC-ID prefix `8.29` embeds the original subsystem assignment of SS-08. After adversarial pass-1, this BC was authoritatively re-anchored to **SS-05 (Pipeline Orchestration)** because its Architecture Module (`per-story-delivery.md`) governs workflow-phase behavior in SS-05 territory. The `subsystem: SS-05` frontmatter is authoritative; the BC-ID prefix is a historical artifact. Per append_only_numbering policy, the ID is preserved rather than renumbered.

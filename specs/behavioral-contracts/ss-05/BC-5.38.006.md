@@ -7,10 +7,10 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
-extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-006"
+extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-004"
 subsystem: "SS-05"
 capability: "CAP-016"
 lifecycle_status: active
@@ -80,7 +80,7 @@ The anti-precedent guard (defined in BC-5.38.004 §Invariants §1) must appear v
 | L2 Domain Invariants | none |
 | Architecture Module | plugins/vsdd-factory/skills/deliver-story/SKILL.md, plugins/vsdd-factory/workflows/phases/per-story-delivery.md |
 | Stories | S-7.03 |
-| Source AC | S-7.03 §AC-006 |
+| Source AC | S-7.03 §AC-004, AC-005 |
 | FR | FR-043 |
 
 ## Related BCs

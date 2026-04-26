@@ -7,10 +7,10 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
-extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-010"
+extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-008"
 subsystem: "SS-08"
 capability: "CAP-016"
 lifecycle_status: active
@@ -87,7 +87,7 @@ The story template (`plugins/vsdd-factory/templates/story-template.md`) must inc
 | L2 Domain Invariants | none |
 | Architecture Module | plugins/vsdd-factory/templates/story-template.md, plugins/vsdd-factory/agents/story-writer.md |
 | Stories | S-7.03 |
-| Source AC | S-7.03 §AC-010 |
+| Source AC | S-7.03 §AC-008 |
 | FR | FR-043 |
 
 ## Related BCs

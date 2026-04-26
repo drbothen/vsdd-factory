@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: ""
+input-hash: "a361f34"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
 extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-002"
@@ -70,7 +70,7 @@ Not all stub functions require `todo!()` bodies. Pure data mapping functions —
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-063 | RED_RATIO computation correctly excludes GREEN-BY-DESIGN tests from denominator | proptest |
+| VP-063 | RED_RATIO computation correctly excludes GREEN-BY-DESIGN tests from denominator | integration (bats) |
 
 ## Traceability
 
