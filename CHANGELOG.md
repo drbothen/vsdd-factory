@@ -1,5 +1,142 @@
 # Changelog
 
+## 1.0.0-beta.7 — S-7.03 TDD Discipline Hardening (2026-04-26)
+
+This release ships the third E-7 self-referential dogfooding round: a 4-layer
+structural defense against the stub-as-implementation anti-pattern, codified
+into the plugin's own dispatcher prompts, hooks, and templates.
+
+The motivating evidence: during Prism Wave 2, 3 of 5 parallel stub-architect
+dispatches produced stubs with full business logic instead of `todo!()` bodies.
+Root cause was precedent cascade — earlier merged DTU crates contained
+pre-implemented stubs that Wave 2 stub-architects loaded as contextual
+templates, silently bypassing the TDD Iron Law's Red Gate. This release
+codifies four interlocking defenses so future cycles cannot recur.
+
+### Added
+
+- **Layer 1 — Stub obligations + GREEN-BY-DESIGN / WIRING-EXEMPT protocol.**
+  `agents/stub-architect.md` (+187 LOC) gains explicit `todo!()` obligation
+  citing BC-5.38.001 for non-trivial function bodies in `tdd_mode: strict`
+  stories, plus a verbatim self-check rule (BC-5.38.005 invariant 1):
+  "Before including any non-todo!() function body, apply self-check: 'If I
+  include this real implementation, will the test for this function pass
+  trivially without any implementer work?'" The agent now reports
+  inline-implemented functions as `GREEN-BY-DESIGN` (pure data mappings —
+  enum labels, zero-logic accessors, body ≤ 3 lines) or `WIRING-EXEMPT`
+  (framework integration scaffolding like Tower `Service::poll_ready`).
+  Both classes are excluded from the Red Gate denominator.
+
+- **Layer 2 — Anti-precedent guard text in dispatch files.**
+  `skills/deliver-story/SKILL.md` and `workflows/phases/per-story-delivery.md`
+  Step 2 sections now include a verbatim guard block citing four canonical
+  Prism SHAs: anti-precedent commits `aa706543`, `6d2d005e`, `20b4a12a`
+  (Wave 2 violations) and model precedent `e86d03f2` (S-2.06 datasource-trait
+  with 5 genuine `todo!()` macros). Both files updated atomically per
+  BC-5.38.006 invariant 1.
+
+- **Layer 3 — Red Gate Density Check (BLOCKING before Step 4).**
+  New section in `per-story-delivery.md` between Step 3 and Step 4 enforcing
+  `RED_RATIO ≥ 0.5` where `RED_RATIO = RED_TESTS / (TOTAL_NEW_TESTS - EXEMPT_TESTS)`
+  and `EXEMPT_TESTS = GREEN-BY-DESIGN + WIRING-EXEMPT`. Two remediation
+  options when ratio falls below threshold: Option A rolls back the stub
+  and re-dispatches with stricter prompt (default for automated orchestrators
+  per BC-8.29.003 EC-001); Option B accepts with `mutation_testing_required:
+  true` frontmatter, electing mutation testing at the wave gate as the
+  compensating control. New PostToolUse hook `hooks/validate-red-ratio.sh`
+  (+119 LOC) enforces the threshold mechanically when red-gate-log files
+  are written; logs go to `.factory/logs/red-gate-log-<story-id>.md` with
+  per-test rationale categories (PURE-DATA / FRAMEWORK-WIRING /
+  STRUCTURAL-ASSERTION / PRE-EXISTING-BEHAVIOR / OTHER-JUSTIFIED /
+  UNJUSTIFIED). Hook registered in `hooks-registry.toml`.
+
+- **Layer 4 — `tdd_mode` frontmatter contract.**
+  `templates/story-template.md` gains a `tdd_mode: strict | facade` field
+  with default-to-strict semantics (BC-8.30.001 invariant 2 — absent or
+  unrecognized values default to `strict` so no existing story silently
+  promotes to facade mode). Strict mode enforces the full TDD Iron Law
+  with the new Red Gate density check; facade mode (intended for DTU
+  clones and mock infrastructure where the scaffold IS the implementation)
+  permits combined scaffold+impl commits and bypasses the Red Gate, with
+  the cargo-mutants wave gate as the compensating control. New facade-mode
+  delivery flow section in `per-story-delivery.md` documents the
+  modifications to Steps 2/3/4 and the wave gate. `agents/story-writer.md`
+  frontmatter checklist updated to require `tdd_mode` declaration.
+
+- **Layer 5 — Mutation testing wave-gate.**
+  `skills/wave-gate/SKILL.md` (+94 LOC) gains a Mutation Testing section
+  that scans all stories in the wave for `tdd_mode: facade` and
+  `mutation_testing_required: true` (Option B election), runs
+  `cargo mutants -p <crate> --jobs $(nproc) --timeout 300`, and gates on
+  ≥80% kill rate. Survivors above the 20% allowance enter a disposition
+  table (A: new test committed + re-run kills mutant; B: dead-code-equivalent
+  with execution condition; C: explicit waiver naming mutant + file + line
+  + mutation type — no blanket waivers). 60-minute wave-level mutation
+  budget. Empty-wave path: explicit "no facade stories — mutation step
+  skipped" log entry, never silent omission.
+
+- **Verification suite.** `tests/tdd-discipline-gate.bats` (+242 LOC, 18
+  tests across 5 layers) covers all 11 acceptance criteria with grep-based
+  assertions plus 3 hook-invocation tests for `validate-red-ratio.sh`
+  (low-ratio block, sufficient-ratio pass, Option B election pass).
+
+### Spec Convergence
+
+S-7.03 spec converged through **17 adversarial passes** — the longest in
+project history (vs S-6.01: 8 passes, E-7: 7 passes). Trajectory:
+25 → 12 → 5 → 2 → 1 → 0 → 0 → 1 → 2 → 4 → 3 → 1 → 1 → 2 → 0 → 0 → 0.
+Pass-8 reset on F-301 (Architecture Compliance Rules cited wrong Task
+numbers) was BC-5.36.005/006 partial-fix-regression discipline working
+as designed. Pass-11 caught a deepest-yet propagation gap: a pass-1
+re-anchor of BC-8.30.002 from SS-08 to SS-05 had propagated to BC-INDEX
+but not to VP-064 scope/traceability (3 findings F-601/602/603 — 2 HIGH,
+1 MED). The exhaustive enumerate-axes-upfront methodology (Path C) was
+introduced at pass-13 and produced the final clean-pass triple at
+passes 15/16/17.
+
+### Process Notes
+
+- **Bootstrap Exemption pattern formalized.** S-7.03 implements gates
+  (Red Gate density, mutation testing) that cannot apply to its own
+  delivery cycle — captured explicitly in the story's "Bootstrap Exemption"
+  section and recorded as a methodology pattern for future
+  self-referential codification stories.
+- **Self-validation withdrawal as convergence indicator.** The adversary's
+  withdrawal-via-re-arithmetic of hallucinated findings appeared
+  pass-by-pass (2 → 2 → 5 → 11 → 6 across passes 13-17), peaking at
+  pass-16 then stabilizing — a useful corollary signal alongside finding
+  count for declaring true convergence.
+
+### Identifier Counts (post-release)
+
+| Type | Pre-beta.7 | Post-beta.7 |
+|------|-----------|-------------|
+| BCs (total) | 1,878 | 1,891 (+13) |
+| VPs | 62 | 64 (+2 — VP-063 integration, VP-064 manual) |
+| FRs | 42 | 43 (+1 — FR-043) |
+| Epics | 8 | 8 |
+| Stories | 44 | 45 (+1 — S-7.03 status: completed) |
+| ADRs | 13 | 13 |
+
+### Migration
+
+No breaking changes. The `tdd_mode` field defaults to `strict` for any
+existing or future story that doesn't declare it explicitly — no existing
+story is silently promoted to facade mode. The new Red Gate density check
+applies only to `tdd_mode: strict` stories (which is everything by default).
+The mutation testing wave gate applies only when at least one story in
+a wave declares `tdd_mode: facade` or `mutation_testing_required: true`;
+otherwise the step is explicitly skipped with a log entry.
+
+The new `validate-red-ratio.sh` hook is read-only — it only inspects
+red-gate-log files written by the orchestrator and never modifies any
+file. Existing development flows that don't write red-gate-log files
+will not invoke the hook.
+
+Per beta.4 cache-staleness fix: this commit only touches CHANGELOG.md.
+The release workflow bot will write plugin.json:version + binaries
+atomically when v1.0.0-beta.7 tag is pushed.
+
 ## 1.0.0-beta.6 — S-6.01 create-adr skill + E-7 process codification (2026-04-26)
 
 This release ships two CONVERGED feature deliveries (S-6.01 + E-7) plus
