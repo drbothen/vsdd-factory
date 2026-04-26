@@ -149,13 +149,18 @@ Source: pass-8 §Story coverage rollup Tier E; DRIFT-010.
 
 **CAP-023 — Ship advanced observability sinks (HTTP, Datadog, Honeycomb)**
 Planned sink drivers (S-4.1/4.2/4.3) allow direct event forwarding without a local OTel collector. Unknown sink driver types warn-and-skip today.
-Subsystems: SS-03. Outcome: an operator forwards events to Datadog with zero local disk footprint.
+Subsystems: SS-01, SS-03. Outcome: an operator forwards events to Datadog with zero local disk footprint.
 Source: pass-8 §ADR-005; design doc §Multi-instance, multi-backend observability.
 
 **CAP-024 — Per-sink retry, circuit breaker, and dead-letter queue**
 S-4.4/4.5: each sink driver retries failed sends with exponential backoff, trips a circuit breaker on sustained failure, and routes dropped events to a `dead-letter-<sink>-<date>.jsonl`.
-Subsystems: SS-03. Outcome: a Datadog outage doesn't lose events — they land in the DLQ.
+Subsystems: SS-01, SS-03, SS-10. Outcome: a Datadog outage doesn't lose events — they land in the DLQ.
 Source: pass-8 §DRIFT-002; design doc §Multi-instance observability sinks.
+
+<!-- [process-gap] CAP subsystem drift sweep confirmed across 4 CAPs (CAP-003, CAP-010,
+CAP-023, CAP-024) during Wave 2 SS-03 adversarial pass-1 fix burst. Recommend
+architect/business-analyst run a comprehensive 28-CAP audit before Wave 3 to
+surface any remaining cross-subsystem coverage gaps. -->
 
 **CAP-025 — Generate semantic port translations between language implementations**
 The semport-analyze skill translates a component catalog from one language to another, preserving behavioral contracts across the port.

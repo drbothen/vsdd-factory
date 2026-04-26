@@ -326,6 +326,23 @@ Enforces: DI-011, DI-012. Status: **shipped** (S-1.08). Tag enrichment per-sink 
 Source BCs: `ss-03/BC-3.01.009.md` + `BC-3.03.001.md` through `BC-3.05.003.md` (18 BCs in this group).
 Status: **shipped** (S-1.09). Retry/circuit-breaker: **pending** (S-4.04).
 
+#### FR-044 — Per-sink resilience: retry, circuit breaker, dead-letter queue
+
+Sink drivers carry per-instance resilience: configurable retry policy with
+exponential backoff (BC-3.NN.NNN-retry-policy-exponential-backoff —
+v1.1 candidate); per-sink circuit breaker state machine that opens/half-opens
+based on failure rates (BC-3.NN.NNN-circuit-breaker-state-machine —
+v1.1 candidate); dead-letter queue for messages whose sinks have exhausted
+retries (BC-3.NN.NNN-dlq-on-retry-exhaustion — v1.1 candidate).
+
+Source BCs (currently anchored): BC-3.01.008 (failure recording);
+BC-3.03.002 (otel-grpc reconnect-on-error pattern).
+v1.1 BC candidates pending: 4 (S-4.04: retry policy, CB state machine, CB
+event emission, retry isolation; S-4.05: DLQ on exhaustion, DLQ on overflow,
+DLQ event shape, DLQ disk-full no-crash).
+Source CAP: CAP-024 (per-sink retry, circuit breaker, dead-letter queue).
+Status: **pending** — depends on Wave 2 v1.1 BC creation (S-4.04, S-4.05).
+
 > Full contracts: `.factory/specs/behavioral-contracts/ss-03/` (49 BCs total)
 
 ---
@@ -1054,8 +1071,9 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-041 | Skill-driven ADR authoring workflow (create-adr skill) | CAP-017 | SS-06, SS-08, SS-10 | BC-6.20.001–012 | 12 | pending | E-6 |
 | FR-042 | Process self-improvement enforcement (agent prompt discipline + count-propagation hook + lessons-codification rule) | CAP-001 | SS-05, SS-07, SS-08 | BC-5.36.001–007, BC-5.37.001–002, BC-7.05.001–004, BC-8.28.001–002 | 15 | pending | E-7 |
 | FR-043 | TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern (anti-precedent guard + Red Gate density check + tdd_mode contract + mutation wave-gate) | CAP-016 | SS-05, SS-06, SS-08 | BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 | 13 | pending | E-7 |
+| FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002 + v1.1 candidates (8 pending) | 2 anchored + 8 v1.1 candidates | pending | E-4 |
 
-**Total: 43 FRs across 10 subsystems**
+**Total: 44 FRs across 10 subsystems**
 
 ---
 
