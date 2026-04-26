@@ -403,6 +403,17 @@ When producing stories, populate these optional frontmatter fields when the info
 - **`subsystems:`** — which subsystems this story touches (from ARCH-INDEX Subsystem Registry — must use canonical names per Policy 6)
 - **`estimated_days:`** — planning estimate (complements story points for project planning)
 
+### Required Frontmatter: tdd_mode (BC-8.30.001)
+
+**`tdd_mode:`** is a required frontmatter field for every story (BC-8.30.001 postcondition 3). Default value: `strict`. Valid values: `strict` | `facade`.
+
+- **`strict`** (default): Full TDD Iron Law enforced — all non-trivial function bodies use `todo!()`, Red Gate density check ≥0.5 required before Step 4 dispatch.
+- **`facade`**: Combined scaffold+impl delivery allowed (DTU API clones, mock servers, structural fakes, config parsing wrappers). Mutation testing at wave gate replaces Red Gate density check as the quality gate.
+
+If absent or unrecognized, the delivery workflow defaults to `strict` per BC-8.30.001 invariant 2. No story is silently promoted to facade mode — only stories with the explicit field value `tdd_mode: facade` operate in facade mode.
+
+When writing new stories, always include `tdd_mode: strict` unless the story is explicitly a facade-mode candidate per the criteria above.
+
 These fields are OPTIONAL — stories are valid without them. The `behavioral_contracts` and `verification_properties` fields remain canonical; accept `bcs` and `vps` as input aliases but always write the canonical names.
 
 ## Wave Scheduling Awareness
