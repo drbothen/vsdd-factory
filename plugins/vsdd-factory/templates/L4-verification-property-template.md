@@ -9,7 +9,7 @@ phase: 1b
 inputs: [prd.md, architecture.md]
 input-hash: "[md5]"
 traces_to: prd.md
-source_bc: BC-S.SS.NNN
+source_bc: BC-S.SS.NNN  # Primary BC. For VPs that span multiple BCs, set this to the dominant BC and use the `bcs:` list field below to enumerate all covered BCs. The body Source Contract section labels primary vs partial coverage explicitly. Schema note: a future revision may rename this to `source_bcs: [...]` for VPs covering N>1 BCs; until then, primary-singleton + `bcs:` list is the canonical pattern (see VP-058 for an example).
 module: [implementation module name]
 proof_method: kani|proptest|fuzz|manual|tla+
 feasibility: feasible|needs-research|infeasible
