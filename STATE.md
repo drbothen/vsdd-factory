@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T23:30:00Z
-phase: s-7-03-pass-2-fixes-applied
+timestamp: 2026-04-27T00:10:00Z
+phase: s-7-03-pass-3-fixes-in-progress
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-7.03 pass-2 fixes applied. Next: adversarial pass-3 (1st of 3 NITPICK target)."
+current_step: "S-7.03 pass-3 fixes applied. Audit trail gap noted (pass-1/2 review files missing). Next: adversarial pass-4."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (pass-2 fix burst) |
-| **Current Phase** | s-7-03-pass-2-fixes-applied |
+| **Last Updated** | 2026-04-26 (pass-3 fix burst) |
+| **Current Phase** | s-7-03-pass-3-fixes-in-progress |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -55,7 +55,7 @@ dtu_services: []
 | Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
-| Phase 1.4 — BC Migration | COMPLETE | 1,878 BC-S.SS.NNN files in 10 ss-NN/ shards + BC-INDEX.md (current) |
+| Phase 1.4 — BC Migration | COMPLETE | 1,878 BC-S.SS.NNN files in 10 ss-NN/ shards (at Phase 1.4 closure; current total 1,891 after E-7 + S-7.03 additions) + BC-INDEX.md |
 | Phase 1.5 — Formal PRD | COMPLETE | 43 FRs (FR-041, FR-042 added; FR-043 added in S-7.03), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
 | Phase 1.6b — Verification Properties | COMPLETE | 64 VPs (all draft, VP-001..VP-064; +2 for E-7; +2 for S-7.03) |
@@ -74,17 +74,19 @@ dtu_services: []
 | S-7.03 spec foundation | COMPLETE | 13 BCs + 2 VPs + FR-043 + story (status=ready) + E-7 epic v1.1 |
 | S-7.03 pass-1 fix burst | COMPLETE | 25 findings, all addressed; SS-05 +4 / SS-08 -4 BC reanchor; VP-063 method proptest→integration; CAP-016 expanded SS-08; story v1.1 |
 | S-7.03 pass-2 fix burst | COMPLETE | 7 substantive findings + 5 obs addressed; BC-INDEX subsystem grouping fixed; PRD narrative reconciled; VP-INDEX Rust-count audited; input-hashes recomputed (3 distinct values) |
+| S-7.03 adversarial pass-3 | COMPLETE | 5 findings (0 CRIT, 0 HIGH, 3 MED, 1 LOW, 1 NIT); verdict FINDINGS_REMAIN; convergence clock not yet started |
+| S-7.03 pass-3 fix burst | IN-PROGRESS | F-001 (PO), F-002+F-004+F-005 (state-manager), F-003 (story-writer) |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| Beta.6 shipped | devops-engineer | COMPLETE | ae426cd; GH Release v1.0.0-beta.6 published |
-| S-7.03 spec foundation (13 BCs + 2 VPs + FR-043 + story) | PO + story-writer | COMPLETE | BCs in ss-05/ss-06/ss-08; VP-063/VP-064; prd.md FR-043 |
 | S-7.03 adversarial pass-1 | adversarial-reviewer | COMPLETE | 25 findings — all addressed in fix burst |
 | S-7.03 pass-1 fix burst (index/state updates) | state-manager | COMPLETE | BC-INDEX, ARCH-INDEX, VP-INDEX, STORY-INDEX, STATE.md updated |
 | S-7.03 adversarial pass-2 | adversarial-reviewer | COMPLETE | 1 HIGH + 4 MEDIUM + 2 LOW + 5 obs addressed in pass-2 fix burst |
 | S-7.03 pass-2 fix burst (index/state updates) | state-manager | COMPLETE | BC-INDEX N-001 moved 4 BCs to SS-05; PRD N-004 math reconciled; VP-INDEX N-006 count 47→46 |
+| S-7.03 adversarial pass-3 | adversarial-reviewer | COMPLETE | 5 findings (3 MED + 1 LOW + 1 NIT); FINDINGS_REMAIN |
+| S-7.03 pass-3 fix burst | state-manager + PO + story-writer | IN-PROGRESS | F-002+F-004+F-005 applied; F-001+F-003 awaiting parallel agents |
 
 ## Identifier Conventions
 
@@ -166,6 +168,8 @@ dtu_services: []
 | D-012 | S-7.03 (TDD Discipline Hardening) added to E-7 in response to Prism Wave 2 stub-as-impl anti-pattern (3 of 5 stub-architects pre-implemented business logic). Self-referential dogfooding pattern continues. | E-7 process codification must prevent stub-as-implementation; 13 BCs across 3 subsystems (SS-05 anti-precedent guard, SS-08 RED_RATIO gate + tdd_mode frontmatter, SS-06 mutation wave-gate) + 2 VPs (VP-063 proptest, VP-064 manual). | spec-foundation | 2026-04-26 | orchestrator + user |
 | D-013 | S-7.03 spec foundation pass-1 — 4 BCs reanchored SS-08→SS-05 in frontmatter (files stay in ss-08/ per POLICY 1 append-only); VP-063 method changed proptest→integration (production code is shell, not Rust) | BCs BC-8.29.001/002/003 and BC-8.30.002 describe orchestrator pipeline behavior (wave-gate dispatch, RED_RATIO gate), correctly anchored to SS-05. VP-063 tests validate-red-ratio.sh directly via BATS; proptest is infeasible against Bash. | pass-1-fix-burst | 2026-04-26 | state-manager |
 | D-014 | S-7.03 pass-2 — BC-INDEX section grouping moved 4 BCs from SS-08 to SS-05 listing (files stay in ss-08/ per POLICY 1); PRD count narrative reconciled to 1,891 = 1,863 + 15 (E-7) + 13 (S-7.03); input-hashes computed (placeholders detected and replaced) | N-001: BC-INDEX section contradicted frontmatter subsystem. N-004: PRD narrative cited 1,878 pre-E-7 baseline (incorrect; correct is 1,863). N-006: VP-INDEX Rust-count was 47; with VP-063 moved from proptest→integration/bats, correct count is 46. | pass-2-fix-burst | 2026-04-26 | state-manager |
+| D-015 | S-7.03 pass-3 — F-001 PRD subsystem labels propagated; F-002 BC-INDEX annotations moved to blockquote (5-column table integrity restored); F-003 E-7 '5 subsystems' typo fixed; F-004 STORY-INDEX status canonicalized; F-005 STATE.md Phase 1.4 milestone annotated | pass-3 review returned 5 findings; all routed by severity; Option B (blockquote) chosen for F-002 as lower-blast-radius than promoting table to 6-column. | pass-3-fix-burst | 2026-04-26 | state-manager |
+| D-016 | Pass-1 and pass-2 adversarial review files for s7.03 not persisted (audit trail gap detected at pass-3); only pass-3 retroactively persisted from chat content. Reason: adversary agents reported writing but writes did not commit. Investigate adversary tooling next cycle. | Deferred: pass-1 and pass-2 content is not recoverable from disk; gap noted for tooling investigation. | audit-trail | 2026-04-26 | state-manager |
 
 
 ## Skip Log
