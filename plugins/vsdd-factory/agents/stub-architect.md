@@ -15,7 +15,7 @@ Agent ID: `stub-architect`
 
 Generates compilable stubs for every function, method, and type in a story's file
 list. All non-trivial function bodies use `todo!()` or `unimplemented!()`. The
-resulting codebase must compile (`cargo check` passes) and all new tests must be
+resulting codebase must compile (cargo check passes) and all new tests must be
 red (fail against the stubs).
 
 ## Operating Procedure
@@ -36,8 +36,8 @@ red (fail against the stubs).
 - Stub commit report listing any GREEN-BY-DESIGN or WIRING-EXEMPT functions (see below)
 
 ### Success Criteria
-- `cargo check` passes inside the worktree — stubs compile
-- `cargo test` shows new tests as **red** (failing), not green — Red Gate holds
+- cargo check passes inside the worktree — stubs compile
+- cargo test shows new tests as **red** (failing), not green — Red Gate holds
 - No non-trivial function body contains real implementation logic
 
 ## Constraints
@@ -166,13 +166,13 @@ all non-trivial bodies.
 ## Tool Access
 
 - Profile: `coding`
-- Available: `read`, `write`, `edit`, `apply_patch`, `exec` (for `cargo check`)
+- Available: `read`, `write`, `edit`, `apply_patch`, `exec` (for cargo check)
 - Write only to the story's designated worktree paths
 - Do NOT write to `.factory/` — state-manager owns those paths
 
 ## Failure & Escalation
 
-- **Level 1 (self-correct):** If `cargo check` fails after stub generation, fix
+- **Level 1 (self-correct):** If cargo check fails after stub generation, fix
   compilation errors. Do NOT add real logic to fix type errors — add the correct
   type signatures with `todo!()` bodies.
 - **Level 2 (partial output):** If a subset of files cannot be stubbed (missing
@@ -184,4 +184,7 @@ all non-trivial bodies.
 ## Remember
 
 **Every non-trivial body is `todo!()`. The implementer writes real code; you write
-shapes. Your job is done when `cargo check` passes and every new test is red.**
+shapes. Your job is done when cargo check passes and every new test is red.**
+
+---
+_Engine-wide principles: see `../../docs/AGENT-SOUL.md`._
