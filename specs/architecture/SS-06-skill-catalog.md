@@ -156,15 +156,26 @@ convergence report (pass-8-final-synthesis.md §9).
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-06/`
-(target prefix BC-6; ~553 BCs across 119 skills).
+(target prefix BC-6; current BC count in ARCH-INDEX Subsystem Registry).
 
-High-level BC groupings: brownfield ingestion skills (BC-6.001–BC-6.040),
-spec-crystallization skills — brief/domain-spec/PRD/architecture
-(BC-6.041–BC-6.120), story lifecycle skills — decompose/deliver/review
-(BC-6.121–BC-6.200), wave-gate and state-management skills (BC-6.201–BC-6.250),
-release and activation skills (BC-6.251–BC-6.300), observability and ops skills
-(BC-6.301–BC-6.350), adversarial and formal-verification skills
-(BC-6.351–BC-6.400), remaining skill contracts (BC-6.401–BC-6.553).
+BC numbering uses two coexisting schemes within the BC-6 prefix:
+
+1. **Flat BC-6.NNN namespace** for skill behaviors extracted in Phase 0
+   ingestion (~120 skills covered): brownfield ingestion (BC-6.001–6.040),
+   spec-crystallization — brief/domain-spec/PRD/architecture (BC-6.041–6.120),
+   story lifecycle — decompose/deliver/review (BC-6.121–6.200),
+   wave-gate and state-management (BC-6.201–6.250),
+   release and activation (BC-6.251–6.300),
+   observability and ops (BC-6.301–6.350),
+   adversarial and formal-verification (BC-6.351–6.400),
+   remaining skill contracts (BC-6.401–onward).
+2. **Skill-scoped sub-namespace BC-6.NN.NNN** for new skills authored
+   post-Phase 0 (e.g., `BC-6.20.NNN` = create-adr skill from S-6.01).
+   Each new skill packs its BCs under a fresh `NN` section.
+
+For the authoritative current BC count and per-section breakdown, consult
+BC-INDEX.md and ARCH-INDEX Subsystem Registry — those are the sources of
+truth; this prose is a high-level orientation only.
 
 ## ADRs
 

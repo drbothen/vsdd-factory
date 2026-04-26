@@ -152,7 +152,7 @@ must go through `hooks.json` + regeneration (DRIFT-004).
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-07/`
-(target prefix BC-7; ~176 BCs across 44 scripts).
+(target prefix BC-7; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: PreToolUse gate hooks — block-ai-attribution,
 protect-secrets, destructive-command-guard, factory-branch-guard,

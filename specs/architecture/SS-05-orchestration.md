@@ -155,7 +155,7 @@ story-writer, product-owner, security-reviewer, dtu-validator.
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-05/`
-(target prefix BC-5; ~616 BCs across agents + workflows).
+(target prefix BC-5; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: orchestrator dispatch and DAG resolution
 (BC-5.001–BC-5.050), Lobster workflow schema invariants (BC-5.051–BC-5.100),

@@ -149,7 +149,7 @@ templates/
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-08/`
-(target prefix BC-8; ~130 BCs across 108 templates + 9 rules).
+(target prefix BC-8; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: architecture template family — required headings and
 frontmatter (BC-8.001–BC-8.025), BC and VP template family (BC-8.026–BC-8.050),

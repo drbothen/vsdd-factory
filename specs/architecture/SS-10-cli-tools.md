@@ -174,7 +174,7 @@ only plus a short description; the Claude Code harness reads them to populate th
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-10/`
-(target prefix BC-10; ~143 BCs across 12 bin tools + 110 command bindings).
+(target prefix BC-10; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: `emit-event` normalization and emission contracts
 (BC-10.001–BC-10.020), `wave-state` read/write and STATE.md mutation contracts
