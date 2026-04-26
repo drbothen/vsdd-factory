@@ -3,7 +3,7 @@ document_type: epic
 epic_id: "E-7"
 version: "1.0"
 prd_capabilities: [CAP-001]
-prd_frs: []
+prd_frs: [FR-042]
 status: open
 story_count: 2
 producer: story-writer
@@ -81,19 +81,25 @@ describes "updating agent prompts and hooks that govern the pipeline." Per
 
 ## Behavioral Contracts Covered
 
-BCs are pending product-owner authorship (status: draft). PO will assign BC IDs
-in the BC-7 range (SS-07 Hook Bash Layer) for the new hook and BC-5 range
-(SS-05 Pipeline Orchestration) for agent prompt requirements.
+15 BCs across 4 subsystems (SS-05, SS-07, SS-08).
 
 | BC ID | Title | Story |
 |-------|-------|-------|
-| BC-TBD | story-writer must not mark story ready with empty behavioral_contracts | S-7.01 |
-| BC-TBD | product-owner BC must cite source-of-truth verbatim in capability anchor | S-7.01 |
-| BC-TBD | adversary must check partial-fix propagation to sibling files in every pass | S-7.01 |
-| BC-TBD | state-manager must run corpus-wide grep before declaring count change complete | S-7.02 |
-| BC-TBD | validate-count-propagation.sh catches mismatched counts across index files | S-7.02 |
-| BC-TBD | lessons-codification rule requires codification follow-up for every novel catch | S-7.02 |
-| BC-TBD | VP multi-BC convention: source_bc=primary, bcs[]=full list, enforced by hook | S-7.02 |
+| BC-5.36.001 | story-writer agent rejects status=ready when behavioral_contracts is empty | S-7.01 |
+| BC-5.36.002 | story-writer requires AC↔BC bidirectional traces before marking a story ready | S-7.01 |
+| BC-5.36.003 | product-owner agent requires Capability Anchor Justification cell on every BC | S-7.01 |
+| BC-5.36.004 | product-owner cites capabilities.md verbatim in every capability anchor justification | S-7.01 |
+| BC-5.36.005 | adversary explicitly checks partial-fix-regression for every finding closed in a prior pass | S-7.01 |
+| BC-5.36.006 | adversary checks fix propagation to bodies, sibling files, and prose — not just frontmatter | S-7.01 |
+| BC-5.36.007 | all three agent prompts updated atomically in single delivery; no partial update | S-7.01 |
+| BC-5.37.001 | state-manager runs corpus-wide grep before declaring count change complete | S-7.02 |
+| BC-5.37.002 | state-manager logs sweep results before declaring count-change complete | S-7.02 |
+| BC-7.05.001 | validate-count-propagation.sh detects count drift across index files and exits non-zero | S-7.02 |
+| BC-7.05.002 | validate-count-propagation.sh runs in under 200ms and is deterministic | S-7.02 |
+| BC-7.05.003 | validate-template-compliance.sh enforces VP multi-BC source_bc convention | S-7.02 |
+| BC-7.05.004 | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | S-7.02 |
+| BC-8.28.001 | rules/lessons-codification.md requires codification follow-up for every novel process catch | S-7.02 |
+| BC-8.28.002 | orchestrator cycle-closing checklist references lessons-codification.md rule | S-7.02 |
 
 ## Acceptance Criteria (Epic-Level)
 
@@ -110,8 +116,8 @@ in the BC-7 range (SS-07 Hook Bash Layer) for the new hook and BC-5 range
 
 | Story ID | Title | Points | Depends On | Status |
 |----------|-------|--------|------------|--------|
-| S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | 5 | — | draft |
-| S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | 8 | — | draft |
+| S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | 5 | — | ready |
+| S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | 8 | — | ready |
 
 ## Dependencies (External)
 
