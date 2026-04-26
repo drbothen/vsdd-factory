@@ -35,16 +35,16 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,878-BC catalog produced in Phase 0 ingestion into a
-> formal L3 requirements artifact. Section 2 is the primary machine-consumed
-> surface: it groups BCs by functional requirement (FR-NNN) and provides
-> subsystem-level traceability. Agents needing deep BC content load individual
-> `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
+> It synthesizes the 1,891-BC catalog (1,878 Phase 0 ingestion baseline + 13 added
+> in S-7.03 TDD hardening) into a formal L3 requirements artifact. Section 2 is the
+> primary machine-consumed surface: it groups BCs by functional requirement (FR-NNN)
+> and provides subsystem-level traceability. Agents needing deep BC content load
+> individual `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
 > Sections 3-5 point to supplement files (DF-021 context discipline).
 
-> **BC Index Model:** 1,878 individual BC files live under
+> **BC Index Model:** 1,891 individual BC files live under
 > `.factory/specs/behavioral-contracts/ss-NN/`. Section 2 groups them into
-> 42 logical FRs. Do NOT inline full contract details here — cross-reference only.
+> 43 logical FRs. Do NOT inline full contract details here — cross-reference only.
 
 ---
 
@@ -76,8 +76,9 @@ an 8-phase SDLC pipeline: brief → domain-spec → PRD → architecture → sto
 delivery → adversarial review → convergence.
 
 The product was built with itself. Phase 0 ingestion of this very codebase produced the
-1,878-BC catalog that this PRD synthesizes. This self-referential loop is the ultimate
-dogfooding test: every architectural decision (WASM sandbox, capability deny-by-default,
+1,878-BC ingestion baseline that this PRD synthesizes (catalog has since grown to 1,891
+with additions in E-7 and S-7.03). This self-referential loop is the ultimate dogfooding
+test: every architectural decision (WASM sandbox, capability deny-by-default,
 parallel-within-tier execution, always-on telemetry) was enacted in Rust and then
 analyzed by the framework's own brownfield-ingest skill.
 
@@ -126,7 +127,7 @@ Tiers E through H (15 draft stories) are the active backlog for rc.1 and 1.0 GA.
 
 ## 2. Behavioral Contracts Index
 
-> BCs are grouped into 42 logical FRs. Each FR maps to one or more CAP-NNN
+> BCs are grouped into 43 logical FRs. Each FR maps to one or more CAP-NNN
 > capabilities, one or more SS-NN subsystems, and the specific BC prefix ranges
 > that implement it. Full BC files live in
 > `.factory/specs/behavioral-contracts/ss-NN/`. Status = shipped / partial / pending
@@ -751,6 +752,42 @@ Status: **pending** (E-7 stories not yet implemented).
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-05/BC-5.36.*.md`, `ss-05/BC-5.37.*.md`, `ss-07/BC-7.05.*.md`, `ss-08/BC-8.28.*.md`
 
+#### FR-043 — TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern
+
+A real downstream factory run (Prism project, Wave 2, parallel batch of 5 stories) revealed that 3 of 5 stub-architect agents pre-implemented business logic instead of writing `todo!()` bodies. By Step 3 (Red Gate), most tests already passed — meaning no genuine Red→Green TDD cycle occurred and Step 4 (implementer dispatch) became a no-op. The root cause was a precedent cascade: earlier merged DTU clones contained stubs with full implementations, and Wave 2 stub-architects used those crates as templates and reproduced the violation. This FR codifies four hardening layers to prevent recurrence:
+
+**Layer 1 — Anti-precedent guard (SS-05 Pipeline Orchestration):** The deliver-story SKILL.md and per-story-delivery.md Step 2 must contain verbatim anti-precedent guard text (with SHA citations aa706543, 6d2d005e, 20b4a12a as anti-patterns and e86d03f2 as model precedent). Stub-architect must use `todo!()` for all non-trivial function bodies; only pure-data mappings (GREEN-BY-DESIGN) and framework wiring minimums (WIRING-EXEMPT) are exempt, and both must be flagged in the stub report.
+
+**Layer 2 — Red Gate density check (SS-08 Templates and Rules):** A BLOCKING gate between Step 3 and Step 4 enforces RED_RATIO = RED_TESTS / TOTAL_EFFECTIVE_TESTS ≥ 0.5. If the gate fires with unjustified GREEN tests, the orchestrator must choose: (A) roll back stub and re-dispatch with stricter prompt, or (B) accept with mandatory mutation testing at wave gate plus PR disclosure.
+
+**Layer 3 — tdd_mode frontmatter contract (SS-08 Templates and Rules):** The story template gains `tdd_mode: strict|facade` (default: strict). Facade mode allows scaffold+impl combined for third-party API clone / structural facade work, bypassing the stub discipline and Red Gate density check while mandating mutation testing at wave gate as the compensating control.
+
+**Layer 4 — Mutation testing wave-gate (SS-06 Skill Catalog):** The wave-gate skill must run `cargo mutants -p <crate> --jobs N --timeout 300` for any story with `tdd_mode: facade` (or `mutation_testing_required: true` from Layer 2 Option B). Kill rate floor is 80%. Surviving mutants must be addressed via new test (A), dead-code-equivalent confirmation (B), or explicit waiver (C).
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-5.38.001 | stub-architect commit must contain todo!()/unimplemented!() bodies for all non-trivial function implementations | P0 |
+| BC-5.38.002 | pure data mappings in stub commits may be implemented inline and must be flagged GREEN-BY-DESIGN | P1 |
+| BC-5.38.003 | framework integration wiring may have minimal real code for cargo check; handler business logic must be todo!() | P1 |
+| BC-5.38.004 | stub-architect must not use pre-implemented sibling crates as stub templates | P0 |
+| BC-5.38.005 | stub-architect applies self-check before committing any non-todo!() function body | P1 |
+| BC-5.38.006 | deliver-story SKILL.md and per-story-delivery.md Step 2 must contain anti-precedent guard text verbatim | P0 |
+| BC-8.29.001 | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | P0 |
+| BC-8.29.002 | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | P1 |
+| BC-8.29.003 | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | P0 |
+| BC-8.30.001 | story template must include tdd_mode field with strict|facade enum and strict default | P1 |
+| BC-8.30.002 | tdd_mode=facade modifies per-story-delivery semantics and mandates mutation testing at wave gate | P1 |
+| BC-6.21.001 | wave-gate skill must run cargo mutants for every story with tdd_mode=facade in the wave | P1 |
+| BC-6.21.002 | mutation kill rate floor is 80%; surviving mutants must be addressed via test, dead-code confirmation, or explicit waiver | P1 |
+
+Source BCs: `ss-05/BC-5.38.001–006.md` (6 BCs), `ss-08/BC-8.29.001–003.md` (3 BCs), `ss-08/BC-8.30.001–002.md` (2 BCs), `ss-06/BC-6.21.001–002.md` (2 BCs) — 13 BCs total.
+Maps to: SS-05 (Pipeline Orchestration), SS-06 (Skill Catalog), SS-08 (Templates and Rules).
+Verification Properties: VP-063 (RED_RATIO computation correctness — proptest), VP-064 (facade-mode mutation gate enforcement — manual).
+Acceptance: S-7.03 (TDD Discipline Hardening).
+Status: **pending** (E-7 story not yet implemented).
+
+> Full contracts: `.factory/specs/behavioral-contracts/ss-05/BC-5.38.*.md`, `ss-06/BC-6.21.*.md`, `ss-08/BC-8.29.*.md`, `ss-08/BC-8.30.*.md`
+
 ---
 
 ## 3. Interface Definition
@@ -973,8 +1010,9 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-040 | Workflow infrastructure CLI tools (wave-state, lobster-parse, compute-input-hash) | CAP-001 | SS-10 | BC-10.03.NNN | ~18 | shipped | E-1 |
 | FR-041 | Skill-driven ADR authoring workflow (create-adr skill) | CAP-017 | SS-06, SS-08, SS-10 | BC-6.20.001–012 | 12 | pending | E-6 |
 | FR-042 | Process self-improvement enforcement (agent prompt discipline + count-propagation hook + lessons-codification rule) | CAP-001 | SS-05, SS-07, SS-08 | BC-5.36.001–007, BC-5.37.001–002, BC-7.05.001–004, BC-8.28.001–002 | 15 | pending | E-7 |
+| FR-043 | TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern (anti-precedent guard + Red Gate density check + tdd_mode contract + mutation wave-gate) | CAP-016 | SS-05, SS-06, SS-08 | BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 | 13 | pending | E-7 |
 
-**Total: 42 FRs across 10 subsystems**
+**Total: 43 FRs across 10 subsystems**
 
 ---
 
@@ -1000,7 +1038,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-013 | Capture post-execution activity (PostToolUse hooks) | BC-4.01–4.02 (legacy-bash-adapter); BC-7.05–7.07 (PostToolUse hooks) | SS-04, SS-07 |
 | CAP-014 | Decompose product specs into verified behavioral contracts | BC-5.06.001–015 (product-owner/story-writer agents); BC-8.01–8.05 (spec templates) | SS-05, SS-06, SS-08 |
 | CAP-015 | Ingest brownfield codebases via structured multi-pass analysis | BC-5.20.001–020 (phase-0 workflow); BC-6.01 (brownfield-ingest skill) | SS-06 |
-| CAP-016 | Drive TDD delivery with red/green/refactor gate enforcement | BC-5.07.028–033 (implementer agent); BC-6.09 (deliver-story skill); BC-5.23 (phase-3 workflow) | SS-05, SS-06 |
+| CAP-016 | Drive TDD delivery with red/green/refactor gate enforcement | BC-5.07.028–033 (implementer agent); BC-6.09 (deliver-story skill); BC-5.23 (phase-3 workflow); BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 (TDD hardening — S-7.03) | SS-05, SS-06, SS-08 |
 | CAP-017 | Create and manage formal ADR records | BC-6.05 (create-architecture skill); BC-8.04 (ADR templates); BC-6.20.001–012 (create-adr skill) | SS-06, SS-08 |
 | CAP-018 | Validate spec consistency across all artifact layers | BC-5.05.007–010 (consistency-validator agent); BC-6 (consistency-validation skill) | SS-05, SS-06 |
 | CAP-019 | Generate domain specs from product briefs | BC-6.03 (create-domain-spec skill) | SS-06, SS-08 |
@@ -1158,7 +1196,7 @@ For v1.0, treat the prd-supplement as the authoritative NFR source.
 
 ### 12.1 Behavioral Contract Verification
 
-All 1,878 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
+All 1,891 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
 
 | Test Type | Coverage Target | Primary Tools |
 |-----------|----------------|---------------|
@@ -1212,7 +1250,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Field | Value |
 |-------|-------|
 | Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,878 BCs at phase 1.4c |
+| BC catalog version | 1,891 BCs at phase 1.5 (1,878 ingestion baseline + 13 added in S-7.03 TDD hardening) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.4 (commit 1907d8f, 2026-04-25) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
@@ -1221,7 +1259,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Stories partial | 4 (S-2.05, S-3.04, S-4.06, S-5.05) |
 | Stories pending (draft) | 15 (Tiers E–H draft) |
 | CAPs covered | 28 / 28 |
-| FRs defined | 42 |
+| FRs defined | 43 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
 
