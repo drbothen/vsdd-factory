@@ -35,7 +35,7 @@ deployment_topology: single-service
 | SS-06 Skill Catalog | SS-06-skill-catalog.md | story-writer, skill authors | 119 skills, SKILL.md contract, output routing |
 | SS-07 Hook Bash Layer | SS-07-hook-bash.md | implementer, formal-verifier | 44 bash hooks, registry bindings, exit code semantics |
 | SS-08 Templates and Rules | SS-08-templates-rules.md | story-writer, implementer | 108 templates, 9 rules, template compliance contracts |
-| SS-09 Config and Activation | SS-09-config-activation.md | implementer, story-writer | hooks.json variants, activation skill, CI platform config |
+| SS-09 Configuration and Activation | SS-09-config-activation.md | implementer, story-writer | hooks.json variants, activation skill, CI platform config |
 | SS-10 CLI Tools and Bin | SS-10-cli-tools.md | implementer, story-writer | 12 bin tools, 110 slash-command bindings |
 
 ### Future Sections (Deferred)
@@ -103,7 +103,7 @@ The 10-subsystem layout reflects two first-class groups:
 ```mermaid
 graph TD
     CC["Claude Code (harness)"]
-    SS09["SS-09: Config & Activation"]
+    SS09["SS-09: Configuration and Activation"]
     SS01["SS-01: Hook Dispatcher Core"]
     SS02["SS-02: Hook SDK & Plugin ABI"]
     SS03["SS-03: Observability Sinks"]

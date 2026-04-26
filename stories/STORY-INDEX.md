@@ -109,6 +109,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 `behavioral_contracts: []` arrays. BC anchoring is deferred to the elaboration phase
 (when status transitions to `ready`). **Source:** Phase 1d pass 3 F-035.
 
+> Stories with `status: merged` that pre-date BC anchoring (e.g., Tier A/B/C/D
+> stories migrated from S-N.M legacy format in Phase 1.8) MAY also have empty
+> `behavioral_contracts: []`. BC backfill for these merged stories is tracked
+> under TD-001 (BC-level CAP/DI/Stories anchoring incomplete).
+
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
 **Total story points:** 183 across 41 stories
