@@ -2,7 +2,8 @@
 document_type: epic
 epic_id: "E-6"
 version: "1.0"
-prd_capabilities: [FR-041]
+prd_capabilities: [CAP-017]
+prd_frs: [FR-041]
 status: open
 story_count: 1
 producer: story-writer

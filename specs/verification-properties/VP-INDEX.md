@@ -42,7 +42,7 @@ total_vps: 60
 | integration | 10 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060 |
 | manual | 9 | VP-015, VP-046..048, VP-053..057 |
 | kani-proof | 0 | — (upgrade candidates: VP-020, VP-023, VP-042) |
-| property-test | 1 | VP-059 (upgrade candidates: VP-019, VP-029, VP-032) |
+| proptest | 1 | VP-059 (upgrade candidates: VP-019, VP-029, VP-032) |
 
 ## Full Index
 
