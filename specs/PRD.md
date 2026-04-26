@@ -337,7 +337,7 @@ retries (BC-3.NN.NNN-dlq-on-retry-exhaustion — v1.1 candidate).
 
 Source BCs (currently anchored): BC-3.01.008 (failure recording);
 BC-3.03.002 (otel-grpc reconnect-on-error pattern).
-v1.1 BC candidates pending: 4 (S-4.04: retry policy, CB state machine, CB
+v1.1 BC candidates pending: 8 (S-4.04: retry policy, CB state machine, CB
 event emission, retry isolation; S-4.05: DLQ on exhaustion, DLQ on overflow,
 DLQ event shape, DLQ disk-full no-crash).
 Source CAP: CAP-024 (per-sink retry, circuit breaker, dead-letter queue).
