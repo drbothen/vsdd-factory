@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T00:00:00Z
-phase: s-7-03-DELIVERED
+timestamp: 2026-04-26T19:30:00Z
+phase: post-release-v1.0.0-beta.7-SHIPPED
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "**S-7.03 DELIVERED.** All 18 bats tests GREEN; PR #13 merged to develop at 4db2340. 4-layer TDD discipline defense codified (anti-precedent guard, Red Gate density check, tdd_mode contract, mutation testing wave-gate). Self-referential dogfooding round 3 complete. Next: cut release v1.0.0-beta.7 (bundles E-7 round-3 hardening: anti-precedent guard, validate-red-ratio.sh hook, tdd_mode story-template field, wave-gate mutation testing) — task #79."
+current_step: "**v1.0.0-beta.7 SHIPPED 2026-04-26 19:15 UTC** — bot retag at b08e085. Bundles S-7.03 TDD Discipline Hardening (third E-7 dogfooding round; 4-layer stub-as-implementation defense). 17-pass spec convergence (project-record). Hotfix PR #15 caught release-time policy violations in stub-architect.md (CI/release validation alignment gap — see task #98). Develop synced via PR #16 back-merge. Next: monitor task #98 (CI alignment), open issue #8 (story re-anchor), task #10 (DTU/CI verification). All worktrees cleaned. Quiet state."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (S-7.03 delivered — PR #13 merged to develop at 4db2340) |
-| **Current Phase** | s-7-03-DELIVERED |
+| **Last Updated** | 2026-04-26 (v1.0.0-beta.7 SHIPPED) |
+| **Current Phase** | post-release-v1.0.0-beta.7-SHIPPED |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -100,6 +100,9 @@ dtu_services: []
 | S-7.03 adversarial pass-16 (exhaustive) | COMPLETE | 0 substantive findings; 11 self-validation withdrawals (highest yet); 3 out-of-scope re-confirmed; CONVERGENCE STEP 2 OF 3 REACHED |
 | S-7.03 adversarial pass-17 (FINAL) | **CONVERGENCE_REACHED** | 0 substantive findings; 6 self-validation withdrawals; 3-of-3 NITPICK consecutive achieved (passes 15/16/17); ADR-013 criterion satisfied |
 | S-7.03 GREEN implementation | **COMPLETE** | feat/tdd-discipline-hardening commit 121d24c (Batch B HEAD) → squash-merged via PR #13 to 4db2340; 18/18 bats GREEN; 4-layer defense across 9 plugin-source files |
+| Release v1.0.0-beta.7 | COMPLETE | Tag at b08e085 (bot retag); chore commit ac5cc11; PR #14 merged (CHANGELOG + hooks-registry script_path fix); hotfix PR #15 merged (stub-architect.md policy); back-merge PR #16 merged; GH Release published 2026-04-26 19:15 UTC |
+| Hotfix: stub-architect.md policy compliance | COMPLETE | PR #15 merged; 5 inline backtick cargo check refs de-backticked + AGENT-SOUL.md footer added |
+| Hiccup: ci.yml/release.yml validation gap | DEFERRED | Tracked as task #98; permissions.bats coverage diverges between ci.yml (PR-time) and release.yml (tag-time) |
 
 ## Current Phase Steps
 
@@ -168,11 +171,12 @@ dtu_services: []
 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
-| main | ae426cd | bot bundle for v1.0.0-beta.6 (PR #11 hotfix + PR #12 back-merge) |
-| develop | 4db2340 | S-7.03 squash-merge PR #13; 4-layer TDD discipline hardening |
+| main | b08e085 | bot bundle for v1.0.0-beta.7 (PR #14 + hotfix PR #15) |
+| develop | ecb6cc6 | back-merge PR #16; includes b08e085 in ancestry |
 | factory-artifacts | c50bb0f | 10 ADRs commit |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 | v1.0.0-beta.6 (tag) | ae426cd | SHIPPED 2026-04-26; GH Release published; prerelease=true |
+| v1.0.0-beta.7 (tag) | b08e085 | SHIPPED 2026-04-26 19:15 UTC; GH Release published; prerelease=true |
 
 ## Decisions Log
 
@@ -211,6 +215,7 @@ dtu_services: []
 | D-031 | S-7.03 pass-16 NITPICK-only — second consecutive clean pass (after pass-15). Self-validation withdrawal rate climbed: pass-13: 2, pass-14: 2, pass-15: 5, pass-16: 11. Increasing withdrawal rate at late convergence = adversary generates more hypotheses but spec rebuts all. Ideal pattern. Convergence step 2 of 3. | Family O (12 new sub-axes) + Family P (sibling comparison) + Family Q (off-by-one) all clean. Diminishing-returns territory confirmed. Out-of-scope drift items re-confirmed but correctly excluded. Pass-17 final: if NITPICK-only → CONVERGENCE_REACHED. | adv-pass-16 | 2026-04-27 | state-manager |
 | D-032 | **S-7.03 SPEC CONVERGENCE_REACHED at pass-17.** ADR-013 criterion satisfied (3 NITPICK-only consecutive: pass-15 53cc837, pass-16 09b05f2, pass-17 this commit). Trajectory: 25→12→5→2→1→0→0→1→2→4→3→1→1→2→0→0→0. Total 17 passes vs S-6.01's 8 — proportional to S-7.03's 13-BC, 4-layer, multi-subsystem complexity. Spec approved for GREEN-phase TDD implementation. | 4 out-of-scope items (PRD beta.4 milestone, CAP-028 outcome, SS-05/SS-08 arch BC ID schemes, KL-002 VP count) deferred to v1.1 hardening backlog (D-028 + D-030 lineage). | adv-pass-17 | 2026-04-27 | state-manager |
 | D-033 | **S-7.03 GREEN IMPLEMENTATION DELIVERED.** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN across 17 adversarial-spec passes and 9 implementation commits (RED gate 020518b + Batch A d89b928/8cd16e9/f53bf43/3a9614c + Batch B c4413e1/94b653c/fa07d94/121d24c + demo 88c4474). 4-layer TDD discipline defense: Layer 1 anti-precedent guard (stub-architect.md), Layer 2 Red Gate density check (per-story-delivery.md + deliver-story/SKILL.md), Layer 3 validate-red-ratio.sh blocking hook, Layer 4 tdd_mode story-template field + mutation testing wave-gate. Self-referential dogfooding round 3 complete. | E-7 process codification pattern validated for second consecutive cycle. Next release: v1.0.0-beta.7 bundles E-7 round-3 hardening. | delivery | 2026-04-26 | state-manager |
+| D-034 | **v1.0.0-beta.7 SHIPPED** — 9-commit release cycle: release foundation (bb909d4) → hooks-registry script_path fix (f8ab974) → release PR #14 merge (ac5cc11) → hotfix policy (f3646a4) → hotfix PR #15 merge (42d59c3) → bot bundle retag (b08e085) → back-merge PR #16 (ecb6cc6). Tag at b08e085. Hiccup: first tag push failed at Pre-release Validation (permissions.bats: stub-architect.md had 5 inline backtick cargo check refs + missing AGENT-SOUL.md footer); fixed in hotfix PR #15. Second tag push hit transient darwin-x64 DNS failure on static.rust-lang.org; cleared via gh run rerun --failed. CI/release validation alignment gap logged as task #98. | 17-pass spec convergence is project-record (vs S-6.01's 8). Self-referential dogfooding pattern continues for third cycle. | release | 2026-04-26 | orchestrator + user |
 
 ## Skip Log
 
@@ -227,10 +232,10 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-26 |
-| **Position** | **S-7.03 DELIVERED.** PR #13 merged to develop at 4db2340. 18/18 bats GREEN. 4-layer TDD discipline defense codified. E-7 dogfooding round 3 complete. |
-| **Release** | Tag ae426cd; GH Release published 2026-04-26; prerelease=true (v1.0.0-beta.6) |
-| **Deferred work** | TD-001 wave-scale BC re-anchoring; TD-010 DTU/CI verification; S-7.01/S-7.02 still ready; Phase 2 wave schedule; D-028/D-030 v1.1 hardening backlog items |
-| **Next action** | Cut release v1.0.0-beta.7 (bundles E-7 round-3 hardening from S-7.03 delivery) — task #79. |
+| **Position** | **v1.0.0-beta.7 SHIPPED** at b08e085. S-7.03 TDD Discipline Hardening bundled (17-pass spec convergence, 18/18 bats GREEN). Hotfix PR #15 resolved stub-architect.md policy violations caught at release time. Develop synced via PR #16 back-merge at ecb6cc6. |
+| **Release** | Tag b08e085 (bot retag); GH Release published 2026-04-26 19:15 UTC; prerelease=true (v1.0.0-beta.7) |
+| **Deferred work** | task #98 (CI/release validation alignment — permissions.bats gap); task #10 (DTU/CI verification); issue #8 (story re-anchor); D-028/D-030 v1.1 hardening backlog items |
+| **Next action** | Monitor task #98 (CI alignment). Phase 2 story decomposition and wave scheduling unblocked. |
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
