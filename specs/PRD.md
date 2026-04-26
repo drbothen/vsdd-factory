@@ -323,7 +323,7 @@ Enforces: DI-011, DI-012. Status: **shipped** (S-1.08). Tag enrichment per-sink 
 | BC-3.04.001–002 | Router pass-through wrapper; extension point for S-4.x | P1 |
 | BC-3.05.001–003 | Integration: builds file sink from parsed config; fans events to file sinks; 10-event OTLP attribute mapping | P0 |
 
-Source BCs: `ss-03/BC-3.01.009.md` + `BC-3.03.001.md` through `BC-3.05.003.md` (18 BCs in this group).
+Source BCs: `ss-03/BC-3.01.009.md` + `BC-3.03.001.md` through `BC-3.05.003.md` (19 BCs in this group).
 Status: **shipped** (S-1.09). Retry/circuit-breaker: **pending** (S-4.04).
 
 #### FR-044 — Per-sink resilience: retry, circuit breaker, dead-letter queue
