@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-25T00:00:00Z
-phase: 1d-converged
+timestamp: 2026-04-26T00:00:00Z
+phase: post-beta-5-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Phase 1d CONVERGED. Next: release/v1.0.0-beta.5"
+current_step: "v1.0.0-beta.5 SHIPPED. Cache refreshed. Next: 10 deferred ADRs (now unblocked) + Phase 2 plugin canonicalization (test fixtures, workflows, agents)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-25 |
-| **Current Phase** | 1d-converged |
+| **Last Updated** | 2026-04-26 |
+| **Current Phase** | post-beta-5-shipped |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -62,15 +62,16 @@ dtu_services: []
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
 | Phase 1d — Adversarial Spec Review | COMPLETE | 6 passes, converged at pass 6 (3 consecutive NITPICK: passes 4-5-6) |
-| Phase 2 — Story Decomposition | not-started | Awaiting Phase 1d completion |
+| Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
+| Phase 2 — Story Decomposition | not-started | Unblocked; 41 migrated stories ready for dependency graph + wave schedule |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| Phase 1d adversarial pass 6 | adversarial-reviewer | complete | pass-6.md — CONVERGENCE_REACHED |
 | Phase 1d convergence commit | state-manager | complete | factory-artifacts updated |
-| Next: release/v1.0.0-beta.5 | release-agent | pending | bundle ADR template + canonicalization |
+| Release v1.0.0-beta.5 | release-agent | complete | PR #5 merged; tag v1.0.0-beta.5 at 0a95c8c; cache refreshed |
+| Next: ADR backlog (10 deferred) | architect | pending | ADR-004..ADR-013 stubs ready; write-up unblocked |
 
 ## Identifier Conventions
 
@@ -125,12 +126,12 @@ dtu_services: []
 
 ## Active Branches
 
-| Branch | SHA | Notes |
-|--------|-----|-------|
-| main | 1907d8f | last shipped: v1.0.0-beta.4 |
-| develop | 40b4592 | ADR template fix; tracks ahead of main |
-| feat/canonical-identifiers | open | PR #4 — plugin canonicalization phase 1, 26 files |
-| factory-artifacts | f6c36d1 | Phase 1 backfill committed |
+| Branch / Tag | SHA | Notes |
+|--------------|-----|-------|
+| main | f1ec5bf | bot binary bundle on top of 2001b97 (PR #5 merge) |
+| develop | faa4aac | PR #4 squash merge content |
+| factory-artifacts | (latest) | STATE refresh commit |
+| v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 
 ## Decisions Log
 
@@ -139,6 +140,7 @@ dtu_services: []
 | D-001 | 10-subsystem layout (SS-01..SS-10) | Natural split: Rust compiled (SS-01..04) vs VSDD framework (SS-05..10) | 1.1 | 2026-04-25 | architect |
 | D-002 | BC-S.SS.NNN one-per-file sharding | Enables granular traceability and diff-friendly git history | 1.4 | 2026-04-25 | architect |
 | D-003 | DTU not required | All external services are HTTP APIs with stable public contracts; no clone needed | 1.6a | 2026-04-25 | architect |
+| D-004 | v1.0.0-beta.5 release scope | ADR template + identifier canonicalization phase 1 shipped; phase 2 (test fixtures, workflows, agents) deferred to beta.6 | release | 2026-04-26 | orchestrator |
 
 ## Skip Log
 
@@ -155,12 +157,23 @@ dtu_services: []
 
 | Field | Value |
 |-------|-------|
-| **Date** | 2026-04-25 |
-| **Position** | Phase 1d CONVERGED (6 passes, 3 consecutive NITPICK). Specs are stable. |
-| **Convergence counter** | 3 of 3 (passes 4, 5, 6 all NITPICK) — CONVERGENCE_REACHED |
-| **Next action** | release/v1.0.0-beta.5 — bundle ADR template + feat/canonical-identifiers (PR #4) |
-| **After release** | Phase 2 story dependency graph + wave schedule based on 41 migrated stories |
-| **ADR backlog** | 10 deferred ADRs (ADR-004..ADR-013 stubs exist; full write-up after PR #4 lands) |
+| **Date** | 2026-04-26 |
+| **Position** | v1.0.0-beta.5 SHIPPED. Plugin cache refreshed (5 plugins, 110 skills, 74 agents, 45 hooks). |
+| **Convergence counter** | 3 of 3 (passes 4, 5, 6 all NITPICK) — CONVERGENCE_REACHED (Phase 1d closed) |
+| **Next action** | Write ADR-004..ADR-013 (10 deferred; ADR template now live in beta.5 cache) |
+| **After ADRs** | Phase 2 story dependency graph + wave schedule based on 41 migrated stories |
+| **ADR backlog** | 10 deferred ADRs UNBLOCKED — stubs exist at specs/architecture/decisions/; write-up in next session |
+| **Note** | 4 of 5 binaries identical to beta.4 (Rust source unchanged — deterministic build verified) |
+
+## Release Ladder
+
+| Tag | Date | Highlights |
+|-----|------|-----------|
+| v1.0.0-beta.1 | 2026-04-22 | Initial beta |
+| v1.0.0-beta.2 | 2026-04-23 | (per CHANGELOG) |
+| v1.0.0-beta.3 | 2026-04-25 | hook tool_response shape fix |
+| v1.0.0-beta.4 | 2026-04-25 | cache fix + stderr capture + SHA-currency gate |
+| v1.0.0-beta.5 | 2026-04-26 | ADR template + identifier canonicalization phase 1 |
 
 ## Historical Content
 
