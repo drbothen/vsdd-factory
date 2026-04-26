@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-27T00:30:00Z
-phase: s-7-03-pass-4-fixes-applied
+timestamp: 2026-04-27T01:00:00Z
+phase: s-7-03-pass-5-fixes-applied
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-7.03 pass-4 fixes applied. Next: adversarial pass-5 — aim for 1st of 3 NITPICK target."
+current_step: "S-7.03 pass-5 fix applied. Trajectory 25→12→5→2→1. Next: pass-6 — aim for 1st of 3 NITPICK target."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (pass-4 fix burst) |
-| **Current Phase** | s-7-03-pass-4-fixes-applied |
+| **Last Updated** | 2026-04-27 (pass-5 fix burst) |
+| **Current Phase** | s-7-03-pass-5-fixes-applied |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -78,17 +78,17 @@ dtu_services: []
 | S-7.03 pass-3 fix burst | COMPLETE | F-001 (PO), F-002+F-004+F-005 (state-manager), F-003 (story-writer) |
 | S-7.03 adversarial pass-4 | COMPLETE | 2 findings (1 MED F-101 GFM table render regression, 1 LOW F-102 spatial reference); verdict FINDINGS_REMAIN |
 | S-7.03 pass-4 fix burst | COMPLETE | F-101+F-102 fixed via Option C (blockquote moved below rows) |
+| S-7.03 adversarial pass-5 | COMPLETE | 1 finding (F-201 LOW story path prefix); 5 NITPICK obs; verdict FINDINGS_REMAIN |
+| S-7.03 pass-5 fix burst | COMPLETE | F-201 fixed; story v1.3 → v1.4 |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-7.03 adversarial pass-2 | adversarial-reviewer | COMPLETE | 1 HIGH + 4 MEDIUM + 2 LOW + 5 obs addressed in pass-2 fix burst |
-| S-7.03 pass-2 fix burst (index/state updates) | state-manager | COMPLETE | BC-INDEX N-001 moved 4 BCs to SS-05; PRD N-004 math reconciled; VP-INDEX N-006 count 47→46 |
-| S-7.03 adversarial pass-3 | adversarial-reviewer | COMPLETE | 5 findings (3 MED + 1 LOW + 1 NIT); FINDINGS_REMAIN |
-| S-7.03 pass-3 fix burst | state-manager + PO + story-writer | COMPLETE | All 5 findings addressed |
 | S-7.03 adversarial pass-4 | adversarial-reviewer | COMPLETE | 2 findings (F-101 MEDIUM, F-102 LOW); FINDINGS_REMAIN |
 | S-7.03 pass-4 fix burst | state-manager | COMPLETE | F-101+F-102 resolved via Option C — blockquote moved after rows |
+| S-7.03 adversarial pass-5 | adversarial-reviewer | COMPLETE | 1 finding (F-201 LOW story path prefix); 5 NITPICK obs; FINDINGS_REMAIN |
+| S-7.03 pass-5 fix burst | state-manager + story-writer | COMPLETE | F-201 fixed (path prefix stripped); story v1.3→v1.4 |
 
 ## Identifier Conventions
 
@@ -173,7 +173,7 @@ dtu_services: []
 | D-015 | S-7.03 pass-3 — F-001 PRD subsystem labels propagated; F-002 BC-INDEX annotations moved to blockquote (5-column table integrity restored); F-003 E-7 '5 subsystems' typo fixed; F-004 STORY-INDEX status canonicalized; F-005 STATE.md Phase 1.4 milestone annotated | pass-3 review returned 5 findings; all routed by severity; Option B (blockquote) chosen for F-002 as lower-blast-radius than promoting table to 6-column. | pass-3-fix-burst | 2026-04-26 | state-manager |
 | D-016 | Pass-1 and pass-2 adversarial review files for s7.03 not persisted (audit trail gap detected at pass-3); only pass-3 retroactively persisted from chat content. Reason: adversary agents reported writing but writes did not commit. Investigate adversary tooling next cycle. | Deferred: pass-1 and pass-2 content is not recoverable from disk; gap noted for tooling investigation. | audit-trail | 2026-04-26 | state-manager |
 | D-017 | S-7.03 pass-4 — F-002 Option B (blockquote BEFORE rows) caused GFM table-rendering regression; corrected via Option C (blockquote AFTER rows). Lesson: table annotations should default to SS-08 line 1908 footer-comment pattern (HTML comment after rows), not blockquote before rows. Process-gap O-101 — codify in BC-INDEX template. | In GFM/CommonMark, a blockquote terminates a preceding table block; rows below it become a headerless fragment that renders broken. HTML comments do not terminate tables. Option C (move blockquote after rows) is markdown-native and makes "listed above" phrasing accurate. | pass-4-fix-burst | 2026-04-27 | state-manager |
-
+| D-018 | S-7.03 pass-5 — F-201 (story References section BC path prefix `plugins/vsdd-factory/.factory/specs/...`) fixed; trajectory 25→12→5→2→1; convergence clock not yet started (pass-5 not NITPICK-only, 1 LOW finding remains). Story bumped v1.3→v1.4. | Path prefix was `plugins/vsdd-factory/.factory/specs/behavioral-contracts/...` — directory does not exist; correct prefix is `.factory/specs/behavioral-contracts/...`. Frontmatter `inputs:` was already correct; defect was in human-readable References section only. | pass-5-fix-burst | 2026-04-27 | state-manager |
 
 ## Skip Log
 

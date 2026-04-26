@@ -113,11 +113,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ## Epic E-7 — Process Codification (open)
 
-| Story ID | Title | Epic | Points | Priority | Depends On | Status |
-|----------|-------|------|--------|----------|------------|--------|
-| S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | ready |
-| S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | ready |
-| S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | ready |
+| Story ID | Title | Epic | Points | Priority | Depends On | Status | Version |
+|----------|-------|------|--------|----------|------------|--------|---------|
+| S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | ready | -- |
+| S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | ready | -- |
+| S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | ready | 1.4 |
 
 ---
 
