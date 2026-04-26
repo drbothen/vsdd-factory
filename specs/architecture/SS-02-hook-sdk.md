@@ -146,7 +146,7 @@ mirrored in `hook-sdk::host::HostError::from_code`. These must stay in sync
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-02/`
-(target prefix BC-2; ~25 BCs).
+(target prefix BC-2; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: `HookPayload` deserialization invariants (BC-2.001–BC-2.005),
 `HookResult` serialization invariants (BC-2.006–BC-2.010), `#[hook]` macro

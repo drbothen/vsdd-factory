@@ -124,7 +124,7 @@ logic is planned for S-3.1 (Tier E). Source:
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-04/`
-(target prefix BC-4; ~30 BCs).
+(target prefix BC-4; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: `legacy-bash-adapter` config read and script dispatch
 (BC-4.001–BC-4.010), exit-code-to-HookResult mapping (BC-4.011–BC-4.015),

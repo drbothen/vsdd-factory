@@ -161,7 +161,7 @@ idempotent: running it twice produces the same output.
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-09/`
-(target prefix BC-9; ~20 BCs).
+(target prefix BC-9; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: platform detection and hooks.json copy (BC-9.001–BC-9.008),
 binary presence verification (BC-9.009–BC-9.012), settings.local.json write

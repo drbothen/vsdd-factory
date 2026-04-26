@@ -146,7 +146,7 @@ Key Rust types: `HookPayload`, `Registry`, `RegistryEntry`, `Capabilities`,
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-01/`
-(target prefix BC-1; ~80 BCs).
+(target prefix BC-1; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: payload parsing and alias tolerance (BC-1.001–BC-1.010),
 registry load and schema validation (BC-1.011–BC-1.025), plugin routing and tier

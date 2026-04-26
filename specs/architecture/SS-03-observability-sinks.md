@@ -138,7 +138,7 @@ but not yet emitted as event; DRIFT-002). `sink-otel-grpc` batches events up to
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-03/`
-(target prefix BC-3; ~50 BCs).
+(target prefix BC-3; current BC count in ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: always-on internal log invariants (BC-3.001–BC-3.015),
 daily rotation and 30-day retention (BC-3.016–BC-3.020), configurable sink load
