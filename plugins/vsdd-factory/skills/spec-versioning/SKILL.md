@@ -71,7 +71,7 @@ Every implementation commit message references the spec version:
 ```
 feat(notifications): add delivery engine
 
-Implements STORY-008.
+Implements S-1.08.
 Spec version: 1.3.0
 ```
 
@@ -99,9 +99,9 @@ Current spec version: 1.4.0
 
 | Story | Built Against | Drift | Severity | Action Needed |
 |-------|--------------|-------|----------|---------------|
-| STORY-001 | 1.0.0 | 4 minor | LOW | Review new reqs for overlap |
-| STORY-003 | 1.1.0 | 3 minor | LOW | Review new reqs for overlap |
-| STORY-010 | 1.2.0 | 1 major, 1 minor | HIGH | Mandatory review |
+| S-1.01 | 1.0.0 | 4 minor | LOW | Review new reqs for overlap |
+| S-1.03 | 1.1.0 | 3 minor | LOW | Review new reqs for overlap |
+| S-1.10 | 1.2.0 | 1 major, 1 minor | HIGH | Mandatory review |
 ```
 
 ### When to Run Drift Detection

@@ -1,7 +1,7 @@
 ---
 name: deliver-story
 description: Use when delivering a single story through the VSDD TDD pipeline. Dispatches fresh specialist subagents (test-writer → implementer → demo-recorder → pr-manager → devops-engineer) via the per-story-delivery orchestrator workflow. Each step runs in isolated context to preserve reasoning quality and prevent context exhaustion.
-argument-hint: "[STORY-NNN]"
+argument-hint: "[S-N.MM]" # canonical S-N.MM format (e.g., S-1.01); legacy STORY-NNN accepted
 disable-model-invocation: true
 allowed-tools: Read, Bash, Glob, Grep, AskUserQuestion, Task
 ---
@@ -24,13 +24,13 @@ Violating the letter of the rule is violating the spirit of the rule. "I already
 
 Before any other action, say verbatim:
 
-> I'm using the deliver-story skill to dispatch STORY-NNN through the per-story-delivery orchestrator workflow.
+> I'm using the deliver-story skill to dispatch S-N.MM through the per-story-delivery orchestrator workflow.
 
 Then create a TodoWrite entry per step in the workflow. Mark each in-progress before dispatching and completed after the subagent returns.
 
 ## Input
 
-`$ARGUMENTS` — story ID (e.g., `STORY-001`)
+`$ARGUMENTS` — story ID (e.g., `S-1.01`)
 
 ## Prerequisites (check before dispatching anything)
 
@@ -54,21 +54,21 @@ For each step below, launch a **fresh subagent** via the Task tool. Pass only th
 
 ### Step 1 — Create worktree (devops-engineer)
 
-Dispatch `devops-engineer` with task: "Create worktree `.worktrees/STORY-NNN/` on branch `feature/STORY-NNN-<desc>` from `develop`."
+Dispatch `devops-engineer` with task: "Create worktree `.worktrees/S-N.MM/` on branch `feature/S-N.MM-<desc>` from `develop`."
 
 **Exit condition:** `git worktree list` shows the new worktree on the correct branch. Verify before proceeding.
 
 ### Step 2 — Generate stubs (test-writer as Stub Architect)
 
-Dispatch `test-writer` with task: "Create compilable stubs in `.worktrees/STORY-NNN/` matching the story's file list. Use `todo!()` or `unimplemented!()` bodies. Commit: `feat(STORY-NNN): add module stubs`."
+Dispatch `test-writer` with task: "Create compilable stubs in `.worktrees/S-N.MM/` matching the story's file list. Use `todo!()` or `unimplemented!()` bodies. Commit: `feat(S-N.MM): add module stubs`."
 
 **Exit condition:** `cargo check` passes inside the worktree. If it fails, dispatch a new test-writer to fix stubs — do not proceed until clean.
 
 ### Step 3 — Write failing tests (test-writer as Test Writer)
 
-Dispatch `test-writer` with task: "Write failing tests in `.worktrees/STORY-NNN/` for each acceptance criterion / BC. Commit: `test(STORY-NNN): add failing tests for <BC-ref>`."
+Dispatch `test-writer` with task: "Write failing tests in `.worktrees/S-N.MM/` for each acceptance criterion / BC. Commit: `test(S-N.MM): add failing tests for <BC-ref>`."
 
-**Red Gate (mandatory).** After dispatch returns, independently run `cd .worktrees/STORY-NNN && cargo test` and verify:
+**Red Gate (mandatory).** After dispatch returns, independently run `cd .worktrees/S-N.MM && cargo test` and verify:
 
 - Tests compile
 - All new tests fail
@@ -81,7 +81,7 @@ Record the Red Gate outcome in `.factory/cycles/<cycle-id>/<story-id>/implementa
 
 ### Step 4 — Implement (implementer)
 
-Dispatch `implementer` with task: "Implement in `.worktrees/STORY-NNN/` via TDD. For each failing test, write the minimum code to make it pass. Micro-commit per test: `feat(STORY-NNN): implement <behavior>`. Do not write code not covered by a test."
+Dispatch `implementer` with task: "Implement in `.worktrees/S-N.MM/` via TDD. For each failing test, write the minimum code to make it pass. Micro-commit per test: `feat(S-N.MM): implement <behavior>`. Do not write code not covered by a test."
 
 If the story has `implementation_strategy: gene-transfusion`, include in the task: "Read `.factory/semport/<module>/<module>-target-design.md` and the reference source files listed in the story. Use the translation strategy. Mark uncertain translations `// SEMPORT-REVIEW`."
 
@@ -89,19 +89,19 @@ If the story has `implementation_strategy: gene-transfusion`, include in the tas
 
 ### Step 5 — Record demos (demo-recorder)
 
-Dispatch `demo-recorder` with task: "Record per-AC demos in `.worktrees/STORY-NNN/docs/demo-evidence/<STORY-ID>/`. Use VHS for CLI or Playwright for web. Capture both success and error paths. Generate `docs/demo-evidence/<STORY-ID>/evidence-report.md`."
+Dispatch `demo-recorder` with task: "Record per-AC demos in `.worktrees/S-N.MM/docs/demo-evidence/<STORY-ID>/`. Use VHS for CLI or Playwright for web. Capture both success and error paths. Generate `docs/demo-evidence/<STORY-ID>/evidence-report.md`."
 
 **Exit condition:** every acceptance criterion has at least one demo artifact referenced in the evidence report.
 
 ### Step 6 — Push feature branch (implementer)
 
-Dispatch `implementer` with task: "Push `feature/STORY-NNN-<desc>` to remote origin."
+Dispatch `implementer` with task: "Push `feature/S-N.MM-<desc>` to remote origin."
 
-**Exit condition:** `git ls-remote origin feature/STORY-NNN-<desc>` returns the expected SHA.
+**Exit condition:** `git ls-remote origin feature/S-N.MM-<desc>` returns the expected SHA.
 
 ### Step 7 — PR lifecycle (pr-manager)
 
-Dispatch `pr-manager` with task: "Run the full PR process for STORY-NNN. Feature branch: `feature/STORY-NNN-<desc>`. Target: `develop`. Follow your 9-step process: populate PR description from `${CLAUDE_PLUGIN_ROOT}/templates/pr-description-template.md`, verify demo evidence, create PR via github-ops, security review, pr-reviewer convergence loop, wait for CI, dependency check, merge. Do NOT skip any step."
+Dispatch `pr-manager` with task: "Run the full PR process for S-N.MM. Feature branch: `feature/S-N.MM-<desc>`. Target: `develop`. Follow your 9-step process: populate PR description from `${CLAUDE_PLUGIN_ROOT}/templates/pr-description-template.md`, verify demo evidence, create PR via github-ops, security review, pr-reviewer convergence loop, wait for CI, dependency check, merge. Do NOT skip any step."
 
 **Do not compose the PR body yourself.** pr-manager owns the full PR lifecycle and uses its own templates. Your job here is delegation, not authorship.
 
@@ -109,15 +109,15 @@ Dispatch `pr-manager` with task: "Run the full PR process for STORY-NNN. Feature
 
 ### Step 8 — Cleanup (devops-engineer)
 
-Dispatch `devops-engineer` with task: "Remove worktree `.worktrees/STORY-NNN/` and delete local branch `feature/STORY-NNN-<desc>`."
+Dispatch `devops-engineer` with task: "Remove worktree `.worktrees/S-N.MM/` and delete local branch `feature/S-N.MM-<desc>`."
 
-**Exit condition:** `git worktree list` no longer shows the worktree; `git branch --list 'feature/STORY-NNN-*'` returns empty for this story.
+**Exit condition:** `git worktree list` no longer shows the worktree; `git branch --list 'feature/S-N.MM-*'` returns empty for this story.
 
 ### Step 9 — State update
 
 Update `.factory/stories/sprint-state.yaml`: story status → `completed`.
 Update `.factory/stories/STORY-INDEX.md`: status column for this story.
-Commit to `factory-artifacts` branch: `factory(phase-3): STORY-NNN delivered`.
+Commit to `factory-artifacts` branch: `factory(phase-3): S-N.MM delivered`.
 
 ## Context Discipline for Dispatches
 
@@ -220,7 +220,7 @@ Stop and check yourself if you find yourself thinking any of these:
 Tell the user:
 
 ```
-Story STORY-NNN delivered:
+Story S-N.MM delivered:
   Red Gate:       PASSED (see .factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md)
   Implementation: <N> micro-commits
   Demos:          <N> artifacts in docs/demo-evidence/<STORY-ID>/

@@ -70,27 +70,29 @@ supplements: [interface-definitions.md, error-taxonomy.md, test-vectors.md, nfr-
 
 ## 2. Behavioral Contracts Index
 
-> Individual BC files live in the `behavioral-contracts/` directory.
+> Individual BC files live in `behavioral-contracts/ss-NN/` shard directories,
+> one shard per subsystem registered in ARCH-INDEX.
 > Grouped by L2 domain subsystem (CAP-NNN).
 > Each BC uses hierarchical numbering: BC-S.SS.NNN where S = section,
-> SS = subsection (matching L2 subsystem), NNN = sequential within subsystem.
+> SS = subsection (matching L2 subsystem; matches the shard `ss-NN` directory),
+> NNN = sequential within subsystem.
 
 ### 2.1 [Subsystem Name] (CAP-001)
 
 | BC ID | Title | Priority |
 |-------|-------|----------|
-| BC-2.1.001 | [one-line summary] | P0 |
-| BC-2.1.002 | [one-line summary] | P1 |
+| BC-2.01.001 | [one-line summary] | P0 |
+| BC-2.01.002 | [one-line summary] | P1 |
 
-> Full contracts: `behavioral-contracts/BC-2.1.001.md`, `behavioral-contracts/BC-2.1.002.md`
+> Full contracts: `behavioral-contracts/ss-01/BC-2.01.001.md`, `behavioral-contracts/ss-01/BC-2.01.002.md`
 
 ### 2.2 [Subsystem Name] (CAP-002)
 
 | BC ID | Title | Priority |
 |-------|-------|----------|
-| BC-2.2.001 | [one-line summary] | P0 |
+| BC-2.02.001 | [one-line summary] | P0 |
 
-> Full contract: `behavioral-contracts/BC-2.2.001.md`
+> Full contract: `behavioral-contracts/ss-02/BC-2.02.001.md`
 
 ### 2.N [Subsystem Name] (CAP-NNN)
 

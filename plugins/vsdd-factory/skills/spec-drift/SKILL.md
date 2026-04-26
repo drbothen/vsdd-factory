@@ -16,7 +16,7 @@ Compare what was specified against what was built. Find divergences.
 
 Read all spec documents:
 - `.factory/specs/prd.md`
-- `.factory/specs/behavioral-contracts/*`
+- `.factory/specs/behavioral-contracts/**/*.md` (recursive — BCs are sharded into `ss-NN/` directories)
 - `.factory/specs/verification-properties/*`
 - `.factory/specs/architecture/*`
 - `.factory/specs/prd-supplements/*`
