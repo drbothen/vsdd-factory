@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Spec touchpoints complete for S-6.01 (12 BCs, 3 VPs, FR-041, E-6 epic). Resume TDD with real BC IDs in test names."
+current_step: "Pass-1 fixes applied to S-6.01 spec scope (12 BCs + 3 VPs + PRD + story + ADR-013). Next: adversarial pass-2."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (S-6.01 spec backfill) |
+| **Last Updated** | 2026-04-26 |
 | **Current Phase** | post-beta-5-shipped |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -74,6 +74,9 @@ dtu_services: []
 | ADR backlog (10 deferred) | architect | complete | ADR-004..013 written; commit c50bb0f on factory-artifacts |
 | S-6.01 story scaffold | story-writer | complete | S-6.01-create-adr-skill.md; E-6 epic created |
 | Phase 1.5 — PRD update FR-041 + 12 BCs + 3 VPs for S-6.01 | state-manager | complete | BC-6.20.001..012 + VP-058..060 + BC-INDEX/VP-INDEX/ARCH-INDEX updated |
+| Adversarial pass-1 (S-6.01 spec) | adversary | complete | s6.01-pass-1.md (19 findings, MAJOR) |
+| Pass-1 fixes applied (PO + story-writer + orchestrator) | product-owner | complete | BC/VP/PRD/capabilities/S-6.01/ADR-013 updated |
+| Adversarial pass-2 (S-6.01 spec) | adversary | pending | — |
 
 ## Identifier Conventions
 
@@ -145,6 +148,7 @@ dtu_services: []
 | D-004 | v1.0.0-beta.5 release scope | ADR template + identifier canonicalization phase 1 shipped; phase 2 (test fixtures, workflows, agents) deferred to beta.6 | release | 2026-04-26 | orchestrator |
 | D-005 | Add create-adr skill to v1.0.x roadmap | ADR is the only major artifact without a dedicated authoring skill (compare create-prd, create-story, create-architecture, create-domain-spec); 10-ADR backfill exposed pain points (manual ID allocation, ARCH-INDEX drift, no supersession patcher) | post-1.1 | 2026-04-26 | orchestrator + user |
 | D-006 | Spec-first authoring discipline restored after S-6.01 gap caught | Story scaffolded without BCs initially; user caught the gap; full upstream artifacts (BCs/VPs/FR/epic) backfilled before TDD continued | 1.5 | 2026-04-26 | orchestrator + user |
+| D-007 | Hook validate-novelty-assessment.sh tightened to anchor on cycles/<key>/adversarial-reviews/ directory; ADR-* explicitly skipped | False-positive on ADR-013 (filename contains 'adversarial-review'); fix lands in plugin source for next release | post-adv-pass-1 | 2026-04-26 | orchestrator |
 
 ## Skip Log
 
@@ -162,12 +166,11 @@ dtu_services: []
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-04-26 |
-| **Position** | v1.0.0-beta.5 SHIPPED. All 13 ADRs written (commit c50bb0f). create-adr skill identified as beta.6 candidate. |
-| **Convergence counter** | 3 of 3 (passes 4, 5, 6 all NITPICK) — CONVERGENCE_REACHED (Phase 1d closed) |
-| **Next action** | Write story for create-adr skill (per-artifact authoring pattern; closes the ADR-shaped gap in skills inventory). |
-| **After skill story** | Phase 2 story decomposition: dependency graph + wave schedule for 41 migrated stories. |
-| **Skill gap identified** | create-adr skill missing despite 119-skill catalog; identified after 10-ADR brownfield burst exposed manual-process pain (ID allocation, index sync, supersession bookkeeping). |
-| **Note** | 4 of 5 binaries identical to beta.4 (Rust source unchanged — deterministic build verified) |
+| **Position** | S-6.01 spec pass-1 fixes applied (18 of 19 findings resolved). ADR-013 amended (F-019). BC-INDEX/VP-INDEX/STATE.md propagated. |
+| **Convergence counter** | Pass-1 MAJOR (19 findings). Pass-2 pending. |
+| **Next action** | Dispatch adversary for S-6.01 pass-2 to verify fixes. |
+| **After pass-2** | If converged: TDD implementation of create-adr skill. If not: remediate + pass-3. |
+| **Hook fix** | validate-novelty-assessment.sh false-positive on ADR-013 resolved (D-007); fix committed on feat/create-adr-skill branch. |
 
 ## Release Ladder
 

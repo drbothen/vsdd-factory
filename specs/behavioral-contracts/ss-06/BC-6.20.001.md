@@ -12,7 +12,7 @@ traces_to: .factory/stories/S-6.01-create-adr-skill.md
 origin: greenfield
 extracted_from: ".factory/stories/S-6.01-create-adr-skill.md#AC-1"
 subsystem: "SS-06"
-capability: "CAP-001"
+capability: "CAP-017"
 lifecycle_status: active
 introduced: v1.0-brownfield-backfill
 modified: []
@@ -38,6 +38,7 @@ The `create-adr` skill determines the next available ADR number by scanning both
 2. `plugins/vsdd-factory/skills/create-adr/../../../.factory/specs/architecture/decisions/` directory is accessible (may be empty — treated as max=0).
 3. `.factory/specs/architecture/ARCH-INDEX.md` is readable and contains an `## Architecture Decisions` section.
 4. The filesystem and ARCH-INDEX ID sets are consistent (same set of ADR-NNN IDs present in both).
+5. Skill assumes serialized invocation. Concurrent invocations from parallel sessions may both compute the same `max+1` ID before either writes (TOCTOU race); the loser detects file collision via BC-6.20.002 duplicate check and rolls back per BC-6.20.012, but no rollback may produce mixed-state. Users serialize invocations in parallel sessions or accept that one of two simultaneous invocations will fail.
 
 ## Postconditions
 
@@ -78,7 +79,8 @@ The `create-adr` skill determines the next available ADR number by scanning both
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-001 |
+| L2 Capability | CAP-017 |
+| Capability Anchor Justification | Anchored to CAP-017 (Create and manage formal ADR records) per capabilities.md §CAP-017 — literal match for ADR scaffolding. |
 | L2 Domain Invariants | none directly — correctness invariant local to skill |
 | Architecture Module | plugins/vsdd-factory/skills/create-adr/SKILL.md |
 | Stories | S-6.01 |

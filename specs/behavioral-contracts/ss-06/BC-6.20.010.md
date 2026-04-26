@@ -12,7 +12,7 @@ traces_to: .factory/stories/S-6.01-create-adr-skill.md
 origin: greenfield
 extracted_from: ".factory/stories/S-6.01-create-adr-skill.md#AC-6"
 subsystem: "SS-06"
-capability: "CAP-001"
+capability: "CAP-017"
 lifecycle_status: active
 introduced: v1.0-brownfield-backfill
 modified: []
@@ -83,7 +83,8 @@ When the `--brownfield` flag is supplied, or when `--supersedes ADR-NNN` is supp
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-001 |
+| L2 Capability | CAP-017 |
+| Capability Anchor Justification | Anchored to CAP-017 (Create and manage formal ADR records) per capabilities.md §CAP-017 — literal match for ADR scaffolding. |
 | L2 Domain Invariants | none directly |
 | Architecture Module | plugins/vsdd-factory/skills/create-adr/SKILL.md |
 | Stories | S-6.01 |

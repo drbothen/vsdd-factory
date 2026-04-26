@@ -105,9 +105,9 @@ total_vps: 60
 | [VP-055](VP-055.md) | state-manager Runs Last in Every Burst | invariant | manual | SS-05 | — | draft |
 | [VP-056](VP-056.md) | on_failure Semantics — retry → escalate → abort Are Correctly Ordered | invariant | manual | SS-05 | — | draft |
 | [VP-057](VP-057.md) | Adversarial Review Convergence — Mis-Anchoring Always Blocks, 3-Clean-Pass Minimum | safety | manual | SS-05 | — | draft |
-| [VP-058](VP-058.md) | create-adr Atomicity — No Partial Repository State After Failure | invariant | integration | SS-06 | BC-6.20.011, BC-6.20.012 | draft |
-| [VP-059](VP-059.md) | ID Monotonicity — Allocated ADR-NNN is Strictly Greater Than All Existing IDs | invariant | proptest | SS-06 | BC-6.20.001, BC-6.20.002, BC-6.20.003 | draft |
-| [VP-060](VP-060.md) | Bidirectional Supersession — supersedes ↔ superseded_by is Symmetric After Skill Completion | invariant | integration | SS-06 | BC-6.20.007 | draft |
+| [VP-058](VP-058.md) | create-adr Atomicity — No Partial Repository State After Failure | invariant | integration | SS-06 | — | draft |
+| [VP-059](VP-059.md) | ID Monotonicity — Allocated ADR-NNN is Strictly Greater Than All Existing IDs | invariant | proptest | SS-06 | — | draft |
+| [VP-060](VP-060.md) | Bidirectional Supersession — supersedes ↔ superseded_by is Symmetric After Skill Completion | invariant | integration | SS-06 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 

@@ -112,8 +112,8 @@ Subsystems: SS-06. Outcome: an existing codebase produces a 1,800+ BC catalog wi
 Source: pass-8 §"Key differentiators" (f); PHASE_0_INGEST declaration.
 
 **CAP-017 — Create and manage formal ADR records**
-The create-architecture skill produces `ADR-NNN-*.md` decision records from design rationale, with explicit status tracking (proposed / accepted / superseded).
-Subsystems: SS-06, SS-08. Outcome: every major design decision has an ADR file with rationale and consequences.
+The create-architecture skill produces fleshed-out `ADR-NNN-*.md` decision records; the create-adr skill (S-6.01) scaffolds new ADR records with frontmatter, ID allocation, and ARCH-INDEX registration. Together they provide the full ADR lifecycle: scaffold (create-adr) → flesh out (create-architecture / architect agent) → accept → supersede.
+Subsystems: SS-06, SS-08, SS-10. Outcome: every major design decision has an ADR file with rationale and consequences.
 Source: pass-8 §§4, 11 (ADR promotion path); pass-1 §Architecture Decisions.
 
 **CAP-018 — Validate spec consistency across all artifact layers**

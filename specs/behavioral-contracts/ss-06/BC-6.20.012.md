@@ -12,7 +12,7 @@ traces_to: .factory/stories/S-6.01-create-adr-skill.md
 origin: greenfield
 extracted_from: ".factory/stories/S-6.01-create-adr-skill.md#AC-8"
 subsystem: "SS-06"
-capability: "CAP-001"
+capability: "CAP-017"
 lifecycle_status: active
 introduced: v1.0-brownfield-backfill
 modified: []
@@ -30,7 +30,7 @@ section: "6.20"
 
 ## Description
 
-The create-adr skill treats the sequence (ID allocation → file write → supersession patch → ARCH-INDEX insertion → validation) as a single atomic unit. If any step fails, all side-effects already applied in that invocation are reverted: the new ADR file is deleted, the ARCH-INDEX row is removed, and the old ADR's `superseded_by` is restored. The one defined exception is validation failure (BC-6.20.011): the ADR file is intentionally left on disk for inspection, while ARCH-INDEX and supersession are still reverted. After a failure, idempotent re-invocation with the same arguments must succeed.
+The create-adr skill treats the sequence (ID allocation → file write → supersession patch → ARCH-INDEX insertion → validation) as a single atomic unit. If any step fails, all side-effects already applied in that invocation are reverted: the new ADR file is deleted, the ARCH-INDEX row is removed, and the old ADR's `superseded_by` is restored. The one defined exception is validation failure (BC-6.20.011): the ADR file is intentionally left on disk for inspection, while ARCH-INDEX and supersession are still reverted. After a failure, idempotent re-invocation with the same arguments must succeed. Atomicity assumption: skill runs to completion. SIGKILL or system crash voids this contract — partial state may persist; user runs `validate-template-compliance.sh` to detect and `git status` + manual cleanup to recover.
 
 ## Preconditions
 
@@ -43,7 +43,7 @@ The create-adr skill treats the sequence (ID allocation → file write → super
 2. **ARCH-INDEX row:** reverted if inserted (applies to all failure modes including validation failure).
 3. **Old ADR `superseded_by`:** restored to its pre-invocation value if patched (applies to all failure modes including validation failure).
 4. Skill exits non-zero with a message that identifies (a) the step that failed and (b) each revert action taken.
-5. After a full rollback, re-invoking the skill with identical arguments produces the same result as a first-time invocation (idempotency).
+5. Idempotency (bounded): After a full rollback (any failure path EXCEPT validation-failure per AC-7), re-invoking the skill with identical arguments produces the same result as a first-time invocation. After a validation-failure rollback (where the file persists by design — see BC-6.20.011 invariant 3), re-invocation requires either (a) deleting the leftover file manually before re-running, or (b) invoking with `--id` omitted to let auto-allocation pick the next free ID. Plain re-invocation with the original args after validation failure will trigger BC-6.20.002 duplicate detection and exit non-zero.
 
 ## Invariants
 
@@ -60,8 +60,9 @@ The create-adr skill treats the sequence (ID allocation → file write → super
 | EC-002 | File write, supersession patch, and ARCH-INDEX insertion all succeed; validation fails | ARCH-INDEX row reverted; supersession patch reverted; ADR file left on disk; exit non-zero |
 | EC-003 | File write succeeds; supersession patch fails | New ADR file deleted; ARCH-INDEX row not yet inserted (nothing to revert there); exit non-zero |
 | EC-004 | Rollback of ARCH-INDEX row itself fails (e.g., file locked) | Skill reports "WARNING: ARCH-INDEX revert failed — manual cleanup required"; still exits non-zero |
-| EC-005 | Two concurrent invocations try to write ADR-014 simultaneously | Second invocation detects file collision on write; rolls back; exits non-zero; user serialises |
+| EC-005 | Two concurrent invocations try to write ADR-014 simultaneously | Second invocation detects file collision on write; rolls back; exits non-zero; user serialises. See also BC-6.20.001 precondition 5 for the TOCTOU race detail (both invocations may compute max+1 before either writes). |
 | EC-006 | Re-invocation after EC-002 (file still on disk from previous failure) | BC-6.20.002 duplicate check triggers; user must delete the leftover file before re-running |
+| EC-007 | Process killed mid-execution (SIGKILL, system crash, hardware failure) | Partial state may persist on disk: new ADR file present without ARCH-INDEX row, or ARCH-INDEX row inserted without supersession patch. Detection: run `validate-template-compliance.sh` post-restart; user runs `git status` and reverts as needed. The atomicity contract assumes graceful failure (exception or non-zero exit), not abrupt termination. |
 
 ## Canonical Test Vectors
 
@@ -77,13 +78,14 @@ The create-adr skill treats the sequence (ID allocation → file write → super
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-058 | Atomicity: skill leaves either all-side-effects-applied or zero-side-effects-applied (validation failure: file survives, others reverted) | manual + integration-test |
+| VP-058 | Atomicity: skill leaves either all-side-effects-applied or zero-side-effects-applied (validation failure: file survives, others reverted) | integration-test |
 
 ## Traceability
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-001 |
+| L2 Capability | CAP-017 |
+| Capability Anchor Justification | Anchored to CAP-017 (Create and manage formal ADR records) per capabilities.md §CAP-017 — literal match for ADR scaffolding. |
 | L2 Domain Invariants | none directly |
 | Architecture Module | plugins/vsdd-factory/skills/create-adr/SKILL.md |
 | Stories | S-6.01 |

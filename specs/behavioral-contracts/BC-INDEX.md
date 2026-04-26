@@ -1445,18 +1445,18 @@ traces_to: bc-id-mapping.md
 | [BC-6.19.030](ss-06/BC-6.19.030.md) | toolchain-provisioning: integration with formal-hardening + multi-repo + new-language | draft | CAP-TBD | TBD |
 | [BC-6.19.031](ss-06/BC-6.19.031.md) | toolchain-provisioning: Storybook + Excalidraw MCP for UI products | draft | CAP-TBD | TBD |
 | [BC-6.19.032](ss-06/BC-6.19.032.md) | toolchain-provisioning: quality-gate criteria | draft | CAP-TBD | TBD |
-| [BC-6.20.001](ss-06/BC-6.20.001.md) | create-adr allocates next sequential ADR-NNN by scanning filesystem and ARCH-INDEX | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.002](ss-06/BC-6.20.002.md) | create-adr refuses explicit --id override that already exists | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.003](ss-06/BC-6.20.003.md) | create-adr blocks on filesystem-vs-ARCH-INDEX ID mismatch | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.004](ss-06/BC-6.20.004.md) | create-adr writes frontmatter with status=proposed (always at creation) | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.005](ss-06/BC-6.20.005.md) | create-adr validates subsystems_affected against ARCH-INDEX Subsystem Registry | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.006](ss-06/BC-6.20.006.md) | create-adr validates --supersedes ADR-NNN exists before proceeding | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.007](ss-06/BC-6.20.007.md) | create-adr bidirectionally patches old ADR's superseded_by on supersession | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.008](ss-06/BC-6.20.008.md) | create-adr inserts ARCH-INDEX row in numeric order, pipe-aligned | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.009](ss-06/BC-6.20.009.md) | create-adr scaffolds placeholder section bodies verbatim from template (no ghost-writing) | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.010](ss-06/BC-6.20.010.md) | create-adr annotates Source/Origin section under --brownfield or implicit-brownfield | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.011](ss-06/BC-6.20.011.md) | create-adr runs validate-template-compliance.sh as final gate, blocks on non-zero | draft | CAP-TBD | S-6.01 |
-| [BC-6.20.012](ss-06/BC-6.20.012.md) | create-adr is atomic — any partial-state failure rolls back all side-effects | draft | CAP-TBD | S-6.01 |
+| [BC-6.20.001](ss-06/BC-6.20.001.md) | create-adr allocates next sequential ADR-NNN by scanning filesystem and ARCH-INDEX | draft | CAP-017 | S-6.01 |
+| [BC-6.20.002](ss-06/BC-6.20.002.md) | create-adr refuses explicit --id override that already exists | draft | CAP-017 | S-6.01 |
+| [BC-6.20.003](ss-06/BC-6.20.003.md) | create-adr blocks on filesystem-vs-ARCH-INDEX ID mismatch | draft | CAP-017 | S-6.01 |
+| [BC-6.20.004](ss-06/BC-6.20.004.md) | create-adr writes frontmatter with status=proposed (always at creation) | draft | CAP-017 | S-6.01 |
+| [BC-6.20.005](ss-06/BC-6.20.005.md) | create-adr validates subsystems_affected against ARCH-INDEX Subsystem Registry | draft | CAP-017 | S-6.01 |
+| [BC-6.20.006](ss-06/BC-6.20.006.md) | create-adr validates --supersedes ADR-NNN exists before proceeding | draft | CAP-017 | S-6.01 |
+| [BC-6.20.007](ss-06/BC-6.20.007.md) | create-adr bidirectionally patches old ADR's superseded_by on supersession | draft | CAP-017 | S-6.01 |
+| [BC-6.20.008](ss-06/BC-6.20.008.md) | create-adr inserts ARCH-INDEX row in numeric order, pipe-aligned | draft | CAP-017 | S-6.01 |
+| [BC-6.20.009](ss-06/BC-6.20.009.md) | create-adr scaffolds placeholder section bodies verbatim from template (no ghost-writing) | draft | CAP-017 | S-6.01 |
+| [BC-6.20.010](ss-06/BC-6.20.010.md) | create-adr annotates Source/Origin section under --brownfield or implicit-brownfield | draft | CAP-017 | S-6.01 |
+| [BC-6.20.011](ss-06/BC-6.20.011.md) | create-adr runs validate-template-compliance.sh as final gate, blocks on non-zero | draft | CAP-017 | S-6.01 |
+| [BC-6.20.012](ss-06/BC-6.20.012.md) | create-adr is atomic — any partial-state failure rolls back all side-effects | draft | CAP-017 | S-6.01 |
 
 ### SS-07 — Hook Bash Layer (BC-7)
 

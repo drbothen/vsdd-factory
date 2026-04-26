@@ -12,7 +12,7 @@ traces_to: .factory/stories/S-6.01-create-adr-skill.md
 origin: greenfield
 extracted_from: ".factory/stories/S-6.01-create-adr-skill.md#AC-4"
 subsystem: "SS-06"
-capability: "CAP-001"
+capability: "CAP-017"
 lifecycle_status: active
 introduced: v1.0-brownfield-backfill
 modified: []
@@ -43,7 +43,7 @@ After writing the new ADR file, the skill inserts one new row into the ARCH-INDE
 1. ARCH-INDEX contains a new row: `| ADR-NNN | <decision-title> | <subsystems_affected joined by ", "> | decisions/ADR-NNN-<slug>.md |`
 2. The new row is positioned after the row for the previously highest ADR (ascending order preserved).
 3. The pipe characters in the new row are aligned to match the column widths of adjacent rows.
-4. The `<slug>` is derived from `--title`: lowercased, spaces replaced with hyphens, non-alphanumeric/hyphen characters stripped.
+4. The `<slug>` is derived from `--title`: lowercased; whitespace runs replaced with single `-`; all non-`[a-z0-9-]` characters (including non-ASCII) stripped (not transliterated); consecutive `-` runs collapsed to single `-`; leading/trailing `-` trimmed.
 5. The `<decision-title>` in the row uses the original unsanitized title (not the slug).
 
 ## Invariants
@@ -52,15 +52,17 @@ After writing the new ADR file, the skill inserts one new row into the ARCH-INDE
 2. Numeric order of ADR IDs in the table is always preserved after insertion.
 3. The slug in the file path column matches the slug used in the actual filename written to disk.
 4. If ARCH-INDEX lacks the `## Architecture Decisions` section, insertion is blocked (no file write proceeds either — see BC-6.20.012 for rollback).
+5. Argument validation order: `--title` presence is checked first; subsystem registry validation second; supersedes existence third; ID allocation/override last. Errors at any earlier stage prevent later stages.
 
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `--title "ADR with / special <chars>"` | Slug strips `/`, `<`, `>`; becomes `adr-with--special-chars` (consecutive hyphens collapsed or preserved — implementation choice, documented in SKILL.md); title in ARCH-INDEX row is original string |
+| EC-001 | `--title "ADR with / special <chars>"` | Slug derivation: lowercase the title; replace whitespace runs with single `-`; strip ALL non-`[a-z0-9-]` characters (including non-ASCII); collapse consecutive `-` runs to a single `-`; trim leading/trailing `-`. UTF-8 input is supported; non-ASCII characters are stripped (NOT transliterated). Example: `Decision <with/special> chars` → `decision-withspecial-chars`. Example: `Café Décision` → `caf-dcision`. Title in ARCH-INDEX row is original unsanitized string. |
 | EC-002 | `## Architecture Decisions` section missing from ARCH-INDEX | Skill exits non-zero: "ARCH-INDEX missing '## Architecture Decisions' section. Cannot insert row."; no files written |
 | EC-003 | Existing table rows have inconsistent pipe widths | Skill aligns new row to match the widest column in the existing rows |
-| EC-004 | Title is empty string | Skill exits non-zero: "`--title` is required and cannot be empty" |
+| EC-004 | Required argument `--title` absent (alone or with other args supplied like `--id` or `--supersedes`) | Skill exits non-zero with usage error BEFORE any other argument is processed; no side-effects. |
+| EC-005 | Architecture Decisions section exists with header row but zero data rows (legitimate first-ADR-ever case) | Skill inserts the new row immediately after the header separator (no preceding data row to position after). Postcondition: table now has exactly one data row. |
 
 ## Canonical Test Vectors
 
@@ -80,7 +82,8 @@ After writing the new ADR file, the skill inserts one new row into the ARCH-INDE
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-001 |
+| L2 Capability | CAP-017 |
+| Capability Anchor Justification | Anchored to CAP-017 (Create and manage formal ADR records) per capabilities.md §CAP-017 — literal match for ADR scaffolding. |
 | L2 Domain Invariants | none directly |
 | Architecture Module | plugins/vsdd-factory/skills/create-adr/SKILL.md |
 | Stories | S-6.01 |

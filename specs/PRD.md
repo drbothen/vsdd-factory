@@ -35,16 +35,16 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,851-BC catalog produced in Phase 0 ingestion into a
+> It synthesizes the 1,863-BC catalog produced in Phase 0 ingestion into a
 > formal L3 requirements artifact. Section 2 is the primary machine-consumed
 > surface: it groups BCs by functional requirement (FR-NNN) and provides
 > subsystem-level traceability. Agents needing deep BC content load individual
 > `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
 > Sections 3-5 point to supplement files (DF-021 context discipline).
 
-> **BC Index Model:** 1,851 individual BC files live under
+> **BC Index Model:** 1,863 individual BC files live under
 > `.factory/specs/behavioral-contracts/ss-NN/`. Section 2 groups them into
-> 40 logical FRs. Do NOT inline full contract details here — cross-reference only.
+> 41 logical FRs. Do NOT inline full contract details here — cross-reference only.
 
 ---
 
@@ -76,7 +76,7 @@ an 8-phase SDLC pipeline: brief → domain-spec → PRD → architecture → sto
 delivery → adversarial review → convergence.
 
 The product was built with itself. Phase 0 ingestion of this very codebase produced the
-1,851-BC catalog that this PRD synthesizes. This self-referential loop is the ultimate
+1,863-BC catalog that this PRD synthesizes. This self-referential loop is the ultimate
 dogfooding test: every architectural decision (WASM sandbox, capability deny-by-default,
 parallel-within-tier execution, always-on telemetry) was enacted in Rust and then
 analyzed by the framework's own brownfield-ingest skill.
@@ -126,7 +126,7 @@ Tiers E through H (15 draft stories) are the active backlog for rc.1 and 1.0 GA.
 
 ## 2. Behavioral Contracts Index
 
-> BCs are grouped into 40 logical FRs. Each FR maps to one or more CAP-NNN
+> BCs are grouped into 41 logical FRs. Each FR maps to one or more CAP-NNN
 > capabilities, one or more SS-NN subsystems, and the specific BC prefix ranges
 > that implement it. Full BC files live in
 > `.factory/specs/behavioral-contracts/ss-NN/`. Status = shipped / partial / pending
@@ -942,7 +942,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-038 | Event emission CLI tool (bin/emit-event) | CAP-027 | SS-07, SS-10 | BC-10.01.NNN | ~10 | partial | E-3 |
 | FR-039 | Factory observability bin tools | CAP-003, CAP-010 | SS-10 | BC-10.02.NNN | ~30 | shipped | E-1 |
 | FR-040 | Workflow infrastructure CLI tools (wave-state, lobster-parse, compute-input-hash) | CAP-001 | SS-10 | BC-10.03.NNN | ~18 | shipped | E-1 |
-| FR-041 | Skill-driven ADR authoring workflow (create-adr skill) | CAP-001 | SS-06, SS-08, SS-10 | BC-6.20.001–012 | 12 | pending | E-6 |
+| FR-041 | Skill-driven ADR authoring workflow (create-adr skill) | CAP-017 | SS-06, SS-08, SS-10 | BC-6.20.001–012 | 12 | pending | E-6 |
 
 **Total: 41 FRs across 10 subsystems**
 
@@ -971,7 +971,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-014 | Decompose product specs into verified behavioral contracts | BC-5.06.001–015 (product-owner/story-writer agents); BC-8.01–8.05 (spec templates) | SS-05, SS-06, SS-08 |
 | CAP-015 | Ingest brownfield codebases via structured multi-pass analysis | BC-5.20.001–020 (phase-0 workflow); BC-6.01 (brownfield-ingest skill) | SS-06 |
 | CAP-016 | Drive TDD delivery with red/green/refactor gate enforcement | BC-5.07.028–033 (implementer agent); BC-6.09 (deliver-story skill); BC-5.23 (phase-3 workflow) | SS-05, SS-06 |
-| CAP-017 | Create and manage formal ADR records | BC-6.05 (create-architecture skill); BC-8.04 (ADR templates) | SS-06, SS-08 |
+| CAP-017 | Create and manage formal ADR records | BC-6.05 (create-architecture skill); BC-8.04 (ADR templates); BC-6.20.001–012 (create-adr skill) | SS-06, SS-08 |
 | CAP-018 | Validate spec consistency across all artifact layers | BC-5.05.007–010 (consistency-validator agent); BC-6 (consistency-validation skill) | SS-05, SS-06 |
 | CAP-019 | Generate domain specs from product briefs | BC-6.03 (create-domain-spec skill) | SS-06, SS-08 |
 | CAP-020 | Produce and maintain a PRD with NFR catalog | BC-6.04 (create-prd skill); BC-8.02 (prd-template) | SS-06 |
@@ -1128,7 +1128,7 @@ For v1.0, treat the prd-supplement as the authoritative NFR source.
 
 ### 12.1 Behavioral Contract Verification
 
-All 1,851 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
+All 1,863 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
 
 | Test Type | Coverage Target | Primary Tools |
 |-----------|----------------|---------------|
@@ -1141,7 +1141,7 @@ All 1,851 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is strat
 
 ### 12.2 Phase 0 Validation Provenance
 
-The 1,851-BC catalog was validated by `extraction-validation.md` at 97.6% confirmation rate (122/125 BCs sampled at 6.8% sample rate):
+The 1,863-BC catalog was validated by `extraction-validation.md` at 97.6% confirmation rate (122/125 BCs sampled at 6.8% sample rate):
 - 122 CONFIRMED
 - 2 INACCURATE (corrected: BC-AUDIT-067 PostToolUse→PreToolUse; BC-AUDIT-1007 "4 hooks" → "3")
 - 1 HALLUCINATED (removed: "13 trybuild tests" in pass-0 inventory — actual is 0)
@@ -1182,7 +1182,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Field | Value |
 |-------|-------|
 | Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,851 BCs at phase 1.4c |
+| BC catalog version | 1,863 BCs at phase 1.4c |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.4 (commit 1907d8f, 2026-04-25) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
@@ -1191,7 +1191,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Stories partial | 4 (S-2.05, S-3.04, S-4.06, S-5.05) |
 | Stories pending (draft) | 15 (Tiers E–H draft) |
 | CAPs covered | 28 / 28 |
-| FRs defined | 40 |
+| FRs defined | 41 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
 

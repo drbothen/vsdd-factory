@@ -41,6 +41,19 @@ classified as NITPICK (no CRITICAL, HIGH, or substantive MEDIUM findings). The
 `CONVERGENCE_REACHED` marker in the INDEX.md table is the authoritative convergence
 signal read by the wave-gate skill.
 
+**Sub-cycle scoped reviews (added 2026-04-26):** When a cycle is already converged but
+new spec artifacts are added under that cycle's umbrella (e.g., a new story or feature
+introduced during ongoing brownfield onboarding), the new artifacts get their own
+sub-cycle convergence track. These sub-cycle reviews use the filename pattern
+`<scope>-pass-N.md` where `<scope>` is a kebab-case identifier of the artifact under
+review (typically the story ID lowercased, e.g., `s6.01-pass-1.md` for story S-6.01).
+The `scope:` field in the review's frontmatter records the same identifier
+(e.g., `scope: s6.01-spec`). Sub-cycle reviews use the same 3-NITPICK convergence
+criterion. They do NOT reset the parent cycle's `CONVERGENCE_REACHED` sentinel; instead,
+the parent cycle's `INDEX.md` adds a new sub-cycle row recording its own convergence.
+This permits adding new stories to a cycle (and validating their specs) without
+re-running adversarial review on the entire cycle's spec corpus.
+
 ## Rationale
 
 The cycle-keyed structure was established during the v1.0-brownfield-backfill cycle,
