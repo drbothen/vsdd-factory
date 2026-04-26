@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: "a361f34"
+input-hash: "a3187d9"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
 extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-010"
@@ -49,7 +49,7 @@ The wave-gate skill (`/vsdd-factory:wave-gate`) must, as part of its execution, 
 ## Invariants
 
 1. `--timeout 300` is the maximum per-mutant timeout. Higher values indicate a flaky test suite and must be investigated separately.
-2. `--jobs N` should be set to the available CPU count (default: number of logical cores). Do not set below 2.
+2. `--jobs N` should be set to the available CPU count (default: number of logical cores). Do not set below 2. On Linux use `$(nproc)`. On macOS use `$(sysctl -n hw.ncpu)`. Implementations should use a portable wrapper: `$(nproc 2>/dev/null || sysctl -n hw.ncpu)`.
 3. The mutation report must be committed to `.factory/logs/` as part of the wave gate PR. It is an auditable artifact.
 4. If `cargo-mutants` is not installed, wave gate BLOCKS with error "cargo-mutants not found — install with `cargo install cargo-mutants` before running wave gate."
 5. Mutation testing runs on the FINAL implementation state, not intermediate commits. Ensure all step commits for facade stories are applied before running.

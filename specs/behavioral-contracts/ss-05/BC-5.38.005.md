@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-26T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: "a361f34"
+input-hash: "a3187d9"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
 extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-005"
@@ -72,7 +72,7 @@ Before including any non-`todo!()` function body in a stub commit, the stub-arch
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | (peer review) | Self-check rule present in stub-architect prompt constraints | adversarial check |
-| BATS-static-check | test_self_check_question_in_stub_architect (S-7.03 AC-011 b) | bats grep |
+| BATS-static-check | test_self_check_question_in_stub_architect_prompt (S-7.03 AC-011 c) | bats grep |
 
 ## Traceability
 
