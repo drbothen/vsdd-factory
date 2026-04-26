@@ -36,7 +36,7 @@ Source: design doc "Decisions" §3; pass-1 §Layer Structure. Justification: gro
 
 **CAP-003 — Stream observability events to multiple configurable sinks**
 The dispatcher fans out every internal event to all enabled sink drivers (file, OTel gRPC; HTTP/Datadog/Honeycomb planned for rc.1). Sinks are independently configured via `observability-config.toml`.
-Subsystems: SS-03, SS-10. Outcome: operator sees events in Grafana/Loki or custom endpoint without modifying dispatcher code.
+Subsystems: SS-01, SS-03, SS-10. Outcome: operator sees events in Grafana/Loki or custom endpoint without modifying dispatcher code.
 Source: design doc "Decisions" §4; pass-8 §ADR-005. Justification: grounded in the multi-sink observability design decision.
 
 **CAP-007 — Deploy and activate the plugin on any supported platform**
