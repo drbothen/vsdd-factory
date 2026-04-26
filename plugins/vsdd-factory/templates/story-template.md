@@ -27,7 +27,10 @@ estimated_days: null            # planning estimate (complements points)
 # ASM/R traceability (optional)
 assumption_validations: []     # ASM-NNN IDs this story validates
 risk_mitigations: []           # R-NNN IDs this story mitigates
+tdd_mode: strict  # strict | facade. strict = full TDD Iron Law enforced (todo!() + Red Gate ≥0.5 required); facade = scaffold+impl combined, mutation testing at wave gate
 ---
+
+> **tdd_mode:** Absent or unrecognized values default to `strict` per BC-8.30.001 invariant 2 — no existing story is silently promoted to `facade` mode. Set `tdd_mode: facade` only for DTU API clones, mock servers, structural fakes, and config parsing wrappers where the scaffold IS the implementation.
 
 > **Execute:** `/vsdd-factory:deliver-story S-N.MM`
 
