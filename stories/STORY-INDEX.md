@@ -132,7 +132,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 207 across 45 stories (186 original + 21 E-7)
+**Total story points:** 199 across 45 stories (175 E-0..E-5 + 3 E-6 + 21 E-7)
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

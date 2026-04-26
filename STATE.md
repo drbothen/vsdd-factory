@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T21:00:00Z
-phase: s-7-03-spec-foundation
+timestamp: 2026-04-26T22:00:00Z
+phase: s-7-03-pass-1-fixes-applied
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-7.03 spec foundation COMPLETE (13 BCs + 2 VPs + FR-043 + story + epic update). Next: adversarial pass-1 on S-7.03 spec scope."
+current_step: "S-7.03 pass-1 fixes applied. Next: adversarial pass-2 to verify fixes + sweep for new findings."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 |
-| **Current Phase** | s-7-03-spec-foundation |
+| **Last Updated** | 2026-04-26 (pass-1 fix burst) |
+| **Current Phase** | s-7-03-pass-1-fixes-applied |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -72,6 +72,7 @@ dtu_services: []
 | Release v1.0.0-beta.6 | COMPLETE | Tag at ae426cd; PR #8/#10/#11/#12 merged; bot bundle commit atomic per beta.4 cache fix; GH Release published |
 | Hotfix: novelty-test fixture path | COMPLETE | PR #10/#11 merged; release workflow re-fire succeeded after fix |
 | S-7.03 spec foundation | COMPLETE | 13 BCs + 2 VPs + FR-043 + story (status=ready) + E-7 epic v1.1 |
+| S-7.03 pass-1 fix burst | COMPLETE | 25 findings, all addressed; SS-05 +4 / SS-08 -4 BC reanchor; VP-063 method proptest→integration; CAP-016 expanded SS-08; story v1.1 |
 
 ## Current Phase Steps
 
@@ -79,7 +80,9 @@ dtu_services: []
 |------|-------|--------|--------|
 | Beta.6 shipped | devops-engineer | COMPLETE | ae426cd; GH Release v1.0.0-beta.6 published |
 | S-7.03 spec foundation (13 BCs + 2 VPs + FR-043 + story) | PO + story-writer | COMPLETE | BCs in ss-05/ss-06/ss-08; VP-063/VP-064; prd.md FR-043 |
-| S-7.03 adversarial pass-1 | adversarial-reviewer | pending | — |
+| S-7.03 adversarial pass-1 | adversarial-reviewer | COMPLETE | 25 findings — all addressed in fix burst |
+| S-7.03 pass-1 fix burst (index/state updates) | state-manager | COMPLETE | BC-INDEX, ARCH-INDEX, VP-INDEX, STORY-INDEX, STATE.md updated |
+| S-7.03 adversarial pass-2 | adversarial-reviewer | pending | — |
 
 ## Identifier Conventions
 
@@ -103,10 +106,10 @@ dtu_services: []
 | SS-02 | Hook SDK and Plugin ABI | BC-2 | 22 |
 | SS-03 | Observability Sinks | BC-3 | 49 |
 | SS-04 | Plugin Ecosystem | BC-4 | 13 |
-| SS-05 | Pipeline Orchestration | BC-5 | 642 |
+| SS-05 | Pipeline Orchestration | BC-5 | 646 |
 | SS-06 | Skill Catalog | BC-6 | 585 |
 | SS-07 | Hook Bash Layer | BC-7 | 196 |
-| SS-08 | Templates and Rules | BC-8 | 222 |
+| SS-08 | Templates and Rules | BC-8 | 218 |
 | SS-09 | Configuration and Activation | BC-9 | 5 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
 | **Total** | | | **1,891** |
@@ -159,6 +162,7 @@ dtu_services: []
 | D-010 | E-7 process codification + S-6.01 create-adr skill → bundle into beta.6 release | Both branches ready (specs converged, GREEN tests pass). Bundling reduces release overhead; both deliver self-improvement value (E-7 codifies lessons; S-6.01 closes per-artifact create-* skill gap) | pre-release | 2026-04-26 | orchestrator + user |
 | D-011 | Beta.4 cache-staleness fix prevented broken release; hotfix flow validated | Pre-release validation caught E-7 hook tightening test regression. Bot bundle commit was correctly NOT created (no stale-version-with-X-1-binaries cache poisoning). Hotfix-on-main + delete/recreate-tag flow restored release. End-to-end discipline validated. | release-cycle | 2026-04-26 | orchestrator + user |
 | D-012 | S-7.03 (TDD Discipline Hardening) added to E-7 in response to Prism Wave 2 stub-as-impl anti-pattern (3 of 5 stub-architects pre-implemented business logic). Self-referential dogfooding pattern continues. | E-7 process codification must prevent stub-as-implementation; 13 BCs across 3 subsystems (SS-05 anti-precedent guard, SS-08 RED_RATIO gate + tdd_mode frontmatter, SS-06 mutation wave-gate) + 2 VPs (VP-063 proptest, VP-064 manual). | spec-foundation | 2026-04-26 | orchestrator + user |
+| D-013 | S-7.03 spec foundation pass-1 — 4 BCs reanchored SS-08→SS-05 in frontmatter (files stay in ss-08/ per POLICY 1 append-only); VP-063 method changed proptest→integration (production code is shell, not Rust) | BCs BC-8.29.001/002/003 and BC-8.30.002 describe orchestrator pipeline behavior (wave-gate dispatch, RED_RATIO gate), correctly anchored to SS-05. VP-063 tests validate-red-ratio.sh directly via BATS; proptest is infeasible against Bash. | pass-1-fix-burst | 2026-04-26 | state-manager |
 
 
 ## Skip Log

@@ -25,10 +25,10 @@ traces_to: bc-id-mapping.md
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 22 | ss-02/ |
 | SS-03 Observability Sinks | BC-3 | 49 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 13 | ss-04/ |
-| SS-05 Pipeline Orchestration | BC-5 | 642 | ss-05/ |
+| SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
-| SS-08 Templates and Rules | BC-8 | 222 | ss-08/ |
+| SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
 | **Total** | | **1891** | |
