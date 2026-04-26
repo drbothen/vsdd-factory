@@ -105,6 +105,63 @@ Cumulative findings closed: 27 across 15 spec passes total.
 No breaking changes. Codified disciplines apply to NEW spec sub-cycles;
 existing artifacts are not retroactively re-validated.
 
+## 1.0.0-beta.5 — ADR template + identifier canonicalization (2026-04-25)
+
+Same-day patch on top of beta.4. Two coupled improvements emerged from
+the brownfield onboarding of vsdd-factory itself: a missing ADR
+validation template and identifier-convention drift between the
+plugin source and prism's working real-world usage.
+
+### Added
+
+- **`templates/adr-template.md`.** A canonical Architecture Decision
+  Record template declaring `document_type: adr` plus the canonical H2
+  sections (Context, Decision, Rationale, Consequences with
+  Positive/Negative/Status sub-headings, Alternatives Considered,
+  Source / Origin). The `validate-template-compliance.sh` hook's
+  primary lookup-by-document_type now matches ADR files against this
+  template instead of falling through to `architecture-section-template`
+  (which had been validating ADRs against the wrong schema and
+  silently blocking ADR writes during plugin self-onboarding).
+
+### Changed
+
+- **Identifier conventions canonicalized to match prism's working
+  pattern.** Three coupled changes across 26 plugin source files
+  (templates + rules + 12 skills):
+  - **BC shard layout:** flat `behavioral-contracts/BC-*.md` →
+    sharded `behavioral-contracts/ss-NN/BC-*.md`. Required for any
+    project with more than ~50 BCs.
+  - **Story IDs:** `STORY-NNN` → `S-N.MM` (section.story zero-padded;
+    e.g., `S-1.01`, `S-3.15`). Section grouping aligns with epics
+    (`E-N`) and gives BC-anchoring traversal natural shape.
+  - **Epic IDs:** `EPIC-NNN` → `E-N` (single-digit, matches story
+    section number).
+
+  Story `N` (section/epic) and BC `S` (subsystem number) are
+  intentionally different hierarchies — a story can implement BCs
+  from multiple subsystems via its `subsystems: [SS-NN, ...]`
+  frontmatter array. This separation is now documented in
+  `rules/spec-format.md`.
+
+### Notes
+
+- Pre-rc.1 projects using `STORY-NNN` continue to work — the
+  validate-template-compliance hook keys on `document_type`, not ID
+  format. New projects from beta.5 onward should use `S-N.MM` from
+  the start.
+- Phase 2 follow-up (test fixtures, workflows, agents) deferred to a
+  future beta; not in this release.
+
+### How discovered
+
+vsdd-factory underwent its own brownfield onboarding cycle
+(`v1.0-brownfield-backfill`) on 2026-04-25, producing 1,851 BCs
+across 10 subsystems. The flat BC layout broke down at that scale,
+exposing the plugin's stale assumption. Phase 1d adversarial review
+converged in 6 passes (3 consecutive NITPICK), validating both the
+new template and the canonicalized conventions.
+
 ## 1.0.0-beta.4 — cache fix + stderr capture + SHA-currency gate (2026-04-25)
 
 Same-day patch on top of beta.3. Three follow-ups from the prior beta
