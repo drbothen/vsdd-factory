@@ -32,20 +32,24 @@ if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
 fi
 
 # Only trigger for adversarial review pass files in .factory/
-# Match: pass-N.md, adversarial-delta-review.md, adversarial-spec-review.md,
-#        round-N-review.md, spec-review-pass*.md, gemini-review.md
+# Match: pass-N.md (incl. <scope>-pass-N.md), adversarial-*-review.md (specs/),
+#        round-N-review.md, spec-review-pass*.md, gemini-review.md.
+# Anchor to adversarial-reviews/ directory to avoid false-positives on ADRs
+# whose filenames mention "adversarial-review" (e.g., ADR-013).
 case "$FILE_PATH" in
-  *.factory/*pass-[0-9]*.md) ;;
-  *.factory/*adversarial-*review*.md) ;;
+  *.factory/cycles/*/adversarial-reviews/*pass-[0-9]*.md) ;;
+  *.factory/cycles/*/adversarial-reviews/*-pass-[0-9]*.md) ;;
+  *.factory/specs/adversarial-*review*.md) ;;
   *.factory/*round-[0-9]*-review*.md) ;;
   *.factory/*gemini-review*.md) ;;
   *.factory/*spec-review-pass*.md) ;;
   *) exit 0 ;;
 esac
 
-# Skip index files and finding files (they don't need novelty assessment)
+# Skip index files, finding files, and ADRs (they don't need novelty assessment)
 case "$FILE_PATH" in
   *INDEX*.md|*FINDINGS.md|*ADV-*.md|*convergence-summary*.md|*convergence-trajectory*.md) exit 0 ;;
+  */architecture/decisions/ADR-*.md) exit 0 ;;
 esac
 
 ERRORS=""
