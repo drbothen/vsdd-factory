@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-04-25T00:00:00
 phase: 1.6b
 traces_to: ARCH-INDEX.md
-total_vps: 60
+total_vps: 62
 ---
 
 # VP-INDEX: Verification Properties Master Index
@@ -32,15 +32,17 @@ total_vps: 60
 | Hook Layer VPs | 10 | VP-043..VP-052 |
 | Workflow VPs | 5 | VP-053..VP-057 |
 | Skill Catalog VPs | 3 | VP-058..VP-060 |
-| **Total** | **60** | **VP-001..VP-060** |
+| Process Codification VPs | 2 | VP-061..VP-062 |
+| **Total** | **62** | **VP-001..VP-062** |
 
 ## Proof Method Breakdown
 
 | Method | Count | VPs |
 |--------|-------|-----|
 | unit-test | 40 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052 |
-| integration | 10 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060 |
+| integration | 11 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062 |
 | manual | 9 | VP-015, VP-046..048, VP-053..057 |
+| static-check | 1 | VP-061 |
 | kani-proof | 0 | — (upgrade candidates: VP-020, VP-023, VP-042) |
 | proptest | 1 | VP-059 (upgrade candidates: VP-019, VP-029, VP-032) |
 
@@ -108,6 +110,8 @@ total_vps: 60
 | [VP-058](VP-058.md) | create-adr Atomicity — No Partial Repository State After Failure | invariant | integration | SS-06 | — | draft |
 | [VP-059](VP-059.md) | ID Monotonicity — Allocated ADR-NNN is Strictly Greater Than All Existing IDs | invariant | proptest | SS-06 | — | draft |
 | [VP-060](VP-060.md) | Bidirectional Supersession — supersedes ↔ superseded_by is Symmetric After Skill Completion | invariant | integration | SS-06 | — | draft |
+| [VP-061](VP-061.md) | Agent Prompt Discipline Rules Are Present in All Three Agent Files | safety | static-check | SS-05 | — | draft |
+| [VP-062](VP-062.md) | Count Propagation Invariant — validate-count-propagation.sh Flags Drift and Is Correctly Registered | invariant | integration | SS-07 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -129,6 +133,6 @@ total_vps: 60
 ## Traceability
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
-- BCs cross-referenced: 95 BC IDs across 60 VPs
+- BCs cross-referenced: 95 BC IDs across 62 VPs
 - Test evidence cited: 47 VPs have specific Rust test references
 - 13 VPs have TBD test evidence (manual or pending CI automation)

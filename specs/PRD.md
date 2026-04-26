@@ -722,6 +722,35 @@ Status: **pending** (S-6.01 not yet implemented).
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-06/BC-6.20.*.md`
 
+#### FR-042 — Process self-improvement enforcement
+
+The vsdd-factory pipeline enforces lessons learned from adversarial reviews at the structural level: agent prompts include mandatory spec-first gates and capability anchor justification requirements; a new lint hook detects count drift across index files; a meta-rule requires codification follow-up for every novel process gap; and the validate-template-compliance script enforces VP structural conventions. These controls prevent the class of findings that generated 8+ adversarial passes in S-6.01 (empty BCs, missing anchor justification, incomplete propagation) from recurring in future cycles.
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-5.36.001 | story-writer agent rejects status=ready when behavioral_contracts is empty | P0 |
+| BC-5.36.002 | story-writer requires AC↔BC bidirectional traces before marking a story ready | P0 |
+| BC-5.36.003 | product-owner agent requires Capability Anchor Justification cell on every BC | P1 |
+| BC-5.36.004 | product-owner cites capabilities.md verbatim in every capability anchor justification | P1 |
+| BC-5.36.005 | adversary explicitly checks partial-fix-regression for every finding closed in a prior pass | P1 |
+| BC-5.36.006 | adversary checks fix propagation to bodies, sibling files, and prose — not just frontmatter | P1 |
+| BC-5.36.007 | all three agent prompts updated atomically in single delivery; no partial update | P1 |
+| BC-5.37.001 | state-manager runs corpus-wide grep before declaring count change complete | P1 |
+| BC-5.37.002 | state-manager logs sweep results before declaring count-change complete | P1 |
+| BC-7.05.001 | validate-count-propagation.sh detects count drift across index files and exits non-zero | P1 |
+| BC-7.05.002 | validate-count-propagation.sh runs in under 200ms and is deterministic | P1 |
+| BC-7.05.003 | validate-template-compliance.sh enforces VP multi-BC source_bc convention | P1 |
+| BC-8.28.001 | rules/lessons-codification.md requires codification follow-up for every novel process catch | P1 |
+| BC-8.28.002 | orchestrator cycle-closing checklist references lessons-codification.md rule | P1 |
+| BC-9.02.001 | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | P1 |
+
+Source BCs: `ss-05/BC-5.36.001-007.md`, `ss-05/BC-5.37.001-002.md`, `ss-07/BC-7.05.001-003.md`, `ss-08/BC-8.28.001-002.md`, `ss-09/BC-9.02.001.md` (15 BCs total).
+Maps to: SS-05 (Pipeline Orchestration), SS-07 (Hook Bash Layer), SS-08 (Templates and Rules), SS-09 (Configuration and Activation).
+Acceptance: S-7.01 (5 ACs), S-7.02 (6 ACs).
+Status: **pending** (E-7 stories not yet implemented).
+
+> Full contracts: `.factory/specs/behavioral-contracts/ss-05/BC-5.36.*.md`, `ss-05/BC-5.37.*.md`, `ss-07/BC-7.05.*.md`, `ss-08/BC-8.28.*.md`, `ss-09/BC-9.02.*.md`
+
 ---
 
 ## 3. Interface Definition
@@ -943,8 +972,9 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-039 | Factory observability bin tools | CAP-003, CAP-010 | SS-10 | BC-10.02.NNN | ~30 | shipped | E-1 |
 | FR-040 | Workflow infrastructure CLI tools (wave-state, lobster-parse, compute-input-hash) | CAP-001 | SS-10 | BC-10.03.NNN | ~18 | shipped | E-1 |
 | FR-041 | Skill-driven ADR authoring workflow (create-adr skill) | CAP-017 | SS-06, SS-08, SS-10 | BC-6.20.001–012 | 12 | pending | E-6 |
+| FR-042 | Process self-improvement enforcement (agent prompt discipline + count-propagation hook + lessons-codification rule) | CAP-001 | SS-05, SS-07, SS-08, SS-09 | BC-5.36.001–007, BC-5.37.001–002, BC-7.05.001–003, BC-8.28.001–002, BC-9.02.001 | 15 | pending | E-7 |
 
-**Total: 41 FRs across 10 subsystems**
+**Total: 42 FRs across 10 subsystems**
 
 ---
 

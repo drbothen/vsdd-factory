@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-6.01 spec scope CONVERGED (8 passes, 3-NITPICK criterion). Begin GREEN-phase TDD: implementer takes 25 RED tests + writes SKILL.md."
+current_step: "E-7 Process Codification: spec foundation complete (2 stories, 15 BCs, 2 VPs, FR-042). Next: adversarial pass-1 on E-7 spec scope."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -51,20 +51,21 @@ dtu_services: []
 
 | Phase | Status | Artifact |
 |-------|--------|----------|
-| Phase 0 — Brownfield Ingest | COMPLETE | 1,863 BCs in pass-3-* + pass-8-final-synthesis.md |
+| Phase 0 — Brownfield Ingest | COMPLETE | initial BC migration in pass-3-* + pass-8-final-synthesis.md |
 | Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
-| Phase 1.4 — BC Migration | COMPLETE | 1,863 BC-S.SS.NNN files in 10 ss-NN/ shards + BC-INDEX.md |
+| Phase 1.4 — BC Migration | COMPLETE | 1,878 BC-S.SS.NNN files in 10 ss-NN/ shards + BC-INDEX.md (current) |
 | Phase 1.5 — Formal PRD | COMPLETE | 41 FRs (FR-041 added for S-6.01), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
-| Phase 1.6b — Verification Properties | COMPLETE | 60 VPs (all draft, VP-001..VP-060; +3 for S-6.01) |
+| Phase 1.6b — Verification Properties | COMPLETE | 62 VPs (all draft, VP-001..VP-062; +2 for E-7) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
 | Phase 1d — Adversarial Spec Review | COMPLETE | 6 passes, converged at pass 6 (3 consecutive NITPICK: passes 4-5-6) |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
 | Phase 2 — Story Decomposition | not-started | Unblocked; 41 migrated stories ready for dependency graph + wave schedule |
 | S-6.01 spec convergence (sub-cycle) | COMPLETE | 8 passes, 19→0 trajectory, CONVERGENCE_REACHED at pass-8 |
+| E-7 Process Codification spec foundation | COMPLETE | E-7 epic + S-7.01/S-7.02 (status=ready) + 15 BCs + 2 VPs + FR-042 |
 
 ## Current Phase Steps
 
@@ -79,14 +80,15 @@ dtu_services: []
 | Pass-1 fixes applied (PO + story-writer + orchestrator) | product-owner | complete | BC/VP/PRD/capabilities/S-6.01/ADR-013 updated |
 | S-6.01 adversarial sub-cycle (passes 1-8) | adversary | complete | CONVERGENCE_REACHED, 27 findings closed, 19→4→2→1→1→0→0→0 |
 | GREEN-phase TDD: create-adr SKILL.md + commands binding | implementer | pending | — |
+| Adversarial pass-1 on E-7 spec scope | adversary | pending | — |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,863 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 60 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,878 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 62 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
@@ -102,13 +104,13 @@ dtu_services: []
 | SS-02 | Hook SDK and Plugin ABI | BC-2 | 22 |
 | SS-03 | Observability Sinks | BC-3 | 49 |
 | SS-04 | Plugin Ecosystem | BC-4 | 13 |
-| SS-05 | Pipeline Orchestration | BC-5 | 627 |
+| SS-05 | Pipeline Orchestration | BC-5 | 636 |
 | SS-06 | Skill Catalog | BC-6 | 583 |
-| SS-07 | Hook Bash Layer | BC-7 | 192 |
-| SS-08 | Templates and Rules | BC-8 | 215 |
-| SS-09 | Configuration and Activation | BC-9 | 5 |
+| SS-07 | Hook Bash Layer | BC-7 | 195 |
+| SS-08 | Templates and Rules | BC-8 | 217 |
+| SS-09 | Configuration and Activation | BC-9 | 6 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
-| **Total** | | | **1,863** |
+| **Total** | | | **1,878** |
 
 ## Story Status (41 total)
 
@@ -152,19 +154,8 @@ dtu_services: []
 | D-006 | Spec-first authoring discipline restored after S-6.01 gap caught | Story scaffolded without BCs initially; user caught the gap; full upstream artifacts (BCs/VPs/FR/epic) backfilled before TDD continued | 1.5 | 2026-04-26 | orchestrator + user |
 | D-007 | Hook validate-novelty-assessment.sh tightened to anchor on cycles/<key>/adversarial-reviews/ directory; ADR-* explicitly skipped | False-positive on ADR-013 (filename contains 'adversarial-review'); fix lands in plugin source for next release | post-adv-pass-1 | 2026-04-26 | orchestrator |
 | D-008 | Codify spec-first-then-TDD discipline + defensive-sweep pattern as plugin source rules | User caught "no BCs/no E-6 epic" gap; F-027 (incomplete defensive sweep) caused 2 wasted passes; lessons should land in agent prompts and consistency-validator | post-1.5 | 2026-04-26 | orchestrator + user |
+| D-009 | E-7 Process Codification — codify lessons learned from S-6.01 sub-cycle as plugin source rules | Self-referential dogfooding — vsdd-factory uses its own VSDD process to improve itself; lessons table from D-008 driven into prompt/rule/hook deliverables | post-1.5 | 2026-04-26 | orchestrator + user |
 
-## Lessons Learned (S-6.01 sub-cycle)
-
-| Lesson | Codification target | Status |
-|--------|---------------------|--------|
-| Spec-first discipline: every story needs BCs/VPs/FR/epic before TDD | story-writer agent prompt + consistency-validator | OPEN |
-| Defensive propagation sweep: count/pattern changes need corpus-wide grep | state-manager agent prompt + new lint hook | OPEN |
-| Capability anchor justification: every BC must cite source-of-truth | product-owner prompt + adversary policy 5 enforcement | OPEN |
-| VP multi-BC convention: source_bc=primary, bcs[]=full list | template documented (commit 7765573); template-compliance hook could enforce | PARTIAL |
-| Hook false-positives on filename matchers | validate-novelty-assessment.sh tightened (commit 7d7d9b8) | DONE |
-| Sub-cycle convergence naming `<scope>-pass-N.md` | ADR-013 amended this session | DONE |
-| Adversary effectiveness on partial-fix regressions (F-023, F-027) | adversary policy: explicit "did fix propagate to sibling files?" check | OPEN |
-| Self-referential dogfooding: novel adversary catch → codify in agent prompts | meta-rule: every novel catch becomes a follow-up to update agent prompts | OPEN |
 
 ## Skip Log
 

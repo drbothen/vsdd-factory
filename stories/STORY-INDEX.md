@@ -16,8 +16,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 # Story Index — vsdd-factory v1.0 (brownfield)
 
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
-> S-N.MM format. This index is the authoritative source for story count and status.
-> 42 stories across 7 epics (E-0 through E-6).
+> S-N.MM format. Updated in Phase 2 (story decomposition) with E-7 stories.
+> This index is the authoritative source for story count and status.
+> 44 stories across 8 epics (E-0 through E-7).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -30,8 +31,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | merged | 22 |
 | partial | 4 |
 | draft | 15 |
-| ready | 1 |
-| **Total** | **42** |
+| ready | 3 |
+| **Total** | **44** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -110,6 +111,13 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|
 | S-6.01 | Add create-adr skill for ADR authoring | E-6 | 3 | P1 | -- | ready |
 
+## Epic E-7 — Process Codification (open)
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Status |
+|----------|-------|------|--------|----------|------------|--------|
+| S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | ready |
+| S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | ready |
+
 ---
 
 **Draft story policy:** Stories with `status: draft` MAY have empty
@@ -123,7 +131,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 186 across 42 stories
+**Total story points:** 199 across 44 stories (186 original + 13 E-7)
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

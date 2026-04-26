@@ -8,13 +8,13 @@ timestamp: 2026-04-25T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1863
+total_bcs: 1878
 traces_to: bc-id-mapping.md
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,863 behavioral contracts across 10 subsystems.
+> Master index of all 1,878 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -25,13 +25,13 @@ traces_to: bc-id-mapping.md
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 22 | ss-02/ |
 | SS-03 Observability Sinks | BC-3 | 49 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 13 | ss-04/ |
-| SS-05 Pipeline Orchestration | BC-5 | 627 | ss-05/ |
+| SS-05 Pipeline Orchestration | BC-5 | 636 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 583 | ss-06/ |
-| SS-07 Hook Bash Layer | BC-7 | 192 | ss-07/ |
-| SS-08 Templates and Rules | BC-8 | 215 | ss-08/ |
-| SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
+| SS-07 Hook Bash Layer | BC-7 | 195 | ss-07/ |
+| SS-08 Templates and Rules | BC-8 | 217 | ss-08/ |
+| SS-09 Configuration and Activation | BC-9 | 6 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1863** | |
+| **Total** | | **1878** | |
 
 ## Index by subsystem
 
@@ -869,6 +869,15 @@ traces_to: bc-id-mapping.md
 | [BC-5.35.003](ss-05/BC-5.35.003.md) | planning: terminal-step | draft | CAP-TBD | TBD |
 | [BC-5.35.004](ss-05/BC-5.35.004.md) | planning: DAG integrity | draft | CAP-TBD | TBD |
 | [BC-5.35.005](ss-05/BC-5.35.005.md) | planning: failure semantics | draft | CAP-TBD | TBD |
+| [BC-5.36.001](ss-05/BC-5.36.001.md) | story-writer agent rejects status=ready when behavioral_contracts is empty | draft | CAP-001 | S-7.01 |
+| [BC-5.36.002](ss-05/BC-5.36.002.md) | story-writer requires AC↔BC bidirectional traces before marking a story ready | draft | CAP-001 | S-7.01 |
+| [BC-5.36.003](ss-05/BC-5.36.003.md) | product-owner agent requires Capability Anchor Justification cell on every BC | draft | CAP-001 | S-7.01 |
+| [BC-5.36.004](ss-05/BC-5.36.004.md) | product-owner cites capabilities.md verbatim in every capability anchor justification | draft | CAP-001 | S-7.01 |
+| [BC-5.36.005](ss-05/BC-5.36.005.md) | adversary explicitly checks partial-fix-regression for every finding closed in a prior pass | draft | CAP-001 | S-7.01 |
+| [BC-5.36.006](ss-05/BC-5.36.006.md) | adversary checks fix propagation to bodies, sibling files, and prose — not just frontmatter | draft | CAP-001 | S-7.01 |
+| [BC-5.36.007](ss-05/BC-5.36.007.md) | all three agent prompts updated atomically in single delivery; no partial update | draft | CAP-001 | S-7.01 |
+| [BC-5.37.001](ss-05/BC-5.37.001.md) | state-manager runs corpus-wide grep before declaring count change complete | draft | CAP-001 | S-7.02 |
+| [BC-5.37.002](ss-05/BC-5.37.002.md) | state-manager logs sweep results before declaring count-change complete | draft | CAP-001 | S-7.02 |
 
 ### SS-06 — Skill Catalog (BC-6)
 
@@ -1654,6 +1663,9 @@ traces_to: bc-id-mapping.md
 | [BC-7.04.081](ss-07/BC-7.04.081.md) | validate-wave-gate-prerequisite: adversary dispatches go through SHA-currency hook | draft | TBD | TBD |
 | [BC-7.04.082](ss-07/BC-7.04.082.md) | validate-wave-gate-prerequisite: worker agents go through gate prerequisite check | draft | TBD | TBD |
 | [BC-7.04.083](ss-07/BC-7.04.083.md) | validate-wave-gate-prerequisite: skips non-worker, non-adversary subagents | draft | TBD | TBD |
+| [BC-7.05.001](ss-07/BC-7.05.001.md) | validate-count-propagation.sh detects count drift across index files and exits non-zero | draft | CAP-001 | S-7.02 |
+| [BC-7.05.002](ss-07/BC-7.05.002.md) | validate-count-propagation.sh runs in under 200ms and is deterministic | draft | CAP-001 | S-7.02 |
+| [BC-7.05.003](ss-07/BC-7.05.003.md) | validate-template-compliance.sh enforces VP multi-BC source_bc convention | draft | CAP-001 | S-7.02 |
 
 ### SS-08 — Templates and Rules (BC-8)
 
@@ -1874,6 +1886,8 @@ traces_to: bc-id-mapping.md
 | [BC-8.27.006](ss-08/BC-8.27.006.md) | rules/worktree-protocol.md: wave integration — full test suite, adversarial review of wave diff, holdout evaluation, wave gate | draft | CAP-TBD | TBD |
 | [BC-8.27.007](ss-08/BC-8.27.007.md) | rules/worktree-protocol.md: `.factory/` worktree is PERMANENT — never remove it | draft | CAP-TBD | TBD |
 | [BC-8.27.008](ss-08/BC-8.27.008.md) | rules/worktree-protocol.md: cleanup rules — remove worktrees promptly, never force-remove with uncommitted changes, audit via `git worktree list` | draft | CAP-TBD | TBD |
+| [BC-8.28.001](ss-08/BC-8.28.001.md) | rules/lessons-codification.md requires codification follow-up for every novel process catch | draft | CAP-001 | S-7.02 |
+| [BC-8.28.002](ss-08/BC-8.28.002.md) | orchestrator cycle-closing checklist references lessons-codification.md rule | draft | CAP-001 | S-7.02 |
 
 ### SS-09 — Configuration and Activation (BC-9)
 
@@ -1884,6 +1898,7 @@ traces_to: bc-id-mapping.md
 | [BC-9.01.003](ss-09/BC-9.01.003.md) | release workflow's bot commit atomically writes binaries + plugin.json + marketplace.json | draft | CAP-TBD | TBD |
 | [BC-9.01.004](ss-09/BC-9.01.004.md) | 5-platform CI matrix is the build matrix; drift gated by check-platforms-drift.py | draft | CAP-TBD | TBD |
 | [BC-9.01.005](ss-09/BC-9.01.005.md) | hooks.json is gitignored; hooks.json.template + per-platform variants are committed | draft | CAP-TBD | TBD |
+| [BC-9.02.001](ss-09/BC-9.02.001.md) | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | draft | CAP-001 | S-7.02 |
 
 ### SS-10 — CLI Tools and Bin (BC-10)
 
