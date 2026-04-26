@@ -4,7 +4,7 @@ level: L3
 version: "1.0"
 status: draft
 producer: product-owner
-timestamp: 2026-04-26T00:00:00
+timestamp: 2026-04-27T03:00:00Z
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
 input-hash: "a3187d9"
@@ -73,7 +73,7 @@ The stub-architect agent must not use existing sibling crates in the same worksp
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | (static-check) | Anti-precedent guard text present verbatim in deliver-story SKILL.md | peer review / adversarial check |
-| BATS-static-check | test_anti_precedent_guard_in_deliver_story_skill (S-7.03 AC-011 a) | bats grep |
+| BATS-static-check | test_anti_precedent_guard_in_deliver_story_skill (S-7.03 AC-011 d) | bats grep |
 
 ## Traceability
 
