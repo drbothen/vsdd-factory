@@ -1,13 +1,13 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
-producer: codebase-analyzer
-timestamp: 2026-04-25T00:00:00
+producer: product-owner
+timestamp: 2026-04-26T00:00:00Z
 phase: 1.4b
 inputs: [bc-id-mapping.md, pass-3-behavioral-contracts.md]
-input-hash: "[pending-recompute]"
+input-hash: "ff7795e"
 traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:406"
