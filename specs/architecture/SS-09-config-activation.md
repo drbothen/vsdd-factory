@@ -56,6 +56,8 @@ that generate the 5 platform-specific `hooks.json` variants from the single
 | `plugins/vsdd-factory/skills/activate/SKILL.md` | Activation skill: platform detection + hooks.json copy + binary verification + settings write |
 | `plugins/vsdd-factory/skills/deactivate/SKILL.md` | Deactivation skill: restores pre-activation hooks.json state |
 
+<!-- F-003 (Wave 7 pass-1): Shared-ownership note — `scripts/bump-version.sh` and `.github/workflows/Release.yml` are NOT enumerated in this Modules table because their primary semantic contract (BC-9.01.001 prerelease semver format; BC-9.01.003 atomic bot commit) lives in SS-09 BCs; their target_module (per Wave 7 stories) is declared SS-10 (CLI/release tooling surface). Per Wave 3 F-007 / Wave 5 F-002 sanctioned-template-anchor pattern. Future architecture cleanup (deferred TD): explicitly list these files here as SS-09-owned with SS-10 invocation surface, OR move to a dedicated "shared-ownership" Modules sub-table. -->
+
 ## Public Interface
 
 **User-facing activation commands:**

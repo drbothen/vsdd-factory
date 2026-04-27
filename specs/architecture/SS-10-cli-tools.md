@@ -56,6 +56,8 @@ than a behavioral core — its contracts are well-bounded and largely operationa
 | `plugins/vsdd-factory/bin/compute-input-hash` | Compute SHA-256 input hash for drift detection; update `input-hash` frontmatter field |
 | `plugins/vsdd-factory/commands/*.md` (110 files) | Slash-command binding files: `/vsdd-factory:<name>` → skill invocation |
 
+<!-- F-003 (Wave 7 pass-1): Shared-ownership note — `scripts/bump-version.sh` and `.github/workflows/Release.yml` are wildcards under ARCH-INDEX SS-10 `scripts/` per line 83 but their primary semantic contracts live in SS-09 (BC-9.01.001/003). Wave 7 stories declare these as SS-10 target_module per CLI invocation surface. F-007/F-002 sanctioned. -->
+
 ## Public Interface
 
 **`emit-event` CLI:**
