@@ -231,10 +231,10 @@ dtu_services: []
 
 ## Story Status (45 total)
 
-- **Merged (22):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1)
-- **Partial (4):** S-2.05 (cargo publish dry-run), S-3.04 (host fn done, bash not retired), S-4.06 (RoutingFilter parsed not wired), S-5.05 (skeleton)
+- **Merged (26):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-3.04 (4/5 ACs shipped; AC-003→TD-007)
+- **Partial (3):** S-2.05 (cargo publish dry-run), S-4.06 (RoutingFilter parsed not wired), S-5.05 (skeleton)
 - **Draft / Not Shipped (15):** All Tier E except partials, all Tier F/G/H
-- **Ready (3):** S-6.01 (create-adr skill), S-7.01 (agent prompt discipline), S-7.02 (defensive sweep + hook + meta-rule)
+- **Ready (0):** — (S-6.01/S-7.01/S-7.02 corrected to merged)
 - **Completed (1):** S-7.03 (TDD discipline hardening — PR #13 merged 2026-04-26 at 4db2340)
 
 ## Drift Items (open)
@@ -358,6 +358,8 @@ dtu_services: []
 | D-108 | **Task #114 process remediation** — User audit identified four gaps in D-106 deliverable: (1) procedural-spec only, no executable runner; (2) zero bats/Rust tests asserting predicate against fixtures; (3) Rust-only language scope with no generalization for TS/Python/Go; (4) bypassed proper TDD (no test-writer/implementer dispatch); (5) authored directly on `main` instead of feature-branch-off-`develop` per Git Flow. All gaps logged as **TD-006** in `.factory/tech-debt-register.md` (P1, due v1.0.1). Plugin source edits moved off `main` working tree onto feature branch `feat/validate-consistency-tautology-bc-tv` (off `develop` per Task #33 Git Flow), committed at `bc01abb`, pushed, and **PR #17 opened** targeting `develop` with full known-limitations callout in PR body. Commit message contains no AI-attribution lines per project convention. `.factory/STATE.md` + `.factory/policies.yaml` + `.factory/tech-debt-register.md` updates remain on `factory-artifacts` worktree (not in PR #17). | Process slip retrospective: auto-mode direct-execution skipped per-story-delivery scaffolding. TD-006 captures the full remediation plan (story spec → test harness → executable runners → language-scope ADR → re-run through TDD). PR-merge does not close TD-006. | task-114-process-remediation | 2026-04-27 | orchestrator (direct) |
 | D-110 | **Post-Wave-9 cross-cutting consistency sweep + MAJOR-finding triage burst.** Sweep ran with 36 baseline rules + 6 cross-wave-specific checks (CW-1..6); produced report at .factory/cycles/v1.0-brownfield-backfill/consistency-reports/post-wave-9-cross-cutting.md (0 CRIT / 5 MAJOR / 7 MINOR / 9 TD-acknowledged; ~85% consistency score). Triage closed all 5 MAJORs in parallel: F-001 (PO) — L2-INDEX SS-01/SS-05/SS-06 cross-walk drift fixed (3 row edits); F-002/F-003 (story-writer) — STORY-INDEX status counts corrected (merged 22/draft 16/partial 4/ready 3/total 45) + S-7.03 status ready→merged + non-canonical "completed" cleared; F-004 — 2 asymmetric dep edges symmetrized (S-1.04.blocks +S-3.04, S-3.04.blocks +S-4.07); F-005 — 6 stories' empty functional_requirements arrays populated (S-0.05/5.05/5.06→FR-036, S-6.01→FR-041, S-7.01/7.02→FR-042). 12 files committed in single cohesive burst per POLICY 3 state-manager-runs-last. 7 MINOR findings (F-006..F-012) deferred — none block TD-006 gating or factory-dispatcher next-phase work. Cycle re-anchor closure now formally clean at MAJOR level. | Cross-wave audit found cycle perimeter internally consistent at the MAJOR level after one targeted triage burst — validates the per-wave-converge-then-cross-cutting-audit pattern. CW-1..6 checks (convention drift, BC-INDEX bidirectional, dep symmetry, FR coverage, CAP subsystem drift, HTML disclosure) caught 4 of 5 MAJORs that per-wave reviews missed by design. | post-wave-9-cross-cutting-triage | 2026-04-27 | orchestrator + consistency-validator + product-owner + story-writer + state-manager |
 
+| D-112 | **Status-drift correction burst.** Post-Wave-9 audit confirmed 4 stories had stale frontmatter status: S-6.01 (ready→merged, PR #7 SHA 9dcc52b), S-7.01 + S-7.02 (ready→merged, PR #6 SHA 33d7a06 — body header `[S-7.01 + S-7.02] Codify ...`), S-3.04 (partial→merged with AC-003 carved to TD-007). True merged count corrected: 22→26 stories. STORY-INDEX summary updated. New TD-007 (P3, v1.1): retire bash `bin/emit-event` from legacy hooks. Wave 11 fully unblocks: S-3.01/3.02/3.03 (SS-04 WASM ports, were blocked on S-3.04) + S-4.01 (sink-http-driver, already unblocked). | Drift surfaced because consistency-validator's text-search heuristic missed PR #6's misleading title ("codify S-6.01 lessons") which actually shipped S-7.01+S-7.02. Future check candidate: cross-reference story status vs implementing PR's merge state, not just frontmatter validity. | task-status-drift-correction | 2026-04-27 | orchestrator + story-writer + state-manager |
+
 ## Skip Log
 
 | Step | Skipped? | Justification |
@@ -370,14 +372,14 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Task #103 (post-Wave-9 cross-cutting consistency sweep) COMPLETE** — 0 CRIT / 5 MAJOR / 7 MINOR / 9 TD-acknowledged; ~85% score. All 5 MAJORs closed in parallel triage burst (D-110). 7 MINORs (F-006..F-012) deferred — none block TD-006 gating or factory-dispatcher next-phase work. Cycle re-anchor closure formally clean at MAJOR level. Report at `.factory/cycles/v1.0-brownfield-backfill/consistency-reports/post-wave-9-cross-cutting.md`.
+**Status-drift correction burst COMPLETE (D-112, 2026-04-27)** — 26 of 41 stories merged (corrected from stale 22). S-6.01 (PR #7 9dcc52b), S-7.01 + S-7.02 (PR #6 33d7a06), S-3.04 (partial→merged; AC-003→TD-007 P3 v1.1) all corrected. STORY-INDEX counts updated: merged 22→26, partial 4→3, ready 3→0. TD-007 added (retire bash bin/emit-event, v1.1). Wave 11 fully unblocked.
 
-**Resumption recipe:** Next phase candidates:
+**Resumption recipe:** Next phase candidates (orchestrator picks one):
+- **S-4.01** (sink-http-driver): already unblocked; Wave 2 SS-03 re-anchored; Tier E story
+- **S-3.01 / S-3.02 / S-3.03** (SS-04 WASM ports): unblocked now that S-3.04 is merged; blocked_by S-3.04 dep satisfied
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 → `develop` open for procedural-spec portion)
 - Task #112: Architect-led 28-CAP audit propagation to PRD §8 (CAP-023/024 deferred)
 - 7 MINOR consistency findings (F-006..F-012) from post-Wave-9 sweep — deferred, address before v1.0.1 release
-- Wave 1.0 release planning (tag v1.0.0-rc.1 or similar)
-- GREEN-phase TDD implementation (begins per-story per-story-delivery cycle)
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.

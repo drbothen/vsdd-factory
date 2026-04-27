@@ -28,10 +28,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 22 |
-| partial | 4 |
+| merged | 26 |
+| partial | 3 |
 | draft | 16 |
-| ready | 3 |
+| ready | 0 |
 | **Total** | **45** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -75,7 +75,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|-----|
-| S-3.04 | emit_event as host function refactor | E-3 | 3 | P0 | S-1.04 | partial | 8 |
+| S-3.04 | emit_event as host function refactor | E-3 | 3 | P0 | S-1.04 | merged | 8 |
 | S-3.01 | Port capture-commit-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | draft | -- |
 | S-3.02 | Port capture-pr-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | draft | -- |
 | S-3.03 | Port block-ai-attribution to WASM | E-3 | 3 | P1 | S-2.08, S-3.04 | draft | -- |
@@ -109,14 +109,14 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status |
 |----------|-------|------|--------|----------|------------|--------|
-| S-6.01 | Add create-adr skill for ADR authoring | E-6 | 3 | P1 | -- | ready |
+| S-6.01 | Add create-adr skill for ADR authoring | E-6 | 3 | P1 | -- | merged |
 
 ## Epic E-7 — Process Codification (open)
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status | Version |
 |----------|-------|------|--------|----------|------------|--------|---------|
-| S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | ready | -- |
-| S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | ready | -- |
+| S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | merged | -- |
+| S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | merged | -- |
 | S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | merged | 2.2 |
 
 > **S-7.03 delivery:** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN. Worktree feat/tdd-discipline-hardening (9b1624b → 121d24c, 9 commits). Spec convergence: 17 adversarial passes.

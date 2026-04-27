@@ -14,6 +14,7 @@ last_updated: 2026-04-25T00:00:00
 | P0 (next cycle) | 0 | 0 |
 | P1 (within 3 cycles) | 1 | XL (29–39 across 6 sub-stories) |
 | P2 (backlog) | 5 | — |
+| P3 (v1.1+) | 3 | — |
 
 ## Debt Items
 
@@ -25,6 +26,7 @@ last_updated: 2026-04-25T00:00:00
 | TD-004 | Phase 5 deferred | BC-7.01 family is mixed (multiple hooks); FR-032 BC-group labeling conflicts with BC-7.01.001 H1 (block-ai-attribution vs protect-secrets) | P2 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-005 | Phase 5 deferred | Agent registry missing (34 agents not enumerated); NFR-PERF not in PRD §4.2 top-5 | P3 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.1 |
 | TD-006 | Process gap | validate-consistency Check 8/9 ship as procedural spec only — no executable runner, no bats/Rust tests, Rust-only language scope, bypassed TDD (no test-writer/implementer dispatch), and was authored directly on main instead of feature-branch-off-develop | P1 | post-Wave-9 | v1.0-brownfield-backfill | — | v1.0.1 |
+| TD-007 | Spec deferral | S-3.04 AC-003: bash bin/emit-event still in use by legacy hooks; full retirement deferred from v1.0 to post-v1.0 milestone | P3 | v1.0.0-beta.4 | v1.0-brownfield-backfill | S-3.04 | v1.1 |
 
 ### Source Types
 
@@ -288,6 +290,17 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 - [ ] **Pre-flight check codified.** The `git fetch && git log --oneline origin/develop..origin/main && git diff origin/main origin/develop -- <files>` pattern is added to a developer-onboarding doc or a pre-feature-branch lint hook (this is a process gap surfaced during TD-006 remediation).
 
 **Cycle estimate:** v1.0.1 (PATCH if no public-API changes) or v1.1 (MINOR if the runner exposes a new public skill API surface that other plugins can call).
+
+#### TD-007 — S-3.04 AC-003 deferred: bash bin/emit-event retirement
+**Source:** S-3.04 spec body explicit deferral note (v1.0.0-beta.4 ship); confirmed by post-Wave-9 status-drift audit 2026-04-27.
+**Description:** S-3.04 (emit_event as host function refactor) shipped 4 of 5 ACs in v1.0.0-beta.4: emit_event() routes to configured sinks (BC-1.05.012-019), plugin events appear in JSONL/OTel streams, plugin events enriched with trace_id/session_id, integration tests pass. AC-003 — "bin/emit-event deprecated; callers migrated" — was carved out of v1.0 scope because legacy bash hooks still call the old `bin/emit-event` shell tool. Full retirement requires migrating all bash hook callers to use the host fn directly (or via a thin wrapper) and then removing `bin/emit-event` from the dispatcher.
+**Severity:** P3 — does not block v1.0 GA. The host fn IS implemented and works for native WASM plugins; only legacy bash hooks still use the old binary. Both code paths coexist.
+**Plan:** v1.1 follow-up:
+1. Audit all callers of `bin/emit-event` (grep across hooks/, scripts/, plugins/).
+2. Migrate each caller to use the host fn directly via WASM, OR provide a thin shim that forwards to the host fn.
+3. Remove `bin/emit-event` from the dispatcher binary tree.
+4. Update S-3.04 status to fully complete (close TD-007).
+**Cycle estimate:** v1.1.
 
 ## Resolution History
 
