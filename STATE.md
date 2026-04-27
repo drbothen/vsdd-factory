@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
-phase: wave-5-ss-06-pass-2-pending
+phase: wave-5-ss-06-pass-3-pending
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 5 SS-06 pass-1 review COMPLETE (11 findings: 2 CRIT, 4 HIGH, 4 MED, 3 LOW). Fix burst pending."
+current_step: "Wave 5 SS-06 pass-2 review COMPLETE (7 findings: 2 CRIT, 2 HIGH, 2 MED, 1 LOW). 4 substantive fixes applied (CRIT-001/002, HIGH-001/002). Pass-3 pending."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (Wave 5 SS-06 pass-1 fix burst applied at a20a973: 11 findings addressed. Pass-2 pending.) |
-| **Current Phase** | wave-5-ss-06-pass-2-pending |
+| **Last Updated** | 2026-04-26 (Wave 5 SS-06 pass-2 review + fix burst: 7 findings, 4 substantive fixes applied. Pass-3 pending.) |
+| **Current Phase** | wave-5-ss-06-pass-3-pending |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -107,7 +107,7 @@ dtu_services: []
 | Wave 2 SS-03 sinks re-anchor (sub-cycle) | COMPLETE | 13-pass adversarial convergence; 9 stories anchored to ~37 unique SS-03 BCs (+ FR-044 PRD addition); 32 v1.1 BC candidates; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0; 4 reset events (F-401, F-501→F-602, F-701) all preemptively addressed |
 | Wave 3 SS-04 plugin-ecosystem re-anchor | **CONVERGED** at pass-6 (commit 9cc5fe7): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=0 (HIGH 4→0 collapsed at pass-4). 8 stories spec-ready: S-2.01, S-3.01-03, S-5.01-04. Cumulative re-anchored: 24 of 41 stories (Wave 1+2+3). | wave-3-ss-04-pass-6.md |
 | Wave 4 SS-02 hook-sdk re-anchor | **CONVERGED** at pass-5 (commit 896cb72): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=7 → pass-5=0 (CRIT/HIGH/MED zero from pass-3). 2 stories spec-ready: S-1.03, S-2.05. Cumulative re-anchored: 26 of 41 stories (Wave 1+2+3+4). | wave-4-ss-02-pass-5.md |
-| Wave 5 SS-06 skill-catalog re-anchor | PO commit c75e21b: S-0.03 (4 BCs) + S-2.06 (11 BCs) = 15 BCs anchored. CAP-007 expanded to include SS-06 + PRD §8 propagated. 15 BC files frontmatter + body Traceability updated. BC-INDEX 15 rows propagated. v1.1 BC candidates registered for deactivate (BC-6.03.007-009). Pre-existing bidirectional gap noted (S-2.04.blocks missing S-2.06). Cumulative: 28 of 41 stories anchored. Pass-1 review: 11 findings (2 CRIT POLICY-7 PRD-BC desync + POLICY-4 BC-9.01.002 mis-anchor; 4 HIGH BC-9.01.001/003 mis-anchor + CAP-007 SS-01 unjustified + CAP-028/DI-015 propagation + VP-015 missing; 4 MED; 3 LOW). Pass-1 fix burst applied at a20a973: 11 findings addressed (CRIT-001 PRD-BC desync synced; CRIT-002 BC-9.01.002 removed from S-0.03; HIGH-001 BC-9.01.001/003 removed from S-2.06; HIGH-002 CAP-007 SS-01 expansion reverted; HIGH-003 CAP-028 dropped from FR-037 + DI-015 populated in BC-9.01.004/005; HIGH-004 VP-015 added to S-2.06). New BC counts: S-0.03=3, S-2.06=9. BC-INDEX 3 rows + 3 BC files reverted to TBD pending release-pipeline anchor. Pass-2 pending. | wave-5-ss-06-pass-2-pending |
+| Wave 5 SS-06 skill-catalog re-anchor | PO commit c75e21b: S-0.03 (4 BCs) + S-2.06 (11 BCs) = 15 BCs anchored. CAP-007 expanded to include SS-06 + PRD §8 propagated. 15 BC files frontmatter + body Traceability updated. BC-INDEX 15 rows propagated. v1.1 BC candidates registered for deactivate (BC-6.03.007-009). Pre-existing bidirectional gap noted (S-2.04.blocks missing S-2.06). Cumulative: 28 of 41 stories anchored. Pass-1 review: 11 findings (2 CRIT POLICY-7 PRD-BC desync + POLICY-4 BC-9.01.002 mis-anchor; 4 HIGH BC-9.01.001/003 mis-anchor + CAP-007 SS-01 unjustified + CAP-028/DI-015 propagation + VP-015 missing; 4 MED; 3 LOW). Pass-1 fix burst applied at a20a973: 11 findings addressed (CRIT-001 PRD-BC desync synced; CRIT-002 BC-9.01.002 removed from S-0.03; HIGH-001 BC-9.01.001/003 removed from S-2.06; HIGH-002 CAP-007 SS-01 expansion reverted; HIGH-003 CAP-028 dropped from FR-037 + DI-015 populated in BC-9.01.004/005; HIGH-004 VP-015 added to S-2.06). New BC counts: S-0.03=3, S-2.06=9. BC-INDEX 3 rows + 3 BC files reverted to TBD pending release-pipeline anchor. Pass-2 review at commit TBD (7 findings: 2 CRIT, 2 HIGH, 2 MED, 1 LOW); 4 substantive fixes applied same commit (CRIT-001 VP-015 re-anchor, CRIT-002 PRD §8 BC range, HIGH-001 Status refinement, HIGH-002 DI-015 BC range). MED-002 [process-gap] noted for codification. Pass-3 pending. Trajectory: 11→7 (-36%). | wave-5-ss-06-pass-3-pending |
 
 ## Current Phase Steps
 
@@ -139,7 +139,9 @@ dtu_services: []
 | Wave 5 SS-06 PO baseline c75e21b | product-owner | COMPLETE | S-0.03 + S-2.06 anchored; 15 BCs propagated; CAP-007 expanded; 28 of 41 stories anchored |
 | Wave 5 SS-06 adversarial pass-1 | adversarial-reviewer | COMPLETE | 11 findings (2 CRIT/4 HIGH/4 MED/3 LOW); wave-5-ss-06-pass-1.md |
 | Wave 5 SS-06 pass-1 fix burst | product-owner | COMPLETE | 11 findings addressed at a20a973; S-0.03=3 BCs, S-2.06=9 BCs; BC-INDEX 3 rows + BC files reverted to TBD |
-| Wave 5 SS-06 adversarial pass-2 | adversarial-reviewer | PENDING | Dispatch with full policy rubric |
+| Wave 5 SS-06 adversarial pass-2 | adversarial-reviewer | COMPLETE | 7 findings (2 CRIT/2 HIGH/2 MED/1 LOW); wave-5-ss-06-pass-2.md; trajectory 11→7 |
+| Wave 5 SS-06 pass-2 fix burst | state-manager | COMPLETE | CRIT-001 VP-015 re-anchored BC-9.01.001→BC-9.01.005+BC-9.01.004; CRIT-002 PRD §8 CAP-007 BC range BC-9.01.001-005→BC-9.01.004-005; HIGH-001 PRD §FR-037 Status scoped per-BC; HIGH-002 invariants.md DI-015 BC range BC-9→BC-9.01.004/005 |
+| Wave 5 SS-06 adversarial pass-3 | adversarial-reviewer | PENDING | Dispatch with full policy rubric |
 
 ## Identifier Conventions
 
@@ -265,6 +267,7 @@ dtu_services: []
 | D-054 | Wave 5 SS-06 baseline at c75e21b | S-0.03 anchored to [BC-6.01.003 platform detection, BC-6.03.002 abort on unsupported, BC-9.01.002 fail-explicit, BC-9.01.004 platforms.yaml] (4 BCs); S-2.06 anchored to [BC-6.01.004 hooks.json copy, BC-6.01.005 settings, BC-6.01.006 drift warn, BC-6.03.001 identity, BC-6.03.003-006 drift/dry-run/apply-platform, BC-9.01.001 activation gate, BC-9.01.003 idempotent, BC-9.01.005 plugin manifest] (11 BCs). CAP-007 Subsystems expanded SS-09/SS-01 → SS-01/SS-06/SS-09 (Wave 3 F-007 precedent) + same-burst PRD §8 propagation. Both stories anchored to FR-037 (PRD already names S-0.03/S-2.06 as shipped). 15 BC files (10 ss-06 + 5 ss-09) frontmatter capability=CAP-007 + body Traceability L2 Capability=CAP-007 + Stories=S-0.03 or S-2.06. v1.1 BC candidates BC-6.03.007-009 (deactivate scope) deferred. Pre-existing bidirectional gap S-2.04.blocks↛S-2.06 noted (out-of-scope; separate task). | wave-5-ss-06 | 2026-04-26 | orchestrator |
 | D-055 | Wave 5 SS-06 pass-1 review at b59ccf7 | 11 findings (2 CRIT, 4 HIGH, 4 MED, 3 LOW). CRIT-001 catastrophic: PRD §FR-037 BC titles drift from 4-of-5 BC-9.01 file H1s — actual H1s are release-tooling (bump-version, chore-commit, release-bot atomic) not activation-gate. CRIT-002 BC-9.01.002 mis-anchored to S-0.03 (platform detection ≠ chore commit). HIGH-001 BC-9.01.001/003 mis-anchored to S-2.06 (release tooling ≠ activate integration). HIGH-002 CAP-007 SS-01 unjustified expansion. HIGH-003 CAP-028+DI-015 propagation gap (DI-015 orphan). HIGH-004 VP-015 uncited despite SS-09 manual anchor. Pass-1 baseline 11 within Wave-1 band 7-12. Substantive fix burst required before pass-2. | wave-5-ss-06 | 2026-04-26 | adversary |
 | D-056 | Wave 5 SS-06 pass-1 fix burst at a20a973 | All 11 findings addressed: CRIT-001 PRD §FR-037 BC titles synced to BC file H1s verbatim + scope note added (dual-scope activation-gate prerequisites + release-tooling discipline); CRIT-002 BC-9.01.002 removed from S-0.03 (3 BCs); HIGH-001 BC-9.01.001/003 removed from S-2.06 (9 BCs); HIGH-002+MED-004 CAP-007 Subsystems reverted SS-01/06/09 → SS-06/09; HIGH-003 CAP-028 dropped from FR-037 enforces + DI-015 populated in BC-9.01.004/005 Traceability; HIGH-004 VP-015 added to S-2.06 frontmatter + body + VP-INDEX + VP-015.md Stories. BC-INDEX 3 rows + BC-9.01.001-003 files reverted to CAP-TBD/TBD pending release-pipeline anchor. v1.1 BC candidates registered: BC-9.01.NNN-activation-gate-required-before-dispatcher (S-2.06) + BC-9.01.NNN-platform-detection-validates-against-platforms-yaml (S-0.03). MED-001/002/003 deferred or resolved transitively; LOW-001/002/003 deferred. Sibling sweep clean. | wave-5-ss-06 | 2026-04-26 | orchestrator |
+| D-057 | Wave 5 SS-06 pass-2 + fix burst at commit TBD | 7 findings (2 CRIT, 2 HIGH, 2 MED, 1 LOW). 4 substantive fixes: CRIT-001 VP-015.md re-anchored from BC-9.01.001 (release-tooling) to BC-9.01.005 (gate artifact) + BC-9.01.004 (gate prerequisite); CRIT-002 PRD §8 CAP-007 BC range BC-9.01.001-005 → BC-9.01.004-005 with semantic label fix; HIGH-001 PRD §FR-037 Status refined to scope shipped claim per BC; HIGH-002 invariants.md DI-015 BC range BC-9 → BC-9.01.004/005. MED-001 subsumed by CRIT-001. MED-002 [process-gap] bc-anchor-sweep checklist needed (deferred). LOW-001 manual-VP semantics (pending intent). Trajectory pass-1=11 → pass-2=7. Same defect class recurring (downstream-artifact ↔ BC source-of-truth desync) — process gap codification pending. | wave-5-ss-06 | 2026-04-26 | orchestrator |
 
 ## Skip Log
 
@@ -278,7 +281,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 5 SS-06 pass-1 fix burst applied at a20a973; 11 findings addressed. Pass-2 pending.
+**Pause reason:** Wave 5 SS-06 pass-2 + fix burst at commit TBD; 7 findings reviewed, 4 substantive fixes applied (CRIT-001/002, HIGH-001/002). Pass-3 pending.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
@@ -288,10 +291,12 @@ dtu_services: []
 - Wave 5 SS-06 PO baseline COMPLETE at c75e21b: 28 of 41 stories anchored
 - Wave 5 SS-06 pass-1 review COMPLETE: 11 findings (2 CRIT/4 HIGH/4 MED/3 LOW)
 - Wave 5 SS-06 pass-1 fix burst COMPLETE at a20a973: all 11 findings addressed; S-0.03=3 BCs, S-2.06=9 BCs
+- Wave 5 SS-06 pass-2 review COMPLETE: 7 findings (2 CRIT/2 HIGH/2 MED/1 LOW); trajectory 11→7 (-36%)
+- Wave 5 SS-06 pass-2 fix burst COMPLETE: CRIT-001 VP-015 re-anchored; CRIT-002 PRD §8 CAP-007 BC range; HIGH-001 PRD §FR-037 Status; HIGH-002 DI-015 BC range
 
 **Resumption recipe:**
 
-Dispatch adversary pass-2 with full policy rubric.
+Dispatch adversary pass-3 with full policy rubric.
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
@@ -304,6 +309,7 @@ Dispatch adversary pass-2 with full policy rubric.
 - #108 TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts (CAP-003, 007, 010, 017, 023, 024) — deferred from Wave 3 pass-3
 - #110 Wave 5 SS-06 re-anchor (in progress; pass-1 pending)
 - #111 TD: Bidirectional dep edge S-2.04.blocks missing S-2.06 (Wave 5 pre-existing)
+- #112 TD: Codify bc-anchor-sweep checklist step (Wave 5 MED-002 process-gap)
 
 **Total cumulative anchored:** 28 stories (Wave 1 + Wave 2 + Wave 3 + Wave 4 CONVERGED + Wave 5 PO baseline) of 41 migrated stories.
 

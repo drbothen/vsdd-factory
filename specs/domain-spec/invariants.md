@@ -104,7 +104,7 @@ Justification: DI-014 is a business invariant because silently processing a mism
 
 **DI-015 — Per-project activation is required before the dispatcher can run**
 `hooks.json` is gitignored. Without activation, no `hooks.json` exists, so Claude Code cannot invoke the dispatcher. Activation is the gate — not install.
-Enforcement owner: SS-09 (activate skill). BC range: BC-9.
+Enforcement owner: SS-09 (activate skill). BC range: BC-9.01.004 (CI matrix), BC-9.01.005 (hooks.json gitignore — gate artifact).
 Justification: DI-015 is a business invariant because the binary path is platform-specific; shipping a pre-written hooks.json would point to the wrong binary on most machines. Source: pass-2 §BR-Activation.
 
 ## Plugin Isolation Invariants
