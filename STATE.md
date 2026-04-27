@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 6 SS-09 pass-5 NITPICK_ONLY; D-072 logged; clock 1_of_3; trajectory 9→3→8→5→0; pass-6 pending) |
+| **Last Updated** | 2026-04-27 (Wave 6 SS-09 pass-6 NITPICK_ONLY; D-074 logged; clock 2_of_3; trajectory 9→3→8→5→0→0; pass-7 pending) |
 | **Current Phase** | wave-5-ss-06-CONVERGED-spec-ready |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -158,6 +158,7 @@ dtu_services: []
 | Wave 6 SS-09 adversarial pass-4 | adversarial-reviewer | COMPLETE | 5 findings (3 MED/2 LOW); 19/19 prior closures verified; F-303 Wave 6-introduced regression; trajectory 9→3→8→5 declining post-expansion; wave-6-ss-09-pass-4.md |
 | Wave 6 SS-09 pass-4 fix burst | product-owner + state-manager | COMPLETE | F-301 CAP-017 PRD §8:1107 SS-10 added; F-302 capabilities.md:128 CAP-018 SS-05+SS-06 expanded; F-303 BC-1.07.004 Arch Module SS-01+SS-09 corrected (POLICY 8 frontmatter unchanged); F-304 S-2.03 depends_on +S-0.04 + STORY-INDEX update; F-305 v1.1 BC/VP Candidates section moved to canonical position (AFTER ACs with BC Traces, BEFORE Architecture Compliance) across S-2.03/04/08 |
 | Wave 6 SS-09 adversarial pass-5 | adversarial-reviewer | COMPLETE | 0 findings; NITPICK_ONLY; 24/24 prior closures verified; clock 1_of_3; trajectory 9→3→8→5→0; CAP-propagation drift class exhausted; wave-6-ss-09-pass-5.md |
+| Wave 6 SS-09 adversarial pass-6 | adversarial-reviewer | COMPLETE | 0 findings; NITPICK_ONLY; 24/24 prior closures verified; clock 2_of_3; trajectory 9→3→8→5→0→0; 9 fresh axes probed (POLICY 1 lifecycle, producer lifecycle, wave coherence, traces_to/cycle coherence, edge cases, PRD arithmetic, VP-INDEX completeness, HTML comment patterns, DI-BC bidirectional) all clean; wave-6-ss-09-pass-6.md |
 
 ## Identifier Conventions
 
@@ -296,6 +297,7 @@ dtu_services: []
 | D-068 | Wave 6 SS-09 pass-3 review at d823875 + 2-stage fix burst (PO 47c013f + state-manager this commit). 8 findings (5 MED/3 LOW). 9/11 prior closures verified; F-001+F-006 PARTIAL (state-manager handoff gap codified as F-204). PO fixes: F-201/F-202 PRD §8 CAP-003+CAP-010 SS-01 propagation (deferred F-007 sweep partial closure); F-203 S-2.04 AC-4 BC-9.01.002 mis-anchor → BC-9.01.003 only; F-206 5-col v1.1 BC/VP candidate table format standardized; F-207/F-208 PRD §8:1101 + PRD §8:1096 HTML comments. State-manager fixes: F-204 BC-1.07.003+004 metadata stamping (version 1.0→1.1, timestamp 2026-04-26, producer product-owner, input-hash ff7795e); F-205 S-2.02 metadata stamping (timestamp 2026-04-27, producer product-owner; input-hash retained 3e3bdca — greenfield input path unresolvable). Trajectory 9→3→8 (broadened-lens mid-cycle expansion; HIGH ceiling stable). Convergence step 0_of_3 (clock RESET due to F-201..F-203 mis-anchor severity). | Matches Wave 5 SS-06 trajectory pattern (11→7→2→1→2→1) where mid-cycle re-expansion preceded final convergence. F-007 (Wave 1+2) deferred 28-CAP sweep partial closure (4 of 28 CAPs surfaced). Broader audit remains task #108. | wave-6-ss-09 | 2026-04-27 | orchestrator + state-manager |
 | D-070 | Wave 6 SS-09 pass-4 review + fix burst at a39f350. 5 findings (3 MED/2 LOW). All 19 prior closures verified. F-303 (Wave 6-introduced BC-1.07.004 Arch Module inversion from F-006 propagation) was the dominant blocker — fixed by aligning to BC-1.07.003 sibling pattern. F-301/F-302 CAP-017+CAP-018 propagation; F-304 S-2.03 dep symmetry; F-305 v1.1 BC/VP candidate section ordering standardization. Trajectory 9→3→8→5 declining post-expansion. Predict pass-5 ≤2; pass-6 NITPICK_ONLY 1_of_3. | Matches Wave 5 SS-06 trajectory (11→7→2→1→2→1). 28-CAP audit partial closure continues (4 fixed in pass-3, 2 surfaced+fixed pass-4; CAP-023/024 deferred to TD #112). | wave-6-ss-09 | 2026-04-27 | orchestrator + state-manager |
 | D-072 | Wave 6 SS-09 pass-5 NITPICK_ONLY at 4e125ff; clock 1_of_3. Zero findings. 24 of 24 prior closures verified. Pass-5 attacked 5 fresh axes (F-303 sibling sweep, F-301/F-302 CAP propagation extended sweep on 13 NEW CAPs, story-template ordering un-touched stories, input-hash currency, cross-cycle consistency) — all clean. CAP-propagation drift class exhausted within Wave 6 scope (CAP-023/024 deferred TD #112). Trajectory 9→3→8→5→0; Wave 6 jumped straight to 0 at pass-5 (healthier than Wave 5 rebound pattern). | Convergence clock advances to 1 of 3 per ADR-013. Predict pass-6 NITPICK_ONLY (2_of_3), pass-7 NITPICK_ONLY (3_of_3 = CONVERGED). | wave-6-ss-09 | 2026-04-27 | adversary |
+| D-074 | Wave 6 SS-09 pass-6 NITPICK_ONLY at <commit-sha>; clock 2_of_3. Zero findings. 24/24 prior closures verified. Pass-6 attacked 9 fresh broad-lens axes (POLICY 1 lifecycle audit, producer field lifecycle, wave field coherence, review frontmatter coherence, edge-case multi-BC stories, PRD §FR-037 narrative arithmetic, VP-INDEX Story Anchors completeness, HTML comment consistency, POLICY 2 DI-BC bidirectional). All axes clean. Trajectory 9→3→8→5→0→0; two consecutive clean passes. Wave 6 cleared convergence one pass earlier than Wave 5 oscillation pattern. | clock advances to 2 of 3 per ADR-013. Pass-7 with another clean run = 3_of_3 = CONVERGED. No reset events anticipated. | wave-6-ss-09 | 2026-04-27 | adversary |
 
 ## Skip Log
 
@@ -309,7 +311,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 6 SS-09 pass-5 NITPICK_ONLY 1_of_3; pass-6 pending.
+**Pause reason:** Wave 6 SS-09 pass-6 NITPICK_ONLY 2_of_3; pass-7 final pending.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
@@ -317,11 +319,11 @@ dtu_services: []
 - Wave 3 SS-04 CONVERGED 3-of-3 at pass-6 (commit 9cc5fe7; 6 passes; trajectory 11→7→4→1→1→0; HIGH 4→0 collapsed at pass-4)
 - Wave 4 SS-02 CONVERGED 3-of-3 at pass-5: 0 findings; 9/9 cumulative closed (100%); 22/22 BC files CLEAN; 26 of 41 stories anchored; 5-pass cycle (fastest to date)
 - Wave 5 SS-06 CONVERGED 3-of-3 at pass-6: 1 LOW process-gap carryover (task #112); 28 of 41 stories anchored; 6-pass cycle; trajectory 11→7→2→1→2→1
-- Wave 6 SS-09 pass-5 NITPICK_ONLY (clock 1_of_3): 0 findings; 24/24 prior closures verified; 5 fresh axes all clean; CAP-propagation drift class exhausted; trajectory 9→3→8→5→0; wave-6-ss-09-pass-5.md persisted
+- Wave 6 SS-09 pass-6 NITPICK_ONLY (clock 2_of_3): 0 findings; 24/24 prior closures verified; 9 fresh broad-lens axes all clean; trajectory 9→3→8→5→0→0; wave-6-ss-09-pass-6.md persisted
 
 **Resumption recipe:**
 
-Dispatch adversarial pass-6 for Wave 6 SS-09. Inputs: wave-6-ss-09-pass-5.md + all fix artifacts. Convergence clock at 1_of_3; pass-6 must be NITPICK_ONLY (2_of_3). Verify all 24 prior closures still hold; probe any remaining fresh axes. Predict pass-6 NITPICK_ONLY (2_of_3), pass-7 NITPICK_ONLY (3_of_3 = CONVERGED).
+Dispatch adversarial pass-7 for Wave 6 SS-09. Inputs: wave-6-ss-09-pass-6.md + all fix artifacts. Convergence clock at 2_of_3; pass-7 must be NITPICK_ONLY (3_of_3 = CONVERGED). Verify all 24 prior closures still hold; probe any remaining fresh axes. No reset events anticipated.
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
@@ -334,7 +336,7 @@ Dispatch adversarial pass-6 for Wave 6 SS-09. Inputs: wave-6-ss-09-pass-5.md + a
 - #108 TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts (CAP-003/007/008/010/013/017/018/023/024 — 2 more surfaced at pass-4)
 - #111 TD: Bidirectional dep edge S-2.04.blocks missing S-2.06 (Wave 5 pre-existing)
 - #112 TD: Codify bc-anchor-sweep checklist step (Wave 5 MED-002 process-gap)
-- #113 Wave 6 SS-09 re-anchor — pass-5 NITPICK_ONLY 1_of_3; pass-6 adversarial review next
+- #113 Wave 6 SS-09 re-anchor — pass-6 NITPICK_ONLY 2_of_3; pass-7 adversarial review next (final)
 - #114 Extend validate-consistency skill: tautology detector + BC canonical TV consistency checks (motivated by Prism Wave 2 Pass 7 finding TD-W2-FIXK-001 + TD-W2-FIXK-002)
 
 **Total cumulative anchored:** 34 stories (Waves 1-5 CONVERGED + Wave 6 SS-09 baseline) of 41 migrated stories. Remaining: 7 stories (SS-08: 4, SS-10: 3).
@@ -345,7 +347,7 @@ Dispatch adversarial pass-6 for Wave 6 SS-09. Inputs: wave-6-ss-09-pass-5.md + a
 - Wave 3: 6 passes, 3 reset events (passes 1-3 HIGH findings); CONVERGED 3-of-3 at pass-6
 - Wave 4: 5 passes, 0 reset events; CONVERGED 3-of-3 at pass-5 (fastest sub-cycle)
 - Wave 5: 6 passes, 0 reset events; CONVERGED 3-of-3 at pass-6; trajectory 11→7→2→1→2→1 (LOW-only since pass-3)
-- Wave 6 SS-09: pass-5 NITPICK_ONLY; trajectory 9→3→8→5→0 (zero at pass-5; CAP-propagation drift class exhausted); convergence 1_of_3; pass-6 pending
+- Wave 6 SS-09: pass-6 NITPICK_ONLY; trajectory 9→3→8→5→0→0 (zero at pass-5+6; CAP-propagation drift class exhausted; 9 broad-lens axes clean at pass-6); convergence 2_of_3; pass-7 pending
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
