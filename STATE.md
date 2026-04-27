@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-27T04:30:00Z
-phase: wave-3-ss-04-pass-2-fix-burst-pending
+phase: wave-3-ss-04-pass-3-pending
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "**PAUSE FOR CONTEXT COMPACTION at Wave 3 SS-04 pass-1 fix-burst complete.** Wave 1 SS-01 CONVERGED (commit e5187fa). Wave 2 SS-03 CONVERGED (commit 2fdb779, 13 passes). Wave 3 SS-04: PO anchored 8 stories (commit b242d67); adversary pass-1 found 11 findings (commit d152719); PO fix burst addressed 8 of 11 — F-001 sanctioned (BC-4.03.001 stretch-anchor per F-007 precedent), F-002 (S-3.03 re-anchored to BC-2.01.002 SS-02), F-003 (FR-045 canonical = lifecycle events; S-3.02 → FR-046), F-004 (S-3.03 dual-FR), F-005/F-007/F-008 cleanup (commit a0e02d7). 3 LOW out-of-scope/pre-existing findings logged. Convergence: 0 of 3. **Next: dispatch adversary pass-2 to verify fix burst and continue Wave 3 to convergence.** Pending tasks: #98 (CI alignment), #100 done, #101 in-progress, #102 (Waves 4-8), #103 (final consistency-validator), #104 (SS-03/07/10 capability TD), #105 (S-2.07 dep TD), #106 (STATE.md compaction)."
+current_step: "Wave 3 SS-04 pass-2 fix burst COMPLETE (commit 7ec1aac; 7 findings F-101..F-107 addressed). Pass-3 pending. Wave 1 SS-01 CONVERGED (commit e5187fa). Wave 2 SS-03 CONVERGED (commit 2fdb779, 13 passes). Convergence: 0-of-3. **Next: dispatch adversary pass-3 to verify pass-2 fix burst.** Pending tasks: #98 (CI alignment), #101 in-progress, #102 (Waves 4-8), #103 (final consistency-validator), #104 (SS-03/07/10 capability TD), #105 (S-2.07 dep TD), #106 (STATE.md compaction), #107 (TD: housekeeping sweep bare BC-prefix anchors in SS-01 stories S-1.02:279 + S-2.02:111)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 3 SS-04 pass-1 fix-burst complete — context compaction pause) |
-| **Current Phase** | wave-3-ss-04-pass-2-fix-burst-pending |
+| **Last Updated** | 2026-04-26 (Wave 3 SS-04 pass-2 fix-burst complete at 7ec1aac; pass-3 pending) |
+| **Current Phase** | wave-3-ss-04-pass-3-pending |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -105,7 +105,7 @@ dtu_services: []
 | Hiccup: ci.yml/release.yml validation gap | DEFERRED | Tracked as task #98; permissions.bats coverage diverges between ci.yml (PR-time) and release.yml (tag-time) |
 | Wave 1 SS-01 dispatcher-core re-anchor (sub-cycle) | COMPLETE | 6-pass adversarial convergence; 7 stories anchored to 93 unique SS-01 BCs; 10 v1.1 BC candidates; trajectory 10→4→3→1→0→0; commits d373e2b → 754734a → 9a00ee3 → 76bfc42 → f15aa0c |
 | Wave 2 SS-03 sinks re-anchor (sub-cycle) | COMPLETE | 13-pass adversarial convergence; 9 stories anchored to ~37 unique SS-03 BCs (+ FR-044 PRD addition); 32 v1.1 BC candidates; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0; 4 reset events (F-401, F-501→F-602, F-701) all preemptively addressed |
-| Wave 3 SS-04 plugin-ecosystem re-anchor (pass-2 complete, fix burst pending) | in-progress | 8 stories anchored to 13 SS-04 BCs; pass-1=11 → pass-2=7 (decreasing); HIGH 4→3. Clock RESETS per BC-5.04.003 (3 HIGH findings). Convergence: 0-of-3. Adversary commit: a300748. PO commits: b242d67 → a0e02d7 |
+| Wave 3 SS-04 plugin-ecosystem re-anchor (pass-2 fix burst applied; pass-3 pending) | in-progress | 8 stories anchored to 13 SS-04 BCs; pass-1=11 → pass-2=7 (decreasing); HIGH 4→3. Clock RESETS per BC-5.04.003 (3 HIGH findings). Convergence: 0-of-3. Pass-2 fix burst applied at 7ec1aac (7 findings addressed). Adversary commits: d152719 → a300748. PO commits: b242d67 → a0e02d7 → 7ec1aac |
 
 ## Current Phase Steps
 
@@ -115,7 +115,8 @@ dtu_services: []
 | Wave 3 SS-04 adversarial pass-1 | adversarial-reviewer | COMPLETE | 11 findings (4H/4M/3L); commit d152719 |
 | Wave 3 SS-04 pass-1 fix burst | product-owner | COMPLETE | 8 findings addressed (F-001..F-008); 3 LOW deferred; commit a0e02d7 |
 | Wave 3 SS-04 adversarial pass-2 | adversarial-reviewer | COMPLETE | 7 findings (3H/2M/2L); clock RESET; commit a300748 |
-| Wave 3 SS-04 pass-2 fix burst | product-owner | PENDING | F-101 VP-044 mis-anchor, F-104 sibling regression, F-105 POLICY 8 pattern, F-102/F-103 CAP→SS drifts |
+| Wave 3 SS-04 pass-2 fix burst | product-owner | COMPLETE | 7 findings addressed (F-101..F-107); commit 7ec1aac |
+| Wave 3 SS-04 adversarial pass-3 | adversarial-reviewer | PENDING | Verify pass-2 fix burst; target convergence step 1-of-3 |
 
 ## Identifier Conventions
 
@@ -223,6 +224,7 @@ dtu_services: []
 | D-036 | **Wave 2 SS-03 re-anchor CONVERGED at pass-13 (3-of-3)** — 9 stories (S-1.08, S-1.09, S-4.01-07) anchored. PRD FR-044 added (per-sink resilience: retry, CB, DLQ). 32 v1.1 BC candidates logged (heavy: vendor-specific schemas + cross-sink generalizations + DLQ details). Trajectory: 11→1→3→0→1→0→1→2→0→1→0→0→0. 4 reset events at passes 5/8/10 (substantive findings) preemptively addressed; 3 final clean passes 11/12/13 satisfy ADR-013. PO commits: 73bbf7d → f438c76 → 443c8ba → 9dd87a4 → 1417e17 → 04e836a → 4391584 → ec6f0b2 → 940bb6b. | Wave 2 surfaced more sub-axes than Wave 1 (FR drift, sibling-not-updated 3rd recurrence, bidirectional dep edges, PRD count propagation). Comprehensive sweeps + preemptive sub-axis discovery key to convergence. CAP subsystem drift now confirmed across 4 CAPs (003/010/023/024) — task #104 + observation O-801 logged for v1.1 audit. | re-anchor | 2026-04-27 | orchestrator + adversary + PO |
 | D-038 | Wave 3 SS-04 pass-2 review at a300748: 7 findings (3H/2M/2L). F-101 VP-044 mis-anchor extends F-002 closure gap; F-104 partial-fix-regression of F-005 to S-5.01-04 siblings; F-105 systematic POLICY 8 violation across 5 stories. Two MED CAP→SS drifts (F-102 CAP-008/SS-02, F-103 CAP-013/SS-01). Clock RESETS per BC-5.04.003. Convergence step 0_of_3. | Wave 3 trajectory: pass-1=11 → pass-2=7 (decreasing); HIGH 4→3. | re-anchor | 2026-04-26 | adversary |
 | D-037 | **Wave 3 SS-04 pass-1 fix burst applied; Wave 3 mid-flight at convergence step 0-of-3.** Adjudications: F-001 BC-4.03.001 stretch-anchor SANCTIONED per Wave 2 F-007 precedent (explicit disclosure in 5 stories). F-002 S-3.03 re-anchored from legacy-bash-adapter BCs to BC-2.01.002 (SS-02 HookResult); subsystems → ["SS-02", "SS-04"]. F-003 FR-045 canonical = lifecycle events (S-5 stories); S-3.02 PR-activity proposal renumbered to FR-046. F-004 S-3.03 dual-anchor [FR-013, FR-032]. F-009/F-010/F-011 deferred as out-of-scope/pre-existing patterns. CAP subsystem drift sweep: CLEAN (Wave 3 breaks Wave 1+2 recurring pattern). PO commits: b242d67 → a0e02d7. | Pause point for context compaction. Resume: dispatch adversary pass-2. | re-anchor | 2026-04-27 | orchestrator |
+| D-039 | Wave 3 SS-04 pass-2 fix burst applied at 7ec1aac — 7 findings (3H/2M/2L) addressed: F-101 VP-044 removed from S-3.03 + v1.1 VP candidate disclosed; F-102 CAP-008 expanded to include SS-02; F-103 CAP-013 expanded to include SS-01; F-104 S-5.01-04 BC-1.01 → BC-1.01.001 with placeholder comment; F-105 5 stories AC traces converted to [process-gap] + 5 new v1.1 BC candidates registered; F-106 S-3.01:58 self-contradiction fixed; F-107 S-5.03 added SS-03 to subsystems + CAP-003 to capabilities. | Sibling sweep: clean except low-sev BC-1.01 housekeeping gap noted in S-1.02 + S-2.02 (in-scope SS-01, not cross-subsystem violation). CAP audit: 1 additional drift resolved inline (CAP-003 added to S-5.03). F-101..F-107 closure pending pass-3 verification. | re-anchor | 2026-04-26 | state-manager |
 
 ## Skip Log
 
@@ -236,53 +238,51 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Context compaction.
+**Pause reason:** Pass-2 fix burst recorded; awaiting pass-3 dispatch.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
 - Wave 2 SS-03 CONVERGED 3-of-3 at pass-13 (commit 2fdb779; 13 passes; 4 reset events; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0)
-- Wave 3 SS-04 pass-1 fix burst complete (commit a0e02d7); convergence step 0-of-3
+- Wave 3 SS-04 pass-2 fix burst COMPLETE (commit 7ec1aac); convergence step 0-of-3
 
 **Wave 3 status:**
 - 8 stories anchored: S-2.01 (12 BCs), S-3.01-03 (1 BC each + v1.1 candidates), S-5.01-04 (1 BC each + structural anchor)
 - All 13 SS-04 BCs accounted for
-- 23 v1.1 BC candidates pre-emptively logged (later +1 from F-002 fix; 24 total)
+- Subsystems span: most ["SS-04"]; S-3.03 ["SS-02", "SS-04"]; S-5.01-04 ["SS-01", "SS-04"]; S-5.03 now also ["SS-03"]
 - FR-045 RESERVED for "New Claude Code lifecycle hook events" (proposal; NOT in PRD)
 - FR-046 RESERVED for "capture-pr-activity plugin extension of FR-014" (proposal; NOT in PRD)
-- Subsystems span: most ["SS-04"]; S-3.03 ["SS-02", "SS-04"]; S-5.01-04 ["SS-01", "SS-04"]
 
-**Wave 3 fix-burst adjudications applied (commit a0e02d7):**
-- F-001 BC-4.03.001 stretch-anchor: SANCTIONED per Wave 2 F-007 precedent
-- F-002 S-3.03: re-anchored to BC-2.01.002 (SS-02)
-- F-003 FR-045 conflict: FR-045 = lifecycle events; S-3.02 → FR-046
-- F-004 S-3.03 FR drift: dual-anchor [FR-013, FR-032]
-- F-005 stale BC IDs in Architecture Compliance Rules: canonical IDs applied
-- F-007 S-3.01 vacuous AC traces: re-traced AC#5 to BC-4.03.001 postcondition 2; AC#7 marked [process-gap]
-- F-008 S-3.01 VP scoping: per-VP scope text corrected
-- F-006/F-009/F-010/F-011: out-of-scope or pre-existing TD; logged
+**Wave 3 pass-2 fix burst adjudications applied (commit 7ec1aac):**
+- F-101 VP-044 mis-anchor: removed from S-3.03; v1.1 VP candidate disclosed
+- F-102 CAP-008 subsystem drift: expanded to include SS-02
+- F-103 CAP-013 subsystem drift: expanded to include SS-01
+- F-104 S-5.01-04 BC-1.01 partial-fix regression: refined to BC-1.01.001 with placeholder comment
+- F-105 POLICY 8 AC traces in 5 stories: converted to [process-gap] + 5 v1.1 BC candidates registered
+- F-106 S-3.01:58 self-contradiction: fixed
+- F-107 S-5.03 SS-03 + CAP-003 omission: added SS-03 to subsystems + CAP-003 to capabilities
 
 **Resumption recipe:**
 
-1. Verify factory-artifacts HEAD = `a0e02d7` (or whatever the new state-manager commit is after this update)
-2. Confirm Wave 1+2 still converged via `git log --oneline e5187fa 2fdb779 a0e02d7 -1`
-3. Dispatch adversary pass-2 with prompt:
-   "Wave 3 SS-04 pass-2. Verify pass-1 fix burst (commit a0e02d7). Apply fresh-context skepticism. Targeting 0→1 of 3 NITPICK-only after F-001..F-008 fixes addressed."
+1. Verify factory-artifacts HEAD includes 7ec1aac ancestry
+2. Dispatch adversary pass-3 with prompt:
+   "Wave 3 SS-04 pass-3. Verify pass-2 fix burst (commit 7ec1aac). Apply fresh-context skepticism. Targeting convergence step 1-of-3 after F-101..F-107 fixes addressed."
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
-- #101 Wave 3 SS-04 (in-progress — pass-2 next)
+- #101 Wave 3 SS-04 (in-progress — pass-3 next)
 - #102 Waves 4-8 (17 stories: SS-02, SS-06, SS-08, SS-09, SS-10)
 - #103 Cross-cutting consistency-validator sweep (post-Wave-8)
 - #104 TD: SS-03/07/10 capability column standardization
 - #105 TD: S-2.07 depends_on missing S-1.09
-- #106 STATE.md compaction (now growing toward 250+ lines)
+- #106 STATE.md compaction (now growing toward 300 lines)
+- #107 TD: housekeeping sweep for bare BC-prefix anchors in SS-01 stories (S-1.02:279, S-2.02:111)
 
 **Total cumulative anchored:** 24 stories (Wave 1 + Wave 2 + Wave 3 in-progress) of 41 migrated stories.
 
 **Trajectory pattern across waves:**
 - Wave 1: 6 passes, 0 reset events
 - Wave 2: 13 passes, 4 reset events
-- Wave 3: pass-1 done, 1 fix-burst applied, convergence pending
+- Wave 3: pass-1 done (11 findings), pass-2 done (7 findings), pass-2 fix burst applied, convergence pending; trajectory 11→7 (decreasing)
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
