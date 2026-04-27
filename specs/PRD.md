@@ -1114,6 +1114,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-026 | Manage multi-repo health and cross-repo traceability | BC-6 (multi-repo-health skill) | SS-06 |
 | CAP-027 | Emit structured events from bash hooks via CLI tool | BC-10.01 (emit-event bin tool); BC-7 (hooks using _emit helper) | SS-07, SS-10 |
 | CAP-028 | Install and update the plugin via Claude Code marketplace | BC-9.01.001 (semver prerelease in bump-version.sh), BC-9.01.002 (chore commit discipline), BC-9.01.003 (atomic bot commit — binaries + plugin.json + marketplace.json) | SS-06, SS-09 |
+<!-- F-101 (Wave 6 pass-2): BC-list column cites SS-09 BCs only; SS-06 enforcer-BC pending — install/update flows via SS-06 activate skill (BC-6.12.x family per FR-029). Specific BC IDs TBD when SS-06 backfill closes. -->
 
 ---
 

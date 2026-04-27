@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 6 SS-09 pass-1 fix burst complete; D-065 logged; F-001..F-008 addressed; F-009 deferred; commit 2c92370; pass-2 review pending) |
+| **Last Updated** | 2026-04-27 (Wave 6 SS-09 pass-2 fix burst complete; D-066 logged; F-101..F-103 addressed; trajectory 9→3; pass-3 pending) |
 | **Current Phase** | wave-5-ss-06-CONVERGED-spec-ready |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -150,6 +150,8 @@ dtu_services: []
 | Wave 6 SS-NN re-anchor (selection pending) | orchestrator | PENDING | Select SS-08 (4 stories), SS-09 (4 stories), or SS-10 (5 stories) |
 | Wave 6 SS-09 adversarial pass-1 | adversarial-reviewer | COMPLETE | 9 findings (4H/4M/1L); wave-6-ss-09-pass-1.md; trajectory baseline 9 |
 | Wave 6 SS-09 pass-1 fix burst | product-owner | COMPLETE | 8 findings addressed (F-001..F-008); F-009 deferred; commit 2c92370 |
+| Wave 6 SS-09 adversarial pass-2 | adversarial-reviewer | COMPLETE | 3 findings (1 MED/2 LOW); 8/8 pass-1 closures verified; trajectory 9→3 (67% reduction; HIGH→MED ceiling collapse); wave-6-ss-09-pass-2.md |
+| Wave 6 SS-09 pass-2 fix burst | state-manager | COMPLETE | F-101 defensive comments (capabilities.md + PRD:1116); F-102 S-2.02 dual-cap disclosure; F-103 S-2.04 process-gap + v1.1 VP candidate |
 
 ## Identifier Conventions
 
@@ -284,6 +286,7 @@ dtu_services: []
 | D-063 | **Wave 6 SS-09 baseline re-anchor at 837aedc** — 6 stories anchored; CAP-TBD gap on BC-9.01.001/002/003 resolved to CAP-028. S-0.01 to BC-9.01.001/CAP-028; S-0.04 to BC-9.01.005/VP-015/CAP-007; S-2.02 to BC-9.01.005/VP-049/CAP-007; S-2.03 to BC-9.01.004/VP-015/CAP-007; S-2.04 to BC-9.01.002+003/CAP-028; S-2.08 to all 5 BCs/VP-015. | All 5 BC files capability frontmatter + Stories appended (POLICY 1). BC-INDEX 5 rows updated. VP-INDEX Story Anchors VP-015+VP-049 appended. VP-015.md + VP-049.md Stories updated. PRD FR-037 CAP column expanded to CAP-007+CAP-028. 34 of 41 stories now anchored. | wave-6-ss-09 | 2026-04-27 | product-owner |
 | D-064 | Wave 6 SS-09 pass-1 review: 9 findings (4 HIGH/4 MED/1 LOW). F-001 BC-1.07.003/004 ↔ VP-049 bidirectional gap (Wave 5 pass-3 recurrence — process-gap codification candidate). F-002 S-2.03 AC-4 BC-9.01.003 outside bcs[]. F-003 S-2.08 cross-SS AC traces unmarked. F-004 S-2.04 SS-10 anchor pending intent. F-005 CAP-028 SS-09-only vs FR-029 SS-06+SS-09 expansion candidate. F-006 BC-1.07.003/004 CAP-TBD orphan. F-007/F-008/F-009 MED/LOW. Convergence step 0_of_3. | trajectory baseline 9 within Wave 1-5 band; smaller surface (5 SS-09 BCs); 3-of-3 plausible by pass 4-5. | wave-6-ss-09 | 2026-04-27 | adversary |
 | D-065 | Wave 6 SS-09 pass-1 fix burst: F-001..F-008 addressed (8 of 9 findings); F-009 deferred (VP-015 multi-story anchor is convention, not defect). F-001: BC-1.07.003/004 VP-049 bidirectional — both BCs Verification Properties rows populated + Stories set to S-2.02; BC-INDEX updated. F-002: S-2.03 AC-4+AC-7 reworded as [process-gap] + v1.1 BC candidates table added. F-003: S-2.08 AC-2/3/4/8 reworded as [process-gap] + stretch-anchor disclosure section + v1.1 BC candidates table (4 entries). F-004: S-2.04 subsystems SS-10 removed (stale carryover). F-005: capabilities.md CAP-028 Subsystems SS-09→SS-06,SS-09 + PRD §8 CAP-028 row updated (Wave 3 F-007 precedent). F-006: BC-1.07.003/004 capability CAP-TBD→CAP-002 + L2 Capability justification added + BC-INDEX capability column updated (Wave 1 deferral closure under Wave 6 trigger). F-007: PRD §FR-037 "all 5 BCs anchored" → "all 5 BCs anchored to capabilities (BC frontmatter status:draft pending Phase 1.6b verification)". F-008: VP-049 Source Contract Co-anchor line added for BC-1.07.004. OBS-3 S-0.04+S-2.02 spot-check: CLEAN (no POLICY 8 drift). | 9 files touched (2 BCs, 1 VP, 1 BC-INDEX, 1 PRD, 1 capabilities.md, 3 stories); story versions bumped S-2.03/S-2.04/S-2.08 v1.1→v1.2 | wave-6-ss-09 | 2026-04-27 | orchestrator-adjudicated |
+| D-066 | Wave 6 SS-09 pass-2 review at 2c92370 + fix burst applied. 3 findings (1 MED/2 LOW). 8/8 pass-1 closures verified, no regressions. F-101 (CAP-028 PRD:1116 BC-list column SS-06 gap) addressed via defensive HTML comments at capabilities.md:86 + PRD:1116 (Wave 5 D-017 pattern). F-102 (S-2.02 dual-cap silent) addressed via stretch-anchor disclosure paragraph; S-2.02 v1.1→v1.2. F-103 (S-2.04 empty VPs) addressed via [process-gap] markup + v1.1 VP candidate (VP-NNN-release-bot-commit-atomicity); S-2.04 v1.2→v1.3. Trajectory 9→3 = 67% reduction; HIGH→MED ceiling collapse. Convergence step 0_of_3 (pass-3 NITPICK_ONLY would advance to 1_of_3). | Matches Wave 5 SS-06 trajectory pattern (11→7→2→1→2→1). 3-of-3 convergence achievable by pass-4 if F-101 closure holds + no new sibling sweeps surface. | wave-6-ss-09 | 2026-04-27 | orchestrator + state-manager |
 
 ## Skip Log
 
@@ -297,7 +300,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 6 SS-09 pass-1 review complete; PO fix burst pending.
+**Pause reason:** Wave 6 SS-09 pass-2 fix burst complete; pass-3 adversarial review pending.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
@@ -305,11 +308,11 @@ dtu_services: []
 - Wave 3 SS-04 CONVERGED 3-of-3 at pass-6 (commit 9cc5fe7; 6 passes; trajectory 11→7→4→1→1→0; HIGH 4→0 collapsed at pass-4)
 - Wave 4 SS-02 CONVERGED 3-of-3 at pass-5: 0 findings; 9/9 cumulative closed (100%); 22/22 BC files CLEAN; 26 of 41 stories anchored; 5-pass cycle (fastest to date)
 - Wave 5 SS-06 CONVERGED 3-of-3 at pass-6: 1 LOW process-gap carryover (task #112); 28 of 41 stories anchored; 6-pass cycle; trajectory 11→7→2→1→2→1
-- Wave 6 SS-09 BASELINE at 837aedc: 6 stories anchored (S-0.01/S-0.04/S-2.02/S-2.03/S-2.04/S-2.08); CAP-028 resolved for BC-9.01.001-003; 34 of 41 total anchored; pass-1 pending
+- Wave 6 SS-09 pass-2 fix burst complete: F-101/102/103 addressed; trajectory 9→3 (67% reduction; HIGH→MED ceiling collapse); convergence 0_of_3; pass-3 pending
 
 **Resumption recipe:**
 
-Dispatch adversarial pass-1 for Wave 6 SS-09 (6 stories, 5 BCs, CAP-028 resolution at baseline commit 837aedc).
+Dispatch adversarial pass-3 for Wave 6 SS-09. Inputs: wave-6-ss-09-pass-2.md + all fix artifacts. Verify F-101 closure (capabilities.md:86 + PRD:1116 HTML comments) and F-102/F-103 closures (S-2.02 v1.2 + S-2.04 v1.3).
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
@@ -320,10 +323,9 @@ Dispatch adversarial pass-1 for Wave 6 SS-09 (6 stories, 5 BCs, CAP-028 resoluti
 - #106 STATE.md compaction (now growing toward 340 lines)
 - #107 TD: housekeeping sweep for bare BC-prefix anchors in SS-01 stories (S-1.02:279, S-2.02:111)
 - #108 TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts (CAP-003, 007, 010, 017, 023, 024) — deferred from Wave 3 pass-3
-- #110 Wave 5 SS-06 re-anchor — COMPLETE (CONVERGED pass-6)
 - #111 TD: Bidirectional dep edge S-2.04.blocks missing S-2.06 (Wave 5 pre-existing)
 - #112 TD: Codify bc-anchor-sweep checklist step (Wave 5 MED-002 process-gap)
-- #113 Wave 6 SS-09 re-anchor — BASELINE COMPLETE (commit 837aedc); awaiting pass-1 adversarial review
+- #113 Wave 6 SS-09 re-anchor — pass-2 fix burst complete; pass-3 adversarial review next
 - #114 Extend validate-consistency skill: tautology detector + BC canonical TV consistency checks (motivated by Prism Wave 2 Pass 7 finding TD-W2-FIXK-001 + TD-W2-FIXK-002)
 
 **Total cumulative anchored:** 34 stories (Waves 1-5 CONVERGED + Wave 6 SS-09 baseline) of 41 migrated stories. Remaining: 7 stories (SS-08: 4, SS-10: 3).
@@ -334,7 +336,7 @@ Dispatch adversarial pass-1 for Wave 6 SS-09 (6 stories, 5 BCs, CAP-028 resoluti
 - Wave 3: 6 passes, 3 reset events (passes 1-3 HIGH findings); CONVERGED 3-of-3 at pass-6
 - Wave 4: 5 passes, 0 reset events; CONVERGED 3-of-3 at pass-5 (fastest sub-cycle)
 - Wave 5: 6 passes, 0 reset events; CONVERGED 3-of-3 at pass-6; trajectory 11→7→2→1→2→1 (LOW-only since pass-3)
-- Wave 6 SS-09: BASELINE at 837aedc; pass-1 pending; 6 stories; CAP-028 anchored for BC-9.01.001-003
+- Wave 6 SS-09: pass-2 fix burst complete; trajectory 9→3; convergence 0_of_3; pass-3 pending
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
