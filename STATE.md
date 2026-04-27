@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
-phase: wave-3-ss-04-pass-6-pending
+phase: wave-3-ss-04-CONVERGED-spec-ready
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 3 SS-04 pass-5 LOW-001 Option (a) clarifier applied at 97fb6f1; pass-6 pending targeting 3-of-3 = CONVERGED. Convergence 2-of-3 sustained. Wave 1 SS-01 CONVERGED (commit e5187fa). Wave 2 SS-03 CONVERGED (commit 2fdb779, 13 passes). Pending tasks: #98 (CI alignment), #101 in-progress, #102 (Waves 4-8), #103 (final consistency-validator), #104 (SS-03/07/10 capability TD), #105 (S-2.07 dep TD), #106 (STATE.md compaction), #107 (TD: housekeeping sweep bare BC-prefix anchors in SS-01 stories S-1.02:279 + S-2.02:111), #108 (TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts — CAP-003, 007, 010, 017, 023, 024)."
+current_step: "Wave 3 SS-04 CONVERGED at pass-6 (9cc5fe7); 3_of_3 NITPICK passes; 24 of 41 stories re-anchored. Wave 4 SS-NN re-anchor PENDING. Pending tasks: #98 (CI alignment), #102 (Waves 4-8), #103 (final consistency-validator), #104 (SS-03/07/10 capability TD), #105 (S-2.07 dep TD), #106 (STATE.md compaction), #107 (TD: housekeeping sweep bare BC-prefix anchors in SS-01 stories S-1.02:279 + S-2.02:111), #108 (TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts — CAP-003, 007, 010, 017, 023, 024), #109 (Wave 4 SS-NN re-anchor — next sub-cycle)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (Wave 3 SS-04 pass-5 LOW-001 Option (a) clarifier at 97fb6f1; pass-6 pending; convergence 2-of-3 sustained) |
-| **Current Phase** | wave-3-ss-04-pass-6-pending |
+| **Last Updated** | 2026-04-26 (Wave 3 SS-04 CONVERGED at pass-6 commit 9cc5fe7; 3_of_3 NITPICK; 24 of 41 stories re-anchored) |
+| **Current Phase** | wave-3-ss-04-CONVERGED-spec-ready |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -105,7 +105,7 @@ dtu_services: []
 | Hiccup: ci.yml/release.yml validation gap | DEFERRED | Tracked as task #98; permissions.bats coverage diverges between ci.yml (PR-time) and release.yml (tag-time) |
 | Wave 1 SS-01 dispatcher-core re-anchor (sub-cycle) | COMPLETE | 6-pass adversarial convergence; 7 stories anchored to 93 unique SS-01 BCs; 10 v1.1 BC candidates; trajectory 10→4→3→1→0→0; commits d373e2b → 754734a → 9a00ee3 → 76bfc42 → f15aa0c |
 | Wave 2 SS-03 sinks re-anchor (sub-cycle) | COMPLETE | 13-pass adversarial convergence; 9 stories anchored to ~37 unique SS-03 BCs (+ FR-044 PRD addition); 32 v1.1 BC candidates; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0; 4 reset events (F-401, F-501→F-602, F-701) all preemptively addressed |
-| Wave 3 SS-04 plugin-ecosystem re-anchor (pass-6 pending) | in-progress | pass-4 NITPICK_ONLY at b1cf6b9; convergence 1_of_3. Trajectory: 11→7→4→1 (HIGH 4→3→1→0). pass-4 LOW-001 token alignment applied at 2080275. pass-5 NITPICK_ONLY at 1b157d2; convergence 2_of_3. pass-5 LOW-001 Option (a) clarifier applied at 97fb6f1; pass-6 pending. Convergence 2_of_3 sustained. Trajectory: 11→7→4→1→1. |
+| Wave 3 SS-04 plugin-ecosystem re-anchor | **CONVERGED** at pass-6 (commit 9cc5fe7): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=0 (HIGH 4→0 collapsed at pass-4). 8 stories spec-ready: S-2.01, S-3.01-03, S-5.01-04. Cumulative re-anchored: 24 of 41 stories (Wave 1+2+3). | wave-3-ss-04-pass-6.md |
 
 ## Current Phase Steps
 
@@ -122,7 +122,9 @@ dtu_services: []
 | Wave 3 SS-04 pass-4 fix burst | product-owner | COMPLETE | 4 inline-comment edits in S-5.01-04 Architecture Compliance Rules tables: once-true-validation → once-true-async-true-validation; commit 2080275 |
 | Wave 3 SS-04 adversarial pass-5 | adversarial-reviewer | COMPLETE | 1 LOW (ADV-W3SS04-P05-LOW-001 cross-sibling scope-reason asymmetry); NITPICK_ONLY; clock 2-of-3; commit 1b157d2 |
 | Wave 3 SS-04 pass-5 fix burst | product-owner | COMPLETE | S-3.01:54 F-001 sanction clarifier (Option a) applied; commit 97fb6f1 |
-| Wave 3 SS-04 adversarial pass-6 | adversarial-reviewer | PENDING | Targeting convergence step 3-of-3 = CONVERGED |
+| Wave 3 SS-04 adversarial pass-6 | adversarial-reviewer | COMPLETE | 0 findings; NITPICK_ONLY; clock 3-of-3 = CONVERGED; commit 9cc5fe7 |
+| Wave 3 SS-04 CONVERGED | state-manager | COMPLETE | 3_of_3 NITPICK passes; 24 of 41 stories re-anchored; commit 9cc5fe7 |
+| Wave 4 SS-NN re-anchor (next sub-cycle) | product-owner | PENDING | 17 stories remaining: SS-02 (2), SS-06 (2), SS-08 (4), SS-09 (4), SS-10 (5) |
 
 ## Identifier Conventions
 
@@ -237,6 +239,7 @@ dtu_services: []
 | D-043 | Wave 3 SS-04 pass-4 LOW-001 token alignment applied at 2080275 | 4 inline-comment edits in Architecture Compliance Rules tables (S-5.01:133, S-5.02:134, S-5.03:143, S-5.04:133): once-true-validation → once-true-async-true-validation. Aligns 6-token v1.1 BC candidate row IDs with inline comments. No body content or placeholder semantics changed. Sibling sweep clean (0 hits in other stories). | wave-3-ss-04 | 2026-04-26 | orchestrator |
 | D-044 | Wave 3 SS-04 pass-5 NITPICK_ONLY at 1b157d2; clock 2 of 3 | 1 LOW finding (ADV-W3SS04-P05-LOW-001 cross-sibling scope-reason language asymmetry between S-3.01 short form vs 5 siblings long form, tagged pending intent verification per S-7.01). 7 sub-axis sweeps clean: POLICY 1/4/6/8/9, CAP→PRD §8, dep graph, traces_to coherence. Trajectory pass-4=1 → pass-5=1 stable LOW. | wave-3-ss-04 | 2026-04-26 | state-manager |
 | D-045 | Wave 3 SS-04 pass-5 LOW-001 Option (a) clarifier applied at 97fb6f1 | Single S-3.01:54 edit appending F-001 sanction scope clarifier: S-3.01 is canonical replacement story for BC-4.03.001; F-001 sibling-template sanction applies to S-3.02 and S-5.01-04, not to S-3.01 itself. Resolves cross-sibling language asymmetry while preserving intent. | wave-3-ss-04 | 2026-04-26 | orchestrator |
+| D-046 | Wave 3 SS-04 spec re-anchor CONVERGED at pass-6 (3_of_3 NITPICK_ONLY) | 6-pass cycle on 8 SS-04 plugin-ecosystem stories: 11→7→4→1→1→0 trajectory; severity collapsed to zero. Pass-6 zero findings across 19 sub-axes including 6 NEW axes (estimated_days↔body, Wave/Phase/Tier/Milestone, status, story_id format, producer conventions, capability frontmatter coherence). One demoted Observation (S-5.03 CAP-003 frontmatter justification gap, intent-pending per S-7.01). All major recurring patterns swept: F-001 sanctioned-template, F-104 stretch-anchor, F-105 process-gap markers, F-107 SS-03 inclusion, CAP→PRD §8 propagation. Cumulative re-anchored: 24 of 41 stories. | wave-3-ss-04 | 2026-04-26 | orchestrator |
 
 ## Skip Log
 
@@ -250,25 +253,19 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Pass-5 fix burst COMPLETE at 97fb6f1 (S-3.01:54 Option a clarifier applied); pass-6 adversarial review pending targeting 3-of-3 = CONVERGED.
+**Pause reason:** Wave 3 SS-04 CONVERGED at pass-6 (commit 9cc5fe7); 3_of_3 NITPICK passes; 24 of 41 stories re-anchored.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
 - Wave 2 SS-03 CONVERGED 3-of-3 at pass-13 (commit 2fdb779; 13 passes; 4 reset events; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0)
-- Wave 3 SS-04 pass-5 fix burst COMPLETE at 97fb6f1; convergence 2-of-3 sustained; pass-6 pending
-
-**Wave 3 status:**
-- 8 stories anchored: S-2.01 (12 BCs), S-3.01-03 (1 BC each + v1.1 candidates), S-5.01-04 (1 BC each + structural anchor)
-- All 13 SS-04 BCs accounted for
-- Trajectory: 11→7→4→1→1 (decreasing; HIGH 4→3→1→0; stable LOW at pass-4 and pass-5)
+- Wave 3 SS-04 CONVERGED 3-of-3 at pass-6 (commit 9cc5fe7; 6 passes; trajectory 11→7→4→1→1→0; HIGH 4→0 collapsed at pass-4)
 
 **Resumption recipe:**
 
-1. Dispatch adversary pass-6 targeting convergence step 3-of-3 = CONVERGED
+Begin Wave 4 SS-NN re-anchor selection (17 stories remaining: SS-02 (2), SS-06 (2), SS-08 (4), SS-09 (4), SS-10 (5))
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
-- #101 Wave 3 SS-04 (in-progress — pass-5 fix burst next, then pass-6)
 - #102 Waves 4-8 (17 stories: SS-02, SS-06, SS-08, SS-09, SS-10)
 - #103 Cross-cutting consistency-validator sweep (post-Wave-8)
 - #104 TD: SS-03/07/10 capability column standardization
@@ -276,13 +273,14 @@ dtu_services: []
 - #106 STATE.md compaction (now growing toward 300 lines)
 - #107 TD: housekeeping sweep for bare BC-prefix anchors in SS-01 stories (S-1.02:279, S-2.02:111)
 - #108 TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts (CAP-003, 007, 010, 017, 023, 024) — deferred from Wave 3 pass-3
+- #109 Wave 4 SS-NN re-anchor (next sub-cycle)
 
-**Total cumulative anchored:** 24 stories (Wave 1 + Wave 2 + Wave 3 in-progress) of 41 migrated stories.
+**Total cumulative anchored:** 24 stories (Wave 1 + Wave 2 + Wave 3 CONVERGED) of 41 migrated stories.
 
 **Trajectory pattern across waves:**
 - Wave 1: 6 passes, 0 reset events
 - Wave 2: 13 passes, 4 reset events
-- Wave 3: pass-1=11, pass-2=7, pass-3=4, pass-4=1, pass-5=1 (decreasing; clock RESET passes 1-3 due to HIGH findings; ADVANCES at pass-4 and pass-5); convergence 2-of-3
+- Wave 3: 6 passes, 3 reset events (passes 1-3 HIGH findings); CONVERGED 3-of-3 at pass-6
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
