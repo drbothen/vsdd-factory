@@ -64,7 +64,7 @@ The runtime `hooks.json` file is gitignored — the activate skill writes it at 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6b) | | |
+| VP-015 | Per-Project Activation Required Before Dispatcher Can Run | manual |
 
 ## Traceability
 

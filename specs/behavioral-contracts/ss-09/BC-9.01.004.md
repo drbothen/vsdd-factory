@@ -63,7 +63,7 @@ The CI build matrix is exactly five platforms (darwin-arm64, darwin-x64, linux-x
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6b) | | |
+| VP-015 | Per-Project Activation Required Before Dispatcher Can Run | manual |
 
 ## Traceability
 
