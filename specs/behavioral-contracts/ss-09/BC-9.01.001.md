@@ -24,11 +24,11 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-9.01.001: bump-version.sh accepts semver prerelease format (1.0.0-beta.N, 1.0.0-rc.N)
+# Behavioral Contract BC-9.01.001: bump-version.sh accepts semver release format (stable N.N.N + prerelease 1.0.0-beta.N / 1.0.0-rc.N)
 
 ## Description
 
-The release tooling's `bump-version.sh` accepts semver prerelease versions of the form `1.0.0-beta.N` and `1.0.0-rc.N`. This allows the release workflow to bump versions through prerelease cycles while CHANGELOG monotonicity is preserved.
+bump-version.sh accepts semver release format — stable releases of the form `N.N.N` (e.g., `1.0.0`, `1.1.0`) AND prerelease versions of the form `1.0.0-beta.N` and `1.0.0-rc.N`. This allows the release workflow to bump versions through prerelease cycles AND promote to stable when the rc.N gate passes.
 
 ## Preconditions
 
@@ -42,7 +42,7 @@ The release tooling's `bump-version.sh` accepts semver prerelease versions of th
 
 ## Invariants
 
-1. Prerelease numbering increases monotonically across CHANGELOG entries.
+1. Version numbering increases monotonically across CHANGELOG entries — stable bumps (N.N.N → N.(N+1).N) and prerelease bumps (1.0.0-beta.N → 1.0.0-beta.(N+1) or 1.0.0-rc.M) both maintain ordering.
 
 ## Edge Cases
 
