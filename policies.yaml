@@ -158,3 +158,31 @@ policies:
       - "For each story's feature branch, verify docs/demo-evidence/<STORY-ID>/ exists"
       - "Verify NO files exist at docs/demo-evidence/*.md — only subfolders"
       - "Cross-check: subfolder name matches the story's frontmatter story_id"
+
+  - id: 11
+    name: no_test_tautologies
+    description: "test_BC_* and test_TV_* functions must call a production fn (emit_*, process_*, validate_*, etc.) — they cannot only assert on data they themselves constructed. Promotes Check 8 of validate-consistency from advisory to gating."
+    adopted: 2026-04-27
+    severity: MEDIUM
+    enforced_by: [validate-consistency, adversary-prompt]
+    scope: [test, story]
+    lint_hook: null
+    verification_steps:
+      - "Run validate-consistency Check 8 (Test Tautology Detector)"
+      - "For each FLAGGED row in the Advisories section, treat as a blocking finding"
+      - "Recognized opt-outs: function carries `/// data-shape pin` doc-comment, OR file-level `//! tautology-allowed: <reason>` declaration"
+      - "Reference fixtures: ${CLAUDE_PLUGIN_ROOT}/skills/validate-consistency/fixtures/tautology/"
+
+  - id: 12
+    name: bc_tv_emitter_consistency
+    description: "When a BC's Canonical Test Vectors table marks a field excluded (e.g., 'Field X in Entry? = No'), the production struct must not unconditionally serialize that field. Promotes Check 9 of validate-consistency from advisory to gating."
+    adopted: 2026-04-27
+    severity: HIGH
+    enforced_by: [validate-consistency, adversary-prompt]
+    scope: [bc, code]
+    lint_hook: null
+    verification_steps:
+      - "Run validate-consistency Check 9 (BC Canonical TV ↔ Emitter Field Consistency)"
+      - "For each FLAGGED row in the Advisories section, treat as a blocking finding"
+      - "Recognized opt-outs: BC frontmatter `tv_emitter_check: skip` or `tv_emitter_check: manual`, OR row notes column says 'field tolerated when present'"
+      - "Reference fixtures: ${CLAUDE_PLUGIN_ROOT}/skills/validate-consistency/fixtures/bc-tv-consistency/"
