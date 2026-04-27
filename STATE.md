@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 4 SS-02 pass-1 fix burst COMPLETE (PO 661dca2 + state-manager <burst-sha>): all 7 findings addressed; pass-2 pending. 26 of 41 stories anchored."
+current_step: "Wave 4 SS-02 pass-1 fix burst COMPLETE (PO 661dca2 + state-manager e6393b2): all 7 findings addressed; pass-2 pending. 26 of 41 stories anchored."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
