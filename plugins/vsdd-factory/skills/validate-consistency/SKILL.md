@@ -69,7 +69,7 @@ The following checks emit advisory findings only — they appear under `## Advis
 **Goal:** flag tests that look like behavior tests but only assert on data they themselves constructed — the test would pass even if the production code under test were deleted.
 
 **Scope:**
-- Rust test functions whose names match `^test_BC_`, `^test_TV_`, `^test_.*_BC_`, or `^test_.*_TV_` (case-sensitive prefix; case-insensitive `_BC_` / `_TV_` segment).
+- Rust test functions whose names match `^test_BC_`, `^test_TV_`, `^test_.*_BC_`, or `^test_.*_TV_` (case-sensitive throughout; `BC` and `TV` must appear in upper-case exactly as written).
 - Search root: `**/tests/**/*.rs`, `**/src/**/*.rs` files containing `#[cfg(test)]` modules, and `**/test_*.rs` / `**/*_test.rs`.
 
 **Tautology shape (FLAG when ALL three hold):**
@@ -139,7 +139,7 @@ The following checks emit advisory findings only — they appear under `## Advis
 ### Advisory check operating notes
 
 - These checks **never** flip the report's overall PASS/FAIL — only blocking checks (1-7) do. Advisories appear in their own section.
-- Advisories carry severity (MEDIUM/HIGH) for prioritization but are **not** policy gates by default. A project may promote them to blocking by adding the policy id to `.factory/policies.yaml` (`POLICY-VC-008`, `POLICY-VC-009`).
+- Advisories carry severity (MEDIUM/HIGH) for prioritization but are **not** policy gates by default. A project may promote them to blocking by adding the policy to `.factory/policies.yaml` (`POLICY 11` — no_test_tautologies for Check 8; `POLICY 12` — bc_tv_emitter_consistency for Check 9).
 - If a project has no Rust source (e.g., docs-only, TypeScript, Python), these checks are no-ops — emit one advisory line `Check 8/9: skipped (no Rust sources detected)` and move on.
 - Both checks are idempotent and side-effect free; they only read.
 
@@ -185,4 +185,4 @@ Use `${CLAUDE_PLUGIN_ROOT}/templates/consistency-validation-report-template.md` 
 <List of checks that passed cleanly>
 ```
 
-**Reading the Advisories section:** entries are non-blocking by default. Promote to blocking by adding `POLICY-VC-008` (tautology) or `POLICY-VC-009` (BC-TV) to `.factory/policies.yaml` if the project wants the checks gating.
+**Reading the Advisories section:** entries are non-blocking by default. Promote to blocking by adding `POLICY 11` (no_test_tautologies, Check 8) or `POLICY 12` (bc_tv_emitter_consistency, Check 9) to `.factory/policies.yaml` if the project wants the checks gating.
