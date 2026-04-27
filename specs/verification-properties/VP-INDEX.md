@@ -133,6 +133,21 @@ total_vps: 64
 | VP-032 | RoutingFilter semantics | proptest over (event_type, allow, deny) triples |
 | VP-059 | ADR ID monotonicity | proptest over arbitrary filesystem ID sets (200 trials) |
 
+## Story Anchors (POLICY 9)
+
+> Anchor story citations added as VPs are exercised by re-anchor waves.
+> POLICY 1 (append-only): existing anchors are never removed; new ones are appended with comma separator.
+
+| VP ID | Anchor Story | Wave | Rationale |
+|-------|-------------|------|-----------|
+| VP-023 | S-1.03 | Wave 4 SS-02 | S-1.03 (hook-sdk-crate) builds the SS-02 test vehicle; VP-023 covers SS-01/SS-02 wire decoder safety |
+| VP-025 | S-1.03 | Wave 4 SS-02 | S-1.03 builds the SS-02 test vehicle; VP-025 covers SS-01/SS-02 host ABI completeness |
+| VP-038 | S-1.03 | Wave 4 SS-02 | VP-038 bcs [BC-2.01.001-003] are in S-1.03's 22-BC anchor set (BC-2.01.001-004 core types) |
+| VP-039 | S-1.03 | Wave 4 SS-02 | VP-039 bcs [BC-2.02.007-010] are in S-1.03's 22-BC anchor set (BC-2.02.001-010 host/FFI) |
+| VP-040 | S-1.03 | Wave 4 SS-02 | VP-040 bcs [BC-2.04.001-005] are in S-1.03's 22-BC anchor set (BC-2.04.001-005 payload) |
+| VP-041 | S-1.03 | Wave 4 SS-02 | VP-041 bcs [BC-2.05.001-003] are in S-1.03's 22-BC anchor set (BC-2.05.001-003 panic) |
+| VP-042 | S-1.03 | Wave 4 SS-02 | VP-042 bcs [BC-2.02.003, BC-2.02.006] are in S-1.03's 22-BC anchor set (BC-2.02.001-010 host/FFI) |
+
 ## Traceability
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
