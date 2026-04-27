@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 7 SS-10 baseline anchor COMPLETE at 86e98ab; pass-1 review pending"
+current_step: "Wave 7 SS-10 pass-1 complete; all 5 findings addressed; pass-2 review pending"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 7 SS-10 baseline; 3 stories anchored: S-0.02, S-4.08, S-5.07; 37 of 41 re-anchored; commit 86e98ab) |
+| **Last Updated** | 2026-04-27 (Wave 7 SS-10 pass-1 final burst; F-004 STORY-INDEX + pass-1 review persisted; 5 findings baseline; fix burst 5ffa93d) |
 | **Current Phase** | wave-7-ss-10-baseline |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -109,7 +109,7 @@ dtu_services: []
 | Wave 4 SS-02 hook-sdk re-anchor | **CONVERGED** at pass-5 (commit 896cb72): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=7 → pass-5=0 (CRIT/HIGH/MED zero from pass-3). 2 stories spec-ready: S-1.03, S-2.05. Cumulative re-anchored: 26 of 41 stories (Wave 1+2+3+4). | wave-4-ss-02-pass-5.md |
 | Wave 5 SS-06 skill-catalog re-anchor | **CONVERGED** at pass-6 (commit f8e25d3): 1 LOW process-gap carryover (task #112), 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=1 (-91%). 2 stories spec-ready: S-0.03, S-2.06. Cumulative re-anchored: 28 of 41 stories. | wave-5-ss-06-pass-6.md |
 | Wave 6 SS-09 configuration & activation re-anchor | **CONVERGED** at pass-7 (commit 5f0719c): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=9 → pass-7=0 (HIGH ceiling collapsed at pass-2). 6 stories spec-ready: S-0.01, S-0.04, S-2.02, S-2.03, S-2.04, S-2.08. Cumulative re-anchored: 34 of 41 stories (Wave 1+2+3+4+5+6). | wave-6-ss-09-pass-7.md |
-| Wave 7 SS-10 CLI Tools and Bin re-anchor (baseline) | COMPLETE | 3 stories (S-0.02/S-4.08/S-5.07) cross-anchored to BC-9.01.001/003; 11 v1.1 BC candidates (BC-10.13.001-011); commit 86e98ab |
+| Wave 7 SS-10 CLI tools re-anchor | in-progress | Wave 7 baseline applied at PO 86e98ab + state-manager 6c3965d. 3 stories anchored to SS-09 BCs (stretch pattern). Pass-1 found 5 findings (1 HIGH/3 MED/1 LOW); fix burst at 5ffa93d. Review: wave-7-ss-10-pass-1.md |
 
 ## Current Phase Steps
 
@@ -164,6 +164,10 @@ dtu_services: []
 | Wave 6 SS-09 adversarial pass-7 (FINAL) | adversarial-reviewer | COMPLETE | CONVERGENCE_REACHED; 0 findings; 3_of_3 NITPICK_ONLY; trajectory 9→3→8→5→0→0→0; 14 sub-axes probed exhaustively; wave-6-ss-09-pass-7.md |
 | Wave 6 SS-09 CONVERGED | state-manager | COMPLETE | 3_of_3 NITPICK passes; 34 of 41 stories re-anchored; trajectory 9→3→8→5→0→0→0 |
 | Wave 7 SS-10 PO baseline 86e98ab | product-owner | COMPLETE | S-0.02/S-4.08/S-5.07 anchored to BC-9.01.001+003 (SS-09 cross-wave); dep edges S-0.02→S-4.08/S-5.07 fixed; 11 v1.1 BC candidates (BC-10.13.001-011); 37 of 41 stories re-anchored |
+| Wave 7 SS-10 PO baseline | product-owner | COMPLETE | 3 stories anchored stretch-pattern to BC-9.01.001/003; 11 v1.1 BC candidates BC-10.13.001-011; commit 86e98ab |
+| Wave 7 SS-10 adversarial pass-1 | adversarial-reviewer | COMPLETE | 5 findings (1 HIGH/3 MED/1 LOW); F-001 stretch-anchor disclosure + F-002 CAP-028 secondary-SS + F-003 arch shared-ownership + F-004 STORY-INDEX stale + F-005 disclosure shape; wave-7-ss-10-pass-1.md |
+| Wave 7 SS-10 pass-1 PO fix burst | product-owner | COMPLETE | F-001/F-002/F-003/F-005 addressed: 3 stretch-anchor disclosure sections + capabilities.md/PRD §8 secondary-SS comments + SS-09/SS-10 arch shared-ownership comments; commit 5ffa93d |
+| Wave 7 SS-10 pass-1 state-manager fix | state-manager | COMPLETE | F-004 STORY-INDEX dep cells + Wave 7 sub-cycle summary block |
 
 ## Identifier Conventions
 
@@ -303,6 +307,7 @@ dtu_services: []
 | D-070 | Wave 6 SS-09 pass-4 review + fix burst at a39f350. 5 findings (3 MED/2 LOW). All 19 prior closures verified. F-303 (Wave 6-introduced BC-1.07.004 Arch Module inversion from F-006 propagation) was the dominant blocker — fixed by aligning to BC-1.07.003 sibling pattern. F-301/F-302 CAP-017+CAP-018 propagation; F-304 S-2.03 dep symmetry; F-305 v1.1 BC/VP candidate section ordering standardization. Trajectory 9→3→8→5 declining post-expansion. Predict pass-5 ≤2; pass-6 NITPICK_ONLY 1_of_3. | Matches Wave 5 SS-06 trajectory (11→7→2→1→2→1). 28-CAP audit partial closure continues (4 fixed in pass-3, 2 surfaced+fixed pass-4; CAP-023/024 deferred to TD #112). | wave-6-ss-09 | 2026-04-27 | orchestrator + state-manager |
 | D-072 | Wave 6 SS-09 pass-5 NITPICK_ONLY at 4e125ff; clock 1_of_3. Zero findings. 24 of 24 prior closures verified. Pass-5 attacked 5 fresh axes (F-303 sibling sweep, F-301/F-302 CAP propagation extended sweep on 13 NEW CAPs, story-template ordering un-touched stories, input-hash currency, cross-cycle consistency) — all clean. CAP-propagation drift class exhausted within Wave 6 scope (CAP-023/024 deferred TD #112). Trajectory 9→3→8→5→0; Wave 6 jumped straight to 0 at pass-5 (healthier than Wave 5 rebound pattern). | Convergence clock advances to 1 of 3 per ADR-013. Predict pass-6 NITPICK_ONLY (2_of_3), pass-7 NITPICK_ONLY (3_of_3 = CONVERGED). | wave-6-ss-09 | 2026-04-27 | adversary |
 | D-074 | Wave 6 SS-09 pass-6 NITPICK_ONLY at 3e27979; clock 2_of_3. Zero findings. 24/24 prior closures verified. Pass-6 attacked 9 fresh broad-lens axes (POLICY 1 lifecycle audit, producer field lifecycle, wave field coherence, review frontmatter coherence, edge-case multi-BC stories, PRD §FR-037 narrative arithmetic, VP-INDEX Story Anchors completeness, HTML comment consistency, POLICY 2 DI-BC bidirectional). All axes clean. Trajectory 9→3→8→5→0→0; two consecutive clean passes. Wave 6 cleared convergence one pass earlier than Wave 5 oscillation pattern. | clock advances to 2 of 3 per ADR-013. Pass-7 with another clean run = 3_of_3 = CONVERGED. No reset events anticipated. | wave-6-ss-09 | 2026-04-27 | adversary |
+| D-078 | Wave 7 SS-10 baseline + pass-1 review + fix burst at PO 86e98ab + 5ffa93d + state-manager this commit. PO chose stretch-anchor pattern (story.subsystems[]=SS-10 ≠ bcs[].subsystem=SS-09) per F-007/F-002/F-005 sanctioned precedent — 3 stories anchored to BC-9.01.001/003 with 11 v1.1 BC candidates registered (BC-10.13.001-011). Pass-1 found 5 findings (1 HIGH F-001 stretch-anchor disclosure absent + 3 MED F-002 CAP-028 sibling sweep + F-003 arch ownership ambiguity + F-004 STORY-INDEX stale + 1 LOW F-005 shape applicability). All addressed: F-001 disclosure sections added (SS-10/SS-09 mismatch named, F-007/F-002/F-005 lineage cited, AC-7/AC-9 BC-9.01.001 direct exercise + others gate-aggregation [process-gap]), F-002 secondary-SS disclosure preserves CAP-028 SS-06+SS-09 primary scope, F-003 shared-ownership HTML comments in SS-09/SS-10 arch docs (deeper ARCH-INDEX fix deferred TD), F-004 STORY-INDEX dep cells + Wave 7 summary block, F-005 closed by F-001 evolution. | Wave 7 smallest baseline (5 findings) — Wave 6 lessons fully internalized. 3-of-3 convergence plausible by pass-3-4. | wave-7-ss-10 | 2026-04-27 | orchestrator + adversary + PO + state-manager |
 | D-077 | **Wave 7 SS-10 baseline anchor at 86e98ab** — 3 stories (S-0.02 Release.yml prerelease, S-4.08 rc.1 gate, S-5.07 v1.0 gate) anchored to BC-9.01.001/003 (SS-09 cross-wave complementary). No SS-10 BCs exist for scripts/bump-version.sh or .github/workflows/Release.yml — all 11 process gaps codified as v1.1 BC candidates (BC-10.13.001-011). Bidirectional dep edges added: S-4.08.depends_on +S-0.02, S-5.07.depends_on +S-0.02 per S-0.02.blocks[S-4.08, S-5.07]. CAP-028 primary anchor for all 3 stories (FR-037). PRD §FR-037 story citation list updated. STORY-INDEX depends-on updated. | 8 files touched (3 stories, 2 BC files, 1 BC-INDEX, 1 PRD, 1 STORY-INDEX); story versions bumped S-0.02/S-4.08/S-5.07 v1.1→v1.2 | wave-7-ss-10-baseline | 2026-04-27 | product-owner |
 | D-076 | **Wave 6 SS-09 spec re-anchor CONVERGED at pass-7 (3_of_3 NITPICK_ONLY)** — 7-pass cycle on 6 SS-09 configuration & activation stories: 9→3→8→5→0→0→0 trajectory; pass-1 baseline 9 (4 HIGH/4 MED/1 LOW). Major findings closed: F-001 BC-1.07.003/004 ↔ VP-049 bidirectional; F-002 S-2.03 process-gap markers; F-003 S-2.08 stretch-anchor disclosure + 4 v1.1 BC candidates; F-004 S-2.04 SS-10 dropped; F-005 CAP-028 → SS-06+SS-09 (Wave 3 F-007 precedent); F-006 BC-1.07.003/004 → CAP-002; F-007 PRD §FR-037 wording; F-008 VP-049 Co-anchor; F-101 CAP-028 PRD BC-list disclosure; F-102 S-2.02 dual-cap stretch-anchor; F-103 S-2.04 process-gap + v1.1 VP candidate; F-201 PRD §8:1098 CAP-010 SS-01; F-202 PRD §8:1091 CAP-003 SS-01; F-203 S-2.04 AC-4 BC-9.01.002 → BC-9.01.003 only; F-204 BC-1.07.003/004 metadata stamps; F-205 S-2.02 metadata stamps; F-206 5-col v1.1 candidate table; F-207/F-208 PRD §8 HTML disclosures; F-301 CAP-017 SS-10; F-302 CAP-018 SS-05+SS-06; F-303 BC-1.07.004 module SS-01+SS-09; F-304 S-2.03 dep symmetry; F-305 v1.1 section ordering. Pass-5/6/7 broad-lens probes (POLICY 1 lifecycle, producer/wave field, narrative arithmetic, VP-INDEX completeness, HTML pattern consistency, DI-BC bidirectional, BC-INDEX-bidirectional Stories, story points/estimated_days/priority coherence, forward-ref symmetry, BC-INDEX total_bcs arithmetic) all clean. CAP-propagation drift class exhausted within Wave 6 scope (CAP-023/024 deferred TD #112). 28-CAP audit partial closure (4 fixed: CAP-003/010/017/018; 4 disclosure-stamped: CAP-008/013/028/F-302). 6 stories spec-ready. Cumulative re-anchored: 34 of 41 stories (Waves 1+2+3+4+5+6). | 7-pass convergence one pass faster than Wave 5 SS-06 (6 passes) — accounting for Wave 6's broader cross-CAP propagation drift class exposure at pass-3. Self-referential dogfooding pattern continues to mature. | wave-6-ss-09-CONVERGED | 2026-04-27 | orchestrator + adversary + PO + state-manager |
 
@@ -318,7 +323,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 7 SS-10 baseline anchor COMPLETE at 86e98ab; pass-1 adversarial review pending; 37 of 41 stories re-anchored.
+**Pause reason:** Wave 7 SS-10 pass-1 complete; all 5 findings addressed (F-001/002/003/005 PO at 5ffa93d; F-004 state-manager this burst); pass-2 adversarial review pending.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
@@ -327,11 +332,11 @@ dtu_services: []
 - Wave 4 SS-02 CONVERGED 3-of-3 at pass-5: 0 findings; 9/9 cumulative closed (100%); 22/22 BC files CLEAN; 26 of 41 stories anchored; 5-pass cycle (fastest to date)
 - Wave 5 SS-06 CONVERGED 3-of-3 at pass-6: 1 LOW process-gap carryover (task #112); 28 of 41 stories anchored; 6-pass cycle; trajectory 11→7→2→1→2→1
 - Wave 6 SS-09 CONVERGED 3-of-3 at pass-7: 0 findings; 24/24 prior closures verified; 14 fresh broad-lens axes all clean; trajectory 9→3→8→5→0→0→0; wave-6-ss-09-pass-7.md persisted
-- Wave 7 SS-10 BASELINE at 86e98ab: 3 stories anchored (S-0.02/S-4.08/S-5.07) to BC-9.01.001/003 (SS-09 cross-wave); 11 v1.1 BC candidates; pass-1 review pending
+- Wave 7 SS-10 PASS-1 COMPLETE: baseline 86e98ab; 5 findings (1 HIGH/3 MED/1 LOW); PO fix burst 5ffa93d (F-001/002/003/005); state-manager this burst (F-004 STORY-INDEX + review persisted); pass-2 pending
 
 **Resumption recipe:**
 
-Dispatch adversary for Wave 7 SS-10 pass-1 review (3 stories: S-0.02, S-4.08, S-5.07). 4 stories remaining after Wave 7: SS-08 (3) + SS-01 straggler (1).
+Dispatch adversary for Wave 7 SS-10 pass-2 review (3 stories: S-0.02, S-4.08, S-5.07; all 5 pass-1 findings addressed). 4 stories remaining after Wave 7: SS-08 (3) + SS-01 straggler (1).
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
@@ -346,7 +351,7 @@ Dispatch adversary for Wave 7 SS-10 pass-1 review (3 stories: S-0.02, S-4.08, S-
 - #112 TD: Codify bc-anchor-sweep checklist step (Wave 5 MED-002 process-gap)
 - #113 Wave 6 SS-09 re-anchor — COMPLETE (pass-7 CONVERGED; 3_of_3 NITPICK_ONLY; 6 stories spec-ready)
 - #114 Extend validate-consistency skill: tautology detector + BC canonical TV consistency checks (motivated by Prism Wave 2 Pass 7 finding TD-W2-FIXK-001 + TD-W2-FIXK-002)
-- #115 Wave 7 SS-10 re-anchor — IN_PROGRESS (baseline 86e98ab; pass-1 review pending; 3 stories anchored: S-0.02/S-4.08/S-5.07; 11 v1.1 BC candidates BC-10.13.001-011)
+- #115 Wave 7 SS-10 re-anchor — IN_PROGRESS (pass-1 complete; all 5 findings addressed; pass-2 pending; 3 stories: S-0.02/S-4.08/S-5.07; 11 v1.1 BC candidates BC-10.13.001-011)
 
 **Total cumulative anchored:** 37 stories (Waves 1-6 CONVERGED + Wave 7 baseline) of 41 migrated stories. Remaining: 4 stories (SS-08: 3, SS-01 straggler: 1).
 

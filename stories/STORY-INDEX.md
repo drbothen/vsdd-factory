@@ -4,7 +4,7 @@ level: ops
 version: "1.0"
 status: current
 producer: story-writer
-timestamp: 2026-04-26T00:00:00
+timestamp: 2026-04-27T00:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -125,6 +125,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **Wave 1 SS-01 re-anchor CONVERGED 3-of-3 at pass-6 (2026-04-26).** 7 stories anchored to SS-01 BCs: S-1.01 (0/justified), S-1.02 (26), S-1.04 (26), S-1.05 (15), S-1.06 (8), S-1.07 (10), S-3.04 (8). 93 unique SS-01 BCs anchored (of 99); 4 deferred to Wave 3 (BC-1.07.003-006); 10 v1.1 BC candidates logged. Trajectory: 10→4→3→1→0→0.
 
 > **Wave 2 SS-03 sinks re-anchor CONVERGED 3-of-3 at pass-13 (2026-04-27).** 9 stories anchored to SS-03 BCs: S-1.08 (23), S-1.09 (15), S-4.01 (4), S-4.02 (2), S-4.03 (2), S-4.04 (1 + v1.1 BC creation dep note), S-4.05 (2 + v1.1 candidates), S-4.06 (6), S-4.07 (15). ~37 unique SS-03 BCs anchored; PRD FR-044 added (per-sink resilience); 32 v1.1 BC candidates logged. Trajectory: 11→1→3→0→1→0→1→2→0→1→0→0→0 (13 passes; 4 reset events).
+
+> **Wave 7 SS-10 re-anchor** (2026-04-27): 3 stories anchored — S-0.02, S-4.08, S-5.07 — to existing SS-09 BCs (BC-9.01.001, BC-9.01.003) per Wave 3 F-007 / Wave 5 F-002 / Wave 6 F-005 sanctioned-template-anchor pattern (BC-subsystem SS-09 ≠ story.subsystems[] SS-10; SS-10 is target_module surface). 11 v1.1 BC candidates registered (BC-10.13.001-011). S-0.02 blocks {S-2.08, S-4.08, S-5.07}; S-4.08 + S-5.07 gained S-0.02 dep.
 
 ---
 
