@@ -258,7 +258,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | b08e085 | bot bundle for v1.0.0-beta.7 (PR #14 + hotfix PR #15) |
 | develop | ecb6cc6 | back-merge PR #16; includes b08e085 in ancestry |
-| factory-artifacts | 61b38a5 | Wave 9 SS-01 pass-3 NITPICK_ONLY (pending final commit at pass-4 CONVERGED) |
+| factory-artifacts | f932749 | Wave 9 SS-01 CONVERGED at pass-4 (3_of_3 NITPICK_ONLY; 41 of 41 — re-anchor phase COMPLETE) |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 | v1.0.0-beta.6 (tag) | ae426cd | SHIPPED 2026-04-26; GH Release published; prerelease=true |
 | v1.0.0-beta.7 (tag) | b08e085 | SHIPPED 2026-04-26 19:15 UTC; GH Release published; prerelease=true |
@@ -367,7 +367,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**v1.0-brownfield-backfill re-anchor phase COMPLETE** at 61b38a5 (Wave 9 CONVERGED at pass-4, 3_of_3 NITPICK_ONLY). 41 of 41 stories cumulative coverage achieved across 9 waves over 3 days (2026-04-25..2026-04-27).
+**v1.0-brownfield-backfill re-anchor phase COMPLETE** at f932749 (Wave 9 CONVERGED at pass-4, 3_of_3 NITPICK_ONLY). 41 of 41 stories cumulative coverage achieved across 9 waves over 3 days (2026-04-25..2026-04-27).
 
 **Resumption recipe:** Next phase candidates:
 - Task #103: Cross-cutting consistency-validator sweep (post-Wave-8 — but should trigger now post-Wave-9)
