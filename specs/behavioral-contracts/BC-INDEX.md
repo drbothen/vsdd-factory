@@ -1835,7 +1835,7 @@ traces_to: bc-id-mapping.md
 | [BC-8.21.006](ss-08/BC-8.21.006.md) | rules/factory-protocol.md: NEVER modify `.factory/` files from main/develop branch | draft | CAP-TBD | TBD |
 | [BC-8.21.007](ss-08/BC-8.21.007.md) | rules/factory-protocol.md: STATE.md is the single source of truth for pipeline progress | draft | CAP-TBD | TBD |
 | [BC-8.21.008](ss-08/BC-8.21.008.md) | rules/factory-protocol.md: specs are the product, code is disposable (SOUL.md #3 reified) | draft | CAP-TBD | TBD |
-| [BC-8.22.001](ss-08/BC-8.22.001.md) | rules/git-commits.md: all commits MUST follow Conventional Commits | draft | CAP-TBD | TBD |
+| [BC-8.22.001](ss-08/BC-8.22.001.md) | rules/git-commits.md: all commits MUST follow Conventional Commits | draft | CAP-014 | S-0.05, S-5.05, S-5.06 |
 | [BC-8.22.002](ss-08/BC-8.22.002.md) | rules/git-commits.md: commit type SHALL be one of 10 known values (feat/fix/docs/style/refactor/perf/test/build/ci/chore) | draft | CAP-TBD | TBD |
 | [BC-8.22.003](ss-08/BC-8.22.003.md) | rules/git-commits.md: description uses imperative present tense, lowercase initial, no period | draft | CAP-TBD | TBD |
 | [BC-8.22.004](ss-08/BC-8.22.004.md) | rules/git-commits.md: scope (optional) is parenthesized after type — `feat(api):` | draft | CAP-TBD | TBD |
@@ -1877,12 +1877,12 @@ traces_to: bc-id-mapping.md
 | [BC-8.25.010](ss-08/BC-8.25.010.md) | rules/step-decomposition.md: phase sub-workflow lobster pattern — step + state-manager backup + phase gate + input-hash drift check + human-approval | draft | CAP-TBD | TBD |
 | [BC-8.25.011](ss-08/BC-8.25.011.md) | rules/step-decomposition.md: forbidden practices (no fractional phases / numeric step IDs / sub-step numbering / parent gutting / "see parent" deferrals / wired-less step files / shared-context skip) | draft | CAP-TBD | TBD |
 | [BC-8.25.012](ss-08/BC-8.25.012.md) | rules/step-decomposition.md: verification — lobster-parse + path resolution + content completeness + bats + phase-number consistency + grep for old phase numbers | draft | CAP-TBD | TBD |
-| [BC-8.26.001](ss-08/BC-8.26.001.md) | rules/story-completeness.md: 14-check audit before marking a story ready for implementation | draft | CAP-TBD | TBD |
+| [BC-8.26.001](ss-08/BC-8.26.001.md) | rules/story-completeness.md: 14-check audit before marking a story ready for implementation | draft | CAP-014 | S-0.05, S-5.05, S-5.06 |
 | [BC-8.26.002](ss-08/BC-8.26.002.md) | rules/story-completeness.md: check 1 — source-of-truth alignment (line-by-line vs architecture docs) | draft | CAP-TBD | TBD |
 | [BC-8.26.003](ss-08/BC-8.26.003.md) | rules/story-completeness.md: check 2 — every file in project structure has Deliverable section OR implementation Task | draft | CAP-TBD | TBD |
 | [BC-8.26.004](ss-08/BC-8.26.004.md) | rules/story-completeness.md: check 3 — technical gotchas documented in Dev Notes (API quirks, version-specific behavior, platform diffs) | draft | CAP-TBD | TBD |
 | [BC-8.26.005](ss-08/BC-8.26.005.md) | rules/story-completeness.md: check 4 — CI/CD workflows complete (workflow YAML deliverables, secrets/branch-protection prerequisites) | draft | CAP-TBD | TBD |
-| [BC-8.26.006](ss-08/BC-8.26.006.md) | rules/story-completeness.md: check 5 — README/user-facing-docs deliverable covers what-it-is/install/quickstart/config/CLI/exit-codes/integration/license | draft | CAP-TBD | TBD |
+| [BC-8.26.006](ss-08/BC-8.26.006.md) | rules/story-completeness.md: check 5 — README/user-facing-docs deliverable covers what-it-is/install/quickstart/config/CLI/exit-codes/integration/license | draft | CAP-014 | S-0.05, S-5.05, S-5.06 |
 | [BC-8.26.007](ss-08/BC-8.26.007.md) | rules/story-completeness.md: check 6 — hosting/infra decisions explicit (org/repo/visibility/branch-strategy/protection/secrets) | draft | CAP-TBD | TBD |
 | [BC-8.26.008](ss-08/BC-8.26.008.md) | rules/story-completeness.md: check 7 — license stated explicitly + consistent across 5 surfaces | draft | CAP-TBD | TBD |
 | [BC-8.26.009](ss-08/BC-8.26.009.md) | rules/story-completeness.md: check 8 — generated output specified (format/sort-order/edge-cases/exit-codes) | draft | CAP-TBD | TBD |

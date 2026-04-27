@@ -705,6 +705,8 @@ Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-08/` (218 BCs total)
 
+<!-- Wave 8 SS-08 re-anchor (v1.0-brownfield-backfill): BC-8.22.001, BC-8.26.001, BC-8.26.006 anchored to CAP-014 (docs deliverable and commit-convention rules surface). Docs stories S-0.05 (docs/guide/ scaffolding), S-5.05 (migrating-from-0.79.md), S-5.06 (semver-commitment.md) added to Stories column for these three BCs. Stretch-anchor disclosure in story bodies: BC-8.26.006 (story-completeness check 5) is the closest SS-08 BC contracting user-facing-docs deliverable shape; no existing SS-08 BC directly contracts migration-guide or semver-commitment file content. v1.1 BC candidates registered in each story for uncontracted ACs (see story body §v1.1 BC/VP Candidates). -->
+
 ---
 
 ### 2.9 Configuration and Activation (SS-09)
@@ -1066,7 +1068,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-033 | PostToolUse capture hooks (commit, PR, attribution) | CAP-013 | SS-07 | BC-7.05–7.07.NNN | ~40 | shipped | E-2, E-3 |
 | FR-034 | SubagentStop / lifecycle hooks and validate-* gate family | CAP-004 | SS-07 | BC-7.08–7.10.NNN | ~80 | shipped | E-2 |
 | FR-035 | Spec artifact templates | CAP-014, CAP-016 | SS-08 | BC-8.01–8.05.NNN | ~60 | shipped | E-1 |
-| FR-036 | Rules and cross-cutting policy documents | CAP-014 | SS-08 | BC-8.06.NNN | ~70 | shipped | E-1 |
+| FR-036 | Rules and cross-cutting policy documents | CAP-014 | SS-08 | BC-8.06.NNN + BC-8.22.001, BC-8.26.001, BC-8.26.006 (Wave 8 docs anchors: S-0.05, S-5.05, S-5.06) | ~70 | shipped | E-1, E-5 |
 | FR-037 | Platform-aware activation and hooks.json variant management | CAP-007, CAP-028 | SS-09 | BC-9.01.001–005 | 5 | shipped | E-0, E-2 |
 | FR-038 | Event emission CLI tool (bin/emit-event) | CAP-027 | SS-07, SS-10 | BC-10.01.NNN | ~10 | partial | E-3 |
 | FR-039 | Factory observability bin tools | CAP-003, CAP-010 | SS-10 | BC-10.02.NNN | ~30 | shipped | E-1 |
@@ -1102,7 +1104,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-012 | Recover from workflow interruption (crash recovery) | BC-5.10.001–005 (state-manager); BC-5.23 (phase-3 resume semantics) | SS-05 |
 | CAP-013 | Capture post-execution activity (PostToolUse hooks) | BC-4.01–4.02 (legacy-bash-adapter); BC-7.05–7.07 (PostToolUse hooks) | SS-01, SS-04, SS-07 |
 <!-- F-207 (Wave 6 pass-3): BC-list cites SS-04 + SS-07 BCs only; SS-01 enforcer-BC pending — dispatcher routing of PostToolUseFailure (and PostToolUse) lives in SS-01. Specific BC IDs TBD when SS-01 dispatcher-routing BC backfill closes (deferred to task #108 28-CAP audit). Mirrors capabilities.md:71 defensive comment. -->
-| CAP-014 | Decompose product specs into verified behavioral contracts | BC-5.06.001–015 (product-owner/story-writer agents); BC-8.01–8.05 (spec templates) | SS-05, SS-06, SS-08 |
+| CAP-014 | Decompose product specs into verified behavioral contracts | BC-5.06.001–015 (product-owner/story-writer agents); BC-8.01–8.05 (spec templates); BC-8.22.001, BC-8.26.001, BC-8.26.006 (docs-deliverable and commit-convention rules — Wave 8 SS-08 re-anchor; S-0.05, S-5.05, S-5.06) | SS-05, SS-06, SS-08 |
 | CAP-015 | Ingest brownfield codebases via structured multi-pass analysis | BC-5.20.001–020 (phase-0 workflow); BC-6.01 (brownfield-ingest skill) | SS-06 |
 | CAP-016 | Drive TDD delivery with red/green/refactor gate enforcement | BC-5.07.028–033 (implementer agent); BC-6.09 (deliver-story skill); BC-5.23 (phase-3 workflow); BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 (TDD hardening — S-7.03) | SS-05, SS-06, SS-08 |
 | CAP-017 | Create and manage formal ADR records | BC-6.05 (create-architecture skill); BC-8.04 (ADR templates); BC-6.20.001–012 (create-adr skill) | SS-06, SS-08, SS-10 |

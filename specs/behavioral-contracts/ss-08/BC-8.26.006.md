@@ -10,10 +10,11 @@ inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
   - .factory/phase-0-ingestion/pass-3-deep-templates-tools-rules.md
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
+input-hash: ""
 origin: brownfield
 extracted_from: "plugins/vsdd-factory/rules/story-completeness.md"
 subsystem: SS-08
-capability: ""
+capability: "CAP-014"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -73,10 +74,11 @@ Check 5: For tools/libraries, a README deliverable must cover: what it is (one-l
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD |
+| L2 Capability | CAP-014 ("Decompose product specs into verified behavioral contracts") per capabilities.md §CAP-014 |
+| Capability Anchor Justification | CAP-014 ("Decompose product specs into verified behavioral contracts") per capabilities.md §CAP-014 — this BC governs user-facing-docs deliverable completeness, which is part of the spec/methodology artifact surface SS-08 contributes to CAP-014 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-08 (Templates and Rules) |
-| Stories | TBD |
+| Stories | S-0.05, S-5.05, S-5.06 (Wave 8 SS-08 re-anchor, v1.0-brownfield-backfill) |
 | Audit ID | BC-AUDIT-2266 |
 | Section | Rules: story-completeness (14-check audit) |
 
@@ -90,7 +92,7 @@ Check 5: For tools/libraries, a README deliverable must cover: what it is (one-l
 
 ## Story Anchor (Recommended)
 
-TBD
+S-0.05, S-5.05, S-5.06 (Wave 8 SS-08 re-anchor)
 
 ## VP Anchors (Recommended)
 

@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
-phase: wave-7-ss-10-CONVERGED-spec-ready
+phase: wave-8-ss-08-baseline
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 7 SS-10 CONVERGED at pass-6 (3_of_3 NITPICK_ONLY); 37 of 41 stories re-anchored; trajectory 5→4→4→0→1→0; Wave 8 SS-08 selection pending"
+current_step: "Wave 8 SS-08 baseline committed; 40 of 41 stories re-anchored; S-0.05/S-5.05/S-5.06 anchored to BC-8.22.001+BC-8.26.001+BC-8.26.006 → CAP-014; 7 v1.1 BC candidates registered; pass-1 adversarial pending"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 7 SS-10 CONVERGED at pass-6; 3_of_3 NITPICK_ONLY; 0 findings; F-501 self-withdrawn; 22 sub-axes all clean; 37 of 41 stories re-anchored; trajectory 5→4→4→0→1→0) |
-| **Current Phase** | wave-7-ss-10-CONVERGED-spec-ready |
+| **Last Updated** | 2026-04-27 (Wave 8 SS-08 baseline: 3 docs stories anchored — S-0.05/S-5.05/S-5.06 → BC-8.22.001+BC-8.26.001+BC-8.26.006 → CAP-014; 40 of 41 stories re-anchored; 7 v1.1 BC candidates) |
+| **Current Phase** | wave-8-ss-08-baseline |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -177,6 +177,7 @@ dtu_services: []
 | Wave 7 SS-10 adversarial pass-5 | adversarial-reviewer | COMPLETE | 1 LOW (F-501 BC-9.01.001 lifecycle metadata pending intent); NITPICK_ONLY; 13/13 prior closures verified; clock 2_of_3; trajectory 5→4→4→0→1; wave-7-ss-10-pass-5.md |
 | Wave 7 SS-10 adversarial pass-6 (FINAL) | adversarial-reviewer | COMPLETE | CONVERGENCE_REACHED; 0 findings; 3_of_3 NITPICK_ONLY; F-501 self-withdrawn (soft lifecycle convention); 22 sub-axes probed all clean; trajectory 5→4→4→0→1→0; wave-7-ss-10-pass-6.md |
 | Wave 7 SS-10 CONVERGED | state-manager | COMPLETE | 3_of_3 NITPICK passes; 37 of 41 stories re-anchored; trajectory 5→4→4→0→1→0 |
+| Wave 8 SS-08 PO baseline | product-owner | COMPLETE | S-0.05/S-5.05/S-5.06 anchored → BC-8.22.001+BC-8.26.001+BC-8.26.006 → CAP-014; 40 of 41 stories re-anchored; 7 v1.1 BC candidates; stretch-anchor disclosures in all 3 story bodies; input-hash field added to 3 BC frontmatters per template compliance |
 
 ## Identifier Conventions
 
