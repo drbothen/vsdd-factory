@@ -144,7 +144,7 @@ traces_to: bc-id-mapping.md
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
 | [BC-2.01.001](ss-02/BC-2.01.001.md) | HookResult serialization is tagged with `outcome` field | draft | CAP-009 | S-1.03 |
-| [BC-2.01.002](ss-02/BC-2.01.002.md) | HookResult exit codes Continue=0 / Block=2 / Error=1 | draft | CAP-009 | S-1.03 |
+| [BC-2.01.002](ss-02/BC-2.01.002.md) | HookResult exit codes Continue=0 / Block=2 / Error=1 | draft | CAP-009 | S-1.03, S-3.03 |
 | [BC-2.01.003](ss-02/BC-2.01.003.md) | HOST_ABI_VERSION is 1 in both crates | draft | CAP-009 | S-1.03 |
 | [BC-2.01.004](ss-02/BC-2.01.004.md) | SDK HookPayload has `plugin_config` field defaulting to Null | draft | CAP-009 | S-1.03 |
 | [BC-2.02.001](ss-02/BC-2.02.001.md) | Plugin-author API surface is `vsdd_hook_sdk::host::*`; raw FFI is private (`mod ffi;`) | draft | CAP-009 | S-1.03 |
