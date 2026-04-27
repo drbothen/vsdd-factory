@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:400"
 subsystem: "SS-01"
-capability: "CAP-TBD"
+capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -67,10 +67,11 @@ When an operator runs a `git commit` invocation in a real Claude Code session wi
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (anchor in Phase 1.5) |
+| L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
+| Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts real-harness PostToolUse event emission from the dispatcher pipeline, confirming the end-to-end WASM hook chain fires correctly |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 + SS-04 + SS-07 — dispatcher pipeline + capture-commit-activity hook |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-2.07 (Wave 9 SS-01 straggler re-anchor) |
 
 ### Source Evidence
 

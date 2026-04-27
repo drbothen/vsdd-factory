@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:542"
 subsystem: "SS-01"
-capability: "CAP-TBD"
+capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -67,10 +67,11 @@ removal_reason: null
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (anchor in Phase 1.5) |
+| L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
+| Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's exit code protocol (0=allow, 2=block), which is the fundamental signaling contract for Claude Code WASM hook gating |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/executor.rs` |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-2.07 (Wave 9 SS-01 straggler re-anchor) |
 
 ### Source Evidence
 

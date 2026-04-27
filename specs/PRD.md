@@ -242,7 +242,8 @@ Enforces: DI-007 (always-on), DI-008 (timestamp-derived rotation), DI-009 (30-da
 | BC-1.08.003–006 | Runtime: current_thread, CLAUDE_PROJECT_DIR cwd, plugin_root injection, env projection | P0 |
 
 Source BCs: `ss-01/BC-1.07.001.md` through `BC-1.08.006.md` (10 BCs).
-Enforces: CAP-002 (hook integration), DI-001 (execution model). Status: **shipped** (S-2.01, S-2.02).
+Enforces: CAP-002 (hook integration), DI-001 (execution model). Status: **shipped** (S-2.01, S-2.02, S-2.07).
+<!-- Wave 9 SS-01 straggler re-anchor: S-2.07 (regression-test-validation) anchors BC-1.07.001/002 + BC-1.08.001/002 as the primary integration-validation story for FR-007. -->
 
 #### FR-008 — Plugin cache (mtime-driven, process-lifetime)
 
@@ -1039,7 +1040,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-004 | Engine construction (epoch ticker, fuel) | CAP-011 | SS-01 | BC-1.04.001–003 | 3 | shipped | E-1 |
 | FR-005 | Host function surface (cap-gated exec/env/read_file/log/emit) | CAP-002, CAP-008 | SS-01 | BC-1.05.001–034 | 34 | shipped (CAP-008 deny gates); partial (CAP-002 read_file per DRIFT-001) | E-1 |
 | FR-006 | Internal log (always-on self-telemetry) | CAP-010 | SS-01, SS-03 | BC-1.06.001–010 | 10 | shipped | E-1 |
-| FR-007 | Legacy hook routing compatibility + dispatcher main | CAP-002, CAP-008 | SS-01, SS-04 | BC-1.07.001–BC-1.08.006 | 10 | shipped | E-2 |
+| FR-007 | Legacy hook routing compatibility + dispatcher main | CAP-002, CAP-008 | SS-01, SS-04 | BC-1.07.001–BC-1.08.006 | 10 | shipped | E-2 |<!-- Wave 9: S-2.07 anchors BC-1.07.001/002+BC-1.08.001/002 (regression gate) -->
 | FR-008 | Plugin cache (mtime-driven, process-lifetime) | CAP-002 | SS-01 | BC-1.09.001–004 | 4 | shipped | E-1 |
 | FR-009 | Plugin ABI types and host function SDK | CAP-009 | SS-02 | BC-2.01.001–BC-2.05.003 | 22 | shipped/partial | E-1 |
 | FR-010 | Sink registry, routing filter, config loading | CAP-003 | SS-03 | BC-3.01.001–005 + BC-3.06.001–006 | 11 | shipped | E-1 |

@@ -142,6 +142,7 @@ total_vps: 64
 |-------|-------------|------|-----------|
 | VP-015 | S-2.06 | Wave 5 SS-06 | S-2.06 exercises activation gate end-to-end; manual verification anchor for DI-015 — hooks.json absent until activate runs, ensuring dispatcher cannot be invoked pre-activation |
 | VP-015 | S-0.04, S-2.03, S-2.08 | Wave 6 SS-09 | S-0.04 establishes hooks.json.template + gitignore (BC-9.01.005 precondition); S-2.03 builds the 5-platform CI matrix (BC-9.01.004 gate); S-2.08 is the beta.1 release gate that requires VP-015 conditions satisfied across all platforms |
+| VP-043 | S-2.07 | Wave 9 SS-01 | S-2.07 (regression-test-validation) runs regression-v1.0.bats (11 dispatcher-pipeline integration tests) which directly exercise VP-043 — verifying every hooks-registry.toml entry routes through legacy-bash-adapter.wasm is the foundation of the bats regression gate |
 | VP-049 | S-2.02 | Wave 6 SS-09 | S-2.02 implements generate-registry-from-hooks-json.sh; VP-049 contracts that the generated TOML round-trips through Registry::load (BC-1.07.003/004) |
 | VP-023 | S-1.03 | Wave 4 SS-02 | S-1.03 (hook-sdk-crate) builds the SS-02 test vehicle; VP-023 covers SS-01/SS-02 wire decoder safety |
 | VP-025 | S-1.03 | Wave 4 SS-02 | S-1.03 builds the SS-02 test vehicle; VP-025 covers SS-01/SS-02 host ABI completeness |
