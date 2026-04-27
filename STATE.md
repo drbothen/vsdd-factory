@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
-phase: wave-3-ss-04-pass-3-fix-burst-pending
+phase: wave-3-ss-04-pass-4-pending
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 3 SS-04 pass-3 COMPLETE (commit 57d2174; 4 findings 1H/1M/2L; clock RESET). Pass-3 fix burst pending. Wave 1 SS-01 CONVERGED (commit e5187fa). Wave 2 SS-03 CONVERGED (commit 2fdb779, 13 passes). Convergence: 0-of-3. **Next: dispatch PO fix burst for ADV-P03-HIGH-001 (PRD §8 propagation) + ADV-P03-MED-001 (VP-038 anchor).** Pending tasks: #98 (CI alignment), #101 in-progress, #102 (Waves 4-8), #103 (final consistency-validator), #104 (SS-03/07/10 capability TD), #105 (S-2.07 dep TD), #106 (STATE.md compaction), #107 (TD: housekeeping sweep bare BC-prefix anchors in SS-01 stories S-1.02:279 + S-2.02:111)."
+current_step: "Wave 3 SS-04 pass-3 fix burst COMPLETE (commit 5ff8e0e; 4 findings addressed). Pass-4 pending. Wave 1 SS-01 CONVERGED (commit e5187fa). Wave 2 SS-03 CONVERGED (commit 2fdb779, 13 passes). Convergence: 0-of-3. **Next: dispatch adversary pass-4.** Pending tasks: #98 (CI alignment), #101 in-progress, #102 (Waves 4-8), #103 (final consistency-validator), #104 (SS-03/07/10 capability TD), #105 (S-2.07 dep TD), #106 (STATE.md compaction), #107 (TD: housekeeping sweep bare BC-prefix anchors in SS-01 stories S-1.02:279 + S-2.02:111), #108 (TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts — CAP-003, 007, 010, 017, 023, 024)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (Wave 3 SS-04 pass-3 complete at 57d2174; 4 findings; pass-3 fix burst pending) |
-| **Current Phase** | wave-3-ss-04-pass-3-fix-burst-pending |
+| **Last Updated** | 2026-04-26 (Wave 3 SS-04 pass-3 fix burst COMPLETE at 5ff8e0e; 4 findings addressed; pass-4 pending) |
+| **Current Phase** | wave-3-ss-04-pass-4-pending |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -105,7 +105,7 @@ dtu_services: []
 | Hiccup: ci.yml/release.yml validation gap | DEFERRED | Tracked as task #98; permissions.bats coverage diverges between ci.yml (PR-time) and release.yml (tag-time) |
 | Wave 1 SS-01 dispatcher-core re-anchor (sub-cycle) | COMPLETE | 6-pass adversarial convergence; 7 stories anchored to 93 unique SS-01 BCs; 10 v1.1 BC candidates; trajectory 10→4→3→1→0→0; commits d373e2b → 754734a → 9a00ee3 → 76bfc42 → f15aa0c |
 | Wave 2 SS-03 sinks re-anchor (sub-cycle) | COMPLETE | 13-pass adversarial convergence; 9 stories anchored to ~37 unique SS-03 BCs (+ FR-044 PRD addition); 32 v1.1 BC candidates; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0; 4 reset events (F-401, F-501→F-602, F-701) all preemptively addressed |
-| Wave 3 SS-04 plugin-ecosystem re-anchor (pass-3 review at 57d2174; fix burst pending) | in-progress | pass-3 review at 57d2174 (4 findings); fix burst pending. Trajectory: 11→7→4 (HIGH 4→3→1) |
+| Wave 3 SS-04 plugin-ecosystem re-anchor (pass-3 fix burst applied at 5ff8e0e; pass-4 pending) | in-progress | pass-3 fix burst applied at 5ff8e0e (4 findings addressed); pass-4 pending. Trajectory: 11→7→4 (HIGH 4→3→1) |
 
 ## Current Phase Steps
 
@@ -117,7 +117,8 @@ dtu_services: []
 | Wave 3 SS-04 adversarial pass-2 | adversarial-reviewer | COMPLETE | 7 findings (3H/2M/2L); clock RESET; commit a300748 |
 | Wave 3 SS-04 pass-2 fix burst | product-owner | COMPLETE | 7 findings addressed (F-101..F-107); commit 7ec1aac |
 | Wave 3 SS-04 adversarial pass-3 | adversarial-reviewer | COMPLETE | 4 findings (1H/1M/2L); clock RESET; commit 57d2174 |
-| Wave 3 SS-04 pass-3 fix burst | product-owner | PENDING | Address ADV-P03-HIGH-001 (PRD §8 propagation) + ADV-P03-MED-001 (VP-038 anchor) + 2 LOW cleanup |
+| Wave 3 SS-04 pass-3 fix burst | product-owner | COMPLETE | 4 findings addressed (ADV-P03-HIGH-001/MED-001/LOW-001/LOW-002); commit 5ff8e0e |
+| Wave 3 SS-04 adversarial pass-4 | adversarial-reviewer | PENDING | Targeting convergence step 1-of-3 |
 
 ## Identifier Conventions
 
@@ -227,6 +228,7 @@ dtu_services: []
 | D-037 | **Wave 3 SS-04 pass-1 fix burst applied; Wave 3 mid-flight at convergence step 0-of-3.** Adjudications: F-001 BC-4.03.001 stretch-anchor SANCTIONED per Wave 2 F-007 precedent (explicit disclosure in 5 stories). F-002 S-3.03 re-anchored from legacy-bash-adapter BCs to BC-2.01.002 (SS-02 HookResult); subsystems → ["SS-02", "SS-04"]. F-003 FR-045 canonical = lifecycle events (S-5 stories); S-3.02 PR-activity proposal renumbered to FR-046. F-004 S-3.03 dual-anchor [FR-013, FR-032]. F-009/F-010/F-011 deferred as out-of-scope/pre-existing patterns. CAP subsystem drift sweep: CLEAN (Wave 3 breaks Wave 1+2 recurring pattern). PO commits: b242d67 → a0e02d7. | Pause point for context compaction. Resume: dispatch adversary pass-2. | re-anchor | 2026-04-27 | orchestrator |
 | D-039 | Wave 3 SS-04 pass-2 fix burst applied at 7ec1aac — 7 findings (3H/2M/2L) addressed: F-101 VP-044 removed from S-3.03 + v1.1 VP candidate disclosed; F-102 CAP-008 expanded to include SS-02; F-103 CAP-013 expanded to include SS-01; F-104 S-5.01-04 BC-1.01 → BC-1.01.001 with placeholder comment; F-105 5 stories AC traces converted to [process-gap] + 5 new v1.1 BC candidates registered; F-106 S-3.01:58 self-contradiction fixed; F-107 S-5.03 added SS-03 to subsystems + CAP-003 to capabilities. | Sibling sweep: clean except low-sev BC-1.01 housekeeping gap noted in S-1.02 + S-2.02 (in-scope SS-01, not cross-subsystem violation). CAP audit: 1 additional drift resolved inline (CAP-003 added to S-5.03). F-101..F-107 closure pending pass-3 verification. | re-anchor | 2026-04-26 | state-manager |
 | D-040 | Wave 3 SS-04 pass-3 review at 57d2174: 4 findings (1H/1M/2L). ADV-P03-HIGH-001 PRD §8 sibling-file propagation gap from F-102/F-103 fixes; ADV-P03-MED-001 S-3.03 missed VP-038 (existing VP-INDEX entry covers v1.1 candidate intent); ADV-P03-LOW-001 S-3.02:50 obsolete pass-1 prose; ADV-P03-LOW-002 F-104 placeholder-comment cleanup. Trajectory positive 11→7→4 (decreasing). Clock RESETS per BC-5.04.003 (1 HIGH + 1 MED). | Pass-3 fix burst must address PRD §8 CAP-008/CAP-013 subsystem column update (HIGH) and S-3.03 VP-038 anchor addition (MED) before pass-4. LOW findings are cleanup items. | re-anchor | 2026-04-26 | adversary |
+| D-041 | Wave 3 SS-04 pass-3 fix burst applied at 5ff8e0e — 4 findings addressed: ADV-P03-HIGH-001 PRD §8 CAP-008/013 subsystems propagated from capabilities.md (sibling-file regression of F-102/F-103 closed); ADV-P03-MED-001 VP-038 added to S-3.03 (existing VP catalog entry covers SDK HookResult exit-code contract; v1.1 VP candidate rewritten as complementary SS-04-extension); ADV-P03-LOW-001 S-3.02:50 obsolete note replaced; ADV-P03-LOW-002 4 placeholder comments resolved Option (b) — 4 new v1.1 BC candidates registered. Sibling sweeps: clean. 28-CAP audit: 6 pre-existing CAP→PRD drifts (CAP-003, 007, 010, 017, 023, 024) tracked for dedicated architect sweep (deferred). | Pass-4 verification pending | re-anchor | 2026-04-26 | state-manager |
 
 ## Skip Log
 
@@ -240,39 +242,33 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Pass-3 review recorded; pass-3 fix burst pending.
+**Pause reason:** Pass-3 fix burst applied at 5ff8e0e; pass-4 pending.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
 - Wave 2 SS-03 CONVERGED 3-of-3 at pass-13 (commit 2fdb779; 13 passes; 4 reset events; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0)
-- Wave 3 SS-04 pass-3 review COMPLETE (commit 57d2174; 4 findings 1H/1M/2L); convergence step 0-of-3; clock RESET
+- Wave 3 SS-04 pass-3 fix burst COMPLETE (commit 5ff8e0e; 4 findings addressed); convergence step 0-of-3; pass-4 pending
 
 **Wave 3 status:**
 - 8 stories anchored: S-2.01 (12 BCs), S-3.01-03 (1 BC each + v1.1 candidates), S-5.01-04 (1 BC each + structural anchor)
 - All 13 SS-04 BCs accounted for
 - Trajectory: pass-1=11 → pass-2=7 → pass-3=4 (decreasing); HIGH 4→3→1
 
-**Pass-3 fix burst required (commit 57d2174):**
-- ADV-P03-HIGH-001: Update PRD §8 CAP-008 row to `SS-01, SS-02, SS-04, SS-07` and CAP-013 row to `SS-01, SS-04, SS-07`
-- ADV-P03-MED-001: Add VP-038 to S-3.03 verification_properties frontmatter + update VP disclosure prose
-- ADV-P03-LOW-001: Fix or delete stale note at S-3.02:50
-- ADV-P03-LOW-002: Resolve BC-1.01.001 placeholder comments in S-5.01-04
-
 **Resumption recipe:**
 
-1. Verify factory-artifacts HEAD is 57d2174
-2. Dispatch PO fix burst: address ADV-P03-HIGH-001 + ADV-P03-MED-001 (required); ADV-P03-LOW-001 + ADV-P03-LOW-002 (cleanup)
-3. After fix burst: dispatch adversary pass-4 targeting convergence step 1-of-3
+1. Verify factory-artifacts HEAD is 5ff8e0e
+2. Dispatch adversary pass-4 targeting convergence step 1-of-3
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
-- #101 Wave 3 SS-04 (in-progress — pass-3 fix burst next)
+- #101 Wave 3 SS-04 (in-progress — pass-4 next)
 - #102 Waves 4-8 (17 stories: SS-02, SS-06, SS-08, SS-09, SS-10)
 - #103 Cross-cutting consistency-validator sweep (post-Wave-8)
 - #104 TD: SS-03/07/10 capability column standardization
 - #105 TD: S-2.07 depends_on missing S-1.09
 - #106 STATE.md compaction (now growing toward 300 lines)
 - #107 TD: housekeeping sweep for bare BC-prefix anchors in SS-01 stories (S-1.02:279, S-2.02:111)
+- #108 TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts (CAP-003, 007, 010, 017, 023, 024) — deferred from Wave 3 pass-3
 
 **Total cumulative anchored:** 24 stories (Wave 1 + Wave 2 + Wave 3 in-progress) of 41 migrated stories.
 
