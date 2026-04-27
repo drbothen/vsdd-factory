@@ -15,21 +15,16 @@ schema_version = 1
 [[hooks]]
 name = "capture-commit-activity"
 event = "PostToolUse"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/capture-commit-activity.wasm"
 priority = 110
 timeout_ms = 5000
 on_error = "continue"
 
-[hooks.config]
-script_path = "hooks/capture-commit-activity.sh"
-
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+env_allow = []
 
 [hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "git", "gh", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+binary_allow = ["git"]
 
 [[hooks]]
 name = "capture-pr-activity"
