@@ -35,7 +35,6 @@ fn git_commit_payload_with_branch(branch: &str, sha: &str) -> HookPayload {
 /// AC-4: when a git commit is detected and git log returns a SHA,
 /// `commit_hook_logic` must call `emit` exactly once.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_emit_called_with_commit_made_event_type() {
     let payload = git_commit_payload_with_branch("main", "abc1234");
     let emit_count = std::cell::Cell::new(0usize);
@@ -46,7 +45,11 @@ fn test_BC_4_03_001_emit_called_with_commit_made_event_type() {
             emit_count.set(emit_count.get() + 1);
         },
     );
-    assert_eq!(emit_count.get(), 1, "emit must be called exactly once per commit");
+    assert_eq!(
+        emit_count.get(),
+        1,
+        "emit must be called exactly once per commit"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -56,7 +59,6 @@ fn test_BC_4_03_001_emit_called_with_commit_made_event_type() {
 /// AC-4: the `sha` field in CommitEventFields must match the value returned
 /// by `git log -1 --format=%H`.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_emit_sha_field_matches_git_log_output() {
     let expected_sha = "abc1234def5678901234567890123456789012345";
     let payload = git_commit_payload_with_branch("main", "abc1234");
@@ -83,7 +85,6 @@ fn test_BC_4_03_001_emit_sha_field_matches_git_log_output() {
 /// AC-4: all five required fields (sha, branch, message, author, timestamp)
 /// must be non-empty in the emitted event.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_emit_all_five_fields_non_empty() {
     let payload = git_commit_payload_with_branch("feat/S-3.01", "deadbeef");
     let captured: std::cell::RefCell<Option<CommitEventFields>> = std::cell::RefCell::new(None);
@@ -109,7 +110,6 @@ fn test_BC_4_03_001_emit_all_five_fields_non_empty() {
 /// AC-5 (no-op for non-commit): emit must NOT be called when the command is
 /// not a git commit.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_emit_not_called_for_non_commit_command() {
     let payload = HookPayload {
         event_name: "PostToolUse".to_string(),
@@ -128,7 +128,10 @@ fn test_BC_4_03_001_emit_not_called_for_non_commit_command() {
             emit_called.set(true);
         },
     );
-    assert!(!emit_called.get(), "emit must not be called for non-commit commands");
+    assert!(
+        !emit_called.get(),
+        "emit must not be called for non-commit commands"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -138,7 +141,6 @@ fn test_BC_4_03_001_emit_not_called_for_non_commit_command() {
 /// AC-4 + AC-5: the plugin must return Continue after successfully emitting
 /// the commit.made event.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_emit_result_is_continue_on_happy_path() {
     let payload = git_commit_payload_with_branch("main", "abc1234");
     let result = commit_hook_logic(
@@ -159,7 +161,6 @@ fn test_BC_4_03_001_emit_result_is_continue_on_happy_path() {
 
 /// build_commit_fields: the sha field must equal the value passed in.
 #[test]
-#[should_panic(expected = "build_commit_fields: not yet implemented")]
 fn test_BC_4_03_001_build_commit_fields_sha_field() {
     let payload = git_commit_payload_with_branch("main", "abc1234");
     let fields = build_commit_fields("abc1234def5678901234567890123456789012345", &payload);
@@ -178,7 +179,6 @@ fn test_BC_4_03_001_build_commit_fields_sha_field() {
 /// Exercises the full happy path with a known sha, branch, and message.
 /// All five fields must be present and non-empty.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_TV_003_canonical_commit_made_schema() {
     let payload = HookPayload {
         event_name: "PostToolUse".to_string(),
@@ -203,11 +203,19 @@ fn test_TV_003_canonical_commit_made_schema() {
         },
     );
 
-    let fields = captured.into_inner().expect("emit must be called for TV-003");
+    let fields = captured
+        .into_inner()
+        .expect("emit must be called for TV-003");
     assert_eq!(fields.sha.trim(), sha, "sha field");
     assert!(!fields.branch.is_empty(), "branch field must be non-empty");
-    assert!(!fields.message.is_empty(), "message field must be non-empty");
+    assert!(
+        !fields.message.is_empty(),
+        "message field must be non-empty"
+    );
     assert!(!fields.author.is_empty(), "author field must be non-empty");
-    assert!(!fields.timestamp.is_empty(), "timestamp field must be non-empty");
+    assert!(
+        !fields.timestamp.is_empty(),
+        "timestamp field must be non-empty"
+    );
     assert_eq!(result, HookResult::Continue);
 }

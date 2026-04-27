@@ -16,7 +16,6 @@ use capture_commit_activity::{GitLogOutcome, call_git_log};
 /// The runner callback is the observable unit. When it is not called, the
 /// test fails — implementation must invoke it.
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_BC_4_03_001_subprocess_calls_git_log_with_correct_args() {
     let runner_called = std::cell::Cell::new(false);
     let _ = call_git_log(|| {
@@ -33,7 +32,6 @@ fn test_BC_4_03_001_subprocess_calls_git_log_with_correct_args() {
 /// AC-3: when git log exits 0 with a non-empty SHA on stdout,
 /// `call_git_log` returns `GitLogOutcome::Sha(sha)`.
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_BC_4_03_001_subprocess_returns_sha_on_success() {
     let sha = "abc1234def5678901234567890123456789012345";
     let outcome = call_git_log(|| Ok((0, format!("{sha}\n"))));
@@ -52,7 +50,6 @@ fn test_BC_4_03_001_subprocess_returns_sha_on_success() {
 /// AC-3: trailing newline in git log stdout must be stripped from the returned
 /// SHA (git always appends `\n`).
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_BC_4_03_001_subprocess_sha_stripped_of_whitespace() {
     let outcome = call_git_log(|| Ok((0, "deadbeef12345678\n".to_string())));
     match outcome {
@@ -73,7 +70,6 @@ fn test_BC_4_03_001_subprocess_sha_stripped_of_whitespace() {
 /// AC-3: git may return a 7-char abbreviated SHA (e.g. in a shallow clone).
 /// The plugin must accept short SHAs.
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_BC_4_03_001_subprocess_short_sha_accepted() {
     let outcome = call_git_log(|| Ok((0, "abc1234\n".to_string())));
     match outcome {
@@ -91,14 +87,11 @@ fn test_BC_4_03_001_subprocess_short_sha_accepted() {
 /// AC-3: when the subprocess runner returns an Err (host capability denied,
 /// timeout, etc.), `call_git_log` must surface it as `GitLogOutcome::Failed`.
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_BC_4_03_001_subprocess_runner_error_propagates() {
     let outcome = call_git_log(|| Err("CapabilityDenied".to_string()));
     match outcome {
         GitLogOutcome::Failed { .. } => {}
-        other => panic!(
-            "expected GitLogOutcome::Failed on runner error, got {other:?}"
-        ),
+        other => panic!("expected GitLogOutcome::Failed on runner error, got {other:?}"),
     }
 }
 
@@ -110,7 +103,6 @@ fn test_BC_4_03_001_subprocess_runner_error_propagates() {
 ///
 /// Exercises the nominal happy path used in the spec.
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_TV_002_canonical_full_sha_round_trip() {
     let canonical_sha = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
     let outcome = call_git_log(|| Ok((0, format!("{canonical_sha}\n"))));

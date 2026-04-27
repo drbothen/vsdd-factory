@@ -8,7 +8,7 @@
 //! BC-4.03.001 postcondition 1: on_hook replaces the stub (wasm compiles,
 //! SDK types are used throughout).
 
-use capture_commit_activity::{commit_hook_logic, CommitEventFields};
+use capture_commit_activity::{CommitEventFields, commit_hook_logic};
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------
@@ -41,7 +41,6 @@ fn git_log_ok() -> impl FnOnce() -> Result<(i32, String), String> {
 /// Verifies the function signature compiles and panics on unimplemented!() —
 /// proving the stub is a real implementation target, not a tautology.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_hook_macro_entry_point_has_correct_signature() {
     let payload = git_commit_payload();
     let _result = commit_hook_logic(payload, git_log_ok(), |_fields| {});
@@ -58,7 +57,6 @@ fn test_BC_4_03_001_hook_macro_entry_point_has_correct_signature() {
 /// This test exercises the type surface at the call site; it panics with
 /// unimplemented!() confirming the stub is not returning a default value.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_hook_result_is_sdk_type() {
     let payload = git_commit_payload();
     let result = commit_hook_logic(payload, git_log_ok(), |_| {});
@@ -76,7 +74,6 @@ fn test_BC_4_03_001_hook_result_is_sdk_type() {
 /// Calls the production function — panics with unimplemented!() until the
 /// implementer fills it in.
 #[test]
-#[should_panic(expected = "build_commit_fields: not yet implemented")]
 fn test_BC_4_03_001_commit_event_fields_has_five_required_fields() {
     use capture_commit_activity::build_commit_fields;
     let payload = git_commit_payload();

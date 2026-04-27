@@ -33,7 +33,6 @@ fn bash_payload(command: &str) -> HookPayload {
 /// EC-001: when `git log` returns a non-zero exit code (e.g. empty repo),
 /// `call_git_log` must return `GitLogOutcome::Failed`, not panic.
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_BC_4_03_001_ec001_git_log_nonzero_exit_returns_failed() {
     let outcome = call_git_log(|| {
         Ok((
@@ -52,7 +51,6 @@ fn test_BC_4_03_001_ec001_git_log_nonzero_exit_returns_failed() {
 /// EC-001: when git log fails, `commit_hook_logic` must NOT emit commit.made
 /// and must return Continue (advisory hook never blocks).
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_ec001_failed_git_log_no_emit_returns_continue() {
     let payload = bash_payload("git commit -m 'x'");
     let emit_called = std::cell::Cell::new(false);
@@ -63,7 +61,10 @@ fn test_BC_4_03_001_ec001_failed_git_log_no_emit_returns_continue() {
             emit_called.set(true);
         },
     );
-    assert!(!emit_called.get(), "emit must NOT be called when git log fails (EC-001)");
+    assert!(
+        !emit_called.get(),
+        "emit must NOT be called when git log fails (EC-001)"
+    );
     assert_eq!(
         result,
         HookResult::Continue,
@@ -78,7 +79,6 @@ fn test_BC_4_03_001_ec001_failed_git_log_no_emit_returns_continue() {
 /// EC-002: `npm install` is a non-git command; no git log call, no emit,
 /// returns Continue.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_ec002_npm_command_no_subprocess_no_emit() {
     let payload = bash_payload("npm install");
     let git_log_called = std::cell::Cell::new(false);
@@ -104,7 +104,6 @@ fn test_BC_4_03_001_ec002_npm_command_no_subprocess_no_emit() {
 /// Note: this is a known hard case; the implementation is expected to handle
 /// it via word-boundary anchoring (same as the bash hook did).
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_ec002_echo_git_commit_string_not_matched() {
     let payload = bash_payload("echo 'please run git commit now'");
     let emit_called = std::cell::Cell::new(false);
@@ -115,12 +114,14 @@ fn test_BC_4_03_001_ec002_echo_git_commit_string_not_matched() {
             emit_called.set(true);
         },
     );
-    assert!(!emit_called.get(), "emit must not fire for echo containing 'git commit'");
+    assert!(
+        !emit_called.get(),
+        "emit must not fire for echo containing 'git commit'"
+    );
 }
 
 /// EC-002: `git push` is not a commit command.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_ec002_git_push_not_matched() {
     let payload = bash_payload("git push origin main");
     let emit_called = std::cell::Cell::new(false);
@@ -141,7 +142,6 @@ fn test_BC_4_03_001_ec002_git_push_not_matched() {
 /// EC-003: when git log exits 0 but stdout is empty (rare race or shallow
 /// clone edge), `call_git_log` must return `GitLogOutcome::EmptyOutput`.
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_BC_4_03_001_ec003_git_log_empty_stdout_returns_empty_output() {
     let outcome = call_git_log(|| Ok((0, String::new())));
     match outcome {
@@ -152,7 +152,6 @@ fn test_BC_4_03_001_ec003_git_log_empty_stdout_returns_empty_output() {
 
 /// EC-003: whitespace-only stdout (just `\n`) is also treated as empty.
 #[test]
-#[should_panic(expected = "call_git_log: not yet implemented")]
 fn test_BC_4_03_001_ec003_git_log_whitespace_only_returns_empty_output() {
     let outcome = call_git_log(|| Ok((0, "\n".to_string())));
     match outcome {
@@ -164,7 +163,6 @@ fn test_BC_4_03_001_ec003_git_log_whitespace_only_returns_empty_output() {
 /// EC-003: when git log is empty, `commit_hook_logic` must NOT emit and
 /// must return Continue (not Error — the hook is advisory).
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_ec003_empty_git_log_no_emit_returns_continue() {
     let payload = bash_payload("git commit -m 'x'");
     let emit_called = std::cell::Cell::new(false);
@@ -175,7 +173,10 @@ fn test_BC_4_03_001_ec003_empty_git_log_no_emit_returns_continue() {
             emit_called.set(true);
         },
     );
-    assert!(!emit_called.get(), "emit must NOT be called when git log is empty (EC-003)");
+    assert!(
+        !emit_called.get(),
+        "emit must NOT be called when git log is empty (EC-003)"
+    );
     assert_eq!(
         result,
         HookResult::Continue,
@@ -190,7 +191,6 @@ fn test_BC_4_03_001_ec003_empty_git_log_no_emit_returns_continue() {
 /// VP-043: hook must never block non-Bash tool events.
 /// The plugin is PostToolUse/Bash only; all other tool events must Continue.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_VP_043_non_bash_tool_always_continue() {
     for tool in &["Edit", "Write", "Read", "TodoWrite", "Glob"] {
         let payload = HookPayload {

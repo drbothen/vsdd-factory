@@ -29,28 +29,24 @@ fn make_payload(tool_name: &str, command: &str) -> HookPayload {
 
 /// AC-2 happy path: bare `git commit -m '…'` is detected.
 #[test]
-#[should_panic(expected = "is_git_commit_command: not yet implemented")]
 fn test_BC_4_03_001_parse_detects_bare_git_commit() {
     let _ = is_git_commit_command("git commit -m 'fix: typo'");
 }
 
 /// AC-2: `git commit --amend` is also a git commit invocation.
 #[test]
-#[should_panic(expected = "is_git_commit_command: not yet implemented")]
 fn test_BC_4_03_001_parse_detects_git_commit_amend() {
     let _ = is_git_commit_command("git commit --amend --no-edit");
 }
 
 /// AC-2: compound command `echo hi && git commit -m 'x'` contains git commit.
 #[test]
-#[should_panic(expected = "is_git_commit_command: not yet implemented")]
 fn test_BC_4_03_001_parse_detects_git_commit_in_compound_command() {
     let _ = is_git_commit_command("echo hi && git commit -m 'x'");
 }
 
 /// EC-002: `git status` is NOT a git commit invocation.
 #[test]
-#[should_panic(expected = "is_git_commit_command: not yet implemented")]
 fn test_BC_4_03_001_parse_rejects_git_status() {
     let result = is_git_commit_command("git status");
     assert!(!result, "git status must not match git commit");
@@ -58,7 +54,6 @@ fn test_BC_4_03_001_parse_rejects_git_status() {
 
 /// EC-002: `git commit-tree` must NOT match (not a commit subcommand).
 #[test]
-#[should_panic(expected = "is_git_commit_command: not yet implemented")]
 fn test_BC_4_03_001_parse_rejects_git_commit_tree() {
     let result = is_git_commit_command("git commit-tree abc123");
     assert!(!result, "git commit-tree must not match git commit");
@@ -66,7 +61,6 @@ fn test_BC_4_03_001_parse_rejects_git_commit_tree() {
 
 /// EC-002: empty string must not match.
 #[test]
-#[should_panic(expected = "is_git_commit_command: not yet implemented")]
 fn test_BC_4_03_001_parse_rejects_empty_command() {
     let result = is_git_commit_command("");
     assert!(!result, "empty command must not match");
@@ -74,7 +68,6 @@ fn test_BC_4_03_001_parse_rejects_empty_command() {
 
 /// EC-002: `ls -la` (non-git command) must not match.
 #[test]
-#[should_panic(expected = "is_git_commit_command: not yet implemented")]
 fn test_BC_4_03_001_parse_rejects_non_git_command() {
     let result = is_git_commit_command("ls -la");
     assert!(!result, "non-git command must not match");
@@ -88,7 +81,6 @@ fn test_BC_4_03_001_parse_rejects_non_git_command() {
 ///
 /// The hook only fires on PostToolUse/Bash. Other tool types must be ignored.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_parse_non_bash_tool_returns_continue() {
     let payload = make_payload("Edit", "git commit -m 'x'");
     let git_log_called = std::cell::Cell::new(false);
@@ -100,12 +92,14 @@ fn test_BC_4_03_001_parse_non_bash_tool_returns_continue() {
         },
         |_| {},
     );
-    assert!(!git_log_called.get(), "git log must not be called for non-Bash tool");
+    assert!(
+        !git_log_called.get(),
+        "git log must not be called for non-Bash tool"
+    );
 }
 
 /// EC-002: Bash tool but non-git command → Continue, no subprocess call.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_parse_non_git_command_returns_continue_no_subprocess() {
     let payload = make_payload("Bash", "cargo build --release");
     let git_log_called = std::cell::Cell::new(false);
@@ -117,13 +111,15 @@ fn test_BC_4_03_001_parse_non_git_command_returns_continue_no_subprocess() {
         },
         |_| {},
     );
-    assert!(!git_log_called.get(), "git log must not be called for non-git commands");
+    assert!(
+        !git_log_called.get(),
+        "git log must not be called for non-git commands"
+    );
 }
 
 /// AC-2: `git commit` command → triggers git log subprocess (no-op here, just
 /// verifies the routing reaches the subprocess step).
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_BC_4_03_001_parse_git_commit_command_triggers_subprocess() {
     let payload = make_payload("Bash", "git commit -m 'feat: add logging'");
     let git_log_called = std::cell::Cell::new(false);
@@ -136,13 +132,15 @@ fn test_BC_4_03_001_parse_git_commit_command_triggers_subprocess() {
         |_| {},
     );
     // Unreachable until implemented, but proves the routing check happens.
-    assert!(git_log_called.get(), "git log must be called for git commit commands");
+    assert!(
+        git_log_called.get(),
+        "git log must be called for git commit commands"
+    );
 }
 
 /// TV-001 canonical test vector: PostToolUse payload with `git commit -m 'initial commit'`.
 /// Expected: subprocess called, emit called, result is Continue.
 #[test]
-#[should_panic(expected = "commit_hook_logic: not yet implemented")]
 fn test_TV_001_canonical_git_commit_payload_routes_to_emit() {
     let payload = HookPayload {
         event_name: "PostToolUse".to_string(),
@@ -165,6 +163,9 @@ fn test_TV_001_canonical_git_commit_payload_routes_to_emit() {
             emit_called.set(true);
         },
     );
-    assert!(emit_called.get(), "emit must be called for a valid git commit");
+    assert!(
+        emit_called.get(),
+        "emit must be called for a valid git commit"
+    );
     assert_eq!(result, HookResult::Continue);
 }
