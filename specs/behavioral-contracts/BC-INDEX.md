@@ -897,10 +897,10 @@ traces_to: bc-id-mapping.md
 |-------|-------|--------|-----------|---------|
 | [BC-6.01.001](ss-06/BC-6.01.001.md) | brownfield-ingest enforces strict-binary novelty | draft | TBD | TBD |
 | [BC-6.01.002](ss-06/BC-6.01.002.md) | brownfield-ingest "Iron Law" — no round completion without honest convergence check | draft | TBD | TBD |
-| [BC-6.01.003](ss-06/BC-6.01.003.md) | activate skill requires platform detection success | draft | TBD | TBD |
-| [BC-6.01.004](ss-06/BC-6.01.004.md) | activate skill copies hooks.json.<platform> to hooks.json then verifies dispatcher binary | draft | TBD | TBD |
-| [BC-6.01.005](ss-06/BC-6.01.005.md) | activate skill writes platform + plugin version + activated_at to .claude/settings.local.json | draft | TBD | TBD |
-| [BC-6.01.006](ss-06/BC-6.01.006.md) | activate drift warns on cross-host re-activation | draft | TBD | TBD |
+| [BC-6.01.003](ss-06/BC-6.01.003.md) | activate skill requires platform detection success | draft | CAP-007 | S-0.03 |
+| [BC-6.01.004](ss-06/BC-6.01.004.md) | activate skill copies hooks.json.<platform> to hooks.json then verifies dispatcher binary | draft | CAP-007 | S-2.06 |
+| [BC-6.01.005](ss-06/BC-6.01.005.md) | activate skill writes platform + plugin version + activated_at to .claude/settings.local.json | draft | CAP-007 | S-2.06 |
+| [BC-6.01.006](ss-06/BC-6.01.006.md) | activate drift warns on cross-host re-activation | draft | CAP-007 | S-2.06 |
 | [BC-6.02.001](ss-06/BC-6.02.001.md) | SKILL.md frontmatter requires `name` and `description`; both are non-empty strings | draft | CAP-TBD | TBD |
 | [BC-6.02.002](ss-06/BC-6.02.002.md) | SKILL.md description supports YAML block scalar (`>` folded) for multi-line text | draft | CAP-TBD | TBD |
 | [BC-6.02.003](ss-06/BC-6.02.003.md) | Skill invocation surface is `/vsdd-factory:<skill-name>` slash command | draft | CAP-TBD | TBD |
@@ -913,12 +913,12 @@ traces_to: bc-id-mapping.md
 | [BC-6.02.010](ss-06/BC-6.02.010.md) | Skills that dispatch sub-agents declare a "Canonical Source" or single-source-of-truth playbook r... | draft | CAP-TBD | TBD |
 | [BC-6.02.011](ss-06/BC-6.02.011.md) | Skills with `argument-hint:` declare inline `$ARGUMENTS[N]` / `$ARGUMENTS` semantics | draft | CAP-TBD | TBD |
 | [BC-6.02.012](ss-06/BC-6.02.012.md) | Skill output paths follow `${CLAUDE_PLUGIN_ROOT}` / `.factory/` placement convention | draft | CAP-TBD | TBD |
-| [BC-6.03.001](ss-06/BC-6.03.001.md) | activate: skill identity contract | draft | TBD | TBD |
-| [BC-6.03.002](ss-06/BC-6.03.002.md) | activate: aborts on unsupported platform | draft | TBD | TBD |
-| [BC-6.03.003](ss-06/BC-6.03.003.md) | activate: drift warning on host change | draft | TBD | TBD |
-| [BC-6.03.004](ss-06/BC-6.03.004.md) | activate: writes activation block with three named fields | draft | TBD | TBD |
-| [BC-6.03.005](ss-06/BC-6.03.005.md) | activate: dry-run mode performs no writes | draft | TBD | TBD |
-| [BC-6.03.006](ss-06/BC-6.03.006.md) | activate: applies per-platform variant via apply-platform.sh | draft | TBD | TBD |
+| [BC-6.03.001](ss-06/BC-6.03.001.md) | activate: skill identity contract | draft | CAP-007 | S-2.06 |
+| [BC-6.03.002](ss-06/BC-6.03.002.md) | activate: aborts on unsupported platform | draft | CAP-007 | S-0.03 |
+| [BC-6.03.003](ss-06/BC-6.03.003.md) | activate: drift warning on host change | draft | CAP-007 | S-2.06 |
+| [BC-6.03.004](ss-06/BC-6.03.004.md) | activate: writes activation block with three named fields | draft | CAP-007 | S-2.06 |
+| [BC-6.03.005](ss-06/BC-6.03.005.md) | activate: dry-run mode performs no writes | draft | CAP-007 | S-2.06 |
+| [BC-6.03.006](ss-06/BC-6.03.006.md) | activate: applies per-platform variant via apply-platform.sh | draft | CAP-007 | S-2.06 |
 | [BC-6.03.007](ss-06/BC-6.03.007.md) | deactivate: skill identity (inverse of activate) | draft | TBD | TBD |
 | [BC-6.03.008](ss-06/BC-6.03.008.md) | deactivate: sanity-check before clobbering | draft | TBD | TBD |
 | [BC-6.03.009](ss-06/BC-6.03.009.md) | deactivate: empty-file disposition asks user | draft | TBD | TBD |
@@ -1910,11 +1910,11 @@ traces_to: bc-id-mapping.md
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
-| [BC-9.01.001](ss-09/BC-9.01.001.md) | bump-version.sh accepts semver prerelease format (1.0.0-beta.N, 1.0.0-rc.N) | draft | CAP-TBD | TBD |
-| [BC-9.01.002](ss-09/BC-9.01.002.md) | chore commit (operator-staged) modifies only CHANGELOG.md | draft | CAP-TBD | TBD |
-| [BC-9.01.003](ss-09/BC-9.01.003.md) | release workflow's bot commit atomically writes binaries + plugin.json + marketplace.json | draft | CAP-TBD | TBD |
-| [BC-9.01.004](ss-09/BC-9.01.004.md) | 5-platform CI matrix is the build matrix; drift gated by check-platforms-drift.py | draft | CAP-TBD | TBD |
-| [BC-9.01.005](ss-09/BC-9.01.005.md) | hooks.json is gitignored; hooks.json.template + per-platform variants are committed | draft | CAP-TBD | TBD |
+| [BC-9.01.001](ss-09/BC-9.01.001.md) | bump-version.sh accepts semver prerelease format (1.0.0-beta.N, 1.0.0-rc.N) | draft | CAP-007 | S-2.06 |
+| [BC-9.01.002](ss-09/BC-9.01.002.md) | chore commit (operator-staged) modifies only CHANGELOG.md | draft | CAP-007 | S-0.03 |
+| [BC-9.01.003](ss-09/BC-9.01.003.md) | release workflow's bot commit atomically writes binaries + plugin.json + marketplace.json | draft | CAP-007 | S-2.06 |
+| [BC-9.01.004](ss-09/BC-9.01.004.md) | 5-platform CI matrix is the build matrix; drift gated by check-platforms-drift.py | draft | CAP-007 | S-0.03 |
+| [BC-9.01.005](ss-09/BC-9.01.005.md) | hooks.json is gitignored; hooks.json.template + per-platform variants are committed | draft | CAP-007 | S-2.06 |
 
 ### SS-10 — CLI Tools and Bin (BC-10)
 

@@ -7,12 +7,12 @@ producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
 phase: 1.4b
 inputs: [bc-id-mapping.md, pass-3-behavioral-contracts.md]
-input-hash: "[pending-recompute]"
+input-hash: "dd75ae2"
 traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:522"
 subsystem: "SS-09"
-capability: "CAP-TBD"
+capability: "CAP-007"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -69,10 +69,10 @@ The CI build matrix is exactly five platforms (darwin-arm64, darwin-x64, linux-x
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (anchor in Phase 1.5) |
+| L2 Capability | CAP-007 ("Deploy and activate the plugin on any supported platform") per capabilities.md §CAP-007 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-09 — `ci/platforms.yaml`, `ci/check-platforms-drift.py` |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-0.03 |
 
 ### Source Evidence
 

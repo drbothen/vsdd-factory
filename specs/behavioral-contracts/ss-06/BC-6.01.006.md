@@ -14,7 +14,7 @@ traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md#L496"
 subsystem: SS-06
-capability: "TBD"
+capability: "CAP-007"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -77,10 +77,10 @@ When `.vsdd-factory.activated_platform` exists in settings.local.json and differ
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD |
+| L2 Capability | CAP-007 ("Deploy and activate the plugin on any supported platform") per capabilities.md §CAP-007 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | plugins/vsdd-factory/skills/activate/SKILL.md |
-| Stories | TBD |
+| Stories | S-2.06 |
 
 ## Related BCs (Recommended)
 

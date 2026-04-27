@@ -9,12 +9,12 @@ phase: 1.4b
 inputs:
   - .factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-input-hash: "TBD"
+input-hash: "b921c85"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-1.md#L101"
 subsystem: SS-06
-capability: "TBD"
+capability: "CAP-007"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -74,10 +74,10 @@ activate: dry-run mode performs no writes. Skill performs steps 1-4 (detection +
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD |
+| L2 Capability | CAP-007 ("Deploy and activate the plugin on any supported platform") per capabilities.md §CAP-007 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | plugins/vsdd-factory/skills/activate/SKILL.md |
-| Stories | TBD |
+| Stories | S-2.06 |
 
 ## Related BCs (Recommended)
 
