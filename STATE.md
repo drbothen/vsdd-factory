@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 8 SS-08 pass-2 NITPICK_ONLY 1_of_3; F-101/F-102 fixed; trajectory 9→2; pass-3 pending"
+current_step: "Wave 8 SS-08 pass-3 NITPICK_ONLY 2_of_3; F-201/202/203 fixed; trajectory 9→2→3; pass-4 final pending"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 8 SS-08 pass-2 NITPICK_ONLY: F-101/F-102 fixed; clock 1_of_3; trajectory 9→2; pass-3 pending) |
+| **Last Updated** | 2026-04-27 (Wave 8 SS-08 pass-3 NITPICK_ONLY: F-201/F-202/F-203 fixed; clock 2_of_3; trajectory 9→2→3; pass-4 pending) |
 | **Current Phase** | wave-8-ss-08-baseline |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -110,7 +110,7 @@ dtu_services: []
 | Wave 5 SS-06 skill-catalog re-anchor | **CONVERGED** at pass-6 (commit f8e25d3): 1 LOW process-gap carryover (task #112), 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=1 (-91%). 2 stories spec-ready: S-0.03, S-2.06. Cumulative re-anchored: 28 of 41 stories. | wave-5-ss-06-pass-6.md |
 | Wave 6 SS-09 configuration & activation re-anchor | **CONVERGED** at pass-7 (commit 5f0719c): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=9 → pass-7=0 (HIGH ceiling collapsed at pass-2). 6 stories spec-ready: S-0.01, S-0.04, S-2.02, S-2.03, S-2.04, S-2.08. Cumulative re-anchored: 34 of 41 stories (Wave 1+2+3+4+5+6). | wave-6-ss-09-pass-7.md |
 | Wave 7 SS-10 CLI tools re-anchor | **CONVERGED** at pass-6 (commit d8054c8): 0 findings, 3_of_3 NITPICK_ONLY. Trajectory pass-1=5 → pass-6=0 (5→4→4→0→1→0). 3 stories spec-ready: S-0.02, S-4.08, S-5.07 (stretch-anchored to SS-09 BCs per F-007/F-002/F-005 sanctioned-template-anchor pattern; 11 v1.1 BC candidates BC-10.13.001-012 registered for future SS-10 BC backfill). Cumulative re-anchored: 37 of 41 stories. | wave-7-ss-10-pass-6.md |
-| Wave 8 SS-08 templates & rules re-anchor | in-progress — pass-2 NITPICK_ONLY; clock 1_of_3; trajectory 9→2; F-101/F-102 fixed same burst; pass-3 pending | wave-8-ss-08-pass-2.md |
+| Wave 8 SS-08 templates & rules re-anchor | in-progress — pass-3 NITPICK_ONLY; clock 2_of_3; trajectory 9→2→3; F-201/F-202/F-203 fixed same burst; pass-4 pending | wave-8-ss-08-pass-3.md |
 
 ## Current Phase Steps
 
@@ -184,6 +184,8 @@ dtu_services: []
 | Wave 8 SS-08 pass-1 state-manager fix | state-manager | COMPLETE | F-005 STORY-INDEX Wave 8 baseline summary block; F-007 input-hash deferred (pending intent) |
 | Wave 8 SS-08 adversarial pass-2 | adversarial-reviewer | COMPLETE | 2 LOW (F-101 PRD §8 ambiguity + F-102 column header divergence); NITPICK_ONLY; 8/9 prior closures verified; clock 1_of_3; trajectory 9→2; wave-8-ss-08-pass-2.md |
 | Wave 8 SS-08 pass-2 fix burst | state-manager | COMPLETE | F-101 PRD §8 CAP-014 inline HTML disambiguation + F-102 column header rename "Covering AC"→"Trace" across S-0.05/S-5.05/S-5.06 |
+| Wave 8 SS-08 adversarial pass-3 | adversarial-reviewer | COMPLETE | 3 LOW (F-201 PRD §7 FR-036 sibling masking + F-202 disclosure label drift + F-203 timestamp coherence); NITPICK_ONLY; 11/11 prior closures verified; clock 2_of_3; trajectory 9→2→3; wave-8-ss-08-pass-3.md |
+| Wave 8 SS-08 pass-3 fix burst | state-manager | COMPLETE | F-201 PRD §7 FR-036 HTML comment + F-202 disclosure harmonization (cross-wave complementary, no hyphen) + F-203 frontmatter bump (timestamp 2026-04-27, producer product-owner, version 1.2) across S-0.05/S-5.05/S-5.06 |
 
 ## Identifier Conventions
 
@@ -333,6 +335,7 @@ dtu_services: []
 | D-076 | **Wave 6 SS-09 spec re-anchor CONVERGED at pass-7 (3_of_3 NITPICK_ONLY)** — 7-pass cycle on 6 SS-09 configuration & activation stories: 9→3→8→5→0→0→0 trajectory; pass-1 baseline 9 (4 HIGH/4 MED/1 LOW). Major findings closed: F-001 BC-1.07.003/004 ↔ VP-049 bidirectional; F-002 S-2.03 process-gap markers; F-003 S-2.08 stretch-anchor disclosure + 4 v1.1 BC candidates; F-004 S-2.04 SS-10 dropped; F-005 CAP-028 → SS-06+SS-09 (Wave 3 F-007 precedent); F-006 BC-1.07.003/004 → CAP-002; F-007 PRD §FR-037 wording; F-008 VP-049 Co-anchor; F-101 CAP-028 PRD BC-list disclosure; F-102 S-2.02 dual-cap stretch-anchor; F-103 S-2.04 process-gap + v1.1 VP candidate; F-201 PRD §8:1098 CAP-010 SS-01; F-202 PRD §8:1091 CAP-003 SS-01; F-203 S-2.04 AC-4 BC-9.01.002 → BC-9.01.003 only; F-204 BC-1.07.003/004 metadata stamps; F-205 S-2.02 metadata stamps; F-206 5-col v1.1 candidate table; F-207/F-208 PRD §8 HTML disclosures; F-301 CAP-017 SS-10; F-302 CAP-018 SS-05+SS-06; F-303 BC-1.07.004 module SS-01+SS-09; F-304 S-2.03 dep symmetry; F-305 v1.1 section ordering. Pass-5/6/7 broad-lens probes (POLICY 1 lifecycle, producer/wave field, narrative arithmetic, VP-INDEX completeness, HTML pattern consistency, DI-BC bidirectional, BC-INDEX-bidirectional Stories, story points/estimated_days/priority coherence, forward-ref symmetry, BC-INDEX total_bcs arithmetic) all clean. CAP-propagation drift class exhausted within Wave 6 scope (CAP-023/024 deferred TD #112). 28-CAP audit partial closure (4 fixed: CAP-003/010/017/018; 4 disclosure-stamped: CAP-008/013/028/F-302). 6 stories spec-ready. Cumulative re-anchored: 34 of 41 stories (Waves 1+2+3+4+5+6). | 7-pass convergence one pass faster than Wave 5 SS-06 (6 passes) — accounting for Wave 6's broader cross-CAP propagation drift class exposure at pass-3. Self-referential dogfooding pattern continues to mature. | wave-6-ss-09-CONVERGED | 2026-04-27 | orchestrator + adversary + PO + state-manager |
 
 | D-092 | Wave 8 SS-08 pass-2 NITPICK_ONLY at 92e2007; 2 LOW + fix burst applied same commit. F-101 PRD §8 CAP-014 row inline HTML comment disambiguating BC-8.26.006 actual coverage {S-5.05,S-5.06} vs union "S-0.05,S-5.05,S-5.06"; F-102 body BC table column header renamed "Covering AC"→"Trace" across 3 Wave 8 stories matching Wave 7 sanctioned shape. 8 of 9 pass-1 closures verified intact (F-007 deferred). Trajectory 9→2 (78% reduction; HIGH→LOW ceiling collapse). Convergence step 1_of_3. | clock advances to 1 of 3. Pass-3 + pass-4 with clean runs = CONVERGED. | wave-8-ss-08 | 2026-04-27 | orchestrator + adversary + state-manager |
+| D-094 | Wave 8 SS-08 pass-3 NITPICK_ONLY at <commit-sha>; 3 LOW + fix burst applied same commit. F-201 PRD §7 FR-036 row HTML inline comment mirroring F-101 §8 disclosure (BC-8.26.006 actual coverage {S-5.05,S-5.06}); F-202 disclosure label harmonized "cross-wave complementary anchor pattern" matching Wave 7 S-0.02:172 verbatim; F-203 Wave 8 stories frontmatter bumped (timestamp 2026-04-25→2026-04-27, producer story-writer→product-owner, version 1.1→1.2) matching Wave 7 post-burst convention. 11/11 prior closures verified. Trajectory 9→2→3. Convergence step 2_of_3. | clock advances to 2 of 3. Pass-4 final clean = CONVERGED. | wave-8-ss-08 | 2026-04-27 | orchestrator + adversary + state-manager |
 | D-090 | Wave 8 SS-08 baseline + pass-1 review + fix burst at PO 21fb210 + 21ea6d3 + state-manager this commit. 9 findings (2 HIGH F-001 S-0.05 AC corruption + F-002 systematic POLICY 8 violation across 3 stories; 4 MED F-003 uniform 3-BC anchor + F-004 candidate ID format deviation + F-005 STORY-INDEX summary block missing + F-006 imprecise "All ACs" cells; 3 LOW F-007 input-hash sibling propagation + F-008 PRD §FR-036 vs §FR-043 placement + F-009 capabilities.md CAP-014 inline comment). 8 of 9 closed: F-001 AC bullet restored; F-002 Wave 7 F-204 sanctioned shape applied across all 3 stories (HTML exemption + Acceptance Criteria with BC Traces tables); F-003 BC-8.26.006 dropped from S-0.05 (skeleton-not-deliverable); F-004 BC-8.31.x candidate ID normalization (7 candidates renamed); F-006 closed by F-002 trace tables; F-008 PRD comment moved to §FR-036; F-009 capabilities.md Wave 8 inline comment added. F-007 deferred (pending intent: sweep all 218 SS-08 BCs vs revert input-hash:"" on 3 BCs). F-005 STORY-INDEX summary block added. Cumulative re-anchored: 40 of 41 stories. | Wave 8 docs-stories required Wave 7 F-204 cross-wave-complementary methodology-anchor pattern propagation; baseline burst missed it. F-007 input-hash convention deferred until orchestrator decides cross-SS-08 sweep policy. | wave-8-ss-08 | 2026-04-27 | orchestrator + adversary + PO + state-manager |
 
 ## Skip Log
@@ -347,7 +350,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 8 SS-08 pass-2 NITPICK_ONLY 1_of_3; pass-3 pending.
+**Pause reason:** Wave 8 SS-08 pass-3 NITPICK_ONLY 2_of_3; pass-4 final pending.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
@@ -357,11 +360,11 @@ dtu_services: []
 - Wave 5 SS-06 CONVERGED 3-of-3 at pass-6: 1 LOW process-gap carryover (task #112); 28 of 41 stories anchored; 6-pass cycle; trajectory 11→7→2→1→2→1
 - Wave 6 SS-09 CONVERGED 3-of-3 at pass-7: 0 findings; 24/24 prior closures verified; 14 fresh broad-lens axes all clean; trajectory 9→3→8→5→0→0→0; wave-6-ss-09-pass-7.md persisted
 - Wave 7 SS-10 CONVERGED at pass-6 (3_of_3 NITPICK_ONLY): 0 findings; F-501 self-withdrawn; trajectory 5→4→4→0→1→0; 3 stories spec-ready (S-0.02, S-4.08, S-5.07); wave-7-ss-10-pass-6.md persisted
-- Wave 8 SS-08 pass-2 NITPICK_ONLY: clock 1_of_3; trajectory 9→2; F-101/F-102 fixed same burst; wave-8-ss-08-pass-2.md persisted
+- Wave 8 SS-08 pass-3 NITPICK_ONLY: clock 2_of_3; trajectory 9→2→3; F-201/F-202/F-203 fixed same burst; wave-8-ss-08-pass-3.md persisted
 
 **Resumption recipe:**
 
-Dispatch adversary pass-3 for Wave 8 SS-08 (verify F-101/F-102 closure + fresh axes). After Wave 8: Wave 9 SS-01 straggler (S-2.07) — 1 story remaining.
+Dispatch adversary pass-4 (final) for Wave 8 SS-08 (verify F-201/F-202/F-203 closure + exhaustive axes). If NITPICK_ONLY → CONVERGED (3_of_3). After Wave 8: Wave 9 SS-01 straggler (S-2.07) — 1 story remaining.
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment

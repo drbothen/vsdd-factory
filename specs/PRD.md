@@ -1069,6 +1069,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-034 | SubagentStop / lifecycle hooks and validate-* gate family | CAP-004 | SS-07 | BC-7.08–7.10.NNN | ~80 | shipped | E-2 |
 | FR-035 | Spec artifact templates | CAP-014, CAP-016 | SS-08 | BC-8.01–8.05.NNN | ~60 | shipped | E-1 |
 | FR-036 | Rules and cross-cutting policy documents | CAP-014 | SS-08 | BC-8.06.NNN + BC-8.22.001, BC-8.26.001, BC-8.26.006 (Wave 8 docs anchors: S-0.05, S-5.05, S-5.06) | ~70 | shipped | E-1, E-5 |
+<!-- F-201 (Wave 8 pass-3): BC-8.26.006 stories list within this row reads "S-0.05, S-5.05, S-5.06" as a UNION across the 3 cited BCs. BC-8.26.006 specifically EXCLUDES S-0.05 per F-003 Wave 8 pass-1 — actual BC-8.26.006 coverage is {S-5.05, S-5.06}. Mirrors F-101 disclosure at §8 CAP-014 row. -->
 | FR-037 | Platform-aware activation and hooks.json variant management | CAP-007, CAP-028 | SS-09 | BC-9.01.001–005 | 5 | shipped | E-0, E-2 |
 | FR-038 | Event emission CLI tool (bin/emit-event) | CAP-027 | SS-07, SS-10 | BC-10.01.NNN | ~10 | partial | E-3 |
 | FR-039 | Factory observability bin tools | CAP-003, CAP-010 | SS-10 | BC-10.02.NNN | ~30 | shipped | E-1 |
