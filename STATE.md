@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
-phase: wave-4-ss-02-pass-5-pending
+phase: wave-4-ss-02-CONVERGED-spec-ready
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 4 SS-02 pass-4 NITPICK_ONLY + LOW-001 fix applied; clock 2_of_3; pass-5 pending. Trajectory 7→1→0→1. 26 of 41 stories anchored."
+current_step: "Wave 4 SS-02 CONVERGED at pass-5 (3_of_3 NITPICK). 0 findings; trajectory 7→1→0→1→0. 26 of 41 stories anchored. Wave 5 SS-NN selection pending."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (Wave 4 SS-02 pass-4 NITPICK_ONLY + LOW-001 fix; clock 2_of_3; trajectory 7→1→0→1; pass-5 pending; 26 of 41 stories anchored) |
-| **Current Phase** | wave-4-ss-02-pass-5-pending |
+| **Last Updated** | 2026-04-26 (Wave 4 SS-02 CONVERGED at pass-5; 3_of_3 NITPICK; 0 findings; trajectory 7→1→0→1→0; 26 of 41 stories anchored) |
+| **Current Phase** | wave-4-ss-02-CONVERGED-spec-ready |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -106,7 +106,7 @@ dtu_services: []
 | Wave 1 SS-01 dispatcher-core re-anchor (sub-cycle) | COMPLETE | 6-pass adversarial convergence; 7 stories anchored to 93 unique SS-01 BCs; 10 v1.1 BC candidates; trajectory 10→4→3→1→0→0; commits d373e2b → 754734a → 9a00ee3 → 76bfc42 → f15aa0c |
 | Wave 2 SS-03 sinks re-anchor (sub-cycle) | COMPLETE | 13-pass adversarial convergence; 9 stories anchored to ~37 unique SS-03 BCs (+ FR-044 PRD addition); 32 v1.1 BC candidates; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0; 4 reset events (F-401, F-501→F-602, F-701) all preemptively addressed |
 | Wave 3 SS-04 plugin-ecosystem re-anchor | **CONVERGED** at pass-6 (commit 9cc5fe7): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=0 (HIGH 4→0 collapsed at pass-4). 8 stories spec-ready: S-2.01, S-3.01-03, S-5.01-04. Cumulative re-anchored: 24 of 41 stories (Wave 1+2+3). | wave-3-ss-04-pass-6.md |
-| Wave 4 SS-02 hook-sdk re-anchor | **PASS-4 NITPICK_ONLY at 52fab5d; convergence 2_of_3. LOW-001 fix applied same commit. Trajectory: 7→1→0→1.** PO commit 3c50b6f (S-1.03 22 BCs + S-2.05 publish stretch-anchor); story-writer commit 095bc33 (14 ACs S-1.03 + 6 ACs S-2.05 with [process-gap] markers); VP-INDEX propagation COMPLETE (VP-023, VP-025, VP-038, VP-039, VP-040, VP-041, VP-042 → S-1.03); pass-1 review at adc317d: 7 findings (1 CRIT/3 HIGH/3 MED); pass-1 fix burst applied (PO 661dca2 + state-manager); pass-2 review + HIGH-001 fix at 4c5a66d (1 HIGH BC-INDEX:147 dual-anchor; BC-INDEX:147 Stories column S-1.03 → S-1.03, S-3.03 — POLICY 1 append-only restore); pass-3 NITPICK_ONLY (0 findings; 8/8 cumulative closed; 19/22 BC files sampled CLEAN); pass-4 NITPICK_ONLY (1 LOW ADV-W4SS02-P4-LOW-001; VP-INDEX:148 range notation [BC-2.04.001-005] overstates 4-BC set; fix applied; 22/22 BC files sampled CLEAN); pass-5 pending. Cumulative: 26 of 41 stories anchored. | wave-4-ss-02 |
+| Wave 4 SS-02 hook-sdk re-anchor | **CONVERGED** at pass-5 (commit <SHA>): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=7 → pass-5=0 (CRIT/HIGH/MED zero from pass-3). 2 stories spec-ready: S-1.03, S-2.05. Cumulative re-anchored: 26 of 41 stories (Wave 1+2+3+4). | wave-4-ss-02-pass-5.md |
 
 ## Current Phase Steps
 
@@ -133,7 +133,9 @@ dtu_services: []
 | Wave 4 SS-02 adversarial pass-2 + HIGH-001 fix | adversarial-reviewer + state-manager | COMPLETE | pass-2: 7/7 closed + 1 NEW ADV-W4SS02-P2-HIGH-001; BC-INDEX:147 S-1.03 → S-1.03, S-3.03 fixed same commit; trajectory 7→1 (86% reduction) |
 | Wave 4 SS-02 adversarial pass-3 | adversarial-reviewer | COMPLETE | 0 findings; NITPICK_ONLY; clock 1_of_3; commit 25ef308 |
 | Wave 4 SS-02 adversarial pass-4 + LOW-001 fix | adversarial-reviewer + state-manager | COMPLETE | pass-4 NITPICK_ONLY (1 LOW ADV-W4SS02-P4-LOW-001); VP-INDEX:148 enumerated [BC-2.04.001/002/004/005]; clock 2_of_3; 22/22 BC files CLEAN |
-| Wave 4 SS-02 adversarial pass-5 | adversarial-reviewer | PENDING | dispatch pass-5; target 3_of_3 = CONVERGED |
+| Wave 4 SS-02 adversarial pass-5 | adversarial-reviewer | COMPLETE | 0 findings; CONVERGENCE_REACHED; 3_of_3 NITPICK; wave-4-ss-02-pass-5.md |
+| Wave 4 SS-02 CONVERGED | state-manager | COMPLETE | 3_of_3 NITPICK passes; 26 of 41 stories re-anchored |
+| Wave 5 SS-NN re-anchor selection | orchestrator | PENDING | Select from SS-06 (2), SS-08 (4), SS-09 (4), SS-10 (5) — 15 stories remaining |
 
 ## Identifier Conventions
 
@@ -255,6 +257,7 @@ dtu_services: []
 | D-050 | Wave 4 SS-02 pass-2 review + HIGH-001 fix at 4c5a66d | Pass-2 closure rate 7/7=100%; 1 NEW finding ADV-W4SS02-P2-HIGH-001 BC-INDEX:147 missed BC-2.01.002 dual-anchor (sibling-propagation gap to pass-1 CRIT-001/HIGH-003 — fix burst restored dual anchor in VP-038.md + VP-INDEX + BC-2.01.002.md body but missed the BC-INDEX index row). Single-line fix applied: BC-INDEX:147 Stories column S-1.03 → S-1.03, S-3.03 (POLICY 1 append-only). Trajectory 7→1 (86% reduction). | wave-4-ss-02 | 2026-04-26 | orchestrator |
 | D-051 | Wave 4 SS-02 pass-3 NITPICK_ONLY at 25ef308; clock 1 of 3 | Zero substantive findings under fresh-context skepticism. Pass-2 HIGH-001 closure verified at all 4 sibling artifacts. 19 of 22 BC files sampled cumulatively (passes 2+3) — all CLEAN. Trajectory pass-1=7 → pass-2=1 → pass-3=0 (100% reduction in 2 fix bursts). All 8 cumulative pass-1+2 findings closed. POLICY 1/4/5/6/7/8/9 + 12 axes all CLEAN. | wave-4-ss-02 | 2026-04-26 | adversary |
 | D-052 | Wave 4 SS-02 pass-4 NITPICK_ONLY at 52fab5d; LOW-001 fix applied; clock 2 of 3 | 1 LOW finding ADV-W4SS02-P4-LOW-001 (VP-INDEX VP-040 row range notation [BC-2.04.001-005] overstates 4-BC actual set; binding `bcs:` field in VP-040.md correct; rationale loose summary). Single-line fix: VP-INDEX:148 enumerates [BC-2.04.001/002/004/005] with omission rationale. Cumulative pass-1+2 closures verified clean. Full 22-of-22 SS-02 BC coverage achieved. Trajectory pass-1=7 → pass-4=1 (LOW). | wave-4-ss-02 | 2026-04-26 | adversary |
+| D-053 | Wave 4 SS-02 spec re-anchor CONVERGED at pass-5 (3_of_3 NITPICK_ONLY) | 5-pass cycle on 2 SS-02 hook-sdk stories: 7→1→0→1→0 trajectory; severity collapsed to zero from pass-3. 9 of 9 cumulative findings closed (100%). Pass-1 baseline 7 (1 CRIT POLICY-1, 3 HIGH propagation, 3 MED quality); pass-2 BC-INDEX:147 dual-anchor sibling-propagation; pass-3 zero; pass-4 VP-INDEX VP-040 range overstate (LOW); pass-5 zero. Full 22-of-22 SS-02 BC coverage. Cross-wave dual-anchor BC-2.01.002 (W3+W4) preserved across 4 artifacts. Cumulative re-anchored: 26 of 41 stories. Fastest sub-cycle (5 passes vs W2: 13, W3: 6). | wave-4-ss-02 | 2026-04-26 | orchestrator |
 
 ## Skip Log
 
@@ -268,36 +271,36 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 4 SS-02 pass-4 NITPICK_ONLY + LOW fix at 52fab5d; clock 2 of 3.
+**Pause reason:** Wave 4 SS-02 CONVERGED at pass-5 (3_of_3 NITPICK; 0 findings; trajectory 7→1→0→1→0).
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
 - Wave 2 SS-03 CONVERGED 3-of-3 at pass-13 (commit 2fdb779; 13 passes; 4 reset events; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0)
 - Wave 3 SS-04 CONVERGED 3-of-3 at pass-6 (commit 9cc5fe7; 6 passes; trajectory 11→7→4→1→1→0; HIGH 4→0 collapsed at pass-4)
-- Wave 4 SS-02 PASS-4 COMPLETE: 1 LOW NITPICK_ONLY; LOW-001 fix applied (VP-INDEX:148 enumerated [BC-2.04.001/002/004/005]); convergence clock 2_of_3; 22/22 BC files CLEAN; 26 of 41 stories anchored; pass-5 pending
+- Wave 4 SS-02 CONVERGED 3-of-3 at pass-5: 0 findings; 9/9 cumulative closed (100%); 22/22 BC files CLEAN; 26 of 41 stories anchored; 5-pass cycle (fastest to date)
 
 **Resumption recipe:**
 
-Dispatch adversary pass-5 against Wave 4 SS-02 (pass-4 + LOW fix at 52fab5d). Target convergence step 3_of_3 = CONVERGED.
+Begin Wave 5 SS-NN re-anchor selection (15 stories remaining: SS-06 (2), SS-08 (4), SS-09 (4), SS-10 (5)).
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
-- #102 Waves 4-8 (15 stories remaining after SS-02: SS-06 (2), SS-08 (4), SS-09 (4), SS-10 (5))
+- #102 Waves 5-8 (15 stories remaining: SS-06 (2), SS-08 (4), SS-09 (4), SS-10 (5))
 - #103 Cross-cutting consistency-validator sweep (post-Wave-8)
 - #104 TD: SS-03/07/10 capability column standardization
 - #105 TD: S-2.07 depends_on missing S-1.09
 - #106 STATE.md compaction (now growing toward 300 lines)
 - #107 TD: housekeeping sweep for bare BC-prefix anchors in SS-01 stories (S-1.02:279, S-2.02:111)
 - #108 TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts (CAP-003, 007, 010, 017, 023, 024) — deferred from Wave 3 pass-3
-- #109 Wave 4 SS-02 adversarial convergence (in progress — pass-1 COMPLETE, fix-burst pending)
+- #110 Wave 5 SS-NN re-anchor (selection: SS-06 or SS-08 or SS-09 or SS-10)
 
-**Total cumulative anchored:** 26 stories (Wave 1 + Wave 2 + Wave 3 CONVERGED + Wave 4 SS-02 baseline) of 41 migrated stories.
+**Total cumulative anchored:** 26 stories (Wave 1 + Wave 2 + Wave 3 + Wave 4 CONVERGED) of 41 migrated stories.
 
 **Trajectory pattern across waves:**
 - Wave 1: 6 passes, 0 reset events
 - Wave 2: 13 passes, 4 reset events
 - Wave 3: 6 passes, 3 reset events (passes 1-3 HIGH findings); CONVERGED 3-of-3 at pass-6
-- Wave 4: baseline established; pass-1 pending
+- Wave 4: 5 passes, 0 reset events; CONVERGED 3-of-3 at pass-5 (fastest sub-cycle)
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
