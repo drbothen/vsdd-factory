@@ -1910,9 +1910,9 @@ traces_to: bc-id-mapping.md
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
-| [BC-9.01.001](ss-09/BC-9.01.001.md) | bump-version.sh accepts semver prerelease format (1.0.0-beta.N, 1.0.0-rc.N) | draft | CAP-007 | S-2.06 |
-| [BC-9.01.002](ss-09/BC-9.01.002.md) | chore commit (operator-staged) modifies only CHANGELOG.md | draft | CAP-007 | S-0.03 |
-| [BC-9.01.003](ss-09/BC-9.01.003.md) | release workflow's bot commit atomically writes binaries + plugin.json + marketplace.json | draft | CAP-007 | S-2.06 |
+| [BC-9.01.001](ss-09/BC-9.01.001.md) | bump-version.sh accepts semver prerelease format (1.0.0-beta.N, 1.0.0-rc.N) | draft | CAP-TBD | TBD |
+| [BC-9.01.002](ss-09/BC-9.01.002.md) | chore commit (operator-staged) modifies only CHANGELOG.md | draft | CAP-TBD | TBD |
+| [BC-9.01.003](ss-09/BC-9.01.003.md) | release workflow's bot commit atomically writes binaries + plugin.json + marketplace.json | draft | CAP-TBD | TBD |
 | [BC-9.01.004](ss-09/BC-9.01.004.md) | 5-platform CI matrix is the build matrix; drift gated by check-platforms-drift.py | draft | CAP-007 | S-0.03 |
 | [BC-9.01.005](ss-09/BC-9.01.005.md) | hooks.json is gitignored; hooks.json.template + per-platform variants are committed | draft | CAP-007 | S-2.06 |
 

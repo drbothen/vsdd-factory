@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:504"
 subsystem: "SS-09"
-capability: "CAP-007"
+capability: "CAP-TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -68,10 +68,10 @@ The release tooling's `bump-version.sh` accepts semver prerelease versions of th
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-007 ("Deploy and activate the plugin on any supported platform") per capabilities.md §CAP-007 |
+| L2 Capability | TBD (release-pipeline scope; CAP-007 anchor reverted per Wave 5 pass-1 HIGH-001 — no activate-skill story exercises this BC; pending re-anchor to release-pipeline story) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-09 — `scripts/bump-version.sh` (prerelease semver; see Source Evidence for location TBD) |
-| Stories | S-2.06 |
+| Stories | TBD (reverted from S-2.06; BC is release-tooling scope, not activation-skill scope) |
 
 ### Source Evidence
 

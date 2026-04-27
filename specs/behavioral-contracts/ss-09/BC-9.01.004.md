@@ -70,7 +70,7 @@ The CI build matrix is exactly five platforms (darwin-arm64, darwin-x64, linux-x
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-007 ("Deploy and activate the plugin on any supported platform") per capabilities.md §CAP-007 |
-| L2 Domain Invariants | TBD |
+| L2 Domain Invariants | DI-015 (per-project activation gate prerequisite — the 5-platform CI matrix produces the gate-ready artifacts) |
 | Architecture Module | SS-09 — `ci/platforms.yaml`, `ci/check-platforms-drift.py` |
 | Stories | S-0.03 |
 

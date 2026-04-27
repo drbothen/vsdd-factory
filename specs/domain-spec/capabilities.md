@@ -41,9 +41,9 @@ Source: design doc "Decisions" §4; pass-8 §ADR-005. Justification: grounded in
 
 **CAP-007 — Deploy and activate the plugin on any supported platform**
 The activate skill detects the operator's OS+arch, copies the matching per-platform `hooks.json`, and verifies the dispatcher binary. Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x64.
-Subsystems: SS-01, SS-06, SS-09. Outcome: `/vsdd-factory:activate` succeeds on all five platforms without manual path configuration.
+Subsystems: SS-06, SS-09. Outcome: `/vsdd-factory:activate` succeeds on all five platforms without manual path configuration.
 Source: design doc Q5 resolution; pass-8 §ADR-007. Justification: cross-platform support is a primary product differentiator.
-<!-- [process-gap] F-007 fix (Wave 5 SS-06 re-anchor): SS-06 added — the activate/deactivate skills (BC-6.01.003-006, BC-6.03.001-009) implement platform detection and activation logic in SS-06 (Skill Catalog). Wave 3 F-007 precedent: when story.subsystems ⊄ CAP.subsystems, expand the CAP. Both S-0.03 and S-2.06 declare subsystems: ["SS-06", "SS-09"]. -->
+<!-- [process-gap] F-007 fix (Wave 5 SS-06 re-anchor): SS-06 added — the activate/deactivate skills (BC-6.01.003-006, BC-6.03.001-009) implement platform detection and activation logic in SS-06 (Skill Catalog). Wave 3 F-007 precedent: when story.subsystems ⊄ CAP.subsystems, expand the CAP. Both S-0.03 and S-2.06 declare subsystems: ["SS-06", "SS-09"]. SS-01 expansion reverted at Wave 5 pass-1 fix burst per HIGH-002 — no SS-01 BC anchored to activate-skill stories; dispatcher binary dependency is consumed (S-2.04 produces it), not implemented in SS-01. -->
 
 **CAP-008 — Gate tool calls with pre-execution behavioral checks (PreToolUse hooks)**
 Bash hooks registered as PreToolUse can block dangerous commands before execution: secret exposure, branch protection violations, AI attribution injection, destructive command patterns.

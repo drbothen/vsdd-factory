@@ -71,7 +71,7 @@ The runtime `hooks.json` file is gitignored — the activate skill writes it at 
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-007 ("Deploy and activate the plugin on any supported platform") per capabilities.md §CAP-007 |
-| L2 Domain Invariants | TBD |
+| L2 Domain Invariants | DI-015 (per-project activation gate — hooks.json is the gate artifact; this BC contracts that the gitignored hooks.json must be written by activate, making activation the prerequisite for dispatcher use) |
 | Architecture Module | SS-09 — `plugins/vsdd-factory/hooks/hooks.json*`, `.gitignore`, ADR-009 |
 | Stories | S-2.06 |
 
