@@ -92,7 +92,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | draft | 2 (+ v1.1 candidates) |
 | S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | partial | 6 |
 | S-4.07 | End-to-end observability integration tests | E-4 | 8 | P1 | S-3.01..S-3.04, S-4.01..S-4.06 | draft | 15 |
-| S-4.08 | 1.0.0-rc.1 release gate | E-4 | 3 | P0 | S-0.02, S-4.07 + 2-week shakedown | draft | -- |
+| S-4.08 | 1.0.0-rc.1 release gate | E-4 | 3 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07 + 2-week shakedown | draft | -- |
 
 ## Epic E-5 — New Hook Events and 1.0.0 Release (Tier G + H — draft/partial)
 
@@ -104,7 +104,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | draft |
 | S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | S-4.08 | partial |
 | S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft |
-| S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-0.02, S-5.01..S-5.06 + 1-week shakedown | draft |
+| S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-0.01, S-0.02, S-5.01..S-5.06 + 1-week shakedown | draft |
 
 ## Epic E-6 — VSDD Self-Improvement / Tooling Backlog (open)
 
