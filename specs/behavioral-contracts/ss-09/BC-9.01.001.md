@@ -71,7 +71,7 @@ The release tooling's `bump-version.sh` accepts semver prerelease versions of th
 | L2 Capability | CAP-028 ("Install and update the plugin via Claude Code marketplace") per capabilities.md §CAP-028 — bump-version.sh enables version co-stamping across plugin.json, marketplace.json, and CHANGELOG, which is the precondition for every marketplace install reporting the correct version |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-09 — `scripts/bump-version.sh` (prerelease semver validation and version co-stamping) |
-| Stories | S-0.01, S-2.08 |
+| Stories | S-0.01, S-2.08, S-0.02, S-4.08, S-5.07 |
 
 ### Source Evidence
 

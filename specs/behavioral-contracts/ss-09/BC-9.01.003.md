@@ -72,7 +72,7 @@ After a release tag is pushed, the release workflow's bot commit writes the per-
 | L2 Capability | CAP-028 ("Install and update the plugin via Claude Code marketplace") per capabilities.md §CAP-028 — the atomic bot commit guarantees that a marketplace consumer fetching in any window sees a consistent (version=X, matching binaries, matching metadata) tuple |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-09 — release workflow + `plugins/vsdd-factory/.claude-plugin/plugin.json` + marketplace.json |
-| Stories | S-2.04, S-2.08 |
+| Stories | S-2.04, S-2.08, S-0.02 |
 
 ### Source Evidence
 
