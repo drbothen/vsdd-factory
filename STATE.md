@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
-phase: wave-5-ss-06-pass-1-pending
+phase: wave-5-ss-06-pass-1-fix-burst-pending
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 5 SS-06 PO baseline COMPLETE at c75e21b (S-0.03 + S-2.06; 15 BCs; CAP-007 expanded). 28 of 41 stories anchored. Pass-1 pending."
+current_step: "Wave 5 SS-06 pass-1 review COMPLETE (11 findings: 2 CRIT, 4 HIGH, 4 MED, 3 LOW). Fix burst pending."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (Wave 5 SS-06 PO baseline at c75e21b; S-0.03 + S-2.06 anchored; 15 BCs propagated; CAP-007 expanded; 28 of 41 stories anchored) |
-| **Current Phase** | wave-5-ss-06-pass-1-pending |
+| **Last Updated** | 2026-04-26 (Wave 5 SS-06 pass-1 review: 11 findings (2 CRIT POLICY-7 PRD-BC desync + POLICY-4 mis-anchors; 4 HIGH; 4 MED; 3 LOW). Fix burst pending.) |
+| **Current Phase** | wave-5-ss-06-pass-1-fix-burst-pending |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -107,7 +107,7 @@ dtu_services: []
 | Wave 2 SS-03 sinks re-anchor (sub-cycle) | COMPLETE | 13-pass adversarial convergence; 9 stories anchored to ~37 unique SS-03 BCs (+ FR-044 PRD addition); 32 v1.1 BC candidates; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0; 4 reset events (F-401, F-501→F-602, F-701) all preemptively addressed |
 | Wave 3 SS-04 plugin-ecosystem re-anchor | **CONVERGED** at pass-6 (commit 9cc5fe7): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=0 (HIGH 4→0 collapsed at pass-4). 8 stories spec-ready: S-2.01, S-3.01-03, S-5.01-04. Cumulative re-anchored: 24 of 41 stories (Wave 1+2+3). | wave-3-ss-04-pass-6.md |
 | Wave 4 SS-02 hook-sdk re-anchor | **CONVERGED** at pass-5 (commit 896cb72): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=7 → pass-5=0 (CRIT/HIGH/MED zero from pass-3). 2 stories spec-ready: S-1.03, S-2.05. Cumulative re-anchored: 26 of 41 stories (Wave 1+2+3+4). | wave-4-ss-02-pass-5.md |
-| Wave 5 SS-06 skill-catalog re-anchor | PO commit c75e21b: S-0.03 (4 BCs) + S-2.06 (11 BCs) = 15 BCs anchored. CAP-007 expanded to include SS-06 + PRD §8 propagated. 15 BC files frontmatter + body Traceability updated. BC-INDEX 15 rows propagated. v1.1 BC candidates registered for deactivate (BC-6.03.007-009). Pre-existing bidirectional gap noted (S-2.04.blocks missing S-2.06). Cumulative: 28 of 41 stories anchored. Pass-1 pending. | wave-5-ss-06-pass-1-pending |
+| Wave 5 SS-06 skill-catalog re-anchor | PO commit c75e21b: S-0.03 (4 BCs) + S-2.06 (11 BCs) = 15 BCs anchored. CAP-007 expanded to include SS-06 + PRD §8 propagated. 15 BC files frontmatter + body Traceability updated. BC-INDEX 15 rows propagated. v1.1 BC candidates registered for deactivate (BC-6.03.007-009). Pre-existing bidirectional gap noted (S-2.04.blocks missing S-2.06). Cumulative: 28 of 41 stories anchored. Pass-1 review: 11 findings (2 CRIT POLICY-7 PRD-BC desync + POLICY-4 BC-9.01.002 mis-anchor; 4 HIGH BC-9.01.001/003 mis-anchor + CAP-007 SS-01 unjustified + CAP-028/DI-015 propagation + VP-015 missing; 4 MED; 3 LOW). Substantive fix burst pending. | wave-5-ss-06-pass-1-fix-burst-pending |
 
 ## Current Phase Steps
 
@@ -137,7 +137,8 @@ dtu_services: []
 | Wave 4 SS-02 adversarial pass-5 | adversarial-reviewer | COMPLETE | 0 findings; CONVERGENCE_REACHED; 3_of_3 NITPICK; wave-4-ss-02-pass-5.md |
 | Wave 4 SS-02 CONVERGED | state-manager | COMPLETE | 3_of_3 NITPICK passes; 26 of 41 stories re-anchored |
 | Wave 5 SS-06 PO baseline c75e21b | product-owner | COMPLETE | S-0.03 + S-2.06 anchored; 15 BCs propagated; CAP-007 expanded; 28 of 41 stories anchored |
-| Wave 5 SS-06 adversarial pass-1 | adversarial-reviewer | PENDING | Dispatch with full policy rubric |
+| Wave 5 SS-06 adversarial pass-1 | adversarial-reviewer | COMPLETE | 11 findings (2 CRIT/4 HIGH/4 MED/3 LOW); wave-5-ss-06-pass-1.md |
+| Wave 5 SS-06 pass-1 fix burst | product-owner | PENDING | Address CRIT-001/002 + HIGH-001/002/003/004 before pass-2 |
 
 ## Identifier Conventions
 
@@ -261,6 +262,7 @@ dtu_services: []
 | D-052 | Wave 4 SS-02 pass-4 NITPICK_ONLY at 52fab5d; LOW-001 fix applied; clock 2 of 3 | 1 LOW finding ADV-W4SS02-P4-LOW-001 (VP-INDEX VP-040 row range notation [BC-2.04.001-005] overstates 4-BC actual set; binding `bcs:` field in VP-040.md correct; rationale loose summary). Single-line fix: VP-INDEX:148 enumerates [BC-2.04.001/002/004/005] with omission rationale. Cumulative pass-1+2 closures verified clean. Full 22-of-22 SS-02 BC coverage achieved. Trajectory pass-1=7 → pass-4=1 (LOW). | wave-4-ss-02 | 2026-04-26 | adversary |
 | D-053 | Wave 4 SS-02 spec re-anchor CONVERGED at pass-5 (3_of_3 NITPICK_ONLY) | 5-pass cycle on 2 SS-02 hook-sdk stories: 7→1→0→1→0 trajectory; severity collapsed to zero from pass-3. 9 of 9 cumulative findings closed (100%). Pass-1 baseline 7 (1 CRIT POLICY-1, 3 HIGH propagation, 3 MED quality); pass-2 BC-INDEX:147 dual-anchor sibling-propagation; pass-3 zero; pass-4 VP-INDEX VP-040 range overstate (LOW); pass-5 zero. Full 22-of-22 SS-02 BC coverage. Cross-wave dual-anchor BC-2.01.002 (W3+W4) preserved across 4 artifacts. Cumulative re-anchored: 26 of 41 stories. Fastest sub-cycle (5 passes vs W2: 13, W3: 6). | wave-4-ss-02 | 2026-04-26 | orchestrator |
 | D-054 | Wave 5 SS-06 baseline at c75e21b | S-0.03 anchored to [BC-6.01.003 platform detection, BC-6.03.002 abort on unsupported, BC-9.01.002 fail-explicit, BC-9.01.004 platforms.yaml] (4 BCs); S-2.06 anchored to [BC-6.01.004 hooks.json copy, BC-6.01.005 settings, BC-6.01.006 drift warn, BC-6.03.001 identity, BC-6.03.003-006 drift/dry-run/apply-platform, BC-9.01.001 activation gate, BC-9.01.003 idempotent, BC-9.01.005 plugin manifest] (11 BCs). CAP-007 Subsystems expanded SS-09/SS-01 → SS-01/SS-06/SS-09 (Wave 3 F-007 precedent) + same-burst PRD §8 propagation. Both stories anchored to FR-037 (PRD already names S-0.03/S-2.06 as shipped). 15 BC files (10 ss-06 + 5 ss-09) frontmatter capability=CAP-007 + body Traceability L2 Capability=CAP-007 + Stories=S-0.03 or S-2.06. v1.1 BC candidates BC-6.03.007-009 (deactivate scope) deferred. Pre-existing bidirectional gap S-2.04.blocks↛S-2.06 noted (out-of-scope; separate task). | wave-5-ss-06 | 2026-04-26 | orchestrator |
+| D-055 | Wave 5 SS-06 pass-1 review at `<commit>` | 11 findings (2 CRIT, 4 HIGH, 4 MED, 3 LOW). CRIT-001 catastrophic: PRD §FR-037 BC titles drift from 4-of-5 BC-9.01 file H1s — actual H1s are release-tooling (bump-version, chore-commit, release-bot atomic) not activation-gate. CRIT-002 BC-9.01.002 mis-anchored to S-0.03 (platform detection ≠ chore commit). HIGH-001 BC-9.01.001/003 mis-anchored to S-2.06 (release tooling ≠ activate integration). HIGH-002 CAP-007 SS-01 unjustified expansion. HIGH-003 CAP-028+DI-015 propagation gap (DI-015 orphan). HIGH-004 VP-015 uncited despite SS-09 manual anchor. Pass-1 baseline 11 within Wave-1 band 7-12. Substantive fix burst required before pass-2. | wave-5-ss-06 | 2026-04-26 | adversary |
 
 ## Skip Log
 
@@ -274,18 +276,19 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 5 SS-06 baseline at c75e21b — S-0.03 + S-2.06 anchored (15 BCs); CAP-007 expanded; PRD §8 propagated; BC-INDEX + 15 BC files updated. Pass-1 pending.
+**Pause reason:** Wave 5 SS-06 pass-1 review at `<commit>`; substantive fix burst pending (2 CRIT + 4 HIGH findings).
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
 - Wave 2 SS-03 CONVERGED 3-of-3 at pass-13 (commit 2fdb779; 13 passes; 4 reset events; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0)
 - Wave 3 SS-04 CONVERGED 3-of-3 at pass-6 (commit 9cc5fe7; 6 passes; trajectory 11→7→4→1→1→0; HIGH 4→0 collapsed at pass-4)
 - Wave 4 SS-02 CONVERGED 3-of-3 at pass-5: 0 findings; 9/9 cumulative closed (100%); 22/22 BC files CLEAN; 26 of 41 stories anchored; 5-pass cycle (fastest to date)
-- Wave 5 SS-06 PO baseline COMPLETE at c75e21b: 28 of 41 stories anchored; pass-1 pending
+- Wave 5 SS-06 PO baseline COMPLETE at c75e21b: 28 of 41 stories anchored
+- Wave 5 SS-06 pass-1 review COMPLETE: 11 findings (2 CRIT/4 HIGH/4 MED/3 LOW); fix burst pending
 
 **Resumption recipe:**
 
-Dispatch adversary pass-1 with full policy rubric.
+Dispatch PO fix burst addressing CRIT-001/002 + HIGH-001/002/003/004.
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
