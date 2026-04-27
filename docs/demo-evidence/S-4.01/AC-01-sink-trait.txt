@@ -1,0 +1,23 @@
+warning: function `test_BC_3_01_001_http_sink_implements_sink_trait` should have a snake case name
+  --> crates/sink-http/tests/contract_sink_trait.rs:27:4
+   |
+27 | fn test_BC_3_01_001_http_sink_implements_sink_trait() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_01_001_http_sink_implements_sink_trait`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_HttpSink_struct_exported_for_reuse` should have a snake case name
+  --> crates/sink-http/tests/contract_sink_trait.rs:62:4
+   |
+62 | fn test_HttpSink_struct_exported_for_reuse() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_http_sink_struct_exported_for_reuse`
+
+warning: `sink-http` (test "contract_sink_trait") generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s
+     Running tests/contract_sink_trait.rs (target/debug/deps/contract_sink_trait-3c0c29032176b07f)
+
+running 1 test
+test test_BC_3_01_001_http_sink_implements_sink_trait ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.05s
+
