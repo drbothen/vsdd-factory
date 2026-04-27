@@ -143,28 +143,28 @@ traces_to: bc-id-mapping.md
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
-| [BC-2.01.001](ss-02/BC-2.01.001.md) | HookResult serialization is tagged with `outcome` field | draft | CAP-TBD | TBD |
-| [BC-2.01.002](ss-02/BC-2.01.002.md) | HookResult exit codes Continue=0 / Block=2 / Error=1 | draft | CAP-TBD | TBD |
-| [BC-2.01.003](ss-02/BC-2.01.003.md) | HOST_ABI_VERSION is 1 in both crates | draft | CAP-TBD | TBD |
-| [BC-2.01.004](ss-02/BC-2.01.004.md) | SDK HookPayload has `plugin_config` field defaulting to Null | draft | CAP-TBD | TBD |
-| [BC-2.02.001](ss-02/BC-2.02.001.md) | Plugin-author API surface is `vsdd_hook_sdk::host::*`; raw FFI is private (`mod ffi;`) | draft | CAP-TBD | TBD |
-| [BC-2.02.002](ss-02/BC-2.02.002.md) | Bounded host calls are mandatory — `read_file` and `exec_subprocess` REQUIRE `timeout_ms` and a byte cap | draft | CAP-TBD | TBD |
-| [BC-2.02.003](ss-02/BC-2.02.003.md) | HostError code mapping: -1 = CapabilityDenied, -2 = Timeout, -3 = OutputTooLarge, -4 = InvalidArgument, other negative = Other(i32) | draft | CAP-TBD | TBD |
-| [BC-2.02.004](ss-02/BC-2.02.004.md) | SubprocessResult envelope decoding is paranoid — rejects truncated input rather than panicking | draft | CAP-TBD | TBD |
-| [BC-2.02.005](ss-02/BC-2.02.005.md) | SDK-side `read_string` re-call protocol — host returns required size; SDK reallocates and re-calls | draft | CAP-TBD | TBD |
-| [BC-2.02.006](ss-02/BC-2.02.006.md) | SDK ffi.rs uses `#[link(wasm_import_module = "vsdd")]` on wasm32 targets, host stubs on others | draft | CAP-TBD | TBD |
-| [BC-2.02.007](ss-02/BC-2.02.007.md) | hook-sdk::host::encode_fields_uses_length_prefix — encode_fields([(k,v)]) lays out key_len\|key\|value_len\|value LE-prefixed | draft | CAP-TBD | TBD |
-| [BC-2.02.008](ss-02/BC-2.02.008.md) | hook-sdk::host::encode_args_round_trip — encode_args matches the same length-prefix shape with no separator | draft | CAP-TBD | TBD |
-| [BC-2.02.009](ss-02/BC-2.02.009.md) | hook-sdk::host::decode_subprocess_result_parses_envelope — SubprocessResult envelope `i32 \| u32 \| stdout \| u32 \| stderr` decodes correctly | draft | CAP-TBD | TBD |
-| [BC-2.02.010](ss-02/BC-2.02.010.md) | hook-sdk::host::log_levels_are_stable — LogLevel discriminants 0..=4 are pinned (Trace=0, Debug=1, Info=2, Warn=3, Error=4) | draft | CAP-TBD | TBD |
-| [BC-2.04.001](ss-02/BC-2.04.001.md) | hook-sdk::payload::pretooluse_payload_deserializes — full envelope parses with tool_input populated, tool_response None | draft | CAP-TBD | TBD |
-| [BC-2.04.002](ss-02/BC-2.04.002.md) | hook-sdk::payload::posttooluse_payload_with_response — SDK payload includes typed access to tool_response.exit_code | draft | CAP-TBD | TBD |
-| [BC-2.04.003](ss-02/BC-2.04.003.md) | hook-sdk::payload::lifecycle_payload_without_tool_name — SessionStart parses with tool_name="" and tool_input is JSON null | draft | CAP-TBD | TBD |
-| [BC-2.04.004](ss-02/BC-2.04.004.md) | hook-sdk::payload::payload_round_trip_via_serde — serialize → deserialize preserves event_name and session_id | draft | CAP-TBD | TBD |
-| [BC-2.04.005](ss-02/BC-2.04.005.md) | hook-sdk::payload::plugin_config_passes_through_when_present — plugin_config field arrives populated when the registry sets it | draft | CAP-TBD | TBD |
-| [BC-2.05.001](ss-02/BC-2.05.001.md) | hook-sdk::__internal::panic_message_extracts_static_str — panic of `&str` is extracted into the panic message | draft | CAP-TBD | TBD |
-| [BC-2.05.002](ss-02/BC-2.05.002.md) | hook-sdk::__internal::panic_message_extracts_string — panic of `String` is extracted | draft | CAP-TBD | TBD |
-| [BC-2.05.003](ss-02/BC-2.05.003.md) | hook-sdk::__internal::panic_message_falls_back_for_unknown_types — non-string panic payloads return "(no panic message)" | draft | CAP-TBD | TBD |
+| [BC-2.01.001](ss-02/BC-2.01.001.md) | HookResult serialization is tagged with `outcome` field | draft | CAP-009 | S-1.03 |
+| [BC-2.01.002](ss-02/BC-2.01.002.md) | HookResult exit codes Continue=0 / Block=2 / Error=1 | draft | CAP-009 | S-1.03 |
+| [BC-2.01.003](ss-02/BC-2.01.003.md) | HOST_ABI_VERSION is 1 in both crates | draft | CAP-009 | S-1.03 |
+| [BC-2.01.004](ss-02/BC-2.01.004.md) | SDK HookPayload has `plugin_config` field defaulting to Null | draft | CAP-009 | S-1.03 |
+| [BC-2.02.001](ss-02/BC-2.02.001.md) | Plugin-author API surface is `vsdd_hook_sdk::host::*`; raw FFI is private (`mod ffi;`) | draft | CAP-009 | S-1.03 |
+| [BC-2.02.002](ss-02/BC-2.02.002.md) | Bounded host calls are mandatory — `read_file` and `exec_subprocess` REQUIRE `timeout_ms` and a byte cap | draft | CAP-009 | S-1.03 |
+| [BC-2.02.003](ss-02/BC-2.02.003.md) | HostError code mapping: -1 = CapabilityDenied, -2 = Timeout, -3 = OutputTooLarge, -4 = InvalidArgument, other negative = Other(i32) | draft | CAP-009 | S-1.03 |
+| [BC-2.02.004](ss-02/BC-2.02.004.md) | SubprocessResult envelope decoding is paranoid — rejects truncated input rather than panicking | draft | CAP-009 | S-1.03 |
+| [BC-2.02.005](ss-02/BC-2.02.005.md) | SDK-side `read_string` re-call protocol — host returns required size; SDK reallocates and re-calls | draft | CAP-009 | S-1.03 |
+| [BC-2.02.006](ss-02/BC-2.02.006.md) | SDK ffi.rs uses `#[link(wasm_import_module = "vsdd")]` on wasm32 targets, host stubs on others | draft | CAP-009 | S-1.03 |
+| [BC-2.02.007](ss-02/BC-2.02.007.md) | hook-sdk::host::encode_fields_uses_length_prefix — encode_fields([(k,v)]) lays out key_len\|key\|value_len\|value LE-prefixed | draft | CAP-009 | S-1.03 |
+| [BC-2.02.008](ss-02/BC-2.02.008.md) | hook-sdk::host::encode_args_round_trip — encode_args matches the same length-prefix shape with no separator | draft | CAP-009 | S-1.03 |
+| [BC-2.02.009](ss-02/BC-2.02.009.md) | hook-sdk::host::decode_subprocess_result_parses_envelope — SubprocessResult envelope `i32 \| u32 \| stdout \| u32 \| stderr` decodes correctly | draft | CAP-009 | S-1.03 |
+| [BC-2.02.010](ss-02/BC-2.02.010.md) | hook-sdk::host::log_levels_are_stable — LogLevel discriminants 0..=4 are pinned (Trace=0, Debug=1, Info=2, Warn=3, Error=4) | draft | CAP-009 | S-1.03 |
+| [BC-2.04.001](ss-02/BC-2.04.001.md) | hook-sdk::payload::pretooluse_payload_deserializes — full envelope parses with tool_input populated, tool_response None | draft | CAP-009 | S-1.03 |
+| [BC-2.04.002](ss-02/BC-2.04.002.md) | hook-sdk::payload::posttooluse_payload_with_response — SDK payload includes typed access to tool_response.exit_code | draft | CAP-009 | S-1.03 |
+| [BC-2.04.003](ss-02/BC-2.04.003.md) | hook-sdk::payload::lifecycle_payload_without_tool_name — SessionStart parses with tool_name="" and tool_input is JSON null | draft | CAP-009 | S-1.03 |
+| [BC-2.04.004](ss-02/BC-2.04.004.md) | hook-sdk::payload::payload_round_trip_via_serde — serialize → deserialize preserves event_name and session_id | draft | CAP-009 | S-1.03 |
+| [BC-2.04.005](ss-02/BC-2.04.005.md) | hook-sdk::payload::plugin_config_passes_through_when_present — plugin_config field arrives populated when the registry sets it | draft | CAP-009 | S-1.03 |
+| [BC-2.05.001](ss-02/BC-2.05.001.md) | hook-sdk::__internal::panic_message_extracts_static_str — panic of `&str` is extracted into the panic message | draft | CAP-009 | S-1.03 |
+| [BC-2.05.002](ss-02/BC-2.05.002.md) | hook-sdk::__internal::panic_message_extracts_string — panic of `String` is extracted | draft | CAP-009 | S-1.03 |
+| [BC-2.05.003](ss-02/BC-2.05.003.md) | hook-sdk::__internal::panic_message_falls_back_for_unknown_types — non-string panic payloads return "(no panic message)" | draft | CAP-009 | S-1.03 |
 
 ### SS-03 — Observability Sinks (BC-3)
 
