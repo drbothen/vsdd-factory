@@ -1091,12 +1091,12 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-005 | Run adversarial review with information asymmetry | BC-5.04.001–007 (adversary); BC-6.10 (adversarial-review skill); BC-7.10 (SHA-currency) | SS-05, SS-06 |
 | CAP-006 | Decompose specs into wave-scheduled stories with parallel execution | BC-6.06–6.08 (decompose-stories, wave-scheduling, wave-gate); BC-5.22 (phase-2 workflow) | SS-05, SS-06 |
 | CAP-007 | Deploy and activate the plugin on any supported platform | BC-9.01.001–005 (activation); BC-6.12 (activate skill) | SS-09, SS-06 |
-| CAP-008 | Gate tool calls with pre-execution behavioral checks (PreToolUse) | BC-1.05.001–004 (host fn deny gates); BC-7.01–7.04 (bash PreToolUse hooks) | SS-01, SS-04, SS-07 |
+| CAP-008 | Gate tool calls with pre-execution behavioral checks (PreToolUse) | BC-1.05.001–004 (host fn deny gates); BC-7.01–7.04 (bash PreToolUse hooks) | SS-01, SS-02, SS-04, SS-07 |
 | CAP-009 | Author and publish WASM hook plugins using the Rust SDK | BC-2.01–2.05 (SDK types, ABI, proc-macro, payload) | SS-02 |
 | CAP-010 | Always-on dispatcher self-telemetry independent of sink config | BC-1.06.001–010 (internal log); BC-10.02 (factory-obs bin) | SS-03, SS-10 |
 | CAP-011 | Enforce fuel and epoch budgets on plugin execution | BC-1.03.001–002 (timeout/fuel BCs); BC-1.04.001–003 (engine/ticker) | SS-01 |
 | CAP-012 | Recover from workflow interruption (crash recovery) | BC-5.10.001–005 (state-manager); BC-5.23 (phase-3 resume semantics) | SS-05 |
-| CAP-013 | Capture post-execution activity (PostToolUse hooks) | BC-4.01–4.02 (legacy-bash-adapter); BC-7.05–7.07 (PostToolUse hooks) | SS-04, SS-07 |
+| CAP-013 | Capture post-execution activity (PostToolUse hooks) | BC-4.01–4.02 (legacy-bash-adapter); BC-7.05–7.07 (PostToolUse hooks) | SS-01, SS-04, SS-07 |
 | CAP-014 | Decompose product specs into verified behavioral contracts | BC-5.06.001–015 (product-owner/story-writer agents); BC-8.01–8.05 (spec templates) | SS-05, SS-06, SS-08 |
 | CAP-015 | Ingest brownfield codebases via structured multi-pass analysis | BC-5.20.001–020 (phase-0 workflow); BC-6.01 (brownfield-ingest skill) | SS-06 |
 | CAP-016 | Drive TDD delivery with red/green/refactor gate enforcement | BC-5.07.028–033 (implementer agent); BC-6.09 (deliver-story skill); BC-5.23 (phase-3 workflow); BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 (TDD hardening — S-7.03) | SS-05, SS-06, SS-08 |
