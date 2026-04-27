@@ -71,7 +71,7 @@ When `.vsdd-factory.activated_platform` exists in settings.local.json and differ
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | (TBD — to be assigned in Phase 1.6c) | Drift detection compares persisted vs detected platform; mismatch emits a warning but does not abort | manual |
-| VP-002 | Persisted platform is updated to the newly detected value after a drift warning | manual |
+| (TBD — to be assigned in Phase 1.6c) | Persisted platform is updated to the newly detected value after a drift warning | manual |
 
 ## Traceability
 
@@ -98,7 +98,7 @@ TBD — assigned by story-writer
 ## VP Anchors (Recommended)
 
 - (TBD — to be assigned in Phase 1.6c)
-- VP-002 — Persisted platform update on drift
+- (TBD — to be assigned in Phase 1.6c) — Persisted platform update on drift (VP-002 placeholder mis-anchor removed; real VP-002 is SS-01 wasmtime invariant)
 
 ---
 
