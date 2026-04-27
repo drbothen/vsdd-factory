@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-rust-tests.md:721"
 subsystem: "SS-02"
-capability: "CAP-TBD"
+capability: "CAP-009"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -70,10 +70,10 @@ The `LogLevel` enum's discriminants are exactly 0..=4 in the order Trace / Debug
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (anchor in Phase 1.5) |
+| L2 Capability | CAP-009 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-02 — `crates/hook-sdk/src/host.rs` (LogLevel enum) |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-1.03 |
 
 ### Source Evidence
 

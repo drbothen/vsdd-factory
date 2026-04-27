@@ -142,6 +142,7 @@ total_vps: 64
 |-------|-------------|------|-----------|
 | VP-023 | S-1.03 | Wave 4 SS-02 | S-1.03 (hook-sdk-crate) builds the SS-02 test vehicle; VP-023 covers SS-01/SS-02 wire decoder safety |
 | VP-025 | S-1.03 | Wave 4 SS-02 | S-1.03 builds the SS-02 test vehicle; VP-025 covers SS-01/SS-02 host ABI completeness |
+| VP-038 | S-3.03 | Wave 3 SS-04 | S-3.03 anchors BC-2.01.002 (HookResult exit codes) for the WASM block-ai-attribution port |
 | VP-038 | S-1.03 | Wave 4 SS-02 | VP-038 bcs [BC-2.01.001-003] are in S-1.03's 22-BC anchor set (BC-2.01.001-004 core types) |
 | VP-039 | S-1.03 | Wave 4 SS-02 | VP-039 bcs [BC-2.02.007-010] are in S-1.03's 22-BC anchor set (BC-2.02.001-010 host/FFI) |
 | VP-040 | S-1.03 | Wave 4 SS-02 | VP-040 bcs [BC-2.04.001-005] are in S-1.03's 22-BC anchor set (BC-2.04.001-005 payload) |
