@@ -1882,7 +1882,7 @@ traces_to: bc-id-mapping.md
 | [BC-8.26.003](ss-08/BC-8.26.003.md) | rules/story-completeness.md: check 2 — every file in project structure has Deliverable section OR implementation Task | draft | CAP-TBD | TBD |
 | [BC-8.26.004](ss-08/BC-8.26.004.md) | rules/story-completeness.md: check 3 — technical gotchas documented in Dev Notes (API quirks, version-specific behavior, platform diffs) | draft | CAP-TBD | TBD |
 | [BC-8.26.005](ss-08/BC-8.26.005.md) | rules/story-completeness.md: check 4 — CI/CD workflows complete (workflow YAML deliverables, secrets/branch-protection prerequisites) | draft | CAP-TBD | TBD |
-| [BC-8.26.006](ss-08/BC-8.26.006.md) | rules/story-completeness.md: check 5 — README/user-facing-docs deliverable covers what-it-is/install/quickstart/config/CLI/exit-codes/integration/license | draft | CAP-014 | S-0.05, S-5.05, S-5.06 |
+| [BC-8.26.006](ss-08/BC-8.26.006.md) | rules/story-completeness.md: check 5 — README/user-facing-docs deliverable covers what-it-is/install/quickstart/config/CLI/exit-codes/integration/license | draft | CAP-014 | S-5.05, S-5.06 (S-0.05 removed F-003 Wave 8 pass-1) |
 | [BC-8.26.007](ss-08/BC-8.26.007.md) | rules/story-completeness.md: check 6 — hosting/infra decisions explicit (org/repo/visibility/branch-strategy/protection/secrets) | draft | CAP-TBD | TBD |
 | [BC-8.26.008](ss-08/BC-8.26.008.md) | rules/story-completeness.md: check 7 — license stated explicitly + consistent across 5 surfaces | draft | CAP-TBD | TBD |
 | [BC-8.26.009](ss-08/BC-8.26.009.md) | rules/story-completeness.md: check 8 — generated output specified (format/sort-order/edge-cases/exit-codes) | draft | CAP-TBD | TBD |

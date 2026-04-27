@@ -693,6 +693,8 @@ Enforces: CAP-014. Status: **shipped** (105 template files active).
 Source BCs: `ss-08/BC-8.06.001.md` through (approx. 70 BCs in rules family).
 Enforces: CAP-014 (methodology discipline). Status: **shipped**.
 
+<!-- F-008 (Wave 8 pass-1): docs-stories S-0.05/S-5.05/S-5.06 anchored to CAP-014 via SS-08 BCs (BC-8.22.001 Conventional Commits, BC-8.26.001 story-completeness audit, BC-8.26.006 user-facing-docs deliverable) — methodology-anchor pattern. 7 v1.1 BC candidates BC-8.31.001-007 registered for docs-content-specific contracts. -->
+
 #### FR-043 (SS-08 slice) — TDD Discipline Hardening — Story Template tdd_mode field
 
 Story template contract for the `tdd_mode` frontmatter field (Layer 3 template artifact of FR-043). This is the only FR-043 BC that remains in SS-08 after adversarial pass-1 reanchor (BC-8.30.002 moved to SS-05; BC-8.29.001–003 moved to SS-05).
@@ -704,8 +706,6 @@ Story template contract for the `tdd_mode` frontmatter field (Layer 3 template a
 Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-08/` (218 BCs total)
-
-<!-- Wave 8 SS-08 re-anchor (v1.0-brownfield-backfill): BC-8.22.001, BC-8.26.001, BC-8.26.006 anchored to CAP-014 (docs deliverable and commit-convention rules surface). Docs stories S-0.05 (docs/guide/ scaffolding), S-5.05 (migrating-from-0.79.md), S-5.06 (semver-commitment.md) added to Stories column for these three BCs. Stretch-anchor disclosure in story bodies: BC-8.26.006 (story-completeness check 5) is the closest SS-08 BC contracting user-facing-docs deliverable shape; no existing SS-08 BC directly contracts migration-guide or semver-commitment file content. v1.1 BC candidates registered in each story for uncontracted ACs (see story body §v1.1 BC/VP Candidates). -->
 
 ---
 

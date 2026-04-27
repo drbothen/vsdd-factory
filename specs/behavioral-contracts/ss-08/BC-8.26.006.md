@@ -78,7 +78,7 @@ Check 5: For tools/libraries, a README deliverable must cover: what it is (one-l
 | Capability Anchor Justification | CAP-014 ("Decompose product specs into verified behavioral contracts") per capabilities.md §CAP-014 — this BC governs user-facing-docs deliverable completeness, which is part of the spec/methodology artifact surface SS-08 contributes to CAP-014 |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-08 (Templates and Rules) |
-| Stories | S-0.05, S-5.05, S-5.06 (Wave 8 SS-08 re-anchor, v1.0-brownfield-backfill) |
+| Stories | S-5.05, S-5.06 (Wave 8 SS-08 re-anchor, v1.0-brownfield-backfill; S-0.05 removed per F-003 Wave 8 pass-1 — skeleton-only stories are not complete deliverables, so check 5 does not apply; S-0.05 anchors BC-8.26.001 + BC-8.22.001 only) |
 | Audit ID | BC-AUDIT-2266 |
 | Section | Rules: story-completeness (14-check audit) |
 
@@ -92,7 +92,7 @@ Check 5: For tools/libraries, a README deliverable must cover: what it is (one-l
 
 ## Story Anchor (Recommended)
 
-S-0.05, S-5.05, S-5.06 (Wave 8 SS-08 re-anchor)
+S-5.05, S-5.06 (Wave 8 SS-08 re-anchor; S-0.05 removed per F-003 Wave 8 pass-1 — skeleton-only stories excluded from BC-8.26.006 check 5)
 
 ## VP Anchors (Recommended)
 
