@@ -1,0 +1,59 @@
+$ cargo test -p capture-pr-activity --test contract_emit_event
+  (rustc 1.95.0 via /Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin)
+
+warning: function `test_BC_4_04_002_extracts_pr_url_from_stdout` should have a snake case name
+warning: function `test_BC_4_04_002_extracts_pr_url_embedded_in_text` should have a snake case name
+warning: function `test_BC_4_04_002_ec003_unparseable_url_returns_none` should have a snake case name
+warning: function `test_BC_4_04_002_ec003_empty_text_returns_none` should have a snake case name
+warning: function `test_BC_4_04_002_pr_number_from_url_happy_path` should have a snake case name
+warning: function `test_BC_4_04_002_pr_number_from_url_returns_99` should have a snake case name
+warning: function `test_BC_4_04_002_pr_number_from_url_malformed_returns_none` should have a snake case name
+warning: function `test_BC_4_04_002_pr_repo_from_url_happy_path` should have a snake case name
+warning: function `test_BC_4_04_002_pr_repo_from_url_with_hyphens` should have a snake case name
+warning: function `test_BC_4_04_002_pr_created_event_type_is_pr_created` should have a snake case name
+warning: function `test_BC_4_04_002_pr_created_fields_contain_pr_number` should have a snake case name
+warning: function `test_BC_4_04_002_pr_created_fields_contain_pr_url` should have a snake case name
+warning: function `test_BC_4_04_002_pr_created_fields_contain_pr_repo` should have a snake case name
+warning: function `test_BC_4_04_002_pr_created_fields_include_title_when_provided` should have a snake case name
+warning: function `test_BC_4_04_002_pr_created_fields_omit_title_when_none` should have a snake case name
+warning: function `test_BC_4_04_002_pr_merged_event_type_is_pr_merged` should have a snake case name
+warning: function `test_BC_4_04_002_pr_merged_fields_contain_pr_number` should have a snake case name
+warning: function `test_BC_4_04_002_pr_merged_fields_include_merge_strategy_when_provided` should have a snake case name
+warning: function `test_BC_4_04_002_pr_merged_fields_omit_merge_strategy_when_none` should have a snake case name
+warning: function `test_BC_4_04_002_ec003_pr_merged_omits_url_when_none` should have a snake case name
+warning: function `test_BC_4_04_002_pr_closed_event_type_is_pr_closed` should have a snake case name
+warning: function `test_BC_4_04_002_pr_closed_fields_contain_pr_number` should have a snake case name
+warning: function `test_BC_4_04_003_pr_create_failed_event_type` should have a snake case name
+warning: function `test_BC_4_04_003_pr_create_failed_fields_are_non_empty` should have a snake case name
+
+warning: `capture-pr-activity` (test "contract_emit_event") generated 24 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running tests/contract_emit_event.rs (target/debug/deps/contract_emit_event-4df25d8bdd4bcf47)
+
+running 24 tests
+test test_BC_4_04_002_pr_created_event_type_is_pr_created ... ok
+test test_BC_4_04_002_pr_closed_fields_contain_pr_number ... ok
+test test_BC_4_04_002_ec003_empty_text_returns_none ... ok
+test test_BC_4_04_002_ec003_unparseable_url_returns_none ... ok
+test test_BC_4_04_002_ec003_pr_merged_omits_url_when_none ... ok
+test test_BC_4_04_002_pr_closed_event_type_is_pr_closed ... ok
+test test_BC_4_04_002_extracts_pr_url_embedded_in_text ... ok
+test test_BC_4_04_002_pr_created_fields_contain_pr_number ... ok
+test test_BC_4_04_002_extracts_pr_url_from_stdout ... ok
+test test_BC_4_04_002_pr_created_fields_contain_pr_repo ... ok
+test test_BC_4_04_002_pr_created_fields_contain_pr_url ... ok
+test test_BC_4_04_002_pr_created_fields_include_title_when_provided ... ok
+test test_BC_4_04_002_pr_created_fields_omit_title_when_none ... ok
+test test_BC_4_04_002_pr_merged_event_type_is_pr_merged ... ok
+test test_BC_4_04_002_pr_merged_fields_contain_pr_number ... ok
+test test_BC_4_04_002_pr_merged_fields_include_merge_strategy_when_provided ... ok
+test test_BC_4_04_002_pr_merged_fields_omit_merge_strategy_when_none ... ok
+test test_BC_4_04_002_pr_number_from_url_happy_path ... ok
+test test_BC_4_04_002_pr_number_from_url_malformed_returns_none ... ok
+test test_BC_4_04_002_pr_number_from_url_returns_99 ... ok
+test test_BC_4_04_002_pr_repo_from_url_happy_path ... ok
+test test_BC_4_04_002_pr_repo_from_url_with_hyphens ... ok
+test test_BC_4_04_003_pr_create_failed_event_type ... ok
+test test_BC_4_04_003_pr_create_failed_fields_are_non_empty ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
