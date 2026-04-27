@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (task #114 added: extend validate-consistency skill with tautology detector + BC canonical TV consistency checks; D-062 logged) |
+| **Last Updated** | 2026-04-27 (Wave 6 SS-09 pass-1 review complete; D-064 logged; 9 findings 4H/4M/1L; PO fix burst pending) |
 | **Current Phase** | wave-5-ss-06-CONVERGED-spec-ready |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -148,6 +148,7 @@ dtu_services: []
 | Wave 5 SS-06 adversarial pass-6 | adversarial-reviewer | COMPLETE | CONVERGENCE_REACHED; 3_of_3 NITPICK; 1 LOW process-gap carryover (task #112); wave-5-ss-06-pass-6.md |
 | Wave 5 SS-06 CONVERGED | state-manager | COMPLETE | 3_of_3 NITPICK passes; 28 of 41 stories re-anchored; trajectory 11→7→2→1→2→1 |
 | Wave 6 SS-NN re-anchor (selection pending) | orchestrator | PENDING | Select SS-08 (4 stories), SS-09 (4 stories), or SS-10 (5 stories) |
+| Wave 6 SS-09 adversarial pass-1 | adversarial-reviewer | COMPLETE | 9 findings (4H/4M/1L); wave-6-ss-09-pass-1.md; trajectory baseline 9 |
 
 ## Identifier Conventions
 
@@ -280,6 +281,7 @@ dtu_services: []
 | D-061 | Wave 5 SS-06 spec re-anchor CONVERGED at pass-6 (3_of_3 NITPICK_ONLY) | 6-pass cycle: 11→7→2→1→2→1 trajectory; pass-1 baseline 11 (2 CRIT POLICY-7/4, 4 HIGH, 4 MED, 3 LOW). Major findings closed: PRD §FR-037 BC titles synced to BC H1s verbatim; CAP-007 SS-01 expansion reverted (Wave 3 F-007 precedent); CAP-028 dropped from FR-037 enforces; DI-015 cited by BC-9.01.004/005 (orphan resolved); VP-015 added to S-2.06 + bidirectional with BC-9.01.004/005; VP-002 placeholder mis-anchor in 3 BC files cleaned. 1 LOW process-gap carryover (task #112 bc-anchor-sweep + VP↔BC checklist codification). 2 stories spec-ready (S-0.03 + S-2.06). Cumulative re-anchored: 28 of 41 stories (Waves 1+2+3+4+5). | wave-5-ss-06 | 2026-04-26 | orchestrator |
 | D-062 | Task #114 logged: extend validate-consistency skill with two new advisory checks: (a) tautology detector (test_BC_*/test_TV_* tests that don't call production functions); (b) BC canonical TV consistency (struct serializes field marked excluded by BC TV table). Both fast, both pure additions, both motivated by Prism Wave 2 Pass 7 finding (six prior passes missed a tautological test that hardcoded its assertion target without exercising emit_token_generated). | Prism Wave 2 Pass 7 caught BC-2.05.010 violation (emitter persisted token_id forbidden by BC) where six prior adversarial passes missed it. Defect class: tautological tests + BC TV/emitter contradiction. Codifying these checks in validate-consistency hardens VSDD across all consumers. | plugin-engineering-backlog | 2026-04-27 | orchestrator + user |
 | D-063 | **Wave 6 SS-09 baseline re-anchor at 837aedc** — 6 stories anchored; CAP-TBD gap on BC-9.01.001/002/003 resolved to CAP-028. S-0.01 to BC-9.01.001/CAP-028; S-0.04 to BC-9.01.005/VP-015/CAP-007; S-2.02 to BC-9.01.005/VP-049/CAP-007; S-2.03 to BC-9.01.004/VP-015/CAP-007; S-2.04 to BC-9.01.002+003/CAP-028; S-2.08 to all 5 BCs/VP-015. | All 5 BC files capability frontmatter + Stories appended (POLICY 1). BC-INDEX 5 rows updated. VP-INDEX Story Anchors VP-015+VP-049 appended. VP-015.md + VP-049.md Stories updated. PRD FR-037 CAP column expanded to CAP-007+CAP-028. 34 of 41 stories now anchored. | wave-6-ss-09 | 2026-04-27 | product-owner |
+| D-064 | Wave 6 SS-09 pass-1 review: 9 findings (4 HIGH/4 MED/1 LOW). F-001 BC-1.07.003/004 ↔ VP-049 bidirectional gap (Wave 5 pass-3 recurrence — process-gap codification candidate). F-002 S-2.03 AC-4 BC-9.01.003 outside bcs[]. F-003 S-2.08 cross-SS AC traces unmarked. F-004 S-2.04 SS-10 anchor pending intent. F-005 CAP-028 SS-09-only vs FR-029 SS-06+SS-09 expansion candidate. F-006 BC-1.07.003/004 CAP-TBD orphan. F-007/F-008/F-009 MED/LOW. Convergence step 0_of_3. | trajectory baseline 9 within Wave 1-5 band; smaller surface (5 SS-09 BCs); 3-of-3 plausible by pass 4-5. | wave-6-ss-09 | 2026-04-27 | adversary |
 
 ## Skip Log
 
@@ -293,7 +295,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 6 SS-09 baseline re-anchor COMPLETE at commit 837aedc (PO) + f1ea5c0 (state); 34 of 41 stories anchored; awaiting adversarial pass-1.
+**Pause reason:** Wave 6 SS-09 pass-1 review complete; PO fix burst pending.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
