@@ -1,0 +1,350 @@
+warning: function `test_BC_4_05_003_ec002_allow_empty_with_coauthored_by_claude_is_blocked` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:46:4
+   |
+46 | fn test_BC_4_05_003_ec002_allow_empty_with_coauthored_by_claude_is_blocked() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_ec002_allow_empty_with_coauthored_by_claude_is_blocked`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_4_05_003_ec002_allow_empty_with_generated_with_claude_code_is_blocked` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:57:4
+   |
+57 | fn test_BC_4_05_003_ec002_allow_empty_with_generated_with_claude_code_is_blocked() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_ec002_allow_empty_with_generated_with_claude_code_is_blocked`
+
+warning: function `test_BC_4_05_003_ec003_attribution_in_body_not_subject_is_blocked` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:72:4
+   |
+72 | fn test_BC_4_05_003_ec003_attribution_in_body_not_subject_is_blocked() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_ec003_attribution_in_body_not_subject_is_blocked`
+
+warning: function `test_BC_4_05_003_ec003_generated_by_ai_in_body_is_blocked` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:84:4
+   |
+84 | fn test_BC_4_05_003_ec003_generated_by_ai_in_body_is_blocked() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_ec003_generated_by_ai_in_body_is_blocked`
+
+warning: function `test_TV_EC_case_insensitive_uppercase_coauthored` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:96:4
+   |
+96 | fn test_TV_EC_case_insensitive_uppercase_coauthored() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_case_insensitive_uppercase_coauthored`
+
+warning: function `test_TV_EC_case_insensitive_mixed_case_generated_by_claude` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:107:4
+    |
+107 | fn test_TV_EC_case_insensitive_mixed_case_generated_by_claude() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_case_insensitive_mixed_case_generated_by_claude`
+
+warning: function `test_TV_EC_extra_spaces_in_coauthored_by` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:122:4
+    |
+122 | fn test_TV_EC_extra_spaces_in_coauthored_by() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_extra_spaces_in_coauthored_by`
+
+warning: function `test_TV_EC_pattern_embedded_mid_sentence` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:133:4
+    |
+133 | fn test_TV_EC_pattern_embedded_mid_sentence() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_pattern_embedded_mid_sentence`
+
+warning: function `test_TV_EC_human_coauthor_does_not_match` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:148:4
+    |
+148 | fn test_TV_EC_human_coauthor_does_not_match() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_human_coauthor_does_not_match`
+
+warning: function `test_TV_EC_word_generated_alone_does_not_match` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:160:4
+    |
+160 | fn test_TV_EC_word_generated_alone_does_not_match() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_word_generated_alone_does_not_match`
+
+warning: function `test_TV_EC_human_name_claude_in_human_context_does_not_match` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:171:4
+    |
+171 | fn test_TV_EC_human_name_claude_in_human_context_does_not_match() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_human_name_claude_in_human_context_does_not_match`
+
+warning: function `test_BC_4_05_003_block_reason_mentions_pattern_for_ec002` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:191:4
+    |
+191 | fn test_BC_4_05_003_block_reason_mentions_pattern_for_ec002() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_block_reason_mentions_pattern_for_ec002`
+
+warning: function `test_TV_EC_git_commit_file_flag_without_inline_attribution_returns_continue` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:207:4
+    |
+207 | fn test_TV_EC_git_commit_file_flag_without_inline_attribution_returns_continue() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_git_commit_file_flag_without_inline_attribution_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_ls_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:39:4
+   |
+39 | fn test_BC_4_05_002_ec001_ls_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_ls_returns_continue`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_4_05_002_ec001_cargo_build_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:46:4
+   |
+46 | fn test_BC_4_05_002_ec001_cargo_build_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_cargo_build_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_git_status_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:53:4
+   |
+53 | fn test_BC_4_05_002_ec001_git_status_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_git_status_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_git_push_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:60:4
+   |
+60 | fn test_BC_4_05_002_ec001_git_push_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_git_push_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_git_log_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:67:4
+   |
+67 | fn test_BC_4_05_002_ec001_git_log_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_git_log_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_empty_command_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:74:4
+   |
+74 | fn test_BC_4_05_002_ec001_empty_command_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_empty_command_returns_continue`
+
+warning: function `test_BC_4_05_002_clean_git_commit_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:85:4
+   |
+85 | fn test_BC_4_05_002_clean_git_commit_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_clean_git_commit_returns_continue`
+
+warning: function `test_BC_4_05_002_clean_multiline_commit_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:92:4
+   |
+92 | fn test_BC_4_05_002_clean_multiline_commit_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_clean_multiline_commit_returns_continue`
+
+warning: function `test_BC_4_05_002_git_commit_amend_clean_returns_continue` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:100:4
+    |
+100 | fn test_BC_4_05_002_git_commit_amend_clean_returns_continue() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_git_commit_amend_clean_returns_continue`
+
+warning: function `test_BC_2_01_002_continue_exit_code_zero_for_clean_payload` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:107:4
+    |
+107 | fn test_BC_2_01_002_continue_exit_code_zero_for_clean_payload() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_2_01_002_continue_exit_code_zero_for_clean_payload`
+
+warning: function `test_BC_4_05_002_missing_command_field_returns_continue` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:114:4
+    |
+114 | fn test_BC_4_05_002_missing_command_field_returns_continue() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_missing_command_field_returns_continue`
+
+warning: function `test_BC_2_01_002_continue_exit_code_is_zero` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_hook_macro.rs:48:4
+   |
+48 | fn test_BC_2_01_002_continue_exit_code_is_zero() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_2_01_002_continue_exit_code_is_zero`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_2_01_002_block_exit_code_is_two` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_hook_macro.rs:61:4
+   |
+61 | fn test_BC_2_01_002_block_exit_code_is_two() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_2_01_002_block_exit_code_is_two`
+
+warning: function `test_BC_2_01_002_block_reason_is_non_empty` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_hook_macro.rs:75:4
+   |
+75 | fn test_BC_2_01_002_block_reason_is_non_empty() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_2_01_002_block_reason_is_non_empty`
+
+warning: function `test_BC_2_01_002_block_reason_includes_matched_pattern` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_hook_macro.rs:90:4
+   |
+90 | fn test_BC_2_01_002_block_reason_includes_matched_pattern() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_2_01_002_block_reason_includes_matched_pattern`
+
+warning: function `test_BC_2_01_002_non_bash_tool_returns_continue` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_hook_macro.rs:113:4
+    |
+113 | fn test_BC_2_01_002_non_bash_tool_returns_continue() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_2_01_002_non_bash_tool_returns_continue`
+
+warning: function `test_TV_001_coauthored_by_claude_is_detected` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:19:4
+   |
+19 | fn test_TV_001_coauthored_by_claude_is_detected() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_001_coauthored_by_claude_is_detected`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_TV_002_coauthored_by_anthropic_is_detected` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:30:4
+   |
+30 | fn test_TV_002_coauthored_by_anthropic_is_detected() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_002_coauthored_by_anthropic_is_detected`
+
+warning: function `test_TV_003_coauthored_by_gpt_is_detected` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:41:4
+   |
+41 | fn test_TV_003_coauthored_by_gpt_is_detected() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_003_coauthored_by_gpt_is_detected`
+
+warning: function `test_TV_004_coauthored_by_openai_is_detected` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:52:4
+   |
+52 | fn test_TV_004_coauthored_by_openai_is_detected() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_004_coauthored_by_openai_is_detected`
+
+warning: function `test_TV_005_coauthored_by_gemini_is_detected` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:63:4
+   |
+63 | fn test_TV_005_coauthored_by_gemini_is_detected() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_005_coauthored_by_gemini_is_detected`
+
+warning: function `test_TV_006_coauthored_by_google_ai_is_detected` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:74:4
+   |
+74 | fn test_TV_006_coauthored_by_google_ai_is_detected() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_006_coauthored_by_google_ai_is_detected`
+
+warning: function `test_TV_007_generated_with_claude_code_is_detected` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:89:4
+   |
+89 | fn test_TV_007_generated_with_claude_code_is_detected() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_007_generated_with_claude_code_is_detected`
+
+warning: function `test_TV_008_generated_by_claude_is_detected` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:100:4
+    |
+100 | fn test_TV_008_generated_by_claude_is_detected() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_008_generated_by_claude_is_detected`
+
+warning: function `test_TV_009_generated_by_ai_is_detected` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:111:4
+    |
+111 | fn test_TV_009_generated_by_ai_is_detected() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_009_generated_by_ai_is_detected`
+
+warning: function `test_TV_010_noreply_anthropic_email_is_detected` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:126:4
+    |
+126 | fn test_TV_010_noreply_anthropic_email_is_detected() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_010_noreply_anthropic_email_is_detected`
+
+warning: function `test_TV_011_noreply_openai_email_is_detected` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:137:4
+    |
+137 | fn test_TV_011_noreply_openai_email_is_detected() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_011_noreply_openai_email_is_detected`
+
+warning: function `test_BC_4_05_001_detect_attribution_returns_matched_text` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:153:4
+    |
+153 | fn test_BC_4_05_001_detect_attribution_returns_matched_text() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_001_detect_attribution_returns_matched_text`
+
+warning: function `test_BC_4_05_002_detect_attribution_returns_none_for_clean_commit` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:164:4
+    |
+164 | fn test_BC_4_05_002_detect_attribution_returns_none_for_clean_commit() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_detect_attribution_returns_none_for_clean_commit`
+
+warning: function `test_BC_4_05_004_detect_attribution_is_pure_function` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_pattern_matching.rs:176:4
+    |
+176 | fn test_BC_4_05_004_detect_attribution_is_pure_function() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_004_detect_attribution_is_pure_function`
+
+warning: `block-ai-attribution` (test "edge_cases") generated 13 warnings
+warning: `block-ai-attribution` (test "contract_clean_passes") generated 11 warnings
+warning: `block-ai-attribution` (test "contract_hook_macro") generated 5 warnings
+warning: `block-ai-attribution` (test "contract_pattern_matching") generated 14 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/block_ai_attribution-d4195f5e81cd01c5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_clean_passes.rs (target/debug/deps/contract_clean_passes-5e412617a09131e8)
+
+running 11 tests
+test test_BC_2_01_002_continue_exit_code_zero_for_clean_payload ... ok
+test test_BC_4_05_002_clean_multiline_commit_returns_continue ... ok
+test test_BC_4_05_002_clean_git_commit_returns_continue ... ok
+test test_BC_4_05_002_ec001_git_push_returns_continue ... ok
+test test_BC_4_05_002_ec001_git_log_returns_continue ... ok
+test test_BC_4_05_002_ec001_empty_command_returns_continue ... ok
+test test_BC_4_05_002_ec001_cargo_build_returns_continue ... ok
+test test_BC_4_05_002_ec001_git_status_returns_continue ... ok
+test test_BC_4_05_002_ec001_ls_returns_continue ... ok
+test test_BC_4_05_002_git_commit_amend_clean_returns_continue ... ok
+test test_BC_4_05_002_missing_command_field_returns_continue ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_hook_macro.rs (target/debug/deps/contract_hook_macro-77ab82081574f407)
+
+running 5 tests
+test test_BC_2_01_002_continue_exit_code_is_zero ... ok
+test test_BC_2_01_002_block_reason_is_non_empty ... ok
+test test_BC_2_01_002_block_reason_includes_matched_pattern ... ok
+test test_BC_2_01_002_block_exit_code_is_two ... ok
+test test_BC_2_01_002_non_bash_tool_returns_continue ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_pattern_matching.rs (target/debug/deps/contract_pattern_matching-5aa55f13e810d998)
+
+running 14 tests
+test test_BC_4_05_001_detect_attribution_returns_matched_text ... ok
+test test_BC_4_05_002_detect_attribution_returns_none_for_clean_commit ... ok
+test test_TV_002_coauthored_by_anthropic_is_detected ... ok
+test test_TV_003_coauthored_by_gpt_is_detected ... ok
+test test_TV_004_coauthored_by_openai_is_detected ... ok
+test test_TV_001_coauthored_by_claude_is_detected ... ok
+test test_TV_005_coauthored_by_gemini_is_detected ... ok
+test test_BC_4_05_004_detect_attribution_is_pure_function ... ok
+test test_TV_006_coauthored_by_google_ai_is_detected ... ok
+test test_TV_007_generated_with_claude_code_is_detected ... ok
+test test_TV_008_generated_by_claude_is_detected ... ok
+test test_TV_009_generated_by_ai_is_detected ... ok
+test test_TV_010_noreply_anthropic_email_is_detected ... ok
+test test_TV_011_noreply_openai_email_is_detected ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/edge_cases.rs (target/debug/deps/edge_cases-a5593baa93728fd4)
+
+running 13 tests
+test test_BC_4_05_003_ec002_allow_empty_with_coauthored_by_claude_is_blocked ... ok
+test test_BC_4_05_003_ec002_allow_empty_with_generated_with_claude_code_is_blocked ... ok
+test test_BC_4_05_003_block_reason_mentions_pattern_for_ec002 ... ok
+test test_BC_4_05_003_ec003_attribution_in_body_not_subject_is_blocked ... ok
+test test_TV_EC_case_insensitive_mixed_case_generated_by_claude ... ok
+test test_TV_EC_extra_spaces_in_coauthored_by ... ok
+test test_BC_4_05_003_ec003_generated_by_ai_in_body_is_blocked ... ok
+test test_TV_EC_git_commit_file_flag_without_inline_attribution_returns_continue ... ok
+test test_TV_EC_case_insensitive_uppercase_coauthored ... ok
+test test_TV_EC_human_coauthor_does_not_match ... ok
+test test_TV_EC_human_name_claude_in_human_context_does_not_match ... ok
+test test_TV_EC_pattern_embedded_mid_sentence ... ok
+test test_TV_EC_word_generated_alone_does_not_match ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests block_ai_attribution
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

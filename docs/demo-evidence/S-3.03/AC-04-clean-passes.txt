@@ -1,0 +1,87 @@
+warning: function `test_BC_4_05_002_ec001_ls_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:39:4
+   |
+39 | fn test_BC_4_05_002_ec001_ls_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_ls_returns_continue`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_4_05_002_ec001_cargo_build_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:46:4
+   |
+46 | fn test_BC_4_05_002_ec001_cargo_build_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_cargo_build_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_git_status_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:53:4
+   |
+53 | fn test_BC_4_05_002_ec001_git_status_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_git_status_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_git_push_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:60:4
+   |
+60 | fn test_BC_4_05_002_ec001_git_push_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_git_push_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_git_log_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:67:4
+   |
+67 | fn test_BC_4_05_002_ec001_git_log_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_git_log_returns_continue`
+
+warning: function `test_BC_4_05_002_ec001_empty_command_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:74:4
+   |
+74 | fn test_BC_4_05_002_ec001_empty_command_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_ec001_empty_command_returns_continue`
+
+warning: function `test_BC_4_05_002_clean_git_commit_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:85:4
+   |
+85 | fn test_BC_4_05_002_clean_git_commit_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_clean_git_commit_returns_continue`
+
+warning: function `test_BC_4_05_002_clean_multiline_commit_returns_continue` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:92:4
+   |
+92 | fn test_BC_4_05_002_clean_multiline_commit_returns_continue() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_clean_multiline_commit_returns_continue`
+
+warning: function `test_BC_4_05_002_git_commit_amend_clean_returns_continue` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:100:4
+    |
+100 | fn test_BC_4_05_002_git_commit_amend_clean_returns_continue() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_git_commit_amend_clean_returns_continue`
+
+warning: function `test_BC_2_01_002_continue_exit_code_zero_for_clean_payload` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:107:4
+    |
+107 | fn test_BC_2_01_002_continue_exit_code_zero_for_clean_payload() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_2_01_002_continue_exit_code_zero_for_clean_payload`
+
+warning: function `test_BC_4_05_002_missing_command_field_returns_continue` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/contract_clean_passes.rs:114:4
+    |
+114 | fn test_BC_4_05_002_missing_command_field_returns_continue() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_002_missing_command_field_returns_continue`
+
+warning: `block-ai-attribution` (test "contract_clean_passes") generated 11 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/contract_clean_passes.rs (target/debug/deps/contract_clean_passes-5e412617a09131e8)
+
+running 11 tests
+test test_BC_4_05_002_ec001_ls_returns_continue ... ok
+test test_BC_4_05_002_ec001_git_push_returns_continue ... ok
+test test_BC_4_05_002_missing_command_field_returns_continue ... ok
+test test_BC_4_05_002_ec001_cargo_build_returns_continue ... ok
+test test_BC_4_05_002_ec001_git_log_returns_continue ... ok
+test test_BC_4_05_002_git_commit_amend_clean_returns_continue ... ok
+test test_BC_4_05_002_clean_multiline_commit_returns_continue ... ok
+test test_BC_4_05_002_ec001_git_status_returns_continue ... ok
+test test_BC_2_01_002_continue_exit_code_zero_for_clean_payload ... ok
+test test_BC_4_05_002_ec001_empty_command_returns_continue ... ok
+test test_BC_4_05_002_clean_git_commit_returns_continue ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
