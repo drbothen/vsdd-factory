@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-04-27T00:00:00Z
-phase: wave-8-ss-08-CONVERGED-spec-ready
+phase: wave-9-ss-01-straggler-po-baseline
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 8 SS-08 CONVERGED at pass-4 (3_of_3 NITPICK_ONLY); 40 of 41 stories re-anchored; trajectory 9→2→3→1; Wave 9 SS-01 straggler S-2.07 pending"
+current_step: "Wave 9 SS-01 straggler PO baseline committed (658c76b); S-2.07 anchored to BC-1.07.001/002+BC-1.08.001/002+VP-043; TD #105 fixed; 41 of 41 stories re-anchored; awaiting adversarial pass-1"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 8 SS-08 CONVERGED at pass-4: 3_of_3 NITPICK_ONLY; 1 LOW pending intent F-301; 40 of 41 stories re-anchored; trajectory 9→2→3→1) |
-| **Current Phase** | wave-8-ss-08-CONVERGED-spec-ready |
+| **Last Updated** | 2026-04-27 (Wave 9 SS-01 straggler PO baseline 658c76b: S-2.07 anchored (41/41 cumulative); TD #105 fixed; CAP-002/FR-007/VP-043; 2 v1.1 BC candidates) |
+| **Current Phase** | wave-9-ss-01-straggler-po-baseline |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Current Cycle: v1.0-brownfield-backfill
@@ -111,6 +111,7 @@ dtu_services: []
 | Wave 6 SS-09 configuration & activation re-anchor | **CONVERGED** at pass-7 (commit 5f0719c): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=9 → pass-7=0 (HIGH ceiling collapsed at pass-2). 6 stories spec-ready: S-0.01, S-0.04, S-2.02, S-2.03, S-2.04, S-2.08. Cumulative re-anchored: 34 of 41 stories (Wave 1+2+3+4+5+6). | wave-6-ss-09-pass-7.md |
 | Wave 7 SS-10 CLI tools re-anchor | **CONVERGED** at pass-6 (commit d8054c8): 0 findings, 3_of_3 NITPICK_ONLY. Trajectory pass-1=5 → pass-6=0 (5→4→4→0→1→0). 3 stories spec-ready: S-0.02, S-4.08, S-5.07 (stretch-anchored to SS-09 BCs per F-007/F-002/F-005 sanctioned-template-anchor pattern; 11 v1.1 BC candidates BC-10.13.001-012 registered for future SS-10 BC backfill). Cumulative re-anchored: 37 of 41 stories. | wave-7-ss-10-pass-6.md |
 | Wave 8 SS-08 templates & rules re-anchor | **CONVERGED** at pass-4 (commit f9392c5): 1 LOW pending intent (F-301 section ordering); 3_of_3 NITPICK_ONLY. Trajectory pass-1=9 → pass-4=1 (9→2→3→1). 3 docs-stories spec-ready: S-0.05, S-5.05, S-5.06 (anchored to BC-8.22.001/26.001/26.006 → CAP-014 per F-204 cross-wave complementary methodology-anchor pattern; S-0.05 excludes BC-8.26.006). 7 v1.1 BC candidates BC-8.31.001-007 registered. Cumulative re-anchored: 40 of 41 stories. | wave-8-ss-08-pass-4.md |
+| Wave 9 SS-01 straggler re-anchor (S-2.07) | PO baseline commit 658c76b: S-2.07 anchored to BC-1.07.001/002 (all hooks fire via legacy-bash-adapter; commit.made events) + BC-1.08.001/002 (dispatcher exit code semantics) + VP-043 (every hooks-registry entry routes through legacy-bash-adapter.wasm). CAP-002 / FR-007 anchors. TD #105 fixed (S-1.09 added to S-2.07 depends_on). 2 v1.1 BC candidates registered (BC-1.07.NNN regression-v1.0.bats structure + CI job label). Cumulative re-anchored: **41 of 41 stories (100%)**. | Awaiting adversarial pass-1. |
 
 ## Current Phase Steps
 
@@ -188,6 +189,8 @@ dtu_services: []
 | Wave 8 SS-08 pass-3 fix burst | state-manager | COMPLETE | F-201 PRD §7 FR-036 HTML comment + F-202 disclosure harmonization (cross-wave complementary, no hyphen) + F-203 frontmatter bump (timestamp 2026-04-27, producer product-owner, version 1.2) across S-0.05/S-5.05/S-5.06 |
 | Wave 8 SS-08 adversarial pass-4 (FINAL) | adversarial-reviewer | COMPLETE | CONVERGENCE_REACHED; 1 LOW pending intent (F-301 section ordering); 3_of_3 NITPICK_ONLY; 5 self-validation withdrawals; 11 sub-axes probed all clean; trajectory 9→2→3→1; wave-8-ss-08-pass-4.md |
 | Wave 8 SS-08 CONVERGED | state-manager | COMPLETE | 3_of_3 NITPICK passes; 40 of 41 stories re-anchored; trajectory 9→2→3→1 |
+| Wave 9 SS-01 straggler PO baseline | product-owner | COMPLETE | S-2.07 anchored: BC-1.07.001/002+BC-1.08.001/002+VP-043; CAP-002/FR-007; TD #105 fixed (S-1.09 dep); 41/41 cumulative; commit 658c76b |
+| Wave 9 SS-01 adversarial pass-1 | adversarial-reviewer | PENDING | |
 
 ## Identifier Conventions
 
@@ -248,7 +251,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | b08e085 | bot bundle for v1.0.0-beta.7 (PR #14 + hotfix PR #15) |
 | develop | ecb6cc6 | back-merge PR #16; includes b08e085 in ancestry |
-| factory-artifacts | c50bb0f | 10 ADRs commit |
+| factory-artifacts | 658c76b | Wave 9 SS-01 PO baseline (S-2.07 anchored; TD #105 fixed) |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 | v1.0.0-beta.6 (tag) | ae426cd | SHIPPED 2026-04-26; GH Release published; prerelease=true |
 | v1.0.0-beta.7 (tag) | b08e085 | SHIPPED 2026-04-26 19:15 UTC; GH Release published; prerelease=true |
@@ -353,7 +356,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 8 SS-08 CONVERGED at pass-4 (3_of_3 NITPICK_ONLY); 40 of 41 stories re-anchored; trajectory 9→2→3→1; Wave 9 SS-01 straggler S-2.07 selection pending (1 story remaining).
+**Pause reason:** Wave 9 SS-01 straggler PO baseline committed (658c76b); S-2.07 anchored (41/41 cumulative); awaiting adversarial pass-1 to verify baseline quality before declaring Wave 9 CONVERGED.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
@@ -364,18 +367,19 @@ dtu_services: []
 - Wave 6 SS-09 CONVERGED 3-of-3 at pass-7: 0 findings; 24/24 prior closures verified; 14 fresh broad-lens axes all clean; trajectory 9→3→8→5→0→0→0; wave-6-ss-09-pass-7.md persisted
 - Wave 7 SS-10 CONVERGED at pass-6 (3_of_3 NITPICK_ONLY): 0 findings; F-501 self-withdrawn; trajectory 5→4→4→0→1→0; 3 stories spec-ready (S-0.02, S-4.08, S-5.07); wave-7-ss-10-pass-6.md persisted
 - Wave 8 SS-08 CONVERGED at pass-4 (3_of_3 NITPICK_ONLY): 1 LOW pending intent (F-301 section ordering); trajectory 9→2→3→1; 3 docs-stories spec-ready (S-0.05, S-5.05, S-5.06); wave-8-ss-08-pass-4.md persisted
+- Wave 9 SS-01 straggler PO baseline at commit 658c76b: S-2.07 anchored (BC-1.07.001/002+BC-1.08.001/002+VP-043; CAP-002/FR-007; TD #105 fixed; 41/41 cumulative)
 
 **Resumption recipe:**
 
-Begin Wave 9 SS-01 straggler re-anchor (1 story: S-2.07 regression-test-validation). Final wave to complete 41-of-41 cumulative coverage.
+Dispatch adversarial-reviewer for Wave 9 SS-01 pass-1 on S-2.07 baseline (commit 658c76b). This is the final wave — once pass-1 is clean (or fix bursts converge), v1.0-brownfield-backfill cycle is COMPLETE at 41-of-41.
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
-- #102 Wave 9 SS-01 straggler (1 story remaining: S-2.07)
+- #102 Wave 9 SS-01 straggler — PO baseline DONE (658c76b); adversarial pass-1 pending
 - #103 Cross-cutting consistency-validator sweep (post-Wave-9)
 - #104 TD: SS-03/07/10 capability column standardization
-- #105 TD: S-2.07 depends_on missing S-1.09
-- #106 STATE.md compaction (now growing past 350 lines)
+- ~~#105 TD: S-2.07 depends_on missing S-1.09~~ **FIXED** (658c76b — S-1.09 added to S-2.07 depends_on)
+- #106 STATE.md compaction (now growing past 400 lines)
 - #107 TD: housekeeping sweep for bare BC-prefix anchors in SS-01 stories (S-1.02:279, S-2.02:111)
 - #108 TD: Architect-led 28-CAP audit for pre-existing CAP→PRD §8 drifts (CAP-003/007/008/010/013/017/018/023/024 — 2 more surfaced at pass-4)
 - #109 Wave 8 SS-08 re-anchor — **COMPLETE** (pass-4 CONVERGED; 3_of_3 NITPICK_ONLY; trajectory 9→2→3→1; 3 stories spec-ready; F-301 LOW pending intent)
@@ -385,7 +389,7 @@ Begin Wave 9 SS-01 straggler re-anchor (1 story: S-2.07 regression-test-validati
 - #114 Extend validate-consistency skill: tautology detector + BC canonical TV consistency checks (motivated by Prism Wave 2 Pass 7 finding TD-W2-FIXK-001 + TD-W2-FIXK-002)
 - #115 Wave 7 SS-10 re-anchor — **COMPLETE** (pass-6 CONVERGED; 3_of_3 NITPICK_ONLY; trajectory 5→4→4→0→1→0; 3 stories spec-ready; BC-10.13.001 retired per D-082 F-203 fix; F-501 self-withdrawn)
 
-**Total cumulative anchored:** 40 stories (Waves 1-8 CONVERGED) of 41 migrated stories. Remaining: 1 story (SS-01 straggler: S-2.07).
+**Total cumulative anchored:** 41 stories (Waves 1-8 CONVERGED + Wave 9 PO baseline) of 41 migrated stories. **All 41 stories have PO baseline anchors.** Wave 9 convergence pending adversarial pass-1.
 
 **Trajectory pattern across waves:**
 - Wave 1: 6 passes, 0 reset events; CONVERGED 3-of-3 at pass-6
@@ -396,6 +400,7 @@ Begin Wave 9 SS-01 straggler re-anchor (1 story: S-2.07 regression-test-validati
 - Wave 6 SS-09: 7 passes, 0 reset events after pass-4; CONVERGED 3-of-3 at pass-7; trajectory 9→3→8→5→0→0→0 (zero at passes 5/6/7; CAP-propagation drift class exhausted)
 - Wave 7 SS-10: 6 passes; 0 reset events after pass-3; CONVERGED 3-of-3 at pass-6; trajectory 5→4→4→0→1→0 (F-501 self-withdrawn at pass-6; 6-pass cycle)
 - Wave 8 SS-08: 4 passes; 0 reset events; CONVERGED 3-of-3 at pass-4; trajectory 9→2→3→1 (fastest 4-pass cycle; F-301 LOW pending intent)
+- Wave 9 SS-01 (straggler): PO baseline committed; adversarial pass-1 pending
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
