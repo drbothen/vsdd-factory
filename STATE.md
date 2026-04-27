@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Wave 7 SS-10 pass-4 NITPICK_ONLY 1_of_3; 13/13 prior closures verified; trajectory 5→4→4→0; pass-5 pending"
+current_step: "Wave 7 SS-10 pass-5 NITPICK_ONLY 2_of_3; 1 LOW F-501 BC-9.01.001 lifecycle metadata pending intent; trajectory 5→4→4→0→1; pass-6 pending"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 7 SS-10 pass-4 NITPICK_ONLY; 0 findings; 13/13 prior closures verified; clock 1_of_3; trajectory 5→4→4→0; pass-5 pending) |
+| **Last Updated** | 2026-04-27 (Wave 7 SS-10 pass-5 NITPICK_ONLY; 1 LOW F-501; 13/13 prior closures verified; clock 2_of_3; trajectory 5→4→4→0→1; pass-6 pending) |
 | **Current Phase** | wave-7-ss-10-baseline |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -109,7 +109,7 @@ dtu_services: []
 | Wave 4 SS-02 hook-sdk re-anchor | **CONVERGED** at pass-5 (commit 896cb72): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=7 → pass-5=0 (CRIT/HIGH/MED zero from pass-3). 2 stories spec-ready: S-1.03, S-2.05. Cumulative re-anchored: 26 of 41 stories (Wave 1+2+3+4). | wave-4-ss-02-pass-5.md |
 | Wave 5 SS-06 skill-catalog re-anchor | **CONVERGED** at pass-6 (commit f8e25d3): 1 LOW process-gap carryover (task #112), 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=1 (-91%). 2 stories spec-ready: S-0.03, S-2.06. Cumulative re-anchored: 28 of 41 stories. | wave-5-ss-06-pass-6.md |
 | Wave 6 SS-09 configuration & activation re-anchor | **CONVERGED** at pass-7 (commit 5f0719c): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=9 → pass-7=0 (HIGH ceiling collapsed at pass-2). 6 stories spec-ready: S-0.01, S-0.04, S-2.02, S-2.03, S-2.04, S-2.08. Cumulative re-anchored: 34 of 41 stories (Wave 1+2+3+4+5+6). | wave-6-ss-09-pass-7.md |
-| Wave 7 SS-10 CLI tools re-anchor | **in-progress** — Pass-4 NITPICK_ONLY; 13/13 prior closures verified; clock 1_of_3. Trajectory 5→4→4→0 (sharp drop). Pass-5 pending. | wave-7-ss-10-pass-4.md |
+| Wave 7 SS-10 CLI tools re-anchor | **in-progress** — Pass-5 NITPICK_ONLY; 13/13 prior closures verified; clock 2_of_3. Trajectory 5→4→4→0→1. Pass-6 pending. | wave-7-ss-10-pass-5.md |
 
 ## Current Phase Steps
 
@@ -174,6 +174,7 @@ dtu_services: []
 | Wave 7 SS-10 adversarial pass-3 | adversarial-reviewer | COMPLETE | 4 findings (1 HIGH F-201 + 2 MED F-202/F-203 + 1 LOW F-204); F-201 BC-9.01.001 Preconditions partial-propagation + F-202 Invariant 1 + F-203 BC-10.13.001/012 double-binding + F-204 POLICY 8 cross-wave complementary; trajectory 5→4→4; wave-7-ss-10-pass-3.md |
 | Wave 7 SS-10 pass-3 PO fix burst | product-owner | COMPLETE | F-201 Precondition 2 sync + F-202 Invariant 1 broadened (semver §11 transitions) + F-203 BC-10.13.001 retired (BC-10.13.012 absorbs; sweep across S-0.02/S-4.08/S-5.07) + F-204 POLICY 8 exempt HTML comment in S-0.02; commit d8054c8 |
 | Wave 7 SS-10 adversarial pass-4 | adversarial-reviewer | COMPLETE | 0 findings; NITPICK_ONLY; 13/13 prior closures verified; clock 1_of_3; trajectory 5→4→4→0; wave-7-ss-10-pass-4.md |
+| Wave 7 SS-10 adversarial pass-5 | adversarial-reviewer | COMPLETE | 1 LOW (F-501 BC-9.01.001 lifecycle metadata pending intent); NITPICK_ONLY; 13/13 prior closures verified; clock 2_of_3; trajectory 5→4→4→0→1; wave-7-ss-10-pass-5.md |
 
 ## Identifier Conventions
 
@@ -316,6 +317,7 @@ dtu_services: []
 | D-078 | Wave 7 SS-10 baseline + pass-1 review + fix burst at PO 86e98ab + 5ffa93d + state-manager this commit. PO chose stretch-anchor pattern (story.subsystems[]=SS-10 ≠ bcs[].subsystem=SS-09) per F-007/F-002/F-005 sanctioned precedent — 3 stories anchored to BC-9.01.001/003 with 11 v1.1 BC candidates registered (BC-10.13.001-011). Pass-1 found 5 findings (1 HIGH F-001 stretch-anchor disclosure absent + 3 MED F-002 CAP-028 sibling sweep + F-003 arch ownership ambiguity + F-004 STORY-INDEX stale + 1 LOW F-005 shape applicability). All addressed: F-001 disclosure sections added (SS-10/SS-09 mismatch named, F-007/F-002/F-005 lineage cited, AC-7/AC-9 BC-9.01.001 direct exercise + others gate-aggregation [process-gap]), F-002 secondary-SS disclosure preserves CAP-028 SS-06+SS-09 primary scope, F-003 shared-ownership HTML comments in SS-09/SS-10 arch docs (deeper ARCH-INDEX fix deferred TD), F-004 STORY-INDEX dep cells + Wave 7 summary block, F-005 closed by F-001 evolution. | Wave 7 smallest baseline (5 findings) — Wave 6 lessons fully internalized. 3-of-3 convergence plausible by pass-3-4. | wave-7-ss-10 | 2026-04-27 | orchestrator + adversary + PO + state-manager |
 | D-082 | Wave 7 SS-10 pass-3 review surfaced 4 findings. F-201 [HIGH] BC-9.01.001 Precondition 2 partial-propagation gap (F-101 fix missed Precondition 2 line). F-202 [MED] BC-9.01.001 Invariant 1 excludes major bumps + prerelease-to-stable transitions. F-203 [MED] S-0.02 BC-10.13.001/012 double-binding (AC-3/AC-4 cite BC-10.13.001; disclosure says BC-10.13.012 conflicting). F-204 [LOW] S-0.02 bcs[] includes BC-9.01.001+003 with no direct AC trace after F-102 process-gap re-classification; cross-wave-complementary exemption adjudicated. PO fix burst applied at d8054c8: F-201 Precondition 2 broadened; F-202 Invariant 1 enumerated 5 semver §11 classes; F-203 BC-10.13.001 retired (BC-10.13.012 absorbs; S-0.02/S-4.08/S-5.07 swept); F-204 POLICY 8 exempt HTML comment added. Pass-4 verification pending. | Pass-4 closure pending; clock at 0_of_3 (HIGH F-201 reset). | wave-7-ss-10-pass-3 | 2026-04-27 | adversary + PO |
 | D-084 | Wave 7 SS-10 pass-4 NITPICK_ONLY at 9bbb8ef; clock 1_of_3. Zero findings. 13/13 prior closures verified (F-001..F-005 + F-101..F-104 + F-201..F-204). Pass-4 sibling sweeps clean across F-201/F-202/F-203/F-204 axes; BC-9.01.001 body internally coherent post-Precondition fix; BC-9.01.002/003 invariants correctly tight; 11 BC-10.13.x candidates unique; stretch-anchor disclosure shape uniform across 3 Wave 7 stories. Trajectory 5→4→4→0 (sharp drop at pass-4). | clock advances to 1 of 3 per ADR-013. Pass-5 + pass-6 with clean runs = CONVERGED. | wave-7-ss-10 | 2026-04-27 | adversary |
+| D-086 | Wave 7 SS-10 pass-5 NITPICK_ONLY at 9bbb8ef; clock 2_of_3. 1 LOW F-501 (BC-9.01.001 lifecycle frontmatter does not record mid-cycle H1 enrichment; pending intent verification). 8 axes probed (POLICY 1 lifecycle, VP coherence, producer/wave/traces_to coherence, S-2.08 BC enumeration, PRD §FR-037 arithmetic, HTML comment uniformity); 7 clean. F-501 deferred — soft hygiene gap, no policy mandate; pass-6 re-evaluation. Trajectory 5→4→4→0→1. | clock advances per ADR-013 NITPICK_ONLY rule. Pass-6 final clean = CONVERGED. | wave-7-ss-10 | 2026-04-27 | adversary |
 | D-080 | Wave 7 SS-10 pass-2 review + fix burst at PO 0f2d432 + state-manager this commit. 4 findings (1 HIGH F-101 + 2 MED F-102/F-103 + 1 LOW F-104). All addressed: F-101 BC-9.01.001 H1 enriched from prerelease-only to stable+prerelease release format scope (POLICY 7 H1-source-of-truth fix); 7-surface sync (H1, Description, Invariant 1, BC-INDEX title, PRD §FR-037 narrative, PRD §8 CAP-028 parenthetical, 5 story body BC tables); F-102 S-0.02 AC-1+AC-2 re-classified [process-gap] + BC-10.13.012 candidate covers both prerelease:true and prerelease:false branches; F-103 closed by F-101 enrichment (S-5.07 disclosure section updated to note); F-104 S-0.01 prepended to S-4.08/S-5.07 depends_on + STORY-INDEX dep cells. Trajectory 5→4 (HIGH ceiling unchanged but content shifted from disclosure-absence to deeper semantic-scope; pass-3 plausibly converges). | BC-9.01.001 H1 was undertight relative to its postcondition 1 ("Version bump succeeds"); enrichment matches actual scope. Wave 7 establishes precedent for cross-SS stretch-anchor disclosure shape (5-bullet) suitable for future BC backfill bursts. | wave-7-ss-10 | 2026-04-27 | orchestrator + adversary + PO + state-manager |
 | D-077 | **Wave 7 SS-10 baseline anchor at 86e98ab** — 3 stories (S-0.02 Release.yml prerelease, S-4.08 rc.1 gate, S-5.07 v1.0 gate) anchored to BC-9.01.001/003 (SS-09 cross-wave complementary). No SS-10 BCs exist for scripts/bump-version.sh or .github/workflows/Release.yml — all 11 process gaps codified as v1.1 BC candidates (BC-10.13.001-011). Bidirectional dep edges added: S-4.08.depends_on +S-0.02, S-5.07.depends_on +S-0.02 per S-0.02.blocks[S-4.08, S-5.07]. CAP-028 primary anchor for all 3 stories (FR-037). PRD §FR-037 story citation list updated. STORY-INDEX depends-on updated. | 8 files touched (3 stories, 2 BC files, 1 BC-INDEX, 1 PRD, 1 STORY-INDEX); story versions bumped S-0.02/S-4.08/S-5.07 v1.1→v1.2 | wave-7-ss-10-baseline | 2026-04-27 | product-owner |
 | D-076 | **Wave 6 SS-09 spec re-anchor CONVERGED at pass-7 (3_of_3 NITPICK_ONLY)** — 7-pass cycle on 6 SS-09 configuration & activation stories: 9→3→8→5→0→0→0 trajectory; pass-1 baseline 9 (4 HIGH/4 MED/1 LOW). Major findings closed: F-001 BC-1.07.003/004 ↔ VP-049 bidirectional; F-002 S-2.03 process-gap markers; F-003 S-2.08 stretch-anchor disclosure + 4 v1.1 BC candidates; F-004 S-2.04 SS-10 dropped; F-005 CAP-028 → SS-06+SS-09 (Wave 3 F-007 precedent); F-006 BC-1.07.003/004 → CAP-002; F-007 PRD §FR-037 wording; F-008 VP-049 Co-anchor; F-101 CAP-028 PRD BC-list disclosure; F-102 S-2.02 dual-cap stretch-anchor; F-103 S-2.04 process-gap + v1.1 VP candidate; F-201 PRD §8:1098 CAP-010 SS-01; F-202 PRD §8:1091 CAP-003 SS-01; F-203 S-2.04 AC-4 BC-9.01.002 → BC-9.01.003 only; F-204 BC-1.07.003/004 metadata stamps; F-205 S-2.02 metadata stamps; F-206 5-col v1.1 candidate table; F-207/F-208 PRD §8 HTML disclosures; F-301 CAP-017 SS-10; F-302 CAP-018 SS-05+SS-06; F-303 BC-1.07.004 module SS-01+SS-09; F-304 S-2.03 dep symmetry; F-305 v1.1 section ordering. Pass-5/6/7 broad-lens probes (POLICY 1 lifecycle, producer/wave field, narrative arithmetic, VP-INDEX completeness, HTML pattern consistency, DI-BC bidirectional, BC-INDEX-bidirectional Stories, story points/estimated_days/priority coherence, forward-ref symmetry, BC-INDEX total_bcs arithmetic) all clean. CAP-propagation drift class exhausted within Wave 6 scope (CAP-023/024 deferred TD #112). 28-CAP audit partial closure (4 fixed: CAP-003/010/017/018; 4 disclosure-stamped: CAP-008/013/028/F-302). 6 stories spec-ready. Cumulative re-anchored: 34 of 41 stories (Waves 1+2+3+4+5+6). | 7-pass convergence one pass faster than Wave 5 SS-06 (6 passes) — accounting for Wave 6's broader cross-CAP propagation drift class exposure at pass-3. Self-referential dogfooding pattern continues to mature. | wave-6-ss-09-CONVERGED | 2026-04-27 | orchestrator + adversary + PO + state-manager |
@@ -332,7 +334,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 7 SS-10 pass-4 NITPICK_ONLY 1_of_3; pass-5 pending.
+**Pause reason:** Wave 7 SS-10 pass-5 NITPICK_ONLY 2_of_3; pass-6 final pending.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
@@ -341,11 +343,11 @@ dtu_services: []
 - Wave 4 SS-02 CONVERGED 3-of-3 at pass-5: 0 findings; 9/9 cumulative closed (100%); 22/22 BC files CLEAN; 26 of 41 stories anchored; 5-pass cycle (fastest to date)
 - Wave 5 SS-06 CONVERGED 3-of-3 at pass-6: 1 LOW process-gap carryover (task #112); 28 of 41 stories anchored; 6-pass cycle; trajectory 11→7→2→1→2→1
 - Wave 6 SS-09 CONVERGED 3-of-3 at pass-7: 0 findings; 24/24 prior closures verified; 14 fresh broad-lens axes all clean; trajectory 9→3→8→5→0→0→0; wave-6-ss-09-pass-7.md persisted
-- Wave 7 SS-10 **in-progress**: pass-4 NITPICK_ONLY; 0 findings; 13/13 prior closures verified (F-001..F-005 + F-101..F-104 + F-201..F-204); trajectory 5→4→4→0; clock 1_of_3; pass-5 pending
+- Wave 7 SS-10 **in-progress**: pass-5 NITPICK_ONLY; 1 LOW F-501 (BC-9.01.001 lifecycle metadata pending intent); 13/13 prior closures verified; trajectory 5→4→4→0→1; clock 2_of_3; pass-6 pending
 
 **Resumption recipe:**
 
-Dispatch adversary for Wave 7 SS-10 pass-5. Target: NITPICK_ONLY to advance clock to 2_of_3. All 13 prior findings verified closed at d8054c8; sweep fresh axes.
+Dispatch adversary for Wave 7 SS-10 pass-6 (final). Target: NITPICK_ONLY 3_of_3 = CONVERGED. F-501 pending intent — adversary to re-evaluate or confirm deferred. All 13 prior findings closed at d8054c8.
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
@@ -360,9 +362,9 @@ Dispatch adversary for Wave 7 SS-10 pass-5. Target: NITPICK_ONLY to advance cloc
 - #112 TD: Codify bc-anchor-sweep checklist step (Wave 5 MED-002 process-gap)
 - #113 Wave 6 SS-09 re-anchor — COMPLETE (pass-7 CONVERGED; 3_of_3 NITPICK_ONLY; 6 stories spec-ready)
 - #114 Extend validate-consistency skill: tautology detector + BC canonical TV consistency checks (motivated by Prism Wave 2 Pass 7 finding TD-W2-FIXK-001 + TD-W2-FIXK-002)
-- #115 Wave 7 SS-10 re-anchor — **in_progress** (pass-4 NITPICK_ONLY; clock 1_of_3; trajectory 5→4→4→0; pass-5 pending; BC-10.13.001 retired per D-082 F-203 fix)
+- #115 Wave 7 SS-10 re-anchor — **in_progress** (pass-5 NITPICK_ONLY; clock 2_of_3; trajectory 5→4→4→0→1; pass-6 final pending; BC-10.13.001 retired per D-082 F-203 fix)
 
-**Total cumulative anchored:** 34 stories (Waves 1-6 CONVERGED) + 3 stories (Wave 7 SS-10 in-progress, clock 1_of_3) of 41 migrated stories. Remaining unstarted: 4 stories (SS-08: 3, SS-01 straggler: 1).
+**Total cumulative anchored:** 34 stories (Waves 1-6 CONVERGED) + 3 stories (Wave 7 SS-10 in-progress, clock 2_of_3) of 41 migrated stories. Remaining unstarted: 4 stories (SS-08: 3, SS-01 straggler: 1).
 
 **Trajectory pattern across waves:**
 - Wave 1: 6 passes, 0 reset events; CONVERGED 3-of-3 at pass-6
@@ -371,7 +373,7 @@ Dispatch adversary for Wave 7 SS-10 pass-5. Target: NITPICK_ONLY to advance cloc
 - Wave 4: 5 passes, 0 reset events; CONVERGED 3-of-3 at pass-5 (fastest sub-cycle)
 - Wave 5: 6 passes, 0 reset events; CONVERGED 3-of-3 at pass-6; trajectory 11→7→2→1→2→1 (LOW-only since pass-3)
 - Wave 6 SS-09: 7 passes, 0 reset events after pass-4; CONVERGED 3-of-3 at pass-7; trajectory 9→3→8→5→0→0→0 (zero at passes 5/6/7; CAP-propagation drift class exhausted)
-- Wave 7 SS-10: 4 passes to date; trajectory 5→4→4→0 (sharp drop at pass-4; clock 1_of_3; pass-5 pending)
+- Wave 7 SS-10: 5 passes to date; trajectory 5→4→4→0→1 (clock 2_of_3; pass-6 final pending)
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
