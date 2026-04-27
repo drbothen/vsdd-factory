@@ -472,6 +472,15 @@ name = "capture-commit-activity"
 version = "0.0.1"
 
 [[package]]
+name = "capture-pr-activity"
+version = "0.0.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "cc"
 version = "1.2.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
