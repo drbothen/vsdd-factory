@@ -33,7 +33,7 @@ bump-version.sh accepts semver release format — stable releases of the form `N
 ## Preconditions
 
 1. Release workflow run is in progress.
-2. A semver prerelease version string (e.g., `1.0.0-beta.N`, `1.0.0-rc.N`) is supplied to the bump tool.
+2. A semver release version string (stable `N.N.N` such as `1.0.0`, or prerelease `1.0.0-beta.N` / `1.0.0-rc.N`) is supplied to the bump tool.
 
 ## Postconditions
 
@@ -42,7 +42,7 @@ bump-version.sh accepts semver release format — stable releases of the form `N
 
 ## Invariants
 
-1. Version numbering increases monotonically across CHANGELOG entries — stable bumps (N.N.N → N.(N+1).N) and prerelease bumps (1.0.0-beta.N → 1.0.0-beta.(N+1) or 1.0.0-rc.M) both maintain ordering.
+1. Version numbering increases monotonically across CHANGELOG entries. All valid release transitions maintain strict ordering per semver 2.0 §11 precedence rules: stable minor bumps (N.M.P → N.(M+1).0), stable major bumps (N.M.P → (N+1).0.0), prerelease iteration (1.0.0-beta.N → 1.0.0-beta.(N+1)), prerelease promotion (1.0.0-beta.N → 1.0.0-rc.M), and prerelease-to-stable promotion (1.0.0-rc.M → 1.0.0).
 
 ## Edge Cases
 
