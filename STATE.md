@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-26 (Wave 5 SS-06 CONVERGED at pass-6; 3_of_3 NITPICK_ONLY; 1 LOW process-gap carryover (task #112); 28 of 41 stories re-anchored. Wave 6 SS-NN re-anchor selection pending.) |
+| **Last Updated** | 2026-04-27 (task #114 added: extend validate-consistency skill with tautology detector + BC canonical TV consistency checks; D-062 logged) |
 | **Current Phase** | wave-5-ss-06-CONVERGED-spec-ready |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -278,6 +278,7 @@ dtu_services: []
 | D-059 | Wave 5 SS-06 pass-4 NITPICK_ONLY at 556d686; clock 1 of 3 | Zero CRIT/HIGH/MED findings; 1 LOW process-gap carryover (bc-anchor-sweep / VP↔BC bidirectional checklist codification, deferred task #112). All 9 content policies CLEAN. POLICY 9 bidirectional symmetry restored (pass-3 fixes verified). 12/12 BC titles verbatim. Story↔body↔ACs coherent. Trajectory pass-1=11 → pass-4=1 (-91%). Convergence clock advances. | wave-5-ss-06 | 2026-04-26 | adversary |
 | D-060 | Wave 5 SS-06 pass-5 NITPICK_ONLY + LOW-001 fix at f8e25d3; clock 2 of 3 | 2 LOW findings: LOW-001 pre-existing VP-002 placeholder mis-anchor in BC-6.01.004/005/006 (literal VP-002 used instead of TBD placeholder; real VP-002 is SS-01 wasmtime invariant). LOW-002 process-gap carryover (task #112). LOW-001 fix applied: 3 BC files VP-002 row → TBD placeholder matching sibling convention. All 9 content policies CLEAN. Trajectory 11→7→2→1→2 (LOW-only since pass-3). Convergence 2_of_3 advances. | wave-5-ss-06 | 2026-04-26 | adversary |
 | D-061 | Wave 5 SS-06 spec re-anchor CONVERGED at pass-6 (3_of_3 NITPICK_ONLY) | 6-pass cycle: 11→7→2→1→2→1 trajectory; pass-1 baseline 11 (2 CRIT POLICY-7/4, 4 HIGH, 4 MED, 3 LOW). Major findings closed: PRD §FR-037 BC titles synced to BC H1s verbatim; CAP-007 SS-01 expansion reverted (Wave 3 F-007 precedent); CAP-028 dropped from FR-037 enforces; DI-015 cited by BC-9.01.004/005 (orphan resolved); VP-015 added to S-2.06 + bidirectional with BC-9.01.004/005; VP-002 placeholder mis-anchor in 3 BC files cleaned. 1 LOW process-gap carryover (task #112 bc-anchor-sweep + VP↔BC checklist codification). 2 stories spec-ready (S-0.03 + S-2.06). Cumulative re-anchored: 28 of 41 stories (Waves 1+2+3+4+5). | wave-5-ss-06 | 2026-04-26 | orchestrator |
+| D-062 | Task #114 logged: extend validate-consistency skill with two new advisory checks: (a) tautology detector (test_BC_*/test_TV_* tests that don't call production functions); (b) BC canonical TV consistency (struct serializes field marked excluded by BC TV table). Both fast, both pure additions, both motivated by Prism Wave 2 Pass 7 finding (six prior passes missed a tautological test that hardcoded its assertion target without exercising emit_token_generated). | Prism Wave 2 Pass 7 caught BC-2.05.010 violation (emitter persisted token_id forbidden by BC) where six prior adversarial passes missed it. Defect class: tautological tests + BC TV/emitter contradiction. Codifying these checks in validate-consistency hardens VSDD across all consumers. | plugin-engineering-backlog | 2026-04-27 | orchestrator + user |
 
 ## Skip Log
 
@@ -317,6 +318,7 @@ Begin Wave 6 SS-NN re-anchor selection (13 stories remaining: SS-08 (4), SS-09 (
 - #111 TD: Bidirectional dep edge S-2.04.blocks missing S-2.06 (Wave 5 pre-existing)
 - #112 TD: Codify bc-anchor-sweep checklist step (Wave 5 MED-002 process-gap)
 - #113 Wave 6 SS-NN re-anchor (selection: SS-08 or SS-09 or SS-10)
+- #114 Extend validate-consistency skill: tautology detector + BC canonical TV consistency checks (motivated by Prism Wave 2 Pass 7 finding TD-W2-FIXK-001 + TD-W2-FIXK-002)
 
 **Total cumulative anchored:** 28 stories (Waves 1+2+3+4+5 CONVERGED) of 41 migrated stories.
 
