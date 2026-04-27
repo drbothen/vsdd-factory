@@ -1088,17 +1088,19 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 |--------|-------|-------------------|-----------|
 | CAP-001 | Run self-orchestrating LLM-driven SDLC pipeline | BC-5.01–5.23 (workflow/orchestration); BC-6.09 (deliver-story); BC-5.02 (orchestrator) | SS-05, SS-06 |
 | CAP-002 | Hook Claude Code tool calls with sandboxed WASM plugins | BC-1.01–1.09 (dispatcher); BC-4.01–4.02 (legacy-bash-adapter) | SS-01, SS-02, SS-04 |
-| CAP-003 | Stream observability events to multiple configurable sinks | BC-3.01–3.06 (sink registry/routing); BC-10.02 (factory-obs bin) | SS-03, SS-10 |
+| CAP-003 | Stream observability events to multiple configurable sinks | BC-3.01–3.06 (sink registry/routing); BC-10.02 (factory-obs bin) | SS-01, SS-03, SS-10 |
 | CAP-004 | Enforce per-PR behavioral contract traceability | BC-5.05.007–010 (consistency-validator); BC-7.08–7.09 (validate-* hooks) | SS-05, SS-06 |
 | CAP-005 | Run adversarial review with information asymmetry | BC-5.04.001–007 (adversary); BC-6.10 (adversarial-review skill); BC-7.10 (SHA-currency) | SS-05, SS-06 |
 | CAP-006 | Decompose specs into wave-scheduled stories with parallel execution | BC-6.06–6.08 (decompose-stories, wave-scheduling, wave-gate); BC-5.22 (phase-2 workflow) | SS-05, SS-06 |
 | CAP-007 | Deploy and activate the plugin on any supported platform | BC-6.01.003–006 (activation skill); BC-6.03.001–006 (activate behavior); BC-9.01.004-005 (CI matrix + hooks.json gitignore — activation-gate prerequisites) | SS-06, SS-09 |
 | CAP-008 | Gate tool calls with pre-execution behavioral checks (PreToolUse) | BC-1.05.001–004 (host fn deny gates); BC-7.01–7.04 (bash PreToolUse hooks) | SS-01, SS-02, SS-04, SS-07 |
+<!-- F-208 (Wave 6 pass-3): BC-list cites SS-01 + SS-07 BCs only; SS-02 enforcer-BC is BC-2.01.002 (HookResult exit-code contract) per capabilities.md:51 defensive comment; SS-04 enforcer-BCs TBD pending plugin-ecosystem BC backfill (task #108). -->
 | CAP-009 | Author and publish WASM hook plugins using the Rust SDK | BC-2.01–2.05 (SDK types, ABI, proc-macro, payload) | SS-02 |
-| CAP-010 | Always-on dispatcher self-telemetry independent of sink config | BC-1.06.001–010 (internal log); BC-10.02 (factory-obs bin) | SS-03, SS-10 |
+| CAP-010 | Always-on dispatcher self-telemetry independent of sink config | BC-1.06.001–010 (internal log); BC-10.02 (factory-obs bin) | SS-01, SS-03, SS-10 |
 | CAP-011 | Enforce fuel and epoch budgets on plugin execution | BC-1.03.001–002 (timeout/fuel BCs); BC-1.04.001–003 (engine/ticker) | SS-01 |
 | CAP-012 | Recover from workflow interruption (crash recovery) | BC-5.10.001–005 (state-manager); BC-5.23 (phase-3 resume semantics) | SS-05 |
 | CAP-013 | Capture post-execution activity (PostToolUse hooks) | BC-4.01–4.02 (legacy-bash-adapter); BC-7.05–7.07 (PostToolUse hooks) | SS-01, SS-04, SS-07 |
+<!-- F-207 (Wave 6 pass-3): BC-list cites SS-04 + SS-07 BCs only; SS-01 enforcer-BC pending — dispatcher routing of PostToolUseFailure (and PostToolUse) lives in SS-01. Specific BC IDs TBD when SS-01 dispatcher-routing BC backfill closes (deferred to task #108 28-CAP audit). Mirrors capabilities.md:71 defensive comment. -->
 | CAP-014 | Decompose product specs into verified behavioral contracts | BC-5.06.001–015 (product-owner/story-writer agents); BC-8.01–8.05 (spec templates) | SS-05, SS-06, SS-08 |
 | CAP-015 | Ingest brownfield codebases via structured multi-pass analysis | BC-5.20.001–020 (phase-0 workflow); BC-6.01 (brownfield-ingest skill) | SS-06 |
 | CAP-016 | Drive TDD delivery with red/green/refactor gate enforcement | BC-5.07.028–033 (implementer agent); BC-6.09 (deliver-story skill); BC-5.23 (phase-3 workflow); BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 (TDD hardening — S-7.03) | SS-05, SS-06, SS-08 |
