@@ -30,9 +30,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 22 |
 | partial | 4 |
-| draft | 15 |
+| draft | 16 |
 | ready | 3 |
-| completed | 1 |
 | **Total** | **45** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -118,7 +117,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|---------|
 | S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | ready | -- |
 | S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | ready | -- |
-| S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | completed | 2.1 |
+| S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | merged | 2.2 |
 
 > **S-7.03 delivery:** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN. Worktree feat/tdd-discipline-hardening (9b1624b → 121d24c, 9 commits). Spec convergence: 17 adversarial passes.
 

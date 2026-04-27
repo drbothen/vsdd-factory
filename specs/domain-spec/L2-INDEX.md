@@ -1,10 +1,10 @@
 ---
 document_type: domain-spec-index
 level: L2
-version: "1.0"
+version: "1.0.1"
 status: accepted
 producer: business-analyst
-timestamp: 2026-04-25T00:00:00
+timestamp: 2026-04-27T00:00:00
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -77,12 +77,12 @@ workflow management driven by LLM agents.
 
 | SS-ID | Name | CAPs supported |
 |-------|------|----------------|
-| SS-01 | Hook Dispatcher Core | CAP-001, CAP-002, CAP-007, CAP-008, CAP-009, CAP-010, CAP-011 |
+| SS-01 | Hook Dispatcher Core | CAP-001, CAP-002, CAP-008, CAP-010, CAP-011 |
 | SS-02 | Hook SDK and Plugin ABI | CAP-002, CAP-009 |
 | SS-03 | Observability Sinks | CAP-003, CAP-010 |
 | SS-04 | Plugin Ecosystem | CAP-002, CAP-008, CAP-013 |
-| SS-05 | Pipeline Orchestration | CAP-001, CAP-004, CAP-005, CAP-006, CAP-012, CAP-014, CAP-016 |
-| SS-06 | Skill Catalog | CAP-001, CAP-004, CAP-005, CAP-006, CAP-014, CAP-015, CAP-016, CAP-017, CAP-018, CAP-019, CAP-020, CAP-021, CAP-022, CAP-023, CAP-024, CAP-025, CAP-026 |
+| SS-05 | Pipeline Orchestration | CAP-001, CAP-004, CAP-005, CAP-006, CAP-012, CAP-014, CAP-016, CAP-018 |
+| SS-06 | Skill Catalog | CAP-001, CAP-004, CAP-005, CAP-006, CAP-014, CAP-015, CAP-016, CAP-017, CAP-018, CAP-019, CAP-020, CAP-021, CAP-022, CAP-023, CAP-024, CAP-025, CAP-026, CAP-028 |
 | SS-07 | Hook Bash Layer | CAP-008, CAP-013, CAP-027 |
 | SS-08 | Templates and Rules | CAP-014, CAP-016, CAP-025 |
 | SS-09 | Configuration and Activation | CAP-007, CAP-028 |
