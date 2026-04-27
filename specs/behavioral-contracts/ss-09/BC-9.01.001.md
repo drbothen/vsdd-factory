@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:504"
 subsystem: "SS-09"
-capability: "CAP-TBD"
+capability: "CAP-028"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -68,10 +68,10 @@ The release tooling's `bump-version.sh` accepts semver prerelease versions of th
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (release-pipeline scope; CAP-007 anchor reverted per Wave 5 pass-1 HIGH-001 — no activate-skill story exercises this BC; pending re-anchor to release-pipeline story) |
+| L2 Capability | CAP-028 ("Install and update the plugin via Claude Code marketplace") per capabilities.md §CAP-028 — bump-version.sh enables version co-stamping across plugin.json, marketplace.json, and CHANGELOG, which is the precondition for every marketplace install reporting the correct version |
 | L2 Domain Invariants | TBD |
-| Architecture Module | SS-09 — `scripts/bump-version.sh` (prerelease semver; see Source Evidence for location TBD) |
-| Stories | TBD (reverted from S-2.06; BC is release-tooling scope, not activation-skill scope) |
+| Architecture Module | SS-09 — `scripts/bump-version.sh` (prerelease semver validation and version co-stamping) |
+| Stories | S-0.01, S-2.08 |
 
 ### Source Evidence
 

@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:516"
 subsystem: "SS-09"
-capability: "CAP-TBD"
+capability: "CAP-028"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -69,10 +69,10 @@ After a release tag is pushed, the release workflow's bot commit writes the per-
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (release-pipeline scope; CAP-007 anchor reverted per Wave 5 pass-1 HIGH-001 — no activate-skill story exercises this BC; pending re-anchor to release-pipeline story) |
+| L2 Capability | CAP-028 ("Install and update the plugin via Claude Code marketplace") per capabilities.md §CAP-028 — the atomic bot commit guarantees that a marketplace consumer fetching in any window sees a consistent (version=X, matching binaries, matching metadata) tuple |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-09 — release workflow + `plugins/vsdd-factory/.claude-plugin/plugin.json` + marketplace.json |
-| Stories | TBD (reverted from S-2.06; BC is release-tooling scope, not activation-skill scope) |
+| Stories | S-2.04, S-2.08 |
 
 ### Source Evidence
 

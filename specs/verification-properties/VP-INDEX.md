@@ -141,6 +141,8 @@ total_vps: 64
 | VP ID | Anchor Story | Wave | Rationale |
 |-------|-------------|------|-----------|
 | VP-015 | S-2.06 | Wave 5 SS-06 | S-2.06 exercises activation gate end-to-end; manual verification anchor for DI-015 — hooks.json absent until activate runs, ensuring dispatcher cannot be invoked pre-activation |
+| VP-015 | S-0.04, S-2.03, S-2.08 | Wave 6 SS-09 | S-0.04 establishes hooks.json.template + gitignore (BC-9.01.005 precondition); S-2.03 builds the 5-platform CI matrix (BC-9.01.004 gate); S-2.08 is the beta.1 release gate that requires VP-015 conditions satisfied across all platforms |
+| VP-049 | S-2.02 | Wave 6 SS-09 | S-2.02 implements generate-registry-from-hooks-json.sh; VP-049 contracts that the generated TOML round-trips through Registry::load (BC-1.07.003/004) |
 | VP-023 | S-1.03 | Wave 4 SS-02 | S-1.03 (hook-sdk-crate) builds the SS-02 test vehicle; VP-023 covers SS-01/SS-02 wire decoder safety |
 | VP-025 | S-1.03 | Wave 4 SS-02 | S-1.03 builds the SS-02 test vehicle; VP-025 covers SS-01/SS-02 host ABI completeness |
 | VP-038 | S-3.03 | Wave 3 SS-04 | S-3.03 anchors BC-2.01.002 (HookResult exit codes) for the WASM block-ai-attribution port |
