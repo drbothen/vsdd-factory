@@ -145,7 +145,7 @@ total_vps: 64
 | VP-038 | S-3.03 | Wave 3 SS-04 | S-3.03 anchors BC-2.01.002 (HookResult exit codes) for the WASM block-ai-attribution port |
 | VP-038 | S-1.03 | Wave 4 SS-02 | VP-038 bcs [BC-2.01.001-003] are in S-1.03's 22-BC anchor set (BC-2.01.001-004 core types) |
 | VP-039 | S-1.03 | Wave 4 SS-02 | VP-039 bcs [BC-2.02.007-010] are in S-1.03's 22-BC anchor set (BC-2.02.001-010 host/FFI) |
-| VP-040 | S-1.03 | Wave 4 SS-02 | VP-040 bcs [BC-2.04.001-005] are in S-1.03's 22-BC anchor set (BC-2.04.001-005 payload) |
+| VP-040 | S-1.03 | Wave 4 SS-02 | VP-040 bcs [BC-2.04.001/002/004/005] are in S-1.03's 22-BC anchor set (BC-2.04 payload family — VP-040 omits .003 which contracts SessionStart lifecycle, not envelope round-trip) |
 | VP-041 | S-1.03 | Wave 4 SS-02 | VP-041 bcs [BC-2.05.001-003] are in S-1.03's 22-BC anchor set (BC-2.05.001-003 panic) |
 | VP-042 | S-1.03 | Wave 4 SS-02 | VP-042 bcs [BC-2.02.003, BC-2.02.006] are in S-1.03's 22-BC anchor set (BC-2.02.001-010 host/FFI) |
 
