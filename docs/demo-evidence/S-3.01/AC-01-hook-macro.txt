@@ -1,0 +1,29 @@
+$ PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH cargo test -p capture-commit-activity --test contract_hook_macro
+# Covers AC-1: capture-commit-activity.wasm replaces legacy bash hook
+# Verifies: #[hook] macro entry point, SDK return type, CommitEventFields struct (5 fields)
+
+warning: unused import: `CommitEventFields`
+  --> crates/hook-plugins/capture-commit-activity/tests/contract_hook_macro.rs:11:31
+   |
+11 | use capture_commit_activity::{CommitEventFields, commit_hook_logic};
+   |                               ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `test_BC_4_03_001_hook_macro_entry_point_has_correct_signature` should have a snake case name
+  --> crates/hook-plugins/capture-commit-activity/tests/contract_hook_macro.rs:44:4
+warning: function `test_BC_4_03_001_hook_result_is_sdk_type` should have a snake case name
+  --> crates/hook-plugins/capture-commit-activity/tests/contract_hook_macro.rs:60:4
+warning: function `test_BC_4_03_001_commit_event_fields_has_five_required_fields` should have a snake case name
+  --> crates/hook-plugins/capture-commit-activity/tests/contract_hook_macro.rs:77:4
+
+warning: `capture-commit-activity` (test "contract_hook_macro") generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests/contract_hook_macro.rs (target/debug/deps/contract_hook_macro-30c299bdf3eb6221)
+
+running 3 tests
+test test_BC_4_03_001_commit_event_fields_has_five_required_fields ... ok
+test test_BC_4_03_001_hook_macro_entry_point_has_correct_signature ... ok
+test test_BC_4_03_001_hook_result_is_sdk_type ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

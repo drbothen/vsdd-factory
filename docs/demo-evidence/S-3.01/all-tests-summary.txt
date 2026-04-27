@@ -1,0 +1,91 @@
+$ PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH cargo test -p capture-commit-activity
+# Full cumulative test run — all 5 test files, 36 tests
+
+[warnings omitted — all are non_snake_case on BC-named test functions (naming convention, not lint errors)]
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src/lib.rs (target/debug/deps/capture_commit_activity-0505fade004e73a4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/capture_commit_activity-8a50d57b4fdb79c7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_emit_event.rs (target/debug/deps/contract_emit_event-cd4bd13cc3b492c9)
+
+running 7 tests
+test test_BC_4_03_001_emit_not_called_for_non_commit_command ... ok
+test test_BC_4_03_001_emit_all_five_fields_non_empty ... ok
+test test_BC_4_03_001_emit_result_is_continue_on_happy_path ... ok
+test test_BC_4_03_001_build_commit_fields_sha_field ... ok
+test test_BC_4_03_001_emit_called_with_commit_made_event_type ... ok
+test test_BC_4_03_001_emit_sha_field_matches_git_log_output ... ok
+test test_TV_003_canonical_commit_made_schema ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_hook_macro.rs (target/debug/deps/contract_hook_macro-30c299bdf3eb6221)
+
+running 3 tests
+test test_BC_4_03_001_hook_result_is_sdk_type ... ok
+test test_BC_4_03_001_hook_macro_entry_point_has_correct_signature ... ok
+test test_BC_4_03_001_commit_event_fields_has_five_required_fields ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_payload_parsing.rs (target/debug/deps/contract_payload_parsing-d4cb11147c7f1827)
+
+running 11 tests
+test test_BC_4_03_001_parse_rejects_empty_command ... ok
+test test_BC_4_03_001_parse_rejects_git_status ... ok
+test test_BC_4_03_001_parse_detects_git_commit_in_compound_command ... ok
+test test_BC_4_03_001_parse_detects_bare_git_commit ... ok
+test test_BC_4_03_001_parse_rejects_non_git_command ... ok
+test test_BC_4_03_001_parse_detects_git_commit_amend ... ok
+test test_BC_4_03_001_parse_rejects_git_commit_tree ... ok
+test test_BC_4_03_001_parse_non_bash_tool_returns_continue ... ok
+test test_BC_4_03_001_parse_non_git_command_returns_continue_no_subprocess ... ok
+test test_TV_001_canonical_git_commit_payload_routes_to_emit ... ok
+test test_BC_4_03_001_parse_git_commit_command_triggers_subprocess ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_subprocess_call.rs (target/debug/deps/contract_subprocess_call-4d1cfc717cc38a9f)
+
+running 6 tests
+test test_BC_4_03_001_subprocess_runner_error_propagates ... ok
+test test_BC_4_03_001_subprocess_calls_git_log_with_correct_args ... ok
+test test_BC_4_03_001_subprocess_returns_sha_on_success ... ok
+test test_BC_4_03_001_subprocess_sha_stripped_of_whitespace ... ok
+test test_BC_4_03_001_subprocess_short_sha_accepted ... ok
+test test_TV_002_canonical_full_sha_round_trip ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/edge_cases.rs (target/debug/deps/edge_cases-f902a9ce7d44af28)
+
+running 9 tests
+test test_BC_4_03_001_ec001_git_log_nonzero_exit_returns_failed ... ok
+test test_BC_4_03_001_ec003_git_log_empty_stdout_returns_empty_output ... ok
+test test_BC_4_03_001_ec003_git_log_whitespace_only_returns_empty_output ... ok
+test test_BC_4_03_001_ec003_empty_git_log_no_emit_returns_continue ... ok
+test test_BC_4_03_001_ec002_git_push_not_matched ... ok
+test test_BC_4_03_001_ec002_echo_git_commit_string_not_matched ... ok
+test test_BC_4_03_001_ec002_npm_command_no_subprocess_no_emit ... ok
+test test_BC_4_03_001_ec001_failed_git_log_no_emit_returns_continue ... ok
+test test_VP_043_non_bash_tool_always_continue ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests capture_commit_activity
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+TOTAL: 36 passed; 0 failed across 5 integration test files (+ 0 unit tests + 0 doc tests)

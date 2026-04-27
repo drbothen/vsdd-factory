@@ -1,0 +1,32 @@
+$ PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH cargo test -p capture-commit-activity --test edge_cases
+# Covers EC-001: git commit fails (empty repo) → no-op, no emit
+# Covers EC-002: non-git bash command → no-op, return Continue
+# Covers EC-003: git log returns empty output → log warning, return Continue
+# Covers VP-043: non-Bash tool always returns Continue (hooks-registry routing invariant)
+
+warning: function `test_BC_4_03_001_ec001_git_log_nonzero_exit_returns_failed` should have a snake case name
+warning: function `test_BC_4_03_001_ec001_failed_git_log_no_emit_returns_continue` should have a snake case name
+warning: function `test_BC_4_03_001_ec002_npm_command_no_subprocess_no_emit` should have a snake case name
+warning: function `test_BC_4_03_001_ec002_echo_git_commit_string_not_matched` should have a snake case name
+warning: function `test_BC_4_03_001_ec002_git_push_not_matched` should have a snake case name
+warning: function `test_BC_4_03_001_ec003_git_log_empty_stdout_returns_empty_output` should have a snake case name
+warning: function `test_BC_4_03_001_ec003_git_log_whitespace_only_returns_empty_output` should have a snake case name
+warning: function `test_BC_4_03_001_ec003_empty_git_log_no_emit_returns_continue` should have a snake case name
+warning: function `test_VP_043_non_bash_tool_always_continue` should have a snake case name
+
+warning: `capture-commit-activity` (test "edge_cases") generated 9 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/edge_cases.rs (target/debug/deps/edge_cases-f902a9ce7d44af28)
+
+running 9 tests
+test test_BC_4_03_001_ec003_git_log_whitespace_only_returns_empty_output ... ok
+test test_BC_4_03_001_ec003_empty_git_log_no_emit_returns_continue ... ok
+test test_BC_4_03_001_ec002_git_push_not_matched ... ok
+test test_BC_4_03_001_ec002_echo_git_commit_string_not_matched ... ok
+test test_VP_043_non_bash_tool_always_continue ... ok
+test test_BC_4_03_001_ec001_failed_git_log_no_emit_returns_continue ... ok
+test test_BC_4_03_001_ec002_npm_command_no_subprocess_no_emit ... ok
+test test_BC_4_03_001_ec001_git_log_nonzero_exit_returns_failed ... ok
+test test_BC_4_03_001_ec003_git_log_empty_stdout_returns_empty_output ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

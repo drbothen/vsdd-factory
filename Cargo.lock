@@ -479,6 +479,10 @@ dependencies = [
 [[package]]
 name = "capture-commit-activity"
 version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "vsdd-hook-sdk",
+]
 
 [[package]]
 name = "capture-pr-activity"
