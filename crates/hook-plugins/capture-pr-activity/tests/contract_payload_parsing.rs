@@ -8,7 +8,7 @@
 //! test corpus (echoed mention, whitespace boundaries, non-Bash tool,
 //! failed command).
 
-use capture_pr_activity::{detect_pr_subcommand, extract_command, PrSubcommand};
+use capture_pr_activity::{PrSubcommand, detect_pr_subcommand, extract_command};
 use vsdd_hook_sdk::HookPayload;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

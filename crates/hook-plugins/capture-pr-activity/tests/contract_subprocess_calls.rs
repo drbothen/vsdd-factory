@@ -10,7 +10,7 @@
 //! so `dispatch` must panic via `unimplemented!()` — confirming the
 //! RED gate. The intent documented here is verified at GREEN time.
 
-use capture_pr_activity::{detect_merge_strategy, detect_pr_subcommand, PrSubcommand};
+use capture_pr_activity::{PrSubcommand, detect_merge_strategy, detect_pr_subcommand};
 
 // ── detect_merge_strategy ─────────────────────────────────────────────────────
 

@@ -54,9 +54,8 @@ fn payload_non_bash(tool_name: &str) -> HookPayload {
 /// `dispatch` function (the `#[hook]` entry point's delegate). This test
 /// exists as a compile-time check — if it compiles, the public surface is correct.
 ///
-/// At run time it panics via `unimplemented!()` — this is the expected RED state.
+/// At run time dispatch handles the payload and returns a result without panicking.
 #[test]
-#[should_panic]
 fn test_BC_4_03_001_dispatch_fn_exists_and_panics_in_stub() {
     let p = payload_with_command("PostToolUse", "Bash", "gh pr create --title t --body b");
     let _ = dispatch(&p);
@@ -65,60 +64,50 @@ fn test_BC_4_03_001_dispatch_fn_exists_and_panics_in_stub() {
 /// BC-4.04.001 postcondition: non-Bash tool → Continue (no-op, no panic).
 ///
 /// This must NOT call into host FFI at all — it returns Continue immediately
-/// after checking tool_name. So it should NOT reach `unimplemented!()`.
-/// If the implementer mis-routes it, the test panics.
-///
-/// RED expectation: panics on `unimplemented!()` because dispatch itself
-/// is not yet implemented (even the early-return path).
+/// after checking tool_name.
 #[test]
-#[should_panic]
 fn test_BC_4_04_001_non_bash_tool_dispatches_to_continue_stub_panics() {
     let p = payload_non_bash("Edit");
-    let _ = dispatch(&p);
+    let result = dispatch(&p);
+    assert_eq!(result, HookResult::Continue);
 }
 
 /// BC-4.04.001 postcondition: non-PR bash command → Continue (no-op).
-///
-/// Same situation: once implemented, `dispatch` returns Continue without
-/// calling host FFI. RED: panics in stub.
 #[test]
-#[should_panic]
 fn test_BC_4_04_001_non_pr_bash_command_dispatches_to_continue_stub_panics() {
     let p = payload_with_command("PostToolUse", "Bash", "echo hello");
-    let _ = dispatch(&p);
+    let result = dispatch(&p);
+    assert_eq!(result, HookResult::Continue);
 }
 
 /// BC-4.04.001 postcondition: `gh pr create` payload routes to PR create path.
-/// RED: panics in stub.
 #[test]
-#[should_panic]
 fn test_BC_4_04_001_gh_pr_create_payload_routes_to_create_path_stub_panics() {
     let p = payload_with_command(
         "PostToolUse",
         "Bash",
         "gh pr create --title \"feat: thing\" --body \"x\"",
     );
-    let _ = dispatch(&p);
+    let result = dispatch(&p);
+    assert_eq!(result, HookResult::Continue);
 }
 
 /// BC-4.04.001 postcondition: `gh pr merge` payload routes to PR merge path.
-/// RED: panics in stub.
 #[test]
-#[should_panic]
 fn test_BC_4_04_001_gh_pr_merge_payload_routes_to_merge_path_stub_panics() {
     let p = payload_with_command(
         "PostToolUse",
         "Bash",
         "gh pr merge https://github.com/owner/repo/pull/99 --squash",
     );
-    let _ = dispatch(&p);
+    let result = dispatch(&p);
+    assert_eq!(result, HookResult::Continue);
 }
 
 /// BC-4.04.001 postcondition: `gh pr close` payload routes to PR close path.
-/// RED: panics in stub.
 #[test]
-#[should_panic]
 fn test_BC_4_04_001_gh_pr_close_payload_routes_to_close_path_stub_panics() {
     let p = payload_with_command("PostToolUse", "Bash", "gh pr close 42");
-    let _ = dispatch(&p);
+    let result = dispatch(&p);
+    assert_eq!(result, HookResult::Continue);
 }

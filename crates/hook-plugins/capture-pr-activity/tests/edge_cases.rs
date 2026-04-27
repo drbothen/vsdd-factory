@@ -11,21 +11,21 @@
 //! - Whitespace variants in `gh pr create`.
 
 use capture_pr_activity::{
-    build_pr_created_fields, detect_pr_subcommand, extract_pr_url, pr_number_from_url,
-    PrSubcommand,
+    PrSubcommand, build_pr_created_fields, detect_pr_subcommand, extract_pr_url, pr_number_from_url,
 };
 
 // ── EC-001: gh pr create failure ─────────────────────────────────────────────
 
-/// EC-001: build_pr_create_failed_fields is available and panics in stub.
-/// Once implemented, it returns ("pr.create_failed", fields).
+/// EC-001: build_pr_create_failed_fields returns ("pr.create_failed", fields).
 #[test]
 fn test_EC_001_build_pr_create_failed_fields_called_panics_in_stub() {
     use capture_pr_activity::build_pr_create_failed_fields;
-    let result = std::panic::catch_unwind(|| {
-        build_pr_create_failed_fields("gh pr create --title t --body b")
-    });
-    assert!(result.is_err(), "must panic in stub (RED)");
+    let (event_type, fields) = build_pr_create_failed_fields("gh pr create --title t --body b");
+    assert_eq!(event_type, "pr.create_failed");
+    assert!(
+        !fields.is_empty(),
+        "pr.create_failed event must have at least one field"
+    );
 }
 
 // ── EC-002: Unknown gh pr subcommand → no-op ─────────────────────────────────
@@ -79,16 +79,16 @@ fn test_EC_003_pr_number_none_for_non_pull_url() {
     );
 }
 
-/// EC-003: build_pr_created_fields without URL does not include pr_url.
+/// EC-003: build_pr_created_fields with empty URL still works (url field present but empty).
 /// This tests that the caller can construct a valid create event even
-/// when the URL was not parseable — the url parameter would be empty/omit.
-/// Since build_pr_created_fields is unimplemented, we check for panic (RED).
+/// when the URL was not parseable — the url parameter would be empty.
 #[test]
 fn test_EC_003_pr_created_fields_panics_in_stub() {
-    let result = std::panic::catch_unwind(|| {
-        build_pr_created_fields("", "42", "owner/repo", None)
-    });
-    assert!(result.is_err(), "must panic in stub (RED)");
+    let (event_type, fields) = build_pr_created_fields("", "42", "owner/repo", None);
+    assert_eq!(event_type, "pr.created");
+    let pr_number = fields.iter().find(|(k, _)| k == "pr_number");
+    assert!(pr_number.is_some(), "pr_number field must be present");
+    assert_eq!(pr_number.unwrap().1, "42");
 }
 
 // ── Boundary: echo/shell expansion must not match ────────────────────────────
@@ -104,11 +104,8 @@ fn test_TV_001_echo_gh_pr_create_not_matched() {
 #[test]
 fn test_TV_002_comment_containing_gh_pr_create_not_matched() {
     let cmd = "# gh pr create --title t --body b";
-    // A comment-only line; whether this matches depends on regex anchoring.
-    // The spec says "not a real invocation" — our regex must not match.
-    // RED: panics in stub.
-    let result = std::panic::catch_unwind(|| detect_pr_subcommand(cmd));
-    assert!(result.is_err(), "must panic in stub (RED)");
+    // A comment-only line must not match — the spec says "not a real invocation".
+    assert_eq!(detect_pr_subcommand(cmd), None);
 }
 
 // ── Boundary: multi-token command strings ────────────────────────────────────
@@ -132,14 +129,12 @@ fn test_TV_004_gh_pr_merge_after_or_chain_detected() {
 /// Extra whitespace between tokens.
 #[test]
 fn test_TV_005_extra_whitespace_in_gh_pr_create() {
-    // "gh  pr  create" with double spaces — whether this matches is implementation-
-    // defined; documenting the expected behavior: it should NOT match because
-    // the real gh CLI requires single-space separation. This test freezes that
-    // contract. RED: panics in stub.
-    let result = std::panic::catch_unwind(|| {
-        detect_pr_subcommand("gh  pr  create --title t --body b")
-    });
-    assert!(result.is_err(), "must panic in stub (RED)");
+    // "gh  pr  create" with double spaces — the real gh CLI requires single-space
+    // separation, so this must NOT match.
+    assert_eq!(
+        detect_pr_subcommand("gh  pr  create --title t --body b"),
+        None
+    );
 }
 
 // ── Boundary: pr number extraction edge cases ─────────────────────────────────
