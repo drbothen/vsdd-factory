@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-27 (Wave 6 SS-09 pass-1 review complete; D-064 logged; 9 findings 4H/4M/1L; PO fix burst pending) |
+| **Last Updated** | 2026-04-27 (Wave 6 SS-09 pass-1 fix burst complete; D-065 logged; F-001..F-008 addressed; F-009 deferred; commit 2c92370; pass-2 review pending) |
 | **Current Phase** | wave-5-ss-06-CONVERGED-spec-ready |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -149,6 +149,7 @@ dtu_services: []
 | Wave 5 SS-06 CONVERGED | state-manager | COMPLETE | 3_of_3 NITPICK passes; 28 of 41 stories re-anchored; trajectory 11→7→2→1→2→1 |
 | Wave 6 SS-NN re-anchor (selection pending) | orchestrator | PENDING | Select SS-08 (4 stories), SS-09 (4 stories), or SS-10 (5 stories) |
 | Wave 6 SS-09 adversarial pass-1 | adversarial-reviewer | COMPLETE | 9 findings (4H/4M/1L); wave-6-ss-09-pass-1.md; trajectory baseline 9 |
+| Wave 6 SS-09 pass-1 fix burst | product-owner | COMPLETE | 8 findings addressed (F-001..F-008); F-009 deferred; commit 2c92370 |
 
 ## Identifier Conventions
 
@@ -282,6 +283,7 @@ dtu_services: []
 | D-062 | Task #114 logged: extend validate-consistency skill with two new advisory checks: (a) tautology detector (test_BC_*/test_TV_* tests that don't call production functions); (b) BC canonical TV consistency (struct serializes field marked excluded by BC TV table). Both fast, both pure additions, both motivated by Prism Wave 2 Pass 7 finding (six prior passes missed a tautological test that hardcoded its assertion target without exercising emit_token_generated). | Prism Wave 2 Pass 7 caught BC-2.05.010 violation (emitter persisted token_id forbidden by BC) where six prior adversarial passes missed it. Defect class: tautological tests + BC TV/emitter contradiction. Codifying these checks in validate-consistency hardens VSDD across all consumers. | plugin-engineering-backlog | 2026-04-27 | orchestrator + user |
 | D-063 | **Wave 6 SS-09 baseline re-anchor at 837aedc** — 6 stories anchored; CAP-TBD gap on BC-9.01.001/002/003 resolved to CAP-028. S-0.01 to BC-9.01.001/CAP-028; S-0.04 to BC-9.01.005/VP-015/CAP-007; S-2.02 to BC-9.01.005/VP-049/CAP-007; S-2.03 to BC-9.01.004/VP-015/CAP-007; S-2.04 to BC-9.01.002+003/CAP-028; S-2.08 to all 5 BCs/VP-015. | All 5 BC files capability frontmatter + Stories appended (POLICY 1). BC-INDEX 5 rows updated. VP-INDEX Story Anchors VP-015+VP-049 appended. VP-015.md + VP-049.md Stories updated. PRD FR-037 CAP column expanded to CAP-007+CAP-028. 34 of 41 stories now anchored. | wave-6-ss-09 | 2026-04-27 | product-owner |
 | D-064 | Wave 6 SS-09 pass-1 review: 9 findings (4 HIGH/4 MED/1 LOW). F-001 BC-1.07.003/004 ↔ VP-049 bidirectional gap (Wave 5 pass-3 recurrence — process-gap codification candidate). F-002 S-2.03 AC-4 BC-9.01.003 outside bcs[]. F-003 S-2.08 cross-SS AC traces unmarked. F-004 S-2.04 SS-10 anchor pending intent. F-005 CAP-028 SS-09-only vs FR-029 SS-06+SS-09 expansion candidate. F-006 BC-1.07.003/004 CAP-TBD orphan. F-007/F-008/F-009 MED/LOW. Convergence step 0_of_3. | trajectory baseline 9 within Wave 1-5 band; smaller surface (5 SS-09 BCs); 3-of-3 plausible by pass 4-5. | wave-6-ss-09 | 2026-04-27 | adversary |
+| D-065 | Wave 6 SS-09 pass-1 fix burst: F-001..F-008 addressed (8 of 9 findings); F-009 deferred (VP-015 multi-story anchor is convention, not defect). F-001: BC-1.07.003/004 VP-049 bidirectional — both BCs Verification Properties rows populated + Stories set to S-2.02; BC-INDEX updated. F-002: S-2.03 AC-4+AC-7 reworded as [process-gap] + v1.1 BC candidates table added. F-003: S-2.08 AC-2/3/4/8 reworded as [process-gap] + stretch-anchor disclosure section + v1.1 BC candidates table (4 entries). F-004: S-2.04 subsystems SS-10 removed (stale carryover). F-005: capabilities.md CAP-028 Subsystems SS-09→SS-06,SS-09 + PRD §8 CAP-028 row updated (Wave 3 F-007 precedent). F-006: BC-1.07.003/004 capability CAP-TBD→CAP-002 + L2 Capability justification added + BC-INDEX capability column updated (Wave 1 deferral closure under Wave 6 trigger). F-007: PRD §FR-037 "all 5 BCs anchored" → "all 5 BCs anchored to capabilities (BC frontmatter status:draft pending Phase 1.6b verification)". F-008: VP-049 Source Contract Co-anchor line added for BC-1.07.004. OBS-3 S-0.04+S-2.02 spot-check: CLEAN (no POLICY 8 drift). | 9 files touched (2 BCs, 1 VP, 1 BC-INDEX, 1 PRD, 1 capabilities.md, 3 stories); story versions bumped S-2.03/S-2.04/S-2.08 v1.1→v1.2 | wave-6-ss-09 | 2026-04-27 | orchestrator-adjudicated |
 
 ## Skip Log
 
