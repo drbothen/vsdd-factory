@@ -1,0 +1,4 @@
+   Compiling vsdd-hook-sdk-macros v0.1.0 (/private/tmp/vsdd-S-3.03/crates/hook-sdk-macros)
+    Checking vsdd-hook-sdk v0.1.0 (/private/tmp/vsdd-S-3.03/crates/hook-sdk)
+    Checking block-ai-attribution v0.0.1 (/private/tmp/vsdd-S-3.03/crates/hook-plugins/block-ai-attribution)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.69s

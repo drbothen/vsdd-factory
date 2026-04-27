@@ -1,0 +1,101 @@
+warning: function `test_BC_4_05_003_ec002_allow_empty_with_coauthored_by_claude_is_blocked` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:46:4
+   |
+46 | fn test_BC_4_05_003_ec002_allow_empty_with_coauthored_by_claude_is_blocked() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_ec002_allow_empty_with_coauthored_by_claude_is_blocked`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_4_05_003_ec002_allow_empty_with_generated_with_claude_code_is_blocked` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:57:4
+   |
+57 | fn test_BC_4_05_003_ec002_allow_empty_with_generated_with_claude_code_is_blocked() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_ec002_allow_empty_with_generated_with_claude_code_is_blocked`
+
+warning: function `test_BC_4_05_003_ec003_attribution_in_body_not_subject_is_blocked` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:72:4
+   |
+72 | fn test_BC_4_05_003_ec003_attribution_in_body_not_subject_is_blocked() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_ec003_attribution_in_body_not_subject_is_blocked`
+
+warning: function `test_BC_4_05_003_ec003_generated_by_ai_in_body_is_blocked` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:84:4
+   |
+84 | fn test_BC_4_05_003_ec003_generated_by_ai_in_body_is_blocked() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_ec003_generated_by_ai_in_body_is_blocked`
+
+warning: function `test_TV_EC_case_insensitive_uppercase_coauthored` should have a snake case name
+  --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:96:4
+   |
+96 | fn test_TV_EC_case_insensitive_uppercase_coauthored() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_case_insensitive_uppercase_coauthored`
+
+warning: function `test_TV_EC_case_insensitive_mixed_case_generated_by_claude` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:107:4
+    |
+107 | fn test_TV_EC_case_insensitive_mixed_case_generated_by_claude() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_case_insensitive_mixed_case_generated_by_claude`
+
+warning: function `test_TV_EC_extra_spaces_in_coauthored_by` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:122:4
+    |
+122 | fn test_TV_EC_extra_spaces_in_coauthored_by() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_extra_spaces_in_coauthored_by`
+
+warning: function `test_TV_EC_pattern_embedded_mid_sentence` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:133:4
+    |
+133 | fn test_TV_EC_pattern_embedded_mid_sentence() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_pattern_embedded_mid_sentence`
+
+warning: function `test_TV_EC_human_coauthor_does_not_match` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:148:4
+    |
+148 | fn test_TV_EC_human_coauthor_does_not_match() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_human_coauthor_does_not_match`
+
+warning: function `test_TV_EC_word_generated_alone_does_not_match` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:160:4
+    |
+160 | fn test_TV_EC_word_generated_alone_does_not_match() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_word_generated_alone_does_not_match`
+
+warning: function `test_TV_EC_human_name_claude_in_human_context_does_not_match` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:171:4
+    |
+171 | fn test_TV_EC_human_name_claude_in_human_context_does_not_match() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_human_name_claude_in_human_context_does_not_match`
+
+warning: function `test_BC_4_05_003_block_reason_mentions_pattern_for_ec002` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:191:4
+    |
+191 | fn test_BC_4_05_003_block_reason_mentions_pattern_for_ec002() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_05_003_block_reason_mentions_pattern_for_ec002`
+
+warning: function `test_TV_EC_git_commit_file_flag_without_inline_attribution_returns_continue` should have a snake case name
+   --> crates/hook-plugins/block-ai-attribution/tests/edge_cases.rs:207:4
+    |
+207 | fn test_TV_EC_git_commit_file_flag_without_inline_attribution_returns_continue() {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_ec_git_commit_file_flag_without_inline_attribution_returns_continue`
+
+warning: `block-ai-attribution` (test "edge_cases") generated 13 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running tests/edge_cases.rs (target/debug/deps/edge_cases-a5593baa93728fd4)
+
+running 13 tests
+test test_TV_EC_git_commit_file_flag_without_inline_attribution_returns_continue ... ok
+test test_TV_EC_word_generated_alone_does_not_match ... ok
+test test_TV_EC_case_insensitive_uppercase_coauthored ... ok
+test test_TV_EC_case_insensitive_mixed_case_generated_by_claude ... ok
+test test_TV_EC_extra_spaces_in_coauthored_by ... ok
+test test_TV_EC_human_coauthor_does_not_match ... ok
+test test_BC_4_05_003_ec003_attribution_in_body_not_subject_is_blocked ... ok
+test test_BC_4_05_003_ec002_allow_empty_with_coauthored_by_claude_is_blocked ... ok
+test test_TV_EC_pattern_embedded_mid_sentence ... ok
+test test_TV_EC_human_name_claude_in_human_context_does_not_match ... ok
+test test_BC_4_05_003_ec003_generated_by_ai_in_body_is_blocked ... ok
+test test_BC_4_05_003_ec002_allow_empty_with_generated_with_claude_code_is_blocked ... ok
+test test_BC_4_05_003_block_reason_mentions_pattern_for_ec002 ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
