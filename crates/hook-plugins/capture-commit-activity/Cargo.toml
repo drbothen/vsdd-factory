@@ -6,9 +6,22 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-description = "WASM hook plugin: emits commit-activity events to the vsdd-factory observability pipeline"
+description = "WASM hook plugin: emits commit.made events when git commit is detected in PostToolUse/Bash payloads"
 publish = false
 
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the macro-generated entry point that calls into the lib.
 [lib]
 path = "src/lib.rs"
-crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "capture-commit-activity"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
