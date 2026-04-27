@@ -55,12 +55,12 @@ dtu_services: []
 | Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
-| Phase 1.4 — BC Migration | COMPLETE | 1,891 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 = 1,891 current) + BC-INDEX.md |
-| Phase 1.5 — Formal PRD | COMPLETE | 43 FRs (FR-041, FR-042 added; FR-043 added in S-7.03), 76 NFRs, 100% BC traceability |
+| Phase 1.4 — BC Migration | COMPLETE | 1,893 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 +2 Wave 11 SS-03 = 1,893 current) + BC-INDEX.md |
+| Phase 1.5 — Formal PRD | COMPLETE | 45 FRs (FR-041, FR-042 added; FR-043 added in S-7.03; FR-044, FR-045 added Wave 11 SS-03), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
 | Phase 1.6b — Verification Properties | COMPLETE | 64 VPs (all draft, VP-001..VP-064; +2 for E-7; +2 for S-7.03) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
-| Phase 1.8 — Story Migration | COMPLETE | 41 stories S-N.MM, 6 epics E-0..E-5 |
+| Phase 1.8 — Story Migration | COMPLETE | 47 stories S-N.MM, 8 epics E-0..E-7 (41 migrated + 1 E-6 + 3 E-7 + 2 Wave 11 SS-03) |
 | Phase 1d — Adversarial Spec Review | **COMPLETE — 17 passes; CONVERGENCE_REACHED 2026-04-27** | trajectory 25→12→5→2→1→0→0→1→2→4→3→1→1→2→0→0→0; ADR-013 satisfied |
 | Release v1.0.0-beta.5 | COMPLETE | PR #5 merged 2001b97; tag 0a95c8c; bot bundle f1ec5bf; 5 plugins · 110 skills |
 | Phase 2 — Story Decomposition | not-started | Unblocked; 45 stories (41 migrated + 4 new E-6/E-7) ready for dependency graph + wave schedule |
@@ -100,12 +100,12 @@ dtu_services: []
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,891 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,893 |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 64 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 45 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 47 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 8 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 13 |
 
@@ -115,7 +115,7 @@ dtu_services: []
 |-------|------|-----------|-----|
 | SS-01 | Hook Dispatcher Core | BC-1 | 99 |
 | SS-02 | Hook SDK and Plugin ABI | BC-2 | 22 |
-| SS-03 | Observability Sinks | BC-3 | 49 |
+| SS-03 | Observability Sinks | BC-3 | 51 |
 | SS-04 | Plugin Ecosystem | BC-4 | 13 |
 | SS-05 | Pipeline Orchestration | BC-5 | 646 |
 | SS-06 | Skill Catalog | BC-6 | 585 |
@@ -123,9 +123,9 @@ dtu_services: []
 | SS-08 | Templates and Rules | BC-8 | 218 |
 | SS-09 | Configuration and Activation | BC-9 | 5 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
-| **Total** | | | **1,891** |
+| **Total** | | | **1,893** |
 
-## Story Status (45 total)
+## Story Status (47 total)
 
 - **Merged (26):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-3.04 (4/5 ACs shipped; AC-003→TD-007)
 - **Partial (3):** S-2.05 (cargo publish dry-run), S-4.06 (RoutingFilter parsed not wired), S-5.05 (skeleton)
@@ -168,6 +168,7 @@ dtu_services: []
 | D-108 | **Task #114 process remediation** — User audit identified four gaps in D-106 deliverable: (1) procedural-spec only, no executable runner; (2) zero bats/Rust tests asserting predicate against fixtures; (3) Rust-only language scope with no generalization for TS/Python/Go; (4) bypassed proper TDD (no test-writer/implementer dispatch); (5) authored directly on `main` instead of feature-branch-off-`develop` per Git Flow. All gaps logged as **TD-006** in `.factory/tech-debt-register.md` (P1, due v1.0.1). Plugin source edits moved off `main` working tree onto feature branch `feat/validate-consistency-tautology-bc-tv` (off `develop` per Task #33 Git Flow), committed at `bc01abb`, pushed, and **PR #17 opened** targeting `develop` with full known-limitations callout in PR body. Commit message contains no AI-attribution lines per project convention. `.factory/STATE.md` + `.factory/policies.yaml` + `.factory/tech-debt-register.md` updates remain on `factory-artifacts` worktree (not in PR #17). | Process slip retrospective: auto-mode direct-execution skipped per-story-delivery scaffolding. TD-006 captures the full remediation plan (story spec → test harness → executable runners → language-scope ADR → re-run through TDD). PR-merge does not close TD-006. | task-114-process-remediation | 2026-04-27 | orchestrator (direct) |
 | D-110 | **Post-Wave-9 cross-cutting consistency sweep + MAJOR-finding triage burst.** Sweep ran with 36 baseline rules + 6 cross-wave-specific checks (CW-1..6); produced report at .factory/cycles/v1.0-brownfield-backfill/consistency-reports/post-wave-9-cross-cutting.md (0 CRIT / 5 MAJOR / 7 MINOR / 9 TD-acknowledged; ~85% consistency score). Triage closed all 5 MAJORs in parallel: F-001 (PO) — L2-INDEX SS-01/SS-05/SS-06 cross-walk drift fixed (3 row edits); F-002/F-003 (story-writer) — STORY-INDEX status counts corrected (merged 22/draft 16/partial 4/ready 3/total 45) + S-7.03 status ready→merged + non-canonical "completed" cleared; F-004 — 2 asymmetric dep edges symmetrized (S-1.04.blocks +S-3.04, S-3.04.blocks +S-4.07); F-005 — 6 stories' empty functional_requirements arrays populated (S-0.05/5.05/5.06→FR-036, S-6.01→FR-041, S-7.01/7.02→FR-042). 12 files committed in single cohesive burst per POLICY 3 state-manager-runs-last. 7 MINOR findings (F-006..F-012) deferred — none block TD-006 gating or factory-dispatcher next-phase work. Cycle re-anchor closure now formally clean at MAJOR level. | Cross-wave audit found cycle perimeter internally consistent at the MAJOR level after one targeted triage burst — validates the per-wave-converge-then-cross-cutting-audit pattern. CW-1..6 checks (convention drift, BC-INDEX bidirectional, dep symmetry, FR coverage, CAP subsystem drift, HTML disclosure) caught 4 of 5 MAJORs that per-wave reviews missed by design. | post-wave-9-cross-cutting-triage | 2026-04-27 | orchestrator + consistency-validator + product-owner + story-writer + state-manager |
 | D-112 | **Status-drift correction burst.** Post-Wave-9 audit confirmed 4 stories had stale frontmatter status: S-6.01 (ready→merged, PR #7 SHA 9dcc52b), S-7.01 + S-7.02 (ready→merged, PR #6 SHA 33d7a06 — body header `[S-7.01 + S-7.02] Codify ...`), S-3.04 (partial→merged with AC-003 carved to TD-007). True merged count corrected: 22→26 stories. STORY-INDEX summary updated. New TD-007 (P3, v1.1): retire bash `bin/emit-event` from legacy hooks. Wave 11 fully unblocks: S-3.01/3.02/3.03 (SS-04 WASM ports, were blocked on S-3.04) + S-4.01 (sink-http-driver, already unblocked). | Drift surfaced because consistency-validator's text-search heuristic missed PR #6's misleading title ("codify S-6.01 lessons") which actually shipped S-7.01+S-7.02. Future check candidate: cross-reference story status vs implementing PR's merge state, not just frontmatter validity. | task-status-drift-correction | 2026-04-27 | orchestrator + story-writer + state-manager |
+| D-114 | **Wave 11 ephemeral scoping memo deleted.** PO authored `.factory/.scratch/wave-11-new-stories-scoping.md` as intermediate scoping artifact for S-4.09 + S-4.10. Story-writer authored stories with slightly different filename slugs than the memo predicted (S-4.09-sink-http-retry-backoff vs predicted -jitter suffix; S-4.10-internal-sink-error-events vs predicted -event-emission). Memo was tagged ephemeral with `delete_after:` field but never cleaned up post-story-writer burst. Adversary pass-5 trusted memo's predicted paths over actual filesystem, producing false-positive HIGH F-022 (claimed S-4.10 missing). Deletion also closes F-012 (same root cause from pass-1, deferred-as-ephemeral). `.scratch/` rmdir'd (empty after deletion). | Lesson: when an agent burst tags an artifact ephemeral, state-manager seal should explicitly delete it in the same commit that closes the burst. Otherwise stale ephemeral artifacts mislead later adversarial passes. | wave-11-ephemeral-cleanup | 2026-04-27 | orchestrator + state-manager |
 
 > **Historical decisions (D-001..D-102):** Moved to `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
