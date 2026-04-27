@@ -1,0 +1,8 @@
+$ PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH cargo fmt --check -p capture-commit-activity
+# Result: CLEAN — exit code 0, no formatting differences
+
+(no output — fmt --check exits 0 when all files are already formatted)
+
+# Note: rustfmt from rustup 1.95.0-aarch64-apple-darwin toolchain.
+# Local env anomaly: /opt/homebrew/bin/cargo (1.94) shadows PATH by default.
+# Resolution: prepend ~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin to PATH.

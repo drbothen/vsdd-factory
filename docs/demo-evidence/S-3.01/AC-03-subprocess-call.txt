@@ -1,0 +1,24 @@
+$ PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH cargo test -p capture-commit-activity --test contract_subprocess_call
+# Covers AC-3: Invokes git log -1 --format=%H via exec_subprocess() to get commit sha
+# Verifies: correct args, sha returned, whitespace stripped, short sha accepted, errors propagated
+
+warning: function `test_BC_4_03_001_subprocess_calls_git_log_with_correct_args` should have a snake case name
+warning: function `test_BC_4_03_001_subprocess_returns_sha_on_success` should have a snake case name
+warning: function `test_BC_4_03_001_subprocess_sha_stripped_of_whitespace` should have a snake case name
+warning: function `test_BC_4_03_001_subprocess_short_sha_accepted` should have a snake case name
+warning: function `test_BC_4_03_001_subprocess_runner_error_propagates` should have a snake case name
+warning: function `test_TV_002_canonical_full_sha_round_trip` should have a snake case name
+
+warning: `capture-commit-activity` (test "contract_subprocess_call") generated 6 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/contract_subprocess_call.rs (target/debug/deps/contract_subprocess_call-4d1cfc717cc38a9f)
+
+running 6 tests
+test test_BC_4_03_001_subprocess_runner_error_propagates ... ok
+test test_BC_4_03_001_subprocess_sha_stripped_of_whitespace ... ok
+test test_BC_4_03_001_subprocess_calls_git_log_with_correct_args ... ok
+test test_TV_002_canonical_full_sha_round_trip ... ok
+test test_BC_4_03_001_subprocess_returns_sha_on_success ... ok
+test test_BC_4_03_001_subprocess_short_sha_accepted ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

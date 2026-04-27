@@ -1,0 +1,35 @@
+$ PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH cargo test -p capture-commit-activity --test contract_payload_parsing
+# Covers AC-2: Parses git commit invocations from PostToolUse/Bash tool_input.command
+# Also covers AC-5 no-op path (non-commit bash commands → Continue)
+
+warning: function `test_BC_4_03_001_parse_detects_bare_git_commit` should have a snake case name
+warning: function `test_BC_4_03_001_parse_detects_git_commit_amend` should have a snake case name
+warning: function `test_BC_4_03_001_parse_detects_git_commit_in_compound_command` should have a snake case name
+warning: function `test_BC_4_03_001_parse_rejects_git_status` should have a snake case name
+warning: function `test_BC_4_03_001_parse_rejects_git_commit_tree` should have a snake case name
+warning: function `test_BC_4_03_001_parse_rejects_empty_command` should have a snake case name
+warning: function `test_BC_4_03_001_parse_rejects_non_git_command` should have a snake case name
+warning: function `test_BC_4_03_001_parse_non_bash_tool_returns_continue` should have a snake case name
+warning: function `test_BC_4_03_001_parse_non_git_command_returns_continue_no_subprocess` should have a snake case name
+warning: function `test_BC_4_03_001_parse_git_commit_command_triggers_subprocess` should have a snake case name
+warning: function `test_TV_001_canonical_git_commit_payload_routes_to_emit` should have a snake case name
+  (non_snake_case warnings are BC-naming convention — not lint errors, not actionable for S-3.01)
+
+warning: `capture-commit-activity` (test "contract_payload_parsing") generated 11 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/contract_payload_parsing.rs (target/debug/deps/contract_payload_parsing-d4cb11147c7f1827)
+
+running 11 tests
+test test_BC_4_03_001_parse_detects_git_commit_in_compound_command ... ok
+test test_BC_4_03_001_parse_rejects_non_git_command ... ok
+test test_BC_4_03_001_parse_detects_git_commit_amend ... ok
+test test_BC_4_03_001_parse_rejects_empty_command ... ok
+test test_BC_4_03_001_parse_rejects_git_commit_tree ... ok
+test test_BC_4_03_001_parse_rejects_git_status ... ok
+test test_BC_4_03_001_parse_detects_bare_git_commit ... ok
+test test_BC_4_03_001_parse_non_git_command_returns_continue_no_subprocess ... ok
+test test_BC_4_03_001_parse_non_bash_tool_returns_continue ... ok
+test test_BC_4_03_001_parse_git_commit_command_triggers_subprocess ... ok
+test test_TV_001_canonical_git_commit_payload_routes_to_emit ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

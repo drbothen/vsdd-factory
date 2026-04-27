@@ -1,0 +1,9 @@
+$ PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH cargo clippy -p capture-commit-activity -- -D warnings
+# Result: CLEAN — exit code 0, no lint errors
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s
+
+# Note: clippy 0.1.95 (from rustup 1.95.0-aarch64-apple-darwin toolchain)
+# Local env anomaly: /opt/homebrew/bin/cargo (1.94) shadows PATH by default.
+# Resolution: prepend ~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin to PATH.
+# clippy -D warnings passed with zero diagnostics on src/lib.rs and src/main.rs.
