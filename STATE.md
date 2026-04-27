@@ -293,7 +293,7 @@ dtu_services: []
 <!-- No open blockers. -->
 ## Session Resume Checkpoint
 
-**Pause reason:** Wave 5 SS-06 CONVERGED at pass-6; 3_of_3 NITPICK_ONLY; 1 LOW process-gap carryover (task #112); 28 of 41 stories re-anchored; trajectory 11→7→2→1→2→1 (-91%).
+**Pause reason:** Wave 6 SS-09 baseline re-anchor COMPLETE at commit 837aedc (PO) + f1ea5c0 (state); 34 of 41 stories anchored; awaiting adversarial pass-1.
 
 **Where we are:**
 - Wave 1 SS-01 CONVERGED 3-of-3 at pass-6 (commit e5187fa)
@@ -301,10 +301,11 @@ dtu_services: []
 - Wave 3 SS-04 CONVERGED 3-of-3 at pass-6 (commit 9cc5fe7; 6 passes; trajectory 11→7→4→1→1→0; HIGH 4→0 collapsed at pass-4)
 - Wave 4 SS-02 CONVERGED 3-of-3 at pass-5: 0 findings; 9/9 cumulative closed (100%); 22/22 BC files CLEAN; 26 of 41 stories anchored; 5-pass cycle (fastest to date)
 - Wave 5 SS-06 CONVERGED 3-of-3 at pass-6: 1 LOW process-gap carryover (task #112); 28 of 41 stories anchored; 6-pass cycle; trajectory 11→7→2→1→2→1
+- Wave 6 SS-09 BASELINE at 837aedc: 6 stories anchored (S-0.01/S-0.04/S-2.02/S-2.03/S-2.04/S-2.08); CAP-028 resolved for BC-9.01.001-003; 34 of 41 total anchored; pass-1 pending
 
 **Resumption recipe:**
 
-Begin Wave 6 SS-NN re-anchor selection (13 stories remaining: SS-08 (4), SS-09 (4), SS-10 (5)).
+Dispatch adversarial pass-1 for Wave 6 SS-09 (6 stories, 5 BCs, CAP-028 resolution at baseline commit 837aedc).
 
 **Pending tasks at pause:**
 - #98 CI/release validation alignment
@@ -318,10 +319,10 @@ Begin Wave 6 SS-NN re-anchor selection (13 stories remaining: SS-08 (4), SS-09 (
 - #110 Wave 5 SS-06 re-anchor — COMPLETE (CONVERGED pass-6)
 - #111 TD: Bidirectional dep edge S-2.04.blocks missing S-2.06 (Wave 5 pre-existing)
 - #112 TD: Codify bc-anchor-sweep checklist step (Wave 5 MED-002 process-gap)
-- #113 Wave 6 SS-NN re-anchor (selection: SS-08 or SS-09 or SS-10)
+- #113 Wave 6 SS-09 re-anchor — BASELINE COMPLETE (commit 837aedc); awaiting pass-1 adversarial review
 - #114 Extend validate-consistency skill: tautology detector + BC canonical TV consistency checks (motivated by Prism Wave 2 Pass 7 finding TD-W2-FIXK-001 + TD-W2-FIXK-002)
 
-**Total cumulative anchored:** 28 stories (Waves 1+2+3+4+5 CONVERGED) of 41 migrated stories.
+**Total cumulative anchored:** 34 stories (Waves 1-5 CONVERGED + Wave 6 SS-09 baseline) of 41 migrated stories. Remaining: 7 stories (SS-08: 4, SS-10: 3).
 
 **Trajectory pattern across waves:**
 - Wave 1: 6 passes, 0 reset events; CONVERGED 3-of-3 at pass-6
@@ -329,6 +330,7 @@ Begin Wave 6 SS-NN re-anchor selection (13 stories remaining: SS-08 (4), SS-09 (
 - Wave 3: 6 passes, 3 reset events (passes 1-3 HIGH findings); CONVERGED 3-of-3 at pass-6
 - Wave 4: 5 passes, 0 reset events; CONVERGED 3-of-3 at pass-5 (fastest sub-cycle)
 - Wave 5: 6 passes, 0 reset events; CONVERGED 3-of-3 at pass-6; trajectory 11→7→2→1→2→1 (LOW-only since pass-3)
+- Wave 6 SS-09: BASELINE at 837aedc; pass-1 pending; 6 stories; CAP-028 anchored for BC-9.01.001-003
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
