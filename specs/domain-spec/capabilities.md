@@ -46,7 +46,8 @@ Source: design doc Q5 resolution; pass-8 §ADR-007. Justification: cross-platfor
 
 **CAP-008 — Gate tool calls with pre-execution behavioral checks (PreToolUse hooks)**
 Bash hooks registered as PreToolUse can block dangerous commands before execution: secret exposure, branch protection violations, AI attribution injection, destructive command patterns.
-Subsystems: SS-01, SS-04, SS-07. Outcome: a `git push --force` on `main` is blocked before Claude Code executes it.
+Subsystems: SS-01, SS-02, SS-04, SS-07. Outcome: a `git push --force` on `main` is blocked before Claude Code executes it.
+<!-- [process-gap] F-102 fix (Wave 3 SS-04 pass-2): SS-02 added — the SDK's HookResult exit-code contract (BC-2.01.002) is part of the gating capability; native WASM plugins use SS-02 to return HookResult::Block. Per Wave 1+2 F-007 precedent (CAP-003, CAP-010 expanded). -->
 Source: pass-2 §Hook (bash); pass-3-deep-hooks.md. Justification: behavioral gating is a first-class VSDD safety primitive.
 
 **CAP-009 — Author and publish WASM hook plugins using the Rust SDK**
@@ -65,7 +66,8 @@ Source: design doc Q6 Option B; `internal_log.rs`. Justification: grounded in th
 
 **CAP-013 — Capture post-execution activity (PostToolUse hooks)**
 Bash hooks registered as PostToolUse capture commit metadata, PR activity, and tool errors for audit and observability purposes.
-Subsystems: SS-04, SS-07. Outcome: every `git commit` during a session produces a `commit.made` event in the event log.
+Subsystems: SS-01, SS-04, SS-07. Outcome: every `git commit` during a session produces a `commit.made` event in the event log.
+<!-- [process-gap] F-103 fix (Wave 3 SS-04 pass-2): SS-01 added — dispatcher routing of PostToolUseFailure (and PostToolUse) lives in SS-01; the capability spans SS-01 routing + SS-04 plugin + SS-07 bash-layer. Per Wave 1+2 F-007 precedent (CAP-003, CAP-010 expanded). -->
 Source: pass-2 §Hook (bash) capture category. Justification: audit capture is part of the VSDD governance layer.
 
 **CAP-014 — Decompose product specs into verified behavioral contracts (BCs)**
