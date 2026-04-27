@@ -1104,8 +1104,10 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-014 | Decompose product specs into verified behavioral contracts | BC-5.06.001–015 (product-owner/story-writer agents); BC-8.01–8.05 (spec templates) | SS-05, SS-06, SS-08 |
 | CAP-015 | Ingest brownfield codebases via structured multi-pass analysis | BC-5.20.001–020 (phase-0 workflow); BC-6.01 (brownfield-ingest skill) | SS-06 |
 | CAP-016 | Drive TDD delivery with red/green/refactor gate enforcement | BC-5.07.028–033 (implementer agent); BC-6.09 (deliver-story skill); BC-5.23 (phase-3 workflow); BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 (TDD hardening — S-7.03) | SS-05, SS-06, SS-08 |
-| CAP-017 | Create and manage formal ADR records | BC-6.05 (create-architecture skill); BC-8.04 (ADR templates); BC-6.20.001–012 (create-adr skill) | SS-06, SS-08 |
+| CAP-017 | Create and manage formal ADR records | BC-6.05 (create-architecture skill); BC-8.04 (ADR templates); BC-6.20.001–012 (create-adr skill) | SS-06, SS-08, SS-10 |
+<!-- F-301 (Wave 6 pass-4): SS-10 added to match capabilities.md:123 (single source of truth). BC-list cites SS-06+SS-08 BCs only; SS-10 enforcer-BC pending — ADR-INDEX maintenance involves CLI tools (SS-10). Specific BC IDs TBD when SS-10 BC backfill closes (deferred to task #112). -->
 | CAP-018 | Validate spec consistency across all artifact layers | BC-5.05.007–010 (consistency-validator agent); BC-6 (consistency-validation skill) | SS-05, SS-06 |
+<!-- F-302 (Wave 6 pass-4): capabilities.md:128 expanded to match (SS-05 added to source of truth). -->
 | CAP-019 | Generate domain specs from product briefs | BC-6.03 (create-domain-spec skill) | SS-06, SS-08 |
 | CAP-020 | Produce and maintain a PRD with NFR catalog | BC-6.04 (create-prd skill); BC-8.02 (prd-template) | SS-06 |
 | CAP-021 | Perform formal verification of pure domain logic | BC-5.07.019–023 (formal-verifier agent); BC-6.11 (formal-verify skill) | SS-06 |

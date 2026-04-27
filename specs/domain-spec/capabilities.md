@@ -125,7 +125,7 @@ Source: pass-8 §§4, 11 (ADR promotion path); pass-1 §Architecture Decisions.
 
 **CAP-018 — Validate spec consistency across all artifact layers**
 The consistency-validator agent cross-checks that entity definitions in the domain spec, BC identifiers in stories, and test assertions in code all refer to the same terms and constraints.
-Subsystems: SS-06. Outcome: a renamed entity surfaces as a consistency violation before a PR merges.
+Subsystems: SS-05, SS-06. <!-- F-302 (Wave 6 pass-4): SS-05 added — consistency-validator agent (BC-5.05.007-010) is the implementer of CAP-018; PRD §8:1108 already lists SS-05+SS-06. Per Wave 3 F-007 sanctioned-template-anchor pattern. --> Outcome: a renamed entity surfaces as a consistency violation before a PR merges.
 Source: pass-2 §Agent (consistency-validator); pass-8 §L-P0-003.
 
 **CAP-019 — Generate domain specs from product briefs**

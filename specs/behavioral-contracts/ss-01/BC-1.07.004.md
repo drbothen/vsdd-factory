@@ -68,7 +68,7 @@ Re-running `scripts/generate-registry-from-hooks-json.sh` against an existing re
 |-------|-------|
 | L2 Capability | CAP-002 — registry-generation is the bridge from hooks.json (SS-09) to Registry::load (SS-01) |
 | L2 Domain Invariants | TBD |
-| Architecture Module | SS-09 — `scripts/generate-registry-from-hooks-json.sh`; cross-cuts SS-01 |
+| Architecture Module | SS-01 + SS-09 — `scripts/generate-registry-from-hooks-json.sh`; cross-cuts SS-01 dispatcher Registry::load (frontmatter subsystem:SS-01 reflects BC ID convention; script lives in scripts/ which is SS-09-tooled) |
 | Stories | S-2.02 |
 
 ### Source Evidence
