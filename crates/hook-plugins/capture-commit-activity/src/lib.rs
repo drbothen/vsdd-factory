@@ -288,9 +288,6 @@ pub fn build_commit_fields(sha: &str, payload: &HookPayload) -> CommitEventField
     // Use session_id as a stable author stand-in when no author info is
     // available from the payload (the hook doesn't receive git config).
     let author = payload.session_id.clone();
-    if author.is_empty() {
-        // Fallback: use "unknown"
-    }
     let author = if author.is_empty() {
         "unknown".to_string()
     } else {
@@ -393,6 +390,9 @@ where
         }
         GitLogOutcome::EmptyOutput => {
             // EC-003: empty git log output — log warning, return Continue.
+            vsdd_hook_sdk::host::log_warn(
+                "capture-commit-activity: git log returned empty output (EC-003); skipping emit",
+            );
             HookResult::Continue
         }
         GitLogOutcome::Sha(sha) => {
