@@ -108,7 +108,7 @@ dtu_services: []
 | Wave 3 SS-04 plugin-ecosystem re-anchor | **CONVERGED** at pass-6 (commit 9cc5fe7): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=0 (HIGH 4→0 collapsed at pass-4). 8 stories spec-ready: S-2.01, S-3.01-03, S-5.01-04. Cumulative re-anchored: 24 of 41 stories (Wave 1+2+3). | wave-3-ss-04-pass-6.md |
 | Wave 4 SS-02 hook-sdk re-anchor | **CONVERGED** at pass-5 (commit 896cb72): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=7 → pass-5=0 (CRIT/HIGH/MED zero from pass-3). 2 stories spec-ready: S-1.03, S-2.05. Cumulative re-anchored: 26 of 41 stories (Wave 1+2+3+4). | wave-4-ss-02-pass-5.md |
 | Wave 5 SS-06 skill-catalog re-anchor | **CONVERGED** at pass-6 (commit f8e25d3): 1 LOW process-gap carryover (task #112), 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=1 (-91%). 2 stories spec-ready: S-0.03, S-2.06. Cumulative re-anchored: 28 of 41 stories. | wave-5-ss-06-pass-6.md |
-| Wave 6 SS-09 configuration & activation re-anchor | **CONVERGED** at pass-7 (commit PENDING_SHA): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=9 → pass-7=0 (HIGH ceiling collapsed at pass-2). 6 stories spec-ready: S-0.01, S-0.04, S-2.02, S-2.03, S-2.04, S-2.08. Cumulative re-anchored: 34 of 41 stories (Wave 1+2+3+4+5+6). | wave-6-ss-09-pass-7.md |
+| Wave 6 SS-09 configuration & activation re-anchor | **CONVERGED** at pass-7 (commit 5f0719c): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=9 → pass-7=0 (HIGH ceiling collapsed at pass-2). 6 stories spec-ready: S-0.01, S-0.04, S-2.02, S-2.03, S-2.04, S-2.08. Cumulative re-anchored: 34 of 41 stories (Wave 1+2+3+4+5+6). | wave-6-ss-09-pass-7.md |
 
 ## Current Phase Steps
 
