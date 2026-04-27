@@ -106,7 +106,7 @@ dtu_services: []
 | Wave 1 SS-01 dispatcher-core re-anchor (sub-cycle) | COMPLETE | 6-pass adversarial convergence; 7 stories anchored to 93 unique SS-01 BCs; 10 v1.1 BC candidates; trajectory 10→4→3→1→0→0; commits d373e2b → 754734a → 9a00ee3 → 76bfc42 → f15aa0c |
 | Wave 2 SS-03 sinks re-anchor (sub-cycle) | COMPLETE | 13-pass adversarial convergence; 9 stories anchored to ~37 unique SS-03 BCs (+ FR-044 PRD addition); 32 v1.1 BC candidates; trajectory 11→1→3→0→1→0→1→2→0→1→0→0→0; 4 reset events (F-401, F-501→F-602, F-701) all preemptively addressed |
 | Wave 3 SS-04 plugin-ecosystem re-anchor | **CONVERGED** at pass-6 (commit 9cc5fe7): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=11 → pass-6=0 (HIGH 4→0 collapsed at pass-4). 8 stories spec-ready: S-2.01, S-3.01-03, S-5.01-04. Cumulative re-anchored: 24 of 41 stories (Wave 1+2+3). | wave-3-ss-04-pass-6.md |
-| Wave 4 SS-02 hook-sdk re-anchor | **CONVERGED** at pass-5 (commit <SHA>): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=7 → pass-5=0 (CRIT/HIGH/MED zero from pass-3). 2 stories spec-ready: S-1.03, S-2.05. Cumulative re-anchored: 26 of 41 stories (Wave 1+2+3+4). | wave-4-ss-02-pass-5.md |
+| Wave 4 SS-02 hook-sdk re-anchor | **CONVERGED** at pass-5 (commit 896cb72): 0 findings, 3_of_3 NITPICK passes. Trajectory pass-1=7 → pass-5=0 (CRIT/HIGH/MED zero from pass-3). 2 stories spec-ready: S-1.03, S-2.05. Cumulative re-anchored: 26 of 41 stories (Wave 1+2+3+4). | wave-4-ss-02-pass-5.md |
 
 ## Current Phase Steps
 
