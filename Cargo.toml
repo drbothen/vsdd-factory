@@ -9,6 +9,7 @@ members = [
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
+    "crates/sink-http",
 ]
 
 [workspace.package]
@@ -51,6 +52,8 @@ opentelemetry-proto = { version = "0.31", default-features = false, features = [
 tonic = "0.14"
 tokio-stream = { version = "0.1", features = ["net"] }
 hostname = "0.4"
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+httpmock = "0.7"
 
 [profile.release]
 opt-level = 3
