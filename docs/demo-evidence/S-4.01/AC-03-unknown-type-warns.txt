@@ -1,0 +1,29 @@
+warning: function `test_BC_3_06_005_disabled_config_no_events_accepted` should have a snake case name
+  --> crates/sink-http/tests/contract_config_load.rs:17:10
+   |
+17 | async fn test_BC_3_06_005_disabled_config_no_events_accepted() {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_06_005_disabled_config_no_events_accepted`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_3_01_002_unknown_sink_type_warns_no_fail` should have a snake case name
+  --> crates/sink-http/tests/contract_config_load.rs:61:4
+   |
+61 | fn test_BC_3_01_002_unknown_sink_type_warns_no_fail() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_01_002_unknown_sink_type_warns_no_fail`
+
+warning: function `test_BC_3_01_003_schema_version_mismatch_is_hard_error` should have a snake case name
+  --> crates/sink-http/tests/contract_config_load.rs:89:4
+   |
+89 | fn test_BC_3_01_003_schema_version_mismatch_is_hard_error() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_01_003_schema_version_mismatch_is_hard_error`
+
+warning: `sink-http` (test "contract_config_load") generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running tests/contract_config_load.rs (target/debug/deps/contract_config_load-9c74c2ab15fde700)
+
+running 1 test
+test test_BC_3_01_002_unknown_sink_type_warns_no_fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+

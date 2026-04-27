@@ -1,0 +1,219 @@
+warning: function `test_BC_3_01_001_http_sink_implements_sink_trait` should have a snake case name
+  --> crates/sink-http/tests/contract_sink_trait.rs:27:4
+   |
+27 | fn test_BC_3_01_001_http_sink_implements_sink_trait() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_01_001_http_sink_implements_sink_trait`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_HttpSink_struct_exported_for_reuse` should have a snake case name
+  --> crates/sink-http/tests/contract_sink_trait.rs:62:4
+   |
+62 | fn test_HttpSink_struct_exported_for_reuse() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_http_sink_struct_exported_for_reuse`
+
+warning: function `test_VP_012_5xx_retries_then_records_failure` should have a snake case name
+  --> crates/sink-http/tests/error_handling.rs:35:10
+   |
+35 | async fn test_VP_012_5xx_retries_then_records_failure() {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_vp_012_5xx_retries_then_records_failure`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_VP_012_4xx_drops_immediately_no_retry` should have a snake case name
+  --> crates/sink-http/tests/error_handling.rs:80:10
+   |
+80 | async fn test_VP_012_4xx_drops_immediately_no_retry() {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_vp_012_4xx_drops_immediately_no_retry`
+
+warning: function `test_TV_events_batched_and_posted_as_json_array` should have a snake case name
+  --> crates/sink-http/tests/integration_post_batch.rs:43:10
+   |
+43 | async fn test_TV_events_batched_and_posted_as_json_array() {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_events_batched_and_posted_as_json_array`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_TV_flush_sends_synchronously` should have a snake case name
+  --> crates/sink-http/tests/integration_post_batch.rs:77:10
+   |
+77 | async fn test_TV_flush_sends_synchronously() {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_flush_sends_synchronously`
+
+warning: function `test_BC_3_06_005_disabled_config_no_events_accepted` should have a snake case name
+  --> crates/sink-http/tests/contract_config_load.rs:17:10
+   |
+17 | async fn test_BC_3_06_005_disabled_config_no_events_accepted() {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_06_005_disabled_config_no_events_accepted`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_3_01_002_unknown_sink_type_warns_no_fail` should have a snake case name
+  --> crates/sink-http/tests/contract_config_load.rs:61:4
+   |
+61 | fn test_BC_3_01_002_unknown_sink_type_warns_no_fail() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_01_002_unknown_sink_type_warns_no_fail`
+
+warning: function `test_BC_3_01_003_schema_version_mismatch_is_hard_error` should have a snake case name
+  --> crates/sink-http/tests/contract_config_load.rs:89:4
+   |
+89 | fn test_BC_3_01_003_schema_version_mismatch_is_hard_error() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_01_003_schema_version_mismatch_is_hard_error`
+
+warning: function `test_VP_011_submit_does_not_block_when_queue_full` should have a snake case name
+  --> crates/sink-http/tests/non_blocking.rs:21:4
+   |
+21 | fn test_VP_011_submit_does_not_block_when_queue_full() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_vp_011_submit_does_not_block_when_queue_full`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: `sink-http` (test "contract_sink_trait") generated 2 warnings
+warning: `sink-http` (test "error_handling") generated 2 warnings
+warning: `sink-http` (test "integration_post_batch") generated 2 warnings
+warning: `sink-http` (test "contract_config_load") generated 3 warnings
+warning: `sink-http` (test "non_blocking") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running unittests src/lib.rs (target/debug/deps/sink_http-13654eba3d9d8dff)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_config_load.rs (target/debug/deps/contract_config_load-9c74c2ab15fde700)
+
+running 3 tests
+test test_BC_3_01_002_unknown_sink_type_warns_no_fail ... ok
+test test_BC_3_01_003_schema_version_mismatch_is_hard_error ... ok
+test test_BC_3_06_005_disabled_config_no_events_accepted ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/contract_sink_trait.rs (target/debug/deps/contract_sink_trait-3c0c29032176b07f)
+
+running 2 tests
+test test_HttpSink_struct_exported_for_reuse ... ok
+test test_BC_3_01_001_http_sink_implements_sink_trait ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/error_handling.rs (target/debug/deps/error_handling-c56964d5fa4b87e4)
+
+running 2 tests
+test test_VP_012_4xx_drops_immediately_no_retry ... ok
+test test_VP_012_5xx_retries_then_records_failure ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/integration_post_batch.rs (target/debug/deps/integration_post_batch-82abbcea42b71173)
+
+running 2 tests
+test test_TV_events_batched_and_posted_as_json_array ... ok
+test test_TV_flush_sends_synchronously ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/non_blocking.rs (target/debug/deps/non_blocking-e10d575ea1e169e4)
+
+running 1 test
+test test_VP_011_submit_does_not_block_when_queue_full ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+   Doc-tests sink_http
+error[E0514]: found crate `serde` compiled by an incompatible version of rustc
+  --> crates/sink-http/src/lib.rs:18:5
+   |
+18 | use serde::Deserialize;
+   |     ^^^^^
+   |
+   = note: the following crate versions were found:
+           crate `serde` compiled by rustc 1.95.0 (59807616e 2026-04-14): /Users/jmagady/Dev/vsdd-factory/target/debug/deps/libserde-fabd011f4d292a92.rlib
+   = help: please recompile that crate using this compiler (rustc 1.94.0 (4a4ef493e 2026-03-02) (Homebrew)) (consider running `cargo clean` first)
+
+error[E0514]: found crate `sink_core` compiled by an incompatible version of rustc
+  --> crates/sink-http/src/lib.rs:19:5
+   |
+19 | use sink_core::{Sink, SinkConfigCommon, SinkEvent};
+   |     ^^^^^^^^^
+   |
+   = note: the following crate versions were found:
+           crate `sink_core` compiled by rustc 1.95.0 (59807616e 2026-04-14): /Users/jmagady/Dev/vsdd-factory/target/debug/deps/libsink_core-fd211245b3040ca6.rlib
+   = help: please recompile that crate using this compiler (rustc 1.94.0 (4a4ef493e 2026-03-02) (Homebrew)) (consider running `cargo clean` first)
+
+error[E0514]: found crate `tokio` compiled by an incompatible version of rustc
+  --> crates/sink-http/src/lib.rs:23:5
+   |
+23 | use tokio::sync::mpsc;
+   |     ^^^^^
+   |
+   = note: the following crate versions were found:
+           crate `tokio` compiled by rustc 1.95.0 (59807616e 2026-04-14): /Users/jmagady/Dev/vsdd-factory/target/debug/deps/libtokio-5b3cab4dd8c44ecd.rlib
+   = help: please recompile that crate using this compiler (rustc 1.94.0 (4a4ef493e 2026-03-02) (Homebrew)) (consider running `cargo clean` first)
+
+error[E0514]: found crate `anyhow` compiled by an incompatible version of rustc
+  --> crates/sink-http/src/lib.rs:69:50
+   |
+69 |             toml::from_str(toml_src).map_err(|e| anyhow::anyhow!("TOML parse error: {e}"))?;
+   |                                                  ^^^^^^
+   |
+   = note: the following crate versions were found:
+           crate `anyhow` compiled by rustc 1.95.0 (59807616e 2026-04-14): /Users/jmagady/Dev/vsdd-factory/target/debug/deps/libanyhow-d967057818ef337f.rlib
+   = help: please recompile that crate using this compiler (rustc 1.94.0 (4a4ef493e 2026-03-02) (Homebrew)) (consider running `cargo clean` first)
+
+error: cannot find attribute `serde` in this scope
+  --> crates/sink-http/src/lib.rs:39:7
+   |
+39 |     #[serde(rename = "type")]
+   |       ^^^^^
+
+error: cannot find attribute `serde` in this scope
+  --> crates/sink-http/src/lib.rs:43:7
+   |
+43 |     #[serde(flatten)]
+   |       ^^^^^
+
+error: cannot find attribute `serde` in this scope
+  --> crates/sink-http/src/lib.rs:51:7
+   |
+51 |     #[serde(default = "default_queue_depth")]
+   |       ^^^^^
+
+error[E0514]: found crate `toml` compiled by an incompatible version of rustc
+  --> crates/sink-http/src/lib.rs:69:13
+   |
+69 |             toml::from_str(toml_src).map_err(|e| anyhow::anyhow!("TOML parse error: {e}"))?;
+   |             ^^^^
+   |
+   = note: the following crate versions were found:
+           crate `toml` compiled by rustc 1.95.0 (59807616e 2026-04-14): /Users/jmagady/Dev/vsdd-factory/target/debug/deps/libtoml-47035a4bc7724e21.rlib
+   = help: please recompile that crate using this compiler (rustc 1.94.0 (4a4ef493e 2026-03-02) (Homebrew)) (consider running `cargo clean` first)
+
+error[E0514]: found crate `reqwest` compiled by an incompatible version of rustc
+   --> crates/sink-http/src/lib.rs:305:18
+    |
+305 |     let client = reqwest::Client::new();
+    |                  ^^^^^^^
+    |
+    = note: the following crate versions were found:
+            crate `reqwest` compiled by rustc 1.95.0 (59807616e 2026-04-14): /Users/jmagady/Dev/vsdd-factory/target/debug/deps/libreqwest-5e940346477ff451.rlib
+    = help: please recompile that crate using this compiler (rustc 1.94.0 (4a4ef493e 2026-03-02) (Homebrew)) (consider running `cargo clean` first)
+
+error[E0514]: found crate `serde_json` compiled by an incompatible version of rustc
+   --> crates/sink-http/src/lib.rs:343:22
+    |
+343 |     let body = match serde_json::to_string(&batch) {
+    |                      ^^^^^^^^^^
+    |
+    = note: the following crate versions were found:
+            crate `serde_json` compiled by rustc 1.95.0 (59807616e 2026-04-14): /Users/jmagady/Dev/vsdd-factory/target/debug/deps/libserde_json-56b77ddc16de9d58.rlib
+    = help: please recompile that crate using this compiler (rustc 1.94.0 (4a4ef493e 2026-03-02) (Homebrew)) (consider running `cargo clean` first)
+
+error: aborting due to 10 previous errors
+
+For more information about this error, try `rustc --explain E0514`.
+error: doctest failed, to rerun pass `-p sink-http --doc`
+
+Caused by:
+  process didn't exit successfully: `rustdoc --edition=2024 --crate-type lib --color auto --crate-name sink_http --test crates/sink-http/src/lib.rs --test-run-directory /Users/jmagady/Dev/vsdd-factory/crates/sink-http --extern anyhow=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libanyhow-d967057818ef337f.rlib --extern httpmock=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libhttpmock-c1e82a2b50af99ab.rlib --extern reqwest=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libreqwest-5e940346477ff451.rlib --extern serde=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libserde-fabd011f4d292a92.rlib --extern serde_json=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libserde_json-56b77ddc16de9d58.rlib --extern sink_core=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libsink_core-fd211245b3040ca6.rlib --extern sink_http=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libsink_http-68216889a1e6b4ff.rlib --extern thiserror=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libthiserror-0ef124af61092625.rlib --extern tokio=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libtokio-5b3cab4dd8c44ecd.rlib --extern toml=/Users/jmagady/Dev/vsdd-factory/target/debug/deps/libtoml-47035a4bc7724e21.rlib -L dependency=/Users/jmagady/Dev/vsdd-factory/target/debug/deps -C embed-bitcode=no --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' --error-format human` (exit status: 1)
+note: test exited abnormally; to see the full output pass --no-capture to the harness.

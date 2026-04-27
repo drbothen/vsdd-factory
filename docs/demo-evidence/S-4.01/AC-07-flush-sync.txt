@@ -1,0 +1,23 @@
+warning: function `test_TV_events_batched_and_posted_as_json_array` should have a snake case name
+  --> crates/sink-http/tests/integration_post_batch.rs:43:10
+   |
+43 | async fn test_TV_events_batched_and_posted_as_json_array() {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_events_batched_and_posted_as_json_array`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_TV_flush_sends_synchronously` should have a snake case name
+  --> crates/sink-http/tests/integration_post_batch.rs:77:10
+   |
+77 | async fn test_TV_flush_sends_synchronously() {
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_tv_flush_sends_synchronously`
+
+warning: `sink-http` (test "integration_post_batch") generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running tests/integration_post_batch.rs (target/debug/deps/integration_post_batch-82abbcea42b71173)
+
+running 1 test
+test test_TV_flush_sends_synchronously ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.05s
+
