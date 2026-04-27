@@ -67,7 +67,8 @@ url = "http://localhost:9999/events"
 "#;
 
     // BC postcondition: load returns Ok (not Err).
-    let result = HttpSinkConfig::from_toml(toml).expect("from_toml must not return Err for unknown type");
+    let result =
+        HttpSinkConfig::from_toml(toml).expect("from_toml must not return Err for unknown type");
 
     // BC postcondition: unknown type means sink is skipped (None).
     assert!(

@@ -34,16 +34,23 @@ url = "{url}"
 ///   - exactly 1 POST request received
 ///   - body is a JSON array (body_contains "[")
 ///   - all 3 event labels present in the body
+///
+/// Single mock with chained body_contains() matchers. httpmock 0.7 routes each
+/// request to the first matching mock by ascending mock ID; registering additional
+/// mocks for label sub-checks would never receive hits because the primary mock
+/// matches first and consumes the request. All assertions are expressed on one mock.
 #[tokio::test]
 async fn test_TV_events_batched_and_posted_as_json_array() {
     let server = MockServer::start();
 
-    // A single mock that expects the POST — we verify body contents and hit count.
+    // One mock that requires the batch body to contain all 3 labels.
+    // Chained body_contains() calls are AND-ed: every substring must appear.
     let mock = server.mock(|when, then| {
         when.method(POST)
             .path("/events")
-            // Body must be a JSON array (starts with "[").
-            .body_contains(r#""label""#);
+            .body_contains(r#""label":"a""#)
+            .body_contains(r#""label":"b""#)
+            .body_contains(r#""label":"c""#);
         then.status(200).body("{}");
     });
 
@@ -57,33 +64,8 @@ async fn test_TV_events_batched_and_posted_as_json_array() {
     sink.flush().expect("flush must succeed");
 
     // Exactly 1 POST — all 3 events batched into one request (AC-5 / AC-8).
+    // The body_contains matchers above ensure all 3 labels are in that body.
     mock.assert_hits(1);
-
-    // Verify batch is a JSON array containing all 3 labels via partial-body mocks.
-    // These mocks are passive matchers — they confirm label presence in the batch.
-    let mock_a = server.mock(|when, then| {
-        when.method(POST).path("/events").body_contains(r#""a""#);
-        then.status(200).body("{}");
-    });
-    let mock_b = server.mock(|when, then| {
-        when.method(POST).path("/events").body_contains(r#""b""#);
-        then.status(200).body("{}");
-    });
-    let mock_c = server.mock(|when, then| {
-        when.method(POST).path("/events").body_contains(r#""c""#);
-        then.status(200).body("{}");
-    });
-
-    // Re-submit and flush to trigger the label-specific mocks.
-    // This is a secondary pass to assert all 3 labels appear in batch bodies.
-    sink.submit(make_event("a"));
-    sink.submit(make_event("b"));
-    sink.submit(make_event("c"));
-    sink.flush().expect("second flush must succeed");
-
-    mock_a.assert_hits(1);
-    mock_b.assert_hits(1);
-    mock_c.assert_hits(1);
 }
 
 /// AC-7 — flush() delivers the current batch synchronously before returning.
