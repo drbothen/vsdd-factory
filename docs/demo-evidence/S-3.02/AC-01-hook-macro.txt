@@ -1,0 +1,40 @@
+$ cargo test -p capture-pr-activity --test contract_hook_macro
+  (rustc 1.95.0 via /Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin)
+
+warning: function `test_BC_4_03_001_dispatch_fn_exists_and_panics_in_stub` should have a snake case name
+  --> crates/hook-plugins/capture-pr-activity/tests/contract_hook_macro.rs:59:4
+   |
+59 | fn test_BC_4_03_001_dispatch_fn_exists_and_panics_in_stub() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_03_001_dispatch_fn_exists_and_panics_in_stub`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_4_04_001_non_bash_tool_dispatches_to_continue_stub_panics` should have a snake case name
+  --> crates/hook-plugins/capture-pr-activity/tests/contract_hook_macro.rs:69:4
+   |
+69 | fn test_BC_4_04_001_non_bash_tool_dispatches_to_continue_stub_panics() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_04_001_non_bash_tool_dispatches_to_continue_stub_panics`
+
+warning: function `test_BC_4_04_001_non_pr_bash_command_dispatches_to_continue_stub_panics` should have a snake case name
+  --> crates/hook-plugins/capture-pr-activity/tests/contract_hook_macro.rs:77:4
+   |
+77 | fn test_BC_4_04_001_non_pr_bash_command_dispatches_to_continue_stub_panics` should have a snake case name
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_4_04_001_non_pr_bash_command_dispatches_to_continue_stub_panics`
+
+warning: function `test_BC_4_04_001_gh_pr_create_payload_routes_to_create_path_stub_panics` should have a snake case name
+warning: function `test_BC_4_04_001_gh_pr_merge_payload_routes_to_merge_path_stub_panics` should have a snake case name
+warning: function `test_BC_4_04_001_gh_pr_close_payload_routes_to_close_path_stub_panics` should have a snake case name
+
+warning: `capture-pr-activity` (test "contract_hook_macro") generated 6 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/contract_hook_macro.rs (target/debug/deps/contract_hook_macro-a54a006a1365252a)
+
+running 6 tests
+test test_BC_4_04_001_non_bash_tool_dispatches_to_continue_stub_panics ... ok
+test test_BC_4_04_001_gh_pr_create_payload_routes_to_create_path_stub_panics ... ok
+test test_BC_4_04_001_non_pr_bash_command_dispatches_to_continue_stub_panics ... ok
+test test_BC_4_04_001_gh_pr_close_payload_routes_to_close_path_stub_panics ... ok
+test test_BC_4_03_001_dispatch_fn_exists_and_panics_in_stub ... ok
+test test_BC_4_04_001_gh_pr_merge_payload_routes_to_merge_path_stub_panics ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

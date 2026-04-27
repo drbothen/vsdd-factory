@@ -1,0 +1,7 @@
+$ cargo fmt --check -p capture-pr-activity
+  (rustc 1.95.0 via PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH)
+
+(no output)
+
+RESULT: clean — all source files conform to rustfmt formatting
+Exit code: 0

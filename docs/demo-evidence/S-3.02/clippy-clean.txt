@@ -1,0 +1,9 @@
+$ cargo clippy -p capture-pr-activity -- -D warnings
+  (rustc 1.95.0 via PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH)
+
+   Compiling vsdd-hook-sdk-macros v0.1.0 (/private/tmp/vsdd-S-3.02/crates/hook-sdk-macros)
+    Checking vsdd-hook-sdk v0.1.0 (/private/tmp/vsdd-S-3.02/crates/hook-sdk)
+    Checking capture-pr-activity v0.0.1 (/private/tmp/vsdd-S-3.02/crates/hook-plugins/capture-pr-activity)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.04s
+
+RESULT: clean — no clippy warnings or errors

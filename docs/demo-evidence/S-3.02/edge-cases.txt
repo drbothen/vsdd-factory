@@ -1,0 +1,45 @@
+$ cargo test -p capture-pr-activity --test edge_cases
+  (rustc 1.95.0 via /Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin)
+
+warning: function `test_EC_001_build_pr_create_failed_fields_called_panics_in_stub` should have a snake case name
+warning: function `test_EC_002_gh_pr_list_is_unknown_subcommand` should have a snake case name
+warning: function `test_EC_002_gh_pr_diff_is_unknown_subcommand` should have a snake case name
+warning: function `test_EC_002_gh_pr_checkout_is_unknown_subcommand` should have a snake case name
+warning: function `test_EC_002_gh_pr_edit_is_unknown_subcommand` should have a snake case name
+warning: function `test_EC_003_non_github_url_not_extracted` should have a snake case name
+warning: function `test_EC_003_partial_github_url_not_extracted` should have a snake case name
+warning: function `test_EC_003_pr_number_none_for_non_pull_url` should have a snake case name
+warning: function `test_EC_003_pr_created_fields_panics_in_stub` should have a snake case name
+warning: function `test_TV_001_echo_gh_pr_create_not_matched` should have a snake case name
+warning: function `test_TV_002_comment_containing_gh_pr_create_not_matched` should have a snake case name
+warning: function `test_TV_003_gh_pr_create_after_ampersand_chain_detected` should have a snake case name
+warning: function `test_TV_004_gh_pr_merge_after_or_chain_detected` should have a snake case name
+warning: function `test_TV_005_extra_whitespace_in_gh_pr_create` should have a snake case name
+warning: function `test_TV_006_pr_number_must_be_numeric` should have a snake case name
+warning: function `test_TV_007_pr_number_one_extracted_correctly` should have a snake case name
+warning: function `test_TV_008_large_pr_number_extracted_correctly` should have a snake case name
+
+warning: `capture-pr-activity` (test "edge_cases") generated 17 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/edge_cases.rs (target/debug/deps/edge_cases-910aa790237d81f6)
+
+running 17 tests
+test test_EC_001_build_pr_create_failed_fields_called_panics_in_stub ... ok
+test test_EC_002_gh_pr_diff_is_unknown_subcommand ... ok
+test test_EC_002_gh_pr_checkout_is_unknown_subcommand ... ok
+test test_EC_002_gh_pr_edit_is_unknown_subcommand ... ok
+test test_EC_002_gh_pr_list_is_unknown_subcommand ... ok
+test test_EC_003_partial_github_url_not_extracted ... ok
+test test_EC_003_non_github_url_not_extracted ... ok
+test test_EC_003_pr_created_fields_panics_in_stub ... ok
+test test_EC_003_pr_number_none_for_non_pull_url ... ok
+test test_TV_001_echo_gh_pr_create_not_matched ... ok
+test test_TV_002_comment_containing_gh_pr_create_not_matched ... ok
+test test_TV_003_gh_pr_create_after_ampersand_chain_detected ... ok
+test test_TV_004_gh_pr_merge_after_or_chain_detected ... ok
+test test_TV_005_extra_whitespace_in_gh_pr_create ... ok
+test test_TV_006_pr_number_must_be_numeric ... ok
+test test_TV_007_pr_number_one_extracted_correctly ... ok
+test test_TV_008_large_pr_number_extracted_correctly ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
