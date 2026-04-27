@@ -83,7 +83,7 @@ Source: pass-2 §Skill deliver-story; pass-8 §story lifecycle state machine. Ju
 
 **CAP-028 — Install and update the plugin via Claude Code marketplace**
 The plugin is distributed via `.claude-plugin/marketplace.json` and installs through Claude Code's standard plugin mechanism. Version is co-stamped across `plugin.json`, `CHANGELOG`, and binary bundles.
-Subsystems: SS-09. Outcome: `/plugin install vsdd-factory` succeeds and reports `1.0.0-beta.4`.
+Subsystems: SS-06, SS-09. <!-- Expanded SS-09 → SS-06,SS-09 per Wave 6 F-005 sanctioned per Wave 3 F-007 precedent (FR-029 activation skill consumes marketplace-installed plugin) --> Outcome: `/plugin install vsdd-factory` succeeds and reports `1.0.0-beta.4`.
 Source: pass-8 §2 "Plugin (Claude Code marketplace plugin)". Justification: marketplace distribution is the product's delivery channel.
 
 ## P1 Capabilities — Should-Have

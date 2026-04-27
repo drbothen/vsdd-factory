@@ -720,7 +720,7 @@ Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 | BC-9.01.005 | hooks.json is gitignored; hooks.json.template + per-platform variants are committed | P0 |
 
 Source BCs: `ss-09/BC-9.01.001.md` through `BC-9.01.005.md` (5 BCs total).
-Enforces: DI-015 (activation gate), CAP-007. CAP-028 (marketplace install) is enforced by separate FR-NNN (release-pipeline scope) — not FR-037. Status: **shipped** for BC-9.01.004/005 (S-0.03, S-0.04, S-2.06 — activation-gate prerequisites). BC-9.01.001-003 (release-tooling discipline) ship via release pipeline; no v1.0 story anchor — pending re-anchor to release-pipeline story (v1.1 BC candidate).
+Enforces: DI-015 (activation gate), CAP-007 (BC-9.01.004/005), CAP-028 (BC-9.01.001-003 — release-tooling discipline). Status: **all 5 BCs anchored to capabilities (BC frontmatter status:draft pending Phase 1.6b verification)** as of Wave 6 SS-09 re-anchor. BC-9.01.004/005 → CAP-007: S-0.03, S-0.04, S-2.02, S-2.03, S-2.06, S-2.08. BC-9.01.001-003 → CAP-028: S-0.01, S-2.04, S-2.08.
 
 > **Scope note (Wave 5 pass-1 CRIT-001 fix):** FR-037 covers Platform-aware activation hooks.json variant management AND release-tooling discipline (version bump, chore commit cleanliness, release-bot atomicity). The 5 BCs split across: activation-gate prerequisites (BC-9.01.004, BC-9.01.005) and release-pipeline discipline (BC-9.01.001, BC-9.01.002, BC-9.01.003). The activation-gate narrative in §FR-037 heading still holds — BC-9.01.004/005 are the gate-readiness contracts; BC-9.01.001-003 are release-tooling discipline contracts that govern how gate-ready artifacts are produced.
 
@@ -1066,7 +1066,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-034 | SubagentStop / lifecycle hooks and validate-* gate family | CAP-004 | SS-07 | BC-7.08–7.10.NNN | ~80 | shipped | E-2 |
 | FR-035 | Spec artifact templates | CAP-014, CAP-016 | SS-08 | BC-8.01–8.05.NNN | ~60 | shipped | E-1 |
 | FR-036 | Rules and cross-cutting policy documents | CAP-014 | SS-08 | BC-8.06.NNN | ~70 | shipped | E-1 |
-| FR-037 | Platform-aware activation and hooks.json variant management | CAP-007 | SS-09 | BC-9.01.001–005 | 5 | shipped | E-0, E-2 |
+| FR-037 | Platform-aware activation and hooks.json variant management | CAP-007, CAP-028 | SS-09 | BC-9.01.001–005 | 5 | shipped | E-0, E-2 |
 | FR-038 | Event emission CLI tool (bin/emit-event) | CAP-027 | SS-07, SS-10 | BC-10.01.NNN | ~10 | partial | E-3 |
 | FR-039 | Factory observability bin tools | CAP-003, CAP-010 | SS-10 | BC-10.02.NNN | ~30 | shipped | E-1 |
 | FR-040 | Workflow infrastructure CLI tools (wave-state, lobster-parse, compute-input-hash) | CAP-001 | SS-10 | BC-10.03.NNN | ~18 | shipped | E-1 |
@@ -1113,7 +1113,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-025 | Generate semantic port translations between language implementations | BC-6 (semport-analyze skill); BC-8 (semport templates) | SS-06, SS-08 |
 | CAP-026 | Manage multi-repo health and cross-repo traceability | BC-6 (multi-repo-health skill) | SS-06 |
 | CAP-027 | Emit structured events from bash hooks via CLI tool | BC-10.01 (emit-event bin tool); BC-7 (hooks using _emit helper) | SS-07, SS-10 |
-| CAP-028 | Install and update the plugin via Claude Code marketplace | TBD (marketplace install BC range pending release-pipeline story; BC-9.01.001–003 are release-tooling candidates but their CAP anchor is currently CAP-TBD pending proper re-anchor) | SS-09 |
+| CAP-028 | Install and update the plugin via Claude Code marketplace | BC-9.01.001 (semver prerelease in bump-version.sh), BC-9.01.002 (chore commit discipline), BC-9.01.003 (atomic bot commit — binaries + plugin.json + marketplace.json) | SS-06, SS-09 |
 
 ---
 

@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:412"
 subsystem: "SS-01"
-capability: "CAP-TBD"
+capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -60,16 +60,16 @@ Re-running `scripts/generate-registry-from-hooks-json.sh` against an existing re
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6b) | | |
+| VP-049 | Generated hooks-registry.toml round-trips through Registry::load (idempotent generation co-anchor) | integration |
 
 ## Traceability
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (anchor in Phase 1.5) |
+| L2 Capability | CAP-002 — registry-generation is the bridge from hooks.json (SS-09) to Registry::load (SS-01) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-09 — `scripts/generate-registry-from-hooks-json.sh`; cross-cuts SS-01 |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-2.02 |
 
 ### Source Evidence
 

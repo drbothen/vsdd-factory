@@ -124,8 +124,8 @@ traces_to: bc-id-mapping.md
 | [BC-1.06.010](ss-01/BC-1.06.010.md) | factory-dispatcher::internal_log (integration)::write_is_best_effort_when_path_is_a_file — log_dir pointing at an existing file → write returns silently without panic | draft | CAP-TBD | TBD |
 | [BC-1.07.001](ss-01/BC-1.07.001.md) | All 30+ existing bash hooks fire via legacy-bash-adapter on Linux/macOS | draft | CAP-TBD | TBD |
 | [BC-1.07.002](ss-01/BC-1.07.002.md) | `commit.made` events fire reliably on real Claude Code git commit | draft | CAP-TBD | TBD |
-| [BC-1.07.003](ss-01/BC-1.07.003.md) | Generated hooks-registry.toml round-trips through Registry::load | draft | CAP-TBD | TBD |
-| [BC-1.07.004](ss-01/BC-1.07.004.md) | registry-generation script is idempotent | draft | CAP-TBD | TBD |
+| [BC-1.07.003](ss-01/BC-1.07.003.md) | Generated hooks-registry.toml round-trips through Registry::load | draft | CAP-002 | S-2.02 |
+| [BC-1.07.004](ss-01/BC-1.07.004.md) | registry-generation script is idempotent | draft | CAP-002 | S-2.02 |
 | [BC-1.07.005](ss-01/BC-1.07.005.md) | factory-dispatcher::loads_legacy_registry::every_entry_routes_through_legacy_bash_adapter — every entry in the production registry routes through legacy-bash-adapter.wasm | draft | CAP-TBD | TBD |
 | [BC-1.07.006](ss-01/BC-1.07.006.md) | factory-dispatcher::loads_legacy_registry::every_entry_carries_a_script_path — every entry has plugin_config.script_path matching `hooks/<name>.sh` | draft | CAP-TBD | TBD |
 | [BC-1.08.001](ss-01/BC-1.08.001.md) | dispatcher exits 0 on registry/payload/engine errors (non-blocking) | draft | CAP-TBD | TBD |
