@@ -44,7 +44,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 2. The emitted payload contains all required fields. Fields are categorized by who sets them:
 
    **Plugin-set fields (3 fields — the plugin sets these via `emit_event` key/value pairs):**
-   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. If `session_start_ts` is absent from the envelope, `duration_ms = "0"`. Value is always a non-negative integer represented as a decimal string.
+   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). If `session_start_ts` is absent from the envelope or if `session_start_ts` is in the future relative to `now_ms`, `duration_ms = "0"`. Value is always a non-negative integer represented as a decimal string.
    - `tool_call_count` (string per wire format): integer count of tool invocations during the session, sourced from the envelope's `tool_call_count` field. If `tool_call_count` is absent from the envelope, `tool_call_count = "0"`. Value is always a non-negative integer represented as a decimal string.
    - `timestamp` (ISO-8601 UTC with millisecond precision and `Z` suffix; regex: `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; example: `2026-04-28T12:34:56.789Z`) — the plugin's own emission timestamp, not the session-end time from the envelope.
 
@@ -84,7 +84,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 | EC-001 | `session_start_ts` is absent from the `SessionEnd` envelope | `duration_ms = "0"` in the emitted `session.ended` event; all other fields emitted normally; plugin does not abort |
 | EC-002 | `tool_call_count` is absent from the `SessionEnd` envelope | `tool_call_count = "0"` in the emitted `session.ended` event; all other fields emitted normally; plugin does not abort |
 | EC-003 | Both `session_start_ts` and `tool_call_count` are absent from the envelope | `duration_ms = "0"`, `tool_call_count = "0"`; `timestamp` is the plugin's own emission time; plugin emits normally |
-| EC-004 | `session_id` is missing or empty string in the `SessionEnd` envelope | BC-1.02.005 lifecycle-tolerance sets `HostContext.session_id = "unknown"`; `emit_event` auto-enriches the event with this value; plugin is unconditionally stateless per BC-4.05.003; emits normally |
+| EC-004 | `session_id` is missing or empty string in the `SessionEnd` envelope | BC-1.02.005 lifecycle-tolerance sets `HostContext.session_id = "unknown"`; `emit_event` auto-enriches the event with this value; plugin is unconditionally stateless per BC-4.05.003; emits normally. Note: `duration_ms` and `tool_call_count` follow EC-001/EC-002 independently of `session_id` presence — they read different envelope fields (`session_start_ts` and `tool_call_count` respectively) and are unaffected by `session_id` being missing or empty. |
 
 ## Canonical Test Vectors
 

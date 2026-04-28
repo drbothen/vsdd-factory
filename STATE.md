@@ -95,6 +95,7 @@ dtu_services: []
 | S-4.07 delivery (PR #31 1d4edb7) | state-manager | COMPLETE | 40/40 integration tests GREEN; E2E obs tests shipped; D-132; rc.1 critical-path unblocked |
 | S-4.08 delivery (PR #32 d7eae89) | state-manager | COMPLETE | 6 testable-now ACs GREEN; 17 regression-guards GREEN; 11 deferred-to-shakedown; D-133; Wave 12 COMPLETE 28/28 pts |
 | S-5.01 delivery (PR #35 0257f03) | pr-manager | COMPLETE | 9/9 integration + 14/14 unit GREEN; clippy clean; SAST pass; 0 blocking review findings; D-136; Wave 13 opened |
+| S-5.02 pass-1 fix burst | state-manager | COMPLETE | 11 findings closed (F-1..F-12; PO 8 + story-writer 3); BC-4.05.001/003/005 + VP-066 updated; S-5.02 v2.0→v2.1; pass-2 ready |
 
 ## Identifier Conventions
 
@@ -131,7 +132,7 @@ dtu_services: []
 - **Merged (40):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (4):** Tier F (S-5.03/5.04/5.06), Tier G/H TBD
-- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.0; 5 BCs + VP-066 + FR-046 anchored)
+- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.1; 5 BCs + VP-066 + FR-046 anchored; pass-1 fix burst 11 findings closed)
 
 ## Drift Items (open)
 
@@ -204,10 +205,10 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**S-5.01 CONVERGENCE_REACHED at pass-14 (2026-04-28).** ADV-S5.01-P14: 0-substantive — NITPICK_ONLY — CLEAN_PASS_3_OF_3. Trajectory: 30→22→17→13→11→7→9→5→5→1→1→1→0→0→0. Spec sealed at v2.12. D-135 added. 39 of 47 stories merged; develop @ 4c50d90; factory-artifacts updated. S-5.01 is now ready for per-story-delivery cycle.
+**S-5.02 pass-1 fix burst COMPLETE (2026-04-28).** 11 findings closed: PO closed F-1/2/3/5/6/7/8/11/12 in BC-4.05.001/003/005 + VP-066; story-writer closed F-4/9/10 in S-5.02 (v2.0→v2.1). S-5.02 spec trajectory pass-1=11 (down from S-5.01 pass-1=30; lessons applied up-front). Pass-2 adversarial review ready. 39 of 47 stories merged; S-5.01 merged (PR #35 0257f03); develop @ 0257f03.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-5.01 per-story-delivery** (immediate): worktree creation → test-writer RED gate → implementer GREEN → demo-recorder per-AC → pr-manager 9-step PR lifecycle. Depends on S-4.08 (merged); SS-04 scope only (~3pt budget).
+- **S-5.02 adversarial pass-2** (immediate): dispatch adversary with S-5.02 v2.1 + BC-4.05.001/003/005 (v1.0-pass-1) + VP-066. Target: 0 substantive findings → convergence clock 1/3.
 - **rc.1 shakedown** (highest priority): 14-day window; Release Engineer executes 11 deferred S-4.08 ACs; run `scripts/check-shakedown-window.sh` to validate BC-9.01.006 PC1-PC5; cut rc.1 tag + trigger Release.yml
 - **v1.0 GA prep** (after shakedown clean): S-5.02..S-5.07 (Tier G/H) or direct v1.0.0 release gating
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)

@@ -54,7 +54,7 @@ The `session-end-telemetry` plugin maintains NO in-process state across invocati
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | Dispatcher restart between two `SessionEnd` events with the same `session_id` | Layer 1 `once: true` prevents duplicate fires under normal operation; plugin sees only one event; emits `session.ended` once |
-| EC-002 | (Retired marker — reserved for append-only-numbering compliance) Pass-1 draft considered plugin-side dedup; superseded before writing by BC-4.04.003 lesson: Layer 1 once-discipline applied from the start. ID preserved per POLICY 1. | N/A — superseded before writing |
+| EC-002 | (Reserved; not assigned in this foundation burst.) Per the BC-4.04.003 structural template, EC-002 was retired in S-5.01's pass-4 reversal — the plugin-side `Mutex<HashSet>` dedup approach was superseded by Layer 1 `once: true` discipline. For S-5.02 we apply that lesson up-front: EC-002 was never drafted here because plugin-side dedup was never considered a candidate. The ID is intentionally skipped for parallel structural alignment with BC-4.04.003. Preserved per append-only-numbering policy. | N/A — reserved; ID skipped for structural alignment |
 | EC-003 | `session_id = "unknown"` (per BC-1.02.005 lifecycle-tolerance, missing session_id in envelope) | Plugin emits `session.ended` with `session_id = "unknown"` per BC-4.05.001 EC-004; no special handling; plugin is unconditionally stateless |
 | EC-004 | Two `SessionEnd` events with the same `session_id` arrive (Layer 1 bypass, e.g., manual injection) | Plugin invoked for each; emits `session.ended` each time; operator sees duplicate events; acceptable at plugin layer — Layer 1 once-discipline failure is a Layer 1 concern |
 
