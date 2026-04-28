@@ -59,17 +59,12 @@ fn test_BC_3_06_005_auth_header_value_matches_configured_api_key() {
     let api_key = "Bearer-style-key-XYZ";
     let dataset = "exact-key-test";
 
+    // Single mock with chained matchers (AND condition): header must exist
+    // AND its value must exactly match the configured api_key.
     let mock = server.mock(|when, then| {
         when.method(POST)
             .path(format!("/1/events/{dataset}"))
-            .header_exists("X-Honeycomb-Team");
-        then.status(200);
-    });
-
-    // Capture the actual header value in a separate assertion mock.
-    let capture_mock = server.mock(|when, then| {
-        when.method(POST)
-            .path(format!("/1/events/{dataset}"))
+            .header_exists("X-Honeycomb-Team")
             .header("X-Honeycomb-Team", api_key);
         then.status(200);
     });
@@ -80,9 +75,7 @@ fn test_BC_3_06_005_auth_header_value_matches_configured_api_key() {
     sink.flush().expect("flush");
     sink.shutdown();
 
-    // At least one of the two mocks must have matched with the exact header.
-    let _ = mock;
-    capture_mock.assert_hits(1);
+    mock.assert_hits(1);
 }
 
 #[test]
