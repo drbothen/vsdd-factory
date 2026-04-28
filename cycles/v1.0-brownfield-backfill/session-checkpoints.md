@@ -30,3 +30,9 @@ traces_to: STATE.md
 | **Branches** | feat/create-adr-skill (5f0b0fa); feat/codify-lessons (5b9e4fb). Both GREEN. |
 
 ---
+
+## Session Resume Checkpoint (2026-04-28) — S-5.02 pass-1 fix burst COMPLETE
+
+**S-5.02 pass-1 fix burst COMPLETE (2026-04-28).** 11 findings closed: PO closed F-1/2/3/5/6/7/8/11/12 in BC-4.05.001/003/005 + VP-066; story-writer closed F-4/9/10 in S-5.02 (v2.0→v2.1). S-5.02 spec trajectory pass-1=11 (down from S-5.01 pass-1=30; lessons applied up-front). Pass-2 adversarial review ready. 39 of 47 stories merged; S-5.01 merged (PR #35 0257f03); develop @ 0257f03.
+
+---

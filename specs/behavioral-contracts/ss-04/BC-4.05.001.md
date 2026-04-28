@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1]
+modified: [v1.0-pass-1, v1.0-pass-2]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wasm` plugin via the `hooks.json.template` registration, the plugin emits a `session.ended` event via the `emit_event` host function. Three fields are set by the plugin: `duration_ms`, `tool_call_count`, and `timestamp`. These are computed from the incoming envelope's `session_start_ts` and `tool_call_count` fields; if either is absent, the plugin substitutes `"0"`. Four additional fields are automatically injected by the `emit_event` host fn from `HostContext` (per BC-1.05.012 enrichment; the plugin does not set these): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Four construction-time fields are set by `InternalEvent::now()`: `ts`, `ts_epoch`, `schema_version`, `type`. Total fields on wire: 11. The `session.ended` event-name literal is reserved per PRD FR-046.
+When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wasm` plugin via the `hooks.json.template` registration, the plugin emits a `session.ended` event via the `emit_event` host function. Three fields are set by the plugin: `duration_ms`, `tool_call_count`, and `timestamp`. These are computed from the incoming envelope's `session_start_ts` and `tool_call_count` fields; if either is absent, the plugin substitutes `"0"`. `duration_ms = "0"` also applies when `session_start_ts` is present but in the future relative to `now_ms` (clock skew safeguard — a future timestamp yields a negative elapsed duration, which is clamped to `"0"`). Four additional fields are automatically injected by the `emit_event` host fn from `HostContext` (per BC-1.05.012 enrichment; the plugin does not set these): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Four construction-time fields are set by `InternalEvent::now()`: `ts`, `ts_epoch`, `schema_version`, `type`. Total fields on wire: 11. The `session.ended` event-name literal is reserved per PRD FR-046.
 
 ## Preconditions
 
@@ -44,7 +44,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 2. The emitted payload contains all required fields. Fields are categorized by who sets them:
 
    **Plugin-set fields (3 fields — the plugin sets these via `emit_event` key/value pairs):**
-   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). If `session_start_ts` is absent from the envelope or if `session_start_ts` is in the future relative to `now_ms`, `duration_ms = "0"`. Value is always a non-negative integer represented as a decimal string.
+   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). `duration_ms = "0"` when: (a) `session_start_ts` is absent from the envelope, OR (b) `session_start_ts` is in the future relative to `now_ms` (clock skew safeguard — a future timestamp yields a negative elapsed duration, which the plugin clamps to `"0"` rather than emitting a negative value). Value is always a non-negative integer represented as a decimal string.
    - `tool_call_count` (string per wire format): integer count of tool invocations during the session, sourced from the envelope's `tool_call_count` field. If `tool_call_count` is absent from the envelope, `tool_call_count = "0"`. Value is always a non-negative integer represented as a decimal string.
    - `timestamp` (ISO-8601 UTC with millisecond precision and `Z` suffix; regex: `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; example: `2026-04-28T12:34:56.789Z`) — the plugin's own emission timestamp, not the session-end time from the envelope.
 
@@ -81,7 +81,8 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `session_start_ts` is absent from the `SessionEnd` envelope | `duration_ms = "0"` in the emitted `session.ended` event; all other fields emitted normally; plugin does not abort |
+| EC-001a | `session_start_ts` is absent from the `SessionEnd` envelope | `duration_ms = "0"` in the emitted `session.ended` event; all other fields emitted normally; plugin does not abort |
+| EC-001b | `session_start_ts` is present in the `SessionEnd` envelope but is in the future relative to `now_ms` (clock skew / test fixture / adversarial input) | `duration_ms = "0"` (negative elapsed time clamped to zero); all other fields emitted normally; plugin does not abort. This is the clock-skew safeguard that prevents negative duration values on the wire. |
 | EC-002 | `tool_call_count` is absent from the `SessionEnd` envelope | `tool_call_count = "0"` in the emitted `session.ended` event; all other fields emitted normally; plugin does not abort |
 | EC-003 | Both `session_start_ts` and `tool_call_count` are absent from the envelope | `duration_ms = "0"`, `tool_call_count = "0"`; `timestamp` is the plugin's own emission time; plugin emits normally |
 | EC-004 | `session_id` is missing or empty string in the `SessionEnd` envelope | BC-1.02.005 lifecycle-tolerance sets `HostContext.session_id = "unknown"`; `emit_event` auto-enriches the event with this value; plugin is unconditionally stateless per BC-4.05.003; emits normally. Note: `duration_ms` and `tool_call_count` follow EC-001/EC-002 independently of `session_id` presence — they read different envelope fields (`session_start_ts` and `tool_call_count` respectively) and are unaffected by `session_id` being missing or empty. |
@@ -93,6 +94,11 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 | `SessionEnd` envelope with `session_id = "sess-abc-123"`, `session_start_ts = "2026-04-28T12:00:00.000Z"`, `tool_call_count = 42`, dispatcher routes to session-end-telemetry.wasm | `session.ended` emitted once; `duration_ms` is a non-negative decimal string representing elapsed ms since session_start_ts; `tool_call_count = "42"` (string on wire per emit_event.rs:49); `timestamp` matches regex `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; host-enriched fields present: `session_id = "sess-abc-123"`, `dispatcher_trace_id` non-empty string, `plugin_name` non-empty string, `plugin_version` non-empty string | happy-path |
 | `SessionEnd` envelope with `session_id = "sess-def-456"`, `session_start_ts` absent, `tool_call_count` absent | `session.ended` emitted once; `duration_ms = "0"`, `tool_call_count = "0"`, `timestamp` present with correct format; `session_id = "sess-def-456"` (host-enriched) | edge-case (both absent) |
 | `SessionEnd` envelope with `session_id = ""` (empty string) | `session.ended` emitted once; `session_id = "unknown"` (BC-1.02.005 sets "unknown" sentinel; emit_event auto-enriches); `duration_ms = "0"` if session_start_ts absent; plugin does not abort | edge-case (missing session_id) |
+| `SessionEnd` envelope with `session_start_ts` set to a timestamp 60 seconds in the future relative to dispatch time | `session.ended` emitted once; `duration_ms = "0"` (clock-skew safeguard: negative elapsed time clamped to zero per EC-001b); all other fields emitted normally | edge-case (future session_start_ts / clock skew) |
+
+## Notes
+
+**Malformed-envelope handling (scope boundary):** This BC handles only field-presence cases (EC-001a, EC-001b, EC-002, EC-003, EC-004). Envelope malformation (non-string `session_start_ts`, non-integer `tool_call_count`, non-JSON envelope, etc.) is handled upstream by BC-1.02.005 lifecycle-tolerant envelope parsing before this plugin is ever invoked. If BC-1.02.005 admits the envelope (i.e., it parses as valid JSON with a recognized event type), this BC handles only field-presence cases. Out-of-bounds and malformed field-value handling is an upstream concern; extending this BC with specific value-type ECs is a v1.1 candidate contingent on adding a formal envelope schema to BC-1.02.005.
 
 ## Verification Properties
 

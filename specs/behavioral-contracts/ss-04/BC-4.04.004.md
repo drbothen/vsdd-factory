@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-5]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-5, v1.0-pass-2-S5.02-cross-story]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -57,7 +57,7 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Ses
 |----|-------------|-------------------|
 | EC-001 | Dispatcher binary path platform substitution fails (e.g., `{{PLATFORM}}` placeholder not substituted during activation) | Activation system falls back to the previous generated `hooks.json` or reports activation error; the unsubstituted template path is never written to the live `hooks.json` |
 | EC-002 | `hooks.json.template` is missing the `SessionStart` key entirely | No `SessionStart` routing exists in the Claude Code harness; the dispatcher is never invoked for SessionStart events; `session.started` events are never emitted |
-| EC-003 | Per-platform variant file (`.platform/darwin-arm64/hooks.json`) is out of sync with `hooks.json.template` | Activation regeneration required; the platform variant is the committed artifact used by the activation skill (hooks.json is gitignored) |
+| EC-003 | Per-platform variant file (`hooks.json.darwin-arm64`, `hooks.json.darwin-x64`, `hooks.json.linux-arm64`, `hooks.json.linux-x64`, `hooks.json.windows-x64`) is out of sync with `hooks.json.template` | Activation regeneration required; the platform variant is the committed artifact used by the activation skill (hooks.json is gitignored) |
 
 ## Canonical Test Vectors
 
