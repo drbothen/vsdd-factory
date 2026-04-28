@@ -5,7 +5,7 @@
 //! Traces to: BC-3.01.001 postcondition 1 + v1.1 BC candidate
 //! BC-3.NN.NNN-honeycomb-dataset-url-routing.
 
-use sink_honeycomb::{HoneycombSinkConfig, HONEYCOMB_BASE_URL};
+use sink_honeycomb::{HONEYCOMB_BASE_URL, HoneycombSinkConfig};
 
 fn valid_config(dataset: &str) -> HoneycombSinkConfig {
     let toml_src = format!(
@@ -27,8 +27,7 @@ fn test_BC_3_01_001_endpoint_url_includes_dataset_in_path() {
     let config = valid_config("factory-events");
     let url = config.endpoint_url();
     assert_eq!(
-        url,
-        "https://api.honeycomb.io/1/events/factory-events",
+        url, "https://api.honeycomb.io/1/events/factory-events",
         "endpoint URL must embed dataset in path"
     );
 }

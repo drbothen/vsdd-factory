@@ -111,10 +111,7 @@ fn test_BC_3_06_005_rejects_missing_api_key() {
         dataset = "factory-events"
     "#;
     let result = HoneycombSinkConfig::from_toml(toml_src);
-    assert!(
-        result.is_err(),
-        "missing api_key must be a hard error"
-    );
+    assert!(result.is_err(), "missing api_key must be a hard error");
     let err = result.unwrap_err().to_string();
     assert!(
         err.to_lowercase().contains("api_key") || err.to_lowercase().contains("api key"),
@@ -131,10 +128,7 @@ fn test_BC_3_06_005_rejects_empty_api_key() {
         dataset = "factory-events"
     "#;
     let result = HoneycombSinkConfig::from_toml(toml_src);
-    assert!(
-        result.is_err(),
-        "empty api_key must be a hard error"
-    );
+    assert!(result.is_err(), "empty api_key must be a hard error");
 }
 
 // ---------------------------------------------------------------------------
@@ -151,10 +145,7 @@ fn test_BC_3_06_005_unknown_type_returns_none() {
     "#;
     let result = HoneycombSinkConfig::from_toml(toml_src);
     assert!(result.is_ok(), "wrong type must not error — only warn");
-    assert!(
-        result.unwrap().is_none(),
-        "wrong type must return None"
-    );
+    assert!(result.unwrap().is_none(), "wrong type must return None");
 }
 
 #[test]

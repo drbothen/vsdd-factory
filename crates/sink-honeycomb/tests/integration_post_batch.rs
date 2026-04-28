@@ -65,7 +65,11 @@ fn test_BC_3_01_001_events_posted_as_json_array() {
 
     let config = make_config(&server, dataset, api_key);
     let sink = HoneycombSink::new(config).expect("new");
-    sink.submit(SinkEvent::new().insert("type", "commit.made").insert("ts_epoch", 1_700_000_000_i64));
+    sink.submit(
+        SinkEvent::new()
+            .insert("type", "commit.made")
+            .insert("ts_epoch", 1_700_000_000_i64),
+    );
     sink.flush().expect("flush");
     sink.shutdown();
 
