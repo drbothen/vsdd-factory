@@ -1,0 +1,92 @@
+$ cargo test -p sink-datadog
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+
+[warnings omitted — non_snake_case lint on BC/VP/F-prefixed test names; not errors]
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running unittests src/lib.rs (target/debug/deps/sink_datadog-e8984cb2687d5bdb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_config_api_stability.rs (target/debug/deps/contract_config_api_stability-9fc8b9154be7ed82)
+
+running 2 tests
+test test_F2_http_sink_config_url_field_is_pub_documents_pre_fix_state ... ok
+test test_F2_http_sink_config_wrapper_uses_stable_api ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contract_config_load.rs (target/debug/deps/contract_config_load-7d865fc11616911b)
+
+running 6 tests
+test test_BC_3_06_005_minimal_config_parses ... ok
+test test_BC_3_06_005_unknown_sink_type_returns_none ... ok
+test test_BC_3_06_005_empty_api_key_is_hard_error ... ok
+test test_BC_3_06_005_missing_api_key_is_hard_error ... ok
+test test_BC_3_06_005_schema_version_mismatch_is_hard_error ... ok
+test test_BC_3_06_005_valid_config_with_api_key_and_endpoint_parses ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_endpoint_default.rs (target/debug/deps/contract_endpoint_default-36fcb1de8ceac8f9)
+
+running 3 tests
+test test_BC_3_06_005_default_endpoint_constant_value_and_accessible_via_config ... ok
+test test_BC_3_06_005_default_endpoint_is_us1_when_absent ... ok
+test test_BC_3_06_005_explicit_endpoint_overrides_default ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_headers.rs (target/debug/deps/contract_headers-696a23ff61787606)
+
+running 2 tests
+test test_BC_3_06_005_dd_api_key_header_present_on_post ... ok
+test test_BC_3_06_005_post_without_dd_api_key_does_not_match_auth_mock ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contract_no_blocking_feature.rs (target/debug/deps/contract_no_blocking_feature-baf66a120b21d11f)
+
+running 1 test
+test test_F1_sink_http_reqwest_blocking_feature_not_enabled ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contract_sink_trait.rs (target/debug/deps/contract_sink_trait-977d5c00e98816fa)
+
+running 2 tests
+test test_BC_3_01_001_datadog_sink_exported_as_trait_object ... ok
+test test_BC_3_01_001_datadog_sink_implements_sink_trait ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/integration_inherits_http_sink.rs (target/debug/deps/integration_inherits_http_sink-1f1d918ea943a06d)
+
+running 3 tests
+test test_VP_012_datadog_5xx_exhausted_retries_recorded_not_propagated ... ok
+test test_VP_012_datadog_inherits_http_sink_5xx_retry_then_success ... ok
+test test_VP_011_datadog_inherits_http_sink_non_blocking_submit ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/integration_post_batch.rs (target/debug/deps/integration_post_batch-a292e61aa99ae9a5)
+
+running 5 tests
+test test_BC_3_01_001_max_batch_bytes_constant_is_5mb_and_sink_constructs ... ok
+test test_BC_3_01_001_datadog_schema_fields_present_in_post_body ... ok
+test test_BC_3_01_001_events_posted_as_json_array_to_datadog_endpoint ... ok
+test test_VP_012_datadog_sink_5xx_failure_recorded_and_isolated ... ok
+test test_VP_011_datadog_sink_submit_does_not_block ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests sink_datadog
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+# CUMULATIVE: 24/24 PASS (0 failures, 0 skipped)
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27
