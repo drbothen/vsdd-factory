@@ -35,16 +35,16 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,891-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
-> codification + 13 S-7.03 TDD hardening) into a formal L3 requirements artifact. Section 2 is the
+> It synthesizes the 1,893-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
+> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03) into a formal L3 requirements artifact. Section 2 is the
 > primary machine-consumed surface: it groups BCs by functional requirement (FR-NNN)
 > and provides subsystem-level traceability. Agents needing deep BC content load
 > individual `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
 > Sections 3-5 point to supplement files (DF-021 context discipline).
 
-> **BC Index Model:** 1,891 individual BC files live under
+> **BC Index Model:** 1,893 individual BC files live under
 > `.factory/specs/behavioral-contracts/ss-NN/`. Section 2 groups them into
-> 43 logical FRs. Do NOT inline full contract details here — cross-reference only.
+> 45 logical FRs. Do NOT inline full contract details here — cross-reference only.
 
 ---
 
@@ -76,8 +76,8 @@ an 8-phase SDLC pipeline: brief → domain-spec → PRD → architecture → sto
 delivery → adversarial review → convergence.
 
 The product was built with itself. Phase 0 ingestion of this very codebase produced the
-1,863-BC pre-E-7 baseline that this PRD synthesizes (catalog has since grown to 1,891
-with additions of 15 BCs in E-7 and 13 BCs in S-7.03). This self-referential loop is the ultimate dogfooding
+1,863-BC pre-E-7 baseline that this PRD synthesizes (catalog has since grown to 1,893
+with additions of 15 BCs in E-7, 13 BCs in S-7.03, and 2 BCs in Wave 11 SS-03). This self-referential loop is the ultimate dogfooding
 test: every architectural decision (WASM sandbox, capability deny-by-default,
 parallel-within-tier execution, always-on telemetry) was enacted in Rust and then
 analyzed by the framework's own brownfield-ingest skill.
@@ -127,7 +127,7 @@ Tiers E through H (15 draft stories) are the active backlog for rc.1 and 1.0 GA.
 
 ## 2. Behavioral Contracts Index
 
-> BCs are grouped into 43 logical FRs. Each FR maps to one or more CAP-NNN
+> BCs are grouped into 45 logical FRs. Each FR maps to one or more CAP-NNN
 > capabilities, one or more SS-NN subsystems, and the specific BC prefix ranges
 > that implement it. Full BC files live in
 > `.factory/specs/behavioral-contracts/ss-NN/`. Status = shipped / partial / pending
@@ -337,12 +337,34 @@ v1.1 candidate); dead-letter queue for messages whose sinks have exhausted
 retries (BC-3.NN.NNN-dlq-on-retry-exhaustion — v1.1 candidate).
 
 Source BCs (currently anchored): BC-3.01.008 (failure recording);
-BC-3.03.002 (otel-grpc reconnect-on-error pattern).
-v1.1 BC candidates pending: 9 (S-4.04: retry policy, CB state machine, CB
+BC-3.03.002 (otel-grpc reconnect-on-error pattern);
+BC-3.07.001 (sink-http retry backoff — promoted from v1.1 candidate, anchored by S-4.09 in Wave 11).
+v1.1 BC candidates pending: 8 (S-4.04: retry policy, CB state machine, CB
 event emission, retry isolation; S-4.05: DLQ on exhaustion, DLQ on overflow,
 DLQ event shape, DLQ disk-full no-crash, DLQ daily rotation).
 Source CAP: CAP-024 (per-sink retry, circuit breaker, dead-letter queue).
-Status: **pending** — depends on Wave 2 v1.1 BC creation (S-4.04, S-4.05).
+Status: **partial** — BC-3.07.001 anchored (S-4.09); remaining v1.1 BC creation pending (S-4.04, S-4.05).
+
+#### FR-045 — Structured `internal.sink_error` event emission on each sink failure
+
+**Source CAP:** CAP-003 — Internal events fan-out to all sinks
+**Behavioral Contracts:** BC-3.07.002
+**Stories:** S-4.10
+**Status:** pending
+**Subsystem(s):** SS-03
+
+When any sink driver records a `SinkFailure`, the dispatcher emits an
+`internal.sink_error` structured event into the same fan-out pipeline
+that consumes plugin and dispatcher events. This makes sink failures
+observable through the same JSONL/OTel streams as normal events,
+enabling alerting and triage without requiring separate failure-log
+inspection. The event is additive to BC-3.01.008's failure recording —
+recording remains in `Mutex<Vec<SinkFailure>>`; emission is
+fire-and-forget via `try_send` so failure events never block the
+dispatcher.
+
+Conforms to `INTERNAL_EVENT_SCHEMA_VERSION = 1` (PRD §3.1); the type
+literal `internal.sink_error` is reserved.
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-03/` (49 BCs total)
 
@@ -1078,9 +1100,10 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-041 | Skill-driven ADR authoring workflow (create-adr skill) | CAP-017 | SS-06, SS-08, SS-10 | BC-6.20.001–012 | 12 | pending | E-6 |
 | FR-042 | Process self-improvement enforcement (agent prompt discipline + count-propagation hook + lessons-codification rule) | CAP-001 | SS-05, SS-07, SS-08 | BC-5.36.001–007, BC-5.37.001–002, BC-7.05.001–004, BC-8.28.001–002 | 15 | pending | E-7 |
 | FR-043 | TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern (anti-precedent guard + Red Gate density check + tdd_mode contract + mutation wave-gate) | CAP-016 | SS-05, SS-06, SS-08 | BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 | 13 | pending | E-7 |
-| FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002 + v1.1 candidates (9 pending) | 2 anchored + 9 v1.1 candidates | pending | E-4 |
+| FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002, BC-3.07.001 + v1.1 candidates (8 pending) | 3 anchored + 8 v1.1 candidates | partial | E-4 |
+| FR-045 | Emit `internal.sink_error` structured event on each sink failure | CAP-003 | SS-03 | BC-3.07.002 | 1 | pending | E-4 |
 
-**Total: 44 FRs across 10 subsystems**
+**Total: 45 FRs across 10 subsystems**
 
 ---
 
@@ -1164,7 +1187,7 @@ Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x
 | ID | Severity | Description | Target Fix |
 |----|----------|-------------|-----------|
 | DRIFT-001 | P0 | `read_file` host fn at StoreData-typed linker returns CAPABILITY_DENIED stub; full impl in `host/read_file.rs` not wired | Must-fix before rc.1 (L-P0-001) |
-| DRIFT-002 | P1 | `internal.sink_*` event constants declared in `internal_log.rs` but never emitted; SinkFailure recorded but not surfaced | S-4.04 (Tier E) |
+| DRIFT-002 | P1 | `internal.sink_*` event constants declared in `internal_log.rs` but never emitted; SinkFailure recorded but not surfaced | S-4.10 (Tier E — primary resolver per FR-045) |
 | DRIFT-003 | P2 | Per-sink dedicated OS threads vs design's promised shared tokio runtime; S-1.06 shipped but swap not made | Acceptable for 1.0; planned post-1.0 |
 | DRIFT-004 | P1 | Two parallel hook-routing tables (`hooks.json` + `hooks-registry.toml`); source-of-truth ambiguity | Decision + fix at 1.0 GA (L-P0-002) |
 | DRIFT-005 | P2 | HTTP/Datadog/Honeycomb sinks declared in design; warn-and-skip in `sinks/mod.rs::from_config` | Planned rc.1 (Tier E, S-4.01–4.03) |
@@ -1179,7 +1202,7 @@ Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x
 
 | Tier | Stories | Key Work |
 |------|---------|----------|
-| E — Native ports + advanced sinks | S-3.01, S-3.02, S-3.03, S-3.04 (partial), S-4.01–4.07 | Port 3 bash hooks to WASM; ship HTTP/Datadog/Honeycomb sinks; retry + circuit breaker + DLQ; emit-event refactor; E2E observability tests |
+| E — Native ports + advanced sinks | S-3.01, S-3.02, S-3.03, S-3.04 (merged), S-4.01–4.07, S-4.09, S-4.10 | Port 3 bash hooks to WASM; ship HTTP/Datadog/Honeycomb sinks; retry + circuit breaker + DLQ; emit-event refactor; E2E observability tests |
 | F — rc.1 gate | S-4.08 | `1.0.0-rc.1` release gate |
 | G — New hook events + docs | S-5.01–5.06 (S-5.05 partial) | Wire SessionStart/SessionEnd/WorktreeCreate/PostToolUseFailure; migration guide; semver commitment docs |
 | H — 1.0 GA gate | S-5.07 | `1.0.0` release gate |
@@ -1262,7 +1285,7 @@ For v1.0, treat the prd-supplement as the authoritative NFR source.
 | E-1 | Dispatcher Foundation | S-1.01–S-1.09 (9) | beta.1 |
 | E-2 | Legacy Adapter and Beta | S-2.01–S-2.08 (8) | beta.1–beta.4 |
 | E-3 | WASM Port High-Value Hooks | S-3.01–S-3.04 (4) | rc.1 |
-| E-4 | Observability Sinks RC | S-4.01–S-4.08 (8) | rc.1 |
+| E-4 | Observability Sinks RC | S-4.01–S-4.10 (10) | rc.1 |
 | E-5 | New Hook Events v1.0 | S-5.01–S-5.07 (7) | 1.0 GA |
 
 ---
@@ -1271,7 +1294,7 @@ For v1.0, treat the prd-supplement as the authoritative NFR source.
 
 ### 12.1 Behavioral Contract Verification
 
-All 1,891 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
+All 1,893 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
 
 | Test Type | Coverage Target | Primary Tools |
 |-----------|----------------|---------------|
@@ -1325,16 +1348,16 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Field | Value |
 |-------|-------|
 | Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,891 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening) |
+| BC catalog version | 1,893 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.4 (commit 1907d8f, 2026-04-25) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
 | DRIFT items open | 11 (DRIFT-001 through DRIFT-011) |
 | Stories shipped (merged) | 22 (Tier A–D fully merged) |
 | Stories partial | 4 (S-2.05, S-3.04, S-4.06, S-5.05) |
-| Stories pending (draft) | 15 (Tiers E–H draft) |
+| Stories pending (draft) | 18 (Tiers E–H draft) |
 | CAPs covered | 28 / 28 |
-| FRs defined | 43 |
+| FRs defined | 45 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
 

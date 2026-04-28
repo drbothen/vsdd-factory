@@ -73,7 +73,7 @@ The per-subsystem SS-NN files above collectively cover their content:
 |-------|------|--------------|-------------------------------|-------------|-----|-------|
 | SS-01 | Hook Dispatcher Core | SS-01-hook-dispatcher.md | `crates/factory-dispatcher/src/{main,registry,routing,executor,invoke,engine,plugin_loader,payload}.rs` | BC-1 | 99 | Phase 1 |
 | SS-02 | Hook SDK and Plugin ABI | SS-02-hook-sdk.md | `crates/hook-sdk/`, `crates/hook-sdk-macros/` | BC-2 | 22 | Phase 1 |
-| SS-03 | Observability Sinks | SS-03-observability-sinks.md | `crates/sink-core/`, `crates/sink-file/`, `crates/sink-otel-grpc/`, `crates/factory-dispatcher/src/{internal_log,sinks}.rs` | BC-3 | 49 | Phase 1 |
+| SS-03 | Observability Sinks | SS-03-observability-sinks.md | `crates/sink-core/`, `crates/sink-file/`, `crates/sink-otel-grpc/`, `crates/factory-dispatcher/src/{internal_log,sinks}.rs` | BC-3 | 51 | Phase 1 |
 | SS-04 | Plugin Ecosystem | SS-04-plugin-ecosystem.md | `crates/hook-plugins/legacy-bash-adapter/`, `crates/hook-plugins/capture-commit-activity/` | BC-4 | 13 | Phase 1 |
 | SS-05 | Pipeline Orchestration | SS-05-orchestration.md | `plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows/*.lobster`, `plugins/vsdd-factory/workflows/phases/` | BC-5 | 646 | Phase 1 |
 | SS-06 | Skill Catalog | SS-06-skill-catalog.md | `plugins/vsdd-factory/skills/` (119 skills, 581 markdown files) | BC-6 | 585 | Phase 1 |
@@ -82,7 +82,7 @@ The per-subsystem SS-NN files above collectively cover their content:
 | SS-09 | Configuration and Activation | SS-09-config-activation.md | `plugins/vsdd-factory/hooks/hooks.json*`, `plugins/vsdd-factory/.claude-plugin/plugin.json`, `ci/platforms.yaml`, `scripts/generate-registry-from-hooks-json.sh` | BC-9 | 5 | Phase 1 |
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
-**Total BCs: 1,891 (per BC-INDEX)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
+**Total BCs: 1,893 (per BC-INDEX)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
 
 ### Subsystem Registry Design Notes
 

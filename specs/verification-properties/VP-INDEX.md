@@ -152,6 +152,9 @@ total_vps: 64
 | VP-040 | S-1.03 | Wave 4 SS-02 | VP-040 bcs [BC-2.04.001/002/004/005] are in S-1.03's 22-BC anchor set (BC-2.04 payload family — VP-040 omits .003 which contracts SessionStart lifecycle, not envelope round-trip) |
 | VP-041 | S-1.03 | Wave 4 SS-02 | VP-041 bcs [BC-2.05.001-003] are in S-1.03's 22-BC anchor set (BC-2.05.001-003 panic) |
 | VP-042 | S-1.03 | Wave 4 SS-02 | VP-042 bcs [BC-2.02.003, BC-2.02.006] are in S-1.03's 22-BC anchor set (BC-2.02.001-010 host/FFI) |
+| VP-011 | S-4.09 | Wave 11 SS-03 | S-4.09 (sink-http retry backoff with jitter) implements BC-3.07.001 which VP-011 contracts — sink submit must not block the dispatcher; retry/backoff behavior exercises the non-blocking invariant |
+| VP-012 | S-4.09, S-4.10 | Wave 11 SS-03 | S-4.09 (retry backoff) + S-4.10 (internal.sink_error emission) both anchor VP-012 — sink failure isolation; S-4.09 tests per-sink retry independence, S-4.10 tests error-event emission without cross-sink contamination |
+| VP-007 | S-4.10 | Wave 11 SS-03 | S-4.10 (internal.sink_error event emission cross-sink) implements BC-3.07.002; VP-007 contracts dispatcher self-telemetry is always-on and never panics — internal.sink_error emission is a telemetry path that must not panic under any sink failure mode |
 
 ## Traceability
 

@@ -8,13 +8,13 @@ timestamp: 2026-04-26T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1891
+total_bcs: 1893
 traces_to: bc-id-mapping.md
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,891 behavioral contracts across 10 subsystems.
+> Master index of all 1,893 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -23,7 +23,7 @@ traces_to: bc-id-mapping.md
 |-----------|-----------|-------|----------------|
 | SS-01 Hook Dispatcher Core | BC-1 | 99 | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 22 | ss-02/ |
-| SS-03 Observability Sinks | BC-3 | 49 | ss-03/ |
+| SS-03 Observability Sinks | BC-3 | 51 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 13 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
@@ -31,7 +31,7 @@ traces_to: bc-id-mapping.md
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1891** | |
+| **Total** | | **1893** | |
 
 ## Index by subsystem
 
@@ -219,6 +219,8 @@ traces_to: bc-id-mapping.md
 | [BC-3.06.004](ss-03/BC-3.06.004.md) | sink-core::sink_event_event_type_non_string_returns_none: "type" set to non-string Value → even | draft | TBD | TBD |
 | [BC-3.06.005](ss-03/BC-3.06.005.md) | sink-core::sink_config_common_defaults_enabled_true: minimal SinkConfigCommon TOML defaults enabl | draft | TBD | TBD |
 | [BC-3.06.006](ss-03/BC-3.06.006.md) | sink-core::routing_filter_allow_case_sensitive: allow-list compares case-sensitively (Commit.Made | draft | TBD | TBD |
+| [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
+| [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
 
 ### SS-04 — Plugin Ecosystem (BC-4)
 

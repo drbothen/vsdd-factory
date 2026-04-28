@@ -121,4 +121,4 @@ Justification: DI-017 is a business invariant because the trace ID is the audit 
 
 > **Note:** DI-018 was proposed in Phase 1d pass-1 to address the concurrent self-modification risk for vsdd-factory's dogfooding (engine and product are the same repo). Pass-2 review (F-018, F-021) flagged that the proposed enforcement claim was aspirational without an actual enforcing BC. The risk is now captured as a known limitation (KL-005) rather than a domain invariant.
 >
-> See `.factory/specs/PRD.md` §10.4 KL-005 and §11 DRIFT-011 for the current treatment.
+> See `.factory/specs/prd.md` §10.4 KL-005 and §11 DRIFT-011 for the current treatment.
