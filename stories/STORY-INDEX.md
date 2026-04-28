@@ -31,8 +31,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 35 |
 | partial | 3 |
-| draft | 9 |
-| ready | 0 |
+| draft | 8 |
+| ready | 1 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -91,7 +91,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | merged | 1 (v1.1 BC creation dep note) |
 | S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | draft | 2 (+ v1.1 candidates) |
 | S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | partial | 6 |
-| S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | draft | 16 |
+| S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | ready | 16 |
 | S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | draft | 5 |
 | S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | merged | 1 |
 | S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | merged | 1 |
