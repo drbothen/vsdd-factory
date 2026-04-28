@@ -154,7 +154,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | b08e085 | bot bundle for v1.0.0-beta.7 (PR #14 + hotfix PR #15) |
 | develop | ccf34e6 | Wave 11 + Wave 12 fully closed; 35 of 47 stories merged (PR #28 S-4.10 HEAD) |
-| factory-artifacts | 0734edf | Wave 11 in-flight state (pre-close) |
+| factory-artifacts | f49ce1d | Wave 11 fully closed; 35 of 47 stories merged; develop @ ccf34e6 |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 | v1.0.0-beta.6 (tag) | ae426cd | SHIPPED 2026-04-26; GH Release published; prerelease=true |
 | v1.0.0-beta.7 (tag) | b08e085 | SHIPPED 2026-04-26 19:15 UTC; GH Release published; prerelease=true |
