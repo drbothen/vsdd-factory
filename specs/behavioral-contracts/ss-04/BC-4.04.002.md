@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "9865e16"
+input-hash: "2f50188"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+modified: [v1.0-pass-1, v1.0-pass-2]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -44,7 +44,7 @@ The session-start plugin invokes `factory-health --brief` via the `exec_subproce
    - `"healthy"` — exit 0 AND stdout contains no line matching `^WARN(ING)?:` (case-sensitive prefix)
    - `"warnings"` — exit 0 AND stdout contains at least one line matching `^WARN(ING)?:` (case-sensitive prefix); all other exit-0 stdout that does not match is also mapped to `"healthy"`
    - `"errors"` — exit non-zero
-   - `"unknown"` — subprocess execution failed (binary not found, permission denied, timeout, or other invocation error)
+   - `"unknown"` — subprocess execution failed (binary not found, permission denied, timeout, `CAPABILITY_DENIED`, or other invocation error)
 3. A subprocess execution failure (binary not found, permission denied, timeout) does NOT prevent `session.started` from being emitted.
 4. The plugin returns `HookResult::Ok` regardless of whether `factory-health` succeeded or failed.
 
@@ -103,7 +103,7 @@ VP-065
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-004 (capability denial emits audit event — exec_subprocess capability gate for factory-health must emit internal.capability_denied if denied); DI-011 (sink submit must not block — subprocess invocation bounded by 5000ms timeout to preserve dispatcher latency) |
+| L2 Domain Invariants | DI-004 (capability denial emits audit event — exec_subprocess capability gate for factory-health must emit internal.capability_denied if denied; CAPABILITY_DENIED is a named failure cause in Postcondition 2 per S-5.01 pass-2 F-9); DI-011 (sink submit must not block — subprocess invocation bounded by 5000ms timeout to preserve dispatcher latency) |
 | Architecture Module | SS-04 — `crates/hook-plugins/session-start-telemetry/src/lib.rs` |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |

@@ -98,15 +98,15 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ## Epic E-5 — New Hook Events and 1.0.0 Release (Tier G + H — draft/partial)
 
-| Story ID | Title | Epic | Points | Priority | Depends On | Status |
-|----------|-------|------|--------|----------|------------|--------|
-| S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | ready |
-| S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | draft |
-| S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | draft |
-| S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | draft |
-| S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial |
-| S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft |
-| S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-0.01, S-0.02, S-5.01..S-5.06 + 1-week shakedown | draft |
+| Story ID | Title | Epic | Points | Priority | Depends On | Status | Version |
+|----------|-------|------|--------|----------|------------|--------|---------|
+| S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | ready | 2.2 |
+| S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | draft | -- |
+| S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | draft | -- |
+| S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | draft | -- |
+| S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial | -- |
+| S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft | -- |
+| S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-0.01, S-0.02, S-5.01..S-5.06 + 1-week shakedown | draft | -- |
 
 ## Epic E-6 — VSDD Self-Improvement / Tooling Backlog (open)
 

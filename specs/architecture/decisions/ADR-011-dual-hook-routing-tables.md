@@ -123,6 +123,31 @@ gitignored. `hooks-registry.toml` is committed and routed through by the dispatc
   the dispatcher has been dogfooded; beta period is explicitly for discovering
   format issues.
 
+## Downstream Impact: BC-4.04.004 vs BC-4.04.005 Layer Split
+
+The dual-table architecture creates a two-layer registration requirement for every new lifecycle
+plugin (first surfaced in the S-5.01 session-start-telemetry work):
+
+**Layer 1 — hooks.json.template (harness wiring, SS-07-owned file):**
+The `SessionStart` entry in `hooks.json.template` routes to the **dispatcher binary**, not to a
+WASM plugin filename. The canonical shape is an array-of-objects with a nested `hooks` array
+containing a `command` field pointing to the platform-specific dispatcher binary, plus `async: true`
+and `once: true` at the outer hook level. BC-4.04.004 contracts this layer. VP-065 harness
+assertions for hooks.json.template must assert against this structure (not against a WASM plugin
+filename).
+
+**Layer 2 — hooks-registry.toml (dispatcher routing, SS-07-owned file, SS-04-contracted semantics):**
+The `SessionStart` entry in `hooks-registry.toml` routes to the WASM plugin
+(e.g., `session-start-telemetry.wasm`), with `once = true`, capability declarations, and any
+`epoch_budget_ms` override needed. BC-4.04.005 contracts this layer. The routing semantics for
+this entry are SS-04-owned even though the file lives in SS-07-owned space (see F-8 ruling in
+the S-5.01 pass-2 architectural-findings record: Option C1 accepted).
+
+**Rule:** Any BC that contracts a hooks.json.template entry must NOT reference WASM plugin
+filenames — that is exclusively BC-4.04.005 / hooks-registry.toml territory. Any BC that
+contracts a hooks-registry.toml entry must NOT assert dispatcher binary paths — that is
+exclusively BC-4.04.004 / hooks.json.template territory.
+
 ## Source / Origin
 
 - **Master design doc:** `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md`

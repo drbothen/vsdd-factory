@@ -142,7 +142,8 @@ BC shard directory: `.factory/specs/behavioral-contracts/ss-04/`
 High-level BC groupings: `legacy-bash-adapter` config read and script dispatch
 (BC-4.001–BC-4.010), exit-code-to-HookResult mapping (BC-4.011–BC-4.015),
 output truncation invariants (BC-4.016–BC-4.020), capability denial propagation
-(BC-4.021–BC-4.025), `capture-commit-activity` stub contract (BC-4.026–BC-4.030).
+(BC-4.021–BC-4.025), `capture-commit-activity` stub contract (BC-4.026–BC-4.030),
+session-start-telemetry plugin family (BC-4.04.001–BC-4.04.005).
 
 ## ADRs
 

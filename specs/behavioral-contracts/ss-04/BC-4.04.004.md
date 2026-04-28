@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "9865e16"
+input-hash: "2f50188"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+modified: [v1.0-pass-1, v1.0-pass-2]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,46 +26,44 @@ removed: null
 removal_reason: null
 ---
 
-# BC-4.04.004: hooks.json.template registers SessionStart event with once:true routing to session-start-telemetry.wasm plugin
+# BC-4.04.004: hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and async:true
 
 ## Description
 
-The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `SessionStart` entry that routes to `session-start-telemetry.wasm` with `once: true`. This template is the discoverable activation surface for the session-start plugin — without this entry, the dispatcher never invokes the plugin regardless of whether the WASM binary is present. The `once: true` flag ensures the plugin is invoked at most once per Claude Code session lifecycle, consistent with the idempotency contract in BC-4.04.003.
+The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `SessionStart` entry in its `hooks` object whose `command` field routes to the **dispatcher binary** (`${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`), not directly to a WASM plugin filename. This is Layer 1 of the dual-routing-tables pattern per ADR-011: `hooks.json.template` is the Claude Code harness wiring document and knows only about the dispatcher binary. The dispatcher, once invoked, reads `hooks-registry.toml` (BC-4.04.005 — Layer 2) to route the SessionStart event to `session-start-telemetry.wasm`. The `once: true` and `async: true` flags are set on the SessionStart hook entry. The template uses an array-of-objects schema: `hooks.SessionStart` is an array; each element has a nested `hooks` array whose entries have `type = "command"` and `command` pointing to the dispatcher binary.
 
 ## Preconditions
 
-1. `plugins/vsdd-factory/hooks/hooks.json.template` is the source-of-truth for hook event routing (per BC-1.01.001 registry schema).
-2. The `session-start-telemetry.wasm` binary is present in the platform-specific plugin directory at activation time.
+1. `plugins/vsdd-factory/hooks/hooks.json.template` is the Claude Code harness wiring source of truth (per ADR-011 dual-hook-routing-tables; Layer 1 of the two-layer routing pattern).
+2. The dispatcher binary is present in the platform-specific path at `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}` at activation time.
 
 ## Postconditions
 
-1. `hooks.json.template` contains a `SessionStart` key in its hook registry.
-2. The `SessionStart` entry references `session-start-telemetry.wasm` as the plugin target.
-3. The `SessionStart` entry has `once: true` set.
-4. The template is syntactically valid JSON that passes the schema validation defined in BC-1.01.001.
+1. `hooks.json.template` contains a `SessionStart` key in its top-level `hooks` object.
+2. The `SessionStart` entry's `command` field in the nested `hooks` array references the dispatcher binary path: `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`. It does NOT reference `session-start-telemetry.wasm` or any other WASM plugin filename (per ADR-011 layer separation).
+3. The `SessionStart` hook entry has `once: true` AND `async: true` set.
+4. The entry follows the array-of-objects schema: `template["hooks"]["SessionStart"]` is an array; each element is an object with a nested `hooks` array; each nested entry has `type = "command"` and `command` = dispatcher binary path.
 
 ## Invariants
 
-1. The `SessionStart` entry must remain present in `hooks.json.template` through all v1.0 releases — removal requires a deprecation pass.
-2. `once: true` is immutable for `SessionStart` — changing to `once: false` requires a new BC and explicit justification.
-3. The plugin filename `session-start-telemetry.wasm` is the canonical reference; any rename must propagate to this template entry in the same commit.
+1. The `SessionStart` entry in `hooks.json.template` MUST NEVER reference WASM plugin filenames (e.g., `session-start-telemetry.wasm`) — per ADR-011 layer separation, WASM plugin references belong exclusively in `hooks-registry.toml` (BC-4.04.005).
+2. The `SessionStart` entry must remain present in `hooks.json.template` through all v1.0 releases — removal requires a deprecation pass.
 
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | Plugin binary is renamed from `session-start-telemetry.wasm` to a new name | Template entry `session-start-telemetry.wasm` reference becomes stale; dispatcher logs "plugin not found"; fix requires a coordinated rename commit updating both the binary name and this template entry |
-| EC-002 | Platform-specific binary path resolution differs between darwin-arm64 and windows-x64 | Template must use a platform-neutral relative path or use the activation system's path substitution variable; absolute paths in the template are invalid |
-| EC-003 | `hooks.json.template` is rendered without the `SessionStart` entry (e.g., template variable substitution strips it) | Dispatcher never invokes session-start plugin; `session.started` events are never emitted; factory-health is never triggered on session start |
-| EC-004 | `session-start-telemetry.wasm` binary is not present at expected path at runtime (e.g., partial activation, missing binary after platform switch) | Dispatcher emits `internal.dispatcher_error` event with `plugin_id = "session-start-telemetry"`; `SessionStart` event does not produce `session.started`; dispatcher exit code is unaffected (fail-open). See SS-01 missing-plugin handling for the dispatcher-side enforcement. |
+| EC-001 | Dispatcher binary path platform substitution fails (e.g., `{{PLATFORM}}` placeholder not substituted during activation) | Activation system falls back to the previous generated `hooks.json` or reports activation error; the unsubstituted template path is never written to the live `hooks.json` |
+| EC-002 | `hooks.json.template` is missing the `SessionStart` key entirely | No `SessionStart` routing exists in the Claude Code harness; the dispatcher is never invoked for SessionStart events; `session.started` events are never emitted |
+| EC-003 | Per-platform variant file (`.platform/darwin-arm64/hooks.json`) is out of sync with `hooks.json.template` | Activation regeneration required; the platform variant is the committed artifact used by the activation skill (hooks.json is gitignored) |
 
 ## Canonical Test Vectors
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Parse `hooks.json.template` and inspect registry | `SessionStart` key present; value references `session-start-telemetry.wasm`; `once: true` present | happy-path |
-| Rename `session-start-telemetry.wasm` to `session-telemetry.wasm` without updating template | Dispatcher reports "plugin not found: session-start-telemetry.wasm" on SessionStart event | error (rename propagation failure) |
-| Template rendered on windows-x64 platform | `SessionStart` entry still resolves to correct plugin binary path on that platform | edge-case |
+| Parse `hooks.json.template`; inspect `hooks.SessionStart[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once: true` present; `async: true` present; no reference to `.wasm` filename in `command` field | happy-path |
+| Parse `hooks.json.template`; inspect `hooks.SessionStart[0].hooks[0].command` | Value matches pattern `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}` (placeholder-unsubstituted form) | happy-path (dispatcher binary routing) |
+| `hooks.json.template` is missing `SessionStart` key | No SessionStart entry in `template["hooks"]`; dispatcher never invoked for SessionStart events | error (missing key) |
 
 ## Verification Properties
 
@@ -83,8 +81,9 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Ses
 
 ## Architecture Anchors
 
-- SS-04 — `plugins/vsdd-factory/hooks/hooks.json.template` (`SessionStart` registry entry)
-- SS-09 — activation system path resolution for `session-start-telemetry.wasm` binary
+- SS-07 — `plugins/vsdd-factory/hooks/hooks.json.template` (harness wiring source of truth; owned by SS-07 Hook Bash Layer per ADR-011)
+- SS-04 — behavioral contract for the SessionStart routing semantics within `hooks.json.template` (routing layer ownership per F-8 ruling)
+- SS-09 — activation skill generates the live `hooks.json` (and per-platform variants) from `hooks.json.template` at activation time; the template itself is committed and not gitignored
 
 ## Story Anchor
 
@@ -100,7 +99,7 @@ VP-065
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-014 (schema version mismatch = hard error — hooks.json.template schema_version must remain compatible with registry validator); DI-015 (per-project activation required — hooks.json.template is the activation surface that must be present for dispatcher invocation) |
-| Architecture Module | SS-04 — `plugins/vsdd-factory/hooks/hooks.json.template` |
+| L2 Domain Invariants | DI-015 (per-project activation required — hooks.json.template is the activation surface that must be present for dispatcher invocation) |
+| Architecture Module | SS-07 — `plugins/vsdd-factory/hooks/hooks.json.template` (harness wiring); SS-04 contracts SessionStart routing semantics within this file |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |

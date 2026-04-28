@@ -116,7 +116,7 @@ total_vps: 65
 | [VP-062](VP-062.md) | S-7.02 Process-Codification Surface Invariant — All Codification Artifacts Are Present and Coherent | invariant | integration | SS-05, SS-07, SS-08 | — | draft |
 | [VP-063](VP-063.md) | RED_RATIO computation correctness — monotonic, bounded [0.0, 1.0], boundary-safe at 0.5 threshold | invariant | integration | SS-05 | — | draft |
 | [VP-064](VP-064.md) | facade-mode mutation gate enforcement — wave-gate skill executes cargo mutants and blocks if kill rate < 80% | safety | manual | SS-05, SS-06 | — | draft |
-| [VP-065](VP-065.md) | Session-Start Plugin Surface Invariant — All BC-4.04.* Postconditions Hold in Integration Test | invariant | integration | SS-04, SS-09 | — | draft |
+| [VP-065](VP-065.md) | Session-Start Plugin Surface Invariant — All BC-4.04.* Postconditions Hold in Integration Test | invariant | integration | SS-04, SS-07, SS-09 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -157,10 +157,11 @@ total_vps: 65
 | VP-011 | S-4.09 | Wave 11 SS-03 | S-4.09 (sink-http retry backoff with jitter) implements BC-3.07.001 which VP-011 contracts — sink submit must not block the dispatcher; retry/backoff behavior exercises the non-blocking invariant |
 | VP-012 | S-4.09, S-4.10 | Wave 11 SS-03 | S-4.09 (retry backoff) + S-4.10 (internal.sink_error emission) both anchor VP-012 — sink failure isolation; S-4.09 tests per-sink retry independence, S-4.10 tests error-event emission without cross-sink contamination |
 | VP-007 | S-4.10 | Wave 11 SS-03 | S-4.10 (internal.sink_error event emission cross-sink) implements BC-3.07.002; VP-007 contracts dispatcher self-telemetry is always-on and never panics — internal.sink_error emission is a telemetry path that must not panic under any sink failure mode |
+| VP-065 | S-5.01 | Wave 16 | S-5.01 (session-start hook wiring) is the anchor story; VP-065's integration harness lives at crates/hook-plugins/session-start-telemetry/tests/integration_test.rs which S-5.01 creates per File Structure Requirements |
 
 ## Traceability
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
-- BCs cross-referenced: 100 BC IDs across 65 VPs
+- BCs cross-referenced: 102 BC IDs across 65 VPs
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
 - 15 VPs have TBD test evidence (manual or pending CI automation)
