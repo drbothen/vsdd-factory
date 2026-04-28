@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -44,7 +44,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 2. The emitted payload contains all required fields. Fields are categorized by who sets them:
 
    **Plugin-set fields (3 fields — the plugin sets these via `emit_event` key/value pairs):**
-   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). `duration_ms = "0"` when: (a) `session_start_ts` is absent from the envelope; OR (b) `session_start_ts` is in the future relative to `now_ms` (clock-skew clamp — a future timestamp yields a negative elapsed duration, which the plugin clamps to `"0"` rather than emitting a negative value); OR (c) `session_start_ts` is present but unparseable as ISO-8601 (treat-as-absent default; strict envelope-value type validation is a v1.1 candidate per BC-1.02.005 extension). Value is always a non-negative integer represented as a decimal string.
+   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). `duration_ms = "0"` when: (a) `session_start_ts` is absent from the envelope; OR (b) `session_start_ts` is in the future relative to `now_ms` (clock-skew clamp — a future timestamp yields a negative elapsed duration, which the plugin clamps to `"0"` rather than emitting a negative value); OR (c) `session_start_ts` is present as a JSON string but does not parse as ISO-8601 (treat-as-absent default; non-string-type envelope values are out of scope for this BC and deferred to BC-1.02.005 v1.1 envelope-value type validation extension). Value is always a non-negative integer represented as a decimal string.
    - `tool_call_count` (string per wire format): integer count of tool invocations during the session, sourced from the envelope's `tool_call_count` field. If `tool_call_count` is absent from the envelope, `tool_call_count = "0"`. Value is always a non-negative integer represented as a decimal string.
    - `timestamp` (ISO-8601 UTC with millisecond precision and `Z` suffix; regex: `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; example: `2026-04-28T12:34:56.789Z`) — the plugin's own emission timestamp, not the session-end time from the envelope.
 
@@ -75,7 +75,8 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 1. `session_id` on the emitted event reflects the value BC-1.02.005 envelope parsing placed into `HostContext.session_id` — preserved verbatim from the envelope (or `"unknown"` if missing/empty), never transformed, truncated, or replaced by the plugin (the plugin does not set it; `emit_event` auto-enriches it from HostContext).
 2. The `session.ended` event-name literal is immutable and reserved per PRD FR-046; renaming requires a new BC.
 3. `emit_event` is called before the plugin function returns.
-4. `duration_ms` and `tool_call_count` are never absent or null in the emitted payload — they default to `"0"` when corresponding envelope fields are absent OR unparseable.
+4. `duration_ms` is never absent or null in the emitted payload — it defaults to `"0"` when `session_start_ts` is absent OR in the future OR unparseable as ISO-8601 per PC-2 branches (a)/(b)/(c). Branch (c) applies only to string-typed envelope values; non-string-type handling is a v1.1 candidate (deferred to BC-1.02.005 envelope-value type validation extension).
+5. `tool_call_count` is never absent or null in the emitted payload — it defaults to `"0"` when the envelope's `tool_call_count` field is absent per EC-002. Parse-failure handling for non-numeric `tool_call_count` values is a v1.1 candidate (deferred to BC-1.02.005 envelope-value type validation extension).
 
 ## Edge Cases
 
@@ -83,7 +84,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 |----|-------------|-------------------|
 | EC-001a | `session_start_ts` is absent from the `SessionEnd` envelope | `duration_ms = "0"` in the emitted `session.ended` event; all other fields emitted normally; plugin does not abort |
 | EC-001b | `session_start_ts` is present in the `SessionEnd` envelope but is in the future relative to `now_ms` (clock skew / test fixture / adversarial input) | `duration_ms = "0"` (negative elapsed time clamped to zero); all other fields emitted normally; plugin does not abort. This is the clock-skew safeguard that prevents negative duration values on the wire. |
-| EC-001c | `session_start_ts` is present in the `SessionEnd` envelope but is unparseable as ISO-8601 (e.g., `"garbage"`, numeric type, empty string) | Plugin treats unparseable `session_start_ts` as functionally absent; `duration_ms = "0"` (defers to PC-2 branch (a) absent-field default); all other fields emitted normally; plugin does not abort. Strict envelope-value type validation is a v1.1 candidate to lift to BC-1.02.005. |
+| EC-001c | `session_start_ts` is present as a JSON string but unparseable as ISO-8601 (e.g., `"garbage"`, empty string) | Plugin treats unparseable string as functionally absent; `duration_ms = "0"` (defers to PC-2 branch (a) absent-field default per EC-001c); all other fields emitted normally; plugin does not abort. NOTE: Non-string envelope types (JSON number, null, object) are out of scope; v1.1 candidate to lift to BC-1.02.005. |
 | EC-002 | `tool_call_count` is absent from the `SessionEnd` envelope | `tool_call_count = "0"` in the emitted `session.ended` event; all other fields emitted normally; plugin does not abort |
 | EC-003 | Both `session_start_ts` and `tool_call_count` are absent from the envelope | `duration_ms = "0"`, `tool_call_count = "0"`; `timestamp` is the plugin's own emission time; plugin emits normally |
 | EC-004 | `session_id` is missing or empty string in the `SessionEnd` envelope | BC-1.02.005 lifecycle-tolerance sets `HostContext.session_id = "unknown"`; `emit_event` auto-enriches the event with this value; plugin is unconditionally stateless per BC-4.05.003; emits normally. Note: `duration_ms` and `tool_call_count` follow EC-001/EC-002 independently of `session_id` presence — they read different envelope fields (`session_start_ts` and `tool_call_count` respectively) and are unaffected by `session_id` being missing or empty. |
@@ -101,7 +102,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 
 **Malformed-envelope handling (scope boundary):** This BC handles only field-presence cases (EC-001a, EC-001b, EC-002, EC-003, EC-004) and the parse-failure case for `session_start_ts` (EC-001c). Envelope malformation (non-JSON envelope, etc.) is handled upstream by BC-1.02.005 lifecycle-tolerant envelope parsing before this plugin is ever invoked. If BC-1.02.005 admits the envelope (i.e., it parses as valid JSON with a recognized event type), this BC handles field-presence cases and `session_start_ts` parse failures.
 
-**Parse-failure semantics for `session_start_ts` (v1.0):** If `session_start_ts` is present in the envelope but unparseable as ISO-8601 (e.g., `"garbage"`, numeric type, empty string), the plugin treats it as functionally absent and emits `duration_ms = "0"` (defers to PC-2 branch (a) absent-field default). Strict envelope-value type validation is a v1.1 candidate to lift to BC-1.02.005.
+**Parse-failure semantics for `session_start_ts` (v1.0 — string-only scope):** If `session_start_ts` is present as a JSON string but unparseable as ISO-8601 (e.g., `"garbage"`, empty string), the plugin treats it as functionally absent and emits `duration_ms = "0"` (defers to PC-2 branch (c) string-only parse-failure clause). Non-string-type envelope values (JSON number, null, object) are out of scope for this BC; handling is a v1.1 candidate to lift to BC-1.02.005 envelope-value type validation extension.
 
 ## Verification Properties
 

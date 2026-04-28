@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-28 (S-5.02 pass-4 fix burst — 4 findings closed; v2.3→v2.4; BC-4.05.001 PC-2 branch(c)+Inv4 + VP-066 §1+new test+feasibility + AC2+AC6 11-tests + EC-001c row propagated; pass-5 ready; trajectory pass-1=11, pass-2=7, pass-3=4, pass-4=4) |
+| **Last Updated** | 2026-04-28 (S-5.02 pass-5 fix burst — 2 MEDIUM closed via Option b deferrals; v2.4→v2.5; BC-4.05.001 Inv 4→4+5 split + PC-2(c) narrowed + EC-001c narrowed; VP-066 §1 narrowed; trajectory 11→7→4→4→2; pass-6 ready NITPICK_ONLY=CLEAN_PASS_1_OF_3 target) |
 | **Current Phase** | wave-9-ss-01-CONVERGED-cycle-re-anchor-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -90,9 +90,9 @@ dtu_services: []
 |------|-------|--------|--------|
 | *(earlier steps archived to cycles/v1.0-brownfield-backfill/ burst-log + session-checkpoints)* | | | |
 | S-5.01 delivery (PR #35 0257f03) | pr-manager | COMPLETE | 9/9 integration + 14/14 unit GREEN; clippy clean; SAST pass; 0 blocking review findings; D-136; Wave 13 opened |
-| S-5.02 pass-2 fix burst | state-manager | COMPLETE | 7 findings closed (PO 7): F-1 BC-4.05.004 EC-003 path convention; TD-S5.02-PASS2 BC-4.04.004 cross-story sibling fix; F-2/3 future-timestamp branch propagation; F-4/5 VP-066 assertions tightened + split; F-6/7 VP-066 wording + Notes; S-5.02 v2.1→v2.2; pass-3 ready |
 | S-5.02 pass-3 fix burst | state-manager | COMPLETE | 4 findings closed (PO+story-writer 4): F-P3-01 AC6 list aligned to 10 actual VP-066 tests; F-P3-02 VP-066 EC-001b test added + §1 wording updated for clock-skew clamp; F-P3-03 Story EC table EC-001→EC-001a + EC-001b row; F-P3-04 BC-4.05.001 EC-001c parse-failure row + Notes; S-5.02 v2.2→v2.3; pass-4 ready (NITPICK_ONLY target = CLEAN_PASS_1_OF_3) |
 | S-5.02 pass-4 fix burst | state-manager | COMPLETE | 4 findings closed (PO 4): F-P4-01 BC-4.05.001 PC-2 branch(c) parse-failure treat-as-absent default + Invariant 4 "absent OR unparseable"; F-P4-02 Story AC2+AC6 11-tests + EC-001c row propagated; F-P4-03 VP-066 §1 wording + new test_bc_4_05_001_unparseable_session_start_ts_emits_zero_duration; F-P4-04 VP-066 feasibility cell ~8→~11; S-5.02 v2.3→v2.4; pass-5 ready (NITPICK_ONLY = CLEAN_PASS_1_OF_3 target) |
+| S-5.02 pass-5 fix burst | state-manager | COMPLETE | 2 MEDIUM findings closed (PO 2) via Option b deferrals: F-P5-01 (MED) Invariant 4 split → Inv 4 (duration_ms: absent/future/unparseable) + Inv 5 (tool_call_count: absent only); non-numeric parse-failure → v1.1 candidate BC-1.02.005; F-P5-02 (MED) PC-2 branch (c) narrowed to JSON string + ISO-8601 parse-failure only; non-string-type envelope values → v1.1. EC-001c narrowed on BC-4.05.001. VP-066 §1 narrowed. S-5.02 v2.4→v2.5. Trajectory: 11→7→4→4→2. Pass-6 ready (NITPICK_ONLY = CLEAN_PASS_1_OF_3 target). |
 
 ## Identifier Conventions
 
@@ -129,7 +129,7 @@ dtu_services: []
 - **Merged (40):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (4):** Tier F (S-5.03/5.04/5.06), Tier G/H TBD
-- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.4; 5 BCs + VP-066 + FR-046 anchored; pass-4 fix burst 4 findings closed; trajectory pass-1=11, pass-2=7, pass-3=4, pass-4=4)
+- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.5; 5 BCs + VP-066 + FR-046 anchored; pass-5 fix burst 2 MEDIUM closed via Option b deferrals; trajectory 11→7→4→4→2)
 
 ## Drift Items (open)
 
@@ -202,10 +202,10 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**S-5.02 pass-4 fix burst COMPLETE (2026-04-28).** 4 findings closed (PO 4): F-P4-01 (HIGH) BC-4.05.001 PC-2 branch (c) added — parse-failure treat-as-absent default; Invariant 4 widened to "absent OR unparseable"; F-P4-02 (HIGH) Story AC2 + AC6 (11 tests) + Edge Cases table EC-001c row propagated from BC-4.05.001; F-P4-03 (HIGH) VP-066 §1 wording updated for unparseable case + new test `test_bc_4_05_001_unparseable_session_start_ts_emits_zero_duration` added; F-P4-04 (MED) VP-066 feasibility cell bumped ~8→~11 discrete test cases. S-5.02 v2.3→v2.4. Trajectory: pass-1=11, pass-2=7, pass-3=4, pass-4=4. Pass-3 introduced EC-001c on BC-4.05.001 only; pass-4 completes propagation across all 7 sibling artifacts. 39 of 47 stories merged; develop @ 0257f03.
+**S-5.02 pass-5 fix burst COMPLETE (2026-04-28).** 2 MEDIUM findings closed (PO 2) via Option b deferrals (minimum scope; defer to v1.1 BC-1.02.005 envelope-value type validation extension): F-P5-01 (MED) BC-4.05.001 Invariant 4 split → Inv 4 (duration_ms: absent/future/string-unparseable → zero) + new Inv 5 (tool_call_count: absent → zero; non-numeric parse-failure → v1.1); F-P5-02 (MED) BC-4.05.001 PC-2 branch (c) narrowed to JSON string + ISO-8601 parse-failure only; non-string-type envelope values → v1.1. EC-001c narrowed on BC-4.05.001 Notes. VP-066 §1 narrowed to match. S-5.02 v2.4→v2.5. Trajectory: 11→7→4→4→2. 40 of 47 stories merged; develop @ 0257f03.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-5.02 adversarial pass-5** (immediate): dispatch adversary with S-5.02 v2.4 + BC-4.05.001 (PC-2 branch(c)+Inv4) + VP-066 (11 tests; EC-001c test added). Target: NITPICK_ONLY = CLEAN_PASS_1_OF_3.
+- **S-5.02 adversarial pass-6** (immediate): dispatch adversary with S-5.02 v2.5 + BC-4.05.001 (Inv 4+5 split; PC-2(c) narrowed; EC-001c narrowed) + VP-066 (§1 narrowed). Target: NITPICK_ONLY = CLEAN_PASS_1_OF_3.
 - **rc.1 shakedown** (highest priority): 14-day window; Release Engineer executes 11 deferred S-4.08 ACs; run `scripts/check-shakedown-window.sh` to validate BC-9.01.006 PC1-PC5; cut rc.1 tag + trigger Release.yml
 - **v1.0 GA prep** (after shakedown clean): S-5.02..S-5.07 (Tier G/H) or direct v1.0.0 release gating
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)
