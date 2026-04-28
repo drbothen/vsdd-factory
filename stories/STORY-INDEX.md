@@ -29,10 +29,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 37 |
+| merged | 38 |
 | partial | 2 |
 | draft | 6 |
-| ready | 2 |
+| ready | 1 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -91,7 +91,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | merged | 1 (v1.1 BC creation dep note) |
 | S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | done | 2 (+ v1.1 candidates; CONVERGENCE_REACHED pass-48; v1.45; commit ac22a3d; PR #29 merged a84a5f5 on develop 2026-04-28) |
 | S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | done | 6 (BC-3.04.003, BC-3.04.004, BC-3.06.007 added; 5 lifecycle updated; PR #30 merged 6ef564c on develop 2026-04-28) |
-| S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | ready | 16 |
+| S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | done | 16 (PR #31 merged 1d4edb7 on develop 2026-04-28; spec v1.11 4c0050c; 8 adversarial passes; 40/40 tests in 5.09s) |
 | S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | ready | 5 |
 | S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | merged | 1 |
 | S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | merged | 1 |
@@ -139,6 +139,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **S-4.05 DLQ delivered: PR #29 merged to develop at a84a5f5 (2026-04-28).** 18/18 tests GREEN; 0 regressions; 12/12 ACs verified. Spec v1.45, 48 adversarial passes (longest in project history). STORY-INDEX merged 35→36; ready 4→3. Wave 12 remaining: S-4.06 (3pts), S-4.07 (13pts critical-path), S-4.08 (5pts) — 23/28 pts remaining.
 
 > **S-4.06 routing filters + tag enrichment delivered: PR #30 merged to develop at 6ef564c (2026-04-28).** 9/9 ACs verified; 264 workspace tests pass; 0 regressions. Spec v1.10, 10 adversarial passes (CONVERGED d7b29dc). 2 code-review cycles (cycle 1 fixed sink-http+honeycomb missing routing_filter/tags; cycle 2 APPROVE). 3 new BCs (BC-3.04.003, BC-3.04.004, BC-3.06.007); 5 BCs lifecycle updated. STORY-INDEX merged 36→37; ready 3→2. Wave 12 remaining: S-4.07 (13pts critical-path), S-4.08 (5pts) — 18/28 pts remaining.
+
+> **S-4.07 E2E observability integration tests delivered: PR #31 merged to develop at 1d4edb7 (2026-04-28).** 16/16 ACs verified; 40/40 integration tests pass in 5.09s; 0 regressions. Spec v1.11 at 4c0050c, 8 adversarial passes (CONVERGED). 1 code-review cycle (immediate APPROVE; 0 blocking). rc.1 critical-path unblocked. STORY-INDEX merged 37→38; ready 2→1. Wave 12 remaining: S-4.08 (5pts rc.1 gate) — 23/28 pts done.
 
 > **Wave 11 SS-03 fully closed at develop@ccf34e6 (2026-04-27).** PRs merged this session: #18 (S-4.01), #20 (S-3.01), #21 (S-3.02), S-3.03 ports (4229648), #22 (Semgrep SAST), #23 (S-4.04 retry+CB), #24 (S-4.02 datadog), #25 (S-4.03 honeycomb), #26 (docs), #27 (S-4.09 backoff), #28 (S-4.10 cross-sink emission). 9 stories shipped + 1 docs + 1 SAST = 11 PRs. STORY-INDEX merged 33 → 35. Wave 12 also fully closed (S-4.02/03/04). S-4.07 (E2E integration) now waits only on S-4.05 + S-4.06 spec convergence + impl. Worktrees cleaned up: /private/tmp/vsdd-S-3.01, S-3.02, S-3.03 (Wave 11 first batch); /private/tmp/vsdd-S-4.02, S-4.03, S-4.04 (Wave 12); /private/tmp/vsdd-S-4.09, S-4.10 (Wave 11 close). Local repo now shows only develop + .factory/ + harness-managed agent worktrees.
 
