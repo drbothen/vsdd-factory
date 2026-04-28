@@ -10,8 +10,10 @@
 //! pure filter matching is delegated to `sink-core/src/router_filter.rs`.
 
 use sink_core::SinkEvent;
+use tracing::debug;
 
 use super::SinkRegistry;
+use crate::internal_log::INTERNAL_EVENT_FILTERED;
 
 /// Stable extension point for pre-submit event processing. Holds a
 /// registry and forwards to it after applying per-sink routing filters
@@ -41,18 +43,43 @@ impl Router {
     /// - When an event fails a sink's filter, no SinkFailure is
     ///   recorded; a debug-level `internal.event_filtered` log entry
     ///   is emitted (one per filtering sink).
-    ///
-    /// STUB: filtering and enrichment not yet implemented. Delegates
-    /// to SinkRegistry::submit_all without filter evaluation.
     pub fn submit(&self, event: SinkEvent) {
-        // TODO(S-4.06): implement per-sink filter + tag enrichment.
-        // For each sink in the registry:
-        //   1. Read sink.routing_filter()
-        //   2. If filter is Some and !filter.accepts(&event): emit
-        //      INTERNAL_EVENT_FILTERED debug log; skip sink.
-        //   3. Enrich event with sink's tags (non-overwrite).
-        //   4. Call sink.submit(enriched).
-        self.registry.submit_all(event);
+        for sink in self.registry.sinks() {
+            // Step 1: Apply per-sink routing filter (BC-3.04.004 PC1).
+            if let Some(filter) = sink.routing_filter() {
+                if !filter.accepts(&event) {
+                    // BC-3.04.003 PC2+PC3: silent drop — no SinkFailure;
+                    // emit debug-level INTERNAL_EVENT_FILTERED log entry.
+                    debug!(
+                        type_ = INTERNAL_EVENT_FILTERED,
+                        sink_name = %sink.name(),
+                        event_type = %event.event_type().unwrap_or("<unknown>"),
+                        "Router silently dropped event that failed routing filter"
+                    );
+                    continue;
+                }
+            }
+
+            // Step 2: Tag enrichment (BC-3.04.004 PC3+PC4).
+            // Non-overwrite: producer fields win on key collision.
+            let enriched = {
+                let sink_tags = sink.tags();
+                if sink_tags.is_empty() {
+                    event.clone()
+                } else {
+                    let mut ev = event.clone();
+                    for (k, v) in sink_tags {
+                        if !ev.fields.contains_key(k) {
+                            ev.fields.insert(k.clone(), serde_json::Value::String(v.clone()));
+                        }
+                    }
+                    ev
+                }
+            };
+
+            // Step 3: Delegate to sink (BC-3.04.004 PC2).
+            sink.submit(enriched);
+        }
     }
 
     /// Flush every underlying sink. Delegates to
@@ -134,6 +161,11 @@ mod tests {
         /// Returns the configured routing filter for Router-layer inspection.
         fn routing_filter(&self) -> Option<&RoutingFilter> {
             self.filter.as_ref()
+        }
+
+        /// Returns the configured tags for Router-layer enrichment.
+        fn tags(&self) -> &std::collections::BTreeMap<String, String> {
+            &self.tags
         }
 
         fn submit(&self, event: SinkEvent) {

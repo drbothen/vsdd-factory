@@ -171,10 +171,18 @@ pub trait Sink: Send + Sync {
     /// configured. Router::submit reads this to apply per-sink routing
     /// at the dispatch layer before calling `submit` (BC-3.04.004).
     /// Returns `None` for sinks with no routing filter (pass-through).
-    ///
-    /// Stub: implementations return `None` until S-4.06 wires the trait.
     fn routing_filter(&self) -> Option<&RoutingFilter> {
         None
+    }
+
+    /// Returns a reference to this sink's static tags config.
+    /// Router::submit reads this to apply tag enrichment before calling
+    /// `submit` (BC-3.04.004 PC3). Default implementation returns an
+    /// empty map — sinks with no tags configured need not override.
+    fn tags(&self) -> &BTreeMap<String, String> {
+        static EMPTY: std::sync::OnceLock<BTreeMap<String, String>> =
+            std::sync::OnceLock::new();
+        EMPTY.get_or_init(BTreeMap::new)
     }
 
     /// Non-blocking enqueue. Overflow behavior is driver-specific but

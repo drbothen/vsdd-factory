@@ -353,21 +353,10 @@ impl FileSink {
         &self.common
     }
 
-    /// Enrich an event with this sink's static tags without clobbering
-    /// producer-set fields. Used by `submit` before the event enters
-    /// the queue, so the worker writes the final shape without needing
-    /// its own tag context.
-    fn enrich(&self, event: SinkEvent) -> SinkEvent {
-        let mut ev = event;
-        for (k, v) in &self.common.tags {
-            if !ev.fields.contains_key(k) {
-                ev.fields
-                    .insert(k.clone(), serde_json::Value::String(v.clone()));
-            }
-        }
-        ev
-    }
 }
+// Note: FileSink::enrich() removed in S-4.06 — tag enrichment is now
+// the Router's responsibility (BC-3.04.004 PC3). Events arrive at
+// FileSink::submit() pre-enriched from Router::submit().
 
 impl Sink for FileSink {
     fn name(&self) -> &str {
@@ -381,17 +370,27 @@ impl Sink for FileSink {
         if self.shared.shutdown.load(Ordering::Acquire) {
             return false;
         }
-        if let Some(filter) = self.common.routing_filter.as_ref() {
-            return filter.accepts(event);
-        }
+        // NOTE: RoutingFilter evaluation removed per BC-3.04.004 invariant 1.
+        // Router is the single dispatch gate; FileSink::accepts handles only
+        // enabled-flag and shutdown-state checks.
         true
+    }
+
+    fn routing_filter(&self) -> Option<&RoutingFilter> {
+        self.common.routing_filter.as_ref()
+    }
+
+    fn tags(&self) -> &std::collections::BTreeMap<String, String> {
+        &self.common.tags
     }
 
     fn submit(&self, event: SinkEvent) {
         if !self.accepts(&event) {
             return;
         }
-        let enriched = self.enrich(event);
+        // Tag enrichment is now the Router's responsibility (BC-3.04.004 PC3).
+        // Events arrive pre-enriched from Router::submit.
+        let enriched = event;
         let guard = self.sender.lock().unwrap_or_else(|p| p.into_inner());
         let Some(sender) = guard.as_ref() else {
             // Post-shutdown submit is a no-op by contract.
@@ -712,85 +711,24 @@ mod tests {
         assert_eq!(last["sha"], "deadbeef");
     }
 
-    #[test]
-    fn routing_filter_drops_excluded_events() {
-        let tmp = tempfile::tempdir().unwrap();
-        let cfg = FileSinkConfig {
-            name: "audit".into(),
-            enabled: true,
-            path_template: format!("{}/{{name}}-{{date}}.jsonl", tmp.path().display()),
-            queue_depth: DEFAULT_QUEUE_DEPTH,
-            routing_filter: Some(RoutingFilter {
-                event_types_allow: vec!["commit.made".into()],
-                event_types_deny: vec![],
-                plugin_ids_allow: vec![],
-            }),
-            tags: Default::default(),
-        };
-        let sink = FileSink::new(cfg, None).unwrap();
-        submit_event(&sink, "commit.made", &[]);
-        submit_event(&sink, "plugin.invoked", &[]);
-        submit_event(&sink, "commit.made", &[]);
-        sink.flush().unwrap();
+    // NOTE: routing_filter_drops_excluded_events was removed in S-4.06.
+    // RoutingFilter evaluation was removed from FileSink::accepts() per
+    // BC-3.04.004 invariant 1 (Router is the single dispatch gate).
+    // FileSink::accepts() now only checks enabled-flag and shutdown-state.
+    // Router-layer filter coverage lives in:
+    //   crates/factory-dispatcher/src/sinks/router.rs::tests::
+    //     test_BC_3_04_004_routing_filter_applied_in_dispatch_path
+    //   crates/factory-dispatcher/tests/router_integration.rs::
+    //     test_BC_3_04_004_two_sinks_different_filters_correct_routing
 
-        let date = Local::now().format("%Y-%m-%d").to_string();
-        let path = tmp.path().join(format!("audit-{date}.jsonl"));
-        let lines = read_lines(&path);
-        assert_eq!(lines.len(), 2, "filter should keep only commit.made");
-        for line in &lines {
-            let parsed: Value = serde_json::from_str(line).unwrap();
-            assert_eq!(parsed["type"], "commit.made");
-        }
-    }
-
-    #[test]
-    fn tag_enrichment_writes_tags_onto_every_event() {
-        let tmp = tempfile::tempdir().unwrap();
-        let mut tags = std::collections::BTreeMap::new();
-        tags.insert("env".into(), "prod".into());
-        tags.insert("team".into(), "factory".into());
-        let cfg = FileSinkConfig {
-            name: "dd-prod".into(),
-            enabled: true,
-            path_template: format!("{}/{{name}}-{{date}}.jsonl", tmp.path().display()),
-            queue_depth: DEFAULT_QUEUE_DEPTH,
-            routing_filter: None,
-            tags,
-        };
-        let sink = FileSink::new(cfg, None).unwrap();
-        submit_event(&sink, "commit.made", &[]);
-        sink.flush().unwrap();
-        let date = Local::now().format("%Y-%m-%d").to_string();
-        let path = tmp.path().join(format!("dd-prod-{date}.jsonl"));
-        let lines = read_lines(&path);
-        let parsed: Value = serde_json::from_str(&lines[0]).unwrap();
-        assert_eq!(parsed["env"], "prod");
-        assert_eq!(parsed["team"], "factory");
-        assert_eq!(parsed["type"], "commit.made");
-    }
-
-    #[test]
-    fn tag_enrichment_does_not_overwrite_producer_fields() {
-        let tmp = tempfile::tempdir().unwrap();
-        let mut tags = std::collections::BTreeMap::new();
-        tags.insert("type".into(), "stomped".into()); // should NOT overwrite
-        let cfg = FileSinkConfig {
-            name: "noclobber".into(),
-            enabled: true,
-            path_template: format!("{}/{{name}}-{{date}}.jsonl", tmp.path().display()),
-            queue_depth: DEFAULT_QUEUE_DEPTH,
-            routing_filter: None,
-            tags,
-        };
-        let sink = FileSink::new(cfg, None).unwrap();
-        submit_event(&sink, "commit.made", &[]);
-        sink.flush().unwrap();
-        let date = Local::now().format("%Y-%m-%d").to_string();
-        let path = tmp.path().join(format!("noclobber-{date}.jsonl"));
-        let lines = read_lines(&path);
-        let parsed: Value = serde_json::from_str(&lines[0]).unwrap();
-        assert_eq!(parsed["type"], "commit.made", "producer field wins");
-    }
+    // NOTE: tag_enrichment_writes_tags_onto_every_event and
+    // tag_enrichment_does_not_overwrite_producer_fields were removed in S-4.06.
+    // Tag enrichment was refactored from FileSink to Router::submit() per
+    // BC-3.04.004 PC3+PC4 (Migration Decision: Option (a) — Refactor).
+    // Equivalent coverage now lives in:
+    //   crates/factory-dispatcher/src/sinks/router.rs::tests::
+    //     test_BC_3_04_004_static_tags_merged_before_submit
+    //     test_BC_3_04_004_tag_enrichment_does_not_overwrite_producer_fields
 
     #[test]
     fn disabled_sink_drops_every_event() {
