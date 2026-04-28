@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.02-session-end-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "d5ae7e4"
+input-hash: "f2f67a5"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -44,7 +44,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 2. The emitted payload contains all required fields. Fields are categorized by who sets them:
 
    **Plugin-set fields (3 fields — the plugin sets these via `emit_event` key/value pairs):**
-   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). `duration_ms = "0"` when: (a) `session_start_ts` is absent from the envelope, OR (b) `session_start_ts` is in the future relative to `now_ms` (clock skew safeguard — a future timestamp yields a negative elapsed duration, which the plugin clamps to `"0"` rather than emitting a negative value). Value is always a non-negative integer represented as a decimal string.
+   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). `duration_ms = "0"` when: (a) `session_start_ts` is absent from the envelope; OR (b) `session_start_ts` is in the future relative to `now_ms` (clock-skew clamp — a future timestamp yields a negative elapsed duration, which the plugin clamps to `"0"` rather than emitting a negative value); OR (c) `session_start_ts` is present but unparseable as ISO-8601 (treat-as-absent default; strict envelope-value type validation is a v1.1 candidate per BC-1.02.005 extension). Value is always a non-negative integer represented as a decimal string.
    - `tool_call_count` (string per wire format): integer count of tool invocations during the session, sourced from the envelope's `tool_call_count` field. If `tool_call_count` is absent from the envelope, `tool_call_count = "0"`. Value is always a non-negative integer represented as a decimal string.
    - `timestamp` (ISO-8601 UTC with millisecond precision and `Z` suffix; regex: `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; example: `2026-04-28T12:34:56.789Z`) — the plugin's own emission timestamp, not the session-end time from the envelope.
 
@@ -75,7 +75,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 1. `session_id` on the emitted event reflects the value BC-1.02.005 envelope parsing placed into `HostContext.session_id` — preserved verbatim from the envelope (or `"unknown"` if missing/empty), never transformed, truncated, or replaced by the plugin (the plugin does not set it; `emit_event` auto-enriches it from HostContext).
 2. The `session.ended` event-name literal is immutable and reserved per PRD FR-046; renaming requires a new BC.
 3. `emit_event` is called before the plugin function returns.
-4. `duration_ms` and `tool_call_count` are never absent or null in the emitted payload — they default to `"0"` when the corresponding envelope fields are absent.
+4. `duration_ms` and `tool_call_count` are never absent or null in the emitted payload — they default to `"0"` when corresponding envelope fields are absent OR unparseable.
 
 ## Edge Cases
 
