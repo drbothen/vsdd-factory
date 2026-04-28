@@ -9,12 +9,12 @@ next_milestone: 1.0.0-rc.1
 # Story counts by status
 stories:
   total: 47
-  merged: 39
+  merged: 41
   partial: 2
-  draft: 6
+  draft: 4
   ready: 0
   blocked: 0
-  in_progress: 0   # Wave 12 COMPLETE: all 4 stories shipped; 11 S-4.08 ACs deferred to shakedown
+  in_progress: 0   # Wave 13: S-5.01 + S-5.02 merged; S-5.03 + S-5.04 pending spec convergence
 
 # Epic completion summary
 epics:
@@ -68,20 +68,21 @@ epics:
   E-5:
     name: New Hook Events and 1.0.0 Release
     stories: 7
-    status: draft
+    status: in-progress
     milestone: 1.0.0
-    merged: 0
+    merged: 2   # S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28)
     partial: 1   # S-5.05 migration guide skeleton
-    draft: 6
+    draft: 4    # S-5.03, S-5.04, S-5.06, S-5.07
+    ready: 0
 
-# Point totals (updated 2026-04-28 after S-4.08 delivery; Wave 12 COMPLETE)
+# Point totals (updated 2026-04-28 after S-5.02 delivery; Wave 13 at 2/4)
 points:
   total: 207
-  merged: 145   # 39 merged stories; +5pts (S-4.08) over prior 140
-  remaining: 62
+  merged: 151   # 41 merged stories; +3pts (S-5.01) +3pts (S-5.02) over prior 145
+  remaining: 56
 
-# Current work frontier (stories unblocked, 2026-04-28 after Wave 12 close)
-frontier: []   # Wave 12 COMPLETE; all Wave 12 stories done; next: rc.1 shakedown (release-engineer)
+# Current work frontier (stories unblocked, 2026-04-28 after S-5.02 delivery)
+frontier: [S-5.03, S-5.04]   # Wave 13: S-5.03 (WorktreeCreate/Remove) + S-5.04 (PostToolUseFailure) pending spec convergence
 
 # Shipped releases (for reference)
 releases:

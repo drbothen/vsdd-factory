@@ -29,10 +29,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 39 |
+| merged | 41 |
 | partial | 2 |
 | draft | 4 |
-| ready | 2 |
+| ready | 0 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -100,8 +100,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status | Version |
 |----------|-------|------|--------|----------|------------|--------|---------|
-| S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | ready | 2.12 (CONVERGENCE_REACHED pass-14; 3_of_3 NITPICK_ONLY; D-135) |
-| S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | ready | 2.7 (CONVERGENCE_REACHED pass-9; 3_of_3 NITPICK_ONLY; D-137) |
+| S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.12 (PR #35 merged 0257f03 2026-04-28; D-136) |
+| S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.7 (PR #36 merged edef7da 2026-04-28; D-138) |
 | S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | draft | -- |
 | S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | draft | -- |
 | S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial | -- |

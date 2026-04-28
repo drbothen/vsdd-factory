@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-28 (S-5.02 pass-9 = CLEAN_PASS_3_OF_3 NITPICK_ONLY = CONVERGENCE_REACHED; trajectory 11→7→4→4→2→2→0→0→0; D-137 sealed; v2.6→v2.7; per-story-delivery cycle ready) |
+| **Last Updated** | 2026-04-28 (S-5.02 PR #36 MERGED at edef7da; D-138 sealed; 41 of 47 stories merged; Wave 13 at 2/4; DRIFT-006 2/4 events wired) |
 | **Current Phase** | wave-9-ss-01-CONVERGED-cycle-re-anchor-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -90,9 +90,8 @@ dtu_services: []
 |------|-------|--------|--------|
 | *(earlier steps archived to cycles/v1.0-brownfield-backfill/ burst-log + session-checkpoints)* | | | |
 | S-5.01 delivery (PR #35 0257f03) | pr-manager | COMPLETE | 9/9 integration + 14/14 unit GREEN; clippy clean; SAST pass; 0 blocking review findings; D-136; Wave 13 opened |
-| S-5.02 pass-5 fix burst | state-manager | COMPLETE | 2 MEDIUM findings closed via Option b deferrals: Invariant 4/5 split; PC-2 branch (c) narrowed to string-only; v2.4→v2.5; trajectory 11→7→4→4→2 |
-| S-5.02 pass-6 fix burst | state-manager | COMPLETE | 2 propagation gaps closed: EC-001c text mirror + VP-066 task number correction; v2.5→v2.6; trajectory 11→7→4→4→2→2 |
 | S-5.02 CONVERGENCE_REACHED (pass-9) | state-manager | COMPLETE | ADV-S5.02-P09: 0-substantive NITPICK_ONLY CLEAN_PASS_3_OF_3; v2.6→v2.7; trajectory 11→7→4→4→2→2→0→0→0; D-137; per-story-delivery cycle ready |
+| S-5.02 delivery (PR #36 edef7da) | pr-manager | COMPLETE | 11/11 integration GREEN; clippy clean; SAST pass; 0 blocking review findings; D-138; Wave 13 2/4; 41 of 47 merged |
 
 ## Identifier Conventions
 
@@ -126,10 +125,10 @@ dtu_services: []
 
 ## Story Status (47 total)
 
-- **Merged (40):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28)
+- **Merged (41):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (4):** Tier F (S-5.03/5.04/5.06), Tier G/H TBD
-- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.7; 5 BCs + VP-066 + FR-046 anchored; **CONVERGENCE_REACHED pass-9 = CLEAN_PASS_3_OF_3 NITPICK_ONLY; trajectory 11→7→4→4→2→2→0→0→0; D-137**)
+- **Ready (0):** (none — S-5.02 moved to Merged)
 
 ## Drift Items (open)
 
@@ -140,7 +139,7 @@ dtu_services: []
 | DRIFT-003 | Per-sink dedicated threads despite S-1.06 shared-runtime intent | MEDIUM | re-design at rc.1 |
 | DRIFT-004 | hooks.json + hooks-registry.toml dual routing tables | MEDIUM-HIGH | L-P0-002 cutover before rc.1 |
 | DRIFT-005 | HTTP/Datadog/Honeycomb sinks declared but not implemented | MEDIUM | Tier E (S-4.01..S-4.03) |
-| DRIFT-006 | Phase 5 events not wired (SessionStart/End) | MEDIUM | Tier G (S-5.01, S-5.02) |
+| DRIFT-006 | Phase 5 events not fully wired (SessionStart + SessionEnd done; Worktree + PostToolUseFailure pending S-5.03/04) | MEDIUM | Tier G (S-5.01 done PR #35; S-5.02 done PR #36; S-5.03/04 pending) |
 | DRIFT-007 | DISPATCHER_SHUTTING_DOWN constant declared, never emitted | LOW | Tier G fixup |
 | DRIFT-008 | plugin.loaded/load_failed events not wired | LOW | dispatcher cleanup |
 | DRIFT-009 | verify-sha-currency.sh is template, not registered hook | RESOLVED | CONV-ABS-1 closed |
@@ -151,7 +150,7 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | b08e085 | bot bundle for v1.0.0-beta.7 (PR #14 + hotfix PR #15) |
-| develop | 0257f03 | S-5.01 merged (PR #35 0257f03); Wave 13 opened; 40 of 47 stories merged |
+| develop | edef7da | S-5.02 merged (PR #36 edef7da); Wave 13 at 2/4; 41 of 47 stories merged |
 | factory-artifacts | (post-commit) | D-134 post-Wave-12 cleanup sealed; workspace 100% green |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 | v1.0.0-beta.6 (tag) | ae426cd | SHIPPED 2026-04-26; GH Release published; prerelease=true |
@@ -187,6 +186,7 @@ dtu_services: []
 | D-136 | **S-5.01 GREEN delivery + PR #35 MERGED. Date: 2026-04-28. PR #35 (https://github.com/drbothen/vsdd-factory/pull/35) merged to develop at 0257f03 on 2026-04-28. Pre-merge spec: v2.12 at factory-artifacts aaaf56f. Spec convergence: 14 adversarial passes (CONVERGENCE_REACHED; D-135). Implementation: 3 commits — 33acc14 (RED gate: crate stub + integration tests), b5c8a66 (GREEN: plugin + hooks-registry entry), f69be66 (demo evidence). Test status: 9/9 integration + 14/14 unit GREEN; clippy clean (-D warnings); workspace regressions 0. CI: SAST (Semgrep) PASS. Code review: 1 cycle (APPROVE; 0 blocking; 2 INFORMATIONAL no-action). What shipped: crates/hook-plugins/session-start-telemetry/ (WASM plugin; emit_event + exec_subprocess + read_file via injectable callbacks); hooks-registry.toml SessionStart entry (name/event/plugin/timeout_ms=8000/read_file+exec_subprocess caps); hooks.json.template verified (existing entry confirmed correct — no modification needed). v1.0 simplifications: plugin_count = "0" (HookPayload extension v1.1 candidate); tool_deps = null (version detection v1.1 candidate; EC-003 eviction algorithm implemented + tested). Pass-4 architectural reversal: BC-1.10.001/002 retired; canonical read_file host fn used for activated_platform; Layer 1 once:true enforces idempotency. DRIFT-006 partial: SessionStart wired; SessionEnd/Worktree/PostToolUseFailure pending S-5.02-04. Wave 13 opened: 3 stories remaining (S-5.02/03/04). 40 of 47 stories merged. Remote branch feat/s-5.01-session-start-telemetry deleted by GitHub on merge; local worktree branch retained (worktree active at .worktrees/s-5.01-session-start-telemetry — cleanup pending worktree prune).** | S-5.01 per-story-delivery cycle sealed. Wave 13 at 1/4 stories done (Wave 13 = S-5.01+S-5.02+S-5.03+S-5.04). | per-story-delivery-S-5.01 | 2026-04-28 | pr-manager |
 | D-135 | **S-5.01 CONVERGENCE_REACHED at pass-14 per ADR-013. ADV-S5.01-P14: 0-substantive — NITPICK_ONLY — CLEAN_PASS_3_OF_3. Trajectory: 30→22→17→13→11→7→9→5→5→1→1→1→0→0→0. Key milestones: pass-4 ARCHITECTURAL REVERSAL (BC-1.10.001/002 retired; scope SS-04-only ~3pt); pass-7 BC-1.05.012 widened (4+4+6 field split); passes 12/13/14 three consecutive NITPICK_ONLY. Story v2.11 → v2.12 (convergence seal). S-5.01 ready for per-story-delivery cycle.** | ADR-013 3-consecutive-NITPICK_ONLY satisfied. First E-5 (Tier G) story converged. Full per-pass narrative in cycles/v1.0-brownfield-backfill/ burst-log. | spec-convergence-S-5.01 | 2026-04-28 | state-manager |
 | D-137 | **S-5.02 CONVERGENCE_REACHED at pass-9 per ADR-013. ADV-S5.02-P09: 0-substantive — NITPICK_ONLY — CLEAN_PASS_3_OF_3. Trajectory: 11→7→4→4→2→2→0→0→0. 36% faster than S-5.01 (14 passes) — S-5.01 lessons applied up-front saved 5 passes. Key milestones: Pass-1 foundation: BC-4.05.001–005 + VP-066, all S-5.01 lessons applied up-front (production schema field names, no new SS-01 BCs, RESERVED_FIELDS treatment, Layer 1 once-discipline). Pass-2: production-schema path convention drift discovered and fixed across BC-4.04.004 + BC-4.05.004 (cross-story sibling fix). Pass-3: EC-001c parse-failure semantics added. Pass-4: EC-001c propagation across PC-2, AC2, AC6, Edge Cases, VP-066 (4 propagation gaps). Pass-5: Invariant 4/5 split + Option (b) v1.1 deferrals (string-only scope). Pass-6: surgical text mirror corrections (EC-001c wording, VP-066 task numbers). Pass-7/8/9: 3 consecutive NITPICK_ONLY = CONVERGENCE_REACHED. Story v2.6 → v2.7 (convergence seal). S-5.02 ready for per-story-delivery cycle.** | ADR-013 3-consecutive-NITPICK_ONLY satisfied at pass-9. Second E-5 (Tier G) story converged. Mirrors D-135 for S-5.01. | spec-convergence-S-5.02 | 2026-04-28 | state-manager |
+| D-138 | **S-5.02 GREEN delivery + PR #36 MERGED. Date: 2026-04-28.** PR #36 (https://github.com/drbothen/vsdd-factory/pull/36) merged to develop at `edef7da` on 2026-04-28. Pre-merge spec: v2.7 at factory-artifacts `c1c8cf3` (D-137). Spec convergence: 9 adversarial passes (CONVERGENCE_REACHED; D-137; 36% faster than S-5.01's 14 passes thanks to up-front lesson application). Implementation: 3 commits — `6632332` (RED gate: crate stub + 11 integration tests), `3783847` (GREEN: plugin body + hooks-registry.toml SessionEnd entry), `cd7d634` (per-AC demo evidence). Test status: 11/11 integration GREEN; clippy clean (-D warnings); workspace regressions 0. CI: SAST (Semgrep) PASS. Code review: 1 cycle (APPROVE; 0 blocking; 2 INFORMATIONAL no-action — CountingMock by-design + chrono API non-finding). What shipped: `crates/hook-plugins/session-end-telemetry/` (WASM plugin; emit_event only — NO subprocess, NO file reads, ZERO declared capabilities); `hooks-registry.toml` SessionEnd entry (name/event/plugin/timeout_ms=5000; NO capability tables — simplest possible sandbox profile per BC-4.05.005); hooks.json.template SessionEnd entry verified pre-existing (Task 4 no-op as predicted). 3 plugin-set fields: `duration_ms` (3-branch zero-default per EC-001a/b/c absent/future/unparseable), `tool_call_count` ("0" if absent), `timestamp` (ISO-8601 UTC ms Z). 11-field wire format: 3 plugin-set + 4 host-enriched + 4 construction-time. DRIFT-006 progress: 2/4 events wired (SessionStart + SessionEnd done; Worktree + PostToolUseFailure pending S-5.03/04). Wave 13 at 2/4 stories done (5 of 6 pts). 41 of 47 stories merged. | S-5.02 per-story-delivery cycle sealed. Mirrors D-136 for S-5.01. Lessons applied up-front: spec converged 5 passes faster (9 vs 14); GREEN single-commit; PR single review cycle. ZERO capability tables verifies BC-4.05.005 simplest-sandbox claim. EC-001b/c clock-skew + parse-failure clamps both verified by integration tests. | per-story-delivery-S-5.02 | 2026-04-28 | pr-manager |
 
 > **Historical decisions (D-001..D-102):** Moved to `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
@@ -203,12 +203,12 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**S-5.02 CONVERGENCE_REACHED at pass-9 (2026-04-28).** ADV-S5.02-P09: 0-substantive — NITPICK_ONLY — CLEAN_PASS_3_OF_3 = CONVERGENCE_REACHED per ADR-013. No spec changes at pass-9. Trajectory: 11→7→4→4→2→2→0→0→0. Story v2.6→v2.7 (convergence seal). D-137 added. 40 of 47 stories merged; develop @ 0257f03.
+**S-5.02 PR #36 MERGED at edef7da (2026-04-28).** D-138 sealed. 11/11 integration GREEN; clippy clean; SAST PASS; 1 review cycle (APPROVE; 0 blocking). DRIFT-006: 2/4 events wired (SessionStart + SessionEnd done; Worktree + PostToolUseFailure pending). Wave 13 at 2/4 stories done (S-5.01 + S-5.02; remaining S-5.03 + S-5.04). 41 of 47 stories merged; develop @ edef7da.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-5.02 per-story-delivery cycle** (immediate next): worktree → test-writer RED → implementer GREEN → demo-recorder → pr-manager (9-step). Spec: v2.7 at factory-artifacts HEAD.
+- **S-5.03 spec convergence** (immediate next): WorktreeCreate/WorktreeRemove hook wiring; spec draft exists; begin adversarial convergence cycle per ADR-013
+- **S-5.04 spec convergence** (parallel candidate): PostToolUseFailure hook wiring; draft story
 - **rc.1 shakedown** (parallel, highest priority): 14-day window; Release Engineer executes 11 deferred S-4.08 ACs; run `scripts/check-shakedown-window.sh` to validate BC-9.01.006 PC1-PC5; cut rc.1 tag + trigger Release.yml
-- **v1.0 GA prep** (after shakedown clean): S-5.03/5.04/5.06 spec convergence + impl, or direct v1.0.0 release gating
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)
 - Task #112: Architect-led 28-CAP audit propagation to PRD §8 (CAP-023/024 deferred)
 - 7 MINOR consistency findings (F-006..F-012) from post-Wave-9 sweep — deferred, address before v1.0.1 release
