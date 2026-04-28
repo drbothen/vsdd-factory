@@ -31,8 +31,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 26 |
 | partial | 3 |
-| draft | 18 |
-| ready | 0 |
+| draft | 16 |
+| ready | 2 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -93,8 +93,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | partial | 6 |
 | S-4.07 | End-to-end observability integration tests | E-4 | 8 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | draft | 16 |
 | S-4.08 | 1.0.0-rc.1 release gate | E-4 | 3 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07 + 2-week shakedown | draft | -- |
-| S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | draft | 1 |
-| S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | draft | 1 |
+| S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | ready | 1 |
+| S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | ready | 1 |
 
 ## Epic E-5 — New Hook Events and 1.0.0 Release (Tier G + H — draft/partial)
 
