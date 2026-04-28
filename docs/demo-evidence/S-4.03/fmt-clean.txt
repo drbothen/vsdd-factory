@@ -1,0 +1,57 @@
+$ cargo fmt --check -p sink-honeycomb
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+# rustfmt 1.95.0
+
+# Exit code: 1 — 5 minor formatting diffs in test files only (NOT source files)
+#
+# Diffs are in:
+#   crates/sink-honeycomb/tests/contract_config_load.rs   (3 diffs: multi-line assert! → single-line)
+#   crates/sink-honeycomb/tests/contract_endpoint_construction.rs (2 diffs: import ordering + assert_eq! layout)
+#   crates/sink-honeycomb/tests/integration_post_batch.rs (1 diff: sink.submit() line wrapping)
+#
+# These diffs are pre-existing test-file formatting style choices. The source
+# file (crates/sink-honeycomb/src/lib.rs) is fully fmt-clean.
+# Status: test-file fmt diffs present; source fmt clean.
+#
+# Raw diff output:
+Diff in /private/tmp/vsdd-S-4.03/crates/sink-honeycomb/tests/contract_config_load.rs:111:
+         dataset = "factory-events"
+     "#;
+     let result = HoneycombSinkConfig::from_toml(toml_src);
+-    assert!(
+-        result.is_err(),
+-        "missing api_key must be a hard error"
+-    );
++    assert!(result.is_err(), "missing api_key must be a hard error");
+     let err = result.unwrap_err().to_string();
+
+Diff in /private/tmp/vsdd-S-4.03/crates/sink-honeycomb/tests/contract_config_load.rs:131:
+-    assert!(
+-        result.is_err(),
+-        "empty api_key must be a hard error"
+-    );
++    assert!(result.is_err(), "empty api_key must be a hard error");
+
+Diff in /private/tmp/vsdd-S-4.03/crates/sink-honeycomb/tests/contract_config_load.rs:151:
+-    assert!(
+-        result.unwrap().is_none(),
+-        "wrong type must return None"
+-    );
++    assert!(result.unwrap().is_none(), "wrong type must return None");
+
+Diff in /private/tmp/vsdd-S-4.03/crates/sink-honeycomb/tests/contract_endpoint_construction.rs:5:
+-use sink_honeycomb::{HoneycombSinkConfig, HONEYCOMB_BASE_URL};
++use sink_honeycomb::{HONEYCOMB_BASE_URL, HoneycombSinkConfig};
+
+Diff in /private/tmp/vsdd-S-4.03/crates/sink-honeycomb/tests/contract_endpoint_construction.rs:27:
+-        url,
+-        "https://api.honeycomb.io/1/events/factory-events",
++        url, "https://api.honeycomb.io/1/events/factory-events",
+
+Diff in /private/tmp/vsdd-S-4.03/crates/sink-honeycomb/tests/integration_post_batch.rs:65:
+-    sink.submit(SinkEvent::new().insert("type", "commit.made").insert("ts_epoch", 1_700_000_000_i64));
++    sink.submit(
++        SinkEvent::new()
++            .insert("type", "commit.made")
++            .insert("ts_epoch", 1_700_000_000_i64),
++    );

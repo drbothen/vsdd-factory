@@ -1,0 +1,22 @@
+$ cargo test -p sink-honeycomb --test contract_endpoint_construction
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+
+warning: function `test_BC_3_01_001_endpoint_url_includes_dataset_in_path` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_endpoint_construction.rs:25:4
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+[... 4 more non_snake_case warnings for BC-prefixed test names ...]
+
+warning: `sink-honeycomb` (test "contract_endpoint_construction") generated 5 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+     Running tests/contract_endpoint_construction.rs (target/debug/deps/contract_endpoint_construction-06d098cd4c917604)
+
+running 5 tests
+test test_BC_3_01_001_endpoint_url_includes_dataset_in_path ... ok
+test test_BC_3_01_001_endpoint_url_dataset_with_hyphens ... ok
+test test_BC_3_01_001_endpoint_url_uses_honeycomb_base ... ok
+test test_BC_3_01_001_endpoint_url_no_trailing_slash_in_base ... ok
+test test_BC_3_01_001_endpoint_url_different_datasets_produce_different_urls ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
