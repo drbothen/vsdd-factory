@@ -85,9 +85,9 @@ fn test_BC_3_03_002_per_sink_cooloff_independent() {
 /// correctly (different sinks stop retrying at different attempt counts).
 #[tokio::test]
 async fn test_BC_3_03_002_per_sink_max_retries_honoured_independently() {
-    use sink_core::resilience::{with_retry, RetryError};
-    use std::sync::atomic::{AtomicU32, Ordering};
+    use sink_core::resilience::{RetryError, with_retry};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicU32, Ordering};
 
     let policy_few = RetryPolicy {
         max_retries: 1,

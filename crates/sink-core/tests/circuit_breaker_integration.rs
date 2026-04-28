@@ -3,9 +3,9 @@
 //! AC: "Integration test: mock server returning 5xx; verify retry + circuit open sequence"
 //! Traces to: BC-3.NN.NNN-circuit-breaker-state-machine, VP-011, VP-012
 
-use sink_core::resilience::{with_retry, CircuitBreaker, CircuitState, RetryError, RetryPolicy};
-use std::sync::atomic::{AtomicU32, Ordering};
+use sink_core::resilience::{CircuitBreaker, CircuitState, RetryError, RetryPolicy, with_retry};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::Duration;
 
 /// Exercises postcondition: when the circuit is Open, with_retry returns
@@ -76,8 +76,7 @@ async fn test_BC_3_03_002_repeated_failures_open_circuit_then_reject() {
 
     // Second call: circuit is open → immediate CircuitOpen, op never called.
     let b2 = Arc::clone(&breaker);
-    let result2: Result<(), RetryError<&str>> =
-        with_retry(&policy, &b2, || async { Ok(()) }).await;
+    let result2: Result<(), RetryError<&str>> = with_retry(&policy, &b2, || async { Ok(()) }).await;
     assert!(
         matches!(result2, Err(RetryError::CircuitOpen)),
         "second call must return CircuitOpen immediately"

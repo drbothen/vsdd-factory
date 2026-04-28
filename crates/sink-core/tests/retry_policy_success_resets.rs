@@ -3,9 +3,9 @@
 //! AC: "successful op resets internal counter"
 //! Traces to: BC-3.NN.NNN-retry-policy-exponential-backoff, EC-001
 
-use sink_core::resilience::{with_retry, CircuitBreaker, RetryPolicy};
-use std::sync::atomic::{AtomicU32, Ordering};
+use sink_core::resilience::{CircuitBreaker, RetryPolicy, with_retry};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::Duration;
 
 /// EC-001: First request fails; second succeeds.

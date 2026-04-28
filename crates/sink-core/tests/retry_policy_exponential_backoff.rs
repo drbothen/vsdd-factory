@@ -3,7 +3,7 @@
 //! AC: "Exponential backoff with jitter: delay = min(base * 2^n + jitter, max)"
 //! Traces to: BC-3.NN.NNN-retry-policy-exponential-backoff (v1.1 BC candidate)
 
-use sink_core::resilience::{RetryPolicy};
+use sink_core::resilience::RetryPolicy;
 use std::time::Duration;
 
 /// Test vector table (from story AC formula: delay_n = min(base * 2^n, max)):

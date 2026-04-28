@@ -4,9 +4,9 @@
 //! AC: "after max_attempts retries, returns Err with original failure"
 //! Traces to: BC-3.NN.NNN-retry-policy-exponential-backoff, VP-011
 
-use sink_core::resilience::{with_retry, CircuitBreaker, RetryError, RetryPolicy};
-use std::sync::atomic::{AtomicU32, Ordering};
+use sink_core::resilience::{CircuitBreaker, RetryError, RetryPolicy, with_retry};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::Duration;
 
 /// Exercises VP-011 postcondition: with_retry exhausts max_retries and returns
