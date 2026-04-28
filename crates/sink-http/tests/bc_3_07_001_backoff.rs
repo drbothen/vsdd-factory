@@ -354,7 +354,9 @@ async fn test_BC_3_07_001_sleep_does_not_hold_mutex() {
         when.method(POST).path("/events");
         // Add a small response delay to ensure the mock responds synchronously
         // and the worker enters its sleep phase predictably.
-        then.status(503).body("unavailable").delay(Duration::from_millis(10));
+        then.status(503)
+            .body("unavailable")
+            .delay(Duration::from_millis(10));
     });
 
     // base=200ms so the backoff sleep is long enough for the test thread to
