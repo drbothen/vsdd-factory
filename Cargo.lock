@@ -2803,6 +2803,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "httpmock",
+ "reqwest",
  "serde",
  "serde_json",
  "sink-core",
