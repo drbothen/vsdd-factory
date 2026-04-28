@@ -14,8 +14,9 @@
 #![deny(missing_docs)]
 
 use serde::Deserialize;
-use sink_core::{Sink, SinkConfigCommon, SinkEvent};
+use sink_core::{Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
 use sink_http::{HttpSink, HttpSinkConfig, SinkFailure};
+use tokio::sync::mpsc;
 
 /// Default Datadog Logs Intake v2 endpoint (us1 region).
 pub const DEFAULT_DATADOG_ENDPOINT: &str = "https://http-intake.logs.datadoghq.com/api/v2/logs";
@@ -137,6 +138,60 @@ impl DatadogSink {
             .build();
 
         let inner = HttpSink::new(http_config)?;
+        Ok(Self { inner })
+    }
+
+    /// Like [`Self::new`] but threads an error-event channel sender into the
+    /// sink's shared state. The dispatcher calls this variant to wire
+    /// `internal.sink_error` emission (BC-3.07.002).
+    ///
+    /// Emits `sink_type='datadog'` (NOT `'http'`) on every failure so that
+    /// operators can distinguish Datadog sink errors from generic HTTP sink
+    /// errors (BC-3.07.002 BCs to Update — sink_type enum widening).
+    ///
+    /// Implementation: DatadogSink creates a relay channel, passes it to
+    /// `HttpSink::new_with_error_channel`, and spawns a relay thread that
+    /// intercepts events (which have `sink_type='http'`) and re-emits them
+    /// with `sink_type='datadog'` on the caller-supplied channel.
+    pub fn new_with_error_channel(
+        config: DatadogSinkConfig,
+        error_tx: mpsc::Sender<SinkErrorEvent>,
+    ) -> anyhow::Result<Self> {
+        let endpoint = config.effective_endpoint().to_owned();
+
+        // Relay channel: HttpSink emits 'http' events → relay thread re-stamps to 'datadog'.
+        let (relay_tx, mut relay_rx) = mpsc::channel::<SinkErrorEvent>(256);
+
+        let http_config = HttpSinkConfig::builder()
+            .common(config.common)
+            .url(endpoint)
+            .header("DD-API-KEY", config.api_key)
+            .build();
+
+        let inner = HttpSink::new_with_error_channel(http_config, relay_tx)?;
+
+        // Spawn relay thread: intercepts HttpSink's 'http' events and re-emits as 'datadog'.
+        std::thread::Builder::new()
+            .name("sink-datadog:relay".to_owned())
+            .spawn(move || {
+                let rt = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .expect("sink-datadog relay: build tokio runtime");
+                rt.block_on(async move {
+                    while let Some(ev) = relay_rx.recv().await {
+                        let retyped = SinkErrorEvent::new(
+                            ev.sink_name,
+                            "datadog",
+                            ev.error_message,
+                            ev.attempt,
+                        );
+                        emit_sink_error(&error_tx, retyped);
+                    }
+                });
+            })
+            .map_err(|e| anyhow::anyhow!("failed to spawn sink-datadog relay thread: {e}"))?;
+
         Ok(Self { inner })
     }
 

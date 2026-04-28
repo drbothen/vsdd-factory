@@ -23,7 +23,7 @@
 use chrono::{DateTime, TimeZone, Utc};
 use serde::Deserialize;
 use serde_json::Value;
-use sink_core::{RoutingFilter, Sink, SinkConfigCommon, SinkEvent};
+use sink_core::{RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -155,14 +155,20 @@ struct Shared {
     failures: Mutex<Vec<WorkerFailure>>,
     queue_full_count: AtomicU64,
     shutdown: AtomicBool,
+    /// Operator-assigned sink name for `internal.sink_error` events.
+    sink_name: String,
+    /// Optional fire-and-forget channel for `internal.sink_error` events (BC-3.07.002).
+    error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
 }
 
 impl Shared {
-    fn new() -> Self {
+    fn new(sink_name: String, error_tx: Option<mpsc::Sender<SinkErrorEvent>>) -> Self {
         Self {
             failures: Mutex::new(Vec::new()),
             queue_full_count: AtomicU64::new(0),
             shutdown: AtomicBool::new(false),
+            sink_name,
+            error_tx,
         }
     }
 }
@@ -194,6 +200,27 @@ pub struct HoneycombSink {
 impl HoneycombSink {
     /// Construct a `HoneycombSink` from a validated config.
     pub fn new(config: HoneycombSinkConfig) -> anyhow::Result<Self> {
+        Self::new_internal(config, None)
+    }
+
+    /// Like [`Self::new`] but threads an error-event channel sender into the
+    /// sink's shared state. The dispatcher calls this variant to wire
+    /// `internal.sink_error` emission (BC-3.07.002).
+    ///
+    /// Emits `sink_type='honeycomb'` on every failure so that operators can
+    /// distinguish Honeycomb sink errors from generic HTTP sink errors
+    /// (BC-3.07.002 BCs to Update — sink_type enum widening).
+    pub fn new_with_error_channel(
+        config: HoneycombSinkConfig,
+        error_tx: mpsc::Sender<SinkErrorEvent>,
+    ) -> anyhow::Result<Self> {
+        Self::new_internal(config, Some(error_tx))
+    }
+
+    fn new_internal(
+        config: HoneycombSinkConfig,
+        error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
+    ) -> anyhow::Result<Self> {
         let url = config.endpoint_url();
         let api_key = config
             .api_key
@@ -201,7 +228,8 @@ impl HoneycombSink {
             .expect("api_key validated present by from_toml");
 
         let (tx, rx) = mpsc::channel::<Message>(config.queue_depth.max(1));
-        let shared = Arc::new(Shared::new());
+        let sink_name = config.common.name.clone();
+        let shared = Arc::new(Shared::new(sink_name, error_tx));
         let worker_shared = Arc::clone(&shared);
 
         let handle = std::thread::Builder::new()
@@ -401,7 +429,9 @@ async fn post_batch(
     let body = match serde_json::to_string(&enriched) {
         Ok(b) => b,
         Err(e) => {
-            record_failure(shared, format!("serialization error: {e}"));
+            let reason = format!("serialization error: {e}");
+            emit_error_event(shared, reason.clone(), 0);
+            record_failure(shared, reason);
             return;
         }
     };
@@ -409,6 +439,7 @@ async fn post_batch(
     let mut attempts: u32 = 0;
     loop {
         attempts += 1;
+        let attempt_0idx = attempts - 1;
         let result = client
             .post(url)
             .header("Content-Type", "application/json")
@@ -423,6 +454,9 @@ async fn post_batch(
                 if status.is_success() {
                     return;
                 } else if status.is_server_error() {
+                    // Emit internal.sink_error for each attempt (BC-3.07.002).
+                    let reason = format!("HTTP {}", status.as_u16());
+                    emit_error_event(shared, reason, attempt_0idx);
                     // 5xx — retry until MAX_5XX_ATTEMPTS exhausted.
                     if attempts < MAX_5XX_ATTEMPTS {
                         continue;
@@ -434,22 +468,34 @@ async fn post_batch(
                     return;
                 } else {
                     // 4xx (including 429) — record failure, no retry.
-                    record_failure(
-                        shared,
-                        format!("HTTP {} (client error, no retry)", status.as_u16()),
-                    );
+                    let reason = format!("HTTP {} (client error, no retry)", status.as_u16());
+                    emit_error_event(shared, reason.clone(), attempt_0idx);
+                    record_failure(shared, reason);
                     return;
                 }
             }
             Err(e) => {
+                let reason = format!("request error: {e}");
+                emit_error_event(shared, reason.clone(), attempt_0idx);
                 if attempts < MAX_5XX_ATTEMPTS {
                     continue;
                 }
-                record_failure(shared, format!("request error: {e}"));
+                record_failure(shared, reason);
                 return;
             }
         }
     }
+}
+
+/// Emit a fire-and-forget `internal.sink_error` event with `sink_type='honeycomb'`.
+///
+/// Releases any borrow on shared state before calling `try_send`.
+fn emit_error_event(shared: &Arc<Shared>, error_message: String, attempt: u32) {
+    let Some(ref tx) = shared.error_tx else {
+        return; // No channel wired — silent skip.
+    };
+    let event = SinkErrorEvent::new(shared.sink_name.clone(), "honeycomb", error_message, attempt);
+    emit_sink_error(tx, event);
 }
 
 fn record_failure(shared: &Arc<Shared>, reason: String) {
