@@ -1,0 +1,6 @@
+$ cargo fmt -p sink-datadog -p sink-http -- --check
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+
+# EXIT 0 — no formatting differences found.
+# All source files in sink-datadog and sink-http conform to rustfmt style.
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27

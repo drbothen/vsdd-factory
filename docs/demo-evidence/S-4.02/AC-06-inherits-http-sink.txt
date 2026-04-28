@@ -1,0 +1,27 @@
+$ cargo test -p sink-datadog --test integration_inherits_http_sink
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+
+warning: function `test_VP_011_datadog_inherits_http_sink_non_blocking_submit` should have a snake case name
+  --> crates/sink-datadog/tests/integration_inherits_http_sink.rs:31:4
+warning: function `test_VP_012_datadog_inherits_http_sink_5xx_retry_then_success` should have a snake case name
+  --> crates/sink-datadog/tests/integration_inherits_http_sink.rs:67:10
+warning: function `test_VP_012_datadog_5xx_exhausted_retries_recorded_not_propagated` should have a snake case name
+  --> crates/sink-datadog/tests/integration_inherits_http_sink.rs:107:10
+
+warning: `sink-datadog` (test "integration_inherits_http_sink") generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running tests/integration_inherits_http_sink.rs (target/debug/deps/integration_inherits_http_sink-1f1d918ea943a06d)
+
+running 3 tests
+test test_VP_012_datadog_inherits_http_sink_5xx_retry_then_success ... ok
+test test_VP_012_datadog_5xx_exhausted_retries_recorded_not_propagated ... ok
+test test_VP_011_datadog_inherits_http_sink_non_blocking_submit ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+# ACs verified:
+# - Integration test with mock Datadog endpoint (httpmock)
+# - VP-011: Datadog sink inherits non-blocking submit from HttpSink
+# - VP-012: 5xx retry-then-success (success path)
+# - VP-012: exhausted retries recorded, not propagated (error path)
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27

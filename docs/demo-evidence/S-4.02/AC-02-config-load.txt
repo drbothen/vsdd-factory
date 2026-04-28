@@ -1,0 +1,34 @@
+$ cargo test -p sink-datadog --test contract_config_load
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+
+warning: function `test_BC_3_06_005_valid_config_with_api_key_and_endpoint_parses` should have a snake case name
+  --> crates/sink-datadog/tests/contract_config_load.rs:12:4
+warning: function `test_BC_3_06_005_minimal_config_parses` should have a snake case name
+  --> crates/sink-datadog/tests/contract_config_load.rs:43:4
+warning: function `test_BC_3_06_005_missing_api_key_is_hard_error` should have a snake case name
+  --> crates/sink-datadog/tests/contract_config_load.rs:69:4
+warning: function `test_BC_3_06_005_empty_api_key_is_hard_error` should have a snake case name
+  --> crates/sink-datadog/tests/contract_config_load.rs:94:4
+warning: function `test_BC_3_06_005_schema_version_mismatch_is_hard_error` should have a snake case name
+  --> crates/sink-datadog/tests/contract_config_load.rs:112:4
+warning: function `test_BC_3_06_005_unknown_sink_type_returns_none` should have a snake case name
+  --> crates/sink-datadog/tests/contract_config_load.rs:136:4
+
+warning: `sink-datadog` (test "contract_config_load") generated 6 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running tests/contract_config_load.rs (target/debug/deps/contract_config_load-7d865fc11616911b)
+
+running 6 tests
+test test_BC_3_06_005_minimal_config_parses ... ok
+test test_BC_3_06_005_valid_config_with_api_key_and_endpoint_parses ... ok
+test test_BC_3_06_005_unknown_sink_type_returns_none ... ok
+test test_BC_3_06_005_schema_version_mismatch_is_hard_error ... ok
+test test_BC_3_06_005_missing_api_key_is_hard_error ... ok
+test test_BC_3_06_005_empty_api_key_is_hard_error ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+# AC: Auth via DD-API-KEY header from config (BC-3.06.005 — SinkConfigCommon defaults)
+#     Covers: valid config parses, minimal config parses, missing API key fails,
+#             empty API key fails, schema_version mismatch fails, unknown type returns None
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27

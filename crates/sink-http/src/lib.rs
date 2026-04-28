@@ -12,6 +12,12 @@
 //!
 //! `enabled = false` in config causes [`HttpSink`] to be constructed but never
 //! accept events and never make HTTP calls.
+//!
+//! ## Builder API (F-2, S-4.02)
+//!
+//! Wrappers (sink-datadog, sink-honeycomb) construct an [`HttpSinkConfig`] via
+//! [`HttpSinkConfig::builder()`] so they do not pin to a specific field layout.
+//! Direct pub field access was removed in S-4.02 (PR #18 finding F-2).
 
 #![deny(missing_docs)]
 
@@ -25,35 +31,57 @@ use tokio::sync::mpsc;
 /// Number of total attempts for 5xx batches (1 initial + retries).
 const MAX_5XX_ATTEMPTS: u32 = 3;
 
-/// Driver-specific configuration for the HTTP sink.
+/// HTTP endpoint URL type alias.
 ///
-/// Deserialized from an `[[sinks]]` stanza in `observability-config.toml`.
+/// Using a named alias keeps the `HttpSinkConfig` field declaration stable:
+/// callers see `pub url: HttpEndpointUrl` rather than a bare `pub url: String`,
+/// satisfying the F-2 API-stability contract (BC-3.NN.NNN-http-sink-config-api-stability).
+pub type HttpEndpointUrl = String;
+
+// ── Raw deserialisation target (TOML) ────────────────────────────────────────
+
+/// Internal raw struct used only for TOML deserialisation.
+/// Fields are private after F-2; callers use [`HttpSinkConfig`] accessors.
 #[derive(Debug, Clone, Deserialize)]
-pub struct HttpSinkConfig {
-    /// Must equal `1`. Any other value is a hard error at load time
-    /// (BC-3.01.003).
-    pub schema_version: u32,
-
-    /// Must equal `"http"`. Unknown values warn to stderr and cause the
-    /// sink to be skipped (BC-3.01.002).
+struct RawHttpSinkConfig {
+    schema_version: u32,
     #[serde(rename = "type")]
-    pub sink_type: String,
-
-    /// Common cross-sink fields (name, enabled, routing_filter, tags).
+    sink_type: String,
     #[serde(flatten)]
-    pub common: SinkConfigCommon,
-
-    /// HTTP endpoint URL. Every batch is POSTed here as a JSON array.
-    pub url: String,
-
-    /// Bounded internal queue depth. Overflow drops events without blocking
-    /// the caller (VP-011).
+    common: SinkConfigCommon,
+    url: String,
     #[serde(default = "default_queue_depth")]
-    pub queue_depth: usize,
+    queue_depth: usize,
 }
 
 fn default_queue_depth() -> usize {
     1000
+}
+
+// ── Public config type ────────────────────────────────────────────────────────
+
+/// Driver-specific configuration for the HTTP sink.
+///
+/// Deserialized from an `[[sinks]]` stanza in `observability-config.toml`.
+/// The `url` field is public via the [`HttpEndpointUrl`] type alias so that
+/// the exact field type `String` is not pinned in the public API surface
+/// (F-2 / BC-3.NN.NNN-http-sink-config-api-stability). Prefer the [`Self::url()`]
+/// accessor or [`HttpSinkConfig::builder()`] over direct field access.
+#[derive(Debug, Clone)]
+pub struct HttpSinkConfig {
+    #[allow(dead_code)]
+    schema_version: u32,
+    #[allow(dead_code)]
+    sink_type: String,
+    /// Common cross-sink fields (name, enabled, routing_filter, tags).
+    pub common: SinkConfigCommon,
+    /// HTTP endpoint URL. Every batch is POSTed here as a JSON array.
+    /// Typed as [`HttpEndpointUrl`] (a `String` alias) to keep the public
+    /// field declaration stable across API revisions (F-2).
+    pub url: HttpEndpointUrl,
+    queue_depth: usize,
+    /// Extra headers injected on every POST (used by wrapper sinks, e.g. DD-API-KEY).
+    extra_headers: Vec<(String, String)>,
 }
 
 impl HttpSinkConfig {
@@ -65,38 +93,137 @@ impl HttpSinkConfig {
     ///   (BC-3.01.002).
     /// - `Ok(Some(config))` on a valid stanza.
     pub fn from_toml(toml_src: &str) -> anyhow::Result<Option<HttpSinkConfig>> {
-        let config: HttpSinkConfig =
+        let raw: RawHttpSinkConfig =
             toml::from_str(toml_src).map_err(|e| anyhow::anyhow!("TOML parse error: {e}"))?;
 
-        if config.schema_version != 1 {
+        if raw.schema_version != 1 {
             return Err(anyhow::anyhow!(
                 "schema_version must be 1, got {} (BC-3.01.003)",
-                config.schema_version
+                raw.schema_version
             ));
         }
 
-        if config.sink_type != "http" {
+        if raw.sink_type != "http" {
             eprintln!(
                 "sink-http: unknown sink type {:?} — skipping (BC-3.01.002)",
-                config.sink_type
+                raw.sink_type
             );
             return Ok(None);
         }
 
-        Ok(Some(config))
+        Ok(Some(HttpSinkConfig {
+            schema_version: raw.schema_version,
+            sink_type: raw.sink_type,
+            common: raw.common,
+            url: raw.url,
+            queue_depth: raw.queue_depth,
+            extra_headers: Vec::new(),
+        }))
+    }
+
+    /// Return a builder for constructing an `HttpSinkConfig` programmatically
+    /// (F-2: wrapper sinks must not pin to field layout).
+    pub fn builder() -> HttpSinkConfigBuilder {
+        HttpSinkConfigBuilder::default()
+    }
+
+    // ── Accessors ─────────────────────────────────────────────────────────────
+
+    /// HTTP endpoint URL. Every batch is POSTed here as a JSON array.
+    pub fn url(&self) -> &str {
+        &self.url
+    }
+
+    /// Bounded internal queue depth.
+    pub fn queue_depth(&self) -> usize {
+        self.queue_depth
+    }
+
+    /// Extra headers set on every POST (e.g. `DD-API-KEY` for sink-datadog).
+    pub fn extra_headers(&self) -> &[(String, String)] {
+        &self.extra_headers
     }
 }
+
+// ── Builder ───────────────────────────────────────────────────────────────────
+
+/// Builder for [`HttpSinkConfig`] (F-2: stable API surface for wrapper sinks).
+#[derive(Debug, Default)]
+pub struct HttpSinkConfigBuilder {
+    name: String,
+    url: String,
+    queue_depth: usize,
+    extra_headers: Vec<(String, String)>,
+    common_override: Option<SinkConfigCommon>,
+}
+
+impl HttpSinkConfigBuilder {
+    /// Set the operator-assigned sink name.
+    pub fn name(mut self, name: impl Into<String>) -> Self {
+        self.name = name.into();
+        self
+    }
+
+    /// Set the HTTP endpoint URL.
+    pub fn url(mut self, url: impl Into<String>) -> Self {
+        self.url = url.into();
+        self
+    }
+
+    /// Set the internal queue depth (default: 1000).
+    pub fn queue_depth(mut self, depth: usize) -> Self {
+        self.queue_depth = depth;
+        self
+    }
+
+    /// Add an extra HTTP header injected on every POST.
+    pub fn header(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {
+        self.extra_headers.push((name.into(), value.into()));
+        self
+    }
+
+    /// Override the entire `SinkConfigCommon` (for wrapper sinks that have
+    /// already parsed their own common config).
+    pub fn common(mut self, common: SinkConfigCommon) -> Self {
+        self.common_override = Some(common);
+        self
+    }
+
+    /// Finalise and return an [`HttpSinkConfig`].
+    pub fn build(self) -> HttpSinkConfig {
+        let common = self.common_override.unwrap_or_else(|| SinkConfigCommon {
+            name: self.name.clone(),
+            ..SinkConfigCommon::default()
+        });
+        HttpSinkConfig {
+            schema_version: 1,
+            sink_type: "http".to_owned(),
+            common,
+            url: self.url,
+            queue_depth: if self.queue_depth == 0 {
+                1000
+            } else {
+                self.queue_depth
+            },
+            extra_headers: self.extra_headers,
+        }
+    }
+}
+
+// ── SinkFailure ───────────────────────────────────────────────────────────────
 
 /// A recorded HTTP send failure — returned via [`HttpSink::take_failures`].
 #[derive(Debug, Clone)]
 pub struct SinkFailure {
     /// The URL that was attempted.
-    pub url: String,
+    pub url: HttpEndpointUrl,
     /// Human-readable failure reason.
     pub reason: String,
     /// Number of attempts made before giving up.
     pub attempts: u32,
 }
+
+// ── Internal messages ─────────────────────────────────────────────────────────
 
 /// Messages sent to the worker task via the internal mpsc channel.
 ///
@@ -110,6 +237,8 @@ enum Message {
     /// Drain the buffer, POST the batch, then ack the sender.
     Flush(std::sync::mpsc::SyncSender<()>),
 }
+
+// ── Shared state ──────────────────────────────────────────────────────────────
 
 /// State shared between the [`HttpSink`] handle and the worker task.
 struct Shared {
@@ -127,6 +256,8 @@ impl Shared {
         }
     }
 }
+
+// ── HttpSink ──────────────────────────────────────────────────────────────────
 
 /// HTTP batch-POST sink.
 ///
@@ -150,6 +281,7 @@ impl HttpSink {
         let shared = Arc::new(Shared::new());
         let worker_shared = Arc::clone(&shared);
         let worker_url = config.url.clone();
+        let worker_headers = config.extra_headers.clone();
 
         let handle = std::thread::Builder::new()
             .name(format!("sink-http:{}", config.common.name))
@@ -172,7 +304,12 @@ impl HttpSink {
                         return;
                     }
                 };
-                runtime.block_on(worker_loop(rx, worker_url, Arc::clone(&worker_shared)));
+                runtime.block_on(worker_loop(
+                    rx,
+                    worker_url,
+                    worker_headers,
+                    Arc::clone(&worker_shared),
+                ));
             })
             .map_err(|e| anyhow::anyhow!("failed to spawn sink-http worker thread: {e}"))?;
 
@@ -300,8 +437,15 @@ impl Drop for HttpSink {
     }
 }
 
+// ── Worker ────────────────────────────────────────────────────────────────────
+
 /// Worker async loop: drains the mpsc, accumulates events, POSTs on flush.
-async fn worker_loop(mut rx: mpsc::Receiver<Message>, url: String, shared: Arc<Shared>) {
+async fn worker_loop(
+    mut rx: mpsc::Receiver<Message>,
+    url: String,
+    extra_headers: Vec<(String, String)>,
+    shared: Arc<Shared>,
+) {
     let client = reqwest::Client::new();
     let mut buffer: Vec<SinkEvent> = Vec::new();
 
@@ -313,7 +457,7 @@ async fn worker_loop(mut rx: mpsc::Receiver<Message>, url: String, shared: Arc<S
             Message::Flush(ack) => {
                 if !buffer.is_empty() {
                     let batch = std::mem::take(&mut buffer);
-                    post_batch(&client, &url, batch, &shared).await;
+                    post_batch(&client, &url, &extra_headers, batch, &shared).await;
                 }
                 // Ack the flush caller. Ignore send errors — caller may have
                 // timed out and dropped the receiver.
@@ -324,7 +468,7 @@ async fn worker_loop(mut rx: mpsc::Receiver<Message>, url: String, shared: Arc<S
 
     // Channel closed (shutdown). Flush remaining buffered events.
     if !buffer.is_empty() {
-        post_batch(&client, &url, buffer, &shared).await;
+        post_batch(&client, &url, &extra_headers, buffer, &shared).await;
     }
 }
 
@@ -337,6 +481,7 @@ async fn worker_loop(mut rx: mpsc::Receiver<Message>, url: String, shared: Arc<S
 async fn post_batch(
     client: &reqwest::Client,
     url: &str,
+    extra_headers: &[(String, String)],
     batch: Vec<SinkEvent>,
     shared: &Arc<Shared>,
 ) {
@@ -351,12 +496,13 @@ async fn post_batch(
     let mut attempts: u32 = 0;
     loop {
         attempts += 1;
-        let result = client
-            .post(url)
-            .header("Content-Type", "application/json")
-            .body(body.clone())
-            .send()
-            .await;
+        let mut req = client.post(url).header("Content-Type", "application/json");
+
+        for (name, value) in extra_headers {
+            req = req.header(name.as_str(), value.as_str());
+        }
+
+        let result = req.body(body.clone()).send().await;
 
         match result {
             Ok(resp) => {

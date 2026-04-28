@@ -1,0 +1,62 @@
+$ cargo test -p sink-http
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+# Verifies F-2 HttpSinkConfig refactor did not break upstream sink-http tests.
+
+[warnings omitted — non_snake_case lint on BC/VP/TV-prefixed test names; not errors]
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running unittests src/lib.rs (target/debug/deps/sink_http-5ca4af036823d3c6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_config_load.rs (target/debug/deps/contract_config_load-08b1e44c312b351e)
+
+running 3 tests
+test test_BC_3_01_002_unknown_sink_type_warns_no_fail ... ok
+test test_BC_3_01_003_schema_version_mismatch_is_hard_error ... ok
+test test_BC_3_06_005_disabled_config_no_events_accepted ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/contract_sink_trait.rs (target/debug/deps/contract_sink_trait-03a60a9f39c0ad1a)
+
+running 2 tests
+test test_HttpSink_struct_exported_for_reuse ... ok
+test test_BC_3_01_001_http_sink_implements_sink_trait ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/error_handling.rs (target/debug/deps/error_handling-a8aeda414bfaffb3)
+
+running 2 tests
+test test_VP_012_4xx_drops_immediately_no_retry ... ok
+test test_VP_012_5xx_retries_then_records_failure ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/integration_post_batch.rs (target/debug/deps/integration_post_batch-e23b5268ece3e576)
+
+running 2 tests
+test test_TV_flush_sends_synchronously ... ok
+test test_TV_events_batched_and_posted_as_json_array ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/non_blocking.rs (target/debug/deps/non_blocking-1a6deffc05496445)
+
+running 1 test
+test test_VP_011_submit_does_not_block_when_queue_full ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests sink_http
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+# UPSTREAM: 10/10 PASS (0 failures, 0 skipped)
+# F-2 HttpSinkConfig builder/accessor refactor is backward-compatible with all sink-http tests.
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27

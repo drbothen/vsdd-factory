@@ -1,0 +1,24 @@
+$ cargo test -p sink-datadog --test contract_endpoint_default
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+
+warning: function `test_BC_3_06_005_default_endpoint_is_us1_when_absent` should have a snake case name
+  --> crates/sink-datadog/tests/contract_endpoint_default.rs:14:4
+warning: function `test_BC_3_06_005_explicit_endpoint_overrides_default` should have a snake case name
+  --> crates/sink-datadog/tests/contract_endpoint_default.rs:46:4
+warning: function `test_BC_3_06_005_default_endpoint_constant_value_and_accessible_via_config` should have a snake case name
+  --> crates/sink-datadog/tests/contract_endpoint_default.rs:75:4
+
+warning: `sink-datadog` (test "contract_endpoint_default") generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running tests/contract_endpoint_default.rs (target/debug/deps/contract_endpoint_default-36fcb1de8ceac8f9)
+
+running 3 tests
+test test_BC_3_06_005_explicit_endpoint_overrides_default ... ok
+test test_BC_3_06_005_default_endpoint_is_us1_when_absent ... ok
+test test_BC_3_06_005_default_endpoint_constant_value_and_accessible_via_config ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+# AC: Supports regional endpoints (us1, eu1, etc.) — default us1 when absent,
+#     explicit value overrides, constant accessible via config (BC-3.06.005)
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27

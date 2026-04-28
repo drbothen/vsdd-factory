@@ -2441,9 +2441,7 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "encoding_rs",
- "futures-channel",
  "futures-core",
- "futures-util",
  "h2",
  "http 1.4.0",
  "http-body 1.0.1",
@@ -2763,6 +2761,21 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "sink-datadog"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "httpmock",
+ "serde",
+ "serde_json",
+ "sink-core",
+ "sink-http",
  "thiserror 2.0.18",
  "tokio",
  "toml 0.8.23",
