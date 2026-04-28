@@ -89,7 +89,7 @@ traces_to: bc-id-mapping.md
 | [BC-1.05.009](ss-01/BC-1.05.009.md) | read_file at the StoreData-typed linker layer is currently a CAPABILITY_DENIED stub | draft | CAP-TBD | TBD |
 | [BC-1.05.010](ss-01/BC-1.05.010.md) | Context getters (session_id, dispatcher_trace_id, plugin_root, plugin_version, cwd) always return current value | draft | CAP-TBD | TBD |
 | [BC-1.05.011](ss-01/BC-1.05.011.md) | log host fn emits `plugin.log` internal event with level mapped to {trace,debug,info,warn,error} | draft | CAP-TBD | TBD |
-| [BC-1.05.012](ss-01/BC-1.05.012.md) | emit_event filters out reserved field names from plugin payload | draft | CAP-TBD | TBD |
+| [BC-1.05.012](ss-01/BC-1.05.012.md) | emit_event enriches every emitted event with host-owned identity fields and filters reserved field names from plugin payload | draft | CAP-TBD | TBD |
 | [BC-1.05.013](ss-01/BC-1.05.013.md) | factory-dispatcher::host::emit_event::decode_single_pair — length-prefixed key/value buffer with one pair round-trips through decode_fields | draft | CAP-TBD | TBD |
 | [BC-1.05.014](ss-01/BC-1.05.014.md) | factory-dispatcher::host::emit_event::decode_multiple_pairs — 3-pair buffer round-trips with order preserved | draft | CAP-TBD | TBD |
 | [BC-1.05.015](ss-01/BC-1.05.015.md) | factory-dispatcher::host::emit_event::decode_empty_buffer_yields_empty_vec — empty input → empty result, no error | draft | CAP-TBD | TBD |

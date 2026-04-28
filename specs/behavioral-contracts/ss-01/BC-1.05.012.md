@@ -15,7 +15,7 @@ subsystem: "SS-01"
 capability: "CAP-TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
-modified: []
+modified: [v1.0-pass-7]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -24,39 +24,51 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.05.012: emit_event filters out reserved field names from plugin payload
+# Behavioral Contract BC-1.05.012: emit_event enriches every emitted event with host-owned identity fields and filters reserved field names from plugin payload
 
 ## Description
 
-When a plugin emits an event with fields that include any of the reserved names (`dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`), those reserved fields are dropped from the event. The dispatcher writes its authoritative values instead.
+The `emit_event` host fn has two inseparable halves that operate on every call:
+
+**Enrichment half:** On every `emit_event` call, the host fn unconditionally enriches the event with four host-owned identity fields sourced from `HostContext`: `dispatcher_trace_id` (via `.with_trace_id`), `session_id` (via `.with_session_id`), `plugin_name` (via `.with_plugin_name`), and `plugin_version` (via `.with_plugin_version`). These values are populated by the dispatcher's routing layer before the plugin is invoked. The plugin has no responsibility to set these fields.
+
+**Filter half:** When a plugin emits an event with fields that include any of the eight reserved names (`dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`), those reserved fields are silently dropped from the plugin's submitted payload before the event is stored. This prevents plugins from spoofing host-owned or construction-time fields.
+
+The four remaining reserved fields (`ts`, `ts_epoch`, `schema_version`, `type`) are set at event construction time by `InternalEvent::now()` — not by the `emit_event` enrichment path — but are equally protected by the filter.
+
+Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS always carry authoritative dispatcher-or-construction-time values, regardless of what the plugin submits.
 
 ## Preconditions
 
-1. Plugin emits an event whose fields include at least one reserved name.
+1. The `emit_event` host fn is called by a plugin with any payload (including an empty one).
 
 ## Postconditions
 
-1. Reserved fields are dropped from the plugin's submitted payload.
-2. The dispatcher's authoritative values for those fields are written instead.
+1. The emitted event unconditionally contains `dispatcher_trace_id`, `session_id`, `plugin_name`, and `plugin_version` sourced from `HostContext` — set by the enrichment path regardless of whether the plugin provided those fields.
+2. Any reserved field names (`dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`) present in the plugin's submitted payload are dropped before the event is stored.
+3. All non-reserved fields in the plugin's submitted payload pass through unchanged.
 
 ## Invariants
 
 1. Reserved field set is closed: `{dispatcher_trace_id, session_id, plugin_name, plugin_version, ts, ts_epoch, schema_version, type}`.
-2. Plugins cannot spoof correlation fields.
+2. Plugins cannot spoof host-owned or construction-time fields.
+3. `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version` are always present on every emitted event as non-empty strings (sourced from `HostContext`).
 
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | Plugin emits non-reserved field | Passes through unchanged |
+| EC-002 | Plugin emits no fields (empty payload) | Enrichment still injects all four HostContext fields; event is stored with only construction-time + host-enriched fields |
+| EC-003 | Plugin attempts to set `session_id` to a custom value | Plugin's `session_id` value is dropped by the filter; HostContext's `session_id` is set by the enrichment path |
 
 ## Canonical Test Vectors
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Plugin emits `{type:"my.evt", session_id:"x"}` | Event has dispatcher's session_id, plugin's `type` accepted only via dispatcher's authoritative value | happy-path |
-| Plugin emits `{commit_sha: "abc"}` | Field passes through unchanged | edge-case |
-| TBD | TBD | error |
+| Plugin emits `{type:"my.evt", session_id:"x"}` | Event has `session_id` from HostContext (enrichment), plugin's `session_id:"x"` is dropped (filter), `dispatcher_trace_id` is present from HostContext | happy-path |
+| Plugin emits `{commit_sha: "abc"}` | Field passes through unchanged; host-enriched fields also present | edge-case |
+| Plugin emits empty payload `{}` | Event stored with HostContext-enriched fields only (plus construction-time fields from `InternalEvent::now`) | edge-case |
 
 ## Verification Properties
 

@@ -229,21 +229,61 @@ A `.parse::<i64>()` round-trip is the correct way to range-check an integer fiel
 **Future work:** A typed `emit_event_typed` ABI that preserves JSON types end-to-end is a v1.1
 candidate. Until that lands, all plugin-authored fields are strings on the wire.
 
-### dispatcher_trace_id Auto-Enrichment
+### emit_event HostContext Enrichment (4 fields)
 
-The `emit_event` host fn automatically injects `dispatcher_trace_id`, `session_id`,
-`plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, and `type` onto every
-emitted event from the `HostContext`. These fields are listed in `RESERVED_FIELDS`
-(`emit_event.rs:58-67`); any attempt by a plugin to set them is **silently dropped**.
+The `emit_event` host fn automatically injects four fields onto every emitted event from
+`HostContext` (per BC-1.05.012 enrichment half):
 
-Plugins MUST NOT include `dispatcher_trace_id` in their required-fields lists. It is always
-present on every event by construction (DI-017 enforcement; BC-1.05.012). Integration harnesses
-that verify DI-017 compliance MUST assert `dispatcher_trace_id` on the emitted event at the
-*host enrichment layer* — not as a plugin-set field.
+| Field | Source | emit_event call |
+|-------|--------|-----------------|
+| `dispatcher_trace_id` | `HostContext.dispatcher_trace_id` | `.with_trace_id(...)` |
+| `session_id` | `HostContext.session_id` | `.with_session_id(...)` |
+| `plugin_name` | `HostContext.plugin_name` | `.with_plugin_name(...)` |
+| `plugin_version` | `HostContext.plugin_version` | `.with_plugin_version(...)` |
+
+These values are populated by the dispatcher's routing layer before the plugin is invoked.
+The plugin has no responsibility to set any of these four fields. All four are listed in
+`RESERVED_FIELDS` (`emit_event.rs:58-67`); any attempt by a plugin to set them is **silently
+dropped** by the filter half of BC-1.05.012.
+
+`session_id` specifically: its value originates from the incoming envelope parsed by
+BC-1.02.005 lifecycle-tolerant envelope parsing, which populates `HostContext.session_id`.
+When the envelope's `session_id` is missing or empty, BC-1.02.005 sets
+`HostContext.session_id = "unknown"`. The plugin does not set `session_id` and must not
+include it in its required-fields list.
+
+Plugins MUST NOT include any of these four fields in their required-fields lists. All four are
+always present on every event by construction (DI-017 enforcement for `dispatcher_trace_id`;
+BC-1.05.012 for all four). Integration harnesses MUST assert these fields at the *host
+enrichment layer* — not as plugin-set fields.
 
 **Harness implication:** For any VP that verifies trace correlation, assert
 `event["dispatcher_trace_id"].is_string()` (not `event["trace_id"]`). The field name is
-`dispatcher_trace_id` — the `trace_id` alias does not exist in the event schema.
+`dispatcher_trace_id` — the `trace_id` alias does not exist in the event schema. Similarly,
+assert `event["session_id"].is_string()` — this is a host-enriched field, not a plugin-set field.
+
+### InternalEvent::now Construction-Time Fields (4 fields)
+
+Four additional fields are set at event **construction time** by `InternalEvent::now()` —
+this is a distinct mechanism from the `emit_event` HostContext enrichment path:
+
+| Field | Source | Mechanism |
+|-------|--------|-----------|
+| `ts` | Current UTC datetime | `InternalEvent::now()` constructor |
+| `ts_epoch` | Current Unix timestamp | `InternalEvent::now()` constructor |
+| `schema_version` | Struct constant | `InternalEvent::now()` constructor |
+| `type` | Plugin-supplied `event_name` argument | `InternalEvent::now(&event_type)` |
+
+These fields are set before the `emit_event` enrichment loop executes. They are NOT sourced
+from `HostContext`. The `type` field is special: it is derived from the plugin's `event_name`
+argument (e.g., `"session.started"`), but the plugin cannot use the literal key name `"type"`
+in its payload key/value pairs — the RESERVED_FIELDS filter drops it.
+
+All four are listed in `RESERVED_FIELDS` (`emit_event.rs:58-67`); plugin attempts to set
+them are silently dropped. Both mechanisms together — HostContext enrichment (4 fields) and
+`InternalEvent::now` construction (4 fields) — account for all 8 RESERVED_FIELDS. The
+prohibition against plugins setting RESERVED_FIELDS applies uniformly to all 8, but the
+VALUE source differs: HostContext per-invocation values vs. construction-time values.
 
 ## Source / Origin
 
