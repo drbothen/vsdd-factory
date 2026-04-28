@@ -38,9 +38,26 @@ use std::path::{Path, PathBuf};
 const FILENAME_PREFIX: &str = "dispatcher-internal-";
 /// Filename suffix for every rotated log.
 const FILENAME_SUFFIX: &str = ".jsonl";
+/// Filename prefix for DLQ rotated logs.
+const DLQ_FILENAME_PREFIX: &str = "dead-letter-";
+/// Filename suffix for DLQ rotated logs.
+const DLQ_FILENAME_SUFFIX: &str = ".jsonl";
 /// Default retention window in days. Callers should pass this (or
 /// override) to [`InternalLog::prune_old`] at dispatcher startup.
 pub const DEFAULT_RETENTION_DAYS: u32 = 30;
+
+/// Default DLQ retention window in days (BC-1.06.011 PC1).
+///
+/// Independent of `DEFAULT_RETENTION_DAYS` (30 days for dispatcher logs).
+/// Tests MUST assert against this constant, not a literal `7`.
+/// Stub — value declared; `prune_old_dlq` method not yet implemented.
+pub const INTERNAL_DLQ_DEFAULT_RETENTION_DAYS: u32 = 7;
+
+/// Event type constant for successful DLQ writes (BC-3.07.003 PC3).
+pub const INTERNAL_SINK_DLQ_WRITE: &str = "internal.sink_dlq_write";
+
+/// Event type constant for DLQ write failures (BC-3.07.004 PC4).
+pub const INTERNAL_SINK_DLQ_FAILURE: &str = "internal.sink_dlq_failure";
 
 /// `schema_version` embedded in every event. Bumped when the event
 /// shape changes in a non-backwards-compatible way.
@@ -249,47 +266,8 @@ impl InternalLog {
     }
 
     fn prune_old_inner(&self, max_age_days: u32) -> std::io::Result<()> {
-        let dir = match fs::read_dir(&self.log_dir) {
-            Ok(d) => d,
-            // Missing log dir on a fresh install is expected; nothing to
-            // prune.
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-            Err(e) => return Err(e),
-        };
-
-        let cutoff = Local::now() - Duration::days(max_age_days as i64);
-        let cutoff_epoch = cutoff.timestamp();
-
-        for entry in dir.flatten() {
-            let path = entry.path();
-            // Only touch files matching the rotated naming pattern so a
-            // mis-configured log dir (e.g. pointed at /tmp) cannot
-            // unlink unrelated files.
-            let Some(name) = path.file_name().and_then(|s| s.to_str()) else {
-                continue;
-            };
-            if !name.starts_with(FILENAME_PREFIX) || !name.ends_with(FILENAME_SUFFIX) {
-                continue;
-            }
-
-            // `metadata()` + `modified()` is the portable mtime call.
-            // If either fails (e.g. race with concurrent deletion), skip
-            // this file rather than abort the sweep.
-            let Ok(meta) = entry.metadata() else { continue };
-            let Ok(modified) = meta.modified() else {
-                continue;
-            };
-            let Ok(since_epoch) = modified.duration_since(std::time::UNIX_EPOCH) else {
-                continue;
-            };
-            let file_epoch = since_epoch.as_secs() as i64;
-
-            if file_epoch < cutoff_epoch {
-                // Best-effort remove; ignore individual errors.
-                let _ = fs::remove_file(&path);
-            }
-        }
-        Ok(())
+        scan_files_with_prefix(&self.log_dir, FILENAME_PREFIX, FILENAME_SUFFIX, max_age_days)
+            .map(|_| ())
     }
 
     /// Expose the log directory — integration tests use this to read
@@ -297,6 +275,67 @@ impl InternalLog {
     pub fn log_dir(&self) -> &Path {
         &self.log_dir
     }
+
+    /// Delete DLQ files older than `max_age_days` from `<log_dir>/dlq/`.
+    ///
+    /// Only files matching `dead-letter-*.jsonl` are removed (BC-1.06.011 PC2).
+    /// Independent of [`Self::prune_old`] — uses `max_age_days` directly
+    /// (caller passes `INTERNAL_DLQ_DEFAULT_RETENTION_DAYS` or a config override).
+    pub fn prune_old_dlq(&self, max_age_days: u32) {
+        let dlq_dir = self.log_dir.join("dlq");
+        if let Err(e) =
+            scan_files_with_prefix(&dlq_dir, DLQ_FILENAME_PREFIX, DLQ_FILENAME_SUFFIX, max_age_days)
+        {
+            eprintln!("factory-dispatcher: internal_log prune_old_dlq failed: {e}");
+        }
+    }
+}
+
+/// Walk `dir` and delete files that match `prefix` + `suffix` (both must be present)
+/// and whose mtime is older than `max_age_days`.
+///
+/// Returns the number of files deleted. Missing `dir` is silently treated as
+/// "nothing to prune" (Ok(0)). Per-file errors (race with concurrent deletion,
+/// metadata unavailable) are skipped rather than aborting the sweep.
+fn scan_files_with_prefix(
+    dir: &Path,
+    prefix: &str,
+    suffix: &str,
+    max_age_days: u32,
+) -> std::io::Result<usize> {
+    let read_dir = match fs::read_dir(dir) {
+        Ok(d) => d,
+        // Missing dir on a fresh install is expected; nothing to prune.
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
+        Err(e) => return Err(e),
+    };
+
+    let cutoff = Local::now() - Duration::days(max_age_days as i64);
+    let cutoff_epoch = cutoff.timestamp();
+    let mut deleted = 0usize;
+
+    for entry in read_dir.flatten() {
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        if !name.starts_with(prefix) || !name.ends_with(suffix) {
+            continue;
+        }
+
+        let Ok(meta) = entry.metadata() else { continue };
+        let Ok(modified) = meta.modified() else { continue };
+        let Ok(since_epoch) = modified.duration_since(std::time::UNIX_EPOCH) else {
+            continue;
+        };
+        let file_epoch = since_epoch.as_secs() as i64;
+
+        if file_epoch < cutoff_epoch {
+            let _ = fs::remove_file(&path);
+            deleted += 1;
+        }
+    }
+    Ok(deleted)
 }
 
 #[cfg(test)]
@@ -474,6 +513,105 @@ mod tests {
         let log = InternalLog::new(missing);
         // Must not panic.
         log.prune_old(30);
+    }
+
+    // ── AC-009: prune_old_dlq covers DLQ files (BC-1.06.011) ─────────────────
+
+    /// AC-009 — Traces to: BC-1.06.011 PC1 + PC2.
+    ///
+    /// `prune_old_dlq` must:
+    ///   1. Use `INTERNAL_DLQ_DEFAULT_RETENTION_DAYS` (= 7) as its default, NOT 30.
+    ///   2. Remove DLQ files matching `dead-letter-*.jsonl` older than the threshold.
+    ///   3. Leave DLQ files newer than the threshold intact.
+    ///   4. Leave dispatcher-internal log files untouched (independent prune scope).
+    ///
+    /// RED gate: `prune_old_dlq` is `unimplemented!()`.
+    #[test]
+    fn test_BC_1_06_011_prune_old_extends_to_dlq_files() {
+        use filetime::{FileTime, set_file_mtime};
+        use std::fs as stdfs;
+
+        let dir = tempfile::tempdir().unwrap();
+        let dlq_dir = dir.path().join("dlq");
+        stdfs::create_dir_all(&dlq_dir).unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+
+        let now = std::time::SystemTime::now();
+        let now_epoch = now
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+        let day_secs: i64 = 86_400;
+
+        // Create DLQ files at 3 ages relative to INTERNAL_DLQ_DEFAULT_RETENTION_DAYS (7).
+        // Ages chosen with margin away from the 7-day boundary to avoid race conditions.
+        // (age_days, expected_to_survive_7_day_prune)
+        let dlq_fixtures: &[(&str, i64, bool)] = &[
+            ("dead-letter-my-sink-2026-01-01.jsonl", 1, true),   // 1 day old → survives
+            ("dead-letter-my-sink-2026-01-02.jsonl", 6, true),   // 6 days old → survives
+            ("dead-letter-my-sink-2026-01-03.jsonl", 9, false),  // 9 days old → pruned
+            ("dead-letter-my-sink-2026-01-04.jsonl", 30, false), // 30 days old → pruned
+        ];
+
+        let mut paths: Vec<(std::path::PathBuf, bool)> = Vec::new();
+        for (name, age, survives) in dlq_fixtures {
+            let p = dlq_dir.join(name);
+            stdfs::write(&p, b"{}\n").unwrap();
+            let mtime = FileTime::from_unix_time(now_epoch - age * day_secs, 0);
+            set_file_mtime(&p, mtime).unwrap();
+            paths.push((p, *survives));
+        }
+
+        // A dispatcher-internal log file in the parent dir must NOT be touched.
+        let internal_log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2020-01-01{FILENAME_SUFFIX}"));
+        stdfs::write(&internal_log_file, b"{}\n").unwrap();
+        set_file_mtime(
+            &internal_log_file,
+            FileTime::from_unix_time(now_epoch - 365 * day_secs, 0),
+        )
+        .unwrap();
+
+        // Use the constant — tests MUST NOT use a literal '7'.
+        log.prune_old_dlq(INTERNAL_DLQ_DEFAULT_RETENTION_DAYS);
+
+        for (p, survives) in &paths {
+            assert_eq!(
+                p.exists(),
+                *survives,
+                "BC-1.06.011: DLQ file {:?} expected survives={}",
+                p,
+                survives
+            );
+        }
+
+        // Dispatcher log must be untouched by prune_old_dlq.
+        assert!(
+            internal_log_file.exists(),
+            "BC-1.06.011: dispatcher internal log must NOT be pruned by prune_old_dlq"
+        );
+    }
+
+    /// BC-1.06.011 PC1: DLQ retention is independent — `prune_old_dlq` uses
+    /// `INTERNAL_DLQ_DEFAULT_RETENTION_DAYS` (7), NOT `DEFAULT_RETENTION_DAYS` (30).
+    ///
+    /// Assert the constant values are distinct to catch a regression where
+    /// someone aliases them.
+    ///
+    /// RED gate: this test PASSES in RED state (pure constant assertion).
+    /// Intentionally kept as a guard: the constant MUST be 7, never 30.
+    #[test]
+    fn test_BC_1_06_011_dlq_retention_constant_is_7_independent_of_dispatcher_retention() {
+        assert_eq!(
+            INTERNAL_DLQ_DEFAULT_RETENTION_DAYS, 7,
+            "BC-1.06.011: INTERNAL_DLQ_DEFAULT_RETENTION_DAYS must be 7"
+        );
+        assert_ne!(
+            INTERNAL_DLQ_DEFAULT_RETENTION_DAYS,
+            DEFAULT_RETENTION_DAYS,
+            "BC-1.06.011: DLQ retention must be independent of dispatcher log retention (30)"
+        );
     }
 
     #[test]

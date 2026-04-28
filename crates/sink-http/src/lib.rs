@@ -24,7 +24,7 @@
 pub mod retry;
 
 use serde::Deserialize;
-use sink_core::{Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
+use sink_core::{DlqReason, DlqWriter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -428,6 +428,8 @@ pub struct HttpSink {
     sender: Mutex<Option<mpsc::Sender<Message>>>,
     worker: Mutex<Option<JoinHandle<()>>>,
     shared: Arc<Shared>,
+    /// Optional DLQ writer for retry-exhausted events (S-4.05 Task 2b).
+    dlq_writer: Option<Arc<DlqWriter>>,
 }
 
 impl HttpSink {
@@ -442,7 +444,7 @@ impl HttpSink {
     /// `Some`, emission is fire-and-forget via `try_send` on the worker thread
     /// at each failure-recording site.
     pub fn new(config: HttpSinkConfig) -> anyhow::Result<Self> {
-        Self::new_inner(config, None)
+        Self::new_with_observability(config, None, None)
     }
 
     /// Like [`Self::new`] but threads an error-event channel sender into the
@@ -452,12 +454,18 @@ impl HttpSink {
         config: HttpSinkConfig,
         error_tx: mpsc::Sender<SinkErrorEvent>,
     ) -> anyhow::Result<Self> {
-        Self::new_inner(config, Some(error_tx))
+        Self::new_with_observability(config, Some(error_tx), None)
     }
 
-    fn new_inner(
+    /// Construct an `HttpSink` wired with both an optional error channel and an
+    /// optional DLQ writer (S-4.05 Task 2b).
+    ///
+    /// When `dlq_writer` is `Some`, events that exhaust all retry attempts are
+    /// written to the DLQ file (AC-002 / BC-3.07.003).
+    pub fn new_with_observability(
         config: HttpSinkConfig,
         error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
+        dlq_writer: Option<Arc<DlqWriter>>,
     ) -> anyhow::Result<Self> {
         let (tx, rx) = mpsc::channel::<Message>(config.queue_depth.max(1));
         let sink_name_for_shared = if config.common.name.is_empty() {
@@ -470,6 +478,8 @@ impl HttpSink {
         let worker_url = config.url.clone();
         let worker_headers = config.extra_headers.clone();
         let worker_retry = config.retry.clone();
+        // Clone the DLQ writer Arc for the worker thread (S-4.05 Task 4).
+        let worker_dlq: Option<Arc<DlqWriter>> = dlq_writer.as_ref().map(Arc::clone);
 
         let handle = std::thread::Builder::new()
             .name(format!("sink-http:{}", config.common.name))
@@ -501,6 +511,7 @@ impl HttpSink {
                     Arc::clone(&worker_shared),
                     worker_retry,
                     &mut rng,
+                    worker_dlq,
                 ));
             })
             .map_err(|e| anyhow::anyhow!("failed to spawn sink-http worker thread: {e}"))?;
@@ -511,6 +522,7 @@ impl HttpSink {
             sender: Mutex::new(Some(tx)),
             worker: Mutex::new(Some(handle)),
             shared,
+            dlq_writer,
         })
     }
 
@@ -636,6 +648,10 @@ impl Drop for HttpSink {
 /// The `rng` parameter is a per-instance PRNG seeded at thread spawn time
 /// (AC-007 / BC-3.07.001 invariant 2). It is passed as `&mut` so jitter draws
 /// advance the state across consecutive flush calls within the same sink instance.
+///
+/// The `dlq_writer` parameter is an optional DLQ writer for retry-exhausted
+/// events (S-4.05 Task 4). When `Some`, all events in a batch that exhaust all
+/// retries are written to the DLQ file.
 async fn worker_loop(
     mut rx: mpsc::Receiver<Message>,
     url: String,
@@ -643,6 +659,7 @@ async fn worker_loop(
     shared: Arc<Shared>,
     retry: Option<RetryConfig>,
     rng: &mut SplitMix64,
+    dlq_writer: Option<Arc<DlqWriter>>,
 ) {
     let client = reqwest::Client::new();
     let mut buffer: Vec<SinkEvent> = Vec::new();
@@ -663,6 +680,7 @@ async fn worker_loop(
                         &shared,
                         retry.as_ref(),
                         rng,
+                        dlq_writer.as_deref(),
                     )
                     .await;
                 }
@@ -683,6 +701,7 @@ async fn worker_loop(
             &shared,
             retry.as_ref(),
             rng,
+            dlq_writer.as_deref(),
         )
         .await;
     }
@@ -699,6 +718,9 @@ async fn worker_loop(
 /// - 4xx: drop immediately (no retry, no backoff sleep), record a [`SinkFailure`]
 ///   (EC-004 / postcondition 6).
 /// - 2xx: success, no failure recorded.
+///
+/// When `dlq_writer` is `Some` and all retries are exhausted for a 5xx or
+/// network error, every event in `batch` is written to the DLQ (S-4.05 / AC-002).
 async fn post_batch(
     client: &reqwest::Client,
     url: &str,
@@ -707,6 +729,7 @@ async fn post_batch(
     shared: &Arc<Shared>,
     retry: Option<&RetryConfig>,
     rng: &mut SplitMix64,
+    dlq_writer: Option<&DlqWriter>,
 ) {
     let body = match serde_json::to_string(&batch) {
         Ok(b) => b,
@@ -778,6 +801,17 @@ async fn post_batch(
                         format!("HTTP {} after {attempts} attempts", status.as_u16()),
                         attempts,
                     );
+                    // Write all events to DLQ on retry exhaustion (S-4.05 AC-002).
+                    if let Some(dlq) = dlq_writer {
+                        for event in &batch {
+                            let _ = dlq.write_event(
+                                &shared.sink_name,
+                                "http",
+                                event,
+                                DlqReason::RetryExhausted,
+                            );
+                        }
+                    }
                     return;
                 } else {
                     // 4xx or other — drop immediately, no backoff sleep, record failure + emit.
@@ -816,6 +850,17 @@ async fn post_batch(
                     continue;
                 }
                 record_failure(shared, url, reason, attempts);
+                // Write all events to DLQ on retry exhaustion (S-4.05 AC-002).
+                if let Some(dlq) = dlq_writer {
+                    for event in &batch {
+                        let _ = dlq.write_event(
+                            &shared.sink_name,
+                            "http",
+                            event,
+                            DlqReason::RetryExhausted,
+                        );
+                    }
+                }
                 return;
             }
         }

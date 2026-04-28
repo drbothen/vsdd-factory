@@ -4,6 +4,9 @@
 //! emitted by every sink driver when a `SinkFailure` is recorded) and the
 //! `emit_sink_error` helper that wraps the `try_send` call.
 //!
+//! Also defines `SinkDlqEvent`, `SinkDlqWriteEvent`, and `SinkDlqFailureEvent`
+//! for the dead-letter queue observability pipeline (S-4.05, BC-3.07.003/004).
+//!
 //! ## Pure/effectful boundary
 //!
 //! `SinkErrorEvent` construction is pure — no I/O. The single effectful
@@ -16,7 +19,12 @@
 //! `emit_sink_error` silently drops send errors (`try_send(...).ok()`).
 //! A full or closed channel is not an error from the sink's perspective.
 
+use chrono::{DateTime, Utc};
 use tokio::sync::mpsc;
+
+// Re-export DlqReason so SinkDlqWriteEvent callers can use it without
+// importing dead_letter directly.
+pub use crate::dead_letter::DlqReason;
 
 /// Structured `internal.sink_error` event emitted by every sink driver that
 /// records a [`crate::SinkFailure`] (BC-3.07.002 postcondition 1).
@@ -69,6 +77,54 @@ impl SinkErrorEvent {
             attempt,
         }
     }
+}
+
+// ── DLQ event types (S-4.05, BC-3.07.003/004) ────────────────────────────────
+
+/// Structured event emitted by DlqWriter to the internal event channel.
+///
+/// Variants map to BC-3.07.003 (`Write`) and BC-3.07.004 (`Failure`).
+#[derive(Debug, Clone, PartialEq)]
+pub enum SinkDlqEvent {
+    /// A DLQ file write succeeded (BC-3.07.003).
+    Write(SinkDlqWriteEvent),
+    /// A DLQ file write itself failed (BC-3.07.004).
+    Failure(SinkDlqFailureEvent),
+}
+
+/// Fields for `internal.sink_dlq_write` (BC-3.07.003 canonical TV).
+///
+/// Envelope fields (`type`, `schema_version`) are added at the dispatcher
+/// boundary when converting to `InternalEvent`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SinkDlqWriteEvent {
+    /// Operator-assigned sink name.
+    pub sink_name: String,
+    /// Sink driver type, e.g. `"http"`, `"file"`, `"otel-grpc"`.
+    pub sink_type: String,
+    /// Type of the dropped event (the `type` field from the `SinkEvent`).
+    pub event_type: String,
+    /// Reason the event was routed to the DLQ.
+    pub reason: DlqReason,
+    /// Timestamp at which the DLQ write occurred.
+    pub ts: DateTime<Utc>,
+    /// Optional dispatcher trace id propagated from the upstream event.
+    pub dispatcher_trace_id: Option<String>,
+}
+
+/// Fields for `internal.sink_dlq_failure` (BC-3.07.004 canonical TV).
+#[derive(Debug, Clone, PartialEq)]
+pub struct SinkDlqFailureEvent {
+    /// Operator-assigned sink name.
+    pub sink_name: String,
+    /// Sink driver type.
+    pub sink_type: String,
+    /// `format!("{}", err)` of the captured filesystem error.
+    pub error: String,
+    /// Timestamp at which the failure was observed.
+    pub ts: DateTime<Utc>,
+    /// Optional dispatcher trace id.
+    pub dispatcher_trace_id: Option<String>,
 }
 
 /// Fire-and-forget emission of a `SinkErrorEvent` to the internal event
