@@ -45,12 +45,11 @@ pub fn compute_backoff_ms(
     attempt: u32,
     jitter_ms: u64,
 ) -> u64 {
-    // STUB: panics intentionally so RED-gate tests fail at runtime, not compile time.
-    // The implementer replaces this with:
-    //   let exponential = base_ms.saturating_mul(1_u64.saturating_shl(attempt));
-    //   (exponential + jitter_ms).min(max_ms)
-    let _ = (base_ms, max_ms, attempt, jitter_ms);
-    unimplemented!("compute_backoff_ms not yet implemented (S-4.09)")
+    // delay = min(base * 2^attempt + jitter, max)
+    // Use checked_shl to prevent overflow on large attempt values; saturate to u64::MAX.
+    let shift: u64 = 1_u64.checked_shl(attempt).unwrap_or(u64::MAX);
+    let exponential = base_ms.saturating_mul(shift);
+    exponential.saturating_add(jitter_ms).min(max_ms)
 }
 
 /// Draw a jitter value uniformly from `[0, base_ms * jitter_factor]`.
@@ -62,10 +61,9 @@ pub fn compute_backoff_ms(
 ///
 /// Stub — panics until S-4.09 implementer fills this in.
 pub fn draw_jitter_ms(base_ms: u64, jitter_factor: f64, random_unit: f64) -> u64 {
-    // STUB: random_unit is a pre-drawn f64 in [0.0, 1.0) from the caller's PRNG.
-    // Implementation: (base_ms as f64 * jitter_factor * random_unit) as u64
-    let _ = (base_ms, jitter_factor, random_unit);
-    unimplemented!("draw_jitter_ms not yet implemented (S-4.09)")
+    // random_unit is a pre-drawn f64 in [0.0, 1.0) from the caller's PRNG.
+    // jitter is uniformly drawn from [0, base_ms * jitter_factor].
+    (base_ms as f64 * jitter_factor * random_unit) as u64
 }
 
 #[cfg(test)]
