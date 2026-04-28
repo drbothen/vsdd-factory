@@ -47,7 +47,43 @@ pub fn resolve_path_template<Tz: TimeZone>(
 where
     Tz::Offset: std::fmt::Display,
 {
-    // Stub — not implemented. RED-gate: tests must fail here.
-    let _ = (template, date, name, project);
-    unimplemented!("resolve_path_template stub — implement in GREEN phase")
+    use std::path::Path;
+
+    let date_s = date.format("%Y-%m-%d").to_string();
+    let project_s = project
+        .and_then(|p| {
+            Path::new(p)
+                .file_name()
+                .and_then(|s| s.to_str())
+                .map(str::to_owned)
+        })
+        .unwrap_or_default();
+
+    let mut out = String::with_capacity(template.len());
+    let mut rest = template;
+    while let Some(open) = rest.find('{') {
+        out.push_str(&rest[..open]);
+        let after = &rest[open + 1..];
+        let Some(close) = after.find('}') else {
+            // Unbalanced brace — treat the rest literally.
+            out.push('{');
+            out.push_str(after);
+            rest = "";
+            break;
+        };
+        let key = &after[..close];
+        match key {
+            "date" => out.push_str(&date_s),
+            "name" => out.push_str(name),
+            "project" => out.push_str(&project_s),
+            other => {
+                return Err(PathTemplateError::UnknownPlaceholder {
+                    placeholder: other.to_owned(),
+                });
+            }
+        }
+        rest = &after[close + 1..];
+    }
+    out.push_str(rest);
+    Ok(PathBuf::from(out))
 }
