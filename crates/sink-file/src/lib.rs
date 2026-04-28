@@ -146,6 +146,20 @@ pub enum FileSinkError {
     Io(#[from] std::io::Error),
 }
 
+impl From<sink_core::PathTemplateError> for FileSinkError {
+    fn from(e: sink_core::PathTemplateError) -> Self {
+        match e {
+            sink_core::PathTemplateError::UnknownPlaceholder { placeholder } => {
+                // Preserve the existing sink-file convention of including braces
+                // in the placeholder string (e.g. "{unknown}" not "unknown").
+                FileSinkError::UnknownPlaceholder {
+                    placeholder: format!("{{{placeholder}}}"),
+                }
+            }
+        }
+    }
+}
+
 /// Resolve a path template into a concrete [`PathBuf`].
 ///
 /// Supported placeholders:
@@ -157,51 +171,16 @@ pub enum FileSinkError {
 /// Unknown `{...}` placeholders return [`FileSinkError::UnknownPlaceholder`]
 /// so a typo in `observability-config.toml` fails loudly at load time
 /// rather than silently leaving a literal `{typo}` in the filename.
+///
+/// Delegates to [`sink_core::path_template::resolve_path_template`] (Task 0 extraction).
 pub fn resolve_path_template(
     template: &str,
     date: DateTime<Local>,
     name: &str,
     project: Option<&str>,
 ) -> Result<PathBuf, FileSinkError> {
-    let date_s = date.format("%Y-%m-%d").to_string();
-    let project_s = project
-        .and_then(|p| {
-            // basename of the project dir — the spec's contract. `Path`
-            // handles trailing slashes.
-            Path::new(p)
-                .file_name()
-                .and_then(|s| s.to_str())
-                .map(str::to_owned)
-        })
-        .unwrap_or_default();
-
-    let mut out = String::with_capacity(template.len());
-    let mut rest = template;
-    while let Some(open) = rest.find('{') {
-        out.push_str(&rest[..open]);
-        let after = &rest[open + 1..];
-        let Some(close) = after.find('}') else {
-            // Unbalanced brace — treat the rest literally.
-            out.push('{');
-            out.push_str(after);
-            rest = "";
-            break;
-        };
-        let key = &after[..close];
-        match key {
-            "date" => out.push_str(&date_s),
-            "name" => out.push_str(name),
-            "project" => out.push_str(&project_s),
-            other => {
-                return Err(FileSinkError::UnknownPlaceholder {
-                    placeholder: format!("{{{other}}}"),
-                });
-            }
-        }
-        rest = &after[close + 1..];
-    }
-    out.push_str(rest);
-    Ok(PathBuf::from(out))
+    sink_core::path_template::resolve_path_template(template, date, name, project)
+        .map_err(FileSinkError::from)
 }
 
 /// Messages sent to the worker task.

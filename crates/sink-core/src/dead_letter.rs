@@ -7,7 +7,7 @@
 #![deny(missing_docs)]
 
 use chrono::{DateTime, Utc};
-use std::fs::{self, File, OpenOptions};
+use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Arc;
