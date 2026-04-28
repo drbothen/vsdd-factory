@@ -46,3 +46,8 @@ tokio.workspace = true
 tonic.workspace = true
 tokio-stream.workspace = true
 opentelemetry-proto.workspace = true
+# S-4.07 integration tests: mock HTTP server for datadog/honeycomb/http sinks.
+httpmock.workspace = true
+# S-4.07 integration tests: datadog + honeycomb sink drivers.
+sink-datadog = { path = "../sink-datadog", version = "0.0.1" }
+sink-honeycomb = { path = "../sink-honeycomb", version = "0.0.1" }
