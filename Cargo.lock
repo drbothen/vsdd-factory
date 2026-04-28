@@ -932,6 +932,7 @@ dependencies = [
  "serde_json",
  "sink-core",
  "sink-file",
+ "sink-http",
  "sink-otel-grpc",
  "tempfile",
  "thiserror 2.0.18",

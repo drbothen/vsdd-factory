@@ -38,6 +38,10 @@ use std::path::{Path, PathBuf};
 const FILENAME_PREFIX: &str = "dispatcher-internal-";
 /// Filename suffix for every rotated log.
 const FILENAME_SUFFIX: &str = ".jsonl";
+/// Filename prefix for DLQ rotated logs.
+const DLQ_FILENAME_PREFIX: &str = "dead-letter-";
+/// Filename suffix for DLQ rotated logs.
+const DLQ_FILENAME_SUFFIX: &str = ".jsonl";
 /// Default retention window in days. Callers should pass this (or
 /// override) to [`InternalLog::prune_old`] at dispatcher startup.
 pub const DEFAULT_RETENTION_DAYS: u32 = 30;
@@ -262,47 +266,8 @@ impl InternalLog {
     }
 
     fn prune_old_inner(&self, max_age_days: u32) -> std::io::Result<()> {
-        let dir = match fs::read_dir(&self.log_dir) {
-            Ok(d) => d,
-            // Missing log dir on a fresh install is expected; nothing to
-            // prune.
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-            Err(e) => return Err(e),
-        };
-
-        let cutoff = Local::now() - Duration::days(max_age_days as i64);
-        let cutoff_epoch = cutoff.timestamp();
-
-        for entry in dir.flatten() {
-            let path = entry.path();
-            // Only touch files matching the rotated naming pattern so a
-            // mis-configured log dir (e.g. pointed at /tmp) cannot
-            // unlink unrelated files.
-            let Some(name) = path.file_name().and_then(|s| s.to_str()) else {
-                continue;
-            };
-            if !name.starts_with(FILENAME_PREFIX) || !name.ends_with(FILENAME_SUFFIX) {
-                continue;
-            }
-
-            // `metadata()` + `modified()` is the portable mtime call.
-            // If either fails (e.g. race with concurrent deletion), skip
-            // this file rather than abort the sweep.
-            let Ok(meta) = entry.metadata() else { continue };
-            let Ok(modified) = meta.modified() else {
-                continue;
-            };
-            let Ok(since_epoch) = modified.duration_since(std::time::UNIX_EPOCH) else {
-                continue;
-            };
-            let file_epoch = since_epoch.as_secs() as i64;
-
-            if file_epoch < cutoff_epoch {
-                // Best-effort remove; ignore individual errors.
-                let _ = fs::remove_file(&path);
-            }
-        }
-        Ok(())
+        scan_files_with_prefix(&self.log_dir, FILENAME_PREFIX, FILENAME_SUFFIX, max_age_days)
+            .map(|_| ())
     }
 
     /// Expose the log directory — integration tests use this to read
@@ -316,12 +281,61 @@ impl InternalLog {
     /// Only files matching `dead-letter-*.jsonl` are removed (BC-1.06.011 PC2).
     /// Independent of [`Self::prune_old`] — uses `max_age_days` directly
     /// (caller passes `INTERNAL_DLQ_DEFAULT_RETENTION_DAYS` or a config override).
-    ///
-    /// **Stub — not implemented.** RED gate: tests calling this must fail.
     pub fn prune_old_dlq(&self, max_age_days: u32) {
-        // Stub — not implemented.
-        unimplemented!("InternalLog::prune_old_dlq stub — implement in GREEN phase")
+        let dlq_dir = self.log_dir.join("dlq");
+        if let Err(e) =
+            scan_files_with_prefix(&dlq_dir, DLQ_FILENAME_PREFIX, DLQ_FILENAME_SUFFIX, max_age_days)
+        {
+            eprintln!("factory-dispatcher: internal_log prune_old_dlq failed: {e}");
+        }
     }
+}
+
+/// Walk `dir` and delete files that match `prefix` + `suffix` (both must be present)
+/// and whose mtime is older than `max_age_days`.
+///
+/// Returns the number of files deleted. Missing `dir` is silently treated as
+/// "nothing to prune" (Ok(0)). Per-file errors (race with concurrent deletion,
+/// metadata unavailable) are skipped rather than aborting the sweep.
+fn scan_files_with_prefix(
+    dir: &Path,
+    prefix: &str,
+    suffix: &str,
+    max_age_days: u32,
+) -> std::io::Result<usize> {
+    let read_dir = match fs::read_dir(dir) {
+        Ok(d) => d,
+        // Missing dir on a fresh install is expected; nothing to prune.
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
+        Err(e) => return Err(e),
+    };
+
+    let cutoff = Local::now() - Duration::days(max_age_days as i64);
+    let cutoff_epoch = cutoff.timestamp();
+    let mut deleted = 0usize;
+
+    for entry in read_dir.flatten() {
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        if !name.starts_with(prefix) || !name.ends_with(suffix) {
+            continue;
+        }
+
+        let Ok(meta) = entry.metadata() else { continue };
+        let Ok(modified) = meta.modified() else { continue };
+        let Ok(since_epoch) = modified.duration_since(std::time::UNIX_EPOCH) else {
+            continue;
+        };
+        let file_epoch = since_epoch.as_secs() as i64;
+
+        if file_epoch < cutoff_epoch {
+            let _ = fs::remove_file(&path);
+            deleted += 1;
+        }
+    }
+    Ok(deleted)
 }
 
 #[cfg(test)]
