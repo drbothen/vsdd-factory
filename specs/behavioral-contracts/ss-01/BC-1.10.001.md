@@ -15,15 +15,15 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-01"
 capability: "CAP-002"
-lifecycle_status: active
+lifecycle_status: retired
 introduced: v1.0.0-rc.1
 modified: []
 deprecated: null
 deprecated_by: null
-replacement: null
-retired: null
+replacement: "BC-4.04.005 read_file capability declaration; existing read_file host fn in crates/factory-dispatcher/src/host/read_file.rs"
+retired: 2026-04-28
 removed: null
-removal_reason: null
+removal_reason: "Over-engineered foundation — production read_file host fn (registry.rs ReadFileCaps with path_allow) already provides this capability via the canonical [hooks.capabilities.read_file] TOML table. BC-4.04.005 declares read_file capability with path_allow=['.claude/settings.local.json'] instead."
 ---
 
 # BC-1.10.001: Dispatcher exposes vsdd::activated_platform() host function returning activation record platform string

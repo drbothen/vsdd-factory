@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "20ed836"
+input-hash: "0b2120e"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -26,11 +26,11 @@ removed: null
 removal_reason: null
 ---
 
-# BC-4.04.005: hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with once:true, exec_subprocess capability table, and timeout_ms:8000
+# BC-4.04.005: hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with read_file + exec_subprocess capability tables and timeout_ms:8000
 
 ## Description
 
-The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 Hook Bash Layer) to map event names to WASM plugin paths. The `SessionStart` entry in that file MUST exist with `event = "SessionStart"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, `once = true`, a `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]`, and `timeout_ms = 8000`. This is Layer 2 of the dual-routing-tables pattern per ADR-011 — the dispatcher-side counterpart to BC-4.04.004's `hooks.json.template` entry. The `once = true` flag aligns with BC-4.04.003's idempotency contract (now enforced dispatcher-side per BC-1.10.002); the `[hooks.capabilities.exec_subprocess]` table declaration is required for the factory-health subprocess invocation described in BC-4.04.002. The `hooks-registry.toml` entry is added by **direct edit** per the file's own header comment ("Human-edited source of truth as of v1.0.0. The v0.79.x→v1.0 migration generator has been retired; edit this file directly."). The legacy `generate-registry-from-hooks-json.sh` script is retired and MUST NOT be modified for this purpose.
+The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 Hook Bash Layer) to map event names to WASM plugin paths. The `SessionStart` entry in that file MUST exist with `event = "SessionStart"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, a `[hooks.capabilities.read_file]` table with `path_allow = [".claude/settings.local.json"]`, a `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]`, and `timeout_ms = 8000`. This is Layer 2 of the dual-routing-tables pattern per ADR-011 — the dispatcher-side counterpart to BC-4.04.004's `hooks.json.template` entry. Once-per-session discipline is enforced at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (BC-4.04.004 invariant); the dispatcher does not enforce per-event dedup at Layer 2 (BC-1.10.002 retired in pass-4). The `[hooks.capabilities.read_file]` table enables the plugin to read `activated_platform` from `.claude/settings.local.json` via the existing `read_file` host fn. The `[hooks.capabilities.exec_subprocess]` table declaration is required for the factory-health subprocess invocation described in BC-4.04.002. The `hooks-registry.toml` entry is added by **direct edit** per the file's own header comment ("Human-edited source of truth as of v1.0.0. The v0.79.x→v1.0 migration generator has been retired; edit this file directly."). The legacy `generate-registry-from-hooks-json.sh` script is retired and MUST NOT be modified for this purpose.
 
 ## Preconditions
 
@@ -42,16 +42,28 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 
 1. `hooks-registry.toml` contains a `[[hooks]]` entry (or equivalent TOML structure) with `event = "SessionStart"`.
 2. The `SessionStart` entry specifies `plugin = "hook-plugins/session-start-telemetry.wasm"`.
-3. The `SessionStart` entry has `once = true`.
-4. The `SessionStart` entry declares a `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]` (required for BC-4.04.002 factory-health subprocess invocation). The table form matches the production schema verified against `crates/factory-dispatcher/src/registry.rs` `Capabilities` struct (`#[serde(deny_unknown_fields)]`).
+3. Once-per-session discipline for the `SessionStart` entry is enforced upstream at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (BC-4.04.004 invariant 1). The dispatcher does not enforce per-event dedup at Layer 2 for this entry; BC-1.10.002 was retired in pass-4 as over-engineering after confirming that the Layer 1 once-discipline guarantees the dispatcher receives at most one `SessionStart` invocation per session.
+4. The `SessionStart` entry declares capability tables in the following form (both tables required):
+
+   ```toml
+   [hooks.capabilities.read_file]
+   path_allow = [".claude/settings.local.json"]
+
+   [hooks.capabilities.exec_subprocess]
+   binary_allow = ["factory-health"]
+   ```
+
+   The `read_file` table enables the plugin to read `activated_platform` from `.claude/settings.local.json` via the existing `read_file` host fn (`crates/factory-dispatcher/src/host/read_file.rs`). The `exec_subprocess` table is required for BC-4.04.002 factory-health subprocess invocation. Both table forms match the production schema verified against `crates/factory-dispatcher/src/registry.rs` `Capabilities` struct (`#[serde(deny_unknown_fields)]`).
 5. The `SessionStart` entry has `timeout_ms = 8000`. Justification: the plugin's 5000ms subprocess timeout (BC-4.04.002 Invariant 4) plus plugin startup, payload parse, host-fn calls, and `exec_subprocess` setup overhead exceeds the 5000ms global epoch default (CAP-011). The 8000ms value gives 3000ms headroom above the subprocess timeout and prevents `Timeout{Epoch}` from killing the plugin before it can map a subprocess timeout to `factory_health = "unknown"` (per BC-4.04.002 EC-003). Field name `timeout_ms` per F-13 ruling — `RegistryEntry` in `registry.rs` declares `timeout_ms: Option<u32>` with `deny_unknown_fields`; `epoch_budget_ms` would cause a hard registry-load rejection.
 6. Dispatcher successfully loads the entry without error at startup.
 
 ## Invariants
 
 1. The `hooks-registry.toml` `SessionStart` entry must remain registered through all v1.0 releases — removal requires a deprecation pass.
-2. `once = true` is immutable for `SessionStart` in this file — changing to `once = false` requires a new BC and explicit justification.
-3. The `[hooks.capabilities.exec_subprocess]` table must remain present as long as BC-4.04.002 requires it; removing the table would cause the dispatcher to refuse the factory-health subprocess call (per DI-004). The `binary_allow = ["factory-health"]` value restricts which binary the plugin may invoke.
+2. Once-per-session discipline is invariant at Layer 1 (Claude Code `once: true` directive in `hooks.json.template`, BC-4.04.004 invariant 1). The `hooks-registry.toml` entry itself does not carry a `once` field — `RegistryEntry` has no such field and `deny_unknown_fields` would reject it. Once-discipline is entirely a Layer 1 concern.
+3. Both capability tables must remain present as long as the respective dependencies exist:
+   - `[hooks.capabilities.read_file]` with `path_allow = [".claude/settings.local.json"]` must remain while BC-4.04.001 requires `activated_platform` from that file. Removing it would cause the `read_file` host fn to deny the read with `internal.capability_denied` (per DI-004).
+   - `[hooks.capabilities.exec_subprocess]` with `binary_allow = ["factory-health"]` must remain while BC-4.04.002 requires the factory-health subprocess call. Removing it would cause the dispatcher to refuse the subprocess call (per DI-004).
 4. `plugin` must stay in sync with the canonical plugin path `hook-plugins/session-start-telemetry.wasm`; any rename propagates to this entry in the same commit.
 5. Entries declaring `[hooks.capabilities.exec_subprocess]` MUST declare `timeout_ms` exceeding the longest expected subprocess wait. For the `SessionStart` entry, this means `timeout_ms > 5000` (the subprocess timeout per BC-4.04.002 Invariant 4); `8000` is the required minimum. Field name is `timeout_ms` per `RegistryEntry` schema (F-13 ruling).
 
@@ -60,7 +72,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | `[hooks.capabilities.exec_subprocess]` table absent from the `SessionStart` entry | Dispatcher refuses to invoke `factory-health` subprocess; emits `internal.capability_denied` per DI-004; plugin sets `factory_health = "unknown"` (fail-open per BC-4.04.002); `session.started` still emitted |
-| EC-002 | `SessionStart` entry is duplicated in `hooks-registry.toml` | Dispatcher uses the first matching entry; logs a warning for the duplicate; behavior is otherwise per the first entry's fields |
+| EC-002 | `SessionStart` entry is duplicated in `hooks-registry.toml` | Duplicate entries are not detected by the loader: `toml::from_str` accepts both; both entries are loaded into `Vec<RegistryEntry>`; the dispatcher routes the event to the first-iteration-order entry. No warning is emitted. Operator must avoid duplicates manually. v1.1 candidate: registry validation duplicate-detection. |
 | EC-003 | `hooks-registry.toml` contains a TOML syntax error | Dispatcher fails to start; emits `internal.dispatcher_error` with structured error message including file path and parse error; dispatcher exits non-zero |
 | EC-004 | `timeout_ms` field is absent from the `SessionStart` entry that declares `[hooks.capabilities.exec_subprocess]` | Registry load fails with a structured error indicating the missing field is required for entries declaring subprocess execution with timeouts at or above the 5000ms CAP-011 default. Dispatcher exits non-zero. This is a defect, not a fail-open — entries declaring long-running subprocesses MUST declare `timeout_ms` exceeding the longest expected wait (here: `timeout_ms > 5000`). Trace: BC-1.01.003 typo-guard pattern (schema validation hard-fails on missing required fields rather than silently applying a default). |
 
@@ -68,7 +80,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Parse `hooks-registry.toml` and inspect entries | `SessionStart` entry present with `event = "SessionStart"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, `once = true`, `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]` | happy-path |
+| Parse `hooks-registry.toml` and inspect entries | `SessionStart` entry present with `event = "SessionStart"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, `[hooks.capabilities.read_file]` table with `path_allow = [".claude/settings.local.json"]`, `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]` | happy-path |
 | `hooks-registry.toml` `SessionStart` entry with `[hooks.capabilities.exec_subprocess]` table absent | Dispatcher refuses factory-health subprocess call; `internal.capability_denied` emitted; `session.started` still emitted with `factory_health = "unknown"` | error (capability denied) |
 | `hooks-registry.toml` with duplicate `SessionStart` entries (first valid, second malformed) | Dispatcher uses first entry; logs warning about duplicate; `session.started` emitted normally | edge-case (duplicate entry) |
 | Parse `hooks-registry.toml` `SessionStart` entry; inspect `timeout_ms` field | `timeout_ms = 8000` present; value is integer ≥ 8000 | happy-path (timeout budget) |
@@ -82,11 +94,13 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 
 ## Related BCs
 
-- **BC-4.04.004** — counterpart (hooks.json.template is the Claude Code-side registration; this is the dispatcher-side registration; both must exist for full routing)
+- **BC-4.04.004** — counterpart (hooks.json.template is the Claude Code-side registration; this is the dispatcher-side registration; both must exist for full routing; BC-4.04.004's `once: true` directive is the upstream once-discipline this entry relies on)
 - **BC-4.04.002** — depends on (exec_subprocess capability in this entry enables the factory-health subprocess call)
-- **BC-4.04.003** — aligns with (once = true flag mirrors the idempotency contract)
-- **BC-4.04.001** — enables (this routing entry causes the dispatcher to invoke the plugin that emits session.started)
+- **BC-4.04.003** — aligns with (idempotency is delegated to Layer 1 once-discipline per BC-4.04.004)
+- **BC-4.04.001** — enables (this routing entry causes the dispatcher to invoke the plugin that emits session.started; read_file capability in this entry enables activated_platform read)
 - **BC-1.01.001** — depends on (registry schema validation applies to this toml entry)
+- **BC-1.10.001** — retired (pass-4: over-engineering; canonical read_file host fn + path_allow pattern used instead)
+- **BC-1.10.002** — retired (pass-4: over-engineering; Layer 1 once-discipline makes dispatcher-side dedup redundant)
 
 ## Architecture Anchors
 

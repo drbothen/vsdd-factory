@@ -145,6 +145,23 @@ output truncation invariants (BC-4.016–BC-4.020), capability denial propagatio
 (BC-4.021–BC-4.025), `capture-commit-activity` stub contract (BC-4.026–BC-4.030),
 session-start-telemetry plugin family (BC-4.04.001–BC-4.04.005).
 
+**Session-start-telemetry plugin pattern (pass-4 architectural note):**
+The `session-start-telemetry` plugin reads `activated_platform` from
+`.claude/settings.local.json` using the canonical `read_file` host fn pattern —
+declaring `[hooks.capabilities.read_file]` with `path_allow = [".claude/settings.local.json"]`
+in its `hooks-registry.toml` entry per BC-4.04.005. No new host function was needed.
+BC-1.10.001 ("vsdd::activated_platform() host fn") was created in pass-2 and retired in
+pass-4 as over-engineering: the production `read_file` host fn
+(`crates/factory-dispatcher/src/host/read_file.rs`) with `ReadFileCaps.path_allow`
+enforcement already provides controlled sandboxed file access via the established
+`[hooks.capabilities.read_file]` TOML table pattern (see `hooks-registry.toml:470`).
+
+Once-per-session discipline for the `SessionStart` entry is enforced at Layer 1 by
+Claude Code's `once: true` directive in `hooks.json.template` (BC-4.04.004 invariant 1).
+The dispatcher does not enforce per-event dedup at Layer 2 for this entry; BC-1.10.002
+was retired in pass-4. The plugin itself is unconditionally stateless (BC-4.04.003
+pass-4 revision).
+
 ## ADRs
 
 - ADR-002: WASM (wasmtime) plugin ABI — `decisions/ADR-002-wasm-plugin-abi.md`

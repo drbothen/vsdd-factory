@@ -138,8 +138,11 @@ filename).
 
 **Layer 2 — hooks-registry.toml (dispatcher routing, SS-07-owned file, SS-04-contracted semantics):**
 The `SessionStart` entry in `hooks-registry.toml` routes to the WASM plugin
-(e.g., `session-start-telemetry.wasm`), with `once = true`, capability declarations, and any
-`epoch_budget_ms` override needed. BC-4.04.005 contracts this layer. The routing semantics for
+(e.g., `session-start-telemetry.wasm`), with capability declarations (`read_file` +
+`exec_subprocess`) and any `timeout_ms` override needed. The entry does NOT carry a `once`
+field — `RegistryEntry` has no such field (`deny_unknown_fields` would reject it). Once-discipline
+is a Layer 1 concern enforced by `hooks.json.template` (see "Dedup is enforced at Layer 1"
+subsection below). BC-4.04.005 contracts this layer. The routing semantics for
 this entry are SS-04-owned even though the file lives in SS-07-owned space (see F-8 ruling in
 the S-5.01 pass-2 architectural-findings record: Option C1 accepted).
 
@@ -147,6 +150,57 @@ the S-5.01 pass-2 architectural-findings record: Option C1 accepted).
 filenames — that is exclusively BC-4.04.005 / hooks-registry.toml territory. Any BC that
 contracts a hooks-registry.toml entry must NOT assert dispatcher binary paths — that is
 exclusively BC-4.04.004 / hooks.json.template territory.
+
+## Pass-4 Architectural Simplifications (2026-04-28)
+
+### Dedup is enforced at Layer 1 via `once: true` directive
+
+The dispatcher does NOT enforce per-event dedup at Layer 2. Once-per-session firing
+discipline is a Layer 1 concern: Claude Code's `once: true` directive in
+`hooks.json.template` (BC-4.04.004 invariant) instructs the Claude Code harness to fire
+the `SessionStart` event to the dispatcher exactly once per session. Because the harness
+enforces this upstream, the dispatcher receives at most one `SessionStart` invocation per
+session — making dispatcher-side dedup redundant.
+
+Pass-4 retired BC-1.10.002 ("Dispatcher suppresses duplicate once:true events by tracking
+per-event-name + per-session_id in dispatcher memory") as over-engineering. BC-4.04.003
+is revised to reflect that idempotency is delegated to Layer 1; the plugin itself is
+unconditionally stateless.
+
+### Plugin file reads use existing `read_file` host fn
+
+Plugins that need to read sandboxed files (e.g., `.claude/settings.local.json` for the
+`activated_platform` field) do so by declaring `[hooks.capabilities.read_file]` with an
+appropriate `path_allow` list in their `hooks-registry.toml` entry. The production
+`read_file` host fn (`crates/factory-dispatcher/src/host/read_file.rs`) with the
+`ReadFileCaps.path_allow` enforcement already provides this capability.
+
+Pass-4 retired BC-1.10.001 ("Dispatcher exposes vsdd::activated_platform() host function")
+as over-engineering. BC-4.04.005 is updated to declare `[hooks.capabilities.read_file]`
+with `path_allow = [".claude/settings.local.json"]` alongside the existing
+`[hooks.capabilities.exec_subprocess]` table. BC-4.04.001 is updated to obtain
+`activated_platform` via the `read_file` host fn path rather than a bespoke host function.
+
+### Timeout hierarchy
+
+Three timeout budgets govern the `SessionStart` dispatch path. Each layer has headroom
+above the layer it contains:
+
+- **Layer 3 — subprocess timeout (5000ms):** The `factory-health` subprocess wait budget
+  per BC-4.04.002 Invariant 4. If the subprocess does not return within 5000ms, the plugin
+  maps the timeout to `factory_health = "unknown"` and proceeds.
+- **Layer 2 — dispatcher `timeout_ms` (8000ms):** The per-call wasmtime epoch budget for
+  the `session-start-telemetry` plugin per BC-4.04.005 Postcondition 5. This exceeds the
+  subprocess timeout by 3000ms, giving the plugin headroom to handle the timeout and
+  complete the `emit_event` call before the dispatcher terminates the WASM execution.
+- **Layer 1 — Claude Code harness timeout (10000ms):** The `timeout` field in
+  `hooks.json.template` (BC-4.04.004) bounds the entire dispatcher process invocation
+  including all subprocess and plugin activity. This exceeds the dispatcher budget by
+  2000ms.
+
+Invariant: `5000ms (subprocess) < 8000ms (dispatcher) < 10000ms (harness)`. Each layer
+has headroom for the layer below. Implementations MUST NOT violate this ordering; any
+change to one timeout must preserve the strict inequality.
 
 ## Source / Origin
 

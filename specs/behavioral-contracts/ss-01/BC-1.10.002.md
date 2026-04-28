@@ -15,15 +15,15 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-01"
 capability: "CAP-002"
-lifecycle_status: active
+lifecycle_status: retired
 introduced: v1.0.0-rc.1
 modified: []
 deprecated: null
 deprecated_by: null
-replacement: null
-retired: null
+replacement: "Claude Code hooks.json.template Layer 1 once:true directive; BC-4.04.004 contracts the Layer 1 entry. Plugin idempotency becomes 'delegated to Layer 1' per BC-4.04.003 revised contract."
+retired: 2026-04-28
 removed: null
-removal_reason: null
+removal_reason: "Over-engineered foundation — Claude Code Layer 1 'once: true' directive in hooks.json.template enforces once-per-session firing at the harness layer. Dispatcher only ever receives one SessionStart invocation per session, making dispatcher-side dedup redundant. Pass-4 root-cause review found pass-2 created this BC without verifying the upstream once-discipline."
 ---
 
 # BC-1.10.002: Dispatcher suppresses duplicate once:true events by tracking per-event-name + per-session_id in dispatcher memory

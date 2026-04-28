@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "20ed836"
+input-hash: "0b2120e"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -30,40 +30,43 @@ removal_reason: null
 
 ## Description
 
-If the dispatcher receives a second `SessionStart` event carrying the same `session_id` as one it has already dispatched within the current process lifetime, it suppresses the invocation before reaching the plugin — the plugin is never called for the duplicate. Deduplication is a routing-layer concern enforced by the dispatcher's per-process `Mutex<HashSet<(event_name, session_id)>>` tracker per BC-1.10.002. The plugin itself is unconditionally stateless across invocations: it emits `session.started` on every invocation and relies on the dispatcher to ensure it is only invoked once per `(SessionStart, session_id)` pair. This prevents duplicate telemetry rows when Claude Code occasionally fires redundant lifecycle events. Pass-1 specified plugin-side `Mutex<HashSet<String>>` (formerly Invariant 3); pass-2 superseded that with dispatcher-side dedup per BC-1.10.002. Current Invariant 3 reflects the new contract.
+SessionStart idempotency is enforced upstream at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (per BC-4.04.004 invariant 1). The Claude Code harness fires `SessionStart` to the dispatcher exactly once per session; the dispatcher receives at most one invocation per session.
+
+The session-start-telemetry plugin is unconditionally stateless across invocations: it does NOT maintain dedup state (no `Mutex<HashSet<String>>` or equivalent). It emits `session.started` on every invocation. If Layer 1 once-discipline is bypassed (e.g., manual `SessionStart` event injection during testing or a harness regression), the plugin emits multiple `session.started` events — this is operator-observable and acceptable at the plugin layer. The plugin does not attempt to defend against a Layer 1 failure.
+
+Pass-1 specified plugin-side `Mutex<HashSet<String>>` (formerly Invariant 3). Pass-2 superseded that with dispatcher-side dedup per BC-1.10.002. Pass-4 retired BC-1.10.002 as over-engineering and reverted idempotency to Layer 1 delegation (this contract).
 
 ## Preconditions
 
-1. The dispatcher has already routed a `SessionStart` event with `session_id = X` to the plugin in this process lifetime, inserting `(SessionStart, X)` into the dispatcher dedup tracker per BC-1.10.002.
-2. A second `SessionStart` event with `session_id = X` arrives at the dispatcher.
+1. Claude Code's `once: true` directive in `hooks.json.template` (BC-4.04.004 invariant 1) is in effect — the harness fires `SessionStart` to the dispatcher at most once per session.
+2. A `SessionStart` event arrives at the dispatcher.
 
 ## Postconditions
 
-1. No additional `session.started` event is emitted for the duplicate `SessionStart` — the dispatcher suppresses the second routing before the plugin is invoked.
-2. The dispatcher returns a synthetic "no plugins matched" result (exit code 0, no block_intent, no events emitted) per BC-1.10.002 Postcondition 2b.
-3. The dispatcher's dedup tracker still contains the `(SessionStart, X)` pair after the second arrival — the pair is not evicted on a suppressed invocation.
+1. The plugin emits exactly one `session.started` event per `SessionStart` invocation it receives. Under normal Layer 1 once-discipline, this means exactly one `session.started` per session.
+2. If Layer 1 once-discipline is bypassed (e.g., manual injection), the plugin emits one `session.started` per invocation. This is operator-observable behavior, not a defect at the plugin layer.
 
 ## Invariants
 
-1. At most one `session.started` event is emitted per `session_id` (where `session_id` ≠ `"unknown"`) per dispatcher process lifetime. This guarantee is enforced at the dispatcher routing layer per BC-1.10.002, not in the plugin.
-2. Deduplication state is in-process only — it does not persist across dispatcher restarts.
-3. Dedup is enforced at the dispatcher routing layer per BC-1.10.002, not in the plugin. The plugin is unconditionally stateless across invocations: it does not maintain a `Mutex<HashSet<String>>` or any other seen-sessions set internally.
+1. The plugin is unconditionally stateless across invocations: it does not maintain a `Mutex<HashSet<String>>` or any other seen-sessions set. It emits `session.started` on every invocation it receives.
+2. Once-per-session guarantee is delegated entirely to BC-4.04.004 invariant 1 (Layer 1 `once: true` directive). The dispatcher does not enforce per-event dedup (BC-1.10.002 retired in pass-4).
+3. The plugin does not attempt to defend against Layer 1 failures — if the harness misfires and invokes the dispatcher twice for the same session, the plugin emits twice. Operator-observable; not a defect at this layer.
 
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | Dispatcher restarts between two `SessionStart` events with the same `session_id` | Dedup state is lost on restart; the second event is treated as a new session and `session.started` is emitted. This is acceptable and documented — cross-process deduplication is out of scope. |
-| EC-002 | (Retired in pass-2 — in-plugin `Mutex<HashSet<String>>` dedup superseded by BC-1.10.002 dispatcher-side dedup; ID preserved per POLICY 1 append-only-numbering) | N/A — superseded |
-| EC-003 | `session_id = "unknown"` sentinel appears in two separate `SessionStart` events (both envelopes had missing session_id) | Dedup is SKIPPED for `session_id = "unknown"` — confirmed at the dispatcher layer per BC-1.10.002 EC-003. Both events route to the plugin; both emit `session.started`. Operator sees two events. |
+| EC-001 | Two `SessionStart` events with the same `session_id` arrive at the dispatcher (Layer 1 once-discipline bypassed, e.g., by manual injection or harness regression) | Plugin is invoked for each arrival and emits `session.started` each time. Operator sees multiple events. This is acceptable at the plugin layer — once-discipline failure is a Layer 1 concern. |
+| EC-002 | (Retired in pass-2 — in-plugin `Mutex<HashSet<String>>` dedup superseded by BC-1.10.002; BC-1.10.002 itself retired in pass-4; ID preserved per POLICY 1 append-only-numbering) | N/A — superseded and retired |
+| EC-003 | `session_id = "unknown"` (missing session_id in envelope per BC-1.02.005 lifecycle-tolerance) | Plugin emits `session.started` with `session_id = "unknown"` per BC-4.04.001 EC-001. If Layer 1 misfires for this sentinel, the plugin emits multiple times — acceptable per Invariant 3. |
 
 ## Canonical Test Vectors
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Dispatcher receives first `SessionStart` with `session_id = "sess-001"` (same process) | Dispatcher routes to plugin; plugin invoked; `session.started` emitted; `(SessionStart, sess-001)` inserted into dispatcher tracker (per BC-1.10.002) | happy-path |
-| Dispatcher receives second `SessionStart` with `session_id = "sess-001"` (same process) | Dispatcher suppresses routing (pair already in tracker); plugin NOT invoked; no `session.started` emitted; `exec_subprocess` invocation count = 0 for second event | happy-path (dispatcher-side idempotency) |
-| Dispatcher receives two `SessionStart` events both with missing `session_id` (mapped to `"unknown"`) | Dispatcher does NOT dedup "unknown" (per BC-1.10.002 EC-003); both route to plugin; plugin invoked twice; `session.started` emitted twice; `exec_subprocess` invocation count = 2 | edge-case (unknown sentinel bypass) |
+| Normal operation: Layer 1 `once: true` fires exactly one `SessionStart` per session | Plugin invoked once; `session.started` emitted once with correct payload (per BC-4.04.001) | happy-path |
+| Layer 1 bypass (manual injection): same `session_id` fired twice | Plugin invoked twice; `session.started` emitted twice; operator-observable but not a plugin defect | edge-case (Layer 1 bypass) |
+| Missing `session_id` in envelope (mapped to `"unknown"` per BC-1.02.005) | Plugin emits `session.started` with `session_id = "unknown"`; single emission under Layer 1 once-discipline | edge-case |
 
 ## Verification Properties
 
@@ -73,15 +76,15 @@ If the dispatcher receives a second `SessionStart` event carrying the same `sess
 
 ## Related BCs
 
-- **BC-4.04.001** — composes with (idempotency guard wraps the `emit_event` call in BC-4.04.001)
-- **BC-4.04.002** — composes with (idempotency guard also suppresses redundant `exec_subprocess` calls for duplicate events)
-- **BC-1.03.008** — depends on (concurrent-execution context motivates the Mutex thread-safety requirement for the dedup HashSet at the dispatcher layer)
-- **BC-1.10.002** — supersedes plugin-side dedup (dispatcher-side `Mutex<HashSet<(event_name, session_id)>>` replaces the plugin-side `Mutex<HashSet<String>>` originally specified in this BC's Invariant 3)
+- **BC-4.04.001** — composes with (plugin emits `session.started` per BC-4.04.001 on each invocation it receives)
+- **BC-4.04.002** — composes with (plugin invokes factory-health subprocess per BC-4.04.002 on each invocation it receives)
+- **BC-4.04.004** — depends on (Layer 1 `once: true` directive is the upstream guarantee that the plugin is invoked at most once per session under normal operation; this is the source of the idempotency guarantee)
+- **BC-1.10.002** — retired in pass-4 (dispatcher-side dedup replaced by Layer 1 once-discipline; ID retained per POLICY 1)
 
 ## Architecture Anchors
 
-- SS-04 — `crates/hook-plugins/session-start-telemetry/src/lib.rs` (plugin is stateless; no in-process HashSet; emits `session.started` unconditionally on each invocation)
-- SS-01 — `crates/factory-dispatcher/src/dispatch.rs` or `router.rs` (dispatcher-side dedup tracker per BC-1.10.002; suppresses plugin invocation before it reaches SS-04 plugin)
+- SS-04 — `crates/hook-plugins/session-start-telemetry/src/lib.rs` (plugin is unconditionally stateless; no in-process dedup state; emits `session.started` on each invocation)
+- SS-09 — `plugins/vsdd-factory/hooks/hooks.json.template` (Layer 1 `once: true` directive; the upstream source of the once-per-session guarantee per BC-4.04.004)
 
 ## Story Anchor
 
@@ -97,8 +100,7 @@ VP-065
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-001 (tier sequential execution — concurrent SessionStart arrivals within a tier must not break dedup atomicity; now enforced by dispatcher-layer Mutex per BC-1.10.002); DI-002 (plugin crash does not block siblings — dedup operates before plugin invocation per BC-1.10.002, so a crashed plugin does not prevent tracker update) |
-| Superseded by | BC-1.10.002 supersedes plugin-side dedup (Invariant 3 formerly required in-plugin Mutex<HashSet<String>>; dispatcher-side dedup replaces it) |
-| Architecture Module | SS-04 — `crates/hook-plugins/session-start-telemetry/src/lib.rs` (stateless plugin); SS-01 — dispatcher routing (enforces dedup) |
+| L2 Domain Invariants | DI-007 (always-on telemetry — `session.started` is emitted unconditionally per invocation; once-discipline ensures one emission per session under normal Layer 1 operation) |
+| Architecture Module | SS-04 — `crates/hook-plugins/session-start-telemetry/src/lib.rs` (stateless plugin; emits unconditionally per invocation) |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |

@@ -440,10 +440,12 @@ Sibling stories BC-4.05.*, BC-4.06.*, BC-4.07.* mirror this shape. Implementers 
 | BC-4.04.002 | session-start plugin invokes factory-health subprocess; emits session.started even if check fails | P1 |
 | BC-4.04.003 | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | P1 |
 | BC-4.04.004 | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and async:true | P1 |
-| BC-4.04.005 | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with once:true, exec_subprocess capability table, and timeout_ms:8000 | P1 |
+| BC-4.04.005 | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with read_file + exec_subprocess capability tables and timeout_ms:8000 | P1 |
 
 Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (5 BCs anchored; siblings pending S-5.02–5.04).
 Status: **in-progress** (S-5.01 BCs allocated).
+
+> **Pass-4 architectural simplification (2026-04-28):** BC-1.10.001 (host fn `vsdd::activated_platform()` — over-engineered; canonical `read_file` host fn used instead) and BC-1.10.002 (dispatcher-side dedup — over-engineered; Claude Code Layer 1 `once:true` directive enforces idempotency at hooks.json.template) retired. BC count for this FR reverts to 5 anchored BCs (BC-4.04.001–005). Scope reverts to SS-04 plugin work; story S-5.01 remains 3-pt as originally budgeted.
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-04/` (18 BCs total)
 
@@ -1153,7 +1155,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-043 | TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern (anti-precedent guard + Red Gate density check + tdd_mode contract + mutation wave-gate) | CAP-016 | SS-05, SS-06, SS-08 | BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 | 13 | pending | E-7 |
 | FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002, BC-3.07.001 + v1.1 candidates (8 pending) | 3 anchored + 8 v1.1 candidates | partial | E-4 |
 | FR-045 | Emit `internal.sink_error` structured event on each sink failure | CAP-003 | SS-03 | BC-3.07.002 | 1 | pending | E-4 |
-| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–005 (anchored); BC-1.10.001–002 (activated_platform + dispatcher dedup); BC-4.05–4.07.* (pending S-5.02–5.04) | 7 anchored + siblings pending | in-progress | E-5 |
+| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–005 (anchored); BC-1.10.001–002 (retired pass-4); BC-4.05–4.07.* (pending S-5.02–5.04) | 5 anchored + siblings pending | in-progress | E-5 |
 
 **Total: 46 FRs across 10 subsystems**
 
