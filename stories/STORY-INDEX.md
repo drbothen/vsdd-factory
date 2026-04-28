@@ -29,10 +29,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 33 |
+| merged | 35 |
 | partial | 3 |
 | draft | 9 |
-| ready | 2 |
+| ready | 0 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -93,8 +93,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | partial | 6 |
 | S-4.07 | End-to-end observability integration tests | E-4 | 8 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | draft | 16 |
 | S-4.08 | 1.0.0-rc.1 release gate | E-4 | 3 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07 + 2-week shakedown | draft | -- |
-| S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | ready | 1 |
-| S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | ready | 1 |
+| S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | merged | 1 |
+| S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | merged | 1 |
 
 ## Epic E-5 — New Hook Events and 1.0.0 Release (Tier G + H — draft/partial)
 
@@ -133,6 +133,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **Wave 8 SS-08 re-anchor** (2026-04-27): 3 docs-stories anchored — S-0.05, S-5.05, S-5.06 — to existing SS-08 methodology BCs (BC-8.22.001 Conventional Commits, BC-8.26.001 story-completeness 14-check audit, BC-8.26.006 user-facing-docs deliverable) per Wave 7 F-204 cross-wave-complementary methodology-anchor pattern (BC-subsystem SS-08 = story.subsystems[] SS-08; BCs are methodology contracts not directly exercised by ACs). 7 v1.1 BC candidates registered (BC-8.31.001-007) for docs-content-specific contracts. S-0.05 deliberately excludes BC-8.26.006 (skeleton-only stories are not complete deliverables).
 
 > **Wave 9 SS-01 straggler re-anchor** (2026-04-27): 1 story anchored — S-2.07 (regression-test-validation) — to existing SS-01 BCs (BC-1.07.001/002, BC-1.08.001/002) + VP-043 + CAP-002 with Stretch-Anchor Disclosure for SS-04+SS-07 cross-subsystem regression coverage. CONVERGED at pass-4 (3_of_3 NITPICK_ONLY); 4 passes total (smallest baseline + fastest convergence of 9 waves). TD #105 closed (S-2.07 depends_on includes S-1.09). **41 of 41 cumulative stories re-anchored** — v1.0-brownfield-backfill re-anchor phase COMPLETE.
+
+> **Wave 11 SS-03 fully closed at develop@ccf34e6 (2026-04-27).** PRs merged this session: #18 (S-4.01), #20 (S-3.01), #21 (S-3.02), S-3.03 ports (4229648), #22 (Semgrep SAST), #23 (S-4.04 retry+CB), #24 (S-4.02 datadog), #25 (S-4.03 honeycomb), #26 (docs), #27 (S-4.09 backoff), #28 (S-4.10 cross-sink emission). 9 stories shipped + 1 docs + 1 SAST = 11 PRs. STORY-INDEX merged 33 → 35. Wave 12 also fully closed (S-4.02/03/04). S-4.07 (E2E integration) now waits only on S-4.05 + S-4.06 spec convergence + impl. Worktrees cleaned up: /private/tmp/vsdd-S-3.01, S-3.02, S-3.03 (Wave 11 first batch); /private/tmp/vsdd-S-4.02, S-4.03, S-4.04 (Wave 12); /private/tmp/vsdd-S-4.09, S-4.10 (Wave 11 close). Local repo now shows only develop + .factory/ + harness-managed agent worktrees.
 
 ---
 

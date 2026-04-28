@@ -128,10 +128,10 @@ dtu_services: []
 
 ## Story Status (47 total)
 
-- **Merged (33):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615)
+- **Merged (35):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6)
 - **Partial (3):** S-2.05 (cargo publish dry-run), S-4.06 (RoutingFilter parsed not wired), S-5.05 (skeleton)
 - **Draft / Not Shipped (9):** S-4.05, S-4.07, S-4.08, Tier F (S-5.01/5.02/5.03/5.04/5.06), Tier G/H TBD
-- **Ready (2):** S-4.09 (sink-http retry backoff, Wave 11 SS-03 CONVERGED 2026-04-27), S-4.10 (internal.sink_error events, Wave 11 SS-03 CONVERGED 2026-04-27)
+- **Ready (0):** S-4.09 + S-4.10 merged (Wave 11 close, develop@ccf34e6)
 
 ## Drift Items (open)
 
@@ -153,8 +153,8 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | b08e085 | bot bundle for v1.0.0-beta.7 (PR #14 + hotfix PR #15) |
-| develop | ecb6cc6 | back-merge PR #16; includes b08e085 in ancestry |
-| factory-artifacts | f932749 | Wave 9 SS-01 CONVERGED at pass-4 (3_of_3 NITPICK_ONLY; 41 of 41 — re-anchor phase COMPLETE) |
+| develop | ccf34e6 | Wave 11 + Wave 12 fully closed; 35 of 47 stories merged (PR #28 S-4.10 HEAD) |
+| factory-artifacts | 0734edf | Wave 11 in-flight state (pre-close) |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 | v1.0.0-beta.6 (tag) | ae426cd | SHIPPED 2026-04-26; GH Release published; prerelease=true |
 | v1.0.0-beta.7 (tag) | b08e085 | SHIPPED 2026-04-26 19:15 UTC; GH Release published; prerelease=true |
@@ -176,6 +176,7 @@ dtu_services: []
 | D-122 | **Status-drift sweep — housekeeping burst.** 7 merged stories flipped from `status: draft` to `status: merged` in frontmatter (S-3.01 PR #20 7e69854, S-3.02 PR #21 b680a1e, S-3.03 PR at 4229648, S-4.01 2ebf031, S-4.02 PR #24 a43e3f4, S-4.03 PR #25 fa03354, S-4.04 PR #23 93ff615). Version bumped per ADR-013. STORY-INDEX Status Summary updated: merged 26→33, draft 16→9 (ready=2 confirmed: S-4.09 + S-4.10). Epic tables E-3 and E-4 updated in STORY-INDEX. | Drift corrected; index now consistent with source control reality. | housekeeping-status-drift-sweep | 2026-04-27 | state-manager |
 | D-123 | **Wave 13 SS-03 S-4.05 (DLQ) adversarial pass-1 — 11 findings (HIGH=4 MED=5 LOW=2).** Major issues: F-001 path/rotation contradiction (AC-001 vs AC-004 vs CAP-024); F-002 sink-core/sink-file circular dep (path-template extraction missing from tasks); F-003 BC-3.02.013 mis-anchored on 3 ACs; F-004 VP-INDEX anchor-back missing for VP-011/VP-012. Verdict: SUBSTANTIVE — fix burst required before pass-2. | Review persisted at cycles/v1.0-brownfield-backfill/wave-13-ss-03-S-4.05-pass-1.md. | wave-13-ss-03-S-4.05-pass-1 | 2026-04-27 | adversarial-reviewer |
 | D-124 | **Wave 12 SS-03 S-4.06 (Routing/Tag) adversarial pass-1 — 13 findings (HIGH=4 MED=6 LOW=2 NIT=1).** Major issues: F-001 target_module wrong (sink-core/router.rs does not exist; actual path is factory-dispatcher/src/sinks/router.rs); F-002 RoutingFilter field names drift (include_event_types vs event_types_allow); F-003 tag enrichment already implemented in FileSink — story doesn't decide refactor vs duplication; F-004 Partial Status table contradicts Tasks. Verdict: SUBSTANTIVE — fix burst required. | Review persisted at cycles/v1.0-brownfield-backfill/wave-12-ss-03-S-4.06-pass-1.md. | wave-12-ss-03-S-4.06-pass-1 | 2026-04-27 | adversarial-reviewer |
+| D-125 | **Wave 11 SS-03 closing wave fully merged. develop @ ccf34e6.** PRs shipped this session: #18 (S-4.01), #20 (S-3.01), #21 (S-3.02), S-3.03 ports (4229648), #22 (Semgrep SAST), #23 (S-4.04 retry+CB), #24 (S-4.02 datadog), #25 (S-4.03 honeycomb), #26 (docs), #27 (S-4.09 backoff), #28 (S-4.10 cross-sink emission). 9 stories shipped + 1 docs + 1 SAST = 11 PRs. STORY-INDEX merged 33 → 35. Wave 12 also fully closed (S-4.02/03/04). S-4.07 (E2E integration) now waits only on S-4.05 + S-4.06 spec convergence + impl. Worktrees cleaned up: /private/tmp/vsdd-S-3.01/02/03 (Wave 11 first batch), /private/tmp/vsdd-S-4.02/03/04 (Wave 12), /private/tmp/vsdd-S-4.09/4.10 (Wave 11 close). Local repo now shows only develop + .factory/ + harness-managed agent worktrees. feat/S-4.09-sink-http-retry-backoff local branch deleted. Remote branches origin/feat/S-4.09 + origin/feat/S-4.10 verified gone (auto-deleted post-squash-merge). | Wave 11 delivery closure recorded. 35 of 47 stories merged. | wave-11-close | 2026-04-27 | state-manager |
 
 > **Historical decisions (D-001..D-102):** Moved to `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
@@ -192,11 +193,11 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Wave 12 closed + housekeeping sweep COMPLETE (D-121, D-122, 2026-04-27)** — 33 of 47 stories merged. Wave 12 merged: S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615). Status-drift sweep corrected 7 stories: S-3.01/3.02/3.03/4.01/4.02/4.03/4.04 draft→merged. Tech-debt register: TD-008 (S-4.10 RED gate wiring gap) + TD-009 (pre-flight git-diff process check) added. Wave 11 in-flight: S-4.09 GREEN@6644d64 (fmt fix@9d3b4b2), S-4.10 partial GREEN@c0175f8 (fix burst async). PR #26 docs follow-up filed.
+**Wave 11 + Wave 12 fully closed (D-125, 2026-04-27)** — 35 of 47 stories merged. develop @ ccf34e6. Wave 11 close: S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6). 9 stories + 1 docs + 1 SAST = 11 PRs this session. All Wave 11/12 worktrees pruned. Local feat/S-4.09 branch deleted. E-4 now 6 of 10 merged; 4 remaining: S-4.05 (DLQ, adversary pass-1 done), S-4.06 (routing, adversary pass-1 done), S-4.07 (E2E, blocked on 4.05+4.06), S-4.08 (rc.1 gate).
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-4.09 / S-4.10** (Wave 11 delivery): S-4.09 GREEN phase complete; S-4.10 fix burst running async — await both PRs to close Wave 11 fully
-- **S-4.05** (dead letter queue): now unblocked (S-4.04 merged); Tier E story
+- **S-4.05** (dead letter queue): adversary pass-1 at 11 findings (D-123); fix burst required before pass-2
+- **S-4.06** (routing filters): adversary pass-1 at 13 findings (D-124); fix burst required before pass-2
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open; story-spec unblocked)
 - Task #112: Architect-led 28-CAP audit propagation to PRD §8 (CAP-023/024 deferred)
 - 7 MINOR consistency findings (F-006..F-012) from post-Wave-9 sweep — deferred, address before v1.0.1 release

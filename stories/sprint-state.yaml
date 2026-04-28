@@ -9,12 +9,12 @@ next_milestone: 1.0.0-rc.1
 # Story counts by status
 stories:
   total: 47
-  merged: 33
+  merged: 35
   partial: 3
   draft: 9
-  ready: 2
+  ready: 0
   blocked: 0
-  in_progress: 2   # S-4.09 + S-4.10 (Wave 11 delivery cycles running)
+  in_progress: 0   # S-4.09 (PR #27 3c56ce5) + S-4.10 (PR #28 ccf34e6) merged; Wave 11 fully closed
 
 # Epic completion summary
 epics:
@@ -59,10 +59,10 @@ epics:
     stories: 10   # +S-4.09 +S-4.10 (Wave 11 SS-03)
     status: in_progress
     milestone: 1.0.0-rc.1
-    merged: 4   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23)
+    merged: 6   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6)
     partial: 1   # S-4.06 routing filters
     draft: 3    # S-4.05, S-4.07, S-4.08
-    in_progress: 2  # S-4.09 GREEN@6644d64 (fmt fix@9d3b4b2), S-4.10 partial GREEN@c0175f8
+    # remaining: S-4.05 (DLQ), S-4.06 (routing filters), S-4.07 (E2E tests), S-4.08 (rc.1 gate)
 
   E-5:
     name: New Hook Events and 1.0.0 Release
@@ -73,19 +73,17 @@ epics:
     partial: 1   # S-5.05 migration guide skeleton
     draft: 6
 
-# Point totals (updated 2026-04-27 after Wave 12 merges)
+# Point totals (updated 2026-04-27 after Wave 11 + Wave 12 full closure)
 points:
   total: 207
-  merged: 113   # 33 merged stories; approximate based on STORY-INDEX point values
-  remaining: 94
+  merged: 121   # 35 merged stories; +3pts (S-4.09) +5pts (S-4.10) over prior 113
+  remaining: 86
 
-# Current work frontier (stories unblocked today, 2026-04-27)
+# Current work frontier (stories unblocked, 2026-04-27 after Wave 11 close)
 frontier:
-  - S-4.09  # sink-http retry backoff — in_progress (GREEN@6644d64, fmt fix@9d3b4b2)
-  - S-4.10  # internal.sink_error events — in_progress (partial GREEN@c0175f8, fix burst async)
-  - S-4.05  # Dead letter queue — unblocked (S-4.04 now merged)
-  - S-4.06  # routing filters (partial — complete wiring)
-  - S-4.07  # E2E obs integration tests — still blocked (awaiting S-4.09/4.10 + S-3.01..3.04)
+  - S-4.05  # Dead letter queue — draft; adversarial pass-1 done (11 findings); fix burst in progress
+  - S-4.06  # routing filters — partial; adversarial pass-1 done (13 findings); fix burst in progress
+  - S-4.07  # E2E obs integration tests — draft; blocked on S-4.05 + S-4.06 spec convergence + impl
 
 # Shipped releases (for reference)
 releases:
