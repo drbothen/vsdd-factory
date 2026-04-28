@@ -86,6 +86,10 @@ pub const INTERNAL_SINK_QUEUE_FULL: &str = "internal.sink_queue_full";
 pub const INTERNAL_SINK_CIRCUIT_OPENED: &str = "internal.sink_circuit_opened";
 pub const INTERNAL_SINK_CIRCUIT_CLOSED: &str = "internal.sink_circuit_closed";
 pub const INTERNAL_DISPATCHER_ERROR: &str = "internal.dispatcher_error";
+/// Emitted at `debug` level when Router::submit silently drops an event
+/// that fails a sink's RoutingFilter (BC-3.04.003 postcondition 3).
+/// One entry per (event, filtering-sink) pair.
+pub const INTERNAL_EVENT_FILTERED: &str = "internal.event_filtered";
 
 /// One line in `dispatcher-internal-YYYY-MM-DD.jsonl`.
 ///

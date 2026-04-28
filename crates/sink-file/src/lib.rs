@@ -382,8 +382,7 @@ impl Sink for FileSink {
             return false;
         }
         if let Some(filter) = self.common.routing_filter.as_ref() {
-            let event_type = event.event_type().unwrap_or("");
-            return filter.accepts(event_type);
+            return filter.accepts(event);
         }
         true
     }
@@ -724,6 +723,7 @@ mod tests {
             routing_filter: Some(RoutingFilter {
                 event_types_allow: vec!["commit.made".into()],
                 event_types_deny: vec![],
+                plugin_ids_allow: vec![],
             }),
             tags: Default::default(),
         };

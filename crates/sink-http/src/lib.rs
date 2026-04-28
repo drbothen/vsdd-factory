@@ -558,8 +558,7 @@ impl Sink for HttpSink {
             return false;
         }
         if let Some(filter) = self.common.routing_filter.as_ref() {
-            let event_type = event.event_type().unwrap_or("");
-            return filter.accepts(event_type);
+            return filter.accepts(event);
         }
         true
     }

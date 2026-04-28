@@ -31,10 +31,12 @@ pub mod dead_letter;
 pub mod events;
 pub mod path_template;
 pub mod resilience;
+pub mod router_filter;
 
 pub use dead_letter::{DlqError, DlqReason, DlqWriter, DlqWriterConfig};
 pub use events::{SinkDlqEvent, SinkDlqFailureEvent, SinkDlqWriteEvent, SinkErrorEvent, emit_sink_error};
 pub use path_template::PathTemplateError;
+pub use router_filter::RoutingFilter;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -142,49 +144,6 @@ impl Default for SinkConfigCommon {
     }
 }
 
-/// Allow/deny routing for event `type` values.
-///
-/// Semantics:
-///
-/// 1. If `event_types_allow` is non-empty, the event's type MUST be in
-///    the allow list; otherwise the event is rejected.
-/// 2. If `event_types_deny` contains the event's type, the event is
-///    rejected regardless of the allow list.
-/// 3. Missing / non-string `type` is rejected when either list is
-///    non-empty (drivers can't route what they can't classify).
-/// 4. Both lists empty = pass-through (matches the "no routing_filter"
-///    case).
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct RoutingFilter {
-    /// When non-empty, only these event types pass.
-    #[serde(default)]
-    pub event_types_allow: Vec<String>,
-    /// Always-blocked event types. Applied after the allow check.
-    #[serde(default)]
-    pub event_types_deny: Vec<String>,
-}
-
-impl RoutingFilter {
-    /// Apply the filter to a raw event type name. Returns `true` when
-    /// the sink should accept the event.
-    pub fn accepts(&self, event_type: &str) -> bool {
-        if event_type.is_empty() {
-            // Empty type is a producer bug; only pass-through filters
-            // accept it (matches "no filter" semantics).
-            return self.event_types_allow.is_empty() && self.event_types_deny.is_empty();
-        }
-        if !self.event_types_allow.is_empty()
-            && !self.event_types_allow.iter().any(|t| t == event_type)
-        {
-            return false;
-        }
-        if self.event_types_deny.iter().any(|t| t == event_type) {
-            return false;
-        }
-        true
-    }
-}
-
 /// The contract every sink driver implements.
 ///
 /// `submit` is the hot-path entry: it MUST be non-blocking because the
@@ -207,6 +166,16 @@ pub trait Sink: Send + Sync {
     /// Does this sink want this event? Called synchronously from the
     /// producer thread — MUST NOT block on I/O.
     fn accepts(&self, event: &SinkEvent) -> bool;
+
+    /// Returns a reference to this sink's [`RoutingFilter`], if one is
+    /// configured. Router::submit reads this to apply per-sink routing
+    /// at the dispatch layer before calling `submit` (BC-3.04.004).
+    /// Returns `None` for sinks with no routing filter (pass-through).
+    ///
+    /// Stub: implementations return `None` until S-4.06 wires the trait.
+    fn routing_filter(&self) -> Option<&RoutingFilter> {
+        None
+    }
 
     /// Non-blocking enqueue. Overflow behavior is driver-specific but
     /// MUST NOT block the caller.
@@ -254,81 +223,6 @@ pub enum SinkError {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn routing_filter_default_accepts_everything() {
-        let f = RoutingFilter::default();
-        assert!(f.accepts("plugin.invoked"));
-        assert!(f.accepts("internal.sink_error"));
-        assert!(f.accepts("commit.made"));
-    }
-
-    #[test]
-    fn routing_filter_allow_list_only_accepts_listed() {
-        let f = RoutingFilter {
-            event_types_allow: vec!["commit.made".into(), "pr.merged".into()],
-            event_types_deny: vec![],
-        };
-        assert!(f.accepts("commit.made"));
-        assert!(f.accepts("pr.merged"));
-        assert!(!f.accepts("plugin.invoked"));
-        assert!(!f.accepts("internal.sink_error"));
-    }
-
-    #[test]
-    fn routing_filter_deny_list_only_rejects_listed() {
-        let f = RoutingFilter {
-            event_types_allow: vec![],
-            event_types_deny: vec!["internal.sink_error".into()],
-        };
-        assert!(f.accepts("plugin.invoked"));
-        assert!(f.accepts("commit.made"));
-        assert!(!f.accepts("internal.sink_error"));
-    }
-
-    #[test]
-    fn routing_filter_both_lists_allow_first_then_deny() {
-        let f = RoutingFilter {
-            event_types_allow: vec!["plugin.invoked".into(), "plugin.completed".into()],
-            event_types_deny: vec!["plugin.completed".into()],
-        };
-        // In allow + not denied.
-        assert!(f.accepts("plugin.invoked"));
-        // In allow but also denied — deny wins.
-        assert!(!f.accepts("plugin.completed"));
-        // Not in allow at all.
-        assert!(!f.accepts("commit.made"));
-    }
-
-    #[test]
-    fn routing_filter_empty_event_type_rejected_when_filtered() {
-        let pass = RoutingFilter::default();
-        assert!(pass.accepts(""), "no-filter accepts empty");
-
-        let allow_only = RoutingFilter {
-            event_types_allow: vec!["commit.made".into()],
-            event_types_deny: vec![],
-        };
-        assert!(!allow_only.accepts(""));
-
-        let deny_only = RoutingFilter {
-            event_types_allow: vec![],
-            event_types_deny: vec!["commit.made".into()],
-        };
-        assert!(!deny_only.accepts(""));
-    }
-
-    #[test]
-    fn routing_filter_allow_case_sensitive() {
-        // Event type names are case-sensitive by contract (lowercase
-        // with dot-separated namespaces per the spec's catalog).
-        let f = RoutingFilter {
-            event_types_allow: vec!["Commit.Made".into()],
-            event_types_deny: vec![],
-        };
-        assert!(!f.accepts("commit.made"));
-        assert!(f.accepts("Commit.Made"));
-    }
 
     #[test]
     fn sink_event_event_type_accessor_reads_type_field() {
