@@ -8,7 +8,7 @@
 
 use httpmock::prelude::*;
 use sink_core::{Sink, SinkEvent};
-use sink_datadog::{DatadogSink, DatadogSinkConfig, DATADOG_MAX_BATCH_BYTES};
+use sink_datadog::{DATADOG_MAX_BATCH_BYTES, DatadogSink, DatadogSinkConfig};
 
 fn make_event(msg: &str, source: &str) -> SinkEvent {
     SinkEvent::new()
@@ -153,7 +153,8 @@ async fn test_VP_012_datadog_sink_5xx_failure_recorded_and_isolated() {
     let sink = DatadogSink::new(config).expect("DatadogSink::new must succeed");
 
     sink.submit(SinkEvent::new().insert("type", "test.vp012"));
-    sink.flush().expect("flush must not propagate 5xx as a Rust error");
+    sink.flush()
+        .expect("flush must not propagate 5xx as a Rust error");
 
     // Failure must be recorded in the sink's failure list (VP-012: isolated, not propagated).
     let failures = sink.take_failures();

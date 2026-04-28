@@ -53,7 +53,10 @@ api_key = "some-key"
         .expect("must return Some");
 
     assert_eq!(result.api_key, "some-key");
-    assert!(result.endpoint.is_none(), "endpoint must be None when absent");
+    assert!(
+        result.endpoint.is_none(),
+        "endpoint must be None when absent"
+    );
     assert!(result.common.enabled, "enabled must default to true");
     assert!(result.common.tags.is_empty());
 }
@@ -138,8 +141,8 @@ name = "mystery-sink"
 api_key = "some-key"
 "#;
 
-    let result = DatadogSinkConfig::from_toml(toml)
-        .expect("from_toml must not return Err for unknown type");
+    let result =
+        DatadogSinkConfig::from_toml(toml).expect("from_toml must not return Err for unknown type");
 
     assert!(
         result.is_none(),

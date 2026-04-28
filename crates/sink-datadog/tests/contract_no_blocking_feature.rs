@@ -67,11 +67,7 @@ fn test_F1_sink_http_reqwest_blocking_feature_not_enabled() {
     if let Some(reqwest_dep) = reqwest_dep {
         let features = reqwest_dep["features"]
             .as_array()
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|f| f.as_str())
-                    .collect::<Vec<_>>()
-            })
+            .map(|arr| arr.iter().filter_map(|f| f.as_str()).collect::<Vec<_>>())
             .unwrap_or_default();
 
         assert!(

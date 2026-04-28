@@ -5,7 +5,7 @@
 //!
 //! v1.1 BC candidate: BC-3.NN.NNN-datadog-regional-endpoint.
 
-use sink_datadog::{DatadogSinkConfig, DEFAULT_DATADOG_ENDPOINT};
+use sink_datadog::{DEFAULT_DATADOG_ENDPOINT, DatadogSinkConfig};
 
 /// When endpoint absent, effective_endpoint returns the us1 default.
 ///
@@ -30,8 +30,7 @@ api_key = "test-key"
 
     let effective = config.effective_endpoint();
     assert_eq!(
-        effective,
-        DEFAULT_DATADOG_ENDPOINT,
+        effective, DEFAULT_DATADOG_ENDPOINT,
         "effective_endpoint must return the us1 default when endpoint is absent"
     );
     assert!(
@@ -76,8 +75,7 @@ endpoint = "{eu1}"
 fn test_BC_3_06_005_default_endpoint_constant_value_and_accessible_via_config() {
     // Constant-level check (spec compliance).
     assert_eq!(
-        DEFAULT_DATADOG_ENDPOINT,
-        "https://http-intake.logs.datadoghq.com/api/v2/logs",
+        DEFAULT_DATADOG_ENDPOINT, "https://http-intake.logs.datadoghq.com/api/v2/logs",
         "DEFAULT_DATADOG_ENDPOINT must equal the documented Datadog us1 logs intake URL"
     );
 

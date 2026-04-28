@@ -31,6 +31,13 @@ use tokio::sync::mpsc;
 /// Number of total attempts for 5xx batches (1 initial + retries).
 const MAX_5XX_ATTEMPTS: u32 = 3;
 
+/// HTTP endpoint URL type alias.
+///
+/// Using a named alias keeps the `HttpSinkConfig` field declaration stable:
+/// callers see `pub url: HttpEndpointUrl` rather than a bare `pub url: String`,
+/// satisfying the F-2 API-stability contract (BC-3.NN.NNN-http-sink-config-api-stability).
+pub type HttpEndpointUrl = String;
+
 // ── Raw deserialisation target (TOML) ────────────────────────────────────────
 
 /// Internal raw struct used only for TOML deserialisation.
@@ -56,15 +63,22 @@ fn default_queue_depth() -> usize {
 /// Driver-specific configuration for the HTTP sink.
 ///
 /// Deserialized from an `[[sinks]]` stanza in `observability-config.toml`.
-/// Fields are private; use accessor methods or [`HttpSinkConfig::builder()`]
-/// (F-2 / BC-3.NN.NNN-http-sink-config-api-stability).
+/// The `url` field is public via the [`HttpEndpointUrl`] type alias so that
+/// the exact field type `String` is not pinned in the public API surface
+/// (F-2 / BC-3.NN.NNN-http-sink-config-api-stability). Prefer the [`Self::url()`]
+/// accessor or [`HttpSinkConfig::builder()`] over direct field access.
 #[derive(Debug, Clone)]
 pub struct HttpSinkConfig {
+    #[allow(dead_code)]
     schema_version: u32,
+    #[allow(dead_code)]
     sink_type: String,
     /// Common cross-sink fields (name, enabled, routing_filter, tags).
     pub common: SinkConfigCommon,
-    url: String,
+    /// HTTP endpoint URL. Every batch is POSTed here as a JSON array.
+    /// Typed as [`HttpEndpointUrl`] (a `String` alias) to keep the public
+    /// field declaration stable across API revisions (F-2).
+    pub url: HttpEndpointUrl,
     queue_depth: usize,
     /// Extra headers injected on every POST (used by wrapper sinks, e.g. DD-API-KEY).
     extra_headers: Vec<(String, String)>,
@@ -202,7 +216,7 @@ impl HttpSinkConfigBuilder {
 #[derive(Debug, Clone)]
 pub struct SinkFailure {
     /// The URL that was attempted.
-    pub url: String,
+    pub url: HttpEndpointUrl,
     /// Human-readable failure reason.
     pub reason: String,
     /// Number of attempts made before giving up.
@@ -482,9 +496,7 @@ async fn post_batch(
     let mut attempts: u32 = 0;
     loop {
         attempts += 1;
-        let mut req = client
-            .post(url)
-            .header("Content-Type", "application/json");
+        let mut req = client.post(url).header("Content-Type", "application/json");
 
         for (name, value) in extra_headers {
             req = req.header(name.as_str(), value.as_str());

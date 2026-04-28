@@ -88,8 +88,7 @@ url = "http://localhost:39998/path"
         env!("CARGO_MANIFEST_DIR"),
         "/../../crates/sink-http/src/lib.rs"
     );
-    let src =
-        std::fs::read_to_string(src_path).expect("sink-http/src/lib.rs must be readable");
+    let src = std::fs::read_to_string(src_path).expect("sink-http/src/lib.rs must be readable");
 
     // This assertion FAILS now (pre-F2) because the source DOES contain `pub url:`.
     // After F-2 the implementer removes `pub` from the url field; this test passes.
