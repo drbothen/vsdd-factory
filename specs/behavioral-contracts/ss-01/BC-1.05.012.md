@@ -7,7 +7,7 @@ producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
 phase: 1.4b
 inputs: [bc-id-mapping.md, pass-3-behavioral-contracts.md]
-input-hash: "[pending-recompute]"
+input-hash: "ff7795e"
 traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:234"
@@ -15,7 +15,7 @@ subsystem: "SS-01"
 capability: "CAP-TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
-modified: [v1.0-pass-7]
+modified: [v1.0-pass-7, v1.0-pass-8]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -52,7 +52,7 @@ Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS alw
 
 1. Reserved field set is closed: `{dispatcher_trace_id, session_id, plugin_name, plugin_version, ts, ts_epoch, schema_version, type}`.
 2. Plugins cannot spoof host-owned or construction-time fields.
-3. `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version` are always present on every emitted event as non-empty strings (sourced from `HostContext`).
+3. `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version` are unconditionally present on every emitted event (sourced from `HostContext` via `.with_X(&str)` calls in emit_event.rs:38-42). Non-empty guarantee is upstream-BC-conditional: BC-1.02.005 lifecycle-tolerance ensures non-empty `session_id` for SessionStart envelopes (sets 'unknown' sentinel if missing); the dispatcher routing layer is responsible for populating `dispatcher_trace_id`, `plugin_name`, `plugin_version` (no current BC enforces non-empty for these — v1.1 candidate to lift to dispatcher-routing-layer BCs).
 
 ## Edge Cases
 

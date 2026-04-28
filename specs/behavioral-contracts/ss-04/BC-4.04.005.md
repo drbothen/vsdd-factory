@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "5765182"
+input-hash: "73d0f03"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-8]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -73,7 +73,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | `[hooks.capabilities.exec_subprocess]` table absent from the `SessionStart` entry | Dispatcher refuses to invoke `factory-health` subprocess; emits `internal.capability_denied` per DI-004; plugin sets `factory_health = "unknown"` (fail-open per BC-4.04.002); `session.started` still emitted |
-| EC-002 | `SessionStart` entry is duplicated in `hooks-registry.toml` | Duplicate entries are not detected by the loader: `toml::from_str` accepts both; both entries are loaded into `Vec<RegistryEntry>`; the dispatcher routes the event to the first-iteration-order entry. No warning is emitted. Operator must avoid duplicates manually. v1.1 candidate: registry validation duplicate-detection. **Note:** the routing-order behavior (first-iteration-order entry wins on duplicates) is based on `toml::from_str` behavior for `[[array]]` tables and is plausible but not directly asserted by VP-065 — VP-065's `test_bc_4_04_005_hooks_registry_toml_has_session_start` only parses the file without injecting duplicates. Verifying the first-entry-wins dispatch behavior would require a dispatcher integration test exercising the `Vec<RegistryEntry>` iteration order under a duplicate key scenario, not just the file-load harness. v1.1 candidate. |
+| EC-002 | `SessionStart` entry is duplicated in `hooks-registry.toml` | Duplicate entries are not detected by the loader: `toml::from_str` accepts both; both entries are loaded into `Vec<RegistryEntry>`. Routing under duplicate-key conditions is presumed to follow `Vec` iteration order (first-entry-wins) per `toml::from_str` semantics for `[[hooks]]` table-arrays. No warning is emitted. Operator must avoid duplicates manually. v1.1 candidate: registry validation duplicate-detection. **Note:** This routing-order behavior (first-entry-wins) is plausible based on `toml::from_str` semantics but is not directly verified by VP-065's file-load harness — VP-065's `test_bc_4_04_005_hooks_registry_toml_has_session_start` only parses the file without injecting duplicates. Verifying the first-entry-wins dispatch behavior would require a dispatcher integration test exercising the `Vec<RegistryEntry>` iteration order under a duplicate key scenario. v1.1 candidate. |
 | EC-003 | `hooks-registry.toml` contains a TOML syntax error | Dispatcher fails to start; emits `internal.dispatcher_error` with structured error message including file path and parse error; dispatcher exits non-zero |
 | EC-004 | `timeout_ms` field is absent from the `SessionStart` entry that declares `[hooks.capabilities.exec_subprocess]` | Registry load **succeeds** — `RegistryEntry.timeout_ms` is `Option<u32>` with `#[serde(default)]` (registry.rs line 149); missing values default to `RegistryDefaults.timeout_ms = 5000` rather than causing a load error. However, Invariant 5 (`timeout_ms > 5000`) is structurally violated: the 5000ms default equals the subprocess timeout, removing the 3000ms headroom that prevents the epoch budget from terminating the plugin before it can map a subprocess timeout to `factory_health = "unknown"`. VP-065 `test_bc_4_04_005_hooks_registry_toml_has_session_start` asserts `timeout_ms >= 8000` and FAILS at test time when the field is absent. **Operator must set `timeout_ms = 8000` explicitly.** Note: BC-1.01.003 (unknown-field rejection via `deny_unknown_fields`) does NOT apply here — this is a missing-optional-field scenario, not a typo-guard scenario; `deny_unknown_fields` only rejects fields that are present but unrecognized. A load-time validation rule asserting `timeout_ms > subprocess_timeout` for entries declaring `exec_subprocess` capability is a v1.1 candidate per F-11 process-gap. |
 
@@ -83,7 +83,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 |-------|----------------|----------|
 | Parse `hooks-registry.toml` and inspect entries | `SessionStart` entry present with `event = "SessionStart"`, `name = "session-start-telemetry"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, `[hooks.capabilities.read_file]` table with `path_allow = [".claude/settings.local.json"]`, `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]` | happy-path |
 | `hooks-registry.toml` `SessionStart` entry with `[hooks.capabilities.exec_subprocess]` table absent | Dispatcher refuses factory-health subprocess call; `internal.capability_denied` emitted; `session.started` still emitted with `factory_health = "unknown"` | error (capability denied) |
-| `hooks-registry.toml` with duplicate `SessionStart` entries (first valid, second with identical fields) | Dispatcher uses first entry; both entries loaded into `Vec<RegistryEntry>`; no warning emitted (per EC-002 — `toml::from_str` does not scan for duplicates; operator must avoid duplicates manually); `session.started` emitted normally | edge-case (duplicate entry) |
+| `hooks-registry.toml` with duplicate `SessionStart` entries (first valid, second with identical fields) | Both entries loaded into `Vec<RegistryEntry>`; routing is presumed first-entry-wins per `toml::from_str` `[[hooks]]` iteration order (plausible but not directly verified by VP-065 file-load harness — see EC-002 Note); no warning emitted; `session.started` emitted normally | edge-case (duplicate entry) |
 | Parse `hooks-registry.toml` `SessionStart` entry; inspect `timeout_ms` field | `timeout_ms = 8000` present; value is integer ≥ 8000 | happy-path (timeout budget) |
 | `hooks-registry.toml` `SessionStart` entry with `[hooks.capabilities.exec_subprocess]` present but `timeout_ms` absent | Registry load **succeeds** (timeout_ms defaults to 5000ms via RegistryDefaults); VP-065 test-time assertion `timeout_ms >= 8000` FAILS — operator must set `timeout_ms = 8000` explicitly (per EC-004; v1.1 candidate for load-time enforcement) | error (test-time assertion failure; not load-time error) |
 
