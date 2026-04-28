@@ -1,0 +1,27 @@
+$ cargo test -p sink-core --test retry_policy_exponential_backoff
+
+warning: function `test_BC_3_03_002_retry_backoff_attempt_0_equals_base` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:22:4
+warning: function `test_BC_3_03_002_retry_backoff_attempt_1_doubles_base` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:39:4
+warning: function `test_BC_3_03_002_retry_backoff_attempt_2_quadruples_base` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:56:4
+warning: function `test_BC_3_03_002_retry_backoff_attempt_3_vector` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:73:4
+warning: function `test_BC_3_03_002_retry_backoff_capped_at_max_delay` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:87:4
+warning: function `test_BC_3_03_002_retry_backoff_cap_applied_exactly_at_threshold` should have a snake case name
+   --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:106:4
+warning: `sink-core` (test "retry_policy_exponential_backoff") generated 6 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/retry_policy_exponential_backoff.rs (target/debug/deps/retry_policy_exponential_backoff-f6ecd4e7bf507286)
+
+running 6 tests
+test test_BC_3_03_002_retry_backoff_attempt_2_quadruples_base ... ok
+test test_BC_3_03_002_retry_backoff_attempt_1_doubles_base ... ok
+test test_BC_3_03_002_retry_backoff_capped_at_max_delay ... ok
+test test_BC_3_03_002_retry_backoff_attempt_3_vector ... ok
+test test_BC_3_03_002_retry_backoff_cap_applied_exactly_at_threshold ... ok
+test test_BC_3_03_002_retry_backoff_attempt_0_equals_base ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,18 @@
+$ cargo test -p sink-core --test contract_circuit_events
+
+warning: function `test_BC_3_03_002_circuit_opened_event_emitted_on_closed_to_open` should have a snake case name
+  --> crates/sink-core/tests/contract_circuit_events.rs:17:4
+warning: function `test_BC_3_03_002_circuit_closed_event_emitted_on_halfopen_to_closed` should have a snake case name
+  --> crates/sink-core/tests/contract_circuit_events.rs:33:4
+warning: function `test_BC_3_03_002_no_event_emitted_when_circuit_stays_closed` should have a snake case name
+  --> crates/sink-core/tests/contract_circuit_events.rs:57:4
+warning: `sink-core` (test "contract_circuit_events") generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests/contract_circuit_events.rs (target/debug/deps/contract_circuit_events-b9184385b642db10)
+
+running 3 tests
+test test_BC_3_03_002_circuit_opened_event_emitted_on_closed_to_open ... ok
+test test_BC_3_03_002_no_event_emitted_when_circuit_stays_closed ... ok
+test test_BC_3_03_002_circuit_closed_event_emitted_on_halfopen_to_closed ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

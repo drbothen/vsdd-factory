@@ -1,0 +1,30 @@
+$ cargo test -p sink-core --test circuit_breaker_state_machine
+
+warning: function `test_BC_3_03_002_circuit_breaker_initial_state_is_closed` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:12:4
+warning: function `test_BC_3_03_002_ec002_n_failures_opens_circuit` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:24:4
+warning: function `test_BC_3_03_002_fewer_than_threshold_failures_stays_closed` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:45:4
+warning: function `test_BC_3_03_002_open_circuit_is_open_returns_true` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:63:4
+warning: function `test_BC_3_03_002_ec003_halfopen_success_closes_circuit` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:76:4
+warning: function `test_BC_3_03_002_halfopen_failure_reopens_circuit` should have a snake case name
+   --> crates/sink-core/tests/circuit_breaker_state_machine.rs:104:4
+warning: function `test_BC_3_03_002_vp012_independent_breaker_instances` should have a snake case name
+   --> crates/sink-core/tests/circuit_breaker_state_machine.rs:125:4
+warning: `sink-core` (test "circuit_breaker_state_machine") generated 7 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests/circuit_breaker_state_machine.rs (target/debug/deps/circuit_breaker_state_machine-f44eda539e11464a)
+
+running 7 tests
+test test_BC_3_03_002_circuit_breaker_initial_state_is_closed ... ok
+test test_BC_3_03_002_ec002_n_failures_opens_circuit ... ok
+test test_BC_3_03_002_fewer_than_threshold_failures_stays_closed ... ok
+test test_BC_3_03_002_open_circuit_is_open_returns_true ... ok
+test test_BC_3_03_002_vp012_independent_breaker_instances ... ok
+test test_BC_3_03_002_ec003_halfopen_success_closes_circuit ... ok
+test test_BC_3_03_002_halfopen_failure_reopens_circuit ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

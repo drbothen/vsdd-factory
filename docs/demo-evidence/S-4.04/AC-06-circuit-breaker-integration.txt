@@ -1,0 +1,21 @@
+$ cargo test -p sink-core --test circuit_breaker_integration
+
+warning: function `test_BC_3_03_002_open_circuit_skips_op_entirely` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_integration.rs:14:10
+warning: function `test_BC_3_03_002_repeated_failures_open_circuit_then_reject` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_integration.rs:52:10
+warning: function `test_BC_3_03_002_vp011_with_retry_uses_async_sleep_not_thread_sleep` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_integration.rs:94:10
+warning: function `test_BC_3_03_002_partial_retry_success_leaves_circuit_closed` should have a snake case name
+   --> crates/sink-core/tests/circuit_breaker_integration.rs:129:10
+warning: `sink-core` (test "circuit_breaker_integration") generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running tests/circuit_breaker_integration.rs (target/debug/deps/circuit_breaker_integration-ebe5f014abbdb199)
+
+running 4 tests
+test test_BC_3_03_002_open_circuit_skips_op_entirely ... ok
+test test_BC_3_03_002_vp011_with_retry_uses_async_sleep_not_thread_sleep ... ok
+test test_BC_3_03_002_partial_retry_success_leaves_circuit_closed ... ok
+test test_BC_3_03_002_repeated_failures_open_circuit_then_reject ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

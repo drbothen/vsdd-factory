@@ -1,0 +1,188 @@
+$ cargo test -p sink-core
+
+warning: function `test_BC_3_03_002_ec001_first_fail_second_success_returns_ok` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_success_resets.rs:14:10
+warning: function `test_BC_3_03_002_success_resets_consecutive_failure_counter` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_success_resets.rs:49:10
+warning: function `test_BC_3_03_002_success_on_first_attempt_no_retry` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_success_resets.rs:72:10
+warning: function `test_BC_3_03_002_vp012_different_sinks_have_different_retry_configs` should have a snake case name
+  --> crates/sink-core/tests/per_sink_config.rs:12:4
+warning: function `test_BC_3_03_002_vp012_different_sinks_have_independent_circuit_breakers` should have a snake case name
+  --> crates/sink-core/tests/per_sink_config.rs:39:4
+warning: function `test_BC_3_03_002_per_sink_cooloff_independent` should have a snake case name
+  --> crates/sink-core/tests/per_sink_config.rs:61:4
+warning: function `test_BC_3_03_002_per_sink_max_retries_honoured_independently` should have a snake case name
+  --> crates/sink-core/tests/per_sink_config.rs:87:10
+warning: function `test_BC_3_03_002_jitter_delay_gte_no_jitter` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_jitter.rs:15:4
+warning: function `test_BC_3_03_002_jitter_bounded_above_by_jitter_factor` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_jitter.rs:37:4
+warning: function `test_BC_3_03_002_jitter_produces_variation_across_calls` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_jitter.rs:62:4
+warning: function `test_BC_3_03_002_jitter_zero_when_factor_is_zero` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_jitter.rs:81:4
+warning: function `test_BC_3_03_002_circuit_breaker_initial_state_is_closed` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:12:4
+warning: function `test_BC_3_03_002_ec002_n_failures_opens_circuit` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:24:4
+warning: function `test_BC_3_03_002_fewer_than_threshold_failures_stays_closed` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:45:4
+warning: function `test_BC_3_03_002_open_circuit_is_open_returns_true` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:63:4
+warning: function `test_BC_3_03_002_ec003_halfopen_success_closes_circuit` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_state_machine.rs:76:4
+warning: function `test_BC_3_03_002_halfopen_failure_reopens_circuit` should have a snake case name
+   --> crates/sink-core/tests/circuit_breaker_state_machine.rs:104:4
+warning: function `test_BC_3_03_002_vp012_independent_breaker_instances` should have a snake case name
+   --> crates/sink-core/tests/circuit_breaker_state_machine.rs:125:4
+warning: function `test_BC_3_03_002_retry_backoff_attempt_0_equals_base` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:22:4
+warning: function `test_BC_3_03_002_retry_backoff_attempt_1_doubles_base` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:39:4
+warning: function `test_BC_3_03_002_retry_backoff_attempt_2_quadruples_base` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:56:4
+warning: function `test_BC_3_03_002_retry_backoff_attempt_3_vector` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:73:4
+warning: function `test_BC_3_03_002_retry_backoff_capped_at_max_delay` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:87:4
+warning: function `test_BC_3_03_002_retry_backoff_cap_applied_exactly_at_threshold` should have a snake case name
+   --> crates/sink-core/tests/retry_policy_exponential_backoff.rs:106:4
+warning: function `test_BC_3_03_002_open_circuit_skips_op_entirely` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_integration.rs:14:10
+warning: function `test_BC_3_03_002_repeated_failures_open_circuit_then_reject` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_integration.rs:52:10
+warning: function `test_BC_3_03_002_vp011_with_retry_uses_async_sleep_not_thread_sleep` should have a snake case name
+  --> crates/sink-core/tests/circuit_breaker_integration.rs:94:10
+warning: function `test_BC_3_03_002_partial_retry_success_leaves_circuit_closed` should have a snake case name
+   --> crates/sink-core/tests/circuit_breaker_integration.rs:129:10
+warning: function `test_BC_3_03_002_max_retries_exhausted_returns_err` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_max_attempts.rs:15:10
+warning: function `test_BC_3_03_002_op_called_max_retries_plus_one_times` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_max_attempts.rs:44:10
+warning: function `test_BC_3_03_002_zero_max_retries_fails_immediately` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_max_attempts.rs:74:10
+warning: function `test_BC_3_03_002_exhausted_carries_last_error` should have a snake case name
+   --> crates/sink-core/tests/retry_policy_max_attempts.rs:104:10
+warning: function `test_BC_3_03_002_circuit_opened_event_emitted_on_closed_to_open` should have a snake case name
+  --> crates/sink-core/tests/contract_circuit_events.rs:17:4
+warning: function `test_BC_3_03_002_circuit_closed_event_emitted_on_halfopen_to_closed` should have a snake case name
+  --> crates/sink-core/tests/contract_circuit_events.rs:33:4
+warning: function `test_BC_3_03_002_no_event_emitted_when_circuit_stays_closed` should have a snake case name
+  --> crates/sink-core/tests/contract_circuit_events.rs:57:4
+warning: `sink-core` (test "retry_policy_success_resets") generated 3 warnings
+warning: `sink-core` (test "per_sink_config") generated 4 warnings
+warning: `sink-core` (test "retry_policy_jitter") generated 4 warnings
+warning: `sink-core` (test "circuit_breaker_state_machine") generated 7 warnings
+warning: `sink-core` (test "retry_policy_exponential_backoff") generated 6 warnings
+warning: `sink-core` (test "circuit_breaker_integration") generated 4 warnings
+warning: `sink-core` (test "retry_policy_max_attempts") generated 4 warnings
+warning: `sink-core` (test "contract_circuit_events") generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running unittests src/lib.rs (target/debug/deps/sink_core-1d0db3aaaa2233a9)
+
+running 11 tests
+test tests::sink_event_event_type_missing_returns_none ... ok
+test tests::sink_event_event_type_non_string_returns_none ... ok
+test tests::sink_event_event_type_accessor_reads_type_field ... ok
+test tests::routing_filter_deny_list_only_rejects_listed ... ok
+test tests::routing_filter_allow_list_only_accepts_listed ... ok
+test tests::routing_filter_default_accepts_everything ... ok
+test tests::routing_filter_empty_event_type_rejected_when_filtered ... ok
+test tests::routing_filter_both_lists_allow_first_then_deny ... ok
+test tests::routing_filter_allow_case_sensitive ... ok
+test tests::sink_event_serializes_as_flat_object ... ok
+test tests::sink_config_common_defaults_enabled_true ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/circuit_breaker_integration.rs (target/debug/deps/circuit_breaker_integration-ebe5f014abbdb199)
+
+running 4 tests
+test test_BC_3_03_002_open_circuit_skips_op_entirely ... ok
+test test_BC_3_03_002_vp011_with_retry_uses_async_sleep_not_thread_sleep ... ok
+test test_BC_3_03_002_partial_retry_success_leaves_circuit_closed ... ok
+test test_BC_3_03_002_repeated_failures_open_circuit_then_reject ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/circuit_breaker_state_machine.rs (target/debug/deps/circuit_breaker_state_machine-f44eda539e11464a)
+
+running 7 tests
+test test_BC_3_03_002_circuit_breaker_initial_state_is_closed ... ok
+test test_BC_3_03_002_ec002_n_failures_opens_circuit ... ok
+test test_BC_3_03_002_fewer_than_threshold_failures_stays_closed ... ok
+test test_BC_3_03_002_open_circuit_is_open_returns_true ... ok
+test test_BC_3_03_002_vp012_independent_breaker_instances ... ok
+test test_BC_3_03_002_ec003_halfopen_success_closes_circuit ... ok
+test test_BC_3_03_002_halfopen_failure_reopens_circuit ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contract_circuit_events.rs (target/debug/deps/contract_circuit_events-b9184385b642db10)
+
+running 3 tests
+test test_BC_3_03_002_circuit_opened_event_emitted_on_closed_to_open ... ok
+test test_BC_3_03_002_no_event_emitted_when_circuit_stays_closed ... ok
+test test_BC_3_03_002_circuit_closed_event_emitted_on_halfopen_to_closed ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/per_sink_config.rs (target/debug/deps/per_sink_config-c85fe2f1efae3628)
+
+running 4 tests
+test test_BC_3_03_002_vp012_different_sinks_have_different_retry_configs ... ok
+test test_BC_3_03_002_vp012_different_sinks_have_independent_circuit_breakers ... ok
+test test_BC_3_03_002_per_sink_cooloff_independent ... ok
+test test_BC_3_03_002_per_sink_max_retries_honoured_independently ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/retry_policy_exponential_backoff.rs (target/debug/deps/retry_policy_exponential_backoff-f6ecd4e7bf507286)
+
+running 6 tests
+test test_BC_3_03_002_retry_backoff_attempt_0_equals_base ... ok
+test test_BC_3_03_002_retry_backoff_attempt_1_doubles_base ... ok
+test test_BC_3_03_002_retry_backoff_attempt_2_quadruples_base ... ok
+test test_BC_3_03_002_retry_backoff_attempt_3_vector ... ok
+test test_BC_3_03_002_retry_backoff_cap_applied_exactly_at_threshold ... ok
+test test_BC_3_03_002_retry_backoff_capped_at_max_delay ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/retry_policy_jitter.rs (target/debug/deps/retry_policy_jitter-1687c06244906719)
+
+running 4 tests
+test test_BC_3_03_002_jitter_zero_when_factor_is_zero ... ok
+test test_BC_3_03_002_jitter_delay_gte_no_jitter ... ok
+test test_BC_3_03_002_jitter_bounded_above_by_jitter_factor ... ok
+test test_BC_3_03_002_jitter_produces_variation_across_calls ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/retry_policy_max_attempts.rs (target/debug/deps/retry_policy_max_attempts-57a4d8eddbc69db1)
+
+running 4 tests
+test test_BC_3_03_002_zero_max_retries_fails_immediately ... ok
+test test_BC_3_03_002_op_called_max_retries_plus_one_times ... ok
+test test_BC_3_03_002_exhausted_carries_last_error ... ok
+test test_BC_3_03_002_max_retries_exhausted_returns_err ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/retry_policy_success_resets.rs (target/debug/deps/retry_policy_success_resets-f7db674e45d5e7d4)
+
+running 3 tests
+test test_BC_3_03_002_success_on_first_attempt_no_retry ... ok
+test test_BC_3_03_002_success_resets_consecutive_failure_counter ... ok
+test test_BC_3_03_002_ec001_first_fail_second_success_returns_ok ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests sink_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+TOTAL: 50 passed; 0 failed (11 existing unit tests + 39 new resilience integration tests)

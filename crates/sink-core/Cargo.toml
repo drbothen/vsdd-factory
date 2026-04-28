@@ -19,6 +19,16 @@ serde_json.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
+tokio = { workspace = true }
+rand = "0.8"
+
+[features]
+# Enable tokio-based async resilience helpers (with_retry).
+# Downstream sinks that wire the resilience layer enable this feature.
+# Note: tokio is always linked since with_retry is always compiled;
+# this feature acts as a marker for downstream configuration.
+tokio-resilience = []
 
 [dev-dependencies]
 toml.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "time", "sync"] }

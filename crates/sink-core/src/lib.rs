@@ -27,6 +27,8 @@
 
 #![deny(missing_docs)]
 
+pub mod resilience;
+
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;

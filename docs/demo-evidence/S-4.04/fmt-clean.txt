@@ -1,0 +1,21 @@
+$ cargo fmt --check -p sink-core
+
+EXIT: 1
+
+NOTE: rustfmt reports diffs only in test files (crates/sink-core/tests/).
+Production source (crates/sink-core/src/) is clean. The test-file import
+ordering issues are pre-existing from the RED-gate commit written by the
+test-writer agent and are out of scope for this story delivery per
+test-writer ownership rules.
+
+Affected test files (import ordering only — no logic changes):
+  - crates/sink-core/tests/circuit_breaker_integration.rs
+  - crates/sink-core/tests/per_sink_config.rs
+  - crates/sink-core/tests/retry_policy_exponential_backoff.rs
+  - crates/sink-core/tests/retry_policy_max_attempts.rs
+  - crates/sink-core/tests/retry_policy_success_resets.rs
+
+All diffs are single-group import reordering (e.g. `use sink_core::resilience::{with_retry, ...}`
+alphabetised differently). No functional changes involved.
+
+This is flagged as a known deferred item in INDEX.md.
