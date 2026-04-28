@@ -31,4 +31,10 @@ tokio-resilience = []
 
 [dev-dependencies]
 toml.workspace = true
-tokio = { workspace = true, features = ["macros", "rt", "time", "sync"] }
+tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread", "time", "sync"] }
+tempfile.workspace = true
+httpmock.workspace = true
+# Cross-sink integration test (AC-010) imports all three driver crates.
+sink-http = { path = "../sink-http", version = "0.0.1" }
+sink-otel-grpc = { path = "../sink-otel-grpc", version = "0.0.1" }
+sink-file = { path = "../sink-file", version = "0.0.1" }

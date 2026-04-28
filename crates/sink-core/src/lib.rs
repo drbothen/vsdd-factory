@@ -27,7 +27,10 @@
 
 #![deny(missing_docs)]
 
+pub mod events;
 pub mod resilience;
+
+pub use events::{SinkErrorEvent, emit_sink_error};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};

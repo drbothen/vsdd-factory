@@ -1,0 +1,29 @@
+AC-001: sink-http emits internal.sink_error with sink_type="http"
+Traces to: BC-3.07.002 postcondition 1 (mandatory event fields)
+Test file: crates/sink-http/tests/bc_3_07_002_http_emission.rs
+Test vector: sink-http 503 on attempt 0
+
+Command: cargo test -p sink-http --test bc_3_07_002_http_emission
+SHA: da8c5b5
+
+running 8 tests
+test test_BC_3_07_002_http_sink_failure_still_recorded_after_503 ... ok
+test test_BC_3_07_002_http_invariant_no_routing_through_sink_registry ... ok
+test test_BC_3_07_002_http_emits_sink_error_on_503_attempt_0 ... ok
+test test_BC_3_07_002_http_unnamed_sink_uses_unnamed_default ... ok
+test test_BC_3_07_002_http_silent_drop_on_full_channel_no_panic ... ok
+test test_BC_3_07_002_http_sink_name_matches_config_name ... ok
+test test_BC_3_07_002_http_silent_drop_on_closed_channel_no_panic ... ok
+test test_BC_3_07_002_http_three_failures_emit_three_events_with_correct_attempts ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+Primary AC-001 test: test_BC_3_07_002_http_emits_sink_error_on_503_attempt_0
+  - Triggers 503 response from mock HTTP server
+  - Asserts event captured on internal channel with:
+      type = "internal.sink_error"
+      sink_type = "http"
+      sink_name = (operator-assigned name)
+      error_message = non-empty string
+      attempt = 0 (zero-indexed, first attempt)
+  Result: PASS

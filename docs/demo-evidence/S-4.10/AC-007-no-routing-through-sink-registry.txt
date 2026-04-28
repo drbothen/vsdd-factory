@@ -1,0 +1,38 @@
+AC-007: internal.sink_error NOT routed through SinkRegistry — no recursive loop possible
+Traces to: BC-3.07.002 invariant 2 (no routing through SinkRegistry; no recursive loop)
+Test files:
+  - crates/sink-http/tests/bc_3_07_002_http_emission.rs
+  - crates/sink-otel-grpc/tests/bc_3_07_002_otel_emission.rs
+  - crates/sink-file/tests/bc_3_07_002_file_emission.rs
+
+SHA: da8c5b5
+
+--- sink-http: no routing through SinkRegistry ---
+Command: cargo test -p sink-http --test bc_3_07_002_http_emission no_routing_through_sink_registry
+running 1 test
+test test_BC_3_07_002_http_invariant_no_routing_through_sink_registry ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.02s
+
+--- sink-otel-grpc: no routing through SinkRegistry ---
+Command: cargo test -p sink-otel-grpc --test bc_3_07_002_otel_emission no_routing_through_sink_registry
+running 1 test
+test test_BC_3_07_002_otel_invariant_no_routing_through_sink_registry ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.05s
+
+--- sink-file: no routing through SinkRegistry ---
+Command: cargo test -p sink-file --test bc_3_07_002_file_emission no_routing_through_sink_registry
+running 1 test
+test test_BC_3_07_002_file_invariant_no_routing_through_sink_registry ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.06s
+
+Total: 3 tests, all PASS
+
+Invariant confirmed:
+  - emit_sink_error() sends directly to the internal event channel (tokio::mpsc::Sender)
+  - This channel bypasses SinkRegistry::submit_all() entirely
+  - No code path from emit_sink_error() can reach SinkRegistry
+  - Therefore: a sink failure cannot trigger another sink failure through the registry
+    (no recursive loop risk)
+
+Routing target: internal-log writer channel (SS-01 stable API), consumed-not-implemented
+by this story per Stretch-Anchor Disclosure in S-4.10 story spec.

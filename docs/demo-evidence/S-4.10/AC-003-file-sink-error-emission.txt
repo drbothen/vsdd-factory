@@ -1,0 +1,27 @@
+AC-003: sink-file emits internal.sink_error with sink_type="file"
+Traces to: BC-3.07.002 postcondition 1 (cross-sink coverage)
+Test file: crates/sink-file/tests/bc_3_07_002_file_emission.rs
+Test vector: file write fails due to read-only directory
+
+Command: cargo test -p sink-file --test bc_3_07_002_file_emission
+SHA: da8c5b5
+
+running 6 tests
+test test_BC_3_07_002_file_silent_drop_on_closed_channel_no_panic ... ok
+test test_BC_3_07_002_file_silent_drop_on_full_channel_no_panic ... ok
+test test_BC_3_07_002_file_emits_sink_error_on_read_only_dir ... ok
+test test_BC_3_07_002_file_sink_name_matches_config_name ... ok
+test test_BC_3_07_002_file_sink_failure_still_recorded_after_write_error ... ok
+test test_BC_3_07_002_file_invariant_no_routing_through_sink_registry ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+Primary AC-003 test: test_BC_3_07_002_file_emits_sink_error_on_read_only_dir
+  - Points sink-file at a read-only directory to trigger a write failure
+  - Asserts event captured on internal channel with:
+      type = "internal.sink_error"
+      sink_type = "file"
+      sink_name = (operator-assigned name)
+      error_message = non-empty string (OS-level error)
+      attempt = 0 (zero-indexed, first attempt)
+  Result: PASS

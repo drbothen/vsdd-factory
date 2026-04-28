@@ -1,0 +1,41 @@
+AC-004: BC-3.01.008 preserved — SinkFailure still recorded after emission (additive only)
+Traces to: BC-3.07.002 postcondition 2 (additive-only; BC-3.01.008 preserved)
+Test files:
+  - crates/sink-http/tests/bc_3_07_002_http_emission.rs
+  - crates/sink-otel-grpc/tests/bc_3_07_002_otel_emission.rs
+  - crates/sink-file/tests/bc_3_07_002_file_emission.rs
+  - crates/sink-core/tests/bc_3_07_002_cross_sink_integration.rs
+
+SHA: da8c5b5
+
+--- sink-http: BC-3.01.008 still-recorded test ---
+Command: cargo test -p sink-http --test bc_3_07_002_http_emission http_sink_failure_still_recorded
+running 1 test
+test test_BC_3_07_002_http_sink_failure_still_recorded_after_503 ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.06s
+
+--- sink-otel-grpc: BC-3.01.008 still-recorded test ---
+Command: cargo test -p sink-otel-grpc --test bc_3_07_002_otel_emission otel_sink_failure_still_recorded
+running 1 test
+test test_BC_3_07_002_otel_sink_failure_still_recorded_after_connection_refused ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.06s
+
+--- sink-file: BC-3.01.008 still-recorded test ---
+Command: cargo test -p sink-file --test bc_3_07_002_file_emission file_sink_failure_still_recorded
+running 1 test
+test test_BC_3_07_002_file_sink_failure_still_recorded_after_write_error ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.06s
+
+--- cross-sink integration: consistent schema + field types ---
+Command: cargo test -p sink-core --test bc_3_07_002_cross_sink_integration
+running 3 tests
+test test_BC_3_07_002_cross_sink_schema_field_types_correct ... ok
+test test_BC_3_07_002_ac006_emission_synchronous_with_failure_recording ... ok
+test test_BC_3_07_002_cross_sink_consistent_schema_all_three_drivers ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+Additive-only verification:
+  - Each driver's "still_recorded" test: after emit_sink_error is called, the Mutex<Vec<SinkFailure>>
+    still contains the recorded SinkFailure entry.
+  - S-4.10 adds emission; it does not remove or replace BC-3.01.008 failure recording.
+  Result: PASS (all 4 tests GREEN)

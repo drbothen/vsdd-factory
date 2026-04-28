@@ -45,7 +45,9 @@ use std::thread::JoinHandle;
 use thiserror::Error;
 
 use chrono::{DateTime, Local};
-use sink_core::{RoutingFilter, Sink, SinkConfigCommon, SinkEvent};
+use sink_core::{
+    RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error,
+};
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
@@ -214,14 +216,21 @@ struct Shared {
     failures: Mutex<Vec<SinkFailure>>,
     queue_full_count: AtomicU64,
     shutdown: std::sync::atomic::AtomicBool,
+    /// Operator-assigned sink name for `internal.sink_error` events (AC-009).
+    sink_name: String,
+    /// Optional fire-and-forget channel for `internal.sink_error` events
+    /// (BC-3.07.002). `None` when no error channel is wired in.
+    error_tx: Option<tokio::sync::mpsc::Sender<SinkErrorEvent>>,
 }
 
 impl Shared {
-    fn new() -> Self {
+    fn new(sink_name: String, error_tx: Option<tokio::sync::mpsc::Sender<SinkErrorEvent>>) -> Self {
         Self {
             failures: Mutex::new(Vec::new()),
             queue_full_count: AtomicU64::new(0),
             shutdown: std::sync::atomic::AtomicBool::new(false),
+            sink_name,
+            error_tx,
         }
     }
 }
@@ -245,7 +254,29 @@ impl FileSink {
     /// `env::var("CLAUDE_PROJECT_DIR")`). The background thread is
     /// spawned eagerly so the worker is ready before the first
     /// `submit`.
+    ///
+    /// To wire `internal.sink_error` emission (BC-3.07.002), use
+    /// [`Self::new_with_error_channel`] instead.
     pub fn new(config: FileSinkConfig, project_dir: Option<String>) -> Result<Self, FileSinkError> {
+        Self::new_inner(config, project_dir, None)
+    }
+
+    /// Like [`Self::new`] but threads an error-event channel sender into the
+    /// sink's shared state so failures are emitted as `internal.sink_error`
+    /// events (BC-3.07.002).
+    pub fn new_with_error_channel(
+        config: FileSinkConfig,
+        project_dir: Option<String>,
+        error_tx: tokio::sync::mpsc::Sender<SinkErrorEvent>,
+    ) -> Result<Self, FileSinkError> {
+        Self::new_inner(config, project_dir, Some(error_tx))
+    }
+
+    fn new_inner(
+        config: FileSinkConfig,
+        project_dir: Option<String>,
+        error_tx: Option<tokio::sync::mpsc::Sender<SinkErrorEvent>>,
+    ) -> Result<Self, FileSinkError> {
         // Validate the template early by attempting a resolution with
         // today's date — surfaces typos before any event is submitted.
         let _ = resolve_path_template(
@@ -256,7 +287,12 @@ impl FileSink {
         )?;
 
         let (tx, rx) = mpsc::channel::<Message>(config.queue_depth.max(1));
-        let shared = Arc::new(Shared::new());
+        let sink_name_for_shared = if config.name.is_empty() {
+            "<unnamed>".to_owned()
+        } else {
+            config.name.clone()
+        };
+        let shared = Arc::new(Shared::new(sink_name_for_shared, error_tx));
         let worker_shared = Arc::clone(&shared);
         let worker_name = config.name.clone();
         let worker_template = config.path_template.clone();
@@ -518,6 +554,25 @@ fn append_jsonl(path: &Path, event: &SinkEvent) -> std::io::Result<()> {
 }
 
 fn record_failure(shared: &Shared, path: PathBuf, reason: String) {
+    // Emit internal.sink_error BEFORE locking the failures mutex, per the
+    // S-4.10 previous-story intelligence note: prefer releasing the lock before
+    // try_send for clarity. EC-006: OS error messages from std::io::Error are
+    // valid UTF-8 strings in Rust (they come from the OS via to_string()), but
+    // apply lossy_utf8 sanitization defensively.
+    if let Some(ref tx) = shared.error_tx {
+        // EC-006: sanitize error_message via lossy UTF-8 (covers any OS error
+        // that somehow contains invalid UTF-8, though Rust strings are always
+        // valid UTF-8; this is a no-op in practice but satisfies the contract).
+        let sanitized_reason = String::from_utf8_lossy(reason.as_bytes()).into_owned();
+        let event = SinkErrorEvent::new(
+            shared.sink_name.clone(),
+            "file",
+            sanitized_reason,
+            0u32, // file sink has no retries; attempt is always 0.
+        );
+        emit_sink_error(tx, event);
+    }
+
     let ts = Local::now().format("%Y-%m-%dT%H:%M:%S%z").to_string();
     let mut guard = shared.failures.lock().unwrap_or_else(|p| p.into_inner());
     guard.push(SinkFailure { path, reason, ts });
