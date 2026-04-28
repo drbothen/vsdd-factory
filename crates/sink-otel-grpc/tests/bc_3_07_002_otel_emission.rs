@@ -18,7 +18,7 @@
 //! Uses RFC 5736 reserved port 1 (`127.0.0.1:1`) — guaranteed unreachable,
 //! so the gRPC connect attempt fails quickly without external infrastructure.
 
-use sink_core::{Sink, SinkEvent, SinkErrorEvent};
+use sink_core::{Sink, SinkErrorEvent, SinkEvent};
 use sink_otel_grpc::{BatchConfig, OtelGrpcConfig, OtelGrpcSink};
 use std::collections::BTreeMap;
 use std::time::Duration;
@@ -79,9 +79,22 @@ fn wait_for_failure(sink: &OtelGrpcSink, timeout: Duration) -> bool {
 /// channel will be empty after the failure, and the assertion fails.
 #[test]
 fn test_BC_3_07_002_otel_emits_sink_error_on_connection_refused() {
-    let sink = unreachable_sink("otel-grpc-test");
     let (tx, mut rx) = mpsc::channel::<SinkErrorEvent>(16);
-    let _ = tx; // implementer will thread this into OtelGrpcSink.
+    let cfg = OtelGrpcConfig {
+        name: "otel-grpc-test".to_string(),
+        enabled: true,
+        endpoint: "http://127.0.0.1:1".to_string(),
+        resource_attributes: BTreeMap::new(),
+        batch: BatchConfig {
+            size: 1,
+            interval_ms: 50,
+        },
+        queue_depth: sink_otel_grpc::DEFAULT_QUEUE_DEPTH,
+        routing_filter: None,
+        tags: BTreeMap::new(),
+    };
+    let sink = OtelGrpcSink::new_with_error_channel(cfg, tx)
+        .expect("OtelGrpcSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
 
@@ -144,12 +157,25 @@ fn test_BC_3_07_002_otel_sink_failure_still_recorded_after_connection_refused() 
 /// `try_send().ok()` ensures same behavior.
 #[test]
 fn test_BC_3_07_002_otel_silent_drop_on_full_channel_no_panic() {
-    let sink = unreachable_sink("otel-full-channel-test");
-
     // Capacity 1, pre-filled — simulates full channel.
     let (tx, _rx) = mpsc::channel::<SinkErrorEvent>(1);
     let _ = tx.try_send(SinkErrorEvent::new("fill", "otel-grpc", "fill", 0));
-    let _ = tx; // implementer passes this full sender to the sink.
+
+    let cfg = OtelGrpcConfig {
+        name: "otel-full-channel-test".to_string(),
+        enabled: true,
+        endpoint: "http://127.0.0.1:1".to_string(),
+        resource_attributes: BTreeMap::new(),
+        batch: BatchConfig {
+            size: 1,
+            interval_ms: 50,
+        },
+        queue_depth: sink_otel_grpc::DEFAULT_QUEUE_DEPTH,
+        routing_filter: None,
+        tags: BTreeMap::new(),
+    };
+    let sink = OtelGrpcSink::new_with_error_channel(cfg, tx)
+        .expect("OtelGrpcSink::new_with_error_channel must succeed");
 
     // Must not panic.
     sink.submit(make_event());
@@ -165,11 +191,24 @@ fn test_BC_3_07_002_otel_silent_drop_on_full_channel_no_panic() {
 /// Closed channel causes silent drop; `SinkFailure` still recorded.
 #[test]
 fn test_BC_3_07_002_otel_silent_drop_on_closed_channel_no_panic() {
-    let sink = unreachable_sink("otel-closed-channel-test");
-
     let (tx, rx) = mpsc::channel::<SinkErrorEvent>(8);
     drop(rx); // Simulate dispatcher shutdown.
-    let _ = tx; // closed sender; implementer passes to sink.
+
+    let cfg = OtelGrpcConfig {
+        name: "otel-closed-channel-test".to_string(),
+        enabled: true,
+        endpoint: "http://127.0.0.1:1".to_string(),
+        resource_attributes: BTreeMap::new(),
+        batch: BatchConfig {
+            size: 1,
+            interval_ms: 50,
+        },
+        queue_depth: sink_otel_grpc::DEFAULT_QUEUE_DEPTH,
+        routing_filter: None,
+        tags: BTreeMap::new(),
+    };
+    let sink = OtelGrpcSink::new_with_error_channel(cfg, tx)
+        .expect("OtelGrpcSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
 
@@ -189,9 +228,22 @@ fn test_BC_3_07_002_otel_silent_drop_on_closed_channel_no_panic() {
 /// RED GATE: channel is empty; assertion fails.
 #[test]
 fn test_BC_3_07_002_otel_sink_name_matches_config_name() {
-    let sink = unreachable_sink("grafana-dev-otel");
     let (tx, mut rx) = mpsc::channel::<SinkErrorEvent>(8);
-    let _ = tx;
+    let cfg = OtelGrpcConfig {
+        name: "grafana-dev-otel".to_string(),
+        enabled: true,
+        endpoint: "http://127.0.0.1:1".to_string(),
+        resource_attributes: BTreeMap::new(),
+        batch: BatchConfig {
+            size: 1,
+            interval_ms: 50,
+        },
+        queue_depth: sink_otel_grpc::DEFAULT_QUEUE_DEPTH,
+        routing_filter: None,
+        tags: BTreeMap::new(),
+    };
+    let sink = OtelGrpcSink::new_with_error_channel(cfg, tx)
+        .expect("OtelGrpcSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
     let _ = wait_for_failure(&sink, Duration::from_secs(8));

@@ -14,7 +14,7 @@
 //! "sink-file write fails (read-only dir) → one `internal.sink_error` event with
 //!  `sink_type="file"`, `attempt=0`"
 
-use sink_core::{Sink, SinkEvent, SinkErrorEvent};
+use sink_core::{Sink, SinkErrorEvent, SinkEvent};
 use sink_file::{DEFAULT_QUEUE_DEPTH, FileSink, FileSinkConfig};
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -83,22 +83,27 @@ fn restore_perms(ro_dir: &std::path::Path) {
 #[cfg(unix)]
 fn test_BC_3_07_002_file_emits_sink_error_on_read_only_dir() {
     let (tmp, ro) = make_ro_dir();
-    let sink = read_only_sink("file-sink-test", &ro);
-
     let (tx, mut rx) = mpsc::channel::<SinkErrorEvent>(16);
-    let _ = tx; // implementer will thread this into FileSink.
+    let cfg = FileSinkConfig {
+        name: "file-sink-test".to_string(),
+        enabled: true,
+        path_template: format!("{}/{{name}}-{{date}}.jsonl", ro.display()),
+        queue_depth: DEFAULT_QUEUE_DEPTH,
+        routing_filter: None,
+        tags: Default::default(),
+    };
+    let sink = FileSink::new_with_error_channel(cfg, None, tx)
+        .expect("FileSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
     sink.flush().unwrap_or_default();
 
     // Assert the channel received an internal.sink_error event.
-    // RED GATE: channel is empty because FileSink doesn't send to it yet.
     let event = rx.try_recv().unwrap_or_else(|_| {
         restore_perms(&ro);
-        drop(tmp);
         panic!(
-            "RED GATE: expected one internal.sink_error event on the channel \
-             after a read-only dir write failure; channel is empty (production not yet wired)"
+            "expected one internal.sink_error event on the channel \
+             after a read-only dir write failure; channel is empty"
         )
     });
 
@@ -117,6 +122,7 @@ fn test_BC_3_07_002_file_emits_sink_error_on_read_only_dir() {
     );
 
     restore_perms(&ro);
+    drop(tmp);
 }
 
 // ── AC-004 (BC-3.01.008 preservation) ────────────────────────────────────────
@@ -159,12 +165,21 @@ fn test_BC_3_07_002_file_sink_failure_still_recorded_after_write_error() {
 #[cfg(unix)]
 fn test_BC_3_07_002_file_silent_drop_on_full_channel_no_panic() {
     let (tmp, ro) = make_ro_dir();
-    let sink = read_only_sink("file-full-channel", &ro);
 
-    // Capacity 1, pre-filled.
+    // Capacity 1, pre-filled — simulates full channel.
     let (tx, _rx) = mpsc::channel::<SinkErrorEvent>(1);
     let _ = tx.try_send(SinkErrorEvent::new("fill", "file", "fill", 0));
-    let _ = tx; // implementer passes this full sender to the sink.
+
+    let cfg = FileSinkConfig {
+        name: "file-full-channel".to_string(),
+        enabled: true,
+        path_template: format!("{}/{{name}}-{{date}}.jsonl", ro.display()),
+        queue_depth: DEFAULT_QUEUE_DEPTH,
+        routing_filter: None,
+        tags: Default::default(),
+    };
+    let sink = FileSink::new_with_error_channel(cfg, None, tx)
+        .expect("FileSink::new_with_error_channel must succeed");
 
     // Must not panic.
     sink.submit(make_event());
@@ -186,11 +201,20 @@ fn test_BC_3_07_002_file_silent_drop_on_full_channel_no_panic() {
 #[cfg(unix)]
 fn test_BC_3_07_002_file_silent_drop_on_closed_channel_no_panic() {
     let (tmp, ro) = make_ro_dir();
-    let sink = read_only_sink("file-closed-channel", &ro);
 
     let (tx, rx) = mpsc::channel::<SinkErrorEvent>(8);
     drop(rx); // Simulate dispatcher shutdown.
-    let _ = tx;
+
+    let cfg = FileSinkConfig {
+        name: "file-closed-channel".to_string(),
+        enabled: true,
+        path_template: format!("{}/{{name}}-{{date}}.jsonl", ro.display()),
+        queue_depth: DEFAULT_QUEUE_DEPTH,
+        routing_filter: None,
+        tags: Default::default(),
+    };
+    let sink = FileSink::new_with_error_channel(cfg, None, tx)
+        .expect("FileSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
     sink.flush().unwrap_or_default();
@@ -216,17 +240,24 @@ fn test_BC_3_07_002_file_silent_drop_on_closed_channel_no_panic() {
 #[cfg(unix)]
 fn test_BC_3_07_002_file_sink_name_matches_config_name() {
     let (tmp, ro) = make_ro_dir();
-    let sink = read_only_sink("audit-log-file", &ro);
 
     let (tx, mut rx) = mpsc::channel::<SinkErrorEvent>(8);
-    let _ = tx;
+    let cfg = FileSinkConfig {
+        name: "audit-log-file".to_string(),
+        enabled: true,
+        path_template: format!("{}/{{name}}-{{date}}.jsonl", ro.display()),
+        queue_depth: DEFAULT_QUEUE_DEPTH,
+        routing_filter: None,
+        tags: Default::default(),
+    };
+    let sink = FileSink::new_with_error_channel(cfg, None, tx)
+        .expect("FileSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
     sink.flush().unwrap_or_default();
 
     let event = rx.try_recv().unwrap_or_else(|_| {
         restore_perms(&ro);
-        drop(tmp);
         panic!(
             "RED GATE: expected one internal.sink_error event with sink_name; \
              channel empty"
@@ -239,6 +270,7 @@ fn test_BC_3_07_002_file_sink_name_matches_config_name() {
     );
 
     restore_perms(&ro);
+    drop(tmp);
 }
 
 // ── AC-007 (no routing through SinkRegistry) ─────────────────────────────────

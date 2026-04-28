@@ -23,7 +23,7 @@
 //! - channel full → no panic, SinkFailure still recorded
 
 use httpmock::prelude::*;
-use sink_core::{Sink, SinkEvent, SinkErrorEvent};
+use sink_core::{Sink, SinkErrorEvent, SinkEvent};
 use sink_http::{HttpSink, HttpSinkConfig};
 use tokio::sync::mpsc;
 
@@ -83,16 +83,12 @@ async fn test_BC_3_07_002_http_emits_sink_error_on_503_attempt_0() {
         then.status(503).body("service unavailable");
     });
 
-    // Build the error channel. Once the implementation threads `tx` into
-    // `HttpSink`, the sink will send events here on failure.
+    // Build the error channel and wire it into the sink.
     let (tx, mut rx) = mpsc::channel::<SinkErrorEvent>(16);
 
-    // Existing constructor — does not accept the error channel yet.
-    // The implementer will add a new_with_error_channel() variant.
-    let _ = tx; // suppress unused warning; implementation will wire this.
-
     let config = config_for_url("http-sink-test", &format!("{}/events", server.base_url()));
-    let sink = HttpSink::new(config).expect("HttpSink::new must succeed");
+    let sink = HttpSink::new_with_error_channel(config, tx)
+        .expect("HttpSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
     let _ = sink.flush();
@@ -178,10 +174,13 @@ async fn test_BC_3_07_002_http_silent_drop_on_full_channel_no_panic() {
     let (tx, _rx) = mpsc::channel::<SinkErrorEvent>(1);
     // Pre-fill: channel is now at capacity.
     let _ = tx.try_send(SinkErrorEvent::new("fill", "http", "fill", 0));
-    let _ = tx; // full channel; implementer passes this to the sink.
 
-    let config = config_for_url("full-channel-test", &format!("{}/events", server.base_url()));
-    let sink = HttpSink::new(config).expect("HttpSink::new must succeed");
+    let config = config_for_url(
+        "full-channel-test",
+        &format!("{}/events", server.base_url()),
+    );
+    let sink = HttpSink::new_with_error_channel(config, tx)
+        .expect("HttpSink::new_with_error_channel must succeed");
 
     // Must not panic even with full channel.
     sink.submit(make_event());
@@ -209,10 +208,13 @@ async fn test_BC_3_07_002_http_silent_drop_on_closed_channel_no_panic() {
 
     let (tx, rx) = mpsc::channel::<SinkErrorEvent>(8);
     drop(rx); // Simulate dispatcher shutdown — channel closed.
-    let _ = tx; // implementer passes this closed sender to the sink.
 
-    let config = config_for_url("closed-channel-test", &format!("{}/events", server.base_url()));
-    let sink = HttpSink::new(config).expect("HttpSink::new must succeed");
+    let config = config_for_url(
+        "closed-channel-test",
+        &format!("{}/events", server.base_url()),
+    );
+    let sink = HttpSink::new_with_error_channel(config, tx)
+        .expect("HttpSink::new_with_error_channel must succeed");
 
     // Must not panic even with closed channel.
     sink.submit(make_event());
@@ -248,10 +250,13 @@ async fn test_BC_3_07_002_http_three_failures_emit_three_events_with_correct_att
     });
 
     let (tx, mut rx) = mpsc::channel::<SinkErrorEvent>(16);
-    let _ = tx; // implementer threads this into HttpSink.
 
-    let config = config_for_url("retry-emission-test", &format!("{}/events", server.base_url()));
-    let sink = HttpSink::new(config).expect("HttpSink::new must succeed");
+    let config = config_for_url(
+        "retry-emission-test",
+        &format!("{}/events", server.base_url()),
+    );
+    let sink = HttpSink::new_with_error_channel(config, tx)
+        .expect("HttpSink::new_with_error_channel must succeed");
 
     // One batch submission → 3 internal retries → 3 failure events expected.
     sink.submit(make_event());
@@ -273,8 +278,7 @@ async fn test_BC_3_07_002_http_three_failures_emit_three_events_with_correct_att
     // Verify attempt sequence 0, 1, 2.
     for (idx, event) in events.iter().enumerate() {
         assert_eq!(
-            event.attempt,
-            idx as u32,
+            event.attempt, idx as u32,
             "event[{idx}] must have attempt={idx}, got {}",
             event.attempt
         );
@@ -298,10 +302,13 @@ async fn test_BC_3_07_002_http_sink_name_matches_config_name() {
     });
 
     let (tx, mut rx) = mpsc::channel::<SinkErrorEvent>(8);
-    let _ = tx;
 
-    let config = config_for_url("prod-http-ingress", &format!("{}/events", server.base_url()));
-    let sink = HttpSink::new(config).expect("HttpSink::new must succeed");
+    let config = config_for_url(
+        "prod-http-ingress",
+        &format!("{}/events", server.base_url()),
+    );
+    let sink = HttpSink::new_with_error_channel(config, tx)
+        .expect("HttpSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
     let _ = sink.flush();
@@ -332,10 +339,10 @@ async fn test_BC_3_07_002_http_unnamed_sink_uses_unnamed_default() {
     });
 
     let (tx, mut rx) = mpsc::channel::<SinkErrorEvent>(8);
-    let _ = tx;
 
     let config = config_unnamed(&format!("{}/events", server.base_url()));
-    let sink = HttpSink::new(config).expect("HttpSink::new must succeed");
+    let sink = HttpSink::new_with_error_channel(config, tx)
+        .expect("HttpSink::new_with_error_channel must succeed");
 
     sink.submit(make_event());
     let _ = sink.flush();
@@ -376,7 +383,10 @@ async fn test_BC_3_07_002_http_invariant_no_routing_through_sink_registry() {
         then.status(503).body("service unavailable");
     });
 
-    let config = config_for_url("anti-recursion-check", &format!("{}/events", server.base_url()));
+    let config = config_for_url(
+        "anti-recursion-check",
+        &format!("{}/events", server.base_url()),
+    );
     let sink = HttpSink::new(config).expect("HttpSink::new must succeed");
 
     // Trigger a failure. If internal.sink_error were routed through the same
