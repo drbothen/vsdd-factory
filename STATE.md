@@ -130,8 +130,8 @@ dtu_services: []
 
 - **Merged (35):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
-- **Draft / Not Shipped (7):** S-4.05, Tier F (S-5.01/5.02/5.03/5.04/5.06), Tier G/H TBD
-- **Ready (3):** S-4.07 (CONVERGENCE_REACHED pass-8, 2026-04-28), S-4.06 (CONVERGENCE_REACHED pass-10, 2026-04-28), S-4.08 (CONVERGENCE_REACHED pass-17, 2026-04-28)
+- **Draft / Not Shipped (6):** Tier F (S-5.01/5.02/5.03/5.04/5.06), Tier G/H TBD
+- **Ready (4):** S-4.05 (CONVERGENCE_REACHED pass-48, v1.45, ac22a3d), S-4.06 (pass-10), S-4.07 (pass-8), S-4.08 (pass-17)
 
 ## Drift Items (open)
 
@@ -180,6 +180,7 @@ dtu_services: []
 | D-126 | **S-4.07 (E2E observability integration tests, 13 pts) achieved CONVERGENCE_REACHED at pass-8 per ADR-013. Trajectory 14→9→12→4→3→1→0→0 across 8 passes. Status flipped draft → ready. First spec to converge in v1.0-brownfield-backfill cycle's spec-convergence wave for S-4.05/4.06/4.07/4.08. Frontmatter v1.10 → v1.11.** | ADR-013 3-consecutive-NITPICK_ONLY criterion satisfied: pass-6 = 1 LOW NITPICK, pass-7 = 0 findings, pass-8 = 0 findings. Story now implementation-ready pending S-4.05 + S-4.06 (which it depends_on). | spec-convergence-wave-S-4.07 | 2026-04-28 | state-manager |
 | D-127 | **S-4.06 (Per-sink routing + tag enrichment, 5 pts) achieved CONVERGENCE_REACHED at pass-10 per ADR-013. Trajectory 13→4→6→7→11→7→1→0→0→0 across 10 passes. Status flipped partial → ready. Second spec to converge in v1.0-brownfield-backfill cycle's spec-convergence wave (after S-4.07 sealed at 4c0050c). Frontmatter v1.9 → v1.10.** | ADR-013 3-consecutive-NITPICK_ONLY criterion satisfied: pass-8 zero, pass-9 zero, pass-10 zero findings. Story now implementation-ready. STORY-INDEX partial 3→2, ready 1→2. sprint-state.yaml E-4 partial 1→0, ready 1→2. | spec-convergence-wave-S-4.06 | 2026-04-28 | state-manager |
 | D-128 | **S-4.08 (1.0.0-rc.1 release gate, 5 pts) achieved CONVERGENCE_REACHED at pass-17 per ADR-013. Trajectory 14→11→12→6→6→3→1→0→0→2→0→1→2→3→3→1→2→0 across 17 passes (longest convergence in this cycle's spec-convergence wave). Status flipped draft → ready. THIRD spec to converge in v1.0-brownfield-backfill cycle's spec-convergence wave (after S-4.07 sealed at 4c0050c, S-4.06 sealed at d7b29dc). Frontmatter v1.15 → v1.16. S-4.05 still in convergence loop (currently pass-20). Once S-4.05 closes, all 4 stories of the wave are ready for impl.** | ADR-013 3-consecutive-NITPICK_ONLY criterion satisfied: pass-15 = 1 LOW NITPICK, pass-16 = 2 LOW pending-intent (no fix applied per S-7.03 lesson), pass-17 = 0 findings. STORY-INDEX draft 8→7, ready 2→3. sprint-state.yaml E-4 draft 2→1, ready 2→3. | spec-convergence-wave-S-4.08 | 2026-04-28 | state-manager |
+| D-129 | **S-4.05 (Dead Letter Queue, 3 pts) achieved CONVERGENCE_REACHED at pass-48 per ADR-013 — longest adversarial run in project history (eclipses S-7.03's 17-pass record). v1.45, sealed at commit ac22a3d on factory-artifacts. Passes 46/47/48 NITPICK_ONLY; clock advanced 1/3→2/3→3/3 = CONVERGENCE_REACHED. Status flipped draft → ready. FOURTH and final spec to converge in the spec-convergence wave (S-4.07, S-4.06, S-4.08, S-4.05). All 4 Wave 12 stories (28 pts) now ready for impl.** Trajectory: 11→5→8→8→8→3→0→3→5→1→2→1→2→0→2→2→0→1→4→2→2→2→2→1→1HIGH→4→5→6→2→7→6→8→8→6→5→4→5→4→3→7→7→7→8→5→5→3→3LOW→6LOW→0. ~150+ findings closed across 45 fix bursts. Key arch decisions: (a) SinkDlqEvent in sink-core + boundary adapter at factory-dispatcher; (b) dlq_writer: Option&lt;Arc&lt;DlqWriter&gt;&gt; field + new_with_observability constructor; (c) dlq_root: PathBuf on DlqWriterConfig matching log_dir; (d) UTC clock injection via clock_fn Arc; (e) Mutex cache shape for byte-counted rotation; (f) try_send fire-and-forget; (g) per-event retry-exhaustion DLQ loop in post_batch. 6 carry-forward LOWs (F-4601..F-4603, F-4701..F-4703) non-blocking per ADR-013. | ADR-013 3-consecutive-NITPICK_ONLY satisfied: pass-46 = 1/3, pass-47 = 2/3, pass-48 = 3/3. S-7.03 NITPICK-skip posture validated; fresh-context value confirmed past pass-30 (pass-42 caught 41-pass-old gap); pass-31 arch-cycle fix was highest-leverage. STORY-INDEX draft 7→6, ready 3→4; sprint-state.yaml E-4 draft 0, ready 4. | spec-convergence-wave-S-4.05 | 2026-04-28 | state-manager |
 
 > **Historical decisions (D-001..D-102):** Moved to `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
@@ -196,12 +197,11 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Wave 11 + Wave 12 fully closed (D-125, 2026-04-27)** — 35 of 47 stories merged. develop @ ccf34e6. Wave 11 close: S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6). 9 stories + 1 docs + 1 SAST = 11 PRs this session. All Wave 11/12 worktrees pruned. Local feat/S-4.09 branch deleted. E-4 now 6 of 10 merged; 4 remaining: S-4.05 (DLQ, adversary pass-1 done), S-4.06 (routing, adversary pass-1 done), S-4.07 (E2E, blocked on 4.05+4.06), S-4.08 (rc.1 gate).
+**S-4.05 DLQ spec CONVERGENCE_REACHED at pass-48 (D-129, 2026-04-28)** — v1.45, ac22a3d. All 4 Wave 12 spec-convergence stories now ready: S-4.05/4.06/4.07/4.08 (28 pts). 35 of 47 stories merged; develop @ ccf34e6.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-4.05** (dead letter queue): adversary pass-1 at 11 findings (D-123); fix burst required before pass-2
-- **S-4.06** (routing filters): adversary pass-1 at 13 findings (D-124); fix burst required before pass-2
-- **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open; story-spec unblocked)
+- **Wave 12 per-story-delivery** (highest priority): S-4.05 (3 pts) + S-4.06 (5 pts) + S-4.07 (13 pts) + S-4.08 (5 pts) = 28 pts; all spec-ready; S-4.07/4.08 blocked on S-4.05+4.06 impl
+- **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)
 - Task #112: Architect-led 28-CAP audit propagation to PRD §8 (CAP-023/024 deferred)
 - 7 MINOR consistency findings (F-006..F-012) from post-Wave-9 sweep — deferred, address before v1.0.1 release
 

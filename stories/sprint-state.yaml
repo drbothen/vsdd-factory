@@ -11,8 +11,8 @@ stories:
   total: 47
   merged: 35
   partial: 2
-  draft: 7
-  ready: 3
+  draft: 6
+  ready: 4
   blocked: 0
   in_progress: 0   # S-4.09 (PR #27 3c56ce5) + S-4.10 (PR #28 ccf34e6) merged; Wave 11 fully closed
 
@@ -61,9 +61,9 @@ epics:
     milestone: 1.0.0-rc.1
     merged: 6   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6)
     partial: 0
-    draft: 1    # S-4.05
-    ready: 3    # S-4.06 (CONVERGENCE_REACHED pass-10; 2026-04-28), S-4.07 (CONVERGENCE_REACHED pass-8; 2026-04-28), S-4.08 (CONVERGENCE_REACHED pass-17; 2026-04-28)
-    # remaining: S-4.05 (DLQ), S-4.06 (routing filters, spec ready), S-4.07 (E2E tests, spec ready), S-4.08 (rc.1 gate)
+    draft: 0
+    ready: 4    # S-4.05 (CONVERGENCE_REACHED pass-48; v1.45; 2026-04-28; D-129), S-4.06 (CONVERGENCE_REACHED pass-10; 2026-04-28), S-4.07 (CONVERGENCE_REACHED pass-8; 2026-04-28), S-4.08 (CONVERGENCE_REACHED pass-17; 2026-04-28)
+    # remaining: S-4.05 (DLQ, spec ready), S-4.06 (routing filters, spec ready), S-4.07 (E2E tests, spec ready), S-4.08 (rc.1 gate)
 
   E-5:
     name: New Hook Events and 1.0.0 Release
@@ -82,7 +82,7 @@ points:
 
 # Current work frontier (stories unblocked, 2026-04-27 after Wave 11 close)
 frontier:
-  - S-4.05  # Dead letter queue — draft; adversarial pass-1 done (11 findings); fix burst in progress
+  - S-4.05  # Dead letter queue — ready; CONVERGENCE_REACHED pass-48 (v1.45; ac22a3d; D-129); implementation unblocked
   - S-4.06  # routing filters — ready; CONVERGENCE_REACHED pass-10 (2026-04-28); implementation unblocked
   - S-4.07  # E2E obs integration tests — draft; blocked on S-4.05 + S-4.06 spec convergence + impl
 

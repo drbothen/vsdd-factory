@@ -31,8 +31,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 35 |
 | partial | 2 |
-| draft | 7 |
-| ready | 3 |
+| draft | 6 |
+| ready | 4 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -89,7 +89,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | merged | 2 (+ 2 deferred LOW findings F-1/F-2 from PR #18; v1.3) |
 | S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | merged | 2 |
 | S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | merged | 1 (v1.1 BC creation dep note) |
-| S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | draft | 2 (+ v1.1 candidates) |
+| S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | ready | 2 (+ v1.1 candidates; CONVERGENCE_REACHED pass-48; v1.45; commit ac22a3d) |
 | S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | ready | 6 |
 | S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | ready | 16 |
 | S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | ready | 5 |
@@ -123,6 +123,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | merged | 2.2 |
 
 > **S-7.03 delivery:** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN. Worktree feat/tdd-discipline-hardening (9b1624b → 121d24c, 9 commits). Spec convergence: 17 adversarial passes.
+
+> **S-4.05 spec CONVERGENCE_REACHED at pass-48 (2026-04-28).** v1.45, commit ac22a3d on factory-artifacts. 48 adversarial passes — longest run in project history (eclipses S-7.03's 17-pass record). Trajectory: 11→5→8→8→8→3→0→3→5→1→2→1→2→0→2→2→0→1→4→2→2→2→2→1→1HIGH→4→5→6→2→7→6→8→8→6→5→4→5→4→3→7→7→7→8→5→5→3→3LOW→6LOW→0. 6 carry-forward LOWs (F-4601..F-4603, F-4701..F-4703) non-blocking per ADR-013. Status: draft → ready. (D-129)
 
 > **Wave 1 SS-01 re-anchor CONVERGED 3-of-3 at pass-6 (2026-04-26).** 7 stories anchored to SS-01 BCs: S-1.01 (0/justified), S-1.02 (26), S-1.04 (26), S-1.05 (15), S-1.06 (8), S-1.07 (10), S-3.04 (8). 93 unique SS-01 BCs anchored (of 99); 4 deferred to Wave 3 (BC-1.07.003-006); 10 v1.1 BC candidates logged. Trajectory: 10→4→3→1→0→0.
 
