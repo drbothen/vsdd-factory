@@ -21,6 +21,8 @@
 
 #![deny(missing_docs)]
 
+pub mod retry;
+
 use serde::Deserialize;
 use sink_core::{Sink, SinkConfigCommon, SinkEvent};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -30,6 +32,80 @@ use tokio::sync::mpsc;
 
 /// Number of total attempts for 5xx batches (1 initial + retries).
 const MAX_5XX_ATTEMPTS: u32 = 3;
+
+// ── S-4.09 stubs (RED gate) ───────────────────────────────────────────────────
+// These declarations exist so tests compile. Implementations are intentionally
+// absent (panic!/unimplemented!) — the RED gate requires all tests to FAIL.
+
+/// Configuration error returned when a sink config violates construction-time
+/// invariants (BC-3.07.001 invariant 1).
+///
+/// # Variants
+///
+/// - `InvalidBackoff` — emitted when `base_delay_ms == 0` or
+///   `max_delay_ms < base_delay_ms` (AC-006 / EC-001 / EC-002).
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigError {
+    /// `base_delay_ms = 0` or `max_delay_ms < base_delay_ms`.
+    ///
+    /// BC-3.07.001 invariant 1: `max_delay_ms >= base_delay_ms > 0` is a
+    /// construction-time invariant; violation is a configuration error, not
+    /// a runtime panic.
+    #[error("invalid backoff config: base_delay_ms must be > 0 and max_delay_ms >= base_delay_ms")]
+    InvalidBackoff,
+}
+
+/// Exponential-backoff configuration for the HTTP sink retry loop (S-4.09).
+///
+/// Added to [`HttpSinkConfig`] as the `retry` field. The implementer wires
+/// this into the worker loop in `lib.rs` and draws jitter from a per-instance
+/// PRNG (AC-007 / BC-3.07.001 invariant 2).
+///
+/// # Construction
+///
+/// Use [`RetryConfig::new`] — it enforces the construction-time invariant
+/// `max_delay_ms >= base_delay_ms > 0` and returns `Err(ConfigError::InvalidBackoff)`
+/// on violation (AC-006).
+#[derive(Debug, Clone)]
+pub struct RetryConfig {
+    /// Base delay in milliseconds. Must be > 0.
+    pub base_delay_ms: u64,
+    /// Maximum delay cap in milliseconds. Must be >= base_delay_ms.
+    pub max_delay_ms: u64,
+    /// Jitter factor in [0.0, 1.0]. Jitter is drawn from
+    /// `[0, base_delay_ms * jitter_factor]`.
+    pub jitter_factor: f64,
+    /// Maximum total attempts (1 initial + retries). On full-failure with
+    /// max_retries=N, exactly (N-1) sleeps occur (AC-009 / BC-3.07.001 invariant 4).
+    pub max_retries: u32,
+}
+
+impl RetryConfig {
+    /// Construct a [`RetryConfig`], enforcing the construction-time invariant.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(ConfigError::InvalidBackoff)` if:
+    /// - `base_delay_ms == 0` (EC-001), or
+    /// - `max_delay_ms < base_delay_ms` (EC-002).
+    ///
+    /// # Panics
+    ///
+    /// This stub panics (RED gate — S-4.09 not yet implemented).
+    pub fn new(
+        base_delay_ms: u64,
+        max_delay_ms: u64,
+        jitter_factor: f64,
+        max_retries: u32,
+    ) -> Result<Self, ConfigError> {
+        // STUB: Red-gate — unimplemented. The real implementation validates:
+        //   if base_delay_ms == 0 || max_delay_ms < base_delay_ms {
+        //       return Err(ConfigError::InvalidBackoff);
+        //   }
+        let _ = (base_delay_ms, max_delay_ms, jitter_factor, max_retries);
+        unimplemented!("RetryConfig::new not yet implemented (S-4.09)")
+    }
+}
 
 /// HTTP endpoint URL type alias.
 ///
@@ -82,6 +158,10 @@ pub struct HttpSinkConfig {
     queue_depth: usize,
     /// Extra headers injected on every POST (used by wrapper sinks, e.g. DD-API-KEY).
     extra_headers: Vec<(String, String)>,
+    /// Optional exponential-backoff configuration (S-4.09 / AC-001 through AC-009).
+    /// `None` preserves the S-4.01 immediate-retry behaviour.
+    #[allow(dead_code)]
+    pub retry: Option<RetryConfig>,
 }
 
 impl HttpSinkConfig {
@@ -118,6 +198,7 @@ impl HttpSinkConfig {
             url: raw.url,
             queue_depth: raw.queue_depth,
             extra_headers: Vec::new(),
+            retry: None,
         }))
     }
 
@@ -155,6 +236,8 @@ pub struct HttpSinkConfigBuilder {
     queue_depth: usize,
     extra_headers: Vec<(String, String)>,
     common_override: Option<SinkConfigCommon>,
+    /// Optional backoff configuration (S-4.09). None = no backoff (S-4.01 behaviour).
+    retry: Option<RetryConfig>,
 }
 
 impl HttpSinkConfigBuilder {
@@ -189,6 +272,16 @@ impl HttpSinkConfigBuilder {
         self
     }
 
+    /// Set the exponential backoff configuration for retry sleeps (S-4.09).
+    ///
+    /// When set, the worker thread sleeps `compute_backoff_ms(...)` between
+    /// 5xx retry attempts. When absent, the S-4.01 immediate-retry behaviour
+    /// is used (no sleep between attempts).
+    pub fn retry(mut self, retry: RetryConfig) -> Self {
+        self.retry = Some(retry);
+        self
+    }
+
     /// Finalise and return an [`HttpSinkConfig`].
     pub fn build(self) -> HttpSinkConfig {
         let common = self.common_override.unwrap_or_else(|| SinkConfigCommon {
@@ -206,6 +299,7 @@ impl HttpSinkConfigBuilder {
                 self.queue_depth
             },
             extra_headers: self.extra_headers,
+            retry: self.retry,
         }
     }
 }
