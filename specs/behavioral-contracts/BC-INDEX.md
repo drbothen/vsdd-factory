@@ -8,13 +8,13 @@ timestamp: 2026-04-26T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1897
+total_bcs: 1898
 traces_to: bc-id-mapping.md
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,897 behavioral contracts across 10 subsystems.
+> Master index of all 1,898 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -24,14 +24,14 @@ traces_to: bc-id-mapping.md
 | SS-01 Hook Dispatcher Core | BC-1 | 99 | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 22 | ss-02/ |
 | SS-03 Observability Sinks | BC-3 | 51 | ss-03/ |
-| SS-04 Plugin Ecosystem | BC-4 | 17 | ss-04/ |
+| SS-04 Plugin Ecosystem | BC-4 | 18 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1897** | |
+| **Total** | | **1898** | |
 
 ## Index by subsystem
 
@@ -246,6 +246,7 @@ traces_to: bc-id-mapping.md
 | [BC-4.04.002](ss-04/BC-4.04.002.md) | session-start plugin invokes factory-health subprocess; emits session.started even if check fails | draft | CAP-002 | S-5.01 |
 | [BC-4.04.003](ss-04/BC-4.04.003.md) | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | draft | CAP-002 | S-5.01 |
 | [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with once:true routing to session-start.wasm plugin | draft | CAP-002 | S-5.01 |
+| [BC-4.04.005](ss-04/BC-4.04.005.md) | hooks-registry.toml registers SessionStart event-name routing to session-start-telemetry.wasm with once:true and exec_subprocess capability | draft | CAP-002 | S-5.01 |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 

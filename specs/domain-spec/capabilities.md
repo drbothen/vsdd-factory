@@ -12,7 +12,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "8021f73"
+input-hash: "a6c6f62"
 traces_to: L2-INDEX.md
 ---
 
@@ -29,10 +29,11 @@ The orchestrator agent reads `.lobster` workflow files and autonomously dispatch
 Subsystems: SS-05, SS-06. Outcome: user runs `/vsdd-factory:run-phase` and the pipeline produces spec + code + tests without manual agent handoffs.
 Source: pass-8 §2; design doc "Decisions" §1. Justification: this is the product's core value proposition.
 
-**CAP-002 — Hook Claude Code tool calls with sandboxed WASM plugins**
-Every Claude Code tool invocation (Bash, Edit, Write, etc.) triggers the dispatcher, which routes to matching WASM plugins by event type and tool-regex. Plugins run in wasmtime with bounded fuel + epoch timeout.
-Subsystems: SS-01, SS-02, SS-04. Outcome: a plugin can block a tool call (exit 2) or allow it (exit 0) with sub-10ms overhead.
-Source: design doc "Decisions" §3; pass-1 §Layer Structure. Justification: grounded in the core architectural decision for WASM-sandboxed hooks.
+**CAP-002 — Hook Claude Code tool calls and session/worktree lifecycle events with sandboxed WASM plugins**
+Every Claude Code tool invocation (Bash, Edit, Write, etc.) and every session/worktree lifecycle event (SessionStart, SessionEnd, WorktreeCreate, WorktreeRemove) triggers the dispatcher, which routes to matching WASM plugins by event type and tool-regex. Plugins run in wasmtime with bounded fuel + epoch timeout.
+Subsystems: SS-01, SS-02, SS-04. Outcome: a plugin can block a tool call (exit 2) or allow it (exit 0) with sub-10ms overhead; lifecycle events emit structured telemetry.
+Source: design doc "Decisions" §3; pass-1 §Layer Structure. Justification: grounded in the core architectural decision for WASM-sandboxed hooks. Lifecycle events use the same dispatcher + WASM-plugin sandbox as tool calls — splitting into a separate CAP would over-fragment the capability registry and introduce traceability ambiguity.
+<!-- [arch-decision] Decision C (S-5.01 adversarial pass-1, 2026-04-28): CAP-002 widened from "tool calls" to include "session/worktree lifecycle events". SessionStart is not a tool call but uses the same dispatcher + WASM sandbox; introducing a separate CAP would require dual-anchor for every lifecycle plugin story and orphan the traceability chain. Architect confirmed Option 1 (widen). -->
 
 **CAP-003 — Stream observability events to multiple configurable sinks**
 The dispatcher fans out every internal event to all enabled sink drivers (file, OTel gRPC; HTTP/Datadog/Honeycomb planned for rc.1). Sinks are independently configured via `observability-config.toml`.

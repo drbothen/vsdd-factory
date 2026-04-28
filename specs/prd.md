@@ -20,7 +20,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/stories/ (47 stories, 8 epics)
-input-hash: "0bf7a64"
+input-hash: "7412c05"
 traces_to: .factory/specs/domain-spec/L2-INDEX.md
 supplements: []
 # Supplements deferred — PRD body contains summary versions:
@@ -35,14 +35,14 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,897-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
-> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 4 S-5.01 foundation) into a formal L3 requirements artifact. Section 2 is the
+> It synthesizes the 1,898-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
+> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 foundation) into a formal L3 requirements artifact. Section 2 is the
 > primary machine-consumed surface: it groups BCs by functional requirement (FR-NNN)
 > and provides subsystem-level traceability. Agents needing deep BC content load
 > individual `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
 > Sections 3-5 point to supplement files (DF-021 context discipline).
 
-> **BC Index Model:** 1,897 individual BC files live under
+> **BC Index Model:** 1,898 individual BC files live under
 > `.factory/specs/behavioral-contracts/ss-NN/`. Section 2 groups them into
 > 46 logical FRs. Do NOT inline full contract details here — cross-reference only.
 
@@ -76,8 +76,8 @@ an 8-phase SDLC pipeline: brief → domain-spec → PRD → architecture → sto
 delivery → adversarial review → convergence.
 
 The product was built with itself. Phase 0 ingestion of this very codebase produced the
-1,863-BC pre-E-7 baseline that this PRD synthesizes (catalog has since grown to 1,897
-with additions of 15 BCs in E-7, 13 BCs in S-7.03, 2 BCs in Wave 11 SS-03, and 4 BCs in S-5.01 Wave 13). This self-referential loop is the ultimate dogfooding
+1,863-BC pre-E-7 baseline that this PRD synthesizes (catalog has since grown to 1,898
+with additions of 15 BCs in E-7, 13 BCs in S-7.03, 2 BCs in Wave 11 SS-03, and 5 BCs in S-5.01 Wave 13). This self-referential loop is the ultimate dogfooding
 test: every architectural decision (WASM sandbox, capability deny-by-default,
 parallel-within-tier execution, always-on telemetry) was enacted in Rust and then
 analyzed by the framework's own brownfield-ingest skill.
@@ -399,7 +399,7 @@ Status: **pending** full implementation (S-3.01 stub).
 #### FR-046 — New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure
 
 **Source CAP:** CAP-002 — Hook Claude Code tool calls with sandboxed WASM plugins
-**Behavioral Contracts:** BC-4.04.001..004 (session-start, S-5.01), BC-4.05.001..N (session-end, S-5.02), BC-4.06.001..N (worktree, S-5.03), BC-4.07.001..N (tool-failure, S-5.04) — incrementally populated as Tier F stories converge
+**Behavioral Contracts:** BC-4.04.001..005 (session-start, S-5.01), BC-4.05.001..N (session-end, S-5.02), BC-4.06.001..N (worktree, S-5.03), BC-4.07.001..N (tool-failure, S-5.04) — incrementally populated as Tier F stories converge
 **Stories:** S-5.01, S-5.02, S-5.03, S-5.04
 **Status:** in-progress (S-5.01 BCs allocated; siblings pending)
 **Subsystem(s):** SS-04, SS-01 (hooks.json registry inclusion)
@@ -416,17 +416,38 @@ with appropriate once/async semantics. Dispatcher routing reuses existing event-
 (BC-1.01.001 registry schema, BC-1.02.005 envelope parsing tolerates missing tool_name on
 lifecycle events).
 
+**Reserved event-name literals (per this FR):** The following event-name strings are reserved by vsdd-factory and must not be reused by user plugins or third-party extensions:
+- `session.started` — emitted by S-5.01 (BC-4.04.001); reserved for session-start telemetry
+- `session.ended` — emitted by S-5.02 (BC-4.05.*); reserved for session-end telemetry
+- `worktree.created` — emitted by S-5.03 (BC-4.06.*); reserved for worktree creation events
+- `worktree.removed` — emitted by S-5.03 (BC-4.06.*); reserved for worktree removal events
+- `tool.failed` — emitted by S-5.04 (BC-4.07.*); reserved for PostToolUseFailure events
+
+These mirror the `internal.sink_error` reservation pattern in FR-045. Any plugin emitting an event with a reserved name that it does not own is a protocol violation.
+
+**Canonical Tier F BC family pattern:** Each Tier F hook story produces a 4-5 BC family following this canonical pattern established by S-5.01's BC-4.04.001..005:
+1. Plugin emits structured event with telemetry payload (e.g., BC-4.04.001)
+2. Plugin invokes subsystem subprocess if applicable; fail-open (e.g., BC-4.04.002)
+3. Plugin idempotency / deduplication contract (e.g., BC-4.04.003)
+4. `hooks.json.template` registration (Claude Code-side routing) (e.g., BC-4.04.004)
+5. `hooks-registry.toml` registration (dispatcher-side routing) (e.g., BC-4.04.005)
+
+Sibling stories BC-4.05.*, BC-4.06.*, BC-4.07.* mirror this shape. Implementers and reviewers should use BC-4.04.001..005 as the canonical reference family.
+
 | BC ID | Title | Priority |
 |-------|-------|----------|
 | BC-4.04.001 | session-start plugin emits session.started event with session telemetry on SessionStart event | P1 |
 | BC-4.04.002 | session-start plugin invokes factory-health subprocess; emits session.started even if check fails | P1 |
 | BC-4.04.003 | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | P1 |
-| BC-4.04.004 | hooks.json.template registers SessionStart event with once:true routing to session-start.wasm plugin | P1 |
+| BC-4.04.004 | hooks.json.template registers SessionStart event with once:true routing to session-start-telemetry.wasm plugin | P1 |
+| BC-4.04.005 | hooks-registry.toml registers SessionStart event-name routing to session-start-telemetry.wasm with once:true and exec_subprocess capability | P1 |
 
-Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.004.md` (4 BCs anchored; siblings pending S-5.02–5.04).
+Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (5 BCs anchored; siblings pending S-5.02–5.04).
 Status: **in-progress** (S-5.01 BCs allocated).
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-04/` (17 BCs total)
+
+> **DI coverage note (F-12):** No dedicated L2 domain invariant covers the lifecycle event class (SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure) as a first-class invariant. The applicable DIs are DI-004 (capability denial), DI-007 (always-on self-telemetry), DI-011 (sink submit non-blocking), DI-014 (schema version), DI-015 (activation gate), and DI-017 (trace_id). A dedicated DI for "lifecycle event plugins must always emit their target event regardless of subsystem health" is a **v1.1 DI candidate** — the fail-open semantics are currently enforced at BC level (BC-4.04.002 Invariant 1, BC-4.04.001 Postcondition 4) without a formal DI backing. Flag for Domain Spec v1.1 revision.
 
 ---
 
@@ -1132,7 +1153,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-043 | TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern (anti-precedent guard + Red Gate density check + tdd_mode contract + mutation wave-gate) | CAP-016 | SS-05, SS-06, SS-08 | BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 | 13 | pending | E-7 |
 | FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002, BC-3.07.001 + v1.1 candidates (8 pending) | 3 anchored + 8 v1.1 candidates | partial | E-4 |
 | FR-045 | Emit `internal.sink_error` structured event on each sink failure | CAP-003 | SS-03 | BC-3.07.002 | 1 | pending | E-4 |
-| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–004 (anchored); BC-4.05–4.07.* (pending S-5.02–5.04) | 4 anchored + siblings pending | in-progress | E-5 |
+| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–005 (anchored); BC-4.05–4.07.* (pending S-5.02–5.04) | 5 anchored + siblings pending | in-progress | E-5 |
 
 **Total: 46 FRs across 10 subsystems**
 
@@ -1222,7 +1243,7 @@ Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x
 | DRIFT-003 | P2 | Per-sink dedicated OS threads vs design's promised shared tokio runtime; S-1.06 shipped but swap not made | Acceptable for 1.0; planned post-1.0 |
 | DRIFT-004 | P1 | Two parallel hook-routing tables (`hooks.json` + `hooks-registry.toml`); source-of-truth ambiguity | Decision + fix at 1.0 GA (L-P0-002) |
 | DRIFT-005 | P2 | HTTP/Datadog/Honeycomb sinks declared in design; warn-and-skip in `sinks/mod.rs::from_config` | Planned rc.1 (Tier E, S-4.01–4.03) |
-| DRIFT-006 | P2 | SessionStart/SessionEnd/WorktreeCreate/PostToolUseFailure events not wired to plugin reactions | **in-progress** — FR-046 created; S-5.01 BCs (BC-4.04.001–004) allocated 2026-04-28; siblings S-5.02–5.04 pending (Tier G) |
+| DRIFT-006 | P2 | SessionStart/SessionEnd/WorktreeCreate/PostToolUseFailure events not wired to plugin reactions | **in-progress** — FR-046 created; S-5.01 BCs (BC-4.04.001–005) allocated 2026-04-28; siblings S-5.02–5.04 pending (Tier G) |
 | DRIFT-007 | P3 | `dispatcher.shutting_down` constant defined but never emitted | Acceptable for 1.0 OR 1-line add |
 | DRIFT-008 | P3 | `plugin.loaded` / `plugin.load_failed` constants declared but never emitted from plugin_loader | Acceptable for 1.0; 1-line emit call |
 | DRIFT-009 | P2 | Adversary SHA-currency gate is opt-in (template only; `hooks/verify-sha-currency.sh` not auto-installed) | Documented as opt-in; CHANGELOG beta.4 |
@@ -1325,7 +1346,7 @@ For v1.0, treat the prd-supplement as the authoritative NFR source.
 
 ### 12.1 Behavioral Contract Verification
 
-All 1,897 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
+All 1,898 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
 
 | Test Type | Coverage Target | Primary Tools |
 |-----------|----------------|---------------|
@@ -1379,7 +1400,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Field | Value |
 |-------|-------|
 | Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,897 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 4 S-5.01 Wave 13) |
+| BC catalog version | 1,898 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.7 (commit b08e085, 2026-04-26) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |

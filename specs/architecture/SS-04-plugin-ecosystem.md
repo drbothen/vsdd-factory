@@ -21,10 +21,15 @@ traces_to: ARCH-INDEX.md
 ## Purpose
 
 The Plugin Ecosystem subsystem contains the compiled WASM plugins that provide
-actual hook behavior. At v1.0.0-beta.4 this subsystem consists of two crates:
+actual hook behavior. At v1.0.0-beta.4 this subsystem ships two active crates:
 `legacy-bash-adapter` (the universal bridge enabling all 44 existing bash hooks
 to run under the dispatcher without modification) and `capture-commit-activity`
 (the first native WASM port, currently a 20-LOC stub pending Tier E work).
+Four additional Tier E stub crates (`capture-pr-activity`, `block-ai-attribution`)
+and four Tier F lifecycle plugin crates (`session-start-telemetry`,
+`session-end-telemetry`, `worktree-hooks`, `post-tool-use-failure`) are in the
+module inventory but not yet shipped (pending S-3.01–3.03 and S-5.01–5.04
+respectively).
 
 The `legacy-bash-adapter` is architecturally significant: it implements the
 multi-instance plugin pattern (ADR-012). A single compiled `.wasm` module is
@@ -43,11 +48,19 @@ end-state where all hooks are capability-gated, sandboxed, pure WASM.
 
 ## Modules
 
-| Module / File | Responsibility |
-|---|---|
-| `crates/hook-plugins/legacy-bash-adapter/src/lib.rs` | `#[hook]` entry point; reads `plugin_config.script_path`; calls `vsdd::exec_subprocess(["bash", script_path])`; maps exit code / output to `HookResult`; expose `adapter_logic`, `BashOutcome` |
-| `crates/hook-plugins/legacy-bash-adapter/` constants | `MAX_OUTPUT_BYTES = 1 MiB`, `BASH_TIMEOUT_MS = 60_000` |
-| `crates/hook-plugins/capture-commit-activity/src/lib.rs` | Stub: `#[hook] fn on_hook` returning `HookResult::Continue`; 20-LOC placeholder for S-3.1 native port |
+| Module / File | Responsibility | Status |
+|---|---|---|
+| `crates/hook-plugins/legacy-bash-adapter/src/lib.rs` | `#[hook]` entry point; reads `plugin_config.script_path`; calls `vsdd::exec_subprocess(["bash", script_path])`; maps exit code / output to `HookResult`; expose `adapter_logic`, `BashOutcome` | shipped |
+| `crates/hook-plugins/legacy-bash-adapter/` constants | `MAX_OUTPUT_BYTES = 1 MiB`, `BASH_TIMEOUT_MS = 60_000` | shipped |
+| `crates/hook-plugins/capture-commit-activity/src/lib.rs` | Stub: `#[hook] fn on_hook` returning `HookResult::Continue`; 20-LOC placeholder for S-3.01 native port | stub (pending S-3.01) |
+| `crates/hook-plugins/capture-pr-activity/src/lib.rs` | Native WASM port for PR activity capture (PostToolUse); emits `pr.opened`, `pr.merged` events | stub (pending S-3.02) |
+| `crates/hook-plugins/block-ai-attribution/src/lib.rs` | Native WASM port for AI attribution blocking (PreToolUse); enforces no-AI-attribution commit policy | stub (pending S-3.03) |
+| `crates/hook-plugins/session-start-telemetry/src/lib.rs` | SessionStart lifecycle plugin; emits `session.started` with session_id, factory_version, plugin_count, activated_platform, factory_health; runs `factory-health --brief` via `exec_subprocess`; checks tool deps | pending S-5.01 |
+| `crates/hook-plugins/session-end-telemetry/src/lib.rs` | SessionEnd lifecycle plugin; emits `session.ended` with session duration and summary telemetry | pending S-5.02 |
+| `crates/hook-plugins/worktree-hooks/src/lib.rs` | WorktreeCreate + WorktreeRemove lifecycle plugins; emits `worktree.created` / `worktree.removed` events; single crate covers both event types | pending S-5.03 |
+| `crates/hook-plugins/post-tool-use-failure/src/lib.rs` | PostToolUseFailure lifecycle plugin; captures tool failure events with structured error metadata | pending S-5.04 |
+
+<!-- [arch-decision] Decision A (S-5.01 adversarial pass-1, 2026-04-28): Tier F crates follow the v1.0-legacy S-5.1 naming intent and SS-04 per-event dedicated-crate precedent. Crate names: session-start-telemetry (S-5.01), session-end-telemetry (S-5.02), worktree-hooks (S-5.03, covers both WorktreeCreate + WorktreeRemove), post-tool-use-failure (S-5.04). S-5.03 uses a single crate for both worktree events because they share identical plugin_config shape, purity profile, and deployment unit. -->
 
 ## Public Interface
 
