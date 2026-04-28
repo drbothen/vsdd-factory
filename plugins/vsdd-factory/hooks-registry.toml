@@ -24,6 +24,14 @@ path_allow = [".claude/settings.local.json"]
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["factory-health"]
 
+# ---------- SessionEnd ----------
+
+[[hooks]]
+name = "session-end-telemetry"
+event = "SessionEnd"
+plugin = "hook-plugins/session-end-telemetry.wasm"
+timeout_ms = 5000
+
 # ---------- PostToolUse ----------
 
 [[hooks]]

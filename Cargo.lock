@@ -2725,6 +2725,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "session-end-telemetry"
+version = "1.0.0-rc.1"
+dependencies = [
+ "chrono",
+ "regex",
+ "serde_json",
+ "toml 0.8.23",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "session-start-telemetry"
 version = "1.0.0-rc.1"
 dependencies = [

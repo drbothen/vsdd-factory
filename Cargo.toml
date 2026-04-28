@@ -5,6 +5,7 @@ members = [
     "crates/hook-sdk",
     "crates/hook-sdk-macros",
     "crates/hook-plugins/capture-commit-activity",
+    "crates/hook-plugins/session-end-telemetry",
     "crates/hook-plugins/session-start-telemetry",
     "crates/hook-plugins/capture-pr-activity",
     "crates/hook-plugins/legacy-bash-adapter",
