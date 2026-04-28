@@ -204,7 +204,7 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 
 1. **Legacy-finding triage is part of TD-006's scope.** Before the gate can pass, every legacy finding the runner surfaces in vsdd-factory's existing code/BCs must be either fixed (preferred) or formally suppressed via `.suppressions/<finding_id>.md` with explicit rationale.
 2. **Forcing function on Phase 5 / future adversarial reviews.** Once gating is on, no spec or implementation change can pass adversarial review without clearing both checks. This is the strongest dogfooding stance — it explicitly accepts the cost.
-3. **Volume unknown until runner exists.** vsdd-factory has 1,891 BCs (many brownfield-extracted, may not have Canonical Test Vectors sections) and a Rust workspace with tests under various naming conventions. The actual legacy-finding volume could be 0 (if naming/TV conventions don't match the matchers) or hundreds (if they do). The story spec must include a triage budget that allows for both extremes.
+3. **Volume unknown until runner exists.** vsdd-factory has 1,893 BCs (many brownfield-extracted, may not have Canonical Test Vectors sections) and a Rust workspace with tests under various naming conventions. The actual legacy-finding volume could be 0 (if naming/TV conventions don't match the matchers) or hundreds (if they do). The story spec must include a triage budget that allows for both extremes.
 4. **Suppression policy.** Suppressions are explicit, time-bounded, and attached to a TD entry (e.g., suppression cites `TD-NNN`). No silent silencing.
 5. **Sequencing.** PR for TD-006 follow-up lands the runner + tests + per-language matchers in one PR; a SECOND PR (or commit-in-same-PR if scope allows) flips POLICY 11/12 to gating in `.factory/policies.yaml` AFTER triage is complete.
 
@@ -214,7 +214,7 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 
 **Decision (recommended defaults accepted; latency budget adjusted for 4 languages):**
 
-- **Latency budget:** Check 8 < 30s for the full 1,891-BC repo with Rust + Python + TS + Go matchers running. Check 9 < 30s. (Previous Rust-only budget was <10s; multi-language tripling accounts for tree-sitter / AST parsing in non-Rust languages.)
+- **Latency budget:** Check 8 < 30s for the full 1,893-BC repo with Rust + Python + TS + Go matchers running. Check 9 < 30s. (Previous Rust-only budget was <10s; multi-language tripling accounts for tree-sitter / AST parsing in non-Rust languages.)
 - **Cacheable?** No cache in v1. Premature optimization given the budget.
 - **Parallel-safe:** Yes by construction (runners are read-only).
 - **Side-effect free:** Yes — no writes anywhere, no `.factory/` mutation, no fixture rewriting.

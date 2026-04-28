@@ -127,11 +127,10 @@ dtu_services: []
 
 ## Story Status (47 total)
 
-- **Merged (26):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-3.04 (4/5 ACs shipped; AC-003→TD-007)
+- **Merged (26):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007)
 - **Partial (3):** S-2.05 (cargo publish dry-run), S-4.06 (RoutingFilter parsed not wired), S-5.05 (skeleton)
-- **Draft / Not Shipped (15):** All Tier E except partials, all Tier F/G/H
-- **Ready (0):** — (S-6.01/S-7.01/S-7.02 corrected to merged)
-- **Completed (1):** S-7.03 (TDD discipline hardening — PR #13 merged 2026-04-26 at 4db2340)
+- **Draft / Not Shipped (18):** All Tier E (S-3.01/3.02/3.03, S-4.01/4.02/4.03/4.04/4.05/4.07/4.08/4.09/4.10), Tier F (S-5.01/5.02/5.03/5.04/5.06), Tier G/H TBD
+- **Ready (0):** —
 
 ## Drift Items (open)
 

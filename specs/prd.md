@@ -19,7 +19,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-4-nfr-catalog.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
-  - .factory/stories/ (41 stories, 6 epics)
+  - .factory/stories/ (47 stories, 8 epics)
 input-hash: "0bf7a64"
 traces_to: .factory/specs/domain-spec/L2-INDEX.md
 supplements: []
@@ -82,9 +82,9 @@ test: every architectural decision (WASM sandbox, capability deny-by-default,
 parallel-within-tier execution, always-on telemetry) was enacted in Rust and then
 analyzed by the framework's own brownfield-ingest skill.
 
-**Current shipping milestone:** `1.0.0-beta.4` shipped 2026-04-25 at commit `1907d8f`.
-Tiers A through D (22 merged + 4 partial stories; 26 total) are substantially closed.
-Tiers E through H (15 draft stories) are the active backlog for rc.1 and 1.0 GA.
+**Current shipping milestone:** `1.0.0-beta.7` shipped 2026-04-26 at commit `b08e085`.
+Tiers A through D (26 merged + 3 partial stories; 29 total) are substantially closed.
+Tiers E through H (18 draft stories) are the active backlog for rc.1 and 1.0 GA.
 
 ### 1.3 Key Differentiators
 
@@ -1350,11 +1350,11 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Phase | 1.5 (brownfield spec backfill) |
 | BC catalog version | 1,893 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
-| Current release | 1.0.0-beta.4 (commit 1907d8f, 2026-04-25) |
+| Current release | 1.0.0-beta.7 (commit b08e085, 2026-04-26) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
 | DRIFT items open | 11 (DRIFT-001 through DRIFT-011) |
-| Stories shipped (merged) | 22 (Tier A–D fully merged) |
-| Stories partial | 4 (S-2.05, S-3.04, S-4.06, S-5.05) |
+| Stories shipped (merged) | 26 (Tier A–D + S-3.04 + S-6.01 + S-7.01 + S-7.02 fully merged) |
+| Stories partial | 3 (S-2.05, S-4.06, S-5.05) |
 | Stories pending (draft) | 18 (Tiers E–H draft) |
 | CAPs covered | 28 / 28 |
 | FRs defined | 45 |
