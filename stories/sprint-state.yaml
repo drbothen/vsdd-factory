@@ -9,12 +9,12 @@ next_milestone: 1.0.0-rc.1
 # Story counts by status
 stories:
   total: 47
-  merged: 35
+  merged: 36
   partial: 2
   draft: 6
-  ready: 4
+  ready: 3
   blocked: 0
-  in_progress: 0   # S-4.09 (PR #27 3c56ce5) + S-4.10 (PR #28 ccf34e6) merged; Wave 11 fully closed
+  in_progress: 0   # S-4.05 (PR #29 a84a5f5) merged 2026-04-28; Wave 12 in progress
 
 # Epic completion summary
 epics:
@@ -59,11 +59,11 @@ epics:
     stories: 10   # +S-4.09 +S-4.10 (Wave 11 SS-03)
     status: in_progress
     milestone: 1.0.0-rc.1
-    merged: 6   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6)
+    merged: 7   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28)
     partial: 0
     draft: 0
-    ready: 4    # S-4.05 (CONVERGENCE_REACHED pass-48; v1.45; 2026-04-28; D-129), S-4.06 (CONVERGENCE_REACHED pass-10; 2026-04-28), S-4.07 (CONVERGENCE_REACHED pass-8; 2026-04-28), S-4.08 (CONVERGENCE_REACHED pass-17; 2026-04-28)
-    # remaining: S-4.05 (DLQ, spec ready), S-4.06 (routing filters, spec ready), S-4.07 (E2E tests, spec ready), S-4.08 (rc.1 gate)
+    ready: 3    # S-4.06 (CONVERGENCE_REACHED pass-10; 2026-04-28), S-4.07 (CONVERGENCE_REACHED pass-8; 2026-04-28), S-4.08 (CONVERGENCE_REACHED pass-17; 2026-04-28)
+    # remaining: S-4.06 (routing filters, spec ready), S-4.07 (E2E tests, spec ready; blocked on S-4.05+S-4.06 impl), S-4.08 (rc.1 gate)
 
   E-5:
     name: New Hook Events and 1.0.0 Release
@@ -77,14 +77,14 @@ epics:
 # Point totals (updated 2026-04-27 after Wave 11 + Wave 12 full closure)
 points:
   total: 207
-  merged: 121   # 35 merged stories; +3pts (S-4.09) +5pts (S-4.10) over prior 113
-  remaining: 86
+  merged: 124   # 36 merged stories; +3pts (S-4.05) over prior 121
+  remaining: 83
 
 # Current work frontier (stories unblocked, 2026-04-27 after Wave 11 close)
 frontier:
-  - S-4.05  # Dead letter queue — ready; CONVERGENCE_REACHED pass-48 (v1.45; ac22a3d; D-129); implementation unblocked
   - S-4.06  # routing filters — ready; CONVERGENCE_REACHED pass-10 (2026-04-28); implementation unblocked
-  - S-4.07  # E2E obs integration tests — draft; blocked on S-4.05 + S-4.06 spec convergence + impl
+  - S-4.07  # E2E obs integration tests — ready; blocked on S-4.06 impl (S-4.05 merged PR #29 a84a5f5)
+  - S-4.08  # rc.1 gate — ready; blocked on S-4.05..S-4.07 impl + 2-week shakedown
 
 # Shipped releases (for reference)
 releases:
