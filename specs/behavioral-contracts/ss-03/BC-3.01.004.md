@@ -14,7 +14,7 @@ traces_to: .factory/specs/behavioral-contracts/bc-id-mapping.md
 origin: brownfield
 extracted_from: "pass-3-behavioral-contracts.md:298"
 subsystem: "SS-03"
-capability: "TBD"
+capability: "CAP-003"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -105,7 +105,8 @@ removal_reason: null
 
 **Evidence (from pass-3):**
 
-> `sink-core/lib.rs::tests::{routing_filter_default_accepts_everything, routing_filter_allow_list_only_accepts_listed, routing_filter_deny_list_only_rejects_listed, routing_filter_both_lists_allow_first_then_deny, routing_filter_empty_event_type_rejected_when_filtered, routing_filter_allow_case_sensitive}`.
+> `crates/sink-core/src/router_filter.rs::tests::{routing_filter_default_accepts_everything, routing_filter_allow_list_only_accepts_listed, routing_filter_deny_list_only_rejects_listed, routing_filter_both_lists_allow_first_then_deny, routing_filter_allow_case_sensitive}`.
+> Note: RoutingFilter struct relocated from lib.rs to router_filter.rs in S-4.06 (Task 1).
 
 #### Evidence Types Used
 

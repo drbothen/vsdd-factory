@@ -14,7 +14,7 @@ traces_to: .factory/specs/behavioral-contracts/bc-id-mapping.md
 origin: brownfield
 extracted_from: "pass-3-deep-rust-tests.md:844"
 subsystem: "SS-03"
-capability: "TBD"
+capability: "CAP-003"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -67,7 +67,7 @@ Given Filter `allow=["Commit.Made"]`. When `accepts("commit.made")` and `accepts
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Given Filter `allow=["Commit.Made"]`. When `accepts("commit.made")` and `accepts("Commit.Made")`.. Then First false, sec | manual (existing test: `crates/sink-core/src/lib.rs::tests::routing_filter_allow_case_sensitive`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Filter `allow=["Commit.Made"]`. When `accepts("commit.made")` and `accepts("Commit.Made")`.. Then First false, sec | manual (existing test: `crates/sink-core/src/router_filter.rs::tests::routing_filter_allow_case_sensitive`) |
 
 ## Traceability
 
@@ -102,7 +102,7 @@ Given Filter `allow=["Commit.Made"]`. When `accepts("commit.made")` and `accepts
 | **Original audit ID** | BC-AUDIT-2367 |
 | **Pass-3 source** | `pass-3-deep-rust-tests.md:844` |
 | **Extraction Date** | 2026-04-25 |
-| **Pinned test** | ``crates/sink-core/src/lib.rs::tests::routing_filter_allow_case_sensitive`` |
+| **Pinned test** | ``crates/sink-core/src/router_filter.rs::tests::routing_filter_allow_case_sensitive`` |
 | **Test type** | unit |
 
 #### Evidence Types Used

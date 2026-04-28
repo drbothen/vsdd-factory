@@ -14,10 +14,10 @@ traces_to: .factory/specs/behavioral-contracts/bc-id-mapping.md
 origin: brownfield
 extracted_from: "pass-3-behavioral-contracts-deep-r1.md:389"
 subsystem: "SS-03"
-capability: "TBD"
-lifecycle_status: active
+capability: "CAP-003"
+lifecycle_status: fulfilled
 introduced: v1.0.0-beta.4
-modified: []
+modified: [v1.0.0-rc.1]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,7 +26,7 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-3.04.002: Router exists as the future extension point for S-4.x retry / circuit-breaker / batching / routin
+# Behavioral Contract BC-3.04.002: Router exists as the future extension point for S-4.x retry / circuit-breaker / batching / routing
 
 > Section: Sink router pass-through and extension point
 > Source BC (audit ID): BC-AUDIT-124

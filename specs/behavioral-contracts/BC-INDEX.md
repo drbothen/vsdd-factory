@@ -187,9 +187,9 @@ traces_to: bc-id-mapping.md
 | [BC-3.02.006](ss-03/BC-3.02.006.md) | sink-file::template_unbalanced_brace_treated_literally: opening `{` without closing `}` is treate | draft | TBD | TBD |
 | [BC-3.02.007](ss-03/BC-3.02.007.md) | sink-file::auto_creates_parent_directory: nested non-existent parent dirs are mkdir-p'd on first | draft | TBD | TBD |
 | [BC-3.02.008](ss-03/BC-3.02.008.md) | sink-file::jsonl_append_preserves_three_events: 3 sequential events produce 3 lines in submission | draft | TBD | TBD |
-| [BC-3.02.009](ss-03/BC-3.02.009.md) | sink-file::routing_filter_drops_excluded_events: allow=["commit.made"] passes 2 of 3 events through | draft | TBD | TBD |
-| [BC-3.02.010](ss-03/BC-3.02.010.md) | sink-file::tag_enrichment_writes_tags_onto_every_event: configured tags `env=prod,team=factory` l | draft | TBD | TBD |
-| [BC-3.02.011](ss-03/BC-3.02.011.md) | sink-file::tag_enrichment_does_not_overwrite_producer_fields: tag with key="type" does NOT clobbe | draft | TBD | TBD |
+| [BC-3.02.009](ss-03/BC-3.02.009.md) | sink-file::routing_filter_drops_excluded_events: allow=["commit.made"] passes 2 of 3 events through | draft | CAP-003 | DEPRECATED → BC-3.04.004 (S-4.06) |
+| [BC-3.02.010](ss-03/BC-3.02.010.md) | sink-file::tag_enrichment_writes_tags_onto_every_event: configured tags `env=prod,team=factory` l | draft | CAP-003 | DEPRECATED → BC-3.04.004 (S-4.06) |
+| [BC-3.02.011](ss-03/BC-3.02.011.md) | sink-file::tag_enrichment_does_not_overwrite_producer_fields: tag with key="type" does NOT clobbe | draft | CAP-003 | DEPRECATED → BC-3.04.004 (S-4.06) |
 | [BC-3.02.012](ss-03/BC-3.02.012.md) | sink-file::disabled_sink_drops_every_event: enabled=false → no file written, no events accepted | draft | TBD | TBD |
 | [BC-3.02.013](ss-03/BC-3.02.013.md) | sink-file::read_only_path_records_failure_without_panic: read-only target dir → SinkFailure rec | draft | TBD | TBD |
 | [BC-3.02.014](ss-03/BC-3.02.014.md) | sink-file::backpressure_fills_queue_and_increments_counter: queue_depth=2 + 500 submitted events | draft | TBD | TBD |
@@ -208,8 +208,10 @@ traces_to: bc-id-mapping.md
 | [BC-3.03.011](ss-03/BC-3.03.011.md) | sink-otel-grpc::event_to_log_record_missing_type_yields_empty_body: producer-bug missing-type yie | draft | TBD | TBD |
 | [BC-3.03.012](ss-03/BC-3.03.012.md) | sink-otel-grpc::event_to_log_record_missing_ts_yields_zero_timestamp: missing ts_epoch → time_u | draft | TBD | TBD |
 | [BC-3.03.013](ss-03/BC-3.03.013.md) | sink-otel-grpc::resource_attributes_merge_defaults_with_config: operator overrides win over auto- | draft | TBD | TBD |
-| [BC-3.04.001](ss-03/BC-3.04.001.md) | Router is currently a thin pass-through wrapper around SinkRegistry | draft | TBD | TBD |
-| [BC-3.04.002](ss-03/BC-3.04.002.md) | Router exists as the future extension point for S-4.x retry / circuit-breaker / batching / routin | draft | TBD | TBD |
+| [BC-3.04.001](ss-03/BC-3.04.001.md) | Router is currently a thin pass-through wrapper around SinkRegistry | draft | TBD | DEPRECATED → BC-3.04.004 |
+| [BC-3.04.002](ss-03/BC-3.04.002.md) | Router exists as the future extension point for S-4.x retry / circuit-breaker / batching / routing | draft | TBD | fulfilled (S-4.06) |
+| [BC-3.04.003](ss-03/BC-3.04.003.md) | Router::submit silently drops events that fail RoutingFilter; no SinkFailure recorded; debug-level log emitted | draft | CAP-003 | active |
+| [BC-3.04.004](ss-03/BC-3.04.004.md) | Router::submit applies RoutingFilter before delegating to each sink (wired dispatch) | draft | CAP-003 | active |
 | [BC-3.05.001](ss-03/BC-3.05.001.md) | factory-dispatcher::sinks::mod::load_builds_file_sink_from_parsed_config: ObservabilityConfig wit | draft | TBD | TBD |
 | [BC-3.05.002](ss-03/BC-3.05.002.md) | factory-dispatcher::sinks_file_integration::registry_fans_events_to_file_sinks_with_filter_and_ta | draft | TBD | TBD |
 | [BC-3.05.003](ss-03/BC-3.05.003.md) | factory-dispatcher::sinks_otel_grpc (integration)::ten_events_arrive_with_correct_attribute_mappi | draft | TBD | TBD |
@@ -219,6 +221,7 @@ traces_to: bc-id-mapping.md
 | [BC-3.06.004](ss-03/BC-3.06.004.md) | sink-core::sink_event_event_type_non_string_returns_none: "type" set to non-string Value → even | draft | TBD | TBD |
 | [BC-3.06.005](ss-03/BC-3.06.005.md) | sink-core::sink_config_common_defaults_enabled_true: minimal SinkConfigCommon TOML defaults enabl | draft | TBD | TBD |
 | [BC-3.06.006](ss-03/BC-3.06.006.md) | sink-core::routing_filter_allow_case_sensitive: allow-list compares case-sensitively (Commit.Made | draft | TBD | TBD |
+| [BC-3.06.007](ss-03/BC-3.06.007.md) | sink-core::routing_filter_plugin_ids_allow — only events from listed plugins pass; empty list = pass-through | draft | CAP-003 | active |
 | [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
 | [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
 

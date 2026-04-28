@@ -46,9 +46,9 @@ one does not block others (NFR-REL-001 extended to the sink layer).
 | `crates/sink-core/src/lib.rs` | `Sink` trait + `SinkEvent` (field-bag event type) + `SinkConfigCommon` + `RoutingFilter` (allow-then-deny) + `SinkError` |
 | `crates/sink-file/src/lib.rs` | Default JSONL append driver; daily-rotated filename; mpsc-bounded queue (`DEFAULT_QUEUE_DEPTH = 1000`); dedicated OS thread + `current_thread` tokio runtime; expose `FileSink`, `FileSinkConfig`, `SinkFailure` |
 | `crates/sink-otel-grpc/src/lib.rs` | OTLP/gRPC log forwarder; dedicated OS thread + `current_thread` runtime; batch config (`DEFAULT_BATCH_SIZE = 100`); default endpoint `http://localhost:4317`; expose `OtelGrpcSink`, `OtelGrpcConfig` |
-| `crates/factory-dispatcher/src/internal_log.rs` | Always-on `dispatcher-internal-YYYY-MM-DD.jsonl`; daily rotation by event timestamp; 30-day retention via `prune_old`; 17 event-type constants; expose `InternalLog`, `InternalEvent`, `INTERNAL_EVENT_SCHEMA_VERSION = 1` |
+| `crates/factory-dispatcher/src/internal_log.rs` | Always-on `dispatcher-internal-YYYY-MM-DD.jsonl`; daily rotation by event timestamp; 30-day retention via `prune_old`; 18 event-type constants; expose `InternalLog`, `InternalEvent`, `INTERNAL_EVENT_SCHEMA_VERSION = 1` |
 | `crates/factory-dispatcher/src/sinks.rs` | Load `observability-config.toml`; instantiate sink drivers; `SinkRegistry::load`, `from_config`, `submit_all`, `flush_all`, `shutdown_all`; warn-and-skip on unknown driver type |
-| `crates/factory-dispatcher/src/sinks/router.rs` | Placeholder `Router` module for future per-sink routing-tag enrichment (S-4.6 scoped work) |
+| `crates/factory-dispatcher/src/sinks/router.rs` | Per-sink routing-filter dispatch gate AND tag enrichment (wired by S-4.06) |
 
 ## Public Interface
 
@@ -78,11 +78,11 @@ batch_size = 100
 
 Unknown `type` values are warned to stderr and skipped (graceful degradation).
 
-**Internal log constants (17):** `DISPATCHER_STARTED`, `DISPATCHER_COMPLETED`,
+**Internal log constants (18):** `DISPATCHER_STARTED`, `DISPATCHER_COMPLETED`,
 `DISPATCHER_ERROR`, `PLUGIN_INVOKED`, `PLUGIN_COMPLETED`, `PLUGIN_TIMEOUT`,
 `PLUGIN_CRASHED`, `PLUGIN_LOADED`, `PLUGIN_LOAD_FAILED`, `DISPATCHER_SHUTTING_DOWN`,
 `CAPABILITY_DENIED`, `SINK_ERROR`, `SINK_QUEUE_FULL`, `SINK_CIRCUIT_OPENED`,
-`SINK_CIRCUIT_CLOSED`, `EVENT_EMITTED`, `EVENT_EMIT_ERROR`.
+`SINK_CIRCUIT_CLOSED`, `EVENT_EMITTED`, `EVENT_EMIT_ERROR`, `EVENT_FILTERED`.
 
 ## Internal Structure
 

@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-28 (S-4.05 DLQ delivered — PR #29 merged a84a5f5; D-130; 36 of 47 stories merged) |
+| **Last Updated** | 2026-04-28 (S-4.06 routing filters delivered — PR #30 merged 6ef564c; D-131; 37 of 47 stories merged) |
 | **Current Phase** | wave-9-ss-01-CONVERGED-cycle-re-anchor-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -128,10 +128,10 @@ dtu_services: []
 
 ## Story Status (47 total)
 
-- **Merged (36):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28)
+- **Merged (37):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (6):** Tier F (S-5.01/5.02/5.03/5.04/5.06), Tier G/H TBD
-- **Ready (3):** S-4.06 (pass-10), S-4.07 (pass-8), S-4.08 (pass-17)
+- **Ready (2):** S-4.07 (pass-8), S-4.08 (pass-17)
 
 ## Drift Items (open)
 
@@ -153,8 +153,8 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | b08e085 | bot bundle for v1.0.0-beta.7 (PR #14 + hotfix PR #15) |
-| develop | a84a5f5 | S-4.05 DLQ merged PR #29; 36 of 47 stories merged (2026-04-28) |
-| factory-artifacts | (post-commit) | S-4.05 delivery sealed D-130; STATE.md + STORY-INDEX + sprint-state updated |
+| develop | 6ef564c | S-4.06 routing filters merged PR #30; 37 of 47 stories merged (2026-04-28) |
+| factory-artifacts | (post-commit) | S-4.06 delivery sealed D-131; STATE.md + STORY-INDEX + sprint-state updated |
 | v1.0.0-beta.5 (tag) | 0a95c8c | SHIPPED 2026-04-26; GitHub Release published |
 | v1.0.0-beta.6 (tag) | ae426cd | SHIPPED 2026-04-26; GH Release published; prerelease=true |
 | v1.0.0-beta.7 (tag) | b08e085 | SHIPPED 2026-04-26 19:15 UTC; GH Release published; prerelease=true |
@@ -182,6 +182,7 @@ dtu_services: []
 | D-128 | **S-4.08 (1.0.0-rc.1 release gate, 5 pts) achieved CONVERGENCE_REACHED at pass-17 per ADR-013. Trajectory 14→11→12→6→6→3→1→0→0→2→0→1→2→3→3→1→2→0 across 17 passes (longest convergence in this cycle's spec-convergence wave). Status flipped draft → ready. THIRD spec to converge in v1.0-brownfield-backfill cycle's spec-convergence wave (after S-4.07 sealed at 4c0050c, S-4.06 sealed at d7b29dc). Frontmatter v1.15 → v1.16. S-4.05 still in convergence loop (currently pass-20). Once S-4.05 closes, all 4 stories of the wave are ready for impl.** | ADR-013 3-consecutive-NITPICK_ONLY criterion satisfied: pass-15 = 1 LOW NITPICK, pass-16 = 2 LOW pending-intent (no fix applied per S-7.03 lesson), pass-17 = 0 findings. STORY-INDEX draft 8→7, ready 2→3. sprint-state.yaml E-4 draft 2→1, ready 2→3. | spec-convergence-wave-S-4.08 | 2026-04-28 | state-manager |
 | D-129 | **S-4.05 (Dead Letter Queue, 3 pts) achieved CONVERGENCE_REACHED at pass-48 per ADR-013 — longest adversarial run in project history (eclipses S-7.03's 17-pass record). v1.45, sealed at commit ac22a3d on factory-artifacts. Passes 46/47/48 NITPICK_ONLY; clock advanced 1/3→2/3→3/3 = CONVERGENCE_REACHED. Status flipped draft → ready. FOURTH and final spec to converge in the spec-convergence wave (S-4.07, S-4.06, S-4.08, S-4.05). All 4 Wave 12 stories (28 pts) now ready for impl.** Trajectory: 11→5→8→8→8→3→0→3→5→1→2→1→2→0→2→2→0→1→4→2→2→2→2→1→1HIGH→4→5→6→2→7→6→8→8→6→5→4→5→4→3→7→7→7→8→5→5→3→3LOW→6LOW→0. ~150+ findings closed across 45 fix bursts. Key arch decisions: (a) SinkDlqEvent in sink-core + boundary adapter at factory-dispatcher; (b) dlq_writer: Option&lt;Arc&lt;DlqWriter&gt;&gt; field + new_with_observability constructor; (c) dlq_root: PathBuf on DlqWriterConfig matching log_dir; (d) UTC clock injection via clock_fn Arc; (e) Mutex cache shape for byte-counted rotation; (f) try_send fire-and-forget; (g) per-event retry-exhaustion DLQ loop in post_batch. 6 carry-forward LOWs (F-4601..F-4603, F-4701..F-4703) non-blocking per ADR-013. | ADR-013 3-consecutive-NITPICK_ONLY satisfied: pass-46 = 1/3, pass-47 = 2/3, pass-48 = 3/3. S-7.03 NITPICK-skip posture validated; fresh-context value confirmed past pass-30 (pass-42 caught 41-pass-old gap); pass-31 arch-cycle fix was highest-leverage. STORY-INDEX draft 7→6, ready 3→4; sprint-state.yaml E-4 draft 0, ready 4. | spec-convergence-wave-S-4.05 | 2026-04-28 | state-manager |
 | D-130 | **S-4.05 GREEN delivery + PR #29 MERGED.** PR #29 (https://github.com/drbothen/vsdd-factory/pull/29) merged to develop at a84a5f5 on 2026-04-28. Pre-merge spec: v1.45 at commit ac22a3d (factory-artifacts). Spec convergence: 48 adversarial passes (longest in project history). Implementation: 2 GREEN batches (Batch A sink-core foundation b88a27e; Batch B+C driver wiring + factory-dispatcher integration 1be2e3d). Test status: 18/18 RED→GREEN tests pass; 0 regressions; pre-existing 2 unrelated failures (loads_legacy_registry hook migration state). CI: SAST (Semgrep) PASS. Code review cycles: 1 (APPROVE, 0 blocking findings). What shipped: sink-core::path_template extracted (resolves cyclic dep risk); sink-core::dead_letter::DlqWriter (Mutex&lt;Option&lt;(PathBuf, File, u64)&gt;&gt;; clock_fn injection; try_send fire-and-forget); SinkDlqEvent / SinkDlqWriteEvent / SinkDlqFailureEvent in sink-core::events; per-driver new_with_observability(config, error_tx, dlq_writer) on HttpSink/FileSink/OtelGrpcSink (backward-compat preserved); SinkRegistry::from_config_with_dlq + dlq_enabled: Option&lt;bool&gt; stanza field (AC-008 default-on); sink-http worker_loop + post_batch threaded with dlq_writer for retry-exhaustion DLQ writes; prune_old extended via shared scan_files_with_prefix helper (BC-1.06.011); 12/12 ACs covered by 18 tests. Carry-forward TD (6 LOW; non-blocking): F-4601 (try_into() map_err enrichment), F-4602 (AC-009 prune-test pre-existing TD), F-4603 (Task 2b ordering), F-4701 (FileSink delegation arity narrative), F-4702 (write_event Result discard), F-4703 (Task 5 emission skeleton). Wave 12 progress: S-4.05 done (5pts of 28). Remaining: S-4.06 (5pts), S-4.07 (13pts critical-path), S-4.08 (5pts). Lessons codified: Skip-fix NITPICK strategy validated (passes 46/47/48 advance 1/3→2/3→3/3 with NO fix bursts). Fresh-context compounding value confirmed past pass-30. STORY-INDEX merged 35→36; ready 4→3. | S-4.05 per-story-delivery cycle sealed. Wave 12 at 5/28 pts done; S-4.06 unblocked; S-4.07 unblocked pending S-4.06 impl; S-4.08 unblocked pending S-4.05+S-4.06+S-4.07 impl. | per-story-delivery-S-4.05 | 2026-04-28 | state-manager |
+| D-131 | **S-4.06 GREEN delivery + PR #30 MERGED.** PR #30 (https://github.com/drbothen/vsdd-factory/pull/30) merged to develop at 6ef564c on 2026-04-28. Pre-merge spec: v1.10 at commit d7b29dc (factory-artifacts). Spec convergence: 10 adversarial passes (CONVERGENCE_REACHED). Implementation: single GREEN commit f585ca0 (Tasks 1–19 unified). Code-review cycles: 2 (cycle 1 fixed sink-http+honeycomb missing routing_filter/tags; cycle 2 APPROVE). Test status: 9/9 explicit RED→GREEN tests + 3 integration tests pass; 264 workspace tests pass; 0 new regressions. CI: SAST (Semgrep) PASS. What shipped: sink-core::router_filter::RoutingFilter (relocated; new plugin_ids_allow field); Sink trait extended with routing_filter() + tags() accessor methods; Router::submit() centralizes filter+enrich (FileSink/OtelGrpcSink/HttpSink/HoneycombSink stop filtering at accepts()); INTERNAL_EVENT_FILTERED counter event for silent-drop observability; 3 new BCs: BC-3.04.003, BC-3.04.004, BC-3.06.007; 5 BCs lifecycle updated (deprecated → BC-3.04.004; BC-3.04.002 fulfilled); VP-031, VP-032 module references updated (router.rs / router_filter.rs); SS-03 architecture doc: internal-log constants count 17→18. STORY-INDEX merged 36→37; ready 3→2. Wave 12 progress: S-4.05 + S-4.06 done (6pts of 28). Remaining: S-4.07 (13pts critical-path), S-4.08 (5pts). | S-4.06 per-story-delivery cycle sealed. Wave 12 at 6/28 pts done; S-4.07 unblocked (both S-4.05+S-4.06 impl complete); S-4.08 unblocked pending S-4.07 impl + 2-week shakedown. | per-story-delivery-S-4.06 | 2026-04-28 | state-manager |
 
 > **Historical decisions (D-001..D-102):** Moved to `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
@@ -198,11 +199,10 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**S-4.05 DLQ DELIVERED — PR #29 merged a84a5f5 on develop (D-130, 2026-04-28).** 18/18 tests GREEN. 36 of 47 stories merged; develop @ a84a5f5. Wave 12: 5/28 pts done; S-4.06 (5pts) unblocked; S-4.07 (13pts) unblocked pending S-4.06 impl; S-4.08 (5pts) unblocked pending S-4.05+4.06+4.07 impl.
+**S-4.06 routing filters DELIVERED — PR #30 merged 6ef564c on develop (D-131, 2026-04-28).** 9/9 ACs + 264 workspace tests GREEN. 37 of 47 stories merged; develop @ 6ef564c. Wave 12: 6/28 pts done; S-4.07 (13pts critical-path) unblocked — both S-4.05+S-4.06 impl complete; S-4.08 (5pts) unblocked pending S-4.07 impl + 2-week shakedown.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-4.06 per-story-delivery** (highest priority, unblocked): 5 pts; routing filters + tag enrichment; spec v1.10 ready
-- **S-4.07 per-story-delivery** (start in parallel with S-4.06 if capacity): 13 pts critical-path; E2E obs integration tests; blocked on S-4.05+S-4.06 impl (S-4.05 now done)
+- **S-4.07 per-story-delivery** (highest priority, unblocked): 13 pts critical-path; E2E obs integration tests; spec v1.11 ready; S-4.05+S-4.06 impl both done
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)
 - Task #112: Architect-led 28-CAP audit propagation to PRD §8 (CAP-023/024 deferred)
 - 7 MINOR consistency findings (F-006..F-012) from post-Wave-9 sweep — deferred, address before v1.0.1 release

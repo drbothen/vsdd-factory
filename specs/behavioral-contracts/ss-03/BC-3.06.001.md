@@ -14,7 +14,7 @@ traces_to: .factory/specs/behavioral-contracts/bc-id-mapping.md
 origin: brownfield
 extracted_from: "pass-3-deep-rust-tests.md:789"
 subsystem: "SS-03"
-capability: "TBD"
+capability: "CAP-003"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -67,7 +67,7 @@ Given `RoutingFilter::default()` (both lists empty). When `accepts(<any-name>)` 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Given `RoutingFilter::default()` (both lists empty). When `accepts(<any-name>)` is called.. Then Always true. Pass-throu | manual (existing test: `crates/sink-core/src/lib.rs::tests::routing_filter_default_accepts_everything`) |
+| (TBD — to be assigned in Phase 1.6c) | Given `RoutingFilter::default()` (both lists empty). When `accepts(<any-name>)` is called.. Then Always true. Pass-throu | manual (existing test: `crates/sink-core/src/router_filter.rs::tests::routing_filter_default_accepts_everything`) |
 
 ## Traceability
 
@@ -102,7 +102,7 @@ Given `RoutingFilter::default()` (both lists empty). When `accepts(<any-name>)` 
 | **Original audit ID** | BC-AUDIT-2362 |
 | **Pass-3 source** | `pass-3-deep-rust-tests.md:789` |
 | **Extraction Date** | 2026-04-25 |
-| **Pinned test** | ``crates/sink-core/src/lib.rs::tests::routing_filter_default_accepts_everything`` |
+| **Pinned test** | ``crates/sink-core/src/router_filter.rs::tests::routing_filter_default_accepts_everything`` |
 | **Test type** | unit |
 
 #### Evidence Types Used
