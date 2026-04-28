@@ -1,10 +1,10 @@
 //! session-end-telemetry — SessionEnd WASM hook plugin.
 //!
 //! Emits `session.ended` with 3 plugin-set fields per BC-4.05.001:
-//!   - `duration_ms`      — elapsed milliseconds since `session_start_ts` in the envelope,
-//!                          or `"0"` when absent, future, or unparseable (BC-4.05.001 PC-2)
-//!   - `tool_call_count`  — tool call count from envelope, or `"0"` if absent (BC-4.05.001 PC-2)
-//!   - `timestamp`        — ISO-8601 UTC with millisecond precision and `Z` suffix (plugin emit time)
+//!   - `duration_ms` — elapsed milliseconds since `session_start_ts` in the envelope,
+//!     or `"0"` when absent, future, or unparseable (BC-4.05.001 PC-2)
+//!   - `tool_call_count` — tool call count from envelope, or `"0"` if absent (BC-4.05.001 PC-2)
+//!   - `timestamp` — ISO-8601 UTC with millisecond precision and `Z` suffix (plugin emit time)
 //!
 //! 4 host-enriched fields are auto-injected by the `emit_event` host fn from `HostContext`
 //! (BC-1.05.012): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`.
@@ -103,7 +103,49 @@ pub fn session_end_hook_logic<Emit>(payload: HookPayload, emit_fn: Emit) -> Hook
 where
     Emit: FnOnce(&[(&str, &str)]),
 {
-    unimplemented!("S-5.02 GREEN")
+    // 1. Compute duration_ms per BC-4.05.001 PC-2.
+    let current_now_ms = now_ms();
+    let duration_ms = {
+        let ts_opt = payload
+            .tool_input
+            .get("session_start_ts")
+            .and_then(|v| v.as_str());
+        compute_duration_ms(ts_opt, current_now_ms)
+    };
+
+    // 2. Compute tool_call_count per BC-4.05.001 PC-2 / EC-002.
+    //    Envelope may carry it as int OR string; coerce to non-negative decimal string.
+    //    Falls back to "0" if absent.
+    let tool_call_count = match payload.tool_input.get("tool_call_count") {
+        None => "0".to_string(),
+        Some(v) => {
+            if let Some(n) = v.as_u64() {
+                n.to_string()
+            } else if let Some(n) = v.as_i64() {
+                if n < 0 { "0".to_string() } else { n.to_string() }
+            } else if let Some(s) = v.as_str() {
+                match s.parse::<u64>() {
+                    Ok(n) => n.to_string(),
+                    Err(_) => "0".to_string(),
+                }
+            } else {
+                "0".to_string()
+            }
+        }
+    };
+
+    // 3. Compute timestamp: ISO-8601 UTC with ms precision and Z suffix.
+    let timestamp = now_timestamp();
+
+    // 4. Emit session.ended with the 3 plugin-set fields.
+    //    RESERVED_FIELDS are NOT set here (host-enriched / construction-time).
+    emit_fn(&[
+        ("duration_ms", duration_ms.as_str()),
+        ("tool_call_count", tool_call_count.as_str()),
+        ("timestamp", timestamp.as_str()),
+    ]);
+
+    HookResult::Continue
 }
 
 // ---------------------------------------------------------------------------
