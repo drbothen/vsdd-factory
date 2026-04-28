@@ -8,13 +8,13 @@ timestamp: 2026-04-26T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1900
+total_bcs: 1905
 traces_to: bc-id-mapping.md
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,900 behavioral contracts across 10 subsystems.
+> Master index of all 1,905 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -24,14 +24,14 @@ traces_to: bc-id-mapping.md
 | SS-01 Hook Dispatcher Core | BC-1 | 101 (99 active; 2 retired) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 22 | ss-02/ |
 | SS-03 Observability Sinks | BC-3 | 51 | ss-03/ |
-| SS-04 Plugin Ecosystem | BC-4 | 18 | ss-04/ |
+| SS-04 Plugin Ecosystem | BC-4 | 23 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1900** | |
+| **Total** | | **1905** | |
 
 ## Index by subsystem
 
@@ -249,6 +249,11 @@ traces_to: bc-id-mapping.md
 | [BC-4.04.003](ss-04/BC-4.04.003.md) | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | draft | CAP-002 | S-5.01 |
 | [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and async:true | draft | CAP-002 | S-5.01 |
 | [BC-4.04.005](ss-04/BC-4.04.005.md) | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with read_file + exec_subprocess capability tables and timeout_ms:8000 | draft | CAP-002 | S-5.01 |
+| [BC-4.05.001](ss-04/BC-4.05.001.md) | session-end plugin emits session.ended event with session telemetry on SessionEnd event; 3 plugin-set fields (event, plugin, timeout_ms) + 4 host-enriched fields | draft | CAP-002 | S-5.02 |
+| [BC-4.05.002](ss-04/BC-4.05.002.md) | session-end plugin does not invoke any subprocess; fast-path completion with no exec_subprocess capability | draft | CAP-002 | S-5.02 |
+| [BC-4.05.003](ss-04/BC-4.05.003.md) | session-end plugin is unconditionally stateless; idempotency enforced by Layer 1 once:true directive | draft | CAP-002 | S-5.02 |
+| [BC-4.05.004](ss-04/BC-4.05.004.md) | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and async:true | draft | CAP-002 | S-5.02 |
+| [BC-4.05.005](ss-04/BC-4.05.005.md) | hooks-registry.toml registers SessionEnd event routing to hook-plugins/session-end-telemetry.wasm; deny-by-default capability table (no read_file, no exec_subprocess); timeout_ms:5000 | draft | CAP-002 | S-5.02 |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 

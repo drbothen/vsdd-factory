@@ -35,14 +35,14 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,900-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
-> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 foundation + 2 S-5.01 pass-2 SS-01 host fns) into a formal L3 requirements artifact. Section 2 is the
+> It synthesizes the 1,905-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
+> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 foundation + 2 S-5.01 pass-2 SS-01 host fns + 5 S-5.02 Wave 13) into a formal L3 requirements artifact. Section 2 is the
 > primary machine-consumed surface: it groups BCs by functional requirement (FR-NNN)
 > and provides subsystem-level traceability. Agents needing deep BC content load
 > individual `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
 > Sections 3-5 point to supplement files (DF-021 context discipline).
 
-> **BC Index Model:** 1,900 individual BC files live under
+> **BC Index Model:** 1,905 individual BC files live under
 > `.factory/specs/behavioral-contracts/ss-NN/`. Section 2 groups them into
 > 46 logical FRs. Do NOT inline full contract details here — cross-reference only.
 
@@ -441,13 +441,18 @@ Sibling stories BC-4.05.*, BC-4.06.*, BC-4.07.* mirror this shape. Implementers 
 | BC-4.04.003 | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | P1 |
 | BC-4.04.004 | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and async:true | P1 |
 | BC-4.04.005 | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with read_file + exec_subprocess capability tables and timeout_ms:8000 | P1 |
+| BC-4.05.001 | session-end plugin emits session.ended event with session telemetry on SessionEnd event | P1 |
+| BC-4.05.002 | session-end plugin emits without subprocess invocation; fast-path completion | P1 |
+| BC-4.05.003 | session-end plugin is unconditionally stateless; idempotency delegated to Layer 1 once:true | P1 |
+| BC-4.05.004 | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and async:true | P1 |
+| BC-4.05.005 | hooks-registry.toml registers SessionEnd event routing to hook-plugins/session-end-telemetry.wasm with timeout_ms:5000 | P1 |
 
-Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (5 BCs anchored; siblings pending S-5.02–5.04).
-Status: **in-progress** (S-5.01 BCs allocated).
+Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (S-5.01), `ss-04/BC-4.05.001.md` through `BC-4.05.005.md` (S-5.02) — 10 BCs anchored; siblings pending S-5.03–5.04.
+Status: **in-progress** (S-5.01 + S-5.02 BCs allocated).
 
 > **Pass-4 architectural simplification (2026-04-28):** BC-1.10.001 (host fn `vsdd::activated_platform()` — over-engineered; canonical `read_file` host fn used instead) and BC-1.10.002 (dispatcher-side dedup — over-engineered; Claude Code Layer 1 `once:true` directive enforces idempotency at hooks.json.template) retired. BC count for this FR reverts to 5 anchored BCs (BC-4.04.001–005). Scope reverts to SS-04 plugin work; story S-5.01 remains 3-pt as originally budgeted.
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-04/` (18 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-04/` (23 BCs total)
 
 > **DI coverage note (F-12):** No dedicated L2 domain invariant covers the lifecycle event class (SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure) as a first-class invariant. The applicable DIs are DI-004 (capability denial), DI-007 (always-on self-telemetry), DI-011 (sink submit non-blocking), DI-014 (schema version), DI-015 (activation gate), and DI-017 (trace_id). A dedicated DI for "lifecycle event plugins must always emit their target event regardless of subsystem health" is a **v1.1 DI candidate** — the fail-open semantics are currently enforced at BC level (BC-4.04.002 Invariant 1, BC-4.04.001 Postcondition 4) without a formal DI backing. Flag for Domain Spec v1.1 revision.
 
@@ -1155,7 +1160,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-043 | TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern (anti-precedent guard + Red Gate density check + tdd_mode contract + mutation wave-gate) | CAP-016 | SS-05, SS-06, SS-08 | BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 | 13 | pending | E-7 |
 | FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002, BC-3.07.001 + v1.1 candidates (8 pending) | 3 anchored + 8 v1.1 candidates | partial | E-4 |
 | FR-045 | Emit `internal.sink_error` structured event on each sink failure | CAP-003 | SS-03 | BC-3.07.002 | 1 | pending | E-4 |
-| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–005 (anchored); BC-1.10.001–002 (retired pass-4); BC-4.05–4.07.* (pending S-5.02–5.04) | 5 anchored + siblings pending | in-progress | E-5 |
+| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–005 (S-5.01 anchored); BC-4.05.001–005 (S-5.02 anchored); BC-1.10.001–002 (retired pass-4); BC-4.06–4.07.* (pending S-5.03–5.04) | 10 anchored + siblings pending | in-progress | E-5 |
 
 **Total: 46 FRs across 10 subsystems**
 
@@ -1348,7 +1353,7 @@ For v1.0, treat the prd-supplement as the authoritative NFR source.
 
 ### 12.1 Behavioral Contract Verification
 
-All 1,900 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
+All 1,905 BCs in `ss-01/` through `ss-10/` are verifiable. Verification is stratified:
 
 | Test Type | Coverage Target | Primary Tools |
 |-----------|----------------|---------------|
@@ -1402,7 +1407,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Field | Value |
 |-------|-------|
 | Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,900 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13 + 2 S-5.01 pass-2) |
+| BC catalog version | 1,905 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13 + 2 S-5.01 pass-2 + 5 S-5.02 Wave 13) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.7 (commit b08e085, 2026-04-26) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
