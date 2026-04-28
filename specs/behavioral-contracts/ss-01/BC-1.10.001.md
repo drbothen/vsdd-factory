@@ -111,7 +111,7 @@ in the `session.started` payload. Two options were evaluated:
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in next verification pass) | | |
+| VP-065 | Session-Start Plugin Surface Invariant — integration test covers Postconditions 1–4 (host fn registration, platform-string return, "unknown" sentinel fallback, no read_file capability required); covers EC-001 through EC-006 | integration |
 
 ## Related BCs
 

@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "2f50188"
+input-hash: "20ed836"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -26,11 +26,11 @@ removed: null
 removal_reason: null
 ---
 
-# BC-4.04.005: hooks-registry.toml registers SessionStart event-name routing to session-start-telemetry.wasm with once:true and exec_subprocess capability
+# BC-4.04.005: hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with once:true, exec_subprocess capability table, and timeout_ms:8000
 
 ## Description
 
-The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 Hook Bash Layer) to map event names to WASM plugin paths. The `SessionStart` entry in that file MUST exist with `event = "SessionStart"`, `plugin = "session-start-telemetry.wasm"`, `once = true`, `capabilities = ["exec_subprocess"]`, and `epoch_budget_ms = 8000`. This is Layer 2 of the dual-routing-tables pattern per ADR-011 — the dispatcher-side counterpart to BC-4.04.004's `hooks.json.template` entry. The `once = true` flag aligns with BC-4.04.003's idempotency contract (now enforced dispatcher-side per BC-1.10.002); the `exec_subprocess` capability declaration is required for the factory-health subprocess invocation described in BC-4.04.002. The `hooks-registry.toml` entry is added by **direct edit** per the file's own header comment ("Human-edited source of truth as of v1.0.0. The v0.79.x→v1.0 migration generator has been retired; edit this file directly."). The legacy `generate-registry-from-hooks-json.sh` script is retired and MUST NOT be modified for this purpose.
+The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 Hook Bash Layer) to map event names to WASM plugin paths. The `SessionStart` entry in that file MUST exist with `event = "SessionStart"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, `once = true`, a `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]`, and `timeout_ms = 8000`. This is Layer 2 of the dual-routing-tables pattern per ADR-011 — the dispatcher-side counterpart to BC-4.04.004's `hooks.json.template` entry. The `once = true` flag aligns with BC-4.04.003's idempotency contract (now enforced dispatcher-side per BC-1.10.002); the `[hooks.capabilities.exec_subprocess]` table declaration is required for the factory-health subprocess invocation described in BC-4.04.002. The `hooks-registry.toml` entry is added by **direct edit** per the file's own header comment ("Human-edited source of truth as of v1.0.0. The v0.79.x→v1.0 migration generator has been retired; edit this file directly."). The legacy `generate-registry-from-hooks-json.sh` script is retired and MUST NOT be modified for this purpose.
 
 ## Preconditions
 
@@ -40,39 +40,39 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 
 ## Postconditions
 
-1. `hooks-registry.toml` contains a `[[hooks]]` entry (or equivalent TOML structure) with `event_name = "SessionStart"`.
-2. The `SessionStart` entry specifies `plugin_path = "session-start-telemetry.wasm"`.
+1. `hooks-registry.toml` contains a `[[hooks]]` entry (or equivalent TOML structure) with `event = "SessionStart"`.
+2. The `SessionStart` entry specifies `plugin = "hook-plugins/session-start-telemetry.wasm"`.
 3. The `SessionStart` entry has `once = true`.
-4. The `SessionStart` entry declares `capabilities = ["exec_subprocess"]` (required for BC-4.04.002 factory-health subprocess invocation).
-5. The `SessionStart` entry has `epoch_budget_ms = 8000`. Justification: the plugin's 5000ms subprocess timeout (BC-4.04.002 Invariant 4) plus plugin startup, payload parse, host-fn calls, and `exec_subprocess` setup overhead exceeds the 5000ms global epoch default (CAP-011). The 8000ms value gives 3000ms headroom above the subprocess timeout and prevents `Timeout{Epoch}` from killing the plugin before it can map a subprocess timeout to `factory_health = "unknown"` (per BC-4.04.002 EC-003).
+4. The `SessionStart` entry declares a `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]` (required for BC-4.04.002 factory-health subprocess invocation). The table form matches the production schema verified against `crates/factory-dispatcher/src/registry.rs` `Capabilities` struct (`#[serde(deny_unknown_fields)]`).
+5. The `SessionStart` entry has `timeout_ms = 8000`. Justification: the plugin's 5000ms subprocess timeout (BC-4.04.002 Invariant 4) plus plugin startup, payload parse, host-fn calls, and `exec_subprocess` setup overhead exceeds the 5000ms global epoch default (CAP-011). The 8000ms value gives 3000ms headroom above the subprocess timeout and prevents `Timeout{Epoch}` from killing the plugin before it can map a subprocess timeout to `factory_health = "unknown"` (per BC-4.04.002 EC-003). Field name `timeout_ms` per F-13 ruling — `RegistryEntry` in `registry.rs` declares `timeout_ms: Option<u32>` with `deny_unknown_fields`; `epoch_budget_ms` would cause a hard registry-load rejection.
 6. Dispatcher successfully loads the entry without error at startup.
 
 ## Invariants
 
 1. The `hooks-registry.toml` `SessionStart` entry must remain registered through all v1.0 releases — removal requires a deprecation pass.
 2. `once = true` is immutable for `SessionStart` in this file — changing to `once = false` requires a new BC and explicit justification.
-3. `exec_subprocess` must remain in the capabilities list as long as BC-4.04.002 requires it; removing the capability would cause the dispatcher to refuse the factory-health subprocess call (per DI-004).
-4. `plugin_path` must stay in sync with the canonical crate name `session-start-telemetry.wasm`; any rename propagates to this entry in the same commit.
-5. Entries declaring `exec_subprocess` capability MUST declare `epoch_budget_ms` exceeding the longest expected subprocess wait. For the `SessionStart` entry, this means `epoch_budget_ms > 5000` (the subprocess timeout per BC-4.04.002 Invariant 4); `8000` is the required minimum.
+3. The `[hooks.capabilities.exec_subprocess]` table must remain present as long as BC-4.04.002 requires it; removing the table would cause the dispatcher to refuse the factory-health subprocess call (per DI-004). The `binary_allow = ["factory-health"]` value restricts which binary the plugin may invoke.
+4. `plugin` must stay in sync with the canonical plugin path `hook-plugins/session-start-telemetry.wasm`; any rename propagates to this entry in the same commit.
+5. Entries declaring `[hooks.capabilities.exec_subprocess]` MUST declare `timeout_ms` exceeding the longest expected subprocess wait. For the `SessionStart` entry, this means `timeout_ms > 5000` (the subprocess timeout per BC-4.04.002 Invariant 4); `8000` is the required minimum. Field name is `timeout_ms` per `RegistryEntry` schema (F-13 ruling).
 
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `exec_subprocess` capability missing from the `SessionStart` entry | Dispatcher refuses to invoke `factory-health` subprocess; emits `internal.capability_denied` per DI-004; plugin sets `factory_health = "unknown"` (fail-open per BC-4.04.002); `session.started` still emitted |
+| EC-001 | `[hooks.capabilities.exec_subprocess]` table absent from the `SessionStart` entry | Dispatcher refuses to invoke `factory-health` subprocess; emits `internal.capability_denied` per DI-004; plugin sets `factory_health = "unknown"` (fail-open per BC-4.04.002); `session.started` still emitted |
 | EC-002 | `SessionStart` entry is duplicated in `hooks-registry.toml` | Dispatcher uses the first matching entry; logs a warning for the duplicate; behavior is otherwise per the first entry's fields |
 | EC-003 | `hooks-registry.toml` contains a TOML syntax error | Dispatcher fails to start; emits `internal.dispatcher_error` with structured error message including file path and parse error; dispatcher exits non-zero |
-| EC-004 | `epoch_budget_ms` field is absent from the `SessionStart` entry | Dispatcher uses CAP-011 global default (5000ms); the plugin's 5000ms subprocess timeout (BC-4.04.002 Invariant 4) plus plugin overhead causes `Timeout{Epoch}` before the plugin can map a subprocess timeout to `factory_health = "unknown"` (EC-003 in BC-4.04.002 becomes unreachable); integration tests that rely on the timeout path will fail. This is a defect, not a fail-open — the missing field must be treated as a required field validation error. |
+| EC-004 | `timeout_ms` field is absent from the `SessionStart` entry that declares `[hooks.capabilities.exec_subprocess]` | Registry load fails with a structured error indicating the missing field is required for entries declaring subprocess execution with timeouts at or above the 5000ms CAP-011 default. Dispatcher exits non-zero. This is a defect, not a fail-open — entries declaring long-running subprocesses MUST declare `timeout_ms` exceeding the longest expected wait (here: `timeout_ms > 5000`). Trace: BC-1.01.003 typo-guard pattern (schema validation hard-fails on missing required fields rather than silently applying a default). |
 
 ## Canonical Test Vectors
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Parse `hooks-registry.toml` and inspect entries | `SessionStart` entry present with `plugin_path = "session-start-telemetry.wasm"`, `once = true`, `capabilities` includes `"exec_subprocess"` | happy-path |
-| `hooks-registry.toml` `SessionStart` entry with `capabilities = []` (empty) | Dispatcher refuses factory-health subprocess call; `internal.capability_denied` emitted; `session.started` still emitted with `factory_health = "unknown"` | error (capability denied) |
+| Parse `hooks-registry.toml` and inspect entries | `SessionStart` entry present with `event = "SessionStart"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, `once = true`, `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]` | happy-path |
+| `hooks-registry.toml` `SessionStart` entry with `[hooks.capabilities.exec_subprocess]` table absent | Dispatcher refuses factory-health subprocess call; `internal.capability_denied` emitted; `session.started` still emitted with `factory_health = "unknown"` | error (capability denied) |
 | `hooks-registry.toml` with duplicate `SessionStart` entries (first valid, second malformed) | Dispatcher uses first entry; logs warning about duplicate; `session.started` emitted normally | edge-case (duplicate entry) |
-| Parse `hooks-registry.toml` `SessionStart` entry; inspect `epoch_budget_ms` field | `epoch_budget_ms = 8000` present; value is integer ≥ 8000 | happy-path (epoch budget) |
-| `hooks-registry.toml` `SessionStart` entry missing `epoch_budget_ms` | Dispatcher applies 5000ms default; plugin invocations requiring subprocess timeout path (`EC-003` in BC-4.04.002) are killed before mapping timeout; integration test for timeout path fails | error (missing required field) |
+| Parse `hooks-registry.toml` `SessionStart` entry; inspect `timeout_ms` field | `timeout_ms = 8000` present; value is integer ≥ 8000 | happy-path (timeout budget) |
+| `hooks-registry.toml` `SessionStart` entry with `[hooks.capabilities.exec_subprocess]` present but `timeout_ms` absent | Registry load fails; dispatcher exits non-zero; structured error cites missing required field (per F-14: hard-fail, not default-apply) | error (missing required field) |
 
 ## Verification Properties
 
@@ -108,14 +108,24 @@ deduplication policy. SS-04 owns these routing semantics. SS-07 owns `hooks-regi
 a file-level artifact (schema validation, TOML format, registry loading). The two ownership
 claims are at different abstraction layers and are mutually consistent. No renumbering required.
 
-**F-13 Schema Requirement (epoch_budget_ms field, E1 accepted 2026-04-28, RESOLVED in pass-2):** The SessionStart
-entry in `hooks-registry.toml` MUST include an `epoch_budget_ms` override greater than the
-5000ms global default when the `exec_subprocess` capability is used for `factory-health`.
-Rationale: the plugin's 5000ms subprocess timeout (BC-4.04.002 postcondition 1) + plugin
-startup/parse overhead exceeds the 5000ms epoch budget (CAP-011), causing `Timeout{Epoch}`
-before the plugin can map a subprocess timeout to `factory_health = "unknown"` (EC-003 becomes
-unreachable). The required value is `epoch_budget_ms = 8000` (3000ms headroom above the
-5000ms subprocess timeout). This field is now specified in Postcondition 5, Invariant 5, EC-004, and Canonical Test Vectors.
+**F-13 Schema Requirement (field name correction, REVISED in pass-3 2026-04-28):** The SessionStart
+entry in `hooks-registry.toml` MUST include a `timeout_ms` override of `8000` (NOT `epoch_budget_ms`).
+
+Pass-3 code verification finding: `RegistryEntry` struct in `crates/factory-dispatcher/src/registry.rs`
+declares `timeout_ms: Option<u32>` as the per-call wall-clock budget field (line 149). The struct
+carries `#[serde(deny_unknown_fields)]` (line 120), so any entry containing `epoch_budget_ms` will
+cause `BC-1.01.003` typo-guard rejection and kill the entire registry load. The field name
+`epoch_budget_ms` does not exist anywhere in the `RegistryEntry`, `RegistryDefaults`, or
+`Capabilities` structs.
+
+**Correct field name: `timeout_ms = 8000`** — this IS the epoch/wall-clock budget for the entry.
+The semantics are identical to the intended `epoch_budget_ms` intent: it is the per-call wall-clock
+budget that must exceed the subprocess timeout (5000ms) plus overhead. The value `8000` (3000ms
+headroom above the subprocess timeout) is unchanged; only the field name is corrected.
+
+All references in this BC (Postcondition 5, Invariant 5, EC-004, Canonical Test Vectors) have been
+updated to use `timeout_ms = 8000` (PO body-content update applied in pass-3). The architectural
+ruling is: **use `timeout_ms = 8000`**.
 
 **F-17 Generator Workflow (verified 2026-04-28):** `hooks-registry.toml` is **generated-once,
 then committed and directly edited** (option b). Evidence: (1) The file header reads "Human-edited
@@ -143,7 +153,7 @@ VP-065
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-004 (capability denial emits audit event — missing exec_subprocess capability triggers internal.capability_denied); DI-014 (schema version mismatch = hard error — hooks-registry.toml schema_version = 1 must match dispatcher expectation); DI-015 (per-project activation required — this entry is directly added by human edit per the file header; SS-09 generator retired) |
+| L2 Domain Invariants | DI-004 (capability denial emits audit event — absent `exec_subprocess` capability table triggers `internal.capability_denied`); DI-007 (always-on telemetry — `session.started` is emitted unconditionally even when subprocess capability is denied or subprocess fails); DI-015 (per-project activation required — this entry is directly added by human edit per the file header; SS-09 generator retired) |
 | Architecture Module | SS-04 — `plugins/vsdd-factory/hooks-registry.toml` (SessionStart entry added by direct edit; SS-09 generator retired as of v1.0.0) |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |

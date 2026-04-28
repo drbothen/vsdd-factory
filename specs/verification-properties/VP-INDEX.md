@@ -116,7 +116,7 @@ total_vps: 65
 | [VP-062](VP-062.md) | S-7.02 Process-Codification Surface Invariant — All Codification Artifacts Are Present and Coherent | invariant | integration | SS-05, SS-07, SS-08 | — | draft |
 | [VP-063](VP-063.md) | RED_RATIO computation correctness — monotonic, bounded [0.0, 1.0], boundary-safe at 0.5 threshold | invariant | integration | SS-05 | — | draft |
 | [VP-064](VP-064.md) | facade-mode mutation gate enforcement — wave-gate skill executes cargo mutants and blocks if kill rate < 80% | safety | manual | SS-05, SS-06 | — | draft |
-| [VP-065](VP-065.md) | Session-Start Plugin Surface Invariant — All BC-4.04.* Postconditions Hold in Integration Test | invariant | integration | SS-04, SS-07, SS-09 | — | draft |
+| [VP-065](VP-065.md) | Session-Start Plugin Surface Invariant — All BC-4.04.* Postconditions Hold in Integration Test | invariant | integration | SS-01, SS-04, SS-07, SS-09 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 

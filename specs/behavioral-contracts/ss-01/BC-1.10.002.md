@@ -97,6 +97,15 @@ is guaranteed by the dispatcher, not the plugin.
 4. The dedup tracker has no eviction policy in v1.0 (acceptable upper bound: expected
    sessions per process lifetime ≤ 1000; tracker memory ≤ 64 KB).
 5. Non-`once = true` entries are never affected by the dedup tracker.
+6. **Atomicity (TOCTOU prevention):** The check-and-insert operation MUST be atomic under
+   the dedup Mutex. Implementations MUST use `HashSet::insert(pair)` (Rust), which returns
+   a `bool` (true = was-not-present, false = was-already-present) inside a single critical
+   section. The Mutex lock MUST NOT be released between the check-existing step and the
+   insert-new step. The routing decision is determined by the boolean return value: if `true`
+   (pair was not present), routing proceeds and the pair is now in the set; if `false`
+   (pair was already present), routing is suppressed. Two concurrent `SessionStart` events
+   with the same `session_id` will race on the Mutex — exactly one will see `true` and
+   proceed; the other will see `false` and be suppressed.
 
 ## Edge Cases
 
@@ -106,7 +115,7 @@ is guaranteed by the dispatcher, not the plugin.
 | EC-002 | Two different `session_id` values for the same event_name arrive concurrently | Both are routed; both pairs inserted into tracker independently (lock acquired per check) |
 | EC-003 | `session_id = "unknown"` in `once = true` event | NOT deduplicated; every `"unknown"` event routes to plugins normally |
 | EC-004 | Tracker reaches 1000 entries | No eviction; tracker continues to grow. v1.1 candidate for LRU eviction |
-| EC-005 | `once = true` entry with no `session_id` in envelope (field absent) | Maps to `"unknown"` sentinel; not deduplicated (per EC-003) |
+| EC-005 | `once = true` entry with no `session_id` in envelope (field absent) | Maps to `"unknown"` sentinel; not deduplicated (per EC-003). **Precondition note:** EC-005 applies only when BC-1.02.005 lifecycle-tolerance permits a missing/empty `session_id` (e.g., `SessionStart` lifecycle events parse with `session_id` defaulting to `""` per BC-1.02.005, which the dispatcher routing layer maps to `"unknown"` before reaching the dedup check). For non-lifecycle events, BC-1.02.001 rejects empty `session_id` at payload parse time, before the envelope ever reaches the dispatcher routing layer where the dedup tracker operates — EC-005 is therefore unreachable for non-lifecycle events. |
 
 ## Canonical Test Vectors
 
@@ -122,7 +131,7 @@ is guaranteed by the dispatcher, not the plugin.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in next verification pass) | | |
+| VP-065 | Session-Start Plugin Surface Invariant — integration test covers Postconditions 1a–1c (first-arrival insert and routing), 2a–2c (duplicate suppression, synthetic no-plugins result, DEBUG log), and EC-001 through EC-005 (restart boundary, concurrent distinct sessions, "unknown" bypass, tracker growth, absent session_id sentinel) | integration |
 
 ## Related BCs
 
@@ -133,6 +142,11 @@ is guaranteed by the dispatcher, not the plugin.
   dedup tracker)
 - **BC-4.04.001** — outcome guaranteed by (once-per-session_id emission of `session.started`
   is now enforced here at the dispatcher layer)
+- **BC-1.02.005** — depends on (envelope parsing delivers `session_id` to the dispatcher
+  routing layer where the dedup tracker reads it; BC-1.02.005 lifecycle-tolerance permits
+  `SessionStart` envelopes to have a missing `tool_name` and an empty/absent `session_id`,
+  which the dispatcher routing layer maps to the `"unknown"` sentinel before reaching the
+  dedup check — this is the upstream precondition for EC-005 "unknown" sentinel handling)
 
 ## Architecture Anchors
 

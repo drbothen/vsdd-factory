@@ -248,7 +248,7 @@ traces_to: bc-id-mapping.md
 | [BC-4.04.002](ss-04/BC-4.04.002.md) | session-start plugin invokes factory-health subprocess; emits session.started even if check fails | draft | CAP-002 | S-5.01 |
 | [BC-4.04.003](ss-04/BC-4.04.003.md) | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | draft | CAP-002 | S-5.01 |
 | [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and async:true | draft | CAP-002 | S-5.01 |
-| [BC-4.04.005](ss-04/BC-4.04.005.md) | hooks-registry.toml registers SessionStart event-name routing to session-start-telemetry.wasm with once:true and exec_subprocess capability | draft | CAP-002 | S-5.01 |
+| [BC-4.04.005](ss-04/BC-4.04.005.md) | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with once:true, exec_subprocess capability table, and timeout_ms:8000 | draft | CAP-002 | S-5.01 |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 

@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "2f50188"
+input-hash: "20ed836"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-If the dispatcher receives a second `SessionStart` event carrying the same `session_id` as one it has already dispatched within the current process lifetime, it suppresses the invocation before reaching the plugin — the plugin is never called for the duplicate. Deduplication is a routing-layer concern enforced by the dispatcher's per-process `Mutex<HashSet<(event_name, session_id)>>` tracker per BC-1.10.002. The plugin itself is unconditionally stateless across invocations: it emits `session.started` on every invocation and relies on the dispatcher to ensure it is only invoked once per `(SessionStart, session_id)` pair. This prevents duplicate telemetry rows when Claude Code occasionally fires redundant lifecycle events. (BC-1.10.002 supersedes the original plugin-side `Mutex<HashSet<String>>` design specified in this contract's Invariant 3.)
+If the dispatcher receives a second `SessionStart` event carrying the same `session_id` as one it has already dispatched within the current process lifetime, it suppresses the invocation before reaching the plugin — the plugin is never called for the duplicate. Deduplication is a routing-layer concern enforced by the dispatcher's per-process `Mutex<HashSet<(event_name, session_id)>>` tracker per BC-1.10.002. The plugin itself is unconditionally stateless across invocations: it emits `session.started` on every invocation and relies on the dispatcher to ensure it is only invoked once per `(SessionStart, session_id)` pair. This prevents duplicate telemetry rows when Claude Code occasionally fires redundant lifecycle events. Pass-1 specified plugin-side `Mutex<HashSet<String>>` (formerly Invariant 3); pass-2 superseded that with dispatcher-side dedup per BC-1.10.002. Current Invariant 3 reflects the new contract.
 
 ## Preconditions
 
@@ -54,6 +54,7 @@ If the dispatcher receives a second `SessionStart` event carrying the same `sess
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | Dispatcher restarts between two `SessionStart` events with the same `session_id` | Dedup state is lost on restart; the second event is treated as a new session and `session.started` is emitted. This is acceptable and documented — cross-process deduplication is out of scope. |
+| EC-002 | (Retired in pass-2 — in-plugin `Mutex<HashSet<String>>` dedup superseded by BC-1.10.002 dispatcher-side dedup; ID preserved per POLICY 1 append-only-numbering) | N/A — superseded |
 | EC-003 | `session_id = "unknown"` sentinel appears in two separate `SessionStart` events (both envelopes had missing session_id) | Dedup is SKIPPED for `session_id = "unknown"` — confirmed at the dispatcher layer per BC-1.10.002 EC-003. Both events route to the plugin; both emit `session.started`. Operator sees two events. |
 
 ## Canonical Test Vectors

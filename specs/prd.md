@@ -439,8 +439,8 @@ Sibling stories BC-4.05.*, BC-4.06.*, BC-4.07.* mirror this shape. Implementers 
 | BC-4.04.001 | session-start plugin emits session.started event with session telemetry on SessionStart event | P1 |
 | BC-4.04.002 | session-start plugin invokes factory-health subprocess; emits session.started even if check fails | P1 |
 | BC-4.04.003 | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | P1 |
-| BC-4.04.004 | hooks.json.template registers SessionStart event with once:true routing to session-start-telemetry.wasm plugin | P1 |
-| BC-4.04.005 | hooks-registry.toml registers SessionStart event-name routing to session-start-telemetry.wasm with once:true and exec_subprocess capability | P1 |
+| BC-4.04.004 | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and async:true | P1 |
+| BC-4.04.005 | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with once:true, exec_subprocess capability table, and timeout_ms:8000 | P1 |
 
 Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (5 BCs anchored; siblings pending S-5.02–5.04).
 Status: **in-progress** (S-5.01 BCs allocated).
