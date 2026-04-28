@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "20ed836"
+input-hash: "5765182"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-5]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -43,11 +43,13 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Ses
 2. The `SessionStart` entry's `command` field in the nested `hooks` array references the dispatcher binary path: `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`. It does NOT reference `session-start-telemetry.wasm` or any other WASM plugin filename (per ADR-011 layer separation).
 3. The `SessionStart` hook entry has `once: true` AND `async: true` set.
 4. The entry follows the array-of-objects schema: `template["hooks"]["SessionStart"]` is an array; each element is an object with a nested `hooks` array; each nested entry has `type = "command"` and `command` = dispatcher binary path.
+5. The `SessionStart` hook entry has `timeout: 10000`. This is the Claude Code harness timeout (ms) and bounds the entire dispatcher process invocation including subprocess wait.
 
 ## Invariants
 
 1. The `SessionStart` entry in `hooks.json.template` MUST NEVER reference WASM plugin filenames (e.g., `session-start-telemetry.wasm`) — per ADR-011 layer separation, WASM plugin references belong exclusively in `hooks-registry.toml` (BC-4.04.005).
 2. The `SessionStart` entry must remain present in `hooks.json.template` through all v1.0 releases — removal requires a deprecation pass.
+3. The harness `timeout` (10000ms) MUST be ≥ the dispatcher per-call budget (`timeout_ms = 8000` in BC-4.04.005) per ADR-011 timeout-hierarchy invariant: subprocess timeout (5000ms, BC-4.04.002 Invariant 4) < dispatcher per-call budget (8000ms, BC-4.04.005 Postcondition 5) < harness timeout (10000ms). Lowering the harness timeout below 10000 breaks this hierarchy and causes Claude Code to kill the dispatcher process before the dispatcher's own timeout fires, preventing the fail-open `factory_health = "unknown"` path from completing.
 
 ## Edge Cases
 
@@ -63,6 +65,7 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Ses
 |-------|----------------|----------|
 | Parse `hooks.json.template`; inspect `hooks.SessionStart[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once: true` present; `async: true` present; no reference to `.wasm` filename in `command` field | happy-path |
 | Parse `hooks.json.template`; inspect `hooks.SessionStart[0].hooks[0].command` | Value matches pattern `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}` (placeholder-unsubstituted form) | happy-path (dispatcher binary routing) |
+| Parse `hooks.json.template`; inspect `hooks.SessionStart[0].hooks[0].timeout` | Value equals `10000` (harness timeout ms; must exceed dispatcher per-call budget of 8000ms per ADR-011 timeout hierarchy) | happy-path (timeout hierarchy) |
 | `hooks.json.template` is missing `SessionStart` key | No SessionStart entry in `template["hooks"]`; dispatcher never invoked for SessionStart events | error (missing key) |
 
 ## Verification Properties

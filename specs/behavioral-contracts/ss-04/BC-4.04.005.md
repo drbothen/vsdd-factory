@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "0b2120e"
+input-hash: "5765182"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 Hook Bash Layer) to map event names to WASM plugin paths. The `SessionStart` entry in that file MUST exist with `event = "SessionStart"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, a `[hooks.capabilities.read_file]` table with `path_allow = [".claude/settings.local.json"]`, a `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]`, and `timeout_ms = 8000`. This is Layer 2 of the dual-routing-tables pattern per ADR-011 — the dispatcher-side counterpart to BC-4.04.004's `hooks.json.template` entry. Once-per-session discipline is enforced at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (BC-4.04.004 invariant); the dispatcher does not enforce per-event dedup at Layer 2 (BC-1.10.002 retired in pass-4). The `[hooks.capabilities.read_file]` table enables the plugin to read `activated_platform` from `.claude/settings.local.json` via the existing `read_file` host fn. The `[hooks.capabilities.exec_subprocess]` table declaration is required for the factory-health subprocess invocation described in BC-4.04.002. The `hooks-registry.toml` entry is added by **direct edit** per the file's own header comment ("Human-edited source of truth as of v1.0.0. The v0.79.x→v1.0 migration generator has been retired; edit this file directly."). The legacy `generate-registry-from-hooks-json.sh` script is retired and MUST NOT be modified for this purpose.
+The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 Hook Bash Layer) to map event names to WASM plugin paths. The `SessionStart` entry in that file MUST exist with `event = "SessionStart"`, `name = "session-start-telemetry"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, a `[hooks.capabilities.read_file]` table with `path_allow = [".claude/settings.local.json"]`, a `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]`, and `timeout_ms = 8000`. The `name` field is required by `RegistryEntry` in `registry.rs` (line 124, no default) and MUST be a stable identifier matching the plugin crate name. This is Layer 2 of the dual-routing-tables pattern per ADR-011 — the dispatcher-side counterpart to BC-4.04.004's `hooks.json.template` entry. Once-per-session discipline is enforced at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (BC-4.04.004 invariant); the dispatcher does not enforce per-event dedup at Layer 2 (BC-1.10.002 retired in pass-4). The `[hooks.capabilities.read_file]` table enables the plugin to read `activated_platform` from `.claude/settings.local.json` via the existing `read_file` host fn. The `[hooks.capabilities.exec_subprocess]` table declaration is required for the factory-health subprocess invocation described in BC-4.04.002. The `hooks-registry.toml` entry is added by **direct edit** per the file's own header comment ("Human-edited source of truth as of v1.0.0. The v0.79.x→v1.0 migration generator has been retired; edit this file directly."). The legacy `generate-registry-from-hooks-json.sh` script is retired and MUST NOT be modified for this purpose.
 
 ## Preconditions
 
@@ -40,7 +40,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 
 ## Postconditions
 
-1. `hooks-registry.toml` contains a `[[hooks]]` entry (or equivalent TOML structure) with `event = "SessionStart"`.
+1. `hooks-registry.toml` contains a `[[hooks]]` entry (or equivalent TOML structure) with `event = "SessionStart"` and `name = "session-start-telemetry"`. The `name` field is required by `RegistryEntry` (registry.rs line 124, no default); production entries always carry it (e.g., `name = "capture-commit-activity"`).
 2. The `SessionStart` entry specifies `plugin = "hook-plugins/session-start-telemetry.wasm"`.
 3. Once-per-session discipline for the `SessionStart` entry is enforced upstream at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (BC-4.04.004 invariant 1). The dispatcher does not enforce per-event dedup at Layer 2 for this entry; BC-1.10.002 was retired in pass-4 as over-engineering after confirming that the Layer 1 once-discipline guarantees the dispatcher receives at most one `SessionStart` invocation per session.
 4. The `SessionStart` entry declares capability tables in the following form (both tables required):
@@ -66,6 +66,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
    - `[hooks.capabilities.exec_subprocess]` with `binary_allow = ["factory-health"]` must remain while BC-4.04.002 requires the factory-health subprocess call. Removing it would cause the dispatcher to refuse the subprocess call (per DI-004).
 4. `plugin` must stay in sync with the canonical plugin path `hook-plugins/session-start-telemetry.wasm`; any rename propagates to this entry in the same commit.
 5. Entries declaring `[hooks.capabilities.exec_subprocess]` MUST declare `timeout_ms` exceeding the longest expected subprocess wait. For the `SessionStart` entry, this means `timeout_ms > 5000` (the subprocess timeout per BC-4.04.002 Invariant 4); `8000` is the required minimum. Field name is `timeout_ms` per `RegistryEntry` schema (F-13 ruling).
+6. The `name` field MUST be a unique, stable identifier matching the plugin crate name (e.g., `name = "session-start-telemetry"`). It is required by `RegistryEntry` (no default); omitting it causes a deserialization error at registry-load time. The `name` value must not change without a corresponding deprecation pass.
 
 ## Edge Cases
 
@@ -80,9 +81,9 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Parse `hooks-registry.toml` and inspect entries | `SessionStart` entry present with `event = "SessionStart"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, `[hooks.capabilities.read_file]` table with `path_allow = [".claude/settings.local.json"]`, `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]` | happy-path |
+| Parse `hooks-registry.toml` and inspect entries | `SessionStart` entry present with `event = "SessionStart"`, `name = "session-start-telemetry"`, `plugin = "hook-plugins/session-start-telemetry.wasm"`, `[hooks.capabilities.read_file]` table with `path_allow = [".claude/settings.local.json"]`, `[hooks.capabilities.exec_subprocess]` table with `binary_allow = ["factory-health"]` | happy-path |
 | `hooks-registry.toml` `SessionStart` entry with `[hooks.capabilities.exec_subprocess]` table absent | Dispatcher refuses factory-health subprocess call; `internal.capability_denied` emitted; `session.started` still emitted with `factory_health = "unknown"` | error (capability denied) |
-| `hooks-registry.toml` with duplicate `SessionStart` entries (first valid, second malformed) | Dispatcher uses first entry; logs warning about duplicate; `session.started` emitted normally | edge-case (duplicate entry) |
+| `hooks-registry.toml` with duplicate `SessionStart` entries (first valid, second with identical fields) | Dispatcher uses first entry; both entries loaded into `Vec<RegistryEntry>`; no warning emitted (per EC-002 — `toml::from_str` does not scan for duplicates; operator must avoid duplicates manually); `session.started` emitted normally | edge-case (duplicate entry) |
 | Parse `hooks-registry.toml` `SessionStart` entry; inspect `timeout_ms` field | `timeout_ms = 8000` present; value is integer ≥ 8000 | happy-path (timeout budget) |
 | `hooks-registry.toml` `SessionStart` entry with `[hooks.capabilities.exec_subprocess]` present but `timeout_ms` absent | Registry load fails; dispatcher exits non-zero; structured error cites missing required field (per F-14: hard-fail, not default-apply) | error (missing required field) |
 
@@ -110,8 +111,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` (owned by SS-07 
 - SS-07 — Hook Bash Layer owns `hooks-registry.toml` as the committed, operator-editable dispatcher
   routing table (per ARCH-INDEX.md line 98 and ADR-011). SS-07 contracts the file-as-text; SS-04
   contracts the routing semantics for WASM plugin entries within it. These scopes are non-overlapping.
-- SS-09 — `scripts/generate-registry-from-hooks-json.sh` was the v0.79.x→v1.0 migration generator;
-  it produced the initial `hooks-registry.toml` from the historical `hooks.json` bash-hook inventory.
+- SS-09 — `plugins/vsdd-factory/skills/activate/SKILL.md` (the activate skill writes `vsdd-factory.activated_platform` to `.claude/settings.local.json`; BC-4.04.001 reads this value via the `read_file` host fn, which this BC's `[hooks.capabilities.read_file]` capability table enables). This is the live SS-09 dependency post-pass-4; the legacy `generate-registry-from-hooks-json.sh` migration script is retired per F-17 and carries no live SS-09 dependency.
 
 **Architectural Notes:**
 
@@ -171,3 +171,4 @@ VP-065
 | Architecture Module | SS-04 — `plugins/vsdd-factory/hooks-registry.toml` (SessionStart entry added by direct edit; SS-09 generator retired as of v1.0.0) |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |
+| Process Gap (F-11, v1.1 candidate) | The class invariant that `timeout_ms` must exceed the longest expected subprocess wait (Invariant 5) is not enforced by the dispatcher schema at registry-load time; EC-004 documents what happens when `timeout_ms` is absent, but there is no runtime check that `timeout_ms > subprocess_timeout`. A registry-load validation rule asserting `timeout_ms > 5000` for entries declaring `exec_subprocess` capability would codify this invariant in code. Deferred to v1.1. |
