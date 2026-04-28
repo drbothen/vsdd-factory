@@ -1,0 +1,24 @@
+AC-009: On a full-failure sequence of N total attempts, exactly (N-1) backoff sleeps
+        occur. There is no trailing sleep after the final failed attempt before recording failure.
+Traces to: BC-3.07.001 invariant 4
+
+$ cargo test -p sink-http -- "exactly_n_minus_1_sleeps\|no_sleep_on_single\|no_trailing_sleep"
+
+running 3 tests
+test test_BC_3_07_001_exactly_n_minus_1_sleeps_full_failure ... ok
+test test_BC_3_07_001_no_sleep_on_single_attempt ... ok
+test test_BC_3_07_001_no_trailing_sleep_after_final_failure ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.10s
+
+Tests covered (3 total):
+  - test_BC_3_07_001_exactly_n_minus_1_sleeps_full_failure
+    (max_retries=4, all 5xx → exactly 3 sleeps counted via instrumentation)
+  - test_BC_3_07_001_no_sleep_on_single_attempt
+    (max_retries=1, EC-003 → 0 sleeps, failure recorded immediately)
+  - test_BC_3_07_001_no_trailing_sleep_after_final_failure
+    (max_retries=3, all 5xx → 2 sleeps, no sleep after attempt 2)
+
+Source: crates/sink-http/tests/bc_3_07_001_backoff.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (3/3)
