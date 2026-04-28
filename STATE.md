@@ -55,10 +55,10 @@ dtu_services: []
 | Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
-| Phase 1.4 — BC Migration | COMPLETE | 1,893 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 +2 Wave 11 SS-03 = 1,893 current) + BC-INDEX.md |
-| Phase 1.5 — Formal PRD | COMPLETE | 45 FRs (FR-041, FR-042 added; FR-043 added in S-7.03; FR-044, FR-045 added Wave 11 SS-03), 76 NFRs, 100% BC traceability |
+| Phase 1.4 — BC Migration | COMPLETE | 1,897 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 +2 Wave 11 SS-03 +4 S-5.01 Wave 13 = 1,897 current) + BC-INDEX.md |
+| Phase 1.5 — Formal PRD | COMPLETE | 46 FRs (FR-041..FR-045 added prior waves; FR-046 added Wave 13 S-5.01), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
-| Phase 1.6b — Verification Properties | COMPLETE | 64 VPs (all draft, VP-001..VP-064; +2 for E-7; +2 for S-7.03) |
+| Phase 1.6b — Verification Properties | COMPLETE | 65 VPs (all draft, VP-001..VP-065; +2 for E-7; +2 for S-7.03; +1 VP-065 S-5.01 Wave 13) |
 | Phase 1.7 — Extraction Validation R2 | in-progress | Migration fidelity check |
 | Phase 1.8 — Story Migration | COMPLETE | 47 stories S-N.MM, 8 epics E-0..E-7 (41 migrated + 1 E-6 + 3 E-7 + 2 Wave 11 SS-03) |
 | Phase 1d — Adversarial Spec Review | **COMPLETE — 17 passes; CONVERGENCE_REACHED 2026-04-27** | trajectory 25→12→5→2→1→0→0→1→2→4→3→1→1→2→0→0→0; ADR-013 satisfied |
@@ -100,8 +100,8 @@ dtu_services: []
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,893 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 64 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,897 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 65 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
@@ -116,21 +116,21 @@ dtu_services: []
 | SS-01 | Hook Dispatcher Core | BC-1 | 99 |
 | SS-02 | Hook SDK and Plugin ABI | BC-2 | 22 |
 | SS-03 | Observability Sinks | BC-3 | 51 |
-| SS-04 | Plugin Ecosystem | BC-4 | 13 |
+| SS-04 | Plugin Ecosystem | BC-4 | 17 |
 | SS-05 | Pipeline Orchestration | BC-5 | 646 |
 | SS-06 | Skill Catalog | BC-6 | 585 |
 | SS-07 | Hook Bash Layer | BC-7 | 196 |
 | SS-08 | Templates and Rules | BC-8 | 218 |
 | SS-09 | Configuration and Activation | BC-9 | 5 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
-| **Total** | | | **1,893** |
+| **Total** | | | **1,897** |
 
 ## Story Status (47 total)
 
 - **Merged (39):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
-- **Draft / Not Shipped (6):** Tier F (S-5.01/5.02/5.03/5.04/5.06), Tier G/H TBD
-- **Ready (0):** Wave 12 COMPLETE — all stories shipped; rc.1 shakedown next
+- **Draft / Not Shipped (5):** Tier F (S-5.02/5.03/5.04/5.06), Tier G/H TBD
+- **Ready (1):** S-5.01 (Wave 13 foundation burst complete — BC-4.04.001–004 + VP-065 + FR-046)
 
 ## Drift Items (open)
 

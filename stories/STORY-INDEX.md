@@ -31,8 +31,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 39 |
 | partial | 2 |
-| draft | 6 |
-| ready | 0 |
+| draft | 5 |
+| ready | 1 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -100,7 +100,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status |
 |----------|-------|------|--------|----------|------------|--------|
-| S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | draft |
+| S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | ready |
 | S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | draft |
 | S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | draft |
 | S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | draft |
