@@ -1,0 +1,23 @@
+AC-006: Emission on same thread/task — no tokio::spawn, synchronous with failure recording
+Traces to: BC-3.07.002 postcondition 4 (same-thread emission, no new concurrency)
+Test file: crates/sink-core/tests/bc_3_07_002_cross_sink_integration.rs
+
+SHA: da8c5b5
+
+Command: cargo test -p sink-core --test bc_3_07_002_cross_sink_integration ac006
+running 1 test
+test test_BC_3_07_002_ac006_emission_synchronous_with_failure_recording ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.02s
+
+Test: test_BC_3_07_002_ac006_emission_synchronous_with_failure_recording
+  - Verifies that after a failure-recording call returns, the event is already available
+    on the internal channel (no background task, no tokio::spawn)
+  - Sequence: trigger_failure() → event immediately readable from channel (try_recv succeeds)
+  - If emission were async/spawned, try_recv might return Empty — the test would fail
+  Result: PASS
+
+Code review confirmation (production source):
+  - emit_sink_error() is a synchronous function: pub fn emit_sink_error(tx, event)
+  - It calls tx.try_send(event).ok() — no .await, no spawn
+  - Each driver's failure recording path: push to Vec, drop mutex, call emit_sink_error()
+  - No tokio::spawn at any emission site (grep confirmed at c0175f8)

@@ -1,0 +1,27 @@
+AC-002: sink-otel-grpc emits internal.sink_error with sink_type="otel-grpc"
+Traces to: BC-3.07.002 postcondition 1 (cross-sink coverage)
+Test file: crates/sink-otel-grpc/tests/bc_3_07_002_otel_emission.rs
+Test vector: otel-grpc send fails on attempt 0 (connection refused)
+
+Command: cargo test -p sink-otel-grpc --test bc_3_07_002_otel_emission
+SHA: da8c5b5
+
+running 6 tests
+test test_BC_3_07_002_otel_silent_drop_on_closed_channel_no_panic ... ok
+test test_BC_3_07_002_otel_invariant_no_routing_through_sink_registry ... ok
+test test_BC_3_07_002_otel_sink_name_matches_config_name ... ok
+test test_BC_3_07_002_otel_emits_sink_error_on_connection_refused ... ok
+test test_BC_3_07_002_otel_sink_failure_still_recorded_after_connection_refused ... ok
+test test_BC_3_07_002_otel_silent_drop_on_full_channel_no_panic ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+Primary AC-002 test: test_BC_3_07_002_otel_emits_sink_error_on_connection_refused
+  - Targets a non-listening gRPC endpoint (connection refused)
+  - Asserts event captured on internal channel with:
+      type = "internal.sink_error"
+      sink_type = "otel-grpc"
+      sink_name = (operator-assigned name)
+      error_message = non-empty string
+      attempt = 0 (zero-indexed, first attempt)
+  Result: PASS

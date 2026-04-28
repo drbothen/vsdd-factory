@@ -1,0 +1,41 @@
+AC-010: Integration test verifies consistent schema across all 3 sink types
+Traces to: BC-3.07.002 canonical test vectors (all three sink types, correct field values)
+Test file: crates/sink-core/tests/bc_3_07_002_cross_sink_integration.rs
+
+SHA: da8c5b5
+
+Command: cargo test -p sink-core --test bc_3_07_002_cross_sink_integration
+running 3 tests
+test test_BC_3_07_002_cross_sink_schema_field_types_correct ... ok
+test test_BC_3_07_002_ac006_emission_synchronous_with_failure_recording ... ok
+test test_BC_3_07_002_cross_sink_consistent_schema_all_three_drivers ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+Tests:
+  1. test_BC_3_07_002_cross_sink_consistent_schema_all_three_drivers:
+     - Triggers failure in each of: sink-http (503), sink-otel-grpc (connection refused),
+       sink-file (read-only dir)
+     - Collects all 3 emitted events from internal channel
+     - Asserts each event has: type, sink_type, sink_name, attempt, error_message present
+     - Asserts sink_type values = {"http", "otel-grpc", "file"} respectively
+     Result: PASS
+
+  2. test_BC_3_07_002_cross_sink_schema_field_types_correct:
+     - Directly constructs SinkErrorEvent via the sink-core helper for all 3 drivers
+     - Asserts field types: type=&str, sink_name=String, sink_type=String,
+       error_message=String, attempt=u32
+     - Confirms schema consistency at the type level across all drivers
+     Result: PASS
+
+  3. test_BC_3_07_002_ac006_emission_synchronous_with_failure_recording (AC-006 anchor):
+     - Confirmed synchronous emission; see AC-006 evidence file
+     Result: PASS
+
+Cross-driver schema consistency table:
+  Field          | sink-http   | sink-otel-grpc | sink-file
+  type           | "internal.sink_error" | "internal.sink_error" | "internal.sink_error"
+  sink_type      | "http"      | "otel-grpc"    | "file"
+  sink_name      | String      | String         | String
+  error_message  | String      | String         | String
+  attempt        | u32         | u32            | u32
