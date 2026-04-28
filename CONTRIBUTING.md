@@ -92,3 +92,14 @@ the Semgrep rule schema at https://semgrep.dev/docs/writing-rules/rule-syntax/
 
 Initial adoption scan (Semgrep 1.156.0, 2026-04-27): **0 findings** across
 308 files, 320 rules, covering Python + TypeScript + multilang rule packs.
+
+---
+
+## Spec File Naming
+
+All canonical spec filenames use lowercase. The PRD lives at
+`.factory/specs/prd.md`. Any historical `PRD.md` (uppercase) references have
+been canonicalized to `prd.md`. If you encounter an uppercase reference in an
+adversarial review or consistency report, update it to lowercase in the live
+spec file it appears in; archived adversarial-review and log files are
+historical records and do not require retroactive updates.
