@@ -8,12 +8,13 @@ next_milestone: 1.0.0-rc.1
 
 # Story counts by status
 stories:
-  total: 41
-  merged: 22
-  partial: 4
-  draft: 15
+  total: 47
+  merged: 33
+  partial: 3
+  draft: 9
+  ready: 2
   blocked: 0
-  in_progress: 0
+  in_progress: 2   # S-4.09 + S-4.10 (Wave 11 delivery cycles running)
 
 # Epic completion summary
 epics:
@@ -47,20 +48,21 @@ epics:
   E-3:
     name: WASM Port — High-Value Hooks
     stories: 4
-    status: in_progress
+    status: closed
     milestone: 1.0.0-rc.1
-    merged: 0
-    partial: 1   # S-3.04 emit_event refactor
-    draft: 3
+    merged: 4   # S-3.04 (PR #19), S-3.01 (PR #20), S-3.02 (PR #21), S-3.03 (4229648)
+    partial: 0
+    draft: 0
 
   E-4:
     name: Observability Sinks and RC Release
-    stories: 8
-    status: draft
+    stories: 10   # +S-4.09 +S-4.10 (Wave 11 SS-03)
+    status: in_progress
     milestone: 1.0.0-rc.1
-    merged: 0
+    merged: 4   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23)
     partial: 1   # S-4.06 routing filters
-    draft: 7
+    draft: 3    # S-4.05, S-4.07, S-4.08
+    in_progress: 2  # S-4.09 GREEN@6644d64 (fmt fix@9d3b4b2), S-4.10 partial GREEN@c0175f8
 
   E-5:
     name: New Hook Events and 1.0.0 Release
@@ -71,20 +73,19 @@ epics:
     partial: 1   # S-5.05 migration guide skeleton
     draft: 6
 
-# Point totals
+# Point totals (updated 2026-04-27 after Wave 12 merges)
 points:
-  total: 183
-  merged: 55
-  remaining: 128
+  total: 207
+  merged: 113   # 33 merged stories; approximate based on STORY-INDEX point values
+  remaining: 94
 
-# Current work frontier (stories unblocked today)
+# Current work frontier (stories unblocked today, 2026-04-27)
 frontier:
-  - S-3.04  # emit_event refactor (partial — complete the bash tool retirement)
-  - S-3.01  # capture-commit-activity port (blocked on S-3.04 completion)
-  - S-3.02  # capture-pr-activity port (blocked on S-3.04 completion)
-  - S-3.03  # block-ai-attribution port (blocked on S-3.04 completion)
-  - S-4.01  # sink-http (parallel with E-3)
+  - S-4.09  # sink-http retry backoff — in_progress (GREEN@6644d64, fmt fix@9d3b4b2)
+  - S-4.10  # internal.sink_error events — in_progress (partial GREEN@c0175f8, fix burst async)
+  - S-4.05  # Dead letter queue — unblocked (S-4.04 now merged)
   - S-4.06  # routing filters (partial — complete wiring)
+  - S-4.07  # E2E obs integration tests — still blocked (awaiting S-4.09/4.10 + S-3.01..3.04)
 
 # Shipped releases (for reference)
 releases:

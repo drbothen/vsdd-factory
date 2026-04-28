@@ -13,7 +13,7 @@ last_updated: 2026-04-25T00:00:00
 |----------|-------|-----------------|
 | P0 (next cycle) | 0 | 0 |
 | P1 (within 3 cycles) | 1 | XL (29–39 across 6 sub-stories) |
-| P2 (backlog) | 5 | — |
+| P2 (backlog) | 7 | — |
 | P3 (v1.1+) | 3 | — |
 
 ## Debt Items
@@ -27,6 +27,8 @@ last_updated: 2026-04-25T00:00:00
 | TD-005 | Phase 5 deferred | Agent registry missing (34 agents not enumerated); NFR-PERF not in PRD §4.2 top-5 | P3 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.1 |
 | TD-006 | Process gap | validate-consistency Check 8/9 ship as procedural spec only — no executable runner, no bats/Rust tests, Rust-only language scope, bypassed TDD (no test-writer/implementer dispatch), and was authored directly on main instead of feature-branch-off-develop | P1 | post-Wave-9 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-007 | Spec deferral | S-3.04 AC-003: bash bin/emit-event still in use by legacy hooks; full retirement deferred from v1.0 to post-v1.0 milestone | P3 | v1.0.0-beta.4 | v1.0-brownfield-backfill | S-3.04 | v1.1 |
+| TD-008 | Process gap | S-4.10 RED gate test pattern: emission tests created channel (tx, rx) but never passed tx to sink; required test-writer fix burst. Lessons-codification candidate for S-7.03 update — RED gate must wire all dependencies the implementer is expected to use. | P2 | Wave 12 | v1.0-brownfield-backfill | S-4.10 | v1.0.1 |
+| TD-009 | Process gap | Pre-flight git-diff check before merging release/develop branches — caught at L2 risk in this cycle. Should be codified as a process check in CONTRIBUTING.md or pre-merge lint hook. | P2 | Wave 12 | v1.0-brownfield-backfill | — | v1.0.1 |
 
 ### Source Types
 
@@ -290,6 +292,26 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 - [ ] **Pre-flight check codified.** The `git fetch && git log --oneline origin/develop..origin/main && git diff origin/main origin/develop -- <files>` pattern is added to a developer-onboarding doc or a pre-feature-branch lint hook (this is a process gap surfaced during TD-006 remediation).
 
 **Cycle estimate:** v1.0.1 (PATCH if no public-API changes) or v1.1 (MINOR if the runner exposes a new public skill API surface that other plugins can call).
+
+#### TD-008 — S-4.10 RED gate test-wiring gap
+**Source:** Wave 12 per-story-delivery cycle test-writer fix burst (2026-04-27)
+**Description:** During S-4.10 TDD cycle, the test-writer's RED gate created a channel `(tx, rx)` for sink communication but never passed `tx` to the sink under test. The sink consequently never received events, causing tests to hang or pass vacuously without exercising the intended behavior. A separate test-writer fix burst was required to wire `tx` correctly. This is a lessons-codification candidate for the S-7.03 TDD Discipline Hardening story — the RED gate contract must explicitly require that all dependencies the implementer is expected to use are wired into the test harness before declaring RED.
+**Severity:** P2 — does not block any current story; creates risk of similar wiring gaps in future sink test harnesses.
+**Plan:**
+1. Add an explicit checklist item to the test-writer agent prompt: "Before declaring RED, verify every dependency (channels, handles, clients) passed to the SUT is actually wired and exercised by at least one test assertion."
+2. Consider adding a bats fixture pattern showing the correct channel-wiring pattern for sink tests.
+3. Candidate for S-7.03 follow-up story or an additional AC in a future process-hardening story.
+**Cycle estimate:** v1.0.1.
+
+#### TD-009 — Pre-flight git-diff check before release/develop merges
+**Source:** Wave 12 cycle risk triage (2026-04-27)
+**Description:** During this cycle, a risk was flagged (L2) that release branches could be merged into develop without a pre-flight diff check, potentially introducing unintended changes. The pattern `git fetch && git log --oneline origin/develop..origin/main && git diff origin/main origin/develop -- <files>` is known (referenced in TD-006 DoD) but not codified as a mandatory process step.
+**Severity:** P2 — does not block current work; represents an operational risk for future release cycles.
+**Plan:**
+1. Add a pre-merge checklist section to `CONTRIBUTING.md` documenting the pre-flight diff command.
+2. Alternatively, implement as a pre-merge lint hook that runs on PRs targeting `main` or release branches.
+3. Coordinate with TD-006 closure (Q8 pre-flight check item) to avoid duplicating the codification.
+**Cycle estimate:** v1.0.1.
 
 #### TD-007 — S-3.04 AC-003 deferred: bash bin/emit-event retirement
 **Source:** S-3.04 spec body explicit deferral note (v1.0.0-beta.4 ship); confirmed by post-Wave-9 status-drift audit 2026-04-27.

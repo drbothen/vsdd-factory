@@ -29,9 +29,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 26 |
+| merged | 33 |
 | partial | 3 |
-| draft | 16 |
+| draft | 9 |
 | ready | 2 |
 | **Total** | **47** |
 
@@ -77,18 +77,18 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | Story ID | Title | Epic | Points | Priority | Depends On | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|-----|
 | S-3.04 | emit_event as host function refactor | E-3 | 3 | P0 | S-1.04 | merged | 8 |
-| S-3.01 | Port capture-commit-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | draft | -- |
-| S-3.02 | Port capture-pr-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | draft | -- |
-| S-3.03 | Port block-ai-attribution to WASM | E-3 | 3 | P1 | S-2.08, S-3.04 | draft | -- |
+| S-3.01 | Port capture-commit-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | merged | -- |
+| S-3.02 | Port capture-pr-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | merged | -- |
+| S-3.03 | Port block-ai-attribution to WASM | E-3 | 3 | P1 | S-2.08, S-3.04 | merged | -- |
 
 ## Epic E-4 — Observability Sinks and RC Release (Tier E + F — draft/partial)
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|-----|
-| S-4.01 | sink-http driver | E-4 | 5 | P1 | S-1.08 | draft | 4 |
-| S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | draft | 2 (+ 2 deferred LOW findings F-1/F-2 from PR #18; v1.3) |
-| S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | draft | 2 |
-| S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | draft | 1 (v1.1 BC creation dep note) |
+| S-4.01 | sink-http driver | E-4 | 5 | P1 | S-1.08 | merged | 4 |
+| S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | merged | 2 (+ 2 deferred LOW findings F-1/F-2 from PR #18; v1.3) |
+| S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | merged | 2 |
+| S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | merged | 1 (v1.1 BC creation dep note) |
 | S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | draft | 2 (+ v1.1 candidates) |
 | S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | partial | 6 |
 | S-4.07 | End-to-end observability integration tests | E-4 | 8 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | draft | 16 |
