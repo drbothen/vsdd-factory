@@ -455,6 +455,22 @@ impl HttpSink {
         Self::new_inner(config, Some(error_tx))
     }
 
+    /// Construct an `HttpSink` wired with both an error channel and a DLQ writer
+    /// (S-4.05 Task 2b).
+    ///
+    /// When `dlq_writer` is `Some`, events that exhaust all retry attempts are
+    /// written to the DLQ file (AC-002 / BC-3.07.003).
+    ///
+    /// **Stub — not implemented.** RED gate: callers will panic.
+    pub fn new_with_observability(
+        config: HttpSinkConfig,
+        error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
+        dlq_writer: Option<std::sync::Arc<sink_core::DlqWriter>>,
+    ) -> anyhow::Result<Self> {
+        let _ = (error_tx, dlq_writer);
+        unimplemented!("HttpSink::new_with_observability stub — implement in GREEN phase")
+    }
+
     fn new_inner(
         config: HttpSinkConfig,
         error_tx: Option<mpsc::Sender<SinkErrorEvent>>,

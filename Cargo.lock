@@ -2827,6 +2827,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sink-core",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "toml 0.8.23",

@@ -27,10 +27,14 @@
 
 #![deny(missing_docs)]
 
+pub mod dead_letter;
 pub mod events;
+pub mod path_template;
 pub mod resilience;
 
-pub use events::{SinkErrorEvent, emit_sink_error};
+pub use dead_letter::{DlqError, DlqReason, DlqWriter, DlqWriterConfig};
+pub use events::{SinkDlqEvent, SinkDlqFailureEvent, SinkDlqWriteEvent, SinkErrorEvent, emit_sink_error};
+pub use path_template::PathTemplateError;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};

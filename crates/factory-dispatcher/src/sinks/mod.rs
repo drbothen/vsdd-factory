@@ -26,6 +26,32 @@ use serde::Deserialize;
 use sink_core::{Sink, SinkEvent};
 use sink_file::{FileSink, FileSinkConfig};
 use sink_otel_grpc::{OtelGrpcConfig, OtelGrpcSink};
+use thiserror::Error;
+
+/// Errors raised during sink configuration validation (AC-011 / EC-003).
+///
+/// Stub — variants declared; validation logic not yet implemented.
+#[derive(Debug, Error)]
+pub enum SinkConfigError {
+    /// `sink_name` contains `/`, `\`, or `..` path tokens (AC-011 / EC-003).
+    #[error("invalid sink name '{name}': must not contain path separators or '..' tokens")]
+    InvalidSinkName {
+        /// The rejected sink name.
+        name: String,
+    },
+    /// Two stanzas share the same `sink_name` (EC-004).
+    #[error("sink name collision: '{name}' appears more than once")]
+    NameCollision {
+        /// The duplicate name.
+        name: String,
+    },
+    /// Invalid prune configuration (e.g., `dlq_retention_days = 0`).
+    #[error("invalid prune config: {reason}")]
+    InvalidPruneConfig {
+        /// Human-readable reason.
+        reason: String,
+    },
+}
 
 pub mod router;
 
@@ -71,6 +97,13 @@ pub struct SinkStanza {
     /// typed config.
     pub name: String,
 
+    /// Whether the dead-letter queue is enabled for this sink (AC-008).
+    ///
+    /// Defaults to `true` (DLQ on-by-default). Set to `false` to opt out.
+    /// When absent from TOML the deserializer uses the `default_true` fn.
+    #[serde(default = "default_dlq_enabled")]
+    pub dlq_enabled: bool,
+
     /// Catch-all for driver-specific fields. Re-serialized to a TOML
     /// value and then deserialized into the target type, so per-driver
     /// configs keep their strict typing.
@@ -78,24 +111,68 @@ pub struct SinkStanza {
     pub extra: toml::value::Table,
 }
 
+fn default_dlq_enabled() -> bool {
+    true
+}
+
 /// Fleet of constructed sinks. `load` parses config; `submit_all` /
 /// `flush_all` fan out; `empty` is the test-only constructor.
 pub struct SinkRegistry {
     sinks: Vec<Box<dyn Sink>>,
+    /// Parallel boolean sidecar tracking DLQ wire-up per sink, indexed
+    /// alongside `sinks`. `true` means the sink was constructed with
+    /// `Some(Arc<DlqWriter>)`; `false` means `None`.
+    ///
+    /// Populated by `from_config_with_dlq` at construction time (AC-012,
+    /// F-4302 resolution). Stub — field declared; population logic not yet
+    /// implemented.
+    dlq_present_per_sink: Vec<bool>,
+}
+
+impl std::fmt::Debug for SinkRegistry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SinkRegistry")
+            .field("sinks_count", &self.sinks.len())
+            .field("dlq_present_per_sink", &self.dlq_present_per_sink)
+            .finish()
+    }
 }
 
 impl SinkRegistry {
     /// Empty registry — integration tests and a few callers that want
     /// to add sinks programmatically use this.
     pub fn empty() -> Self {
-        Self { sinks: Vec::new() }
+        Self { sinks: Vec::new(), dlq_present_per_sink: Vec::new() }
     }
 
     /// Programmatic constructor for tests and for the eventual
     /// integration-wiring story. Accepts any pre-built
     /// `Box<dyn Sink>` (e.g. a `FileSink` wrapped in a box).
     pub fn with_sinks(sinks: Vec<Box<dyn Sink>>) -> Self {
-        Self { sinks }
+        let len = sinks.len();
+        Self { sinks, dlq_present_per_sink: vec![false; len] }
+    }
+
+    /// Construct a registry from an already-parsed config, wiring DLQ writers
+    /// for stanzas that have `dlq_enabled = true` (or absent — default-on).
+    ///
+    /// Populates `dlq_present_per_sink` so `has_dlq_for_test` can be used in
+    /// tests to verify wire-up without adding a public accessor to the `Sink`
+    /// trait (AC-012, F-4302 resolution).
+    ///
+    /// **Stub — not implemented.** RED gate: tests calling this must fail.
+    pub fn from_config_with_dlq(cfg: ObservabilityConfig) -> anyhow::Result<Self> {
+        // Stub — not implemented.
+        unimplemented!("SinkRegistry::from_config_with_dlq stub — implement in GREEN phase")
+    }
+
+    /// Test helper: returns `true` if the sink at `idx` was wired with a DLQ
+    /// writer (`Some(Arc<DlqWriter>)`).
+    ///
+    /// `pub(crate)` — not part of the public API; used only from `#[cfg(test)]`
+    /// blocks within this crate (AC-012, F-4302 resolution).
+    pub(crate) fn has_dlq_for_test(&self, idx: usize) -> bool {
+        self.dlq_present_per_sink.get(idx).copied().unwrap_or(false)
     }
 
     /// Parse `observability-config.toml` from disk and construct every
@@ -174,7 +251,8 @@ impl SinkRegistry {
             }
         }
 
-        Ok(Self { sinks })
+        let n = sinks.len();
+        Ok(Self { sinks, dlq_present_per_sink: vec![false; n] })
     }
 
     /// Fan an event out to every sink that accepts it. Non-blocking:
@@ -239,6 +317,7 @@ mod tests {
             sinks: vec![SinkStanza {
                 type_: "datadog".into(),
                 name: "not-yet-implemented".into(),
+                dlq_enabled: true,
                 extra: toml::value::Table::new(),
             }],
         };
@@ -273,6 +352,7 @@ mod tests {
             sinks: vec![SinkStanza {
                 type_: "file".into(),
                 name: "local-events".into(),
+                dlq_enabled: true,
                 extra,
             }],
         };
@@ -298,6 +378,7 @@ mod tests {
             sinks: vec![SinkStanza {
                 type_: "otel-grpc".into(),
                 name: "local-grafana".into(),
+                dlq_enabled: true,
                 extra,
             }],
         };
@@ -305,6 +386,193 @@ mod tests {
         assert_eq!(reg.sinks().len(), 1);
         assert_eq!(reg.sinks()[0].name(), "local-grafana");
         // Cleanly drain the worker before the registry drops.
+        reg.shutdown_all();
+    }
+
+    // ── AC-008: DLQ default-on per sink stanza ────────────────────────────────
+
+    /// AC-008 — `dlq_enabled` defaults to `true` when absent from TOML.
+    ///
+    /// Parses a TOML stanza WITHOUT the `dlq_enabled` key and verifies the
+    /// parsed `SinkStanza.dlq_enabled` is `true`.
+    ///
+    /// This test exercises the `default_dlq_enabled` serde default.
+    /// It does NOT call any `unimplemented!()` stub, so it should PASS
+    /// if serde is correctly wired — which means it will PASS in RED state.
+    /// Kept as a guard to prevent regressions on the default.
+    #[test]
+    fn test_BC_3_07_003_dlq_enabled_defaults_to_true_when_absent() {
+        let toml_src = r#"
+            schema_version = 1
+
+            [[sinks]]
+            type = "file"
+            name = "my-file-sink"
+            path_template = "/tmp/events-{date}.jsonl"
+            # dlq_enabled is intentionally absent — must default to true
+        "#;
+        let cfg: ObservabilityConfig = toml::from_str(toml_src).unwrap();
+        assert_eq!(cfg.sinks.len(), 1);
+        assert!(
+            cfg.sinks[0].dlq_enabled,
+            "AC-008: dlq_enabled must default to true when absent from TOML stanza"
+        );
+    }
+
+    /// AC-008 — `dlq_enabled = false` is honoured.
+    ///
+    /// Parses a TOML stanza with `dlq_enabled = false` and verifies the
+    /// parsed `SinkStanza.dlq_enabled` is `false`.
+    #[test]
+    fn test_BC_3_07_003_dlq_enabled_false_is_honoured_by_parser() {
+        let toml_src = r#"
+            schema_version = 1
+
+            [[sinks]]
+            type = "file"
+            name = "no-dlq-sink"
+            path_template = "/tmp/events-{date}.jsonl"
+            dlq_enabled = false
+        "#;
+        let cfg: ObservabilityConfig = toml::from_str(toml_src).unwrap();
+        assert_eq!(cfg.sinks.len(), 1);
+        assert!(
+            !cfg.sinks[0].dlq_enabled,
+            "AC-008: dlq_enabled = false must be honoured"
+        );
+    }
+
+    // ── AC-011: SinkStanza dlq_enabled validation (invalid sink_name) ─────────
+
+    /// AC-011 — Traces to: v1.1 BC candidate `BC-3.NN.NNN-sink-name-sanitization`.
+    ///
+    /// `from_config_with_dlq` must reject a `sink_name` containing `/`.
+    ///
+    /// RED gate: `from_config_with_dlq` is `unimplemented!()`.
+    #[test]
+    fn test_BC_3_07_003_rejects_sink_name_with_path_separator_slash() {
+        let cfg = ObservabilityConfig {
+            schema_version: 1,
+            sinks: vec![SinkStanza {
+                type_: "file".into(),
+                name: "../../etc/passwd".into(), // path traversal
+                dlq_enabled: true,
+                extra: {
+                    let mut t = toml::value::Table::new();
+                    t.insert(
+                        "path_template".into(),
+                        toml::Value::String("/tmp/x-{date}.jsonl".into()),
+                    );
+                    t
+                },
+            }],
+        };
+
+        // from_config_with_dlq must reject the invalid name.
+        let result = SinkRegistry::from_config_with_dlq(cfg);
+        assert!(
+            result.is_err(),
+            "AC-011: sink_name with path traversal must be rejected"
+        );
+        let err_str = result.unwrap_err().to_string();
+        assert!(
+            err_str.contains("invalid") || err_str.contains("InvalidSinkName"),
+            "AC-011: error must mention the invalid name; got: {err_str}"
+        );
+    }
+
+    /// AC-011 — `sink_name` containing backslash must be rejected.
+    ///
+    /// RED gate: `from_config_with_dlq` is `unimplemented!()`.
+    #[test]
+    fn test_BC_3_07_003_rejects_sink_name_with_backslash() {
+        let cfg = ObservabilityConfig {
+            schema_version: 1,
+            sinks: vec![SinkStanza {
+                type_: "file".into(),
+                name: r"a\b".into(),
+                dlq_enabled: true,
+                extra: {
+                    let mut t = toml::value::Table::new();
+                    t.insert(
+                        "path_template".into(),
+                        toml::Value::String("/tmp/x-{date}.jsonl".into()),
+                    );
+                    t
+                },
+            }],
+        };
+        let result = SinkRegistry::from_config_with_dlq(cfg);
+        assert!(
+            result.is_err(),
+            "AC-011: sink_name with backslash must be rejected"
+        );
+    }
+
+    // ── AC-012: SinkRegistry loader wires DlqWriter when dlq_enabled ─────────
+
+    /// AC-012 — Traces to: v1.1 BC candidate `BC-3.NN.NNN-dlq-config-toggle-and-size-cap`.
+    ///
+    /// `from_config_with_dlq` on a 2-stanza config (one with `dlq_enabled = false`,
+    /// one with default/absent) must produce a `SinkRegistry` where:
+    ///   - `has_dlq_for_test(0)` is `true` (default-on stanza)
+    ///   - `has_dlq_for_test(1)` is `false` (explicitly disabled stanza)
+    ///
+    /// RED gate: `from_config_with_dlq` is `unimplemented!()`.
+    #[test]
+    fn test_BC_3_07_003_sink_registry_wires_dlq_when_dlq_enabled() {
+        let tmp = tempfile::tempdir().unwrap();
+
+        // Stanza 0: dlq_enabled absent (defaults to true).
+        let mut extra0 = toml::value::Table::new();
+        extra0.insert(
+            "path_template".into(),
+            toml::Value::String(format!("{}/s0-{{date}}.jsonl", tmp.path().display())),
+        );
+
+        // Stanza 1: dlq_enabled = false.
+        let mut extra1 = toml::value::Table::new();
+        extra1.insert(
+            "path_template".into(),
+            toml::Value::String(format!("{}/s1-{{date}}.jsonl", tmp.path().display())),
+        );
+
+        let cfg = ObservabilityConfig {
+            schema_version: 1,
+            sinks: vec![
+                SinkStanza {
+                    type_: "file".into(),
+                    name: "dlq-on-sink".into(),
+                    dlq_enabled: true, // explicit true
+                    extra: extra0,
+                },
+                SinkStanza {
+                    type_: "file".into(),
+                    name: "dlq-off-sink".into(),
+                    dlq_enabled: false,
+                    extra: extra1,
+                },
+            ],
+        };
+
+        let reg = SinkRegistry::from_config_with_dlq(cfg)
+            .expect("from_config_with_dlq must succeed with valid stanzas");
+
+        assert_eq!(
+            reg.sinks().len(),
+            2,
+            "AC-012: registry must contain 2 sinks"
+        );
+
+        assert!(
+            reg.has_dlq_for_test(0),
+            "AC-012: sink[0] (dlq_enabled=true) must have DLQ wired"
+        );
+        assert!(
+            !reg.has_dlq_for_test(1),
+            "AC-012: sink[1] (dlq_enabled=false) must NOT have DLQ wired"
+        );
+
         reg.shutdown_all();
     }
 }
