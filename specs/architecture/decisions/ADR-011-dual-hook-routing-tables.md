@@ -253,9 +253,13 @@ When the envelope's `session_id` is missing or empty, BC-1.02.005 sets
 include it in its required-fields list.
 
 Plugins MUST NOT include any of these four fields in their required-fields lists. All four are
-always present on every event by construction (DI-017 enforcement for `dispatcher_trace_id`;
-BC-1.05.012 for all four). Integration harnesses MUST assert these fields at the *host
-enrichment layer* — not as plugin-set fields.
+always **present** on every event by construction (BC-1.05.012 unconditional `.with_X(&str)`
+enrichment). **Non-empty** guarantee is upstream-BC-conditional per BC-1.05.012 Invariant 3
+hedge: `session_id` non-empty is covered by BC-1.02.005; `dispatcher_trace_id`, `plugin_name`,
+and `plugin_version` non-empty are dispatcher-routing-layer concerns (v1.1 candidate to lift to
+BC level). DI-017 mandates presence of `dispatcher_trace_id` on every event but does not
+directly enforce non-empty at the host-fn layer. Integration harnesses MUST assert these fields
+at the *host enrichment layer* — not as plugin-set fields.
 
 **Harness implication:** For any VP that verifies trace correlation, assert
 `event["dispatcher_trace_id"].is_string()` (not `event["trace_id"]`). The field name is
