@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-28 (S-5.02 pass-2 fix burst — 7 findings closed; v2.1→v2.2; BC-4.05.001/004 + BC-4.04.004 + VP-066 updated; pass-3 ready) |
+| **Last Updated** | 2026-04-28 (S-5.02 pass-3 fix burst — 4 findings closed; v2.2→v2.3; BC-4.05.001 EC-001c + VP-066 new test + AC6 list updated; pass-4 ready; trajectory pass-1=11, pass-2=7, pass-3=4) |
 | **Current Phase** | wave-9-ss-01-CONVERGED-cycle-re-anchor-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -93,6 +93,7 @@ dtu_services: []
 | S-5.01 delivery (PR #35 0257f03) | pr-manager | COMPLETE | 9/9 integration + 14/14 unit GREEN; clippy clean; SAST pass; 0 blocking review findings; D-136; Wave 13 opened |
 | S-5.02 pass-1 fix burst | state-manager | COMPLETE | 11 findings closed (F-1..F-12; PO 8 + story-writer 3); BC-4.05.001/003/005 + VP-066 updated; S-5.02 v2.0→v2.1; pass-2 ready |
 | S-5.02 pass-2 fix burst | state-manager | COMPLETE | 7 findings closed (PO 7): F-1 BC-4.05.004 EC-003 path convention; TD-S5.02-PASS2 BC-4.04.004 cross-story sibling fix; F-2/3 future-timestamp branch propagation; F-4/5 VP-066 assertions tightened + split; F-6/7 VP-066 wording + Notes; S-5.02 v2.1→v2.2; pass-3 ready |
+| S-5.02 pass-3 fix burst | state-manager | COMPLETE | 4 findings closed (PO+story-writer 4): F-P3-01 AC6 list aligned to 10 actual VP-066 tests; F-P3-02 VP-066 EC-001b test added + §1 wording updated for clock-skew clamp; F-P3-03 Story EC table EC-001→EC-001a + EC-001b row; F-P3-04 BC-4.05.001 EC-001c parse-failure row + Notes; S-5.02 v2.2→v2.3; pass-4 ready (NITPICK_ONLY target = CLEAN_PASS_1_OF_3) |
 
 ## Identifier Conventions
 
@@ -129,7 +130,7 @@ dtu_services: []
 - **Merged (40):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (4):** Tier F (S-5.03/5.04/5.06), Tier G/H TBD
-- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.2; 5 BCs + VP-066 + FR-046 anchored; pass-2 fix burst 7 findings closed; trajectory pass-1=11, pass-2=7)
+- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.3; 5 BCs + VP-066 + FR-046 anchored; pass-3 fix burst 4 findings closed; trajectory pass-1=11, pass-2=7, pass-3=4)
 
 ## Drift Items (open)
 
@@ -202,10 +203,10 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**S-5.02 pass-2 fix burst COMPLETE (2026-04-28).** 7 findings closed: PO closed F-1 (BC-4.05.004 EC-003 path convention drift; `.platform/darwin-arm64/hooks.json` → suffix-based `hooks.json.darwin-arm64`; production verified); TD-S5.02-PASS2 (BC-4.04.004 cross-story sibling fix; same path convention drift; spec-only correction); F-2 (S-5.02 AC2 + future-timestamp zero-default branch); F-3 (BC-4.05.001 future-timestamp propagation: Description, EC-001a/b split, canonical TV); F-4 (VP-066 duration_ms assertion tightened — positive + bounded); F-5 (VP-066 conflated EC-001/EC-002 test split into 3 distinct tests); F-6 (VP-066 §1 set-overlap wording); F-7 (BC-4.05.001 Notes deferral to BC-1.02.005). S-5.02 v2.1→v2.2. Trajectory: pass-1=11, pass-2=7. Healthy decay. 39 of 47 stories merged; develop @ 0257f03.
+**S-5.02 pass-3 fix burst COMPLETE (2026-04-28).** 4 findings closed (PO+story-writer): F-P3-01 (MED) AC6 list in S-5.02 aligned to 10 actual VP-066 tests — retired stale reference to `test_bc_4_05_001_missing_envelope_fields_emit_zero_defaults` (pre-pass-2 conflated form), added `test_bc_4_05_001_future_session_start_ts_emits_zero_duration` (EC-001b); F-P3-02 (MED) VP-066 new test `test_bc_4_05_001_future_session_start_ts_emits_zero_duration` added, §1 wording extended to cover absent OR future per BC-4.05.001 PC-2 (a)+(b); F-P3-03 (MED) Story Edge Cases table EC-001 ref corrected to EC-001a + new EC-001b future-timestamp row added; F-P3-04 (LOW) BC-4.05.001 Notes section updated with parse-failure semantics paragraph + EC-001c row for parse-failure case. S-5.02 v2.2→v2.3. Trajectory: pass-1=11, pass-2=7, pass-3=4. Healthy decay. 39 of 47 stories merged; develop @ 0257f03.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-5.02 adversarial pass-3** (immediate): dispatch adversary with S-5.02 v2.2 + BC-4.05.001/004 (pass-2 updated) + BC-4.04.004 (cross-story fix) + VP-066 (3 tests). Target: 0 substantive findings → convergence clock 1/3.
+- **S-5.02 adversarial pass-4** (immediate): dispatch adversary with S-5.02 v2.3 + BC-4.05.001 (EC-001c added) + VP-066 (10 tests; EC-001b test added). Target: NITPICK_ONLY → convergence clock 1/3.
 - **rc.1 shakedown** (highest priority): 14-day window; Release Engineer executes 11 deferred S-4.08 ACs; run `scripts/check-shakedown-window.sh` to validate BC-9.01.006 PC1-PC5; cut rc.1 tag + trigger Release.yml
 - **v1.0 GA prep** (after shakedown clean): S-5.02..S-5.07 (Tier G/H) or direct v1.0.0 release gating
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)
