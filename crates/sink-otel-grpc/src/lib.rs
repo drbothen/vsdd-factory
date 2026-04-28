@@ -405,18 +405,10 @@ impl OtelGrpcSink {
         &self.common
     }
 
-    /// Tag enrichment without clobbering producer-set fields. Mirrors
-    /// the [`sink_file`] policy: producer wins on collision.
-    fn enrich(&self, event: SinkEvent) -> SinkEvent {
-        let mut ev = event;
-        for (k, v) in &self.common.tags {
-            if !ev.fields.contains_key(k) {
-                ev.fields.insert(k.clone(), Value::String(v.clone()));
-            }
-        }
-        ev
-    }
 }
+// Note: OtelGrpcSink::enrich() removed in S-4.06 — tag enrichment is now
+// the Router's responsibility (BC-3.04.004 PC3). Events arrive at
+// OtelGrpcSink::submit() pre-enriched from Router::submit().
 
 impl Sink for OtelGrpcSink {
     fn name(&self) -> &str {
@@ -430,18 +422,27 @@ impl Sink for OtelGrpcSink {
         if self.shared.shutdown.load(Ordering::Acquire) {
             return false;
         }
-        if let Some(filter) = self.common.routing_filter.as_ref() {
-            let event_type = event.event_type().unwrap_or("");
-            return filter.accepts(event_type);
-        }
+        // NOTE: RoutingFilter evaluation removed per BC-3.04.004 invariant 1.
+        // Router is the single dispatch gate; OtelGrpcSink::accepts handles only
+        // enabled-flag and shutdown-state checks.
         true
+    }
+
+    fn routing_filter(&self) -> Option<&RoutingFilter> {
+        self.common.routing_filter.as_ref()
+    }
+
+    fn tags(&self) -> &BTreeMap<String, String> {
+        &self.common.tags
     }
 
     fn submit(&self, event: SinkEvent) {
         if !self.accepts(&event) {
             return;
         }
-        let enriched = self.enrich(event);
+        // Tag enrichment is now the Router's responsibility (BC-3.04.004 PC3).
+        // Events arrive pre-enriched from Router::submit.
+        let enriched = event;
         let guard = self.sender.lock().unwrap_or_else(|p| p.into_inner());
         let Some(sender) = guard.as_ref() else {
             // Post-shutdown submit is a no-op by trait contract.
@@ -1063,8 +1064,15 @@ mod tests {
         OtelGrpcSink::new(cfg).unwrap()
     }
 
+    // NOTE: routing_filter_drops_unmatched_events was updated in S-4.06.
+    // RoutingFilter evaluation was removed from OtelGrpcSink::accepts() per
+    // BC-3.04.004 invariant 1 (Router is the single dispatch gate). The test
+    // now verifies only the retained shutdown-state check in accepts().
+    // Router-layer filter coverage lives in:
+    //   crates/factory-dispatcher/src/sinks/router.rs::tests::
+    //     test_BC_3_04_004_routing_filter_applied_in_dispatch_path
     #[test]
-    fn routing_filter_drops_unmatched_events() {
+    fn accepts_returns_false_after_shutdown() {
         let cfg = OtelGrpcConfig {
             name: "filtered".into(),
             enabled: true,
@@ -1075,15 +1083,15 @@ mod tests {
             routing_filter: Some(RoutingFilter {
                 event_types_allow: vec!["commit.made".into()],
                 event_types_deny: vec![],
+                plugin_ids_allow: vec![],
             }),
             tags: BTreeMap::new(),
         };
         let sink = OtelGrpcSink::new(cfg).unwrap();
-        // Allowed.
+        // Enabled sink accepts all events (filter check is Router's responsibility).
         assert!(sink.accepts(&SinkEvent::new().insert("type", "commit.made")));
-        // Filtered out.
-        assert!(!sink.accepts(&SinkEvent::new().insert("type", "plugin.invoked")));
-        // Disabled in shutdown — flips accepts() to false.
+        assert!(sink.accepts(&SinkEvent::new().insert("type", "plugin.invoked")));
+        // Shutdown — flips accepts() to false.
         sink.shutdown();
         assert!(!sink.accepts(&SinkEvent::new().insert("type", "commit.made")));
     }

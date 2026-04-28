@@ -24,7 +24,7 @@
 pub mod retry;
 
 use serde::Deserialize;
-use sink_core::{DlqReason, DlqWriter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
+use sink_core::{DlqReason, DlqWriter, RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -557,11 +557,18 @@ impl Sink for HttpSink {
         if self.shared.shutdown.load(Ordering::Acquire) {
             return false;
         }
-        if let Some(filter) = self.common.routing_filter.as_ref() {
-            let event_type = event.event_type().unwrap_or("");
-            return filter.accepts(event_type);
-        }
+        // NOTE: RoutingFilter evaluation removed per BC-3.04.004 invariant 1.
+        // Router is the single dispatch gate; HttpSink::accepts handles only
+        // enabled-flag and shutdown-state checks.
         true
+    }
+
+    fn routing_filter(&self) -> Option<&RoutingFilter> {
+        self.common.routing_filter.as_ref()
+    }
+
+    fn tags(&self) -> &std::collections::BTreeMap<String, String> {
+        &self.common.tags
     }
 
     fn submit(&self, event: SinkEvent) {

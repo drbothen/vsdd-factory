@@ -1,24 +1,18 @@
-//! Sink registry + loader (S-1.8).
+//! # Sinks
 //!
-//! Parses `observability-config.toml` into a fleet of [`Sink`]
-//! implementations and fans submitted events out to every enabled sink
-//! whose [`Sink::accepts`] returns true. Driver types that are not yet
-//! implemented (HTTP / OTel / Datadog / Honeycomb — S-1.9 and S-4.x)
-//! are warned and skipped so config can forward-declare them without
-//! failing the dispatcher.
+//! Sink registry + loader for Router (S-4.06).
 //!
-//! TODO(integration): wire SinkRegistry into main.rs startup — this
-//! story deliberately keeps the dispatcher's synchronous main
-//! untouched. The follow-up integration commit will:
-//! 1. Construct the registry in `main()` once per dispatcher process.
-//! 2. Drain `HostContext.events` after each plugin call and
-//!    `submit_all` the result.
-//! 3. `flush_all` at tier boundaries and a final `flush_all` +
-//!    shutdown before `main` returns.
+//! The Router (`crates/factory-dispatcher/src/sinks/router.rs`) is the dispatch entry point;
+//! it applies RoutingFilter and tag enrichment before delegating to enabled sinks via
+//! SinkRegistry. Sink::accepts is now reduced to enabled-flag + shutdown-state checks
+//! (per BC-3.04.004 invariant 1; Router is the single dispatch gate).
 //!
-//! The present story exercises this surface only through
-//! `tests/sinks_file_integration.rs` so the contract is pinned before
-//! the wiring lands.
+//! ## Integration Status
+//!
+//! Router is the dispatch entry point at the API layer (Router::submit).
+//! Integration with `main.rs` (constructing the registry, draining HostContext.events,
+//! flushing at tier boundaries) remains a follow-up. See S-4.07 for E2E integration tests
+//! exercising Router::submit directly; main.rs wiring is tracked separately.
 
 use std::path::Path;
 use std::sync::Arc;
