@@ -130,7 +130,7 @@ dtu_services: []
 - **Merged (39):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (5):** Tier F (S-5.02/5.03/5.04/5.06), Tier G/H TBD
-- **Ready (1):** S-5.01 (Wave 13 foundation burst + S-5.01 pass-1..pass-9 fix-bursts complete — BC-4.04.001–005 + VP-065 + FR-046; BC-1.10.001/002 retired pass-4; 9 findings closed pass-7 via RESERVED_FIELDS surface widening; 5 findings closed pass-8; 5 findings closed pass-9: P9-01/02 BC-4.04.001 EC-003 imperative loop-and-halt pseudocode + defense-in-depth label; P9-03 VP-065 host-enriched assertions softened (presence+non-empty only, Option A); P9-04 ruling VP-065 envelope-match v1.1 candidate; P9-05 BC-4.04.005 EC-002 wording softened; P9-06 ADR-011 BC-1.05.012 cite cleanup; story v2.9)
+- **Ready (1):** S-5.01 (Wave 13 foundation burst + S-5.01 pass-1..pass-10 fix-bursts complete — BC-4.04.001–005 + VP-065 + FR-046; BC-1.10.001/002 retired pass-4; 9 findings closed pass-7 via RESERVED_FIELDS surface widening; 5 findings closed pass-8; 5 findings closed pass-9; 3 findings closed pass-10: P10-01 VP-065 §1 EC-003 defense-in-depth-only prose; P10-02 VP-065 §1 BC-1.05.012 non-empty hedge inline; P10-03 BC-4.04.001 EC-005 "host crate"→"plugin crate"; story v2.10)
 
 ## Drift Items (open)
 
@@ -201,10 +201,10 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**S-5.01 pass-9 fix-burst COMPLETE (ADV-S5.01-P09 closed, 2026-04-28).** 5 findings closed: P9-01/02 BC-4.04.001 EC-003 conditional→imperative loop-and-halt pseudocode + defense-in-depth-only label (whitelist exhaustion fallback tool_deps=null); P9-03 VP-065 host-enriched field assertions softened to presence+non-empty per architect Option A (envelope-match v1.1 candidate); P9-04 ruling VP-065 envelope-match for host-enriched fields → v1.1 candidate (no file edit); P9-05 BC-4.04.005 EC-002 test vector wording softened to v1.1 disclaimer level; P9-06 ADR-011 BC-1.05.012 cite cleanup distinguishing presence (unconditional .with_X) from non-empty (upstream-BC-conditional). S-5.01 v2.8 → v2.9; ADV-S5.01-P09 closed; pass-10 ready. 39 of 47 stories merged; develop @ 4c50d90.
+**S-5.01 pass-10 fix-burst COMPLETE (ADV-S5.01-P10 closed, 2026-04-28).** 3 findings closed: P10-01 (LOW) VP-065 §1 prose corrected — EC-003 is defense-in-depth-only (test fixture bypasses 64-char cap; canonical 5 keys × 64 bytes ≈ 387 bytes is under-budget by spec); P10-02 (NITPICK) VP-065 §1 line 59 now cites BC-1.05.012 non-empty hedge inline (dispatcher_trace_id/plugin_name/plugin_version non-empty is upstream-routing-layer-conditional); P10-03 (NITPICK) BC-4.04.001 EC-005 "host crate" → "plugin crate" (wasmtime parlance correction — host = factory-dispatcher, plugin = guest). S-5.01 v2.9 → v2.10; ADV-S5.01-P10 closed; pass-11 ready (expected NITPICK_ONLY → CLEAN_PASS_1_OF_3). 39 of 47 stories merged; develop @ 4c50d90.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-5.01 pass-10** (immediate): adversarial spec review pass-10 on v2.9
+- **S-5.01 pass-11** (immediate): adversarial spec review pass-11 on v2.10 (expected NITPICK_ONLY → CLEAN_PASS_1_OF_3)
 - **rc.1 shakedown** (highest priority): 14-day window; Release Engineer executes 11 deferred S-4.08 ACs; run `scripts/check-shakedown-window.sh` to validate BC-9.01.006 PC1-PC5; cut rc.1 tag + trigger Release.yml
 - **v1.0 GA prep** (after shakedown clean): S-5.01..S-5.07 (Tier G/H) or direct v1.0.0 release gating
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)
