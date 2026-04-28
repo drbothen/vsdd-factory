@@ -130,7 +130,7 @@ dtu_services: []
 - **Merged (39):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (5):** Tier F (S-5.02/5.03/5.04/5.06), Tier G/H TBD
-- **Ready (1):** S-5.01 (Wave 13 foundation burst + S-5.01 pass-1..pass-11 fix-bursts complete — BC-4.04.001–005 + VP-065 + FR-046; BC-1.10.001/002 retired pass-4; 9 findings closed pass-7 via RESERVED_FIELDS surface widening; 5 findings closed pass-8; 5 findings closed pass-9; 3 findings closed pass-10; 1 finding closed pass-11: P11-01 VP-065 line 242 todo! text aligned with §1 narrative — fixture must use per-value lengths > 64 bytes to bypass whitelist cap; story v2.11)
+- **Ready (1):** S-5.01 (Wave 13 foundation burst + S-5.01 pass-1..pass-12 fix-bursts complete — BC-4.04.001–005 + VP-065 + FR-046; BC-1.10.001/002 retired pass-4; 9 findings closed pass-7 via RESERVED_FIELDS surface widening; 5 findings closed pass-8; 5 findings closed pass-9; 3 findings closed pass-10; 1 finding closed pass-11: P11-01 VP-065 line 242 todo! text aligned with §1 narrative — fixture must use per-value lengths > 64 bytes to bypass whitelist cap; pass-12 = CLEAN_PASS_1_OF_3 NITPICK_ONLY; story v2.11)
 
 ## Drift Items (open)
 
@@ -201,10 +201,10 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**S-5.01 pass-11 fix-burst COMPLETE (ADV-S5.01-P11 closed, 2026-04-28).** 1 finding closed: P11-01 (LOW) VP-065 line 242 todo! text aligned with §1 narrative — fixture must use per-value lengths > 64 bytes (bypass whitelist cap) to construct an over-budget payload that triggers EC-003 eviction; pass-10 sibling-propagation gap (§1 prose corrected but inline test skeleton todo! still described 5 tools × 64 bytes — under-budget and incapable of triggering EC-003 eviction). S-5.01 v2.10 → v2.11; ADV-S5.01-P11 closed; pass-12 ready (expected NITPICK_ONLY → CLEAN_PASS_1_OF_3). 39 of 47 stories merged; develop @ 4c50d90.
+**ADV-S5.01-P12 = CLEAN_PASS_1_OF_3 (NITPICK_ONLY, 2026-04-28).** 0 substantive findings. All cross-document consistency checks passed: 5 BC frontmatter/body coherence; BC subsystem vs ARCH-INDEX (all SS-04); VP-065 cited in all 5 BC files; timeout hierarchy 5000<8000<10000 consistent; 8 RESERVED_FIELDS enumeration identical across docs; 6/4/4 plugin-set/host-enriched/construction-time provenance consistent; EC-003 defense-in-depth labeling consistent. Trajectory: 30→22→17→13→11→7→9→5→5→1→1→1→0. Need 2 more NITPICK_ONLY passes for ADR-013 convergence (pass-13 = CLEAN_PASS_2_OF_3 target). 39 of 47 stories merged; develop @ 4c50d90; S-5.01 v2.11.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-5.01 pass-12** (immediate): adversarial spec review pass-12 on v2.11 (expected NITPICK_ONLY → CLEAN_PASS_1_OF_3)
+- **S-5.01 pass-13** (immediate): adversarial spec review pass-13 on v2.11 (target CLEAN_PASS_2_OF_3; need 2 more clean passes for CONVERGENCE_REACHED per ADR-013)
 - **rc.1 shakedown** (highest priority): 14-day window; Release Engineer executes 11 deferred S-4.08 ACs; run `scripts/check-shakedown-window.sh` to validate BC-9.01.006 PC1-PC5; cut rc.1 tag + trigger Release.yml
 - **v1.0 GA prep** (after shakedown clean): S-5.01..S-5.07 (Tier G/H) or direct v1.0.0 release gating
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)
