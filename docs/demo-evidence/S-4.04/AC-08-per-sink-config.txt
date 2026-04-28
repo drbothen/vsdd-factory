@@ -1,0 +1,21 @@
+$ cargo test -p sink-core --test per_sink_config
+
+warning: function `test_BC_3_03_002_vp012_different_sinks_have_different_retry_configs` should have a snake case name
+  --> crates/sink-core/tests/per_sink_config.rs:12:4
+warning: function `test_BC_3_03_002_vp012_different_sinks_have_independent_circuit_breakers` should have a snake case name
+  --> crates/sink-core/tests/per_sink_config.rs:39:4
+warning: function `test_BC_3_03_002_per_sink_cooloff_independent` should have a snake case name
+  --> crates/sink-core/tests/per_sink_config.rs:61:4
+warning: function `test_BC_3_03_002_per_sink_max_retries_honoured_independently` should have a snake case name
+  --> crates/sink-core/tests/per_sink_config.rs:87:10
+warning: `sink-core` (test "per_sink_config") generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running tests/per_sink_config.rs (target/debug/deps/per_sink_config-c85fe2f1efae3628)
+
+running 4 tests
+test test_BC_3_03_002_vp012_different_sinks_have_different_retry_configs ... ok
+test test_BC_3_03_002_vp012_different_sinks_have_independent_circuit_breakers ... ok
+test test_BC_3_03_002_per_sink_cooloff_independent ... ok
+test test_BC_3_03_002_per_sink_max_retries_honoured_independently ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
