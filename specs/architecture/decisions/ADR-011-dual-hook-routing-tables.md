@@ -202,6 +202,49 @@ Invariant: `5000ms (subprocess) < 8000ms (dispatcher) < 10000ms (harness)`. Each
 has headroom for the layer below. Implementations MUST NOT violate this ordering; any
 change to one timeout must preserve the strict inequality.
 
+## Plugin Wire Format Constraints
+
+Two host-fn behaviors affect all future hook plugin implementations and verification harnesses.
+These constraints are not routing concerns (ADR-011's primary topic) but arise in every story that
+adds a new lifecycle plugin, so they are recorded here for discoverability.
+
+### emit_event String Coercion
+
+The `emit_event` host fn (`crates/factory-dispatcher/src/host/emit_event.rs:49`) coerces **all**
+plugin-supplied field values to `JSON strings` before storing them in the event:
+
+```rust
+ev = ev.with_field(&k, Value::String(v));
+```
+
+This applies to every field a plugin passes — integers, booleans, objects encoded as strings, and
+literal string values all arrive as `Value::String` on the wire. Downstream consumers (file sink
+readers, observability dashboards, integration test harnesses) MUST parse string values back to
+their semantic types.
+
+**Harness implication:** VP harnesses for any BC that specifies a typed field (integer, object,
+boolean) MUST use `.is_string()` assertions, not `.is_number()` / `.is_object()` / `.is_bool()`.
+A `.parse::<i64>()` round-trip is the correct way to range-check an integer field.
+
+**Future work:** A typed `emit_event_typed` ABI that preserves JSON types end-to-end is a v1.1
+candidate. Until that lands, all plugin-authored fields are strings on the wire.
+
+### dispatcher_trace_id Auto-Enrichment
+
+The `emit_event` host fn automatically injects `dispatcher_trace_id`, `session_id`,
+`plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, and `type` onto every
+emitted event from the `HostContext`. These fields are listed in `RESERVED_FIELDS`
+(`emit_event.rs:58-67`); any attempt by a plugin to set them is **silently dropped**.
+
+Plugins MUST NOT include `dispatcher_trace_id` in their required-fields lists. It is always
+present on every event by construction (DI-017 enforcement; BC-1.05.012). Integration harnesses
+that verify DI-017 compliance MUST assert `dispatcher_trace_id` on the emitted event at the
+*host enrichment layer* — not as a plugin-set field.
+
+**Harness implication:** For any VP that verifies trace correlation, assert
+`event["dispatcher_trace_id"].is_string()` (not `event["trace_id"]`). The field name is
+`dispatcher_trace_id` — the `trace_id` alias does not exist in the event schema.
+
 ## Source / Origin
 
 - **Master design doc:** `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md`

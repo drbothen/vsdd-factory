@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-4, v1.0-pass-5]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `SessionStart` event to the `session-start-telemetry.wasm` plugin via the `hooks.json.template` registration, the plugin emits a `session.started` event via the `emit_event` host function. The emitted event contains the canonical session telemetry payload: `session_id`, `factory_version`, `plugin_count`, `activated_platform`, `factory_health`, `tool_deps`, `timestamp`, and `trace_id`. The `trace_id` field is propagated from the incoming envelope's `dispatcher_trace_id` per DI-017 (BC-1.02.005). The `session.started` event-name literal is reserved per PRD FR-046.
+When the dispatcher routes a `SessionStart` event to the `session-start-telemetry.wasm` plugin via the `hooks.json.template` registration, the plugin emits a `session.started` event via the `emit_event` host function. The emitted event contains the canonical session telemetry payload: `session_id`, `factory_version`, `plugin_count`, `activated_platform`, `factory_health`, `tool_deps`, and `timestamp`. The `dispatcher_trace_id` correlation field is automatically injected by the `emit_event` host fn on every emitted event (per BC-1.05.012 enrichment; the plugin does not set it). The `session.started` event-name literal is reserved per PRD FR-046.
 
 ## Preconditions
 
@@ -44,12 +44,19 @@ When the dispatcher routes a `SessionStart` event to the `session-start-telemetr
 2. The emitted payload contains all required fields:
    - `session_id` (string) — value from the incoming envelope or `"unknown"` if missing
    - `factory_version` (string) — compile-time `env!("CARGO_PKG_VERSION")` from `crates/hook-plugins/session-start-telemetry/Cargo.toml`. This is the session-start-telemetry plugin's own crate version, which serves as a proxy for the factory version since the plugin is shipped with the factory binary. If factory and plugin versions diverge (e.g., a mismatched deployment), the plugin's compile-time version is reported — this is the authoritative value and the mismatch is an operator concern, not a plugin error.
-   - `plugin_count` (integer ≥ 0) — count of WASM plugins loaded in the dispatcher's `PluginCache` at the time of this `SessionStart` event (canonical source: SS-01 plugin cache)
-   - `activated_platform` (string) — platform identifier (e.g., `"darwin-arm64"`, `"linux-x64"`) read from `.claude/settings.local.json` key `vsdd-factory.activated_platform` via the `read_file` host fn by invoking `read_file(path = ".claude/settings.local.json", max_bytes = 65536, timeout_ms = 1000)` (`crates/factory-dispatcher/src/host/read_file.rs`). `max_bytes = 65536` (64 KB — generous for the small settings JSON file); `timeout_ms = 1000` (1 second — local file read; generous). The plugin declares `[hooks.capabilities.read_file]` with `path_allow = [".claude/settings.local.json"]` per BC-4.04.005. Failure modes (file missing, parse error, key absent, capability denied) → `activated_platform = "unknown"` (fail-open)
-   - `trace_id` (string) — propagated verbatim from the incoming `SessionStart` envelope's `dispatcher_trace_id` field (per BC-1.02.005); present on every emitted `session.started` event
+   - `plugin_count` (integer ≥ 0, semantic type) — count of WASM plugins loaded in the dispatcher's `PluginCache` at the time of this `SessionStart` event (canonical source: SS-01 plugin cache)
+   - `activated_platform` (string) — platform identifier (e.g., `"darwin-arm64"`, `"linux-x64"`) read from `.claude/settings.local.json` key `vsdd-factory.activated_platform` via the `read_file` host fn by invoking `read_file(path = ".claude/settings.local.json", max_bytes = 65536, timeout_ms = 1000)` (`crates/factory-dispatcher/src/host/read_file.rs`). `max_bytes = 65536` (64 KB — generous for the small settings JSON file); `timeout_ms = 1000` (1 second — local file read; advisory only — see §Notes). The plugin declares `[hooks.capabilities.read_file]` with `path_allow = [".claude/settings.local.json"]` per BC-4.04.005. Failure modes (file missing, parse error, key absent, capability denied) → `activated_platform = "unknown"` (fail-open)
    - `factory_health` (one of `"healthy"`, `"warnings"`, `"errors"`, `"unknown"`)
-   - `tool_deps` (`object | null`) — keys restricted to v1.0 whitelist `["git", "jq", "yq", "rustc", "cargo"]`; values are version strings (max 64 chars each); total payload ≤ 512 bytes measured as the JSON-serialized `tool_deps` object with no whitespace and lexicographically sorted keys (canonical `serde_json` default serialization); if the serialized form exceeds 512 bytes, keys are evicted in reverse-whitelist order (see EC-003)
+   - `tool_deps` (`object | null`, semantic type) — keys restricted to v1.0 whitelist `["git", "jq", "yq", "rustc", "cargo"]`; values are version strings (max 64 chars each); total payload ≤ 512 bytes measured as the JSON-serialized `tool_deps` object with no whitespace and lexicographically sorted keys (canonical `serde_json` default serialization); if the serialized form exceeds 512 bytes, keys are evicted in reverse-whitelist order (see EC-003)
    - `timestamp` (ISO-8601 UTC with millisecond precision and `Z` suffix; regex: `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; example: `2026-04-28T12:34:56.789Z`)
+
+   **Notes:**
+
+   **`dispatcher_trace_id` auto-enrichment (F-P6-01):** The `dispatcher_trace_id` field is NOT set by the plugin. It is automatically injected by the `emit_event` host fn on every emitted event from the `HostContext` (per `emit_event.rs` `.with_trace_id(&ctx.dispatcher_trace_id)`). The plugin has no responsibility for trace correlation; the host fn guarantees it unconditionally. Verification: assert `dispatcher_trace_id` is a non-empty string on the emitted event at the host layer (BC-1.05.012 scope). The plugin's required-fields list does not include `dispatcher_trace_id` — it is a dispatcher-owned identity field, part of the RESERVED_FIELDS set (`emit_event.rs` line 59), and would be silently dropped if the plugin attempted to set it.
+
+   **`read_file` `timeout_ms` is advisory in v1.0 (F-P6-02):** The `timeout_ms = 1000` argument passed to `read_file` is accepted by the ABI for stability but is currently discarded (`read_file.rs:36 — let _ = timeout_ms;`). The effective timeout for the file read is bounded by the dispatcher's epoch budget (8000ms per BC-4.04.005 Postcondition 5) rather than the per-call `timeout_ms`. Load-time `timeout_ms` enforcement via epoch interruption is a v1.1 candidate per S-1.5 epoch-interruption refinement (noted in the host fn source comment).
+
+   **Wire format — all field values are strings (F-P6-05):** The `emit_event` host fn coerces all field values to `JSON strings` on the wire (`emit_event.rs:49 — ev = ev.with_field(&k, Value::String(v))`). The semantic types listed above (`plugin_count` as integer, `tool_deps` as object) describe the INTENDED schema; on the wire all values are JSON strings (e.g., `plugin_count` arrives as `"12"`, `tool_deps` as `'{"git":"2.42.0"}'`). Downstream consumers (file sink readers, observability dashboards) MUST parse string values back to their semantic types. A typed `emit_event_typed` ABI is a v1.1 candidate.
 3. `session_id` in the emitted event matches the `session_id` from the incoming `SessionStart` envelope verbatim.
 4. The plugin returns `HookResult::Ok` (exit code 0) to the dispatcher.
 
@@ -73,7 +80,7 @@ When the dispatcher routes a `SessionStart` event to the `session-start-telemetr
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `SessionStart` envelope with `session_id = "sess-abc-123"`, `dispatcher_trace_id = "trace-abc-001"`, all runtime reads succeed | `session.started` emitted once; payload has `session_id = "sess-abc-123"`, `trace_id = "trace-abc-001"`, `factory_health` in `{"healthy","warnings","errors","unknown"}`, all required fields present (`session_id`, `factory_version`, `plugin_count`, `activated_platform`, `factory_health`, `tool_deps`, `timestamp`, `trace_id`), `timestamp` matches regex `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$` | happy-path |
+| `SessionStart` envelope with `session_id = "sess-abc-123"`, `dispatcher_trace_id = "trace-abc-001"`, all runtime reads succeed | `session.started` emitted once; payload has `session_id = "sess-abc-123"`, `dispatcher_trace_id = "trace-abc-001"` (auto-injected by `emit_event` host fn; plugin does not set this), `factory_health` in `{"healthy","warnings","errors","unknown"}`, all required plugin-set fields present (`session_id`, `factory_version`, `plugin_count`, `activated_platform`, `factory_health`, `tool_deps`, `timestamp`), `timestamp` matches regex `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$` | happy-path |
 | `SessionStart` envelope with `session_id = ""` (empty string) | `session.started` emitted once; payload has `session_id = "unknown"`; plugin is unconditionally stateless — no dedup at any layer (per BC-4.04.003); a second invocation with `session_id = "unknown"` also emits independently | edge-case |
 | `SessionStart` envelope with `session_id = "sess-xyz"`, `activated_platform` read returns error (missing key) | `session.started` emitted once; payload has `activated_platform = "unknown"`, `session_id = "sess-xyz"` | error |
 
@@ -111,7 +118,7 @@ VP-065
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-004 (capability denial emits audit event — applies to both exec_subprocess capability gate for factory-health AND read_file capability gate for activated_platform; capability denied for either maps to the respective "unknown" fallback per fail-open design); DI-007 (always-on self-telemetry — session.started is part of the always-on telemetry surface); DI-017 (dispatcher_trace_id on every emitted event — session.started carries trace_id from the incoming SessionStart envelope) |
+| L2 Domain Invariants | DI-004 (capability denial emits audit event — applies to both exec_subprocess capability gate for factory-health AND read_file capability gate for activated_platform; capability denied for either maps to the respective "unknown" fallback per fail-open design); DI-007 (always-on self-telemetry — session.started is part of the always-on telemetry surface); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set; plugin does not include trace_id in its required-fields list) |
 | Architecture Module | SS-04 — `crates/hook-plugins/session-start-telemetry/src/lib.rs` |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |

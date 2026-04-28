@@ -130,7 +130,7 @@ dtu_services: []
 - **Merged (39):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (5):** Tier F (S-5.02/5.03/5.04/5.06), Tier G/H TBD
-- **Ready (1):** S-5.01 (Wave 13 foundation burst + S-5.01 pass-1..pass-5 fix-bursts complete — BC-4.04.001–005 + VP-065 + FR-046; BC-1.10.001/002 retired pass-4; 11 findings closed pass-5; story v2.5)
+- **Ready (1):** S-5.01 (Wave 13 foundation burst + S-5.01 pass-1..pass-6 fix-bursts complete — BC-4.04.001–005 + VP-065 + FR-046; BC-1.10.001/002 retired pass-4; 7 findings closed pass-6 via ABI alignment; story v2.6)
 
 ## Drift Items (open)
 

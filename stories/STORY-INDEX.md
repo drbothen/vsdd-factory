@@ -100,7 +100,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status | Version |
 |----------|-------|------|--------|----------|------------|--------|---------|
-| S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | ready | 2.5 |
+| S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | ready | 2.6 |
 | S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | draft | -- |
 | S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | draft | -- |
 | S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | draft | -- |
