@@ -2767,6 +2767,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "sink-datadog"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "httpmock",
+ "serde",
+ "serde_json",
+ "sink-core",
+ "sink-http",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "sink-file"
 version = "0.0.1"
 dependencies = [

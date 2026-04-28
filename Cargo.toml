@@ -12,6 +12,7 @@ members = [
     "crates/sink-file",
     "crates/sink-otel-grpc",
     "crates/sink-http",
+    "crates/sink-datadog",
 ]
 
 [workspace.package]
