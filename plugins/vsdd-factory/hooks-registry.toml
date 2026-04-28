@@ -10,6 +10,20 @@
 
 schema_version = 1
 
+# ---------- SessionStart ----------
+
+[[hooks]]
+name = "session-start-telemetry"
+event = "SessionStart"
+plugin = "hook-plugins/session-start-telemetry.wasm"
+timeout_ms = 8000
+
+[hooks.capabilities.read_file]
+path_allow = [".claude/settings.local.json"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["factory-health"]
+
 # ---------- PostToolUse ----------
 
 [[hooks]]
