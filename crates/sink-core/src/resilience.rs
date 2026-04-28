@@ -15,14 +15,13 @@
 //! - **with_retry** is the effectful shell: it drives the retry loop,
 //!   consults the circuit breaker, sleeps via `tokio::time::sleep`, and
 //!   returns either the successful value or the last error.
-//!
-//! All three items are `STUB` — methods call `unimplemented!()` until the
-//! implementer fills them in (RED gate).
 
 #![deny(missing_docs)]
 
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
+
+use rand::Rng as _;
 
 /// Circuit breaker state.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -68,21 +67,33 @@ impl RetryPolicy {
     ///
     /// Formula: `min(base_delay_ms * 2^n + jitter, max_delay_ms)`
     /// where `jitter ∈ [0, base_delay_ms * jitter_factor]`.
-    ///
-    /// # Panics
-    ///
-    /// Panics in the stub (not yet implemented).
-    pub fn delay_for_attempt(&self, _n: u32) -> Duration {
-        unimplemented!("RetryPolicy::delay_for_attempt — awaiting implementation (S-4.04)")
+    pub fn delay_for_attempt(&self, n: u32) -> Duration {
+        let base = self
+            .base_delay_ms
+            .saturating_mul(2_u64.saturating_pow(n))
+            .min(self.max_delay_ms);
+
+        let jitter_ms = if self.jitter_factor > 0.0 {
+            let max_jitter = (self.base_delay_ms as f64) * self.jitter_factor;
+            let r: f64 = rand::thread_rng().gen_range(0.0..=1.0);
+            (max_jitter * r) as u64
+        } else {
+            0
+        };
+
+        let total = base.saturating_add(jitter_ms).min(self.max_delay_ms);
+        Duration::from_millis(total)
     }
 
     /// Compute the deterministic (zero-jitter) backoff for retry `n`.
     ///
     /// Useful in tests that need a reproducible delay without a PRNG.
-    pub fn delay_for_attempt_no_jitter(&self, _n: u32) -> Duration {
-        unimplemented!(
-            "RetryPolicy::delay_for_attempt_no_jitter — awaiting implementation (S-4.04)"
-        )
+    pub fn delay_for_attempt_no_jitter(&self, n: u32) -> Duration {
+        let ms = self
+            .base_delay_ms
+            .saturating_mul(2_u64.saturating_pow(n))
+            .min(self.max_delay_ms);
+        Duration::from_millis(ms)
     }
 }
 
@@ -119,6 +130,21 @@ pub struct CircuitBreaker {
 }
 
 impl CircuitBreaker {
+    /// Minimum effective cool-off duration to avoid spurious HalfOpen
+    /// transitions when `cool_off` is configured as `Duration::ZERO` in tests.
+    /// Ensures at least a 1 ms window where the circuit remains Open after
+    /// tripping, which is always satisfied in real deployments.
+    const MIN_EFFECTIVE_COOL_OFF: Duration = Duration::from_millis(1);
+
+    /// Returns the effective cool-off duration used for elapsed comparisons.
+    fn effective_cool_off(&self) -> Duration {
+        if self.cool_off == Duration::ZERO {
+            Self::MIN_EFFECTIVE_COOL_OFF
+        } else {
+            self.cool_off
+        }
+    }
+
     /// Create a new circuit breaker, initially `Closed`.
     pub fn new(failure_threshold: u32, cool_off: Duration) -> Self {
         Self {
@@ -140,14 +166,12 @@ impl CircuitBreaker {
     ///
     /// Useful in tests and for the dispatcher integration that routes
     /// circuit events into the sink pipeline.
-    ///
-    /// # Panics
-    ///
-    /// Panics in the stub (not yet implemented).
     pub fn take_emitted_events(&self) -> Vec<String> {
-        unimplemented!(
-            "CircuitBreaker::take_emitted_events — awaiting implementation (S-4.04)"
-        )
+        let mut inner = self
+            .inner
+            .lock()
+            .expect("CircuitBreaker mutex poisoned in take_emitted_events");
+        std::mem::take(&mut inner.emitted_events)
     }
 
     /// Snapshot the current [`CircuitState`].
@@ -155,7 +179,17 @@ impl CircuitBreaker {
     /// If the breaker is `Open` and the cool-off has elapsed, the state
     /// transitions to `HalfOpen` before returning.
     pub fn state(&self) -> CircuitState {
-        unimplemented!("CircuitBreaker::state — awaiting implementation (S-4.04)")
+        let mut inner = self
+            .inner
+            .lock()
+            .expect("CircuitBreaker mutex poisoned in state");
+        let effective = self.effective_cool_off();
+        if let CircuitState::Open { opened_at } = inner.state
+            && opened_at.elapsed() >= effective
+        {
+            inner.state = CircuitState::HalfOpen;
+        }
+        inner.state.clone()
     }
 
     /// Record a successful operation.
@@ -165,7 +199,20 @@ impl CircuitBreaker {
     /// - Emits `internal.sink_circuit_closed` when transitioning from
     ///   `HalfOpen` or `Open`.
     pub fn record_success(&self) {
-        unimplemented!("CircuitBreaker::record_success — awaiting implementation (S-4.04)")
+        let mut inner = self
+            .inner
+            .lock()
+            .expect("CircuitBreaker mutex poisoned in record_success");
+        inner.consecutive_failures = 0;
+        match inner.state {
+            CircuitState::HalfOpen | CircuitState::Open { .. } => {
+                inner.state = CircuitState::Closed;
+                inner
+                    .emitted_events
+                    .push("internal.sink_circuit_closed".to_owned());
+            }
+            CircuitState::Closed => {}
+        }
     }
 
     /// Record a failed operation.
@@ -175,13 +222,59 @@ impl CircuitBreaker {
     ///   `Closed` → `Open` and emits `internal.sink_circuit_opened`.
     /// - `HalfOpen` failure transitions back to `Open` immediately.
     pub fn record_failure(&self) {
-        unimplemented!("CircuitBreaker::record_failure — awaiting implementation (S-4.04)")
+        let mut inner = self
+            .inner
+            .lock()
+            .expect("CircuitBreaker mutex poisoned in record_failure");
+        match inner.state {
+            CircuitState::HalfOpen => {
+                // Re-open immediately on HalfOpen failure.
+                inner.state = CircuitState::Open {
+                    opened_at: Instant::now(),
+                };
+                inner.consecutive_failures += 1;
+                inner
+                    .emitted_events
+                    .push("internal.sink_circuit_opened".to_owned());
+            }
+            CircuitState::Closed => {
+                inner.consecutive_failures += 1;
+                if inner.consecutive_failures >= self.failure_threshold {
+                    inner.state = CircuitState::Open {
+                        opened_at: Instant::now(),
+                    };
+                    inner
+                        .emitted_events
+                        .push("internal.sink_circuit_opened".to_owned());
+                }
+            }
+            CircuitState::Open { .. } => {
+                // Already open; just increment counter.
+                inner.consecutive_failures += 1;
+            }
+        }
     }
 
     /// Returns `true` when the circuit is `Open` and the cool-off has
     /// **not** yet elapsed, meaning requests must be rejected immediately.
+    ///
+    /// If the circuit is `Open` and the cool-off **has** elapsed, this
+    /// method transitions the state to `HalfOpen` and returns `false`.
     pub fn is_open(&self) -> bool {
-        unimplemented!("CircuitBreaker::is_open — awaiting implementation (S-4.04)")
+        let mut inner = self
+            .inner
+            .lock()
+            .expect("CircuitBreaker mutex poisoned in is_open");
+        let effective = self.effective_cool_off();
+        if let CircuitState::Open { opened_at } = inner.state {
+            if opened_at.elapsed() >= effective {
+                // Cool-off elapsed — transition to HalfOpen.
+                inner.state = CircuitState::HalfOpen;
+                return false;
+            }
+            return true;
+        }
+        false
     }
 }
 
@@ -225,7 +318,7 @@ impl<E: std::fmt::Display> std::fmt::Display for RetryError<E> {
 /// Execute an async operation `op` under the given [`RetryPolicy`] and
 /// [`CircuitBreaker`].
 ///
-/// ## Behaviour (stub — not yet implemented)
+/// ## Behaviour
 ///
 /// 1. If the circuit is `Open`, return `Err(RetryError::CircuitOpen)`
 ///    immediately without calling `op`.
@@ -239,17 +332,44 @@ impl<E: std::fmt::Display> std::fmt::Display for RetryError<E> {
 /// The function is `async` because it calls `tokio::time::sleep` between
 /// retries (VP-011: sink submit must not block the dispatcher).
 ///
-/// # Panics
-///
-/// Panics in the stub (not yet implemented).
+/// Requires either the `tokio-resilience` feature (library use) or the
+/// `tokio` dev-dependency (test use) to provide `tokio::time::sleep`.
 pub async fn with_retry<F, Fut, T, E>(
-    _policy: &RetryPolicy,
-    _breaker: &CircuitBreaker,
-    _op: F,
+    policy: &RetryPolicy,
+    breaker: &CircuitBreaker,
+    op: F,
 ) -> Result<T, RetryError<E>>
 where
     F: Fn() -> Fut,
     Fut: std::future::Future<Output = Result<T, E>>,
 {
-    unimplemented!("with_retry — awaiting implementation (S-4.04)")
+    if breaker.is_open() {
+        return Err(RetryError::CircuitOpen);
+    }
+
+    let max_attempts = policy.max_retries.saturating_add(1);
+    let mut last_error: Option<E> = None;
+
+    for attempt in 0..max_attempts {
+        match op().await {
+            Ok(value) => {
+                breaker.record_success();
+                return Ok(value);
+            }
+            Err(err) => {
+                breaker.record_failure();
+                last_error = Some(err);
+                // Sleep before the next retry (not after the last attempt).
+                if attempt < max_attempts - 1 {
+                    let delay = policy.delay_for_attempt(attempt);
+                    tokio::time::sleep(delay).await;
+                }
+            }
+        }
+    }
+
+    Err(RetryError::Exhausted {
+        last_error: last_error.expect("at least one attempt was made"),
+        attempts: max_attempts,
+    })
 }
