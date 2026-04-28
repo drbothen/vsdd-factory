@@ -29,10 +29,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 38 |
+| merged | 39 |
 | partial | 2 |
 | draft | 6 |
-| ready | 1 |
+| ready | 0 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -92,7 +92,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | done | 2 (+ v1.1 candidates; CONVERGENCE_REACHED pass-48; v1.45; commit ac22a3d; PR #29 merged a84a5f5 on develop 2026-04-28) |
 | S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | done | 6 (BC-3.04.003, BC-3.04.004, BC-3.06.007 added; 5 lifecycle updated; PR #30 merged 6ef564c on develop 2026-04-28) |
 | S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | done | 16 (PR #31 merged 1d4edb7 on develop 2026-04-28; spec v1.11 4c0050c; 8 adversarial passes; 40/40 tests in 5.09s) |
-| S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | ready | 5 |
+| S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | done | 5 (PR #32 merged d7eae89 on develop 2026-04-28; spec v1.16 62f7297; 17-pass spec convergence; 6 testable-now ACs RED→GREEN; 11 deferred-to-shakedown; D-133) |
 | S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | merged | 1 |
 | S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | merged | 1 |
 
@@ -141,6 +141,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **S-4.06 routing filters + tag enrichment delivered: PR #30 merged to develop at 6ef564c (2026-04-28).** 9/9 ACs verified; 264 workspace tests pass; 0 regressions. Spec v1.10, 10 adversarial passes (CONVERGED d7b29dc). 2 code-review cycles (cycle 1 fixed sink-http+honeycomb missing routing_filter/tags; cycle 2 APPROVE). 3 new BCs (BC-3.04.003, BC-3.04.004, BC-3.06.007); 5 BCs lifecycle updated. STORY-INDEX merged 36→37; ready 3→2. Wave 12 remaining: S-4.07 (13pts critical-path), S-4.08 (5pts) — 18/28 pts remaining.
 
 > **S-4.07 E2E observability integration tests delivered: PR #31 merged to develop at 1d4edb7 (2026-04-28).** 16/16 ACs verified; 40/40 integration tests pass in 5.09s; 0 regressions. Spec v1.11 at 4c0050c, 8 adversarial passes (CONVERGED). 1 code-review cycle (immediate APPROVE; 0 blocking). rc.1 critical-path unblocked. STORY-INDEX merged 37→38; ready 2→1. Wave 12 remaining: S-4.08 (5pts rc.1 gate) — 23/28 pts done.
+
+> **S-4.08 rc.1 release gate delivered: PR #32 merged to develop at d7eae89 (2026-04-28).** 6 testable-now ACs RED→GREEN; 17 regression-guards GREEN; 11 deferred-to-shakedown. Spec v1.16 at 62f7297, 17 adversarial passes (CONVERGED). 1 code-review cycle (immediate APPROVE; 0 blocking). STORY-INDEX merged 38→39; ready 1→0. **Wave 12 COMPLETE: 28/28 pts shipped.** (D-133)
+
+> **Wave 12 CLOSED (2026-04-28) — 28/28 pts, 4 stories, 4 PRs, 83 total adversarial spec passes:** S-4.05 DLQ (PR #29 a84a5f5; 5pts; 48-pass convergence — longest in project history); S-4.06 routing+enrich (PR #30 6ef564c; 3pts+5pts; 10-pass convergence); S-4.07 E2E obs tests (PR #31 1d4edb7; 13pts; 8-pass convergence; rc.1 critical-path); S-4.08 rc.1 release gate (PR #32 d7eae89; 5pts; 17-pass convergence). ~165+ findings closed across ~50 fix bursts. 4 PRs merged in single session — zero rollbacks. 11 S-4.08 ACs deferred to shakedown (RC Engineer executes at rc.1 cut time).
 
 > **Wave 11 SS-03 fully closed at develop@ccf34e6 (2026-04-27).** PRs merged this session: #18 (S-4.01), #20 (S-3.01), #21 (S-3.02), S-3.03 ports (4229648), #22 (Semgrep SAST), #23 (S-4.04 retry+CB), #24 (S-4.02 datadog), #25 (S-4.03 honeycomb), #26 (docs), #27 (S-4.09 backoff), #28 (S-4.10 cross-sink emission). 9 stories shipped + 1 docs + 1 SAST = 11 PRs. STORY-INDEX merged 33 → 35. Wave 12 also fully closed (S-4.02/03/04). S-4.07 (E2E integration) now waits only on S-4.05 + S-4.06 spec convergence + impl. Worktrees cleaned up: /private/tmp/vsdd-S-3.01, S-3.02, S-3.03 (Wave 11 first batch); /private/tmp/vsdd-S-4.02, S-4.03, S-4.04 (Wave 12); /private/tmp/vsdd-S-4.09, S-4.10 (Wave 11 close). Local repo now shows only develop + .factory/ + harness-managed agent worktrees.
 

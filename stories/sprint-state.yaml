@@ -9,12 +9,12 @@ next_milestone: 1.0.0-rc.1
 # Story counts by status
 stories:
   total: 47
-  merged: 38
+  merged: 39
   partial: 2
   draft: 6
-  ready: 1
+  ready: 0
   blocked: 0
-  in_progress: 0   # S-4.07 (PR #31 1d4edb7) merged 2026-04-28; Wave 12 final story S-4.08 remaining
+  in_progress: 0   # Wave 12 COMPLETE: all 4 stories shipped; 11 S-4.08 ACs deferred to shakedown
 
 # Epic completion summary
 epics:
@@ -57,13 +57,13 @@ epics:
   E-4:
     name: Observability Sinks and RC Release
     stories: 10   # +S-4.09 +S-4.10 (Wave 11 SS-03)
-    status: in_progress
+    status: closed
     milestone: 1.0.0-rc.1
-    merged: 9   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28)
+    merged: 10   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28)
     partial: 0
     draft: 0
-    ready: 1    # S-4.08 (CONVERGENCE_REACHED pass-17; 2026-04-28)
-    # remaining: S-4.08 (rc.1 gate; blocked on 2-week shakedown)
+    ready: 0
+    # Wave 12 COMPLETE: 28/28 pts shipped; 11 S-4.08 ACs deferred to shakedown (release-engineer)
 
   E-5:
     name: New Hook Events and 1.0.0 Release
@@ -74,15 +74,14 @@ epics:
     partial: 1   # S-5.05 migration guide skeleton
     draft: 6
 
-# Point totals (updated 2026-04-28 after S-4.07 delivery)
+# Point totals (updated 2026-04-28 after S-4.08 delivery; Wave 12 COMPLETE)
 points:
   total: 207
-  merged: 140   # 38 merged stories; +13pts (S-4.07) over prior 127
-  remaining: 67
+  merged: 145   # 39 merged stories; +5pts (S-4.08) over prior 140
+  remaining: 62
 
-# Current work frontier (stories unblocked, 2026-04-28 after S-4.07 delivery)
-frontier:
-  - S-4.08  # rc.1 gate — ready; blocked on 2-week shakedown (S-4.07 now done)
+# Current work frontier (stories unblocked, 2026-04-28 after Wave 12 close)
+frontier: []   # Wave 12 COMPLETE; all Wave 12 stories done; next: rc.1 shakedown (release-engineer)
 
 # Shipped releases (for reference)
 releases:
