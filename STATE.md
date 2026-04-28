@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-28 (S-5.02 pass-6 fix burst — 2 propagation gaps closed; v2.5→v2.6; Story EC-001c row narrowed to mirror BC; VP-066 task numbers corrected; trajectory 11→7→4→4→2→2; pass-7 ready NITPICK_ONLY=CLEAN_PASS_1_OF_3 target) |
+| **Last Updated** | 2026-04-28 (S-5.02 pass-7 = CLEAN_PASS_1_OF_3 NITPICK_ONLY; 0 substantive findings; no spec changes; trajectory 11→7→4→4→2→2→0; pass-8 ready = CLEAN_PASS_2_OF_3 target) |
 | **Current Phase** | wave-9-ss-01-CONVERGED-cycle-re-anchor-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -129,7 +129,7 @@ dtu_services: []
 - **Merged (40):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28)
 - **Partial (2):** S-2.05 (cargo publish dry-run), S-5.05 (skeleton)
 - **Draft / Not Shipped (4):** Tier F (S-5.03/5.04/5.06), Tier G/H TBD
-- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.6; 5 BCs + VP-066 + FR-046 anchored; pass-6 fix burst 2 propagation gaps closed; trajectory 11→7→4→4→2→2)
+- **Ready (1):** S-5.02 (SessionEnd hook wiring; v2.6; 5 BCs + VP-066 + FR-046 anchored; pass-7 = CLEAN_PASS_1_OF_3 NITPICK_ONLY; trajectory 11→7→4→4→2→2→0)
 
 ## Drift Items (open)
 
@@ -202,10 +202,10 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**S-5.02 pass-6 fix burst COMPLETE (2026-04-28).** 2 propagation gaps closed (PO 2): F-P6-01 (HIGH) Story EC-001c row narrowed to mirror BC pass-5 narrowing (description changed from "wrong type" to "empty string or non-string-type value" + added out-of-scope note for non-string-type envelope values deferred to v1.1); F-P6-02 (MED) VP-066 Notes task numbers corrected (Task 4→3 for hooks.json.template reference; Task 6→5 for hooks-registry.toml reference). S-5.02 v2.5→v2.6. Trajectory: 11→7→4→4→2→2. 40 of 47 stories merged; develop @ 0257f03.
+**S-5.02 pass-7 CLEAN_PASS_1_OF_3 (2026-04-28).** ADV-S5.02-P07: 0-substantive — NITPICK_ONLY — CLEAN_PASS_1_OF_3. No spec changes; no fix burst. Pass-6 fixes (EC-001c row narrowing + VP-066 task number correction) propagated cleanly across story, BC-4.05.001, VP-066. Trajectory: 11→7→4→4→2→2→0. Need 2 more NITPICK_ONLY passes for CONVERGENCE_REACHED per ADR-013. 40 of 47 stories merged; develop @ 0257f03.
 
 **Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **S-5.02 adversarial pass-7** (immediate): dispatch adversary with S-5.02 v2.6 + BC-4.05.001 (Inv 4+5 split; PC-2(c) narrowed; EC-001c narrowed; Story EC-001c row propagated) + VP-066 (§1 narrowed; task numbers corrected). Target: NITPICK_ONLY = CLEAN_PASS_1_OF_3.
+- **S-5.02 adversarial pass-8** (immediate): dispatch adversary with S-5.02 v2.6 (no changes since pass-7). Target: NITPICK_ONLY = CLEAN_PASS_2_OF_3.
 - **rc.1 shakedown** (highest priority): 14-day window; Release Engineer executes 11 deferred S-4.08 ACs; run `scripts/check-shakedown-window.sh` to validate BC-9.01.006 PC1-PC5; cut rc.1 tag + trigger Release.yml
 - **v1.0 GA prep** (after shakedown clean): S-5.02..S-5.07 (Tier G/H) or direct v1.0.0 release gating
 - **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open)
