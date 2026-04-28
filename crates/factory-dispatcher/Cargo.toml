@@ -31,7 +31,9 @@ wasmtime-wasi.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 sink-core = { path = "../sink-core", version = "0.0.1" }
+sink-datadog = { path = "../sink-datadog", version = "0.0.1" }
 sink-file = { path = "../sink-file", version = "0.0.1" }
+sink-honeycomb = { path = "../sink-honeycomb", version = "0.0.1" }
 sink-http = { path = "../sink-http", version = "0.0.1" }
 sink-otel-grpc = { path = "../sink-otel-grpc", version = "0.0.1" }
 
@@ -46,3 +48,5 @@ tokio.workspace = true
 tonic.workspace = true
 tokio-stream.workspace = true
 opentelemetry-proto.workspace = true
+# S-4.07 integration tests: mock HTTP server for datadog/honeycomb/http sinks.
+httpmock.workspace = true

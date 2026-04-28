@@ -19,7 +19,9 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 use sink_core::{DlqWriter, DlqWriterConfig, Sink, SinkDlqEvent, SinkEvent};
+use sink_datadog::{DatadogSink, DatadogSinkConfig};
 use sink_file::{FileSink, FileSinkConfig};
+use sink_honeycomb::{HoneycombSink, HoneycombSinkConfig};
 use sink_http::{HttpSink, HttpSinkConfig};
 use sink_otel_grpc::{OtelGrpcConfig, OtelGrpcSink};
 use thiserror::Error;
@@ -352,9 +354,53 @@ impl SinkRegistry {
                     let sink = OtelGrpcSink::new(cfg)?;
                     sinks.push(Box::new(sink));
                 }
+                "datadog" => {
+                    // S-4.02: Datadog Logs Intake sink. Build a DatadogSinkConfig
+                    // from the stanza's extra fields and common name.
+                    let mut merged = stanza.extra.clone();
+                    merged.insert("name".into(), toml::Value::String(stanza.name.clone()));
+                    merged.insert("schema_version".into(), toml::Value::Integer(1));
+                    merged.insert("type".into(), toml::Value::String("datadog".into()));
+                    let toml_str = toml::to_string(&merged).map_err(|e| {
+                        anyhow::anyhow!("datadog sink '{}' config serialization: {}", stanza.name, e)
+                    })?;
+                    let dd_cfg = DatadogSinkConfig::from_toml(&toml_str)
+                        .map_err(|e| {
+                            anyhow::anyhow!("datadog sink '{}' config invalid: {}", stanza.name, e)
+                        })?
+                        .ok_or_else(|| {
+                            anyhow::anyhow!(
+                                "datadog sink '{}' config returned None (unexpected type)",
+                                stanza.name
+                            )
+                        })?;
+                    let sink = DatadogSink::new(dd_cfg)?;
+                    sinks.push(Box::new(sink));
+                }
+                "honeycomb" => {
+                    // S-4.03: Honeycomb Events API sink.
+                    let mut merged = stanza.extra.clone();
+                    merged.insert("name".into(), toml::Value::String(stanza.name.clone()));
+                    merged.insert("type".into(), toml::Value::String("honeycomb".into()));
+                    let toml_str = toml::to_string(&merged).map_err(|e| {
+                        anyhow::anyhow!("honeycomb sink '{}' config serialization: {}", stanza.name, e)
+                    })?;
+                    let hc_cfg = HoneycombSinkConfig::from_toml(&toml_str)
+                        .map_err(|e| {
+                            anyhow::anyhow!("honeycomb sink '{}' config invalid: {}", stanza.name, e)
+                        })?
+                        .ok_or_else(|| {
+                            anyhow::anyhow!(
+                                "honeycomb sink '{}' config returned None (unexpected type)",
+                                stanza.name
+                            )
+                        })?;
+                    let sink = HoneycombSink::new(hc_cfg)?;
+                    sinks.push(Box::new(sink));
+                }
                 other => {
                     eprintln!(
-                        "factory-dispatcher: unknown sink type '{}' (stanza '{}'); skipping. Supported in v1.0-beta.1: file, otel-grpc",
+                        "factory-dispatcher: unknown sink type '{}' (stanza '{}'); skipping. Supported in v1.0-beta.1: file, otel-grpc, datadog, honeycomb",
                         other, stanza.name
                     );
                 }
@@ -422,10 +468,13 @@ mod tests {
 
     #[test]
     fn load_warns_on_unknown_sink_type_but_still_succeeds() {
+        // Use 'splunk' as the unknown-type example per BC-3.01.002 BCs to Update
+        // (datadog is now a real driver in v1.0-beta.1 per S-4.02; using it here
+        // would create a false negative — it would be recognized, not warned about).
         let cfg = ObservabilityConfig {
             schema_version: 1,
             sinks: vec![SinkStanza {
-                type_: "datadog".into(),
+                type_: "splunk".into(),
                 name: "not-yet-implemented".into(),
                 dlq_enabled: true,
                 extra: toml::value::Table::new(),
