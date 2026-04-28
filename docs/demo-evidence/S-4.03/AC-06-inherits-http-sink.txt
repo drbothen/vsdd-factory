@@ -1,0 +1,22 @@
+$ cargo test -p sink-honeycomb --test integration_inherits_http_sink
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+
+warning: function `test_VP_011_submit_returns_before_http_round_trip` should have a snake case name
+  --> crates/sink-honeycomb/tests/integration_inherits_http_sink.rs:32:4
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+[... 4 more non_snake_case warnings for VP/BC-prefixed test names ...]
+
+warning: `sink-honeycomb` (test "integration_inherits_http_sink") generated 5 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running tests/integration_inherits_http_sink.rs (target/debug/deps/integration_inherits_http_sink-e154958454e4198a)
+
+running 5 tests
+test test_VP_012_network_failure_isolated_to_sink ... ok
+test test_VP_011_submit_returns_before_http_round_trip ... ok
+test test_BC_3_01_001_flush_blocks_until_post_complete ... ok
+test test_VP_011_overflow_drops_without_blocking ... ok
+test test_BC_3_01_001_inherits_5xx_retry_from_http_sink ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s

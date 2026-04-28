@@ -2797,6 +2797,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "sink-honeycomb"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "httpmock",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sink-core",
+ "sink-http",
+ "tokio",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "sink-http"
 version = "0.0.1"
 dependencies = [

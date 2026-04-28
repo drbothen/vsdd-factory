@@ -1,0 +1,35 @@
+$ cargo test -p sink-honeycomb --test contract_sink_trait
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+
+warning: function `test_BC_3_01_001_honeycomb_sink_is_send_sync` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_sink_trait.rs:18:4
+   |
+18 | fn test_BC_3_01_001_honeycomb_sink_is_send_sync() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `test_bc_3_01_001_honeycomb_sink_is_send_sync`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_3_01_001_honeycomb_sink_implements_sink_trait` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_sink_trait.rs:24:4
+
+warning: function `test_BC_3_01_001_honeycomb_sink_name_returns_configured_name` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_sink_trait.rs:45:4
+
+warning: function `test_VP_011_submit_is_non_blocking` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_sink_trait.rs:63:4
+
+warning: function `test_VP_012_sink_failure_isolated_per_sink_instance` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_sink_trait.rs:85:4
+
+warning: `sink-honeycomb` (test "contract_sink_trait") generated 5 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+     Running tests/contract_sink_trait.rs (target/debug/deps/contract_sink_trait-299534df8d07d332)
+
+running 5 tests
+test test_BC_3_01_001_honeycomb_sink_is_send_sync ... ok
+test test_BC_3_01_001_honeycomb_sink_implements_sink_trait ... ok
+test test_BC_3_01_001_honeycomb_sink_name_returns_configured_name ... ok
+test test_VP_012_sink_failure_isolated_per_sink_instance ... ok
+test test_VP_011_submit_is_non_blocking ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s

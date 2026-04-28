@@ -1,0 +1,24 @@
+$ cargo test -p sink-honeycomb --test integration_post_batch
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+
+warning: function `test_BC_3_01_001_events_posted_to_correct_path` should have a snake case name
+  --> crates/sink-honeycomb/tests/integration_post_batch.rs:31:4
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+[... 6 more non_snake_case warnings for BC-prefixed test names ...]
+
+warning: `sink-honeycomb` (test "integration_post_batch") generated 7 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running tests/integration_post_batch.rs (target/debug/deps/integration_post_batch-0d3b925f45b78760)
+
+running 7 tests
+test test_BC_3_01_001_events_posted_as_json_array ... ok
+test test_BC_3_01_001_each_event_has_time_field_rfc3339 ... ok
+test test_BC_3_01_001_ec002_retry_on_429_rate_limit ... ok
+test test_BC_3_01_001_events_posted_to_correct_path ... ok
+test test_BC_3_01_001_missing_ts_epoch_uses_wall_clock_time ... ok
+test test_BC_3_01_001_batch_of_multiple_events_posted_in_one_request ... ok
+test test_BC_3_01_001_time_field_rfc3339_format_from_ts_epoch ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s

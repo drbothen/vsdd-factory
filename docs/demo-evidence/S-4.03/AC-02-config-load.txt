@@ -1,0 +1,28 @@
+$ cargo test -p sink-honeycomb --test contract_config_load
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+
+warning: function `test_BC_3_06_005_valid_config_returns_some` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_config_load.rs:15:4
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+[... 10 more non_snake_case warnings for BC/VP-prefixed test names ...]
+
+warning: `sink-honeycomb` (test "contract_config_load") generated 11 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running tests/contract_config_load.rs (target/debug/deps/contract_config_load-5b4e077905cade8b)
+
+running 11 tests
+test test_BC_3_06_005_enabled_false_parsed_correctly ... ok
+test test_BC_3_06_005_unknown_type_returns_none ... ok
+test test_BC_3_06_005_http_type_returns_none ... ok
+test test_BC_3_06_005_valid_config_returns_some ... ok
+test test_BC_3_06_005_enabled_defaults_to_true ... ok
+test test_BC_3_06_005_rejects_whitespace_only_dataset ... ok
+test test_BC_3_06_005_rejects_empty_api_key ... ok
+test test_BC_3_06_005_rejects_whitespace_only_api_key ... ok
+test test_BC_3_06_005_rejects_empty_dataset_ec001 ... ok
+test test_BC_3_06_005_rejects_missing_dataset_ec001 ... ok
+test test_BC_3_06_005_rejects_missing_api_key ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
