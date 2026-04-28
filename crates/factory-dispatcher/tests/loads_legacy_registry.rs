@@ -1,16 +1,18 @@
-//! Validates that the auto-generated `plugins/vsdd-factory/hooks-registry.toml`
-//! parses cleanly through the production `Registry::load` codepath. The
-//! registry is produced by `scripts/generate-registry-from-hooks-json.sh`
-//! (S-2.2); this test is the schema-side gate that the generator
-//! output is structurally sound.
+//! Validates that `plugins/vsdd-factory/hooks-registry.toml` parses cleanly
+//! through the production `Registry::load` codepath.
+//!
+//! The registry is now a permanent, human-edited file that contains both
+//! native WASM hook entries (capture-commit-activity, capture-pr-activity,
+//! block-ai-attribution — ported in S-3.01/S-3.02/S-3.03) and legacy-bash-
+//! adapter entries for hooks that have not yet been ported. The v0.79.x →
+//! v1.0 migration that required all entries to route through the bash adapter
+//! is complete; the generator script is retired.
 //!
 //! What this test does NOT cover (deliberate scope cut):
-//!   * Whether each entry's `script_path` resolves to an extant `.sh` —
-//!     the bats suite at `plugins/vsdd-factory/tests/generate-registry.bats`
-//!     owns that check, since it's a filesystem invariant tied to the
-//!     plugin layout, not the registry schema.
-//!   * Whether the legacy-bash-adapter actually runs the script — that's
-//!     the adapter's own integration suite (S-2.1).
+//!   * Whether each bash-adapter entry's `script_path` resolves to an extant
+//!     `.sh` — the bats suite at `plugins/vsdd-factory/tests/` owns that.
+//!   * Whether the legacy-bash-adapter actually runs the script — that's the
+//!     adapter's own integration suite (S-2.1).
 
 use factory_dispatcher::registry::{REGISTRY_SCHEMA_VERSION, Registry};
 use std::path::PathBuf;
@@ -55,51 +57,4 @@ fn loads_generated_registry_from_disk() {
          generator for a duplicated emit",
         registry.hooks.len()
     );
-}
-
-#[test]
-fn every_entry_routes_through_legacy_bash_adapter() {
-    let registry = Registry::load(&registry_path()).unwrap();
-    for entry in &registry.hooks {
-        let plugin = entry
-            .plugin
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or("");
-        assert_eq!(
-            plugin, "legacy-bash-adapter.wasm",
-            "entry {:?} routes through {} — every v0.79.x hook should \
-             go through the bash adapter at this point in the migration",
-            entry.name, plugin
-        );
-    }
-}
-
-#[test]
-fn every_entry_carries_a_script_path() {
-    // legacy-bash-adapter (S-2.1) demands `plugin_config.script_path`;
-    // the generator must emit it for every entry or the adapter will
-    // refuse the payload at runtime. Catch that at registry-load time
-    // rather than waiting for the first hook fire.
-    let registry = Registry::load(&registry_path()).unwrap();
-    for entry in &registry.hooks {
-        let cfg_json = entry.config_as_json();
-        let script_path = cfg_json
-            .get("script_path")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
-        assert!(
-            !script_path.is_empty(),
-            "entry {:?} has empty config.script_path — \
-             legacy-bash-adapter will refuse this entry",
-            entry.name
-        );
-        assert!(
-            script_path.starts_with("hooks/") && script_path.ends_with(".sh"),
-            "entry {:?} script_path={:?} should be `hooks/<name>.sh` \
-             (relative to ${{CLAUDE_PLUGIN_ROOT}})",
-            entry.name,
-            script_path
-        );
-    }
 }
