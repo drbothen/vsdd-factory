@@ -55,7 +55,11 @@ impl SinkErrorEvent {
     ) -> Self {
         let sink_name = {
             let raw = sink_name_raw.into();
-            if raw.is_empty() { "<unnamed>".to_owned() } else { raw }
+            if raw.is_empty() {
+                "<unnamed>".to_owned()
+            } else {
+                raw
+            }
         };
         Self {
             r#type: "internal.sink_error",
@@ -79,12 +83,11 @@ impl SinkErrorEvent {
 /// **before** calling this function to avoid holding the lock across the
 /// channel operation (S-4.10 previous-story intelligence note).
 pub fn emit_sink_error(tx: &mpsc::Sender<SinkErrorEvent>, event: SinkErrorEvent) {
-    // Stub: implementation wires this into each driver's failure-recording
-    // site. Until the drivers call emit_sink_error, this function body is
-    // intentionally left as a no-op so the RED gate tests can compile and
-    // fail for the right behavioral reason (channel remains empty).
-    let _ = tx;
-    let _ = event;
+    // Fire-and-forget: try_send is non-blocking. If the channel is full or
+    // closed, the error is silently discarded (.ok()). The sink never panics
+    // and never fails to record SinkFailure because of an emission error
+    // (BC-3.07.002 postcondition 3, VP-007).
+    let _ = tx.try_send(event);
 }
 
 #[cfg(test)]
@@ -110,7 +113,11 @@ mod tests {
     /// BC-3.07.002 postcondition 1: `sink_type` field carries the driver kind.
     #[test]
     fn test_BC_3_07_002_sink_type_carries_driver_kind() {
-        for (driver, expected) in [("http", "http"), ("otel-grpc", "otel-grpc"), ("file", "file")] {
+        for (driver, expected) in [
+            ("http", "http"),
+            ("otel-grpc", "otel-grpc"),
+            ("file", "file"),
+        ] {
             let ev = SinkErrorEvent::new("s", driver, "err", 0);
             assert_eq!(
                 ev.sink_type, expected,

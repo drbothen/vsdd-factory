@@ -24,7 +24,7 @@
 pub mod retry;
 
 use serde::Deserialize;
-use sink_core::{Sink, SinkConfigCommon, SinkEvent};
+use sink_core::{Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -396,14 +396,22 @@ struct Shared {
     failures: Mutex<Vec<SinkFailure>>,
     queue_full_count: AtomicU64,
     shutdown: std::sync::atomic::AtomicBool,
+    /// Operator-assigned sink name for `internal.sink_error` events (AC-009).
+    sink_name: String,
+    /// Optional fire-and-forget channel for `internal.sink_error` events
+    /// (BC-3.07.002). `None` when no error channel is wired in (e.g. tests
+    /// that exercise BC-3.01.008 recording only).
+    error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
 }
 
 impl Shared {
-    fn new() -> Self {
+    fn new(sink_name: String, error_tx: Option<mpsc::Sender<SinkErrorEvent>>) -> Self {
         Self {
             failures: Mutex::new(Vec::new()),
             queue_full_count: AtomicU64::new(0),
             shutdown: std::sync::atomic::AtomicBool::new(false),
+            sink_name,
+            error_tx,
         }
     }
 }
@@ -427,9 +435,37 @@ impl HttpSink {
     ///
     /// Starts the background worker thread that consumes the internal queue
     /// and POSTs batches to the configured URL.
+    ///
+    /// `error_tx` is an optional sender for `internal.sink_error` events
+    /// (BC-3.07.002). Pass `None` when no emission channel is available
+    /// (e.g. tests that only check BC-3.01.008 failure recording). When
+    /// `Some`, emission is fire-and-forget via `try_send` on the worker thread
+    /// at each failure-recording site.
     pub fn new(config: HttpSinkConfig) -> anyhow::Result<Self> {
+        Self::new_inner(config, None)
+    }
+
+    /// Like [`Self::new`] but threads an error-event channel sender into the
+    /// sink's shared state. The dispatcher calls this variant to wire
+    /// `internal.sink_error` emission (BC-3.07.002).
+    pub fn new_with_error_channel(
+        config: HttpSinkConfig,
+        error_tx: mpsc::Sender<SinkErrorEvent>,
+    ) -> anyhow::Result<Self> {
+        Self::new_inner(config, Some(error_tx))
+    }
+
+    fn new_inner(
+        config: HttpSinkConfig,
+        error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
+    ) -> anyhow::Result<Self> {
         let (tx, rx) = mpsc::channel::<Message>(config.queue_depth.max(1));
-        let shared = Arc::new(Shared::new());
+        let sink_name_for_shared = if config.common.name.is_empty() {
+            "<unnamed>".to_owned()
+        } else {
+            config.common.name.clone()
+        };
+        let shared = Arc::new(Shared::new(sink_name_for_shared, error_tx));
         let worker_shared = Arc::clone(&shared);
         let worker_url = config.url.clone();
         let worker_headers = config.extra_headers.clone();
@@ -675,7 +711,9 @@ async fn post_batch(
     let body = match serde_json::to_string(&batch) {
         Ok(b) => b,
         Err(e) => {
-            record_failure(shared, url, format!("serialization error: {e}"), 0);
+            let reason = format!("serialization error: {e}");
+            emit_error_event(shared, reason.clone(), 0);
+            record_failure(shared, url, reason, 0);
             return;
         }
     };
@@ -687,6 +725,7 @@ async fn post_batch(
     let mut attempts: u32 = 0;
     loop {
         attempts += 1;
+        let attempt_0idx = attempts - 1; // 0-indexed for BC-3.07.002 postcondition 1.
         let mut req = client.post(url).header("Content-Type", "application/json");
 
         for (name, value) in extra_headers {
@@ -701,7 +740,12 @@ async fn post_batch(
                 if status.is_success() {
                     return;
                 } else if status.is_server_error() {
-                    // 5xx — check if we should retry.
+                    // 5xx — emit one internal.sink_error per failed attempt
+                    // (BC-3.07.002 invariant 3: one event per failure, not per batch).
+                    let reason = format!("HTTP {}", status.as_u16());
+                    emit_error_event(shared, reason.clone(), attempt_0idx);
+
+                    // Check if we should retry (S-4.09 configurable backoff).
                     if attempts < max_attempts {
                         // Sleep for the computed backoff delay before the next attempt.
                         // IMPORTANT: the Mutex<Vec<SinkFailure>> lock is NOT held here —
@@ -726,8 +770,8 @@ async fn post_batch(
                         }
                         continue;
                     }
-                    // Final attempt failed — record failure immediately, no trailing sleep
-                    // (AC-009 / BC-3.07.001 invariant 4).
+                    // Final attempt failed — record SinkFailure for BC-3.01.008
+                    // (AC-004 additive contract; emission already done above).
                     record_failure(
                         shared,
                         url,
@@ -736,20 +780,21 @@ async fn post_batch(
                     );
                     return;
                 } else {
-                    // 4xx or other — drop immediately, no backoff sleep, record failure
+                    // 4xx or other — drop immediately, no backoff sleep, record failure + emit.
                     // (EC-004 / BC-3.07.001 postcondition 6).
-                    record_failure(
-                        shared,
-                        url,
-                        format!("HTTP {} (client error, no retry)", status.as_u16()),
-                        attempts,
-                    );
+                    let reason = format!("HTTP {} (client error, no retry)", status.as_u16());
+                    emit_error_event(shared, reason.clone(), attempt_0idx);
+                    record_failure(shared, url, reason, attempts);
                     return;
                 }
             }
             Err(e) => {
                 // Network error (connection refused, timeout, etc.) — treated as retriable
                 // identically to 5xx (EC-005 / BC-3.07.001).
+                // Emit internal.sink_error for this attempt (BC-3.07.002 invariant 3).
+                let reason = format!("request error: {e}");
+                emit_error_event(shared, reason.clone(), attempt_0idx);
+
                 if attempts < max_attempts {
                     if let Some(cfg) = retry {
                         let jitter_unit = rng.next_f64();
@@ -770,11 +815,24 @@ async fn post_batch(
                     }
                     continue;
                 }
-                record_failure(shared, url, format!("request error: {e}"), attempts);
+                record_failure(shared, url, reason, attempts);
                 return;
             }
         }
     }
+}
+
+/// Emit a fire-and-forget `internal.sink_error` event to the internal channel.
+///
+/// Releases any borrow on `shared.failures` before calling `try_send` so the
+/// mutex is never held across the channel operation (S-4.10 previous-story
+/// intelligence note: prefer releasing the lock first for clarity).
+fn emit_error_event(shared: &Arc<Shared>, error_message: String, attempt: u32) {
+    let Some(ref tx) = shared.error_tx else {
+        return; // No channel wired — silent skip (e.g. BC-3.01.008-only tests).
+    };
+    let event = SinkErrorEvent::new(shared.sink_name.clone(), "http", error_message, attempt);
+    emit_sink_error(tx, event);
 }
 
 fn record_failure(shared: &Arc<Shared>, url: &str, reason: String, attempts: u32) {
