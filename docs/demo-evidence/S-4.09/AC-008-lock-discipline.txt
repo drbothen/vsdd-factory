@@ -1,0 +1,21 @@
+AC-008: The backoff sleep does not hold the Mutex<Vec<SinkFailure>> lock.
+        Failure recording and backoff sleeping are provably non-overlapping operations.
+Traces to: BC-3.07.001 invariant 3
+
+$ cargo test -p sink-http -- sleep_does_not_hold_mutex
+
+running 1 test
+test test_BC_3_07_001_sleep_does_not_hold_mutex ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.03s
+
+Tests covered (1 total):
+  - test_BC_3_07_001_sleep_does_not_hold_mutex
+    Strategy: during a retry sequence, attempts to acquire the sink's failure mutex
+    from another thread while the worker thread is sleeping between retries.
+    Asserts the mutex is acquirable (not held) during the sleep window, proving
+    lock is dropped before sleep and re-acquired only during failure recording.
+
+Source: crates/sink-http/tests/bc_3_07_001_backoff.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (1/1)

@@ -21,6 +21,8 @@
 
 #![deny(missing_docs)]
 
+pub mod retry;
+
 use serde::Deserialize;
 use sink_core::{Sink, SinkConfigCommon, SinkEvent};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -28,8 +30,140 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use tokio::sync::mpsc;
 
-/// Number of total attempts for 5xx batches (1 initial + retries).
-const MAX_5XX_ATTEMPTS: u32 = 3;
+/// Default total attempts for 5xx batches (1 initial + retries) when no RetryConfig is set.
+const DEFAULT_MAX_5XX_ATTEMPTS: u32 = 3;
+
+// ── Per-instance PRNG (AC-007 / BC-3.07.001 invariant 2) ─────────────────────
+
+/// SplitMix64: a minimal, high-quality non-cryptographic PRNG.
+///
+/// Uses no external crates — implemented using only integer arithmetic from std.
+/// Each sink's worker thread seeds a fresh `SplitMix64` from `SystemTime` xored
+/// with the thread ID, ensuring per-instance independence (AC-007).
+///
+/// Reference: Sebastiano Vigna, "Further scramblings of Marsaglia's xorshift
+/// generators" (2015). SplitMix64 is the standard seed splitter in Java 8+
+/// and Rust's `rand` crate uses it for seeding.
+struct SplitMix64 {
+    state: u64,
+}
+
+impl SplitMix64 {
+    /// Seed from a `u64` value. Each call to `next()` advances the state.
+    fn new(seed: u64) -> Self {
+        Self { state: seed }
+    }
+
+    /// Generate the next `u64` value.
+    fn next(&mut self) -> u64 {
+        self.state = self.state.wrapping_add(0x9e3779b97f4a7c15);
+        let mut z = self.state;
+        z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
+        z ^ (z >> 31)
+    }
+
+    /// Generate a `f64` uniformly in `[0.0, 1.0)`.
+    fn next_f64(&mut self) -> f64 {
+        // Use upper 53 bits for mantissa precision.
+        let bits = self.next() >> 11;
+        bits as f64 * (1.0_f64 / (1u64 << 53) as f64)
+    }
+
+    /// Seed from the current `SystemTime` xored with a per-thread nonce.
+    ///
+    /// Each call produces a distinct seed even when called in rapid succession
+    /// because the thread address is mixed in.
+    fn from_entropy() -> Self {
+        use std::time::SystemTime;
+        let nanos = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .map(|d| d.subsec_nanos() as u64 | ((d.as_secs() & 0xFFFF_FFFF) << 32))
+            .unwrap_or(0xdeadbeef_cafebabe);
+        // XOR with a stack address for additional per-instance uniqueness
+        // (two sinks started in the same nanosecond still diverge).
+        let stack_addr = &nanos as *const u64 as u64;
+        Self::new(nanos ^ stack_addr ^ 0xcafe_f00d_dead_beef)
+    }
+}
+
+// ── S-4.09 stubs (RED gate) ───────────────────────────────────────────────────
+// These declarations exist so tests compile. Implementations are intentionally
+// absent (panic!/unimplemented!) — the RED gate requires all tests to FAIL.
+
+/// Configuration error returned when a sink config violates construction-time
+/// invariants (BC-3.07.001 invariant 1).
+///
+/// # Variants
+///
+/// - `InvalidBackoff` — emitted when `base_delay_ms == 0` or
+///   `max_delay_ms < base_delay_ms` (AC-006 / EC-001 / EC-002).
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigError {
+    /// `base_delay_ms = 0` or `max_delay_ms < base_delay_ms`.
+    ///
+    /// BC-3.07.001 invariant 1: `max_delay_ms >= base_delay_ms > 0` is a
+    /// construction-time invariant; violation is a configuration error, not
+    /// a runtime panic.
+    #[error("invalid backoff config: base_delay_ms must be > 0 and max_delay_ms >= base_delay_ms")]
+    InvalidBackoff,
+}
+
+/// Exponential-backoff configuration for the HTTP sink retry loop (S-4.09).
+///
+/// Added to [`HttpSinkConfig`] as the `retry` field. The implementer wires
+/// this into the worker loop in `lib.rs` and draws jitter from a per-instance
+/// PRNG (AC-007 / BC-3.07.001 invariant 2).
+///
+/// # Construction
+///
+/// Use [`RetryConfig::new`] — it enforces the construction-time invariant
+/// `max_delay_ms >= base_delay_ms > 0` and returns `Err(ConfigError::InvalidBackoff)`
+/// on violation (AC-006).
+#[derive(Debug, Clone)]
+pub struct RetryConfig {
+    /// Base delay in milliseconds. Must be > 0.
+    pub base_delay_ms: u64,
+    /// Maximum delay cap in milliseconds. Must be >= base_delay_ms.
+    pub max_delay_ms: u64,
+    /// Jitter factor in [0.0, 1.0]. Jitter is drawn from
+    /// `[0, base_delay_ms * jitter_factor]`.
+    pub jitter_factor: f64,
+    /// Maximum total attempts (1 initial + retries). On full-failure with
+    /// max_retries=N, exactly (N-1) sleeps occur (AC-009 / BC-3.07.001 invariant 4).
+    pub max_retries: u32,
+}
+
+impl RetryConfig {
+    /// Construct a [`RetryConfig`], enforcing the construction-time invariant.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(ConfigError::InvalidBackoff)` if:
+    /// - `base_delay_ms == 0` (EC-001), or
+    /// - `max_delay_ms < base_delay_ms` (EC-002).
+    ///
+    /// # Panics
+    ///
+    /// This stub panics (RED gate — S-4.09 not yet implemented).
+    pub fn new(
+        base_delay_ms: u64,
+        max_delay_ms: u64,
+        jitter_factor: f64,
+        max_retries: u32,
+    ) -> Result<Self, ConfigError> {
+        // BC-3.07.001 invariant 1: max_delay_ms >= base_delay_ms > 0
+        if base_delay_ms == 0 || max_delay_ms < base_delay_ms {
+            return Err(ConfigError::InvalidBackoff);
+        }
+        Ok(Self {
+            base_delay_ms,
+            max_delay_ms,
+            jitter_factor,
+            max_retries,
+        })
+    }
+}
 
 /// HTTP endpoint URL type alias.
 ///
@@ -82,6 +216,9 @@ pub struct HttpSinkConfig {
     queue_depth: usize,
     /// Extra headers injected on every POST (used by wrapper sinks, e.g. DD-API-KEY).
     extra_headers: Vec<(String, String)>,
+    /// Optional exponential-backoff configuration (S-4.09 / AC-001 through AC-009).
+    /// `None` preserves the S-4.01 immediate-retry behaviour.
+    pub retry: Option<RetryConfig>,
 }
 
 impl HttpSinkConfig {
@@ -118,6 +255,7 @@ impl HttpSinkConfig {
             url: raw.url,
             queue_depth: raw.queue_depth,
             extra_headers: Vec::new(),
+            retry: None,
         }))
     }
 
@@ -155,6 +293,8 @@ pub struct HttpSinkConfigBuilder {
     queue_depth: usize,
     extra_headers: Vec<(String, String)>,
     common_override: Option<SinkConfigCommon>,
+    /// Optional backoff configuration (S-4.09). None = no backoff (S-4.01 behaviour).
+    retry: Option<RetryConfig>,
 }
 
 impl HttpSinkConfigBuilder {
@@ -189,6 +329,16 @@ impl HttpSinkConfigBuilder {
         self
     }
 
+    /// Set the exponential backoff configuration for retry sleeps (S-4.09).
+    ///
+    /// When set, the worker thread sleeps `compute_backoff_ms(...)` between
+    /// 5xx retry attempts. When absent, the S-4.01 immediate-retry behaviour
+    /// is used (no sleep between attempts).
+    pub fn retry(mut self, retry: RetryConfig) -> Self {
+        self.retry = Some(retry);
+        self
+    }
+
     /// Finalise and return an [`HttpSinkConfig`].
     pub fn build(self) -> HttpSinkConfig {
         let common = self.common_override.unwrap_or_else(|| SinkConfigCommon {
@@ -206,6 +356,7 @@ impl HttpSinkConfigBuilder {
                 self.queue_depth
             },
             extra_headers: self.extra_headers,
+            retry: self.retry,
         }
     }
 }
@@ -282,6 +433,7 @@ impl HttpSink {
         let worker_shared = Arc::clone(&shared);
         let worker_url = config.url.clone();
         let worker_headers = config.extra_headers.clone();
+        let worker_retry = config.retry.clone();
 
         let handle = std::thread::Builder::new()
             .name(format!("sink-http:{}", config.common.name))
@@ -304,11 +456,15 @@ impl HttpSink {
                         return;
                     }
                 };
+                // Seed per-instance PRNG from entropy (AC-007 / BC-3.07.001 invariant 2).
+                let mut rng = SplitMix64::from_entropy();
                 runtime.block_on(worker_loop(
                     rx,
                     worker_url,
                     worker_headers,
                     Arc::clone(&worker_shared),
+                    worker_retry,
+                    &mut rng,
                 ));
             })
             .map_err(|e| anyhow::anyhow!("failed to spawn sink-http worker thread: {e}"))?;
@@ -440,11 +596,17 @@ impl Drop for HttpSink {
 // ── Worker ────────────────────────────────────────────────────────────────────
 
 /// Worker async loop: drains the mpsc, accumulates events, POSTs on flush.
+///
+/// The `rng` parameter is a per-instance PRNG seeded at thread spawn time
+/// (AC-007 / BC-3.07.001 invariant 2). It is passed as `&mut` so jitter draws
+/// advance the state across consecutive flush calls within the same sink instance.
 async fn worker_loop(
     mut rx: mpsc::Receiver<Message>,
     url: String,
     extra_headers: Vec<(String, String)>,
     shared: Arc<Shared>,
+    retry: Option<RetryConfig>,
+    rng: &mut SplitMix64,
 ) {
     let client = reqwest::Client::new();
     let mut buffer: Vec<SinkEvent> = Vec::new();
@@ -457,7 +619,16 @@ async fn worker_loop(
             Message::Flush(ack) => {
                 if !buffer.is_empty() {
                     let batch = std::mem::take(&mut buffer);
-                    post_batch(&client, &url, &extra_headers, batch, &shared).await;
+                    post_batch(
+                        &client,
+                        &url,
+                        &extra_headers,
+                        batch,
+                        &shared,
+                        retry.as_ref(),
+                        rng,
+                    )
+                    .await;
                 }
                 // Ack the flush caller. Ignore send errors — caller may have
                 // timed out and dropped the receiver.
@@ -468,15 +639,29 @@ async fn worker_loop(
 
     // Channel closed (shutdown). Flush remaining buffered events.
     if !buffer.is_empty() {
-        post_batch(&client, &url, &extra_headers, buffer, &shared).await;
+        post_batch(
+            &client,
+            &url,
+            &extra_headers,
+            buffer,
+            &shared,
+            retry.as_ref(),
+            rng,
+        )
+        .await;
     }
 }
 
 /// POST a batch of events as a JSON array to the configured URL.
 ///
-/// - 5xx or network error: retry up to `MAX_5XX_ATTEMPTS` total, then record
-///   a [`SinkFailure`].
-/// - 4xx: drop immediately (no retry), record a [`SinkFailure`].
+/// - 5xx or network error: retry up to `retry.max_retries` total attempts (or
+///   `DEFAULT_MAX_5XX_ATTEMPTS` when no retry config is set), then record a
+///   [`SinkFailure`]. Between retries, sleeps for the computed backoff delay
+///   (AC-004 / BC-3.07.001 postconditions 1-3). The sleep does NOT hold the
+///   `Mutex<Vec<SinkFailure>>` lock (AC-008 / invariant 3). Exactly
+///   `max_retries - 1` sleeps occur on a full-failure sequence (AC-009 / invariant 4).
+/// - 4xx: drop immediately (no retry, no backoff sleep), record a [`SinkFailure`]
+///   (EC-004 / postcondition 6).
 /// - 2xx: success, no failure recorded.
 async fn post_batch(
     client: &reqwest::Client,
@@ -484,6 +669,8 @@ async fn post_batch(
     extra_headers: &[(String, String)],
     batch: Vec<SinkEvent>,
     shared: &Arc<Shared>,
+    retry: Option<&RetryConfig>,
+    rng: &mut SplitMix64,
 ) {
     let body = match serde_json::to_string(&batch) {
         Ok(b) => b,
@@ -492,6 +679,10 @@ async fn post_batch(
             return;
         }
     };
+
+    let max_attempts = retry
+        .map(|r| r.max_retries)
+        .unwrap_or(DEFAULT_MAX_5XX_ATTEMPTS);
 
     let mut attempts: u32 = 0;
     loop {
@@ -510,10 +701,33 @@ async fn post_batch(
                 if status.is_success() {
                     return;
                 } else if status.is_server_error() {
-                    // 5xx — retry until MAX_5XX_ATTEMPTS exhausted.
-                    if attempts < MAX_5XX_ATTEMPTS {
+                    // 5xx — check if we should retry.
+                    if attempts < max_attempts {
+                        // Sleep for the computed backoff delay before the next attempt.
+                        // IMPORTANT: the Mutex<Vec<SinkFailure>> lock is NOT held here —
+                        // the sleep call is outside any lock guard (AC-008 / invariant 3).
+                        if let Some(cfg) = retry {
+                            let jitter_unit = rng.next_f64();
+                            let jitter_ms = crate::retry::draw_jitter_ms(
+                                cfg.base_delay_ms,
+                                cfg.jitter_factor,
+                                jitter_unit,
+                            );
+                            // attempt index is 0-based: first retry after attempt 1 → index 0
+                            let attempt_index = attempts - 1;
+                            let delay_ms = crate::retry::compute_backoff_ms(
+                                cfg.base_delay_ms,
+                                cfg.max_delay_ms,
+                                cfg.jitter_factor,
+                                attempt_index,
+                                jitter_ms,
+                            );
+                            tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+                        }
                         continue;
                     }
+                    // Final attempt failed — record failure immediately, no trailing sleep
+                    // (AC-009 / BC-3.07.001 invariant 4).
                     record_failure(
                         shared,
                         url,
@@ -522,7 +736,8 @@ async fn post_batch(
                     );
                     return;
                 } else {
-                    // 4xx or other — drop immediately, record failure.
+                    // 4xx or other — drop immediately, no backoff sleep, record failure
+                    // (EC-004 / BC-3.07.001 postcondition 6).
                     record_failure(
                         shared,
                         url,
@@ -533,7 +748,26 @@ async fn post_batch(
                 }
             }
             Err(e) => {
-                if attempts < MAX_5XX_ATTEMPTS {
+                // Network error (connection refused, timeout, etc.) — treated as retriable
+                // identically to 5xx (EC-005 / BC-3.07.001).
+                if attempts < max_attempts {
+                    if let Some(cfg) = retry {
+                        let jitter_unit = rng.next_f64();
+                        let jitter_ms = crate::retry::draw_jitter_ms(
+                            cfg.base_delay_ms,
+                            cfg.jitter_factor,
+                            jitter_unit,
+                        );
+                        let attempt_index = attempts - 1;
+                        let delay_ms = crate::retry::compute_backoff_ms(
+                            cfg.base_delay_ms,
+                            cfg.max_delay_ms,
+                            cfg.jitter_factor,
+                            attempt_index,
+                            jitter_ms,
+                        );
+                        tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+                    }
                     continue;
                 }
                 record_failure(shared, url, format!("request error: {e}"), attempts);

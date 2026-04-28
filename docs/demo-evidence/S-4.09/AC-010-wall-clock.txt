@@ -1,0 +1,25 @@
+AC-010: An integration test using a mock HTTP server that returns 5xx responses
+        measures actual wall-clock delay between retry attempts and asserts it falls
+        within the expected range [delay_ms, delay_ms + tolerance_ms] for at least
+        two consecutive attempts.
+        Canonical test vectors: base=100ms, max=5000ms, jitter_factor=0.5,
+          attempt=0 → delay in [100, 150]ms; attempt=1 → delay in [200, 250]ms.
+Traces to: BC-3.07.001 canonical test vectors
+
+$ cargo test -p sink-http -- wall_clock_delay
+
+running 2 tests
+test test_BC_3_07_001_wall_clock_delay_attempt0 ... ok
+test test_BC_3_07_001_wall_clock_delay_attempt1 ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 1.52s
+
+Tests covered (2 total):
+  - test_BC_3_07_001_wall_clock_delay_attempt0
+    (base=100ms, jitter_factor=0.5, attempt=0 → measured delay in [100, 150]ms)
+  - test_BC_3_07_001_wall_clock_delay_attempt1
+    (base=100ms, jitter_factor=0.5, attempt=1 → measured delay in [200, 250]ms)
+
+Source: crates/sink-http/tests/bc_3_07_001_backoff.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (2/2)

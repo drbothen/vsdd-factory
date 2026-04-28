@@ -1,0 +1,19 @@
+AC-002: delay_ms is always strictly positive when base_delay_ms > 0;
+        even attempt 0 (the first retry after a 5xx) introduces a nonzero delay floor.
+Traces to: BC-3.07.001 postcondition 2
+
+$ cargo test -p sink-http -- strictly_positive
+
+running 2 tests
+test retry::tests::test_BC_3_07_001_strictly_positive_attempt0 ... ok
+test retry::tests::test_BC_3_07_001_strictly_positive_large_attempt ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+Tests covered (2 total):
+  - test_BC_3_07_001_strictly_positive_attempt0       (attempt=0, jitter=0 → delay ≥ base)
+  - test_BC_3_07_001_strictly_positive_large_attempt  (attempt=10, saturated → clamped to max > 0)
+
+Source: crates/sink-http/src/retry.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (2/2)

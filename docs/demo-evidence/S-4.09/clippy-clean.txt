@@ -1,0 +1,12 @@
+$ cargo clippy -p sink-http -- -D warnings
+
+    Checking sink-http v0.0.1 (/private/tmp/vsdd-S-4.09/crates/sink-http)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.72s
+
+Exit code: 0 (CLEAN — no warnings, no errors)
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Branch: feat/S-4.09-sink-http-retry-backoff
+
+Note: -D warnings applies to production source only (src/lib.rs, src/retry.rs).
+Non-snake-case warnings in test files are expected (BC-tracing naming convention)
+and are out of scope per test-writer ownership rules, consistent with S-4.04 precedent.

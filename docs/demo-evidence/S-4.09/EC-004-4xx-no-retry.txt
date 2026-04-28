@@ -1,0 +1,21 @@
+EC-004: 4xx response received (client error) — no retry, no backoff sleep;
+        failure recorded immediately as non-retryable.
+Traces to: BC-3.07.001 edge case; S-4.09 story EC-004
+
+$ cargo test -p sink-http -- "4xx_no_backoff"
+
+running 1 test
+test test_BC_3_07_001_4xx_no_backoff ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.02s
+
+Tests covered (1 total):
+  - test_BC_3_07_001_4xx_no_backoff
+    Strategy: mock server returns 400 Bad Request. Asserts:
+      (a) no sleep is taken (wall-clock elapsed < 50ms for full sequence)
+      (b) failure is recorded in failures() immediately
+      (c) no retry attempt is made (mock server receives exactly 1 request)
+
+Source: crates/sink-http/tests/bc_3_07_001_backoff.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (1/1)

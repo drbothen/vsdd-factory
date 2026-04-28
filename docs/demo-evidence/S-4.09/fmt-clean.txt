@@ -1,0 +1,9 @@
+$ cargo fmt --check -p sink-http
+
+Exit code: 0 (CLEAN — all source files properly formatted)
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Branch: feat/S-4.09-sink-http-retry-backoff
+
+All files in crates/sink-http/src/ and crates/sink-http/tests/ pass rustfmt --check.
+(Note: this is a clean result; contrast with S-4.04 where test files had pre-existing
+import ordering issues. S-4.09 test files were formatted in commit 9d3b4b2.)

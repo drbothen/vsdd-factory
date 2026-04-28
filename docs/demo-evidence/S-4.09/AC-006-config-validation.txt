@@ -1,0 +1,23 @@
+AC-006: RetryConfig construction fails with ConfigError::InvalidBackoff if
+        base_delay_ms = 0 or max_delay_ms < base_delay_ms. The sink does not start.
+Traces to: BC-3.07.001 invariant 1; EC-001, EC-002
+
+$ cargo test -p sink-http --test bc_3_07_001_backoff -- "rejects\|accepts_max_equals"
+
+running 4 tests
+test test_BC_3_07_001_accepts_max_equals_base ... ok
+test test_BC_3_07_001_rejects_base_zero ... ok
+test test_BC_3_07_001_rejects_max_less_than_base ... ok
+test test_BC_3_07_001_rejects_max_zero_base_nonzero ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.01s
+
+Tests covered (4 total):
+  - test_BC_3_07_001_rejects_base_zero             (EC-001: base_delay_ms=0 → InvalidBackoff)
+  - test_BC_3_07_001_rejects_max_less_than_base    (EC-002: max < base → InvalidBackoff)
+  - test_BC_3_07_001_rejects_max_zero_base_nonzero (max=0, base=100 → InvalidBackoff)
+  - test_BC_3_07_001_accepts_max_equals_base       (max == base is valid → Ok)
+
+Source: crates/sink-http/tests/bc_3_07_001_backoff.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (4/4)

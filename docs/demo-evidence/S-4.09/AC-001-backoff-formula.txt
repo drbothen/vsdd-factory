@@ -1,0 +1,39 @@
+AC-001: After receiving a 5xx response on attempt N, sink-http sleeps for
+        delay_ms = min(base_delay_ms * 2^N + jitter_ms, max_delay_ms)
+        where jitter_ms is drawn uniformly from [0, base_delay_ms * jitter_factor].
+Traces to: BC-3.07.001 postcondition 1
+
+$ cargo test -p sink-http -- formula
+
+running 6 tests
+test retry::tests::test_BC_3_07_001_formula_attempt0_max_jitter ... ok
+test retry::tests::test_BC_3_07_001_formula_attempt0_midpoint_jitter ... ok
+test retry::tests::test_BC_3_07_001_formula_attempt0_no_jitter ... ok
+test retry::tests::test_BC_3_07_001_formula_attempt1_max_jitter ... ok
+test retry::tests::test_BC_3_07_001_formula_attempt1_no_jitter ... ok
+test retry::tests::test_BC_3_07_001_formula_attempt2_no_jitter ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+Additional AC-001 coverage (jitter draw boundary tests):
+$ cargo test -p sink-http -- jitter_draw
+
+running 2 tests
+test retry::tests::test_BC_3_07_001_jitter_draw_zero_random ... ok
+test retry::tests::test_BC_3_07_001_jitter_draw_max_random ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+Tests covered (8 total):
+  - test_BC_3_07_001_formula_attempt0_no_jitter    (attempt=0, jitter=0)
+  - test_BC_3_07_001_formula_attempt1_no_jitter    (attempt=1, jitter=0)
+  - test_BC_3_07_001_formula_attempt2_no_jitter    (attempt=2, jitter=0)
+  - test_BC_3_07_001_formula_attempt0_max_jitter   (attempt=0, jitter=max)
+  - test_BC_3_07_001_formula_attempt1_max_jitter   (attempt=1, jitter=max)
+  - test_BC_3_07_001_formula_attempt0_midpoint_jitter (attempt=0, jitter=mid)
+  - test_BC_3_07_001_jitter_draw_zero_random       (PRNG draw = 0)
+  - test_BC_3_07_001_jitter_draw_max_random        (PRNG draw = max)
+
+Source: crates/sink-http/src/retry.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (8/8)
