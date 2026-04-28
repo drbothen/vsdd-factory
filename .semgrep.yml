@@ -1,0 +1,14 @@
+# .semgrep.yml — Semgrep configuration for vsdd-factory
+#
+# Default rule selection is in .github/workflows/semgrep.yml's
+# SEMGREP_RULES env var (p/security-audit, p/secrets, p/owasp-top-ten,
+# p/cwe-top-25). This file holds future custom organizational rules.
+#
+# TD-006 follow-up will register two policy rules here:
+#   POLICY 11 — tautology detection (Check 8)
+#   POLICY 12 — BC-TV consistency enforcement (Check 9)
+#
+# To add a custom rule, append to the `rules:` list below following
+# the Semgrep rule schema: https://semgrep.dev/docs/writing-rules/rule-syntax/
+
+rules: []
