@@ -76,7 +76,7 @@ Source: pass-2 §Hook (bash) capture category. Justification: audit capture is p
 Skills produce `BC-S.SS.NNN`-identified behavioral contracts from stories, grounding every acceptance criterion in a traceable spec artifact.
 Subsystems: SS-05, SS-06, SS-08. Outcome: every story's acceptance criteria links to at least one BC-S.SS.NNN identifier.
 Source: pass-2 §BehavioralContract; pass-8 §11. Justification: BC traceability is the "verified" in VSDD.
-<!-- F-009 (Wave 8 pass-1): docs-stories S-0.05/S-5.05/S-5.06 anchored to CAP-014 via SS-08 methodology BCs (BC-8.22.001/26.001/26.006); content spans CAP-007/CAP-028 semantics — see story-body Stretch-Anchor Disclosures. 7 v1.1 BC candidates BC-8.31.001-007 registered. -->
+<!-- F-009 (Wave 8 pass-1): docs-stories S-0.05/S-5.05/S-5.06 anchored to CAP-014 via SS-08 methodology BCs (BC-8.22.001/26.001/26.006); content spans CAP-007/CAP-028 semantics — see story-body Stretch-Anchor Disclosures. 6 v1.1 BC candidates BC-8.31.003-008 registered in story v1.1 candidate tables (story-table-only; no on-disk BC files; BC-8.31.001-002 gap-numbered for future expansion). (Updated Wave 14 pass-2: BC-8.31.008 added by S-5.05 v1.5; count corrected from 7 to 6.) -->
 
 **CAP-016 — Drive TDD delivery with red/green/refactor gate enforcement**
 The deliver-story skill enforces a mandatory red-gate (failing test must exist) before the green-gate (minimum implementation), then refactor + review + demo + merge.

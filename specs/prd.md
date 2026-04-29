@@ -785,7 +785,7 @@ Enforces: CAP-014. Status: **shipped** (105 template files active).
 Source BCs: `ss-08/BC-8.06.001.md` through (approx. 70 BCs in rules family).
 Enforces: CAP-014 (methodology discipline). Status: **shipped**.
 
-<!-- F-008 (Wave 8 pass-1): docs-stories S-0.05/S-5.05/S-5.06 anchored to CAP-014 via SS-08 BCs (BC-8.22.001 Conventional Commits, BC-8.26.001 story-completeness audit, BC-8.26.006 user-facing-docs deliverable) — methodology-anchor pattern. 7 v1.1 BC candidates BC-8.31.001-007 registered for docs-content-specific contracts. -->
+<!-- F-008 (Wave 8 pass-1): docs-stories S-0.05/S-5.05/S-5.06 anchored to CAP-014 via SS-08 BCs (BC-8.22.001 Conventional Commits, BC-8.26.001 story-completeness audit, BC-8.26.006 user-facing-docs deliverable) — methodology-anchor pattern. 6 v1.1 BC candidates BC-8.31.003-008 registered in story v1.1 candidate tables (S-0.05 + S-5.05 + S-5.06; story-table-only per Wave 8 SS-08 re-anchor pattern; no on-disk BC files yet — promotion to v1.0 BCs deferred to v1.0.1). BC-8.31.001-002 not in use; gap-numbered for future expansion. (Updated Wave 14 pass-2: BC-8.31.008 added by S-5.05 v1.5; count corrected from 7 to 6.) -->
 
 #### FR-043 (SS-08 slice) — TDD Discipline Hardening — Story Template tdd_mode field
 

@@ -18,7 +18,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
 > S-N.MM format. Updated in Phase 2 (story decomposition) with E-7 stories.
 > Updated in Wave 11 burst (2026-04-27): S-4.09 and S-4.10 added.
-> Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (16 findings closed; D-144).
+> Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145).
 > This index is the authoritative source for story count and status.
 > 47 stories across 8 epics (E-0 through E-7).
 
@@ -90,10 +90,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | merged | 2 (+ 2 deferred LOW findings F-1/F-2 from PR #18; v1.3) |
 | S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | merged | 2 |
 | S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | merged | 1 (v1.1 BC creation dep note) |
-| S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | done | 2 (+ v1.1 candidates; CONVERGENCE_REACHED pass-48; v1.45; commit ac22a3d; PR #29 merged a84a5f5 on develop 2026-04-28) |
-| S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | done | 6 (BC-3.04.003, BC-3.04.004, BC-3.06.007 added; 5 lifecycle updated; PR #30 merged 6ef564c on develop 2026-04-28) |
-| S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | done | 16 (PR #31 merged 1d4edb7 on develop 2026-04-28; spec v1.11 4c0050c; 8 adversarial passes; 40/40 tests in 5.09s) |
-| S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | done | 5 (PR #32 merged d7eae89 on develop 2026-04-28; spec v1.16 62f7297; 17-pass spec convergence; 6 testable-now ACs RED→GREEN; 11 deferred-to-shakedown; D-133) |
+| S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | merged | 2 (+ v1.1 candidates; CONVERGENCE_REACHED pass-48; v1.45; commit ac22a3d; PR #29 merged a84a5f5 on develop 2026-04-28) |
+| S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | merged | 6 (BC-3.04.003, BC-3.04.004, BC-3.06.007 added; 5 lifecycle updated; PR #30 merged 6ef564c on develop 2026-04-28) |
+| S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | merged | 16 (PR #31 merged 1d4edb7 on develop 2026-04-28; spec v1.11 4c0050c; 8 adversarial passes; 40/40 tests in 5.09s) |
+| S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | merged | 5 (PR #32 merged d7eae89 on develop 2026-04-28; spec v1.16 62f7297; 17-pass spec convergence; 6 testable-now ACs RED→GREEN; 11 deferred-to-shakedown; D-133) |
 | S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | merged | 1 |
 | S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | merged | 1 |
 
@@ -105,8 +105,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.8 (PR #36 merged edef7da 2026-04-28; D-138) |
 | S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | merged | 2.5 (PR #37 merged 93b298f 2026-04-29; D-140) |
 | S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.6 (PR #38 merged e90faab 2026-04-29; D-142; DRIFT-006 FULLY CLOSED; Wave 13 COMPLETE) |
-| S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial | v1.5 |
-| S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft | v1.5 |
+| S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial | v1.6 |
+| S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft | v1.6 |
 | S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-0.01, S-0.02, S-5.01..S-5.06 + 1-week shakedown | draft | -- |
 
 ## Epic E-6 — VSDD Self-Improvement / Tooling Backlog (open)

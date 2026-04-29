@@ -300,3 +300,4 @@ The pass-10 burst flagged this as 'codification candidate' (OBS-P10-001) and the
 Fix discipline applied at pass-11: STORY-INDEX-only update; NO story version bump (would create another gap). Story stays at v2.5; STORY-INDEX synced to v2.5 to match.
 
 This is the third instance of the same drift class within S-5.04 (pass-7, pass-10, pass-11). Pattern recurrence triggers codification per S-7.01.
+- Session ended at 2026-04-29T06:33:22Z (awaiting /session-review)
