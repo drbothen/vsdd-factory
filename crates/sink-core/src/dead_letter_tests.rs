@@ -21,7 +21,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 
 use crate::SinkEvent;
-use crate::dead_letter::{DlqError, DlqReason, DlqWriter, DlqWriterConfig};
+use crate::dead_letter::{DlqReason, DlqWriter, DlqWriterConfig};
 use crate::events::SinkDlqEvent;
 
 // ── Helper: build a minimal DlqWriter backed by a temp dir ────────────────────
