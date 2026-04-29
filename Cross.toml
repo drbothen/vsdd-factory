@@ -1,0 +1,18 @@
+# Cross.toml — cross-rs configuration for vsdd-factory
+# Provides pre-install packages for the cross Docker images used in
+# the build-dispatcher CI matrix (ci.yml).
+#
+# The aarch64-unknown-linux-gnu cross image does not ship libssl-dev by
+# default. The reqwest crate (used by sink-http, sink-datadog, sink-honeycomb)
+# links against the system OpenSSL via native-tls unless rustls is selected.
+# Installing libssl-dev in the cross image resolves the openssl-sys build
+# failure on linux-arm64.
+#
+# See: https://github.com/cross-rs/cross#configuration
+
+[target.aarch64-unknown-linux-gnu]
+pre-build = [
+    "dpkg --add-architecture arm64",
+    "apt-get update",
+    "apt-get install -y libssl-dev:arm64 pkg-config",
+]

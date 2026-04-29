@@ -9,7 +9,7 @@
 use chrono::{DateTime, Utc};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
@@ -128,7 +128,7 @@ impl std::fmt::Debug for DlqWriter {
 impl DlqWriter {
     /// Construct a production `DlqWriter` using the system UTC clock.
     pub fn new(config: DlqWriterConfig, internal_tx: mpsc::Sender<SinkDlqEvent>) -> Self {
-        let clock_fn: Arc<dyn Fn() -> DateTime<Utc> + Send + Sync> = Arc::new(|| Utc::now());
+        let clock_fn: Arc<dyn Fn() -> DateTime<Utc> + Send + Sync> = Arc::new(Utc::now);
         Self::with_clock_fn(config, internal_tx, clock_fn)
     }
 
@@ -282,6 +282,7 @@ impl DlqWriter {
     ///
     /// Test helper — `pub(crate)` so it is accessible within this crate's
     /// tests without exposing it to external callers.
+    #[allow(dead_code)]
     pub(crate) fn current_path(&self) -> Option<PathBuf> {
         self.cache
             .lock()
@@ -294,7 +295,7 @@ impl DlqWriter {
 /// Strip a seq suffix from a DLQ path, returning the base path.
 ///
 /// e.g. `dead-letter-sink-2026-04-28-001.jsonl` → `dead-letter-sink-2026-04-28.jsonl`
-fn strip_seq_suffix(path: &PathBuf) -> PathBuf {
+fn strip_seq_suffix(path: &Path) -> PathBuf {
     let path_str = path.to_string_lossy();
     // Pattern: ends with `-NNN.jsonl` where NNN is exactly 3 digits.
     if let Some(stem) = path_str.strip_suffix(".jsonl") {
@@ -314,7 +315,7 @@ fn strip_seq_suffix(path: &PathBuf) -> PathBuf {
 ///
 /// e.g. `dead-letter-sink-2026-04-28.jsonl` → `dead-letter-sink-2026-04-28-001.jsonl`
 /// e.g. `dead-letter-sink-2026-04-28-001.jsonl` → `dead-letter-sink-2026-04-28-002.jsonl`
-fn next_seq_path(current: &PathBuf) -> PathBuf {
+fn next_seq_path(current: &Path) -> PathBuf {
     let path_str = current.to_string_lossy();
     if let Some(stem) = path_str.strip_suffix(".jsonl") {
         // Check if already has a seq suffix.
