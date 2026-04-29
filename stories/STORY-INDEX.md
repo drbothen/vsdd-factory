@@ -18,7 +18,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
 > S-N.MM format. Updated in Phase 2 (story decomposition) with E-7 stories.
 > Updated in Wave 11 burst (2026-04-27): S-4.09 and S-4.10 added.
-> Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145). Pass-3 (2026-04-29): S-5.05 v1.6→v1.7 (1 MED + 5 LOW closed; STORY-INDEX:136 cross-cutting BC-8.31.* count fixed); S-5.06 NITPICK_ONLY (no version bump; clock 1_of_3 per S-7.03 skip-fix strategy); D-146.
+> Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145). Pass-3 (2026-04-29): S-5.05 v1.6→v1.7 (1 MED + 5 LOW closed; STORY-INDEX:136 cross-cutting BC-8.31.* count fixed); S-5.06 NITPICK_ONLY (no version bump; clock 1_of_3 per S-7.03 skip-fix strategy); D-146. Pass-4 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (8 LOW; clock 0_of_3→1_of_3); S-5.06 v1.6 NITPICK_ONLY (0 findings; clock 1_of_3→2_of_3); skip-fix discipline applied per S-7.03; D-147.
 > This index is the authoritative source for story count and status.
 > 47 stories across 8 epics (E-0 through E-7).
 
