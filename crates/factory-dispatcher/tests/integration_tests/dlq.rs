@@ -75,7 +75,7 @@ fn test_BC_3_07_003_dlq_written_after_5xx_retry_exhaustion() {
     rt.block_on(async {
         let (dlq_tx, mut dlq_rx) = tokio::sync::mpsc::channel::<SinkDlqEvent>(64);
         let url = server.url("/events");
-        let (sink, dlq_writer) = make_http_sink_with_dlq(&url, dlq_root.clone(), dlq_tx);
+        let (sink, _dlq_writer) = make_http_sink_with_dlq(&url, dlq_root.clone(), dlq_tx);
 
         // Submit 2 events.
         let ev1 = SinkEvent::new()

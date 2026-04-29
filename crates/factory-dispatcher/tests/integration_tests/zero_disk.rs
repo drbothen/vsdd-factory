@@ -17,7 +17,7 @@
 use std::time::Duration;
 
 use factory_dispatcher::sinks::{ObservabilityConfig, Router, SinkRegistry, SinkStanza};
-use sink_core::{Sink, SinkEvent};
+use sink_core::Sink;
 use sink_otel_grpc::{BatchConfig, OtelGrpcConfig, OtelGrpcSink};
 
 use super::harness::{OtlpMockServer, build_event, wait_for};

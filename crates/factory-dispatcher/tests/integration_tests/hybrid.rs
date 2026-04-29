@@ -11,7 +11,6 @@
 //! RED gate: will fail until the otel-grpc and file sinks are both wired
 //! through `SinkRegistry::from_config` and `Router::submit()` fans out to both.
 
-use std::io::BufRead;
 use std::time::Duration;
 
 use factory_dispatcher::sinks::{ObservabilityConfig, Router, SinkRegistry, SinkStanza};

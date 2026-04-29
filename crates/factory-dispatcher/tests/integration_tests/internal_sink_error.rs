@@ -71,7 +71,7 @@ fn test_BC_3_07_002_http_sink_emits_internal_sink_error_with_type_http() {
 
     let cfg = HttpSinkConfig::builder()
         .name("http-error-test")
-        .url(&server.url("/events"))
+        .url(server.url("/events"))
         .queue_depth(64)
         .build();
 
@@ -259,7 +259,7 @@ fn test_BC_3_07_002_sink_error_emission_silent_on_full_channel() {
 
     let cfg = HttpSinkConfig::builder()
         .name("silent-overflow")
-        .url(&server.url("/events"))
+        .url(server.url("/events"))
         .queue_depth(64)
         .build();
 
