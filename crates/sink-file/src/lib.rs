@@ -362,7 +362,7 @@ impl Sink for FileSink {
         &self.name
     }
 
-    fn accepts(&self, event: &SinkEvent) -> bool {
+    fn accepts(&self, _event: &SinkEvent) -> bool {
         if !self.common.enabled {
             return false;
         }

@@ -414,7 +414,7 @@ impl Sink for OtelGrpcSink {
         &self.name
     }
 
-    fn accepts(&self, event: &SinkEvent) -> bool {
+    fn accepts(&self, _event: &SinkEvent) -> bool {
         if !self.common.enabled {
             return false;
         }
