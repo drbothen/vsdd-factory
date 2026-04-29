@@ -121,8 +121,7 @@ fn test_BC_v1_1_honeycomb_sink_posts_to_correct_dataset_path() {
 fn test_BC_v1_1_honeycomb_sink_sends_events_to_endpoint() {
     let server = MockServer::start();
     let any_mock = server.mock(|when, then| {
-        when.method(POST)
-            .header("X-Honeycomb-Team", "hc-time-key");
+        when.method(POST).header("X-Honeycomb-Team", "hc-time-key");
         then.status(200).body("ok");
     });
 
@@ -169,9 +168,18 @@ fn test_BC_v1_1_honeycomb_sink_reachable_through_router_submit() {
     });
 
     let mut extra = toml::value::Table::new();
-    extra.insert("api_key".into(), toml::Value::String("hc-router-key".into()));
-    extra.insert("dataset".into(), toml::Value::String("router-dataset".into()));
-    extra.insert("base_url".into(), toml::Value::String(server.url("/1/events")));
+    extra.insert(
+        "api_key".into(),
+        toml::Value::String("hc-router-key".into()),
+    );
+    extra.insert(
+        "dataset".into(),
+        toml::Value::String("router-dataset".into()),
+    );
+    extra.insert(
+        "base_url".into(),
+        toml::Value::String(server.url("/1/events")),
+    );
 
     let cfg = ObservabilityConfig {
         schema_version: 1,

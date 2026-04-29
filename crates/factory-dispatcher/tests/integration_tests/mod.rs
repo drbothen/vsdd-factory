@@ -22,14 +22,14 @@
 
 pub mod harness;
 
-pub mod zero_disk;
-pub mod hybrid;
-pub mod routing;
-pub mod dlq;
 pub mod circuit_breaker;
-pub mod lifecycle;
 pub mod config_load;
-pub mod otlp_mapping;
-pub mod internal_sink_error;
 pub mod datadog;
+pub mod dlq;
 pub mod honeycomb;
+pub mod hybrid;
+pub mod internal_sink_error;
+pub mod lifecycle;
+pub mod otlp_mapping;
+pub mod routing;
+pub mod zero_disk;

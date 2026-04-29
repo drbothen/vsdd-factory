@@ -160,7 +160,10 @@ async fn test_BC_3_07_003_multiple_events_all_written_to_dlq_on_retry_exhaustion
         .filter_map(|e| e.ok())
         .collect();
 
-    assert!(!entries.is_empty(), "AC-006b: DLQ directory must contain at least one file");
+    assert!(
+        !entries.is_empty(),
+        "AC-006b: DLQ directory must contain at least one file"
+    );
 
     let total_lines: usize = entries
         .iter()

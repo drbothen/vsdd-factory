@@ -215,8 +215,7 @@ fn test_BC_3_07_004_dlq_write_failure_emits_failure_event_no_panic() {
             .filter(|e| matches!(e, SinkDlqEvent::Failure(_)))
             .count();
         assert_eq!(
-            failure_count,
-            1,
+            failure_count, 1,
             "AC-4 BC-3.07.004: exactly 1 internal.sink_dlq_failure event must be emitted; got {}",
             failure_count
         );
@@ -280,7 +279,8 @@ fn test_BC_3_07_003_dlq_write_event_schema_matches_canonical_tv() {
             }
         }
 
-        let ev = received.expect("BC-3.07.003: DLQ write must emit an event to the internal channel");
+        let ev =
+            received.expect("BC-3.07.003: DLQ write must emit an event to the internal channel");
         match ev {
             SinkDlqEvent::Write(w) => {
                 assert_eq!(w.sink_name, "prod-http", "sink_name must match");

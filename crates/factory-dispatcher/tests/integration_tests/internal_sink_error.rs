@@ -26,10 +26,7 @@ use tokio::sync::mpsc;
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
-fn drain_events(
-    rx: &mut mpsc::Receiver<SinkErrorEvent>,
-    timeout: Duration,
-) -> Vec<SinkErrorEvent> {
+fn drain_events(rx: &mut mpsc::Receiver<SinkErrorEvent>, timeout: Duration) -> Vec<SinkErrorEvent> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -78,8 +75,8 @@ fn test_BC_3_07_002_http_sink_emits_internal_sink_error_with_type_http() {
         .queue_depth(64)
         .build();
 
-    let sink = HttpSink::new_with_error_channel(cfg, error_tx)
-        .expect("build HttpSink with error channel");
+    let sink =
+        HttpSink::new_with_error_channel(cfg, error_tx).expect("build HttpSink with error channel");
 
     sink.submit(SinkEvent::new().insert("type", "plugin.invoked"));
     sink.flush().expect("flush");
@@ -101,7 +98,10 @@ fn test_BC_3_07_002_http_sink_emits_internal_sink_error_with_type_http() {
             ev.sink_type, "http",
             "BC-3.07.002: HttpSink must emit sink_type='http' (NOT 'datadog' or 'honeycomb')"
         );
-        assert_eq!(ev.sink_name, "http-error-test", "BC-3.07.002: sink_name must match");
+        assert_eq!(
+            ev.sink_name, "http-error-test",
+            "BC-3.07.002: sink_name must match"
+        );
         assert!(
             !ev.error_message.is_empty(),
             "BC-3.07.002: error_message must be non-empty"
@@ -122,8 +122,8 @@ fn test_BC_3_07_002_http_sink_emits_internal_sink_error_with_type_http() {
 /// internal error emission path (NOT 'http').
 #[test]
 fn test_BC_3_07_002_datadog_sink_emits_internal_sink_error_with_type_datadog() {
-    use sink_datadog::{DatadogSink, DatadogSinkConfig};
     use sink_core::SinkConfigCommon;
+    use sink_datadog::{DatadogSink, DatadogSinkConfig};
 
     let server = MockServer::start();
     server.mock(|when, then| {
@@ -183,8 +183,8 @@ fn test_BC_3_07_002_datadog_sink_emits_internal_sink_error_with_type_datadog() {
 /// its internal error emission path.
 #[test]
 fn test_BC_3_07_002_honeycomb_sink_emits_internal_sink_error_with_type_honeycomb() {
-    use sink_honeycomb::{HoneycombSink, HoneycombSinkConfig};
     use sink_core::SinkConfigCommon;
+    use sink_honeycomb::{HoneycombSink, HoneycombSinkConfig};
 
     let server = MockServer::start();
     server.mock(|when, then| {
@@ -263,12 +263,12 @@ fn test_BC_3_07_002_sink_error_emission_silent_on_full_channel() {
         .queue_depth(64)
         .build();
 
-    let sink = HttpSink::new_with_error_channel(cfg, error_tx)
-        .expect("build sink");
+    let sink = HttpSink::new_with_error_channel(cfg, error_tx).expect("build sink");
 
     // Must not panic when error channel is full.
     sink.submit(SinkEvent::new().insert("type", "commit.made"));
-    sink.flush().expect("flush — must not panic even with full error channel");
+    sink.flush()
+        .expect("flush — must not panic even with full error channel");
     sink.shutdown();
     // If we reach here, no panic occurred — test passes.
 }

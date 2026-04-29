@@ -32,24 +32,15 @@ fn test_BC_3_05_002_hybrid_mode_events_reach_both_file_and_otlp() {
 
     let date = chrono::Local::now().format("%Y-%m-%d");
     let file_path = tmp.path().join(format!("hybrid-events-{date}.jsonl"));
-    let path_template = format!(
-        "{}/hybrid-events-{{date}}.jsonl",
-        tmp.path().display()
-    );
+    let path_template = format!("{}/hybrid-events-{{date}}.jsonl", tmp.path().display());
 
     // 2-sink config: file + otel-grpc.
     let mut file_extra = toml::value::Table::new();
-    file_extra.insert(
-        "path_template".into(),
-        toml::Value::String(path_template),
-    );
+    file_extra.insert("path_template".into(), toml::Value::String(path_template));
     file_extra.insert("enabled".into(), toml::Value::Boolean(true));
 
     let mut otel_extra = toml::value::Table::new();
-    otel_extra.insert(
-        "endpoint".into(),
-        toml::Value::String(server.endpoint()),
-    );
+    otel_extra.insert("endpoint".into(), toml::Value::String(server.endpoint()));
     otel_extra.insert(
         "batch".into(),
         toml::Value::Table({
@@ -139,23 +130,14 @@ fn test_BC_3_05_002_invariant_fanout_wired_through_router_all_sinks_receive() {
     let server = OtlpMockServer::start();
 
     let date = chrono::Local::now().format("%Y-%m-%d");
-    let path_template = format!(
-        "{}/fanout-{{date}}.jsonl",
-        tmp.path().display()
-    );
+    let path_template = format!("{}/fanout-{{date}}.jsonl", tmp.path().display());
 
     let mut file_extra = toml::value::Table::new();
-    file_extra.insert(
-        "path_template".into(),
-        toml::Value::String(path_template),
-    );
+    file_extra.insert("path_template".into(), toml::Value::String(path_template));
     file_extra.insert("enabled".into(), toml::Value::Boolean(true));
 
     let mut otel_extra = toml::value::Table::new();
-    otel_extra.insert(
-        "endpoint".into(),
-        toml::Value::String(server.endpoint()),
-    );
+    otel_extra.insert("endpoint".into(), toml::Value::String(server.endpoint()));
     otel_extra.insert(
         "batch".into(),
         toml::Value::Table({

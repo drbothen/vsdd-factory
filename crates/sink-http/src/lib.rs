@@ -24,7 +24,10 @@
 pub mod retry;
 
 use serde::Deserialize;
-use sink_core::{DlqReason, DlqWriter, RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
+use sink_core::{
+    DlqReason, DlqWriter, RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent,
+    emit_sink_error,
+};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;

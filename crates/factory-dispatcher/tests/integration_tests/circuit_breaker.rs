@@ -20,8 +20,8 @@
 use std::time::Duration;
 
 use httpmock::prelude::*;
-use sink_core::resilience::{CircuitBreaker, CircuitState};
 use sink_core::SinkEvent;
+use sink_core::resilience::{CircuitBreaker, CircuitState};
 
 /// v1.1 BC candidate: circuit-breaker-state-machine — AC-5.
 ///

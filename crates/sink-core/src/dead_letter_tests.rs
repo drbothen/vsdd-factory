@@ -16,13 +16,13 @@
 //!   AC-007  → test_BC_3_07_003_dlq_directory_auto_created
 //!   AC-010  → test_BC_3_07_004_write_failure_emits_dlq_failure_event
 
-use std::sync::Arc;
 use chrono::{TimeZone, Utc};
+use std::sync::Arc;
 use tokio::sync::mpsc;
 
+use crate::SinkEvent;
 use crate::dead_letter::{DlqError, DlqReason, DlqWriter, DlqWriterConfig};
 use crate::events::SinkDlqEvent;
-use crate::SinkEvent;
 
 // ── Helper: build a minimal DlqWriter backed by a temp dir ────────────────────
 
@@ -186,8 +186,16 @@ fn test_BC_3_07_003_daily_rotation_midnight_utc() {
 
     let day1_path = dlq_root.join("dead-letter-my-sink-2026-04-27.jsonl");
     let day2_path = dlq_root.join("dead-letter-my-sink-2026-04-28.jsonl");
-    assert!(day1_path.exists(), "AC-004: day1 DLQ file must exist at {:?}", day1_path);
-    assert!(day2_path.exists(), "AC-004: day2 DLQ file must exist at {:?}", day2_path);
+    assert!(
+        day1_path.exists(),
+        "AC-004: day1 DLQ file must exist at {:?}",
+        day1_path
+    );
+    assert!(
+        day2_path.exists(),
+        "AC-004: day2 DLQ file must exist at {:?}",
+        day2_path
+    );
 }
 
 /// AC-004 (size cap) — Per-file size cap triggers seq-based rotation.
@@ -223,8 +231,16 @@ fn test_BC_3_07_003_size_cap_triggers_seq_rotation() {
     let base = dlq_root.join("dead-letter-my-sink-2026-04-28.jsonl");
     // A first-rotation seq file must also exist.
     let seq1 = dlq_root.join("dead-letter-my-sink-2026-04-28-001.jsonl");
-    assert!(base.exists(), "AC-004 size-cap: base file must exist {:?}", base);
-    assert!(seq1.exists(), "AC-004 size-cap: seq-001 file must exist {:?}", seq1);
+    assert!(
+        base.exists(),
+        "AC-004 size-cap: base file must exist {:?}",
+        base
+    );
+    assert!(
+        seq1.exists(),
+        "AC-004 size-cap: seq-001 file must exist {:?}",
+        seq1
+    );
 }
 
 // ── AC-005: internal.sink_dlq_write event emitted ────────────────────────────
@@ -304,7 +320,10 @@ fn test_BC_3_07_003_dlq_write_event_canonical_tv_9_fields() {
     };
     assert_eq!(write_ev.sink_name, "canonical-sink", "TV field: sink_name");
     assert_eq!(write_ev.sink_type, "http", "TV field: sink_type");
-    assert_eq!(write_ev.event_type, "plugin.invoked", "TV field: event_type");
+    assert_eq!(
+        write_ev.event_type, "plugin.invoked",
+        "TV field: event_type"
+    );
     assert_eq!(
         write_ev.reason.as_str(),
         "retry_exhausted",

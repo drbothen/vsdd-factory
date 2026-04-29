@@ -81,7 +81,10 @@ where
     };
 
     // Emit exactly once with the 2 plugin-set fields; RESERVED_FIELDS are NOT set here.
-    emit("tool.error", &[("tool_name", tool_name), ("error_message", error_message)]);
+    emit(
+        "tool.error",
+        &[("tool_name", tool_name), ("error_message", error_message)],
+    );
 
     HookResult::Continue
 }

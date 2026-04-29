@@ -23,7 +23,9 @@
 use chrono::{DateTime, TimeZone, Utc};
 use serde::Deserialize;
 use serde_json::Value;
-use sink_core::{RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
+use sink_core::{
+    RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error,
+};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -494,7 +496,12 @@ fn emit_error_event(shared: &Arc<Shared>, error_message: String, attempt: u32) {
     let Some(ref tx) = shared.error_tx else {
         return; // No channel wired — silent skip.
     };
-    let event = SinkErrorEvent::new(shared.sink_name.clone(), "honeycomb", error_message, attempt);
+    let event = SinkErrorEvent::new(
+        shared.sink_name.clone(),
+        "honeycomb",
+        error_message,
+        attempt,
+    );
     emit_sink_error(tx, event);
 }
 

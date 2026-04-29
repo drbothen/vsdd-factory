@@ -31,21 +31,30 @@ fn make_payload(tool_name: &str, command: &str) -> HookPayload {
 #[test]
 fn test_BC_4_03_001_parse_detects_bare_git_commit() {
     let result = is_git_commit_command("git commit -m 'fix: typo'");
-    assert!(result, "bare git commit must be detected as a commit command");
+    assert!(
+        result,
+        "bare git commit must be detected as a commit command"
+    );
 }
 
 /// AC-2: `git commit --amend` is also a git commit invocation.
 #[test]
 fn test_BC_4_03_001_parse_detects_git_commit_amend() {
     let result = is_git_commit_command("git commit --amend --no-edit");
-    assert!(result, "git commit --amend must be detected as a commit command");
+    assert!(
+        result,
+        "git commit --amend must be detected as a commit command"
+    );
 }
 
 /// AC-2: compound command `echo hi && git commit -m 'x'` contains git commit.
 #[test]
 fn test_BC_4_03_001_parse_detects_git_commit_in_compound_command() {
     let result = is_git_commit_command("echo hi && git commit -m 'x'");
-    assert!(result, "compound command containing git commit must be detected");
+    assert!(
+        result,
+        "compound command containing git commit must be detected"
+    );
 }
 
 /// EC-002: `git status` is NOT a git commit invocation.

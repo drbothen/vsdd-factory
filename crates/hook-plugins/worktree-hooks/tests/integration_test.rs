@@ -29,8 +29,8 @@
 
 #[cfg(test)]
 mod worktree_integration {
-    use worktree_hooks::worktree_hook_logic;
     use vsdd_hook_sdk::HookPayload;
+    use worktree_hooks::worktree_hook_logic;
 
     // -----------------------------------------------------------------------
     // Workspace root resolver (VP-067 — same pattern as VP-065/066)
@@ -241,10 +241,7 @@ mod worktree_integration {
                 ];
                 for (k, v) in fields {
                     if !RESERVED.contains(k) {
-                        event.insert(
-                            k.to_string(),
-                            serde_json::Value::String(v.to_string()),
-                        );
+                        event.insert(k.to_string(), serde_json::Value::String(v.to_string()));
                     }
                 }
 
@@ -316,13 +313,11 @@ mod worktree_integration {
             "dispatcher_trace_id must be a non-empty string (host-enriched; plugin must NOT set this)"
         );
         assert!(
-            event["session_id"].is_string()
-                && !event["session_id"].as_str().unwrap().is_empty(),
+            event["session_id"].is_string() && !event["session_id"].as_str().unwrap().is_empty(),
             "session_id must be a non-empty string (host-enriched; plugin must NOT set this)"
         );
         assert!(
-            event["plugin_name"].is_string()
-                && !event["plugin_name"].as_str().unwrap().is_empty(),
+            event["plugin_name"].is_string() && !event["plugin_name"].as_str().unwrap().is_empty(),
             "plugin_name must be a non-empty string (host-enriched per BC-1.05.012)"
         );
         assert!(
@@ -332,9 +327,18 @@ mod worktree_integration {
         );
 
         // --- Construction-time fields (4) ---
-        assert!(event.get("ts").is_some(), "ts construction-time field must be present");
-        assert!(event.get("ts_epoch").is_some(), "ts_epoch construction-time field must be present");
-        assert!(event.get("schema_version").is_some(), "schema_version must be present");
+        assert!(
+            event.get("ts").is_some(),
+            "ts construction-time field must be present"
+        );
+        assert!(
+            event.get("ts_epoch").is_some(),
+            "ts_epoch construction-time field must be present"
+        );
+        assert!(
+            event.get("schema_version").is_some(),
+            "schema_version must be present"
+        );
         assert_eq!(
             event.get("type").and_then(|v| v.as_str()),
             Some("worktree.created"),
@@ -344,8 +348,7 @@ mod worktree_integration {
         // --- Total field count: exactly 10 ---
         let field_count = event.as_object().map(|m| m.len()).unwrap_or(0);
         assert_eq!(
-            field_count,
-            10,
+            field_count, 10,
             "BC-4.07.001: worktree.created wire payload must have exactly 10 fields \
              (2 plugin-set + 4 host-enriched + 4 construction-time); got {field_count}"
         );
@@ -361,8 +364,14 @@ mod worktree_integration {
             .filter(|k| {
                 !matches!(
                     k.as_str(),
-                    "dispatcher_trace_id" | "session_id" | "plugin_name" | "plugin_version"
-                        | "ts" | "ts_epoch" | "schema_version" | "type"
+                    "dispatcher_trace_id"
+                        | "session_id"
+                        | "plugin_name"
+                        | "plugin_version"
+                        | "ts"
+                        | "ts_epoch"
+                        | "schema_version"
+                        | "type"
                 )
             })
             .map(|k| k.as_str())
@@ -399,21 +408,13 @@ mod worktree_integration {
         let name = "my-feature";
 
         // First dispatch
-        let payload1 = make_worktree_create_payload(
-            "sess-refire",
-            "trace-refire-1",
-            Some(path),
-            Some(name),
-        );
+        let payload1 =
+            make_worktree_create_payload("sess-refire", "trace-refire-1", Some(path), Some(name));
         let events1 = dispatch_and_capture(payload1);
 
         // Second dispatch — same path, simulating re-fire on reconnect
-        let payload2 = make_worktree_create_payload(
-            "sess-refire",
-            "trace-refire-2",
-            Some(path),
-            Some(name),
-        );
+        let payload2 =
+            make_worktree_create_payload("sess-refire", "trace-refire-2", Some(path), Some(name));
         let events2 = dispatch_and_capture(payload2);
 
         // Both dispatches must emit exactly one worktree.created event
@@ -439,8 +440,14 @@ mod worktree_integration {
         // worktree_path must be consistent across both emits
         let path1 = events1[0]["worktree_path"].as_str().unwrap_or("");
         let path2 = events2[0]["worktree_path"].as_str().unwrap_or("");
-        assert_eq!(path1, path, "worktree_path must equal the envelope value on first fire");
-        assert_eq!(path2, path, "worktree_path must equal the envelope value on re-fire");
+        assert_eq!(
+            path1, path,
+            "worktree_path must equal the envelope value on first fire"
+        );
+        assert_eq!(
+            path2, path,
+            "worktree_path must equal the envelope value on re-fire"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -468,7 +475,8 @@ mod worktree_integration {
             .collect();
 
         assert_eq!(
-            created.len(), 1,
+            created.len(),
+            1,
             "BC-4.07.001 EC-003: worktree.created must be emitted even when worktree_name is absent"
         );
 
@@ -539,17 +547,25 @@ mod worktree_integration {
             "dispatcher_trace_id must be a non-empty string (host-enriched)"
         );
         assert!(
-            event["session_id"].is_string()
-                && !event["session_id"].as_str().unwrap().is_empty(),
+            event["session_id"].is_string() && !event["session_id"].as_str().unwrap().is_empty(),
             "session_id must be a non-empty string (host-enriched)"
         );
-        assert!(event["plugin_name"].is_string(), "plugin_name must be a non-empty string");
-        assert!(event["plugin_version"].is_string(), "plugin_version must be a non-empty string");
+        assert!(
+            event["plugin_name"].is_string(),
+            "plugin_name must be a non-empty string"
+        );
+        assert!(
+            event["plugin_version"].is_string(),
+            "plugin_version must be a non-empty string"
+        );
 
         // --- Construction-time fields (4) ---
         assert!(event.get("ts").is_some(), "ts must be present");
         assert!(event.get("ts_epoch").is_some(), "ts_epoch must be present");
-        assert!(event.get("schema_version").is_some(), "schema_version must be present");
+        assert!(
+            event.get("schema_version").is_some(),
+            "schema_version must be present"
+        );
         assert_eq!(
             event.get("type").and_then(|v| v.as_str()),
             Some("worktree.removed"),
@@ -559,8 +575,7 @@ mod worktree_integration {
         // --- Total field count: exactly 9 ---
         let field_count = event.as_object().map(|m| m.len()).unwrap_or(0);
         assert_eq!(
-            field_count,
-            9,
+            field_count, 9,
             "BC-4.07.002: worktree.removed wire payload must have exactly 9 fields \
              (1 plugin-set + 4 host-enriched + 4 construction-time); got {field_count}"
         );
@@ -572,8 +587,14 @@ mod worktree_integration {
             .filter(|k| {
                 !matches!(
                     k.as_str(),
-                    "dispatcher_trace_id" | "session_id" | "plugin_name" | "plugin_version"
-                        | "ts" | "ts_epoch" | "schema_version" | "type"
+                    "dispatcher_trace_id"
+                        | "session_id"
+                        | "plugin_name"
+                        | "plugin_version"
+                        | "ts"
+                        | "ts_epoch"
+                        | "schema_version"
+                        | "type"
                 )
             })
             .map(|k| k.as_str())
@@ -585,7 +606,10 @@ mod worktree_integration {
              got: {:?}",
             plugin_set_fields
         );
-        assert_eq!(plugin_set_fields[0], "worktree_path", "the single plugin-set field must be worktree_path");
+        assert_eq!(
+            plugin_set_fields[0], "worktree_path",
+            "the single plugin-set field must be worktree_path"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -693,12 +717,18 @@ mod worktree_integration {
 
         // Both dispatches must have emitted their events
         assert_eq!(
-            events_create.iter().filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("worktree.created")).count(),
+            events_create
+                .iter()
+                .filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("worktree.created"))
+                .count(),
             1,
             "WorktreeCreate must emit worktree.created"
         );
         assert_eq!(
-            events_remove.iter().filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("worktree.removed")).count(),
+            events_remove
+                .iter()
+                .filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("worktree.removed"))
+                .count(),
             1,
             "WorktreeRemove must emit worktree.removed"
         );
@@ -824,11 +854,11 @@ mod worktree_integration {
             .unwrap_or_else(|e| panic!("failed to parse hooks.json.template as JSON: {e}"));
 
         for event_name in &["WorktreeCreate", "WorktreeRemove"] {
-            let arr = template["hooks"][event_name]
-                .as_array()
-                .unwrap_or_else(|| panic!(
+            let arr = template["hooks"][event_name].as_array().unwrap_or_else(|| {
+                panic!(
                     "BC-4.07.003: hooks.{event_name} must be a JSON array in hooks.json.template"
-                ));
+                )
+            });
             assert!(
                 !arr.is_empty(),
                 "BC-4.07.003: {event_name} array must have at least one entry"
@@ -837,11 +867,9 @@ mod worktree_integration {
             let entry = &arr[0]["hooks"][0];
 
             // BC-4.07.003 PC-2: command must reference dispatcher binary, NOT .wasm plugin
-            let command = entry["command"]
-                .as_str()
-                .unwrap_or_else(|| panic!(
-                    "BC-4.07.003: hooks.{event_name}[0].hooks[0].command must be a string"
-                ));
+            let command = entry["command"].as_str().unwrap_or_else(|| {
+                panic!("BC-4.07.003: hooks.{event_name}[0].hooks[0].command must be a string")
+            });
             assert!(
                 command.contains("factory-dispatcher"),
                 "BC-4.07.003 PC-2: {event_name} command must contain 'factory-dispatcher' \
@@ -864,20 +892,18 @@ mod worktree_integration {
 
             // BC-4.07.003 PC-3: async:true
             assert_eq!(
-                entry["async"],
-                true,
+                entry["async"], true,
                 "BC-4.07.003 PC-3: {event_name} entry must have async:true"
             );
 
             // BC-4.07.003 PC-6: timeout:10000
-            let timeout = entry["timeout"]
-                .as_i64()
-                .unwrap_or_else(|| panic!(
+            let timeout = entry["timeout"].as_i64().unwrap_or_else(|| {
+                panic!(
                     "BC-4.07.003 PC-6: hooks.{event_name}[0].hooks[0].timeout must be an integer"
-                ));
+                )
+            });
             assert_eq!(
-                timeout,
-                10000,
+                timeout, 10000,
                 "BC-4.07.003 PC-6: {event_name} timeout must be 10000ms \
                  (ADR-011 timeout hierarchy: dispatcher budget 5000ms < harness timeout 10000ms)"
             );
@@ -948,14 +974,11 @@ mod worktree_integration {
             );
 
             // BC-4.07.004 PC-4: timeout_ms = 5000
-            let timeout_ms = entry["timeout_ms"]
-                .as_integer()
-                .unwrap_or_else(|| panic!(
-                    "BC-4.07.004 PC-4: {event_name} timeout_ms must be present and an integer"
-                ));
+            let timeout_ms = entry["timeout_ms"].as_integer().unwrap_or_else(|| {
+                panic!("BC-4.07.004 PC-4: {event_name} timeout_ms must be present and an integer")
+            });
             assert_eq!(
-                timeout_ms,
-                5000,
+                timeout_ms, 5000,
                 "BC-4.07.004 PC-4: {event_name} timeout_ms must be 5000"
             );
 

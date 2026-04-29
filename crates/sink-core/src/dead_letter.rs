@@ -128,8 +128,7 @@ impl std::fmt::Debug for DlqWriter {
 impl DlqWriter {
     /// Construct a production `DlqWriter` using the system UTC clock.
     pub fn new(config: DlqWriterConfig, internal_tx: mpsc::Sender<SinkDlqEvent>) -> Self {
-        let clock_fn: Arc<dyn Fn() -> DateTime<Utc> + Send + Sync> =
-            Arc::new(|| Utc::now());
+        let clock_fn: Arc<dyn Fn() -> DateTime<Utc> + Send + Sync> = Arc::new(|| Utc::now());
         Self::with_clock_fn(config, internal_tx, clock_fn)
     }
 
@@ -208,8 +207,7 @@ impl DlqWriter {
 
                 if needs_open {
                     // mkdir-p inline per AC-007.
-                    fs::create_dir_all(&self.config.dlq_root)
-                        .map_err(DlqError::MkdirFailed)?;
+                    fs::create_dir_all(&self.config.dlq_root).map_err(DlqError::MkdirFailed)?;
                     let f = OpenOptions::new()
                         .append(true)
                         .create(true)
@@ -226,14 +224,19 @@ impl DlqWriter {
                         "reason".to_owned(),
                         serde_json::Value::String(reason.as_str().to_owned()),
                     );
-                    serde_json::to_string(&map)
-                        .map_err(|e| DlqError::WriteFailed(std::io::Error::new(std::io::ErrorKind::InvalidData, e)))?
+                    serde_json::to_string(&map).map_err(|e| {
+                        DlqError::WriteFailed(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            e,
+                        ))
+                    })?
                 };
 
                 // Write the JSONL line + newline.
                 if let Some((_, ref mut f, ref mut size)) = *guard {
                     let bytes_to_write = line.len() + 1; // +1 for newline
-                    f.write_all(line.as_bytes()).map_err(DlqError::WriteFailed)?;
+                    f.write_all(line.as_bytes())
+                        .map_err(DlqError::WriteFailed)?;
                     f.write_all(b"\n").map_err(DlqError::WriteFailed)?;
                     f.flush().map_err(DlqError::WriteFailed)?;
                     *size += bytes_to_write as u64;
@@ -329,7 +332,6 @@ fn next_seq_path(current: &PathBuf) -> PathBuf {
     }
     current.clone()
 }
-
 
 #[cfg(test)]
 #[path = "dead_letter_tests.rs"]

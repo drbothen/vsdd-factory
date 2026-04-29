@@ -70,7 +70,8 @@ impl Router {
                     let mut ev = event.clone();
                     for (k, v) in sink_tags {
                         if !ev.fields.contains_key(k) {
-                            ev.fields.insert(k.clone(), serde_json::Value::String(v.clone()));
+                            ev.fields
+                                .insert(k.clone(), serde_json::Value::String(v.clone()));
                         }
                     }
                     ev
@@ -278,7 +279,12 @@ mod tests {
         router.shutdown();
 
         let events = submitted.lock().unwrap();
-        assert_eq!(events.len(), 1, "event must reach sink; got {} events", events.len());
+        assert_eq!(
+            events.len(),
+            1,
+            "event must reach sink; got {} events",
+            events.len()
+        );
 
         let ev = &events[0];
         assert_eq!(

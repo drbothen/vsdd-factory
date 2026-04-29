@@ -404,7 +404,6 @@ impl OtelGrpcSink {
     pub fn config(&self) -> &SinkConfigCommon {
         &self.common
     }
-
 }
 // Note: OtelGrpcSink::enrich() removed in S-4.06 — tag enrichment is now
 // the Router's responsibility (BC-3.04.004 PC3). Events arrive at
