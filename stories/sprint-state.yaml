@@ -9,12 +9,12 @@ next_milestone: 1.0.0-rc.1
 # Story counts by status
 stories:
   total: 47
-  merged: 42
+  merged: 43
   partial: 2
-  draft: 4
+  draft: 3
   ready: 0
   blocked: 0
-  in_progress: 0   # Wave 13: S-5.01 + S-5.02 + S-5.03 merged; S-5.04 pending spec convergence
+  in_progress: 0   # Wave 13 COMPLETE: S-5.01 + S-5.02 + S-5.03 + S-5.04 all merged; DRIFT-006 FULLY CLOSED
 
 # Epic completion summary
 epics:
@@ -70,19 +70,19 @@ epics:
     stories: 7
     status: in-progress
     milestone: 1.0.0
-    merged: 3   # S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28), S-5.03 (PR #37 93b298f 2026-04-29)
+    merged: 4   # S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28), S-5.03 (PR #37 93b298f 2026-04-29), S-5.04 (PR #38 e90faab 2026-04-29; DRIFT-006 FULLY CLOSED; Wave 13 COMPLETE)
     partial: 1   # S-5.05 migration guide skeleton
-    draft: 3    # S-5.04, S-5.06, S-5.07
+    draft: 2    # S-5.06, S-5.07
     ready: 0
 
-# Point totals (updated 2026-04-29 after S-5.03 delivery; Wave 13 at 3/4)
+# Point totals (updated 2026-04-29 after S-5.04 delivery; Wave 13 COMPLETE)
 points:
   total: 207
-  merged: 156   # 42 merged stories; +5pts (S-5.03) over prior 151
-  remaining: 51
+  merged: 159   # 43 merged stories; +3pts (S-5.04) over prior 156
+  remaining: 48
 
-# Current work frontier (stories unblocked, 2026-04-29 after S-5.03 delivery)
-frontier: [S-5.04]   # Wave 13: S-5.04 (PostToolUseFailure) pending spec convergence; closes DRIFT-006
+# Current work frontier (stories unblocked, 2026-04-29 after Wave 13 COMPLETE)
+frontier: [S-5.05, S-5.06]   # Wave 14: migration guide + semver commitment doc; S-5.07 calendar-gated
 
 # Shipped releases (for reference)
 releases:
