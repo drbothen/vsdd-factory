@@ -8,7 +8,7 @@
 //! BC-4.03.001 postcondition 1: on_hook replaces the stub (wasm compiles,
 //! SDK types are used throughout).
 
-use capture_commit_activity::{CommitEventFields, commit_hook_logic};
+use capture_commit_activity::commit_hook_logic;
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------
