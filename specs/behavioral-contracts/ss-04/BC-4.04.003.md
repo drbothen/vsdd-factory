@@ -109,5 +109,5 @@ VP-065
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin-emitted event emission; S-5.01 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy |
+| v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin-emitted event emission; S-5.01 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.04.003 has no field-grouping content; HIGH-003 was reverted in S-5.03 P02). |
 | v1.0 | 2026-04-27 | product-owner | Final state after S-5.01 convergence passes (v1.0-pass-1 through v1.0-pass-4) |

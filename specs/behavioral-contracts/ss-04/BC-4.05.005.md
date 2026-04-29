@@ -123,6 +123,6 @@ VP-066
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| v1.2 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (CRIT-002 sweep) BC-1.05.022 deny-by-default re-anchored to correct pair BC-1.05.001+BC-1.05.021 in Description and Postcondition 5; (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin event emission; S-5.02 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy |
+| v1.2 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (CRIT-002 sweep) BC-1.05.022 deny-by-default re-anchored to correct pair BC-1.05.001+BC-1.05.021 in Description and Postcondition 5; (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin event emission; S-5.02 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: CRIT-002 (BC-1.05.022 re-anchor) — APPLIED; HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.05.005 is registry routing, not field-grouping; HIGH-003 was reverted in S-5.03 P02). |
 | v1.1 | 2026-04-27 | product-owner | S-5.02 convergence D-137 pass (v2.7 seal) |
 | v1.0 | 2026-04-26 | product-owner | Initial creation (S-5.02 foundation burst) |

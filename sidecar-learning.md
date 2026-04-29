@@ -245,3 +245,17 @@ Session-end markers for the VSDD factory. Run /session-review to synthesize.
 - Add check: "For each BC-NNN cited as enforcing a behavior (e.g., 'deny-by-default per BC-X.XX.XXX'), verify the cited BC's H1 title describes that behavior, not a different path through the same subsystem."
 
 **Scope of retroactive fix (2026-04-28):** 9 BC files corrected across S-5.01 + S-5.02 + S-5.03 sibling sweep. DI-007 citation removed from all nine; BC-1.05.022 replaced with BC-1.05.001+BC-1.05.021 pair in three BCs. This sweep was triggered by ADV-S5.03-P01 adversarial review.
+
+---
+
+## Process Gap — OBS-P02-002 (ADV-S5.03-P02, 2026-04-28)
+
+**Finding:** Sibling-sweep changelogs in pass-1 (BC-4.04.001, BC-4.04.003, BC-4.04.005, BC-4.05.001, BC-4.05.005) enumerated only the findings that were APPLIED (HIGH-004: DI-007 removal), without explicitly noting findings that were considered but NOT applied (HIGH-003: 4+3+1 RESERVED_FIELDS split). Pass-2 adversary read the sweep coverage as materially false because HIGH-003 was applied in BC-4.07.001/.002 but absent from sibling changelogs — giving the appearance that the sibling sweep had missed HIGH-003 entirely rather than correctly judged it inapplicable.
+
+**Root cause:** Sibling-sweep changelog discipline did not require enumerating considered-but-skipped findings, only applied ones.
+
+**Fix applied (ADV-S5.03-P02):** Appended clarifying notes to sibling-sweep changelog rows in BC-4.04.001, BC-4.04.003, BC-4.04.005, BC-4.05.001, BC-4.05.005 explicitly stating: "Sibling-sweep findings considered: [finding] — APPLIED; [finding] — NOT APPLICABLE (rationale)." This makes the sweep record unambiguous for future adversarial passes.
+
+**Recommendation for orchestrator dispatch instructions:** When dispatching PO for a sibling-sweep fix burst, include: "In sibling-sweep changelog entries, enumerate ALL findings considered with their disposition: 'APPLIED', 'NOT APPLICABLE (rationale)', or 'DEFERRED (reason)'. Do not list only applied findings."
+
+**Wider revert lesson (ADV-S5.03-P02, pass-2 CRIT-P02-001/003):** HIGH-003 (4+3+1 RESERVED_FIELDS split) was itself a mistake — the 4-vs-3 distinction is an implementation detail from `emit_event.rs` that is NOT surfaced in HOST_ABI.md (which lumps all 8 RESERVED_FIELDS together) and created a new grouping inconsistent with sibling BCs BC-4.04.001 + BC-4.05.001 (which both use 4+4 construction-time grouping). Pass-2 reverted HIGH-003 in BC-4.07.001/.002 (v1.1 → v1.2). When a sibling-sweep blast radius exceeds its value, revert rather than propagate (S-5.01 pass-4 architectural reversal pattern).

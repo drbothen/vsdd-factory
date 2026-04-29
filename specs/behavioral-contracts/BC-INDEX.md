@@ -249,14 +249,14 @@ traces_to: bc-id-mapping.md
 | [BC-4.04.003](ss-04/BC-4.04.003.md) | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | draft | CAP-002 | S-5.01 |
 | [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and async:true | draft | CAP-002 | S-5.01 |
 | [BC-4.04.005](ss-04/BC-4.04.005.md) | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with read_file + exec_subprocess capability tables and timeout_ms:8000 | draft | CAP-002 | S-5.01 |
-| [BC-4.05.001](ss-04/BC-4.05.001.md) | session-end plugin emits session.ended event with session telemetry on SessionEnd event; 3 plugin-set fields (event, plugin, timeout_ms) + 4 host-enriched fields | draft | CAP-002 | S-5.02 |
+| [BC-4.05.001](ss-04/BC-4.05.001.md) | session-end plugin emits session.ended event with session telemetry on SessionEnd event | draft | CAP-002 | S-5.02 |
 | [BC-4.05.002](ss-04/BC-4.05.002.md) | session-end plugin does not invoke any subprocess; fast-path completion with no exec_subprocess capability | draft | CAP-002 | S-5.02 |
 | [BC-4.05.003](ss-04/BC-4.05.003.md) | session-end plugin is unconditionally stateless; idempotency enforced by Layer 1 once:true directive | draft | CAP-002 | S-5.02 |
 | [BC-4.05.004](ss-04/BC-4.05.004.md) | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and async:true | draft | CAP-002 | S-5.02 |
 | [BC-4.05.005](ss-04/BC-4.05.005.md) | hooks-registry.toml registers SessionEnd event routing to hook-plugins/session-end-telemetry.wasm; deny-by-default capability table (no read_file, no exec_subprocess); timeout_ms:5000 | draft | CAP-002 | S-5.02 |
 | [BC-4.07.001](ss-04/BC-4.07.001.md) | worktree-hooks plugin emits worktree.created event with {worktree_path, worktree_name} on WorktreeCreate event; Option A zero-capability; 10-field wire payload (2+4+4) | draft | CAP-002 | S-5.03 |
 | [BC-4.07.002](ss-04/BC-4.07.002.md) | worktree-hooks plugin emits worktree.removed event with {worktree_path} on WorktreeRemove event; unknown-worktree no-op; zero-capability; 9-field wire payload (1+4+4) | draft | CAP-002 | S-5.03 |
-| [BC-4.07.003](ss-04/BC-4.07.003.md) | hooks.json.template registers WorktreeCreate and WorktreeRemove with dispatcher binary routing; once:false (can re-fire on reconnect, unlike session events); async:true; timeout:10000 | draft | CAP-002 | S-5.03 |
+| [BC-4.07.003](ss-04/BC-4.07.003.md) | hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); async:true; timeout:10000 | draft | CAP-002 | S-5.03 |
 | [BC-4.07.004](ss-04/BC-4.07.004.md) | hooks-registry.toml registers WorktreeCreate and WorktreeRemove routing to hook-plugins/worktree-hooks.wasm; single crate two entries; ZERO capability tables; timeout_ms:5000 | draft | CAP-002 | S-5.03 |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
