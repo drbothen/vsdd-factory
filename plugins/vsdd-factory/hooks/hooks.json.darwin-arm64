@@ -107,6 +107,18 @@
           }
         ]
       }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/darwin-arm64/factory-dispatcher",
+            "timeout": 10000,
+            "async": true
+          }
+        ]
+      }
     ]
   }
 }
