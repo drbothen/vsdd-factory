@@ -1,0 +1,26 @@
+$ cargo test -p sink-honeycomb --test contract_auth_header
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+# Note: auth-header test bug fixed in 2a4e25e via single-mock chained matchers
+# (httpmock 0.7 FIFO routing collision with multiple mocks)
+
+warning: function `test_BC_3_06_005_post_includes_x_honeycomb_team_header` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_auth_header.rs:33:4
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_BC_3_06_005_auth_header_value_matches_configured_api_key` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_auth_header.rs:56:4
+
+warning: function `test_BC_3_06_005_content_type_is_json` should have a snake case name
+  --> crates/sink-honeycomb/tests/contract_auth_header.rs:82:4
+
+warning: `sink-honeycomb` (test "contract_auth_header") generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running tests/contract_auth_header.rs (target/debug/deps/contract_auth_header-a56c8dfc706a1c4e)
+
+running 3 tests
+test test_BC_3_06_005_post_includes_x_honeycomb_team_header ... ok
+test test_BC_3_06_005_auth_header_value_matches_configured_api_key ... ok
+test test_BC_3_06_005_content_type_is_json ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s

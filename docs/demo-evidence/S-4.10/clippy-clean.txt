@@ -1,0 +1,14 @@
+cargo clippy -p sink-core -p sink-http -p sink-otel-grpc -p sink-file -- -D warnings
+SHA: da8c5b5
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.21s
+
+Exit code: 0
+
+Result: CLEAN — no clippy warnings or errors on any of the 4 story-owned crates
+(sink-core, sink-http, sink-otel-grpc, sink-file).
+
+Note: non_snake_case warnings appear during `cargo test` because test functions use
+BC-tracing naming convention (e.g. test_BC_3_07_002_*). These are in test binary
+compilation, not production source, and are expected per the project test-naming
+convention. Clippy runs on production source only (no --tests flag) and is clean.

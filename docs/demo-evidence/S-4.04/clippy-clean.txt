@@ -1,0 +1,5 @@
+$ cargo clippy -p sink-core -- -D warnings
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+
+EXIT: 0 (clean — no warnings, no errors)

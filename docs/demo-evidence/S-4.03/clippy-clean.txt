@@ -1,0 +1,7 @@
+$ cargo clippy -p sink-honeycomb -- -D warnings
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+# rustc 1.95.0 (59807616e 2026-04-14)
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.21s
+
+# Exit code: 0 — CLEAN (no clippy lints, no warnings promoted to errors)

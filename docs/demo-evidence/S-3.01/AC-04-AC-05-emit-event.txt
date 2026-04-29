@@ -1,0 +1,26 @@
+$ PATH=/Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH cargo test -p capture-commit-activity --test contract_emit_event
+# Covers AC-4: Emits commit.made event with fields: sha, branch, message, author, timestamp
+# Covers AC-5: Handles non-commit bash commands gracefully (no-op)
+
+warning: function `test_BC_4_03_001_emit_called_with_commit_made_event_type` should have a snake case name
+warning: function `test_BC_4_03_001_emit_sha_field_matches_git_log_output` should have a snake case name
+warning: function `test_BC_4_03_001_emit_all_five_fields_non_empty` should have a snake case name
+warning: function `test_BC_4_03_001_emit_not_called_for_non_commit_command` should have a snake case name
+warning: function `test_BC_4_03_001_emit_result_is_continue_on_happy_path` should have a snake case name
+warning: function `test_BC_4_03_001_build_commit_fields_sha_field` should have a snake case name
+warning: function `test_TV_003_canonical_commit_made_schema` should have a snake case name
+
+warning: `capture-commit-activity` (test "contract_emit_event") generated 7 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running tests/contract_emit_event.rs (target/debug/deps/contract_emit_event-cd4bd13cc3b492c9)
+
+running 7 tests
+test test_TV_003_canonical_commit_made_schema ... ok
+test test_BC_4_03_001_emit_all_five_fields_non_empty ... ok
+test test_BC_4_03_001_emit_not_called_for_non_commit_command ... ok
+test test_BC_4_03_001_build_commit_fields_sha_field ... ok
+test test_BC_4_03_001_emit_sha_field_matches_git_log_output ... ok
+test test_BC_4_03_001_emit_called_with_commit_made_event_type ... ok
+test test_BC_4_03_001_emit_result_is_continue_on_happy_path ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -45,7 +45,9 @@ use std::thread::JoinHandle;
 use thiserror::Error;
 
 use chrono::{DateTime, Local};
-use sink_core::{RoutingFilter, Sink, SinkConfigCommon, SinkEvent};
+use sink_core::{
+    RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error,
+};
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
@@ -144,6 +146,20 @@ pub enum FileSinkError {
     Io(#[from] std::io::Error),
 }
 
+impl From<sink_core::PathTemplateError> for FileSinkError {
+    fn from(e: sink_core::PathTemplateError) -> Self {
+        match e {
+            sink_core::PathTemplateError::UnknownPlaceholder { placeholder } => {
+                // Preserve the existing sink-file convention of including braces
+                // in the placeholder string (e.g. "{unknown}" not "unknown").
+                FileSinkError::UnknownPlaceholder {
+                    placeholder: format!("{{{placeholder}}}"),
+                }
+            }
+        }
+    }
+}
+
 /// Resolve a path template into a concrete [`PathBuf`].
 ///
 /// Supported placeholders:
@@ -155,51 +171,16 @@ pub enum FileSinkError {
 /// Unknown `{...}` placeholders return [`FileSinkError::UnknownPlaceholder`]
 /// so a typo in `observability-config.toml` fails loudly at load time
 /// rather than silently leaving a literal `{typo}` in the filename.
+///
+/// Delegates to [`sink_core::path_template::resolve_path_template`] (Task 0 extraction).
 pub fn resolve_path_template(
     template: &str,
     date: DateTime<Local>,
     name: &str,
     project: Option<&str>,
 ) -> Result<PathBuf, FileSinkError> {
-    let date_s = date.format("%Y-%m-%d").to_string();
-    let project_s = project
-        .and_then(|p| {
-            // basename of the project dir — the spec's contract. `Path`
-            // handles trailing slashes.
-            Path::new(p)
-                .file_name()
-                .and_then(|s| s.to_str())
-                .map(str::to_owned)
-        })
-        .unwrap_or_default();
-
-    let mut out = String::with_capacity(template.len());
-    let mut rest = template;
-    while let Some(open) = rest.find('{') {
-        out.push_str(&rest[..open]);
-        let after = &rest[open + 1..];
-        let Some(close) = after.find('}') else {
-            // Unbalanced brace — treat the rest literally.
-            out.push('{');
-            out.push_str(after);
-            rest = "";
-            break;
-        };
-        let key = &after[..close];
-        match key {
-            "date" => out.push_str(&date_s),
-            "name" => out.push_str(name),
-            "project" => out.push_str(&project_s),
-            other => {
-                return Err(FileSinkError::UnknownPlaceholder {
-                    placeholder: format!("{{{other}}}"),
-                });
-            }
-        }
-        rest = &after[close + 1..];
-    }
-    out.push_str(rest);
-    Ok(PathBuf::from(out))
+    sink_core::path_template::resolve_path_template(template, date, name, project)
+        .map_err(FileSinkError::from)
 }
 
 /// Messages sent to the worker task.
@@ -214,14 +195,21 @@ struct Shared {
     failures: Mutex<Vec<SinkFailure>>,
     queue_full_count: AtomicU64,
     shutdown: std::sync::atomic::AtomicBool,
+    /// Operator-assigned sink name for `internal.sink_error` events (AC-009).
+    sink_name: String,
+    /// Optional fire-and-forget channel for `internal.sink_error` events
+    /// (BC-3.07.002). `None` when no error channel is wired in.
+    error_tx: Option<tokio::sync::mpsc::Sender<SinkErrorEvent>>,
 }
 
 impl Shared {
-    fn new() -> Self {
+    fn new(sink_name: String, error_tx: Option<tokio::sync::mpsc::Sender<SinkErrorEvent>>) -> Self {
         Self {
             failures: Mutex::new(Vec::new()),
             queue_full_count: AtomicU64::new(0),
             shutdown: std::sync::atomic::AtomicBool::new(false),
+            sink_name,
+            error_tx,
         }
     }
 }
@@ -245,7 +233,29 @@ impl FileSink {
     /// `env::var("CLAUDE_PROJECT_DIR")`). The background thread is
     /// spawned eagerly so the worker is ready before the first
     /// `submit`.
+    ///
+    /// To wire `internal.sink_error` emission (BC-3.07.002), use
+    /// [`Self::new_with_error_channel`] instead.
     pub fn new(config: FileSinkConfig, project_dir: Option<String>) -> Result<Self, FileSinkError> {
+        Self::new_inner(config, project_dir, None)
+    }
+
+    /// Like [`Self::new`] but threads an error-event channel sender into the
+    /// sink's shared state so failures are emitted as `internal.sink_error`
+    /// events (BC-3.07.002).
+    pub fn new_with_error_channel(
+        config: FileSinkConfig,
+        project_dir: Option<String>,
+        error_tx: tokio::sync::mpsc::Sender<SinkErrorEvent>,
+    ) -> Result<Self, FileSinkError> {
+        Self::new_inner(config, project_dir, Some(error_tx))
+    }
+
+    fn new_inner(
+        config: FileSinkConfig,
+        project_dir: Option<String>,
+        error_tx: Option<tokio::sync::mpsc::Sender<SinkErrorEvent>>,
+    ) -> Result<Self, FileSinkError> {
         // Validate the template early by attempting a resolution with
         // today's date — surfaces typos before any event is submitted.
         let _ = resolve_path_template(
@@ -256,7 +266,12 @@ impl FileSink {
         )?;
 
         let (tx, rx) = mpsc::channel::<Message>(config.queue_depth.max(1));
-        let shared = Arc::new(Shared::new());
+        let sink_name_for_shared = if config.name.is_empty() {
+            "<unnamed>".to_owned()
+        } else {
+            config.name.clone()
+        };
+        let shared = Arc::new(Shared::new(sink_name_for_shared, error_tx));
         let worker_shared = Arc::clone(&shared);
         let worker_name = config.name.clone();
         let worker_template = config.path_template.clone();
@@ -337,47 +352,44 @@ impl FileSink {
     pub fn config(&self) -> &SinkConfigCommon {
         &self.common
     }
-
-    /// Enrich an event with this sink's static tags without clobbering
-    /// producer-set fields. Used by `submit` before the event enters
-    /// the queue, so the worker writes the final shape without needing
-    /// its own tag context.
-    fn enrich(&self, event: SinkEvent) -> SinkEvent {
-        let mut ev = event;
-        for (k, v) in &self.common.tags {
-            if !ev.fields.contains_key(k) {
-                ev.fields
-                    .insert(k.clone(), serde_json::Value::String(v.clone()));
-            }
-        }
-        ev
-    }
 }
+// Note: FileSink::enrich() removed in S-4.06 — tag enrichment is now
+// the Router's responsibility (BC-3.04.004 PC3). Events arrive at
+// FileSink::submit() pre-enriched from Router::submit().
 
 impl Sink for FileSink {
     fn name(&self) -> &str {
         &self.name
     }
 
-    fn accepts(&self, event: &SinkEvent) -> bool {
+    fn accepts(&self, _event: &SinkEvent) -> bool {
         if !self.common.enabled {
             return false;
         }
         if self.shared.shutdown.load(Ordering::Acquire) {
             return false;
         }
-        if let Some(filter) = self.common.routing_filter.as_ref() {
-            let event_type = event.event_type().unwrap_or("");
-            return filter.accepts(event_type);
-        }
+        // NOTE: RoutingFilter evaluation removed per BC-3.04.004 invariant 1.
+        // Router is the single dispatch gate; FileSink::accepts handles only
+        // enabled-flag and shutdown-state checks.
         true
+    }
+
+    fn routing_filter(&self) -> Option<&RoutingFilter> {
+        self.common.routing_filter.as_ref()
+    }
+
+    fn tags(&self) -> &std::collections::BTreeMap<String, String> {
+        &self.common.tags
     }
 
     fn submit(&self, event: SinkEvent) {
         if !self.accepts(&event) {
             return;
         }
-        let enriched = self.enrich(event);
+        // Tag enrichment is now the Router's responsibility (BC-3.04.004 PC3).
+        // Events arrive pre-enriched from Router::submit.
+        let enriched = event;
         let guard = self.sender.lock().unwrap_or_else(|p| p.into_inner());
         let Some(sender) = guard.as_ref() else {
             // Post-shutdown submit is a no-op by contract.
@@ -518,6 +530,25 @@ fn append_jsonl(path: &Path, event: &SinkEvent) -> std::io::Result<()> {
 }
 
 fn record_failure(shared: &Shared, path: PathBuf, reason: String) {
+    // Emit internal.sink_error BEFORE locking the failures mutex, per the
+    // S-4.10 previous-story intelligence note: prefer releasing the lock before
+    // try_send for clarity. EC-006: OS error messages from std::io::Error are
+    // valid UTF-8 strings in Rust (they come from the OS via to_string()), but
+    // apply lossy_utf8 sanitization defensively.
+    if let Some(ref tx) = shared.error_tx {
+        // EC-006: sanitize error_message via lossy UTF-8 (covers any OS error
+        // that somehow contains invalid UTF-8, though Rust strings are always
+        // valid UTF-8; this is a no-op in practice but satisfies the contract).
+        let sanitized_reason = String::from_utf8_lossy(reason.as_bytes()).into_owned();
+        let event = SinkErrorEvent::new(
+            shared.sink_name.clone(),
+            "file",
+            sanitized_reason,
+            0u32, // file sink has no retries; attempt is always 0.
+        );
+        emit_sink_error(tx, event);
+    }
+
     let ts = Local::now().format("%Y-%m-%dT%H:%M:%S%z").to_string();
     let mut guard = shared.failures.lock().unwrap_or_else(|p| p.into_inner());
     guard.push(SinkFailure { path, reason, ts });
@@ -679,84 +710,24 @@ mod tests {
         assert_eq!(last["sha"], "deadbeef");
     }
 
-    #[test]
-    fn routing_filter_drops_excluded_events() {
-        let tmp = tempfile::tempdir().unwrap();
-        let cfg = FileSinkConfig {
-            name: "audit".into(),
-            enabled: true,
-            path_template: format!("{}/{{name}}-{{date}}.jsonl", tmp.path().display()),
-            queue_depth: DEFAULT_QUEUE_DEPTH,
-            routing_filter: Some(RoutingFilter {
-                event_types_allow: vec!["commit.made".into()],
-                event_types_deny: vec![],
-            }),
-            tags: Default::default(),
-        };
-        let sink = FileSink::new(cfg, None).unwrap();
-        submit_event(&sink, "commit.made", &[]);
-        submit_event(&sink, "plugin.invoked", &[]);
-        submit_event(&sink, "commit.made", &[]);
-        sink.flush().unwrap();
+    // NOTE: routing_filter_drops_excluded_events was removed in S-4.06.
+    // RoutingFilter evaluation was removed from FileSink::accepts() per
+    // BC-3.04.004 invariant 1 (Router is the single dispatch gate).
+    // FileSink::accepts() now only checks enabled-flag and shutdown-state.
+    // Router-layer filter coverage lives in:
+    //   crates/factory-dispatcher/src/sinks/router.rs::tests::
+    //     test_BC_3_04_004_routing_filter_applied_in_dispatch_path
+    //   crates/factory-dispatcher/tests/router_integration.rs::
+    //     test_BC_3_04_004_two_sinks_different_filters_correct_routing
 
-        let date = Local::now().format("%Y-%m-%d").to_string();
-        let path = tmp.path().join(format!("audit-{date}.jsonl"));
-        let lines = read_lines(&path);
-        assert_eq!(lines.len(), 2, "filter should keep only commit.made");
-        for line in &lines {
-            let parsed: Value = serde_json::from_str(line).unwrap();
-            assert_eq!(parsed["type"], "commit.made");
-        }
-    }
-
-    #[test]
-    fn tag_enrichment_writes_tags_onto_every_event() {
-        let tmp = tempfile::tempdir().unwrap();
-        let mut tags = std::collections::BTreeMap::new();
-        tags.insert("env".into(), "prod".into());
-        tags.insert("team".into(), "factory".into());
-        let cfg = FileSinkConfig {
-            name: "dd-prod".into(),
-            enabled: true,
-            path_template: format!("{}/{{name}}-{{date}}.jsonl", tmp.path().display()),
-            queue_depth: DEFAULT_QUEUE_DEPTH,
-            routing_filter: None,
-            tags,
-        };
-        let sink = FileSink::new(cfg, None).unwrap();
-        submit_event(&sink, "commit.made", &[]);
-        sink.flush().unwrap();
-        let date = Local::now().format("%Y-%m-%d").to_string();
-        let path = tmp.path().join(format!("dd-prod-{date}.jsonl"));
-        let lines = read_lines(&path);
-        let parsed: Value = serde_json::from_str(&lines[0]).unwrap();
-        assert_eq!(parsed["env"], "prod");
-        assert_eq!(parsed["team"], "factory");
-        assert_eq!(parsed["type"], "commit.made");
-    }
-
-    #[test]
-    fn tag_enrichment_does_not_overwrite_producer_fields() {
-        let tmp = tempfile::tempdir().unwrap();
-        let mut tags = std::collections::BTreeMap::new();
-        tags.insert("type".into(), "stomped".into()); // should NOT overwrite
-        let cfg = FileSinkConfig {
-            name: "noclobber".into(),
-            enabled: true,
-            path_template: format!("{}/{{name}}-{{date}}.jsonl", tmp.path().display()),
-            queue_depth: DEFAULT_QUEUE_DEPTH,
-            routing_filter: None,
-            tags,
-        };
-        let sink = FileSink::new(cfg, None).unwrap();
-        submit_event(&sink, "commit.made", &[]);
-        sink.flush().unwrap();
-        let date = Local::now().format("%Y-%m-%d").to_string();
-        let path = tmp.path().join(format!("noclobber-{date}.jsonl"));
-        let lines = read_lines(&path);
-        let parsed: Value = serde_json::from_str(&lines[0]).unwrap();
-        assert_eq!(parsed["type"], "commit.made", "producer field wins");
-    }
+    // NOTE: tag_enrichment_writes_tags_onto_every_event and
+    // tag_enrichment_does_not_overwrite_producer_fields were removed in S-4.06.
+    // Tag enrichment was refactored from FileSink to Router::submit() per
+    // BC-3.04.004 PC3+PC4 (Migration Decision: Option (a) — Refactor).
+    // Equivalent coverage now lives in:
+    //   crates/factory-dispatcher/src/sinks/router.rs::tests::
+    //     test_BC_3_04_004_static_tags_merged_before_submit
+    //     test_BC_3_04_004_tag_enrichment_does_not_overwrite_producer_fields
 
     #[test]
     fn disabled_sink_drops_every_event() {

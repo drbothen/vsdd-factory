@@ -1,0 +1,21 @@
+$ cargo test -p sink-datadog --test contract_headers
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+
+warning: function `test_BC_3_06_005_dd_api_key_header_present_on_post` should have a snake case name
+  --> crates/sink-datadog/tests/contract_headers.rs:15:10
+warning: function `test_BC_3_06_005_post_without_dd_api_key_does_not_match_auth_mock` should have a snake case name
+  --> crates/sink-datadog/tests/contract_headers.rs:56:10
+
+warning: `sink-datadog` (test "contract_headers") generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running tests/contract_headers.rs (target/debug/deps/contract_headers-696a23ff61787606)
+
+running 2 tests
+test test_BC_3_06_005_post_without_dd_api_key_does_not_match_auth_mock ... ok
+test test_BC_3_06_005_dd_api_key_header_present_on_post ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+# AC: Auth via DD-API-KEY header injected on every POST; absent key does not
+#     match auth mock (error path verified). BC-3.06.005 postcondition 1.
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27

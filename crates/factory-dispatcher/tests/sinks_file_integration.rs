@@ -53,9 +53,8 @@ path_template = "{audit}"
 routing_filter = {{ event_types_deny = ["internal.sink_error", "plugin.timeout"] }}
 
 [[sinks]]
-type = "datadog"
-name = "dd-prod"
-api_key = "stub"
+type = "splunk"
+name = "splunk-prod"
 "#,
         local = local_path.display().to_string().replace('\\', "/"),
         audit = audit_path.display().to_string().replace('\\', "/"),
@@ -74,7 +73,7 @@ fn registry_fans_events_to_file_sinks_with_filter_and_tags() {
     assert_eq!(
         registry.sinks().len(),
         2,
-        "expected 2 file sinks (datadog should be skipped)"
+        "expected 2 file sinks (splunk is unknown — should be skipped per from_config warn-and-skip; datadog/honeycomb were promoted to known types in S-4.07)"
     );
 
     let router = Router::new(registry);

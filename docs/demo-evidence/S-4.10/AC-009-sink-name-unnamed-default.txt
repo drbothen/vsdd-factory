@@ -1,0 +1,46 @@
+AC-009: sink_name matches operator config; defaults to "<unnamed>" when not configured
+Traces to: BC-3.07.002 invariant 4 (sink_name matches config; EC-007)
+Test files:
+  - crates/sink-core/src/events.rs (inline units: sink_name_defaults + sink_name_preserved)
+  - crates/sink-http/tests/bc_3_07_002_http_emission.rs (unnamed + named tests)
+
+SHA: da8c5b5
+
+--- sink-core helper: unnamed default ---
+Command: cargo test -p sink-core sink_name_defaults_to_unnamed
+running 1 test
+test events::tests::test_BC_3_07_002_invariant_sink_name_defaults_to_unnamed_when_empty ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+--- sink-core helper: named sink preserved ---
+Command: cargo test -p sink-core sink_name_preserved_when_non_empty
+running 1 test
+test events::tests::test_BC_3_07_002_invariant_sink_name_preserved_when_non_empty ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+--- sink-http: unnamed sink emits "<unnamed>" ---
+Command: cargo test -p sink-http --test bc_3_07_002_http_emission unnamed_sink_uses_unnamed
+running 1 test
+test test_BC_3_07_002_http_unnamed_sink_uses_unnamed_default ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.03s
+
+--- sink-http: named sink preserves configured name ---
+Command: cargo test -p sink-http --test bc_3_07_002_http_emission http_sink_name_matches_config_name
+running 1 test
+test test_BC_3_07_002_http_sink_name_matches_config_name ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.06s
+
+--- sink-otel-grpc: named sink ---
+test test_BC_3_07_002_otel_sink_name_matches_config_name ... ok
+
+--- sink-file: named sink ---
+test test_BC_3_07_002_file_sink_name_matches_config_name ... ok
+
+Total: 6 tests across drivers (2 sink-core helper + 2 sink-http + 1 sink-otel-grpc + 1 sink-file)
+All: PASS
+
+Invariant confirmed:
+  - When sink_name config field is empty/absent, SinkErrorEvent is constructed with
+    sink_name = "<unnamed>" (string literal per EC-007)
+  - When sink_name config field is set (e.g. "my-http-sink"), emitted event carries
+    exactly that name

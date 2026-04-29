@@ -1,0 +1,34 @@
+[package]
+name = "session-start-telemetry"
+version = "1.0.0-rc.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: emits session.started events on SessionStart Claude Code lifecycle events"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the macro-generated entry point that calls into the lib.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "session-start-telemetry"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+toml = { workspace = true }
+regex = { workspace = true }
+
+[lints]
+workspace = true

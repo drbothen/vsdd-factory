@@ -53,7 +53,9 @@ use std::time::Duration;
 use chrono::Local;
 use serde::Deserialize;
 use serde_json::Value;
-use sink_core::{RoutingFilter, Sink, SinkConfigCommon, SinkEvent};
+use sink_core::{
+    RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error,
+};
 use thiserror::Error;
 use tokio::sync::{mpsc, oneshot};
 use tokio::time::Instant;
@@ -246,14 +248,21 @@ struct Shared {
     failures: Mutex<Vec<SinkFailure>>,
     queue_full_count: AtomicU64,
     shutdown: AtomicBool,
+    /// Operator-assigned sink name for `internal.sink_error` events (AC-009).
+    sink_name: String,
+    /// Optional fire-and-forget channel for `internal.sink_error` events
+    /// (BC-3.07.002). `None` when no error channel is wired in.
+    error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
 }
 
 impl Shared {
-    fn new() -> Self {
+    fn new(sink_name: String, error_tx: Option<mpsc::Sender<SinkErrorEvent>>) -> Self {
         Self {
             failures: Mutex::new(Vec::new()),
             queue_full_count: AtomicU64::new(0),
             shutdown: AtomicBool::new(false),
+            sink_name,
+            error_tx,
         }
     }
 }
@@ -276,7 +285,27 @@ impl OtelGrpcSink {
     /// (lazy connection — the actual gRPC channel is built on the
     /// worker thread inside the tokio runtime), spawns the worker, and
     /// returns. Producers may call [`Sink::submit`] immediately.
+    ///
+    /// To wire `internal.sink_error` emission (BC-3.07.002), use
+    /// [`Self::new_with_error_channel`] instead.
     pub fn new(config: OtelGrpcConfig) -> Result<Self, OtelGrpcError> {
+        Self::new_inner(config, None)
+    }
+
+    /// Like [`Self::new`] but threads an error-event channel sender into the
+    /// sink's shared state so failures are emitted as `internal.sink_error`
+    /// events (BC-3.07.002).
+    pub fn new_with_error_channel(
+        config: OtelGrpcConfig,
+        error_tx: mpsc::Sender<SinkErrorEvent>,
+    ) -> Result<Self, OtelGrpcError> {
+        Self::new_inner(config, Some(error_tx))
+    }
+
+    fn new_inner(
+        config: OtelGrpcConfig,
+        error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
+    ) -> Result<Self, OtelGrpcError> {
         // Validate endpoint shape eagerly so a typo in
         // observability-config.toml fails loudly at load time. The
         // actual connection happens lazily on the first send inside
@@ -291,7 +320,12 @@ impl OtelGrpcSink {
 
         let queue_depth = config.queue_depth.max(1);
         let (tx, rx) = mpsc::channel::<Message>(queue_depth);
-        let shared = Arc::new(Shared::new());
+        let sink_name_for_shared = if config.name.is_empty() {
+            "<unnamed>".to_owned()
+        } else {
+            config.name.clone()
+        };
+        let shared = Arc::new(Shared::new(sink_name_for_shared, error_tx));
         let worker_shared = Arc::clone(&shared);
 
         // Pre-compute the merged resource attributes once so the worker
@@ -370,44 +404,44 @@ impl OtelGrpcSink {
     pub fn config(&self) -> &SinkConfigCommon {
         &self.common
     }
-
-    /// Tag enrichment without clobbering producer-set fields. Mirrors
-    /// the [`sink_file`] policy: producer wins on collision.
-    fn enrich(&self, event: SinkEvent) -> SinkEvent {
-        let mut ev = event;
-        for (k, v) in &self.common.tags {
-            if !ev.fields.contains_key(k) {
-                ev.fields.insert(k.clone(), Value::String(v.clone()));
-            }
-        }
-        ev
-    }
 }
+// Note: OtelGrpcSink::enrich() removed in S-4.06 — tag enrichment is now
+// the Router's responsibility (BC-3.04.004 PC3). Events arrive at
+// OtelGrpcSink::submit() pre-enriched from Router::submit().
 
 impl Sink for OtelGrpcSink {
     fn name(&self) -> &str {
         &self.name
     }
 
-    fn accepts(&self, event: &SinkEvent) -> bool {
+    fn accepts(&self, _event: &SinkEvent) -> bool {
         if !self.common.enabled {
             return false;
         }
         if self.shared.shutdown.load(Ordering::Acquire) {
             return false;
         }
-        if let Some(filter) = self.common.routing_filter.as_ref() {
-            let event_type = event.event_type().unwrap_or("");
-            return filter.accepts(event_type);
-        }
+        // NOTE: RoutingFilter evaluation removed per BC-3.04.004 invariant 1.
+        // Router is the single dispatch gate; OtelGrpcSink::accepts handles only
+        // enabled-flag and shutdown-state checks.
         true
+    }
+
+    fn routing_filter(&self) -> Option<&RoutingFilter> {
+        self.common.routing_filter.as_ref()
+    }
+
+    fn tags(&self) -> &BTreeMap<String, String> {
+        &self.common.tags
     }
 
     fn submit(&self, event: SinkEvent) {
         if !self.accepts(&event) {
             return;
         }
-        let enriched = self.enrich(event);
+        // Tag enrichment is now the Router's responsibility (BC-3.04.004 PC3).
+        // Events arrive pre-enriched from Router::submit.
+        let enriched = event;
         let guard = self.sender.lock().unwrap_or_else(|p| p.into_inner());
         let Some(sender) = guard.as_ref() else {
             // Post-shutdown submit is a no-op by trait contract.
@@ -619,6 +653,19 @@ async fn build_client(
 }
 
 fn record_failure(shared: &Shared, endpoint: &str, batch_size: usize, reason: String) {
+    // Emit internal.sink_error BEFORE locking the failures mutex, per the
+    // S-4.10 previous-story intelligence note (prefer releasing the lock before
+    // try_send to avoid holding the lock across the channel operation).
+    if let Some(ref tx) = shared.error_tx {
+        let event = SinkErrorEvent::new(
+            shared.sink_name.clone(),
+            "otel-grpc",
+            reason.clone(),
+            0u32, // otel-grpc has no per-batch retries; attempt is always 0.
+        );
+        emit_sink_error(tx, event);
+    }
+
     let ts = Local::now().format("%Y-%m-%dT%H:%M:%S%z").to_string();
     let mut guard = shared.failures.lock().unwrap_or_else(|p| p.into_inner());
     guard.push(SinkFailure {
@@ -1016,8 +1063,15 @@ mod tests {
         OtelGrpcSink::new(cfg).unwrap()
     }
 
+    // NOTE: routing_filter_drops_unmatched_events was updated in S-4.06.
+    // RoutingFilter evaluation was removed from OtelGrpcSink::accepts() per
+    // BC-3.04.004 invariant 1 (Router is the single dispatch gate). The test
+    // now verifies only the retained shutdown-state check in accepts().
+    // Router-layer filter coverage lives in:
+    //   crates/factory-dispatcher/src/sinks/router.rs::tests::
+    //     test_BC_3_04_004_routing_filter_applied_in_dispatch_path
     #[test]
-    fn routing_filter_drops_unmatched_events() {
+    fn accepts_returns_false_after_shutdown() {
         let cfg = OtelGrpcConfig {
             name: "filtered".into(),
             enabled: true,
@@ -1028,15 +1082,15 @@ mod tests {
             routing_filter: Some(RoutingFilter {
                 event_types_allow: vec!["commit.made".into()],
                 event_types_deny: vec![],
+                plugin_ids_allow: vec![],
             }),
             tags: BTreeMap::new(),
         };
         let sink = OtelGrpcSink::new(cfg).unwrap();
-        // Allowed.
+        // Enabled sink accepts all events (filter check is Router's responsibility).
         assert!(sink.accepts(&SinkEvent::new().insert("type", "commit.made")));
-        // Filtered out.
-        assert!(!sink.accepts(&SinkEvent::new().insert("type", "plugin.invoked")));
-        // Disabled in shutdown — flips accepts() to false.
+        assert!(sink.accepts(&SinkEvent::new().insert("type", "plugin.invoked")));
+        // Shutdown — flips accepts() to false.
         sink.shutdown();
         assert!(!sink.accepts(&SinkEvent::new().insert("type", "commit.made")));
     }

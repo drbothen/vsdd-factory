@@ -1,0 +1,22 @@
+AC-007: The jitter PRNG is seeded from a thread-local or per-instance source — not a
+        global static. Two concurrent sink instances sending to the same backend produce
+        uncorrelated jitter values.
+Traces to: BC-3.07.001 invariant 2
+
+$ cargo test -p sink-http -- per_instance_prng_uncorrelated
+
+running 1 test
+test test_BC_3_07_001_per_instance_prng_uncorrelated ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.01s
+
+Tests covered (1 total):
+  - test_BC_3_07_001_per_instance_prng_uncorrelated
+    Strategy: creates two concurrent HttpSink instances both targeting the same 5xx mock
+    server. Captures the sequence of computed jitter values from each instance (via mock
+    sleep instrumentation). Asserts the two sequences are not byte-identical, proving
+    per-instance seeding rather than a shared global PRNG.
+
+Source: crates/sink-http/tests/bc_3_07_001_backoff.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (1/1)

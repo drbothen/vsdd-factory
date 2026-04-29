@@ -1,0 +1,21 @@
+$ cargo test -p sink-core --test retry_policy_max_attempts
+
+warning: function `test_BC_3_03_002_max_retries_exhausted_returns_err` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_max_attempts.rs:15:10
+warning: function `test_BC_3_03_002_op_called_max_retries_plus_one_times` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_max_attempts.rs:44:10
+warning: function `test_BC_3_03_002_zero_max_retries_fails_immediately` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_max_attempts.rs:74:10
+warning: function `test_BC_3_03_002_exhausted_carries_last_error` should have a snake case name
+   --> crates/sink-core/tests/retry_policy_max_attempts.rs:104:10
+warning: `sink-core` (test "retry_policy_max_attempts") generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running tests/retry_policy_max_attempts.rs (target/debug/deps/retry_policy_max_attempts-57a4d8eddbc69db1)
+
+running 4 tests
+test test_BC_3_03_002_zero_max_retries_fails_immediately ... ok
+test test_BC_3_03_002_op_called_max_retries_plus_one_times ... ok
+test test_BC_3_03_002_exhausted_carries_last_error ... ok
+test test_BC_3_03_002_max_retries_exhausted_returns_err ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

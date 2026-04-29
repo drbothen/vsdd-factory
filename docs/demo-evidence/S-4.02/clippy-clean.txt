@@ -1,0 +1,8 @@
+$ cargo clippy -p sink-datadog -p sink-http -- -D warnings
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.21s
+
+# EXIT 0 — no warnings, no errors.
+# -D warnings: all warnings treated as errors; clean pass confirms no latent lint issues.
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27

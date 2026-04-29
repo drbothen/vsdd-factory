@@ -1,0 +1,95 @@
+warning: method `current_path` is never used
+   --> crates/sink-core/src/dead_letter.rs:282:19
+    |
+128 | impl DlqWriter {
+    | -------------- method in this implementation
+...
+282 |     pub(crate) fn current_path(&self) -> Option<PathBuf> {
+    |                   ^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: redundant closure
+   --> crates/sink-core/src/dead_letter.rs:132:22
+    |
+132 |             Arc::new(|| Utc::now());
+    |                      ^^^^^^^^^^^^^ help: replace the closure with the associated function itself: `Utc::now`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#redundant_closure
+    = note: `#[warn(clippy::redundant_closure)]` on by default
+
+warning: writing `&PathBuf` instead of `&Path` involves a new object where a slice will do
+   --> crates/sink-core/src/dead_letter.rs:294:27
+    |
+294 | fn strip_seq_suffix(path: &PathBuf) -> PathBuf {
+    |                           ^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#ptr_arg
+    = note: `#[warn(clippy::ptr_arg)]` on by default
+help: change this to
+    |
+294 ~ fn strip_seq_suffix(path: &Path) -> PathBuf {
+295 |     let path_str = path.to_string_lossy();
+...
+306 |     }
+307 ~     path.to_path_buf()
+    |
+
+warning: writing `&PathBuf` instead of `&Path` involves a new object where a slice will do
+   --> crates/sink-core/src/dead_letter.rs:314:27
+    |
+314 | fn next_seq_path(current: &PathBuf) -> PathBuf {
+    |                           ^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#ptr_arg
+help: change this to
+    |
+314 ~ fn next_seq_path(current: &Path) -> PathBuf {
+315 |     let path_str = current.to_string_lossy();
+...
+329 |     }
+330 ~     current.to_path_buf()
+    |
+
+warning: `sink-core` (lib) generated 4 warnings (run `cargo clippy --fix --lib -p sink-core -- ` to apply 1 suggestion)
+warning: field `dlq_writer` is never read
+   --> crates/sink-http/src/lib.rs:432:5
+    |
+425 | pub struct HttpSink {
+    |            -------- field in this struct
+...
+432 |     dlq_writer: Option<Arc<DlqWriter>>,
+    |     ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: this function has too many arguments (8/7)
+   --> crates/sink-http/src/lib.rs:724:1
+    |
+724 | / async fn post_batch(
+725 | |     client: &reqwest::Client,
+726 | |     url: &str,
+727 | |     extra_headers: &[(String, String)],
+...   |
+732 | |     dlq_writer: Option<&DlqWriter>,
+733 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#too_many_arguments
+    = note: `#[warn(clippy::too_many_arguments)]` on by default
+
+warning: `sink-http` (lib) generated 2 warnings
+warning: method `has_dlq_for_test` is never used
+   --> crates/factory-dispatcher/src/sinks/mod.rs:290:19
+    |
+158 | impl SinkRegistry {
+    | ----------------- method in this implementation
+...
+290 |     pub(crate) fn has_dlq_for_test(&self, idx: usize) -> bool {
+    |                   ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `factory-dispatcher` (lib) generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
+EXIT: 0

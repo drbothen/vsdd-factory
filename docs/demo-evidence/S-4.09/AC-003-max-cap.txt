@@ -1,0 +1,35 @@
+AC-003: delay_ms never exceeds max_delay_ms regardless of retry attempt number N,
+        including when jitter would push it above the cap.
+Traces to: BC-3.07.001 postcondition 3
+
+$ cargo test -p sink-http -- clamped_at_max
+
+running 2 tests
+test retry::tests::test_BC_3_07_001_clamped_at_max_attempt10 ... ok
+test retry::tests::test_BC_3_07_001_clamped_at_max_attempt6 ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+$ cargo test -p sink-http -- jitter_cannot_exceed_max
+
+running 1 test
+test retry::tests::test_BC_3_07_001_jitter_cannot_exceed_max ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+$ cargo test -p sink-http -- cap_equals_base
+
+running 1 test
+test retry::tests::test_BC_3_07_001_cap_equals_base_attempt0 ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+Tests covered (4 total):
+  - test_BC_3_07_001_clamped_at_max_attempt6        (attempt=6, exponential overflow → clamped to max)
+  - test_BC_3_07_001_clamped_at_max_attempt10       (attempt=10, large exponent → clamped to max)
+  - test_BC_3_07_001_jitter_cannot_exceed_max       (jitter pushes past max → clamped)
+  - test_BC_3_07_001_cap_equals_base_attempt0       (max == base edge case → delay = max)
+
+Source: crates/sink-http/src/retry.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (4/4)

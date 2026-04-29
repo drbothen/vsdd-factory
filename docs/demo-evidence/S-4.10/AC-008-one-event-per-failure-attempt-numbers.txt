@@ -1,0 +1,28 @@
+AC-008: One internal.sink_error per failed attempt; attempt=0,1,2 for max_retries=3
+Traces to: BC-3.07.002 invariant 3 (one event per failure, not per batch)
+Test files:
+  - crates/sink-core/src/events.rs (inline unit: invariant_one_event_emitted_per_failure_call)
+  - crates/sink-http/tests/bc_3_07_002_http_emission.rs (three_failures_emit_three_events)
+
+SHA: da8c5b5
+
+--- sink-core helper: exactly one event per call ---
+Command: cargo test -p sink-core invariant_one_event_emitted_per_failure
+running 1 test
+test events::tests::test_BC_3_07_002_invariant_one_event_emitted_per_failure_call ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+--- sink-http: three failures → three events with attempt=0,1,2 ---
+Command: cargo test -p sink-http --test bc_3_07_002_http_emission three_failures_emit_three_events
+running 1 test
+test test_BC_3_07_002_http_three_failures_emit_three_events_with_correct_attempts ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.02s
+
+Test vectors:
+  1. test_BC_3_07_002_invariant_one_event_emitted_per_failure_call:
+     - Calls emit_sink_error() once, drains channel, asserts exactly 1 event received
+  2. test_BC_3_07_002_http_three_failures_emit_three_events_with_correct_attempts:
+     - Configures max_retries=3, mock server returns 503 on all attempts
+     - Collects all events from internal channel after 3 failure attempts
+     - Asserts: 3 events total, attempt values = {0, 1, 2} in order
+  Result: PASS (both tests GREEN)

@@ -1,0 +1,24 @@
+cargo fmt --check -p sink-core -p sink-http -p sink-otel-grpc -p sink-file
+SHA: da8c5b5
+
+Exit code: 0
+
+Result: CLEAN — all 4 story-owned crates pass rustfmt check.
+
+---
+
+Workspace-wide fmt check (cargo fmt --check, no -p):
+Exit code: 1
+
+Diff in: crates/hook-plugins/capture-commit-activity/tests/contract_payload_parsing.rs
+
+Pre-existing drift (NOT introduced by S-4.10):
+  - File: hook-plugins/capture-commit-activity/tests/contract_payload_parsing.rs
+  - Nature: assert!() macro formatting — long assertion messages need multi-line wrapping
+  - First observed: present at c0175f8 (GREEN impl commit), predates S-4.10 test work
+  - Owner: capture-commit-activity crate (out of scope for S-4.10)
+  - S-4.10 touches only: sink-core, sink-http, sink-otel-grpc, sink-file
+  - S-4.10 does NOT touch hook-plugins
+
+Decision: Document drift exception per instructions. Per-story fmt check (the 4 owned
+crates) is CLEAN. Workspace drift is pre-existing and belongs to hook-plugins scope.

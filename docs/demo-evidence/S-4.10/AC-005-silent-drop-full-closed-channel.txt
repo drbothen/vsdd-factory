@@ -1,0 +1,41 @@
+AC-005: Silent drop on full or closed channel — no panic, SinkFailure still recorded
+Traces to: BC-3.07.002 postcondition 3 (silent drop on channel full/closed; EC-001, EC-002)
+Test files:
+  - crates/sink-core/src/events.rs (inline unit tests: full channel + closed channel)
+  - crates/sink-http/tests/bc_3_07_002_http_emission.rs
+  - crates/sink-otel-grpc/tests/bc_3_07_002_otel_emission.rs
+  - crates/sink-file/tests/bc_3_07_002_file_emission.rs
+
+SHA: da8c5b5
+
+--- sink-core helper: full channel ---
+test events::tests::test_BC_3_07_002_emit_sink_error_silent_drop_on_full_channel ... ok
+
+--- sink-core helper: closed channel ---
+test events::tests::test_BC_3_07_002_emit_sink_error_silent_drop_on_closed_channel ... ok
+
+--- sink-http: full channel (EC-001) ---
+test test_BC_3_07_002_http_silent_drop_on_full_channel_no_panic ... ok
+
+--- sink-http: closed channel (EC-002) ---
+test test_BC_3_07_002_http_silent_drop_on_closed_channel_no_panic ... ok
+
+--- sink-otel-grpc: full channel ---
+test test_BC_3_07_002_otel_silent_drop_on_full_channel_no_panic ... ok
+
+--- sink-otel-grpc: closed channel ---
+test test_BC_3_07_002_otel_silent_drop_on_closed_channel_no_panic ... ok
+
+--- sink-file: full channel ---
+test test_BC_3_07_002_file_silent_drop_on_full_channel_no_panic ... ok
+
+--- sink-file: closed channel ---
+test test_BC_3_07_002_file_silent_drop_on_closed_channel_no_panic ... ok
+
+Total: 8 tests (2 per driver at sink-core helper level + 2 per 3 drivers = 8)
+All: PASS
+
+Mechanism confirmed: emit_sink_error calls channel.try_send(...).ok()
+  - try_send returns Err when full (TrySendError::Full) or closed (TrySendError::Closed)
+  - .ok() discards the error — silent drop, no panic
+  - SinkFailure recording via Mutex<Vec<SinkFailure>> occurs regardless of channel state

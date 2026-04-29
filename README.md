@@ -258,10 +258,11 @@ every Lobster workflow file. See `.github/workflows/plugin-validation.yml`.
 
 | Doc | Description |
 |-----|-------------|
-| [v1.0 Index](docs/guide/v1.0-index.md) | Landing page for the v1.0 docs set; links the four below. |
+| [v1.0 Index](docs/guide/v1.0-index.md) | Landing page for the v1.0 docs set; links the five below. |
 | [Authoring Hooks](docs/guide/authoring-hooks.md) | Writing WASM hooks against the v1.0 SDK — skeleton, populated as Phase 1–3 stories ship. |
 | [Porting Bash Hooks to WASM](docs/guide/porting-bash-hook-to-wasm.md) | Walkthrough for porting an existing v0.79.x hook — skeleton, populated as Phase 3 ports land. |
-| [Migrating from 0.79.x](docs/guide/migrating-from-0.79.md) | Operator-facing upgrade guide — skeleton, finalized in S-5.5. |
+| [Migrating from 0.79.x](docs/guide/migrating-from-0.79.md) | Operator-facing upgrade guide for v0.79.x → v1.0 dispatcher migration. |
+| [Semver Commitment](docs/guide/semver-commitment.md) | v1.0 stability guarantees — what's stable, what's not, breaking change policy. |
 | [Observability Sinks](docs/guide/observability-sinks.md) | Multi-backend telemetry config — skeleton, populated as Phase 1 + 4 sink drivers ship. |
 
 ### Internal reference docs (in the plugin)

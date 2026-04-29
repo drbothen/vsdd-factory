@@ -1,9 +1,6 @@
 # Migrating from v0.79.x to v1.0
 
-> **Status:** skeleton — filled in by S-5.5 (operator-facing migration
-> guide) and validated by S-5.7 (gate 16) against at least one real
-> 0.79.x factory that isn't vsdd-factory itself. Greppable `TODO(S-X.Y)`
-> markers gate the 1.0.0 release per S-5.7 acceptance criteria.
+> **Audience:** factory operators upgrading from v0.79.x. Last updated 2026-04-29.
 
 Operators upgrading an existing v0.79.x factory to v1.0 read this guide.
 It walks through what changed, what the upgrade requires, what works
@@ -12,75 +9,239 @@ something goes wrong.
 
 ## What changed
 
-<!-- TODO(S-5.5): the headline list — Rust dispatcher binary replaces
-     hook-by-hook bash dispatch; WASM plugins replace bash scripts (with
-     legacy-bash-adapter as a compatibility layer on Linux/macOS); new
-     activation step required after install; observability config moves
-     to observability-config.toml; per-platform binaries committed to
-     the plugin package. -->
+v1.0 replaces the hook-by-hook bash dispatch model with a single Rust
+dispatcher binary (`factory-dispatcher`) that reads a registry file and
+routes events to WASM plugins. Key changes:
+
+- **Rust dispatcher binary** replaces the per-hook bash dispatch chain.
+  One process starts at session open, receives all Claude Code hook events,
+  and routes them to the correct WASM plugin entry points.
+- **WASM plugins** replace bash scripts as the hook execution unit.
+  Plugins run in a capability-sandboxed WASM runtime (Wasmtime). Bash hooks
+  from v0.79.x are not deleted — they are wrapped by `legacy-bash-adapter.wasm`,
+  which invokes them via `exec_subprocess`, preserving existing behavior.
+- **Activation step required.** After installing or updating the plugin, you
+  must run `/vsdd-factory:activate` once to register the dispatcher with
+  Claude Code's hook system. Without activation, hooks do not fire.
+- **Observability config moves** from hardcoded file output to
+  `observability-config.toml`. The default behavior (writing JSONL to
+  `.factory/logs/`) matches v0.79.x with no config changes required.
+- **Per-platform binaries** are committed to the plugin package.
+  The dispatcher is a compiled Rust binary; the correct binary for your
+  OS/arch is selected at activation time.
 
 ## Why v1.0
 
-<!-- TODO(S-5.5): the matcher-bug motivation, cross-platform support,
-     observability flexibility (multi-instance multi-backend sinks),
-     capability-sandboxed plugins. Keep this paragraph honest — the
-     immediate driver was unfixable upstream behavior, not a roadmap
-     item. -->
+The immediate driver was an unfixable bug in the upstream bash dispatch
+pipeline: the v0.79.x hook matcher silently dropped events under certain
+terminal width conditions, causing hooks to not fire without any error
+message. The bug lived in behavior baked into the Claude Code shell
+integration layer and could not be patched from the plugin side.
+
+Rather than ship a workaround, the decision was to move to a stable ABI.
+v1.0 provides:
+
+- **Reliable event delivery** via the Rust dispatcher's typed event
+  deserialization — no more silent drops from bash string-matching bugs.
+- **Cross-platform support** — the dispatcher compiles for darwin-aarch64,
+  linux-x64, and windows-x64; bash-only hooks were not portable to Windows.
+- **Observability flexibility** — multiple simultaneous sinks (file, Datadog,
+  Honeycomb, OTel-grpc) via `observability-config.toml`, rather than the
+  single hardcoded file path in v0.79.x.
+- **Capability-sandboxed plugins** — WASM plugins declare which host
+  capabilities they need; the runtime enforces the allow-list.
 
 ## Prerequisites
 
-<!-- TODO(S-5.5): Claude Code minimum version, git, jq. NOT required:
-     Python (never was), Node (never was). Windows users need git-bash
-     for the hooks still routed through legacy-bash-adapter. -->
+Before running the upgrade procedure, confirm:
+
+- **Claude Code** with plugin support enabled (any version shipping after
+  the v1.0 plugin ABI landed; if unsure, run `claude --version` and
+  compare against the release notes).
+- **git** in `$PATH` — the dispatcher and several hooks shell out to git.
+- **jq** in `$PATH` — used by the legacy-bash-adapter and several bash hooks.
+
+Not required: Python (never was a dependency), Node.js (never was a
+dependency).
+
+**Windows operators** additionally need **git-bash** installed and available
+in the system `PATH`. The legacy-bash-adapter routes bash hook invocations
+through git-bash on Windows; without it, those hooks will fail to execute.
+See "Windows-specific notes" below for which hooks are affected.
 
 ## Upgrade procedure
 
-<!-- TODO(S-5.5): the sequence — `/plugin update vsdd-factory@vsdd-factory`,
-     `/vsdd-factory:activate` (NEW required step), full Claude Code
-     session restart, `/vsdd-factory:factory-health` to verify. -->
+Follow these steps in order. Do not skip the activation step — it is the
+most common cause of "hooks not firing" reports.
+
+1. **Update the plugin** from within a Claude Code session:
+   ```
+   /plugin update vsdd-factory@vsdd-factory
+   ```
+   Wait for the update to complete and confirm the version number matches
+   the v1.0 release you intend to run.
+
+2. **Activate the dispatcher** — this step is new in v1.0 and required:
+   ```
+   /vsdd-factory:activate
+   ```
+   Activation registers the Rust dispatcher binary with Claude Code's hook
+   system and writes the initial `hooks-registry.toml` if one does not
+   exist. If you have **custom entries** in your `hooks.json` from v0.79.x,
+   the activation step reads them and generates corresponding registry
+   entries routed through `legacy-bash-adapter.wasm`. Review the generated
+   `plugins/vsdd-factory/hooks-registry.toml` diff to confirm your custom
+   hooks were captured.
+
+3. **Restart your Claude Code session** completely (close and reopen the
+   terminal or IDE integration). The dispatcher process only starts fresh
+   at session open; a restart is required for activation to take effect.
+
+4. **Verify** using the health check:
+   ```
+   /vsdd-factory:factory-health
+   ```
+   All checks should report green. If any check is red, see the
+   Troubleshooting section below.
 
 ## Verification checklist
 
-<!-- TODO(S-5.5): how an operator confirms the upgrade landed — make a
-     test commit and see `commit.made` event flow through, confirm
-     existing dashboards still render (file-sink default preserves
-     0.79.x event JSONL behavior), check
-     `.factory/logs/dispatcher-internal.jsonl` exists and has entries. -->
+After the upgrade procedure completes, confirm the following:
+
+- [ ] **Test commit fires hooks.** Make a test commit (e.g.,
+  `git commit --allow-empty -m "test: verify v1.0 hook dispatch"`) and
+  confirm the `commit.made` event appears in
+  `.factory/logs/dispatcher-internal.jsonl`.
+- [ ] **Existing dashboards render.** If you have Grafana or another tool
+  reading the JSONL event log, confirm it still renders. The v1.0 file
+  sink writes the same event schema as v0.79.x by default; no dashboard
+  changes are required.
+- [ ] **Dispatcher log has entries.** Open
+  `.factory/logs/dispatcher-internal.jsonl` and confirm it exists and
+  has recent entries (timestamps within the current session).
+- [ ] **Factory health is green.** `/vsdd-factory:factory-health` reports
+  all checks passing.
+- [ ] **Plugin version is correct.** The health check output includes the
+  dispatcher version; confirm it matches the installed release.
 
 ## Observability migration
 
-<!-- TODO(S-5.5): default config matches 0.79.x file-sink behavior so
-     existing Grafana dashboards keep working with no changes. To add
-     Datadog / Honeycomb / OTel-grpc, write `observability-config.toml`.
-     Zero-disk mode is opt-in (disable file sink). -->
+The default observability configuration in v1.0 writes the same JSONL
+event log as v0.79.x — to `.factory/logs/dispatcher-internal.jsonl`.
+If you have existing dashboards (Grafana, custom scripts, log-tailing
+workflows) reading that file, they continue working with no changes.
+
+To add additional sinks or modify behavior, create
+`observability-config.toml` in your factory root. Example additions:
+
+- **Datadog:** add a `[sink.datadog]` stanza with your API key and site.
+- **Honeycomb:** add a `[sink.honeycomb]` stanza with your API key and
+  dataset name.
+- **OTel-grpc:** add a `[sink.otel_grpc]` stanza with your collector
+  endpoint.
+
+Multiple sinks can run simultaneously — the dispatcher fans events out
+to all configured sinks. The file sink can be disabled entirely for
+zero-disk mode by removing or commenting out the `[sink.file]` stanza,
+though note that disabling it also disables the default dashboard feed.
 
 ## Windows-specific notes
 
-<!-- TODO(S-5.5): native WASM hooks that work on Windows in 1.0
-     (capture-commit-activity, capture-pr-activity, block-ai-attribution,
-     plus emit_event as a host function). Other 26 hooks remain on the
-     legacy-bash-adapter and require git-bash on Windows. Frame
-     expectation: more native ports will follow post-1.0. -->
+v1.0 ships four hooks as native WASM that work on Windows without git-bash:
+
+- `capture-commit-activity`
+- `capture-pr-activity`
+- `block-ai-attribution`
+- `emit_event` (host function, not a hook per se, but used by the above)
+
+The remaining 26 hooks in the legacy inventory are bash scripts routed
+through `legacy-bash-adapter.wasm`. On Windows, the adapter invokes them
+via git-bash. If git-bash is not installed or not in `PATH`, those hooks
+will fail silently (the dispatcher logs `exit_code: 1` on the
+`plugin.completed` event, visible in `dispatcher-internal.jsonl`).
+
+More native WASM ports are planned for post-1.0 stories (S-2.5 and
+onwards), which will reduce the git-bash dependency surface on Windows.
+For now, Windows operators should install git-bash from
+https://gitforwindows.org/ before running the upgrade procedure.
 
 ## Known regressions
 
-<!-- TODO(S-5.5): empty if S-2.7's regression sweep finds none. If any
-     emerge from beta/rc shakedown, document them here with workarounds
-     and tracked-issue links. -->
+No blocking regressions were identified in the S-2.07 regression sweep.
+The three correctness bugs found during the beta period (exec_subprocess
+result envelope offset, empty plugin_root, empty env_view) were all
+resolved before the v1.0.0 release; see "Known regressions (v1.0.0-beta.1)"
+below for the full history.
+
+If a regression surfaces in your factory after upgrading, open an issue
+with your OS/arch, the hook name, and the relevant lines from
+`dispatcher-internal.jsonl`. A workaround of pinning to `0.79.4` and
+rolling back is available; see the Rollback section.
 
 ## Rollback
 
-<!-- TODO(S-5.5): explicit rollback steps if 1.0 misbehaves on an
-     operator's factory — pin to 0.79.4, deactivate the dispatcher,
-     restart session. Cover the case where v1.0 already wrote new
-     observability-config.toml. -->
+If v1.0 misbehaves on your factory and you need to revert:
+
+1. **Deactivate the dispatcher** to stop it from receiving hook events:
+   ```
+   /vsdd-factory:deactivate
+   ```
+
+2. **Pin to v0.79.4** (the last stable 0.79.x release):
+   ```
+   /plugin install vsdd-factory@vsdd-factory@0.79.4
+   ```
+
+3. **Restart your Claude Code session** to clear the v1.0 dispatcher
+   process and load the v0.79.x hooks.
+
+4. **Handle `observability-config.toml` if present.** If v1.0 wrote an
+   `observability-config.toml` to your factory root before you rolled back,
+   that file is ignored by v0.79.x (which has no dispatcher to read it).
+   You can leave it in place safely; it will be picked up again if you
+   re-upgrade to v1.0 later.
+
+5. **Report the issue** so it can be fixed before your next upgrade attempt.
+   Include your OS/arch, plugin version, and the contents of
+   `dispatcher-internal.jsonl` from the failing session.
 
 ## Troubleshooting
 
-<!-- TODO(S-5.5): common symptoms and fixes — dispatcher not firing
-     (activation step missed?), Datadog 401 (sink config / API key?),
-     legacy-bash-adapter "command not found" (git-bash missing on
-     Windows?), event field schema drift (HOST_ABI_VERSION skew?). -->
+- **Dispatcher not firing / hooks not running.** The most common cause is
+  a missed activation step. Run `/vsdd-factory:activate` and then restart
+  your Claude Code session completely. Confirm activation wrote entries to
+  `.factory/logs/dispatcher-internal.jsonl` on the next hook-triggering
+  action (e.g., make a commit).
+
+- **Datadog 401 Unauthorized.** The Datadog sink is returning an auth
+  error. Check `observability-config.toml` — confirm the `api_key` value
+  is set and matches a valid Datadog API key for your account. Also
+  confirm the `site` value matches your Datadog region (e.g.,
+  `datadoghq.com` vs `datadoghq.eu`). The dispatcher logs the HTTP
+  response code in `dispatcher-internal.jsonl` for each failed delivery.
+
+- **`legacy-bash-adapter`: command not found (Windows).** The adapter is
+  trying to invoke a bash hook but cannot find the bash interpreter. On
+  Windows, the adapter uses git-bash. Install git-bash from
+  https://gitforwindows.org/ and ensure it is in your system `PATH`.
+  After installing, restart your Claude Code session.
+
+- **Event field schema drift / unexpected fields missing.** If a hook
+  or downstream consumer expects fields that are no longer present (or
+  new fields that weren't there before), this indicates a `HOST_ABI_VERSION`
+  skew — the installed dispatcher binary and the plugin's compiled WASM
+  hooks are out of sync. Run `/plugin update vsdd-factory@vsdd-factory`
+  to ensure both the dispatcher binary and the WASM artifacts are from
+  the same release, then run `/vsdd-factory:activate` and restart.
+
+- **Platform binary mismatch / dispatcher fails to start.** The dispatcher
+  is a compiled Rust binary; one binary is included per supported platform
+  in the plugin package. If the binary for your OS/arch is missing from the
+  package (a packaging or release artifact issue, not an activation problem),
+  the dispatcher will fail to start entirely rather than silently dropping
+  events. Check `.factory/logs/dispatcher-internal.jsonl` for startup errors.
+  If the binary is absent, open an issue with your OS/arch so the release
+  can be patched.
 
 ## Regenerating `hooks-registry.toml`
 

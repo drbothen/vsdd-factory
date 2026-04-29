@@ -1,0 +1,53 @@
+# deny.toml -- cargo-deny configuration for vsdd-factory
+# Enforces license audit gate (AC-Q4 of S-4.08 rc.1 release gate).
+# Migrated to cargo-deny 0.19 schema (PR #611 — deprecated fields removed).
+# See: https://embarkstudios.github.io/cargo-deny/
+
+[licenses]
+# Approved open-source license allow-list (AC-Q4).
+# Any crate whose license is NOT in this list will cause cargo deny check to fail.
+# Copyleft licenses (GPL, LGPL, AGPL) are intentionally excluded to prevent
+# license infection of vsdd-factory's own Apache-2.0/MIT codebase.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "ISC",
+    "MPL-2.0",
+    # Additional permissive licenses common in the Rust ecosystem:
+    "BSD-2-Clause",
+    "Unicode-DFS-2016",
+    "CC0-1.0",
+    "Unlicense",
+    "Zlib",
+    "OpenSSL",
+    # Wasmtime/cranelift dependencies use Apache-2.0 WITH LLVM-exception.
+    "Apache-2.0 WITH LLVM-exception",
+    # ICU4X (icu_*) crates used by idna/url dependencies.
+    "Unicode-3.0",
+]
+# Confidence threshold for license text detection.
+confidence-threshold = 0.8
+# Per-crate license exceptions (none currently).
+exceptions = []
+
+[bans]
+# Prevent multiple versions of the same crate where possible.
+multiple-versions = "warn"
+# Deny known-problematic crates (none currently).
+deny = []
+
+[advisories]
+# Audit against the RustSec advisory database.
+# cargo-deny 0.19: per-field lint levels (vulnerability/unmaintained/yanked/notice)
+# are removed; use the `ignore` list for per-advisory exceptions.
+# All advisories default to deny unless ignored below.
+db-urls = ["https://github.com/rustsec/advisory-db"]
+ignore = []
+
+[sources]
+# Only allow crates from crates.io and this repository.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

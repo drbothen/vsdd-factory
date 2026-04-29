@@ -1,0 +1,99 @@
+$ cargo test -p sink-honeycomb
+# run with PATH=~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH
+# rustc 1.95.0 (59807616e 2026-04-14)
+# cargo 1.95.0 (f2d3ce0bd 2026-03-21)
+
+[non_snake_case warnings omitted — 36 total across all test files, all BC/VP-prefixed test names]
+
+warning: `sink-honeycomb` (test "integration_post_batch") generated 7 warnings
+warning: `sink-honeycomb` (test "integration_inherits_http_sink") generated 5 warnings
+warning: `sink-honeycomb` (test "contract_sink_trait") generated 5 warnings
+warning: `sink-honeycomb` (test "contract_config_load") generated 11 warnings
+warning: `sink-honeycomb` (test "contract_endpoint_construction") generated 5 warnings
+warning: `sink-honeycomb` (test "contract_auth_header") generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running unittests src/lib.rs (target/debug/deps/sink_honeycomb-95f697f397decb91)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_auth_header.rs (target/debug/deps/contract_auth_header-a56c8dfc706a1c4e)
+
+running 3 tests
+test test_BC_3_06_005_auth_header_value_matches_configured_api_key ... ok
+test test_BC_3_06_005_content_type_is_json ... ok
+test test_BC_3_06_005_post_includes_x_honeycomb_team_header ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contract_config_load.rs (target/debug/deps/contract_config_load-5b4e077905cade8b)
+
+running 11 tests
+test test_BC_3_06_005_http_type_returns_none ... ok
+test test_BC_3_06_005_rejects_whitespace_only_api_key ... ok
+test test_BC_3_06_005_rejects_whitespace_only_dataset ... ok
+test test_BC_3_06_005_rejects_empty_dataset_ec001 ... ok
+test test_BC_3_06_005_enabled_defaults_to_true ... ok
+test test_BC_3_06_005_valid_config_returns_some ... ok
+test test_BC_3_06_005_rejects_missing_api_key ... ok
+test test_BC_3_06_005_enabled_false_parsed_correctly ... ok
+test test_BC_3_06_005_rejects_empty_api_key ... ok
+test test_BC_3_06_005_rejects_missing_dataset_ec001 ... ok
+test test_BC_3_06_005_unknown_type_returns_none ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_endpoint_construction.rs (target/debug/deps/contract_endpoint_construction-06d098cd4c917604)
+
+running 5 tests
+test test_BC_3_01_001_endpoint_url_includes_dataset_in_path ... ok
+test test_BC_3_01_001_endpoint_url_uses_honeycomb_base ... ok
+test test_BC_3_01_001_endpoint_url_dataset_with_hyphens ... ok
+test test_BC_3_01_001_endpoint_url_no_trailing_slash_in_base ... ok
+test test_BC_3_01_001_endpoint_url_different_datasets_produce_different_urls ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract_sink_trait.rs (target/debug/deps/contract_sink_trait-299534df8d07d332)
+
+running 5 tests
+test test_BC_3_01_001_honeycomb_sink_is_send_sync ... ok
+test test_BC_3_01_001_honeycomb_sink_name_returns_configured_name ... ok
+test test_BC_3_01_001_honeycomb_sink_implements_sink_trait ... ok
+test test_VP_012_sink_failure_isolated_per_sink_instance ... ok
+test test_VP_011_submit_is_non_blocking ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/integration_inherits_http_sink.rs (target/debug/deps/integration_inherits_http_sink-e154958454e4198a)
+
+running 5 tests
+test test_VP_012_network_failure_isolated_to_sink ... ok
+test test_BC_3_01_001_flush_blocks_until_post_complete ... ok
+test test_VP_011_submit_returns_before_http_round_trip ... ok
+test test_VP_011_overflow_drops_without_blocking ... ok
+test test_BC_3_01_001_inherits_5xx_retry_from_http_sink ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/integration_post_batch.rs (target/debug/deps/integration_post_batch-0d3b925f45b78760)
+
+running 7 tests
+test test_BC_3_01_001_time_field_rfc3339_format_from_ts_epoch ... ok
+test test_BC_3_01_001_events_posted_to_correct_path ... ok
+test test_BC_3_01_001_ec002_retry_on_429_rate_limit ... ok
+test test_BC_3_01_001_missing_ts_epoch_uses_wall_clock_time ... ok
+test test_BC_3_01_001_each_event_has_time_field_rfc3339 ... ok
+test test_BC_3_01_001_events_posted_as_json_array ... ok
+test test_BC_3_01_001_batch_of_multiple_events_posted_in_one_request ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests sink_honeycomb
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+CUMULATIVE: 36 passed; 0 failed; 0 ignored

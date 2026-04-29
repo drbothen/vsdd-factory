@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.0.0-rc.1 — Release Candidate 1 (2026-04-29)
+
+First release candidate for v1.0.0 GA. Closes the 4-month beta cycle by shipping all
+remaining v1.0 epics (Wave 11/12/13/14). WASM plugin ecosystem fully wired (DRIFT-006
+closed; 4/4 lifecycle events). Multi-sink observability stack (file/HTTP/Datadog/Honeycomb
+with retry/circuit-breaker/DLQ/routing/tag-enrichment) complete. Operator migration guide
+and semver commitment documentation shipped.
+
+### Added
+
+- **Wave 11** — WASM plugin ports: capture-commit-activity (S-3.01), capture-pr-activity
+  (S-3.02), block-ai-attribution (S-3.03); sink-http retry/jitter (S-4.09);
+  cross-sink internal.sink_error events (S-4.10).
+- **Wave 12** — Dead Letter Queue with byte-counted rotation (S-4.05); per-sink routing
+  filters + tag enrichment (S-4.06); 40-test E2E observability integration suite (S-4.07);
+  rc.1 release gate spec with 20 ACs (S-4.08).
+- **Wave 13** — SessionStart hook (S-5.01); SessionEnd hook (S-5.02);
+  WorktreeCreate/Remove hooks (S-5.03); PostToolUseFailure hook (S-5.04).
+  DRIFT-006 fully closed.
+- **Wave 14** — Operator migration guide v0.79.x → v1.0 (S-5.05);
+  semver commitment documentation (S-5.06).
+- Semgrep SAST workflow (`.github/workflows/semgrep.yml`), image pinned to 1.61.0.
+- `deny.toml` cargo-deny 0.19 schema with permissive license allow-list (AC-Q4).
+
+### Fixed
+
+- deny.toml: removed invalid `unmaintained = "warn"` field incompatible with cargo-deny 0.19.
+- Semgrep: 19 false-positive findings suppressed inline with justified `nosemgrep` comments.
+- Stale `loads_legacy_registry` tests removed (v0.79.x migration complete).
+- `sinks_file_integration` test: corrected sink type from `datadog` to `splunk` (S-4.07 drift).
+
+### Migration
+
+No breaking changes from v1.0.0-beta.7. Operators on v0.79.x: see
+`docs/guide/migrating-from-0.79.md` for the full upgrade guide.
+
 ## 1.0.0-beta.7 — S-7.03 TDD Discipline Hardening (2026-04-26)
 
 This release ships the third E-7 self-referential dogfooding round: a 4-layer

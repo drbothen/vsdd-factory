@@ -1,0 +1,35 @@
+S-4.05 Dead Letter Queue — Per-AC Test Evidence Summary
+Generated: 2026-04-27
+Toolchain: rust 1.95.0-aarch64-apple-darwin
+Worktree: /private/tmp/vsdd-S-4.05 (branch feat/S-4.05-dead-letter-queue @ 1be2e3d)
+
+=============================================================================
+AC   | Test Name (crate::module::test)                                          | Result
+-----|-------------------------------------------------------------------------|-------
+001  | sink-core::dead_letter::tests::test_BC_3_07_003_dlq_filename_pattern     | PASS
+002  | sink-core::dead_letter::tests::test_BC_3_07_003_retry_exhaustion_routes_to_dlq | PASS
+003  | sink-core::dead_letter::tests::test_BC_3_07_003_queue_overflow_routes_to_dlq  | PASS
+004  | sink-core::dead_letter::tests::test_BC_3_07_003_daily_rotation_midnight_utc   | PASS
+004  | sink-core::dead_letter::tests::test_BC_3_07_003_size_cap_triggers_seq_rotation| PASS
+005  | sink-core::dead_letter::tests::test_BC_3_07_003_sink_dlq_write_event_emitted_per_write | PASS
+006a | sink-core::dead_letter::tests::test_BC_3_07_003_dlq_write_event_canonical_tv_9_fields  | PASS
+006b | sink-http::bc_3_07_003_dlq_integration::test_BC_3_07_003_http_retry_exhaustion_writes_event_to_dlq | PASS
+006b | sink-http::bc_3_07_003_dlq_integration::test_BC_3_07_003_multiple_events_all_written_to_dlq_on_retry_exhaustion | PASS
+007  | sink-core::dead_letter::tests::test_BC_3_07_003_dlq_directory_auto_created    | PASS
+008  | factory-dispatcher::sinks::tests::test_BC_3_07_003_dlq_enabled_defaults_to_true_when_absent | PASS
+008  | factory-dispatcher::sinks::tests::test_BC_3_07_003_dlq_enabled_false_is_honoured_by_parser  | PASS
+009  | factory-dispatcher::internal_log::tests::test_BC_1_06_011_prune_old_extends_to_dlq_files    | PASS
+009  | factory-dispatcher::internal_log::tests::test_BC_1_06_011_dlq_retention_constant_is_7_independent_of_dispatcher_retention | PASS
+010  | sink-core::dead_letter::tests::test_BC_3_07_004_write_failure_emits_dlq_failure_event        | PASS
+011  | factory-dispatcher::sinks::tests::test_BC_3_07_003_rejects_sink_name_with_path_separator_slash | PASS
+011  | factory-dispatcher::sinks::tests::test_BC_3_07_003_rejects_sink_name_with_backslash          | PASS
+012  | factory-dispatcher::sinks::tests::test_BC_3_07_003_sink_registry_wires_dlq_when_dlq_enabled  | PASS
+=============================================================================
+
+TOTAL: 18 tests across 12 ACs — ALL PASS (18/18)
+GAPS:  None
+
+NOTE: 2 pre-existing failures exist in the workspace unrelated to S-4.05:
+  - factory-dispatcher::loads_legacy_registry::every_entry_routes_through_legacy_bash_adapter (FAILED — pre-existing hook migration issue)
+  - factory-dispatcher::loads_legacy_registry::every_entry_carries_a_script_path (FAILED — pre-existing hook migration issue)
+  These failures are confirmed pre-existing: they reproduce on the commit immediately prior to any S-4.05 changes.

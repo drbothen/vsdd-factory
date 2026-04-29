@@ -1,0 +1,61 @@
+$ cargo test -p sink-datadog --test contract_config_api_stability
+# rustc 1.95.0 (59807616e 2026-04-14) / cargo 1.95.0
+
+warning: function `test_F2_http_sink_config_wrapper_uses_stable_api` should have a snake case name
+  --> crates/sink-datadog/tests/contract_config_api_stability.rs:26:4
+   |
+26 | fn test_F2_http_sink_config_wrapper_uses_stable_api() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case (notice the capitalization): `test_f2_http_sink_config_wrapper_uses_stable_api`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: function `test_F2_http_sink_config_url_field_is_pub_documents_pre_fix_state` should have a snake case name
+  --> crates/sink-datadog/tests/contract_config_api_stability.rs:60:4
+   |
+60 | fn test_F2_http_sink_config_url_field_is_pub_documents_pre_fix_state() {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case (notice the capitalization): `test_f2_http_sink_config_url_field_is_pub_documents_pre_fix_state`
+
+warning: `sink-datadog` (test "contract_config_api_stability") generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running tests/contract_config_api_stability.rs (target/debug/deps/contract_config_api_stability-9fc8b9154be7ed82)
+
+running 2 tests
+test test_F2_http_sink_config_url_field_is_pub_documents_pre_fix_state ... ok
+test test_F2_http_sink_config_wrapper_uses_stable_api ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+---
+# HttpSinkConfig F-2 change summary (commit 850e691 + 95b9ad0)
+#
+# Approach: type-alias + builder pattern (not pure private fields)
+#
+# Before F-2 (S-4.01 — 2ebf031):
+#   pub struct HttpSinkConfig {
+#       pub schema_version: u32,
+#       pub sink_type: String,
+#       pub common: SinkConfigCommon,
+#       pub url: String,          // bare String — pinned field type
+#       pub queue_depth: usize,
+#   }
+#
+# After F-2 (S-4.02 — 95b9ad0):
+#   pub type HttpEndpointUrl = String;   // named alias — stable surface
+#
+#   pub struct HttpSinkConfig {
+#       pub common: SinkConfigCommon,
+#       pub url: HttpEndpointUrl,         // stable: field type is alias, not bare String
+#       // other fields private; use builder() or accessors
+#   }
+#   impl HttpSinkConfig {
+#       pub fn builder() -> HttpSinkConfigBuilder { ... }
+#       pub fn url(&self) -> &str { ... }
+#       pub fn queue_depth(&self) -> usize { ... }
+#       pub fn extra_headers(&self) -> &[(String, String)] { ... }
+#   }
+#
+# Wrappers (sink-datadog, sink-honeycomb) use HttpSinkConfig::builder()
+# to construct configs without pinning to field layout.
+#
+# PR #18 deferred LOW finding F-2 CLOSED.
+# SHA: 95b9ad0 | branch: feat/S-4.02-sink-datadog-driver | 2026-04-27

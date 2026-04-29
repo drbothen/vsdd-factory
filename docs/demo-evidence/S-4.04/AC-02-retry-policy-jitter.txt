@@ -1,0 +1,21 @@
+$ cargo test -p sink-core --test retry_policy_jitter
+
+warning: function `test_BC_3_03_002_jitter_delay_gte_no_jitter` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_jitter.rs:15:4
+warning: function `test_BC_3_03_002_jitter_bounded_above_by_jitter_factor` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_jitter.rs:37:4
+warning: function `test_BC_3_03_002_jitter_produces_variation_across_calls` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_jitter.rs:62:4
+warning: function `test_BC_3_03_002_jitter_zero_when_factor_is_zero` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_jitter.rs:81:4
+warning: `sink-core` (test "retry_policy_jitter") generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running tests/retry_policy_jitter.rs (target/debug/deps/retry_policy_jitter-1687c06244906719)
+
+running 4 tests
+test test_BC_3_03_002_jitter_zero_when_factor_is_zero ... ok
+test test_BC_3_03_002_jitter_delay_gte_no_jitter ... ok
+test test_BC_3_03_002_jitter_bounded_above_by_jitter_factor ... ok
+test test_BC_3_03_002_jitter_produces_variation_across_calls ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

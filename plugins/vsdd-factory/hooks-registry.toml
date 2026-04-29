@@ -10,44 +10,81 @@
 
 schema_version = 1
 
+# ---------- SessionStart ----------
+
+[[hooks]]
+name = "session-start-telemetry"
+event = "SessionStart"
+plugin = "hook-plugins/session-start-telemetry.wasm"
+timeout_ms = 8000
+
+[hooks.capabilities.read_file]
+path_allow = [".claude/settings.local.json"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["factory-health"]
+
+# ---------- SessionEnd ----------
+
+[[hooks]]
+name = "session-end-telemetry"
+event = "SessionEnd"
+plugin = "hook-plugins/session-end-telemetry.wasm"
+timeout_ms = 5000
+
+# ---------- WorktreeCreate ----------
+
+[[hooks]]
+name = "worktree-hooks"
+event = "WorktreeCreate"
+plugin = "hook-plugins/worktree-hooks.wasm"
+timeout_ms = 5000
+
+# ---------- WorktreeRemove ----------
+
+[[hooks]]
+name = "worktree-hooks"
+event = "WorktreeRemove"
+plugin = "hook-plugins/worktree-hooks.wasm"
+timeout_ms = 5000
+
+# ---------- PostToolUseFailure ----------
+
+[[hooks]]
+name = "tool-failure-hooks"
+event = "PostToolUseFailure"
+plugin = "hook-plugins/tool-failure-hooks.wasm"
+timeout_ms = 5000
+
 # ---------- PostToolUse ----------
 
 [[hooks]]
 name = "capture-commit-activity"
 event = "PostToolUse"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/capture-commit-activity.wasm"
 priority = 110
 timeout_ms = 5000
 on_error = "continue"
 
-[hooks.config]
-script_path = "hooks/capture-commit-activity.sh"
-
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+env_allow = []
 
 [hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "git", "gh", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+binary_allow = ["git"]
 
 [[hooks]]
 name = "capture-pr-activity"
 event = "PostToolUse"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/capture-pr-activity.wasm"
 priority = 120
 timeout_ms = 5000
 on_error = "continue"
-
-[hooks.config]
-script_path = "hooks/capture-pr-activity.sh"
 
 [hooks.capabilities]
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "git", "gh", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
+binary_allow = ["gh"]
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
@@ -535,21 +572,13 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 name = "block-ai-attribution"
 event = "PreToolUse"
 tool = "Bash"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/block-ai-attribution.wasm"
 priority = 20
 timeout_ms = 5000
 on_error = "block"
 
-[hooks.config]
-script_path = "hooks/block-ai-attribution.sh"
-
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "git", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+env_allow = []
 
 [[hooks]]
 name = "brownfield-discipline"

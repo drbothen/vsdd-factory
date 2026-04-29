@@ -1,0 +1,32 @@
+[package]
+name = "sink-datadog"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "vsdd-factory v1.0 sink driver: Datadog Logs Intake sink (wraps sink-http)"
+publish = false
+
+[lib]
+name = "sink_datadog"
+path = "src/lib.rs"
+
+[dependencies]
+sink-core = { path = "../sink-core", version = "0.0.1" }
+sink-http = { path = "../sink-http", version = "0.0.1" }
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+toml.workspace = true
+
+[dev-dependencies]
+httpmock.workspace = true
+toml.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true

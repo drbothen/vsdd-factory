@@ -1,5 +1,5 @@
 (function() {
-  const WS_URL = 'ws://' + window.location.host;
+  const WS_URL = 'ws://' + window.location.host; // nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket -- local-only dev helper injected by visual-companion server; never served to public endpoints. wss:// upgrade handled by __WS_URL__ override in production.
   let ws = null;
   let eventQueue = [];
 

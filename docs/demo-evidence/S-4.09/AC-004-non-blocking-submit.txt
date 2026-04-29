@@ -1,0 +1,20 @@
+AC-004: The backoff sleep occurs on the sink's worker/batch thread.
+        The submit() call path returns immediately without waiting for the sleep to complete.
+Traces to: BC-3.07.001 postcondition 4; BC-3.03.005 invariant preserved
+
+$ cargo test -p sink-http -- submit_returns_before_backoff_sleep
+
+running 1 test
+test test_BC_3_07_001_submit_returns_before_backoff_sleep ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 1.52s
+
+Tests covered (1 total):
+  - test_BC_3_07_001_submit_returns_before_backoff_sleep
+    Strategy: sets base_delay_ms=500ms, calls submit(), measures elapsed time for submit()
+    to return. Asserts elapsed < 100ms (well under the 500ms sleep). Worker thread handles
+    the retry+sleep asynchronously.
+
+Source: crates/sink-http/tests/bc_3_07_001_backoff.rs
+SHA: 9d3b4b20f27743f027107d0e7264d57326e0e656
+Result: GREEN (1/1)

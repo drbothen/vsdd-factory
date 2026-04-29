@@ -1,0 +1,41 @@
+name: semgrep
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  schedule:
+    - cron: '0 12 * * 1'  # Weekly Monday noon UTC for full repo scan
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  semgrep:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: returntocorp/semgrep:1.61.0
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run Semgrep SAST
+        # `semgrep ci` is the CI-aware command: on pull_request triggers it
+        # diffs only the changed files; on push/schedule it scans the full
+        # repo. Rule packs: security-audit (general), secrets (credential
+        # leakage), owasp-top-ten, cwe-top-25. All four languages in scope
+        # (Rust, Python, TypeScript, Go — per TD-006) are covered natively.
+        #
+        # Custom org rules will live in .semgrep.yml once TD-006 POLICY 11
+        # (tautology) and POLICY 12 (BC-TV consistency) are authored as
+        # executable Semgrep rules.
+        run: semgrep ci --config=auto
+        env:
+          SEMGREP_RULES: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/cwe-top-25

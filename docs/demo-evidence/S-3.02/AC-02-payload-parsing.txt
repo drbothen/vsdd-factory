@@ -1,0 +1,37 @@
+$ cargo test -p capture-pr-activity --test contract_payload_parsing
+  (rustc 1.95.0 via /Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin)
+
+warning: function `test_BC_4_04_001_detects_gh_pr_create_at_start` should have a snake case name
+warning: function `test_BC_4_04_001_detects_gh_pr_create_after_semicolon` should have a snake case name
+warning: function `test_BC_4_04_001_detects_gh_pr_create_after_pipe` should have a snake case name
+warning: function `test_BC_4_04_001_detects_gh_pr_merge` should have a snake case name
+warning: function `test_BC_4_04_001_detects_gh_pr_close` should have a snake case name
+warning: function `test_BC_4_04_001_non_gh_command_returns_none` should have a snake case name
+warning: function `test_BC_4_04_001_git_commit_returns_none` should have a snake case name
+warning: function `test_BC_4_04_001_echoed_mention_of_gh_pr_create_is_not_matched` should have a snake case name
+warning: function `test_BC_4_04_001_gh_pr_status_returns_none` should have a snake case name
+warning: function `test_BC_4_04_001_gh_pr_view_returns_none` should have a snake case name
+warning: function `test_BC_4_04_001_extracts_command_from_payload` should have a snake case name
+warning: function `test_BC_4_04_001_missing_command_returns_none` should have a snake case name
+warning: function `test_BC_4_04_001_non_bash_tool_extract_command_returns_none_when_no_command_field` should have a snake case name
+
+warning: `capture-pr-activity` (test "contract_payload_parsing") generated 13 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running tests/contract_payload_parsing.rs (target/debug/deps/contract_payload_parsing-c382558ef79d4573)
+
+running 13 tests
+test test_BC_4_04_001_missing_command_returns_none ... ok
+test test_BC_4_04_001_detects_gh_pr_merge ... ok
+test test_BC_4_04_001_gh_pr_view_returns_none ... ok
+test test_BC_4_04_001_non_bash_tool_extract_command_returns_none_when_no_command_field ... ok
+test test_BC_4_04_001_detects_gh_pr_create_at_start ... ok
+test test_BC_4_04_001_gh_pr_status_returns_none ... ok
+test test_BC_4_04_001_detects_gh_pr_close ... ok
+test test_BC_4_04_001_non_gh_command_returns_none ... ok
+test test_BC_4_04_001_echoed_mention_of_gh_pr_create_is_not_matched ... ok
+test test_BC_4_04_001_detects_gh_pr_create_after_semicolon ... ok
+test test_BC_4_04_001_detects_gh_pr_create_after_pipe ... ok
+test test_BC_4_04_001_git_commit_returns_none ... ok
+test test_BC_4_04_001_extracts_command_from_payload ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

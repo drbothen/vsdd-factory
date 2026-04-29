@@ -5,10 +5,19 @@ members = [
     "crates/hook-sdk",
     "crates/hook-sdk-macros",
     "crates/hook-plugins/capture-commit-activity",
+    "crates/hook-plugins/session-end-telemetry",
+    "crates/hook-plugins/session-start-telemetry",
+    "crates/hook-plugins/tool-failure-hooks",
+    "crates/hook-plugins/worktree-hooks",
+    "crates/hook-plugins/capture-pr-activity",
     "crates/hook-plugins/legacy-bash-adapter",
+    "crates/hook-plugins/block-ai-attribution",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
+    "crates/sink-http",
+    "crates/sink-datadog",
+    "crates/sink-honeycomb",
 ]
 
 [workspace.package]
@@ -51,6 +60,16 @@ opentelemetry-proto = { version = "0.31", default-features = false, features = [
 tonic = "0.14"
 tokio-stream = { version = "0.1", features = ["net"] }
 hostname = "0.4"
+reqwest = { version = "0.12", features = ["json"] }
+httpmock = "0.7"
+
+[workspace.lints.rust]
+# VSDD traceability convention uses uppercase BC-N.NN.NNN and TV-NNN ids
+# as test function name prefixes (e.g. test_BC_4_05_001_*, test_TV_001_*).
+# These are intentional deviations from snake_case to preserve the
+# spec-traceability mapping; suppressing the lint workspace-wide avoids
+# having to scatter #![allow(non_snake_case)] across 50+ test files.
+non_snake_case = "allow"
 
 [profile.release]
 opt-level = 3

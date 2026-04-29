@@ -1,0 +1,18 @@
+$ cargo test -p sink-core --test retry_policy_success_resets
+
+warning: function `test_BC_3_03_002_ec001_first_fail_second_success_returns_ok` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_success_resets.rs:14:10
+warning: function `test_BC_3_03_002_success_resets_consecutive_failure_counter` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_success_resets.rs:49:10
+warning: function `test_BC_3_03_002_success_on_first_attempt_no_retry` should have a snake case name
+  --> crates/sink-core/tests/retry_policy_success_resets.rs:72:10
+warning: `sink-core` (test "retry_policy_success_resets") generated 3 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/retry_policy_success_resets.rs (target/debug/deps/retry_policy_success_resets-f7db674e45d5e7d4)
+
+running 3 tests
+test test_BC_3_03_002_success_resets_consecutive_failure_counter ... ok
+test test_BC_3_03_002_success_on_first_attempt_no_retry ... ok
+test test_BC_3_03_002_ec001_first_fail_second_success_returns_ok ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

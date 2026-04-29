@@ -1,0 +1,33 @@
+$ cargo test -p capture-pr-activity --test contract_subprocess_calls
+  (rustc 1.95.0 via /Users/jmagady/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin)
+
+warning: function `test_BC_4_04_002_detect_merge_strategy_squash` should have a snake case name
+warning: function `test_BC_4_04_002_detect_merge_strategy_rebase` should have a snake case name
+warning: function `test_BC_4_04_002_detect_merge_strategy_merge_flag` should have a snake case name
+warning: function `test_BC_4_04_002_detect_merge_strategy_none_when_no_flag` should have a snake case name
+warning: function `test_BC_4_04_002_detect_merge_strategy_none_for_create` should have a snake case name
+warning: function `test_BC_4_04_001_create_subcommand_is_not_merge` should have a snake case name
+warning: function `test_BC_4_04_001_merge_subcommand_is_not_create` should have a snake case name
+warning: function `test_BC_4_04_001_close_subcommand_is_not_create_or_merge` should have a snake case name
+warning: function `test_BC_4_04_001_positional_pr_number_detected_as_merge` should have a snake case name
+warning: function `test_BC_4_04_001_gh_pr_merge_help_still_detected_as_merge` should have a snake case name
+warning: function `test_BC_4_04_001_gh_pr_close_with_url_detected` should have a snake case name
+
+warning: `capture-pr-activity` (test "contract_subprocess_calls") generated 11 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/contract_subprocess_calls.rs (target/debug/deps/contract_subprocess_calls-a890dc992c05b843)
+
+running 11 tests
+test test_BC_4_04_001_close_subcommand_is_not_create_or_merge ... ok
+test test_BC_4_04_001_gh_pr_close_with_url_detected ... ok
+test test_BC_4_04_001_create_subcommand_is_not_merge ... ok
+test test_BC_4_04_001_gh_pr_merge_help_still_detected_as_merge ... ok
+test test_BC_4_04_001_merge_subcommand_is_not_create ... ok
+test test_BC_4_04_001_positional_pr_number_detected_as_merge ... ok
+test test_BC_4_04_002_detect_merge_strategy_merge_flag ... ok
+test test_BC_4_04_002_detect_merge_strategy_none_for_create ... ok
+test test_BC_4_04_002_detect_merge_strategy_none_when_no_flag ... ok
+test test_BC_4_04_002_detect_merge_strategy_rebase ... ok
+test test_BC_4_04_002_detect_merge_strategy_squash ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,233 @@
+cargo test -p sink-core -p sink-http -p sink-otel-grpc -p sink-file
+SHA: da8c5b5
+Run via: PATH="$HOME/.cargo/bin:$PATH" cargo test ... (rustup cargo 1.95.0)
+
+Note: Homebrew cargo 1.94 shadowed rustup cargo 1.95 on PATH.
+      Tests were run with PATH="$HOME/.cargo/bin:$PATH" to use rustup 1.95.
+
+--- sink-core lib (21 tests) ---
+running 21 tests
+test tests::routing_filter_empty_event_type_rejected_when_filtered ... ok
+test events::tests::test_BC_3_07_002_type_field_is_always_internal_sink_error ... ok
+test tests::routing_filter_default_accepts_everything ... ok
+test tests::routing_filter_both_lists_allow_first_then_deny ... ok
+test events::tests::test_BC_3_07_002_attempt_field_is_zero_indexed ... ok
+test events::tests::test_BC_3_07_002_sink_type_carries_driver_kind ... ok
+test tests::routing_filter_deny_list_only_rejects_listed ... ok
+test tests::routing_filter_allow_case_sensitive ... ok
+test events::tests::test_BC_3_07_002_invariant_sink_name_preserved_when_non_empty ... ok
+test tests::routing_filter_allow_list_only_accepts_listed ... ok
+test events::tests::test_BC_3_07_002_invariant_sink_name_defaults_to_unnamed_when_empty ... ok
+test events::tests::test_BC_3_07_002_error_message_preserved_from_constructor ... ok
+test tests::sink_event_event_type_accessor_reads_type_field ... ok
+test tests::sink_event_event_type_missing_returns_none ... ok
+test tests::sink_event_event_type_non_string_returns_none ... ok
+test tests::sink_event_serializes_as_flat_object ... ok
+test events::tests::test_BC_3_07_002_emit_sink_error_silent_drop_on_full_channel ... ok
+test events::tests::test_BC_3_07_002_emit_sink_error_silent_drop_on_closed_channel ... ok
+test events::tests::test_BC_3_07_002_invariant_one_event_emitted_per_failure_call ... ok
+test events::tests::test_BC_3_07_002_emit_sink_error_sends_event_to_channel ... ok
+test tests::sink_config_common_defaults_enabled_true ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- sink-core cross-sink integration (3 tests) ---
+running 3 tests
+test test_BC_3_07_002_cross_sink_schema_field_types_correct ... ok
+test test_BC_3_07_002_ac006_emission_synchronous_with_failure_recording ... ok
+test test_BC_3_07_002_cross_sink_consistent_schema_all_three_drivers ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+--- sink-core circuit breaker integration (4 tests) ---
+running 4 tests
+test test_BC_3_03_002_open_circuit_skips_op_entirely ... ok
+test test_BC_3_03_002_vp011_with_retry_uses_async_sleep_not_thread_sleep ... ok
+test test_BC_3_03_002_repeated_failures_open_circuit_then_reject ... ok
+test test_BC_3_03_002_partial_retry_success_leaves_circuit_closed ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+--- sink-core circuit breaker state machine (7 tests) ---
+running 7 tests
+test test_BC_3_03_002_open_circuit_is_open_returns_true ... ok
+test test_BC_3_03_002_ec002_n_failures_opens_circuit ... ok
+test test_BC_3_03_002_circuit_breaker_initial_state_is_closed ... ok
+test test_BC_3_03_002_fewer_than_threshold_failures_stays_closed ... ok
+test test_BC_3_03_002_vp012_independent_breaker_instances ... ok
+test test_BC_3_03_002_ec003_halfopen_success_closes_circuit ... ok
+test test_BC_3_03_002_halfopen_failure_reopens_circuit ... ok
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+--- sink-core contract circuit events (3 tests) ---
+running 3 tests
+test test_BC_3_03_002_circuit_opened_event_emitted_on_closed_to_open ... ok
+test test_BC_3_03_002_no_event_emitted_when_circuit_stays_closed ... ok
+test test_BC_3_03_002_circuit_closed_event_emitted_on_halfopen_to_closed ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+--- sink-core per_sink_config (4 tests) ---
+running 4 tests
+test test_BC_3_03_002_vp012_different_sinks_have_different_retry_configs ... ok
+test test_BC_3_03_002_vp012_different_sinks_have_independent_circuit_breakers ... ok
+test test_BC_3_03_002_per_sink_cooloff_independent ... ok
+test test_BC_3_03_002_per_sink_max_retries_honoured_independently ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+--- sink-core retry_policy_exponential_backoff (6 tests) ---
+running 6 tests
+test test_BC_3_03_002_retry_backoff_attempt_0_equals_base ... ok
+test test_BC_3_03_002_retry_backoff_attempt_1_doubles_base ... ok
+test test_BC_3_03_002_retry_backoff_attempt_2_quadruples_base ... ok
+test test_BC_3_03_002_retry_backoff_attempt_3_vector ... ok
+test test_BC_3_03_002_retry_backoff_cap_applied_exactly_at_threshold ... ok
+test test_BC_3_03_002_retry_backoff_capped_at_max_delay ... ok
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- sink-core retry_policy_jitter (4 tests) ---
+running 4 tests
+test test_BC_3_03_002_jitter_zero_when_factor_is_zero ... ok
+test test_BC_3_03_002_jitter_bounded_above_by_jitter_factor ... ok
+test test_BC_3_03_002_jitter_produces_variation_across_calls ... ok
+test test_BC_3_03_002_jitter_delay_gte_no_jitter ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- sink-core retry_policy_max_attempts (4 tests) ---
+running 4 tests
+test test_BC_3_03_002_zero_max_retries_fails_immediately ... ok
+test test_BC_3_03_002_op_called_max_retries_plus_one_times ... ok
+test test_BC_3_03_002_exhausted_carries_last_error ... ok
+test test_BC_3_03_002_max_retries_exhausted_returns_err ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+--- sink-core retry_policy_success_resets (3 tests) ---
+running 3 tests
+test test_BC_3_03_002_success_resets_consecutive_failure_counter ... ok
+test test_BC_3_03_002_success_on_first_attempt_no_retry ... ok
+test test_BC_3_03_002_ec001_first_fail_second_success_returns_ok ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- sink-file lib (17 tests) ---
+running 17 tests
+test tests::template_no_project_yields_empty_basename ... ok
+test tests::template_unbalanced_brace_treated_literally ... ok
+test tests::template_date_only ... ok
+test tests::template_name_only ... ok
+test tests::template_project_basename ... ok
+test tests::template_all_placeholders ... ok
+test tests::template_unknown_placeholder_errors ... ok
+test tests::config_deserializes_from_toml ... ok
+test tests::disabled_sink_drops_every_event ... ok
+test tests::read_only_path_records_failure_without_panic ... ok
+test tests::tag_enrichment_does_not_overwrite_producer_fields ... ok
+test tests::tag_enrichment_writes_tags_onto_every_event ... ok
+test tests::routing_filter_drops_excluded_events ... ok
+test tests::jsonl_append_preserves_three_events ... ok
+test tests::shutdown_drains_queued_events ... ok
+test tests::auto_creates_parent_directory ... ok
+test tests::backpressure_fills_queue_and_increments_counter ... ok
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+--- sink-file bc_3_07_002_file_emission (6 tests) ---
+running 6 tests
+test test_BC_3_07_002_file_silent_drop_on_closed_channel_no_panic ... ok
+test test_BC_3_07_002_file_silent_drop_on_full_channel_no_panic ... ok
+test test_BC_3_07_002_file_emits_sink_error_on_read_only_dir ... ok
+test test_BC_3_07_002_file_sink_name_matches_config_name ... ok
+test test_BC_3_07_002_file_sink_failure_still_recorded_after_write_error ... ok
+test test_BC_3_07_002_file_invariant_no_routing_through_sink_registry ... ok
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+--- sink-http bc_3_07_002_http_emission (8 tests) ---
+running 8 tests
+test test_BC_3_07_002_http_silent_drop_on_full_channel_no_panic ... ok
+test test_BC_3_07_002_http_sink_name_matches_config_name ... ok
+test test_BC_3_07_002_http_unnamed_sink_uses_unnamed_default ... ok
+test test_BC_3_07_002_http_three_failures_emit_three_events_with_correct_attempts ... ok
+test test_BC_3_07_002_http_sink_failure_still_recorded_after_503 ... ok
+test test_BC_3_07_002_http_silent_drop_on_closed_channel_no_panic ... ok
+test test_BC_3_07_002_http_emits_sink_error_on_503_attempt_0 ... ok
+test test_BC_3_07_002_http_invariant_no_routing_through_sink_registry ... ok
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+--- sink-http contract_config_load (3 tests) ---
+running 3 tests
+test test_BC_3_01_002_unknown_sink_type_warns_no_fail ... ok
+test test_BC_3_01_003_schema_version_mismatch_is_hard_error ... ok
+test test_BC_3_06_005_disabled_config_no_events_accepted ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+--- sink-http contract_sink_trait (2 tests) ---
+running 2 tests
+test test_HttpSink_struct_exported_for_reuse ... ok
+test test_BC_3_01_001_http_sink_implements_sink_trait ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+--- sink-http error_handling (2 tests) ---
+running 2 tests
+test test_VP_012_4xx_drops_immediately_no_retry ... ok
+test test_VP_012_5xx_retries_then_records_failure ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+--- sink-http integration_post_batch (2 tests) ---
+running 2 tests
+test test_TV_flush_sends_synchronously ... ok
+test test_TV_events_batched_and_posted_as_json_array ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+--- sink-http non_blocking (1 test) ---
+running 1 test
+test test_VP_011_submit_does_not_block_when_queue_full ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+--- sink-otel-grpc lib (13 tests) ---
+running 13 tests
+test tests::event_to_log_record_missing_type_yields_empty_body ... ok
+test tests::event_to_log_record_missing_ts_yields_zero_timestamp ... ok
+test tests::event_to_log_record_maps_reserved_fields ... ok
+test tests::resource_attributes_merge_defaults_with_config ... ok
+test tests::event_to_log_record_nested_value_serialized_to_string ... ok
+test tests::event_attributes_flatten_non_reserved_fields ... ok
+test tests::config_deserializes_with_defaults ... ok
+test tests::config_deserializes_with_batch_overrides ... ok
+test tests::invalid_endpoint_url_errors_at_construction ... ok
+test tests::routing_filter_drops_unmatched_events ... ok
+test tests::shutdown_drains_queued_events_to_failure_log ... ok
+test tests::batch_size_triggers_flush ... ok
+test tests::batch_interval_triggers_flush ... ok
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+--- sink-otel-grpc bc_3_07_002_otel_emission (6 tests) ---
+running 6 tests
+test test_BC_3_07_002_otel_silent_drop_on_full_channel_no_panic ... ok
+test test_BC_3_07_002_otel_emits_sink_error_on_connection_refused ... ok
+test test_BC_3_07_002_otel_sink_name_matches_config_name ... ok
+test test_BC_3_07_002_otel_silent_drop_on_closed_channel_no_panic ... ok
+test test_BC_3_07_002_otel_sink_failure_still_recorded_after_connection_refused ... ok
+test test_BC_3_07_002_otel_invariant_no_routing_through_sink_registry ... ok
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+===========================================
+TOTAL: 109 passed; 0 failed
+===========================================
+
+Test count breakdown:
+  sink-core lib (events + routing):          21
+  sink-core cross-sink integration:           3
+  sink-core circuit breaker integration:      4
+  sink-core circuit breaker state machine:    7
+  sink-core contract circuit events:          3
+  sink-core per_sink_config:                  4
+  sink-core retry_policy_exponential_backoff: 6
+  sink-core retry_policy_jitter:              4
+  sink-core retry_policy_max_attempts:        4
+  sink-core retry_policy_success_resets:      3
+  sink-file lib:                             17
+  sink-file bc_3_07_002_file_emission:        6
+  sink-http bc_3_07_002_http_emission:        8
+  sink-http contract_config_load:             3
+  sink-http contract_sink_trait:              2
+  sink-http error_handling:                   2
+  sink-http integration_post_batch:           2
+  sink-http non_blocking:                     1
+  sink-otel-grpc lib:                        13
+  sink-otel-grpc bc_3_07_002_otel_emission:   6
+  ------------------------------------------
+  TOTAL                                     109
