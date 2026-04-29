@@ -32,6 +32,22 @@ event = "SessionEnd"
 plugin = "hook-plugins/session-end-telemetry.wasm"
 timeout_ms = 5000
 
+# ---------- WorktreeCreate ----------
+
+[[hooks]]
+name = "worktree-hooks"
+event = "WorktreeCreate"
+plugin = "hook-plugins/worktree-hooks.wasm"
+timeout_ms = 5000
+
+# ---------- WorktreeRemove ----------
+
+[[hooks]]
+name = "worktree-hooks"
+event = "WorktreeRemove"
+plugin = "hook-plugins/worktree-hooks.wasm"
+timeout_ms = 5000
+
 # ---------- PostToolUse ----------
 
 [[hooks]]

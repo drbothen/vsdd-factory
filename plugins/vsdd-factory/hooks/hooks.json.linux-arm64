@@ -83,6 +83,30 @@
           }
         ]
       }
+    ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/linux-arm64/factory-dispatcher",
+            "timeout": 10000,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/linux-arm64/factory-dispatcher",
+            "timeout": 10000,
+            "async": true
+          }
+        ]
+      }
     ]
   }
 }

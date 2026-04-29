@@ -7,6 +7,7 @@ members = [
     "crates/hook-plugins/capture-commit-activity",
     "crates/hook-plugins/session-end-telemetry",
     "crates/hook-plugins/session-start-telemetry",
+    "crates/hook-plugins/worktree-hooks",
     "crates/hook-plugins/capture-pr-activity",
     "crates/hook-plugins/legacy-bash-adapter",
     "crates/hook-plugins/block-ai-attribution",
