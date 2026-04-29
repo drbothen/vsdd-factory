@@ -24,14 +24,14 @@ traces_to: bc-id-mapping.md
 | SS-01 Hook Dispatcher Core | BC-1 | 101 (99 active; 2 retired) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 22 | ss-02/ |
 | SS-03 Observability Sinks | BC-3 | 51 | ss-03/ |
-| SS-04 Plugin Ecosystem | BC-4 | 23 | ss-04/ |
+| SS-04 Plugin Ecosystem | BC-4 | 27 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1905** | |
+| **Total** | | **1909** | |
 
 ## Index by subsystem
 
@@ -254,6 +254,10 @@ traces_to: bc-id-mapping.md
 | [BC-4.05.003](ss-04/BC-4.05.003.md) | session-end plugin is unconditionally stateless; idempotency enforced by Layer 1 once:true directive | draft | CAP-002 | S-5.02 |
 | [BC-4.05.004](ss-04/BC-4.05.004.md) | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and async:true | draft | CAP-002 | S-5.02 |
 | [BC-4.05.005](ss-04/BC-4.05.005.md) | hooks-registry.toml registers SessionEnd event routing to hook-plugins/session-end-telemetry.wasm; deny-by-default capability table (no read_file, no exec_subprocess); timeout_ms:5000 | draft | CAP-002 | S-5.02 |
+| [BC-4.07.001](ss-04/BC-4.07.001.md) | worktree-hooks plugin emits worktree.created event with {worktree_path, worktree_name} on WorktreeCreate event; Option A zero-capability; 10-field wire payload (2+4+4) | draft | CAP-002 | S-5.03 |
+| [BC-4.07.002](ss-04/BC-4.07.002.md) | worktree-hooks plugin emits worktree.removed event with {worktree_path} on WorktreeRemove event; unknown-worktree no-op; zero-capability; 9-field wire payload (1+4+4) | draft | CAP-002 | S-5.03 |
+| [BC-4.07.003](ss-04/BC-4.07.003.md) | hooks.json.template registers WorktreeCreate and WorktreeRemove with dispatcher binary routing; once:false (can re-fire on reconnect, unlike session events); async:true; timeout:10000 | draft | CAP-002 | S-5.03 |
+| [BC-4.07.004](ss-04/BC-4.07.004.md) | hooks-registry.toml registers WorktreeCreate and WorktreeRemove routing to hook-plugins/worktree-hooks.wasm; single crate two entries; ZERO capability tables; timeout_ms:5000 | draft | CAP-002 | S-5.03 |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 

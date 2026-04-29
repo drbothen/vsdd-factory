@@ -399,9 +399,9 @@ Status: **pending** full implementation (S-3.01 stub).
 #### FR-046 — New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure
 
 **Source CAP:** CAP-002 — Hook Claude Code tool calls with sandboxed WASM plugins
-**Behavioral Contracts:** BC-4.04.001..005 (session-start, S-5.01), BC-4.05.001..N (session-end, S-5.02), BC-4.06.001..N (worktree, S-5.03), BC-4.07.001..N (tool-failure, S-5.04) — incrementally populated as Tier F stories converge
+**Behavioral Contracts:** BC-4.04.001..005 (session-start, S-5.01), BC-4.05.001..005 (session-end, S-5.02), BC-4.07.001..004 (worktree, S-5.03), BC-4.08.001..N (tool-failure, S-5.04) — incrementally populated as Tier F stories converge
 **Stories:** S-5.01, S-5.02, S-5.03, S-5.04
-**Status:** in-progress (S-5.01 BCs allocated; siblings pending)
+**Status:** in-progress (S-5.01 + S-5.02 + S-5.03 BCs allocated; S-5.04 pending)
 **Subsystem(s):** SS-04, SS-01 (hooks.json registry inclusion)
 
 The vsdd-factory dispatcher routes five new Claude Code lifecycle event types to dedicated WASM plugins:
@@ -419,9 +419,9 @@ lifecycle events).
 **Reserved event-name literals (per this FR):** The following event-name strings are reserved by vsdd-factory and must not be reused by user plugins or third-party extensions:
 - `session.started` — emitted by S-5.01 (BC-4.04.001); reserved for session-start telemetry
 - `session.ended` — emitted by S-5.02 (BC-4.05.*); reserved for session-end telemetry
-- `worktree.created` — emitted by S-5.03 (BC-4.06.*); reserved for worktree creation events
-- `worktree.removed` — emitted by S-5.03 (BC-4.06.*); reserved for worktree removal events
-- `tool.failed` — emitted by S-5.04 (BC-4.07.*); reserved for PostToolUseFailure events
+- `worktree.created` — emitted by S-5.03 (BC-4.07.001); reserved for worktree creation events
+- `worktree.removed` — emitted by S-5.03 (BC-4.07.002); reserved for worktree removal events
+- `tool.failed` — emitted by S-5.04 (BC-4.08.*); reserved for PostToolUseFailure events
 
 These mirror the `internal.sink_error` reservation pattern in FR-045. Any plugin emitting an event with a reserved name that it does not own is a protocol violation.
 
@@ -432,7 +432,7 @@ These mirror the `internal.sink_error` reservation pattern in FR-045. Any plugin
 4. `hooks.json.template` registration (Claude Code-side routing) (e.g., BC-4.04.004)
 5. `hooks-registry.toml` registration (dispatcher-side routing) (e.g., BC-4.04.005)
 
-Sibling stories BC-4.05.*, BC-4.06.*, BC-4.07.* mirror this shape. Implementers and reviewers should use BC-4.04.001..005 as the canonical reference family.
+Sibling stories BC-4.05.*, BC-4.07.*, BC-4.08.* mirror this shape. Implementers and reviewers should use BC-4.04.001..005 as the canonical reference family.
 
 | BC ID | Title | Priority |
 |-------|-------|----------|
@@ -446,9 +446,15 @@ Sibling stories BC-4.05.*, BC-4.06.*, BC-4.07.* mirror this shape. Implementers 
 | BC-4.05.003 | session-end plugin is unconditionally stateless; idempotency delegated to Layer 1 once:true | P1 |
 | BC-4.05.004 | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and async:true | P1 |
 | BC-4.05.005 | hooks-registry.toml registers SessionEnd event routing to hook-plugins/session-end-telemetry.wasm with timeout_ms:5000 | P1 |
+| BC-4.07.001 | worktree-hooks plugin emits worktree.created event with {worktree_path, worktree_name} on WorktreeCreate event; zero-capability (Option A); 10-field wire payload | P1 |
+| BC-4.07.002 | worktree-hooks plugin emits worktree.removed event with {worktree_path} on WorktreeRemove event; unknown-worktree no-op; zero-capability; 9-field wire payload | P1 |
+| BC-4.07.003 | hooks.json.template registers WorktreeCreate and WorktreeRemove with dispatcher binary routing; once:false (can re-fire); async:true; timeout:10000 | P1 |
+| BC-4.07.004 | hooks-registry.toml registers WorktreeCreate and WorktreeRemove routing to hook-plugins/worktree-hooks.wasm; single crate, two entries; ZERO capability tables; timeout_ms:5000 | P1 |
 
-Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (S-5.01), `ss-04/BC-4.05.001.md` through `BC-4.05.005.md` (S-5.02) — 10 BCs anchored; siblings pending S-5.03–5.04.
-Status: **in-progress** (S-5.01 + S-5.02 BCs allocated).
+Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (S-5.01), `ss-04/BC-4.05.001.md` through `BC-4.05.005.md` (S-5.02), `ss-04/BC-4.07.001.md` through `BC-4.07.004.md` (S-5.03) — 14 BCs anchored; S-5.04 pending.
+Status: **in-progress** (S-5.01 + S-5.02 + S-5.03 BCs allocated).
+
+> **S-5.03 foundation burst (2026-04-28):** BC-4.07.001–004 promoted from v1.1 candidates to real BCs. Option A (zero-capability, no filesystem write) selected: worktree plugin emits events ONLY — no filesystem auto-registration (deferred to BC-4.07.005 candidate in v1.1 when `write_file` host fn is available). Single `worktree-hooks.wasm` crate handles both events via internal dispatch; two separate `[[hooks]]` registry entries. `once: false` (or absent) for both events — worktree events can re-fire on reconnect, unlike session events. S-5.01 (14-pass) + S-5.02 (9-pass) lessons applied up-front; expected adversarial pass count: 5-7.
 
 > **Pass-4 architectural simplification (2026-04-28):** BC-1.10.001 (host fn `vsdd::activated_platform()` — over-engineered; canonical `read_file` host fn used instead) and BC-1.10.002 (dispatcher-side dedup — over-engineered; Claude Code Layer 1 `once:true` directive enforces idempotency at hooks.json.template) retired. BC count for this FR reverts to 5 anchored BCs (BC-4.04.001–005). Scope reverts to SS-04 plugin work; story S-5.01 remains 3-pt as originally budgeted.
 
@@ -1160,7 +1166,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-043 | TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern (anti-precedent guard + Red Gate density check + tdd_mode contract + mutation wave-gate) | CAP-016 | SS-05, SS-06, SS-08 | BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 | 13 | pending | E-7 |
 | FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002, BC-3.07.001 + v1.1 candidates (8 pending) | 3 anchored + 8 v1.1 candidates | partial | E-4 |
 | FR-045 | Emit `internal.sink_error` structured event on each sink failure | CAP-003 | SS-03 | BC-3.07.002 | 1 | pending | E-4 |
-| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–005 (S-5.01 anchored); BC-4.05.001–005 (S-5.02 anchored); BC-1.10.001–002 (retired pass-4); BC-4.06–4.07.* (pending S-5.03–5.04) | 10 anchored + siblings pending | in-progress | E-5 |
+| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–005 (S-5.01 anchored); BC-4.05.001–005 (S-5.02 anchored); BC-1.10.001–002 (retired pass-4); BC-4.07.001–004 (S-5.03 anchored); BC-4.08.* (pending S-5.04) | 14 anchored + S-5.04 pending | in-progress | E-5 |
 
 **Total: 46 FRs across 10 subsystems**
 
@@ -1407,7 +1413,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | Field | Value |
 |-------|-------|
 | Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,905 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13 + 2 S-5.01 pass-2 + 5 S-5.02 Wave 13) |
+| BC catalog version | 1,909 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13 + 2 S-5.01 pass-2 + 5 S-5.02 Wave 13 + 4 S-5.03 foundation burst) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.7 (commit b08e085, 2026-04-26) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
