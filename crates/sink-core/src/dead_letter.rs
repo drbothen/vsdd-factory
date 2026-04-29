@@ -298,14 +298,13 @@ impl DlqWriter {
 fn strip_seq_suffix(path: &Path) -> PathBuf {
     let path_str = path.to_string_lossy();
     // Pattern: ends with `-NNN.jsonl` where NNN is exactly 3 digits.
-    if let Some(stem) = path_str.strip_suffix(".jsonl") {
-        // Check if the last segment after the last '-' is 3 digits.
-        if let Some(dash_pos) = stem.rfind('-') {
-            let suffix = &stem[dash_pos + 1..];
-            if suffix.len() == 3 && suffix.chars().all(|c| c.is_ascii_digit()) {
-                let base = format!("{}.jsonl", &stem[..dash_pos]);
-                return PathBuf::from(base);
-            }
+    if let Some(stem) = path_str.strip_suffix(".jsonl")
+        && let Some(dash_pos) = stem.rfind('-')
+    {
+        let suffix = &stem[dash_pos + 1..];
+        if suffix.len() == 3 && suffix.chars().all(|c| c.is_ascii_digit()) {
+            let base = format!("{}.jsonl", &stem[..dash_pos]);
+            return PathBuf::from(base);
         }
     }
     path.to_path_buf()
@@ -318,7 +317,8 @@ fn strip_seq_suffix(path: &Path) -> PathBuf {
 fn next_seq_path(current: &Path) -> PathBuf {
     let path_str = current.to_string_lossy();
     if let Some(stem) = path_str.strip_suffix(".jsonl") {
-        // Check if already has a seq suffix.
+        // Check if already has a seq suffix (two-level check: outer cannot be
+        // collapsed because the outer body has a sibling statement after the inner).
         if let Some(dash_pos) = stem.rfind('-') {
             let suffix = &stem[dash_pos + 1..];
             if suffix.len() == 3 && suffix.chars().all(|c| c.is_ascii_digit()) {
