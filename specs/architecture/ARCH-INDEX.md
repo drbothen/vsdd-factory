@@ -82,7 +82,7 @@ The per-subsystem SS-NN files above collectively cover their content:
 | SS-09 | Configuration and Activation | SS-09-config-activation.md | `plugins/vsdd-factory/hooks/hooks.json*`, `plugins/vsdd-factory/.claude-plugin/plugin.json`, `ci/platforms.yaml`, `scripts/generate-registry-from-hooks-json.sh` | BC-9 | 5 | Phase 1 |
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
-**Total BCs: 1,905 (per BC-INDEX)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
+**Total BCs: 1,909 (per BC-INDEX)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
 
 ### Subsystem Registry Design Notes
 

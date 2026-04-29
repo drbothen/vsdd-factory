@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.1"
+version: "v1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-7-po, v1.0-pass-8, v1.0-pass-9, v1.0-pass-10, v1.1-adv-s5.03-p01-sibling-sweep]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-7-po, v1.0-pass-8, v1.0-pass-9, v1.0-pass-10, v1.1-adv-s5.03-p01-sibling-sweep, v1.2-adv-s5.03-p04]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -57,7 +57,7 @@ When the dispatcher routes a `SessionStart` event to the `session-start-telemetr
 
    - **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. The `emit_event` host fn calls `.with_trace_id`, `.with_session_id`, `.with_plugin_name`, `.with_plugin_version` from `HostContext` on every emitted event (per BC-1.05.012 enrichment half). These are part of `RESERVED_FIELDS` and would be silently dropped if the plugin attempted to set them. `session_id` specifically: the value originates from the incoming `SessionStart` envelope parsed by BC-1.02.005 lifecycle-tolerant envelope parsing, which populates `HostContext.session_id`. When the envelope's `session_id` is missing or empty, BC-1.02.005 sets `HostContext.session_id = "unknown"`; the `emit_event` host fn then auto-enriches the event with this value. The plugin does not set `session_id`.
 
-   - **Construction-time fields (4 fields — set by `InternalEvent::now()`, NOT by the plugin or `emit_event` enrichment):** `ts` (current UTC time), `ts_epoch` (current Unix timestamp), `schema_version` (struct constant), `type` (the plugin-supplied `event_name` argument — `"session.started"` in this case). These are set at event construction before the `emit_event` enrichment loop. Also part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
+   - **Construction-time fields (4 fields — set by the dispatcher between the plugin's `emit_event` call and the final wire format; the plugin must NOT set them — implementation provenance is opaque from the spec layer):** `ts` (current UTC time), `ts_epoch` (current Unix timestamp), `schema_version` (struct constant), `type` (the plugin-supplied `event_name` argument — `"session.started"` in this case). These are set at event construction before the `emit_event` enrichment loop. Also part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
 
    - **Plugin-set fields (6 fields listed above):** set by the plugin via `emit_event` key/value pairs and pass through the non-reserved field path in `emit_event.rs`.
 
@@ -136,5 +136,6 @@ VP-065
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-04-28 | product-owner | ADV-S5.03-P04 sibling-sweep MED-P04-006 — abstract construction-time framing propagated from VP-067 v1.2 (MED-P03-001 closure). "set by `InternalEvent::now()`" concrete attribution replaced with "set by the dispatcher between the plugin's `emit_event` call and the final wire format; the plugin must NOT set them — implementation provenance is opaque from the spec layer" in Postconditions §2 Construction-time fields description. Third retroactive edit to S-5.01 BCs in S-5.03 cycle. |
 | v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 internal_log.rs scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.01 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.04.001 already uses 4+4 grouping which is canonical; HIGH-003 in S-5.03 P02 reverted BC-4.07.001/.002 back to 4+4 — siblings were never changed). |
 | v1.0 | 2026-04-27 | product-owner | Final state after S-5.01 convergence passes (v1.0-pass-1 through v1.0-pass-10) |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.1"
+version: "v1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.1-adv-s5.03-p01-sibling-sweep]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.1-adv-s5.03-p01-sibling-sweep, v1.2-adv-s5.03-p04]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wasm` plugin via the `hooks.json.template` registration, the plugin emits a `session.ended` event via the `emit_event` host function. Three fields are set by the plugin: `duration_ms`, `tool_call_count`, and `timestamp`. These are computed from the incoming envelope's `session_start_ts` and `tool_call_count` fields; if either is absent, the plugin substitutes `"0"`. `duration_ms = "0"` also applies when `session_start_ts` is present but in the future relative to `now_ms` (clock skew safeguard — a future timestamp yields a negative elapsed duration, which is clamped to `"0"`). Four additional fields are automatically injected by the `emit_event` host fn from `HostContext` (per BC-1.05.012 enrichment; the plugin does not set these): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Four construction-time fields are set by `InternalEvent::now()`: `ts`, `ts_epoch`, `schema_version`, `type`. Total fields on wire: 11. The `session.ended` event-name literal is reserved per PRD FR-046.
+When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wasm` plugin via the `hooks.json.template` registration, the plugin emits a `session.ended` event via the `emit_event` host function. Three fields are set by the plugin: `duration_ms`, `tool_call_count`, and `timestamp`. These are computed from the incoming envelope's `session_start_ts` and `tool_call_count` fields; if either is absent, the plugin substitutes `"0"`. `duration_ms = "0"` also applies when `session_start_ts` is present but in the future relative to `now_ms` (clock skew safeguard — a future timestamp yields a negative elapsed duration, which is clamped to `"0"`). Four additional fields are automatically injected by the `emit_event` host fn from `HostContext` (per BC-1.05.012 enrichment; the plugin does not set these): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Four construction-time fields are set by the dispatcher between the plugin's `emit_event` call and the final wire format (implementation provenance is opaque from the spec layer): `ts`, `ts_epoch`, `schema_version`, `type`. Total fields on wire: 11. The `session.ended` event-name literal is reserved per PRD FR-046.
 
 ## Preconditions
 
@@ -54,13 +54,13 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 
    - **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and would be silently dropped if the plugin attempted to set them. `session_id` originates from the incoming `SessionEnd` envelope parsed by BC-1.02.005 lifecycle-tolerant envelope parsing; when missing or empty, BC-1.02.005 sets `HostContext.session_id = "unknown"`.
 
-   - **Construction-time fields (4 fields — set by `InternalEvent::now()`, NOT by the plugin or `emit_event` enrichment):** `ts` (current UTC time), `ts_epoch` (current Unix timestamp), `schema_version` (struct constant), `type` (the plugin-supplied `event_name` argument — `"session.ended"` in this case). Also part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
+   - **Construction-time fields (4 fields — set by the dispatcher between the plugin's `emit_event` call and the final wire format; the plugin must NOT set them — implementation provenance is opaque from the spec layer):** `ts` (current UTC time), `ts_epoch` (current Unix timestamp), `schema_version` (struct constant), `type` (the plugin-supplied `event_name` argument — `"session.ended"` in this case). Also part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
 
    - **Plugin-set fields (3 fields listed above):** set by the plugin via `emit_event` key/value pairs and pass through the non-reserved field path in `emit_event.rs`.
 
    **RESERVED_FIELDS — plugin must NOT set (8 total):**
    4 host-enriched (auto-injected by `emit_event` from `HostContext`): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`.
-   4 construction-time (set by `InternalEvent::now()`): `ts`, `ts_epoch`, `schema_version`, `type`.
+   4 construction-time (set by the dispatcher between the plugin's `emit_event` call and the final wire format; implementation provenance is opaque from the spec layer): `ts`, `ts_epoch`, `schema_version`, `type`.
    Any plugin attempt to set a RESERVED_FIELD is silently dropped by `emit_event.rs`.
 
    **Wire format — all plugin-set field values are strings (same as F-P6-05 for SessionStart):** The `emit_event` host fn coerces all plugin-supplied values to JSON strings on the wire (`emit_event.rs:49`). `duration_ms` and `tool_call_count` are integer semantics but arrive as decimal strings. Downstream consumers MUST parse string values back to their semantic types.
@@ -148,5 +148,6 @@ VP-066
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-04-28 | product-owner | ADV-S5.03-P04 sibling-sweep MED-P04-006 — abstract construction-time framing propagated from VP-067 v1.2 (MED-P03-001 closure). "set by `InternalEvent::now()`" concrete attribution replaced with "set by the dispatcher between the plugin's `emit_event` call and the final wire format; the plugin must NOT set them — implementation provenance is opaque from the spec layer" in Postconditions §2 Construction-time fields description (line 57) and RESERVED_FIELDS inline note (line 63). Third retroactive edit to S-5.02 BCs in S-5.03 cycle. |
 | v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.02 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.05.001 already uses 4+4 grouping per "Field provenance — 4+4+3 split"; HIGH-003 was reverted in S-5.03 P02 confirming 4+4 is canonical). |
 | v1.0 | 2026-04-27 | product-owner | Final state after S-5.02 convergence passes (v1.0-pass-1 through v1.0-pass-5) |

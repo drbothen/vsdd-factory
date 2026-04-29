@@ -258,4 +258,8 @@ Session-end markers for the VSDD factory. Run /session-review to synthesize.
 
 **Recommendation for orchestrator dispatch instructions:** When dispatching PO for a sibling-sweep fix burst, include: "In sibling-sweep changelog entries, enumerate ALL findings considered with their disposition: 'APPLIED', 'NOT APPLICABLE (rationale)', or 'DEFERRED (reason)'. Do not list only applied findings."
 
+---
+
+**ADV-S5.03-P04 process-gap (OBS-P04-002):** Frontmatter `modified:` array discipline lacks codification. VP-067 was bumped v1.1 → v1.2 in pass-3 fix burst (MED-P03-001) but the frontmatter `modified:` array was not appended with the v1.2 entry. Recommendation: codify a hook or template gate asserting "frontmatter version field implies modified[] array contains a corresponding entry for the most recent change". Could be implemented as a validate-frontmatter check or a state-manager pre-commit assertion. Pattern recurrence: this is the second pass-N modified[]-update miss (pass-1 also forgot some BC modified[] arrays, surfaced by pass-2 sibling-sweep narrative gap).
+
 **Wider revert lesson (ADV-S5.03-P02, pass-2 CRIT-P02-001/003):** HIGH-003 (4+3+1 RESERVED_FIELDS split) was itself a mistake — the 4-vs-3 distinction is an implementation detail from `emit_event.rs` that is NOT surfaced in HOST_ABI.md (which lumps all 8 RESERVED_FIELDS together) and created a new grouping inconsistent with sibling BCs BC-4.04.001 + BC-4.05.001 (which both use 4+4 construction-time grouping). Pass-2 reverted HIGH-003 in BC-4.07.001/.002 (v1.1 → v1.2). When a sibling-sweep blast radius exceeds its value, revert rather than propagate (S-5.01 pass-4 architectural reversal pattern).
