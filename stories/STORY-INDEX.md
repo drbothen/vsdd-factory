@@ -29,10 +29,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 41 |
+| merged | 42 |
 | partial | 2 |
 | draft | 3 |
-| ready | 1 |
+| ready | 0 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -102,7 +102,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|---------|
 | S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.12 (PR #35 merged 0257f03 2026-04-28; D-136) |
 | S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.8 (PR #36 merged edef7da 2026-04-28; D-138) |
-| S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | ready | 2.5 (CONVERGENCE_REACHED pass-14; 14-pass trajectory; D-139) |
+| S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | merged | 2.5 (PR #37 merged 93b298f 2026-04-29; D-140) |
 | S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | draft | -- |
 | S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial | -- |
 | S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft | -- |
