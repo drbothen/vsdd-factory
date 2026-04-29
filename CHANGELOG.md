@@ -1,6 +1,20 @@
 # Changelog
 
-## 1.0.0-beta.7 — S-7.03 TDD Discipline Hardening (2026-04-26)
+## 1.0.0-rc.1 — Release Candidate 1 (2026-04-29)
+
+TODO: describe the release.
+
+### Fixed
+
+- 
+
+### Added
+
+- 
+
+### Migration
+
+No breaking changes.## 1.0.0-beta.7 — S-7.03 TDD Discipline Hardening (2026-04-26)
 
 This release ships the third E-7 self-referential dogfooding round: a 4-layer
 structural defense against the stub-as-implementation anti-pattern, codified

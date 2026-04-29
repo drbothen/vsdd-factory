@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
-      image: returntocorp/semgrep
+      image: returntocorp/semgrep:1.61.0
     steps:
       - uses: actions/checkout@v6
 
