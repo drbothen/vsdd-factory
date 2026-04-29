@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -15,7 +15,7 @@ subsystem: "SS-01"
 capability: "CAP-TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
-modified: [v1.0-pass-7, v1.0-pass-8]
+modified: [v1.0-pass-7, v1.0-pass-8, v1.1-adv-s5.04-p01]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -52,7 +52,7 @@ Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS alw
 
 1. Reserved field set is closed: `{dispatcher_trace_id, session_id, plugin_name, plugin_version, ts, ts_epoch, schema_version, type}`.
 2. Plugins cannot spoof host-owned or construction-time fields.
-3. `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version` are unconditionally present on every emitted event (sourced from `HostContext` via `.with_X(&str)` calls in emit_event.rs:38-42). Non-empty guarantee is upstream-BC-conditional: BC-1.02.005 lifecycle-tolerance ensures non-empty `session_id` for SessionStart envelopes (sets 'unknown' sentinel if missing); the dispatcher routing layer is responsible for populating `dispatcher_trace_id`, `plugin_name`, `plugin_version` (no current BC enforces non-empty for these — v1.1 candidate to lift to dispatcher-routing-layer BCs).
+3. `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version` are unconditionally present on every emitted event (sourced from `HostContext` via `.with_X(&str)` calls in emit_event.rs:38-42). Non-empty guarantee is upstream-BC-conditional: the dispatcher routing layer is responsible for populating `dispatcher_trace_id`, `plugin_name`, `plugin_version` before plugin invocation; the host fn handles any absent `session_id` value from the envelope (specific sentinel behavior is a host fn implementation detail — v1.1 candidate BC-1.02.NNN-session-id-unknown-fallback to formalize). No current BC enforces non-empty for these fields at the dispatcher-routing layer — v1.1 candidate to lift to dispatcher-routing-layer BCs.
 
 ## Edge Cases
 
@@ -111,3 +111,10 @@ Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS alw
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-04-28 | product-owner | Sibling-sweep from S-5.04 ADV-P01 HIGH-P01-002: Invariant 3 simplified — removed BC-1.02.005 citation for session_id non-empty guarantee. BC-1.02.005 only contracts tool_name="" default for lifecycle events, not session_id sentinel behavior. Invariant 3 now reads: host fn handles any absent session_id value from the envelope; specific sentinel is a host fn implementation detail (v1.1 candidate BC-1.02.NNN-session-id-unknown-fallback). |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction (pass-7 + pass-8 modifications). |

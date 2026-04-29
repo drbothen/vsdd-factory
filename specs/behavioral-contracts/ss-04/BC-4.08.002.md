@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.0"
+version: "v1.1"
 status: active
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -14,10 +14,10 @@ traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
 subsystem: "SS-04"
-capability: "CAP-013"
+capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+modified: [v1.1-adv-s5.04-p01]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -105,8 +105,8 @@ VP-068
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-013 |
-| Capability Anchor Justification | CAP-013 ("Capture post-execution activity (PostToolUse hooks)") per capabilities.md §CAP-013. The hooks.json.template registration is the Claude Code harness wiring that enables PostToolUse failure capture; CAP-013 explicitly covers "tool errors for audit and observability purposes". |
+| L2 Capability | CAP-002 |
+| Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002. Failure-path is part of the lifecycle hooks family (CAP-002 widened to include lifecycle events including failure path per S-5.01 arch-decision). Consistent with sibling BCs BC-4.07.001–004 (CAP-002) per PRD FR-046. |
 | L2 Domain Invariants | DI-015 (per-project activation required — hooks.json.template is the activation surface that must be present for dispatcher invocation; PostToolUseFailure entry must be present) |
 | Architecture Module | SS-07 — `plugins/vsdd-factory/hooks/hooks.json.template` (harness wiring); SS-04 contracts PostToolUseFailure routing semantics within this file |
 | Stories | S-5.04 |
@@ -116,4 +116,5 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (HIGH-P01-001) CAP-013 → CAP-002; failure-path is part of the lifecycle hooks family per S-5.01 arch-decision; consistent with sibling BCs BC-4.07.001–004. + state-manager pre-commit cleanup: Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.04 foundation burst). Promoted from v1.1 BC candidate BC-4.08.002 in legacy story. `once` key ABSENT (not `once: false` — defensive omission per BC-4.07.003 pattern). Platform variant regeneration requirement (EC-003) explicitly documented per S-5.03 PR-cycle-1 lesson. |

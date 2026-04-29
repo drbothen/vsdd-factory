@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.0"
+version: "v1.1"
 status: active
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -14,10 +14,10 @@ traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
 subsystem: "SS-04"
-capability: "CAP-013"
+capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+modified: [v1.1-adv-s5.04-p01]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -121,8 +121,8 @@ VP-068
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-013 |
-| Capability Anchor Justification | CAP-013 ("Capture post-execution activity (PostToolUse hooks)") per capabilities.md §CAP-013. The hooks-registry.toml entry is the dispatcher-side routing that connects PostToolUseFailure events to the WASM plugin that captures "tool errors for audit and observability purposes". |
+| L2 Capability | CAP-002 |
+| Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002. Failure-path is part of the lifecycle hooks family (CAP-002 widened to include lifecycle events including failure path per S-5.01 arch-decision). Consistent with sibling BCs BC-4.07.001–004 (CAP-002) per PRD FR-046. |
 | L2 Domain Invariants | DI-004 (capability denial — by declaring NO capabilities, deny-by-default ensures exec_subprocess and read_file are both denied; plugin never attempts to call them); DI-015 (per-project activation required — this entry is directly added by human edit per the file header; must be present before dispatcher can route PostToolUseFailure) |
 | Architecture Module | SS-04 — `plugins/vsdd-factory/hooks-registry.toml` (PostToolUseFailure entry added by direct edit) |
 | Stories | S-5.04 |
@@ -132,4 +132,5 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (HIGH-P01-001) CAP-013 → CAP-002; failure-path is part of the lifecycle hooks family per S-5.01 arch-decision; consistent with sibling BCs BC-4.07.001–004. + state-manager pre-commit cleanup: Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.04 foundation burst). Promoted from v1.1 BC candidate "BC-4.08.003-post-tool-use-failure-dispatcher-wiring" in legacy story. Production schema field names verified: `name` (NOT plugin_name), `event` (NOT event_name), `plugin` with `hook-plugins/` PREFIX, `timeout_ms` (NOT epoch_budget_ms). ZERO capability tables (Option A). NO `once` field (`deny_unknown_fields` rejects it). Single entry for single event. |
