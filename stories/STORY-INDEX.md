@@ -103,7 +103,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-5.01 | SessionStart hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.12 (PR #35 merged 0257f03 2026-04-28; D-136) |
 | S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.8 (PR #36 merged edef7da 2026-04-28; D-138) |
 | S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | merged | 2.5 (PR #37 merged 93b298f 2026-04-29; D-140) |
-| S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | ready | 2.5 (pass-1/2/4/9/10 fix bursts; BC-4.08.001-003 + VP-068 v1.4; CAP-002 sibling-aligned; 1000-char truncation; tool-failure-hooks crate; 9 VP-068 tests; feasibility math fixed) |
+| S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | ready | 2.6 (CONVERGENCE_REACHED pass-14; 14-pass trajectory; D-141; BC-4.08.001-003 v1.2 + VP-068 v1.4; closes DRIFT-006 on delivery) |
 | S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial | -- |
 | S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft | -- |
 | S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-0.01, S-0.02, S-5.01..S-5.06 + 1-week shakedown | draft | -- |
