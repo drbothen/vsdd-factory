@@ -59,7 +59,52 @@ pub fn worktree_hook_logic<Emit>(payload: HookPayload, emit_fn: Emit) -> HookRes
 where
     Emit: Fn(&str, &[(&str, &str)]),
 {
-    unimplemented!("S-5.03 GREEN")
+    // Dispatch on event_name from payload (required field; CRIT-003: NOT event_type)
+    match payload.event_name.as_str() {
+        "WorktreeCreate" => {
+            // Read worktree_path (optional; defaults to "" per EC-003)
+            let worktree_path = payload
+                .tool_input
+                .get("worktree_path")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
+            // Read worktree_name (optional; defaults to "" per EC-003; WorktreeCreate only)
+            let worktree_name = payload
+                .tool_input
+                .get("worktree_name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
+            emit_fn(
+                "worktree.created",
+                &[
+                    ("worktree_path", worktree_path.as_str()),
+                    ("worktree_name", worktree_name.as_str()),
+                ],
+            );
+        }
+        "WorktreeRemove" => {
+            // Read worktree_path (optional; defaults to "" per EC-003)
+            let worktree_path = payload
+                .tool_input
+                .get("worktree_path")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
+            emit_fn(
+                "worktree.removed",
+                &[("worktree_path", worktree_path.as_str())],
+            );
+        }
+        // Unknown event_name: defensive no-op — emit nothing, return Ok
+        _ => {}
+    }
+
+    HookResult::Continue
 }
 
 // ---------------------------------------------------------------------------

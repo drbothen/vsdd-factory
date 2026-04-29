@@ -1,4 +1,7 @@
 //! Integration tests for worktree-hooks — VP-067 harness (RED gate).
+// Allow .expect(&format!(...)) in test-only code — the lint prevents unnecessary
+// allocations in production paths; tests are excluded from that concern.
+#![allow(clippy::expect_fun_call)]
 //!
 //! # Scope
 //!
