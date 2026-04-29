@@ -22,6 +22,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Pass-6 (2026-04-29): **S-5.05 v1.7→v1.8 CONVERGENCE_REACHED at pass-6** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status partial→ready; 3 consecutive NITPICK_ONLY: passes 4, 5, 6); D-149.
 >
 > **Wave 14 spec convergence COMPLETE (both stories ready):** S-5.06 v1.7 ready (5-pass convergence); S-5.05 v1.8 ready (6-pass convergence). Total Wave 14 effort: 11 adversarial passes vs Wave 13's 51 — Wave 13 lesson application up-front compressed convergence ~4×.
+> **Wave 14 COMPLETE (2026-04-29):** S-5.05 PR #40 merged at 1e2db47 (5pts; migration guide v0.79.x→v1.0); S-5.06 PR #39 merged at d134648 (2pts; semver commitment doc); 45 of 47 stories merged; D-150.
 > This index is the authoritative source for story count and status.
 > 47 stories across 8 epics (E-0 through E-7).
 
@@ -33,10 +34,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 43 |
+| merged | 45 |
 | partial | 1 |
 | draft | 1 |
-| ready | 2 |
+| ready | 0 |
 | **Total** | **47** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -108,8 +109,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.8 (PR #36 merged edef7da 2026-04-28; D-138) |
 | S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | merged | 2.5 (PR #37 merged 93b298f 2026-04-29; D-140) |
 | S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.6 (PR #38 merged e90faab 2026-04-29; D-142; DRIFT-006 FULLY CLOSED; Wave 13 COMPLETE) |
-| S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | ready | v1.8 |
-| S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | ready | v1.7 |
+| S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | merged | v1.8 (PR #40 1e2db47 2026-04-29) |
+| S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | merged | v1.7 (PR #39 d134648 2026-04-29) |
 | S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-0.01, S-0.02, S-5.01..S-5.06 + 1-week shakedown | draft | -- |
 
 ## Epic E-6 — VSDD Self-Improvement / Tooling Backlog (open)
