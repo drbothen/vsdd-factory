@@ -458,7 +458,7 @@ Status: **in-progress** (S-5.01 + S-5.02 + S-5.03 BCs allocated).
 
 > **Pass-4 architectural simplification (2026-04-28):** BC-1.10.001 (host fn `vsdd::activated_platform()` — over-engineered; canonical `read_file` host fn used instead) and BC-1.10.002 (dispatcher-side dedup — over-engineered; Claude Code Layer 1 `once:true` directive enforces idempotency at hooks.json.template) retired. BC count for this FR reverts to 5 anchored BCs (BC-4.04.001–005). Scope reverts to SS-04 plugin work; story S-5.01 remains 3-pt as originally budgeted.
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-04/` (23 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-04/` (27 BCs total)
 
 > **DI coverage note (F-12):** No dedicated L2 domain invariant covers the lifecycle event class (SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure) as a first-class invariant. The applicable DIs are DI-004 (capability denial), DI-007 (always-on self-telemetry), DI-011 (sink submit non-blocking), DI-014 (schema version), DI-015 (activation gate), and DI-017 (trace_id). A dedicated DI for "lifecycle event plugins must always emit their target event regardless of subsystem health" is a **v1.1 DI candidate** — the fail-open semantics are currently enforced at BC level (BC-4.04.002 Invariant 1, BC-4.04.001 Postcondition 4) without a formal DI backing. Flag for Domain Spec v1.1 revision.
 
