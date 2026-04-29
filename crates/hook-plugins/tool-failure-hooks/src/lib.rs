@@ -64,14 +64,18 @@ where
         tool_name_raw
     };
 
-    // Resolve error_message: absent → ""; over 1000 chars → truncate to 1000 (EC-001/EC-003)
+    // Resolve error_message: absent → ""; over 1000 chars → truncate to 1000 (EC-001/EC-003).
+    // Truncation is char-safe (`.chars().take(1000).collect()`) to avoid panics on multi-byte
+    // UTF-8 sequences — BC-4.08.001 EC-001 specifies "1000 characters", not "1000 bytes".
     let error_message_raw = ctx
         .tool_input
         .get("error_message")
         .and_then(|v| v.as_str())
         .unwrap_or("");
-    let error_message = if error_message_raw.len() > 1000 {
-        &error_message_raw[..1000]
+    let error_message_owned: String;
+    let error_message = if error_message_raw.chars().count() > 1000 {
+        error_message_owned = error_message_raw.chars().take(1000).collect();
+        error_message_owned.as_str()
     } else {
         error_message_raw
     };
