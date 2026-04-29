@@ -281,3 +281,22 @@ Architecture child-file audit aperture missing: HIGH-P06-001 SS-04 crate-name dr
 Recommendation: codify a new adversary axis 'For every story's target_module, verify the path appears verbatim in both ARCH-INDEX Subsystem Registry AND the named SS-NN-*.md Modules table'. Apply to future Tier F/G plugin stories where child SS-NN-*.md isn't refreshed when ARCH-INDEX is updated.
 
 Pattern recurrence: this is the third process-gap in the S-5.0x family (OBS-P02-006 BC H1↔BC-INDEX lint; OBS-P05-001 STORY-INDEX version column; this OBS-P06-002 ARCH-INDEX ↔ SS-NN child sync). Three recurrences = template/automation candidate per S-7.01 codification discipline.
+
+---
+
+ADV-S5.04-P11 process-gap (OBS-P11-001, 2026-04-29):
+
+**Burst-cycle bump-coherence rule (third recurrence of STORY-INDEX version drift):**
+
+Pattern observed across pass-7, pass-10, and pass-11 of S-5.04 spec convergence:
+1. Fix burst N closes a STORY-INDEX gap (e.g., bumps line 106 from vN to vN+1)
+2. SAME burst N self-bumps story version (vN → vN+1 via new Changelog row)
+3. Result: STORY-INDEX line 106 now vN+1 but story is at vN+1 → STILL OFF BY ONE because story now at vN+2 actually
+
+The pass-10 burst flagged this as 'codification candidate' (OBS-P10-001) and then the same commit exhibited the bug it would prevent. Pass-11 caught the recurrence.
+
+**Codification rule for state-manager:** When a fix burst (a) updates a story-version-tracking field in STORY-INDEX/BC-INDEX/VP-INDEX AND (b) self-bumps the source artifact's version in the same commit, the index update MUST use the POST-burst version, not the intermediate one. Pre-commit assertion: for each artifact whose version is bumped in the commit, verify all version-tracking index entries reference the new version.
+
+Fix discipline applied at pass-11: STORY-INDEX-only update; NO story version bump (would create another gap). Story stays at v2.5; STORY-INDEX synced to v2.5 to match.
+
+This is the third instance of the same drift class within S-5.04 (pass-7, pass-10, pass-11). Pattern recurrence triggers codification per S-7.01.
