@@ -2,7 +2,7 @@
 document_type: tech-debt-register
 producer: state-manager
 version: "1.0"
-last_updated: 2026-04-25T00:00:00
+last_updated: 2026-04-29T00:00:00
 ---
 
 # Technical Debt Register
@@ -12,9 +12,9 @@ last_updated: 2026-04-25T00:00:00
 | Priority | Count | Estimated Points |
 |----------|-------|-----------------|
 | P0 (next cycle) | 0 | 0 |
-| P1 (within 3 cycles) | 1 | XL (29–39 across 6 sub-stories) |
-| P2 (backlog) | 7 | — |
-| P3 (v1.1+) | 3 | — |
+| P1 (within 3 cycles) | 2 | XL (29–39 across 6 sub-stories) + TD-010 publish |
+| P2 (backlog) | 8 | — |
+| P3 (v1.1+) | 4 | — |
 
 ## Debt Items
 
@@ -323,6 +323,38 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 3. Remove `bin/emit-event` from the dispatcher binary tree.
 4. Update S-3.04 status to fully complete (close TD-007).
 **Cycle estimate:** v1.1.
+
+#### TD-010 — vsdd-hook-sdk-macros not published to crates.io (AC-2 of S-4.08 deferred)
+**Source:** rc.1 release-prep burst (2026-04-29)
+**Description:** AC-2 of S-4.08 requires `cargo publish --dry-run` to pass for `vsdd-hook-sdk-macros`. This AC cannot be satisfied until `vsdd-hook-sdk-macros` is published to crates.io (the dry-run exercises publish readiness including registry resolution). rc.1 does not publish to crates.io — the tag is a release candidate for shakedown, not a GA publish. The AC is therefore deferred. Block on v1.0.0 GA cut: the GA release MUST publish `vsdd-hook-sdk-macros` to crates.io and verify AC-2 passes.
+**Severity:** P1 — directly blocks a named AC in a shipped story spec; must be resolved before v1.0.0 GA.
+**Plan:**
+1. Publish `vsdd-hook-sdk-macros` to crates.io as part of v1.0.0 GA release procedure.
+2. Run `cargo publish --dry-run -p vsdd-hook-sdk-macros` in the GA release checklist.
+3. Verify AC-2 of S-4.08 passes; close TD-010 in STATE.md.
+**Cycle estimate:** v1.0.0 GA.
+
+#### TD-011 — check-changelog-monotonicity.sh strict-`<` policy rejects same-day beta.6/beta.7 entries
+**Source:** rc.1 release-prep burst (2026-04-29)
+**Description:** `scripts/check-changelog-monotonicity.sh` enforces strict `<` ordering on CHANGELOG dates. Pre-existing data has same-day beta.6 + beta.7 entries (both 2026-04-26) which the script rejects with a non-zero exit. The script is informational; `release.yml` does not invoke it and rc.1 is not blocked. However, the policy diverges from real-world release patterns where same-day releases are valid. Either (a) loosen to `<=` (allow same-day) and update the rationale, or (b) add ISO-8601 timestamps to CHANGELOG entries so strict ordering is preserved.
+**Severity:** P3 — not blocking rc.1; informational script only; no CI gate depends on it.
+**Plan:**
+1. Decide between option (a) `<=` loosening or option (b) timestamp augmentation.
+2. Update `check-changelog-monotonicity.sh` accordingly.
+3. Verify script passes on current CHANGELOG before closing.
+**Cycle estimate:** v1.0.1 or sooner.
+
+#### TD-012 — 9 pre-existing bats test failures investigation (allowlist-masked)
+**Source:** rc.1 release-prep burst (2026-04-29)
+**Description:** `run-all.sh` allowlist masks 9 pre-existing bats failures as PASS at runner level, but raw `bats plugins/vsdd-factory/tests/` reports 9 of 1316 fail. Failure categories: worktree-missing, registry-generator, novelty-assessment. devops-engineer's rc.1 prep run reproduced identical 9 fails — confirmed pre-existing, not a Wave 11/12/13/14 regression. The allowlist justification may or may not be documented per-test. Risk: future failures in the same categories could be silently masked.
+**Severity:** P2 — allowlist protects CI green; but undocumented masking creates audit gap and regression-detection risk.
+**Plan:**
+1. Enumerate the 9 failing test names from raw bats output.
+2. For each: verify the allowlist entry has an explicit justification comment in `run-all.sh` or a linked issue.
+3. If justification is missing, add it (with TD-012 reference) OR remediate the test.
+4. Add a process note: any new allowlist entry MUST include a justification comment citing a TD or issue.
+5. Close TD-012 when all 9 entries have documented justification or are remediated.
+**Cycle estimate:** v1.0.0 GA or v1.0.1.
 
 ## Resolution History
 
