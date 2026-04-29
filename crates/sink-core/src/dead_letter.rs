@@ -308,7 +308,7 @@ fn strip_seq_suffix(path: &Path) -> PathBuf {
             }
         }
     }
-    path.clone()
+    path.to_path_buf()
 }
 
 /// Compute the next seq-suffixed path from the current path.
@@ -331,7 +331,7 @@ fn next_seq_path(current: &Path) -> PathBuf {
         let next = format!("{}-001.jsonl", stem);
         return PathBuf::from(next);
     }
-    current.clone()
+    current.to_path_buf()
 }
 
 #[cfg(test)]
