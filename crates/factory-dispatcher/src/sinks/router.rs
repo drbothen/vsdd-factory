@@ -46,18 +46,18 @@ impl Router {
     pub fn submit(&self, event: SinkEvent) {
         for sink in self.registry.sinks() {
             // Step 1: Apply per-sink routing filter (BC-3.04.004 PC1).
-            if let Some(filter) = sink.routing_filter() {
-                if !filter.accepts(&event) {
-                    // BC-3.04.003 PC2+PC3: silent drop — no SinkFailure;
-                    // emit debug-level INTERNAL_EVENT_FILTERED log entry.
-                    debug!(
-                        type_ = INTERNAL_EVENT_FILTERED,
-                        sink_name = %sink.name(),
-                        event_type = %event.event_type().unwrap_or("<unknown>"),
-                        "Router silently dropped event that failed routing filter"
-                    );
-                    continue;
-                }
+            if let Some(filter) = sink.routing_filter()
+                && !filter.accepts(&event)
+            {
+                // BC-3.04.003 PC2+PC3: silent drop — no SinkFailure;
+                // emit debug-level INTERNAL_EVENT_FILTERED log entry.
+                debug!(
+                    type_ = INTERNAL_EVENT_FILTERED,
+                    sink_name = %sink.name(),
+                    event_type = %event.event_type().unwrap_or("<unknown>"),
+                    "Router silently dropped event that failed routing filter"
+                );
+                continue;
             }
 
             // Step 2: Tag enrichment (BC-3.04.004 PC3+PC4).

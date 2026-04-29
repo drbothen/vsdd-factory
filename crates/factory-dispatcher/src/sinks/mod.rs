@@ -291,6 +291,7 @@ impl SinkRegistry {
     ///
     /// `pub(crate)` — not part of the public API; used only from `#[cfg(test)]`
     /// blocks within this crate (AC-012, F-4302 resolution).
+    #[allow(dead_code)]
     pub(crate) fn has_dlq_for_test(&self, idx: usize) -> bool {
         self.dlq_present_per_sink.get(idx).copied().unwrap_or(false)
     }
