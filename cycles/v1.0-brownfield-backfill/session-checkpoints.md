@@ -17,6 +17,12 @@ traces_to: STATE.md
      Only the LATEST checkpoint lives in STATE.md.
      Prior checkpoints are archived here for historical reference. -->
 
+## Session Resume Checkpoint (2026-04-29) — Wave 14 pass-4 dual-seal COMPLETE
+
+**WAVE 14 PASS-4 DUAL-SEAL COMPLETE (2026-04-29).** D-147 sealed. S-5.05 v1.7 NITPICK_ONLY (8 LOW; informational/delivery-scheduled/pending-intent; 0 substantive; clock 0_of_3→1_of_3). S-5.06 v1.6 NITPICK_ONLY (0 findings; 6 confirmation observations; clock 1_of_3→2_of_3). NO fix bursts — S-7.03 skip-fix discipline applied. Spec content unchanged. STORY-INDEX line 21 pass-4 narrative appended. 43 of 47 stories merged (unchanged — Wave 14 is docs-only). Convergence clocks: S-5.05 = 1_of_3; S-5.06 = 2_of_3.
+
+---
+
 ## Session Resume Checkpoint (2026-04-28) — S-5.02 pass-4 fix burst COMPLETE
 
 **S-5.02 pass-4 fix burst COMPLETE (2026-04-28).** 4 findings closed (PO 4): F-P4-01 (HIGH) BC-4.05.001 PC-2 branch (c) added — parse-failure treat-as-absent default; Invariant 4 widened to "absent OR unparseable"; F-P4-02 (HIGH) Story AC2 + AC6 (11 tests) + Edge Cases table EC-001c row propagated from BC-4.05.001; F-P4-03 (HIGH) VP-066 §1 wording updated for unparseable case + new test `test_bc_4_05_001_unparseable_session_start_ts_emits_zero_duration` added; F-P4-04 (MED) VP-066 feasibility cell bumped ~8→~11 discrete test cases. S-5.02 v2.3→v2.4. Trajectory: pass-1=11, pass-2=7, pass-3=4, pass-4=4. Pass-3 introduced EC-001c on BC-4.05.001 only; pass-4 completes propagation across all 7 sibling artifacts. 39 of 47 stories merged; develop @ 0257f03.
