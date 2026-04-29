@@ -52,7 +52,34 @@ pub fn tool_failure_hook_logic<F>(ctx: HookPayload, emit: F) -> HookResult
 where
     F: Fn(&str, &[(&str, &str)]),
 {
-    unimplemented!("S-5.04 GREEN")
+    // Resolve tool_name: absent or empty → "unknown" sentinel (EC-002)
+    let tool_name_raw = ctx
+        .tool_input
+        .get("tool_name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let tool_name = if tool_name_raw.is_empty() {
+        "unknown"
+    } else {
+        tool_name_raw
+    };
+
+    // Resolve error_message: absent → ""; over 1000 chars → truncate to 1000 (EC-001/EC-003)
+    let error_message_raw = ctx
+        .tool_input
+        .get("error_message")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let error_message = if error_message_raw.len() > 1000 {
+        &error_message_raw[..1000]
+    } else {
+        error_message_raw
+    };
+
+    // Emit exactly once with the 2 plugin-set fields; RESERVED_FIELDS are NOT set here.
+    emit("tool.error", &[("tool_name", tool_name), ("error_message", error_message)]);
+
+    HookResult::Continue
 }
 
 // ---------------------------------------------------------------------------
