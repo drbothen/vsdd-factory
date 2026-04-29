@@ -271,3 +271,13 @@ ADV-S5.03-P05 process-gap (OBS-P05-001 + OBS-P05-002, 2026-04-28):
 **OBS-P05-001 — Sibling-sweep scope checklist needs active-anchor-stories axis.** Pass-4 sibling-sweep MED-P04-006 enumerated 4 spec files (VP-065 + VP-066 + BC-4.04.001 + BC-4.05.001) but did not include active anchor stories. S-5.02 had `status: ready` in frontmatter (later adjudicated as effectively merged) — the convention question wasn't visible at sweep time. Recommendation: codify a sweep-scope check that enumerates `bcs:` frontmatter back-references for each swept BC, filters by status != merged + STORY-INDEX status, and includes them in scope.
 
 **OBS-P05-002 — Intra-document consistency check.** Pass-4 sibling-sweep updated VP-065 line 61 (Construction-time fields description) but missed line 63 (Wire format note) — same Property Statement §1, two paragraphs apart, contradictory wording. Recommendation: when a paragraph in a section is updated to drop a specific term (e.g., 'InternalEvent::now()'), grep the same file for residual occurrences of that term and treat them as in-scope unless explicitly justified.
+
+---
+
+ADV-S5.04-P06 process-gap (OBS-P06-002, 2026-04-29):
+
+Architecture child-file audit aperture missing: HIGH-P06-001 SS-04 crate-name drift (`post-tool-use-failure` vs canonical `tool-failure-hooks`) survived 5 prior adversarial passes because the canonical adversary axes (BC H1↔BC-INDEX, VP-INDEX↔VPs, story↔body, frontmatter↔body) did NOT include 'ARCH-INDEX Subsystem Registry ↔ SS-NN-*.md child Modules table sync'.
+
+Recommendation: codify a new adversary axis 'For every story's target_module, verify the path appears verbatim in both ARCH-INDEX Subsystem Registry AND the named SS-NN-*.md Modules table'. Apply to future Tier F/G plugin stories where child SS-NN-*.md isn't refreshed when ARCH-INDEX is updated.
+
+Pattern recurrence: this is the third process-gap in the S-5.0x family (OBS-P02-006 BC H1↔BC-INDEX lint; OBS-P05-001 STORY-INDEX version column; this OBS-P06-002 ARCH-INDEX ↔ SS-NN child sync). Three recurrences = template/automation candidate per S-7.01 codification discipline.

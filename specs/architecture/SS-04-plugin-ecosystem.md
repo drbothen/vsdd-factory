@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-04-plugin-ecosystem"
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -27,7 +27,7 @@ to run under the dispatcher without modification) and `capture-commit-activity`
 (the first native WASM port, currently a 20-LOC stub pending Tier E work).
 Four additional Tier E stub crates (`capture-pr-activity`, `block-ai-attribution`)
 and four Tier F lifecycle plugin crates (`session-start-telemetry`,
-`session-end-telemetry`, `worktree-hooks`, `post-tool-use-failure`) are in the
+`session-end-telemetry`, `worktree-hooks`, `tool-failure-hooks`) are in the
 module inventory but not yet shipped (pending S-3.01–3.03 and S-5.01–5.04
 respectively).
 
@@ -58,9 +58,9 @@ end-state where all hooks are capability-gated, sandboxed, pure WASM.
 | `crates/hook-plugins/session-start-telemetry/src/lib.rs` | SessionStart lifecycle plugin; emits `session.started` with session_id, factory_version, plugin_count, activated_platform, factory_health; runs `factory-health --brief` via `exec_subprocess`; checks tool deps | pending S-5.01 |
 | `crates/hook-plugins/session-end-telemetry/src/lib.rs` | SessionEnd lifecycle plugin; emits `session.ended` with session duration and summary telemetry | pending S-5.02 |
 | `crates/hook-plugins/worktree-hooks/src/lib.rs` | WorktreeCreate + WorktreeRemove lifecycle plugins; emits `worktree.created` / `worktree.removed` events; single crate covers both event types | pending S-5.03 |
-| `crates/hook-plugins/post-tool-use-failure/src/lib.rs` | PostToolUseFailure lifecycle plugin; captures tool failure events with structured error metadata | pending S-5.04 |
+| `crates/hook-plugins/tool-failure-hooks/src/lib.rs` | PostToolUseFailure lifecycle plugin; captures tool failure events with structured error metadata | pending S-5.04 |
 
-<!-- [arch-decision] Decision A (S-5.01 adversarial pass-1, 2026-04-28): Tier F crates follow the v1.0-legacy S-5.1 naming intent and SS-04 per-event dedicated-crate precedent. Crate names: session-start-telemetry (S-5.01), session-end-telemetry (S-5.02), worktree-hooks (S-5.03, covers both WorktreeCreate + WorktreeRemove), post-tool-use-failure (S-5.04). S-5.03 uses a single crate for both worktree events because they share identical plugin_config shape, purity profile, and deployment unit. -->
+<!-- [arch-decision] Decision A (S-5.01 adversarial pass-1, 2026-04-28): Tier F crates follow the v1.0-legacy S-5.1 naming intent and SS-04 per-event dedicated-crate precedent. Crate names: session-start-telemetry (S-5.01), session-end-telemetry (S-5.02), worktree-hooks (S-5.03, covers both WorktreeCreate + WorktreeRemove), tool-failure-hooks (S-5.04). S-5.03 uses a single crate for both worktree events because they share identical plugin_config shape, purity profile, and deployment unit. -->
 
 ## Public Interface
 
@@ -180,3 +180,10 @@ pass-4 revision).
 - **S-3.4 PARTIAL:** `emit_event` forwarding from bash stdout is partially
   implemented. Bash hooks call `bin/emit-event` shell tool rather than emitting
   directly through the host fn path. Reconciliation pending S-3.4 completion.
+
+## Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.1 | 2026-04-29 | ADV-S5.04-P06 HIGH-P06-001: crate name sync to canonical `tool-failure-hooks` (matches ARCH-INDEX line 77, S-5.04 target_module, BC-4.08.001/003, VP-068, PRD line 455). Three references updated: Purpose prose, Modules table row, Decision A comment. |
+| 1.0 | 2026-04-25 | Initial version |
