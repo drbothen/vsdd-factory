@@ -258,9 +258,9 @@ traces_to: bc-id-mapping.md
 | [BC-4.07.002](ss-04/BC-4.07.002.md) | worktree-hooks plugin emits worktree.removed event with {worktree_path} on WorktreeRemove event | draft | CAP-002 | S-5.03 |
 | [BC-4.07.003](ss-04/BC-4.07.003.md) | hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); async:true; timeout:10000 | draft | CAP-002 | S-5.03 |
 | [BC-4.07.004](ss-04/BC-4.07.004.md) | hooks-registry.toml registers WorktreeCreate and WorktreeRemove routing to hook-plugins/worktree-hooks.wasm; single crate, two entries; ZERO capability tables; timeout_ms:5000 | draft | CAP-002 | S-5.03 |
-| [BC-4.08.001](ss-04/BC-4.08.001.md) | tool-failure-hooks plugin emits tool.error event with {tool_name, error_message} on PostToolUseFailure event; tool_name="unknown" if absent; error_message truncated to 2000 chars; 10-field wire payload; RESERVED_FIELDS not set by plugin | active | CAP-013 | S-5.04 |
-| [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); async:true; timeout:10000 | active | CAP-013 | S-5.04 |
-| [BC-4.08.003](ss-04/BC-4.08.003.md) | hooks-registry.toml registers PostToolUseFailure with name="tool-failure-hooks", event="PostToolUseFailure", plugin="hook-plugins/tool-failure-hooks.wasm", timeout_ms=5000; ZERO capability tables; NO once field | active | CAP-013 | S-5.04 |
+| [BC-4.08.001](ss-04/BC-4.08.001.md) | tool-failure-hooks plugin emits tool.error event with {tool_name, error_message} on PostToolUseFailure event; tool_name="unknown" if absent; error_message truncated to 1000 chars; 10-field wire payload; RESERVED_FIELDS not set by plugin | draft | CAP-002 | S-5.04 |
+| [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); async:true; timeout:10000 | draft | CAP-002 | S-5.04 |
+| [BC-4.08.003](ss-04/BC-4.08.003.md) | hooks-registry.toml registers PostToolUseFailure with name="tool-failure-hooks", event="PostToolUseFailure", plugin="hook-plugins/tool-failure-hooks.wasm", timeout_ms=5000; ZERO capability tables; NO once field | draft | CAP-002 | S-5.04 |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 

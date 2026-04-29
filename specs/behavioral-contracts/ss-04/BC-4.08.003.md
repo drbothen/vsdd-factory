@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.1"
-status: active
+version: "v1.2"
+status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
 phase: 1a
@@ -15,9 +15,9 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-002"
-lifecycle_status: active
+lifecycle_status: draft
 introduced: v1.0.0-rc.1
-modified: [v1.1-adv-s5.04-p01]
+modified: [v1.1-adv-s5.04-p01, v1.2-adv-s5.04-p02]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -132,5 +132,6 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (HIGH-P01-001) CAP-013 → CAP-002; failure-path is part of the lifecycle hooks family per S-5.01 arch-decision; consistent with sibling BCs BC-4.07.001–004. + state-manager pre-commit cleanup: Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.04 foundation burst). Promoted from v1.1 BC candidate "BC-4.08.003-post-tool-use-failure-dispatcher-wiring" in legacy story. Production schema field names verified: `name` (NOT plugin_name), `event` (NOT event_name), `plugin` with `hook-plugins/` PREFIX, `timeout_ms` (NOT epoch_budget_ms). ZERO capability tables (Option A). NO `once` field (`deny_unknown_fields` rejects it). Single entry for single event. |

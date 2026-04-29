@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.1"
-status: active
+version: "v1.2"
+status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
 phase: 1a
@@ -15,9 +15,9 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-002"
-lifecycle_status: active
+lifecycle_status: draft
 introduced: v1.0.0-rc.1
-modified: [v1.1-adv-s5.04-p01]
+modified: [v1.1-adv-s5.04-p01, v1.2-adv-s5.04-p02]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -147,5 +147,6 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; BC-4.07.001-004 and BC-4.05.001-005 all draft; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (CRIT-P01-001) Strip phantom legacy-story citation — Description, Invariant 8, Related BCs reframed as positive statements; no "authoritative correction" framing. (CRIT-P01-002) Add v1.1 candidates BC-4.08.005 and BC-4.08.006 with justification. (CRIT-P01-003) Revert error_message truncation limit from 2000 → 1000 chars (match legacy intent; avoid sink stream bloat). (HIGH-P01-001) CAP-013 → CAP-002 with sibling-consistency justification. (HIGH-P01-002) EC-006 mis-citation of BC-1.02.005 for session_id sentinel removed; simplified to "session_id is host-enriched; host fn handles absent value". + state-manager pre-commit cleanup: residual "2000 characters" in Description body fixed to 1000; Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.04 foundation burst). Promoted from v1.1 BC candidate BC-4.08.001 in legacy story. All S-5.01/02/03 lessons applied: 4+4 opaque RESERVED_FIELDS grouping; event_name (not event_type); ZERO declared capabilities (Option A); once key absent (mirrors S-5.03 pattern); session_id corrected to RESERVED (not plugin-set); 2-plugin-set-field count confirmed (tool_name + error_message). |
