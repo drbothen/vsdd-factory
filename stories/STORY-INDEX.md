@@ -4,7 +4,7 @@ level: ops
 version: "1.0"
 status: current
 producer: story-writer
-timestamp: 2026-04-27T12:00:00
+timestamp: 2026-04-29T00:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -18,6 +18,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
 > S-N.MM format. Updated in Phase 2 (story decomposition) with E-7 stories.
 > Updated in Wave 11 burst (2026-04-27): S-4.09 and S-4.10 added.
+> Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes).
 > This index is the authoritative source for story count and status.
 > 47 stories across 8 epics (E-0 through E-7).
 
@@ -104,8 +105,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-5.02 | SessionEnd hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.8 (PR #36 merged edef7da 2026-04-28; D-138) |
 | S-5.03 | WorktreeCreate / WorktreeRemove hook wiring | E-5 | 5 | P1 | S-4.08 | merged | 2.5 (PR #37 merged 93b298f 2026-04-29; D-140) |
 | S-5.04 | PostToolUseFailure hook wiring | E-5 | 3 | P1 | S-4.08 | merged | 2.6 (PR #38 merged e90faab 2026-04-29; D-142; DRIFT-006 FULLY CLOSED; Wave 13 COMPLETE) |
-| S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial | -- |
-| S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft | -- |
+| S-5.05 | Migration guide (0.79.x → 1.0) | E-5 | 5 | P1 | — | partial | v1.4 |
+| S-5.06 | Semver commitment documentation | E-5 | 2 | P1 | S-4.08 | draft | v1.4 |
 | S-5.07 | 1.0.0 release gate | E-5 | 3 | P0 | S-0.01, S-0.02, S-5.01..S-5.06 + 1-week shakedown | draft | -- |
 
 ## Epic E-6 — VSDD Self-Improvement / Tooling Backlog (open)
