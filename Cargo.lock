@@ -3313,6 +3313,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tool-failure-hooks"
+version = "1.0.0-rc.1"
+dependencies = [
+ "chrono",
+ "serde_json",
+ "toml 0.8.23",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "tower"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

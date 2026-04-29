@@ -48,6 +48,14 @@ event = "WorktreeRemove"
 plugin = "hook-plugins/worktree-hooks.wasm"
 timeout_ms = 5000
 
+# ---------- PostToolUseFailure ----------
+
+[[hooks]]
+name = "tool-failure-hooks"
+event = "PostToolUseFailure"
+plugin = "hook-plugins/tool-failure-hooks.wasm"
+timeout_ms = 5000
+
 # ---------- PostToolUse ----------
 
 [[hooks]]

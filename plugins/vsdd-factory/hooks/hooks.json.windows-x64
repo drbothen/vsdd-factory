@@ -107,6 +107,18 @@
           }
         ]
       }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/windows-x64/factory-dispatcher.exe",
+            "timeout": 10000,
+            "async": true
+          }
+        ]
+      }
     ]
   }
 }

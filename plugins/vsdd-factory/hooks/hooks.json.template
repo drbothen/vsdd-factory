@@ -107,6 +107,18 @@
           }
         ]
       }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}",
+            "timeout": 10000,
+            "async": true
+          }
+        ]
+      }
     ]
   }
 }
