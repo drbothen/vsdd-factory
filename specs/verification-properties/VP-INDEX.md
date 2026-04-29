@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-04-26T00:00:00
 phase: 1.6b
 traces_to: ARCH-INDEX.md
-total_vps: 67
+total_vps: 68
 ---
 
 # VP-INDEX: Verification Properties Master Index
@@ -34,15 +34,15 @@ total_vps: 67
 | Skill Catalog VPs | 3 | VP-058..VP-060 |
 | Process Codification VPs | 2 | VP-061..VP-062 |
 | TDD Discipline VPs | 2 | VP-063..VP-064 |
-| Lifecycle Hook VPs | 3 | VP-065..VP-067 |
-| **Total** | **67** | **VP-001..VP-067** |
+| Lifecycle Hook VPs | 4 | VP-065..VP-068 |
+| **Total** | **68** | **VP-001..VP-068** |
 
 ## Proof Method Breakdown
 
 | Method | Count | VPs |
 |--------|-------|-----|
 | unit-test | 40 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052 |
-| integration | 15 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067 |
+| integration | 16 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 0 | — (upgrade candidates: VP-020, VP-023, VP-042) |
@@ -119,6 +119,7 @@ total_vps: 67
 | [VP-065](VP-065.md) | Session-Start Plugin Surface Invariant — All BC-4.04.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
 | [VP-066](VP-066.md) | Session-End Plugin Surface Invariant — All BC-4.05.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
 | [VP-067](VP-067.md) | Worktree Hook Plugin Surface Invariant — All BC-4.07.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
+| [VP-068](VP-068.md) | Tool-Failure Hook Plugin Surface Invariant — All BC-4.08.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -162,10 +163,11 @@ total_vps: 67
 | VP-065 | S-5.01 | Wave 16 | S-5.01 (session-start hook wiring) is the anchor story; VP-065's integration harness lives at crates/hook-plugins/session-start-telemetry/tests/integration_test.rs which S-5.01 creates per File Structure Requirements |
 | VP-066 | S-5.02 | Wave 16 | S-5.02 (session-end hook wiring) is the anchor story; VP-066's integration harness lives at crates/hook-plugins/session-end-telemetry/tests/integration_test.rs which S-5.02 creates per File Structure Requirements |
 | VP-067 | S-5.03 | Wave 16 | S-5.03 (WorktreeCreate/WorktreeRemove hook wiring) is the anchor story; VP-067's integration harness lives at crates/hook-plugins/worktree-hooks/tests/integration_test.rs which S-5.03 creates per File Structure Requirements |
+| VP-068 | S-5.04 | Wave 16 | S-5.04 (PostToolUseFailure hook wiring) is the anchor story; VP-068's integration harness lives at crates/hook-plugins/tool-failure-hooks/tests/integration_test.rs which S-5.04 creates per File Structure Requirements |
 
 ## Traceability
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
-- BCs cross-referenced: 109 BC IDs across 67 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067)
+- BCs cross-referenced: 112 BC IDs across 68 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068)
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
 - 15 VPs have TBD test evidence (manual or pending CI automation)

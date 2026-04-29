@@ -399,9 +399,9 @@ Status: **pending** full implementation (S-3.01 stub).
 #### FR-046 — New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure
 
 **Source CAP:** CAP-002 — Hook Claude Code tool calls with sandboxed WASM plugins
-**Behavioral Contracts:** BC-4.04.001..005 (session-start, S-5.01), BC-4.05.001..005 (session-end, S-5.02), BC-4.07.001..004 (worktree, S-5.03), BC-4.08.001..N (tool-failure, S-5.04) — incrementally populated as Tier F stories converge
+**Behavioral Contracts:** BC-4.04.001..005 (session-start, S-5.01), BC-4.05.001..005 (session-end, S-5.02), BC-4.07.001..004 (worktree, S-5.03), BC-4.08.001..003 (tool-failure, S-5.04)
 **Stories:** S-5.01, S-5.02, S-5.03, S-5.04
-**Status:** in-progress (S-5.01 + S-5.02 + S-5.03 BCs allocated; S-5.04 pending)
+**Status:** in-progress (S-5.01 + S-5.02 + S-5.03 + S-5.04 BCs allocated; implementation pending)
 **Subsystem(s):** SS-04, SS-01 (hooks.json registry inclusion)
 
 The vsdd-factory dispatcher routes five new Claude Code lifecycle event types to dedicated WASM plugins:
@@ -409,7 +409,7 @@ SessionStart (session.started telemetry + factory-health brief),
 SessionEnd (session.ended with duration/tool-call count),
 WorktreeCreate (worktree.created with path/branch metadata),
 WorktreeRemove (worktree.removed with cleanup status),
-PostToolUseFailure (tool.failed with error context).
+PostToolUseFailure (tool.error with tool_name + error_message context).
 
 Closes DRIFT-006 (Phase 5 events not wired). Each plugin is registered in hooks.json.template
 with appropriate once/async semantics. Dispatcher routing reuses existing event-name match logic
@@ -421,7 +421,7 @@ lifecycle events).
 - `session.ended` — emitted by S-5.02 (BC-4.05.*); reserved for session-end telemetry
 - `worktree.created` — emitted by S-5.03 (BC-4.07.001); reserved for worktree creation events
 - `worktree.removed` — emitted by S-5.03 (BC-4.07.002); reserved for worktree removal events
-- `tool.failed` — emitted by S-5.04 (BC-4.08.*); reserved for PostToolUseFailure events
+- `tool.error` — emitted by S-5.04 (BC-4.08.001); reserved for PostToolUseFailure events
 
 These mirror the `internal.sink_error` reservation pattern in FR-045. Any plugin emitting an event with a reserved name that it does not own is a protocol violation.
 
@@ -450,15 +450,20 @@ Sibling stories BC-4.05.*, BC-4.07.*, BC-4.08.* mirror this shape. Implementers 
 | BC-4.07.002 | worktree-hooks plugin emits worktree.removed event with {worktree_path} on WorktreeRemove event; unknown-worktree no-op; zero-capability; 9-field wire payload | P1 |
 | BC-4.07.003 | hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); async:true; timeout:10000 | P1 |
 | BC-4.07.004 | hooks-registry.toml registers WorktreeCreate and WorktreeRemove routing to hook-plugins/worktree-hooks.wasm; single crate, two entries; ZERO capability tables; timeout_ms:5000 | P1 |
+| BC-4.08.001 | tool-failure-hooks plugin emits tool.error event with {tool_name, error_message} on PostToolUseFailure event; tool_name="unknown" if absent; error_message truncated to 2000 chars; 10-field wire payload; RESERVED_FIELDS not set by plugin | P1 |
+| BC-4.08.002 | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); async:true; timeout:10000 | P1 |
+| BC-4.08.003 | hooks-registry.toml registers PostToolUseFailure with name="tool-failure-hooks", event="PostToolUseFailure", plugin="hook-plugins/tool-failure-hooks.wasm", timeout_ms=5000; ZERO capability tables; NO once field | P1 |
 
-Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (S-5.01), `ss-04/BC-4.05.001.md` through `BC-4.05.005.md` (S-5.02), `ss-04/BC-4.07.001.md` through `BC-4.07.004.md` (S-5.03) — 14 BCs anchored; S-5.04 pending.
-Status: **in-progress** (S-5.01 + S-5.02 + S-5.03 BCs allocated).
+Source BCs: `ss-04/BC-4.04.001.md` through `BC-4.04.005.md` (S-5.01), `ss-04/BC-4.05.001.md` through `BC-4.05.005.md` (S-5.02), `ss-04/BC-4.07.001.md` through `BC-4.07.004.md` (S-5.03), `ss-04/BC-4.08.001.md` through `BC-4.08.003.md` (S-5.04) — 17 BCs anchored; all Tier F stories BCs allocated.
+Status: **in-progress** (S-5.01 + S-5.02 + S-5.03 + S-5.04 BCs allocated; implementation pending).
+
+> **S-5.04 foundation burst (2026-04-28):** BC-4.08.001–003 promoted from v1.1 candidates to real BCs. Option A (zero-capability) selected: tool-failure plugin emits `tool.error` ONLY — no subprocess, no file reads. 2 plugin-set fields: `tool_name` (fallback "unknown" if absent) + `error_message` (truncated to 2000 chars). `once` key ABSENT (per-failure event; mirrors S-5.03 worktree pattern). session_id is RESERVED/host-enriched — legacy story v1.2 incorrectly listed it as plugin-set; BC-4.08.001 is the authoritative correction. Event-name corrected from PRD placeholder `tool.failed` to `tool.error` (matching story ACs). Closes DRIFT-006: 4/4 Tier F events wired (S-5.01/02/03/04 BCs all allocated). S-5.01 (14-pass) + S-5.02 (9-pass) + S-5.03 (14-pass) lessons applied up-front.
 
 > **S-5.03 foundation burst (2026-04-28):** BC-4.07.001–004 promoted from v1.1 candidates to real BCs. Option A (zero-capability, no filesystem write) selected: worktree plugin emits events ONLY — no filesystem auto-registration (deferred to BC-4.07.005 candidate in v1.1 when `write_file` host fn is available). Single `worktree-hooks.wasm` crate handles both events via internal dispatch; two separate `[[hooks]]` registry entries. `once` key ABSENT for both events — worktree events can re-fire on reconnect, unlike session events. S-5.01 (14-pass) + S-5.02 (9-pass) lessons applied up-front; expected adversarial pass count: 5-7.
 
 > **Pass-4 architectural simplification (2026-04-28):** BC-1.10.001 (host fn `vsdd::activated_platform()` — over-engineered; canonical `read_file` host fn used instead) and BC-1.10.002 (dispatcher-side dedup — over-engineered; Claude Code Layer 1 `once:true` directive enforces idempotency at hooks.json.template) retired. BC count for this FR reverts to 5 anchored BCs (BC-4.04.001–005). Scope reverts to SS-04 plugin work; story S-5.01 remains 3-pt as originally budgeted.
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-04/` (27 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-04/` (30 BCs total — 27 prior + BC-4.08.001/002/003 added by S-5.04 foundation burst)
 
 > **DI coverage note (F-12):** No dedicated L2 domain invariant covers the lifecycle event class (SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure) as a first-class invariant. The applicable DIs are DI-004 (capability denial), DI-007 (always-on self-telemetry), DI-011 (sink submit non-blocking), DI-014 (schema version), DI-015 (activation gate), and DI-017 (trace_id). A dedicated DI for "lifecycle event plugins must always emit their target event regardless of subsystem health" is a **v1.1 DI candidate** — the fail-open semantics are currently enforced at BC level (BC-4.04.002 Invariant 1, BC-4.04.001 Postcondition 4) without a formal DI backing. Flag for Domain Spec v1.1 revision.
 
@@ -1166,7 +1171,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-043 | TDD Discipline Hardening — Prevent Stub-as-Implementation Anti-Pattern (anti-precedent guard + Red Gate density check + tdd_mode contract + mutation wave-gate) | CAP-016 | SS-05, SS-06, SS-08 | BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 | 13 | pending | E-7 |
 | FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002, BC-3.07.001 + v1.1 candidates (8 pending) | 3 anchored + 8 v1.1 candidates | partial | E-4 |
 | FR-045 | Emit `internal.sink_error` structured event on each sink failure | CAP-003 | SS-03 | BC-3.07.002 | 1 | pending | E-4 |
-| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002 | SS-04, SS-01 | BC-4.04.001–005 (S-5.01 anchored); BC-4.05.001–005 (S-5.02 anchored); BC-1.10.001–002 (retired pass-4); BC-4.07.001–004 (S-5.03 anchored); BC-4.08.* (pending S-5.04) | 14 anchored + S-5.04 pending | in-progress | E-5 |
+| FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002, CAP-013 | SS-04, SS-01 | BC-4.04.001–005 (S-5.01 anchored); BC-4.05.001–005 (S-5.02 anchored); BC-1.10.001–002 (retired pass-4); BC-4.07.001–004 (S-5.03 anchored); BC-4.08.001–003 (S-5.04 anchored) | 17 anchored; all Tier F BCs allocated | in-progress | E-5 |
 
 **Total: 46 FRs across 10 subsystems**
 
@@ -1256,7 +1261,7 @@ Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x
 | DRIFT-003 | P2 | Per-sink dedicated OS threads vs design's promised shared tokio runtime; S-1.06 shipped but swap not made | Acceptable for 1.0; planned post-1.0 |
 | DRIFT-004 | P1 | Two parallel hook-routing tables (`hooks.json` + `hooks-registry.toml`); source-of-truth ambiguity | Decision + fix at 1.0 GA (L-P0-002) |
 | DRIFT-005 | P2 | HTTP/Datadog/Honeycomb sinks declared in design; warn-and-skip in `sinks/mod.rs::from_config` | Planned rc.1 (Tier E, S-4.01–4.03) |
-| DRIFT-006 | P2 | SessionStart/SessionEnd/WorktreeCreate/PostToolUseFailure events not wired to plugin reactions | **in-progress** — FR-046 created; S-5.01 BCs (BC-4.04.001–005) allocated 2026-04-28; siblings S-5.02–5.04 pending (Tier G) |
+| DRIFT-006 | P2 | SessionStart/SessionEnd/WorktreeCreate/PostToolUseFailure events not wired to plugin reactions | **BCs allocated — implementation pending** — FR-046 anchors S-5.01–5.04; BC-4.04.001–005 (S-5.01), BC-4.05.001–005 (S-5.02), BC-4.07.001–004 (S-5.03), BC-4.08.001–003 (S-5.04) all allocated 2026-04-28. Closes when S-5.04 ships (4/4 events wired). |
 | DRIFT-007 | P3 | `dispatcher.shutting_down` constant defined but never emitted | Acceptable for 1.0 OR 1-line add |
 | DRIFT-008 | P3 | `plugin.loaded` / `plugin.load_failed` constants declared but never emitted from plugin_loader | Acceptable for 1.0; 1-line emit call |
 | DRIFT-009 | P2 | Adversary SHA-currency gate is opt-in (template only; `hooks/verify-sha-currency.sh` not auto-installed) | Documented as opt-in; CHANGELOG beta.4 |
