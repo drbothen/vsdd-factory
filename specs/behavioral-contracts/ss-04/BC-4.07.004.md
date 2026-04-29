@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "v1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+modified: [v1.1-adv-s5.03-p01]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -36,7 +36,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` to map event nam
 
 **Decision:** One `worktree-hooks` crate handling both events, registered as two separate `[[hooks]]` entries in `hooks-registry.toml`.
 
-**Rationale for single crate:** S-5.02 establishes the pattern of a dedicated crate per plugin. However, S-5.02 was one event / one plugin. For two complementary events (Create + Remove), a single crate with internal dispatch on `event_type` is simpler (one .wasm binary, shared types, smaller total binary footprint) without meaningful coupling risk — the two dispatch paths are independent code branches within `on_hook`.
+**Rationale for single crate:** S-5.02 establishes the pattern of a dedicated crate per plugin. However, S-5.02 was one event / one plugin. For two complementary events (Create + Remove), a single crate with internal dispatch on `event_name` is simpler (one .wasm binary, shared types, smaller total binary footprint) without meaningful coupling risk — the two dispatch paths are independent code branches within `on_hook`.
 
 **Rationale for two registry entries:** The dispatcher matches on `event` field exactly. A single `[[hooks]]` entry cannot match two different event names. Two separate entries (one for `WorktreeCreate`, one for `WorktreeRemove`) both pointing to `hook-plugins/worktree-hooks.wasm` is the correct structural choice. The dispatcher loads the plugin once and invokes it once per matching event — there is no double-loading.
 
@@ -55,7 +55,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` to map event nam
 3. Both entries specify `plugin = "hook-plugins/worktree-hooks.wasm"` (with `hook-plugins/` directory prefix). A path without the prefix causes the dispatcher to fail to locate the binary.
 4. Both entries have `timeout_ms = 5000`. Justification: the worktree plugin has no subprocess wait and no file reads; 5000ms is the `RegistryDefaults` value and is adequate for the stateless emit-only path. Explicit declaration is required by this BC to maintain visible intent. Field name `timeout_ms` per production schema (`RegistryEntry` in `registry.rs` declares `timeout_ms: Option<u32>` with `deny_unknown_fields`).
 5. Neither `WorktreeCreate` entry nor `WorktreeRemove` entry carries `[hooks.capabilities.read_file]` — the plugin reads no files (all data comes from the incoming envelope).
-6. Neither entry carries `[hooks.capabilities.exec_subprocess]` — the plugin invokes no subprocesses (Option A zero-capability scoping per BC-4.07.001). The deny-by-default capability sandbox (BC-1.05.022) leaves the plugin with zero declared capabilities for both events.
+6. Neither entry carries `[hooks.capabilities.exec_subprocess]` — the plugin invokes no subprocesses (Option A zero-capability scoping per BC-4.07.001). The deny-by-default capability sandbox leaves the plugin with zero declared capabilities for both events, enforced by BC-1.05.001 (exec_subprocess denied when no exec_subprocess capability declared) and BC-1.05.021 (read_file denied when no Capabilities.read_file block).
 7. Neither entry carries a `once` field — `RegistryEntry` has no such field and `deny_unknown_fields` would reject it. Worktree event once-semantics are handled (as absence of `once: true`) at Layer 1 in `hooks.json.template` (BC-4.07.003).
 8. Dispatcher successfully loads both entries without error at startup.
 
@@ -116,7 +116,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` to map event nam
 
 **F-17 Generator Workflow (inherited):** `hooks-registry.toml` is human-edited source of truth as of v1.0.0. Both worktree entries are added by direct edit. The legacy generator script is retired and must not be used. (See BC-4.04.005 §"F-17 Generator Workflow" for the full ruling and historical context.)
 
-**Two entries, one plugin:** Having two `[[hooks]]` entries that both reference `hook-plugins/worktree-hooks.wasm` is intentional and correct. The dispatcher loads the plugin binary once per dispatch call — there is no double-loading. The internal `on_hook` function dispatches to the appropriate code path based on the `event_type` field in the incoming envelope.
+**Two entries, one plugin:** Having two `[[hooks]]` entries that both reference `hook-plugins/worktree-hooks.wasm` is intentional and correct. The dispatcher loads the plugin binary once per dispatch call — there is no double-loading. The internal `on_hook` function dispatches to the appropriate code path based on the `event_name` field in the incoming envelope (per HOST_ABI.md HookPayload envelope schema and BC-1.02.001/002).
 
 ## Story Anchor
 
@@ -132,7 +132,14 @@ VP-067
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-004 (capability denial — by declaring NO capabilities, deny-by-default ensures exec_subprocess and read_file are both denied for this plugin; no audit event emitted because the plugin never attempts to call them); DI-007 (always-on telemetry — both `worktree.created` and `worktree.removed` are emitted unconditionally via these routing entries); DI-015 (per-project activation required — these entries are directly added by human edit per the file header) |
+| L2 Domain Invariants | DI-004 (capability denial — by declaring NO capabilities, deny-by-default ensures exec_subprocess and read_file are both denied for this plugin; no audit event emitted because the plugin never attempts to call them); DI-007 **REMOVED** (DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events routed via this registry entry. No current DI for plugin event emission unconditionally; v1.1 candidate per PRD §S-5.03 flag.); DI-015 (per-project activation required — these entries are directly added by human edit per the file header) |
 | Architecture Module | SS-04 — `plugins/vsdd-factory/hooks-registry.toml` (WorktreeCreate + WorktreeRemove entries added by direct edit) |
 | Stories | S-5.03 |
 | Functional Requirement | FR-046 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (CRIT-002) BC-1.05.022 deny-by-default re-anchored to correct pair BC-1.05.001+BC-1.05.021 in Postcondition 6; (CRIT-003) event_type → event_name in rationale and architecture notes (two occurrences) per HOST_ABI.md HookPayload envelope schema; (HIGH-004) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin event emission; replaced with "no current DI; v1.1 candidate" annotation |
+| v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.03 foundation burst) |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "v1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1]
+modified: [v1.0-pass-1, v1.2-adv-s5.03-p01-sibling-sweep]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` to map event names to WASM plugin paths. The `SessionEnd` entry in that file MUST exist with `event = "SessionEnd"`, `name = "session-end-telemetry"`, `plugin = "hook-plugins/session-end-telemetry.wasm"`, and `timeout_ms = 5000`. Critically, SessionEnd requires NO capability table declarations: neither `[hooks.capabilities.read_file]` nor `[hooks.capabilities.exec_subprocess]` is needed, because the session-end plugin reads all required data from the incoming envelope (no file reads) and invokes no subprocesses (per BC-4.05.002). Deny-by-default per BC-1.05.022 leaves the plugin sandboxed with zero declared capabilities — the cleanest possible capability profile. This is Layer 2 of the dual-routing-tables pattern per ADR-011. Once-per-session discipline is enforced at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (BC-4.05.004 invariant 1); the `hooks-registry.toml` entry carries no `once` field — `RegistryEntry` has none, and `deny_unknown_fields` would reject it. The `hooks-registry.toml` entry is added by direct edit per the file's header comment ("Human-edited source of truth as of v1.0.0").
+The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` to map event names to WASM plugin paths. The `SessionEnd` entry in that file MUST exist with `event = "SessionEnd"`, `name = "session-end-telemetry"`, `plugin = "hook-plugins/session-end-telemetry.wasm"`, and `timeout_ms = 5000`. Critically, SessionEnd requires NO capability table declarations: neither `[hooks.capabilities.read_file]` nor `[hooks.capabilities.exec_subprocess]` is needed, because the session-end plugin reads all required data from the incoming envelope (no file reads) and invokes no subprocesses (per BC-4.05.002). Deny-by-default capability enforcement (BC-1.05.001 for exec_subprocess deny; BC-1.05.021 for read_file deny) leaves the plugin sandboxed with zero declared capabilities — the cleanest possible capability profile. This is Layer 2 of the dual-routing-tables pattern per ADR-011. Once-per-session discipline is enforced at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (BC-4.05.004 invariant 1); the `hooks-registry.toml` entry carries no `once` field — `RegistryEntry` has none, and `deny_unknown_fields` would reject it. The `hooks-registry.toml` entry is added by direct edit per the file's header comment ("Human-edited source of truth as of v1.0.0").
 
 ## Preconditions
 
@@ -44,7 +44,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` to map event nam
 2. The `SessionEnd` entry specifies `plugin = "hook-plugins/session-end-telemetry.wasm"` (with `hook-plugins/` directory prefix).
 3. The `SessionEnd` entry has `timeout_ms = 5000`. Justification: the session-end plugin has no subprocess wait; 5000ms is the `RegistryDefaults` value and is adequate for the stateless emit-only path. Explicitly declaring it removes ambiguity and makes the intent visible. Field name `timeout_ms` per F-13 ruling — `RegistryEntry` in `registry.rs` declares `timeout_ms: Option<u32>` with `deny_unknown_fields`.
 4. The `SessionEnd` entry has NO `[hooks.capabilities.read_file]` table — the plugin does not read any files.
-5. The `SessionEnd` entry has NO `[hooks.capabilities.exec_subprocess]` table — the plugin invokes no subprocesses (per BC-4.05.002 Invariant 1). The deny-by-default capability sandbox (BC-1.05.022) leaves the plugin with zero declared capabilities, which is intentional and correct for this plugin.
+5. The `SessionEnd` entry has NO `[hooks.capabilities.exec_subprocess]` table — the plugin invokes no subprocesses (per BC-4.05.002 Invariant 1). The deny-by-default capability sandbox (BC-1.05.001 for exec_subprocess deny; BC-1.05.021 for read_file deny) leaves the plugin with zero declared capabilities, which is intentional and correct for this plugin.
 6. Once-per-session discipline for the `SessionEnd` entry is enforced upstream at Layer 1 by Claude Code's `once: true` directive in `hooks.json.template` (BC-4.05.004 invariant 1). The `hooks-registry.toml` entry does not carry a `once` field — `RegistryEntry` has no such field.
 7. Dispatcher successfully loads the entry without error at startup.
 
@@ -114,7 +114,15 @@ VP-066
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-004 (capability denial — by declaring NO capabilities, deny-by-default ensures exec_subprocess and read_file are both denied for this plugin; no audit event is emitted because the plugin never attempts to call them); DI-007 (always-on telemetry — `session.ended` is emitted unconditionally via this routing entry); DI-015 (per-project activation required — this entry is directly added by human edit per the file header; SS-09 generator retired) |
+| L2 Domain Invariants | DI-004 (capability denial — by declaring NO capabilities, deny-by-default ensures exec_subprocess and read_file are both denied for this plugin; no audit event is emitted because the plugin never attempts to call them); DI-007 **REMOVED** (retroactive sibling-sweep fix from S-5.03 P01 ADV-S5.03-P01: DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events routed via this registry entry. No current DI for plugin event emission unconditionally; v1.1 candidate.); DI-015 (per-project activation required — this entry is directly added by human edit per the file header; SS-09 generator retired) |
 | Architecture Module | SS-04 — `plugins/vsdd-factory/hooks-registry.toml` (SessionEnd entry added by direct edit) |
 | Stories | S-5.02 |
 | Functional Requirement | FR-046 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.2 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (CRIT-002 sweep) BC-1.05.022 deny-by-default re-anchored to correct pair BC-1.05.001+BC-1.05.021 in Description and Postcondition 5; (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin event emission; S-5.02 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy |
+| v1.1 | 2026-04-27 | product-owner | S-5.02 convergence D-137 pass (v2.7 seal) |
+| v1.0 | 2026-04-26 | product-owner | Initial creation (S-5.02 foundation burst) |

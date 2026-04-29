@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "v1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-8, v1.0-pass-9]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-8, v1.0-pass-9, v1.1-adv-s5.03-p01-sibling-sweep]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -167,8 +167,15 @@ VP-065
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-004 (capability denial emits audit event — absent `exec_subprocess` capability table triggers `internal.capability_denied`); DI-007 (always-on telemetry — `session.started` is emitted unconditionally even when subprocess capability is denied or subprocess fails); DI-015 (per-project activation required — this entry is directly added by human edit per the file header; SS-09 generator retired) |
+| L2 Domain Invariants | DI-004 (capability denial emits audit event — absent `exec_subprocess` capability table triggers `internal.capability_denied`); DI-007 **REMOVED** (retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events. No current DI for plugin event emission unconditionally; v1.1 candidate.); DI-015 (per-project activation required — this entry is directly added by human edit per the file header; SS-09 generator retired) |
 | Architecture Module | SS-04 — `plugins/vsdd-factory/hooks-registry.toml` (SessionStart entry added by direct edit; SS-09 generator retired as of v1.0.0) |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |
 | Process Gap (F-11, v1.1 candidate) | The class invariant that `timeout_ms` must exceed the longest expected subprocess wait (Invariant 5) is not enforced by the dispatcher schema at registry-load time; EC-004 documents what happens when `timeout_ms` is absent, but there is no runtime check that `timeout_ms > subprocess_timeout`. A registry-load validation rule asserting `timeout_ms > 5000` for entries declaring `exec_subprocess` capability would codify this invariant in code. Deferred to v1.1. |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 internal_log.rs scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.01 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy |
+| v1.0 | 2026-04-27 | product-owner | Final state after S-5.01 convergence passes (v1.0-pass-1 through v1.0-pass-9) |

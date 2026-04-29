@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "v1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+modified: [v1.1-adv-s5.03-p01]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,7 +26,7 @@ removed: null
 removal_reason: null
 ---
 
-# BC-4.07.003: hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once:false (can re-fire); async:true; timeout:10000
+# BC-4.07.003: hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); async:true; timeout:10000
 
 ## Description
 
@@ -42,14 +42,14 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain both a
 1. `hooks.json.template` contains a `WorktreeCreate` key in its top-level `hooks` object.
 2. `hooks.json.template` contains a `WorktreeRemove` key in its top-level `hooks` object.
 3. Each entry's `command` field references the dispatcher binary path: `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`. Neither entry references `worktree-hooks.wasm` or any WASM plugin filename directly (per ADR-011 layer separation).
-4. Neither `WorktreeCreate` nor `WorktreeRemove` hook entries carry `once: true`. Worktree events can re-fire (e.g., on Claude Code reconnect after disconnect). Omitting `once` is equivalent to `once: false` under Claude Code's default semantics. This is a deliberate departure from the SessionStart/SessionEnd pattern.
+4. Neither `WorktreeCreate` nor `WorktreeRemove` hook entries carry a `once` key at all. **The `once` key MUST be absent** (not `once: false`, not `once: "false"`). Worktree events can re-fire (e.g., on Claude Code reconnect after disconnect). Claude Code's default semantics treat absence as re-firable; explicit `false` semantics are unspecified — defensive omission protects against future Claude Code parser changes. This is a deliberate departure from the SessionStart/SessionEnd pattern (which use `once: true`).
 5. Both `WorktreeCreate` and `WorktreeRemove` hook entries have `async: true`.
 6. Both entries have `timeout: 10000`. This is the Claude Code harness timeout (ms). The dispatcher's per-call budget is `timeout_ms = 5000` (BC-4.07.004 Postcondition 3), preserving the timeout hierarchy: dispatcher timeout (5000ms) < harness timeout (10000ms).
 7. Each entry follows the array-of-objects schema: `template["hooks"]["WorktreeCreate"]` is an array; each element is an object with a nested `hooks` array; each nested entry has `type = "command"` and `command` = dispatcher binary path. Same for `WorktreeRemove`.
 
 ## Invariants
 
-1. Neither `WorktreeCreate` nor `WorktreeRemove` entries in `hooks.json.template` MUST NEVER carry `once: true`. If `once: true` were added, Claude Code would suppress re-fires after the first occurrence per session — silently dropping `WorktreeCreate` events on reconnect and making it appear that new worktrees were not created. This is the primary behavioral difference from session lifecycle events.
+1. Neither `WorktreeCreate` nor `WorktreeRemove` entries in `hooks.json.template` MUST NEVER carry any `once` key (including `once: true`, `once: false`, or `once: "false"`). **The `once` key MUST be completely absent.** If `once: true` were added, Claude Code would suppress re-fires after the first occurrence per session — silently dropping `WorktreeCreate` events on reconnect. If `once: false` were added explicitly, future Claude Code parser changes could interpret it unexpectedly; defensive omission is the correct pattern. This is the primary behavioral difference from session lifecycle events.
 2. Neither entry must ever reference WASM plugin filenames — per ADR-011 layer separation, WASM plugin references belong exclusively in `hooks-registry.toml` (BC-4.07.004).
 3. Both `WorktreeCreate` and `WorktreeRemove` entries must remain present in `hooks.json.template` through all v1.0 releases — removal requires a deprecation pass.
 4. The harness `timeout` (10000ms) MUST be ≥ the dispatcher per-call budget (`timeout_ms = 5000` in BC-4.07.004) per ADR-011 timeout-hierarchy invariant.
@@ -68,8 +68,8 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain both a
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Parse `hooks.json.template`; inspect `hooks.WorktreeCreate[0].hooks[0]` | `command` field contains `factory-dispatcher`; NO `once` key present (or `once: false`); `async: true` present; no reference to `.wasm` filename in `command` field | happy-path (WorktreeCreate) |
-| Parse `hooks.json.template`; inspect `hooks.WorktreeRemove[0].hooks[0]` | `command` field contains `factory-dispatcher`; NO `once` key present (or `once: false`); `async: true` present; no reference to `.wasm` filename in `command` field | happy-path (WorktreeRemove) |
+| Parse `hooks.json.template`; inspect `hooks.WorktreeCreate[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once` key MUST BE ABSENT (not `false`, not any value — key must not exist); `async: true` present; no reference to `.wasm` filename in `command` field | happy-path (WorktreeCreate) |
+| Parse `hooks.json.template`; inspect `hooks.WorktreeRemove[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once` key MUST BE ABSENT (not `false`, not any value — key must not exist); `async: true` present; no reference to `.wasm` filename in `command` field | happy-path (WorktreeRemove) |
 | Parse `hooks.json.template`; inspect `hooks.WorktreeCreate[0].hooks[0].timeout` | Value equals `10000` (harness timeout ms) | happy-path (timeout hierarchy) |
 | `hooks.json.template` is missing `WorktreeCreate` key | No WorktreeCreate entry in `template["hooks"]`; dispatcher never invoked for WorktreeCreate events | error (missing key) |
 | `hooks.json.template` has `once: true` on `WorktreeCreate` entry | VP-067 assertion `once != true` fails; worktree re-fire semantics violated | error (once:true) |
@@ -85,8 +85,8 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain both a
 - **BC-4.07.001** — enables (this WorktreeCreate registration is the trigger that causes BC-4.07.001 to execute)
 - **BC-4.07.002** — enables (this WorktreeRemove registration is the trigger that causes BC-4.07.002 to execute)
 - **BC-4.07.004** — counterpart (this is Layer 1; BC-4.07.004 is Layer 2; both must exist for full routing of both worktree events)
-- **BC-4.05.004** — structural analog (SessionEnd Layer 1 registration; BC-4.07.003 differs in `once: false` vs. `once: true` — this is the critical behavioral distinction)
-- **BC-4.04.004** — structural analog (SessionStart Layer 1 registration; same `once: true` vs. `once: false` distinction applies)
+- **BC-4.05.004** — structural analog (SessionEnd Layer 1 registration; BC-4.07.003 differs in `once` key ABSENT vs. `once: true` — this is the critical behavioral distinction; worktree events must re-fire)
+- **BC-4.04.004** — structural analog (SessionStart Layer 1 registration; same `once: true` vs. `once` ABSENT distinction applies; worktree events omit the key entirely)
 - **BC-1.02.005** — depends on (dispatcher envelope parsing handles both `WorktreeCreate` and `WorktreeRemove` event types routed via these entries)
 
 ## Architecture Anchors
@@ -113,3 +113,10 @@ VP-067
 | Architecture Module | SS-07 — `plugins/vsdd-factory/hooks/hooks.json.template` (harness wiring); SS-04 contracts WorktreeCreate/WorktreeRemove routing semantics within this file |
 | Stories | S-5.03 |
 | Functional Requirement | FR-046 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (HIGH-002) `once` key absence pinned — "once key MUST be absent" replaces "omitting once is equivalent to once:false"; H1 title updated to reflect "once key ABSENT"; test vectors and invariants clarified; once:false references in prose replaced with unambiguous "once key must not exist" language |
+| v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.03 foundation burst) |

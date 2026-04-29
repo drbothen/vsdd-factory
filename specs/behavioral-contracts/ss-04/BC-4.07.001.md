@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "v1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+modified: [v1.1-adv-s5.03-p01]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `worktree.created` event via the `emit_event` host function. Two fields are set by the plugin: `worktree_path` and `worktree_name`, sourced from the incoming `WorktreeCreate` envelope. Four additional fields are automatically injected by the `emit_event` host fn from `HostContext` (per BC-1.05.012 enrichment; the plugin does NOT set these): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Four construction-time fields are set by `InternalEvent::now()`: `ts`, `ts_epoch`, `schema_version`, `type`. Total fields on wire: 10. The plugin performs NO filesystem writes, NO subprocess invocations, and requires ZERO declared capabilities — it reads all required data from the incoming envelope. This is the Option A (zero-capability) scoping decision applied to WorktreeCreate.
+When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `worktree.created` event via the `emit_event` host function. Two fields are set by the plugin: `worktree_path` and `worktree_name`, sourced from the incoming `WorktreeCreate` envelope. Eight additional fields are reserved and NOT settable by the plugin (RESERVED_FIELDS), set by the host in three sub-groups: (a) 4 host-enriched from HostContext by `emit_event`: `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`; (b) 3 enriched by `emit_event` from `InternalEvent::now()`: `ts`, `ts_epoch`, `schema_version`; (c) 1 set at construction from the `emit_event` type argument: `type`. Per HOST_ABI.md (authoritative production contract). Total fields on wire: 10. The plugin performs NO filesystem writes, NO subprocess invocations, and requires ZERO declared capabilities — it reads all required data from the incoming envelope. This is the Option A (zero-capability) scoping decision applied to WorktreeCreate.
 
 ## Scoping Decision: Option A (Zero-Capability) — Rationale
 
@@ -40,7 +40,7 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 
 **Option C (REJECTED):** Add a new `write_file` host fn to vsdd-hook-sdk. HOST_ABI bump (major). Out of scope for v1.0 (release-gate calendar). Verified at `crates/hook-sdk/HOST_ABI.md`: available host fns are `log`, `emit_event` (always), `read_file` (capability-gated), `exec_subprocess` (capability-gated), and zero-capability info getters (`session_id`, `dispatcher_trace_id`, `plugin_root`, `plugin_version`, `cwd`, `env`). No `write_file` host fn exists. Rejected.
 
-**Deferred to v1.1:** BC-4.07.005 (worktree-config-write — filesystem sink config auto-generation via a future `write_file` host fn). CAP-003 (filesystem-write capability) deferred correspondingly.
+**Deferred to v1.1:** BC-4.07.005 (worktree-config-write — filesystem sink config auto-generation via a future `write_file` host fn). Filesystem-write capability deferred to v1.1 — no CAP ID allocated yet; v1.1 capability registry expansion required (provisional name: `CAP-NNN-filesystem-write` to be assigned in v1.1).
 
 ## Preconditions
 
@@ -60,7 +60,11 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 
    **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and are silently dropped if the plugin attempts to set them. Each is a non-empty string per BC-1.05.012 unconditional enrichment.
 
-   **Construction-time fields (4 fields — set by `InternalEvent::now()`, NOT by the plugin or `emit_event` enrichment):** `ts`, `ts_epoch`, `schema_version`, `type`. `type` MUST equal `"worktree.created"`. Also part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
+   **Host-enriched fields from `InternalEvent::now()` (3 fields):** `ts`, `ts_epoch`, `schema_version`. Set by `emit_event` internally via `InternalEvent::now()`. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
+
+   **Construction-time field (1 field):** `type`. Set from the `emit_event` type argument (`SinkEvent::new` with the `type` argument). `type` MUST equal `"worktree.created"`. Part of `RESERVED_FIELDS`; plugin attempt to set it is silently dropped.
+
+   **Authoritative source for RESERVED_FIELDS split:** HOST_ABI.md §emit_event. The 8 RESERVED_FIELDS = 4 HostContext-enriched + 3 InternalEvent::now() + 1 type-argument.
 
    **Wire format note:** All plugin-set field values are strings on the wire (`emit_event.rs:49` coerces all plugin-supplied values to `Value::String`). Downstream consumers MUST parse string values back to their semantic types.
 
@@ -71,7 +75,7 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 ## Invariants
 
 1. The plugin performs NO filesystem writes. There is no `write_file` host fn in HOST_ABI v1.0. Any filesystem configuration for the new worktree MUST be deferred to v1.1 (BC-4.07.005 candidate) or handled by the observability stack consuming the `worktree.created` event.
-2. The plugin performs NO subprocess invocations. `exec_subprocess` is NOT declared in BC-4.07.004's `hooks-registry.toml` entry. Any invocation attempt would receive `CAPABILITY_DENIED` from the host fn dispatch table (BC-1.05.022 deny-by-default).
+2. The plugin performs NO subprocess invocations. `exec_subprocess` is NOT declared in BC-4.07.004's `hooks-registry.toml` entry. Any invocation attempt would receive `CAPABILITY_DENIED` from the host fn dispatch table — deny-by-default enforced by BC-1.05.001 (exec_subprocess denied when no exec_subprocess capability declared) and BC-1.05.021 (read_file denied when no Capabilities.read_file block).
 3. `worktree_path` is never absent from the emitted payload — it defaults to `""` when the envelope field is absent. This ensures consumers can always inspect the field without null-checks.
 4. `worktree_name` is never absent from the emitted payload — it defaults to `""` when the envelope field is absent.
 5. The `worktree.created` event-name literal is immutable and reserved per PRD FR-046; renaming requires a new BC.
@@ -99,7 +103,7 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 
 ## Notes
 
-**Structural note — single worktree-hooks.wasm crate for both events:** A single `crates/hook-plugins/worktree-hooks` crate handles both `WorktreeCreate` (this BC) and `WorktreeRemove` (BC-4.07.002) via internal dispatch on `event_type` field. Two separate `[[hooks]]` entries in `hooks-registry.toml` (BC-4.07.004) both point to `hook-plugins/worktree-hooks.wasm`. This reduces binary count (one .wasm instead of two) while maintaining clean dispatch-path separation internally.
+**Structural note — single worktree-hooks.wasm crate for both events:** A single `crates/hook-plugins/worktree-hooks` crate handles both `WorktreeCreate` (this BC) and `WorktreeRemove` (BC-4.07.002) via internal dispatch on `event_name` field (the HookPayload envelope field per HOST_ABI.md and BC-1.02.001/002). Two separate `[[hooks]]` entries in `hooks-registry.toml` (BC-4.07.004) both point to `hook-plugins/worktree-hooks.wasm`. This reduces binary count (one .wasm instead of two) while maintaining clean dispatch-path separation internally.
 
 **Option A scoping note (proactive, mirrors S-5.01 pass-4 architectural reversal):** The v1.0 legacy story wanted filesystem auto-registration (writing sink config for the new worktree). This BC explicitly excludes that behavior because HOST_ABI v1.0 has no `write_file` host fn. This is the same class of decision as S-5.01 pass-4 reversal (over-engineered dispatcher-side dedup dropped in favor of Layer 1 `once:true`), but applied proactively here before adversarial review rather than as a reaction to it. BC-4.07.005 is the deferred candidate for filesystem config write when `write_file` becomes available in HOST_ABI v1.1.
 
@@ -111,7 +115,7 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 
 ## Related BCs
 
-- **BC-4.07.002** — composes with (worktree-hooks.wasm handles WorktreeRemove; both are internal dispatch paths in the same plugin; the plugin dispatch logic selects BC-4.07.001 path vs. BC-4.07.002 path based on event_type)
+- **BC-4.07.002** — composes with (worktree-hooks.wasm handles WorktreeRemove; both are internal dispatch paths in the same plugin; the plugin dispatch logic selects BC-4.07.001 path vs. BC-4.07.002 path based on event_name)
 - **BC-4.07.003** — depends on (hooks.json.template WorktreeCreate registration triggers this plugin via dispatcher routing)
 - **BC-4.07.004** — depends on (hooks-registry.toml WorktreeCreate routing entry provides dispatcher-side routing to worktree-hooks.wasm)
 - **BC-1.02.005** — depends on (dispatcher envelope parsing delivers `session_id` to this plugin via HostContext)
@@ -138,7 +142,14 @@ VP-067
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-007 (always-on self-telemetry — worktree.created is part of the always-on telemetry surface; emitted unconditionally per invocation); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set); BC-1.02.005 (lifecycle-tolerant envelope parsing populates HostContext.session_id used by emit_event auto-enrichment; "unknown" sentinel set at envelope-parse layer, not by the plugin) |
+| L2 Domain Invariants | DI-007 **REMOVED** (DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and enforced by SS-03 internal_log.rs; it does NOT govern plugin-emitted events. Replaced by: no current DI for plugin event emission unconditionally; this is a v1.1 candidate per PRD §S-5.03 flag. Plugin-emitted events are always-on by convention, but no DI formalizes this at v1.0.); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set); BC-1.02.005 (lifecycle-tolerant envelope parsing populates HostContext.session_id used by emit_event auto-enrichment; "unknown" sentinel set at envelope-parse layer, not by the plugin) |
 | Architecture Module | SS-04 — `crates/hook-plugins/worktree-hooks/src/lib.rs` |
 | Stories | S-5.03 |
 | Functional Requirement | FR-046 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (CRIT-001) CAP-003 parenthetical removed — filesystem-write capability deferred to v1.1 with no CAP ID; (CRIT-002) BC-1.05.022 deny-by-default re-anchored to correct pair BC-1.05.001+BC-1.05.021; (CRIT-003) event_type → event_name (HookPayload envelope field per HOST_ABI.md); (HIGH-003) RESERVED_FIELDS split corrected from 4-vs-4 to 4-vs-3-vs-1 per HOST_ABI.md §emit_event (authoritative production contract); (HIGH-004) DI-007 removed — DI-007 is dispatcher self-telemetry (SS-03 internal_log.rs scope), not plugin event emission; replaced with "no current DI for plugin event emission; v1.1 candidate" annotation |
+| v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.03 foundation burst) |

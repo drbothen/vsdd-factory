@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "v1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+modified: [v1.1-adv-s5.03-p01]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `WorktreeRemove` event to the `worktree-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `worktree.removed` event via the `emit_event` host function. One field is set by the plugin: `worktree_path`, sourced from the incoming `WorktreeRemove` envelope. Four additional fields are automatically injected by the `emit_event` host fn from `HostContext` (per BC-1.05.012 enrichment): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Four construction-time fields are set by `InternalEvent::now()`: `ts`, `ts_epoch`, `schema_version`, `type`. Total fields on wire: 9. The plugin performs NO filesystem writes, NO subprocess invocations, and requires ZERO declared capabilities (Option A zero-capability scoping — same as BC-4.07.001). WorktreeRemove is the cleanup complement to WorktreeCreate; the plugin emits the event regardless of whether the worktree was previously registered (unknown-worktree no-op per EC-002).
+When the dispatcher routes a `WorktreeRemove` event to the `worktree-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `worktree.removed` event via the `emit_event` host function. One field is set by the plugin: `worktree_path`, sourced from the incoming `WorktreeRemove` envelope. Eight additional fields are reserved and NOT settable by the plugin (RESERVED_FIELDS), set by the host in three sub-groups: (a) 4 host-enriched from HostContext by `emit_event`: `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`; (b) 3 enriched by `emit_event` from `InternalEvent::now()`: `ts`, `ts_epoch`, `schema_version`; (c) 1 set at construction from the `emit_event` type argument: `type`. Per HOST_ABI.md (authoritative production contract). Total fields on wire: 9. The plugin performs NO filesystem writes, NO subprocess invocations, and requires ZERO declared capabilities (Option A zero-capability scoping — same as BC-4.07.001). WorktreeRemove is the cleanup complement to WorktreeCreate; the plugin emits the event regardless of whether the worktree was previously registered (unknown-worktree no-op per EC-002).
 
 ## Preconditions
 
@@ -49,7 +49,11 @@ When the dispatcher routes a `WorktreeRemove` event to the `worktree-hooks.wasm`
 
    **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Each is a non-empty string per BC-1.05.012 unconditional enrichment.
 
-   **Construction-time fields (4 fields — set by `InternalEvent::now()`, NOT by the plugin or `emit_event` enrichment):** `ts`, `ts_epoch`, `schema_version`, `type`. `type` MUST equal `"worktree.removed"`. All are part of `RESERVED_FIELDS`.
+   **Host-enriched fields from `InternalEvent::now()` (3 fields):** `ts`, `ts_epoch`, `schema_version`. Set by `emit_event` internally. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
+
+   **Construction-time field (1 field):** `type`. Set from the `emit_event` type argument. `type` MUST equal `"worktree.removed"`. Part of `RESERVED_FIELDS`.
+
+   **Authoritative source for RESERVED_FIELDS split:** HOST_ABI.md §emit_event. The 8 RESERVED_FIELDS = 4 HostContext-enriched + 3 InternalEvent::now() + 1 type-argument.
 
    **Wire format note:** All plugin-set field values are strings on the wire (`emit_event.rs:49` coercion). Downstream consumers MUST parse string values back to their semantic types.
 
@@ -127,7 +131,14 @@ VP-067
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-007 (always-on self-telemetry — worktree.removed is part of the always-on telemetry surface; emitted unconditionally per invocation regardless of worktree registration state); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext) |
+| L2 Domain Invariants | DI-007 **REMOVED** (DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events. No current DI for plugin event emission unconditionally; v1.1 candidate per PRD §S-5.03 flag.); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext) |
 | Architecture Module | SS-04 — `crates/hook-plugins/worktree-hooks/src/lib.rs` |
 | Stories | S-5.03 |
 | Functional Requirement | FR-046 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (HIGH-003) RESERVED_FIELDS split corrected from 4-vs-4 to 4-vs-3-vs-1 per HOST_ABI.md §emit_event; (HIGH-004) DI-007 removed — DI-007 is dispatcher self-telemetry scope (SS-03), not plugin event emission; replaced with "no current DI; v1.1 candidate" annotation |
+| v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.03 foundation burst) |

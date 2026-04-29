@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "v1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-7-po, v1.0-pass-8, v1.0-pass-9, v1.0-pass-10]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-7-po, v1.0-pass-8, v1.0-pass-9, v1.0-pass-10, v1.1-adv-s5.03-p01-sibling-sweep]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -127,7 +127,14 @@ VP-065
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-004 (capability denial emits audit event — applies to both exec_subprocess capability gate for factory-health AND read_file capability gate for activated_platform; capability denied for either maps to the respective "unknown" fallback per fail-open design); DI-007 (always-on self-telemetry — session.started is part of the always-on telemetry surface); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set; plugin does not include trace_id in its required-fields list); BC-1.02.005 (lifecycle-tolerant envelope parsing populates HostContext.session_id used by emit_event auto-enrichment; "unknown" sentinel set at envelope-parse layer, not by the plugin) |
+| L2 Domain Invariants | DI-004 (capability denial emits audit event — applies to both exec_subprocess capability gate for factory-health AND read_file capability gate for activated_platform; capability denied for either maps to the respective "unknown" fallback per fail-open design); DI-007 **REMOVED** (retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events. No current DI for plugin event emission unconditionally; v1.1 candidate.); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set; plugin does not include trace_id in its required-fields list); BC-1.02.005 (lifecycle-tolerant envelope parsing populates HostContext.session_id used by emit_event auto-enrichment; "unknown" sentinel set at envelope-parse layer, not by the plugin) |
 | Architecture Module | SS-04 — `crates/hook-plugins/session-start-telemetry/src/lib.rs` |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 internal_log.rs scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.01 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy |
+| v1.0 | 2026-04-27 | product-owner | Final state after S-5.01 convergence passes (v1.0-pass-1 through v1.0-pass-10) |

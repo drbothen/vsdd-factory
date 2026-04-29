@@ -227,3 +227,21 @@ Session-end markers for the VSDD factory. Run /session-review to synthesize.
 - Session ended at 2026-04-28T21:33:13Z (awaiting /session-review)
 - Session ended at 2026-04-28T21:54:26Z (awaiting /session-review)
 - Session ended at 2026-04-28T23:03:11Z (awaiting /session-review)
+
+---
+
+## Process Gap — OBS-005 (ADV-S5.03-P01, 2026-04-28)
+
+**Finding:** Recurring DI/BC mis-anchor pattern across S-5.01, S-5.02, and S-5.03 (three consecutive stories). Specifically:
+
+1. **DI-007 mis-citation (HIGH-004):** DI-007 ("Dispatcher self-telemetry is always-on") was cited in plugin-emission BCs across all three story families (BC-4.04.001/003/005, BC-4.05.001/005, BC-4.07.001/002/004). DI-007 is scoped to SS-03 internal_log.rs (dispatcher-internal-YYYY-MM-DD.jsonl). It does NOT govern plugin-emitted events. No existing DI governs unconditional plugin event emission at v1.0; this is a v1.1 capability registry gap.
+
+2. **BC-1.05.022 deny-by-default mis-anchor (CRIT-002):** BC-1.05.022 is the `read_file` SUCCESS path ("reads_allowed_file"), not the deny-by-default path. The correct deny-by-default anchors are BC-1.05.001 (exec_subprocess denied) and BC-1.05.021 (read_file denied). This error appeared in BC-4.05.005, BC-4.07.001, and BC-4.07.004.
+
+**Root cause:** No adversary prompt verification step that cross-checks "BC-NNN cited in prose matches BC-INDEX title" or "DI-NNN citation matches invariants.md scope field." Both mis-anchors are invisible to a surface-level review that only checks ID format.
+
+**Recommendation for adversary prompt enhancement:**
+- Add check: "For each DI-NNN cited in a BC Traceability section, verify the DI scope in invariants.md covers the artifact being traced (plugin vs. dispatcher vs. sink)."
+- Add check: "For each BC-NNN cited as enforcing a behavior (e.g., 'deny-by-default per BC-X.XX.XXX'), verify the cited BC's H1 title describes that behavior, not a different path through the same subsystem."
+
+**Scope of retroactive fix (2026-04-28):** 9 BC files corrected across S-5.01 + S-5.02 + S-5.03 sibling sweep. DI-007 citation removed from all nine; BC-1.05.022 replaced with BC-1.05.001+BC-1.05.021 pair in three BCs. This sweep was triggered by ADV-S5.03-P01 adversarial review.
