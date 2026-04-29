@@ -192,6 +192,10 @@ fn test_BC_9_01_005_hooks_json_gitignored() {
 ///
 /// Runs bump-version.sh against a temp directory with a minimal CHANGELOG.md
 /// so we exercise the real script without touching the repo's CHANGELOG.
+///
+/// Unix-only: the script uses bash shebang + POSIX commands; Windows Git Bash
+/// cannot resolve the temp-dir paths used here. Verified on linux-x64 and darwin.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_001_bump_version_accepts_rc_prerelease_format() {
     let script = repo_root().join("scripts/bump-version.sh");
@@ -334,6 +338,9 @@ fn test_BC_9_01_006_check_shakedown_window_script_exists() {
 /// Simulates: >=14 days elapsed, no open P0 issues. For the RED gate we
 /// inject a mock that forces the satisfied path — but the stub does not
 /// support this, so the test will fail as required.
+///
+/// Unix-only: bash script invocation does not work on Windows CI runners.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_006_shakedown_window_exits_0_when_satisfied() {
     let script = repo_root().join("scripts/check-shakedown-window.sh");
@@ -407,6 +414,8 @@ fn test_BC_9_01_006_shakedown_window_exits_1_when_p0_open() {
 /// BC-9.01.006 PC3: check-shakedown-window.sh must exit 2 for non-existent tag.
 ///
 /// RED GATE: stub exits 1 (not 2). Will fail until real implementation.
+/// Unix-only: bash script invocation does not work on Windows CI runners.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_006_shakedown_window_exits_2_for_missing_tag() {
     let script = repo_root().join("scripts/check-shakedown-window.sh");
@@ -444,6 +453,8 @@ fn test_BC_9_01_006_shakedown_window_exits_2_for_missing_tag() {
 ///
 /// RED GATE: stub exits 1 regardless. Will fail until real implementation
 /// supports the --stories flag with MOCK_SATISFIED semantics.
+/// Unix-only: bash script invocation does not work on Windows CI runners.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_006_shakedown_window_stories_flag_exits_0_when_satisfied() {
     let script = repo_root().join("scripts/check-shakedown-window.sh");
@@ -491,6 +502,8 @@ fn test_BC_9_01_changelog_monotonicity_script_exists() {
 ///
 /// RED GATE: stub always exits 2. Will fail until real implementation.
 /// We pass a temp file with a monotonic (descending-date) CHANGELOG.
+/// Unix-only: bash script invocation does not work on Windows CI runners.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_changelog_monotonicity_exits_0_for_monotonic_changelog() {
     let script = repo_root().join("scripts/check-changelog-monotonicity.sh");
@@ -567,6 +580,8 @@ fn test_BC_9_01_changelog_monotonicity_exits_1_for_non_monotonic_changelog() {
 ///
 /// The stub already exits 2, so this test should pass on the stub AND
 /// on the real implementation — documenting the contract.
+/// Unix-only: bash invocation; Windows Git Bash path resolution differs.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_changelog_monotonicity_exits_2_for_missing_file() {
     let script = repo_root().join("scripts/check-changelog-monotonicity.sh");
