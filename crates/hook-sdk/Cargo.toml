@@ -28,3 +28,6 @@ serde_json.workspace = true
 [[example]]
 name = "hello-hook"
 path = "examples/hello-hook.rs"
+
+[lints]
+workspace = true

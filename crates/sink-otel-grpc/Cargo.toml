@@ -29,3 +29,6 @@ hostname.workspace = true
 tempfile.workspace = true
 toml.workspace = true
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread", "sync"] }
+
+[lints]
+workspace = true
