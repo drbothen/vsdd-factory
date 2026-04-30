@@ -6,15 +6,15 @@
 use sink_core::resilience::RetryPolicy;
 use std::time::Duration;
 
-/// Test vector table (from story AC formula: delay_n = min(base * 2^n, max)):
-///
-/// | n | base=100ms | multiplier=2 | expected (no jitter) |
-/// |---|-----------|--------------|----------------------|
-/// | 0 | 100ms     | 2^0=1        | 100ms                |
-/// | 1 | 100ms     | 2^1=2        | 200ms                |
-/// | 2 | 100ms     | 2^2=4        | 400ms                |
-/// | 3 | 100ms     | 2^3=8        | 800ms                |
-/// | 4 | 100ms     | 2^4=16       | 1600ms               |
+// Test vector table (from story AC formula: delay_n = min(base * 2^n, max)):
+//
+// | n | base=100ms | multiplier=2 | expected (no jitter) |
+// |---|-----------|--------------|----------------------|
+// | 0 | 100ms     | 2^0=1        | 100ms                |
+// | 1 | 100ms     | 2^1=2        | 200ms                |
+// | 2 | 100ms     | 2^2=4        | 400ms                |
+// | 3 | 100ms     | 2^3=8        | 800ms                |
+// | 4 | 100ms     | 2^4=16       | 1600ms               |
 
 /// Exercises BC-3.NN.NNN-retry-policy-exponential-backoff postcondition:
 /// delay at attempt 0 equals base_delay_ms (no jitter variant).

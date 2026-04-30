@@ -28,3 +28,6 @@ httpmock.workspace = true
 toml.workspace = true
 tokio.workspace = true
 tempfile.workspace = true
+
+[lints]
+workspace = true

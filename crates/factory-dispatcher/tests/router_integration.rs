@@ -19,11 +19,7 @@ use factory_dispatcher::sinks::{Router, SinkRegistry};
 use sink_core::{RoutingFilter, SinkEvent};
 use sink_file::{FileSink, FileSinkConfig};
 
-fn make_sink(
-    name: &str,
-    path_template: &str,
-    routing_filter: Option<RoutingFilter>,
-) -> FileSink {
+fn make_sink(name: &str, path_template: &str, routing_filter: Option<RoutingFilter>) -> FileSink {
     FileSink::new(
         FileSinkConfig {
             name: name.to_string(),
@@ -86,8 +82,7 @@ fn test_BC_3_04_004_two_sinks_different_filters_correct_routing() {
 
     // ── ORACLE: Sink-A must have exactly 1 line: commit.made ─────────────────
     let sink_a_path = tmp.path().join(format!("sink_a_{date}.jsonl"));
-    let content_a = std::fs::read_to_string(&sink_a_path)
-        .unwrap_or_default();
+    let content_a = std::fs::read_to_string(&sink_a_path).unwrap_or_default();
     let lines_a: Vec<&str> = content_a.lines().filter(|l| !l.trim().is_empty()).collect();
 
     assert_eq!(
@@ -107,8 +102,7 @@ fn test_BC_3_04_004_two_sinks_different_filters_correct_routing() {
 
     // ── ORACLE: Sink-B must have exactly 2 lines: commit.made + sink_error ───
     let sink_b_path = tmp.path().join(format!("sink_b_{date}.jsonl"));
-    let content_b = std::fs::read_to_string(&sink_b_path)
-        .unwrap_or_default();
+    let content_b = std::fs::read_to_string(&sink_b_path).unwrap_or_default();
     let lines_b: Vec<&str> = content_b.lines().filter(|l| !l.trim().is_empty()).collect();
 
     assert_eq!(

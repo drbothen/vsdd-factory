@@ -37,7 +37,10 @@ fn test_BC_3_01_002_unknown_sink_type_splunk_warns_but_does_not_fail() {
             extra: {
                 let mut t = toml::value::Table::new();
                 // Some arbitrary splunk-specific field (unknown to registry).
-                t.insert("hec_url".into(), toml::Value::String("https://hec.splunk.example/events".into()));
+                t.insert(
+                    "hec_url".into(),
+                    toml::Value::String("https://hec.splunk.example/events".into()),
+                );
                 t
             },
         }],
@@ -89,7 +92,10 @@ fn test_BC_3_01_002_mixed_known_unknown_types_unknown_excluded() {
                 dlq_enabled: false,
                 extra: {
                     let mut t = toml::value::Table::new();
-                    t.insert("hec_url".into(), toml::Value::String("https://hec.example".into()));
+                    t.insert(
+                        "hec_url".into(),
+                        toml::Value::String("https://hec.example".into()),
+                    );
                     t
                 },
             },
@@ -149,8 +155,8 @@ fn test_BC_3_05_001_file_stanza_loads_into_single_sink_registry() {
         }],
     };
 
-    let reg = SinkRegistry::from_config(cfg)
-        .expect("BC-3.05.001: config load must not return error");
+    let reg =
+        SinkRegistry::from_config(cfg).expect("BC-3.05.001: config load must not return error");
 
     // Oracle: exactly 1 sink.
     assert_eq!(
@@ -197,10 +203,13 @@ path_template = "{path}"
     let cfg_path = tmp.path().join("observability-config.toml");
     std::fs::write(&cfg_path, toml_src).unwrap();
 
-    let reg = SinkRegistry::load(&cfg_path)
-        .expect("BC-3.05.001: TOML file load must succeed");
+    let reg = SinkRegistry::load(&cfg_path).expect("BC-3.05.001: TOML file load must succeed");
 
-    assert_eq!(reg.sinks().len(), 1, "BC-3.05.001: 1 sink from TOML file load");
+    assert_eq!(
+        reg.sinks().len(),
+        1,
+        "BC-3.05.001: 1 sink from TOML file load"
+    );
     assert_eq!(
         reg.sinks()[0].name(),
         "local-events",
@@ -221,10 +230,7 @@ path_template = "{path}"
 fn test_BC_3_05_001_router_submit_works_end_to_end_from_toml_config() {
     let tmp = tempfile::tempdir().unwrap();
     let date = chrono::Local::now().format("%Y-%m-%d");
-    let events_path_template = format!(
-        "{}/events-{{date}}.jsonl",
-        tmp.path().display()
-    );
+    let events_path_template = format!("{}/events-{{date}}.jsonl", tmp.path().display());
     let toml_src = format!(
         r#"
 schema_version = 1
@@ -249,7 +255,10 @@ path_template = "{template}"
     router.shutdown();
 
     let events_path = tmp.path().join(format!("events-{date}.jsonl"));
-    assert!(events_path.exists(), "output file must exist after submit+flush+shutdown");
+    assert!(
+        events_path.exists(),
+        "output file must exist after submit+flush+shutdown"
+    );
     let content = std::fs::read_to_string(&events_path).unwrap();
     let lines: Vec<&str> = content.lines().filter(|l| !l.trim().is_empty()).collect();
     assert_eq!(

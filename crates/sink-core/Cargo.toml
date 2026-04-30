@@ -38,3 +38,6 @@ httpmock.workspace = true
 sink-http = { path = "../sink-http", version = "0.0.1" }
 sink-otel-grpc = { path = "../sink-otel-grpc", version = "0.0.1" }
 sink-file = { path = "../sink-file", version = "0.0.1" }
+
+[lints]
+workspace = true

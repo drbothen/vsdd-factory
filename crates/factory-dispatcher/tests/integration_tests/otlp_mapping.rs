@@ -79,7 +79,7 @@ fn test_BC_3_05_003_ten_events_arrive_with_correct_otlp_field_mapping() {
         endpoint: server.endpoint(),
         resource_attributes: Default::default(),
         batch: BatchConfig {
-            size: 100,      // Large batch — flush() is the trigger.
+            size: 100, // Large batch — flush() is the trigger.
             interval_ms: 60_000,
         },
         queue_depth: 1000,

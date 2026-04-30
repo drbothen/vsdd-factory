@@ -17,8 +17,8 @@
 use std::time::Duration;
 
 use factory_dispatcher::sinks::{ObservabilityConfig, Router, SinkRegistry, SinkStanza};
+use sink_core::Sink;
 use sink_otel_grpc::{BatchConfig, OtelGrpcConfig, OtelGrpcSink};
-use sink_core::{Sink, SinkEvent};
 
 use super::harness::{OtlpMockServer, build_event, wait_for};
 
@@ -97,10 +97,7 @@ fn test_BC_3_03_001_zero_disk_mode_all_events_reach_otlp_receiver() {
     assert!(
         tmp_contents.is_empty(),
         "AC-1: zero-disk mode must not create any filesystem files; found: {:?}",
-        tmp_contents
-            .iter()
-            .map(|e| e.path())
-            .collect::<Vec<_>>()
+        tmp_contents.iter().map(|e| e.path()).collect::<Vec<_>>()
     );
 
     // Oracle: shutdown joins cleanly (BC-3.03.007 PC1).

@@ -277,27 +277,23 @@ pub fn on_session_start(payload: HookPayload) -> HookResult {
     session_start_hook_logic(
         payload,
         // read_file: .claude/settings.local.json
-        || {
-            match vsdd_hook_sdk::host::read_file(".claude/settings.local.json", 65536, 1000) {
-                Ok(bytes) => ReadFileOutcome::Ok(bytes),
-                Err(_) => ReadFileOutcome::Err,
-            }
+        || match vsdd_hook_sdk::host::read_file(".claude/settings.local.json", 65536, 1000) {
+            Ok(bytes) => ReadFileOutcome::Ok(bytes),
+            Err(_) => ReadFileOutcome::Err,
         },
         // exec_subprocess: factory-health --brief
-        || {
-            match vsdd_hook_sdk::host::exec_subprocess(
-                "factory-health",
-                &["--brief"],
-                &[],
-                5000,
-                65536,
-            ) {
-                Ok(result) => ExecSubprocessOutcome::Ok {
-                    exit_code: result.exit_code,
-                    stdout: String::from_utf8_lossy(&result.stdout).into_owned(),
-                },
-                Err(_) => ExecSubprocessOutcome::Err,
-            }
+        || match vsdd_hook_sdk::host::exec_subprocess(
+            "factory-health",
+            &["--brief"],
+            &[],
+            5000,
+            65536,
+        ) {
+            Ok(result) => ExecSubprocessOutcome::Ok {
+                exit_code: result.exit_code,
+                stdout: String::from_utf8_lossy(&result.stdout).into_owned(),
+            },
+            Err(_) => ExecSubprocessOutcome::Err,
         },
         // emit_event
         |fields| {

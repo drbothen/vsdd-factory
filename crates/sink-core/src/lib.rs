@@ -34,7 +34,9 @@ pub mod resilience;
 pub mod router_filter;
 
 pub use dead_letter::{DlqError, DlqReason, DlqWriter, DlqWriterConfig};
-pub use events::{SinkDlqEvent, SinkDlqFailureEvent, SinkDlqWriteEvent, SinkErrorEvent, emit_sink_error};
+pub use events::{
+    SinkDlqEvent, SinkDlqFailureEvent, SinkDlqWriteEvent, SinkErrorEvent, emit_sink_error,
+};
 pub use path_template::PathTemplateError;
 pub use router_filter::RoutingFilter;
 
@@ -180,8 +182,7 @@ pub trait Sink: Send + Sync {
     /// `submit` (BC-3.04.004 PC3). Default implementation returns an
     /// empty map — sinks with no tags configured need not override.
     fn tags(&self) -> &BTreeMap<String, String> {
-        static EMPTY: std::sync::OnceLock<BTreeMap<String, String>> =
-            std::sync::OnceLock::new();
+        static EMPTY: std::sync::OnceLock<BTreeMap<String, String>> = std::sync::OnceLock::new();
         EMPTY.get_or_init(BTreeMap::new)
     }
 

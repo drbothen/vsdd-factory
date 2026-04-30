@@ -196,10 +196,7 @@ mod tool_failure_integration {
                 ];
                 for (k, v) in fields {
                     if !RESERVED.contains(k) {
-                        event.insert(
-                            k.to_string(),
-                            serde_json::Value::String(v.to_string()),
-                        );
+                        event.insert(k.to_string(), serde_json::Value::String(v.to_string()));
                     }
                 }
 
@@ -271,13 +268,11 @@ mod tool_failure_integration {
             "dispatcher_trace_id must be a non-empty string (host-enriched; plugin must NOT set this)"
         );
         assert!(
-            event["session_id"].is_string()
-                && !event["session_id"].as_str().unwrap().is_empty(),
+            event["session_id"].is_string() && !event["session_id"].as_str().unwrap().is_empty(),
             "session_id must be a non-empty string (host-enriched per BC-1.05.012; plugin must NOT set this)"
         );
         assert!(
-            event["plugin_name"].is_string()
-                && !event["plugin_name"].as_str().unwrap().is_empty(),
+            event["plugin_name"].is_string() && !event["plugin_name"].as_str().unwrap().is_empty(),
             "plugin_name must be a non-empty string (host-enriched per BC-1.05.012)"
         );
         assert!(
@@ -287,9 +282,18 @@ mod tool_failure_integration {
         );
 
         // --- Construction-time fields (4) ---
-        assert!(event.get("ts").is_some(), "ts construction-time field must be present");
-        assert!(event.get("ts_epoch").is_some(), "ts_epoch construction-time field must be present");
-        assert!(event.get("schema_version").is_some(), "schema_version must be present");
+        assert!(
+            event.get("ts").is_some(),
+            "ts construction-time field must be present"
+        );
+        assert!(
+            event.get("ts_epoch").is_some(),
+            "ts_epoch construction-time field must be present"
+        );
+        assert!(
+            event.get("schema_version").is_some(),
+            "schema_version must be present"
+        );
         assert_eq!(
             event.get("type").and_then(|v| v.as_str()),
             Some("tool.error"),
@@ -299,8 +303,7 @@ mod tool_failure_integration {
         // --- Total field count: exactly 10 ---
         let field_count = event.as_object().map(|m| m.len()).unwrap_or(0);
         assert_eq!(
-            field_count,
-            10,
+            field_count, 10,
             "BC-4.08.001: tool.error wire payload must have exactly 10 fields \
              (2 plugin-set + 4 host-enriched + 4 construction-time); got {field_count}"
         );
@@ -312,8 +315,14 @@ mod tool_failure_integration {
             .filter(|k| {
                 !matches!(
                     k.as_str(),
-                    "dispatcher_trace_id" | "session_id" | "plugin_name" | "plugin_version"
-                        | "ts" | "ts_epoch" | "schema_version" | "type"
+                    "dispatcher_trace_id"
+                        | "session_id"
+                        | "plugin_name"
+                        | "plugin_version"
+                        | "ts"
+                        | "ts_epoch"
+                        | "schema_version"
+                        | "type"
                 )
             })
             .map(|k| k.as_str())
@@ -399,7 +408,11 @@ mod tool_failure_integration {
     fn test_bc_4_08_001_error_message_truncated_at_1000_chars() {
         // 1500-char error message: exceeds the 1000-char truncation limit
         let long_error = "E".repeat(1500);
-        assert_eq!(long_error.len(), 1500, "fixture: long_error must be 1500 chars");
+        assert_eq!(
+            long_error.len(),
+            1500,
+            "fixture: long_error must be 1500 chars"
+        );
 
         let payload = make_tool_failure_payload(
             "sess-truncation",
@@ -452,7 +465,11 @@ mod tool_failure_integration {
     fn test_bc_4_08_001_error_message_exactly_1000_chars_no_truncation() {
         // Exactly 1000 chars: at the boundary — must NOT be truncated
         let exact_error = "X".repeat(1000);
-        assert_eq!(exact_error.len(), 1000, "fixture: exact_error must be exactly 1000 chars");
+        assert_eq!(
+            exact_error.len(),
+            1000,
+            "fixture: exact_error must be exactly 1000 chars"
+        );
 
         let payload = make_tool_failure_payload(
             "sess-boundary",
@@ -467,7 +484,11 @@ mod tool_failure_integration {
             .filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("tool.error"))
             .collect();
 
-        assert_eq!(tool_errors.len(), 1, "tool.error must be emitted for 1000-char error_message");
+        assert_eq!(
+            tool_errors.len(),
+            1,
+            "tool.error must be emitted for 1000-char error_message"
+        );
 
         let emitted_msg = tool_errors[0]["error_message"]
             .as_str()
@@ -648,18 +669,16 @@ mod tool_failure_integration {
 
         // BC-4.08.002 PC-4: async:true
         assert_eq!(
-            entry["async"],
-            true,
+            entry["async"], true,
             "BC-4.08.002 PC-4: PostToolUseFailure entry must have async:true"
         );
 
         // BC-4.08.002 PC-5: timeout:10000
-        let timeout = entry["timeout"]
-            .as_i64()
-            .expect("BC-4.08.002 PC-5: hooks.PostToolUseFailure[0].hooks[0].timeout must be an integer");
+        let timeout = entry["timeout"].as_i64().expect(
+            "BC-4.08.002 PC-5: hooks.PostToolUseFailure[0].hooks[0].timeout must be an integer",
+        );
         assert_eq!(
-            timeout,
-            10000,
+            timeout, 10000,
             "BC-4.08.002 PC-5: PostToolUseFailure timeout must be 10000ms \
              (ADR-011 timeout hierarchy: dispatcher budget 5000ms < harness timeout 10000ms)"
         );
@@ -695,17 +714,20 @@ mod tool_failure_integration {
                 path.exists(),
                 "BC-4.08.002 Invariant 5: platform variant '{}' must exist at {:?} \
                  (generated by scripts/generate-hooks-json.sh after template edit)",
-                variant, path
+                variant,
+                path
             );
 
             let content = std::fs::read_to_string(&path).unwrap_or_else(|e| {
-                panic!("failed to read platform variant '{}' at {path:?}: {e}", variant)
+                panic!(
+                    "failed to read platform variant '{}' at {path:?}: {e}",
+                    variant
+                )
             });
 
             // Parse as JSON to verify structure
-            let json: serde_json::Value = serde_json::from_str(&content).unwrap_or_else(|e| {
-                panic!("failed to parse '{}' as JSON: {e}", variant)
-            });
+            let json: serde_json::Value = serde_json::from_str(&content)
+                .unwrap_or_else(|e| panic!("failed to parse '{}' as JSON: {e}", variant));
 
             // PostToolUseFailure key must be present in this variant
             assert!(
@@ -760,8 +782,7 @@ mod tool_failure_integration {
             .filter(|h| h.get("event").and_then(|v| v.as_str()) == Some("PostToolUseFailure"))
             .count();
         assert_eq!(
-            count,
-            1,
+            count, 1,
             "BC-4.08.003: exactly one PostToolUseFailure entry must be present in hooks-registry.toml; \
              found {count} entries"
         );
@@ -769,7 +790,9 @@ mod tool_failure_integration {
         let entry = hooks
             .iter()
             .find(|h| h.get("event").and_then(|v| v.as_str()) == Some("PostToolUseFailure"))
-            .expect("BC-4.08.003 PC-1: PostToolUseFailure entry must be present in hooks-registry.toml");
+            .expect(
+                "BC-4.08.003 PC-1: PostToolUseFailure entry must be present in hooks-registry.toml",
+            );
 
         // BC-4.08.003 PC-1: name field (required; no default)
         assert_eq!(
@@ -794,8 +817,7 @@ mod tool_failure_integration {
                  (RegistryEntry.timeout_ms; deny_unknown_fields rejects 'epoch_budget_ms' or 'timeout')"
             );
         assert_eq!(
-            timeout_ms,
-            5000,
+            timeout_ms, 5000,
             "BC-4.08.003 PC-3: timeout_ms must be 5000 for PostToolUseFailure \
              (stateless emit-only; no subprocess wait per BC-4.08.001 Invariant 1)"
         );

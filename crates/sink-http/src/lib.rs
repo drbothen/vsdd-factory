@@ -24,7 +24,10 @@
 pub mod retry;
 
 use serde::Deserialize;
-use sink_core::{DlqReason, DlqWriter, RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent, emit_sink_error};
+use sink_core::{
+    DlqReason, DlqWriter, RoutingFilter, Sink, SinkConfigCommon, SinkErrorEvent, SinkEvent,
+    emit_sink_error,
+};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -429,6 +432,9 @@ pub struct HttpSink {
     worker: Mutex<Option<JoinHandle<()>>>,
     shared: Arc<Shared>,
     /// Optional DLQ writer for retry-exhausted events (S-4.05 Task 2b).
+    /// The field is cloned into `worker_dlq` at construction; clippy sees it as
+    /// dead because `self.dlq_writer` is not directly dereffed after `new()`.
+    #[allow(dead_code)]
     dlq_writer: Option<Arc<DlqWriter>>,
 }
 
@@ -550,7 +556,7 @@ impl Sink for HttpSink {
         &self.name
     }
 
-    fn accepts(&self, event: &SinkEvent) -> bool {
+    fn accepts(&self, _event: &SinkEvent) -> bool {
         if !self.common.enabled {
             return false;
         }
@@ -728,6 +734,7 @@ async fn worker_loop(
 ///
 /// When `dlq_writer` is `Some` and all retries are exhausted for a 5xx or
 /// network error, every event in `batch` is written to the DLQ (S-4.05 / AC-002).
+#[allow(clippy::too_many_arguments)]
 async fn post_batch(
     client: &reqwest::Client,
     url: &str,

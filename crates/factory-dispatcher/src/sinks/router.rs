@@ -46,18 +46,18 @@ impl Router {
     pub fn submit(&self, event: SinkEvent) {
         for sink in self.registry.sinks() {
             // Step 1: Apply per-sink routing filter (BC-3.04.004 PC1).
-            if let Some(filter) = sink.routing_filter() {
-                if !filter.accepts(&event) {
-                    // BC-3.04.003 PC2+PC3: silent drop — no SinkFailure;
-                    // emit debug-level INTERNAL_EVENT_FILTERED log entry.
-                    debug!(
-                        type_ = INTERNAL_EVENT_FILTERED,
-                        sink_name = %sink.name(),
-                        event_type = %event.event_type().unwrap_or("<unknown>"),
-                        "Router silently dropped event that failed routing filter"
-                    );
-                    continue;
-                }
+            if let Some(filter) = sink.routing_filter()
+                && !filter.accepts(&event)
+            {
+                // BC-3.04.003 PC2+PC3: silent drop — no SinkFailure;
+                // emit debug-level INTERNAL_EVENT_FILTERED log entry.
+                debug!(
+                    type_ = INTERNAL_EVENT_FILTERED,
+                    sink_name = %sink.name(),
+                    event_type = %event.event_type().unwrap_or("<unknown>"),
+                    "Router silently dropped event that failed routing filter"
+                );
+                continue;
             }
 
             // Step 2: Tag enrichment (BC-3.04.004 PC3+PC4).
@@ -70,7 +70,8 @@ impl Router {
                     let mut ev = event.clone();
                     for (k, v) in sink_tags {
                         if !ev.fields.contains_key(k) {
-                            ev.fields.insert(k.clone(), serde_json::Value::String(v.clone()));
+                            ev.fields
+                                .insert(k.clone(), serde_json::Value::String(v.clone()));
                         }
                     }
                     ev
@@ -278,7 +279,12 @@ mod tests {
         router.shutdown();
 
         let events = submitted.lock().unwrap();
-        assert_eq!(events.len(), 1, "event must reach sink; got {} events", events.len());
+        assert_eq!(
+            events.len(),
+            1,
+            "event must reach sink; got {} events",
+            events.len()
+        );
 
         let ev = &events[0];
         assert_eq!(

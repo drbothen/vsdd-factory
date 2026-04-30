@@ -122,7 +122,11 @@ where
             if let Some(n) = v.as_u64() {
                 n.to_string()
             } else if let Some(n) = v.as_i64() {
-                if n < 0 { "0".to_string() } else { n.to_string() }
+                if n < 0 {
+                    "0".to_string()
+                } else {
+                    n.to_string()
+                }
             } else if let Some(s) = v.as_str() {
                 match s.parse::<u64>() {
                     Ok(n) => n.to_string(),

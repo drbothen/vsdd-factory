@@ -63,6 +63,14 @@ hostname = "0.4"
 reqwest = { version = "0.12", features = ["json"] }
 httpmock = "0.7"
 
+[workspace.lints.rust]
+# VSDD traceability convention uses uppercase BC-N.NN.NNN and TV-NNN ids
+# as test function name prefixes (e.g. test_BC_4_05_001_*, test_TV_001_*).
+# These are intentional deviations from snake_case to preserve the
+# spec-traceability mapping; suppressing the lint workspace-wide avoids
+# having to scatter #![allow(non_snake_case)] across 50+ test files.
+non_snake_case = "allow"
+
 [profile.release]
 opt-level = 3
 lto = "thin"

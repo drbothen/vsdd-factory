@@ -78,8 +78,7 @@ fn test_BC_v1_1_datadog_sink_posts_with_dd_api_key_header() {
 fn test_BC_v1_1_datadog_sink_batches_multiple_events_with_auth_header() {
     let server = MockServer::start();
     let api_key_mock = server.mock(|when, then| {
-        when.method(POST)
-            .header("DD-API-KEY", "dd-key-batch-test");
+        when.method(POST).header("DD-API-KEY", "dd-key-batch-test");
         then.status(200).body("ok");
     });
 
@@ -166,16 +165,21 @@ fn test_BC_v1_1_datadog_sink_posts_valid_json_body() {
 fn test_BC_v1_1_datadog_sink_reachable_through_router_submit() {
     let server = MockServer::start();
     let api_key_mock = server.mock(|when, then| {
-        when.method(POST)
-            .header("DD-API-KEY", "dd-router-test-key");
+        when.method(POST).header("DD-API-KEY", "dd-router-test-key");
         then.status(200).body("ok");
     });
 
     // Build a config with type='datadog'.
     // RED gate: `SinkRegistry::from_config` currently skips 'datadog' as unknown.
     let mut extra = toml::value::Table::new();
-    extra.insert("api_key".into(), toml::Value::String("dd-router-test-key".into()));
-    extra.insert("endpoint".into(), toml::Value::String(server.url("/v2/logs")));
+    extra.insert(
+        "api_key".into(),
+        toml::Value::String("dd-router-test-key".into()),
+    );
+    extra.insert(
+        "endpoint".into(),
+        toml::Value::String(server.url("/v2/logs")),
+    );
 
     let cfg = ObservabilityConfig {
         schema_version: 1,

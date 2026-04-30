@@ -155,7 +155,10 @@ impl SinkRegistry {
     /// Empty registry — integration tests and a few callers that want
     /// to add sinks programmatically use this.
     pub fn empty() -> Self {
-        Self { sinks: Vec::new(), dlq_present_per_sink: Vec::new() }
+        Self {
+            sinks: Vec::new(),
+            dlq_present_per_sink: Vec::new(),
+        }
     }
 
     /// Programmatic constructor for tests and for the eventual
@@ -163,7 +166,10 @@ impl SinkRegistry {
     /// `Box<dyn Sink>` (e.g. a `FileSink` wrapped in a box).
     pub fn with_sinks(sinks: Vec<Box<dyn Sink>>) -> Self {
         let len = sinks.len();
-        Self { sinks, dlq_present_per_sink: vec![false; len] }
+        Self {
+            sinks,
+            dlq_present_per_sink: vec![false; len],
+        }
     }
 
     /// Construct a registry from an already-parsed config, wiring DLQ writers
@@ -185,9 +191,7 @@ impl SinkRegistry {
 
         // AC-011: validate all sink names before constructing any sinks.
         for stanza in &cfg.sinks {
-            stanza
-                .validate()
-                .map_err(|e| anyhow::anyhow!("{}", e))?;
+            stanza.validate().map_err(|e| anyhow::anyhow!("{}", e))?;
         }
 
         let project_dir = std::env::var("CLAUDE_PROJECT_DIR").ok();
@@ -250,7 +254,8 @@ impl SinkRegistry {
                                 stanza.name
                             )
                         })?;
-                    let sink = HttpSink::new_with_observability(http_cfg, None, dlq_writer.clone())?;
+                    let sink =
+                        HttpSink::new_with_observability(http_cfg, None, dlq_writer.clone())?;
                     sinks.push(Box::new(sink));
                 }
                 "otel-grpc" => {
@@ -275,7 +280,10 @@ impl SinkRegistry {
             dlq_present.push(has_dlq);
         }
 
-        Ok(Self { sinks, dlq_present_per_sink: dlq_present })
+        Ok(Self {
+            sinks,
+            dlq_present_per_sink: dlq_present,
+        })
     }
 
     /// Test helper: returns `true` if the sink at `idx` was wired with a DLQ
@@ -283,6 +291,7 @@ impl SinkRegistry {
     ///
     /// `pub(crate)` — not part of the public API; used only from `#[cfg(test)]`
     /// blocks within this crate (AC-012, F-4302 resolution).
+    #[allow(dead_code)]
     pub(crate) fn has_dlq_for_test(&self, idx: usize) -> bool {
         self.dlq_present_per_sink.get(idx).copied().unwrap_or(false)
     }
@@ -362,7 +371,11 @@ impl SinkRegistry {
                     merged.insert("schema_version".into(), toml::Value::Integer(1));
                     merged.insert("type".into(), toml::Value::String("datadog".into()));
                     let toml_str = toml::to_string(&merged).map_err(|e| {
-                        anyhow::anyhow!("datadog sink '{}' config serialization: {}", stanza.name, e)
+                        anyhow::anyhow!(
+                            "datadog sink '{}' config serialization: {}",
+                            stanza.name,
+                            e
+                        )
                     })?;
                     let dd_cfg = DatadogSinkConfig::from_toml(&toml_str)
                         .map_err(|e| {
@@ -383,11 +396,19 @@ impl SinkRegistry {
                     merged.insert("name".into(), toml::Value::String(stanza.name.clone()));
                     merged.insert("type".into(), toml::Value::String("honeycomb".into()));
                     let toml_str = toml::to_string(&merged).map_err(|e| {
-                        anyhow::anyhow!("honeycomb sink '{}' config serialization: {}", stanza.name, e)
+                        anyhow::anyhow!(
+                            "honeycomb sink '{}' config serialization: {}",
+                            stanza.name,
+                            e
+                        )
                     })?;
                     let hc_cfg = HoneycombSinkConfig::from_toml(&toml_str)
                         .map_err(|e| {
-                            anyhow::anyhow!("honeycomb sink '{}' config invalid: {}", stanza.name, e)
+                            anyhow::anyhow!(
+                                "honeycomb sink '{}' config invalid: {}",
+                                stanza.name,
+                                e
+                            )
                         })?
                         .ok_or_else(|| {
                             anyhow::anyhow!(
@@ -408,7 +429,10 @@ impl SinkRegistry {
         }
 
         let n = sinks.len();
-        Ok(Self { sinks, dlq_present_per_sink: vec![false; n] })
+        Ok(Self {
+            sinks,
+            dlq_present_per_sink: vec![false; n],
+        })
     }
 
     /// Fan an event out to every sink that accepts it. Non-blocking:
