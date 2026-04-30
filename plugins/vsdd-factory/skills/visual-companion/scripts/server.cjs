@@ -286,15 +286,36 @@ function handleRequest(req, res) {
       res.end('Not found');
       return;
     }
-    // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal, javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- traversal is explicitly blocked by the startsWith(DIST_DIR) check immediately below before any I/O.
-    const assetPath = path.join(DIST_DIR, pathname);
-    const resolved = path.resolve(assetPath);
-    // Prevent directory traversal
-    if (!resolved.startsWith(path.resolve(DIST_DIR))) {
+
+    const decoded = decodeURIComponent(pathname);
+
+    // Defense-in-depth: reject path-traversal patterns at the input layer,
+    // BEFORE filesystem path construction. Catches '..' (relative parent),
+    // null bytes (CVE-2010-2227 class), and percent-encoded variants the
+    // runtime would not normalize to a safe path.
+    if (decoded.includes('..') || decoded.includes('\0')) {
       res.writeHead(403);
       res.end('Forbidden');
       return;
     }
+
+    // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal, javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- defense-in-depth: '..' and '\0' rejected at lines above; boundary check below uses path.sep suffix to prevent prefix-match attacks (e.g. /parent/dist_evil vs /parent/dist).
+    const assetPath = path.join(DIST_DIR, decoded);
+    // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal, javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- see line above; same multi-layer guard applies.
+    const resolved = path.resolve(assetPath);
+
+    // Belt-and-suspenders: enforce that the resolved path is INSIDE DIST_DIR.
+    // Trailing path.sep prevents prefix-match attacks (e.g. /parent/dist_evil
+    // would otherwise match prefix of /parent/dist). Equality covers the
+    // edge case of a request resolving to DIST_DIR itself.
+    const distDirResolved = path.resolve(DIST_DIR);
+    if (resolved !== distDirResolved &&
+        !resolved.startsWith(distDirResolved + path.sep)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+
     if (!fs.existsSync(resolved)) {
       res.writeHead(404);
       res.end('Not found');
