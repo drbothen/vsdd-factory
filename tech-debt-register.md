@@ -460,18 +460,19 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 - S-3.04 epic (legacy-bash-adapter) for adapter design; planned to be retired when migration completes.
 - S-5.06 semver commitment doc: hook-sdk ABI is stable surface (HOST_ABI_VERSION = 1) — v1.1 native ports leverage this.
 
-**Recommended next steps:**
-1. Architect produces an epic decomposition (proposed E-8 "Native WASM Migration Completion") with 4 tiers.
-2. PO drafts story specs for Tier 1 (8 dispatcher-routed hooks) — small per-story scope (~3pts each).
-3. Adversarial spec convergence per story (or batched per tier).
-4. TDD implementation with bats tests for each.
-5. Track migration progress via "% of bash hooks migrated" metric in STATE.md.
+**Epic spec status (2026-04-30):** E-8 epic spec (E-8-native-wasm-migration.md) CONVERGED at v1.7 status=ready. ADV-E8-P11 CONVERGENCE_REACHED — 11 adversarial passes, 41 substantive + 11 LOW findings closed. Story-writer dispatch unblocked for S-8.00..S-8.28 (29 sub-stories). Full TD-014 closure requires W-15/W-16/W-17 TDD implementation + S-8.28 legacy-bash-adapter retirement. E-8 wave routing pending v1.0.0 GA close (S-5.07).
+
+**Next steps:**
+1. Story-writer produces per-story spec bursts for E-8 sub-stories (start with S-8.00 pre-work + Tier 1 dispatcher-routed hooks, ~3pts each).
+2. Adversarial spec convergence per story (or batched per tier).
+3. TDD implementation with bats tests for each.
+4. Track migration progress via "% of bash hooks migrated" metric in STATE.md.
 
 ## Resolution History
 
 | ID | Resolved In | Story | Resolution |
 |----|------------|-------|------------|
-| — | — | — | No items resolved yet |
+| TD-014 (epic spec phase) | E-8 epic spec converged 2026-04-30 (status: ready) | story-writer dispatch unblocked | CONVERGENCE_REACHED at v1.7 (11 passes, 41+11 findings closed); awaiting v1.0.0 GA close + S-8.00 pre-work for full TD-014 closure (per-story implementation in W-15/W-16/W-17) |
 
 ## Tech Debt as Feature Mode Cycles
 
