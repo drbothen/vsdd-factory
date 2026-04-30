@@ -23,6 +23,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 >
 > **Wave 14 spec convergence COMPLETE (both stories ready):** S-5.06 v1.7 ready (5-pass convergence); S-5.05 v1.8 ready (6-pass convergence). Total Wave 14 effort: 11 adversarial passes vs Wave 13's 51 — Wave 13 lesson application up-front compressed convergence ~4×.
 > **Wave 14 COMPLETE (2026-04-29):** S-5.05 PR #40 merged at 1e2db47 (5pts; migration guide v0.79.x→v1.0); S-5.06 PR #39 merged at d134648 (2pts; semver commitment doc); 45 of 47 stories merged; D-150.
+> **rc.1 v1.0.0-rc.1 SHIPPED 2026-04-30T03:10:59 UTC.** GH pre-release at https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.1. Tag at 1485d2e (bot bundle); main HEAD synced. Branch protection toggled per release ritual; remediation tracked as TD-013. 14-day shakedown clock starts. D-152.
 > This index is the authoritative source for story count and status.
 > 47 stories across 8 epics (E-0 through E-7).
 

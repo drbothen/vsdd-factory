@@ -11,7 +11,7 @@ last_updated: 2026-04-29T00:00:00
 
 | Priority | Count | Estimated Points |
 |----------|-------|-----------------|
-| P0 (next cycle) | 0 | 0 |
+| P0 (next cycle) | 1 | TD-013 branch protection restore |
 | P1 (within 3 cycles) | 2 | XL (29–39 across 6 sub-stories) + TD-010 publish |
 | P2 (backlog) | 8 | — |
 | P3 (v1.1+) | 4 | — |
@@ -20,6 +20,7 @@ last_updated: 2026-04-29T00:00:00
 
 | ID | Source | Description | Priority | Introduced | Cycle | Story | Due |
 |----|--------|-------------|----------|-----------|-------|-------|-----|
+| TD-013 | Release process | Restore main branch protection with proper bot bypass before v1.0.0 GA — required_pull_request_reviews rule DELETED during rc.1 release ritual; main currently unprotected | P0 | rc.1 cut 2026-04-29 | v1.0-brownfield-backfill | S-5.07 | v1.0.0 GA (S-5.07) |
 | TD-001 | Phase 5 deferred | BC-level CAP/DI/Stories anchoring incomplete: all 1,851 BC files carry CAP-TBD/DI-TBD/Stories-TBD defaults from Phase 1.4b migration | P2 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-002 | Phase 5 deferred | BC-INDEX status column all "draft" regardless of shipped/partial/pending reality | P2 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-003 | Spec drift | BC frontmatter lacks per-BC lifecycle_status field; PRD claims FR-level status but BCs have no per-BC marker | P3 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.1 |
@@ -355,6 +356,54 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 4. Add a process note: any new allowlist entry MUST include a justification comment citing a TD or issue.
 5. Close TD-012 when all 9 entries have documented justification or are remediated.
 **Cycle estimate:** v1.0.0 GA or v1.0.1.
+
+#### TD-013 — Restore main branch protection with proper bot bypass before v1.0.0 GA
+**Source:** rc.1 cut on 2026-04-29 — bot push to main was blocked by `required_pull_request_reviews` even after disabling `enforce_admins`. Workaround was to DELETE the rule entirely; user authorized "leave it loose for now."
+**Severity:** P0 (security: main is currently unprotected)
+**Due:** v1.0.0 GA cut (S-5.07)
+**Current state:** No PR-review requirement on main. `enforce_admins` disabled. Effectively any commit can be pushed to main directly.
+
+**Root cause** (per research-agent on 2026-04-29):
+- GitHub `bypass_pull_request_allowances` field on legacy branch protection is silently org-gated. PATCH attempt returns HTTP 500 with empty body (vs documented 422). Confirmed via Community Discussion #29771.
+- Modern Rulesets API (`bypass_actors[]` with `actor_type: Integration`, `actor_id: 15368` for github-actions app) ALSO requires org ownership for actual enforcement.
+- Web UI Settings → Branches → main shows no bypass option on user-owned repos (Discussion #29771 staff confirmation).
+- **Bot identity correction:** github-actions APP id is `15368` (use as Rulesets `actor_id`); github-actions[bot] USER id is `41898282` (NOT for bypass).
+
+**Why beta.7 (2026-04-26) worked but rc.1 (2026-04-29) didn't:** Most likely `required_approving_review_count` was raised from 0 to 1 on the project side between those dates. No GitHub changelog change in that window.
+
+**Three remediation paths** (research-agent recommendation, ranked):
+
+1. **Migrate `vsdd-factory` to a free GitHub organization** (5-minute user action). After transfer, configure modern Ruleset:
+   ```json
+   {
+     "name": "main-protection",
+     "target": "branch",
+     "enforcement": "active",
+     "bypass_actors": [
+       {"actor_type": "Integration", "actor_id": 15368, "bypass_mode": "always"}
+     ],
+     "conditions": {"ref_name": {"include": ["refs/heads/main"], "exclude": []}},
+     "rules": [
+       {"type": "pull_request", "parameters": {"required_approving_review_count": 1}}
+     ]
+   }
+   ```
+   Then default GITHUB_TOKEN works in release.yml without ritual. **Recommended.**
+
+2. **Convert release.yml `commit-binaries` job to bot-opens-PR + auto-merge pattern.** Bot creates a `release-binaries-bundle/v1.0.0-rc.N` branch, opens PR, sets `--auto-merge`. Survives org migration. What release-please / goreleaser / semantic-release do.
+
+3. **Toggle-protection-around-release ritual** (current state, but with rule re-enabled when not releasing). Brief unprotected window per release; manual ritual; racy.
+
+**Recommended fix path:** Path (1) before next release. Optionally add Path (2) as v1.0.0 GA hardening to remove all toggle rituals.
+
+**Citations:**
+- GitHub Community Discussion #29771 — bypass actors org-only
+- GitHub Community Discussion #25305 — chrispat staff explanation
+- GitHub REST API docs — Branch protection / Rules
+- GitHub Changelog 2025-09-10 — Ruleset exemptions (`bypass_mode: always` vs `exempt`)
+- api.github.com/apps/github-actions — verified app_id 15368
+
+**Cycle estimate:** v1.0.0 GA (must resolve before cutting GA tag).
 
 ## Resolution History
 
