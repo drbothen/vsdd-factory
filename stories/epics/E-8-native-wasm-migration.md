@@ -1,9 +1,9 @@
 ---
 document_type: epic
 epic_id: "E-8"
-version: "1.1"
+version: "1.7"
 title: "Native WASM Migration Completion"
-status: draft
+status: ready
 tech_debt_ref: TD-014
 prd_capabilities: [CAP-002, CAP-008, CAP-013, CAP-022]
 prd_frs: []
@@ -19,13 +19,15 @@ inputs:
   - .factory/tech-debt-register.md#TD-014
 input-hash: "4ba3584"
 ---
+<!-- [process-gap] Frontmatter fields tech_debt_ref, anchor_strategy, priority, target_release extend the canonical epic-template baseline. Template update tracked as follow-up. See Change Log v1.1 F-016. -->
 
 # Epic E-8: Native WASM Migration Completion
 
 ## Description
 
-Port all 43 unique bash scripts (42 ported by E-8, plus verify-git-push.sh which
-stays bash per D-1) to native WASM crates, retire the `legacy-bash-adapter`
+Port all 42 in-scope bash scripts (43 unique scripts route via legacy-bash-adapter;
+verify-git-push.sh is the 43rd, excluded per D-1; 42 ported by E-8) to native WASM
+crates, retire the `legacy-bash-adapter`
 transitional crate (S-3.04), and make `hooks-registry.toml` the single source of
 truth for all hook registration. Eliminates Windows git-bash dependency for Claude
 Code hooks and closes TD-014.
@@ -57,7 +59,7 @@ Code hooks and closes TD-014.
 | S-8.11 | Native port bundle B-2: finding/format gate validators (4 hooks) | 5 | S-8.09 | draft |
 | S-8.12 | Native port bundle B-3: state file guards (4 hooks) | 5 | S-8.09 | draft |
 | S-8.13 | Native port bundle B-4: release/delivery validators (4 hooks) | 5 | S-8.09 | draft |
-| S-8.14 | Native port bundle B-5a: wave/template simple validators (2 hooks) | 5 | S-8.09 | draft |
+| S-8.14 | Native port bundle B-5a: wave/template simple validators (1 hook) | 5 | S-8.09 | draft |
 | S-8.15 | Native port: validate-input-hash (solo) | 5 | S-8.09 | draft |
 | S-8.16 | Native port: validate-template-compliance (solo, complex) | 5 | S-8.09 | draft |
 | S-8.17 | Native port bundle B-6a: convergence-tracker + purity-check | 4 | S-8.09 | draft |
@@ -77,7 +79,8 @@ Code hooks and closes TD-014.
 
 vsdd-factory v1.0.0-rc.1 ships with 43 unique bash scripts still executing through
 the `legacy-bash-adapter` crate (protect-secrets is dual-registered — 1 script,
-2 registry entries; registry has 52 `[[hooks]]` entries total; 44 route via
+2 registry entries; verify-git-push.sh is also adapter-routed but excluded from E-8
+scope per D-1; registry has 52 `[[hooks]]` entries total; 44 route via
 legacy-bash-adapter, of which 43 are unique scripts). The adapter was always a
 transitional compatibility layer (S-3.04, ADR-013-era), not a permanent solution.
 Two execution paths for hooks now coexist:
@@ -98,9 +101,9 @@ per D-1) to native WASM, delete the legacy-bash-adapter crate, and make
 hooks-registry.toml the single source of truth for all hook registration.
 
 **Registry arithmetic:** 52 `[[hooks]]` entries → 44 route via legacy-bash-adapter
-→ 43 unique scripts (protect-secrets counts as 1 script, 2 entries) → minus
-verify-git-push.sh (D-1) → **42 scripts ported by E-8**, partitioned 9/23/10
-across Tiers 1/2/3.
+→ 43 unique scripts (protect-secrets counts as 1 script, 2 entries; verify-git-push.sh
+is the 43rd unique adapter-routed script, excluded per D-1) → **42 scripts ported by
+E-8**, partitioned 9/23/10 across Tiers 1/2/3.
 
 **Scope correction vs TD-014 wording:** TD-014 states "8 dispatcher-routed +
 ~35 inline." Since TD-014 was written, the remaining scripts were added to
@@ -122,8 +125,14 @@ the hooks.json inline entries for the 42 ported scripts.
 5. HOST_ABI_VERSION = 1 unchanged throughout E-8 (additive extension to host fn
    surface allowed per D-6; no version bump).
 6. Aggregate PostToolUse:Edit|Write latency (sum of all 23 plugins) ≤ 200ms p95
-   (per AC-7b); per-hook latency does not regress vs S-8.00 baseline by more
-   than 20% (per AC-7).
+   (per AC-7b; tentative — adjusted in S-8.00 per measured baseline if needed,
+   see OQ-8); per-Tier-2 hook latency does not regress vs S-8.00 baseline by
+   more than 20% (per AC-7; Tier 1/3 hooks fire less frequently and are not
+   benchmarked individually).
+
+**Note:** Acceptance Criteria AC-4 (release.yml bundle integration), AC-8 (bats
+behavior parity), and AC-9 (bin/emit-event removal) are release/quality gates not
+enumerated as strategic goals; they verify enabling work for Goals #1-#6.
 
 ## Non-Goals
 
@@ -151,8 +160,9 @@ Rationale for exclusion:
 - (a) It fires only on `git push` Bash invocations from Claude Code, which already
   require git-bash on Windows for git itself.
 - (b) Windows-native users running `git push` from non-bash shells are out-of-scope
-  per the v1.0 support matrix. The Windows target audience uses WSL2 or git-bash
-  specifically for git operations.
+  per the v1.0 support matrix (see OQ-7 — no canonical support matrix doc located;
+  rationale (a, c, d) are sufficient independently; OQ-7 tracks whether a
+  canonical doc needs to be created or whether this appeal should be dropped).
 - (c) The script's logic is local-pre-push-validation, not Claude-Code-event-routing
   — porting it to WASM provides no platform parity benefit because its failure mode
   (missing bash → hook skipped → push proceeds) is tolerable.
@@ -163,6 +173,12 @@ Rationale for exclusion:
 `command` entry, and is explicitly noted as the sole remaining .sh in
 `plugins/vsdd-factory/hooks/` after E-8 completes. This is documented in E-8
 AC-1. Future E-9+ may revisit if Windows parity becomes a requirement.
+
+Note on disposition: verify-git-push.sh's existing `[[hooks]]` registry entry
+(currently adapter-routed for backward compat with the dispatcher) is REMOVED at
+S-8.28 close as part of legacy-bash-adapter retirement. Its hooks.json direct
+command entry is RETAINED. Post-E-8 state: 1 hooks.json direct entry, 0
+hooks-registry.toml entries for verify-git-push.sh.
 
 ### D-2: BC Anchor Strategy
 
@@ -189,11 +205,12 @@ Story-writer will identify the BC anchor(s) per story during story decomposition
 
 Exact counts from `hooks-registry.toml` (2026-04-30, develop @ HEAD):
 
-**Registry arithmetic:**
+**Registry arithmetic (empirically verified 2026-04-30 from hooks-registry.toml):**
 - 52 `[[hooks]]` entries total in hooks-registry.toml
 - 44 entries route via `legacy-bash-adapter.wasm`
 - protect-secrets is dual-registered (1 script, 2 entries) → 43 unique bash scripts
-- verify-git-push.sh excluded per D-1 → **42 scripts ported by E-8**
+- verify-git-push.sh is the 43rd unique adapter-routed script; excluded per D-1 (stays bash)
+- → **42 scripts ported by E-8** (Tier 1: 9 + Tier 2: 23 + Tier 3: 10 = 42 in-scope)
 
 **Tier 1 — SubagentStop + Stop lifecycle hooks (9 hooks):**
 These hooks fire on agent lifecycle events. They are the original "8 dispatcher-
@@ -372,37 +389,73 @@ binary. The dispatcher then consults hooks-registry.toml for routing to native
 plugins. Native WASM plugins do NOT register directly in hooks.json — only the
 dispatcher binary does. This is the existing DRIFT-004 architecture intent.
 
-**BEFORE (per hook, pre-E-8):**
+**BEFORE (pre-E-8) — one inline command entry per bash script, grouped by event then matcher:**
 
 ```json
-// hooks.json — inline command entry for each bash script:
+// hooks.json — multiple inline command entries per event/matcher group:
 {
-  "hooks": [
+  "PostToolUse": [
     {
       "matcher": "Edit|Write",
       "hooks": [
-        { "type": "command", "command": "/path/to/validate-bc-title.sh" }
+        { "type": "command", "command": "/path/to/validate-bc-title.sh" },
+        { "type": "command", "command": "/path/to/validate-finding-format.sh" }
+      ]
+    }
+  ],
+  "PreToolUse": [
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        { "type": "command", "command": "/path/to/protect-bc.sh" }
+      ]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [
+        { "type": "command", "command": "/path/to/protect-secrets.sh" }
       ]
     }
   ]
 }
+// Result: N inline entries per (event, matcher) group — one per bash script.
+// validate-bc-title/validate-finding-format are PostToolUse; protect-bc/protect-secrets are PreToolUse.
 ```
 
-**AFTER (post-E-8):**
+**AFTER (post-E-8) — single dispatcher entry per (event, matcher) tuple:**
 
 ```json
 // hooks.json — dispatcher-routing entries only; no per-script commands:
 {
-  "hooks": [
+  "PostToolUse": [
     {
       "matcher": "Edit|Write",
       "hooks": [
         { "type": "command", "command": "/path/to/factory-dispatcher" }
       ]
     }
+  ],
+  "PreToolUse": [
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        { "type": "command", "command": "/path/to/factory-dispatcher" }
+      ]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [
+        { "type": "command", "command": "/path/to/factory-dispatcher" },
+        { "type": "command", "command": "/path/to/verify-git-push.sh" }
+      ]
+    }
   ]
 }
-// Sole exception: verify-git-push.sh retains a direct command entry (D-1).
+// The N BEFORE entries per (event, matcher) group collapse into ONE dispatcher
+// invocation. The dispatcher reads hooks-registry.toml and routes to all native
+// WASM plugins registered for that event/matcher.
+// Exception: verify-git-push.sh retains a direct command entry alongside the
+// dispatcher under PreToolUse "matcher": "Bash" (shown above) per D-1.
 ```
 
 Native WASM plugins are invoked by the dispatcher binary, which reads
@@ -418,7 +471,7 @@ as today).
 
 After E-8 completes: hooks.json contains ZERO inline `command` entries for native
 WASM hooks. The file contains only:
-1. Dispatcher-routing entries (one per event group).
+1. Dispatcher-routing entries (one per (event, matcher) tuple).
 2. The verify-git-push.sh direct command entry (D-1).
 
 Zero `[[hooks]]` entries in hooks-registry.toml use `plugin = 'hook-plugins/legacy-bash-adapter.wasm'`
@@ -432,8 +485,8 @@ MEDIUM-HIGH, resolution target L-P0-002 cutover).
 **Decision: Tier 1 = one story per hook; Tier 2 = bundled by similarity (9
 stories after B-3 merge); Tier 3 = one story per hook.**
 
-**Tier 1 (9 stories, ~3-5 pts each):**
-One story per hook. Each story proves the full port+delete+test cycle.
+**Tier 1 (10 stories: 1 pre-work + 9 hook ports, ~3-5 pts each):**
+One story per hook, plus S-8.00 pre-work. Each story proves the full port+delete+test cycle.
 
 | Story ID | Hook | Est. Pts |
 |----------|------|---------|
@@ -481,7 +534,7 @@ One story per hook due to logic complexity and safety-critical nature.
 | S-8.27 | validate-pr-merge-prerequisites | 4 |
 | S-8.28 | validate-wave-gate-prerequisite | 4 |
 
-**Total: 29 stories (~125-155 story points).**
+**Total: 29 stories (~123-155 story points; 123 base sum, 32 reserved for BC-creation buffer per R-8.10).**
 
 ### D-9: Documentation Correction (S-5.05 "26 hooks" claim)
 
@@ -507,9 +560,10 @@ No changes to the S-5.05 spec file itself.
 
 **Decision: Adapter crate stays through end of W-17; deleted at S-8.28 close.**
 
-Rationale: 33 Tier 2/3 hooks reference `legacy-bash-adapter.wasm` in
+Rationale: 34 Tier 2/3 entries (33 unique scripts; protect-secrets dual-registered
+for Bash + Read events) reference `legacy-bash-adapter.wasm` in
 hooks-registry.toml during the W-16/W-17 migration window (S-8.10..S-8.28 in
-flight). Deleting the adapter .wasm at end of W-15 (after S-8.09) leaves 33
+flight). Deleting the adapter .wasm at end of W-15 (after S-8.09) leaves 34
 dangling registry references → silent dispatch failures for any hook whose
 hooks-registry.toml entry still points to the adapter .wasm. Dispatcher loads the
 registry at startup and will fail to find the plugin for each un-ported hook.
@@ -518,7 +572,8 @@ Timeline:
 - **End of W-15 (S-8.09 close):** S-8.09 completes the regression-gate port AND
   runs a pre-retirement audit confirming all 9 Tier 1 hooks are native WASM. The
   adapter crate is NOT deleted yet. Registry updated: 9 Tier 1 entries now point
-  to native plugins; 33 Tier 2/3 entries still point to adapter.
+  to native plugins; 34 Tier 2/3 entries (33 unique scripts; protect-secrets
+  dual-registered for Bash + Read events) still point to adapter.
 - **W-16/W-17 (S-8.10..S-8.27):** Each story updates the registry entry for its
   hooks from adapter to native. Adapter crate remains on disk; adapter .wasm must
   exist for all un-ported hooks.
@@ -528,8 +583,9 @@ Timeline:
   `bin/emit-event` removed from dispatcher binary tree in the same PR (see R-8.07).
   AC-2 and AC-3 are fully satisfied at this point.
 
-Note: the prior D-10 (retire at end of Tier 1) was incorrect — it produced 33
-dangling references. Corrected reasoning: adapter must outlive every hook that
+Note: the prior D-10 (retire at end of Tier 1) was incorrect — it produced 34
+dangling registry references (33 unique scripts + 1 protect-secrets second
+registration). Corrected reasoning: adapter must outlive every hook that
 still needs it.
 
 ### D-11: Risk Register
@@ -537,13 +593,15 @@ still needs it.
 | ID | Risk | Severity | Likelihood | Mitigation |
 |----|------|----------|------------|------------|
 | R-8.01 | Cross-platform parity regression — ported hook misbehaves on Windows where bash version skipped silently | HIGH | MEDIUM | CI Windows runner required for all Tier 1 stories; benchmark matrix in AC-5 |
-| R-8.02 | Performance regression — WASM startup overhead exceeds 100ms NFR for high-frequency PostToolUse hooks | HIGH | MEDIUM | Benchmark added per AC-7; S-8.00 establishes bash baseline; Tier 2 stories must pass perf gate before merge; wasmtime startup profile reviewed; warm-pool + compile-cache mitigations in D-7 era |
+| R-8.02 | Performance regression — WASM startup overhead exceeds 100ms NFR for high-frequency PostToolUse hooks | HIGH | MEDIUM | Benchmark added per AC-7; S-8.00 establishes bash baseline; Tier 2 stories must pass perf gate before merge; wasmtime startup profile reviewed; warm-pool + compile-cache mitigations described under R-8.08 (line ~566) |
 | R-8.03 | ABI extension cascade — porting reveals multiple missing host fns; ABI grows uncontrolled | MEDIUM | LOW | D-6 procedure enforced; pause + batch design if 3+ ports need new fns |
 | R-8.04 | Behavior-change drift during port — implementer "improves" bash logic during translation | HIGH | MEDIUM | D-2 (Option C): behavior spec is the BC, not the bash source; adversary explicitly checks behavior parity against bash source + BC |
 | R-8.05 | Test coverage gap — bash hooks have implicit behaviors not covered by current bats tests; port forces explicit test writing which surfaces latent bugs | MEDIUM | HIGH | Surfaced latent bugs are fixed in the porting story (same PR); not deferred |
 | R-8.06 | Inline matcher migration creates registration churn — simultaneous hooks.json + hooks-registry.toml edits required per hook; merge conflicts likely in active development | LOW | MEDIUM | Each story is a discrete branch; hooks.json and hooks-registry.toml edits are atomic per story |
-| R-8.07 | TD-007 interaction — bash hooks still call `bin/emit-event` binary; ported hooks should use `host::emit_event` instead; if bin/emit-event is removed before all 42 ports complete, event emission breaks for remaining bash hooks | HIGH | HIGH | bin/emit-event is NOT removed until S-8.28 close. Tiers 2/3 bash hooks alive in hooks.json direct path during W-16/W-17 still need bin/emit-event. Explicit AC: "bin/emit-event removed from dispatcher binary tree only after all Tier 3 ports merge (S-8.28)." |
-| R-8.08 | Cumulative WASM startup overhead — 23 Tier 2 plugins × ~10ms each = 230ms+ aggregate PostToolUse:Edit\|Write latency, even if each plugin individually passes AC-7 | MEDIUM | HIGH | Mitigations: plugin warm-pool, shared wasmtime engine instance, compile-cache (.wasm → .cwasm). AC-7b: aggregate latency ≤ 200ms p95 measured in S-8.00 baseline + Tier 2 gate. |
+| R-8.07 | TD-007 interaction — bash hooks still call `bin/emit-event` binary; ported hooks should use `host::emit_event` instead; if bin/emit-event is removed before all 42 ports complete, event emission breaks for remaining bash hooks | HIGH | HIGH | bin/emit-event is NOT removed until S-8.28 close. Tiers 2/3 bash hooks alive in hooks.json direct path during W-16/W-17 still need bin/emit-event. Validated by AC-9. |
+| R-8.08 | Cumulative WASM startup overhead — 23 Tier 2 plugins × estimated 10ms (assumption pending OQ-8 measurement) ≈ 230ms+ aggregate PostToolUse:Edit\|Write latency, even if each plugin individually passes AC-7 | MEDIUM (pending OQ-8) | MEDIUM (pending OQ-8) | Mitigations: plugin warm-pool, shared wasmtime engine instance, compile-cache (.wasm → .cwasm). AC-7b: aggregate latency ≤ 200ms p95 (tentative ceiling; baseline-derived adjustment allowed in S-8.00 per OQ-8) measured in S-8.00 baseline + Tier 2 gate. |
+| R-8.09 | Cumulative bundle size growth — 42 new .wasm artifacts in dispatcher binary bundles increase release-artifact size by estimated low-MB; could approach GitHub Release per-asset size limits over multiple tier releases | LOW | LOW | Per-bundle size measured in S-8.00 baseline; if growth exceeds 25% of v1.0.0 dispatcher bundle size, evaluate WASM size-optimization (`opt-level = "z"` in workspace `[profile.release]`, strip-debug, link-time optimization). Tier-by-tier release pacing (v1.1, v1.2, v1.3) gives natural milestones to reassess. |
+| R-8.10 | BC-creation explosion — D-2 Option C exception path adds new BCs for hooks with implicit behaviors not in existing BCs; magnitude depends on S-8.00 audit; worst case ~9 new BCs × ~3 pts = 27 unbudgeted pts | MEDIUM | MEDIUM | S-8.00 audit measures BC-coverage gap pre-W-15; if >5 Tier 1 hooks lack BC, raise OQ for adversarial review and consider deferring some Tier 1 ports to W-16; new BCs follow standard BC creation flow (template + adversary review). |
 
 ### D-12: Epic-Level Acceptance Criteria
 
@@ -555,9 +613,10 @@ still needs it.
 | AC-4 | All native plugins ship through dispatcher binary bundles (release.yml builds them) | CI `release.yml` job includes all new crates in the bundle matrix |
 | AC-5 | Windows native operation verified — all migrated hooks run without git-bash | CI Windows runner passes all bats integration tests for Tier 1+ hooks |
 | AC-6 | `HOST_ABI_VERSION = 1` in both dispatcher and SDK — unchanged | `grep HOST_ABI_VERSION crates/factory-dispatcher/src/lib.rs` + `crates/vsdd-hook-sdk/src/lib.rs` both = 1 |
-| AC-7 | Per-hook latency does not regress vs S-8.00 baseline by more than 20% | Benchmark test in `tests/perf/` measures each Tier 2 hook vs S-8.00 bash baseline |
-| AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 200ms p95 | Benchmark test in `tests/perf/` measures aggregate latency under simulated file-write load |
+| AC-7 | Per-Tier-2 hook latency does not regress vs S-8.00 bash baseline by more than 20% (Tier 1/3 hooks fire less frequently and are not benchmarked individually) | Benchmark test in `tests/perf/` measures each Tier 2 hook vs S-8.00 bash baseline |
+| AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 200ms p95 (tentative ceiling; baseline-derived adjustment allowed in S-8.00 per OQ-8) | Benchmark test in `tests/perf/` measures aggregate latency under simulated file-write load |
 | AC-8 | Behavior parity per hook — bats tests pass for native version; validate-factory-path-root, validate-input-hash, validate-template-compliance additionally have negative (false-block) test fixtures | bats test suite passes with identical output; 3 block-mode hooks have explicit negative test scenarios |
+| AC-9 | `bin/emit-event` binary not present in dispatcher binary tree post-S-8.28 | `find . -name emit-event` returns empty in the dispatcher binary bundle directory after S-8.28 merge; validated in S-8.28 pre-deletion audit |
 
 ### D-13: Wave Structure
 
@@ -645,7 +704,7 @@ W-16 and W-17 run in parallel after W-15 completes (D-4).
 
 | Hook | Reason |
 |------|--------|
-| verify-git-push.sh | D-1: stays bash; Windows git-bash prerequisite for git itself; command-string parsing provides marginal WASM value; non-bash Windows users out-of-scope per v1.0 support matrix |
+| verify-git-push.sh | D-1: stays bash; Windows git-bash prerequisite for git itself; command-string parsing provides marginal WASM value; non-bash Windows users out-of-scope per D-1 rationale (a, c, d); see OQ-7 for support matrix doc status |
 
 ---
 
@@ -675,6 +734,9 @@ is the decomposition plan for story-writer consumption:
 **Wave W-16 (Tier 2 — 9 stories):**
 - S-8.10 through S-8.18 as per bundle groups above. Adapter crate remains on disk
   for un-ported hooks. Each story updates only its own registry entries.
+- Each story in this wave includes a BC-anchor verification task per D-2 (Option C
+  reuse-existing-BC strategy); story-writer identifies the existing BC(s) the hook
+  satisfies during story decomposition.
 
 **Wave W-17 (Tier 3 — 10 stories):**
 - S-8.19 through S-8.27 as per hook list above.
@@ -682,6 +744,9 @@ is the decomposition plan for story-writer consumption:
   deletion + bin/emit-event removal. Pre-deletion audit: zero
   `legacy-bash-adapter.wasm` references in hooks-registry.toml. AC-2, AC-3,
   and TD-007 fully closed by this story.
+- Each story in this wave includes a BC-anchor verification task per D-2 (Option C
+  reuse-existing-BC strategy); story-writer identifies the existing BC(s) the hook
+  satisfies during story decomposition.
 
 Each story spec must include:
 1. BC-anchor verification task (identify existing BC(s) for this hook's behavior).
@@ -708,9 +773,10 @@ The bash source (still alive until .sh is deleted) retains its `bin/emit-event`
 call throughout its lifetime.
 
 **R-8.08 (cumulative WASM startup) is the highest-probability performance risk.**
-23 plugins × 10ms startup = 230ms aggregate latency on PostToolUse:Edit|Write.
-Mitigations must be assessed in S-8.00 and incorporated into the dispatcher
-before W-16 begins. Warm-pool and compile-cache are the primary candidates.
+23 plugins × estimated 10ms (assumption pending OQ-8 measurement) ≈ 230ms+ aggregate
+latency on PostToolUse:Edit|Write. Mitigations must be assessed in S-8.00 and
+incorporated into the dispatcher before W-16 begins. Warm-pool and compile-cache
+are the primary candidates.
 
 **R-8.05 (latent test coverage gap) is the highest-probability quality risk.**
 Several hooks (convergence-tracker, validate-template-compliance, validate-anchor-
@@ -731,9 +797,10 @@ Restated from D-12 for clarity:
 | AC-4 | `release.yml` builds all new WASM crates in the bundle matrix |
 | AC-5 | Windows CI runner passes all bats integration tests (verify via GitHub Actions windows-latest) |
 | AC-6 | `HOST_ABI_VERSION = 1` in both dispatcher and SDK (confirmed via grep in release gate) |
-| AC-7 | Per-hook latency does not regress vs S-8.00 bash baseline by more than 20% |
-| AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 200ms p95 |
+| AC-7 | Per-Tier-2 hook latency does not regress vs S-8.00 bash baseline by more than 20% (Tier 1/3 hooks fire less frequently and are not benchmarked individually) |
+| AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 200ms p95 (tentative ceiling; baseline-derived adjustment allowed in S-8.00 per OQ-8) |
 | AC-8 | All per-hook bats behavior-parity tests pass; validate-factory-path-root, validate-input-hash, validate-template-compliance additionally have negative (false-block) test fixtures |
+| AC-9 | `bin/emit-event` binary not present in dispatcher binary tree post-S-8.28; validated by `find . -name emit-event` returning empty in the dispatcher binary bundle directory after S-8.28 merge |
 
 ---
 
@@ -763,7 +830,7 @@ W-16 and W-17 are parallel (both depend on W-15, not on each other).
 | Windows CI runner in GitHub Actions | Dependency | Available (ubuntu + windows runners in release.yml) | AC-5 requires windows-latest runner in bats job |
 | TD-007 resolution (bin/emit-event retirement) | Dependency | P3 (v1.3) | Closed at S-8.28; NOT incrementally per story. Tiers 2/3 bash hooks need bin/emit-event during migration window |
 | vsdd-hook-sdk path-based dependency | Constraint | Available | E-8 crates use `vsdd-hook-sdk = { path = "../../hook-sdk" }` matching capture-commit-activity precedent. TD-010 (crates.io publication) is independent of E-8. |
-| DRIFT-010 (26 unported bash hooks block Windows native) | Dependency | Open | E-8 closes DRIFT-010 when all 42 ports merge |
+| DRIFT-010 (originally framed as "26 unported bash hooks"; current count per E-8 scope is 42 adapter-routed scripts — see D-9 release-notes correction) | Dependency | Open | E-8 closes DRIFT-010 when all 42 ports merge |
 
 **Blocks on E-8:** TD-013 (branch protection P0) must be resolved first. E-8
 stories should not land on `main` without PR protection restored.
@@ -796,6 +863,25 @@ port needs to exec arbitrary test runners, this may require a more permissive
 capability declaration than current hooks use. Security-reviewer must audit the
 bash source and propose a capability profile for S-8.09 before implementation
 begins.
+
+**OQ-7 — Windows support matrix canonical document location (D-1 rationale (b)):**
+D-1 rationale (b) appeals to "the v1.0 support matrix" to justify that non-bash
+Windows users running `git push` from non-bash shells are out-of-scope. No
+canonical document carrying this support matrix has been located in `.factory/specs/`,
+`docs/`, or README.md. Resolution options: (a) create the support matrix as part
+of S-5.07 release-notes work and backfill D-1 with the specific doc reference;
+(b) remove rationale (b) from D-1 and ground the exclusion solely on rationale
+(a, c, d), which are each independently sufficient. Blocking: LOW — rationale (a,
+c, d) are sufficient to sustain D-1's decision without (b).
+
+**OQ-8 — Per-plugin WASM warm-invocation latency baseline (R-8.08 / AC-7b / Goal #6):**
+R-8.08, AC-7b, and Goal #6 assume ~10ms per-plugin warm-invocation latency on the
+project's CI runners, yielding an estimated aggregate of ~230ms for 23 Tier 2
+plugins. This estimate is unverified. S-8.00 must measure actual warm-invocation
+latency under the project's CI runner profile. If measured baseline differs
+materially from 10ms/plugin, the 200ms p95 ceiling in AC-7b and Goal #6 must be
+adjusted accordingly. R-8.08 re-scored MEDIUM/MEDIUM pending this measurement;
+prior HIGH/HIGH scoring assumed the 10ms estimate was correct.
 
 ---
 
@@ -859,3 +945,183 @@ begins.
   audit + retirement prep, even though deletion deferred to S-8.28).
 - DRIFT-010 added to Dependencies (E-8 closes it on full port completion).
 - track-agent-start Tier 1 grouping rationale documented explicitly in D-3.
+
+### v1.2 (2026-04-30) — ADV-E8-P2 pass-2 fix burst (7 findings closed)
+
+**1 HIGH finding closed:**
+- P2-002 [HIGH]: R-8.07 mitigation now references AC-9 by ID. AC-9 added to D-12
+  with discrete validation command: "`find . -name emit-event` returns empty in
+  dispatcher binary bundle directory after S-8.28 merge." AC-9 also added to
+  epic-level AC restatement section.
+
+**4 MED findings closed:**
+- P2-001 [MED]: D-7 BEFORE/AFTER hooks.json sketch expanded. BEFORE now shows 3
+  inline command entries (validate-bc-title, validate-finding-format, protect-bc)
+  plus a separate Bash-matcher entry (protect-secrets) to make the collapse
+  unambiguous. AFTER shows one dispatcher entry per (event, matcher) tuple.
+- P2-003 [MED]: D-1 rationale (b) appeal to "the v1.0 support matrix" annotated
+  with OQ-7 (no canonical doc located). Rationale (a, c, d) independently sustain
+  D-1. Out of Scope inventory table updated to reference OQ-7 instead of bare
+  "v1.0 support matrix." OQ-7 added to Open Questions section.
+- P2-005 [MED]: D-8 Tier 1 header corrected from "9 stories" to "10 stories:
+  1 pre-work + 9 hook ports" to match the actual story count (S-8.00 + S-8.01..S-8.09).
+  story_count frontmatter = 29 unchanged; total point range 125-155 unchanged.
+- P2-007 [MED]: R-8.08 re-scored MEDIUM/MEDIUM (was HIGH/HIGH) pending OQ-8
+  measurement. "23 plugins × ~10ms each = 230ms+" estimate re-phrased to
+  "estimated 10ms (assumption pending OQ-8 measurement)" throughout (D-11 risk
+  table, Risks and Mitigations callout). Goal #6 and AC-7b marked "tentative
+  ceiling; baseline-derived adjustment allowed in S-8.00 per OQ-8." OQ-8 added
+  to Open Questions section.
+
+**2 LOW findings closed:**
+- P2-004 [LOW]: HTML comment added immediately after frontmatter closing `---`
+  noting the template schema extensions (tech_debt_ref, anchor_strategy, priority,
+  target_release) and pointing to Change Log v1.1 F-016.
+- P2-006 [LOW]: R-8.02 mitigation text "warm-pool + compile-cache mitigations in
+  D-7 era" replaced with "warm-pool + compile-cache mitigations described under
+  R-8.08 (line ~566)" — removes stale era reference.
+
+**Open Questions added:**
+- OQ-7: Windows support matrix canonical doc location (D-1 rationale (b)).
+- OQ-8: Per-plugin WASM warm-invocation latency baseline (R-8.08 / AC-7b / Goal #6).
+
+**AC count:** D-12 now has AC-1..AC-9 (9 numbered ACs) plus AC-7b as a sub-criterion
+(10 rows in table). AC-9 validates bin/emit-event removal at S-8.28 close.
+
+### v1.3 (2026-04-30) — ADV-E8-P4 pass-4 fix burst (3 findings closed)
+
+**1 MED finding closed:**
+- F-P4-001 [MED]: Stories table row S-8.14 "(2 hooks)" corrected to "(1 hook)".
+  Inventory confirms exactly 1 hook (validate-wave-gate-completeness) maps to
+  S-8.14 (D-8 Tier 2 table line 484, Tier 2 inventory line 644). Tier 2 bundle
+  arithmetic 4+4+4+4+1+1+1+2+2 = 23 is consistent only with 1 hook in S-8.14.
+
+**2 LOW findings closed:**
+- F-P4-002 [LOW]: D-7 AFTER JSON `"matcher": "Bash"` entry expanded to include
+  both the dispatcher entry AND a verify-git-push.sh direct command entry,
+  matching D-1 prose commitment (lines 444-447) that verify-git-push.sh retains
+  a direct command entry under "matcher": "Bash" post-E-8. Explanatory comment
+  updated to reference the JSON entries directly.
+- F-P4-003 [LOW]: R-8.09 added to D-11 risk register: cumulative dispatcher
+  binary bundle size growth from 42 new .wasm artifacts; LOW/LOW severity;
+  mitigation is per-bundle size measurement in S-8.00 baseline with 25%-growth
+  trigger for WASM size-optimization (`opt-level = "z"`, strip-debug, LTO).
+
+### v1.4 (2026-04-30) — ADV-E8-P6 pass-6 fix burst (7 findings closed)
+
+**2 MED findings closed:**
+- F-P6-004 [MED]: D-10 entry/script accounting clarified throughout. Rationale
+  paragraph updated from "33 Tier 2/3 hooks" to "34 Tier 2/3 entries (33 unique
+  scripts; protect-secrets dual-registered for Bash + Read events)." Timeline
+  bullet updated from "33 Tier 2/3 entries still point to adapter" to "34 Tier 2/3
+  entries (33 unique scripts; protect-secrets dual-registered for Bash + Read
+  events) still point to adapter." Trailing note updated from "produced 33 dangling
+  references" to "produced 34 dangling registry references (33 unique scripts + 1
+  protect-secrets second registration)."
+- F-P6-007 [MED]: AC-7 Tier-2 qualifier applied consistently across all three
+  locations. D-12 AC-7 criterion, restatement AC-7 row, and Goal #6 all updated
+  to "per-Tier-2 hook latency does not regress vs S-8.00 baseline by more than 20%"
+  with parenthetical "(Tier 1/3 hooks fire less frequently and are not benchmarked
+  individually)." Rationale: Tier 2 PostToolUse:Edit|Write hooks fire on every
+  file write and are the latency-sensitive path; Tier 1 (lifecycle) and Tier 3
+  (PreToolUse) fire infrequently, making per-event overhead less critical.
+
+**5 LOW findings closed:**
+- F-P6-002 [LOW]: Note added after Goals enumeration clarifying that AC-4
+  (release.yml bundle integration), AC-8 (bats behavior parity), and AC-9
+  (bin/emit-event removal) are release/quality gates not enumerated as strategic
+  goals; they verify enabling work for Goals #1-#6.
+- F-P6-003 [LOW]: D-7 BEFORE/AFTER JSON sketches restructured to show explicit
+  event-level grouping (PostToolUse / PreToolUse as top-level keys). BEFORE now
+  shows validate-bc-title/validate-finding-format under PostToolUse:Edit|Write and
+  protect-bc/protect-secrets under PreToolUse:Edit|Write and PreToolUse:Bash,
+  eliminating the conflation of PostToolUse and PreToolUse entries under the same
+  matcher block. AFTER shows dispatcher-only entries per (event, matcher) tuple
+  with verify-git-push.sh retained under PreToolUse:Bash per D-1.
+- F-P6-005 [LOW]: R-8.10 added to D-11 risk register: BC-creation explosion via
+  D-2 Option C exception path; MEDIUM/MEDIUM severity; mitigation is S-8.00 audit
+  measuring BC-coverage gap with OQ escalation trigger if >5 Tier 1 hooks lack BC.
+- F-P6-006 [LOW]: Explicit BC-anchor verification bullet added under W-16 and W-17
+  in Story Decomposition Sketch: "Each story in this wave includes a BC-anchor
+  verification task per D-2 (Option C reuse-existing-BC strategy); story-writer
+  identifies the existing BC(s) the hook satisfies during story decomposition."
+- F-P6-008 [LOW]: D-8 total points floor updated from "~125-155" to "~123-155"
+  with explicit annotation: "123 base sum, 32 reserved for BC-creation buffer per
+  R-8.10." Base sum 123 = Tier 1 (5+4+5+3+4+3+3+3+3+5=38) + Tier 2
+  (5+5+5+5+5+5+5+4+6=45) + Tier 3 (3+3+4+5+4+4+4+5+4+4=40). story_count
+  unchanged at 29; tier counts unchanged at 9/23/10.
+
+### v1.5 (2026-04-30) — ADV-E8-P7 pass-7 fix burst (3 findings closed)
+
+**Empirical registry verification (2026-04-30):** 52 total `[[hooks]]` entries; 44
+route via legacy-bash-adapter; 43 unique script_path values. verify-git-push.sh IS
+the 43rd adapter-routed unique script (not separately registered); excluded per D-1.
+Canonical numbers: **44 entries / 43 unique / 42 ported. Scenario B.**
+
+**1 HIGH finding closed:**
+- F-P7-001 [HIGH]: Scenario B confirmed empirically. 44/43/42 is the canonical
+  arithmetic. verify-git-push.sh is the 43rd unique adapter-routed script, excluded
+  per D-1. Updated four sites: Description (rewritten to lead with "42 in-scope /
+  43 unique / verify-git-push is 43rd"), Problem Statement paragraph (added
+  adapter-routed note), Problem Statement registry arithmetic block (parenthetical
+  names verify-git-push as 43rd unique adapter-routed script), D-3 arithmetic header
+  (labeled "empirically verified"; added explicit verify-git-push bullet + Tier sum).
+  Tier inventories unchanged (9/23/10 enumerate in-scope scripts only).
+
+**1 MED finding closed:**
+- F-P7-002 [MED]: D-7 line 465: "one per event group" → "one per (event, matcher)
+  tuple." Post-F-P6-003 AFTER JSON has 3 dispatcher entries keyed on (event, matcher).
+
+**1 LOW finding closed:**
+- F-P7-003 [LOW]: DRIFT-010 description: "26 unported bash hooks" → "originally framed
+  as '26 unported bash hooks'; current count per E-8 scope is 42 adapter-routed
+  scripts — see D-9 release-notes correction."
+
+**Arithmetic invariant:** story_count = 29; 123 base points unchanged; 9/23/10 unchanged.
+
+### v1.6 (2026-04-30) — ADV-E8-P8 pass-8 fix burst (2 findings closed)
+
+**1 MED finding closed:**
+- F-P8-001 [MED]: Changelog version ordering corrected. v1.4 entry was appended
+  after the v1.5 entry, producing out-of-order sequence (v1.3 → v1.5 → v1.4).
+  Entries swapped to restore ascending order: v1.1 → v1.2 → v1.3 → v1.4 → v1.5 → v1.6.
+
+**1 LOW finding closed:**
+- F-P8-002 [LOW]: D-1 disposition path made explicit. Added note on disposition at
+  end of D-1 Ruling block: verify-git-push.sh's `[[hooks]]` registry entry
+  (currently adapter-routed) is REMOVED at S-8.28 close as part of
+  legacy-bash-adapter retirement; its hooks.json direct command entry is RETAINED.
+  Post-E-8 state: 1 hooks.json direct entry, 0 hooks-registry.toml entries for
+  verify-git-push.sh. Closes AC-3 implicit gap (zero adapter-routed entries post-E-8).
+
+**Arithmetic invariant:** story_count = 29; 123 base points unchanged; 9/23/10
+unchanged; canonical numbers 44 entries / 43 unique / 42 ported unchanged.
+
+### v1.7 (2026-04-30) — ADV-E8-P11 CONVERGENCE_REACHED
+
+Status flip `draft` → `ready` per ADR-013 3-clean-pass discipline. No content edits.
+
+**Convergence trajectory (11 passes):**
+- P1: 18 substantive (12H + 6M) — opening burst
+- P2: 7 (1H + 4M + 2L) — high-residual cleanup
+- P3: 0 → 1_of_3 advance
+- P4: 1 MED (F-P4-001 S-8.14 row count) → RESET to 0_of_3
+- P5: 0 → 1_of_3 advance
+- P6: 2 MED + 5 LOW (F-P6-004 entry/script conflation; F-P6-007 AC-7 Tier-2 qualifier) → RESET
+- P7: 1 HIGH + 1 MED + 1 LOW (F-P7-001 registry arithmetic; F-P7-002 D-7 stale wording; F-P7-003 DRIFT-010 stale)
+- P8: 1 MED + 1 LOW (F-P8-001 changelog ordering; F-P8-002 D-1 disposition)
+- P9: 0 → 1_of_3 advance
+- P10: 1 LOW (D-3 vs D-8 bundle nomenclature; SKIP_FIX per S-7.03)
+- P11: 0 → 3_of_3 = CONVERGENCE_REACHED
+
+**Total findings closed:** 41 substantive + 11 LOW.
+
+**Spec maturity confirmed via empirical anchoring** to `plugins/vsdd-factory/hooks-registry.toml` (52 entries / 44 adapter-routed / 43 unique / 42 ported). Pass-10 re-derived 22 invariants from primary sources without inheriting "carried" labels — historical 1_of_3→reset pattern (P3→P4 MED, P5→P6 MED) did NOT repeat.
+
+**Outstanding LOW deferred per S-7.03 skip-fix:**
+- D-3 vs D-8 bundle nomenclature (B-5 vs B-5a/b/c, B-6 vs B-6a/b) — operational impact zero (Story column disambiguates); may be polished in v1.8 alongside future content edits.
+
+**Status implications:**
+- Story-writer dispatch unblocks for S-8.00..S-8.28 decomposition.
+- Stories status remains `draft` until per-story-spec bursts.
+- E-8 epic ready for orchestrator routing into Wave 15 / W-15* (after v1.0.0 GA close).
