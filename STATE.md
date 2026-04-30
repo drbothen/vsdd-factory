@@ -230,15 +230,30 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**rc.1 SHIPPED (2026-04-30T03:10:59Z). D-152 sealed.** main HEAD = 1485d2e (bot bundle commit). develop HEAD = d134648. 45 of 47 stories merged; 1 partial (S-2.05); 1 draft (S-5.07). GH pre-release published at https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.1. Tag v1.0.0-rc.1 retagged to 1485d2e (bot bundle). **Branch protection LOOSENED:** required_pull_request_reviews DELETED; enforce_admins disabled. TD-013 (P0) entered — must resolve before v1.0.0 GA cut. **14-day shakedown clock running** (starts 2026-04-30T03:10:59Z; closes ~2026-05-14). AC-9/AC-10 calendar gates overridden per user direction; no further override permitted at GA. VP T0 snapshot at `.factory/cycles/v1.0-brownfield-backfill/rc1-vp-snapshot.md`: 40/40 GREEN.
+**PRE-COMPACT PAUSE STATE (2026-04-30). rc.1 LIVE. Context compact next; then TD-014 epic decomposition planning.**
 
-**Resumption recipe:** Next phase candidates (orchestrator picks one):
-- **TD-013 remediation** (P0; blocks GA): migrate vsdd-factory to free GitHub org → configure Ruleset with bypass_actors=[github-actions app id 15368, actor_type=Integration, bypass_mode=always].
-- **rc.1 shakedown** (14-day window; closes ~2026-05-14): Release Engineer executes 11 deferred S-4.08 ACs; run `scripts/check-shakedown-window.sh` to validate BC-9.01.006 PC1-PC5.
-- **Wave 15 / S-5.07** (v1.0.0 release gate, calendar-gated): shakedown clears + TD-013 resolved → cut GA tag.
-- **TD-006 follow-up** (P1, v1.0.1): validate-consistency executable runner + bats/Rust tests + language-scope ADR (PR #17 open).
-- Task #112: Architect-led 28-CAP audit propagation to PRD §8 (CAP-023/024 deferred).
-- 7 MINOR consistency findings (F-006..F-012) from post-Wave-9 sweep — deferred, address before v1.0.1 release.
+**Branch HEADs:**
+- main: 1485d2e (rc.1 bot bundle; chore: bundle dispatcher binaries for v1.0.0-rc.1)
+- develop: 6686aec (post-semgrep-fix; Wave 14 COMPLETE)
+- factory-artifacts: (this commit — see git log for SHA after push)
+
+**rc.1 status:** GH pre-release published 2026-04-30T03:10:59Z. Tag v1.0.0-rc.1 at 1485d2e. 14-day shakedown clock running; ETA ~2026-05-13. 45 of 47 stories merged; 1 partial (S-2.05 cargo publish dry-run); 1 draft (S-5.07 calendar-gated GA gate).
+
+**Last sealed decision:** D-152 (rc.1 SHIPPED). Wave 14 COMPLETE.
+
+**Open tech debt:**
+- TD-013 (P0): main branch protection LOOSENED — required_pull_request_reviews DELETED; must restore via org migration + Ruleset bypass before v1.0.0 GA.
+- TD-014 (P2): Full native WASM migration of remaining 43 bash hooks (8 dispatcher-routed + ~35 inline). Tiered plan; epic decomposition is user's NEXT INTENT post-compact. S-5.05 migration guide "26 hooks" claim stale (actual ~43); fix before GA or amend release notes.
+
+**Branch protection:** LOOSE. required_pull_request_reviews DELETED; enforce_admins disabled. Authorized by user at rc.1 cut. TD-013 must resolve before GA.
+
+**Resumption recipe (user's next intent: TD-014 epic decomposition planning):**
+1. Compact context.
+2. Architect produces epic decomposition for TD-014 (proposed E-8 "Native WASM Migration Completion") — 4 tiers: 8 dispatcher-routed (P1), ~20 PostToolUse validators (P2), ~10 PreToolUse/process discipline (P3), verify-git-push.sh local git hook (P4/out-of-scope).
+3. PO drafts story specs for Tier 1 (8 hooks; ~3pts each).
+4. Parallel: TD-013 remediation (P0; org migration → Ruleset bypass_actors).
+5. rc.1 shakedown (11 deferred S-4.08 ACs; closes ~2026-05-13; run `scripts/check-shakedown-window.sh`).
+6. Wave 15 / S-5.07 (GA gate) after shakedown + TD-013 resolved.
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.

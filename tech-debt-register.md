@@ -13,13 +13,14 @@ last_updated: 2026-04-29T00:00:00
 |----------|-------|-----------------|
 | P0 (next cycle) | 1 | TD-013 branch protection restore |
 | P1 (within 3 cycles) | 2 | XL (29–39 across 6 sub-stories) + TD-010 publish |
-| P2 (backlog) | 8 | — |
+| P2 (backlog) | 9 | — |
 | P3 (v1.1+) | 4 | — |
 
 ## Debt Items
 
 | ID | Source | Description | Priority | Introduced | Cycle | Story | Due |
 |----|--------|-------------|----------|-----------|-------|-------|-----|
+| TD-014 | User audit | Full native WASM migration of remaining 43 bash hooks (8 dispatcher-routed + ~35 inline); legacy-bash-adapter deletable post-migration; S-5.05 migration guide "26 hooks" claim stale (actual ~43) | P2 | 2026-04-30 | v1.0-brownfield-backfill | — | v1.1+ |
 | TD-013 | Release process | Restore main branch protection with proper bot bypass before v1.0.0 GA — required_pull_request_reviews rule DELETED during rc.1 release ritual; main currently unprotected | P0 | rc.1 cut 2026-04-29 | v1.0-brownfield-backfill | S-5.07 | v1.0.0 GA (S-5.07) |
 | TD-001 | Phase 5 deferred | BC-level CAP/DI/Stories anchoring incomplete: all 1,851 BC files carry CAP-TBD/DI-TBD/Stories-TBD defaults from Phase 1.4b migration | P2 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-002 | Phase 5 deferred | BC-INDEX status column all "draft" regardless of shipped/partial/pending reality | P2 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.0.1 |
@@ -404,6 +405,67 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 - api.github.com/apps/github-actions — verified app_id 15368
 
 **Cycle estimate:** v1.0.0 GA (must resolve before cutting GA tag).
+
+#### TD-014 — Full native WASM migration of remaining bash hooks (post-v1.0)
+
+**Source:** User audit of hook migration completeness post-rc.1 (2026-04-30)
+**Severity:** P2 (no blocker for v1.0 GA; affects post-1.0 cross-platform parity)
+**Due:** v1.1+ epic decomposition; planning starts post-rc.1 shakedown
+**Discovered:** 2026-04-30 during user audit of hook migration completeness post-rc.1
+
+**Current state (verified against `plugins/vsdd-factory/hooks-registry.toml` + `plugins/vsdd-factory/hooks/`):**
+
+- **Native WASM (8 plugin crates in `crates/hook-plugins/`):**
+  - capture-commit-activity (S-3.01 PR #20) — port from bash
+  - capture-pr-activity (S-3.02 PR #21) — port from bash
+  - block-ai-attribution (S-3.03 PR #22) — port from bash
+  - legacy-bash-adapter (S-3.04) — compat layer (not a port itself)
+  - session-start-telemetry (S-5.01 PR #35) — new lifecycle hook
+  - session-end-telemetry (S-5.02 PR #36) — new lifecycle hook
+  - worktree-hooks (S-5.03 PR #37) — new lifecycle hook (handles WorktreeCreate + WorktreeRemove)
+  - tool-failure-hooks (S-5.04 PR #38) — new lifecycle hook
+- **Bash routed via dispatcher → legacy-bash-adapter (8 unique scripts; 44 [[hooks]] entries in registry):**
+  1. handoff-validator
+  2. pr-manager-completion-guard
+  3. regression-gate
+  4. session-learning
+  5. track-agent-stop
+  6. update-wave-state-on-merge
+  7. validate-pr-review-posted
+  8. warn-pending-wave-gate
+- **Bash wired inline in hooks.json (NOT via dispatcher; ~35 scripts):**
+  - ~20 `validate-*.sh` PostToolUse:Edit/Write validators (bc-title, input-hash, finding-format, story-bc-sync, anchor-capabilities-union, count-propagation, demo-evidence-story-scoped, factory-path-root, novelty-assessment, pr-description-completeness, pr-merge-prerequisites, red-ratio, state-index-status-coherence, state-pin-freshness, state-size, subsystem-names, table-cell-count, template-compliance, vp-consistency, wave-gate-completeness, wave-gate-prerequisite, index-self-reference)
+  - `protect-bc.sh`, `protect-vp.sh`, `protect-secrets.sh` — PreToolUse protected-file gates
+  - `purity-check.sh`, `red-gate.sh`, `convergence-tracker.sh`, `brownfield-discipline.sh`, `factory-branch-guard.sh`, `destructive-command-guard.sh`, `check-factory-commit.sh` — process discipline
+  - `track-agent-start.sh` — sibling of track-agent-stop (already routed)
+  - `verify-git-push.sh` — git pre-push hook (not Claude Code; used locally)
+
+**Migration scope (proposed):** Port the 43 remaining bash hooks to native WASM. This eliminates the Windows git-bash dependency entirely; legacy-bash-adapter becomes deletable post-migration.
+
+**Prioritization (proposed):**
+- **Tier 1 — dispatcher-routed (8 hooks):** highest priority because they affect Windows-native operation TODAY. Already wired through dispatcher; native port substitutes the .wasm cleanly.
+- **Tier 2 — PostToolUse validators (~20 hooks):** medium priority. Frequent fire (every file edit). Mostly grep/jq/awk — straightforward Rust ports.
+- **Tier 3 — PreToolUse protections + process discipline (~10 hooks):** lower priority. Less frequent fire. Some have non-trivial bash logic worth audit during port.
+- **Tier 4 — verify-git-push.sh:** local-only git hook, not Claude Code; possibly out-of-scope (or stay bash forever).
+
+**Dependencies:**
+- Hook SDK ABI must remain stable (per S-5.06 v1.0 commitment); v1.1 ports use the same ABI.
+- Some validators have heavy file I/O — need to evaluate `read_file` host fn vs. running grep externally vs. embedding regex matchers in Rust.
+- PostToolUse hooks need careful matcher migration (currently inline in hooks.json `matcher:` regex; native plugins move matcher logic into the plugin).
+
+**Documentation correction needed:** migration guide (S-5.05) line ~62 says "Other 26 hooks remain on the legacy-bash-adapter" — actual count is ~43 (8 routed + ~35 inline). Either correct the guide or clarify "26" referred to a specific subset (e.g., dispatcher-routed at v0.79 final state). Update before v1.0.0 GA OR roll into a hot-fix release-notes amendment.
+
+**Citations:**
+- Verified counts via `grep -c "^\[\[hooks\]\]"` and `find plugins/vsdd-factory/hooks -name "*.sh"` on develop @ `6686aec` (2026-04-30).
+- S-3.04 epic (legacy-bash-adapter) for adapter design; planned to be retired when migration completes.
+- S-5.06 semver commitment doc: hook-sdk ABI is stable surface (HOST_ABI_VERSION = 1) — v1.1 native ports leverage this.
+
+**Recommended next steps:**
+1. Architect produces an epic decomposition (proposed E-8 "Native WASM Migration Completion") with 4 tiers.
+2. PO drafts story specs for Tier 1 (8 dispatcher-routed hooks) — small per-story scope (~3pts each).
+3. Adversarial spec convergence per story (or batched per tier).
+4. TDD implementation with bats tests for each.
+5. Track migration progress via "% of bash hooks migrated" metric in STATE.md.
 
 ## Resolution History
 
