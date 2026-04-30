@@ -50,3 +50,6 @@ tokio-stream.workspace = true
 opentelemetry-proto.workspace = true
 # S-4.07 integration tests: mock HTTP server for datadog/honeycomb/http sinks.
 httpmock.workspace = true
+
+[lints]
+workspace = true

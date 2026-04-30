@@ -73,8 +73,8 @@ fn test_BC_9_01_004_platforms_yaml_exists() {
 #[test]
 fn test_BC_9_01_004_platforms_yaml_declares_exactly_five_platforms() {
     let path = repo_root().join("ci/platforms.yaml");
-    let content = fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("Cannot read ci/platforms.yaml: {e}"));
+    let content =
+        fs::read_to_string(&path).unwrap_or_else(|e| panic!("Cannot read ci/platforms.yaml: {e}"));
 
     // Count `  - platform:` lines (leading spaces + dash).
     let count = content
@@ -83,8 +83,7 @@ fn test_BC_9_01_004_platforms_yaml_declares_exactly_five_platforms() {
         .count();
 
     assert_eq!(
-        count,
-        5,
+        count, 5,
         "FAIL AC-1 (BC-9.01.004 invariant 1): ci/platforms.yaml must declare exactly 5 \
          platforms, found {count}. \
          Expected: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x64"
@@ -95,8 +94,8 @@ fn test_BC_9_01_004_platforms_yaml_declares_exactly_five_platforms() {
 #[test]
 fn test_BC_9_01_004_platforms_yaml_canonical_platform_names() {
     let path = repo_root().join("ci/platforms.yaml");
-    let content = fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("Cannot read ci/platforms.yaml: {e}"));
+    let content =
+        fs::read_to_string(&path).unwrap_or_else(|e| panic!("Cannot read ci/platforms.yaml: {e}"));
 
     let canonical = [
         "darwin-arm64",
@@ -148,8 +147,7 @@ fn test_BC_9_01_005_five_hooks_json_platform_variants_committed() {
 /// BC-9.01.005 PC2: hooks.json.template must exist.
 #[test]
 fn test_BC_9_01_005_hooks_json_template_committed() {
-    let path = repo_root()
-        .join("plugins/vsdd-factory/hooks/hooks.json.template");
+    let path = repo_root().join("plugins/vsdd-factory/hooks/hooks.json.template");
     assert!(
         path.exists(),
         "FAIL AC-5 (BC-9.01.005 PC2): hooks.json.template must be committed but was not \
@@ -175,8 +173,7 @@ fn test_BC_9_01_005_hooks_json_gitignored() {
         // Match patterns like: `plugins/vsdd-factory/hooks/hooks.json`
         // or `hooks.json` (bare) — any line that would cause hooks.json
         // (not hooks.json.*) to be ignored.
-        (stripped.ends_with("hooks.json") && !stripped.contains('*'))
-            || stripped == "hooks.json"
+        (stripped.ends_with("hooks.json") && !stripped.contains('*')) || stripped == "hooks.json"
     });
 
     assert!(
@@ -195,6 +192,10 @@ fn test_BC_9_01_005_hooks_json_gitignored() {
 ///
 /// Runs bump-version.sh against a temp directory with a minimal CHANGELOG.md
 /// so we exercise the real script without touching the repo's CHANGELOG.
+///
+/// Unix-only: the script uses bash shebang + POSIX commands; Windows Git Bash
+/// cannot resolve the temp-dir paths used here. Verified on linux-x64 and darwin.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_001_bump_version_accepts_rc_prerelease_format() {
     let script = repo_root().join("scripts/bump-version.sh");
@@ -204,8 +205,7 @@ fn test_BC_9_01_001_bump_version_accepts_rc_prerelease_format() {
     );
 
     // Create a temp directory with a minimal CHANGELOG.md.
-    let tmp = tempfile::tempdir()
-        .expect("create temp dir for bump-version test");
+    let tmp = tempfile::tempdir().expect("create temp dir for bump-version test");
     let changelog = tmp.path().join("CHANGELOG.md");
     fs::write(
         &changelog,
@@ -234,8 +234,11 @@ fn test_BC_9_01_001_bump_version_accepts_rc_prerelease_format() {
     // Create stub plugin.json + marketplace.json that jq can read.
     let plugin_dir = tmp.path().join("plugins/vsdd-factory/.claude-plugin");
     fs::create_dir_all(&plugin_dir).expect("create plugin dir");
-    fs::write(plugin_dir.join("plugin.json"), r#"{"version":"1.0.0-beta.4"}"#)
-        .expect("write plugin.json");
+    fs::write(
+        plugin_dir.join("plugin.json"),
+        r#"{"version":"1.0.0-beta.4"}"#,
+    )
+    .expect("write plugin.json");
     let mkt_dir = tmp.path();
     fs::write(
         mkt_dir.join(".claude-plugin/marketplace.json"),
@@ -335,13 +338,14 @@ fn test_BC_9_01_006_check_shakedown_window_script_exists() {
 /// Simulates: >=14 days elapsed, no open P0 issues. For the RED gate we
 /// inject a mock that forces the satisfied path — but the stub does not
 /// support this, so the test will fail as required.
+///
+/// Unix-only: bash script invocation does not work on Windows CI runners.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_006_shakedown_window_exits_0_when_satisfied() {
     let script = repo_root().join("scripts/check-shakedown-window.sh");
     if !script.exists() {
-        panic!(
-            "PRECONDITION FAIL: scripts/check-shakedown-window.sh does not exist"
-        );
+        panic!("PRECONDITION FAIL: scripts/check-shakedown-window.sh does not exist");
     }
 
     // We cannot run an actual 14-day clock in a unit test, but we can
@@ -382,9 +386,7 @@ fn test_BC_9_01_006_shakedown_window_exits_0_when_satisfied() {
 fn test_BC_9_01_006_shakedown_window_exits_1_when_p0_open() {
     let script = repo_root().join("scripts/check-shakedown-window.sh");
     if !script.exists() {
-        panic!(
-            "PRECONDITION FAIL: scripts/check-shakedown-window.sh does not exist"
-        );
+        panic!("PRECONDITION FAIL: scripts/check-shakedown-window.sh does not exist");
     }
 
     let output = Command::new("bash")
@@ -412,13 +414,13 @@ fn test_BC_9_01_006_shakedown_window_exits_1_when_p0_open() {
 /// BC-9.01.006 PC3: check-shakedown-window.sh must exit 2 for non-existent tag.
 ///
 /// RED GATE: stub exits 1 (not 2). Will fail until real implementation.
+/// Unix-only: bash script invocation does not work on Windows CI runners.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_006_shakedown_window_exits_2_for_missing_tag() {
     let script = repo_root().join("scripts/check-shakedown-window.sh");
     if !script.exists() {
-        panic!(
-            "PRECONDITION FAIL: scripts/check-shakedown-window.sh does not exist"
-        );
+        panic!("PRECONDITION FAIL: scripts/check-shakedown-window.sh does not exist");
     }
 
     let output = Command::new("bash")
@@ -451,13 +453,13 @@ fn test_BC_9_01_006_shakedown_window_exits_2_for_missing_tag() {
 ///
 /// RED GATE: stub exits 1 regardless. Will fail until real implementation
 /// supports the --stories flag with MOCK_SATISFIED semantics.
+/// Unix-only: bash script invocation does not work on Windows CI runners.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_006_shakedown_window_stories_flag_exits_0_when_satisfied() {
     let script = repo_root().join("scripts/check-shakedown-window.sh");
     if !script.exists() {
-        panic!(
-            "PRECONDITION FAIL: scripts/check-shakedown-window.sh does not exist"
-        );
+        panic!("PRECONDITION FAIL: scripts/check-shakedown-window.sh does not exist");
     }
 
     let output = Command::new("bash")
@@ -500,13 +502,13 @@ fn test_BC_9_01_changelog_monotonicity_script_exists() {
 ///
 /// RED GATE: stub always exits 2. Will fail until real implementation.
 /// We pass a temp file with a monotonic (descending-date) CHANGELOG.
+/// Unix-only: bash script invocation does not work on Windows CI runners.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_changelog_monotonicity_exits_0_for_monotonic_changelog() {
     let script = repo_root().join("scripts/check-changelog-monotonicity.sh");
     if !script.exists() {
-        panic!(
-            "PRECONDITION FAIL: scripts/check-changelog-monotonicity.sh does not exist"
-        );
+        panic!("PRECONDITION FAIL: scripts/check-changelog-monotonicity.sh does not exist");
     }
 
     let tmp = tempfile::tempdir().expect("create temp dir");
@@ -544,9 +546,7 @@ fn test_BC_9_01_changelog_monotonicity_exits_0_for_monotonic_changelog() {
 fn test_BC_9_01_changelog_monotonicity_exits_1_for_non_monotonic_changelog() {
     let script = repo_root().join("scripts/check-changelog-monotonicity.sh");
     if !script.exists() {
-        panic!(
-            "PRECONDITION FAIL: scripts/check-changelog-monotonicity.sh does not exist"
-        );
+        panic!("PRECONDITION FAIL: scripts/check-changelog-monotonicity.sh does not exist");
     }
 
     let tmp = tempfile::tempdir().expect("create temp dir");
@@ -580,13 +580,13 @@ fn test_BC_9_01_changelog_monotonicity_exits_1_for_non_monotonic_changelog() {
 ///
 /// The stub already exits 2, so this test should pass on the stub AND
 /// on the real implementation — documenting the contract.
+/// Unix-only: bash invocation; Windows Git Bash path resolution differs.
+#[cfg(unix)]
 #[test]
 fn test_BC_9_01_changelog_monotonicity_exits_2_for_missing_file() {
     let script = repo_root().join("scripts/check-changelog-monotonicity.sh");
     if !script.exists() {
-        panic!(
-            "PRECONDITION FAIL: scripts/check-changelog-monotonicity.sh does not exist"
-        );
+        panic!("PRECONDITION FAIL: scripts/check-changelog-monotonicity.sh does not exist");
     }
 
     let output = Command::new("bash")

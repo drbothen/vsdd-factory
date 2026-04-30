@@ -152,7 +152,10 @@ mod tests {
             plugin_ids_allow: vec![],
         };
         let ev = |t: &str| SinkEvent::new().insert("type", t);
-        assert!(!f.accepts(&ev("commit.made")), "lowercase must not match uppercase allow");
+        assert!(
+            !f.accepts(&ev("commit.made")),
+            "lowercase must not match uppercase allow"
+        );
         assert!(f.accepts(&ev("Commit.Made")), "exact case must match");
     }
 

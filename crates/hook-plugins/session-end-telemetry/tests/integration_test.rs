@@ -117,7 +117,11 @@ mod session_end_integration {
     /// Simulate BC-1.02.005 lifecycle-tolerant envelope parsing:
     /// if session_id is empty, return "unknown" sentinel.
     fn resolve_session_id(session_id: &str) -> &str {
-        if session_id.is_empty() { "unknown" } else { session_id }
+        if session_id.is_empty() {
+            "unknown"
+        } else {
+            session_id
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -205,10 +209,7 @@ mod session_end_integration {
                 ];
                 for (k, v) in fields {
                     if !RESERVED.contains(k) {
-                        event.insert(
-                            k.to_string(),
-                            serde_json::Value::String(v.to_string()),
-                        );
+                        event.insert(k.to_string(), serde_json::Value::String(v.to_string()));
                     }
                 }
 
@@ -234,8 +235,12 @@ mod session_end_integration {
         tool_call_count: Option<u64>,
         _mock: &CountingMock,
     ) -> Vec<serde_json::Value> {
-        let payload =
-            make_session_end_payload(session_id, dispatcher_trace_id, session_start_ts, tool_call_count);
+        let payload = make_session_end_payload(
+            session_id,
+            dispatcher_trace_id,
+            session_start_ts,
+            tool_call_count,
+        );
         dispatch_and_capture(payload)
     }
 
@@ -333,8 +338,7 @@ mod session_end_integration {
 
         // timestamp: ISO-8601 UTC with ms precision and Z suffix
         let ts = payload["timestamp"].as_str().unwrap_or("");
-        let ts_re =
-            regex::Regex::new(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$").unwrap();
+        let ts_re = regex::Regex::new(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$").unwrap();
         assert!(
             ts_re.is_match(ts),
             "timestamp must match ISO-8601 UTC ms precision regex (BC-4.05.001 PC-2): got {ts:?}"
@@ -363,7 +367,10 @@ mod session_end_integration {
         );
 
         // --- Construction-time fields (4) ---
-        assert!(payload.get("ts").is_some(), "ts construction-time field must be present");
+        assert!(
+            payload.get("ts").is_some(),
+            "ts construction-time field must be present"
+        );
         assert!(
             payload.get("ts_epoch").is_some(),
             "ts_epoch construction-time field must be present"
@@ -404,7 +411,11 @@ mod session_end_integration {
             .filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("session.ended"))
             .collect();
 
-        assert_eq!(session_ended.len(), 1, "session.ended must be emitted even when session_start_ts is absent");
+        assert_eq!(
+            session_ended.len(),
+            1,
+            "session.ended must be emitted even when session_start_ts is absent"
+        );
         assert_eq!(
             session_ended[0]["duration_ms"].as_str(),
             Some("0"),
@@ -418,8 +429,7 @@ mod session_end_integration {
             .parse()
             .expect("tool_call_count must parse as integer");
         assert_ne!(
-            tcc,
-            0,
+            tcc, 0,
             "tool_call_count must reflect envelope value (7) when present, not default to '0'"
         );
         assert_eq!(tcc, 7, "tool_call_count must be 7 (the fixture value)");
@@ -480,7 +490,11 @@ mod session_end_integration {
             "duration_ms must reflect real elapsed time when session_start_ts is present and in the past; got {duration}"
         );
 
-        assert_eq!(mock.invocation_count(), 0, "exec_subprocess must NOT be called (BC-4.05.002)");
+        assert_eq!(
+            mock.invocation_count(),
+            0,
+            "exec_subprocess must NOT be called (BC-4.05.002)"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -493,7 +507,13 @@ mod session_end_integration {
     #[test]
     fn test_bc_4_05_001_both_missing_emit_zero_defaults() {
         let mock = CountingMock::new();
-        let events = send_session_end("sess-end-both-missing", "trace-both-missing", None, None, &mock);
+        let events = send_session_end(
+            "sess-end-both-missing",
+            "trace-both-missing",
+            None,
+            None,
+            &mock,
+        );
 
         let session_ended: Vec<_> = events
             .iter()
@@ -514,14 +534,17 @@ mod session_end_integration {
 
         // timestamp must still be present and well-formed
         let ts = session_ended[0]["timestamp"].as_str().unwrap_or("");
-        let ts_re =
-            regex::Regex::new(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$").unwrap();
+        let ts_re = regex::Regex::new(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$").unwrap();
         assert!(
             ts_re.is_match(ts),
             "timestamp must be present and ISO-8601 UTC ms precision even when session_start_ts is absent: got {ts:?}"
         );
 
-        assert_eq!(mock.invocation_count(), 0, "exec_subprocess must NOT be called even for edge-case inputs");
+        assert_eq!(
+            mock.invocation_count(),
+            0,
+            "exec_subprocess must NOT be called even for edge-case inputs"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -566,7 +589,11 @@ mod session_end_integration {
             "tool_call_count falls back to '0' when absent (EC-002), independently of session_id"
         );
 
-        assert_eq!(mock.invocation_count(), 0, "exec_subprocess must NOT be called (BC-4.05.002)");
+        assert_eq!(
+            mock.invocation_count(),
+            0,
+            "exec_subprocess must NOT be called (BC-4.05.002)"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -603,7 +630,11 @@ mod session_end_integration {
             .filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("session.ended"))
             .collect();
 
-        assert_eq!(session_ended.len(), 1, "session.ended must be emitted even when session_start_ts is in the future");
+        assert_eq!(
+            session_ended.len(),
+            1,
+            "session.ended must be emitted even when session_start_ts is in the future"
+        );
         assert_eq!(
             session_ended[0]["duration_ms"].as_str(),
             Some("0"),
@@ -617,7 +648,11 @@ mod session_end_integration {
             "type must equal 'session.ended' — event emitted normally despite future session_start_ts"
         );
 
-        assert_eq!(mock.invocation_count(), 0, "exec_subprocess must NOT be called (BC-4.05.002)");
+        assert_eq!(
+            mock.invocation_count(),
+            0,
+            "exec_subprocess must NOT be called (BC-4.05.002)"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -646,7 +681,11 @@ mod session_end_integration {
             .filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("session.ended"))
             .collect();
 
-        assert_eq!(session_ended.len(), 1, "session.ended must be emitted even when session_start_ts is unparseable");
+        assert_eq!(
+            session_ended.len(),
+            1,
+            "session.ended must be emitted even when session_start_ts is unparseable"
+        );
         assert_eq!(
             session_ended[0]["duration_ms"].as_str(),
             Some("0"),
@@ -661,7 +700,11 @@ mod session_end_integration {
             "type must equal 'session.ended' — event emitted normally per EC-001c"
         );
 
-        assert_eq!(mock.invocation_count(), 0, "exec_subprocess must NOT be called (BC-4.05.002)");
+        assert_eq!(
+            mock.invocation_count(),
+            0,
+            "exec_subprocess must NOT be called (BC-4.05.002)"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -781,8 +824,7 @@ mod session_end_integration {
 
         // BC-4.05.004 PC-3: once:true AND async:true
         assert_eq!(
-            entry["once"],
-            true,
+            entry["once"], true,
             "BC-4.05.004 PC-3: once must be true (Layer 1 once-discipline per BC-4.05.003)"
         );
         assert_eq!(entry["async"], true, "BC-4.05.004 PC-3: async must be true");
@@ -792,8 +834,7 @@ mod session_end_integration {
             .as_i64()
             .expect("BC-4.05.004 PC-5: hooks.SessionEnd[0].hooks[0].timeout must be an integer");
         assert_eq!(
-            timeout,
-            10000,
+            timeout, 10000,
             "BC-4.05.004 PC-5: timeout must be 10000ms (ADR-011 timeout hierarchy: \
              dispatcher budget 5000ms < harness timeout 10000ms)"
         );
@@ -833,8 +874,7 @@ mod session_end_integration {
             .filter(|h| h.get("event").and_then(|v| v.as_str()) == Some("SessionEnd"))
             .count();
         assert_eq!(
-            session_end_count,
-            1,
+            session_end_count, 1,
             "BC-4.05.005: exactly one SessionEnd entry must be present; \
              found {session_end_count} entries (operator-enforced dedup per BC-4.05.005 EC-003)"
         );
@@ -859,15 +899,12 @@ mod session_end_integration {
         );
 
         // BC-4.05.005 PC-3: timeout_ms = 5000 (field name is timeout_ms per F-13 / RegistryEntry schema)
-        let timeout_ms = session_end["timeout_ms"]
-            .as_integer()
-            .expect(
-                "BC-4.05.005 PC-3 (F-13): timeout_ms must be present and an integer \
-                 (RegistryEntry.timeout_ms; deny_unknown_fields rejects 'epoch_budget_ms')"
-            );
+        let timeout_ms = session_end["timeout_ms"].as_integer().expect(
+            "BC-4.05.005 PC-3 (F-13): timeout_ms must be present and an integer \
+                 (RegistryEntry.timeout_ms; deny_unknown_fields rejects 'epoch_budget_ms')",
+        );
         assert_eq!(
-            timeout_ms,
-            5000,
+            timeout_ms, 5000,
             "BC-4.05.005 PC-3: timeout_ms must be 5000 for SessionEnd \
              (stateless emit-only; no subprocess wait per BC-4.05.002)"
         );

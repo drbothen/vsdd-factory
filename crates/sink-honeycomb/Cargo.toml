@@ -28,3 +28,6 @@ reqwest = { workspace = true }
 httpmock = { workspace = true }
 tokio = { workspace = true }
 toml = { workspace = true }
+
+[lints]
+workspace = true

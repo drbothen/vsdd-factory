@@ -75,7 +75,7 @@ fn test_BC_3_07_003_dlq_written_after_5xx_retry_exhaustion() {
     rt.block_on(async {
         let (dlq_tx, mut dlq_rx) = tokio::sync::mpsc::channel::<SinkDlqEvent>(64);
         let url = server.url("/events");
-        let (sink, dlq_writer) = make_http_sink_with_dlq(&url, dlq_root.clone(), dlq_tx);
+        let (sink, _dlq_writer) = make_http_sink_with_dlq(&url, dlq_root.clone(), dlq_tx);
 
         // Submit 2 events.
         let ev1 = SinkEvent::new()
@@ -215,8 +215,7 @@ fn test_BC_3_07_004_dlq_write_failure_emits_failure_event_no_panic() {
             .filter(|e| matches!(e, SinkDlqEvent::Failure(_)))
             .count();
         assert_eq!(
-            failure_count,
-            1,
+            failure_count, 1,
             "AC-4 BC-3.07.004: exactly 1 internal.sink_dlq_failure event must be emitted; got {}",
             failure_count
         );
@@ -280,7 +279,8 @@ fn test_BC_3_07_003_dlq_write_event_schema_matches_canonical_tv() {
             }
         }
 
-        let ev = received.expect("BC-3.07.003: DLQ write must emit an event to the internal channel");
+        let ev =
+            received.expect("BC-3.07.003: DLQ write must emit an event to the internal channel");
         match ev {
             SinkDlqEvent::Write(w) => {
                 assert_eq!(w.sink_name, "prod-http", "sink_name must match");

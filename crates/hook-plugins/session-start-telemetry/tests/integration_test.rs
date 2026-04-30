@@ -123,7 +123,11 @@ mod session_start_integration {
     /// Simulate BC-1.02.005 lifecycle-tolerant envelope parsing:
     /// if session_id is empty, return "unknown" (the sentinel set by the dispatcher).
     fn resolve_session_id(session_id: &str) -> &str {
-        if session_id.is_empty() { "unknown" } else { session_id }
+        if session_id.is_empty() {
+            "unknown"
+        } else {
+            session_id
+        }
     }
 
     /// Simulated dispatcher: invoke `session_start_hook_logic` with the given mocks
@@ -224,10 +228,7 @@ mod session_start_integration {
                 ];
                 for (k, v) in fields {
                     if !RESERVED.contains(k) {
-                        event.insert(
-                            k.to_string(),
-                            serde_json::Value::String(v.to_string()),
-                        );
+                        event.insert(k.to_string(), serde_json::Value::String(v.to_string()));
                     }
                 }
 
@@ -300,7 +301,8 @@ mod session_start_integration {
     fn test_bc_4_04_001_session_started_emitted_with_required_fields() {
         // Canonical test vector (BC-4.04.001 §Canonical Test Vectors row 1):
         // SessionStart with session_id = "sess-abc-123", dispatcher_trace_id = "trace-abc-001".
-        let events = send_session_start("sess-abc-123", "trace-abc-001", FactoryHealthMock::Healthy);
+        let events =
+            send_session_start("sess-abc-123", "trace-abc-001", FactoryHealthMock::Healthy);
 
         let session_started: Vec<_> = events
             .iter()
@@ -330,7 +332,10 @@ mod session_start_integration {
             .unwrap()
             .parse()
             .expect("plugin_count must parse as integer from string");
-        assert!(plugin_count >= 0, "plugin_count must be >= 0 (BC-4.04.001 PC-2)");
+        assert!(
+            plugin_count >= 0,
+            "plugin_count must be >= 0 (BC-4.04.001 PC-2)"
+        );
         assert!(
             payload.get("activated_platform").is_some(),
             "activated_platform must be present (read from .claude/settings.local.json; fail-open = 'unknown')"
@@ -392,9 +397,18 @@ mod session_start_integration {
         );
 
         // --- Construction-time fields (4) — set by InternalEvent::now() ---
-        assert!(payload.get("ts").is_some(), "ts construction-time field must be present");
-        assert!(payload.get("ts_epoch").is_some(), "ts_epoch construction-time field must be present");
-        assert!(payload.get("schema_version").is_some(), "schema_version construction-time field must be present");
+        assert!(
+            payload.get("ts").is_some(),
+            "ts construction-time field must be present"
+        );
+        assert!(
+            payload.get("ts_epoch").is_some(),
+            "ts_epoch construction-time field must be present"
+        );
+        assert!(
+            payload.get("schema_version").is_some(),
+            "schema_version construction-time field must be present"
+        );
         assert_eq!(
             payload.get("type").and_then(|v| v.as_str()),
             Some("session.started"),
@@ -416,8 +430,8 @@ mod session_start_integration {
     /// per-value cap and construct an over-budget payload per BC-4.04.001 EC-003.
     #[test]
     fn test_bc_4_04_001_tool_deps_eviction_when_oversized() {
-        use session_start_telemetry::TOOL_DEPS_WHITELIST;
         use session_start_telemetry::TOOL_DEPS_SIZE_BUDGET;
+        use session_start_telemetry::TOOL_DEPS_WHITELIST;
 
         // Construct an over-budget payload: 5 tools × 200-char values each.
         // 200 chars >> 64-char per-value cap; bypassed via compute_tool_deps_uncapped.
@@ -493,7 +507,11 @@ mod session_start_integration {
             .filter(|e| e.get("type").and_then(|v| v.as_str()) == Some("session.started"))
             .collect();
 
-        assert_eq!(session_started.len(), 1, "session.started must be emitted even with empty session_id");
+        assert_eq!(
+            session_started.len(),
+            1,
+            "session.started must be emitted even with empty session_id"
+        );
         // "unknown" sentinel set by BC-1.02.005 envelope parsing into HostContext.session_id,
         // then auto-enriched onto the event by emit_event. Not set by the plugin.
         assert_eq!(
@@ -582,8 +600,11 @@ mod session_start_integration {
     fn test_bc_4_04_002_factory_health_timeout() {
         // Note: FactoryHealthMock::Timeout immediately returns a timeout error without
         // actually sleeping > 5000ms (VP-065 §Notes: keep test runtime fast).
-        let events =
-            send_session_start("sess-fh-timeout", "trace-timeout-001", FactoryHealthMock::Timeout);
+        let events = send_session_start(
+            "sess-fh-timeout",
+            "trace-timeout-001",
+            FactoryHealthMock::Timeout,
+        );
 
         let session_started: Vec<_> = events
             .iter()

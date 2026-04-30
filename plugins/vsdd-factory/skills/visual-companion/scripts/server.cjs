@@ -125,7 +125,7 @@ function getNewestScreen() {
       return SCREEN_EXTENSIONS.includes(ext) || f === 'screen.json';
     })
     .map(f => {
-      const fp = path.join(CONTENT_DIR, f);
+      const fp = path.join(CONTENT_DIR, f); // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- `f` is sourced from fs.readdirSync(CONTENT_DIR), not user-controlled input.
       return { name: f, path: fp, mtime: fs.statSync(fp).mtime.getTime() };
     })
     .sort((a, b) => b.mtime - a.mtime);
@@ -165,7 +165,7 @@ h1 { color: #333; } p { color: #666; } code { background: #f0f0f0; padding: 2px 
   }
 
   let html = fs.readFileSync(path.join(DIST_DIR, 'index.html'), 'utf-8');
-  const wsUrl = 'ws://' + URL_HOST + ':' + PORT;
+  const wsUrl = 'ws://' + URL_HOST + ':' + PORT; // nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket -- visual-companion is a local-only dev server; this ws:// URL is injected as __WS_URL__ for loopback-only use. No public exposure.
   const injection = '<script>window.__ACTIVE_FILE__=' + JSON.stringify(fileName) + ';window.__WS_URL__=' + JSON.stringify(wsUrl) + ';</script>';
   html = html.replace('</head>', injection + '\n</head>');
 
@@ -191,7 +191,7 @@ h1 { color: #333; } p { color: #666; }</style>
 
   const manifest = fs.readFileSync(filePath, 'utf-8');
   let html = fs.readFileSync(path.join(DIST_DIR, 'index.html'), 'utf-8');
-  const wsUrl = 'ws://' + URL_HOST + ':' + PORT;
+  const wsUrl = 'ws://' + URL_HOST + ':' + PORT; // nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket -- visual-companion is a local-only dev server; this ws:// URL is injected as __WS_URL__ for loopback-only use. No public exposure.
   const injection = '<script>window.__MANIFEST__=' + manifest + ';window.__WS_URL__=' + JSON.stringify(wsUrl) + ';</script>';
   html = html.replace('</head>', injection + '\n</head>');
 
@@ -240,7 +240,7 @@ function handleRequest(req, res) {
         return SCREEN_EXTENSIONS.includes(ext) || f === 'screen.json';
       })
       .map(f => {
-        const fp = path.join(CONTENT_DIR, f);
+        const fp = path.join(CONTENT_DIR, f); // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- `f` is sourced from fs.readdirSync(CONTENT_DIR), not user-controlled input.
         const stat = fs.statSync(fp);
         return { name: f, size: stat.size, mtime: stat.mtime.toISOString() };
       });
@@ -252,6 +252,7 @@ function handleRequest(req, res) {
   // API: get drawing JSON by name
   if (req.method === 'GET' && pathname.startsWith('/api/drawing/')) {
     const name = decodeURIComponent(pathname.slice('/api/drawing/'.length));
+    // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal, javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- path.basename() strips all directory components from user-supplied name before joining.
     const filePath = path.join(CONTENT_DIR, path.basename(name));
     if (!fs.existsSync(filePath)) {
       res.writeHead(404);
@@ -267,6 +268,7 @@ function handleRequest(req, res) {
   // Serve specific HTML screen by name
   if (req.method === 'GET' && pathname.startsWith('/html/')) {
     const name = decodeURIComponent(pathname.slice('/html/'.length));
+    // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal, javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- path.basename() strips all directory components from user-supplied name before joining.
     const filePath = path.join(CONTENT_DIR, path.basename(name));
     if (!fs.existsSync(filePath)) {
       res.writeHead(404);
@@ -284,6 +286,7 @@ function handleRequest(req, res) {
       res.end('Not found');
       return;
     }
+    // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal, javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- traversal is explicitly blocked by the startsWith(DIST_DIR) check immediately below before any I/O.
     const assetPath = path.join(DIST_DIR, pathname);
     const resolved = path.resolve(assetPath);
     // Prevent directory traversal
@@ -307,6 +310,7 @@ function handleRequest(req, res) {
   // Legacy /files/ route
   if (req.method === 'GET' && pathname.startsWith('/files/')) {
     const fileName = pathname.slice(7);
+    // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal, javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- path.basename() strips all directory components before joining.
     const filePath = path.join(CONTENT_DIR, path.basename(fileName));
     if (!fs.existsSync(filePath)) {
       res.writeHead(404);
@@ -399,6 +403,7 @@ function handleMessage(text) {
   // Handle drawing save-back from Excalidraw editor
   if (event.type === 'drawing-updated' && event.file && event.data) {
     const safeName = path.basename(event.file);
+    // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal, javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- safeName is derived via path.basename() on line above; directory components are stripped.
     const filePath = path.join(CONTENT_DIR, safeName);
     try {
       const json = typeof event.data === 'string' ? event.data : JSON.stringify(event.data, null, 2);
@@ -452,6 +457,7 @@ function startServer() {
     })
   );
 
+  // nosemgrep: problem-based-packs.insecure-transport.js-node.using-http-server.using-http-server -- visual-companion is a local-only dev tool listening on loopback; TLS/HTTPS would require distributing certs to every developer. No production traffic.
   const server = http.createServer(handleRequest);
   server.on('upgrade', handleUpgrade);
 
@@ -463,6 +469,7 @@ function startServer() {
     if (debounceTimers.has(filename)) clearTimeout(debounceTimers.get(filename));
     debounceTimers.set(filename, setTimeout(() => {
       debounceTimers.delete(filename);
+      // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal -- `filename` is sourced from fs.watch() callback on CONTENT_DIR (OS filesystem event), not user-controlled input.
       const filePath = path.join(CONTENT_DIR, filename);
 
       if (!fs.existsSync(filePath)) return; // file was deleted

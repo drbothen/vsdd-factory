@@ -270,8 +270,13 @@ impl InternalLog {
     }
 
     fn prune_old_inner(&self, max_age_days: u32) -> std::io::Result<()> {
-        scan_files_with_prefix(&self.log_dir, FILENAME_PREFIX, FILENAME_SUFFIX, max_age_days)
-            .map(|_| ())
+        scan_files_with_prefix(
+            &self.log_dir,
+            FILENAME_PREFIX,
+            FILENAME_SUFFIX,
+            max_age_days,
+        )
+        .map(|_| ())
     }
 
     /// Expose the log directory — integration tests use this to read
@@ -287,9 +292,12 @@ impl InternalLog {
     /// (caller passes `INTERNAL_DLQ_DEFAULT_RETENTION_DAYS` or a config override).
     pub fn prune_old_dlq(&self, max_age_days: u32) {
         let dlq_dir = self.log_dir.join("dlq");
-        if let Err(e) =
-            scan_files_with_prefix(&dlq_dir, DLQ_FILENAME_PREFIX, DLQ_FILENAME_SUFFIX, max_age_days)
-        {
+        if let Err(e) = scan_files_with_prefix(
+            &dlq_dir,
+            DLQ_FILENAME_PREFIX,
+            DLQ_FILENAME_SUFFIX,
+            max_age_days,
+        ) {
             eprintln!("factory-dispatcher: internal_log prune_old_dlq failed: {e}");
         }
     }
@@ -328,7 +336,9 @@ fn scan_files_with_prefix(
         }
 
         let Ok(meta) = entry.metadata() else { continue };
-        let Ok(modified) = meta.modified() else { continue };
+        let Ok(modified) = meta.modified() else {
+            continue;
+        };
         let Ok(since_epoch) = modified.duration_since(std::time::UNIX_EPOCH) else {
             continue;
         };
@@ -541,19 +551,16 @@ mod tests {
         let log = InternalLog::new(dir.path().to_path_buf());
 
         let now = std::time::SystemTime::now();
-        let now_epoch = now
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
+        let now_epoch = now.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64;
         let day_secs: i64 = 86_400;
 
         // Create DLQ files at 3 ages relative to INTERNAL_DLQ_DEFAULT_RETENTION_DAYS (7).
         // Ages chosen with margin away from the 7-day boundary to avoid race conditions.
         // (age_days, expected_to_survive_7_day_prune)
         let dlq_fixtures: &[(&str, i64, bool)] = &[
-            ("dead-letter-my-sink-2026-01-01.jsonl", 1, true),   // 1 day old → survives
-            ("dead-letter-my-sink-2026-01-02.jsonl", 6, true),   // 6 days old → survives
-            ("dead-letter-my-sink-2026-01-03.jsonl", 9, false),  // 9 days old → pruned
+            ("dead-letter-my-sink-2026-01-01.jsonl", 1, true), // 1 day old → survives
+            ("dead-letter-my-sink-2026-01-02.jsonl", 6, true), // 6 days old → survives
+            ("dead-letter-my-sink-2026-01-03.jsonl", 9, false), // 9 days old → pruned
             ("dead-letter-my-sink-2026-01-04.jsonl", 30, false), // 30 days old → pruned
         ];
 
@@ -612,8 +619,7 @@ mod tests {
             "BC-1.06.011: INTERNAL_DLQ_DEFAULT_RETENTION_DAYS must be 7"
         );
         assert_ne!(
-            INTERNAL_DLQ_DEFAULT_RETENTION_DAYS,
-            DEFAULT_RETENTION_DAYS,
+            INTERNAL_DLQ_DEFAULT_RETENTION_DAYS, DEFAULT_RETENTION_DAYS,
             "BC-1.06.011: DLQ retention must be independent of dispatcher log retention (30)"
         );
     }

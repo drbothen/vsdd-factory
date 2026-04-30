@@ -49,6 +49,7 @@ fn config_with_backoff(url: &str, retry: RetryConfig) -> HttpSinkConfig {
 }
 
 /// Canonical RetryConfig per BC-3.07.001 test vectors.
+#[allow(dead_code)]
 fn canonical_retry() -> RetryConfig {
     RetryConfig::new(100, 5000, 0.5, 3).expect("canonical RetryConfig must be valid")
 }
@@ -299,11 +300,7 @@ async fn test_BC_3_07_001_per_instance_prng_uncorrelated() {
     // Note: The test verifies the *structural* property (per-instance PRNG)
     // more than the exact numeric outcome. A code-review complement is noted
     // in the story AC-007 architecture compliance rule.
-    let diff = if elapsed1 > elapsed2 {
-        elapsed1 - elapsed2
-    } else {
-        elapsed2 - elapsed1
-    };
+    let diff = elapsed1.abs_diff(elapsed2);
 
     // If both drew exactly the same jitter from a correlated global source,
     // their elapsed times would be within <2ms of each other. Per-instance

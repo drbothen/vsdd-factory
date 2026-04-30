@@ -147,7 +147,8 @@ fn test_BC_3_02_012_disabled_sink_drops_every_event() {
     let tmp = tempfile::tempdir().unwrap();
     let date = chrono::Local::now().format("%Y-%m-%d");
 
-    let sink = make_file_sink_with_tags("disabled-sink", tmp.path(), false, Default::default(), None);
+    let sink =
+        make_file_sink_with_tags("disabled-sink", tmp.path(), false, Default::default(), None);
     let registry = SinkRegistry::with_sinks(vec![Box::new(sink)]);
     let router = Router::new(registry);
 
