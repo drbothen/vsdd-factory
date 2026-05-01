@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.1"
+version: "1.2"
 status: current
 producer: story-writer
-timestamp: 2026-04-30T00:00:00
+timestamp: 2026-04-30T12:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -161,7 +161,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-8.00 | Perf benchmark baseline + BC-anchor verification (W-15 pre-work) | E-8 | 5 | P1 | -- | S-8.01..S-8.09 | draft | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002) |
+| S-8.00 | Perf benchmark baseline + Tier 1 BC-anchor verification (W-15 pre-work) | E-8 | 5 | P2 | -- | S-8.01..S-8.09 | draft | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002) |
 
 > **S-8.00 authored 2026-04-30 v1.0 (status=draft).** 444 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 next. D-164 sealed.
 
@@ -178,7 +178,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 219 across 48 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 5 E-8)
+**Total story points:** 219 across 48 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 5 E-8*)
+
+> \*E-8 in progress — only S-8.00 authored at 5pts; ~118 additional pts pending S-8.01..S-8.28.
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)
