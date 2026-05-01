@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "D-183 Phase B COMPLETE: S-8.30 v1.0 (draft) authored — HookPayload SubagentStop SDK extension. STORY-INDEX v1.17. E-8 story_count 30→31. BC-2.02.012 S-8.11→S-8.30 reference updated. Phase C next: adversarial pass-1 on S-8.30."
+current_step: "D-183 Phase C in progress: S-8.30 pass-1 SUBSTANTIVE (3 HIGH + 4 MED + 5 LOW + 1 NIT); v1.1 fix burst applied (story-writer 6 fixes + architect SS-02 fix). Pass-2 next."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-01 (D-183 Phase B COMPLETE — S-8.30 v1.0 draft authored; STORY-INDEX v1.17; E-8 story_count 30→31; BC-2.02.012 S-8.11→S-8.30; po-obligations S-8.11→S-8.30 COMPLETED) |
+| **Last Updated** | 2026-05-01 (D-183 Phase C — S-8.30 pass-1 SUBSTANTIVE 13 findings; v1.1 fix burst applied; STORY-INDEX v1.18; pass-2 next) |
 | **Current Phase** | E-8-Tier-1-batch-authoring-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -133,6 +133,7 @@ dtu_services: []
 | ADV-Tier1-P6 seal + state update (D-182) | state-manager | COMPLETE | STATE.md current_step + Phase Progress + Decisions Log + [process-gap] + Session Resume Checkpoint updated; STORY-INDEX v1.14→v1.15; po-obligations.md created; factory-artifacts committed |
 | D-183 Phase A: PO BCs + architect SS-02 | product-owner + architect + state-manager | COMPLETE | 2 new BCs (BC-2.02.011 host::write_file; BC-2.02.012 HookPayload SubagentStop fields); SS-02 spec updated with Schema Evolution section + jq-`//` parity convention + process-gap-D-183-A; ARCH-INDEX SS-02 BC count 22→24; D-183 sealed |
 | D-183 Phase B: author S-8.30 SDK extension | story-writer + state-manager | COMPLETE | S-8.30 v1.0 draft (3pts; 8 ACs); BC-2.02.012 anchor; blocks S-8.01/02/03/05; ID chosen S-8.30 per POLICY 1 (Tier 2/3 placeholders S-8.11..S-8.29 untouched); E-8 story_count 30→31; BC-2.02.012 S-8.11→S-8.30 ref update; STORY-INDEX v1.17 |
+| D-183 Phase C: S-8.30 pass-1 + v1.1 fix burst | adversary + story-writer + architect + state-manager | COMPLETE | Pass-1 SUBSTANTIVE 13 findings (3H+4M+5L+1N); v1.0→v1.1 fix burst (6 story fixes + 1 SS-02 architect fix); 4L+1N SKIP-FIX carryover; STORY-INDEX v1.18; pass-2 next |
 
 ## Identifier Conventions
 
@@ -290,24 +291,25 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**D-183 Phase A COMPLETE (2026-05-01). BC-2.02.011 + BC-2.02.012 authored. SS-02 updated. S-8.01 + S-8.03 reset ready → draft. rc.1 LIVE.**
+**D-183 Phase C in progress (2026-05-01). S-8.30 pass-1 SUBSTANTIVE (13 findings: 3H+4M+5L+1N); v1.1 fix burst APPLIED. adv-s8.30-p1.md persisted. STORY-INDEX v1.18. Pass-2 next.**
 
 **Branch HEADs:**
 - main: 1485d2e (rc.1 bot bundle; chore: bundle dispatcher binaries for v1.0.0-rc.1)
 - develop: 6686aec (post-semgrep-fix; Wave 14 COMPLETE)
-- factory-artifacts: (post-commit; feat(specs): D-183 Phase A — HookPayload additive-ABI extension foundation)
+- factory-artifacts: (post-commit; D-183 Phase C — S-8.30 pass-1 + v1.1 fix burst)
 
 **rc.1 status:** GH pre-release published 2026-04-30T03:10:59Z. Tag v1.0.0-rc.1 at 1485d2e. 14-day shakedown clock running; ETA ~2026-05-13.
 
-**E-8 Tier 1 current status (post D-183 Phase A):**
+**E-8 Tier 1 current status (post D-183 Phase C pass-1 fix burst):**
 - CONVERGED (ready, spec): S-8.00 v1.5, S-8.07 v1.2, S-8.09 v1.3
 - CONVERGENCE_REACHED → OQ-A1 RESOLVED: S-8.10 v1.1 (BC-2.02.011 now authored; story-writer may flip status draft → ready after updating behavioral_contracts: ["BC-2.02.011"])
 - D-183 reset (draft — re-convergence required): S-8.01 v1.4, S-8.03 v1.3 (process-gap-D-183-A: T-3 must specify typed HookPayload field projections per BC-2.02.012)
 - Clock 2/3: S-8.04 v1.3, S-8.06 v1.4
 - Clock 1/3: S-8.08 v1.4 (parity restoration empirically verified)
 - SUBSTANTIVE — needs fix burst: S-8.02 v1.4 (v1.5 required: T-11 wording per AC-008 verbatim); S-8.05 v1.5 (v1.6 required: HookPayload typed-projection + jq-//-equivalent + AC-007 fields + AC-008 form)
+- D-183 Phase C: S-8.30 v1.1 (pass-1 SUBSTANTIVE fixed; 4L+1N carryover SKIP-FIX; pass-2 next)
 
-**Last sealed decision:** D-183 Phase B (S-8.30 v1.0 authored; STORY-INDEX v1.17; E-8 story_count 30→31; BC-2.02.012 S-8.11→S-8.30).
+**Last sealed decision:** D-183 Phase C pass-1 fix burst (S-8.30 v1.0→v1.1; 7 fixes: 3 HIGH story-writer + 1 MED architect SS-02 + 3 MED story-writer; adv-s8.30-p1.md persisted; STORY-INDEX v1.18).
 
 **Open tech debt:**
 - TD-013 (P0): main branch protection LOOSENED — required_pull_request_reviews DELETED; must restore via org migration + Ruleset bypass before v1.0.0 GA.
@@ -316,8 +318,8 @@ dtu_services: []
 
 **Branch protection:** LOOSE. TD-013 must resolve before GA.
 
-**Resumption recipe (Phase C next):**
-1. D-183 Phase C: adversarial pass-1 on S-8.30 (HookPayload SubagentStop SDK extension story v1.0 draft).
+**Resumption recipe (Phase C pass-2 next):**
+1. D-183 Phase C pass-2: adversarial pass-2 on S-8.30 v1.1. Expect clock advance 0/3 → 1/3 if NITPICK_ONLY, or further fix burst if SUBSTANTIVE.
 2. S-8.10 status flip: story-writer updates S-8.10 frontmatter `behavioral_contracts: []` → `["BC-2.02.011"]` and status: draft → ready (Phase D).
 3. S-8.01 + S-8.03 re-convergence: story-writer updates T-3 to specify `payload.agent_type.as_deref()...` typed-projection per BC-2.02.012; then dispatch adversarial pass-N+1.
 4. S-8.02 v1.5 fix burst: correct T-11 wording by quoting AC-008 verbatim (invariant-2 wording for jq-missing-fail-closed). process-gap-D-182-A applies.

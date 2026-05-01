@@ -236,21 +236,29 @@ AGENT=$(echo "$INPUT" | jq -r '.agent_type // .subagent_name // "unknown"')
 RESULT=$(echo "$INPUT" | jq -r '.last_assistant_message // .result // empty')
 ```
 
-The WASM port preserves identical semantics via `Option` chaining:
+The WASM port preserves identical semantics via `Option::as_deref()` chaining:
 
 ```rust
-let agent = payload.agent_type
-    .or(payload.subagent_name)
-    .unwrap_or_else(|| "unknown".to_string());
+// Per BC-2.02.012 Postcondition 5 (canonical agent identity fallback chain):
+let agent: &str = payload.agent_type.as_deref()
+    .or(payload.subagent_name.as_deref())
+    .unwrap_or("unknown");
 
-let result = payload.last_assistant_message
-    .or(payload.result);
+// Per BC-2.02.012 Postcondition 6 (canonical assistant-message fallback chain):
+let result: &str = payload.last_assistant_message.as_deref()
+    .or(payload.result.as_deref())
+    .unwrap_or("");
 ```
 
-This is the canonical pattern for any future envelope-field fallback in WASM hooks.
-When a bash hook uses `jq -r '.fieldA // .fieldB // "default"'`, the WASM translation
-is always `payload.field_a.or(payload.field_b).unwrap_or("default")`. No bespoke
-parsing logic is needed.
+**These chains are NORMATIVE per BC-2.02.012 Invariant 5. Story specs (S-8.01,
+S-8.02, S-8.03, S-8.05, S-8.30) MUST use these expressions verbatim. Deviations
+require explicit divergence rationale.**
+
+The borrowing form (`as_deref()` → `&str`) is required — not the consuming form
+(`Option::or` returning `Option<String>`). When a bash hook uses
+`jq -r '.fieldA // .fieldB // "default"'`, the WASM translation is always
+`payload.field_a.as_deref().or(payload.field_b.as_deref()).unwrap_or("default")`.
+No bespoke parsing logic is needed.
 
 ## ADRs
 
@@ -316,3 +324,9 @@ every T-N task that accesses envelope data explicitly references the `HookPayloa
 field (or explicitly cites the BC that defines the projection). A BC citation without
 a field-level binding is insufficient — the BC must exist and enumerate the specific
 fields by name.
+
+## Change Log
+
+| Date | Change |
+|------|--------|
+| 2026-05-01 | F-S830-P1-004 fix: fallback-chain example aligned with BC-2.02.012 canonical (`as_deref()` borrowing chain returning `&str`); architecture doc no longer diverges from BC. Both agent identity and assistant-message chains updated. Prose translation pattern updated from consuming to borrowing form. |
