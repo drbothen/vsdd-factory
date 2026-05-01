@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.8"
+version: "1.9"
 status: current
 producer: state-manager
-timestamp: 2026-04-30T23:59:00
+timestamp: 2026-04-30T04:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -26,6 +26,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **rc.1 v1.0.0-rc.1 SHIPPED 2026-04-30T03:10:59 UTC.** GH pre-release at https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.1. Tag at 1485d2e (bot bundle); main HEAD synced. Branch protection toggled per release ritual; remediation tracked as TD-013. 14-day shakedown clock starts. D-152.
 > **W-15 entry-point story S-8.00 authored (2026-04-30):** S-8.00-perf-baseline-bc-anchor-verification.md v1.0 status=draft; 444 lines; 9 ACs; 5pts; blocks S-8.01..S-8.09; resolves OQ-1 + OQ-8. E-8 epic section added. STORY-INDEX v1.0 → v1.1 (D-164).
 > **E-8 Tier 1 batch authoring (2026-04-30):** 9 Tier 1 hook port stories authored across 2 bursts (S-8.01..S-8.09) at v1.0 status=draft; 22 BCs anchored (BC-7.03.* + BC-7.04.*); 33 base story points; 65 ACs; 3,240 lines; 0 [process-gap] BC-anchor fallbacks. R-8.10 NOT triggered. STORY-INDEX v1.7 → v1.8 (D-171).
+> **E-8 Tier 1 batch pass-1 adversarial reviews (2026-04-30):** 9 stories reviewed in parallel; all SUBSTANTIVE; 122 findings total (43H+49M+21L+9NIT); all clocks held 0_of_3. CRITICAL: S-8.04 + S-8.09 BLOCKED on missing host::write_file in SDK (D-6 Option A trigger confirmed). 10 universal systematic patterns identified. STORY-INDEX v1.8 → v1.9 (D-172).
 > This index is the authoritative source for story count and status.
 > 57 stories across 9 epics (E-0 through E-8).
 
@@ -174,6 +175,24 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.28 | draft | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 |
 
 > S-8.00 v1.5 (status=**ready**, **CONVERGENCE_REACHED** at adversarial pass-6 per ADR-013 2026-04-30). 512 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 v1.1); pass-2 closed (8 v1.2); pass-3 closed (6 v1.3); pass-4 NITPICK_ONLY (3 closed v1.4 + clock 0/3→1/3); pass-5 NITPICK_ONLY (1 NIT SKIP_FIX + clock 1/3→2/3); **pass-6 NITPICK_ONLY (2 NIT SKIP_FIX + clock 2/3→3/3 = CONVERGENCE_REACHED)**. Trajectory 14→8→6→3→1→2 over 6 passes (86% decay; healthy late-convergence shape). D-164 + D-165 + D-166 + D-167 + D-168 + D-169 + D-170 sealed. Ready for per-story-delivery cycle.
+
+> S-8.01 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). 14 findings (4H+6M+3L+1NIT). Clock 0_of_3 → 0_of_3 (held pending fix burst). Key findings: phantom hooks.json deletion (D-7 shipped); BC trace mis-anchor on emit_event postcondition; BC-7.03.042 invariant 2 contradicts AC-006 exit-code; AC-005 perf gate conflicts with E-8 AC-7 Tier 1 exclusion. Systematic: wasm32-wasi→wasip1; subsystems excludes SS-04; input-hash comment drift. See adv-s8.01-p1.md. D-172.
+
+> S-8.02 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). 13 findings (4H+5M+3L+1NIT). Clock 0_of_3 → 0_of_3 (held pending fix burst). Key findings: AC-005 hint string truncated; missing catch-all case arm (10th arm); BC-7.03.046 title ASCII/Unicode mismatch; jq-missing degradation contract missing vs BC-7.03.045 invariant 2. Systematic: BRE/ERE regex mismatch; capability justification fabricated gh claim. See adv-s8.02-p1.md. D-172.
+
+> S-8.03 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). 13 findings (4H+5M+3L+1NIT). Clock 0_of_3 → 0_of_3 (held pending fix burst). Key findings: byte-count vs char-count parity defect (wc -c vs .chars().count() for multibyte UTF-8); multiline regex anchor parity (bash grep ^ per-line vs Rust default); AC-005 BC mis-anchor (BC-7.03.081 identity vs BC-7.03.082 emit_event); malformed-JSON AC missing. Systematic: [process-gap] disclosures absent; T-3 whitespace-classifier contradictory. See adv-s8.03-p1.md. D-172.
+
+> S-8.04 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). **HIGHEST RISK STORY — 17 findings (7H+6M+3L+1NIT). BLOCKED.** Clock 0_of_3 → 0_of_3 (held pending fix burst + SDK extension). **CRITICAL: host::write_file does NOT exist in vsdd-hook-sdk (empirically verified against crates/hook-sdk/src/ffi.rs + host.rs). D-6 Option A trigger CONFIRMED REQUIRED. S-8.04 BLOCKED pending SDK extension PR.** Additional HIGH: wasm32-wasi→wasip1; capability tokens file_read/file_write wrong schema; BC-7.03.083-086 unverifiable; serde_yaml deprecated 2024; YAML trichotomy not pinned. MED: TOCTOU race + non-atomic write on wave-state.yaml; bash ERE alternation precedence ambiguity; EC-003 inverted vs bash source; T-9 phantom python3 removal. See adv-s8.04-p1.md. D-172.
+
+> S-8.05 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). 12 findings (4H+5M+2L+1NIT). Clock 0_of_3 → 0_of_3 (held pending fix burst). Key findings: AC-006 Check 3a inverts bash verdict accumulation; stderr format omits 3rd remediation line; binary_allow cleanup incomplete (bash/jq/gh all missing from tasks). Systematic: stretch-anchor SS-07 claim incorrect post-port; emit failure semantics unspecified. See adv-s8.05-p1.md. D-172.
+
+> S-8.06 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). 11 findings (4H+5M+1L+1NIT). Clock 0_of_3 → 0_of_3 (held pending fix burst). Key findings: phantom hooks.json deletion (AC-002); BC-7.03.076 contradicts AC-001 binary_allow=empty; AC-006 fabricates "emit_event deferral" claim not in BC; 6 ACs over-decompose 3-pt story. MED: host::write_file vs std::fs ambiguity; EC-005 stdin WASI SIGPIPE risk. See adv-s8.06-p1.md. D-172.
+
+> S-8.07 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). 14 findings (6H+5M+2L+1NIT). Clock 0_of_3 → 0_of_3 (held pending fix burst). Key findings: wasm32-wasi→wasip1; phantom hooks.json deletion; serde_yaml not in workspace.dependencies + deprecated; host::emit_event signature mapping unspecified; python3 soft-dep path not mapped; read_file capability declaration missing from registry spec. MED: wave:15 provisional disclosure missing; serde_yaml alt-crate decision required. See adv-s8.07-p1.md. D-172.
+
+> S-8.08 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). 12 findings (4H+5M+2L+1NIT). Clock 0_of_3 → 0_of_3 (held pending fix burst). Key findings: phantom hooks.json deletion across ACs/Tasks/File-list; Goal contradicts registry-only reality; AC-002 BC-7.03.079 invariant 1 wrong anchor for deletion; SS-07 ownership claim incorrect post-port. MED: Goal "lower latency" unenforceable; T-6 exec_subprocess removal mismatch; perf comparison vs absent S-8.00 baseline. NIT: POLICY 8 PASS positive ack. See adv-s8.08-p1.md. D-172.
+
+> S-8.09 v1.0 (status=draft, pass-1 SUBSTANTIVE 2026-04-30). **BLOCKED — 16 findings (6H+7M+2L+1NIT).** Clock 0_of_3 → 0_of_3 (held pending fix burst + SDK extension). **CRITICAL: host::write_file listed as "existing" in Library table but does NOT exist in SDK (same D-6 Option A trigger as S-8.04).** Additional HIGH: OQ-6 gate criteria undefined; AC-009 internally contradictory with "may be revised" qualifier; AC-007 9-scenario coverage only 2 of 9 have bats fixtures; AC-002 destructive deletion without blast-radius safeguard. MED: AC-011 self-referential gate paradox (cannot audit what it depends on at close); AC-012 unbounded find command; AC-008 BC trace broken; EC-006 silent write failure violates AGENT-SOUL; regression-gate tool-filter unspecified. See adv-s8.09-p1.md. D-172.
 
 ---
 
