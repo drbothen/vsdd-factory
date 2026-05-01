@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.7"
+version: "1.8"
 status: current
 producer: state-manager
-timestamp: 2026-04-30T23:00:00
+timestamp: 2026-04-30T23:59:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -25,8 +25,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **Wave 14 COMPLETE (2026-04-29):** S-5.05 PR #40 merged at 1e2db47 (5pts; migration guide v0.79.x→v1.0); S-5.06 PR #39 merged at d134648 (2pts; semver commitment doc); 45 of 47 stories merged; D-150.
 > **rc.1 v1.0.0-rc.1 SHIPPED 2026-04-30T03:10:59 UTC.** GH pre-release at https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.1. Tag at 1485d2e (bot bundle); main HEAD synced. Branch protection toggled per release ritual; remediation tracked as TD-013. 14-day shakedown clock starts. D-152.
 > **W-15 entry-point story S-8.00 authored (2026-04-30):** S-8.00-perf-baseline-bc-anchor-verification.md v1.0 status=draft; 444 lines; 9 ACs; 5pts; blocks S-8.01..S-8.09; resolves OQ-1 + OQ-8. E-8 epic section added. STORY-INDEX v1.0 → v1.1 (D-164).
+> **E-8 Tier 1 batch authoring (2026-04-30):** 9 Tier 1 hook port stories authored across 2 bursts (S-8.01..S-8.09) at v1.0 status=draft; 22 BCs anchored (BC-7.03.* + BC-7.04.*); 33 base story points; 65 ACs; 3,240 lines; 0 [process-gap] BC-anchor fallbacks. R-8.10 NOT triggered. STORY-INDEX v1.7 → v1.8 (D-171).
 > This index is the authoritative source for story count and status.
-> 48 stories across 9 epics (E-0 through E-8).
+> 57 stories across 9 epics (E-0 through E-8).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -38,9 +39,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 45 |
 | partial | 1 |
-| draft | 1 |
+| draft | 10 |
 | ready | 1 |
-| **Total** | **48** |
+| **Total** | **57** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -162,6 +163,15 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-8.00 | Perf benchmark baseline + Tier 1 BC-anchor verification (W-15 pre-work) | E-8 | 5 | P2 | -- | S-8.01..S-8.09 | ready | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002) |
+| S-8.01 | Native port: handoff-validator | E-8 | 4 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.042, BC-7.03.043, BC-7.03.044 |
+| S-8.02 | Native port: pr-manager-completion-guard | E-8 | 5 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.045, BC-7.03.046, BC-7.03.047, BC-7.03.048 |
+| S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.081, BC-7.03.082 |
+| S-8.04 | Native port: update-wave-state-on-merge | E-8 | 4 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.083, BC-7.03.084, BC-7.03.085, BC-7.03.086 |
+| S-8.05 | Native port: validate-pr-review-posted | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.04.040, BC-7.04.041, BC-7.04.042, BC-7.04.043, BC-7.04.044 |
+| S-8.06 | Native port: session-learning | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.076, BC-7.03.077, BC-7.03.078 |
+| S-8.07 | Native port: warn-pending-wave-gate | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.091, BC-7.03.092 |
+| S-8.08 | Native port: track-agent-start | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.079, BC-7.03.080 |
+| S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.28 | draft | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 |
 
 > S-8.00 v1.5 (status=**ready**, **CONVERGENCE_REACHED** at adversarial pass-6 per ADR-013 2026-04-30). 512 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 v1.1); pass-2 closed (8 v1.2); pass-3 closed (6 v1.3); pass-4 NITPICK_ONLY (3 closed v1.4 + clock 0/3→1/3); pass-5 NITPICK_ONLY (1 NIT SKIP_FIX + clock 1/3→2/3); **pass-6 NITPICK_ONLY (2 NIT SKIP_FIX + clock 2/3→3/3 = CONVERGENCE_REACHED)**. Trajectory 14→8→6→3→1→2 over 6 passes (86% decay; healthy late-convergence shape). D-164 + D-165 + D-166 + D-167 + D-168 + D-169 + D-170 sealed. Ready for per-story-delivery cycle.
 
@@ -178,9 +188,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 219 across 48 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 5 E-8*)
+**Total story points:** 252 across 57 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 38 E-8*)
 
-> \*E-8 in progress — only S-8.00 authored at 5pts; ~118 additional pts pending S-8.01..S-8.28.
+> \*E-8 in progress — only S-8.00 + 9 Tier 1 stories authored at 38pts; ~85 additional pts pending S-8.10..S-8.28 (Tier 2 + Tier 3).
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)
