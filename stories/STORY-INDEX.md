@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.11"
+version: "1.12"
 status: current
 producer: state-manager
-timestamp: 2026-04-30T06:00:00
+timestamp: 2026-05-01T00:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -29,8 +29,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **E-8 Tier 1 batch pass-1 adversarial reviews (2026-04-30):** 9 stories reviewed in parallel; all SUBSTANTIVE; 122 findings total (43H+49M+21L+9NIT); all clocks held 0_of_3. CRITICAL: S-8.04 + S-8.09 BLOCKED on missing host::write_file in SDK (D-6 Option A trigger confirmed). 10 universal systematic patterns identified. STORY-INDEX v1.8 → v1.9 (D-172).
 > **E-8 Tier 1 v1.0→v1.1 fix burst (2026-04-30):** 9 parallel story-writer bursts applied pass-1 fixes to all Tier 1 stories; 122 findings closed (43H+49M+21L+9NIT); all stories bumped v1.0→v1.1 status=draft; total 3,248→3,883 lines (+635). Universal patterns applied: wasm32-wasi→wasm32-wasip1; vsdd-hook-sdk=crates/hook-sdk; hooks.json positive-verification; subsystems+=SS-04; CAP-022 stretch; wave:15 [process-gap]; input-hash convention; AC perf Tier 1 exclusion; emit_event signature mapping; read_file capability declarations. CRITICAL BLOCKER: S-8.04 + S-8.09 BLOCKED on host::write_file SDK extension (D-6 Option A; story TBD). Per-story structural changes: S-8.06 AC count 6→4 (over-decomposition fix); S-8.03 +AC-007 (malformed JSON graceful exit); S-8.05 verbatim 3-line bash remediation block; S-8.07 serde_yaml pinned 0.9.34 (deprecated by Dtolnay 2024; TD entry logged). STORY-INDEX v1.9 → v1.10 (D-173).
 > **E-8 Tier 1 batch pass-2 adversarial reviews (2026-04-30):** 9 parallel pass-2 reviews; all SUBSTANTIVE; all clocks held 0_of_3; 65 total findings (18H+34M+16L+4NIT). Trajectory: 122 → 65 (-47% decay). Pass-1 verification: 116 of 122 fully closed (95%); 6 had partial residuals re-surfaced as pass-2 findings. Per-story: S-8.01=4 (0H+2M+2L); S-8.02=6 (2H+3M+1L); S-8.03=9 (2H+4M+2L+1NIT); S-8.04=11 (3H+5M+2L+1NIT) D-6 BLOCKER; S-8.05=4 (0H+3M+1L); S-8.06=9 (1H+4M+3L+1NIT); S-8.07=11 (4H+4M+2L+1NIT); S-8.08=9 (2H+5M+2L); S-8.09=9 (4H+4M+1L) D-6 BLOCKER. CRITICAL new discoveries: (1) SS-04 universal mis-anchor across S-8.07/08/09 — ARCH-INDEX SS-04=Plugin Ecosystem; for SDK surface correct is SS-02; (2) S-8.07 vsdd-hook-sdk path wrong (resolves to non-existent crates/crates/hook-sdk); (3) S-8.07 missing workspace Cargo.toml members registration; (4) BC-7.03.071 invariants fabricated again in S-8.09 (regression of F-009); (5) D-6 sibling divergence: S-8.04 declares depends_on S-8.SDK-write-file; S-8.09 orphaned; (6) emit_event signature: universal pattern not pinned across siblings; (7) read_file max_bytes+timeout_ms unspecified. STORY-INDEX v1.10 → v1.11 (D-174).
+> **S-8.10 SDK extension authored (2026-05-01):** S-8.10-sdk-extension-write-file.md v1.0 status=draft; 3pts; blocks S-8.04 + S-8.09 (D-6 Option A unblocker); depends_on S-8.00; SS-02; behavioral_contracts=[] pending OQ-1 BC authorship; HOST_ABI_VERSION stays at 1 (AS-DEC). Tier 2/3 stories renumbered S-8.10..S-8.28 → S-8.11..S-8.29. STORY-INDEX v1.11 → v1.12.
 > This index is the authoritative source for story count and status.
-> 57 stories across 9 epics (E-0 through E-8).
+> 58 stories across 9 epics (E-0 through E-8).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -42,9 +43,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 45 |
 | partial | 1 |
-| draft | 10 |
+| draft | 11 |
 | ready | 1 |
-| **Total** | **57** |
+| **Total** | **58** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -161,7 +162,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ## Epic E-8 — Native WASM Migration Completion (W-15 pre-work — draft)
 
-> **E-8 spec CONVERGENCE_REACHED (2026-04-30):** E-8-native-wasm-migration.md v1.7 status=ready; 11 adversarial passes; trajectory 18→7→0→1→0→2→3→1→0→1→0; D-163 sealed. 29 stories planned (S-8.00..S-8.28). story_count: 29 (1 pre-work + 9 Tier 1 + 11 Tier 2 + 8 Tier 3). target_release: v1.1 (Tier 1), v1.2 (Tier 2), v1.3 (Tier 3). Anchors: CAP-002, CAP-008, CAP-013, CAP-022. Tech debt: TD-014.
+> **E-8 spec CONVERGENCE_REACHED (2026-04-30):** E-8-native-wasm-migration.md v1.7 status=ready; 11 adversarial passes; trajectory 18→7→0→1→0→2→3→1→0→1→0; D-163 sealed. 30 stories planned (S-8.00..S-8.29). story_count: 30 (1 pre-work + 9 Tier 1 + 1 SDK extension + 9 Tier 2 + 10 Tier 3). target_release: v1.1 (Tier 1), v1.2 (Tier 2), v1.3 (Tier 3). Anchors: CAP-002, CAP-008, CAP-013, CAP-022. Tech debt: TD-014.
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
@@ -174,7 +175,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-8.06 | Native port: session-learning | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.076, BC-7.03.077, BC-7.03.078 |
 | S-8.07 | Native port: warn-pending-wave-gate | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.091, BC-7.03.092 |
 | S-8.08 | Native port: track-agent-start | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.079, BC-7.03.080 |
-| S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.28 | draft | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 |
+| S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.29 | draft | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 |
+| S-8.10 | SDK extension: host::write_file (D-6 Option A unblocker) | E-8 | 3 | P2 | S-8.00 | S-8.04, S-8.09 | draft | [] (OQ-1 pending BC authorship) |
 
 > S-8.00 v1.5 (status=**ready**, **CONVERGENCE_REACHED** at adversarial pass-6 per ADR-013 2026-04-30). 512 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 v1.1); pass-2 closed (8 v1.2); pass-3 closed (6 v1.3); pass-4 NITPICK_ONLY (3 closed v1.4 + clock 0/3→1/3); pass-5 NITPICK_ONLY (1 NIT SKIP_FIX + clock 1/3→2/3); **pass-6 NITPICK_ONLY (2 NIT SKIP_FIX + clock 2/3→3/3 = CONVERGENCE_REACHED)**. Trajectory 14→8→6→3→1→2 over 6 passes (86% decay; healthy late-convergence shape). D-164 + D-165 + D-166 + D-167 + D-168 + D-169 + D-170 sealed. Ready for per-story-delivery cycle.
 
@@ -209,9 +211,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 252 across 57 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 38 E-8*)
+**Total story points:** 255 across 58 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 41 E-8*)
 
-> \*E-8 in progress — only S-8.00 + 9 Tier 1 stories authored at 38pts; ~85 additional pts pending S-8.10..S-8.28 (Tier 2 + Tier 3).
+> \*E-8 in progress — only S-8.00 + 9 Tier 1 stories authored at 38pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

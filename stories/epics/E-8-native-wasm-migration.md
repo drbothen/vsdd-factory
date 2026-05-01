@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-8"
-version: "1.7"
+version: "1.8"
 title: "Native WASM Migration Completion"
 status: ready
 tech_debt_ref: TD-014
@@ -10,7 +10,7 @@ prd_frs: []
 anchor_strategy: option-c-reuse-existing-bc-per-hook-behavior
 priority: P2
 target_release: "v1.1 (Tier 1), v1.2 (Tier 2), v1.3 (Tier 3)"
-story_count: 29
+story_count: 30
 producer: architect
 timestamp: 2026-04-30T00:00:00Z
 phase: 2
@@ -55,25 +55,26 @@ Code hooks and closes TD-014.
 | S-8.07 | Native port: warn-pending-wave-gate (Stop) | 3 | S-8.00 | draft |
 | S-8.08 | Native port: track-agent-start (PreToolUse:Agent) | 3 | S-8.00 | draft |
 | S-8.09 | Native port: regression-gate + legacy-bash-adapter retirement prep | 5 | S-8.01..S-8.08 | draft |
-| S-8.10 | Native port bundle B-1: BC/story format validators (4 hooks) | 5 | S-8.09 | draft |
-| S-8.11 | Native port bundle B-2: finding/format gate validators (4 hooks) | 5 | S-8.09 | draft |
-| S-8.12 | Native port bundle B-3: state file guards (4 hooks) | 5 | S-8.09 | draft |
-| S-8.13 | Native port bundle B-4: release/delivery validators (4 hooks) | 5 | S-8.09 | draft |
-| S-8.14 | Native port bundle B-5a: wave/template simple validators (1 hook) | 5 | S-8.09 | draft |
-| S-8.15 | Native port: validate-input-hash (solo) | 5 | S-8.09 | draft |
-| S-8.16 | Native port: validate-template-compliance (solo, complex) | 5 | S-8.09 | draft |
-| S-8.17 | Native port bundle B-6a: convergence-tracker + purity-check | 4 | S-8.09 | draft |
-| S-8.18 | Native port bundle B-6b: validate-vp-consistency + validate-anchor-capabilities-union | 6 | S-8.09 | draft |
-| S-8.19 | Native port: protect-bc (PreToolUse gate) | 3 | S-8.09 | draft |
-| S-8.20 | Native port: protect-vp (PreToolUse gate) | 3 | S-8.09 | draft |
-| S-8.21 | Native port: protect-secrets (dual-event PreToolUse) | 4 | S-8.09 | draft |
-| S-8.22 | Native port: red-gate (PreToolUse strict-TDD gate) | 5 | S-8.09 | draft |
-| S-8.23 | Native port: brownfield-discipline (PreToolUse) | 4 | S-8.09 | draft |
-| S-8.24 | Native port: factory-branch-guard (PreToolUse) | 4 | S-8.09 | draft |
-| S-8.25 | Native port: check-factory-commit (PreToolUse:Bash) | 4 | S-8.09 | draft |
-| S-8.26 | Native port: destructive-command-guard (PreToolUse:Bash) | 5 | S-8.09 | draft |
-| S-8.27 | Native port: validate-pr-merge-prerequisites (PreToolUse:Agent) | 4 | S-8.09 | draft |
-| S-8.28 | Native port: validate-wave-gate-prerequisite (PreToolUse:Agent) | 4 | S-8.09 | draft |
+| S-8.10 | SDK extension: host::write_file (D-6 Option A unblocker) | 3 | S-8.00 | draft |
+| S-8.11 | Native port bundle B-1: BC/story format validators (4 hooks) | 5 | S-8.09 | draft |
+| S-8.12 | Native port bundle B-2: finding/format gate validators (4 hooks) | 5 | S-8.09 | draft |
+| S-8.13 | Native port bundle B-3: state file guards (4 hooks) | 5 | S-8.09 | draft |
+| S-8.14 | Native port bundle B-4: release/delivery validators (4 hooks) | 5 | S-8.09 | draft |
+| S-8.15 | Native port bundle B-5a: wave/template simple validators (1 hook) | 5 | S-8.09 | draft |
+| S-8.16 | Native port: validate-input-hash (solo) | 5 | S-8.09 | draft |
+| S-8.17 | Native port: validate-template-compliance (solo, complex) | 5 | S-8.09 | draft |
+| S-8.18 | Native port bundle B-6a: convergence-tracker + purity-check | 4 | S-8.09 | draft |
+| S-8.19 | Native port bundle B-6b: validate-vp-consistency + validate-anchor-capabilities-union | 6 | S-8.09 | draft |
+| S-8.20 | Native port: protect-bc (PreToolUse gate) | 3 | S-8.09 | draft |
+| S-8.21 | Native port: protect-vp (PreToolUse gate) | 3 | S-8.09 | draft |
+| S-8.22 | Native port: protect-secrets (dual-event PreToolUse) | 4 | S-8.09 | draft |
+| S-8.23 | Native port: red-gate (PreToolUse strict-TDD gate) | 5 | S-8.09 | draft |
+| S-8.24 | Native port: brownfield-discipline (PreToolUse) | 4 | S-8.09 | draft |
+| S-8.25 | Native port: factory-branch-guard (PreToolUse) | 4 | S-8.09 | draft |
+| S-8.26 | Native port: check-factory-commit (PreToolUse:Bash) | 4 | S-8.09 | draft |
+| S-8.27 | Native port: destructive-command-guard (PreToolUse:Bash) | 5 | S-8.09 | draft |
+| S-8.28 | Native port: validate-pr-merge-prerequisites (PreToolUse:Agent) | 4 | S-8.09 | draft |
+| S-8.29 | Native port: validate-wave-gate-prerequisite (PreToolUse:Agent) | 4 | S-8.09 | draft |
 
 ## Problem Statement
 
@@ -176,7 +177,7 @@ AC-1. Future E-9+ may revisit if Windows parity becomes a requirement.
 
 Note on disposition: verify-git-push.sh's existing `[[hooks]]` registry entry
 (currently adapter-routed for backward compat with the dispatcher) is REMOVED at
-S-8.28 close as part of legacy-bash-adapter retirement. Its hooks.json direct
+S-8.29 close as part of legacy-bash-adapter retirement. Its hooks.json direct
 command entry is RETAINED. Post-E-8 state: 1 hooks.json direct entry, 0
 hooks-registry.toml entries for verify-git-push.sh.
 
@@ -475,7 +476,7 @@ WASM hooks. The file contains only:
 2. The verify-git-push.sh direct command entry (D-1).
 
 Zero `[[hooks]]` entries in hooks-registry.toml use `plugin = 'hook-plugins/legacy-bash-adapter.wasm'`
-after S-8.28 merges.
+after S-8.29 merges.
 
 Reference: DRIFT-004 (hooks.json + hooks-registry.toml dual routing tables —
 MEDIUM-HIGH, resolution target L-P0-002 cutover).
@@ -508,31 +509,31 @@ similar implementation approach.
 
 | Story ID | Bundle | Hooks Included | Est. Pts |
 |----------|--------|---------------|---------|
-| S-8.10 | B-1: BC/story format | validate-bc-title, validate-story-bc-sync, validate-index-self-reference, validate-subsystem-names | 5 |
-| S-8.11 | B-2: finding/format gates | validate-finding-format, validate-factory-path-root, validate-novelty-assessment, validate-table-cell-count | 5 |
-| S-8.12 | B-3: state file guards (merged) | validate-state-size, validate-state-pin-freshness, validate-state-index-status-coherence, validate-count-propagation | 5 |
-| S-8.13 | B-4: release/delivery | validate-changelog-monotonicity, validate-demo-evidence-story-scoped, validate-pr-description-completeness, validate-red-ratio | 5 |
-| S-8.14 | B-5a: wave/template simple | validate-wave-gate-completeness | 5 |
-| S-8.15 | B-5b: input-hash (solo) | validate-input-hash | 5 |
-| S-8.16 | B-5c: template compliance (solo) | validate-template-compliance | 5 |
-| S-8.17 | B-6a: convergence/purity | convergence-tracker, purity-check | 4 |
-| S-8.18 | B-6b: complex validators | validate-vp-consistency, validate-anchor-capabilities-union | 6 |
+| S-8.11 | B-1: BC/story format | validate-bc-title, validate-story-bc-sync, validate-index-self-reference, validate-subsystem-names | 5 |
+| S-8.12 | B-2: finding/format gates | validate-finding-format, validate-factory-path-root, validate-novelty-assessment, validate-table-cell-count | 5 |
+| S-8.13 | B-3: state file guards (merged) | validate-state-size, validate-state-pin-freshness, validate-state-index-status-coherence, validate-count-propagation | 5 |
+| S-8.14 | B-4: release/delivery | validate-changelog-monotonicity, validate-demo-evidence-story-scoped, validate-pr-description-completeness, validate-red-ratio | 5 |
+| S-8.15 | B-5a: wave/template simple | validate-wave-gate-completeness | 5 |
+| S-8.16 | B-5b: input-hash (solo) | validate-input-hash | 5 |
+| S-8.17 | B-5c: template compliance (solo) | validate-template-compliance | 5 |
+| S-8.18 | B-6a: convergence/purity | convergence-tracker, purity-check | 4 |
+| S-8.19 | B-6b: complex validators | validate-vp-consistency, validate-anchor-capabilities-union | 6 |
 
 **Tier 3 (10 stories, ~3-5 pts each):**
 One story per hook due to logic complexity and safety-critical nature.
 
 | Story ID | Hook | Est. Pts |
 |----------|------|---------|
-| S-8.19 | protect-bc | 3 |
-| S-8.20 | protect-vp | 3 |
-| S-8.21 | protect-secrets (dual-event) | 4 |
-| S-8.22 | red-gate | 5 |
-| S-8.23 | brownfield-discipline | 4 |
-| S-8.24 | factory-branch-guard | 4 |
-| S-8.25 | check-factory-commit | 4 |
-| S-8.26 | destructive-command-guard | 5 |
-| S-8.27 | validate-pr-merge-prerequisites | 4 |
-| S-8.28 | validate-wave-gate-prerequisite | 4 |
+| S-8.20 | protect-bc | 3 |
+| S-8.21 | protect-vp | 3 |
+| S-8.22 | protect-secrets (dual-event) | 4 |
+| S-8.23 | red-gate | 5 |
+| S-8.24 | brownfield-discipline | 4 |
+| S-8.25 | factory-branch-guard | 4 |
+| S-8.26 | check-factory-commit | 4 |
+| S-8.27 | destructive-command-guard | 5 |
+| S-8.28 | validate-pr-merge-prerequisites | 4 |
+| S-8.29 | validate-wave-gate-prerequisite | 4 |
 
 **Total: 29 stories (~123-155 story points; 123 base sum, 32 reserved for BC-creation buffer per R-8.10).**
 
@@ -558,11 +559,11 @@ No changes to the S-5.05 spec file itself.
 
 ### D-10: Legacy-Bash-Adapter Retirement
 
-**Decision: Adapter crate stays through end of W-17; deleted at S-8.28 close.**
+**Decision: Adapter crate stays through end of W-17; deleted at S-8.29 close.**
 
 Rationale: 34 Tier 2/3 entries (33 unique scripts; protect-secrets dual-registered
 for Bash + Read events) reference `legacy-bash-adapter.wasm` in
-hooks-registry.toml during the W-16/W-17 migration window (S-8.10..S-8.28 in
+hooks-registry.toml during the W-16/W-17 migration window (S-8.11..S-8.29 in
 flight). Deleting the adapter .wasm at end of W-15 (after S-8.09) leaves 34
 dangling registry references → silent dispatch failures for any hook whose
 hooks-registry.toml entry still points to the adapter .wasm. Dispatcher loads the
@@ -574,10 +575,10 @@ Timeline:
   adapter crate is NOT deleted yet. Registry updated: 9 Tier 1 entries now point
   to native plugins; 34 Tier 2/3 entries (33 unique scripts; protect-secrets
   dual-registered for Bash + Read events) still point to adapter.
-- **W-16/W-17 (S-8.10..S-8.27):** Each story updates the registry entry for its
+- **W-16/W-17 (S-8.11..S-8.28):** Each story updates the registry entry for its
   hooks from adapter to native. Adapter crate remains on disk; adapter .wasm must
   exist for all un-ported hooks.
-- **S-8.28 close:** Last Tier 3 hook ported. Pre-deletion audit: confirm zero
+- **S-8.29 close:** Last Tier 3 hook ported. Pre-deletion audit: confirm zero
   `[[hooks]]` entries in hooks-registry.toml use `plugin = 'hook-plugins/legacy-bash-adapter.wasm'`.
   Then: `crates/hook-plugins/legacy-bash-adapter/` directory deleted.
   `bin/emit-event` removed from dispatcher binary tree in the same PR (see R-8.07).
@@ -598,7 +599,7 @@ still needs it.
 | R-8.04 | Behavior-change drift during port — implementer "improves" bash logic during translation | HIGH | MEDIUM | D-2 (Option C): behavior spec is the BC, not the bash source; adversary explicitly checks behavior parity against bash source + BC |
 | R-8.05 | Test coverage gap — bash hooks have implicit behaviors not covered by current bats tests; port forces explicit test writing which surfaces latent bugs | MEDIUM | HIGH | Surfaced latent bugs are fixed in the porting story (same PR); not deferred |
 | R-8.06 | Inline matcher migration creates registration churn — simultaneous hooks.json + hooks-registry.toml edits required per hook; merge conflicts likely in active development | LOW | MEDIUM | Each story is a discrete branch; hooks.json and hooks-registry.toml edits are atomic per story |
-| R-8.07 | TD-007 interaction — bash hooks still call `bin/emit-event` binary; ported hooks should use `host::emit_event` instead; if bin/emit-event is removed before all 42 ports complete, event emission breaks for remaining bash hooks | HIGH | HIGH | bin/emit-event is NOT removed until S-8.28 close. Tiers 2/3 bash hooks alive in hooks.json direct path during W-16/W-17 still need bin/emit-event. Validated by AC-9. |
+| R-8.07 | TD-007 interaction — bash hooks still call `bin/emit-event` binary; ported hooks should use `host::emit_event` instead; if bin/emit-event is removed before all 42 ports complete, event emission breaks for remaining bash hooks | HIGH | HIGH | bin/emit-event is NOT removed until S-8.29 close. Tiers 2/3 bash hooks alive in hooks.json direct path during W-16/W-17 still need bin/emit-event. Validated by AC-9. |
 | R-8.08 | Cumulative WASM startup overhead — 23 Tier 2 plugins × estimated 10ms (assumption pending OQ-8 measurement) ≈ 230ms+ aggregate PostToolUse:Edit\|Write latency, even if each plugin individually passes AC-7 | MEDIUM (pending OQ-8) | MEDIUM (pending OQ-8) | Mitigations: plugin warm-pool, shared wasmtime engine instance, compile-cache (.wasm → .cwasm). AC-7b: aggregate latency ≤ 200ms p95 (tentative ceiling; baseline-derived adjustment allowed in S-8.00 per OQ-8) measured in S-8.00 baseline + Tier 2 gate. |
 | R-8.09 | Cumulative bundle size growth — 42 new .wasm artifacts in dispatcher binary bundles increase release-artifact size by estimated low-MB; could approach GitHub Release per-asset size limits over multiple tier releases | LOW | LOW | Per-bundle size measured in S-8.00 baseline; if growth exceeds 25% of v1.0.0 dispatcher bundle size, evaluate WASM size-optimization (`opt-level = "z"` in workspace `[profile.release]`, strip-debug, link-time optimization). Tier-by-tier release pacing (v1.1, v1.2, v1.3) gives natural milestones to reassess. |
 | R-8.10 | BC-creation explosion — D-2 Option C exception path adds new BCs for hooks with implicit behaviors not in existing BCs; magnitude depends on S-8.00 audit; worst case ~9 new BCs × ~3 pts = 27 unbudgeted pts | MEDIUM | MEDIUM | S-8.00 audit measures BC-coverage gap pre-W-15; if >5 Tier 1 hooks lack BC, raise OQ for adversarial review and consider deferring some Tier 1 ports to W-16; new BCs follow standard BC creation flow (template + adversary review). |
@@ -608,7 +609,7 @@ still needs it.
 | ID | Criterion | Validation |
 |----|-----------|-----------|
 | AC-1 | Zero `.sh` files in `plugins/vsdd-factory/hooks/` except `verify-git-push.sh` | `find plugins/vsdd-factory/hooks -name "*.sh" \| grep -v verify-git-push` returns empty |
-| AC-2 | `crates/hook-plugins/legacy-bash-adapter/` directory DELETED | `ls crates/hook-plugins/` does not contain `legacy-bash-adapter`; validated at S-8.28 close |
+| AC-2 | `crates/hook-plugins/legacy-bash-adapter/` directory DELETED | `ls crates/hook-plugins/` does not contain `legacy-bash-adapter`; validated at S-8.29 close |
 | AC-3 | Zero per-script `command` entries in `hooks.json` (only dispatcher-routing entries remain); zero `[[hooks]]` entries in `hooks-registry.toml` use `plugin = 'hook-plugins/legacy-bash-adapter.wasm'` | `jq` query on hooks.json returns only dispatcher entries + verify-git-push; grep on hooks-registry.toml returns zero legacy-bash-adapter references |
 | AC-4 | All native plugins ship through dispatcher binary bundles (release.yml builds them) | CI `release.yml` job includes all new crates in the bundle matrix |
 | AC-5 | Windows native operation verified — all migrated hooks run without git-bash | CI Windows runner passes all bats integration tests for Tier 1+ hooks |
@@ -616,7 +617,7 @@ still needs it.
 | AC-7 | Per-Tier-2 hook latency does not regress vs S-8.00 bash baseline by more than 20% (Tier 1/3 hooks fire less frequently and are not benchmarked individually) | Benchmark test in `tests/perf/` measures each Tier 2 hook vs S-8.00 bash baseline |
 | AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 200ms p95 (tentative ceiling; baseline-derived adjustment allowed in S-8.00 per OQ-8) | Benchmark test in `tests/perf/` measures aggregate latency under simulated file-write load |
 | AC-8 | Behavior parity per hook — bats tests pass for native version; validate-factory-path-root, validate-input-hash, validate-template-compliance additionally have negative (false-block) test fixtures | bats test suite passes with identical output; 3 block-mode hooks have explicit negative test scenarios |
-| AC-9 | `bin/emit-event` binary not present in dispatcher binary tree post-S-8.28 | `find . -name emit-event` returns empty in the dispatcher binary bundle directory after S-8.28 merge; validated in S-8.28 pre-deletion audit |
+| AC-9 | `bin/emit-event` binary not present in dispatcher binary tree post-S-8.29 | `find . -name emit-event` returns empty in the dispatcher binary bundle directory after S-8.29 merge; validated in S-8.29 pre-deletion audit |
 
 ### D-13: Wave Structure
 
@@ -624,9 +625,9 @@ E-8 uses three waves aligned to releases:
 
 | Wave | Tier | Stories | Target Release | Gate Condition |
 |------|------|---------|---------------|----------------|
-| W-15* | Tier 1 (lifecycle hooks) | S-8.00..S-8.09 | v1.1 | legacy-bash-adapter pre-retirement audit passed; 9 .sh gone; Windows CI green; bin/emit-event deferred to S-8.28 |
-| W-16* | Tier 2 (PostToolUse validators) | S-8.10..S-8.18 | v1.2 | 23 .sh gone; AC-7 + AC-7b perf benchmark green; all bundled bats pass |
-| W-17* | Tier 3 (PreToolUse protections) | S-8.19..S-8.28 | v1.3 | AC-1 fully satisfied; AC-2 done (adapter deleted at S-8.28); AC-3 fully satisfied; AC-8 green for all hooks; bin/emit-event removed |
+| W-15* | Tier 1 (lifecycle hooks) + SDK extension | S-8.00..S-8.10 | v1.1 | legacy-bash-adapter pre-retirement audit passed; 9 .sh gone; Windows CI green; bin/emit-event deferred to S-8.29 |
+| W-16* | Tier 2 (PostToolUse validators) | S-8.11..S-8.19 | v1.2 | 23 .sh gone; AC-7 + AC-7b perf benchmark green; all bundled bats pass |
+| W-17* | Tier 3 (PreToolUse protections) | S-8.20..S-8.29 | v1.3 | AC-1 fully satisfied; AC-2 done (adapter deleted at S-8.29); AC-3 fully satisfied; AC-8 green for all hooks; bin/emit-event removed |
 
 *Wave IDs are provisional. Final assignment by state-manager at story decomposition
 time after v1.0.0 GA. STATE.md shows Waves W-10 and W-12 are gap-numbered
@@ -661,44 +662,44 @@ W-16 and W-17 run in parallel after W-15 completes (D-4).
 
 | Hook | Matcher | On-Error | Bundle | Story |
 |------|---------|----------|--------|-------|
-| validate-bc-title.sh | Edit\|Write | continue | B-1 | S-8.10 |
-| validate-story-bc-sync.sh | Edit\|Write | continue | B-1 | S-8.10 |
-| validate-index-self-reference.sh | Edit\|Write | continue | B-1 | S-8.10 |
-| validate-subsystem-names.sh | Edit\|Write | continue | B-1 | S-8.10 |
-| validate-finding-format.sh | Edit\|Write | continue | B-2 | S-8.11 |
-| validate-factory-path-root.sh | Edit\|Write | block | B-2 | S-8.11 |
-| validate-novelty-assessment.sh | Edit\|Write | continue | B-2 | S-8.11 |
-| validate-table-cell-count.sh | Edit\|Write | continue | B-2 | S-8.11 |
-| validate-state-size.sh | Edit\|Write | continue | B-3 | S-8.12 |
-| validate-state-pin-freshness.sh | Edit\|Write | continue | B-3 | S-8.12 |
-| validate-state-index-status-coherence.sh | Edit\|Write | continue | B-3 | S-8.12 |
-| validate-count-propagation.sh | Edit\|Write | continue | B-3 | S-8.12 |
-| validate-changelog-monotonicity.sh | Edit\|Write | continue | B-4 | S-8.13 |
-| validate-demo-evidence-story-scoped.sh | Edit\|Write | continue | B-4 | S-8.13 |
-| validate-pr-description-completeness.sh | Edit\|Write | continue | B-4 | S-8.13 |
-| validate-red-ratio.sh | Edit\|Write | continue | B-4 | S-8.13 |
-| validate-wave-gate-completeness.sh | Edit\|Write | continue | B-5a | S-8.14 |
-| validate-input-hash.sh | Edit\|Write | block | B-5b solo | S-8.15 |
-| validate-template-compliance.sh | Edit\|Write | block | B-5c solo | S-8.16 |
-| convergence-tracker.sh | Edit\|Write | continue | B-6a | S-8.17 |
-| purity-check.sh | Edit\|Write | continue | B-6a | S-8.17 |
-| validate-vp-consistency.sh | Edit\|Write | continue | B-6b | S-8.18 |
-| validate-anchor-capabilities-union.sh | Edit\|Write | continue | B-6b | S-8.18 |
+| validate-bc-title.sh | Edit\|Write | continue | B-1 | S-8.11 |
+| validate-story-bc-sync.sh | Edit\|Write | continue | B-1 | S-8.11 |
+| validate-index-self-reference.sh | Edit\|Write | continue | B-1 | S-8.11 |
+| validate-subsystem-names.sh | Edit\|Write | continue | B-1 | S-8.11 |
+| validate-finding-format.sh | Edit\|Write | continue | B-2 | S-8.12 |
+| validate-factory-path-root.sh | Edit\|Write | block | B-2 | S-8.12 |
+| validate-novelty-assessment.sh | Edit\|Write | continue | B-2 | S-8.12 |
+| validate-table-cell-count.sh | Edit\|Write | continue | B-2 | S-8.12 |
+| validate-state-size.sh | Edit\|Write | continue | B-3 | S-8.13 |
+| validate-state-pin-freshness.sh | Edit\|Write | continue | B-3 | S-8.13 |
+| validate-state-index-status-coherence.sh | Edit\|Write | continue | B-3 | S-8.13 |
+| validate-count-propagation.sh | Edit\|Write | continue | B-3 | S-8.13 |
+| validate-changelog-monotonicity.sh | Edit\|Write | continue | B-4 | S-8.14 |
+| validate-demo-evidence-story-scoped.sh | Edit\|Write | continue | B-4 | S-8.14 |
+| validate-pr-description-completeness.sh | Edit\|Write | continue | B-4 | S-8.14 |
+| validate-red-ratio.sh | Edit\|Write | continue | B-4 | S-8.14 |
+| validate-wave-gate-completeness.sh | Edit\|Write | continue | B-5a | S-8.15 |
+| validate-input-hash.sh | Edit\|Write | block | B-5b solo | S-8.16 |
+| validate-template-compliance.sh | Edit\|Write | block | B-5c solo | S-8.17 |
+| convergence-tracker.sh | Edit\|Write | continue | B-6a | S-8.18 |
+| purity-check.sh | Edit\|Write | continue | B-6a | S-8.18 |
+| validate-vp-consistency.sh | Edit\|Write | continue | B-6b | S-8.19 |
+| validate-anchor-capabilities-union.sh | Edit\|Write | continue | B-6b | S-8.19 |
 
 ### Tier 3 — PreToolUse Protections (W-17, v1.3)
 
 | Hook | Event | On-Error | Complexity | Story |
 |------|-------|----------|------------|-------|
-| protect-bc.sh | PreToolUse:Edit\|Write | block | Medium | S-8.19 |
-| protect-vp.sh | PreToolUse:Edit\|Write | block | Medium | S-8.20 |
-| protect-secrets.sh | PreToolUse:Bash+Read | block | Medium | S-8.21 |
-| red-gate.sh | PreToolUse:Edit\|Write | block | High | S-8.22 |
-| brownfield-discipline.sh | PreToolUse:Edit\|Write | block | Medium | S-8.23 |
-| factory-branch-guard.sh | PreToolUse:Edit\|Write | block | Medium | S-8.24 |
-| check-factory-commit.sh | PreToolUse:Bash | block | Medium | S-8.25 |
-| destructive-command-guard.sh | PreToolUse:Bash | block | High | S-8.26 |
-| validate-pr-merge-prerequisites.sh | PreToolUse:Agent | block | Medium | S-8.27 |
-| validate-wave-gate-prerequisite.sh | PreToolUse:Agent | block | Medium | S-8.28 |
+| protect-bc.sh | PreToolUse:Edit\|Write | block | Medium | S-8.20 |
+| protect-vp.sh | PreToolUse:Edit\|Write | block | Medium | S-8.21 |
+| protect-secrets.sh | PreToolUse:Bash+Read | block | Medium | S-8.22 |
+| red-gate.sh | PreToolUse:Edit\|Write | block | High | S-8.23 |
+| brownfield-discipline.sh | PreToolUse:Edit\|Write | block | Medium | S-8.24 |
+| factory-branch-guard.sh | PreToolUse:Edit\|Write | block | Medium | S-8.25 |
+| check-factory-commit.sh | PreToolUse:Bash | block | Medium | S-8.26 |
+| destructive-command-guard.sh | PreToolUse:Bash | block | High | S-8.27 |
+| validate-pr-merge-prerequisites.sh | PreToolUse:Agent | block | Medium | S-8.28 |
+| validate-wave-gate-prerequisite.sh | PreToolUse:Agent | block | Medium | S-8.29 |
 
 ### Out of Scope
 
@@ -729,18 +730,18 @@ is the decomposition plan for story-writer consumption:
 - S-8.08: Native port of track-agent-start (PreToolUse:Agent telemetry)
 - S-8.09: Native port of regression-gate (PostToolUse) + adapter pre-retirement
   audit (confirm 9 Tier 1 entries now native; adapter NOT deleted; bin/emit-event
-  NOT removed — both deferred to S-8.28)
+  NOT removed — both deferred to S-8.29)
 
 **Wave W-16 (Tier 2 — 9 stories):**
-- S-8.10 through S-8.18 as per bundle groups above. Adapter crate remains on disk
+- S-8.11 through S-8.19 as per bundle groups above. Adapter crate remains on disk
   for un-ported hooks. Each story updates only its own registry entries.
 - Each story in this wave includes a BC-anchor verification task per D-2 (Option C
   reuse-existing-BC strategy); story-writer identifies the existing BC(s) the hook
   satisfies during story decomposition.
 
 **Wave W-17 (Tier 3 — 10 stories):**
-- S-8.19 through S-8.27 as per hook list above.
-- S-8.28: Final hook port (validate-wave-gate-prerequisite) + adapter crate
+- S-8.20 through S-8.28 as per hook list above.
+- S-8.29: Final hook port (validate-wave-gate-prerequisite) + adapter crate
   deletion + bin/emit-event removal. Pre-deletion audit: zero
   `legacy-bash-adapter.wasm` references in hooks-registry.toml. AC-2, AC-3,
   and TD-007 fully closed by this story.
@@ -756,7 +757,7 @@ Each story spec must include:
    delete hooks.json command; (d) delete .sh; (e) run bats; (f) run perf
    benchmark vs S-8.00 baseline if Tier 2.
 4. AC for bin/emit-event: replace `bin/emit-event` calls with `host::emit_event`
-   in WASM implementation (confirmed per-story; final removal at S-8.28 only).
+   in WASM implementation (confirmed per-story; final removal at S-8.29 only).
 5. For Tier 2 block-mode hooks: negative test fixtures validating no false-block.
 
 ---
@@ -767,7 +768,7 @@ See D-11 above for the full risk register. Key callouts:
 
 **R-8.07 (TD-007 / bin/emit-event interaction) is the highest-likelihood risk.**
 Every bash hook calls `_emit()` which shells out to `bin/emit-event`. bin/emit-event
-must NOT be removed until all 42 ports complete (S-8.28 close). Each story
+must NOT be removed until all 42 ports complete (S-8.29 close). Each story
 replaces `bin/emit-event` calls with `host::emit_event` in its WASM implementation.
 The bash source (still alive until .sh is deleted) retains its `bin/emit-event`
 call throughout its lifetime.
@@ -792,7 +793,7 @@ Restated from D-12 for clarity:
 | AC | Criterion |
 |----|-----------|
 | AC-1 | `find plugins/vsdd-factory/hooks -name "*.sh" \| grep -v verify-git-push` returns empty |
-| AC-2 | `crates/hook-plugins/legacy-bash-adapter/` does not exist (deleted at S-8.28) |
+| AC-2 | `crates/hook-plugins/legacy-bash-adapter/` does not exist (deleted at S-8.29) |
 | AC-3 | `hooks.json` contains zero inline `command` entries for native WASM hooks; zero `[[hooks]]` entries in `hooks-registry.toml` use `plugin = 'hook-plugins/legacy-bash-adapter.wasm'` |
 | AC-4 | `release.yml` builds all new WASM crates in the bundle matrix |
 | AC-5 | Windows CI runner passes all bats integration tests (verify via GitHub Actions windows-latest) |
@@ -800,7 +801,7 @@ Restated from D-12 for clarity:
 | AC-7 | Per-Tier-2 hook latency does not regress vs S-8.00 bash baseline by more than 20% (Tier 1/3 hooks fire less frequently and are not benchmarked individually) |
 | AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 200ms p95 (tentative ceiling; baseline-derived adjustment allowed in S-8.00 per OQ-8) |
 | AC-8 | All per-hook bats behavior-parity tests pass; validate-factory-path-root, validate-input-hash, validate-template-compliance additionally have negative (false-block) test fixtures |
-| AC-9 | `bin/emit-event` binary not present in dispatcher binary tree post-S-8.28; validated by `find . -name emit-event` returning empty in the dispatcher binary bundle directory after S-8.28 merge |
+| AC-9 | `bin/emit-event` binary not present in dispatcher binary tree post-S-8.29; validated by `find . -name emit-event` returning empty in the dispatcher binary bundle directory after S-8.29 merge |
 
 ---
 
@@ -809,8 +810,8 @@ Restated from D-12 for clarity:
 | Wave | Content | Depends On | Target Release | Key Deliverable |
 |------|---------|-----------|----------------|----------------|
 | W-15* | S-8.00–S-8.09 (Tier 1 lifecycle + pre-work) | v1.0.0 GA shipped; S-5.07 close; ABI stable | v1.1 | 9 hooks native; adapter pre-retirement audit; bin/emit-event deferred |
-| W-16* | S-8.10–S-8.18 (Tier 2 validators) | W-15 complete | v1.2 | 23 validators native; perf benchmarks green |
-| W-17* | S-8.19–S-8.28 (Tier 3 protections) | W-15 complete | v1.3 | 0 bash hooks; adapter deleted; bin/emit-event removed |
+| W-16* | S-8.11–S-8.19 (Tier 2 validators) | W-15 complete | v1.2 | 23 validators native; perf benchmarks green |
+| W-17* | S-8.20–S-8.29 (Tier 3 protections) | W-15 complete | v1.3 | 0 bash hooks; adapter deleted; bin/emit-event removed |
 
 *Wave IDs provisional — see D-13.
 
@@ -828,7 +829,7 @@ W-16 and W-17 are parallel (both depend on W-15, not on each other).
 | `vsdd_hook_sdk::host::exec_subprocess` available | Dependency | Available | Required by most Tier 1 hooks (gh, git, jq calls) |
 | `vsdd_hook_sdk::host::read_file` available | Dependency | Available | Required by Tier 2/3 file-inspection hooks |
 | Windows CI runner in GitHub Actions | Dependency | Available (ubuntu + windows runners in release.yml) | AC-5 requires windows-latest runner in bats job |
-| TD-007 resolution (bin/emit-event retirement) | Dependency | P3 (v1.3) | Closed at S-8.28; NOT incrementally per story. Tiers 2/3 bash hooks need bin/emit-event during migration window |
+| TD-007 resolution (bin/emit-event retirement) | Dependency | P3 (v1.3) | Closed at S-8.29; NOT incrementally per story. Tiers 2/3 bash hooks need bin/emit-event during migration window |
 | vsdd-hook-sdk path-based dependency | Constraint | Available | E-8 crates use `vsdd-hook-sdk = { path = "../../hook-sdk" }` matching capture-commit-activity precedent. TD-010 (crates.io publication) is independent of E-8. |
 | DRIFT-010 (originally framed as "26 unported bash hooks"; current count per E-8 scope is 42 adapter-routed scripts — see D-9 release-notes correction) | Dependency | Open | E-8 closes DRIFT-010 when all 42 ports merge |
 
@@ -853,7 +854,7 @@ mid-migration.
 **OQ-5 — convergence-tracker write-back capability (story-writer audit):**
 convergence-tracker mutates `.factory/` state files. The WASM sandbox currently
 exposes `read_file` but a `write_file` host fn may be required. Must be assessed
-during S-8.17 story-writer phase. If `write_file` is absent, this is an ABI
+during S-8.18 story-writer phase. If `write_file` is absent, this is an ABI
 extension trigger under D-6 procedure.
 
 **OQ-6 — regression-gate capability profile (pre-implementation gate):**
@@ -903,7 +904,7 @@ prior HIGH/HIGH scoring assumed the 10ms estimate was correct.
   Problem Statement.
 - F-006: D-7 rewritten with explicit dispatcher-routing decision, concrete
   BEFORE/AFTER hooks.json sketch, and corrected AC-3.
-- F-007: D-10 inverted. Adapter crate now retired at S-8.28 close (not end of
+- F-007: D-10 inverted. Adapter crate now retired at S-8.29 close (not end of
   Tier 1). Rationale: 33 Tier 2/3 hooks need adapter during W-16/W-17 migration
   window. AC-2 and Wave Schedule updated accordingly.
 - F-008: Wave IDs W-15/16/17 marked provisional with note on gap-numbered history
@@ -911,7 +912,7 @@ prior HIGH/HIGH scoring assumed the 10ms estimate was correct.
 - F-009: S-8.00 pre-work story added (perf benchmark baseline + Tier 1 BC-anchor
   verification). story_count bumped 28→29. AC-7 upgraded to regression-vs-baseline
   criterion. S-8.01..S-8.08 now depend on S-8.00.
-- F-010: R-8.07 updated. bin/emit-event removal pinned to S-8.28 close only.
+- F-010: R-8.07 updated. bin/emit-event removal pinned to S-8.29 close only.
   Explicit AC added to D-12.
 
 **6 MED findings closed:**
@@ -930,19 +931,19 @@ prior HIGH/HIGH scoring assumed the 10ms estimate was correct.
   schema additions beyond template baseline; template update proposed as
   follow-up process-gap.
 - F-017: B-3a + B-3b merged into single B-3 bundle (4 hooks, 5 pts). Story
-  table updated: S-8.12 covers all 4 state-file guard hooks.
+  table updated: S-8.13 covers all 4 state-file guard hooks.
 - F-018: R-8.08 added (cumulative WASM startup overhead). AC-7b added (aggregate
   PostToolUse:Edit|Write latency ≤ 200ms p95).
 
 **Open Questions resolved:**
 - OQ-1: Resolved → handled in S-8.00.
-- OQ-3: Resolved → single crate with internal dispatch (story-writer codifies in S-8.21).
+- OQ-3: Resolved → single crate with internal dispatch (story-writer codifies in S-8.22).
 - OQ-4: Resolved → S-8.00 pre-work story per F-009.
 - OQ-2, OQ-5, OQ-6: Deferred as documented above.
 
 **Observations addressed:**
 - S-8.09 point estimate bumped 4→5 pts (covers regression-gate port + adapter
-  audit + retirement prep, even though deletion deferred to S-8.28).
+  audit + retirement prep, even though deletion deferred to S-8.29).
 - DRIFT-010 added to Dependencies (E-8 closes it on full port completion).
 - track-agent-start Tier 1 grouping rationale documented explicitly in D-3.
 
@@ -951,7 +952,7 @@ prior HIGH/HIGH scoring assumed the 10ms estimate was correct.
 **1 HIGH finding closed:**
 - P2-002 [HIGH]: R-8.07 mitigation now references AC-9 by ID. AC-9 added to D-12
   with discrete validation command: "`find . -name emit-event` returns empty in
-  dispatcher binary bundle directory after S-8.28 merge." AC-9 also added to
+  dispatcher binary bundle directory after S-8.29 merge." AC-9 also added to
   epic-level AC restatement section.
 
 **4 MED findings closed:**
@@ -986,15 +987,15 @@ prior HIGH/HIGH scoring assumed the 10ms estimate was correct.
 - OQ-8: Per-plugin WASM warm-invocation latency baseline (R-8.08 / AC-7b / Goal #6).
 
 **AC count:** D-12 now has AC-1..AC-9 (9 numbered ACs) plus AC-7b as a sub-criterion
-(10 rows in table). AC-9 validates bin/emit-event removal at S-8.28 close.
+(10 rows in table). AC-9 validates bin/emit-event removal at S-8.29 close.
 
 ### v1.3 (2026-04-30) — ADV-E8-P4 pass-4 fix burst (3 findings closed)
 
 **1 MED finding closed:**
-- F-P4-001 [MED]: Stories table row S-8.14 "(2 hooks)" corrected to "(1 hook)".
+- F-P4-001 [MED]: Stories table row S-8.15 "(2 hooks)" corrected to "(1 hook)".
   Inventory confirms exactly 1 hook (validate-wave-gate-completeness) maps to
-  S-8.14 (D-8 Tier 2 table line 484, Tier 2 inventory line 644). Tier 2 bundle
-  arithmetic 4+4+4+4+1+1+1+2+2 = 23 is consistent only with 1 hook in S-8.14.
+  S-8.15 (D-8 Tier 2 table line 484, Tier 2 inventory line 644). Tier 2 bundle
+  arithmetic 4+4+4+4+1+1+1+2+2 = 23 is consistent only with 1 hook in S-8.15.
 
 **2 LOW findings closed:**
 - F-P4-002 [LOW]: D-7 AFTER JSON `"matcher": "Bash"` entry expanded to include
@@ -1089,7 +1090,7 @@ Canonical numbers: **44 entries / 43 unique / 42 ported. Scenario B.**
 **1 LOW finding closed:**
 - F-P8-002 [LOW]: D-1 disposition path made explicit. Added note on disposition at
   end of D-1 Ruling block: verify-git-push.sh's `[[hooks]]` registry entry
-  (currently adapter-routed) is REMOVED at S-8.28 close as part of
+  (currently adapter-routed) is REMOVED at S-8.29 close as part of
   legacy-bash-adapter retirement; its hooks.json direct command entry is RETAINED.
   Post-E-8 state: 1 hooks.json direct entry, 0 hooks-registry.toml entries for
   verify-git-push.sh. Closes AC-3 implicit gap (zero adapter-routed entries post-E-8).
@@ -1105,7 +1106,7 @@ Status flip `draft` → `ready` per ADR-013 3-clean-pass discipline. No content 
 - P1: 18 substantive (12H + 6M) — opening burst
 - P2: 7 (1H + 4M + 2L) — high-residual cleanup
 - P3: 0 → 1_of_3 advance
-- P4: 1 MED (F-P4-001 S-8.14 row count) → RESET to 0_of_3
+- P4: 1 MED (F-P4-001 S-8.15 row count) → RESET to 0_of_3
 - P5: 0 → 1_of_3 advance
 - P6: 2 MED + 5 LOW (F-P6-004 entry/script conflation; F-P6-007 AC-7 Tier-2 qualifier) → RESET
 - P7: 1 HIGH + 1 MED + 1 LOW (F-P7-001 registry arithmetic; F-P7-002 D-7 stale wording; F-P7-003 DRIFT-010 stale)
@@ -1122,6 +1123,6 @@ Status flip `draft` → `ready` per ADR-013 3-clean-pass discipline. No content 
 - D-3 vs D-8 bundle nomenclature (B-5 vs B-5a/b/c, B-6 vs B-6a/b) — operational impact zero (Story column disambiguates); may be polished in v1.8 alongside future content edits.
 
 **Status implications:**
-- Story-writer dispatch unblocks for S-8.00..S-8.28 decomposition.
+- Story-writer dispatch unblocks for S-8.00..S-8.29 decomposition.
 - Stories status remains `draft` until per-story-spec bursts.
 - E-8 epic ready for orchestrator routing into Wave 15 / W-15* (after v1.0.0 GA close).
