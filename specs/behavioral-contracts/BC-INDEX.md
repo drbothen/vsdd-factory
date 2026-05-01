@@ -160,7 +160,7 @@ traces_to: bc-id-mapping.md
 | [BC-2.02.009](ss-02/BC-2.02.009.md) | hook-sdk::host::decode_subprocess_result_parses_envelope — SubprocessResult envelope `i32 \| u32 \| stdout \| u32 \| stderr` decodes correctly | draft | CAP-009 | S-1.03 |
 | [BC-2.02.010](ss-02/BC-2.02.010.md) | hook-sdk::host::log_levels_are_stable — LogLevel discriminants 0..=4 are pinned (Trace=0, Debug=1, Info=2, Warn=3, Error=4) | draft | CAP-009 | S-1.03 |
 | [BC-2.02.011](ss-02/BC-2.02.011.md) | host::write_file ABI invariants — WriteFileCaps struct constraints, error return codes, max_bytes semantics, FFI pointer protocol | draft | CAP-022 | S-8.10 |
-| [BC-2.02.012](ss-02/BC-2.02.012.md) | HookPayload SubagentStop top-level fields — agent_type, subagent_name, last_assistant_message, result all `#[serde(default)] Option<String>`; null-as-absent via serde Option<T> | draft | CAP-022 | S-8.11, S-8.01, S-8.02, S-8.03, S-8.05 |
+| [BC-2.02.012](ss-02/BC-2.02.012.md) | HookPayload SubagentStop top-level fields — agent_type, subagent_name, last_assistant_message, result all `#[serde(default)] Option<String>`; null-as-absent via serde Option<T> | draft | CAP-022 | S-8.30, S-8.01, S-8.02, S-8.03, S-8.05 |
 | [BC-2.04.001](ss-02/BC-2.04.001.md) | hook-sdk::payload::pretooluse_payload_deserializes — full envelope parses with tool_input populated, tool_response None | draft | CAP-009 | S-1.03 |
 | [BC-2.04.002](ss-02/BC-2.04.002.md) | hook-sdk::payload::posttooluse_payload_with_response — SDK payload includes typed access to tool_response.exit_code | draft | CAP-009 | S-1.03 |
 | [BC-2.04.003](ss-02/BC-2.04.003.md) | hook-sdk::payload::lifecycle_payload_without_tool_name — SessionStart parses with tool_name="" and tool_input is JSON null | draft | CAP-009 | S-1.03 |

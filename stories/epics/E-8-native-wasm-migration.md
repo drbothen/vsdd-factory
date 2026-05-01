@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-8"
-version: "1.8"
+version: "1.9"
 title: "Native WASM Migration Completion"
 status: ready
 tech_debt_ref: TD-014
@@ -10,7 +10,7 @@ prd_frs: []
 anchor_strategy: option-c-reuse-existing-bc-per-hook-behavior
 priority: P2
 target_release: "v1.1 (Tier 1), v1.2 (Tier 2), v1.3 (Tier 3)"
-story_count: 30
+story_count: 31
 producer: architect
 timestamp: 2026-04-30T00:00:00Z
 phase: 2
@@ -56,6 +56,7 @@ Code hooks and closes TD-014.
 | S-8.08 | Native port: track-agent-start (PreToolUse:Agent) | 3 | S-8.00 | draft |
 | S-8.09 | Native port: regression-gate + legacy-bash-adapter retirement prep | 5 | S-8.01..S-8.08 | draft |
 | S-8.10 | SDK extension: host::write_file (D-6 Option A unblocker) | 3 | S-8.00 | draft |
+| S-8.30 | SDK extension: HookPayload SubagentStop top-level fields | 3 | S-8.00 | draft |
 | S-8.11 | Native port bundle B-1: BC/story format validators (4 hooks) | 5 | S-8.09 | draft |
 | S-8.12 | Native port bundle B-2: finding/format gate validators (4 hooks) | 5 | S-8.09 | draft |
 | S-8.13 | Native port bundle B-3: state file guards (4 hooks) | 5 | S-8.09 | draft |
@@ -1126,3 +1127,13 @@ Status flip `draft` → `ready` per ADR-013 3-clean-pass discipline. No content 
 - Story-writer dispatch unblocks for S-8.00..S-8.29 decomposition.
 - Stories status remains `draft` until per-story-spec bursts.
 - E-8 epic ready for orchestrator routing into Wave 15 / W-15* (after v1.0.0 GA close).
+
+### v1.8 (2026-05-01) — D-183 Phase B: S-8.30 SDK extension story authored
+
+S-8.30-sdk-extension-hookpayload-subagentstop-fields.md v1.0 status=draft authored by story-writer.
+
+- story_count bumped 30 → 31.
+- S-8.30 added to Stories table after S-8.10 (SDK extensions grouped before Tier 2/3 placeholder stories).
+- Story ID rationale: S-8.30 per POLICY 1 — Tier 2/3 placeholder IDs S-8.11..S-8.29 left untouched; appending after Tier 3 is the cleanest path (no renumber).
+- S-8.30 anchors BC-2.02.012 (HookPayload SubagentStop top-level fields). 3 pts. 8 ACs. depends_on: S-8.00. blocks: S-8.01, S-8.02, S-8.03, S-8.05 (re-convergence with typed-projection prose per process-gap-D-183-A).
+- Phase C next: adversarial pass-1 on S-8.30.

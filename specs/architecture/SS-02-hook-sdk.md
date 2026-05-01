@@ -170,7 +170,7 @@ The `BC-2.02.NNN` family covers the SDK host-function ABI surface.
 | BC-2.02.009 | `host::plugin_version` same re-call-on-overflow contract | S-1.03 | active |
 | BC-2.02.010 | `LogLevel` discriminants 0..=4 are pinned (Trace=0 ... Error=4) | S-1.03 | active |
 | BC-2.02.011 | `host::write_file` shim: write content to an allow-listed path; returns `Ok(())` on success, `Err(HostError)` on failure | S-8.10 | draft (PO authoring) |
-| BC-2.02.012 | `HookPayload` SubagentStop top-level fields: `agent_type`, `subagent_name`, `last_assistant_message`, `result` — all `Option<String>` with `#[serde(default)]`; absent or JSON-null deserializes to `None` | S-8.11 + S-8.01 + S-8.03 reopens | draft (PO authoring) |
+| BC-2.02.012 | `HookPayload` SubagentStop top-level fields: `agent_type`, `subagent_name`, `last_assistant_message`, `result` — all `Option<String>` with `#[serde(default)]`; absent or JSON-null deserializes to `None` | S-8.30 + S-8.01 + S-8.03 reopens | draft (PO authoring) |
 
 Note: BC-2.02.011 and BC-2.02.012 are in-flight (D-183 decision). When PO files them, the ARCH-INDEX SS-02 BC count will update from 22 to 24.
 
@@ -186,7 +186,7 @@ added as `#[serde(default)] Option<String>`. This pattern has been sanctioned tw
 | Decision | Story | Extension | HOST_ABI_VERSION |
 |----------|-------|-----------|-----------------|
 | D-6 Option A | S-8.10 | `host::write_file` — additive host function; anchors BC-2.02.011 | Stays at 1 |
-| D-183 | S-8.11 | `HookPayload` SubagentStop fields — additive struct fields; anchors BC-2.02.012 | Stays at 1 |
+| D-183 | S-8.30 | `HookPayload` SubagentStop fields — additive struct fields; anchors BC-2.02.012 | Stays at 1 |
 
 **General rule:** Any future Claude Code envelope schema addition follows this pattern
 unless the change is backward-incompatible (which would require a `HOST_ABI_VERSION`
@@ -223,7 +223,7 @@ part of the canonical SubagentStop envelope. The WASM port (BC-2.02.012) does no
 need to model `output` as a separate field; hook-level logic handles the third
 fallback via `Option` chaining on `last_assistant_message` → `result`.
 
-**Canonical contract:** BC-2.02.012 defines the typed projection. Stories S-8.11,
+**Canonical contract:** BC-2.02.012 defines the typed projection. Stories S-8.30,
 S-8.01 (reopen), and S-8.03 (reopen) trace to BC-2.02.012.
 
 ### jq-`//` Parity Convention
@@ -267,7 +267,7 @@ Context: S-8.01 (handoff-validator WASM port) and S-8.03 (pr-manager-completion-
 WASM port) both reached CONVERGENCE_REACHED before HookPayload carried the
 SubagentStop envelope's `agent_type` and `last_assistant_message` as typed fields.
 The bash hooks read these fields via jq at the top level of stdin, but HookPayload
-only had `tool_input: serde_json::Value`. S-8.11 was opened to fix this gap.
+only had `tool_input: serde_json::Value`. S-8.30 was opened to fix this gap (authored 2026-05-01, D-183 Phase B; originally referred to as S-8.11 before POLICY 1 assigned the canonical ID).
 
 Decision: Extend HookPayload with four `#[serde(default)] Option<String>` fields
 (`agent_type`, `subagent_name`, `last_assistant_message`, `result`) mirroring the

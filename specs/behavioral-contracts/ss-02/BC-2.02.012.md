@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: ready
 producer: product-owner
 timestamp: 2026-05-01T00:00:00Z
@@ -58,7 +58,7 @@ SubagentStop events from the Claude Code dispatcher carry agent identity and ass
 2. **Backward-compatible deserialization:** All four fields carry `#[serde(default)]`. Envelopes that predate the typed-projection (e.g., PreToolUse payloads) deserialize successfully with all four fields as `None`; no deserialization error occurs.
 3. **JSON null → None semantics:** serde_json's documented behavior for `Option<T>` with `#[serde(default)]` maps JSON `null` to `None`. This provides jq-`//`-equivalent null-as-advance fallback semantics without additional transformation logic.
 4. **Field names are canonical and immutable:** The field names `agent_type`, `subagent_name`, `last_assistant_message`, `result` are the empirically verified Claude Code SubagentStop envelope field names, confirmed against all four bash hooks at the source paths listed in Evidence below. These names MUST NOT be renamed or aliased without updating all four hook scripts and this BC.
-5. **Canonical fallback chains are normative:** Story specs implementing typed-projection (S-8.01, S-8.02, S-8.03, S-8.05, S-8.11) MUST use the canonical fallback chain expressions from Postconditions 5-6. Deviations require an explicit divergence rationale in the story spec.
+5. **Canonical fallback chains are normative:** Story specs implementing typed-projection (S-8.01, S-8.02, S-8.03, S-8.05, S-8.30) MUST use the canonical fallback chain expressions from Postconditions 5-6. Deviations require an explicit divergence rationale in the story spec.
 
 ## Edge Cases
 
@@ -106,7 +106,7 @@ SubagentStop events from the Claude Code dispatcher carry agent identity and ass
 
 ## Story Anchor
 
-S-8.11 — SDK extension story for HookPayload SubagentStop typed projection (to be authored). Also anchors: S-8.01 (handoff-validator typed-projection, REOPENED for re-convergence per D-183), S-8.02 (pr-manager-completion-guard typed-projection), S-8.03 (track-agent-stop typed-projection, REOPENED per D-183), S-8.05 (validate-pr-review-posted typed-projection).
+S-8.30 — SDK extension story for HookPayload SubagentStop typed projection (authored 2026-05-01, D-183 Phase B). Also anchors: S-8.01 (handoff-validator typed-projection, REOPENED for re-convergence per D-183), S-8.02 (pr-manager-completion-guard typed-projection), S-8.03 (track-agent-stop typed-projection, REOPENED per D-183), S-8.05 (validate-pr-review-posted typed-projection).
 
 ## VP Anchors
 
@@ -120,7 +120,7 @@ S-8.11 — SDK extension story for HookPayload SubagentStop typed projection (to
 | Capability Anchor Justification | CAP-022 ("Port hook plugins from bash to native WASM") per capabilities.md §CAP-022. `HookPayload` SubagentStop field projection is a prerequisite for porting the four bash SubagentStop hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, validate-pr-review-posted) to native WASM: without typed `HookPayload` fields, ported plugins must re-parse raw stdin JSON, defeating the purpose of the typed-projection model. |
 | L2 Domain Invariants | TBD (Phase 1.5 invariant lift pass) |
 | Architecture Module | SS-02 — `crates/hook-sdk/src/payload.rs` |
-| Stories | S-8.11 (implementing story — to be authored), S-8.01 (handoff-validator — REOPENED), S-8.02 (pr-manager-completion-guard), S-8.03 (track-agent-stop — REOPENED), S-8.05 (validate-pr-review-posted) |
+| Stories | S-8.30 (implementing story — authored 2026-05-01, D-183 Phase B), S-8.01 (handoff-validator — REOPENED), S-8.02 (pr-manager-completion-guard), S-8.03 (track-agent-stop — REOPENED), S-8.05 (validate-pr-review-posted) |
 
 ### Source Evidence
 
@@ -150,3 +150,9 @@ S-8.11 — SDK extension story for HookPayload SubagentStop typed projection (to
 #### Refactoring Notes
 
 The canonical fallback chain expressions (Postconditions 5-6) are short enough to inline at call sites in plugin code. If repeated across many story implementations, a `HookPayload::agent_identity()` and `HookPayload::assistant_message()` helper method pair may be worth extracting — this is left to the implementing story author's discretion and is not required by this BC.
+
+## Change Log
+
+### v1.1 (2026-05-01) — D-183 Phase B canonical story reference update
+
+Replaced provisional "S-8.11" reference with canonical "S-8.30" in Story Anchor section, Invariant 5, and Traceability Stories row. POLICY 1: append-after-Tier-3 chosen over placeholder renumber (Tier 2/3 placeholder IDs S-8.11..S-8.29 remain untouched). S-8.30 was authored as the implementing story for this BC in D-183 Phase B (2026-05-01).

@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.16"
+version: "1.17"
 status: current
 producer: state-manager
 timestamp: 2026-05-01T00:00:00
@@ -39,8 +39,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 >
 > **E-8 Tier 1 pass-6 batch adversarial reviews (2026-05-01, D-182):** 6 parallel pass-6 reviews (S-8.10 was at pass-4 in its own clock). 1 CONVERGED: **S-8.10 v1.1 reaches 3/3 NITPICK_ONLY at pass-4 per ADR-013 plateau-as-convergence pattern** (trajectory 18→7→4→4); status flip blocked on OQ-A1 (PO must author BC-2.02.011 — Spec-First Gate S-7.01). 3 advanced: S-8.04 v1.3 NITPICK_ONLY 1 NIT clock 1/3→2/3; S-8.06 v1.4 NITPICK_ONLY 2L+2N clock 1/3→2/3 (3rd consecutive anti-fabrication HARD GATE PASS); S-8.08 v1.4 NITPICK_ONLY 3 LOW clock 0/3→1/3 (D-181 strict-parity restoration empirically verified — whole-file grep confirms agent_id/tool_name only in permitted contexts). 2 SUBSTANTIVE require fix burst: S-8.02 v1.4 1 HIGH F-P6-001 fix-burst regression on T-11 wording (process-gap-D-182-A: orchestrator pass-5 prompt paraphrased AC-008 instead of quoting verbatim; story-writer faithfully wrote wrong content); S-8.05 v1.5 2 HIGH + 2 MED + 1 LOW novel deeper-layer findings (HookPayload typed-projection binding missing for `envelope`; jq `//` null-as-advance semantics divergence vs `Option::or`; AC-007 case (e) field-name `event_type→event_name` + value `PostToolUse→SubagentStop`; AC-008 emit_event form propagation; AC-001 `name` omission). S-8.05 trajectory 12→7→5→4→4→5 indicates fundamental spec depth not surfaced in prior passes. STORY-INDEX v1.14 → v1.15.
 > **D-183 Phase A — HookPayload extension foundation (2026-05-01):** PO authored BC-2.02.011 (host::write_file ABI invariants — supersedes S-8.10 OQ-A1 placeholder) + BC-2.02.012 (HookPayload SubagentStop top-level fields invariants — anchors S-8.11 + 4 SubagentStop port stories). Architect updated SS-02 spec with HookPayload Schema Evolution section + jq-`//` parity convention + BC-2.02.x family table + D-183 in-spec decision log. **S-8.01 and S-8.03 reset status: ready → draft** for re-convergence with typed-projection prose (process-gap-D-183-A: prior convergence was prose-level and missed HookPayload typed-projection layer). ARCH-INDEX SS-02 BC count 22 → 24. STORY-INDEX v1.15 → v1.16. Phase B next: story-writer authors S-8.11 (HookPayload SubagentStop SDK extension).
+> **D-183 Phase B — S-8.30 authored (2026-05-01):** New SDK extension story `S-8.30-sdk-extension-hookpayload-subagentstop-fields.md` v1.0 status=draft authored. 3 pts. Anchors BC-2.02.012 (HookPayload SubagentStop fields). 8 ACs covering struct extension (4 `#[serde(default)] Option<String>` fields appended after `plugin_config`), backward-compat for all event types, jq-`//` parity tests, HOST_ABI.md update, HOST_ABI_VERSION=1 invariant. depends_on: S-8.00; blocks: S-8.01, S-8.02, S-8.03, S-8.05. Story ID S-8.30 chosen per POLICY 1 (placeholder Tier 2/3 IDs S-8.11..S-8.29 left untouched; appending after Tier 3 cleanest path). STORY-INDEX v1.16 → v1.17. Phase C next: adversarial pass-1 on S-8.30.
 > This index is the authoritative source for story count and status.
-> 58 stories across 9 epics (E-0 through E-8).
+> 59 stories across 9 epics (E-0 through E-8).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -52,9 +53,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 45 |
 | partial | 1 |
-| draft | 9 |
+| draft | 10 |
 | ready | 3 |
-| **Total** | **58** |
+| **Total** | **59** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -186,6 +187,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-8.08 | Native port: track-agent-start | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.079, BC-7.03.080 |
 | S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.29 | ready | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 |
 | S-8.10 | SDK extension: host::write_file (D-6 Option A unblocker) | E-8 | 5 | P2 | S-8.00 | S-8.04, S-8.09 | draft | [] (OQ-1: BC-2.02.011 pending PO authorship) |
+| S-8.30 | SDK extension: HookPayload SubagentStop top-level fields | E-8 | 3 | P1 | S-8.00 | S-8.01, S-8.02, S-8.03, S-8.05 | draft | BC-2.02.012 |
 
 > S-8.00 v1.5 (status=**ready**, **CONVERGENCE_REACHED** at adversarial pass-6 per ADR-013 2026-04-30). 512 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 v1.1); pass-2 closed (8 v1.2); pass-3 closed (6 v1.3); pass-4 NITPICK_ONLY (3 closed v1.4 + clock 0/3→1/3); pass-5 NITPICK_ONLY (1 NIT SKIP_FIX + clock 1/3→2/3); **pass-6 NITPICK_ONLY (2 NIT SKIP_FIX + clock 2/3→3/3 = CONVERGENCE_REACHED)**. Trajectory 14→8→6→3→1→2 over 6 passes (86% decay; healthy late-convergence shape). D-164 + D-165 + D-166 + D-167 + D-168 + D-169 + D-170 sealed. Ready for per-story-delivery cycle.
 
@@ -220,9 +222,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 255 across 58 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 41 E-8*)
+**Total story points:** 258 across 59 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8*)
 
-> \*E-8 in progress — only S-8.00 + 9 Tier 1 stories authored at 38pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
+> \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

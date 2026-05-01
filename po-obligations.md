@@ -19,15 +19,20 @@ Tracked PO actions required to unblock spec-gated story transitions.
 
 | Action | Story | Details |
 |--------|-------|---------|
-| Flip S-8.10 status draft → ready | S-8.10 | Update `behavioral_contracts: []` → `["BC-2.02.011"]` in S-8.10 frontmatter; status: draft → ready. OQ-A1 unblocked by BC-2.02.011 authorship (D-183 Phase A). |
-| Author S-8.11 | (new) | Story-writer authors S-8.11 (HookPayload SubagentStop SDK extension — analogous to S-8.10 but for SubagentStop typed-projection; BC-2.02.012 as anchor). D-183 Phase B. |
+| Flip S-8.10 status draft → ready | S-8.10 | Update `behavioral_contracts: []` → `["BC-2.02.011"]` in S-8.10 frontmatter; status: draft → ready. OQ-A1 unblocked by BC-2.02.011 authorship (D-183 Phase A). Now also unblocked since BC-2.02.011 is authored — flagged for Phase D. |
+
+## Completed Actions (this session)
+
+| Action | Story | Details | Completed |
+|--------|-------|---------|-----------|
+| Author S-8.30 (was: Author S-8.11) | S-8.30 | Story-writer authored S-8.30 (HookPayload SubagentStop SDK extension — analogous to S-8.10 but for SubagentStop typed-projection; BC-2.02.012 as anchor). ID chosen as S-8.30 per POLICY 1 (Tier 2/3 placeholder IDs S-8.11..S-8.29 untouched). v1.0 status=draft. D-183 Phase B. | 2026-05-01 |
 
 ## Resolved Obligations
 
 | ID | BC / Artifact | Blocking Story | Resolved | How |
 |----|--------------|----------------|----------|-----|
 | OQ-A1 | BC-2.02.011 (host::write_file ABI invariant) | S-8.10 v1.1 | 2026-05-01 | BC-2.02.011.md authored in `.factory/specs/behavioral-contracts/ss-02/` (D-183 Phase A). S-8.10 status flip to ready now unblocked; story-writer must execute (see Next Actions above). |
-| OQ-A2 | BC-2.02.012 (HookPayload SubagentStop fields) | S-8.11 (new), S-8.01, S-8.02, S-8.03, S-8.05 | 2026-05-01 | BC-2.02.012.md authored in `.factory/specs/behavioral-contracts/ss-02/` (D-183 Phase A). Anchors HookPayload SubagentStop field invariants. |
+| OQ-A2 | BC-2.02.012 (HookPayload SubagentStop fields) | S-8.30 (authored as S-8.30 per POLICY 1, was provisional S-8.11), S-8.01, S-8.02, S-8.03, S-8.05 | 2026-05-01 | BC-2.02.012.md authored in `.factory/specs/behavioral-contracts/ss-02/` (D-183 Phase A). Anchors HookPayload SubagentStop field invariants. S-8.30 authored D-183 Phase B. |
 
 ## Notes
 
