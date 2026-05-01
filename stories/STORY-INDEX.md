@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.4"
+version: "1.5"
 status: current
 producer: state-manager
-timestamp: 2026-04-30T20:00:00
+timestamp: 2026-04-30T21:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -163,7 +163,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-8.00 | Perf benchmark baseline + Tier 1 BC-anchor verification (W-15 pre-work) | E-8 | 5 | P2 | -- | S-8.01..S-8.09 | draft | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002) |
 
-> **S-8.00 v1.3 (status=draft, pass-3 fix burst applied 2026-04-30).** 510 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 findings, all closed v1.1); pass-2 closed (8 findings, all closed v1.2); pass-3 closed (6 findings, all closed v1.3); pass-4 next. D-164 + D-165 + D-166 + D-167 sealed.
+> **S-8.00 v1.4 (status=draft, pass-4 fix burst applied 2026-04-30).** 512 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 findings v1.1); pass-2 closed (8 findings v1.2); pass-3 closed (6 findings v1.3); pass-4 NITPICK_ONLY clock 0_of_3 → 1_of_3 (3 LOW/NIT closed v1.4); pass-5 next (clock advance 1_of_3 → 2_of_3 expected; CONVERGENCE possible at pass-6). D-164 + D-165 + D-166 + D-167 + D-168 sealed.
 
 ---
 
