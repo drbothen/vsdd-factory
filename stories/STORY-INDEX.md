@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.12"
+version: "1.13"
 status: current
 producer: state-manager
 timestamp: 2026-05-01T00:00:00
@@ -31,6 +31,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **E-8 Tier 1 batch pass-2 adversarial reviews (2026-04-30):** 9 parallel pass-2 reviews; all SUBSTANTIVE; all clocks held 0_of_3; 65 total findings (18H+34M+16L+4NIT). Trajectory: 122 → 65 (-47% decay). Pass-1 verification: 116 of 122 fully closed (95%); 6 had partial residuals re-surfaced as pass-2 findings. Per-story: S-8.01=4 (0H+2M+2L); S-8.02=6 (2H+3M+1L); S-8.03=9 (2H+4M+2L+1NIT); S-8.04=11 (3H+5M+2L+1NIT) D-6 BLOCKER; S-8.05=4 (0H+3M+1L); S-8.06=9 (1H+4M+3L+1NIT); S-8.07=11 (4H+4M+2L+1NIT); S-8.08=9 (2H+5M+2L); S-8.09=9 (4H+4M+1L) D-6 BLOCKER. CRITICAL new discoveries: (1) SS-04 universal mis-anchor across S-8.07/08/09 — ARCH-INDEX SS-04=Plugin Ecosystem; for SDK surface correct is SS-02; (2) S-8.07 vsdd-hook-sdk path wrong (resolves to non-existent crates/crates/hook-sdk); (3) S-8.07 missing workspace Cargo.toml members registration; (4) BC-7.03.071 invariants fabricated again in S-8.09 (regression of F-009); (5) D-6 sibling divergence: S-8.04 declares depends_on S-8.SDK-write-file; S-8.09 orphaned; (6) emit_event signature: universal pattern not pinned across siblings; (7) read_file max_bytes+timeout_ms unspecified. STORY-INDEX v1.10 → v1.11 (D-174).
 > **S-8.10 SDK extension authored (2026-05-01):** S-8.10-sdk-extension-write-file.md v1.0 status=draft; 3pts; blocks S-8.04 + S-8.09 (D-6 Option A unblocker); depends_on S-8.00; SS-02; behavioral_contracts=[] pending OQ-1 BC authorship; HOST_ABI_VERSION stays at 1 (AS-DEC). Tier 2/3 stories renumbered S-8.10..S-8.28 → S-8.11..S-8.29. STORY-INDEX v1.11 → v1.12.
 > **S-8.10 v1.1 pass-1 fix burst (2026-05-01):** 18 findings from adv-s8.10-p1.md closed (5H+7M+5L+1NIT); input-paths corrected to cycles/ prefix; max_bytes added to signature per BC-2.02.002; FFI input-pointer protocol pinned in AC-1; AC-5 conditional removed (max_bytes mandatory); BC family BC-2.01.005→BC-2.02.011 (BC-2.01.x=HookResult family; BC-2.02.x=host-shim family); WriteFileCaps struct defined; allow_write test helper added; Rule 4 return codes aligned; estimate 3→5 pts; input-hash e441e99.
+>
+> **E-8 Tier 1 batch pass-5 adversarial reviews (2026-05-01):** 10 parallel pass-5 reviews; 4 stories CONVERGED per ADR-013 (S-8.01 v1.3, S-8.03 v1.2, S-8.07 v1.2, S-8.09 v1.2 all reach 3/3 NITPICK_ONLY). 3 advanced (S-8.04 v1.3 → 1/3, S-8.06 v1.4 → 1/3, S-8.10 v1.1 → 2/3). 3 SUBSTANTIVE require fix burst: S-8.02 v1.3 (1 MED P5-001 HTML comment input-hash 5015917 vs frontmatter 5ae44ad contradiction); S-8.05 v1.4 (2 HIGH+1 MED — F-P5-001 T-5 emit_event partial-fix regression vs AC-008 reframe; F-P5-002 SS-04 "Hook Plugin Layer" mis-anchor vs canonical "Plugin Ecosystem"; F-P5-003 AC-005 sub-case mis-anchor); S-8.08 v1.3 (1 HIGH+1 MED — F-P5-001 bash-parity violation: WASM port adds agent_id+tool_name fields not in bash source — CLOCK RESET 1/3 → 0/3, requires PO adjudication). 5th anti-fabrication HARD GATE on BC-7.03.071 PASSED. STORY-INDEX v1.12 → v1.13 (D-180).
 > This index is the authoritative source for story count and status.
 > 58 stories across 9 epics (E-0 through E-8).
 
