@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.21"
+version: "1.22"
 status: current
 producer: state-manager
 timestamp: 2026-05-01T00:00:00
@@ -46,6 +46,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **D-183 Phase D — typed-projection fix burst (2026-05-01):** 5 parallel story-writers. S-8.01 v1.4→v1.5 (typed-projection prose per BC-2.02.012 Postconditions 5+6; handoff-validator EC-004 divergence path documented for `.output` 3rd-arm). S-8.02 v1.4→v1.5 (T-11 wording corrected verbatim from AC-008 — pass-6 HIGH F-P6-001 closed; process-gap-D-182-A remediated; typed-projection added; T-12 added for binary_allow cleanup as separate concern). S-8.03 v1.3→v1.4 (typed-projection re-convergence; bash `// ""` vs `// empty` divergence noted as semantic equivalent under `jq -r`). S-8.05 v1.5→v1.6 (5 findings closed: jq `//` null semantics resolved via typed projection; `envelope` undefined fixed; AC-007 case (e) fixture corrected `event_type→event_name` + value `PostToolUse→SubagentStop`; AC-008 forbids `let _ =` form; AC-001 `name` field enumerated). S-8.10 status: draft → ready (BC-2.02.011 backfilled to frontmatter `["BC-2.02.011"]`; OQ-A1 RESOLVED; spec was at CONVERGENCE_REACHED 3/3 since pass-4). 6 of 11 E-8 Tier 1 stories now CONVERGED + ready (S-8.07, S-8.09, S-8.10, S-8.30 + 2 more after Phase E re-converges S-8.01/03). Phase E next: pass-7 batch adversarial dispatch on 4 typed-projection stories (S-8.01/02/03/05) + S-8.04/06/08. STORY-INDEX v1.19 → v1.20. Status: ready 4 → 5; draft 9 → 8.
 >
 > **D-183 Phase E + F (pass-7 batch + cross-story dependency wiring) (2026-05-01):** 7 parallel pass-7 adversarial reviews. **2 CONVERGED at 3/3:** S-8.04 v1.3 (write_file 4-param verified; trajectory 17→11→4→6→1→1→0) + S-8.06 v1.4 (4-finding steady-state signature; 4th consecutive anti-fabrication HARD GATE PASS). **2 advancing 1/3 → 2/3:** S-8.02 v1.5 CLEAN 0 findings (T-11 verbatim fix verified) + S-8.08 v1.4 (2 LOW; AC-005 scenario count cosmetic + carryovers). **3 NITPICK 0/3 → 1/3:** S-8.01 v1.5 + S-8.03 v1.4 (post-D-183 reset; typed-projection structurally correct). **1 SUBSTANTIVE clock RESET:** S-8.05 v1.6 (1 CRITICAL F-P7-001: typed-projection fields cited but absent from HookPayload struct; pass-1 audit gate insufficient at field-existence layer — process-gap noted). **Phase F mini-burst:** added `S-8.30` to `depends_on` + T-0 STOP CHECK on S-8.01/02/03/05 (mirrors S-8.04 T-0 pattern for S-8.10). 4 stories bumped versions (S-8.01 v1.6, S-8.02 v1.6, S-8.03 v1.5, S-8.05 v1.7). 2 CONVERGED status flips: S-8.04 + S-8.06 → ready. STORY-INDEX v1.20 → v1.21. Status: ready 5 → 7; draft 8 → 6.
+>
+> **D-183 Phase G — pass-8 batch outcomes (2026-05-01):** 5 pass-8 reviews. **1 CONVERGED at 3/3:** S-8.08 v1.4 (3 consecutive NITPICK_ONLY at LOW-only floor; strict bash-parity verified; trajectory 12→9→4→3→4→3→2→1). **3 advancing 0→1/3:** S-8.01 v1.6 (1L+2N), S-8.02 v1.6 (1L Token Budget fossil), S-8.03 v1.5 (2L+2N). **1 SUBSTANTIVE:** S-8.05 v1.7 (2 MED: `agent.as_str()` compile error + AC-007 case (e) mislabel) → v1.8 fix burst applied (5 closures: F-P8-001/002/003/004/005). 7 of 11 E-8 Tier 1 stories now ready (S-8.04, S-8.06, S-8.07, S-8.08, S-8.09, S-8.10, S-8.30). Remaining: S-8.01/02/03/05 still in re-convergence cycle. STORY-INDEX v1.21 → v1.22. Status: ready 7 → 8; draft 6 → 5. **Process-gap-D-185-A:** Adversarial audit gate must include "borrow/method-resolution against declared binding type" check (e.g., `agent.as_str()` on `&str` survived 7 passes; verifies via `cargo check` of example snippets pre-merge).
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
 
@@ -59,8 +61,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 45 |
 | partial | 1 |
-| draft | 6 |
-| ready | 7 |
+| draft | 5 |
+| ready | 8 |
 | **Total** | **59** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -187,10 +189,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-8.02 | Native port: pr-manager-completion-guard | E-8 | 5 | P2 | S-8.00, S-8.30 | S-8.09 | draft | BC-7.03.045, BC-7.03.046, BC-7.03.047, BC-7.03.048, BC-2.02.012 |
 | S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | draft | BC-7.03.081, BC-7.03.082, BC-2.02.012 |
 | S-8.04 | Native port: update-wave-state-on-merge | E-8 | 4 | P2 | S-8.00, S-8.10 | S-8.09 | ready | BC-7.03.083, BC-7.03.084, BC-7.03.085, BC-7.03.086 |
-| S-8.05 | Native port: validate-pr-review-posted | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | draft | BC-7.04.040, BC-7.04.041, BC-7.04.042, BC-7.04.043, BC-7.04.044, BC-2.02.012 |
+| S-8.05 | Native port: validate-pr-review-posted | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | draft | BC-7.04.040, BC-7.04.041, BC-7.04.042, BC-7.04.043, BC-7.04.044, BC-2.02.012 (v1.8) |
 | S-8.06 | Native port: session-learning | E-8 | 3 | P2 | S-8.00 | S-8.09 | ready | BC-7.03.076, BC-7.03.077, BC-7.03.078 |
 | S-8.07 | Native port: warn-pending-wave-gate | E-8 | 3 | P2 | S-8.00 | S-8.09 | ready | BC-7.03.091, BC-7.03.092 |
-| S-8.08 | Native port: track-agent-start | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.079, BC-7.03.080 |
+| S-8.08 | Native port: track-agent-start | E-8 | 3 | P2 | S-8.00 | S-8.09 | ready | BC-7.03.079, BC-7.03.080 |
 | S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.29 | ready | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 |
 | S-8.10 | SDK extension: host::write_file (D-6 Option A unblocker) | E-8 | 5 | P2 | S-8.00 | S-8.04, S-8.09 | ready | BC-2.02.011 |
 | S-8.30 | SDK extension: HookPayload SubagentStop top-level fields | E-8 | 3 | P1 | S-8.00 | S-8.01, S-8.02, S-8.03, S-8.05 | ready | BC-2.02.012 (v1.1) |
@@ -205,13 +207,13 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 > S-8.04 v1.3 (status=**ready**, **CONVERGENCE_REACHED** pass-7 3/3 NITPICK_ONLY, D-183 Phase E + F). **HIGHEST RISK — D-6 BLOCKER (host::write_file SDK extension required; S-8.10 must merge first; T-0 STOP CHECK enforces).** Pass-1: 17 findings; pass-2: 13 findings; pass-3: 4 findings; pass-4 SUBSTANTIVE 6 findings all closed in v1.3 burst. Pass-5 NITPICK_ONLY (clock 1/3). Pass-6 NITPICK_ONLY (clock 2/3). Pass-7 NITPICK_ONLY 0 findings (clock 2/3→3/3 = CONVERGENCE_REACHED per ADR-013). Trajectory: 17→11→4→6→1→1→0. Status: draft → ready.
 
-> S-8.05 v1.7 (status=draft, clock RESET 0/3 (CRITICAL F-P7-001), D-183 Phase E + F). Trajectory 12→7→5→4→4→5→CRITICAL. Pass-1..6: prior findings closed. Pass-7 SUBSTANTIVE 1 CRITICAL F-P7-001: typed-projection fields cited (`payload.agent_type.as_deref()...`) but absent from HookPayload struct — S-8.30 implementation not yet landed. Cross-story dependency gap generalized to all 4 consumer stories. D-183 Phase F v1.6→v1.7: S-8.30 added to depends_on; T-0 STOP CHECK added (closes F-P7-001 CRITICAL via dependency declaration); clock resets to 0/3.
+> S-8.05 v1.8 (status=draft, clock 0/3, D-183 Phase G pass-8 fix burst 2026-05-01). Trajectory 12→7→5→4→4→5→3→5. Pass-8 SUBSTANTIVE 2 MED: F-P8-001 T-5 `agent.as_str()` compile error (`&str` has no `.as_str()` method; fix: `agent` direct); F-P8-002 AC-007 first JSON example mislabeled "Case (e)" but content is Case (a) all-pass. v1.7→v1.8 fix burst: 5 closures (F-P8-001/002 MED + F-P8-003/004 LOW + F-P8-005 NIT). D-183 Phase F v1.6→v1.7: S-8.30 added to depends_on; T-0 STOP CHECK added; clock reset to 0/3. process-gap-D-185-A: borrow/method-resolution audit gate needed (cargo check example snippets pre-merge).
 
 > S-8.06 v1.4 (status=**ready**, **CONVERGENCE_REACHED** pass-7 3/3 NITPICK_ONLY, D-183 Phase E). Pass-1..4 fix bursts applied across earlier passes. Pass-5 NITPICK_ONLY 2 LOW + 2 NIT (clock 0/3→1/3; 3rd consecutive anti-fabrication HARD GATE PASS). Pass-6 NITPICK_ONLY 2 LOW + 2 NIT (steady-state 4-finding plateau; clock 1/3→2/3). Pass-7 NITPICK_ONLY (identical 4-finding signature; clock 2/3→3/3 = CONVERGENCE_REACHED per ADR-013). Trajectory: 11→9→8→8→4→4→4. 4th consecutive anti-fabrication HARD GATE PASS. Status: draft → ready.
 
 > S-8.07 v1.2 (status=**ready**, **CONVERGENCE_REACHED** 2026-05-01, D-181 status flip). Pass-1: 14 findings closed (6H+5M+2L+1NIT); 358→433 lines (+75). Pass-2: 11 findings (4H+4M+2L+1NIT). Pass-3 fix burst (v1.2). Pass-4 NITPICK_ONLY (clock 0/3→1/3). Pass-5 NITPICK_ONLY (clock 1/3→2/3). Pass-5 verdict: 3 LOW re-flags (clock 2/3→3/3 = CONVERGENCE_REACHED). Status flip via cleanest path: process-event row with -- version cell appended BELOW latest versioned row (no frontmatter bump needed; S-8.07 stays at v1.2). input-hash updated post-burst.
 
-> S-8.08 v1.4 (status=draft, advancing clock 1/3, parity restoration empirically verified, D-182). Pass-1..4 fix bursts applied. Pass-5 CLOCK RESET (bash-parity violation); v1.3→v1.4 parity restore burst (agent_id/tool_name REMOVED). Pass-6 NITPICK_ONLY 3 LOW (sub-pixel literal deviation, doc breadcrumb, sibling check); clock 0/3→1/3. Whole-file grep empirically confirms agent_id and tool_name only in permitted contexts (negative assertions, bash-input descriptions, changelog history, TD-015 cross-reference). Clock now 1/3. adv-s8.08-p6.md persisted. Next: pass-7 expected clock 1/3→2/3.
+> S-8.08 v1.4 (status=**ready**, **CONVERGENCE_REACHED** pass-8 3/3 NITPICK_ONLY, D-183 Phase G 2026-05-01). Pass-5 CLOCK RESET (bash-parity violation); v1.3→v1.4 parity restore burst (agent_id/tool_name REMOVED). Pass-6 NITPICK_ONLY 3 LOW (clock 0/3→1/3); pass-7 NITPICK_ONLY 2 LOW (clock 1/3→2/3); pass-8 NITPICK_ONLY 1 LOW (clock 2/3→3/3 = CONVERGENCE_REACHED per ADR-013). Trajectory p6=3L, p7=2L, p8=1L (monotonically convergent). Strict E-8 D-2 bash-parity verified empirically (5 fields: type/hook/matcher/subagent/[story_id]; zero agent_id; zero tool_name). Anti-fabrication HARD GATE PASS (BC-7.03.079 Inv 1 character-exact; BC-7.03.080 PC-1 faithful paraphrase). Status: draft → ready. adv-s8.08-p8.md persisted.
 
 > S-8.09 v1.3 (status=**ready**, **CONVERGENCE_REACHED** 2026-05-01, D-181 status flip). **D-6 BLOCKER (host::write_file SDK extension required for implementation; spec converged independently).** Pass-1: 16 findings closed (6H+7M+2L+1NIT); 542→647 lines (+105). Pass-2: 9 findings (4H+4M+1L). Pass-3 fix burst (v1.2). Pass-4 NITPICK_ONLY (clock 0/3→1/3). Pass-5 NITPICK_ONLY (4 LOW positive confirmations; clock 1/3→2/3). 5th BC-7.03.071 anti-fabrication HARD GATE PASSED. Pass-5 verdict: CONVERGENCE_REACHED (clock 2/3→3/3 per ADR-013). Status flip burst v1.2→v1.3 (validate-changelog-monotonicity.sh forced version bump; process-gap per D-181). input-hash updated post-burst.
 
