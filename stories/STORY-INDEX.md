@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.0"
+version: "1.1"
 status: current
 producer: story-writer
-timestamp: 2026-04-29T00:00:00
+timestamp: 2026-04-30T00:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -24,8 +24,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **Wave 14 spec convergence COMPLETE (both stories ready):** S-5.06 v1.7 ready (5-pass convergence); S-5.05 v1.8 ready (6-pass convergence). Total Wave 14 effort: 11 adversarial passes vs Wave 13's 51 — Wave 13 lesson application up-front compressed convergence ~4×.
 > **Wave 14 COMPLETE (2026-04-29):** S-5.05 PR #40 merged at 1e2db47 (5pts; migration guide v0.79.x→v1.0); S-5.06 PR #39 merged at d134648 (2pts; semver commitment doc); 45 of 47 stories merged; D-150.
 > **rc.1 v1.0.0-rc.1 SHIPPED 2026-04-30T03:10:59 UTC.** GH pre-release at https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.1. Tag at 1485d2e (bot bundle); main HEAD synced. Branch protection toggled per release ritual; remediation tracked as TD-013. 14-day shakedown clock starts. D-152.
+> **W-15 entry-point story S-8.00 authored (2026-04-30):** S-8.00-perf-baseline-bc-anchor-verification.md v1.0 status=draft; 444 lines; 9 ACs; 5pts; blocks S-8.01..S-8.09; resolves OQ-1 + OQ-8. E-8 epic section added. STORY-INDEX v1.0 → v1.1 (D-164).
 > This index is the authoritative source for story count and status.
-> 47 stories across 8 epics (E-0 through E-7).
+> 48 stories across 9 epics (E-0 through E-8).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -37,9 +38,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 45 |
 | partial | 1 |
-| draft | 1 |
+| draft | 2 |
 | ready | 0 |
-| **Total** | **47** |
+| **Total** | **48** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -154,6 +155,16 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 > **Wave 11 SS-03 fully closed at develop@ccf34e6 (2026-04-27).** PRs merged this session: #18 (S-4.01), #20 (S-3.01), #21 (S-3.02), S-3.03 ports (4229648), #22 (Semgrep SAST), #23 (S-4.04 retry+CB), #24 (S-4.02 datadog), #25 (S-4.03 honeycomb), #26 (docs), #27 (S-4.09 backoff), #28 (S-4.10 cross-sink emission). 9 stories shipped + 1 docs + 1 SAST = 11 PRs. STORY-INDEX merged 33 → 35. Wave 12 also fully closed (S-4.02/03/04). S-4.07 (E2E integration) now waits only on S-4.05 + S-4.06 spec convergence + impl. Worktrees cleaned up: /private/tmp/vsdd-S-3.01, S-3.02, S-3.03 (Wave 11 first batch); /private/tmp/vsdd-S-4.02, S-4.03, S-4.04 (Wave 12); /private/tmp/vsdd-S-4.09, S-4.10 (Wave 11 close). Local repo now shows only develop + .factory/ + harness-managed agent worktrees.
 
+## Epic E-8 — Native WASM Migration Completion (W-15 pre-work — draft)
+
+> **E-8 spec CONVERGENCE_REACHED (2026-04-30):** E-8-native-wasm-migration.md v1.7 status=ready; 11 adversarial passes; trajectory 18→7→0→1→0→2→3→1→0→1→0; D-163 sealed. 29 stories planned (S-8.00..S-8.28). story_count: 29 (1 pre-work + 9 Tier 1 + 11 Tier 2 + 8 Tier 3). target_release: v1.1 (Tier 1), v1.2 (Tier 2), v1.3 (Tier 3). Anchors: CAP-002, CAP-008, CAP-013, CAP-022. Tech debt: TD-014.
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|--------|-----|
+| S-8.00 | Perf benchmark baseline + BC-anchor verification (W-15 pre-work) | E-8 | 5 | P1 | -- | S-8.01..S-8.09 | draft | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002) |
+
+> **S-8.00 authored 2026-04-30 v1.0 (status=draft).** 444 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 next. D-164 sealed.
+
 ---
 
 **Draft story policy:** Stories with `status: draft` MAY have empty
@@ -167,7 +178,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 214 across 47 stories (190 E-0..E-5 + 3 E-6 + 21 E-7)
+**Total story points:** 219 across 48 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 5 E-8)
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

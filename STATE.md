@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "E-8 epic spec CONVERGED at v1.7 status=ready (11 passes, 41+11 findings closed); story-writer dispatch unblocked; E-8 awaits v1.0.0 GA close before W-15 routing"
+current_step: "S-8.00 v1.0 authored (status=draft); STORY-INDEX bumped; ready for adversarial pass-1"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-04-30 (D-163 sealed: E-8 epic spec CONVERGENCE_REACHED v1.7 status=ready; 11 passes, 41+11 findings closed; story-writer dispatch unblocked) |
+| **Last Updated** | 2026-04-30 (D-164 sealed: S-8.00 v1.0 authored status=draft; STORY-INDEX v1.1; ready for adversarial pass-1) |
 | **Current Phase** | wave-9-ss-01-CONVERGED-cycle-re-anchor-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -115,6 +115,7 @@ dtu_services: []
 | ADV-E8-P9 | adversary | NITPICK_ONLY | Pass-9: 0 findings; clock 0_of_3→1_of_3 ADVANCE. F-P8-001 + F-P8-002 verified closed. Trajectory 18→7→0→1→0→2→3→1→0. Pass-10 next |
 | ADV-E8-P10 | adversary | NITPICK_ONLY | Pass-10: 0 sub + 1 LOW (D-3/D-8 bundle nomenclature mismatch — SKIP_FIX per S-7.03); clock 1_of_3→2_of_3 ADVANCE. 22 invariants re-derived empirically. Pattern P3→P4/P5→P6 (1→reset) did NOT repeat. Pass-11 next; CONVERGENCE expected |
 | ADV-E8-P11 + status flip v1.7 | adversary + architect + state-manager | **CONVERGENCE_REACHED** | Pass-11 NITPICK_ONLY 0 findings; clock 2_of_3→3_of_3 per ADR-013. E-8 v1.6→v1.7 status draft→ready (status flip only; no content edits; Change Log v1.7 entry added). 11-pass convergence: 18→7→0→1→0→2→3→1→0→1→0. 41 substantive + 11 LOW closed. Empirically anchored to hooks-registry.toml (52/44/43/42 canonical). Story-writer dispatch unblocked. D-163 sealed |
+| S-8.00 spec authoring (story-writer + state-manager) | story-writer + state-manager | COMPLETE | S-8.00-perf-baseline-bc-anchor-verification.md v1.0 (status=draft); 444 lines; 9 ACs; 5pts; blocks S-8.01..S-8.09; resolves OQ-1 + OQ-8 audit responsibilities; behavioral_contracts=[] intentional ([process-gap] under D-2 Option C). STORY-INDEX bumped to v1.1. input-hash corrected 4ba3584→68f3d16. Adversarial pass-1 next. |
 
 ## Identifier Conventions
 
@@ -126,8 +127,8 @@ dtu_services: []
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 47 |
-| Epic | E-N | `stories/epics/E-N-<short>.md` | 8 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 48 |
+| Epic | E-N | `stories/epics/E-N-<short>.md` | 9 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 13 |
 
 ## Subsystem Distribution
@@ -146,11 +147,11 @@ dtu_services: []
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
 | **Total** | | | **1,905** |
 
-## Story Status (47 total)
+## Story Status (48 total)
 
 - **Merged (45):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28), S-5.03 (PR #37 93b298f 2026-04-29), S-5.04 (PR #38 e90faab 2026-04-29), S-5.05 (PR #40 1e2db47 2026-04-29), S-5.06 (PR #39 d134648 2026-04-29)
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft / Not Shipped (1):** S-5.07 (Tier H; calendar-gated)
+- **Draft / Not Shipped (2):** S-5.07 (Tier H; calendar-gated); S-8.00 (W-15 pre-work; status=draft v1.0; adversarial pass-1 pending)
 - **Ready (0):** (none — Wave 14 delivery complete)
 
 ## Drift Items (open)
@@ -220,6 +221,7 @@ dtu_services: []
 | D-144 | **Wave 14 adversarial pass-1 fix burst — S-5.05 + S-5.06 v1.4 → v1.5 (16 SUBSTANTIVE findings closed).** S-5.05 (12 findings — 6 MED + 4 LOW + 2 process-gap): S-5.07 canonical ID restored in narrative (legacy S-5.7 replaced in 5 locations); S-4.08 restored to `blocks:` list — v1.4 regression corrected (S-5.05 still blocks rc.1 release event; S-4.08 spec PR #32 merged 2026-04-28 but rc.1 tag awaits 14-day shakedown + 11 deferred ACs); BC-8.26.006 mislabel in Architecture Compliance Rules row 3 corrected to [process-gap] (human-reviewer-qualification gate has no BC; v1.1 BC candidate BC-8.31.008 registered); EC-001 custom hooks.json coverage added to AC-4, Task 5, Edge Cases; S-2.7→S-2.07 in Task 9; F-204 path citation added to Behavioral Contracts comment; README Task 15 added; token budget corrected (~5,000); AC-7 threshold sub-note added to Task 11; wave field semantics clarified (wave:16 = ship wave; burst sequence = Wave 14); OBS lesson IDs added to Wave 13 disclosure. S-5.06 (10 findings — 2 HIGH + 5 MED + 3 LOW): README '1.0 docs' → '### v1.0 Factory Plugin Kit (in progress)' (7 occurrences corrected); BC-2.02 → BC-2.01.003 HOST_ABI_VERSION anchor correction (true ABI-version contract is BC-2.01.003 Postcondition 3 / Invariant 1 / EC-001); BC-8.26.006 section-list scope disclosure added to Stretch-Anchor (semver sections differ from BC-8.26.006 enumeration); README 'links the four below' → 'links the five below' added as Task 8; v1.0-index.md 'For operators' table placement specified in AC-6 + Task 6; sibling S-5.5→S-5.05 README fix added as Task 9; OBS lesson IDs added to Wave 13 disclosure; wave field semantics note added; Blocked by clarification expanded; token budget corrected (~1,500). Sibling sweep: both stories confirm S-4.08 blocks rationale consistent (rc.1 release event pending). STORY-INDEX: S-5.05 v1.4→v1.5; S-5.06 v1.4→v1.5; status summary draft 3→2 corrected (actual 2 draft rows: S-5.06 + S-5.07; S-7.02 table header was wrong). Pass-1 adversarial reviews persisted to `.factory/cycles/v1.0-brownfield-backfill/wave-14-S-5.05-pass-1.md` + `wave-14-S-5.06-pass-1.md`. Input-hashes: both MATCH (current). Pass-2 expectation: propagation-class fixes; expect lower count. | Wave 14 pass-1 fix burst. Highest-leverage fix: S-4.08 blocks reversion (v1.4 introduced incorrect stale-dep removal — rc.1 release event requires S-5.05 to be complete). BC-2.01.003 anchor correction closes a cross-subsystem SS-02 accuracy gap. STORY-INDEX draft count corrected from 3 to 2. | wave-14-pass-1-fix-burst | 2026-04-29 | product-owner + state-manager |
 | D-149 | **S-5.05 CONVERGENCE_REACHED at pass-6 per ADR-013. Wave 14 spec convergence COMPLETE (both stories ready).** Status partial→ready; v1.7→v1.8. Trajectory across 6 passes: pass-1=10; pass-2=12; pass-3=6; pass-4=8 LOW (NITPICK_ONLY clock 0→1); pass-5=5 LOW (clock 1→2); pass-6=0 findings (clock 2→3 = CONVERGENCE_REACHED). 28 findings closed; 8 LOW skip-fix tracked. Wave 14 COMPLETE: S-5.06 v1.7 5-pass convergence + S-5.05 v1.8 6-pass convergence = 11 total passes vs Wave 13's 51 (~4× compression). Lessons: docs-story convergence in 5-6 passes achievable with Wave 13 lessons up-front + reality-vs-spec drift fixes in foundation burst + S-7.03 skip-fix post pass-3. F-P03-001/002/003 (S-5.06) and F-P04-001-008 (S-5.05) tracked per S-7.03; not blocking. Next: per-story-delivery cycles for S-5.05 + S-5.06 (docs-only; no Rust crate; no tests). | Wave 14 spec phase sealed | wave-14-pass-6-CONVERGED | 2026-04-29 | adversary + state-manager |
 | D-148 | **S-5.06 CONVERGENCE_REACHED at pass-5 per ADR-013. Status draft → ready; v1.6→v1.7. S-5.05 clock 1_of_3→2_of_3 (NITPICK_ONLY pass-5).** S-5.06 v1.7 sealed (CONVERGENCE_REACHED): Trajectory across 5 passes: pass-1 = 2 HIGH + 5 MED + 3 LOW = 10; pass-2 = 0 HIGH + 3 MED + 3 LOW + 2 NIT = 8; pass-3 = 0 HIGH + 0 MED + 2 LOW + 1 NIT = 3 (NITPICK_ONLY clock 0→1); pass-4 = 0 findings + 6 observations (clock 1→2); pass-5 = 0 findings + 6 observations (clock 2→3 = CONVERGENCE_REACHED). Status draft → ready. 18 substantive findings closed across 5 passes (10 + 8 = 18); 5 LOW/NIT polish items deferred per S-7.03 skip-fix discipline (F-P03-001/002/003 retained as v1.0.1+ candidates). 5-pass convergence is fastest of any Wave 14 story; matches S-5.02's 9-pass S-5.04 era performance scaled for docs-story complexity. Ready for per-story-delivery cycle. S-5.05 v1.7 unchanged: Pass-5 NITPICK_ONLY (5 LOW positive structural confirmations); clock 1_of_3 → 2_of_3 via S-7.03 skip-fix advancement. Pass-6 expected: NITPICK_ONLY → 3_of_3 = CONVERGENCE_REACHED. Lessons: S-7.03 skip-fix advancement validated again on docs-stories (4 consecutive passes with 0 substantive findings on S-5.06). Fastest-converging Wave-14 story leveraged Wave 13 lesson application up-front. Sibling-pair convergence rate divergence: S-5.06 converged 1 pass ahead because pass-1 found fewer HIGH-class architectural gaps than S-5.05. | Wave 14 pass-5 dual-seal. S-5.06 CONVERGENCE_REACHED; S-5.05 1 pass behind at clock 2_of_3. | wave-14-pass-5-adversarial | 2026-04-29 | adversary + state-manager |
+| D-164 | **E-8 W-15 entry-point story S-8.00 authored at v1.0 status=draft.** Story-writer dispatched in single-story burst (NOT batch); produced `.factory/stories/S-8.00-perf-baseline-bc-anchor-verification.md` (444 lines, 9 ACs, 5pts). Two-responsibility scope: (A) perf benchmark baseline measurement protocol resolving OQ-8 (~10ms/plugin warm-invocation assumption); (B) BC-anchor verification table for 9 Tier 1 hooks per D-2 Option C (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate). behavioral_contracts=[] is intentional ([process-gap] disclosure under D-2 Option C — story produces BC mappings for downstream rather than anchoring its own). subsystems=[SS-01, SS-07] reflects perf harness + bash audit dual-scope. 2 v1.1 BC candidates registered (BC-7.00.001-perf-baseline-measurement-protocol, BC-7.00.002-bc-anchor-verification-table) per F-206 5-col format. STORY-INDEX bumped v1.0→v1.1 (draft +1, total 47→48). Open issues flagged for adversarial pass-1: OQ-6 regression-gate subprocess capability profile (story may need pre-resolution), BC-7.xx family depth (worst-case >5 hooks lacking BC triggers OQ-9 deferral pathway), hyperfine CI availability (fallback to time builtin), wave-ID finality (W-15* provisional pending S-5.07 close). input-hash corrected: story-writer used 4ba3584 (E-8's own input-hash field, propagated from epic frontmatter); corrected to 68f3d16 (last factory-artifacts commit touching E-8 file). | Single-story dispatch chosen over batch per orchestrator >8-artifact rule + S-8.00 unique pre-work scope warranting individual review. Story authored against canonical S-5.06 template. Convergence path: pass-1 adversarial → fix-burst → ... → 3_of_3 NITPICK_ONLY per ADR-013. | E-8-S-8.00-v1.0-draft | 2026-04-30 | orchestrator + story-writer + state-manager |
 | D-163 | **ADV-E8-P11 CONVERGENCE_REACHED (E-8 native-wasm-migration). Pass-11 verdict: 0 findings — 3rd consecutive clean pass (P9 1_of_3 → P10 2_of_3 → P11 3_of_3). Per ADR-013, convergence achieved; spec status flipped v1.6→v1.7 (draft→ready). Architect added Change Log v1.7 entry documenting trajectory + outstanding LOW deferrals. 11 total passes (matching Wave 11's 14-pass record; faster than S-7.03's 17). Trajectory: P1=18(12H+6M) → P2=7(1H+4M+2L) → P3=0(1_of_3) → P4=1MED(reset) → P5=0(1_of_3) → P6=2MED+5LOW(reset) → P7=1H+1M+1L → P8=1M+1L → P9=0(1_of_3 advance) → P10=1LOW(2_of_3 advance) → P11=0(3_of_3 CONVERGED). 41 substantive + 11 LOW findings closed. Spec maturity empirically anchored to hooks-registry.toml (canonical 52 entries / 44 adapter-routed / 43 unique / 42 ported). Outstanding deferrals: D-3 vs D-8 bundle nomenclature (LOW; SKIP_FIX per S-7.03). Story-writer dispatch unblocked for S-8.00..S-8.28 decomposition. E-8 awaits v1.0.0 GA close (S-5.07) before W-15 routing.** | ADV-E8-P11 adversarial review. CONVERGENCE_REACHED per ADR-013. | ADV-E8-P11 | 2026-04-30 | adversary + architect + state-manager |
 | D-162 | **ADV-E8-P10 NITPICK_ONLY clock advance (E-8 native-wasm-migration). Pass-10 verdict: 0 substantive + 1 LOW Observation (D-3 vs D-8 bundle-label nomenclature B-5 vs B-5a/b/c — F-017 v1.1 merged B-3a+B-3b but did not audit sibling B-5/B-6 nomenclature). Per S-7.03 skip-fix, LOW deferred. Adversary applied maximum fresh-context skepticism — re-derived 22 invariants from primary sources; historical 1_of_3→reset pattern (P3→P4, P5→P6) did NOT repeat. Trajectory 18→7→0→1→0→2→3→1→0→1. Per ADR-013 NITPICK_ONLY → clock 1_of_3 → 2_of_3 ADVANCE. Pass-11 next; expect NITPICK_ONLY → 3_of_3 CONVERGENCE_REACHED.** | ADV-E8-P10 adversarial review. NITPICK_ONLY; clock advances per ADR-013. | ADV-E8-P10 | 2026-04-30 | adversary + state-manager |
 | D-161 | **ADV-E8-P9 NITPICK_ONLY clock advance (E-8 native-wasm-migration). Pass-9 verdict: 0 findings — both P8 fixes verified closed (F-P8-001 changelog reorder; F-P8-002 D-1 disposition sentence). Trajectory 18 (P1) → 7 (P2) → 0 (P3) → 1 MED (P4 reset) → 0 (P5 advance) → 2 MED (P6 reset) → 3 P7 sub → 1 P8 MED → 0 (P9 advance). Per ADR-013 NITPICK_ONLY → clock 0_of_3 → 1_of_3 ADVANCE. Need 2 more clean passes (pass-10, pass-11) for CONVERGENCE_REACHED.** | ADV-E8-P9 adversarial review. NITPICK_ONLY; clock advances per ADR-013. Pattern alert: prior 1_of_3 advances (P3, P5) were followed by SUBSTANTIVE resets (P4, P6) — pass-10 must do thorough cross-section re-derivation despite spec maturity. | ADV-E8-P9 | 2026-04-30 | adversary + state-manager |
@@ -252,31 +254,31 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**E-8 CONVERGENCE_REACHED (2026-04-30). ADV-E8-P11 0 findings; 3_of_3 per ADR-013. E-8 v1.7 status=ready. Story-writer dispatch unblocked. rc.1 LIVE.**
+**S-8.00 v1.0 authored (2026-04-30). Status=draft. W-15 pre-work spec sealed. Adversarial pass-1 is next. rc.1 LIVE.**
 
 **Branch HEADs:**
 - main: 1485d2e (rc.1 bot bundle; chore: bundle dispatcher binaries for v1.0.0-rc.1)
 - develop: 6686aec (post-semgrep-fix; Wave 14 COMPLETE)
 - factory-artifacts: (this commit — see git log for SHA after push)
 
-**rc.1 status:** GH pre-release published 2026-04-30T03:10:59Z. Tag v1.0.0-rc.1 at 1485d2e. 14-day shakedown clock running; ETA ~2026-05-13. 45 of 47 stories merged; 1 partial (S-2.05 cargo publish dry-run); 1 draft (S-5.07 calendar-gated GA gate).
+**rc.1 status:** GH pre-release published 2026-04-30T03:10:59Z. Tag v1.0.0-rc.1 at 1485d2e. 14-day shakedown clock running; ETA ~2026-05-13. 45 of 47 source stories merged; 1 partial (S-2.05 cargo publish dry-run); 1 draft (S-5.07 calendar-gated GA gate).
 
-**E-8 convergence:** CONVERGENCE_REACHED at ADV-E8-P11. Trajectory 18→7→0→1→0→2→3→1→0→1→0. 41 substantive + 11 LOW findings closed across 11 passes. E-8 v1.7 status=ready. Story-writer dispatch unblocked for S-8.00..S-8.28. E-8 wave routing (W-15*/16*/17*) pending v1.0.0 GA close (S-5.07).
+**S-8.00 status:** v1.0 status=draft. 444 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. behavioral_contracts=[] intentional ([process-gap] under D-2 Option C). input-hash=68f3d16. STORY-INDEX v1.1 (total 48 stories; draft=2). OQ-1 + OQ-8 audit responsibilities assigned. Adversarial pass-1 next.
 
-**Last sealed decision:** D-163 (ADV-E8-P11 CONVERGENCE_REACHED; E-8 v1.6→v1.7 draft→ready).
+**Last sealed decision:** D-164 (S-8.00 v1.0 authored status=draft; STORY-INDEX v1.1).
 
 **Open tech debt:**
 - TD-013 (P0): main branch protection LOOSENED — required_pull_request_reviews DELETED; must restore via org migration + Ruleset bypass before v1.0.0 GA.
-- TD-014 (P2): Full native WASM migration of remaining 43 bash hooks. Epic spec converged 2026-04-30 (E-8 v1.7 status=ready). Story-writer dispatch unblocked. Full TD-014 closure requires W-15/W-16/W-17 completion + S-8.28 adapter retirement.
+- TD-014 (P2): Full native WASM migration of remaining 43 bash hooks. Epic spec converged 2026-04-30 (E-8 v1.7 status=ready). S-8.00 authored. Full TD-014 closure requires W-15/W-16/W-17 completion + S-8.28 adapter retirement.
 
 **Branch protection:** LOOSE. required_pull_request_reviews DELETED; enforce_admins disabled. Authorized by user at rc.1 cut. TD-013 must resolve before GA.
 
-**Resumption recipe (next intent: story-writer dispatch for E-8 sub-stories):**
-1. Compact context.
-2. Story-writer produces per-story spec bursts for E-8 sub-stories (S-8.00..S-8.28; start with S-8.00 pre-work + Tier 1 dispatcher-routed hooks).
+**Resumption recipe (next intent: adversarial pass-1 on S-8.00):**
+1. Dispatch adversary on S-8.00 v1.0 (perf baseline + BC-anchor verification).
+2. Apply fix burst if SUBSTANTIVE; repeat per ADR-013 until 3_of_3 NITPICK_ONLY.
 3. Parallel: TD-013 remediation (P0; org migration → Ruleset bypass_actors).
 4. rc.1 shakedown (11 deferred S-4.08 ACs; closes ~2026-05-13; run `scripts/check-shakedown-window.sh`).
-5. Wave 15 / S-5.07 (GA gate) after shakedown + TD-013 resolved; then E-8 W-15 routing.
+5. Wave 15 / S-5.07 (GA gate) after shakedown + TD-013 resolved; then E-8 W-15 Tier 1 story decomposition (S-8.01..S-8.09).
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
