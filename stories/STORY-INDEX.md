@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.22"
+version: "1.23"
 status: current
 producer: state-manager
 timestamp: 2026-05-01T00:00:00
@@ -48,6 +48,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **D-183 Phase E + F (pass-7 batch + cross-story dependency wiring) (2026-05-01):** 7 parallel pass-7 adversarial reviews. **2 CONVERGED at 3/3:** S-8.04 v1.3 (write_file 4-param verified; trajectory 17→11→4→6→1→1→0) + S-8.06 v1.4 (4-finding steady-state signature; 4th consecutive anti-fabrication HARD GATE PASS). **2 advancing 1/3 → 2/3:** S-8.02 v1.5 CLEAN 0 findings (T-11 verbatim fix verified) + S-8.08 v1.4 (2 LOW; AC-005 scenario count cosmetic + carryovers). **3 NITPICK 0/3 → 1/3:** S-8.01 v1.5 + S-8.03 v1.4 (post-D-183 reset; typed-projection structurally correct). **1 SUBSTANTIVE clock RESET:** S-8.05 v1.6 (1 CRITICAL F-P7-001: typed-projection fields cited but absent from HookPayload struct; pass-1 audit gate insufficient at field-existence layer — process-gap noted). **Phase F mini-burst:** added `S-8.30` to `depends_on` + T-0 STOP CHECK on S-8.01/02/03/05 (mirrors S-8.04 T-0 pattern for S-8.10). 4 stories bumped versions (S-8.01 v1.6, S-8.02 v1.6, S-8.03 v1.5, S-8.05 v1.7). 2 CONVERGED status flips: S-8.04 + S-8.06 → ready. STORY-INDEX v1.20 → v1.21. Status: ready 5 → 7; draft 8 → 6.
 >
 > **D-183 Phase G — pass-8 batch outcomes (2026-05-01):** 5 pass-8 reviews. **1 CONVERGED at 3/3:** S-8.08 v1.4 (3 consecutive NITPICK_ONLY at LOW-only floor; strict bash-parity verified; trajectory 12→9→4→3→4→3→2→1). **3 advancing 0→1/3:** S-8.01 v1.6 (1L+2N), S-8.02 v1.6 (1L Token Budget fossil), S-8.03 v1.5 (2L+2N). **1 SUBSTANTIVE:** S-8.05 v1.7 (2 MED: `agent.as_str()` compile error + AC-007 case (e) mislabel) → v1.8 fix burst applied (5 closures: F-P8-001/002/003/004/005). 7 of 11 E-8 Tier 1 stories now ready (S-8.04, S-8.06, S-8.07, S-8.08, S-8.09, S-8.10, S-8.30). Remaining: S-8.01/02/03/05 still in re-convergence cycle. STORY-INDEX v1.21 → v1.22. Status: ready 7 → 8; draft 6 → 5. **Process-gap-D-185-A:** Adversarial audit gate must include "borrow/method-resolution against declared binding type" check (e.g., `agent.as_str()` on `&str` survived 7 passes; verifies via `cargo check` of example snippets pre-merge).
+>
+> **D-183 Phase H — pass-9 batch (2026-05-01):** 4 pass-9 reviews. **All NITPICK_ONLY:** S-8.01 v1.6 (1L+2N; clock 1/3 → 2/3), S-8.02 v1.6 (1L Token Budget fossil carryover; 1/3 → 2/3), S-8.03 v1.5 (2L+1N + 4 carryovers; 1/3 → 2/3), S-8.05 v1.8 (1 NIT host:: import path; 0/3 → 1/3 — all 5 v1.8 fixes verified CLOSED). 3 stories at 2/3, 1 at 1/3. **No fix bursts** (all findings SKIP-FIX-eligible per S-7.03). Pass-10 next: 1 more clean pass converges S-8.01/02/03; 2 more clean passes converge S-8.05. STORY-INDEX v1.22 → v1.23. Status unchanged: ready 8; draft 4.
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
 
