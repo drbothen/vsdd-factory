@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "D-183 Phase C COMPLETE: S-8.30 v1.1 CONVERGENCE_REACHED at pass-4 (3/3 NITPICK_ONLY per ADR-013). Status flipped draft → ready. Phase D next: 4 typed-projection fix bursts (S-8.01/02/03/05 to use BC-2.02.012 typed projection) + S-8.10 BC-2.02.011 backfill (frontmatter behavioral_contracts: [] → ['BC-2.02.011']) + status flip)."
+current_step: "D-183 Phase D COMPLETE: 4 typed-projection fix bursts (S-8.01 v1.5, S-8.02 v1.5 with T-11 fix, S-8.03 v1.4, S-8.05 v1.6) + S-8.10 status flip → ready (BC-2.02.011 backfilled). Phase E next: pass-7 batch adversarial dispatch on 7 non-converged stories (S-8.01/02/03/05 with new typed projection + S-8.04/06/08 advancing clocks)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-01 (D-183 Phase C COMPLETE — S-8.30 v1.1 CONVERGENCE_REACHED at pass-4; trajectory 13→3→3→3; status draft→ready; STORY-INDEX v1.19) |
+| **Last Updated** | 2026-05-01 (D-183 Phase D COMPLETE — typed-projection fix burst; S-8.01/02/03/05 updated; S-8.10 status draft→ready; STORY-INDEX v1.20) |
 | **Current Phase** | E-8-Tier-1-batch-authoring-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -135,6 +135,7 @@ dtu_services: []
 | D-183 Phase B: author S-8.30 SDK extension | story-writer + state-manager | COMPLETE | S-8.30 v1.0 draft (3pts; 8 ACs); BC-2.02.012 anchor; blocks S-8.01/02/03/05; ID chosen S-8.30 per POLICY 1 (Tier 2/3 placeholders S-8.11..S-8.29 untouched); E-8 story_count 30→31; BC-2.02.012 S-8.11→S-8.30 ref update; STORY-INDEX v1.17 |
 | D-183 Phase C: S-8.30 pass-1 + v1.1 fix burst | adversary + story-writer + architect + state-manager | COMPLETE | Pass-1 SUBSTANTIVE 13 findings (3H+4M+5L+1N); v1.0→v1.1 fix burst (6 story fixes + 1 SS-02 architect fix); 4L+1N SKIP-FIX carryover; STORY-INDEX v1.18; passes 2/3/4 next |
 | D-183 Phase C: S-8.30 adversarial convergence | adversary + state-manager | COMPLETE | S-8.30 v1.1 CONVERGENCE_REACHED at pass-4 (3/3 NITPICK_ONLY per ADR-013); trajectory 13→3→3→3 across 4 passes; v1.0→v1.1 fix burst (7 substantive fixes); 2 LOW + 1 NIT SKIP-FIX carryovers steady-state; status draft→ready; STORY-INDEX v1.19 |
+| D-183 Phase D: typed-projection fix burst + S-8.10 status flip | story-writer × 5 + state-manager | COMPLETE | S-8.01 v1.5, S-8.02 v1.5 (T-11 fix + typed proj), S-8.03 v1.4, S-8.05 v1.6 (5 fixes), S-8.10 status: draft → ready (BC-2.02.011 backfill); STORY-INDEX v1.20; ready 4→5; draft 9→8 |
 
 ## Identifier Conventions
 
@@ -170,8 +171,8 @@ dtu_services: []
 
 - **Merged (45):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28), S-5.03 (PR #37 93b298f 2026-04-29), S-5.04 (PR #38 e90faab 2026-04-29), S-5.05 (PR #40 1e2db47 2026-04-29), S-5.06 (PR #39 d134648 2026-04-29)
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (9):** S-5.07 (Tier H; calendar-gated); S-8.01 v1.4 (D-183 reset: ready → draft for HookPayload typed-projection re-convergence per process-gap-D-183-A); S-8.02/04/05/06/08/10 (E-8 Tier 1 hook ports; fix cycle or converging — S-8.10 spec CONVERGENCE_REACHED but status flip blocked on OQ-A1 NOW RESOLVED: BC-2.02.011 authored); S-8.03 v1.3 (D-183 reset: ready → draft for HookPayload typed-projection re-convergence per process-gap-D-183-A)
-- **Ready (4):** S-8.00 (W-15 entry-point pre-work); S-8.07 v1.2 (CONVERGED); S-8.09 v1.3 (CONVERGED); S-8.30 v1.1 (D-183 Phase C CONVERGENCE_REACHED at pass-4; trajectory 13→3→3→3)
+- **Draft (8):** S-5.07 (Tier H; calendar-gated); S-8.01 v1.5 (D-183 Phase D typed-projection fix burst; pass-7 next); S-8.02 v1.5 (T-11 fix + typed proj; clock 1/3 HELD; pass-7 next); S-8.03 v1.4 (D-183 Phase D typed-projection re-convergence; pass-7 next); S-8.04 v1.3 (clock 2/3; pass-7 next); S-8.05 v1.6 (5-finding fix burst; clock 0/3 HELD; pass-7 next); S-8.06 v1.4 (clock 2/3; pass-7 next); S-8.08 v1.4 (clock 1/3; pass-7 next)
+- **Ready (5):** S-8.00 (W-15 entry-point pre-work); S-8.07 v1.2 (CONVERGED); S-8.09 v1.3 (CONVERGED); S-8.10 v1.1 (D-183 Phase D status flip: BC-2.02.011 backfilled; OQ-A1 RESOLVED); S-8.30 v1.1 (D-183 Phase C CONVERGENCE_REACHED at pass-4; trajectory 13→3→3→3)
 
 ## Drift Items (open)
 
@@ -297,20 +298,17 @@ dtu_services: []
 **Branch HEADs:**
 - main: 1485d2e (rc.1 bot bundle; chore: bundle dispatcher binaries for v1.0.0-rc.1)
 - develop: 6686aec (post-semgrep-fix; Wave 14 COMPLETE)
-- factory-artifacts: (post-commit; D-183 Phase C — S-8.30 pass-1 + v1.1 fix burst)
+- factory-artifacts: (post-commit; D-183 Phase D — typed-projection fix burst + S-8.10 status flip)
 
 **rc.1 status:** GH pre-release published 2026-04-30T03:10:59Z. Tag v1.0.0-rc.1 at 1485d2e. 14-day shakedown clock running; ETA ~2026-05-13.
 
-**E-8 Tier 1 current status (post D-183 Phase C pass-1 fix burst):**
-- CONVERGED (ready, spec): S-8.00 v1.5, S-8.07 v1.2, S-8.09 v1.3
-- CONVERGENCE_REACHED → OQ-A1 RESOLVED: S-8.10 v1.1 (BC-2.02.011 now authored; story-writer may flip status draft → ready after updating behavioral_contracts: ["BC-2.02.011"])
-- D-183 reset (draft — re-convergence required): S-8.01 v1.4, S-8.03 v1.3 (process-gap-D-183-A: T-3 must specify typed HookPayload field projections per BC-2.02.012)
-- Clock 2/3: S-8.04 v1.3, S-8.06 v1.4
-- Clock 1/3: S-8.08 v1.4 (parity restoration empirically verified)
-- SUBSTANTIVE — needs fix burst: S-8.02 v1.4 (v1.5 required: T-11 wording per AC-008 verbatim); S-8.05 v1.5 (v1.6 required: HookPayload typed-projection + jq-//-equivalent + AC-007 fields + AC-008 form)
-- D-183 Phase C: S-8.30 v1.1 (pass-1 SUBSTANTIVE fixed; 4L+1N carryover SKIP-FIX; pass-2 next)
+**E-8 Tier 1 current status (post D-183 Phase D typed-projection fix burst):**
+- CONVERGED (ready, spec): S-8.00 v1.5, S-8.07 v1.2, S-8.09 v1.3, S-8.10 v1.1 (OQ-A1 RESOLVED), S-8.30 v1.1
+- Typed-projection fix burst applied (draft — pass-7 next): S-8.01 v1.5, S-8.02 v1.5 (clock 1/3 HELD), S-8.03 v1.4, S-8.05 v1.6 (clock 0/3 HELD)
+- Clock 2/3 (pass-7 expected CONVERGENCE_REACHED): S-8.04 v1.3, S-8.06 v1.4
+- Clock 1/3 (pass-7 expected clock advance): S-8.08 v1.4 (parity restoration empirically verified)
 
-**Last sealed decision:** D-183 Phase C pass-1 fix burst (S-8.30 v1.0→v1.1; 7 fixes: 3 HIGH story-writer + 1 MED architect SS-02 + 3 MED story-writer; adv-s8.30-p1.md persisted; STORY-INDEX v1.18).
+**Last sealed decision:** D-183 Phase D typed-projection fix burst (S-8.01 v1.5, S-8.02 v1.5, S-8.03 v1.4, S-8.05 v1.6; S-8.10 status draft→ready; STORY-INDEX v1.20; factory-artifacts committed).
 
 **Open tech debt:**
 - TD-013 (P0): main branch protection LOOSENED — required_pull_request_reviews DELETED; must restore via org migration + Ruleset bypass before v1.0.0 GA.
@@ -319,12 +317,10 @@ dtu_services: []
 
 **Branch protection:** LOOSE. TD-013 must resolve before GA.
 
-**Resumption recipe (Phase C pass-2 next):**
-1. D-183 Phase C pass-2: adversarial pass-2 on S-8.30 v1.1. Expect clock advance 0/3 → 1/3 if NITPICK_ONLY, or further fix burst if SUBSTANTIVE.
-2. S-8.10 status flip: story-writer updates S-8.10 frontmatter `behavioral_contracts: []` → `["BC-2.02.011"]` and status: draft → ready (Phase D).
-3. S-8.01 + S-8.03 re-convergence: story-writer updates T-3 to specify `payload.agent_type.as_deref()...` typed-projection per BC-2.02.012; then dispatch adversarial pass-N+1.
-4. S-8.02 v1.5 fix burst: correct T-11 wording by quoting AC-008 verbatim (invariant-2 wording for jq-missing-fail-closed). process-gap-D-182-A applies.
-5. S-8.05 v1.6 fix burst: (a) HookPayload typed-projection binding per BC-2.02.012, (b) jq-`//`-equivalent helper for null-as-advance semantics, (c) AC-007 case (e) field `event_type`→`event_name` + value `PostToolUse`→`SubagentStop`, (d) AC-008 emit_event form propagation (forbid `let _ =`), (e) AC-001 `name` field addition.
+**Resumption recipe (Phase E — pass-7 batch adversarial dispatch next):**
+1. Pass-7 batch adversarial: dispatch 7 parallel adversarial reviews on non-converged E-8 stories: S-8.01 v1.5, S-8.02 v1.5, S-8.03 v1.4, S-8.04 v1.3, S-8.05 v1.6, S-8.06 v1.4, S-8.08 v1.4.
+2. Expected outcomes: S-8.04 v1.3 + S-8.06 v1.4 reach CONVERGENCE_REACHED (clock 2/3→3/3); S-8.08 v1.4 advances to 2/3; S-8.01/03/05 either advance or need fix bursts.
+3. After pass-7 results: apply fix bursts to any SUBSTANTIVE stories; then dispatch pass-8 on remaining non-converged stories.
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
