@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.18"
+version: "1.19"
 status: current
 producer: state-manager
 timestamp: 2026-05-01T00:00:00
@@ -41,6 +41,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **D-183 Phase A — HookPayload extension foundation (2026-05-01):** PO authored BC-2.02.011 (host::write_file ABI invariants — supersedes S-8.10 OQ-A1 placeholder) + BC-2.02.012 (HookPayload SubagentStop top-level fields invariants — anchors S-8.11 + 4 SubagentStop port stories). Architect updated SS-02 spec with HookPayload Schema Evolution section + jq-`//` parity convention + BC-2.02.x family table + D-183 in-spec decision log. **S-8.01 and S-8.03 reset status: ready → draft** for re-convergence with typed-projection prose (process-gap-D-183-A: prior convergence was prose-level and missed HookPayload typed-projection layer). ARCH-INDEX SS-02 BC count 22 → 24. STORY-INDEX v1.15 → v1.16. Phase B next: story-writer authors S-8.11 (HookPayload SubagentStop SDK extension).
 > **D-183 Phase B — S-8.30 authored (2026-05-01):** New SDK extension story `S-8.30-sdk-extension-hookpayload-subagentstop-fields.md` v1.0 status=draft authored. 3 pts. Anchors BC-2.02.012 (HookPayload SubagentStop fields). 8 ACs covering struct extension (4 `#[serde(default)] Option<String>` fields appended after `plugin_config`), backward-compat for all event types, jq-`//` parity tests, HOST_ABI.md update, HOST_ABI_VERSION=1 invariant. depends_on: S-8.00; blocks: S-8.01, S-8.02, S-8.03, S-8.05. Story ID S-8.30 chosen per POLICY 1 (placeholder Tier 2/3 IDs S-8.11..S-8.29 left untouched; appending after Tier 3 cleanest path). STORY-INDEX v1.16 → v1.17. Phase C next: adversarial pass-1 on S-8.30.
 > **D-183 Phase C — S-8.30 pass-1 fix burst (2026-05-01):** Pass-1 adversarial review of S-8.30 v1.0 found 13 findings (3 HIGH + 4 MED + 5 LOW + 1 NIT). v1.1 fix burst applied: F-001 HIGH (AC-5 mis-anchor Inv 1 → Inv 4), F-002 HIGH (AC-7 phantom Inv 4 dropped), F-003 HIGH (EC-008 internal contradiction resolved), F-004 MED (architect fix: SS-02 fallback chain aligned to BC-2.02.012 canonical borrowing form), F-005 MED (track-agent-stop `// ""` vs `// empty` divergence explained), F-006 MED (AC-8 reordered + "Stop" removed), F-007 MED (trace cell phrasing standardized to body-footer form). 7 fixes; 4 LOW + 1 NIT carryovers SKIP-FIX per S-7.03. STORY-INDEX v1.17 → v1.18. Pass-2 next.
+> **D-183 Phase C COMPLETE — S-8.30 CONVERGENCE_REACHED at pass-4 (2026-05-01):** Three consecutive NITPICK_ONLY passes p2/p3/p4 with identical SKIP-FIX carryover set (2 LOW notation drift + 1 NIT positive verification). Trajectory 13 → 3 → 3 → 3. Pass-1 fix burst applied 7 substantive fixes (3 HIGH + 4 MED) at v1.0 → v1.1; verified across 3 fresh-context passes. Anti-fabrication HARD GATE PASS; universal-patch anchors PASS; 12-policy rubric PASS; sibling-pattern alignment vs S-8.10 v1.1 ALIGNED; process-gap-D-183-A NO REGRESSION. Status: draft → ready (process-event row, no version bump). 5 of 11 E-8 Tier 1 stories now CONVERGED (S-8.01, S-8.03, S-8.07, S-8.09, S-8.10, S-8.30 — but S-8.01/S-8.03 reset to draft for D-183 typed-projection re-convergence Phase D). Phase D next: 4 typed-projection fix bursts (S-8.01/02/03/05) + S-8.10 BC-2.02.011 backfill. STORY-INDEX v1.18 → v1.19.
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
 
@@ -54,8 +55,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 45 |
 | partial | 1 |
-| draft | 10 |
-| ready | 3 |
+| draft | 9 |
+| ready | 4 |
 | **Total** | **59** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -188,7 +189,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-8.08 | Native port: track-agent-start | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.079, BC-7.03.080 |
 | S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.29 | ready | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 |
 | S-8.10 | SDK extension: host::write_file (D-6 Option A unblocker) | E-8 | 5 | P2 | S-8.00 | S-8.04, S-8.09 | draft | [] (OQ-1: BC-2.02.011 pending PO authorship) |
-| S-8.30 | SDK extension: HookPayload SubagentStop top-level fields | E-8 | 3 | P1 | S-8.00 | S-8.01, S-8.02, S-8.03, S-8.05 | draft | BC-2.02.012 (v1.1) |
+| S-8.30 | SDK extension: HookPayload SubagentStop top-level fields | E-8 | 3 | P1 | S-8.00 | S-8.01, S-8.02, S-8.03, S-8.05 | ready | BC-2.02.012 (v1.1) |
 
 > S-8.00 v1.5 (status=**ready**, **CONVERGENCE_REACHED** at adversarial pass-6 per ADR-013 2026-04-30). 512 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 v1.1); pass-2 closed (8 v1.2); pass-3 closed (6 v1.3); pass-4 NITPICK_ONLY (3 closed v1.4 + clock 0/3→1/3); pass-5 NITPICK_ONLY (1 NIT SKIP_FIX + clock 1/3→2/3); **pass-6 NITPICK_ONLY (2 NIT SKIP_FIX + clock 2/3→3/3 = CONVERGENCE_REACHED)**. Trajectory 14→8→6→3→1→2 over 6 passes (86% decay; healthy late-convergence shape). D-164 + D-165 + D-166 + D-167 + D-168 + D-169 + D-170 sealed. Ready for per-story-delivery cycle.
 

@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "D-183 Phase C in progress: S-8.30 pass-1 SUBSTANTIVE (3 HIGH + 4 MED + 5 LOW + 1 NIT); v1.1 fix burst applied (story-writer 6 fixes + architect SS-02 fix). Pass-2 next."
+current_step: "D-183 Phase C COMPLETE: S-8.30 v1.1 CONVERGENCE_REACHED at pass-4 (3/3 NITPICK_ONLY per ADR-013). Status flipped draft → ready. Phase D next: 4 typed-projection fix bursts (S-8.01/02/03/05 to use BC-2.02.012 typed projection) + S-8.10 BC-2.02.011 backfill (frontmatter behavioral_contracts: [] → ['BC-2.02.011']) + status flip)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-01 (D-183 Phase C — S-8.30 pass-1 SUBSTANTIVE 13 findings; v1.1 fix burst applied; STORY-INDEX v1.18; pass-2 next) |
+| **Last Updated** | 2026-05-01 (D-183 Phase C COMPLETE — S-8.30 v1.1 CONVERGENCE_REACHED at pass-4; trajectory 13→3→3→3; status draft→ready; STORY-INDEX v1.19) |
 | **Current Phase** | E-8-Tier-1-batch-authoring-COMPLETE |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -133,7 +133,8 @@ dtu_services: []
 | ADV-Tier1-P6 seal + state update (D-182) | state-manager | COMPLETE | STATE.md current_step + Phase Progress + Decisions Log + [process-gap] + Session Resume Checkpoint updated; STORY-INDEX v1.14→v1.15; po-obligations.md created; factory-artifacts committed |
 | D-183 Phase A: PO BCs + architect SS-02 | product-owner + architect + state-manager | COMPLETE | 2 new BCs (BC-2.02.011 host::write_file; BC-2.02.012 HookPayload SubagentStop fields); SS-02 spec updated with Schema Evolution section + jq-`//` parity convention + process-gap-D-183-A; ARCH-INDEX SS-02 BC count 22→24; D-183 sealed |
 | D-183 Phase B: author S-8.30 SDK extension | story-writer + state-manager | COMPLETE | S-8.30 v1.0 draft (3pts; 8 ACs); BC-2.02.012 anchor; blocks S-8.01/02/03/05; ID chosen S-8.30 per POLICY 1 (Tier 2/3 placeholders S-8.11..S-8.29 untouched); E-8 story_count 30→31; BC-2.02.012 S-8.11→S-8.30 ref update; STORY-INDEX v1.17 |
-| D-183 Phase C: S-8.30 pass-1 + v1.1 fix burst | adversary + story-writer + architect + state-manager | COMPLETE | Pass-1 SUBSTANTIVE 13 findings (3H+4M+5L+1N); v1.0→v1.1 fix burst (6 story fixes + 1 SS-02 architect fix); 4L+1N SKIP-FIX carryover; STORY-INDEX v1.18; pass-2 next |
+| D-183 Phase C: S-8.30 pass-1 + v1.1 fix burst | adversary + story-writer + architect + state-manager | COMPLETE | Pass-1 SUBSTANTIVE 13 findings (3H+4M+5L+1N); v1.0→v1.1 fix burst (6 story fixes + 1 SS-02 architect fix); 4L+1N SKIP-FIX carryover; STORY-INDEX v1.18; passes 2/3/4 next |
+| D-183 Phase C: S-8.30 adversarial convergence | adversary + state-manager | COMPLETE | S-8.30 v1.1 CONVERGENCE_REACHED at pass-4 (3/3 NITPICK_ONLY per ADR-013); trajectory 13→3→3→3 across 4 passes; v1.0→v1.1 fix burst (7 substantive fixes); 2 LOW + 1 NIT SKIP-FIX carryovers steady-state; status draft→ready; STORY-INDEX v1.19 |
 
 ## Identifier Conventions
 
@@ -169,8 +170,8 @@ dtu_services: []
 
 - **Merged (45):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28), S-5.03 (PR #37 93b298f 2026-04-29), S-5.04 (PR #38 e90faab 2026-04-29), S-5.05 (PR #40 1e2db47 2026-04-29), S-5.06 (PR #39 d134648 2026-04-29)
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (10):** S-5.07 (Tier H; calendar-gated); S-8.01 v1.4 (D-183 reset: ready → draft for HookPayload typed-projection re-convergence per process-gap-D-183-A); S-8.02/04/05/06/08/10 (E-8 Tier 1 hook ports; fix cycle or converging — S-8.10 spec CONVERGENCE_REACHED but status flip blocked on OQ-A1 NOW RESOLVED: BC-2.02.011 authored); S-8.03 v1.3 (D-183 reset: ready → draft for HookPayload typed-projection re-convergence per process-gap-D-183-A); S-8.30 v1.0 (D-183 Phase B: HookPayload SubagentStop SDK extension; anchors BC-2.02.012; blocks S-8.01/02/03/05)
-- **Ready (3):** S-8.00 (W-15 entry-point pre-work); S-8.07 v1.2 (CONVERGED); S-8.09 v1.3 (CONVERGED)
+- **Draft (9):** S-5.07 (Tier H; calendar-gated); S-8.01 v1.4 (D-183 reset: ready → draft for HookPayload typed-projection re-convergence per process-gap-D-183-A); S-8.02/04/05/06/08/10 (E-8 Tier 1 hook ports; fix cycle or converging — S-8.10 spec CONVERGENCE_REACHED but status flip blocked on OQ-A1 NOW RESOLVED: BC-2.02.011 authored); S-8.03 v1.3 (D-183 reset: ready → draft for HookPayload typed-projection re-convergence per process-gap-D-183-A)
+- **Ready (4):** S-8.00 (W-15 entry-point pre-work); S-8.07 v1.2 (CONVERGED); S-8.09 v1.3 (CONVERGED); S-8.30 v1.1 (D-183 Phase C CONVERGENCE_REACHED at pass-4; trajectory 13→3→3→3)
 
 ## Drift Items (open)
 
