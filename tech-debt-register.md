@@ -13,13 +13,14 @@ last_updated: 2026-04-29T00:00:00
 |----------|-------|-----------------|
 | P0 (next cycle) | 1 | TD-013 branch protection restore |
 | P1 (within 3 cycles) | 2 | XL (29–39 across 6 sub-stories) + TD-010 publish |
-| P2 (backlog) | 9 | — |
+| P2 (backlog) | 10 | — (TD-015 per-invocation correlation ~30 pts added 2026-05-01) |
 | P3 (v1.1+) | 4 | — |
 
 ## Debt Items
 
 | ID | Source | Description | Priority | Introduced | Cycle | Story | Due |
 |----|--------|-------------|----------|-----------|-------|-------|-----|
+| TD-015 | S-8.08 pass-5 adjudication (D-181) | Per-invocation telemetry correlation: host::invocation_id() SDK extension + schema enrichment + cross-hook sweep (track-agent-start/stop, pr-manager-completion-guard, validate-pr-review-posted, handoff-validator, regression-gate); ~30 pts epic | P2 | 2026-05-01 | v1.0-brownfield-backfill | S-8.08 | v1.1+ |
 | TD-014 | User audit | Full native WASM migration of remaining 43 bash hooks (8 dispatcher-routed + ~35 inline); legacy-bash-adapter deletable post-migration; S-5.05 migration guide "26 hooks" claim stale (actual ~43) | P2 | 2026-04-30 | v1.0-brownfield-backfill | — | v1.1+ |
 | TD-013 | Release process | Restore main branch protection with proper bot bypass before v1.0.0 GA — required_pull_request_reviews rule DELETED during rc.1 release ritual; main currently unprotected | P0 | rc.1 cut 2026-04-29 | v1.0-brownfield-backfill | S-5.07 | v1.0.0 GA (S-5.07) |
 | TD-001 | Phase 5 deferred | BC-level CAP/DI/Stories anchoring incomplete: all 1,851 BC files carry CAP-TBD/DI-TBD/Stories-TBD defaults from Phase 1.4b migration | P2 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.0.1 |
@@ -467,6 +468,72 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 2. Adversarial spec convergence per story (or batched per tier).
 3. TDD implementation with bats tests for each.
 4. Track migration progress via "% of bash hooks migrated" metric in STATE.md.
+
+## TD-015 — Per-invocation telemetry correlation: host::invocation_id() SDK extension + schema enrichment + cross-hook sweep
+
+**Severity:** P2 (post-v1.0 enhancement)
+**Adopted:** 2026-05-01 (D-181)
+**Origin:** S-8.08 pass-5 adjudication (F-S808-P5-001 HIGH bash-parity violation)
+
+### Context
+
+E-8 Tier 1 native WASM port for `track-agent-start` initially specified `agent_id` and `tool_name` event fields not present in the bash source. Pass-5 fresh-context adversary caught the parity violation. Per E-8 D-2 (parity-only port), the additive fields were removed in S-8.08 v1.4. The empirical bash output is: `type=agent.start hook=track-agent-start matcher=Agent subagent=<subagent> [story_id=<...>]` only.
+
+### Use Case (deferred)
+
+If a downstream consumer (dashboard, factory-sla, or analytics sink) emerges that requires correlating "all events from this specific Task invocation" — e.g., "show me every event emitted during the run of this single subagent dispatch" — the current schema cannot satisfy it because `host::session_id()` returns the parent CC session ID (per-launch), not per-invocation identity.
+
+Today the bash hooks emit a stable `subagent` name (e.g., "pr-manager") and an optional `story_id`, but those don't disambiguate multiple sequential invocations of the same subagent within one CC session.
+
+### Scope (when triggered)
+
+This is a post-v1.0 epic with multiple coordinated workstreams:
+
+1. **SDK ABI extension:**
+   - Add `host::invocation_id() -> &str` to `crates/hook-sdk/src/host.rs`
+   - Dispatcher generates a unique ID (UUID or short hash) at envelope construction time per Task tool invocation
+   - HOST_ABI_VERSION may stay at 1 (additive ABI per AS-DEC reasoning, same as S-8.10 host::write_file extension) or bump if non-additive
+   - New BC in BC-2.02.x family (host-shim ABI invariants)
+
+2. **Schema BC amendments:**
+   - BC-7.03.080 (track-agent-start) postcondition update: emit `invocation_id` field
+   - BC-7.03.082 (track-agent-stop) postcondition update: emit `invocation_id` field
+   - Possibly BC-7.04.041/043 (pr-manager-completion-guard, validate-pr-review-posted) for cross-event correlation
+
+3. **Cross-hook sweep:** Update emit_event calls in:
+   - `track-agent-start` (S-8.08)
+   - `track-agent-stop` (S-8.03 — currently CONVERGED at v1.3 ready; would need re-spec)
+   - `pr-manager-completion-guard` (S-8.02)
+   - `validate-pr-review-posted` (S-8.05)
+   - `handoff-validator` (S-8.01) — emits hook.block events, may benefit from invocation_id
+   - `regression-gate-adapter-retirement` (S-8.09)
+
+4. **Sink correlation tests:** End-to-end fixture asserting that paired start/stop events carry matching invocation_id values, distinct across multiple subagent dispatches in one session.
+
+### Trigger Criteria
+
+Promote from P2 to P1 when ANY of the following occurs:
+- Stakeholder request for a dashboard view requiring per-invocation drill-down
+- factory-sla module needs to disambiguate concurrent or sequential same-subagent invocations
+- A new hook is added that requires per-invocation tracing for debugging
+
+### Estimated Cost
+
+- SDK extension: 3-5 pts (similar to S-8.10 host::write_file pattern)
+- Per-hook BC + spec updates: 2 pts × ~6 hooks = 12 pts
+- Sink correlation tests: 5 pts
+- Adversarial spec convergence per affected story: ~3-5 passes each
+- Total: ~30 pts + 1-2 weeks coordination
+
+### Cross-references
+
+- D-181 (this decision)
+- E-8 D-2 (parity-only constraint)
+- D-6 Option A (precedent for additive SDK ABI extension via S-8.10 host::write_file)
+- AS-DEC for HOST_ABI_VERSION = 1 (additive ABI semantics)
+- S-8.08 v1.4 changelog (the parity restoration that opened this debt)
+
+---
 
 ## Resolution History
 
