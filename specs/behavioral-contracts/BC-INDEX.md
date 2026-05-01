@@ -8,13 +8,13 @@ timestamp: 2026-04-26T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1912
+total_bcs: 1914
 traces_to: bc-id-mapping.md
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,912 behavioral contracts across 10 subsystems.
+> Master index of all 1,914 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -22,7 +22,7 @@ traces_to: bc-id-mapping.md
 | Subsystem | BC Prefix | Count | Shard Directory |
 |-----------|-----------|-------|----------------|
 | SS-01 Hook Dispatcher Core | BC-1 | 101 (99 active; 2 retired) | ss-01/ |
-| SS-02 Hook SDK and Plugin ABI | BC-2 | 22 | ss-02/ |
+| SS-02 Hook SDK and Plugin ABI | BC-2 | 24 | ss-02/ |
 | SS-03 Observability Sinks | BC-3 | 51 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 30 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
@@ -31,7 +31,7 @@ traces_to: bc-id-mapping.md
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1912** | |
+| **Total** | | **1914** | |
 
 ## Index by subsystem
 
@@ -159,6 +159,8 @@ traces_to: bc-id-mapping.md
 | [BC-2.02.008](ss-02/BC-2.02.008.md) | hook-sdk::host::encode_args_round_trip — encode_args matches the same length-prefix shape with no separator | draft | CAP-009 | S-1.03 |
 | [BC-2.02.009](ss-02/BC-2.02.009.md) | hook-sdk::host::decode_subprocess_result_parses_envelope — SubprocessResult envelope `i32 \| u32 \| stdout \| u32 \| stderr` decodes correctly | draft | CAP-009 | S-1.03 |
 | [BC-2.02.010](ss-02/BC-2.02.010.md) | hook-sdk::host::log_levels_are_stable — LogLevel discriminants 0..=4 are pinned (Trace=0, Debug=1, Info=2, Warn=3, Error=4) | draft | CAP-009 | S-1.03 |
+| [BC-2.02.011](ss-02/BC-2.02.011.md) | host::write_file ABI invariants — WriteFileCaps struct constraints, error return codes, max_bytes semantics, FFI pointer protocol | draft | CAP-022 | S-8.10 |
+| [BC-2.02.012](ss-02/BC-2.02.012.md) | HookPayload SubagentStop top-level fields — agent_type, subagent_name, last_assistant_message, result all `#[serde(default)] Option<String>`; null-as-absent via serde Option<T> | draft | CAP-022 | S-8.11, S-8.01, S-8.02, S-8.03, S-8.05 |
 | [BC-2.04.001](ss-02/BC-2.04.001.md) | hook-sdk::payload::pretooluse_payload_deserializes — full envelope parses with tool_input populated, tool_response None | draft | CAP-009 | S-1.03 |
 | [BC-2.04.002](ss-02/BC-2.04.002.md) | hook-sdk::payload::posttooluse_payload_with_response — SDK payload includes typed access to tool_response.exit_code | draft | CAP-009 | S-1.03 |
 | [BC-2.04.003](ss-02/BC-2.04.003.md) | hook-sdk::payload::lifecycle_payload_without_tool_name — SessionStart parses with tool_name="" and tool_input is JSON null | draft | CAP-009 | S-1.03 |

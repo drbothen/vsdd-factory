@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.15"
+version: "1.16"
 status: current
 producer: state-manager
 timestamp: 2026-05-01T00:00:00
@@ -38,6 +38,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **E-8 Tier 1 pass-5 fix burst + 4 CONVERGED status flips (2026-05-01, D-181):** 7 parallel story-writer dispatches. Fix bursts: S-8.02 v1.3→v1.4 (HTML-comment input-hash mismatch reframed; T-11 added to Tasks block; 1 MED + 1 LOW closed); S-8.05 v1.4→v1.5 (T-5 emit_event partial-fix regression closed [`let _ =` → bare statement]; SS-04 mis-anchor "Hook Plugin Layer" → canonical "Plugin Ecosystem"; AC-005 dual-fallback re-anchored to AC-003; T-3 RESULT casing; 2 HIGH + 1 MED + 1 LOW closed). S-8.08 v1.3→v1.4 (**strict E-8 D-2 parity restored** per option-(a) adjudication: `agent_id` and `tool_name` REMOVED from T-3, Goal, AC-002a; bash source empirically confirmed to emit only `type/hook/matcher/subagent/[story_id]`; AC-002a reframed as parity-audit with negative assertions; SS-06 CAP-022 disclosure reconciled; Token Budget BC-files corrected; 1 HIGH + 1 MED + 2 LOW closed; **TD-015 registered for future per-invocation correlation use case**). 4 CONVERGED status flips: S-8.01 v1.3→v1.4 ready, S-8.03 v1.2→v1.3 ready, S-8.07 v1.2 ready (cleanest — process-event row below), S-8.09 v1.2→v1.3 ready. 3-of-4 status flips forced cosmetic version bumps by validate-changelog-monotonicity.sh hook (process-gap noted in D-181). Pass-6 batch dispatch on 6 non-converged stories (S-8.02/04/05/06/08/10) next. STORY-INDEX v1.13 → v1.14.
 >
 > **E-8 Tier 1 pass-6 batch adversarial reviews (2026-05-01, D-182):** 6 parallel pass-6 reviews (S-8.10 was at pass-4 in its own clock). 1 CONVERGED: **S-8.10 v1.1 reaches 3/3 NITPICK_ONLY at pass-4 per ADR-013 plateau-as-convergence pattern** (trajectory 18→7→4→4); status flip blocked on OQ-A1 (PO must author BC-2.02.011 — Spec-First Gate S-7.01). 3 advanced: S-8.04 v1.3 NITPICK_ONLY 1 NIT clock 1/3→2/3; S-8.06 v1.4 NITPICK_ONLY 2L+2N clock 1/3→2/3 (3rd consecutive anti-fabrication HARD GATE PASS); S-8.08 v1.4 NITPICK_ONLY 3 LOW clock 0/3→1/3 (D-181 strict-parity restoration empirically verified — whole-file grep confirms agent_id/tool_name only in permitted contexts). 2 SUBSTANTIVE require fix burst: S-8.02 v1.4 1 HIGH F-P6-001 fix-burst regression on T-11 wording (process-gap-D-182-A: orchestrator pass-5 prompt paraphrased AC-008 instead of quoting verbatim; story-writer faithfully wrote wrong content); S-8.05 v1.5 2 HIGH + 2 MED + 1 LOW novel deeper-layer findings (HookPayload typed-projection binding missing for `envelope`; jq `//` null-as-advance semantics divergence vs `Option::or`; AC-007 case (e) field-name `event_type→event_name` + value `PostToolUse→SubagentStop`; AC-008 emit_event form propagation; AC-001 `name` omission). S-8.05 trajectory 12→7→5→4→4→5 indicates fundamental spec depth not surfaced in prior passes. STORY-INDEX v1.14 → v1.15.
+> **D-183 Phase A — HookPayload extension foundation (2026-05-01):** PO authored BC-2.02.011 (host::write_file ABI invariants — supersedes S-8.10 OQ-A1 placeholder) + BC-2.02.012 (HookPayload SubagentStop top-level fields invariants — anchors S-8.11 + 4 SubagentStop port stories). Architect updated SS-02 spec with HookPayload Schema Evolution section + jq-`//` parity convention + BC-2.02.x family table + D-183 in-spec decision log. **S-8.01 and S-8.03 reset status: ready → draft** for re-convergence with typed-projection prose (process-gap-D-183-A: prior convergence was prose-level and missed HookPayload typed-projection layer). ARCH-INDEX SS-02 BC count 22 → 24. STORY-INDEX v1.15 → v1.16. Phase B next: story-writer authors S-8.11 (HookPayload SubagentStop SDK extension).
 > This index is the authoritative source for story count and status.
 > 58 stories across 9 epics (E-0 through E-8).
 
@@ -51,8 +52,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 45 |
 | partial | 1 |
-| draft | 7 |
-| ready | 5 |
+| draft | 9 |
+| ready | 3 |
 | **Total** | **58** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -175,9 +176,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-8.00 | Perf benchmark baseline + Tier 1 BC-anchor verification (W-15 pre-work) | E-8 | 5 | P2 | -- | S-8.01..S-8.09 | ready | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002) |
-| S-8.01 | Native port: handoff-validator | E-8 | 4 | P2 | S-8.00 | S-8.09 | ready | BC-7.03.042, BC-7.03.043, BC-7.03.044 |
+| S-8.01 | Native port: handoff-validator | E-8 | 4 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.042, BC-7.03.043, BC-7.03.044 |
 | S-8.02 | Native port: pr-manager-completion-guard | E-8 | 5 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.045, BC-7.03.046, BC-7.03.047, BC-7.03.048 |
-| S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00 | S-8.09 | ready | BC-7.03.081, BC-7.03.082 |
+| S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.081, BC-7.03.082 |
 | S-8.04 | Native port: update-wave-state-on-merge | E-8 | 4 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.083, BC-7.03.084, BC-7.03.085, BC-7.03.086 |
 | S-8.05 | Native port: validate-pr-review-posted | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.04.040, BC-7.04.041, BC-7.04.042, BC-7.04.043, BC-7.04.044 |
 | S-8.06 | Native port: session-learning | E-8 | 3 | P2 | S-8.00 | S-8.09 | draft | BC-7.03.076, BC-7.03.077, BC-7.03.078 |
@@ -188,11 +189,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 > S-8.00 v1.5 (status=**ready**, **CONVERGENCE_REACHED** at adversarial pass-6 per ADR-013 2026-04-30). 512 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 v1.1); pass-2 closed (8 v1.2); pass-3 closed (6 v1.3); pass-4 NITPICK_ONLY (3 closed v1.4 + clock 0/3→1/3); pass-5 NITPICK_ONLY (1 NIT SKIP_FIX + clock 1/3→2/3); **pass-6 NITPICK_ONLY (2 NIT SKIP_FIX + clock 2/3→3/3 = CONVERGENCE_REACHED)**. Trajectory 14→8→6→3→1→2 over 6 passes (86% decay; healthy late-convergence shape). D-164 + D-165 + D-166 + D-167 + D-168 + D-169 + D-170 sealed. Ready for per-story-delivery cycle.
 
-> S-8.01 v1.4 (status=**ready**, **CONVERGENCE_REACHED** 2026-05-01, D-181 status flip). Pass-1: 14 findings closed (4H+6M+3L+1NIT); 344→380 lines (+36). Pass-2: 4 findings (0H+2M+2L); 380→419 lines (+39). Pass-3: 7 findings (1H+3M+2L+1NIT); input-hash bcf4e0a → 7b31f6f. Pass-4 NITPICK_ONLY (clock 1/3). Pass-5 NITPICK_ONLY (clock 2/3). Pass-5 verdict: 1 NIT (clock 2/3→3/3 = CONVERGENCE_REACHED per ADR-013). Status flip burst v1.3→v1.4 (validate-changelog-monotonicity.sh forced version bump; process-gap per D-181). input-hash updated post-burst.
+> S-8.01 v1.4 (status=**draft**, **D-183 reset: ready → draft** 2026-05-01, process-gap-D-183-A: T-3 must specify typed HookPayload field projections per BC-2.02.012 before re-convergence). Pass-1: 14 findings closed (4H+6M+3L+1NIT); 344→380 lines (+36). Pass-2: 4 findings (0H+2M+2L); 380→419 lines (+39). Pass-3: 7 findings (1H+3M+2L+1NIT); input-hash bcf4e0a → 7b31f6f. Pass-4 NITPICK_ONLY (clock 1/3). Pass-5 NITPICK_ONLY (clock 2/3). Pass-5 verdict: 1 NIT (clock 2/3→3/3 = CONVERGENCE_REACHED per ADR-013). Status flip burst v1.3→v1.4 (validate-changelog-monotonicity.sh forced version bump; process-gap per D-181). input-hash updated post-burst.
 
 > S-8.02 v1.4 (status=draft, SUBSTANTIVE pass-6, D-182). Pass-1: 13 findings closed (4H+5M+3L+1NIT); 322→383 lines (+61). Pass-2: 6 findings (2H+3M+1L); 383→427 lines (+44). Pass-3: NITPICK_ONLY (clock 1/3 held). Pass-4: 4 findings (1H+1M+2L); 427→436 lines (+9); input-hash e441e99 → 5ae44ad. Pass-5 SUBSTANTIVE fix burst v1.3→v1.4: T-11 added; 1 MED + 1 LOW closed. Clock: HELD. Pass-6 SUBSTANTIVE 1 HIGH F-S802-P6-001: Tasks T-11 reads "drop binary_allow=[bash] post-port" but AC-008 T-11 = "revise invariant-2 wording (jq-missing-fail-closed)" — fix-burst regression from pass-5 prompt error (process-gap-D-182-A). Clock HELD at 1/3. v1.5 fix burst required: quote AC-008 T-11 verbatim. adv-s8.02-p6.md persisted.
 
-> S-8.03 v1.3 (status=**ready**, **CONVERGENCE_REACHED** 2026-05-01, D-181 status flip). Pass-1: 13 findings closed (4H+5M+3L+1NIT); 295→356 lines (+61). Pass-2: 9 findings (2H+4M+2L+1NIT). Pass-3 fix burst + NITPICK_ONLY (clock 0/3→1/3). Pass-4 NITPICK_ONLY (clock 1/3→2/3). Pass-5 NITPICK_ONLY (clock 2/3→3/3 = CONVERGENCE_REACHED). Status flip burst v1.2→v1.3 (validate-changelog-monotonicity.sh forced version bump; process-gap per D-181). input-hash updated post-burst.
+> S-8.03 v1.3 (status=**draft**, **D-183 reset: ready → draft** 2026-05-01, process-gap-D-183-A: T-3 must specify typed HookPayload field projections per BC-2.02.012 before re-convergence). Pass-1: 13 findings closed (4H+5M+3L+1NIT); 295→356 lines (+61). Pass-2: 9 findings (2H+4M+2L+1NIT). Pass-3 fix burst + NITPICK_ONLY (clock 0/3→1/3). Pass-4 NITPICK_ONLY (clock 1/3→2/3). Pass-5 NITPICK_ONLY (clock 2/3→3/3 = CONVERGENCE_REACHED). Status flip burst v1.2→v1.3 (validate-changelog-monotonicity.sh forced version bump; process-gap per D-181). input-hash updated post-burst.
 
 > S-8.04 v1.3 (status=draft, advancing clock 2/3, D-182). **HIGHEST RISK — D-6 BLOCKER (host::write_file SDK extension required; S-8.10 must merge first).** Pass-1: 17 findings; pass-2: 13 findings; pass-3: 4 findings; pass-4 SUBSTANTIVE 6 findings all closed in v1.3 burst. Pass-5 NITPICK_ONLY 1 NIT (SKIP-FIX scope clarifier); clock 1/3→2/3. Pass-6 NITPICK_ONLY 1 NIT; clock 1/3→2/3 (adv-s8.04-p6.md persisted). Clock now 2/3. Next: pass-7 expected NITPICK_ONLY → CONVERGENCE_REACHED at 3/3.
 

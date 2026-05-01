@@ -153,12 +153,133 @@ High-level BC groupings: `HookPayload` deserialization invariants (BC-2.001–BC
 expansion correctness (BC-2.011–BC-2.015), host function shim ABI alignment
 (BC-2.016–BC-2.020), panic boundary and error promotion (BC-2.021–BC-2.025).
 
+### BC-2.02.x Host-Shim ABI Family
+
+The `BC-2.02.NNN` family covers the SDK host-function ABI surface.
+
+| BC ID | Contract | Story | Status |
+|-------|----------|-------|--------|
+| BC-2.02.001 | Plugin-author API surface is `vsdd_hook_sdk::host::*`; raw FFI is private (`mod ffi;`) | S-1.03 | active |
+| BC-2.02.002 | `host::read_file` shim surfaces typed `Result<Vec<u8>, HostError>` | S-1.03 | active |
+| BC-2.02.003 | `host::log` maps `LogLevel` discriminants to dispatcher wire codes | S-1.03 | active |
+| BC-2.02.004 | `host::emit_event` serializes fields as length-prefixed UTF-8 key/value sequence | S-1.03 | active |
+| BC-2.02.005 | `host::exec_subprocess` returns typed `SubprocessResult` with exit code and truncation flag | S-1.03 | active |
+| BC-2.02.006 | `host::session_id` re-calls with larger buffer when host returns required capacity | S-1.03 | active |
+| BC-2.02.007 | `host::dispatcher_trace_id` same re-call-on-overflow contract as session_id | S-1.03 | active |
+| BC-2.02.008 | `host::plugin_root` same re-call-on-overflow contract | S-1.03 | active |
+| BC-2.02.009 | `host::plugin_version` same re-call-on-overflow contract | S-1.03 | active |
+| BC-2.02.010 | `LogLevel` discriminants 0..=4 are pinned (Trace=0 ... Error=4) | S-1.03 | active |
+| BC-2.02.011 | `host::write_file` shim: write content to an allow-listed path; returns `Ok(())` on success, `Err(HostError)` on failure | S-8.10 | draft (PO authoring) |
+| BC-2.02.012 | `HookPayload` SubagentStop top-level fields: `agent_type`, `subagent_name`, `last_assistant_message`, `result` — all `Option<String>` with `#[serde(default)]`; absent or JSON-null deserializes to `None` | S-8.11 + S-8.01 + S-8.03 reopens | draft (PO authoring) |
+
+Note: BC-2.02.011 and BC-2.02.012 are in-flight (D-183 decision). When PO files them, the ARCH-INDEX SS-02 BC count will update from 22 to 24.
+
+## HookPayload Schema Evolution
+
+### Additive-ABI Extension Pattern
+
+When Claude Code's hook envelope schema gains new top-level fields for a given event
+type (e.g. SubagentStop carries `agent_type` and `last_assistant_message` at the
+top level of the JSON payload), `HookPayload` extends additively: new fields are
+added as `#[serde(default)] Option<String>`. This pattern has been sanctioned twice:
+
+| Decision | Story | Extension | HOST_ABI_VERSION |
+|----------|-------|-----------|-----------------|
+| D-6 Option A | S-8.10 | `host::write_file` — additive host function; anchors BC-2.02.011 | Stays at 1 |
+| D-183 | S-8.11 | `HookPayload` SubagentStop fields — additive struct fields; anchors BC-2.02.012 | Stays at 1 |
+
+**General rule:** Any future Claude Code envelope schema addition follows this pattern
+unless the change is backward-incompatible (which would require a `HOST_ABI_VERSION`
+bump and is out of scope for additive evolution per ADR-006).
+
+### Why `#[serde(default)] Option<String>`
+
+- `#[serde(default)]` means the field is absent from the JSON for event types that
+  do not carry it — `PreToolUse`, `PostToolUse`, `SessionStart`, etc. — and serde
+  deserializes it as `None` without error. Existing event types are unaffected.
+- JSON `null` also deserializes to `None` via serde's standard `Option<T>`
+  implementation. This provides free jq-`//`-equivalent fallback semantics (see
+  jq-`//` Parity Convention section below).
+- `HOST_ABI_VERSION = 1` stays stable because the ABI between the dispatcher and
+  WASM plugins is the stdin/stdout JSON wire format, and adding optional top-level
+  fields is backward-compatible by definition.
+
+### SubagentStop Envelope Schema
+
+Claude Code's `SubagentStop` event delivers these top-level JSON fields. The four
+bash hooks that consume them are the canonical reference for field names and fallback
+chains:
+
+| Field | Type | Bash fallback chain | Source |
+|-------|------|---------------------|--------|
+| `agent_type` | `Option<String>` | `.agent_type \|\| .subagent_name \|\| "unknown"` | handoff-validator.sh:27, pr-manager-completion-guard.sh:25, validate-pr-review-posted.sh:21, track-agent-stop.sh:22 |
+| `subagent_name` | `Option<String>` | second fallback for agent identity when `agent_type` absent | same hooks |
+| `last_assistant_message` | `Option<String>` | `.last_assistant_message \|\| .result \|\| ...` | handoff-validator.sh:28, pr-manager-completion-guard.sh:26, validate-pr-review-posted.sh:22, track-agent-stop.sh:23 |
+| `result` | `Option<String>` | second fallback for message content | same hooks |
+
+**Note on `output`:** `handoff-validator.sh:28` uses a third fallback `.output` —
+this is story-specific (S-8.01) to handle historical format variations. It is NOT
+part of the canonical SubagentStop envelope. The WASM port (BC-2.02.012) does not
+need to model `output` as a separate field; hook-level logic handles the third
+fallback via `Option` chaining on `last_assistant_message` → `result`.
+
+**Canonical contract:** BC-2.02.012 defines the typed projection. Stories S-8.11,
+S-8.01 (reopen), and S-8.03 (reopen) trace to BC-2.02.012.
+
+### jq-`//` Parity Convention
+
+Bash hooks written against the Claude Code SubagentStop event use jq's `//` null-
+coalescing operator:
+
+```bash
+AGENT=$(echo "$INPUT" | jq -r '.agent_type // .subagent_name // "unknown"')
+RESULT=$(echo "$INPUT" | jq -r '.last_assistant_message // .result // empty')
+```
+
+The WASM port preserves identical semantics via `Option` chaining:
+
+```rust
+let agent = payload.agent_type
+    .or(payload.subagent_name)
+    .unwrap_or_else(|| "unknown".to_string());
+
+let result = payload.last_assistant_message
+    .or(payload.result);
+```
+
+This is the canonical pattern for any future envelope-field fallback in WASM hooks.
+When a bash hook uses `jq -r '.fieldA // .fieldB // "default"'`, the WASM translation
+is always `payload.field_a.or(payload.field_b).unwrap_or("default")`. No bespoke
+parsing logic is needed.
+
 ## ADRs
 
 - ADR-002: WASM (wasmtime) plugin ABI — `decisions/ADR-002-wasm-plugin-abi.md`
 - ADR-003: WASI preview 1 for v1.0; preview 2 deferred — `decisions/ADR-003-wasi-preview1.md`
 - ADR-006: HOST_ABI_VERSION as separate semver constant — `decisions/ADR-006-host-abi-version.md`
 - ADR-010: StoreData-typed linker for host functions — `decisions/ADR-010-storedata-linker.md`
+
+### Decision Log (in-spec)
+
+**D-183 (2026-05-01) — HookPayload additive extension for SubagentStop top-level fields**
+
+Context: S-8.01 (handoff-validator WASM port) and S-8.03 (pr-manager-completion-guard
+WASM port) both reached CONVERGENCE_REACHED before HookPayload carried the
+SubagentStop envelope's `agent_type` and `last_assistant_message` as typed fields.
+The bash hooks read these fields via jq at the top level of stdin, but HookPayload
+only had `tool_input: serde_json::Value`. S-8.11 was opened to fix this gap.
+
+Decision: Extend HookPayload with four `#[serde(default)] Option<String>` fields
+(`agent_type`, `subagent_name`, `last_assistant_message`, `result`) mirroring the
+SubagentStop envelope. This is the second additive-ABI extension under E-8 (the first
+was D-6 Option A — `host::write_file` in S-8.10).
+
+Outcome: HOST_ABI_VERSION stays at 1. BC-2.02.012 is the canonical contract.
+S-8.01 and S-8.03 reopen to update T-3 task bindings to reference specific
+`payload.<field_name>` access patterns.
+
+Sanctioned precedent for all future envelope schema additions: follow this pattern
+unless the change requires a breaking ABI constraint.
 
 ## Drift / Known Issues
 
@@ -170,3 +291,28 @@ expansion correctness (BC-2.011–BC-2.015), host function shim ABI alignment
   extraction to a shared `host-codes` crate.
 - **L-P1-002 (debt):** `#[deny(missing_docs)]` not yet applied to `hook-sdk`.
   Docs are present in practice but not attribute-enforced.
+
+## Process Gaps
+
+**[process-gap-D-183-A]** SDK-surface story specs MUST verify typed-projection binding
+against `HookPayload` struct fields, not just describe semantics in prose.
+
+S-8.01 and S-8.03 each reached CONVERGENCE_REACHED (pass-5 and pass-3 respectively)
+while their T-3 task descriptions said vague "parse JSON from stdin" without
+specifying which `HookPayload` fields carry the SubagentStop envelope's `agent_type`
+and `last_assistant_message` — because those fields did not exist in `HookPayload`
+at the time. The structural gap was discovered during D-183 triage.
+
+**Going forward:** Pass-1 adversary on any SDK-surface story MUST audit T-N task
+code snippets against the `HookPayload` struct definition in
+`crates/hook-sdk/src/payload.rs`. Absence of a specific `payload.<field_name>`
+access pattern in task code snippets is a HIGH finding when the story's bash
+reference hook reads top-level envelope fields via jq. Stories may not cite
+`tool_input` as the source for SubagentStop fields unless the field genuinely
+lives in `tool_input` (it does not for SubagentStop).
+
+Concretely: before any SDK-surface story reaches CONVERGENCE_REACHED, confirm that
+every T-N task that accesses envelope data explicitly references the `HookPayload`
+field (or explicitly cites the BC that defines the projection). A BC citation without
+a field-level binding is insufficient — the BC must exist and enumerate the specific
+fields by name.
