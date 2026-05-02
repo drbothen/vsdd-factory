@@ -203,7 +203,7 @@ P6-03. HUMAN APPROVAL
 
 PP-01. Spawn devops-engineer: "Release (semver -> CHANGELOG -> tag -> gh release -> publish)"
 PP-02. Steady-state handoff (see steady-state.md)
-PP-03. Spawn session-review: "8-dimension post-run analysis"
+PP-03. Spawn session-reviewer: "8-dimension post-run analysis"
 PP-04. HUMAN reviews improvement proposals (72h, approve/defer/reject)
 PP-05. Spawn state-manager: "Update pattern database, benchmarks, improvement backlog"
 PP-06. Post-feature validation (7/30/90 day monitoring, if configured)

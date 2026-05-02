@@ -107,5 +107,5 @@ Verify:
 
 ## Session Review
 
-Spawn session-review: "Review sweep effectiveness — false positive rate,
+Spawn session-reviewer: "Review sweep effectiveness — false positive rate,
 fix quality, cost vs value, sweep coverage."

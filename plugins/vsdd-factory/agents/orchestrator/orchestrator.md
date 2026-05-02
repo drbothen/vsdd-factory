@@ -190,7 +190,7 @@ Always give agents the full absolute path to every file they need to read or wri
 | Data schemas, migrations | data-engineer |
 | Accessibility audit | accessibility-auditor |
 | Visual regression | visual-reviewer |
-| Post-pipeline analysis | session-review |
+| Post-pipeline analysis | session-reviewer |
 
 ### State Manager Delegation
 

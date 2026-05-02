@@ -105,5 +105,5 @@ Present discovery report to human. For each idea:
 
 ## Session Review
 
-Spawn session-review: "Review discovery run quality — research accuracy,
+Spawn session-reviewer: "Review discovery run quality — research accuracy,
 scoring calibration, deduplication effectiveness, cost."
