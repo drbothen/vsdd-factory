@@ -1217,10 +1217,7 @@ waves:
             tool_name: String::new(),
             session_id: "s".to_string(),
             dispatcher_trace_id: "t".to_string(),
-            tool_input: json!({
-                "agent_type": "pr-manager",
-                "result": "STEP_COMPLETE: step=8 status=ok — no story id here",
-            }),
+            tool_input: serde_json::Value::Null,
             tool_response: None,
             plugin_config: serde_json::Value::Null,
             agent_type: Some("pr-manager".to_string()),

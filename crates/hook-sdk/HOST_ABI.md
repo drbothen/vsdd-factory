@@ -156,13 +156,14 @@ The dispatcher checks for this line BEFORE returning to the parent agent. If
 `outcome=block`, the dispatcher exits with a non-zero status and propagates the
 reason.
 
-The `on_error` field in `hooks-registry.toml` controls **crash** behavior only:
-
-- `on_error = "continue"` (default): plugin crashes are non-fatal; execution
-  proceeds.
-- `on_error = "block"` reserved for future first-class hard-block at the
-  dispatcher boundary; current implementation treats this identically to
-  "continue" because plugins use the stdout outcome line for advisory blocks.
+The `on_error` field in `hooks-registry.toml` controls how the dispatcher reacts
+to a plugin that *crashes* (returns a non-zero exit code, panics, or otherwise
+fails). The advisory-block mechanism is independent of `on_error` — any plugin
+that writes `{"outcome":"block","reason":"..."}` to stdout records a
+dispatcher-level block intent regardless of `on_error`. As of v1.0,
+`on_error="block"` and `on_error="continue"` produce identical behavior for
+block_intent aggregation; the field is preserved for forward-compatibility with
+potential future crash-to-block escalation policies (W-16+).
 
 The SDK's `HookResult::Block(reason)` variant is reserved for future hard-block
 semantics (planned W-16 / v1.1). All v1.0 plugins use `HookResult::Continue` +
@@ -170,12 +171,16 @@ stdout outcome line.
 
 **Affected plugins (canonical v1.0 advisory-block-mode users):**
 
-- `handoff-validator` — emits `hook.block` event + returns `HookResult::Continue`
+- `handoff-validator` — emits `hook.block` event + writes
+  `{"outcome":"block","reason":"handoff_empty_result"}` (empty path) or
+  `{"outcome":"block","reason":"handoff_truncated_result"}` (truncated path) to
+  stdout + returns `HookResult::Continue`
 - `pr-manager-completion-guard` — emits `hook.block` event + writes
   `{"outcome":"block","reason":"pr_manager_incomplete_lifecycle"}` to stdout +
   returns `HookResult::Continue`
-- `validate-pr-review-posted` — emits `hook.block` event + returns
-  `HookResult::Continue`
+- `validate-pr-review-posted` — emits `hook.block` event + writes
+  `{"outcome":"block","reason":"pr_review_invalid"}` to stdout when any
+  pre-merge check fails + returns `HookResult::Continue`
 
 **Decision record:** D-W15-gate-003 — W-15 gate fix: canonical advisory-block-mode
 pattern chosen (stdout emit, not HookResult::Block); HookResult::Block SDK
