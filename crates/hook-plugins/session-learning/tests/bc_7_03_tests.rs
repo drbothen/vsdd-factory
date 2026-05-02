@@ -22,9 +22,7 @@
 //!   EC-004: very large sidecar-learning.md → append-only, no full-file buffering
 //!   EC-005: large stdin envelope → plugin completes cleanly (tested via bats)
 
-use session_learning::{
-    session_learning_logic, format_utc_now, SIDECAR_HEADER, MARKER_FORMAT,
-};
+use session_learning::{MARKER_FORMAT, SIDECAR_HEADER, format_utc_now, session_learning_logic};
 use vsdd_hook_sdk::HookResult;
 
 // ---------------------------------------------------------------------------
@@ -186,8 +184,8 @@ fn test_BC_7_03_077_append_only_no_duplicate_header() {
 
     // Pre-populate with header + one prior marker (simulate a previous session).
     let prior_content = format!(
-        "{}{}", SIDECAR_HEADER,
-        "- Session ended at 2026-01-01T00:00:00Z (awaiting /session-review)\n"
+        "{}{}",
+        SIDECAR_HEADER, "- Session ended at 2026-01-01T00:00:00Z (awaiting /session-review)\n"
     );
     std::fs::write(&sidecar, &prior_content).unwrap();
 
@@ -213,13 +211,15 @@ fn test_BC_7_03_077_append_only_no_duplicate_header() {
     let new_marker = expected_marker("2026-01-15T10:30:00Z");
     assert!(
         content.contains(&new_marker),
-        "new marker line must be appended; content: {:?}", content
+        "new marker line must be appended; content: {:?}",
+        content
     );
 
     // Prior marker must still be present (content not overwritten).
     assert!(
         content.contains("2026-01-01T00:00:00Z"),
-        "prior marker must be preserved; content: {:?}", content
+        "prior marker must be preserved; content: {:?}",
+        content
     );
 }
 
@@ -277,11 +277,16 @@ fn test_BC_7_03_076_format_utc_now_matches_iso8601_utc_format() {
     // Must be exactly 20 characters: 2026-01-15T10:30:00Z
     assert_eq!(ts.len(), 20, "UTC timestamp must be 20 chars; got {:?}", ts);
     // Must end with 'Z'.
-    assert!(ts.ends_with('Z'), "UTC timestamp must end with 'Z'; got {:?}", ts);
+    assert!(
+        ts.ends_with('Z'),
+        "UTC timestamp must end with 'Z'; got {:?}",
+        ts
+    );
     // Must match the pattern with hyphens and T separator.
     assert!(
         ts.contains('T'),
-        "UTC timestamp must contain 'T' separator; got {:?}", ts
+        "UTC timestamp must contain 'T' separator; got {:?}",
+        ts
     );
     // Validate format with a simple regex-like check.
     let chars: Vec<char> = ts.chars().collect();
@@ -374,7 +379,8 @@ fn test_BC_7_03_077_ec002_partial_header_no_rewrite() {
     let marker = expected_marker("2026-01-15T10:30:00Z");
     assert!(
         content.contains(&marker),
-        "marker must be appended after partial header; content: {:?}", content
+        "marker must be appended after partial header; content: {:?}",
+        content
     );
 }
 
@@ -404,11 +410,13 @@ fn test_BC_7_03_077_ec003_consecutive_invocations_distinct_timestamps() {
 
     assert!(
         content.contains(&line_a),
-        "marker for ts_a must be present; content: {:?}", content
+        "marker for ts_a must be present; content: {:?}",
+        content
     );
     assert!(
         content.contains(&line_b),
-        "marker for ts_b must be present; content: {:?}", content
+        "marker for ts_b must be present; content: {:?}",
+        content
     );
 
     // Both lines must be distinct entries (total marker count = 2).
@@ -447,7 +455,8 @@ fn test_BC_7_03_077_ec004_large_file_append_only() {
     for i in 0..10_000 {
         large_content.push_str(&format!(
             "- Session ended at 2025-01-{:02}T{:02}:00:00Z (awaiting /session-review)\n",
-            (i % 28) + 1, i % 24
+            (i % 28) + 1,
+            i % 24
         ));
     }
     std::fs::write(&sidecar, &large_content).unwrap();

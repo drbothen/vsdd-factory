@@ -133,7 +133,10 @@ pub fn last_step_from_text(text: &str) -> u64 {
                 .find(|c: char| !c.is_ascii_digit())
                 .unwrap_or(after.len());
             let num_str = &after[..num_end];
-            if !num_str.is_empty() && let Ok(n) = num_str.parse::<u64>() && n > max_step {
+            if !num_str.is_empty()
+                && let Ok(n) = num_str.parse::<u64>()
+                && n > max_step
+            {
                 max_step = n;
             }
             // Advance past this "step=" to find any further occurrences
@@ -374,7 +377,10 @@ mod tests {
     /// BC-7.03.048: no step=N in text → LAST_STEP = 0.
     #[test]
     fn test_BC_7_03_048_last_step_from_text_no_steps_returns_zero() {
-        assert_eq!(last_step_from_text("some result text without step numbers"), 0);
+        assert_eq!(
+            last_step_from_text("some result text without step numbers"),
+            0
+        );
     }
 
     /// BC-7.03.048: STEP_COMPLETE with step=5 → LAST_STEP = 5 (highest).
@@ -426,7 +432,13 @@ mod tests {
             r#""agent_type":"product-owner","last_assistant_message":"all done""#,
         ));
         let mut emitted = false;
-        let result = pr_manager_guard_logic(payload, |_, _| { emitted = true; }, |_| {});
+        let result = pr_manager_guard_logic(
+            payload,
+            |_, _| {
+                emitted = true;
+            },
+            |_| {},
+        );
         assert_eq!(result, HookResult::Continue, "non-pr-manager must exit 0");
         assert!(!emitted, "non-pr-manager must not emit any event");
     }
@@ -450,7 +462,13 @@ mod tests {
             serde_json::to_string(result_text).unwrap()
         )));
         let mut emitted = false;
-        let result = pr_manager_guard_logic(payload, |_, _| { emitted = true; }, |_| {});
+        let result = pr_manager_guard_logic(
+            payload,
+            |_, _| {
+                emitted = true;
+            },
+            |_| {},
+        );
         assert_eq!(result, HookResult::Continue, "9 steps complete must exit 0");
         assert!(!emitted, "9 steps complete must not emit any event");
     }
@@ -471,7 +489,11 @@ mod tests {
             serde_json::to_string(result_text).unwrap()
         )));
         let result = pr_manager_guard_logic(payload, |_, _| {}, |_| {});
-        assert_eq!(result, HookResult::Continue, "exactly 8 steps must exit 0 (>= 8 threshold)");
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "exactly 8 steps must exit 0 (>= 8 threshold)"
+        );
     }
 
     // ── pr_manager_guard_logic: BLOCKED detection (BC-7.03.047) ──────────
@@ -483,7 +505,13 @@ mod tests {
             r#""agent_type":"pr-manager","last_assistant_message":"Status: BLOCKED\nDependency PR not merged.""#,
         ));
         let mut emitted = false;
-        let result = pr_manager_guard_logic(payload, |_, _| { emitted = true; }, |_| {});
+        let result = pr_manager_guard_logic(
+            payload,
+            |_, _| {
+                emitted = true;
+            },
+            |_| {},
+        );
         assert_eq!(result, HookResult::Continue, "BLOCKED result must exit 0");
         assert!(!emitted, "BLOCKED result must not emit any event");
     }
@@ -506,17 +534,30 @@ mod tests {
             payload,
             |event_type, fields| {
                 emitted_event = Some(event_type.to_string());
-                emitted_fields = fields.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
+                emitted_fields = fields
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect();
             },
-            |msg| { stderr_msg = Some(msg.to_string()); },
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
         );
 
         assert_eq!(
-            result, HookResult::Continue,
+            result,
+            HookResult::Continue,
             "0 steps must return HookResult::Continue (advisory-block-mode, W-15 CRIT-W15-002)"
         );
-        assert_eq!(emitted_event.as_deref(), Some("hook.block"), "must emit hook.block");
-        let next_step = emitted_fields.iter().find(|(k, _)| k == "next_step").map(|(_, v)| v.as_str());
+        assert_eq!(
+            emitted_event.as_deref(),
+            Some("hook.block"),
+            "must emit hook.block"
+        );
+        let next_step = emitted_fields
+            .iter()
+            .find(|(k, _)| k == "next_step")
+            .map(|(_, v)| v.as_str());
         assert_eq!(next_step, Some("1"), "NEXT_STEP must be 1 when LAST_STEP=0");
         let msg = stderr_msg.unwrap();
         assert!(
@@ -544,10 +585,13 @@ mod tests {
         let result = pr_manager_guard_logic(
             payload,
             |_, _| {},
-            |msg| { stderr_msg = Some(msg.to_string()); },
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
         );
         assert_eq!(
-            result, HookResult::Continue,
+            result,
+            HookResult::Continue,
             "7 steps must return HookResult::Continue (advisory-block-mode, W-15 CRIT-W15-002)"
         );
         let msg = stderr_msg.unwrap();
@@ -567,11 +611,20 @@ mod tests {
             (2, "verify demo evidence (or emit status=na for chore PRs)"),
             (3, "create PR via github-ops"),
             (4, "spawn security-reviewer via Agent tool"),
-            (5, "spawn pr-reviewer/pr-review-triage via Agent tool; handle findings; converge"),
+            (
+                5,
+                "spawn pr-reviewer/pr-review-triage via Agent tool; handle findings; converge",
+            ),
             (6, "spawn github-ops: gh pr checks --watch"),
             (7, "verify all dependency PRs merged"),
-            (8, "spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)"),
-            (9, "confirm branch deletion; write review-findings.md; emit final STEP_COMPLETE"),
+            (
+                8,
+                "spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)",
+            ),
+            (
+                9,
+                "confirm branch deletion; write review-findings.md; emit final STEP_COMPLETE",
+            ),
         ];
         for &(step, hint) in expected {
             assert_eq!(
@@ -617,12 +670,22 @@ mod tests {
         pr_manager_guard_logic(
             payload,
             |_, fields| {
-                emitted_fields = fields.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
+                emitted_fields = fields
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect();
             },
             |_| {},
         );
-        let subagent = emitted_fields.iter().find(|(k, _)| k == "subagent").map(|(_, v)| v.as_str());
-        assert_eq!(subagent, Some("pr-manager-fallback"), "must use subagent_name as fallback identity");
+        let subagent = emitted_fields
+            .iter()
+            .find(|(k, _)| k == "subagent")
+            .map(|(_, v)| v.as_str());
+        assert_eq!(
+            subagent,
+            Some("pr-manager-fallback"),
+            "must use subagent_name as fallback identity"
+        );
     }
 
     /// BC-2.02.012 Postcondition 6: last_assistant_message absent → result used.
@@ -636,7 +699,8 @@ mod tests {
         ));
         let result = pr_manager_guard_logic(payload, |_, _| {}, |_| {});
         assert_eq!(
-            result, HookResult::Continue,
+            result,
+            HookResult::Continue,
             "missing last_assistant_message with empty result must return Continue (advisory-block-mode)"
         );
     }
@@ -653,10 +717,13 @@ mod tests {
         let result = pr_manager_guard_logic(
             payload,
             |_, _| {},
-            |msg| { stderr_msg = Some(msg.to_string()); },
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
         );
         assert_eq!(
-            result, HookResult::Continue,
+            result,
+            HookResult::Continue,
             "absent result fields must return Continue (advisory-block-mode, W-15 CRIT-W15-002)"
         );
         let msg = stderr_msg.unwrap();
@@ -673,7 +740,10 @@ mod tests {
     #[test]
     fn test_BC_7_03_045_ac008_malformed_json_deserialize_fails_gracefully() {
         let result: Result<HookPayload, _> = serde_json::from_str("not json {{{");
-        assert!(result.is_err(), "malformed JSON must produce a serde error (handled in main.rs)");
+        assert!(
+            result.is_err(),
+            "malformed JSON must produce a serde error (handled in main.rs)"
+        );
     }
 
     // ── HookResult exit code contract ─────────────────────────────────────
@@ -686,7 +756,11 @@ mod tests {
             r#""agent_type":"pr-manager","last_assistant_message":"no steps""#,
         ));
         let r = pr_manager_guard_logic(payload, |_, _| {}, |_| {});
-        assert_eq!(r.exit_code(), 0, "FM4 block path must return exit 0 (advisory-block-mode)");
+        assert_eq!(
+            r.exit_code(),
+            0,
+            "FM4 block path must return exit 0 (advisory-block-mode)"
+        );
     }
 
     // ── emit_event fields completeness (BC-7.03.048 / AC-005) ────────────
@@ -703,24 +777,44 @@ mod tests {
             payload,
             |event_type, fields| {
                 emitted_event = Some(event_type.to_string());
-                emitted_fields = fields.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
+                emitted_fields = fields
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect();
             },
             |_| {},
         );
         assert_eq!(emitted_event.as_deref(), Some("hook.block"));
         let field_keys: Vec<&str> = emitted_fields.iter().map(|(k, _)| k.as_str()).collect();
-        for required in &["hook", "matcher", "reason", "subagent", "step_count", "last_step", "next_step"] {
+        for required in &[
+            "hook",
+            "matcher",
+            "reason",
+            "subagent",
+            "step_count",
+            "last_step",
+            "next_step",
+        ] {
             assert!(
                 field_keys.contains(required),
                 "hook.block event must carry '{}' field (BC-7.03.048 / AC-005)",
                 required
             );
         }
-        let hook = emitted_fields.iter().find(|(k, _)| k == "hook").map(|(_, v)| v.as_str());
+        let hook = emitted_fields
+            .iter()
+            .find(|(k, _)| k == "hook")
+            .map(|(_, v)| v.as_str());
         assert_eq!(hook, Some("pr-manager-completion-guard"));
-        let matcher = emitted_fields.iter().find(|(k, _)| k == "matcher").map(|(_, v)| v.as_str());
+        let matcher = emitted_fields
+            .iter()
+            .find(|(k, _)| k == "matcher")
+            .map(|(_, v)| v.as_str());
         assert_eq!(matcher, Some("SubagentStop"));
-        let reason = emitted_fields.iter().find(|(k, _)| k == "reason").map(|(_, v)| v.as_str());
+        let reason = emitted_fields
+            .iter()
+            .find(|(k, _)| k == "reason")
+            .map(|(_, v)| v.as_str());
         assert_eq!(reason, Some("pr_manager_incomplete_lifecycle"));
     }
 
@@ -740,14 +834,15 @@ mod tests {
         // to trigger scoping, with no subagent_name — identity resolves to
         // "pr-manager" (not "unknown" in this case, since agent_type is present).
         // This verifies the subagent field is always included in emit_event.
-        let payload = make_payload(&base_subagentstop(
-            r#""agent_type":"pr-manager""#,
-        ));
+        let payload = make_payload(&base_subagentstop(r#""agent_type":"pr-manager""#));
         let mut emitted_fields: Vec<(String, String)> = Vec::new();
         pr_manager_guard_logic(
             payload,
             |_, fields| {
-                emitted_fields = fields.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
+                emitted_fields = fields
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect();
             },
             |_| {},
         );

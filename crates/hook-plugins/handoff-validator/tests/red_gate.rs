@@ -23,7 +23,7 @@
 //! All tests here are EXPECTED TO FAIL until the implementer completes
 //! the migration tasks T-2 through T-7.
 
-use handoff_validator::{classify_result, handoff_validator_logic, ResultClassification};
+use handoff_validator::{ResultClassification, classify_result, handoff_validator_logic};
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------
@@ -90,9 +90,7 @@ fn test_BC_7_03_042_ac001a_registry_uses_native_handoff_validator_wasm() {
         .expect("handoff-validator entry must exist in hooks-registry.toml");
     let after_entry = &content[handoff_block_start..];
     // Next [[hooks]] boundary (or end of file)
-    let block_end = after_entry
-        .find("\n[[hooks]]")
-        .unwrap_or(after_entry.len());
+    let block_end = after_entry.find("\n[[hooks]]").unwrap_or(after_entry.len());
     let handoff_block = &after_entry[..block_end];
 
     assert!(
@@ -118,9 +116,7 @@ fn test_BC_7_03_042_ac001b_registry_no_script_path_in_handoff_validator_entry() 
         .find("name = \"handoff-validator\"")
         .expect("handoff-validator entry must exist");
     let after_entry = &content[handoff_block_start..];
-    let block_end = after_entry
-        .find("\n[[hooks]]")
-        .unwrap_or(after_entry.len());
+    let block_end = after_entry.find("\n[[hooks]]").unwrap_or(after_entry.len());
     let handoff_block = &after_entry[..block_end];
 
     assert!(
@@ -147,9 +143,7 @@ fn test_BC_7_03_042_ac001c_registry_no_exec_subprocess_block_in_handoff_validato
         .find("name = \"handoff-validator\"")
         .expect("handoff-validator entry must exist");
     let after_entry = &content[handoff_block_start..];
-    let block_end = after_entry
-        .find("\n[[hooks]]")
-        .unwrap_or(after_entry.len());
+    let block_end = after_entry.find("\n[[hooks]]").unwrap_or(after_entry.len());
     let handoff_block = &after_entry[..block_end];
 
     assert!(
@@ -176,9 +170,7 @@ fn test_BC_7_03_042_ac001d_registry_no_shell_bypass_acknowledged_in_handoff_vali
         .find("name = \"handoff-validator\"")
         .expect("handoff-validator entry must exist");
     let after_entry = &content[handoff_block_start..];
-    let block_end = after_entry
-        .find("\n[[hooks]]")
-        .unwrap_or(after_entry.len());
+    let block_end = after_entry.find("\n[[hooks]]").unwrap_or(after_entry.len());
     let handoff_block = &after_entry[..block_end];
 
     assert!(
@@ -209,9 +201,7 @@ fn test_BC_7_03_042_ac001e_registry_preserved_binding_fields_event_priority_on_e
         .find("name = \"handoff-validator\"")
         .expect("handoff-validator entry must exist");
     let after_entry = &content[handoff_block_start..];
-    let block_end = after_entry
-        .find("\n[[hooks]]")
-        .unwrap_or(after_entry.len());
+    let block_end = after_entry.find("\n[[hooks]]").unwrap_or(after_entry.len());
     let handoff_block = &after_entry[..block_end];
 
     assert!(
@@ -331,8 +321,7 @@ fn test_BC_7_03_043_ac005_bats_file_contains_all_7_test_cases() {
 /// Included as a regression gate against future regressions.
 #[test]
 fn test_BC_7_03_042_ac007_no_subprocess_call_to_bin_emit_event_in_crate_source() {
-    let manifest = std::env::var("CARGO_MANIFEST_DIR")
-        .expect("CARGO_MANIFEST_DIR must be set");
+    let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR must be set");
     let src_dir = std::path::Path::new(&manifest).join("src");
 
     // Forbidden patterns: live subprocess call patterns (not comment-only references).
@@ -499,7 +488,14 @@ fn test_BC_7_03_044_short_result_emitted_field_names_are_canonical() {
     let mut sorted_keys = keys.clone();
     sorted_keys.sort();
     let expected_sorted = {
-        let mut e = vec!["hook", "matcher", "reason", "result_len", "severity", "subagent"];
+        let mut e = vec![
+            "hook",
+            "matcher",
+            "reason",
+            "result_len",
+            "severity",
+            "subagent",
+        ];
         e.sort();
         e
     };
@@ -640,20 +636,31 @@ fn test_BC_7_03_043_ec001_both_message_fields_absent_warns_empty_with_unknown_ag
 fn test_BC_7_03_042_ec003_exactly_40_chars_is_sufficient_no_event_no_stderr() {
     let s = "a".repeat(40);
     let payload = make_payload(&base_subagentstop(&format!(
-        r#""last_assistant_message":"{}""#, s
+        r#""last_assistant_message":"{}""#,
+        s
     )));
 
     let mut emitted = false;
     let mut stderr_written = false;
     let result = handoff_validator_logic(
         payload,
-        |_, _| { emitted = true; },
-        |_| { stderr_written = true; },
+        |_, _| {
+            emitted = true;
+        },
+        |_| {
+            stderr_written = true;
+        },
         |_| {},
     );
 
-    assert!(!emitted, "EC-003: 40-char result must NOT emit any event (threshold is < 40)");
-    assert!(!stderr_written, "EC-003: 40-char result must NOT write to stderr");
+    assert!(
+        !emitted,
+        "EC-003: 40-char result must NOT emit any event (threshold is < 40)"
+    );
+    assert!(
+        !stderr_written,
+        "EC-003: 40-char result must NOT write to stderr"
+    );
     assert_eq!(result, HookResult::Continue, "EC-003: must return Continue");
 }
 
@@ -753,9 +760,7 @@ fn test_BC_7_03_044_result_field_fallback_short_value_emits_truncated_warning() 
 /// but result is present and empty, the 2-stage fallback resolves to "" → empty warn.
 #[test]
 fn test_BC_7_03_043_result_field_fallback_empty_value_emits_empty_warning() {
-    let payload = make_payload(&base_subagentstop(
-        r#""agent_type":"my-agent","result":"""#,
-    ));
+    let payload = make_payload(&base_subagentstop(r#""agent_type":"my-agent","result":"""#));
 
     let mut emitted_reason: Option<String> = None;
     handoff_validator_logic(

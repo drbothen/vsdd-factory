@@ -127,7 +127,9 @@ fn test_BC_7_03_079_ac001_registry_entry_points_to_native_wasm() {
         .expect("hooks-registry.toml must contain a [track-agent-start] entry");
 
     assert!(
-        entry.plugin.ends_with("hook-plugins/track-agent-start.wasm"),
+        entry
+            .plugin
+            .ends_with("hook-plugins/track-agent-start.wasm"),
         "track-agent-start registry entry must use the native WASM binary \
          (not legacy-bash-adapter) — AC-001 / BC-7.03.079 postcondition 1\n\
          plugin path: {}",
@@ -170,7 +172,8 @@ fn test_BC_7_03_079_invariant_1_binding_tuple_preserved_after_migration() {
          (BC-7.03.079 invariant 1)"
     );
     assert!(
-        entry.on_error.map_or(true, |oe| oe == factory_dispatcher::registry::OnError::Continue),
+        entry.on_error.map_or(true, |oe| oe
+            == factory_dispatcher::registry::OnError::Continue),
         "track-agent-start on_error must remain continue \
          (BC-7.03.079 invariant 1)"
     );
@@ -182,12 +185,10 @@ fn test_BC_7_03_079_invariant_1_binding_tuple_preserved_after_migration() {
 /// FAILS until T-6 updates the plugin path.
 #[test]
 fn test_BC_7_03_079_ac001_registry_entry_does_not_reference_legacy_bash_adapter() {
-    let raw =
-        std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
+    let raw = std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
 
-    let stanza = extract_stanza(&raw, "track-agent-start").expect(
-        "track-agent-start stanza must exist in hooks-registry.toml",
-    );
+    let stanza = extract_stanza(&raw, "track-agent-start")
+        .expect("track-agent-start stanza must exist in hooks-registry.toml");
 
     assert!(
         !stanza.contains("legacy-bash-adapter"),
@@ -203,12 +204,10 @@ fn test_BC_7_03_079_ac001_registry_entry_does_not_reference_legacy_bash_adapter(
 /// FAILS until T-6 removes the [hooks.config] script_path entry.
 #[test]
 fn test_BC_7_03_079_ac001_registry_entry_has_no_script_path() {
-    let raw =
-        std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
+    let raw = std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
 
-    let stanza = extract_stanza(&raw, "track-agent-start").expect(
-        "track-agent-start stanza must exist in hooks-registry.toml",
-    );
+    let stanza = extract_stanza(&raw, "track-agent-start")
+        .expect("track-agent-start stanza must exist in hooks-registry.toml");
 
     assert!(
         !stanza.contains("script_path"),
@@ -224,12 +223,10 @@ fn test_BC_7_03_079_ac001_registry_entry_has_no_script_path() {
 /// FAILS until T-6 removes the [hooks.capabilities.exec_subprocess] block.
 #[test]
 fn test_BC_7_03_079_ac001_registry_entry_has_no_exec_subprocess_block() {
-    let raw =
-        std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
+    let raw = std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
 
-    let stanza = extract_stanza(&raw, "track-agent-start").expect(
-        "track-agent-start stanza must exist in hooks-registry.toml",
-    );
+    let stanza = extract_stanza(&raw, "track-agent-start")
+        .expect("track-agent-start stanza must exist in hooks-registry.toml");
 
     assert!(
         !stanza.contains("exec_subprocess"),
@@ -246,12 +243,10 @@ fn test_BC_7_03_079_ac001_registry_entry_has_no_exec_subprocess_block() {
 /// FAILS until T-6 removes the legacy-bash-adapter fields.
 #[test]
 fn test_BC_7_03_079_ac002a_registry_entry_has_no_shell_bypass_acknowledged() {
-    let raw =
-        std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
+    let raw = std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
 
-    let stanza = extract_stanza(&raw, "track-agent-start").expect(
-        "track-agent-start stanza must exist in hooks-registry.toml",
-    );
+    let stanza = extract_stanza(&raw, "track-agent-start")
+        .expect("track-agent-start stanza must exist in hooks-registry.toml");
 
     assert!(
         !stanza.contains("shell_bypass_acknowledged"),
@@ -382,7 +377,9 @@ fn test_BC_7_03_080_linker_emit_event_produces_agent_start_with_parity_fields() 
     let ctx = HostContext::new("track-agent-start", "1.0.0-rc.1", "sess-test", "trace-test");
     let mut store = wasmtime::Store::new(&engine, ctx);
 
-    let instance = linker.instantiate(&mut store, &module).expect("instantiate");
+    let instance = linker
+        .instantiate(&mut store, &module)
+        .expect("instantiate");
     let memory = instance
         .get_memory(&mut store, "memory")
         .expect("memory export");
@@ -410,14 +407,11 @@ fn test_BC_7_03_080_linker_emit_event_produces_agent_start_with_parity_fields() 
     let event = &events[0];
 
     assert_eq!(
-        event.type_,
-        "agent.start",
+        event.type_, "agent.start",
         "emitted event type must be agent.start (BC-7.03.080 postcondition 1)"
     );
 
-    let field_val = |k: &str| -> Option<&str> {
-        event.fields.get(k).and_then(|v| v.as_str())
-    };
+    let field_val = |k: &str| -> Option<&str> { event.fields.get(k).and_then(|v| v.as_str()) };
     assert_eq!(
         field_val("hook"),
         Some("track-agent-start"),
@@ -493,7 +487,9 @@ fn test_BC_7_03_080_linker_emit_event_no_story_id_produces_three_fields() {
     let module = wasmtime::Module::new(&engine, wat.as_str()).expect("WAT parse");
     let ctx = HostContext::new("track-agent-start", "1.0.0-rc.1", "sess-2", "trace-2");
     let mut store = wasmtime::Store::new(&engine, ctx);
-    let instance = linker.instantiate(&mut store, &module).expect("instantiate");
+    let instance = linker
+        .instantiate(&mut store, &module)
+        .expect("instantiate");
     let memory = instance.get_memory(&mut store, "memory").expect("memory");
     memory.write(&mut store, 0, event_type_bytes).unwrap();
     memory
@@ -557,7 +553,9 @@ fn test_BC_7_03_080_linker_emit_event_story_nnn_pattern_produces_story_id() {
     let module = wasmtime::Module::new(&engine, wat.as_str()).expect("WAT parse");
     let ctx = HostContext::new("track-agent-start", "1.0.0-rc.1", "s3", "t3");
     let mut store = wasmtime::Store::new(&engine, ctx);
-    let instance = linker.instantiate(&mut store, &module).expect("instantiate");
+    let instance = linker
+        .instantiate(&mut store, &module)
+        .expect("instantiate");
     let memory = instance.get_memory(&mut store, "memory").expect("memory");
     memory.write(&mut store, 0, event_type_bytes).unwrap();
     memory.write(&mut store, 16, &fields_payload).unwrap();

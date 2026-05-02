@@ -44,7 +44,6 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// Must be a literal — NOT derived from any env var or input field (SEC-002).
 pub const STATE_FILE_PATH: &str = ".factory/regression-state.json";
 
-
 // ---------------------------------------------------------------------------
 // Test runner pattern matching (BC-7.03.072)
 // ---------------------------------------------------------------------------
@@ -112,7 +111,11 @@ pub fn derive_status(tool_response: &serde_json::Value) -> RunStatus {
         if code.is_null() {
             // Null exit_code: not determinable from this field; fall through to interrupted
         } else if let Some(n) = code.as_i64() {
-            return if n == 0 { RunStatus::Pass } else { RunStatus::Fail };
+            return if n == 0 {
+                RunStatus::Pass
+            } else {
+                RunStatus::Fail
+            };
         }
     }
 
@@ -191,11 +194,7 @@ where
     }
 
     // Extract command from tool_input.
-    let command = match payload
-        .tool_input
-        .get("command")
-        .and_then(|v| v.as_str())
-    {
+    let command = match payload.tool_input.get("command").and_then(|v| v.as_str()) {
         Some(c) if !c.is_empty() => c.to_string(),
         _ => return HookResult::Continue,
     };
@@ -221,7 +220,11 @@ where
         return HookResult::Continue;
     }
 
-    let status_str = if status == RunStatus::Pass { "pass" } else { "fail" };
+    let status_str = if status == RunStatus::Pass {
+        "pass"
+    } else {
+        "fail"
+    };
 
     // BC-7.03.075: read prior status for regression detection.
     // EC-003: silently ignore malformed JSON (2>/dev/null semantics).
@@ -247,9 +250,7 @@ where
         Ok(s) => s,
         Err(_) => {
             // Should not happen with this struct, but be defensive.
-            vsdd_hook_sdk::host::log_error(
-                "regression-gate: failed to serialize state JSON",
-            );
+            vsdd_hook_sdk::host::log_error("regression-gate: failed to serialize state JSON");
             return HookResult::Continue;
         }
     };
@@ -349,9 +350,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
                     Err(host::HostError::Other(_)) => false,
                     // Any other write failure is unexpected: log it (EC-006).
                     Err(e) => {
-                        host::log_error(&format!(
-                            "regression-gate: write_file error: {:?}", e
-                        ));
+                        host::log_error(&format!("regression-gate: write_file error: {:?}", e));
                         false
                     }
                 }
@@ -457,7 +456,10 @@ mod tests {
                 emit_event: |event_type, fields| {
                     emitted = Some((
                         event_type.to_string(),
-                        fields.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+                        fields
+                            .iter()
+                            .map(|(k, v)| (k.to_string(), v.to_string()))
+                            .collect(),
                     ));
                 },
             },
@@ -613,7 +615,11 @@ mod tests {
     #[test]
     fn test_BC_7_03_072_non_test_command_exits_0_no_state_write() {
         // f: git commit -m msg → exit 0, no state write
-        let payload = make_payload("Bash", "git commit -m 'chore: update'", Some(json!({"exit_code": 0})));
+        let payload = make_payload(
+            "Bash",
+            "git commit -m 'chore: update'",
+            Some(json!({"exit_code": 0})),
+        );
         let (result, written, _) = run_logic(payload, true, None);
         assert_eq!(result, HookResult::Continue);
         assert!(written.is_none(), "no state write for non-test command");
@@ -672,7 +678,8 @@ mod tests {
         // ISO-8601 UTC: YYYY-MM-DDTHH:MM:SSZ
         assert!(
             state.timestamp.contains('T') && state.timestamp.ends_with('Z'),
-            "timestamp must be ISO-8601 UTC: got '{}'", state.timestamp
+            "timestamp must be ISO-8601 UTC: got '{}'",
+            state.timestamp
         );
     }
 
@@ -697,13 +704,16 @@ mod tests {
     #[test]
     fn test_BC_7_03_075_pass_to_fail_emits_hook_block_warn() {
         // Scenario (c): exit_code=1, prior state=pass → regression warning
-        let prior = r#"{"status":"pass","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#;
+        let prior =
+            r#"{"status":"pass","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#;
         let payload = make_payload("Bash", "cargo test", Some(json!({"exit_code": 1})));
-        let (result, written, emitted, stderr) =
-            run_logic_full(payload, true, Some(prior));
+        let (result, written, emitted, stderr) = run_logic_full(payload, true, Some(prior));
 
         assert_eq!(result, HookResult::Continue);
-        assert!(written.is_some(), "state must be written even on regression");
+        assert!(
+            written.is_some(),
+            "state must be written even on regression"
+        );
 
         let (event_type, fields) = emitted.expect("hook.block must be emitted");
         assert_eq!(event_type, "hook.block");
@@ -720,23 +730,31 @@ mod tests {
         let msg = stderr.expect("stderr warning must be written");
         assert!(msg.contains("pass"), "stderr must contain 'pass'");
         assert!(msg.contains("fail"), "stderr must contain 'fail'");
-        assert!(msg.contains("cargo test"), "stderr must contain the command");
-        assert!(msg.contains(".factory/regression-state.json"), "stderr must contain state file path");
+        assert!(
+            msg.contains("cargo test"),
+            "stderr must contain the command"
+        );
+        assert!(
+            msg.contains(".factory/regression-state.json"),
+            "stderr must contain state file path"
+        );
     }
 
     #[test]
     fn test_BC_7_03_075_interrupted_true_prior_pass_emits_warning() {
         // Scenario (d): interrupted=true, prior state=pass → regression warning
-        let prior = r#"{"status":"pass","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#;
+        let prior =
+            r#"{"status":"pass","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#;
         let payload = make_payload("Bash", "cargo test", Some(json!({"interrupted": true})));
-        let (result, _written, emitted, _stderr) =
-            run_logic_full(payload, true, Some(prior));
+        let (result, _written, emitted, _stderr) = run_logic_full(payload, true, Some(prior));
 
         assert_eq!(result, HookResult::Continue);
         let (event_type, fields) = emitted.expect("hook.block must be emitted");
         assert_eq!(event_type, "hook.block");
-        let fmap: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let fmap: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(fmap.get("severity"), Some(&"warn"));
         assert_eq!(fmap.get("reason"), Some(&"regression_gate_pass_to_fail"));
     }
@@ -744,10 +762,10 @@ mod tests {
     #[test]
     fn test_BC_7_03_075_fail_to_fail_no_warning() {
         // Scenario (h): exit_code=1, prior state=fail → NO regression warning
-        let prior = r#"{"status":"fail","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#;
+        let prior =
+            r#"{"status":"fail","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#;
         let payload = make_payload("Bash", "cargo test", Some(json!({"exit_code": 1})));
-        let (result, written, emitted, stderr) =
-            run_logic_full(payload, true, Some(prior));
+        let (result, written, emitted, stderr) = run_logic_full(payload, true, Some(prior));
 
         assert_eq!(result, HookResult::Continue);
         assert!(written.is_some(), "state is still written on fail-to-fail");
@@ -759,8 +777,7 @@ mod tests {
     fn test_BC_7_03_075_no_prior_state_pass_no_warning() {
         // No prior state (first run) + pass → no warning
         let payload = make_payload("Bash", "cargo test", Some(json!({"exit_code": 0})));
-        let (result, written, emitted, _stderr) =
-            run_logic_full(payload, true, None);
+        let (result, written, emitted, _stderr) = run_logic_full(payload, true, None);
 
         assert_eq!(result, HookResult::Continue);
         assert!(written.is_some());
@@ -771,8 +788,7 @@ mod tests {
     fn test_BC_7_03_075_no_prior_state_fail_no_warning() {
         // No prior state (first run) + fail → no warning (unknown-to-fail is EC-004)
         let payload = make_payload("Bash", "cargo test", Some(json!({"exit_code": 1})));
-        let (result, _written, emitted, _stderr) =
-            run_logic_full(payload, true, None);
+        let (result, _written, emitted, _stderr) = run_logic_full(payload, true, None);
 
         assert_eq!(result, HookResult::Continue);
         assert!(emitted.is_none(), "EC-004: unknown-to-fail must not warn");
@@ -788,15 +804,23 @@ mod tests {
         // → no regression warning
         let prior = "this is not valid json {{";
         let payload = make_payload("Bash", "cargo test", Some(json!({"exit_code": 1})));
-        let (result, written, emitted, stderr) =
-            run_logic_full(payload, true, Some(prior));
+        let (result, written, emitted, stderr) = run_logic_full(payload, true, Some(prior));
 
         assert_eq!(result, HookResult::Continue);
         // State is still written (we overwrote the malformed file)
-        assert!(written.is_some(), "malformed prior state → still write new state");
+        assert!(
+            written.is_some(),
+            "malformed prior state → still write new state"
+        );
         // No regression warning (prior is "unknown", not "pass")
-        assert!(emitted.is_none(), "EC-003: malformed prior → no regression warning");
-        assert!(stderr.is_none(), "EC-003: no stderr on malformed prior state");
+        assert!(
+            emitted.is_none(),
+            "EC-003: malformed prior → no regression warning"
+        );
+        assert!(
+            stderr.is_none(),
+            "EC-003: no stderr on malformed prior state"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -810,20 +834,42 @@ mod tests {
             // Non-Bash tool
             (make_payload("Edit", "cargo test", None), true, None),
             // Non-test command
-            (make_payload("Bash", "git status", Some(json!({"exit_code": 0}))), true, None),
+            (
+                make_payload("Bash", "git status", Some(json!({"exit_code": 0}))),
+                true,
+                None,
+            ),
             // Unknown status
-            (make_payload("Bash", "cargo test", Some(json!({}))), true, None),
+            (
+                make_payload("Bash", "cargo test", Some(json!({}))),
+                true,
+                None,
+            ),
             // .factory/ absent
-            (make_payload("Bash", "cargo test", Some(json!({"exit_code": 0}))), false, None),
+            (
+                make_payload("Bash", "cargo test", Some(json!({"exit_code": 0}))),
+                false,
+                None,
+            ),
             // Normal pass
-            (make_payload("Bash", "cargo test", Some(json!({"exit_code": 0}))), true, None),
+            (
+                make_payload("Bash", "cargo test", Some(json!({"exit_code": 0}))),
+                true,
+                None,
+            ),
             // Normal fail
-            (make_payload("Bash", "cargo test", Some(json!({"exit_code": 1}))), true, None),
+            (
+                make_payload("Bash", "cargo test", Some(json!({"exit_code": 1}))),
+                true,
+                None,
+            ),
             // Pass-to-fail regression
             (
                 make_payload("Bash", "cargo test", Some(json!({"exit_code": 1}))),
                 true,
-                Some(r#"{"status":"pass","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#),
+                Some(
+                    r#"{"status":"pass","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#,
+                ),
             ),
         ];
 
@@ -866,7 +912,10 @@ mod tests {
         let json_str = written.expect("state file must be written");
         let state: RegressionState = serde_json::from_str(&json_str).unwrap();
         assert_eq!(state.status, "pass");
-        assert!(emitted.is_none(), "no regression warning when no prior state");
+        assert!(
+            emitted.is_none(),
+            "no regression warning when no prior state"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -876,12 +925,17 @@ mod tests {
     #[test]
     fn test_BC_7_03_075_stderr_message_contains_rendered_newlines() {
         // AC-006: newlines in stderr message are actual 0x0A characters
-        let prior = r#"{"status":"pass","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#;
+        let prior =
+            r#"{"status":"pass","timestamp":"2026-05-01T00:00:00Z","command":"cargo test"}"#;
         let payload = make_payload("Bash", "cargo test", Some(json!({"exit_code": 1})));
         let (_, _, _, stderr) = run_logic_full(payload, true, Some(prior));
         let msg = stderr.expect("stderr must be written");
         // Should contain at least 2 newline characters (0x0A)
         let newline_count = msg.bytes().filter(|&b| b == b'\n').count();
-        assert!(newline_count >= 2, "stderr must contain at least 2 newlines (0x0A); got {}", newline_count);
+        assert!(
+            newline_count >= 2,
+            "stderr must contain at least 2 newlines (0x0A); got {}",
+            newline_count
+        );
     }
 }

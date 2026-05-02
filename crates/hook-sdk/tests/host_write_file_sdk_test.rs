@@ -88,10 +88,10 @@ fn test_BC_2_02_011_sdk_error_enum_covers_all_write_file_outcomes() {
     // On non-wasm targets the stub always returns -1 (CapabilityDenied).
     // We verify the full variant set by constructing each directly.
     let _ = HostError::CapabilityDenied; // -1: no capability / path traversal
-    let _ = HostError::Timeout;          // -2: exceeded timeout_ms
-    let _ = HostError::OutputTooLarge;   // -3: contents.len() > max_bytes
-    let _ = HostError::InvalidArgument;  // -4: bad path UTF-8
-    let _ = HostError::Other(-99);       // -99: fs I/O error / missing parent
+    let _ = HostError::Timeout; // -2: exceeded timeout_ms
+    let _ = HostError::OutputTooLarge; // -3: contents.len() > max_bytes
+    let _ = HostError::InvalidArgument; // -4: bad path UTF-8
+    let _ = HostError::Other(-99); // -99: fs I/O error / missing parent
 
     // Non-equality: each variant is distinguishable (PartialEq derived).
     assert_ne!(HostError::CapabilityDenied, HostError::Timeout);

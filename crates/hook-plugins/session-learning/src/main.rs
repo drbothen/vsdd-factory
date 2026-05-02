@@ -16,8 +16,8 @@
 //! Behavioral contracts: BC-7.03.076, BC-7.03.077, BC-7.03.078
 
 use session_learning::{format_utc_now, session_learning_logic};
-use vsdd_hook_sdk::HookResult;
 use std::io::{self, Read, Write};
+use vsdd_hook_sdk::HookResult;
 
 fn main() {
     // EC-005: drain stdin to EOF and discard.
@@ -42,7 +42,11 @@ fn main() {
         HookResult::Error { message } => {
             // Build error JSON inline to avoid serde_json dependency.
             let mut out = io::stdout();
-            let _ = writeln!(out, "{{\"outcome\":\"error\",\"message\":\"{}\"}}", message.replace('\\', "\\\\").replace('"', "\\\""));
+            let _ = writeln!(
+                out,
+                "{{\"outcome\":\"error\",\"message\":\"{}\"}}",
+                message.replace('\\', "\\\\").replace('"', "\\\"")
+            );
             let _ = out.flush();
             std::process::exit(code);
         }

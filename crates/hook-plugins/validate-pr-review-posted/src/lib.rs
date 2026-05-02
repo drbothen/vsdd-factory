@@ -30,7 +30,12 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// via the `hook.block` warning event, stdout outcome line, and stderr message
 /// (advisory block-mode); `on_error=continue` in the registry governs dispatcher
 /// crash semantics only.
-pub fn validate_pr_review_logic<E, W, P>(payload: HookPayload, emit_block: E, write_stderr: W, print_stdout: P) -> HookResult
+pub fn validate_pr_review_logic<E, W, P>(
+    payload: HookPayload,
+    emit_block: E,
+    write_stderr: W,
+    print_stdout: P,
+) -> HookResult
 where
     E: FnOnce(&str),
     W: FnOnce(&str),
@@ -70,10 +75,9 @@ where
     // Raw string: `\.` is literal backslash-dot — regex crate matches literal `.`
     // (parity with bash grep -qE "pr-review\.md|...").
     // All patterns are case-sensitive (Rust regex default = bash grep -E default).
-    let check1_re = regex::Regex::new(
-        r"pr-review\.md|wrote.*review|review.*written|Write.*pr-review",
-    )
-    .expect("check1 regex is valid");
+    let check1_re =
+        regex::Regex::new(r"pr-review\.md|wrote.*review|review.*written|Write.*pr-review")
+            .expect("check1 regex is valid");
     if !check1_re.is_match(result) {
         errors.push("pr-review.md may not have been written to .factory/code-delivery/");
     }
@@ -98,9 +102,8 @@ where
     // Check 3b (BC-7.04.044): formal review posted but no verdict detected.
     // Gate: literal `gh pr review` token only — NOT a re-test of Check 3a's
     // full disjunction. Check 3b is independent of Check 3a.
-    let verdict_re =
-        regex::Regex::new(r"approve|request-changes|APPROVE|REQUEST_CHANGES")
-            .expect("verdict regex is valid");
+    let verdict_re = regex::Regex::new(r"approve|request-changes|APPROVE|REQUEST_CHANGES")
+        .expect("verdict regex is valid");
     if result.contains("gh pr review") && !verdict_re.is_match(result) {
         errors.push("Review posted but no verdict (--approve or --request-changes) detected");
     }
@@ -117,9 +120,7 @@ where
         for e in &errors {
             msg.push_str(&format!("  - {e}\n"));
         }
-        msg.push_str(
-            "  pr-reviewer MUST: (1) write pr-review.md, (2) spawn github-ops with\n",
-        );
+        msg.push_str("  pr-reviewer MUST: (1) write pr-review.md, (2) spawn github-ops with\n");
         msg.push_str(
             "  'gh pr review --approve' or 'gh pr review --request-changes --body-file'.\n",
         );
@@ -163,7 +164,16 @@ mod tests {
         ));
         let mut emitted = false;
         let mut warned = false;
-        let result = validate_pr_review_logic(payload, |_| { emitted = true; }, |_| { warned = true; }, |_| {});
+        let result = validate_pr_review_logic(
+            payload,
+            |_| {
+                emitted = true;
+            },
+            |_| {
+                warned = true;
+            },
+            |_| {},
+        );
         assert_eq!(result, HookResult::Continue);
         assert!(!emitted, "non-pr-reviewer must not emit event");
         assert!(!warned, "non-pr-reviewer must not write stderr");
@@ -176,8 +186,18 @@ mod tests {
             r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md and gh pr review --approve""#,
         ));
         let mut emitted = false;
-        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {}, |_| {});
-        assert!(!emitted, "all-pass with pr-reviewer via agent_type must not emit block");
+        validate_pr_review_logic(
+            payload,
+            |_| {
+                emitted = true;
+            },
+            |_| {},
+            |_| {},
+        );
+        assert!(
+            !emitted,
+            "all-pass with pr-reviewer via agent_type must not emit block"
+        );
     }
 
     /// AC-003 g.2: agent_type absent, subagent_name present — fallback arm exercised.
@@ -187,8 +207,18 @@ mod tests {
             r#""subagent_name":"pr-reviewer","last_assistant_message":"wrote pr-review.md and gh pr review --approve""#,
         ));
         let mut emitted = false;
-        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {}, |_| {});
-        assert!(!emitted, "all-pass via subagent_name fallback must not emit block");
+        validate_pr_review_logic(
+            payload,
+            |_| {
+                emitted = true;
+            },
+            |_| {},
+            |_| {},
+        );
+        assert!(
+            !emitted,
+            "all-pass via subagent_name fallback must not emit block"
+        );
     }
 
     /// BC-7.04.041: pr-review-triage agent matches containment check.
@@ -199,7 +229,14 @@ mod tests {
             r#""agent_type":"pr-review-triage","last_assistant_message":"done nothing""#,
         ));
         let mut emitted = false;
-        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {}, |_| {});
+        validate_pr_review_logic(
+            payload,
+            |_| {
+                emitted = true;
+            },
+            |_| {},
+            |_| {},
+        );
         assert!(emitted, "pr-review-triage must apply checks");
     }
 
@@ -213,11 +250,16 @@ mod tests {
         validate_pr_review_logic(
             payload,
             |_| {},
-            |msg| { stderr_msg = Some(msg.to_string()); },
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
             |_| {},
         );
         let msg = stderr_msg.expect("should have written stderr");
-        assert!(msg.contains("pr-review.md may not have been written"), "check1 error expected");
+        assert!(
+            msg.contains("pr-review.md may not have been written"),
+            "check1 error expected"
+        );
     }
 
     /// BC-7.04.042: Check 1 passes via `wrote.*review` pattern.
@@ -227,7 +269,14 @@ mod tests {
             r#""agent_type":"pr-reviewer","last_assistant_message":"wrote my review notes and gh pr review --approve""#,
         ));
         let mut emitted = false;
-        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {}, |_| {});
+        validate_pr_review_logic(
+            payload,
+            |_| {
+                emitted = true;
+            },
+            |_| {},
+            |_| {},
+        );
         assert!(!emitted, "wrote.*review must satisfy check 1");
     }
 
@@ -241,7 +290,9 @@ mod tests {
         validate_pr_review_logic(
             payload,
             |_| {},
-            |msg| { stderr_msg = Some(msg.to_string()); },
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
             |_| {},
         );
         let msg = stderr_msg.expect("should have written stderr");
@@ -258,11 +309,16 @@ mod tests {
         validate_pr_review_logic(
             payload,
             |_| {},
-            |msg| { stderr_msg = Some(msg.to_string()); },
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
             |_| {},
         );
         let msg = stderr_msg.expect("should have written stderr");
-        assert!(msg.contains("No evidence that a formal GitHub review"), "check3a error expected");
+        assert!(
+            msg.contains("No evidence that a formal GitHub review"),
+            "check3a error expected"
+        );
     }
 
     /// BC-7.04.044: Check 3b — gh pr review with no verdict → accumulate error.
@@ -276,7 +332,9 @@ mod tests {
         validate_pr_review_logic(
             payload,
             |_| {},
-            |msg| { stderr_msg = Some(msg.to_string()); },
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
             |_| {},
         );
         let msg = stderr_msg.expect("should have written stderr for check 3b");
@@ -285,7 +343,10 @@ mod tests {
             "check3b error expected; got: {msg}"
         );
         // Check 3a must NOT have fired (gh pr review matched 3a)
-        assert!(!msg.contains("No evidence"), "check3a must not fire when gh pr review is present");
+        assert!(
+            !msg.contains("No evidence"),
+            "check3a must not fire when gh pr review is present"
+        );
     }
 
     /// All three checks pass → no emit, no stderr, HookResult::Continue.
@@ -298,8 +359,12 @@ mod tests {
         let mut warned = false;
         let result = validate_pr_review_logic(
             payload,
-            |_| { emitted = true; },
-            |_| { warned = true; },
+            |_| {
+                emitted = true;
+            },
+            |_| {
+                warned = true;
+            },
             |_| {},
         );
         assert_eq!(result, HookResult::Continue);
@@ -318,15 +383,31 @@ mod tests {
         let mut stderr_msg: Option<String> = None;
         validate_pr_review_logic(
             payload,
-            |_| { emit_count += 1; },
-            |msg| { stderr_msg = Some(msg.to_string()); },
+            |_| {
+                emit_count += 1;
+            },
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
             |_| {},
         );
-        assert_eq!(emit_count, 1, "should emit exactly once even with multiple errors");
+        assert_eq!(
+            emit_count, 1,
+            "should emit exactly once even with multiple errors"
+        );
         let msg = stderr_msg.expect("stderr should have been written");
-        assert!(msg.contains("pr-review.md"), "check1 error in multi-failure");
-        assert!(msg.contains("gh pr comment"), "check2 error in multi-failure");
-        assert!(msg.contains("No evidence"), "check3a error in multi-failure");
+        assert!(
+            msg.contains("pr-review.md"),
+            "check1 error in multi-failure"
+        );
+        assert!(
+            msg.contains("gh pr comment"),
+            "check2 error in multi-failure"
+        );
+        assert!(
+            msg.contains("No evidence"),
+            "check3a error in multi-failure"
+        );
     }
 
     /// Remediation block is always included in stderr when errors exist.
@@ -336,11 +417,27 @@ mod tests {
             r#""agent_type":"pr-reviewer","last_assistant_message":"done nothing""#,
         ));
         let mut stderr_msg: Option<String> = None;
-        validate_pr_review_logic(payload, |_| {}, |msg| { stderr_msg = Some(msg.to_string()); }, |_| {});
+        validate_pr_review_logic(
+            payload,
+            |_| {},
+            |msg| {
+                stderr_msg = Some(msg.to_string());
+            },
+            |_| {},
+        );
         let msg = stderr_msg.expect("stderr expected");
-        assert!(msg.contains("pr-reviewer MUST"), "remediation line 1 present");
-        assert!(msg.contains("gh pr review --approve"), "remediation line 2 present");
-        assert!(msg.contains("NEVER use 'gh pr comment'"), "remediation line 3 present");
+        assert!(
+            msg.contains("pr-reviewer MUST"),
+            "remediation line 1 present"
+        );
+        assert!(
+            msg.contains("gh pr review --approve"),
+            "remediation line 2 present"
+        );
+        assert!(
+            msg.contains("NEVER use 'gh pr comment'"),
+            "remediation line 3 present"
+        );
     }
 
     /// BC-7.04.044 EC-003: result contains `gh pr review --approve` → all pass.
@@ -350,7 +447,14 @@ mod tests {
             r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md; ran gh pr review --approve""#,
         ));
         let mut emitted = false;
-        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {}, |_| {});
+        validate_pr_review_logic(
+            payload,
+            |_| {
+                emitted = true;
+            },
+            |_| {},
+            |_| {},
+        );
         assert!(!emitted, "gh pr review --approve should satisfy all checks");
     }
 
@@ -359,9 +463,13 @@ mod tests {
     fn test_hook_always_returns_continue() {
         let cases = [
             // all pass
-            base_subagentstop(r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md and gh pr review --approve""#),
+            base_subagentstop(
+                r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md and gh pr review --approve""#,
+            ),
             // check failures
-            base_subagentstop(r#""agent_type":"pr-reviewer","last_assistant_message":"done nothing""#),
+            base_subagentstop(
+                r#""agent_type":"pr-reviewer","last_assistant_message":"done nothing""#,
+            ),
             // non-pr-reviewer
             base_subagentstop(r#""agent_type":"implementer","last_assistant_message":"""#),
         ];

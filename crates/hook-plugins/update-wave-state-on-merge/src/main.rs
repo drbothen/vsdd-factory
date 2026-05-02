@@ -31,9 +31,9 @@
 //! BC-7.03.083 postcondition 2: always exit 0 (advisory, on_error=continue).
 
 use update_wave_state_on_merge::{WaveStateOutcome, wave_state_hook_logic};
+use vsdd_hook_sdk::HookPayload;
 #[cfg(not(feature = "standalone"))]
 use vsdd_hook_sdk::HookResult;
-use vsdd_hook_sdk::HookPayload;
 
 // ---------------------------------------------------------------------------
 // Production entry point (no standalone feature)
@@ -44,27 +44,22 @@ fn on_hook(payload: HookPayload) -> HookResult {
     wave_state_hook_logic(
         payload,
         // read_yaml: read .factory/wave-state.yaml via host read_file
-        || {
-            match vsdd_hook_sdk::host::read_file(".factory/wave-state.yaml", 65536, 1000) {
-                Ok(bytes) => Some(String::from_utf8_lossy(&bytes).into_owned()),
-                Err(vsdd_hook_sdk::host::HostError::CapabilityDenied) => {
-                    vsdd_hook_sdk::host::log_warn(
-                        "update-wave-state-on-merge: read_file capability denied",
-                    );
-                    None
-                }
-                Err(_) => None,
+        || match vsdd_hook_sdk::host::read_file(".factory/wave-state.yaml", 65536, 1000) {
+            Ok(bytes) => Some(String::from_utf8_lossy(&bytes).into_owned()),
+            Err(vsdd_hook_sdk::host::HostError::CapabilityDenied) => {
+                vsdd_hook_sdk::host::log_warn(
+                    "update-wave-state-on-merge: read_file capability denied",
+                );
+                None
             }
+            Err(_) => None,
         },
         // write_yaml: write updated YAML back via host write_file (EC-005: advisory)
         |yaml_str: String| {
             let bytes = yaml_str.into_bytes();
-            if let Err(e) = vsdd_hook_sdk::host::write_file(
-                ".factory/wave-state.yaml",
-                &bytes,
-                65536,
-                10000,
-            ) {
+            if let Err(e) =
+                vsdd_hook_sdk::host::write_file(".factory/wave-state.yaml", &bytes, 65536, 10000)
+            {
                 vsdd_hook_sdk::host::emit_event(
                     "hook.error",
                     &[
@@ -143,7 +138,10 @@ fn main() {
 #[cfg(feature = "standalone")]
 fn resolve_wave_state_path() -> Option<String> {
     // Step 1: env var (only works if wasmtime passes --env VSDD_WAVE_STATE_PATH)
-    if let Some(path) = std::env::var("VSDD_WAVE_STATE_PATH").ok().filter(|p| !p.is_empty()) {
+    if let Some(path) = std::env::var("VSDD_WAVE_STATE_PATH")
+        .ok()
+        .filter(|p| !p.is_empty())
+    {
         return Some(path);
     }
 
@@ -188,9 +186,7 @@ fn resolve_wave_state_path() -> Option<String> {
             }
 
             let mut name_buf = vec![0u8; prestat.pr_name_len as usize];
-            let rc = unsafe {
-                fd_prestat_dir_name(fd, name_buf.as_mut_ptr(), prestat.pr_name_len)
-            };
+            let rc = unsafe { fd_prestat_dir_name(fd, name_buf.as_mut_ptr(), prestat.pr_name_len) };
             if rc != 0 {
                 continue;
             }
@@ -229,9 +225,7 @@ fn main() {
 
     // Read stdin payload
     let mut buf = Vec::new();
-    std::io::stdin()
-        .read_to_end(&mut buf)
-        .unwrap_or_default();
+    std::io::stdin().read_to_end(&mut buf).unwrap_or_default();
 
     let payload: HookPayload = match serde_json::from_slice(&buf) {
         Ok(p) => p,

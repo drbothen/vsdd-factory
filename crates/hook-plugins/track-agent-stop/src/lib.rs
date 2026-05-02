@@ -236,7 +236,10 @@ mod tests {
         // not byte count. U+1F600 emoji = 1 codepoint (not 4 bytes).
         let (class, len) = classify_exit("\u{1F600}");
         assert_eq!(class, "ok");
-        assert_eq!(len, 1, "emoji must count as 1 Unicode codepoint (W-15 HIGH-W15-002)");
+        assert_eq!(
+            len, 1,
+            "emoji must count as 1 Unicode codepoint (W-15 HIGH-W15-002)"
+        );
     }
 
     #[test]
@@ -256,14 +259,23 @@ mod tests {
         // U+00A0 non-breaking space + ASCII space: both are whitespace
         let input = "\u{00A0} ";
         let (class, len) = classify_exit(input);
-        assert_eq!(class, "empty", "non-breaking space + ASCII space must be empty (both whitespace)");
-        assert_eq!(len, 0, "both chars are whitespace, non-whitespace count must be 0");
+        assert_eq!(
+            class, "empty",
+            "non-breaking space + ASCII space must be empty (both whitespace)"
+        );
+        assert_eq!(
+            len, 0,
+            "both chars are whitespace, non-whitespace count must be 0"
+        );
 
         // "a" + U+00A0 + "b": 2 non-whitespace codepoints
         let input2 = "a\u{00A0}b";
         let (class2, len2) = classify_exit(input2);
         assert_eq!(class2, "ok");
-        assert_eq!(len2, 2, "only 'a' and 'b' are non-whitespace; U+00A0 is whitespace");
+        assert_eq!(
+            len2, 2,
+            "only 'a' and 'b' are non-whitespace; U+00A0 is whitespace"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -277,9 +289,7 @@ mod tests {
 
     /// Helper: run the logic with a captured-emit callback.
     /// Returns (result, emitted_calls).
-    fn run_logic(
-        payload: HookPayload,
-    ) -> (HookResult, Vec<(String, Vec<(String, String)>)>) {
+    fn run_logic(payload: HookPayload) -> (HookResult, Vec<(String, Vec<(String, String)>)>) {
         let mut calls: Vec<(String, Vec<(String, String)>)> = Vec::new();
         let result = track_agent_stop_logic(payload, |event_type, fields| {
             calls.push((
@@ -336,8 +346,10 @@ mod tests {
         assert_eq!(calls.len(), 1);
         let (event_type, fields) = &calls[0];
         assert_eq!(event_type, "agent.stop");
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("hook"), Some(&"track-agent-stop"));
         assert_eq!(field_map.get("matcher"), Some(&"SubagentStop"));
         assert_eq!(field_map.get("subagent"), Some(&"pr-reviewer"));
@@ -352,8 +364,10 @@ mod tests {
         assert!(matches!(result, HookResult::Continue));
         assert_eq!(calls.len(), 1);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("exit_class"), Some(&"empty"));
         assert_eq!(field_map.get("result_len"), Some(&"0"));
     }
@@ -361,13 +375,20 @@ mod tests {
     #[test]
     fn test_BC_7_03_082_emits_agent_stop_exit_class_blocked() {
         // AC-004(b): result with "Status: BLOCKED" → EXIT_CLASS=blocked
-        let payload = make_subagentstop(Some("story-writer"), None, Some("Status: BLOCKED — missing context"), None);
+        let payload = make_subagentstop(
+            Some("story-writer"),
+            None,
+            Some("Status: BLOCKED — missing context"),
+            None,
+        );
         let (result, calls) = run_logic(payload);
         assert!(matches!(result, HookResult::Continue));
         assert_eq!(calls.len(), 1);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("exit_class"), Some(&"blocked"));
     }
 
@@ -376,11 +397,18 @@ mod tests {
     #[test]
     fn test_BC_2_02_012_agent_type_used_when_present() {
         // PC-5: agent_type present → used as subagent
-        let payload = make_subagentstop(Some("product-owner"), Some("fallback-name"), Some("done"), None);
+        let payload = make_subagentstop(
+            Some("product-owner"),
+            Some("fallback-name"),
+            Some("done"),
+            None,
+        );
         let (_, calls) = run_logic(payload);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("subagent"), Some(&"product-owner"));
     }
 
@@ -390,8 +418,10 @@ mod tests {
         let payload = make_subagentstop(None, Some("story-writer"), Some("DONE"), None);
         let (_, calls) = run_logic(payload);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("subagent"), Some(&"story-writer"));
     }
 
@@ -401,8 +431,10 @@ mod tests {
         let payload = make_subagentstop(None, None, Some("DONE"), None);
         let (_, calls) = run_logic(payload);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("subagent"), Some(&"unknown"));
     }
 
@@ -411,11 +443,18 @@ mod tests {
     #[test]
     fn test_BC_2_02_012_last_assistant_message_used_when_present() {
         // PC-6: last_assistant_message present → used for result classification
-        let payload = make_subagentstop(Some("reviewer"), None, Some("DONE primary"), Some("result field"));
+        let payload = make_subagentstop(
+            Some("reviewer"),
+            None,
+            Some("DONE primary"),
+            Some("result field"),
+        );
         let (_, calls) = run_logic(payload);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         // DONE primary = 11 non-whitespace bytes
         assert_eq!(field_map.get("result_len"), Some(&"11"));
     }
@@ -426,8 +465,10 @@ mod tests {
         let payload = make_subagentstop(Some("implementer"), None, None, Some("DONE via result"));
         let (_, calls) = run_logic(payload);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("exit_class"), Some(&"ok"));
         // "DONEviaresult" = 13 non-whitespace bytes
         assert_eq!(field_map.get("result_len"), Some(&"13"));
@@ -439,8 +480,10 @@ mod tests {
         let payload = make_subagentstop(Some("reviewer"), None, None, None);
         let (_, calls) = run_logic(payload);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("exit_class"), Some(&"empty"));
         assert_eq!(field_map.get("result_len"), Some(&"0"));
     }
@@ -490,8 +533,10 @@ mod tests {
         let payload = make_subagentstop(Some("x"), None, Some("y"), None);
         let (_, calls) = run_logic(payload);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("hook"), Some(&"track-agent-stop"));
         assert_eq!(field_map.get("matcher"), Some(&"SubagentStop"));
     }
@@ -503,7 +548,11 @@ mod tests {
         // AC-003: exactly one agent.stop event per hook invocation
         let payload = make_subagentstop(Some("reviewer"), None, Some("DONE"), None);
         let (_, calls) = run_logic(payload);
-        assert_eq!(calls.len(), 1, "exactly one event must be emitted per invocation");
+        assert_eq!(
+            calls.len(),
+            1,
+            "exactly one event must be emitted per invocation"
+        );
         assert_eq!(calls[0].0, "agent.stop");
     }
 }

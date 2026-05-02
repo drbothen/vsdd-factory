@@ -42,15 +42,13 @@ fn test_BC_2_02_011_invariant_1_both_crates_source_declare_version_1() {
         .and_then(|p| p.parent())
         .expect("resolve workspace root");
 
-    let dispatcher_lib = workspace_root
-        .join("crates/factory-dispatcher/src/lib.rs");
-    let hook_sdk_lib = workspace_root
-        .join("crates/hook-sdk/src/lib.rs");
+    let dispatcher_lib = workspace_root.join("crates/factory-dispatcher/src/lib.rs");
+    let hook_sdk_lib = workspace_root.join("crates/hook-sdk/src/lib.rs");
 
     let dispatcher_src = std::fs::read_to_string(&dispatcher_lib)
         .expect("read crates/factory-dispatcher/src/lib.rs");
-    let hook_sdk_src = std::fs::read_to_string(&hook_sdk_lib)
-        .expect("read crates/hook-sdk/src/lib.rs");
+    let hook_sdk_src =
+        std::fs::read_to_string(&hook_sdk_lib).expect("read crates/hook-sdk/src/lib.rs");
 
     assert!(
         dispatcher_src.contains("pub const HOST_ABI_VERSION: u32 = 1;"),
@@ -129,7 +127,9 @@ fn test_BC_2_02_011_invariant_2_max_bytes_per_call_cap_override_rejects_oversize
     "#;
     let module = wasmtime::Module::new(&engine, wat).expect("WAT parse");
     let mut store = wasmtime::Store::new(&engine, ctx);
-    let instance = linker.instantiate(&mut store, &module).expect("instantiate");
+    let instance = linker
+        .instantiate(&mut store, &module)
+        .expect("instantiate");
     let memory = instance
         .get_memory(&mut store, "memory")
         .expect("memory export");
@@ -216,7 +216,9 @@ fn test_BC_2_02_011_invariant_2_max_bytes_per_call_none_uses_argument() {
     "#;
     let module = wasmtime::Module::new(&engine, wat).expect("WAT parse");
     let mut store = wasmtime::Store::new(&engine, ctx);
-    let instance = linker.instantiate(&mut store, &module).expect("instantiate");
+    let instance = linker
+        .instantiate(&mut store, &module)
+        .expect("instantiate");
     let memory = instance
         .get_memory(&mut store, "memory")
         .expect("memory export");
