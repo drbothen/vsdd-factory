@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0] - 2026-05-02
+
+### Added
+- `host::write_file(path, contents, max_bytes, timeout_ms) -> Result<(), HostError>` SDK API for hook plugins to write to host-allowlisted paths. New WriteFileCaps capability schema (`path_allow`, `max_bytes_per_call`). HOST_ABI_VERSION unchanged at 1 (D-6 Option A additive-only). See BC-2.02.011 for full invariants.
+
+### Security
+- Fixed path-traversal vulnerability in `path_allowed()` for both `read_file` and `write_file` dispatcher bindings: paths are now canonicalized before the allowlist prefix check, preventing `../` escapes from bypassing capability gates. (BC-2.02.011 EC-001 / BC-2.02.001 EC-001 — same bug existed in both host functions.)
+
 ## 1.0.0-rc.2 — Release Candidate 2 (skill cleanup) (2026-05-01)
 
 Bug-fix release focused on plugin frontmatter cleanup and CI/CD reliability.
