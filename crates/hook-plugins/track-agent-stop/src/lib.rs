@@ -6,7 +6,7 @@
 //!   - `hook`        — literal "track-agent-stop"
 //!   - `matcher`     — literal "SubagentStop"
 //!   - `subagent`    — agent identity resolved via BC-2.02.012 Postcondition 5
-//!                     fallback chain: `agent_type` → `subagent_name` → "unknown"
+//!     fallback chain: `agent_type` → `subagent_name` → "unknown"
 //!   - `exit_class`  — one of: "empty" | "blocked" | "ok"
 //!   - `result_len`  — non-whitespace byte count of resolved assistant message
 //!
@@ -151,7 +151,7 @@ where
 pub fn on_agent_stop(payload: HookPayload) -> HookResult {
     track_agent_stop_logic(payload, |event_type, fields| {
         // Silently swallow emit_event errors (best-effort, on_error=continue).
-        let _ = vsdd_hook_sdk::host::emit_event(event_type, fields);
+        vsdd_hook_sdk::host::emit_event(event_type, fields);
     })
 }
 
