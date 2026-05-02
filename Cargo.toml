@@ -13,6 +13,7 @@ members = [
     "crates/hook-plugins/legacy-bash-adapter",
     "crates/hook-plugins/block-ai-attribution",
     "crates/hook-plugins/handoff-validator",
+    "crates/hook-plugins/pr-manager-completion-guard",
     "crates/hook-plugins/session-learning",
     "crates/hook-plugins/track-agent-start",
     "crates/hook-plugins/update-wave-state-on-merge",
