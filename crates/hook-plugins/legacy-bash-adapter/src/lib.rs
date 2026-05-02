@@ -198,6 +198,10 @@ mod tests {
             tool_input: serde_json::json!({"file_path": "src/lib.rs"}),
             tool_response: None,
             plugin_config: cfg,
+            agent_type: None,
+            subagent_name: None,
+            last_assistant_message: None,
+            result: None,
         }
     }
 

@@ -25,6 +25,10 @@ fn git_commit_payload_with_branch(branch: &str, sha: &str) -> HookPayload {
             "stdout": format!("[{branch} {sha}] test: add tests\n 1 file changed")
         })),
         plugin_config: serde_json::Value::Null,
+        agent_type: None,
+        subagent_name: None,
+        last_assistant_message: None,
+        result: None,
     }
 }
 
@@ -119,6 +123,10 @@ fn test_BC_4_03_001_emit_not_called_for_non_commit_command() {
         tool_input: serde_json::json!({"command": "cargo test"}),
         tool_response: Some(serde_json::json!({"interrupted": false})),
         plugin_config: serde_json::Value::Null,
+        agent_type: None,
+        subagent_name: None,
+        last_assistant_message: None,
+        result: None,
     };
     let emit_called = std::cell::Cell::new(false);
     let _ = commit_hook_logic(
@@ -191,6 +199,10 @@ fn test_TV_003_canonical_commit_made_schema() {
             "stdout": "[main a1b2c3d] feat: implement WASM port\n 3 files changed"
         })),
         plugin_config: serde_json::Value::Null,
+        agent_type: None,
+        subagent_name: None,
+        last_assistant_message: None,
+        result: None,
     };
 
     let sha = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";

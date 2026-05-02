@@ -23,6 +23,10 @@ fn bash_payload(command: &str) -> HookPayload {
         tool_input: serde_json::json!({"command": command}),
         tool_response: Some(serde_json::json!({"interrupted": false})),
         plugin_config: serde_json::Value::Null,
+        agent_type: None,
+        subagent_name: None,
+        last_assistant_message: None,
+        result: None,
     }
 }
 
@@ -201,6 +205,10 @@ fn test_VP_043_non_bash_tool_always_continue() {
             tool_input: serde_json::json!({"command": "git commit -m 'x'"}),
             tool_response: Some(serde_json::json!({"interrupted": false})),
             plugin_config: serde_json::Value::Null,
+            agent_type: None,
+            subagent_name: None,
+            last_assistant_message: None,
+            result: None,
         };
         let result = commit_hook_logic(
             payload,

@@ -20,6 +20,10 @@ fn make_payload(tool_name: &str, command: &str) -> HookPayload {
         tool_input: serde_json::json!({"command": command}),
         tool_response: Some(serde_json::json!({"interrupted": false})),
         plugin_config: serde_json::Value::Null,
+        agent_type: None,
+        subagent_name: None,
+        last_assistant_message: None,
+        result: None,
     }
 }
 
@@ -165,6 +169,10 @@ fn test_TV_001_canonical_git_commit_payload_routes_to_emit() {
             "stdout": "[main abc1234] initial commit\n 1 file changed"
         })),
         plugin_config: serde_json::Value::Null,
+        agent_type: None,
+        subagent_name: None,
+        last_assistant_message: None,
+        result: None,
     };
 
     let emit_called = std::cell::Cell::new(false);
