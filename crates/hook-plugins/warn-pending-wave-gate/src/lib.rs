@@ -52,10 +52,9 @@ pub fn warn_pending_wave_gate_logic(
             .get("gate_status")
             .and_then(serde_yaml::Value::as_str)
             == Some("pending")
+            && let Some(name_str) = name.as_str()
         {
-            if let Some(name_str) = name.as_str() {
-                pending.push(name_str.to_string());
-            }
+            pending.push(name_str.to_string());
         }
     }
 

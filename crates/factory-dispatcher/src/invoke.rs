@@ -456,21 +456,80 @@ fn setup_host_on_store_data(
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
-    // read_file isn't reachable by any in-tree plugin yet. Register a
-    // stub that returns CAPABILITY_DENIED so a misbehaving plugin fails
-    // loudly rather than traps on a missing import.
+    // read_file: real implementation. Uses output-pointer protocol:
+    // the host reads the file, grows WASM memory to hold the bytes,
+    // writes them there, then writes the address and length back to
+    // the guest-provided out-param pointers.
+    //
+    // S-8.07: first in-tree plugin (warn-pending-wave-gate) to use this path.
     linker
         .func_wrap(
             "vsdd",
             "read_file",
-            |_caller: Caller<'_, StoreData>,
-             _p1: u32,
-             _p2: u32,
-             _p3: u32,
-             _p4: u32,
-             _p5: u32,
-             _p6: u32|
-             -> i32 { codes::CAPABILITY_DENIED },
+            |mut caller: Caller<'_, StoreData>,
+             path_ptr: u32,
+             path_len: u32,
+             max_bytes: u32,
+             _timeout_ms: u32,
+             out_ptr_out: u32,
+             out_len_out: u32|
+             -> i32 {
+                let path = match read_wasm_string_sd(&mut caller, path_ptr, path_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+
+                // Capability check + file read (host-side logic, no WASM memory).
+                let body = {
+                    let ctx = caller.data().host.clone();
+                    match crate::host::read_file::prepare(&ctx, &path, max_bytes) {
+                        Ok((bytes, _)) => bytes,
+                        Err(code) => return code,
+                    }
+                };
+
+                if body.is_empty() {
+                    // Empty file: write ptr=0, len=0.  SDK read_owned_bytes guards
+                    // ptr==0 → returns Vec::new(), which is correct for empty files.
+                    let _ = write_wasm_u32_sd(&mut caller, out_ptr_out, 0);
+                    let _ = write_wasm_u32_sd(&mut caller, out_len_out, 0);
+                    return codes::OK;
+                }
+
+                // Find the current end of WASM linear memory, then grow by
+                // enough pages to hold `body`.  Writing at the old end gives
+                // us a valid, unused address (the SDK copies the bytes
+                // immediately via `read_owned_bytes`, so the page is never
+                // reused for anything else during this call).
+                let memory = match get_memory_sd(&mut caller) {
+                    Ok(m) => m,
+                    Err(_) => return codes::INTERNAL_ERROR,
+                };
+                let current_bytes = memory.data_size(&caller);
+                let pages_needed = body.len().div_ceil(65536) as u64;
+                if memory.grow(&mut caller, pages_needed).is_err() {
+                    return codes::INTERNAL_ERROR;
+                }
+
+                let write_offset = current_bytes as u32;
+
+                // Write file bytes at the newly allocated offset.
+                // `out_cap` = body.len() because we just grew enough memory.
+                if write_wasm_bytes_sd(&mut caller, write_offset, body.len() as u32, &body)
+                    .is_err()
+                {
+                    return codes::INTERNAL_ERROR;
+                }
+
+                // Return (ptr, len) to the guest via the out-params.
+                if write_wasm_u32_sd(&mut caller, out_ptr_out, write_offset).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                if write_wasm_u32_sd(&mut caller, out_len_out, body.len() as u32).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                codes::OK
+            },
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
@@ -631,6 +690,18 @@ fn write_wasm_bytes_sd(
             memory_size: data_len,
         })?;
     Ok(needed)
+}
+
+/// Write a single little-endian u32 into guest memory.
+/// Used for `read_file`'s out-param protocol (`out_ptr_out`, `out_len_out`).
+fn write_wasm_u32_sd(
+    caller: &mut Caller<'_, StoreData>,
+    out_ptr: u32,
+    value: u32,
+) -> Result<(), HostCallError> {
+    let bytes = value.to_le_bytes();
+    write_wasm_bytes_sd(caller, out_ptr, bytes.len() as u32, &bytes)?;
+    Ok(())
 }
 
 /// Per-invocation store data: the HostContext S-1.4 populates plus the

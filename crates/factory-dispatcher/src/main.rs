@@ -24,6 +24,7 @@ use std::sync::Arc;
 use factory_dispatcher::engine::{EpochTicker, build_engine};
 use factory_dispatcher::executor::{ExecutorInputs, execute_tiers};
 use factory_dispatcher::host::HostContext;
+use factory_dispatcher::invoke::PluginResult;
 use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
     InternalLog,
@@ -176,6 +177,19 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     };
 
     let summary = execute_tiers(inputs, tiers).await;
+
+    // Relay any non-empty plugin stderr to the dispatcher's process stderr so
+    // user-visible hook messages (e.g. WAVE GATE REMINDER from
+    // warn-pending-wave-gate) reach the terminal. The WASI sandbox captures
+    // plugin stderr into MemoryOutputPipe; without this relay the output
+    // would only appear in the internal log, invisible to the user.
+    for outcome in &summary.per_plugin_results {
+        if let PluginResult::Ok { stderr, .. } = &outcome.result
+            && !stderr.is_empty()
+        {
+            eprint!("{stderr}");
+        }
+    }
 
     eprintln!(
         "  plugins_run={} total_ms={} block_intent={} exit_code={}",
