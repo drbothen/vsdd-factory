@@ -1247,6 +1247,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "handoff-validator"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.15.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
