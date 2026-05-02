@@ -221,6 +221,7 @@ mod tests {
 
     /// Helper: run the logic with a captured-emit callback.
     /// Returns (result, emitted_calls).
+    #[allow(clippy::type_complexity)]
     fn run_logic(payload: HookPayload) -> (HookResult, Vec<(String, Vec<(String, String)>)>) {
         let mut calls: Vec<(String, Vec<(String, String)>)> = Vec::new();
         let result = track_agent_start_logic(payload, |event_type, fields| {

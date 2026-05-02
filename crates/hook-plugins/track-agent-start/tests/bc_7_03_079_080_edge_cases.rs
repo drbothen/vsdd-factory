@@ -46,6 +46,7 @@ fn make_payload(tool_name: &str, tool_input: serde_json::Value) -> HookPayload {
 }
 
 /// Collect (event_type, fields) tuples from a logic run.
+#[allow(clippy::type_complexity)]
 fn run(payload: HookPayload) -> (HookResult, Vec<(String, Vec<(String, String)>)>) {
     let mut calls = Vec::new();
     let result = track_agent_start_logic(payload, |event_type, fields| {
@@ -74,7 +75,8 @@ fn run(payload: HookPayload) -> (HookResult, Vec<(String, Vec<(String, String)>)
 /// Both exercise `.and_then(|v| v.as_str())` but through different branches:
 ///   - Absent key → `.get("subagent_type")` returns `None`
 ///   - JSON null  → `.get("subagent_type")` returns `Some(Value::Null)`
-///                  → `.as_str()` on Null returns `None`
+///     → `.as_str()` on Null returns `None`
+///
 /// Both must produce "unknown" (bash: `jq -r '.tool_input.subagent_type // "unknown"'`).
 #[test]
 fn test_BC_7_03_080_ec001_explicit_null_subagent_type_defaults_to_unknown() {
