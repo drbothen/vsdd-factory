@@ -1,0 +1,32 @@
+[package]
+name = "validate-pr-review-posted"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: validates that pr-reviewer wrote pr-review.md and posted a formal gh pr review on SubagentStop"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the trampoline that calls into the lib via
+# `vsdd_hook_sdk::__internal::run(on_hook)`.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "validate-pr-review-posted"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde_json = { workspace = true }
+regex = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

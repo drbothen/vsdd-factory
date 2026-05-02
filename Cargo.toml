@@ -17,6 +17,7 @@ members = [
     "crates/hook-plugins/track-agent-start",
     "crates/hook-plugins/update-wave-state-on-merge",
     "crates/hook-plugins/warn-pending-wave-gate",
+    "crates/hook-plugins/validate-pr-review-posted",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
