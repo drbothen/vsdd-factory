@@ -299,6 +299,65 @@ jobs:
           git push origin main
           git push origin --force "refs/tags/$GITHUB_REF_NAME"
 
+      - name: Sync bundle commit to develop (inline best-effort)
+        # The bot just wrote the new version into plugin.json +
+        # marketplace.json on main. Claude Code's plugin marketplace
+        # reads marketplace.json from the GitHub default branch
+        # (develop), so this commit must also exist on develop, or
+        # `/plugin` reports the prior version.
+        #
+        # This step is best-effort: it tries to push the merge directly
+        # from inside the bot's job. On any failure (race, branch
+        # protection, conflict), it logs a warning and exits 0 so the
+        # sync-develop job below catches it as a safety net. The release
+        # itself never fails because of this step.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          # Skip cleanly if no bundle commit was created (the "Commit
+          # + retag" step above exited early). HEAD's commit message is
+          # the canonical signal: the bot's bundle commit always starts
+          # with "chore: bundle dispatcher binaries".
+          last_msg=$(git log -1 --pretty=%s)
+          case "$last_msg" in
+            "chore: bundle dispatcher binaries"*) ;;
+            *)
+              echo "No bundle commit at HEAD ($last_msg); inline sync skipped."
+              exit 0
+              ;;
+          esac
+
+          # Fetch develop into a local tracking branch. Tolerate failure
+          # — the sync-develop job will retry from a clean checkout.
+          if ! git fetch origin develop:develop 2>&1; then
+            echo "::warning::Could not fetch develop; sync-develop job will retry."
+            exit 0
+          fi
+
+          # Already in sync? Nothing to do.
+          if git merge-base --is-ancestor HEAD develop 2>/dev/null; then
+            echo "develop already contains HEAD; inline sync is a no-op."
+            exit 0
+          fi
+
+          # Merge main into develop with a no-ff merge commit.
+          git checkout develop
+          if ! git merge --no-ff main \
+                 -m "merge: sync main → develop after $GITHUB_REF_NAME bundle" \
+                 -m "Inline back-merge from the commit-binaries job. See .github/workflows/release.yml."; then
+            echo "::warning::Inline merge produced conflicts; sync-develop job will retry."
+            git merge --abort || true
+            exit 0
+          fi
+
+          # Best-effort push. Sync-develop catches any failure.
+          if git push origin develop; then
+            echo "Inline sync to develop succeeded."
+          else
+            echo "::warning::Inline develop push blocked; sync-develop job will retry."
+          fi
+
       - name: Verify binaries are executable on this runner
         # Sanity check: the linux-x64 binary we just committed should
         # run on this ubuntu runner. Catches the case where strip
@@ -384,23 +443,28 @@ jobs:
           prerelease: ${{ contains(github.ref_name, '-') }}
 
   sync-develop:
-    # After the bot's binary-bundle commit lands on main, back-merge it
-    # onto develop. Closes a Git Flow gap discovered in v1.0.0-rc.1:
-    # Claude Code's plugin marketplace reads marketplace.json from the
-    # repo's GitHub default branch (develop), but the bot writes the
-    # version bumps only to main during the post-tag bundle step. Without
-    # this back-merge, develop's marketplace.json is always one release
-    # behind main, and `/plugin` reports the prior version even though
-    # the latest tag is shipped.
+    # Defense-in-depth backup for the inline sync inside commit-binaries.
+    # The bot's "Sync bundle commit to develop (inline best-effort)" step
+    # tries to push the merge directly from within its own job; this job
+    # is the safety net for cases where the inline push fails silently
+    # (race, branch protection lifted mid-run, conflicting unrelated
+    # commits on develop landed during the build).
     #
-    # The merge brings in just the bot's mechanical commit (binaries +
-    # plugin.json/marketplace.json version bump). Manual main-only
-    # commits don't exist between releases — bot is the sole writer to
-    # main outside of release-branch merges, which already back-merge
-    # via Git Flow's standard release flow.
+    # Closes the Git Flow gap discovered in v1.0.0-rc.1: Claude Code's
+    # plugin marketplace reads marketplace.json from the repo's GitHub
+    # default branch (develop), but the bot writes the version bumps
+    # only to main during the post-tag bundle step. Without one of these
+    # two paths succeeding, develop's marketplace.json is always one
+    # release behind main, and `/plugin` reports the prior version even
+    # though the latest tag is shipped.
     #
-    # If direct push fails (branch protection, manual-only develop, etc.)
-    # the job opens a PR instead so the operator can review and merge.
+    # When the inline sync succeeds (the common case), this job no-ops
+    # via the "develop already contains origin/main" early exit. When
+    # the inline sync fails, this job runs from a clean checkout with
+    # explicit branch protection fallback (opens a PR instead of failing).
+    #
+    # Verification cadence: after each release tag, confirm this job
+    # ran AND that develop's marketplace.json version equals main's.
     name: Sync main → develop
     needs: commit-binaries
     runs-on: ubuntu-latest
