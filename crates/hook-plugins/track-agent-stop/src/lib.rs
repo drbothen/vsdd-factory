@@ -6,9 +6,10 @@
 //!   - `hook`        — literal "track-agent-stop"
 //!   - `matcher`     — literal "SubagentStop"
 //!   - `subagent`    — agent identity resolved via BC-2.02.012 Postcondition 5
-//!                     fallback chain: `agent_type` → `subagent_name` → "unknown"
+//!     fallback chain: `agent_type` → `subagent_name` → "unknown"
 //!   - `exit_class`  — one of: "empty" | "blocked" | "ok"
-//!   - `result_len`  — non-whitespace byte count of resolved assistant message
+//!   - `result_len`  — non-whitespace Unicode codepoint count of resolved assistant
+//!     message (W-15 gate fix HIGH-W15-002: aligned with handoff-validator)
 //!
 //! Agent identity fallback chain (BC-2.02.012 Postcondition 5):
 //!   `payload.agent_type.as_deref().or(payload.subagent_name.as_deref()).unwrap_or("unknown")`
@@ -17,15 +18,15 @@
 //!   `payload.last_assistant_message.as_deref().or(payload.result.as_deref()).unwrap_or("")`
 //!
 //! EXIT_CLASS classification (BC-7.03.082 postcondition 1):
-//!   - `empty`  : trimmed non-whitespace BYTE count == 0
+//!   - `empty`  : trimmed non-whitespace Unicode codepoint count == 0
 //!   - `blocked`: result matches BLOCKED regex at line start (multiline `(?m)`)
 //!   - `ok`     : all other cases
 //!
 //! BLOCKED regex (shared with pr-manager-completion-guard per bash comment):
 //!   `(?m)^(Status:\s*|##?\s*)?\s*BLOCKED`
 //!
-//! RESULT_LEN byte semantics: `.bytes().filter(|b| !b.is_ascii_whitespace()).count()`
-//! mirrors bash `tr -d '[:space:]' | wc -c` — NOT char count.
+//! RESULT_LEN Unicode semantics: `.chars().filter(|c| !c.is_whitespace()).count()`
+//! W-15 gate fix HIGH-W15-002: aligned with handoff-validator (chars, not bytes).
 //!
 //! Best-effort semantics (on_error = "continue"):
 //!   - JSON parse failure → handled by __internal::run; hook sees HookPayload (Continue)
@@ -56,17 +57,20 @@ const BLOCKED_PATTERN: &str = r"(?m)^(Status:\s*|##?\s*)?\s*BLOCKED";
 
 /// Classify the exit condition of the assistant message.
 ///
-/// - `empty`  : `result_len` == 0 (no non-whitespace bytes after ASCII trim)
+/// - `empty`  : `result_len` == 0 (no non-whitespace Unicode codepoints)
 /// - `blocked`: result matches BLOCKED pattern at start of any line
 /// - `ok`     : all other cases
 ///
-/// `result_len` is the non-whitespace BYTE count computed via
-/// `.bytes().filter(|b| !b.is_ascii_whitespace()).count()`, mirroring bash
-/// `tr -d '[:space:]' | wc -c` byte semantics (AC-003).
+/// `result_len` is the non-whitespace Unicode codepoint count computed via
+/// `.chars().filter(|c| c.is_whitespace()).count()`.
+/// Whitespace counted as Unicode codepoints (is_whitespace()); aligned across
+/// handoff-validator + track-agent-stop per W-15 gate fix HIGH-W15-002.
 pub fn classify_exit(result: &str) -> (&'static str, usize) {
-    // RESULT_LEN: non-whitespace byte count (bash parity: tr -d '[:space:]' | wc -c)
-    // Note: uses is_ascii_whitespace() — excludes 0x0B vertical tab per AC-007 note.
-    let result_len = result.bytes().filter(|b| !b.is_ascii_whitespace()).count();
+    // RESULT_LEN: non-whitespace Unicode codepoint count (W-15 gate fix HIGH-W15-002).
+    // Aligned with handoff-validator which uses chars().filter(|c| !c.is_whitespace()).
+    // Note: is_whitespace() covers ASCII whitespace + Unicode whitespace (e.g., U+00A0
+    // non-breaking space), unlike the previous is_ascii_whitespace() implementation.
+    let result_len = result.chars().filter(|c| !c.is_whitespace()).count();
 
     if result_len == 0 {
         return ("empty", 0);
@@ -151,7 +155,7 @@ where
 pub fn on_agent_stop(payload: HookPayload) -> HookResult {
     track_agent_stop_logic(payload, |event_type, fields| {
         // Silently swallow emit_event errors (best-effort, on_error=continue).
-        let _ = vsdd_hook_sdk::host::emit_event(event_type, fields);
+        vsdd_hook_sdk::host::emit_event(event_type, fields);
     })
 }
 
@@ -227,19 +231,39 @@ mod tests {
     }
 
     #[test]
-    fn test_BC_7_03_082_classify_exit_result_len_byte_count() {
-        // AC-003 + EC-006: U+1F600 emoji = 4 bytes → result_len=4 (byte count not char count)
+    fn test_BC_7_03_082_classify_exit_result_len_char_count() {
+        // W-15 gate fix HIGH-W15-002: result_len is now Unicode codepoint count,
+        // not byte count. U+1F600 emoji = 1 codepoint (not 4 bytes).
         let (class, len) = classify_exit("\u{1F600}");
         assert_eq!(class, "ok");
-        assert_eq!(len, 4, "emoji must count as 4 bytes (wc -c parity)");
+        assert_eq!(len, 1, "emoji must count as 1 Unicode codepoint (W-15 HIGH-W15-002)");
     }
 
     #[test]
     fn test_BC_7_03_082_classify_exit_result_len_excludes_ascii_whitespace() {
-        // AC-003: "hello world" = 10 non-whitespace bytes
+        // AC-003: "hello world" = 10 non-whitespace chars
         let (class, len) = classify_exit("hello world");
         assert_eq!(class, "ok");
         assert_eq!(len, 10);
+    }
+
+    /// W-15 gate fix HIGH-W15-002: Unicode whitespace (U+00A0 non-breaking space)
+    /// is counted as whitespace by is_whitespace() (not by is_ascii_whitespace()).
+    /// A string with only U+00A0 → empty (result_len=0).
+    /// A string with U+00A0 + ASCII space → both are whitespace → empty.
+    #[test]
+    fn test_HIGH_W15_002_unicode_whitespace_counted_as_whitespace() {
+        // U+00A0 non-breaking space + ASCII space: both are whitespace
+        let input = "\u{00A0} ";
+        let (class, len) = classify_exit(input);
+        assert_eq!(class, "empty", "non-breaking space + ASCII space must be empty (both whitespace)");
+        assert_eq!(len, 0, "both chars are whitespace, non-whitespace count must be 0");
+
+        // "a" + U+00A0 + "b": 2 non-whitespace codepoints
+        let input2 = "a\u{00A0}b";
+        let (class2, len2) = classify_exit(input2);
+        assert_eq!(class2, "ok");
+        assert_eq!(len2, 2, "only 'a' and 'b' are non-whitespace; U+00A0 is whitespace");
     }
 
     // -----------------------------------------------------------------------

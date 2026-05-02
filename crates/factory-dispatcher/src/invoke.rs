@@ -142,6 +142,13 @@ pub fn invoke_plugin(
     if host_ctx.cwd.as_os_str().is_empty() {
         // No project dir — build without filesystem preopen.
     } else if let Err(e) = wasi_builder.preopened_dir(
+        // W-15 wave gate (SEC-001 / CRIT-W15-003): WASI preopens grant
+        // DirPerms::all() | FilePerms::all() to plugins. This is the sandbox
+        // boundary; capability-gated host functions (e.g., write_file) provide
+        // ADDITIONAL bounded mechanisms but do not constrain native WASI calls.
+        // See crates/hook-sdk/HOST_ABI.md "Filesystem Access Model". v1.1 will
+        // tighten preopens to read-only by default with explicit write capability
+        // declarations.
         &host_ctx.cwd,
         ".",
         DirPerms::all(),

@@ -68,6 +68,13 @@ All 9 Tier 1 hooks (PostToolUse + SubagentStop lifecycle) have been successfully
 ported from bash via `legacy-bash-adapter.wasm` to native WASM crates. The W-15
 wave gate is satisfied. W-16 stories (S-8.11+) may now be dispatched.
 
+**Scope qualifier (W-15 gate fix CRIT-W15-005):** W-15 retired **Tier 1 only**
+(12 hooks across 9 crates). Approximately 30+ Tier 2/3 hooks remain on
+`legacy-bash-adapter` (e.g., `validate-bc-title`, `validate-anchor-capabilities-union`,
+`convergence-tracker`). Full Tier 2/3 retirement is tech debt TD-014, calendar-gated
+to v1.0 GA close via story S-8.29. The phrase "0 hooks on legacy-bash-adapter"
+always means "0 **Tier 1** hooks on legacy-bash-adapter".
+
 ---
 
 ## OQ-6 Resolution

@@ -20,11 +20,13 @@ name = "update-wave-state-on-merge"
 path = "src/main.rs"
 
 # standalone: use WASI std::fs file I/O instead of vsdd host functions.
-# This feature is the default so debug builds work with plain `wasmtime run`
-# (no dispatcher). For production builds consumed by the factory-dispatcher,
-# compile with `--no-default-features`.
+# By default the plugin uses the capability-gated host::write_file path (safe,
+# bounded by the registry capabilities block). Pass --features standalone for
+# debug builds with plain `wasmtime run` (no dispatcher, uses WASI std::fs).
+# W-15 gate fix HIGH-W15-004: default changed from ["standalone"] to [] so
+# production builds are safe-by-default without --no-default-features.
 [features]
-default = ["standalone"]
+default = []
 standalone = []
 
 [dependencies]

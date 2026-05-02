@@ -223,8 +223,9 @@ fn test_BC_7_03_042_ac001e_registry_preserved_binding_fields_event_priority_on_e
         "AC-001: priority = 910 must be preserved after migration (BC-7.03.042 PC-1)"
     );
     assert!(
-        handoff_block.contains("on_error = \"block\""),
-        "AC-001: on_error = \"block\" must be preserved after migration (BC-7.03.042 PC-3)"
+        handoff_block.contains("on_error = \"continue\""),
+        "AC-001: on_error = \"continue\" required (W-15 gate fix CRIT-W15-002: advisory-block-mode; \
+         block signal via stdout outcome line, not on_error=block)"
     );
 }
 
