@@ -557,6 +557,103 @@ fn setup_host_on_store_data(
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
+    // write_file: real implementation rooted at cwd (CLAUDE_PROJECT_DIR).
+    // Relative paths in the request and path_allow are resolved against
+    // ctx.cwd so plugins can write project-relative files (e.g.
+    // `.factory/wave-state.yaml`). Uses input-pointer protocol: the host
+    // reads the byte slice from guest memory (read_wasm_bytes protocol).
+    // First consumer: update-wave-state-on-merge (S-8.04 BC-7.03.085/086).
+    linker
+        .func_wrap(
+            "vsdd",
+            "write_file",
+            |mut caller: Caller<'_, StoreData>,
+             path_ptr: u32,
+             path_len: u32,
+             contents_ptr: u32,
+             contents_len: u32,
+             max_bytes: u32,
+             _timeout_ms: u32|
+             -> i32 {
+                let path = match read_wasm_string_sd(&mut caller, path_ptr, path_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+                let contents = match read_wasm_bytes_sd(&mut caller, contents_ptr, contents_len) {
+                    Ok(b) => b,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+                let host = caller.data().host.clone();
+                // Capability check: deny-by-default (BC-2.02.011 postcondition 1).
+                let caps = match &host.capabilities.write_file {
+                    Some(c) => c.clone(),
+                    None => return codes::CAPABILITY_DENIED,
+                };
+                // Resolve path against cwd (CLAUDE_PROJECT_DIR) for relative paths.
+                let cwd = &host.cwd;
+                let resolved = if std::path::Path::new(&path).is_absolute() {
+                    std::path::PathBuf::from(&path)
+                } else {
+                    cwd.join(&path)
+                };
+                // Byte cap: minimum of call arg and per-capability override.
+                let effective_cap = match caps.max_bytes_per_call {
+                    Some(cap_override) => max_bytes.min(cap_override),
+                    None => max_bytes,
+                };
+                if contents.len() as u64 > effective_cap as u64 {
+                    return codes::OUTPUT_TOO_LARGE;
+                }
+                // Check path is under an allowed prefix (rooted at cwd).
+                // Use the same canonicalize-with-ancestor-fallback as write_file.rs
+                // to handle files that don't yet exist.
+                let allowed = caps.path_allow.iter().any(|pref| {
+                    let pref_path = if std::path::Path::new(pref).is_absolute() {
+                        std::path::PathBuf::from(pref)
+                    } else {
+                        cwd.join(pref)
+                    };
+                    let canon_pref = pref_path.canonicalize().unwrap_or_else(|_| pref_path.clone());
+                    // For the target, canonicalize with ancestor fallback.
+                    let canon_resolved = resolved.canonicalize()
+                        .unwrap_or_else(|_| {
+                            // Walk ancestors until one exists.
+                            let mut tail: Vec<std::ffi::OsString> = Vec::new();
+                            let mut cur = resolved.clone();
+                            loop {
+                                match cur.file_name() {
+                                    None => break resolved.clone(),
+                                    Some(f) => tail.push(f.to_os_string()),
+                                }
+                                match cur.parent() {
+                                    None => break resolved.clone(),
+                                    Some(p) => {
+                                        if let Ok(canon_p) = p.canonicalize() {
+                                            let mut result = canon_p;
+                                            for component in tail.iter().rev() {
+                                                result = result.join(component);
+                                            }
+                                            return result;
+                                        }
+                                        cur = p.to_path_buf();
+                                    }
+                                }
+                            }
+                        });
+                    canon_resolved.starts_with(&canon_pref)
+                });
+                if !allowed {
+                    return codes::CAPABILITY_DENIED;
+                }
+                // Write to disk.
+                match std::fs::write(&resolved, &contents) {
+                    Ok(()) => codes::OK,
+                    Err(_) => codes::INTERNAL_ERROR,
+                }
+            },
+        )
+        .map_err(|e| HostCallError::Linker(e.to_string()))?;
+
     // exec_subprocess: real implementation that delegates to the
     // crate::host::exec_subprocess policy + executor. The legacy-bash-
     // adapter (S-2.1) needs this path live so it can shell out to bash
