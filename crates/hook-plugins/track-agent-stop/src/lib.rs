@@ -62,7 +62,7 @@ const BLOCKED_PATTERN: &str = r"(?m)^(Status:\s*|##?\s*)?\s*BLOCKED";
 /// - `ok`     : all other cases
 ///
 /// `result_len` is the non-whitespace Unicode codepoint count computed via
-/// `.chars().filter(|c| c.is_whitespace()).count()`.
+/// `.chars().filter(|c| !c.is_whitespace()).count()`.
 /// Whitespace counted as Unicode codepoints (is_whitespace()); aligned across
 /// handoff-validator + track-agent-stop per W-15 gate fix HIGH-W15-002.
 pub fn classify_exit(result: &str) -> (&'static str, usize) {
@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn test_BC_7_03_082_classify_exit_whitespace_only() {
-        // EC-001: whitespace-only → empty (RESULT_LEN = 0 after byte-filter)
+        // EC-001: whitespace-only → empty (RESULT_LEN = 0 after chars-filter)
         let (class, len) = classify_exit("   \t\n  ");
         assert_eq!(class, "empty");
         assert_eq!(len, 0);
