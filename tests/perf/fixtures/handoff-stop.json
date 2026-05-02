@@ -1,0 +1,6 @@
+{
+  "hook_event_name": "SubagentStop",
+  "agent_type": "test-agent",
+  "last_assistant_message": "DONE. I have completed the analysis of the behavioral contracts. All 9 Tier 1 hooks were audited and the BC-anchor verification table has been written to the canonical path. The perf baseline measurements are also complete.",
+  "session_id": "test-session-00000000"
+}
