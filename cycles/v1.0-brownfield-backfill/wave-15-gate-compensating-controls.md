@@ -67,6 +67,42 @@ per-story-delivery cycle when a standard gate criterion was deferred under Optio
 | **Registered in** | D-194 |
 | **Status** | OPEN — must resolve before W-15 wave gate PASS |
 
+### CC-W15-005: regression-gate Mutation Testing
+
+| Field | Value |
+|-------|-------|
+| **Story** | S-8.09 — Native port: regression-gate + adapter retirement prep |
+| **PR** | #58, merged at `3adfe0b` (2026-05-02) |
+| **Control type** | mutation_testing_required: true |
+| **Trigger** | 36 unit tests in regression-gate crate cover the 9-pattern test-runner matching logic and pass→fail transition detection. RED_RATIO not verified (stub-architect pattern used); mutation testing needed to confirm tests are non-vacuous and achieve adequate branch coverage of the pattern-matching cascade. |
+| **Required action** | Run `cargo mutants -p regression-gate` at wave gate and verify: (1) mutation score ≥ 80% for the 9-pattern list matching logic and pass→fail transition warning path; (2) surviving mutants documented as acceptable gaps or killed by additional targeted tests |
+| **Source decision** | D-202 |
+| **Status** | OPEN — must resolve before W-15 wave gate PASS |
+
+### CC-W15-006: macOS symlink fix CI verification
+
+| Field | Value |
+|-------|-------|
+| **Story** | S-8.09 — regression-gate (bonus dispatcher fix in invoke.rs) |
+| **PR** | #58, merged at `3adfe0b` (2026-05-02) |
+| **Control type** | environment-verification-required |
+| **Trigger** | The macOS `/var/folders/` symlink issue in `write_file` path_allow ancestor fallback was fixed by applying `canonicalize()` before the ancestor walk. The fix was validated on dev machine but NOT on the actual macOS CI runner (darwin-arm64 / darwin-x64 matrix). The CI matrix uses hosted runners where `/var/folders/` symlink behavior may differ. |
+| **Required action** | At W-15 wave gate, confirm that CI passes on darwin-arm64 and darwin-x64 runner targets for any test that exercises `host::write_file` with temp-dir paths. Specifically verify that `path_allowed()` returns true for canonical paths under `/private/var/folders/` when the preopened path_allow list uses the `/var/folders/` symlink form. |
+| **Source decision** | D-202 |
+| **Status** | OPEN — must resolve before W-15 wave gate PASS |
+
+### CC-W15-007: regression-gate 9-pattern list completeness
+
+| Field | Value |
+|-------|-------|
+| **Story** | S-8.09 — Native port: regression-gate + adapter retirement prep |
+| **PR** | #58, merged at `3adfe0b` (2026-05-02) |
+| **Control type** | completeness-review-required |
+| **Trigger** | The regression-gate crate encodes a hardcoded list of 9 test-runner output patterns used to detect pass/fail transitions. This list was derived from the existing bats test suite output at time of implementation. New test frameworks or output format changes could produce patterns not in the list, causing silent test misses (false PASS verdicts). |
+| **Required action** | At W-15 wave gate, team reviews the 9-pattern list in `regression_gate_logic` and confirms: (1) all test output patterns currently produced by the workspace test suite are covered; (2) any patterns not covered are either acceptable gaps or trigger a new story for pattern extension; decision recorded as a D-NNN entry or task. |
+| **Source decision** | D-202 |
+| **Status** | OPEN — must resolve before W-15 wave gate PASS |
+
 ## Closed Controls
 
 _None yet._
@@ -79,3 +115,6 @@ At the W-15 wave gate, the standard checklist must be extended with:
 - [ ] CC-W15-002: `cargo mutants -p track-agent-start` run; mutation score ≥ 80% for `extract_story_id` and `track_agent_start_logic`; results documented
 - [ ] CC-W15-003: advisory-block-mode-rationale.md reviewed; decision recorded: `HookResult::Block` SDK variant in W-16 OR accept advisory-only as canonical
 - [ ] CC-W15-004: WASI preopened_dir vs host::write_file canonical pattern decided; ADR or E-8 epic D-NNN addendum recorded; SS-02 or E-8 D-6 updated
+- [ ] CC-W15-005: `cargo mutants -p regression-gate` run; mutation score ≥ 80% for 9-pattern matching logic and pass→fail transition; results documented
+- [ ] CC-W15-006: darwin-arm64 + darwin-x64 CI passes for host::write_file with temp-dir paths (macOS symlink fix verified on actual runners)
+- [ ] CC-W15-007: regression-gate 9-pattern list reviewed for completeness; gaps accepted or new story filed; decision recorded

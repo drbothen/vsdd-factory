@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.28"
+version: "1.29"
 status: current
 producer: state-manager
-timestamp: 2026-05-02T12:00:00
+timestamp: 2026-05-02T18:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -56,6 +56,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **S-8.00 GREEN delivery (2026-05-02):** S-8.00-perf-baseline-bc-anchor-verification.md v1.5 status=ready → merged. PR #47 merged to develop at 9e649ed. 3 bats tests GREEN (perf 3/3 + artifact gate 10/10). Per-plugin Tier 2 baseline 19ms; aggregate projection 437ms (>200ms AC-7b ceiling) → E-8 epic v1.7→v1.10 fix-burst (AC-7b raised to 500ms; R-8.08 HIGH/HIGH; OQ-8 RESOLVED). BC-anchor audit clean: 0 of 9 gaps; AC-5 threshold not triggered; no new BCs drafted. OQ-6 deferred to S-8.09 per EC-005. 3-commit feature branch: 06089f6 (stub-architect), 4fd0b99 (red-gate), fe83c1b (demo-evidence). 1 review cycle APPROVE. Semgrep PASS. Artifacts sealed: measurements/E-8-bash-baseline.json + cycles/v1.0-brownfield-backfill/E-8-bc-anchor-table.md + stories/epics/E-8-native-wasm-migration.md (v1.10). W-15: 1 of 12 Tier 1 stories merged. Next batch: S-8.10 + S-8.30 (SDK extensions; parallel; block 4+ downstream). D-191 sealed. STORY-INDEX v1.25 → v1.26. Status: ready 12→11; merged 45→46.
 > **W-15 Batch 2 sealed (2026-05-02): S-8.10 + S-8.30 SDK extensions MERGED.** PR #48 (S-8.10) squash-merged to develop at de4c568; PR #49 (S-8.30) squash-merged at 394d991. S-8.10: host::write_file SDK API + WriteFileCaps capability schema; SDK 0.1.0→0.2.0; 21 new tests (10 E2E + 5 SDK unit + 5 BC parity + 2 doctests); **SECURITY: path-traversal vulnerability fixed in path_allowed() for BOTH read_file and write_file** (paths now canonicalized with ancestor walk for non-existent write targets; BC-2.02.011 EC-001 + BC-2.02.001 EC-001 protected); HOST_ABI_VERSION unchanged at 1 (D-6 Option A additive); unblocks S-8.04 + S-8.09. 5-commit feature branch (stub-architect → red-gate → GREEN security → GREEN docs → demo evidence). S-8.30: 4 new `#[serde(default)] pub Option<String>` fields on HookPayload (agent_type, subagent_name, last_assistant_message, result) per BC-2.02.012; propagated to 8 consumer struct literal sites in capture-commit-activity + legacy-bash-adapter; 26 tests; compensating control: mutation_testing_required: true registered per Option B remediation (RED_RATIO=0.0 from stub-architect overshoot; wave gate must run `cargo mutants -p vsdd-hook-sdk`); unblocks S-8.01 + S-8.02 + S-8.03 + S-8.05. 4-commit feature branch. D-192 (S-8.10) + D-193 (S-8.30) sealed. STORY-INDEX v1.26 → v1.27. Status: ready 11→9; merged 46→48.
 > **W-15 Batches 3+4 sealed (2026-05-02): 5 Tier 1 WASM ports MERGED (D-194..D-198).** S-8.06 PR #51 merged at 9873f78; S-8.01 PR #50 merged at 60be88e; S-8.08 PR #52 merged at 638bb6b; S-8.07 PR #53 merged at 4a6e212; S-8.04 PR #54 merged at 5622aa6. Emergent dispatcher infrastructure shipped: WASI preopened_dir (S-8.06 bonus), HookPayload `#[serde(flatten)] extra: HashMap` (S-8.01 bonus — S-8.30 typed projection fields now flow through dispatcher), VSDD_SINK_FILE env var (S-8.08 bonus), real host::read_file impl + cwd path resolution + stderr relay (S-8.07 bonus), real host::write_file impl (S-8.04 bonus — first write_file consumer). CC-W15-002 registered (S-8.08 mutation testing). CC-W15-003 + CC-W15-004 added to compensating controls. D-194 (S-8.06) + D-195 (S-8.01) + D-196 (S-8.08) + D-197 (S-8.07) + D-198 (S-8.04) sealed. STORY-INDEX v1.27 → v1.28. Status: ready 9→4; merged 48→53.
+> **W-15 Batch 5 + Finale sealed (2026-05-02): 4 final Tier 1 WASM ports MERGED (D-199..D-202) + W-15 COMPLETE (D-203).** S-8.03 PR #55 merged at 6809c6d; S-8.02 PR #56 merged at b25f017; S-8.05 PR #57 merged at a8ee79e; S-8.09 PR #58 merged at 3adfe0b. D-199 (S-8.03 track-agent-stop; BC-2.02.012 typed projection + agent.stop telemetry) + D-200 (S-8.02 pr-manager-completion-guard; advisory block-mode SubagentStop; Capabilities deny_unknown_fields fix; workspace clippy sweep in factory-dispatcher main.rs + track-agent-start) + D-201 (S-8.05 validate-pr-review-posted; 3-check validation Check 1+2+3a+3b; advisory block-mode) + D-202 (S-8.09 regression-gate finale + W-15 CLOSURE; PostToolUse advisory; 9-test-runner patterns; pass→fail transition warning; OQ-6 RESOLVED via security audit; **0 Tier 1 hooks routing through legacy-bash-adapter**; macOS /var/folders/ symlink fix in invoke.rs) sealed. CC-W15-005..007 registered. STORY-INDEX v1.28 → v1.29. Status: ready 4→0; merged 53→57. **W-15 ALL DONE — 12 of 12 Tier 1 stories MERGED to develop.**
 > **NOTE (task #171, cosmetic):** E-8 epic v1.10 has minor ordering issues (v1.10 changelog entry placed before v1.8 chronologically; v1.9 skipped; possible duplicate AC-7b at line ~805 still says 200ms). Separate product-owner dispatch in next session.
 
 > This index is the authoritative source for story count and status.
@@ -69,10 +70,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 53 |
+| merged | 57 |
 | partial | 1 |
 | draft | 1 |
-| ready | 4 |
+| ready | 0 |
 | **Total** | **59** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -196,14 +197,14 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-8.00 | Perf benchmark baseline + Tier 1 BC-anchor verification (W-15 pre-work) | E-8 | 5 | P2 | -- | S-8.01..S-8.09 | merged | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002; PR #47 merged 9e649ed 2026-05-02) |
 | S-8.01 | Native port: handoff-validator | E-8 | 4 | P2 | S-8.00, S-8.30 | S-8.09 | merged | BC-7.03.042, BC-7.03.043, BC-7.03.044, BC-2.02.012 (PR #50 60be88e 2026-05-02; bonus: HookPayload `#[serde(flatten)] extra: HashMap` fix) |
-| S-8.02 | Native port: pr-manager-completion-guard | E-8 | 5 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.03.045, BC-7.03.046, BC-7.03.047, BC-7.03.048, BC-2.02.012 |
-| S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.03.081, BC-7.03.082, BC-2.02.012 |
+| S-8.02 | Native port: pr-manager-completion-guard | E-8 | 5 | P2 | S-8.00, S-8.30 | S-8.09 | merged | BC-7.03.045, BC-7.03.046, BC-7.03.047, BC-7.03.048, BC-2.02.012 (PR #56 b25f017 2026-05-02) |
+| S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | merged | BC-7.03.081, BC-7.03.082, BC-2.02.012 (PR #55 6809c6d 2026-05-02) |
 | S-8.04 | Native port: update-wave-state-on-merge | E-8 | 4 | P2 | S-8.00, S-8.10 | S-8.09 | merged | BC-7.03.083, BC-7.03.084, BC-7.03.085, BC-7.03.086 (PR #54 5622aa6 2026-05-02; FIRST host::write_file consumer; bonus: real write_file impl in dispatcher) |
-| S-8.05 | Native port: validate-pr-review-posted | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.04.040, BC-7.04.041, BC-7.04.042, BC-7.04.043, BC-7.04.044, BC-2.02.012 (v1.8) |
+| S-8.05 | Native port: validate-pr-review-posted | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | merged | BC-7.04.040, BC-7.04.041, BC-7.04.042, BC-7.04.043, BC-7.04.044, BC-2.02.012 (v1.8; PR #57 a8ee79e 2026-05-02) |
 | S-8.06 | Native port: session-learning | E-8 | 3 | P2 | S-8.00 | S-8.09 | merged | BC-7.03.076, BC-7.03.077, BC-7.03.078 (PR #51 9873f78 2026-05-02; bonus: WASI preopened_dir for CLAUDE_PROJECT_DIR) |
 | S-8.07 | Native port: warn-pending-wave-gate | E-8 | 3 | P2 | S-8.00 | S-8.09 | merged | BC-7.03.091, BC-7.03.092 (PR #53 4a6e212 2026-05-02; bonus: real host::read_file impl + cwd path resolution + stderr relay) |
 | S-8.08 | Native port: track-agent-start | E-8 | 3 | P2 | S-8.00 | S-8.09 | merged | BC-7.03.079, BC-7.03.080 (PR #52 638bb6b 2026-05-02; bonus: VSDD_SINK_FILE env var; CC-W15-002 mutation testing registered) |
-| S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.29 | ready | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 |
+| S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.29 | merged | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 (PR #58 3adfe0b 2026-05-02; W-15 CLOSURE — 0 Tier 1 legacy-adapter refs; OQ-6 RESOLVED; macOS symlink fix) |
 | S-8.10 | SDK extension: host::write_file (D-6 Option A unblocker) | E-8 | 5 | P2 | S-8.00 | S-8.04, S-8.09 | merged | BC-2.02.011 (PR #48 de4c568 2026-05-02) |
 | S-8.30 | SDK extension: HookPayload SubagentStop top-level fields | E-8 | 3 | P1 | S-8.00 | S-8.01, S-8.02, S-8.03, S-8.05 | merged | BC-2.02.012 (v1.1; PR #49 394d991 2026-05-02; mutation_testing_required: true) |
 
