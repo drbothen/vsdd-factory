@@ -50,6 +50,56 @@ pub struct HookPayload {
     /// that needs declarative configuration alongside its registration.
     #[serde(default)]
     pub plugin_config: serde_json::Value,
+
+    // ── SubagentStop top-level fields (BC-2.02.012) ──────────────────────
+    // Present only on `event_name == "SubagentStop"` envelopes.  All four
+    // use `#[serde(default)]` so non-SubagentStop envelopes deserialize
+    // successfully with every field as `None` (BC-2.02.012 Invariant 2).
+    // JSON `null` also deserializes to `None` — providing jq-`//`-equivalent
+    // null-as-advance semantics (BC-2.02.012 Invariant 3).
+    // HOST_ABI_VERSION remains 1; this is an additive extension per D-6
+    // Option A and D-183 (BC-2.02.012 Invariant 1).
+
+    /// Agent type identifier carried by a SubagentStop envelope
+    /// (e.g. `"product-owner"`, `"pr-reviewer"`).
+    ///
+    /// Primary arm of the canonical agent identity fallback chain
+    /// (BC-2.02.012 Postcondition 1 and 5):
+    /// ```text
+    /// payload.agent_type.as_deref().or(payload.subagent_name.as_deref()).unwrap_or("unknown")
+    /// ```
+    /// `None` when absent or JSON null. Not populated for non-SubagentStop
+    /// events (BC-2.02.012 Postcondition 7).
+    #[serde(default)]
+    pub agent_type: Option<String>,
+
+    /// Subagent name carried by a SubagentStop envelope
+    /// (e.g. `"pr-reviewer-fallback"`).
+    ///
+    /// Fallback arm of the canonical agent identity chain when
+    /// `agent_type` is `None` (BC-2.02.012 Postcondition 2 and 5).
+    /// `None` when absent or JSON null.
+    #[serde(default)]
+    pub subagent_name: Option<String>,
+
+    /// Last assistant message text carried by a SubagentStop envelope.
+    ///
+    /// Primary arm of the canonical assistant-message fallback chain
+    /// (BC-2.02.012 Postcondition 3 and 6):
+    /// ```text
+    /// payload.last_assistant_message.as_deref().or(payload.result.as_deref()).unwrap_or("")
+    /// ```
+    /// `None` when absent or JSON null.
+    #[serde(default)]
+    pub last_assistant_message: Option<String>,
+
+    /// Result field carried by a SubagentStop envelope.
+    ///
+    /// Fallback arm of the canonical assistant-message chain when
+    /// `last_assistant_message` is `None` (BC-2.02.012 Postcondition 4 and 6).
+    /// `None` when absent or JSON null.
+    #[serde(default)]
+    pub result: Option<String>,
 }
 
 #[cfg(test)]
