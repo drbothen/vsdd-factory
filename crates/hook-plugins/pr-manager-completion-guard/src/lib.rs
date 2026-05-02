@@ -272,6 +272,7 @@ where
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod tests {
     use super::*;
     use vsdd_hook_sdk::HookPayload;
@@ -519,7 +520,8 @@ mod tests {
     // ── pr_manager_guard_logic: FM4 block path (BC-7.03.048) ─────────────
 
     /// BC-7.03.048 / AC-005: 0 steps, pr-manager → advisory block (HookResult::Continue
-    /// + stdout outcome line) with NEXT_STEP=1, hint="populate PR description from template".
+    ///   + stdout outcome line) with NEXT_STEP=1, hint="populate PR description from template".
+    ///
     /// W-15 gate fix CRIT-W15-002: returns Continue, not Block (exit 0, not exit 2).
     #[test]
     fn test_BC_7_03_048_zero_steps_blocks_with_step_one_hint() {

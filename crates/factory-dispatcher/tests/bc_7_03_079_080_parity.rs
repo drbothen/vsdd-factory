@@ -172,7 +172,7 @@ fn test_BC_7_03_079_invariant_1_binding_tuple_preserved_after_migration() {
          (BC-7.03.079 invariant 1)"
     );
     assert!(
-        entry.on_error.map_or(true, |oe| oe
+        entry.on_error.is_none_or(|oe| oe
             == factory_dispatcher::registry::OnError::Continue),
         "track-agent-start on_error must remain continue \
          (BC-7.03.079 invariant 1)"
@@ -185,7 +185,7 @@ fn test_BC_7_03_079_invariant_1_binding_tuple_preserved_after_migration() {
 /// FAILS until T-6 updates the plugin path.
 #[test]
 fn test_BC_7_03_079_ac001_registry_entry_does_not_reference_legacy_bash_adapter() {
-    let raw = std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
+    let raw = std::fs::read_to_string(registry_path()).expect("read hooks-registry.toml");
 
     let stanza = extract_stanza(&raw, "track-agent-start")
         .expect("track-agent-start stanza must exist in hooks-registry.toml");
@@ -204,7 +204,7 @@ fn test_BC_7_03_079_ac001_registry_entry_does_not_reference_legacy_bash_adapter(
 /// FAILS until T-6 removes the [hooks.config] script_path entry.
 #[test]
 fn test_BC_7_03_079_ac001_registry_entry_has_no_script_path() {
-    let raw = std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
+    let raw = std::fs::read_to_string(registry_path()).expect("read hooks-registry.toml");
 
     let stanza = extract_stanza(&raw, "track-agent-start")
         .expect("track-agent-start stanza must exist in hooks-registry.toml");
@@ -223,7 +223,7 @@ fn test_BC_7_03_079_ac001_registry_entry_has_no_script_path() {
 /// FAILS until T-6 removes the [hooks.capabilities.exec_subprocess] block.
 #[test]
 fn test_BC_7_03_079_ac001_registry_entry_has_no_exec_subprocess_block() {
-    let raw = std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
+    let raw = std::fs::read_to_string(registry_path()).expect("read hooks-registry.toml");
 
     let stanza = extract_stanza(&raw, "track-agent-start")
         .expect("track-agent-start stanza must exist in hooks-registry.toml");
@@ -243,7 +243,7 @@ fn test_BC_7_03_079_ac001_registry_entry_has_no_exec_subprocess_block() {
 /// FAILS until T-6 removes the legacy-bash-adapter fields.
 #[test]
 fn test_BC_7_03_079_ac002a_registry_entry_has_no_shell_bypass_acknowledged() {
-    let raw = std::fs::read_to_string(&registry_path()).expect("read hooks-registry.toml");
+    let raw = std::fs::read_to_string(registry_path()).expect("read hooks-registry.toml");
 
     let stanza = extract_stanza(&raw, "track-agent-start")
         .expect("track-agent-start stanza must exist in hooks-registry.toml");

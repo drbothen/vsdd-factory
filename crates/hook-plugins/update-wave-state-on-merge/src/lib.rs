@@ -376,9 +376,9 @@ where
 // architect may implement pure predicate helpers that have no I/O surface.
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod tests {
     use super::*;
-    use serde_json::json;
 
     // -----------------------------------------------------------------------
     // Helper: build a minimal HookPayload for SubagentStop

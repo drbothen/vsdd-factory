@@ -430,6 +430,7 @@ mod tests {
     }
 
     // Helper that also captures emit fields
+    #[allow(clippy::type_complexity)]
     fn run_logic_full(
         payload: HookPayload,
         factory_dir_exists: bool,
