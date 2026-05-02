@@ -119,19 +119,28 @@ jobs:
             cargo build --release --target ${{ matrix.target }} -p factory-dispatcher
           fi
 
-      - name: Build wasm plugin + example (release)
+      - name: Build wasm plugins + example (release)
         shell: bash
         run: |
           # legacy-bash-adapter is the production WASI command every
-          # registry entry routes through (45 of them as of v1.0-beta.1).
-          # Forgetting to build + bundle this is what made the first
-          # beta.1 attempt non-functional — without this .wasm at
-          # plugins/vsdd-factory/hook-plugins/legacy-bash-adapter.wasm,
-          # every plugin load fails. The `--bin legacy-bash-adapter`
-          # form is required because the crate has both [lib] (for
-          # tests) and [[bin]] (the WASI command) targets.
+          # registry entry routes through. The `--bin legacy-bash-adapter`
+          # form is required because the crate has both [lib] (for tests)
+          # and [[bin]] (the WASI command) targets.
           cargo build --release --target wasm32-wasip1 -p legacy-bash-adapter --bin legacy-bash-adapter
-          cargo build --release --target wasm32-wasip1 -p capture-commit-activity
+          # update-wave-state-on-merge default features are [] (safe host::write_file
+          # path); --no-default-features is explicit for clarity (HIGH-W15-004 / W-15-gate).
+          cargo build --release --target wasm32-wasip1 -p update-wave-state-on-merge --no-default-features
+          # All other native WASM plugins build cleanly via workspace pass.
+          # Sinks + dispatcher are excluded — they don't target wasm32-wasip1.
+          cargo build --release --target wasm32-wasip1 \
+            --workspace \
+            --exclude legacy-bash-adapter \
+            --exclude update-wave-state-on-merge \
+            --exclude factory-dispatcher \
+            --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
+            --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
+            --exclude vsdd-hook-sdk-macros
+          # Build the hello-hook example artifact.
           cargo build --release --target wasm32-wasip1 -p vsdd-hook-sdk --example hello-hook
 
       - name: Stage artifact directory
@@ -143,13 +152,25 @@ jobs:
           else
             cp target/${{ matrix.target }}/release/factory-dispatcher artifact/
           fi
-          # Bundle the wasm artifacts alongside; commit-binaries copies
-          # them into hook-plugins/. They're identical across platforms
-          # so the one platform that successfully builds them is enough
-          # — but we ship from every entry for redundancy.
-          cp target/wasm32-wasip1/release/legacy-bash-adapter.wasm artifact/ 2>/dev/null || true
-          cp target/wasm32-wasip1/release/capture_commit_activity.wasm artifact/ 2>/dev/null || true
+          # Bundle all wasm artifacts. They are identical across platforms so
+          # every leg ships them redundantly; commit-binaries uses linux-x64 as
+          # canonical source. The glob catches all 16 native plugins.
+          if compgen -G "target/wasm32-wasip1/release/*.wasm" > /dev/null; then
+            cp target/wasm32-wasip1/release/*.wasm artifact/
+          fi
+          # hello-hook example lives under examples/
           cp target/wasm32-wasip1/release/examples/hello-hook.wasm artifact/ 2>/dev/null || true
+
+      - name: Verify all 16 native WASM plugins are staged
+        shell: bash
+        run: |
+          count=$(ls artifact/*.wasm 2>/dev/null | wc -l)
+          if [ "$count" -lt 16 ]; then
+            echo "::error::Only $count wasm files staged in artifact/; expected >= 16."
+            ls artifact/*.wasm 2>/dev/null || true
+            exit 1
+          fi
+          echo "Staged $count wasm files."
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -225,6 +246,17 @@ jobs:
             cp "$wasm" plugins/vsdd-factory/hook-plugins/
             echo "staged $(basename "$wasm")"
           done
+
+      - name: Verify all 16 native WASM plugins are staged
+        shell: bash
+        run: |
+          count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l)
+          if [ "$count" -lt 16 ]; then
+            echo "::error::Only $count wasm files staged; expected >= 16."
+            ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null || true
+            exit 1
+          fi
+          echo "Staged $count wasm files."
 
       - name: Regenerate hooks.json.<platform> variants
         run: scripts/generate-hooks-json.sh
