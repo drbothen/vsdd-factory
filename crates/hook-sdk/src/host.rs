@@ -204,6 +204,55 @@ pub fn read_file(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>,
     Ok(read_owned_bytes(out_ptr, out_len))
 }
 
+/// Write a file at the given path through the dispatcher's bounded host function.
+///
+/// This is the write-side symmetric counterpart to [`read_file`].  Both
+/// `max_bytes` and `timeout_ms` are mandatory — `write_file` is a bounded
+/// host call per BC-2.02.011 and BC-2.02.002; the API enforces the caps at
+/// the type level so plugins can't make an unbounded write call.
+///
+/// # Protocol
+///
+/// Uses the **input-pointer protocol** (BC-2.02.011 invariant 4):
+/// the SDK passes guest-owned bytes `(contents_ptr, contents_len)` to the
+/// dispatcher, which copies them out via `read_wasm_bytes`.  This differs
+/// from [`read_file`]'s output-pointer protocol.
+///
+/// # Error codes
+///
+/// | Returned error | Cause |
+/// |---|---|
+/// | `HostError::CapabilityDenied` | Path not in `write_file.path_allow`, path traversal, or no capability block |
+/// | `HostError::OutputTooLarge` | `contents.len() > max_bytes` |
+/// | `HostError::Timeout` | Write exceeded `timeout_ms` budget |
+/// | `HostError::Other(-99)` | Filesystem I/O error or missing parent directory |
+///
+/// # References
+///
+/// BC-2.02.011 — host::write_file: bounded write capability with allowlist enforcement.
+/// Postconditions 1-5; invariants 1-5 (HOST_ABI_VERSION stays 1; max_bytes mandatory;
+/// input-pointer protocol; error codes stable).
+pub fn write_file(
+    path: &str,
+    contents: &[u8],
+    max_bytes: u32,
+    timeout_ms: u32,
+) -> Result<(), HostError> {
+    let path_bytes = path.as_bytes();
+    let code = ffi::write_file(
+        path_bytes.as_ptr(),
+        path_bytes.len() as u32,
+        contents.as_ptr(),
+        contents.len() as u32,
+        max_bytes,
+        timeout_ms,
+    );
+    if code < 0 {
+        return Err(HostError::from_code(code));
+    }
+    Ok(())
+}
+
 /// Result of an `exec_subprocess` call.
 #[derive(Debug, Clone)]
 pub struct SubprocessResult {

@@ -56,6 +56,11 @@ pub struct Capabilities {
     pub exec_subprocess: Option<ExecSubprocessCaps>,
     #[serde(default)]
     pub read_file: Option<ReadFileCaps>,
+    /// Write-file capability declaration (BC-2.02.011).
+    /// Deny-by-default: absence of this block causes every `write_file`
+    /// call to return `CAPABILITY_DENIED (-1)`.
+    #[serde(default)]
+    pub write_file: Option<WriteFileCaps>,
     /// Environment variable names the plugin is allowed to read.
     #[serde(default)]
     pub env_allow: Vec<String>,
@@ -88,6 +93,23 @@ pub struct ReadFileCaps {
     /// Path prefixes the plugin is allowed to read, rooted at
     /// `CLAUDE_PROJECT_DIR` unless absolute.
     pub path_allow: Vec<String>,
+}
+
+/// Capability declaration for `host::write_file` (BC-2.02.011).
+/// Parallel to [`ReadFileCaps`]. Deny-by-default: absence of this block
+/// causes every `vsdd::write_file` host call to return `CAPABILITY_DENIED`.
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct WriteFileCaps {
+    /// Path prefixes the plugin is allowed to write, rooted at
+    /// `CLAUDE_PROJECT_DIR` unless absolute.
+    pub path_allow: Vec<String>,
+    /// Optional per-call byte cap. When set, overrides the `max_bytes`
+    /// argument if the argument exceeds this value. If `None`, the
+    /// `max_bytes` argument is used as-is (BC-2.02.011 invariant 2:
+    /// `max_bytes` is mandatory; no opt-out is permitted).
+    #[serde(default)]
+    pub max_bytes_per_call: Option<u32>,
 }
 
 /// Registry-wide defaults, applied when a per-entry field is missing.

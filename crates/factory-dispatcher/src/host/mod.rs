@@ -34,6 +34,7 @@ pub mod exec_subprocess;
 pub mod log;
 pub mod memory;
 pub mod read_file;
+pub mod write_file;
 
 /// Per-invocation state available to every host function. Lives in the
 /// wasmtime [`Store`] for the plugin call and is torn down when the
@@ -164,6 +165,7 @@ pub fn setup_linker(engine: &Engine) -> Result<Linker<HostContext>, HostCallErro
     log::register(&mut linker)?;
     emit_event::register(&mut linker)?;
     read_file::register(&mut linker)?;
+    write_file::register(&mut linker)?;
     exec_subprocess::register(&mut linker)?;
     env::register(&mut linker)?;
     context_fns::register(&mut linker)?;
@@ -190,7 +192,7 @@ pub type HostCaller<'a> = Caller<'a, HostContext>;
 #[cfg(test)]
 pub(crate) mod test_support {
     use super::*;
-    use crate::registry::{Capabilities, ExecSubprocessCaps, ReadFileCaps};
+    use crate::registry::{Capabilities, ExecSubprocessCaps, ReadFileCaps, WriteFileCaps};
 
     pub fn bare_context() -> HostContext {
         HostContext::new("p", "0.0.1", "sess", "trace")
@@ -216,6 +218,18 @@ pub(crate) mod test_support {
         Capabilities {
             read_file: Some(ReadFileCaps {
                 path_allow: paths.iter().map(|s| s.to_string()).collect(),
+            }),
+            ..Default::default()
+        }
+    }
+
+    /// Build a `Capabilities` with only the `write_file` block populated.
+    /// Parallel to `allow_read` (BC-2.02.011 test support, AC-5 / T-3a).
+    pub fn allow_write(paths: &[&str]) -> Capabilities {
+        Capabilities {
+            write_file: Some(WriteFileCaps {
+                path_allow: paths.iter().map(|s| s.to_string()).collect(),
+                ..Default::default()
             }),
             ..Default::default()
         }
