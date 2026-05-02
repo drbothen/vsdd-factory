@@ -107,13 +107,28 @@ fn resolve_for_read(path: &Path, plugin_root: &Path) -> PathBuf {
 }
 
 fn path_allowed(resolved: &Path, allow: &[String], plugin_root: &Path) -> bool {
+    // Canonicalize the target path to remove any `..` components, defeating
+    // traversal attacks (BC-2.02.001 EC-001 / sibling-consistency with BC-2.02.011).
+    // For read_file the file must already exist, so full canonicalize() works.
+    let canon_resolved = match resolved.canonicalize() {
+        Ok(p) => p,
+        // File doesn't exist or I/O error — deny (will produce INTERNAL_ERROR
+        // downstream when read_bounded opens the file).
+        Err(_) => return false,
+    };
+
     for pref in allow {
         let pref_path = if Path::new(pref).is_absolute() {
             PathBuf::from(pref)
         } else {
             plugin_root.join(pref)
         };
-        if resolved.starts_with(&pref_path) {
+        let canon_pref = match pref_path.canonicalize() {
+            Ok(p) => p,
+            // Configured allowlist prefix doesn't exist — skip.
+            Err(_) => continue,
+        };
+        if canon_resolved.starts_with(&canon_pref) {
             return true;
         }
     }

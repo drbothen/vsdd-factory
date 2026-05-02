@@ -116,17 +116,68 @@ fn resolve_for_write(path: &Path, plugin_root: &Path) -> PathBuf {
     }
 }
 
+/// Resolve a target path for allowlist comparison, canonicalizing to defeat
+/// `..` traversal attacks (BC-2.02.011 EC-001 / invariant 6).
+///
+/// Because `write_file` creates files that don't yet exist, `canonicalize()`
+/// cannot be called on the full path. Instead: walk up the ancestor chain
+/// until we find a directory that exists on disk, canonicalize it, then
+/// rejoin the non-existent tail. This handles both the common case (only the
+/// target file doesn't exist yet) and deeper cases (parent subdir also doesn't
+/// exist). If no ancestor exists (or the path has no parent), return `None`.
+fn resolve_path_for_allowlist(target: &Path) -> Option<PathBuf> {
+    if let Ok(canon) = target.canonicalize() {
+        return Some(canon);
+    }
+    // Collect the non-existent tail components bottom-up, then find the
+    // deepest ancestor that can be canonicalized.
+    let mut tail: Vec<std::ffi::OsString> = Vec::new();
+    let mut cur = target.to_path_buf();
+    loop {
+        let filename = cur.file_name()?.to_os_string();
+        tail.push(filename);
+        let parent = cur.parent()?.to_path_buf();
+        if let Ok(canon_parent) = parent.canonicalize() {
+            // Rejoin all tail components in original order.
+            let mut result = canon_parent;
+            for component in tail.iter().rev() {
+                result = result.join(component);
+            }
+            return Some(result);
+        }
+        cur = parent;
+    }
+}
+
 /// Pure-core path-prefix check (BC-2.02.011 invariant 3; purity
-/// classification: pure-core, no I/O).
-/// Mirrors `read_file::path_allowed` exactly.
+/// classification: pure-core, no I/O side-effects beyond the canonicalize
+/// syscall which is read-only).
+///
+/// Paths are canonicalized before the prefix comparison to defeat `..`
+/// traversal attacks (BC-2.02.011 EC-001 / invariant 6).
 pub(crate) fn path_allowed(resolved: &Path, allow: &[String], plugin_root: &Path) -> bool {
+    // Canonicalize the target path to remove any `..` components.
+    // If canonicalization fails (e.g. parent doesn't exist), deny.
+    let canon_resolved = match resolve_path_for_allowlist(resolved) {
+        Some(p) => p,
+        None => return false,
+    };
+
     for pref in allow {
         let pref_path = if Path::new(pref).is_absolute() {
             PathBuf::from(pref)
         } else {
             plugin_root.join(pref)
         };
-        if resolved.starts_with(&pref_path) {
+        // Canonicalize the allowlist prefix as well so both sides are
+        // in the same canonical form.
+        let canon_pref = match pref_path.canonicalize() {
+            Ok(p) => p,
+            // If the configured allowlist prefix doesn't exist on disk,
+            // skip it — it can never match a real resolved path.
+            Err(_) => continue,
+        };
+        if canon_resolved.starts_with(&canon_pref) {
             return true;
         }
     }
