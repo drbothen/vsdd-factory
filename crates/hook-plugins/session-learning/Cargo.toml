@@ -23,5 +23,8 @@ path = "src/main.rs"
 vsdd-hook-sdk = { path = "../../hook-sdk" }
 chrono = { workspace = true }
 
+[dev-dependencies]
+tempfile.workspace = true
+
 [lints]
 workspace = true

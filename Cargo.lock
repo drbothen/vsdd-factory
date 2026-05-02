@@ -2740,6 +2740,7 @@ name = "session-learning"
 version = "0.0.1"
 dependencies = [
  "chrono",
+ "tempfile",
  "vsdd-hook-sdk",
 ]
 
