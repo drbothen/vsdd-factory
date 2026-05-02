@@ -942,21 +942,17 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "update-wave-state-on-merge"
 event = "SubagentStop"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/update-wave-state-on-merge.wasm"
 priority = 940
 timeout_ms = 10000
 on_error = "continue"
 
-[hooks.config]
-script_path = "hooks/update-wave-state-on-merge.sh"
+[hooks.capabilities.read_file]
+path_allow = [".factory/wave-state.yaml"]
 
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+[hooks.capabilities.write_file]
+path_allow = [".factory/wave-state.yaml"]
+max_bytes_per_call = 65536
 
 [[hooks]]
 name = "validate-pr-review-posted"
