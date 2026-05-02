@@ -6,14 +6,16 @@
 # Tests behavioral parity of the native WASM crate against the 7 canonical
 # test cases from S-8.01 T-5 (BC-7.03.043 + BC-7.03.044).
 #
-# RED GATE: All tests in this file MUST FAIL until:
-#   1. The native WASM artifact is built:
-#      cargo build --target wasm32-wasip1 -p handoff-validator
-#   2. The dispatcher can invoke the WASM plugin with the test fixtures.
+# Invocation pattern: pipe JSON to factory-dispatcher with CLAUDE_PLUGIN_ROOT
+# pointing at the worktree plugin directory. The dispatcher provides all WASM
+# host functions (host::emit_event, block-mode envelope, stderr capture).
+# Bare wasmtime does NOT provide these host fns — always use the dispatcher.
 #
-# The dispatcher invocation command is TBD pending T-4 WASM build completion.
-# This bats file is the STRUCTURAL CONTRACT for the parity tests; the
-# invocation mechanism is filled in by the implementer in T-5.
+# Verification: The dispatcher captures plugin stderr in the events log at
+#   $WORK/.factory/logs/events-YYYY-MM-DD.jsonl
+# as the "stderr" field of plugin.completed events. The hook.block event
+# also appears as a separate log line. We grep the events log to assert
+# the expected behavior.
 #
 # BC traces:
 #   BC-7.03.043 postcondition 1 (cases a, f — empty result warn)
@@ -26,38 +28,112 @@
 # AC:    AC-005 (T-5 parity tests)
 
 # ---------------------------------------------------------------------------
-# Setup: locate the WASM artifact and the dispatcher invocation helper.
-# The WASM artifact lives at:
-#   ${WORKTREE_ROOT}/target/wasm32-wasip1/debug/handoff-validator.wasm
+# Setup
 # ---------------------------------------------------------------------------
 
 setup() {
-  WORKTREE_ROOT="$(git rev-parse --show-toplevel)"
-  WASM_ARTIFACT="${WORKTREE_ROOT}/target/wasm32-wasip1/debug/handoff-validator.wasm"
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  DISPATCHER="${REPO_ROOT}/target/release/factory-dispatcher"
+  PLUGIN_ROOT="${REPO_ROOT}/plugins/vsdd-factory"
 
-  # The dispatcher CLI is used to invoke the WASM plugin with a JSON fixture
-  # piped to stdin. The dispatcher binary is expected at:
-  #   ${WORKTREE_ROOT}/target/debug/factory-dispatcher
-  # (or installed in PATH as vsdd-dispatcher for CI).
-  # Implementer fills in the correct invocation in T-5.
-  DISPATCHER="${WORKTREE_ROOT}/target/debug/factory-dispatcher"
-}
+  # Unique work dir per test to avoid log file collisions
+  WORK="${BATS_TEST_TMPDIR}/proj"
+  mkdir -p "${WORK}/.factory/logs"
 
-# Helper: invoke the handoff-validator WASM plugin with a JSON envelope.
-# Captures stdout, stderr, and exit status.
-# Usage: invoke_hook <json_envelope>
-invoke_hook() {
-  local json="$1"
-  # RED GATE: WASM artifact does not exist until T-4 builds it.
-  # Fail with a clear message if the artifact is missing.
-  if [ ! -f "$WASM_ARTIFACT" ]; then
-    skip "WASM artifact not built: run 'cargo build --target wasm32-wasip1 -p handoff-validator' first (T-4)"
+  if [ ! -x "${DISPATCHER}" ]; then
+    skip "dispatcher not built: run 'cargo build --release -p factory-dispatcher' first"
   fi
 
-  # Invoke via dispatcher CLI (exact invocation TBD in T-5).
-  # Placeholder: pipe the JSON to wasmtime directly for initial testing.
-  # The implementer will update this to use the dispatcher once T-4 is done.
-  echo "$json" | wasmtime run --dir . "$WASM_ARTIFACT"
+  # Verify the native WASM artifact is in the plugin dir
+  if [ ! -f "${PLUGIN_ROOT}/hook-plugins/handoff-validator.wasm" ]; then
+    skip "handoff-validator.wasm not built: run 'cargo build --target wasm32-wasip1 --release -p handoff-validator' and copy artifact"
+  fi
+}
+
+# Helper: invoke dispatcher with a JSON envelope and capture results.
+# After this call: $status = dispatcher exit code, $output = dispatcher stderr.
+# The dispatcher writes hook events to:
+#   $WORK/.factory/logs/dispatcher-internal-YYYY-MM-DD.jsonl
+invoke_hook() {
+  local json="$1"
+  # Write JSON to a temp file to avoid shell quoting issues when passing to
+  # the dispatcher via stdin through bash -c.
+  local json_file="${WORK}/payload.json"
+  printf '%s' "$json" > "${json_file}"
+
+  run env \
+    CLAUDE_PLUGIN_ROOT="${PLUGIN_ROOT}" \
+    CLAUDE_PROJECT_DIR="${WORK}" \
+    bash -c "'${DISPATCHER}' < '${json_file}'"
+}
+
+# Helper: assert dispatcher-internal log contains a hook.block entry for
+# handoff-validator with the given reason field value.
+# The dispatcher writes plugin.invoked, hook.block, and plugin.completed events
+# to dispatcher-internal-YYYY-MM-DD.jsonl (not events-YYYY-MM-DD.jsonl).
+assert_hook_block_reason() {
+  local reason="$1"
+  local log="${WORK}/.factory/logs/dispatcher-internal-$(date +%Y-%m-%d).jsonl"
+  if [ ! -f "${log}" ]; then
+    echo "Dispatcher-internal log not found: ${log}"
+    return 1
+  fi
+  if ! grep -q "\"reason\":\"${reason}\"" "${log}"; then
+    echo "Expected hook.block reason='${reason}' not found in ${log}"
+    echo "handoff-validator entries:"
+    grep '"plugin_name":"handoff-validator"' "${log}" || echo "(no entries)"
+    return 1
+  fi
+}
+
+# Helper: assert dispatcher-internal log does NOT contain any hook.block from handoff-validator.
+assert_no_hook_block() {
+  local log="${WORK}/.factory/logs/dispatcher-internal-$(date +%Y-%m-%d).jsonl"
+  if [ ! -f "${log}" ]; then
+    # No log = no events = no block. Pass.
+    return 0
+  fi
+  # Check there is no hook.block from handoff-validator
+  if grep '"type":"hook.block"' "${log}" 2>/dev/null | grep -q '"plugin_name":"handoff-validator"'; then
+    echo "Unexpected hook.block from handoff-validator found in ${log}"
+    grep '"handoff-validator"' "${log}"
+    return 1
+  fi
+}
+
+# Helper: assert dispatcher-internal log contains a plugin.completed entry for
+# handoff-validator with the given string in the stderr field.
+# The dispatcher captures plugin stderr and stores it as "stderr":"..." in
+# plugin.completed log entries.
+assert_plugin_stderr_contains() {
+  local needle="$1"
+  local log="${WORK}/.factory/logs/dispatcher-internal-$(date +%Y-%m-%d).jsonl"
+  if [ ! -f "${log}" ]; then
+    echo "Dispatcher-internal log not found: ${log}"
+    return 1
+  fi
+  # The stderr field is JSON-encoded: newlines become \n, etc.
+  # We grep for the needle as a literal substring in the JSON line.
+  if ! grep '"plugin_name":"handoff-validator"' "${log}" | grep -q "${needle}"; then
+    echo "Expected stderr to contain '${needle}' in plugin.completed for handoff-validator"
+    echo "Log contents for handoff-validator:"
+    grep '"plugin_name":"handoff-validator"' "${log}" || echo "(no entries)"
+    return 1
+  fi
+}
+
+# Helper: assert dispatcher-internal log does NOT have the given string in
+# handoff-validator stderr.
+assert_plugin_stderr_not_contains() {
+  local needle="$1"
+  local log="${WORK}/.factory/logs/dispatcher-internal-$(date +%Y-%m-%d).jsonl"
+  if [ ! -f "${log}" ]; then
+    return 0  # no log = no stderr = assertion trivially passes
+  fi
+  if grep '"plugin_name":"handoff-validator"' "${log}" | grep -q "${needle}"; then
+    echo "Unexpected stderr content '${needle}' found in plugin.completed for handoff-validator"
+    return 1
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -67,10 +143,10 @@ invoke_hook() {
 
 @test "AC-005(a): empty last_assistant_message → exit 0, stderr contains 'empty result'" {
   local json='{"event_name":"SubagentStop","session_id":"s","dispatcher_trace_id":"t","agent_type":"test-agent","last_assistant_message":""}'
-  run invoke_hook "$json"
+  invoke_hook "$json"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"empty result"* ]] || [[ "$stderr" == *"empty result"* ]] || \
-    { echo "Expected 'empty result' in output; got: $output"; false; }
+  assert_hook_block_reason "subagent_empty_result"
+  assert_plugin_stderr_contains "empty result"
 }
 
 # ---------------------------------------------------------------------------
@@ -81,10 +157,10 @@ invoke_hook() {
 
 @test "AC-005(b): 5-char result → exit 0, stderr contains 'non-whitespace characters'" {
   local json='{"event_name":"SubagentStop","session_id":"s","dispatcher_trace_id":"t","agent_type":"test-agent","last_assistant_message":"hello"}'
-  run invoke_hook "$json"
+  invoke_hook "$json"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"non-whitespace characters"* ]] || [[ "$stderr" == *"non-whitespace characters"* ]] || \
-    { echo "Expected 'non-whitespace characters' in output; got: $output"; false; }
+  assert_hook_block_reason "subagent_truncated_result"
+  assert_plugin_stderr_contains "non-whitespace characters"
 }
 
 # ---------------------------------------------------------------------------
@@ -93,15 +169,14 @@ invoke_hook() {
 # ---------------------------------------------------------------------------
 
 @test "AC-005(c): 50-char result → exit 0, no stderr warning" {
-  # 50 'a' characters = 50 non-whitespace
   local msg
   msg="$(printf 'a%.0s' {1..50})"
   local json="{\"event_name\":\"SubagentStop\",\"session_id\":\"s\",\"dispatcher_trace_id\":\"t\",\"agent_type\":\"test-agent\",\"last_assistant_message\":\"${msg}\"}"
-  run invoke_hook "$json"
+  invoke_hook "$json"
   [ "$status" -eq 0 ]
-  # Must NOT contain any warning message
-  [[ "$output" != *"non-whitespace"* ]] || { echo "50-char result must not warn; got: $output"; false; }
-  [[ "$output" != *"empty result"* ]]   || { echo "50-char result must not warn; got: $output"; false; }
+  assert_no_hook_block
+  assert_plugin_stderr_not_contains "non-whitespace"
+  assert_plugin_stderr_not_contains "empty result"
 }
 
 # ---------------------------------------------------------------------------
@@ -113,10 +188,10 @@ invoke_hook() {
   local msg
   msg="$(printf 'a%.0s' {1..39})"
   local json="{\"event_name\":\"SubagentStop\",\"session_id\":\"s\",\"dispatcher_trace_id\":\"t\",\"agent_type\":\"test-agent\",\"last_assistant_message\":\"${msg}\"}"
-  run invoke_hook "$json"
+  invoke_hook "$json"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"non-whitespace characters"* ]] || [[ "$stderr" == *"non-whitespace characters"* ]] || \
-    { echo "LEN=39 must warn (below threshold); got: $output"; false; }
+  assert_hook_block_reason "subagent_truncated_result"
+  assert_plugin_stderr_contains "non-whitespace characters"
 }
 
 # ---------------------------------------------------------------------------
@@ -129,10 +204,11 @@ invoke_hook() {
   local msg
   msg="$(printf 'a%.0s' {1..40})"
   local json="{\"event_name\":\"SubagentStop\",\"session_id\":\"s\",\"dispatcher_trace_id\":\"t\",\"agent_type\":\"test-agent\",\"last_assistant_message\":\"${msg}\"}"
-  run invoke_hook "$json"
+  invoke_hook "$json"
   [ "$status" -eq 0 ]
-  [[ "$output" != *"non-whitespace"* ]] || { echo "LEN=40 must NOT warn; got: $output"; false; }
-  [[ "$output" != *"empty result"* ]]   || { echo "LEN=40 must NOT warn; got: $output"; false; }
+  assert_no_hook_block
+  assert_plugin_stderr_not_contains "non-whitespace"
+  assert_plugin_stderr_not_contains "empty result"
 }
 
 # ---------------------------------------------------------------------------
@@ -144,10 +220,10 @@ invoke_hook() {
 @test "AC-005(f): missing last_assistant_message field → exit 0, stderr warns" {
   # Neither last_assistant_message nor result present → 2-stage chain → "" → empty warn
   local json='{"event_name":"SubagentStop","session_id":"s","dispatcher_trace_id":"t","agent_type":"test-agent"}'
-  run invoke_hook "$json"
+  invoke_hook "$json"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"empty result"* ]] || [[ "$stderr" == *"empty result"* ]] || \
-    { echo "Missing last_assistant_message must warn empty; got: $output"; false; }
+  assert_hook_block_reason "subagent_empty_result"
+  assert_plugin_stderr_contains "empty result"
 }
 
 # ---------------------------------------------------------------------------
@@ -156,9 +232,9 @@ invoke_hook() {
 # ---------------------------------------------------------------------------
 
 @test "AC-005(g): malformed JSON → exit 0, no panic" {
-  run invoke_hook "not valid json {{{###"
-  # Must exit 0 (graceful degradation — advisory hook, not fail-closed)
+  invoke_hook "not valid json {{{###"
+  # Dispatcher exits 0 (graceful degradation — dispatcher itself handles malformed JSON)
   [ "$status" -eq 0 ]
-  # Must not panic (no 'panicked' or 'SIGTRAP' in output)
+  # Must not panic (no 'panicked' in output)
   [[ "$output" != *"panicked"* ]] || { echo "Malformed JSON must not panic; got: $output"; false; }
 }

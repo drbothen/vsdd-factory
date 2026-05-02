@@ -33,14 +33,14 @@
 //! ```
 //!
 //! **Agent identity (BC-2.02.012 Postcondition 5 canonical fallback chain):**
-//! ```rust
+//! ```rust,ignore
 //! let agent: &str = payload.agent_type.as_deref()
 //!     .or(payload.subagent_name.as_deref())
 //!     .unwrap_or("unknown");
 //! ```
 //!
 //! **Assistant message (BC-2.02.012 Postcondition 6 canonical 2-stage chain):**
-//! ```rust
+//! ```rust,ignore
 //! // Handoff-validator divergence path per BC-2.02.012 EC-004:
 //! // Bash 3-stage chain `.last_assistant_message // .result // .output // empty`
 //! // becomes the canonical 2-stage chain in the WASM port (BC-2.02.012 only
