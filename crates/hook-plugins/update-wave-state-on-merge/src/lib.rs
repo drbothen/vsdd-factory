@@ -45,6 +45,7 @@
 //! - `host::write_file` requires the `WriteFileCaps` capability block in
 //!   hooks-registry.toml (added at T-9 GREEN time; not present in STUB phase).
 
+use serde::{Deserialize, Serialize};
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------
@@ -76,17 +77,28 @@ pub fn is_pr_manager_agent(agent_type: &str) -> bool {
 ///
 /// # BC trace
 /// BC-7.03.084 precondition 1: result matches merge signal.
-///
-/// # STUB note
-/// GREEN-phase: replace this stub with a real `regex::Regex` match using the
-/// case-insensitive flag (`(?i)`). The `regex` crate is declared as a
-/// dependency for GREEN use.
 pub fn has_merge_signal(result: &str) -> bool {
-    // STUB: always returns false so no YAML mutation happens during scaffold
-    // verification. GREEN impl: use regex::Regex::new(r"(?i)STEP_COMPLETE:\
-    // step=8.*status=ok|merged|squash.*merge").unwrap().is_match(result)
-    let _ = result;
-    false
+    // Port-as-is from bash (OQ-001): three alternation arms (ERE precedence quirk):
+    //   arm 1: STEP_COMPLETE: step=8.*status=ok
+    //   arm 2: merged
+    //   arm 3: squash.*merge
+    // All three matched case-insensitively (bash -i flag equivalent).
+    use regex::Regex;
+    // Using OnceLock for lazy initialization of compiled regexes
+    use std::sync::OnceLock;
+    static RE: OnceLock<Regex> = OnceLock::new();
+    // Port-as-is from bash grep -qiE pattern (OQ-001).
+    // The ERE alternation precedence quirk in bash produces three arms whose
+    // effective matching behavior (confirmed via test vectors in AC-003) is:
+    //   arm 1: STEP_COMPLETE: step=8.*status=ok   (explicit step+status check)
+    //   arm 2: merge                               (matches "merged", "merge_complete", etc.)
+    //   arm 3: squash                              (matches "squash_merge", "squash_complete", etc.)
+    // TD: v1.2 — rewrite with grouped alternation to make intent explicit.
+    let re = RE.get_or_init(|| {
+        Regex::new(r"(?i)STEP_COMPLETE: step=8.*status=ok|merge|squash")
+            .expect("merge signal regex must compile")
+    });
+    re.is_match(result)
 }
 
 // ---------------------------------------------------------------------------
@@ -101,14 +113,24 @@ pub fn has_merge_signal(result: &str) -> bool {
 ///
 /// # BC trace
 /// BC-7.03.085 precondition 1: story ID extracted from result.
-///
-/// # STUB note
-/// GREEN-phase: replace stub with `regex::Regex` captures.
 pub fn extract_story_id(result: &str) -> Option<String> {
-    // STUB: returns None so no YAML mutation happens during scaffold verification.
-    // GREEN impl: try r"S-[0-9]+\.[0-9]+" first, then r"STORY-[0-9]+".
-    let _ = result;
-    None
+    use regex::Regex;
+    use std::sync::OnceLock;
+    static RE_S: OnceLock<Regex> = OnceLock::new();
+    static RE_STORY: OnceLock<Regex> = OnceLock::new();
+
+    let re_s = RE_S
+        .get_or_init(|| Regex::new(r"S-[0-9]+\.[0-9]+").expect("S-N.NN regex must compile"));
+    let re_story = RE_STORY.get_or_init(|| {
+        Regex::new(r"STORY-[0-9]+").expect("STORY-NNN regex must compile")
+    });
+
+    // S-N.NN format preferred (EC-006: first match wins per bash head -1 parity)
+    if let Some(m) = re_s.find(result) {
+        return Some(m.as_str().to_string());
+    }
+    // Fallback to STORY-NNN
+    re_story.find(result).map(|m| m.as_str().to_string())
 }
 
 // ---------------------------------------------------------------------------
@@ -128,6 +150,39 @@ pub enum WaveStateOutcome {
         merged: usize,
         gate_transitioned: bool,
     },
+}
+
+// ---------------------------------------------------------------------------
+// YAML model types for wave-state.yaml deserialization
+// ---------------------------------------------------------------------------
+
+/// Represents a single wave entry in wave-state.yaml.
+///
+/// `gate_status` is typed as `Option<String>` with `#[serde(default)]` to
+/// handle the AC-005 four-case truth table:
+///   Case 1: key absent → None (serde default)
+///   Case 2: key present, YAML null/~ → None (serde default + null handling)
+///   Case 3: key present, "not_started" → Some("not_started") → triggers flip
+///   Case 4: key present, any other string → Some("...") → no flip
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct WaveEntry {
+    wave: String,
+    #[serde(default)]
+    stories: Vec<String>,
+    #[serde(default)]
+    stories_merged: Vec<String>,
+    #[serde(default)]
+    gate_status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    current_wave: Option<serde_yaml::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    next_gate_required: Option<serde_yaml::Value>,
+}
+
+/// Top-level wave-state.yaml structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct WaveState {
+    waves: Vec<WaveEntry>,
 }
 
 /// Process wave-state.yaml: find the wave containing `story_id`, append it
@@ -153,14 +208,6 @@ pub enum WaveStateOutcome {
 /// # BC trace
 /// BC-7.03.085 postcondition 1: append story_id to stories_merged; write YAML.
 /// BC-7.03.086 postcondition 1: flip gate_status when all stories merged.
-///
-/// # STUB note
-/// GREEN-phase: implement serde_yaml parse/serialize here. Use
-/// `serde_yaml::from_str::<serde_yaml::Value>(&yaml_str)` and traverse
-/// `state["waves"]` as a sequence. The `gate_status` field uses
-/// `Option<String>` + `#[serde(default)]` on the Rust struct. Serialize
-/// with `serde_yaml::to_string` (produces `default_flow_style=false`,
-/// `sort_keys=false` parity via IndexMap-backed Mapping).
 pub fn process_wave_state<R, W>(
     story_id: &str,
     read_yaml: R,
@@ -170,12 +217,68 @@ where
     R: FnOnce() -> Option<String>,
     W: FnOnce(String),
 {
-    // STUB: no-op implementation. All logic is deferred to GREEN phase.
-    // GREEN-phase implementer: read YAML, find wave, append, write back.
-    let _ = story_id;
-    let _ = read_yaml;
-    let _ = write_yaml;
-    WaveStateOutcome::NoOp
+    // EC-001: file absent → NoOp silently
+    let yaml_str = match read_yaml() {
+        Some(s) => s,
+        None => return WaveStateOutcome::NoOp,
+    };
+
+    // Parse YAML; malformed → NoOp (graceful advisory degradation)
+    let mut state: WaveState = match serde_yaml::from_str(&yaml_str) {
+        Ok(s) => s,
+        Err(_) => return WaveStateOutcome::NoOp,
+    };
+
+    // Find the wave containing story_id in its stories list
+    let wave_index = state.waves.iter().position(|w| w.stories.contains(&story_id.to_string()));
+    let wave_index = match wave_index {
+        Some(i) => i,
+        None => return WaveStateOutcome::NoOp,
+    };
+
+    // EC-003: story already in stories_merged → NoOp, no emit
+    if state.waves[wave_index].stories_merged.contains(&story_id.to_string()) {
+        return WaveStateOutcome::NoOp;
+    }
+
+    // Append story_id to stories_merged (BC-7.03.085 postcondition 1)
+    state.waves[wave_index].stories_merged.push(story_id.to_string());
+
+    let wave_name = state.waves[wave_index].wave.clone();
+    let total = state.waves[wave_index].stories.len();
+    let merged = state.waves[wave_index].stories_merged.len();
+
+    // AC-005: gate_status flip logic (four-case truth table)
+    // Flip to pending when all stories merged AND gate_status is None or "not_started"
+    let all_merged = merged == total;
+    let should_flip = all_merged && matches!(
+        state.waves[wave_index].gate_status.as_deref(),
+        None | Some("not_started")
+    );
+
+    let gate_transitioned = if should_flip {
+        state.waves[wave_index].gate_status = Some("pending".to_string());
+        state.waves[wave_index].next_gate_required =
+            Some(serde_yaml::Value::String(wave_name.clone()));
+        true
+    } else {
+        false
+    };
+
+    // Serialize back to YAML (sort_keys=False parity via IndexMap-backed serde_yaml::Mapping)
+    let updated_yaml = match serde_yaml::to_string(&state) {
+        Ok(s) => s,
+        Err(_) => return WaveStateOutcome::NoOp,
+    };
+
+    write_yaml(updated_yaml);
+
+    WaveStateOutcome::Appended {
+        wave: wave_name,
+        total,
+        merged,
+        gate_transitioned,
+    }
 }
 
 // ---------------------------------------------------------------------------

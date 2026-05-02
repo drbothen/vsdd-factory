@@ -21,6 +21,7 @@ path = "src/main.rs"
 
 [dependencies]
 vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde = { workspace = true }
 serde_json = { workspace = true }
 # serde_yaml 0.9.34 pinned via workspace — last release; dtolnay deprecated
 # the crate at this version per 2024 announcement. TD: migrate to maintained
