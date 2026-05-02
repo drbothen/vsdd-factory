@@ -65,37 +65,33 @@ pub fn is_pr_manager_agent(agent_type: &str) -> bool {
 
 /// Returns `true` when the result text contains a merge completion signal.
 ///
-/// Pattern (ported verbatim from bash, OQ-001 — port-as-is per D-2 Option C):
-/// `STEP_COMPLETE: step=8.*status=ok|merged|squash.*merge` (case-insensitive).
+/// Pattern (W-15 gate fix CRIT-W15-004 — corrected from bash port-as-is):
+/// `(?i)STEP_COMPLETE: step=8.*status=ok|merged|squash.*merge`
 ///
-/// ERE alternation precedence note: the bash regex has a known precedence
-/// ambiguity — it parses as three arms:
-///   `(STEP_COMPLETE: step=8.*status=ok)|(merged)|(squash.*merge)`
-/// rather than the intended grouped form. Port-as-is preserves this behavior
-/// including the side-effect that the bare string "merge_complete" matches
-/// the `merged` arm. TD filed for v1.2 fix with grouped alternation.
+/// Three alternation arms (explicit grouping semantics):
+///   arm 1: `STEP_COMPLETE: step=8.*status=ok`  — explicit step+status check
+///   arm 2: `merged`                             — past-tense merge word (PR merged, etc.)
+///   arm 3: `squash.*merge`                      — squash-merge strategy strings
+///
+/// The old bash-parity regex used `merge|squash` which produced false positives
+/// on phrases like "fix merge conflict" and "squash redundant commits". The new
+/// pattern requires `merged` (not bare `merge`) and `squash.*merge` (not bare
+/// `squash`) to eliminate these false positives.
 ///
 /// # BC trace
 /// BC-7.03.084 precondition 1: result matches merge signal.
 pub fn has_merge_signal(result: &str) -> bool {
-    // Port-as-is from bash (OQ-001): three alternation arms (ERE precedence quirk):
-    //   arm 1: STEP_COMPLETE: step=8.*status=ok
-    //   arm 2: merged
-    //   arm 3: squash.*merge
-    // All three matched case-insensitively (bash -i flag equivalent).
+    // Whitespace counted as Unicode codepoints (is_whitespace()); aligned across
+    // handoff-validator + track-agent-stop per W-15 gate fix HIGH-W15-002.
     use regex::Regex;
-    // Using OnceLock for lazy initialization of compiled regexes
     use std::sync::OnceLock;
     static RE: OnceLock<Regex> = OnceLock::new();
-    // Port-as-is from bash grep -qiE pattern (OQ-001).
-    // The ERE alternation precedence quirk in bash produces three arms whose
-    // effective matching behavior (confirmed via test vectors in AC-003) is:
+    // Three alternation arms (W-15 gate fix CRIT-W15-004):
     //   arm 1: STEP_COMPLETE: step=8.*status=ok   (explicit step+status check)
-    //   arm 2: merge                               (matches "merged", "merge_complete", etc.)
-    //   arm 3: squash                              (matches "squash_merge", "squash_complete", etc.)
-    // TD: v1.2 — rewrite with grouped alternation to make intent explicit.
+    //   arm 2: merged                              (past-tense; rejects bare "merge")
+    //   arm 3: squash.*merge                       (squash-merge; rejects bare "squash")
     let re = RE.get_or_init(|| {
-        Regex::new(r"(?i)STEP_COMPLETE: step=8.*status=ok|merge|squash")
+        Regex::new(r"(?i)STEP_COMPLETE: step=8.*status=ok|merged|squash.*merge")
             .expect("merge signal regex must compile")
     });
     re.is_match(result)
@@ -538,24 +534,23 @@ mod tests {
         );
     }
 
-    /// BC-7.03.084 OQ-001 port-as-is: bare "merge_complete" matches the
-    /// `merged` alternation arm (ERE precedence quirk — port-as-is per D-2
-    /// Option C). FAILS until GREEN.
+    /// W-15 gate fix CRIT-W15-004: bare "merge_complete" no longer matches
+    /// (old port-as-is regex had false positives; new regex requires "merged" not bare "merge").
     #[test]
-    fn test_BC_7_03_084_merge_signal_bare_merged_matches_port_as_is() {
+    fn test_BC_7_03_084_merge_signal_bare_merge_complete_does_not_match() {
         assert!(
-            has_merge_signal("merge_complete"),
-            "bare 'merge_complete' must match (OQ-001 port-as-is: merged arm)"
+            !has_merge_signal("merge_complete"),
+            "bare 'merge_complete' must NOT match (W-15 CRIT-W15-004: false positive eliminated)"
         );
     }
 
-    /// BC-7.03.084 OQ-001 port-as-is: "squash_complete" matches squash.*merge arm.
-    /// FAILS until GREEN.
+    /// W-15 gate fix CRIT-W15-004: "squash_complete" no longer matches
+    /// (old port-as-is regex had false positives; new regex requires squash.*merge not bare "squash").
     #[test]
-    fn test_BC_7_03_084_merge_signal_squash_complete_matches_port_as_is() {
+    fn test_BC_7_03_084_merge_signal_squash_complete_does_not_match() {
         assert!(
-            has_merge_signal("squash_complete"),
-            "bare 'squash_complete' must match (OQ-001 port-as-is: squash.*merge arm)"
+            !has_merge_signal("squash_complete"),
+            "bare 'squash_complete' must NOT match (W-15 CRIT-W15-004: false positive eliminated)"
         );
     }
 
@@ -592,6 +587,41 @@ mod tests {
     // -----------------------------------------------------------------------
     // BC-7.03.085 precondition 1: story ID extraction
     // AC-004: S-N.NN format first, STORY-NNN fallback
+    // W-15 gate fix CRIT-W15-004: false-positive regression tests
+    // -----------------------------------------------------------------------
+
+    /// W-15 CRIT-W15-004: bare "merge" in unrelated text must NOT match.
+    #[test]
+    fn test_has_merge_signal_rejects_bare_merge_in_unrelated_text() {
+        assert!(!has_merge_signal("fix merge conflict in lib.rs"));
+    }
+
+    /// W-15 CRIT-W15-004: bare "squash" must NOT match.
+    #[test]
+    fn test_has_merge_signal_rejects_bare_squash() {
+        assert!(!has_merge_signal("squash redundant commits"));
+        assert!(!has_merge_signal("squash strategy considered for release"));
+    }
+
+    /// W-15 CRIT-W15-004: "PR #99 merged" must match (merged arm).
+    #[test]
+    fn test_has_merge_signal_matches_merged_past_tense() {
+        assert!(has_merge_signal("PR #99 merged"));
+    }
+
+    /// W-15 CRIT-W15-004: squash.*merge pattern must match.
+    #[test]
+    fn test_has_merge_signal_matches_squash_dot_star_merge() {
+        assert!(has_merge_signal("squash-merge S-8.09 into develop"));
+        assert!(has_merge_signal("performed squash and merge"));
+    }
+
+    /// W-15 CRIT-W15-004: canonical STEP_COMPLETE step=8 status=ok still matches.
+    #[test]
+    fn test_has_merge_signal_matches_step_complete_canonical() {
+        assert!(has_merge_signal("STEP_COMPLETE: step=8 status=ok"));
+    }
+
     // -----------------------------------------------------------------------
 
     /// BC-7.03.085 precondition 1: S-N.NN format extracted correctly.
