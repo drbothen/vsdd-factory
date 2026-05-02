@@ -11,10 +11,12 @@
 //!
 //! - **Empty result (len == 0):** emits `hook.block` event with
 //!   `reason=subagent_empty_result severity=warn`, writes a warning to stderr,
+//!   writes `{"outcome":"block","reason":"handoff_empty_result"}` to stdout,
 //!   exits 0. (BC-7.03.043)
 //! - **Truncated result (1 <= len < 40):** emits `hook.block` event with
 //!   `reason=subagent_truncated_result severity=warn result_len=N`, writes a
-//!   warning to stderr, exits 0. (BC-7.03.044)
+//!   warning to stderr, writes `{"outcome":"block","reason":"handoff_truncated_result"}`
+//!   to stdout, exits 0. (BC-7.03.044)
 //! - **Sufficient result (len >= 40):** no output, exits 0. (BC-7.03.042
 //!   postcondition 2)
 //! - **Malformed / missing JSON:** graceful exit 0 (advisory; no jq
@@ -60,9 +62,10 @@
 //! - HOST_ABI_VERSION = 1 unchanged (additive projection per D-6 Option A).
 //! - This plugin uses the **canonical advisory-block-mode pattern** (W-15 gate fix,
 //!   CRIT-W15-002): when a blocking condition is met, it emits `hook.block` via
-//!   `host::emit_event` and returns `HookResult::Continue` (exit 0). The dispatcher
-//!   reads the `{"outcome":"block"}` stdout line for advisory blocking; it does NOT
-//!   rely on `HookResult::Block` or `on_error`.
+//!   `host::emit_event`, writes `{"outcome":"block","reason":"..."}` to stdout to
+//!   signal advisory block to the dispatcher, and returns `HookResult::Continue`
+//!   (exit 0). The dispatcher reads the stdout outcome line regardless of `on_error`;
+//!   it does NOT rely on `HookResult::Block` alone.
 //! - `on_error = "continue"` in the registry: plugin crash behavior is non-fatal.
 //!   See `crates/hook-sdk/HOST_ABI.md` "Advisory block-mode pattern" for details.
 
@@ -107,19 +110,24 @@ pub fn classify_result(result: &str) -> ResultClassification {
 
 /// Core hook logic with injectable side-effect callbacks.
 ///
-/// Accepts a `HookPayload` and two callbacks so tests can drive every
+/// Accepts a `HookPayload` and three callbacks so tests can drive every
 /// branch without a WASM runtime.
 ///
 /// `emit`: called with `(event_type, fields)` when a warning event is emitted.
 /// `warn_stderr`: called with the stderr message string when a warning is emitted.
+/// `print_stdout`: called with the JSON outcome line (e.g.
+///   `{"outcome":"block","reason":"handoff_empty_result"}`) to signal advisory
+///   block to the dispatcher. The dispatcher reads this stdout line regardless of
+///   `on_error` (W-15 gate fix CRIT-PR59-001).
 ///
 /// Returns `HookResult::Continue` (exit 0) in all cases — this hook is
 /// advisory-only (BC-7.03.042 postcondition 2, BC-7.03.043 postcondition 2,
 /// BC-7.03.044 postcondition 2).
-pub fn handoff_validator_logic<E, W>(payload: HookPayload, emit: E, warn_stderr: W) -> HookResult
+pub fn handoff_validator_logic<E, W, P>(payload: HookPayload, emit: E, warn_stderr: W, print_stdout: P) -> HookResult
 where
     E: FnOnce(&str, &[(&str, &str)]),
     W: FnOnce(&str),
+    P: FnOnce(&str),
 {
     // BC-2.02.012 Postcondition 5: canonical agent identity fallback chain.
     let agent: &str = payload
@@ -153,6 +161,9 @@ where
                     ("subagent", agent),
                 ],
             );
+            // Advisory block signal to dispatcher (W-15 gate fix CRIT-PR59-001).
+            // Dispatcher reads this stdout line regardless of on_error setting.
+            print_stdout(r#"{"outcome":"block","reason":"handoff_empty_result"}"#);
             let msg = format!(
                 "handoff-validator: subagent '{}' returned an empty result.\n  This is a silent-failure risk — verify before continuing.\n",
                 agent
@@ -173,6 +184,8 @@ where
                     ("result_len", len_str.as_str()),
                 ],
             );
+            // Advisory block signal to dispatcher (W-15 gate fix CRIT-PR59-001).
+            print_stdout(r#"{"outcome":"block","reason":"handoff_truncated_result"}"#);
             let msg = format!(
                 "handoff-validator: subagent '{}' returned only {} non-whitespace characters.\n  Suspiciously short — verify the subagent completed its task.\n",
                 agent, len
@@ -286,6 +299,7 @@ mod tests {
             |msg| {
                 stderr_msg = Some(msg.to_string());
             },
+            |_| {},
         );
 
         assert_eq!(emitted_type.as_deref(), Some("hook.block"), "must emit hook.block");
@@ -325,6 +339,7 @@ mod tests {
                 }
             },
             |_| {},
+            |_| {},
         );
         assert!(got_empty, "whitespace-only result must trigger subagent_empty_result");
     }
@@ -354,6 +369,7 @@ mod tests {
             |msg| {
                 stderr_msg = Some(msg.to_string());
             },
+            |_| {},
         );
 
         assert_eq!(emitted_type.as_deref(), Some("hook.block"));
@@ -388,6 +404,7 @@ mod tests {
                 }
             },
             |_| {},
+            |_| {},
         );
         assert!(emitted, "39-char result must trigger truncation warning");
     }
@@ -403,6 +420,7 @@ mod tests {
         handoff_validator_logic(
             payload,
             |_, _| { emitted = true; },
+            |_| {},
             |_| {},
         );
         assert!(!emitted, "40-char result must NOT trigger any warning");
@@ -423,6 +441,7 @@ mod tests {
             payload,
             |_, _| { emitted = true; },
             |_| { warned = true; },
+            |_| {},
         );
         assert!(!emitted, "sufficient result must not emit any event");
         assert!(!warned, "sufficient result must not write any stderr");
@@ -447,6 +466,7 @@ mod tests {
                     .map(|(_, v)| v.to_string());
             },
             |_| {},
+            |_| {},
         );
         assert_eq!(
             subagent_in_event.as_deref(),
@@ -469,6 +489,7 @@ mod tests {
                     .find(|(k, _)| *k == "subagent")
                     .map(|(_, v)| v.to_string());
             },
+            |_| {},
             |_| {},
         );
         assert_eq!(
@@ -493,6 +514,7 @@ mod tests {
                     got_empty = true;
                 }
             },
+            |_| {},
             |_| {},
         );
         assert!(
@@ -524,7 +546,7 @@ mod tests {
             base_subagentstop(&format!(r#""last_assistant_message":"{}""#, "a".repeat(50))), // sufficient
         ] {
             let payload = make_payload(&json);
-            let result = handoff_validator_logic(payload, |_, _| {}, |_| {});
+            let result = handoff_validator_logic(payload, |_, _| {}, |_| {}, |_| {});
             assert_eq!(
                 result,
                 HookResult::Continue,

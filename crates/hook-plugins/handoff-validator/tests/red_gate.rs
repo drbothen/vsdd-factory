@@ -400,6 +400,7 @@ fn test_BC_7_03_043_empty_result_emits_exactly_5_fields() {
             field_count = fields.len();
         },
         |_| {},
+        |_| {},
     );
 
     assert_eq!(
@@ -424,6 +425,7 @@ fn test_BC_7_03_043_empty_result_emitted_field_names_are_canonical() {
         |_, fields| {
             keys = fields.iter().map(|(k, _)| k.to_string()).collect();
         },
+        |_| {},
         |_| {},
     );
 
@@ -465,6 +467,7 @@ fn test_BC_7_03_044_short_result_emits_exactly_6_fields() {
             field_count = fields.len();
         },
         |_| {},
+        |_| {},
     );
 
     assert_eq!(
@@ -489,6 +492,7 @@ fn test_BC_7_03_044_short_result_emitted_field_names_are_canonical() {
         |_, fields| {
             keys = fields.iter().map(|(k, _)| k.to_string()).collect();
         },
+        |_| {},
         |_| {},
     );
 
@@ -529,6 +533,7 @@ fn test_BC_7_03_043_empty_result_stderr_exact_format() {
         |msg| {
             stderr_msg = Some(msg.to_string());
         },
+        |_| {},
     );
 
     let msg = stderr_msg.expect("stderr must be written for empty result");
@@ -559,6 +564,7 @@ fn test_BC_7_03_044_short_result_stderr_exact_format() {
         |msg| {
             stderr_msg = Some(msg.to_string());
         },
+        |_| {},
     );
 
     let msg = stderr_msg.expect("stderr must be written for short result");
@@ -604,6 +610,7 @@ fn test_BC_7_03_043_ec001_both_message_fields_absent_warns_empty_with_unknown_ag
         |_| {
             stderr_written = true;
         },
+        |_| {},
     );
 
     assert_eq!(
@@ -642,6 +649,7 @@ fn test_BC_7_03_042_ec003_exactly_40_chars_is_sufficient_no_event_no_stderr() {
         payload,
         |_, _| { emitted = true; },
         |_| { stderr_written = true; },
+        |_| {},
     );
 
     assert!(!emitted, "EC-003: 40-char result must NOT emit any event (threshold is < 40)");
@@ -679,6 +687,7 @@ fn test_BC_2_02_012_ec005_non_subagentstop_payload_pure_logic_returns_continue()
         payload,
         |_, _| {}, // ignore event emission
         |_| {},    // ignore stderr
+        |_| {},    // ignore stdout
     );
 
     assert_eq!(
@@ -719,6 +728,7 @@ fn test_BC_7_03_044_result_field_fallback_short_value_emits_truncated_warning() 
                 .map(|(_, v)| v.to_string());
         },
         |_| {},
+        |_| {},
     );
 
     assert_eq!(
@@ -756,6 +766,7 @@ fn test_BC_7_03_043_result_field_fallback_empty_value_emits_empty_warning() {
                 .find(|(k, _)| *k == "reason")
                 .map(|(_, v)| v.to_string());
         },
+        |_| {},
         |_| {},
     );
 
@@ -827,7 +838,7 @@ fn test_BC_7_03_042_invariant_hook_always_returns_continue_for_all_lengths() {
             msg.replace('\\', "\\\\").replace('"', "\\\"")
         ));
         let payload = make_payload(&json);
-        let result = handoff_validator_logic(payload, |_, _| {}, |_| {});
+        let result = handoff_validator_logic(payload, |_, _| {}, |_| {}, |_| {});
         assert_eq!(
             result,
             HookResult::Continue,
