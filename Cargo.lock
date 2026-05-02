@@ -3420,6 +3420,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "track-agent-start"
+version = "1.0.0-rc.1"
+dependencies = [
+ "regex",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "try-lock"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
