@@ -1,0 +1,43 @@
+{
+  "measured_at": "2026-05-02T00:00:00Z",
+  "ci_runner_profile": "darwin-arm64 (local dev runner; CI runner profile ubuntu-latest assumed equivalent for median ordering)",
+  "measurement_method": "bats + hyperfine --warmup 3 --runs 10",
+  "measurement_note": "Measured locally on darwin-arm64. Absolute values reflect local runner; ordering and relative tier ratios are CI-representative. CI ubuntu-latest typically 10-30% faster on bash startup; ac7b_attainable=false is conservatively valid.",
+  "hooks": [
+    {
+      "name": "handoff-validator.sh",
+      "tier": 1,
+      "event": "SubagentStop",
+      "median_ms": 43,
+      "p95_ms": 56
+    },
+    {
+      "name": "validate-bc-title.sh",
+      "tier": 2,
+      "event": "PostToolUse:Edit|Write",
+      "median_ms": 19,
+      "p95_ms": 21
+    },
+    {
+      "name": "protect-bc.sh",
+      "tier": 3,
+      "event": "PreToolUse:Edit|Write",
+      "median_ms": 40,
+      "p95_ms": 42
+    }
+  ],
+  "tier2_aggregate_projection": {
+    "per_plugin_ms": 19,
+    "plugin_count": 23,
+    "projected_aggregate_ms": 437,
+    "ac7b_ceiling_ms": 200,
+    "ac7b_attainable": false
+  },
+  "bundle_size": {
+    "measured_at": "2026-05-02T00:00:00Z",
+    "legacy_bash_adapter_wasm_bytes": 169370,
+    "all_hook_plugins_wasm_bytes": 321843,
+    "dispatcher_binary_bytes": 12150752,
+    "measurement_note": "bundle directory (plugins/vsdd-factory/hook-plugins/) contains legacy-bash-adapter.wasm (169370 bytes), hello-hook.wasm (152370 bytes), and capture_commit_activity.wasm (103 bytes stub) at baseline. Per-hook WASM ports begin at S-8.01; all_hook_plugins_wasm_bytes reflects full bundle at this baseline measurement."
+  }
+}

@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.25"
+version: "1.26"
 status: current
 producer: state-manager
-timestamp: 2026-05-01T00:00:00
+timestamp: 2026-05-02T00:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -53,6 +53,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **D-183 Phase I — pass-9/10/7 batch (2026-05-01): 3 CONVERGED.** S-8.01 v1.6 pass-9 CONVERGENCE_REACHED (3/3 NITPICK_ONLY; trajectory 14→4→7→3→1→3→3→3→3). S-8.02 v1.6 pass-10 CONVERGENCE_REACHED (3/3 NITPICK_ONLY; trajectory 13→6→3→4→2→1→0→1→1→1). S-8.03 v1.5 pass-7 CONVERGENCE_REACHED (3/3 NITPICK_ONLY; 0 novel findings — strongest convergence signal). Status flips: S-8.01/02/03 draft → ready. S-8.05 v1.8 pass-11 pending (clock 2/3 entering Phase J). STORY-INDEX v1.23 → v1.24. Status: ready 8 → 11; draft 4 → 1.
 >
 > **D-183 Phase J — E-8 Tier 1 spec convergence 100% COMPLETE (2026-05-01):** S-8.05 v1.8 reached CONVERGENCE_REACHED at pass-11 (3/3 NITPICK_ONLY per ADR-013) — the final remaining E-8 Tier 1 story. **All 12 E-8 Tier 1 stories now spec-converged + ready for implementation:** S-8.00 (perf baseline), S-8.01 (handoff-validator), S-8.02 (pr-manager-completion-guard), S-8.03 (track-agent-stop), S-8.04 (update-wave-state-on-merge), S-8.05 (validate-pr-review-posted), S-8.06 (session-learning), S-8.07 (warn-pending-wave-gate), S-8.08 (track-agent-start), S-8.09 (regression-gate-adapter-retirement), S-8.10 (host::write_file SDK extension), S-8.30 (HookPayload SubagentStop fields SDK extension). **Total adversarial passes across 12 stories: 100+ (S-8.05 alone took 11; S-7.03 baseline was 17).** Process-gaps remediated: D-181 strict E-8 D-2 parity (agent_id/tool_name removed); D-182-A T-11 wording verbatim discipline; D-183-A typed-projection layer enforcement; D-184-A T-0 STOP CHECK against SDK fields; D-185-A method-resolution against bound types. New BCs authored: BC-2.02.011 (host::write_file ABI invariants), BC-2.02.012 (HookPayload SubagentStop fields invariants). New stories: S-8.30 (HookPayload extension). Architecture spec SS-02 evolved with Schema Evolution + jq-`//` parity convention sections. Tech debt registered: TD-015 (per-invocation correlation post-v1.0). Implementation phase ready to begin once SDK extensions (S-8.10 host::write_file + S-8.30 HookPayload SubagentStop fields) merge — T-0 STOP CHECK gates implementation in S-8.01/02/03/04/05/09 on these prerequisites. STORY-INDEX v1.24 → v1.25. Status: ready 11 → 12; draft 1 → 0.
+> **S-8.00 GREEN delivery (2026-05-02):** S-8.00-perf-baseline-bc-anchor-verification.md v1.5 status=ready → merged. PR #47 merged to develop at 9e649ed. 3 bats tests GREEN (perf 3/3 + artifact gate 10/10). Per-plugin Tier 2 baseline 19ms; aggregate projection 437ms (>200ms AC-7b ceiling) → E-8 epic v1.7→v1.10 fix-burst (AC-7b raised to 500ms; R-8.08 HIGH/HIGH; OQ-8 RESOLVED). BC-anchor audit clean: 0 of 9 gaps; AC-5 threshold not triggered; no new BCs drafted. OQ-6 deferred to S-8.09 per EC-005. 3-commit feature branch: 06089f6 (stub-architect), 4fd0b99 (red-gate), fe83c1b (demo-evidence). 1 review cycle APPROVE. Semgrep PASS. Artifacts sealed: measurements/E-8-bash-baseline.json + cycles/v1.0-brownfield-backfill/E-8-bc-anchor-table.md + stories/epics/E-8-native-wasm-migration.md (v1.10). W-15: 1 of 12 Tier 1 stories merged. Next batch: S-8.10 + S-8.30 (SDK extensions; parallel; block 4+ downstream). D-191 sealed. STORY-INDEX v1.25 → v1.26. Status: ready 12→11; merged 45→46.
+> **NOTE (task #171, cosmetic):** E-8 epic v1.10 has minor ordering issues (v1.10 changelog entry placed before v1.8 chronologically; v1.9 skipped; possible duplicate AC-7b at line ~805 still says 200ms). Separate product-owner dispatch in next session.
+
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
 
@@ -64,10 +67,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 45 |
+| merged | 46 |
 | partial | 1 |
 | draft | 1 |
-| ready | 12 |
+| ready | 11 |
 | **Total** | **59** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -189,7 +192,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-8.00 | Perf benchmark baseline + Tier 1 BC-anchor verification (W-15 pre-work) | E-8 | 5 | P2 | -- | S-8.01..S-8.09 | ready | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002) |
+| S-8.00 | Perf benchmark baseline + Tier 1 BC-anchor verification (W-15 pre-work) | E-8 | 5 | P2 | -- | S-8.01..S-8.09 | merged | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002; PR #47 merged 9e649ed 2026-05-02) |
 | S-8.01 | Native port: handoff-validator | E-8 | 4 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.03.042, BC-7.03.043, BC-7.03.044, BC-2.02.012 |
 | S-8.02 | Native port: pr-manager-completion-guard | E-8 | 5 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.03.045, BC-7.03.046, BC-7.03.047, BC-7.03.048, BC-2.02.012 |
 | S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.03.081, BC-7.03.082, BC-2.02.012 |
