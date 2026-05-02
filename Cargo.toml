@@ -12,6 +12,7 @@ members = [
     "crates/hook-plugins/capture-pr-activity",
     "crates/hook-plugins/legacy-bash-adapter",
     "crates/hook-plugins/block-ai-attribution",
+    "crates/hook-plugins/update-wave-state-on-merge",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
@@ -48,6 +49,9 @@ regex = "1"
 tempfile = "3"
 chrono = { version = "0.4", features = ["serde"] }
 filetime = "0.2"
+# serde_yaml 0.9.34 pinned — dtolnay deprecated the crate at this version per
+# 2024 announcement. TD: migrate to maintained alternative in v1.2+ (OQ-002).
+serde_yaml = "0.9.34"
 wat = "1"
 # OTLP/gRPC sink (S-1.9). The opentelemetry crate ecosystem moves in
 # lockstep at 0.31 as of April 2026; pin all four together so a

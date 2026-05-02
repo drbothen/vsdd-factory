@@ -1,0 +1,32 @@
+[package]
+name = "update-wave-state-on-merge"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: updates wave-state.yaml when pr-manager completes a successful merge (SubagentStop)"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the macro-generated entry point that calls into the lib.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "update-wave-state-on-merge"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde_json = { workspace = true }
+# serde_yaml 0.9.34 pinned via workspace — last release; dtolnay deprecated
+# the crate at this version per 2024 announcement. TD: migrate to maintained
+# alternative in v1.2+ (OQ-002 resolution).
+serde_yaml = { workspace = true }
+regex = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
