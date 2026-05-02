@@ -1,5 +1,69 @@
 # Changelog
 
+## 1.0.0-rc.2 — Release Candidate 2 (skill cleanup) (2026-05-01)
+
+Bug-fix release focused on plugin frontmatter cleanup and CI/CD reliability.
+The headline change: 29 skills had `disable-model-invocation: true` set, which
+was preventing the orchestrator (which runs as the model) from dispatching
+those skills via the Skill tool — forcing fallback to ToolSearch and the
+"load multiple times then search" UX friction. This release removes that
+flag from all 29 skills. Real safety lives in the skill body, not in the flag.
+
+### Fixed
+
+- **commands/claude-telemetry.md** — quoted the description so YAML parses;
+  the unquoted "Default: on" fragment was a YAML mapping-separator bug that
+  caused `claude plugin validate` to fail.
+- **skills/generate-pdf** — renamed `tools:` to `allowed-tools:` (the
+  former was silently ignored, meaning the skill ran without its declared
+  tool pre-approvals).
+- **agents/session-reviewer.md → agents/session-review.md** — renamed the
+  file to match its `name: session-review` field and the matching skill
+  convention. Workflow refs already used `session-review`.
+- **9 orchestrator reference docs** — removed meaningless
+  `disable-model-invocation: true` from sequence playbooks (the flag is
+  skill-only; agents are invoked via `Agent(subagent_type=...)`).
+
+### Added
+
+- **`argument-hint` on 4 skills** — `claude-telemetry`, `factory-obs`,
+  `run-phase`, `validate-workflow` now show their accepted arguments in
+  slash-command autocomplete.
+- **Marketplace JSON sync to develop** (release.yml `sync-develop` job and
+  inline best-effort path in `commit-binaries`) — closes a Git Flow gap
+  discovered during rc.1: Claude Code's plugin marketplace reads
+  `marketplace.json` from the GitHub default branch (develop), but the
+  post-tag bot writes version bumps only to main. Without these safeguards,
+  develop's `marketplace.json` was always one release behind. This rc.2
+  release is the first real-world test of the new path.
+- **Marketplace `ref: "main"` pin** — `marketplace.json` plugin source now
+  explicitly pulls from `main` so end-user installs always get released
+  code regardless of which branch was read.
+
+### Changed
+
+- **29 skills no longer have `disable-model-invocation: true`** — affects
+  pipeline ops (state-update, track-debt, check-state-health, factory-health,
+  validate-consistency, convergence-check, wave-gate, holdout-eval,
+  formal-verify, perf-check, spec-drift, dtu-validate, worktree-manage,
+  pr-create, record-demo, setup-env), phase playbooks (create-prd,
+  create-architecture, create-story, create-domain-spec, create-brief,
+  create-adr, decompose-stories, research), and a handful of user-action
+  skills. Orchestrator and sub-agents can now dispatch all of these via
+  the Skill tool without "Unknown skill" fallback.
+
+### Migration
+
+No breaking changes for end-user plugin invocations. Slash commands,
+auto-invocation, and orchestrator dispatch all continue to work; the
+skill cleanup eliminates failure modes rather than introducing new ones.
+
+For developers extending the plugin: if you'd added new skills with
+`disable-model-invocation: true` for safety, consider whether real safety
+should instead live in the skill body (explicit confirmation prompts,
+prerequisite checks). The flag is not the right tool for orchestration
+gates — see PR #45 for rationale.
+
 ## 1.0.0-rc.1 — Release Candidate 1 (2026-04-29)
 
 First release candidate for v1.0.0 GA. Closes the 4-month beta cycle by shipping all
