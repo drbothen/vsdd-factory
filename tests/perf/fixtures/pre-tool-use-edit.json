@@ -1,0 +1,10 @@
+{
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/tmp/non-bc-file.txt",
+    "old_string": "old",
+    "new_string": "new"
+  },
+  "session_id": "test-session-00000000"
+}
