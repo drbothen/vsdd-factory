@@ -1,7 +1,7 @@
 ---
 name: convergence-check
 description: Run 7-dimension convergence validation — spec, tests, implementation, verification, visual, performance, documentation. Determines if the project is ready for release.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Bash, Glob, Grep
 ---
 

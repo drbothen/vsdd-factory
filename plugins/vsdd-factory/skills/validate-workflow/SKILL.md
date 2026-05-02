@@ -1,6 +1,7 @@
 ---
 name: validate-workflow
 description: Schema-check a Lobster workflow file. Confirms required fields, depends_on resolution, and agent/skill references are valid. Invoke as `/vsdd-factory:validate-workflow <file>`.
+argument-hint: "<file.lobster>"
 ---
 
 # Validate Workflow

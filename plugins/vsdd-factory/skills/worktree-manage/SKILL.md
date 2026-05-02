@@ -2,7 +2,7 @@
 name: worktree-manage
 description: Create, list, or cleanup story worktrees in .worktrees/. Use when starting a new story, checking active worktrees, or cleaning up after merge. Usage - /worktree-manage create STORY-NNN, /worktree-manage list, /worktree-manage cleanup STORY-NNN
 argument-hint: "[create|list|cleanup] [STORY-NNN]"
-disable-model-invocation: true
+
 allowed-tools: Bash, Read
 ---
 

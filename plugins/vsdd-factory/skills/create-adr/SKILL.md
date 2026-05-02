@@ -2,7 +2,7 @@
 name: create-adr
 description: Scaffold a new ADR file from template, allocate collision-free ID, insert ARCH-INDEX row, patch any superseded ADR bidirectionally, and validate template compliance. Atomic-or-nothing execution.
 argument-hint: "--title <text> --subsystems <SS-NN[,...]> [--supersedes <ADR-NNN>] [--brownfield] [--id <ADR-NNN>] [--dry-run]"
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash
 ---
 

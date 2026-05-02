@@ -1,7 +1,6 @@
 ---
 name: jira
 description: Reference documentation for the ankitpokhrel jira-cli tool used for Jira integration in factory workflows. Reference-only skill, not directly invokable.
-disable-model-invocation: true
 ---
 
 # Jira CLI Reference

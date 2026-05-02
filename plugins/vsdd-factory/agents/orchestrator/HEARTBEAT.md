@@ -1,7 +1,6 @@
 ---
 name: orchestrator-heartbeat
 description: Orchestrator workflow reference for heartbeat status updates between delegations. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
-disable-model-invocation: true
 ---
 
 > **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.

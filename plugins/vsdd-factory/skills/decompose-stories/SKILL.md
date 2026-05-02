@@ -1,7 +1,7 @@
 ---
 name: decompose-stories
 description: Decompose PRD and architecture into epics, stories, dependency graph, and wave schedule. Creates sprint-ready story files in .factory/stories/. Requires completed Phase 1 specs.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 

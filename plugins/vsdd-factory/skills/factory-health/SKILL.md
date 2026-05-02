@@ -1,7 +1,7 @@
 ---
 name: factory-health
 description: Validate and auto-repair the .factory/ worktree. Run at session start or when .factory/ state seems wrong. Checks orphan branch exists, worktree is mounted, and STATE.md is present.
-disable-model-invocation: true
+
 allowed-tools: Bash, Read, Write
 ---
 

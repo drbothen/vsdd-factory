@@ -1,7 +1,7 @@
 ---
 name: formal-verify
 description: Run formal hardening — Kani proofs for pure core functions, fuzz testing with cargo-fuzz, mutation testing with cargo-mutants, and security scanning with semgrep. Phase 5 quality gate.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Bash, Glob, Grep
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: orchestrator-discovery-sequence
 description: Orchestrator workflow reference for the discovery-engine sequence (Path 8). Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
-disable-model-invocation: true
 ---
 
 > **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.

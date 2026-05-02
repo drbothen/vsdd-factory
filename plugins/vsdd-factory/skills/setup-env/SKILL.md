@@ -1,7 +1,7 @@
 ---
 name: setup-env
 description: Validate and provision the development environment — check required tools, verify versions, run health checks on MCP servers, and set up project tooling (lefthook, just, cargo tools).
-disable-model-invocation: true
+
 allowed-tools: Bash, Read, Write
 ---
 

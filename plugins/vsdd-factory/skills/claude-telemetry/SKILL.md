@@ -1,6 +1,7 @@
 ---
 name: claude-telemetry
 description: Wire Claude Code's native OpenTelemetry export into the local vsdd-factory observability stack. Writes five OTEL_* env vars to .claude/settings.local.json so Claude ships its tool calls, token counts, and API events to the same Loki that our hook events use. Use when the user asks to enable/disable Claude OTel telemetry, check which OTEL env vars are set, or troubleshoot missing Claude metrics in Grafana. Reversible; local-only.
+argument-hint: "[on|off|status]"
 allowed-tools: Read, Write, Bash
 ---
 
