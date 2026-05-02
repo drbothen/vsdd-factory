@@ -1,0 +1,32 @@
+[package]
+name = "regression-gate"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: records test pass/fail to .factory/regression-state.json; warns on pass-to-fail regression"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the macro-generated entry point that calls into the lib.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "regression-gate"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
