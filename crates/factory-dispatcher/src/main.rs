@@ -27,7 +27,10 @@
 //! sink pipeline. Best-effort: write failures are silently dropped.
 
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+// Mutex is only needed in debug builds for the VSDD_SINK_FILE flush path (SEC-003).
+#[cfg(debug_assertions)]
+use std::sync::Mutex;
 
 use factory_dispatcher::engine::{EpochTicker, build_engine};
 use factory_dispatcher::executor::{ExecutorInputs, execute_tiers};
@@ -45,8 +48,10 @@ use factory_dispatcher::{HOST_ABI_VERSION, new_trace_id};
 
 const ENV_PLUGIN_ROOT: &str = "CLAUDE_PLUGIN_ROOT";
 const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
-/// When set, plugin-emitted events are appended as JSONL to this path.
-/// Used by bats integration tests (S-8.08 AC-005). Best-effort.
+// SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
+// The constant and all logic reading it are gated behind #[cfg(debug_assertions)]
+// so the env var name does not appear in release binaries.
+#[cfg(debug_assertions)]
 const ENV_SINK_FILE: &str = "VSDD_SINK_FILE";
 
 #[tokio::main(flavor = "current_thread")]
@@ -182,6 +187,9 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // ExecutorInputs. All plugin contexts share this Arc (every clone
     // of HostContext shares the same Mutex<Vec<_>>), so draining it
     // after execute_tiers completes yields all plugin-emitted events.
+    // In release builds the VSDD_SINK_FILE path is compiled out (SEC-003);
+    // allow(unused_variables) silences the resulting lint.
+    #[allow(unused_variables)]
     let event_queue = Arc::clone(&base_host_ctx.events);
 
     let inputs = ExecutorInputs {
@@ -216,14 +224,21 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         summary.exit_code,
     );
 
+    // SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
     // VSDD_SINK_FILE: drain plugin events and append as JSONL for
     // bats integration tests (S-8.08 AC-005). Best-effort — any I/O
     // error is silently dropped so the dispatcher always exits 0 on
     // non-block dispatches regardless of sink write outcome.
+    #[cfg(debug_assertions)]
     if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
         && !sink_path.is_empty()
     {
-        flush_sink_file(&sink_path, &event_queue);
+        // Reject path traversal and absolute paths (SEC-003).
+        if sink_path.contains("..") || std::path::Path::new(&sink_path).is_absolute() {
+            eprintln!("VSDD_SINK_FILE: rejected unsafe path: {sink_path}");
+        } else {
+            flush_sink_file(&sink_path, &event_queue);
+        }
     }
 
     Ok(summary.exit_code)
@@ -262,6 +277,8 @@ fn resolve_log_dir() -> PathBuf {
 /// noise.
 ///
 /// Used by S-8.08 AC-005 bats integration tests.
+/// SECURITY: debug-only; see SEC-003 (W-15 wave gate fix).
+#[cfg(debug_assertions)]
 fn flush_sink_file(sink_path: &str, event_queue: &Arc<Mutex<Vec<InternalEvent>>>) {
     use std::io::Write;
 
