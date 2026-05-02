@@ -1,6 +1,7 @@
 ---
 name: factory-obs
 description: Manage the local observability stack (OTel Collector + Loki + Prometheus + Grafana + image-renderer) that visualizes vsdd-factory hook events and Claude Code OTel telemetry. Starts/stops/resets the Docker stack, manages the multi-factory watched-list registry (register/unregister/list), and opens the Grafana dashboard. Use when the user asks to start/stop the observability stack, register a project to be watched, list registered factories, or open the Grafana dashboards. Opt-in, local-only, no cloud services.
+argument-hint: "[up|down|reset|status|logs|dashboard|register|unregister|list|regenerate|help]"
 allowed-tools: Bash
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: run-phase
 description: Execute a VSDD phase by reading its Lobster workflow file and spawning the declared sub-agents in dependency order. Invoke as `/vsdd-factory:run-phase <phase-id>`.
+argument-hint: "<phase-id|mode-name>"
 ---
 
 # Run Phase
