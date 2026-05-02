@@ -61,6 +61,68 @@ UTF-8 JSON. Schema:
 `tool_response` is `null` for `PreToolUse` and most pre-call events;
 present for `PostToolUse` and lifecycle events that carry a result.
 
+### SubagentStop stdin envelope
+
+When Claude Code fires a `SubagentStop` event the dispatcher writes the
+following shape to plugin stdin.  The four SubagentStop-specific fields
+(`agent_type`, `subagent_name`, `last_assistant_message`, `result`) are
+**top-level** — not nested inside `tool_input` or `tool_response`.
+
+```json
+{
+  "event_name": "SubagentStop",
+  "session_id": "abc-123",
+  "dispatcher_trace_id": "uuidv4",
+  "tool_name": "",
+  "tool_input": null,
+  "tool_response": null,
+  "agent_type": "product-owner",
+  "subagent_name": "product-owner-fallback",
+  "last_assistant_message": "Wrote the story spec and committed.",
+  "result": "fallback-result-string"
+}
+```
+
+**Field presence semantics**
+
+| Field | Type in `HookPayload` | Present on | Absent behaviour |
+|---|---|---|---|
+| `agent_type` | `Option<String>` | SubagentStop only | `None` (via `#[serde(default)]`) |
+| `subagent_name` | `Option<String>` | SubagentStop only | `None` |
+| `last_assistant_message` | `Option<String>` | SubagentStop only | `None` |
+| `result` | `Option<String>` | SubagentStop only | `None` |
+
+JSON `null` deserializes to `None` for all four fields — identical to jq's
+`//` null-advance semantics.
+
+**Canonical fallback chains (BC-2.02.012 Postconditions 5–6)**
+
+```rust
+// Agent identity — mirrors: jq -r '.agent_type // .subagent_name // "unknown"'
+let agent = payload.agent_type.as_deref()
+    .or(payload.subagent_name.as_deref())
+    .unwrap_or("unknown");
+
+// Assistant message — mirrors: jq -r '.last_assistant_message // .result // empty'
+let message = payload.last_assistant_message.as_deref()
+    .or(payload.result.as_deref())
+    .unwrap_or("");
+```
+
+Both chains are normative.  Plugin implementations for S-8.01, S-8.02,
+S-8.03, and S-8.05 MUST use these expressions; divergence requires an
+explicit rationale (see BC-2.02.012 EC-004 for the `handoff-validator`
+three-stage `output` fallback).
+
+**BC reference:** BC-2.02.012 — "HookPayload SubagentStop fields: top-level
+envelope schema for agent_type, subagent_name, last_assistant_message,
+result."
+
+**ABI version:** These fields are an additive `HookPayload` extension
+under D-6 Option A and D-183.  `HOST_ABI_VERSION` remains `1`.
+
+---
+
 ### Stdout envelope (plugin → host)
 
 UTF-8 JSON, single-line, terminated with `\n`. One of:

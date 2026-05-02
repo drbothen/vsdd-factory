@@ -24,6 +24,10 @@ fn git_commit_payload() -> HookPayload {
         tool_input: serde_json::json!({"command": "git commit -m 'initial commit'"}),
         tool_response: Some(serde_json::json!({"interrupted": false, "stdout": "", "stderr": ""})),
         plugin_config: serde_json::Value::Null,
+        agent_type: None,
+        subagent_name: None,
+        last_assistant_message: None,
+        result: None,
     }
 }
 
