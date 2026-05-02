@@ -2232,6 +2232,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "pr-manager-completion-guard"
+version = "0.0.1"
+dependencies = [
+ "regex",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "precomputed-hash"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

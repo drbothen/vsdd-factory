@@ -220,10 +220,10 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // bats integration tests (S-8.08 AC-005). Best-effort — any I/O
     // error is silently dropped so the dispatcher always exits 0 on
     // non-block dispatches regardless of sink write outcome.
-    if let Ok(sink_path) = std::env::var(ENV_SINK_FILE) {
-        if !sink_path.is_empty() {
-            flush_sink_file(&sink_path, &event_queue);
-        }
+    if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
+        && !sink_path.is_empty()
+    {
+        flush_sink_file(&sink_path, &event_queue);
     }
 
     Ok(summary.exit_code)
