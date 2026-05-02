@@ -69,7 +69,18 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// These strings MUST match the bash source verbatim — any wording drift
 /// will be caught by the bats parity tests (AC-006).
 pub fn hint_for_step(next_step: u64) -> &'static str {
-    unimplemented!("T-6: hint table not yet implemented (stub only)")
+    match next_step {
+        1 => "populate PR description from template",
+        2 => "verify demo evidence (or emit status=na for chore PRs)",
+        3 => "create PR via github-ops",
+        4 => "spawn security-reviewer via Agent tool",
+        5 => "spawn pr-reviewer/pr-review-triage via Agent tool; handle findings; converge",
+        6 => "spawn github-ops: gh pr checks --watch",
+        7 => "verify all dependency PRs merged",
+        8 => "spawn github-ops: gh pr merge --squash --delete-branch (AUTHORIZE_MERGE=yes mode)",
+        9 => "confirm branch deletion; write review-findings.md; emit final STEP_COMPLETE",
+        _ => "continue the 9-step lifecycle",
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -81,7 +92,7 @@ pub fn hint_for_step(next_step: u64) -> &'static str {
 /// Matches: contains `"pr-manager"` OR contains `"pr_manager"`.
 /// Mirrors bash glob `*pr-manager*|*pr_manager*` (AC-003 / T-3 / EC-001).
 pub fn is_pr_manager(agent: &str) -> bool {
-    unimplemented!("T-3: pr-manager scoping not yet implemented (stub only)")
+    agent.contains("pr-manager") || agent.contains("pr_manager")
 }
 
 /// Count lines in `text` that contain `STEP_COMPLETE:`.
@@ -90,7 +101,9 @@ pub fn is_pr_manager(agent: &str) -> bool {
 /// counts as 1, not 2 (line-occurrence semantics per BC-7.03.046 /
 /// AC-003). (T-4 body contract)
 pub fn count_step_complete_lines(text: &str) -> u64 {
-    unimplemented!("T-4: STEP_COMPLETE line counting not yet implemented (stub only)")
+    text.lines()
+        .filter(|line| line.contains("STEP_COMPLETE:"))
+        .count() as u64
 }
 
 /// Extract the highest `step=N` number from STEP_COMPLETE lines in `text`,
@@ -99,7 +112,29 @@ pub fn count_step_complete_lines(text: &str) -> u64 {
 /// Mirrors the bash `grep -oE "STEP_COMPLETE: step=[0-9]+" | grep -oE "[0-9]+$" | sort -n | tail -1`
 /// pipeline. (T-6)
 pub fn last_step_from_text(text: &str) -> u64 {
-    unimplemented!("T-6: last_step extraction not yet implemented (stub only)")
+    // Regex to find "STEP_COMPLETE: step=N" patterns and extract the step number.
+    // We look for STEP_COMPLETE: followed by step= and one or more digits.
+    let mut max_step: u64 = 0;
+    for line in text.lines() {
+        if !line.contains("STEP_COMPLETE:") {
+            continue;
+        }
+        // Find all "step=N" occurrences on this STEP_COMPLETE line
+        let mut rest = line;
+        while let Some(pos) = rest.find("step=") {
+            let after = &rest[pos + 5..]; // after "step="
+            let num_end = after
+                .find(|c: char| !c.is_ascii_digit())
+                .unwrap_or(after.len());
+            let num_str = &after[..num_end];
+            if !num_str.is_empty() && let Ok(n) = num_str.parse::<u64>() && n > max_step {
+                max_step = n;
+            }
+            // Advance past this "step=" to find any further occurrences
+            rest = &rest[pos + 5..];
+        }
+    }
+    max_step
 }
 
 /// Return true if `result` matches the BLOCKED pattern at line start.
@@ -109,7 +144,14 @@ pub fn last_step_from_text(text: &str) -> u64 {
 /// Note: Rust regex crate uses ERE-style alternation — `|` is unescaped
 /// alternation; `\|` is a parse error or literal. (AC-004 / T-5)
 pub fn is_blocked(result: &str) -> bool {
-    unimplemented!("T-5: BLOCKED detection not yet implemented (stub only)")
+    // Use the regex crate for ERE-style alternation matching.
+    // The pattern mirrors the bash: grep -qE "^(Status:|##?\s*)?\s*BLOCKED"
+    // We check each line (multiline) for the pattern.
+    use regex::RegexBuilder;
+    let re = RegexBuilder::new(r"(?m)^(Status:|##?\s*)?\s*BLOCKED")
+        .build()
+        .expect("BLOCKED regex is valid");
+    re.is_match(result)
 }
 
 // ---------------------------------------------------------------------------
@@ -131,7 +173,80 @@ where
     E: FnOnce(&str, &[(&str, &str)]),
     B: FnOnce(&str),
 {
-    unimplemented!("T-3/T-4/T-5/T-6: guard logic not yet implemented (stub only)")
+    // BC-2.02.012 Postcondition 5: canonical agent identity fallback chain.
+    let agent: &str = payload
+        .agent_type
+        .as_deref()
+        .or(payload.subagent_name.as_deref())
+        .unwrap_or("unknown");
+
+    // T-3: scope to pr-manager agents only (BC-7.03.045 / AC-003 / EC-001)
+    if !is_pr_manager(agent) {
+        return HookResult::Continue;
+    }
+
+    // BC-2.02.012 Postcondition 6: canonical 2-stage result chain.
+    let result: &str = payload
+        .last_assistant_message
+        .as_deref()
+        .or(payload.result.as_deref())
+        .unwrap_or("");
+
+    // T-4: STEP_COMPLETE count >= 8 → pass (BC-7.03.046 / AC-003 / EC-005)
+    let step_count = count_step_complete_lines(result);
+    if step_count >= 8 {
+        return HookResult::Continue;
+    }
+
+    // T-5: BLOCKED detection (BC-7.03.047 / AC-004)
+    if is_blocked(result) {
+        return HookResult::Continue;
+    }
+
+    // T-6: FM4 block path (BC-7.03.048 / AC-005)
+    let last_step = last_step_from_text(result);
+    let next_step = last_step + 1;
+    let hint = hint_for_step(next_step);
+
+    let step_count_str = step_count.to_string();
+    let last_step_str = last_step.to_string();
+    let next_step_str = next_step.to_string();
+
+    // Emit hook.block event with all required fields (AC-005 / BC-7.03.048)
+    emit(
+        "hook.block",
+        &[
+            ("hook", "pr-manager-completion-guard"),
+            ("matcher", "SubagentStop"),
+            ("reason", "pr_manager_incomplete_lifecycle"),
+            ("subagent", agent),
+            ("step_count", step_count_str.as_str()),
+            ("last_step", last_step_str.as_str()),
+            ("next_step", next_step_str.as_str()),
+        ],
+    );
+
+    // Multi-line stderr injection — verbatim CONTINUE line is contracted (AC-005)
+    let stderr_msg = format!(
+        "\npr-manager-completion-guard: FM4 guard fired.\n\
+         \n\
+         You emitted STEP_COMPLETE for {} step(s) and are attempting to stop.\n\
+         The 9-step lifecycle is MANDATORY. Your dispatch is pre-authorized for the\n\
+         full cycle including merge (AUTHORIZE_MERGE=yes per dispatch convention).\n\
+         \n\
+         CONTINUE TO STEP {} NOW: {}\n\
+         \n\
+         Emit STEP_COMPLETE: step={} name=<name> status=<ok|na|failed> note=<>\n\
+         after completing the step. Do NOT exit until step 9 emits STEP_COMPLETE.\n\
+         \n\
+         If you genuinely cannot continue (dependency PR not merged, unexpected CI\n\
+         failure, review blocker after 10 cycles), report BLOCKED with the specific\n\
+         reason instead of silently exiting mid-flow.\n",
+        step_count, next_step, hint, next_step
+    );
+    block_stderr(&stderr_msg);
+
+    HookResult::block("pr_manager_incomplete_lifecycle")
 }
 
 // ---------------------------------------------------------------------------
@@ -172,28 +287,24 @@ mod tests {
 
     /// BC-7.03.045 / AC-003: agent containing "pr-manager" matches.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_045_is_pr_manager_hyphen_variant_matches() {
         assert!(is_pr_manager("pr-manager"));
     }
 
     /// EC-001: agent containing "pr_manager" (underscore variant) matches.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_045_ec001_is_pr_manager_underscore_variant_matches() {
         assert!(is_pr_manager("pr_manager"));
     }
 
     /// BC-7.03.045: non-pr-manager agent does not match.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_045_is_pr_manager_other_agent_does_not_match() {
         assert!(!is_pr_manager("product-owner"));
     }
 
     /// BC-7.03.045: empty string does not match.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_045_is_pr_manager_empty_string_does_not_match() {
         assert!(!is_pr_manager(""));
     }
@@ -202,14 +313,12 @@ mod tests {
 
     /// BC-7.03.046: empty string → 0 lines.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_046_count_step_complete_lines_empty_text_returns_zero() {
         assert_eq!(count_step_complete_lines(""), 0);
     }
 
     /// BC-7.03.046: 9 lines each containing STEP_COMPLETE: → count 9.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_046_count_step_complete_lines_nine_lines_returns_nine() {
         let text = "STEP_COMPLETE: step=1 name=populate status=ok note=\n\
                     STEP_COMPLETE: step=2 name=demo status=na note=\n\
@@ -225,7 +334,6 @@ mod tests {
 
     /// BC-7.03.046 / EC-005: exactly 8 lines → count 8 (minimum passing threshold).
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_046_count_step_complete_lines_eight_lines_returns_eight() {
         let text = "STEP_COMPLETE: step=1\n\
                     STEP_COMPLETE: step=2\n\
@@ -241,7 +349,6 @@ mod tests {
     /// BC-7.03.046: line-occurrence semantics — one line with two STEP_COMPLETE:
     /// tokens counts as 1, not 2 (matches grep -c behavior).
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_046_count_step_complete_lines_one_line_two_tokens_counts_as_one() {
         let text = "STEP_COMPLETE: step=1 STEP_COMPLETE: step=2";
         assert_eq!(count_step_complete_lines(text), 1);
@@ -251,14 +358,12 @@ mod tests {
 
     /// BC-7.03.048: no step=N in text → LAST_STEP = 0.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_last_step_from_text_no_steps_returns_zero() {
         assert_eq!(last_step_from_text("some result text without step numbers"), 0);
     }
 
     /// BC-7.03.048: STEP_COMPLETE with step=5 → LAST_STEP = 5 (highest).
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_last_step_from_text_returns_highest_step() {
         let text = "STEP_COMPLETE: step=3\nSTEP_COMPLETE: step=5\nSTEP_COMPLETE: step=1";
         assert_eq!(last_step_from_text(text), 5);
@@ -266,7 +371,6 @@ mod tests {
 
     /// EC-003: STEP_COMPLETE present but no step=N format → LAST_STEP = 0.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_ec003_step_complete_without_step_number_returns_zero() {
         let text = "STEP_COMPLETE: name=populate status=ok";
         assert_eq!(last_step_from_text(text), 0);
@@ -276,28 +380,24 @@ mod tests {
 
     /// BC-7.03.047: "Status: BLOCKED" at line start → blocked.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_047_is_blocked_status_prefix_matches() {
         assert!(is_blocked("Status: BLOCKED\nsome more text"));
     }
 
     /// BC-7.03.047: "BLOCKED" at line start → blocked.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_047_is_blocked_bare_blocked_at_line_start_matches() {
         assert!(is_blocked("BLOCKED: dependency PR not merged"));
     }
 
     /// BC-7.03.047: "## BLOCKED" → blocked (markdown heading variant).
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_047_is_blocked_markdown_heading_matches() {
         assert!(is_blocked("## BLOCKED\ndetails follow"));
     }
 
     /// BC-7.03.047: BLOCKED not at line start → NOT blocked (embedded in text).
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_047_is_blocked_mid_line_does_not_match() {
         assert!(!is_blocked("step completed but was BLOCKED by CI"));
     }
@@ -306,7 +406,6 @@ mod tests {
 
     /// BC-7.03.045: non-pr-manager agent → Continue (exit 0), no emit.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_045_non_pr_manager_agent_passes_through() {
         let payload = make_payload(&base_subagentstop(
             r#""agent_type":"product-owner","last_assistant_message":"all done""#,
@@ -321,7 +420,6 @@ mod tests {
 
     /// BC-7.03.046 / AC-003: 9 STEP_COMPLETE lines → Continue (exit 0).
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_046_nine_steps_complete_passes() {
         let result_text = "STEP_COMPLETE: step=1\n\
                            STEP_COMPLETE: step=2\n\
@@ -344,7 +442,6 @@ mod tests {
 
     /// BC-7.03.046 / AC-003 / EC-005: exactly 8 STEP_COMPLETE lines → Continue (exit 0).
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_046_exactly_eight_steps_passes() {
         let result_text = "STEP_COMPLETE: step=1\n\
                            STEP_COMPLETE: step=2\n\
@@ -366,7 +463,6 @@ mod tests {
 
     /// BC-7.03.047 / AC-004: BLOCKED result → Continue (exit 0).
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_047_blocked_result_passes() {
         let payload = make_payload(&base_subagentstop(
             r#""agent_type":"pr-manager","last_assistant_message":"Status: BLOCKED\nDependency PR not merged.""#,
@@ -382,7 +478,6 @@ mod tests {
     /// BC-7.03.048 / AC-005: 0 steps, pr-manager → Block (exit 2) with
     /// NEXT_STEP=1, hint="populate PR description from template".
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_zero_steps_blocks_with_step_one_hint() {
         let payload = make_payload(&base_subagentstop(
             r#""agent_type":"pr-manager","last_assistant_message":"no steps yet""#,
@@ -416,7 +511,6 @@ mod tests {
 
     /// BC-7.03.048 / AC-005 / EC-002: 7 steps (NEXT_STEP=8) → hint for step 8.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_ec002_seven_steps_blocks_with_step_eight_hint() {
         let result_text = "STEP_COMPLETE: step=1\n\
                            STEP_COMPLETE: step=2\n\
@@ -450,7 +544,6 @@ mod tests {
 
     /// BC-7.03.048 / AC-006: all 9 step positions produce correct verbatim hints.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_hint_table_all_nine_steps_verbatim() {
         let expected: &[(u64, &str)] = &[
             (1, "populate PR description from template"),
@@ -475,7 +568,6 @@ mod tests {
 
     /// BC-7.03.048 / AC-006 / EC-006: NEXT_STEP=10 → wildcard arm fires.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_ec006_wildcard_arm_step_ten() {
         assert_eq!(
             hint_for_step(10),
@@ -486,7 +578,6 @@ mod tests {
 
     /// BC-7.03.048 / AC-006: NEXT_STEP=99 → wildcard arm fires.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_wildcard_arm_step_ninetynine() {
         assert_eq!(
             hint_for_step(99),
@@ -500,7 +591,6 @@ mod tests {
     /// BC-2.02.012 Postcondition 5: agent_type absent, subagent_name used for
     /// agent identity resolution.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_2_02_012_pr_manager_agent_identity_fallback_to_subagent_name() {
         // subagent_name contains "pr-manager" → hook applies.
         let payload = make_payload(&base_subagentstop(
@@ -521,7 +611,6 @@ mod tests {
     /// BC-2.02.012 Postcondition 6: last_assistant_message absent → result used.
     /// (EC-004 variant: result field present but empty → 0 steps → block.)
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_2_02_012_pr_manager_result_fallback_to_result_field() {
         // result field = "" (empty) → 0 steps → block
         let payload = make_payload(&base_subagentstop(
@@ -539,7 +628,6 @@ mod tests {
     /// EC-004: both last_assistant_message and result absent → empty result
     /// → STEP_COUNT=0 → NEXT_STEP=1 → block.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_ec004_both_result_fields_absent_blocks_with_step_one() {
         let payload = make_payload(&base_subagentstop(r#""agent_type":"pr-manager""#));
         let mut stderr_msg: Option<String> = None;
@@ -582,7 +670,6 @@ mod tests {
 
     /// BC-7.03.048 / AC-005: hook.block event must carry all required fields.
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_emit_event_carries_all_required_fields() {
         let payload = make_payload(&base_subagentstop(
             r#""agent_type":"pr-manager","last_assistant_message":"STEP_COMPLETE: step=3""#,
@@ -625,7 +712,6 @@ mod tests {
     /// using a specially crafted payload where agent_type="pr-manager" but
     /// we verify the "unknown" fallback is reached when both are absent.)
     #[test]
-    #[should_panic(expected = "stub only")]
     fn test_BC_7_03_048_unknown_agent_field_emitted_as_literal_not_omitted() {
         // Construct a SubagentStop where agent_type is literally "pr-manager"
         // to trigger scoping, with no subagent_name — identity resolves to
