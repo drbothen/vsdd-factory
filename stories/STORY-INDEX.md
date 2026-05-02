@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.23"
+version: "1.25"
 status: current
 producer: state-manager
 timestamp: 2026-05-01T00:00:00
@@ -50,6 +50,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **D-183 Phase G — pass-8 batch outcomes (2026-05-01):** 5 pass-8 reviews. **1 CONVERGED at 3/3:** S-8.08 v1.4 (3 consecutive NITPICK_ONLY at LOW-only floor; strict bash-parity verified; trajectory 12→9→4→3→4→3→2→1). **3 advancing 0→1/3:** S-8.01 v1.6 (1L+2N), S-8.02 v1.6 (1L Token Budget fossil), S-8.03 v1.5 (2L+2N). **1 SUBSTANTIVE:** S-8.05 v1.7 (2 MED: `agent.as_str()` compile error + AC-007 case (e) mislabel) → v1.8 fix burst applied (5 closures: F-P8-001/002/003/004/005). 7 of 11 E-8 Tier 1 stories now ready (S-8.04, S-8.06, S-8.07, S-8.08, S-8.09, S-8.10, S-8.30). Remaining: S-8.01/02/03/05 still in re-convergence cycle. STORY-INDEX v1.21 → v1.22. Status: ready 7 → 8; draft 6 → 5. **Process-gap-D-185-A:** Adversarial audit gate must include "borrow/method-resolution against declared binding type" check (e.g., `agent.as_str()` on `&str` survived 7 passes; verifies via `cargo check` of example snippets pre-merge).
 >
 > **D-183 Phase H — pass-9 batch (2026-05-01):** 4 pass-9 reviews. **All NITPICK_ONLY:** S-8.01 v1.6 (1L+2N; clock 1/3 → 2/3), S-8.02 v1.6 (1L Token Budget fossil carryover; 1/3 → 2/3), S-8.03 v1.5 (2L+1N + 4 carryovers; 1/3 → 2/3), S-8.05 v1.8 (1 NIT host:: import path; 0/3 → 1/3 — all 5 v1.8 fixes verified CLOSED). 3 stories at 2/3, 1 at 1/3. **No fix bursts** (all findings SKIP-FIX-eligible per S-7.03). Pass-10 next: 1 more clean pass converges S-8.01/02/03; 2 more clean passes converge S-8.05. STORY-INDEX v1.22 → v1.23. Status unchanged: ready 8; draft 4.
+> **D-183 Phase I — pass-9/10/7 batch (2026-05-01): 3 CONVERGED.** S-8.01 v1.6 pass-9 CONVERGENCE_REACHED (3/3 NITPICK_ONLY; trajectory 14→4→7→3→1→3→3→3→3). S-8.02 v1.6 pass-10 CONVERGENCE_REACHED (3/3 NITPICK_ONLY; trajectory 13→6→3→4→2→1→0→1→1→1). S-8.03 v1.5 pass-7 CONVERGENCE_REACHED (3/3 NITPICK_ONLY; 0 novel findings — strongest convergence signal). Status flips: S-8.01/02/03 draft → ready. S-8.05 v1.8 pass-11 pending (clock 2/3 entering Phase J). STORY-INDEX v1.23 → v1.24. Status: ready 8 → 11; draft 4 → 1.
+>
+> **D-183 Phase J — E-8 Tier 1 spec convergence 100% COMPLETE (2026-05-01):** S-8.05 v1.8 reached CONVERGENCE_REACHED at pass-11 (3/3 NITPICK_ONLY per ADR-013) — the final remaining E-8 Tier 1 story. **All 12 E-8 Tier 1 stories now spec-converged + ready for implementation:** S-8.00 (perf baseline), S-8.01 (handoff-validator), S-8.02 (pr-manager-completion-guard), S-8.03 (track-agent-stop), S-8.04 (update-wave-state-on-merge), S-8.05 (validate-pr-review-posted), S-8.06 (session-learning), S-8.07 (warn-pending-wave-gate), S-8.08 (track-agent-start), S-8.09 (regression-gate-adapter-retirement), S-8.10 (host::write_file SDK extension), S-8.30 (HookPayload SubagentStop fields SDK extension). **Total adversarial passes across 12 stories: 100+ (S-8.05 alone took 11; S-7.03 baseline was 17).** Process-gaps remediated: D-181 strict E-8 D-2 parity (agent_id/tool_name removed); D-182-A T-11 wording verbatim discipline; D-183-A typed-projection layer enforcement; D-184-A T-0 STOP CHECK against SDK fields; D-185-A method-resolution against bound types. New BCs authored: BC-2.02.011 (host::write_file ABI invariants), BC-2.02.012 (HookPayload SubagentStop fields invariants). New stories: S-8.30 (HookPayload extension). Architecture spec SS-02 evolved with Schema Evolution + jq-`//` parity convention sections. Tech debt registered: TD-015 (per-invocation correlation post-v1.0). Implementation phase ready to begin once SDK extensions (S-8.10 host::write_file + S-8.30 HookPayload SubagentStop fields) merge — T-0 STOP CHECK gates implementation in S-8.01/02/03/04/05/09 on these prerequisites. STORY-INDEX v1.24 → v1.25. Status: ready 11 → 12; draft 1 → 0.
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
 
@@ -63,8 +66,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 45 |
 | partial | 1 |
-| draft | 5 |
-| ready | 8 |
+| draft | 1 |
+| ready | 12 |
 | **Total** | **59** |
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
@@ -187,11 +190,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-8.00 | Perf benchmark baseline + Tier 1 BC-anchor verification (W-15 pre-work) | E-8 | 5 | P2 | -- | S-8.01..S-8.09 | ready | [] ([process-gap] under D-2 Option C; v1.1 candidates: BC-7.00.001, BC-7.00.002) |
-| S-8.01 | Native port: handoff-validator | E-8 | 4 | P2 | S-8.00, S-8.30 | S-8.09 | draft | BC-7.03.042, BC-7.03.043, BC-7.03.044, BC-2.02.012 |
-| S-8.02 | Native port: pr-manager-completion-guard | E-8 | 5 | P2 | S-8.00, S-8.30 | S-8.09 | draft | BC-7.03.045, BC-7.03.046, BC-7.03.047, BC-7.03.048, BC-2.02.012 |
-| S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | draft | BC-7.03.081, BC-7.03.082, BC-2.02.012 |
+| S-8.01 | Native port: handoff-validator | E-8 | 4 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.03.042, BC-7.03.043, BC-7.03.044, BC-2.02.012 |
+| S-8.02 | Native port: pr-manager-completion-guard | E-8 | 5 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.03.045, BC-7.03.046, BC-7.03.047, BC-7.03.048, BC-2.02.012 |
+| S-8.03 | Native port: track-agent-stop | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.03.081, BC-7.03.082, BC-2.02.012 |
 | S-8.04 | Native port: update-wave-state-on-merge | E-8 | 4 | P2 | S-8.00, S-8.10 | S-8.09 | ready | BC-7.03.083, BC-7.03.084, BC-7.03.085, BC-7.03.086 |
-| S-8.05 | Native port: validate-pr-review-posted | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | draft | BC-7.04.040, BC-7.04.041, BC-7.04.042, BC-7.04.043, BC-7.04.044, BC-2.02.012 (v1.8) |
+| S-8.05 | Native port: validate-pr-review-posted | E-8 | 3 | P2 | S-8.00, S-8.30 | S-8.09 | ready | BC-7.04.040, BC-7.04.041, BC-7.04.042, BC-7.04.043, BC-7.04.044, BC-2.02.012 (v1.8) |
 | S-8.06 | Native port: session-learning | E-8 | 3 | P2 | S-8.00 | S-8.09 | ready | BC-7.03.076, BC-7.03.077, BC-7.03.078 |
 | S-8.07 | Native port: warn-pending-wave-gate | E-8 | 3 | P2 | S-8.00 | S-8.09 | ready | BC-7.03.091, BC-7.03.092 |
 | S-8.08 | Native port: track-agent-start | E-8 | 3 | P2 | S-8.00 | S-8.09 | ready | BC-7.03.079, BC-7.03.080 |
