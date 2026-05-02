@@ -3546,7 +3546,9 @@ name = "warn-pending-wave-gate"
 version = "0.0.1"
 dependencies = [
  "serde",
+ "serde_json",
  "serde_yaml",
+ "toml 0.8.23",
  "vsdd-hook-sdk",
 ]
 
