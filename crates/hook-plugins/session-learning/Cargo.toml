@@ -1,0 +1,27 @@
+[package]
+name = "session-learning"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: appends timestamped session-end markers to .factory/sidecar-learning.md on Stop events"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the entry point that calls into the lib.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "session-learning"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+chrono = { workspace = true }
+
+[lints]
+workspace = true

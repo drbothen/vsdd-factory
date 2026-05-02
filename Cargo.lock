@@ -2736,6 +2736,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "session-learning"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "session-start-telemetry"
 version = "1.0.0-rc.1"
 dependencies = [
