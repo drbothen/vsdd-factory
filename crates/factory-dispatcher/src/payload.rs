@@ -41,6 +41,16 @@ pub struct HookPayload {
     /// that carry a result.
     #[serde(default)]
     pub tool_response: Option<serde_json::Value>,
+
+    /// Pass-through fields not explicitly modeled above. This captures
+    /// event-specific fields (e.g. SubagentStop's `agent_type`,
+    /// `subagent_name`, `last_assistant_message`, `result` per
+    /// BC-2.02.012) so they are forwarded to plugins unchanged.
+    /// The dispatcher only needs `event_name` and `tool_name` for
+    /// routing; all other fields are plugin-owned. Using `flatten`
+    /// ensures unknown fields survive the parse→serialize round-trip.
+    #[serde(flatten)]
+    pub extra: std::collections::HashMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Error)]

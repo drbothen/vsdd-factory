@@ -14,7 +14,7 @@ use thiserror::Error;
 use wasmtime::{Engine, Module, Store, Trap};
 use wasmtime_wasi::p1::{self, WasiP1Ctx};
 use wasmtime_wasi::p2::pipe::{MemoryInputPipe, MemoryOutputPipe};
-use wasmtime_wasi::{I32Exit, WasiCtxBuilder};
+use wasmtime_wasi::{DirPerms, FilePerms, I32Exit, WasiCtxBuilder};
 
 use crate::engine::timeout_ms_to_epochs;
 use crate::host::{HostContext, setup_linker};
@@ -127,11 +127,35 @@ pub fn invoke_plugin(
     let stdout = MemoryOutputPipe::new(64 * 1024);
     let stderr = MemoryOutputPipe::new(64 * 1024);
 
-    let wasi_ctx = WasiCtxBuilder::new()
+    // Preopen the project directory (host_ctx.cwd) as "." in the WASI guest.
+    // This enables std::fs operations from WASM plugins that perform filesystem
+    // I/O relative to the project root (e.g. session-learning appending to
+    // .factory/sidecar-learning.md). Plugins without filesystem needs are
+    // unaffected — they simply ignore the preopened handle.
+    // If the cwd path cannot be opened (e.g. missing dir in tests), the WASI
+    // context is built without a preopen and std::fs calls will return EBADF.
+    let mut wasi_builder = WasiCtxBuilder::new();
+    wasi_builder
         .stdin(MemoryInputPipe::new(payload_json.to_vec()))
         .stdout(stdout.clone())
-        .stderr(stderr.clone())
-        .build_p1();
+        .stderr(stderr.clone());
+    if host_ctx.cwd.as_os_str().is_empty() {
+        // No project dir — build without filesystem preopen.
+    } else if let Err(e) = wasi_builder.preopened_dir(
+        &host_ctx.cwd,
+        ".",
+        DirPerms::all(),
+        FilePerms::all(),
+    ) {
+        // Non-fatal: log and continue without filesystem access.
+        // Plugin may still function if it doesn't need std::fs.
+        tracing::debug!(
+            cwd = %host_ctx.cwd.display(),
+            err = %e,
+            "wasi preopen failed; plugin std::fs calls will fail"
+        );
+    }
+    let wasi_ctx = wasi_builder.build_p1();
 
     let store_data = StoreData {
         host: host_ctx,

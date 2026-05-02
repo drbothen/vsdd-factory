@@ -1247,6 +1247,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "handoff-validator"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.15.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2749,6 +2757,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "session-learning"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "tempfile",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "session-start-telemetry"
 version = "1.0.0-rc.1"
 dependencies = [
@@ -3413,6 +3430,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "track-agent-start"
+version = "1.0.0-rc.1"
+dependencies = [
+ "regex",
+ "serde_json",
+ "vsdd-hook-sdk",
 ]
 
 [[package]]
