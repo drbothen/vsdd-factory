@@ -613,7 +613,37 @@ fn setup_host_on_store_data(
                     } else {
                         cwd.join(pref)
                     };
-                    let canon_pref = pref_path.canonicalize().unwrap_or_else(|_| pref_path.clone());
+                    // Apply ancestor fallback to the pref path too so that
+                    // symlinks in the host path (e.g. macOS /var → /private/var)
+                    // do not cause false capability denials when the target file
+                    // is new (doesn't exist yet). Without this, `canon_resolved`
+                    // resolves symlinks via ancestor fallback but `canon_pref`
+                    // retains the unresolved symlink, causing starts_with to
+                    // fail on macOS bats temp dirs (/var/folders → /private/var/folders).
+                    let canon_pref = pref_path.canonicalize().unwrap_or_else(|_| {
+                        // Ancestor fallback for pref_path: walk ancestors until one canonicalizes.
+                        let mut pref_tail: Vec<std::ffi::OsString> = Vec::new();
+                        let mut cur = pref_path.clone();
+                        loop {
+                            match cur.file_name() {
+                                None => break pref_path.clone(),
+                                Some(f) => pref_tail.push(f.to_os_string()),
+                            }
+                            match cur.parent() {
+                                None => break pref_path.clone(),
+                                Some(p) => {
+                                    if let Ok(canon_p) = p.canonicalize() {
+                                        let mut result = canon_p;
+                                        for component in pref_tail.iter().rev() {
+                                            result = result.join(component);
+                                        }
+                                        return result;
+                                    }
+                                    cur = p.to_path_buf();
+                                }
+                            }
+                        }
+                    });
                     // For the target, canonicalize with ancestor fallback.
                     let canon_resolved = resolved.canonicalize()
                         .unwrap_or_else(|_| {

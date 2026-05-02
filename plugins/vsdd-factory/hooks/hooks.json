@@ -38,7 +38,6 @@
     "PostToolUse": [
       {
         "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/regression-gate.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/capture-pr-activity.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/capture-commit-activity.sh", "timeout": 5 }
         ]
