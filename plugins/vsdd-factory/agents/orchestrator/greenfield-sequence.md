@@ -1,7 +1,6 @@
 ---
 name: orchestrator-greenfield-sequence
 description: Orchestrator workflow reference for the full greenfield VSDD pipeline from brief through release. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
-disable-model-invocation: true
 ---
 
 > **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.

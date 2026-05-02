@@ -1,7 +1,6 @@
 ---
 name: orchestrator-steady-state
 description: Orchestrator workflow reference for steady-state operations once a project is in ongoing maintenance. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
-disable-model-invocation: true
 ---
 
 > **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.

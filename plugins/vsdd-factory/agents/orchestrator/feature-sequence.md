@@ -1,7 +1,6 @@
 ---
 name: orchestrator-feature-sequence
 description: Orchestrator workflow reference for the feature-mode delivery sequence on existing codebases. Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
-disable-model-invocation: true
 ---
 
 > **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
