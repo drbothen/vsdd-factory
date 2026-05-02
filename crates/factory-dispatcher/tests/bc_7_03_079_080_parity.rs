@@ -126,11 +126,12 @@ fn test_BC_7_03_079_ac001_registry_entry_points_to_native_wasm() {
         .find(|h| h.name == "track-agent-start")
         .expect("hooks-registry.toml must contain a [track-agent-start] entry");
 
-    assert_eq!(
-        entry.plugin.to_str().unwrap_or(""),
-        "hook-plugins/track-agent-start.wasm",
+    assert!(
+        entry.plugin.ends_with("hook-plugins/track-agent-start.wasm"),
         "track-agent-start registry entry must use the native WASM binary \
-         (not legacy-bash-adapter) — AC-001 / BC-7.03.079 postcondition 1"
+         (not legacy-bash-adapter) — AC-001 / BC-7.03.079 postcondition 1\n\
+         plugin path: {}",
+        entry.plugin.display()
     );
 }
 

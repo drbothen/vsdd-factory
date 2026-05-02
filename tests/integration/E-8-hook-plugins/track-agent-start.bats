@@ -1,10 +1,8 @@
 #!/usr/bin/env bats
 # track-agent-start.bats — AC-005 parity tests for track-agent-start native WASM port
 #
-# RED GATE: ALL tests MUST FAIL until the implementer:
-#   (a) Builds the native WASM artifact: cargo build --target wasm32-wasip1 -p track-agent-start
-#   (b) Updates hooks-registry.toml to point to track-agent-start.wasm (T-6)
-#   (c) Deletes track-agent-start.sh (T-7)
+# Invokes via factory-dispatcher (not bare wasmtime) following the pattern from
+# plugins/vsdd-factory/tests/regression-v1.0.bats.
 #
 # What this suite covers:
 #   AC-005(a): Agent dispatch subagent=pr-manager, prompt containing "S-6.07"
@@ -26,31 +24,33 @@
 # ---------------------------------------------------------------------------
 
 setup() {
-  WORKTREE_ROOT="$(git rev-parse --show-toplevel)"
-  DISPATCHER_BIN="${WORKTREE_ROOT}/target/release/factory-dispatcher"
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  DISPATCHER="${REPO_ROOT}/target/release/factory-dispatcher"
+  PLUGIN_ROOT="${REPO_ROOT}/plugins/vsdd-factory"
 
-  # Verify dispatcher binary exists (built by implementer as part of S-8.08)
-  if [ ! -f "$DISPATCHER_BIN" ]; then
-    # Try debug build as fallback
-    DISPATCHER_BIN="${WORKTREE_ROOT}/target/debug/factory-dispatcher"
+  # Fall back to debug build if release not present
+  if [ ! -x "$DISPATCHER" ]; then
+    DISPATCHER="${REPO_ROOT}/target/debug/factory-dispatcher"
   fi
 
-  # WASM artifact path
-  WASM_ARTIFACT="${WORKTREE_ROOT}/target/wasm32-wasip1/release/track-agent-start.wasm"
-  # Check debug build as well
+  # WASM artifact path (release preferred, debug fallback)
+  WASM_ARTIFACT="${REPO_ROOT}/target/wasm32-wasip1/release/track-agent-start.wasm"
   if [ ! -f "$WASM_ARTIFACT" ]; then
-    WASM_ARTIFACT="${WORKTREE_ROOT}/target/wasm32-wasip1/debug/track-agent-start.wasm"
+    WASM_ARTIFACT="${REPO_ROOT}/target/wasm32-wasip1/debug/track-agent-start.wasm"
   fi
+
+  # Per regression-v1.0.bats pattern: project dir with .factory/logs subdirectory
+  WORK="$BATS_TEST_TMPDIR/proj"
+  mkdir -p "$WORK/.factory/logs"
 
   # Temporary directory for sink output
   SINK_DIR="$(mktemp -d)"
   SINK_FILE="${SINK_DIR}/events.jsonl"
 
-  REGISTRY="${WORKTREE_ROOT}/plugins/vsdd-factory/hooks-registry.toml"
+  REGISTRY="${PLUGIN_ROOT}/hooks-registry.toml"
 }
 
 teardown() {
-  # Clean up temporary files
   if [ -n "${SINK_DIR:-}" ] && [ -d "$SINK_DIR" ]; then
     rm -rf "$SINK_DIR"
   fi
@@ -67,7 +67,7 @@ _require_wasm_artifact() {
 }
 
 _require_dispatcher() {
-  if [ ! -f "$DISPATCHER_BIN" ]; then
+  if [ ! -x "$DISPATCHER" ]; then
     skip "factory-dispatcher binary not found — run: cargo build --release -p factory-dispatcher"
   fi
 }
@@ -77,7 +77,6 @@ _require_dispatcher() {
 # ---------------------------------------------------------------------------
 
 @test "AC-001: hooks-registry.toml track-agent-start entry references native WASM (not legacy-bash-adapter)" {
-  # FAILS until T-6 updates hooks-registry.toml
   run grep -A 5 'name = "track-agent-start"' "$REGISTRY"
   [ "$status" -eq 0 ]
 
@@ -88,28 +87,24 @@ _require_dispatcher() {
 }
 
 @test "AC-001: hooks-registry.toml track-agent-start has no script_path (legacy-bash-adapter artifact removed)" {
-  # FAILS until T-6 removes [hooks.config] script_path
   local stanza
   stanza="$(awk '/name = "track-agent-start"/,/^\[\[hooks\]\]/' "$REGISTRY" | head -30)"
   ! echo "$stanza" | grep -q 'script_path'
 }
 
 @test "AC-001: hooks-registry.toml track-agent-start has no exec_subprocess block" {
-  # FAILS until T-6 removes [hooks.capabilities.exec_subprocess]
   local stanza
   stanza="$(awk '/name = "track-agent-start"/,/^\[\[hooks\]\]/' "$REGISTRY" | head -30)"
   ! echo "$stanza" | grep -q 'exec_subprocess'
 }
 
 @test "AC-002b: plugins/vsdd-factory/hooks/track-agent-start.sh is deleted" {
-  # FAILS until T-7 deletes the .sh file
-  [ ! -f "${WORKTREE_ROOT}/plugins/vsdd-factory/hooks/track-agent-start.sh" ]
+  [ ! -f "${REPO_ROOT}/plugins/vsdd-factory/hooks/track-agent-start.sh" ]
 }
 
 @test "AC-001 invariant: track-agent-start WASM artifact exists at wasm32-wasip1 target" {
-  # FAILS until 'cargo build --target wasm32-wasip1 -p track-agent-start' succeeds
-  [ -f "${WORKTREE_ROOT}/target/wasm32-wasip1/release/track-agent-start.wasm" ] \
-    || [ -f "${WORKTREE_ROOT}/target/wasm32-wasip1/debug/track-agent-start.wasm" ]
+  [ -f "${REPO_ROOT}/target/wasm32-wasip1/release/track-agent-start.wasm" ] \
+    || [ -f "${REPO_ROOT}/target/wasm32-wasip1/debug/track-agent-start.wasm" ]
 }
 
 # ---------------------------------------------------------------------------
@@ -121,26 +116,15 @@ _require_dispatcher() {
   _require_dispatcher
 
   local envelope
-  envelope="$(cat <<'EOF'
-{
-  "event_name": "PreToolUse",
-  "tool_name": "Agent",
-  "session_id": "bats-test-session",
-  "dispatcher_trace_id": "bats-trace-001",
-  "tool_input": {
-    "subagent_type": "pr-manager",
-    "prompt": "Implement the changes for S-6.07 acceptance criteria"
-  }
-}
-EOF
-)"
+  envelope='{"event_name":"PreToolUse","tool_name":"Agent","session_id":"bats-test-session","dispatcher_trace_id":"bats-trace-001","tool_input":{"subagent_type":"pr-manager","prompt":"Implement the changes for S-6.07 acceptance criteria"}}'
 
-  # Invoke dispatcher with the envelope piped to stdin; capture exit code
-  run bash -c "echo '${envelope}' | VSDD_SINK_FILE='${SINK_FILE}' '${DISPATCHER_BIN}' --event PreToolUse --tool Agent"
+  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" VSDD_SINK_FILE="$SINK_FILE" \
+    bash -c "printf '%s' '$envelope' | '$DISPATCHER'"
   [ "$status" -eq 0 ]
 
   # Verify agent.start event was written to sink
   [ -f "$SINK_FILE" ]
+
   run jq -r '.type' "$SINK_FILE"
   [ "$status" -eq 0 ]
   echo "$output" | grep -q "agent.start"
@@ -171,21 +155,10 @@ EOF
   _require_dispatcher
 
   local envelope
-  envelope="$(cat <<'EOF'
-{
-  "event_name": "PreToolUse",
-  "tool_name": "Agent",
-  "session_id": "bats-test-session",
-  "dispatcher_trace_id": "bats-trace-002",
-  "tool_input": {
-    "subagent_type": "implementer",
-    "prompt": "Please implement the changes described in STORY-042"
-  }
-}
-EOF
-)"
+  envelope='{"event_name":"PreToolUse","tool_name":"Agent","session_id":"bats-test-session","dispatcher_trace_id":"bats-trace-002","tool_input":{"subagent_type":"implementer","prompt":"Please implement the changes described in STORY-042"}}'
 
-  run bash -c "echo '${envelope}' | VSDD_SINK_FILE='${SINK_FILE}' '${DISPATCHER_BIN}' --event PreToolUse --tool Agent"
+  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" VSDD_SINK_FILE="$SINK_FILE" \
+    bash -c "printf '%s' '$envelope' | '$DISPATCHER'"
   [ "$status" -eq 0 ]
 
   [ -f "$SINK_FILE" ]
@@ -213,21 +186,10 @@ EOF
   _require_dispatcher
 
   local envelope
-  envelope="$(cat <<'EOF'
-{
-  "event_name": "PreToolUse",
-  "tool_name": "Agent",
-  "session_id": "bats-test-session",
-  "dispatcher_trace_id": "bats-trace-003",
-  "tool_input": {
-    "subagent_type": "reviewer",
-    "prompt": "Please review the pull request for correctness and style"
-  }
-}
-EOF
-)"
+  envelope='{"event_name":"PreToolUse","tool_name":"Agent","session_id":"bats-test-session","dispatcher_trace_id":"bats-trace-003","tool_input":{"subagent_type":"reviewer","prompt":"Please review the pull request for correctness and style"}}'
 
-  run bash -c "echo '${envelope}' | VSDD_SINK_FILE='${SINK_FILE}' '${DISPATCHER_BIN}' --event PreToolUse --tool Agent"
+  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" VSDD_SINK_FILE="$SINK_FILE" \
+    bash -c "printf '%s' '$envelope' | '$DISPATCHER'"
   [ "$status" -eq 0 ]
 
   [ -f "$SINK_FILE" ]
@@ -235,7 +197,7 @@ EOF
   run jq -r '.subagent' "$SINK_FILE"
   [ "$output" = "reviewer" ]
 
-  # story_id must be absent (jq returns null for missing key, not a string)
+  # story_id must be absent
   run jq 'has("story_id")' "$SINK_FILE"
   [ "$output" = "false" ]
 
@@ -253,21 +215,11 @@ EOF
   _require_dispatcher
 
   local envelope
-  envelope="$(cat <<'EOF'
-{
-  "event_name": "PreToolUse",
-  "tool_name": "Bash",
-  "session_id": "bats-test-session",
-  "dispatcher_trace_id": "bats-trace-004",
-  "tool_input": {
-    "command": "ls -la"
-  }
-}
-EOF
-)"
+  envelope='{"event_name":"PreToolUse","tool_name":"Bash","session_id":"bats-test-session","dispatcher_trace_id":"bats-trace-004","tool_input":{"command":"ls -la"}}'
 
   # track-agent-start hooks on PreToolUse:Agent only; Bash dispatch must not trigger it
-  run bash -c "echo '${envelope}' | VSDD_SINK_FILE='${SINK_FILE}' '${DISPATCHER_BIN}' --event PreToolUse --tool Bash"
+  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" VSDD_SINK_FILE="$SINK_FILE" \
+    bash -c "printf '%s' '$envelope' | '$DISPATCHER'"
   [ "$status" -eq 0 ]
 
   # Sink file should either not exist or not contain an agent.start event
@@ -286,7 +238,8 @@ EOF
   _require_dispatcher
 
   # Send completely invalid JSON as stdin
-  run bash -c "echo 'not valid json at all {{{}}}' | VSDD_SINK_FILE='${SINK_FILE}' '${DISPATCHER_BIN}' --event PreToolUse --tool Agent"
+  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" VSDD_SINK_FILE="$SINK_FILE" \
+    bash -c "printf '%s' 'not valid json at all {{{}}}' | '$DISPATCHER'"
 
   # Must exit 0 (best-effort — AC-006 / BC-7.03.079 invariant 2)
   [ "$status" -eq 0 ]
@@ -302,7 +255,8 @@ EOF
   _require_wasm_artifact
   _require_dispatcher
 
-  run bash -c "echo '' | VSDD_SINK_FILE='${SINK_FILE}' '${DISPATCHER_BIN}' --event PreToolUse --tool Agent"
+  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" VSDD_SINK_FILE="$SINK_FILE" \
+    bash -c "printf '' | '$DISPATCHER'"
   [ "$status" -eq 0 ]
 
   if [ -f "$SINK_FILE" ]; then
@@ -320,26 +274,14 @@ EOF
   _require_dispatcher
 
   local envelope
-  envelope="$(cat <<'EOF'
-{
-  "event_name": "PreToolUse",
-  "tool_name": "Agent",
-  "session_id": "bats-parity-session",
-  "dispatcher_trace_id": "bats-parity-trace",
-  "tool_input": {
-    "subagent_type": "pr-manager",
-    "prompt": "S-6.07 parity check"
-  }
-}
-EOF
-)"
+  envelope='{"event_name":"PreToolUse","tool_name":"Agent","session_id":"bats-parity-session","dispatcher_trace_id":"bats-parity-trace","tool_input":{"subagent_type":"pr-manager","prompt":"S-6.07 parity check"}}'
 
-  run bash -c "echo '${envelope}' | VSDD_SINK_FILE='${SINK_FILE}' '${DISPATCHER_BIN}' --event PreToolUse --tool Agent"
+  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" VSDD_SINK_FILE="$SINK_FILE" \
+    bash -c "printf '%s' '$envelope' | '$DISPATCHER'"
   [ "$status" -eq 0 ]
   [ -f "$SINK_FILE" ]
 
   # Plugin-set fields: hook, matcher, subagent, story_id (when present)
-  # All four must be present in this case
   run jq -r '.hook' "$SINK_FILE"
   [ "$output" = "track-agent-start" ]
 
@@ -369,20 +311,10 @@ EOF
   _require_dispatcher
 
   local envelope
-  envelope="$(cat <<'EOF'
-{
-  "event_name": "PreToolUse",
-  "tool_name": "Agent",
-  "session_id": "bats-ec001-session",
-  "dispatcher_trace_id": "bats-ec001-trace",
-  "tool_input": {
-    "prompt": "S-8.08 work"
-  }
-}
-EOF
-)"
+  envelope='{"event_name":"PreToolUse","tool_name":"Agent","session_id":"bats-ec001-session","dispatcher_trace_id":"bats-ec001-trace","tool_input":{"prompt":"S-8.08 work"}}'
 
-  run bash -c "echo '${envelope}' | VSDD_SINK_FILE='${SINK_FILE}' '${DISPATCHER_BIN}' --event PreToolUse --tool Agent"
+  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" VSDD_SINK_FILE="$SINK_FILE" \
+    bash -c "printf '%s' '$envelope' | '$DISPATCHER'"
   [ "$status" -eq 0 ]
   [ -f "$SINK_FILE" ]
 
