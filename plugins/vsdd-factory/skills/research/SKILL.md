@@ -2,7 +2,7 @@
 name: research
 description: Conduct external research — domain analysis or technology evaluation. Spawns the research-agent with MCP tool access (Perplexity, Context7, Tavily). Usage - /research domain <topic> or /research <topic> for general.
 argument-hint: "[domain|general] <topic>"
-disable-model-invocation: true
+
 context: fork
 agent: research-agent
 ---

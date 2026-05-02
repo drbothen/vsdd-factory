@@ -2,7 +2,7 @@
 name: create-story
 description: Create or refine a single story spec with full acceptance criteria, tasks, and implementation details. Takes a story ID and produces a sprint-ready story file.
 argument-hint: "[S-N.MM]"
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: excalidraw-export
 description: Batch-render .excalidraw wireframe diagrams to pixel-perfect PNG using headless Firefox via Playwright. Reference-only skill, not directly invokable.
-disable-model-invocation: true
 ---
 
 # Excalidraw PNG Export

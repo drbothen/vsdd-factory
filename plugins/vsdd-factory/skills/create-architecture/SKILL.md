@@ -1,7 +1,7 @@
 ---
 name: create-architecture
 description: Create sharded architecture documents from PRD and behavioral contracts. Designs system architecture with ADR-style decisions, component diagrams, and purity boundaries. Writes to .factory/specs/architecture/.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 

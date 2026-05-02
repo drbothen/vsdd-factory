@@ -2,7 +2,7 @@
 name: pr-create
 description: Create a pull request with story context, mermaid diagrams, and behavioral contract traceability. Generates a structured PR targeting develop.
 argument-hint: "[STORY-NNN]"
-disable-model-invocation: true
+
 allowed-tools: Read, Bash, Glob, Grep
 ---
 

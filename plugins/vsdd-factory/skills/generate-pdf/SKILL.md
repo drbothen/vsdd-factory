@@ -2,7 +2,6 @@
 name: generate-pdf
 description: Generate a professional 1898 & Co. branded PDF from a markdown research document. Use when the user wants to create a PDF, export a report, or convert markdown to PDF. Validates frontmatter, uses branded template, and reports results.
 allowed-tools: Read, Bash
-disable-model-invocation: true
 ---
 
 # PDF Report Generator

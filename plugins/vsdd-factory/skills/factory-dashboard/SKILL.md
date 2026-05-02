@@ -1,7 +1,7 @@
 ---
 name: factory-dashboard
 description: Render a live markdown dashboard of the VSDD factory pipeline — current phase, wave progress, recent hook activity, and pending gates. Read-only diagnostic; no writes.
-disable-model-invocation: true
+
 allowed-tools: Bash
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: create-domain-spec
 description: Create a sharded L2 domain specification from the product brief. Models the problem domain — entities, relationships, processes, invariants, and ubiquitous language. Writes to .factory/specs/domain-spec/.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 

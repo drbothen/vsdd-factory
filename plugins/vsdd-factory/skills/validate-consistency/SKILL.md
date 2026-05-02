@@ -1,7 +1,7 @@
 ---
 name: validate-consistency
 description: Cross-file consistency validation — verify spec IDs, anchor links, counts, naming, and traceability across all planning artifacts. Catches stale references, broken links, and mismatched counts.
-disable-model-invocation: true
+
 allowed-tools: Read, Bash, Glob, Grep
 ---
 
@@ -57,7 +57,6 @@ Read and follow the output format in:
 
 - Entity names in stories match domain-spec/ubiquitous-language.md
 - Module names in architecture match story file lists
-
 ---
 
 ## Advisory Checks (non-blocking)

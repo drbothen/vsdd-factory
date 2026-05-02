@@ -2,7 +2,7 @@
 name: record-demo
 description: Record visual demo evidence for story acceptance criteria using Playwright. Captures screenshots or screen recordings of each acceptance criterion being satisfied.
 argument-hint: "[STORY-NNN]"
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Bash, Glob
 ---
 

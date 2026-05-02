@@ -1,7 +1,7 @@
 ---
 name: create-prd
 description: Create a PRD with behavioral contracts from the product brief and domain spec. Elaborates requirements into testable contracts with error taxonomy and edge cases. Writes to .factory/specs/prd.md and supplements.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
