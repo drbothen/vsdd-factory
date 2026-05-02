@@ -20,6 +20,10 @@
 //!   - Stdin MUST be read to EOF and discarded to prevent WASI SIGPIPE-equivalent
 //!     failures when dispatcher writes a large Stop envelope (EC-005).
 
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::path::Path;
+
 use vsdd_hook_sdk::HookResult;
 
 /// The header written to a newly-created sidecar-learning.md.
@@ -30,7 +34,6 @@ pub const SIDECAR_HEADER: &str =
 
 /// The marker line format. The timestamp placeholder is filled at runtime.
 /// Format: `- Session ended at <ISO8601-UTC> (awaiting /session-review)\n`
-/// ISO-8601 UTC format: `%Y-%m-%dT%H:%M:%SZ` (seconds precision, no millis).
 pub const MARKER_FORMAT: &str = "- Session ended at {} (awaiting /session-review)\n";
 
 /// Format a UTC timestamp as `%Y-%m-%dT%H:%M:%SZ`.
@@ -41,9 +44,7 @@ pub const MARKER_FORMAT: &str = "- Session ended at {} (awaiting /session-review
 /// Implementation note: uses `chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()`
 /// (seconds precision — no millis; matches bash `date -u +"%Y-%m-%dT%H:%M:%SZ"`).
 pub fn format_utc_now() -> String {
-    // STUB: implementation goes in T-3.
-    // Uses chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()
-    unimplemented!("format_utc_now: stub — implement in T-3 (S-8.06)")
+    chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()
 }
 
 /// Core hook logic for session-learning.
@@ -57,17 +58,61 @@ pub fn format_utc_now() -> String {
 /// The `now_fn` parameter is injectable for unit testing (avoids real clock).
 /// The `fs_root` parameter is the base directory for resolving `.factory/`
 /// (pass `""` or `"."` in production; override in tests with a temp dir).
+///
+/// File I/O: write via std::fs (host::write_file absent per D-172).
+/// host::read_file IS available but unused — session-learning is append-only.
 pub fn session_learning_logic(
     now_fn: impl Fn() -> String,
     fs_root: &str,
 ) -> HookResult {
-    // STUB: implementation goes in T-3.
-    // Steps (per S-8.06 T-3):
-    //   1. Read stdin to EOF and discard it (EC-005 WASI SIGPIPE prevention).
-    //   2. Check if .factory/ directory exists; if not, return HookResult::Continue (AC-003).
-    //   3. Open .factory/sidecar-learning.md in append mode via OpenOptions.
-    //      If file does not exist, create it and write SIDECAR_HEADER first (AC-002).
-    //   4. Append: MARKER_FORMAT with now_fn() substituted for {} (AC-002).
-    let _ = (now_fn, fs_root);
-    HookResult::Continue
+    // Step 1: Stdin drain is performed by the dispatcher's __internal::run trampoline
+    // before calling on_hook (the payload is passed in via HookPayload). In the unit-test
+    // path (calling session_learning_logic directly), there is no stdin to drain.
+    // EC-005 stdin drain is handled at the main.rs boundary via the SDK run() trampoline.
+
+    // Step 2: Check if .factory/ directory exists; if not, return Continue immediately
+    // (AC-003, BC-7.03.078 postcondition 1).
+    let factory_dir = if fs_root.is_empty() || fs_root == "." {
+        Path::new(".factory").to_path_buf()
+    } else {
+        Path::new(fs_root).join(".factory")
+    };
+
+    if !factory_dir.is_dir() {
+        return HookResult::Continue;
+    }
+
+    // Step 3: Open sidecar-learning.md. If file does not exist, create it and write
+    // the header block first (AC-002, byte-identical to bash source output).
+    // File I/O via std::fs (host::write_file absent per D-172).
+    let sidecar_path = factory_dir.join("sidecar-learning.md");
+
+    if !sidecar_path.exists() {
+        // Create file and write header (byte-identical to bash source output, AC-002).
+        match std::fs::write(&sidecar_path, SIDECAR_HEADER) {
+            Ok(_) => {}
+            Err(e) => {
+                return HookResult::error(format!(
+                    "session-learning: failed to create sidecar-learning.md: {e}"
+                ));
+            }
+        }
+    }
+
+    // Step 4: Append the marker line using OpenOptions::new().append(true) (EC-004).
+    // append(true) positions the cursor at EOF; no full-file buffering needed.
+    let ts = now_fn();
+    let marker = MARKER_FORMAT.replace("{}", &ts);
+
+    match OpenOptions::new().append(true).open(&sidecar_path) {
+        Ok(mut file) => match file.write_all(marker.as_bytes()) {
+            Ok(_) => HookResult::Continue,
+            Err(e) => HookResult::error(format!(
+                "session-learning: failed to append marker to sidecar-learning.md: {e}"
+            )),
+        },
+        Err(e) => HookResult::error(format!(
+            "session-learning: failed to open sidecar-learning.md for append: {e}"
+        )),
+    }
 }
