@@ -164,5 +164,5 @@ See `steady-state.md` for cycle archival, maintenance resume, and backlog manage
 
 ## Session Review
 
-Spawn session-review: "Review feature development quality and propose improvements."
+Spawn session-reviewer: "Review feature development quality and propose improvements."
 HUMAN reviews proposals (72h).
