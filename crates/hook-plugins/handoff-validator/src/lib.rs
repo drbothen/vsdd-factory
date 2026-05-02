@@ -95,6 +95,8 @@ pub enum ResultClassification {
 /// AC-004 / BC-7.03.044: `1 <= len <= 39` → `Short(len)`.
 /// AC-005 EC: `len == 40` → `Sufficient` (threshold is `< 40`, not `<= 40`).
 pub fn classify_result(result: &str) -> ResultClassification {
+    // Whitespace counted as Unicode codepoints (is_whitespace()); aligned across
+    // handoff-validator + track-agent-stop per W-15 gate fix HIGH-W15-002.
     let trimmed_len: usize = result.chars().filter(|c| !c.is_whitespace()).count();
     match trimmed_len {
         0 => ResultClassification::Empty,
