@@ -287,6 +287,7 @@ dtu_services: []
 | D-165 | **S-8.00 adversarial pass-1 + fix burst sealed.** Adversary produced 14 findings on S-8.00 v1.0 (3 HIGH + 7 MED + 4 LOW); SUBSTANTIVE verdict; clock 0_of_3 held per ADR-013. Story-writer applied 10 fixes (v1.0→v1.1, 444→473 lines): F-P1-001 CAP-022 cross-CAP stretch disclosure paragraph added (Wave 7 F-204 sanction); F-P1-003 AC-7 identifier conflation swept ("S-8.00 AC-7" vs "E-8 AC-7"/"E-8 AC-7b" disambiguation); F-P1-005+006 Tasks renumbered to per-section A.1-A.6/B.1-B.5/C.1-C.2 with all intra-story task references updated (AC-4 → Tasks §B.1); F-P1-007 BC-7.00 sub-family rationale paragraph + grep-verified unused; F-P1-008 AC-1 hook list locked to handoff-validator/validate-bc-title/protect-bc with rationale; F-P1-009 input-hash convention comment block + git command; F-P1-010 AC-9 BC-8.26.001 mis-anchor replaced with [process-gap] E-8 D-2 epic-fix-burst-integrity anchor; F-P1-014 EC-007 git command specified; F-P1-011 policies.yaml cross-ref format; F-P1-012 EC-004 majority-threshold rationale. State-manager applied 4 fixes: F-P1-002 STORY-INDEX priority P1→P2 + version v1.1→v1.2; F-P1-004 STORY-INDEX title restored "Tier 1"; F-P1-013 E-8 transitional-points footnote; adv-s8.00-p1.md persisted. 3 LOW pass-2 priors flagged for adversary: AC-3 line 229 + Goal §2 line 201 "E-8 epic E-8 AC-7b" double-prefix redundancy from F-P1-003 sweep; AC-7 row clarification possibility. | Pass-1 baseline within expected band (5-15 findings on first pass for 444-line spec). 3 HIGH findings concentrate on anchor/identifier integrity — typical pre-convergence signal that sharpens to MED/LOW by pass-3. Convergence trajectory: 14→? per S-7.03 skip-fix discipline + ADR-013 clock. | E-8-S-8.00-pass-1-CLOSED | 2026-04-30 | orchestrator + adversary + story-writer + state-manager |
 | D-164 | **E-8 W-15 entry-point story S-8.00 authored at v1.0 status=draft.** Story-writer dispatched in single-story burst (NOT batch); produced `.factory/stories/S-8.00-perf-baseline-bc-anchor-verification.md` (444 lines, 9 ACs, 5pts). Two-responsibility scope: (A) perf benchmark baseline measurement protocol resolving OQ-8 (~10ms/plugin warm-invocation assumption); (B) BC-anchor verification table for 9 Tier 1 hooks per D-2 Option C (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate). behavioral_contracts=[] is intentional ([process-gap] disclosure under D-2 Option C — story produces BC mappings for downstream rather than anchoring its own). subsystems=[SS-01, SS-07] reflects perf harness + bash audit dual-scope. 2 v1.1 BC candidates registered (BC-7.00.001-perf-baseline-measurement-protocol, BC-7.00.002-bc-anchor-verification-table) per F-206 5-col format. STORY-INDEX bumped v1.0→v1.1 (draft +1, total 47→48). Open issues flagged for adversarial pass-1: OQ-6 regression-gate subprocess capability profile (story may need pre-resolution), BC-7.xx family depth (worst-case >5 hooks lacking BC triggers OQ-9 deferral pathway), hyperfine CI availability (fallback to time builtin), wave-ID finality (W-15* provisional pending S-5.07 close). input-hash corrected: story-writer used 4ba3584 (E-8's own input-hash field, propagated from epic frontmatter); corrected to 68f3d16 (last factory-artifacts commit touching E-8 file). | Single-story dispatch chosen over batch per orchestrator >8-artifact rule + S-8.00 unique pre-work scope warranting individual review. Story authored against canonical S-5.06 template. Convergence path: pass-1 adversarial → fix-burst → ... → 3_of_3 NITPICK_ONLY per ADR-013. | E-8-S-8.00-v1.0-draft | 2026-04-30 | orchestrator + story-writer + state-manager |
 | D-163 | **ADV-E8-P11 CONVERGENCE_REACHED (E-8 native-wasm-migration). Pass-11 verdict: 0 findings — 3rd consecutive clean pass (P9 1_of_3 → P10 2_of_3 → P11 3_of_3). Per ADR-013, convergence achieved; spec status flipped v1.6→v1.7 (draft→ready). Architect added Change Log v1.7 entry documenting trajectory + outstanding LOW deferrals. 11 total passes (matching Wave 11's 14-pass record; faster than S-7.03's 17). Trajectory: P1=18(12H+6M) → P2=7(1H+4M+2L) → P3=0(1_of_3) → P4=1MED(reset) → P5=0(1_of_3) → P6=2MED+5LOW(reset) → P7=1H+1M+1L → P8=1M+1L → P9=0(1_of_3 advance) → P10=1LOW(2_of_3 advance) → P11=0(3_of_3 CONVERGED). 41 substantive + 11 LOW findings closed. Spec maturity empirically anchored to hooks-registry.toml (canonical 52 entries / 44 adapter-routed / 43 unique / 42 ported). Outstanding deferrals: D-3 vs D-8 bundle nomenclature (LOW; SKIP_FIX per S-7.03). Story-writer dispatch unblocked for S-8.00..S-8.28 decomposition. E-8 awaits v1.0.0 GA close (S-5.07) before W-15 routing.** | ADV-E8-P11 adversarial review. CONVERGENCE_REACHED per ADR-013. | ADV-E8-P11 | 2026-04-30 | adversary + architect + state-manager |
+| D-204 | **W-15 wave gate ran 2026-05-02. VERDICT: BLOCKED. Adversary: 5 CRITICAL + 6 HIGH + 7 MEDIUM + 7 LOW. Security: 0 CRIT + 1 HIGH + 3 MEDIUM + 2 LOW (HIGH = SEC-003 VSDD_SINK_FILE path injection in production). Implementer: 957/957 cargo PASS; 2 clippy errors in track-agent-stop; 19 bats failures (all due to missing WASM artifacts in plugins/vsdd-factory/hook-plugins/). Findings persisted to factory-artifacts. User chose Option A — fix-burst before rc.3. Branch feature/wave-15-gate-fixes to be created from develop @ 3adfe0b. Fix-burst plan: `.factory/cycles/v1.0-brownfield-backfill/wave-15-gate-fix-burst-plan.md`. Context compacted for post-compact resume.** | W-15 wave gate BLOCKED; findings persisted; Option A fix-burst planned | w-15-gate-blocked | 2026-05-02 | state-manager |
 | D-162 | **ADV-E8-P10 NITPICK_ONLY clock advance (E-8 native-wasm-migration). Pass-10 verdict: 0 substantive + 1 LOW Observation (D-3 vs D-8 bundle-label nomenclature B-5 vs B-5a/b/c — F-017 v1.1 merged B-3a+B-3b but did not audit sibling B-5/B-6 nomenclature). Per S-7.03 skip-fix, LOW deferred. Adversary applied maximum fresh-context skepticism — re-derived 22 invariants from primary sources; historical 1_of_3→reset pattern (P3→P4, P5→P6) did NOT repeat. Trajectory 18→7→0→1→0→2→3→1→0→1. Per ADR-013 NITPICK_ONLY → clock 1_of_3 → 2_of_3 ADVANCE. Pass-11 next; expect NITPICK_ONLY → 3_of_3 CONVERGENCE_REACHED.** | ADV-E8-P10 adversarial review. NITPICK_ONLY; clock advances per ADR-013. | ADV-E8-P10 | 2026-04-30 | adversary + state-manager |
 | D-161 | **ADV-E8-P9 NITPICK_ONLY clock advance (E-8 native-wasm-migration). Pass-9 verdict: 0 findings — both P8 fixes verified closed (F-P8-001 changelog reorder; F-P8-002 D-1 disposition sentence). Trajectory 18 (P1) → 7 (P2) → 0 (P3) → 1 MED (P4 reset) → 0 (P5 advance) → 2 MED (P6 reset) → 3 P7 sub → 1 P8 MED → 0 (P9 advance). Per ADR-013 NITPICK_ONLY → clock 0_of_3 → 1_of_3 ADVANCE. Need 2 more clean passes (pass-10, pass-11) for CONVERGENCE_REACHED.** | ADV-E8-P9 adversarial review. NITPICK_ONLY; clock advances per ADR-013. Pattern alert: prior 1_of_3 advances (P3, P5) were followed by SUBSTANTIVE resets (P4, P6) — pass-10 must do thorough cross-section re-derivation despite spec maturity. | ADV-E8-P9 | 2026-04-30 | adversary + state-manager |
 | D-160 | **ADV-E8-P8 SUBSTANTIVE held (E-8 native-wasm-migration). Pass-8 found 1 MED + 1 LOW. F-P8-001 [MED] changelog version ordering broken: v1.5 entry (pass-7 fix) preceded v1.4 entry (pass-6 fix) — ascending convention violated. F-P8-002 [LOW] D-1 silent on disposition path for verify-git-push.sh's existing adapter-routed registry entry at S-8.28. Empirical cross-section re-derivation confirmed 44 entries / 43 unique / 42 ported canonical numbers self-consistent. Trajectory 18→7→0→1→0→2→3→1. Fix burst v1.5→v1.6 pending; pass-9 next.** | ADV-E8-P8 adversarial review. MED finding holds clock at 0_of_3 per ADR-013. Changelog ordering defect is a fix-burst-introduced ordering artifact (v1.5 written first, v1.4 retroactively appended below). D-1 registry-entry disposition implicit gap is LOW pending-intent — disposition path implied by AC-3 + D-10 but not stated in D-1. | ADV-E8-P8 | 2026-04-30 | adversary + state-manager |
@@ -318,43 +319,47 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**W-15 COMPLETE (2026-05-02). 12 of 12 Tier 1 stories merged. D-199..D-203 sealed. develop @ 3adfe0b.**
+**W-15 COMPLETE — 12 of 12 stories merged 2026-05-02. Wave gate VERDICT: BLOCKED on review.**
 
-**Branch HEADs:**
-- main: 1485d2e (unchanged; v1.0.0-rc.1 bot bundle commit)
-- develop: 3adfe0b (S-8.09 merged; PR #58; W-15 COMPLETE)
-- factory-artifacts: (post-this-commit; D-199..D-203)
+### Branch HEADs:
+- main: 1485d2e (v1.0.0-rc.1 bot bundle commit; unchanged)
+- develop: 3adfe0b (post-W-15 finale; all 12 Tier 1 native ports landed; S-8.09 PR #58)
+- factory-artifacts: post-this-commit (D-204 + findings persisted)
 
-**rc.1 status:** GH pre-release published 2026-04-30T03:10:59Z. Tag v1.0.0-rc.1 at 1485d2e. 14-day shakedown clock running; ETA ~2026-05-13. rc.2 shipped 2026-05-02.
+### Wave gate findings (durable on factory-artifacts):
+- Adversary: BLOCKED — 5 CRITICAL + 6 HIGH + 7 MEDIUM + 7 LOW
+  - Persisted: `.factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-15-gate-adversary.md`
+- Security: FINDINGS — 0 CRIT + 1 HIGH + 3 MEDIUM + 2 LOW (HIGH = SEC-003 VSDD_SINK_FILE)
+  - Persisted: `.factory/cycles/v1.0-brownfield-backfill/security-reviews/wave-15-gate-security.md`
+- Test suite: 957/957 cargo PASS; 2 clippy errors in track-agent-stop; 19 bats failures (all due to missing wasm artifacts in plugins/vsdd-factory/hook-plugins/)
 
-**E-8 Tier 1 status — ALL MERGED (W-15 COMPLETE):**
-- MERGED (12): S-8.00 (PR #47), S-8.10 (PR #48), S-8.30 (PR #49), S-8.06 (PR #51), S-8.01 (PR #50), S-8.08 (PR #52), S-8.07 (PR #53), S-8.04 (PR #54), S-8.03 (PR #55 6809c6d), S-8.02 (PR #56 b25f017), S-8.05 (PR #57 a8ee79e), S-8.09 (PR #58 3adfe0b)
-- READY: 0 (all shipped)
-- 0 Tier 1 hooks routing through legacy-bash-adapter (W-15 closure achieved)
+### User direction: Option A — wave-15-gate-fixes burst before rc.3 release
 
-**Last sealed decision:** D-203 — W-15 COMPLETE milestone (12 of 12 Tier 1 shipped 2026-05-02).
+### Resume plan (post-compact):
+1. Read `.factory/cycles/v1.0-brownfield-backfill/wave-15-gate-fix-burst-plan.md` for the prioritized remediation list
+2. Create branch `feature/wave-15-gate-fixes` from develop @ 3adfe0b
+3. Apply fixes in 9-step priority order (release.yml first → SEC-003 → block-mode → preopen → regex → standalone default → Tier-1-only narrative → clippy → bytes-vs-chars)
+4. Single squash-merge PR
+5. Re-run wave gate (implementer + adversary + security-reviewer + consistency-validator)
+6. If CONVERGED: cut release/v1.0.0-rc.3
+7. If FINDINGS: iterate
 
-**Open tech debt:**
-- TD-013 (P0): main branch protection LOOSENED — must restore before v1.0.0 GA.
-- TD-014 (P2): Full native WASM migration of remaining 43 bash hooks.
-- TD-015 (P2): Per-invocation telemetry correlation (post-v1.0).
+### Compensating controls registered (CC-W15-002..011, see wave-15-gate-compensating-controls.md):
+- CC-W15-002: cargo mutants for track-agent-start (CC-W15-005 same for regression-gate)
+- CC-W15-003 (BLOCKING): block-mode canonical pattern (elevated per CRIT-W15-002)
+- CC-W15-004 (BLOCKING): preopened_dir vs write_file canonical fs-write
+- CC-W15-006: macOS symlink fix CI verification
+- CC-W15-007: regression-gate 9-pattern list completeness
+- CC-W15-008 (BLOCKING NEW): release.yml builds 0 of 9 W-15 wasm plugins (CRIT-W15-001)
+- CC-W15-009 (BLOCKING NEW): standalone default invert (HIGH-W15-004)
+- CC-W15-010 (HIGH NEW): update-wave-state regex false-positive class (CRIT-W15-004)
+- CC-W15-011 (HIGH NEW): chars-vs-bytes whitespace counting alignment (HIGH-W15-002)
 
-**Wave gate compensating controls:** CC-W15-001 (cargo mutants -p vsdd-hook-sdk), CC-W15-002 (cargo mutants -p track-agent-start), CC-W15-003 (handoff-validator advisory block-mode review), CC-W15-004 (WASI preopened_dir vs host::write_file canonical fs-write pattern), CC-W15-005 (cargo mutants -p regression-gate; ≥80% mutation score on 36 unit tests), CC-W15-006 (macOS symlink fix in invoke.rs verify on actual macOS CI runner), CC-W15-007 (regression-gate 9-pattern list completeness review). Tracker: `.factory/cycles/v1.0-brownfield-backfill/wave-15-gate-compensating-controls.md`.
-
-**Branch protection:** LOOSE. TD-013 must resolve before GA.
-
-**W-15 implementation order — ALL SEALED:**
-1. Batch 1 (SEALED 2026-05-02): S-8.00 (PR #47 9e649ed)
-2. Batch 2 (SEALED 2026-05-02): S-8.10 + S-8.30 (PR #48 + #49)
-3. Batch 3 (SEALED 2026-05-02): S-8.06 / S-8.07 / S-8.08 (PR #51 + #53 + #52)
-4. Batch 4 (SEALED 2026-05-02): S-8.01 + S-8.04 (PR #50 + #54)
-5. Batch 5 (SEALED 2026-05-02): S-8.03 / S-8.02 / S-8.05 (PR #55 + #56 + #57)
-6. Finale (SEALED 2026-05-02): S-8.09 (PR #58 3adfe0b) — W-15 COMPLETE
-
-**Next steps:**
-1. W-15 wave gate: full test suite + adversary fresh-context + code-reviewer + security-reviewer + consistency-validator + holdout-evaluator + cargo mutants (CC-W15-001..007)
-2. Optional rc.3 release once wave gate passes
-3. W-16 Tier 2 (PostToolUse validators) — S-8.11..S-8.19, calendar-gated to v1.0 GA close
+### Open backlog items (post-fix-burst):
+- W-15.5 architectural cleanup (block-mode SDK extension per W-16, preopen tightening v1.1, BC-2.02.012 EC-004 divergence)
+- W-16 Tier 2 (PostToolUse validators) — calendar-gated to v1.0 GA close
+- TD-013 (P0): main branch protection LOOSENED — must restore before v1.0.0 GA
+- TD-014 (P2): Full Tier 2/3 legacy-bash-adapter retirement (W-15 retired Tier-1-only; ~30+ hooks remain)
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.

@@ -103,6 +103,54 @@ per-story-delivery cycle when a standard gate criterion was deferred under Optio
 | **Source decision** | D-202 |
 | **Status** | OPEN — must resolve before W-15 wave gate PASS |
 
+### CC-W15-008: Release Pipeline Must Build All 16 Native WASM Plugins (BLOCKING)
+
+| Field | Value |
+|-------|-------|
+| **Source** | CRIT-W15-001 from wave-15-gate-adversary.md |
+| **Control type** | release-pipeline-fix-required |
+| **Severity** | BLOCKING |
+| **Trigger** | `.github/workflows/release.yml` builds only 3 of 16 native WASM plugins. The 9 W-15 plugins are absent from the build matrix. Every release produces activation-time `LoadFailed` for all 9 missing plugins. |
+| **Required action** | Fix release.yml and ci.yml to build all 16 native WASM plugins. Use `--workspace` build + stage all `.wasm` outputs into `plugins/vsdd-factory/hook-plugins/`. Add a count-check step (must equal 16). Fix is item 1 in wave-15-gate-fix-burst-plan.md. |
+| **Registered by** | W-15 wave gate adversary review (2026-05-02) |
+| **Status** | OPEN — BLOCKING; must resolve in wave-15-gate-fixes burst |
+
+### CC-W15-009: update-wave-state-on-merge `default = ["standalone"]` Must Be Inverted (BLOCKING)
+
+| Field | Value |
+|-------|-------|
+| **Source** | HIGH-W15-004 from wave-15-gate-adversary.md |
+| **Control type** | fail-safe-default-required |
+| **Severity** | BLOCKING |
+| **Trigger** | `update-wave-state-on-merge/Cargo.toml` declares `default = ["standalone"]`. The standalone feature enables direct file I/O bypassing the host::write_file capability-gated path. Fail-safe default should be `default = []` (capability-gated path). With the current default, any build without `--no-default-features` silently uses the less-sandboxed path. |
+| **Required action** | Invert to `default = []` in `crates/hook-plugins/update-wave-state-on-merge/Cargo.toml`. The release.yml fix-burst step already uses `--no-default-features` (redundant but harmless after inversion). Fix is item 6 in wave-15-gate-fix-burst-plan.md. |
+| **Registered by** | W-15 wave gate adversary review (2026-05-02) |
+| **Status** | OPEN — BLOCKING; must resolve in wave-15-gate-fixes burst |
+
+### CC-W15-010: update-wave-state-on-merge Regex False-Positive Class (HIGH)
+
+| Field | Value |
+|-------|-------|
+| **Source** | CRIT-W15-004 from wave-15-gate-adversary.md |
+| **Control type** | correctness-fix-required |
+| **Severity** | HIGH |
+| **Trigger** | `update-wave-state-on-merge/src/lib.rs:98` regex `merge\|squash` matches "merge conflict", "squash strategy" — false-positive wave state updates on unrelated PRs. Doc comments and bash semantics specify `merged\|squash.*merge`. |
+| **Required action** | Fix regex in lib.rs:98 to `merged\|squash.*merge`. Add regression tests for false-positive strings ("fix merge conflict", "squash redundant commits"). Fix is item 5 in wave-15-gate-fix-burst-plan.md. |
+| **Registered by** | W-15 wave gate adversary review (2026-05-02) |
+| **Status** | OPEN — must resolve in wave-15-gate-fixes burst |
+
+### CC-W15-011: Whitespace Counting Alignment (chars vs bytes) (HIGH)
+
+| Field | Value |
+|-------|-------|
+| **Source** | HIGH-W15-002 from wave-15-gate-adversary.md |
+| **Control type** | consistency-fix-required |
+| **Severity** | HIGH |
+| **Trigger** | `handoff-validator` uses `.chars().filter(|c| c.is_whitespace())` (Unicode-aware). `track-agent-stop` uses `.bytes().filter(|b| *b == b' ' \|\| ...)` (ASCII-only). Two sibling plugins that both count whitespace will disagree on Unicode inputs. |
+| **Required action** | Align both plugins to `.chars().filter(|c| c.is_whitespace())` (Unicode-aware canonical). Add doc comment in both noting the canonical approach. Add Unicode whitespace test in both. Fix is item 9 in wave-15-gate-fix-burst-plan.md. |
+| **Registered by** | W-15 wave gate adversary review (2026-05-02) |
+| **Status** | OPEN — must resolve in wave-15-gate-fixes burst |
+
 ## Closed Controls
 
 _None yet._
@@ -118,3 +166,7 @@ At the W-15 wave gate, the standard checklist must be extended with:
 - [ ] CC-W15-005: `cargo mutants -p regression-gate` run; mutation score ≥ 80% for 9-pattern matching logic and pass→fail transition; results documented
 - [ ] CC-W15-006: darwin-arm64 + darwin-x64 CI passes for host::write_file with temp-dir paths (macOS symlink fix verified on actual runners)
 - [ ] CC-W15-007: regression-gate 9-pattern list reviewed for completeness; gaps accepted or new story filed; decision recorded
+- [ ] CC-W15-008 (BLOCKING): release.yml and ci.yml build all 16 native WASM plugins; count check = 16; all 19 bats failures resolved
+- [ ] CC-W15-009 (BLOCKING): update-wave-state-on-merge `default = []` (inverted from `["standalone"]`); release build uses capability-gated path by default
+- [ ] CC-W15-010: update-wave-state-on-merge regex fixed to `merged|squash.*merge`; false-positive regression tests pass
+- [ ] CC-W15-011: handoff-validator and track-agent-stop both use `.chars().filter(|c| c.is_whitespace())`; Unicode whitespace test added and passes in both
