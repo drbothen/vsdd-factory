@@ -130,21 +130,16 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "regression-gate"
 event = "PostToolUse"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/regression-gate.wasm"
 priority = 230
 timeout_ms = 5000
 on_error = "continue"
 
-[hooks.config]
-script_path = "hooks/regression-gate.sh"
+[hooks.capabilities.read_file]
+path_allow = [".factory/regression-state.json"]
 
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+[hooks.capabilities.write_file]
+path_allow = [".factory/regression-state.json"]
 
 [[hooks]]
 name = "validate-anchor-capabilities-union"
@@ -764,21 +759,10 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 name = "track-agent-start"
 event = "PreToolUse"
 tool = "Agent"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/track-agent-start.wasm"
 priority = 110
 timeout_ms = 5000
 on_error = "continue"
-
-[hooks.config]
-script_path = "hooks/track-agent-start.sh"
-
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
 [[hooks]]
 name = "validate-pr-merge-prerequisites"
@@ -845,135 +829,74 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "session-learning"
 event = "Stop"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/session-learning.wasm"
 priority = 910
 timeout_ms = 5000
 on_error = "continue"
 
-[hooks.config]
-script_path = "hooks/session-learning.sh"
-
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
 [[hooks]]
 name = "warn-pending-wave-gate"
 event = "Stop"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/warn-pending-wave-gate.wasm"
 priority = 920
 timeout_ms = 5000
 on_error = "continue"
 
-[hooks.config]
-script_path = "hooks/warn-pending-wave-gate.sh"
-
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+[hooks.capabilities.read_file]
+path_allow = [".factory/wave-state.yaml"]
 
 # ---------- SubagentStop ----------
 
 [[hooks]]
 name = "handoff-validator"
 event = "SubagentStop"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/handoff-validator.wasm"
 priority = 910
 timeout_ms = 5000
-on_error = "block"
-
-[hooks.config]
-script_path = "hooks/handoff-validator.sh"
-
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+# W-15 gate fix CRIT-W15-002: advisory-block-mode — block signal via stdout
+# {"outcome":"block"} line, not via crash behavior. on_error controls crash
+# semantics only. See crates/hook-sdk/HOST_ABI.md "Advisory block-mode pattern".
+on_error = "continue"
 
 [[hooks]]
 name = "pr-manager-completion-guard"
 event = "SubagentStop"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/pr-manager-completion-guard.wasm"
 priority = 920
 timeout_ms = 5000
-on_error = "block"
-
-[hooks.config]
-script_path = "hooks/pr-manager-completion-guard.sh"
-
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "gh", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+# W-15 gate fix CRIT-W15-002: advisory-block-mode — block signal via stdout
+# {"outcome":"block"} line, not via crash behavior. on_error controls crash
+# semantics only. See crates/hook-sdk/HOST_ABI.md "Advisory block-mode pattern".
+on_error = "continue"
 
 [[hooks]]
 name = "track-agent-stop"
 event = "SubagentStop"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/track-agent-stop.wasm"
 priority = 930
 timeout_ms = 5000
 on_error = "continue"
 
-[hooks.config]
-script_path = "hooks/track-agent-stop.sh"
-
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
 [[hooks]]
 name = "update-wave-state-on-merge"
 event = "SubagentStop"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/update-wave-state-on-merge.wasm"
 priority = 940
 timeout_ms = 10000
 on_error = "continue"
 
-[hooks.config]
-script_path = "hooks/update-wave-state-on-merge.sh"
+[hooks.capabilities.read_file]
+path_allow = [".factory/wave-state.yaml"]
 
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+[hooks.capabilities.write_file]
+path_allow = [".factory/wave-state.yaml"]
+max_bytes_per_call = 65536
 
 [[hooks]]
 name = "validate-pr-review-posted"
 event = "SubagentStop"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
+plugin = "hook-plugins/validate-pr-review-posted.wasm"
 priority = 950
 timeout_ms = 5000
 on_error = "continue"
-
-[hooks.config]
-script_path = "hooks/validate-pr-review-posted.sh"
-
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "gh", "jq"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 

@@ -12,6 +12,15 @@ members = [
     "crates/hook-plugins/capture-pr-activity",
     "crates/hook-plugins/legacy-bash-adapter",
     "crates/hook-plugins/block-ai-attribution",
+    "crates/hook-plugins/handoff-validator",
+    "crates/hook-plugins/pr-manager-completion-guard",
+    "crates/hook-plugins/regression-gate",
+    "crates/hook-plugins/session-learning",
+    "crates/hook-plugins/track-agent-start",
+    "crates/hook-plugins/track-agent-stop",
+    "crates/hook-plugins/update-wave-state-on-merge",
+    "crates/hook-plugins/warn-pending-wave-gate",
+    "crates/hook-plugins/validate-pr-review-posted",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
@@ -30,6 +39,10 @@ rust-version = "1.95"
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+# serde_yaml 0.9.34: pinned to last release (deprecated by dtolnay 2024).
+# Tech-debt: migrate to yaml-rust2 or serde_yml in a future ADR. Do NOT
+# upgrade to an incompatible fork without an ADR.
+serde_yaml = "0.9.34"
 toml = "0.8"
 anyhow = "1.0"
 thiserror = "2.0"

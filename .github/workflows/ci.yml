@@ -126,8 +126,20 @@ jobs:
         # clean so we omit `--allow-dirty`.
         run: cargo publish --dry-run --workspace -p vsdd-hook-sdk-macros -p vsdd-hook-sdk
 
-      - name: cargo build (wasm32-wasip1 plugin)
-        run: cargo build -p capture-commit-activity --target wasm32-wasip1
+      - name: cargo build (all native WASM plugins, wasm32-wasip1)
+        # Build all 16 native WASM plugins to catch compilation regressions
+        # across the full plugin set (CRIT-W15-001 / W-15-gate fix).
+        run: |
+          cargo build -p legacy-bash-adapter --bin legacy-bash-adapter --target wasm32-wasip1
+          cargo build -p update-wave-state-on-merge --target wasm32-wasip1 --no-default-features
+          cargo build --target wasm32-wasip1 \
+            --workspace \
+            --exclude legacy-bash-adapter \
+            --exclude update-wave-state-on-merge \
+            --exclude factory-dispatcher \
+            --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
+            --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
+            --exclude vsdd-hook-sdk-macros
 
       - name: cargo build (hello-hook example, wasm32-wasip1)
         # Compiling the example end-to-end exercises the #[hook] macro
@@ -135,6 +147,17 @@ jobs:
         # plugin target. If the macro regresses, this catches it before
         # any plugin author sees it.
         run: cargo build -p vsdd-hook-sdk --example hello-hook --target wasm32-wasip1
+
+      - name: Verify all 16 native WASM plugins built
+        shell: bash
+        run: |
+          count=$(ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null | wc -l)
+          if [ "$count" -lt 16 ]; then
+            echo "::error::Only $count wasm files built; expected >= 16."
+            ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null || true
+            exit 1
+          fi
+          echo "Built $count wasm files."
 
   platforms-drift:
     # Single source of truth: ci/platforms.yaml. The build-dispatcher
@@ -273,15 +296,37 @@ jobs:
         # rebuild std-test infrastructure for no benefit.
         run: cargo test --release --target ${{ matrix.target }} --workspace
 
-      - name: Build wasm plugin (capture-commit-activity)
-        # WASM plugins are platform-independent — built once on every
-        # matrix entry to prove the plugin still builds against the same
-        # toolchain that built the native dispatcher. Cheap enough to
-        # repeat (~5-10 s with cache) and catches feature-flag drift.
-        run: cargo build -p capture-commit-activity --target wasm32-wasip1 --release
+      - name: Build all native WASM plugins (release)
+        # Build all 16 native WASM plugins on every matrix entry —
+        # proves all plugins compile against the same toolchain as the
+        # native dispatcher. Catches feature-flag drift and compilation
+        # regressions across the full plugin set (CRIT-W15-001 / W-15-gate fix).
+        shell: bash
+        run: |
+          cargo build --release -p legacy-bash-adapter --bin legacy-bash-adapter --target wasm32-wasip1
+          cargo build --release -p update-wave-state-on-merge --target wasm32-wasip1 --no-default-features
+          cargo build --release --target wasm32-wasip1 \
+            --workspace \
+            --exclude legacy-bash-adapter \
+            --exclude update-wave-state-on-merge \
+            --exclude factory-dispatcher \
+            --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
+            --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
+            --exclude vsdd-hook-sdk-macros
 
       - name: Build wasm hello-hook example
         run: cargo build -p vsdd-hook-sdk --example hello-hook --target wasm32-wasip1 --release
+
+      - name: Verify all 16 native WASM plugins built (release)
+        shell: bash
+        run: |
+          count=$(ls target/wasm32-wasip1/release/*.wasm 2>/dev/null | wc -l)
+          if [ "$count" -lt 16 ]; then
+            echo "::error::Only $count wasm files built (release); expected >= 16."
+            ls target/wasm32-wasip1/release/*.wasm 2>/dev/null || true
+            exit 1
+          fi
+          echo "Built $count wasm files (release)."
 
       - name: Stage artifacts
         # Collect the dispatcher binary + every .wasm file into a single

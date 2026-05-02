@@ -17,9 +17,20 @@
 //! `plugin.completed`, `plugin.timeout`, `plugin.crashed`) are emitted
 //! by the executor; only `dispatcher.*` and `internal.dispatcher_error`
 //! are emitted here.
+//!
+//! ## VSDD_SINK_FILE (test/development hook)
+//!
+//! When `VSDD_SINK_FILE` is set to a path, all plugin-emitted events
+//! (from `host::emit_event`) are appended as JSONL to that file after
+//! execution completes. This is used by bats integration tests to
+//! capture and assert on emitted events without a full observability
+//! sink pipeline. Best-effort: write failures are silently dropped.
 
 use std::path::PathBuf;
 use std::sync::Arc;
+// Mutex is only needed in debug builds for the VSDD_SINK_FILE flush path (SEC-003).
+#[cfg(debug_assertions)]
+use std::sync::Mutex;
 
 use factory_dispatcher::engine::{EpochTicker, build_engine};
 use factory_dispatcher::executor::{ExecutorInputs, execute_tiers};
@@ -28,6 +39,7 @@ use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
     InternalLog,
 };
+use factory_dispatcher::invoke::PluginResult;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::Registry;
@@ -36,6 +48,11 @@ use factory_dispatcher::{HOST_ABI_VERSION, new_trace_id};
 
 const ENV_PLUGIN_ROOT: &str = "CLAUDE_PLUGIN_ROOT";
 const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
+// SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
+// The constant and all logic reading it are gated behind #[cfg(debug_assertions)]
+// so the env var name does not appear in release binaries.
+#[cfg(debug_assertions)]
+const ENV_SINK_FILE: &str = "VSDD_SINK_FILE";
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -166,6 +183,15 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         );
     }
 
+    // Clone the event queue Arc before moving base_host_ctx into
+    // ExecutorInputs. All plugin contexts share this Arc (every clone
+    // of HostContext shares the same Mutex<Vec<_>>), so draining it
+    // after execute_tiers completes yields all plugin-emitted events.
+    // In release builds the VSDD_SINK_FILE path is compiled out (SEC-003);
+    // allow(unused_variables) silences the resulting lint.
+    #[allow(unused_variables)]
+    let event_queue = Arc::clone(&base_host_ctx.events);
+
     let inputs = ExecutorInputs {
         engine: &engine,
         cache: &cache,
@@ -177,6 +203,19 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
 
     let summary = execute_tiers(inputs, tiers).await;
 
+    // Relay any non-empty plugin stderr to the dispatcher's process stderr so
+    // user-visible hook messages (e.g. WAVE GATE REMINDER from
+    // warn-pending-wave-gate) reach the terminal. The WASI sandbox captures
+    // plugin stderr into MemoryOutputPipe; without this relay the output
+    // would only appear in the internal log, invisible to the user.
+    for outcome in &summary.per_plugin_results {
+        if let PluginResult::Ok { stderr, .. } = &outcome.result
+            && !stderr.is_empty()
+        {
+            eprint!("{stderr}");
+        }
+    }
+
     eprintln!(
         "  plugins_run={} total_ms={} block_intent={} exit_code={}",
         summary.per_plugin_results.len(),
@@ -184,6 +223,23 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         summary.block_intent,
         summary.exit_code,
     );
+
+    // SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
+    // VSDD_SINK_FILE: drain plugin events and append as JSONL for
+    // bats integration tests (S-8.08 AC-005). Best-effort — any I/O
+    // error is silently dropped so the dispatcher always exits 0 on
+    // non-block dispatches regardless of sink write outcome.
+    #[cfg(debug_assertions)]
+    if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
+        && !sink_path.is_empty()
+    {
+        // Reject path traversal and absolute paths (SEC-003).
+        if sink_path.contains("..") || std::path::Path::new(&sink_path).is_absolute() {
+            eprintln!("VSDD_SINK_FILE: rejected unsafe path: {sink_path}");
+        } else {
+            flush_sink_file(&sink_path, &event_queue);
+        }
+    }
 
     Ok(summary.exit_code)
 }
@@ -206,6 +262,63 @@ fn resolve_log_dir() -> PathBuf {
     match std::env::var(ENV_PROJECT_DIR) {
         Ok(root) if !root.is_empty() => PathBuf::from(root).join(".factory").join("logs"),
         _ => PathBuf::from(".factory").join("logs"),
+    }
+}
+
+/// Write plugin-emitted events as JSONL to the `VSDD_SINK_FILE` path.
+///
+/// Only called when `VSDD_SINK_FILE` is set (bats test harness). Best-
+/// effort: any I/O or serialization error is silently swallowed. The
+/// function filters out dispatcher-internal events (`dispatcher.*`,
+/// `internal.*`, `plugin.*`) — only plugin-domain events (those whose
+/// `type_` does not start with `"dispatcher."`, `"internal."`, or
+/// `"plugin."`) are written to the sink. This matches what the bats
+/// tests expect: they assert on `agent.start` events, not on lifecycle
+/// noise.
+///
+/// Used by S-8.08 AC-005 bats integration tests.
+/// SECURITY: debug-only; see SEC-003 (W-15 wave gate fix).
+#[cfg(debug_assertions)]
+fn flush_sink_file(sink_path: &str, event_queue: &Arc<Mutex<Vec<InternalEvent>>>) {
+    use std::io::Write;
+
+    let events = {
+        match event_queue.lock() {
+            Ok(mut guard) => std::mem::take(&mut *guard),
+            Err(_) => return,
+        }
+    };
+
+    // Filter to plugin-domain events only (exclude dispatcher/internal/plugin lifecycle).
+    let domain_events: Vec<_> = events
+        .iter()
+        .filter(|ev| {
+            !ev.type_.starts_with("dispatcher.")
+                && !ev.type_.starts_with("internal.")
+                && !ev.type_.starts_with("plugin.")
+        })
+        .collect();
+
+    if domain_events.is_empty() {
+        return;
+    }
+
+    // Open (or create) the sink file for appending.
+    let file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(sink_path);
+
+    let mut file = match file {
+        Ok(f) => f,
+        Err(_) => return, // best-effort: silently drop
+    };
+
+    for ev in domain_events {
+        if let Ok(line) = serde_json::to_string(ev) {
+            let _ = file.write_all(line.as_bytes());
+            let _ = file.write_all(b"\n");
+        }
     }
 }
 

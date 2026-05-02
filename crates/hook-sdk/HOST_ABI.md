@@ -61,6 +61,68 @@ UTF-8 JSON. Schema:
 `tool_response` is `null` for `PreToolUse` and most pre-call events;
 present for `PostToolUse` and lifecycle events that carry a result.
 
+### SubagentStop stdin envelope
+
+When Claude Code fires a `SubagentStop` event the dispatcher writes the
+following shape to plugin stdin.  The four SubagentStop-specific fields
+(`agent_type`, `subagent_name`, `last_assistant_message`, `result`) are
+**top-level** — not nested inside `tool_input` or `tool_response`.
+
+```json
+{
+  "event_name": "SubagentStop",
+  "session_id": "abc-123",
+  "dispatcher_trace_id": "uuidv4",
+  "tool_name": "",
+  "tool_input": null,
+  "tool_response": null,
+  "agent_type": "product-owner",
+  "subagent_name": "product-owner-fallback",
+  "last_assistant_message": "Wrote the story spec and committed.",
+  "result": "fallback-result-string"
+}
+```
+
+**Field presence semantics**
+
+| Field | Type in `HookPayload` | Present on | Absent behaviour |
+|---|---|---|---|
+| `agent_type` | `Option<String>` | SubagentStop only | `None` (via `#[serde(default)]`) |
+| `subagent_name` | `Option<String>` | SubagentStop only | `None` |
+| `last_assistant_message` | `Option<String>` | SubagentStop only | `None` |
+| `result` | `Option<String>` | SubagentStop only | `None` |
+
+JSON `null` deserializes to `None` for all four fields — identical to jq's
+`//` null-advance semantics.
+
+**Canonical fallback chains (BC-2.02.012 Postconditions 5–6)**
+
+```rust
+// Agent identity — mirrors: jq -r '.agent_type // .subagent_name // "unknown"'
+let agent = payload.agent_type.as_deref()
+    .or(payload.subagent_name.as_deref())
+    .unwrap_or("unknown");
+
+// Assistant message — mirrors: jq -r '.last_assistant_message // .result // empty'
+let message = payload.last_assistant_message.as_deref()
+    .or(payload.result.as_deref())
+    .unwrap_or("");
+```
+
+Both chains are normative.  Plugin implementations for S-8.01, S-8.02,
+S-8.03, and S-8.05 MUST use these expressions; divergence requires an
+explicit rationale (see BC-2.02.012 EC-004 for the `handoff-validator`
+three-stage `output` fallback).
+
+**BC reference:** BC-2.02.012 — "HookPayload SubagentStop fields: top-level
+envelope schema for agent_type, subagent_name, last_assistant_message,
+result."
+
+**ABI version:** These fields are an additive `HookPayload` extension
+under D-6 Option A and D-183.  `HOST_ABI_VERSION` remains `1`.
+
+---
+
 ### Stdout envelope (plugin → host)
 
 UTF-8 JSON, single-line, terminated with `\n`. One of:
@@ -78,6 +140,89 @@ UTF-8 JSON, single-line, terminated with `\n`. One of:
 | `continue` | `0` | Allow the tool call / non-blocking event |
 | `block`    | `2` | Block (PreToolUse / PermissionRequest only) |
 | `error`    | `1` | Plugin failed; non-blocking unless `on_error = "block"` |
+
+---
+
+## Advisory block-mode pattern
+
+Plugins that need to advise the dispatcher to block downstream actions (e.g., a
+pr-manager subagent that has not completed all 9 steps) emit a JSON line to stdout:
+
+    {"outcome":"block","reason":"<short_machine_string>"}
+
+Optionally with `"stderr":"<operator-visible message>"` to inform the operator.
+
+The dispatcher checks for this line BEFORE returning to the parent agent. If
+`outcome=block`, the dispatcher exits with a non-zero status and propagates the
+reason.
+
+The `on_error` field in `hooks-registry.toml` controls how the dispatcher reacts
+to a plugin that *crashes* (returns a non-zero exit code, panics, or otherwise
+fails). The advisory-block mechanism is independent of `on_error` — any plugin
+that writes `{"outcome":"block","reason":"..."}` to stdout records a
+dispatcher-level block intent regardless of `on_error`. As of v1.0,
+`on_error="block"` and `on_error="continue"` produce identical behavior for
+block_intent aggregation; the field is preserved for forward-compatibility with
+potential future crash-to-block escalation policies (W-16+).
+
+The SDK's `HookResult::Block(reason)` variant is reserved for future hard-block
+semantics (planned W-16 / v1.1). All v1.0 plugins use `HookResult::Continue` +
+stdout outcome line.
+
+**Affected plugins (canonical v1.0 advisory-block-mode users):**
+
+- `handoff-validator` — emits `hook.block` event + writes
+  `{"outcome":"block","reason":"handoff_empty_result"}` (empty path) or
+  `{"outcome":"block","reason":"handoff_truncated_result"}` (truncated path) to
+  stdout + returns `HookResult::Continue`
+- `pr-manager-completion-guard` — emits `hook.block` event + writes
+  `{"outcome":"block","reason":"pr_manager_incomplete_lifecycle"}` to stdout +
+  returns `HookResult::Continue`
+- `validate-pr-review-posted` — emits `hook.block` event + writes
+  `{"outcome":"block","reason":"pr_review_invalid"}` to stdout when any
+  pre-merge check fails + returns `HookResult::Continue`
+
+**Decision record:** D-W15-gate-003 — W-15 gate fix: canonical advisory-block-mode
+pattern chosen (stdout emit, not HookResult::Block); HookResult::Block SDK
+extension deferred to W-16. See `CRIT-W15-002 + HIGH-W15-003` in the W-15 gate
+adversary review.
+
+---
+
+## Filesystem Access Model
+
+### WASI preopened directories
+
+All plugins receive WASI preopened directory access to the project root
+(`CLAUDE_PROJECT_DIR`) and the `FACTORY_STATE_FILE` parent directory with
+`DirPerms::all() | FilePerms::all()`. This means any plugin can read and write
+within these directories using native WASI filesystem calls (`std::fs::read`,
+`std::fs::write`, etc.) — no capability declaration required.
+
+### host::write_file capability
+
+The `host::write_file` host function provides an **additional** bounded-write
+mechanism with BC-2.02.011 enforcement (`max_bytes_per_call`, `path_allow`
+list). Plugins that declare a `write_file` capability block in
+`hooks-registry.toml` use this path for guarded writes.
+
+### Relationship
+
+WASI preopened access is the **sandbox boundary**. The `host::write_file`
+capability gate controls only the host function — it does NOT constrain native
+WASI filesystem calls. A plugin with no `write_file` capability declared can
+still read and write the preopened directories via standard Rust `std::fs`.
+
+### v1.1 roadmap
+
+Future releases (v1.1) will tighten preopens to read-only by default; write
+access will require an explicit capability declaration. This closes the gap
+between WASI preopened access and the `host::write_file` allow-list boundary.
+See `CRIT-W15-003 / SEC-001` in the W-15 gate security review and the comment
+in `crates/factory-dispatcher/src/invoke.rs` near `preopened_dir(...)`.
+
+**Decision record:** D-W15-gate-004 — W-15 gate fix: WASI preopened_dir vs
+`write_file` capability model documented; capability tightening deferred to v1.1.
 
 ---
 
@@ -185,6 +330,42 @@ Read a single environment variable. Returns:
 - `>= 0` — number of bytes written (`0` = variable unset)
 - `< 0`  — error code (typically `-1` / capability denied if the name is
   not on the dispatcher's env allow-list)
+
+### `write_file(path_ptr, path_len, contents_ptr, contents_len, max_bytes, timeout_ms) -> i32`
+
+Write a guest-owned byte slice to the filesystem through the dispatcher's
+bounded host function (BC-2.02.011 — additive ABI extension, D-6 Option A;
+`HOST_ABI_VERSION` stays at 1).
+
+**Protocol:** input-pointer — the SDK passes guest-owned bytes;
+the dispatcher copies them via `read_wasm_bytes`. This is the **inverse**
+of `read_file`'s output-pointer protocol and the two must not be confused.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `path_ptr` | `u32` | Pointer to UTF-8 path in guest memory |
+| `path_len` | `u32` | Byte length of path |
+| `contents_ptr` | `u32` | Pointer to content bytes in guest memory |
+| `contents_len` | `u32` | Byte length of content |
+| `max_bytes` | `u32` | Mandatory byte cap; content exceeding this returns `-3` |
+| `timeout_ms` | `u32` | Mandatory timeout budget; accepted for ABI stability (epoch interruption enforced in S-1.5) |
+
+**Return values:**
+
+| Code | Meaning |
+|---|---|
+| `0` | Success; full byte slice durably written to `path` |
+| `-1` | Capability denied: path not in `capabilities.write_file.path_allow`, path traversal attempt, or no `write_file` capability block present |
+| `-2` | Timeout exceeded `timeout_ms` |
+| `-3` | Content length exceeded `max_bytes` cap; **no bytes written to disk** |
+| `-4` | Invalid argument (e.g. UTF-8 path decoding failure) |
+| `-99` | Filesystem I/O error or missing parent directory |
+
+**Safety policy:** path must be within the plugin's declared
+`capabilities.write_file.path_allow` list. Traversal attempts (`..`) return
+`-1` (same as `read_file`). Deny-by-default: no capability block → `-1`.
 
 ---
 

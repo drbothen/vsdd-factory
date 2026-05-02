@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.0.0-rc.3 — W-15 convergence + wave-gate fixes (2026-05-02)
+
+Release candidate 3 ships the completed W-15 wave gate (12 stories merged)
+plus three post-merge fix-bursts (PRs #59, #60, #61) that closed all CRIT/HIGH
+findings before tagging. First rc that fully exercises the native WASM plugin
+pipeline with dispatcher binary bundling across all 5 platforms.
+
+### Fixed
+
+- **[W-15-gate / PR #59]** Critical and high pre-rc.3 findings: dispatcher
+  AND-gate logic, tool_input field regression, dead fixture cleanup, and
+  HOST_ABI.md alignment.
+- **[W-15-gate-2 / PR #60]** Dispatcher AND-gate re-verification + tool_input
+  regression confirmed resolved; integration test coverage added.
+- **[W-15-gate-3 / PR #61]** HOST_ABI.md spec alignment with implementation;
+  removed stale test fixtures that were masking true coverage gaps.
+
+### Added
+
+- **W-15 wave convergence (12 stories merged)** — Native WASM port of all
+  SubagentStop and Stop hook plugins complete; legacy bash adapter retained as
+  routing shim. All 16 registry entries now route through the native dispatcher.
+- **`host::write_file` SDK API** — hook plugins can write to host-allowlisted
+  paths via `WriteFileCaps` capability schema; HOST_ABI_VERSION stays at 1
+  (additive-only, D-6 Option A). See BC-2.02.011.
+- **advisory-block-mode pattern** documented in HOST_ABI.md — dispatchers
+  can surface advisory blocks without hard-failing the hook chain.
+
+### Migration
+
+No breaking changes. All slash commands, auto-invocation, and orchestrator
+dispatch continue to work unchanged. The native dispatcher replaces bash
+adapter execution paths transparently; no operator configuration required.
+
+## [0.2.0] - 2026-05-02
+
+### Added
+- `host::write_file(path, contents, max_bytes, timeout_ms) -> Result<(), HostError>` SDK API for hook plugins to write to host-allowlisted paths. New WriteFileCaps capability schema (`path_allow`, `max_bytes_per_call`). HOST_ABI_VERSION unchanged at 1 (D-6 Option A additive-only). See BC-2.02.011 for full invariants.
+
+### Security
+- Fixed path-traversal vulnerability in `path_allowed()` for both `read_file` and `write_file` dispatcher bindings: paths are now canonicalized before the allowlist prefix check, preventing `../` escapes from bypassing capability gates. (BC-2.02.011 EC-001 / BC-2.02.001 EC-001 — same bug existed in both host functions.)
+
 ## 1.0.0-rc.2 — Release Candidate 2 (skill cleanup) (2026-05-01)
 
 Bug-fix release focused on plugin frontmatter cleanup and CI/CD reliability.

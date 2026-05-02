@@ -1,0 +1,14 @@
+{
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/tmp/non-bc-file.txt",
+    "old_string": "old",
+    "new_string": "new"
+  },
+  "tool_response": {
+    "type": "result",
+    "result": ""
+  },
+  "session_id": "test-session-00000000"
+}
