@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-8"
-version: "1.10"
+version: "1.9"
 title: "Native WASM Migration Completion"
 status: ready
 tech_debt_ref: TD-014
@@ -127,7 +127,7 @@ the hooks.json inline entries for the 42 ported scripts.
 5. HOST_ABI_VERSION = 1 unchanged throughout E-8 (additive extension to host fn
    surface allowed per D-6; no version bump).
 6. Aggregate PostToolUse:Edit|Write latency (sum of all 23 plugins) ≤ 500ms p95
-   (per AC-7b; ceiling raised from 200ms to 500ms by S-8.00 fix-burst v1.10
+   (per AC-7b; ceiling raised from 200ms to 500ms by S-8.00 fix-burst v1.9
    after measuring 19ms/plugin bash baseline × 23 = 437ms projected aggregate;
    warm-pool + compile-cache mitigations remain required to hit sub-500ms target);
    per-Tier-2 hook latency does not regress vs S-8.00 baseline by more than 20%
@@ -603,7 +603,7 @@ still needs it.
 | R-8.05 | Test coverage gap — bash hooks have implicit behaviors not covered by current bats tests; port forces explicit test writing which surfaces latent bugs | MEDIUM | HIGH | Surfaced latent bugs are fixed in the porting story (same PR); not deferred |
 | R-8.06 | Inline matcher migration creates registration churn — simultaneous hooks.json + hooks-registry.toml edits required per hook; merge conflicts likely in active development | LOW | MEDIUM | Each story is a discrete branch; hooks.json and hooks-registry.toml edits are atomic per story |
 | R-8.07 | TD-007 interaction — bash hooks still call `bin/emit-event` binary; ported hooks should use `host::emit_event` instead; if bin/emit-event is removed before all 42 ports complete, event emission breaks for remaining bash hooks | HIGH | HIGH | bin/emit-event is NOT removed until S-8.29 close. Tiers 2/3 bash hooks alive in hooks.json direct path during W-16/W-17 still need bin/emit-event. Validated by AC-9. |
-| R-8.08 | Cumulative WASM startup overhead — S-8.00 measured 19ms/plugin bash median × 23 = 437ms projected aggregate PostToolUse:Edit\|Write latency; confirmed the 200ms estimate was too optimistic | HIGH | HIGH | OQ-8 resolved by S-8.00 measurement. New AC-7b ceiling = 500ms p95 (v1.10). Required mitigations: plugin warm-pool, shared wasmtime engine instance, compile-cache (.wasm → .cwasm). Without mitigations, WASM overhead may exceed 437ms bash baseline. Tier 2 gate must include warm-pool instrumented benchmark before W-16 starts. |
+| R-8.08 | Cumulative WASM startup overhead — S-8.00 measured 19ms/plugin bash median × 23 = 437ms projected aggregate PostToolUse:Edit\|Write latency; confirmed the 200ms estimate was too optimistic | HIGH | HIGH | OQ-8 resolved by S-8.00 measurement. New AC-7b ceiling = 500ms p95 (v1.9). Required mitigations: plugin warm-pool, shared wasmtime engine instance, compile-cache (.wasm → .cwasm). Without mitigations, WASM overhead may exceed 437ms bash baseline. Tier 2 gate must include warm-pool instrumented benchmark before W-16 starts. |
 | R-8.09 | Cumulative bundle size growth — 42 new .wasm artifacts in dispatcher binary bundles increase release-artifact size by estimated low-MB; could approach GitHub Release per-asset size limits over multiple tier releases | LOW | LOW | Per-bundle size measured in S-8.00 baseline; if growth exceeds 25% of v1.0.0 dispatcher bundle size, evaluate WASM size-optimization (`opt-level = "z"` in workspace `[profile.release]`, strip-debug, link-time optimization). Tier-by-tier release pacing (v1.1, v1.2, v1.3) gives natural milestones to reassess. |
 | R-8.10 | BC-creation explosion — D-2 Option C exception path adds new BCs for hooks with implicit behaviors not in existing BCs; magnitude depends on S-8.00 audit; worst case ~9 new BCs × ~3 pts = 27 unbudgeted pts | MEDIUM | MEDIUM | S-8.00 audit measures BC-coverage gap pre-W-15; if >5 Tier 1 hooks lack BC, raise OQ for adversarial review and consider deferring some Tier 1 ports to W-16; new BCs follow standard BC creation flow (template + adversary review). |
 
@@ -618,7 +618,7 @@ still needs it.
 | AC-5 | Windows native operation verified — all migrated hooks run without git-bash | CI Windows runner passes all bats integration tests for Tier 1+ hooks |
 | AC-6 | `HOST_ABI_VERSION = 1` in both dispatcher and SDK — unchanged | `grep HOST_ABI_VERSION crates/factory-dispatcher/src/lib.rs` + `crates/vsdd-hook-sdk/src/lib.rs` both = 1 |
 | AC-7 | Per-Tier-2 hook latency does not regress vs S-8.00 bash baseline by more than 20% (Tier 1/3 hooks fire less frequently and are not benchmarked individually) | Benchmark test in `tests/perf/` measures each Tier 2 hook vs S-8.00 bash baseline |
-| AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 500ms p95 (ceiling raised from 200ms to 500ms by S-8.00 fix-burst v1.10; S-8.00 measured 19ms/plugin bash median × 23 = 437ms projected aggregate; warm-pool + compile-cache mitigations required; OQ-8 resolved) | Benchmark test in `tests/perf/` measures aggregate latency under simulated file-write load |
+| AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 500ms p95 (ceiling raised from 200ms to 500ms by S-8.00 fix-burst v1.9; S-8.00 measured 19ms/plugin bash median × 23 = 437ms projected aggregate; warm-pool + compile-cache mitigations required; OQ-8 resolved) | Benchmark test in `tests/perf/` measures aggregate latency under simulated file-write load |
 | AC-8 | Behavior parity per hook — bats tests pass for native version; validate-factory-path-root, validate-input-hash, validate-template-compliance additionally have negative (false-block) test fixtures | bats test suite passes with identical output; 3 block-mode hooks have explicit negative test scenarios |
 | AC-9 | `bin/emit-event` binary not present in dispatcher binary tree post-S-8.29 | `find . -name emit-event` returns empty in the dispatcher binary bundle directory after S-8.29 merge; validated in S-8.29 pre-deletion audit |
 
@@ -802,7 +802,7 @@ Restated from D-12 for clarity:
 | AC-5 | Windows CI runner passes all bats integration tests (verify via GitHub Actions windows-latest) |
 | AC-6 | `HOST_ABI_VERSION = 1` in both dispatcher and SDK (confirmed via grep in release gate) |
 | AC-7 | Per-Tier-2 hook latency does not regress vs S-8.00 bash baseline by more than 20% (Tier 1/3 hooks fire less frequently and are not benchmarked individually) |
-| AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 200ms p95 (tentative ceiling; baseline-derived adjustment allowed in S-8.00 per OQ-8) |
+| AC-7b | Aggregate PostToolUse:Edit\|Write latency (sum of all 23 plugins) ≤ 500ms p95 (ceiling raised from 200ms to 500ms by S-8.00 fix-burst v1.9; OQ-8 resolved; warm-pool + compile-cache mitigations required) |
 | AC-8 | All per-hook bats behavior-parity tests pass; validate-factory-path-root, validate-input-hash, validate-template-compliance additionally have negative (false-block) test fixtures |
 | AC-9 | `bin/emit-event` binary not present in dispatcher binary tree post-S-8.29; validated by `find . -name emit-event` returning empty in the dispatcher binary bundle directory after S-8.29 merge |
 
@@ -879,7 +879,7 @@ of S-5.07 release-notes work and backfill D-1 with the specific doc reference;
 c, d) are sufficient to sustain D-1's decision without (b).
 
 **OQ-8 — Per-plugin WASM warm-invocation latency baseline (R-8.08 / AC-7b / Goal #6):**
-**RESOLVED by S-8.00 (v1.10 fix-burst, 2026-05-02).**
+**RESOLVED by S-8.00 (v1.9 fix-burst, 2026-05-02).**
 S-8.00 measured: handoff-validator.sh Tier 1 = 43ms median; validate-bc-title.sh Tier 2 = 19ms median; protect-bc.sh Tier 3 = 40ms median. Tier 2 aggregate projection: 19ms × 23 = 437ms — the original 10ms/plugin assumption was incorrect. The 200ms p95 ceiling was unattainable at baseline. AC-7b ceiling raised to 500ms p95. R-8.08 re-scored HIGH/HIGH (no longer pending). Warm-pool + compile-cache mitigations are now REQUIRED (not optional) to meet AC-7b at W-16 gate.
 
 ---
@@ -1125,7 +1125,17 @@ Status flip `draft` → `ready` per ADR-013 3-clean-pass discipline. No content 
 - Stories status remains `draft` until per-story-spec bursts.
 - E-8 epic ready for orchestrator routing into Wave 15 / W-15* (after v1.0.0 GA close).
 
-### v1.10 (2026-05-02) — S-8.00 AC-3 fix-burst: AC-7b ceiling raised, OQ-8 resolved
+### v1.8 (2026-05-01) — D-183 Phase B: S-8.30 SDK extension story authored
+
+S-8.30-sdk-extension-hookpayload-subagentstop-fields.md v1.0 status=draft authored by story-writer.
+
+- story_count bumped 30 → 31.
+- S-8.30 added to Stories table after S-8.10 (SDK extensions grouped before Tier 2/3 placeholder stories).
+- Story ID rationale: S-8.30 per POLICY 1 — Tier 2/3 placeholder IDs S-8.11..S-8.29 left untouched; appending after Tier 3 is the cleanest path (no renumber).
+- S-8.30 anchors BC-2.02.012 (HookPayload SubagentStop top-level fields). 3 pts. 8 ACs. depends_on: S-8.00. blocks: S-8.01, S-8.02, S-8.03, S-8.05 (re-convergence with typed-projection prose per process-gap-D-183-A).
+- Phase C next: adversarial pass-1 on S-8.30.
+
+### v1.9 (2026-05-02) — S-8.00 AC-3 fix-burst: AC-7b ceiling raised, OQ-8 resolved
 
 S-8.00 perf baseline measurement (darwin-arm64 local runner, hyperfine --warmup 3 --runs 10):
 - handoff-validator.sh (Tier 1): median 43ms, p95 56ms
@@ -1144,12 +1154,4 @@ The 10ms/plugin assumption (OQ-8) was incorrect; measured value is 1.9× the est
 
 BC-anchor audit outcome (AC-4/AC-5): 0 of 9 Tier 1 hooks have Gap-Found = Y. All 9 hooks have pre-existing BC-7.03/BC-7.04 coverage. No new BCs drafted. No S-8.0N story point bumps required for BC overhead.
 
-### v1.8 (2026-05-01) — D-183 Phase B: S-8.30 SDK extension story authored
-
-S-8.30-sdk-extension-hookpayload-subagentstop-fields.md v1.0 status=draft authored by story-writer.
-
-- story_count bumped 30 → 31.
-- S-8.30 added to Stories table after S-8.10 (SDK extensions grouped before Tier 2/3 placeholder stories).
-- Story ID rationale: S-8.30 per POLICY 1 — Tier 2/3 placeholder IDs S-8.11..S-8.29 left untouched; appending after Tier 3 is the cleanest path (no renumber).
-- S-8.30 anchors BC-2.02.012 (HookPayload SubagentStop top-level fields). 3 pts. 8 ACs. depends_on: S-8.00. blocks: S-8.01, S-8.02, S-8.03, S-8.05 (re-convergence with typed-projection prose per process-gap-D-183-A).
-- Phase C next: adversarial pass-1 on S-8.30.
+**Cosmetic cleanup post-S-8.00 PR #47 merge:** changelog ordering restored to earliest-first (v1.8 D-183 entry now precedes v1.9 fix-burst entry); renumbered v1.10 → v1.9 (gap closure; v1.9 was unused externally); duplicate AC-7b in "Acceptance Criteria (Epic-Level)" restatement section swept from ≤ 200ms p95 (stale tentative value) to ≤ 500ms p95 to match the post-fix-burst active spec value.
