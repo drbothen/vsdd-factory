@@ -1,0 +1,9 @@
+waves:
+  - wave: "wave-14"
+    stories:
+      - "S-8.04"
+      - "S-8.05"
+    stories_merged:
+      - "S-8.05"
+    gate_status: not_started
+    next_gate_required: null

@@ -3462,6 +3462,7 @@ name = "update-wave-state-on-merge"
 version = "0.0.1"
 dependencies = [
  "regex",
+ "serde",
  "serde_json",
  "serde_yaml",
  "vsdd-hook-sdk",

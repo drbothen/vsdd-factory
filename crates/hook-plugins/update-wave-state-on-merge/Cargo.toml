@@ -19,6 +19,14 @@ path = "src/lib.rs"
 name = "update-wave-state-on-merge"
 path = "src/main.rs"
 
+# standalone: use WASI std::fs file I/O instead of vsdd host functions.
+# This feature is the default so debug builds work with plain `wasmtime run`
+# (no dispatcher). For production builds consumed by the factory-dispatcher,
+# compile with `--no-default-features`.
+[features]
+default = ["standalone"]
+standalone = []
+
 [dependencies]
 vsdd-hook-sdk = { path = "../../hook-sdk" }
 serde = { workspace = true }
