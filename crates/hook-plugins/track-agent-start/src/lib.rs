@@ -7,8 +7,8 @@
 //!   - `matcher`    — literal "Agent"
 //!   - `subagent`   — `tool_input.subagent_type` (default: "unknown" per EC-001)
 //!   - `story_id`   — optional; extracted from `tool_input.prompt` via two-pattern cascade:
-//!                    pattern 1: `S-[0-9]+\.[0-9]+` (e.g., S-8.03); pattern 2: `STORY-[0-9]+`
-//!                    (e.g., STORY-042); omitted if neither matches (EC-003).
+//!     pattern 1: `S-[0-9]+\.[0-9]+` (e.g., S-8.03); pattern 2: `STORY-[0-9]+`
+//!     (e.g., STORY-042); omitted if neither matches (EC-003).
 //!
 //! FORBIDDEN FIELDS (E-8 D-2 strict parity):
 //!   - NO `agent_id` field
@@ -139,8 +139,7 @@ where
 /// surface of `track_agent_start_logic`.
 pub fn on_agent_start(payload: HookPayload) -> HookResult {
     track_agent_start_logic(payload, |event_type, fields| {
-        // EC-006: emit_event error silently swallowed via let _.
-        let _ = vsdd_hook_sdk::host::emit_event(event_type, fields);
+        vsdd_hook_sdk::host::emit_event(event_type, fields);
     })
 }
 
