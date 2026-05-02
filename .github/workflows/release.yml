@@ -382,3 +382,85 @@ jobs:
           # land on the most recent stable until the matching unhyphenated tag
           # ships. See S-0.2 for full rationale.
           prerelease: ${{ contains(github.ref_name, '-') }}
+
+  sync-develop:
+    # After the bot's binary-bundle commit lands on main, back-merge it
+    # onto develop. Closes a Git Flow gap discovered in v1.0.0-rc.1:
+    # Claude Code's plugin marketplace reads marketplace.json from the
+    # repo's GitHub default branch (develop), but the bot writes the
+    # version bumps only to main during the post-tag bundle step. Without
+    # this back-merge, develop's marketplace.json is always one release
+    # behind main, and `/plugin` reports the prior version even though
+    # the latest tag is shipped.
+    #
+    # The merge brings in just the bot's mechanical commit (binaries +
+    # plugin.json/marketplace.json version bump). Manual main-only
+    # commits don't exist between releases — bot is the sole writer to
+    # main outside of release-branch merges, which already back-merge
+    # via Git Flow's standard release flow.
+    #
+    # If direct push fails (branch protection, manual-only develop, etc.)
+    # the job opens a PR instead so the operator can review and merge.
+    name: Sync main → develop
+    needs: commit-binaries
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Full history needed to merge main into develop without
+          # spurious unrelated-histories errors.
+          fetch-depth: 0
+          ref: develop
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main → develop and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git fetch origin main
+          # --no-ff so the merge commit always exists on develop, giving
+          # `git log` a clear "this is when develop caught up to main for
+          # release X" marker. If there's nothing to merge (the bot
+          # bundle job no-op'd because nothing changed), exit cleanly.
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "develop already contains origin/main — no sync needed."
+            exit 0
+          fi
+
+          if ! git merge --no-ff origin/main \
+                 -m "merge: sync main → develop after $GITHUB_REF_NAME bundle" \
+                 -m "Automated back-merge of the post-tag binary-bundle commit so the GitHub default branch (develop) reflects the latest released plugin.json/marketplace.json version. See sync-develop job in .github/workflows/release.yml."; then
+            echo "::warning::Merge produced conflicts — opening PR for manual resolution."
+            git merge --abort || true
+            exit 1
+          fi
+
+          # Try direct push first. If branch protection on develop blocks
+          # the bot, fall back to a PR.
+          if git push origin develop; then
+            echo "Pushed sync merge to develop."
+          else
+            echo "::warning::Direct push to develop blocked — opening PR."
+            BRANCH="sync/main-to-develop-${GITHUB_REF_NAME}"
+            git checkout -b "$BRANCH"
+            git push origin "$BRANCH"
+            body_file=$(mktemp)
+            {
+              printf 'Automated back-merge of the post-tag binary-bundle commit so develop'\''s marketplace.json reflects %s. Bot blocked from pushing directly to develop — please review and merge.\n\n' "$GITHUB_REF_NAME"
+              printf 'See `sync-develop` job in `.github/workflows/release.yml` for full context.\n'
+            } > "$body_file"
+            gh pr create \
+              --base develop \
+              --head "$BRANCH" \
+              --title "merge: sync main → develop after $GITHUB_REF_NAME bundle" \
+              --body-file "$body_file"
+          fi
