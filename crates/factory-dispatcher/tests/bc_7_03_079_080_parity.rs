@@ -172,8 +172,9 @@ fn test_BC_7_03_079_invariant_1_binding_tuple_preserved_after_migration() {
          (BC-7.03.079 invariant 1)"
     );
     assert!(
-        entry.on_error.is_none_or(|oe| oe
-            == factory_dispatcher::registry::OnError::Continue),
+        entry
+            .on_error
+            .is_none_or(|oe| oe == factory_dispatcher::registry::OnError::Continue),
         "track-agent-start on_error must remain continue \
          (BC-7.03.079 invariant 1)"
     );
