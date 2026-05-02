@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.29"
+version: "1.30"
 status: current
 producer: state-manager
-timestamp: 2026-05-02T18:00:00
+timestamp: 2026-05-02T22:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -58,6 +58,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **W-15 Batches 3+4 sealed (2026-05-02): 5 Tier 1 WASM ports MERGED (D-194..D-198).** S-8.06 PR #51 merged at 9873f78; S-8.01 PR #50 merged at 60be88e; S-8.08 PR #52 merged at 638bb6b; S-8.07 PR #53 merged at 4a6e212; S-8.04 PR #54 merged at 5622aa6. Emergent dispatcher infrastructure shipped: WASI preopened_dir (S-8.06 bonus), HookPayload `#[serde(flatten)] extra: HashMap` (S-8.01 bonus — S-8.30 typed projection fields now flow through dispatcher), VSDD_SINK_FILE env var (S-8.08 bonus), real host::read_file impl + cwd path resolution + stderr relay (S-8.07 bonus), real host::write_file impl (S-8.04 bonus — first write_file consumer). CC-W15-002 registered (S-8.08 mutation testing). CC-W15-003 + CC-W15-004 added to compensating controls. D-194 (S-8.06) + D-195 (S-8.01) + D-196 (S-8.08) + D-197 (S-8.07) + D-198 (S-8.04) sealed. STORY-INDEX v1.27 → v1.28. Status: ready 9→4; merged 48→53.
 > **W-15 Batch 5 + Finale sealed (2026-05-02): 4 final Tier 1 WASM ports MERGED (D-199..D-202) + W-15 COMPLETE (D-203).** S-8.03 PR #55 merged at 6809c6d; S-8.02 PR #56 merged at b25f017; S-8.05 PR #57 merged at a8ee79e; S-8.09 PR #58 merged at 3adfe0b. D-199 (S-8.03 track-agent-stop; BC-2.02.012 typed projection + agent.stop telemetry) + D-200 (S-8.02 pr-manager-completion-guard; advisory block-mode SubagentStop; Capabilities deny_unknown_fields fix; workspace clippy sweep in factory-dispatcher main.rs + track-agent-start) + D-201 (S-8.05 validate-pr-review-posted; 3-check validation Check 1+2+3a+3b; advisory block-mode) + D-202 (S-8.09 regression-gate finale + W-15 CLOSURE; PostToolUse advisory; 9-test-runner patterns; pass→fail transition warning; OQ-6 RESOLVED via security audit; **0 Tier 1 hooks routing through legacy-bash-adapter**; macOS /var/folders/ symlink fix in invoke.rs) sealed. CC-W15-005..007 registered. STORY-INDEX v1.28 → v1.29. Status: ready 4→0; merged 53→57. **W-15 ALL DONE — 12 of 12 Tier 1 stories MERGED to develop.**
 > **NOTE (task #171, cosmetic):** E-8 epic v1.10 has minor ordering issues (v1.10 changelog entry placed before v1.8 chronologically; v1.9 skipped; possible duplicate AC-7b at line ~805 still says 200ms). Separate product-owner dispatch in next session.
+> **W-15 wave gate CONVERGED (2026-05-02): STORY-INDEX v1.29 → v1.30.** 3 fix-bursts (PR #59/60/61) closed all wave gate findings. D-205..D-208 sealed. All 12 W-15 stories sealed: S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08, S-8.09, S-8.10, S-8.30 — status=merged. All CC-W15-001..011 RETIRED. develop @ d49f33b. v1.0.0-rc.3 release path clear.
 
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).

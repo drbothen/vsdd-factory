@@ -1,0 +1,3 @@
+{"type":"internal.dispatcher_error","ts":"2026-05-02T10:58:44-0500","ts_epoch":1777737524,"schema_version":1,"message":"payload json parse failed: EOF while parsing a value at line 1 column 0"}
+{"type":"internal.dispatcher_error","ts":"2026-05-02T11:11:37-0500","ts_epoch":1777738297,"schema_version":1,"message":"payload json parse failed: EOF while parsing a value at line 1 column 0"}
+{"type":"internal.dispatcher_error","ts":"2026-05-02T11:11:54-0500","ts_epoch":1777738314,"schema_version":1,"message":"$CLAUDE_PLUGIN_ROOT is not set"}
