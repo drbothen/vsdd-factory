@@ -143,6 +143,84 @@ UTF-8 JSON, single-line, terminated with `\n`. One of:
 
 ---
 
+## Advisory block-mode pattern
+
+Plugins that need to advise the dispatcher to block downstream actions (e.g., a
+pr-manager subagent that has not completed all 9 steps) emit a JSON line to stdout:
+
+    {"outcome":"block","reason":"<short_machine_string>"}
+
+Optionally with `"stderr":"<operator-visible message>"` to inform the operator.
+
+The dispatcher checks for this line BEFORE returning to the parent agent. If
+`outcome=block`, the dispatcher exits with a non-zero status and propagates the
+reason.
+
+The `on_error` field in `hooks-registry.toml` controls **crash** behavior only:
+
+- `on_error = "continue"` (default): plugin crashes are non-fatal; execution
+  proceeds.
+- `on_error = "block"` reserved for future first-class hard-block at the
+  dispatcher boundary; current implementation treats this identically to
+  "continue" because plugins use the stdout outcome line for advisory blocks.
+
+The SDK's `HookResult::Block(reason)` variant is reserved for future hard-block
+semantics (planned W-16 / v1.1). All v1.0 plugins use `HookResult::Continue` +
+stdout outcome line.
+
+**Affected plugins (canonical v1.0 advisory-block-mode users):**
+
+- `handoff-validator` — emits `hook.block` event + returns `HookResult::Continue`
+- `pr-manager-completion-guard` — emits `hook.block` event + writes
+  `{"outcome":"block","reason":"pr_manager_incomplete_lifecycle"}` to stdout +
+  returns `HookResult::Continue`
+- `validate-pr-review-posted` — emits `hook.block` event + returns
+  `HookResult::Continue`
+
+**Decision record:** D-W15-gate-003 — W-15 gate fix: canonical advisory-block-mode
+pattern chosen (stdout emit, not HookResult::Block); HookResult::Block SDK
+extension deferred to W-16. See `CRIT-W15-002 + HIGH-W15-003` in the W-15 gate
+adversary review.
+
+---
+
+## Filesystem Access Model
+
+### WASI preopened directories
+
+All plugins receive WASI preopened directory access to the project root
+(`CLAUDE_PROJECT_DIR`) and the `FACTORY_STATE_FILE` parent directory with
+`DirPerms::all() | FilePerms::all()`. This means any plugin can read and write
+within these directories using native WASI filesystem calls (`std::fs::read`,
+`std::fs::write`, etc.) — no capability declaration required.
+
+### host::write_file capability
+
+The `host::write_file` host function provides an **additional** bounded-write
+mechanism with BC-2.02.011 enforcement (`max_bytes_per_call`, `path_allow`
+list). Plugins that declare a `write_file` capability block in
+`hooks-registry.toml` use this path for guarded writes.
+
+### Relationship
+
+WASI preopened access is the **sandbox boundary**. The `host::write_file`
+capability gate controls only the host function — it does NOT constrain native
+WASI filesystem calls. A plugin with no `write_file` capability declared can
+still read and write the preopened directories via standard Rust `std::fs`.
+
+### v1.1 roadmap
+
+Future releases (v1.1) will tighten preopens to read-only by default; write
+access will require an explicit capability declaration. This closes the gap
+between WASI preopened access and the `host::write_file` allow-list boundary.
+See `CRIT-W15-003 / SEC-001` in the W-15 gate security review and the comment
+in `crates/factory-dispatcher/src/invoke.rs` near `preopened_dir(...)`.
+
+**Decision record:** D-W15-gate-004 — W-15 gate fix: WASI preopened_dir vs
+`write_file` capability model documented; capability tightening deferred to v1.1.
+
+---
+
 ## Host functions
 
 All host functions are imported under the WASI module name `vsdd`.

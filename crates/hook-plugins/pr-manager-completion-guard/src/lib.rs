@@ -17,8 +17,10 @@
 //! - **BLOCKED result at line start:** exits 0 (legitimate early exit).
 //!   (BC-7.03.047)
 //! - **Otherwise (< 8 steps, not BLOCKED):** emits `hook.block` event,
-//!   writes multi-line stderr injection with verbatim hint line
-//!   `"CONTINUE TO STEP N NOW: <hint>"`, exits 2. (BC-7.03.048)
+//!   writes `{"outcome":"block","reason":"pr_manager_incomplete_lifecycle"}` to
+//!   stdout (advisory-block-mode canonical pattern), writes multi-line stderr
+//!   injection with verbatim hint line `"CONTINUE TO STEP N NOW: <hint>"`,
+//!   returns `HookResult::Continue` (exit 0). (BC-7.03.048)
 //! - **Malformed / missing JSON:** graceful exit 0. (BC-7.03.045 invariant 2)
 //!
 //! # BC-2.02.012 typed-projection usage
@@ -45,10 +47,14 @@
 //!   `bin/emit-event` is NOT removed (E-8 D-10; deferred to S-8.29).
 //! - No dependency on `legacy-bash-adapter` — forbidden per E-8 D-10.
 //! - HOST_ABI_VERSION = 1 unchanged (additive projection per D-6 Option A).
-//! - `on_error = "block"` in the registry means the dispatcher blocks the
-//!   SubagentStop event if this plugin itself panics — this is the
-//!   dispatcher-level crash behavior. The hook's own hard-block signal is
-//!   HookResult::Block (exit 2).
+//! - This plugin uses the **canonical advisory-block-mode pattern** (W-15 gate fix,
+//!   CRIT-W15-002 + HIGH-W15-003): when FM4 fires, it emits `hook.block` via
+//!   `host::emit_event`, writes `{"outcome":"block","reason":"pr_manager_incomplete_lifecycle"}`
+//!   to stdout, writes operator-visible stderr, and returns `HookResult::Continue` (exit 0).
+//!   The dispatcher reads the stdout outcome line for advisory blocking.
+//! - `on_error = "continue"` in the registry: plugin crash behavior is non-fatal.
+//!   See `crates/hook-sdk/HOST_ABI.md` "Advisory block-mode pattern" for details.
+//! - `HookResult::Block` (exit 2) is reserved for future W-16 hard-block semantics.
 //! - `host::exec_subprocess` is NOT required: the bash version does not call
 //!   `gh` — it reads stdin JSON and writes to stderr only. The `gh` entry in
 //!   `binary_allow` is a dormant allowlist entry; the WASM port preserves
@@ -166,8 +172,11 @@ pub fn is_blocked(result: &str) -> bool {
 /// `emit`: called with `(event_type, fields)` when emitting hook.block.
 /// `block_stderr`: called with the multi-line stderr string when blocking.
 ///
-/// Returns `HookResult::Continue` (exit 0) for the pass paths and
-/// `HookResult::block(reason)` (exit 2) for the FM4 block path.
+/// Returns `HookResult::Continue` (exit 0) on ALL paths (canonical advisory-
+/// block-mode pattern: W-15 gate fix CRIT-W15-002). When FM4 fires the
+/// dispatcher receives the block signal via the `{"outcome":"block"}` JSON line
+/// written to stdout by `block_stderr`, NOT via the HookResult return value.
+/// `HookResult::Block` (exit 2) is reserved for W-16 hard-block semantics.
 pub fn pr_manager_guard_logic<E, B>(payload: HookPayload, emit: E, block_stderr: B) -> HookResult
 where
     E: FnOnce(&str, &[(&str, &str)]),
@@ -246,7 +255,13 @@ where
     );
     block_stderr(&stderr_msg);
 
-    HookResult::block("pr_manager_incomplete_lifecycle")
+    // Canonical advisory-block-mode: emit {"outcome":"block"} to stdout so the
+    // dispatcher can detect the block intent without relying on exit code 2.
+    // HookResult::Continue (exit 0) is returned — hard-block via return value
+    // is deferred to W-16. See HOST_ABI.md "Advisory block-mode pattern".
+    println!(r#"{{"outcome":"block","reason":"pr_manager_incomplete_lifecycle"}}"#);
+
+    HookResult::Continue
 }
 
 // ---------------------------------------------------------------------------
@@ -475,8 +490,9 @@ mod tests {
 
     // ── pr_manager_guard_logic: FM4 block path (BC-7.03.048) ─────────────
 
-    /// BC-7.03.048 / AC-005: 0 steps, pr-manager → Block (exit 2) with
-    /// NEXT_STEP=1, hint="populate PR description from template".
+    /// BC-7.03.048 / AC-005: 0 steps, pr-manager → advisory block (HookResult::Continue
+    /// + stdout outcome line) with NEXT_STEP=1, hint="populate PR description from template".
+    /// W-15 gate fix CRIT-W15-002: returns Continue, not Block (exit 0, not exit 2).
     #[test]
     fn test_BC_7_03_048_zero_steps_blocks_with_step_one_hint() {
         let payload = make_payload(&base_subagentstop(
@@ -495,9 +511,9 @@ mod tests {
             |msg| { stderr_msg = Some(msg.to_string()); },
         );
 
-        assert!(
-            matches!(result, HookResult::Block { .. }),
-            "0 steps must exit 2 (Block)"
+        assert_eq!(
+            result, HookResult::Continue,
+            "0 steps must return HookResult::Continue (advisory-block-mode, W-15 CRIT-W15-002)"
         );
         assert_eq!(emitted_event.as_deref(), Some("hook.block"), "must emit hook.block");
         let next_step = emitted_fields.iter().find(|(k, _)| k == "next_step").map(|(_, v)| v.as_str());
@@ -509,7 +525,8 @@ mod tests {
         );
     }
 
-    /// BC-7.03.048 / AC-005 / EC-002: 7 steps (NEXT_STEP=8) → hint for step 8.
+    /// BC-7.03.048 / AC-005 / EC-002: 7 steps (NEXT_STEP=8) → advisory block +
+    /// hint for step 8. W-15 gate fix: returns Continue (not Block).
     #[test]
     fn test_BC_7_03_048_ec002_seven_steps_blocks_with_step_eight_hint() {
         let result_text = "STEP_COMPLETE: step=1\n\
@@ -529,9 +546,9 @@ mod tests {
             |_, _| {},
             |msg| { stderr_msg = Some(msg.to_string()); },
         );
-        assert!(
-            matches!(result, HookResult::Block { .. }),
-            "7 steps must exit 2 (Block)"
+        assert_eq!(
+            result, HookResult::Continue,
+            "7 steps must return HookResult::Continue (advisory-block-mode, W-15 CRIT-W15-002)"
         );
         let msg = stderr_msg.unwrap();
         assert!(
@@ -609,24 +626,26 @@ mod tests {
     }
 
     /// BC-2.02.012 Postcondition 6: last_assistant_message absent → result used.
-    /// (EC-004 variant: result field present but empty → 0 steps → block.)
+    /// (EC-004 variant: result field present but empty → 0 steps → advisory block.)
+    /// W-15 gate fix: returns Continue (not Block).
     #[test]
     fn test_BC_2_02_012_pr_manager_result_fallback_to_result_field() {
-        // result field = "" (empty) → 0 steps → block
+        // result field = "" (empty) → 0 steps → advisory block (Continue)
         let payload = make_payload(&base_subagentstop(
             r#""agent_type":"pr-manager","result":"""#,
         ));
         let result = pr_manager_guard_logic(payload, |_, _| {}, |_| {});
-        assert!(
-            matches!(result, HookResult::Block { .. }),
-            "missing last_assistant_message with empty result must block (exit 2)"
+        assert_eq!(
+            result, HookResult::Continue,
+            "missing last_assistant_message with empty result must return Continue (advisory-block-mode)"
         );
     }
 
     // ── EC-004: both result fields absent → empty string → block ─────────
 
     /// EC-004: both last_assistant_message and result absent → empty result
-    /// → STEP_COUNT=0 → NEXT_STEP=1 → block.
+    /// → STEP_COUNT=0 → NEXT_STEP=1 → advisory block (Continue).
+    /// W-15 gate fix: returns Continue (not Block).
     #[test]
     fn test_BC_7_03_048_ec004_both_result_fields_absent_blocks_with_step_one() {
         let payload = make_payload(&base_subagentstop(r#""agent_type":"pr-manager""#));
@@ -636,9 +655,9 @@ mod tests {
             |_, _| {},
             |msg| { stderr_msg = Some(msg.to_string()); },
         );
-        assert!(
-            matches!(result, HookResult::Block { .. }),
-            "absent result fields must block (exit 2)"
+        assert_eq!(
+            result, HookResult::Continue,
+            "absent result fields must return Continue (advisory-block-mode, W-15 CRIT-W15-002)"
         );
         let msg = stderr_msg.unwrap();
         assert!(
@@ -659,11 +678,15 @@ mod tests {
 
     // ── HookResult exit code contract ─────────────────────────────────────
 
-    /// BC-7.03.048: Block result has exit code 2.
+    /// W-15 gate fix CRIT-W15-002: FM4 block path returns HookResult::Continue (exit 0).
+    /// Advisory block is communicated via stdout outcome line, not exit code.
     #[test]
-    fn test_BC_7_03_048_block_result_has_exit_code_two() {
-        let r = HookResult::block("pr_manager_incomplete_lifecycle");
-        assert_eq!(r.exit_code(), 2, "Block must have exit code 2");
+    fn test_BC_7_03_048_fm4_returns_continue_exit_zero() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-manager","last_assistant_message":"no steps""#,
+        ));
+        let r = pr_manager_guard_logic(payload, |_, _| {}, |_| {});
+        assert_eq!(r.exit_code(), 0, "FM4 block path must return exit 0 (advisory-block-mode)");
     }
 
     // ── emit_event fields completeness (BC-7.03.048 / AC-005) ────────────

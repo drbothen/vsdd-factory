@@ -58,9 +58,13 @@
 //!   `bin/emit-event` is NOT removed (E-8 D-10; deferred to S-8.29).
 //! - No dependency on `legacy-bash-adapter` — forbidden per E-8 D-10.
 //! - HOST_ABI_VERSION = 1 unchanged (additive projection per D-6 Option A).
-//! - `on_error = "block"` in the registry means the dispatcher blocks the
-//!   SubagentStop event if this plugin itself panics — the hook's own exit is
-//!   always 0 (advisory warnings only, never hard-block).
+//! - This plugin uses the **canonical advisory-block-mode pattern** (W-15 gate fix,
+//!   CRIT-W15-002): when a blocking condition is met, it emits `hook.block` via
+//!   `host::emit_event` and returns `HookResult::Continue` (exit 0). The dispatcher
+//!   reads the `{"outcome":"block"}` stdout line for advisory blocking; it does NOT
+//!   rely on `HookResult::Block` or `on_error`.
+//! - `on_error = "continue"` in the registry: plugin crash behavior is non-fatal.
+//!   See `crates/hook-sdk/HOST_ABI.md` "Advisory block-mode pattern" for details.
 
 use vsdd_hook_sdk::{HookPayload, HookResult};
 

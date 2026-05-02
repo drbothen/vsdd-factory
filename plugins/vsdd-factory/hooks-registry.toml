@@ -853,7 +853,10 @@ event = "SubagentStop"
 plugin = "hook-plugins/handoff-validator.wasm"
 priority = 910
 timeout_ms = 5000
-on_error = "block"
+# W-15 gate fix CRIT-W15-002: advisory-block-mode — block signal via stdout
+# {"outcome":"block"} line, not via crash behavior. on_error controls crash
+# semantics only. See crates/hook-sdk/HOST_ABI.md "Advisory block-mode pattern".
+on_error = "continue"
 
 [[hooks]]
 name = "pr-manager-completion-guard"
@@ -861,7 +864,10 @@ event = "SubagentStop"
 plugin = "hook-plugins/pr-manager-completion-guard.wasm"
 priority = 920
 timeout_ms = 5000
-on_error = "block"
+# W-15 gate fix CRIT-W15-002: advisory-block-mode — block signal via stdout
+# {"outcome":"block"} line, not via crash behavior. on_error controls crash
+# semantics only. See crates/hook-sdk/HOST_ABI.md "Advisory block-mode pattern".
+on_error = "continue"
 
 [[hooks]]
 name = "track-agent-stop"
