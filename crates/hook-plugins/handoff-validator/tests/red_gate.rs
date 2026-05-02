@@ -23,7 +23,7 @@
 //! All tests here are EXPECTED TO FAIL until the implementer completes
 //! the migration tasks T-2 through T-7.
 
-use handoff_validator::{ResultClassification, classify_result, handoff_validator_logic};
+use handoff_validator::handoff_validator_logic;
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------
