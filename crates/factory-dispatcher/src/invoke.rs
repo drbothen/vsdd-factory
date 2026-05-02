@@ -456,21 +456,192 @@ fn setup_host_on_store_data(
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
-    // read_file isn't reachable by any in-tree plugin yet. Register a
-    // stub that returns CAPABILITY_DENIED so a misbehaving plugin fails
-    // loudly rather than traps on a missing import.
+    // read_file: real implementation rooted at cwd (CLAUDE_PROJECT_DIR).
+    // Relative paths in the request and path_allow are resolved against
+    // ctx.cwd so plugins can read project-relative files (e.g.
+    // `.factory/wave-state.yaml`). Uses output-pointer protocol: the host
+    // grows WASM memory by one page, writes the content in the new page,
+    // then writes (new_page_base, content_len) into out_ptr_out / out_len_out.
+    // This avoids any conflict with the module's existing memory layout.
+    // First consumer: update-wave-state-on-merge (S-8.04 BC-7.03.085).
     linker
         .func_wrap(
             "vsdd",
             "read_file",
-            |_caller: Caller<'_, StoreData>,
-             _p1: u32,
-             _p2: u32,
-             _p3: u32,
-             _p4: u32,
-             _p5: u32,
-             _p6: u32|
-             -> i32 { codes::CAPABILITY_DENIED },
+            |mut caller: Caller<'_, StoreData>,
+             path_ptr: u32,
+             path_len: u32,
+             max_bytes: u32,
+             _timeout_ms: u32,
+             out_ptr_out: u32,
+             out_len_out: u32|
+             -> i32 {
+                let path = match read_wasm_string_sd(&mut caller, path_ptr, path_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+                let host = caller.data().host.clone();
+                // Capability check: deny-by-default.
+                let caps = match &host.capabilities.read_file {
+                    Some(c) => c.clone(),
+                    None => return codes::CAPABILITY_DENIED,
+                };
+                // Resolve path against cwd (CLAUDE_PROJECT_DIR) for relative paths.
+                let cwd = &host.cwd;
+                let resolved = if std::path::Path::new(&path).is_absolute() {
+                    std::path::PathBuf::from(&path)
+                } else {
+                    cwd.join(&path)
+                };
+                // Check path is under an allowed prefix (rooted at cwd).
+                let allowed = caps.path_allow.iter().any(|pref| {
+                    let pref_path = if std::path::Path::new(pref).is_absolute() {
+                        std::path::PathBuf::from(pref)
+                    } else {
+                        cwd.join(pref)
+                    };
+                    let canon_resolved = resolved.canonicalize().unwrap_or_else(|_| resolved.clone());
+                    let canon_pref = pref_path.canonicalize().unwrap_or_else(|_| pref_path.clone());
+                    canon_resolved.starts_with(&canon_pref)
+                });
+                if !allowed {
+                    return codes::CAPABILITY_DENIED;
+                }
+                // Read file with byte cap.
+                let contents = match std::fs::read(&resolved) {
+                    Ok(b) => b,
+                    Err(_) => return codes::INTERNAL_ERROR,
+                };
+                if contents.len() as u64 > max_bytes as u64 {
+                    return codes::OUTPUT_TOO_LARGE;
+                }
+                let len = contents.len() as u32;
+                // Grow WASM linear memory by one 64KB page to create a safe
+                // scratch region. The returned value is the old page count;
+                // the new page starts at old_pages * 65536.
+                let memory = match get_memory_sd(&mut caller) {
+                    Ok(m) => m,
+                    Err(_) => return codes::INTERNAL_ERROR,
+                };
+                let old_pages = memory.grow(&mut caller, 1).unwrap_or(u64::MAX);
+                if old_pages == u64::MAX {
+                    return codes::INTERNAL_ERROR;
+                }
+                let scratch_ptr = (old_pages as u32) * 65536;
+                // Write content into the new page.
+                let memory2 = match get_memory_sd(&mut caller) {
+                    Ok(m) => m,
+                    Err(_) => return codes::INTERNAL_ERROR,
+                };
+                if memory2.write(&mut caller, scratch_ptr as usize, &contents).is_err() {
+                    return codes::INTERNAL_ERROR;
+                }
+                // Tell the SDK where the content is.
+                if write_wasm_u32_sd(&mut caller, out_ptr_out, scratch_ptr).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                if write_wasm_u32_sd(&mut caller, out_len_out, len).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                codes::OK
+            },
+        )
+        .map_err(|e| HostCallError::Linker(e.to_string()))?;
+
+    // write_file: real implementation rooted at cwd (CLAUDE_PROJECT_DIR).
+    // Relative paths in the request and path_allow are resolved against
+    // ctx.cwd so plugins can write project-relative files (e.g.
+    // `.factory/wave-state.yaml`). Uses input-pointer protocol: the host
+    // reads the byte slice from guest memory (read_wasm_bytes protocol).
+    // First consumer: update-wave-state-on-merge (S-8.04 BC-7.03.085/086).
+    linker
+        .func_wrap(
+            "vsdd",
+            "write_file",
+            |mut caller: Caller<'_, StoreData>,
+             path_ptr: u32,
+             path_len: u32,
+             contents_ptr: u32,
+             contents_len: u32,
+             max_bytes: u32,
+             _timeout_ms: u32|
+             -> i32 {
+                let path = match read_wasm_string_sd(&mut caller, path_ptr, path_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+                let contents = match read_wasm_bytes_sd(&mut caller, contents_ptr, contents_len) {
+                    Ok(b) => b,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+                let host = caller.data().host.clone();
+                // Capability check: deny-by-default (BC-2.02.011 postcondition 1).
+                let caps = match &host.capabilities.write_file {
+                    Some(c) => c.clone(),
+                    None => return codes::CAPABILITY_DENIED,
+                };
+                // Resolve path against cwd (CLAUDE_PROJECT_DIR) for relative paths.
+                let cwd = &host.cwd;
+                let resolved = if std::path::Path::new(&path).is_absolute() {
+                    std::path::PathBuf::from(&path)
+                } else {
+                    cwd.join(&path)
+                };
+                // Byte cap: minimum of call arg and per-capability override.
+                let effective_cap = match caps.max_bytes_per_call {
+                    Some(cap_override) => max_bytes.min(cap_override),
+                    None => max_bytes,
+                };
+                if contents.len() as u64 > effective_cap as u64 {
+                    return codes::OUTPUT_TOO_LARGE;
+                }
+                // Check path is under an allowed prefix (rooted at cwd).
+                // Use the same canonicalize-with-ancestor-fallback as write_file.rs
+                // to handle files that don't yet exist.
+                let allowed = caps.path_allow.iter().any(|pref| {
+                    let pref_path = if std::path::Path::new(pref).is_absolute() {
+                        std::path::PathBuf::from(pref)
+                    } else {
+                        cwd.join(pref)
+                    };
+                    let canon_pref = pref_path.canonicalize().unwrap_or_else(|_| pref_path.clone());
+                    // For the target, canonicalize with ancestor fallback.
+                    let canon_resolved = resolved.canonicalize()
+                        .unwrap_or_else(|_| {
+                            // Walk ancestors until one exists.
+                            let mut tail: Vec<std::ffi::OsString> = Vec::new();
+                            let mut cur = resolved.clone();
+                            loop {
+                                match cur.file_name() {
+                                    None => break resolved.clone(),
+                                    Some(f) => tail.push(f.to_os_string()),
+                                }
+                                match cur.parent() {
+                                    None => break resolved.clone(),
+                                    Some(p) => {
+                                        if let Ok(canon_p) = p.canonicalize() {
+                                            let mut result = canon_p;
+                                            for component in tail.iter().rev() {
+                                                result = result.join(component);
+                                            }
+                                            return result;
+                                        }
+                                        cur = p.to_path_buf();
+                                    }
+                                }
+                            }
+                        });
+                    canon_resolved.starts_with(&canon_pref)
+                });
+                if !allowed {
+                    return codes::CAPABILITY_DENIED;
+                }
+                // Write to disk.
+                match std::fs::write(&resolved, &contents) {
+                    Ok(()) => codes::OK,
+                    Err(_) => codes::INTERNAL_ERROR,
+                }
+            },
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
@@ -631,6 +802,32 @@ fn write_wasm_bytes_sd(
             memory_size: data_len,
         })?;
     Ok(needed)
+}
+
+/// Write a u32 (little-endian) into guest memory at the given address.
+/// Used by read_file to set out_ptr_out / out_len_out.
+fn write_wasm_u32_sd(
+    caller: &mut Caller<'_, StoreData>,
+    addr: u32,
+    value: u32,
+) -> Result<(), HostCallError> {
+    let bytes = value.to_le_bytes();
+    let memory = get_memory_sd(caller)?;
+    let start = addr as usize;
+    let end = start.checked_add(4).ok_or(HostCallError::MemoryOverflow)?;
+    let data_len = memory.data(&caller).len();
+    if end > data_len {
+        return Err(HostCallError::OutOfBounds {
+            ptr: addr,
+            len: 4,
+            memory_size: data_len,
+        });
+    }
+    memory.write(caller, start, &bytes).map_err(|_| HostCallError::OutOfBounds {
+        ptr: addr,
+        len: 4,
+        memory_size: data_len,
+    })
 }
 
 /// Per-invocation store data: the HostContext S-1.4 populates plus the
