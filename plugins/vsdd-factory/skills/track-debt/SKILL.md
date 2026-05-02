@@ -2,7 +2,7 @@
 name: track-debt
 description: Manage the technical debt register — add, review, prioritize, and resolve tech debt items. Maintains .factory/tech-debt-register.md with severity, effort, and impact tracking.
 argument-hint: "[add|list|resolve] [description]"
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash
 ---
 

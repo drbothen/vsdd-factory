@@ -1,7 +1,7 @@
 ---
 name: check-state-health
 description: Diagnostic check of STATE.md — validates structure, size, phase numbering, frontmatter, and content routing compliance. Reports HEALTHY, WARNINGS, or NEEDS-COMPACT.
-disable-model-invocation: true
+
 allowed-tools: Read, Glob, Grep, Bash
 ---
 

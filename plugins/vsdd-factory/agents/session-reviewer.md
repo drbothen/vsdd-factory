@@ -1,5 +1,5 @@
 ---
-name: session-review
+name: session-reviewer
 description: Reviews completed sessions — captures lessons, decisions, and follow-ups into sidecar learning artifacts.
 model: sonnet
 color: red
@@ -34,7 +34,7 @@ actionable improvement proposals for the factory itself.
 
 ```yaml
 agent:
-  id: session-review
+  id: session-reviewer
   tier: T1  # Read-only — analyzes artifacts, never modifies them
   model: adversary  # adversary model — independent perspective, not the model that built
   description: >

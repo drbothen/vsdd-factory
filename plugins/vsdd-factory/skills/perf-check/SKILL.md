@@ -1,7 +1,7 @@
 ---
 name: perf-check
 description: Run performance validation — benchmark regression checks, resource profiling, and budget compliance. Ensures no performance regression between implementations.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Bash, Glob, Grep
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: spec-drift
 description: Compare implementation against spec documents to detect drift — behavioral contracts not implemented, architecture decisions violated, naming mismatches, missing error handling. Fresh context for objectivity.
-disable-model-invocation: true
+
 context: fork
 agent: Explore
 ---

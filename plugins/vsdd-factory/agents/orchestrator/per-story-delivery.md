@@ -1,7 +1,6 @@
 ---
 name: orchestrator-per-story-delivery
 description: Orchestrator workflow reference for the per-story TDD delivery cycle (red-green-refactor, PR, review, merge). Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
-disable-model-invocation: true
 ---
 
 > **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.

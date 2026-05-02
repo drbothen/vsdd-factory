@@ -1,7 +1,7 @@
 ---
 name: create-brief
 description: Create a product brief through guided discovery. Asks questions to understand the product vision, users, constraints, and success criteria. Writes to .factory/specs/product-brief.md.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 

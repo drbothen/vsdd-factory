@@ -2,7 +2,7 @@
 name: deliver-story
 description: Use when delivering a single story through the VSDD TDD pipeline. Dispatches fresh specialist subagents (test-writer → implementer → demo-recorder → pr-manager → devops-engineer) via the per-story-delivery orchestrator workflow. Each step runs in isolated context to preserve reasoning quality and prevent context exhaustion.
 argument-hint: "[S-N.MM]" # canonical S-N.MM format (e.g., S-1.01); legacy STORY-NNN accepted
-disable-model-invocation: true
+
 allowed-tools: Read, Bash, Glob, Grep, AskUserQuestion, Task
 ---
 

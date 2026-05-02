@@ -1,7 +1,7 @@
 ---
 name: dtu-validate
 description: Digital Twin Universe validation — create and maintain behavioral clones of critical subsystems for regression detection. DTU clones run in parallel with implementation to catch behavioral divergence early.
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 

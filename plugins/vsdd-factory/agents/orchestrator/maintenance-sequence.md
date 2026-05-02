@@ -1,7 +1,6 @@
 ---
 name: orchestrator-maintenance-sequence
 description: Orchestrator workflow reference for the maintenance-sweep delegation sequence (Path 10). Loaded by the orchestrator agent during the corresponding phase. Not directly invokable.
-disable-model-invocation: true
 ---
 
 > **Global Operating Rules:** Read `../../docs/FACTORY.md` and `../../docs/VSDD.md` for factory-wide constraints.
@@ -108,5 +107,5 @@ Verify:
 
 ## Session Review
 
-Spawn session-review: "Review sweep effectiveness — false positive rate,
+Spawn session-reviewer: "Review sweep effectiveness — false positive rate,
 fix quality, cost vs value, sweep coverage."

@@ -2,7 +2,7 @@
 name: wave-gate
 description: Run the post-wave integration gate — full test suite on develop, adversarial review of wave diff, holdout evaluation, demo evidence validation, and DTU validation for critical modules. Blocks next wave until all checks pass.
 argument-hint: "[wave-N]"
-disable-model-invocation: true
+
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 ---
 

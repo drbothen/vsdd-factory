@@ -2,7 +2,7 @@
 name: holdout-eval
 description: Run holdout evaluation against merged wave code. Spawns the holdout-evaluator agent with strict information asymmetry — cannot see specs, source internals, or prior reviews. Returns satisfaction scores per hidden scenario.
 argument-hint: "[wave-N]"
-disable-model-invocation: true
+
 context: fork
 agent: holdout-evaluator
 ---
