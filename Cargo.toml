@@ -12,6 +12,8 @@ members = [
     "crates/hook-plugins/capture-pr-activity",
     "crates/hook-plugins/legacy-bash-adapter",
     "crates/hook-plugins/block-ai-attribution",
+    "crates/hook-plugins/handoff-validator",
+    "crates/hook-plugins/session-learning",
     "crates/hook-plugins/track-agent-start",
     "crates/sink-core",
     "crates/sink-file",
