@@ -144,6 +144,7 @@ priority = 200
             session_id: "s".to_string(),
             tool_input: serde_json::Value::Null,
             tool_response: None,
+            extra: std::collections::HashMap::new(),
         }
     }
 

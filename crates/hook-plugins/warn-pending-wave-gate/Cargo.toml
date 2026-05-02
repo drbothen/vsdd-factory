@@ -1,0 +1,32 @@
+[package]
+name = "warn-pending-wave-gate"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: warns (stderr) when any wave has gate_status: pending at session end"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the entry point that calls into the lib.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "warn-pending-wave-gate"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde_yaml = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+toml = { workspace = true }
+
+[lints]
+workspace = true

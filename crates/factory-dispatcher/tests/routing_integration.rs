@@ -60,6 +60,7 @@ fn payload(event: &str, tool: &str) -> HookPayload {
         session_id: "sess-int".to_string(),
         tool_input: serde_json::Value::Null,
         tool_response: None,
+        extra: std::collections::HashMap::new(),
     }
 }
 

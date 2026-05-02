@@ -14,7 +14,7 @@ use thiserror::Error;
 use wasmtime::{Engine, Module, Store, Trap};
 use wasmtime_wasi::p1::{self, WasiP1Ctx};
 use wasmtime_wasi::p2::pipe::{MemoryInputPipe, MemoryOutputPipe};
-use wasmtime_wasi::{I32Exit, WasiCtxBuilder};
+use wasmtime_wasi::{DirPerms, FilePerms, I32Exit, WasiCtxBuilder};
 
 use crate::engine::timeout_ms_to_epochs;
 use crate::host::{HostContext, setup_linker};
@@ -127,11 +127,35 @@ pub fn invoke_plugin(
     let stdout = MemoryOutputPipe::new(64 * 1024);
     let stderr = MemoryOutputPipe::new(64 * 1024);
 
-    let wasi_ctx = WasiCtxBuilder::new()
+    // Preopen the project directory (host_ctx.cwd) as "." in the WASI guest.
+    // This enables std::fs operations from WASM plugins that perform filesystem
+    // I/O relative to the project root (e.g. session-learning appending to
+    // .factory/sidecar-learning.md). Plugins without filesystem needs are
+    // unaffected — they simply ignore the preopened handle.
+    // If the cwd path cannot be opened (e.g. missing dir in tests), the WASI
+    // context is built without a preopen and std::fs calls will return EBADF.
+    let mut wasi_builder = WasiCtxBuilder::new();
+    wasi_builder
         .stdin(MemoryInputPipe::new(payload_json.to_vec()))
         .stdout(stdout.clone())
-        .stderr(stderr.clone())
-        .build_p1();
+        .stderr(stderr.clone());
+    if host_ctx.cwd.as_os_str().is_empty() {
+        // No project dir — build without filesystem preopen.
+    } else if let Err(e) = wasi_builder.preopened_dir(
+        &host_ctx.cwd,
+        ".",
+        DirPerms::all(),
+        FilePerms::all(),
+    ) {
+        // Non-fatal: log and continue without filesystem access.
+        // Plugin may still function if it doesn't need std::fs.
+        tracing::debug!(
+            cwd = %host_ctx.cwd.display(),
+            err = %e,
+            "wasi preopen failed; plugin std::fs calls will fail"
+        );
+    }
+    let wasi_ctx = wasi_builder.build_p1();
 
     let store_data = StoreData {
         host: host_ctx,
@@ -456,14 +480,12 @@ fn setup_host_on_store_data(
         )
         .map_err(|e| HostCallError::Linker(e.to_string()))?;
 
-    // read_file: real implementation rooted at cwd (CLAUDE_PROJECT_DIR).
-    // Relative paths in the request and path_allow are resolved against
-    // ctx.cwd so plugins can read project-relative files (e.g.
-    // `.factory/wave-state.yaml`). Uses output-pointer protocol: the host
-    // grows WASM memory by one page, writes the content in the new page,
-    // then writes (new_page_base, content_len) into out_ptr_out / out_len_out.
-    // This avoids any conflict with the module's existing memory layout.
-    // First consumer: update-wave-state-on-merge (S-8.04 BC-7.03.085).
+    // read_file: real implementation. Uses output-pointer protocol:
+    // the host reads the file, grows WASM memory to hold the bytes,
+    // writes them there, then writes the address and length back to
+    // the guest-provided out-param pointers.
+    //
+    // S-8.07: first in-tree plugin (warn-pending-wave-gate) to use this path.
     linker
         .func_wrap(
             "vsdd",
@@ -480,67 +502,54 @@ fn setup_host_on_store_data(
                     Ok(s) => s,
                     Err(_) => return codes::INVALID_ARGUMENT,
                 };
-                let host = caller.data().host.clone();
-                // Capability check: deny-by-default.
-                let caps = match &host.capabilities.read_file {
-                    Some(c) => c.clone(),
-                    None => return codes::CAPABILITY_DENIED,
+
+                // Capability check + file read (host-side logic, no WASM memory).
+                let body = {
+                    let ctx = caller.data().host.clone();
+                    match crate::host::read_file::prepare(&ctx, &path, max_bytes) {
+                        Ok((bytes, _)) => bytes,
+                        Err(code) => return code,
+                    }
                 };
-                // Resolve path against cwd (CLAUDE_PROJECT_DIR) for relative paths.
-                let cwd = &host.cwd;
-                let resolved = if std::path::Path::new(&path).is_absolute() {
-                    std::path::PathBuf::from(&path)
-                } else {
-                    cwd.join(&path)
-                };
-                // Check path is under an allowed prefix (rooted at cwd).
-                let allowed = caps.path_allow.iter().any(|pref| {
-                    let pref_path = if std::path::Path::new(pref).is_absolute() {
-                        std::path::PathBuf::from(pref)
-                    } else {
-                        cwd.join(pref)
-                    };
-                    let canon_resolved = resolved.canonicalize().unwrap_or_else(|_| resolved.clone());
-                    let canon_pref = pref_path.canonicalize().unwrap_or_else(|_| pref_path.clone());
-                    canon_resolved.starts_with(&canon_pref)
-                });
-                if !allowed {
-                    return codes::CAPABILITY_DENIED;
+
+                if body.is_empty() {
+                    // Empty file: write ptr=0, len=0.  SDK read_owned_bytes guards
+                    // ptr==0 → returns Vec::new(), which is correct for empty files.
+                    let _ = write_wasm_u32_sd(&mut caller, out_ptr_out, 0);
+                    let _ = write_wasm_u32_sd(&mut caller, out_len_out, 0);
+                    return codes::OK;
                 }
-                // Read file with byte cap.
-                let contents = match std::fs::read(&resolved) {
-                    Ok(b) => b,
-                    Err(_) => return codes::INTERNAL_ERROR,
-                };
-                if contents.len() as u64 > max_bytes as u64 {
-                    return codes::OUTPUT_TOO_LARGE;
-                }
-                let len = contents.len() as u32;
-                // Grow WASM linear memory by one 64KB page to create a safe
-                // scratch region. The returned value is the old page count;
-                // the new page starts at old_pages * 65536.
+
+                // Find the current end of WASM linear memory, then grow by
+                // enough pages to hold `body`.  Writing at the old end gives
+                // us a valid, unused address (the SDK copies the bytes
+                // immediately via `read_owned_bytes`, so the page is never
+                // reused for anything else during this call).
                 let memory = match get_memory_sd(&mut caller) {
                     Ok(m) => m,
                     Err(_) => return codes::INTERNAL_ERROR,
                 };
-                let old_pages = memory.grow(&mut caller, 1).unwrap_or(u64::MAX);
-                if old_pages == u64::MAX {
+                let current_bytes = memory.data_size(&caller);
+                let pages_needed = body.len().div_ceil(65536) as u64;
+                if memory.grow(&mut caller, pages_needed).is_err() {
                     return codes::INTERNAL_ERROR;
                 }
-                let scratch_ptr = (old_pages as u32) * 65536;
-                // Write content into the new page.
-                let memory2 = match get_memory_sd(&mut caller) {
-                    Ok(m) => m,
-                    Err(_) => return codes::INTERNAL_ERROR,
-                };
-                if memory2.write(&mut caller, scratch_ptr as usize, &contents).is_err() {
+
+                let write_offset = current_bytes as u32;
+
+                // Write file bytes at the newly allocated offset.
+                // `out_cap` = body.len() because we just grew enough memory.
+                if write_wasm_bytes_sd(&mut caller, write_offset, body.len() as u32, &body)
+                    .is_err()
+                {
                     return codes::INTERNAL_ERROR;
                 }
-                // Tell the SDK where the content is.
-                if write_wasm_u32_sd(&mut caller, out_ptr_out, scratch_ptr).is_err() {
+
+                // Return (ptr, len) to the guest via the out-params.
+                if write_wasm_u32_sd(&mut caller, out_ptr_out, write_offset).is_err() {
                     return codes::INVALID_ARGUMENT;
                 }
-                if write_wasm_u32_sd(&mut caller, out_len_out, len).is_err() {
+                if write_wasm_u32_sd(&mut caller, out_len_out, body.len() as u32).is_err() {
                     return codes::INVALID_ARGUMENT;
                 }
                 codes::OK
@@ -804,30 +813,16 @@ fn write_wasm_bytes_sd(
     Ok(needed)
 }
 
-/// Write a u32 (little-endian) into guest memory at the given address.
-/// Used by read_file to set out_ptr_out / out_len_out.
+/// Write a single little-endian u32 into guest memory.
+/// Used for `read_file`'s out-param protocol (`out_ptr_out`, `out_len_out`).
 fn write_wasm_u32_sd(
     caller: &mut Caller<'_, StoreData>,
-    addr: u32,
+    out_ptr: u32,
     value: u32,
 ) -> Result<(), HostCallError> {
     let bytes = value.to_le_bytes();
-    let memory = get_memory_sd(caller)?;
-    let start = addr as usize;
-    let end = start.checked_add(4).ok_or(HostCallError::MemoryOverflow)?;
-    let data_len = memory.data(&caller).len();
-    if end > data_len {
-        return Err(HostCallError::OutOfBounds {
-            ptr: addr,
-            len: 4,
-            memory_size: data_len,
-        });
-    }
-    memory.write(caller, start, &bytes).map_err(|_| HostCallError::OutOfBounds {
-        ptr: addr,
-        len: 4,
-        memory_size: data_len,
-    })
+    write_wasm_bytes_sd(caller, out_ptr, bytes.len() as u32, &bytes)?;
+    Ok(())
 }
 
 /// Per-invocation store data: the HostContext S-1.4 populates plus the
