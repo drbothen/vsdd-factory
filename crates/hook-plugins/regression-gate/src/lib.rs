@@ -117,10 +117,8 @@ pub fn derive_status(tool_response: &serde_json::Value) -> RunStatus {
     }
 
     // Step 3 & 4: fall back to interrupted field
-    if let Some(interrupted) = tool_response.get("interrupted") {
-        if let Some(b) = interrupted.as_bool() {
-            return if b { RunStatus::Fail } else { RunStatus::Pass };
-        }
+    if let Some(Some(b)) = tool_response.get("interrupted").map(|v| v.as_bool()) {
+        return if b { RunStatus::Fail } else { RunStatus::Pass };
     }
 
     // Step 5: neither determinable
@@ -301,27 +299,26 @@ where
 ///
 /// Wires the real vsdd_hook_sdk host functions to the injectable-callback
 /// surface of `regression_gate_logic`.
+///
+/// # .factory/ directory detection in WASM
+///
+/// The bash source uses `[[ ! -d "$STATE_DIR" ]] && exit 0` to guard
+/// against missing project state directories. In the WASM sandbox we
+/// cannot `stat` directories directly. Instead we use `write_file` failure
+/// as the guard: `host::write_file` returns `HostError::Other` when the
+/// parent directory (`.factory/`) does not exist (the dispatcher calls
+/// `std::fs::write` which fails when the directory is absent). When that
+/// happens the `write_file` callback returns `false`, and
+/// `regression_gate_logic` exits 0 without emitting a regression warning —
+/// exactly matching the bash guard semantics.
+///
+/// We always pass `factory_dir_exists = true` here because we cannot check
+/// directory presence before the write call. Unit tests that need to
+/// exercise the absent-directory path pass `factory_dir_exists = false`
+/// directly to `regression_gate_logic` without going through this entry
+/// point.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     use vsdd_hook_sdk::host;
-
-    // Check .factory/ directory existence (host FS check via read attempt).
-    // The WASM guest checks via the host's read_file capability: attempt to
-    // read a sentinel path and treat CapabilityDenied/Other as "absent".
-    // A simpler approach: try to read the state file; if the error is NOT
-    // "file not found" or "capability denied", the directory likely exists.
-    // Actually: the cleanest approach is to try to read the state file and
-    // treat any error as "directory absent" for the guard. If the file is
-    // absent but the directory exists, read_file returns an error; the bash
-    // source checks `[[ ! -d "$STATE_DIR" ]]`. We replicate by using the
-    // host read attempt — if it succeeds or fails with "file not found"
-    // (vs capability denied), the directory exists.
-    //
-    // In practice for the WASM sandbox: the capability declaration allows
-    // reading `.factory/regression-state.json`, so if the path is
-    // capability-denied it means the directory can't be accessed. We treat
-    // CapabilityDenied as absent; Other errors (file not found) as directory
-    // present (file just not created yet).
-    let factory_dir_exists = check_factory_dir_exists();
 
     let mut stderr_fn = |msg: &str| {
         eprint!("{}", msg);
@@ -329,9 +326,13 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 
     regression_gate_logic(
         payload,
-        factory_dir_exists,
+        true, // factory_dir_exists: directory check deferred to write_file result (see doc comment)
         HookCallbacks {
             read_file: |path| {
+                // read_file capability check uses full canonicalize() — fails
+                // when the state file doesn't exist yet (first run). Treat
+                // any error (including capability_denied from non-existent
+                // file path) as "no prior state" — not as directory absence.
                 match host::read_file(path, 4096, 5000) {
                     Ok(bytes) => String::from_utf8(bytes).ok(),
                     Err(_) => None,
@@ -340,6 +341,13 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             write_file: |path, contents| {
                 match host::write_file(path, contents.as_bytes(), 512, 5000) {
                     Ok(()) => true,
+                    // HostError::Other(-99): filesystem I/O error (includes
+                    // missing parent directory — .factory/ absent). Silently
+                    // return false to match bash `[[ ! -d .factory ]] && exit 0`
+                    // guard semantics (EC-006 exception: directory-absent case
+                    // is expected, not an error).
+                    Err(host::HostError::Other(_)) => false,
+                    // Any other write failure is unexpected: log it (EC-006).
                     Err(e) => {
                         host::log_error(&format!(
                             "regression-gate: write_file error: {:?}", e
@@ -349,28 +357,12 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
                 }
             },
             emit_event: |event_type, fields| {
-                // Silently swallow emit errors (best-effort, advisory hook).
-                let _ = host::emit_event(event_type, fields);
+                // emit_event is best-effort (returns ()) — no error to handle.
+                host::emit_event(event_type, fields);
             },
         },
         &mut stderr_fn,
     )
-}
-
-/// Check whether `.factory/` directory exists by attempting a bounded read
-/// of the state file path. Treats CapabilityDenied as "absent" (guard fails);
-/// any other result (including file-not-found with Other error) means the
-/// directory is accessible.
-fn check_factory_dir_exists() -> bool {
-    use vsdd_hook_sdk::host;
-    match host::read_file(STATE_FILE_PATH, 4096, 5000) {
-        Ok(_) => true,
-        Err(host::HostError::CapabilityDenied) => false,
-        // File not found (Other) still means .factory/ exists (just no state yet)
-        Err(host::HostError::Other(_)) => true,
-        // Timeout or output-too-large: treat conservatively as exists
-        Err(_) => true,
-    }
 }
 
 // ---------------------------------------------------------------------------
