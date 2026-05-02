@@ -7,7 +7,9 @@
 //! - Check 2 (BC-7.04.043): no `gh pr comment` fallback used
 //! - Check 3a/3b (BC-7.04.044): formal `gh pr review` posted with a verdict
 //!
-//! Errors are accumulated and emitted together; exits 2 if any check fails.
+//! Errors are accumulated and emitted together via a `hook.block` event plus
+//! stderr message. Always returns `HookResult::Continue` (advisory block-mode:
+//! emit the warning event + stderr rather than returning HookResult::Block).
 //! Exits 0 immediately for non-pr-reviewer agents (BC-7.04.041).
 //!
 //! Agent identity resolved via BC-2.02.012 Postcondition 5 canonical chain.
@@ -17,12 +19,16 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 
 /// Top-level hook logic (testable without wasmtime).
 ///
-/// `emit_block`: called with `(subagent: &str)` when errors are present.
-/// Returns `HookResult::Continue` — the hook communicates block via exit 2,
-/// not via a Block variant (on_error=continue; exit 2 is the block signal).
-pub fn validate_pr_review_logic<E>(payload: HookPayload, emit_block: E) -> HookResult
+/// `emit_block`: called with `(subagent: &str, errors: &[&str])` when checks fail.
+/// `write_stderr`: called with the formatted error + remediation text when checks fail.
+///
+/// Returns `HookResult::Continue` in all cases — the hook communicates the block
+/// via the `hook.block` warning event and stderr message (advisory block-mode);
+/// `on_error=continue` in the registry governs dispatcher crash semantics only.
+pub fn validate_pr_review_logic<E, W>(payload: HookPayload, emit_block: E, write_stderr: W) -> HookResult
 where
     E: FnOnce(&str),
+    W: FnOnce(&str),
 {
     // BC-2.02.012 Postcondition 5: canonical agent identity fallback chain.
     // Mirrors validate-pr-review-posted.sh:21:
@@ -96,29 +102,258 @@ where
     if !errors.is_empty() {
         emit_block(agent);
 
-        // Write formatted error list + remediation instructions to stderr
+        // Build formatted error list + remediation instructions
         // (mirrors bash lines 61-67).
-        use std::io::Write as _;
-        let stderr = std::io::stderr();
-        let mut out = stderr.lock();
-        let _ = writeln!(out, "PR REVIEW POSTING INCOMPLETE:");
+        let mut msg = String::from("PR REVIEW POSTING INCOMPLETE:\n");
         for e in &errors {
-            let _ = writeln!(out, "  - {e}");
+            msg.push_str(&format!("  - {e}\n"));
         }
-        let _ = writeln!(
-            out,
-            "  pr-reviewer MUST: (1) write pr-review.md, (2) spawn github-ops with"
+        msg.push_str(
+            "  pr-reviewer MUST: (1) write pr-review.md, (2) spawn github-ops with\n",
         );
-        let _ = writeln!(
-            out,
-            "  'gh pr review --approve' or 'gh pr review --request-changes --body-file'."
+        msg.push_str(
+            "  'gh pr review --approve' or 'gh pr review --request-changes --body-file'.\n",
         );
-        let _ = writeln!(out, "  NEVER use 'gh pr comment' for review verdicts.");
+        msg.push_str("  NEVER use 'gh pr comment' for review verdicts.\n");
 
-        // Exit 2 — block signal to Claude Code. on_error=continue in registry
-        // governs dispatcher crash semantics only; this is the hook's own block.
-        std::process::exit(2);
+        write_stderr(&msg);
     }
 
     HookResult::Continue
+}
+
+// ---------------------------------------------------------------------------
+// Unit tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use vsdd_hook_sdk::HookPayload;
+
+    fn make_payload(json: &str) -> HookPayload {
+        serde_json::from_str(json).expect("fixture should parse")
+    }
+
+    fn base_subagentstop(extra: &str) -> String {
+        format!(
+            r#"{{"event_name":"SubagentStop","session_id":"s","dispatcher_trace_id":"t"{}}}"#,
+            if extra.is_empty() {
+                String::new()
+            } else {
+                format!(",{}", extra)
+            }
+        )
+    }
+
+    /// BC-7.04.041: non-pr-reviewer agent → HookResult::Continue, no emit, no stderr.
+    #[test]
+    fn test_BC_7_04_041_non_pr_reviewer_exits_immediately() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"code-reviewer","last_assistant_message":"wrote pr-review.md and gh pr review --approve""#,
+        ));
+        let mut emitted = false;
+        let mut warned = false;
+        let result = validate_pr_review_logic(payload, |_| { emitted = true; }, |_| { warned = true; });
+        assert_eq!(result, HookResult::Continue);
+        assert!(!emitted, "non-pr-reviewer must not emit event");
+        assert!(!warned, "non-pr-reviewer must not write stderr");
+    }
+
+    /// AC-003 g.1: agent_type present, subagent_name absent — primary arm of fallback chain.
+    #[test]
+    fn test_BC_2_02_012_agent_type_primary_arm() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md and gh pr review --approve""#,
+        ));
+        let mut emitted = false;
+        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {});
+        assert!(!emitted, "all-pass with pr-reviewer via agent_type must not emit block");
+    }
+
+    /// AC-003 g.2: agent_type absent, subagent_name present — fallback arm exercised.
+    #[test]
+    fn test_BC_2_02_012_subagent_name_fallback_arm() {
+        let payload = make_payload(&base_subagentstop(
+            r#""subagent_name":"pr-reviewer","last_assistant_message":"wrote pr-review.md and gh pr review --approve""#,
+        ));
+        let mut emitted = false;
+        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {});
+        assert!(!emitted, "all-pass via subagent_name fallback must not emit block");
+    }
+
+    /// BC-7.04.041: pr-review-triage agent matches containment check.
+    #[test]
+    fn test_BC_7_04_041_pr_review_triage_matches() {
+        // pr-review-triage with a bad result (no review.md) → should emit block
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-review-triage","last_assistant_message":"done nothing""#,
+        ));
+        let mut emitted = false;
+        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {});
+        assert!(emitted, "pr-review-triage must apply checks");
+    }
+
+    /// BC-7.04.042: Check 1 — pr-review.md not written → accumulate error.
+    #[test]
+    fn test_BC_7_04_042_check1_pr_review_md_not_written() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"gh pr review --approve posted""#,
+        ));
+        let mut stderr_msg: Option<String> = None;
+        validate_pr_review_logic(
+            payload,
+            |_| {},
+            |msg| { stderr_msg = Some(msg.to_string()); },
+        );
+        let msg = stderr_msg.expect("should have written stderr");
+        assert!(msg.contains("pr-review.md may not have been written"), "check1 error expected");
+    }
+
+    /// BC-7.04.042: Check 1 passes via `wrote.*review` pattern.
+    #[test]
+    fn test_BC_7_04_042_check1_wrote_review_pattern_passes() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"wrote my review notes and gh pr review --approve""#,
+        ));
+        let mut emitted = false;
+        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {});
+        assert!(!emitted, "wrote.*review must satisfy check 1");
+    }
+
+    /// BC-7.04.043: Check 2 — gh pr comment detected → accumulate error.
+    #[test]
+    fn test_BC_7_04_043_check2_gh_pr_comment_detected() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md and ran gh pr comment --body findings""#,
+        ));
+        let mut stderr_msg: Option<String> = None;
+        validate_pr_review_logic(
+            payload,
+            |_| {},
+            |msg| { stderr_msg = Some(msg.to_string()); },
+        );
+        let msg = stderr_msg.expect("should have written stderr");
+        assert!(msg.contains("gh pr comment"), "check2 error expected");
+    }
+
+    /// BC-7.04.044: Check 3a — no formal review → accumulate error.
+    #[test]
+    fn test_BC_7_04_044_check3a_no_formal_review() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md and submitted findings""#,
+        ));
+        let mut stderr_msg: Option<String> = None;
+        validate_pr_review_logic(
+            payload,
+            |_| {},
+            |msg| { stderr_msg = Some(msg.to_string()); },
+        );
+        let msg = stderr_msg.expect("should have written stderr");
+        assert!(msg.contains("No evidence that a formal GitHub review"), "check3a error expected");
+    }
+
+    /// BC-7.04.044: Check 3b — gh pr review with no verdict → accumulate error.
+    #[test]
+    fn test_BC_7_04_044_check3b_review_posted_no_verdict() {
+        // Case (e) from story spec: gh pr review --no-body (no approve/request-changes)
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"ran gh pr review --no-body""#,
+        ));
+        let mut stderr_msg: Option<String> = None;
+        validate_pr_review_logic(
+            payload,
+            |_| {},
+            |msg| { stderr_msg = Some(msg.to_string()); },
+        );
+        let msg = stderr_msg.expect("should have written stderr for check 3b");
+        assert!(
+            msg.contains("no verdict"),
+            "check3b error expected; got: {msg}"
+        );
+        // Check 3a must NOT have fired (gh pr review matched 3a)
+        assert!(!msg.contains("No evidence"), "check3a must not fire when gh pr review is present");
+    }
+
+    /// All three checks pass → no emit, no stderr, HookResult::Continue.
+    #[test]
+    fn test_all_checks_pass_no_output() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md and posted gh pr review --approve""#,
+        ));
+        let mut emitted = false;
+        let mut warned = false;
+        let result = validate_pr_review_logic(
+            payload,
+            |_| { emitted = true; },
+            |_| { warned = true; },
+        );
+        assert_eq!(result, HookResult::Continue);
+        assert!(!emitted, "all-pass must not emit event");
+        assert!(!warned, "all-pass must not write stderr");
+    }
+
+    /// Multiple checks fail → all errors accumulated, single emit + single stderr call.
+    #[test]
+    fn test_multiple_checks_fail_accumulated() {
+        // No pr-review.md + uses gh pr comment + no formal review → 3 errors
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"ran gh pr comment --body findings""#,
+        ));
+        let mut emit_count = 0usize;
+        let mut stderr_msg: Option<String> = None;
+        validate_pr_review_logic(
+            payload,
+            |_| { emit_count += 1; },
+            |msg| { stderr_msg = Some(msg.to_string()); },
+        );
+        assert_eq!(emit_count, 1, "should emit exactly once even with multiple errors");
+        let msg = stderr_msg.expect("stderr should have been written");
+        assert!(msg.contains("pr-review.md"), "check1 error in multi-failure");
+        assert!(msg.contains("gh pr comment"), "check2 error in multi-failure");
+        assert!(msg.contains("No evidence"), "check3a error in multi-failure");
+    }
+
+    /// Remediation block is always included in stderr when errors exist.
+    #[test]
+    fn test_remediation_block_present_on_error() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"done nothing""#,
+        ));
+        let mut stderr_msg: Option<String> = None;
+        validate_pr_review_logic(payload, |_| {}, |msg| { stderr_msg = Some(msg.to_string()); });
+        let msg = stderr_msg.expect("stderr expected");
+        assert!(msg.contains("pr-reviewer MUST"), "remediation line 1 present");
+        assert!(msg.contains("gh pr review --approve"), "remediation line 2 present");
+        assert!(msg.contains("NEVER use 'gh pr comment'"), "remediation line 3 present");
+    }
+
+    /// BC-7.04.044 EC-003: result contains `gh pr review --approve` → all pass.
+    #[test]
+    fn test_BC_7_04_044_review_with_approve_verdict_all_pass() {
+        let payload = make_payload(&base_subagentstop(
+            r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md; ran gh pr review --approve""#,
+        ));
+        let mut emitted = false;
+        validate_pr_review_logic(payload, |_| { emitted = true; }, |_| {});
+        assert!(!emitted, "gh pr review --approve should satisfy all checks");
+    }
+
+    /// HookResult is always Continue (never Block or Error).
+    #[test]
+    fn test_hook_always_returns_continue() {
+        let cases = [
+            // all pass
+            base_subagentstop(r#""agent_type":"pr-reviewer","last_assistant_message":"wrote pr-review.md and gh pr review --approve""#),
+            // check failures
+            base_subagentstop(r#""agent_type":"pr-reviewer","last_assistant_message":"done nothing""#),
+            // non-pr-reviewer
+            base_subagentstop(r#""agent_type":"implementer","last_assistant_message":"""#),
+        ];
+        for json in &cases {
+            let payload = make_payload(json);
+            let result = validate_pr_review_logic(payload, |_| {}, |_| {});
+            assert_eq!(result, HookResult::Continue, "must always return Continue");
+        }
+    }
 }
