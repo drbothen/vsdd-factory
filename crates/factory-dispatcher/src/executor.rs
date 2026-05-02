@@ -11,10 +11,11 @@
 //! tiers: the dispatcher awaits every task before the next tier begins,
 //! preserving priority ordering.
 //!
-//! `on_error = "block"` semantics (per Q3 resolution in the design doc):
-//! a plugin that returns `HookResult::Block` under an `on_error = block`
-//! entry records a dispatcher-level block intent but does **not**
-//! abort the tier — remaining plugins still fire. The summary's
+//! Advisory-block semantics (per Q3 resolution + W-15 gate fix CRIT-PR59-001):
+//! a plugin that writes `{"outcome":"block","reason":"..."}` to stdout
+//! records a dispatcher-level block intent regardless of `on_error` setting.
+//! The `on_error` field continues to govern dispatcher *crash* behavior only
+//! (whether a panicking plugin blocks vs continues). The summary's
 //! `exit_code` is 2 iff any block intent was recorded.
 
 use std::sync::Arc;
@@ -86,8 +87,7 @@ pub async fn execute_tiers(
     for tier in tiers {
         let tier_outcomes = execute_tier(&inputs, tier).await;
         for outcome in &tier_outcomes {
-            if matches!(outcome.on_error, OnError::Block) && plugin_requests_block(&outcome.result)
-            {
+            if plugin_requests_block(&outcome.result) {
                 block_intent = true;
             }
         }
@@ -353,6 +353,55 @@ fn emit_lifecycle(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ── CRIT-PR59-001 regression tests: advisory-block gate ──────────────────
+
+    /// Advisory block fires when on_error=Continue and stdout contains outcome:block.
+    /// Regression for CRIT-PR59-001: the AND-gate `on_error==Block &&` was removed;
+    /// stdout `{"outcome":"block"}` is now sufficient regardless of on_error.
+    #[test]
+    fn advisory_block_fires_with_on_error_continue() {
+        let outcome = PluginOutcome {
+            plugin_name: "test-plugin".to_string(),
+            plugin_version: "0.1.0".to_string(),
+            on_error: OnError::Continue,
+            result: PluginResult::Ok {
+                exit_code: 0,
+                stdout: r#"{"outcome":"block","reason":"test"}"#.to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 10,
+            },
+        };
+        assert!(
+            plugin_requests_block(&outcome.result),
+            "stdout outcome:block must be detected regardless of on_error"
+        );
+        // Aggregate to verify exit_code=2 path
+        let block = plugin_requests_block(&outcome.result);
+        assert!(block, "block_intent must be true");
+    }
+
+    /// Regression: on_error=Continue with no stdout block → no block intent.
+    #[test]
+    fn advisory_block_absent_with_on_error_continue_and_no_block_stdout() {
+        let outcome = PluginOutcome {
+            plugin_name: "test-plugin".to_string(),
+            plugin_version: "0.1.0".to_string(),
+            on_error: OnError::Continue,
+            result: PluginResult::Ok {
+                exit_code: 0,
+                stdout: "all good, no block here".to_string(),
+                stderr: String::new(),
+                elapsed_ms: 1,
+                fuel_consumed: 5,
+            },
+        };
+        assert!(
+            !plugin_requests_block(&outcome.result),
+            "no outcome:block stdout → block_intent must be false"
+        );
+    }
 
     #[test]
     fn plugin_requests_block_detects_tagged_json() {

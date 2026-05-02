@@ -307,16 +307,14 @@ where
     E: FnOnce(&WaveStateOutcome, &str),
 {
     // BC-7.03.084: scope to pr-manager agents only.
+    // BC-2.02.012 Postcondition 5: canonical agent identity fallback chain.
+    // tool_input is null on SubagentStop in production; use typed projection
+    // (matches the other 3 SubagentStop plugins: handoff-validator,
+    // validate-pr-review-posted, track-agent-stop).
     let agent_type = payload
-        .tool_input
-        .get("agent_type")
-        .and_then(|v| v.as_str())
-        .or_else(|| {
-            payload
-                .tool_input
-                .get("subagent_name")
-                .and_then(|v| v.as_str())
-        })
+        .agent_type
+        .as_deref()
+        .or(payload.subagent_name.as_deref())
         .unwrap_or("unknown");
 
     if !is_pr_manager_agent(agent_type) {
@@ -324,11 +322,12 @@ where
     }
 
     // BC-7.03.084: only act on merge completion signals.
+    // BC-2.02.012 Postcondition 6: canonical 2-stage assistant-message chain.
+    // tool_input is null on SubagentStop in production; use typed projection.
     let result = payload
-        .tool_input
-        .get("last_assistant_message")
-        .and_then(|v| v.as_str())
-        .or_else(|| payload.tool_input.get("result").and_then(|v| v.as_str()))
+        .last_assistant_message
+        .as_deref()
+        .or(payload.result.as_deref())
         .unwrap_or("");
 
     if !has_merge_signal(result) {
@@ -382,27 +381,79 @@ mod tests {
     // -----------------------------------------------------------------------
 
     fn make_payload(agent_type: &str, result: &str) -> HookPayload {
+        // Production-realistic fixture: SubagentStop events have tool_input=null.
+        // The dispatcher populates the top-level typed fields (agent_type,
+        // last_assistant_message, result) but does NOT populate tool_input for
+        // SubagentStop events. Setting tool_input to null here mirrors production
+        // and catches any regression to tool_input lookups (CRIT-CONS-001).
+        make_payload_with_null_tool_input(agent_type, result)
+    }
+
+    fn make_payload_with_null_tool_input(agent_type: &str, result: &str) -> HookPayload {
         HookPayload {
             event_name: "SubagentStop".to_string(),
             tool_name: String::new(),
             session_id: "test-session".to_string(),
             dispatcher_trace_id: "trace-001".to_string(),
-            // agent_type and result are top-level SubagentStop fields (BC-2.02.012)
-            // They are also available via tool_input for the wave_state_hook_logic
-            // fallback chain that reads tool_input["agent_type"] / tool_input["result"].
-            // Set both so the hook logic's fallback chain resolves correctly.
-            tool_input: json!({
-                "agent_type": agent_type,
-                "result": result,
-            }),
+            // Production: tool_input is null on SubagentStop events.
+            // Do NOT populate tool_input["agent_type"] / tool_input["result"] —
+            // that masking hid CRIT-CONS-001 where the logic read tool_input
+            // which is null in production.
+            tool_input: serde_json::Value::Null,
             tool_response: None,
             plugin_config: serde_json::Value::Null,
-            // BC-2.02.012 top-level SubagentStop fields
-            agent_type: Some(agent_type.to_string()),
+            // BC-2.02.012 top-level SubagentStop fields — canonical typed projection.
+            agent_type: if agent_type.is_empty() { None } else { Some(agent_type.to_string()) },
             subagent_name: None,
             last_assistant_message: Some(result.to_string()),
             result: Some(result.to_string()),
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // CRIT-CONS-001 regression: null tool_input must not break agent identity
+    // -----------------------------------------------------------------------
+
+    /// CRIT-CONS-001 regression: when tool_input is null (as in production
+    /// SubagentStop events), the hook must still resolve agent identity via
+    /// the typed projection (payload.agent_type / payload.subagent_name).
+    ///
+    /// Before the fix, the logic read tool_input["agent_type"] which panics
+    /// or silently resolves to "unknown" when tool_input is null, making the
+    /// pr-manager scope gate unreachable in production.
+    #[test]
+    fn test_pr_manager_works_with_null_tool_input() {
+        let payload = make_payload_with_null_tool_input(
+            "pr-manager",
+            "STEP_COMPLETE: step=8 story=S-8.99 status=ok",
+        );
+        // tool_input is explicitly null in this fixture — assert it
+        assert!(payload.tool_input.is_null(), "fixture must have null tool_input");
+
+        // The hook must still read pr-manager from typed agent_type and
+        // recognize the merge signal from typed last_assistant_message.
+        let mut yaml_written = false;
+        wave_state_hook_logic(
+            payload,
+            || {
+                // Return YAML with S-8.99 in a wave's stories list.
+                // Format matches the schema used by process_wave_state tests.
+                Some(
+                    "waves:\n  - wave: \"wave-8\"\n    stories:\n      - \"S-8.99\"\n    \
+                     stories_merged: []\n    gate_status: not_started\n"
+                        .to_string(),
+                )
+            },
+            |_| {
+                yaml_written = true;
+            },
+            |_, _| {},
+        );
+        assert!(
+            yaml_written,
+            "CRIT-CONS-001: pr-manager with null tool_input must still trigger \
+             YAML write via typed projection"
+        );
     }
 
     // -----------------------------------------------------------------------

@@ -29,6 +29,11 @@ fn on_hook(payload: HookPayload) -> HookResult {
         |msg| {
             eprint!("{}", msg);
         },
+        |line| {
+            // Advisory block signal to dispatcher (W-15 gate fix CRIT-PR59-001):
+            // dispatcher reads {"outcome":"block",...} on stdout regardless of on_error.
+            println!("{}", line);
+        },
     )
 }
 
