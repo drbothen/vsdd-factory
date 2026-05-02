@@ -70,15 +70,19 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
 
 /// All of read_file's host-side logic that doesn't touch guest memory,
 /// split out so it's unit-testable without a live wasm instance.
-fn prepare(ctx: &HostContext, path: &str, max_bytes: u32) -> Result<(Vec<u8>, u32), i32> {
+pub(crate) fn prepare(ctx: &HostContext, path: &str, max_bytes: u32) -> Result<(Vec<u8>, u32), i32> {
     let caps = ctx.capabilities.read_file.as_ref().ok_or_else(|| {
         emit_denial(ctx, path, "no_read_file_capability", None);
         codes::CAPABILITY_DENIED
     })?;
 
-    let resolved = resolve_for_read(Path::new(path), &ctx.plugin_root);
+    // Relative paths are resolved under `ctx.cwd` (the project root,
+    // i.e. `$CLAUDE_PROJECT_DIR`) so that project-relative files like
+    // `.factory/wave-state.yaml` and `.claude/settings.local.json` are
+    // found in the project directory, not the plugin directory.
+    let resolved = resolve_for_read(Path::new(path), &ctx.cwd);
 
-    if !path_allowed(&resolved, &caps.path_allow, &ctx.plugin_root) {
+    if !path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
         emit_denial(ctx, path, "path_not_allowed", Some(&resolved));
         return Err(codes::CAPABILITY_DENIED);
     }
@@ -98,15 +102,20 @@ enum ReadErr {
     Other,
 }
 
-fn resolve_for_read(path: &Path, plugin_root: &Path) -> PathBuf {
+/// Resolve a path for reading. Relative paths are resolved under `base`
+/// (the project working directory, `$CLAUDE_PROJECT_DIR`). Absolute paths
+/// are used as-is.
+fn resolve_for_read(path: &Path, base: &Path) -> PathBuf {
     if path.is_absolute() {
         path.to_path_buf()
     } else {
-        plugin_root.join(path)
+        base.join(path)
     }
 }
 
-fn path_allowed(resolved: &Path, allow: &[String], plugin_root: &Path) -> bool {
+/// Check whether a resolved path is within the allow-list. Allow-list entries
+/// that are relative are expanded under `base` (the project working directory).
+fn path_allowed(resolved: &Path, allow: &[String], base: &Path) -> bool {
     // Canonicalize the target path to remove any `..` components, defeating
     // traversal attacks (BC-2.02.001 EC-001 / sibling-consistency with BC-2.02.011).
     // For read_file the file must already exist, so full canonicalize() works.
@@ -121,7 +130,7 @@ fn path_allowed(resolved: &Path, allow: &[String], plugin_root: &Path) -> bool {
         let pref_path = if Path::new(pref).is_absolute() {
             PathBuf::from(pref)
         } else {
-            plugin_root.join(pref)
+            base.join(pref)
         };
         let canon_pref = match pref_path.canonicalize() {
             Ok(p) => p,
@@ -181,7 +190,8 @@ mod tests {
         let file = dir.path().join("ok.txt");
         std::fs::write(&file, b"hello world").unwrap();
         let mut ctx = context_with_caps(allow_read(&[dir.path().to_str().unwrap()]));
-        ctx.plugin_root = dir.path().to_path_buf();
+        // Absolute path in allow-list; cwd doesn't affect resolution.
+        ctx.cwd = dir.path().to_path_buf();
         let (bytes, _) = prepare(&ctx, file.to_str().unwrap(), 1024).unwrap();
         assert_eq!(bytes, b"hello world");
     }
@@ -203,17 +213,19 @@ mod tests {
         let mut f = std::fs::File::create(&file).unwrap();
         f.write_all(&vec![0u8; 2048]).unwrap();
         let mut ctx = context_with_caps(allow_read(&[dir.path().to_str().unwrap()]));
-        ctx.plugin_root = dir.path().to_path_buf();
+        ctx.cwd = dir.path().to_path_buf();
         let err = prepare(&ctx, file.to_str().unwrap(), 512).unwrap_err();
         assert_eq!(err, codes::OUTPUT_TOO_LARGE);
     }
 
     #[test]
-    fn relative_path_resolves_under_plugin_root() {
+    fn relative_path_resolves_under_cwd() {
+        // Relative paths (e.g. ".factory/wave-state.yaml") are resolved
+        // under ctx.cwd ($CLAUDE_PROJECT_DIR), not plugin_root.
         let dir = tempfile::tempdir().unwrap();
         std::fs::write(dir.path().join("rel.txt"), b"yes").unwrap();
         let mut ctx = context_with_caps(allow_read(&["."]));
-        ctx.plugin_root = dir.path().to_path_buf();
+        ctx.cwd = dir.path().to_path_buf();
         let (bytes, _) = prepare(&ctx, "rel.txt", 1024).unwrap();
         assert_eq!(bytes, b"yes");
     }
