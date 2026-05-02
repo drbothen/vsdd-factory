@@ -227,6 +227,30 @@ pub fn read_file(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>,
 /// | `HostError::Timeout` | Write exceeded `timeout_ms` budget |
 /// | `HostError::Other(-99)` | Filesystem I/O error or missing parent directory |
 ///
+/// # Examples
+///
+/// On non-wasm targets the FFI stub returns `CAPABILITY_DENIED` because no
+/// dispatcher is present.  In a real plugin compiled to `wasm32-wasip1` the
+/// dispatcher validates capabilities and writes the file.
+///
+/// ```rust
+/// use vsdd_hook_sdk::host::{HostError, write_file};
+///
+/// // Non-wasm (doc-test) target: stub returns Err(CapabilityDenied).
+/// let result = write_file(".factory/STATE.md", b"updated state", 65536, 5000);
+/// assert_eq!(result, Err(HostError::CapabilityDenied));
+/// ```
+///
+/// Both `max_bytes` and `timeout_ms` are mandatory (BC-2.02.011 invariant 2):
+///
+/// ```rust
+/// use vsdd_hook_sdk::host::{HostError, write_file};
+///
+/// // max_bytes cap is enforced by the dispatcher; timeout_ms by epoch interruption.
+/// // On non-wasm stub both are accepted as parameters without panic.
+/// let _ = write_file("/tmp/out.txt", b"", 0, 0);
+/// ```
+///
 /// # References
 ///
 /// BC-2.02.011 — host::write_file: bounded write capability with allowlist enforcement.
