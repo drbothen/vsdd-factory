@@ -327,29 +327,106 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-03 (v1.0.0-rc.3 SHIPPED)
-**main HEAD:** a62478c (bot bundle commit for v1.0.0-rc.3)
-**develop HEAD:** fbb038b (sync-develop fired automatically)
+**Last update:** 2026-05-03 (post v1.0.0-rc.3 ship — planning W-16/W-17)
+**main HEAD:** a62478c (v1.0.0-rc.3 bot bundle commit)
+**develop HEAD:** fbb038b (sync-develop fired automatically post-rc.3)
 **factory-artifacts HEAD:** (after this commit)
 **Active worktrees:** main + .factory only
 
-**Current Phase:** v1.0.0-rc.3 SHIPPED. Wave 15 (E-8 Tier 1 native WASM) closed. Awaiting:
-- Scheduled remote agent (2026-05-22) verifies sync-develop fired correctly on rc.3 — independent confirmation.
-- Optional W-16 (Tier 2 adapter retirement, calendar-gated to v1.0 GA close).
-- v1.0.0-rc.4 if rc.3 reveals issues; otherwise v1.0.0 GA when stable.
+**Current Phase:** v1.0.0-rc.3 SHIPPED. Plan approved for native-WASM migration completion (Tier 2 + Tier 3) before v1.0 GA.
 
-**Open backlog (post-rc.3):**
-- TD-013 main branch protection bot bypass
-- TD-014 Tier 2/3 legacy-bash-adapter retirement
-- TD-015 per-invocation telemetry correlation
-- TD-016 Refactor run-all.sh to glob discovery
-- TD-017 bats-orphan-detection CI step
-- TD-018 Workspace clippy debt sweep
+## Approved Plan (post-rc.3)
+
+### Phase A — Pre-flight Hardening Sprint (NOW, ~1-2 days)
+
+Address the technical debt that caused W-15's 3-recovery-cycle release pain. Single PR (call it `chore/pre-w16-hardening` or similar):
+
+1. **TD-017 — bats-orphan-detection CI step.** Add a `validate` workflow step that scans every bats file for `$HOOKS_DIR/<name>.sh` invocations and fails if any referenced .sh is missing from `plugins/vsdd-factory/hooks/`. Detects deletion-driven orphans pre-merge.
+2. **TD-016 — Refactor `plugins/vsdd-factory/tests/run-all.sh`** to glob-discover `tests/*.bats` instead of hardcoded enumeration. Eliminates "deleted file" workflow failures.
+3. **TD-018 — Workspace clippy debt sweep.** File-level `#![allow(non_snake_case)]` in test modules with BC-named tests; clean up any remaining type_complexity / unused_imports surfaced by `--all-targets -- -D warnings`.
+4. **Delete 3 leftover `.sh` dupes** for hooks that already have native equivalents:
+   - `plugins/vsdd-factory/hooks/block-ai-attribution.sh`
+   - `plugins/vsdd-factory/hooks/capture-commit-activity.sh`
+   - `plugins/vsdd-factory/hooks/capture-pr-activity.sh`
+5. **TD-013 — Restore main branch protection** with bot bypass for github-actions[bot]. Prevents accidental direct pushes; allows release.yml retag flow.
+
+Expected: Single PR, ~5-8 commits, merged into develop → develop into main via release/v1.0.1 (patch).
+
+### Phase B — v1.0.1 patch release (~1 day post-Phase-A)
+
+Cut release/v1.0.1 from develop after Phase A merges. Bump CHANGELOG. Tag v1.0.1. Workflow validates the new bats-orphan-detection step on the actual release.
+
+### Phase C — v1.0.0 GA cut (~1 week, after rc.3 burn-in)
+
+If rc.3 + 1.0.1 stable for ~7 days in real use → cut v1.0.0 from develop (drop the rc suffix). Marks production-ready release.
+
+### Phase D — W-16 Spec Foundation (~3-5 days, can run parallel to Phase B/C)
+
+E-9 epic for Tier 2 native WASM migration covering 23 `validate-*.sh` hooks. Required architectural decisions:
+
+- **D-9.1 — Port strategy: rewrite-clean.** Idiomatic Rust (regex crate, serde_yaml, serde_json) instead of bash port-as-is. Avoids OQ-001-style preserved-quirk bugs from W-15.
+- **D-9.2 — Subprocess capability.** Audit each validator. Most use jq for JSON parsing → serde_json replaces. Any that need git plumbing (validate-pr-merge-prerequisites uses gh CLI) need either:
+  - (a) New `host::run_subprocess` ABI w/ binary+arg allow-list (BC-2.02.013) — generalizable
+  - (b) Specific host fns (host::git_log, host::gh_pr_view) — more constrained
+  - (c) Skip subprocess-needing validators for W-16, defer to W-17
+- **D-9.3 — Story granularity.** Batch by capability cluster (state-related / PR-related / story-related / wave-related) — ~7 batched stories rather than 23 individual.
+
+Steps:
+1. architect: ADR-014 + SS-02/SS-04 updates
+2. product-owner: BCs for any new host fns (likely BC-2.02.013)
+3. story-writer: E-9 + ~7 batched stories
+4. Adversarial convergence per ADR-013
+
+### Phase E — W-16 Implementation (~5-7 days after Phase D)
+
+Per-story-delivery using W-15's proven patterns. Each batched story = stub → Red Gate → GREEN → demo → PR. Wave gate at end. Cut v1.1.0 with tightened WASI preopens after Tier 2 closure.
+
+### Phase F — W-17 Spec Foundation (~3-4 days)
+
+E-10 epic for Tier 3 native WASM migration covering 11 specialty hooks:
+
+- **Easy (5):** protect-bc, protect-vp, protect-secrets, brownfield-discipline, factory-branch-guard
+- **Medium (3):** verify-git-push, check-factory-commit, destructive-command-guard
+- **Hard (3):** red-gate (cargo test invocation), purity-check (Rust AST via syn crate), convergence-tracker (YAML parsing)
+
+Required architectural decisions:
+- **D-10.1 — Subprocess capability formalized** (build on W-16's subset)
+- **D-10.2 — Rust AST integration** for purity-check (syn crate; watch wasm bundle size)
+- **D-10.3 — legacy-bash-adapter deletion plan** (deprecation v1.1, removal v1.2 GA)
+
+### Phase G — W-17 Implementation (~5-7 days)
+
+Per-story-delivery, batched by complexity tier. Wave gate. Cut v1.2.0 with legacy-bash-adapter deprecated.
+
+### Phase H — v1.3.0 Cleanup
+
+Delete legacy-bash-adapter crate. All hooks native. Documentation refresh. Architecture cleanup post-Tier-3-retirement.
+
+## Concrete Resume Steps
+
+When resuming:
+
+1. **Read this checkpoint + recent decisions log** (D-209..D-212 for rc.3 context).
+2. **Verify state still aligns** — `git rev-parse origin/main origin/develop` should show a62478c + fbb038b (or further if Phase A has started).
+3. **Pick up at the next pending phase.**
+
+If Phase A hasn't started:
+- Create branch `chore/pre-w16-hardening` from `origin/develop`
+- Dispatch implementer with the 5-item hardening checklist (see Phase A above)
+- PR → develop, merge, cut release/v1.0.1, tag, workflow runs
+
+If Phase A merged:
+- Watch for v1.0.1 workflow success, then start Phase D (W-16 spec foundation)
+
+## Open Backlog (lower priority than the plan)
+
+- TD-013 main branch protection bot bypass (folded into Phase A)
+- TD-014 Tier 2/3 retirement (folded into W-16/W-17)
+- TD-015 per-invocation telemetry correlation (post-v1.0)
 - TD: 1,137 pre-existing STALE input-hashes
 - HIGH-W15-001 plugin version drift (1.0.0-rc.1 vs 0.0.1)
 - SEC-002/004/005/006 deferred dispositions for v1.0 GA
-
-**Lessons learned recorded in D-209..D-212.**
+- Scheduled remote agent 2026-05-22 — independently verifies sync-develop fired correctly on rc.3
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
