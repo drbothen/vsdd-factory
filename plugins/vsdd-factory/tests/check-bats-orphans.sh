@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
-# check-bats-orphans.sh — detect orphan $HOOKS_DIR/<name>.sh references
+# check-bats-orphans.sh — detect orphan hooks/<name>.sh references
 # in bats test files that no longer have a corresponding hook on disk.
+#
+# Catches all common path forms:
+#   $HOOKS_DIR/<name>.sh
+#   $PLUGIN_ROOT/hooks/<name>.sh
+#   ${BATS_TEST_DIRNAME}/../hooks/<name>.sh
+#   ${CLAUDE_PLUGIN_ROOT}/hooks/<name>.sh
+#   any other "/hooks/<name>.sh" form
 #
 # Usage:
 #   bash plugins/vsdd-factory/tests/check-bats-orphans.sh
@@ -18,20 +25,24 @@ HOOKS_DIR="$(cd "$SCRIPT_DIR/../hooks" && pwd)"
 orphans_found=0
 
 while IFS= read -r bats_file; do
-  # Extract all $HOOKS_DIR/<name>.sh references from this bats file.
-  # The regex matches the pattern literally used in the test files.
+  # Extract all hooks/<name>.sh references from this bats file.
+  # The broad pattern matches any path that contains hooks/<name>.sh,
+  # regardless of how the prefix is expressed ($HOOKS_DIR, $PLUGIN_ROOT/hooks,
+  # ${BATS_TEST_DIRNAME}/../hooks, etc).
   while IFS=: read -r lineno match; do
     # Extract just the <name>.sh portion from the match
-    hook_name="$(printf '%s' "$match" | grep -oE '\$HOOKS_DIR/[A-Za-z0-9_-]+\.sh' | sed 's|\$HOOKS_DIR/||' | head -1)"
+    hook_name="$(printf '%s' "$match" | grep -oE 'hooks/[A-Za-z0-9_-]+\.sh' | sed 's|hooks/||' | head -1)"
     [ -z "$hook_name" ] && continue
 
     hook_path="$HOOKS_DIR/$hook_name"
     if [ ! -f "$hook_path" ]; then
-      printf 'ORPHAN: %s:%s: references %s (not found at %s)\n' \
-        "$bats_file" "$lineno" "\$HOOKS_DIR/$hook_name" "$hook_path"
+      printf 'ORPHAN: %s:%s: references hooks/%s (not found at %s)\n' \
+        "$bats_file" "$lineno" "$hook_name" "$hook_path"
       orphans_found=$((orphans_found + 1))
     fi
-  done < <(grep -nE '\$HOOKS_DIR/[A-Za-z0-9_-]+\.sh' "$bats_file" 2>/dev/null || true)
+  # Exclude lines where the path is the simulated command input (e.g.
+  # _run_hook "chmod +x .../hooks/foo.sh") rather than a hook invocation.
+  done < <(grep -nE 'hooks/[A-Za-z0-9_-]+\.sh' "$bats_file" 2>/dev/null | grep -v '_run_hook' || true)
 done < <(find "$BATS_DIR" -maxdepth 1 -name '*.bats' -type f | sort)
 
 if [ "$orphans_found" -gt 0 ]; then
