@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.4"
+version: "1.5"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -437,6 +437,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.1 | 2026-05-03 | story-writer | Pass-1 fix burst (18 findings) + scope reduction per ADR-014 Amendment 2026-05-03. See details below. |
 | 1.2 | 2026-05-03 | story-writer | Pass-2 fix burst (12 findings from W-16-E-9-pass-2-adversary.md). See v1.2 changelog below. |
 | 1.3 | 2026-05-03 | story-writer | Pass-3 fix burst (2 E-9-own findings + 1 cross-doc from S-9.00). See v1.3 changelog below. |
+| 1.4 | 2026-05-03 | story-writer | Pass-4 fix burst (fix-only mode). 2 cross-doc fixes (F-P4-001 STORY-INDEX BC anchor, F-P4-002 v1.1 changelog parenthetical) + F-P4-003 LOW deferred. See v1.4 changelog below. |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -597,7 +598,7 @@ Fixes from W-16-S-9.00-pass-3-adversary.md (cross-doc):
 
 Lines: v1.2 (~570L) → v1.3 (598L)
 
-## v1.4 (2026-05-03) — Pass-4 fix burst (fix-only mode)
+### v1.4 (2026-05-03) — Pass-4 fix burst (fix-only mode)
 
 Fix-only-no-new-prose discipline adopted per [process-gap] observation.
 
@@ -609,3 +610,12 @@ Cross-doc fixes (separate commits in same burst):
 - F-P4-001 [HIGH]: STORY-INDEX line 282 BC-2.02.005 → BC-1.05.001..034 + BC-1.05.035 + BC-1.05.036 (state-manager scope).
 
 Lines: v1.3 (598L) → v1.4 (~602L).
+
+### v1.5 (2026-05-03) — Pass-6 structural fix burst
+
+Fix-only structural corrections from W-16-E-9-pass-6-adversary.md:
+- F-P6-001 [MED]: v1.4 changelog heading depth corrected `##` → `###` (matches v1.1/v1.2/v1.3 peers; document outline restored).
+- F-P6-002 [MED]: Changelog summary table at lines 434-439 — v1.4 row appended.
+- F-P6-003 [LOW]: deferred to ADR-014 reauthoring cycle (BC-1.05.001..034 range convention is inherited from ADR-014; out-of-scope for E-9-only fix).
+
+Lines: v1.4 (~614L) → v1.5 (~622L; +8L from minimal edits).

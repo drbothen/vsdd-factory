@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.35"
+version: "1.36"
 status: current
 producer: state-manager
 timestamp: 2026-05-03T00:00:00
@@ -266,9 +266,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
-## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (in-review, v1.3)
+## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (in-review, v1.5)
 
-> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03) + v1.2 pass-2 fix burst (2026-05-03) + v1.3 pass-3 fix burst (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.3 status=in-review (598L). 8-story scope: S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens), R-W16-007 (behavioral divergence), R-W16-008 (YAML parsing fidelity). Library Table: regex, serde_yaml, walkdir, wc (bundle), hyperfine (latency). Pass-2: 12 findings closed (D-225). Pass-3: 2 findings (1 MED + 1 LOW) + 1 cross-doc from S-9.00 (HIGH) closed (D-226). ADR-013 clock: 0_of_3 (reset on SUBSTANTIVE). input-hash: 3458e0a.
+> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03) + v1.2 pass-2 fix burst (2026-05-03) + v1.3 pass-3 fix burst (2026-05-03) + v1.4 pass-4 fix burst (2026-05-03) + v1.5 pass-6 structural fix burst (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.5 status=in-review (621L). 8-story scope: S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens), R-W16-007 (behavioral divergence), R-W16-008 (YAML parsing fidelity). Library Table: regex, serde_yaml, walkdir, wc (bundle), hyperfine (latency). Pass-2: 12 findings closed (D-225). Pass-3: 2 findings (1 MED + 1 LOW) + 1 cross-doc from S-9.00 (HIGH) closed (D-226). Pass-4: 3 findings (1H+1M+1L; F-P4-001 cross-doc BC anchor, F-P4-002 wc supersession parenthetical, F-P4-003 deferred) closed (D-227). Pass-6: 2 MED structural fixes (F-P6-001 heading depth ##→###, F-P6-002 summary table v1.4 row); F-P6-003 LOW deferred (D-230). ADR-013 clock: 0_of_3 (fresh start for v1.5). input-hash: 5f8cb84.
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
