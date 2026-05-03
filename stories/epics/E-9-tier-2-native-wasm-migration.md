@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.2"
+version: "1.3"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -24,7 +24,7 @@ inputs:
   - .factory/specs/architecture/SS-02-hook-sdk.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/architecture/gap-analysis-w16-subprocess.md
-input-hash: "e3055a6"
+input-hash: "3458e0a"
 ---
 <!-- [process-gap] Frontmatter fields tech_debt_ref, anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-8 v1.9). Template update tracked as follow-up. -->
 
@@ -309,13 +309,14 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 
 ## Risks
 
-> **Risk ID alignment note (v1.2):** Risk IDs below are aligned to ADR-014's
-> canonical R-W16-NNN namespace. R-W16-001 through R-W16-006 use ADR-014's verbatim
+> **Risk ID alignment note (v1.3):** Risk IDs below are aligned to ADR-014's
+> canonical R-W16-NNN namespace. R-W16-001 through R-W16-004 use ADR-014's verbatim
 > definitions: R-W16-001 = bats orphan migration, R-W16-002 = WASI preopens
 > (ADR-014 §"Audit Risk Items Carried Forward"), R-W16-003 = latency/bundle growth,
-> R-W16-004 = bats/WASM test infrastructure (ADR-014 §"Audit Risk Items Carried Forward"),
-> R-W16-005 = path_allow coverage (additive per pass-1 F-5), R-W16-006 = Windows CI
-> gap (additive per pass-1 F-5). E-9-specific risks that collided with ADR-014 IDs
+> R-W16-004 = bats/WASM test infrastructure (ADR-014 §"Audit Risk Items Carried Forward").
+> R-W16-005 and R-W16-006 are E-9-original additive IDs (per pass-1 F-5): R-W16-005 =
+> path_allow failure-mode semantics (distinct from R-W16-002's scope; see R-W16-005 entry),
+> R-W16-006 = Windows CI gap. E-9-specific risks that collided with ADR-014 IDs
 > renumbered: Behavioral divergence → R-W16-007; YAML parsing fidelity → R-W16-008
 > (append-only per POLICY 1). See CHANGELOG v1.1 F-1, v1.2 F-1 PARTIAL resolution.
 
@@ -325,7 +326,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 | R-W16-002 | WASI preopens: 19 of 23 hooks read `FILE_PATH`. Canonical capability is `path_allow = [".factory/"]` for spec-file readers; `path_allow = ["."]` for hooks that may read files outside `.factory/`. Each story spec must pin per-hook path_allow declarations. (Per ADR-014 §"Audit Risk Items Carried Forward".) | MED | HIGH | Each story spec (S-9.01..S-9.07) MUST pin `path_allow` declarations per hook in the AC table and registry TOML snippet. Adversarial review checks path_allow coverage before story reaches `ready`. |
 | R-W16-003 | Latency regression and bundle growth: 23 new WASM plugins may regress cold-start p95 beyond 500ms or exceed bundle hard kill-switch (30MB) | LOW | HIGH | Primary gate: cold-start p95 ≤ 500ms (ADR-014 R-8.09 revised model). S-9.00 measures post-rc.4 baseline capturing both `bundle_size_delta_bytes` and `cold_start_p95_delta_ms`. Wave pause if cold-start regresses >10%. Advisory soft cap: cumulative ≤100% growth (~14MB) at end of W-17. Hard kill-switch: 30MB cumulative; crossing requires fresh architecture review. Per-wave telemetry: `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. See ADR-014 Amendment 2026-05-03 (R-8.09 revised). |
 | R-W16-004 | bats/WASM test infrastructure: each story spec includes a WASM integration test task (Rust `factory-dispatcher/tests/`) and defers bats migration to Phase H, citing the TD-020 class problem. (Per ADR-014 §"Audit Risk Items Carried Forward".) | MED | MED | Explicit WASM integration test task in each batch story ACs. Bats tests remain on disk until Phase H. |
-| R-W16-005 | WASI preopens / path_allow coverage detail: 19 of 23 hooks need `path_allow = [".factory/"]` (or appropriate directory) in WASM sandbox config (`hooks-registry.toml`). Missing or incorrect `path_allow` declarations cause runtime `read_file` denial — hooks silently fail or block incorrectly. | MED | HIGH | Each story spec (S-9.01..S-9.07) MUST pin `path_allow` declarations per hook in the AC table and registry TOML snippet. Adversarial review checks path_allow coverage before story reaches `ready`. Integration tests run with the exact registry config to catch misconfiguration. |
+| R-W16-005 | path_allow runtime fail-mode (HIGH/HIGH): Same WASI preopens scope as R-W16-002, but emphasizes the failure semantics distinct from R-W16-002's per-hook coverage framing. Missing or incorrect `path_allow` declarations cause runtime `read_file` denial. The hook either silently fails (returning empty data → downstream defects) OR incorrectly blocks (when `on_error="block"`, false positive). These two fail-modes are operationally different: silent-pass is invisible to the user; false-block is a hard stop. Registry-TOML-specific failure mode: an entry that declares `path_allow = [".factory/"]` for a hook that reads files outside `.factory/` will silently return empty on out-of-scope reads with no error log visible to the implementer. See also R-W16-002 (canonical WASI preopens per-hook coverage requirement). Retained per POLICY 1; future references should cite R-W16-002 for coverage scope and R-W16-005 for fail-mode semantics. | MED | HIGH | Adversarial pre-merge audit MUST grep each story's hooks-registry.toml additions for `path_allow = ` and verify against the per-hook FILE_PATH read pattern. Failure-mode tests required in the wave-gate suite: at least one test per block-mode hook exercises the false-block scenario (incorrect path_allow + on_error=block). |
 | R-W16-006 | Windows CI gap: no Windows runner in W-16 CI plan | LOW | MED | Add AC for Windows CI runner per E-8 AC-5 pattern (see AC-10). Track as DRIFT-010 closure verification. |
 | R-W16-007 | Behavioral divergence in rewrite-clean: rewriting 143-line bash hooks in idiomatic Rust may introduce subtle semantic differences (awk regex precedence, jq null-coalescing edge cases) | MED | HIGH | Each story spec must enumerate all behavioral edge cases as explicit ACs; adversarial convergence per ADR-013 surfaces divergences before implementation. E-8 OQ-001 (ERE precedence) is the canonical risk reference. (Renumbered from former R-W16-002 to avoid collision with ADR-014 WASI preopens definition.) |
 | R-W16-008 | YAML parsing fidelity: 2 hooks (validate-wave-gate-completeness, validate-wave-gate-prerequisite) use python3 `yaml.safe_load`; replacement with `serde_yaml` must preserve parse semantics | MED | MED | Explicit test vectors for YAML edge cases (multi-doc streams, null values, integer coercion) in S-9.07 story ACs. (Renumbered from former R-W16-004 to avoid collision with ADR-014 bats/WASM test infrastructure definition.) |
@@ -370,7 +371,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 | vsdd-hook-sdk | 0.2.0 (post-S-8.10) | Plugin ABI shim (read_file, emit_event, log) | S-9.01..S-9.06 |
 | vsdd-hook-sdk (subprocess facet) | 0.2.0+ | exec_subprocess wrapper for S-9.07 | S-9.07 |
 | bats-core | >=1.10 (CI) | Bats orphan checklist verification (bash hooks remain on disk) | Per-story (D-9.5) |
-| du (coreutils) | system | Bundle-size measurement (byte count per .wasm file); `wc -c < file` portable fallback on macOS | S-9.00 |
+| wc (POSIX) | system | Bundle-size measurement (`wc -c < file`); portable across macOS BSD and Linux GNU. NOT `du -sb` (GNU-only `-b` flag; macOS `du` uses `-k` for kibibytes). | S-9.00 |
 | hyperfine | >=1.18 | Latency benchmarking harness (cold-start p95 measurement per wave) | S-9.00 |
 
 > **Library table change (v1.1, 2026-05-03):** `std::process::Command`,
@@ -435,6 +436,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.0 | 2026-05-03 | story-writer | Initial authoring — Phase D-4 Burst 1. E-9 epic for W-16 Tier 2 native WASM migration (23 validate-*.sh hooks). 9-story scope: S-9.00 + S-9.30 + S-9.01..S-9.07. Based on ADR-014 (D-9.1/D-9.2/D-9.3), audit-w16.md, and BC-2.02.013. Follows E-8 v1.9 shape. |
 | 1.1 | 2026-05-03 | story-writer | Pass-1 fix burst (18 findings) + scope reduction per ADR-014 Amendment 2026-05-03. See details below. |
 | 1.2 | 2026-05-03 | story-writer | Pass-2 fix burst (12 findings from W-16-E-9-pass-2-adversary.md). See v1.2 changelog below. |
+| 1.3 | 2026-05-03 | story-writer | Pass-3 fix burst (2 E-9-own findings + 1 cross-doc from S-9.00). See v1.3 changelog below. |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -565,3 +567,32 @@ Fixes from W-16-E-9-pass-2-adversary.md:
   No change to E-9 frontmatter.
 
 Lines: v1.1 (495L) → v1.2 (~560L)
+
+### v1.3 (2026-05-03) — Pass-3 fix burst
+
+Fixes from W-16-E-9-pass-3-adversary.md:
+
+- **F-P3-001 [MED]: R-W16-005 vs R-W16-002 duplication** — R-W16-005 description
+  rewritten to highlight failure-mode semantics distinct from R-W16-002's per-hook
+  coverage framing. R-W16-005 now focuses on the two operationally distinct fail-modes
+  (silent-pass vs false-block) and the registry-TOML-specific silent-empty case. Added
+  cross-reference "See also R-W16-002 (canonical WASI preopens per-hook coverage
+  requirement)." R-W16-005 retained per POLICY 1 with semantic value clarified; future
+  references cite R-W16-002 for coverage scope and R-W16-005 for fail-mode semantics.
+
+- **F-P3-002 [LOW]: Risk header wording precision** — Replaced "R-W16-001 through
+  R-W16-006 use ADR-014's verbatim definitions" with "R-W16-001 through R-W16-004 use
+  ADR-014's verbatim definitions; R-W16-005 and R-W16-006 are E-9-original additive IDs
+  (per pass-1 F-5)." Eliminates the self-contradiction where the header claimed ADR-014
+  verbatim for IDs that the same paragraph admitted were E-9-original.
+
+Fixes from W-16-S-9.00-pass-3-adversary.md (cross-doc):
+
+- **F-P3-001 [HIGH] (cross-doc): Library Table line 373 updated — du → wc (POSIX)** —
+  Replaced "| du (coreutils) | system | Bundle-size measurement ... wc -c portable fallback |"
+  with "| wc (POSIX) | system | Bundle-size measurement (wc -c < file); portable across
+  macOS BSD and Linux GNU. NOT du -sb (GNU-only) |". The du -sb prohibition propagated
+  from S-9.00 v1.2 (F-7 + F-P2-001) to the parent epic library table. du -sb is now
+  uniformly prohibited across both E-9 epic and S-9.00 story per F-7 (pass-1) propagation.
+
+Lines: v1.2 (~570L) → v1.3 (598L)
