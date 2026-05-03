@@ -314,7 +314,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-4 pass-6 SPLIT VERDICT SEALED — D-229 sealed; E-9 clock RESET 0_of_3; S-9.00 clock 2_of_3; E-9 fix burst v1.4→v1.5 pending)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** (after this commit — see git log)
+**factory-artifacts HEAD:** 130aded (chore(adversary,state): persist Phase D-4 pass-6 split verdict + D-229 (E-9 reset; S-9.00 2_of_3))
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
