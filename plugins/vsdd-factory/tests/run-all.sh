@@ -28,11 +28,26 @@ echo "all scripts ok"
 echo
 echo "== Running all bats test suites =="
 shopt -s nullglob
+set +e   # allow individual bats suites to fail without aborting the loop
+fail_count=0
+failed_suites=()
 for f in tests/*.bats; do
   name=$(basename "$f" .bats)
   echo
   echo "-- $name --"
-  bats "$f"
+  if ! bats "$f"; then
+    fail_count=$((fail_count + 1))
+    failed_suites+=("$name")
+  fi
 done
+set -e
+
 echo
+if [ "$fail_count" -gt 0 ]; then
+  echo "FAIL: $fail_count suite(s) had failures:"
+  for name in "${failed_suites[@]}"; do
+    echo "  - $name"
+  done
+  exit 1
+fi
 echo "All tests passed."
