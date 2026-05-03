@@ -324,7 +324,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-4 Burst 1 COMPLETE — E-9 v1.6 + S-9.00 v1.4 both CONVERGED; Burst 2 ready)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** PENDING_COMMIT (chore(adversary,state): Phase D-4 Burst 1 COMPLETE — E-9 v1.6 CONVERGENCE_REACHED (D-235))
+**factory-artifacts HEAD:** ce2a7c0 (chore(adversary,state): Phase D-4 Burst 1 COMPLETE — E-9 v1.6 CONVERGENCE_REACHED (D-235))
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
