@@ -111,7 +111,7 @@ dtu_services: []
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 67 |
-| Epic | E-N | `stories/epics/E-N-<short>.md` | 9 |
+| Epic | E-N | `stories/epics/E-N-<short>.md` | 10 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 14 |
 
 ## Subsystem Distribution
