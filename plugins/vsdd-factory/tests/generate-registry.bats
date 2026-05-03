@@ -15,6 +15,18 @@ setup() {
   # Locale is fixed in the generator itself; mirror it here so the
   # comm/sort calls in test bodies are byte-stable too.
   export LC_ALL=C
+
+  # Snapshot the real registry so teardown can restore it. The generator
+  # overwrites hooks-registry.toml in-place (hard-coded path). Without a
+  # restore, subsequent bats suites in the same run see a generator-only
+  # registry that lacks the hand-maintained native-WASM entries.
+  REGISTRY_SNAPSHOT="$(mktemp)"
+  cp "$REGISTRY" "$REGISTRY_SNAPSHOT"
+}
+
+teardown() {
+  cp "$REGISTRY_SNAPSHOT" "$REGISTRY"
+  rm -f "$REGISTRY_SNAPSHOT"
 }
 
 # Gate-hook allow-list — must stay in sync with the same constant in the
