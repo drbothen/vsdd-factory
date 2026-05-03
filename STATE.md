@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "W-15 wave gate CONVERGED (2026-05-02). 3 fix-bursts: PR #59 (9 commits), PR #60 (3 commits), PR #61 (1 commit). D-205..D-208 sealed. develop @ d49f33b. All CCs RETIRED. v1.0.0-rc.3 release in flight."
+current_step: "v1.0.0-rc.3 SHIPPED 2026-05-03 after 3 recovery rounds (PR #62+#63+#64). main @ a62478c. develop @ fbb038b (sync-develop fired). Wave 15 (E-8 Tier 1 native WASM) FULLY SHIPPED. D-209..D-212 sealed. TD-016..018 registered."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-02 (W-15 wave gate CONVERGED; PR #59-61; D-205..D-208; CCs RETIRED; rc.3 in flight) |
+| **Last Updated** | 2026-05-03 (v1.0.0-rc.3 SHIPPED; 3 recovery rounds; D-209..D-212; TD-016..018) |
 | **Current Phase** | E-8-Tier-1-implementation-W15 |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -292,6 +292,10 @@ dtu_services: []
 | D-206 | **W-15 fix-burst #2 — PR #60 (2026-05-02).** 3 commits. Closed CRIT-PR59-001 + CRIT-CONS-001 + LOW-CONS-002. executor.rs:90: dropped `on_error==Block` precondition — block now fires on stdout `{"outcome":"block"}` emission alone. handoff-validator + validate-pr-review-posted: added stdout block emission in all block paths. update-wave-state-on-merge: replaced tool_input lookups with BC-2.02.012 typed projection. Tests: `advisory_block_fires_with_on_error_continue` + `test_pr_manager_works_with_null_tool_input`. develop 1ab1d6f → c4dc842. Lessons: 2-CRIT regression cost 1 full fix-burst; would have been caught if adversary had been fresh-context against the actual dispatcher implementation (initial fix-burst plan was crafted from review findings only, not from the dispatcher source). | W-15 fix-burst #2; closed 2 regressions from PR #59 | w-15-fix-burst-2 | 2026-05-02 | state-manager |
 | D-207 | **W-15 fix-burst #3 — PR #61 (2026-05-02).** 1 commit. Closed HOST_ABI.md doc drift from PR #60 behavioral changes: NEW-CONS-001 (HOST_ABI.md:173,177 — added stdout block emission to handoff-validator + validate-pr-review-posted plugin bullets) + NEW-CONS-002 (HOST_ABI.md:163-165 — rewrote on_error="block" reserved-behavior sentence to describe canonical on_error="continue" + stdout advisory pattern). Removed stale tool_input population from SubagentStop test fixtures. develop c4dc842 → d49f33b. Lessons: when removing AND-preconditions from behavioral gates, authoritative spec docs (HOST_ABI.md) lag if doc updates are generated from review prose alone — sweep authoritative spec docs immediately after each behavioral change. | W-15 fix-burst #3; HOST_ABI.md doc drift closed | w-15-fix-burst-3 | 2026-05-02 | state-manager |
 | D-208 | **W-15 wave gate CONVERGED (2026-05-02).** All 12 W-15 stories + 3 fix-bursts (PR #59/60/61) merged. Adversary: CONVERGED. Security: CONVERGED. Consistency: CONVERGED (doc-only items closed in PR #61). develop @ d49f33b. Wave 15 (E-8 Tier 1 native WASM migration) fully closed — 0 Tier 1 hooks routing through legacy-bash-adapter. v1.0.0-rc.3 release path clear. Residual TD items (non-blocking): execute_tiers integration test, plugin version drift (HIGH-W15-001), SEC-002/004/005/006 deferred dispositions. | W-15 wave gate CONVERGED; rc.3 path clear | w-15-converged | 2026-05-02 | state-manager |
+| D-209 | **rc.3 cut + 1st recovery — PR #62 (2026-05-03).** Initial release/v1.0.0-rc.3 cut from develop @ d49f33b. CHANGELOG bump + 8 stacked CI fix commits (cargo fmt, hooks.bats orphan cleanup, unused imports, track-agent-start clippy, workspace clippy 46 errors, post-clippy fmt drift, .claude/ gitignore). Merged into main as f44f6ca. Workflow #1 (run 25264866805) FAILED at validate "Run hook tests" — orphan refs to deleted .sh hooks in `hooks.bats`. Lessons: (a) workspace clippy --all-targets surfaces pre-existing test-naming debt that simpler clippy invocations miss; (b) `git add -A` on release branches risks pulling in `.claude/` user settings — gitignore proactively; (c) cargo fmt drift ricochets after every clippy/code change — always re-fmt at the end. | rc.3 1st recovery: initial cut + 8 CI-fix commits; bats orphan refs surface as release blocker | rc3-recovery-1 | 2026-05-03 | state-manager |
+| D-210 | **rc.3 2nd recovery — PR #63 (2026-05-03).** Hotfix branch from main. Removed 62 orphan tests across 6 bats files (3 deleted entirely: agent-tracking.bats, stop-hooks-emission.bats, pr-manager-guard.bats; 3 modified: wave-gate-hooks.bats, pr-lifecycle-hooks.bats, workflow-validators-emission.bats). Merged into main as 8300d1b. Tag v1.0.0-rc.3 retagged. Workflow #2 (run 25265760809) FAILED at validate "Run test suite" — `run-all.sh` had hardcoded `bats tests/stop-hooks-emission.bats` and `bats tests/agent-tracking.bats` referring to deleted files. Lessons: (a) bats test-file deletion checklist must accompany every native WASM port — currently tracked in story spec but not enforced; (b) pre-merge bats-orphans-detection should be a CI step in ci.yml/release.yml (TD-017); (c) Rust workspace tests cover ported plugins, but the bats orphan refs caused exit 127 "Command not found" until cleanup. | rc.3 2nd recovery: 62 orphan bats tests removed; run-all.sh hardcoded references still lurking | rc3-recovery-2 | 2026-05-03 | state-manager |
+| D-211 | **rc.3 3rd recovery — PR #64 (2026-05-03).** Hotfix run-all.sh — removed 6 lines (2 bats invocations + 2 echo headers + 2 blanks) for now-deleted test files. Merged into main as 7364b13. Tag v1.0.0-rc.3 retagged. Workflow #3 (run 25266061779) SUCCEEDED all 9 jobs. Lessons: (a) when deleting bats files, also sweep `run-all.sh` (the test orchestrator) for hardcoded references; (b) `run-all.sh` should glob `tests/*.bats` instead of enumerating — TD-016 registered. | rc.3 3rd recovery: run-all.sh hardcoded refs to deleted bats files removed; workflow green | rc3-recovery-3 | 2026-05-03 | state-manager |
+| D-212 | **v1.0.0-rc.3 SHIPPED (2026-05-03).** Tag at a62478c (bot bundle commit). 9/9 release.yml jobs succeeded. 17 WASM files bundled (16 native plugins + hello-hook example). 5 dispatcher binaries (darwin-arm64/x64, linux-arm64/x64, windows-x64). sync-develop fired automatically (develop d49f33b → fbb038b; marketplace.json matches main). First release exercising the new "Verify all 16 native WASM plugins built" CI gate from PR #59 — pipeline confirms all native ports build cleanly cross-platform. Wave 15 (E-8 Tier 1 native WASM migration) FULLY SHIPPED. 3 recovery rounds required; TD-016/017/018 registered from lessons. | v1.0.0-rc.3 SHIPPED; Wave 15 fully closed; 3-recovery release cycle sealed | rc3-SHIPPED | 2026-05-03 | state-manager |
 | D-162 | **ADV-E8-P10 NITPICK_ONLY clock advance (E-8 native-wasm-migration). Pass-10 verdict: 0 substantive + 1 LOW Observation (D-3 vs D-8 bundle-label nomenclature B-5 vs B-5a/b/c — F-017 v1.1 merged B-3a+B-3b but did not audit sibling B-5/B-6 nomenclature). Per S-7.03 skip-fix, LOW deferred. Adversary applied maximum fresh-context skepticism — re-derived 22 invariants from primary sources; historical 1_of_3→reset pattern (P3→P4, P5→P6) did NOT repeat. Trajectory 18→7→0→1→0→2→3→1→0→1. Per ADR-013 NITPICK_ONLY → clock 1_of_3 → 2_of_3 ADVANCE. Pass-11 next; expect NITPICK_ONLY → 3_of_3 CONVERGENCE_REACHED.** | ADV-E8-P10 adversarial review. NITPICK_ONLY; clock advances per ADR-013. | ADV-E8-P10 | 2026-04-30 | adversary + state-manager |
 | D-161 | **ADV-E8-P9 NITPICK_ONLY clock advance (E-8 native-wasm-migration). Pass-9 verdict: 0 findings — both P8 fixes verified closed (F-P8-001 changelog reorder; F-P8-002 D-1 disposition sentence). Trajectory 18 (P1) → 7 (P2) → 0 (P3) → 1 MED (P4 reset) → 0 (P5 advance) → 2 MED (P6 reset) → 3 P7 sub → 1 P8 MED → 0 (P9 advance). Per ADR-013 NITPICK_ONLY → clock 0_of_3 → 1_of_3 ADVANCE. Need 2 more clean passes (pass-10, pass-11) for CONVERGENCE_REACHED.** | ADV-E8-P9 adversarial review. NITPICK_ONLY; clock advances per ADR-013. Pattern alert: prior 1_of_3 advances (P3, P5) were followed by SUBSTANTIVE resets (P4, P6) — pass-10 must do thorough cross-section re-derivation despite spec maturity. | ADV-E8-P9 | 2026-04-30 | adversary + state-manager |
 | D-160 | **ADV-E8-P8 SUBSTANTIVE held (E-8 native-wasm-migration). Pass-8 found 1 MED + 1 LOW. F-P8-001 [MED] changelog version ordering broken: v1.5 entry (pass-7 fix) preceded v1.4 entry (pass-6 fix) — ascending convention violated. F-P8-002 [LOW] D-1 silent on disposition path for verify-git-push.sh's existing adapter-routed registry entry at S-8.28. Empirical cross-section re-derivation confirmed 44 entries / 43 unique / 42 ported canonical numbers self-consistent. Trajectory 18→7→0→1→0→2→3→1. Fix burst v1.5→v1.6 pending; pass-9 next.** | ADV-E8-P8 adversarial review. MED finding holds clock at 0_of_3 per ADR-013. Changelog ordering defect is a fix-burst-introduced ordering artifact (v1.5 written first, v1.4 retroactively appended below). D-1 registry-entry disposition implicit gap is LOW pending-intent — disposition path implied by AC-3 + D-10 but not stated in D-1. | ADV-E8-P8 | 2026-04-30 | adversary + state-manager |
@@ -323,22 +327,29 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-02 (W-15 wave gate CONVERGED + rc.3 cut)
-**develop HEAD:** d49f33b
+**Last update:** 2026-05-03 (v1.0.0-rc.3 SHIPPED)
+**main HEAD:** a62478c (bot bundle commit for v1.0.0-rc.3)
+**develop HEAD:** fbb038b (sync-develop fired automatically)
 **factory-artifacts HEAD:** (after this commit)
 **Active worktrees:** main + .factory only
 
-**Current Phase:** Wave 15 (E-8 Tier 1 native WASM) CONVERGED. v1.0.0-rc.3 release in flight.
-
-**Next step:** Verify rc.3 release.yml workflow runs cleanly (especially the new "build all 16 native WASM plugins" + count verification steps). After rc.3 ships and back-merges to develop, optional W-16 (Tier 2 adapter retirement, calendar-gated) or rc.X stabilization work.
+**Current Phase:** v1.0.0-rc.3 SHIPPED. Wave 15 (E-8 Tier 1 native WASM) closed. Awaiting:
+- Scheduled remote agent (2026-05-22) verifies sync-develop fired correctly on rc.3 — independent confirmation.
+- Optional W-16 (Tier 2 adapter retirement, calendar-gated to v1.0 GA close).
+- v1.0.0-rc.4 if rc.3 reveals issues; otherwise v1.0.0 GA when stable.
 
 **Open backlog (post-rc.3):**
 - TD-013 main branch protection bot bypass
 - TD-014 Tier 2/3 legacy-bash-adapter retirement
 - TD-015 per-invocation telemetry correlation
-- TD-NNN end-to-end integration test against execute_tiers
-- TD-NNN plugin version drift (HIGH-W15-001 from original gate)
+- TD-016 Refactor run-all.sh to glob discovery
+- TD-017 bats-orphan-detection CI step
+- TD-018 Workspace clippy debt sweep
+- TD: 1,137 pre-existing STALE input-hashes
+- HIGH-W15-001 plugin version drift (1.0.0-rc.1 vs 0.0.1)
 - SEC-002/004/005/006 deferred dispositions for v1.0 GA
+
+**Lessons learned recorded in D-209..D-212.**
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.

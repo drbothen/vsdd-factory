@@ -2,7 +2,7 @@
 document_type: tech-debt-register
 producer: state-manager
 version: "1.0"
-last_updated: 2026-04-29T00:00:00
+last_updated: 2026-05-03T00:00:00
 ---
 
 # Technical Debt Register
@@ -12,14 +12,17 @@ last_updated: 2026-04-29T00:00:00
 | Priority | Count | Estimated Points |
 |----------|-------|-----------------|
 | P0 (next cycle) | 1 | TD-013 branch protection restore |
-| P1 (within 3 cycles) | 2 | XL (29–39 across 6 sub-stories) + TD-010 publish |
-| P2 (backlog) | 10 | — (TD-015 per-invocation correlation ~30 pts added 2026-05-01) |
+| P1 (within 3 cycles) | 3 | XL (29–39 across 6 sub-stories) + TD-010 publish + TD-017 bats-orphan-detection |
+| P2 (backlog) | 12 | — (TD-015 per-invocation correlation ~30 pts; TD-016 run-all.sh glob; TD-018 clippy debt added 2026-05-03) |
 | P3 (v1.1+) | 4 | — |
 
 ## Debt Items
 
 | ID | Source | Description | Priority | Introduced | Cycle | Story | Due |
 |----|--------|-------------|----------|-----------|-------|-------|-----|
+| TD-018 | rc.3 recovery (D-209, D-210) | Workspace clippy debt sweep — `non_snake_case` test fn names, type_complexity, unused imports surfaced by `--all-targets -- -D warnings` on rc.3 PR #62; currently suppressed via `#[allow]` attrs at file/fn level; future cleanup: rename test fns OR establish project-wide `#![allow(non_snake_case)]` for test modules with BC-named tests | P2 | rc.3 cut 2026-05-03 | v1.0-brownfield-backfill | — | v1.0.1 |
+| TD-017 | rc.3 recovery (D-210) | Add bats-orphan-detection CI step — fail fast if any bats file references a non-existent hook script; prevent future "deleted file" failures caused by native WASM ports that remove .sh hooks without cleaning bats test references | P1 | rc.3 recovery 2026-05-03 | v1.0-brownfield-backfill | — | v1.0.1 |
+| TD-016 | rc.3 recovery (D-211) | Refactor `run-all.sh` to use glob discovery (`tests/*.bats`) instead of hardcoded enumeration — prevents future failures when bats files are deleted without updating run-all.sh | P2 | rc.3 recovery 2026-05-03 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-015 | S-8.08 pass-5 adjudication (D-181) | Per-invocation telemetry correlation: host::invocation_id() SDK extension + schema enrichment + cross-hook sweep (track-agent-start/stop, pr-manager-completion-guard, validate-pr-review-posted, handoff-validator, regression-gate); ~30 pts epic | P2 | 2026-05-01 | v1.0-brownfield-backfill | S-8.08 | v1.1+ |
 | TD-014 | User audit | Full native WASM migration of remaining 43 bash hooks (8 dispatcher-routed + ~35 inline); legacy-bash-adapter deletable post-migration; S-5.05 migration guide "26 hooks" claim stale (actual ~43) | P2 | 2026-04-30 | v1.0-brownfield-backfill | — | v1.1+ |
 | TD-013 | Release process | Restore main branch protection with proper bot bypass before v1.0.0 GA — required_pull_request_reviews rule DELETED during rc.1 release ritual; main currently unprotected | P0 | rc.1 cut 2026-04-29 | v1.0-brownfield-backfill | S-5.07 | v1.0.0 GA (S-5.07) |
