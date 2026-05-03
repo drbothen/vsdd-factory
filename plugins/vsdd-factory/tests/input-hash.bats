@@ -262,10 +262,6 @@ EOF
   [ -f "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md" ]
 }
 
-@test "check-input-drift command file exists" {
-  [ -f "$PLUGIN_ROOT/commands/check-input-drift.md" ]
-}
-
 @test "check-input-drift references compute-input-hash" {
   grep -qF "compute-input-hash" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
 }

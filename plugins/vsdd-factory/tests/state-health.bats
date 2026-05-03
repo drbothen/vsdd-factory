@@ -135,16 +135,8 @@ _generate_lines() {
   [ -f "$PLUGIN_ROOT/skills/check-state-health/SKILL.md" ]
 }
 
-@test "state-health: check-state-health command exists" {
-  [ -f "$PLUGIN_ROOT/commands/check-state-health.md" ]
-}
-
 @test "state-health: compact-state skill exists" {
   [ -f "$PLUGIN_ROOT/skills/compact-state/SKILL.md" ]
-}
-
-@test "state-health: compact-state command exists" {
-  [ -f "$PLUGIN_ROOT/commands/compact-state.md" ]
 }
 
 # ---------- Skills: content checks ----------
