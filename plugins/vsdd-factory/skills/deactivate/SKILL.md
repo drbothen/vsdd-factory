@@ -1,6 +1,7 @@
 ---
 name: deactivate
 description: Reverse `/vsdd-factory:activate` — remove the orchestrator default agent, the v1.0 platform activation state, and the generated `hooks.json`. Leaves the plugin enabled; only the default persona and per-machine hooks config are cleared.
+disable-model-invocation: true
 ---
 
 # Deactivate VSDD Factory
