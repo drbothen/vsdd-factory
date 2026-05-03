@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Phase D-4 E-9 v1.5 structural fix burst SEALED 2026-05-03 (D-230). 2 MED structural fixes applied: F-P6-001 heading depth ##→### + F-P6-002 v1.4 row appended to Changelog summary table. F-P6-003 LOW deferred to ADR-014 reauthoring. E-9 ADR-013 clock: 0_of_3 (fresh start for v1.5). S-9.00 v1.4 unchanged; clock 2_of_3. Lines: 611→621. STORY-INDEX 1.35→1.36. Next: pass-7 parallel × 2 (E-9 v1.5 + S-9.00 v1.4)."
+current_step: "Phase D-4 pass-7 SPLIT VERDICT SEALED 2026-05-03 (D-231). S-9.00 v1.4 CONVERGENCE_REACHED 3_of_3 per ADR-013 — 6 LOW known-debt accepted (SHIP-AS-IS). E-9 v1.5 SUBSTANTIVE (1 MED regression F-P7-001 + 1 LOW F-P7-002); clock stays 0_of_3. Next: E-9 v1.5 → v1.6 fix burst (story-writer); pass-8 on E-9 only."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-03 (D-230 sealed; E-9 v1.5 structural fix burst SEALED; ADR-013 clock 0_of_3 fresh start; S-9.00 v1.4 clock 2_of_3 unchanged; pass-7 next) |
+| **Last Updated** | 2026-05-03 (D-231 sealed; Phase D-4 pass-7 SPLIT — S-9.00 v1.4 CONVERGENCE_REACHED 3_of_3; E-9 v1.5 SUBSTANTIVE clock 0_of_3; STORY-INDEX 1.36→1.37; next: E-9 v1.6 fix burst) |
 | **Current Phase** | post-rc4-burn-in (Phase C / Phase D parallel-track) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -88,7 +88,7 @@ dtu_services: []
 | Phase D-2 — ADR-014 + SS-02/SS-04 (architect) | **COMPLETE** 2026-05-03. ADR-014 (343L): D-9.1=rewrite-clean, D-9.2=(a) host::run_subprocess ABI, D-9.3=7 batches+perf+SDK=~9 stories. SS-02 +139L: host::run_subprocess signature + SubprocessCaps schema (6 fields). SS-04 +58L: E-9 epic positioning + bundle ceiling ref. D-218 sealed. | ADR-014; SS-02; SS-04 |
 | Phase D-3 — BC-2.02.013 (product-owner) | **COMPLETE** 2026-05-03. BC-2.02.013 (224L, 24 MUSTs across 7 categories: capability gating, security boundaries, output bounds, timeout, schema evo, telemetry, error semantics). BC-INDEX: total 1914→1915, SS-02 24→25. D-219 sealed. | BC-2.02.013; BC-INDEX |
 | Phase B — v1.0.0-rc.4 cut + force-retag | **COMPLETE** (PRs #66+#67; tag @ e93fef7). First release.yml run failed (TD-016 glob widened to 4 broken suites); PR #67 hotfix added SKIP_SUITES allowlist; force-retagged (same precedent as rc.3); second run all 9 jobs SUCCESS (windows-x64 cache-save flake recovered via rerun). D-214/215/216 sealed. TD-020/021 registered. | PRs #66+#67; tag e93fef7 |
-| Phase D — W-16 spec foundation | **IN PROGRESS** — D-1/D-2/D-3/D-4 Bursts 1+A+B+C COMPLETE. D-223+D-224: Research + scope reversal (exec_subprocess sufficient; BC-2.02.013 withdrawn; BC-1.05.035+036 NEW; E-9/S-9.00 v1.1; STORY-INDEX 1.32; BC-INDEX 1917). D-225: Pass-2 fix burst SEALED — E-9 v1.1→v1.2 (567L; 12 findings); S-9.00 v1.1→v1.2 (456L; 8 findings); ADR-014 R-8.10→R-8.08; STORY-INDEX 1.33. D-226: Pass-3 fix burst SEALED — E-9 v1.2→v1.3 (598L; 2 own + 1 cross-doc); S-9.00 v1.2→v1.3 (535L; 7 findings); CRITICAL: 7.2MB baseline was PROJECTION not measurement (actual ~322KB); factory-dispatcher stdin-only constraint (EC-007); STORY-INDEX 1.34. D-227: Pass-4 fix burst SEALED — E-9 v1.3→v1.4 (611L; 1H+1M+1L); S-9.00 v1.3→v1.4 (553L; 4M+3L); 9 fixes (fix-only-no-new-prose); new fixture artifact; STORY-INDEX 1.35. ADR-013 clock: 0_of_3 (reset). D-228: Pass-5 NITPICK_ONLY × 2 SEALED — E-9 v1.4: 0H+0M+1L; S-9.00 v1.4: 0H+0M+4L. No fix burst (S-7.03). ADR-013 clock: 1_of_3 (FIRST ADVANCE). Trajectory E-9: 18→12→2→3→1. Trajectory S-9.00: 12→8→7→7→4. D-229: Pass-6 SPLIT VERDICT SEALED — E-9 v1.4: SUBSTANTIVE 0H+2M+1L (clock RESET 0_of_3); S-9.00 v1.4: NITPICK_ONLY 0H+0M+5L (clock advances 1_of_3 → 2_of_3). Trajectory E-9: 18→12→2→3→1→3. Trajectory S-9.00: 12→8→7→7→4→5. D-230: **E-9 v1.5 structural fix burst SEALED.** 2 MED structural fixes: F-P6-001 (heading depth `##`→`###` at line 600); F-P6-002 (v1.4 row appended to Changelog summary table). F-P6-003 LOW deferred to ADR-014 reauthoring. Lines: 611→621. STORY-INDEX 1.35→1.36. E-9 ADR-013 clock: 0_of_3 (fresh start for v1.5). S-9.00 v1.4 unchanged; clock 2_of_3. | E-9 v1.5 sealed; pass-7 next on E-9 v1.5 + S-9.00 v1.4 (parallel; independent clocks). |
+| Phase D — W-16 spec foundation | **IN PROGRESS** — D-1/D-2/D-3/D-4 Bursts 1+A+B+C COMPLETE. D-223+D-224: Research + scope reversal (exec_subprocess sufficient; BC-2.02.013 withdrawn; BC-1.05.035+036 NEW; E-9/S-9.00 v1.1; STORY-INDEX 1.32; BC-INDEX 1917). D-225: Pass-2 fix burst SEALED — E-9 v1.1→v1.2 (567L; 12 findings); S-9.00 v1.1→v1.2 (456L; 8 findings); ADR-014 R-8.10→R-8.08; STORY-INDEX 1.33. D-226: Pass-3 fix burst SEALED — E-9 v1.2→v1.3 (598L; 2 own + 1 cross-doc); S-9.00 v1.2→v1.3 (535L; 7 findings); CRITICAL: 7.2MB baseline was PROJECTION not measurement (actual ~322KB); factory-dispatcher stdin-only constraint (EC-007); STORY-INDEX 1.34. D-227: Pass-4 fix burst SEALED — E-9 v1.3→v1.4 (611L; 1H+1M+1L); S-9.00 v1.3→v1.4 (553L; 4M+3L); 9 fixes (fix-only-no-new-prose); new fixture artifact; STORY-INDEX 1.35. ADR-013 clock: 0_of_3 (reset). D-228: Pass-5 NITPICK_ONLY × 2 SEALED — E-9 v1.4: 0H+0M+1L; S-9.00 v1.4: 0H+0M+4L. No fix burst (S-7.03). ADR-013 clock: 1_of_3 (FIRST ADVANCE). Trajectory E-9: 18→12→2→3→1. Trajectory S-9.00: 12→8→7→7→4. D-229: Pass-6 SPLIT VERDICT SEALED — E-9 v1.4: SUBSTANTIVE 0H+2M+1L (clock RESET 0_of_3); S-9.00 v1.4: NITPICK_ONLY 0H+0M+5L (clock advances 1_of_3 → 2_of_3). Trajectory E-9: 18→12→2→3→1→3. Trajectory S-9.00: 12→8→7→7→4→5. D-230: **E-9 v1.5 structural fix burst SEALED.** 2 MED structural fixes: F-P6-001 (heading depth `##`→`###` at line 600); F-P6-002 (v1.4 row appended to Changelog summary table). F-P6-003 LOW deferred to ADR-014 reauthoring. Lines: 611→621. STORY-INDEX 1.35→1.36. E-9 ADR-013 clock: 0_of_3 (fresh start for v1.5). S-9.00 v1.4 unchanged; clock 2_of_3. D-231: **Phase D-4 pass-7 SPLIT VERDICT — S-9.00 v1.4 CONVERGENCE_REACHED; E-9 v1.5 SUBSTANTIVE (clock stays 0_of_3).** S-9.00 v1.4 pass-7 NITPICK_ONLY (0 HIGH + 0 MED + 6 LOW: F-P7-001 v1.3 token-budget label, F-P7-002 EC-007 not in table, F-P7-003 stale "12 plugins" in EC-001 row, F-P7-004 AC-8 median rc.1 feasibility, F-P7-005 line-count footer drift, F-P7-006 EC-006 wording). ADR-013 clock advances 2_of_3 → **3_of_3 = CONVERGENCE_REACHED**. S-9.00 is implementation-ready per ADR-013. Severity gradient strictly zero HIGH/MED across passes 5/6/7. Trajectory: 12→8→7→7→4→5→6. **Decision: SHIP-AS-IS** with 6 LOW findings as documented known-debt; cost-of-additional-cycles outweighs value of LOW fixes. **E-9 v1.5 pass-7 SUBSTANTIVE** (1 MED + 1 LOW: F-P7-001 v1.5 row missing from Changelog summary table — REGRESSION of F-P6-002 pattern; F-P7-002 LOW line-count footer drift). ADR-013 clock stays at 0_of_3. [process-gap] producer-side fix-burst-author workflow needs structural pre-flight wired in. STORY-INDEX 1.36→1.37. Next: E-9 v1.5→v1.6 fix burst. | Phase D-4 split verdict — S-9.00 CONVERGENCE; E-9 needs v1.6 fix. | Phase-D-4-pass-7-split-S-9.00-CONVERGENCE | 2026-05-03 | adversary + state-manager |
 
 ## Current Phase Steps
 
@@ -105,6 +105,7 @@ dtu_services: []
 | Phase D-4 Burst C (state-manager seal) | state-manager | COMPLETE | Sweeps A+B applied; D-223+D-224 recorded; session checkpoint updated; factory-artifacts committed. |
 | Phase D-4 pass-6 adversarial (SPLIT) | adversary × 2 + state-manager | COMPLETE | E-9 v1.4: SUBSTANTIVE 0H+2M+1L — clock RESET 0_of_3; S-9.00 v1.4: NITPICK_ONLY 0H+0M+5L — clock 2_of_3. D-229 sealed. |
 | Phase D-4 E-9 v1.5 structural fix burst | story-writer + state-manager | COMPLETE | F-P6-001 heading depth + F-P6-002 summary table row. 611→621L. STORY-INDEX 1.35→1.36. ADR-013 clock 0_of_3 fresh start. D-230 sealed. |
+| Phase D-4 pass-7 adversarial (SPLIT) | adversary × 2 + state-manager | COMPLETE | S-9.00 v1.4: NITPICK_ONLY 6 LOW — CONVERGENCE_REACHED 3_of_3; SHIP-AS-IS decision. E-9 v1.5: SUBSTANTIVE 1 MED (regression F-P7-001) + 1 LOW — clock stays 0_of_3. STORY-INDEX 1.36→1.37. D-231 sealed. |
 
 ## Identifier Conventions
 
@@ -140,7 +141,8 @@ dtu_services: []
 
 - **Merged (57):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28), S-5.03 (PR #37 93b298f 2026-04-29), S-5.04 (PR #38 e90faab 2026-04-29), S-5.05 (PR #40 1e2db47 2026-04-29), S-5.06 (PR #39 d134648 2026-04-29), S-8.00 (PR #47 9e649ed 2026-05-02), S-8.10 (PR #48 de4c568 2026-05-02), S-8.30 (PR #49 394d991 2026-05-02), S-8.06 (PR #51 9873f78 2026-05-02), S-8.01 (PR #50 60be88e 2026-05-02), S-8.08 (PR #52 638bb6b 2026-05-02), S-8.07 (PR #53 4a6e212 2026-05-02), S-8.04 (PR #54 5622aa6 2026-05-02), S-8.03 (PR #55 6809c6d 2026-05-02), S-8.02 (PR #56 b25f017 2026-05-02), S-8.05 (PR #57 a8ee79e 2026-05-02), S-8.09 (PR #58 3adfe0b 2026-05-02)
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (7):** S-5.07 (Tier H; calendar-gated); S-9.00 (W-16 perf baseline, adv pass-2 pending); S-9.01..S-9.07 (W-16 stubs registered; Burst 2+3 authoring pending)
+- **Draft (6):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs registered; Burst 2+3 authoring pending)
+- **Converged (1):** S-9.00 (W-16 perf baseline; CONVERGENCE_REACHED pass-7 3_of_3 per ADR-013; 6 LOW known-debt accepted SHIP-AS-IS; implementation-ready)
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid adoption; exec_subprocess extends in place; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)
 
@@ -313,14 +315,14 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-03 (D-230 sealed; E-9 v1.5 structural fix burst SEALED; ADR-013 clock 0_of_3 fresh start for v1.5; S-9.00 v1.4 clock 2_of_3 unchanged)
+**Last update:** 2026-05-03 (D-231 sealed; Phase D-4 pass-7 SPLIT — S-9.00 v1.4 CONVERGENCE_REACHED 3_of_3; E-9 v1.5 SUBSTANTIVE clock stays 0_of_3; STORY-INDEX 1.36→1.37)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** 0f12585 (chore(state): seal E-9 v1.5 structural fix (D-230) + checkpoint)
+**factory-artifacts HEAD:** (after this commit — chore(adversary,state): pass-7 split — S-9.00 v1.4 CONVERGENCE_REACHED; E-9 v1.5 needs v1.6 fix (D-231))
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
-**Current Phase:** D-4 E-9 v1.5 structural fix burst SEALED (D-230). E-9 ADR-013 clock 0_of_3 (fresh start). S-9.00 v1.4 clock 2_of_3 (unchanged, independent track). Pass-7 parallel × 2 (E-9 v1.5 + S-9.00 v1.4) is the next step. Phase C (v1.0.0 GA burn-in) running in parallel — rc.4 shipped 2026-05-03T10:12:41Z, ~7-day burn-in window.
+**Current Phase:** D-4 pass-7 SPLIT VERDICT SEALED (D-231). S-9.00 v1.4 CONVERGENCE_REACHED — implementation-ready; 6 LOW findings accepted as known-debt per ADR-013 + orchestrator decision. E-9 v1.5 ADR-013 clock 0_of_3 (regression of F-P6-002 pattern in pass-7 F-P7-001). Next: E-9 v1.5→v1.6 small fix burst (append v1.5 summary table row + consider dropping line-count footer convention); then pass-8 on E-9 only. Phase C (v1.0.0 GA burn-in) running in parallel — rc.4 shipped 2026-05-03T10:12:41Z, ~7-day burn-in window.
 
 ## Approved Plan (post-rc.4)
 
@@ -356,12 +358,12 @@ Delete legacy-bash-adapter. All hooks native.
 
 When resuming:
 
-1. **Read this checkpoint + recent decisions log** (D-217..D-230 for Phase D context).
+1. **Read this checkpoint + recent decisions log** (D-217..D-231 for Phase D context).
 2. **Verify state still aligns** — `git rev-parse origin/main origin/develop` should show e93fef7 + 52e644d (or further if burn-in changes applied).
 3. **Next action choices (parallel tracks):**
    - **Phase C:** Monitor rc.4 burn-in (~7 days from 2026-05-03). If clean → cut v1.0.0 GA.
-   - **Phase D pass-7 (NOW):** Dispatch parallel × 2 adversarial reviews — E-9 v1.5 (ADR-013 clock 0_of_3, fresh start) + S-9.00 v1.4 (clock 2_of_3, one away from CONVERGENCE_REACHED). Trajectories: E-9 18→12→2→3→1→3; S-9.00 12→8→7→7→4→5. If S-9.00 NITPICK_ONLY → 3_of_3 = CONVERGENCE_REACHED. If E-9 NITPICK_ONLY → 1_of_3 (first advance). ADR-013 clocks are independent.
-   - **Phase D Burst 2 (after E-9 + S-9.00 converge):** Story-writer authors S-9.01..S-9.04.
+   - **Phase D E-9 v1.6 fix burst (NOW):** Story-writer dispatches E-9 v1.5→v1.6 — apply F-P7-001 (append v1.5 row to Changelog summary table) + F-P7-002 (consider dropping line-count footer convention). Then pass-8 adversarial on E-9 only (S-9.00 CONVERGENCE_REACHED — no further passes needed). S-9.00 known-debt: 15 LOW findings (F-P5-*/F-P6-*/F-P7-*) deferred to v1.0 GA hygiene burst.
+   - **Phase D Burst 2 (after E-9 converges):** Story-writer authors S-9.01..S-9.04.
 
 ## Open Backlog (lower priority than the plan)
 

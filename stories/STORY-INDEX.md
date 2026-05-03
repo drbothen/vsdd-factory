@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.36"
+version: "1.37"
 status: current
 producer: state-manager
-timestamp: 2026-05-03T00:00:00
+timestamp: 2026-05-03T12:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -266,13 +266,13 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
-## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (in-review, v1.5)
+## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (in-review, v1.5 → v1.6 needed)
 
-> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03) + v1.2 pass-2 fix burst (2026-05-03) + v1.3 pass-3 fix burst (2026-05-03) + v1.4 pass-4 fix burst (2026-05-03) + v1.5 pass-6 structural fix burst (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.5 status=in-review (621L). 8-story scope: S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens), R-W16-007 (behavioral divergence), R-W16-008 (YAML parsing fidelity). Library Table: regex, serde_yaml, walkdir, wc (bundle), hyperfine (latency). Pass-2: 12 findings closed (D-225). Pass-3: 2 findings (1 MED + 1 LOW) + 1 cross-doc from S-9.00 (HIGH) closed (D-226). Pass-4: 3 findings (1H+1M+1L; F-P4-001 cross-doc BC anchor, F-P4-002 wc supersession parenthetical, F-P4-003 deferred) closed (D-227). Pass-6: 2 MED structural fixes (F-P6-001 heading depth ##→###, F-P6-002 summary table v1.4 row); F-P6-003 LOW deferred (D-230). ADR-013 clock: 0_of_3 (fresh start for v1.5). input-hash: 5f8cb84.
+> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03) + v1.2 pass-2 fix burst (2026-05-03) + v1.3 pass-3 fix burst (2026-05-03) + v1.4 pass-4 fix burst (2026-05-03) + v1.5 pass-6 structural fix burst (2026-05-03) + pass-7 SUBSTANTIVE (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.5 status=in-review (621L). 8-story scope: S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens), R-W16-007 (behavioral divergence), R-W16-008 (YAML parsing fidelity). Library Table: regex, serde_yaml, walkdir, wc (bundle), hyperfine (latency). Pass-2: 12 findings closed (D-225). Pass-3: 2 findings (1 MED + 1 LOW) + 1 cross-doc from S-9.00 (HIGH) closed (D-226). Pass-4: 3 findings (1H+1M+1L; F-P4-001 cross-doc BC anchor, F-P4-002 wc supersession parenthetical, F-P4-003 deferred) closed (D-227). Pass-6: 2 MED structural fixes (F-P6-001 heading depth ##→###, F-P6-002 summary table v1.4 row); F-P6-003 LOW deferred (D-230). ADR-013 clock: 0_of_3 (fresh start for v1.5). Pass-7 SUBSTANTIVE (1 MED F-P7-001 v1.5 row missing from Changelog summary table — REGRESSION of F-P6-002 pattern; 1 LOW F-P7-002 line-count footer drift). ADR-013 clock stays 0_of_3. [process-gap] producer-side structural pre-flight gap. Next: v1.6 fix burst (D-231). input-hash: 5f8cb84.
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-9.00 | Perf baseline + W-16 bundle growth ceiling (W-16 pre-work) | E-9 | TBD | P2 | E-8 | S-9.01..S-9.07 | draft | [] ([process-gap] under D-9.4; analogous to S-8.00) |
+| S-9.00 | Perf baseline + W-16 bundle growth ceiling (W-16 pre-work) | E-9 | TBD | P2 | E-8 | S-9.01..S-9.07 | converged | [] ([process-gap] under D-9.4; analogous to S-8.00; CONVERGENCE_REACHED pass-7 3_of_3 per ADR-013 2026-05-03; 6 LOW known-debt accepted per D-231) |
 | S-9.30 | ~~SDK extension: host::run_subprocess~~ | E-9 | — | — | — | — | **withdrawn** | BC-2.02.013 (withdrawn; ADR-014 D-9.2 amendment 2026-05-03; exec_subprocess sufficient; body preserved POLICY 1) |
 | S-9.01 | Batch B-1: pure stdin-parse validators (validate-demo-evidence-story-scoped, validate-factory-path-root, validate-finding-format, validate-novelty-assessment) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
 | S-9.02 | Batch B-2: single file-read frontmatter validators (validate-bc-title, validate-changelog-monotonicity, validate-red-ratio, validate-input-hash) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
