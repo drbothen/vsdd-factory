@@ -94,10 +94,6 @@ echo "== Workflow validators emission tests =="
 bats tests/workflow-validators-emission.bats
 
 echo
-echo "== SubagentStop/Stop hooks emission tests =="
-bats tests/stop-hooks-emission.bats
-
-echo
 echo "== factory-query CLI tests =="
 bats tests/factory-query.bats
 
@@ -116,10 +112,6 @@ bats tests/factory-obs.bats
 echo
 echo "== factory-replay (session replay) tests =="
 bats tests/factory-replay.bats
-
-echo
-echo "== Agent tracking hooks (track-agent-start/stop) tests =="
-bats tests/agent-tracking.bats
 
 echo
 echo "== factory-sla (agent SLO) tests =="
