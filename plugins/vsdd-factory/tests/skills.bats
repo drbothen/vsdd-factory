@@ -216,10 +216,6 @@ setup() {
   grep -qF "Check for duplicates" "$SKILLS/register-artifact/SKILL.md"
 }
 
-@test "register-artifact command file exists" {
-  [ -f "${BATS_TEST_DIRNAME}/../commands/register-artifact.md" ]
-}
-
 # ---------- Recover state ----------
 
 @test "recover-state skill exists" {
@@ -246,10 +242,6 @@ setup() {
   grep -qF "Does this look correct?" "$SKILLS/recover-state/SKILL.md"
 }
 
-@test "recover-state command file exists" {
-  [ -f "${BATS_TEST_DIRNAME}/../commands/recover-state.md" ]
-}
-
 # ---------- Template compliance ----------
 
 @test "validate-template-compliance skill exists" {
@@ -268,10 +260,6 @@ setup() {
   grep -qF "verification-coverage-matrix.md" "$SKILLS/validate-template-compliance/SKILL.md"
 }
 
-@test "validate-template-compliance command file exists" {
-  [ -f "${BATS_TEST_DIRNAME}/../commands/validate-template-compliance.md" ]
-}
-
 @test "conform-to-template skill exists" {
   [ -f "$SKILLS/conform-to-template/SKILL.md" ]
 }
@@ -285,10 +273,6 @@ setup() {
 @test "conform-to-template has planned changes presentation" {
   grep -qF "Planned Changes" "$SKILLS/conform-to-template/SKILL.md"
   grep -qF "Apply these changes?" "$SKILLS/conform-to-template/SKILL.md"
-}
-
-@test "conform-to-template command file exists" {
-  [ -f "${BATS_TEST_DIRNAME}/../commands/conform-to-template.md" ]
 }
 
 @test "policies-template policy 9 references validate-vp-consistency.sh" {
@@ -418,10 +402,6 @@ setup() {
   grep -q 'OTEL_EXPORTER_OTLP_ENDPOINT' "$f"
   # Must state idempotency so re-running is safe.
   grep -qi 'idempoten' "$f"
-}
-
-@test "onboard-observability command alias exists" {
-  [ -f "${BATS_TEST_DIRNAME}/../commands/onboard-observability.md" ]
 }
 
 @test "phase 0-7 step files use pure alphabetic naming" {

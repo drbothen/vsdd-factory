@@ -25,6 +25,15 @@ Scaffold a new Architectural Decision Record (ADR) from `adr-template.md`, alloc
 | `--id <ADR-NNN>` | no | Override auto-allocated ID. Refused if that ID already exists in the filesystem or ARCH-INDEX. |
 | `--dry-run` | no | Allocates ID and validates inputs; prints proposed ID + slug; writes nothing. Required by VP-059 harness. |
 
+## Examples
+
+```
+/vsdd-factory:create-adr --title "Use Rust for dispatcher" --subsystems "SS-01,SS-09"
+/vsdd-factory:create-adr --title "Replace WASM with native plugins" --subsystems "SS-02" --supersedes "ADR-002"
+/vsdd-factory:create-adr --title "Adopt OpenTelemetry" --subsystems "SS-03" --brownfield
+/vsdd-factory:create-adr --title "Test ID" --subsystems "SS-06" --dry-run
+```
+
 ## Process
 
 ### Step 1: Validate ARCH-INDEX has Architecture Decisions section

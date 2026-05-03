@@ -1,5 +1,67 @@
 # Changelog
 
+## 1.0.0-rc.5 — Skills-only plugin surface (2026-05-03)
+
+Release candidate 5 collapses the dual command + skill plugin surface
+into a single skills-only surface and closes the model-auto-invocation
+gap on the activate/deactivate lifecycle skills. Both changes follow
+the marketplace pattern shipped by sibling plugins (dclaude, wclaude,
+zclaude), which expose `/<plugin>:<skill>` slash commands directly
+from skill frontmatter without parallel command shim files.
+
+### Removed
+
+- **`plugins/vsdd-factory/commands/` directory (111 files)** — every
+  command was a thin shim of the form `Use the vsdd-factory:<name>
+  skill via the Skill tool`. The Claude Code plugin loader already
+  exposes plugin skills as `/vsdd-factory:<name>` slash commands from
+  SKILL.md frontmatter; the shim files were pure duplication. All
+  command descriptions had drifted from their skill counterparts (111
+  of 111 differed in wording), making the directory a maintenance
+  liability with no user-facing benefit.
+- **8 stale "command file exists" bats assertions** —
+  `tests/input-hash.bats`, `tests/skills.bats`, and
+  `tests/state-health.bats` each had assertions checking that a
+  parallel command shim existed alongside its skill. Removed alongside
+  the shims; the sibling "skill exists" assertions remain and are the
+  real existence check.
+
+### Fixed
+
+- **`activate` and `deactivate` skills now set
+  `disable-model-invocation: true`** — both skills write to
+  `.claude/settings.local.json` (activate flips the default
+  main-thread agent to `orchestrator` and persists the host platform;
+  deactivate reverses it). Without the flag, the plugin loader
+  exposed both as ambient tools the model could choose to call
+  unprompted. With the flag set, Claude's tool catalog no longer
+  lists them, but `/vsdd-factory:activate` and
+  `/vsdd-factory:deactivate` continue to work as user-typed slash
+  commands.
+
+### Added
+
+- **`Examples` block in `skills/create-adr/SKILL.md`** — ported from
+  the deleted `commands/create-adr.md`. The skill already carried the
+  Arguments table; only the Examples block was unique to the command
+  shim and worth preserving.
+
+### Migration
+
+No breaking user-facing changes. All 120 skills remain invokable via
+`/vsdd-factory:<skill-name>`. Argument passing is unchanged: skills
+that reference `$ARGUMENTS` in their body continue to substitute
+inline; skills that don't continue to receive an auto-appended
+`ARGUMENTS:` line from the plugin loader. The 9 skills that never had
+a command shim (`phase-0-codebase-ingestion` through
+`phase-7-convergence` and `state-burst`) are unaffected — they were
+already orchestrator-dispatched.
+
+If any out-of-tree tooling shelled out to `plugins/vsdd-factory/commands/<name>.md`
+directly (rather than invoking via `/vsdd-factory:<name>`), update it
+to read `plugins/vsdd-factory/skills/<name>/SKILL.md` instead. No
+in-repo references to the commands directory remain.
+
 ## 1.0.0-rc.4 — Pre-W16 hardening sprint (2026-05-03)
 
 Release candidate 4 ships pre-flight hardening for the W-16 (Tier 2 native
