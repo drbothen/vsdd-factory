@@ -2,8 +2,9 @@
 # pr-lifecycle-hooks.bats — tests for PR lifecycle enforcement hooks:
 #   validate-pr-description-completeness.sh (PostToolUse on Write)
 #   validate-pr-merge-prerequisites.sh (PreToolUse on Agent)
-#   block-ai-attribution.sh (PreToolUse on Bash)
 # NOTE: validate-pr-review-posted.sh was ported to native WASM (W-15);
+# its bats tests were removed.
+# NOTE: block-ai-attribution.sh was ported to native WASM (W-15);
 # its bats tests were removed.
 
 setup() {
@@ -21,13 +22,6 @@ _run_posttool_write() {
   local hook="$1"
   local file="$2"
   INPUT=$(jq -nc --arg fp "$file" '{tool_input: {file_path: $fp}}')
-  run bash -c "echo '$INPUT' | '$HOOKS/$hook' 2>&1"
-}
-
-_run_pretool_bash() {
-  local hook="$1"
-  local command="$2"
-  INPUT=$(jq -nc --arg cmd "$command" '{tool_name: "Bash", tool_input: {command: $cmd}}')
   run bash -c "echo '$INPUT' | '$HOOKS/$hook' 2>&1"
 }
 
@@ -52,21 +46,12 @@ _run_pretool_agent() {
   [ "$status" -eq 0 ]
 }
 
-@test "block-ai-attribution: passes syntax check" {
-  run bash -n "$HOOKS/block-ai-attribution.sh"
-  [ "$status" -eq 0 ]
-}
-
 @test "hooks.json wires pr-description-completeness under PostToolUse" {
   jq -e '.hooks.PostToolUse[] | .hooks[] | select(.command | contains("validate-pr-description-completeness"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
 }
 
 @test "hooks.json wires pr-merge-prerequisites under PreToolUse Agent" {
   jq -e '.hooks.PreToolUse[] | select(.matcher == "Agent") | .hooks[] | select(.command | contains("validate-pr-merge-prerequisites"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
-}
-
-@test "hooks.json wires block-ai-attribution under PreToolUse Bash" {
-  jq -e '.hooks.PreToolUse[] | select(.matcher == "Bash") | .hooks[] | select(.command | contains("block-ai-attribution"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
 }
 
 # ========================================================================
@@ -253,95 +238,3 @@ EOF
   [[ "$output" == *"WARNING"* ]]
 }
 
-# ========================================================================
-# block-ai-attribution
-# ========================================================================
-
-@test "ai-attribution: passes clean commit message" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: add user auth"'
-  [ "$status" -eq 0 ]
-}
-
-@test "ai-attribution: blocks Co-Authored-By Claude" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: add auth
-
-Co-Authored-By: Claude <noreply@anthropic.com>"'
-  [ "$status" -eq 2 ]
-  [[ "$output" == *"BLOCKED"* ]]
-}
-
-@test "ai-attribution: blocks Co-Authored-By Anthropic" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "fix: bug
-
-Co-Authored-By: Anthropic AI <noreply@anthropic.com>"'
-  [ "$status" -eq 2 ]
-}
-
-@test "ai-attribution: blocks Co-Authored-By GPT" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: test
-
-Co-Authored-By: GPT-4 <noreply@openai.com>"'
-  [ "$status" -eq 2 ]
-}
-
-@test "ai-attribution: blocks Co-Authored-By OpenAI" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: test
-
-Co-Authored-By: OpenAI Assistant <noreply@openai.com>"'
-  [ "$status" -eq 2 ]
-}
-
-@test "ai-attribution: blocks Co-Authored-By Gemini" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: test
-
-Co-Authored-By: Gemini <noreply@google.com>"'
-  [ "$status" -eq 2 ]
-}
-
-@test "ai-attribution: blocks Generated with Claude Code" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: add feature
-
-Generated with Claude Code"'
-  [ "$status" -eq 2 ]
-}
-
-@test "ai-attribution: blocks noreply@anthropic.com" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: test
-
-noreply@anthropic.com"'
-  [ "$status" -eq 2 ]
-}
-
-@test "ai-attribution: allows human Co-Authored-By" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: collab
-
-Co-Authored-By: Jane Doe <jane@example.com>"'
-  [ "$status" -eq 0 ]
-}
-
-@test "ai-attribution: ignores non-commit commands" {
-  _run_pretool_bash block-ai-attribution.sh 'git status'
-  [ "$status" -eq 0 ]
-}
-
-@test "ai-attribution: ignores non-git commands" {
-  _run_pretool_bash block-ai-attribution.sh 'echo "Co-Authored-By: Claude"'
-  [ "$status" -eq 0 ]
-}
-
-@test "ai-attribution: blocks case-insensitive" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "feat: test
-
-co-authored-by: claude opus <noreply@anthropic.com>"'
-  [ "$status" -eq 2 ]
-}
-
-@test "ai-attribution: blocks heredoc commit with attribution" {
-  _run_pretool_bash block-ai-attribution.sh 'git commit -m "$(cat <<EOF
-feat: add feature
-
-Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
-EOF
-)"'
-  [ "$status" -eq 2 ]
-}
