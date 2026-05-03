@@ -59,7 +59,6 @@ pub struct HookPayload {
     // null-as-advance semantics (BC-2.02.012 Invariant 3).
     // HOST_ABI_VERSION remains 1; this is an additive extension per D-6
     // Option A and D-183 (BC-2.02.012 Invariant 1).
-
     /// Agent type identifier carried by a SubagentStop envelope
     /// (e.g. `"product-owner"`, `"pr-reviewer"`).
     ///
@@ -315,8 +314,14 @@ mod tests {
                 "tool_input": {}
             }"#,
         );
-        assert_eq!(p.agent_type, None, "agent_type must default to None for PreToolUse");
-        assert_eq!(p.subagent_name, None, "subagent_name must default to None for PreToolUse");
+        assert_eq!(
+            p.agent_type, None,
+            "agent_type must default to None for PreToolUse"
+        );
+        assert_eq!(
+            p.subagent_name, None,
+            "subagent_name must default to None for PreToolUse"
+        );
         assert_eq!(
             p.last_assistant_message, None,
             "last_assistant_message must default to None for PreToolUse"
@@ -348,18 +353,38 @@ mod tests {
             }"#,
         );
         // EC-001 / Invariant 3: JSON null → None
-        assert_eq!(p.agent_type, None, "JSON null agent_type must deserialize to None");
+        assert_eq!(
+            p.agent_type, None,
+            "JSON null agent_type must deserialize to None"
+        );
         assert_eq!(p.subagent_name, Some("pr-reviewer".to_string()));
-        assert_eq!(p.last_assistant_message, None, "JSON null last_assistant_message must be None");
+        assert_eq!(
+            p.last_assistant_message, None,
+            "JSON null last_assistant_message must be None"
+        );
         assert_eq!(p.result, Some("actual-result".to_string()));
 
         // Postcondition 5: canonical agent identity fallback chain
-        let identity = p.agent_type.as_deref().or(p.subagent_name.as_deref()).unwrap_or("unknown");
-        assert_eq!(identity, "pr-reviewer", "fallback chain must advance to subagent_name when agent_type is None");
+        let identity = p
+            .agent_type
+            .as_deref()
+            .or(p.subagent_name.as_deref())
+            .unwrap_or("unknown");
+        assert_eq!(
+            identity, "pr-reviewer",
+            "fallback chain must advance to subagent_name when agent_type is None"
+        );
 
         // Postcondition 6: canonical assistant-message fallback chain
-        let msg = p.last_assistant_message.as_deref().or(p.result.as_deref()).unwrap_or("");
-        assert_eq!(msg, "actual-result", "fallback chain must advance to result when last_assistant_message is None");
+        let msg = p
+            .last_assistant_message
+            .as_deref()
+            .or(p.result.as_deref())
+            .unwrap_or("");
+        assert_eq!(
+            msg, "actual-result",
+            "fallback chain must advance to result when last_assistant_message is None"
+        );
     }
 
     /// BC-2.02.012 EC-003: all four SubagentStop fields absent.
@@ -381,10 +406,21 @@ mod tests {
         assert_eq!(p.result, None);
 
         // EC-003: final unwrap_or values
-        let identity = p.agent_type.as_deref().or(p.subagent_name.as_deref()).unwrap_or("unknown");
-        assert_eq!(identity, "unknown", "all-absent: identity must resolve to \"unknown\"");
+        let identity = p
+            .agent_type
+            .as_deref()
+            .or(p.subagent_name.as_deref())
+            .unwrap_or("unknown");
+        assert_eq!(
+            identity, "unknown",
+            "all-absent: identity must resolve to \"unknown\""
+        );
 
-        let msg = p.last_assistant_message.as_deref().or(p.result.as_deref()).unwrap_or("");
+        let msg = p
+            .last_assistant_message
+            .as_deref()
+            .or(p.result.as_deref())
+            .unwrap_or("");
         assert_eq!(msg, "", "all-absent: message must resolve to empty string");
     }
 
@@ -408,13 +444,22 @@ mod tests {
         let json = serde_json::to_string(&original).expect("serialize");
         let round: HookPayload = serde_json::from_str(&json).expect("round-trip");
 
-        assert_eq!(round.agent_type, original.agent_type, "agent_type must survive round-trip");
-        assert_eq!(round.subagent_name, original.subagent_name, "subagent_name must survive round-trip");
+        assert_eq!(
+            round.agent_type, original.agent_type,
+            "agent_type must survive round-trip"
+        );
+        assert_eq!(
+            round.subagent_name, original.subagent_name,
+            "subagent_name must survive round-trip"
+        );
         assert_eq!(
             round.last_assistant_message, original.last_assistant_message,
             "last_assistant_message must survive round-trip"
         );
-        assert_eq!(round.result, original.result, "result must survive round-trip");
+        assert_eq!(
+            round.result, original.result,
+            "result must survive round-trip"
+        );
     }
 
     // ── AC-8 / Postcondition 7 / Invariant 2: all known event_names
@@ -430,7 +475,7 @@ mod tests {
     /// bash hooks and BC-2.02.012 evidence.)
     #[test]
     fn test_BC_2_02_012_ac8_all_event_types_deserialize_subagentstop_fields_none_for_non_subagentstop()
-    {
+     {
         let non_subagentstop_fixtures = [
             (
                 "PreToolUse",
@@ -451,11 +496,14 @@ mod tests {
         ];
 
         for (event, json) in &non_subagentstop_fixtures {
-            let p: HookPayload =
-                serde_json::from_str(json).unwrap_or_else(|e| panic!("{event} failed to deserialize: {e}"));
+            let p: HookPayload = serde_json::from_str(json)
+                .unwrap_or_else(|e| panic!("{event} failed to deserialize: {e}"));
             assert_eq!(p.agent_type, None, "{event}: agent_type must be None");
             assert_eq!(p.subagent_name, None, "{event}: subagent_name must be None");
-            assert_eq!(p.last_assistant_message, None, "{event}: last_assistant_message must be None");
+            assert_eq!(
+                p.last_assistant_message, None,
+                "{event}: last_assistant_message must be None"
+            );
             assert_eq!(p.result, None, "{event}: result must be None");
         }
 
@@ -537,11 +585,22 @@ mod tests {
                 "subagent_name": "should-not-be-used"
             }"#,
         );
-        assert_eq!(p.agent_type, Some("".to_string()), "empty string must be Some(\"\"), not None");
+        assert_eq!(
+            p.agent_type,
+            Some("".to_string()),
+            "empty string must be Some(\"\"), not None"
+        );
 
         // EC-008: Some("") does not advance; identity = ""
-        let identity = p.agent_type.as_deref().or(p.subagent_name.as_deref()).unwrap_or("unknown");
-        assert_eq!(identity, "", "empty string agent_type must yield \"\" (not \"should-not-be-used\")");
+        let identity = p
+            .agent_type
+            .as_deref()
+            .or(p.subagent_name.as_deref())
+            .unwrap_or("unknown");
+        assert_eq!(
+            identity, "",
+            "empty string agent_type must yield \"\" (not \"should-not-be-used\")"
+        );
     }
 
     // ── EC-006: unknown fields are silently ignored ───────────────────────────
@@ -582,8 +641,10 @@ mod tests {
         );
         // None of the four SubagentStop fields should be populated
         assert!(
-            p.agent_type.is_none() && p.subagent_name.is_none()
-                && p.last_assistant_message.is_none() && p.result.is_none(),
+            p.agent_type.is_none()
+                && p.subagent_name.is_none()
+                && p.last_assistant_message.is_none()
+                && p.result.is_none(),
             "SubagentStop fields must all be None for non-SubagentStop event"
         );
     }

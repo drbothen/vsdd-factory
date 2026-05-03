@@ -46,6 +46,7 @@ fn make_payload(tool_name: &str, tool_input: serde_json::Value) -> HookPayload {
 }
 
 /// Collect (event_type, fields) tuples from a logic run.
+#[allow(clippy::type_complexity)]
 fn run(payload: HookPayload) -> (HookResult, Vec<(String, Vec<(String, String)>)>) {
     let mut calls = Vec::new();
     let result = track_agent_start_logic(payload, |event_type, fields| {
@@ -74,7 +75,8 @@ fn run(payload: HookPayload) -> (HookResult, Vec<(String, Vec<(String, String)>)
 /// Both exercise `.and_then(|v| v.as_str())` but through different branches:
 ///   - Absent key → `.get("subagent_type")` returns `None`
 ///   - JSON null  → `.get("subagent_type")` returns `Some(Value::Null)`
-///                  → `.as_str()` on Null returns `None`
+///     → `.as_str()` on Null returns `None`
+///
 /// Both must produce "unknown" (bash: `jq -r '.tool_input.subagent_type // "unknown"'`).
 #[test]
 fn test_BC_7_03_080_ec001_explicit_null_subagent_type_defaults_to_unknown() {
@@ -138,7 +140,11 @@ fn test_BC_7_03_080_ec002_explicit_null_prompt_treated_as_empty_no_story_id() {
         matches!(result, HookResult::Continue),
         "EC-002: null prompt must result in Continue (exit 0)"
     );
-    assert_eq!(calls.len(), 1, "EC-002: event must be emitted (null prompt only)");
+    assert_eq!(
+        calls.len(),
+        1,
+        "EC-002: event must be emitted (null prompt only)"
+    );
 
     let (_, fields) = &calls[0];
     let field_map: std::collections::HashMap<&str, &str> = fields
@@ -240,7 +246,11 @@ fn test_BC_7_03_079_ec004_null_tool_input_with_agent_tool_name_uses_defaults() {
 
     let (result, calls) = run(payload);
     assert!(matches!(result, HookResult::Continue));
-    assert_eq!(calls.len(), 1, "Agent dispatch: event emitted even with null tool_input");
+    assert_eq!(
+        calls.len(),
+        1,
+        "Agent dispatch: event emitted even with null tool_input"
+    );
 
     let (event_type, fields) = &calls[0];
     assert_eq!(event_type, "agent.start");
@@ -274,10 +284,10 @@ fn test_BC_7_03_079_ec004_null_tool_input_with_agent_tool_name_uses_defaults() {
 #[test]
 fn test_BC_7_03_079_invariant_2_always_continue_on_degenerate_tool_input_types() {
     let degenerate_inputs: &[serde_json::Value] = &[
-        serde_json::json!([1, 2, 3]),    // array — .get() on Array returns None
-        serde_json::json!(true),         // boolean
-        serde_json::json!("a string"),   // string
-        serde_json::json!(0),            // integer
+        serde_json::json!([1, 2, 3]),  // array — .get() on Array returns None
+        serde_json::json!(true),       // boolean
+        serde_json::json!("a string"), // string
+        serde_json::json!(0),          // integer
     ];
 
     for input in degenerate_inputs {

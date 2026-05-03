@@ -546,8 +546,7 @@ fn setup_host_on_store_data(
 
                 // Write file bytes at the newly allocated offset.
                 // `out_cap` = body.len() because we just grew enough memory.
-                if write_wasm_bytes_sd(&mut caller, write_offset, body.len() as u32, &body)
-                    .is_err()
+                if write_wasm_bytes_sd(&mut caller, write_offset, body.len() as u32, &body).is_err()
                 {
                     return codes::INTERNAL_ERROR;
                 }
@@ -652,31 +651,30 @@ fn setup_host_on_store_data(
                         }
                     });
                     // For the target, canonicalize with ancestor fallback.
-                    let canon_resolved = resolved.canonicalize()
-                        .unwrap_or_else(|_| {
-                            // Walk ancestors until one exists.
-                            let mut tail: Vec<std::ffi::OsString> = Vec::new();
-                            let mut cur = resolved.clone();
-                            loop {
-                                match cur.file_name() {
-                                    None => break resolved.clone(),
-                                    Some(f) => tail.push(f.to_os_string()),
-                                }
-                                match cur.parent() {
-                                    None => break resolved.clone(),
-                                    Some(p) => {
-                                        if let Ok(canon_p) = p.canonicalize() {
-                                            let mut result = canon_p;
-                                            for component in tail.iter().rev() {
-                                                result = result.join(component);
-                                            }
-                                            return result;
+                    let canon_resolved = resolved.canonicalize().unwrap_or_else(|_| {
+                        // Walk ancestors until one exists.
+                        let mut tail: Vec<std::ffi::OsString> = Vec::new();
+                        let mut cur = resolved.clone();
+                        loop {
+                            match cur.file_name() {
+                                None => break resolved.clone(),
+                                Some(f) => tail.push(f.to_os_string()),
+                            }
+                            match cur.parent() {
+                                None => break resolved.clone(),
+                                Some(p) => {
+                                    if let Ok(canon_p) = p.canonicalize() {
+                                        let mut result = canon_p;
+                                        for component in tail.iter().rev() {
+                                            result = result.join(component);
                                         }
-                                        cur = p.to_path_buf();
+                                        return result;
                                     }
+                                    cur = p.to_path_buf();
                                 }
                             }
-                        });
+                        }
+                    });
                     canon_resolved.starts_with(&canon_pref)
                 });
                 if !allowed {

@@ -257,16 +257,9 @@ mod tests {
         // BC-2.02.011 EC-006 / postcondition 5.
         let dir = tempfile::tempdir().unwrap();
         let no_parent = dir.path().join("nonexistent-subdir/out.txt");
-        let mut ctx =
-            context_with_caps(allow_write(&[dir.path().to_str().unwrap()]));
+        let mut ctx = context_with_caps(allow_write(&[dir.path().to_str().unwrap()]));
         ctx.plugin_root = dir.path().to_path_buf();
-        let err = prepare(
-            &ctx,
-            no_parent.to_str().unwrap(),
-            b"x",
-            1024,
-        )
-        .unwrap_err();
+        let err = prepare(&ctx, no_parent.to_str().unwrap(), b"x", 1024).unwrap_err();
         assert_eq!(err, codes::INTERNAL_ERROR);
     }
 }

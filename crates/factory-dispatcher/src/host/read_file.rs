@@ -70,7 +70,11 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
 
 /// All of read_file's host-side logic that doesn't touch guest memory,
 /// split out so it's unit-testable without a live wasm instance.
-pub(crate) fn prepare(ctx: &HostContext, path: &str, max_bytes: u32) -> Result<(Vec<u8>, u32), i32> {
+pub(crate) fn prepare(
+    ctx: &HostContext,
+    path: &str,
+    max_bytes: u32,
+) -> Result<(Vec<u8>, u32), i32> {
     let caps = ctx.capabilities.read_file.as_ref().ok_or_else(|| {
         emit_denial(ctx, path, "no_read_file_capability", None);
         codes::CAPABILITY_DENIED

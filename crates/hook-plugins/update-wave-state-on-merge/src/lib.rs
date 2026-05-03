@@ -115,11 +115,10 @@ pub fn extract_story_id(result: &str) -> Option<String> {
     static RE_S: OnceLock<Regex> = OnceLock::new();
     static RE_STORY: OnceLock<Regex> = OnceLock::new();
 
-    let re_s = RE_S
-        .get_or_init(|| Regex::new(r"S-[0-9]+\.[0-9]+").expect("S-N.NN regex must compile"));
-    let re_story = RE_STORY.get_or_init(|| {
-        Regex::new(r"STORY-[0-9]+").expect("STORY-NNN regex must compile")
-    });
+    let re_s =
+        RE_S.get_or_init(|| Regex::new(r"S-[0-9]+\.[0-9]+").expect("S-N.NN regex must compile"));
+    let re_story =
+        RE_STORY.get_or_init(|| Regex::new(r"STORY-[0-9]+").expect("STORY-NNN regex must compile"));
 
     // S-N.NN format preferred (EC-006: first match wins per bash head -1 parity)
     if let Some(m) = re_s.find(result) {
@@ -204,11 +203,7 @@ struct WaveState {
 /// # BC trace
 /// BC-7.03.085 postcondition 1: append story_id to stories_merged; write YAML.
 /// BC-7.03.086 postcondition 1: flip gate_status when all stories merged.
-pub fn process_wave_state<R, W>(
-    story_id: &str,
-    read_yaml: R,
-    write_yaml: W,
-) -> WaveStateOutcome
+pub fn process_wave_state<R, W>(story_id: &str, read_yaml: R, write_yaml: W) -> WaveStateOutcome
 where
     R: FnOnce() -> Option<String>,
     W: FnOnce(String),
@@ -226,19 +221,27 @@ where
     };
 
     // Find the wave containing story_id in its stories list
-    let wave_index = state.waves.iter().position(|w| w.stories.contains(&story_id.to_string()));
+    let wave_index = state
+        .waves
+        .iter()
+        .position(|w| w.stories.contains(&story_id.to_string()));
     let wave_index = match wave_index {
         Some(i) => i,
         None => return WaveStateOutcome::NoOp,
     };
 
     // EC-003: story already in stories_merged → NoOp, no emit
-    if state.waves[wave_index].stories_merged.contains(&story_id.to_string()) {
+    if state.waves[wave_index]
+        .stories_merged
+        .contains(&story_id.to_string())
+    {
         return WaveStateOutcome::NoOp;
     }
 
     // Append story_id to stories_merged (BC-7.03.085 postcondition 1)
-    state.waves[wave_index].stories_merged.push(story_id.to_string());
+    state.waves[wave_index]
+        .stories_merged
+        .push(story_id.to_string());
 
     let wave_name = state.waves[wave_index].wave.clone();
     let total = state.waves[wave_index].stories.len();
@@ -247,10 +250,11 @@ where
     // AC-005: gate_status flip logic (four-case truth table)
     // Flip to pending when all stories merged AND gate_status is None or "not_started"
     let all_merged = merged == total;
-    let should_flip = all_merged && matches!(
-        state.waves[wave_index].gate_status.as_deref(),
-        None | Some("not_started")
-    );
+    let should_flip = all_merged
+        && matches!(
+            state.waves[wave_index].gate_status.as_deref(),
+            None | Some("not_started")
+        );
 
     let gate_transitioned = if should_flip {
         state.waves[wave_index].gate_status = Some("pending".to_string());
@@ -372,9 +376,9 @@ where
 // architect may implement pure predicate helpers that have no I/O surface.
 
 #[cfg(test)]
+#[allow(non_snake_case)]
 mod tests {
     use super::*;
-    use serde_json::json;
 
     // -----------------------------------------------------------------------
     // Helper: build a minimal HookPayload for SubagentStop
@@ -403,7 +407,11 @@ mod tests {
             tool_response: None,
             plugin_config: serde_json::Value::Null,
             // BC-2.02.012 top-level SubagentStop fields — canonical typed projection.
-            agent_type: if agent_type.is_empty() { None } else { Some(agent_type.to_string()) },
+            agent_type: if agent_type.is_empty() {
+                None
+            } else {
+                Some(agent_type.to_string())
+            },
             subagent_name: None,
             last_assistant_message: Some(result.to_string()),
             result: Some(result.to_string()),
@@ -428,7 +436,10 @@ mod tests {
             "STEP_COMPLETE: step=8 story=S-8.99 status=ok",
         );
         // tool_input is explicitly null in this fixture — assert it
-        assert!(payload.tool_input.is_null(), "fixture must have null tool_input");
+        assert!(
+            payload.tool_input.is_null(),
+            "fixture must have null tool_input"
+        );
 
         // The hook must still read pr-manager from typed agent_type and
         // recognize the merge signal from typed last_assistant_message.
@@ -547,7 +558,10 @@ mod tests {
             },
             |_, _| {},
         );
-        assert!(!write_called, "YAML must not be written when merge signal absent");
+        assert!(
+            !write_called,
+            "YAML must not be written when merge signal absent"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -736,7 +750,11 @@ mod tests {
     #[test]
     fn test_BC_7_03_085_process_wave_state_noop_when_yaml_absent() {
         let outcome = process_wave_state("S-8.04", || None, |_| {});
-        assert_eq!(outcome, WaveStateOutcome::NoOp, "absent YAML → NoOp (EC-001)");
+        assert_eq!(
+            outcome,
+            WaveStateOutcome::NoOp,
+            "absent YAML → NoOp (EC-001)"
+        );
     }
 
     /// BC-7.03.085 postcondition 1: when story is found in wave.stories,
@@ -887,7 +905,10 @@ waves:
             },
         );
         assert_eq!(outcome, WaveStateOutcome::NoOp, "duplicate → NoOp (EC-003)");
-        assert!(!write_called, "YAML must NOT be rewritten on duplicate (EC-003)");
+        assert!(
+            !write_called,
+            "YAML must NOT be rewritten on duplicate (EC-003)"
+        );
     }
 
     /// EC-003: no emit_event on duplicate (the hook logic must not call emit).
@@ -1119,7 +1140,10 @@ waves:
         // On stub: has_merge_signal returns false → never reaches write_yaml.
         // On GREEN: has_merge_signal returns true → reaches write_yaml → error path.
         // Either way, HookResult::Continue must be returned.
-        let payload = make_payload("pr-manager", "STEP_COMPLETE: step=8 status=ok S-8.04 merged");
+        let payload = make_payload(
+            "pr-manager",
+            "STEP_COMPLETE: step=8 status=ok S-8.04 merged",
+        );
         let result = wave_state_hook_logic(
             payload,
             // read_yaml: provide valid YAML so the write path is reached on GREEN
@@ -1222,7 +1246,9 @@ waves:
             plugin_config: serde_json::Value::Null,
             agent_type: Some("pr-manager".to_string()),
             subagent_name: None,
-            last_assistant_message: Some("STEP_COMPLETE: step=8 status=ok — no story id here".to_string()),
+            last_assistant_message: Some(
+                "STEP_COMPLETE: step=8 status=ok — no story id here".to_string(),
+            ),
             result: Some("STEP_COMPLETE: step=8 status=ok — no story id here".to_string()),
         };
         wave_state_hook_logic(
@@ -1370,9 +1396,8 @@ waves:
         );
 
         // FAILS on stub — has_merge_signal returns false, write_yaml not called
-        let written = written_yaml.expect(
-            "write_yaml must be called for pm-agent merge signal (FAILS on stub)",
-        );
+        let written = written_yaml
+            .expect("write_yaml must be called for pm-agent merge signal (FAILS on stub)");
         assert!(
             written.contains("pending"),
             "gate_status must be 'pending' in written YAML (AC-006 case b)"
@@ -1423,7 +1448,12 @@ waves:
         );
 
         match &outcome {
-            WaveStateOutcome::Appended { wave, total, merged, gate_transitioned } => {
+            WaveStateOutcome::Appended {
+                wave,
+                total,
+                merged,
+                gate_transitioned,
+            } => {
                 assert_eq!(wave, "wave-14", "must find story in wave-14, not wave-13");
                 assert_eq!(*total, 2);
                 assert_eq!(*merged, 2);

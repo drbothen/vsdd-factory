@@ -1,9 +1,10 @@
 #!/usr/bin/env bats
 # pr-lifecycle-hooks.bats — tests for PR lifecycle enforcement hooks:
 #   validate-pr-description-completeness.sh (PostToolUse on Write)
-#   validate-pr-review-posted.sh (SubagentStop on pr-reviewer)
 #   validate-pr-merge-prerequisites.sh (PreToolUse on Agent)
 #   block-ai-attribution.sh (PreToolUse on Bash)
+# NOTE: validate-pr-review-posted.sh was ported to native WASM (W-15);
+# its bats tests were removed.
 
 setup() {
   PLUGIN_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
@@ -37,24 +38,12 @@ _run_pretool_agent() {
   run bash -c "cd '$WORK' && echo '$INPUT' | '$HOOKS/validate-pr-merge-prerequisites.sh' 2>&1"
 }
 
-_run_subagent_stop() {
-  local agent="$1"
-  local result="$2"
-  INPUT=$(jq -nc --arg a "$agent" --arg r "$result" '{agent_type: $a, last_assistant_message: $r}')
-  run bash -c "echo '$INPUT' | '$HOOKS/validate-pr-review-posted.sh' 2>&1"
-}
-
 # ========================================================================
 # Syntax and wiring
 # ========================================================================
 
 @test "pr-description-completeness: passes syntax check" {
   run bash -n "$HOOKS/validate-pr-description-completeness.sh"
-  [ "$status" -eq 0 ]
-}
-
-@test "pr-review-posted: passes syntax check" {
-  run bash -n "$HOOKS/validate-pr-review-posted.sh"
   [ "$status" -eq 0 ]
 }
 
@@ -70,10 +59,6 @@ _run_subagent_stop() {
 
 @test "hooks.json wires pr-description-completeness under PostToolUse" {
   jq -e '.hooks.PostToolUse[] | .hooks[] | select(.command | contains("validate-pr-description-completeness"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
-}
-
-@test "hooks.json wires pr-review-posted under SubagentStop" {
-  jq -e '.hooks.SubagentStop[0].hooks[] | select(.command | contains("validate-pr-review-posted"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
 }
 
 @test "hooks.json wires pr-merge-prerequisites under PreToolUse Agent" {
@@ -193,53 +178,6 @@ EOF
 @test "pr-description: ignores pr-review.md" {
   echo "# Review findings" > "$WORK/.factory/code-delivery/STORY-001/pr-review.md"
   _run_posttool_write validate-pr-description-completeness.sh "$WORK/.factory/code-delivery/STORY-001/pr-review.md"
-  [ "$status" -eq 0 ]
-}
-
-# ========================================================================
-# validate-pr-review-posted
-# ========================================================================
-
-@test "pr-review-posted: passes when review written and posted with APPROVE" {
-  _run_subagent_stop "pr-reviewer" "Wrote review to pr-review.md.
-Posted: gh pr review 42 --approve --body-file pr-review.md
-APPROVE: no blocking findings."
-  [ "$status" -eq 0 ]
-}
-
-@test "pr-review-posted: passes when review written and posted with REQUEST_CHANGES" {
-  _run_subagent_stop "pr-reviewer" "Wrote findings to pr-review.md.
-Posted formal review: gh pr review 42 --request-changes --body-file pr-review.md
-REQUEST_CHANGES: 3 blocking findings."
-  [ "$status" -eq 0 ]
-}
-
-@test "pr-review-posted: blocks when gh pr comment used instead of gh pr review" {
-  _run_subagent_stop "pr-reviewer" "Wrote review to pr-review.md.
-gh pr comment 42 --body 'Review findings attached.'
-APPROVE."
-  [ "$status" -eq 2 ]
-  [[ "$output" == *"gh pr comment"* ]]
-}
-
-@test "pr-review-posted: blocks when no review posting evidence" {
-  _run_subagent_stop "pr-reviewer" "I reviewed the diff and found no issues. Looks good to merge."
-  [ "$status" -eq 2 ]
-  [[ "$output" == *"formal GitHub review"* ]]
-}
-
-@test "pr-review-posted: ignores non-pr-reviewer agents" {
-  _run_subagent_stop "implementer" "Fixed the code."
-  [ "$status" -eq 0 ]
-}
-
-@test "pr-review-posted: ignores pr-manager" {
-  _run_subagent_stop "pr-manager" "All 9 steps done."
-  [ "$status" -eq 0 ]
-}
-
-@test "pr-review-posted: matches pr-review-triage agent name" {
-  _run_subagent_stop "vsdd-factory:pr-review-triage" "Wrote pr-review.md. gh pr review 42 --approve. APPROVE."
   [ "$status" -eq 0 ]
 }
 

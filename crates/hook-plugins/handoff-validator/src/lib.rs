@@ -123,7 +123,12 @@ pub fn classify_result(result: &str) -> ResultClassification {
 /// Returns `HookResult::Continue` (exit 0) in all cases — this hook is
 /// advisory-only (BC-7.03.042 postcondition 2, BC-7.03.043 postcondition 2,
 /// BC-7.03.044 postcondition 2).
-pub fn handoff_validator_logic<E, W, P>(payload: HookPayload, emit: E, warn_stderr: W, print_stdout: P) -> HookResult
+pub fn handoff_validator_logic<E, W, P>(
+    payload: HookPayload,
+    emit: E,
+    warn_stderr: W,
+    print_stdout: P,
+) -> HookResult
 where
     E: FnOnce(&str, &[(&str, &str)]),
     W: FnOnce(&str),
@@ -302,12 +307,20 @@ mod tests {
             |_| {},
         );
 
-        assert_eq!(emitted_type.as_deref(), Some("hook.block"), "must emit hook.block");
+        assert_eq!(
+            emitted_type.as_deref(),
+            Some("hook.block"),
+            "must emit hook.block"
+        );
         let reason = emitted_fields
             .iter()
             .find(|(k, _)| k == "reason")
             .map(|(_, v)| v.as_str());
-        assert_eq!(reason, Some("subagent_empty_result"), "reason must be subagent_empty_result");
+        assert_eq!(
+            reason,
+            Some("subagent_empty_result"),
+            "reason must be subagent_empty_result"
+        );
         let severity = emitted_fields
             .iter()
             .find(|(k, _)| k == "severity")
@@ -317,9 +330,16 @@ mod tests {
             .iter()
             .find(|(k, _)| k == "subagent")
             .map(|(_, v)| v.as_str());
-        assert_eq!(subagent, Some("test-agent"), "subagent field must carry agent identity");
+        assert_eq!(
+            subagent,
+            Some("test-agent"),
+            "subagent field must carry agent identity"
+        );
         let msg = stderr_msg.unwrap();
-        assert!(msg.contains("empty result"), "stderr must contain 'empty result'");
+        assert!(
+            msg.contains("empty result"),
+            "stderr must contain 'empty result'"
+        );
         assert!(msg.contains("test-agent"), "stderr must contain agent name");
     }
 
@@ -334,14 +354,20 @@ mod tests {
         handoff_validator_logic(
             payload,
             |_, fields| {
-                if fields.iter().any(|(k, v)| *k == "reason" && *v == "subagent_empty_result") {
+                if fields
+                    .iter()
+                    .any(|(k, v)| *k == "reason" && *v == "subagent_empty_result")
+                {
                     got_empty = true;
                 }
             },
             |_| {},
             |_| {},
         );
-        assert!(got_empty, "whitespace-only result must trigger subagent_empty_result");
+        assert!(
+            got_empty,
+            "whitespace-only result must trigger subagent_empty_result"
+        );
     }
 
     // ── handoff_validator_logic: short result path (BC-7.03.044) ──────────
@@ -384,7 +410,10 @@ mod tests {
             .map(|(_, v)| v.as_str());
         assert_eq!(result_len, Some("5"), "result_len must be 5");
         let msg = stderr_msg.unwrap();
-        assert!(msg.contains("non-whitespace characters"), "stderr must mention non-whitespace characters");
+        assert!(
+            msg.contains("non-whitespace characters"),
+            "stderr must mention non-whitespace characters"
+        );
         assert!(msg.contains("5"), "stderr must contain the char count");
     }
 
@@ -399,7 +428,10 @@ mod tests {
         handoff_validator_logic(
             payload,
             |_, fields| {
-                if fields.iter().any(|(k, v)| *k == "reason" && *v == "subagent_truncated_result") {
+                if fields
+                    .iter()
+                    .any(|(k, v)| *k == "reason" && *v == "subagent_truncated_result")
+                {
                     emitted = true;
                 }
             },
@@ -419,7 +451,9 @@ mod tests {
         let mut emitted = false;
         handoff_validator_logic(
             payload,
-            |_, _| { emitted = true; },
+            |_, _| {
+                emitted = true;
+            },
             |_| {},
             |_| {},
         );
@@ -439,8 +473,12 @@ mod tests {
         let mut warned = false;
         handoff_validator_logic(
             payload,
-            |_, _| { emitted = true; },
-            |_| { warned = true; },
+            |_, _| {
+                emitted = true;
+            },
+            |_| {
+                warned = true;
+            },
             |_| {},
         );
         assert!(!emitted, "sufficient result must not emit any event");
@@ -510,7 +548,10 @@ mod tests {
         handoff_validator_logic(
             payload,
             |_, fields| {
-                if fields.iter().any(|(k, v)| *k == "reason" && *v == "subagent_empty_result") {
+                if fields
+                    .iter()
+                    .any(|(k, v)| *k == "reason" && *v == "subagent_empty_result")
+                {
                     got_empty = true;
                 }
             },
@@ -532,7 +573,10 @@ mod tests {
     fn test_BC_7_03_042_malformed_json_deserialize_fails_gracefully() {
         let result: Result<HookPayload, _> = serde_json::from_str("not json {{{");
         // Deserialization fails — the entry point handles this gracefully (exit 0).
-        assert!(result.is_err(), "malformed JSON must produce a serde error (handled in main.rs)");
+        assert!(
+            result.is_err(),
+            "malformed JSON must produce a serde error (handled in main.rs)"
+        );
     }
 
     // ── HookResult always Continue (advisory-only) ─────────────────────────

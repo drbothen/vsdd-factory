@@ -349,8 +349,7 @@ waves:
 
         let ev = &events[0];
         assert_eq!(
-            ev.event_type,
-            "hook.block",
+            ev.event_type, "hook.block",
             "BC-7.03.092 PC-1: event_type must be 'hook.block' (positional first arg); \
              got {:?}",
             ev.event_type
@@ -438,7 +437,9 @@ waves:
 
         // Wave line with exact format
         assert!(
-            stderr.contains("  - W-15 gate is pending. Run the gate before starting the next wave.\n"),
+            stderr.contains(
+                "  - W-15 gate is pending. Run the gate before starting the next wave.\n"
+            ),
             "BC-7.03.092 PC-1: stderr must contain the wave reminder line with exact format; \
              got: {:?}",
             stderr
@@ -455,7 +456,8 @@ waves:
 
         // Invoke hint line
         assert!(
-            stderr.contains("  Invoke /vsdd-factory:wave-gate or update .factory/wave-state.yaml\n"),
+            stderr
+                .contains("  Invoke /vsdd-factory:wave-gate or update .factory/wave-state.yaml\n"),
             "BC-7.03.092 PC-1: stderr must contain invocation hint line; got: {:?}",
             stderr
         );
@@ -554,12 +556,16 @@ waves:
 
         // Stderr must list each wave on its own line
         assert!(
-            stderr.contains("  - W-15 gate is pending. Run the gate before starting the next wave.\n"),
+            stderr.contains(
+                "  - W-15 gate is pending. Run the gate before starting the next wave.\n"
+            ),
             "EC-004: stderr must list W-15 wave line; got: {:?}",
             stderr
         );
         assert!(
-            stderr.contains("  - W-16 gate is pending. Run the gate before starting the next wave.\n"),
+            stderr.contains(
+                "  - W-16 gate is pending. Run the gate before starting the next wave.\n"
+            ),
             "EC-004: stderr must list W-16 wave line; got: {:?}",
             stderr
         );
@@ -651,14 +657,8 @@ waves:
             matches!(result, vsdd_hook_sdk::HookResult::Continue),
             "EC-005: waves-as-list → HookResult::Continue (graceful degradation)"
         );
-        assert!(
-            events.is_empty(),
-            "EC-005: no emit when waves is a list"
-        );
-        assert!(
-            stderr.is_empty(),
-            "EC-005: no stderr when waves is a list"
-        );
+        assert!(events.is_empty(), "EC-005: no emit when waves is a list");
+        assert!(stderr.is_empty(), "EC-005: no stderr when waves is a list");
     }
 
     // -----------------------------------------------------------------------
@@ -689,8 +689,14 @@ waves:
             matches!(result, vsdd_hook_sdk::HookResult::Continue),
             "EC-007(empty): waves: {{}} → HookResult::Continue"
         );
-        assert!(events.is_empty(), "EC-007(empty): no emit for empty waves map");
-        assert!(stderr.is_empty(), "EC-007(empty): no stderr for empty waves map");
+        assert!(
+            events.is_empty(),
+            "EC-007(empty): no emit for empty waves map"
+        );
+        assert!(
+            stderr.is_empty(),
+            "EC-007(empty): no stderr for empty waves map"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -917,9 +923,9 @@ waves:
             );
 
         // AC-001: read_file capability must be declared
-        let capabilities = entry
-            .get("capabilities")
-            .expect("AC-001(b): capabilities block must be present in warn-pending-wave-gate entry");
+        let capabilities = entry.get("capabilities").expect(
+            "AC-001(b): capabilities block must be present in warn-pending-wave-gate entry",
+        );
 
         let read_file = capabilities
             .get("read_file")
@@ -929,10 +935,7 @@ waves:
             .as_array()
             .expect("AC-001(b): capabilities.read_file.path_allow must be an array");
 
-        let paths: Vec<&str> = path_allow
-            .iter()
-            .filter_map(|v| v.as_str())
-            .collect();
+        let paths: Vec<&str> = path_allow.iter().filter_map(|v| v.as_str()).collect();
         assert!(
             paths.contains(&".factory/wave-state.yaml"),
             "AC-001(b): path_allow must include '.factory/wave-state.yaml'; got: {:?}",
@@ -1004,7 +1007,11 @@ waves:
         let main_rs = std::fs::read_to_string(crate_dir.join("src/main.rs"))
             .expect("AC-006: src/main.rs must be readable");
         // Check for actual subprocess invocation patterns (not documentation comments)
-        for pattern in &["std::process::Command", "exec_subprocess", r#"Command::new("python"#] {
+        for pattern in &[
+            "std::process::Command",
+            "exec_subprocess",
+            r#"Command::new("python"#,
+        ] {
             assert!(
                 !main_rs.contains(pattern),
                 "AC-006: src/main.rs must not contain subprocess invocation pattern '{}'",
@@ -1016,7 +1023,11 @@ waves:
         let lib_rs = std::fs::read_to_string(crate_dir.join("src/lib.rs"))
             .expect("AC-006: src/lib.rs must be readable");
         // Check for actual subprocess invocation patterns (not documentation comments)
-        for pattern in &["std::process::Command", "exec_subprocess", r#"Command::new("python"#] {
+        for pattern in &[
+            "std::process::Command",
+            "exec_subprocess",
+            r#"Command::new("python"#,
+        ] {
             assert!(
                 !lib_rs.contains(pattern),
                 "AC-006: src/lib.rs must not contain subprocess invocation pattern '{}'",

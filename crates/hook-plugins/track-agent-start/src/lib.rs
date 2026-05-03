@@ -221,9 +221,8 @@ mod tests {
 
     /// Helper: run the logic with a captured-emit callback.
     /// Returns (result, emitted_calls).
-    fn run_logic(
-        payload: HookPayload,
-    ) -> (HookResult, Vec<(String, Vec<(String, String)>)>) {
+    #[allow(clippy::type_complexity)]
+    fn run_logic(payload: HookPayload) -> (HookResult, Vec<(String, Vec<(String, String)>)>) {
         let mut calls: Vec<(String, Vec<(String, String)>)> = Vec::new();
         let result = track_agent_start_logic(payload, |event_type, fields| {
             calls.push((
@@ -270,15 +269,23 @@ mod tests {
         assert_eq!(calls.len(), 1);
         let (event_type, fields) = &calls[0];
         assert_eq!(event_type, "agent.start");
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("hook"), Some(&"track-agent-start"));
         assert_eq!(field_map.get("matcher"), Some(&"Agent"));
         assert_eq!(field_map.get("subagent"), Some(&"pr-manager"));
         assert_eq!(field_map.get("story_id"), Some(&"S-6.07"));
         // E-8 D-2 strict parity: FORBIDDEN fields must be absent
-        assert!(!field_map.contains_key("agent_id"), "agent_id must not appear");
-        assert!(!field_map.contains_key("tool_name"), "tool_name must not appear");
+        assert!(
+            !field_map.contains_key("agent_id"),
+            "agent_id must not appear"
+        );
+        assert!(
+            !field_map.contains_key("tool_name"),
+            "tool_name must not appear"
+        );
     }
 
     #[test]
@@ -295,8 +302,10 @@ mod tests {
         assert!(matches!(result, HookResult::Continue));
         assert_eq!(calls.len(), 1);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("story_id"), Some(&"STORY-042"));
         assert_eq!(field_map.get("subagent"), Some(&"implementer"));
     }
@@ -315,9 +324,14 @@ mod tests {
         assert!(matches!(result, HookResult::Continue));
         assert_eq!(calls.len(), 1);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
-        assert!(!field_map.contains_key("story_id"), "story_id must be absent");
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
+        assert!(
+            !field_map.contains_key("story_id"),
+            "story_id must be absent"
+        );
     }
 
     #[test]
@@ -333,8 +347,10 @@ mod tests {
         assert!(matches!(result, HookResult::Continue));
         assert_eq!(calls.len(), 1);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert_eq!(field_map.get("subagent"), Some(&"unknown"));
     }
 
@@ -351,8 +367,10 @@ mod tests {
         assert!(matches!(result, HookResult::Continue));
         assert_eq!(calls.len(), 1);
         let (_, fields) = &calls[0];
-        let field_map: std::collections::HashMap<&str, &str> =
-            fields.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+        let field_map: std::collections::HashMap<&str, &str> = fields
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
         assert!(!field_map.contains_key("story_id"));
         assert_eq!(field_map.get("subagent"), Some(&"test-runner"));
     }
@@ -394,7 +412,10 @@ mod tests {
         let (_, fields) = &calls[0];
         for (k, _) in fields {
             assert_ne!(k, "agent_id", "forbidden field agent_id found in emission");
-            assert_ne!(k, "tool_name", "forbidden field tool_name found in emission");
+            assert_ne!(
+                k, "tool_name",
+                "forbidden field tool_name found in emission"
+            );
         }
     }
 
@@ -415,7 +436,11 @@ mod tests {
         let (event_type, fields) = &calls[0];
         assert_eq!(event_type, "agent.start");
         // Exact field count: hook + matcher + subagent + story_id = 4
-        assert_eq!(fields.len(), 4, "expected exactly 4 fields (hook, matcher, subagent, story_id)");
+        assert_eq!(
+            fields.len(),
+            4,
+            "expected exactly 4 fields (hook, matcher, subagent, story_id)"
+        );
         let keys: Vec<&str> = fields.iter().map(|(k, _)| k.as_str()).collect();
         assert!(keys.contains(&"hook"));
         assert!(keys.contains(&"matcher"));
@@ -437,6 +462,10 @@ mod tests {
         assert_eq!(calls.len(), 1);
         let (_, fields) = &calls[0];
         // Exact field count: hook + matcher + subagent = 3
-        assert_eq!(fields.len(), 3, "expected exactly 3 fields (hook, matcher, subagent)");
+        assert_eq!(
+            fields.len(),
+            3,
+            "expected exactly 3 fields (hook, matcher, subagent)"
+        );
     }
 }

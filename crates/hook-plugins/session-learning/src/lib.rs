@@ -29,8 +29,7 @@ use vsdd_hook_sdk::HookResult;
 /// The header written to a newly-created sidecar-learning.md.
 /// The trailing blank line (two newlines after the last sentence) is REQUIRED —
 /// bats compares byte-identical content against the bash source output (AC-002).
-pub const SIDECAR_HEADER: &str =
-    "# Sidecar Learning\n\nSession-end markers for the VSDD factory. Run /session-review to synthesize.\n\n";
+pub const SIDECAR_HEADER: &str = "# Sidecar Learning\n\nSession-end markers for the VSDD factory. Run /session-review to synthesize.\n\n";
 
 /// The marker line format. The timestamp placeholder is filled at runtime.
 /// Format: `- Session ended at <ISO8601-UTC> (awaiting /session-review)\n`
@@ -61,10 +60,7 @@ pub fn format_utc_now() -> String {
 ///
 /// File I/O: write via std::fs (host::write_file absent per D-172).
 /// host::read_file IS available but unused — session-learning is append-only.
-pub fn session_learning_logic(
-    now_fn: impl Fn() -> String,
-    fs_root: &str,
-) -> HookResult {
+pub fn session_learning_logic(now_fn: impl Fn() -> String, fs_root: &str) -> HookResult {
     // Step 1: Stdin drain is performed by the dispatcher's __internal::run trampoline
     // before calling on_hook (the payload is passed in via HookPayload). In the unit-test
     // path (calling session_learning_logic directly), there is no stdin to drain.

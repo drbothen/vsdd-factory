@@ -99,7 +99,9 @@ fn write_bytes_to_memory(
     offset: usize,
     bytes: &[u8],
 ) {
-    memory.write(store, offset, bytes).expect("write_bytes_to_memory failed");
+    memory
+        .write(store, offset, bytes)
+        .expect("write_bytes_to_memory failed");
 }
 
 // ---------------------------------------------------------------------------
@@ -194,14 +196,7 @@ fn test_BC_2_02_011_wat_denied_when_no_capability() {
     let result = do_write
         .call(
             &mut store,
-            (
-                0,
-                path.len() as i32,
-                128,
-                contents.len() as i32,
-                1024,
-                5000,
-            ),
+            (0, path.len() as i32, 128, contents.len() as i32, 1024, 5000),
         )
         .expect("call should not trap");
 
@@ -488,7 +483,11 @@ fn test_BC_2_02_011_invariant_5_error_codes_stable_no_new_codes() {
     // All codes are accounted for; none are 0 except OK (no overlap).
     let unique: std::collections::HashSet<i32> =
         known_write_codes.iter().map(|(c, _)| *c).collect();
-    assert_eq!(unique.len(), known_write_codes.len(), "error codes must be unique");
+    assert_eq!(
+        unique.len(),
+        known_write_codes.len(),
+        "error codes must be unique"
+    );
 }
 
 // ---------------------------------------------------------------------------

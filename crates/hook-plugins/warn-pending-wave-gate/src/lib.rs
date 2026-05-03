@@ -48,10 +48,7 @@ pub fn warn_pending_wave_gate_logic(
     // EC-008: use Value::as_str to avoid panics on non-string gate_status values.
     let mut pending: Vec<String> = Vec::new();
     for (name, data) in waves_map {
-        if data
-            .get("gate_status")
-            .and_then(serde_yaml::Value::as_str)
-            == Some("pending")
+        if data.get("gate_status").and_then(serde_yaml::Value::as_str) == Some("pending")
             && let Some(name_str) = name.as_str()
         {
             pending.push(name_str.to_string());
