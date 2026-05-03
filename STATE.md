@@ -321,7 +321,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-4 E-9 v1.6 pass-8 NITPICK_ONLY; **S-9.00 v1.4 CONVERGED**; ADR-013 clock 1_of_3)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** <new SHA>
+**factory-artifacts HEAD:** 6efc26b (chore(adversary,state): persist E-9 v1.6 pass-8 NITPICK_ONLY + D-233 (clock 1_of_3))
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
