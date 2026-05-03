@@ -41,6 +41,35 @@ HOOKS_DIR="$REPO_ROOT/plugins/vsdd-factory/hooks"
 OUT_FILE="$REPO_ROOT/plugins/vsdd-factory/hooks-registry.toml"
 HISTORICAL_REF="7b4b774^:plugins/vsdd-factory/hooks/hooks.json"
 
+# Hooks that have been ported to native WASM (W-15+) and no longer have
+# a .sh counterpart on disk. The generator skips both the on-disk check
+# and the registry entry emission for these names so the migration tool
+# continues to run cleanly during the transition period.
+NATIVE_PORTED_HOOKS=(
+  block-ai-attribution
+  capture-commit-activity
+  capture-pr-activity
+  handoff-validator
+  pr-manager-completion-guard
+  regression-gate
+  session-learning
+  track-agent-start
+  track-agent-stop
+  update-wave-state-on-merge
+  validate-pr-review-posted
+  warn-pending-wave-gate
+)
+
+# Scripts added to disk after the historical ref that should be registered
+# but aren't yet in the historical hooks.json snapshot. The generator skips
+# the orphan-script check for these so it doesn't error; they should be
+# added to the current hooks.json and will be picked up by a future
+# registry regeneration from that updated source.
+POST_HISTORICAL_SCRIPTS=(
+  validate-count-propagation
+  validate-red-ratio
+)
+
 # Allow-list of hook basenames that MUST block on plugin error rather
 # than continuing. These are the v0.79.x "gate" hooks: their job is to
 # stop a tool call dead, so a crash or timeout has to be treated as a
@@ -80,6 +109,24 @@ is_gate() {
   local g
   for g in "${GATE_HOOKS[@]}"; do
     [[ "$name" == "$g" ]] && return 0
+  done
+  return 1
+}
+
+is_native_ported() {
+  local name="$1"
+  local n
+  for n in "${NATIVE_PORTED_HOOKS[@]}"; do
+    [[ "$name" == "$n" ]] && return 0
+  done
+  return 1
+}
+
+is_post_historical() {
+  local name="$1"
+  local n
+  for n in "${POST_HISTORICAL_SCRIPTS[@]}"; do
+    [[ "$name" == "$n" ]] && return 0
   done
   return 1
 }
@@ -150,8 +197,9 @@ else
 fi
 
 # Cross-check: every script referenced must exist on disk; every script
-# on disk must be referenced. Either side mismatching = data drift,
-# which is the operator's problem to resolve before regenerating.
+# on disk must be referenced. Hooks that have been ported to native WASM
+# (listed in NATIVE_PORTED_HOOKS) are excluded from both sides of the
+# check — their .sh files are intentionally gone.
 REFERENCED_SCRIPTS="$(printf '%s\n' "$HOOKS_JSON_INPUT" \
   | jq -r '.. | objects | .command? // empty' \
   | sed 's|.*/||; s|\.sh$||' \
@@ -160,6 +208,25 @@ ON_DISK_SCRIPTS="$(find "$HOOKS_DIR" -maxdepth 1 -name '*.sh' -type f \
   | xargs -n1 basename \
   | sed 's|\.sh$||' \
   | sort -u)"
+
+# Filter out natively-ported hooks from the referenced set before diff
+# (those .sh files are intentionally gone).
+FILTERED_REFERENCED=""
+while IFS= read -r name; do
+  [ -z "$name" ] && continue
+  is_native_ported "$name" || FILTERED_REFERENCED+="$name"$'\n'
+done <<< "$REFERENCED_SCRIPTS"
+REFERENCED_SCRIPTS="$(printf '%s' "$FILTERED_REFERENCED" | sort -u)"
+
+# Filter out post-historical scripts from the on-disk set before the orphan
+# check (they were added after the historical ref and need to be wired up
+# separately; they are not orphans from the perspective of this generator).
+FILTERED_ON_DISK=""
+while IFS= read -r name; do
+  [ -z "$name" ] && continue
+  is_post_historical "$name" || FILTERED_ON_DISK+="$name"$'\n'
+done <<< "$ON_DISK_SCRIPTS"
+ON_DISK_SCRIPTS="$(printf '%s' "$FILTERED_ON_DISK" | sort -u)"
 
 MISSING_ON_DISK="$(comm -23 <(printf '%s\n' "$REFERENCED_SCRIPTS") <(printf '%s\n' "$ON_DISK_SCRIPTS") || true)"
 ORPHAN_SCRIPTS="$(comm -13 <(printf '%s\n' "$REFERENCED_SCRIPTS") <(printf '%s\n' "$ON_DISK_SCRIPTS") || true)"
@@ -185,14 +252,19 @@ fi
 # (tab is whitespace), so a row like `Event\t\tname\t5` parses as if it
 # had three columns instead of four. The sentinel gives `read` a
 # non-empty token in column two; the emit pass strips it back out.
-ROWS="$(printf '%s\n' "$HOOKS_JSON_INPUT" | jq -r '
+# Build the list of natively-ported hook names as a jq-safe array literal.
+_jq_native_ported="$(printf '%s\n' "${NATIVE_PORTED_HOOKS[@]}" | jq -Rn '[inputs]')"
+
+ROWS="$(printf '%s\n' "$HOOKS_JSON_INPUT" | jq -r --argjson ported "$_jq_native_ported" '
   .hooks
   | to_entries[]
   | .key as $event
   | .value[]
   | (.matcher // "" | if . == "" then "__NONE__" else . end) as $matcher
   | .hooks[]
-  | [$event, $matcher, (.command | sub(".*/"; "") | sub("\\.sh$"; "")), (.timeout|tostring)]
+  | (.command | sub(".*/"; "") | sub("\\.sh$"; "")) as $name
+  | select($ported | index($name) | not)
+  | [$event, $matcher, $name, (.timeout|tostring)]
   | @tsv
 ')"
 

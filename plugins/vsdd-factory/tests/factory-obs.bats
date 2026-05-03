@@ -444,15 +444,10 @@ setup() {
   [ "$row_count" -eq 1 ]
 }
 
-@test "hook: capture-commit-activity exists, is executable, and registered" {
-  local hook="${BATS_TEST_DIRNAME}/../hooks/capture-commit-activity.sh"
-  [ -x "$hook" ]
-  bash -n "$hook"
-  # Registered under PostToolUse. Matcher is "*" in v0.79.3+ (was "Bash"
-  # in v0.77.0–v0.79.2); see capture-commit-activity.bats for the history.
-  jq -e '.hooks.PostToolUse[] | .hooks[] | select(.command | contains("capture-commit-activity.sh"))' \
-    "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
-}
+# NOTE: capture-commit-activity.sh was deleted in commit 818fb95 because
+# it has a native WASM equivalent in the dispatcher. The existence /
+# executability / registration check that used to live here is no longer
+# applicable — the WASM hook is tested via the dispatcher test suite.
 
 # ---------- Observability stack upgrade (v0.76.0) ----------
 
