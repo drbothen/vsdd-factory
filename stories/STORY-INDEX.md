@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.38"
+version: "1.39"
 status: current
 producer: state-manager
 timestamp: 2026-05-03T12:00:00
@@ -266,9 +266,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
-## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (in-review, v1.6)
+## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (converged, v1.6)
 
-> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03) + v1.2 pass-2 fix burst (2026-05-03) + v1.3 pass-3 fix burst (2026-05-03) + v1.4 pass-4 fix burst (2026-05-03) + v1.5 pass-6 structural fix burst (2026-05-03) + v1.6 pass-7 deeper structural fix burst (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.6 status=in-review (634L). 8-story scope: S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens), R-W16-007 (behavioral divergence), R-W16-008 (YAML parsing fidelity). Library Table: regex, serde_yaml, walkdir, wc (bundle), hyperfine (latency). Pass-2: 12 findings closed (D-225). Pass-3: 2 findings (1 MED + 1 LOW) + 1 cross-doc from S-9.00 (HIGH) closed (D-226). Pass-4: 3 findings (1H+1M+1L; F-P4-001 cross-doc BC anchor, F-P4-002 wc supersession parenthetical, F-P4-003 deferred) closed (D-227). Pass-6: 2 MED structural fixes (F-P6-001 heading depth ##→###, F-P6-002 summary table v1.4 row); F-P6-003 LOW deferred (D-230). Pass-7 SUBSTANTIVE: v1.6 deeper fix burst (D-232) — F-P7-001 MED: v1.5+v1.6 rows both appended to Changelog summary table (preemptive to break regression cycle); F-P7-002 LOW: line-count footer convention DROPPED going forward; F-P5-001 LOW deferred per POLICY 1. ADR-013 clock: 0_of_3 (fresh start for v1.6; line-count footer convention dropped). input-hash: 37151a4.
+> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03) + v1.2 pass-2 fix burst (2026-05-03) + v1.3 pass-3 fix burst (2026-05-03) + v1.4 pass-4 fix burst (2026-05-03) + v1.5 pass-6 structural fix burst (2026-05-03) + v1.6 pass-7 deeper structural fix burst (2026-05-03) + pass-10 CONVERGENCE_REACHED (2026-05-03, D-235):** E-9-tier-2-native-wasm-migration.md v1.6 status=converged (634L). 8-story scope: S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens), R-W16-007 (behavioral divergence), R-W16-008 (YAML parsing fidelity). Library Table: regex, serde_yaml, walkdir, wc (bundle), hyperfine (latency). Pass-2: 12 findings closed (D-225). Pass-3: 2 findings (1 MED + 1 LOW) + 1 cross-doc from S-9.00 (HIGH) closed (D-226). Pass-4: 3 findings (1H+1M+1L; F-P4-001 cross-doc BC anchor, F-P4-002 wc supersession parenthetical, F-P4-003 deferred) closed (D-227). Pass-6: 2 MED structural fixes (F-P6-001 heading depth ##→###, F-P6-002 summary table v1.4 row); F-P6-003 LOW deferred (D-230). Pass-7 SUBSTANTIVE: v1.6 deeper fix burst (D-232) — F-P7-001 MED: v1.5+v1.6 rows both appended to Changelog summary table (preemptive to break regression cycle); F-P7-002 LOW: line-count footer convention DROPPED going forward; F-P5-001 LOW deferred per POLICY 1. Passes 8+9+10 NITPICK_ONLY: ADR-013 clock 0_of_3 → 1_of_3 → 2_of_3 → **3_of_3 = CONVERGENCE_REACHED** (D-235, 2026-05-03). Final trajectory: 18→12→2→3→1→3→2→2→2→2 (10 passes). 4 LOW known-debt deferred (F-P5-001 cosmetic + F-P6-003 BC range + F-P8-001 fabricated ref + F-P8-002 scope ambiguity). input-hash: 37151a4.
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
