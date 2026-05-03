@@ -313,7 +313,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-4 pass-5 NITPICK_ONLY × 2 SEALED — D-228 sealed; ADR-013 clock 0_of_3 → 1_of_3; no fix burst; pass-6 adversarial pending)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** PENDING_THIS_COMMIT
+**factory-artifacts HEAD:** 4652492 (chore(adversary): persist Phase D-4 pass-5 reviews + D-228 (clock 1_of_3))
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
