@@ -26,116 +26,13 @@ done
 echo "all scripts ok"
 
 echo
-echo "== Hook tests =="
-bats tests/hooks.bats
-
-echo
-echo "== Bin tests =="
-bats tests/bin.bats
-
-echo
-echo "== bump-version.sh tests =="
-bats tests/bump-version.bats
-
-echo
-echo "== generate-hooks-json.sh tests =="
-bats tests/generate-hooks-json.bats
-
-echo
-echo "== activate + apply-platform skill tests =="
-bats tests/activate.bats
-
-echo
-echo "== Skill structure tests =="
-bats tests/skills.bats
-
-echo
-echo "== Visual companion tests =="
-bats tests/visual-companion.bats
-
-echo
-echo "== Permission model tests =="
-bats tests/permissions.bats
-
-echo
-echo "== Policy 9 VP-consistency tests =="
-bats tests/policy9.bats
-
-echo
-echo "== Destructive command guard tests =="
-bats tests/destructive-guard.bats
-
-echo
-echo "== Protect secrets hook tests =="
-bats tests/protect-secrets.bats
-
-echo
-echo "== Emit-event helper tests =="
-bats tests/emit-event.bats
-
-echo
-echo "== Edit|Write guards emission tests =="
-bats tests/edit-guards-emission.bats
-
-echo
-echo "== Agent guards emission tests =="
-bats tests/agent-guards-emission.bats
-
-echo
-echo "== Policy validators emission tests =="
-bats tests/policy-validators-emission.bats
-
-echo
-echo "== Structural validators emission tests =="
-bats tests/structural-validators-emission.bats
-
-echo
-echo "== Workflow validators emission tests =="
-bats tests/workflow-validators-emission.bats
-
-echo
-echo "== factory-query CLI tests =="
-bats tests/factory-query.bats
-
-echo
-echo "== factory-report CLI tests =="
-bats tests/factory-report.bats
-
-echo
-echo "== factory-dashboard CLI tests =="
-bats tests/factory-dashboard.bats
-
-echo
-echo "== factory-obs + observability stack tests =="
-bats tests/factory-obs.bats
-
-echo
-echo "== factory-replay (session replay) tests =="
-bats tests/factory-replay.bats
-
-echo
-echo "== factory-sla (agent SLO) tests =="
-bats tests/factory-sla.bats
-
-echo
-echo "== Policy enforcement hook tests =="
-bats tests/policy-enforcement.bats
-
-echo
-echo "== Hook robustness tests =="
-bats tests/hook-robustness.bats
-
-echo
-echo "== Template compliance hook tests =="
-bats tests/template-compliance.bats
-
-echo
-echo "== Finding format hook tests =="
-bats tests/finding-format.bats
-
-echo
-echo "== Input hash tests =="
-bats tests/input-hash.bats
-
+echo "== Running all bats test suites =="
+shopt -s nullglob
+for f in tests/*.bats; do
+  name=$(basename "$f" .bats)
+  echo
+  echo "-- $name --"
+  bats "$f"
+done
 echo
 echo "All tests passed."
