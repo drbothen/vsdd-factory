@@ -1,9 +1,9 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.1"
+version: "1.2"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
-status: draft
+status: in-review
 tech_debt_ref: TD-014
 prd_capabilities: [CAP-002, CAP-008, CAP-013, CAP-022]
 prd_frs: []
@@ -24,7 +24,7 @@ inputs:
   - .factory/specs/architecture/SS-02-hook-sdk.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/architecture/gap-analysis-w16-subprocess.md
-input-hash: "[pending-recompute]"
+input-hash: "e3055a6"
 ---
 <!-- [process-gap] Frontmatter fields tech_debt_ref, anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-8 v1.9). Template update tracked as follow-up. -->
 
@@ -35,7 +35,8 @@ input-hash: "[pending-recompute]"
 Port all 23 `validate-*.sh` hooks currently routed through `legacy-bash-adapter.wasm`
 (hooks-registry.toml lines 145–797) to native WASM crates using the rewrite-clean
 strategy (ADR-014 D-9.1). `validate-wave-gate-prerequisite` invokes
-`verify-sha-currency.sh` via the existing `host::exec_subprocess` ABI (BC-2.02.005) —
+`verify-sha-currency.sh` via the existing `host::exec_subprocess` ABI
+(BC-1.05.001..034 (existing) + BC-1.05.035 + BC-1.05.036 (additive, ADR-014 Amendment 2026-05-03)) —
 no new host ABI extension is required (ADR-014 D-9.2 withdrawn per gap analysis
 2026-05-03; see gap-analysis-w16-subprocess.md Section 7). Delivered in 7
 capability-cluster batches (S-9.01..S-9.07) plus one perf baseline story (S-9.00).
@@ -67,16 +68,28 @@ through `legacy-bash-adapter.wasm` with git-bash dependency and subprocess overh
 **SS-04 (Plugin Ecosystem) anchor:** SS-04 owns `crates/hook-plugins/`; the 23
 new validator WASM crates are SS-04 artifacts. Every S-9.0N port story touches SS-04.
 
-**SS-07 (Hook Bash Layer) partial anchor:** SS-07 owns the 23 `.sh` files being
-ported. After W-16, those files remain on disk pending Phase H deletion (R-W16-001).
-E-9 does NOT delete SS-07 artifacts — each story disables the legacy-bash-adapter
-registry entries and adds new WASM entries but leaves `.sh` files in place.
+**SS-07 (Hook Bash Layer) partial anchor:** SS-07 owns the `.sh` files in
+`plugins/vsdd-factory/hooks/validate-*.sh` (23 files) and the `[[hooks]]` registry
+entries in `plugins/vsdd-factory/hooks-registry.toml` that reference them. E-9 work
+in SS-07 is registry-edit-only: per the W-15 D-7 schema, each Tier 2 hook keeps its
+existing `[[hooks]]` entry (pointing to `hooks/validate-*.sh`) but gains a sibling
+entry pointing to the new `hook-plugins/validate-*.wasm`. The `.sh` files remain on
+disk (POLICY 1 append-only) but become unreferenced by any active registry entry
+once W-16 completes. No Rust code changes in SS-07. After W-16, those files remain
+on disk pending Phase H deletion (R-W16-001).
+
+> [process-gap] stretch-anchor: The exact count of `.sh` files and TOML entry
+> locations above is derived from audit-w16.md §1 (23 hooks confirmed) and
+> hooks-registry.toml on-disk at 2026-05-03. If refactoring moves `.sh` files
+> or TOML before W-16 implementation, verify the paths against the on-disk state
+> at implementation time.
 
 > **SS-02 dropped from E-9 anchors (v1.1, 2026-05-03):** S-9.30 (host::run_subprocess
 > SDK extension, which was the SS-02 anchor story) was withdrawn per ADR-014 D-9.2
 > amendment. SS-02 is no longer a primary anchor for E-9. `validate-wave-gate-prerequisite`
-> (S-9.07) uses the existing `host::exec_subprocess` (BC-2.02.005) which is already
-> under SS-02 ownership — no new SS-02 artifacts are created in E-9. See
+> (S-9.07) uses the existing `host::exec_subprocess`
+> (BC-1.05.001..034 (existing) + BC-1.05.035 + BC-1.05.036 (additive, ADR-014 Amendment 2026-05-03))
+> which is already under SS-01 ownership — no new SS-02 artifacts are created in E-9. See
 > gap-analysis-w16-subprocess.md Section 7 + ADR-014 Amendment 2026-05-03.
 
 ## Stories
@@ -84,7 +97,6 @@ registry entries and adds new WASM entries but leaves `.sh` files in place.
 | Story ID | Title | Points | Depends On | Blocks | Status |
 |----------|-------|--------|-----------|--------|--------|
 | S-9.00 | Perf baseline + W-16 bundle ceiling | TBD | E-8 (W-15 / rc.4 closure) | S-9.01..S-9.07 | draft |
-| S-9.30 | ~~SDK extension: host::run_subprocess (ADR-014 D-9.2)~~ | — | — | — | **withdrawn** (2026-05-03; see ADR-014 Amendment) |
 | S-9.01 | Batch B-1: pure stdin-parse validators (4 hooks) | TBD | S-9.00 | — | draft |
 | S-9.02 | Batch B-2: single file-read frontmatter validators (4 hooks) | TBD | S-9.00 | — | draft |
 | S-9.03 | Batch B-3: PR/delivery file validators (3 hooks) | TBD | S-9.00 | — | draft |
@@ -92,11 +104,13 @@ registry entries and adds new WASM entries but leaves `.sh` files in place.
 | S-9.05 | Batch B-5: story-file + BC multi-file validators (3 hooks) | TBD | S-9.00 | — | draft |
 | S-9.06 | Batch B-6: cross-document lookup validators (3 hooks) | TBD | S-9.00 | — | draft |
 | S-9.07 | Batch B-7: complex YAML + subprocess validators (3 hooks) | TBD | S-9.00 | — | draft |
+| **— Withdrawn —** | | | | | |
+| S-9.30 | ~~SDK extension: host::run_subprocess (ADR-014 D-9.2)~~ | — | — | — | **withdrawn** (2026-05-03; see ADR-014 Amendment) |
 
 **Story count: 8** (S-9.00 + S-9.01..S-9.07; S-9.30 withdrawn 2026-05-03)
 
-**Note:** S-9.01..S-9.04 are Burst 2; S-9.05..S-9.07 are Burst 3. Story-writer
-authors these in subsequent bursts following adversarial convergence per ADR-013.
+**Note:** Story-writer authors S-9.01..S-9.07 in subsequent bursts following
+adversarial convergence per ADR-013.
 
 ## Hook Inventory (23 hooks)
 
@@ -124,7 +138,7 @@ authors these in subsequent bursts following adversarial convergence per ADR-013
 |------|-------|-----------|------------|
 | validate-pr-description-completeness | PostToolUse:Edit\|Write | no | Low |
 | validate-table-cell-count | PostToolUse:Edit\|Write | no | Low |
-| validate-pr-merge-prerequisites | PreToolUse:Agent | no | Medium |
+| validate-pr-merge-prerequisites | PreToolUse:Agent | **YES** (`on_error = "block"` per hooks-registry.toml line 774) | Medium |
 
 ### Batch B-4 (S-9.04): STATE.md + cycle index validators (3 hooks)
 
@@ -156,12 +170,18 @@ authors these in subsequent bursts following adversarial convergence per ADR-013
 |------|-------|-----------|------------|
 | validate-vp-consistency | PostToolUse:Edit\|Write | no | High |
 | validate-wave-gate-completeness | PostToolUse:Edit\|Write | no | Medium |
-| validate-wave-gate-prerequisite | PreToolUse:Agent | no | High (subprocess via existing host::exec_subprocess / BC-2.02.005; S-9.30 withdrawn) |
+| validate-wave-gate-prerequisite | PreToolUse:Agent | **YES** (`on_error = "block"` per hooks-registry.toml line 794) | High (subprocess via existing host::exec_subprocess / BC-1.05.001..034 + BC-1.05.035 + BC-1.05.036; S-9.30 withdrawn) |
 
-> **Block-mode callout:** 3 of 23 Tier 2 validators use `on_error = "block"`:
-> validate-factory-path-root, validate-input-hash, and validate-template-compliance.
-> Per E-8 AC-8 (inherited), these MUST have additional negative (false-block) test
-> fixtures in their batch story ACs.
+> **Block-mode callout:** 5 of 23 Tier 2 validators use `on_error = "block"` per
+> on-disk `hooks-registry.toml` audit (2026-05-03):
+> - PostToolUse blockers (3): validate-factory-path-root (line 231), validate-input-hash (line 291),
+>   validate-template-compliance (line 471)
+> - PreToolUse blockers (2): validate-pr-merge-prerequisites (line 774),
+>   validate-wave-gate-prerequisite (line 794)
+> All PreToolUse hooks with `on_error = "block"` hard-block the tool invocation on error,
+> consistent with their role as gate hooks.
+> Per E-8 AC-8 (inherited), all 5 block-mode hooks MUST have additional negative (false-block)
+> test fixtures in their batch story ACs.
 
 ## Problem Statement
 
@@ -191,13 +211,15 @@ to idiomatic Rust WASM plugins.
 3. Silent-jq-missing failure mode eliminated: WASM plugins never silently pass due
    to missing toolchain dependencies.
 4. HOST_ABI_VERSION = 1 unchanged throughout E-9 (no new host ABI extension
-   required; D-9.2 withdrawn; existing host::exec_subprocess / BC-2.02.005 used).
+   required; D-9.2 withdrawn; existing host::exec_subprocess used,
+   anchored by BC-1.05.001..034 (existing) + BC-1.05.035 + BC-1.05.036 (additive, ADR-014 Amendment 2026-05-03)).
 5. Bundle size growth within the W-16 latency-primary + advisory-ceiling model
    (measured by S-9.00; ADR-014 R-8.09 revised model; enforced per-batch).
    Primary gate: cold-start p95 ≤ 500ms. Hard kill-switch: 30MB cumulative bundle.
 6. `validate-wave-gate-prerequisite` (S-9.07) invokes `verify-sha-currency.sh` via
    `host::exec_subprocess` with `shell_bypass_acknowledged` capability gate — no new
-   SDK extension required. See gap-analysis-w16-subprocess.md Section 7.
+   SDK extension required. Anchored by BC-1.05.001..034 (existing) + BC-1.05.035 +
+   BC-1.05.036 (additive, ADR-014 Amendment 2026-05-03). See gap-analysis-w16-subprocess.md Section 7.
 
 ---
 
@@ -239,16 +261,17 @@ TD entry for v1.2 if git-aware compaction detection is desired.
 > **WITHDRAWN 2026-05-03.** Original decision was to build `host::run_subprocess`
 > (BC-2.02.013, S-9.30) as a new ABI extension. Gap analysis
 > (`gap-analysis-w16-subprocess.md` Section 7) confirmed that the existing
-> `host::exec_subprocess` (BC-2.02.005, production-verified) is sufficient for
-> all W-16 use cases. Section 5 "fundamentally insufficient" list is empty for
-> `validate-wave-gate-prerequisite`. See ADR-014 Amendment 2026-05-03.
+> `host::exec_subprocess` (anchored by BC-1.05.001..034 (existing) + BC-1.05.035 +
+> BC-1.05.036 (additive, ADR-014 Amendment 2026-05-03); production-verified) is
+> sufficient for all W-16 use cases. Section 5 "fundamentally insufficient" list is
+> empty for `validate-wave-gate-prerequisite`. See ADR-014 Amendment 2026-05-03.
 
 **Revised decision:** `validate-wave-gate-prerequisite` (S-9.07) uses the existing
 `host::exec_subprocess` ABI directly with `shell_bypass_acknowledged` capability
-gate. Two minor additive extensions to BC-2.02.005 fit within S-9.07 scope:
-(1) path traversal guard on binary arg (~30 min), (2) success-path telemetry event
-(~2 hr). These are additive and ABI-stable (D-6 Option A precedent). HOST_ABI_VERSION
-stays at 1. S-9.30 withdrawn; BC-2.02.013 withdrawn (preserved as audit trail).
+gate. Two minor additive extensions (BC-1.05.035: path traversal guard on binary arg;
+BC-1.05.036: success-path telemetry event) fit within S-9.07 scope. These are
+additive and ABI-stable (D-6 Option A precedent). HOST_ABI_VERSION stays at 1.
+S-9.30 withdrawn; BC-2.02.013 withdrawn (preserved as audit trail).
 
 All other 22 hooks use only the existing ABI (`read_file`, `emit_event`, `log`).
 
@@ -266,10 +289,12 @@ review focus on each cluster's specific risk profile.
 
 Mirrors E-8 D-2 Option C: reuse existing BCs; no new BC family.
 
-Exception: `host::run_subprocess` requires BC-2.02.013 (authored by PO in D-3).
-Each Tier 2 hook's behavioral obligations are covered by existing BC-7.xx entries.
-If a port reveals unspecified behavior, a new BC is drafted under the existing
-BC-7.xx sub-family for the relevant hook (not a new BC-7.02.x migration family).
+All Tier 2 hooks reuse existing BC-7.xx anchors. The S-9.07 subprocess use case is
+covered by existing BC-1.05.001..034 plus the additive BC-1.05.035 + BC-1.05.036
+(per ADR-014 Amendment 2026-05-03). Each Tier 2 hook's behavioral obligations are
+covered by existing BC-7.xx entries. If a port reveals unspecified behavior, a new
+BC is drafted under the existing BC-7.xx sub-family for the relevant hook (not a
+new BC-7.02.x migration family).
 
 Story-writer identifies BC anchor(s) per batch story during S-9.01..S-9.07
 authoring (Burst 2 + Burst 3).
@@ -284,20 +309,26 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 
 ## Risks
 
-> **Risk ID alignment note (v1.1):** Risk IDs below are aligned to ADR-014's
-> canonical R-W16-NNN namespace. R-W16-001 through R-W16-005 match ADR-014's
-> definitions. R-W16-004 (former run_subprocess security surface risk) replaced
-> by R-W16-005 (WASI preopens) since S-9.30 was withdrawn. R-W16-006 added for
-> Windows CI coverage. See CHANGELOG v1.1 F-1, F-5.
+> **Risk ID alignment note (v1.2):** Risk IDs below are aligned to ADR-014's
+> canonical R-W16-NNN namespace. R-W16-001 through R-W16-006 use ADR-014's verbatim
+> definitions: R-W16-001 = bats orphan migration, R-W16-002 = WASI preopens
+> (ADR-014 §"Audit Risk Items Carried Forward"), R-W16-003 = latency/bundle growth,
+> R-W16-004 = bats/WASM test infrastructure (ADR-014 §"Audit Risk Items Carried Forward"),
+> R-W16-005 = path_allow coverage (additive per pass-1 F-5), R-W16-006 = Windows CI
+> gap (additive per pass-1 F-5). E-9-specific risks that collided with ADR-014 IDs
+> renumbered: Behavioral divergence → R-W16-007; YAML parsing fidelity → R-W16-008
+> (append-only per POLICY 1). See CHANGELOG v1.1 F-1, v1.2 F-1 PARTIAL resolution.
 
 | Risk ID | Description | Likelihood | Impact | Mitigation |
 |---------|-------------|-----------|--------|------------|
 | R-W16-001 | bats orphan migration: bats tests for `.sh` hooks become orphans after WASM port (`.sh` files remain on disk until Phase H; bats tests test bash, not WASM) | HIGH | MED | Deferred to Phase H. Each story spec includes task to document the batch's bats orphan deletion checklist. No bats tests are deleted in W-16. |
-| R-W16-002 | Behavioral divergence in rewrite-clean: rewriting 143-line bash hooks in idiomatic Rust may introduce subtle semantic differences (awk regex precedence, jq null-coalescing edge cases) | MED | HIGH | Each story spec must enumerate all behavioral edge cases as explicit ACs; adversarial convergence per ADR-013 surfaces divergences before implementation. E-8 OQ-001 (ERE precedence) is the canonical risk reference. |
+| R-W16-002 | WASI preopens: 19 of 23 hooks read `FILE_PATH`. Canonical capability is `path_allow = [".factory/"]` for spec-file readers; `path_allow = ["."]` for hooks that may read files outside `.factory/`. Each story spec must pin per-hook path_allow declarations. (Per ADR-014 §"Audit Risk Items Carried Forward".) | MED | HIGH | Each story spec (S-9.01..S-9.07) MUST pin `path_allow` declarations per hook in the AC table and registry TOML snippet. Adversarial review checks path_allow coverage before story reaches `ready`. |
 | R-W16-003 | Latency regression and bundle growth: 23 new WASM plugins may regress cold-start p95 beyond 500ms or exceed bundle hard kill-switch (30MB) | LOW | HIGH | Primary gate: cold-start p95 ≤ 500ms (ADR-014 R-8.09 revised model). S-9.00 measures post-rc.4 baseline capturing both `bundle_size_delta_bytes` and `cold_start_p95_delta_ms`. Wave pause if cold-start regresses >10%. Advisory soft cap: cumulative ≤100% growth (~14MB) at end of W-17. Hard kill-switch: 30MB cumulative; crossing requires fresh architecture review. Per-wave telemetry: `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. See ADR-014 Amendment 2026-05-03 (R-8.09 revised). |
-| R-W16-004 | YAML parsing fidelity: 2 hooks (validate-wave-gate-completeness, validate-wave-gate-prerequisite) use python3 `yaml.safe_load`; replacement with `serde_yaml` must preserve parse semantics | MED | MED | Explicit test vectors for YAML edge cases (multi-doc streams, null values, integer coercion) in S-9.07 story ACs. |
-| R-W16-005 | WASI preopens / path_allow coverage: 19 of 23 hooks need `path_allow = [".factory/"]` (or appropriate directory) in WASM sandbox config (`hooks-registry.toml`). Missing or incorrect `path_allow` declarations cause runtime `read_file` denial — hooks silently fail or block incorrectly. | MED | HIGH | Each story spec (S-9.01..S-9.07) MUST pin `path_allow` declarations per hook in the AC table and registry TOML snippet. Adversarial review checks path_allow coverage before story reaches `ready`. Integration tests run with the exact registry config to catch misconfiguration. |
+| R-W16-004 | bats/WASM test infrastructure: each story spec includes a WASM integration test task (Rust `factory-dispatcher/tests/`) and defers bats migration to Phase H, citing the TD-020 class problem. (Per ADR-014 §"Audit Risk Items Carried Forward".) | MED | MED | Explicit WASM integration test task in each batch story ACs. Bats tests remain on disk until Phase H. |
+| R-W16-005 | WASI preopens / path_allow coverage detail: 19 of 23 hooks need `path_allow = [".factory/"]` (or appropriate directory) in WASM sandbox config (`hooks-registry.toml`). Missing or incorrect `path_allow` declarations cause runtime `read_file` denial — hooks silently fail or block incorrectly. | MED | HIGH | Each story spec (S-9.01..S-9.07) MUST pin `path_allow` declarations per hook in the AC table and registry TOML snippet. Adversarial review checks path_allow coverage before story reaches `ready`. Integration tests run with the exact registry config to catch misconfiguration. |
 | R-W16-006 | Windows CI gap: no Windows runner in W-16 CI plan | LOW | MED | Add AC for Windows CI runner per E-8 AC-5 pattern (see AC-10). Track as DRIFT-010 closure verification. |
+| R-W16-007 | Behavioral divergence in rewrite-clean: rewriting 143-line bash hooks in idiomatic Rust may introduce subtle semantic differences (awk regex precedence, jq null-coalescing edge cases) | MED | HIGH | Each story spec must enumerate all behavioral edge cases as explicit ACs; adversarial convergence per ADR-013 surfaces divergences before implementation. E-8 OQ-001 (ERE precedence) is the canonical risk reference. (Renumbered from former R-W16-002 to avoid collision with ADR-014 WASI preopens definition.) |
+| R-W16-008 | YAML parsing fidelity: 2 hooks (validate-wave-gate-completeness, validate-wave-gate-prerequisite) use python3 `yaml.safe_load`; replacement with `serde_yaml` must preserve parse semantics | MED | MED | Explicit test vectors for YAML edge cases (multi-doc streams, null values, integer coercion) in S-9.07 story ACs. (Renumbered from former R-W16-004 to avoid collision with ADR-014 bats/WASM test infrastructure definition.) |
 
 ---
 
@@ -312,7 +343,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 | AC-5 | S-9.07 T-0 STOP CHECK verifies only `depends_on: S-9.00` is satisfied before S-9.07 implementation begins. (S-9.30 dependency removed — D-9.2 withdrawn.) |
 | AC-6 | HOST_ABI_VERSION = 1 in both `crates/hook-sdk/src/lib.rs` and `crates/factory-dispatcher/src/lib.rs` after all E-9 stories merge. Verified via: `grep -n 'pub const HOST_ABI_VERSION: u32 = 1' crates/hook-sdk/src/lib.rs` returns exactly one match; same check for `crates/factory-dispatcher/src/lib.rs`. |
 | AC-7 | Legacy bash adapter entries for the 23 Tier 2 hooks removed from hooks-registry.toml; zero `validate-*.sh` hooks route through `legacy-bash-adapter.wasm` after E-9 completes |
-| AC-8 | Block-mode hooks (validate-factory-path-root, validate-input-hash, validate-template-compliance) each have at least one negative (false-block) test fixture in their batch story ACs |
+| AC-8 | Block-mode hooks (validate-factory-path-root, validate-input-hash, validate-template-compliance, validate-pr-merge-prerequisites, validate-wave-gate-prerequisite) each have at least one negative (false-block) test fixture in their batch story ACs. (5 of 23 hooks; verified against hooks-registry.toml on-disk `on_error = "block"` fields.) |
 | AC-9 | `.sh` files remain on disk per R-W16-001; no `.sh` bash hook files deleted in W-16 stories |
 | AC-10 | Windows CI runner (windows-x64) included in W-16 CI matrix; each batch story's integration tests pass on all 5 platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x64. Per E-8 AC-5 pattern. Closes R-W16-006. |
 
@@ -324,7 +355,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 |----|----------|-------|------------|
 | OQ-1 | W-16 bundle size ceiling: what % growth is acceptable for 23 new plugins over the post-rc.4 baseline? | story-writer (S-9.00) | Resolved by S-9.00 measurement + ceiling proposal |
 | OQ-2 | validate-state-size compaction-detection: the git subprocess path is simplified away in D-9.1. If the line-count-only gate triggers too many false-block events, should we revisit at v1.2? | tech-debt | File as TD after W-16 ships; low priority |
-| OQ-3 | exec_subprocess registry: validate-wave-gate-prerequisite's `hooks-registry.toml` entry needs a `[hooks.<id>.capabilities.exec_subprocess]` block with `binary_allow = ["bash"]`, `shell_bypass_acknowledged`, and `env_allow = ["PATH"]`. Who authors this TOML snippet? | S-9.07 | RESOLVED — S-9.30 withdrawn; S-9.07 provides the concrete registry example using exec_subprocess. See gap-analysis-w16-subprocess.md Section 7 migration plan. |
+| OQ-3 | exec_subprocess registry: validate-wave-gate-prerequisite's `hooks-registry.toml` entry needs a `[hooks.<id>.capabilities.exec_subprocess]` block. Per gap-analysis-w16-subprocess.md §7 (ExecSubprocessCaps schema) the required fields are: `binary_allow = ["bash"]`, `shell_bypass_acknowledged = "acknowledged"`, `env_allow = ["PATH"]`, `cwd_allow = []` (validate-wave-gate-prerequisite uses `$SHA_PROJECT_ROOT` flag, not cwd — empty allow-list correct). Who authors this TOML snippet? | S-9.07 | RESOLVED — S-9.30 withdrawn; S-9.07 provides the concrete registry example using exec_subprocess. See gap-analysis-w16-subprocess.md Section 7 migration plan. |
 
 ---
 
@@ -336,7 +367,8 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 | serde_json | workspace | stdin JSON deserialization (HookPayload via vsdd-hook-sdk) | S-9.01 |
 | serde_yaml | workspace (0.9.x) | YAML frontmatter + wave-state.yaml parsing | S-9.02, S-9.07 |
 | walkdir | workspace | Directory traversal replacing `find` in pr-merge-prerequisites | S-9.03 |
-| vsdd-hook-sdk | 0.2.0 (post-S-8.10) | Plugin ABI (read_file, emit_event, log, exec_subprocess) | S-9.01 |
+| vsdd-hook-sdk | 0.2.0 (post-S-8.10) | Plugin ABI shim (read_file, emit_event, log) | S-9.01..S-9.06 |
+| vsdd-hook-sdk (subprocess facet) | 0.2.0+ | exec_subprocess wrapper for S-9.07 | S-9.07 |
 | bats-core | >=1.10 (CI) | Bats orphan checklist verification (bash hooks remain on disk) | Per-story (D-9.5) |
 | du (coreutils) | system | Bundle-size measurement (byte count per .wasm file); `wc -c < file` portable fallback on macOS | S-9.00 |
 | hyperfine | >=1.18 | Latency benchmarking harness (cold-start p95 measurement per wave) | S-9.00 |
@@ -371,7 +403,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 
 **Architecture section files:**
 - `architecture/module-decomposition.md` — confirms `crates/hook-plugins/` belongs to SS-04; `crates/hook-sdk/` to SS-02
-- `architecture/SS-02-hook-sdk.md` — host::run_subprocess entry in Schema Evolution table (after S-9.30 merges)
+- `architecture/SS-02-hook-sdk.md` — host::run_subprocess section marked WITHDRAWN per ADR-014 Amendment 2026-05-03 (gap-analysis-w16-subprocess.md §7); no Schema Evolution entry required
 - `architecture/SS-04-plugin-ecosystem.md` — canonical home for all hook plugin crates
 
 ---
@@ -402,6 +434,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 |---------|------|--------|---------|
 | 1.0 | 2026-05-03 | story-writer | Initial authoring — Phase D-4 Burst 1. E-9 epic for W-16 Tier 2 native WASM migration (23 validate-*.sh hooks). 9-story scope: S-9.00 + S-9.30 + S-9.01..S-9.07. Based on ADR-014 (D-9.1/D-9.2/D-9.3), audit-w16.md, and BC-2.02.013. Follows E-8 v1.9 shape. |
 | 1.1 | 2026-05-03 | story-writer | Pass-1 fix burst (18 findings) + scope reduction per ADR-014 Amendment 2026-05-03. See details below. |
+| 1.2 | 2026-05-03 | story-writer | Pass-2 fix burst (12 findings from W-16-E-9-pass-2-adversary.md). See v1.2 changelog below. |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -460,3 +493,75 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 - F-16: ADR-013 convergence requirement note added to success criteria (AC-4)
 - F-17: S-9.00 wave:16 consistency preserved; dependency graph updated
 - F-18: Background wording aligned to ADR-014 §2 "20/23" phrasing
+
+### v1.2 (2026-05-03) — Pass-2 fix burst
+
+Fixes from W-16-E-9-pass-2-adversary.md:
+
+- **F-1 PARTIAL [HIGH]: R-W16-002/R-W16-004 semantic collision with ADR-014** — Adopted
+  ADR-014's verbatim definitions for R-W16-001..006: R-W16-002 = WASI preopens;
+  R-W16-004 = bats/WASM test infrastructure. E-9 v1.1's redefined "Behavioral divergence"
+  renumbered to R-W16-007; "YAML parsing fidelity" renumbered to R-W16-008 (append-only
+  per POLICY 1). All internal cross-references in Risk table updated. Risk alignment note
+  in Risk table header updated to v1.2 canonical description.
+
+- **F-P2-001 + F-P2-004 [HIGH]: D-9.4 Exception clause invalidated by D-9.2 withdrawal** —
+  Removed "Exception: `host::run_subprocess` requires BC-2.02.013 (authored by PO in D-3)"
+  clause from D-9.4. Replaced with: "All Tier 2 hooks reuse existing BC-7.xx anchors. The
+  S-9.07 subprocess use case is covered by existing BC-1.05.001..034 plus the additive
+  BC-1.05.035 + BC-1.05.036 (per ADR-014 Amendment 2026-05-03)."
+
+- **F-P2-002 [HIGH]: Architecture section files stale (SS-02 host::run_subprocess)** —
+  Replaced line 374 (`architecture/SS-02-hook-sdk.md` Schema Evolution reference) with:
+  "host::run_subprocess section marked WITHDRAWN per ADR-014 Amendment 2026-05-03
+  (gap-analysis-w16-subprocess.md §7); no Schema Evolution entry required."
+
+- **F-P2-003 [HIGH]: BC-2.02.005 mis-anchor — propagation across 6 sites** —
+  Replaced ALL E-9 references to `BC-2.02.005` in exec_subprocess context with
+  "BC-1.05.001..034 (existing) + BC-1.05.035 + BC-1.05.036 (additive, ADR-014 Amendment
+  2026-05-03)". Sites fixed: Description (line 38), SS-02 dropped note (line 78),
+  Batch B-7 table (line 159), Goal #4 (line 194), Goal #6 (lines 198–200), D-9.2 prose
+  (lines 242–248). BC-2.02.005 = read_string SDK protocol (correct per ADR-014 Correction
+  2026-05-03 and gap-analysis-w16-subprocess.md).
+
+- **F-P2-005 [MEDIUM]: Burst language at line 99** — Replaced "S-9.01..S-9.04 are Burst 2;
+  S-9.05..S-9.07 are Burst 3" with "Story-writer authors S-9.01..S-9.07 in subsequent
+  bursts following adversarial convergence per ADR-013."
+
+- **F-P2-006 [MEDIUM]: SS-07 anchor justification strengthened** — Added concrete artifacts
+  to SS-07 paragraph: references `plugins/vsdd-factory/hooks/validate-*.sh` (23 files),
+  `hooks-registry.toml` `[[hooks]]` entries, and registry-edit-only scope. [process-gap]
+  stretch-anchor disclosure block added per POLICY 5.
+
+- **F-P2-007 [MEDIUM]: vsdd-hook-sdk Library Table Purpose column** — Split single row into
+  two: "Plugin ABI shim (read_file, emit_event, log) | S-9.01..S-9.06" and "exec_subprocess
+  wrapper for S-9.07 | S-9.07". Aligns exec_subprocess consumer with its actual first story.
+
+- **F-P2-008 [MEDIUM]: OQ-3 exec_subprocess registry block missing cwd_allow** — Added
+  `cwd_allow = []` to OQ-3's resolution text, citing gap-analysis-w16-subprocess.md §7
+  ExecSubprocessCaps schema. Justification: validate-wave-gate-prerequisite uses
+  `$SHA_PROJECT_ROOT` flag, not cwd.
+
+- **F-P2-009 [MEDIUM]: Block-mode column inventory corrected via on-disk TOML audit** —
+  Audited `plugins/vsdd-factory/hooks-registry.toml` on-disk `on_error` fields for all
+  Tier 2 hooks. Found 5 block-mode hooks (not 3): validate-pr-merge-prerequisites (line
+  774) and validate-wave-gate-prerequisite (line 794) both have `on_error = "block"`.
+  Corrected their Block-mode column from "no" to "YES" with TOML line citations. Block-mode
+  callout updated: "5 of 23" with enumeration. AC-8 updated to list all 5 block-mode hooks.
+
+- **F-P2-010 [LOW]: input-hash placeholder** — Retained as `[pending-recompute]`. Per POLICY
+  3, state-manager recomputes SHA after fix burst completes. No change to frontmatter.
+
+- **F-P2-011 [LOW]: S-9.30 row ordering** — Moved withdrawn S-9.30 row to END of Stories
+  table. Added "**— Withdrawn —**" subsection separator row per POLICY 1.
+
+- **F-P2-012 [LOW]: status: in-review** — Flipped frontmatter `status: draft` → `status:
+  in-review` per pass-1 F-14 suggestion. Convergence is in progress (pass-2 SUBSTANTIVE).
+
+- **F-P2-013 [LOW]: epic-level depends_on intent** — E-9 `depends_on: ["E-8"]` is the
+  epic-level declaration. Sibling stories (e.g., S-9.00) independently declaring
+  `depends_on: ["E-8"]` is correct: epic-level depends_on describes the epic's predecessor;
+  story-level depends_on is the implementer's gate. Both are correct and intentional.
+  No change to E-9 frontmatter.
+
+Lines: v1.1 (495L) → v1.2 (~560L)

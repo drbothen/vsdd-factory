@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.32"
+version: "1.33"
 status: current
 producer: state-manager
 timestamp: 2026-05-03T00:00:00
@@ -61,6 +61,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **W-15 wave gate CONVERGED (2026-05-02): STORY-INDEX v1.29 → v1.30.** 3 fix-bursts (PR #59/60/61) closed all wave gate findings. D-205..D-208 sealed. All 12 W-15 stories sealed: S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08, S-8.09, S-8.10, S-8.30 — status=merged. All CC-W15-001..011 RETIRED. develop @ d49f33b. v1.0.0-rc.3 release path clear.
 > **W-16 Phase D-4 Burst 1 (2026-05-03): E-9 epic + S-9.00 + S-9.30 authored. STORY-INDEX v1.30 → v1.31.** E-9-tier-2-native-wasm-migration.md v1.0 status=draft; 9-story scope (S-9.00 + S-9.30 + S-9.01..S-9.07); 23 validate-*.sh hooks; ADR-014 D-9.1/D-9.2/D-9.3. S-9.00 (perf baseline + W-16 bundle ceiling; depends_on=[]; blocks S-9.01..S-9.07; behavioral_contracts=[] [process-gap]). S-9.30 (host::run_subprocess SDK extension; depends_on E-8; blocks S-9.07; behavioral_contracts=[BC-2.02.013]; 24 MUSTs traced across 8 ACs; JSON-pointer protocol; SubprocessCaps + SubprocessSpec + SubprocessResult types). W-16 section added to index. Epic E-9 row added. Total stories: 59 → 61 (S-9.00 + S-9.30); additional 7 batch stories in Burst 2+3.
 > **W-16 fix burst (2026-05-03): S-9.30 withdrawn + E-9/S-9.00 v1.1 + E-8 v1.10. STORY-INDEX v1.31 → v1.32.** ADR-014 D-9.2 amendment: gap analysis confirmed host::exec_subprocess sufficient; S-9.30 withdrawn same day (status: withdrawn). E-9 v1.0→v1.1: story_count 9→8; S-9.07 depends_on updated; 18 pass-1 findings closed (5H+8M+5L); R-8.09 revised ceiling model applied; WASI preopens risk added. S-9.00 v1.0→v1.1: 5-platform coverage; latency-primary gate; POLICY 11 anti-tautology AC added; du portability fixed to wc -c. E-8 v1.9→v1.10: status tier-1-shipped; story_count 31→12 (Tier 1 only); D-13 Tier 2/3 rows struck-through superseded; S-8.11..S-8.29 placeholders retired. S-9.30 row: withdrawn. S-8.11..S-8.29 rows: retired.
+> **W-16 Phase D-4 pass-2 fix burst (2026-05-03): E-9 v1.2 + S-9.00 v1.2 + ADR-014 R-8.NN correction. STORY-INDEX v1.32 → v1.33.** Pass-2 adversarial returned SUBSTANTIVE on both E-9 v1.1 and S-9.00 v1.1: 20 findings total (6 HIGH + 8 MEDIUM + 6 LOW). E-9 v1.1→v1.2 (495L→567L): R-W16-002/004 semantic collision with ADR-014 resolved by adopting ADR-014 definitions verbatim; E-9 redefinitions renumbered R-W16-007/008 (POLICY 1 append-only); BC-2.02.005 mis-anchor corrected to BC-1.05.001..034+035+036 at 6 sites; D-9.4 Exception clause + SS-02 line 374 reference removed (invalidated by D-9.2 withdrawal); 5 MEDIUM + 4 LOW findings closed. S-9.00 v1.1→v1.2 (~380L→456L): du -sb regression at lines 193+212 corrected to wc -c (sibling-propagation gap); advisory cap baseline corrected to pre-W-15 ~7.2MB at AC-3b+B.2 + Task A.0 added; AC-2 Tier 1 plugin count corrected 12→13 (validate-pr-review-posted added, verified @d49f33b); R-8.NN resolved as R-8.08 (canonical per E-8 v1.10 line 607-608); 4 sites corrected in S-9.00; cold-vs-warm latency conflation resolved in EC-006+B.1; B.1 representative plugin corrected to handoff-validator.wasm. ADR-014 R-8.09 amendment: R-8.10 citation corrected to R-8.08. ADR-013 clock: 0_of_3 (reset on SUBSTANTIVE pass-2). D-225 sealed.
 
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
@@ -263,9 +264,9 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
-## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (draft, v1.1)
+## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (in-review, v1.2)
 
-> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.1 status=draft. 8-story scope (v1.1): S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn same day. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn; exec_subprocess sufficient) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens). Library Table: regex, serde_yaml, walkdir, du/wc (bundle), hyperfine (latency).
+> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03) + v1.2 pass-2 fix burst (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.2 status=in-review (567L). 8-story scope: S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens), R-W16-007 (behavioral divergence), R-W16-008 (YAML parsing fidelity). Library Table: regex, serde_yaml, walkdir, wc (bundle), hyperfine (latency). Pass-2: 12 findings closed (D-225). ADR-013 clock: 0_of_3 (reset on SUBSTANTIVE). input-hash: e3055a6.
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|

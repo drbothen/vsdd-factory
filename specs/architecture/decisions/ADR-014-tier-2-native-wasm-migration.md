@@ -41,7 +41,7 @@ superseded_by: null
 - **Amendment date:** 2026-05-03
 - **Reason:** Research (`.factory/research/W-16-spec-foundation-research.md` Q3) found wasmtime cold-start latency is decoupled from module size at our scale. Industry comparables (Lapce, Zellij, Spin, Cloudflare Workers, Fermyon) routinely tolerate 10-50MB bundles. Cranelift compiles ~1-3ms/MB; AOT pre-compilation reduces this to sub-ms. Bundle size matters for distribution speed (clawhub download), not runtime performance. The original 25% ceiling was an uninformed conservative bound that would block W-16 even when cold-start budget is fully satisfied.
 - **Revised decision (replaces R-8.09):** Latency-primary gate + bundle-size advisory + hard kill-switch:
-  - **Primary gate (HARD):** cold-start p95 ≤ 500ms (inherited from S-8.00 / E-8 R-8.10).
+  - **Primary gate (HARD):** cold-start p95 ≤ 500ms (inherited from S-8.00 / E-8 R-8.08; note: original amendment cited R-8.10 in error — E-8 v1.10 risk table is the source of truth; R-8.08 is "Cumulative WASM startup overhead" with AC-7b ceiling = 500ms p95).
   - **Advisory soft cap:** cumulative bundle growth ≤ 100% vs pre-W-15 baseline at end of W-17 (~14MB target).
   - **Hard kill-switch:** cumulative bundle ≤ 30MB. Crossing requires fresh project-level architecture review. Rationale: at 30MB on 5 platforms, distribution payload reaches ~150MB total — the threshold at which package-manager users notice download time on slow connections.
   - **Required telemetry per wave:** publish `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. Pause wave if cold-start regresses >10%.
