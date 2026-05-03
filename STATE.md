@@ -319,7 +319,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-4 E-9 v1.6 deeper structural fix; **S-9.00 v1.4 CONVERGED**; E-9 needs pass-8 → 3_of_3 cycle)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** (after this commit — chore(state): seal E-9 v1.6 deeper fix (D-232) + checkpoint)
+**factory-artifacts HEAD:** 13b6367 (chore(state): seal E-9 v1.6 deeper fix (D-232) + checkpoint)
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
