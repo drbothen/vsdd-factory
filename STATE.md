@@ -316,7 +316,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (D-230 sealed; E-9 v1.5 structural fix burst SEALED; ADR-013 clock 0_of_3 fresh start for v1.5; S-9.00 v1.4 clock 2_of_3 unchanged)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** [pending state commit]
+**factory-artifacts HEAD:** 0f12585 (chore(state): seal E-9 v1.5 structural fix (D-230) + checkpoint)
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
