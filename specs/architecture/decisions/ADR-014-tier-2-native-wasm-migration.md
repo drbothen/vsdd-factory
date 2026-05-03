@@ -42,7 +42,7 @@ superseded_by: null
 - **Reason:** Research (`.factory/research/W-16-spec-foundation-research.md` Q3) found wasmtime cold-start latency is decoupled from module size at our scale. Industry comparables (Lapce, Zellij, Spin, Cloudflare Workers, Fermyon) routinely tolerate 10-50MB bundles. Cranelift compiles ~1-3ms/MB; AOT pre-compilation reduces this to sub-ms. Bundle size matters for distribution speed (clawhub download), not runtime performance. The original 25% ceiling was an uninformed conservative bound that would block W-16 even when cold-start budget is fully satisfied.
 - **Revised decision (replaces R-8.09):** Latency-primary gate + bundle-size advisory + hard kill-switch:
   - **Primary gate (HARD):** cold-start p95 ≤ 500ms (inherited from S-8.00 / E-8 R-8.08; note: original amendment cited R-8.10 in error — E-8 v1.10 risk table is the source of truth; R-8.08 is "Cumulative WASM startup overhead" with AC-7b ceiling = 500ms p95).
-  - **Advisory soft cap:** cumulative bundle growth ≤ 100% vs pre-W-15 baseline at end of W-17 (~14MB target).
+  - **Advisory soft cap:** cumulative `all_hook_plugins_wasm_bytes` growth ≤ 100% vs v1.0.0-rc.1 baseline at end of W-17 (target = 2 × Task A.0's measured value; measured fresh per S-9.00 Task A.0; the prior ~14MB target derived from research §Q3's 7.2MB projection is superseded — that figure was a projection, not a measurement).
   - **Hard kill-switch:** cumulative bundle ≤ 30MB. Crossing requires fresh project-level architecture review. Rationale: at 30MB on 5 platforms, distribution payload reaches ~150MB total — the threshold at which package-manager users notice download time on slow connections.
   - **Required telemetry per wave:** publish `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. Pause wave if cold-start regresses >10%.
 - **Consequences:**
@@ -385,3 +385,13 @@ implementer GREEN + demo-recorder + pr-manager 9-step.
   WriteFileCaps pattern), S-8.30 (additive ABI extension), S-8.00 (perf baseline).
 - **ADR references:** ADR-006 (HOST_ABI_VERSION additive policy), ADR-012
   (legacy-bash-adapter multi-instance routing), ADR-013 (adversarial review structure).
+
+---
+
+## Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-03 | Initial authoring. D-9.1 rewrite-clean, D-9.2 run_subprocess, D-9.3 7-batch decomposition. |
+| v1.1 | 2026-05-03 | D-9.2 amendment: run_subprocess withdrawn; exec_subprocess sufficient. R-8.09 ceiling model revised (latency-primary). |
+| v1.1 (fix-burst 2026-05-03) | 2026-05-03 | R-8.09 Advisory soft cap metric pinned to `all_hook_plugins_wasm_bytes`; prior ~14MB target (derived from research §Q3's 7.2MB projection) superseded — that figure was a projection, not a measurement. S-9.00 Task A.0 measured value is the authoritative denominator (321,843 bytes at v1.0.0-rc.1). |

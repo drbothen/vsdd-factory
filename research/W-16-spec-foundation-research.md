@@ -300,6 +300,8 @@ Concretely, recommend the following policy structure:
 
 1. **Primary gate (HARD):** 500ms p95 cold-start latency from S-8.00. This is the user-perceptible metric. Bundle size is a second-order concern that only matters insofar as it affects this number.
 
+> **Erratum 2026-05-03 (post-D-4 pass-4):** The ~7.2MB baseline cited in §Q3 below is a projection extrapolated from industry comparables, NOT an actual measurement. Actual `v1.0.0-rc.1` `all_hook_plugins_wasm_bytes` is **321,843 bytes (~322KB)** per `git ls-tree` audit recorded in S-9.00 Task A.0. The advisory cap denominator is the Task A.0 fresh measurement, not 7.2MB. Cross-doc references in S-9.00 v1.4 + ADR-014 v1.1 align with the measured value.
+
 2. **Secondary gate (SOFT advisory):** Cumulative bundle-size growth ≤ 100% (2× v1.0.0 GA baseline) at end of Tier 3 (W-17). With a baseline of ~7.2MB, this caps the dispatcher bundle at ~14.4MB at W-17 completion. Per-wave ceiling: ≤50% growth from start-of-wave. Rationale:
    - Industry comparables (VS Code, JetBrains, Lapce, Zellij) routinely tolerate single bundles in the 10-50MB range without user complaint.
    - At ~14MB total, we remain well below Cloudflare Workers' 3MB-free / 10MB-paid hard caps (different deployment context, but a meaningful order-of-magnitude reference).

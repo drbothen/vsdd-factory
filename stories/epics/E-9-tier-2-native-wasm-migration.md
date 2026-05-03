@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.3"
+version: "1.4"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -378,8 +378,8 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 > `std::time::{Duration, Instant}`, `glob`, `anyhow/thiserror`, and `tempfile`
 > rows removed — these were for the S-9.30 `host::run_subprocess` dispatcher binding,
 > which is withdrawn. `hyperfine` row corrected to "Latency benchmarking harness"
-> (was incorrectly listed as "Bundle-size measurement harness"; `du` is the bundle-size
-> tool). See CHANGELOG v1.1 F-3.
+> (was incorrectly listed as "Bundle-size measurement harness"; `du` was the bundle-size
+> tool at v1.1, superseded by wc -c per v1.3 fix-burst F-P3-001 cross-doc). See CHANGELOG v1.1 F-3.
 
 > **Version pin note:** All library versions use workspace-level version constraints.
 > Do not introduce non-workspace dependencies. `serde_yaml 0.9.x` — same pin as
@@ -596,3 +596,16 @@ Fixes from W-16-S-9.00-pass-3-adversary.md (cross-doc):
   uniformly prohibited across both E-9 epic and S-9.00 story per F-7 (pass-1) propagation.
 
 Lines: v1.2 (~570L) → v1.3 (598L)
+
+## v1.4 (2026-05-03) — Pass-4 fix burst (fix-only mode)
+
+Fix-only-no-new-prose discipline adopted per [process-gap] observation.
+
+Fixes from W-16-E-9-pass-4-adversary.md:
+- F-P4-002 [MED]: v1.1 changelog parenthetical updated to acknowledge wc supersession (1-line edit).
+- F-P4-003 [LOW]: deferred (refinement, pending intent).
+
+Cross-doc fixes (separate commits in same burst):
+- F-P4-001 [HIGH]: STORY-INDEX line 282 BC-2.02.005 → BC-1.05.001..034 + BC-1.05.035 + BC-1.05.036 (state-manager scope).
+
+Lines: v1.3 (598L) → v1.4 (~602L).
