@@ -181,9 +181,68 @@ pass-4 revision).
   implemented. Bash hooks call `bin/emit-event` shell tool rather than emitting
   directly through the host fn path. Reconciliation pending S-3.4 completion.
 
+## E-9: Tier 2 Native WASM Migration (W-16)
+
+**Epic positioning:** E-9 is the Tier 2 native WASM migration epic. It follows E-8
+(W-15 Tier 1) which shipped at rc.4 (v1.0.0-rc.4, 2026-04-25). E-9 ports all 23
+`validate-*.sh` hooks from bash (routed via `legacy-bash-adapter`) to native WASM
+plugins authored in Rust using `vsdd-hook-sdk`.
+
+**Dependency:** E-9 requires E-8 (W-15) Tier 1 closure. E-8 is complete as of rc.4.
+
+**Scope:** ~9 stories total.
+
+| Story | Scope |
+|-------|-------|
+| S-9.00 | Perf baseline: measure WASM bundle size pre-W-16; set W-16 bundle ceiling |
+| SDK-ext | Dispatcher + SDK implementation of `host::run_subprocess` (BC-2.02.013) |
+| S-9.01 | Batch 1: 4 pure stdin-parse hooks (demo-evidence-story-scoped, factory-path-root, finding-format, novelty-assessment) |
+| S-9.02 | Batch 2: 4 single-file-read frontmatter validators (bc-title, changelog-monotonicity, red-ratio, input-hash) |
+| S-9.03 | Batch 3: 3 PR/delivery artifact validators (pr-description-completeness, table-cell-count, pr-merge-prerequisites) |
+| S-9.04 | Batch 4: 3 STATE.md + cycle INDEX validators (state-index-status-coherence, state-pin-freshness, state-size) |
+| S-9.05 | Batch 5: 3 multi-file cross-document validators (story-bc-sync, count-propagation, index-self-reference) |
+| S-9.06 | Batch 6: 3 multi-file + ARCH-INDEX cross-document validators (anchor-capabilities-union, subsystem-names, template-compliance) |
+| S-9.07 | Batch 7: 3 highest-complexity validators (vp-consistency, wave-gate-completeness, wave-gate-prerequisite) |
+
+**Port strategy:** rewrite-clean (D-9.1). Idiomatic Rust with `regex`, `serde_json`,
+`serde_yaml`. No 1:1 bash-to-Rust translation. See ADR-014.
+
+**Subprocess capability:** `host::run_subprocess` (D-9.2, ADR-014) is used by S-9.07
+(`validate-wave-gate-prerequisite` invokes `verify-sha-currency.sh`). The SDK
+extension story implements the dispatcher ABI and SDK shim before S-9.01..S-9.07
+begin.
+
+**Bundle ceiling:** S-9.00 measures the WASM bundle baseline before any W-16 plugin
+lands and sets the W-16-specific 25% growth ceiling (analogous to E-8's R-8.09
+25% ceiling on Tier 1 bundle growth). The 23 new plugins are estimated at 4.6–6.9 MB
+(per R-W16-003 audit); the S-9.00 baseline determines whether the existing R-8.09
+ceiling must be revised or replaced with a per-wave ceiling metric.
+
+**Migration sequence:** After E-9 ships, the 23 `validate-*.sh` legacy-bash-adapter
+registry entries are disabled or removed. The `.sh` files remain on disk per
+R-W16-001 (bats orphan migration deferred to Phase H). The `legacy-bash-adapter`
+continues routing hooks not yet ported (Tier 3, W-17). Phase H (v1.3.0) removes
+both the adapter and all `.sh` bash hook files after W-17 completes Tier 3.
+
+**Per-story delivery pattern:** Each story (S-9.01..S-9.07) follows the W-15
+per-story-delivery cycle: test-writer RED gate + implementer GREEN + demo-recorder
++ pr-manager 9-step. Each story spec must include:
+- Task A: Port hook(s) to Rust WASM crate(s) under `crates/hook-plugins/`.
+- Task B: Update `hooks-registry.toml` — add WASM entries; disable legacy-bash-adapter
+  entries for ported hooks.
+- Task C: Create bats deletion checklist; file TD per hook for bats migration to
+  Phase H (TD-020 class problem, per R-W16-004).
+- Task D: Create WASM integration tests in `factory-dispatcher/tests/` exercising
+  WASM dispatch path end-to-end.
+
+**ADR reference:** ADR-014 (`decisions/ADR-014-tier-2-native-wasm-migration.md`).
+
+---
+
 ## Changelog
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.2 | 2026-05-03 | ADR-014: added E-9 epic positioning section — Tier 2 native WASM migration, ~9 stories, bundle ceiling, migration sequence, per-story delivery pattern. |
 | 1.1 | 2026-04-29 | ADV-S5.04-P06 HIGH-P06-001: crate name sync to canonical `tool-failure-hooks` (matches ARCH-INDEX line 77, S-5.04 target_module, BC-4.08.001/003, VP-068, PRD line 455). Three references updated: Purpose prose, Modules table row, Decision A comment. |
 | 1.0 | 2026-04-25 | Initial version |

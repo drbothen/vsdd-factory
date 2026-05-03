@@ -325,8 +325,148 @@ field (or explicitly cites the BC that defines the projection). A BC citation wi
 a field-level binding is insufficient — the BC must exist and enumerate the specific
 fields by name.
 
+## host::run_subprocess (BC-2.02.013)
+
+Added in W-16 (ADR-014). This is the third additive host function extension after
+D-6 Option A (`host::write_file`, S-8.10) and D-183 (HookPayload SubagentStop
+fields, S-8.30). `HOST_ABI_VERSION` stays at 1.
+
+### Function Signature
+
+```rust
+/// Execute a subprocess with capability-gated binary + arg + env allow-list.
+/// Returns `Ok(SubprocessResult)` on completion (any exit code).
+/// Returns `Err(HostError::CapabilityDenied)` if binary or args violate the allow-list.
+/// Returns `Err(HostError::Timeout)` if the process exceeds `caps.max_timeout_ms`.
+pub fn run_subprocess(spec: &SubprocessSpec) -> Result<SubprocessResult, HostError>;
+```
+
+### SubprocessSpec
+
+```rust
+pub struct SubprocessSpec {
+    /// Absolute or relative path to the binary to execute (no shell expansion).
+    pub binary: String,
+    /// Arguments to pass directly to the binary (no shell interpretation).
+    pub args: Vec<String>,
+    /// Environment variables to set. Variables not in `SubprocessCaps.env_allowlist`
+    /// are stripped before exec regardless of what is set here.
+    pub env: HashMap<String, String>,
+    /// Wall-clock timeout in milliseconds. Capped at `caps.max_timeout_ms`.
+    pub timeout_ms: u64,
+    /// Working directory for the subprocess, relative to CLAUDE_PROJECT_DIR.
+    /// `None` means inherit dispatcher working directory.
+    pub working_dir: Option<PathBuf>,
+}
+```
+
+### SubprocessResult
+
+```rust
+pub struct SubprocessResult {
+    /// Process exit code (0 = success by convention; negative = signal termination).
+    pub exit_code: i32,
+    /// Raw stdout bytes, capped at `SubprocessCaps.max_stdout_bytes`.
+    pub stdout: Vec<u8>,
+    /// Raw stderr bytes, capped at `SubprocessCaps.max_stderr_bytes`.
+    pub stderr: Vec<u8>,
+    /// Actual wall-clock duration of subprocess execution in milliseconds.
+    pub duration_ms: u64,
+    /// `true` if stdout or stderr was truncated due to byte caps.
+    pub truncated: bool,
+}
+```
+
+### SubprocessCaps Schema
+
+Declared in `hooks-registry.toml` under `[hooks.capabilities.run_subprocess]`:
+
+```rust
+pub struct SubprocessCaps {
+    /// Glob patterns for permitted binary paths.
+    /// The dispatcher resolves `SubprocessSpec.binary` to an absolute path before
+    /// matching. Path traversal (`../`) in `binary` is rejected before glob matching.
+    /// Example: ["/usr/bin/git", "*/hooks/verify-sha-currency.sh"]
+    pub binary_allowlist: Vec<String>,
+
+    /// Glob patterns for permitted argument strings.
+    /// Each element of `SubprocessSpec.args` must match at least one pattern.
+    /// Example: ["--version", "show*", "HEAD:*", "--project-root*"]
+    pub arg_allowlist: Vec<String>,
+
+    /// Environment variable names the subprocess may inherit.
+    /// All other env vars are removed from the subprocess environment before exec.
+    /// An empty list means the subprocess inherits zero env vars.
+    pub env_allowlist: Vec<String>,
+
+    /// Maximum bytes captured from stdout. Excess bytes are discarded and
+    /// `SubprocessResult.truncated` is set to `true`. Default: 1_048_576 (1 MiB).
+    pub max_stdout_bytes: u64,
+
+    /// Maximum bytes captured from stderr. Excess bytes are discarded and
+    /// `SubprocessResult.truncated` is set to `true`. Default: 262_144 (256 KiB).
+    pub max_stderr_bytes: u64,
+
+    /// Maximum wall-clock milliseconds allowed for subprocess execution.
+    /// The process is killed (SIGKILL) if this limit is exceeded.
+    /// Default: 30_000 (30 seconds). Hard cap enforced by dispatcher.
+    pub max_timeout_ms: u64,
+}
+```
+
+**Security boundaries (enforced by dispatcher, not the plugin):**
+- NO shell interpretation. `binary` is exec'd directly via `execvp`-equivalent.
+  Shell interpreter binaries (`bash`, `sh`, `zsh`, `fish`) are not implicitly
+  permitted; they must appear explicitly in `binary_allowlist` with justification.
+- NO path traversal. `../` sequences in `binary` are rejected before allow-list
+  matching with `HostError::CapabilityDenied`.
+- Env filtering is unconditional. Even if the plugin passes env vars in
+  `SubprocessSpec.env`, vars not in `env_allowlist` are stripped.
+- `max_stdout_bytes` and `max_stderr_bytes` default to 1 MiB and 256 KiB
+  respectively if not declared. Dispatcher enforces the cap; plugins cannot
+  exceed it by passing a larger value in `SubprocessSpec.timeout_ms`.
+
+### Module Entry
+
+Add to the Modules table:
+
+| Module / File | Responsibility |
+|---|---|
+| `crates/hook-sdk/src/host/run_subprocess.rs` | `vsdd::run_subprocess(spec_json)` extern shim; returns `SubprocessResult` |
+
+### Behavioral Contract
+
+BC-2.02.013 (authored by PO): `host::run_subprocess` invariants — binary allow-list
+enforcement, arg allow-list enforcement, env stripping, timeout enforcement,
+`SubprocessResult` typed contract, `HOST_ABI_VERSION = 1` stability.
+
+---
+
+## HookPayload Schema Evolution (updated)
+
+### Additive-ABI Extension Pattern (updated for W-16)
+
+| Decision | Story | Extension | HOST_ABI_VERSION |
+|----------|-------|-----------|-----------------|
+| D-6 Option A | S-8.10 | `host::write_file` — additive host function; anchors BC-2.02.011 | Stays at 1 |
+| D-183 | S-8.30 | `HookPayload` SubagentStop fields — additive struct fields; anchors BC-2.02.012 | Stays at 1 |
+| D-9.2 (ADR-014) | SDK-ext (W-16) | `host::run_subprocess` — additive host function; anchors BC-2.02.013 | Stays at 1 |
+
+---
+
+## Schema Evolution Table (BC-2.02.x family)
+
+| BC ID | Contract | Introduced | HOST_ABI_VERSION |
+|-------|----------|------------|-----------------|
+| BC-2.02.011 | `host::write_file` shim: write to allow-listed path | S-8.10 | 1 |
+| BC-2.02.012 | `HookPayload` SubagentStop fields (`agent_type`, etc.) | S-8.30 | 1 |
+| BC-2.02.013 | `host::run_subprocess` — SubprocessCaps enforcement, SubprocessResult contract | SDK-ext (W-16) | 1 |
+
+---
+
 ## Change Log
 
 | Date | Change |
 |------|--------|
+| 2026-05-03 | ADR-014 D-9.2: added `host::run_subprocess` function signature, `SubprocessSpec`, `SubprocessResult`, `SubprocessCaps` schema (6 fields), security boundaries, module entry, BC-2.02.013 anchor, and Schema Evolution table row. HOST_ABI_VERSION stays at 1. |
 | 2026-05-01 | F-S830-P1-004 fix: fallback-chain example aligned with BC-2.02.012 canonical (`as_deref()` borrowing chain returning `&str`); architecture doc no longer diverges from BC. Both agent identity and assistant-message chains updated. Prose translation pattern updated from consuming to borrowing form. |

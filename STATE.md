@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0.0-rc.4 SHIPPED 2026-05-03 (PRs #65+#66+#67; Phase A+B COMPLETE). main @ e93fef7. develop @ 52e644d. D-213..D-216 sealed. TD-019/020/021 registered. Next: Phase C (v1.0.0 GA after burn-in) || Phase D (W-16 spec foundation)."
+current_step: "Phase D-1/D-2/D-3 COMPLETE 2026-05-03. audit-w16.md (510L, 7-batch rec), ADR-014, SS-02+SS-04 updated, BC-2.02.013 (224L 24 MUSTs), BC-INDEX 1914→1915. D-217..D-220 sealed. Phase D-4 PENDING: story-writer to author E-9+S-9.00+S-9.01..07+SDK story. Phase C (GA burn-in) running in parallel."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-03 (v1.0.0-rc.4 SHIPPED; Phase A+B complete; D-213..D-216; TD-019/020/021) |
+| **Last Updated** | 2026-05-03 (Phase D-1/D-2/D-3 COMPLETE; D-217..D-220 sealed; ADR-014; BC-2.02.013; BC-INDEX 1914→1915) |
 | **Current Phase** | post-rc4-burn-in (Phase C / Phase D parallel-track) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -55,7 +55,7 @@ dtu_services: []
 | Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
-| Phase 1.4 — BC Migration | COMPLETE | 1,907 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 +2 Wave 11 SS-03 +5 S-5.01 Wave 13 +2 S-5.01 pass-2 SS-01 +5 S-5.02 Wave 13 +2 D-183 Phase A SS-02 = 1,907 current) + BC-INDEX.md (2 retired pass-4: BC-1.10.001/002 over-engineered; canonical patterns reused) |
+| Phase 1.4 — BC Migration | COMPLETE | 1,915 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 +2 Wave 11 SS-03 +5 S-5.01 Wave 13 +2 S-5.01 pass-2 SS-01 +5 S-5.02 Wave 13 +2 D-183 Phase A SS-02 = 1,907; +1 D-219 Phase D-3 BC-2.02.013 = 1,915 current) + BC-INDEX.md (2 retired pass-4: BC-1.10.001/002 over-engineered; canonical patterns reused) |
 | Phase 1.5 — Formal PRD | COMPLETE | 46 FRs (FR-041..FR-045 added prior waves; FR-046 added Wave 13 S-5.01), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
 | Phase 1.6b — Verification Properties | COMPLETE | 66 VPs (all draft, VP-001..VP-066; +2 for E-7; +2 for S-7.03; +1 VP-065 S-5.01 Wave 13; +1 VP-066 S-5.02 Wave 13) |
@@ -84,7 +84,11 @@ dtu_services: []
 | Wave 9 SS-01 straggler re-anchor (S-2.07) | **CONVERGED** at pass-4 (commit 61b38a5): 0 findings, 3_of_3 NITPICK_ONLY. Trajectory 4→0→0→0 (smallest baseline + fastest convergence of 9 waves). 1 story spec-ready: S-2.07 (anchored to BC-1.07.001/002, BC-1.08.001/002 + VP-043 + CAP-002). **Cumulative re-anchored: 41 of 41 stories (100%) — v1.0-brownfield-backfill re-anchor phase COMPLETE.** | wave-9-ss-01-straggler-pass-4.md |
 | Wave 11 SS-03 spec convergence (S-4.09 + S-4.10) | **CONVERGED at pass-14 (3_of_3 NITPICK_ONLY)** per ADR-013. Trajectory: 14→4→1→2→1(fp)→0→3→4→2→8→3→0→0→0. 2 new stories spec-ready: S-4.09 (sink-http retry backoff, BC-3.07.001, CAP-024) + S-4.10 (cross-sink internal.sink_error, BC-3.07.002, CAP-003). 4 deferred-LOW items (F-017, F-018, OBS-001, PASS7-C) as v1.0.1+ candidates. | wave-11-ss-03-pass-14.md |
 | Phase A — Pre-W16 hardening sprint | **COMPLETE** (PR #65 merged develop @ 844b0e9). 5 commits + 4-commit fix-burst. TD-013/016/017/018 closed. bats-orphan-detection CI gate live; run-all.sh glob-discovery; main branch protection restored; workspace clippy clean; 3 stale .sh dupes deleted. 6 pre-existing generate-registry.bats failures fixed as side-effect. D-213 sealed. | PR #65 (844b0e9) |
+| Phase D-1 — W-16 audit (architect) | **COMPLETE** 2026-05-03. audit-w16.md (510L, 7 capability-cluster batches). D-9.1: rewrite-clean (20/23 trivial). D-9.2: user override → host::run_subprocess (sha-currency critical). D-9.3: ~9 stories. Top risks: R-W16-001 bats orphan migration, R-W16-003 bundle size ceiling. D-217 sealed. | architecture/audit-w16.md |
+| Phase D-2 — ADR-014 + SS-02/SS-04 (architect) | **COMPLETE** 2026-05-03. ADR-014 (343L): D-9.1=rewrite-clean, D-9.2=(a) host::run_subprocess ABI, D-9.3=7 batches+perf+SDK=~9 stories. SS-02 +139L: host::run_subprocess signature + SubprocessCaps schema (6 fields). SS-04 +58L: E-9 epic positioning + bundle ceiling ref. D-218 sealed. | ADR-014; SS-02; SS-04 |
+| Phase D-3 — BC-2.02.013 (product-owner) | **COMPLETE** 2026-05-03. BC-2.02.013 (224L, 24 MUSTs across 7 categories: capability gating, security boundaries, output bounds, timeout, schema evo, telemetry, error semantics). BC-INDEX: total 1914→1915, SS-02 24→25. D-219 sealed. | BC-2.02.013; BC-INDEX |
 | Phase B — v1.0.0-rc.4 cut + force-retag | **COMPLETE** (PRs #66+#67; tag @ e93fef7). First release.yml run failed (TD-016 glob widened to 4 broken suites); PR #67 hotfix added SKIP_SUITES allowlist; force-retagged (same precedent as rc.3); second run all 9 jobs SUCCESS (windows-x64 cache-save flake recovered via rerun). D-214/215/216 sealed. TD-020/021 registered. | PRs #66+#67; tag e93fef7 |
+| Phase D — W-16 spec foundation | **IN PROGRESS** — D-1/D-2/D-3 COMPLETE; D-4 PENDING. D-1: audit-w16.md (510L, 7-batch rec, D-9.2 user override → host::run_subprocess). D-2: ADR-014 + SS-02 (+139L host::run_subprocess ABI) + SS-04 (+58L E-9 positioning). D-3: BC-2.02.013 (224L, 24 MUSTs), BC-INDEX 1914→1915. D-4 story-writer: E-9 + S-9.00 + S-9.01..07 + SDK ext story pending. | audit-w16.md; ADR-014; BC-2.02.013 |
 
 ## Current Phase Steps
 
@@ -149,30 +153,30 @@ dtu_services: []
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,907 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,915 |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 66 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 59 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 9 |
-| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 13 |
+| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 14 |
 
 ## Subsystem Distribution
 
 | SS-ID | Name | BC Prefix | BCs |
 |-------|------|-----------|-----|
 | SS-01 | Hook Dispatcher Core | BC-1 | 101 |
-| SS-02 | Hook SDK and Plugin ABI | BC-2 | 24 |
+| SS-02 | Hook SDK and Plugin ABI | BC-2 | 25 |
 | SS-03 | Observability Sinks | BC-3 | 51 |
-| SS-04 | Plugin Ecosystem | BC-4 | 23 |
+| SS-04 | Plugin Ecosystem | BC-4 | 30 |
 | SS-05 | Pipeline Orchestration | BC-5 | 646 |
 | SS-06 | Skill Catalog | BC-6 | 585 |
 | SS-07 | Hook Bash Layer | BC-7 | 196 |
 | SS-08 | Templates and Rules | BC-8 | 218 |
 | SS-09 | Configuration and Activation | BC-9 | 5 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
-| **Total** | | | **1,907** |
+| **Total** | | | **1,915** |
 
 ## Story Status (59 total — W-15 CONVERGED)
 
@@ -300,6 +304,10 @@ dtu_services: []
 | D-209 | **rc.3 cut + 1st recovery — PR #62 (2026-05-03).** Initial release/v1.0.0-rc.3 cut from develop @ d49f33b. CHANGELOG bump + 8 stacked CI fix commits (cargo fmt, hooks.bats orphan cleanup, unused imports, track-agent-start clippy, workspace clippy 46 errors, post-clippy fmt drift, .claude/ gitignore). Merged into main as f44f6ca. Workflow #1 (run 25264866805) FAILED at validate "Run hook tests" — orphan refs to deleted .sh hooks in `hooks.bats`. Lessons: (a) workspace clippy --all-targets surfaces pre-existing test-naming debt that simpler clippy invocations miss; (b) `git add -A` on release branches risks pulling in `.claude/` user settings — gitignore proactively; (c) cargo fmt drift ricochets after every clippy/code change — always re-fmt at the end. | rc.3 1st recovery: initial cut + 8 CI-fix commits; bats orphan refs surface as release blocker | rc3-recovery-1 | 2026-05-03 | state-manager |
 | D-210 | **rc.3 2nd recovery — PR #63 (2026-05-03).** Hotfix branch from main. Removed 62 orphan tests across 6 bats files (3 deleted entirely: agent-tracking.bats, stop-hooks-emission.bats, pr-manager-guard.bats; 3 modified: wave-gate-hooks.bats, pr-lifecycle-hooks.bats, workflow-validators-emission.bats). Merged into main as 8300d1b. Tag v1.0.0-rc.3 retagged. Workflow #2 (run 25265760809) FAILED at validate "Run test suite" — `run-all.sh` had hardcoded `bats tests/stop-hooks-emission.bats` and `bats tests/agent-tracking.bats` referring to deleted files. Lessons: (a) bats test-file deletion checklist must accompany every native WASM port — currently tracked in story spec but not enforced; (b) pre-merge bats-orphans-detection should be a CI step in ci.yml/release.yml (TD-017); (c) Rust workspace tests cover ported plugins, but the bats orphan refs caused exit 127 "Command not found" until cleanup. | rc.3 2nd recovery: 62 orphan bats tests removed; run-all.sh hardcoded references still lurking | rc3-recovery-2 | 2026-05-03 | state-manager |
 | D-211 | **rc.3 3rd recovery — PR #64 (2026-05-03).** Hotfix run-all.sh — removed 6 lines (2 bats invocations + 2 echo headers + 2 blanks) for now-deleted test files. Merged into main as 7364b13. Tag v1.0.0-rc.3 retagged. Workflow #3 (run 25266061779) SUCCEEDED all 9 jobs. Lessons: (a) when deleting bats files, also sweep `run-all.sh` (the test orchestrator) for hardcoded references; (b) `run-all.sh` should glob `tests/*.bats` instead of enumerating — TD-016 registered. | rc.3 3rd recovery: run-all.sh hardcoded refs to deleted bats files removed; workflow green | rc3-recovery-3 | 2026-05-03 | state-manager |
+| D-220 | **Phase D-4 PENDING — story-writer to author E-9 epic + W-16 story batch.** story-writer dispatch: (1) E-9 epic (Tier 2 native WASM migration, covering 23 validate-*.sh hooks); (2) S-9.00 perf baseline (analogous to S-8.00); (3) S-9.01..S-9.07 (7 batched validators per ADR-014 capability-cluster grouping); (4) SDK extension story (host::run_subprocess wiring, analogous to S-8.10/S-8.30). Per-story adversarial convergence per ADR-013 follows each story. Estimated 5-7 days for full Phase D spec foundation. Top risks inherited from audit-w16.md: R-W16-001 bats orphan migration (Phase H), R-W16-003 bundle size ceiling (SubprocessCaps max_stdout/stderr_bytes fields). | Estimated story count ~9; per D-217/D-218/D-219 foundations. | Phase-D-4-PENDING | 2026-05-03 | state-manager |
+| D-219 | **Phase D-3 BC-2.02.013 (product-owner) COMPLETE.** BC-2.02.013-host-run-subprocess.md authored at 224 lines with 24 MUST invariants across 7 categories: (1) capability gating (SubprocessCaps required, binary_allow/arg_allow/env_allow enforcement); (2) security boundaries (no shell injection, allowlist prefix matching, env inheritance restriction); (3) output bounds (max_stdout_bytes + max_stderr_bytes enforced, truncation on overflow); (4) timeout semantics (max_timeout_ms hard ceiling, HostError::Timeout on breach — no partial output); (5) schema evolution (additive-only SubprocessCaps fields, HOST_ABI_VERSION stays at 1); (6) telemetry (hook.subprocess_exec event emitted on invocation, fields: binary/args/exit_code/duration_ms); (7) error semantics (HostError variants: SubprocessDenied, SubprocessTimeout, SubprocessFailed(i32), IoError). BC-INDEX updated: total 1914→1915, SS-02 count 24→25. PO chose HostError::Timeout variant (no partial output) over ambiguous "truncated=false" framing — cleaner semantics. | 24 MUST invariants; BC-INDEX total 1914→1915; SS-02 24→25 | Phase-D-3-COMPLETE | 2026-05-03 | product-owner + state-manager |
+| D-218 | **Phase D-2 ADR-014 + SS-02/SS-04 updates (architect) COMPLETE.** ADR-014-tier-2-native-wasm-migration.md (343 lines) documents three binding decisions: D-9.1 = rewrite-clean strategy (20/23 validate hooks are trivial file/BC checks; carry forward with clean Rust implementation, no bash-parity constraints); D-9.2 = (a) add host::run_subprocess to vsdd-hook-sdk ABI (sha-currency gate is critical-path; SubprocessCaps schema gates binary/arg/env allowlists + max_stdout/stderr_bytes + max_timeout_ms); D-9.3 = 7 capability-cluster batched stories + S-9.00 perf baseline + SDK extension story = ~9 stories total. SS-02-hook-sdk.md updated +139 lines: host::run_subprocess function signature, SubprocessCaps schema (6 fields), error variants, telemetry contract. SS-04-plugin-ecosystem.md updated +58 lines: E-9 epic positioning section, bundle size ceiling reference tied to R-W16-003. | ADR-014 (343L); SS-02 +139L host::run_subprocess ABI; SS-04 +58L E-9 positioning | Phase-D-2-COMPLETE | 2026-05-03 | architect + state-manager |
+| D-217 | **Phase D-1 W-16 architecture audit (architect) COMPLETE.** audit-w16.md produced at 510 lines with 7 capability-cluster batching recommendation. D-9.1 recommendation: rewrite-clean (20 of 23 validate hooks are trivial file/BC checks with no external deps — carry forward with clean Rust, no bash-parity obligation). D-9.2 recommendation: skip new host functions (audit scope) → USER OVERRIDE to option (a): add host::run_subprocess (sha-currency gate is critical-path; cannot be ported without subprocess capability). D-9.3 recommendation: 7 capability-cluster batches + S-9.00 perf baseline + SDK extension story = ~9 stories. Top risks: R-W16-001 bats orphan migration (Phase H complexity; 23 validate hooks each have bats test refs to be retired), R-W16-003 bundle size ceiling (SubprocessCaps overhead may approach BC-2.02.013 max_stdout_bytes limit for large validation outputs). | audit-w16.md 510L; 7-cluster batching; 1 user override D-9.2 | Phase-D-1-COMPLETE | 2026-05-03 | architect + state-manager |
 | D-216 | **Phase B post-mortem: windows-x64 cache-save flake (TD-021).** release.yml run 25275561905: windows-x64 build artifact uploaded successfully (9.1MB, Artifact ID 6769753393), then Swatinem/rust-cache@v2 "Post Cache cargo" step failed during cache-save without visible error in log. fail-fast: true cascaded → darwin-x64 cancelled → commit-binaries / Create GitHub Release / sync-develop all skipped. Recovery: `gh run rerun 25275561905 --failed` re-ran windows-x64 + darwin-x64; all 9 jobs success on retry. Hardening: TD-021 — set `fail-fast: false` on build-binaries matrix in release.yml + add `continue-on-error: true` to Cache cargo step. Prevents transient post-step flakes from cascading into release blockers. Process-gap lessons: (a) glob-discovery in run-all.sh silently widened test scope when TD-016 refactor replaced the curated allowlist; (b) windows runner cache-save can fail after artifact upload succeeds; (c) fail-fast: true on release matrices is dangerous when any post-step is flaky. | Same force-retag precedent as D-211 (rc.3 retag). | Phase-B-post-mortem | 2026-05-03 | state-manager |
 | D-215 | **TD-020 skip-list hotfix unblocks rc.4 release validation (PR #67).** PR #67 (hotfix/run-all-skip-list merged at 0290f41) added explicit SKIP_SUITES allowlist to plugins/vsdd-factory/tests/run-all.sh excluding 4 pre-existing-broken bats suites: codify-lessons (16 fail — BC-5.36/5.37/7.05/8.28 assertions reference agents/hooks/skills that don't exist), generate-registry (6 fail — generator behavior drift), novelty-assessment (2 fail — adversarial-delta-review workflow not implemented), state-health (17 fail — state-size/state-health skill assertions stale). Root cause: TD-016 glob refactor (Phase A) widened release-validation scope from OLD curated 28-suite allowlist to all `tests/*.bats`, surfacing 41 pre-existing failures the old hardcoded run-all.sh silently excluded. Skip-list preserves Phase A's auto-discovery intent for new suites while restoring rc.4-shippability. Force-retagged v1.0.0-rc.4 after first release.yml attempt (run 25273861312) failed at Pre-release Validation — no consumers got working install, same precedent as rc.3 retag (D-211). TD-020 backlog ticket tracks fix-or-delete each broken suite. NO new entries to SKIP_SUITES without a TD ticket. | Temporary guard preserving Phase A's auto-discovery for new suites while broken pre-existing suites are scheduled for TD-020. | Phase-B-skip-list-hotfix | 2026-05-03 | state-manager |
 | D-214 | **Phase B: v1.0.0-rc.4 cut + force-retag (PRs #66 + #67).** Cut release/v1.0.0-rc.4 from develop @ 844b0e9 (PR #66, merged at 308f4e7). Versioning: rc.4 confirmed by user (plan's literal "v1.0.1" was sequencing typo — Phase C v1.0.0 GA hasn't happened yet). marketplace.json + plugin.json bumped 1.0.0-rc.2 (stale) → 1.0.0-rc.4. CHANGELOG entry added. First release.yml attempt (run 25273861312) failed at Pre-release Validation (TD-016 glob + 4 broken suites); PR #67 hotfix applied; force-retagged (same precedent as rc.3 retag D-211 — no consumers got working rc.4 install). Second release.yml attempt (run 25275561905) PASSED Pre-release Validation. windows-x64 Post Cache cargo flake cascaded; recovered via `gh run rerun --failed`; all 9 jobs SUCCESS on retry. v1.0.0-rc.4 tag at e93fef7 (bot bundle commit). marketplace.json on main + develop both = 1.0.0-rc.4. GH release published 2026-05-03 10:12:41Z. | Force-retag justified: first release.yml run failed entirely (no artifacts published, no consumers affected), identical to rc.3 retag precedent. | Phase-B-rc4-cut | 2026-05-03 | state-manager |
@@ -336,14 +344,14 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-03 (v1.0.0-rc.4 SHIPPED — Phase A+B complete; D-213..D-216 sealed)
+**Last update:** 2026-05-03 (Phase D-1/D-2/D-3 COMPLETE — D-217..D-220 sealed; ADR-014; BC-2.02.013; BC-INDEX 1914→1915)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
 **factory-artifacts HEAD:** (after this commit)
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
-**Current Phase:** Phase A + Phase B COMPLETE. rc.4 shipped 2026-05-03T10:12:41Z. Next = Phase C (v1.0.0 GA after ~7-day burn-in) running in parallel with Phase D (W-16 Tier 2 spec foundation).
+**Current Phase:** Phase D-1/D-2/D-3 COMPLETE 2026-05-03. Phase D-4 PENDING (story-writer: E-9 + S-9.00 + S-9.01..07 + SDK ext story). Phase C (v1.0.0 GA burn-in) running in parallel — rc.4 shipped 2026-05-03T10:12:41Z, ~7-day burn-in window.
 
 ## Approved Plan (post-rc.4)
 
