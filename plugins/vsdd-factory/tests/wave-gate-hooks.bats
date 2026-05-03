@@ -1,8 +1,9 @@
 #!/usr/bin/env bats
 # wave-gate-hooks.bats — tests for the wave gate enforcement hooks:
 #   validate-wave-gate-prerequisite.sh (PreToolUse on Agent)
-#   update-wave-state-on-merge.sh (SubagentStop on pr-manager)
-#   warn-pending-wave-gate.sh (Stop hook)
+#   validate-wave-gate-completeness.sh (PostToolUse on wave-state.yaml)
+# NOTE: update-wave-state-on-merge.sh and warn-pending-wave-gate.sh were
+# ported to native WASM (W-15); their bats tests were removed.
 
 setup() {
   PLUGIN_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
@@ -30,17 +31,6 @@ _run_pretool_agent() {
   run bash -c "cd '$WORK' && echo '$INPUT' | '$HOOKS/validate-wave-gate-prerequisite.sh' 2>&1"
 }
 
-_run_subagent_stop() {
-  local agent="$1"
-  local result="$2"
-  INPUT=$(jq -nc --arg a "$agent" --arg r "$result" '{agent_type: $a, last_assistant_message: $r}')
-  run bash -c "cd '$WORK' && echo '$INPUT' | '$HOOKS/update-wave-state-on-merge.sh' 2>&1"
-}
-
-_run_stop_hook() {
-  run bash -c "cd '$WORK' && echo '{}' | '$HOOKS/warn-pending-wave-gate.sh' 2>&1"
-}
-
 # ========================================================================
 # Syntax and wiring checks
 # ========================================================================
@@ -54,40 +44,10 @@ _run_stop_hook() {
   [ -x "$HOOKS/validate-wave-gate-prerequisite.sh" ]
 }
 
-@test "update-wave-state-on-merge: passes syntax check" {
-  run bash -n "$HOOKS/update-wave-state-on-merge.sh"
-  [ "$status" -eq 0 ]
-}
-
-@test "update-wave-state-on-merge: hook is executable" {
-  [ -x "$HOOKS/update-wave-state-on-merge.sh" ]
-}
-
-@test "warn-pending-wave-gate: passes syntax check" {
-  run bash -n "$HOOKS/warn-pending-wave-gate.sh"
-  [ "$status" -eq 0 ]
-}
-
-@test "warn-pending-wave-gate: hook is executable" {
-  [ -x "$HOOKS/warn-pending-wave-gate.sh" ]
-}
-
 @test "wave-gate hooks: hooks.json wires prerequisite under PreToolUse Agent" {
   run jq '.hooks.PreToolUse[] | select(.matcher == "Agent") | .hooks[] | select(.command | contains("validate-wave-gate-prerequisite"))' "$PLUGIN_ROOT/hooks/hooks.json"
   [ "$status" -eq 0 ]
   [[ "$output" == *"validate-wave-gate-prerequisite"* ]]
-}
-
-@test "wave-gate hooks: hooks.json wires update-on-merge under SubagentStop" {
-  run jq '.hooks.SubagentStop[0].hooks[] | select(.command | contains("update-wave-state-on-merge"))' "$PLUGIN_ROOT/hooks/hooks.json"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"update-wave-state-on-merge"* ]]
-}
-
-@test "wave-gate hooks: hooks.json wires warn-pending under Stop" {
-  run jq '.hooks.Stop[0].hooks[] | select(.command | contains("warn-pending-wave-gate"))' "$PLUGIN_ROOT/hooks/hooks.json"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"warn-pending-wave-gate"* ]]
 }
 
 # ========================================================================
@@ -306,210 +266,6 @@ waves:
     gate_status: not_started"
   _run_pretool_agent "vsdd-factory:devops-engineer" "cd $WORK && Create worktree for S-6.07"
   [ "$status" -eq 2 ]
-}
-
-# ========================================================================
-# update-wave-state-on-merge: scope filtering
-# ========================================================================
-
-@test "merge-update: ignores non-pr-manager agents" {
-  _write_wave_state "current_wave: wave_0a
-next_gate_required: null
-waves:
-  wave_0a:
-    stories: [S-0.01]
-    stories_merged: []
-    gate_status: not_started"
-  _run_subagent_stop "implementer" "STEP_COMPLETE: step=8 name=execute-merge status=ok note=merged S-0.01"
-  [ "$status" -eq 0 ]
-  # wave-state should be unchanged
-  run python3 -c "
-import yaml
-with open('$WORK/.factory/wave-state.yaml') as f: state = yaml.safe_load(f)
-print(len(state['waves']['wave_0a']['stories_merged']))
-"
-  [[ "$output" == "0" ]]
-}
-
-@test "merge-update: ignores pr-manager without merge confirmation" {
-  _write_wave_state "current_wave: wave_0a
-next_gate_required: null
-waves:
-  wave_0a:
-    stories: [S-0.01]
-    stories_merged: []
-    gate_status: not_started"
-  _run_subagent_stop "pr-manager" "STEP_COMPLETE: step=3 name=create-pr status=ok note=PR #42 created for S-0.01"
-  [ "$status" -eq 0 ]
-  run python3 -c "
-import yaml
-with open('$WORK/.factory/wave-state.yaml') as f: state = yaml.safe_load(f)
-print(len(state['waves']['wave_0a']['stories_merged']))
-"
-  [[ "$output" == "0" ]]
-}
-
-# ========================================================================
-# update-wave-state-on-merge: successful updates
-# ========================================================================
-
-@test "merge-update: appends merged story to stories_merged" {
-  _write_wave_state "current_wave: wave_0a
-next_gate_required: null
-waves:
-  wave_0a:
-    stories: [S-0.01, S-0.02]
-    stories_merged: []
-    gate_status: not_started"
-  _run_subagent_stop "pr-manager" "STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #42 merged
-S-0.01 merged to develop."
-  [ "$status" -eq 0 ]
-  run python3 -c "
-import yaml
-with open('$WORK/.factory/wave-state.yaml') as f: state = yaml.safe_load(f)
-merged = state['waves']['wave_0a']['stories_merged']
-print('S-0.01' in merged)
-"
-  [[ "$output" == "True" ]]
-}
-
-@test "merge-update: flips gate_status to pending when all stories merged" {
-  _write_wave_state "current_wave: wave_0a
-next_gate_required: null
-waves:
-  wave_0a:
-    stories: [S-0.01, S-0.02]
-    stories_merged: [S-0.01]
-    gate_status: not_started"
-  _run_subagent_stop "pr-manager" "STEP_COMPLETE: step=8 name=execute-merge status=ok note=merged
-S-0.02 PR squash-merged to develop."
-  [ "$status" -eq 0 ]
-  run python3 -c "
-import yaml
-with open('$WORK/.factory/wave-state.yaml') as f: state = yaml.safe_load(f)
-print(state['waves']['wave_0a']['gate_status'])
-print(state.get('next_gate_required', 'null'))
-"
-  [[ "${lines[0]}" == "pending" ]]
-  [[ "${lines[1]}" == "wave_0a" ]]
-}
-
-@test "merge-update: does not duplicate already-merged story" {
-  _write_wave_state "current_wave: wave_0a
-next_gate_required: null
-waves:
-  wave_0a:
-    stories: [S-0.01]
-    stories_merged: [S-0.01]
-    gate_status: pending"
-  _run_subagent_stop "pr-manager" "STEP_COMPLETE: step=8 name=execute-merge status=ok note=merged S-0.01 again"
-  [ "$status" -eq 0 ]
-  run python3 -c "
-import yaml
-with open('$WORK/.factory/wave-state.yaml') as f: state = yaml.safe_load(f)
-print(len(state['waves']['wave_0a']['stories_merged']))
-"
-  [[ "$output" == "1" ]]
-}
-
-@test "merge-update: handles no wave-state file" {
-  rm -f "$WORK/.factory/wave-state.yaml"
-  _run_subagent_stop "pr-manager" "STEP_COMPLETE: step=8 name=execute-merge status=ok note=merged S-0.01"
-  [ "$status" -eq 0 ]
-}
-
-# ========================================================================
-# warn-pending-wave-gate: Stop hook
-# ========================================================================
-
-@test "warn-pending: no warning when no wave-state file" {
-  rm -f "$WORK/.factory/wave-state.yaml"
-  _run_stop_hook
-  [ "$status" -eq 0 ]
-  [[ "$output" != *"REMINDER"* ]]
-}
-
-@test "warn-pending: no warning when all gates passed" {
-  _write_wave_state "current_wave: wave_1
-next_gate_required: null
-waves:
-  wave_0a:
-    stories: [S-0.01]
-    stories_merged: [S-0.01]
-    gate_status: passed
-  wave_1:
-    stories: [S-6.07]
-    stories_merged: []
-    gate_status: not_started"
-  _run_stop_hook
-  [ "$status" -eq 0 ]
-  [[ "$output" != *"REMINDER"* ]]
-}
-
-@test "warn-pending: warns when gate is pending" {
-  _write_wave_state "current_wave: wave_1
-next_gate_required: wave_0a
-waves:
-  wave_0a:
-    stories: [S-0.01]
-    stories_merged: [S-0.01]
-    gate_status: pending
-  wave_1:
-    stories: [S-6.07]
-    stories_merged: []
-    gate_status: not_started"
-  _run_stop_hook
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"REMINDER"* ]]
-  [[ "$output" == *"wave_0a"* ]]
-}
-
-@test "warn-pending: warns about multiple pending gates" {
-  _write_wave_state "current_wave: wave_1
-next_gate_required: wave_0a
-waves:
-  wave_0a:
-    stories: [S-0.01]
-    stories_merged: [S-0.01]
-    gate_status: pending
-  wave_0b:
-    stories: [S-6.06]
-    stories_merged: [S-6.06]
-    gate_status: pending
-  wave_1:
-    stories: [S-6.07]
-    stories_merged: []
-    gate_status: not_started"
-  _run_stop_hook
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"wave_0a"* ]]
-  [[ "$output" == *"wave_0b"* ]]
-}
-
-@test "warn-pending: does not warn for deferred gates" {
-  _write_wave_state "current_wave: wave_1
-next_gate_required: null
-waves:
-  wave_0a:
-    stories: [S-0.01]
-    stories_merged: [S-0.01]
-    gate_status: deferred
-    rationale: pure docs wave"
-  _run_stop_hook
-  [ "$status" -eq 0 ]
-  [[ "$output" != *"REMINDER"* ]]
-}
-
-@test "warn-pending: never blocks (always exit 0)" {
-  _write_wave_state "current_wave: wave_1
-next_gate_required: wave_0a
-waves:
-  wave_0a:
-    stories: [S-0.01]
-    stories_merged: [S-0.01]
-    gate_status: pending"
-  _run_stop_hook
-  [ "$status" -eq 0 ]
 }
 
 # ========================================================================

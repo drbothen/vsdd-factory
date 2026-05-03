@@ -1,8 +1,9 @@
 #!/usr/bin/env bats
-# workflow-validators-emission.bats — emission tests for the 10 workflow /
+# workflow-validators-emission.bats — emission tests for workflow /
 # specialized PostToolUse validators instrumented in obs phase 2d.3 (v0.62.0).
 #
 # Covers both exit-2 block events and exit-0 severity=warn events.
+# NOTE: regression-gate.sh was ported to native WASM (W-15); its tests were removed.
 
 setup() {
   HOOKS_DIR="${BATS_TEST_DIRNAME}/../hooks"
@@ -262,35 +263,6 @@ EOF
   lf=$(_logfile)
   [ "$(jq -r '.reason' < "$lf")" = "factory_path_worktree_relative" ]
   [ "$(jq -r '.worktree' < "$lf")" = ".worktrees/STORY-001" ]
-}
-
-# ---------- regression-gate.sh (severity=warn) ----------
-
-@test "regression-gate: emits regression_gate_pass_to_fail with severity=warn" {
-  # Seed prior state as pass, then run a failing test command.
-  mkdir -p "$SCRATCH/.factory"
-  echo '{"status": "pass"}' > "$SCRATCH/.factory/regression-state.json"
-  local input
-  input=$(_bash_input "cargo test" "1")
-  export CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT"
-  run bash -c "cd '$SCRATCH' && echo '$input' | '$HOOKS_DIR/regression-gate.sh' 2>&1"
-  [ "$status" -eq 0 ]
-  local lf
-  lf=$(_logfile)
-  [ -n "$lf" ]
-  [ "$(jq -r '.reason' < "$lf")" = "regression_gate_pass_to_fail" ]
-  [ "$(jq -r '.severity' < "$lf")" = "warn" ]
-}
-
-@test "regression-gate: pass->pass emits no event" {
-  mkdir -p "$SCRATCH/.factory"
-  echo '{"status": "pass"}' > "$SCRATCH/.factory/regression-state.json"
-  local input
-  input=$(_bash_input "cargo test" "0")
-  export CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT"
-  run bash -c "cd '$SCRATCH' && echo '$input' | '$HOOKS_DIR/regression-gate.sh' 2>&1"
-  [ "$status" -eq 0 ]
-  [ -z "$(_logfile)" ]
 }
 
 # ---------- VSDD_TELEMETRY=off spot checks ----------
