@@ -309,7 +309,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-4 Burst B + (d) Hybrid adoption COMPLETE — D-223+D-224 sealed; BC-INDEX 1915→1917; S-9.30 withdrawn; E-9/S-9.00 v1.1; pass-2 adversarial pending)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** (this commit — seal Phase D-4 Burst B + (d) Hybrid adoption)
+**factory-artifacts HEAD:** e4e01d6 (chore(state): seal Phase D-4 Burst B + (d) Hybrid adoption — drop run_subprocess)
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
