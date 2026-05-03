@@ -325,7 +325,9 @@ field (or explicitly cites the BC that defines the projection). A BC citation wi
 a field-level binding is insufficient — the BC must exist and enumerate the specific
 fields by name.
 
-## host::run_subprocess (BC-2.02.013)
+## host::run_subprocess (WITHDRAWN 2026-05-03)
+
+> **WITHDRAWN.** This host fn was proposed in ADR-014 D-9.2 (2026-05-03) but withdrawn the same day after gap analysis (`.factory/architecture/gap-analysis-w16-subprocess.md`) found existing `host::exec_subprocess` (BC-2.02.005) sufficient. Section preserved as audit trail. Implementation never built; no factory-dispatcher binding; no SDK wrapper. See ADR-014 Amendment 2026-05-03 for full reasoning.
 
 Added in W-16 (ADR-014). This is the third additive host function extension after
 D-6 Option A (`host::write_file`, S-8.10) and D-183 (HookPayload SubagentStop
@@ -450,7 +452,7 @@ enforcement, arg allow-list enforcement, env stripping, timeout enforcement,
 |----------|-------|-----------|-----------------|
 | D-6 Option A | S-8.10 | `host::write_file` — additive host function; anchors BC-2.02.011 | Stays at 1 |
 | D-183 | S-8.30 | `HookPayload` SubagentStop fields — additive struct fields; anchors BC-2.02.012 | Stays at 1 |
-| D-9.2 (ADR-014) | SDK-ext (W-16) | `host::run_subprocess` — additive host function; anchors BC-2.02.013 | Stays at 1 |
+| ~~D-9.2 (ADR-014)~~ **WITHDRAWN 2026-05-03** | SDK-ext (W-16) — never built | ~~`host::run_subprocess` — additive host function; anchors BC-2.02.013~~ withdrawn per gap analysis; `exec_subprocess` used instead | Stays at 1 |
 
 ---
 
@@ -460,7 +462,7 @@ enforcement, arg allow-list enforcement, env stripping, timeout enforcement,
 |-------|----------|------------|-----------------|
 | BC-2.02.011 | `host::write_file` shim: write to allow-listed path | S-8.10 | 1 |
 | BC-2.02.012 | `HookPayload` SubagentStop fields (`agent_type`, etc.) | S-8.30 | 1 |
-| BC-2.02.013 | `host::run_subprocess` — SubprocessCaps enforcement, SubprocessResult contract | SDK-ext (W-16) | 1 |
+| BC-2.02.013 | ~~`host::run_subprocess` — SubprocessCaps enforcement, SubprocessResult contract~~ **WITHDRAWN 2026-05-03** — gap analysis found `exec_subprocess` sufficient; see ADR-014 Amendment 2026-05-03 | SDK-ext (W-16) — never built | 1 |
 
 ---
 

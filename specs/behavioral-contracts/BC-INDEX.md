@@ -1,27 +1,32 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.0"
+version: "1.2"
 status: draft
 producer: state-manager
-timestamp: 2026-04-26T00:00:00
+timestamp: 2026-05-03T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1915
+total_bcs: 1917
 traces_to: bc-id-mapping.md
+changelog:
+  - date: 2026-05-03
+    change: "BC-2.02.013 withdrawn (ADR-014 D-9.2); BC-2.02.005 amended (+2 invariants: I-2 path-traversal-guard, I-3 success-telemetry)"
+  - date: 2026-05-03
+    change: "Relocate exec_subprocess extensions from BC-2.02.005 to correct SS-01 cluster: revert BC-2.02.005 to original; author BC-1.05.035 (path traversal guard) and BC-1.05.036 (success-path telemetry)"
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,915 behavioral contracts across 10 subsystems.
+> Master index of all 1,917 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
 
 | Subsystem | BC Prefix | Count | Shard Directory |
 |-----------|-----------|-------|----------------|
-| SS-01 Hook Dispatcher Core | BC-1 | 101 (99 active; 2 retired) | ss-01/ |
+| SS-01 Hook Dispatcher Core | BC-1 | 103 (101 active; 2 retired) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 25 | ss-02/ |
 | SS-03 Observability Sinks | BC-3 | 51 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 30 | ss-04/ |
@@ -31,7 +36,7 @@ traces_to: bc-id-mapping.md
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1915** | |
+| **Total** | | **1917** | |
 
 ## Index by subsystem
 
@@ -112,6 +117,8 @@ traces_to: bc-id-mapping.md
 | [BC-1.05.032](ss-01/BC-1.05.032.md) | factory-dispatcher::host::exec_subprocess::timeout_enforced — command exceeding timeout_ms is killed and returns TIMEOUT | draft | CAP-TBD | TBD |
 | [BC-1.05.033](ss-01/BC-1.05.033.md) | factory-dispatcher::host_functions (integration)::setup_linker_registers_every_vsdd_import — setup_linker exports every named host fn in the vsdd namespace | draft | CAP-TBD | TBD |
 | [BC-1.05.034](ss-01/BC-1.05.034.md) | factory-dispatcher::host_functions (integration)::wat_module_importing_host_functions_instantiates — WAT module declaring vsdd imports links and runs to completion | draft | CAP-TBD | TBD |
+| [BC-1.05.035](ss-01/BC-1.05.035.md) | factory-dispatcher::host::exec_subprocess::canonicalizes_binary_path_before_allow_check — Path::canonicalize() applied before binary_allow match; symlink-based traversal rejected | draft | CAP-TBD | S-9.07 |
+| [BC-1.05.036](ss-01/BC-1.05.036.md) | factory-dispatcher::host::exec_subprocess::emits_completed_event_on_success — host.exec_subprocess.completed event on every successful subprocess completion | draft | CAP-TBD | S-9.07 |
 | [BC-1.06.001](ss-01/BC-1.06.001.md) | Internal log writes are best-effort; never panic; never propagate | draft | CAP-TBD | TBD |
 | [BC-1.06.002](ss-01/BC-1.06.002.md) | Daily rotation by event timestamp produces separate files per UTC date | draft | CAP-TBD | TBD |
 | [BC-1.06.003](ss-01/BC-1.06.003.md) | Internal log auto-creates missing parent directories | draft | CAP-TBD | TBD |
@@ -161,7 +168,7 @@ traces_to: bc-id-mapping.md
 | [BC-2.02.010](ss-02/BC-2.02.010.md) | hook-sdk::host::log_levels_are_stable — LogLevel discriminants 0..=4 are pinned (Trace=0, Debug=1, Info=2, Warn=3, Error=4) | draft | CAP-009 | S-1.03 |
 | [BC-2.02.011](ss-02/BC-2.02.011.md) | host::write_file ABI invariants — WriteFileCaps struct constraints, error return codes, max_bytes semantics, FFI pointer protocol | draft | CAP-022 | S-8.10 |
 | [BC-2.02.012](ss-02/BC-2.02.012.md) | HookPayload SubagentStop top-level fields — agent_type, subagent_name, last_assistant_message, result all `#[serde(default)] Option<String>`; null-as-absent via serde Option<T> | draft | CAP-022 | S-8.30, S-8.01, S-8.02, S-8.03, S-8.05 |
-| [BC-2.02.013](ss-02/BC-2.02.013-host-run-subprocess.md) | host::run_subprocess ABI invariants — SubprocessCaps enforcement, SubprocessResult contract, security boundaries (no-shell, no-traversal, env-strip, output cap, timeout kill) | draft | CAP-022 | SDK-ext (W-16), S-9.07 |
+| ~~[BC-2.02.013](ss-02/BC-2.02.013-host-run-subprocess.md)~~ | ~~host::run_subprocess ABI invariants — SubprocessCaps enforcement, SubprocessResult contract, security boundaries (no-shell, no-traversal, env-strip, output cap, timeout kill)~~ | **withdrawn 2026-05-03** — ADR-014 D-9.2 amendment; exec_subprocess sufficient; extensions relocated to BC-1.05.035 + BC-1.05.036 (SS-01 cluster, NEW 2026-05-03); preserved as audit trail | CAP-022 | ~~SDK-ext (W-16), S-9.07~~ |
 | [BC-2.04.001](ss-02/BC-2.04.001.md) | hook-sdk::payload::pretooluse_payload_deserializes — full envelope parses with tool_input populated, tool_response None | draft | CAP-009 | S-1.03 |
 | [BC-2.04.002](ss-02/BC-2.04.002.md) | hook-sdk::payload::posttooluse_payload_with_response — SDK payload includes typed access to tool_response.exit_code | draft | CAP-009 | S-1.03 |
 | [BC-2.04.003](ss-02/BC-2.04.003.md) | hook-sdk::payload::lifecycle_payload_without_tool_name — SessionStart parses with tool_name="" and tool_input is JSON null | draft | CAP-009 | S-1.03 |

@@ -1,16 +1,17 @@
 ---
 document_type: epic
 epic_id: "E-8"
-version: "1.9"
+version: "1.10"
 title: "Native WASM Migration Completion"
-status: ready
+status: tier-1-shipped
 tech_debt_ref: TD-014
 prd_capabilities: [CAP-002, CAP-008, CAP-013, CAP-022]
 prd_frs: []
 anchor_strategy: option-c-reuse-existing-bc-per-hook-behavior
 priority: P2
-target_release: "v1.1 (Tier 1), v1.2 (Tier 2), v1.3 (Tier 3)"
-story_count: 31
+target_release: "v1.1 (Tier 1 — shipped rc.4); v1.2 (Tier 2 — E-9); v1.3 (Tier 3 — future E-10)"
+story_count: 12
+last_amended: 2026-05-03
 producer: architect
 timestamp: 2026-05-02T00:00:00Z
 phase: 2
@@ -628,9 +629,9 @@ E-8 uses three waves aligned to releases:
 
 | Wave | Tier | Stories | Target Release | Gate Condition |
 |------|------|---------|---------------|----------------|
-| W-15* | Tier 1 (lifecycle hooks) + SDK extension | S-8.00..S-8.10 | v1.1 | legacy-bash-adapter pre-retirement audit passed; 9 .sh gone; Windows CI green; bin/emit-event deferred to S-8.29 |
-| W-16* | Tier 2 (PostToolUse validators) | S-8.11..S-8.19 | v1.2 | 23 .sh gone; AC-7 + AC-7b perf benchmark green; all bundled bats pass |
-| W-17* | Tier 3 (PreToolUse protections) | S-8.20..S-8.29 | v1.3 | AC-1 fully satisfied; AC-2 done (adapter deleted at S-8.29); AC-3 fully satisfied; AC-8 green for all hooks; bin/emit-event removed |
+| W-15* | Tier 1 (lifecycle hooks) + SDK extension | S-8.00..S-8.10 | v1.1 | legacy-bash-adapter pre-retirement audit passed; 9 .sh gone; Windows CI green; bin/emit-event deferred to S-8.29 — **SHIPPED rc.4 (develop@d49f33b)** |
+| ~~W-16* Tier 2 (PostToolUse validators): S-8.11..S-8.19~~ | — | — | SUPERSEDED 2026-05-03 — see CHANGELOG v1.10; redirected to E-9 |
+| ~~W-17* Tier 3 (PreToolUse protections): S-8.20..S-8.29~~ | — | — | SUPERSEDED 2026-05-03 — see CHANGELOG v1.10; redirected to future E-10 |
 
 *Wave IDs are provisional. Final assignment by state-manager at story decomposition
 time after v1.0.0 GA. STATE.md shows Waves W-10 and W-12 are gap-numbered
@@ -641,7 +642,14 @@ free wave first.
 [process-gap] STATE.md should track a `next_free_wave_id` field to prevent manual
 gap-counting errors during wave assignment.
 
-W-16 and W-17 run in parallel after W-15 completes (D-4).
+> **D-13 Tier 2/3 superseded (v1.10, 2026-05-03):** The W-16 and W-17 wave-plan
+> rows in D-13 are superseded. W-16 Tier 2 work is re-decomposed into E-9 (authored
+> 2026-05-03). W-17 Tier 3 work will be re-decomposed into a future E-10. D-13 now
+> scopes only the Tier 1 wave (W-15) which shipped via v1.0.0-rc.3 + rc.4.
+> Retired placeholder stories S-8.11..S-8.29 remain in STORY-INDEX as
+> `status: retired` with `superseded_by: E-9 / future E-10` per POLICY 1.
+
+W-16 Tier 2 is handled by E-9. W-17 Tier 3 is deferred to future E-10.
 
 ---
 
@@ -885,6 +893,21 @@ S-8.00 measured: handoff-validator.sh Tier 1 = 43ms median; validate-bc-title.sh
 ---
 
 ## Change Log
+
+### v1.10 — 2026-05-03 — Tier 2/3 wave plan superseded
+
+Tier 2 stories (S-8.11..S-8.19) and Tier 3 stories (S-8.20..S-8.29) wave-plan
+references in D-13 superseded. W-16 work re-decomposed into E-9 (epic authored
+2026-05-03). W-17 work to be re-decomposed into future E-10. Retired story
+placeholders S-8.11..S-8.29 remain in STORY-INDEX as `status: retired` with
+`superseded_by: E-9 / future E-10`. Append-only numbering preserved per POLICY 1.
+
+E-8's D-13 W-16/W-17 wave assignments removed; D-13 now scopes only the
+Tier 1 wave (W-15) which shipped via v1.0.0-rc.3 + rc.4.
+
+Frontmatter changes: `status: ready` → `status: tier-1-shipped`;
+`story_count: 31` → `story_count: 12` (Tier 1 only: S-8.00..S-8.09 + S-8.10 + S-8.30);
+`target_release` updated to reflect Tier 2/3 handoff to E-9/E-10.
 
 ### v1.1 (2026-04-30) — ADV-E8-P1 pass-1 fix burst (18 findings closed)
 

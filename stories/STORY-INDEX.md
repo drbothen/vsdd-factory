@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.31"
+version: "1.32"
 status: current
 producer: state-manager
 timestamp: 2026-05-03T00:00:00
@@ -60,6 +60,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **NOTE (task #171, cosmetic):** E-8 epic v1.10 has minor ordering issues (v1.10 changelog entry placed before v1.8 chronologically; v1.9 skipped; possible duplicate AC-7b at line ~805 still says 200ms). Separate product-owner dispatch in next session.
 > **W-15 wave gate CONVERGED (2026-05-02): STORY-INDEX v1.29 → v1.30.** 3 fix-bursts (PR #59/60/61) closed all wave gate findings. D-205..D-208 sealed. All 12 W-15 stories sealed: S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08, S-8.09, S-8.10, S-8.30 — status=merged. All CC-W15-001..011 RETIRED. develop @ d49f33b. v1.0.0-rc.3 release path clear.
 > **W-16 Phase D-4 Burst 1 (2026-05-03): E-9 epic + S-9.00 + S-9.30 authored. STORY-INDEX v1.30 → v1.31.** E-9-tier-2-native-wasm-migration.md v1.0 status=draft; 9-story scope (S-9.00 + S-9.30 + S-9.01..S-9.07); 23 validate-*.sh hooks; ADR-014 D-9.1/D-9.2/D-9.3. S-9.00 (perf baseline + W-16 bundle ceiling; depends_on=[]; blocks S-9.01..S-9.07; behavioral_contracts=[] [process-gap]). S-9.30 (host::run_subprocess SDK extension; depends_on E-8; blocks S-9.07; behavioral_contracts=[BC-2.02.013]; 24 MUSTs traced across 8 ACs; JSON-pointer protocol; SubprocessCaps + SubprocessSpec + SubprocessResult types). W-16 section added to index. Epic E-9 row added. Total stories: 59 → 61 (S-9.00 + S-9.30); additional 7 batch stories in Burst 2+3.
+> **W-16 fix burst (2026-05-03): S-9.30 withdrawn + E-9/S-9.00 v1.1 + E-8 v1.10. STORY-INDEX v1.31 → v1.32.** ADR-014 D-9.2 amendment: gap analysis confirmed host::exec_subprocess sufficient; S-9.30 withdrawn same day (status: withdrawn). E-9 v1.0→v1.1: story_count 9→8; S-9.07 depends_on updated; 18 pass-1 findings closed (5H+8M+5L); R-8.09 revised ceiling model applied; WASI preopens risk added. S-9.00 v1.0→v1.1: 5-platform coverage; latency-primary gate; POLICY 11 anti-tautology AC added; du portability fixed to wc -c. E-8 v1.9→v1.10: status tier-1-shipped; story_count 31→12 (Tier 1 only); D-13 Tier 2/3 rows struck-through superseded; S-8.11..S-8.29 placeholders retired. S-9.30 row: withdrawn. S-8.11..S-8.29 rows: retired.
 
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
@@ -74,11 +75,16 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 57 |
 | partial | 1 |
-| draft | 9 |
+| draft | 8 |
 | ready | 0 |
-| **Total** | **67** |
+| withdrawn | 1 |
+| retired | 19 |
+| **Total (active)** | **67** |
 
-> Note: 8 new draft stories added in W-16 Burst 1+stubs: S-9.00, S-9.30 (authored); S-9.01..S-9.07 (stub entries, pending Burst 2+3 authoring).
+> `withdrawn`: S-9.30 (ADR-014 D-9.2 amendment 2026-05-03; body preserved per POLICY 1)
+> `retired`: S-8.11..S-8.29 (19 Tier 2/3 placeholder stories; superseded by E-9/future E-10 per E-8 v1.10 CHANGELOG)
+
+> Note: W-16 active stories = 8 (S-9.00 + S-9.01..S-9.07); S-9.30 withdrawn 2026-05-03. S-9.01..S-9.07 stub entries pending Burst 2+3 authoring.
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -193,8 +199,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 > **Wave 11 SS-03 fully closed at develop@ccf34e6 (2026-04-27).** PRs merged this session: #18 (S-4.01), #20 (S-3.01), #21 (S-3.02), S-3.03 ports (4229648), #22 (Semgrep SAST), #23 (S-4.04 retry+CB), #24 (S-4.02 datadog), #25 (S-4.03 honeycomb), #26 (docs), #27 (S-4.09 backoff), #28 (S-4.10 cross-sink emission). 9 stories shipped + 1 docs + 1 SAST = 11 PRs. STORY-INDEX merged 33 → 35. Wave 12 also fully closed (S-4.02/03/04). S-4.07 (E2E integration) now waits only on S-4.05 + S-4.06 spec convergence + impl. Worktrees cleaned up: /private/tmp/vsdd-S-3.01, S-3.02, S-3.03 (Wave 11 first batch); /private/tmp/vsdd-S-4.02, S-4.03, S-4.04 (Wave 12); /private/tmp/vsdd-S-4.09, S-4.10 (Wave 11 close). Local repo now shows only develop + .factory/ + harness-managed agent worktrees.
 
-## Epic E-8 — Native WASM Migration Completion (W-15 pre-work — draft)
+## Epic E-8 — Native WASM Migration Completion (Tier 1 shipped; Tier 2/3 redirected to E-9/E-10)
 
+> **E-8 v1.10 (2026-05-03):** status: tier-1-shipped. story_count: 12 (Tier 1 only: S-8.00..S-8.09 + S-8.10 + S-8.30). D-13 Tier 2/3 wave plan superseded: W-16 → E-9; W-17 → future E-10. S-8.11..S-8.29 placeholder stories: retired (POLICY 1 append-only; bodies not deleted). See E-8 v1.10 CHANGELOG.
+>
 > **E-8 spec CONVERGENCE_REACHED (2026-04-30):** E-8-native-wasm-migration.md v1.7 status=ready; 11 adversarial passes; trajectory 18→7→0→1→0→2→3→1→0→1→0; D-163 sealed. 30 stories planned (S-8.00..S-8.29). story_count: 30 (1 pre-work + 9 Tier 1 + 1 SDK extension + 9 Tier 2 + 10 Tier 3). target_release: v1.1 (Tier 1), v1.2 (Tier 2), v1.3 (Tier 3). Anchors: CAP-002, CAP-008, CAP-013, CAP-022. Tech debt: TD-014.
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
@@ -211,6 +219,25 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-8.09 | Native port: regression-gate + adapter retirement prep | E-8 | 5 | P2 | S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08 | S-8.10..S-8.29 | merged | BC-7.03.071, BC-7.03.072, BC-7.03.073, BC-7.03.074, BC-7.03.075 (PR #58 3adfe0b 2026-05-02; W-15 CLOSURE — 0 Tier 1 legacy-adapter refs; OQ-6 RESOLVED; macOS symlink fix) |
 | S-8.10 | SDK extension: host::write_file (D-6 Option A unblocker) | E-8 | 5 | P2 | S-8.00 | S-8.04, S-8.09 | merged | BC-2.02.011 (PR #48 de4c568 2026-05-02) |
 | S-8.30 | SDK extension: HookPayload SubagentStop top-level fields | E-8 | 3 | P1 | S-8.00 | S-8.01, S-8.02, S-8.03, S-8.05 | merged | BC-2.02.012 (v1.1; PR #49 394d991 2026-05-02; mutation_testing_required: true) |
+| S-8.11 | ~~Native port bundle B-1~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.01 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.12 | ~~Native port bundle B-2~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.02 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.13 | ~~Native port bundle B-3~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.04 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.14 | ~~Native port bundle B-4~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.03 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.15 | ~~Native port bundle B-5a~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.16 | ~~Native port: validate-input-hash (solo)~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.02 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.17 | ~~Native port: validate-template-compliance (solo)~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.06 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.18 | ~~Native port bundle B-6a~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.05 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.19 | ~~Native port bundle B-6b~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.05/S-9.06 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.20 | ~~Native port: protect-bc (PreToolUse gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.21 | ~~Native port: protect-vp (PreToolUse gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.22 | ~~Native port: protect-secrets~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.23 | ~~Native port: red-gate (PreToolUse strict-TDD gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.24 | ~~Native port: brownfield-discipline~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.25 | ~~Native port: factory-branch-guard~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.26 | ~~Native port: check-factory-commit~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.27 | ~~Native port: destructive-command-guard~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.28 | ~~Native port: validate-pr-merge-prerequisites~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.03 / future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.29 | ~~Native port: validate-wave-gate-prerequisite~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.07 / future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
 
 > S-8.00 v1.5 (status=**ready**, **CONVERGENCE_REACHED** at adversarial pass-6 per ADR-013 2026-04-30). 512 lines; 9 ACs; 5pts; depends_on=[]; blocks S-8.01..S-8.09. Two-responsibility scope: (A) perf benchmark baseline resolving OQ-8 (~10ms/plugin warm-invocation); (B) BC-anchor verification table for 9 Tier 1 hooks (handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start, regression-gate) per D-2 Option C. behavioral_contracts=[] intentional ([process-gap] disclosure). subsystems=[SS-01, SS-07]. Adversarial pass-1 closed (14 v1.1); pass-2 closed (8 v1.2); pass-3 closed (6 v1.3); pass-4 NITPICK_ONLY (3 closed v1.4 + clock 0/3→1/3); pass-5 NITPICK_ONLY (1 NIT SKIP_FIX + clock 1/3→2/3); **pass-6 NITPICK_ONLY (2 NIT SKIP_FIX + clock 2/3→3/3 = CONVERGENCE_REACHED)**. Trajectory 14→8→6→3→1→2 over 6 passes (86% decay; healthy late-convergence shape). D-164 + D-165 + D-166 + D-167 + D-168 + D-169 + D-170 sealed. Ready for per-story-delivery cycle.
 
@@ -236,21 +263,21 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
-## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (draft)
+## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (draft, v1.1)
 
-> **E-9 spec authored (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.0 status=draft. 9-story scope: S-9.00 (perf baseline) + S-9.30 (host::run_subprocess SDK extension) + S-9.01..S-9.07 (7 capability-cluster batches). 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (host::run_subprocess) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan deferred to Phase H) + R-W16-003 (bundle ceiling). Library Table includes regex, serde_yaml, walkdir, std::process::Command.
+> **E-9 spec authored (2026-05-03) + v1.1 fix burst (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.1 status=draft. 8-story scope (v1.1): S-9.00 (perf baseline) + S-9.01..S-9.07 (7 capability-cluster batches); S-9.30 withdrawn same day. 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (withdrawn; exec_subprocess sufficient) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan), R-W16-003 (latency-primary + bundle advisory), R-W16-005 (WASI preopens). Library Table: regex, serde_yaml, walkdir, du/wc (bundle), hyperfine (latency).
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-9.00 | Perf baseline + W-16 bundle growth ceiling (W-16 pre-work) | E-9 | TBD | P2 | — | S-9.01..S-9.07 | draft | [] ([process-gap] under D-9.4; analogous to S-8.00) |
-| S-9.30 | SDK extension: host::run_subprocess (ADR-014 D-9.2) | E-9 | TBD | P1 | E-8 | S-9.07 | draft | BC-2.02.013 (24 MUSTs; SubprocessCaps + SubprocessSpec + SubprocessResult; JSON-pointer protocol) |
+| S-9.00 | Perf baseline + W-16 bundle growth ceiling (W-16 pre-work) | E-9 | TBD | P2 | E-8 | S-9.01..S-9.07 | draft | [] ([process-gap] under D-9.4; analogous to S-8.00) |
+| S-9.30 | ~~SDK extension: host::run_subprocess~~ | E-9 | — | — | — | — | **withdrawn** | BC-2.02.013 (withdrawn; ADR-014 D-9.2 amendment 2026-05-03; exec_subprocess sufficient; body preserved POLICY 1) |
 | S-9.01 | Batch B-1: pure stdin-parse validators (validate-demo-evidence-story-scoped, validate-factory-path-root, validate-finding-format, validate-novelty-assessment) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
 | S-9.02 | Batch B-2: single file-read frontmatter validators (validate-bc-title, validate-changelog-monotonicity, validate-red-ratio, validate-input-hash) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
 | S-9.03 | Batch B-3: PR/delivery file validators (validate-pr-description-completeness, validate-table-cell-count, validate-pr-merge-prerequisites) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
 | S-9.04 | Batch B-4: STATE.md + cycle index validators (validate-state-index-status-coherence, validate-state-pin-freshness, validate-state-size) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
 | S-9.05 | Batch B-5: story-file + BC multi-file validators (validate-story-bc-sync, validate-count-propagation, validate-index-self-reference) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 3) |
 | S-9.06 | Batch B-6: cross-document lookup validators (validate-anchor-capabilities-union, validate-subsystem-names, validate-template-compliance) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 3) |
-| S-9.07 | Batch B-7: complex YAML + subprocess validators (validate-vp-consistency, validate-wave-gate-completeness, validate-wave-gate-prerequisite) | E-9 | TBD | P2 | S-9.00, S-9.30 | — | draft | [] (pending Burst 3; requires BC-2.02.013 for wave-gate-prerequisite) |
+| S-9.07 | Batch B-7: complex YAML + subprocess validators (validate-vp-consistency, validate-wave-gate-completeness, validate-wave-gate-prerequisite) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 3; uses exec_subprocess/BC-2.02.005 for wave-gate-prerequisite; S-9.30 withdrawn) |
 
 > S-9.01..S-9.07 are stubs pending Burst 2 (S-9.01..S-9.04) and Burst 3 (S-9.05..S-9.07) story-writer dispatches with adversarial convergence per ADR-013 between bursts.
 

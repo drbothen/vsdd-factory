@@ -10,6 +10,50 @@ superseded_by: null
 
 # ADR-014: Tier 2 Native WASM Migration (W-16) — rewrite-clean Port Strategy + host::run_subprocess ABI
 
+## Amendment 2026-05-03: D-9.2 withdrawn (gap analysis)
+
+- **Pre-decision:** "(a) Add new host::run_subprocess ABI" — accepted by user when ADR-014 was authored
+- **Amendment date:** 2026-05-03
+- **Reason:** Post-decision audit discovered `host::exec_subprocess` already in production (BC-1.05.001..034, SS-01 cluster; used by `session-start-telemetry` per BC-4.04.002). Gap analysis (`.factory/architecture/gap-analysis-w16-subprocess.md`) confirms existing `exec_subprocess` is sufficient for the only W-16 use case (`validate-wave-gate-prerequisite` invoking `verify-sha-currency.sh`). The gap analysis Section 5 "fundamentally insufficient" list is **empty** for the W-16 use case: binary path arg, multiple args, shell_bypass gate, env forwarding, timeout, and exit-code capture are all present and production-verified. The two headline features unique to `run_subprocess` (glob binary_allowlist, arg_allowlist, truncated-as-Ok, per-stream caps) are not required by the use case.
+- **Decision:** D-9.2 withdrawn. W-16 uses existing `host::exec_subprocess`. Two minor additive extensions to BC-1.05.035 (path traversal guard) + BC-1.05.036 (success telemetry) in SS-01 cover defense-in-depth gaps: (1) path traversal guard on binary arg, (2) success-path telemetry event. These fit within S-9.07's scope.
+- **Consequences:**
+  - BC-2.02.013 withdrawn (preserved as audit trail with `lifecycle_status: withdrawn`)
+  - SS-02 `host::run_subprocess` section marked WITHDRAWN
+  - S-9.30 withdrawn from W-16 scope (story_count 9→8)
+  - S-9.07 (`validate-wave-gate-prerequisite` WASM port) uses `exec_subprocess` capability directly
+  - `run_subprocess` never built; no FFI extern, no SDK wrapper, no `SubprocessCaps` schema
+  - Bundle-size delta: -1 plugin (positive impact; smaller bundles)
+  - New exec_subprocess extensions: BC-1.05.035 + BC-1.05.036 (NEW 2026-05-03)
+- **Cost:** ~2 engineering-days saved; 922+ lines of new spec eliminated
+- **Authority:** gap analysis Section 7 + user approval 2026-05-03
+
+> **Correction 2026-05-03:** Initial gap-analysis incorrectly identified
+> BC-2.02.005 as the exec_subprocess BC. BC-2.02.005 actually documents the
+> SDK `read_string` re-call protocol. The exec_subprocess BCs live in SS-01
+> cluster (BC-1.05.001..034). The 2 minor additive extensions are authored
+> as NEW BC-1.05.035 (path traversal guard) and BC-1.05.036 (success telemetry).
+
+---
+
+## Amendment 2026-05-03: R-8.09 ceiling model revised (research)
+
+- **Pre-decision:** R-8.09 mandated ≤25% bundle growth vs v1.0.0 GA dispatcher binary. Set when only Tier 1 was envisioned; the Tier 2/3 scope was not yet clarified.
+- **Amendment date:** 2026-05-03
+- **Reason:** Research (`.factory/research/W-16-spec-foundation-research.md` Q3) found wasmtime cold-start latency is decoupled from module size at our scale. Industry comparables (Lapce, Zellij, Spin, Cloudflare Workers, Fermyon) routinely tolerate 10-50MB bundles. Cranelift compiles ~1-3ms/MB; AOT pre-compilation reduces this to sub-ms. Bundle size matters for distribution speed (clawhub download), not runtime performance. The original 25% ceiling was an uninformed conservative bound that would block W-16 even when cold-start budget is fully satisfied.
+- **Revised decision (replaces R-8.09):** Latency-primary gate + bundle-size advisory + hard kill-switch:
+  - **Primary gate (HARD):** cold-start p95 ≤ 500ms (inherited from S-8.00 / E-8 R-8.10).
+  - **Advisory soft cap:** cumulative bundle growth ≤ 100% vs pre-W-15 baseline at end of W-17 (~14MB target).
+  - **Hard kill-switch:** cumulative bundle ≤ 30MB. Crossing requires fresh project-level architecture review. Rationale: at 30MB on 5 platforms, distribution payload reaches ~150MB total — the threshold at which package-manager users notice download time on slow connections.
+  - **Required telemetry per wave:** publish `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. Pause wave if cold-start regresses >10%.
+- **Consequences:**
+  - S-9.00 deliverables updated: latency telemetry is the primary gate; bundle size is advisory measurement
+  - W-16 unblocked even if bundle delta > 25% (would have blocked under old R-8.09)
+  - W-17 has explicit headroom up to 30MB hard cap
+  - E-9 (W-16) and future E-10 (W-17) reference this revised model; original R-8.09 in E-8 (closed) stays as written
+- **Authority:** research findings 2026-05-03 + user approval
+
+---
+
 ## Context
 
 W-15 (Tier 1) shipped the first wave of native WASM hook ports under epic E-8. By
@@ -88,7 +132,7 @@ implementation.
 
 ---
 
-### D-9.2 — Subprocess Capability: New host::run_subprocess ABI (BC-2.02.013)
+### D-9.2 — Subprocess Capability ~~(SUPERSEDED 2026-05-03 — see Amendment above)~~
 
 A new host function `host::run_subprocess` is added to the `vsdd-hook-sdk` ABI,
 anchored by BC-2.02.013 (authored by PO). This function exposes a capability-gated

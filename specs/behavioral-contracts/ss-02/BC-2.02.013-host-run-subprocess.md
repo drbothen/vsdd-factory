@@ -2,7 +2,7 @@
 document_type: behavioral-contract
 level: L3
 version: "1.0"
-status: draft
+status: withdrawn
 producer: product-owner
 timestamp: 2026-05-03T00:00:00Z
 phase: 1
@@ -14,7 +14,15 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 origin: greenfield
 subsystem: "SS-02"
 capability: "CAP-022"
-lifecycle_status: active
+lifecycle_status: withdrawn
+withdrawn_date: 2026-05-03
+withdrawn_reason: |
+  ADR-014 D-9.2 amendment 2026-05-03 — gap analysis confirmed
+  existing host::exec_subprocess (BC-2.02.005) sufficient for the only
+  W-16 use case (validate-wave-gate-prerequisite invoking
+  verify-sha-currency.sh). Section 7 of gap-analysis-w16-subprocess.md.
+  Preserved as audit trail per POLICY 1 (append-only numbering).
+superseded_by: "BC-1.05.035 (path traversal guard) + BC-1.05.036 (success telemetry) (SS-01 cluster, NEW 2026-05-03)"
 introduced: v1.2
 modified: []
 deprecated: null
@@ -24,6 +32,15 @@ retired: null
 removed: null
 removal_reason: null
 ---
+
+> **WITHDRAWN 2026-05-03.** This BC was authored 2026-05-03 (D-219) and
+> withdrawn the same day after gap analysis revealed `host::exec_subprocess`
+> (BC-2.02.005) already in production and sufficient for the W-16 use case.
+> All 24 MUST invariants below preserved verbatim as audit trail. The 2 minor
+> additive extensions actually adopted are recorded in BC-1.05.035 (path
+> traversal guard) + BC-1.05.036 (success telemetry) in the SS-01 cluster
+> (NEW 2026-05-03). See ADR-014 Amendment 2026-05-03 for full reasoning.
+> Preserved per POLICY 1 (append-only numbering).
 
 # BC-2.02.013: host::run_subprocess ABI invariants — SubprocessCaps enforcement, SubprocessResult contract, security boundaries
 

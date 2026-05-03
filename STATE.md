@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Phase D-4 pass-1 adversarial COMPLETE 2026-05-03. E-9 18 findings (5H/8M/5L), S-9.00 12 findings (3H/5M/4L), S-9.30 20 findings (8H/9M/3L); 50 total (16H/22M/12L). D-222 sealed. Next: architect fix-burst (3 architectural HIGHs: F-01 HostError variants, F-02 ExecSubprocessCaps coexistence, F-03 JSON-pointer size-out) then story-writer fix-burst on remaining 47 findings; pass-2 parallel."
+current_step: "Phase D-4 Burst B (PO + story-writer) + state-manager seal COMPLETE 2026-05-03. D-223 (Research + gap analysis + (d) Hybrid adoption): exec_subprocess already in production; (d) Hybrid adopted. D-224 (scope reversal): BC-2.02.013 withdrawn; BC-1.05.035+036 NEW (SS-01); E-9 v1.0→v1.1; S-9.00 v1.0→v1.1; S-9.30 withdrawn; E-8 v1.9→v1.10; STORY-INDEX 1.31→1.32; BC-INDEX 1.1→1.2 (1915→1917). Next: pass-2 adversarial × 2 (E-9 v1.1 + S-9.00 v1.1; S-9.30 withdrawn)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-03 (Phase D-4 pass-1 adversarial COMPLETE; D-222 sealed; 50 findings (16H/22M/12L) across E-9+S-9.00+S-9.30; architect fix-burst pending) |
+| **Last Updated** | 2026-05-03 (Phase D-4 Burst B + (d) Hybrid adoption COMPLETE; D-223+D-224 sealed; BC-INDEX 1915→1917; S-9.30 withdrawn; E-9/S-9.00 v1.1; pass-2 adversarial pending) |
 | **Current Phase** | post-rc4-burn-in (Phase C / Phase D parallel-track) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -55,7 +55,7 @@ dtu_services: []
 | Phase 1.1 — Architecture Index + ADRs | COMPLETE | ARCH-INDEX (10 SS-NN) + 13 of 13 ADRs (ADR-001..013) |
 | Phase 1.2 — Sharded Architecture | COMPLETE | 10 SS-NN-\<name\>.md files |
 | Phase 1.3 — L2 Domain Spec | COMPLETE | 8 sharded files (28 CAPs, 17 DIs, 22 DEs, 18 DECs, 35 entities) |
-| Phase 1.4 — BC Migration | COMPLETE | 1,915 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 +2 Wave 11 SS-03 +5 S-5.01 Wave 13 +2 S-5.01 pass-2 SS-01 +5 S-5.02 Wave 13 +2 D-183 Phase A SS-02 = 1,907; +1 D-219 Phase D-3 BC-2.02.013 = 1,915 current) + BC-INDEX.md (2 retired pass-4: BC-1.10.001/002 over-engineered; canonical patterns reused) |
+| Phase 1.4 — BC Migration | COMPLETE | 1,917 BC-S.SS.NNN files in 10 ss-NN/ shards (1,878 at closure; +15 E-7 +13 S-7.03 +2 Wave 11 SS-03 +5 S-5.01 Wave 13 +2 S-5.01 pass-2 SS-01 +5 S-5.02 Wave 13 +2 D-183 Phase A SS-02 = 1,907; +1 D-219 Phase D-3 BC-2.02.013 = 1,915; +2 D-224 Phase D-4 BC-1.05.035+036 = 1,917 current) + BC-INDEX.md (2 retired pass-4: BC-1.10.001/002 over-engineered; canonical patterns reused) |
 | Phase 1.5 — Formal PRD | COMPLETE | 46 FRs (FR-041..FR-045 added prior waves; FR-046 added Wave 13 S-5.01), 76 NFRs, 100% BC traceability |
 | Phase 1.6a — DTU Assessment | COMPLETE | DTU_REQUIRED: false |
 | Phase 1.6b — Verification Properties | COMPLETE | 66 VPs (all draft, VP-001..VP-066; +2 for E-7; +2 for S-7.03; +1 VP-065 S-5.01 Wave 13; +1 VP-066 S-5.02 Wave 13) |
@@ -88,7 +88,7 @@ dtu_services: []
 | Phase D-2 — ADR-014 + SS-02/SS-04 (architect) | **COMPLETE** 2026-05-03. ADR-014 (343L): D-9.1=rewrite-clean, D-9.2=(a) host::run_subprocess ABI, D-9.3=7 batches+perf+SDK=~9 stories. SS-02 +139L: host::run_subprocess signature + SubprocessCaps schema (6 fields). SS-04 +58L: E-9 epic positioning + bundle ceiling ref. D-218 sealed. | ADR-014; SS-02; SS-04 |
 | Phase D-3 — BC-2.02.013 (product-owner) | **COMPLETE** 2026-05-03. BC-2.02.013 (224L, 24 MUSTs across 7 categories: capability gating, security boundaries, output bounds, timeout, schema evo, telemetry, error semantics). BC-INDEX: total 1914→1915, SS-02 24→25. D-219 sealed. | BC-2.02.013; BC-INDEX |
 | Phase B — v1.0.0-rc.4 cut + force-retag | **COMPLETE** (PRs #66+#67; tag @ e93fef7). First release.yml run failed (TD-016 glob widened to 4 broken suites); PR #67 hotfix added SKIP_SUITES allowlist; force-retagged (same precedent as rc.3); second run all 9 jobs SUCCESS (windows-x64 cache-save flake recovered via rerun). D-214/215/216 sealed. TD-020/021 registered. | PRs #66+#67; tag e93fef7 |
-| Phase D — W-16 spec foundation | **IN PROGRESS** — D-1/D-2/D-3/D-4 Burst 1 + pass-1 adversarial COMPLETE. D-1: audit-w16.md (510L). D-2: ADR-014 + SS-02 (+139L) + SS-04 (+58L). D-3: BC-2.02.013 (224L, 24 MUSTs). D-4 Burst 1: E-9 (377L) + S-9.00 (330L) + S-9.30 (698L); STORY-INDEX 1.30→1.31; 59→67. D-4 pass-1 adv: 50 findings (16H/22M/12L); all 3 SUBSTANTIVE; trajectory 18+12+20. Critical: F-01 HostError variants, F-02 ExecSubprocessCaps, F-03 JSON-pointer size-out. D-222 sealed. | E-9; S-9.00; S-9.30; W-16-*-pass-1-adversary.md |
+| Phase D — W-16 spec foundation | **IN PROGRESS** — D-1/D-2/D-3/D-4 Bursts 1+A+B+C COMPLETE. D-223: Research + gap analysis + (d) Hybrid adoption. D-224: Scope reversal applied — BC-2.02.013 withdrawn; BC-1.05.035+036 NEW (SS-01); E-9 v1.0→v1.1 (8 stories; 5 HIGH closed); S-9.00 v1.0→v1.1 (3 HIGH closed); S-9.30 withdrawn (PO/architect-approved); E-8 v1.9→v1.10 (Tier 2/3 superseded; story_count 31→12 Tier 1 only); STORY-INDEX 1.31→1.32; BC-INDEX 1.1→1.2 (1915→1917). Pass-2 adv: PENDING (E-9 v1.1 + S-9.00 v1.1 × 2 parallel; S-9.30 SKIPPED). | E-9 v1.1; S-9.00 v1.1; S-9.30 withdrawn; gap-analysis-w16-subprocess.md |
 
 ## Current Phase Steps
 
@@ -100,13 +100,17 @@ dtu_services: []
 | Phase D-3 BC-2.02.013 | product-owner + state-manager | COMPLETE | BC-2.02.013 (224L, 24 MUSTs, 7 categories); BC-INDEX 1914→1915; SS-02 24→25; D-219 sealed |
 | Phase D-4 Burst 1 (story-writer) | story-writer + state-manager | COMPLETE | E-9 (377L, 9-story topology: Wave 0={S-9.00,S-9.30}; Wave 1={S-9.01..06}; Wave 2={S-9.07}; 14-row lib table; 5 risks R-W16-001..005); S-9.00 (330L, 2 resp: bundle baseline + per-plugin budget); S-9.30 (698L, 8 ACs trace all 24 BC-2.02.013 MUSTs; analogous to S-8.10+S-8.30); STORY-INDEX 1.30→1.31 (59→67); D-221 sealed |
 | Phase D-4 pass-1 adversarial (3 parallel) | adversary × 3 + state-manager | COMPLETE | E-9: 18 findings (5H/8M/5L); S-9.00: 12 findings (3H/5M/4L); S-9.30: 20 findings (8H/9M/3L); total 50 (16H/22M/12L); all 3 SUBSTANTIVE. Critical architectural gaps surfaced (F-01/F-02/F-03 in S-9.30). D-222 sealed. |
+| Phase D-4 Burst A (architect) | architect | COMPLETE | ADR-014 +7L amendments (D-9.2 withdrawn, R-8.09 latency-primary revised); SS-02 WITHDRAWN section marker (+2L). |
+| Phase D-4 Burst B (PO + story-writer) | product-owner + story-writer | COMPLETE | BC-2.02.013 withdrawn (240L); BC-2.02.005 reverted (102L); BC-1.05.035 NEW (131L); BC-1.05.036 NEW (136L); BC-INDEX 1.1→1.2 (1915→1917); E-9 v1.0→v1.1 (5 HIGH closed; +85L; 8 stories); S-9.00 v1.0→v1.1 (3 HIGH closed; +49L); S-9.30 withdrawn (711L); E-8 v1.9→v1.10 (Tier 2/3 superseded; +22L); STORY-INDEX 1.31→1.32. |
+| Phase D-4 Burst C (state-manager seal) | state-manager | COMPLETE | Sweeps A+B applied; D-223+D-224 recorded; session checkpoint updated; factory-artifacts committed. |
+| Phase D-4 pass-2 adversarial | adversary × 2 + state-manager | PENDING | E-9 v1.1 + S-9.00 v1.1 parallel; S-9.30 SKIPPED (withdrawn). |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,915 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,917 |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 66 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
@@ -119,7 +123,7 @@ dtu_services: []
 
 | SS-ID | Name | BC Prefix | BCs |
 |-------|------|-----------|-----|
-| SS-01 | Hook Dispatcher Core | BC-1 | 101 |
+| SS-01 | Hook Dispatcher Core | BC-1 | 103 |
 | SS-02 | Hook SDK and Plugin ABI | BC-2 | 25 |
 | SS-03 | Observability Sinks | BC-3 | 51 |
 | SS-04 | Plugin Ecosystem | BC-4 | 30 |
@@ -129,13 +133,14 @@ dtu_services: []
 | SS-08 | Templates and Rules | BC-8 | 218 |
 | SS-09 | Configuration and Activation | BC-9 | 5 |
 | SS-10 | CLI Tools and Bin | BC-10 | 58 |
-| **Total** | | | **1,915** |
+| **Total** | | | **1,917** |
 
 ## Story Status (67 total — W-15 CONVERGED; W-16 spec in progress)
 
 - **Merged (57):** All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), S-6.01 (PR #7 9dcc52b), S-7.01 (PR #6 33d7a06), S-7.02 (PR #6 33d7a06), S-7.03 (PR #13 4db2340), S-3.04 (4/5 ACs shipped; AC-003→TD-007), S-3.01 (PR #20 7e69854), S-3.02 (PR #21 b680a1e), S-3.03 (4229648), S-4.01 (2ebf031), S-4.02 (PR #24 a43e3f4), S-4.03 (PR #25 fa03354), S-4.04 (PR #23 93ff615), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28), S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28), S-5.03 (PR #37 93b298f 2026-04-29), S-5.04 (PR #38 e90faab 2026-04-29), S-5.05 (PR #40 1e2db47 2026-04-29), S-5.06 (PR #39 d134648 2026-04-29), S-8.00 (PR #47 9e649ed 2026-05-02), S-8.10 (PR #48 de4c568 2026-05-02), S-8.30 (PR #49 394d991 2026-05-02), S-8.06 (PR #51 9873f78 2026-05-02), S-8.01 (PR #50 60be88e 2026-05-02), S-8.08 (PR #52 638bb6b 2026-05-02), S-8.07 (PR #53 4a6e212 2026-05-02), S-8.04 (PR #54 5622aa6 2026-05-02), S-8.03 (PR #55 6809c6d 2026-05-02), S-8.02 (PR #56 b25f017 2026-05-02), S-8.05 (PR #57 a8ee79e 2026-05-02), S-8.09 (PR #58 3adfe0b 2026-05-02)
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (8):** S-5.07 (Tier H; calendar-gated); S-9.00 (W-16 perf baseline, adv pass-1 pending); S-9.30 (W-16 SDK ext, adv pass-1 pending); S-9.01..S-9.07 (W-16 stubs registered; Burst 2+3 authoring pending)
+- **Draft (7):** S-5.07 (Tier H; calendar-gated); S-9.00 (W-16 perf baseline, adv pass-2 pending); S-9.01..S-9.07 (W-16 stubs registered; Burst 2+3 authoring pending)
+- **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid adoption; exec_subprocess extends in place; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)
 
 ## Drift Items (open)
@@ -257,6 +262,8 @@ dtu_services: []
 | D-209 | **rc.3 cut + 1st recovery — PR #62 (2026-05-03).** Initial release/v1.0.0-rc.3 cut from develop @ d49f33b. CHANGELOG bump + 8 stacked CI fix commits (cargo fmt, hooks.bats orphan cleanup, unused imports, track-agent-start clippy, workspace clippy 46 errors, post-clippy fmt drift, .claude/ gitignore). Merged into main as f44f6ca. Workflow #1 (run 25264866805) FAILED at validate "Run hook tests" — orphan refs to deleted .sh hooks in `hooks.bats`. Lessons: (a) workspace clippy --all-targets surfaces pre-existing test-naming debt that simpler clippy invocations miss; (b) `git add -A` on release branches risks pulling in `.claude/` user settings — gitignore proactively; (c) cargo fmt drift ricochets after every clippy/code change — always re-fmt at the end. | rc.3 1st recovery: initial cut + 8 CI-fix commits; bats orphan refs surface as release blocker | rc3-recovery-1 | 2026-05-03 | state-manager |
 | D-210 | **rc.3 2nd recovery — PR #63 (2026-05-03).** Hotfix branch from main. Removed 62 orphan tests across 6 bats files (3 deleted entirely: agent-tracking.bats, stop-hooks-emission.bats, pr-manager-guard.bats; 3 modified: wave-gate-hooks.bats, pr-lifecycle-hooks.bats, workflow-validators-emission.bats). Merged into main as 8300d1b. Tag v1.0.0-rc.3 retagged. Workflow #2 (run 25265760809) FAILED at validate "Run test suite" — `run-all.sh` had hardcoded `bats tests/stop-hooks-emission.bats` and `bats tests/agent-tracking.bats` referring to deleted files. Lessons: (a) bats test-file deletion checklist must accompany every native WASM port — currently tracked in story spec but not enforced; (b) pre-merge bats-orphans-detection should be a CI step in ci.yml/release.yml (TD-017); (c) Rust workspace tests cover ported plugins, but the bats orphan refs caused exit 127 "Command not found" until cleanup. | rc.3 2nd recovery: 62 orphan bats tests removed; run-all.sh hardcoded references still lurking | rc3-recovery-2 | 2026-05-03 | state-manager |
 | D-211 | **rc.3 3rd recovery — PR #64 (2026-05-03).** Hotfix run-all.sh — removed 6 lines (2 bats invocations + 2 echo headers + 2 blanks) for now-deleted test files. Merged into main as 7364b13. Tag v1.0.0-rc.3 retagged. Workflow #3 (run 25266061779) SUCCEEDED all 9 jobs. Lessons: (a) when deleting bats files, also sweep `run-all.sh` (the test orchestrator) for hardcoded references; (b) `run-all.sh` should glob `tests/*.bats` instead of enumerating — TD-016 registered. | rc.3 3rd recovery: run-all.sh hardcoded refs to deleted bats files removed; workflow green | rc3-recovery-3 | 2026-05-03 | state-manager |
+| D-224 | **Phase D-4 scope reversal applied across 12 files (D-224).** ADR-014 D-9.2 withdrawn (architect Burst A; +7L amendments total); ADR-014 R-8.09 revised (latency-primary gate per Q5 research). SS-02 host::run_subprocess section: WITHDRAWN marker (+2L). BC-2.02.013: withdrawn (PO Burst B; 240L with WITHDRAWN preamble; all 24 MUSTs preserved as audit trail). BC-2.02.005: amendment initially misplaced (BC-2.02.005 is SDK read_string protocol, not exec_subprocess); reverted to original 102L. BC-1.05.035 NEW (path traversal guard, 131L) — correct SS-01 cluster. BC-1.05.036 NEW (success-path telemetry, 136L) — correct SS-01 cluster. BC-INDEX 1.1→1.2: SS-01 count +2 (101→103); total 1915→1917. E-9 v1.0→v1.1: 5 HIGH findings closed (F-1 risk ID drift; F-2 W-16 collision deferred to E-8 v1.10; F-3 hyperfine→du; F-4 line-num→grep; F-5 add WASI preopens R-W16-005); scope 9→8 stories; S-9.30 withdrawn from topology; +85L. S-9.00 v1.0→v1.1: 3 HIGH closed (F-1 platform 3→5; F-2 ceiling adopt R-8.09 amended model; F-3 add execution AC); +49L. S-9.30: withdrawn (PO/architect-approved); audit trail preserved 698→711L. E-8 v1.9→v1.10: Tier 2/3 wave plan superseded; story_count 31→12 (Tier 1 only); CHANGELOG entry; D-13 W-16/W-17 rows struck-through with redirect to E-9/E-10; +22L. STORY-INDEX 1.31→1.32: S-9.30 withdrawn; S-8.11..S-8.29 (19 retired stubs). TD-022 logged: exec_subprocess uses codes::i32 not WasiErrno; research recommendation didn't apply (existing model differs). Process gap: gap-analysis Section 7 referenced "BC-2.02.005" (incorrect — SDK read_string); PO discovered + relocated to BC-1.05.035/036 same-session. Net Phase D scope: ~922 lines new spec eliminated; ~2 engineering-days saved; W-16 simpler (8 stories instead of 9). | Scope reversal confirmed correct. 12 files modified. Same-day correction; no production impact. | Phase-D-4-Burst-B-scope-reversal | 2026-05-03 | architect + product-owner + story-writer + state-manager |
+| D-223 | **Research + gap analysis + (d) Hybrid adoption (D-223).** Research findings persisted at `.factory/research/W-16-spec-foundation-research.md` (330L) by research-agent. Citations across 11 sources (rust-lang docs, wasi crate, wasmtime, Spin, Cloudflare, Lapce, Zellij, IJSRA wasmtime benchmarks). Q1 (HostError marshalling): use WasiErrno HIGH confidence. Q3 (FFI variable-length): JSON+pointer+size-out, 2MB initial buffer HIGH confidence. Q5 (bundle ceiling): latency-primary gate (500ms p95) + bundle advisory (~100% cumulative ~14MB target, 30MB hard kill-switch) MEDIUM confidence. Internal audit: `host::exec_subprocess` ALREADY EXISTS in production — used by session-start-telemetry per BC-4.04.002; SDK at hook-sdk/src/host.rs:280-340; production via factory-dispatcher/src/host/exec_subprocess.rs. Audit reveals previous architectural decision (D-9.2 = (a) new host fn) was based on incomplete information. Gap analysis (architect): produced `.factory/architecture/gap-analysis-w16-subprocess.md` (303L). Verdict: (d) Hybrid — extend exec_subprocess additively. validate-wave-gate-prerequisite (only W-16 subprocess use case) needs nothing exec_subprocess doesn't provide. run_subprocess actually LACKS STDIN (which exec_subprocess has) — reverse coexistence cost. Section 5: 2 minor extensions identified (path traversal guard, success telemetry). User decision: 2026-05-03 — adopted (d) Hybrid. Decision authority: research findings + gap analysis Section 7 + user approval. | (d) Hybrid adopted; ~922 lines new spec eliminated. | Phase-D-4-Burst-A-research-gap-analysis | 2026-05-03 | research-agent + architect + user |
 | D-222 | **Phase D-4 Burst 1 pass-1 adversarial (3 reviews parallel) COMPLETE.** E-9: 18 findings (5H/8M/5L) — top: F-1 risk ID drift across docs (E-9 vs ADR-014 vs audit-w16.md), F-2 W-16 wave designation collision with E-8, F-3 hyperfine mis-anchored as bundle-size tool (is latency bench), F-4 stale line-number anchors in AC-6, F-5 missing WASI preopens/path_allow risk (19/23 hooks affected). S-9.00: 12 findings (3H/5M/4L) — top: F-1 platform-coverage drift (3 vs 5 platforms; darwin-x64 + linux-arm64 missing), F-2 ceiling baseline mismatch with E-8 R-8.09 (GA anchor vs post-rc.4), F-3 POLICY 11 tautology (ACs assert recorded values but never require running measure-bundle-sizes.sh). S-9.30: 20 findings (8H/9M/3L) — top: F-01 missing HostError::BinaryNotFound + IoError variants (AC mandates variants that do not exist; self-contradiction with AC-8(e) "no new error codes"), F-02 ExecSubprocessCaps (BC-2.02.005) coexistence with new SubprocessCaps undefined, F-03 JSON-pointer FFI lacks size-out pointer (undefined behavior on large subprocess output; AC-8(e) excludes OutputTooLarge), F-04 BC-2.02.013 EC count drift (18 vs 20), F-05 subsystem boundary mis-anchor (S-9.30 modifies SS-01 modules but declares only SS-02), F-06 path canonicalization missing (allowed_paths bypass via relative paths), F-07 FD inheritance: no close_range before exec. Verdict on all 3: SUBSTANTIVE. Total: 50 findings (16H/22M/12L). Critical cross-doc issues: E-9 risk IDs misaligned with ADR-014; SS-02 boundaries incomplete for factory-dispatcher::host modules; BC-2.02.013 EC count 18-vs-20 drift. Next: architect fix-burst on 3 architectural HIGHs (S-9.30 F-01/F-02/F-03) then story-writer fix-burst on remaining 47 findings; pass-2 parallel. | All 3 SUBSTANTIVE; 50 total findings (16H/22M/12L). Architect decisions required before story-writer can apply S-9.30 fixes. | Phase-D-4-pass-1-adversarial | 2026-05-03 | adversary × 3 + state-manager |
 | D-221 | **Phase D-4 Burst 1 (story-writer) COMPLETE.** E-9 epic (377L): 9-story topology (Wave 0: {S-9.00, S-9.30}; Wave 1: {S-9.01..S-9.06}; Wave 2: {S-9.07}); 14-row library table; 5 risks (R-W16-001..005). S-9.00 (330L): 2 responsibilities — bundle baseline measurement + per-plugin budget; perf-baseline-w16.md + measure-bundle-sizes.sh deliverables. S-9.30 (698L): 8 ACs trace ALL 24 MUST invariants from BC-2.02.013; SDK extension story analogous to S-8.10 + S-8.30. STORY-INDEX 1.30→1.31; total stories 59→67 (S-9.01..S-9.07 stubs registered). Next: adversarial convergence pass-1 on 3 specs (parallel) per ADR-013; then Burst 2 S-9.01..S-9.04; Burst 3 S-9.05..S-9.07. | Phase D-4 Burst 1 of 3. W-16 spec foundation: E-9 topology locked; S-9.00 perf baseline scope; S-9.30 SDK ext scope with full BC-2.02.013 coverage; 7 story stubs registered. ADR-013 adversarial convergence begins next. | Phase-D-4-Burst-1 | 2026-05-03 | story-writer + state-manager |
 | D-220 | **Phase D-4 PENDING — story-writer to author E-9 epic + W-16 story batch.** story-writer dispatch: (1) E-9 epic (Tier 2 native WASM migration, covering 23 validate-*.sh hooks); (2) S-9.00 perf baseline (analogous to S-8.00); (3) S-9.01..S-9.07 (7 batched validators per ADR-014 capability-cluster grouping); (4) SDK extension story (host::run_subprocess wiring, analogous to S-8.10/S-8.30). Per-story adversarial convergence per ADR-013 follows each story. Estimated 5-7 days for full Phase D spec foundation. Top risks inherited from audit-w16.md: R-W16-001 bats orphan migration (Phase H), R-W16-003 bundle size ceiling (SubprocessCaps max_stdout/stderr_bytes fields). | Estimated story count ~9; per D-217/D-218/D-219 foundations. | Phase-D-4-PENDING | 2026-05-03 | state-manager |
@@ -299,14 +306,14 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-03 (Phase D-4 pass-1 adversarial COMPLETE — D-222 sealed; 50 findings (16H/22M/12L) across E-9 + S-9.00 + S-9.30; all 3 SUBSTANTIVE)
+**Last update:** 2026-05-03 (Phase D-4 Burst B + (d) Hybrid adoption COMPLETE — D-223+D-224 sealed; BC-INDEX 1915→1917; S-9.30 withdrawn; E-9/S-9.00 v1.1; pass-2 adversarial pending)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** c08e7a4 (chore(state): seal Phase D-4 Burst 1 pass-1 — 50 findings (3 stories adversarial))
+**factory-artifacts HEAD:** (this commit — seal Phase D-4 Burst B + (d) Hybrid adoption)
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
-**Current Phase:** D-4 fix burst pending: architect (3 HIGH architectural fixes: S-9.30 F-01 HostError variants, F-02 ExecSubprocessCaps coexistence, F-03 JSON-pointer size-out) + story-writer (E-9 + S-9.00 + S-9.30 fixes for remaining 47 findings) + pass-2 parallel after fixes. Phase C (v1.0.0 GA burn-in) running in parallel — rc.4 shipped 2026-05-03T10:12:41Z, ~7-day burn-in window.
+**Current Phase:** D-4 pass-2 adversarial pending (parallel × 2: E-9 v1.1 + S-9.00 v1.1; S-9.30 withdrawn — skip). Phase C (v1.0.0 GA burn-in) running in parallel — rc.4 shipped 2026-05-03T10:12:41Z, ~7-day burn-in window.
 
 ## Approved Plan (post-rc.4)
 
@@ -342,13 +349,12 @@ Delete legacy-bash-adapter. All hooks native.
 
 When resuming:
 
-1. **Read this checkpoint + recent decisions log** (D-217..D-222 for Phase D context).
+1. **Read this checkpoint + recent decisions log** (D-217..D-224 for Phase D context).
 2. **Verify state still aligns** — `git rev-parse origin/main origin/develop` should show e93fef7 + 52e644d (or further if burn-in changes applied).
 3. **Next action choices (parallel tracks):**
    - **Phase C:** Monitor rc.4 burn-in (~7 days from 2026-05-03). If clean → cut v1.0.0 GA.
-   - **Phase D fix burst (architect):** Resolve 3 architectural HIGHs in S-9.30: F-01 (HostError::BinaryNotFound + IoError extension decision), F-02 (ExecSubprocessCaps vs SubprocessCaps coexistence), F-03 (JSON-pointer FFI size-out pointer). These gate story-writer fixes on S-9.30.
-   - **Phase D fix burst (story-writer):** After architect decisions, fix all 50 findings across E-9 (18), S-9.00 (12), S-9.30 (20). Pass-2 adversarial after fix burst.
-   - **Phase D Burst 2 (after Burst 1 converges):** Story-writer authors S-9.01..S-9.04.
+   - **Phase D pass-2 adversarial (NOW):** Run parallel adversarial × 2 on E-9 v1.1 + S-9.00 v1.1. S-9.30 is withdrawn — skip. Fix burst if SUBSTANTIVE findings, else advance convergence clock.
+   - **Phase D Burst 2 (after E-9 + S-9.00 converge):** Story-writer authors S-9.01..S-9.04.
 
 ## Open Backlog (lower priority than the plan)
 
