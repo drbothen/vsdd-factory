@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.30"
+version: "1.31"
 status: current
 producer: state-manager
-timestamp: 2026-05-02T22:00:00
+timestamp: 2026-05-03T00:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -59,6 +59,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **W-15 Batch 5 + Finale sealed (2026-05-02): 4 final Tier 1 WASM ports MERGED (D-199..D-202) + W-15 COMPLETE (D-203).** S-8.03 PR #55 merged at 6809c6d; S-8.02 PR #56 merged at b25f017; S-8.05 PR #57 merged at a8ee79e; S-8.09 PR #58 merged at 3adfe0b. D-199 (S-8.03 track-agent-stop; BC-2.02.012 typed projection + agent.stop telemetry) + D-200 (S-8.02 pr-manager-completion-guard; advisory block-mode SubagentStop; Capabilities deny_unknown_fields fix; workspace clippy sweep in factory-dispatcher main.rs + track-agent-start) + D-201 (S-8.05 validate-pr-review-posted; 3-check validation Check 1+2+3a+3b; advisory block-mode) + D-202 (S-8.09 regression-gate finale + W-15 CLOSURE; PostToolUse advisory; 9-test-runner patterns; pass→fail transition warning; OQ-6 RESOLVED via security audit; **0 Tier 1 hooks routing through legacy-bash-adapter**; macOS /var/folders/ symlink fix in invoke.rs) sealed. CC-W15-005..007 registered. STORY-INDEX v1.28 → v1.29. Status: ready 4→0; merged 53→57. **W-15 ALL DONE — 12 of 12 Tier 1 stories MERGED to develop.**
 > **NOTE (task #171, cosmetic):** E-8 epic v1.10 has minor ordering issues (v1.10 changelog entry placed before v1.8 chronologically; v1.9 skipped; possible duplicate AC-7b at line ~805 still says 200ms). Separate product-owner dispatch in next session.
 > **W-15 wave gate CONVERGED (2026-05-02): STORY-INDEX v1.29 → v1.30.** 3 fix-bursts (PR #59/60/61) closed all wave gate findings. D-205..D-208 sealed. All 12 W-15 stories sealed: S-8.00, S-8.01, S-8.02, S-8.03, S-8.04, S-8.05, S-8.06, S-8.07, S-8.08, S-8.09, S-8.10, S-8.30 — status=merged. All CC-W15-001..011 RETIRED. develop @ d49f33b. v1.0.0-rc.3 release path clear.
+> **W-16 Phase D-4 Burst 1 (2026-05-03): E-9 epic + S-9.00 + S-9.30 authored. STORY-INDEX v1.30 → v1.31.** E-9-tier-2-native-wasm-migration.md v1.0 status=draft; 9-story scope (S-9.00 + S-9.30 + S-9.01..S-9.07); 23 validate-*.sh hooks; ADR-014 D-9.1/D-9.2/D-9.3. S-9.00 (perf baseline + W-16 bundle ceiling; depends_on=[]; blocks S-9.01..S-9.07; behavioral_contracts=[] [process-gap]). S-9.30 (host::run_subprocess SDK extension; depends_on E-8; blocks S-9.07; behavioral_contracts=[BC-2.02.013]; 24 MUSTs traced across 8 ACs; JSON-pointer protocol; SubprocessCaps + SubprocessSpec + SubprocessResult types). W-16 section added to index. Epic E-9 row added. Total stories: 59 → 61 (S-9.00 + S-9.30); additional 7 batch stories in Burst 2+3.
 
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
@@ -73,9 +74,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 57 |
 | partial | 1 |
-| draft | 1 |
+| draft | 9 |
 | ready | 0 |
-| **Total** | **59** |
+| **Total** | **67** |
+
+> Note: 8 new draft stories added in W-16 Burst 1+stubs: S-9.00, S-9.30 (authored); S-9.01..S-9.07 (stub entries, pending Burst 2+3 authoring).
 
 ## Epic E-0 — Infrastructure Prep (Tier A — all merged)
 
@@ -233,6 +236,26 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
+## Epic E-9 — Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks (draft)
+
+> **E-9 spec authored (2026-05-03):** E-9-tier-2-native-wasm-migration.md v1.0 status=draft. 9-story scope: S-9.00 (perf baseline) + S-9.30 (host::run_subprocess SDK extension) + S-9.01..S-9.07 (7 capability-cluster batches). 23 validate-*.sh hooks. ADR-014 D-9.1 (rewrite-clean) + D-9.2 (host::run_subprocess) + D-9.3 (7 batched stories). Risks R-W16-001 (bats orphan deferred to Phase H) + R-W16-003 (bundle ceiling). Library Table includes regex, serde_yaml, walkdir, std::process::Command.
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|--------|-----|
+| S-9.00 | Perf baseline + W-16 bundle growth ceiling (W-16 pre-work) | E-9 | TBD | P2 | — | S-9.01..S-9.07 | draft | [] ([process-gap] under D-9.4; analogous to S-8.00) |
+| S-9.30 | SDK extension: host::run_subprocess (ADR-014 D-9.2) | E-9 | TBD | P1 | E-8 | S-9.07 | draft | BC-2.02.013 (24 MUSTs; SubprocessCaps + SubprocessSpec + SubprocessResult; JSON-pointer protocol) |
+| S-9.01 | Batch B-1: pure stdin-parse validators (validate-demo-evidence-story-scoped, validate-factory-path-root, validate-finding-format, validate-novelty-assessment) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
+| S-9.02 | Batch B-2: single file-read frontmatter validators (validate-bc-title, validate-changelog-monotonicity, validate-red-ratio, validate-input-hash) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
+| S-9.03 | Batch B-3: PR/delivery file validators (validate-pr-description-completeness, validate-table-cell-count, validate-pr-merge-prerequisites) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
+| S-9.04 | Batch B-4: STATE.md + cycle index validators (validate-state-index-status-coherence, validate-state-pin-freshness, validate-state-size) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
+| S-9.05 | Batch B-5: story-file + BC multi-file validators (validate-story-bc-sync, validate-count-propagation, validate-index-self-reference) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 3) |
+| S-9.06 | Batch B-6: cross-document lookup validators (validate-anchor-capabilities-union, validate-subsystem-names, validate-template-compliance) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 3) |
+| S-9.07 | Batch B-7: complex YAML + subprocess validators (validate-vp-consistency, validate-wave-gate-completeness, validate-wave-gate-prerequisite) | E-9 | TBD | P2 | S-9.00, S-9.30 | — | draft | [] (pending Burst 3; requires BC-2.02.013 for wave-gate-prerequisite) |
+
+> S-9.01..S-9.07 are stubs pending Burst 2 (S-9.01..S-9.04) and Burst 3 (S-9.05..S-9.07) story-writer dispatches with adversarial convergence per ADR-013 between bursts.
+
+---
+
 **Draft story policy:** Stories with `status: draft` MAY have empty
 `behavioral_contracts: []` arrays. BC anchoring is deferred to the elaboration phase
 (when status transitions to `ready`). **Source:** Phase 1d pass 3 F-035.
@@ -244,9 +267,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 258 across 59 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8*)
+**Total story points:** 258+ across 67 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9**)
 
 > \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
+> \*\*E-9 in progress — S-9.00 + S-9.30 authored (TBD pts each); S-9.01..S-9.07 stub entries (TBD pts pending Burst 2+3 authoring); ~50-70 additional pts estimated across 9 stories.
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)
