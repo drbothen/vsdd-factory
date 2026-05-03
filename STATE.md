@@ -310,7 +310,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-4 pass-2 fix burst SEALED — D-225 sealed; E-9 v1.1→v1.2; S-9.00 v1.1→v1.2; ADR-014 R-8.08; STORY-INDEX 1.33; pass-3 adversarial pending)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** [pending — updated after state-seal commit]
+**factory-artifacts HEAD:** 439c219 (chore(state): seal Phase D-4 pass-2 fix burst (D-225) + update resume checkpoint)
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
