@@ -154,29 +154,9 @@ setup() {
   [ "$count" -ge 1 ]
 }
 
-# ---------- direct-bash side-effect baseline ---------------------------
-# Sanity tests that the bash hooks *themselves* still work outside the
-# dispatcher path. If these fail, the regression is in the bash script,
-# not the dispatcher.
-
-@test "regression-v1.0: capture-commit-activity (direct) emits commit.made for a successful git commit" {
-  envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"d","tool_input":{"command":"git commit -m \"x\""},"tool_response":{"exit_code":0,"stdout":"[main abc1234] x","stderr":""}}'
-  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" \
-        CLAUDE_PROJECT_DIR="$WORK" \
-        VSDD_LOG_DIR="$WORK/.factory/logs" \
-    bash -c "printf '%s' '$envelope' | bash '$PLUGIN_ROOT/hooks/capture-commit-activity.sh'"
-  [ "$status" -eq 0 ]
-  log="$(ls "$WORK/.factory/logs/events-"*.jsonl 2>/dev/null | head -1)"
-  [ -n "$log" ]
-  grep -q '"type":"commit.made"' "$log"
-  grep -q '"commit_sha":"abc1234"' "$log"
-}
-
-@test "regression-v1.0: block-ai-attribution (direct) blocks (exit 2) on Co-Authored-By: Claude" {
-  envelope='{"event_name":"PreToolUse","tool_name":"Bash","session_id":"d","tool_input":{"command":"git commit -m foo\n\nCo-Authored-By: Claude <noreply@anthropic.com>"}}'
-  run env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" \
-        CLAUDE_PROJECT_DIR="$WORK" \
-        VSDD_LOG_DIR="$WORK/.factory/logs" \
-    bash -c "printf '%s' '$envelope' | bash '$PLUGIN_ROOT/hooks/block-ai-attribution.sh'"
-  [ "$status" -eq 2 ]
-}
+# NOTE: The "direct-bash side-effect baseline" section previously contained
+# two tests that invoked capture-commit-activity.sh and block-ai-attribution.sh
+# directly. Both .sh files were deleted in commit 818fb95 (superseded by
+# native WASM equivalents). The tests were removed here to prevent CI failures.
+# End-to-end coverage of these behaviors is provided by the dispatcher test
+# suite (regression-v1.0 adapter round-trip tests above).
