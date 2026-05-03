@@ -302,7 +302,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-4 pass-1 adversarial COMPLETE — D-222 sealed; 50 findings (16H/22M/12L) across E-9 + S-9.00 + S-9.30; all 3 SUBSTANTIVE)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** (see commit after this push — chore(state): seal Phase D-4 Burst 1 pass-1 — 50 findings (3 stories adversarial))
+**factory-artifacts HEAD:** c08e7a4 (chore(state): seal Phase D-4 Burst 1 pass-1 — 50 findings (3 stories adversarial))
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
