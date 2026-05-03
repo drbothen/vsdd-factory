@@ -1,5 +1,65 @@
 # Changelog
 
+## 1.0.0-rc.4 — Pre-W16 hardening sprint (2026-05-03)
+
+Release candidate 4 ships pre-flight hardening for the W-16 (Tier 2 native
+WASM) wave. Addresses orphan-reference fragility surfaced by W-15's release
+recovery cycles, sweeps clippy debt, restores main branch protection with bot
+bypass, and removes legacy bash hook dupes that have native WASM equivalents.
+
+### Added
+
+- **bats-orphan-detection CI gate (TD-017)** — `.github/workflows/ci.yml`
+  validate job now runs `plugins/vsdd-factory/tests/check-bats-orphans.sh`,
+  which scans every `tests/*.bats` for `hooks/<name>.sh` references and fails
+  if any referenced hook is missing from `plugins/vsdd-factory/hooks/`.
+  Detects deletion-driven orphans pre-merge.
+- **`plugins/vsdd-factory/tests/check-bats-orphans.sh`** — standalone shell
+  script enforcing the gate above; invokable locally as `bash
+  plugins/vsdd-factory/tests/check-bats-orphans.sh`.
+
+### Changed
+
+- **`plugins/vsdd-factory/tests/run-all.sh` glob discovery (TD-016)** —
+  Replaced 23-line hardcoded suite enumeration with 7-line `nullglob` loop.
+  New `.bats` files are picked up automatically; deleted ones don't break CI
+  with stale references. Also: continues past first-failure suite, accumulates
+  failed-suite list, and reports total fail count at the end (was: aborted on
+  first failure under `set -e`).
+- **main branch protection restored (TD-013)** — `enforce_admins=false`,
+  `required_pull_request_reviews=null` (allows `github-actions[bot]` direct
+  push for release.yml bundle commits), `required_status_checks=null`,
+  `allow_force_pushes=false`, `allow_deletions=false`. Replaces fully-disabled
+  state from W-15 recovery cycles.
+- **Workspace clippy debt swept (TD-018)** — `cargo clippy --workspace
+  --all-targets -- -D warnings` is now clean. Side effect: 6 pre-existing
+  test failures in `generate-registry.bats` fixed (the migration generator
+  was clobbering hand-maintained `hooks-registry.toml` during test runs).
+
+### Removed
+
+- **3 legacy bash hook dupes deleted** — `block-ai-attribution.sh`,
+  `capture-commit-activity.sh`, `capture-pr-activity.sh`. All have native
+  WASM equivalents shipped in W-15. Their dedicated `.bats` files removed;
+  references in `pr-lifecycle-hooks.bats` trimmed; `hooks.json` entries
+  removed.
+
+### Fixed
+
+- **Orphan references in `factory-obs.bats` and `regression-v1.0.bats`** —
+  Tests asserting deleted .sh executables removed; replaced with sentinel
+  comments explaining the WASM port.
+- **`check-bats-orphans.sh` regex coverage** — broadened from `$HOOKS_DIR/`
+  pattern to all `hooks/<name>.sh` reference forms (catches
+  `${BATS_TEST_DIRNAME}/../hooks/`, `$PLUGIN_ROOT/hooks/`, `${CLAUDE_PLUGIN_ROOT}/hooks/`,
+  hardcoded paths, etc.).
+
+### Tech Debt Backlog (post-rc.4)
+
+- TD-019 — `ci.yml` triggers on `pull_request: [main]` only; PRs targeting
+  develop don't run CI gates. Will be addressed as a follow-up before rc.5
+  or v1.0.0 GA.
+
 ## 1.0.0-rc.3 — W-15 convergence + wave-gate fixes (2026-05-02)
 
 Release candidate 3 ships the completed W-15 wave gate (12 stories merged)
