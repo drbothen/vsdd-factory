@@ -38,6 +38,9 @@ jobs:
       - name: Run bin tests
         run: bats plugins/vsdd-factory/tests/bin.bats
 
+      - name: Check bats files for orphan hook references
+        run: bash plugins/vsdd-factory/tests/check-bats-orphans.sh
+
       - name: Validate marketplace JSON
         run: |
           jq empty .claude-plugin/marketplace.json

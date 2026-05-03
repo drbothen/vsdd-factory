@@ -21,7 +21,6 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/block-ai-attribution.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/destructive-command-guard.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/protect-secrets.sh", "timeout": 5 },
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/verify-git-push.sh", "timeout": 10 },
@@ -36,12 +35,6 @@
       }
     ],
     "PostToolUse": [
-      {
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/capture-pr-activity.sh", "timeout": 5 },
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/capture-commit-activity.sh", "timeout": 5 }
-        ]
-      },
       {
         "matcher": "Edit|Write",
         "hooks": [
