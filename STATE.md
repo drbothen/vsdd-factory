@@ -347,7 +347,7 @@ dtu_services: []
 **Last update:** 2026-05-03 (Phase D-1/D-2/D-3 COMPLETE — D-217..D-220 sealed; ADR-014; BC-2.02.013; BC-INDEX 1914→1915)
 **main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
 **develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** (after this commit)
+**factory-artifacts HEAD:** 7bf2c35 (chore(state): seal Phase D-1/D-2/D-3 — W-16 spec foundation)
 **v1.0.0-rc.4 tag:** e93fef7
 **Active worktrees:** main + .factory only
 
