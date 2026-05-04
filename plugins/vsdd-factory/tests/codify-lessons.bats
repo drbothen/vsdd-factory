@@ -34,19 +34,11 @@
   grep -qi "prose" plugins/vsdd-factory/agents/adversary.md
 }
 
-@test "BC-5.36.007: all three agents updated in the delivery branch" {
-  # Verify all 3 agent files were modified somewhere in this branch
-  # (checks branch diff vs origin/main, robust to additional review-cycle fix commits)
-  cd /Users/jmagady/Dev/vsdd-factory/.worktrees/codify-lessons
-  merge_base=$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main 2>/dev/null || echo "")
-  if [[ -z "$merge_base" ]]; then
-    # Fallback: check last 5 commits
-    files_in_branch=$(git diff --name-only HEAD~5 HEAD | grep -c 'agents/' || true)
-  else
-    files_in_branch=$(git diff --name-only "$merge_base" HEAD | grep -c 'agents/')
-  fi
-  [ "$files_in_branch" -ge 3 ]
-}
+# BC-5.36.007 (REMOVED 2026-05-04, TD-020 sweep): Asserted that all three
+# agents were touched in the codify-lessons delivery worktree. The worktree
+# `.worktrees/codify-lessons` no longer exists post-merge, so the assertion
+# was structurally impossible to satisfy. The contract (agents updated)
+# is still validated by BC-5.36.001–006 which inspect the merged files.
 
 # ---------- S-7.02: Defensive sweep + hook + meta-rule (BC-5.37.001–002, BC-7.05.001–004, BC-8.28.001–002) ----------
 

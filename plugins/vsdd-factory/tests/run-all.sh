@@ -31,11 +31,10 @@ echo "== Running all bats test suites =="
 # SKIP_SUITES — bats suites with known pre-existing failures excluded from the
 # release-validation gate. These suites were never in the OLD hardcoded
 # run-all.sh enumeration; the TD-016 glob refactor (Phase A) widened scope
-# and surfaced their breakage. Each entry needs cleanup in TD-020 before it
-# can be un-skipped:
-#   - codify-lessons: BC-5.36/5.37/7.05/8.28 assertions reference
-#     story-writer/product-owner/adversary patches that were never applied;
-#     validate-count-propagation.sh and lessons-codification.md don't exist.
+# and surfaced their breakage. TD-020 sweep (2026-05-04) is in progress;
+# entries are removed as each is fixed or deleted.
+#
+# Remaining entries (each needs cleanup in TD-020 before un-skip):
 #   - generate-registry: migration-generator behavior drift; tests assert
 #     idempotency / one-line-per-hook invariants the current generator
 #     doesn't satisfy.
@@ -47,7 +46,6 @@ echo "== Running all bats test suites =="
 # To un-skip: fix or delete the underlying tests (TD-020), then remove from
 # this list. Do NOT add new entries without a TD ticket.
 SKIP_SUITES=(
-  "codify-lessons"
   "generate-registry"
   "novelty-assessment"
   "state-health"
