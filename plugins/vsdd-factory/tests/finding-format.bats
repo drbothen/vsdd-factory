@@ -99,8 +99,9 @@ Source: STORY-005-FIX-001"
   bash -n "$HOOK"
 }
 
-@test "finding-format: hooks.json wires validate-finding-format" {
-  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-finding-format"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+@test "finding-format: registry wires validate-finding-format" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-finding-format" "PostToolUse"
 }
 
 # ---------- Edge cases ----------

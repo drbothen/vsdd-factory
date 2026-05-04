@@ -46,12 +46,14 @@ _run_pretool_agent() {
   [ "$status" -eq 0 ]
 }
 
-@test "hooks.json wires pr-description-completeness under PostToolUse" {
-  jq -e '.hooks.PostToolUse[] | .hooks[] | select(.command | contains("validate-pr-description-completeness"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
+@test "registry wires pr-description-completeness under PostToolUse" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-pr-description-completeness" "PostToolUse"
 }
 
-@test "hooks.json wires pr-merge-prerequisites under PreToolUse Agent" {
-  jq -e '.hooks.PreToolUse[] | select(.matcher == "Agent") | .hooks[] | select(.command | contains("validate-pr-merge-prerequisites"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
+@test "registry wires pr-merge-prerequisites under PreToolUse Agent" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-pr-merge-prerequisites" "PreToolUse" "Agent"
 }
 
 # ========================================================================

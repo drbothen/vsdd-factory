@@ -44,10 +44,9 @@ _run_pretool_agent() {
   [ -x "$HOOKS/validate-wave-gate-prerequisite.sh" ]
 }
 
-@test "wave-gate hooks: hooks.json wires prerequisite under PreToolUse Agent" {
-  run jq '.hooks.PreToolUse[] | select(.matcher == "Agent") | .hooks[] | select(.command | contains("validate-wave-gate-prerequisite"))' "$PLUGIN_ROOT/hooks/hooks.json"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"validate-wave-gate-prerequisite"* ]]
+@test "wave-gate hooks: registry wires prerequisite under PreToolUse Agent" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-wave-gate-prerequisite" "PreToolUse" "Agent"
 }
 
 # ========================================================================
@@ -281,8 +280,9 @@ waves:
   [ -x "$HOOKS/validate-wave-gate-completeness.sh" ]
 }
 
-@test "gate-completeness: hooks.json wires under PostToolUse" {
-  jq -e '.hooks.PostToolUse[] | .hooks[] | select(.command | contains("validate-wave-gate-completeness"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
+@test "gate-completeness: registry wires under PostToolUse" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-wave-gate-completeness" "PostToolUse"
 }
 
 @test "gate-completeness: passes when gate report has all 6 gates" {

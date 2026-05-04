@@ -239,14 +239,17 @@ FIXTURE
 
 # ===== hooks.json wiring =====
 
-@test "hooks.json wires validate-subsystem-names" {
-  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-subsystem-names"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+@test "registry wires validate-subsystem-names" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-subsystem-names" "PostToolUse"
 }
 
-@test "hooks.json wires validate-bc-title" {
-  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-bc-title"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+@test "registry wires validate-bc-title" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-bc-title" "PostToolUse"
 }
 
-@test "hooks.json wires validate-story-bc-sync" {
-  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-story-bc-sync"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+@test "registry wires validate-story-bc-sync" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-story-bc-sync" "PostToolUse"
 }

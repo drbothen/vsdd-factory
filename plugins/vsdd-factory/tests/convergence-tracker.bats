@@ -226,8 +226,8 @@ EOF
 
 # ---------- hooks.json ----------
 
-@test "convergence-tracker: hooks.json wires convergence-tracker" {
-  run grep -c "convergence-tracker.sh" "${BATS_TEST_DIRNAME}/../hooks/hooks.json"
+@test "convergence-tracker: hooks-registry.toml wires convergence-tracker" {
+  run grep -c "script_path = \"hooks/convergence-tracker.sh\"" "${BATS_TEST_DIRNAME}/../hooks-registry.toml"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }
