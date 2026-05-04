@@ -13,7 +13,7 @@ Grafana Image Renderer) that ingests `.factory/logs/events-*.jsonl`
 into Loki and Claude Code's native OTel metrics into Prometheus, and
 surfaces the data in 7 preconfigured Grafana dashboards.
 
-Since v0.78.0 the stack can watch **multiple factory projects** at
+The stack can watch **multiple factory projects** at
 once. Each project is registered explicitly via a user-level registry
 at `~/.config/vsdd-factory/watched-factories`. `factory-obs up`
 generates a `docker-compose.override.yml` from that registry with one
