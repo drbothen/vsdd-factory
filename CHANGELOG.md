@@ -1,5 +1,83 @@
 # Changelog
 
+## 1.0.0-rc.6 — Marketplace install fix (2026-05-03)
+
+Release candidate 6 fixes a silent install-time bug shipped in rc.4 and
+rc.5 that prevented Claude Code from populating the plugin cache, which
+in turn prevented `/vsdd-factory:*` slash commands and skills from
+loading at all. The marketplace clone was correct on disk and
+`claude plugin validate` reported success — but the plugin loader found
+zero skills because the cache install path recorded in
+`installed_plugins.json` never actually got created.
+
+### Fixed
+
+- **`marketplace.json` `source` field now uses the documented
+  `git-subdir` form with explicit `ref: "main"`.** Previous releases
+  shipped a schema-violating combination — `source: "github"` with a
+  `path:` field — that no Claude Code source type officially supports.
+  The install code path silently skipped the cache copy step when
+  encountering the unrecognized field combination, leaving
+  `~/.claude/plugins/cache/vsdd-factory/vsdd-factory/<version>/`
+  empty even though `installed_plugins.json` recorded a successful
+  install. Replaced with:
+  ```json
+  "source": {
+    "source": "git-subdir",
+    "url": "https://github.com/drbothen/vsdd-factory.git",
+    "path": "plugins/vsdd-factory",
+    "ref": "main"
+  }
+  ```
+  `git-subdir` is the documented source type for "plugin at a subpath
+  of an external git repo," and `ref: "main"` pins installs to the
+  release-stable branch independent of the marketplace clone's
+  checked-out ref. The latter matters because we use Git Flow — the
+  GitHub default branch is `develop` (in-flight), but releases live on
+  `main`. Without explicit ref pinning, future re-registrations of the
+  marketplace could silently start pulling pre-release work from
+  develop instead of release-stable code from main.
+
+### Added
+
+- **`docs/guide/plugin-marketplace-architecture.md`** — comprehensive
+  reference for the plugin packaging architecture. Documents:
+  - All 5 valid `source` types (`relative-path string`, `github`,
+    `url`, `git-subdir`, `npm`) with when-to-use guidance
+  - A decision tree that accounts for ref-pinning needs under Git Flow
+  - The full root cause of the rc.4/rc.5 bug and why
+    `claude plugin validate` failed to catch it
+  - Repository layout today and future evolution paths (central
+    marketplace, release channels for stable vs edge)
+  - Complete `SKILL.md` frontmatter field reference
+  - Common pitfalls catalogued during the rc.5 audit (blank lines in
+    YAML frontmatter, comma-separated `allowed-tools` instead of
+    space-separated, `disable-model-invocation` interactions with
+    auto-loading)
+  - Validation discipline checklist for future marketplace changes
+
+### Migration
+
+No breaking user-facing changes for installed plugins. Users who
+installed rc.5 (or earlier) and saw the "0 skills" issue should see
+slash commands appear after upgrading to rc.6 and running
+`/plugin update vsdd-factory@vsdd-factory` followed by
+`/reload-plugins`. Users on a clean install should see the issue go
+away on first install.
+
+If `/plugin update` reports already-installed at a non-rc.6 version but
+the cache directory is empty, force a fresh install:
+
+```bash
+claude plugin uninstall vsdd-factory@vsdd-factory --scope project
+# (or --scope user, depending on how it was originally installed)
+# then /plugin install vsdd-factory@vsdd-factory
+```
+
+If maintaining a marketplace registration that points at this repo,
+no action needed — the marketplace.json shipped on `main` is now
+self-correcting.
+
 ## 1.0.0-rc.5 — Skills-only plugin surface (2026-05-03)
 
 Release candidate 5 collapses the dual command + skill plugin surface
