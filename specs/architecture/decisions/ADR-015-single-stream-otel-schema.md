@@ -794,12 +794,14 @@ extensions do not bump `HOST_ABI_VERSION`).
 
 ## Open Questions (escalate to SS-XX-level decisions)
 
-**OQ-1 (SS-03): `observability-config.toml` schema for D-15.1**
-What is the minimal `observability-config.toml` schema post-migration? The
-multi-sink stanza model is removed. What configuration does the file retain?
-(File sink path template, retention days, `VSDD_DEBUG_LOG` default, OTel
-Collector endpoint for operators who skip the Collector entirely?) The SS-03
-spec rewrite must answer this.
+~~**OQ-1 (SS-03): `observability-config.toml` schema for D-15.1**~~
+RESOLVED 2026-05-04 in SS-03-event-emission.md § `observability-config.toml`
+Schema. v2 schema retains: `events_file` (path template), `retention_days`
+(default 90), `debug_log_retention_days` (default 30), `debug_log_enabled`
+(default false; overridden by `VSDD_DEBUG_LOG=1` env var), and `sync_on_write`
+(default false). Multi-sink stanza model removed. No OTel Collector endpoint
+field in dispatcher config — operators configure the Collector externally.
+`schema_version = 2` required; v1 schema hard-errors with migration hint.
 
 ~~**OQ-2 (SS-01): `host::emit_event` enrichment implementation scope for Wave 1**~~
 RESOLVED 2026-05-04 by user adjudication: Wave 1 ships the FULL Windows
@@ -831,32 +833,32 @@ in "Plugin authors targeting v1.0" section. D-15.3's field-override behavioral
 change is a MAJOR-version SDK bump. The SDK changelog for the D-15.2 wave must
 be released as a major version.
 
-**OQ-7 (SS-01): FileSink partial-write recovery**
-D-15.1 specifies failure-fallback semantics (full write failure → debug file
-+ stderr warning), but does not address partial writes: a crash mid-JSON-line
-leaves the JSONL file with a truncated final record that will fail parsing on
-replay. SS-01 must decide whether `FileSink` uses atomic-write semantics
-(write to temp file, rename), append-with-boundary-marker, or post-crash
-truncation recovery. This is not solved in this ADR.
+~~**OQ-7 (SS-01): FileSink partial-write recovery**~~
+RESOLVED 2026-05-04 in BC-1.11.002 (boundary-marker strategy chosen).
+FileSink uses `write_all(json_bytes)` + `write_all(b"\n")` — no atomic
+rename. Consumers skip the final line of `events-*.jsonl` on JSON parse
+error (truncation artifact, non-fatal). Atomic-rename rejected: breaks OTel
+Collector filelog receiver inode-offset checkpointing. Full write-failure
+cascade and fsync opt-in policy also specified in BC-1.11.002 and
+SS-03-event-emission.md § FileSink Write Semantics.
 
-**OQ-8 (SS-01): Atomic dual-emit (deferred)**
-D-15.2.e acknowledges that the Wave 2 dual-emit shim performs two sequential
-FileSink writes, both plugin-side, with no atomicity guarantee. A FileSink
-failure or dispatcher SIGKILL between the two writes produces an orphaned
-half-pair (one emission present, the other absent). A future host-helper that
-wraps both emissions in a single host call would shift the orphan-prevention
-responsibility from plugin code to the host, eliminating the class of
-dangling-reference bugs documented in D-15.2.e. This is deferred to SS-01
-implementation planning. v1 accepts orphan-half risk during Wave 2 only;
-Wave 3 shim removal eliminates the risk entirely once migration is complete.
+~~**OQ-8 (SS-01): Atomic dual-emit (deferred)**~~
+RESOLVED 2026-05-04 in BC-1.11.003 (`vsdd_hook_sdk::host::emit_pair`
+specified). The host helper wraps both emissions in a single host call,
+auto-assigns `event.correlation_id`, `event.deprecated_by`, and
+`event.replaces_deprecated_alias`. Partial-failure (second write fails)
+emits `vsdd.internal.emit_pair_partial_failure.v1` to the debug file.
+Full OS-level crash atomicity (both-or-neither at kernel level) is OUT OF
+SCOPE for v1. Wave 3 shim removal eliminates the need entirely post-migration.
+Legacy two-call shims continue to work until Wave 3.
 
-**OQ-9 (SS-03): Persistent deprecation-registry artifact (post-Wave-3)**
-The one-time `vsdd.internal.event_name_deprecated.v1` announcement at Wave 3
-closure rotates out of JSONL within the default 90-day retention window,
-leaving no queryable record for operators who arrive post-closure (new operator,
-restored backup, dashboard cloned from older template). A persistent registry
-artifact (queryable, survives JSONL rotation) is needed if Wave 2/3 namespace
-migrations recur in future feature waves. Deferred to SS-03; out of scope for v1.
+~~**OQ-9 (SS-03): Persistent deprecation-registry artifact (post-Wave-3)**~~
+RESOLVED (DEFERRED) 2026-05-04 in SS-03-event-emission.md §
+Persistent Deprecation Registry. Decision: DEFERRED to v1.1. v1 accepts
+the bounded post-Wave-3 silent-zero risk (stale old-name dashboard queries
+go dark after shim removal). v1.1 will add a non-rotating
+`deprecations.jsonl` sidecar in `.factory/logs/` written at each wave's
+shim-removal closure. Rationale for deferral in SS-03-event-emission.md.
 
 ## Architect Notes (for adversarial review awareness)
 
@@ -929,3 +931,4 @@ the authoritative version signal. Schema versioning section updated to match.
 | v1.6 | 2026-05-04 | Revision pass 5 (2026-05-04): scope-bound orphan detection to `dispatcher_trace_id` scope (F-1); acknowledged post-Wave-3 announcement-gap for late-arriving operators in Negative Consequences and added OQ-9 for persistent deprecation-registry surface (F-2); plugin-author conformance responsibility for symmetric-pair emission added to plugin-asserted paragraph, referencing OQ-8 (F-3). No net-new normative surface beyond OQ-9. |
 | v1.7 | 2026-05-04 | ADR ACCEPTED (2026-05-04). Final polish: trace_id naming canonicalized — `dispatcher_trace_id` → `trace_id` in D-15.2.e orphan-half detection prose (Polish-1); OQ-3 strikethrough text aligned with D-15.4 actual decision — dispatcher-side mandatory injection, not env_allowlist (Polish-2); D-15.4 line 426 reworded from "env-allowlist" to "dispatcher-injected invariants" to eliminate same ambiguity (Polish-2); OQ-2 stub semantics clarified — stubbing means terminal cascade default, literal TODO markers MUST NOT appear in Resource field values (Polish-3). 9 adversary passes complete; convergence achieved. |
 | v1.8 | 2026-05-04 | OQ-2 and OQ-5 resolved by user adjudication 2026-05-04. OQ-2: Wave 1 ships full Windows `host.id` registry-lookup cascade (winreg crate, target-OS-gated); no stub-to-default; implementation in S-10.03. OQ-5: Grafana dashboards are versioned-as-code in `plugins/vsdd-factory/tools/observability/grafana-dashboards/`; migration bundled with S-10.06. Active OQs reduced from 6 to 4 (OQ-1, OQ-7, OQ-8, OQ-9 remain open). |
+| v1.9 | 2026-05-04 | SS-XX spec rewrites (parallel with E-10 implementation per user adjudication). OQ-1 resolved in SS-03-event-emission.md: v2 `observability-config.toml` schema defined (events_file, retention_days, debug_log_enabled, sync_on_write; no OTel Collector endpoint in dispatcher config). OQ-7 resolved in BC-1.11.002: boundary-marker partial-write strategy chosen; atomic-rename rejected (OTel Collector inode checkpoint breakage). OQ-8 resolved in BC-1.11.003: `vsdd_hook_sdk::host::emit_pair` specified for atomic dual-emit; full OS crash atomicity deferred. OQ-9 deferred to v1.1 in SS-03-event-emission.md: `deprecations.jsonl` sidecar backlog item. SS-03 spec superseded: SS-03-observability-sinks.md → SS-03-event-emission.md. BC-1.11.001 (VSDD_TRACE_ID injection impl contract), BC-1.11.002, BC-1.11.003 authored. All 4 active OQs now resolved or formally deferred. |

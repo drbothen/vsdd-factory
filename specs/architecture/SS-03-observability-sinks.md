@@ -3,7 +3,10 @@ document_type: architecture-section
 level: L3
 section: "SS-03-observability-sinks"
 version: "1.0"
-status: accepted
+status: superseded
+superseded_by: SS-03-event-emission.md
+superseded_date: 2026-05-04
+supersession_adr: ADR-015
 producer: architect
 timestamp: 2026-04-25T00:00:00
 phase: 1.2
@@ -14,7 +17,16 @@ inputs:
 traces_to: ARCH-INDEX.md
 ---
 
-# SS-03: Observability Sinks
+> **SUPERSEDED** — This file is superseded by
+> `SS-03-event-emission.md` (2026-05-04) per ADR-015
+> (Single-Stream OTel-Aligned Event Emission). The two-plane
+> Router/SinkRegistry architecture described here is RETIRED.
+> `sink-otel-grpc`, `Router`, `SinkRegistry`, and `DlqWriter`
+> are deprecated (Wave 1) and will be physically deleted at Wave 5.
+> BC-3.* contracts covering multi-sink fan-out are under revision.
+> Do NOT use this file for implementation guidance.
+
+# SS-03: Observability Sinks (SUPERSEDED — see SS-03-event-emission.md)
 
 ## [Section Content]
 

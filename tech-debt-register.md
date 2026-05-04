@@ -36,7 +36,7 @@ last_updated: 2026-05-04T00:00:00
 | TD-004 | Phase 5 deferred | BC-7.01 family is mixed (multiple hooks); FR-032 BC-group labeling conflicts with BC-7.01.001 H1 (block-ai-attribution vs protect-secrets) | P2 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-005 | Phase 5 deferred | Agent registry missing (34 agents not enumerated); NFR-PERF not in PRD §4.2 top-5 | P3 | v1.0.0-beta.4 | v1.0-brownfield-backfill | — | v1.1 |
 | TD-006 | Process gap | validate-consistency Check 8/9 ship as procedural spec only — no executable runner, no bats/Rust tests, Rust-only language scope, bypassed TDD (no test-writer/implementer dispatch), and was authored directly on main instead of feature-branch-off-develop | P1 | post-Wave-9 | v1.0-brownfield-backfill | — | v1.0.1 |
-| TD-007 | Spec deferral | S-3.04 AC-003: bash bin/emit-event still in use by legacy hooks; full retirement deferred from v1.0 to post-v1.0 milestone | P3 | v1.0.0-beta.4 | v1.0-brownfield-backfill | S-3.04 | v1.1 |
+| TD-007 | Spec deferral (narrowed 2026-05-04) | S-3.04 AC-003 ONLY (bash bin/emit-event retirement) — the sole S-3.04 AC genuinely deferred to v1.1. Authoritative trackers: S-10.08 (Wave 4 bash-hook migration), S-10.09 (Wave 5 retirement), TD-014 (full bash-hook native-WASM workstream). This TD is now a breadcrumb only; closes when those land. | P3 | v1.0.0-beta.4 | v1.0-brownfield-backfill | S-3.04 → S-10.08 + S-10.09 | v1.1 |
 | TD-008 | Process gap | S-4.10 RED gate test pattern: emission tests created channel (tx, rx) but never passed tx to sink; required test-writer fix burst. Lessons-codification candidate for S-7.03 update — RED gate must wire all dependencies the implementer is expected to use. | P2 | Wave 12 | v1.0-brownfield-backfill | S-4.10 | v1.0.1 |
 | TD-009 | Process gap | Pre-flight git-diff check before merging release/develop branches — caught at L2 risk in this cycle. Should be codified as a process check in CONTRIBUTING.md or pre-merge lint hook. | P2 | Wave 12 | v1.0-brownfield-backfill | — | v1.0.1 |
 
@@ -323,29 +323,36 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 3. Coordinate with TD-006 closure (Q8 pre-flight check item) to avoid duplicating the codification.
 **Cycle estimate:** v1.0.1.
 
-#### TD-007 — S-3.04 AC-003 deferred: bash bin/emit-event retirement
-**Source:** S-3.04 spec body explicit deferral note (v1.0.0-beta.4 ship); confirmed by post-Wave-9 status-drift audit 2026-04-27.
-**Description:** S-3.04 (emit_event as host function refactor) shipped 4 of 5 ACs in v1.0.0-beta.4: emit_event() routes to configured sinks (BC-1.05.012-019), plugin events appear in JSONL/OTel streams, plugin events enriched with trace_id/session_id, integration tests pass. AC-003 — "bin/emit-event deprecated; callers migrated" — was carved out of v1.0 scope because legacy bash hooks still call the old `bin/emit-event` shell tool. Full retirement requires migrating all bash hook callers to use the host fn directly (or via a thin wrapper) and then removing `bin/emit-event` from the dispatcher.
-**Severity:** P3 — does not block v1.0 GA. The host fn IS implemented and works for native WASM plugins; only legacy bash hooks still use the old binary. Both code paths coexist.
-**Plan:** v1.1 follow-up:
-1. Audit all callers of `bin/emit-event` (grep across hooks/, scripts/, plugins/).
-2. Migrate each caller to use the host fn directly via WASM, OR provide a thin shim that forwards to the host fn.
-3. Remove `bin/emit-event` from the dispatcher binary tree.
-4. Update S-3.04 status to fully complete (close TD-007).
+#### TD-007 — S-3.04 AC-003 deferred: bash bin/emit-event retirement (NARROWED 2026-05-04)
+**Source:** S-3.04 spec body explicit deferral note (v1.0.0-beta.4 ship); confirmed by post-Wave-9 status-drift audit 2026-04-27. Scope narrowed by Q7 disposition investigation 2026-05-04.
+
+**Current scope (post-narrowing):** ONLY AC-003 of S-3.04 — "bin/emit-event deprecated; callers migrated." This is the sole S-3.04 AC genuinely deferred to v1.1; the AC-001/AC-002 falsely-shipped concerns are now owned by E-10 + LESSON-2026-05-04-001 (see Historical Context below).
+
+**Description:** AC-003 was carved out of v1.0 scope because 30 bash hooks under `plugins/vsdd-factory/hooks/*.sh` still call `bin/emit-event`. Full retirement requires migrating all bash hook callers to route through the dispatcher's `host::emit_event` (via legacy-bash-adapter) and then physically removing `bin/emit-event` from the dispatcher binary tree.
+
+**Severity:** P3 — does not block v1.0 GA. The host fn IS implemented and works for native WASM plugins; only legacy bash hooks still use the old binary. Both code paths coexist during the migration window.
+
+**Plan:** TD-007 is now a breadcrumb. The actual implementation work is owned by:
+- **S-10.08** (Wave 4 bash-hook parity) — migrate bash callers through `legacy-bash-adapter` to `host::emit_event`; deprecate `bin/emit-event` with runtime warning at the end of Wave 4.
+- **S-10.09** (Wave 5 crate retirement + SS-03 rewrite) — physical removal of `bin/emit-event` after Wave 4's migration completes.
+- **TD-014** (full native WASM migration of remaining 43 bash hooks) — the broader bash-hook retirement workstream within which `bin/emit-event` removal lives.
+
+**Closure criteria:** Close TD-007 when ALL THREE land:
+1. S-10.08 ships (bash hooks migrated, runtime warning emitted)
+2. S-10.09 ships (`bin/emit-event` physically removed)
+3. TD-014 closes (all bash hooks retired or routed)
+
 **Cycle estimate:** v1.1.
 
-> **AMENDMENT — 2026-05-04 (research investigation during PR #78 work):** TD-007's S-3.04
-> reference was originally scoped only to AC-003 (bash bin/emit-event retirement). However,
-> investigation on 2026-05-04 revealed a more fundamental issue: AC-001 — "emit_event()
-> routes events to the configured sinks (not just internal log)" — was also NEVER satisfied.
-> The integration step at `crates/factory-dispatcher/src/sinks/mod.rs:11-15` is an
-> unimplemented TODO; `Router::submit` is never called from `main.rs`. Plugin events have
-> silently routed to `dispatcher-internal-*.jsonl` instead of `events-*.jsonl` since S-1.4
-> (April 24, 2026). The original "shipped" status for AC-001 in v1.0.0-beta.4 is incorrect.
-> This integration wiring is being corrected via the E-TELEMETRY epic (parallel track as of
-> 2026-05-04). The process gap (story shipped without end-to-end AC verification) has been
-> codified as LESSON-2026-05-04-001 in `.factory/cycles/v1.0-brownfield-backfill/lessons.md`
-> and S-7.04 has been opened to address the systemic delivery-discipline gap.
+##### Historical Context (preserved from 2026-05-04 amendment)
+
+TD-007 was previously amended with a note about S-3.04 AC-001 ("emit_event() routes events to configured sinks") having been falsely marked shipped in v1.0.0-beta.4. That concern is **NOT** in TD-007's scope as of the 2026-05-04 narrowing — it is fully owned by:
+
+- **S-10.02** (Wave 1 FileSink single-stream wiring) — the implementation fix for the false-shipped routing
+- **LESSON-2026-05-04-001** (`.factory/cycles/v1.0-brownfield-backfill/lessons.md`) — the codified process gap (story shipped without end-to-end AC verification)
+- **S-7.04** (universal-discipline AC-test-link enforcement) — the systemic delivery-discipline gap that allowed the false-ship to occur
+
+The unimplemented Router::submit integration at `crates/factory-dispatcher/src/sinks/mod.rs:11-15` is being retired (not fixed) by ADR-015's single-stream architecture; Router/SinkRegistry are deprecated under ADR-015. This historical note is preserved here so auditors following S-3.04's "DEFERRED — see TD-007" annotation understand the full disposition chain.
 
 #### TD-010 — vsdd-hook-sdk-macros not published to crates.io (AC-2 of S-4.08 deferred)
 **Source:** rc.1 release-prep burst (2026-04-29)

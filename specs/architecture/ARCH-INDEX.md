@@ -29,7 +29,7 @@ deployment_topology: single-service
 |---------|------|-----------------|---------|
 | SS-01 Hook Dispatcher Core | SS-01-hook-dispatcher.md | implementer, story-writer | Module catalog, host fns, sandbox model, Rust crates |
 | SS-02 Hook SDK and Plugin ABI | SS-02-hook-sdk.md | implementer, plugin authors | SDK API, manifest schema, capability declarations |
-| SS-03 Observability Sinks | SS-03-observability-sinks.md | implementer, story-writer | Sink drivers, fan-out, OTLP/file sink contracts |
+| SS-03 Event Emission (OTel-Aligned) | SS-03-event-emission.md | implementer, story-writer | Single-stream FileSink, OTel schema, host enrichment, write-failure cascade. Old file SS-03-observability-sinks.md is SUPERSEDED (see ADR-015). |
 | SS-04 Plugin Ecosystem | SS-04-plugin-ecosystem.md | implementer, story-writer | legacy-bash-adapter, capture-commit-activity, Tier E/F lifecycle plugin crates |
 | SS-05 Pipeline Orchestration | SS-05-orchestration.md | orchestrator, story-writer | Agents, Lobster workflows, pipeline phase structure |
 | SS-06 Skill Catalog | SS-06-skill-catalog.md | story-writer, skill authors | 119 skills, SKILL.md contract, output routing |
@@ -71,9 +71,9 @@ The per-subsystem SS-NN files above collectively cover their content:
 
 | SS-ID | Name | Section File | Implementing Modules / Folders | BC-S Prefix | BCs | Phase |
 |-------|------|--------------|-------------------------------|-------------|-----|-------|
-| SS-01 | Hook Dispatcher Core | SS-01-hook-dispatcher.md | `crates/factory-dispatcher/src/{main,registry,routing,executor,invoke,engine,plugin_loader,payload}.rs` | BC-1 | 103 | Phase 1 |
+| SS-01 | Hook Dispatcher Core | SS-01-hook-dispatcher.md | `crates/factory-dispatcher/src/{main,registry,routing,executor,invoke,engine,plugin_loader,payload}.rs` | BC-1 | 106 (103 prior + 3 new: BC-1.11.001–BC-1.11.003 per ADR-015) | Phase 1 |
 | SS-02 | Hook SDK and Plugin ABI | SS-02-hook-sdk.md | `crates/hook-sdk/`, `crates/hook-sdk-macros/` | BC-2 | 25 (includes 2 D-183 BCs: BC-2.02.011 host::write_file, BC-2.02.012 HookPayload SubagentStop fields; +1 D-219 BC-2.02.013 host::run_subprocess — WITHDRAWN D-224) | Phase 1 |
-| SS-03 | Observability Sinks | SS-03-observability-sinks.md | `crates/sink-core/`, `crates/sink-file/`, `crates/sink-otel-grpc/`, `crates/factory-dispatcher/src/{internal_log,sinks}.rs` | BC-3 | 51 | Phase 1 |
+| SS-03 | Event Emission (OTel-Aligned) | SS-03-event-emission.md | `crates/sink-core/` (FileSink; Router/SinkRegistry deprecated), `crates/sink-file/`, `crates/factory-dispatcher/src/{host/emit_event,internal_log,sinks}.rs` (`sink-otel-grpc/` deprecated Wave 1) | BC-3 | 51 | Phase 1 |
 | SS-04 | Plugin Ecosystem | SS-04-plugin-ecosystem.md | `crates/hook-plugins/legacy-bash-adapter/`, `crates/hook-plugins/capture-commit-activity/`, `crates/hook-plugins/capture-pr-activity/` [PLANNED S-3.02], `crates/hook-plugins/block-ai-attribution/` [PLANNED S-3.03], `crates/hook-plugins/session-start-telemetry/` [PLANNED S-5.01], `crates/hook-plugins/session-end-telemetry/` [PLANNED S-5.02], `crates/hook-plugins/worktree-hooks/` [PLANNED S-5.03], `crates/hook-plugins/tool-failure-hooks/` [PLANNED S-5.04] | BC-4 | 30 | Phase 1 |
 | SS-05 | Pipeline Orchestration | SS-05-orchestration.md | `plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows/*.lobster`, `plugins/vsdd-factory/workflows/phases/` | BC-5 | 646 | Phase 1 |
 | SS-06 | Skill Catalog | SS-06-skill-catalog.md | `plugins/vsdd-factory/skills/` (119 skills, 581 markdown files) | BC-6 | 585 | Phase 1 |
@@ -82,7 +82,7 @@ The per-subsystem SS-NN files above collectively cover their content:
 | SS-09 | Configuration and Activation | SS-09-config-activation.md | `plugins/vsdd-factory/hooks/hooks.json*`, `plugins/vsdd-factory/.claude-plugin/plugin.json`, `ci/platforms.yaml`, `scripts/generate-registry-from-hooks-json.sh` | BC-9 | 5 | Phase 1 |
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
-**Total BCs: 1,917 (per BC-INDEX)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
+**Total BCs: 1,920 (per BC-INDEX; +3 from ADR-015 SS-01 additions BC-1.11.001–BC-1.11.003)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
 
 ### Subsystem Registry Design Notes
 
@@ -106,7 +106,7 @@ graph TD
     SS09["SS-09: Configuration and Activation"]
     SS01["SS-01: Hook Dispatcher Core"]
     SS02["SS-02: Hook SDK and Plugin ABI"]
-    SS03["SS-03: Observability Sinks"]
+    SS03["SS-03: Event Emission (OTel-Aligned)"]
     SS04["SS-04: Plugin Ecosystem"]
     SS05["SS-05: Pipeline Orchestration"]
     SS06["SS-06: Skill Catalog"]
@@ -117,7 +117,7 @@ graph TD
     CC -->|"reads hooks.json"| SS09
     SS09 -->|"generated variants wire to"| SS01
     SS01 -->|"loads + executes WASM via"| SS02
-    SS01 -->|"fans out events to"| SS03
+    SS01 -->|"writes all events to (single-stream)"| SS03
     SS01 -->|"invokes plugins from"| SS04
     SS04 -->|"shells out via exec_subprocess to"| SS07
     SS05 -->|"dispatches sub-agents who call"| SS06
@@ -133,7 +133,7 @@ graph TD
 
 | Concern | Owner | Mechanism |
 |---------|-------|-----------|
-| Observability (always-on) | SS-03 | `dispatcher-internal-YYYY-MM-DD.jsonl` independent of sink config (ADR-007) |
+| Observability (single-stream) | SS-03 | `events-YYYY-MM-DD.jsonl` — all lifecycle + domain events (ADR-015). Debug file `dispatcher-internal-*.jsonl` opt-in via `VSDD_DEBUG_LOG=1`; ADR-007 amended. |
 | Capability enforcement | SS-01 | Deny-by-default; cap-gated host fns emit denial event + return code |
 | Schema versioning | SS-01, SS-09 | `schema_version = 1` on all TOML configs; mismatch = hard error |
 | Trace correlation | SS-01 | `dispatcher_trace_id` (UUID v4) propagated on every emitted event |
@@ -170,7 +170,7 @@ This table enables downstream Phase 1.4 migration from `BC-AUDIT-NNN` to `BC-S.S
 |-----------|------|--------------------|-----------------------|-------------------|
 | SS-01 | Hook Dispatcher Core | pass-3-behavioral-contracts.md, pass-3-behavioral-contracts-deep-r1.md | BC-AUDIT-001 – BC-AUDIT-086 | BC-1 |
 | SS-02 | Hook SDK and Plugin ABI | pass-3-behavioral-contracts.md (hook-sdk section) | BC-AUDIT-087 – BC-AUDIT-111 | BC-2 |
-| SS-03 | Observability Sinks | pass-3-behavioral-contracts.md (sink-core, sink-file, sink-otel-grpc) | BC-AUDIT-112 – BC-AUDIT-161 | BC-3 |
+| SS-03 | Event Emission (OTel-Aligned) | pass-3-behavioral-contracts.md (sink-core, sink-file; sink-otel-grpc deprecated) | BC-AUDIT-112 – BC-AUDIT-161 | BC-3 |
 | SS-04 | Plugin Ecosystem | pass-3-behavioral-contracts.md (hook-plugins section) | BC-AUDIT-162 – BC-AUDIT-191 | BC-4 |
 | SS-05 | Pipeline Orchestration | pass-3-deep-agents.md, pass-3-deep-workflows.md | BC-AUDIT-787 – BC-AUDIT-1003 | BC-5 |
 | SS-06 | Skill Catalog | pass-3-deep-skills-batch-1.md, batch-2.md, batch-3.md | BC-AUDIT-192 – BC-AUDIT-744 | BC-6 |

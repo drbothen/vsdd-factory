@@ -146,24 +146,27 @@ Key Rust types: `HookPayload`, `Registry`, `RegistryEntry`, `Capabilities`,
 ## Behavioral Contracts
 
 BC shard directory: `.factory/specs/behavioral-contracts/ss-01/`
-(target prefix BC-1; current BC count in ARCH-INDEX Subsystem Registry).
+(target prefix BC-1; 106 BCs per ARCH-INDEX Subsystem Registry).
 
 High-level BC groupings: payload parsing and alias tolerance (BC-1.001–BC-1.010),
 registry load and schema validation (BC-1.011–BC-1.025), plugin routing and tier
 grouping (BC-1.026–BC-1.040), executor parallel-within-tier semantics
 (BC-1.041–BC-1.055), per-plugin invoke lifecycle (BC-1.056–BC-1.068), host
 function capability enforcement (BC-1.069–BC-1.075), internal log emission
-(BC-1.076–BC-1.080), non-blocking error handling invariants (BC-1.081–BC-1.086).
+(BC-1.076–BC-1.080), non-blocking error handling invariants (BC-1.081–BC-1.086),
+ADR-015 OTel emission contracts (BC-1.11.001–BC-1.11.003: VSDD_TRACE_ID injection,
+FileSink partial-write recovery, atomic dual-emit host helper).
 
 ## ADRs
 
 - ADR-001: Rust for the dispatcher — `decisions/ADR-001-rust-dispatcher.md`
 - ADR-004: TOML for all configuration files — `decisions/ADR-004-toml-config.md`
-- ADR-005: Multi-sink observability natively in dispatcher — `decisions/ADR-005-multi-sink-observability.md`
+- ADR-005: Multi-sink observability natively in dispatcher — `decisions/ADR-005-multi-sink-observability.md` (SUPERSEDED by ADR-015)
 - ADR-006: HOST_ABI_VERSION as separate semver constant — `decisions/ADR-006-host-abi-version.md`
-- ADR-007: Always-on dispatcher self-telemetry — `decisions/ADR-007-always-on-telemetry.md`
+- ADR-007: Always-on dispatcher self-telemetry — `decisions/ADR-007-always-on-telemetry.md` (AMENDED by ADR-015 D-15.1)
 - ADR-008: Parallel-within-tier, sequential-between-tier execution — `decisions/ADR-008-parallel-within-tier.md`
 - ADR-010: StoreData-typed linker for host functions (invoke.rs pattern) — `decisions/ADR-010-storedata-linker.md`
+- ADR-015: Single-stream OTel-aligned event emission — `decisions/ADR-015-single-stream-otel-schema.md` (affects SS-01 host enrichment, exec_subprocess trace injection, and emit_pair host helper)
 
 ## Drift / Known Issues
 

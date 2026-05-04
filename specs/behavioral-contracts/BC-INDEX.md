@@ -1,34 +1,36 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: state-manager
-timestamp: 2026-05-03T00:00:00
+timestamp: 2026-05-04T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1917
+total_bcs: 1920
 traces_to: bc-id-mapping.md
 changelog:
   - date: 2026-05-03
     change: "BC-2.02.013 withdrawn (ADR-014 D-9.2); BC-2.02.005 amended (+2 invariants: I-2 path-traversal-guard, I-3 success-telemetry)"
   - date: 2026-05-03
     change: "Relocate exec_subprocess extensions from BC-2.02.005 to correct SS-01 cluster: revert BC-2.02.005 to original; author BC-1.05.035 (path traversal guard) and BC-1.05.036 (success-path telemetry)"
+  - date: 2026-05-04
+    change: "ADR-015 SS-XX spec rewrites: +3 new SS-01 BCs (BC-1.11.001 VSDD_TRACE_ID injection, BC-1.11.002 FileSink partial-write recovery, BC-1.11.003 atomic dual-emit emit_pair). SS-01 count 103→106. SS-03 subsystem renamed to Event Emission (OTel-Aligned); SS-03-observability-sinks.md superseded by SS-03-event-emission.md."
 ---
 
 # Behavioral Contract Index
 
-> Master index of all 1,917 behavioral contracts across 10 subsystems.
+> Master index of all 1,920 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
 
 | Subsystem | BC Prefix | Count | Shard Directory |
 |-----------|-----------|-------|----------------|
-| SS-01 Hook Dispatcher Core | BC-1 | 103 (101 active; 2 retired) | ss-01/ |
+| SS-01 Hook Dispatcher Core | BC-1 | 106 (104 active; 2 retired) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 25 | ss-02/ |
-| SS-03 Observability Sinks | BC-3 | 51 | ss-03/ |
+| SS-03 Event Emission (OTel-Aligned) | BC-3 | 51 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 30 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
@@ -36,11 +38,11 @@ changelog:
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1917** | |
+| **Total** | | **1920** | |
 
 ## Index by subsystem
 
-### SS-01 — Hook Dispatcher Core (BC-1)
+### SS-01 — Hook Dispatcher Core (BC-1) — 106 BCs (104 active; 2 retired)
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
@@ -147,6 +149,9 @@ changelog:
 | [BC-1.09.004](ss-01/BC-1.09.004.md) | Missing plugin path returns NotFound; corrupt bytes return Compile; IO errors carry path context | draft | CAP-TBD | TBD |
 | [BC-1.10.001](ss-01/BC-1.10.001.md) | Dispatcher exposes vsdd::activated_platform() host function returning activation record platform string | **retired** | CAP-002 | S-5.01 |
 | [BC-1.10.002](ss-01/BC-1.10.002.md) | Dispatcher suppresses duplicate once:true events by tracking per-event-name + per-session_id in dispatcher memory | **retired** | CAP-002 | S-5.01 |
+| [BC-1.11.001](ss-01/BC-1.11.001.md) | factory-dispatcher::host::exec_subprocess::injects_vsdd_trace_id_and_parent_span_id — dispatcher-side mandatory injection of VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID into every exec_subprocess invocation | draft | CAP-TBD | S-10.03 |
+| [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-TBD | S-10.03 |
+| [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-TBD | Wave 2 TBD |
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)
 
@@ -178,7 +183,7 @@ changelog:
 | [BC-2.05.002](ss-02/BC-2.05.002.md) | hook-sdk::__internal::panic_message_extracts_string — panic of `String` is extracted | draft | CAP-009 | S-1.03 |
 | [BC-2.05.003](ss-02/BC-2.05.003.md) | hook-sdk::__internal::panic_message_falls_back_for_unknown_types — non-string panic payloads return "(no panic message)" | draft | CAP-009 | S-1.03 |
 
-### SS-03 — Observability Sinks (BC-3)
+### SS-03 — Event Emission (OTel-Aligned) (BC-3) — superseded by SS-03-event-emission.md per ADR-015; BCs under revision
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
