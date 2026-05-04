@@ -125,10 +125,12 @@ warning. The `DlqWriter` in `sink-core` is retired; the debug file IS the DLQ.
 **Implementation path:** `host::emit_event` in `main.rs` calls `FileSink::write`
 directly on the single events file. The `sink-core` trait and `sink-file` driver
 are KEPT — `FileSink` becomes the direct writer for `events-*.jsonl`. The
-`Router`, `SinkRegistry`, and `sink-otel-grpc` crates are retired.
+`sink-otel-grpc` crate AND the `Router`, `SinkRegistry` types within `sink-core`
+are retired.
 
-**Deprecation and retirement semantics:** Affected crates (`Router`,
-`SinkRegistry`, `sink-otel-grpc`, `DlqWriter` from `sink-core`) go through two
+**Deprecation and retirement semantics:** Affected items — the `sink-otel-grpc`
+crate and the `Router`, `SinkRegistry`, `DlqWriter` types within `sink-core` —
+go through two
 distinct lifecycle states with distinct verbs:
 
 - **Deprecated (Wave 1):** Crates are excluded from `default-members` in the
@@ -266,8 +268,18 @@ contract (Resource fields or per-event identity fields) changes.
 | `plugin.invocation_id` | UUIDv4 per plugin invocation |
 | `outcome` | canonical enum: `success` \| `failure` \| `error` \| `timeout` \| `skipped` \| `blocked` |
 | `event.correlation_id` | (optional) shared UUID linking paired emissions (e.g. dual-emit old+new name pairs); absent on non-paired events |
-| `event.replaces_deprecated_alias` | (optional) `event.id` of the old-name emission this event is the canonical replacement for; set only on the new-name emission in a dual-emit pair; absent otherwise |
+| `event.replaces_deprecated_alias` | (optional) `event.id` of the old-name emission this event is the canonical replacement for; set only on the **new-name** emission in a dual-emit pair; absent otherwise |
+| `event.deprecated_by` | (optional) `event.id` of the new-name emission that canonically replaces this event; set only on the **old-name** emission in a dual-emit pair; absent otherwise |
 | `event.host_overrides` | (optional) string array of field names the host overrode for this event (e.g. `["plugin.version", "service.name"]`); absent when no overrides occurred |
+
+**Dual-emit pair identity contract (D-15.2.e):** The two fields form a symmetric cross-reference. A consumer can unambiguously classify any event's role in a dual-emit pair without inspecting `event.name` against a registry:
+
+- Old-name emission: `event.deprecated_by` is set; `event.replaces_deprecated_alias` is absent.
+- New-name (canonical) emission: `event.replaces_deprecated_alias` is set; `event.deprecated_by` is absent.
+- Non-paired event (single-namespace): both fields are absent.
+- Post-Wave-3 events (shims removed): both fields are absent — same as non-paired; `event.correlation_id` is also absent.
+
+This eliminates the three-condition negation a consumer would otherwise need to identify the deprecated member of a pair.
 
 **Plugin-asserted domain fields** (plugin declares; host does not override):
 
@@ -506,7 +518,9 @@ connection silently dropped events with no local fallback.
   event-name namespace — either old or new — to avoid double-counting. Use
   `event.replaces_deprecated_alias` as the explicit dedup hint: the presence of this
   field on an event marks it as the new-name emission in the pair; the old-name
-  emission carries `event.correlation_id` linking the two. Sustained
+  emission carries `event.correlation_id` (shared UUID) and `event.deprecated_by`
+  (pointing to the new-name emission's `event.id`) — see D-15.2.e for the full
+  four-state identity contract. Sustained
   post-Wave-3 operation (single emission per logical event) is the scale target;
   the 10k events/min headroom calculation excludes the migration window.
 - **ADR-007 always-on guarantee is weakened.** The debug file is no longer
@@ -573,8 +587,9 @@ distinct wave-scope item.
 **Wave 1: Implement host-side enrichment + single-stream write**
 - Modify `main.rs`: at `emit_event` call site, stamp Resource attributes and
   per-event fields before delegating to `FileSink::write`.
-- Retire `Router`, `SinkRegistry`, `sink-otel-grpc` from the integration path
-  (leave crates on disk until post-migration cleanup; do not call them).
+- Retire the `sink-otel-grpc` crate and the `Router`, `SinkRegistry` types
+  within `sink-core` from the integration path (leave code on disk until
+  post-migration cleanup in Wave 5; do not call them).
 - Gate `dispatcher-internal-*.jsonl` writes on `VSDD_DEBUG_LOG=1`.
 - All plugins now emit to `events-*.jsonl`. Field values are enriched but
   schema may not yet match D-15.2 fully (plugin field names are in-flight).
@@ -587,10 +602,12 @@ distinct wave-scope item.
   new reverse-DNS name. The two paired emissions share the same
   `event.correlation_id` UUID. The new-name emission carries
   `event.replaces_deprecated_alias` set to the `event.id` of the corresponding
-  old-name emission, providing an unambiguous dedup crosswalk. Each old-name
-  emission is accompanied by a `vsdd.internal.event_name_deprecated.v1`
-  lifecycle event (rate-limited to once per unique old name per dispatcher
-  invocation).
+  old-name emission; the old-name emission carries `event.deprecated_by` set to
+  the `event.id` of the new-name emission. Together these form the symmetric
+  D-15.2.e identity contract, providing an unambiguous dedup crosswalk in either
+  direction. Each old-name emission is accompanied by a
+  `vsdd.internal.event_name_deprecated.v1` lifecycle event (rate-limited to once
+  per unique old name per dispatcher invocation).
 - `pr.opened` → `vsdd.pr.created.v1` (old `pr.opened` dual-emitted during
   Wave 2 so Grafana continues to match during Wave 3 development).
 - Wave 2 ships independently; no dashboard regression because old names
@@ -878,5 +895,6 @@ the authoritative version signal. Schema versioning section updated to match.
 |---------|------|--------|
 | v1.0 | 2026-05-04 | Initial draft. D-15.1 single-stream, D-15.2 OTel schema, D-15.3 enrichment contract. |
 | v1.1 | 2026-05-04 | Revision pass 1 (adversary REJECT, HIGH novelty). Addressed C-1 (D-15.1 fallback contradiction resolved; OQ-4 absorbed into D-15.1 as FileSink write-failure semantics; DlqWriter retired); C-2 (Wave 2/3 "no flag day" contradiction resolved via dual-emit backward-compat strategy; Wave 3 falsifiable acceptance criterion added; O-3 addressed); I-1 (plugin field override is now visible via `vsdd.internal.host_field_override.v1` event and stderr warning; D-15.3 updated); I-2 (a) registry locked to compile-time with explicit justification; (b) unrecognized prefix default changed from `domain` to `unknown`; O-2 audit category integrity note added); I-4 (Resource field fallback cascade policy D-15.2.c added; OQ-2 narrowed to implementation scope); I-5 (per-event `event.schema_url` added as D-15.2.d; Resource-level `schema_url` clarified as process-level baseline; schema versioning section updated); I-6 (D-15.4 added: `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` on universal env_allowlist; OQ-3 resolved); I-7 (Retirement Semantics subsection added to D-15.1); O-1 ("Honeycomb, Honeycomb" copy-edit fixed); O-4 (OQ-6 resolved: D-15.3 behavioral change is a MAJOR SDK version bump). OQ count reduced from 6 to 2 active (OQ-1, OQ-5); OQ-2 narrowed. |
+| v1.2 | 2026-05-04 | Revision pass 2 (adversary CONDITIONAL, MEDIUM novelty). Addressed I-1 (dual-emit dedup contract: `event.correlation_id` and `event.deprecated_alias_of` (later renamed in v1.3 to `event.replaces_deprecated_alias`) fields added to per-event table; dedup guidance added to Negative consequences; Wave 2 shim description updated); I-2 (D-15.4 now specifies dispatcher-side mandatory injection — not universal env_allowlist entries — resolving registry-schema-change ambiguity); I-3 (Wave 3 acceptance criterion 2 added: `unknown_category_events` panel + WARN alert required as hard gate); I-4 (two-channel override visibility in D-15.3: inline `event.host_overrides` on domain event + `affected.plugin.name` on lifecycle event); I-5 (terminal `host.id` default `"unknown-host"` specified; `vsdd.internal.host_id_fallback.v1` startup event mandated on terminal fallback); I-6 (D-15.2.d committed to informational-only `event.schema_url`; `event.name` `.vN` suffix is the authoritative version signal; schema versioning section updated). O-1 (TD-015-a filed for cargo-metadata CI check on retired crate re-coupling); O-2 (addressed inline in Negative consequences dual-emit volume note); O-3 (migration numbering reconciled: shim removal is Wave 3 in both Migration Plan and Adversarial Pressure Points); O-4 (deprecated/retired verbs now distinct: Wave 1 = deprecated, Wave 5 = retired; Wave 5 section updated); O-5 (OQ-7 added: FileSink partial-write recovery deferred to SS-01). Active OQs: OQ-1, OQ-2, OQ-5, OQ-7. |
 | v1.3 | 2026-05-04 | Polish pass after pass 3 (2026-05-04): renamed `event.deprecated_alias_of` → `event.replaces_deprecated_alias` for English correctness; clarified Wave 5 distinguishing crate-level vs type-level removal. No structural decisions changed. |
-| v1.2 | 2026-05-04 | Revision pass 2 (adversary CONDITIONAL, MEDIUM novelty). Addressed I-1 (dual-emit dedup contract: `event.correlation_id` and `event.deprecated_alias_of` fields added to per-event table; dedup guidance added to Negative consequences; Wave 2 shim description updated); I-2 (D-15.4 now specifies dispatcher-side mandatory injection — not universal env_allowlist entries — resolving registry-schema-change ambiguity); I-3 (Wave 3 acceptance criterion 2 added: `unknown_category_events` panel + WARN alert required as hard gate); I-4 (two-channel override visibility in D-15.3: inline `event.host_overrides` on domain event + `affected.plugin.name` on lifecycle event); I-5 (terminal `host.id` default `"unknown-host"` specified; `vsdd.internal.host_id_fallback.v1` startup event mandated on terminal fallback); I-6 (D-15.2.d committed to informational-only `event.schema_url`; `event.name` `.vN` suffix is the authoritative version signal; schema versioning section updated). O-1 (TD-015-a filed for cargo-metadata CI check on retired crate re-coupling); O-2 (addressed inline in Negative consequences dual-emit volume note); O-3 (migration numbering reconciled: shim removal is Wave 3 in both Migration Plan and Adversarial Pressure Points); O-4 (deprecated/retired verbs now distinct: Wave 1 = deprecated, Wave 5 = retired; Wave 5 section updated); O-5 (OQ-7 added: FileSink partial-write recovery deferred to SS-01). Active OQs: OQ-1, OQ-2, OQ-5, OQ-7. |
+| v1.4 | 2026-05-04 | Revision pass 3 (2026-05-04): addressed pass 4 adversary findings F-1 through F-4. Stale rename reference in v1.2 changelog row fixed via annotated parenthetical (F-1); D-15.1 crate-vs-type classification reconciled with Wave 5 split — `Router` and `SinkRegistry` now consistently described as types within `sink-core`, not standalone crates (F-2); changelog row ordering corrected to ascending v1.0→v1.3 (F-3); deprecated-pair absence semantics resolved via symmetric field pair: `event.deprecated_by` added to old-name emission, forming explicit bidirectional crosswalk with `event.replaces_deprecated_alias` on new-name emission; D-15.2.e documents the four-state identity contract eliminating the three-condition negation (F-4, option a). |
