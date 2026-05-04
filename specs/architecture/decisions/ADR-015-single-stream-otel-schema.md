@@ -171,7 +171,41 @@ one invocation):
 | `vcs.provider.name` | `"github"` \| `"gitlab"` \| `"other"` |
 | `vcs.owner.name` | org or user from remote URL |
 | `worktree.id` | absolute worktree path hash (SHA-256, hex prefix 12 chars) |
-| `schema_url` | `"https://vsdd-factory.dev/schemas/events/v2"` |
+| `schema_url` | `"https://vsdd-factory.dev/schemas/events/v2"` (process-level baseline; see `event.schema_url` for per-event-family version) |
+
+**Resource field fallback cascade (D-15.2.c):** Some derived fields cannot be
+computed in all environments. The SS-01 implementation must follow this cascade
+policy — the ADR defines the policy; the precise implementation belongs in
+SS-01 / Wave 1:
+
+- `vcs.repository.url.full`: run `git remote get-url origin`; if no remote
+  exists (detached worktree, bare clone), fall back to `file://<absolute
+  worktree path>`.
+- `project.id`: SHA-256 of `vcs.repository.url.full` (after cascade above, so
+  always computable — `file://…` URLs are stable).
+- `worktree.id`: SHA-256 of the absolute worktree path resolved at dispatcher
+  start (always computable from `cwd`).
+- `host.id`: cascade — `/etc/machine-id` (Linux) → macOS IOPlatformUUID via
+  `ioreg -rd1 -c IOPlatformExpertDevice` → Windows
+  `HKLM\SOFTWARE\Microsoft\Cryptography\MachineGuid` registry key → SHA-256
+  of `gethostname()` (final fallback for containerized or minimal environments).
+- `vcs.repository.name` / `vcs.owner.name` / `vcs.provider.name`: derived by
+  parsing `vcs.repository.url.full` after cascade; safe to compute from
+  `file://` URLs (all three fields default to `"unknown"` for local-only repos).
+
+No Resource field is allowed to be absent or `null`. Every field must have a
+deterministic value (possibly a fallback) before the first event is emitted.
+
+**Per-event `event.schema_url` (D-15.2.d):** Each event carries an
+`event.schema_url` attribute identifying the schema version of that specific
+event family. This is separate from the Resource-level `schema_url` (which
+tracks the overall dispatcher schema baseline). The per-event attribute matches
+OTel's `schema_url` placement at InstrumentationScope scope. Example:
+`"https://vsdd-factory.dev/schemas/events/v2/commit.made"`. Breaking changes to
+a single event family bump only that family's `event.schema_url` URI without
+requiring a Resource-level schema bump. The Resource-level `schema_url` advances
+only when the overall schema contract (Resource fields or per-event identity
+fields) changes.
 
 **Per-event attributes** (host-stamped at emit time; plugin cannot override):
 
@@ -181,7 +215,8 @@ one invocation):
 | `observed_timestamp` | same as timestamp (local machine) |
 | `event.name` | reverse-DNS, type-versioned: `"vsdd.commit.made.v1"` |
 | `event.id` | UUIDv4 per emission (idempotency key) |
-| `event.category` | `lifecycle` \| `domain` \| `audit` \| `error` |
+| `event.category` | `lifecycle` \| `domain` \| `audit` \| `error` \| `unknown` |
+| `event.schema_url` | per-event schema URI, e.g. `"https://vsdd-factory.dev/schemas/events/v2/commit.made"` |
 | `event.source` | `"dispatcher"` or `"plugin:<plugin_name>"` |
 | `severity_number` | OTel severity integer (9=INFO, 13=WARN, 17=ERROR) |
 | `severity_text` | `"INFO"` \| `"WARN"` \| `"ERROR"` |
@@ -262,8 +297,20 @@ accepted limitation for vsdd-factory's current threat model.
 - The host stamps all Resource attributes at startup.
 - The host stamps all per-event identity, causal, and tool-context fields at
   `emit_event` time, before the plugin's domain fields are merged.
-- Plugin-supplied values for Resource or host-stamped fields are silently
-  dropped. The host-stamped value wins unconditionally.
+- Plugin-supplied values for Resource or host-stamped fields are overridden by
+  the host-stamped value. The host-stamped value wins unconditionally.
+
+**Host-field override visibility:** When the host discards a plugin-supplied
+value for a host-owned field, it must NOT do so silently. The dispatcher MUST
+emit a `vsdd.internal.host_field_override.v1` event (rate-limited to one per
+unique `(plugin.name, field_name)` pair per dispatcher invocation) AND write a
+`stderr` warning of the form:
+`[vsdd-dispatcher] WARN: plugin '<plugin.name>' supplied host-owned field
+'<field_name>'; host-stamped value takes precedence.`
+This ensures plugin authors who shipped against a pre-D-15.3 contract have a
+clear, observable migration signal. The `vsdd.internal.*` prefix maps to the
+`lifecycle` category in the registry, so these override notices appear in
+lifecycle dashboards, not domain dashboards.
 
 **Block path audit trail:**
 - When a plugin returns `HookResult::Block`, the dispatcher emits a
@@ -280,12 +327,37 @@ accepted limitation for vsdd-factory's current threat model.
   `event.source = "bash-adapter"` marker so dashboards can identify thin events.
 
 **Schema versioning:**
-- Breaking schema changes bump both the `schema_url` URI version (`/v2` →
-  `/v3`) AND the `event.name` suffix (`.v1` → `.v2`).
+- Breaking schema changes to a specific event family bump both the family's
+  `event.schema_url` URI version (e.g., `/v2/commit.made` → `/v3/commit.made`)
+  AND the `event.name` suffix (`.v1` → `.v2`).
+- The Resource-level `schema_url` advances only when the Resource attribute set
+  or the per-event identity field contract changes (not for individual event
+  family bumps).
 - Consumers route by `event.name` suffix; old consumers remain compatible with
   old event names during a migration window.
-- `schema_version` field in JSONL lines is removed; `schema_url` in each
-  Resource object is the authoritative version signal.
+- `schema_version` field in JSONL lines is removed; `event.schema_url` per event
+  is the authoritative per-family version signal.
+
+### D-15.4 — Trace propagation across exec_subprocess boundaries
+
+The causal-chain guarantee in D-15.2 (Consequences: "Causal chain. `trace_id`
+/ `span_id` / `parent_span_id` propagation") is void if subprocess hops strip
+the trace context. This sub-decision resolves OQ-3.
+
+**Policy:** `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` are MANDATORY entries on
+the universal `env_allowlist` for ALL `exec_subprocess` capability invocations
+within vsdd-factory. No plugin may invoke `exec_subprocess` without these two
+variables flowing through. The dispatcher sets both before invoking a subprocess.
+Subprocess plugins that spawn further subprocesses inherit and forward both vars.
+
+**Span chain rule:** When a subprocess plugin emits events:
+- `trace_id` = inherited `VSDD_TRACE_ID` (unchanged across the hop)
+- `parent_span_id` = the invoking plugin's `span_id` (passed as `VSDD_PARENT_SPAN_ID`)
+- `span_id` = a new UUIDv4 generated by the subprocess plugin at startup
+
+The BC in SS-01 that codifies the `exec_subprocess` capability shape MUST
+enumerate `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` in the env-allowlist.
+This ADR is the policy decision; SS-01 holds the implementation contract.
 
 ## Rationale
 
@@ -445,17 +517,28 @@ distinct wave-scope item.
 - All plugins now emit to `events-*.jsonl`. Field values are enriched but
   schema may not yet match D-15.2 fully (plugin field names are in-flight).
 
-**Wave 2: Plugin schema migration**
+**Wave 2: Plugin schema migration (dual-emit transition)**
 - Update each native WASM plugin's `emit_event` call to assert only
   `event.name` + domain fields. Remove any plugin-side Resource field stamps.
 - Fix all `event.name` values to reverse-DNS format with `.v1` suffix.
-- Update `pr.created` event name (was `pr.opened` in plugin, `pr.opened` in
-  Grafana — both need fixing but in coordination).
+- Implement dual-emit shim: each plugin emits BOTH the old event name AND the
+  new reverse-DNS name. Each old-name emission is accompanied by a
+  `vsdd.internal.event_name_deprecated.v1` lifecycle event (rate-limited to
+  once per unique old name per dispatcher invocation).
+- `pr.opened` → `vsdd.pr.created.v1` (old `pr.opened` dual-emitted during
+  Wave 2 so Grafana continues to match during Wave 3 development).
+- Wave 2 ships independently; no dashboard regression because old names
+  continue to be emitted.
 
-**Wave 3: Grafana dashboard rewrite**
-- Rewrite all queries against new field names.
+**Wave 3: Grafana dashboard rewrite + dual-emit shim removal**
+- Rewrite all queries against new reverse-DNS field names.
 - Add `event.category = "domain"` filters where needed.
-- Validate `pr.created`, `open_to_merge_seconds`, and other broken queries.
+- Validate `pr.created`, `open_to_merge_seconds`, and other previously broken
+  queries.
+- Remove dual-emit shims (as a sub-task of Wave 3 or immediately after).
+- **Acceptance criterion:** Grafana panel `pr_throughput` returns at least one
+  row within 24 hours of this wave merging to `main`. Zero rows = migration
+  is broken; Wave 4 is blocked until this passes.
 
 **Wave 4: Bash hook parity**
 - Enhance `bin/emit-event` to add Resource + per-event fields.
@@ -533,26 +616,39 @@ with automatic catch-up. The `sink-otel-grpc` failure mode requires the
 dispatcher to be alive and connected at the moment of each event. The Collector
 decouples the two concerns.
 
-### Upgrade path: atomic cutover or migration window?
+### Upgrade path: true migration window via dual-emit (no flag day)
 
 Migration window, not atomic cutover. During Wave 1, `events-*.jsonl` begins
 receiving WASM-plugin events for the first time. Grafana queries that were
 already broken (because events-*.jsonl was empty) start receiving data, but
 with old field names. This is a strict improvement; no panel gets worse.
 
-Wave 2 (plugin schema migration) changes field names. Grafana queries that
-target old field names will stop matching. Wave 2 and Wave 3 must ship in the
-same release to avoid dashboard regression. Coordination is achieved by
-completing Wave 2 plugin changes and Wave 3 query rewrites in the same story
-batch.
+**Wave 2 dual-emit strategy (true "no flag day" path):** Wave 2 plugins emit
+BOTH the old event name AND the new reverse-DNS name in the same dispatcher
+invocation. Each old event name is re-emitted under the new name alongside a
+`vsdd.internal.event_name_deprecated.v1` lifecycle event carrying the
+old-name-to-new-name mapping (emitted once per unique old name per dispatcher
+invocation via the same rate-limit mechanism as host-field-override notices).
+This allows Grafana queries targeting old names to continue matching during
+Wave 3 development, and provides an explicit deprecation signal to dashboard
+authors. Wave 3 rewrites Grafana queries to target the new names. Wave 4
+(a Wave 2 sub-task or immediately following Wave 3 in the same release) removes
+the dual-emit shim. This is the true "no flag day" path: each wave is observable
+and independently reversible.
+
+The previous draft stated "Wave 2 and Wave 3 must ship in the same release to
+avoid dashboard regression." This was a coordinated cutover dressed up as
+migration-window language. The dual-emit strategy eliminates that constraint.
 
 Bash events (Wave 4) continue using the thin format until `bin/emit-event` is
 updated. `event.source = "bash-adapter"` allows dashboards to identify and
 optionally exclude thin events during the migration window.
 
-There is no "flag day" cutover. Each wave is independently observable and
-reversible (WASM plugins can be rolled back independently; Grafana queries can
-be reverted). The migration is safe to run incrementally across multiple sprints.
+**Wave 3 falsifiable acceptance criterion:** Grafana panel `pr_throughput` must
+return at least one row within 24 hours of Wave 3 merging to `main`. This is
+the minimal observable post-condition. Migration can fail visibly (zero rows
+means the new-name rewrite is broken or dual-emit is not emitting); this
+condition must be checked before Wave 4 is scheduled.
 
 ### Plugin authors targeting v1.0: how to manage the breaking ABI change?
 
@@ -562,15 +658,30 @@ to the event. After D-15.1, host-stamped fields silently win.
 
 For plugin authors:
 1. Resource-level fields (`service.name`, `service.namespace`, etc.) stamped
-   by plugins will be silently dropped. Most existing plugins do not stamp
-   these fields. No action required for those plugins.
+   by plugins will be overridden by host-stamped values. Most existing plugins do
+   not stamp these fields. No action required for those plugins. Plugins that DO
+   stamp host-owned fields will receive a `vsdd.internal.host_field_override.v1`
+   event and a `stderr` warning identifying the field (see D-15.3).
 2. `plugin_version` stamps in existing plugins are wrong (they stamp the
    dispatcher version from the environment). The host now stamps the correct
    plugin version. Existing plugins that stamp a wrong `plugin_version` will
-   have that value dropped. This is a correction, not a regression.
+   have that value overridden with a visible warning. This is a correction,
+   not a regression.
 3. `event.name` values that do not conform to the reverse-DNS + `.vN` format
-   will still be written, but `event.category` will default to `"domain"` for
-   unrecognized prefixes. Plugins should migrate their event names in Wave 2.
+   will still be written, but `event.category` will be `"unknown"` for
+   unrecognized prefixes (not `"domain"`). Plugins should migrate their event
+   names in Wave 2 to avoid appearing in `unknown` category dashboards.
+
+**SDK semver impact (resolves OQ-6):** The behavioral change in D-15.3 —
+host-stamped fields taking precedence over plugin-stamped fields — is a
+breaking change to the plugin SDK contract. This is a MAJOR-version SDK
+bump (semver major). The `emit_event` ABI signature is unchanged
+(`HOST_ABI_VERSION` stays at 1), but the behavioral contract changes:
+plugin-supplied values for host-owned fields no longer pass through to the
+emitted event. Any plugin that relied on passing Resource-level fields through
+`emit_event` and seeing them in the output will break silently without the
+major-version signal. The SDK changelog for the D-15.2 wave MUST be released
+as a major version.
 
 The SDK changelog for the wave containing D-15.2 must document:
 - Fields the host now stamps (plugin stamps are dropped)
@@ -592,28 +703,22 @@ Collector endpoint for operators who skip the Collector entirely?) The SS-03
 spec rewrite must answer this.
 
 **OQ-2 (SS-01): `host::emit_event` enrichment implementation scope for Wave 1**
-Which of the D-15.2 Resource fields can be reliably computed at dispatcher
-startup on all three platforms (macOS, Linux, Windows)? `host.id` on Windows
-has no `/etc/machine-id` equivalent; `vcs.repository.url.full` requires a
-`git remote get-url` call that may fail in detached worktrees. The Wave 1
-implementation story must define the fallback values for each field when
-computation fails.
+The fallback cascade POLICY for all derived Resource fields is now specified in
+D-15.2.c (this ADR). The remaining open question for SS-01 is IMPLEMENTATION
+scope: which platforms are targeted in Wave 1 vs deferred (e.g., Windows
+fallback via registry key)? The Wave 1 implementation story must decide the
+platform support matrix and confirm which fallback branches are implemented vs
+stubbed in Wave 1 with a `TODO(Wave-N)` marker. All fields must have a value
+(never null); the cascade policy in D-15.2.c is the authority.
 
-**OQ-3 (SS-01): VSDD_TRACE_ID propagation via `exec_subprocess`**
-D-15.2 specifies `trace_id` propagation via the `VSDD_TRACE_ID` environment
-variable across `exec_subprocess` boundaries. The `exec_subprocess` capability
-currently strips env vars not in `env_allowlist`. Who adds `VSDD_TRACE_ID` to
-the universal `env_allowlist`, and how is the `span_id` / `parent_span_id`
-chain maintained across subprocess hops? This needs a BC in SS-01.
+~~**OQ-3 (SS-01): VSDD_TRACE_ID propagation via `exec_subprocess`**~~ RESOLVED
+in D-15.4. Policy is in ADR; SS-01 BC must enumerate `VSDD_TRACE_ID` and
+`VSDD_PARENT_SPAN_ID` on the universal `env_allowlist`.
 
-**OQ-4 (SS-03): DLQ semantics after sink-otel-grpc retirement**
-The `DlqWriter` in `sink-core` was designed for the multi-sink model. After
-D-15.1, `FileSink` is the only writer. If `FileSink::write` fails (disk full,
-permissions error), where does the DLQ event go? The current DLQ writes to
-another file, which fails the same way. The SS-03 spec must define the failure
-mode for `FileSink` write errors post-migration (options: swallow and emit to
-stderr; write to a tmpfs-backed emergency file; write to the debug stream if
-`VSDD_DEBUG_LOG=1` is set).
+~~**OQ-4 (SS-03): DLQ semantics after sink-otel-grpc retirement**~~ RESOLVED
+in D-15.1 FileSink write-failure semantics. Primary sink failure triggers
+unconditional fallback to `dispatcher-internal-*.jsonl` plus stderr warning.
+`DlqWriter` is retired. SS-03 spec must acknowledge this policy.
 
 **OQ-5 (SS-03): Grafana dashboard migration scope and ownership**
 The Wave 3 migration touches every Grafana panel query. Who authors the
@@ -621,38 +726,26 @@ migration? Are the dashboard JSON files stored in `.factory/`? Is there a
 dashboard-as-code workflow that makes the migration auditable? This must be
 answered before Wave 3 is scheduled.
 
-**OQ-6 (SS-02): Plugin SDK changelog and migration guidance scope**
-The SDK changelog for the D-15.2 wave must cover which fields the host stamps,
-required event name format, and the `outcome` enum. Is this a minor release
-of the SDK (semver patch) or a major release (semver major given the silent
-field-drop behavior)? The SDK versioning policy does not currently address this
-case.
+~~**OQ-6 (SS-02): Plugin SDK changelog and migration guidance scope**~~ RESOLVED
+in "Plugin authors targeting v1.0" section. D-15.3's field-override behavioral
+change is a MAJOR-version SDK bump. The SDK changelog for the D-15.2 wave must
+be released as a major version.
 
 ## Architect Notes (for adversarial review awareness)
 
-Two points where I have reservations about the brief that should be on the
-adversarial review radar:
+Both prior reservations are now resolved in-ADR (revision pass 1):
 
-**1. The ADR-007 amendment weakens a safety guarantee.** The brief asks to
-gate `dispatcher-internal-*.jsonl` on `VSDD_DEBUG_LOG=1`. ADR-007's "always-on"
-guarantee exists precisely because misconfigured operators lose visibility when
-the file isn't present. This ADR amends it to "always-on when the debug env
-var is set, or when all sinks have failed." The last-resort fallback preserves
-the original motivation, but it introduces a new failure mode: an operator who
-doesn't know about `VSDD_DEBUG_LOG` and has a failing sink may not discover
-the fallback file. The adversarial review should probe whether the last-resort
-fallback is observable enough (e.g., should the dispatcher print a stderr
-warning when it falls back to the debug file?).
+**1. ADR-007 amendment / fallback observability (RESOLVED).** The last-resort
+fallback to `dispatcher-internal-*.jsonl` on `FileSink` write failure is now
+explicit in D-15.1's FileSink write-failure semantics. The dispatcher emits a
+`stderr` warning when falling back, satisfying the observability probe. The
+"all sinks failed" clause has been removed; the incoherence is gone.
 
-**2. The `event.category` registry table is a new centralization point.**
-Moving category derivation to a host-side registry means the registry must be
-updated every time a new `event.name` prefix is introduced. If a plugin uses
-a prefix not in the registry, it gets `event.category = "domain"` by default.
-This is a safe default but it means new event families are silently
-mis-categorized until the registry is updated. The adversarial review should
-probe whether the registry should be in a config file (operator-extensible)
-or stay in dispatcher source (compile-time stable but requires dispatcher
-release for new prefixes).
+**2. `event.category` registry / unrecognized prefix default (RESOLVED).**
+D-15.2 now decides both sub-questions: registry stays compile-time (D-15.2.a
+justified); unrecognized prefixes default to `"unknown"` not `"domain"` (D-15.2.b
+decided). Dashboard authors can alert on `unknown` category events to catch
+unregistered prefixes.
 
 ## Source / Origin
 
@@ -674,3 +767,4 @@ release for new prefixes).
 | Version | Date | Change |
 |---------|------|--------|
 | v1.0 | 2026-05-04 | Initial draft. D-15.1 single-stream, D-15.2 OTel schema, D-15.3 enrichment contract. |
+| v1.1 | 2026-05-04 | Revision pass 1 (adversary REJECT, HIGH novelty). Addressed C-1 (D-15.1 fallback contradiction resolved; OQ-4 absorbed into D-15.1 as FileSink write-failure semantics; DlqWriter retired); C-2 (Wave 2/3 "no flag day" contradiction resolved via dual-emit backward-compat strategy; Wave 3 falsifiable acceptance criterion added; O-3 addressed); I-1 (plugin field override is now visible via `vsdd.internal.host_field_override.v1` event and stderr warning; D-15.3 updated); I-2 (a) registry locked to compile-time with explicit justification; (b) unrecognized prefix default changed from `domain` to `unknown`; O-2 audit category integrity note added); I-4 (Resource field fallback cascade policy D-15.2.c added; OQ-2 narrowed to implementation scope); I-5 (per-event `event.schema_url` added as D-15.2.d; Resource-level `schema_url` clarified as process-level baseline; schema versioning section updated); I-6 (D-15.4 added: `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` on universal env_allowlist; OQ-3 resolved); I-7 (Retirement Semantics subsection added to D-15.1); O-1 ("Honeycomb, Honeycomb" copy-edit fixed); O-4 (OQ-6 resolved: D-15.3 behavioral change is a MAJOR SDK version bump). OQ count reduced from 6 to 2 active (OQ-1, OQ-5); OQ-2 narrowed. |
