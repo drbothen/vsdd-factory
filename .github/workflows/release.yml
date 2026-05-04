@@ -40,14 +40,17 @@ jobs:
             shellcheck "$f"
           done
 
-      # Note: tag-vs-plugin.json/marketplace.json validation was removed
-      # in v1.0.0-beta.4 along with the cache-staleness fix. plugin.json
-      # and marketplace.json now stay at the *previous* version during
-      # the chore commit; the bot commit (commit-binaries job below)
-      # writes them from the tag atomically with the binaries. So at
-      # validate time the JSONs deliberately disagree with the tag —
-      # asserting otherwise would block every release. CHANGELOG.md is
-      # the only file the operator's chore commit touches.
+      # Note: tag-vs-plugin.json validation was removed in v1.0.0-beta.4
+      # along with the cache-staleness fix. plugin.json now stays at the
+      # *previous* version during the chore commit; the bot commit
+      # (commit-binaries job below) writes it from the tag atomically with
+      # the binaries. So at validate time plugin.json deliberately disagrees
+      # with the tag — asserting otherwise would block every release.
+      # CHANGELOG.md is the only file the operator's chore commit touches.
+      #
+      # Note: marketplace.json was removed from this repo in v1.0.0-rc.7
+      # — the marketplace lives at drbothen/claude-mp and points here via
+      # git-subdir + ref=main. claude-mp owns its own version field.
 
       - name: Validate CHANGELOG.md has the new version heading
         run: |
@@ -261,14 +264,13 @@ jobs:
       - name: Regenerate hooks.json.<platform> variants
         run: scripts/generate-hooks-json.sh
 
-      - name: Bump plugin.json + marketplace.json from tag
+      - name: Bump plugin.json from tag
         run: |
           set -e
           # The chore commit ships only CHANGELOG.md updates — plugin.json
-          # and marketplace.json stay at the previous version. This step
-          # writes the new version (read from the git tag) so the bot's
-          # binary-bundle commit advertises version X atomically with the
-          # version-X binaries.
+          # stays at the previous version. This step writes the new version
+          # (read from the git tag) so the bot's binary-bundle commit
+          # advertises version X atomically with the version-X binaries.
           #
           # This eliminates the cache-staleness race observed in
           # v1.0.0-beta.2: between the chore commit (plugin.json:version=X,
@@ -277,21 +279,20 @@ jobs:
           # X with stale (X-1) binaries. With the bump moved here, the
           # window closes — plugin.json:version=X never exists without
           # the matching binaries.
+          #
+          # As of v1.0.0-rc.7 marketplace.json is no longer in this repo —
+          # the marketplace lives at drbothen/claude-mp and points here
+          # via git-subdir + ref=main. Bumping the marketplace's version
+          # field is a separate downstream concern (see claude-mp repo).
           version="${GITHUB_REF_NAME#v}"
-          echo "Writing version $version into plugin.json + marketplace.json"
+          echo "Writing version $version into plugin.json"
           tmp=$(mktemp)
           jq ".version = \"$version\"" plugins/vsdd-factory/.claude-plugin/plugin.json > "$tmp"
           mv "$tmp" plugins/vsdd-factory/.claude-plugin/plugin.json
-          tmp=$(mktemp)
-          jq ".plugins[0].version = \"$version\"" .claude-plugin/marketplace.json > "$tmp"
-          mv "$tmp" .claude-plugin/marketplace.json
-          # Sanity check: verify both files now agree on the new version.
+          # Sanity check: verify the file now agrees on the new version.
           plugin_v=$(jq -r '.version' plugins/vsdd-factory/.claude-plugin/plugin.json)
-          mp_v=$(jq -r '.plugins[0].version' .claude-plugin/marketplace.json)
           [ "$plugin_v" = "$version" ] || { echo "plugin.json version write failed: $plugin_v != $version"; exit 1; }
-          [ "$mp_v" = "$version" ] || { echo "marketplace.json version write failed: $mp_v != $version"; exit 1; }
           echo "plugin.json      = $plugin_v"
-          echo "marketplace.json = $mp_v"
 
       - name: Commit + retag
         env:
@@ -305,11 +306,10 @@ jobs:
           # for local dev (developers `cargo build … --target wasm32-wasip1`
           # into it) — the release workflow is the intentional one path
           # that bundles the wasm artifacts into source control.
-          # plugin.json + marketplace.json are bumped atomically here too
-          # (see "Bump plugin.json + marketplace.json from tag" above) so
-          # consumers never observe version=X without the matching binaries.
+          # plugin.json is bumped atomically here too (see "Bump plugin.json
+          # from tag" above) so consumers never observe version=X without
+          # the matching binaries.
           git add -f plugins/vsdd-factory/.claude-plugin/plugin.json \
-                     .claude-plugin/marketplace.json \
                      plugins/vsdd-factory/hooks/dispatcher/bin/ \
                      plugins/vsdd-factory/hook-plugins/ \
                      plugins/vsdd-factory/hooks/hooks.json.*
@@ -332,11 +332,18 @@ jobs:
           git push origin --force "refs/tags/$GITHUB_REF_NAME"
 
       - name: Sync bundle commit to develop (inline best-effort)
-        # The bot just wrote the new version into plugin.json +
-        # marketplace.json on main. Claude Code's plugin marketplace
-        # reads marketplace.json from the GitHub default branch
-        # (develop), so this commit must also exist on develop, or
-        # `/plugin` reports the prior version.
+        # The bot just wrote the new version into plugin.json on main and
+        # bundled the dispatcher binaries. This step keeps develop in sync
+        # with main for git workflow consistency (develop should always be
+        # a superset of main's content) so feature branches off develop
+        # never lag the released binaries.
+        #
+        # Pre-rc.7 this was also necessary for marketplace.json freshness
+        # — Claude Code reads marketplace.json from the marketplace repo's
+        # default branch. Now that marketplace.json lives in the separate
+        # drbothen/claude-mp repo (pointed at this repo via git-subdir +
+        # ref=main), that concern is moot here. Sync continues for binary
+        # bundle freshness on develop.
         #
         # This step is best-effort: it tries to push the merge directly
         # from inside the bot's job. On any failure (race, branch
@@ -482,13 +489,14 @@ jobs:
     # (race, branch protection lifted mid-run, conflicting unrelated
     # commits on develop landed during the build).
     #
-    # Closes the Git Flow gap discovered in v1.0.0-rc.1: Claude Code's
-    # plugin marketplace reads marketplace.json from the repo's GitHub
-    # default branch (develop), but the bot writes the version bumps
-    # only to main during the post-tag bundle step. Without one of these
-    # two paths succeeding, develop's marketplace.json is always one
-    # release behind main, and `/plugin` reports the prior version even
-    # though the latest tag is shipped.
+    # Originally introduced in v1.0.0-rc.1 to keep develop's
+    # marketplace.json in sync with main's after each tag. As of
+    # v1.0.0-rc.7 marketplace.json no longer lives in this repo (moved
+    # to drbothen/claude-mp), so the marketplace-freshness rationale no
+    # longer applies. The job remains for git workflow consistency:
+    # develop should always be a superset of main's content (binary
+    # bundle commits, plugin.json version bumps), so feature branches
+    # never lag the released artifacts.
     #
     # When the inline sync succeeds (the common case), this job no-ops
     # via the "develop already contains origin/main" early exit. When
@@ -496,7 +504,7 @@ jobs:
     # explicit branch protection fallback (opens a PR instead of failing).
     #
     # Verification cadence: after each release tag, confirm this job
-    # ran AND that develop's marketplace.json version equals main's.
+    # ran AND that develop's plugin.json version equals main's.
     name: Sync main → develop
     needs: commit-binaries
     runs-on: ubuntu-latest
@@ -534,7 +542,7 @@ jobs:
 
           if ! git merge --no-ff origin/main \
                  -m "merge: sync main → develop after $GITHUB_REF_NAME bundle" \
-                 -m "Automated back-merge of the post-tag binary-bundle commit so the GitHub default branch (develop) reflects the latest released plugin.json/marketplace.json version. See sync-develop job in .github/workflows/release.yml."; then
+                 -m "Automated back-merge of the post-tag binary-bundle commit so the GitHub default branch (develop) reflects the latest released plugin.json version and bundled binaries. See sync-develop job in .github/workflows/release.yml."; then
             echo "::warning::Merge produced conflicts — opening PR for manual resolution."
             git merge --abort || true
             exit 1
@@ -551,7 +559,7 @@ jobs:
             git push origin "$BRANCH"
             body_file=$(mktemp)
             {
-              printf 'Automated back-merge of the post-tag binary-bundle commit so develop'\''s marketplace.json reflects %s. Bot blocked from pushing directly to develop — please review and merge.\n\n' "$GITHUB_REF_NAME"
+              printf 'Automated back-merge of the post-tag binary-bundle commit so develop reflects the released plugin.json + bundled binaries for %s. Bot blocked from pushing directly to develop — please review and merge.\n\n' "$GITHUB_REF_NAME"
               printf 'See `sync-develop` job in `.github/workflows/release.yml` for full context.\n'
             } > "$body_file"
             gh pr create \

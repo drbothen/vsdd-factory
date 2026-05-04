@@ -1,5 +1,96 @@
 # Changelog
 
+## 1.0.0-rc.7 — Marketplace split to drbothen/claude-mp (2026-05-03)
+
+Release candidate 7 finishes what rc.6 attempted: splits the marketplace
+out of this repo into a separate `drbothen/claude-mp` repository so
+`/plugin install` actually populates the cache and surfaces all 120
+`/vsdd-factory:*` slash commands. The rc.6 attempt with `git-subdir +
+ref=main` was schema-correct but empirically still broken in our
+self-referential same-repo layout — the cache-populate step silently
+failed identically to the schema-invalid `github + path` form shipped in
+rc.2-rc.5. Moving the marketplace to a separate repo puts vsdd-factory
+on the well-tested cross-repo install path used by every working sibling
+plugin (Semgrep, dclaude, wclaude, zclaude, etc.).
+
+### Removed
+
+- **`.claude-plugin/marketplace.json`** — deleted from this repo. The
+  marketplace catalog now lives at
+  [drbothen/claude-mp](https://github.com/drbothen/claude-mp), pointing
+  back at this repo via `git-subdir + ref=main`. claude-mp owns its own
+  version field; it gets bumped out-of-band when this repo ships a new
+  release.
+- **release.yml `marketplace.json` write step** — `commit-binaries` job
+  no longer writes a version into a file that doesn't exist anymore.
+  `plugin.json` is still written from the tag atomically with the
+  bundled binaries (the cache-staleness fix from beta.4 still applies).
+- **`scripts/bump-version.sh` marketplace.json references** — the script
+  no longer reads or displays a `marketplace.json` version. Only
+  `plugin.json` is referenced as display-only context.
+
+### Fixed
+
+- **`/plugin install vsdd-factory@claude-mp` now correctly populates
+  `~/.claude/plugins/cache/claude-mp/vsdd-factory/<version>/`** with all
+  120 SKILL.md files, 44 agent files, 36 hook entries, and the LSP
+  server. Verified via clean-room install: cache directory is created,
+  skill count > 0, all `/vsdd-factory:*` slash commands appear in the
+  picker.
+- **The `sync-develop` job in `release.yml`** still runs to keep develop
+  in sync with main's binary-bundle commits, but its rationale is
+  documented now as "git workflow consistency" rather than the
+  pre-rc.7 "marketplace.json freshness" reason that no longer applies.
+
+### Added
+
+- **`docs/guide/plugin-marketplace-architecture.md`** — fully rewritten
+  to capture the actual rc.2 → rc.6 → rc.7 saga, the empirical
+  observation that `git-subdir` is only verified to work in cross-repo
+  installs (NOT same-repo with `path:`), and the validation discipline
+  (clean-room install + cache directory check) that catches install
+  bugs `claude plugin validate` doesn't.
+- **README + getting-started + migrating-from-0.79 install instructions**
+  updated to use the new `drbothen/claude-mp` marketplace.
+- **Migration note in `migrating-from-0.79.md`** flagging the
+  marketplace change for operators upgrading from v0.79.x and skipping
+  past rc.6.
+
+### Migration
+
+**Action required for ALL users on rc.6 or earlier.** The marketplace
+identifier changed from `vsdd-factory@vsdd-factory` to
+`vsdd-factory@claude-mp`.
+
+```bash
+# In a Claude Code session
+/plugin marketplace remove vsdd-factory       # remove the old (broken) marketplace
+/plugin marketplace add drbothen/claude-mp    # add the new marketplace
+/plugin install vsdd-factory@claude-mp        # install via new marketplace
+/reload-plugins                               # pick up new state
+```
+
+After reload, `/vsdd-factory:*` slash commands should appear in the
+picker for the first time since rc.1. Verify the cache directory is
+populated:
+
+```bash
+ls ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.7/
+# should list: skills/ agents/ hooks/ hook-plugins/ bin/ ...
+find ~/.claude/plugins/cache/claude-mp -name SKILL.md | wc -l
+# should be 120
+```
+
+If the cache directory is empty after install, refer to
+`docs/guide/plugin-marketplace-architecture.md` §8 (Validation
+discipline) for the clean-room reinstall procedure.
+
+**For repo maintainers only** — after this release ships and the bot
+publishes the v1.0.0-rc.7 tag with bundled binaries, manually open a
+PR against `drbothen/claude-mp` bumping the `vsdd-factory` plugin
+entry's `version` field from `1.0.0-rc.6` to `1.0.0-rc.7`. Future
+releases should automate this; for now it's a manual one-liner.
+
 ## 1.0.0-rc.6 — Marketplace install fix (2026-05-03)
 
 Release candidate 6 fixes a silent install-time bug shipped in rc.4 and

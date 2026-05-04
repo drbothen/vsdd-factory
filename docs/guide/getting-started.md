@@ -37,11 +37,18 @@ and reports what is missing for your target project's language.
 ### From the Claude Code plugin marketplace
 
 ```shell
-/plugin marketplace add drbothen/vsdd-factory
-/plugin install vsdd-factory@vsdd-factory
+/plugin marketplace add drbothen/claude-mp
+/plugin install vsdd-factory@claude-mp
 ```
 
 This installs the plugin globally. It is available in every Claude Code session.
+
+> **Note:** the marketplace is `drbothen/claude-mp`, a separate repo from
+> the plugin source. As of v1.0.0-rc.7 the marketplace catalog and the
+> plugin source live in different repos. See
+> [`docs/guide/plugin-marketplace-architecture.md`](plugin-marketplace-architecture.md)
+> for why. If you previously installed via `drbothen/vsdd-factory`, run
+> `/plugin marketplace remove vsdd-factory` first.
 
 ### Local development mode
 

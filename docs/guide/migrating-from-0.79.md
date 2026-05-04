@@ -1,11 +1,20 @@
 # Migrating from v0.79.x to v1.0
 
-> **Audience:** factory operators upgrading from v0.79.x. Last updated 2026-04-29.
+> **Audience:** factory operators upgrading from v0.79.x. Last updated 2026-05-04.
 
 Operators upgrading an existing v0.79.x factory to v1.0 read this guide.
 It walks through what changed, what the upgrade requires, what works
 out-of-the-box, what doesn't yet on Windows, and how to roll back if
 something goes wrong.
+
+> **Important: marketplace change in v1.0.0-rc.7.** Through rc.6 the plugin
+> was distributed via the `drbothen/vsdd-factory` marketplace. As of rc.7
+> the marketplace was split into a separate repo: **`drbothen/claude-mp`**.
+> If you're upgrading FROM v0.79.x and skipping straight past rc.6, you
+> should add the new marketplace and install from it (commands below
+> updated accordingly). If you're already on rc.6 or earlier with the old
+> marketplace registered, run `/plugin marketplace remove vsdd-factory`
+> first, then add `drbothen/claude-mp` per the commands below.
 
 ## What changed
 
@@ -74,11 +83,13 @@ See "Windows-specific notes" below for which hooks are affected.
 Follow these steps in order. Do not skip the activation step — it is the
 most common cause of "hooks not firing" reports.
 
-1. **Update the plugin** from within a Claude Code session:
+1. **Add the new marketplace and install** from within a Claude Code session:
    ```
-   /plugin update vsdd-factory@vsdd-factory
+   /plugin marketplace remove vsdd-factory   # if you had the old marketplace
+   /plugin marketplace add drbothen/claude-mp
+   /plugin install vsdd-factory@claude-mp
    ```
-   Wait for the update to complete and confirm the version number matches
+   Wait for the install to complete and confirm the version number matches
    the v1.0 release you intend to run.
 
 2. **Activate the dispatcher** — this step is new in v1.0 and required:
@@ -230,7 +241,7 @@ If v1.0 misbehaves on your factory and you need to revert:
   or downstream consumer expects fields that are no longer present (or
   new fields that weren't there before), this indicates a `HOST_ABI_VERSION`
   skew — the installed dispatcher binary and the plugin's compiled WASM
-  hooks are out of sync. Run `/plugin update vsdd-factory@vsdd-factory`
+  hooks are out of sync. Run `/plugin update vsdd-factory@claude-mp`
   to ensure both the dispatcher binary and the WASM artifacts are from
   the same release, then run `/vsdd-factory:activate` and restart.
 
