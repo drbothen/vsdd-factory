@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.0.0-rc.10 — Skill-body version-ref cleanup (2026-05-04)
+
+Hotfix release. Removes vsdd-factory release-version references
+(`v0.X`, `v1.X`, `beta.N`, `rc.N`) from skill and agent prose. The
+version refs were causing Claude Code's plugin resolver to pull from
+older cached plugin versions during installation when it found those
+version strings inside skill bodies — a real install-time blocker
+that affected operators on fresh checkouts.
+
+Pure prose-only release. No code, test, or behavioral changes; the
+9 modified skill/agent .md files now describe BEHAVIOR rather than
+which release first introduced each capability.
+
+### Changed
+
+- **Skill bodies cleaned of vsdd version refs** (PR #80):
+  - `skills/activate/SKILL.md` — 5 refs removed (v1.0+, v1.0, v0.79.x,
+    v2.1.84+ Claude Code, S-* IDs, dated design-doc path)
+  - `skills/deactivate/SKILL.md` — 5 refs removed (v1.0, v0.79.x,
+    v1.0-beta)
+  - `skills/factory-obs/SKILL.md` — "Since v0.78.0" → timeless prose
+  - `skills/claude-telemetry/SKILL.md` — 3 refs removed (v0.76.0,
+    v0.72.0+)
+  - `skills/onboard-observability/SKILL.md` — pre-v0.76.0 ref
+    removed from comment block
+  - `skills/release/SKILL.md` — 4 hardcoded version examples in
+    dry-run output replaced with `<NEXT>` / `<CURRENT>` placeholders
+  - `skills/adversarial-review/SKILL.md` — cycle-name example
+    parametrized
+  - `skills/factory-cycles-bootstrap/SKILL.md` — cycle-name examples
+    parametrized
+  - `agents/orchestrator/steady-state.md` — 2 refs to "v1.0.0
+    release" generalized to "first stable release"
+
+### Intentionally NOT changed (legitimate retentions)
+
+- Spec artifact IDs (BC-X.X, S-X.X, FR-X) — stable design-artifact
+  identifiers, intended to be permanent
+- Spec/template versions in spec-versioning skill (that skill IS
+  about versioning; examples are the point)
+- Generic semver guidance in devops-engineer (about releasing OTHER
+  projects)
+- Third-party tool versions (`excalidraw-brute-export-cli v0.4.0+`)
+- Illustrative example filenames in sdk-generation
+  (`openapi-v1.0.0.yaml` etc.)
+
 ## 1.0.0-rc.9 — PowerShell siblings for activate-skill helpers (2026-05-04)
 
 Release candidate 9 closes the activate-skill platform-coverage gap that
