@@ -1,5 +1,99 @@
 # Changelog
 
+## 1.0.0-rc.9 — PowerShell siblings for activate-skill helpers (2026-05-04)
+
+Release candidate 9 closes the activate-skill platform-coverage gap that
+opened in Claude Code v2.1.84+ on native Windows hosts without Git for
+Windows installed (where Claude Code falls back to PowerShell and cannot
+execute the bash `detect-platform.sh` / `apply-platform.sh` helpers).
+
+Beyond the PowerShell sibling work, two adjacent threads landed:
+- a regression-v1.0 test was rewritten to use a still-adapter-routed
+  bash hook (`purity-check.sh`) instead of the WASM-migrated
+  `capture-commit-activity` (the original test premise was invalidated
+  by commit 818fb95)
+- a research investigation surfaced a separate, larger telemetry-pipeline
+  issue (WASM `host::emit_event` routes events to
+  `dispatcher-internal-*.jsonl` instead of `events-*.jsonl`, silently
+  losing every WASM-emitted event from every downstream consumer). That
+  work is captured by ADR-015 and the new E-TELEMETRY epic — NOT shipped
+  in rc.9.
+
+### Added
+
+- **`plugins/vsdd-factory/skills/activate/detect-platform.ps1`** — PowerShell
+  sibling of `detect-platform.sh`. Identical JSON contract, exit codes
+  (0/1/2), and `MOCK_UNAME_S`/`MOCK_UNAME_M` test-override envvars.
+  Implements case-sensitive platform mapping via explicit if/elseif chains
+  (PowerShell `switch` is case-insensitive by default and runs all matching
+  arms — bash `case` is first-match-wins). Hand-built JSON output for
+  byte-identical parity with the bash sibling's `jq` output. Honors
+  `Set-StrictMode -Version Latest` for `-u`-equivalent strictness.
+- **`plugins/vsdd-factory/skills/activate/apply-platform.ps1`** — PowerShell
+  sibling of `apply-platform.sh`. Identical exit codes (0/1/2/3/4), `-Check`
+  verify-only mode, `VSDD_PLUGIN_ROOT_OVERRIDE` test override, diagnostic
+  strings. Accepts both PowerShell-style flags (`-Check`, `-Help`) and
+  bash-style aliases (`--check`, `--help`, `-h`) so cross-shell muscle
+  memory does not produce exit-4 surprises. Guards `$PSScriptRoot` empty-
+  state (when invoked via `pwsh -Command`). Narrows the UnixFileMode
+  exception handling to `PlatformNotSupportedException` so genuine I/O
+  errors surface instead of silently downgrading exit-3.
+
+### Changed
+
+- **`plugins/vsdd-factory/skills/activate/SKILL.md`** — steps 2 and 6 now
+  dispatch to the right helper (`.sh` vs `.ps1`) based on active shell.
+  JSON output and exit codes are byte-for-byte identical between the two
+  implementations; only invocation syntax differs by host shell convention.
+  Notes section explicitly documents flag-syntax conventions and the
+  TD-019 deferral for full Pester test parity.
+
+### Fixed
+
+- **`plugins/vsdd-factory/tests/regression-v1.0.bats` test 9** ("bash-side
+  events land in events-*.jsonl when routed through the adapter") —
+  rewritten to use `purity-check.sh` (a bash hook still routed through
+  legacy-bash-adapter on `PostToolUse/Edit|Write`) instead of
+  `capture-commit-activity` (which migrated to native WASM in commit
+  818fb95 and no longer goes through the adapter). Test now correctly
+  pins the bash-via-adapter path's contract that side-effecting bash
+  hooks land their events in `events-*.jsonl`. The WASM-side gap (events
+  landing in `dispatcher-internal-*.jsonl` instead) is captured by
+  ADR-015 and the E-TELEMETRY epic.
+
+### Tech debt logged
+
+- **TD-019 (P2, v1.1)** — Pester test suite + Rust consolidation of
+  `apply-platform.{sh,ps1}` into a `factory-dispatcher activate
+  --platform <p>` subcommand
+- **TD-019a (P2, v1.0.1)** — Lightweight `pwsh` syntactic-validation
+  CI gate as the v1.0-cycle stopgap before the full TD-019(a) Pester
+  suite lands
+- **LESSON-2026-05-04-001 [process-gap]** — Story marked "shipped"
+  without AC verification (S-3.04 AC-001 false-shipped); follow-up via
+  S-7.04
+- **LESSON-2026-05-04-002 [process-gap]** — Dashboards query fields no
+  plugin emits (`pr.opened` vs `pr.created`; `open_to_merge_seconds`
+  never emitted); follow-up via S-7.05
+- **TD-007 amendment** — original "S-3.04 AC-003 deferred" claim
+  amended; AC-001 was actually never wired (Router::submit absent from
+  main.rs since April 24, 2026); E-TELEMETRY epic addresses it via
+  ADR-015 and a new wave of stories
+
+### Not shipped (deferred to E-TELEMETRY epic)
+
+- WASM `host::emit_event` routing fix (currently lands events in
+  `dispatcher-internal-*.jsonl`; should land in `events-*.jsonl`)
+- Per-project / per-worktree / per-instance event-attribute drill-down
+- OTel-aligned schema with full Resource attributes
+- `pr.opened`/`pr.created` reconciliation
+- `plugin_version` correctness fix (currently always equals dispatcher
+  version, not the plugin's actual version)
+- Full bash↔WASM emit_event field parity
+
+These are tracked under ADR-015 and decomposed into stories under the
+new E-TELEMETRY epic. Adversarial review of ADR-015 is in flight.
+
 ## 1.0.0-rc.8 — Hooks-test migration to hooks-registry.toml (2026-05-04)
 
 Release candidate 8 finishes the S-0.4 hooks.json untracking properly.
