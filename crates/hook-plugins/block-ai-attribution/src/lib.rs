@@ -106,18 +106,8 @@ pub fn on_hook_logic(payload: HookPayload) -> HookResult {
     }
 }
 
-// WASM export — the #[hook] macro wires this in production builds.
-// Tests call `on_hook_logic` directly to stay in-process.
-// `on_hook` is invoked by the WASM runtime via the exported symbol; the
-// compiler cannot see that call site, hence the allow.
-#[cfg(not(test))]
-#[allow(dead_code)]
-mod wasm_entry {
-    use vsdd_hook_sdk::hook;
-    use vsdd_hook_sdk::{HookPayload, HookResult};
-
-    #[hook]
-    pub fn on_hook(payload: HookPayload) -> HookResult {
-        super::on_hook_logic(payload)
-    }
-}
+// WASI entry point lives in src/main.rs (rc.7 migration: switched from
+// cdylib + #[hook] macro to [[bin]] WASI command pattern so the wasm
+// output filename matches the registry's hyphenated form). The previous
+// `wasm_entry` mod that lived here was redundant under the new build
+// shape and has been removed.
