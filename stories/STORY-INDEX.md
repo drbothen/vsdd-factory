@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "1.39"
+version: "1.40"
 status: current
 producer: state-manager
-timestamp: 2026-05-03T12:00:00
+timestamp: 2026-05-04T00:00:00
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -78,11 +78,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 57 |
 | partial | 1 |
-| draft | 8 |
+| draft | 10 |
 | ready | 0 |
 | withdrawn | 1 |
 | retired | 19 |
-| **Total (active)** | **67** |
+| **Total (active)** | **69** |
 
 > `withdrawn`: S-9.30 (ADR-014 D-9.2 amendment 2026-05-03; body preserved per POLICY 1)
 > `retired`: S-8.11..S-8.29 (19 Tier 2/3 placeholder stories; superseded by E-9/future E-10 per E-8 v1.10 CHANGELOG)
@@ -175,8 +175,12 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | merged | -- |
 | S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | merged | -- |
 | S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | merged | 2.2 |
+| S-7.04 | Add AC-test-link discipline to per-story-delivery flow | E-7 | 3 | P1 | -- | draft | -- |
+| S-7.05 | Add dashboard-emitter-contract lint hook | E-7 | 3 | P2 | -- | draft | -- |
 
 > **S-7.03 delivery:** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN. Worktree feat/tdd-discipline-hardening (9b1624b → 121d24c, 9 commits). Spec convergence: 17 adversarial passes.
+> **S-7.04 filed 2026-05-04:** Process-gap from research investigation (PR #78 context). Before marking a story shipped, every AC must be linked to a specific test name + test file path + test result; the implementer agent MUST refuse to mark complete without this artifact. Specifically targets integration ACs ("X is wired into Y") where unit tests pass but end-to-end path is unverified. Motivated by S-3.04 AC-001 false-shipped discovery (Router::submit unwired in main.rs since April 24, 2026). See LESSON-2026-05-04-001 in cycles/v1.0-brownfield-backfill/lessons.md. Target: v1.0.1.
+> **S-7.05 filed 2026-05-04:** Process-gap from forensic field inventory (PR #78 context). CI lint hook `validate-dashboard-fields-against-emitters.sh` greps Grafana JSON files for event_type= and field references, cross-checks against WASM plugin host::emit_event call sites + bash hook emit-event invocations + dispatcher lifecycle constants, fails CI if any dashboard query field has no emitter. Motivated by factory-prs.json querying pr.opened (plugin emits pr.created) and open_to_merge_seconds (never emitted). See LESSON-2026-05-04-002 in cycles/v1.0-brownfield-backfill/lessons.md. Target: v1.0.1. Rides TD-014 emitter-contract awareness.
 
 > **S-4.05 spec CONVERGENCE_REACHED at pass-48 (2026-04-28).** v1.45, commit ac22a3d on factory-artifacts. 48 adversarial passes — longest run in project history (eclipses S-7.03's 17-pass record). Trajectory: 11→5→8→8→8→3→0→3→5→1→2→1→2→0→2→2→0→1→4→2→2→2→2→1→1HIGH→4→5→6→2→7→6→8→8→6→5→4→5→4→3→7→7→7→8→5→5→3→3LOW→6LOW→0. 6 carry-forward LOWs (F-4601..F-4603, F-4701..F-4703) non-blocking per ADR-013. Status: draft → ready. (D-129)
 

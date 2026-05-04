@@ -2,7 +2,7 @@
 document_type: tech-debt-register
 producer: state-manager
 version: "1.0"
-last_updated: 2026-05-03T00:00:00
+last_updated: 2026-05-04T00:00:00
 ---
 
 # Technical Debt Register
@@ -13,13 +13,15 @@ last_updated: 2026-05-03T00:00:00
 |----------|-------|-----------------|
 | P0 (next cycle) | 1 | TD-013 branch protection restore |
 | P1 (within 3 cycles) | 3 | XL (29–39 across 6 sub-stories) + TD-010 publish + TD-017 bats-orphan-detection |
-| P2 (backlog) | 12 | — (TD-015 per-invocation correlation ~30 pts; TD-016 run-all.sh glob; TD-018 clippy debt added 2026-05-03) |
+| P2 (backlog) | 14 | — (TD-015 per-invocation correlation ~30 pts; TD-016 run-all.sh glob; TD-018 clippy debt; TD-019 activate-helpers PowerShell-parity + Rust consolidation; TD-019a pwsh syntactic CI gate, all added 2026-05-04) |
 | P3 (v1.1+) | 4 | — |
 
 ## Debt Items
 
 | ID | Source | Description | Priority | Introduced | Cycle | Story | Due |
 |----|--------|-------------|----------|-----------|-------|-------|-----|
+| TD-019a | PR #78 review follow-up (2026-05-04) | Add a lightweight pwsh syntactic-validation gate to CI — `[System.Management.Automation.Language.Parser]::ParseFile()` on both `.ps1` files, plus 3 smoke invocations (`-Help`, mocked-Linux, bad-platform). ~10 lines of YAML, no Pester runner needed, catches future parse errors before they hit a Windows operator. Recommended as the v1.0-cycle stopgap before TD-019(a)'s full Pester suite lands. Acceptance: PR opens against `develop` adding a `lint-pwsh` job to the existing CI workflow that runs on `windows-latest` (or `ubuntu-latest` with pwsh installed) on any PR touching `plugins/vsdd-factory/skills/activate/*.ps1`. | P2 | PR #78 review (test-analyzer) 2026-05-04 | v1.0-brownfield-backfill | — | v1.0.1 |
+| TD-019 | post-rc.8 PowerShell-parity work (2026-05-04) | Two-part: (a) Add Pester test suite at `plugins/vsdd-factory/tests/activate.Tests.ps1` mirroring the existing `.bats` matrix — same MOCK_UNAME_S/M envvar overrides, same VSDD_PLUGIN_ROOT_OVERRIDE for synthetic-root apply tests; wire into CI on a `windows-latest` job. **Acceptance for (a)**: All 18 supported/unsupported platform tuples and all 13 apply-platform scenarios from `activate.bats` have Pester equivalents that pass on a `windows-latest` runner; the JSON output of every MOCK tuple is diffed byte-for-byte against the bash sibling (run on `ubuntu-latest`) and matches. (b) Consolidate `apply-platform.sh` + `apply-platform.ps1` file-copy/verify logic into a `factory-dispatcher activate --platform <p>` Rust subcommand; keep thin shell shims (~40 lines each) for "verify binary exists before invoking it" since the binary cannot self-verify. **Acceptance for (b)**: (1) shims are ≤40 LOC each and only verify binary presence + invoke `factory-dispatcher activate`; (2) the Rust subcommand lands in the existing `factory-dispatcher` crate, not a new crate; (3) shared bats+Pester matrix passes against the shim+Rust path; (4) deletion of legacy `apply-platform.{sh,ps1}` body code is included in the same PR; (5) migration path documented for in-flight v1.0 activations (re-run activate is sufficient). Defer until v1.0.0 ships and apply-logic growth (drift detection, settings.local.json merging, dry-run mode) justifies the refactor. | P2 | post-rc.8 PS1-parity 2026-05-04 | v1.0-brownfield-backfill | — | v1.1 |
 | TD-018 | rc.3 recovery (D-209, D-210) | Workspace clippy debt sweep — `non_snake_case` test fn names, type_complexity, unused imports surfaced by `--all-targets -- -D warnings` on rc.3 PR #62; currently suppressed via `#[allow]` attrs at file/fn level; future cleanup: rename test fns OR establish project-wide `#![allow(non_snake_case)]` for test modules with BC-named tests | P2 | rc.3 cut 2026-05-03 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-017 | rc.3 recovery (D-210) | Add bats-orphan-detection CI step — fail fast if any bats file references a non-existent hook script; prevent future "deleted file" failures caused by native WASM ports that remove .sh hooks without cleaning bats test references | P1 | rc.3 recovery 2026-05-03 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-016 | rc.3 recovery (D-211) | Refactor `run-all.sh` to use glob discovery (`tests/*.bats`) instead of hardcoded enumeration — prevents future failures when bats files are deleted without updating run-all.sh | P2 | rc.3 recovery 2026-05-03 | v1.0-brownfield-backfill | — | v1.0.1 |
@@ -329,6 +331,19 @@ Recommended default: accept the 10 above as the baseline; story-writer adds any 
 3. Remove `bin/emit-event` from the dispatcher binary tree.
 4. Update S-3.04 status to fully complete (close TD-007).
 **Cycle estimate:** v1.1.
+
+> **AMENDMENT — 2026-05-04 (research investigation during PR #78 work):** TD-007's S-3.04
+> reference was originally scoped only to AC-003 (bash bin/emit-event retirement). However,
+> investigation on 2026-05-04 revealed a more fundamental issue: AC-001 — "emit_event()
+> routes events to the configured sinks (not just internal log)" — was also NEVER satisfied.
+> The integration step at `crates/factory-dispatcher/src/sinks/mod.rs:11-15` is an
+> unimplemented TODO; `Router::submit` is never called from `main.rs`. Plugin events have
+> silently routed to `dispatcher-internal-*.jsonl` instead of `events-*.jsonl` since S-1.4
+> (April 24, 2026). The original "shipped" status for AC-001 in v1.0.0-beta.4 is incorrect.
+> This integration wiring is being corrected via the E-TELEMETRY epic (parallel track as of
+> 2026-05-04). The process gap (story shipped without end-to-end AC verification) has been
+> codified as LESSON-2026-05-04-001 in `.factory/cycles/v1.0-brownfield-backfill/lessons.md`
+> and S-7.04 has been opened to address the systemic delivery-discipline gap.
 
 #### TD-010 — vsdd-hook-sdk-macros not published to crates.io (AC-2 of S-4.08 deferred)
 **Source:** rc.1 release-prep burst (2026-04-29)
