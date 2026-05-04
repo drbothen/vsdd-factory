@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.42"
+version: "1.43"
 status: current
 producer: state-manager
 timestamp: 2026-05-04T00:00:00
@@ -18,6 +18,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
 > S-N.MM format. Updated in Phase 2 (story decomposition) with E-7 stories.
 > Updated in Wave 11 burst (2026-04-27): S-4.09 and S-4.10 added.
+> Updated 2026-05-04: E-10 epic + 9 S-T.NN stories authored from ADR-015 migration plan decomposition. STORY-INDEX v1.42 → v1.43.
 > Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145). Pass-3 (2026-04-29): S-5.05 v1.6→v1.7 (1 MED + 5 LOW closed; STORY-INDEX:136 cross-cutting BC-8.31.* count fixed); S-5.06 NITPICK_ONLY (no version bump; clock 1_of_3 per S-7.03 skip-fix strategy); D-146. Pass-4 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (8 LOW; clock 0_of_3→1_of_3); S-5.06 v1.6 NITPICK_ONLY (0 findings; clock 1_of_3→2_of_3); skip-fix discipline applied per S-7.03; D-147. Pass-5 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (5 LOW positive; clock 1_of_3→2_of_3); **S-5.06 v1.6→v1.7 CONVERGENCE_REACHED at pass-5** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status draft→ready); D-148.
 > Pass-6 (2026-04-29): **S-5.05 v1.7→v1.8 CONVERGENCE_REACHED at pass-6** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status partial→ready; 3 consecutive NITPICK_ONLY: passes 4, 5, 6); D-149.
 >
@@ -70,7 +71,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **ADR-015 housekeeping follow-up burst (2026-05-04): STORY-INDEX v1.41 → v1.42.** Q2/Q3/Q4/Q5 cleanup follow-ups from prior audit. **Q2 multi-sink ecosystem annotated `deprecated_by: ADR-015`:** 6 stories tagged — S-4.01 (sink-http), S-4.02 (sink-datadog), S-4.03 (sink-honeycomb), S-4.04 (per-sink retry+CB), S-4.10 (cross-sink internal.sink_error events), S-4.09 (sink-http retry backoff — sink-coupled per investigation); S-4.05 (DLQ) SKIPPED per "skip drafts" rule (status: draft). S-4.08 (rc1 release gate) SKIPPED — release-process story, not sink-mechanism-coupled. **Q4 status-taxonomy normalized:** S-3.04 frontmatter `status: partially_shipped` → `status: partial` to align with documented status set (draft, ready, in-progress, merged, partial, blocked); STORY-INDEX row updated likewise. **Q5 ADR-015 path/anchor added:** all 6 prior-burst stories (S-3.04, S-1.04, S-1.08, S-1.09, S-4.06, S-4.07) gained a `supersession_ref: ".factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md"` frontmatter field; the 6 multi-sink stories newly annotated above also carry the same `supersession_ref`. **Q3 TD-020 logged** in `.factory/tech-debt-register.md` (line 23 + detail at line 557; P3) capturing pre-existing frontmatter↔STORY-INDEX status drift (sample: S-4.06/S-4.07 frontmatter `status: ready` while index shows merged). Status row counts: `partially_shipped` retired from taxonomy (count 1 → 0); `partial` 1 → 2.
 
 > This index is the authoritative source for story count and status.
-> 59 stories across 9 epics (E-0 through E-8).
+> 68 stories across 10 epics (E-0 through E-10). E-10 added 2026-05-04 (ADR-015 migration; 9 stories, 42 pts).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -82,11 +83,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 56 |
 | partial | 2 |
-| draft | 10 |
+| draft | 19 |
 | ready | 0 |
 | withdrawn | 1 |
 | retired | 19 |
-| **Total (active)** | **69** |
+| **Total (active)** | **78** |
 
 > `partial`: S-2.05 (hook-sdk publish to crates.io — pre-existing); S-3.04 (status: merged → partial 2026-05-04 [normalized from earlier `partially_shipped` to align with documented taxonomy]; AC-001 Router::submit integration never wired in main.rs; superseded by ADR-015 — see LESSON-2026-05-04-001).
 
@@ -296,6 +297,35 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
+## Epic E-10 — Single-stream OTel-aligned event emission (ADR-015) (draft, v1.0)
+
+> **E-10 authored 2026-05-04:** E-10-single-stream-otel-event-emission.md v1.0 status=draft. 9 stories
+> (S-T.01..S-T.09) authored from ADR-015 migration plan. ADR-015 ACCEPTED 2026-05-04; supersedes
+> ADR-005; amends ADR-007. 4 normative decisions (D-15.1 single stream, D-15.2 OTel schema,
+> D-15.3 enrichment contract, D-15.4 trace propagation). 6-wave migration. Bug-fix bundle: pr.opened/
+> pr.created reconciliation, plugin_version fix, open_to_merge_seconds emission.
+> behavioral_contracts: [] on all stories — pending PO authorship per Spec-First Gate S-7.01.
+> OQ-1, OQ-2, OQ-5, OQ-7, OQ-8, OQ-9 deferred.
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|--------|-----|
+| S-T.01 | ADR-015 Wave 0 — Read-only audit and baseline measurements | E-10 | 2 | P1 | -- | S-T.02, S-T.03, S-T.04 | draft | [] (pending PO authorship) |
+| S-T.02 | ADR-015 Wave 1 — FileSink single-stream wiring (D-15.1) | E-10 | 5 | P1 | S-T.01 | S-T.05 | draft | [] (pending PO authorship) |
+| S-T.03 | ADR-015 Wave 1 — Resource-attribute enrichment (D-15.2) | E-10 | 5 | P1 | S-T.01 | S-T.05 | draft | [] (pending PO authorship) |
+| S-T.04 | ADR-015 Wave 1 — Trace propagation + lifecycle event types (D-15.4 + D-15.3) | E-10 | 5 | P1 | S-T.01 | S-T.05 | draft | [] (pending PO authorship) |
+| S-T.05 | ADR-015 Wave 2 — Plugin schema migration, dual-emit shims, bug-fix bundle | E-10 | 8 | P1 | S-T.02, S-T.03, S-T.04 | S-T.06 | draft | [] (pending PO authorship) |
+| S-T.06 | ADR-015 Wave 3 — Consumer migration (Grafana + tools + OTel collector) | E-10 | 5 | P1 | S-T.05 | S-T.07 | draft | [] (pending PO authorship) |
+| S-T.07 | ADR-015 Wave 3 sub-tasks — deprecation announcement + operator audit gate | E-10 | 2 | P1 | S-T.06 | S-T.08 | draft | [] (pending PO authorship) |
+| S-T.08 | ADR-015 Wave 4 — Bash hook parity (bin/emit-event schema alignment) | E-10 | 5 | P1 | S-T.07 | S-T.09 | draft | [] (pending PO authorship) |
+| S-T.09 | ADR-015 Wave 5 — Crate retirement + SS-03 spec rewrite | E-10 | 5 | P1 | S-T.08 | -- | draft | [] (pending PO authorship) |
+
+> **E-10 dependency chain:** S-T.01 → {S-T.02, S-T.03, S-T.04} → S-T.05 → S-T.06 → S-T.07 → S-T.08 → S-T.09.
+> S-T.02/S-T.03/S-T.04 are parallelizable within Wave 1.
+> Total E-10 points: 42 (2+5+5+5+8+5+2+5+5).
+> OQ-5 (Grafana ownership) must be resolved before S-T.06 is dispatched.
+
+---
+
 **Draft story policy:** Stories with `status: draft` MAY have empty
 `behavioral_contracts: []` arrays. BC anchoring is deferred to the elaboration phase
 (when status transitions to `ready`). **Source:** Phase 1d pass 3 F-035.
@@ -307,10 +337,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 258+ across 67 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9**)
+**Total story points:** 300+ across 76 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 42 E-10***)
 
 > \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
 > \*\*E-9 in progress — S-9.00 + S-9.30 authored (TBD pts each); S-9.01..S-9.07 stub entries (TBD pts pending Burst 2+3 authoring); ~50-70 additional pts estimated across 9 stories.
+> \*\*\*E-10 authored 2026-05-04 — 9 stories (S-T.01..S-T.09) at 42 pts total; behavioral_contracts: [] on all stories (pending PO authorship per Spec-First Gate).
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

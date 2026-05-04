@@ -1,0 +1,184 @@
+---
+document_type: story
+level: ops
+story_id: "S-T.01"
+epic_id: "E-10"
+version: "1.0"
+status: draft
+producer: story-writer
+timestamp: 2026-05-04T00:00:00Z
+phase: 2
+inputs:
+  - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
+  - .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+input-hash: ""
+traces_to: .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+functional_requirements: []
+cycle: v1.0-brownfield-backfill
+points: "2"
+wave: 17
+depends_on: []
+blocks: ["S-T.02", "S-T.03", "S-T.04"]
+behavioral_contracts: []
+# BC status: pending PO authorship
+verification_properties: []
+priority: "P1"
+tdd_mode: strict
+target_module: ".factory/measurements/"
+subsystems: ["SS-01", "SS-03"]
+estimated_days: 1
+assumption_validations: []
+risk_mitigations: []
+anchored_adr: ADR-015
+---
+
+# S-T.01: ADR-015 Wave 0 — Read-only audit and baseline measurements
+
+**Epic:** E-10 — Single-stream OTel-aligned event emission (ADR-015)
+**Wave:** Wave 0 (prerequisite; no code changes)
+**Blocks:** S-T.02, S-T.03, S-T.04
+**Estimated effort:** S (2 pts, ~1 day)
+
+## Narrative
+
+- **As a** vsdd-factory operator preparing the ADR-015 migration
+- **I want** a complete inventory of current Grafana panel queries and the
+  actual fields present in `events-*.jsonl` and `dispatcher-internal-*.jsonl`
+- **So that** Wave 1-3 implementers have a confirmed list of broken queries,
+  missing fields, and mismatched names before writing a single line of code
+
+## Acceptance Criteria
+
+### AC-001: Grafana panel query inventory captured (traces to ADR-015 Wave 0)
+
+A file `.factory/measurements/adr015-wave0-grafana-query-inventory.md` exists
+and records every Grafana dashboard panel with: panel name, dashboard filename/path,
+the exact field name(s) and event name(s) it queries (e.g. `pr.opened`,
+`open_to_merge_seconds`, `plugin_version`), and current broken/working status.
+
+- Minimum coverage: all `.factory/obs/` and `.factory/grafana/` JSON/YAML dashboard
+  files (or their equivalent location in this repo's `factory-obs` stack).
+- For each queried event field, note whether it matches an actually-emitted field
+  name observed in the current `dispatcher-internal-*.jsonl` snapshot.
+
+**Falsifiable test:** The inventory file contains at least one row for `pr.opened`
+documenting the broken status (plugin emits `pr.created`; Grafana queries `pr.opened`).
+
+### AC-002: Current event field inventory snapshotted (traces to ADR-015 Context §Field schema)
+
+A file `.factory/measurements/adr015-wave0-event-field-snapshot.md` exists and
+lists every field currently emitted in `dispatcher-internal-*.jsonl` per event type,
+derived from at least one real dispatcher invocation or from static analysis of
+`main.rs` emit_event call sites. The snapshot must include:
+
+- All fields set at `main.rs:143` (the `plugin_version = env!("CARGO_PKG_VERSION")`
+  site and surrounding context)
+- All fields emitted by WASM plugins via `host::emit_event`
+- Fields absent per ADR-015 Context §Identification fields absent entirely
+
+**Falsifiable test:** The snapshot explicitly lists `plugin_version` as always set
+to dispatcher version (citing `main.rs:143`), not the plugin's actual version.
+
+### AC-003: Three known content-defect bugs documented (traces to ADR-015 Context §Naming inconsistencies)
+
+The `.factory/measurements/adr015-wave0-event-field-snapshot.md` (or a companion
+file) records the three ADR-015 content-defect bugs with source-code citations:
+
+1. `pr.opened` (Grafana query) vs `pr.created` (plugin emission) — cite the plugin
+   source file and line where `pr.created` is emitted; cite the Grafana panel query.
+2. `plugin_version` always = dispatcher version — cite `main.rs:143`.
+3. `open_to_merge_seconds` queried but never emitted — cite the Grafana panel;
+   confirm no plugin emits this field via grep/static analysis.
+
+**Falsifiable test:** Each of the three bugs has a "Source code citation" cell with
+a non-empty file path and line number (or "confirmed absent via grep" note).
+
+### AC-004: Consumer list enumerated (traces to ADR-015 D-15.1 §Consumer fan-out)
+
+A section in the audit output enumerates every known consumer of `events-*.jsonl`:
+`factory-query`, `factory-replay`, `factory-sla`, `factory-report`,
+`factory-dashboard`, and the OTel collector filelog receiver config. For each,
+note whether the consumer applies an `event.name` prefix filter or reads all events.
+
+**Falsifiable test:** The list contains at least the five `bin/factory-*` tools
+identified in ADR-015 Context.
+
+### AC-005: No code changes made (traces to ADR-015 Wave 0 "read-only")
+
+The commit(s) for S-T.01 touch ONLY `.factory/measurements/` files. No `.rs`,
+`.toml`, `.sh`, `.wasm`, or Grafana JSON files are modified.
+
+**Falsifiable test:** `git diff HEAD~1 -- '*.rs' '*.toml' '*.sh' '*.wasm'` returns
+empty output for the S-T.01 delivery commit.
+
+## Architecture Mapping
+
+| Component | Module | Pure/Effectful | ADR-015 Reference |
+|-----------|--------|---------------|-------------------|
+| Measurement outputs | `.factory/measurements/` | Pure (read-only, doc generation) | Wave 0 |
+| Grafana dashboards | `.factory/obs/` or `.factory/grafana/` | Read-only | D-15.2 field schema |
+| dispatcher source | `crates/factory-dispatcher/src/main.rs` | Read-only | main.rs:143 |
+
+## Edge Cases
+
+| ID | Description | Expected Behavior |
+|----|-------------|-------------------|
+| EC-001 | No `events-*.jsonl` file exists yet in the repo | Snapshot notes the absence; audit documents it as confirming the gap ADR-015 describes |
+| EC-002 | Grafana dashboard files stored outside `.factory/obs/` | Implementer finds and documents actual location in inventory file header |
+| EC-003 | Additional content-defect bugs discovered beyond the three listed | Document as EC-NNN entries in the snapshot file; flag for S-T.05 (Wave 2 bug-fix bundle) |
+
+## Tasks
+
+- [ ] T-1: Locate all Grafana dashboard JSON/YAML files in this repo
+- [ ] T-2: For each panel, extract queried event names and field names; record in inventory file
+- [ ] T-3: Run `grep -r "pr.opened" .factory/obs/` (or equivalent) to confirm the broken panel exists
+- [ ] T-4: Read `crates/factory-dispatcher/src/main.rs` around line 143; document all fields set at the `emit_event` call site
+- [ ] T-5: Grep all WASM plugin sources for `host::emit_event` call sites; extract emitted field names per plugin
+- [ ] T-6: Grep for `open_to_merge_seconds` across all plugin sources and Grafana files; confirm emitter absence
+- [ ] T-7: Write `.factory/measurements/adr015-wave0-grafana-query-inventory.md`
+- [ ] T-8: Write `.factory/measurements/adr015-wave0-event-field-snapshot.md`
+- [ ] T-9: Verify commit contains ONLY `.factory/measurements/` changes
+
+## Previous Story Intelligence
+
+N/A — first story in epic E-10. No predecessor pattern to carry forward.
+
+## Architecture Compliance Rules
+
+Per ADR-015 Wave 0:
+- This story is explicitly read-only. No source code modifications are permitted.
+- Measurement files go to `.factory/measurements/` per project convention (see S-8.00,
+  S-9.00 precedent).
+- Forbidden: modifying `main.rs`, any plugin source, `hooks-registry.toml`, or any
+  Grafana dashboard file.
+
+## Library and Framework Requirements
+
+None — Wave 0 is documentation-only. Standard shell tools (`grep`, `find`, `cat`)
+for static analysis are sufficient.
+
+## File Structure Requirements
+
+| File | Action | Notes |
+|------|--------|-------|
+| `.factory/measurements/adr015-wave0-grafana-query-inventory.md` | CREATE | Panel-by-panel query inventory |
+| `.factory/measurements/adr015-wave0-event-field-snapshot.md` | CREATE | Current emitted-field inventory + 3 bug citations |
+
+## Token Budget Estimate
+
+| Context Source | Estimated Tokens |
+|----------------|-----------------|
+| This story spec | ~3,000 |
+| ADR-015 (full read) | ~18,000 |
+| main.rs (partial read around line 143) | ~2,000 |
+| Grafana dashboard files (scan) | ~3,000 |
+| Plugin source files (grep only) | ~2,000 |
+| **Total** | **~28,000** |
+
+Well within 20% of a 200k-token context window. No split needed.
+
+## CHANGELOG
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-04 | Initial authoring from ADR-015 Wave 0 decomposition. |

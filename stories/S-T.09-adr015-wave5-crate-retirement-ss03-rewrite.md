@@ -1,0 +1,216 @@
+---
+document_type: story
+level: ops
+story_id: "S-T.09"
+epic_id: "E-10"
+version: "1.0"
+status: draft
+producer: story-writer
+timestamp: 2026-05-04T00:00:00Z
+phase: 2
+inputs:
+  - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
+  - .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+input-hash: ""
+traces_to: .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+functional_requirements: []
+cycle: v1.0-brownfield-backfill
+points: "5"
+wave: 17
+depends_on: ["S-T.08"]
+blocks: []
+behavioral_contracts: []
+# BC status: pending PO authorship
+verification_properties: []
+priority: "P1"
+tdd_mode: strict
+target_module: "crates/"
+subsystems: ["SS-01", "SS-03"]
+estimated_days: 2
+assumption_validations: []
+risk_mitigations: []
+anchored_adr: ADR-015
+---
+
+# S-T.09: ADR-015 Wave 5 — Crate retirement and SS-03 spec rewrite
+
+**Epic:** E-10 — Single-stream OTel-aligned event emission (ADR-015)
+**Wave:** Wave 5
+**Depends on:** S-T.08
+**Blocks:** (none — final story in epic)
+**Estimated effort:** M (5 pts, ~2 days)
+
+## Narrative
+
+- **As a** vsdd-factory maintainer
+- **I want** the `sink-otel-grpc` crate physically deleted and the `Router`,
+  `SinkRegistry`, and `DlqWriter` types removed from `sink-core`, with the SS-03
+  spec and BC-3.* contracts updated to reflect the simplified single-sink model
+- **So that** the codebase no longer carries dead code from the abandoned multi-sink
+  architecture and the observability-sinks spec is accurate
+
+## Acceptance Criteria
+
+### AC-001: sink-otel-grpc crate physically deleted (traces to ADR-015 D-15.1 §Retired (Wave 5))
+
+The `crates/sink-otel-grpc/` directory is deleted from the repository. It is removed
+from the root `Cargo.toml` `[workspace]` members list.
+
+**Pre-condition (TD-015-a gate):** Before deletion, confirm no other workspace crate
+has a new intra-workspace dependency on `sink-otel-grpc` (verify via
+`cargo metadata --format-version 1 | jq '...'` or equivalent grep). If re-coupling
+is found, fix it before deletion.
+
+**Falsifiable test:** `ls crates/sink-otel-grpc/` returns "No such file or directory".
+`cargo build` succeeds after deletion. `grep "sink-otel-grpc" Cargo.toml` returns zero hits.
+
+### AC-002: Router, SinkRegistry, DlqWriter types removed from sink-core (traces to ADR-015 D-15.1 §Wave 5)
+
+The `Router`, `SinkRegistry`, and `DlqWriter` types are physically removed from
+`crates/sink-core/src/`. The `sink-core` crate itself is KEPT (it contains `FileSink`
+and the `Sink` trait which remain in active use). The removal eliminates dead code
+that has been deprecated since Wave 1 (S-T.02).
+
+**Falsifiable test:** `grep -r "Router\|SinkRegistry\|DlqWriter" crates/sink-core/src/`
+returns zero hits. `cargo build` succeeds.
+
+### AC-003: No workspace crate depends on deleted types (traces to ADR-015 D-15.1 §TD-015-a)
+
+After deletion, `cargo build` passes with no compile errors anywhere in the workspace.
+No crate outside `sink-core` referenced these types in a way that would now fail.
+
+**Falsifiable test:** `cargo build --workspace` exits 0.
+
+### AC-004: SS-03-observability-sinks.md spec rewritten for single-sink model (traces to ADR-015 Wave 5 §Rewrite SS-03)
+
+`SS-03-observability-sinks.md` (or equivalent SS-03 spec file) is updated to:
+- Describe the single `FileSink` as the sole production sink.
+- Remove all multi-sink fan-out, Router/SinkRegistry, DLQ, and circuit-breaker text.
+- Document the `VSDD_DEBUG_LOG=1` gate for `dispatcher-internal-*.jsonl`.
+- Document the FileSink write-failure fallback semantics from D-15.1.
+- Reference ADR-015 as superseding ADR-005.
+
+**Falsifiable test:** Peer review of SS-03 spec confirms no mention of Router,
+SinkRegistry, DlqWriter, or multi-sink. The spec describes the single-stream model accurately.
+
+### AC-005: BC-3.* contracts covering multi-sink fan-out withdrawn or revised (traces to ADR-015 Wave 5 §Withdraw/revise BC-3.*)
+
+Behavioral contracts in the BC-3.* family that described multi-sink fan-out semantics,
+DLQ behavior, per-sink health events, or sink-otel-grpc behavior are either:
+- **Withdrawn:** marked `status: withdrawn` with `withdrawn_by: ADR-015` frontmatter.
+- **Revised:** updated to reflect the single-sink semantics if they cover FileSink behavior
+  that remains valid.
+
+A comment in each affected BC file notes whether it is withdrawn or revised.
+
+**Falsifiable test:** All BC-3.* files that previously described multi-sink semantics
+have `status: withdrawn` OR have body text updated to single-sink semantics.
+No BC-3.* file still describes Router::submit, SinkRegistry, or DlqWriter behavior
+as active contracts.
+
+### AC-006: Final Wave 5 sign-off: all E-10 stories complete and no active multi-sink code paths (traces to ADR-015 Wave 5 §Final Wave 5 sign-off gates)
+
+The E-10 epic is marked `status: complete` in the epic file after this story merges.
+A final `grep -r "Router::\|SinkRegistry::\|DlqWriter::" crates/` returns zero hits
+(confirming the full removal).
+
+**Falsifiable test:** Zero hits for `Router::`, `SinkRegistry::`, `DlqWriter::` in
+the `crates/` directory.
+
+## Architecture Mapping
+
+| Component | Module | Pure/Effectful | ADR-015 Reference |
+|-----------|--------|---------------|-------------------|
+| `sink-otel-grpc` crate | `crates/sink-otel-grpc/` | DELETED | D-15.1 Retired (Wave 5) |
+| `Router`, `SinkRegistry`, `DlqWriter` | `crates/sink-core/src/` | DELETED types | D-15.1 Wave 5 |
+| `sink-core` crate (kept) | `crates/sink-core/src/` | Effectful (FileSink remains) | D-15.1 kept |
+| SS-03 spec | `.factory/specs/architecture/SS-03-observability-sinks.md` | Pure (documentation) | Wave 5 spec rewrite |
+| BC-3.* contracts | `.factory/specs/behavioral-contracts/ss-03/` | Pure (spec) | Wave 5 BC withdrawal/revision |
+
+**Forbidden dependencies (post-Wave-5 invariant):** After this story merges,
+no workspace crate may add a dependency on `sink-otel-grpc` (crate is deleted).
+No code may instantiate `Router`, `SinkRegistry`, or `DlqWriter` (types deleted).
+
+## Edge Cases
+
+| ID | Description | Expected Behavior |
+|----|-------------|-------------------|
+| EC-001 | `cargo metadata` reveals an unexpected dependency on `sink-otel-grpc` from a crate added since Wave 1 | STOP — fix the dependency before deletion. TD-015-a requires this check precisely for this scenario. |
+| EC-002 | BC-3.* file describes both multi-sink and single-sink behavior | Split the behavioral contract: withdraw the multi-sink clauses, keep the single-sink clauses under a revised contract |
+| EC-003 | SS-03 spec references ADR-005 without noting it's superseded | The rewrite must explicitly state: "ADR-005 superseded by ADR-015 (accepted 2026-05-04)." |
+| EC-004 | Some BC-3.* contracts describe `sink-file` (FileSink) behavior that is still valid | These are REVISED (not withdrawn); update their body to remove multi-sink references but keep the FileSink-specific clauses |
+
+## Tasks
+
+- [ ] T-0: STOP CHECK — confirm S-T.08 merged; confirm no E-10 stories still in-progress that touch sink-core or sink-otel-grpc
+- [ ] T-1: Run `cargo metadata` check for intra-workspace deps on `sink-otel-grpc` (TD-015-a gate)
+- [ ] T-2: Physically delete `crates/sink-otel-grpc/`
+- [ ] T-3: Remove `sink-otel-grpc` from root `Cargo.toml` [workspace] members
+- [ ] T-4: Remove `Router`, `SinkRegistry`, `DlqWriter` type definitions from `crates/sink-core/src/`
+- [ ] T-5: Remove all re-exports / pub use of deleted types from `sink-core`
+- [ ] T-6: Run `cargo build --workspace` and fix any compile errors
+- [ ] T-7: Rewrite `SS-03-observability-sinks.md` for single-sink model
+- [ ] T-8: Audit all BC-3.* files; withdraw or revise as appropriate
+- [ ] T-9: Update E-10 epic file: `status: complete`
+- [ ] T-10: Run final grep check: `grep -r "Router::\|SinkRegistry::\|DlqWriter::" crates/` → zero hits
+- [ ] T-11: Run full test suite; confirm zero regressions
+
+## Previous Story Intelligence
+
+S-T.02 deprecated these types (marked them as excluded from default-members and
+no longer called from production code). This story physically removes what S-T.02
+deprecated. The Wave 1 → Wave 5 two-phase lifecycle is per ADR-015 D-15.1:
+Wave 1 = deprecated (uncalled + excluded); Wave 5 = retired (physically deleted).
+
+S-T.08 is the last behavioral story. Wave 5 is pure cleanup with no behavioral
+changes to verify with new tests — the tests that mattered were in S-T.02 through
+S-T.08. This story's tests focus on confirming absence (zero grep hits, build
+success) rather than presence.
+
+## Architecture Compliance Rules
+
+Per ADR-015 D-15.1:
+- `sink-core` crate is KEPT. Only the three types within it are removed.
+- "Retired" = physically deleted. Not just marked deprecated.
+- `FileSink` and the `Sink` trait in `sink-core` are untouched by this story.
+
+Per ADR-015 TD-015-a:
+- The cargo-metadata CI check for retired-crate re-coupling is STILL deferred
+  (TD-015-a was deferred at Wave 1 and remains deferred). This story performs the
+  check manually (T-1) as a pre-condition but does not implement the CI automation.
+  That is future work.
+
+## Library and Framework Requirements
+
+None — this is a deletion and spec-rewrite story with no new dependencies.
+
+## File Structure Requirements
+
+| File | Action | Notes |
+|------|--------|-------|
+| `crates/sink-otel-grpc/` | DELETE | Physical deletion of entire crate directory |
+| `Cargo.toml` (root) | MODIFY | Remove sink-otel-grpc from [workspace] members |
+| `crates/sink-core/src/` | MODIFY | Remove Router, SinkRegistry, DlqWriter types |
+| `.factory/specs/architecture/SS-03-observability-sinks.md` | MODIFY | Full rewrite for single-sink model |
+| `.factory/specs/behavioral-contracts/ss-03/BC-3.*.md` | MODIFY | Withdraw or revise all multi-sink contracts |
+| `.factory/stories/epics/E-10-single-stream-otel-event-emission.md` | MODIFY | status: complete |
+
+## Token Budget Estimate
+
+| Context Source | Estimated Tokens |
+|----------------|-----------------|
+| This story spec | ~5,500 |
+| ADR-015 Wave 5 section | ~2,000 |
+| SS-03 spec (full read for rewrite) | ~6,000 |
+| BC-3.* files (scan for affected contracts) | ~5,000 |
+| sink-core source (type removal) | ~3,000 |
+| Cargo.toml (root) | ~1,500 |
+| **Total** | **~23,000** |
+
+~11% of a 200k context window. Well within budget.
+
+## CHANGELOG
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-04 | Initial authoring from ADR-015 Wave 5 decomposition. |

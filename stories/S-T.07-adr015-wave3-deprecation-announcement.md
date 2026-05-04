@@ -1,0 +1,183 @@
+---
+document_type: story
+level: ops
+story_id: "S-T.07"
+epic_id: "E-10"
+version: "1.0"
+status: draft
+producer: story-writer
+timestamp: 2026-05-04T00:00:00Z
+phase: 2
+inputs:
+  - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
+  - .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+input-hash: ""
+traces_to: .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+functional_requirements: []
+cycle: v1.0-brownfield-backfill
+points: "2"
+wave: 17
+depends_on: ["S-T.06"]
+blocks: ["S-T.08"]
+behavioral_contracts: []
+# BC status: pending PO authorship
+verification_properties: []
+priority: "P1"
+tdd_mode: strict
+target_module: "crates/factory-dispatcher"
+subsystems: ["SS-01", "SS-03"]
+estimated_days: 1
+assumption_validations: ["OQ-9"]
+risk_mitigations: []
+anchored_adr: ADR-015
+---
+
+# S-T.07: ADR-015 Wave 3 sub-tasks — deprecation announcement and operator audit gate
+
+**Epic:** E-10 — Single-stream OTel-aligned event emission (ADR-015)
+**Wave:** Wave 3 (sub-tasks at Wave 3 closure)
+**Depends on:** S-T.06
+**Blocks:** S-T.08
+**Estimated effort:** S (2 pts, ~1 day)
+
+## Narrative
+
+- **As a** vsdd-factory operator who may arrive after the Wave 3 migration window
+- **I want** a one-time `vsdd.internal.event_name_deprecated.v1` announcement event
+  emitted for every deprecated old-name namespace at Wave 3 closure
+- **So that** a log-query post-mortem can detect when a dashboard query is still
+  keyed on an old event name, and operators are warned before shim removal becomes permanent
+
+## Acceptance Criteria
+
+### AC-001: One-time deprecation announcement emitted at Wave 3 closure (traces to ADR-015 Wave 3 §Shim-removal announcement sub-task)
+
+At Wave 3 closure (this story's delivery commit), the dispatcher emits one
+`vsdd.internal.event_name_deprecated.v1` event per deprecated old-name namespace
+that has ceased emission. This is a ONE-TIME announcement, not a recurring heartbeat.
+It reuses the existing `vsdd.internal.event_name_deprecated.v1` event type (no new
+event type is introduced).
+
+The announcement event carries:
+- `deprecated.event_name`: the old event name that is no longer emitted (e.g. `pr.created`)
+- `replacement.event_name`: the new reverse-DNS name (e.g. `vsdd.pr.created.v1`)
+- `wave`: `"3"` (the migration wave at which emission ceased)
+
+**Falsifiable test:** A test that simulates Wave 3 closure asserts that
+`vsdd.internal.event_name_deprecated.v1` events are present in `events-*.jsonl`
+for each deprecated namespace, with non-empty `deprecated.event_name` and
+`replacement.event_name` fields.
+
+### AC-002: Operator pre-shim-removal audit checklist documented (traces to ADR-015 Wave 3 §Pre-shim-removal sub-task)
+
+A file `.factory/measurements/adr015-wave3-deprecation-registry.md` exists and
+records every old-name-to-new-name mapping that was active during Wave 2 dual-emit.
+This is the operator's audit checklist: before Wave 3 closes, every dashboard query
+must be verified against this registry.
+
+The file must include:
+- Column: Old event name
+- Column: New event name (reverse-DNS)
+- Column: Plugin(s) that emitted the old name
+- Column: Grafana panel(s) that queried the old name (from S-T.01 inventory)
+- Column: Audit status (Reviewed / Not reviewed)
+
+**Falsifiable test:** The file exists and contains at least one row for `pr.created`
+→ `vsdd.pr.created.v1` with the `capture-pr-activity` plugin cited.
+
+### AC-003: Post-Wave-3 silent-zero risk documented (traces to ADR-015 Negative consequences §Post-Wave-3 dashboard silence risk)
+
+A note in `.factory/measurements/adr015-wave3-deprecation-registry.md` explicitly
+documents the known risk: after Wave 3, old-name queries go permanently silent
+(indistinguishable from "no events of that type occurred"). New operators, restored
+backups, and cloned dashboards will not receive this announcement (the JSONL rotates
+within 90 days). The persistent deprecation registry artifact (OQ-9) is deferred.
+
+**Falsifiable test:** The document contains a "Post-Wave-3 Silent-Zero Risk"
+section with a non-empty description referencing OQ-9 as the deferred resolution.
+
+### AC-004: Wave 3 hard gates confirmed passed before S-T.07 is marked complete (traces to ADR-015 Wave 3 §Acceptance criteria)
+
+S-T.07 MUST NOT be marked complete unless both Wave 3 hard gates from S-T.06 have
+been verified:
+1. `pr_throughput` Grafana panel returned ≥1 row within 24h of S-T.06 merging.
+2. `unknown_category_events` panel and WARN alert exist and are deployed.
+
+**Falsifiable test:** The S-T.07 delivery commit message or PR description explicitly
+confirms: "Wave 3 AC-001 verified: pr_throughput returned N rows on [date]" and
+"Wave 3 AC-002 verified: unknown_category_events panel deployed."
+
+## Architecture Mapping
+
+| Component | Module | Pure/Effectful | ADR-015 Reference |
+|-----------|--------|---------------|-------------------|
+| Deprecation announcement emission | `crates/factory-dispatcher/src/main.rs` | Effectful (one-time event at startup/close) | Wave 3 sub-task |
+| Deprecation registry doc | `.factory/measurements/` | Pure (documentation) | Wave 3 pre-shim-removal sub-task |
+
+## Edge Cases
+
+| ID | Description | Expected Behavior |
+|----|-------------|-------------------|
+| EC-001 | Operator arrives after 90-day JSONL retention window | The one-time announcement has rotated out; they see no deprecation signal. This is the OQ-9 gap — accepted risk for v1. The `.factory/measurements/adr015-wave3-deprecation-registry.md` static file survives. |
+| EC-002 | More deprecated names than expected at Wave 3 | All deprecated names (including any discovered beyond original 11) are included in the announcement |
+| EC-003 | Pre-shim-removal audit reveals a missed dashboard panel | STOP — do not proceed with shim removal (S-T.06 T-7) until the panel is updated |
+
+## Tasks
+
+- [ ] T-0: STOP CHECK — confirm S-T.06 Wave 3 hard gates passed (pr_throughput ≥1 row; unknown_category_events deployed)
+- [ ] T-1: Enumerate all deprecated old-name namespaces (from S-T.05 dual-emit shim list)
+- [ ] T-2: Write `.factory/measurements/adr015-wave3-deprecation-registry.md` (AC-002)
+- [ ] T-3: Implement one-time deprecation announcement emission at dispatcher startup / Wave 3 closure marker
+- [ ] T-4: Write test: announcement events present for all deprecated namespaces (AC-001)
+- [ ] T-5: Add Post-Wave-3 Silent-Zero Risk section to registry doc (AC-003)
+- [ ] T-6: Confirm in PR description: both Wave 3 hard gates verified (AC-004)
+
+## Previous Story Intelligence
+
+S-T.06 completed the Grafana rewrite and shim removal. This story produces the
+operator-facing artifacts (announcement event + deprecation registry doc) that
+make the migration auditable after the fact.
+
+S-T.01 produced `adr015-wave0-grafana-query-inventory.md` which lists every
+Grafana panel and its old query. Use this as the source-of-truth for the
+`adr015-wave3-deprecation-registry.md` "Grafana panel(s)" column (AC-002).
+
+## Architecture Compliance Rules
+
+Per ADR-015 Wave 3:
+- ONE-TIME announcement only. No recurring heartbeat or persistent registry
+  in the event stream (OQ-9 is deferred).
+- No new event type. Reuses existing `vsdd.internal.event_name_deprecated.v1`.
+- The static `.factory/measurements/adr015-wave3-deprecation-registry.md` file
+  is the v1 answer to OQ-9 (static doc, not a queryable artifact).
+
+## Library and Framework Requirements
+
+None — the announcement emission reuses the existing lifecycle event infrastructure
+from S-T.04. The registry document is a Markdown file.
+
+## File Structure Requirements
+
+| File | Action | Notes |
+|------|--------|-------|
+| `.factory/measurements/adr015-wave3-deprecation-registry.md` | CREATE | Operator audit checklist + silent-zero risk note |
+| `crates/factory-dispatcher/src/main.rs` | MODIFY | Add one-time deprecation announcement emission at Wave 3 closure |
+
+## Token Budget Estimate
+
+| Context Source | Estimated Tokens |
+|----------------|-----------------|
+| This story spec | ~4,000 |
+| ADR-015 Wave 3 sub-tasks section | ~2,000 |
+| S-T.01 inventory file | ~3,000 |
+| S-T.05/S-T.06 context (deprecated names list) | ~2,000 |
+| main.rs (partial) | ~2,000 |
+| **Total** | **~13,000** |
+
+Well within 20% of a 200k context window.
+
+## CHANGELOG
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-04 | Initial authoring from ADR-015 Wave 3 sub-tasks decomposition. |

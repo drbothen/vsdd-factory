@@ -1,0 +1,242 @@
+---
+document_type: story
+level: ops
+story_id: "S-T.05"
+epic_id: "E-10"
+version: "1.0"
+status: draft
+producer: story-writer
+timestamp: 2026-05-04T00:00:00Z
+phase: 2
+inputs:
+  - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
+  - .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+input-hash: ""
+traces_to: .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+functional_requirements: []
+cycle: v1.0-brownfield-backfill
+points: "8"
+wave: 17
+depends_on: ["S-T.02", "S-T.03", "S-T.04"]
+blocks: ["S-T.06"]
+behavioral_contracts: []
+# BC status: pending PO authorship
+verification_properties: []
+priority: "P1"
+tdd_mode: strict
+target_module: "crates/hook-plugins"
+subsystems: ["SS-01", "SS-04"]
+estimated_days: 3
+assumption_validations: []
+risk_mitigations: []
+anchored_adr: ADR-015
+---
+
+# S-T.05: ADR-015 Wave 2 — Plugin schema migration, dual-emit shims, and bug-fix bundle
+
+**Epic:** E-10 — Single-stream OTel-aligned event emission (ADR-015)
+**Wave:** Wave 2
+**Depends on:** S-T.02, S-T.03, S-T.04
+**Blocks:** S-T.06
+**Estimated effort:** L (8 pts, ~3 days)
+
+## Narrative
+
+- **As a** vsdd-factory plugin author
+- **I want** all native WASM plugins to emit events using reverse-DNS versioned
+  `event.name` values alongside their old names (dual-emit), with bug fixes for
+  the three known content defects
+- **So that** Grafana dashboards continue matching during Wave 3 development (no
+  dashboard regression), and the `pr.opened` / `plugin_version` / `open_to_merge_seconds`
+  bugs are permanently resolved
+
+## Acceptance Criteria
+
+### AC-001: All plugins emit event.name in reverse-DNS .v1 format (traces to ADR-015 D-15.2 §event.name + Wave 2)
+
+Every native WASM plugin's `emit_event` call uses an `event.name` value in
+reverse-DNS + `.v1` format. Examples: `vsdd.commit.made.v1`, `vsdd.pr.created.v1`,
+`vsdd.session.started.v1`. Plugin-side Resource-level field stamps are REMOVED
+(host stamps these; they are no longer needed in plugin code).
+
+**Falsifiable test:** Static analysis (`grep -r "emit_event" crates/hook-plugins/`)
+shows no plugin emitting an `event.name` that doesn't match
+`^vsdd\.[a-z.]+\.v[0-9]+$` pattern.
+
+### AC-002: Dual-emit shims installed for all migrated event names (traces to ADR-015 Wave 2 §dual-emit strategy + D-15.2.e)
+
+For each event family being renamed, BOTH the old and new names are emitted in the
+same dispatcher invocation. The two paired emissions share:
+- `event.correlation_id`: same UUID (shared across the pair)
+- New-name emission: `event.replaces_deprecated_alias` = `event.id` of the old-name emission
+- Old-name emission: `event.deprecated_by` = `event.id` of the new-name emission
+
+This implements the D-15.2.e four-state identity contract.
+
+**Falsifiable test:** An integration test for a renamed event family asserts that
+both the old and new names appear in `events-*.jsonl` with a matching
+`event.correlation_id` and symmetric cross-reference fields.
+
+### AC-003: vsdd.internal.event_name_deprecated.v1 emitted once per old name per invocation (traces to ADR-015 Wave 2 §dual-emit strategy)
+
+Each deprecated old event name triggers exactly ONE `vsdd.internal.event_name_deprecated.v1`
+lifecycle event per dispatcher invocation (rate-limited; same mechanism as the
+host-field override rate-limiter from S-T.04). The event carries the old-to-new
+name mapping.
+
+**Falsifiable test:** An invocation that triggers the same deprecated event name
+three times produces exactly one `vsdd.internal.event_name_deprecated.v1` event.
+
+### AC-004: pr.opened → vsdd.pr.created.v1 bug fixed (traces to ADR-015 Context §Naming inconsistencies)
+
+The `capture-pr-activity` plugin (or whichever plugin currently emits `pr.created`)
+is updated to emit both `pr.created` (old name, dual-emit) AND `vsdd.pr.created.v1`
+(new name). The old `pr.opened` Grafana query mismatch is documented as a known
+content defect in the S-T.01 audit; this story fixes the plugin side.
+
+**Falsifiable test:** `events-*.jsonl` after a PR-activity plugin run contains
+`vsdd.pr.created.v1` with a non-empty `vcs.ref.head.revision` field.
+
+### AC-005: plugin_version bug fixed — plugin's own version stamped (traces to ADR-015 Context §Identity fields present but wrong + main.rs:143)
+
+Every plugin's `plugin.version` field now reflects the plugin's own
+`CARGO_PKG_VERSION` (read from plugin metadata at load time or from the WASM
+binary's embedded version string), NOT the dispatcher's version. The old
+`main.rs:143` assignment `plugin_version = env!("CARGO_PKG_VERSION")` is removed
+or replaced.
+
+**Falsifiable test:** An integration test loads two plugins with different versions
+and asserts that each plugin's emitted events carry that plugin's version string,
+not the dispatcher's version.
+
+### AC-006: open_to_merge_seconds emitted by capture-pr-activity plugin (traces to ADR-015 Context §open_to_merge_seconds queried but never emitted)
+
+The `capture-pr-activity` plugin (or its equivalent) now emits
+`open_to_merge_seconds` as a domain field when a PR merge event occurs. The value
+is the elapsed seconds from PR creation timestamp to merge timestamp.
+
+**Falsifiable test:** A test PR-merge event results in an event record in
+`events-*.jsonl` containing a numeric `open_to_merge_seconds` field with value > 0.
+
+### AC-007: No dashboard regression during Wave 2 (traces to ADR-015 Wave 2 §Wave 2 ships independently)
+
+Old event names continue to be emitted (dual-emit). Grafana queries that were
+previously matching (even if few) continue to match after Wave 2 merges.
+Aggregation queries MUST filter to one event-name namespace (old OR new) to
+avoid double-counting — not enforced by code, but documented in test comments.
+
+**Falsifiable test:** The Grafana panel querying `pr.created` (old name) returns
+at least one row within 24 hours of Wave 2 merging, confirming backward compat.
+
+### AC-008: SDK changelog notes MAJOR version bump (traces to ADR-015 §SDK semver impact / OQ-6 resolved)
+
+The `vsdd-hook-sdk` CHANGELOG and version number reflect a MAJOR semver bump
+(e.g., 1.0.0 → 2.0.0 or 0.2.0 → 1.0.0) because the behavioral contract changes:
+host-stamped fields no longer pass through from plugin values. The `emit_event`
+ABI signature is unchanged (`HOST_ABI_VERSION` stays at 1); only the behavioral
+contract changes.
+
+**Falsifiable test:** `grep "version" crates/hook-sdk/Cargo.toml` shows a
+major-version increment relative to the pre-Wave-2 version.
+
+## Architecture Mapping
+
+| Component | Module | Pure/Effectful | ADR-015 Reference |
+|-----------|--------|---------------|-------------------|
+| All native WASM plugins | `crates/hook-plugins/*/` | Effectful (emit_event calls) | Wave 2 plugin schema migration |
+| `capture-pr-activity` plugin | `crates/hook-plugins/capture-pr-activity/` | Effectful | Bug fixes: AC-004, AC-006 |
+| Dual-emit shim logic | Plugin side (each plugin's `emit_event` calls) | Effectful | D-15.2.e |
+| `vsdd-hook-sdk` | `crates/hook-sdk/` | Mixed | SDK semver major bump |
+
+**Plugin inventory (11 affected WASM plugins — verify from S-T.01 audit output):**
+Per ADR-015 Context "every plugin-emitted domain event," the following plugins are
+in scope. Final list from S-T.01 `adr015-wave0-event-field-snapshot.md`:
+capture-commit-activity, capture-pr-activity, block-ai-attribution, handoff-validator,
+pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge,
+validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start.
+(Verify count matches ADR-015 "11 currently-impacted WASM plugins".)
+
+## Edge Cases
+
+| ID | Description | Expected Behavior |
+|----|-------------|-------------------|
+| EC-001 | FileSink failure between old-name and new-name emission in a dual-emit pair | Orphaned-half condition per D-15.2.e. Consumer degrades to single-event accounting. OQ-8 (atomic dual-emit) is deferred. |
+| EC-002 | Plugin emits `event.name` without reverse-DNS prefix | `event.category = "unknown"` per D-15.2.b; deprecated-name dual-emit warning emitted |
+| EC-003 | PR with no merge timestamp (open PR) | `open_to_merge_seconds` is OMITTED from the event (field is absent, not zero) for non-merge events |
+| EC-004 | Aggregation query double-counts during Wave 2 window | Known artifact documented in ADR-015 Negative consequences; mitigation is consumer-side single-namespace filter |
+| EC-005 | Additional plugins discovered in S-T.01 audit beyond the 11 listed | All discovered plugins are included in this story's scope; the 11 count is the S-T.01 baseline |
+
+## Tasks
+
+- [ ] T-0: STOP CHECK — confirm S-T.02, S-T.03, S-T.04 all merged before plugin-side changes
+- [ ] T-1: Remove plugin-side Resource-level field stamps from all 11 WASM plugins
+- [ ] T-2: Update `event.name` in all 11 plugins to reverse-DNS `.v1` format
+- [ ] T-3: Implement dual-emit shim in each plugin (old name + new name + correlation fields)
+- [ ] T-4: Fix `pr.opened` → `pr.created` → `vsdd.pr.created.v1` reconciliation in capture-pr-activity
+- [ ] T-5: Fix `plugin_version` at main.rs:143 — source from plugin metadata, not dispatcher version
+- [ ] T-6: Add `open_to_merge_seconds` emission to capture-pr-activity for merge events
+- [ ] T-7: Bump vsdd-hook-sdk to MAJOR semver version; update CHANGELOG
+- [ ] T-8: Write integration test: dual-emit pair has matching correlation_id + symmetric cross-refs (AC-002)
+- [ ] T-9: Write test: single deprecated-event-name produces exactly one deprecated lifecycle event (AC-003)
+- [ ] T-10: Write test: two plugins with different versions → correct per-plugin version in events (AC-005)
+- [ ] T-11: Write test: PR merge event contains open_to_merge_seconds > 0 (AC-006)
+- [ ] T-12: Run full test suite; confirm no regressions
+
+## Previous Story Intelligence
+
+S-T.03 fixed the `plugin_version` bug at the host side (host now stamps the correct
+value). This story removes the wrong plugin-side stamp. Coordinate: if S-T.03 already
+eliminated the plugin-side stamp from all plugins during T-9, T-5 here may be a
+verification task rather than a new fix.
+
+S-T.04 added the `event.category` registry entries for `vsdd.internal.event_name_deprecated.v1`.
+The rate-limiter pattern from S-T.04 (per-invocation HashMap) is reused here for
+the deprecated-name rate-limit.
+
+## Architecture Compliance Rules
+
+Per ADR-015 D-15.2.e and Wave 2:
+- Dual-emit is PLUGIN-ASSERTED for Wave 2. Plugin authors are responsible for
+  emitting matched UUIDs across the pair. The host does NOT validate cross-event refs.
+- Plugin unit tests SHOULD assert symmetric-pair emission (matched UUIDs).
+- `HOST_ABI_VERSION` stays at 1. The `emit_event` ABI signature is unchanged.
+- `schema_version` field in JSONL records is REMOVED (per D-15.3 §Schema versioning).
+
+## Library and Framework Requirements
+
+| Library | Version | Notes |
+|---------|---------|-------|
+| `uuid` | workspace | Dual-emit correlation_id and cross-reference UUIDs |
+| `vsdd-hook-sdk` | MAJOR bump | SDK major semver bump per OQ-6 resolution |
+
+## File Structure Requirements
+
+| File | Action | Notes |
+|------|--------|-------|
+| `crates/hook-plugins/*/src/lib.rs` (11 plugins) | MODIFY | Remove Resource stamps; update event.name; add dual-emit shims |
+| `crates/hook-plugins/capture-pr-activity/src/lib.rs` | MODIFY | pr.opened→pr.created reconciliation; open_to_merge_seconds |
+| `crates/factory-dispatcher/src/main.rs` | MODIFY | Remove old plugin_version = env!("CARGO_PKG_VERSION") at line 143 |
+| `crates/hook-sdk/Cargo.toml` | MODIFY | MAJOR semver version bump |
+| `crates/hook-sdk/CHANGELOG.md` | MODIFY | Document breaking behavioral change |
+| `crates/hook-plugins/*/tests/` | CREATE/MODIFY | Dual-emit pair tests per plugin |
+
+## Token Budget Estimate
+
+| Context Source | Estimated Tokens |
+|----------------|-----------------|
+| This story spec | ~7,000 |
+| ADR-015 Wave 2 + D-15.2.e sections | ~6,000 |
+| 11 plugin source files (partial reads) | ~12,000 |
+| S-T.01 measurement outputs | ~3,000 |
+| Test file context | ~4,000 |
+| **Total** | **~32,000** |
+
+~16% of a 200k context window. Within budget but approaching the split threshold for
+a complex story. If plugin count is significantly higher than 11, consider splitting
+into two stories (one per half of the plugin set).
+
+## CHANGELOG
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-04 | Initial authoring from ADR-015 Wave 2 decomposition. |

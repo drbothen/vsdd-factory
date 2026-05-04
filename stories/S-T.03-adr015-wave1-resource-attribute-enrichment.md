@@ -1,0 +1,246 @@
+---
+document_type: story
+level: ops
+story_id: "S-T.03"
+epic_id: "E-10"
+version: "1.0"
+status: draft
+producer: story-writer
+timestamp: 2026-05-04T00:00:00Z
+phase: 2
+inputs:
+  - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
+  - .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+input-hash: ""
+traces_to: .factory/stories/epics/E-10-single-stream-otel-event-emission.md
+functional_requirements: []
+cycle: v1.0-brownfield-backfill
+points: "5"
+wave: 17
+depends_on: ["S-T.01"]
+blocks: ["S-T.05"]
+behavioral_contracts: []
+# BC status: pending PO authorship
+verification_properties: []
+priority: "P1"
+tdd_mode: strict
+target_module: "crates/factory-dispatcher"
+subsystems: ["SS-01"]
+estimated_days: 2
+assumption_validations: ["OQ-2"]
+risk_mitigations: []
+anchored_adr: ADR-015
+---
+
+# S-T.03: ADR-015 Wave 1 — Resource-attribute enrichment (D-15.2)
+
+**Epic:** E-10 — Single-stream OTel-aligned event emission (ADR-015)
+**Wave:** Wave 1
+**Depends on:** S-T.01
+**Blocks:** S-T.05
+**Estimated effort:** M (5 pts, ~2 days)
+
+## Narrative
+
+- **As a** vsdd-factory operator running multiple projects on one machine
+- **I want** every emitted event to carry OTel-canonical Resource attributes stamped
+  at dispatcher startup
+- **So that** Grafana dashboards can drill down by project, worktree, service instance,
+  and host without collisions
+
+## Acceptance Criteria
+
+### AC-001: All Resource attributes stamped at startup with no null fields (traces to ADR-015 D-15.2 §Resource attributes + "No Resource field absent or null")
+
+The dispatcher stamps the following Resource fields at process startup (before the
+first event is emitted) with deterministic values — never null:
+
+`service.name` = `"vsdd-factory"` | `service.namespace` = basename of `CLAUDE_PROJECT_DIR` |
+`service.instance.id` = UUIDv4 (generated once at startup) | `service.version` =
+`env!("CARGO_PKG_VERSION")` | `deployment.environment.name` = `"ci"` if `CI=true` else
+`"local-dev"` | `host.name` = `gethostname()` | `host.id` (cascade per AC-003) |
+`os.type` = `"macos"` | `"linux"` | `"windows"` | `process.pid` = `std::process::id()` |
+`vcs.repository.url.full` (cascade per AC-002) | `vcs.repository.name` | `vcs.owner.name` |
+`vcs.provider.name` | `worktree.id` = SHA-256 of absolute worktree path (12-char hex prefix) |
+`schema_url` = `"https://vsdd-factory.dev/schemas/events/v2"`
+
+**Falsifiable test:** Unit test verifies that for each Resource field in the table
+above, the stamped value is a non-empty string (not null, not empty string `""`).
+
+### AC-002: vcs.repository.url.full fallback cascade implemented (traces to ADR-015 D-15.2.c)
+
+`vcs.repository.url.full` follows the cascade:
+1. Run `git remote get-url origin`; use output if successful.
+2. If no remote exists (detached worktree, bare clone), use `file://<absolute worktree path>`.
+
+`project.id` = SHA-256 of `vcs.repository.url.full` (after cascade; always computable).
+`vcs.repository.name`, `vcs.owner.name`, `vcs.provider.name` are parsed from
+`vcs.repository.url.full`; for `file://` URLs all three default to `"unknown"`.
+
+**Falsifiable test:** Unit test with no git remote (temp dir with no origin) asserts
+`vcs.repository.url.full` starts with `"file://"` and `vcs.repository.name = "unknown"`.
+
+### AC-003: host.id fallback cascade implemented with terminal-default observability (traces to ADR-015 D-15.2.c §host.id cascade)
+
+`host.id` follows the platform cascade:
+1. Linux: `/etc/machine-id` content.
+2. macOS: `ioreg -rd1 -c IOPlatformExpertDevice` → `IOPlatformUUID` value.
+3. Windows: `HKLM\SOFTWARE\Microsoft\Cryptography\MachineGuid` registry key. (OQ-2:
+   may be stubbed to terminal default in Wave 1 — implementer decides per platform
+   support matrix; literal `TODO` strings MUST NOT appear in field values).
+4. SHA-256 of `gethostname()` (if platform-specific methods fail).
+5. Terminal default: literal `"unknown-host"`.
+
+When the terminal default `"unknown-host"` is reached, the dispatcher MUST emit a
+`vsdd.internal.host_id_fallback.v1` lifecycle event at startup carrying `process.pid`
+and the absolute `cwd`.
+
+**Falsifiable test:** Unit test that forces all cascade steps to fail asserts:
+(a) `host.id = "unknown-host"`; (b) a `vsdd.internal.host_id_fallback.v1` event
+is present in the output with non-empty `process.pid` and `cwd` fields.
+
+### AC-004: worktree.id is SHA-256 of absolute worktree path (traces to ADR-015 D-15.2 Resource attributes table + D-15.2.c)
+
+`worktree.id` = first 12 hex characters of SHA-256 of the absolute worktree path
+resolved at dispatcher startup from `cwd`. This is always computable.
+
+**Falsifiable test:** Unit test verifies `worktree.id` matches `sha256(cwd)[..12]`
+for a known test path.
+
+### AC-005: Per-event identity fields stamped at emit time (traces to ADR-015 D-15.2 §Per-event attributes)
+
+At each `host::emit_event` call, the host stamps the following per-event fields before
+the plugin's domain fields are merged:
+
+`timestamp` (RFC 3339 nanosecond UTC) | `observed_timestamp` (same) | `event.id` (UUIDv4) |
+`event.category` (derived from compile-time registry per D-15.2.a) |
+`event.schema_url` (per-event URI, e.g. `"https://vsdd-factory.dev/schemas/events/v2/commit.made"`) |
+`event.source` (`"dispatcher"` or `"plugin:<plugin_name>"`) |
+`severity_number` (9=INFO default) | `severity_text` (`"INFO"`) |
+`trace_id` (inherited from `VSDD_TRACE_ID` env if set; else per-invocation UUIDv4) |
+`span_id` (per-plugin-invocation UUIDv4) | `parent_span_id` (dispatcher's span for this invocation) |
+`session.id` (from Claude envelope) | `hook.tool_name` | `hook.event_name` |
+`plugin.name` | `plugin.version` (plugin's own Cargo package version, NOT dispatcher's) |
+`plugin.invocation_id` (UUIDv4 per plugin invocation) | `outcome` (canonical enum)
+
+**Falsifiable test:** Integration test emits an event and asserts all fields listed
+above are present and non-empty in the written `events-*.jsonl` record.
+
+### AC-006: event.category compile-time registry correct (traces to ADR-015 D-15.2.a + D-15.2.b)
+
+The dispatcher contains a compile-time static registry mapping `event.name` prefix to
+`event.category`. The registry implements the exact table from ADR-015 D-15.2:
+
+| Prefix | category |
+|--------|----------|
+| `vsdd.dispatcher.*` | `lifecycle` |
+| `vsdd.plugin.*` | `lifecycle` |
+| `vsdd.commit.*` | `domain` |
+| `vsdd.pr.*` | `domain` |
+| `vsdd.session.*` | `domain` |
+| `vsdd.agent.*` | `domain` |
+| `vsdd.worktree.*` | `domain` |
+| `vsdd.hook.*` | `domain` |
+| `vsdd.tool.*` | `domain` |
+| `vsdd.block.*` | `audit` |
+| `vsdd.capability.denied.*` | `audit` |
+| `vsdd.error.*` | `error` |
+| `vsdd.internal.*` | `lifecycle` |
+| *(unrecognized prefix)* | `unknown` |
+
+Unrecognized prefixes resolve to `"unknown"` (NOT `"domain"`).
+
+**Falsifiable test:** Unit test asserts `vsdd.pr.created.v1` → `"domain"`;
+`vsdd.internal.foo.v1` → `"lifecycle"`; `unknown.custom.event` → `"unknown"`.
+
+## Architecture Mapping
+
+| Component | Module | Pure/Effectful | ADR-015 Reference |
+|-----------|--------|---------------|-------------------|
+| Resource attribute stamping | `crates/factory-dispatcher/src/main.rs` | Effectful (syscalls: gethostname, git, ioreg) | D-15.2 Resource attributes |
+| event.category registry | `crates/factory-dispatcher/src/` (new module) | Pure (compile-time static map) | D-15.2.a |
+| Per-event identity stamping | `crates/factory-dispatcher/src/main.rs` | Pure (UUID gen + timestamp) | D-15.2 Per-event attributes |
+| vsdd.internal.host_id_fallback.v1 | `crates/factory-dispatcher/src/main.rs` | Effectful (event emission) | D-15.2.c terminal default |
+
+## Edge Cases
+
+| ID | Description | Expected Behavior |
+|----|-------------|-------------------|
+| EC-001 | `CLAUDE_PROJECT_DIR` not set | `service.namespace` defaults to basename of `cwd` |
+| EC-002 | `CI` env var set to non-`"true"` string (e.g. "1") | Only the literal `"true"` value maps to `"ci"`; other values → `"local-dev"` |
+| EC-003 | `gethostname()` returns empty string or errors | Falls through to `"unknown-host"` terminal default; `vsdd.internal.host_id_fallback.v1` emitted |
+| EC-004 | Windows platform (OQ-2 scope) | Windows registry key lookup either implemented or stubs through to SHA-256-of-hostname step; literal `TODO` strings MUST NOT appear in `host.id` field values |
+| EC-005 | Multiple concurrent dispatcher processes on same machine | `service.instance.id` is a per-process UUIDv4; each process gets a unique value regardless of host.id |
+
+## Tasks
+
+- [ ] T-0: STOP CHECK — confirm S-T.01 outputs exist; confirm S-T.02 has wired FileSink before stamping enrichment matters
+- [ ] T-1: Implement Resource attribute collection at dispatcher startup (gethostname, git remote, platform detection)
+- [ ] T-2: Implement `host.id` cascade (Linux /etc/machine-id → macOS ioreg → Windows registry/stub → SHA-256(hostname) → "unknown-host")
+- [ ] T-3: Implement `vsdd.internal.host_id_fallback.v1` emission on terminal default
+- [ ] T-4: Implement `vcs.repository.url.full` cascade (git remote get-url origin → file://)
+- [ ] T-5: Implement `project.id` = SHA-256(vcs.repository.url.full)
+- [ ] T-6: Implement `worktree.id` = SHA-256(cwd)[..12]
+- [ ] T-7: Implement compile-time `event.category` registry (static match table)
+- [ ] T-8: Implement per-event identity field stamping at `host::emit_event` (UUIDs, timestamps, category lookup)
+- [ ] T-9: Fix `plugin.version` bug: read plugin's own Cargo version from plugin metadata (NOT `env!("CARGO_PKG_VERSION")`)
+- [ ] T-10: Write unit tests for cascade logic (AC-002, AC-003, AC-004)
+- [ ] T-11: Write unit tests for event.category registry (AC-006)
+- [ ] T-12: Write integration test for all per-event fields present + non-empty (AC-005)
+
+## Previous Story Intelligence
+
+S-T.01 provides the confirmed field inventory. Use `adr015-wave0-event-field-snapshot.md`
+to verify which fields are already emitted (possibly under wrong names) vs which are
+entirely new. The `plugin_version` bug (main.rs:143) is fixed here in T-9.
+
+S-T.02 provides the FileSink wiring; this story adds enrichment on top of that write
+path. The two stories can be developed in parallel (both depend on S-T.01 only) but
+S-T.02 must merge before S-T.03's integration tests can run end-to-end.
+
+## Architecture Compliance Rules
+
+Per ADR-015 D-15.2:
+- No Resource field may be absent or null. Every field must have a deterministic value.
+- Literal `TODO` strings MUST NOT appear in Resource field values (per OQ-2 clarification).
+- The `event.category` registry is compile-time stable (D-15.2.a); operator-extensible
+  config is explicitly deferred.
+- Unrecognized prefix → `"unknown"` (NOT `"domain"`) per D-15.2.b.
+- `schema_version` field (old) is REMOVED; the `.vN` suffix in `event.name` is the
+  authoritative version signal per D-15.3 §Schema versioning.
+
+## Library and Framework Requirements
+
+| Library | Version | Notes |
+|---------|---------|-------|
+| `uuid` | workspace | UUIDv4 generation for service.instance.id, event.id, span IDs |
+| `sha2` or `sha256` | workspace | For project.id, worktree.id, host.id fallback |
+| `hostname` or `std::process` | std | gethostname(); fallback to std::process::id() for PID |
+| `chrono` or `time` | workspace | RFC 3339 nanosecond timestamps |
+
+## File Structure Requirements
+
+| File | Action | Notes |
+|------|--------|-------|
+| `crates/factory-dispatcher/src/main.rs` | MODIFY | Add Resource stamping at startup; per-event stamping at emit_event |
+| `crates/factory-dispatcher/src/enrichment.rs` (new) | CREATE | Resource collection, cascade logic, event.category registry |
+| `crates/factory-dispatcher/src/tests/enrichment_tests.rs` | CREATE | Unit tests for cascade + category registry |
+
+## Token Budget Estimate
+
+| Context Source | Estimated Tokens |
+|----------------|-----------------|
+| This story spec | ~6,000 |
+| ADR-015 D-15.2 section | ~6,000 |
+| main.rs (full read) | ~4,000 |
+| S-T.01 measurement outputs | ~3,000 |
+| Test file context | ~3,000 |
+| **Total** | **~22,000** |
+
+Well within 20% of a 200k-token context window.
+
+## CHANGELOG
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-04 | Initial authoring from ADR-015 D-15.2 decomposition. |
