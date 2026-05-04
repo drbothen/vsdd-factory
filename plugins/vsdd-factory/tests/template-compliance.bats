@@ -149,6 +149,7 @@ _run_hook() {
   bash -n "$HOOK"
 }
 
-@test "template-compliance: hooks.json wires validate-template-compliance" {
-  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-template-compliance"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+@test "template-compliance: registry wires validate-template-compliance" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-template-compliance" "PostToolUse"
 }

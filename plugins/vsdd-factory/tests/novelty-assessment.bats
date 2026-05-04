@@ -193,8 +193,8 @@ MISSING_VERDICT="# Adversarial Review — Pass 3
 
 # ---------- hooks.json wiring ----------
 
-@test "novelty-assessment: hooks.json wires validate-novelty-assessment" {
-  run grep -c "validate-novelty-assessment.sh" "${BATS_TEST_DIRNAME}/../hooks/hooks.json"
+@test "novelty-assessment: hooks-registry.toml wires validate-novelty-assessment" {
+  run grep -c "script_path = \"hooks/validate-novelty-assessment.sh\"" "${BATS_TEST_DIRNAME}/../hooks-registry.toml"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }

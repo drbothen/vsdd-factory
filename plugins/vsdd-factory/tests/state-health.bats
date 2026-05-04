@@ -124,7 +124,7 @@ _generate_lines() {
 # ---------- Hook: wired in hooks.json ----------
 
 @test "state-size: hooks.json wires validate-state-size" {
-  run grep -c "validate-state-size.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  run grep -c "script_path = \"hooks/validate-state-size.sh\"" "$PLUGIN_ROOT/hooks-registry.toml"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }

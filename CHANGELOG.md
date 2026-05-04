@@ -1,5 +1,72 @@
 # Changelog
 
+## 1.0.0-rc.8 — Hooks-test migration to hooks-registry.toml (2026-05-04)
+
+Release candidate 8 finishes the S-0.4 hooks.json untracking properly.
+The rc.7 hotfix #2 re-tracked hooks.json as a workaround when the
+bats suite broke without it; rc.8 migrates those tests to assert
+against `hooks-registry.toml` (the actual source of truth) and
+removes the "dual tracked + gitignored" hack.
+
+### Removed
+
+- **`plugins/vsdd-factory/hooks/hooks.json` — untracked cleanly** (was
+  in the repo as both tracked and gitignored, a contradictory state
+  introduced in rc.7 hotfix #2 to satisfy 11 bats suites that asserted
+  against this file). The file is now per-machine only — populated by
+  `/vsdd-factory:activate` copying the right `hooks.json.<platform>`
+  variant into place. S-0.4 design intent fully restored.
+
+### Fixed
+
+- **13 bats suites migrated to assert against `hooks-registry.toml`
+  instead of `hooks.json`.** Pre-rc.8 pattern checked the per-machine
+  activation output:
+  ```bash
+  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("X"))' hooks.json
+  ```
+  Post-rc.8 pattern checks the canonical source of truth (what the
+  dispatcher actually loads):
+  ```bash
+  registry_has_hook "X" "PostToolUse"
+  ```
+  27 individual `@test` blocks updated across `corpus-lint`,
+  `convergence-tracker`, `destructive-guard`, `finding-format`,
+  `input-hash`, `novelty-assessment`, `policy-enforcement`, `policy9`,
+  `pr-lifecycle-hooks`, `protect-secrets`, `state-health`,
+  `template-compliance`, `wave-gate-hooks`. All migrated tests pass
+  locally and are stable across the activate boundary.
+- **BC-9.01.005 Rust test** (asserts hooks.json IS gitignored)
+  continues to pass — `.gitignore` entry intact; only the
+  dual-tracked state was removed.
+
+### Added
+
+- **`plugins/vsdd-factory/tests/helpers/registry.bash`** — shared
+  bats helper with two assertion functions:
+  - `registry_has_hook NAME [EVENT] [TOOL]` — verifies a hook is
+    registered with optional event + tool matcher specificity.
+  - `registry_has_script SCRIPT_PATH` — verifies a legacy bash hook
+    is wired through `legacy-bash-adapter.wasm` (matches `script_path`
+    field).
+
+### Migration
+
+No user-facing changes. The plugin install + activate flow is
+unchanged. Existing rc.7 users:
+
+```
+/plugin marketplace update claude-mp
+/plugin update vsdd-factory@claude-mp
+/reload-plugins
+```
+
+After update, the cache will NOT contain a `hooks/hooks.json` file
+(correct per S-0.4). The file gets created on `/vsdd-factory:activate`
+from the appropriate `hooks.json.<platform>` variant. If you have an
+old `hooks.json` from a pre-rc.8 install, it will be overwritten by
+the next activate. No manual cleanup required.
+
 ## 1.0.0-rc.7 — Marketplace split to drbothen/claude-mp (2026-05-03)
 
 Release candidate 7 finishes what rc.6 attempted: splits the marketplace

@@ -32,14 +32,14 @@ _run_read() {
   bash -n "$HOOK"
 }
 
-@test "hooks.json wires protect-secrets under Bash matcher" {
-  jq -e '.hooks.PreToolUse[] | select(.matcher == "Bash") | .hooks[] | select(.command | contains("protect-secrets"))' \
-    "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+@test "registry wires protect-secrets under PreToolUse Bash matcher" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "protect-secrets" "PreToolUse" "Bash"
 }
 
-@test "hooks.json wires protect-secrets under Read matcher" {
-  jq -e '.hooks.PreToolUse[] | select(.matcher == "Read") | .hooks[] | select(.command | contains("protect-secrets"))' \
-    "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+@test "registry wires protect-secrets under PreToolUse Read matcher" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "protect-secrets" "PreToolUse" "Read"
 }
 
 # ---------- Read tool: BLOCKED ----------

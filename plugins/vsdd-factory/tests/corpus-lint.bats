@@ -4,6 +4,8 @@
 # validate-input-hash (format extension), validate-state-pin-freshness,
 # validate-index-self-reference
 
+load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+
 setup() {
   PLUGIN_ROOT="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
   HOOKS="$PLUGIN_ROOT/hooks"
@@ -587,19 +589,19 @@ EOF
 # ========================================================================
 
 @test "corpus-lint: hooks.json wires validate-table-cell-count" {
-  grep -q "validate-table-cell-count.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  registry_has_script "hooks/validate-table-cell-count.sh"
 }
 
 @test "corpus-lint: hooks.json wires validate-changelog-monotonicity" {
-  grep -q "validate-changelog-monotonicity.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  registry_has_script "hooks/validate-changelog-monotonicity.sh"
 }
 
 @test "corpus-lint: hooks.json wires validate-state-pin-freshness" {
-  grep -q "validate-state-pin-freshness.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  registry_has_script "hooks/validate-state-pin-freshness.sh"
 }
 
 @test "corpus-lint: hooks.json wires validate-index-self-reference" {
-  grep -q "validate-index-self-reference.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  registry_has_script "hooks/validate-index-self-reference.sh"
 }
 
 # ========================================================================
@@ -739,7 +741,7 @@ EOF
 }
 
 @test "state-index-coherence: hooks.json wires the hook" {
-  grep -q "validate-state-index-status-coherence.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  registry_has_script "hooks/validate-state-index-status-coherence.sh"
 }
 
 # ========================================================================
@@ -964,7 +966,7 @@ EOF
 }
 
 @test "anchor-caps-union: hooks.json wires the hook" {
-  grep -q "validate-anchor-capabilities-union.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  registry_has_script "hooks/validate-anchor-capabilities-union.sh"
 }
 
 # ========================================================================
@@ -1013,7 +1015,7 @@ EOF
 }
 
 @test "demo-evidence-scoped: hooks.json wires the hook" {
-  grep -q "validate-demo-evidence-story-scoped.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  registry_has_script "hooks/validate-demo-evidence-story-scoped.sh"
 }
 
 # ========================================================================
@@ -1065,5 +1067,5 @@ EOF
 }
 
 @test "factory-path-root: hooks.json wires the hook" {
-  grep -q "validate-factory-path-root.sh" "$PLUGIN_ROOT/hooks/hooks.json"
+  registry_has_script "hooks/validate-factory-path-root.sh"
 }
