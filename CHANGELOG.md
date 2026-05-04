@@ -52,6 +52,25 @@ plugin (Semgrep, dclaude, wclaude, zclaude, etc.).
   in sync with main's binary-bundle commits, but its rationale is
   documented now as "git workflow consistency" rather than the
   pre-rc.7 "marketplace.json freshness" reason that no longer applies.
+- **`block-ai-attribution` and `capture-pr-activity` WASM hook plugins
+  now load successfully.** Both crates were silently crashing on every
+  fire with `plugin file not found` — Cargo's default `[lib]` name
+  conversion produced underscored output filenames
+  (`block_ai_attribution.wasm`, `capture_pr_activity.wasm`) but
+  `hooks-registry.toml` references the hyphenated forms
+  (`block-ai-attribution.wasm`, `capture-pr-activity.wasm`). Cargo
+  doesn't allow hyphens in `[lib]` names, so the only way to produce
+  hyphenated wasm output is via `[[bin]]` (which does allow hyphens).
+  Migrated both crates to the canonical `[[bin]]` WASI command pattern
+  matching `capture-commit-activity` and `handoff-validator`: added
+  `src/main.rs` with a thin `on_hook` wrapper that calls into the
+  lib's existing logic, removed `crate-type = ["cdylib", "rlib"]`
+  from `[lib]`, added `[[bin]] name = "<hyphenated>"`. Empirically
+  verified: PreToolUse fires now show `block-ai-attribution: exit 0`
+  (was crash); PostToolUse with `gh pr create` now emits a real
+  `pr.created` event for the first time. Both crates' existing
+  unit-test suites continue to pass (43 tests for block-ai-attribution,
+  71 tests for capture-pr-activity) since the lib logic was untouched.
 
 ### Added (CI)
 
