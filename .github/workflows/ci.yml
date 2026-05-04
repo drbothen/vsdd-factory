@@ -41,11 +41,21 @@ jobs:
       - name: Check bats files for orphan hook references
         run: bash plugins/vsdd-factory/tests/check-bats-orphans.sh
 
-      - name: Validate marketplace JSON
+      - name: Validate plugin manifest JSON
+        # As of v1.0.0-rc.7:
+        #   - .claude-plugin/marketplace.json was removed (marketplace
+        #     now lives at drbothen/claude-mp; this repo only ships
+        #     the plugin).
+        #   - plugins/vsdd-factory/hooks/hooks.json was untracked per
+        #     S-0.4 design intent (per-machine, created by activation
+        #     copying the right hooks.json.<platform> variant).
+        # Only plugin.json + the per-platform variants belong here now.
         run: |
-          jq empty .claude-plugin/marketplace.json
           jq empty plugins/vsdd-factory/.claude-plugin/plugin.json
-          jq empty plugins/vsdd-factory/hooks/hooks.json
+          for variant in plugins/vsdd-factory/hooks/hooks.json.*; do
+            [ -f "$variant" ] || continue
+            jq empty "$variant"
+          done
 
       - name: Verify hooks.json.<platform> variants match template
         # Drift check for S-0.4: hooks.json.template is the source of
@@ -55,24 +65,21 @@ jobs:
         # operator knows exactly which variant to refresh.
         run: scripts/generate-hooks-json.sh --check
 
-      - name: Verify version parity across plugin.json and marketplace.json
+      - name: Verify plugin.json declares a valid version
+        # Pre-rc.7 this step also cross-checked .claude-plugin/marketplace.json
+        # to catch the v0.68.1/v0.69.0 failure mode (plugin.json bumped but
+        # marketplace.json left stale). As of rc.7, marketplace.json no
+        # longer lives in this repo (moved to drbothen/claude-mp), so the
+        # cross-repo version sync is now an out-of-band concern handled by
+        # the bump-marketplace job in release.yml. We still sanity-check
+        # plugin.json has a parseable version.
         run: |
-          # Catches the v0.68.1/v0.69.0 failure mode: plugin.json bumped
-          # but marketplace.json left stale, which silently fails the tag-
-          # triggered Release workflow later. Fail fast on main push / PRs
-          # so the drift is visible before it reaches a tag.
           PLUGIN_VERSION=$(jq -r '.version' plugins/vsdd-factory/.claude-plugin/plugin.json)
-          MKT_VERSION=$(jq -r '.plugins[0].version // empty' .claude-plugin/marketplace.json)
-          if [ -z "$PLUGIN_VERSION" ] || [ -z "$MKT_VERSION" ]; then
-            echo "::error::Could not read versions (plugin.json=$PLUGIN_VERSION, marketplace.json=$MKT_VERSION)"
+          if [ -z "$PLUGIN_VERSION" ] || [ "$PLUGIN_VERSION" = "null" ]; then
+            echo "::error::Could not read plugin.json version (got: $PLUGIN_VERSION)"
             exit 1
           fi
-          if [ "$PLUGIN_VERSION" != "$MKT_VERSION" ]; then
-            echo "::error::Version drift: plugin.json=$PLUGIN_VERSION marketplace.json=$MKT_VERSION"
-            echo "Run scripts/bump-version.sh to sync both files."
-            exit 1
-          fi
-          echo "Version parity ok: $PLUGIN_VERSION"
+          echo "plugin.json version: $PLUGIN_VERSION"
 
       - name: Parse all workflow files
         run: |

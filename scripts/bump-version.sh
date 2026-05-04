@@ -6,15 +6,20 @@
 # intentional; the caller reviews the diff and stages the changes.
 #
 # v1.0.0-beta.4 cache-staleness fix: this script no longer touches
-# plugins/vsdd-factory/.claude-plugin/plugin.json or .claude-plugin/
-# marketplace.json. Those fields are now written by the Release workflow
-# (.github/workflows/release.yml), in the same bot commit that bundles
-# the dispatcher binaries. This eliminates the race window where the
-# chore commit advertised version X but did not yet have version-X
-# binaries, which caused Claude Code's plugin cache to lock to a stale
-# binary set under version X. With this change, plugin.json:version
-# stays at X-1 during the workflow run; the bot's binary-bundle commit
-# writes X (from the git tag) atomically with the binaries.
+# plugins/vsdd-factory/.claude-plugin/plugin.json. That field is now
+# written by the Release workflow (.github/workflows/release.yml) in
+# the same bot commit that bundles the dispatcher binaries. This
+# eliminates the race window where the chore commit advertised version
+# X but did not yet have version-X binaries, which caused Claude Code's
+# plugin cache to lock to a stale binary set under version X. With this
+# change, plugin.json:version stays at X-1 during the workflow run; the
+# bot's binary-bundle commit writes X (from the git tag) atomically
+# with the binaries.
+#
+# v1.0.0-rc.7: marketplace.json was removed from this repo entirely —
+# the marketplace lives at drbothen/claude-mp now and points here via
+# git-subdir + ref=main. claude-mp's marketplace.json version field is
+# updated separately (out-of-band) when this repo ships a new release.
 #
 # Usage:
 #   scripts/bump-version.sh 0.71.0
@@ -41,7 +46,6 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PLUGIN_JSON="$REPO_ROOT/plugins/vsdd-factory/.claude-plugin/plugin.json"
-MARKETPLACE_JSON="$REPO_ROOT/.claude-plugin/marketplace.json"
 CHANGELOG="$REPO_ROOT/CHANGELOG.md"
 
 # --- Validate args ----------------------------------------------------------
@@ -78,17 +82,15 @@ for f in "$CHANGELOG"; do
   fi
 done
 
-# --- Read current versions for context display only -------------------------
-# plugin.json + marketplace.json are no longer touched by this script (the
-# release workflow's bot commit writes them from the git tag). We still
-# read + display the current values so the operator knows what version
-# they're moving away from.
+# --- Read current version for context display only --------------------------
+# plugin.json is no longer touched by this script (the release workflow's
+# bot commit writes it from the git tag). We still read + display the
+# current value so the operator knows what version they're moving away
+# from.
 OLD_PLUGIN=$(jq -r '.version' "$PLUGIN_JSON" 2>/dev/null || echo "(unreadable)")
-OLD_MKT=$(jq -r '.plugins[0].version // empty' "$MARKETPLACE_JSON" 2>/dev/null || echo "(unreadable)")
 
-echo "Current versions (display-only — workflow bot commit writes these):"
+echo "Current version (display-only — workflow bot commit writes this):"
 echo "  plugin.json      = $OLD_PLUGIN"
-echo "  marketplace.json = $OLD_MKT"
 echo "  new              = $NEW_VERSION"
 
 # --- Prepend CHANGELOG heading (idempotent) ---------------------------------
@@ -122,7 +124,6 @@ echo
 echo "Prepared $NEW_VERSION:"
 echo "  CHANGELOG.md     $CHANGELOG_UPDATED"
 echo "  plugin.json      unchanged (stays at $OLD_PLUGIN; bot writes from tag)"
-echo "  marketplace.json unchanged (stays at $OLD_MKT; bot writes from tag)"
 echo
 echo "Next steps:"
 echo "  1. Edit CHANGELOG.md to fill in the TODOs (if a stub was prepended)."
@@ -135,10 +136,12 @@ echo "The Release workflow will:"
 echo "  - Build dispatcher binaries for 5 platforms"
 echo "  - Build legacy-bash-adapter.wasm + plugin wasms"
 echo "  - Write plugin.json:version = $NEW_VERSION (from tag)"
-echo "  - Write marketplace.json:plugins[0].version = $NEW_VERSION"
-echo "  - Commit binaries + JSON updates atomically as github-actions[bot]"
+echo "  - Commit plugin.json + binaries atomically as github-actions[bot]"
 echo "  - Force-update the tag to point at the bot commit"
 echo "  - Create the GH (pre-)release"
+echo
+echo "After release ships, update drbothen/claude-mp marketplace.json version"
+echo "field to point at this new version (out-of-band; not handled here)."
 echo
 echo "Pro tip: write the real CHANGELOG entry under ## $NEW_VERSION BEFORE running"
 echo "this script. This script detects an existing heading and skips the stub,"
