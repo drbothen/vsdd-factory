@@ -1,6 +1,6 @@
 ---
 name: deactivate
-description: Reverse `/vsdd-factory:activate` — remove the orchestrator default agent, the v1.0 platform activation state, and the generated `hooks.json`. Leaves the plugin enabled; only the default persona and per-machine hooks config are cleared.
+description: Reverse `/vsdd-factory:activate` — remove the orchestrator default agent, the platform activation state, and the generated `hooks.json`. Leaves the plugin enabled; only the default persona and per-machine hooks config are cleared.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Reverses everything `/vsdd-factory:activate` does: clears the
 orchestrator default-agent override in `.claude/settings.local.json`,
-removes the v1.0 platform activation block, and deletes the
+removes the platform activation block, and deletes the
 per-machine `hooks/hooks.json` (which was a copy of the platform
 variant). The plugin itself stays enabled — agents, skills, and the
 underlying `hooks.json.<platform>` files remain available for explicit
@@ -38,15 +38,15 @@ invocation or future re-activation.
    - That the plugin is still enabled (you can still invoke
      individual skills/agents explicitly)
    - That `/vsdd-factory:activate` is the inverse and is required
-     before the v1.0 dispatcher fires
+     before the dispatcher fires again
 
 ## Notes
 
-Step 4 is harmless on v0.79.x installs that never had a hooks.json
-copy (the file may be the v0.79.x committed one, in which case
-removing it temporarily breaks hook routing — operators rerun
-activate to restore). For v1.0-beta installs the file is purely a
-per-machine artifact and removing it is the correct cleanup.
+Step 4 deletes a per-machine artifact — `hooks/hooks.json` is generated
+at activation time by copying the right `hooks.json.<platform>` variant
+into place. Removing it has no git side effect (the file is gitignored)
+and the per-platform variants remain in place for the next activation
+to copy from.
 
 ## See also
 

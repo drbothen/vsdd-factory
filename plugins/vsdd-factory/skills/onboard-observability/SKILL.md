@@ -57,8 +57,8 @@ fi
 
 # Merge the 5 OTEL_* keys into .env. Prune the legacy
 # OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE key if present
-# (left over from pre-v0.76.0 runs of claude-telemetry when
-# deltatocumulative wasn't yet wired into the collector).
+# (left over from legacy claude-telemetry runs predating the
+# collector's deltatocumulative processor).
 jq '.env = ((.env // {}) + {
     "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
     "OTEL_METRICS_EXPORTER": "otlp",
