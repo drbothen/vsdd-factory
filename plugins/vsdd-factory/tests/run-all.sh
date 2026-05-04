@@ -35,9 +35,6 @@ echo "== Running all bats test suites =="
 # entries are removed as each is fixed or deleted.
 #
 # Remaining entries (each needs cleanup in TD-020 before un-skip):
-#   - generate-registry: migration-generator behavior drift; tests assert
-#     idempotency / one-line-per-hook invariants the current generator
-#     doesn't satisfy.
 #   - novelty-assessment: adversarial-delta-review file-validation tests
 #     reference a workflow that was never implemented.
 #   - state-health: state-size + state-health skill assertions reference
@@ -46,7 +43,6 @@ echo "== Running all bats test suites =="
 # To un-skip: fix or delete the underlying tests (TD-020), then remove from
 # this list. Do NOT add new entries without a TD ticket.
 SKIP_SUITES=(
-  "generate-registry"
   "novelty-assessment"
   "state-health"
 )
