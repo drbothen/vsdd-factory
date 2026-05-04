@@ -26,10 +26,24 @@ __pycache__/
 *.pyc
 
 # v1.0 activation skill copies the right hooks.json.<platform> variant
-# into hooks.json after install — that copy is per-machine and must not
-# be committed. The 5 hooks.json.<platform> files (CI-generated from
-# hooks.json.template by scripts/generate-hooks-json.sh) ARE committed.
+# into hooks.json after install — that copy is per-machine. Per S-0.4
+# the file is gitignored so future runtime overwrites don't get
+# accidentally committed. Despite the gitignore entry, the seed
+# version of hooks.json IS tracked in this repo because:
+#   - 11 bats test suites assert against it (asserting wired hooks)
+#   - BC-9.01.005 Rust test asserts the gitignore entry exists
+# Git's rule: a tracked file stays tracked even when it later matches
+# a gitignore pattern. So both contracts hold simultaneously: the
+# seed hooks.json ships with the repo, runtime overwrites by the
+# activation skill won't accidentally land in commits, and both test
+# layers stay green. Migration to assert against hooks-registry.toml
+# (the new source of truth) is tracked as a follow-up; once that
+# lands, the seed file can be untracked and the gitignore entry will
+# do the real work alone.
 plugins/vsdd-factory/hooks/hooks.json
+
+# The 5 hooks.json.<platform> files (CI-generated from
+# hooks.json.template by scripts/generate-hooks-json.sh) ARE committed.
 
 # WASM plugin binaries the dispatcher loads at runtime. Built from the
 # Rust workspace per release; staged here for local smoke tests. The
