@@ -9,9 +9,18 @@ rust-version.workspace = true
 description = "WASM hook plugin: PreToolUse gate that blocks git commits containing AI attribution patterns"
 publish = false
 
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the WASI entry point that calls into the lib.
+# The explicit hyphenated [[bin]] name produces a hyphenated wasm output
+# filename that matches what hooks-registry.toml references — without it,
+# Cargo would default to underscore-converted lib name (rc.7 fix).
 [lib]
 path = "src/lib.rs"
-crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "block-ai-attribution"
+path = "src/main.rs"
 
 [dependencies]
 vsdd-hook-sdk = { path = "../../hook-sdk" }
