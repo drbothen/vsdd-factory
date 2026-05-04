@@ -127,14 +127,19 @@ directly on the single events file. The `sink-core` trait and `sink-file` driver
 are KEPT — `FileSink` becomes the direct writer for `events-*.jsonl`. The
 `Router`, `SinkRegistry`, and `sink-otel-grpc` crates are retired.
 
-**Retirement semantics:** Retired crates (`Router`, `SinkRegistry`,
-`sink-otel-grpc`, `DlqWriter` from `sink-core`) remain in the workspace through
-Wave 5 of the migration. They are excluded from `default-members` in the root
-`Cargo.toml` and marked `publish = false` immediately in Wave 1. They are NOT
-called from any production code path after Wave 1. Physical removal from the
-repository happens only in Wave 5. This policy preserves `git bisect` / rollback
-options and avoids forcing a workspace restructure mid-migration. "Retired" means
-excluded and uncalled, not deleted.
+**Deprecation and retirement semantics:** Affected crates (`Router`,
+`SinkRegistry`, `sink-otel-grpc`, `DlqWriter` from `sink-core`) go through two
+distinct lifecycle states with distinct verbs:
+
+- **Deprecated (Wave 1):** Crates are excluded from `default-members` in the
+  root `Cargo.toml` and marked `publish = false`. They are NOT called from any
+  production code path. They remain on disk. "Deprecated" means uncalled and
+  excluded, but not deleted.
+- **Retired (Wave 5):** Crates are physically deleted from the repository.
+  "Retired" means removed from the workspace entirely.
+
+This two-phase lifecycle preserves `git bisect` / rollback options between
+Wave 1 and Wave 5 and avoids forcing a workspace restructure mid-migration.
 
 **Consumer fan-out:** Downstream OTel collector receives all events via its
 existing filelog receiver pointed at `events-*.jsonl`. Consumers that need only
@@ -146,6 +151,14 @@ and the OTel Collector routing connector.
 template, retention policy, and the `VSDD_DEBUG_LOG` gate. The multi-sink
 stanza model is removed. Operators who need remote export configure the OTel
 Collector as the second hop, not the dispatcher.
+
+**Technical debt (TD-015-a):** `publish = false` on retired crates does not
+prevent intra-workspace crates from re-coupling to them at the Rust dependency
+level. A CI check using `cargo metadata` to reject any PR that adds new
+workspace-internal dependencies on retired crates is deferred. This must be
+tracked as a technical debt item and resolved before Wave 5 crate deletion;
+without it, the retire-then-delete path risks silently breaking workspace
+integrity between Wave 1 and Wave 5.
 
 ### D-15.2 — OTel-aligned schema with explicit enrichment contract
 
@@ -188,7 +201,14 @@ SS-01 / Wave 1:
 - `host.id`: cascade — `/etc/machine-id` (Linux) → macOS IOPlatformUUID via
   `ioreg -rd1 -c IOPlatformExpertDevice` → Windows
   `HKLM\SOFTWARE\Microsoft\Cryptography\MachineGuid` registry key → SHA-256
-  of `gethostname()` (final fallback for containerized or minimal environments).
+  of `gethostname()` → if `gethostname()` returns empty or errors (distroless
+  containers, minimal environments), use the literal string `"unknown-host"` as
+  the terminal default. When the terminal default is reached, the dispatcher MUST
+  emit a `vsdd.internal.host_id_fallback.v1` lifecycle event at startup carrying
+  the dispatcher's PID and absolute cwd. This makes the collision-prone fallback
+  observable: multiple containers resolving to `"unknown-host"` will produce a
+  visible signal that `host.id` is non-unique rather than silently producing
+  collisions under the SHA-256-of-empty-string value.
 - `vcs.repository.name` / `vcs.owner.name` / `vcs.provider.name`: derived by
   parsing `vcs.repository.url.full` after cascade; safe to compute from
   `file://` URLs (all three fields default to `"unknown"` for local-only repos).
@@ -201,11 +221,19 @@ deterministic value (possibly a fallback) before the first event is emitted.
 event family. This is separate from the Resource-level `schema_url` (which
 tracks the overall dispatcher schema baseline). The per-event attribute matches
 OTel's `schema_url` placement at InstrumentationScope scope. Example:
-`"https://vsdd-factory.dev/schemas/events/v2/commit.made"`. Breaking changes to
-a single event family bump only that family's `event.schema_url` URI without
-requiring a Resource-level schema bump. The Resource-level `schema_url` advances
-only when the overall schema contract (Resource fields or per-event identity
-fields) changes.
+`"https://vsdd-factory.dev/schemas/events/v2/commit.made"`.
+
+**Semantics decision:** `event.schema_url` is INFORMATIONAL-ONLY and used for
+forward-discovery (a consumer that does not recognize an event version can
+fetch the URL manually to inspect the schema). The AUTHORITATIVE version signal
+is the `.vN` suffix of `event.name` (e.g. `.v1`, `.v2`). Consumers MUST route
+by `event.name` suffix; they MUST NOT require the schema URL to be
+dereferenceable. This follows the established CloudEvents pattern and avoids
+the operational burden of publishing dereferenceable JSON Schema docs for every
+event family. Breaking changes to a single event family bump the `event.name`
+suffix (the authority) AND update the `event.schema_url` URI (the discovery
+hint). The Resource-level `schema_url` advances only when the overall schema
+contract (Resource fields or per-event identity fields) changes.
 
 **Per-event attributes** (host-stamped at emit time; plugin cannot override):
 
@@ -237,6 +265,9 @@ fields) changes.
 | `plugin.version` | the plugin's own Cargo package version (NOT dispatcher's) |
 | `plugin.invocation_id` | UUIDv4 per plugin invocation |
 | `outcome` | canonical enum: `success` \| `failure` \| `error` \| `timeout` \| `skipped` \| `blocked` |
+| `event.correlation_id` | (optional) shared UUID linking paired emissions (e.g. dual-emit old+new name pairs); absent on non-paired events |
+| `event.deprecated_alias_of` | (optional) `event.id` of the old-name emission this event is the canonical replacement for; set only on the new-name emission in a dual-emit pair; absent otherwise |
+| `event.host_overrides` | (optional) string array of field names the host overrode for this event (e.g. `["plugin.version", "service.name"]`); absent when no overrides occurred |
 
 **Plugin-asserted domain fields** (plugin declares; host does not override):
 
@@ -301,16 +332,28 @@ accepted limitation for vsdd-factory's current threat model.
   the host-stamped value. The host-stamped value wins unconditionally.
 
 **Host-field override visibility:** When the host discards a plugin-supplied
-value for a host-owned field, it must NOT do so silently. The dispatcher MUST
-emit a `vsdd.internal.host_field_override.v1` event (rate-limited to one per
-unique `(plugin.name, field_name)` pair per dispatcher invocation) AND write a
-`stderr` warning of the form:
-`[vsdd-dispatcher] WARN: plugin '<plugin.name>' supplied host-owned field
-'<field_name>'; host-stamped value takes precedence.`
-This ensures plugin authors who shipped against a pre-D-15.3 contract have a
-clear, observable migration signal. The `vsdd.internal.*` prefix maps to the
-`lifecycle` category in the registry, so these override notices appear in
-lifecycle dashboards, not domain dashboards.
+value for a host-owned field, it must NOT do so silently. The dispatcher MUST:
+
+1. Emit a `vsdd.internal.host_field_override.v1` lifecycle event (rate-limited
+   to one per unique `(plugin.name, field_name)` pair per dispatcher invocation)
+   carrying an `affected.plugin.name` attribute. This attribute allows plugin
+   authors to subscribe to `vsdd.internal.host_field_override.v1` filtered by
+   `affected.plugin.name = <theirs>` in lifecycle dashboards.
+2. Stamp the OFFENDING DOMAIN EVENT itself with `event.host_overrides: [<list
+   of overridden field names>]` (the per-event optional field defined in
+   D-15.2). This is the inline signal: plugin authors see which fields the host
+   overrode directly in their own domain event records, without needing to
+   cross-reference lifecycle dashboards.
+3. Write a `stderr` warning of the form:
+   `[vsdd-dispatcher] WARN: plugin '<plugin.name>' supplied host-owned field
+   '<field_name>'; host-stamped value takes precedence.`
+
+The two-channel approach (inline `event.host_overrides` on the domain event +
+cross-cutting `vsdd.internal.host_field_override.v1` in lifecycle) means plugin
+authors have an in-band signal visible in domain dashboards AND a subscribable
+lifecycle event for centralized alerting. The `vsdd.internal.*` prefix maps to
+the `lifecycle` category in the registry, so the lifecycle notice does not
+pollute domain dashboards.
 
 **Block path audit trail:**
 - When a plugin returns `HookResult::Block`, the dispatcher emits a
@@ -327,16 +370,17 @@ lifecycle dashboards, not domain dashboards.
   `event.source = "bash-adapter"` marker so dashboards can identify thin events.
 
 **Schema versioning:**
-- Breaking schema changes to a specific event family bump both the family's
-  `event.schema_url` URI version (e.g., `/v2/commit.made` → `/v3/commit.made`)
-  AND the `event.name` suffix (`.v1` → `.v2`).
+- Breaking schema changes to a specific event family bump the `event.name`
+  suffix (`.v1` → `.v2`) — this is the AUTHORITATIVE version signal — AND
+  update the `event.schema_url` URI to match (e.g., `/v2/commit.made` →
+  `/v3/commit.made`), which is the forward-discovery hint only.
 - The Resource-level `schema_url` advances only when the Resource attribute set
   or the per-event identity field contract changes (not for individual event
   family bumps).
-- Consumers route by `event.name` suffix; old consumers remain compatible with
-  old event names during a migration window.
-- `schema_version` field in JSONL lines is removed; `event.schema_url` per event
-  is the authoritative per-family version signal.
+- Consumers route by `event.name` suffix. `event.schema_url` is informational;
+  consumers MUST NOT require it to be dereferenceable.
+- `schema_version` field in JSONL lines is removed; the `.vN` suffix of
+  `event.name` is the authoritative per-family version signal.
 
 ### D-15.4 — Trace propagation across exec_subprocess boundaries
 
@@ -344,11 +388,19 @@ The causal-chain guarantee in D-15.2 (Consequences: "Causal chain. `trace_id`
 / `span_id` / `parent_span_id` propagation") is void if subprocess hops strip
 the trace context. This sub-decision resolves OQ-3.
 
-**Policy:** `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` are MANDATORY entries on
-the universal `env_allowlist` for ALL `exec_subprocess` capability invocations
-within vsdd-factory. No plugin may invoke `exec_subprocess` without these two
-variables flowing through. The dispatcher sets both before invoking a subprocess.
-Subprocess plugins that spawn further subprocesses inherit and forward both vars.
+**Policy:** `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` MUST be injected by the
+dispatcher into every `exec_subprocess` invocation — dispatcher-side mandatory
+injection (not via per-plugin `env_allowlist` manifest entries). This is the
+chosen implementation path. The hooks-registry `env_allowlist` field semantics
+are UNCHANGED: it remains a per-plugin allowlist for OTHER environment variables
+that plugins opt into. `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` flow through
+unconditionally regardless of what any plugin manifest declares. This avoids
+requiring a registry-schema change and removes the SS-01 BC writer's ambiguity
+about whether these vars are "universal" allowlist entries or dispatcher-side
+invariants. They are dispatcher-side invariants. No plugin may invoke
+`exec_subprocess` without these two variables present in the subprocess
+environment. Subprocess plugins that spawn further subprocesses inherit and
+forward both vars.
 
 **Span chain rule:** When a subprocess plugin emits events:
 - `trace_id` = inherited `VSDD_TRACE_ID` (unchanged across the hop)
@@ -447,6 +499,16 @@ connection silently dropped events with no local fallback.
   add `event.category = "domain"` filters where they previously assumed the
   file contained only domain events. (Previously they assumed this incorrectly;
   now the assumption must be made explicit.)
+- **Wave 2 dual-emit doubles event volume during the migration window.** During
+  Wave 2, each affected event family emits both the old name and the new
+  reverse-DNS name. Aggregation queries (e.g. `count(events)`,
+  `sum(open_to_merge_seconds)`) run during Wave 2 MUST filter to a single
+  event-name namespace — either old or new — to avoid double-counting. Use
+  `event.deprecated_alias_of` as the explicit dedup hint: the presence of this
+  field on an event marks it as the new-name emission in the pair; the old-name
+  emission carries `event.correlation_id` linking the two. Sustained
+  post-Wave-3 operation (single emission per logical event) is the scale target;
+  the 10k events/min headroom calculation excludes the migration window.
 - **ADR-007 always-on guarantee is weakened.** The debug file is no longer
   always-on in release builds. Operators who relied on `dispatcher-internal-*.jsonl`
   being present without configuration must set `VSDD_DEBUG_LOG=1`.
@@ -522,13 +584,19 @@ distinct wave-scope item.
   `event.name` + domain fields. Remove any plugin-side Resource field stamps.
 - Fix all `event.name` values to reverse-DNS format with `.v1` suffix.
 - Implement dual-emit shim: each plugin emits BOTH the old event name AND the
-  new reverse-DNS name. Each old-name emission is accompanied by a
-  `vsdd.internal.event_name_deprecated.v1` lifecycle event (rate-limited to
-  once per unique old name per dispatcher invocation).
+  new reverse-DNS name. The two paired emissions share the same
+  `event.correlation_id` UUID. The new-name emission carries
+  `event.deprecated_alias_of` set to the `event.id` of the corresponding
+  old-name emission, providing an unambiguous dedup crosswalk. Each old-name
+  emission is accompanied by a `vsdd.internal.event_name_deprecated.v1`
+  lifecycle event (rate-limited to once per unique old name per dispatcher
+  invocation).
 - `pr.opened` → `vsdd.pr.created.v1` (old `pr.opened` dual-emitted during
   Wave 2 so Grafana continues to match during Wave 3 development).
 - Wave 2 ships independently; no dashboard regression because old names
-  continue to be emitted.
+  continue to be emitted. Aggregation queries run during Wave 2 MUST filter
+  to one event-name namespace to avoid double-counting (see Negative
+  consequences for dedup contract).
 
 **Wave 3: Grafana dashboard rewrite + dual-emit shim removal**
 - Rewrite all queries against new reverse-DNS field names.
@@ -536,16 +604,22 @@ distinct wave-scope item.
 - Validate `pr.created`, `open_to_merge_seconds`, and other previously broken
   queries.
 - Remove dual-emit shims (as a sub-task of Wave 3 or immediately after).
-- **Acceptance criterion:** Grafana panel `pr_throughput` returns at least one
-  row within 24 hours of this wave merging to `main`. Zero rows = migration
+- **Acceptance criterion 1:** Grafana panel `pr_throughput` returns at least
+  one row within 24 hours of this wave merging to `main`. Zero rows = migration
   is broken; Wave 4 is blocked until this passes.
+- **Acceptance criterion 2:** A Grafana panel `unknown_category_events` MUST
+  exist with a non-zero alert configured: any `event.category = "unknown"` event
+  in a 1-hour window triggers WARN severity. Wave 3 cannot close without this
+  panel and alert deployed. This makes the `unknown` safety net falsifiable;
+  without it, `unknown` becomes a different silent absorber.
 
 **Wave 4: Bash hook parity**
 - Enhance `bin/emit-event` to add Resource + per-event fields.
 - Mark bash-sourced events with `event.source = "bash-adapter"` until ported.
 
-**Wave 5: SS-03 spec update + crate cleanup**
-- Retire `sink-otel-grpc` crate.
+**Wave 5: SS-03 spec update + crate retirement**
+- Physically delete deprecated crates (`sink-otel-grpc`, `Router`, `SinkRegistry`,
+  and `DlqWriter` from `sink-core`). This is the retirement step — physical removal.
 - Rewrite SS-03-observability-sinks.md to reflect the simplified model.
 - Withdraw or revise BC-3.* contracts that described multi-sink fan-out semantics.
 
@@ -631,10 +705,9 @@ old-name-to-new-name mapping (emitted once per unique old name per dispatcher
 invocation via the same rate-limit mechanism as host-field-override notices).
 This allows Grafana queries targeting old names to continue matching during
 Wave 3 development, and provides an explicit deprecation signal to dashboard
-authors. Wave 3 rewrites Grafana queries to target the new names. Wave 4
-(a Wave 2 sub-task or immediately following Wave 3 in the same release) removes
-the dual-emit shim. This is the true "no flag day" path: each wave is observable
-and independently reversible.
+authors. Wave 3 rewrites Grafana queries to target the new names AND removes
+the dual-emit shims (as a sub-task of Wave 3). This is the true "no flag day"
+path: each wave is observable and independently reversible.
 
 The previous draft stated "Wave 2 and Wave 3 must ship in the same release to
 avoid dashboard regression." This was a coordinated cutover dressed up as
@@ -731,9 +804,17 @@ in "Plugin authors targeting v1.0" section. D-15.3's field-override behavioral
 change is a MAJOR-version SDK bump. The SDK changelog for the D-15.2 wave must
 be released as a major version.
 
+**OQ-7 (SS-01): FileSink partial-write recovery**
+D-15.1 specifies failure-fallback semantics (full write failure → debug file
++ stderr warning), but does not address partial writes: a crash mid-JSON-line
+leaves the JSONL file with a truncated final record that will fail parsing on
+replay. SS-01 must decide whether `FileSink` uses atomic-write semantics
+(write to temp file, rename), append-with-boundary-marker, or post-crash
+truncation recovery. This is not solved in this ADR.
+
 ## Architect Notes (for adversarial review awareness)
 
-Both prior reservations are now resolved in-ADR (revision pass 1):
+Pass 1 reservations resolved in-ADR:
 
 **1. ADR-007 amendment / fallback observability (RESOLVED).** The last-resort
 fallback to `dispatcher-internal-*.jsonl` on `FileSink` write failure is now
@@ -746,6 +827,33 @@ D-15.2 now decides both sub-questions: registry stays compile-time (D-15.2.a
 justified); unrecognized prefixes default to `"unknown"` not `"domain"` (D-15.2.b
 decided). Dashboard authors can alert on `unknown` category events to catch
 unregistered prefixes.
+
+Pass 2 reservations resolved in-ADR:
+
+**3. Dual-emit double-counting dedup contract (RESOLVED).** Paired emissions
+share `event.correlation_id`; new-name emission carries `event.deprecated_alias_of`.
+Negative consequences section mandates single-namespace filtering during Wave 2.
+
+**4. VSDD_TRACE_ID injection mechanism (RESOLVED).** D-15.4 now specifies
+dispatcher-side mandatory injection (not per-plugin manifest entries). Registry
+`env_allowlist` semantics unchanged.
+
+**5. `unknown` category alerting contract (RESOLVED).** Wave 3 acceptance
+criterion 2 mandates the `unknown_category_events` Grafana panel + alert as a
+hard gate. Non-falsifiable "CAN alert" language removed.
+
+**6. host_field_override plugin visibility (RESOLVED).** Two-channel approach:
+inline `event.host_overrides` on the domain event (visible in plugin's own
+dashboards) + `affected.plugin.name` attribute on the lifecycle override event
+(subscribable cross-cutting signal). Both channels specified in D-15.3.
+
+**7. `host.id` terminal failure mode (RESOLVED).** Literal `"unknown-host"`
+terminal default specified; dispatcher emits `vsdd.internal.host_id_fallback.v1`
+on terminal fallback, making container collisions observable.
+
+**8. `event.schema_url` semantics (RESOLVED).** D-15.2.d now commits to
+informational-only / forward-discovery semantics. `event.name` `.vN` suffix is
+the authoritative version signal. Schema versioning section updated to match.
 
 ## Source / Origin
 
@@ -768,3 +876,4 @@ unregistered prefixes.
 |---------|------|--------|
 | v1.0 | 2026-05-04 | Initial draft. D-15.1 single-stream, D-15.2 OTel schema, D-15.3 enrichment contract. |
 | v1.1 | 2026-05-04 | Revision pass 1 (adversary REJECT, HIGH novelty). Addressed C-1 (D-15.1 fallback contradiction resolved; OQ-4 absorbed into D-15.1 as FileSink write-failure semantics; DlqWriter retired); C-2 (Wave 2/3 "no flag day" contradiction resolved via dual-emit backward-compat strategy; Wave 3 falsifiable acceptance criterion added; O-3 addressed); I-1 (plugin field override is now visible via `vsdd.internal.host_field_override.v1` event and stderr warning; D-15.3 updated); I-2 (a) registry locked to compile-time with explicit justification; (b) unrecognized prefix default changed from `domain` to `unknown`; O-2 audit category integrity note added); I-4 (Resource field fallback cascade policy D-15.2.c added; OQ-2 narrowed to implementation scope); I-5 (per-event `event.schema_url` added as D-15.2.d; Resource-level `schema_url` clarified as process-level baseline; schema versioning section updated); I-6 (D-15.4 added: `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` on universal env_allowlist; OQ-3 resolved); I-7 (Retirement Semantics subsection added to D-15.1); O-1 ("Honeycomb, Honeycomb" copy-edit fixed); O-4 (OQ-6 resolved: D-15.3 behavioral change is a MAJOR SDK version bump). OQ count reduced from 6 to 2 active (OQ-1, OQ-5); OQ-2 narrowed. |
+| v1.2 | 2026-05-04 | Revision pass 2 (adversary CONDITIONAL, MEDIUM novelty). Addressed I-1 (dual-emit dedup contract: `event.correlation_id` and `event.deprecated_alias_of` fields added to per-event table; dedup guidance added to Negative consequences; Wave 2 shim description updated); I-2 (D-15.4 now specifies dispatcher-side mandatory injection — not universal env_allowlist entries — resolving registry-schema-change ambiguity); I-3 (Wave 3 acceptance criterion 2 added: `unknown_category_events` panel + WARN alert required as hard gate); I-4 (two-channel override visibility in D-15.3: inline `event.host_overrides` on domain event + `affected.plugin.name` on lifecycle event); I-5 (terminal `host.id` default `"unknown-host"` specified; `vsdd.internal.host_id_fallback.v1` startup event mandated on terminal fallback); I-6 (D-15.2.d committed to informational-only `event.schema_url`; `event.name` `.vN` suffix is the authoritative version signal; schema versioning section updated). O-1 (TD-015-a filed for cargo-metadata CI check on retired crate re-coupling); O-2 (addressed inline in Negative consequences dual-emit volume note); O-3 (migration numbering reconciled: shim removal is Wave 3 in both Migration Plan and Adversarial Pressure Points); O-4 (deprecated/retired verbs now distinct: Wave 1 = deprecated, Wave 5 = retired; Wave 5 section updated); O-5 (OQ-7 added: FileSink partial-write recovery deferred to SS-01). Active OQs: OQ-1, OQ-2, OQ-5, OQ-7. |
