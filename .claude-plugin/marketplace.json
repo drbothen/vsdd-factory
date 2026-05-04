@@ -11,8 +11,8 @@
       "name": "vsdd-factory",
       "version": "1.0.0-rc.5",
       "source": {
-        "source": "github",
-        "repo": "drbothen/vsdd-factory",
+        "source": "git-subdir",
+        "url": "https://github.com/drbothen/vsdd-factory.git",
         "path": "plugins/vsdd-factory",
         "ref": "main"
       },
