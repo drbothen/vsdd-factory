@@ -143,10 +143,26 @@ setup() {
   if [ ! -x "$DISPATCHER" ] || [ ! -f "$ADAPTER_WASM" ]; then
     skip "preflight artifacts missing"
   fi
-  # capture-commit-activity is on PostToolUse/Bash and writes a
-  # commit.made event for `git commit ...` invocations. With the
-  # adapter actually running bash, the event file should appear.
-  envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"events-land","tool_input":{"command":"git commit -m x"},"tool_response":{"exit_code":0,"stdout":"[main abc1234] x","stderr":""}}'
+  # NOTE: This test originally used a PostToolUse/Bash envelope expecting
+  # capture-commit-activity.sh to run via the legacy-bash-adapter. After
+  # the WASM migration (commit 818fb95), capture-commit-activity is now a
+  # native Wasm plugin and PostToolUse/Bash routes only to WASM hooks
+  # (capture-commit-activity.wasm, capture-pr-activity.wasm,
+  # regression-gate.wasm) — none through legacy-bash-adapter. The test
+  # was rewritten (PR #79) to use purity-check.sh, which is still
+  # adapter-routed on PostToolUse/Edit|Write and emits
+  # `pure_core_boundary_violation` via bin/emit-event into events-*.jsonl
+  # whenever the edited file is under */pure/** with side-effecting code.
+  pure_dir="$WORK/src/pure"
+  mkdir -p "$pure_dir"
+  pure_file="$pure_dir/impure.rs"
+  cat > "$pure_file" <<EOF
+use std::fs;
+fn main() {
+    println!("hello");
+}
+EOF
+  envelope=$(printf '{"event_name":"PostToolUse","tool_name":"Edit","session_id":"events-land","tool_input":{"file_path":"%s"},"tool_response":{"exit_code":0}}' "$pure_file")
   env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" \
     bash -c "printf '%s' '$envelope' | '$DISPATCHER'" \
     >/dev/null 2>&1
