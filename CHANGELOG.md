@@ -37,10 +37,32 @@ plugin (Semgrep, dclaude, wclaude, zclaude, etc.).
   server. Verified via clean-room install: cache directory is created,
   skill count > 0, all `/vsdd-factory:*` slash commands appear in the
   picker.
+- **Untracked `plugins/vsdd-factory/hooks/hooks.json`** per S-0.4 design
+  intent. The base `hooks.json` is per-machine (created by
+  `/vsdd-factory:activate` copying the right `hooks.json.<platform>`
+  variant into place); only the template + 5 per-platform variants
+  belong in the repo. Some prior commit re-tracked the base file, and
+  it was never updated as bash hooks were ported to native WASM in
+  S-8.x — accumulating 3 stale references to deleted .sh files
+  (`session-learning.sh`, `handoff-validator.sh`, `track-agent-stop.sh`)
+  that fired Stop / SubagentStop hooks as "No such file or directory"
+  errors. Fix: `git rm --cached` the base file. New installs will not
+  have hooks active until the user runs `/vsdd-factory:activate`.
 - **The `sync-develop` job in `release.yml`** still runs to keep develop
   in sync with main's binary-bundle commits, but its rationale is
   documented now as "git workflow consistency" rather than the
   pre-rc.7 "marketplace.json freshness" reason that no longer applies.
+
+### Added (CI)
+
+- **`bump-marketplace` job in `release.yml`** — auto-opens a PR against
+  `drbothen/claude-mp` after each release tag, bumping the
+  `vsdd-factory` plugin entry's `version` field. Self-skips when
+  `CLAUDE_MP_PAT` secret is not configured. To enable: create a PAT
+  with `contents: write` + `pull-requests: write` scopes on
+  `drbothen/claude-mp` and add it as `CLAUDE_MP_PAT` in this repo's
+  Actions secrets. The job opens a PR (not a direct push) so the
+  operator gets a review gate.
 
 ### Added
 
@@ -67,8 +89,17 @@ identifier changed from `vsdd-factory@vsdd-factory` to
 /plugin marketplace remove vsdd-factory       # remove the old (broken) marketplace
 /plugin marketplace add drbothen/claude-mp    # add the new marketplace
 /plugin install vsdd-factory@claude-mp        # install via new marketplace
+/vsdd-factory:activate                        # required: populate hooks.json from
+                                              #   the right per-platform variant
 /reload-plugins                               # pick up new state
 ```
+
+> **`/vsdd-factory:activate` is REQUIRED** in v1.0+ to populate the
+> per-machine `hooks/hooks.json` from the right per-platform variant.
+> Without activation, no hooks fire (this is correct behavior — the
+> plugin is installed but inactive). Pre-rc.7 a buggy committed base
+> `hooks.json` masked this requirement and shipped broken `.sh`
+> references; rc.7 removes that file from the repo.
 
 After reload, `/vsdd-factory:*` slash commands should appear in the
 picker for the first time since rc.1. Verify the cache directory is
