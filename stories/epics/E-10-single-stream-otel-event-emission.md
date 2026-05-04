@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-10"
-version: "1.0"
+version: "1.1"
 title: "Single-stream OTel-aligned event emission (ADR-015)"
 status: draft
 anchored_adr: ADR-015
@@ -98,32 +98,32 @@ The epic delivers:
 
 | Wave | Story | Description | Size |
 |------|-------|-------------|------|
-| Wave 0 | S-T.01 | Read-only audit: Grafana panel inventory + event field snapshot | S |
-| Wave 1 | S-T.02 | FileSink single-stream wiring (D-15.1) | M |
-| Wave 1 | S-T.03 | Resource-attribute enrichment (D-15.2 Resource fields) | M |
-| Wave 1 | S-T.04 | Trace propagation + lifecycle event types (D-15.4 + D-15.3 internals) | M |
-| Wave 2 | S-T.05 | Plugin schema migration + dual-emit shims + bug-fix bundle | L |
-| Wave 3 | S-T.06 | Consumer migration: Grafana + bin/factory-* tools + OTel collector | M |
-| Wave 3 | S-T.07 | Wave 3 sub-tasks: deprecation announcement + operator audit gate | S |
-| Wave 4 | S-T.08 | Bash hook parity: bin/emit-event schema alignment | M |
-| Wave 5 | S-T.09 | Crate retirement + SS-03 spec rewrite | M |
+| Wave 0 | S-10.01 | Read-only audit: Grafana panel inventory + event field snapshot | S |
+| Wave 1 | S-10.02 | FileSink single-stream wiring (D-15.1) | M |
+| Wave 1 | S-10.03 | Resource-attribute enrichment (D-15.2 Resource fields) | M |
+| Wave 1 | S-10.04 | Trace propagation + lifecycle event types (D-15.4 + D-15.3 internals) | M |
+| Wave 2 | S-10.05 | Plugin schema migration + dual-emit shims + bug-fix bundle | L |
+| Wave 3 | S-10.06 | Consumer migration: Grafana + bin/factory-* tools + OTel collector | M |
+| Wave 3 | S-10.07 | Wave 3 sub-tasks: deprecation announcement + operator audit gate | S |
+| Wave 4 | S-10.08 | Bash hook parity: bin/emit-event schema alignment | M |
+| Wave 5 | S-10.09 | Crate retirement + SS-03 spec rewrite | M |
 
 ## Dependency Topology (Intra-epic)
 
 ```
-S-T.01 (Wave 0) ──→ S-T.02 (Wave 1)
-                  ──→ S-T.03 (Wave 1)
-                  ──→ S-T.04 (Wave 1)
+S-10.01 (Wave 0) ──→ S-10.02 (Wave 1)
+                  ──→ S-10.03 (Wave 1)
+                  ──→ S-10.04 (Wave 1)
 
-S-T.02 ──→ S-T.05 (Wave 2)
-S-T.03 ──→ S-T.05
-S-T.04 ──→ S-T.05
+S-10.02 ──→ S-10.05 (Wave 2)
+S-10.03 ──→ S-10.05
+S-10.04 ──→ S-10.05
 
-S-T.05 ──→ S-T.06 (Wave 3)
-S-T.06 ──→ S-T.07 (Wave 3 sub-tasks)
+S-10.05 ──→ S-10.06 (Wave 3)
+S-10.06 ──→ S-10.07 (Wave 3 sub-tasks)
 
-S-T.07 ──→ S-T.08 (Wave 4)
-S-T.08 ──→ S-T.09 (Wave 5)
+S-10.07 ──→ S-10.08 (Wave 4)
+S-10.08 ──→ S-10.09 (Wave 5)
 ```
 
 ## Open Questions (Escalation References)
@@ -131,8 +131,8 @@ S-T.08 ──→ S-T.09 (Wave 5)
 | OQ ID | Scope | Description |
 |-------|-------|-------------|
 | OQ-1 | SS-03 | `observability-config.toml` minimal schema post-migration |
-| OQ-2 | SS-01 | Platform support matrix for Wave 1 (Windows registry fallback vs stub) |
-| OQ-5 | SS-03 | Grafana dashboard migration scope and ownership |
+| ~~OQ-2~~ | SS-01 | ~~Platform support matrix for Wave 1 (Windows registry fallback vs stub)~~ RESOLVED 2026-05-04: Wave 1 ships full Windows registry cascade (winreg crate, target-OS-gated). Implementation in S-10.03. |
+| ~~OQ-5~~ | SS-03 | ~~Grafana dashboard migration scope and ownership~~ RESOLVED 2026-05-04: Dashboards in `plugins/vsdd-factory/tools/observability/grafana-dashboards/`, versioned-as-code. Migration bundled with S-10.06. |
 | OQ-7 | SS-01 | FileSink partial-write recovery semantics |
 | OQ-8 | SS-01 | Atomic dual-emit host helper (deferred) |
 | OQ-9 | SS-03 | Persistent deprecation registry artifact (post-Wave-3) |
@@ -142,3 +142,4 @@ S-T.08 ──→ S-T.09 (Wave 5)
 | Version | Date | Change |
 |---------|------|--------|
 | v1.0 | 2026-05-04 | Initial authoring from ADR-015 migration plan decomposition. |
+| v1.1 | 2026-05-04 | Story IDs corrected S-T.NN → S-10.NN (Q1); OQ-2 resolved (full Windows registry in S-10.03, Q4); OQ-5 resolved (Grafana dashboards in grafana-dashboards/ dir, Q6); OQ table updated. |

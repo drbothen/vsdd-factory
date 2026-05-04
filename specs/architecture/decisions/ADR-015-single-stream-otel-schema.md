@@ -801,16 +801,13 @@ multi-sink stanza model is removed. What configuration does the file retain?
 Collector endpoint for operators who skip the Collector entirely?) The SS-03
 spec rewrite must answer this.
 
-**OQ-2 (SS-01): `host::emit_event` enrichment implementation scope for Wave 1**
-The fallback cascade POLICY for all derived Resource fields is now specified in
-D-15.2.c (this ADR). The remaining open question for SS-01 is IMPLEMENTATION
-scope: which platforms are targeted in Wave 1 vs deferred (e.g., Windows
-fallback via registry key)? The Wave 1 implementation story must decide the
-platform support matrix and confirm which fallback branches are implemented vs
-stubbed in Wave 1. Stubbing means falling through to the terminal default of the
-cascade (e.g., `"unknown-host"` literal for `host.id`); literal TODO marker
-strings MUST NOT appear in Resource field values. All fields must have a value
-(never null); the cascade policy in D-15.2.c is the authority.
+~~**OQ-2 (SS-01): `host::emit_event` enrichment implementation scope for Wave 1**~~
+RESOLVED 2026-05-04 by user adjudication: Wave 1 ships the FULL Windows
+`host.id` registry-lookup cascade per D-15.2.c — NOT stubbed to terminal default.
+Implementation reads `HKLM\SOFTWARE\Microsoft\Cryptography\MachineGuid` via the
+`winreg` crate (target-OS-gated). Falls back to terminal default `"unknown-host"`
+only if the registry read fails; fallback emits `vsdd.internal.host_id_fallback.v1`
+per D-15.2.c. Implementation scoped in S-10.03.
 
 ~~**OQ-3 (SS-01): VSDD_TRACE_ID propagation via `exec_subprocess`**~~ RESOLVED
 via D-15.4: dispatcher-side mandatory injection of VSDD_TRACE_ID and
@@ -822,11 +819,12 @@ in D-15.1 FileSink write-failure semantics. Primary sink failure triggers
 unconditional fallback to `dispatcher-internal-*.jsonl` plus stderr warning.
 `DlqWriter` is retired. SS-03 spec must acknowledge this policy.
 
-**OQ-5 (SS-03): Grafana dashboard migration scope and ownership**
-The Wave 3 migration touches every Grafana panel query. Who authors the
-migration? Are the dashboard JSON files stored in `.factory/`? Is there a
-dashboard-as-code workflow that makes the migration auditable? This must be
-answered before Wave 3 is scheduled.
+~~**OQ-5 (SS-03): Grafana dashboard migration scope and ownership**~~
+RESOLVED 2026-05-04 by user adjudication: Grafana dashboard JSON files live in
+`plugins/vsdd-factory/tools/observability/grafana-dashboards/` and are
+versioned-as-code in this repo. The dashboards are bundled with the vsdd-factory
+plugin and version-bumped together. The Wave 3 migration (dashboard query updates)
+is included in S-10.06 in the same PR as the consumer-side migration.
 
 ~~**OQ-6 (SS-02): Plugin SDK changelog and migration guidance scope**~~ RESOLVED
 in "Plugin authors targeting v1.0" section. D-15.3's field-override behavioral
@@ -930,3 +928,4 @@ the authoritative version signal. Schema versioning section updated to match.
 | v1.5 | 2026-05-04 | Revision pass 4 (2026-05-04): addressed pass 5 adversary findings F-1/F-2/F-3 with minimal-surface amendments. F-1: added fifth state to D-15.2.e covering orphaned-half consumer degradation rule; OQ-8 added (atomic dual-emit deferred to SS-01; v1 accepts orphan-half risk during Wave 2 only). F-2: added Negative Consequence entry for post-Wave-3 dashboard silence risk; added Wave 3 pre-shim-removal operator audit sub-task and one-time shim-removal announcement sub-task (reuses existing `vsdd.internal.event_name_deprecated.v1` surface; no new event type). F-3: added field ownership classification for `event.correlation_id`, `event.deprecated_by`, and `event.replaces_deprecated_alias` — all PLUGIN-ASSERTED during Wave 2; linked to OQ-8. No net-new normative surface beyond OQ-8. |
 | v1.6 | 2026-05-04 | Revision pass 5 (2026-05-04): scope-bound orphan detection to `dispatcher_trace_id` scope (F-1); acknowledged post-Wave-3 announcement-gap for late-arriving operators in Negative Consequences and added OQ-9 for persistent deprecation-registry surface (F-2); plugin-author conformance responsibility for symmetric-pair emission added to plugin-asserted paragraph, referencing OQ-8 (F-3). No net-new normative surface beyond OQ-9. |
 | v1.7 | 2026-05-04 | ADR ACCEPTED (2026-05-04). Final polish: trace_id naming canonicalized — `dispatcher_trace_id` → `trace_id` in D-15.2.e orphan-half detection prose (Polish-1); OQ-3 strikethrough text aligned with D-15.4 actual decision — dispatcher-side mandatory injection, not env_allowlist (Polish-2); D-15.4 line 426 reworded from "env-allowlist" to "dispatcher-injected invariants" to eliminate same ambiguity (Polish-2); OQ-2 stub semantics clarified — stubbing means terminal cascade default, literal TODO markers MUST NOT appear in Resource field values (Polish-3). 9 adversary passes complete; convergence achieved. |
+| v1.8 | 2026-05-04 | OQ-2 and OQ-5 resolved by user adjudication 2026-05-04. OQ-2: Wave 1 ships full Windows `host.id` registry-lookup cascade (winreg crate, target-OS-gated); no stub-to-default; implementation in S-10.03. OQ-5: Grafana dashboards are versioned-as-code in `plugins/vsdd-factory/tools/observability/grafana-dashboards/`; migration bundled with S-10.06. Active OQs reduced from 6 to 4 (OQ-1, OQ-7, OQ-8, OQ-9 remain open). |
