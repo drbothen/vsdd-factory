@@ -495,9 +495,30 @@ jobs:
     name: Bump claude-mp marketplace version
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ secrets.CLAUDE_MP_PAT != '' }}
     steps:
+      # GitHub Actions does NOT expose the `secrets` context in
+      # job-level `if:` conditions (only in step-level `if:`). So instead
+      # of `jobs.bump-marketplace.if: ${{ secrets.CLAUDE_MP_PAT != '' }}`,
+      # we gate every subsequent step on a flag set by this preflight
+      # step. When the secret is missing, the job runs but no work
+      # happens — same effective behavior as a job-level skip.
+      - name: Preflight — check CLAUDE_MP_PAT secret
+        id: preflight
+        env:
+          PAT: ${{ secrets.CLAUDE_MP_PAT }}
+        run: |
+          if [ -z "$PAT" ]; then
+            echo "CLAUDE_MP_PAT secret is not configured. Skipping marketplace bump."
+            echo "To enable: create a PAT with contents:write + pull-requests:write"
+            echo "scopes on drbothen/claude-mp and add it as CLAUDE_MP_PAT in this"
+            echo "repo's Actions secrets."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check out claude-mp
+        if: steps.preflight.outputs.configured == 'true'
         uses: actions/checkout@v6
         with:
           repository: drbothen/claude-mp
@@ -505,6 +526,7 @@ jobs:
           ref: main
 
       - name: Bump vsdd-factory version in marketplace.json
+        if: steps.preflight.outputs.configured == 'true'
         run: |
           set -e
           version="${GITHUB_REF_NAME#v}"
@@ -517,6 +539,7 @@ jobs:
           echo "Bumped vsdd-factory to $version in claude-mp marketplace.json"
 
       - name: Open PR
+        if: steps.preflight.outputs.configured == 'true'
         env:
           GH_TOKEN: ${{ secrets.CLAUDE_MP_PAT }}
         run: |
