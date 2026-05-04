@@ -278,6 +278,9 @@ contract (Resource fields or per-event identity fields) changes.
 - New-name (canonical) emission: `event.replaces_deprecated_alias` is set; `event.deprecated_by` is absent.
 - Non-paired event (single-namespace): both fields are absent.
 - Post-Wave-3 events (shims removed): both fields are absent — same as non-paired; `event.correlation_id` is also absent.
+- Orphaned half (FileSink failure / dispatcher crash during dual-emit): one member of the pair is present; the `event.id` referenced by the surviving event's cross-reference field is absent from `events-*.jsonl`. Consumers MUST treat events with dangling `event.deprecated_by` or `event.replaces_deprecated_alias` references (target `event.id` not found in `events-*.jsonl`) as non-paired for dedup purposes — degrade to single-event accounting. The orphan condition is a known artifact of FileSink failure or dispatcher crash during Wave 2 dual-emit. Full atomicity is OUT OF SCOPE for v1 and tracked as OQ-8.
+
+These three correlation fields (`event.correlation_id`, `event.deprecated_by`, `event.replaces_deprecated_alias`) are PLUGIN-ASSERTED for the dual-emit window (Wave 2). Plugin authors are responsible for emitting matched UUIDs across the pair. The host does NOT validate cross-event references; bad plugin code can produce dangling references. See OQ-8 for the future atomic dual-emit host-helper that would shift this responsibility to the host.
 
 This eliminates the three-condition negation a consumer would otherwise need to identify the deprecated member of a pair.
 
@@ -526,6 +529,7 @@ connection silently dropped events with no local fallback.
 - **ADR-007 always-on guarantee is weakened.** The debug file is no longer
   always-on in release builds. Operators who relied on `dispatcher-internal-*.jsonl`
   being present without configuration must set `VSDD_DEBUG_LOG=1`.
+- **Post-Wave-3 dashboard silence risk.** After Wave 3 removes the dual-emit shims, old-name emissions stop permanently. A v1 dashboard query still keyed on the old name (e.g. `pr.opened`) goes silently dark — indistinguishable from "no PRs opened." The `vsdd.internal.event_name_deprecated.v1` lifecycle event emitted during Wave 2 is not a persistent signal; it cannot warn post-Wave-3 consumers. Mitigation is operator action and a one-time Wave 3 announcement event (see Wave 3 sub-task in Migration Plan). No automated detection exists in v1.
 
 ### Status
 
@@ -620,6 +624,8 @@ distinct wave-scope item.
 - Add `event.category = "domain"` filters where needed.
 - Validate `pr.created`, `open_to_merge_seconds`, and other previously broken
   queries.
+- **Pre-shim-removal sub-task:** Operators MUST audit all dashboard queries against the deprecation registry before Wave 3 closes. Any query still keyed on an old name becomes permanently silent after shim removal.
+- **Shim-removal announcement sub-task:** At Wave 3 closure, the dispatcher MUST emit one `vsdd.internal.event_name_deprecated.v1` event per deprecated old-name namespace that has ceased emission. This is a ONE-TIME announcement (not a recurring heartbeat) and reuses the existing event surface. It provides a final in-band signal that the old-name namespace is gone, allowing log-query post-mortems to detect stale dashboard queries. No new event type is introduced.
 - Remove dual-emit shims (as a sub-task of Wave 3 or immediately after).
 - **Acceptance criterion 1:** Grafana panel `pr_throughput` returns at least
   one row within 24 hours of this wave merging to `main`. Zero rows = migration
@@ -831,6 +837,17 @@ replay. SS-01 must decide whether `FileSink` uses atomic-write semantics
 (write to temp file, rename), append-with-boundary-marker, or post-crash
 truncation recovery. This is not solved in this ADR.
 
+**OQ-8 (SS-01): Atomic dual-emit (deferred)**
+D-15.2.e acknowledges that the Wave 2 dual-emit shim performs two sequential
+FileSink writes, both plugin-side, with no atomicity guarantee. A FileSink
+failure or dispatcher SIGKILL between the two writes produces an orphaned
+half-pair (one emission present, the other absent). A future host-helper that
+wraps both emissions in a single host call would shift the orphan-prevention
+responsibility from plugin code to the host, eliminating the class of
+dangling-reference bugs documented in D-15.2.e. This is deferred to SS-01
+implementation planning. v1 accepts orphan-half risk during Wave 2 only;
+Wave 3 shim removal eliminates the risk entirely once migration is complete.
+
 ## Architect Notes (for adversarial review awareness)
 
 Pass 1 reservations resolved in-ADR:
@@ -898,3 +915,4 @@ the authoritative version signal. Schema versioning section updated to match.
 | v1.2 | 2026-05-04 | Revision pass 2 (adversary CONDITIONAL, MEDIUM novelty). Addressed I-1 (dual-emit dedup contract: `event.correlation_id` and `event.deprecated_alias_of` (later renamed in v1.3 to `event.replaces_deprecated_alias`) fields added to per-event table; dedup guidance added to Negative consequences; Wave 2 shim description updated); I-2 (D-15.4 now specifies dispatcher-side mandatory injection — not universal env_allowlist entries — resolving registry-schema-change ambiguity); I-3 (Wave 3 acceptance criterion 2 added: `unknown_category_events` panel + WARN alert required as hard gate); I-4 (two-channel override visibility in D-15.3: inline `event.host_overrides` on domain event + `affected.plugin.name` on lifecycle event); I-5 (terminal `host.id` default `"unknown-host"` specified; `vsdd.internal.host_id_fallback.v1` startup event mandated on terminal fallback); I-6 (D-15.2.d committed to informational-only `event.schema_url`; `event.name` `.vN` suffix is the authoritative version signal; schema versioning section updated). O-1 (TD-015-a filed for cargo-metadata CI check on retired crate re-coupling); O-2 (addressed inline in Negative consequences dual-emit volume note); O-3 (migration numbering reconciled: shim removal is Wave 3 in both Migration Plan and Adversarial Pressure Points); O-4 (deprecated/retired verbs now distinct: Wave 1 = deprecated, Wave 5 = retired; Wave 5 section updated); O-5 (OQ-7 added: FileSink partial-write recovery deferred to SS-01). Active OQs: OQ-1, OQ-2, OQ-5, OQ-7. |
 | v1.3 | 2026-05-04 | Polish pass after pass 3 (2026-05-04): renamed `event.deprecated_alias_of` → `event.replaces_deprecated_alias` for English correctness; clarified Wave 5 distinguishing crate-level vs type-level removal. No structural decisions changed. |
 | v1.4 | 2026-05-04 | Revision pass 3 (2026-05-04): addressed pass 4 adversary findings F-1 through F-4. Stale rename reference in v1.2 changelog row fixed via annotated parenthetical (F-1); D-15.1 crate-vs-type classification reconciled with Wave 5 split — `Router` and `SinkRegistry` now consistently described as types within `sink-core`, not standalone crates (F-2); changelog row ordering corrected to ascending v1.0→v1.3 (F-3); deprecated-pair absence semantics resolved via symmetric field pair: `event.deprecated_by` added to old-name emission, forming explicit bidirectional crosswalk with `event.replaces_deprecated_alias` on new-name emission; D-15.2.e documents the four-state identity contract eliminating the three-condition negation (F-4, option a). |
+| v1.5 | 2026-05-04 | Revision pass 4 (2026-05-04): addressed pass 5 adversary findings F-1/F-2/F-3 with minimal-surface amendments. F-1: added fifth state to D-15.2.e covering orphaned-half consumer degradation rule; OQ-8 added (atomic dual-emit deferred to SS-01; v1 accepts orphan-half risk during Wave 2 only). F-2: added Negative Consequence entry for post-Wave-3 dashboard silence risk; added Wave 3 pre-shim-removal operator audit sub-task and one-time shim-removal announcement sub-task (reuses existing `vsdd.internal.event_name_deprecated.v1` surface; no new event type). F-3: added field ownership classification for `event.correlation_id`, `event.deprecated_by`, and `event.replaces_deprecated_alias` — all PLUGIN-ASSERTED during Wave 2; linked to OQ-8. No net-new normative surface beyond OQ-8. |
