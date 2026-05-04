@@ -253,7 +253,8 @@ EOF
 }
 
 @test "input-hash hook: hooks.json wires validate-input-hash" {
-  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-input-hash"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-input-hash" "PostToolUse"
 }
 
 # ===== check-input-drift skill =====

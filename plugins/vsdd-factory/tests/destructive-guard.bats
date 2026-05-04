@@ -262,8 +262,9 @@ _run_hook() {
   bash -n "$HOOK"
 }
 
-@test "hooks.json wires destructive-command-guard" {
-  jq -e '.hooks.PreToolUse[] | .hooks[] | select(.command | contains("destructive-command-guard"))' "${BATS_TEST_DIRNAME}/../hooks/hooks.json" >/dev/null
+@test "registry wires destructive-command-guard" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "destructive-command-guard" "PreToolUse"
 }
 
 @test "hook provides fix suggestions in block messages" {

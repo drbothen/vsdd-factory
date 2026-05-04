@@ -108,6 +108,7 @@ setup() {
   [[ "$output" == *"POLICY 9 VIOLATION"* ]]
 }
 
-@test "policy-9: hooks.json wires validate-vp-consistency" {
-  jq -e '.hooks.PostToolUse[].hooks[] | select(.command | contains("validate-vp-consistency"))' "$PLUGIN_ROOT/hooks/hooks.json" >/dev/null
+@test "policy-9: registry wires validate-vp-consistency" {
+  load "${BATS_TEST_DIRNAME}/helpers/registry.bash"
+  registry_has_hook "validate-vp-consistency" "PostToolUse"
 }
