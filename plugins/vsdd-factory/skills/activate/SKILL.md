@@ -1,6 +1,7 @@
 ---
 name: activate
 description: Opt in to the VSDD factory persona for this project. Detects the host platform, persists the detected platform string, and writes `.claude/settings.local.json` to set the orchestrator as the default main-thread agent. Reversible via `/vsdd-factory:deactivate`.
+disable-model-invocation: true
 ---
 
 # Activate VSDD Factory
