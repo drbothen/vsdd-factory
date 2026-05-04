@@ -134,7 +134,7 @@ The adversary agent has only Read/Grep/Glob tools — it cannot write files. Aft
 
 1. **Capture the adversary's full output** verbatim (do not summarize or filter)
 2. **Determine the target path:** `.factory/cycles/<current-cycle>/adversarial-reviews/pass-<N>.md`
-   - Read `.factory/current-cycle` for the cycle name (e.g., `v1.0.0-greenfield`)
+   - Read `.factory/current-cycle` for the cycle name (operator-defined slug; e.g., `<release>-greenfield` or `<feature>-patch`)
    - If no current-cycle file exists, use the active cycle from STATE.md
    - `<N>` is the pass number (1-based, sequential within the cycle)
 3. **Dispatch state-manager** to write the findings file at the target path

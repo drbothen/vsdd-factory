@@ -19,13 +19,14 @@ to our collector. It writes them to `.claude/settings.local.json` under
 the `env` block so the current project's Claude sessions pick them up
 on next start.
 
-> **v0.76.0 note**: Earlier releases required a sixth env var,
+> **Legacy env var note**: Earlier installations required a sixth env var,
 > `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative`, to force
 > Claude to emit cumulative counters (Prometheus's `remote_write` receiver
-> rejects delta temporality). As of v0.76.0 the otel-collector runs the
+> rejects delta temporality). The otel-collector now runs the
 > `deltatocumulative` processor (available in collector-contrib 0.115+),
 > which converts in-flight. The env var is no longer needed. If you
-> previously ran this skill, `off` → `on` will prune the stale key.
+> previously ran this skill on a legacy installation, `off` → `on` will
+> prune the stale key.
 
 ## Prerequisites
 
@@ -60,7 +61,7 @@ Five keys, all strings, all go under the `env` object:
 | Key | Value | Why |
 |---|---|---|
 | `CLAUDE_CODE_ENABLE_TELEMETRY` | `"1"` | Master enable flag. |
-| `OTEL_METRICS_EXPORTER` | `"otlp"` | Metrics go to the collector (forwarded to Prometheus in v0.72.0+). |
+| `OTEL_METRICS_EXPORTER` | `"otlp"` | Metrics go to the collector (forwarded to Prometheus). |
 | `OTEL_LOGS_EXPORTER` | `"otlp"` | Logs go to Loki via the collector. |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `"http/protobuf"` | Must match the receiver — compose exposes 4318 HTTP, not 4317 gRPC. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `"http://localhost:4318"` | Host the collector is bound to. Override via `VSDD_OBS_OTLP_HTTP_PORT` if 4318 is remapped. |

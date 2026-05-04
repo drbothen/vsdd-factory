@@ -234,15 +234,15 @@ Execute the full Release Mode flow but only print what would happen:
 ```
 DRY RUN — no changes will be made.
 
-1. Version bump: 0.10.2 → 0.10.3 (MINOR)
+1. Version bump: <CURRENT> → <NEXT> (MINOR)
 2. Files to update:
-   - plugins/vsdd-factory/.claude-plugin/plugin.json: "version" → "0.10.3"
-   - README.md: badge → 0.10.3
-   - .claude-plugin/marketplace.json: "plugins[0].version" → "0.10.3"
-3. CHANGELOG: would generate entry from 3 commits since v0.10.2
-4. Commit: "chore: release v0.10.3"
-5. Tag: v0.10.3
-6. Push: main + v0.10.3
+   - plugins/vsdd-factory/.claude-plugin/plugin.json: "version" → "<NEXT>"
+   - README.md: badge → <NEXT>
+   - .claude-plugin/marketplace.json: "plugins[0].version" → "<NEXT>"
+3. CHANGELOG: would generate entry from N commits since v<CURRENT>
+4. Commit: "chore: release v<NEXT>"
+5. Tag: v<NEXT>
+6. Push: main + v<NEXT>
 7. CI workflow: .github/workflows/release.yml would be triggered
 8. Publish: none (no publish config)
 

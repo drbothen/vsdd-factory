@@ -8,12 +8,13 @@ description: Orchestrator workflow reference for steady-state operations once a 
 
 # Steady-State Operations
 
-Reference file for the orchestrator. Load after v1.0.0 release or when
+Reference file for the orchestrator. Load after the first stable release
+(or whichever release transitions the project out of greenfield) or when
 operating in maintenance/feature mode.
 
 ## Greenfield to Steady-State Handoff
 
-After v1.0.0 releases:
+After the first stable release ships:
 
 1. Archive greenfield cycle:
    Spawn state-manager: move operational artifacts to cycles/vX.Y.Z-greenfield/

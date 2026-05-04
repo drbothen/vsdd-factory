@@ -20,7 +20,7 @@ Migrate a project's `.factory/` from the flat layout (all reviews in `specs/`) t
 
 If `$ARGUMENTS` is provided, use it as the cycle name. Otherwise prompt:
 
-> "What should this convergence cycle be named? Examples: `v1.0.0-greenfield`, `phase-3-patch`, `v1.1.0-feature-auth`"
+> "What should this convergence cycle be named? Examples: `<release>-greenfield`, `phase-N-patch`, `<release>-feature-auth`"
 
 Cycle names must be lowercase, hyphenated, no spaces.
 
