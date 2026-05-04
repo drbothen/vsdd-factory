@@ -24,29 +24,57 @@
 #   apply-platform.ps1 -Check <platform>   # verify-only, no copy
 #
 # Exit:
-#   0  success: variant copied + binary present
+#   0  success: variant copied + binary present (and executable on Unix)
 #   1  variant missing (hooks.json.<platform> not committed)
 #   2  binary missing (dispatcher/bin/<platform> not yet committed)
-#   3  binary present but not executable (rarely observable on Windows;
-#      kept for cross-implementation contract parity)
+#   3  binary present but not executable (Unix only — Windows has no
+#      executable bit, so this fires only on PowerShell Core 7+ Unix hosts)
 #   4  usage error
+#
+# Both PowerShell-style flags (-Check, -Help) and bash-style aliases
+# (--check, --help, -h) are accepted to keep cross-shell muscle memory
+# from producing exit-4 surprises.
 #
 # Side effect: writes `hooks/hooks.json` (overwrites if present).
 # Test override: set $env:VSDD_PLUGIN_ROOT_OVERRIDE to use a synthetic
 # plugin root instead of the script's own location.
 
-[CmdletBinding()]
 param(
   [switch]$Check,
   [switch]$Help,
-  [Parameter(Position=0, ValueFromRemainingArguments=$true)]
+  [Parameter(ValueFromRemainingArguments=$true)]
   [string[]]$RestArgs
 )
 
 $ErrorActionPreference = 'Stop'
+# Set-StrictMode is the PowerShell equivalent of bash's `set -u` — surfaces
+# typos and uninitialized variables instead of silently coercing to $null.
+Set-StrictMode -Version Latest
 
-if ($Help) {
-  # Print the leading comment block (lines starting with '# ') as help.
+# Defensive null-init so subsequent .Count / indexing works without guards.
+if ($null -eq $RestArgs) { $RestArgs = @() }
+
+# Accept bash-style aliases for cross-shell muscle memory. We strip them
+# from $RestArgs before the positional-arg validation below.
+$wantHelp = $Help
+if ($RestArgs.Count -gt 0 -and ($RestArgs[0] -eq '--help' -or $RestArgs[0] -eq '-h')) {
+  $wantHelp = $true
+  $RestArgs = @()
+}
+$checkMode = $Check
+if ($RestArgs.Count -gt 0 -and $RestArgs[0] -eq '--check') {
+  $checkMode = $true
+  if ($RestArgs.Count -gt 1) {
+    $RestArgs = $RestArgs[1..($RestArgs.Count - 1)]
+  } else {
+    $RestArgs = @()
+  }
+}
+
+if ($wantHelp) {
+  # Print the leading comment block (lines starting with '# ') as help —
+  # mirrors the bash sibling's `sed -n '2,/^$/p'` pattern (we stop at the
+  # first blank line; bash includes it, the only observable difference).
   $lines = Get-Content -Path $PSCommandPath
   foreach ($line in $lines) {
     if ($line -match '^\s*$') { break }
@@ -56,15 +84,26 @@ if ($Help) {
   exit 0
 }
 
-if (-not $RestArgs -or $RestArgs.Count -ne 1) {
-  [Console]::Error.WriteLine('usage: apply-platform.ps1 [-Check] <platform>')
+if ($RestArgs.Count -ne 1) {
+  [Console]::Error.WriteLine('usage: apply-platform.ps1 [-Check|--check] <platform>')
   [Console]::Error.WriteLine('  platform must be one of: darwin-arm64 darwin-x64 linux-x64 linux-arm64 windows-x64')
   exit 4
 }
 
 $platform = $RestArgs[0]
 $validPlatforms = @('darwin-arm64','darwin-x64','linux-x64','linux-arm64','windows-x64')
-if ($validPlatforms -notcontains $platform) {
+# PowerShell's `-contains` operator is case-insensitive by default; the
+# bash sibling matches case-sensitively via `case "$platform" in
+# darwin-arm64|...) :;; esac`. Fold an explicit Ordinal comparison so
+# `apply-platform.ps1 DARWIN-ARM64` is rejected the same way in both.
+$platformMatched = $false
+foreach ($valid in $validPlatforms) {
+  if ([string]::Equals($valid, $platform, [StringComparison]::Ordinal)) {
+    $platformMatched = $true
+    break
+  }
+}
+if (-not $platformMatched) {
   [Console]::Error.WriteLine("error: unsupported platform: $platform")
   [Console]::Error.WriteLine('supported: darwin-arm64 darwin-x64 linux-x64 linux-arm64 windows-x64')
   exit 4
@@ -72,10 +111,21 @@ if ($validPlatforms -notcontains $platform) {
 
 # --- Resolve plugin root ----------------------------------------------
 
-if ($env:VSDD_PLUGIN_ROOT_OVERRIDE) {
+if (-not [string]::IsNullOrEmpty($env:VSDD_PLUGIN_ROOT_OVERRIDE)) {
   $pluginRoot = $env:VSDD_PLUGIN_ROOT_OVERRIDE
 } else {
   # The script lives at <plugin_root>/skills/activate/apply-platform.ps1.
+  # $PSScriptRoot is empty when the script is invoked via `pwsh -Command`
+  # or piped from stdin (rather than `pwsh -File`). Surface a clean
+  # diagnostic for that case instead of letting Join-Path throw a
+  # confusing CLR null-binding error.
+  if ([string]::IsNullOrEmpty($PSScriptRoot)) {
+    [Console]::Error.WriteLine('error: $PSScriptRoot is empty — script must be invoked via')
+    [Console]::Error.WriteLine('       `pwsh -File apply-platform.ps1 <platform>`, not via')
+    [Console]::Error.WriteLine('       `pwsh -Command` or stdin. Alternatively, set')
+    [Console]::Error.WriteLine('       $env:VSDD_PLUGIN_ROOT_OVERRIDE to the plugin root.')
+    exit 4
+  }
   # Forward slashes are accepted by PowerShell's path APIs on every host
   # OS; backslashes would break on PowerShell Core running on Unix.
   $pluginRoot = (Resolve-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath '../..')).Path
@@ -123,16 +173,24 @@ if (-not (Test-Path -Path $binary -PathType Leaf)) {
 # --- Executability -----------------------------------------------------
 #
 # Windows has no chmod bit. The CLR's UnixFileMode API is available on
-# PowerShell 7+ for cross-platform inspection; we use it when present to
-# preserve the bash sibling's exit-code-3 contract on Unix hosts running
-# PowerShell Core (e.g., a CI matrix job that mounts the .ps1 path on
-# Linux). On native Windows this branch is skipped and existence alone
-# is sufficient.
+# PowerShell 7+ (.NET 7+) for cross-platform inspection; we use it when
+# present to preserve the bash sibling's exit-code-3 contract on Unix
+# hosts running PowerShell Core (e.g., a CI matrix job that mounts the
+# .ps1 path on Linux). On native Windows this branch is skipped and
+# existence alone is sufficient.
+#
+# We feature-gate by PowerShell major version (7+) AND by reflection
+# property check, so PS 5.1 and older never reach the UnixFileMode access
+# (which would be a parser-time TypeNotFound error). Exception handling
+# is narrowed to PlatformNotSupportedException only — genuine I/O
+# failures (UnauthorizedAccessException, IOException, SecurityException)
+# propagate per $ErrorActionPreference = 'Stop' and surface to the user
+# instead of silently downgrading exit-3 to "ok".
 
-if ($platform -ne 'windows-x64') {
-  try {
-    $fileInfo = [System.IO.FileInfo]::new($binary)
-    if ($fileInfo.PSObject.Properties.Name -contains 'UnixFileMode') {
+if ($platform -ne 'windows-x64' -and $PSVersionTable.PSVersion.Major -ge 7) {
+  $fileInfo = [System.IO.FileInfo]::new($binary)
+  if ($fileInfo.PSObject.Properties.Name -contains 'UnixFileMode') {
+    try {
       $mode = $fileInfo.UnixFileMode
       $execMask = [System.IO.UnixFileMode]::UserExecute -bor `
                   [System.IO.UnixFileMode]::GroupExecute -bor `
@@ -142,16 +200,19 @@ if ($platform -ne 'windows-x64') {
         [Console]::Error.WriteLine("       fix: chmod +x `"$binary`"")
         exit 3
       }
+    } catch [System.PlatformNotSupportedException] {
+      # UnixFileMode is the property is present but the API rejects this
+      # platform at runtime (e.g., a hypothetical PS7 build without
+      # Unix-mode support). Silent fall-through is correct here — the
+      # property check above already gated us, and existence is the
+      # native-Windows-equivalent signal.
     }
-  } catch {
-    # UnixFileMode not available (PowerShell 5.1 / older CLR) — fall back
-    # to existence-only, matching native-Windows semantics.
   }
 }
 
 # --- Apply or check ----------------------------------------------------
 
-if ($Check) {
+if ($checkMode) {
   Write-Output "ok: variant + binary present for $platform"
   Write-Output "    variant=$variant"
   Write-Output "    binary=$binary"

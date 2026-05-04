@@ -78,6 +78,7 @@ If the user invokes the skill with `--dry-run` (or asks for a preview), perform 
 - **Platform persistence is forward-looking.** v0.79.x ignores `vsdd-factory.activated_platform`; v1.0+ reads it during S-2.6 to pick the right hooks.json variant. Recording it now means the v0.79 → v1.0 upgrade has the data it needs in place.
 - **No "hijack on enable".** Plugin-level `settings.json` (which would set `agent` automatically) is the alternative we deliberately did not choose. Activation is always an explicit user action.
 - **Detection helper has a test override.** `MOCK_UNAME_S` and `MOCK_UNAME_M` env vars bypass real platform detection in both `detect-platform.sh` and `detect-platform.ps1` — see `plugins/vsdd-factory/tests/activate.bats` for the bash matrix. (Pester coverage for the `.ps1` siblings is tracked in tech debt — see TD-019.)
+- **Flag conventions across the bash/PowerShell sibling pair.** Both PowerShell-style flags (`-Help`, `-Check`) and bash-style aliases (`--help`, `-h`, `--check`) are accepted by the `.ps1` siblings, so cross-shell muscle memory does not produce exit-4 surprises. Internally, the JSON output, exit codes, and diagnostic strings are byte-for-byte identical between `.sh` and `.ps1`; only the *invocation* syntax differs by host shell convention.
 
 ## See also
 

@@ -27,7 +27,6 @@
 # real platform detection. The bash sibling honors the same envvars so
 # the test matrix is shared across the two implementations.
 
-[CmdletBinding()]
 param(
   [switch]$Help,
   [Parameter(ValueFromRemainingArguments=$true)]
@@ -35,10 +34,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# Set-StrictMode is the PowerShell equivalent of bash's `set -u` — surfaces
+# typos and uninitialized variables instead of silently coercing to $null.
+Set-StrictMode -Version Latest
 
 if ($Help -or ($Rest -and ($Rest[0] -eq '--help' -or $Rest[0] -eq '-h'))) {
   # Print the leading comment block (lines starting with '# ') as help —
-  # mirrors the bash sibling's `sed -n '2,/^$/p'` pattern.
+  # mirrors the bash sibling's `sed -n '2,/^$/p'` pattern (we stop at the
+  # first blank line; bash includes it, the only observable difference).
   $lines = Get-Content -Path $PSCommandPath
   foreach ($line in $lines) {
     if ($line -match '^\s*$') { break }
@@ -50,13 +53,19 @@ if ($Help -or ($Rest -and ($Rest[0] -eq '--help' -or $Rest[0] -eq '-h'))) {
 
 if ($Rest -and $Rest.Count -gt 0) {
   [Console]::Error.WriteLine("error: unknown argument: $($Rest[0])")
-  [Console]::Error.WriteLine("usage: detect-platform.ps1 [-Help]")
+  [Console]::Error.WriteLine("usage: detect-platform.ps1 [-Help|--help|-h]")
   exit 2
 }
 
 # --- Detection ---------------------------------------------------------
+#
+# MOCK_UNAME_S/M empty-string semantics mirror the bash sibling's
+# `[ -n "${VAR:-}" ]` test: empty string falls through to real detection,
+# only a non-empty value overrides. `[string]::IsNullOrEmpty` is the
+# explicit PowerShell equivalent (avoids the loose-truthiness pitfalls of
+# bare `if ($env:VAR)` where strings like "0" or "False" could surprise).
 
-if ($env:MOCK_UNAME_S) {
+if (-not [string]::IsNullOrEmpty($env:MOCK_UNAME_S)) {
   $osString = $env:MOCK_UNAME_S
 } else {
   $rti = [System.Runtime.InteropServices.RuntimeInformation]
@@ -72,15 +81,15 @@ if ($env:MOCK_UNAME_S) {
   }
 }
 
-if ($env:MOCK_UNAME_M) {
+if (-not [string]::IsNullOrEmpty($env:MOCK_UNAME_M)) {
   $archString = $env:MOCK_UNAME_M
 } else {
   $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
-  switch ($arch) {
-    'X64'   { $archString = 'x86_64' }
-    'Arm64' { $archString = 'arm64' }
-    'X86'   { $archString = 'i386' }
-    'Arm'   { $archString = 'arm' }
+  switch -CaseSensitive ($arch.ToString()) {
+    'X64'   { $archString = 'x86_64'; break }
+    'Arm64' { $archString = 'arm64';  break }
+    'X86'   { $archString = 'i386';   break }
+    'Arm'   { $archString = 'arm';    break }
     default { $archString = $arch.ToString() }
   }
 }
@@ -88,49 +97,45 @@ if ($env:MOCK_UNAME_M) {
 $rawUname = "$osString $archString"
 $platform = ''
 
-# Mapping table is intentionally identical to detect-platform.sh — the
-# MINGW*/MSYS*/CYGWIN* branches exist purely so the shared test matrix
-# (which injects those tuples via MOCK_UNAME_S) passes against both
-# implementations. Real PowerShell never sees those OS strings.
-switch -Wildcard ($osString) {
-  'Darwin' {
-    switch ($archString) {
-      'arm64'  { $platform = 'darwin-arm64' }
-      'x86_64' { $platform = 'darwin-x64' }
-    }
-  }
-  'Linux' {
-    switch ($archString) {
-      'x86_64'  { $platform = 'linux-x64' }
-      'aarch64' { $platform = 'linux-arm64' }
-      'arm64'   { $platform = 'linux-arm64' }
-    }
-  }
-  'Windows' {
-    switch ($archString) {
-      'x86_64' { $platform = 'windows-x64' }
-      'amd64'  { $platform = 'windows-x64' }
-      'AMD64'  { $platform = 'windows-x64' }
-    }
-  }
-  'MINGW*' {
-    switch ($archString) {
-      'x86_64' { $platform = 'windows-x64' }
-      'amd64'  { $platform = 'windows-x64' }
-    }
-  }
-  'MSYS*' {
-    switch ($archString) {
-      'x86_64' { $platform = 'windows-x64' }
-      'amd64'  { $platform = 'windows-x64' }
-    }
-  }
-  'CYGWIN*' {
-    switch ($archString) {
-      'x86_64' { $platform = 'windows-x64' }
-      'amd64'  { $platform = 'windows-x64' }
-    }
-  }
+# Mapping table mirrors detect-platform.sh exactly. The MINGW*/MSYS*/CYGWIN*
+# branches exist purely so the shared test matrix (which injects those
+# tuples via MOCK_UNAME_S) passes against both implementations — real
+# PowerShell never sees those OS strings.
+#
+# Restructured as if/elseif chain (instead of nested switch) for two
+# reasons: (1) PowerShell switch fires ALL matching arms by default unless
+# explicit `break` is used; bash `case` is first-match-wins. (2) PowerShell
+# switch is case-INSENSITIVE by default; bash `case` is case-sensitive.
+# The if/elseif form makes both semantics explicit and unambiguous.
+function Test-CaseSensitive([string]$value, [string]$pattern) {
+  return [string]::Equals($value, $pattern, [StringComparison]::Ordinal)
+}
+function Test-CaseSensitiveLike([string]$value, [string]$prefix) {
+  return $value.StartsWith($prefix, [StringComparison]::Ordinal)
+}
+
+if (Test-CaseSensitive $osString 'Darwin') {
+  if     (Test-CaseSensitive $archString 'arm64')  { $platform = 'darwin-arm64' }
+  elseif (Test-CaseSensitive $archString 'x86_64') { $platform = 'darwin-x64' }
+}
+elseif (Test-CaseSensitive $osString 'Linux') {
+  if     (Test-CaseSensitive $archString 'x86_64')  { $platform = 'linux-x64' }
+  elseif (Test-CaseSensitive $archString 'aarch64') { $platform = 'linux-arm64' }
+  elseif (Test-CaseSensitive $archString 'arm64')   { $platform = 'linux-arm64' }
+}
+elseif (Test-CaseSensitive $osString 'Windows') {
+  # Bash sibling matches `x86_64|amd64` case-sensitively. We do the same.
+  if     (Test-CaseSensitive $archString 'x86_64') { $platform = 'windows-x64' }
+  elseif (Test-CaseSensitive $archString 'amd64')  { $platform = 'windows-x64' }
+}
+elseif ((Test-CaseSensitiveLike $osString 'MINGW') -or
+        (Test-CaseSensitiveLike $osString 'MSYS')  -or
+        (Test-CaseSensitiveLike $osString 'CYGWIN')) {
+  # Git Bash / MSYS2 / Cygwin emit a non-Windows-looking `uname -s` but
+  # report the underlying CPU correctly. The bash sibling uses
+  # `case "$uname_m" in x86_64|amd64) ...` here.
+  if     (Test-CaseSensitive $archString 'x86_64') { $platform = 'windows-x64' }
+  elseif (Test-CaseSensitive $archString 'amd64')  { $platform = 'windows-x64' }
 }
 
 $err = ''
