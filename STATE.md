@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-03T11:00:00Z
-phase: post-rc4-burn-in
+timestamp: 2026-05-04T15:00:00Z
+phase: post-rc8-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Phase D-4 Burst 1 COMPLETE 2026-05-03 (D-235). E-9 v1.6 CONVERGENCE_REACHED at 3_of_3 (pass-10 NITPICK_ONLY). S-9.00 v1.4 + E-9 v1.6 both CONVERGED. Next: Phase D-4 Burst 2 — story-writer authors S-9.01..S-9.04."
+current_step: "TWO PARALLEL TRACKS active. (1) Phase B-bis COMPLETE: v1.0.0-rc.8 SHIPPED 2026-05-04T14:49Z (clean first-tag-attempt). Marketplace split to drbothen/claude-mp; 2 broken WASM plugins fixed; hooks.json untracked per S-0.4; bats migrated to hooks-registry.toml. claude-mp PR #2 awaiting maintainer merge. Phase C burn-in clock restarted from rc.8 ship date — monitor ~7 days then cut v1.0.0 GA. (2) Phase D-4 Burst 1 COMPLETE 2026-05-03 (D-235): S-9.00 v1.4 CONVERGENCE_REACHED (D-231; 6 LOW known-debt accepted); E-9 v1.6 CONVERGENCE_REACHED at 3_of_3 pass-10 NITPICK_ONLY (D-235; 4 LOW known-debt accepted). Phase D-4 Burst 2 NEXT: story-writer authors S-9.01..S-9.04 (capability clusters B-1+B-2+B-3+B-4 = 14 hooks); Burst 3 follows: S-9.05..S-9.07 (B-5+B-6+B-7 = 9 hooks). Each story requires adversarial convergence per ADR-013 before next burst. After all 7 converge → Phase E (W-16 implementation) → v1.1.0."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -321,16 +321,20 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-03 (Phase D-4 Burst 1 COMPLETE — E-9 v1.6 + S-9.00 v1.4 both CONVERGED; Burst 2 ready)
-**main HEAD:** e93fef7 (chore: bundle dispatcher binaries for v1.0.0-rc.4)
-**develop HEAD:** 52e644d (merge: sync main → develop after v1.0.0-rc.4 bundle)
-**factory-artifacts HEAD:** ce2a7c0 (chore(adversary,state): Phase D-4 Burst 1 COMPLETE — E-9 v1.6 CONVERGENCE_REACHED (D-235))
-**v1.0.0-rc.4 tag:** e93fef7
+**Last update:** 2026-05-04 (Phase B-bis COMPLETE — v1.0.0-rc.8 SHIPPED; release machinery hardened end-to-end)
+**main HEAD:** ~19d85f0 + bot bundle commit for rc.8 (`gh release view v1.0.0-rc.8` for canonical SHA)
+**develop HEAD:** post-sync-develop after rc.8 bundle merge (verify with `git log origin/main..origin/develop`)
+**v1.0.0-rc.8 tag:** points at the bot's binary-bundle commit (force-moved per release.yml)
+**claude-mp HEAD:** rc.8 auto-bump PR #2 awaiting merge — once merged, marketplace catalog at rc.8
 **Active worktrees:** main + .factory only
 
-**Current Phase:** D-4 Burst 1 COMPLETE (D-235). S-9.00 v1.4 CONVERGENCE_REACHED (D-231; 6 LOW known-debt accepted). E-9 v1.6 CONVERGENCE_REACHED at 3_of_3 (D-235; pass-10 NITPICK_ONLY; 4 LOW known-debt accepted). Phase D-4 Burst 1 spec foundation FULLY COMPLETE. Phase D-4 Burst 2 ready: story-writer authors S-9.01..S-9.04 (capability clusters B-1+B-2+B-3+B-4 = 14 hooks). Phase D-4 Burst 3 follows: S-9.05..S-9.07 (B-5+B-6+B-7 = 9 hooks). Phase C (v1.0.0 GA burn-in) running in parallel — rc.4 shipped 2026-05-03T10:12:41Z, ~7-day burn-in window.
+**Current Phase:** TWO TRACKS RESUMABLE — Phase C (rc.8 burn-in monitoring → v1.0.0 GA) and Phase D-4 Burst 2 (W-16 spec foundation continuation). Both can run in parallel.
 
-## Approved Plan (post-rc.4)
+**Track 1 — Phase B-bis COMPLETE / Phase C STARTING.** v1.0.0-rc.8 shipped clean on first tag attempt 2026-05-04T14:49Z (vs rc.5/6/7 which each needed retag/hotfix cycles). Marketplace split landed (drbothen/claude-mp); 2 broken WASM plugins fixed (block-ai-attribution, capture-pr-activity); hooks.json untracked properly per S-0.4; bats migrated to hooks-registry.toml; bump-marketplace auto-PR job confirmed working with CLAUDE_MP_PAT secret. claude-mp PR #2 awaiting maintainer merge. Phase C: monitor rc.8 burn-in for ~7 days starting 2026-05-04. If clean → cut v1.0.0 GA from develop.
+
+**Track 2 — Phase D-4 Burst 1 COMPLETE / Burst 2 NEXT.** S-9.00 v1.4 CONVERGENCE_REACHED 2026-05-03 (D-231; 6 LOW known-debt accepted). E-9 v1.6 CONVERGENCE_REACHED 2026-05-03 at 3_of_3 pass-10 NITPICK_ONLY (D-235; 4 LOW known-debt accepted). E-9 epic spec foundation FULLY COMPLETE — defines Tier 2 native WASM migration covering 23 `validate-*.sh` hooks across ~7 batched stories. Next action: story-writer authors S-9.01..S-9.04 (capability clusters B-1 + B-2 + B-3 + B-4 = 14 hooks). Each story requires adversarial convergence per ADR-013 before Burst 3. Burst 3 follows: S-9.05..S-9.07 (B-5+B-6+B-7 = 9 hooks). After all 7 stories converge → Phase E (W-16 TDD implementation per W-15 patterns) → wave gate → v1.1.0.
+
+## Approved Plan (post-rc.4 — updated 2026-05-04 for the rc.5..rc.8 detour)
 
 ### Phase A ✅ COMPLETE — Pre-W16 hardening sprint (PR #65, develop @ 844b0e9)
 
@@ -340,9 +344,41 @@ TD-013/016/017/018 closed. bats-orphan-detection CI gate live; run-all.sh glob-d
 
 rc.4 shipped 2026-05-03T10:12:41Z. 2 recovery sub-phases: first release.yml failed (TD-016 glob + 4 broken suites); PR #67 skip-list hotfix; force-retagged; second run all 9 jobs SUCCESS after windows-x64 cache-save flake recovered via rerun. TD-020/021 registered.
 
-### Phase C — v1.0.0 GA cut (~7 days burn-in from rc.4 ship date)
+### Phase B-bis ✅ COMPLETE — Release machinery hardening (rc.5..rc.8; PRs #68/69/70/71/72/73/74/75/76/77)
 
-If rc.4 stable for ~7 days in real use → cut v1.0.0 from develop. Skip rc.5 unless new defects surface during burn-in. Marks production-ready release.
+The `/plugin install` flow had been silently broken since rc.2 — `marketplace.json` used a schema-violating source field (`github + path`), so cache never populated and zero skills loaded. This was masked by the legacy committed `hooks.json` and pre-rc.4 install paths. rc.5..rc.8 cut to fix it end-to-end. Each rc surfaced the next defect under it:
+
+- **rc.5** (PR #68; tag a9b78ce → c87c1a9): collapsed `commands/` shim layer into skills (111 files removed); added `disable-model-invocation: true` to activate/deactivate skills (block model auto-invoke of state-changing entry points).
+- **rc.6** (PR #70/71; tag → c87c1a9 → ...): switched marketplace source to `git-subdir + ref=main`. Schema-correct but empirically still broken in self-referential same-repo install.
+- **rc.7** (PR #72/73; multiple force-retags after hotfixes #74 and #75):
+  - Split marketplace into separate repo (`drbothen/claude-mp`) — fix that actually works
+  - Untracked `marketplace.json` from this repo (lives in claude-mp now)
+  - Added bump-marketplace auto-PR job (gated by `CLAUDE_MP_PAT` secret)
+  - Migrated 2 broken WASM plugins (`block-ai-attribution`, `capture-pr-activity`) from `cdylib` to `[[bin]]` pattern so they emit hyphenated `.wasm` names matching the registry
+  - Hotfix #1: dropped invalid `secrets` context from job-level `if:` in release.yml (was preventing all release.yml runs)
+  - Hotfix #2: re-tracked `hooks.json` as a workaround when bats suite broke without it (dual tracked+gitignored hack)
+- **rc.8** (PR #76/77; tag SHIPPED CLEAN on first attempt 2026-05-04T14:49Z):
+  - Migrated 13 bats suites (27 @test blocks) to assert against `hooks-registry.toml` (canonical source) instead of `hooks.json` (per-machine activation output)
+  - Added `tests/helpers/registry.bash` with `registry_has_hook` + `registry_has_script` helpers
+  - Untracked `hooks.json` cleanly (S-0.4 design intent fully restored)
+  - bump-marketplace auto-PR job confirmed working — claude-mp PR #2 auto-opened on rc.8 ship
+
+**End state:**
+- All 19 WASM hook plugins load successfully (was 17/19 pre-rc.7)
+- `/plugin install vsdd-factory@claude-mp` populates cache correctly (was failing silently since rc.2)
+- All 10 hook events fire end-to-end via the dispatcher
+- bats suite stable across the activate boundary
+- Release pipeline shipped clean on rc.8 (first time since rc.4)
+
+**Lessons codified — see `cycles/v1.0-brownfield-backfill/lessons.md` (TODO update)**:
+- `claude plugin validate` only validates plugin.json; does NOT validate marketplace.json source schema or attempt a dry-run install. Workflow-level errors pass through silently.
+- `secrets` context is NOT available in job-level `if:` in GitHub Actions — only step-level. Pattern: preflight step that sets a `configured=true|false` output, gate subsequent steps on it.
+- `[lib] crate-type = ["cdylib"]` produces underscored .wasm names (Cargo's identifier rule); `[[bin]] name = "hyphenated"` is the only way to get hyphenated wasm output.
+- "Same-repo marketplace + plugin at subpath" with `git-subdir` is empirically broken; cross-repo `git-subdir` works (verified by Semgrep + dclaude/wclaude/zclaude).
+
+### Phase C — v1.0.0 GA cut
+
+Originally "~7 days burn-in from rc.4 ship date." That timeline is moot now — Phase B-bis effectively replaced rc.4 burn-in with rc.5..rc.8 active fixing. Restart the burn-in clock from rc.8 (2026-05-04). If rc.8 stable for ~7 days → cut v1.0.0 GA. Watch for: (a) any further plugin-install regressions, (b) the bump-marketplace auto-PR catching new releases reliably, (c) any new bats failures from the registry assertion migration.
 
 ### Phase D — W-16 Spec Foundation (~3-5 days, can run parallel to Phase C burn-in)
 
@@ -362,26 +398,66 @@ Delete legacy-bash-adapter. All hooks native.
 
 ## Concrete Resume Steps
 
-When resuming:
+When resuming, this STATE.md is self-sufficient — no conversation context required.
 
-1. **Read this checkpoint + recent decisions log** (D-217..D-235 for Phase D context).
-2. **Verify state still aligns** — `git rev-parse origin/main origin/develop` should show e93fef7 + 52e644d (or further if burn-in changes applied).
-3. **Next action choices (parallel tracks):**
-   - **Phase C:** Monitor rc.4 burn-in (~7 days from 2026-05-03). If clean → cut v1.0.0 GA.
-   - **Phase D Burst 2 (NOW):** Story-writer authors S-9.01..S-9.04 (capability clusters B-1+B-2+B-3+B-4 = 14 hooks). Each story requires adversarial convergence per ADR-013 before Burst 3.
-   - **Phase D Burst 3 (after Burst 2 converges):** Story-writer authors S-9.05..S-9.07 (B-5+B-6+B-7 = 9 hooks). After all 7 converge → Phase E (W-16 implementation).
+**0. Universal preflight (do first regardless of which track you resume):**
+- Read this checkpoint + the Approved Plan section below (Phase B-bis for rc.8 detail, Phase D for spec foundation detail).
+- Verify state still aligns: `git -C /Users/jmagady/Dev/vsdd-factory log --oneline origin/main -3` should show the rc.8 bot bundle commit at HEAD; `git log origin/main..origin/develop` should show only the back-merge commit (clean sync).
+- Verify factory worktree mounted: `git -C .factory rev-parse --abbrev-ref HEAD` should return `factory-artifacts`.
 
-## Open Backlog (lower priority than the plan)
+**Track 1 — Phase C: rc.8 burn-in → v1.0.0 GA**
+
+If picking up the GA-cut track:
+1. Verify rc.8 install works on a clean machine: `/plugin marketplace add drbothen/claude-mp` → `/plugin install vsdd-factory@claude-mp` → `/vsdd-factory:activate` → `/reload-plugins`. Should populate cache, surface all `/vsdd-factory:*` slash commands, fire hooks via dispatcher with zero plugin crashes.
+2. Merge claude-mp PR #2 if not yet merged (`gh pr merge 2 --repo drbothen/claude-mp --merge`) — this exposes rc.8 to `/plugin update vsdd-factory@claude-mp` users.
+3. Monitor for ~7 days (so rc.8 burn-in window ends ~2026-05-11). Watch for: (a) plugin-install regressions, (b) bump-marketplace auto-PR catching new releases reliably, (c) bats failures from the registry-assertion migration that may have slipped past local testing, (d) any user reports of skill load failures or hook crashes.
+4. If clean → cut v1.0.0 GA from develop using `scripts/bump-version.sh 1.0.0 "<title>"`. Tag from main per the standard release flow. Skip rc.9 unless a new defect surfaces.
+
+**Track 2 — Phase D-4 Burst 2: W-16 spec foundation continuation**
+
+If picking up the spec-foundation track:
+1. Read recent Phase D decisions D-217..D-235 (in the Decisions Log section above; specifically D-224's scope reversal applied across 12 files, D-231 S-9.00 v1.4 convergence, D-235 E-9 v1.6 convergence at pass-10 NITPICK_ONLY).
+2. Read the converged spec artifacts: `.factory/specs/epics/E-9-*.md` (v1.6) and `.factory/specs/stories/S-9.00-*.md` (v1.4) for the foundation contracts that S-9.01..S-9.04 must trace to.
+3. Spawn story-writer to author S-9.01..S-9.04 covering capability clusters B-1 + B-2 + B-3 + B-4 (14 hooks total). Each story:
+   - Must trace acceptance criteria to BCs in the converged E-9 v1.6 + S-9.00 v1.4 set
+   - Goes through adversarial review until convergence per ADR-013 (3 consecutive NITPICK_ONLY passes)
+   - Records convergence decision in the Decisions Log here
+4. After Burst 2 converges, spawn story-writer for Burst 3: S-9.05..S-9.07 (clusters B-5 + B-6 + B-7 = 9 hooks).
+5. After all 7 stories (Burst 2 + 3) converge → Phase E (W-16 TDD implementation) per the per-story-delivery pattern from W-15.
+
+**Tracks 1 and 2 are independent.** Track 1 is mostly passive monitoring; Track 2 requires active story-writer work. Run them in parallel.
+
+## Open Backlog (post-rc.8 — updated 2026-05-04)
+
+### Carried over from pre-rc.8 (still open)
 
 - TD-019 ci.yml develop trigger (ci.yml does not run on push to develop; PR-time coverage diverges from release.yml tag-time)
-- TD-020 4 broken bats suites in SKIP_SUITES: codify-lessons (16 fail), generate-registry (6 fail), novelty-assessment (2 fail), state-health (17 fail) — fix-or-delete each; NO new SKIP_SUITES entries without a TD ticket
-- TD-021 release.yml fail-fast + cache continue-on-error: set `fail-fast: false` on build-binaries matrix; add `continue-on-error: true` to Cache cargo step to prevent cache-save flakes cascading into release blockers
+- TD-020 broken bats suites in SKIP_SUITES: codify-lessons, generate-registry, novelty-assessment (2 fail at lines 171/186), state-health — fix-or-delete each; NO new SKIP_SUITES entries without a TD ticket
+- TD-021 release.yml fail-fast + cache continue-on-error: set `fail-fast: false` on build-binaries matrix; add `continue-on-error: true` to Cache cargo step
 - TD-014 Tier 2/3 retirement (folded into W-16/W-17)
 - TD-015 per-invocation telemetry correlation (post-v1.0)
 - TD: 1,137 pre-existing STALE input-hashes
 - HIGH-W15-001 plugin version drift (1.0.0-rc.1 vs 0.0.1)
 - SEC-002/004/005/006 deferred dispositions for v1.0 GA
 - Scheduled remote agent 2026-05-22 — independently verifies sync-develop fired correctly on rc.3
+
+### New from Phase B-bis (rc.5..rc.8 work)
+
+- **TD-022 apply-platform.sh bash dependency on Windows.** apply-platform.sh + detect-platform.sh are bash scripts. Windows users need git-bash. Tracked enhancement: rewrite as a `factory-dispatcher activate` subcommand so the dispatcher binary owns activation logic — drops the bash dependency entirely + makes activation truly OS-portable.
+- **TD-023 commands-reference.md staleness.** rc.5 deleted the entire `plugins/vsdd-factory/commands/` shim directory (111 files); `docs/guide/commands-reference.md` may still reference patterns from before that. Audit + refresh.
+- **TD-024 lessons.md update for Phase B-bis.** Capture in `cycles/v1.0-brownfield-backfill/lessons.md`: (1) `claude plugin validate` doesn't validate marketplace.json source schema; (2) `secrets` context unavailable in job-level `if:`; (3) `[lib] crate-type cdylib` produces underscored wasm names — use `[[bin]] name = "hyphenated"`; (4) same-repo marketplace + git-subdir is empirically broken — cross-repo works.
+- **TD-025 generate-marketplace-pr.sh** (optional). The bump-marketplace job duplicates jq + git logic from claude-mp's manual flow. Could extract a small bin/ helper script that both the workflow and an operator-run path can call. Low priority.
+- **TD-026 dual maintenance burden.** vsdd-factory release workflow now needs to coordinate with claude-mp's marketplace.json updates. Currently automated via bump-marketplace + CLAUDE_MP_PAT secret. Document the secret rotation policy somewhere (maintainer ops doc).
+
+### Lessons codified during the cycle (need follow-up codification in lessons.md)
+
+| Lesson | Where it bit us | Codification |
+|---|---|---|
+| `claude plugin validate` is plugin-only — it does NOT validate marketplace.json source schema | rc.2..rc.5 shipped a schema-violating `github + path` source that passed validate | Add to release-checklist: "validate" passing is necessary but NOT sufficient; require clean-room install verification |
+| `secrets` not available in job-level `if:` | rc.7 hotfix #1 (PR #74) — every release.yml run failed silently with "workflow file issue" | Pattern: preflight step sets output, subsequent steps gate on output |
+| Cargo defaults `[lib] name` to underscore-converted package name | block-ai-attribution + capture-pr-activity crashed silently for weeks because registry expected hyphens but cdylib produced underscores | `[[bin]] name = "hyphenated"` is the only path; document in plugin-marketplace-architecture.md (already done) |
+| Self-referential same-repo `git-subdir` is broken empirically (works for cross-repo) | rc.6 attempted git-subdir within same repo as marketplace; cache stayed empty | Always split marketplace into a separate repo when nested layout is involved |
+| `hooks.json` is per-machine output of activate; tests should assert against `hooks-registry.toml` | rc.7 untracked hooks.json correctly per S-0.4, broke 11 bats suites that asserted against it | Done in rc.8 — bats migrated to registry assertions via `tests/helpers/registry.bash` |
 
 ## Historical Content
 Historical detail (burst-log, convergence-trajectory, session-checkpoints, lessons, resolved-blockers, release ladder) lives in `cycles/v1.0-brownfield-backfill/`.
