@@ -1,5 +1,48 @@
 # Changelog
 
+## Unreleased
+
+### TD-020 sweep — bats SKIP_SUITES cleanup
+
+Resolved the four bats suites permanently excluded from the
+release-validation gate via `SKIP_SUITES` in
+`plugins/vsdd-factory/tests/run-all.sh`. Each suite either now passes
+when un-skipped or had its broken assertions removed.
+
+#### Tests removed (with rationale)
+
+- **`codify-lessons.bats` — BC-5.36.007** ("all three agents updated
+  in the delivery branch"): asserted that the
+  `.worktrees/codify-lessons` delivery worktree contained diff-vs-main
+  changes to 3 agents. The worktree no longer exists post-merge, so
+  the assertion was structurally impossible. The same contract
+  (agents updated) is still validated by BC-5.36.001–006 which inspect
+  the merged files.
+- **`novelty-assessment.bats` — "validates adversarial-delta-review
+  files"**: asserted that the hook would block
+  `.factory/phase-f5-adversarial/adversarial-delta-review.md`. The
+  current case-statement matcher in
+  `validate-novelty-assessment.sh` only covers
+  `.factory/specs/adversarial-*review*.md`. Per TD-020 (no new
+  functionality to make tests pass), the test asserted behavior the
+  hook does not implement.
+- **`novelty-assessment.bats` — "validates story adversarial review
+  files"**: asserted that `.factory/stories/adversarial-reviews/`
+  paths are validated. That layout is not used anywhere in the
+  current plugin (zero grep hits). Per-story adversarial review is
+  not part of the current artifact tree.
+- **`novelty-assessment.bats` — "valid delta review passes"**: passed
+  only because the case-statement matcher does not cover
+  `.factory/phase-f5-adversarial/` and so falls through to exit 0.
+  With the matching negative-path test removed, keeping this
+  happy-path test gave a misleading signal.
+
+#### Suites un-skipped (no test changes needed)
+
+- **`generate-registry.bats`** — all 6 invariant tests now pass; the
+  generator stabilized after the TD-016 glob refactor that originally
+  surfaced the breakage.
+
 ## 1.0.0-rc.10 — Skill-body version-ref cleanup (2026-05-04)
 
 Hotfix release. Removes vsdd-factory release-version references
