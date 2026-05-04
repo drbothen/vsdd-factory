@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.40"
+version: "1.42"
 status: current
 producer: state-manager
 timestamp: 2026-05-04T00:00:00
@@ -64,6 +64,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **W-16 Phase D-4 pass-2 fix burst (2026-05-03): E-9 v1.2 + S-9.00 v1.2 + ADR-014 R-8.NN correction. STORY-INDEX v1.32 → v1.33.** Pass-2 adversarial returned SUBSTANTIVE on both E-9 v1.1 and S-9.00 v1.1: 20 findings total (6 HIGH + 8 MEDIUM + 6 LOW). E-9 v1.1→v1.2 (495L→567L): R-W16-002/004 semantic collision with ADR-014 resolved by adopting ADR-014 definitions verbatim; E-9 redefinitions renumbered R-W16-007/008 (POLICY 1 append-only); BC-2.02.005 mis-anchor corrected to BC-1.05.001..034+035+036 at 6 sites; D-9.4 Exception clause + SS-02 line 374 reference removed (invalidated by D-9.2 withdrawal); 5 MEDIUM + 4 LOW findings closed. S-9.00 v1.1→v1.2 (~380L→456L): du -sb regression at lines 193+212 corrected to wc -c (sibling-propagation gap); advisory cap baseline corrected to pre-W-15 ~7.2MB at AC-3b+B.2 + Task A.0 added; AC-2 Tier 1 plugin count corrected 12→13 (validate-pr-review-posted added, verified @d49f33b); R-8.NN resolved as R-8.08 (canonical per E-8 v1.10 line 607-608); 4 sites corrected in S-9.00; cold-vs-warm latency conflation resolved in EC-006+B.1; B.1 representative plugin corrected to handoff-validator.wasm. ADR-014 R-8.09 amendment: R-8.10 citation corrected to R-8.08. ADR-013 clock: 0_of_3 (reset on SUBSTANTIVE pass-2). D-225 sealed.
 > **W-16 Phase D-4 pass-4 fix burst (2026-05-03): E-9 v1.4 + S-9.00 v1.4. STORY-INDEX v1.34 → v1.35.** Fix-only mode. E-9 v1.3→v1.4: F-P4-002 v1.1 changelog parenthetical updated (wc supersession); v1.4 changelog appended. S-9.00 v1.3→v1.4: F-P4-002 fixture file authored; F-P4-006 AC-3(b) consolidated; F-P4-007 AC-2/AC-8 frozen-set pinned; F-P4-003 closed-as-verified. Cross-doc: S-9.07 Notes column BC-2.02.005 → BC-1.05.001..034 + BC-1.05.035 + BC-1.05.036 (F-P4-001 HIGH). D-227 sealed.
 > **W-16 Phase D-4 pass-3 fix burst (2026-05-03): E-9 v1.3 + S-9.00 v1.3. STORY-INDEX v1.33 → v1.34.** Pass-3 adversarial returned SUBSTANTIVE on both: E-9 v1.2 (1 MED + 1 LOW + 1 HIGH cross-doc from S-9.00); S-9.00 v1.2 (3 HIGH + 2 MED + 2 LOW). 9 findings total. E-9 v1.2→v1.3 (567L→598L): R-W16-005 description rewritten with distinct fail-mode semantics vs R-W16-002 (POLICY 1 retain with semantic distinctness); risk header wording precise (ADR-014 verbatim vs E-9-original); library table line 373 du→wc (POSIX) completing pass-1 F-7 propagation. S-9.00 v1.2→v1.3 (456L→535L): AC-8 median scope pinned to AC-2's 17-plugin enumeration × 3 (all 17 names listed); Task B.1 hyperfine command pinned (factory-dispatcher stdin-only, no --plugin/--event flag; EC-007 added); Task A.0 git command tested on disk (git ls-tree -lr v1.0.0-rc.1 → 321,843 bytes verified); CRITICAL baseline reconciliation: 7.2MB pre-W-15 figure from research §Q3 was PROJECTION not measurement; actual rc.1 wasm = ~322KB; AC-3(b) cap pinned to wasm-only bytes; Token Budget label v1.1→v1.3. ADR-013 clock: 0_of_3 (reset on SUBSTANTIVE pass-3). D-226 sealed.
+>
+> **ADR-015 supersession of ADR-005 (2026-05-04): STORY-INDEX v1.40 → v1.41.** ADR-015 (single-stream OTel-aligned event emission) ACCEPTED; supersedes ADR-005 (multi-sink observability) and amends ADR-007 (always-on telemetry). 6 stories tagged with `superseded_by: ADR-015` frontmatter: **S-3.04** (status: merged → partially_shipped — AC-001 false-shipped: Router::submit never wired in main.rs, only in tests; per LESSON-2026-05-04-001); **S-1.4** (host::emit_event surface kept; stub queue obsolete); **S-1.8** (sink-file kept and becomes THE single-stream writer); **S-1.9** (sink-otel-grpc deprecated — OTel transport deferred to external collector); **S-4.06** (Router/RoutingFilter/tag-enrichment retired); **S-4.07** (DLQ-via-Router wiring + multi-sink E2E paths retired). Status-column rows below annotated with "[superseded by ADR-015]". Filed S-7.04 (AC-test-link discipline) targets the false-shipped pattern at the process layer.
+>
+> **ADR-015 housekeeping follow-up burst (2026-05-04): STORY-INDEX v1.41 → v1.42.** Q2/Q3/Q4/Q5 cleanup follow-ups from prior audit. **Q2 multi-sink ecosystem annotated `deprecated_by: ADR-015`:** 6 stories tagged — S-4.01 (sink-http), S-4.02 (sink-datadog), S-4.03 (sink-honeycomb), S-4.04 (per-sink retry+CB), S-4.10 (cross-sink internal.sink_error events), S-4.09 (sink-http retry backoff — sink-coupled per investigation); S-4.05 (DLQ) SKIPPED per "skip drafts" rule (status: draft). S-4.08 (rc1 release gate) SKIPPED — release-process story, not sink-mechanism-coupled. **Q4 status-taxonomy normalized:** S-3.04 frontmatter `status: partially_shipped` → `status: partial` to align with documented status set (draft, ready, in-progress, merged, partial, blocked); STORY-INDEX row updated likewise. **Q5 ADR-015 path/anchor added:** all 6 prior-burst stories (S-3.04, S-1.04, S-1.08, S-1.09, S-4.06, S-4.07) gained a `supersession_ref: ".factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md"` frontmatter field; the 6 multi-sink stories newly annotated above also carry the same `supersession_ref`. **Q3 TD-020 logged** in `.factory/tech-debt-register.md` (line 23 + detail at line 557; P3) capturing pre-existing frontmatter↔STORY-INDEX status drift (sample: S-4.06/S-4.07 frontmatter `status: ready` while index shows merged). Status row counts: `partially_shipped` retired from taxonomy (count 1 → 0); `partial` 1 → 2.
 
 > This index is the authoritative source for story count and status.
 > 59 stories across 9 epics (E-0 through E-8).
@@ -76,13 +80,15 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 57 |
-| partial | 1 |
+| merged | 56 |
+| partial | 2 |
 | draft | 10 |
 | ready | 0 |
 | withdrawn | 1 |
 | retired | 19 |
 | **Total (active)** | **69** |
+
+> `partial`: S-2.05 (hook-sdk publish to crates.io — pre-existing); S-3.04 (status: merged → partial 2026-05-04 [normalized from earlier `partially_shipped` to align with documented taxonomy]; AC-001 Router::submit integration never wired in main.rs; superseded by ADR-015 — see LESSON-2026-05-04-001).
 
 > `withdrawn`: S-9.30 (ADR-014 D-9.2 amendment 2026-05-03; body preserved per POLICY 1)
 > `retired`: S-8.11..S-8.29 (19 Tier 2/3 placeholder stories; superseded by E-9/future E-10 per E-8 v1.10 CHANGELOG)
@@ -106,12 +112,12 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-1.01 | Cargo workspace + CI scaffolding | E-1 | 5 | P0 | -- | merged | 0 (pure scaffolding, justified) |
 | S-1.02 | factory-dispatcher core (stdin, TOML load, routing) | E-1 | 8 | P0 | S-1.01 | merged | 26 |
 | S-1.03 | hook-sdk crate (macro, types, bindings) | E-1 | 8 | P0 | S-1.01 | merged | -- |
-| S-1.04 | Host function surface implementation | E-1 | 8 | P0 | S-1.01, S-1.02, S-1.03 | merged | 26 |
+| S-1.04 | Host function surface implementation | E-1 | 8 | P0 | S-1.01, S-1.02, S-1.03 | merged [superseded by ADR-015] | 26 |
 | S-1.05 | wasmtime integration + epoch/fuel enforcement | E-1 | 8 | P0 | S-1.01, S-1.02, S-1.04 | merged | 15 |
 | S-1.06 | tokio + parallel-within-tier execution | E-1 | 5 | P0 | S-1.01, S-1.02, S-1.04, S-1.05 | merged | 8 |
 | S-1.07 | dispatcher-internal.jsonl writer | E-1 | 3 | P0 | S-1.01, S-1.02 | merged | 10 |
-| S-1.08 | sink-file driver | E-1 | 5 | P0 | S-1.01, S-1.07 | merged | 23 |
-| S-1.09 | sink-otel-grpc driver | E-1 | 5 | P0 | S-1.01, S-1.08 | merged | 15 |
+| S-1.08 | sink-file driver | E-1 | 5 | P0 | S-1.01, S-1.07 | merged [superseded by ADR-015 — kept as single-stream writer] | 23 |
+| S-1.09 | sink-otel-grpc driver | E-1 | 5 | P0 | S-1.01, S-1.08 | merged [deprecated by ADR-015 — OTel deferred to external collector] | 15 |
 
 ## Epic E-2 — Legacy Adapter and Beta Release (Tier C + D — mostly merged)
 
@@ -130,7 +136,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|-----|
-| S-3.04 | emit_event as host function refactor | E-3 | 3 | P0 | S-1.04 | merged | 8 |
+| S-3.04 | emit_event as host function refactor | E-3 | 3 | P0 | S-1.04 | partial [AC-001 unwired in main.rs; superseded by ADR-015; LESSON-2026-05-04-001] | 8 |
 | S-3.01 | Port capture-commit-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | merged | -- |
 | S-3.02 | Port capture-pr-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | merged | -- |
 | S-3.03 | Port block-ai-attribution to WASM | E-3 | 3 | P1 | S-2.08, S-3.04 | merged | -- |
@@ -139,16 +145,16 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|-----|
-| S-4.01 | sink-http driver | E-4 | 5 | P1 | S-1.08 | merged | 4 |
-| S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | merged | 2 (+ 2 deferred LOW findings F-1/F-2 from PR #18; v1.3) |
-| S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | merged | 2 |
-| S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | merged | 1 (v1.1 BC creation dep note) |
+| S-4.01 | sink-http driver | E-4 | 5 | P1 | S-1.08 | merged [deprecated by ADR-015 — HTTP egress deferred to OTel collector] | 4 |
+| S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | merged [deprecated by ADR-015 — Datadog egress deferred to OTel collector] | 2 (+ 2 deferred LOW findings F-1/F-2 from PR #18; v1.3) |
+| S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | merged [deprecated by ADR-015 — Honeycomb egress deferred to OTel collector] | 2 |
+| S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | merged [deprecated by ADR-015 — per-sink resilience retired with sink ecosystem] | 1 (v1.1 BC creation dep note) |
 | S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | merged | 2 (+ v1.1 candidates; CONVERGENCE_REACHED pass-48; v1.45; commit ac22a3d; PR #29 merged a84a5f5 on develop 2026-04-28) |
-| S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | merged | 6 (BC-3.04.003, BC-3.04.004, BC-3.06.007 added; 5 lifecycle updated; PR #30 merged 6ef564c on develop 2026-04-28) |
-| S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | merged | 16 (PR #31 merged 1d4edb7 on develop 2026-04-28; spec v1.11 4c0050c; 8 adversarial passes; 40/40 tests in 5.09s) |
+| S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | merged [deprecated by ADR-015 — Router/RoutingFilter retired] | 6 (BC-3.04.003, BC-3.04.004, BC-3.06.007 added; 5 lifecycle updated; PR #30 merged 6ef564c on develop 2026-04-28) |
+| S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | merged [deprecated by ADR-015 — DLQ-via-Router + multi-sink E2E retired] | 16 (PR #31 merged 1d4edb7 on develop 2026-04-28; spec v1.11 4c0050c; 8 adversarial passes; 40/40 tests in 5.09s) |
 | S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | merged | 5 (PR #32 merged d7eae89 on develop 2026-04-28; spec v1.16 62f7297; 17-pass spec convergence; 6 testable-now ACs RED→GREEN; 11 deferred-to-shakedown; D-133) |
-| S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | merged | 1 |
-| S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | merged | 1 |
+| S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | merged [deprecated by ADR-015 — sink-http retired; backoff moves to OTel collector] | 1 |
+| S-4.10 | internal.sink_error event emission (cross-sink) | E-4 | 5 | P1 | S-4.01 | merged [deprecated by ADR-015 — only one sink remains; cross-sink eventing retires] | 1 |
 
 ## Epic E-5 — New Hook Events and 1.0.0 Release (Tier G + H — draft/partial)
 

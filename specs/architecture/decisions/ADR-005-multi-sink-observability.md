@@ -1,12 +1,15 @@
 ---
 document_type: adr
 adr_id: ADR-005
-status: accepted
+status: superseded
 date: 2026-04-26
 subsystems_affected: [SS-01, SS-03]
 supersedes: null
-superseded_by: null
+superseded_by: ADR-015
+superseded_date: 2026-05-04
 ---
+
+> **SUPERSEDED.** This ADR was superseded by [ADR-015](./ADR-015-single-stream-otel-schema.md) on 2026-05-04. The two-plane Router/SinkRegistry architecture described here was never fully wired (the integration step at `crates/factory-dispatcher/src/sinks/mod.rs` remained unimplemented for ~6 weeks despite the component crates shipping). ADR-015 replaces it with a single-stream + OTel-aligned schema + producer-side enrichment model. Read ADR-015 for the current architecture; this ADR is preserved for historical context only.
 
 # ADR-005: Multi-Sink Observability Natively in Dispatcher
 

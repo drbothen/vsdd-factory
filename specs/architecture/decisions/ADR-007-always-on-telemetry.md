@@ -6,7 +6,11 @@ date: 2026-04-26
 subsystems_affected: [SS-01, SS-03]
 supersedes: null
 superseded_by: null
+amended_by: ADR-015
+amended_date: 2026-05-04
 ---
+
+> **AMENDED.** This ADR was amended by [ADR-015](./ADR-015-single-stream-otel-schema.md) on 2026-05-04. The always-on telemetry principle is preserved, but the implementation is changed: `events-*.jsonl` is now the always-on canonical event stream (single-stream model), and `dispatcher-internal-*.jsonl` is repurposed as an opt-in debug stream gated by `VSDD_DEBUG_LOG=1`. See ADR-015 for the rationale and the updated semantics.
 
 # ADR-007: Always-On Dispatcher Self-Telemetry
 

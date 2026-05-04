@@ -13,13 +13,15 @@ last_updated: 2026-05-04T00:00:00
 |----------|-------|-----------------|
 | P0 (next cycle) | 1 | TD-013 branch protection restore |
 | P1 (within 3 cycles) | 3 | XL (29–39 across 6 sub-stories) + TD-010 publish + TD-017 bats-orphan-detection |
-| P2 (backlog) | 14 | — (TD-015 per-invocation correlation ~30 pts; TD-016 run-all.sh glob; TD-018 clippy debt; TD-019 activate-helpers PowerShell-parity + Rust consolidation; TD-019a pwsh syntactic CI gate, all added 2026-05-04) |
-| P3 (v1.1+) | 4 | — |
+| P2 (backlog) | 15 | — (TD-015 per-invocation correlation ~30 pts; TD-016 run-all.sh glob; TD-018 clippy debt; TD-019 activate-helpers PowerShell-parity + Rust consolidation; TD-019a pwsh syntactic CI gate; TD-020 run-all.sh skip-suites cleanup backfilled 2026-05-04) |
+| P3 (v1.1+) | 5 | — (TD-021 frontmatter↔STORY-INDEX status drift, added 2026-05-04) |
 
 ## Debt Items
 
 | ID | Source | Description | Priority | Introduced | Cycle | Story | Due |
 |----|--------|-------------|----------|-----------|-------|-------|-----|
+| TD-021 | post-ADR-015 story-housekeeping audit (2026-05-04) | Story-frontmatter vs STORY-INDEX status drift. Several stories (initial sample: S-4.06, S-4.07; possibly broader) have stale `status: ready` in frontmatter while STORY-INDEX correctly tracks them as `merged` (per merged PRs #30, #31). Pre-existing drift not caused by recent ADR-015 supersession work. Fix: either add a CI lint that asserts frontmatter status matches STORY-INDEX status, OR establish a one-time backfill burst to reconcile. | P3 | post-ADR-015 audit 2026-05-04 | v1.0-brownfield-backfill | — | v1.1+ |
+| TD-020 | run-all.sh skip-suites cleanup (referenced but never registered) | Four bats suites permanently skipped via `SKIP_SUITES` in `plugins/vsdd-factory/tests/run-all.sh:49-54`: `codify-lessons`, `generate-registry`, `novelty-assessment`, `state-health`. Each was surfaced when the TD-016 glob refactor widened `run-all.sh` discovery scope; each fails for a documented reason captured inline in the skip block (lines 36-45). The TD has been referenced from `run-all.sh:34, 47, 87` since the rc.3 recovery work but was never formally registered until 2026-05-04. **Fix per suite:** (a) `codify-lessons` — assertions reference patches that were never applied; either apply the missing patches OR delete the assertions. (b) `generate-registry` — migration-generator behavior drift; align test invariants with current generator semantics. (c) `novelty-assessment` — references a workflow that was never implemented; delete or implement. (d) `state-health` — references skills/commands not in current plugin layout; align or delete. **Acceptance:** all four suites either pass when un-skipped OR are deleted with an entry in CHANGELOG explaining why. SKIP_SUITES list shrinks to zero. | P2 | rc.3 recovery → backfill registered 2026-05-04 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-019a | PR #78 review follow-up (2026-05-04) | Add a lightweight pwsh syntactic-validation gate to CI — `[System.Management.Automation.Language.Parser]::ParseFile()` on both `.ps1` files, plus 3 smoke invocations (`-Help`, mocked-Linux, bad-platform). ~10 lines of YAML, no Pester runner needed, catches future parse errors before they hit a Windows operator. Recommended as the v1.0-cycle stopgap before TD-019(a)'s full Pester suite lands. Acceptance: PR opens against `develop` adding a `lint-pwsh` job to the existing CI workflow that runs on `windows-latest` (or `ubuntu-latest` with pwsh installed) on any PR touching `plugins/vsdd-factory/skills/activate/*.ps1`. | P2 | PR #78 review (test-analyzer) 2026-05-04 | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-019 | post-rc.8 PowerShell-parity work (2026-05-04) | Two-part: (a) Add Pester test suite at `plugins/vsdd-factory/tests/activate.Tests.ps1` mirroring the existing `.bats` matrix — same MOCK_UNAME_S/M envvar overrides, same VSDD_PLUGIN_ROOT_OVERRIDE for synthetic-root apply tests; wire into CI on a `windows-latest` job. **Acceptance for (a)**: All 18 supported/unsupported platform tuples and all 13 apply-platform scenarios from `activate.bats` have Pester equivalents that pass on a `windows-latest` runner; the JSON output of every MOCK tuple is diffed byte-for-byte against the bash sibling (run on `ubuntu-latest`) and matches. (b) Consolidate `apply-platform.sh` + `apply-platform.ps1` file-copy/verify logic into a `factory-dispatcher activate --platform <p>` Rust subcommand; keep thin shell shims (~40 lines each) for "verify binary exists before invoking it" since the binary cannot self-verify. **Acceptance for (b)**: (1) shims are ≤40 LOC each and only verify binary presence + invoke `factory-dispatcher activate`; (2) the Rust subcommand lands in the existing `factory-dispatcher` crate, not a new crate; (3) shared bats+Pester matrix passes against the shim+Rust path; (4) deletion of legacy `apply-platform.{sh,ps1}` body code is included in the same PR; (5) migration path documented for in-flight v1.0 activations (re-run activate is sufficient). Defer until v1.0.0 ships and apply-logic growth (drift detection, settings.local.json merging, dry-run mode) justifies the refactor. | P2 | post-rc.8 PS1-parity 2026-05-04 | v1.0-brownfield-backfill | — | v1.1 |
 | TD-018 | rc.3 recovery (D-209, D-210) | Workspace clippy debt sweep — `non_snake_case` test fn names, type_complexity, unused imports surfaced by `--all-targets -- -D warnings` on rc.3 PR #62; currently suppressed via `#[allow]` attrs at file/fn level; future cleanup: rename test fns OR establish project-wide `#![allow(non_snake_case)]` for test modules with BC-named tests | P2 | rc.3 cut 2026-05-03 | v1.0-brownfield-backfill | — | v1.0.1 |
@@ -550,6 +552,46 @@ Promote from P2 to P1 when ANY of the following occurs:
 - D-6 Option A (precedent for additive SDK ABI extension via S-8.10 host::write_file)
 - AS-DEC for HOST_ABI_VERSION = 1 (additive ABI semantics)
 - S-8.08 v1.4 changelog (the parity restoration that opened this debt)
+
+---
+
+## TD-021 — Story-frontmatter vs STORY-INDEX status drift
+
+**Severity:** P3 (v1.1+; pre-existing; non-blocking)
+**Adopted:** 2026-05-04 (post-ADR-015 story-housekeeping audit)
+**Origin:** Q3 finding from post-ADR-015 audit follow-up burst
+
+### Context
+
+Several story files have stale `status: ready` in their frontmatter while STORY-INDEX correctly tracks them as `merged`. Initial sample: **S-4.06** and **S-4.07** — both were merged to develop on 2026-04-28 (PR #30 at 6ef564c and PR #31 at 1d4edb7 respectively, per STORY-INDEX rows), yet their frontmatter still reads `status: ready`. The drift is pre-existing — not introduced by the ADR-015 supersession annotation work — and likely reflects the convention that the post-merge status flip happens in STORY-INDEX rather than per-story frontmatter.
+
+### Scope (when triggered)
+
+Two viable remediation paths:
+
+1. **CI lint hook:** Add `validate-story-status-vs-index.sh` (analogous to existing `validate-story-bc-sync.sh`) that asserts every story's frontmatter `status:` value matches the STORY-INDEX row for the same story_id. Fails CI if drift detected. Forces both files to stay in sync going forward.
+
+2. **One-time backfill burst:** Walk all story files; for each, look up the STORY-INDEX status; if frontmatter ≠ index, update the frontmatter. Single PR clears existing drift; no enforcement going forward.
+
+The CI lint is preferred (prevents recurrence) but requires enumerating which side is canonical for ambiguous transitions (draft → ready → in-progress → merged); the backfill is cheaper if STORY-INDEX is treated as source-of-truth.
+
+### Trigger Criteria
+
+Promote from P3 to P2 if:
+- A future automated metric/dashboard reads frontmatter `status:` (today everything reads STORY-INDEX); drift would mislead the metric
+- A story-writer agent uses frontmatter `status:` for routing decisions and the stale value causes incorrect routing
+
+### Estimated Cost
+
+- CI lint hook approach: 2-3 pts (script + bats tests + wiring)
+- Backfill-only approach: 1-2 pts (one-shot script + PR)
+- Combined approach (lint + initial backfill): 3-5 pts
+
+### Cross-references
+
+- Q3 finding from 2026-05-04 post-ADR-015 audit follow-up burst
+- Sample drifted stories: S-4.06, S-4.07 (frontmatter `status: ready`; STORY-INDEX `merged`)
+- Related lint hook pattern: `plugins/vsdd-factory/hooks/validate-story-bc-sync.sh`
 
 ---
 
