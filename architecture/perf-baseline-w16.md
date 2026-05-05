@@ -350,7 +350,7 @@ NOT captured in this baseline — it applies only once S-9.01..S-9.07 plugins la
 
 Per ADR-015 D-15.1 rationale: at vsdd-factory event volumes (tens to hundreds of events
 per session), a single FileSink append to `events-YYYY-MM-DD.jsonl` adds negligible
-overhead (sub-millisecond I/O). This baseline's cold_start_p95 gate (500ms) and
+overhead (measured throughput >10k events/minute per ADR-015 D-15.1 Rationale; negligible at vsdd-factory volumes). This baseline's cold_start_p95 gate (500ms) and
 wave-over-wave delta protocol are unaffected by ADR-015's emit path change. Downstream
 waves (S-9.01..S-9.07) should NOT attribute emit-path overhead to ADR-015 unless
 profiling evidence suggests otherwise; any regression is expected to originate from

@@ -331,10 +331,12 @@ The "Success-path telemetry event" gap identified in Section 5 Gap 2 — the mis
 - The host stamps all Resource attributes and per-event identity fields before writing
   (D-15.3 enrichment contract). The dispatcher's `exec_subprocess` implementation does not
   need to stamp `service.*`, `plugin.*`, or `trace_id` fields manually.
-- `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` are injected by the dispatcher into every
-  `exec_subprocess` invocation unconditionally (ADR-015 D-15.4). The `validate-wave-gate-prerequisite`
-  subprocess hop (S-9.07) inherits trace context automatically — no per-plugin manifest change
-  needed.
+- `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` MUST be injected by the dispatcher into every
+  `exec_subprocess` invocation per ADR-015 D-15.4 (normative future-state; current `execute_bounded`
+  env-handling at exec_subprocess.rs:242-247 does env_clear + selective env_allow forward only —
+  VSDD_TRACE_ID/VSDD_PARENT_SPAN_ID injection is implementation work pending in E-10 Wave 1 per
+  OQ-W16-001 owner). The `validate-wave-gate-prerequisite` subprocess hop (S-9.07) will inherit
+  trace context automatically once injection lands — no per-plugin manifest change needed.
 
 ### Existing denial-path telemetry (Section 1, row "Telemetry event on denial")
 

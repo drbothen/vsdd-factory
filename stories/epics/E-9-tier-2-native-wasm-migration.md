@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.28"
+version: "1.29"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -489,7 +489,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.26 | 2026-05-05 | state-manager | D-270 silence-audit fix burst — H-P27-001 (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; Router/SinkRegistry retired per ADR-015 lines 130, 154; source-code verified); M-P27-001 (Postcondition 5 INTERNAL_ERROR (-99) enumeration added: spawn failure exec_subprocess.rs:252, stdin take/write :258/:262, stdout/stderr take :267-268, try_wait error :299; const at host/mod.rs:184; TD-VSDD-075+078 applied). ADR-013 clock RESET 0_of_3. |
 | 1.27 | 2026-05-05 | state-manager | D-271 comprehensive sibling-sweep fix burst — H-P28-001 (BC-1.05.036:38 §Description "normal sink chain" replaced with ADR-015-correct emit_internal/FileSink wording); H-P28-002 (BC-1.05.036:135 §Purity "sink chain + non-blocking try_send" replaced with actual synchronous Mutex::lock+Vec::push per host/mod.rs:105-116); M-P28-001 (EC-007 INTERNAL_ERROR row added to §Edge Cases); M-P28-002 (INTERNAL_ERROR test vector row added to §Canonical Test Vectors); M-P28-003 (EC-005 + Test Vector OUTPUT_TOO_LARGE aligned to EC-004 sibling form with "NO event emitted in v1" qualifier); L-P28-001 ("retired" → dual-verb "removed per line 154 / retired per line 130" per ADR-015 lifecycle taxonomy). Source-of-truth verification per TD-VSDD-075+078 applied to all 6 fixes. TD-VSDD-079 codified (TD-VSDD-076 extension: terminology-family grep checklist for sibling-sweep fixes; 3rd recurrence threshold met). ADR-013 clock RESET 0_of_3. |
 | 1.28 | 2026-05-05 | state-manager | D-272 cross-doc terminology drift fix — H-P29-001 (BC-1.05.036:51 "external fan-out to Datadog/Honeycomb" → "external export to remote observability backends" — scrubs fan-out + vendor names per TD-VSDD-079 8-term family grep); H-P29-002 (BC-1.05.035:35 §Description NUL-byte attribution corrected — "rejects NUL bytes" removed from canonicalize; redirected to `read_wasm_string` error path per §Postcondition 2 + §Precedence Ladder + §EC-005); full TD-VSDD-079 8-term grep across all 5 in-scope files (all non-changelog body: ZERO prohibited matches PASS); TD-VSDD-080 codified (mechanize TD-VSDD-079 as pre-commit hook; 5 consecutive narrative-discipline failures forces mechanical enforcement). ADR-013 clock 0_of_3 (reset by pass-29; remains 0). |
-| 1.29 | — | — | (reserved) |
+| 1.29 | 2026-05-05 | state-manager | D-274 inverse-traceability fix — MED-P31-001 (gap-analysis:334-337 + audit-w16 B-7 row tense corrected: "are injected"/"automatic invariant" → "MUST be injected per D-15.4, normative future-state; pending E-10 Wave 1"); MED-P31-002 (BC-1.05.036 Postcondition 2: outcome enum field added + exit_code→outcome mapping per ADR-015 D-15.2:270); LOW-P31-003 (BC-1.05.036 stdin write-failure cite :262 → :259); LOW-P31-004 (perf-baseline "sub-millisecond I/O" → "measured throughput >10k events/minute per ADR-015 D-15.1 Rationale"); LOW-P31-005 SKIPPED (tense conflation cosmetic per S-7.03 SHIP-AS-IS). Source-of-truth verification per TD-VSDD-075: exec_subprocess.rs:242-247 env_clear+selective-forward confirmed; :259 write_all().is_err() confirmed; ADR-015 D-15.2:270 outcome enum confirmed; D-15.4:407-419 MUST-be-injected confirmed; D-15.1 Rationale:432-440 10k events/minute confirmed. ADR-013 clock 0_of_3 (RESET by pass-31 SUBSTANTIVE). |
+| 1.30 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1494,5 +1495,45 @@ When a BC postcondition or normative BC section cites a CONCRETE ENUMERATION (li
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.27"` → `"1.28"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (sixteenth use):** State-manager handles pass-29 seal and 2-fix burst atomically. All fixes are textual corrections to BC normative sections.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.29 (2026-05-05) — D-274 inverse-traceability fix: pass-31 0H/2M/3L; trace-id tense correction + outcome enum + line cite + paraphrase; TD-VSDD-057 inverse-traceability angle; ADR-013 clock RESET 0_of_3
+
+**MED findings closed:**
+
+- **MED-P31-001 CLOSED (Fix 1+2):** gap-analysis-w16-subprocess.md:334-337 + audit-w16.md B-7 row both claimed `VSDD_TRACE_ID`/`VSDD_PARENT_SPAN_ID` injection as present-tense "automatic (dispatcher-side invariant)". ADR-015 D-15.4:407-419 frames this as normative MUST obligation (future-state). Source-code verification per TD-VSDD-075: exec_subprocess.rs:242-247 does `env_clear()` + selective `env_allow` forward ONLY — no trace-id injection present. Corrected both sites to "MUST be injected per ADR-015 D-15.4 (normative future-state; current `execute_bounded` does NOT inject these vars; implementation pending E-10 Wave 1)".
+
+- **MED-P31-002 CLOSED (Fix 3):** BC-1.05.036 Postcondition 2 listed 8 domain payload fields but omitted `outcome` enum field mandated by ADR-015 D-15.2:270 canonical taxonomy (`success | failure | error | timeout | skipped | blocked`). Added sentence to Postcondition 2: (a) `outcome` is host-stamped per D-15.3 (not part of 8-field domain payload); (b) exit_code→outcome mapping (`exit_code == 0 → 'success'`; `exit_code != 0 → 'failure'`); (c) no-event paths (TIMEOUT/OUTPUT_TOO_LARGE/INTERNAL_ERROR) out of scope.
+
+**LOW findings closed:**
+
+- **LOW-P31-003 CLOSED (Fix 4):** BC-1.05.036 Postcondition 5 + EC-007 cited `:262` for stdin write-failure path. exec_subprocess.rs:259 is the actual `child_stdin.write_all(stdin_bytes).is_err()` check. Both Postcondition 5 and EC-007 updated `:262` → `:259`.
+
+- **LOW-P31-004 CLOSED (Fix 5):** perf-baseline-w16.md:353 paraphrase "sub-millisecond I/O" replaced with "(measured throughput >10k events/minute per ADR-015 D-15.1 Rationale; negligible at vsdd-factory volumes)".
+
+- **LOW-P31-005 SKIPPED (per S-7.03 SHIP-AS-IS):** BC-1.05.036 Postcondition 4 "Same code path as emit_denial" tense conflation cosmetic; structurally accurate. Deferred as not materially misleading.
+
+**Source-of-truth verification per TD-VSDD-075:**
+- exec_subprocess.rs:242-247 confirmed: `command.env_clear()` + selective `env_allow` forward ONLY; NO trace-id injection.
+- exec_subprocess.rs:259 confirmed: `child_stdin.write_all(stdin_bytes).is_err()` at line 259.
+- ADR-015 D-15.2:270 confirmed: `outcome` enum `success | failure | error | timeout | skipped | blocked`.
+- ADR-015 D-15.4:407-419 confirmed: "MUST be injected" (normative language).
+- ADR-015 D-15.1 Rationale:432-440 confirmed: "10k events/minute without measurable overhead".
+
+**Post-edit grep verification:**
+- `grep -n 'are injected\|automatic.*invariant\|dispatcher-side invariant' gap-analysis-w16-subprocess.md` → ZERO matches. PASS.
+- `grep -n 'automatic.*invariant\|dispatcher-side invariant' audit-w16.md` → ZERO matches. PASS.
+- `grep -n 'outcome' BC-1.05.036.md` → match at Postcondition 2. PASS.
+- `grep -n ':262\|:259' BC-1.05.036.md` → `:259` at stdin context in Postcondition 5 + EC-007; no `:262`. PASS.
+- `grep -n 'sub-millisecond' perf-baseline-w16.md` → ZERO matches. PASS.
+
+**TD-VSDD-079 8-term family-grep (across all 5 in-scope files):** Non-changelog body matches at BC-1.05.036 lines 38+51 are intentional ADR-015 retirement-status citations (Router/SinkRegistry retired per lines 130/154; correct from D-271). PASS.
+
+**ADR-013 clock:** 0_of_3 (RESET by pass-31 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (32/33/34) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.28"` → `"1.29"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (seventeenth use):** State-manager handles pass-31 seal and 4-fix burst atomically. All fixes are textual corrections to arch docs and BC normative sections.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
