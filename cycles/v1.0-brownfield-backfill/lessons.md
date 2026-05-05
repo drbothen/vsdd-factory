@@ -118,3 +118,42 @@ contract awareness.
 - **Reference:** `plugins/vsdd-factory/tools/observability/grafana-dashboards/factory-prs.json`;
   `plugins/vsdd-factory/tools/observability/grafana-dashboards/factory-roi.json`;
   TD-014 (bash-hook retirement workstream)
+
+---
+
+## LESSON-2026-05-05-001 [process-gap] TD-020 sweep: un-skipping bats suites without CI-equivalent validation shipped CI regressions
+
+**Discovered:** 2026-05-05 (rc.11 release failure post-mortem)
+**Category:** delivery-discipline
+**Severity:** MEDIUM — caused 2-round release retag and 2 hotfix PRs
+
+### Gap Description
+
+TD-020's 2026-05-04 sweep resolved all four `SKIP_SUITES` entries in `run-all.sh`. Two entries — `generate-registry` and `state-health` — were closed as "UN-SKIPPED with no test changes" because they passed locally. Neither passed in CI during the rc.11 release workflow.
+
+**generate-registry (external TD-VSDD-054, PRs #85 + #86):** `scripts/generate-registry-from-hooks-json.sh` used `git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json` to recover a historical version of `hooks.json`. GitHub Actions uses a shallow clone (`--depth=1` by default); the parent commit `7b4b774^` was not present in the object store, and `git show` exited non-zero. Fixed by vendoring the historical file as `scripts/legacy/hooks-json-pre-templating.json` and rewriting the script to use `cat`. PR #85 was rebased and re-merged as PR #86 after a branch conflict.
+
+**state-health (external TD-VSDD-055, PR #87):** `state-health.bats` `setup()` calls `git commit` to build a baseline repo fixture. CI runners start with empty global git config (no `user.email` / `user.name`), so `git commit` exited 128 with "Author identity unknown." Fixed by adding `git config user.email`, `user.name`, and `commit.gpgsign false` after `git init` in the bats `setup()` function.
+
+Result: rc.11 required two retag rounds (force-delete + re-push) before the release workflow went green. Tag settled at fb3e297. Marketplace PR #5 was delayed until 2026-05-05T03:33:21Z.
+
+### Root Cause
+
+Local test environments carry side-channels that CI runners do not:
+
+- **Global git config** — developer machines always have `user.email`/`user.name`; CI runners start with empty config
+- **Full git history** — developer machines carry full `git log`; GitHub Actions `checkout` defaults to `--depth=1` (shallow clone)
+- **Operator-installed CLI tools** — local shells may have tools beyond what the workflow's setup steps declare
+- **Mature shell environment** — local shells inherit years of env var configuration; CI runners start minimal
+
+The TD-020 sweep workflow had no checklist item or validation gate requiring CI-equivalence before declaring an un-skipped suite as passing. "Passes locally" was treated as sufficient, conflating two different validation regimes.
+
+### Lesson
+
+Un-skipping a previously-skipped bats suite must be validated in a CI-equivalent environment before claiming pass. Concretely: empty global git config; shallow clone with `--depth=1`; no operator-installed CLI tools beyond what the workflow declares; clean shell env. Either run the suite in a CI-shaped sandbox locally (e.g., `docker run` with a clean image mirroring the runner), or land the un-skip behind a small CI smoke job that exercises the suite under that matrix. Local-pass alone is necessary but not sufficient evidence.
+
+### Disposition
+
+- **TD-024 opened** (P2, target v1.0.1) — codifies the process gap and sketches the checklist fix + optional CI smoke job. TD-024 is the canonical tracker.
+- May fold into a future S-7.04-style discipline story if one is opened; TD-024 is sufficient in the interim.
+- **References:** PRs #85, #86 (TD-VSDD-054 / generate-registry fix); PR #87 (TD-VSDD-055 / state-health fix); TD-020 (the sweep that introduced the gap)
