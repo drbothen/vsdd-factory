@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "D-246 v1.10 fix burst sealed (dc9a71d closing H-P5-001 + M-P5-001 + M-P5-003). Both new lessons applied (TD-VSDD-058 citation re-verify + TD-VSDD-059 frontmatter coherence). ADR-013 clock 0_of_3; adversary pass-6 dispatched in parallel; needs 3 consecutive NITPICK_ONLY passes per ADR-013 + TD-VSDD-057 (different angles vs. pass-1/2/3/4/5 = positive, reverse-trace, counter-example, citation-grounding, versioning/lifecycle) to reach CONVERGENCE_REACHED."
+current_step: "D-247 pass-6 SUBSTANTIVE sealed. Adversarial-implementer + boundary-cases hybrid angle (NEW per TD-VSDD-057) found H-P6-001 audit-w16 B-2/B-6 missing explicit H-1 option (b) coverage; M-P6-002 binary-choice prefix needs OQ tracking; deferred M-P6-001 + M-P6-003 + M-P6-004 + LOWs with rationale. Architect dispatched in parallel for v1.10 → v1.11 minimal fix; then 3 fresh-context NITPICK_ONLY adversary passes (pass-7/8/9) with new angles to reach CONVERGENCE_REACHED."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-05 (D-246 v1.10 fix burst sealed dc9a71d; H-P5-001 + M-P5-001 + M-P5-003 closed; STORY-INDEX 1.52→1.53; pass-6 in-flight) |
+| **Last Updated** | 2026-05-05 (D-247 pass-6 SUBSTANTIVE sealed; H-P6-001 + M-P6-002 to fix; M-P6-001/3/4 deferred; OQ-W16-001 filed; STORY-INDEX 1.53→1.54; v1.11 fix burst in-flight) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -53,7 +53,7 @@ dtu_services: []
 | Phase D-4 Burst 1 — E-9 + S-9.00 spec | **COMPLETE** | E-9 v1.6 CONVERGED pass-10 (D-235); S-9.00 v1.4 CONVERGED pass-7 (D-231) |
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
-| D-236 — E-10 elevation + E-9 v1.7 amendment | **PARTIAL** | E-9 v1.10 fix burst SEALED (dc9a71d); pass-5 H-P5-001 + M-P5-001 + M-P5-003 CLOSED; clock 0_of_3; pass-6 IN-FLIGHT; convergence pending pass-6/7/8 NITPICK_ONLY; E-10 BC authorship QUEUED. Trajectory: pass-1 NITPICK → pass-2 NITPICK → pass-3 SUB → v1.8 fix → pass-4 SUB → v1.9 fix → pass-5 SUB → v1.10 fix → pass-6 in-flight |
+| D-236 — E-10 elevation + E-9 v1.7 amendment | **PARTIAL** | E-9 v1.10 fix burst SEALED (dc9a71d); pass-6 SUBSTANTIVE H-P6-001 + M-P6-002 to close; M-P6-001/3/4 deferred; clock 0_of_3; v1.11 fix burst IN-FLIGHT; convergence pending pass-7/8/9 NITPICK_ONLY; E-10 BC authorship QUEUED. Trajectory: pass-1 NITPICK → pass-2 NITPICK → pass-3 SUB → v1.8 fix → pass-4 SUB → v1.9 fix → pass-5 SUB → v1.10 fix → pass-6 SUB → v1.11 fix → pass-7 pending |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Current Phase Steps
@@ -75,9 +75,11 @@ dtu_services: []
 | E-9 v1.8 → v1.9 fix burst (close H-P4-001 + L-P4-001) | architect | COMPLETE | 067379c; H-P4-001 + L-P4-001 closed; 732L → 757L (+25L) |
 | E-9 v1.9 adversary pass-5 | adversary + state-manager | COMPLETE | pass-5 SUBSTANTIVE 1H/3M/3L; H-P5-001 + M-P5-001 + M-P5-003; clock 0_of_3 |
 | E-9 v1.9 → v1.10 fix burst (close H-P5-001 + M-P5-001 + M-P5-003) | architect | COMPLETE | dc9a71d; 3 SUBSTANTIVE findings closed |
-| E-9 v1.10 adversary pass-6 | adversary | IN-FLIGHT | fresh context; must be NITPICK_ONLY for clock 1_of_3 |
-| E-9 v1.10 adversary pass-7 | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 2_of_3 |
-| E-9 v1.10 adversary pass-8 → CONVERGENCE_REACHED | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 3_of_3 |
+| E-9 v1.10 adversary pass-6 | adversary + state-manager | COMPLETE | pass-6 SUBSTANTIVE 1H/4M/2L; H-P6-001 + M-P6-002 to close, M-P6-001/3/4 deferred; clock 0_of_3; D-247 |
+| E-9 v1.10 → v1.11 fix burst | architect | IN-FLIGHT | close H-P6-001 + M-P6-002; deferred-rationale for M-P6-001/3/4 + LOWs |
+| E-9 v1.11 adversary pass-7 | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 1_of_3 |
+| E-9 v1.11 adversary pass-8 | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 2_of_3 |
+| E-9 v1.11 adversary pass-9 → CONVERGENCE_REACHED | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 3_of_3 |
 | E-10 BC authorship (S-10.01..S-10.09) | product-owner | PENDING | 9 stories × BCs anchored to BC-1.11.001/002/003 cluster |
 
 ## Identifier Conventions
@@ -143,6 +145,7 @@ dtu_services: []
 | D-244 | **E-9 v1.8 → v1.9 minimal fix burst SEALED — closes pass-4 findings.** Commit 067379c. E-9: 732L → 757L (+25L). 2 files edited (gap-analysis-w16-subprocess.md + E-9 epic). H-P4-001 sites 1 + 2 closed: "Wave 3 acceptance criterion 3 / AC-3" replaced with citation to ADR-015 D-15.2 § `event.category` taxonomy registry (lines 295-333). L-P4-001 closed: H-1 closure line range "~294-296" → "~294-302". Architect re-verified ADR-015 lines 295-333 contain audit-category mapping (line 329: `vsdd.capability.denied.*` → `audit`) — TD-VSDD-058 pre-commit re-verification rule applied. STORY-INDEX 1.50 → 1.51. ADR-013 clock 0_of_3 (reset by D-243; awaits 3-of-3 NITPICK_ONLY on v1.9). v1.10 reserved preemptive row added per D-232. | Architect closed pass-4 findings cleanly with documented re-verification. Prepares v1.9 for fresh-context adversary passes 5/6/7. | Phase-D-4-E-9-v1.9-fix-burst | 2026-05-05 | architect + state-manager |
 | D-245 | **E-9 v1.9 fix burst pass-5 SUBSTANTIVE — ADR-013 clock 0_of_3 (reset by H-P5-001).** Versioning/lifecycle propagation + frontmatter-body coherence angle (NEW; pass-5 walks frontmatter + summary table + H3 + cross-doc citations as paired set) found H-P5-001: E-9 frontmatter `version: "1.8"` while body has v1.9 row + v1.9 H3 section. Third frontmatter-vs-summary-table drift in epic history (F-P6-002 + F-P7-001 + H-P5-001) — recurrent pattern (3+) qualifies for codification per lessons-codification rule. M-P5-001 in-place v1.8 prose edit violates POLICY 1 append-only. M-P5-002 gap-analysis frontmatter v1.0 vs body v1.7 annotations inconsistent (D-239 reconciliation issue; deferred). M-P5-003 audit-w16 B-7 row H-1 option (b) propagation incomplete (5th block-mode hook S-9.07 not called out). 3 LOW. 2 process-gaps (PG-P5-001 frontmatter-vs-summary-table validator; PG-P5-002 POLICY 1 in-place edit silence). Architect dispatched in parallel for v1.9 → v1.10 fix burst closing H-P5-001 + M-P5-001 + M-P5-003. Trajectory: pass-1 NITPICK → pass-2 NITPICK → pass-3 SUB → v1.8 fix → pass-4 SUB → v1.9 fix → pass-5 SUB. | Each new angle catches a new class of defect (positive-verify, reverse-trace, counter-example, citation-grounding, versioning/lifecycle). Multi-pass adversarial system functioning as designed. | Phase-D-4-E-9-v1.9-pass-5-SUBSTANTIVE | 2026-05-05 | adversary + state-manager |
 | D-246 | **E-9 v1.9 → v1.10 fix burst SEALED — closes pass-5 SUBSTANTIVE findings.** Commit dc9a71d. 2 files edited (E-9 epic + audit-w16.md). H-P5-001 closed: E-9 frontmatter `version: "1.8"` → `"1.10"` (TD-VSDD-059 frontmatter-summary coherence applied). M-P5-001 closed: v1.8 block prose RESTORED to original wording (POLICY 1 append-only per TD-VSDD-060 recommended option); v1.9 H3 strengthened with forward-pointer. M-P5-003 closed: audit-w16.md B-7 row gained explicit block-mode treatment for validate-wave-gate-prerequisite (S-9.07; H-1 option (b) propagation complete across all 5 block-mode hooks). M-P5-002 + 3 LOWs SKIPPED with rationale. TD-VSDD-058 + TD-VSDD-059 pre-commit checklists PASS. STORY-INDEX 1.52 → 1.53. ADR-013 clock 0_of_3 (reset by D-245; awaits 3-of-3 NITPICK_ONLY on v1.10). | Architect closed pass-5 findings cleanly applying both new lessons (TD-VSDD-058 citation re-verify + TD-VSDD-059 frontmatter coherence). Prepares v1.10 for fresh-context adversary passes 6/7/8. | Phase-D-4-E-9-v1.10-fix-burst | 2026-05-05 | architect + state-manager |
+| D-247 | **E-9 v1.10 fix burst pass-6 SUBSTANTIVE — ADR-013 clock 0_of_3 (reset by H-P6-001).** Adversarial-implementer + boundary-cases hybrid angle (NEW; reads amendment as buggy implementer + audits silences) found H-P6-001: M-P5-003 closure overstated — audit-w16 line 38 lumps B-2 + B-6 into "Standard." row with NO explicit H-1 option (b) treatment while B-1/B-3/B-7 each get it. Implementer working B-2 (S-9.02) or B-6 (S-9.06) from audit-w16 alone misses dispatcher-emits-automatically contract. Plus 4 MED: M-P6-001 frontmatter convention drift; M-P6-002 binary-choice no tracking; M-P6-003 event.host_overrides silent; M-P6-004 schema_url silent. 2 LOW (L-P6-002 input-hash F-P2-010 consistency; L-P6-003 TD-VSDD-059 filing — INVALID per D-245 already filed). 2 process-gaps (inconsistent D-239; binary-choice tracking). Trajectory: pass-1/2 NITPICK → pass-3/4/5/6 SUBSTANTIVE (4 consecutive substantive passes; each new angle finds new defect class). Architect dispatched in parallel for v1.10 → v1.11 fix burst closing H-P6-001 + M-P6-002 with deferred-rationale entries for M-P6-001 + M-P6-003 + M-P6-004 + LOWs. | Angle rotation working as designed: adversarial-implementer angle caught a propagation gap (B-2/B-6 H-1 coverage) that prior 5 angles missed. M-P6-002 closes by filing OQ ticket (no spec edit needed). M-P6-003/M-P6-004 silence-audit findings deferred per orchestrator judgment (story-writer absorbs ADR-015 D-15.3 + D-15.2.d at story authoring time; not amendment-surface concerns). M-P6-001 deferral mirrors M-P5-002 deferral; D-239 governs annotate-in-place convention. | Phase-D-4-E-9-v1.10-pass-6-SUBSTANTIVE | 2026-05-05 | adversary + state-manager |
 
 ## Skip Log
 

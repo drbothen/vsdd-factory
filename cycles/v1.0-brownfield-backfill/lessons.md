@@ -285,3 +285,21 @@ POLICY 1 (append_only_numbering) requires append-only changelog entries but is s
 - File as TD-VSDD-060 (POLICY 1 amendment to forbid in-place edits).
 
 **[codified]** by D-245 lessons.md append.
+
+---
+
+### LESSON: Closure-claim verification — "all N items covered" must be substantiated by enumerating the items
+
+**Source:** D-247 pass-6 finding H-P6-001 (dc9a71d v1.10 fix burst)
+**Date:** 2026-05-05
+
+**Pattern:** D-242's H-1 closure dropped plugin-side block emission MUST. D-246's M-P5-003 closure claimed "all 5 block-mode hooks now have explicit H-1 option (b) coverage" — but in audit-w16.md, only 3 of 5 block-mode hooks (B-1, B-3, B-7) got explicit dispatcher-emits-automatically wording. B-2 and B-6 were lumped into a "Standard." parenthetical row that does NOT carry the H-1 contract. The closure claim was overstated.
+
+**Codification:**
+- Architect prompt for fix bursts must require: "When closing a finding with 'all N items covered' or 'all M sites updated', enumerate the N/M items in the closure note (e.g., 'B-1: line 35; B-2: line 38a; B-3: line 37; ...'). Do not write 'all' without the enumeration."
+- Adversary review skill should treat 'all N covered' closure claims as falsifiable — explicitly audit the N items.
+- File as TD-VSDD-061 (Architect closure-claim enumeration rule).
+
+**[codified]** by D-247 lessons.md append.
+
+**Note:** D-247 also bootstrapped the OQ (open-questions) tracking category. OQ-W16-001 is the first entry, filed at `.factory/specs/open-questions.md`. Future binary-choice or decision-gate items that block downstream stories should use this register.
