@@ -5,6 +5,7 @@ version: "1.0"
 status: draft
 producer: product-owner
 timestamp: 2026-05-03T00:00:00Z
+last_amended: 2026-05-05
 phase: 1.4b
 inputs: [gap-analysis-w16-subprocess.md]
 input-hash: "[pending-recompute]"

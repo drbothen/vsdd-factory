@@ -5,6 +5,7 @@ version: "1.0"
 status: draft
 producer: product-owner
 timestamp: 2026-05-03T00:00:00Z
+last_amended: 2026-05-05
 phase: 1.4b
 inputs: [gap-analysis-w16-subprocess.md]
 input-hash: "[pending-recompute]"
@@ -28,6 +29,12 @@ removal_reason: null
 
 ## Description
 
+**ADR-015 Awareness (added per E-9 v1.7 Post-Audit Amendment, propagated to BC at v1.21):**
+The success-path event name `host.exec_subprocess.completed` SHOWN IN THIS BC IS INTERIM. Per ADR-015 D-15.2 reverse-DNS naming requirement, the canonical event name resolves to one of two binary options (per OQ-W16-001 in `.factory/specs/open-questions.md`):
+- (a) If `vsdd.host.*` is added to ADR-015 D-15.2 registry → `vsdd.host.exec_subprocess.completed.v1` (host category mapping per OQ-W16-001 acceptance criterion (a)).
+- (b) Otherwise → `vsdd.dispatcher.subprocess_completed.v1` (lifecycle category per existing `vsdd.dispatcher.*` registry entry; OQ-W16-001 acceptance criterion (b)).
+S-9.07 implementer MUST close OQ-W16-001 before merging the host-emit-fix story.
+
 On successful subprocess completion (any exit code, including non-zero), the dispatcher MUST emit a `host.exec_subprocess.completed` event through the normal sink chain. This closes an observability gap identified in gap-analysis-w16-subprocess.md Section 5: `exec_subprocess.rs:285-288` currently has no emit call on success. The new event is success-path only; existing denial-path events are preserved unchanged.
 
 ## Preconditions
@@ -42,7 +49,7 @@ On successful subprocess completion (any exit code, including non-zero), the dis
 2. Event payload includes all 8 fields: `{plugin_id: String, binary: String /* canonicalized full path */, args_count: u32, exit_code: i32, duration_ms: u64, stdout_bytes: u64, stderr_bytes: u64, truncated: bool}`.
 3. `duration_ms` is measured from `Instant::now()` at `Command::spawn()` to process exit; the deadline `Instant` already present in `execute_bounded` (exec_subprocess.rs:270) is the reference.
 4. Event is routed through the normal `ctx.emit_internal` sink chain (file/datadog/honeycomb per config), the same path as the existing `emit_denial` call.
-5. On error paths (capability denied, timeout, output too large), the existing distinct events continue to fire; `host.exec_subprocess.completed` is NOT emitted on error paths.
+5. **Error-path event reality (per gap-analysis §1):** Today only `internal.capability_denied` is emitted on the 4 denial paths (binary not allowed, shell bypass not acknowledged, env not allowed, cwd not allowed). TIMEOUT (-7) and OUTPUT_TOO_LARGE (-8) paths return error codes WITHOUT emitting any event. The success-path event introduced by this BC closes the success-path observability gap. Adding TIMEOUT/OUTPUT_TOO_LARGE error-path events is OUT OF SCOPE for this BC and may be tracked in a future OQ if needed.
 
 ## Invariants
 

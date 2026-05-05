@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.20"
+version: "1.21"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -382,7 +382,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 |----|----------|-------|------------|
 | OQ-1 | W-16 bundle size ceiling: what % growth is acceptable for 23 new plugins over the S-9.00 baseline (post-rc.11, pinned in perf-baseline-w16.md)? | story-writer (S-9.00) | Resolved by S-9.00 measurement + ceiling proposal |
 | OQ-2 | validate-state-size compaction-detection: the git subprocess path is simplified away in D-9.1. If the line-count-only gate triggers too many false-block events, should we revisit at v1.2? | tech-debt | File as TD after W-16 ships; low priority |
-| OQ-3 | exec_subprocess registry: validate-wave-gate-prerequisite's `hooks-registry.toml` entry needs a `[hooks.<id>.capabilities.exec_subprocess]` block. Per gap-analysis-w16-subprocess.md §7 (ExecSubprocessCaps schema) the required fields are: `binary_allow = ["bash"]`, `shell_bypass_acknowledged = "acknowledged"`, `env_allow = ["PATH"]`, `cwd_allow = []` (validate-wave-gate-prerequisite uses `$SHA_PROJECT_ROOT` flag, not cwd — empty allow-list correct). Who authors this TOML snippet? | S-9.07 | RESOLVED — S-9.30 withdrawn; S-9.07 provides the concrete registry example using exec_subprocess. See gap-analysis-w16-subprocess.md Section 7 migration plan. |
+| OQ-3 | exec_subprocess registry: validate-wave-gate-prerequisite's `hooks-registry.toml` entry needs a `[hooks.<id>.capabilities.exec_subprocess]` block. Per gap-analysis-w16-subprocess.md §7 (ExecSubprocessCaps schema) the required fields are: `binary_allow = ["bash"]`, `shell_bypass_acknowledged = "acknowledged"`, `env_allow = ["PATH"]`, `cwd_allow = []` (validate-wave-gate-prerequisite uses `$SHA_PROJECT_ROOT` flag, not cwd — empty allow-list correct). Who authors this TOML snippet? | S-9.07 | RESOLVED — S-9.30 withdrawn; S-9.07 provides the concrete registry example using exec_subprocess. See gap-analysis-w16-subprocess.md Section 7 migration plan. `timeout_ms = 30000` (30s; gap-analysis §4 advisory cap; safety margin over 200ms expected runtime); `max_output_bytes = 65536` (64KB; gap-analysis §4 "easily under 64KB" envelope; truncation Err'd per gap-analysis §3 line 127) |
 | OQ-W16-001 | Resolve `vsdd.host.*` registry-prefix decision before E-10 Wave 1 ships | SS-01 implementer or E-10 Wave 1 architect | Binary acceptance per `.factory/specs/open-questions.md` OQ-W16-001: (a) ADR-015 D-15.2 registry amended to add `vsdd.host.*` mapping, OR (b) event.name uses `vsdd.dispatcher.subprocess_completed.v1` exactly (lifecycle category) |
 
 ---
@@ -481,7 +481,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.18 | 2026-05-05 | state-manager | D-258 minimal fix burst — M-P15-001 OQ-W16-001 propagated to E-9 Open Questions table; L-P15-001/2 SKIPPED with rationale. |
 | 1.19 | 2026-05-05 | state-manager | D-260 sibling-residue fix burst — H-P17-001 (R-W16-003 ~14MB residue) + H-P17-002 (perf-baseline H2 post-rc.4 stale) + M-P17-001 (OQ-1 post-rc.4 stale); L-P17-001 SKIPPED. |
 | 1.20 | 2026-05-05 | state-manager | D-261 convention closure burst — M-P18-001 last_amended field added to 4 arch-doc files (5th-recurrence resolution per S-7.02); L-P18-001 perf-baseline references (research) restored. TD-VSDD-073 codified. |
-| 1.21 | — | — | (reserved) |
+| 1.21 | 2026-05-05 | state-manager | D-263 implementation-readiness fix burst — M-P20-001 (OQ-3 timeout/output pinned) + M-P20-002 (BC-1.05.036 ADR-015 awareness) + L-P20-002 (BC-1.05.036 error-path reality) + TD-VSDD-074 (BC last_amended scope extension); L-P20-001 SKIPPED with rationale. |
+| 1.22 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1166,5 +1167,31 @@ Going forward (TD-VSDD-073): when an arch-doc-class file gains a body amendment 
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.19"` → `"1.20"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (eighth use):** State-manager handles pass-18 seal and 2-fix burst atomically. Both fixes are textual additions/corrections where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.21 (2026-05-05) — D-263 implementation-readiness fix burst (TD-VSDD-074 codified; NINTH TD-VSDD-064 application)
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (ninth application).**
+
+Pass-20 verdict: SUBSTANTIVE 0H/2M/2L. Pre-implementation readiness audit angle (NEW per TD-VSDD-057) — simulating S-9.07 implementer reading v1.20 surface as concrete spec. ADR-013 clock 1_of_3 → 0_of_3 RESET.
+
+**Fix 1 — M-P20-001 CLOSED:** OQ-3 resolution column extended to pin `timeout_ms = 30000` (30s; gap-analysis §4 advisory cap; safety margin over 200ms expected runtime) and `max_output_bytes = 65536` (64KB; gap-analysis §4 "easily under 64KB" envelope; truncation Err'd per gap-analysis §3 line 127). S-9.07 implementer now has concrete call-site values for `vsdd::exec_subprocess(...)` — no value invention required.
+
+**Fix 2 — M-P20-002 CLOSED:** BC-1.05.036 §Description gained ADR-015 awareness clause (added per E-9 v1.7 Post-Audit Amendment, propagated to BC at v1.21). Clause binds the interim event name `host.exec_subprocess.completed` to OQ-W16-001 binary resolution: (a) `vsdd.host.exec_subprocess.completed.v1` if `vsdd.host.*` added to ADR-015 D-15.2 registry, OR (b) `vsdd.dispatcher.subprocess_completed.v1` using existing lifecycle category. S-9.07 implementer directed to close OQ-W16-001 before merge.
+
+**Fix 3 — L-P20-002 CLOSED (in same BC-1.05.036 edit):** BC-1.05.036 §Postconditions item 5 rewritten to clarify error-path event reality per gap-analysis §1: only `internal.capability_denied` exists on 4 denial paths; TIMEOUT (-7) and OUTPUT_TOO_LARGE (-8) paths return error codes WITHOUT emitting any event. Prior wording "existing distinct events continue to fire" implied timeout/output-too-large paths had named events, which is incorrect.
+
+**Fix 4 — TD-VSDD-074 codified:** TD-VSDD-073 (last_amended convention for arch-doc-class files) scope extended to BCs cited in amendment landings. BC-1.05.035 + BC-1.05.036 gained `last_amended: 2026-05-05` in frontmatter. Going forward: when an amendment burst changes a contract that a BC implements, the same burst MUST update the BC's frontmatter `last_amended:` AND add an awareness clause to the BC body.
+
+**L-P20-001 SKIPPED with rationale:** BC-1.05.036 EC-006 declares `binary: String /* canonicalized full path */` in event payload, while BC-1.05.035 canonicalizes the binary path for the capability allow-check. Pending PO intent verification per S-7.01 — BC author likely intended cache-and-reuse semantics (canonicalize once in BC-1.05.035 allow-check, reuse in BC-1.05.036 event payload). Would need PO clarification to definitively close. Adversary may re-flag if it persists.
+
+**ADR-013 clock:** 0_of_3 (reset by pass-20 SUBSTANTIVE verdict; was 1_of_3 entering pass-20).
+
+**Trajectory to convergence:** pass-19 NITPICK (clock 0→1) → pass-20 SUBSTANTIVE (clock 1→0 RESET). After this burst: 3 fresh-context NITPICK_ONLY passes (21/22/23) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.20"` → `"1.21"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (ninth use):** State-manager handles pass-20 seal and 4-fix burst atomically. All fixes are textual corrections/additions where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

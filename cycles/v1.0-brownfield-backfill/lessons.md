@@ -517,4 +517,23 @@ A 1-second body-grep `grep -n '14MB' E-9*.md` at v1.14 close would have caught t
 - Adversary frontmatter-consistency-audit angle (TD-VSDD-057 angle inventory) should accept files where `last_amended` matches latest body-amendment commit date, OR where the file has no body amendments since `timestamp:`.
 - File as TD-VSDD-073 (last_amended mandatory for amended arch-doc-class files).
 
+---
+
+### LESSON: TD-VSDD-073 last_amended convention must extend to BCs cited in amendment landings
+
+**Source:** D-263 pass-20 finding M-P20-002 (BC-1.05.036 emits non-ADR-015-conforming event name despite amendment surface absorbing ADR-015 awareness)
+**Date:** 2026-05-05
+
+**Pattern:** v1.7 amendment burst absorbed ADR-015 awareness into E-9 epic + 3 arch docs (D-236 4-file impact map). BC-1.05.035 + BC-1.05.036 were created at D-224 within this amendment cycle (substituting for withdrawn BC-2.02.013) and are cited from gap-analysis-w16-subprocess.md and audit-w16.md amendment blocks. But the BCs themselves were never updated for ADR-015 awareness. BC-1.05.036 §Description still names the success-path event `host.exec_subprocess.completed` (no `vsdd.` prefix, no `.v1` suffix) — violating ADR-015 D-15.2 reverse-DNS naming and contradicting OQ-W16-001 which tracks the binary-choice resolution.
+
+19 prior passes did not catch this because each focused on convention/anchor/citation correctness within E-9 + arch-docs scope. Pass-20 was the first to simulate the downstream S-9.07 story implementer reading BC-1.05.036 as their contract source.
+
+**Codification:**
+- Extend TD-VSDD-073 (last_amended convention for arch-doc-class) to include BCs cited in amendment landings.
+- When an amendment burst changes a contract that a BC implements, the same burst MUST update the BC's frontmatter `last_amended:` AND add an awareness clause to the BC body.
+- Adversary pass should include "downstream-implementer-simulation" as a callable angle (TD-VSDD-057 menu addition).
+- File as TD-VSDD-074 (TD-VSDD-073 scope extension to BCs cited in amendment landings).
+
+**[codified]** by D-263 lessons.md append.
+
 **[codified]** by D-261 lessons.md append.
