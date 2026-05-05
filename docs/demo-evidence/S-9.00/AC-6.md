@@ -45,8 +45,8 @@ Advisory Soft Cap Rationale...
 | Required Field | Present | Value |
 |----------------|---------|-------|
 | `measured_at` | Yes | 2026-05-05T05:14:10Z |
-| `release_tag_sha` | Yes | (post-rc.8; develop HEAD at measurement time) |
-| `develop_head_sha` | Yes | see `git rev-parse HEAD` at measurement time |
+| `release_tag_sha` | Yes | dec5361 (v1.0.0-rc.11) |
+| `develop_head_sha` | Yes | 8c14421 (develop HEAD at measurement time) |
 | `platform` | Yes | darwin-arm64 |
 | `all_hook_plugins_wasm_bytes` | Yes | 8,549,146 (frozen-17 sum) |
 | `unaccounted_wasm_bytes` | Yes | 155,053 |
@@ -68,4 +68,4 @@ ok 6 S-9.00 AC-6: perf-baseline-w16.md exists with required sections
 
 ## Verdict
 
-PASS — `.factory/architecture/perf-baseline-w16.md` committed (factory-artifacts branch). All required schema fields present. `all_hook_plugins_wasm_bytes` = 8,549,146 (corrected semantics per pass-1 fix; frozen-17 sum). Per-wave telemetry delta reference updated from 665.0ms to 642.6ms (adversary pass-3 fix; methodology_version 2, NIST nearest-rank p95). File is non-empty. Bats test AC-6 passes.
+PASS — `.factory/architecture/perf-baseline-w16.md` committed (factory-artifacts branch). All required schema fields present. `all_hook_plugins_wasm_bytes` = 8,549,146 (corrected semantics per pass-1 fix; frozen-17 sum). Per-wave telemetry delta reference updated from 665.0ms to 642.6ms (adversary pass-3 fix; methodology_version 2, NIST nearest-rank p95). Actual SHAs captured: `release_tag_sha = dec5361` (v1.0.0-rc.11), `develop_head_sha = 8c14421` (adversary pass-4 fix). File is non-empty. Bats test AC-6 passes.

@@ -23,14 +23,14 @@ bash .factory/measurements/measure-bundle-sizes.sh \
 
 ```json
 {
-  "methodology_version": 1,
-  "measurement_timestamp": "2026-05-05T05:33:59Z",
+  "methodology_version": 2,
+  "measurement_timestamp": "2026-05-05T05:53:47Z",
   "host_platform": "Darwin-arm64",
   "all_hook_plugins_wasm_bytes": 8549146,
   "unaccounted_wasm_bytes": 155053,
   "dispatcher_bytes": 12250912,
   "grand_total_bytes": 20955111,
-  "cold_start_p95_measured_ms": 664.0,
+  "cold_start_p95_measured_ms": 642.6,
   "per_plugin": {
     "block-ai-attribution": 176647,
     "capture-commit-activity": 170580,
@@ -78,4 +78,4 @@ Note: Per EC-002, this measurement uses the local release build. All 5 CI platfo
 
 ## Verdict
 
-PASS — `all_hook_plugins_wasm_bytes` = 8,549,146 bytes (frozen-17 sum) recorded. `unaccounted_wasm_bytes` = 155,053 (non-frozen files present; review recommended per wave). `dispatcher_binary_bytes` = 12,250,912. `grand_total_bytes` = 20,955,111 (~20MB; ~9MB headroom under 30MB kill-switch). Per-plugin map complete for all 17 frozen plugins. Bats test AC-1 passes. Metric semantics corrected from adversary pass-1 fix-burst (2026-05-05).
+PASS — `all_hook_plugins_wasm_bytes` = 8,549,146 bytes (frozen-17 sum) recorded. `unaccounted_wasm_bytes` = 155,053 (non-frozen files present; review recommended per wave). `dispatcher_binary_bytes` = 12,250,912. `grand_total_bytes` = 20,955,111 (~20MB; ~9MB headroom under 30MB kill-switch). Per-plugin map complete for all 17 frozen plugins. JSON block shows methodology_version 2 (NIST nearest-rank p95; canonical value 642.6ms). Bats test AC-1 passes. Metric semantics corrected from adversary pass-1 fix-burst (2026-05-05); methodology_version updated from pass-4 fix (adversary pass-4).

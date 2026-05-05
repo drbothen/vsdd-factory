@@ -1,10 +1,10 @@
 ---
 story_id: S-9.00
 document_type: evidence-report
-version: "1.3"
+version: "1.4"
 status: complete
 producer: demo-recorder
-timestamp: 2026-05-05T05:53:47Z
+timestamp: 2026-05-05T06:10:42Z
 ---
 
 # Evidence Report: S-9.00 — Perf Baseline + W-16 Bundle Growth Ceiling
@@ -14,7 +14,7 @@ timestamp: 2026-05-05T05:53:47Z
 **Product type:** CLI/measurement story — terminal output captures (no VHS or Playwright needed; matches S-8.00 convention)
 **Evidence location:** `docs/demo-evidence/S-9.00/`
 
-**Lineage:** Initial evidence (v1.0) from implementation; pass-1 fix-burst corrected metric semantics and methodology (N=10 → N=30, `all_hook_plugins_wasm_bytes` redefined to frozen-17 sum); pass-2 fix-burst regenerated all evidence files, added CI fetch-refspec + verify step, added bats setup_file, fixed script trap and mktemp portability; pass-3 fix-burst corrected p95 formula to NIST nearest-rank (`ceil(0.95*N)-1`, methodology_version 2), fixed trap quoting fragility, synced JSON+prose to single canonical value (642.6ms), added unaccounted bytes policy, extended TD-025 + added TD-026.
+**Lineage:** Initial evidence (v1.0) from implementation; pass-1 fix-burst corrected metric semantics and methodology (N=10 → N=30, `all_hook_plugins_wasm_bytes` redefined to frozen-17 sum); pass-2 fix-burst regenerated all evidence files, added CI fetch-refspec + verify step, added bats setup_file, fixed script trap and mktemp portability; pass-3 fix-burst corrected p95 formula to NIST nearest-rank (`ceil(0.95*N)-1`, methodology_version 2), fixed trap quoting fragility, synced JSON+prose to single canonical value (642.6ms), added unaccounted bytes policy, extended TD-025 + added TD-026; pass-4 fix-burst regenerated all 11 evidence files to use canonical v2 JSON block (HIGH-1: AC-1.md stale methodology_version 1 + 664.0ms fixed), moved perf-baseline.bats to cargo-host CI job (HIGH-2), added AC-1 empty-bundle guard (HIGH-2), captured actual SHAs in baseline doc (MEDIUM-2), added N<20 p95 warning to script (MEDIUM-1), extended TD-025 with frontmatter cosmetic LOW.
 
 ---
 
@@ -125,6 +125,7 @@ Two consecutive `measure-bundle-sizes.sh` runs against the same bundle directory
 - **Pass-1 fix-burst (2026-05-05):** Corrected `all_hook_plugins_wasm_bytes` semantics (redefined to frozen-17 sum only), added `unaccounted_wasm_bytes` field, updated cold-start methodology from N=10 to N=30 (627.8ms → 665.0ms), updated bats AC-1 test to validate corrected semantics.
 - **Pass-2 fix-burst (2026-05-05):** Regenerated all 10 AC evidence files + this report; fixed CI `git fetch` to use explicit refspec + verification step (MEDIUM-1); added `setup_file()` to bats to auto-build dispatcher if absent (HIGH-3); fixed script trap to catch INT/TERM (MEDIUM-2); fixed mktemp to portable form (MEDIUM-3); updated per-wave telemetry delta reference from stale 627.8ms to 665.0ms in baseline doc (MEDIUM-6); extended TD-025 with MEDIUM-4 + MEDIUM-5 deferrals.
 - **Pass-3 fix-burst (2026-05-05):** Corrected p95 formula to NIST nearest-rank `ceil(0.95*N)-1` (methodology_version 2; resolves MEDIUM-5 from TD-025); hardened trap quoting `'rm -f "$tmp_json"'` (MEDIUM-3); added mktemp sanity check (MEDIUM-3); synced intra-doc conflict — JSON block and all prose/table references now use single canonical value 642.6ms (HIGH-1); added pause-criterion "Provisional status" paragraph (MEDIUM-1); added Unaccounted Bytes Policy section + TD-026 (MEDIUM-4); extended TD-025 with pass-3 three LOW deferrals.
+- **Pass-4 fix-burst (2026-05-05):** AC-1.md JSON block updated from stale methodology_version 1 / 664.0ms to canonical v2 / 642.6ms (HIGH-1); moved perf-baseline.bats from validate job to cargo-host job in CI (HIGH-2: no Rust toolchain in validate); added empty-bundle guard to bats AC-1 test (HIGH-2); captured actual SHAs dec5361 (v1.0.0-rc.11) and 8c14421 (develop HEAD) replacing placeholder strings in baseline doc + AC-6.md (MEDIUM-2); added N<20 p95 WARNING to script stderr (MEDIUM-1); updated Methodology section minimum-sample-size note (MEDIUM-1); added frontmatter cosmetic LOW to TD-025 (deferred per instructions).
 
 ---
 

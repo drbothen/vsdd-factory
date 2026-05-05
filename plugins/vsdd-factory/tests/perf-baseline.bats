@@ -93,6 +93,11 @@ FROZEN_PLUGINS=(
     expected_total=$((expected_total + sz))
   done
 
+  # Guard: if ALL frozen plugins evaluated to zero bytes, the bundle dir is
+  # empty or missing. Fail loudly instead of silently passing with expected=0=reported.
+  [ "${#FROZEN_PLUGINS[@]}" -gt 0 ]
+  [ "$expected_total" -gt 0 ]
+
   local reported
   reported=$(echo "$output" | jq '.all_hook_plugins_wasm_bytes')
 

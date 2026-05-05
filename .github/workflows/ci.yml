@@ -39,15 +39,6 @@ jobs:
       - name: Run bin tests
         run: bats plugins/vsdd-factory/tests/bin.bats
 
-      - name: Run S-9.00 perf-baseline tests
-        # factory-artifacts is already mounted by the "Mount factory artifacts"
-        # step above, which makes .factory/ available (including
-        # .factory/measurements/measure-bundle-sizes.sh and
-        # .factory/measurements/fixtures/handoff-validator-input.json).
-        # The bats suite requires jq (installed above) and skips hyperfine
-        # gracefully when not present.
-        run: bats plugins/vsdd-factory/tests/perf-baseline.bats
-
       - name: Check bats files for orphan hook references
         run: bash plugins/vsdd-factory/tests/check-bats-orphans.sh
 
@@ -178,6 +169,26 @@ jobs:
             exit 1
           fi
           echo "Built $count wasm files."
+
+      - name: Mount factory artifacts (for perf-baseline bats)
+        # perf-baseline.bats needs .factory/ (script + fixture + baseline doc).
+        # Must run in cargo-host (not validate) because setup_file() calls
+        # `cargo build --release -p factory-dispatcher` when the binary is absent,
+        # and the validate job has no Rust toolchain.
+        run: |
+          git fetch origin factory-artifacts:refs/remotes/origin/factory-artifacts
+          git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing" >&2; exit 1)
+          git worktree add .factory origin/factory-artifacts
+
+      - name: Run S-9.00 perf-baseline tests
+        # Requires: Rust toolchain (for setup_file cargo build), jq, and .factory/
+        # mounted above. hyperfine is not installed; cold-start test skips gracefully.
+        # The factory-dispatcher binary was built in the cargo-host build steps above,
+        # so setup_file() will skip the build and proceed directly to tests.
+        shell: bash
+        run: |
+          sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
+          bats plugins/vsdd-factory/tests/perf-baseline.bats
 
   platforms-drift:
     # Single source of truth: ci/platforms.yaml. The build-dispatcher
