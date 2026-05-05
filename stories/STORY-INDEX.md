@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.48"
+version: "1.49"
 status: current
 producer: state-manager
 timestamp: 2026-05-05T00:00:00
@@ -24,6 +24,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-239 — STORY-INDEX bumped to reflect adversary pass-1 NITPICK_ONLY on E-9 v1.7 amendment surface (0 HIGH + 0 MED + 3 LOW; ADR-013 clock 0_of_3 → 1_of_3). LOW-1 resolved as intentional annotate-in-place convention for arch docs. STORY-INDEX v1.45 → v1.46.
 > Updated 2026-05-05: D-240 — STORY-INDEX bumped to reflect adversary pass-2 NITPICK_ONLY on E-9 v1.7 amendment surface (0 HIGH + 0 MED + 2 LOW; ADR-013 clock 1_of_3 → 2_of_3). Pass-methodology angle: reverse-trace from ADR-015 obligations + intra-amendment self-consistency. STORY-INDEX v1.46 → v1.47.
 > Updated 2026-05-05: D-241 — STORY-INDEX bumped to reflect adversary pass-3 SUBSTANTIVE on E-9 v1.7 amendment surface (1 HIGH + 3 MED + 2 LOW; ADR-013 clock RESET 2_of_3 → 0_of_3). Pass-methodology: forward-simulation + counter-example construction. H-1 block-emission misattribution (2 files / 4 sites). STORY-INDEX v1.47 → v1.48.
+> Updated 2026-05-05: D-242 — STORY-INDEX bumped to reflect E-9 v1.7→v1.8 fix burst (commit c3855ae) closing all 4 pass-3 SUBSTANTIVE findings (H-1 option-b dispatcher emits vsdd.block.plugin_blocked.v1 automatically; M-1 binary-choice frame; M-2 vsdd.capability.denied.exec_subprocess.v1; M-3 frontmatter references propagation; L-1 closed; L-2 skipped per D-239). E-9: 688L→730L (+42L). ADR-013 clock 0_of_3; awaits 3 NITPICK_ONLY passes. STORY-INDEX v1.48 → v1.49.
 > Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145). Pass-3 (2026-04-29): S-5.05 v1.6→v1.7 (1 MED + 5 LOW closed; STORY-INDEX:136 cross-cutting BC-8.31.* count fixed); S-5.06 NITPICK_ONLY (no version bump; clock 1_of_3 per S-7.03 skip-fix strategy); D-146. Pass-4 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (8 LOW; clock 0_of_3→1_of_3); S-5.06 v1.6 NITPICK_ONLY (0 findings; clock 1_of_3→2_of_3); skip-fix discipline applied per S-7.03; D-147. Pass-5 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (5 LOW positive; clock 1_of_3→2_of_3); **S-5.06 v1.6→v1.7 CONVERGENCE_REACHED at pass-5** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status draft→ready); D-148.
 > Pass-6 (2026-04-29): **S-5.05 v1.7→v1.8 CONVERGENCE_REACHED at pass-6** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status partial→ready; 3 consecutive NITPICK_ONLY: passes 4, 5, 6); D-149.
 >
