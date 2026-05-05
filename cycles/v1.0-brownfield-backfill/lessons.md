@@ -249,3 +249,39 @@ Rationale: (i) the architect explicitly chose "Post-Audit Amendment: ADR-015 Awa
 - File as TD-VSDD-058 (Architect fix-burst rationale citation re-verification rule).
 
 **[codified]** by D-243 lessons.md append.
+
+---
+
+### LESSON: Frontmatter `version:` field must track latest non-reserved Changelog summary table row (3+ recurrent pattern)
+
+**Source:** D-245 pass-5 finding H-P5-001 (067379c v1.9 fix burst); recurrent with F-P6-002 + F-P7-001
+**Date:** 2026-05-05
+
+**Pattern:** Architect bumped E-9 v1.8 → v1.9 by adding a v1.9 row to the Changelog summary table, a v1.9 H3 detail section, and rewriting the M-2 closure prose. But did NOT bump the frontmatter `version:` field from "1.8" to "1.9". Body says v1.9; frontmatter says v1.8. Tooling reading frontmatter (state-manager SHA recompute, input-hash, downstream cross-doc references) sees stale version.
+
+This is the THIRD occurrence in this single epic's amendment history: F-P6-002 (v1.5 row missing from summary table), F-P7-001 (v1.4 row regression), and now H-P5-001 (frontmatter version not bumped). Per the lessons-codification rule, 3+ recurrences qualify for codification.
+
+**Codification:**
+- Add a hook (or codify in the spec-versioning skill) asserting `frontmatter.version == max(changelog_summary_table.version where date != '—')` for every story/epic file. Run at pre-commit.
+- Architect prompt for fix bursts must require: "When you append a new row to the Changelog summary table, ALSO bump the frontmatter `version:` field to match. Do not consider the burst complete until both anchors agree."
+- File as TD-VSDD-059 (Frontmatter-version-vs-summary-table validator hook) if not already tracked.
+
+**[codified]** by D-245 lessons.md append.
+
+---
+
+### LESSON: POLICY 1 (append_only_numbering) silent on prose corrections to prior version blocks
+
+**Source:** D-245 pass-5 finding M-P5-001 (067379c v1.9 fix burst)
+**Date:** 2026-05-05
+
+**Pattern:** v1.9 burst rewrote v1.8 changelog prose in-place (the M-2 closure entry, lines 720-722 in v1.8 block). The v1.9 block notes the rewrite but the v1.8 block's content is no longer historically accurate to what was authored at the v1.8 burst.
+
+POLICY 1 (append_only_numbering) requires append-only changelog entries but is silent on whether prose corrections within prior version blocks are allowed.
+
+**Codification:**
+- Either explicitly forbid in-place edits to prior version blocks (require corrections-only-in-new-version-block; the v1.8 block stays as-was with the fabricated citation; v1.9 block records the correction with a note pointing to the v1.8 defect) — RECOMMENDED.
+- OR explicitly allow in-place corrections with a marker (e.g., `[corrected v1.9: ...]` annotation inline in v1.8 prose).
+- File as TD-VSDD-060 (POLICY 1 amendment to forbid in-place edits).
+
+**[codified]** by D-245 lessons.md append.
