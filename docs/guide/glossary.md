@@ -250,6 +250,9 @@ The architectural separation between the deterministic, side-effect-free Pure Co
 **R (Risk)**
 A risk identified during domain specification. Numbered as R-NNN. Lifecycle-scoped. Registry: L2-INDEX.md.
 
+**Remediation Burst**
+A specialized variant of Burst used by `state-manager` to apply state-file fixes under the Single-Commit Burst Protocol (TD-VSDD-053). Distinct from a regular Burst: exactly one atomic commit, no Stage 2 backfill, no SHA placeholder, no commit chain. Invoked via `/vsdd-factory:state-burst`. Where a regular Burst coordinates multiple agents and may produce multiple commits across roles, a Remediation Burst is single-agent, single-commit, and refuses to proceed if it cannot complete atomically.
+
 **Red Flags Table**
 A table embedded in discipline skills that enumerates the rationalizations agents use to bypass Iron Laws. Each row maps a tempting thought ("I'll skip the Red Gate for this small change") to the reality of why it is a protocol violation. 80 Red Flag entries across 9 skills.
 
