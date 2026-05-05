@@ -31,7 +31,7 @@ removal_reason: null
 
 **ADR-015 Awareness (added per E-9 v1.7 Post-Audit Amendment, propagated to BC at v1.21):**
 The success-path event name `host.exec_subprocess.completed` SHOWN IN THIS BC IS INTERIM. Per ADR-015 D-15.2 reverse-DNS naming requirement, the canonical event name resolves to one of two binary options (per OQ-W16-001 in `.factory/specs/open-questions.md`):
-- (a) If `vsdd.host.*` is added to ADR-015 D-15.2 registry → `vsdd.host.exec_subprocess.completed.v1` (host category mapping per OQ-W16-001 acceptance criterion (a)).
+- (a) If `vsdd.host.*` is added to ADR-015 D-15.2 registry → `vsdd.host.exec_subprocess.completed.v1` (category to be assigned per OQ-W16-001 acceptance criterion (a) — ADR-015 D-15.2 registry has 5 categories: lifecycle, domain, audit, error, unknown).
 - (b) Otherwise → `vsdd.dispatcher.subprocess_completed.v1` (lifecycle category per existing `vsdd.dispatcher.*` registry entry; OQ-W16-001 acceptance criterion (b)).
 S-9.07 implementer MUST close OQ-W16-001 before merging the host-emit-fix story.
 
@@ -46,10 +46,10 @@ On successful subprocess completion (any exit code, including non-zero), the dis
 ## Postconditions
 
 1. Exactly one `host.exec_subprocess.completed` event is emitted via `ctx.emit_internal`.
-2. Event payload includes all 8 fields: `{plugin_id: String, binary: String /* canonicalized full path */, args_count: u32, exit_code: i32, duration_ms: u64, stdout_bytes: u64, stderr_bytes: u64, truncated: bool}`.
+2. Event payload includes all 8 fields: `{plugin_id: String, binary: String /* canonicalized full path */, args_count: u32, exit_code: i32, duration_ms: u64, stdout_bytes: u64, stderr_bytes: u64, truncated: bool /* reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1 */}`.
 3. `duration_ms` is measured from `Instant::now()` at `Command::spawn()` to process exit; the deadline `Instant` already present in `execute_bounded` (exec_subprocess.rs:270) is the reference.
 4. Event is routed through the normal `ctx.emit_internal` sink chain (file/datadog/honeycomb per config), the same path as the existing `emit_denial` call.
-5. **Error-path event reality (per gap-analysis §1):** Today only `internal.capability_denied` is emitted on the 4 denial paths (binary not allowed, shell bypass not acknowledged, env not allowed, cwd not allowed). TIMEOUT (-7) and OUTPUT_TOO_LARGE (-8) paths return error codes WITHOUT emitting any event. The success-path event introduced by this BC closes the success-path observability gap. Adding TIMEOUT/OUTPUT_TOO_LARGE error-path events is OUT OF SCOPE for this BC and may be tracked in a future OQ if needed.
+5. **Error-path event reality (per gap-analysis §1):** Today only `internal.capability_denied` is emitted on the 4 denial paths (binary not allowed, shell bypass not acknowledged, env not allowed, cwd not allowed). TIMEOUT (-2) and OUTPUT_TOO_LARGE (-3) paths return error codes WITHOUT emitting any event. The success-path event introduced by this BC closes the success-path observability gap. Adding TIMEOUT/OUTPUT_TOO_LARGE error-path events is OUT OF SCOPE for this BC and may be tracked in a future OQ if needed.
 
 ## Invariants
 
@@ -85,7 +85,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 | EC-003 | Capability check fails | `internal.capability_denied` emitted; `host.exec_subprocess.completed` NOT emitted |
 | EC-004 | Subprocess times out | Timeout error event emitted; `host.exec_subprocess.completed` NOT emitted |
 | EC-005 | Subprocess output exceeds cap | `OUTPUT_TOO_LARGE` path; `host.exec_subprocess.completed` NOT emitted |
-| EC-006 | Payload field type check | All 8 fields present with declared types (`plugin_id: String`, `binary: String`, `args_count: u32`, `exit_code: i32`, `duration_ms: u64`, `stdout_bytes: u64`, `stderr_bytes: u64`, `truncated: bool`) |
+| EC-006 | Payload field type check | All 8 fields present with declared types (`plugin_id: String`, `binary: String`, `args_count: u32`, `exit_code: i32`, `duration_ms: u64`, `stdout_bytes: u64`, `stderr_bytes: u64`, `truncated: bool [reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1]`) |
 
 ## Canonical Test Vectors
 

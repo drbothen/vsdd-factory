@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.21"
+version: "1.22"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -482,7 +482,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.19 | 2026-05-05 | state-manager | D-260 sibling-residue fix burst — H-P17-001 (R-W16-003 ~14MB residue) + H-P17-002 (perf-baseline H2 post-rc.4 stale) + M-P17-001 (OQ-1 post-rc.4 stale); L-P17-001 SKIPPED. |
 | 1.20 | 2026-05-05 | state-manager | D-261 convention closure burst — M-P18-001 last_amended field added to 4 arch-doc files (5th-recurrence resolution per S-7.02); L-P18-001 perf-baseline references (research) restored. TD-VSDD-073 codified. |
 | 1.21 | 2026-05-05 | state-manager | D-263 implementation-readiness fix burst — M-P20-001 (OQ-3 timeout/output pinned) + M-P20-002 (BC-1.05.036 ADR-015 awareness) + L-P20-002 (BC-1.05.036 error-path reality) + TD-VSDD-074 (BC last_amended scope extension); L-P20-001 SKIPPED with rationale. |
-| 1.22 | — | — | (reserved) |
+| 1.22 | 2026-05-05 | state-manager | D-264 multi-fix burst — H-P21-001 (BC-1.05.036 error codes -7/-8→-2/-3; source-code verified); H-P21-002 (open-questions.md line 325→326 citation; grep verified); M-P21-001 (BC-1.05.035 ADR-015 awareness clause added per TD-VSDD-074); M-P21-002 (BC-1.05.036 fabricated "host" category corrected); M-P21-003 (truncated:bool documented as reserved always-false in v1); L-P21-001/002 DEFERRED; TD-VSDD-075 codified. |
+| 1.23 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1193,5 +1194,58 @@ Pass-20 verdict: SUBSTANTIVE 0H/2M/2L. Pre-implementation readiness audit angle 
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.20"` → `"1.21"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (ninth use):** State-manager handles pass-20 seal and 4-fix burst atomically. All fixes are textual corrections/additions where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.22 (2026-05-05) — D-264 multi-fix burst: pass-21 2H/3M/2L; BC error codes + line cite + ADR-015 sibling + host category + truncated semantics; TD-VSDD-075 codified
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (TENTH application).**
+
+Pass-21 verdict: SUBSTANTIVE 2H/3M/2L. BC-only deep-dive angle (NEW per TD-VSDD-057) — reads BC-1.05.035 and BC-1.05.036 as standalone implementer, cross-validates against source code and ADR-015 registry. ADR-013 clock RESET to 0_of_3.
+
+**Fix 1 — H-P21-001 CLOSED (BC-1.05.036 fabricated error codes -7/-8 → -2/-3):**
+
+Source-code verification per TD-VSDD-075: `crates/factory-dispatcher/src/host/mod.rs:181-182` confirms:
+```rust
+pub const TIMEOUT: i32 = -2;
+pub const OUTPUT_TOO_LARGE: i32 = -3;
+```
+BC-1.05.036 §Postconditions item 5 corrected: `TIMEOUT (-7) and OUTPUT_TOO_LARGE (-8)` → `TIMEOUT (-2) and OUTPUT_TOO_LARGE (-3)`. The v1.21 burst (D-263 L-P20-002) invented codes -7/-8 without reading the source — a regression introduced by the fix burst itself.
+
+**Historical-record note on v1.21 H3:** Per POLICY 1 (append-only), the v1.21 H3 changelog entry above retains the fabricated `-7`/`-8` values as historical audit record. The corrected values are `-2`/`-3` per source code as cited above. Readers of v1.21 H3 prose should apply the correction noted here.
+
+**Fix 2 — H-P21-002 CLOSED (open-questions.md:21 line citation 325→326):**
+
+Grep verification per TD-VSDD-075 dependent-citation-propagation sub-rule: `grep -n 'Resolution tracked in \*\*OQ-W16-001\*\*' .factory/architecture/gap-analysis-w16-subprocess.md` → line 326 (single match). The v1.20 D-261 burst added `last_amended: 2026-05-05` to gap-analysis-w16-subprocess.md frontmatter (line 8), shifting all subsequent lines +1. The v1.16 D-256 fix had set the citation to line 325 (correct at that time). This is the THIRD recurrence of the line-citation off-by-one class (after L-P9-001, M-P13-001) — S-7.02 threshold met; TD-VSDD-075 codified (see below).
+
+**Fix 3 — M-P21-001 CLOSED (BC-1.05.035 ADR-015 awareness clause, TD-VSDD-074 symmetric application):**
+
+BC-1.05.035 §Description gained ADR-015 awareness clause. The v1.21 burst added the clause to BC-1.05.036 but not BC-1.05.035, despite both BCs referencing `internal.capability_denied` (an INTERIM event name per the v1.7 amendment). Asymmetric TD-VSDD-074 application closed.
+
+**Fix 4 — M-P21-002 CLOSED (BC-1.05.036:34 fabricated "host" ADR-015 category):**
+
+BC-1.05.036 §Description option (a) read "host category mapping per OQ-W16-001 acceptance criterion (a)". ADR-015 D-15.2 registry has exactly 5 categories: `lifecycle | domain | audit | error | unknown` — no "host" category exists. Corrected to: "category to be assigned per OQ-W16-001 acceptance criterion (a) — ADR-015 D-15.2 registry has 5 categories: lifecycle, domain, audit, error, unknown". Same invented-value class as H-P21-001.
+
+**Fix 5 — M-P21-003 CLOSED (BC-1.05.036 truncated:bool declared but semantically always false):**
+
+§Postcondition 2 payload field `truncated: bool` and EC-006 both gained inline reservation note: `[reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1]`. Option (b) chosen: field retained for future ABI-breaking change when truncation becomes Ok-path; semantics documented explicitly so implementer does not waste effort setting `truncated = true`.
+
+**L-P21-001 DEFERRED with rationale:** Interim-vs-canonical name whiplash in BC-1.05.036 (§Description qualifier vs §Postconditions unqualified use). Cosmetic readability only; awareness clause in §Description covers the implementer.
+
+**L-P21-002 DEFERRED with rationale:** Rust line citations (exec_subprocess.rs:230, :270). Per S-7.03/D-231 SHIP-AS-IS pattern; implementing story refreshes at implementation time.
+
+**TD-VSDD-075 codified (two sub-rules, both triggered by pass-21 HIGH findings):**
+
+1. **Source-code-verification discipline:** Fix bursts that cite source-code constants (error codes, struct fields, enum variants) MUST read the actual source before commit. Quote the exact source line in the fix-burst commit message body as proof. H-P21-001 was a regression where D-263 invented `-7`/`-8` without verification.
+
+2. **Dependent-citation-propagation discipline:** When a fix burst adds `last_amended:` (or any frontmatter field that shifts subsequent line numbers), the same burst MUST grep all in-scope files for inbound citations of form `<filename> line N`. For each match, re-grep the cited file for the quoted text and confirm the line number still resolves. Refresh stale citations in the same burst. H-P21-002 was the third recurrence of the off-by-one class caused by this omission.
+
+Both sub-rules appended to `open-backlog-post-rc8.md` as TD-VSDD-075 and to `lessons.md`.
+
+**ADR-013 clock:** 0_of_3 (reset by pass-21 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (22/23/24) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.21"` → `"1.22"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (tenth use):** State-manager handles pass-21 seal and 5-fix burst atomically. All fixes are textual corrections/additions where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

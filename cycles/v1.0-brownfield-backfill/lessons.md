@@ -537,3 +537,24 @@ A 1-second body-grep `grep -n '14MB' E-9*.md` at v1.14 close would have caught t
 **[codified]** by D-263 lessons.md append.
 
 **[codified]** by D-261 lessons.md append.
+
+---
+
+### LESSON: Frontmatter `last_amended:` adds MUST trigger dependent-citation propagation refresh; fix bursts citing source-code constants MUST verify against source
+
+**Source:** D-264 pass-21 findings H-P21-001 (fabricated error codes) + H-P21-002 (off-by-one line citation caused by frontmatter-line-shift)
+**Date:** 2026-05-05
+
+**Pattern (H-P21-001 — source-code-verification failure):** v1.21 burst (D-263 L-P20-002) added BC-1.05.036 §Postconditions item 5 with error codes TIMEOUT (-7) and OUTPUT_TOO_LARGE (-8). Actual ABI codes per `crates/factory-dispatcher/src/host/mod.rs:181-182`: TIMEOUT = -2, OUTPUT_TOO_LARGE = -3. The fix burst invented the wrong codes without reading the source file. A regression introduced by a fix burst.
+
+**Pattern (H-P21-002 — dependent-citation-propagation failure):** v1.20 burst (D-261) added `last_amended: 2026-05-05` to gap-analysis-w16-subprocess.md frontmatter at line 8. This shifted every subsequent line by +1. The line-326-quoted-text "Resolution tracked in **OQ-W16-001**" was previously at line 325 (set by v1.16/D-256 grep at that time). open-questions.md:21 cited "gap-analysis line 325" — that citation became stale. v1.20 burst did not refresh dependent inbound citations.
+
+This is the THIRD recurrence of the line-citation off-by-one defect class (after L-P9-001 and M-P13-001). S-7.02 codification threshold (3+) met.
+
+**Codification:**
+- **Source-code-verification discipline (TD-VSDD-075 sub-rule 1):** Fix bursts that cite source-code constants (error codes, struct fields, enum variants, const values) MUST open the cited source file, read the actual values, and quote the exact line in the fix-burst commit message body as proof of verification. No inventing constants.
+- **Dependent-citation-propagation discipline (TD-VSDD-075 sub-rule 2):** When a fix burst adds `last_amended:` (or any frontmatter field that shifts subsequent line numbers), the same burst MUST grep all 5 in-scope files for inbound citations of form `<filename> line N`. For each match, re-grep the cited file for the quoted text and verify the line number still resolves. Refresh stale citations in the same burst.
+- Architect/state-manager prompts MUST include this dependent-citation refresh step in any frontmatter-add burst.
+- File as TD-VSDD-075 (last_amended dependent-citation propagation requirement + source-code-verification discipline).
+
+**[codified]** by D-264 lessons.md append.
