@@ -1,6 +1,49 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-rc.11 — Single-commit burst protocol + TD-020 sweep (2026-05-04)
+
+Two unrelated improvements bundled:
+
+### Single-commit burst protocol (TD-VSDD-053)
+
+Resolves external **TD-VSDD-044**: the self-referential factory-artifacts
+HEAD cite in STATE.md / SESSION-HANDOFF.md "current state" sections that
+caused 6× recurrence loops in real-world dogfood (5+ force-pushes per
+session). Retires the two-commit burst protocol; replaces with a
+single-commit protocol.
+
+The loop existed because STATE.md sits ON the factory-artifacts branch,
+so committing STATE.md changed HEAD, instantly staling any HEAD-SHA cite
+inside the same content. The two-commit workaround (Stage 1 placeholder
+→ commit → Stage 2 backfill SHA → commit) had to update the SHA in 8
+specific cite locations in lockstep; missing any one created a
+"fix-the-fix" loop. The structural fix removes the cite altogether:
+`git -C .factory log -1` returns the current HEAD; STATE.md no longer
+claims it. Historical SHA references in changelog rows, decisions log,
+and cycle manifests remain valid (immutable past burst SHAs).
+
+#### Changed
+
+- **`templates/verify-sha-currency.sh`** — removed factory-arts cite
+  extraction (~80 LOC). Preserved: develop SHA cite check (cross-branch,
+  no loop), `MULTI_COMMIT_CHAIN_NOT_ALLOWED` regression guard,
+  wave-state.yaml ↔ STATE.md cross-record check, tense-flip detection.
+- **`agents/state-manager.md`** — protocol references updated; current
+  factory-artifacts HEAD is `git -C .factory log -1`, not a string in
+  any artifact (operational guidance in agent doc, not in STATE.md prose).
+- **`skills/state-burst/SKILL.md`** — full rewrite to single-commit;
+  Stage 1/2 sections removed; `15fa97e6` placeholder pattern removed;
+  commit message must NOT contain `backfill`.
+- **`templates/state-manager-checklist-template.md`** — full rewrite to
+  single-commit; two acceptable `remediation_sha:` patterns documented.
+
+#### Preserved (not touched)
+
+- `validate-input-hash.sh` — artifact-level drift detection
+- `validate-state-pin-freshness.sh` — version-pin freshness
+- Historical SHA references throughout (changelog/decisions-log/cycle-
+  manifest/TL;DR History/BC/story/spec IDs)
+- `verify-sha-currency.sh` wave-state ↔ STATE cross-record check
 
 ### TD-020 sweep — bats SKIP_SUITES cleanup
 
