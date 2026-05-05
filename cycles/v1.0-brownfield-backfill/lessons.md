@@ -393,4 +393,22 @@ The content is correct (both bursts' edits shipped); only the audit-trail bounda
 - Architect prompt for fix bursts must now run the leak scan against the broader scope.
 - File as TD-VSDD-066 (TD-VSDD-063 scope extension to register-class permanent specs).
 
+---
+
+### LESSON: AC-numbered values must cross-validate against underlying measurement source
+
+**Source:** D-254 pass-11 finding H-P11-001 (E-9 AC-3 cited superseded ~14MB target)
+**Date:** 2026-05-05
+
+**Pattern:** E-9 AC-3 (the contractual gate) cited "(~14MB)" advisory soft cap. ADR-014 line 45 had explicitly retired this projection: "the prior ~14MB target derived from research §Q3's 7.2MB projection is superseded — that figure was a projection, not a measurement." perf-baseline-w16.md line 163 carries actual value `w16_advisory_bundle_soft_cap_bytes = 643686 bytes` (rc.1 × 2 = ~644KB) — three orders of magnitude smaller than the obsolete ~14MB projection.
+
+The original ~14MB cite came from audit-w16.md Section 5 R-W16-003 (pre-amendment audit-time prose, when the projection was current). When ADR-014 retired the projection, the supersession propagated to perf-baseline-w16.md and ADR-014 itself but NOT to AC-3 in the E-9 epic. 10 prior adversarial passes missed this because they audited along axes (positive verification, ADR-015 citations, POLICY 6 names, etc.) that didn't enumerate every numeric claim.
+
+**Codification:**
+- Adversary skill should add a "numeric-cross-anchor" review axis: enumerate every numeric claim in spec/AC text and cross-validate against the underlying measurement source (perf-baseline, ADR amendment, S-N.NN baseline). Apply at convergence-time at minimum.
+- Architect prompt for ACs that cite measurements must require: "When citing a measurement value (bytes, ms, %), include the file:line of the underlying measurement source so the citation is auditable."
+- File as TD-VSDD-067 (Numeric-cross-anchor review axis for adversary).
+
+**[codified]** by D-254 lessons.md append.
+
 **[codified]** by D-252 lessons.md append.

@@ -17,7 +17,7 @@ timestamp: 2026-05-05T00:00:00Z
 
 ## OQ-W16-001 — Resolve `vsdd.host.*` registry-prefix decision before E-10 Wave 1 ships
 
-**Source:** D-247 pass-6 finding M-P6-002 (b04843d cycle)
+**Source:** gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" (M-1 closure forward-pointer to OQ-W16-001)
 **Status:** OPEN
 **Owner:** SS-01 implementer or E-10 Wave 1 architect
 **Filed:** 2026-05-05

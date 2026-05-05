@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.13"
+version: "1.14"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -365,7 +365,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 |----|-----------|
 | AC-1 | All 23 validate-*.sh hooks have native WASM equivalents in `crates/hook-plugins/validate-*/` delivered by S-9.01..S-9.07 |
 | AC-2 | `hooks-registry.toml` updated: 23 WASM entries added (`plugin = "hook-plugins/validate-*.wasm"`); 23 legacy-bash-adapter entries disabled or removed for Tier 2 hooks |
-| AC-3 | W-16 bundle growth within the latency-primary + advisory-ceiling model per ADR-014 R-8.09 revised (2026-05-03): cold-start p95 ≤ 500ms (hard gate, inherited from S-9.00 / E-8 AC-7b); advisory soft cap ≤ 100% cumulative growth at end of W-17 (~14MB); hard kill-switch ≤ 30MB. Per-wave telemetry `(bundle_size_delta_bytes, cold_start_p95_delta_ms)` published by each batch story from S-9.00 baseline values. Wave paused if cold-start regresses >10%. |
+| AC-3 | W-16 bundle growth within the latency-primary + advisory-ceiling model per ADR-014 R-8.09 revised (2026-05-03): cold-start p95 ≤ 500ms (hard gate, inherited from S-9.00 / E-8 AC-7b); advisory soft cap ≤ 100% cumulative growth at end of W-17 (soft_cap = perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes = 643,686 bytes per ADR-014 R-8.09 Amendment); hard kill-switch ≤ 30MB. Per-wave telemetry `(bundle_size_delta_bytes, cold_start_p95_delta_ms)` published by each batch story from S-9.00 baseline values. Wave paused if cold-start regresses >10%. |
 | AC-4 | All 7 batched stories (S-9.01..S-9.07) pass adversarial convergence per ADR-013 before implementation dispatch |
 | AC-5 | S-9.07 T-0 STOP CHECK verifies only `depends_on: S-9.00` is satisfied before S-9.07 implementation begins. (S-9.30 dependency removed — D-9.2 withdrawn.) |
 | AC-6 | HOST_ABI_VERSION = 1 in both `crates/hook-sdk/src/lib.rs` and `crates/factory-dispatcher/src/lib.rs` after all E-9 stories merge. Verified via: `grep -n 'pub const HOST_ABI_VERSION: u32 = 1' crates/hook-sdk/src/lib.rs` returns exactly one match; same check for `crates/factory-dispatcher/src/lib.rs`. |
@@ -473,7 +473,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.11 | 2026-05-05 | architect | D-248 fix burst — close pass-6 H-P6-001 B-2+B-6 explicit H-1 option (b) in audit-w16.md, M-P6-002 OQ-W16-001 filed. 3 MED + 2 LOW deferred with rationale. |
 | 1.12 | 2026-05-05 | architect | D-250 minimal fix burst — close pass-7 line 38 trio: M-P7-001 en-dash → explicit list, M-P7-002 "H-1 option (b)" → "are block-mode", M-P7-003 PostToolUse parenthetical added, L-P7-001 "per ADR-015 D-15.3" → "per D-15.3". L-P7-002 + L-P7-003 deferred. |
 | 1.13 | 2026-05-05 | state-manager | D-251 minimal fix burst — perf-baseline-w16.md line 156 misanchor closed (E-9 D-9.4 → E-9 AC-3 per pass-8 M-P8-001). |
-| 1.14 | — | — | (reserved) |
+| 1.14 | 2026-05-05 | state-manager | D-254 combined seal-and-fix — H-P11-001 AC-3 ~14MB → 643686 bytes; M-P11-001 open-questions.md nomenclature scrub. |
+| 1.15 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -967,5 +968,23 @@ TD-VSDD-064 sequential-burst protocol where state-manager handles a minor cosmet
 the seal, avoiding the parallel commit collision pattern. The fix is single-line; architect involvement
 adds no value. This burst sets the precedent that minimal cosmetic fixes (single-line textual corrections
 where the architect is not needed for judgment) can be folded into a state-manager seal burst.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.14 (2026-05-05) — D-254 combined seal-and-fix burst
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (second application).**
+
+Pass-11 verdict: SUBSTANTIVE 1H/1M/0L. Numerical-consistency angle (NEW per TD-VSDD-057) caught AC-3's superseded "~14MB" advisory soft cap — ADR-014 line 45 explicitly retired this projection in favor of 643,686 bytes (rc.1 × 2). ADR-013 clock RESET 2_of_3 → 0_of_3.
+
+**Fix 1 — H-P11-001 CLOSED:** AC-3 line 368 `(~14MB)` replaced with `(soft_cap = perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes = 643,686 bytes per ADR-014 R-8.09 Amendment)`. Removes the superseded "~14MB" projection (originated in audit-w16.md Section 5 R-W16-003 and retired by ADR-014 line 45) and anchors AC-3 directly to the computed measurement value.
+
+**Fix 2 — M-P11-001 CLOSED:** open-questions.md line 20 `Source:` field scrubbed of fix-burst-internal IDs (`D-247`, `pass-6 finding`, `M-P6-002`, cycle SHA `b04843d`). Replaced with neutral semantic anchor: `gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" (M-1 closure forward-pointer to OQ-W16-001)`. Per TD-VSDD-063 + TD-VSDD-066 (register-class permanent specs scope extension).
+
+**Process-gap — TD-VSDD-067 codified:** Numerical-consistency angle revealed AC-numbered values were never cross-validated against underlying measurement source. File TD-VSDD-067 (Numeric-cross-anchor review axis for adversary). Adversary checklist should add "enumerate every numeric claim in spec/AC text and cross-validate against the underlying measurement source (perf-baseline, ADR amendment, S-N.NN baseline)."
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.13"` → `"1.14"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (second use):** State-manager handles both pass-11 seal and 2-line minimal fix atomically, avoiding parallel commit collision. Both fixes are textual corrections where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
