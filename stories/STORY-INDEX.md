@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.45"
+version: "1.46"
 status: current
 producer: state-manager
 timestamp: 2026-05-05T00:00:00
@@ -21,6 +21,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-04: E-10 epic + 9 S-T.NN stories authored from ADR-015 migration plan decomposition. STORY-INDEX v1.42 → v1.43.
 > Updated 2026-05-04: Q1 rename S-T.NN → S-10.NN (all 9 E-10 stories); Q3 OQ-5 resolved in S-10.06 (Grafana dashboards in plugins/vsdd-factory/tools/observability/grafana-dashboards/); Q4 OQ-2 resolved in S-10.03 (full Windows registry lookup, 5→8 pts); Q5 route-through-dispatcher in S-10.08; Q6 discipline_scope fields added to S-7.04/S-7.05 index rows. STORY-INDEX v1.43 → v1.44.
 > Updated 2026-05-05: D-238 — STORY-INDEX bumped to reflect E-9 v1.6 → v1.7 amendment (D-236 architect burst d9f2c86 absorbing ADR-015 awareness). STORY-INDEX v1.44 → v1.45.
+> Updated 2026-05-05: D-239 — STORY-INDEX bumped to reflect adversary pass-1 NITPICK_ONLY on E-9 v1.7 amendment surface (0 HIGH + 0 MED + 3 LOW; ADR-013 clock 0_of_3 → 1_of_3). LOW-1 resolved as intentional annotate-in-place convention for arch docs. STORY-INDEX v1.45 → v1.46.
 > Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145). Pass-3 (2026-04-29): S-5.05 v1.6→v1.7 (1 MED + 5 LOW closed; STORY-INDEX:136 cross-cutting BC-8.31.* count fixed); S-5.06 NITPICK_ONLY (no version bump; clock 1_of_3 per S-7.03 skip-fix strategy); D-146. Pass-4 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (8 LOW; clock 0_of_3→1_of_3); S-5.06 v1.6 NITPICK_ONLY (0 findings; clock 1_of_3→2_of_3); skip-fix discipline applied per S-7.03; D-147. Pass-5 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (5 LOW positive; clock 1_of_3→2_of_3); **S-5.06 v1.6→v1.7 CONVERGENCE_REACHED at pass-5** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status draft→ready); D-148.
 > Pass-6 (2026-04-29): **S-5.05 v1.7→v1.8 CONVERGENCE_REACHED at pass-6** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status partial→ready; 3 consecutive NITPICK_ONLY: passes 4, 5, 6); D-149.
 >
