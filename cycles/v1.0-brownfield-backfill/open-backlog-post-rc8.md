@@ -26,6 +26,7 @@
 ## New from Phase D-4 (2026-05-05)
 
 - **TD-VSDD-056 ADR template extension — Downstream Epics Requiring Amendment.** ADR-015 was authored after E-9 v1.6 reached convergence but did not enumerate E-9 in its `subsystems_affected` field, causing a post-convergence 4-file amendment burst (E-9 v1.7, d9f2c86). The ADR template should require a "Downstream epics requiring amendment" section listing every in-flight epic whose convergence-frozen body must be reopened. ADR review checklist should assert each downstream epic has an explicit cross-ref. Source: D-238 architect report. Codified in lessons.md (LESSON: ADR authors should enumerate in-flight epics requiring amendment).
+- **TD-VSDD-057 Adversary angle-of-attack rotation rule for ADR-013 convergence.** Pass-3 forward-simulation angle found H-1 that passes 1+2 (verify-architect + reverse-trace angles) missed. ADR-013 skill and adversary dispatch prompt should require angle-of-attack diversity — at least 2 distinct angles exercised across 3-of-3 NITPICK_ONLY passes, with each fresh-context pass selecting an angle not yet used. Source: D-241 pass-3 finding H-1. Codified in lessons.md (LESSON: Multi-pass adversarial review with rotating angles of attack catches defects that single-angle passes miss).
 
 ## Lessons codified during the cycle (needing follow-up in lessons.md)
 

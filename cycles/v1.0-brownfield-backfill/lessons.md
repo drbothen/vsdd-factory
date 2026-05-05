@@ -217,3 +217,19 @@ Rationale: (i) the architect explicitly chose "Post-Audit Amendment: ADR-015 Awa
 **[codified]** by D-239 LOW-1 resolution via orchestrator decision, recorded in lessons.md append.
 
 **References:** D-239 (STATE.md decision-log); D-236 (resequencing + amendment scope); adv-e9-v1.7-amendment-pass-1.md LOW-1 finding; E-9 epic v1.7 (`.factory/stories/epics/E-9-tier-2-native-wasm-migration.md`).
+
+---
+
+### LESSON: Multi-pass adversarial review with rotating angles of attack catches defects that single-angle passes miss
+
+**Source:** D-241 pass-3 finding H-1 (d9f2c86 v1.7 amendment counter-example)
+**Date:** 2026-05-05
+
+**Pattern:** Pass-1 took a "verify what the architect said" angle (PASS NITPICK). Pass-2 took a "reverse-trace from ADR obligations to amendment landing sites" angle (PASS NITPICK). Pass-3 took a "forward-simulate story-writer reading + construct counter-example plugin" angle and found H-1: a literal-MUST in the amendment text that conflicts with ADR-015 D-15.3 (the contract assigns block-event emission to the DISPATCHER, not the plugin; the amendment misattributed the obligation to plugins). Without pass-3's angle rotation, story-writer would have authored S-9.01..S-9.07 with redundant plugin-side block emission ACs producing duplicate audit-trail events.
+
+**Codification:**
+- Adversary dispatch prompt should suggest 3-4 distinct verification angles by name (verify-architect, reverse-trace, forward-simulate, counter-example, boundary-case, bidirectional-reachability) and instruct each fresh-context pass to pick one not yet exercised.
+- ADR-013 should be amended (or its operating skill should) to require angle-of-attack diversity across 3-of-3 NITPICK_ONLY passes — at least 2 distinct angles must be exercised before convergence.
+- File as TD-VSDD-057 (Adversary angle-of-attack rotation rule) if not already tracked.
+
+**[codified]** by D-241 lessons.md append.
