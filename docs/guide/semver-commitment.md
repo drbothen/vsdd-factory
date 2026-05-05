@@ -5,8 +5,9 @@ v1.0 line, what remains intentionally unstable, how breaking changes are handled
 and what HOST_ABI_VERSION = 1 means for plugin authors. It is the authoritative
 reference for operators and plugin authors evaluating upgrade safety.
 
-This document is locked at v1.0.0-beta.4. Amendments require a new doc version
-and a changelog entry.
+This document's lock target is **1.0.0 GA**. Pre-GA release candidates may
+revise it without a doc-version bump; once 1.0.0 ships, amendments require
+a new doc version and a changelog entry.
 
 ---
 
@@ -60,6 +61,11 @@ The per-platform variants (`hooks.json.darwin-arm64`, etc.) follow the same sche
 The format is stable; Claude Code reads it, not vsdd-factory, so format breaks
 would originate upstream — but vsdd-factory guarantees it will not write
 non-conforming `hooks.json` content.
+
+> **Operator note:** Operators edit `hooks-registry.toml`, not `hooks.json`
+> directly. `hooks.json` is a generated artifact bundled into the plugin
+> package; the canonical, human-edited source for hook routing is
+> `plugins/vsdd-factory/hooks-registry.toml`.
 
 ### Event type namespaces detail
 

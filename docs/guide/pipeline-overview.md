@@ -43,21 +43,32 @@ graph TD
         WG -->|"FAIL"| DEL
     end
 
-    subgraph "Phase 4-6: Hardening & Release"
+    subgraph "Phase 4: Holdout Evaluation"
+        HE["/vsdd-factory:holdout-eval"]
+    end
+
+    subgraph "Phase 5: Adversarial Refinement"
         AR2["/vsdd-factory:adversarial-review\nimplementation"]
+    end
+
+    subgraph "Phase 6: Formal Hardening"
         FV["/vsdd-factory:formal-verify"]
+    end
+
+    subgraph "Phase 7: Convergence & Release"
         CC["/vsdd-factory:convergence-check"]
         REL["/vsdd-factory:release"]
-        AR2 --> FV --> CC
         CC -->|"NOT CONVERGED"| AR2
         CC -->|"CONVERGED"| REL
     end
+
+    HE --> AR2 --> FV --> CC
 
     BV -->|"validated"| CB
     START(("Greenfield")) --> CB
     P1DONE --> DS
     P2DONE --> DEL
-    WG -->|"PASS"| AR2
+    WG -->|"PASS"| HE
 
     style START fill:#40916c,color:#fff
     style P1DONE fill:#1d3557,color:#fff
@@ -269,7 +280,7 @@ every rule has a cost, and the human operator is the final authority on ceremony
 Common shortcuts:
 
 - **Skip Phase 0** if you are building greenfield with no reference codebase.
-- **Skip Phase 5 (formal hardening)** for utility modules, prototypes, or low-risk code.
+- **Skip Phase 6 (formal hardening)** for utility modules, prototypes, or low-risk code.
   Document the decision in an ADR.
 - **Reduce adversarial passes** for small, well-understood changes. The `/vsdd-factory:quick-dev-routing`
   command identifies changes with zero blast radius that can bypass full adversarial review.

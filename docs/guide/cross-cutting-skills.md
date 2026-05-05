@@ -523,7 +523,7 @@ Digital Twin Universe validation -- create and maintain behavioral clones of cri
 
 ### `/vsdd-factory:formal-verify`
 
-Run formal hardening -- Kani proofs for pure core functions, fuzz testing with cargo-fuzz, mutation testing with cargo-mutants, and security scanning with semgrep. Phase 5 quality gate.
+Run formal hardening -- Kani proofs for pure core functions, fuzz testing with cargo-fuzz, mutation testing with cargo-mutants, and security scanning with semgrep. Phase 6 quality gate.
 
 ```
 /vsdd-factory:formal-verify
