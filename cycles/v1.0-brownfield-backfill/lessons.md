@@ -378,3 +378,19 @@ The content is correct (both bursts' edits shipped); only the audit-trail bounda
 - File as TD-VSDD-065 (Decision-ID outbound semantic-anchor check).
 
 **[codified]** by D-251 lessons.md append.
+
+---
+
+### LESSON: TD-VSDD-063 fix-burst nomenclature scan must include register-class permanent specs
+
+**Source:** D-252 pass-9 finding L-P9-001 (open-questions.md line 20 leaks M-P6-002)
+**Date:** 2026-05-05
+
+**Pattern:** TD-VSDD-063 was codified at v1.12 to prevent fix-burst-internal IDs (H-N, M-PN, F-PN, L-PN) from leaking into permanent specs. The original scan scope was architect documents (audit-w16, gap-analysis, perf-baseline). When OQ-W16-001 was authored at v1.11 (D-248), its `Source:` traceability field carried `M-P6-002` — leaking the same class TD-VSDD-063 prevents, but in a register-class permanent-spec file the scan didn't cover.
+
+**Codification:**
+- Extend TD-VSDD-063 pre-commit scan scope from architect docs to `.factory/specs/**` (open-questions register + any future register-class artifacts: TD-register, OQ-register, etc.).
+- Architect prompt for fix bursts must now run the leak scan against the broader scope.
+- File as TD-VSDD-066 (TD-VSDD-063 scope extension to register-class permanent specs).
+
+**[codified]** by D-252 lessons.md append.
