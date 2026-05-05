@@ -29,8 +29,8 @@ diff <(echo "$RUN1" | jq -cS '.per_plugin') \
 ## Output
 
 ```
-Run 1 all_hook_plugins_wasm_bytes: 8704199
-Run 2 all_hook_plugins_wasm_bytes: 8704199
+Run 1 all_hook_plugins_wasm_bytes: 8549146
+Run 2 all_hook_plugins_wasm_bytes: 8549146
 per_plugin maps: IDENTICAL (diff is empty)
 ```
 
@@ -69,4 +69,4 @@ ok 5 S-9.00 AC-5: script per-plugin byte counts match independent wc -c measurem
 
 ## Verdict
 
-PASS — Two consecutive script runs produce identical `all_hook_plugins_wasm_bytes` (8,704,199) and `per_plugin` maps. All 17 frozen plugins verified against independent `wc -c` measurements with 0-byte divergence. No hand-written numbers. POLICY 11 anti-tautology satisfied. Bats test AC-5 passes.
+PASS — Two consecutive script runs produce identical `all_hook_plugins_wasm_bytes` (8,549,146) and `per_plugin` maps. All 17 frozen plugins verified against independent `wc -c` measurements with 0-byte divergence. No hand-written numbers. POLICY 11 anti-tautology satisfied. Bats test AC-5 passes.

@@ -60,9 +60,9 @@ bash .factory/measurements/measure-bundle-sizes.sh \
 | session-start-telemetry | 216,506 | pre-W-15 native WASM |
 | tool-failure-hooks | 156,345 | pre-W-15 native WASM |
 | worktree-hooks | 155,866 | pre-W-15 native WASM |
-| **total_bytes (17-plugin sum)** | **8,549,146** | |
+| **total_bytes (17-plugin frozen sum)** | **8,549,146** | |
 
-Note: `all_hook_plugins_wasm_bytes` = 8,704,199 includes additional files not in the frozen enumeration (hello-hook.wasm and underscore-named stubs). The 17-plugin frozen-enumeration sum is 8,549,146.
+Note: `all_hook_plugins_wasm_bytes` = 8,549,146 equals the frozen-17 sum (pass-1 fix-burst corrected semantics). Non-frozen files (hello-hook.wasm and underscore-named stubs totalling 155,053 bytes) are captured in `unaccounted_wasm_bytes`.
 
 ## Bats Gate
 
@@ -73,4 +73,4 @@ ok 2 S-9.00 AC-2: JSON per_plugin map contains all 17 frozen-enumeration plugin 
 
 ## Verdict
 
-PASS — All 17 frozen-enumeration plugins present with byte counts in JSON output. Enumeration is hard-coded (not a directory glob, per spec). Both 13 Tier 1 W-15 and 4 pre-W-15 plugins captured. Bats test AC-2 passes.
+PASS — All 17 frozen-enumeration plugins present with byte counts in JSON output. Enumeration is hard-coded (not a directory glob, per spec). Both 13 Tier 1 W-15 and 4 pre-W-15 plugins captured. Frozen-17 sum = 8,549,146 bytes. Bats test AC-2 passes.

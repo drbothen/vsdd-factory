@@ -8,11 +8,13 @@ title: Cold-start p95 measured and recorded (WARNING — gate exceedance flagged
 
 **Statement:** S-8.00 warm-invocation baseline (19ms/plugin) re-confirmed without re-measurement. Cold-start p95 measured once using `hyperfine --warmup 0` via `handoff-validator` (SubagentStop fixture). Value recorded in `perf-baseline-w16.md`. Gate: ≤ 500ms (E-8 R-8.08). AC passes if value is RECORDED — the gate exceedance is flagged for CI re-measurement, not a blocker for this AC.
 
+**Note (adversary pass-1 fix):** Methodology updated from N=10 to N=30 for p95 reliability. The N=10 value (627.8ms) was within the N=30 IQR; the N=30 canonical baseline is 665.0ms. The per-wave telemetry delta reference in `perf-baseline-w16.md` was updated from 627.8ms to 665.0ms in adversary pass-2 fix MEDIUM-6.
+
 ---
 
 ## WARNING: COLD-START GATE EXCEEDANCE
 
-> The measured cold_start_p95_measured_ms of **627.8ms** (baseline doc) / **656.7ms** (evidence-time re-run) **exceeds the 500ms gate** (E-8 R-8.08).
+> The measured cold_start_p95_measured_ms of **665.0ms** (N=30 canonical baseline) **exceeds the 500ms gate** (E-8 R-8.08).
 >
 > This DOES NOT fail AC-7 — the AC's pass criterion is "value is recorded in baseline doc" (analogous to S-8.00's approach of recording a violation and triggering a fix-burst pathway). However, this is a potential **R-W16-003 trigger** requiring CI re-measurement before S-9.01..S-9.07 may be dispatched.
 >
@@ -42,9 +44,13 @@ grep "500" .factory/architecture/perf-baseline-w16.md | head -5
 ```
 
 ```
-| cold_start_p95_measured_ms | 627.8 | S-9.00 hyperfine --warmup 0 --runs 10 (darwin-arm64, 2026-05-05) |
+| cold_start_p95_measured_ms | 665.0 | S-9.00 hyperfine --warmup 0 --runs 30 (darwin-arm64, 2026-05-05) |
 | cold_start_p95_gate_ms | 500 (HARD gate; inherited from E-8 R-8.08) |
 ```
+
+## Fresh Measurement (adversary pass-2 evidence re-run)
+
+Live script output (2026-05-05, N=30): `cold_start_p95_measured_ms` = 664.0ms (consistent with N=30 baseline of 665.0ms; both exceed 500ms gate; IQR variance expected between runs).
 
 ## Fixture Verification
 
@@ -61,7 +67,9 @@ grep "500" .factory/architecture/perf-baseline-w16.md | head -5
 | `warm_invocation_p50_ms` | 19 | S-8.00 PR #47 develop@9e649ed |
 | `aggregate_437ms_projection` | 19ms × 23 plugins = 437ms | S-8.00 AC-2 + E-8 R-8.08 |
 | `cold_start_p95_gate_ms` | 500 | E-8 R-8.08 (canonical; raised from 200ms) |
-| `cold_start_p95_measured_ms` | **627.8** | S-9.00 hyperfine --warmup 0 --runs 10 (darwin-arm64) |
+| `cold_start_p95_measured_ms` | **665.0** (N=30) | S-9.00 hyperfine --warmup 0 --runs 30 (darwin-arm64) |
+| `cold_start_median_ms` | 620.6 | N=30 (darwin-arm64) |
+| `cold_start_IQR_ms` | 36.7 | Q1=603.4ms, Q3=640.1ms |
 
 Note: ADR-014 Amendment 2026-05-03 erroneously cites "R-8.10"; E-8 v1.10 risk table is the source of truth — **R-8.08** is the canonical ID.
 
@@ -74,6 +82,6 @@ ok 7 S-9.00 AC-7: cold-start baseline measured via handoff-validator and recorde
 
 ## Verdict
 
-PASS (with mandatory flag) — Cold-start p95 value (627.8ms) is recorded in `perf-baseline-w16.md`. Fixture targets handoff-validator/SubagentStop (not legacy-bash-adapter). 500ms gate cited. Bats test AC-7 passes.
+PASS (with mandatory flag) — Cold-start p95 value (665.0ms, N=30) is recorded in `perf-baseline-w16.md`. Fixture targets handoff-validator/SubagentStop (not legacy-bash-adapter). 500ms gate cited. Per-wave telemetry delta reference = 665.0ms (corrected from stale 627.8ms in adversary pass-2 fix). Bats test AC-7 passes.
 
-**FLAG: 627.8ms > 500ms target. Potential R-W16-003 trigger. Recommend CI re-measurement on linux-x64 runner before dispatching S-9.01..S-9.07. If CI cold-start also exceeds 500ms, escalate per EC-004.**
+**FLAG: 665.0ms > 500ms target. Potential R-W16-003 trigger. Recommend CI re-measurement on linux-x64 runner before dispatching S-9.01..S-9.07. If CI cold-start also exceeds 500ms, escalate per EC-004.**

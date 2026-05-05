@@ -28,6 +28,22 @@ SCRIPT="$FACTORY_DIR/measurements/measure-bundle-sizes.sh"
 BASELINE_DOC="$FACTORY_DIR/architecture/perf-baseline-w16.md"
 FIXTURE="$FACTORY_DIR/measurements/fixtures/handoff-validator-input.json"
 
+# ---------------------------------------------------------------------------
+# setup_file: ensure factory-dispatcher is built before any test runs.
+# Runs once per bats invocation (not per test). Emits a 3-line build summary
+# to stderr so CI logs show what happened; the build is skipped silently if
+# the binary already exists (idempotent).
+# ---------------------------------------------------------------------------
+setup_file() {
+  local dispatcher="$REPO_ROOT/target/release/factory-dispatcher"
+  local dispatcher_exe="$REPO_ROOT/target/release/factory-dispatcher.exe"
+  if [ ! -f "$dispatcher" ] && [ ! -f "$dispatcher_exe" ]; then
+    echo "# setup_file: factory-dispatcher not found; building..." >&3
+    cargo build --release -p factory-dispatcher 2>&1 | tail -3 >&2
+    echo "# setup_file: build complete" >&3
+  fi
+}
+
 # Frozen 17-plugin enumeration from AC-2 (names without .wasm extension).
 FROZEN_PLUGINS=(
   block-ai-attribution

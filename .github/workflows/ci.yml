@@ -14,7 +14,8 @@ jobs:
 
       - name: Mount factory artifacts
         run: |
-          git fetch origin factory-artifacts
+          git fetch origin factory-artifacts:refs/remotes/origin/factory-artifacts
+          git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing — check fetch step" >&2; exit 1)
           git worktree add .factory origin/factory-artifacts
 
       - name: Install tools

@@ -32,9 +32,9 @@ grep "wc -c" .factory/measurements/measure-bundle-sizes.sh | head -5
 
 set -euo pipefail
 
-DISPATCHER_BYTES=$(wc -c < "$DISPATCHER_BINARY")
-ALL_WASM_BYTES=$((ALL_WASM_BYTES + sz))   # sz=$(wc -c < "$f")
-sz=$(wc -c < "$wasm_file")
+DISPATCHER_BYTES=$(LC_ALL=C wc -c < "$DISPATCHER_BINARY" | tr -d ' \t\n')
+ALL_WASM_BYTES=$((ALL_WASM_BYTES + sz))   # sz=$(LC_ALL=C wc -c < "$f" | tr -d ' \t\n')
+sz=$(LC_ALL=C wc -c < "$wasm_file" | tr -d ' \t\n')
 ```
 
 ## Script Properties Verified
@@ -48,6 +48,8 @@ sz=$(wc -c < "$wasm_file")
 | Byte-count method | `wc -c < <file>` | Yes |
 | `du -sb` absent | True | Confirmed absent |
 | `stat -c` absent | True | Confirmed absent (non-portable) |
+| trap INT/TERM | Required (adversary pass 2) | Yes (`trap "..." EXIT INT TERM`) |
+| portable mktemp | Required (adversary pass 2) | Yes (`mktemp "${TMPDIR:-/tmp}/hyperfine.XXXXXX"`) |
 | Windows note | Documented | Git Bash + PowerShell fallback in comments |
 
 ## Bats Gate
@@ -61,4 +63,4 @@ Note: AC-4's bats test covers idempotency (two runs produce identical counts), w
 
 ## Verdict
 
-PASS — Script committed to `.factory/measurements/measure-bundle-sizes.sh`. Shebang, `set -euo pipefail`, `wc -c` portability, JSON output, and `$1` argument handling all verified. Script is executable (`-x`). Bats test AC-4 passes.
+PASS — Script committed to `.factory/measurements/measure-bundle-sizes.sh`. Shebang, `set -euo pipefail`, `wc -c` portability, JSON output, and `$1` argument handling all verified. Script is executable (`-x`). Trap updated to catch INT/TERM (adversary pass-2 fix MEDIUM-2). mktemp updated to portable form (adversary pass-2 fix MEDIUM-3). Bats test AC-4 passes.

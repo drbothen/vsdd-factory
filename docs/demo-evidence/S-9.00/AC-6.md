@@ -28,7 +28,7 @@ grep "per_wave_telemetry" .factory/architecture/perf-baseline-w16.md
 
 4  (occurrences of all_hook_plugins_wasm_bytes)
 
-| measured_at | 2026-05-05T04:48:03Z |
+| measured_at | 2026-05-05T05:14:10Z |
 
 | w16_bundle_hard_killswitch_bytes | 30000000 (30MB; ...)
 Hard kill-switch: 30MB cumulative bundle...
@@ -44,15 +44,16 @@ Advisory Soft Cap Rationale...
 
 | Required Field | Present | Value |
 |----------------|---------|-------|
-| `measured_at` | Yes | 2026-05-05T04:48:03Z |
+| `measured_at` | Yes | 2026-05-05T05:14:10Z |
 | `release_tag_sha` | Yes | (post-rc.8; develop HEAD at measurement time) |
 | `develop_head_sha` | Yes | see `git rev-parse HEAD` at measurement time |
 | `platform` | Yes | darwin-arm64 |
-| `all_hook_plugins_wasm_bytes` | Yes | 8,704,199 |
+| `all_hook_plugins_wasm_bytes` | Yes | 8,549,146 (frozen-17 sum) |
+| `unaccounted_wasm_bytes` | Yes | 155,053 |
 | `dispatcher_binary_bytes` | Yes | 12,250,912 |
 | `grand_total_bytes` | Yes | 20,955,111 |
 | per-plugin JSON array | Yes | 17-plugin table + JSON block |
-| `w16_cold_start_p95_ms` | Yes | 627.8 (flagged — see AC-7) |
+| `w16_cold_start_p95_ms` | Yes | 665.0ms (flagged — see AC-7; per-wave delta reference = 665.0ms per adversary pass-2 fix) |
 | `w16_advisory_bundle_soft_cap_bytes` | Yes | 643,686 |
 | `w16_bundle_hard_killswitch_bytes` | Yes | 30,000,000 |
 | `per_wave_telemetry_fields` | Yes | bundle_size_delta_bytes, cold_start_p95_delta_ms |
@@ -67,4 +68,4 @@ ok 6 S-9.00 AC-6: perf-baseline-w16.md exists with required sections
 
 ## Verdict
 
-PASS — `.factory/architecture/perf-baseline-w16.md` committed (commit `389fb0b` on factory-artifacts). All required schema fields present. File is non-empty. Bats test AC-6 passes.
+PASS — `.factory/architecture/perf-baseline-w16.md` committed (factory-artifacts branch). All required schema fields present. `all_hook_plugins_wasm_bytes` = 8,549,146 (corrected semantics per pass-1 fix; frozen-17 sum). Per-wave telemetry delta reference updated from 627.8ms to 665.0ms (adversary pass-2 fix MEDIUM-6). File is non-empty. Bats test AC-6 passes.
