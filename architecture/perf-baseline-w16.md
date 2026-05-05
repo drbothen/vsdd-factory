@@ -37,8 +37,8 @@ release bundle at `plugins/vsdd-factory/hook-plugins/` (darwin-arm64).
 | Metric | Value |
 |--------|-------|
 | measured_at | 2026-05-05T05:14:10Z |
-| release_tag_sha | (post-rc.8; develop HEAD at measurement time) |
-| develop_head_sha | see `git rev-parse HEAD` at measurement time |
+| release_tag_sha | dec5361 (v1.0.0-rc.11) |
+| develop_head_sha | 8c14421 (develop HEAD at measurement time) |
 | platform | darwin-arm64 |
 | all_hook_plugins_wasm_bytes | 8549146 (frozen-17 sum; = sum(per_plugin)) |
 | unaccounted_wasm_bytes | 155053 (hello-hook.wasm + underscore-named stubs not in frozen enumeration — review needed) |
@@ -245,6 +245,10 @@ dispatch.
    methodology_version 2 corrected to NIST nearest-rank; methodology_version bumped for traceability.
    All S-9.01..S-9.07 delta comparisons MUST use the same formula — run measure-bundle-sizes.sh,
    do NOT re-implement the formula independently.)
+
+**Minimum sample size:** N≥30 required for valid p95 reporting. For N=20-29, p95 degrades to
+"near-max"; for N<20, the formula returns the max sample (the script emits a WARNING to stderr
+in this case). Downstream waves MUST use --runs 30 minimum.
 
 ### Reproducibility
 

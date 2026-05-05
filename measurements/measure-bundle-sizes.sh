@@ -199,6 +199,8 @@ import json, math, sys
 data = json.load(sys.stdin)
 times_ms = sorted([t * 1000 for t in data['results'][0]['times']])
 n = len(times_ms)
+if n < 20:
+    sys.stderr.write(f'WARNING: N={n} too small for meaningful p95; reporting max sample\n')
 # NIST nearest-rank p95: ceil(0.95 * n) - 1 (0-indexed).
 # For N=30: ceil(28.5)=29, -1=28 => index 28 = 29th smallest (true p95).
 p95_idx = max(0, int(math.ceil(0.95 * n)) - 1)
