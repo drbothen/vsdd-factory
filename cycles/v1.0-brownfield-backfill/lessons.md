@@ -303,3 +303,41 @@ POLICY 1 (append_only_numbering) requires append-only changelog entries but is s
 **[codified]** by D-247 lessons.md append.
 
 **Note:** D-247 also bootstrapped the OQ (open-questions) tracking category. OQ-W16-001 is the first entry, filed at `.factory/specs/open-questions.md`. Future binary-choice or decision-gate items that block downstream stories should use this register.
+
+---
+
+### LESSON: Sibling-entry wording template consistency must be verified when adding to enumerated lists
+
+**Source:** D-249 pass-7 finding M-P7-002 + M-P7-003 (0ccdf4f v1.11 fix burst)
+**Date:** 2026-05-05
+
+**Pattern:** v1.11 fix burst added an explicit H-1 option (b) treatment for B-2 and B-6 in audit-w16.md line 38, satisfying TD-VSDD-061 closure-claim enumeration. But the appended sentence used:
+- (a) Internal fix-burst nomenclature ("H-1 option (b)") not used by sibling rows 35/36/37.
+- (b) An asymmetric structural form (omitting `(PostToolUse:Edit|Write, on_error=block)` parenthetical) that sibling rows have for their respective hooks.
+
+The enumeration check (TD-VSDD-061) verified all 5 hooks were named — but did not verify they were described with consistent wording template.
+
+**Codification:**
+- Extend TD-VSDD-061 to include a "sibling-template-consistency" check: when adding to an enumerated list of N items, verify all N items use the same wording template (event-type parenthetical, terminology, citation prefix).
+- Architect prompt for fix bursts must add a step: "Before commit, diff the new sibling entry against existing sibling entries of the same kind. Match wording template (same event-type parenthetical, same terminology, same citation prefix)."
+- File as TD-VSDD-062 (Sibling-template-consistency check).
+
+**[codified]** by D-249 lessons.md append.
+
+---
+
+### LESSON: Fix-burst-internal nomenclature must not leak into permanent architecture documents
+
+**Source:** D-249 pass-7 finding M-P7-002 (0ccdf4f v1.11 fix burst)
+**Date:** 2026-05-05
+
+**Pattern:** The phrase "H-1 option (b)" originated in pass-3 adversarial review (`adv-e9-v1.7-amendment-pass-3.md`) as a finding ID. Subsequent fix bursts cited this internal ID in changelog prose. v1.11 burst then leaked the phrase into audit-w16.md line 38 — a permanent L4 architecture artifact. To a future reader without access to pass-3 review history, "H-1 option (b)" is opaque.
+
+The same risk exists for any internal ID pattern (H-N, M-PN, L-PN, F-PN-NNN, OQ-W16-NNN if used in non-tracking contexts).
+
+**Codification:**
+- Adversary prompts should include a "fix-burst-internal nomenclature scan" axis: grep permanent specs for `H-\d`, `M-P\d`, `F-P\d`, `L-P\d` patterns; flag matches in non-changelog body sections.
+- Architect prompts for fix bursts must include: "When fixing a finding identified by internal ID (H-N, M-PN, etc.), do NOT cite the internal ID in the body of permanent specs. Use plain-language descriptions. Internal IDs are reserved for changelog/closure entries."
+- File as TD-VSDD-063 (Fix-burst-internal nomenclature leakage check).
+
+**[codified]** by D-249 lessons.md append.

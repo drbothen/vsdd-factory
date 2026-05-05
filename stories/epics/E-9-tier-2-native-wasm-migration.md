@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.11"
+version: "1.12"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -471,7 +471,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.9 | 2026-05-05 | architect | D-244 minimal fix burst — close H-P4-001 fabricated AC-3 citation (M-2 rationale leg (c) rewritten to real ADR-015 anchor) + L-P4-001 line range update. |
 | 1.10 | 2026-05-05 | architect | D-246 fix burst — close pass-5 H-P5-001 frontmatter version drift, M-P5-001 v1.8 prose restored to original (POLICY 1), M-P5-003 audit-w16.md B-7 block-mode treatment added. M-P5-002 + LOWs deferred. |
 | 1.11 | 2026-05-05 | architect | D-248 fix burst — close pass-6 H-P6-001 B-2+B-6 explicit H-1 option (b) in audit-w16.md, M-P6-002 OQ-W16-001 filed. 3 MED + 2 LOW deferred with rationale. |
-| 1.12 | — | — | (reserved) |
+| 1.12 | 2026-05-05 | architect | D-250 minimal fix burst — close pass-7 line 38 trio: M-P7-001 en-dash → explicit list, M-P7-002 "H-1 option (b)" → "are block-mode", M-P7-003 PostToolUse parenthetical added, L-P7-001 "per ADR-015 D-15.3" → "per D-15.3". L-P7-002 + L-P7-003 deferred. |
+| 1.13 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -869,5 +870,72 @@ non-reserved row in Changelog summary table (1.11). PASS.
 
 **TD-VSDD-061 closure-claim enumeration:** all 5 block-mode hooks enumerated by ID and
 audit-w16.md line (B-1 line 35, B-2 line 38, B-3 line 37, B-6 line 38, B-7 line 36).
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.12 (2026-05-05) — D-250 minimal fix burst: close pass-7 line 38 trio (M-P7-001/002/003 + L-P7-001)
+
+**Context:** Adversary pass-7 (cross-doc consistency / contradiction hunt angle, new per TD-VSDD-057)
+found 0 HIGH (first 0-HIGH SUBSTANTIVE pass) and 3 MED all localized to audit-w16.md line 38.
+D-249 codified two new lessons: TD-VSDD-062 (sibling-template-consistency) and TD-VSDD-063
+(fix-burst-internal-nomenclature-leakage check).
+
+**M-P7-001 CLOSED (en-dash range → explicit list):**
+- audit-w16.md line 38: `(S-9.02–S-9.06)` replaced with `(S-9.02, S-9.04, S-9.05, S-9.06)` —
+  exact mirror of batch list `B-2, B-4, B-5, B-6`. Eliminates inclusivity ambiguity that
+  incorrectly implied S-9.03 was covered by this row.
+
+**M-P7-002 CLOSED ("H-1 option (b)" → "are block-mode", TD-VSDD-063):**
+- audit-w16.md line 38: `follow H-1 option (b):` replaced with `are block-mode:`. Matches
+  wording style of peer rows (lines 35/37). Eliminates fix-burst internal nomenclature leakage.
+
+**M-P7-003 CLOSED (PostToolUse parenthetical added, TD-VSDD-062):**
+- audit-w16.md line 38: `(PostToolUse:Edit|Write, on_error=block)` parenthetical added after
+  B-2 and B-6 hook references. Matches structural form of sibling rows 36 (B-7: PreToolUse:Agent)
+  and 37 (B-3: PreToolUse:Agent).
+
+**L-P7-001 CLOSED ("per ADR-015 D-15.3" → "per D-15.3"):**
+- audit-w16.md line 38: `per ADR-015 D-15.3` corrected to `per D-15.3`. Matches peer-row
+  citation style (lines 35/36/37 all use bare `D-15.3`).
+
+**Final rewritten sentence (all four closures):**
+> "Both validate-input-hash (B-2, PostToolUse:Edit|Write, on_error=block) and
+> validate-template-compliance (B-6, PostToolUse:Edit|Write, on_error=block) are block-mode:
+> plugins return `HookResult::Block`; dispatcher automatically emits
+> `vsdd.block.plugin_blocked.v1` per D-15.3. No additional plugin-side block emission required."
+
+**L-P7-002 DEFERRED:** label "Standard" asymmetric for row containing 2 block-mode hooks.
+Rationale: defensible — row groups by file-read pattern; block-mode aspect is captured as an
+exception in the cell body (explicit parenthetical added by M-P7-003). Changing the label
+would require restructuring the table, which is out of scope for a minimal fix burst.
+
+**L-P7-003 DEFERRED:** gap-analysis line 17 "BC-1.05.001..034" range notation.
+Rationale: verification requires exhaustive BC enumeration; out of scope for this burst.
+
+**TD-VSDD-058 citation re-verification:** `D-15.3` confirmed as the correct ADR-015 clause
+for dispatcher-emits-automatically (ADR-015 lines 375-376: "When a plugin returns
+`HookResult::Block`, the dispatcher emits a `vsdd.block.plugin_blocked.v1` event"). PASS.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.12"` matches latest
+non-reserved row in Changelog summary table (1.12). PASS.
+
+**TD-VSDD-061 closure-claim enumeration:** all 5 block-mode hooks now consistently described
+in audit-w16.md with event-type parenthetical, "is/are block-mode" wording, and bare D-15.3 citation:
+- B-1 (line 35): validate-factory-path-root — "validate-factory-path-root is block-mode; it returns `HookResult::Block` and the dispatcher automatically emits `vsdd.block.plugin_blocked.v1`" (no parenthetical; pure stdin-parse row uses different form — acceptable per row structure).
+- B-2 (line 38): validate-input-hash — `(PostToolUse:Edit|Write, on_error=block)` parenthetical added (this burst).
+- B-3 (line 37): validate-pr-merge-prerequisites — "is block-mode (PreToolUse:Agent, on_error=block)" per D-15.3.
+- B-6 (line 38): validate-template-compliance — `(PostToolUse:Edit|Write, on_error=block)` parenthetical added (this burst).
+- B-7 (line 36): validate-wave-gate-prerequisite — "is also block-mode (`PreToolUse:Agent`, `on_error=block`)" per D-15.3.
+
+**TD-VSDD-062 sibling-template-consistency:** new line 38 sentence diffed against lines 35/36/37.
+Event-type parenthetical: present (B-2 and B-6 both carry PostToolUse:Edit|Write, on_error=block). PASS.
+"are block-mode" wording: matches "is block-mode" form used in lines 35/37. PASS.
+"per D-15.3" citation: bare form matches lines 35/36/37 (none use "per ADR-015 D-15.3"). PASS.
+
+**TD-VSDD-063 fix-burst-internal-nomenclature scan:** grep `H-\d`, `M-P\d`, `F-P\d`, `L-P\d`
+across audit-w16.md, gap-analysis-w16-subprocess.md, perf-baseline-w16.md body sections
+(excluding changelog). Result: 0 matches in gap-analysis-w16-subprocess.md and perf-baseline-w16.md.
+In audit-w16.md: only match was the pre-fix `H-1 option (b)` on line 38 — now replaced with
+"are block-mode". No residual fix-burst nomenclature leakage in permanent spec body. PASS.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
