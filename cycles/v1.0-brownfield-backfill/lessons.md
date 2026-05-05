@@ -341,3 +341,24 @@ The same risk exists for any internal ID pattern (H-N, M-PN, L-PN, F-PN-NNN, OQ-
 - File as TD-VSDD-063 (Fix-burst-internal nomenclature leakage check).
 
 **[codified]** by D-249 lessons.md append.
+
+---
+
+### LESSON: Parallel agent dispatches must NOT both use `git commit -a` — burst commit collision risk
+
+**Source:** D-250 retroactive seal — state-manager D-249 + architect D-250 merged commit at 353c172
+**Date:** 2026-05-05
+
+**Pattern:** Orchestrator dispatched state-manager (sealing D-249 pass-7 review) and architect (executing D-250 v1.11 → v1.12 fix burst) in parallel. Both agents independently staged their changes via `git add` then ran `git commit`. State-manager's commit ran with `-a` flag (or equivalent broad-add behavior), sweeping up the architect's staged changes into the state-manager's commit object before the architect's commit-message could execute. Result: a single commit (353c172) carries both bursts' content with the state-manager's commit message; architect's distinct commit message and audit-trail boundary lost.
+
+The content is correct (both bursts' edits shipped); only the audit-trail boundary was fuzzed.
+
+**Codification:**
+- Orchestrator dispatch rule: when running state-manager + architect in parallel, EITHER (a) state-manager must run AFTER architect commits land (sequential), OR (b) both agents must use scoped `git add <specific-paths>` and `git commit -m` without `-a` flag, and the orchestrator must detect simultaneous-staging via filesystem locks.
+- State-manager prompt update: "Stage only the files you wrote in this burst (use `git add <specific-paths>`). Do NOT use `git add -A` or `git commit -a`. If another burst's staged changes are present at commit time, abort and signal collision to orchestrator."
+- Architect prompt update: same scoped-add rule.
+- File as TD-VSDD-064 (Parallel-burst commit collision prevention rule).
+
+**Mitigation for D-249/D-250:** Audit-trail boundary fuzzed but content correct. D-250 retroactively recorded in Decisions Log; STORY-INDEX bumped twice (1.55 → 1.56 → 1.57) to maintain version-row-per-burst convention.
+
+**[codified]** by D-250 lessons.md append.
