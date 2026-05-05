@@ -180,8 +180,10 @@ if [ -n "$DISPATCHER_BINARY" ] && [ -f "$DISPATCHER_BINARY" ] && [ -f "$FIXTURE"
     # Use a temp file so hyperfine JSON is captured correctly; writing to
     # /dev/stderr and redirecting 2>&1 was previously inverted, producing an
     # empty hyperfine_out and silently falling back to cold_start_p95_measured_ms=0.
-    tmp_json=$(mktemp -t hyperfine.XXXXXX.json)
-    trap "rm -f $tmp_json" EXIT
+    tmp_json=$(mktemp "${TMPDIR:-/tmp}/hyperfine.XXXXXX")
+    mv "$tmp_json" "$tmp_json.json"
+    tmp_json="$tmp_json.json"
+    trap "rm -f $tmp_json" EXIT INT TERM
     # Redirect both stdout and stderr to /dev/null: hyperfine prints its
     # human-readable benchmark summary to stdout; the JSON result goes to
     # the temp file only, so suppressing stdout is safe.

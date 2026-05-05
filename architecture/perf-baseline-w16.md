@@ -261,7 +261,7 @@ unconverged baseline, which would cause cascading drift across all 7 batch stori
 
 Each batch story (S-9.01..S-9.07) MUST record:
 - `bundle_size_delta_bytes`: change in `all_hook_plugins_wasm_bytes` vs this baseline
-- `cold_start_p95_delta_ms`: change in cold-start p95 vs this baseline (627.8ms)
+- `cold_start_p95_delta_ms`: change in cold-start p95 vs this baseline (665.0ms)
 
 Pause criterion: wave paused if cold-start regresses >10% vs previous wave.
 At W-16 baseline (N=30): 10% of 665.0ms = 66.5ms; pause threshold = 731.5ms.
