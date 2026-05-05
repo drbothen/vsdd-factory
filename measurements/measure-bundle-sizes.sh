@@ -28,11 +28,11 @@
 #   - jq must be installed (for JSON output)
 #   - hyperfine must be installed (for cold-start measurement)
 #
-# Methodology version: 1 (pinned; bump when measurement logic changes)
+# Methodology version: 2 (bumped: p95 formula corrected to NIST nearest-rank ceil(0.95*N)-1)
 
 set -euo pipefail
 
-METHODOLOGY_VERSION=1
+METHODOLOGY_VERSION=2
 
 # ---------------------------------------------------------------------------
 # Frozen 17-plugin enumeration from AC-2 (names without .wasm extension)
@@ -183,7 +183,8 @@ if [ -n "$DISPATCHER_BINARY" ] && [ -f "$DISPATCHER_BINARY" ] && [ -f "$FIXTURE"
     tmp_json=$(mktemp "${TMPDIR:-/tmp}/hyperfine.XXXXXX")
     mv "$tmp_json" "$tmp_json.json"
     tmp_json="$tmp_json.json"
-    trap "rm -f $tmp_json" EXIT INT TERM
+    [ -n "$tmp_json" ] && [ -f "$tmp_json" ] || { echo "mktemp failed to produce a usable temp file" >&2; exit 1; }
+    trap 'rm -f "$tmp_json"' EXIT INT TERM
     # Redirect both stdout and stderr to /dev/null: hyperfine prints its
     # human-readable benchmark summary to stdout; the JSON result goes to
     # the temp file only, so suppressing stdout is safe.
@@ -194,11 +195,13 @@ if [ -n "$DISPATCHER_BINARY" ] && [ -f "$DISPATCHER_BINARY" ] && [ -f "$FIXTURE"
     # Asserts hyperfine_out contains valid JSON with a "times" array.
     if echo "$hyperfine_out" | grep -q '"times"'; then
       COLD_START_P95_MS=$(echo "$hyperfine_out" | python3 -c "
-import json, sys
+import json, math, sys
 data = json.load(sys.stdin)
 times_ms = sorted([t * 1000 for t in data['results'][0]['times']])
 n = len(times_ms)
-p95_idx = max(0, int(n * 0.95) - 1)
+# NIST nearest-rank p95: ceil(0.95 * n) - 1 (0-indexed).
+# For N=30: ceil(28.5)=29, -1=28 => index 28 = 29th smallest (true p95).
+p95_idx = max(0, int(math.ceil(0.95 * n)) - 1)
 print(round(times_ms[p95_idx], 1))
 " 2>/dev/null || echo 0)
     fi

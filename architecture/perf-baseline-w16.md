@@ -54,16 +54,19 @@ Do NOT use `du -sb` (GNU-only `-b` flag; macOS `du` uses `-k` for kibibytes).
 
 ### Script Output (JSON)
 
+<!-- Captured at 1e8cff1effcffc4b343798b74d7750f3b087fd52 via:
+     bash .factory/measurements/measure-bundle-sizes.sh plugins/vsdd-factory/hook-plugins/
+     (methodology_version 2: NIST nearest-rank p95 formula; adversary pass 3 refresh) -->
 ```json
 {
-  "methodology_version": 1,
-  "measurement_timestamp": "2026-05-05T05:14:10Z",
+  "methodology_version": 2,
+  "measurement_timestamp": "2026-05-05T05:53:47Z",
   "host_platform": "Darwin-arm64",
   "all_hook_plugins_wasm_bytes": 8549146,
   "unaccounted_wasm_bytes": 155053,
   "dispatcher_bytes": 12250912,
   "grand_total_bytes": 20955111,
-  "cold_start_p95_measured_ms": 679.1,
+  "cold_start_p95_measured_ms": 642.6,
   "per_plugin": {
     "block-ai-attribution": 176647,
     "capture-commit-activity": 170580,
@@ -112,6 +115,21 @@ Do NOT use `du -sb` (GNU-only `-b` flag; macOS `du` uses `-k` for kibibytes).
 `all_hook_plugins_wasm_bytes` now equals the frozen-17 sum (8549146 = sum(per_plugin)).
 Non-frozen files (hello-hook.wasm + underscore-named stubs) are captured in
 `unaccounted_wasm_bytes` (155053 bytes) — review needed if non-zero per wave.
+
+### Unaccounted Bytes Policy
+
+`unaccounted_wasm_bytes` captures bytes from .wasm files in `plugins/vsdd-factory/hook-plugins/`
+that are NOT in the frozen-17 enumeration. Today this includes: `hello-hook.wasm` (152370B SDK
+example) plus underscore variants of in-flight crate names. Total: 155053B (acknowledged as
+known overhead).
+
+**Policy:** S-9.00 does NOT gate this value. Future stories must:
+1. S-9.01..S-9.06 (per-plugin migration): if a new .wasm artifact lands in the bundle, EITHER
+   add to frozen-17 (deliberate inclusion) OR explicitly add to a known-overhead allowlist with
+   a TD entry. Silent drift into `unaccounted_wasm_bytes` is forbidden.
+2. S-9.07 (hardening close-out): reduce `unaccounted_wasm_bytes` to a documented minimum (likely
+   just the SDK example) and assert that floor in the baseline doc.
+3. Open TD-026 tracks this policy.
 
 ---
 
@@ -186,7 +204,7 @@ Headroom to kill-switch: ~9MB.
 | warm_invocation_p50_ms | 19 | S-8.00 PR #47 develop@9e649ed |
 | aggregate_437ms_projection | 19ms × 23 plugins | S-8.00 AC-2 + E-8 R-8.08 |
 | cold_start_p95_gate_ms | 500 | E-8 R-8.08 (canonical; raised from 200ms; E-8 v1.10 risk table is source of truth) |
-| cold_start_p95_measured_ms | 665.0 | S-9.00 hyperfine --warmup 0 --runs 30 (darwin-arm64, 2026-05-05) |
+| cold_start_p95_measured_ms | 642.6 | S-9.00 hyperfine --warmup 0 --runs 30 (darwin-arm64, 2026-05-05; methodology_version 2) |
 | cold_start_median_ms | 620.6 | N=30 (darwin-arm64, 2026-05-05) |
 | cold_start_IQR_ms | 36.7 | Q1=603.4ms, Q3=640.1ms; min=522.4ms, max=690.0ms; N=30 |
 
@@ -197,13 +215,15 @@ E-8 v1.10 is the source of truth)."
 
 ### Cold-Start Measurement Status
 
-The measured cold_start_p95_measured_ms of **665.0ms** (N=30) exceeds the 500ms gate.
-This is measured on darwin-arm64 local dev machine; CI ubuntu-latest is typically
-10-30% faster. Flag as potential R-W16-003 trigger; recommend re-measurement on
+The measured cold_start_p95_measured_ms of **642.6ms** (N=30, methodology_version 2) exceeds
+the 500ms gate. This is measured on darwin-arm64 local dev machine; CI ubuntu-latest is
+typically 10-30% faster. Flag as potential R-W16-003 trigger; recommend re-measurement on
 linux-x64 CI runner before dispatching S-9.01..S-9.07.
 
-**Variance disclosure (N=30):** median=620.6ms, p95=665.0ms, IQR=36.7ms
-(Q1=603.4ms, Q3=640.1ms). Prior N=10 value of 627.8ms was within the N=30 IQR.
+**Variance disclosure (N=30):** p95=642.6ms (NIST nearest-rank; index 28 of 30 sorted
+samples). Prior methodology_version 1 reported 679.1ms (floor-index formula, index 27)
+or 665.0ms (earlier run with same floor formula) — methodology_version 2 is the
+authoritative baseline for S-9.01..S-9.07 delta comparisons.
 
 If cold-start exceeds 500ms on CI: escalate per EC-004 (R-W16-003 triggered) before
 dispatch.
@@ -219,7 +239,12 @@ dispatch.
 2. Run `measure-bundle-sizes.sh plugins/vsdd-factory/hook-plugins/`
 3. Script uses `wc -c < <file>` for all byte counts (POSIX portable; `LC_ALL=C` for locale-safe output)
 4. Cold-start measured via `hyperfine --warmup 0 --runs 30` (SubagentStop fixture; N=30 for p95 reliability)
-5. p95 computed as index `floor(N * 0.95) - 1` of sorted time samples (N=30)
+5. p95 computed as index `ceil(0.95 * N) - 1` (NIST nearest-rank) of sorted time samples (N=30).
+   For N=30: `ceil(28.5) = 29`, `-1 = 28` → returns the 29th smallest value (true p95).
+   (methodology_version 1 used `floor(N*0.95)-1` = index 27, ~90th percentile by this convention;
+   methodology_version 2 corrected to NIST nearest-rank; methodology_version bumped for traceability.
+   All S-9.01..S-9.07 delta comparisons MUST use the same formula — run measure-bundle-sizes.sh,
+   do NOT re-implement the formula independently.)
 
 ### Reproducibility
 
@@ -261,10 +286,17 @@ unconverged baseline, which would cause cascading drift across all 7 batch stori
 
 Each batch story (S-9.01..S-9.07) MUST record:
 - `bundle_size_delta_bytes`: change in `all_hook_plugins_wasm_bytes` vs this baseline
-- `cold_start_p95_delta_ms`: change in cold-start p95 vs this baseline (665.0ms)
+- `cold_start_p95_delta_ms`: change in cold-start p95 vs this baseline (642.6ms)
 
 Pause criterion: wave paused if cold-start regresses >10% vs previous wave.
-At W-16 baseline (N=30): 10% of 665.0ms = 66.5ms; pause threshold = 731.5ms.
+At W-16 baseline (N=30, methodology_version 2): 10% of 642.6ms = 64.3ms; pause threshold = 706.9ms.
+
+**Provisional status:** Until the cold-start p95 satisfies the 500ms HARD gate (currently
+642.6ms exceeds), the wave-over-wave 10% advisory operates in escalated mode. Specifically:
+any S-9.01..S-9.07 wave that does NOT REDUCE cold-start by enough to land below 500ms
+triggers an automatic pause regardless of the 706.9ms threshold. The 706.9ms regression
+criterion is reserved for the post-gate-satisfaction era. R-W16-003 owns the
+gate-recovery decision.
 
 ---
 
