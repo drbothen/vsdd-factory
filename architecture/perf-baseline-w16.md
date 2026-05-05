@@ -7,10 +7,11 @@ version: "1.0"
 status: baseline
 producer: implementer
 timestamp: 2026-05-05T04:48:03Z
+last_amended: 2026-05-05
 phase: "Phase 3 — W-16 Wave 0 pre-work"
 traces_to: .factory/stories/S-9.00-perf-baseline-and-bundle-ceiling.md
 references:
-  - ADR-014 R-8.09 revised (Amendment 2026-05-03)
+  - ADR-014 Amendment 2026-05-03 (R-8.09 ceiling model revised (research))
   - E-8 R-8.08 (canonical cold-start 500ms gate)
   - S-8.00 PR #47 develop@9e649ed (warm-invocation baseline)
   - ADR-013 (convergence gate before S-9.01..S-9.07 dispatch)

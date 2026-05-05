@@ -6,6 +6,7 @@ version: "1.0"
 status: draft
 producer: architect
 timestamp: 2026-05-03T00:00:00Z
+last_amended: 2026-05-05
 phase: "Phase D — W-16 spec foundation"
 traces_to: STATE.md (D-9.1/D-9.2/D-9.3 open decisions)
 ---

@@ -5,6 +5,7 @@ version: "1.0"
 status: draft
 producer: architect
 timestamp: 2026-05-03T00:00:00Z
+last_amended: 2026-05-05
 phase: "Phase D — W-16 spec foundation"
 traces_to: .factory/architecture/audit-w16.md
 subject: host::exec_subprocess (production) vs host::run_subprocess (proposed BC-2.02.013)

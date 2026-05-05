@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.19"
+version: "1.20"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -480,7 +480,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.17 | 2026-05-05 | state-manager | D-257 minimal fix burst — M-P14-001 perf-baseline H2 'Option C' non-resolving anchor closed; L-P14-001/2 SKIPPED with rationale. |
 | 1.18 | 2026-05-05 | state-manager | D-258 minimal fix burst — M-P15-001 OQ-W16-001 propagated to E-9 Open Questions table; L-P15-001/2 SKIPPED with rationale. |
 | 1.19 | 2026-05-05 | state-manager | D-260 sibling-residue fix burst — H-P17-001 (R-W16-003 ~14MB residue) + H-P17-002 (perf-baseline H2 post-rc.4 stale) + M-P17-001 (OQ-1 post-rc.4 stale); L-P17-001 SKIPPED. |
-| 1.20 | — | — | (reserved) |
+| 1.20 | 2026-05-05 | state-manager | D-261 convention closure burst — M-P18-001 last_amended field added to 4 arch-doc files (5th-recurrence resolution per S-7.02); L-P18-001 perf-baseline references (research) restored. TD-VSDD-073 codified. |
+| 1.21 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1139,5 +1140,31 @@ Result: ZERO matches. PASS.
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.18"` → `"1.19"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (seventh use):** State-manager handles pass-17 seal and 3-fix burst atomically. All fixes are textual corrections where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.20 (2026-05-05) — D-261 convention-closure burst (TD-VSDD-073 codified; EIGHTH TD-VSDD-064 application; FIRST definitive closure of recurring convention question)
+
+**Pass-18 sealed (0H/1M/1L — frontmatter consistency audit angle NEW per TD-VSDD-057).**
+
+**M-P18-001 CLOSED (5th-recurrence resolution per S-7.02):** 4 of 5 in-scope files (gap-analysis-w16-subprocess.md, audit-w16.md, perf-baseline-w16.md, open-questions.md) had `version: "1.0"` frontmatter with no `last_amended:` despite material body amendments across v1.7..v1.19. This was the 5th re-flag of the same convention question (M-P5-002 → M-P6-001 → L-P14-002 → L-P15-001 → M-P18-001). S-7.02 recurrence threshold (3+) met; definitive closure adopted.
+
+**Option A adopted (TD-VSDD-073):** Added `last_amended: 2026-05-05` field to all 4 amendment-touched arch-doc-class files:
+- gap-analysis-w16-subprocess.md — frontmatter `last_amended: 2026-05-05` added adjacent to `timestamp:`
+- audit-w16.md — frontmatter `last_amended: 2026-05-05` added adjacent to `timestamp:`
+- perf-baseline-w16.md — frontmatter `last_amended: 2026-05-05` added adjacent to `timestamp:`
+- open-questions.md — frontmatter `last_amended: 2026-05-05` added adjacent to `timestamp:`
+
+D-239 annotate-in-place body convention is preserved — body retains dated H2 amendment annotations; frontmatter gains parallel structured signal.
+
+Going forward (TD-VSDD-073): when an arch-doc-class file gains a body amendment in any fix burst, the same burst MUST update `last_amended:` to the burst date.
+
+**L-P18-001 CLOSED:** perf-baseline-w16.md references entry updated: `ADR-014 R-8.09 revised (Amendment 2026-05-03)` → `ADR-014 Amendment 2026-05-03 (R-8.09 ceiling model revised (research))`. Reference now matches ADR-014 H2 title canonical form; `(research)` source-tag restored consistent with v1.16 L-P13-001 AC-3 closure (D-256).
+
+**ADR-013 clock:** 0_of_3 (was 0_of_3 entering pass-18 — reset by pass-17; remained 0 through pass-18 SUBSTANTIVE; this burst does not advance clock).
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.19"` → `"1.20"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (eighth use):** State-manager handles pass-18 seal and 2-fix burst atomically. Both fixes are textual additions/corrections where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

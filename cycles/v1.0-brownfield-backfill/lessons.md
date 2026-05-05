@@ -500,3 +500,21 @@ A 1-second body-grep `grep -n '14MB' E-9*.md` at v1.14 close would have caught t
 - File as TD-VSDD-072 (Retired-figure body-grep extension to recursive-scrub).
 
 **[codified]** by D-260 lessons.md append.
+
+---
+
+### LESSON: Arch-doc-class files MUST carry `last_amended:` field when body amendments occur in fix bursts
+
+**Source:** D-261 pass-18 finding M-P18-001 (5th re-flag of frontmatter-vs-body convention question; S-7.02 recurrence threshold met)
+**Date:** 2026-05-05
+
+**Pattern:** D-239 codified annotate-in-place for arch docs (no version bump on body amendment). However, the convention was silent on frontmatter currency signals. Across passes 5/6/14/15/18, adversaries re-surfaced the same finding: 4 amendment-touched arch-doc-class files (gap-analysis-w16-subprocess.md, audit-w16.md, perf-baseline-w16.md, open-questions.md) had `version: "1.0"` frontmatter despite 5+ body amendment bursts. Each occurrence was DEFERRED individually. S-7.02 lessons-codification rule (3+ recurrences) was met at pass-14; finally enforced at pass-18.
+
+**Codification (Option A adopted):**
+- All amendment-touched arch-doc-class files MUST carry `last_amended: <YYYY-MM-DD>` in frontmatter.
+- D-239 annotate-in-place body convention is preserved (body retains dated H2 amendment annotations); frontmatter gains parallel structured signal.
+- When a fix burst body-amends an arch-doc-class file, the same burst MUST update `last_amended:` to the burst date.
+- Adversary frontmatter-consistency-audit angle (TD-VSDD-057 angle inventory) should accept files where `last_amended` matches latest body-amendment commit date, OR where the file has no body amendments since `timestamp:`.
+- File as TD-VSDD-073 (last_amended mandatory for amended arch-doc-class files).
+
+**[codified]** by D-261 lessons.md append.

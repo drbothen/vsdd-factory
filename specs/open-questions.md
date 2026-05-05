@@ -5,6 +5,7 @@ version: "1.0"
 status: active
 producer: state-manager
 timestamp: 2026-05-05T00:00:00Z
+last_amended: 2026-05-05
 ---
 
 # Open Questions Register
