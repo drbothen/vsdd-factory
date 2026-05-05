@@ -35,7 +35,7 @@ The success-path event name `host.exec_subprocess.completed` SHOWN IN THIS BC IS
 - (b) Otherwise → `vsdd.dispatcher.subprocess_completed.v1` (lifecycle category per existing `vsdd.dispatcher.*` registry entry; OQ-W16-001 acceptance criterion (b)).
 S-9.07 implementer MUST close OQ-W16-001 before merging the host-emit-fix story.
 
-On successful subprocess completion (any exit code, including non-zero), the dispatcher MUST emit a `host.exec_subprocess.completed` event through the normal sink chain. This closes an observability gap identified in gap-analysis-w16-subprocess.md Section 5: `exec_subprocess.rs:285-288` currently has no emit call on success. The new event is success-path only; existing denial-path events are preserved unchanged.
+On successful subprocess completion (any exit code, including non-zero), the dispatcher MUST emit a `host.exec_subprocess.completed` event through `ctx.emit_internal` to the single-stream `FileSink` per ADR-015 D-15.1 (multi-sink stanza model removed; Router/SinkRegistry retired). This closes an observability gap identified in gap-analysis-w16-subprocess.md Section 5: `exec_subprocess.rs:285-288` currently has no emit call on success. The new event is success-path only; existing denial-path events are preserved unchanged.
 
 ## Preconditions
 
@@ -48,7 +48,7 @@ On successful subprocess completion (any exit code, including non-zero), the dis
 1. On successful subprocess completion (i.e., subprocess process actually exits before timeout AND within output cap; see Postcondition 5 for error-path reality), exactly one `host.exec_subprocess.completed` event is emitted via `ctx.emit_internal`.
 2. Event payload includes all 8 fields: `{plugin_id: String, binary: String /* canonicalized full path */, args_count: u32, exit_code: i32, duration_ms: u64, stdout_bytes: u64, stderr_bytes: u64, truncated: bool /* reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1 */}`.
 3. `duration_ms` is measured from `Instant::now()` at `Command::spawn()` to process exit; implementer adds a `let started = Instant::now();` capture immediately before `command.spawn()` at exec_subprocess.rs:252 (which is the actual spawn point); the existing deadline `Instant` at exec_subprocess.rs:270 is post-spawn and is NOT the duration reference.
-4. Event is routed through `ctx.emit_internal` to the single-stream `FileSink` writing to `events-*.jsonl` per ADR-015 D-15.1 (the multi-sink stanza model and `Router`/`SinkRegistry` are retired per ADR-015 lines 130, 154; external fan-out to Datadog/Honeycomb is handled by OTel Collector OUTSIDE the dispatcher). Same code path as the existing `emit_denial` call.
+4. Event is routed through `ctx.emit_internal` to the single-stream `FileSink` writing to `events-*.jsonl` per ADR-015 D-15.1 (multi-sink stanza model removed per ADR-015 line 154; Router/SinkRegistry retired per ADR-015 line 130; external fan-out to Datadog/Honeycomb is handled by OTel Collector OUTSIDE the dispatcher). Same code path as the existing `emit_denial` call.
 5. **Error-path event reality (per gap-analysis §1):** Today only `internal.capability_denied` is emitted on the 4 denial paths (`no_exec_subprocess_capability` per exec_subprocess.rs:148, `binary_not_on_allow_list` per exec_subprocess.rs:155, `shell_bypass_not_acknowledged` per exec_subprocess.rs:162, `setuid_or_setgid_binary` per exec_subprocess.rs:169). Note: env_allow violations are silently filtered (no event emitted) and cwd_allow is currently unenforced — see gap-analysis Section 1 row "Cwd allow-list" PARTIAL. TIMEOUT (-2) and OUTPUT_TOO_LARGE (-3) paths return error codes WITHOUT emitting any event. The success-path event introduced by this BC closes the success-path observability gap. Adding TIMEOUT/OUTPUT_TOO_LARGE error-path events is OUT OF SCOPE for this BC and may be tracked in a future OQ if needed. Additionally, INTERNAL_ERROR (-99) paths return error codes WITHOUT emitting any event: spawn failure (exec_subprocess.rs:252), stdin take/write failure (:258, :262), stdout/stderr take failure (:267-268), try_wait error (:299). `INTERNAL_ERROR` constant defined at `crates/factory-dispatcher/src/host/mod.rs:184` as `i32 = -99`. All three no-event error paths (TIMEOUT, OUTPUT_TOO_LARGE, INTERNAL_ERROR) are out-of-scope for this BC's success-path event contract.
 
 ## Invariants
@@ -84,8 +84,9 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 | EC-002 | Subprocess exits non-zero (e.g., 1) | `host.exec_subprocess.completed` emitted with `exit_code=1` |
 | EC-003 | Capability check fails (one of: `no_exec_subprocess_capability`, `binary_not_on_allow_list`, `shell_bypass_not_acknowledged`, `setuid_or_setgid_binary` per exec_subprocess.rs:148/155/162/169; env_allow + cwd_allow violations do NOT trigger this EC) | `internal.capability_denied` emitted; `host.exec_subprocess.completed` NOT emitted |
 | EC-004 | Subprocess times out | Returns `Err(TIMEOUT -2)`; **NO event emitted in v1** (per Postcondition 5; future error-path emit is out-of-scope); `host.exec_subprocess.completed` NOT emitted |
-| EC-005 | Subprocess output exceeds cap | `OUTPUT_TOO_LARGE` path; `host.exec_subprocess.completed` NOT emitted |
+| EC-005 | Subprocess output exceeds cap | Returns `Err(OUTPUT_TOO_LARGE -3)`; **NO event emitted in v1** (per Postcondition 5; future error-path emit is out-of-scope); `host.exec_subprocess.completed` NOT emitted |
 | EC-006 | Payload field type check | All 8 fields present with declared types (`plugin_id: String`, `binary: String`, `args_count: u32`, `exit_code: i32`, `duration_ms: u64`, `stdout_bytes: u64`, `stderr_bytes: u64`, `truncated: bool /* reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1 */`) |
+| EC-007 | Subprocess spawn fails / pipe take/write fails / try_wait error | Returns `Err(INTERNAL_ERROR -99)`; **NO event emitted in v1** (per Postcondition 5; spawn at exec_subprocess.rs:252, stdin take/write at :258/:262, stdout/stderr take at :267-268, try_wait at :299); `host.exec_subprocess.completed` NOT emitted |
 
 ## Canonical Test Vectors
 
@@ -95,7 +96,8 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 | Capability passes; subprocess exits 1 | Exactly one `host.exec_subprocess.completed` event; `exit_code=1` | happy-path |
 | Capability check fails | `internal.capability_denied` emitted; `host.exec_subprocess.completed` NOT emitted | error |
 | Subprocess timeout | Returns `Err(TIMEOUT -2)`; NO event emitted in v1 per Postcondition 5; `host.exec_subprocess.completed` NOT emitted | error |
-| Subprocess output exceeds cap | OutputTooLarge path; `host.exec_subprocess.completed` NOT emitted | error |
+| Subprocess output exceeds cap | Returns `Err(OUTPUT_TOO_LARGE -3)`; **NO event emitted in v1** per Postcondition 5; `host.exec_subprocess.completed` NOT emitted | error |
+| Subprocess spawn fails (or pipe take/write fails or try_wait error) | Returns `Err(INTERNAL_ERROR -99)`; NO event emitted in v1 per Postcondition 5; `host.exec_subprocess.completed` NOT emitted | error |
 | Successful completion | Event payload contains all 8 fields with correct types | edge-case |
 
 ## Verification Properties
@@ -132,7 +134,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 
 | Property | Assessment |
 |----------|-----------|
-| **I/O operations** | YES — emits event via ctx.emit_internal sink chain (non-blocking try_send) |
+| **I/O operations** | YES — emits event via `ctx.emit_internal`: synchronous `Mutex::lock` + `Vec::push` to events queue per `host/mod.rs:105-116`, then host writes to single-stream `FileSink` per ADR-015 D-15.1 (no channel send; not async) |
 | **Global state access** | No |
 | **Deterministic** | YES — event emission is deterministic given subprocess completion |
 | **Thread safety** | YES — follows same pattern as existing emit_denial |

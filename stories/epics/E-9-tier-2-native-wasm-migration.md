@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.26"
+version: "1.27"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -487,7 +487,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.24 | 2026-05-05 | state-manager | D-267 combined seal-and-fix — H-P24-001 BC-1.05.036 EC-006 truncated:bool annotation aligned to `/* */` form (TD-VSDD-076 self-violation corrected); 6 MEDs + 3 LOWs closed via lessons-corpus repair (open-backlog stubs filled, section-boundary fixed, marker orphans repaired, TD-VSDD-074 Source drift resolved); TD-VSDD-077 codified (lessons-corpus bidirectional coherence validation hook). |
 | 1.25 | 2026-05-05 | state-manager | D-268 source-truth fix burst — H-P25-001 (BC-1.05.036:52 fabricated denial-path enumeration replaced with actual 4 emit_denial reasons per exec_subprocess.rs:148/155/162/169; env_allow silently filtered, cwd_allow unenforced per gap-analysis §1 clarified); M-P25-001 (BC-1.05.036 §EC-003 tightened to enumerate 4 real denial reasons + env_allow/cwd_allow non-triggering note); M-P25-002 (BC-1.05.036:50 Instant cite corrected — line 270 is post-spawn deadline, implementer must add started=Instant::now() before spawn at line 252); L-P25-001/002 SKIPPED with rationale; TD-VSDD-078 codified (BC postcondition source-of-truth enumeration verification — extends TD-VSDD-075). |
 | 1.26 | 2026-05-05 | state-manager | D-270 silence-audit fix burst — H-P27-001 (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; Router/SinkRegistry retired per ADR-015 lines 130, 154; source-code verified); M-P27-001 (Postcondition 5 INTERNAL_ERROR (-99) enumeration added: spawn failure exec_subprocess.rs:252, stdin take/write :258/:262, stdout/stderr take :267-268, try_wait error :299; const at host/mod.rs:184; TD-VSDD-075+078 applied). ADR-013 clock RESET 0_of_3. |
-| 1.27 | — | — | (reserved) |
+| 1.27 | 2026-05-05 | state-manager | D-271 comprehensive sibling-sweep fix burst — H-P28-001 (BC-1.05.036:38 §Description "normal sink chain" replaced with ADR-015-correct emit_internal/FileSink wording); H-P28-002 (BC-1.05.036:135 §Purity "sink chain + non-blocking try_send" replaced with actual synchronous Mutex::lock+Vec::push per host/mod.rs:105-116); M-P28-001 (EC-007 INTERNAL_ERROR row added to §Edge Cases); M-P28-002 (INTERNAL_ERROR test vector row added to §Canonical Test Vectors); M-P28-003 (EC-005 + Test Vector OUTPUT_TOO_LARGE aligned to EC-004 sibling form with "NO event emitted in v1" qualifier); L-P28-001 ("retired" → dual-verb "removed per line 154 / retired per line 130" per ADR-015 lifecycle taxonomy). Source-of-truth verification per TD-VSDD-075+078 applied to all 6 fixes. TD-VSDD-079 codified (TD-VSDD-076 extension: terminology-family grep checklist for sibling-sweep fixes; 3rd recurrence threshold met). ADR-013 clock RESET 0_of_3. |
+| 1.28 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1426,5 +1427,46 @@ When a BC postcondition or normative BC section cites a CONCRETE ENUMERATION (li
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.25"` → `"1.26"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (fourteenth use):** State-manager handles pass-27 seal and 2-fix burst atomically. Both fixes are textual corrections to BC normative sections where source-code-verification confirms ground truth; architect judgment not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.27 (2026-05-05) — D-271 comprehensive sibling-sweep fix burst: pass-28 2H/3M/1L; BC sink-chain residue scrubbed + INTERNAL_ERROR rows added + verb precision
+
+**HIGH findings closed:**
+
+- **H-P28-001 CLOSED:** BC-1.05.036 line 38 §Description "through the normal sink chain" replaced with ADR-015-correct: "through `ctx.emit_internal` to the single-stream `FileSink` per ADR-015 D-15.1 (multi-sink stanza model removed; Router/SinkRegistry retired)". The v1.26 burst scrubbed Postcondition 4 (line 51) only; §Description carried parallel stale wording that contradicted the ADR-015 awareness block at lines 32-36. Third TD-VSDD-076 self-violation instance.
+
+- **H-P28-002 CLOSED:** BC-1.05.036 line 135 §Purity Classification I/O operations cell had TWO defects: (1) "sink chain" stale per ADR-015; (2) "non-blocking try_send" FABRICATED — `crates/factory-dispatcher/src/host/mod.rs:109-116` shows synchronous `Mutex::lock` + `Vec::push`, no channel send. Cell replaced with: "YES — emits event via `ctx.emit_internal`: synchronous `Mutex::lock` + `Vec::push` to events queue per `host/mod.rs:105-116`, then host writes to single-stream `FileSink` per ADR-015 D-15.1 (no channel send; not async)".
+
+**MED findings closed:**
+
+- **M-P28-001 CLOSED:** §Edge Cases EC-007 row added for INTERNAL_ERROR (-99) no-event path. Postcondition 5 (v1.26) enumerated INTERNAL_ERROR but §Edge Cases lacked a corresponding row (unlike EC-004/EC-005 for TIMEOUT/OUTPUT_TOO_LARGE). EC-007 added with full Postcondition 5 authority citation and exec_subprocess.rs source line references.
+
+- **M-P28-002 CLOSED:** §Canonical Test Vectors INTERNAL_ERROR row added after OUTPUT_TOO_LARGE row. Parallel gap to M-P28-001 — test matrix now covers all three no-event error paths (TIMEOUT, OUTPUT_TOO_LARGE, INTERNAL_ERROR).
+
+- **M-P28-003 CLOSED:** EC-005 and Test Vector OUTPUT_TOO_LARGE row aligned to EC-004 sibling form with explicit "NO event emitted in v1 (per Postcondition 5; future error-path emit is out-of-scope)" qualifier. Both previously used truncated forms missing the authoritative Postcondition 5 qualifier.
+
+**LOW findings closed:**
+
+- **L-P28-001 CLOSED:** Postcondition 4 (line 51) corrected to preserve ADR-015's dual-verb lifecycle taxonomy: "(multi-sink stanza model removed per ADR-015 line 154; Router/SinkRegistry retired per ADR-015 line 130)". ADR-015 line 130 = "retired" (crates physically deleted at Wave 5); line 154 = "removed" (configuration model eliminated). Prior wording used "retired" for both.
+
+**Source-of-truth verification per TD-VSDD-075 + TD-VSDD-078:**
+- `crates/factory-dispatcher/src/host/mod.rs:109-116` emit_internal: `Mutex::lock` + `Vec::push` (NOT try_send; NOT async) — VERIFIED
+- ADR-015 line 130: "`sink-otel-grpc` crate AND the `Router`, `SinkRegistry` types… are retired" — verb: "retired" — VERIFIED
+- ADR-015 line 154: "The multi-sink stanza model is removed." — verb: "removed" — VERIFIED
+- exec_subprocess.rs:252/258/262/267-268/299 INTERNAL_ERROR sites (verified D-270; unchanged) — VERIFIED
+- host/mod.rs:184 `pub const INTERNAL_ERROR: i32 = -99` (verified D-270; unchanged) — VERIFIED
+
+**Post-edit grep verification:**
+- `grep -n 'sink chain\|try_send' BC-1.05.036.md` → zero matches in non-changelog body. PASS.
+- `grep -n 'INTERNAL_ERROR' BC-1.05.036.md` → matches at §Postcondition 5 (line 52), §EC-007, §Canonical Test Vectors. PASS.
+
+**TD-VSDD-079 codified:** Extends TD-VSDD-076 with explicit terminology-family grep checklist for amendment-class sibling-sweep fixes. Before commit, grep ALL retired-terminology variants across the BC ("sink chain", "Router", "SinkRegistry", "multi-sink", "fan-out", "datadog", "honeycomb", "try_send") — not just the literal phrase the adversary cited. Sweep ALL normative sections. S-7.02 recurrence threshold (3+) met by pass-28 findings.
+
+**ADR-013 clock:** 0_of_3 (reset by pass-28 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (29/30/31) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.26"` → `"1.27"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (fifteenth use):** State-manager handles pass-28 seal and 6-fix burst atomically. All fixes are textual corrections to BC normative sections; source-code-verification confirms ground truth for all fabrication-class findings.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

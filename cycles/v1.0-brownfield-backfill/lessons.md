@@ -612,3 +612,27 @@ The fabrication survived 4 passes (21, 22, 23, 24) because each focused on diffe
 - File as TD-VSDD-078 (BC postcondition source-of-truth enumeration verification — extension of TD-VSDD-075).
 
 **[codified]** by D-268 lessons.md append.
+
+---
+
+### LESSON: TD-VSDD-076 sibling-sweep needs explicit terminology-grep checklist for amendment-class fixes
+
+**Source:** D-271 pass-28 findings H-P28-001/002 + M-P28-001/002/003 (third recurrence of TD-VSDD-076 self-violation)
+**Date:** 2026-05-05
+
+**Pattern:** Three TD-VSDD-076 self-violations recorded:
+- pass-24 H-P24-001 (v1.23 burst codified TD-VSDD-076 but its OWN BC-1.05.036 truncated:bool annotation had `[ ]` vs `/* */` sibling-template inconsistency)
+- pass-25 M-P25-001 (v1.24 fix EC-003 sibling-aligned to Postcondition 5 only after caught)
+- pass-28 H-P28-001/002 + M-P28-001/002/003 (v1.26 silence-audit burst scrubbed line 51 only; siblings at lines 38, 135, §Edge Cases, §Canonical Test Vectors all retained stale wording)
+
+S-7.02 recurrence threshold (3+) met. The TD-VSDD-076 codification is sound but its application is consistently incomplete because each fix burst greps for the EXACT phrase the prior adversary cited rather than the BROADER terminology family.
+
+**Codification:**
+- Extend TD-VSDD-076 with explicit grep-checklist for amendment-class silence-audit / sibling-sweep fixes:
+  - Before commit, grep for ALL retired-terminology variants across the BC: e.g., "sink chain", "Router", "SinkRegistry", "multi-sink", "fan-out", "datadog", "honeycomb", "try_send" — NOT just the literal phrase the adversary cited.
+  - Sweep these sections: §Description, §Postconditions, §Invariants, §Edge Cases, §Canonical Test Vectors, §Purity Classification, §Refactoring Notes.
+  - The fix-burst MUST achieve zero matches across non-changelog body for ALL retired-terminology variants.
+- Architect/state-manager prompts MUST run the broader grep before commit, not just the narrow literal phrase grep.
+- File as TD-VSDD-079 (TD-VSDD-076 extension: terminology-family grep checklist for sibling-sweep fixes).
+
+**[codified]** by D-271 lessons.md append.
