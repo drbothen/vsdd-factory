@@ -317,11 +317,13 @@ The "Success-path telemetry event" gap identified in Section 5 Gap 2 — the mis
 
 - The success-path telemetry event for `exec_subprocess` MUST route to `events-YYYY-MM-DD.jsonl`
   (ADR-015 D-15.1 single-stream), NOT to `dispatcher-internal-*.jsonl`.
-- The event MUST use `event.name = "vsdd.host.exec_subprocess.completed.v1"` (reverse-DNS
-  + `.v1` suffix per D-15.2). An unrecognized prefix would result in `event.category = "unknown"`.
-  The `vsdd.internal.*` prefix maps to `lifecycle` category (D-15.2 registry); a
-  `vsdd.host.*` prefix would need a registry entry — story-writer or SS-01 implementer must
-  confirm the canonical prefix for this event family with the dispatcher team.
+- The proposed `event.name` is `vsdd.host.exec_subprocess.completed.v1` (reverse-DNS
+  + `.v1` suffix per D-15.2) pending a registry-prefix decision from the dispatcher team.
+  If `vsdd.host.*` is not added to the ADR-015 D-15.2 registry before E-10 Wave 1 ships,
+  the event MUST use a registered prefix instead — recommended fallback:
+  `vsdd.dispatcher.subprocess_completed.v1` (inheriting `lifecycle` category per the
+  existing `vsdd.dispatcher.*` registry entry). **Forward-pointer:** SS-01 implementer or
+  E-10 Wave 1 author MUST resolve this prefix choice before merging the host-emit-fix story.
 - The host stamps all Resource attributes and per-event identity fields before writing
   (D-15.3 enrichment contract). The dispatcher's `exec_subprocess` implementation does not
   need to stamp `service.*`, `plugin.*`, or `trace_id` fields manually.
@@ -333,11 +335,14 @@ The "Success-path telemetry event" gap identified in Section 5 Gap 2 — the mis
 ### Existing denial-path telemetry (Section 1, row "Telemetry event on denial")
 
 The existing `emit_denial` call in `exec_subprocess.rs` emits `internal.capability_denied`.
-Under ADR-015, this event now routes to `events-*.jsonl` (single-stream). The event name
-`internal.capability_denied` uses the `vsdd.internal.*` prefix in the ADR-015 registry
-(maps to `lifecycle` category). If the current name does not include the `vsdd.` namespace
-prefix, it will resolve to `event.category = "unknown"` — a conformance issue for SS-01
-implementers to address in E-10 Wave 1 or 2.
+Under ADR-015, this event MUST be renamed to `vsdd.capability.denied.exec_subprocess.v1`.
+Rationale for this choice over `vsdd.internal.capability_denied.v1`: (a) ADR-015 line 329
+maps `vsdd.capability.denied.*` to the `audit` category, which correctly matches the
+semantics of a capability-denial event; (b) `vsdd.internal.*` maps to `lifecycle` category,
+which fits engine-internal state transitions — not denial audit-trail events; (c) Wave 3
+acceptance criterion 3 queries `event.category=audit` for security review dashboards, so
+placing denial events under `audit` aligns with SIEM-style queries. SS-01 implementer MUST
+apply this rename in E-10 Wave 1 or 2.
 
 ### No structural change to gap analysis conclusions
 

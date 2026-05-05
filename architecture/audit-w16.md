@@ -32,9 +32,9 @@ applies to every batch. The batches with the highest ADR-015 relevance are:
 
 | Batch | Story | ADR-015 relevance |
 |-------|-------|-------------------|
-| B-1 (S-9.01) | Pure stdin-parse + emit | **Highest.** These 4 hooks (demo-evidence-story-scoped, factory-path-root, finding-format, novelty-assessment) are pure-emit plugins — their only side-effecting host call is `emit_event`. The ADR-015 D-15.2 schema (event.name reverse-DNS + .v1 suffix, outcome enum, event.category derivation) applies directly. validate-factory-path-root is block-mode; it MUST emit `outcome = "blocked"` per D-15.3 block path audit trail. |
+| B-1 (S-9.01) | Pure stdin-parse + emit | **Highest.** These 4 hooks (demo-evidence-story-scoped, factory-path-root, finding-format, novelty-assessment) are pure-emit plugins — their only side-effecting host call is `emit_event`. The ADR-015 D-15.2 schema (event.name reverse-DNS + .v1 suffix, outcome enum, event.category derivation) applies directly. validate-factory-path-root is block-mode; it returns `HookResult::Block` and the dispatcher automatically emits `vsdd.block.plugin_blocked.v1` — no additional plugin-side emission required (D-15.3). |
 | B-7 (S-9.07) | Complex YAML + subprocess | **Highest.** validate-wave-gate-prerequisite invokes `exec_subprocess` (bash subprocess). ADR-015 D-15.4 mandates dispatcher-injected `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` into every exec_subprocess invocation — this is automatic (dispatcher-side invariant); the plugin does not need manifest changes. The success-path telemetry gap (gap-analysis-w16-subprocess.md §5 Gap 2) now has an explicit emit-contract target under ADR-015. |
-| B-3 (S-9.03) | PR/delivery validators | **Medium.** validate-pr-merge-prerequisites is block-mode (PreToolUse:Agent, on_error=block). It MUST emit `outcome = "blocked"` on block path per D-15.3. |
+| B-3 (S-9.03) | PR/delivery validators | **Medium.** validate-pr-merge-prerequisites is block-mode (PreToolUse:Agent, on_error=block). It returns `HookResult::Block`; the dispatcher emits `vsdd.block.plugin_blocked.v1` automatically on block path (D-15.3) — no plugin-side emission required. |
 | B-2, B-4, B-5, B-6 (S-9.02–S-9.06) | File-read validators | **Standard.** All hooks call `emit_event`; standard D-15.2 schema compliance (event.name format, outcome enum) applies. No subprocess or block-mode hooks except validate-input-hash (B-2, block-mode) and validate-template-compliance (B-6, block-mode). |
 
 ### ADR-015 compliance requirements for story-writer (all batches)
@@ -44,8 +44,10 @@ When story-writer authors S-9.01..S-9.07, each batch story body MUST include:
 1. **`event.name` format AC:** Plugin emits `event.name` in reverse-DNS + `.v1` format (e.g.,
    `vsdd.hook.validate.<hook_slug>.v1`). Non-conforming names produce `event.category = "unknown"`.
 2. **`outcome` enum AC:** Plugin emits canonical `outcome` value: `success`, `failure`, `error`,
-   `timeout`, `skipped`, or `blocked`. For the 5 block-mode hooks, the block path MUST emit
-   `outcome = "blocked"` (D-15.3 block path audit trail requirement).
+   `timeout`, `skipped`, or `blocked`. For the 5 block-mode hooks, the block path audit trail
+   is satisfied automatically by the dispatcher (which emits `vsdd.block.plugin_blocked.v1`
+   with `outcome=blocked` on `HookResult::Block`). Plugins do NOT emit a redundant event
+   on the block path (D-15.3).
 3. **Host enrichment:** Plugin does NOT stamp `service.*`, `plugin.*`, `trace_id`, `span_id`,
    or other host-owned fields. Any such stamp is overridden by the host with a visible warning
    (D-15.3 enrichment contract).

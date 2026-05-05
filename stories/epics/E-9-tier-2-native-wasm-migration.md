@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.7"
+version: "1.8"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -292,11 +292,14 @@ All other 22 hooks use only the existing ABI (`read_file`, `emit_event`, `log`).
 >   `vsdd.hook.validate.bc_title.v1`). Non-conforming names land in
 >   `event.category = "unknown"`.
 > - `outcome` field MUST use the canonical enum: `success | failure | error | timeout |
->   skipped | blocked`. Block-mode hooks MUST emit `outcome = "blocked"` on block path
->   (D-15.3 block path audit trail).
-> - `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` are dispatcher-injected invariants for
->   `exec_subprocess` calls (D-15.4); S-9.07 validate-wave-gate-prerequisite inherits
->   this automatically.
+>   skipped | blocked`. Block-mode hooks return `HookResult::Block`; the dispatcher
+>   automatically emits `vsdd.block.plugin_blocked.v1` with `outcome=blocked`,
+>   `plugin.name`, and `hook.tool_name` (D-15.3 block path audit trail). Plugins do NOT
+>   need to emit an additional event on the block path — the dispatcher's automatic
+>   emission fully satisfies D-15.3.
+> - S-9.07's verify-sha-currency.sh subprocess inherits `VSDD_TRACE_ID` and
+>   `VSDD_PARENT_SPAN_ID` automatically via the dispatcher's Command::new env setup
+>   (ADR-015 D-15.4) — no plugin manifest change needed.
 > See ADR-015 D-15.1 (single stream), D-15.2 (schema), D-15.3 (enrichment), D-15.4
 > (trace propagation). Story-writer MUST incorporate ADR-015 compliance ACs into each
 > S-9.01..S-9.07 story body.
@@ -464,7 +467,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.5 | 2026-05-03 | story-writer | Pass-6 structural fix burst (fix-only). F-P6-001 v1.4 changelog heading depth `##` → `###`; F-P6-002 v1.4 summary-table row appended; F-P6-003 deferred. See v1.5 changelog below. |
 | 1.6 | 2026-05-03 | story-writer | Pass-7 structural fix burst (fix-only). F-P7-001 v1.5+v1.6 summary-table rows appended; F-P7-002 line-count footer convention DROPPED to break recurring drift cycle. |
 | 1.7 | 2026-05-05 | architect | D-236 amendment — absorb ADR-015 single-stream OTel contract awareness before Burst 2 story authoring. |
-| 1.8 | — | — | (reserved) |
+| 1.8 | 2026-05-05 | architect | D-242 fix burst — close pass-3 SUBSTANTIVE findings: H-1 block-event misattribution (option b), M-1 host-prefix binary-choice, M-2 capability_denied rename, M-3 perf-baseline frontmatter, L-1 trace-id wording. |
+| 1.9 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -681,3 +685,46 @@ and required this 4-file amendment before story-writer authors S-9.01..S-9.07.
 
 **No new BCs, VPs, or FRs added (per D-236 scope constraint).**
 **Story bodies S-9.01..S-9.07 not touched — story-writer authors those in Burst 2.**
+
+### v1.8 (2026-05-05) — D-242 fix burst: close pass-3 SUBSTANTIVE findings
+
+**Context:** ADR-013 clock reset to 0_of_3 after pass-3 SUBSTANTIVE verdict. This fix burst
+closes all 4 substantive findings (H-1 + M-1 + M-2 + M-3) and L-1. Requires 3 consecutive
+fresh-context NITPICK_ONLY passes to reach CONVERGENCE_REACHED.
+
+**H-1 CLOSED (block-event misattribution — 4 sites, 2 files):**
+- **Option (b) chosen:** Dropped the plugin-side MUST to emit `outcome = "blocked"`. Rationale:
+  the validate-* hooks are general-purpose validation plugins with no domain payload to add on
+  the block path beyond what the dispatcher already provides (`plugin.name`, `hook.tool_name`,
+  `outcome=blocked` in `vsdd.block.plugin_blocked.v1`). Option (a) would require defining a
+  distinct event family per hook type with no additional semantic value. The dispatcher's
+  automatic emission fully satisfies D-15.3. All 4 sites updated to reflect the corrected
+  contract: plugin returns `HookResult::Block`; dispatcher emits audit event automatically.
+- Site 1: E-9 lines ~294-296 (this file, D-9.2 ADR-015 awareness block)
+- Sites 2-4: audit-w16.md lines 35, 37, 47-48
+
+**L-1 CLOSED (VSDD_TRACE_ID wording precision):**
+- Reworded E-9 lines ~297-299: "S-9.07's verify-sha-currency.sh subprocess inherits
+  `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` automatically via the dispatcher's Command::new
+  env setup (ADR-015 D-15.4) — no plugin manifest change needed."
+
+**M-1 CLOSED (vsdd.host.* prefix MUST-vs-pending contradiction):**
+- gap-analysis-w16-subprocess.md lines ~320-324: replaced MUST assertion with binary-choice
+  frame. Proposed name `vsdd.host.exec_subprocess.completed.v1` pending registry decision;
+  fallback `vsdd.dispatcher.subprocess_completed.v1` if prefix not registered before E-10
+  Wave 1. Forward-pointer added requiring SS-01 or E-10 Wave 1 author to resolve.
+
+**M-2 CLOSED (internal.capability_denied rename path unresolved):**
+- gap-analysis-w16-subprocess.md lines ~333-340: chose `vsdd.capability.denied.exec_subprocess.v1`.
+  Rationale: ADR-015 maps `vsdd.capability.denied.*` to `audit` category (correct for a denial
+  event); `vsdd.internal.*` maps to `lifecycle` (wrong semantic); Wave 3 AC-3 queries
+  `event.category=audit` for SIEM dashboards. Soft "conformance issue" language replaced with
+  firm MUST for SS-01 implementer in E-10 Wave 1 or 2.
+
+**M-3 CLOSED (perf-baseline frontmatter references propagation gap):**
+- perf-baseline-w16.md frontmatter `references:` appended ADR-015 row after ADR-013.
+
+**L-2 SKIPPED:** D-239 lessons.md codified annotate-in-place as the arch doc convention;
+`last_amended:` absence on arch docs is by-design. Finding invalid.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**

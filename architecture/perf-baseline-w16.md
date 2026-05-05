@@ -14,6 +14,7 @@ references:
   - E-8 R-8.08 (canonical cold-start 500ms gate)
   - S-8.00 PR #47 develop@9e649ed (warm-invocation baseline)
   - ADR-013 (convergence gate before S-9.01..S-9.07 dispatch)
+  - ADR-015 (single-stream OTel emit contract; emit-overhead N/A for this baseline)
 ---
 
 # W-16 Perf Baseline + Bundle Growth Ceiling
