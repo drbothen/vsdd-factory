@@ -1,16 +1,16 @@
-# Phase 5: Formal Hardening
+# Phase 6: Formal Hardening
 
-## When to Enter Phase 5
+## When to Enter Phase 6
 
-Enter Phase 5 after the adversary converges in Phase 4 -- novelty is LOW, all CRITICAL and HIGH findings are resolved, and the adversary is reduced to nitpicking wording rather than finding real gaps.
+Enter Phase 6 after the adversary converges in Phase 5 -- novelty is LOW, all CRITICAL and HIGH findings are resolved, and the adversary is reduced to nitpicking wording rather than finding real gaps.
 
 ## Overview
 
-Phase 5 runs four independent verification tracks plus a performance validation pass. The verification architecture designed in Phase 1b is now executed against the battle-tested implementation.
+Phase 6 runs four independent verification tracks plus a performance validation pass. The verification architecture designed in Phase 1b is now executed against the battle-tested implementation.
 
 ```mermaid
 graph TD
-    START[Phase 4 Complete<br/>Adversary converged]:::start --> TRACKS
+    START[Phase 5 Complete<br/>Adversary converged]:::start --> TRACKS
 
     subgraph TRACKS[Verification Tracks — run in parallel]
         direction TB
@@ -26,7 +26,7 @@ graph TD
     DTU -->|No| REPORT[Formal Verification Report]:::artifact
     DTUV --> REPORT
     REPORT --> GATE{All reports<br/>PASS?}:::decision
-    GATE -->|Yes| DONE[Phase 5 Gate: PASS]:::start
+    GATE -->|Yes| DONE[Phase 6 Gate: PASS]:::start
     GATE -->|No| FIX[Fix via /fix-pr-delivery]:::action
     FIX --> TRACKS
 
@@ -152,11 +152,11 @@ The comparison harness runs both implementations with the same inputs and report
 
 ## Purity Boundary Audit
 
-The `purity-check.sh` hook runs automatically on every file edit, but Phase 5 includes an explicit audit: verify that all modules classified as "pure core" in the architecture document remain free of side effects. Side effects that crept into the pure core during implementation are flagged for refactoring.
+The `purity-check.sh` hook runs automatically on every file edit, but Phase 6 includes an explicit audit: verify that all modules classified as "pure core" in the architecture document remain free of side effects. Side effects that crept into the pure core during implementation are flagged for refactoring.
 
 ## Artifacts
 
-Phase 5 produces two primary reports:
+Phase 6 produces two primary reports:
 
 - `.factory/cycles/<current>/formal-verification-report.md` -- Kani results, fuzz results, mutation survivors, security findings, and the overall gate verdict
 - `.factory/cycles/<current>/performance-report.md` -- benchmark results, budget compliance, regression analysis
@@ -177,7 +177,7 @@ If a tool is not installed, `/vsdd-factory:formal-verify` reports which tools ar
 
 ## Quality Gate
 
-Phase 5 is complete when all verification reports show PASS:
+Phase 6 is complete when all verification reports show PASS:
 
 - All Kani proofs pass
 - No fuzz crashes
@@ -187,4 +187,4 @@ Phase 5 is complete when all verification reports show PASS:
 - DTU validation clean (if DTU clones exist)
 - Purity boundaries intact
 
-If any track fails, fix the issue via `/fix-pr-delivery` and re-run the failing track. Findings that require implementation changes route back through Phase 4 (adversarial review of the fix).
+If any track fails, fix the issue via `/fix-pr-delivery` and re-run the failing track. Findings that require implementation changes route back through Phase 5 (adversarial review of the fix).
