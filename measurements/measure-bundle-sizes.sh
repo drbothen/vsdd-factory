@@ -102,40 +102,46 @@ FIXTURE="$SCRIPT_DIR/fixtures/handoff-validator-input.json"
 # ---------------------------------------------------------------------------
 DISPATCHER_BYTES=0
 if [ -n "$DISPATCHER_BINARY" ] && [ -f "$DISPATCHER_BINARY" ]; then
-  DISPATCHER_BYTES=$(wc -c < "$DISPATCHER_BINARY")
-  # Trim leading whitespace (wc -c may add it on some platforms)
-  DISPATCHER_BYTES="${DISPATCHER_BYTES##* }"
-  DISPATCHER_BYTES="${DISPATCHER_BYTES%% *}"
+  # LC_ALL=C: consistent number formatting across locales.
+  # tr -d removes any whitespace wc -c may emit (BSD wc pads with leading spaces).
+  # Result must match ^[0-9]+$ — a plain decimal integer.
+  DISPATCHER_BYTES=$(LC_ALL=C wc -c < "$DISPATCHER_BINARY" | tr -d ' \t\n')
 else
   echo "WARNING: factory-dispatcher binary not found at $REPO_ROOT/target/release/factory-dispatcher" >&2
   echo "Run: cargo build --release -p factory-dispatcher" >&2
 fi
 
 # ---------------------------------------------------------------------------
-# Sum ALL .wasm files in the bundle directory (AC-1)
+# Sum ALL .wasm files in the bundle directory for unaccounted detection.
+# all_hook_plugins_wasm_bytes = frozen-17 sum (= sum(per_plugin)).
+# unaccounted_wasm_bytes = bytes from non-frozen .wasm files
+#   (e.g. hello-hook.wasm, underscore-named stubs not in frozen enumeration).
+# grand_total_bytes = all_hook_plugins_wasm_bytes + unaccounted + dispatcher.
 # ---------------------------------------------------------------------------
-ALL_WASM_BYTES=0
+TOTAL_WASM_BYTES=0
 for f in "$BUNDLE_DIR"/*.wasm; do
   [ -f "$f" ] || continue
-  sz=$(wc -c < "$f")
-  # Trim whitespace
-  sz="${sz##* }"
-  sz="${sz%% *}"
-  ALL_WASM_BYTES=$((ALL_WASM_BYTES + sz))
+  # LC_ALL=C: consistent number formatting across locales.
+  # tr -d removes any whitespace wc -c may emit. Result is ^[0-9]+$.
+  sz=$(LC_ALL=C wc -c < "$f" | tr -d ' \t\n')
+  TOTAL_WASM_BYTES=$((TOTAL_WASM_BYTES + sz))
 done
 
 # ---------------------------------------------------------------------------
 # Build per_plugin map for the 17 frozen plugins (AC-2, AC-5)
 # Only counts present files; absent plugins record 0.
+# Also accumulates ALL_WASM_BYTES = sum of frozen-17 (= sum(per_plugin)).
 # ---------------------------------------------------------------------------
 per_plugin_json="{"
 first=1
+ALL_WASM_BYTES=0
 for plugin in "${FROZEN_PLUGINS[@]}"; do
   wasm_file="$BUNDLE_DIR/${plugin}.wasm"
   if [ -f "$wasm_file" ]; then
-    sz=$(wc -c < "$wasm_file")
-    sz="${sz##* }"
-    sz="${sz%% *}"
+    # LC_ALL=C: consistent number formatting across locales.
+    # tr -d removes any whitespace wc -c may emit. Result is ^[0-9]+$.
+    sz=$(LC_ALL=C wc -c < "$wasm_file" | tr -d ' \t\n')
+    ALL_WASM_BYTES=$((ALL_WASM_BYTES + sz))
   else
     sz=0
   fi
@@ -148,10 +154,15 @@ for plugin in "${FROZEN_PLUGINS[@]}"; do
 done
 per_plugin_json="${per_plugin_json}}"
 
+# Bytes from non-frozen .wasm files (hello-hook.wasm, underscore stubs, etc.)
+# If non-zero, these warrant review — they are not part of the frozen enumeration.
+UNACCOUNTED_WASM_BYTES=$((TOTAL_WASM_BYTES - ALL_WASM_BYTES))
+
 # ---------------------------------------------------------------------------
 # Compute grand total (AC-3)
+# grand_total = all_hook_plugins_wasm_bytes + unaccounted_wasm_bytes + dispatcher
 # ---------------------------------------------------------------------------
-GRAND_TOTAL=$((ALL_WASM_BYTES + DISPATCHER_BYTES))
+GRAND_TOTAL=$((ALL_WASM_BYTES + UNACCOUNTED_WASM_BYTES + DISPATCHER_BYTES))
 
 # ---------------------------------------------------------------------------
 # Cold-start p95 measurement via hyperfine (AC-7, B.1)
@@ -163,11 +174,22 @@ if [ -n "$DISPATCHER_BINARY" ] && [ -f "$DISPATCHER_BINARY" ] && [ -f "$FIXTURE"
     CLAUDE_PLUGIN_ROOT="${REPO_ROOT}/plugins/vsdd-factory"
     CLAUDE_PROJECT_DIR="${REPO_ROOT}"
     export CLAUDE_PLUGIN_ROOT CLAUDE_PROJECT_DIR
-    # Run cold-start measurement: --warmup 0 to capture first-invocation cost
-    # Redirect hyperfine's human-readable output to stderr; capture JSON
-    hyperfine_out=$(hyperfine --warmup 0 --runs 10 --export-json /dev/stderr \
-      "${DISPATCHER_BINARY} < ${FIXTURE}" 2>&1 1>/dev/null) || true
-    # Parse p95 from JSON output (times array is in seconds; convert to ms)
+    # Run cold-start measurement: --warmup 0 to capture first-invocation cost.
+    # N=30 for p95 reliability (N=10 is too noisy; p95 index only 9 samples).
+    # LC_ALL=C ensures wc -c emits plain digits; tr removes any stray whitespace.
+    # Use a temp file so hyperfine JSON is captured correctly; writing to
+    # /dev/stderr and redirecting 2>&1 was previously inverted, producing an
+    # empty hyperfine_out and silently falling back to cold_start_p95_measured_ms=0.
+    tmp_json=$(mktemp -t hyperfine.XXXXXX.json)
+    trap "rm -f $tmp_json" EXIT
+    # Redirect both stdout and stderr to /dev/null: hyperfine prints its
+    # human-readable benchmark summary to stdout; the JSON result goes to
+    # the temp file only, so suppressing stdout is safe.
+    hyperfine --warmup 0 --runs 30 --export-json "$tmp_json" \
+      "${DISPATCHER_BINARY} < ${FIXTURE}" >/dev/null 2>&1 || true
+    hyperfine_out=$(cat "$tmp_json")
+    # Parse p95 from JSON output (times array is in seconds; convert to ms).
+    # Asserts hyperfine_out contains valid JSON with a "times" array.
     if echo "$hyperfine_out" | grep -q '"times"'; then
       COLD_START_P95_MS=$(echo "$hyperfine_out" | python3 -c "
 import json, sys
@@ -200,6 +222,7 @@ printf '  "methodology_version": %d,\n' "$METHODOLOGY_VERSION"
 printf '  "measurement_timestamp": "%s",\n' "$MEASUREMENT_TIMESTAMP"
 printf '  "host_platform": "%s",\n' "$HOST_PLATFORM"
 printf '  "all_hook_plugins_wasm_bytes": %d,\n' "$ALL_WASM_BYTES"
+printf '  "unaccounted_wasm_bytes": %d,\n' "$UNACCOUNTED_WASM_BYTES"
 printf '  "dispatcher_bytes": %d,\n' "$DISPATCHER_BYTES"
 printf '  "grand_total_bytes": %d,\n' "$GRAND_TOTAL"
 printf '  "cold_start_p95_measured_ms": %s,\n' "$COLD_START_P95_MS"

@@ -36,11 +36,12 @@ release bundle at `plugins/vsdd-factory/hook-plugins/` (darwin-arm64).
 
 | Metric | Value |
 |--------|-------|
-| measured_at | 2026-05-05T04:48:03Z |
+| measured_at | 2026-05-05T05:14:10Z |
 | release_tag_sha | (post-rc.8; develop HEAD at measurement time) |
 | develop_head_sha | see `git rev-parse HEAD` at measurement time |
 | platform | darwin-arm64 |
-| all_hook_plugins_wasm_bytes | 8704199 |
+| all_hook_plugins_wasm_bytes | 8549146 (frozen-17 sum; = sum(per_plugin)) |
+| unaccounted_wasm_bytes | 155053 (hello-hook.wasm + underscore-named stubs not in frozen enumeration — review needed) |
 | dispatcher_binary_bytes | 12250912 |
 | grand_total_bytes | 20955111 |
 
@@ -56,12 +57,13 @@ Do NOT use `du -sb` (GNU-only `-b` flag; macOS `du` uses `-k` for kibibytes).
 ```json
 {
   "methodology_version": 1,
-  "measurement_timestamp": "2026-05-05T04:48:03Z",
+  "measurement_timestamp": "2026-05-05T05:14:10Z",
   "host_platform": "Darwin-arm64",
-  "all_hook_plugins_wasm_bytes": 8704199,
+  "all_hook_plugins_wasm_bytes": 8549146,
+  "unaccounted_wasm_bytes": 155053,
   "dispatcher_bytes": 12250912,
   "grand_total_bytes": 20955111,
-  "cold_start_p95_measured_ms": 627.8,
+  "cold_start_p95_measured_ms": 679.1,
   "per_plugin": {
     "block-ai-attribution": 176647,
     "capture-commit-activity": 170580,
@@ -107,9 +109,9 @@ Do NOT use `du -sb` (GNU-only `-b` flag; macOS `du` uses `-k` for kibibytes).
 | worktree-hooks | 155866 |
 | **total_bytes (17-plugin sum)** | **8549146** |
 
-Note: `all_hook_plugins_wasm_bytes` (8704199) reflects all `.wasm` files in the
-bundle directory (including hello-hook.wasm and underscore-named stubs not in the
-frozen enumeration). The 17-plugin frozen-enumeration sum is 8549146.
+`all_hook_plugins_wasm_bytes` now equals the frozen-17 sum (8549146 = sum(per_plugin)).
+Non-frozen files (hello-hook.wasm + underscore-named stubs) are captured in
+`unaccounted_wasm_bytes` (155053 bytes) — review needed if non-zero per wave.
 
 ---
 
@@ -184,7 +186,9 @@ Headroom to kill-switch: ~9MB.
 | warm_invocation_p50_ms | 19 | S-8.00 PR #47 develop@9e649ed |
 | aggregate_437ms_projection | 19ms × 23 plugins | S-8.00 AC-2 + E-8 R-8.08 |
 | cold_start_p95_gate_ms | 500 | E-8 R-8.08 (canonical; raised from 200ms; E-8 v1.10 risk table is source of truth) |
-| cold_start_p95_measured_ms | 627.8 | S-9.00 hyperfine --warmup 0 --runs 10 (darwin-arm64, 2026-05-05) |
+| cold_start_p95_measured_ms | 665.0 | S-9.00 hyperfine --warmup 0 --runs 30 (darwin-arm64, 2026-05-05) |
+| cold_start_median_ms | 620.6 | N=30 (darwin-arm64, 2026-05-05) |
+| cold_start_IQR_ms | 36.7 | Q1=603.4ms, Q3=640.1ms; min=522.4ms, max=690.0ms; N=30 |
 
 **Citation:** "Source: S-8.00 PR #47 develop@9e649ed; warm p50 = 19ms/plugin;
 aggregate 437ms; cold-start p95 gate 500ms per E-8 R-8.08 (canonical risk ID per
@@ -193,10 +197,13 @@ E-8 v1.10 is the source of truth)."
 
 ### Cold-Start Measurement Status
 
-The measured cold_start_p95_measured_ms of **627.8ms** exceeds the 500ms gate.
+The measured cold_start_p95_measured_ms of **665.0ms** (N=30) exceeds the 500ms gate.
 This is measured on darwin-arm64 local dev machine; CI ubuntu-latest is typically
 10-30% faster. Flag as potential R-W16-003 trigger; recommend re-measurement on
 linux-x64 CI runner before dispatching S-9.01..S-9.07.
+
+**Variance disclosure (N=30):** median=620.6ms, p95=665.0ms, IQR=36.7ms
+(Q1=603.4ms, Q3=640.1ms). Prior N=10 value of 627.8ms was within the N=30 IQR.
 
 If cold-start exceeds 500ms on CI: escalate per EC-004 (R-W16-003 triggered) before
 dispatch.
@@ -210,9 +217,9 @@ dispatch.
 1. Build release artifacts: `cargo build --release --target wasm32-wasip1`
    and `cargo build --release -p factory-dispatcher`
 2. Run `measure-bundle-sizes.sh plugins/vsdd-factory/hook-plugins/`
-3. Script uses `wc -c < <file>` for all byte counts (POSIX portable)
-4. Cold-start measured via `hyperfine --warmup 0 --runs 10` (SubagentStop fixture)
-5. p95 computed as index `floor(N * 0.95) - 1` of sorted time samples (N=10)
+3. Script uses `wc -c < <file>` for all byte counts (POSIX portable; `LC_ALL=C` for locale-safe output)
+4. Cold-start measured via `hyperfine --warmup 0 --runs 30` (SubagentStop fixture; N=30 for p95 reliability)
+5. p95 computed as index `floor(N * 0.95) - 1` of sorted time samples (N=30)
 
 ### Reproducibility
 
@@ -257,7 +264,7 @@ Each batch story (S-9.01..S-9.07) MUST record:
 - `cold_start_p95_delta_ms`: change in cold-start p95 vs this baseline (627.8ms)
 
 Pause criterion: wave paused if cold-start regresses >10% vs previous wave.
-At W-16 baseline: 10% of 627.8ms = 62.8ms; pause threshold = 690.6ms.
+At W-16 baseline (N=30): 10% of 665.0ms = 66.5ms; pause threshold = 731.5ms.
 
 ---
 
