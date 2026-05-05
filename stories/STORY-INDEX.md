@@ -82,10 +82,10 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Status | Count |
 |--------|-------|
-| merged | 56 |
+| merged | 57 |
 | partial | 2 |
 | draft | 19 |
-| ready | 1 |
+| ready | 0 |
 | withdrawn | 1 |
 | retired | 19 |
 | **Total (active)** | **79** |
@@ -284,7 +284,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-9.00 | Perf baseline + W-16 bundle growth ceiling (W-16 pre-work) | E-9 | TBD | P2 | E-8 | S-9.01..S-9.07 | ready | [] ([process-gap] under D-9.4; analogous to S-8.00; CONVERGENCE_REACHED pass-7 3_of_3 per ADR-013 2026-05-03; 6 LOW known-debt accepted per D-231; promoted to ready 2026-05-05 — E-8 native ports all merged) |
+| S-9.00 | Perf baseline + W-16 bundle growth ceiling (W-16 pre-work) | E-9 | TBD | P2 | E-8 | S-9.01..S-9.07 | merged | [] ([process-gap] under D-9.4; analogous to S-8.00; CONVERGENCE_REACHED pass-7 3_of_3 per ADR-013 2026-05-03; 6 LOW known-debt accepted per D-231; promoted to ready 2026-05-05; PR #91 squash-merged at 5706f27 2026-05-04) |
 | S-9.30 | ~~SDK extension: host::run_subprocess~~ | E-9 | — | — | — | — | **withdrawn** | BC-2.02.013 (withdrawn; ADR-014 D-9.2 amendment 2026-05-03; exec_subprocess sufficient; body preserved POLICY 1) |
 | S-9.01 | Batch B-1: pure stdin-parse validators (validate-demo-evidence-story-scoped, validate-factory-path-root, validate-finding-format, validate-novelty-assessment) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |
 | S-9.02 | Batch B-2: single file-read frontmatter validators (validate-bc-title, validate-changelog-monotonicity, validate-red-ratio, validate-input-hash) | E-9 | TBD | P2 | S-9.00 | — | draft | [] (pending Burst 2) |

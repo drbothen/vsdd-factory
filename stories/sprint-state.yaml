@@ -10,16 +10,15 @@ next_milestone: v1.1 (E-8 W-15 complete; E-9 W-16 pending)
 # Story counts by status (70 total active stories)
 stories:
   total: 70
-  merged: 56
-  ready: 1
+  merged: 57
+  ready: 0
   draft: 11
   partial: 2
   withdrawn: 1
   retired: 19  # S-8.11..S-8.29 placeholder slots
 
 # Current work frontier
-frontier:
-  - S-9.00   # sole ready story; E-8 closure unblocks; v1.4 spec converged at 5015917
+frontier: []  # S-9.00 merged 2026-05-04 (PR #91 at 5706f27); no ready stories remain
 
 next_refinement:
   - E-10 series  # S-10.01..S-10.09 (ADR-015 migration; all draft, pending PO BC authorship)
@@ -97,7 +96,7 @@ epics:
     stories: 8   # S-9.00 + S-9.01..S-9.07; S-9.30 withdrawn
     status: in-progress
     milestone: v1.2
-    ready: 1    # S-9.00
+    merged: 1   # S-9.00 (PR #91 5706f27 2026-05-04)
     draft: 7    # S-9.01..S-9.07 (stubs pending Burst 2+3)
     withdrawn: 1  # S-9.30
 
@@ -220,6 +219,9 @@ story_updates:
     merged_at: 2026-05-02
 
   S-9.00:
-    status: ready
+    status: merged
     ready_at: 2026-05-05
-    note: "E-8 closure unblocks; v1.4 convergence at 5015917; promoted from draft"
+    merged_at: 2026-05-04
+    pr: 91
+    merge_sha: 5706f27
+    note: "8 adversarial passes (5 fix bursts + 3 consecutive clean); PR #91 squash-merged at 5706f27"
