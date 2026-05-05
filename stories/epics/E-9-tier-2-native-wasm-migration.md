@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.12"
+version: "1.13"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -472,7 +472,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.10 | 2026-05-05 | architect | D-246 fix burst — close pass-5 H-P5-001 frontmatter version drift, M-P5-001 v1.8 prose restored to original (POLICY 1), M-P5-003 audit-w16.md B-7 block-mode treatment added. M-P5-002 + LOWs deferred. |
 | 1.11 | 2026-05-05 | architect | D-248 fix burst — close pass-6 H-P6-001 B-2+B-6 explicit H-1 option (b) in audit-w16.md, M-P6-002 OQ-W16-001 filed. 3 MED + 2 LOW deferred with rationale. |
 | 1.12 | 2026-05-05 | architect | D-250 minimal fix burst — close pass-7 line 38 trio: M-P7-001 en-dash → explicit list, M-P7-002 "H-1 option (b)" → "are block-mode", M-P7-003 PostToolUse parenthetical added, L-P7-001 "per ADR-015 D-15.3" → "per D-15.3". L-P7-002 + L-P7-003 deferred. |
-| 1.13 | — | — | (reserved) |
+| 1.13 | 2026-05-05 | state-manager | D-251 minimal fix burst — perf-baseline-w16.md line 156 misanchor closed (E-9 D-9.4 → E-9 AC-3 per pass-8 M-P8-001). |
+| 1.14 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -937,5 +938,34 @@ across audit-w16.md, gap-analysis-w16-subprocess.md, perf-baseline-w16.md body s
 (excluding changelog). Result: 0 matches in gap-analysis-w16-subprocess.md and perf-baseline-w16.md.
 In audit-w16.md: only match was the pre-fix `H-1 option (b)` on line 38 — now replaced with
 "are block-mode". No residual fix-burst nomenclature leakage in permanent spec body. PASS.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.13 (2026-05-05) — D-251 combined seal-and-fix burst: pass-8 M-P8-001 perf-baseline misanchor closed
+
+**Context:** Adversary pass-8 (story-writer simulation + reverse-derivation outbound-decision-ID semantic-anchor
+check angle, NEW per TD-VSDD-057) found 1 MED (M-P8-001) and 0 HIGH/LOW — severity gradient at its lowest
+point in the convergence cycle (pass-3=6, pass-4=2, pass-5=7, pass-6=7, pass-7=6, pass-8=1).
+
+**M-P8-001 CLOSED (perf-baseline-w16.md line 156 cross-document misanchor):**
+- perf-baseline-w16.md "W-16 Gate Model" section line 156 cited `E-9 D-9.4 "Option C"` as gate-model
+  authority. D-9.4 in the E-9 epic body is "BC Anchor Strategy — reuse existing BC-7.xx family per hook";
+  its "Option C" is a back-reference to E-8 D-2 (BC reuse), not a gate-model decision.
+- Fix applied: `E-9 D-9.4 "Option C" +` → `E-9 AC-3 +` (AC-3 at E-9 line 368 explicitly enumerates the
+  latency-primary + advisory-ceiling model, which is the gate-model concept this perf-baseline section
+  references).
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.12"` → `"1.13"` (matches latest
+non-reserved row). PASS.
+
+**Process-gap PG-P8-001 codified as TD-VSDD-065:** Decision-ID outbound semantic-anchor check — no
+pre-commit hook currently validates that decision IDs cited from arch docs to epic docs (D-9.x, AC-N)
+correspond to cited semantic content in target. M-P8-001 is the class this gap creates.
+
+**TD-VSDD-064 sequential-burst protocol applied (first use):** This is the first burst applying the new
+TD-VSDD-064 sequential-burst protocol where state-manager handles a minor cosmetic fix atomically with
+the seal, avoiding the parallel commit collision pattern. The fix is single-line; architect involvement
+adds no value. This burst sets the precedent that minimal cosmetic fixes (single-line textual corrections
+where the architect is not needed for judgment) can be folded into a state-manager seal burst.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

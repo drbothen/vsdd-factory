@@ -153,7 +153,7 @@ close, pre-W-15) is the canonical pre-W-15 baseline reference.
 
 ## W-16 Gate Model (ADR-014 R-8.09 Revised — Option C)
 
-Reference: E-9 D-9.4 "Option C" + ADR-014 R-8.09 (Amendment 2026-05-03).
+Reference: E-9 AC-3 + ADR-014 R-8.09 (Amendment 2026-05-03).
 Replaces the old E-8 R-8.09 25% bundle-only ceiling (that model would have
 blocked W-16 even when cold-start budget is satisfied).
 
