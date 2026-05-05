@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.59"
+version: "1.60"
 status: current
 producer: state-manager
 timestamp: 2026-05-05T00:00:00
@@ -35,6 +35,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-250 — STORY-INDEX bumped to reflect architect v1.11 → v1.12 fix burst (content shipped via 353c172 — merged with D-249 seal due to parallel-burst commit collision; TD-VSDD-064 codified). M-P7-001 closed: en-dash range `(S-9.02–S-9.06)` replaced with explicit list `(S-9.02, S-9.04, S-9.05, S-9.06)`. M-P7-002 closed: "H-1 option (b)" nomenclature replaced with plain "are block-mode". M-P7-003 closed: PostToolUse:Edit|Write parenthetical added. L-P7-001 closed: "per ADR-015 D-15.3" → "per D-15.3". L-P7-002 + L-P7-003 SKIPPED with rationale. E-9 frontmatter `version: "1.11"` → `"1.12"`. All 5 pre-commit checklists PASS (TD-VSDD-058/059/061/062/063). ADR-013 clock 0_of_3. STORY-INDEX v1.56 → v1.57.
 > Updated 2026-05-05: D-251 — STORY-INDEX bumped to reflect D-251 combined seal-and-fix burst (pass-8 SUBSTANTIVE 0H/1M/0L sealed + v1.12→v1.13 minimal fix; M-P8-001 perf-baseline line 156 misanchor E-9 D-9.4 → E-9 AC-3; TD-VSDD-064 sequential-burst precedent set; TD-VSDD-065 codified). STORY-INDEX v1.57 → v1.58.
 > Updated 2026-05-05: D-252 — STORY-INDEX bumped to reflect adversary pass-9 NITPICK_ONLY on E-9 v1.13 (0H/0M/1L; ADR-013 clock 0_of_3 → 1_of_3 — FIRST ADVANCE since pass-2). POLICY 6 deep-dive + OQ-W16-001 lifecycle audit angle (NEW per TD-VSDD-057). 42 SS-NN canonical-name audits PASS. L-P9-001 deferred LOW (open-questions.md Source field TD-VSDD-063 scope gap; TD-VSDD-066 filed). STORY-INDEX v1.58 → v1.59.
+> Updated 2026-05-05: D-253 — STORY-INDEX bumped to reflect adversary pass-10 NITPICK_ONLY on E-9 v1.13 (0H/0M/3L; ADR-013 clock 1_of_3 → 2_of_3 — SECOND ADVANCE). Exhaustive ADR-015 D-15.x clause enumeration angle (NEW per TD-VSDD-057). All clauses cleanly mapped; counter-example test PASSED. 3 LOWs deferred per S-7.03 SHIP-AS-IS pattern (L-P10-001 D-15.4 Command::new terminology drift; L-P10-002 transitive subprocess env silence; L-P10-003 FileSink durability silence). Pass-11 in flight (CONVERGENCE candidate). STORY-INDEX v1.59 → v1.60.
 > Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145). Pass-3 (2026-04-29): S-5.05 v1.6→v1.7 (1 MED + 5 LOW closed; STORY-INDEX:136 cross-cutting BC-8.31.* count fixed); S-5.06 NITPICK_ONLY (no version bump; clock 1_of_3 per S-7.03 skip-fix strategy); D-146. Pass-4 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (8 LOW; clock 0_of_3→1_of_3); S-5.06 v1.6 NITPICK_ONLY (0 findings; clock 1_of_3→2_of_3); skip-fix discipline applied per S-7.03; D-147. Pass-5 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (5 LOW positive; clock 1_of_3→2_of_3); **S-5.06 v1.6→v1.7 CONVERGENCE_REACHED at pass-5** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status draft→ready); D-148.
 > Pass-6 (2026-04-29): **S-5.05 v1.7→v1.8 CONVERGENCE_REACHED at pass-6** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status partial→ready; 3 consecutive NITPICK_ONLY: passes 4, 5, 6); D-149.
 >
