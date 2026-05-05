@@ -228,6 +228,19 @@ authoritative baseline for S-9.01..S-9.07 delta comparisons.
 If cold-start exceeds 500ms on CI: escalate per EC-004 (R-W16-003 triggered) before
 dispatch.
 
+### Sampling Variance (run-to-run)
+
+The 642.6ms p95 value above is the canonical baseline captured from a single hyperfine
+session (N=30, methodology_version 2). Empirically, run-to-run variance on the same
+machine and methodology has been observed up to **±12% (range 642ms–723ms across
+consecutive sessions)**. This variance is significant compared to the 10% wave-over-wave
+pause threshold (`64.3ms`).
+
+**Implication for downstream waves (S-9.01..S-9.07):** A single fresh measurement that
+exceeds 706.9ms is INSUFFICIENT evidence of regression. Wave-over-wave delta comparisons
+MUST capture **median of N=3 hyperfine sessions** (each --runs 30) to dampen sampling
+variance. Single-session deltas of <±12% should be treated as inside the noise floor.
+
 ---
 
 ## Methodology
@@ -255,6 +268,13 @@ in this case). Downstream waves MUST use --runs 30 minimum.
 Re-run `measure-bundle-sizes.sh` against the same fixed bundle directory to
 reproduce measurements. Two consecutive runs produce identical `all_hook_plugins_wasm_bytes`
 and `per_plugin` values (idempotent for a fixed artifact set).
+
+**Scope of "reproducible":** Byte-count fields (`all_hook_plugins_wasm_bytes`,
+`unaccounted_wasm_bytes`, `dispatcher_bytes`, `grand_total_bytes`, `per_plugin`) are
+byte-for-byte reproducible across runs (idempotent for a fixed artifact set). The
+cold-start latency field (`cold_start_p95_measured_ms`) is **NOT byte-reproducible
+across runs** — see "Sampling Variance" above. Downstream wave deltas comparing
+cold-start MUST follow the median-of-3-sessions protocol.
 
 ### Cross-Platform Notes
 
@@ -291,6 +311,11 @@ unconverged baseline, which would cause cascading drift across all 7 batch stori
 Each batch story (S-9.01..S-9.07) MUST record:
 - `bundle_size_delta_bytes`: change in `all_hook_plugins_wasm_bytes` vs this baseline
 - `cold_start_p95_delta_ms`: change in cold-start p95 vs this baseline (642.6ms)
+
+**Measurement protocol for cold_start_p95_delta_ms:** Each wave's reported
+`cold_start_p95_measured_ms` MUST be computed as the median of 3 fresh hyperfine
+sessions (each --runs 30 = 90 cold starts total). Single-session values are noisy
+and not contract-compliant for wave-over-wave comparison.
 
 Pause criterion: wave paused if cold-start regresses >10% vs previous wave.
 At W-16 baseline (N=30, methodology_version 2): 10% of 642.6ms = 64.3ms; pause threshold = 706.9ms.
