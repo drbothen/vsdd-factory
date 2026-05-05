@@ -412,3 +412,21 @@ The original ~14MB cite came from audit-w16.md Section 5 R-W16-003 (pre-amendmen
 **[codified]** by D-254 lessons.md append.
 
 **[codified]** by D-252 lessons.md append.
+
+---
+
+### LESSON: Recursive-scrub — fix-burst replacement text must be re-verified against the same forbidden-pattern set the original violated
+
+**Source:** D-255 pass-12 finding H-P12-001 (open-questions.md line 20 v1.14 scrub introduced new internal tokens)
+**Date:** 2026-05-05
+
+**Pattern:** v1.14 fix burst's M-P11-001 closure replaced fix-burst-internal tokens (`D-247`, `M-P6-002`, `b04843d`, `pass-6 finding`) with a different set of fix-burst-internal tokens (`M-1 closure forward-pointer`). The replacement text was non-compliant with the very rule it cited (TD-VSDD-063). The forward-pointer was also unresolvable: the named target file contained no "M-1" anywhere.
+
+**Codification:**
+- After applying any TD-VSDD-063 / TD-VSDD-066 scrub, run a SECOND grep against the just-edited line(s) using the same forbidden pattern set: `D-[0-9]{3}`, `M-P[0-9]+`, `H-P[0-9]+`, `L-P[0-9]+`, `F-P[0-9]+`, `M-[0-9]+ closure`, `pass-[0-9]+ finding`, `cycle [0-9a-f]{7}`. If ANY match in the just-edited region, the fix is non-compliant; revise.
+- Architect/state-manager prompts for any nomenclature scrub burst must include the recursive-scrub verification command in the pre-commit checklist.
+- File as TD-VSDD-068 (Recursive-scrub check for nomenclature replacement text).
+
+Additionally: forward-pointers in scrubbed text MUST resolve in the named target file. After writing a replacement that says `see X §Y`, grep target file X for §Y or its anchor — verify it exists.
+
+**[codified]** by D-255 lessons.md append.

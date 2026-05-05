@@ -17,12 +17,12 @@ timestamp: 2026-05-05T00:00:00Z
 
 ## OQ-W16-001 — Resolve `vsdd.host.*` registry-prefix decision before E-10 Wave 1 ships
 
-**Source:** gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" (M-1 closure forward-pointer to OQ-W16-001)
+**Source:** gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" — see also gap-analysis line 326 ("Resolution tracked in **OQ-W16-001**") for the bidirectional anchor.
 **Status:** OPEN
 **Owner:** SS-01 implementer or E-10 Wave 1 architect
 **Filed:** 2026-05-05
 
-**Question:** ADR-015 D-15.2 registry table (lines 317-332) does not include `vsdd.host.*`. E-9 v1.10 amendment proposes `vsdd.host.exec_subprocess.completed.v1` as the event name for the host-emit-fix story, with fallback `vsdd.dispatcher.subprocess_completed.v1`.
+**Question:** ADR-015 D-15.2 registry table (lines 317-332) does not include `vsdd.host.*`. The gap analysis of `host::exec_subprocess` (gap-analysis-w16-subprocess.md §5) proposes `vsdd.host.exec_subprocess.completed.v1` as the event name for the host-emit-fix story, with fallback `vsdd.dispatcher.subprocess_completed.v1`.
 
 **Acceptance criterion (binary):**
 - (a) ADR-015 D-15.2 registry amended to include `vsdd.host.* | <category>` BEFORE E-10 Wave 1 host-emit-fix story merges, OR

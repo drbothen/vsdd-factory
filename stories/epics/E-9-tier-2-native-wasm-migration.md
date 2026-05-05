@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.14"
+version: "1.15"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -365,7 +365,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 |----|-----------|
 | AC-1 | All 23 validate-*.sh hooks have native WASM equivalents in `crates/hook-plugins/validate-*/` delivered by S-9.01..S-9.07 |
 | AC-2 | `hooks-registry.toml` updated: 23 WASM entries added (`plugin = "hook-plugins/validate-*.wasm"`); 23 legacy-bash-adapter entries disabled or removed for Tier 2 hooks |
-| AC-3 | W-16 bundle growth within the latency-primary + advisory-ceiling model per ADR-014 R-8.09 revised (2026-05-03): cold-start p95 ≤ 500ms (hard gate, inherited from S-9.00 / E-8 AC-7b); advisory soft cap ≤ 100% cumulative growth at end of W-17 (soft_cap = perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes = 643,686 bytes per ADR-014 R-8.09 Amendment); hard kill-switch ≤ 30MB. Per-wave telemetry `(bundle_size_delta_bytes, cold_start_p95_delta_ms)` published by each batch story from S-9.00 baseline values. Wave paused if cold-start regresses >10%. |
+| AC-3 | W-16 bundle growth within the latency-primary + advisory-ceiling model per ADR-014 R-8.09 revised (2026-05-03): cold-start p95 ≤ 500ms (hard gate, inherited from S-9.00 / E-8 AC-7b); advisory soft cap ≤ 100% cumulative growth at end of W-17 (advisory soft cap target = 643686 bytes; computed as v1.0.0-rc.1 baseline × 2 per ADR-014 Amendment 2026-05-03 "R-8.09 ceiling model revised"; baseline value pinned in perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes); hard kill-switch ≤ 30MB. Per-wave telemetry `(bundle_size_delta_bytes, cold_start_p95_delta_ms)` published by each batch story from S-9.00 baseline values. Wave paused if cold-start regresses >10%. |
 | AC-4 | All 7 batched stories (S-9.01..S-9.07) pass adversarial convergence per ADR-013 before implementation dispatch |
 | AC-5 | S-9.07 T-0 STOP CHECK verifies only `depends_on: S-9.00` is satisfied before S-9.07 implementation begins. (S-9.30 dependency removed — D-9.2 withdrawn.) |
 | AC-6 | HOST_ABI_VERSION = 1 in both `crates/hook-sdk/src/lib.rs` and `crates/factory-dispatcher/src/lib.rs` after all E-9 stories merge. Verified via: `grep -n 'pub const HOST_ABI_VERSION: u32 = 1' crates/hook-sdk/src/lib.rs` returns exactly one match; same check for `crates/factory-dispatcher/src/lib.rs`. |
@@ -474,7 +474,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.12 | 2026-05-05 | architect | D-250 minimal fix burst — close pass-7 line 38 trio: M-P7-001 en-dash → explicit list, M-P7-002 "H-1 option (b)" → "are block-mode", M-P7-003 PostToolUse parenthetical added, L-P7-001 "per ADR-015 D-15.3" → "per D-15.3". L-P7-002 + L-P7-003 deferred. |
 | 1.13 | 2026-05-05 | state-manager | D-251 minimal fix burst — perf-baseline-w16.md line 156 misanchor closed (E-9 D-9.4 → E-9 AC-3 per pass-8 M-P8-001). |
 | 1.14 | 2026-05-05 | state-manager | D-254 combined seal-and-fix — H-P11-001 AC-3 ~14MB → 643686 bytes; M-P11-001 open-questions.md nomenclature scrub. |
-| 1.15 | — | — | (reserved) |
+| 1.15 | 2026-05-05 | state-manager | D-255 combined seal-and-fix (recursive-scrub applied) — H-P12-001 + M-P12-001/002/003 + L-P12-001 closed. |
+| 1.16 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -986,5 +987,39 @@ Pass-11 verdict: SUBSTANTIVE 1H/1M/0L. Numerical-consistency angle (NEW per TD-V
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.13"` → `"1.14"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (second use):** State-manager handles both pass-11 seal and 2-line minimal fix atomically, avoiding parallel commit collision. Both fixes are textual corrections where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.15 (2026-05-05) — D-255 combined seal-and-fix burst (recursive-scrub applied)
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (third application).**
+
+Pass-12 verdict: SUBSTANTIVE 1H/3M/1L. v1.14 diff-only line-by-line + AC-3 sibling-style audit (hybrid angle, NEW per TD-VSDD-057). ADR-013 clock 0_of_3 (reset by pass-12; remains 0 after this burst — this burst seals pass-12, not a fresh pass).
+
+**Fix 1 — H-P12-001 CLOSED:** open-questions.md line 20 `Source:` field replaced. Previous v1.14 text contained `M-1 closure` — fix-burst-internal nomenclature that: (a) refers to E-9 changelog v1.8 H3 entry M-1 (internal to the fix-burst audit record, same forbidden class as `D-247`, `M-P6-002`, `pass-6 finding`, `b04843d` that M-P11-001 removed); and (b) forms an unresolvable forward-pointer — grep of gap-analysis-w16-subprocess.md for "M-1" returns zero matches. New text: `gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" — see also gap-analysis line 326 ("Resolution tracked in **OQ-W16-001**") for the bidirectional anchor.` Per TD-VSDD-063 + TD-VSDD-066 + TD-VSDD-068 (recursive-scrub).
+
+**Fix 2 — L-P12-001 CLOSED:** open-questions.md Question prose replaced version-internal pointer `E-9 v1.10 amendment` with version-tolerant reference `the gap analysis of \`host::exec_subprocess\` (gap-analysis-w16-subprocess.md §5)`. Same TD-VSDD-066 class as L-P9-001/M-P11-001 but in the Question body rather than the Source field.
+
+**Fix 3 — M-P12-001/002/003 CLOSED:** AC-3 parenthetical rewritten from pseudo-code form `(soft_cap = perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes = 643,686 bytes per ADR-014 R-8.09 Amendment)` to prose form `(advisory soft cap target = 643686 bytes; computed as v1.0.0-rc.1 baseline × 2 per ADR-014 Amendment 2026-05-03 "R-8.09 ceiling model revised"; baseline value pinned in perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes)`. This simultaneously: (M-P12-001) uses canonical ADR-014 label including disambiguation date 2026-05-03 and quoted title "R-8.09 ceiling model revised" (vs the D-9.2-withdrawn amendment); (M-P12-002) converts pseudo-code `soft_cap = ...` form to prose matching sibling ACs; (M-P12-003) removes comma from byte count — `643,686` → `643686` matching perf-baseline-w16.md:163 source field exactly.
+
+**TD-VSDD-068 recursive-scrub applied INLINE (pre-commit verification):**
+
+After Fix 1 + Fix 2 on open-questions.md:
+```
+grep -nE 'D-2[0-9]{2}|M-P[0-9]+|H-P[0-9]+|L-P[0-9]+|F-P[0-9]+|M-[0-9]+ closure|pass-[0-9]+ finding' \
+  /Users/jmagady/Dev/vsdd-factory/.factory/specs/open-questions.md
+```
+Result: ZERO matches. PASS.
+
+After Fix 3 on E-9 epic (non-changelog sections):
+```
+grep -n '643,686\|R-8.09 Amendment\|soft_cap = perf' \
+  /Users/jmagady/Dev/vsdd-factory/.factory/stories/epics/E-9-tier-2-native-wasm-migration.md
+```
+Result: matches on lines 978 + 980 only — both inside `### v1.14` H3 historical changelog section (POLICY 1 immutable). AC table (line 368) ZERO matches. PASS.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.14"` → `"1.15"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (third use):** State-manager handles pass-12 seal and 3-fix burst atomically. All fixes are textual corrections where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
