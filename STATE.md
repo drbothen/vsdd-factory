@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "D-239 sealed: adversary pass-1 on E-9 v1.7 amendment surface is NITPICK_ONLY (0 HIGH + 0 MED + 3 LOW); ADR-013 clock advances 0_of_3 → 1_of_3. Next is fresh-context adversary pass-2 on the same v1.7 amendment surface (must be NITPICK_ONLY to advance clock to 2_of_3). After 3-of-3 reached: product-owner BC authorship for S-10.01..S-10.09 anchored to BC-1.11.001/002/003."
+current_step: "D-240 sealed: adversary pass-2 on E-9 v1.7 amendment surface is NITPICK_ONLY (0 HIGH + 0 MED + 2 LOW); ADR-013 clock advances 1_of_3 → 2_of_3. Adversary pass-3 dispatched in parallel with this seal — must be NITPICK_ONLY to reach CONVERGENCE_REACHED at 3_of_3. After convergence: product-owner BC authorship for S-10.01..S-10.09 with two event-name-prefix anomalies threaded into BC ACs."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-05 (D-239 pass-1 NITPICK_ONLY sealed; STORY-INDEX 1.45→1.46; ADR-013 clock 1_of_3) |
+| **Last Updated** | 2026-05-05 (D-240 pass-2 NITPICK_ONLY sealed; STORY-INDEX 1.46→1.47; ADR-013 clock 2_of_3) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -68,7 +68,8 @@ dtu_services: []
 | D-237 state-hygiene burst | state-manager | COMPLETE | STATE.md compacted; pins refreshed to rc.11; this commit |
 | E-9 v1.6→v1.7 amendment (4 files) | architect | COMPLETE | d9f2c86; 683L (+49); ADR-015 + SS-03 cross-ref absorbed |
 | Adversary sweep on v1.7 amendment surface | adversary + state-manager | COMPLETE | pass-1 NITPICK_ONLY 0H/0M/3L; clock 1_of_3; D-239 |
-| Adversary pass-2 on v1.7 amendment surface | adversary | PENDING | must be NITPICK_ONLY to advance clock 2_of_3 |
+| Adversary pass-2 on v1.7 amendment surface | adversary + state-manager | COMPLETE | pass-2 NITPICK_ONLY 0H/0M/2L; clock 2_of_3; D-240 |
+| Adversary pass-3 on v1.7 amendment surface | adversary | PENDING | must be NITPICK_ONLY to reach CONVERGENCE_REACHED 3_of_3 |
 | E-10 BC authorship (S-10.01..S-10.09) | product-owner | PENDING | 9 stories × BCs anchored to BC-1.11.001/002/003 cluster |
 
 ## Identifier Conventions
@@ -126,6 +127,7 @@ dtu_services: []
 | D-237 | **STATE-HYGIENE BURST — compact STATE.md to <200L, refresh pins to rc.11 reality.** Extracted: approved-plan-rc4-rc8-detour.md; open-backlog-post-rc8.md; decisions-log-archive.md (D-103..D-224); phase-progress-archive.md; merged-stories-ledger.md. Frontmatter phase updated post-rc8-shipped→post-rc11-shipped. Active branches table refreshed (main fb3e297, develop 5706f27). current_step rewritten to 3-sentence form. | STATE.md was 464 lines (2× budget). Subsequent D-236 sequence agents need accurate state. | state-hygiene-2026-05-05 | 2026-05-05 | state-manager |
 | D-238 | **D-236 amendment SEALED — E-9 v1.6 → v1.7 (683L, +49) absorbing ADR-015 contract awareness across 4 files (E-9 epic + 3 W-16 arch docs).** Commit d9f2c86. Zero new BCs/VPs/FRs. Two anomalies flagged for E-10 BC authorship: (a) `internal.capability_denied` event name lacks `vsdd.` prefix; (b) `host.exec_subprocess.completed` lacks `vsdd.host.*` → `lifecycle` registry entry. STORY-INDEX 1.44 → 1.45. | Pre-Burst-2 prerequisite per D-236 sequence step (ii). | Phase-D-4-D-236-arch-amendment | 2026-05-05 | architect + state-manager |
 | D-239 | **E-9 v1.7 amendment pass-1 NITPICK_ONLY — ADR-013 clock 0_of_3 → 1_of_3.** 0 HIGH + 0 MED + 3 LOW (LOW-1 arch-file version-bump pending intent verification; LOW-2 pre-amendment prose still cites unprefixed event name; LOW-3 event.host_overrides not enumerated in D-9.2 amendment). All convention checks PASS. Both D-238 anomalies correctly flagged in amendment text. Out-of-scope notes: E-9 input-hash drift (validate-input-hash hook will catch on next write); ADR-015 D-15.2.b semantic alignment confirmed. LOW-1 RESOLVED as intentional convention: arch docs annotate-in-place with dated section headers; epics version-bump. STORY-INDEX 1.45 → 1.46. | Adversary verified architect's d9f2c86 amendment per ADR-013 scoped review. NITPICK threshold met: 0 HIGH/MED. Clock advances 1_of_3. | Phase-D-4-E-9-v1.7-pass-1 | 2026-05-05 | adversary + state-manager |
+| D-240 | **E-9 v1.7 amendment pass-2 NITPICK_ONLY — ADR-013 clock 1_of_3 → 2_of_3.** 0 HIGH + 0 MED + 2 LOW (LOW-1 soft-MUST tension in gap-analysis vsdd.host.* paragraph; LOW-2 perf-baseline emit-overhead prediction without measurement gate). All convention + arithmetic checks PASS. Both D-238 anomalies verified flagged. Pass-methodology angle: reverse-trace from ADR-015 obligations to amendment landing sites + intra-amendment self-consistency. STORY-INDEX 1.46 → 1.47. | Pass-2 fresh-context adversary verified architect's d9f2c86 from a different verification angle than pass-1; second NITPICK_ONLY in a row. | Phase-D-4-E-9-v1.7-pass-2 | 2026-05-05 | adversary + state-manager |
 
 ## Skip Log
 
