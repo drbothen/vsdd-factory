@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.8"
+version: "1.10"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -469,7 +469,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.7 | 2026-05-05 | architect | D-236 amendment — absorb ADR-015 single-stream OTel contract awareness before Burst 2 story authoring. |
 | 1.8 | 2026-05-05 | architect | D-242 fix burst — close pass-3 SUBSTANTIVE findings: H-1 block-event misattribution (option b), M-1 host-prefix binary-choice, M-2 capability_denied rename, M-3 perf-baseline frontmatter, L-1 trace-id wording. |
 | 1.9 | 2026-05-05 | architect | D-244 minimal fix burst — close H-P4-001 fabricated AC-3 citation (M-2 rationale leg (c) rewritten to real ADR-015 anchor) + L-P4-001 line range update. |
-| 1.10 | — | — | (reserved) |
+| 1.10 | 2026-05-05 | architect | D-246 fix burst — close pass-5 H-P5-001 frontmatter version drift, M-P5-001 v1.8 prose restored to original (POLICY 1), M-P5-003 audit-w16.md B-7 block-mode treatment added. M-P5-002 + LOWs deferred. |
+| 1.11 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -719,9 +720,8 @@ fresh-context NITPICK_ONLY passes to reach CONVERGENCE_REACHED.
 - gap-analysis-w16-subprocess.md lines ~333-340: chose `vsdd.capability.denied.exec_subprocess.v1`.
   Rationale: ADR-015 maps `vsdd.capability.denied.*` to `audit` category (correct for a denial
   event); `vsdd.internal.*` maps to `lifecycle` (wrong semantic);
-  audit-category events are SIEM-queryable by `event.category=audit` filter (ADR-015 D-15.2
-  taxonomy registry). Soft "conformance issue" language replaced with firm MUST for SS-01
-  implementer in E-10 Wave 1 or 2.
+  Wave 3 AC-3 queries `event.category=audit` for SIEM dashboards. Soft "conformance issue"
+  language replaced with firm MUST for SS-01 implementer in E-10 Wave 1 or 2.
 
 **M-3 CLOSED (perf-baseline frontmatter references propagation gap):**
 - perf-baseline-w16.md frontmatter `references:` appended ADR-015 row after ADR-013.
@@ -741,14 +741,56 @@ fresh-context NITPICK_ONLY passes to reach CONVERGENCE_REACHED.
 - **Site 1 (gap-analysis-w16-subprocess.md lines ~342-344):** Leg (c) rewritten to re-anchor
   to the real ADR-015 D-15.2 taxonomy registry (lines 295-333), which defines `audit` as the
   category for `vsdd.capability.denied.*` events. All AC-3 wording removed.
-- **Site 2 (E-9 changelog v1.8 M-2 closure entry):** "Wave 3 AC-3 queries
-  `event.category=audit` for SIEM dashboards" rewritten to "audit-category events are
-  SIEM-queryable by `event.category=audit` filter (ADR-015 D-15.2 taxonomy registry)."
+- **Site 2 (E-9 changelog v1.8 M-2 closure entry):** Leg (c) corrected wording: "audit-category
+  events are SIEM-queryable by `event.category=audit` filter (ADR-015 D-15.2 taxonomy registry)."
+  (NOTE: v1.8 block above retains the fabricated wording as historical record per POLICY 1
+  append-only; the corrected anchor lives only here.)
 - Re-verification: ADR-015 lines 295-333 confirmed — `vsdd.capability.denied.*` → `audit`
   category in registry table (line 329). PASS.
 
 **L-P4-001 CLOSED (stale line range in H-1 closure):**
 - E-9 H-1 closure "Site 1: E-9 lines ~294-296" updated to "~294-302" to bracket the
   full ADR-015 awareness block edits applied in v1.7.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.10 (2026-05-05) — D-246 fix burst: pass-5 H-P5-001 + M-P5-001 + M-P5-003
+
+**H-P5-001 CLOSED (frontmatter version drift — "1.8" not bumped at v1.9):**
+- Frontmatter `version:` corrected from `"1.8"` to `"1.10"` (skipping directly to v1.10 since
+  this burst is the v1.10 delivery). TD-VSDD-059 pre-commit check: frontmatter version now
+  matches the latest non-reserved row in the Changelog summary table (1.10). PASS.
+- Recurrence note: this is the third frontmatter-vs-summary-table drift (F-P6-002, F-P7-001,
+  H-P5-001). TD-VSDD-059 will codify a hook asserting frontmatter.version == max changelog row.
+
+**M-P5-001 CLOSED (v1.8 block in-place rewrite violated POLICY 1 append-only):**
+- The v1.9 burst (D-244, commit 067379c) rewrote the v1.8 M-2 closure entry in-place. This
+  silently destroyed the historical record of the fabricated "Wave 3 AC-3" wording.
+- Resolution (recommended option per D-245 lessons): v1.8 block prose restored to original
+  wording — "Wave 3 AC-3 queries `event.category=audit` for SIEM dashboards" — which was
+  the text authored at v1.8 (defective but historically accurate). The v1.9 H3 section
+  records the correction with a POLICY 1 forward-pointer note: the corrected anchor lives
+  only in the v1.9 block, not retroactively in the v1.8 block.
+
+**M-P5-003 CLOSED (audit-w16.md B-7 row missing block-mode H-1 option (b) treatment):**
+- audit-w16.md amended: B-7 row now explicitly states validate-wave-gate-prerequisite
+  (S-9.07) is block-mode with H-1 option (b) treatment. See audit-w16.md for details.
+- Cross-doc consistency achieved: all 5 block-mode hooks (factory-path-root B-1,
+  input-hash B-2, pr-merge-prerequisites B-3, template-compliance B-6,
+  wave-gate-prerequisite B-7) now have explicit H-1 option (b) coverage.
+
+**M-P5-002 SKIPPED:** Gap-analysis-w16-subprocess.md frontmatter version v1.0 vs body
+annotations (v1.7, 2026-05-05). D-239 lessons.md codified annotate-in-place as the
+arch doc convention; body version annotations are informational. Reconciliation tension
+acknowledged but D-239's convention overrides. No action.
+
+**L-P5-001 SKIPPED:** Cosmetic syntax inconsistency. No semantic impact.
+
+**L-P5-002 SKIPPED:** Acknowledged non-defect per adversary pass-5 findings.
+
+**L-P5-003 SKIPPED:** Pending intent verification; deferred to next cycle.
+
+**TD-VSDD-058 citations re-verified:** ADR-015 D-15.2 taxonomy registry (lines 295-333)
+confirmed. ADR-015 D-15.3 block-event dispatcher emission confirmed. No citation errors found.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
