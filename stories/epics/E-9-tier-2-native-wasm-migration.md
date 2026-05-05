@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.15"
+version: "1.16"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -365,7 +365,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 |----|-----------|
 | AC-1 | All 23 validate-*.sh hooks have native WASM equivalents in `crates/hook-plugins/validate-*/` delivered by S-9.01..S-9.07 |
 | AC-2 | `hooks-registry.toml` updated: 23 WASM entries added (`plugin = "hook-plugins/validate-*.wasm"`); 23 legacy-bash-adapter entries disabled or removed for Tier 2 hooks |
-| AC-3 | W-16 bundle growth within the latency-primary + advisory-ceiling model per ADR-014 R-8.09 revised (2026-05-03): cold-start p95 ≤ 500ms (hard gate, inherited from S-9.00 / E-8 AC-7b); advisory soft cap ≤ 100% cumulative growth at end of W-17 (advisory soft cap target = 643686 bytes; computed as v1.0.0-rc.1 baseline × 2 per ADR-014 Amendment 2026-05-03 "R-8.09 ceiling model revised"; baseline value pinned in perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes); hard kill-switch ≤ 30MB. Per-wave telemetry `(bundle_size_delta_bytes, cold_start_p95_delta_ms)` published by each batch story from S-9.00 baseline values. Wave paused if cold-start regresses >10%. |
+| AC-3 | W-16 bundle growth within the latency-primary + advisory-ceiling model per ADR-014 R-8.09 revised (2026-05-03): cold-start p95 ≤ 500ms (hard gate, inherited from S-9.00 / E-8 AC-7b); advisory soft cap ≤ 100% cumulative growth at end of W-17 (advisory soft cap target = 643686 bytes; computed as v1.0.0-rc.1 baseline × 2 per ADR-014 Amendment 2026-05-03 "R-8.09 ceiling model revised (research)"; baseline value pinned in perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes); hard kill-switch ≤ 30MB. Per-wave telemetry `(bundle_size_delta_bytes, cold_start_p95_delta_ms)` published by each batch story from S-9.00 baseline values. Wave paused if cold-start regresses >10%. |
 | AC-4 | All 7 batched stories (S-9.01..S-9.07) pass adversarial convergence per ADR-013 before implementation dispatch |
 | AC-5 | S-9.07 T-0 STOP CHECK verifies only `depends_on: S-9.00` is satisfied before S-9.07 implementation begins. (S-9.30 dependency removed — D-9.2 withdrawn.) |
 | AC-6 | HOST_ABI_VERSION = 1 in both `crates/hook-sdk/src/lib.rs` and `crates/factory-dispatcher/src/lib.rs` after all E-9 stories merge. Verified via: `grep -n 'pub const HOST_ABI_VERSION: u32 = 1' crates/hook-sdk/src/lib.rs` returns exactly one match; same check for `crates/factory-dispatcher/src/lib.rs`. |
@@ -475,7 +475,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.13 | 2026-05-05 | state-manager | D-251 minimal fix burst — perf-baseline-w16.md line 156 misanchor closed (E-9 D-9.4 → E-9 AC-3 per pass-8 M-P8-001). |
 | 1.14 | 2026-05-05 | state-manager | D-254 combined seal-and-fix — H-P11-001 AC-3 ~14MB → 643686 bytes; M-P11-001 open-questions.md nomenclature scrub. |
 | 1.15 | 2026-05-05 | state-manager | D-255 combined seal-and-fix (recursive-scrub applied) — H-P12-001 + M-P12-001/002/003 + L-P12-001 closed. |
-| 1.16 | — | — | (reserved) |
+| 1.16 | 2026-05-05 | state-manager | D-256 last-mile fix burst — M-P13-001 line-cite off-by-one + L-P13-001 (research) restore + L-P13-002 backticks normalize. |
+| 1.17 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1021,5 +1022,41 @@ Result: matches on lines 978 + 980 only — both inside `### v1.14` H3 historica
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.14"` → `"1.15"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (third use):** State-manager handles pass-12 seal and 3-fix burst atomically. All fixes are textual corrections where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.16 (2026-05-05) — D-256 last-mile fix burst (TD-VSDD-069 line-accuracy verification applied)
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (fourth application).**
+
+Pass-13 verdict: SUBSTANTIVE 0H/1M/2L. Outbound decision-ID exhaustive enumeration angle (NEW per TD-VSDD-057; ~80 anchors enumerated). ADR-013 clock 0_of_3 (reset by pass-12 D-255; remains 0 after this burst — this burst seals pass-13, not a fresh pass).
+
+**Fix 1 — M-P13-001 CLOSED:** open-questions.md line 20 `gap-analysis line 326` → `gap-analysis line 325`. Off-by-one introduced by v1.15 H-P12-001 fix (same defect class as the fix was meant to close). TD-VSDD-069 line-accuracy verification applied INLINE: `grep -n 'Resolution tracked in \*\*OQ-W16-001\*\*' .factory/architecture/gap-analysis-w16-subprocess.md` → line 325 confirmed. Citation now accurate.
+
+**Fix 2 — L-P13-001 CLOSED:** AC-3 line 368 ADR-014 amendment title quote restored `(research)` source-tag: `"R-8.09 ceiling model revised"` → `"R-8.09 ceiling model revised (research)"`. Matches ADR-014 line 38 H2 heading exactly. Changelog line 1003 (inside v1.15 H3, POLICY 1 immutable) left as-authored.
+
+**Fix 3 — L-P13-002 CLOSED:** audit-w16.md line 36 (B-7 row) backticks dropped from `PreToolUse:Agent` and `on_error=block` to match sibling lines 37 (B-3) and 38 (B-2/B-6) wording template. No backticks in parenthetical for any of the 3 block-mode rows.
+
+**TD-VSDD-069 line-accuracy verification applied INLINE (pre-commit):**
+
+When a citation of form `<filename> line N ("<quoted text>")` is added or modified in a fix burst, scrub MUST grep `<quoted text>` in `<filename>` and confirm exactly one match at line `N`. Applied for Fix 1:
+```
+grep -n 'Resolution tracked in \*\*OQ-W16-001\*\*' \
+  /Users/jmagady/Dev/vsdd-factory/.factory/architecture/gap-analysis-w16-subprocess.md
+```
+Result: line 325 (single match). Citation updated to 325. PASS.
+
+**TD-VSDD-068 recursive-scrub (re-verified):**
+
+After Fix 1 on open-questions.md:
+```
+grep -nE 'D-2[0-9]{2}|M-P[0-9]+|H-P[0-9]+|L-P[0-9]+|F-P[0-9]+|M-[0-9]+ closure|pass-[0-9]+ finding' \
+  /Users/jmagady/Dev/vsdd-factory/.factory/specs/open-questions.md
+```
+Result: ZERO matches. PASS.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.15"` → `"1.16"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (fourth use):** State-manager handles pass-13 seal and 3-fix burst atomically. All fixes are textual corrections where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

@@ -430,3 +430,18 @@ The original ~14MB cite came from audit-w16.md Section 5 R-W16-003 (pre-amendmen
 Additionally: forward-pointers in scrubbed text MUST resolve in the named target file. After writing a replacement that says `see X §Y`, grep target file X for §Y or its anchor — verify it exists.
 
 **[codified]** by D-255 lessons.md append.
+
+---
+
+### LESSON: TD-VSDD-068 recursive-scrub must extend to line-number accuracy for new cross-document citations
+
+**Source:** D-256 pass-13 finding M-P13-001 (open-questions.md line 20 v1.15 fix introduced off-by-one citation)
+**Date:** 2026-05-05
+
+**Pattern:** v1.15 H-P12-001 fix replaced unresolvable `M-1 closure forward-pointer` with a "bidirectional anchor" `gap-analysis line 326 ("Resolution tracked in **OQ-W16-001**")`. The quoted substring was correct; the line-number annotation was off-by-one (actual line is 325). Recursive-scrub (TD-VSDD-068) checked forbidden tokens but did not validate line-number accuracy.
+
+**Codification:**
+- Extend TD-VSDD-068 recursive-scrub: when a citation of form `<filename> line N ("<quoted text>")` is added in a fix burst, the scrub MUST grep `"<quoted text>"` in `<filename>` and confirm exactly one match at line `N`. If line number doesn't match grep result, abort.
+- File as TD-VSDD-069 (Line-accuracy extension to recursive-scrub).
+
+**[codified]** by D-256 lessons.md append.

@@ -17,7 +17,7 @@ timestamp: 2026-05-05T00:00:00Z
 
 ## OQ-W16-001 — Resolve `vsdd.host.*` registry-prefix decision before E-10 Wave 1 ships
 
-**Source:** gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" — see also gap-analysis line 326 ("Resolution tracked in **OQ-W16-001**") for the bidirectional anchor.
+**Source:** gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" — see also gap-analysis line 325 ("Resolution tracked in **OQ-W16-001**") for the bidirectional anchor.
 **Status:** OPEN
 **Owner:** SS-01 implementer or E-10 Wave 1 architect
 **Filed:** 2026-05-05
