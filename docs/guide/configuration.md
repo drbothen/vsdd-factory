@@ -155,14 +155,14 @@ The plugin does not hijack your default Claude Code persona on install. To opt i
 VSDD orchestrator agent for a specific project:
 
 ```
-/activate
+/vsdd-factory:activate
 ```
 
 This writes `{"agent": "vsdd-factory:orchestrator"}` to `.claude/settings.local.json`.
 To revert:
 
 ```
-/deactivate
+/vsdd-factory:deactivate
 ```
 
 ### Environment variables
@@ -178,7 +178,7 @@ resolves correctly regardless of where the plugin is installed.
 
 ## Template customization
 
-The plugin ships 127 templates in `plugins/vsdd-factory/templates/`. These define the
+The plugin ships 126 templates in `plugins/vsdd-factory/templates/`. These define the
 exact output format for every artifact type: behavioral contracts, architecture sections,
 PRDs, adversarial findings, holdout evaluations, demo reports, convergence reports, and more.
 
@@ -194,8 +194,7 @@ Templates are read-only during pipeline execution. If you need to customize outp
 
 ## Hook behavior
 
-The plugin registers 19 hooks across four lifecycle events. Each hook enforces a specific
-discipline.
+The plugin registers 52 hooks across the lifecycle events declared in `plugins/vsdd-factory/hooks-registry.toml`. Each hook enforces a specific discipline.
 
 ### PreToolUse hooks (Edit|Write)
 
@@ -256,9 +255,7 @@ discipline.
 
 ### Disabling hooks
 
-Hooks cannot be individually disabled through configuration. They are wired in
-`plugins/vsdd-factory/hooks/hooks.json`. To disable a hook, you would need to edit
-`hooks.json` directly (not recommended -- the hooks exist to prevent common failure modes).
+Hooks are wired in `plugins/vsdd-factory/hooks-registry.toml` (the canonical source). To disable a hook, comment out or remove its `[[hooks]]` stanza from the registry, then re-run `/vsdd-factory:activate` to regenerate `hooks.json`. Editing `hooks.json` directly is futile — the activate skill clobbers your changes on next run. Disabling hooks is not recommended; they exist to prevent common failure modes.
 
 The `red-gate.sh` hook is opt-in: it only activates when `.factory/red-gate-state.json`
 exists and declares strict mode. Other hooks are always active.
@@ -281,7 +278,7 @@ mid-session (`export VSDD_TELEMETRY=off`, then `unset VSDD_TELEMETRY`).
 
 | Variable | Set by | Effect |
 |----------|--------|--------|
-| `CLAUDE_PLUGIN_ROOT` | Claude Code | Absolute path to the plugin directory. Hooks use this to locate `bin/emit-event`. Unset in test/non-Claude-Code contexts; the `_emit` wrapper no-ops when unset. |
+| `CLAUDE_PLUGIN_ROOT` | Claude Code | Absolute path to the plugin directory. Bash hooks use this to locate `bin/emit-event` (native WASM plugins use the `host::emit_event` SDK call instead; bash-to-native migration is tracked in epic E-8 and the ADR-015 wave 4 series). Unset in test/non-Claude-Code contexts; the `_emit` wrapper no-ops when unset. |
 
 ---
 
