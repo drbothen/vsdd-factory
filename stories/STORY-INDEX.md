@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.51"
+version: "1.52"
 status: current
 producer: state-manager
 timestamp: 2026-05-05T00:00:00
@@ -27,6 +27,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-242 — STORY-INDEX bumped to reflect E-9 v1.7→v1.8 fix burst (commit c3855ae) closing all 4 pass-3 SUBSTANTIVE findings (H-1 option-b dispatcher emits vsdd.block.plugin_blocked.v1 automatically; M-1 binary-choice frame; M-2 vsdd.capability.denied.exec_subprocess.v1; M-3 frontmatter references propagation; L-1 closed; L-2 skipped per D-239). E-9: 688L→730L (+42L). ADR-013 clock 0_of_3; awaits 3 NITPICK_ONLY passes. STORY-INDEX v1.48 → v1.49.
 > Updated 2026-05-05: D-243 — STORY-INDEX bumped to reflect adversary pass-4 SUBSTANTIVE on E-9 v1.8 fix burst (1H/0M/1L; H-P4-001 fabricated Wave 3 AC-3 citation in M-2 leg (c); ADR-013 clock RESET 0_of_3). Citation-grounding angle NEW per TD-VSDD-057. Architect dispatched for v1.8 → v1.9 minimal fix. STORY-INDEX v1.49 → v1.50.
 > Updated 2026-05-05: D-244 — STORY-INDEX bumped to reflect E-9 v1.8→v1.9 minimal fix burst (commit 067379c) closing pass-4 findings (H-P4-001 sites 1+2: "Wave 3 AC-3" replaced with ADR-015 D-15.2 taxonomy registry citation; L-P4-001: H-1 line range ~294-296 → ~294-302). E-9: 732L → 757L (+25L). ADR-013 clock 0_of_3; awaits 3 NITPICK_ONLY passes on v1.9. STORY-INDEX v1.50 → v1.51.
+> Updated 2026-05-05: D-245 — STORY-INDEX bumped to reflect adversary pass-5 SUBSTANTIVE on E-9 v1.9 amendment surface (1H/3M/3L; ADR-013 clock RESET 0_of_3). Versioning/lifecycle propagation + frontmatter-body coherence angle (NEW per TD-VSDD-057). H-P5-001 frontmatter version drift (third recurrence; F-P6-002 + F-P7-001 + H-P5-001 — codified). M-P5-001 POLICY 1 in-place edit. M-P5-003 audit-w16 B-7 H-1 option (b) propagation incomplete. Architect dispatched for v1.9 → v1.10 fix burst. STORY-INDEX v1.51 → v1.52.
 > Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145). Pass-3 (2026-04-29): S-5.05 v1.6→v1.7 (1 MED + 5 LOW closed; STORY-INDEX:136 cross-cutting BC-8.31.* count fixed); S-5.06 NITPICK_ONLY (no version bump; clock 1_of_3 per S-7.03 skip-fix strategy); D-146. Pass-4 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (8 LOW; clock 0_of_3→1_of_3); S-5.06 v1.6 NITPICK_ONLY (0 findings; clock 1_of_3→2_of_3); skip-fix discipline applied per S-7.03; D-147. Pass-5 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (5 LOW positive; clock 1_of_3→2_of_3); **S-5.06 v1.6→v1.7 CONVERGENCE_REACHED at pass-5** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status draft→ready); D-148.
 > Pass-6 (2026-04-29): **S-5.05 v1.7→v1.8 CONVERGENCE_REACHED at pass-6** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status partial→ready; 3 consecutive NITPICK_ONLY: passes 4, 5, 6); D-149.
 >
