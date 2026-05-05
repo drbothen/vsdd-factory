@@ -18,6 +18,49 @@ traces_to: STATE.md (D-9.1/D-9.2/D-9.3 open decisions)
 
 ---
 
+## Post-Audit Amendment: ADR-015 Awareness (2026-05-05)
+
+ADR-015 ("single-stream OTel event emission", accepted 2026-05-04) was authored after this
+audit document was written. The 7 capability-cluster batches below each contain hooks that
+call `emit_event`. ADR-015 establishes the emit contract all Tier 2 native WASM hooks must
+follow when S-9.01..S-9.07 are implemented.
+
+### Batches that emit OTel events via `emit_event`
+
+All 7 batches (B-1 through B-7) include at least one `emit_event` call per hook. ADR-015
+applies to every batch. The batches with the highest ADR-015 relevance are:
+
+| Batch | Story | ADR-015 relevance |
+|-------|-------|-------------------|
+| B-1 (S-9.01) | Pure stdin-parse + emit | **Highest.** These 4 hooks (demo-evidence-story-scoped, factory-path-root, finding-format, novelty-assessment) are pure-emit plugins — their only side-effecting host call is `emit_event`. The ADR-015 D-15.2 schema (event.name reverse-DNS + .v1 suffix, outcome enum, event.category derivation) applies directly. validate-factory-path-root is block-mode; it MUST emit `outcome = "blocked"` per D-15.3 block path audit trail. |
+| B-7 (S-9.07) | Complex YAML + subprocess | **Highest.** validate-wave-gate-prerequisite invokes `exec_subprocess` (bash subprocess). ADR-015 D-15.4 mandates dispatcher-injected `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` into every exec_subprocess invocation — this is automatic (dispatcher-side invariant); the plugin does not need manifest changes. The success-path telemetry gap (gap-analysis-w16-subprocess.md §5 Gap 2) now has an explicit emit-contract target under ADR-015. |
+| B-3 (S-9.03) | PR/delivery validators | **Medium.** validate-pr-merge-prerequisites is block-mode (PreToolUse:Agent, on_error=block). It MUST emit `outcome = "blocked"` on block path per D-15.3. |
+| B-2, B-4, B-5, B-6 (S-9.02–S-9.06) | File-read validators | **Standard.** All hooks call `emit_event`; standard D-15.2 schema compliance (event.name format, outcome enum) applies. No subprocess or block-mode hooks except validate-input-hash (B-2, block-mode) and validate-template-compliance (B-6, block-mode). |
+
+### ADR-015 compliance requirements for story-writer (all batches)
+
+When story-writer authors S-9.01..S-9.07, each batch story body MUST include:
+
+1. **`event.name` format AC:** Plugin emits `event.name` in reverse-DNS + `.v1` format (e.g.,
+   `vsdd.hook.validate.<hook_slug>.v1`). Non-conforming names produce `event.category = "unknown"`.
+2. **`outcome` enum AC:** Plugin emits canonical `outcome` value: `success`, `failure`, `error`,
+   `timeout`, `skipped`, or `blocked`. For the 5 block-mode hooks, the block path MUST emit
+   `outcome = "blocked"` (D-15.3 block path audit trail requirement).
+3. **Host enrichment:** Plugin does NOT stamp `service.*`, `plugin.*`, `trace_id`, `span_id`,
+   or other host-owned fields. Any such stamp is overridden by the host with a visible warning
+   (D-15.3 enrichment contract).
+4. **Single-stream routing:** `emit_event` calls route to `events-YYYY-MM-DD.jsonl`
+   (D-15.1). No plugin should reference or assume the `dispatcher-internal-*.jsonl` path.
+
+### Audit reasoning unchanged
+
+The Section 6 capability-cluster batching rationale is unaffected by ADR-015. ADR-015 changes
+the emit schema and routing contract — it does not change which host functions each batch
+requires, the purity boundary classification, or the batch-to-story mapping. The audit
+conclusions (rewrite-clean, 7 batches, no new host ABI) stand.
+
+---
+
 ## Section 1 — Hook Inventory & Capability Matrix
 
 All 23 hooks currently route through `legacy-bash-adapter.wasm` with `script_path`

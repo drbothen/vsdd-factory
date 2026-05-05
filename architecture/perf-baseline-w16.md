@@ -338,3 +338,21 @@ gate-recovery decision.
 - S-9.30 (host::run_subprocess) withdrawn per ADR-014 D-9.2 amendment 2026-05-03;
   no SDK bundle contribution from run_subprocess to measure.
 - E-8 R-8.09 25%-bundle-only ceiling is SUPERSEDED by this latency-primary model.
+
+### ADR-015 Emit Overhead — N/A for this baseline; contract pending Tier 2 land
+
+ADR-015 (accepted 2026-05-04) establishes the single-stream OTel emit contract for all
+native WASM hooks. This baseline was measured against the pre-Tier-2 bundle (17 native
+plugins; no Tier 2 validate-*.wasm plugins present). ADR-015 emit overhead is therefore
+NOT captured in this baseline — it applies only once S-9.01..S-9.07 plugins land.
+
+Per ADR-015 D-15.1 rationale: at vsdd-factory event volumes (tens to hundreds of events
+per session), a single FileSink append to `events-YYYY-MM-DD.jsonl` adds negligible
+overhead (sub-millisecond I/O). This baseline's cold_start_p95 gate (500ms) and
+wave-over-wave delta protocol are unaffected by ADR-015's emit path change. Downstream
+waves (S-9.01..S-9.07) should NOT attribute emit-path overhead to ADR-015 unless
+profiling evidence suggests otherwise; any regression is expected to originate from
+plugin WASM size or computation, not from the FileSink write.
+
+Reference: ADR-015 D-15.1 ("single physical stream for all events") and its
+"Why single stream is correct for this scale" rationale section.

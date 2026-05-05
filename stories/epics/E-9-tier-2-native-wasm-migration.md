@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.6"
+version: "1.7"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -17,9 +17,10 @@ timestamp: 2026-05-03T00:00:00Z
 phase: 2
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: 2026-05-03
+last_amended: 2026-05-05
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
+  - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
   - .factory/architecture/audit-w16.md
   - .factory/specs/architecture/SS-02-hook-sdk.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
@@ -278,6 +279,28 @@ All other 22 hooks use only the existing ABI (`read_file`, `emit_event`, `log`).
 `validate-state-size` git subprocess: dropped per D-9.1 deliberate simplification.
 `host::exec_subprocess` is NOT used for this hook.
 
+> **ADR-015 awareness (v1.7 amendment):** All 23 native WASM plugins that call `emit_event`
+> MUST comply with the ADR-015 single-stream OTel emit contract once Tier 2 lands. Key
+> implications for S-9.01..S-9.07 implementation:
+> - All plugin-emitted events route to `events-YYYY-MM-DD.jsonl` via `host::emit_event`
+>   (D-15.1 single-stream). The separate `dispatcher-internal-*.jsonl` path is NOT the
+>   emit target.
+> - Plugins assert only `event.name` + domain fields. Host stamps all Resource attributes
+>   and per-event identity fields (D-15.3 enrichment contract). Plugin-supplied values for
+>   host-owned fields are overridden by the host.
+> - `event.name` MUST use reverse-DNS format with `.v1` suffix (e.g.,
+>   `vsdd.hook.validate.bc_title.v1`). Non-conforming names land in
+>   `event.category = "unknown"`.
+> - `outcome` field MUST use the canonical enum: `success | failure | error | timeout |
+>   skipped | blocked`. Block-mode hooks MUST emit `outcome = "blocked"` on block path
+>   (D-15.3 block path audit trail).
+> - `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` are dispatcher-injected invariants for
+>   `exec_subprocess` calls (D-15.4); S-9.07 validate-wave-gate-prerequisite inherits
+>   this automatically.
+> See ADR-015 D-15.1 (single stream), D-15.2 (schema), D-15.3 (enrichment), D-15.4
+> (trace propagation). Story-writer MUST incorporate ADR-015 compliance ACs into each
+> S-9.01..S-9.07 story body.
+
 ### D-9.3: Story Granularity — 7 capability-cluster batches (ADR-014)
 
 Inherited from ADR-014 D-9.3. 7 batched stories (S-9.01..S-9.07) grouped by host
@@ -324,7 +347,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 |---------|-------------|-----------|--------|------------|
 | R-W16-001 | bats orphan migration: bats tests for `.sh` hooks become orphans after WASM port (`.sh` files remain on disk until Phase H; bats tests test bash, not WASM) | HIGH | MED | Deferred to Phase H. Each story spec includes task to document the batch's bats orphan deletion checklist. No bats tests are deleted in W-16. |
 | R-W16-002 | WASI preopens: 19 of 23 hooks read `FILE_PATH`. Canonical capability is `path_allow = [".factory/"]` for spec-file readers; `path_allow = ["."]` for hooks that may read files outside `.factory/`. Each story spec must pin per-hook path_allow declarations. (Per ADR-014 §"Audit Risk Items Carried Forward".) | MED | HIGH | Each story spec (S-9.01..S-9.07) MUST pin `path_allow` declarations per hook in the AC table and registry TOML snippet. Adversarial review checks path_allow coverage before story reaches `ready`. |
-| R-W16-003 | Latency regression and bundle growth: 23 new WASM plugins may regress cold-start p95 beyond 500ms or exceed bundle hard kill-switch (30MB) | LOW | HIGH | Primary gate: cold-start p95 ≤ 500ms (ADR-014 R-8.09 revised model). S-9.00 measures post-rc.4 baseline capturing both `bundle_size_delta_bytes` and `cold_start_p95_delta_ms`. Wave pause if cold-start regresses >10%. Advisory soft cap: cumulative ≤100% growth (~14MB) at end of W-17. Hard kill-switch: 30MB cumulative; crossing requires fresh architecture review. Per-wave telemetry: `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. See ADR-014 Amendment 2026-05-03 (R-8.09 revised). |
+| R-W16-003 | Latency regression and bundle growth: 23 new WASM plugins may regress cold-start p95 beyond 500ms or exceed bundle hard kill-switch (30MB) | LOW | HIGH | Primary gate: cold-start p95 ≤ 500ms (ADR-014 R-8.09 revised model). S-9.00 measures post-rc.4 baseline capturing both `bundle_size_delta_bytes` and `cold_start_p95_delta_ms`. Wave pause if cold-start regresses >10%. Advisory soft cap: cumulative ≤100% growth (~14MB) at end of W-17. Hard kill-switch: 30MB cumulative; crossing requires fresh architecture review. Per-wave telemetry: `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. See ADR-014 Amendment 2026-05-03 (R-8.09 revised). **ADR-015 note (v1.7):** The per-wave telemetry events emitted by each batch story MUST route through the ADR-015 single-stream contract (`events-*.jsonl` via `host::emit_event`); the emit path itself contributes negligible overhead per D-15.1 rationale (FileSink append at vsdd-factory event volumes). |
 | R-W16-004 | bats/WASM test infrastructure: each story spec includes a WASM integration test task (Rust `factory-dispatcher/tests/`) and defers bats migration to Phase H, citing the TD-020 class problem. (Per ADR-014 §"Audit Risk Items Carried Forward".) | MED | MED | Explicit WASM integration test task in each batch story ACs. Bats tests remain on disk until Phase H. |
 | R-W16-005 | path_allow runtime fail-mode (HIGH/HIGH): Same WASI preopens scope as R-W16-002, but emphasizes the failure semantics distinct from R-W16-002's per-hook coverage framing. Missing or incorrect `path_allow` declarations cause runtime `read_file` denial. The hook either silently fails (returning empty data → downstream defects) OR incorrectly blocks (when `on_error="block"`, false positive). These two fail-modes are operationally different: silent-pass is invisible to the user; false-block is a hard stop. Registry-TOML-specific failure mode: an entry that declares `path_allow = [".factory/"]` for a hook that reads files outside `.factory/` will silently return empty on out-of-scope reads with no error log visible to the implementer. See also R-W16-002 (canonical WASI preopens per-hook coverage requirement). Retained per POLICY 1; future references should cite R-W16-002 for coverage scope and R-W16-005 for fail-mode semantics. | MED | HIGH | Adversarial pre-merge audit MUST grep each story's hooks-registry.toml additions for `path_allow = ` and verify against the per-hook FILE_PATH read pattern. Failure-mode tests required in the wave-gate suite: at least one test per block-mode hook exercises the false-block scenario (incorrect path_allow + on_error=block). |
 | R-W16-006 | Windows CI gap: no Windows runner in W-16 CI plan | LOW | MED | Add AC for Windows CI runner per E-8 AC-5 pattern (see AC-10). Track as DRIFT-010 closure verification. |
@@ -440,6 +463,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.4 | 2026-05-03 | story-writer | Pass-4 fix burst (fix-only mode). 2 cross-doc fixes (F-P4-001 STORY-INDEX BC anchor, F-P4-002 v1.1 changelog parenthetical) + F-P4-003 LOW deferred. See v1.4 changelog below. |
 | 1.5 | 2026-05-03 | story-writer | Pass-6 structural fix burst (fix-only). F-P6-001 v1.4 changelog heading depth `##` → `###`; F-P6-002 v1.4 summary-table row appended; F-P6-003 deferred. See v1.5 changelog below. |
 | 1.6 | 2026-05-03 | story-writer | Pass-7 structural fix burst (fix-only). F-P7-001 v1.5+v1.6 summary-table rows appended; F-P7-002 line-count footer convention DROPPED to break recurring drift cycle. |
+| 1.7 | 2026-05-05 | architect | D-236 amendment — absorb ADR-015 single-stream OTel contract awareness before Burst 2 story authoring. |
+| 1.8 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -632,3 +657,27 @@ Fix-only structural corrections from W-16-E-9-pass-7-adversary.md:
 Convention change: starting v1.6, version blocks omit "Lines: X → Y" footers. Apply to all future bumps.
 
 [process-gap codified]: producer-side fix-burst-author workflow now drops line-count footers and explicitly asserts "summary-table latest-row" before commit.
+
+### v1.7 (2026-05-05) — D-236 architect amendment: ADR-015 single-stream OTel contract awareness
+
+**Context:** ADR-015 ("single-stream OTel event emission") was authored 2026-05-04 — AFTER E-9
+v1.6 reached CONVERGENCE_REACHED at pass-10 on 2026-05-03. ADR-015 establishes the emit
+contract that all native WASM hooks S-9.01..S-9.07 must follow. E-9 v1.6 was silent on this
+contract. D-236 (2026-05-05) elevated E-10 (ADR-015 implementation epic) ahead of E-9 Burst 2
+and required this 4-file amendment before story-writer authors S-9.01..S-9.07.
+
+**Changes in v1.7:**
+
+- **Frontmatter `inputs`:** ADR-015 added to the inputs list.
+- **Frontmatter `last_amended`:** Updated to 2026-05-05.
+- **D-9.2 section:** ADR-015 awareness block appended. Enumerates D-15.1 (single stream), D-15.2
+  (OTel schema — event.name format, outcome enum), D-15.3 (host enrichment contract — plugin
+  asserts domain fields only), D-15.4 (VSDD_TRACE_ID dispatcher injection for S-9.07
+  exec_subprocess). Story-writer MUST incorporate ADR-015 compliance ACs into S-9.01..S-9.07
+  story bodies when authored in Burst 2.
+- **R-W16-003:** ADR-015 note appended confirming per-wave telemetry events route through
+  single-stream contract; emit overhead is negligible per D-15.1 rationale.
+- **Changelog summary table:** v1.7 row added; v1.8 preemptive row added (per D-232 convention).
+
+**No new BCs, VPs, or FRs added (per D-236 scope constraint).**
+**Story bodies S-9.01..S-9.07 not touched — story-writer authors those in Burst 2.**

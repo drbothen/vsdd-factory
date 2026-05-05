@@ -301,3 +301,48 @@ Dropping S-9.30 eliminates the `crates/hook-sdk/src/host/run_subprocess.rs` and 
 2. **Success-path telemetry event** (minor extension, ~2 hr): exec_subprocess emits `internal.capability_denied` on failure paths but nothing on successful subprocess completion. A `host.exec_subprocess.completed` event closes the observability gap for all current and future callers.
 
 3. **Truncated flag as Ok value** (not required for W-16; fundamentally different semantics): exec_subprocess returns `Err(OUTPUT_TOO_LARGE)` while run_subprocess would return `Ok(result_with_flag)`. This is the largest semantic gap, but the W-16 use case never encounters it. Noting for completeness; not blocking.
+
+---
+
+## Post-Audit Amendment: ADR-015 Awareness (v1.7, 2026-05-05)
+
+ADR-015 ("single-stream OTel event emission", accepted 2026-05-04) was authored after this gap
+analysis was written. It establishes the emit contract for all native WASM hooks in Tier 2.
+The interaction with the subprocess capability analysed above is as follows.
+
+### How ADR-015 affects the telemetry gap (Section 5, Gap 2)
+
+The "Success-path telemetry event" gap identified in Section 5 Gap 2 — the missing
+`host.exec_subprocess.completed` event — now has an explicit schema contract under ADR-015:
+
+- The success-path telemetry event for `exec_subprocess` MUST route to `events-YYYY-MM-DD.jsonl`
+  (ADR-015 D-15.1 single-stream), NOT to `dispatcher-internal-*.jsonl`.
+- The event MUST use `event.name = "vsdd.host.exec_subprocess.completed.v1"` (reverse-DNS
+  + `.v1` suffix per D-15.2). An unrecognized prefix would result in `event.category = "unknown"`.
+  The `vsdd.internal.*` prefix maps to `lifecycle` category (D-15.2 registry); a
+  `vsdd.host.*` prefix would need a registry entry — story-writer or SS-01 implementer must
+  confirm the canonical prefix for this event family with the dispatcher team.
+- The host stamps all Resource attributes and per-event identity fields before writing
+  (D-15.3 enrichment contract). The dispatcher's `exec_subprocess` implementation does not
+  need to stamp `service.*`, `plugin.*`, or `trace_id` fields manually.
+- `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` are injected by the dispatcher into every
+  `exec_subprocess` invocation unconditionally (ADR-015 D-15.4). The `validate-wave-gate-prerequisite`
+  subprocess hop (S-9.07) inherits trace context automatically — no per-plugin manifest change
+  needed.
+
+### Existing denial-path telemetry (Section 1, row "Telemetry event on denial")
+
+The existing `emit_denial` call in `exec_subprocess.rs` emits `internal.capability_denied`.
+Under ADR-015, this event now routes to `events-*.jsonl` (single-stream). The event name
+`internal.capability_denied` uses the `vsdd.internal.*` prefix in the ADR-015 registry
+(maps to `lifecycle` category). If the current name does not include the `vsdd.` namespace
+prefix, it will resolve to `event.category = "unknown"` — a conformance issue for SS-01
+implementers to address in E-10 Wave 1 or 2.
+
+### No structural change to gap analysis conclusions
+
+The Section 7 recommendation — use existing `exec_subprocess`; extend additively; drop
+S-9.30 — is unaffected by ADR-015. ADR-015 does not change the subprocess ABI signature.
+The three minor extensions (path traversal guard, success telemetry, duration_ms) remain
+the right scope for S-9.07's pre-work subtask; they now have an explicit emit-contract
+target under ADR-015.
