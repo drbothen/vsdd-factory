@@ -482,3 +482,21 @@ A story-writer authoring S-9.07 reading E-9 §Open Questions would miss the bina
 **[codified]** by D-258 lessons.md append.
 
 **[codified]** by D-257 lessons.md append.
+
+---
+
+### LESSON: Body-grep extension to recursive-scrub — fix-burst must body-grep for retired figures across whole file, not just at primary fix site
+
+**Source:** D-260 pass-17 finding H-P17-001 (E-9 R-W16-003 mitigation "~14MB" residue 16 passes after v1.14 H-P11-001 AC-3 fix)
+**Date:** 2026-05-05
+
+**Pattern:** v1.14 / D-254 fix-burst sealed H-P11-001 by scrubbing AC-3 line 368 of the retired "(~14MB)" advisory soft cap target. The fix was correct at line 368 BUT did not body-grep the rest of E-9 epic for sibling residue. Pass-17's linguistic-uniformity + numerical-cross-table angle caught R-W16-003 mitigation cell at line 353 still containing "(~14MB)" — a sibling row in the same Risk table that mirrors AC-3's contractual gate.
+
+A 1-second body-grep `grep -n '14MB' E-9*.md` at v1.14 close would have caught the sibling residue. The S-7.01 Partial-Fix Regression Discipline named exactly this pattern.
+
+**Codification:**
+- Extend TD-VSDD-068 recursive-scrub: when a fix burst replaces a retired numeric or named value (e.g., "~14MB", "Option C", "post-rc.4"), the same burst MUST body-grep the entire file (and arguably all amendment-scope files) for the retired value before commit. Any non-changelog occurrence is a sibling regression that must be fixed in the same burst.
+- Architect/state-manager prompts for any value-replacement fix MUST include: "After applying the primary fix, run `grep -n '<retired_value>' <file>` and confirm only changelog/H3 matches remain. If non-changelog body matches exist, treat as sibling regressions and fix in same burst."
+- File as TD-VSDD-072 (Retired-figure body-grep extension to recursive-scrub).
+
+**[codified]** by D-260 lessons.md append.

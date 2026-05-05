@@ -30,7 +30,7 @@ references:
 
 ---
 
-## W-16 Bundle Baseline (post-rc.4, pre-Tier 2)
+## W-16 Bundle Baseline (post-rc.11, pre-Tier 2)
 
 Measurement taken at W-16 Wave 0 using `measure-bundle-sizes.sh` against the
 release bundle at `plugins/vsdd-factory/hook-plugins/` (darwin-arm64).

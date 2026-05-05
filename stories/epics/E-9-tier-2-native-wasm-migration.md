@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.18"
+version: "1.19"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -350,7 +350,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 |---------|-------------|-----------|--------|------------|
 | R-W16-001 | bats orphan migration: bats tests for `.sh` hooks become orphans after WASM port (`.sh` files remain on disk until Phase H; bats tests test bash, not WASM) | HIGH | MED | Deferred to Phase H. Each story spec includes task to document the batch's bats orphan deletion checklist. No bats tests are deleted in W-16. |
 | R-W16-002 | WASI preopens: 19 of 23 hooks read `FILE_PATH`. Canonical capability is `path_allow = [".factory/"]` for spec-file readers; `path_allow = ["."]` for hooks that may read files outside `.factory/`. Each story spec must pin per-hook path_allow declarations. (Per ADR-014 §"Audit Risk Items Carried Forward".) | MED | HIGH | Each story spec (S-9.01..S-9.07) MUST pin `path_allow` declarations per hook in the AC table and registry TOML snippet. Adversarial review checks path_allow coverage before story reaches `ready`. |
-| R-W16-003 | Latency regression and bundle growth: 23 new WASM plugins may regress cold-start p95 beyond 500ms or exceed bundle hard kill-switch (30MB) | LOW | HIGH | Primary gate: cold-start p95 ≤ 500ms (ADR-014 R-8.09 revised model). S-9.00 measures post-rc.4 baseline capturing both `bundle_size_delta_bytes` and `cold_start_p95_delta_ms`. Wave pause if cold-start regresses >10%. Advisory soft cap: cumulative ≤100% growth (~14MB) at end of W-17. Hard kill-switch: 30MB cumulative; crossing requires fresh architecture review. Per-wave telemetry: `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. See ADR-014 Amendment 2026-05-03 (R-8.09 revised). **ADR-015 note (v1.7):** The per-wave telemetry events emitted by each batch story MUST route through the ADR-015 single-stream contract (`events-*.jsonl` via `host::emit_event`); the emit path itself contributes negligible overhead per D-15.1 rationale (FileSink append at vsdd-factory event volumes). |
+| R-W16-003 | Latency regression and bundle growth: 23 new WASM plugins may regress cold-start p95 beyond 500ms or exceed bundle hard kill-switch (30MB) | LOW | HIGH | Primary gate: cold-start p95 ≤ 500ms (ADR-014 R-8.09 revised model). S-9.00 measures S-9.00 baseline (post-rc.11, pinned in perf-baseline-w16.md) capturing both `bundle_size_delta_bytes` and `cold_start_p95_delta_ms`. Wave pause if cold-start regresses >10%. Advisory soft cap: cumulative ≤100% growth (advisory soft cap target = 643686 bytes per ADR-014 R-8.09 Amendment 2026-05-03; pinned in perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes) at end of W-17. Hard kill-switch: 30MB cumulative; crossing requires fresh architecture review. Per-wave telemetry: `(bundle_size_delta_bytes, cold_start_p95_delta_ms)`. See ADR-014 Amendment 2026-05-03 (R-8.09 revised). **ADR-015 note (v1.7):** The per-wave telemetry events emitted by each batch story MUST route through the ADR-015 single-stream contract (`events-*.jsonl` via `host::emit_event`); the emit path itself contributes negligible overhead per D-15.1 rationale (FileSink append at vsdd-factory event volumes). |
 | R-W16-004 | bats/WASM test infrastructure: each story spec includes a WASM integration test task (Rust `factory-dispatcher/tests/`) and defers bats migration to Phase H, citing the TD-020 class problem. (Per ADR-014 §"Audit Risk Items Carried Forward".) | MED | MED | Explicit WASM integration test task in each batch story ACs. Bats tests remain on disk until Phase H. |
 | R-W16-005 | path_allow runtime fail-mode (HIGH/HIGH): Same WASI preopens scope as R-W16-002, but emphasizes the failure semantics distinct from R-W16-002's per-hook coverage framing. Missing or incorrect `path_allow` declarations cause runtime `read_file` denial. The hook either silently fails (returning empty data → downstream defects) OR incorrectly blocks (when `on_error="block"`, false positive). These two fail-modes are operationally different: silent-pass is invisible to the user; false-block is a hard stop. Registry-TOML-specific failure mode: an entry that declares `path_allow = [".factory/"]` for a hook that reads files outside `.factory/` will silently return empty on out-of-scope reads with no error log visible to the implementer. See also R-W16-002 (canonical WASI preopens per-hook coverage requirement). Retained per POLICY 1; future references should cite R-W16-002 for coverage scope and R-W16-005 for fail-mode semantics. | MED | HIGH | Adversarial pre-merge audit MUST grep each story's hooks-registry.toml additions for `path_allow = ` and verify against the per-hook FILE_PATH read pattern. Failure-mode tests required in the wave-gate suite: at least one test per block-mode hook exercises the false-block scenario (incorrect path_allow + on_error=block). |
 | R-W16-006 | Windows CI gap: no Windows runner in W-16 CI plan | LOW | MED | Add AC for Windows CI runner per E-8 AC-5 pattern (see AC-10). Track as DRIFT-010 closure verification. |
@@ -380,7 +380,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 
 | ID | Question | Owner | Resolution |
 |----|----------|-------|------------|
-| OQ-1 | W-16 bundle size ceiling: what % growth is acceptable for 23 new plugins over the post-rc.4 baseline? | story-writer (S-9.00) | Resolved by S-9.00 measurement + ceiling proposal |
+| OQ-1 | W-16 bundle size ceiling: what % growth is acceptable for 23 new plugins over the S-9.00 baseline (post-rc.11, pinned in perf-baseline-w16.md)? | story-writer (S-9.00) | Resolved by S-9.00 measurement + ceiling proposal |
 | OQ-2 | validate-state-size compaction-detection: the git subprocess path is simplified away in D-9.1. If the line-count-only gate triggers too many false-block events, should we revisit at v1.2? | tech-debt | File as TD after W-16 ships; low priority |
 | OQ-3 | exec_subprocess registry: validate-wave-gate-prerequisite's `hooks-registry.toml` entry needs a `[hooks.<id>.capabilities.exec_subprocess]` block. Per gap-analysis-w16-subprocess.md §7 (ExecSubprocessCaps schema) the required fields are: `binary_allow = ["bash"]`, `shell_bypass_acknowledged = "acknowledged"`, `env_allow = ["PATH"]`, `cwd_allow = []` (validate-wave-gate-prerequisite uses `$SHA_PROJECT_ROOT` flag, not cwd — empty allow-list correct). Who authors this TOML snippet? | S-9.07 | RESOLVED — S-9.30 withdrawn; S-9.07 provides the concrete registry example using exec_subprocess. See gap-analysis-w16-subprocess.md Section 7 migration plan. |
 | OQ-W16-001 | Resolve `vsdd.host.*` registry-prefix decision before E-10 Wave 1 ships | SS-01 implementer or E-10 Wave 1 architect | Binary acceptance per `.factory/specs/open-questions.md` OQ-W16-001: (a) ADR-015 D-15.2 registry amended to add `vsdd.host.*` mapping, OR (b) event.name uses `vsdd.dispatcher.subprocess_completed.v1` exactly (lifecycle category) |
@@ -479,7 +479,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.16 | 2026-05-05 | state-manager | D-256 last-mile fix burst — M-P13-001 line-cite off-by-one + L-P13-001 (research) restore + L-P13-002 backticks normalize. |
 | 1.17 | 2026-05-05 | state-manager | D-257 minimal fix burst — M-P14-001 perf-baseline H2 'Option C' non-resolving anchor closed; L-P14-001/2 SKIPPED with rationale. |
 | 1.18 | 2026-05-05 | state-manager | D-258 minimal fix burst — M-P15-001 OQ-W16-001 propagated to E-9 Open Questions table; L-P15-001/2 SKIPPED with rationale. |
-| 1.19 | — | — | (reserved) |
+| 1.19 | 2026-05-05 | state-manager | D-260 sibling-residue fix burst — H-P17-001 (R-W16-003 ~14MB residue) + H-P17-002 (perf-baseline H2 post-rc.4 stale) + M-P17-001 (OQ-1 post-rc.4 stale); L-P17-001 SKIPPED. |
+| 1.20 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1097,5 +1098,46 @@ Pass-15 verdict: SUBSTANTIVE 0H/1M/2L. Discoverability audit — story-writer re
 **TD-VSDD-071 codified:** OQ-table propagation hook — when an OQ is filed in `.factory/specs/open-questions.md` citing an E-N epic as scope-owner, the same burst MUST verify (or append) a corresponding row in the epic's Open Questions table. Adversary discoverability-audit angle should enumerate every OQ in open-questions.md and verify each is listed in its scope-owner epic's Open Questions table.
 
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.17"` → `"1.18"` (matches latest non-reserved row). PASS.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.19 (2026-05-05) — D-260 sibling-residue fix burst (TD-VSDD-072 codified; SEVENTH TD-VSDD-064 application)
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (seventh application).**
+
+Pass-17 verdict: SUBSTANTIVE 2H/1M/1L. Linguistic uniformity / numerical-claim cross-table walk + section-heading semantic-anchor scan angle (NEW per TD-VSDD-057). ADR-013 clock 1_of_3 → 0_of_3 RESET.
+
+**Fix 1 — H-P17-001 CLOSED:** R-W16-003 mitigation cell `(~14MB)` replaced with `(advisory soft cap target = 643686 bytes per ADR-014 R-8.09 Amendment 2026-05-03; pinned in perf-baseline-w16.md w16_advisory_bundle_soft_cap_bytes)`. Sibling regression of v1.14 H-P11-001 AC-3 fix — body-grep at v1.14 close would have caught it (TD-VSDD-072). Additionally: R-W16-003 body text "post-rc.4 baseline" updated to "S-9.00 baseline (post-rc.11, pinned in perf-baseline-w16.md)" (sibling propagation sweep per TD-VSDD-072 retired-figure body-grep extension).
+
+**Fix 2 — H-P17-002 CLOSED:** perf-baseline-w16.md line 33 H2 heading `(post-rc.4, pre-Tier 2)` → `(post-rc.11, pre-Tier 2)`. Heading parenthetical was authored when measurement epoch was rc.4; measurement was retaken at rc.11 (dec5361) on 2026-05-05 but heading not updated. TD-VSDD-070 class (section-heading semantic-anchor) extended to release-tag descriptors.
+
+**Fix 3 — M-P17-001 CLOSED:** OQ-1 question prose updated from "over the post-rc.4 baseline" to "over the S-9.00 baseline (post-rc.11, pinned in perf-baseline-w16.md)". Sibling propagation of H-P17-002. Version-tolerant phrasing per TD-VSDD-066.
+
+**L-P17-001 SKIPPED with rationale:** `verify-sha-currency.sh` backtick inconsistency in E-9 body (line 300 lacks backticks while lines 39, 220 have them). Cosmetic only; no semantic impact. Deferred.
+
+**TD-VSDD-072 codified:** Retired-figure body-grep extension to recursive-scrub. When a fix burst replaces a retired numeric or named value (e.g., "~14MB", "Option C", "post-rc.4"), the same burst MUST body-grep the entire file (and all amendment-scope files) for the retired value before commit. Any non-changelog occurrence is a sibling regression that must be fixed in the same burst. Extends TD-VSDD-068 recursive-scrub.
+
+**Body-grep verification (TD-VSDD-072 applied inline):**
+
+After Fix 1 + Fix 3 on E-9 epic:
+```
+grep -n '14MB\|14 MB' E-9-tier-2-native-wasm-migration.md
+```
+Result: matches on changelog summary table row (v1.14) and `### v1.14` H3 historical changelog section only (POLICY 1 immutable). Non-changelog body: ZERO matches. PASS.
+
+```
+grep -n 'post-rc\.4' E-9-tier-2-native-wasm-migration.md
+```
+Result: ZERO matches. PASS.
+
+After Fix 2 on perf-baseline-w16.md:
+```
+grep -n 'post-rc\.4' perf-baseline-w16.md
+```
+Result: ZERO matches. PASS.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.18"` → `"1.19"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (seventh use):** State-manager handles pass-17 seal and 3-fix burst atomically. All fixes are textual corrections where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
