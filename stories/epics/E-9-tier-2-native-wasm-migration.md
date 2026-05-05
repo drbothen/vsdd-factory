@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.17"
+version: "1.18"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -383,6 +383,7 @@ disk until Phase H. Per R-W16-001: bats orphan migration deferred to Phase H.
 | OQ-1 | W-16 bundle size ceiling: what % growth is acceptable for 23 new plugins over the post-rc.4 baseline? | story-writer (S-9.00) | Resolved by S-9.00 measurement + ceiling proposal |
 | OQ-2 | validate-state-size compaction-detection: the git subprocess path is simplified away in D-9.1. If the line-count-only gate triggers too many false-block events, should we revisit at v1.2? | tech-debt | File as TD after W-16 ships; low priority |
 | OQ-3 | exec_subprocess registry: validate-wave-gate-prerequisite's `hooks-registry.toml` entry needs a `[hooks.<id>.capabilities.exec_subprocess]` block. Per gap-analysis-w16-subprocess.md §7 (ExecSubprocessCaps schema) the required fields are: `binary_allow = ["bash"]`, `shell_bypass_acknowledged = "acknowledged"`, `env_allow = ["PATH"]`, `cwd_allow = []` (validate-wave-gate-prerequisite uses `$SHA_PROJECT_ROOT` flag, not cwd — empty allow-list correct). Who authors this TOML snippet? | S-9.07 | RESOLVED — S-9.30 withdrawn; S-9.07 provides the concrete registry example using exec_subprocess. See gap-analysis-w16-subprocess.md Section 7 migration plan. |
+| OQ-W16-001 | Resolve `vsdd.host.*` registry-prefix decision before E-10 Wave 1 ships | SS-01 implementer or E-10 Wave 1 architect | Binary acceptance per `.factory/specs/open-questions.md` OQ-W16-001: (a) ADR-015 D-15.2 registry amended to add `vsdd.host.*` mapping, OR (b) event.name uses `vsdd.dispatcher.subprocess_completed.v1` exactly (lifecycle category) |
 
 ---
 
@@ -477,7 +478,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.15 | 2026-05-05 | state-manager | D-255 combined seal-and-fix (recursive-scrub applied) — H-P12-001 + M-P12-001/002/003 + L-P12-001 closed. |
 | 1.16 | 2026-05-05 | state-manager | D-256 last-mile fix burst — M-P13-001 line-cite off-by-one + L-P13-001 (research) restore + L-P13-002 backticks normalize. |
 | 1.17 | 2026-05-05 | state-manager | D-257 minimal fix burst — M-P14-001 perf-baseline H2 'Option C' non-resolving anchor closed; L-P14-001/2 SKIPPED with rationale. |
-| 1.18 | — | — | (reserved) |
+| 1.18 | 2026-05-05 | state-manager | D-258 minimal fix burst — M-P15-001 OQ-W16-001 propagated to E-9 Open Questions table; L-P15-001/2 SKIPPED with rationale. |
+| 1.19 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1077,5 +1079,23 @@ Pass-14 verdict: SUBSTANTIVE 0H/1M/2L. AC chain audit + section-heading semantic
 **TD-VSDD-070 codified:** Extend TD-VSDD-065 scope from "in-text decision IDs" to "all section/subsection headings (`# H1`, `## H2`, `### H3`) that name an external authority's decision/option/choice/amendment." Pass-14's section-heading angle caught what 13 prior in-line-citation-focused passes missed.
 
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.16"` → `"1.17"` (matches latest non-reserved row). PASS.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.18 (2026-05-05) — D-258 minimal OQ-table propagation fix (TD-VSDD-071 codified; SIXTH TD-VSDD-064 application)
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (sixth application).**
+
+Pass-15 verdict: SUBSTANTIVE 0H/1M/2L. Discoverability audit — story-writer reading-graph traversal + bidirectional anchor verification + symmetry audit angle (NEW per TD-VSDD-057). ADR-013 clock 0_of_3 (reset by pass-14 D-257; remains 0 after this burst — this burst seals pass-15, not a fresh pass).
+
+**Fix 1 — M-P15-001 CLOSED:** OQ-W16-001 row appended to E-9 epic Open Questions table (after existing OQ-3 row). Was filed in v1.11/D-248 to `.factory/specs/open-questions.md:18` and cited in gap-analysis-w16-subprocess.md (bidirectional anchor at line 325), but E-9 epic Open Questions table — the canonical discoverability hub for OQ register entries gating E-9 stories — did not contain a row. Story-writer authoring S-9.07 reading E-9 §Open Questions would miss OQ-W16-001's binary-choice gate. Post-edit grep `"OQ-W16-001" E-9 epic` → matches in BOTH body Open Questions table AND historical changelog rows. PASS.
+
+**L-P15-001 SKIPPED with rationale:** audit-w16.md frontmatter `version: "1.0"` despite body amendments. Mirror of M-P5-002/M-P6-001 deferrals. D-239 governs annotate-in-place convention for arch docs.
+
+**L-P15-002 SKIPPED with rationale:** audit-w16.md line 165 "D-2 Option C" historical reference. Already SKIPPED in v1.17 changelog L-P14-001 entry. Out of amendment scope (pre-amendment audit-time prose); re-noted for completeness.
+
+**TD-VSDD-071 codified:** OQ-table propagation hook — when an OQ is filed in `.factory/specs/open-questions.md` citing an E-N epic as scope-owner, the same burst MUST verify (or append) a corresponding row in the epic's Open Questions table. Adversary discoverability-audit angle should enumerate every OQ in open-questions.md and verify each is listed in its scope-owner epic's Open Questions table.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.17"` → `"1.18"` (matches latest non-reserved row). PASS.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

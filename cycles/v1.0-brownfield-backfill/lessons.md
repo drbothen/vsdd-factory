@@ -463,4 +463,22 @@ Pass-14 (AC chain audit + section-heading angle) caught this 6 passes after pass
 - Architect prompts for fix bursts MUST scrub BOTH headings AND inline citations — fix the in-text reference and verify no related H2/H3 still carries the obsolete anchor.
 - File as TD-VSDD-070 (TD-VSDD-065 scope extension to section/subsection headings).
 
+---
+
+### LESSON: When an OQ is filed citing an epic as scope-owner, the epic's Open Questions table must contain a corresponding row
+
+**Source:** D-258 pass-15 finding M-P15-001 (OQ-W16-001 absent from E-9 Open Questions table despite being filed in v1.11/D-248)
+**Date:** 2026-05-05
+
+**Pattern:** OQ-W16-001 was filed at v1.11/D-248 to `.factory/specs/open-questions.md` to track the `vsdd.host.*` registry-prefix decision binary-choice. The OQ correctly cited SS-01 implementer or E-10 Wave 1 architect as owner. gap-analysis-w16-subprocess.md got the bidirectional forward-pointer to OQ-W16-001 (line 325). But E-9 epic — the canonical discoverability hub for E-9-scope OQs (it has its own Open Questions table at lines 379-385 enumerating OQ-1, OQ-2, OQ-3) — was NOT updated.
+
+A story-writer authoring S-9.07 reading E-9 §Open Questions would miss the binary-choice gate; recovery only via gap-analysis transitive path. Discoverability hub asymmetry.
+
+**Codification:**
+- Add a process-step (or hook): when an OQ is filed in `.factory/specs/open-questions.md` citing an epic E-N as scope-owner, the same burst must verify (or append) a corresponding row in the epic's Open Questions table.
+- Adversary's discoverability-audit angle should add a sweep: enumerate every OQ in `.factory/specs/open-questions.md`, then verify each is also listed in its scope-owner epic's Open Questions table.
+- File as TD-VSDD-071 (OQ-table propagation hook from open-questions register to epic body).
+
+**[codified]** by D-258 lessons.md append.
+
 **[codified]** by D-257 lessons.md append.
