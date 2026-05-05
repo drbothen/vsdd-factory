@@ -10,13 +10,15 @@
 # `[[hooks]]` entry that points at `legacy-bash-adapter.wasm`; the adapter
 # (S-2.1) reads `[hooks.config] script_path` and execs the underlying
 # `*.sh`. This is the migration tool that produces that registry from the
-# pre-templating hooks.json (committed at 7b4b774^ in git history; the
-# current hooks.json is a per-event dispatcher pointer and no longer
-# carries per-hook detail).
+# pre-templating hooks.json — vendored as a static file at
+# `scripts/legacy/hooks-json-pre-templating.json` (the current hooks.json
+# is a per-event dispatcher pointer and no longer carries per-hook
+# detail). Vendoring eliminates the prior git-history dependency that
+# broke under shallow CI clones (TD-VSDD-054, 2026-05-04).
 #
 # Usage:
 #   scripts/generate-registry-from-hooks-json.sh
-#       Read git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json
+#       Read scripts/legacy/hooks-json-pre-templating.json
 #       Write plugins/vsdd-factory/hooks-registry.toml
 #
 #   scripts/generate-registry-from-hooks-json.sh path/to/hooks.json
@@ -31,7 +33,7 @@
 #   * hooks.json entry references a script that no longer exists on disk
 #   * script on disk has no entry in hooks.json
 #   * jq missing
-#   * git missing (when reading the historical default)
+#   * vendored legacy file missing
 
 set -euo pipefail
 export LC_ALL=C
@@ -39,7 +41,7 @@ export LC_ALL=C
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOKS_DIR="$REPO_ROOT/plugins/vsdd-factory/hooks"
 OUT_FILE="$REPO_ROOT/plugins/vsdd-factory/hooks-registry.toml"
-HISTORICAL_REF="7b4b774^:plugins/vsdd-factory/hooks/hooks.json"
+LEGACY_HOOKS_JSON="$REPO_ROOT/scripts/legacy/hooks-json-pre-templating.json"
 
 # Hooks that have been ported to native WASM (W-15+) and no longer have
 # a .sh counterpart on disk. The generator skips both the on-disk check
@@ -178,7 +180,7 @@ binary_allow_for_script() {
 
 require_cmd jq
 
-# Resolve input hooks.json — default to the historical commit; allow an
+# Resolve input hooks.json — default to the vendored legacy file; allow an
 # explicit path for tests / local experimentation.
 HOOKS_JSON_INPUT=""
 if [ $# -ge 1 ]; then
@@ -188,12 +190,13 @@ if [ $# -ge 1 ]; then
   fi
   HOOKS_JSON_INPUT="$(cat "$1")"
 else
-  require_cmd git
-  HOOKS_JSON_INPUT="$(git -C "$REPO_ROOT" show "$HISTORICAL_REF" 2>/dev/null || true)"
-  if [ -z "$HOOKS_JSON_INPUT" ]; then
-    echo "error: failed to read $HISTORICAL_REF — is the repo shallow-cloned?" >&2
+  if [ ! -f "$LEGACY_HOOKS_JSON" ]; then
+    echo "error: vendored legacy hooks.json not found: $LEGACY_HOOKS_JSON" >&2
+    echo "       This file should ship with the repo. If missing, restore via:" >&2
+    echo "       git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json > $LEGACY_HOOKS_JSON" >&2
     exit 1
   fi
+  HOOKS_JSON_INPUT="$(cat "$LEGACY_HOOKS_JSON")"
 fi
 
 # Cross-check: every script referenced must exist on disk; every script
