@@ -636,3 +636,29 @@ S-7.02 recurrence threshold (3+) met. The TD-VSDD-076 codification is sound but 
 - File as TD-VSDD-079 (TD-VSDD-076 extension: terminology-family grep checklist for sibling-sweep fixes).
 
 **[codified]** by D-271 lessons.md append.
+
+---
+
+### LESSON: TD-VSDD-079 narrative-discipline must mechanize as pre-commit hook to prevent self-violations
+
+**Source:** D-272 pass-29 finding H-P29-001 (v1.27 burst codified TD-VSDD-079 8-term family grep but its own pre-commit grep was 2 terms only)
+**Date:** 2026-05-05
+
+**Pattern:** v1.27 burst (D-271) codified TD-VSDD-079 with explicit 8-term grep checklist: `sink chain`, `Router`, `SinkRegistry`, `DlqWriter`, `multi-sink`, `fan-out`, `Datadog`, `Honeycomb`, `try_send`. The burst's own pre-commit verification ran only `grep -n 'sink chain\|try_send' BC-1.05.036.md` — a 2-term grep that satisfied the literal "previous adversary's cited residue" but not the codified family. Result: the burst that codified TD-VSDD-079 simultaneously violated it (Datadog/Honeycomb + fan-out residue at BC-1.05.036:51).
+
+This is the same self-violation pattern previously caught at:
+- pass-24 H-P24-001 (v1.23 codified TD-VSDD-076 but had truncated:bool annotation inconsistency)
+- pass-25 M-P25-001 (v1.24 fix EC-003 sibling-aligned only after caught)
+- pass-28 H-P28-001/002 (v1.26 silence-audit scrubbed line 51 only)
+- pass-29 H-P29-001 (v1.27 grep was 2-term not 8-term)
+
+The recurrence is structural: narrative-discipline lessons consistently fail to bind their own authoring burst because the burst-author runs the literal grep-cite from the prior adversary, not the canonical full family check.
+
+**Codification:**
+- Implement pre-commit hook `validate-bc-terminology-family.sh` that runs the TD-VSDD-079 8-term grep automatically against any modified BC or arch-doc file.
+- Hook FAILS commit if any term matches outside `### Changelog` or `### v1.X` H3 sections.
+- Architect/state-manager prompts MUST invoke the hook before commit.
+- Mechanical enforcement is required because narrative discipline has failed 5 consecutive times (passes 24/25/28/29 + at-least-one-undetected pre-pass-24 instance).
+- File as TD-VSDD-080 (Mechanize TD-VSDD-079 family-grep as pre-commit hook).
+
+**[codified]** by D-272 lessons.md append.

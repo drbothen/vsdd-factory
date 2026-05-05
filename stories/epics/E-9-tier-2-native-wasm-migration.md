@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.27"
+version: "1.28"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -488,7 +488,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.25 | 2026-05-05 | state-manager | D-268 source-truth fix burst — H-P25-001 (BC-1.05.036:52 fabricated denial-path enumeration replaced with actual 4 emit_denial reasons per exec_subprocess.rs:148/155/162/169; env_allow silently filtered, cwd_allow unenforced per gap-analysis §1 clarified); M-P25-001 (BC-1.05.036 §EC-003 tightened to enumerate 4 real denial reasons + env_allow/cwd_allow non-triggering note); M-P25-002 (BC-1.05.036:50 Instant cite corrected — line 270 is post-spawn deadline, implementer must add started=Instant::now() before spawn at line 252); L-P25-001/002 SKIPPED with rationale; TD-VSDD-078 codified (BC postcondition source-of-truth enumeration verification — extends TD-VSDD-075). |
 | 1.26 | 2026-05-05 | state-manager | D-270 silence-audit fix burst — H-P27-001 (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; Router/SinkRegistry retired per ADR-015 lines 130, 154; source-code verified); M-P27-001 (Postcondition 5 INTERNAL_ERROR (-99) enumeration added: spawn failure exec_subprocess.rs:252, stdin take/write :258/:262, stdout/stderr take :267-268, try_wait error :299; const at host/mod.rs:184; TD-VSDD-075+078 applied). ADR-013 clock RESET 0_of_3. |
 | 1.27 | 2026-05-05 | state-manager | D-271 comprehensive sibling-sweep fix burst — H-P28-001 (BC-1.05.036:38 §Description "normal sink chain" replaced with ADR-015-correct emit_internal/FileSink wording); H-P28-002 (BC-1.05.036:135 §Purity "sink chain + non-blocking try_send" replaced with actual synchronous Mutex::lock+Vec::push per host/mod.rs:105-116); M-P28-001 (EC-007 INTERNAL_ERROR row added to §Edge Cases); M-P28-002 (INTERNAL_ERROR test vector row added to §Canonical Test Vectors); M-P28-003 (EC-005 + Test Vector OUTPUT_TOO_LARGE aligned to EC-004 sibling form with "NO event emitted in v1" qualifier); L-P28-001 ("retired" → dual-verb "removed per line 154 / retired per line 130" per ADR-015 lifecycle taxonomy). Source-of-truth verification per TD-VSDD-075+078 applied to all 6 fixes. TD-VSDD-079 codified (TD-VSDD-076 extension: terminology-family grep checklist for sibling-sweep fixes; 3rd recurrence threshold met). ADR-013 clock RESET 0_of_3. |
-| 1.28 | — | — | (reserved) |
+| 1.28 | 2026-05-05 | state-manager | D-272 cross-doc terminology drift fix — H-P29-001 (BC-1.05.036:51 "external fan-out to Datadog/Honeycomb" → "external export to remote observability backends" — scrubs fan-out + vendor names per TD-VSDD-079 8-term family grep); H-P29-002 (BC-1.05.035:35 §Description NUL-byte attribution corrected — "rejects NUL bytes" removed from canonicalize; redirected to `read_wasm_string` error path per §Postcondition 2 + §Precedence Ladder + §EC-005); full TD-VSDD-079 8-term grep across all 5 in-scope files (all non-changelog body: ZERO prohibited matches PASS); TD-VSDD-080 codified (mechanize TD-VSDD-079 as pre-commit hook; 5 consecutive narrative-discipline failures forces mechanical enforcement). ADR-013 clock 0_of_3 (reset by pass-29; remains 0). |
+| 1.29 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1468,5 +1469,30 @@ When a BC postcondition or normative BC section cites a CONCRETE ENUMERATION (li
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.26"` → `"1.27"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (fifteenth use):** State-manager handles pass-28 seal and 6-fix burst atomically. All fixes are textual corrections to BC normative sections; source-code-verification confirms ground truth for all fabrication-class findings.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.28 (2026-05-05) — D-272 cross-doc terminology drift fix: pass-29 2H/0M/0L; BC vendor-name + fan-out scrub + NUL-byte attribution; TD-VSDD-080 codified
+
+**HIGH findings closed:**
+
+- **H-P29-001 CLOSED:** BC-1.05.036 Postcondition 4 (line 51) "external fan-out to Datadog/Honeycomb is handled by OTel Collector OUTSIDE the dispatcher" replaced with "external export to remote observability backends is handled by OTel Collector outside the dispatcher". Scrubs both the vendor names (`Datadog`, `Honeycomb`) AND the prohibited family term `fan-out` per TD-VSDD-079 8-term checklist. The v1.27 burst (D-271) codified TD-VSDD-079 with an explicit 8-term grep checklist but ran only `grep -n 'sink chain\|try_send'` (2 terms) as post-edit verification — missing `fan-out`, `Datadog`, `Honeycomb` at line 51. Fifth consecutive TD-VSDD-076/079 self-violation instance.
+
+- **H-P29-002 CLOSED:** BC-1.05.035 §Description (line 35) "Canonicalization resolves symlinks, eliminates `..` segments, and rejects NUL bytes" corrected to "Canonicalization resolves symlinks and eliminates `..` segments. NUL-byte rejection is performed earlier by the existing `read_wasm_string` error path (see §Postcondition 2 and the Precedence Ladder)." Resolves intra-document semantic contradiction: §Description attributed NUL rejection to canonicalize while §Postcondition 2, §Precedence Ladder, and §EC-005 all attributed it to `read_wasm_string` error path. `Path::canonicalize()` does not reject NUL bytes on Unix — it would return `io::Error` mapped to CAPABILITY_DENIED (-1), not INVALID_ARGUMENT (-4) per the normative postconditions.
+
+**TD-VSDD-079 8-term family-grep verification (full, case-insensitive, across all 5 in-scope files):**
+- BC-1.05.035: ZERO non-changelog matches — PASS
+- BC-1.05.036: `Router/SinkRegistry` at lines 38, 51 are ADR-015 retirement-status citations (intentional; added by D-271 as correct fix per L-P28-001); `fan-out` + `Datadog` + `Honeycomb` scrubbed by this burst — PASS
+- gap-analysis-w16-subprocess.md: ZERO matches — PASS
+- audit-w16.md: ZERO matches — PASS
+- perf-baseline-w16.md: ZERO matches — PASS
+
+**TD-VSDD-080 codified:** Mechanize TD-VSDD-079 as pre-commit hook. Five consecutive narrative-discipline failures (passes 24/25/28/29 + at-least-one pre-pass-24) demonstrate that narrative-discipline alone cannot enforce terminology-family grep discipline. Implementation: `validate-bc-terminology-family.sh` pre-commit hook that runs the TD-VSDD-079 8-term grep automatically against any modified BC or arch-doc file and FAILS the commit if any term matches outside `### Changelog` or `### v1.X` H3 sections. Mechanical enforcement required.
+
+**ADR-013 clock:** 0_of_3 (reset by pass-29 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (30/31/32) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.27"` → `"1.28"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (sixteenth use):** State-manager handles pass-29 seal and 2-fix burst atomically. All fixes are textual corrections to BC normative sections.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
