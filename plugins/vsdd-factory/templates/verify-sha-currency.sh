@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # verify-sha-currency.sh — state-manager burst hygiene gate
 #
-# Verifies that SHAs cited in .factory/STATE.md and .factory/SESSION-HANDOFF.md
-# are current (match git HEAD), that cross-record SHAs in
-# .factory/wave-state.yaml agree with STATE.md frontmatter, and that the
-# active-pass narrative is in past-tense voice.
+# Verifies cross-branch and cross-record SHA agreement, plus narrative
+# voice on the active pass. Specifically:
+#   - develop SHA cited in STATE.md/HANDOFF.md matches actual develop HEAD
+#     (cross-branch cite — not self-referential, no loop possible)
+#   - Cross-record SHA agreement between wave-state.yaml's gate_pass_N
+#     remediation_sha entries and STATE.md frontmatter
+#   - Multi-commit-chain guard (chains > 2 commits on factory-artifacts)
+#   - Tense-flip detection in active-pass narrative (advisory)
 #
-# Run BEFORE every push to factory-artifacts (Stage 1 of two-commit protocol)
-# AND AFTER (Stage 2 verification). The dispatcher's wave-gate-prerequisite
-# hook calls this automatically, but you can also run it manually:
+# Run as the state-manager burst hygiene gate; safe to invoke manually:
 #
 #   bash .factory/hooks/verify-sha-currency.sh
 #   bash .factory/hooks/verify-sha-currency.sh --project-root /path/to/proj
@@ -17,17 +19,28 @@
 #   0 — PASS (all checks clean)
 #   1 — FAIL (one or more checks detected drift)
 #
-# WARN-level issues (tense-flip, fabricated SHA cites) print to stdout but do
-# NOT fail the run — they're advisory.
+# WARN-level issues (tense-flip) print to stdout but do NOT fail the run.
+#
+# What this hook does NOT verify (TD-VSDD-053 narrowing, 2026-05-04):
+#
+# The hook used to verify that the *current-burst factory-artifacts HEAD* SHA
+# cited inside STATE.md / SESSION-HANDOFF.md matched git HEAD. That check
+# was removed because the cite was self-referential — STATE.md sits on the
+# factory-artifacts branch, so committing STATE.md changes HEAD, instantly
+# staling any HEAD-SHA cite inside the same content. The two-commit protocol
+# (Stage 1 placeholder → commit → Stage 2 backfill SHA → commit) was a
+# workaround that triggered "fix-the-fix" loops when any of 8 cite locations
+# was missed (manifested 6× in one session, 5+ force-pushes). Resolved by
+# removing the cite altogether: STATE.md no longer claims its own SHA;
+# `git -C .factory log -1` is the source of truth. Historical SHA references
+# in changelog rows, decisions log, and cycle manifests remain valid (they
+# point at PAST burst SHAs which are immutable audit trail).
 #
 # History: This hook started as a STATE.md/HANDOFF.md HEAD-currency check
 # during a wave-gate convergence cycle that hit six consecutive recurrences
-# of SHA drift / narrative-staleness. It hardened across each pass:
-#   - Multi-commit-chain guard (chains > 2 commits)
-#   - Single Canonical SHA Rule + 2-commit exception
-#   - Cross-record verification (STATE.md vs wave-state.yaml)
-#   - Tense-flip detection
-# See docs/lessons-learned/wave-gate-bookkeeping.md for the full case study.
+# of SHA drift / narrative-staleness. It hardened across each pass and was
+# narrowed in scope by TD-VSDD-053 (2026-05-04). See
+# docs/lessons-learned/wave-gate-bookkeeping.md for the full case study.
 
 set -euo pipefail
 
@@ -75,7 +88,18 @@ echo "Actual develop HEAD      : $ACTUAL_DEV"
 echo "Actual factory-artifacts : $ACTUAL_FA"
 echo ""
 
-# ---------- Read cited SHAs ----------
+# ---------- Read cited SHAs (cross-branch only — develop) ----------
+#
+# We deliberately do NOT extract the factory-artifacts HEAD SHA from STATE.md
+# or SESSION-HANDOFF.md. Per TD-VSDD-053 (2026-05-04), STATE.md no longer
+# cites its own branch's HEAD — that cite was self-referential and looped.
+# The current factory-artifacts HEAD is `git -C .factory log -1`, not a
+# string in any artifact.
+#
+# We DO extract the develop SHA cite because that's a cross-branch claim
+# (STATE.md sits on factory-artifacts but cites develop); committing STATE.md
+# does not change develop, so the cite is stable across the commit and the
+# loop class doesn't apply.
 
 if [ ! -f "$STATE_MD" ]; then
   echo "FAIL: $STATE_MD missing — state-manager has not initialized?"
@@ -84,26 +108,19 @@ fi
 
 CITED_DEV_STATE=$(grep -oE 'develop_head: "?[0-9a-f]{8,40}' "$STATE_MD" 2>/dev/null \
   | head -1 | grep -oE '[0-9a-f]{8,40}' | cut -c1-8 || echo "NOT_FOUND")
-CITED_FA_STATE=$(grep -oE 'factory-artifacts HEAD[^0-9a-f]*[0-9a-f]{8}' "$STATE_MD" 2>/dev/null \
-  | head -1 | grep -oE '[0-9a-f]{8}' | tail -1 || echo "NOT_FOUND")
 
 if [ -f "$HANDOFF_MD" ]; then
   CITED_DEV_HANDOFF=$(grep -oE 'develop HEAD[^|`]*`?[0-9a-f]{8}' "$HANDOFF_MD" 2>/dev/null \
     | head -1 | grep -oE '[0-9a-f]{8}' | tail -1 || echo "NOT_FOUND")
-  CITED_FA_HANDOFF=$(grep -oE 'factory-artifacts HEAD[^0-9a-f]*[0-9a-f]{8}' "$HANDOFF_MD" 2>/dev/null \
-    | head -1 | grep -oE '[0-9a-f]{8}' | tail -1 || echo "NOT_FOUND")
 else
   CITED_DEV_HANDOFF="NO_HANDOFF"
-  CITED_FA_HANDOFF="NO_HANDOFF"
 fi
 
 echo "STATE.md    develop cited      : $CITED_DEV_STATE"
-echo "STATE.md    factory-arts cited : $CITED_FA_STATE"
 echo "HANDOFF.md  develop cited      : $CITED_DEV_HANDOFF"
-echo "HANDOFF.md  factory-arts cited : $CITED_FA_HANDOFF"
 echo ""
 
-# ---------- develop SHA must match exactly ----------
+# ---------- develop SHA must match exactly (cross-branch cite, no loop) ----------
 
 if [ "$CITED_DEV_STATE" != "NOT_FOUND" ] && [ "$ACTUAL_DEV" != "$CITED_DEV_STATE" ]; then
   echo "FAIL: develop SHA in STATE.md is stale (cited=$CITED_DEV_STATE actual=$ACTUAL_DEV)"
@@ -115,12 +132,13 @@ if [ "$CITED_DEV_HANDOFF" != "NOT_FOUND" ] && [ "$CITED_DEV_HANDOFF" != "NO_HAND
   FAIL=1
 fi
 
-# ---------- Two-commit protocol exception (factory-artifacts SHA) ----------
+# ---------- Multi-commit chain guard (factory-artifacts) ----------
+#
+# The two-commit protocol is retired (TD-VSDD-053) — single-commit bursts
+# only. This guard remains as a regression defense: if any future workflow
+# reintroduces backfill-style chains, fail loudly so the discipline gap is
+# visible immediately.
 
-# Allow 1-commit drift between cited factory-artifacts SHA and HEAD ONLY when:
-#   (a) HEAD's commit message contains "backfill" (Stage 2 marker), AND
-#   (b) HEAD^'s commit message does NOT contain "backfill" (chain is exactly 2)
-# Without (b), the exception masks 3+ commit chain bursts.
 HEAD_MSG=$(git -C "$FACTORY_DIR" log -1 --format=%s 2>/dev/null || echo "")
 PARENT_MSG=$(git -C "$FACTORY_DIR" log -1 --format=%s HEAD^ 2>/dev/null || echo "")
 HEAD_IS_BACKFILL=0
@@ -130,40 +148,12 @@ echo "$PARENT_MSG" | grep -qi "backfill" && PARENT_IS_BACKFILL=1
 
 if [ "$HEAD_IS_BACKFILL" -eq 1 ] && [ "$PARENT_IS_BACKFILL" -eq 1 ]; then
   echo "FAIL: MULTI_COMMIT_CHAIN_NOT_ALLOWED — HEAD and HEAD^ both contain 'backfill'."
-  echo "      The two-commit protocol permits exactly 1 fix commit + 1 backfill commit."
-  echo "      Recover with: git -C .factory reset --soft HEAD~2 && redo Stage 1 + Stage 2."
+  echo "      The single-commit protocol (TD-VSDD-053) does not use backfill commits."
+  echo "      A 2+ chain of 'backfill' commits suggests reintroduction of the retired"
+  echo "      two-commit pattern. Recover with: git -C .factory reset --soft HEAD~2"
+  echo "      then re-author as a single commit per skills/state-burst/SKILL.md."
   FAIL=1
 fi
-
-# Fabrication check: verify cited SHAs actually exist as git objects.
-for label in "STATE.md:$CITED_FA_STATE" "SESSION-HANDOFF.md:$CITED_FA_HANDOFF"; do
-  doc="${label%%:*}"
-  sha="${label#*:}"
-  [ "$sha" = "NOT_FOUND" ] || [ "$sha" = "NO_HANDOFF" ] && continue
-  if ! git -C "$FACTORY_DIR" cat-file -e "${sha}^{commit}" 2>/dev/null; then
-    echo "WARN: $doc cites factory-artifacts SHA $sha but it does not exist as a git object (FABRICATED?)"
-    WARN=1
-  fi
-done
-
-PARENT_FA=$(git -C "$FACTORY_DIR" rev-parse HEAD^ 2>/dev/null | cut -c1-8 || echo "NO_PARENT")
-
-check_fa_currency() {
-  local doc="$1" cited="$2"
-  [ "$cited" = "NOT_FOUND" ] || [ "$cited" = "NO_HANDOFF" ] && return 0
-  if [ "$ACTUAL_FA" = "$cited" ]; then
-    return 0
-  fi
-  if [ "$PARENT_FA" = "$cited" ] && [ "$HEAD_IS_BACKFILL" -eq 1 ] && [ "$PARENT_IS_BACKFILL" -eq 0 ]; then
-    echo "NOTE: $doc cites HEAD^ ($cited) — within two-commit protocol exception (HEAD is backfill; HEAD^ is not)"
-    return 0
-  fi
-  echo "FAIL: factory-artifacts SHA in $doc is stale (cited=$cited actual=$ACTUAL_FA parent=$PARENT_FA head_is_backfill=$HEAD_IS_BACKFILL parent_is_backfill=$PARENT_IS_BACKFILL)"
-  return 1
-}
-
-check_fa_currency "STATE.md"           "$CITED_FA_STATE"   || FAIL=1
-check_fa_currency "SESSION-HANDOFF.md" "$CITED_FA_HANDOFF" || FAIL=1
 
 # ---------- Cross-record SHA verification (STATE.md ↔ wave-state.yaml) ----------
 
