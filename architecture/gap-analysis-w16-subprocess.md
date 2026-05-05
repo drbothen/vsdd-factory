@@ -339,9 +339,9 @@ Under ADR-015, this event MUST be renamed to `vsdd.capability.denied.exec_subpro
 Rationale for this choice over `vsdd.internal.capability_denied.v1`: (a) ADR-015 line 329
 maps `vsdd.capability.denied.*` to the `audit` category, which correctly matches the
 semantics of a capability-denial event; (b) `vsdd.internal.*` maps to `lifecycle` category,
-which fits engine-internal state transitions — not denial audit-trail events; (c) Wave 3
-acceptance criterion 3 queries `event.category=audit` for security review dashboards, so
-placing denial events under `audit` aligns with SIEM-style queries. SS-01 implementer MUST
+which fits engine-internal state transitions — not denial audit-trail events; (c) Audit-category events are queryable in SIEM dashboards by `event.category = audit`
+filter — ADR-015 D-15.2 § `event.category` taxonomy registry (lines 295–333) defines
+`audit` as the category for security-relevant events including capability denials. SS-01 implementer MUST
 apply this rename in E-10 Wave 1 or 2.
 
 ### No structural change to gap analysis conclusions

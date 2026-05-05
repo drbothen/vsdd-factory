@@ -468,7 +468,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.6 | 2026-05-03 | story-writer | Pass-7 structural fix burst (fix-only). F-P7-001 v1.5+v1.6 summary-table rows appended; F-P7-002 line-count footer convention DROPPED to break recurring drift cycle. |
 | 1.7 | 2026-05-05 | architect | D-236 amendment — absorb ADR-015 single-stream OTel contract awareness before Burst 2 story authoring. |
 | 1.8 | 2026-05-05 | architect | D-242 fix burst — close pass-3 SUBSTANTIVE findings: H-1 block-event misattribution (option b), M-1 host-prefix binary-choice, M-2 capability_denied rename, M-3 perf-baseline frontmatter, L-1 trace-id wording. |
-| 1.9 | — | — | (reserved) |
+| 1.9 | 2026-05-05 | architect | D-244 minimal fix burst — close H-P4-001 fabricated AC-3 citation (M-2 rationale leg (c) rewritten to real ADR-015 anchor) + L-P4-001 line range update. |
+| 1.10 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -700,7 +701,7 @@ fresh-context NITPICK_ONLY passes to reach CONVERGENCE_REACHED.
   distinct event family per hook type with no additional semantic value. The dispatcher's
   automatic emission fully satisfies D-15.3. All 4 sites updated to reflect the corrected
   contract: plugin returns `HookResult::Block`; dispatcher emits audit event automatically.
-- Site 1: E-9 lines ~294-296 (this file, D-9.2 ADR-015 awareness block)
+- Site 1: E-9 lines ~294-302 (this file, D-9.2 ADR-015 awareness block)
 - Sites 2-4: audit-w16.md lines 35, 37, 47-48
 
 **L-1 CLOSED (VSDD_TRACE_ID wording precision):**
@@ -717,14 +718,37 @@ fresh-context NITPICK_ONLY passes to reach CONVERGENCE_REACHED.
 **M-2 CLOSED (internal.capability_denied rename path unresolved):**
 - gap-analysis-w16-subprocess.md lines ~333-340: chose `vsdd.capability.denied.exec_subprocess.v1`.
   Rationale: ADR-015 maps `vsdd.capability.denied.*` to `audit` category (correct for a denial
-  event); `vsdd.internal.*` maps to `lifecycle` (wrong semantic); Wave 3 AC-3 queries
-  `event.category=audit` for SIEM dashboards. Soft "conformance issue" language replaced with
-  firm MUST for SS-01 implementer in E-10 Wave 1 or 2.
+  event); `vsdd.internal.*` maps to `lifecycle` (wrong semantic);
+  audit-category events are SIEM-queryable by `event.category=audit` filter (ADR-015 D-15.2
+  taxonomy registry). Soft "conformance issue" language replaced with firm MUST for SS-01
+  implementer in E-10 Wave 1 or 2.
 
 **M-3 CLOSED (perf-baseline frontmatter references propagation gap):**
 - perf-baseline-w16.md frontmatter `references:` appended ADR-015 row after ADR-013.
 
 **L-2 SKIPPED:** D-239 lessons.md codified annotate-in-place as the arch doc convention;
 `last_amended:` absence on arch docs is by-design. Finding invalid.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.9 (2026-05-05) — D-244 minimal fix burst: fabricated AC-3 citation + line range
+
+**H-P4-001 CLOSED (fabricated Wave 3 AC-3 citation in M-2 rationale leg (c)):**
+- Adversary pass-4 (citation-grounding angle, TD-VSDD-057) identified that leg (c) of the
+  M-2 rationale in both fix sites cited a non-existent "Wave 3 acceptance criterion 3".
+  ADR-015 Wave 3 defines exactly two ACs: AC-1 (`pr_throughput` row) and AC-2
+  (`unknown_category_events` Grafana panel). There is no AC-3.
+- **Site 1 (gap-analysis-w16-subprocess.md lines ~342-344):** Leg (c) rewritten to re-anchor
+  to the real ADR-015 D-15.2 taxonomy registry (lines 295-333), which defines `audit` as the
+  category for `vsdd.capability.denied.*` events. All AC-3 wording removed.
+- **Site 2 (E-9 changelog v1.8 M-2 closure entry):** "Wave 3 AC-3 queries
+  `event.category=audit` for SIEM dashboards" rewritten to "audit-category events are
+  SIEM-queryable by `event.category=audit` filter (ADR-015 D-15.2 taxonomy registry)."
+- Re-verification: ADR-015 lines 295-333 confirmed — `vsdd.capability.denied.*` → `audit`
+  category in registry table (line 329). PASS.
+
+**L-P4-001 CLOSED (stale line range in H-1 closure):**
+- E-9 H-1 closure "Site 1: E-9 lines ~294-296" updated to "~294-302" to bracket the
+  full ADR-015 awareness block edits applied in v1.7.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
