@@ -53,7 +53,7 @@ Advisory Soft Cap Rationale...
 | `dispatcher_binary_bytes` | Yes | 12,250,912 |
 | `grand_total_bytes` | Yes | 20,955,111 |
 | per-plugin JSON array | Yes | 17-plugin table + JSON block |
-| `w16_cold_start_p95_ms` | Yes | 665.0ms (flagged — see AC-7; per-wave delta reference = 665.0ms per adversary pass-2 fix) |
+| `w16_cold_start_p95_ms` | Yes | 642.6ms (flagged — see AC-7; methodology_version 2; per-wave delta reference = 642.6ms per adversary pass-3 fix) |
 | `w16_advisory_bundle_soft_cap_bytes` | Yes | 643,686 |
 | `w16_bundle_hard_killswitch_bytes` | Yes | 30,000,000 |
 | `per_wave_telemetry_fields` | Yes | bundle_size_delta_bytes, cold_start_p95_delta_ms |
@@ -68,4 +68,4 @@ ok 6 S-9.00 AC-6: perf-baseline-w16.md exists with required sections
 
 ## Verdict
 
-PASS — `.factory/architecture/perf-baseline-w16.md` committed (factory-artifacts branch). All required schema fields present. `all_hook_plugins_wasm_bytes` = 8,549,146 (corrected semantics per pass-1 fix; frozen-17 sum). Per-wave telemetry delta reference updated from 627.8ms to 665.0ms (adversary pass-2 fix MEDIUM-6). File is non-empty. Bats test AC-6 passes.
+PASS — `.factory/architecture/perf-baseline-w16.md` committed (factory-artifacts branch). All required schema fields present. `all_hook_plugins_wasm_bytes` = 8,549,146 (corrected semantics per pass-1 fix; frozen-17 sum). Per-wave telemetry delta reference updated from 665.0ms to 642.6ms (adversary pass-3 fix; methodology_version 2, NIST nearest-rank p95). File is non-empty. Bats test AC-6 passes.
