@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "vsdd-factory@claude-mp": true
+  }
+}
