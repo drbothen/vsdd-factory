@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.25"
+version: "1.26"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -486,7 +486,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.23 | 2026-05-05 | state-manager | D-265 sibling-sweep fix burst — H-P22-001 (BC-1.05.036 §Related BCs lines 61-62 + §EC-004 line 86 + §Canonical Test Vectors line 97 aligned to Postcondition 5 no-event reality); H-P22-002 (BC-1.05.035 §Postcondition 4 INTERIM qualifier added); M-P22-001 (BC-1.05.036 Postcondition 1 scoped to success path); M-P22-002 (OQ-W16-001 acceptance (a) AND-linked to canonical event name); M-P22-003 (BC-1.05.035 precedence ladder appended to §Postconditions); L-P22-001/002 SKIPPED/absorbed; TD-VSDD-076 codified. |
 | 1.24 | 2026-05-05 | state-manager | D-267 combined seal-and-fix — H-P24-001 BC-1.05.036 EC-006 truncated:bool annotation aligned to `/* */` form (TD-VSDD-076 self-violation corrected); 6 MEDs + 3 LOWs closed via lessons-corpus repair (open-backlog stubs filled, section-boundary fixed, marker orphans repaired, TD-VSDD-074 Source drift resolved); TD-VSDD-077 codified (lessons-corpus bidirectional coherence validation hook). |
 | 1.25 | 2026-05-05 | state-manager | D-268 source-truth fix burst — H-P25-001 (BC-1.05.036:52 fabricated denial-path enumeration replaced with actual 4 emit_denial reasons per exec_subprocess.rs:148/155/162/169; env_allow silently filtered, cwd_allow unenforced per gap-analysis §1 clarified); M-P25-001 (BC-1.05.036 §EC-003 tightened to enumerate 4 real denial reasons + env_allow/cwd_allow non-triggering note); M-P25-002 (BC-1.05.036:50 Instant cite corrected — line 270 is post-spawn deadline, implementer must add started=Instant::now() before spawn at line 252); L-P25-001/002 SKIPPED with rationale; TD-VSDD-078 codified (BC postcondition source-of-truth enumeration verification — extends TD-VSDD-075). |
-| 1.26 | — | — | (reserved) |
+| 1.26 | 2026-05-05 | state-manager | D-270 silence-audit fix burst — H-P27-001 (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; Router/SinkRegistry retired per ADR-015 lines 130, 154; source-code verified); M-P27-001 (Postcondition 5 INTERNAL_ERROR (-99) enumeration added: spawn failure exec_subprocess.rs:252, stdin take/write :258/:262, stdout/stderr take :267-268, try_wait error :299; const at host/mod.rs:184; TD-VSDD-075+078 applied). ADR-013 clock RESET 0_of_3. |
+| 1.27 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1391,5 +1392,39 @@ When a BC postcondition or normative BC section cites a CONCRETE ENUMERATION (li
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.24"` → `"1.25"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (thirteenth use):** State-manager handles pass-25 seal and 3-fix burst atomically. All fixes are textual corrections to BC normative sections where source-code-verification confirms ground truth; architect judgment not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.26 (2026-05-05) — D-270 silence-audit fix burst: pass-27 1H/1M/0L; BC multi-sink scrub + INTERNAL_ERROR enumeration
+
+**HIGH findings closed:**
+
+- **H-P27-001 CLOSED:** BC-1.05.036 Postcondition 4 (line 51) stale ADR-005-era multi-sink wording "file/datadog/honeycomb per config" replaced with ADR-015 D-15.1 single-stream FileSink description. The `Router`/`SinkRegistry` and multi-sink stanza model are retired per ADR-015 lines 130, 154. External fan-out to Datadog/Honeycomb is handled by OTel Collector OUTSIDE the dispatcher. The BC had gained an ADR-015 awareness block in its Description at v1.21 (D-263) but Postcondition 4 body text was not updated — this burst closes that gap.
+
+**MED findings closed:**
+
+- **M-P27-001 CLOSED:** BC-1.05.036 Postcondition 5 extended to enumerate INTERNAL_ERROR (-99) as a third no-event error path. Source-code verification per TD-VSDD-078: spawn failure (exec_subprocess.rs:252), stdin take failure (:258), stdin write failure (:262), stdout take failure (:267), stderr take failure (:268), try_wait error (:299). Constant `INTERNAL_ERROR: i32 = -99` at `crates/factory-dispatcher/src/host/mod.rs:184`. Postcondition 5 now correctly enumerates all three no-event error paths: TIMEOUT (-2), OUTPUT_TOO_LARGE (-3), INTERNAL_ERROR (-99).
+
+**Source-of-truth verification per TD-VSDD-075 + TD-VSDD-078:**
+- ADR-015 line 99: "All events… are written to one physical file: `.factory/logs/events-YYYY-MM-DD.jsonl`" — VERIFIED
+- ADR-015 line 130: "The `sink-otel-grpc` crate AND the `Router`, `SinkRegistry` types within `sink-core` are retired" — VERIFIED
+- ADR-015 line 154: "The multi-sink stanza model is removed. Operators who need remote export configure the OTel Collector as the second hop, not the dispatcher." — VERIFIED
+- exec_subprocess.rs:252: `command.spawn().map_err(|_| codes::INTERNAL_ERROR)?` — VERIFIED
+- exec_subprocess.rs:258: `child.stdin.take().ok_or(codes::INTERNAL_ERROR)?` — VERIFIED
+- exec_subprocess.rs:262: `return Err(codes::INTERNAL_ERROR)` (stdin write_all failure) — VERIFIED
+- exec_subprocess.rs:267: `child.stdout.take().ok_or(codes::INTERNAL_ERROR)?` — VERIFIED
+- exec_subprocess.rs:268: `child.stderr.take().ok_or(codes::INTERNAL_ERROR)?` — VERIFIED
+- exec_subprocess.rs:299: `Err(_) => return Err(codes::INTERNAL_ERROR)` (try_wait error) — VERIFIED
+- host/mod.rs:184: `pub const INTERNAL_ERROR: i32 = -99;` — VERIFIED
+
+**Post-edit grep verification:**
+- `grep -n 'datadog/honeycomb per config' BC-1.05.036.md` → zero matches in non-changelog body. PASS.
+- `grep -n 'INTERNAL_ERROR\|-99' BC-1.05.036.md` → match at Postcondition 5. PASS.
+
+**ADR-013 clock:** 0_of_3 (reset by pass-27 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (28/29/30) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.25"` → `"1.26"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (fourteenth use):** State-manager handles pass-27 seal and 2-fix burst atomically. Both fixes are textual corrections to BC normative sections where source-code-verification confirms ground truth; architect judgment not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
