@@ -28,25 +28,21 @@ echo "all scripts ok"
 echo
 echo "== Running all bats test suites =="
 
-# SKIP_SUITES — bats suites with known pre-existing failures excluded from the
-# release-validation gate. These suites were never in the OLD hardcoded
-# run-all.sh enumeration; the TD-016 glob refactor (Phase A) widened scope
-# and surfaced their breakage. TD-020 sweep (2026-05-04) is in progress;
-# entries are removed as each is fixed or deleted.
+# SKIP_SUITES — bats suites excluded from the release-validation gate.
+# Currently empty after the TD-020 sweep (2026-05-04) resolved the four
+# previously-skipped suites (codify-lessons, generate-registry,
+# novelty-assessment, state-health). See CHANGELOG entry "TD-020 sweep —
+# bats SKIP_SUITES cleanup" for per-suite outcomes.
 #
-# Remaining entries (each needs cleanup in TD-020 before un-skip):
-#   - state-health: state-size + state-health skill assertions reference
-#     skills/commands that don't exist in the current plugin layout.
-#
-# To un-skip: fix or delete the underlying tests (TD-020), then remove from
-# this list. Do NOT add new entries without a TD ticket.
-SKIP_SUITES=(
-  "state-health"
-)
+# Do NOT add new entries without an accompanying tech-debt-register
+# ticket and an inline rationale.
+SKIP_SUITES=()
 
 is_skipped() {
   local target="$1"
   local s
+  # Guard for empty array under `set -u` on older bash (3.2 on macOS).
+  [ "${#SKIP_SUITES[@]}" -eq 0 ] && return 1
   for s in "${SKIP_SUITES[@]}"; do
     [ "$s" = "$target" ] && return 0
   done
