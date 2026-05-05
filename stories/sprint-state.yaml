@@ -1,22 +1,30 @@
 ---
-# Sprint/cycle state for vsdd-factory v1.0.0-greenfield
-# Updated: 2026-04-25 (Phase 1.8 story migration)
+# Sprint/cycle state for vsdd-factory
+# Rebuilt 2026-05-05 — status hygiene audit; milestone updated to rc.11 reality
 
-current_cycle: v1.0.0-greenfield
-current_milestone: 1.0.0-beta.4
-next_milestone: 1.0.0-rc.1
+current_cycle: v1.0-brownfield-backfill
+current_milestone: 1.0.0-rc.11
+last_updated: 2026-05-05
+next_milestone: v1.1 (E-8 W-15 complete; E-9 W-16 pending)
 
-# Story counts by status
+# Story counts by status (70 total active stories)
 stories:
-  total: 47
-  merged: 43
+  total: 70
+  merged: 56
+  ready: 1
+  draft: 11
   partial: 2
-  draft: 3
-  ready: 0
-  blocked: 0
-  in_progress: 0   # Wave 13 COMPLETE: S-5.01 + S-5.02 + S-5.03 + S-5.04 all merged; DRIFT-006 FULLY CLOSED
+  withdrawn: 1
+  retired: 19  # S-8.11..S-8.29 placeholder slots
 
-# Epic completion summary
+# Current work frontier
+frontier:
+  - S-9.00   # sole ready story; E-8 closure unblocks; v1.4 spec converged at 5015917
+
+next_refinement:
+  - E-10 series  # S-10.01..S-10.09 (ADR-015 migration; all draft, pending PO BC authorship)
+
+# Epic completion summary (as of 2026-05-05)
 epics:
   E-0:
     name: Infrastructure Prep
@@ -24,8 +32,6 @@ epics:
     status: closed
     milestone: 1.0.0-beta.1
     merged: 5
-    partial: 0
-    draft: 0
 
   E-1:
     name: Dispatcher Foundation
@@ -33,8 +39,6 @@ epics:
     status: closed
     milestone: 1.0.0-beta.1
     merged: 9
-    partial: 0
-    draft: 0
 
   E-2:
     name: Legacy Adapter and Beta Release
@@ -43,61 +47,179 @@ epics:
     milestone: 1.0.0-beta.1
     merged: 7
     partial: 1   # S-2.05 hook-sdk publish (dry-run only)
-    draft: 0
 
   E-3:
     name: WASM Port — High-Value Hooks
     stories: 4
-    status: closed
+    status: in-progress
     milestone: 1.0.0-rc.1
-    merged: 4   # S-3.04 (PR #19), S-3.01 (PR #20), S-3.02 (PR #21), S-3.03 (4229648)
-    partial: 0
-    draft: 0
+    merged: 3   # S-3.01, S-3.02, S-3.03
+    partial: 1   # S-3.04 AC-001 unwired in main.rs; superseded by ADR-015
 
   E-4:
     name: Observability Sinks and RC Release
-    stories: 10   # +S-4.09 +S-4.10 (Wave 11 SS-03)
+    stories: 10
     status: closed
     milestone: 1.0.0-rc.1
-    merged: 10   # S-4.01 (2ebf031), S-4.02 (PR #24), S-4.03 (PR #25), S-4.04 (PR #23), S-4.09 (PR #27 3c56ce5), S-4.10 (PR #28 ccf34e6), S-4.05 (PR #29 a84a5f5 2026-04-28), S-4.06 (PR #30 6ef564c 2026-04-28), S-4.07 (PR #31 1d4edb7 2026-04-28), S-4.08 (PR #32 d7eae89 2026-04-28)
-    partial: 0
-    draft: 0
-    ready: 0
-    # Wave 12 COMPLETE: 28/28 pts shipped; 11 S-4.08 ACs deferred to shakedown (release-engineer)
+    merged: 10  # S-4.01..S-4.10 all merged; most deprecated by ADR-015
 
   E-5:
     name: New Hook Events and 1.0.0 Release
     stories: 7
     status: in-progress
     milestone: 1.0.0
-    merged: 4   # S-5.01 (PR #35 0257f03 2026-04-28), S-5.02 (PR #36 edef7da 2026-04-28), S-5.03 (PR #37 93b298f 2026-04-29), S-5.04 (PR #38 e90faab 2026-04-29; DRIFT-006 FULLY CLOSED; Wave 13 COMPLETE)
-    partial: 1   # S-5.05 migration guide skeleton
-    draft: 2    # S-5.06, S-5.07
-    ready: 0
+    merged: 6   # S-5.01..S-5.06
+    draft: 1    # S-5.07 (1.0.0 release gate; calendar-gated)
 
-# Point totals (updated 2026-04-29 after S-5.04 delivery; Wave 13 COMPLETE)
-points:
-  total: 207
-  merged: 159   # 43 merged stories; +3pts (S-5.04) over prior 156
-  remaining: 48
+  E-6:
+    name: VSDD Self-Improvement
+    stories: 1
+    status: closed
+    merged: 1
 
-# Current work frontier (stories unblocked, 2026-04-29 after Wave 13 COMPLETE)
-frontier: [S-5.05, S-5.06]   # Wave 14: migration guide + semver commitment doc; S-5.07 calendar-gated
+  E-7:
+    name: Process Codification
+    stories: 5
+    status: in-progress
+    merged: 3   # S-7.01, S-7.02, S-7.03
+    draft: 2    # S-7.04, S-7.05
 
-# Shipped releases (for reference)
-releases:
-  - version: 1.0.0-beta.1
-    sha: tagged
-    stories_included: [S-0.01, S-0.02, S-0.03, S-0.04, S-0.05, S-1.01, S-1.02, S-1.03, S-1.04, S-1.05, S-1.06, S-1.07, S-1.08, S-1.09, S-2.01, S-2.02, S-2.03, S-2.04, S-2.06, S-2.07, S-2.08]
+  E-8:
+    name: Native WASM Migration Completion (Tier 1)
+    stories: 12  # Tier 1 only; S-8.11..S-8.29 retired
+    status: tier-1-shipped
+    milestone: 1.0.0-rc.4
+    merged: 12  # S-8.00, S-8.01..S-8.09, S-8.10, S-8.30
+    # W-15 wave gate PASSED at develop@d49f33b (2026-05-02)
 
-  - version: 1.0.0-beta.2
-    sha: tagged
-    notes: Bug fixes from beta.1 shakedown
+  E-9:
+    name: Tier 2 Native WASM Migration (W-16)
+    stories: 8   # S-9.00 + S-9.01..S-9.07; S-9.30 withdrawn
+    status: in-progress
+    milestone: v1.2
+    ready: 1    # S-9.00
+    draft: 7    # S-9.01..S-9.07 (stubs pending Burst 2+3)
+    withdrawn: 1  # S-9.30
 
-  - version: 1.0.0-beta.3
-    sha: tagged
-    notes: Cache fix + stderr capture
+  E-10:
+    name: Single-stream OTel-aligned event emission (ADR-015)
+    stories: 9   # S-10.01..S-10.09
+    status: draft
+    milestone: v1.0.1
+    draft: 9    # all pending PO BC authorship
 
-  - version: 1.0.0-beta.4
-    sha: 1907d8f
-    notes: Cache fix + stderr capture + adversary SHA-currency gate
+# Per-story status entries (updated stories only — stories with status drift)
+story_updates:
+  S-4.05:
+    status: merged
+    pr: 29
+    merge_sha: a84a5f5
+    merged_at: 2026-04-28
+
+  S-4.06:
+    status: merged
+    pr: 30
+    merge_sha: 6ef564c
+    merged_at: 2026-04-28
+
+  S-4.07:
+    status: merged
+    pr: 31
+    merge_sha: 1d4edb7
+    merged_at: 2026-04-28
+
+  S-4.08:
+    status: merged
+    pr: 32
+    merge_sha: d7eae89
+    merged_at: 2026-04-28
+    note: "11 ACs deferred to shakedown"
+
+  S-5.03:
+    status: merged
+    pr: 37
+    merge_sha: 93b298f
+    merged_at: 2026-04-29
+
+  S-5.04:
+    status: merged
+    pr: 38
+    merge_sha: e90faab
+    merged_at: 2026-04-29
+
+  S-8.00:
+    status: merged
+    pr: 47
+    merge_sha: 9e649ed
+    merged_at: 2026-05-02
+
+  S-8.01:
+    status: merged
+    pr: 50
+    merge_sha: 60be88e
+    merged_at: 2026-05-02
+
+  S-8.02:
+    status: merged
+    pr: 56
+    merge_sha: b25f017
+    merged_at: 2026-05-02
+
+  S-8.03:
+    status: merged
+    pr: 55
+    merge_sha: 6809c6d
+    merged_at: 2026-05-02
+
+  S-8.04:
+    status: merged
+    pr: 54
+    merge_sha: 5622aa6
+    merged_at: 2026-05-02
+
+  S-8.05:
+    status: merged
+    pr: 57
+    merge_sha: a8ee79e
+    merged_at: 2026-05-02
+
+  S-8.06:
+    status: merged
+    pr: 51
+    merge_sha: 9873f78
+    merged_at: 2026-05-02
+
+  S-8.07:
+    status: merged
+    pr: 53
+    merge_sha: 4a6e212
+    merged_at: 2026-05-02
+
+  S-8.08:
+    status: merged
+    pr: 52
+    merge_sha: 638bb6b
+    merged_at: 2026-05-02
+
+  S-8.09:
+    status: merged
+    pr: 58
+    merge_sha: 3adfe0b
+    merged_at: 2026-05-02
+
+  S-8.10:
+    status: merged
+    pr: 48
+    merge_sha: de4c568
+    merged_at: 2026-05-02
+
+  S-8.30:
+    status: merged
+    pr: 49
+    merge_sha: 394d991
+    merged_at: 2026-05-02
+
+  S-9.00:
+    status: ready
+    ready_at: 2026-05-05
+    note: "E-8 closure unblocks; v1.4 convergence at 5015917; promoted from draft"
