@@ -233,3 +233,19 @@ Rationale: (i) the architect explicitly chose "Post-Audit Amendment: ADR-015 Awa
 - File as TD-VSDD-057 (Adversary angle-of-attack rotation rule) if not already tracked.
 
 **[codified]** by D-241 lessons.md append.
+
+---
+
+### LESSON: Fix-burst rationale citations must be re-verified against authoritative source
+
+**Source:** D-243 pass-4 finding H-P4-001 (c3855ae v1.8 fix burst)
+**Date:** 2026-05-05
+
+**Pattern:** When closing a finding, the architect added a 3-leg rationale (a)/(b)/(c) to justify a renamed event-name choice. Legs (a) and (b) cited real ADR-015 registry entries. Leg (c) cited "Wave 3 acceptance criterion 3" which does not exist (Wave 3 has only AC-1 `pr_throughput` and AC-2 `unknown_category_events`). The choice itself was correct — only the third leg of the rationale was fabricated, likely invented during write-up to strengthen the case without re-reading the source-of-truth.
+
+**Codification:**
+- Architect prompt for fix bursts must require: "Any rationale leg of the form 'ADR-XXX [line N | section §X | acceptance criterion N | wave N AC-K] says Y' must include a copy-paste of the cited text in the fix-burst commit message body OR you MUST re-read the cited section before commit."
+- Adversary review skill should add a "citation-grounding" pass mode that explicitly falsifies every cited claim against the source-of-truth document.
+- File as TD-VSDD-058 (Architect fix-burst rationale citation re-verification rule).
+
+**[codified]** by D-243 lessons.md append.

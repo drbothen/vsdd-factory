@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "D-242 sealed: E-9 v1.7→v1.8 fix burst (commit c3855ae) closed all 4 pass-3 SUBSTANTIVE findings (H-1 dispatcher-side block-emission, M-1 binary-choice frame, M-2 vsdd.capability.denied.exec_subprocess.v1, M-3 frontmatter references propagation); ADR-013 clock 0_of_3 (reset by D-241 pass-3). Adversary pass-4 dispatched in parallel; needs 3 consecutive NITPICK_ONLY passes per ADR-013 + TD-VSDD-057 (different angles of attack from passes 1/2/3) to reach CONVERGENCE_REACHED."
+current_step: "D-243 pass-4 SUBSTANTIVE sealed. Citation-grounding angle (NEW per TD-VSDD-057) found H-P4-001 — M-2 leg (c) cites non-existent ADR-015 Wave 3 AC-3 (only AC-1/AC-2 exist). Architect dispatched in parallel for v1.8 → v1.9 minimal fix; then 3 fresh-context NITPICK_ONLY adversary passes (pass-5/6/7) to reach CONVERGENCE_REACHED before E-10 BC authorship."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-05 (D-242 v1.7→v1.8 fix burst sealed c3855ae; STORY-INDEX 1.48→1.49; ADR-013 clock 0_of_3; pass-4 in flight) |
+| **Last Updated** | 2026-05-05 (D-243 pass-4 SUBSTANTIVE sealed; STORY-INDEX 1.49→1.50; ADR-013 clock 0_of_3 reset; v1.9 fix burst in flight) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -71,9 +71,11 @@ dtu_services: []
 | Adversary pass-2 on v1.7 amendment surface | adversary + state-manager | COMPLETE | pass-2 NITPICK_ONLY 0H/0M/2L; clock 2_of_3; D-240 |
 | Adversary pass-3 on v1.7 amendment surface | adversary + state-manager | COMPLETE | pass-3 SUBSTANTIVE 1H/3M/2L; clock RESET 0_of_3; D-241 |
 | E-9 v1.7→v1.8 fix burst (4 findings + optional 2 LOW) | architect | COMPLETE | c3855ae; 4 findings closed (H-1 option-b, M-1, M-2, M-3; L-1 closed, L-2 skipped per D-239) |
-| E-9 v1.8 adversary pass-4 | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 1_of_3 |
-| E-9 v1.8 adversary pass-5 | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 2_of_3 |
-| E-9 v1.8 adversary pass-6 → CONVERGENCE_REACHED | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 3_of_3 |
+| E-9 v1.8 adversary pass-4 | adversary + state-manager | COMPLETE | pass-4 SUBSTANTIVE 1H/0M/1L; H-P4-001; clock 0_of_3; D-243 |
+| E-9 v1.8 → v1.9 fix burst (close H-P4-001 + L-P4-001) | architect | IN-FLIGHT | parallel to D-243 seal; drop/correct M-2 leg (c) fabricated ADR-015 citation |
+| E-9 v1.9 adversary pass-5 | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 1_of_3 |
+| E-9 v1.9 adversary pass-6 | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 2_of_3 |
+| E-9 v1.9 adversary pass-7 → CONVERGENCE_REACHED | adversary | PENDING | fresh context; must be NITPICK_ONLY for clock 3_of_3 |
 | E-10 BC authorship (S-10.01..S-10.09) | product-owner | PENDING | 9 stories × BCs anchored to BC-1.11.001/002/003 cluster |
 
 ## Identifier Conventions
@@ -134,6 +136,8 @@ dtu_services: []
 | D-240 | **E-9 v1.7 amendment pass-2 NITPICK_ONLY — ADR-013 clock 1_of_3 → 2_of_3.** 0 HIGH + 0 MED + 2 LOW (LOW-1 soft-MUST tension in gap-analysis vsdd.host.* paragraph; LOW-2 perf-baseline emit-overhead prediction without measurement gate). All convention + arithmetic checks PASS. Both D-238 anomalies verified flagged. Pass-methodology angle: reverse-trace from ADR-015 obligations to amendment landing sites + intra-amendment self-consistency. STORY-INDEX 1.46 → 1.47. | Pass-2 fresh-context adversary verified architect's d9f2c86 from a different verification angle than pass-1; second NITPICK_ONLY in a row. | Phase-D-4-E-9-v1.7-pass-2 | 2026-05-05 | adversary + state-manager |
 | D-241 | **E-9 v1.7 amendment pass-3 SUBSTANTIVE — ADR-013 clock RESET 2_of_3 → 0_of_3.** 1 HIGH (H-1 block-mode emission misattribution to plugin per E-9 line 295 + audit-w16 lines 35/37/47-48; conflicts with ADR-015 D-15.3 dispatcher-side block emission contract; blast radius 2 files / 4 sites) + 3 MED (M-1 vsdd.host.* MUST/pending contradiction; M-2 internal.capability_denied namespace fix path unresolved between audit vs lifecycle categories; M-3 perf-baseline frontmatter references propagation gap) + 2 LOW (L-1 imprecise inheritance wording; L-2 last_amended marker absence — likely invalid given D-239 lessons codification). Pass methodology: forward-simulation + counter-example construction. 2 process-gap findings codified for future hook authoring (PG-1 frontmatter reference propagation validator; PG-2 amendment marker template). Trajectory: pass-1 NITPICK (0/0/3) → pass-2 NITPICK (0/0/2) → pass-3 SUBSTANTIVE (1/3/2; RESET). STORY-INDEX 1.47 → 1.48. | Pass-3's different angle of attack (counter-example construction) revealed defects pass-1 and pass-2 missed. Multi-pass adversarial review with rotating angles working as designed. Need v1.8 fix burst then 3 fresh-context NITPICK_ONLY passes to reach CONVERGENCE_REACHED. | Phase-D-4-E-9-v1.7-pass-3-SUBSTANTIVE | 2026-05-05 | adversary + state-manager |
 | D-242 | **E-9 v1.7 → v1.8 fix burst SEALED — closes all 4 pass-3 SUBSTANTIVE findings.** Commit c3855ae. E-9: 688L → 730L (+42L). H-1 closed via option (b) drop plugin-side block-emission MUST entirely (dispatcher emits `vsdd.block.plugin_blocked.v1` automatically per ADR-015 D-15.3; 4 sites corrected in E-9 line 295 + audit-w16 lines 35/37/47-48). M-1 closed via binary-choice frame replacing MUST/pending contradiction (proposed `vsdd.host.exec_subprocess.completed.v1` pending registry decision; fallback `vsdd.dispatcher.subprocess_completed.v1`). M-2 closed via firm choice `vsdd.capability.denied.exec_subprocess.v1` (audit category; ADR-015 D-15.2 registry line 329). M-3 closed via frontmatter `references:` propagation. L-1 closed (subprocess inheritance wording). L-2 correctly skipped (D-239 codified annotate-in-place). Zero new BCs/VPs/FRs. STORY-INDEX 1.48 → 1.49. ADR-013 clock 0_of_3 (reset by D-241; awaits 3-of-3 NITPICK_ONLY on v1.8). | Architect closed all pass-3 substantive findings cleanly with documented rationale per option choice. Prepares v1.8 for fresh-context adversary passes 4/5/6. | Phase-D-4-E-9-v1.8-fix-burst | 2026-05-05 | architect + state-manager |
+
+| D-243 | **E-9 v1.8 fix burst pass-4 SUBSTANTIVE — ADR-013 clock 0_of_3 (reset by H-P4-001).** Citation-grounding angle (NEW; reads ADR-015 as source of truth and falsifies every cited claim) found H-P4-001: M-2 fix's leg (c) rationale cites fabricated "Wave 3 acceptance criterion 3" (only AC-1 `pr_throughput` + AC-2 `unknown_category_events` exist per ADR-015 lines 623-638). M-2 CHOICE itself is correct (`vsdd.capability.denied.exec_subprocess.v1`); only leg (c) of rationale fabricated. v1.8 fix burst correctly closed 4 of 5 pass-3 findings (H-1, L-1, M-1, M-3) with 8 of 9 ADR-015 citations verified. 1 LOW (L-P4-001 line citation off-by-2). 1 process-gap (P-P4-001 — fix-burst rationale citations should be re-verified). Architect dispatched in parallel for v1.8 → v1.9 minimal fix (drop or correct leg (c)). Trajectory: pass-1 NITPICK → pass-2 NITPICK → pass-3 SUBSTANTIVE → fix burst v1.8 → pass-4 SUBSTANTIVE. | TD-VSDD-057 angle-rotation rule validated: pass-4's NEW angle (citation-grounding) caught what passes 1/2/3 angles missed. | Phase-D-4-E-9-v1.8-pass-4-SUBSTANTIVE | 2026-05-05 | adversary + state-manager |
 
 ## Skip Log
 
