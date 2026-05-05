@@ -322,8 +322,11 @@ The "Success-path telemetry event" gap identified in Section 5 Gap 2 — the mis
   If `vsdd.host.*` is not added to the ADR-015 D-15.2 registry before E-10 Wave 1 ships,
   the event MUST use a registered prefix instead — recommended fallback:
   `vsdd.dispatcher.subprocess_completed.v1` (inheriting `lifecycle` category per the
-  existing `vsdd.dispatcher.*` registry entry). **Forward-pointer:** SS-01 implementer or
-  E-10 Wave 1 author MUST resolve this prefix choice before merging the host-emit-fix story.
+  existing `vsdd.dispatcher.*` registry entry). Resolution tracked in **OQ-W16-001**
+  (`.factory/specs/open-questions.md`): either (a) `vsdd.host.*` is added to ADR-015 D-15.2
+  registry, OR (b) event.name uses `vsdd.dispatcher.subprocess_completed.v1` exactly.
+  SS-01 implementer or E-10 Wave 1 architect MUST close OQ-W16-001 before the
+  host-emit-fix story merges.
 - The host stamps all Resource attributes and per-event identity fields before writing
   (D-15.3 enrichment contract). The dispatcher's `exec_subprocess` implementation does not
   need to stamp `service.*`, `plugin.*`, or `trace_id` fields manually.

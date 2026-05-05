@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.10"
+version: "1.11"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -470,7 +470,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.8 | 2026-05-05 | architect | D-242 fix burst — close pass-3 SUBSTANTIVE findings: H-1 block-event misattribution (option b), M-1 host-prefix binary-choice, M-2 capability_denied rename, M-3 perf-baseline frontmatter, L-1 trace-id wording. |
 | 1.9 | 2026-05-05 | architect | D-244 minimal fix burst — close H-P4-001 fabricated AC-3 citation (M-2 rationale leg (c) rewritten to real ADR-015 anchor) + L-P4-001 line range update. |
 | 1.10 | 2026-05-05 | architect | D-246 fix burst — close pass-5 H-P5-001 frontmatter version drift, M-P5-001 v1.8 prose restored to original (POLICY 1), M-P5-003 audit-w16.md B-7 block-mode treatment added. M-P5-002 + LOWs deferred. |
-| 1.11 | — | — | (reserved) |
+| 1.11 | 2026-05-05 | architect | D-248 fix burst — close pass-6 H-P6-001 B-2+B-6 explicit H-1 option (b) in audit-w16.md, M-P6-002 OQ-W16-001 filed. 3 MED + 2 LOW deferred with rationale. |
+| 1.12 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -792,5 +793,81 @@ acknowledged but D-239's convention overrides. No action.
 
 **TD-VSDD-058 citations re-verified:** ADR-015 D-15.2 taxonomy registry (lines 295-333)
 confirmed. ADR-015 D-15.3 block-event dispatcher emission confirmed. No citation errors found.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.11 (2026-05-05) — D-248 fix burst: close pass-6 H-P6-001 + M-P6-002; defer 3 MED + 2 LOW
+
+**Context:** Adversary pass-6 (adversarial-implementer + boundary-cases hybrid angle, new per
+TD-VSDD-057) found that the v1.10 M-P5-003 closure claim "all 5 block-mode hooks now have
+explicit H-1 option (b) coverage" was overstated. B-2 (validate-input-hash, S-9.02) and B-6
+(validate-template-compliance, S-9.06) were lumped into the "Standard." row in audit-w16.md
+line 38 without explicit H-1 option (b) wording. Only B-1 (line 35), B-3 (line 37), and B-7
+(line 36) had explicit dispatcher-emits-automatically text. Per D-247 lesson codified in
+TD-VSDD-061: closure claims of form "all N items covered" must enumerate the N items.
+
+**H-P6-001 CLOSED (B-2 + B-6 missing explicit H-1 option (b) coverage in audit-w16.md):**
+- audit-w16.md line 38 amended (Option 2 — append to existing row): appended sentence
+  explicitly stating both validate-input-hash (B-2) and validate-template-compliance (B-6)
+  follow H-1 option (b): plugins return `HookResult::Block`; dispatcher automatically emits
+  `vsdd.block.plugin_blocked.v1` per ADR-015 D-15.3. No additional plugin-side block emission
+  required.
+- TD-VSDD-061 enumeration: all 5 block-mode hooks now have explicit H-1 option (b) treatment
+  in audit-w16.md:
+  - factory-path-root (B-1): line 35 — "validate-factory-path-root is block-mode; it returns
+    `HookResult::Block` and the dispatcher automatically emits `vsdd.block.plugin_blocked.v1`"
+  - input-hash (B-2): line 38 — appended sentence (this burst)
+  - pr-merge-prerequisites (B-3): line 37 — "validate-pr-merge-prerequisites is block-mode...
+    dispatcher emits `vsdd.block.plugin_blocked.v1` automatically on block path (D-15.3)"
+  - template-compliance (B-6): line 38 — appended sentence (this burst)
+  - wave-gate-prerequisite (B-7): line 36 — "validate-wave-gate-prerequisite (S-9.07) is also
+    block-mode... plugins return `HookResult::Block` and the dispatcher emits
+    `vsdd.block.plugin_blocked.v1` automatically per D-15.3"
+
+**M-P6-002 CLOSED (binary-choice tracking — OQ-W16-001 filed):**
+- gap-analysis-w16-subprocess.md lines ~320-326: forward-pointer replaced with citation to
+  **OQ-W16-001** (`.factory/specs/open-questions.md`, filed by state-manager in parallel).
+  OQ acceptance criterion: (a) `vsdd.host.*` added to ADR-015 D-15.2 registry, OR (b)
+  event.name uses `vsdd.dispatcher.subprocess_completed.v1` exactly. SS-01 implementer or
+  E-10 Wave 1 architect MUST close OQ-W16-001 before the host-emit-fix story merges.
+
+**M-P6-001 DEFERRED:** Frontmatter convention drift — gap-analysis-w16-subprocess.md and
+audit-w16.md do not carry ADR-015 in their `references:` frontmatter field, while
+perf-baseline-w16.md does. Rationale: mirrors M-P5-002 deferral per D-244. D-239 codified
+annotate-in-place as the arch-doc convention; the perf-baseline ADR-015 row was a one-off.
+The broader frontmatter convention question is larger than this amendment surface. Defer to a
+future "arch-doc frontmatter convention" sweep (file as TD-VSDD-062 if needed).
+
+**M-P6-003 DEFERRED:** event.host_overrides observability obligations not enumerated in the
+E-9 awareness block. Rationale: silence-audit finding — ADR-015 D-15.3 fully specifies the
+3-element MUST. The awareness block is an intentionally high-level pointer; story-writer
+authoring S-9.01..S-9.07 reads ADR-015 directly when writing ACs. Each story will trace BCs
+to the specific D-15.x clauses it implements. No architect action needed.
+
+**M-P6-004 DEFERRED:** event.schema_url per-event-family not specified. Rationale: same as
+M-P6-003 — silence-audit on a D-15.2.d obligation. ADR-015 explicitly states event.schema_url
+is informational/optional unless a breaking-change protocol triggers a bump. Story-writer
+decides per-story whether the validate-* event family needs an explicit schema_url or can rely
+on the Resource-level baseline.
+
+**L-P6-002 DEFERRED:** input-hash literal `37151a4` vs F-P2-010 closure `[pending-recompute]`
+consistency. Rationale: state-manager's responsibility. State-manager presumably recomputed
+the hash at some point in the convergence cycle. No architect action.
+
+**L-P6-003 INVALID:** TD-VSDD-059 not filed. Rationale: invalidated at seal time —
+TD-VSDD-059 IS filed in `cycles/v1.0-brownfield-backfill/open-backlog-post-rc8.md` per D-245.
+Information-asymmetry artifact (adversary lacked visibility to that file).
+
+**TD-VSDD-058 citations re-verified:** ADR-015 D-15.3 block-path audit trail (lines 374-378)
+confirmed — "When a plugin returns `HookResult::Block`, the dispatcher emits a
+`vsdd.block.plugin_blocked.v1` event." ADR-015 D-15.2 registry ownership (line 300) and
+unrecognized-prefix default (line 310) confirmed. Gap-analysis-w16-subprocess.md OQ-W16-001
+path `.factory/specs/open-questions.md` uses convention path (state-manager parallel burst).
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.11"` matches latest
+non-reserved row in Changelog summary table (1.11). PASS.
+
+**TD-VSDD-061 closure-claim enumeration:** all 5 block-mode hooks enumerated by ID and
+audit-w16.md line (B-1 line 35, B-2 line 38, B-3 line 37, B-6 line 38, B-7 line 36).
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
