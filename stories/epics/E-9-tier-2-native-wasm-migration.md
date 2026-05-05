@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.16"
+version: "1.17"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -476,7 +476,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.14 | 2026-05-05 | state-manager | D-254 combined seal-and-fix — H-P11-001 AC-3 ~14MB → 643686 bytes; M-P11-001 open-questions.md nomenclature scrub. |
 | 1.15 | 2026-05-05 | state-manager | D-255 combined seal-and-fix (recursive-scrub applied) — H-P12-001 + M-P12-001/002/003 + L-P12-001 closed. |
 | 1.16 | 2026-05-05 | state-manager | D-256 last-mile fix burst — M-P13-001 line-cite off-by-one + L-P13-001 (research) restore + L-P13-002 backticks normalize. |
-| 1.17 | — | — | (reserved) |
+| 1.17 | 2026-05-05 | state-manager | D-257 minimal fix burst — M-P14-001 perf-baseline H2 'Option C' non-resolving anchor closed; L-P14-001/2 SKIPPED with rationale. |
+| 1.18 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1058,5 +1059,23 @@ Result: ZERO matches. PASS.
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.15"` → `"1.16"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (fourth use):** State-manager handles pass-13 seal and 3-fix burst atomically. All fixes are textual corrections where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.17 (2026-05-05) — D-257 minimal fix burst (TD-VSDD-070 codified; FIFTH TD-VSDD-064 application)
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (fifth application).**
+
+Pass-14 verdict: SUBSTANTIVE 0H/1M/2L. AC chain audit + section-heading semantic anchor verification angle (NEW per TD-VSDD-057). ADR-013 clock 0_of_3 (reset by pass-13 D-256; remains 0 after this burst — this burst seals pass-14, not a fresh pass).
+
+**Fix 1 — M-P14-001 CLOSED:** perf-baseline-w16.md line 154 H2 heading `(ADR-014 R-8.09 Revised — Option C)` → `(ADR-014 R-8.09 Amendment 2026-05-03)`. Pass-8 closed the in-line citation at line 156 (E-9 D-9.4 → E-9 AC-3) but did not scrub the section heading itself. ADR-014 R-8.09 Amendment 2026-05-03 has no Options A/B/C taxonomy. The "Option C" anchor in the H2 heading was non-resolving — same outbound-decision-ID class (TD-VSDD-065). Post-edit grep `"Option C" perf-baseline-w16.md` → ZERO matches. PASS.
+
+**L-P14-001 SKIPPED with rationale:** audit-w16.md line 165 "D-2 Option C" mis-reference. Out of v1.7..v1.16 amendment scope; line 165 is pre-amendment audit-time prose. Per POLICY 1 append-only, retaining historical content is acceptable. Future "audit-w16 retrospective annotation" sweep can address.
+
+**L-P14-002 SKIPPED with rationale:** perf-baseline-w16.md `producer: implementer` frontmatter. Convention question (does `producer` denote original author or latest amender?). D-239 lessons codified annotate-in-place for arch docs without bumping version; same convention extends to producer field.
+
+**TD-VSDD-070 codified:** Extend TD-VSDD-065 scope from "in-text decision IDs" to "all section/subsection headings (`# H1`, `## H2`, `### H3`) that name an external authority's decision/option/choice/amendment." Pass-14's section-heading angle caught what 13 prior in-line-citation-focused passes missed.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.16"` → `"1.17"` (matches latest non-reserved row). PASS.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

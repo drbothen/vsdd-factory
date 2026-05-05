@@ -445,3 +445,22 @@ Additionally: forward-pointers in scrubbed text MUST resolve in the named target
 - File as TD-VSDD-069 (Line-accuracy extension to recursive-scrub).
 
 **[codified]** by D-256 lessons.md append.
+
+---
+
+### LESSON: TD-VSDD-065 outbound-decision-ID semantic-anchor check must extend to section/subsection headings
+
+**Source:** D-257 pass-14 finding M-P14-001 (perf-baseline-w16.md line 154 H2 "Option C" non-resolving anchor)
+**Date:** 2026-05-05
+
+**Pattern:** TD-VSDD-065 (codified at D-251 from pass-8) requires that all outbound decision-ID anchors (`E-N D-x.y`, `ADR-NNN R-N.NN`, etc.) resolve to semantically compatible target structures. Pass-8 applied this at the in-text-citation level for line 156 of perf-baseline-w16.md (E-9 D-9.4 → E-9 AC-3). However, the H2 heading at line 154 of the same file — `## W-16 Gate Model (ADR-014 R-8.09 Revised — Option C)` — was not scrubbed. ADR-014 R-8.09 Amendment 2026-05-03 has no Options A/B/C taxonomy. The "Option C" anchor in the H2 heading does not resolve.
+
+Pass-14 (AC chain audit + section-heading angle) caught this 6 passes after pass-8 originally closed the related in-text issue.
+
+**Codification:**
+- Extend TD-VSDD-065 scope from "in-text decision IDs" to "all section/subsection headings (`# H1`, `## H2`, `### H3`) that name an external authority's decision/option/choice/amendment."
+- Adversary prompt should add a section-heading-anchor sweep alongside the in-text-anchor sweep.
+- Architect prompts for fix bursts MUST scrub BOTH headings AND inline citations — fix the in-text reference and verify no related H2/H3 still carries the obsolete anchor.
+- File as TD-VSDD-070 (TD-VSDD-065 scope extension to section/subsection headings).
+
+**[codified]** by D-257 lessons.md append.

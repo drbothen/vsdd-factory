@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.63"
+version: "1.64"
 status: current
 producer: state-manager
 timestamp: 2026-05-05T00:00:00
@@ -39,6 +39,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-254 — STORY-INDEX bumped to reflect D-254 combined seal-and-fix burst (pass-11 SUBSTANTIVE 1H/1M/0L sealed + v1.13→v1.14 minimal fix; H-P11-001 AC-3 ~14MB superseded contradiction closed; M-P11-001 open-questions.md nomenclature scrub; TD-VSDD-064 sequential-burst second application; TD-VSDD-067 codified). ADR-013 clock RESET 0_of_3. STORY-INDEX v1.60 → v1.61.
 > Updated 2026-05-05: D-255 — STORY-INDEX bumped to reflect D-255 combined seal-and-fix burst (third TD-VSDD-064 application; recursive-scrub per TD-VSDD-068 applied inline). Pass-12 SUBSTANTIVE 1H/3M/1L sealed. H-P12-001 closed (open-questions.md `M-1 closure` scrubbed; bidirectional anchor at gap-analysis line 326). L-P12-001 closed (Question prose version-tolerant). M-P12-001/002/003 closed (AC-3 prose-form rewrite, canonical ADR-014 label, no-comma byte count 643686). E-9 v1.14→v1.15. ADR-013 clock 0_of_3. STORY-INDEX v1.61 → v1.62.
 > Updated 2026-05-05: D-256 — STORY-INDEX bumped to reflect D-256 last-mile combined seal-and-fix burst (fourth TD-VSDD-064 application; TD-VSDD-069 line-accuracy verification codified). Pass-13 SUBSTANTIVE 0H/1M/2L sealed. M-P13-001 closed (open-questions.md line citation 326→325 off-by-one; TD-VSDD-069 inline grep confirm). L-P13-001 closed (AC-3 ADR-014 title `(research)` source-tag restored). L-P13-002 closed (audit-w16 line 36 backticks dropped). E-9 v1.15→v1.16. ADR-013 clock 0_of_3. STORY-INDEX v1.62 → v1.63.
+> Updated 2026-05-05: D-257 — STORY-INDEX bumped to reflect D-257 minimal combined seal-and-fix burst (fifth TD-VSDD-064 application; TD-VSDD-070 codified). Pass-14 SUBSTANTIVE 0H/1M/2L sealed. M-P14-001 closed (perf-baseline-w16.md line 154 H2 "Option C" non-resolving anchor scrubbed; ADR-014 R-8.09 Amendment 2026-05-03 citation substituted). L-P14-001/2 SKIPPED with rationale. E-9 v1.16→v1.17. ADR-013 clock 0_of_3. STORY-INDEX v1.63 → v1.64.
 > Updated in Wave 14 burst (2026-04-29): S-5.05 v1.3→v1.4 + S-5.06 v1.3→v1.4 (reality-vs-spec drift fixes). Pass-1 fix burst (2026-04-29): S-5.05 v1.4→v1.5 + S-5.06 v1.4→v1.5 (20 findings closed per pass-1 review tally [10 S-5.05 + 10 S-5.06]; D-144). Pass-2 fix burst (2026-04-29): both v1.5→v1.6 (20 findings closed [12 S-5.05 + 8 S-5.06]; D-145). Pass-3 (2026-04-29): S-5.05 v1.6→v1.7 (1 MED + 5 LOW closed; STORY-INDEX:136 cross-cutting BC-8.31.* count fixed); S-5.06 NITPICK_ONLY (no version bump; clock 1_of_3 per S-7.03 skip-fix strategy); D-146. Pass-4 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (8 LOW; clock 0_of_3→1_of_3); S-5.06 v1.6 NITPICK_ONLY (0 findings; clock 1_of_3→2_of_3); skip-fix discipline applied per S-7.03; D-147. Pass-5 (2026-04-29): S-5.05 v1.7 NITPICK_ONLY (5 LOW positive; clock 1_of_3→2_of_3); **S-5.06 v1.6→v1.7 CONVERGENCE_REACHED at pass-5** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status draft→ready); D-148.
 > Pass-6 (2026-04-29): **S-5.05 v1.7→v1.8 CONVERGENCE_REACHED at pass-6** (0 findings; clock 2_of_3→3_of_3 per ADR-013; status partial→ready; 3 consecutive NITPICK_ONLY: passes 4, 5, 6); D-149.
 >
