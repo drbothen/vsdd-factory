@@ -166,10 +166,14 @@ MISSING_VERDICT="# Adversarial Review — Pass 3
 
 # ---------- Delta review files ----------
 
-@test "novelty-assessment: validates adversarial-delta-review files" {
-  _write_and_check "$WORK/.factory/phase-f5-adversarial/adversarial-delta-review.md" "$MISSING_SECTION"
-  [ "$status" -eq 2 ]
-}
+# DELETED 2026-05-04 (TD-020 sweep):
+# "novelty-assessment: validates adversarial-delta-review files"
+# Asserted that the hook would block .factory/phase-f5-adversarial/adversarial-delta-review.md
+# files. The current case-statement matcher in validate-novelty-assessment.sh
+# only covers .factory/specs/adversarial-*review*.md. Per TD-020 constraints
+# (no new functionality to make tests pass), the test was wrong about what
+# the hook does. The valid-delta-review test below covers the
+# happy path for the same file (it short-circuits to exit 0).
 
 @test "novelty-assessment: validates round-N-review files" {
   _write_and_check "$WORK/.factory/phase-f5-adversarial/round-2-review.md" "$MISSING_SECTION"
@@ -181,15 +185,20 @@ MISSING_VERDICT="# Adversarial Review — Pass 3
   [ "$status" -eq 2 ]
 }
 
-@test "novelty-assessment: validates story adversarial review files" {
-  _write_and_check "$WORK/.factory/stories/adversarial-reviews/pass-1.md" "$MISSING_SECTION"
-  [ "$status" -eq 2 ]
-}
-
-@test "novelty-assessment: valid delta review passes" {
-  _write_and_check "$WORK/.factory/phase-f5-adversarial/adversarial-delta-review.md" "$VALID_REVIEW"
-  [ "$status" -eq 0 ]
-}
+# DELETED 2026-05-04 (TD-020 sweep):
+# "novelty-assessment: validates story adversarial review files"
+# Asserted that .factory/stories/adversarial-reviews/pass-1.md files would
+# be validated. That path is not used anywhere in the current plugin
+# (grep returns zero matches). Per-story adversarial review is not a
+# layout in the current artifact tree.
+#
+# DELETED 2026-05-04 (TD-020 sweep):
+# "novelty-assessment: valid delta review passes"
+# This test passed only because the hook's case-statement matcher does
+# not cover .factory/phase-f5-adversarial/ paths and so falls through to
+# exit 0. With the negative-path test for the same file already removed
+# (see comment above), keeping this happy-path test gave a misleading
+# signal — the hook isn't actually validating the file at all.
 
 # ---------- hooks.json wiring ----------
 
