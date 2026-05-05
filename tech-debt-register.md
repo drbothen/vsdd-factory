@@ -13,13 +13,14 @@ last_updated: 2026-05-04T00:00:00
 |----------|-------|-----------------|
 | P0 (next cycle) | 1 | TD-013 branch protection restore |
 | P1 (within 3 cycles) | 3 | XL (29–39 across 6 sub-stories) + TD-010 publish + TD-017 bats-orphan-detection |
-| P2 (backlog) | 14 | — (TD-015 per-invocation correlation ~30 pts; TD-016 run-all.sh glob; TD-018 clippy debt; TD-019 activate-helpers PowerShell-parity + Rust consolidation; TD-019a pwsh syntactic CI gate; TD-020 RESOLVED 2026-05-04 — sweep landed) |
+| P2 (backlog) | 15 | — (TD-015 per-invocation correlation ~30 pts; TD-016 run-all.sh glob; TD-018 clippy debt; TD-019 activate-helpers PowerShell-parity + Rust consolidation; TD-019a pwsh syntactic CI gate; TD-020 RESOLVED 2026-05-04 — sweep landed; TD-022 novelty-assessment hook phase-f5 path gap) |
 | P3 (v1.1+) | 5 | — (TD-021 frontmatter↔STORY-INDEX status drift, added 2026-05-04) |
 
 ## Debt Items
 
 | ID | Source | Description | Priority | Introduced | Cycle | Story | Due |
 |----|--------|-------------|----------|-----------|-------|-------|-----|
+| TD-022 | TD-020 sweep follow-on (2026-05-04) | `validate-novelty-assessment.sh` case-statement does not match `.factory/phase-f5-adversarial/adversarial-delta-review.md` — path falls through to `exit 0`. `phase-f5-scoped-adversarial` skill writes to that path (SKILL.md:84,171). Hook silently passes phase-f5 delta reviews without Novelty Assessment validation. Fix: add case arm + 2 bats tests. TD-020 deleted the tests that described this gap (correct — they asserted unimplemented behavior). | P2 | TD-020 sweep PR #82 (2026-05-04) | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-021 | post-ADR-015 story-housekeeping audit (2026-05-04) | Story-frontmatter vs STORY-INDEX status drift. Several stories (initial sample: S-4.06, S-4.07; possibly broader) have stale `status: ready` in frontmatter while STORY-INDEX correctly tracks them as `merged` (per merged PRs #30, #31). Pre-existing drift not caused by recent ADR-015 supersession work. Fix: either add a CI lint that asserts frontmatter status matches STORY-INDEX status, OR establish a one-time backfill burst to reconcile. | P3 | post-ADR-015 audit 2026-05-04 | v1.0-brownfield-backfill | — | v1.1+ |
 | TD-020 | run-all.sh skip-suites cleanup (referenced but never registered) | RESOLVED 2026-05-04 — sweep PR (`fix/td-020-sweep-skipped-bats-suites`) closed all four entries. **Per-suite outcomes:** (a) `codify-lessons` — FIXED: removed BC-5.36.007 (referenced a worktree that no longer exists post-merge); rewrote 15 path references to use `BATS_TEST_DIRNAME`-based absolute paths so the suite passes under run-all.sh's `cd $PLUGIN_ROOT`. 15/15 pass. (b) `generate-registry` — UN-SKIPPED with no test changes; generator stabilized after the original TD-016 churn. 6/6 pass. (c) `novelty-assessment` — FIXED: deleted 3 tests that asserted hook behavior the current `validate-novelty-assessment.sh` does not implement (delta-review path matching + a story-adversarial-review path that doesn't exist anywhere in the plugin) plus the paired happy-path test that was a misleading false-positive. 15/15 remaining pass. (d) `state-health` — UN-SKIPPED with no test changes. 31/31 pass. SKIP_SUITES is now empty; the comment block in run-all.sh updated; CHANGELOG entry "TD-020 sweep — bats SKIP_SUITES cleanup" documents the deletions. | P2 | rc.3 recovery → registered 2026-05-04 → resolved 2026-05-04 | v1.0-brownfield-backfill | — | RESOLVED |
 | TD-019a | PR #78 review follow-up (2026-05-04) | Add a lightweight pwsh syntactic-validation gate to CI — `[System.Management.Automation.Language.Parser]::ParseFile()` on both `.ps1` files, plus 3 smoke invocations (`-Help`, mocked-Linux, bad-platform). ~10 lines of YAML, no Pester runner needed, catches future parse errors before they hit a Windows operator. Recommended as the v1.0-cycle stopgap before TD-019(a)'s full Pester suite lands. Acceptance: PR opens against `develop` adding a `lint-pwsh` job to the existing CI workflow that runs on `windows-latest` (or `ubuntu-latest` with pwsh installed) on any PR touching `plugins/vsdd-factory/skills/activate/*.ps1`. | P2 | PR #78 review (test-analyzer) 2026-05-04 | v1.0-brownfield-backfill | — | v1.0.1 |
@@ -599,6 +600,43 @@ Promote from P3 to P2 if:
 - Q3 finding from 2026-05-04 post-ADR-015 audit follow-up burst
 - Sample drifted stories: S-4.06, S-4.07 (frontmatter `status: ready`; STORY-INDEX `merged`)
 - Related lint hook pattern: `plugins/vsdd-factory/hooks/validate-story-bc-sync.sh`
+
+---
+
+## TD-022 — novelty-assessment hook missing phase-f5 delta-review path
+
+**Severity:** P2 (backlog; hook silently passes unvalidated files)
+**Adopted:** 2026-05-04 (TD-020 sweep follow-on, PR #82)
+**Origin:** TD-020 sweep surfaced that three novelty-assessment.bats tests described real production behavior that was never implemented in `validate-novelty-assessment.sh`.
+
+### Context
+
+`validate-novelty-assessment.sh` has a case-statement matcher (lines 39-47) that determines which files receive Novelty Assessment validation. The `phase-f5-scoped-adversarial` skill writes its adversarial-delta-review output to `.factory/phase-f5-adversarial/adversarial-delta-review.md` (documented in SKILL.md and step-d-adversary-report.md). That path does NOT match any arm in the case-statement — it falls through to `exit 0`, meaning phase-f5 delta reviews are silently accepted by the hook without Novelty Assessment validation.
+
+This is a pre-existing gap: the hook was not updated when the `phase-f5-scoped-adversarial` skill introduced the `phase-f5-adversarial/` output path. TD-020 deleted the three bats tests that asserted this validation (correct — they asserted behavior the hook does not have), but did not fix the hook (out of TD-020 scope).
+
+### Fix
+
+Add a case arm to `validate-novelty-assessment.sh`:
+
+```bash
+  *.factory/phase-f5-adversarial/adversarial-delta-review.md) ;;
+```
+
+and add corresponding bats tests in `novelty-assessment.bats`:
+- "validates adversarial-delta-review files" (negative path — missing section → exit 2)
+- "valid delta review passes" (positive path — complete section → exit 0)
+
+### Estimated Cost
+
+1-2 pts (hook one-liner + 2 bats tests + run-all.sh verification).
+
+### Cross-references
+
+- `plugins/vsdd-factory/hooks/validate-novelty-assessment.sh` lines 39-47 (case-statement)
+- `plugins/vsdd-factory/skills/phase-f5-scoped-adversarial/SKILL.md` lines 84, 171
+- `plugins/vsdd-factory/skills/phase-f5-scoped-adversarial/steps/step-d-adversary-report.md` lines 14, 30
+- TD-020 sweep PR #82 (deleted the original asserting tests)
 
 ---
 
