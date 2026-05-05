@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.24"
+version: "1.25"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -485,7 +485,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.22 | 2026-05-05 | state-manager | D-264 multi-fix burst — H-P21-001 (BC-1.05.036 error codes -7/-8→-2/-3; source-code verified); H-P21-002 (open-questions.md line 325→326 citation; grep verified); M-P21-001 (BC-1.05.035 ADR-015 awareness clause added per TD-VSDD-074); M-P21-002 (BC-1.05.036 fabricated "host" category corrected); M-P21-003 (truncated:bool documented as reserved always-false in v1); L-P21-001/002 DEFERRED; TD-VSDD-075 codified. |
 | 1.23 | 2026-05-05 | state-manager | D-265 sibling-sweep fix burst — H-P22-001 (BC-1.05.036 §Related BCs lines 61-62 + §EC-004 line 86 + §Canonical Test Vectors line 97 aligned to Postcondition 5 no-event reality); H-P22-002 (BC-1.05.035 §Postcondition 4 INTERIM qualifier added); M-P22-001 (BC-1.05.036 Postcondition 1 scoped to success path); M-P22-002 (OQ-W16-001 acceptance (a) AND-linked to canonical event name); M-P22-003 (BC-1.05.035 precedence ladder appended to §Postconditions); L-P22-001/002 SKIPPED/absorbed; TD-VSDD-076 codified. |
 | 1.24 | 2026-05-05 | state-manager | D-267 combined seal-and-fix — H-P24-001 BC-1.05.036 EC-006 truncated:bool annotation aligned to `/* */` form (TD-VSDD-076 self-violation corrected); 6 MEDs + 3 LOWs closed via lessons-corpus repair (open-backlog stubs filled, section-boundary fixed, marker orphans repaired, TD-VSDD-074 Source drift resolved); TD-VSDD-077 codified (lessons-corpus bidirectional coherence validation hook). |
-| 1.25 | — | — | (reserved) |
+| 1.25 | 2026-05-05 | state-manager | D-268 source-truth fix burst — H-P25-001 (BC-1.05.036:52 fabricated denial-path enumeration replaced with actual 4 emit_denial reasons per exec_subprocess.rs:148/155/162/169; env_allow silently filtered, cwd_allow unenforced per gap-analysis §1 clarified); M-P25-001 (BC-1.05.036 §EC-003 tightened to enumerate 4 real denial reasons + env_allow/cwd_allow non-triggering note); M-P25-002 (BC-1.05.036:50 Instant cite corrected — line 270 is post-spawn deadline, implementer must add started=Instant::now() before spawn at line 252); L-P25-001/002 SKIPPED with rationale; TD-VSDD-078 codified (BC postcondition source-of-truth enumeration verification — extends TD-VSDD-075). |
+| 1.26 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1344,5 +1345,51 @@ Pass-24's convention-meta audit revealed that the lessons-corpus artifacts thems
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.23"` → `"1.24"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (twelfth use):** State-manager handles pass-24 seal and multi-file repair burst atomically. All fixes are textual corrections/additions in lessons-corpus artifacts where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.25 (2026-05-05) — D-268 source-truth fix burst: pass-25 1H/2M/2L; BC denial-path enumeration corrected; TD-VSDD-078 codified
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (THIRTEENTH application).**
+
+Pass-25 verdict: SUBSTANTIVE 1H/2M/2L. Source-code traceability exhaustive sweep angle (NEW per TD-VSDD-057; extends TD-VSDD-078 codified in this burst). 22 source-claims verified PASS; 1 HIGH source-fabrication caught. ADR-013 clock RESET to 0_of_3.
+
+**Fix 1 — H-P25-001 CLOSED (BC-1.05.036:52 fabricated denial-path enumeration corrected — TD-VSDD-078 first application):**
+
+Source-code re-verification per TD-VSDD-075 + TD-VSDD-078: read `crates/factory-dispatcher/src/host/exec_subprocess.rs` lines 147–171. Actual `emit_denial` callsites:
+- Line 148: `emit_denial(ctx, cmd, "no_exec_subprocess_capability", Map::new())`
+- Line 155: `emit_denial(ctx, cmd, "binary_not_on_allow_list", details)`
+- Line 162: `emit_denial(ctx, cmd, "shell_bypass_not_acknowledged", details)`
+- Line 169: `emit_denial(ctx, cmd, "setuid_or_setgid_binary", details)`
+
+BC-1.05.036 §Postcondition 5 previously listed `(binary not allowed, shell bypass not acknowledged, env not allowed, cwd not allowed)` — fabricated: "env not allowed" and "cwd not allowed" have no `emit_denial` callsites in source (env_allow silently filtered, cwd_allow unenforced per gap-analysis §1); `no_exec_subprocess_capability` and `setuid_or_setgid_binary` were entirely missing.
+
+Fix applied: §Postcondition 5 parenthetical replaced with the 4 actual source-of-truth reason strings per exec_subprocess.rs:148/155/162/169, plus sibling clarification about env_allow/cwd_allow reality.
+
+**Post-edit verification PASS:** `grep -n 'env not allowed\|cwd not allowed' BC-1.05.036.md` → zero matches in non-changelog body. PASS.
+
+**Fix 2 — M-P25-001 CLOSED (BC-1.05.036 §EC-003 tightened to enumerate 4 real denial reasons — TD-VSDD-076 sibling sweep applied):**
+
+§EC-003 Description column expanded from generic "Capability check fails" to enumerate the 4 real denial reason strings per exec_subprocess.rs:148/155/162/169, with explicit note that env_allow + cwd_allow violations do NOT trigger this EC. Sibling-sweep discipline (TD-VSDD-076) applied: §Postcondition 5 correction propagated to sibling §Edge Cases table.
+
+**Fix 3 — M-P25-002 CLOSED (BC-1.05.036:50 Instant cite corrected — line 270 is post-spawn deadline, not spawn time):**
+
+BC-1.05.036 §Postconditions item 3 previously stated "the deadline `Instant` already present in `execute_bounded` (exec_subprocess.rs:270) is the reference." Source verification: line 270 is `let deadline = Instant::now() + Duration::from_millis(timeout_ms as u64);` — this is the POST-SPAWN deadline computation, not a spawn-time duration reference. The actual spawn point is line 252: `let mut child = command.spawn().map_err(|_| codes::INTERNAL_ERROR)?;`.
+
+Fix applied: §Postconditions item 3 now correctly directs implementer to add `let started = Instant::now();` before `command.spawn()` at line 252; notes that line 270 is post-spawn and NOT the duration reference.
+
+**L-P25-001 SKIPPED (gap-analysis line 216 unbalanced paren — cosmetic; markdown renders fine; no semantic impact).**
+
+**L-P25-002 SKIPPED (perf-baseline `references:` field convention — pending intent; may be deliberate distinction from formal `inputs:`; per D-257 prior deferral rationale).**
+
+**TD-VSDD-078 codified (BC postcondition source-of-truth enumeration verification — extension of TD-VSDD-075):**
+
+When a BC postcondition or normative BC section cites a CONCRETE ENUMERATION (list of error codes, list of denial reasons, list of fields, list of paths) derived from source code, the fix-burst or authoring burst MUST grep the cited source file for each enumeration item and verify presence/absence. Fabricated items (present in BC but absent from source) and missing items (present in source but absent from BC) must both be corrected in the same burst. Extends TD-VSDD-075 sub-rule (source-code-verification) to cover enumerations specifically. Appended to lessons.md and open-backlog-post-rc8.md.
+
+**ADR-013 clock:** 0_of_3 (reset by pass-25 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (26/27/28) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.24"` → `"1.25"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (thirteenth use):** State-manager handles pass-25 seal and 3-fix burst atomically. All fixes are textual corrections to BC normative sections where source-code-verification confirms ground truth; architect judgment not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

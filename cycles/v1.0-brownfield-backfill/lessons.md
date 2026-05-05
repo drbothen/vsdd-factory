@@ -593,3 +593,22 @@ TD-VSDD-075 (codified at v1.22) covered inter-document line-citation refresh and
 - File as TD-VSDD-077 (Lessons-corpus bidirectional coherence validation hook).
 
 **[codified]** by D-267 lessons.md append.
+
+---
+
+### LESSON: BC postconditions citing concrete enumerations from source code MUST be source-of-truth-verified (TD-VSDD-078 — extension of TD-VSDD-075)
+
+**Source:** D-268 pass-25 finding H-P25-001 (BC-1.05.036:52 fabricated denial-path enumeration not present in source code)
+**Date:** 2026-05-05
+
+**Pattern:** BC-1.05.036 §Postcondition 5 was edited at v1.21 (D-263 L-P20-002) to clarify error-path event reality. The edit listed 4 denial paths (binary not allowed, shell bypass not acknowledged, env not allowed, cwd not allowed) — but the actual `emit_denial(...)` callsites in `crates/factory-dispatcher/src/host/exec_subprocess.rs:148/155/162/169` use different reason strings (`no_exec_subprocess_capability`, `binary_not_on_allow_list`, `shell_bypass_not_acknowledged`, `setuid_or_setgid_binary`). The fabricated "env_allowed/cwd_allowed" paths don't emit at all (env silently filtered; cwd unenforced).
+
+The fabrication survived 4 passes (21, 22, 23, 24) because each focused on different scopes — convention checks, sibling-propagation, narrative coherence, lessons-corpus. Pass-25's source-code traceability exhaustive sweep was the first to grep the source file for the actual emit callsites.
+
+**Codification:**
+- TD-VSDD-075 sub-rule (source-code-verification) is extended: when a BC postcondition cites a CONCRETE ENUMERATION (list of error codes, list of denial reasons, list of fields, list of paths), the burst MUST grep the cited source file for each enumeration item and verify presence/absence.
+- Architect/state-manager prompts MUST include enumeration verification when fixing or authoring BC postconditions that list source-derived items.
+- Adversary's source-code-traceability angle (TD-VSDD-057 menu addition) should be a regular axis.
+- File as TD-VSDD-078 (BC postcondition source-of-truth enumeration verification — extension of TD-VSDD-075).
+
+**[codified]** by D-268 lessons.md append.
