@@ -8,8 +8,15 @@ setup() {
   HOOK="$PLUGIN_ROOT/hooks/validate-state-size.sh"
   WORK=$(mktemp -d)
   mkdir -p "$WORK/.factory"
-  # Initialize a git repo so the hook can compare against HEAD
+  # Initialize a git repo so the hook can compare against HEAD.
+  # Configure user.email/name locally — required in CI environments
+  # where global git config is absent (otherwise commit fails with
+  # status 128). Using --local so the test's git config doesn't
+  # leak into the operator's global config.
   git -C "$WORK/.factory" init -q
+  git -C "$WORK/.factory" config user.email "test@vsdd-factory.local"
+  git -C "$WORK/.factory" config user.name "vsdd-factory test"
+  git -C "$WORK/.factory" config commit.gpgsign false
   git -C "$WORK/.factory" checkout -q --orphan factory-artifacts
   echo "# Initial STATE" > "$WORK/.factory/STATE.md"
   git -C "$WORK/.factory" add STATE.md

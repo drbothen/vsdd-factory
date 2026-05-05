@@ -2,6 +2,72 @@
 
 ## Unreleased
 
+## 1.0.0-rc.11 — Single-commit burst protocol + TD-020 sweep + retag-round-2 (2026-05-04)
+
+Three improvements bundled (rc.11 required two retag rounds to ship; root
+causes documented as TD-VSDD-054 + TD-VSDD-055 in the engine register).
+
+### Single-commit burst protocol (TD-VSDD-053)
+
+Resolves external **TD-VSDD-044**: the self-referential factory-artifacts
+HEAD cite in STATE.md / SESSION-HANDOFF.md "current state" sections that
+caused 6× recurrence loops in real-world dogfood (5+ force-pushes per
+session). Retires the two-commit burst protocol; replaces with a
+single-commit protocol.
+
+The loop existed because STATE.md sits ON the factory-artifacts branch,
+so committing STATE.md changed HEAD, instantly staling any HEAD-SHA cite
+inside the same content. The two-commit workaround (Stage 1 placeholder
+→ commit → Stage 2 backfill SHA → commit) had to update the SHA in 8
+specific cite locations in lockstep; missing any one created a
+"fix-the-fix" loop. The structural fix removes the cite altogether:
+`git -C .factory log -1` returns the current HEAD; STATE.md no longer
+claims it. Historical SHA references in changelog rows, decisions log,
+and cycle manifests remain valid (immutable past burst SHAs).
+
+#### Changed
+
+- **`templates/verify-sha-currency.sh`** — removed factory-arts cite
+  extraction (~80 LOC). Preserved: develop SHA cite check (cross-branch,
+  no loop), `MULTI_COMMIT_CHAIN_NOT_ALLOWED` regression guard,
+  wave-state.yaml ↔ STATE.md cross-record check, tense-flip detection.
+- **`agents/state-manager.md`** — protocol references updated; current
+  factory-artifacts HEAD is `git -C .factory log -1`, not a string in
+  any artifact (operational guidance in agent doc, not in STATE.md prose).
+- **`skills/state-burst/SKILL.md`** — full rewrite to single-commit;
+  Stage 1/2 sections removed; `15fa97e6` placeholder pattern removed;
+  commit message must NOT contain `backfill`.
+- **`templates/state-manager-checklist-template.md`** — full rewrite to
+  single-commit; two acceptable `remediation_sha:` patterns documented.
+
+#### Preserved (not touched)
+
+- `validate-input-hash.sh` — artifact-level drift detection
+- `validate-state-pin-freshness.sh` — version-pin freshness
+- Historical SHA references throughout (changelog/decisions-log/cycle-
+  manifest/TL;DR History/BC/story/spec IDs)
+- `verify-sha-currency.sh` wave-state ↔ STATE cross-record check
+
+### Retag-round-2 fixes (TD-VSDD-054 + TD-VSDD-055)
+
+The first rc.11 release attempt failed at pre-release validation — TD-020
+sweep had un-skipped 4 bats suites with "passes locally" claims that hit
+two CI-environment regressions:
+
+- **TD-VSDD-054** (PR #85+#86): `generate-registry.bats` invoked the
+  generator script which read `git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json`.
+  CI uses shallow clone (default `actions/checkout` fetch-depth: 1) so
+  the historical SHA wasn't available. Fixed by vendoring the historical
+  hooks.json as `scripts/legacy/hooks-json-pre-templating.json` (94 lines,
+  exact byte-for-byte copy) and updating the generator to read the
+  static file. No more git-history dependency.
+- **TD-VSDD-055** (PR #87): `state-health.bats` setup ran `git commit`
+  which exits status 128 in CI because user.email/name aren't globally
+  configured on GitHub-hosted runners. Fixed by adding three
+  `git config --local` calls in the test's setup() (user.email,
+  user.name, commit.gpgsign false). Local config doesn't pollute
+  operator's global config.
+
 ### TD-020 sweep — bats SKIP_SUITES cleanup
 
 Resolved the four bats suites permanently excluded from the
