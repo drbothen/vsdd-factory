@@ -38,6 +38,15 @@ jobs:
       - name: Run bin tests
         run: bats plugins/vsdd-factory/tests/bin.bats
 
+      - name: Run S-9.00 perf-baseline tests
+        # factory-artifacts is already mounted by the "Mount factory artifacts"
+        # step above, which makes .factory/ available (including
+        # .factory/measurements/measure-bundle-sizes.sh and
+        # .factory/measurements/fixtures/handoff-validator-input.json).
+        # The bats suite requires jq (installed above) and skips hyperfine
+        # gracefully when not present.
+        run: bats plugins/vsdd-factory/tests/perf-baseline.bats
+
       - name: Check bats files for orphan hook references
         run: bash plugins/vsdd-factory/tests/check-bats-orphans.sh
 

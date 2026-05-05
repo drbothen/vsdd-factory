@@ -16,11 +16,13 @@
 #   AC-3 metric separation: advisory cap on all_hook_plugins_wasm_bytes only.
 
 REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
-FACTORY_DIR="$REPO_ROOT/../../../.factory"
 # .factory/ lives in the main repo root, not the worktree working tree.
-# Resolve it relative to the worktree's git common dir instead.
+# Resolve it relative to the worktree's git common dir.
+# If mount fails, emit a clear error so operators know to run:
+#   git worktree add .factory origin/factory-artifacts
 MAIN_REPO="$(git -C "$BATS_TEST_DIRNAME" rev-parse --git-common-dir 2>/dev/null | sed 's|/\.git$||' || echo "$REPO_ROOT")"
 FACTORY_DIR="$MAIN_REPO/.factory"
+[ -d "$FACTORY_DIR" ] || { echo "FACTORY_DIR=$FACTORY_DIR doesn't exist; mount factory-artifacts via 'git worktree add .factory origin/factory-artifacts'" >&2; exit 1; }
 BUNDLE_DIR="$REPO_ROOT/plugins/vsdd-factory/hook-plugins"
 SCRIPT="$FACTORY_DIR/measurements/measure-bundle-sizes.sh"
 BASELINE_DOC="$FACTORY_DIR/architecture/perf-baseline-w16.md"
@@ -62,12 +64,16 @@ FROZEN_PLUGINS=(
   # Output must be valid JSON.
   echo "$output" | jq . >/dev/null 2>&1
 
-  # Independently compute expected sum of all .wasm files (AC-5 anti-tautology
-  # principle: we derive the expected value ourselves, not from the baseline doc).
+  # all_hook_plugins_wasm_bytes = sum of the frozen-17 plugins only (= sum(per_plugin)).
+  # Non-frozen .wasm files (hello-hook.wasm, underscore stubs) go into
+  # unaccounted_wasm_bytes, not all_hook_plugins_wasm_bytes.
+  # AC-5 anti-tautology: we derive the expected value ourselves, not from the doc.
   local expected_total=0
-  for f in "$BUNDLE_DIR"/*.wasm; do
+  for plugin in "${FROZEN_PLUGINS[@]}"; do
+    local wasm_file="$BUNDLE_DIR/${plugin}.wasm"
+    [ -f "$wasm_file" ] || continue
     local sz
-    sz=$(wc -c < "$f")
+    sz=$(wc -c < "$wasm_file")
     expected_total=$((expected_total + sz))
   done
 
@@ -91,10 +97,12 @@ FROZEN_PLUGINS=(
   echo "$output" | jq . >/dev/null 2>&1
 
   for plugin in "${FROZEN_PLUGINS[@]}"; do
-    # per_plugin must have an entry keyed by plugin name (with or without .wasm).
+    # per_plugin must have an entry keyed by plugin name (with or without .wasm),
+    # and it must be a positive integer (> 0) — "0" means the plugin is absent
+    # from the bundle and AC-2 should fail loudly so the frozen list is updated.
     local val
-    val=$(echo "$output" | jq --arg p "$plugin" '.per_plugin[$p] // .per_plugin[($p + ".wasm")] // empty')
-    [ -n "$val" ]
+    val=$(echo "$output" | jq --arg p "$plugin" '.per_plugin[$p] // .per_plugin[($p + ".wasm")] // 0')
+    [ "$val" -gt 0 ]
   done
 }
 
@@ -112,25 +120,33 @@ FROZEN_PLUGINS=(
 
   echo "$output" | jq . >/dev/null 2>&1
 
-  # Each field must exist and be a positive integer.
-  local hook_bytes grand_bytes dispatcher_bytes
+  # Each field must exist and be a positive integer (or non-negative for unaccounted).
+  local hook_bytes grand_bytes dispatcher_bytes unaccounted_bytes
   hook_bytes=$(echo "$output" | jq '.all_hook_plugins_wasm_bytes')
   grand_bytes=$(echo "$output" | jq '.grand_total_bytes')
   dispatcher_bytes=$(echo "$output" | jq '.dispatcher_bytes')
+  unaccounted_bytes=$(echo "$output" | jq '.unaccounted_wasm_bytes')
 
   [ "$hook_bytes" -gt 0 ]
   [ "$grand_bytes" -gt 0 ]
   [ "$dispatcher_bytes" -ge 0 ]
+  [ "$unaccounted_bytes" -ge 0 ]
 
-  # grand_total_bytes must equal dispatcher_bytes + all_hook_plugins_wasm_bytes.
+  # grand_total_bytes must equal dispatcher + all_hook_plugins + unaccounted.
   local expected_grand
-  expected_grand=$((dispatcher_bytes + hook_bytes))
+  expected_grand=$((dispatcher_bytes + hook_bytes + unaccounted_bytes))
   [ "$grand_bytes" -eq "$expected_grand" ]
+
+  # dispatcher_bytes must be > 0: if the binary is absent, build it so the
+  # metric-separation guard below is meaningful. An absent dispatcher trivially
+  # satisfies the old disjunction (dispatcher_bytes==0 ⇒ hook==grand) and
+  # nullifies the AC-3 check.
+  [ "$dispatcher_bytes" -gt 0 ]
 
   # Sanity: all_hook_plugins_wasm_bytes != grand_total_bytes when dispatcher
   # contributes (i.e. they are distinct metrics, not the same field).
-  # (This guards against a single-field implementation.)
-  [ "$hook_bytes" -ne "$grand_bytes" ] || [ "$dispatcher_bytes" -eq 0 ]
+  # No disjunction — dispatcher_bytes > 0 is now asserted above.
+  [ "$hook_bytes" -ne "$grand_bytes" ]
 }
 
 # ---------------------------------------------------------------------------
@@ -216,8 +232,14 @@ FROZEN_PLUGINS=(
   # Must document the advisory cap formula (median x 3 or median × 3).
   echo "$content" | grep -qiE "median.*[x×].*3|median.*3|3.*median"
 
-  # Must have a methodology or measurement section.
-  echo "$content" | grep -qiE "methodology|measurement path|Measurement Path"
+  # Must have a "## Methodology" heading (exact casing).
+  echo "$content" | grep -qE "^## Methodology$"
+
+  # Methodology section must mention wc -c (the byte-count tool).
+  echo "$content" | grep -q "wc -c"
+
+  # Methodology section must mention hyperfine (the cold-start measurement tool).
+  echo "$content" | grep -q "hyperfine"
 
   # Must cite the cold-start p95 gate (500ms).
   echo "$content" | grep -qE "500"
