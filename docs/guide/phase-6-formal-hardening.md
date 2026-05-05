@@ -187,4 +187,4 @@ Phase 6 is complete when all verification reports show PASS:
 - DTU validation clean (if DTU clones exist)
 - Purity boundaries intact
 
-If any track fails, fix the issue via `/fix-pr-delivery` and re-run the failing track. Findings that require implementation changes route back through Phase 5 (adversarial review of the fix).
+If any track fails, fix the issue via `/vsdd-factory:fix-pr-delivery` and re-run the failing track. Findings that require implementation changes route back through Phase 5 (adversarial review of the fix).
