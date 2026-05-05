@@ -85,7 +85,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 | EC-003 | Capability check fails | `internal.capability_denied` emitted; `host.exec_subprocess.completed` NOT emitted |
 | EC-004 | Subprocess times out | Returns `Err(TIMEOUT -2)`; **NO event emitted in v1** (per Postcondition 5; future error-path emit is out-of-scope); `host.exec_subprocess.completed` NOT emitted |
 | EC-005 | Subprocess output exceeds cap | `OUTPUT_TOO_LARGE` path; `host.exec_subprocess.completed` NOT emitted |
-| EC-006 | Payload field type check | All 8 fields present with declared types (`plugin_id: String`, `binary: String`, `args_count: u32`, `exit_code: i32`, `duration_ms: u64`, `stdout_bytes: u64`, `stderr_bytes: u64`, `truncated: bool [reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1]`) |
+| EC-006 | Payload field type check | All 8 fields present with declared types (`plugin_id: String`, `binary: String`, `args_count: u32`, `exit_code: i32`, `duration_ms: u64`, `stdout_bytes: u64`, `stderr_bytes: u64`, `truncated: bool /* reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1 */`) |
 
 ## Canonical Test Vectors
 

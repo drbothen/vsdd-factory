@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.23"
+version: "1.24"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -484,7 +484,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.21 | 2026-05-05 | state-manager | D-263 implementation-readiness fix burst — M-P20-001 (OQ-3 timeout/output pinned) + M-P20-002 (BC-1.05.036 ADR-015 awareness) + L-P20-002 (BC-1.05.036 error-path reality) + TD-VSDD-074 (BC last_amended scope extension); L-P20-001 SKIPPED with rationale. |
 | 1.22 | 2026-05-05 | state-manager | D-264 multi-fix burst — H-P21-001 (BC-1.05.036 error codes -7/-8→-2/-3; source-code verified); H-P21-002 (open-questions.md line 325→326 citation; grep verified); M-P21-001 (BC-1.05.035 ADR-015 awareness clause added per TD-VSDD-074); M-P21-002 (BC-1.05.036 fabricated "host" category corrected); M-P21-003 (truncated:bool documented as reserved always-false in v1); L-P21-001/002 DEFERRED; TD-VSDD-075 codified. |
 | 1.23 | 2026-05-05 | state-manager | D-265 sibling-sweep fix burst — H-P22-001 (BC-1.05.036 §Related BCs lines 61-62 + §EC-004 line 86 + §Canonical Test Vectors line 97 aligned to Postcondition 5 no-event reality); H-P22-002 (BC-1.05.035 §Postcondition 4 INTERIM qualifier added); M-P22-001 (BC-1.05.036 Postcondition 1 scoped to success path); M-P22-002 (OQ-W16-001 acceptance (a) AND-linked to canonical event name); M-P22-003 (BC-1.05.035 precedence ladder appended to §Postconditions); L-P22-001/002 SKIPPED/absorbed; TD-VSDD-076 codified. |
-| 1.24 | — | — | (reserved) |
+| 1.24 | 2026-05-05 | state-manager | D-267 combined seal-and-fix — H-P24-001 BC-1.05.036 EC-006 truncated:bool annotation aligned to `/* */` form (TD-VSDD-076 self-violation corrected); 6 MEDs + 3 LOWs closed via lessons-corpus repair (open-backlog stubs filled, section-boundary fixed, marker orphans repaired, TD-VSDD-074 Source drift resolved); TD-VSDD-077 codified (lessons-corpus bidirectional coherence validation hook). |
+| 1.25 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1294,5 +1295,54 @@ Appended to `open-backlog-post-rc8.md` as TD-VSDD-076 and to `cycles/v1.0-brownf
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.22"` → `"1.23"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (eleventh use):** State-manager handles pass-22 seal and 5-fix burst atomically. All fixes are textual corrections/additions where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.24 (2026-05-05) — D-267 combined seal-and-fix: pass-24 1H/6M/3L; BC sibling annotation alignment + lessons-corpus repair; TD-VSDD-077 codified
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (TWELFTH application).**
+
+Pass-24 verdict: SUBSTANTIVE 1H/6M/3L. Convention-meta audit angle (NEW per TD-VSDD-057) — audits lessons-corpus artifacts (lessons.md + open-backlog-post-rc8.md) themselves for coherence defects introduced by the 20 TD-VSDD codification bursts. ADR-013 clock RESET to 0_of_3.
+
+**Fix 1 — H-P24-001 CLOSED (BC-1.05.036 EC-006 truncated:bool annotation aligned to `/* */` form — TD-VSDD-076 self-violation corrected):**
+
+BC-1.05.036 §Postconditions item 2 (line 49) used `/* ... */` C-style annotation for `truncated: bool`. BC-1.05.036 §Edge Cases EC-006 (line 88) used `[ ... ]` bracket annotation for the SAME field with identical explanatory text. Intra-document semantic-sibling annotation style inconsistency — precisely the class TD-VSDD-076 mandates sweeping. Fix: EC-006 line 88 aligned to `/* ... */` matching §Postconditions item 2. Both sites now read `truncated: bool /* reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1 */`.
+
+**Fix 2 — M-P24-001/002/003 CLOSED (open-backlog-post-rc8.md stubs filled for TD-VSDD-069/071/075):**
+
+Three stub entries had body content merged into the next numbered entry: TD-VSDD-069 body was concatenated with TD-VSDD-070; TD-VSDD-071 body was concatenated with TD-VSDD-072; TD-VSDD-075 body was concatenated with TD-VSDD-076. Fix: split all merged entries — each TD-VSDD-NNN entry now contains only its own body content. TD-VSDD-069 (line-accuracy extension to recursive-scrub), TD-VSDD-071 (OQ-table propagation hook), and TD-VSDD-075 (last_amended dependent-citation + source-code-verification) are now individually self-contained and enforceable.
+
+**Fix 3 — M-P24-004 CLOSED (section-boundary fixed: TD-VSDD-073/075/076 moved to correct H2 section):**
+
+TD-VSDD-073, TD-VSDD-075, and TD-VSDD-076 entries were positioned after the `## Lessons codified during the cycle` H2 boundary in open-backlog-post-rc8.md. All three are Phase D-4 TD-VSDD entries and belong under `## New from Phase D-4 (2026-05-05)`. Fixed by consolidating all TD-VSDD-NNN entries (056-077) into the `## New from Phase D-4` section in monotonically ascending order.
+
+**Fix 4 — M-P24-005 CLOSED (lessons.md `[codified]` marker orphans repaired):**
+
+Three `[codified] by D-NNN` markers were displaced from their associated lessons: (1) D-252 marker appeared after TD-VSDD-067 lesson; moved to immediately follow TD-VSDD-066 lesson (D-252 codified TD-VSDD-066, not TD-VSDD-067); (2) D-257 marker appeared after TD-VSDD-071 lesson; moved to immediately follow TD-VSDD-070 lesson (D-257 codified TD-VSDD-070); (3) D-261 marker appeared after TD-VSDD-074 lesson; moved to immediately follow TD-VSDD-073 lesson (D-261 codified TD-VSDD-073). All duplicate orphaned markers removed.
+
+**Fix 5 — M-P24-006 CLOSED (bidirectional drift on TD-VSDD-074 Source field resolved):**
+
+open-backlog-post-rc8.md TD-VSDD-074 entry Source included `+ PG-P20-001`. lessons.md TD-VSDD-074 LESSON Source field was missing `+ PG-P20-001`. Fix: added `+ PG-P20-001` to lessons.md Source field for TD-VSDD-074 lesson, restoring bidirectional consistency.
+
+**L-P24-001 CLOSED (non-monotonic ordering fixed):** All TD-VSDD-NNN entries in `## New from Phase D-4` section now in strictly ascending 056..077 order.
+
+**L-P24-002 CLOSED (conflated content corrected):** TD-VSDD-072 body in open-backlog no longer contains TD-VSDD-071 content (stub-fill repair in Fix 2 above addresses root cause).
+
+**L-P24-003 CLOSED (TD-VSDD-076 lesson title precision improved):** Title changed from `(TD-VSDD-076 extension to TD-VSDD-075)` to `(TD-VSDD-076; extends TD-VSDD-075 from inter-document to intra-document scope)` — clarifies that TD-VSDD-076 specifically extends the dependent-citation-propagation discipline to intra-document siblings.
+
+**TD-VSDD-077 codified (Lessons-corpus bidirectional coherence validation hook):**
+
+Pass-24's convention-meta audit revealed that the lessons-corpus artifacts themselves had accumulated 6 distinct coherence defects across 20 TD-VSDD codification bursts. Going forward: when adding any TD-VSDD-NNN entry, MUST verify (a) lessons.md has full body + Source + [codified] marker immediately following lesson content, (b) open-backlog has matching bullet under correct H2 with body content not stub, (c) ordering is monotonic, (d) Source citations match bidirectionally. Appended TD-VSDD-077 to both lessons.md and open-backlog-post-rc8.md.
+
+**Post-edit verification PASS:**
+- `grep -n 'truncated: bool' BC-1.05.036.md` → both line 49 and line 88 use `/* ... */` annotation. PASS.
+- `grep -n '\[codified\]' lessons.md` → all markers within ~2 lines of associated lesson content. PASS.
+- open-backlog TD-VSDD-069/071/075 stubs no longer empty — each has self-contained body content. PASS.
+
+**ADR-013 clock:** 0_of_3 (reset by pass-24 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (25/26/27) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.23"` → `"1.24"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (twelfth use):** State-manager handles pass-24 seal and multi-file repair burst atomically. All fixes are textual corrections/additions in lessons-corpus artifacts where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

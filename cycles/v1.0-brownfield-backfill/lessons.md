@@ -393,6 +393,8 @@ The content is correct (both bursts' edits shipped); only the audit-trail bounda
 - Architect prompt for fix bursts must now run the leak scan against the broader scope.
 - File as TD-VSDD-066 (TD-VSDD-063 scope extension to register-class permanent specs).
 
+**[codified]** by D-252 lessons.md append.
+
 ---
 
 ### LESSON: AC-numbered values must cross-validate against underlying measurement source
@@ -410,8 +412,6 @@ The original ~14MB cite came from audit-w16.md Section 5 R-W16-003 (pre-amendmen
 - File as TD-VSDD-067 (Numeric-cross-anchor review axis for adversary).
 
 **[codified]** by D-254 lessons.md append.
-
-**[codified]** by D-252 lessons.md append.
 
 ---
 
@@ -463,6 +463,8 @@ Pass-14 (AC chain audit + section-heading angle) caught this 6 passes after pass
 - Architect prompts for fix bursts MUST scrub BOTH headings AND inline citations — fix the in-text reference and verify no related H2/H3 still carries the obsolete anchor.
 - File as TD-VSDD-070 (TD-VSDD-065 scope extension to section/subsection headings).
 
+**[codified]** by D-257 lessons.md append.
+
 ---
 
 ### LESSON: When an OQ is filed citing an epic as scope-owner, the epic's Open Questions table must contain a corresponding row
@@ -480,8 +482,6 @@ A story-writer authoring S-9.07 reading E-9 §Open Questions would miss the bina
 - File as TD-VSDD-071 (OQ-table propagation hook from open-questions register to epic body).
 
 **[codified]** by D-258 lessons.md append.
-
-**[codified]** by D-257 lessons.md append.
 
 ---
 
@@ -517,11 +517,13 @@ A 1-second body-grep `grep -n '14MB' E-9*.md` at v1.14 close would have caught t
 - Adversary frontmatter-consistency-audit angle (TD-VSDD-057 angle inventory) should accept files where `last_amended` matches latest body-amendment commit date, OR where the file has no body amendments since `timestamp:`.
 - File as TD-VSDD-073 (last_amended mandatory for amended arch-doc-class files).
 
+**[codified]** by D-261 lessons.md append.
+
 ---
 
 ### LESSON: TD-VSDD-073 last_amended convention must extend to BCs cited in amendment landings
 
-**Source:** D-263 pass-20 finding M-P20-002 (BC-1.05.036 emits non-ADR-015-conforming event name despite amendment surface absorbing ADR-015 awareness)
+**Source:** D-263 pass-20 finding M-P20-002 + PG-P20-001 (BC-1.05.036 emits non-ADR-015-conforming event name despite amendment surface absorbing ADR-015 awareness)
 **Date:** 2026-05-05
 
 **Pattern:** v1.7 amendment burst absorbed ADR-015 awareness into E-9 epic + 3 arch docs (D-236 4-file impact map). BC-1.05.035 + BC-1.05.036 were created at D-224 within this amendment cycle (substituting for withdrawn BC-2.02.013) and are cited from gap-analysis-w16-subprocess.md and audit-w16.md amendment blocks. But the BCs themselves were never updated for ADR-015 awareness. BC-1.05.036 §Description still names the success-path event `host.exec_subprocess.completed` (no `vsdd.` prefix, no `.v1` suffix) — violating ADR-015 D-15.2 reverse-DNS naming and contradicting OQ-W16-001 which tracks the binary-choice resolution.
@@ -535,8 +537,6 @@ A 1-second body-grep `grep -n '14MB' E-9*.md` at v1.14 close would have caught t
 - File as TD-VSDD-074 (TD-VSDD-073 scope extension to BCs cited in amendment landings).
 
 **[codified]** by D-263 lessons.md append.
-
-**[codified]** by D-261 lessons.md append.
 
 ---
 
@@ -561,7 +561,7 @@ This is the THIRD recurrence of the line-citation off-by-one defect class (after
 
 ---
 
-### LESSON: Intra-document semantic-sibling sweep (TD-VSDD-076 extension to TD-VSDD-075)
+### LESSON: Intra-document semantic-sibling sweep (TD-VSDD-076; extends TD-VSDD-075 from inter-document to intra-document scope)
 
 **Source:** D-265 pass-22 finding H-P22-001 (BC-1.05.036 §Postcondition 5 correction at v1.22 NOT propagated to §Related BCs lines 61-62 and §EC-004 line 86 within the SAME BC)
 **Date:** 2026-05-05
@@ -576,3 +576,20 @@ TD-VSDD-075 (codified at v1.22) covered inter-document line-citation refresh and
 - File as TD-VSDD-076 (Intra-document semantic-sibling sweep extension to TD-VSDD-075).
 
 **[codified]** by D-265 lessons.md append.
+
+---
+
+### LESSON: Lessons-corpus artifacts (lessons.md + open-backlog-post-rc8.md) MUST maintain bidirectional consistency
+
+**Source:** D-267 pass-24 finding M-P24-001..006 + PG-P24 (6 MEDs revealing lessons-corpus internal coherence defects: stub entries, section-boundary violations, marker orphaning, bidirectional drift between lessons.md and open-backlog)
+**Date:** 2026-05-05
+
+**Pattern:** The 20 codified TD-VSDD lessons (057-076) live in two canonical artifacts: `cycles/<cycle>/lessons.md` (full lesson body + Source citation + [codified] marker) and `cycles/<cycle>/open-backlog-post-rc8.md` (TD-VSDD-NNN bullet entry under appropriate H2 section). Pass-24 found 6 distinct coherence defects between these two files: (1) 3 stub entries in open-backlog where body content was merged into the next numbered entry (TD-VSDD-069 body merged into TD-VSDD-070, TD-VSDD-071 body merged into TD-VSDD-072, TD-VSDD-075 body merged into TD-VSDD-076); (2) 3 entries placed after the wrong H2 boundary (TD-VSDD-073/075/076 placed after `## Lessons codified during the cycle` instead of under `## New from Phase D-4`); (3) 5+ orphaned `[codified] by D-NNN` markers in lessons.md displaced from their associated lesson (D-252 after TD-VSDD-067, D-257 after TD-VSDD-071, D-261 after TD-VSDD-074); (4) bidirectional drift on TD-VSDD-074 Source field (`+ PG-P20-001` present in open-backlog, missing from lessons.md); (5) non-monotonic TD-VSDD-NNN ordering in open-backlog D-4 section; (6) duplicated content concatenation across adjacent entries.
+
+**Codification:**
+- Pre-commit hook: when adding a new TD-VSDD-NNN entry, validate (a) lessons.md has lesson body + Source + matching [codified] marker IMMEDIATELY following lesson content, (b) open-backlog has matching bullet under correct H2 with body content (not stub), (c) TD-VSDD-NNN ordering is monotonic in open-backlog, (d) Source citations match bidirectionally.
+- State-manager prompt for any TD-VSDD-NNN codification burst MUST include lessons-corpus coherence verification.
+- Convention-meta-audit pass should be added to the regular adversary angle rotation (TD-VSDD-057 menu).
+- File as TD-VSDD-077 (Lessons-corpus bidirectional coherence validation hook).
+
+**[codified]** by D-267 lessons.md append.
