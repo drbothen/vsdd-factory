@@ -45,7 +45,9 @@ The dispatcher MUST call `Path::new(cmd).canonicalize()` on the binary path BEFO
 1. If `cmd` passes string-level validation (`../` absent, no NUL bytes) AND `Path::new(cmd).canonicalize()` succeeds AND the canonicalized path does not contain `..` segments, the allow-list check proceeds normally.
 2. If `cmd` contains a NUL byte or fails basic string validation, returns `codes::INVALID_ARGUMENT` (-4) — existing `read_wasm_string` error path.
 3. If `Path::new(cmd).canonicalize()` fails (binary not on disk, path invalid, IO error), returns `codes::CAPABILITY_DENIED` (-1) — existing exec_subprocess error semantics preserved.
-4. If the canonicalized path contains `..` components after resolution (symlink-based escape attempt), returns `codes::INVALID_ARGUMENT` (-4) and the existing `internal.capability_denied` event is emitted.
+4. If the canonicalized path contains `..` components after resolution (symlink-based escape attempt), returns `codes::INVALID_ARGUMENT` (-4) and the existing `internal.capability_denied` event is emitted. (event name `internal.capability_denied` is INTERIM — see §Description ADR-015 awareness clause; rename to `vsdd.capability.denied.exec_subprocess.v1` per ADR-015 D-15.2 registry line 329)
+
+**Precedence ladder (per pass-22 M-P22-003):** When multiple validation conditions could fire, the host applies them in this order: (1) NUL byte in `cmd` → `Err(INVALID_ARGUMENT -4)`; (2) `Path::new(cmd).canonicalize()` returns Err → `Err(CAPABILITY_DENIED -1)` (path doesn't exist or symlink loop); (3) canonicalized path contains `..` segments (rare; only with non-existent intermediates) → `Err(INVALID_ARGUMENT -4)`; (4) canonicalized path not in `binary_allow` list → `Err(CAPABILITY_DENIED -1)`. Per `crates/factory-dispatcher/src/host/exec_subprocess.rs:230` (entry point) and BC-1.05.005/BC-1.05.032 sibling contracts.
 
 ## Invariants
 

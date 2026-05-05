@@ -45,7 +45,7 @@ On successful subprocess completion (any exit code, including non-zero), the dis
 
 ## Postconditions
 
-1. Exactly one `host.exec_subprocess.completed` event is emitted via `ctx.emit_internal`.
+1. On successful subprocess completion (i.e., subprocess process actually exits before timeout AND within output cap; see Postcondition 5 for error-path reality), exactly one `host.exec_subprocess.completed` event is emitted via `ctx.emit_internal`.
 2. Event payload includes all 8 fields: `{plugin_id: String, binary: String /* canonicalized full path */, args_count: u32, exit_code: i32, duration_ms: u64, stdout_bytes: u64, stderr_bytes: u64, truncated: bool /* reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1 */}`.
 3. `duration_ms` is measured from `Instant::now()` at `Command::spawn()` to process exit; the deadline `Instant` already present in `execute_bounded` (exec_subprocess.rs:270) is the reference.
 4. Event is routed through the normal `ctx.emit_internal` sink chain (file/datadog/honeycomb per config), the same path as the existing `emit_denial` call.
@@ -58,8 +58,8 @@ On successful subprocess completion (any exit code, including non-zero), the dis
 ## Related BCs
 
 - BC-1.05.001 — exec_subprocess capability check (depends on: this event fires only after the capability check passes)
-- BC-1.05.032 — timeout enforcement (sibling: timeout path emits a different event; this event is NOT emitted on timeout)
-- BC-1.05.005 — OUTPUT_TOO_LARGE path (sibling: output-too-large path emits a different event; this event is NOT emitted)
+- BC-1.05.032 — timeout enforcement (sibling: timeout path returns `Err(TIMEOUT -2)` and emits NO event in v1; future error-path emit is out-of-scope per BC-1.05.036 Postcondition 5)
+- BC-1.05.005 — OUTPUT_TOO_LARGE path (sibling: output-too-large path returns `Err(OUTPUT_TOO_LARGE -3)` and emits NO event in v1; aligns with BC-1.05.036 Postcondition 5)
 - BC-1.05.035 — path canonicalization guard (sibling extension from same gap analysis)
 
 ## Architecture Anchors
@@ -83,7 +83,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 | EC-001 | Subprocess exits 0 | `host.exec_subprocess.completed` emitted with `exit_code=0` |
 | EC-002 | Subprocess exits non-zero (e.g., 1) | `host.exec_subprocess.completed` emitted with `exit_code=1` |
 | EC-003 | Capability check fails | `internal.capability_denied` emitted; `host.exec_subprocess.completed` NOT emitted |
-| EC-004 | Subprocess times out | Timeout error event emitted; `host.exec_subprocess.completed` NOT emitted |
+| EC-004 | Subprocess times out | Returns `Err(TIMEOUT -2)`; **NO event emitted in v1** (per Postcondition 5; future error-path emit is out-of-scope); `host.exec_subprocess.completed` NOT emitted |
 | EC-005 | Subprocess output exceeds cap | `OUTPUT_TOO_LARGE` path; `host.exec_subprocess.completed` NOT emitted |
 | EC-006 | Payload field type check | All 8 fields present with declared types (`plugin_id: String`, `binary: String`, `args_count: u32`, `exit_code: i32`, `duration_ms: u64`, `stdout_bytes: u64`, `stderr_bytes: u64`, `truncated: bool [reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1]`) |
 
@@ -94,7 +94,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 | Capability passes; subprocess exits 0 | Exactly one `host.exec_subprocess.completed` event; `exit_code=0` | happy-path |
 | Capability passes; subprocess exits 1 | Exactly one `host.exec_subprocess.completed` event; `exit_code=1` | happy-path |
 | Capability check fails | `internal.capability_denied` emitted; `host.exec_subprocess.completed` NOT emitted | error |
-| Subprocess timeout | Timeout event emitted; `host.exec_subprocess.completed` NOT emitted | error |
+| Subprocess timeout | Returns `Err(TIMEOUT -2)`; NO event emitted in v1 per Postcondition 5; `host.exec_subprocess.completed` NOT emitted | error |
 | Subprocess output exceeds cap | OutputTooLarge path; `host.exec_subprocess.completed` NOT emitted | error |
 | Successful completion | Event payload contains all 8 fields with correct types | edge-case |
 

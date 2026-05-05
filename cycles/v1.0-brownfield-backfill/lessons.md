@@ -558,3 +558,21 @@ This is the THIRD recurrence of the line-citation off-by-one defect class (after
 - File as TD-VSDD-075 (last_amended dependent-citation propagation requirement + source-code-verification discipline).
 
 **[codified]** by D-264 lessons.md append.
+
+---
+
+### LESSON: Intra-document semantic-sibling sweep (TD-VSDD-076 extension to TD-VSDD-075)
+
+**Source:** D-265 pass-22 finding H-P22-001 (BC-1.05.036 §Postcondition 5 correction at v1.22 NOT propagated to §Related BCs lines 61-62 and §EC-004 line 86 within the SAME BC)
+**Date:** 2026-05-05
+
+**Pattern:** v1.22 burst (D-264) correctly applied source-code verification to fix BC-1.05.036:52 (TIMEOUT/OUTPUT_TOO_LARGE error codes -7/-8 → -2/-3). The Postcondition 5 wording was also corrected to state "WITHOUT emitting any event" per gap-analysis §1. But the SAME BC's §Related BCs and §EC-004 sections retained pre-correction wording implying error-path events were emitted. Intra-document contradiction within same BC.
+
+TD-VSDD-075 (codified at v1.22) covered inter-document line-citation refresh and source-code-verification. It did NOT cover intra-document semantic siblings.
+
+**Codification:**
+- When a fix burst corrects a Postcondition or any normative claim within a BC, the same burst MUST grep the SAME BC for sibling sections (§Related BCs, §Edge Cases, §Canonical Test Vectors, §Postconditions, §Description) for prior wording that contradicts the correction.
+- Each contradicting sibling must be updated in the same burst.
+- File as TD-VSDD-076 (Intra-document semantic-sibling sweep extension to TD-VSDD-075).
+
+**[codified]** by D-265 lessons.md append.

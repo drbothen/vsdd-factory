@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.22"
+version: "1.23"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -483,7 +483,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.20 | 2026-05-05 | state-manager | D-261 convention closure burst — M-P18-001 last_amended field added to 4 arch-doc files (5th-recurrence resolution per S-7.02); L-P18-001 perf-baseline references (research) restored. TD-VSDD-073 codified. |
 | 1.21 | 2026-05-05 | state-manager | D-263 implementation-readiness fix burst — M-P20-001 (OQ-3 timeout/output pinned) + M-P20-002 (BC-1.05.036 ADR-015 awareness) + L-P20-002 (BC-1.05.036 error-path reality) + TD-VSDD-074 (BC last_amended scope extension); L-P20-001 SKIPPED with rationale. |
 | 1.22 | 2026-05-05 | state-manager | D-264 multi-fix burst — H-P21-001 (BC-1.05.036 error codes -7/-8→-2/-3; source-code verified); H-P21-002 (open-questions.md line 325→326 citation; grep verified); M-P21-001 (BC-1.05.035 ADR-015 awareness clause added per TD-VSDD-074); M-P21-002 (BC-1.05.036 fabricated "host" category corrected); M-P21-003 (truncated:bool documented as reserved always-false in v1); L-P21-001/002 DEFERRED; TD-VSDD-075 codified. |
-| 1.23 | — | — | (reserved) |
+| 1.23 | 2026-05-05 | state-manager | D-265 sibling-sweep fix burst — H-P22-001 (BC-1.05.036 §Related BCs lines 61-62 + §EC-004 line 86 + §Canonical Test Vectors line 97 aligned to Postcondition 5 no-event reality); H-P22-002 (BC-1.05.035 §Postcondition 4 INTERIM qualifier added); M-P22-001 (BC-1.05.036 Postcondition 1 scoped to success path); M-P22-002 (OQ-W16-001 acceptance (a) AND-linked to canonical event name); M-P22-003 (BC-1.05.035 precedence ladder appended to §Postconditions); L-P22-001/002 SKIPPED/absorbed; TD-VSDD-076 codified. |
+| 1.24 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1247,5 +1248,51 @@ Both sub-rules appended to `open-backlog-post-rc8.md` as TD-VSDD-075 and to `les
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.21"` → `"1.22"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (tenth use):** State-manager handles pass-21 seal and 5-fix burst atomically. All fixes are textual corrections/additions where architect judgment is not required.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.23 (2026-05-05) — D-265 sibling-sweep fix burst: pass-22 2H/3M/2L; BC sibling sections aligned + INTERIM qualifier + precedence ladder; TD-VSDD-076 codified
+
+**State-manager-led combined burst applying TD-VSDD-064 sequential pattern (ELEVENTH application).**
+
+Pass-22 verdict: SUBSTANTIVE 2H/3M/2L. Diff-only line-by-line + intra-document semantic-sibling sweep angle (NEW per TD-VSDD-057) — reads each line introduced by v1.22 burst, then sweeps affected BCs' sibling sections for prior wording contradicting v1.22 corrections. ADR-013 clock RESET to 0_of_3.
+
+**Fix 1 — H-P22-001 CLOSED (BC-1.05.036 §Related BCs lines 61-62 + §EC-004 line 86 + §Canonical Test Vectors line 97 aligned to Postcondition 5 no-event reality):**
+
+v1.22 correctly updated Postcondition 5 to state TIMEOUT/OUTPUT_TOO_LARGE return error codes WITHOUT emitting any event. But §Related BCs and §EC-004 within the SAME BC still said "emits a different event" (lines 61-62) and "Timeout error event emitted" (line 86) — direct contradictions. §Canonical Test Vectors line 97 also contradicted. All four sibling locations corrected to align with Postcondition 5.
+
+This is the canonical evidence for TD-VSDD-076 (intra-document semantic-sibling sweep).
+
+**Fix 2 — H-P22-002 CLOSED (BC-1.05.035 §Postcondition 4 INTERIM qualifier appended):**
+
+BC-1.05.035 §Description (added v1.22 per TD-VSDD-074) declares `internal.capability_denied` is INTERIM and MUST be renamed. But §Postcondition 4 — the normative section — used the bare unqualified interim name. Implementer reading only §Postconditions received unqualified instruction contradicting §Description. Fix: appended INTERIM qualifier with rename target (`vsdd.capability.denied.exec_subprocess.v1` per ADR-015 D-15.2 registry line 329) to Postcondition 4.
+
+**Fix 3 — M-P22-001 CLOSED (BC-1.05.036 Postcondition 1 scoped to success path):**
+
+Postcondition 1 "Exactly one event is emitted" had no conditional clause; an implementer skimming to Postcondition 1 before reaching Postcondition 5 received false absoluteness. Updated to: "On successful subprocess completion (i.e., subprocess process actually exits before timeout AND within output cap; see Postcondition 5 for error-path reality), exactly one event is emitted."
+
+**Fix 4 — M-P22-002 CLOSED (OQ-W16-001 acceptance (a) AND-linked to canonical event name):**
+
+Acceptance criterion (a) required only the registry prefix-to-category entry. A compliant amendment could add `vsdd.host.* | lifecycle` without specifying the canonical event name suffix, leaving an ambiguity. Fix: tightened criterion (a) to AND-link the registry entry with the canonical event name `vsdd.host.exec_subprocess.completed.v1`.
+
+**Fix 5 — M-P22-003 CLOSED (BC-1.05.035 precedence ladder appended to §Postconditions):**
+
+Four §Postconditions stated independent conditions with no ordering. Implementer working from BC alone could not determine which error code fires when multiple conditions apply simultaneously. Fix: appended explicit precedence ladder — (1) NUL byte → `INVALID_ARGUMENT` (-4); (2) `canonicalize()` fails → `CAPABILITY_DENIED` (-1); (3) `..` in canonicalized path → `INVALID_ARGUMENT` (-4); (4) not in allow-list → `CAPABILITY_DENIED` (-1). Per `exec_subprocess.rs:230` entry point.
+
+**L-P22-001 SKIPPED with rationale:** Conditional "may be tracked in a future OQ" prose in Postcondition 5 is cosmetic; normative claim (no event on error paths) is clear. Per S-7.03/D-231 SHIP-AS-IS pattern.
+
+**L-P22-002 absorbed into H-P22-001:** §Canonical Test Vectors line 97 "Timeout event emitted" was also contradicting Postcondition 5; corrected as part of H-P22-001 sibling sweep.
+
+**TD-VSDD-076 codified (intra-document semantic-sibling sweep extension to TD-VSDD-075):**
+
+When a fix burst corrects a Postcondition or any normative claim within a BC, the same burst MUST grep the SAME BC for sibling sections (§Related BCs, §Edge Cases, §Canonical Test Vectors, §Postconditions, §Description) for prior wording that contradicts the correction. Each contradicting sibling must be updated in the same burst. TD-VSDD-075 covered inter-document citation refresh and source-code-verification; TD-VSDD-076 extends it to intra-document semantic siblings.
+
+Appended to `open-backlog-post-rc8.md` as TD-VSDD-076 and to `cycles/v1.0-brownfield-backfill/lessons.md`.
+
+**ADR-013 clock:** 0_of_3 (reset by pass-22 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (23/24/25) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.22"` → `"1.23"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (eleventh use):** State-manager handles pass-22 seal and 5-fix burst atomically. All fixes are textual corrections/additions where architect judgment is not required.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
