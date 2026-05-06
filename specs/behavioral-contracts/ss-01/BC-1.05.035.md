@@ -30,9 +30,11 @@ removal_reason: null
 ## Description
 
 **ADR-015 Awareness (added per E-9 v1.7 Post-Audit Amendment, propagated to BC at v1.22 per TD-VSDD-074):**
-This BC's denial-path postcondition references the existing `internal.capability_denied` event name. Per ADR-015 D-15.2 reverse-DNS naming requirement and gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" lines 339-349, this event MUST be renamed to `vsdd.capability.denied.exec_subprocess.v1` to map to the `audit` category per ADR-015 D-15.2 registry line 329 (`vsdd.capability.denied.* | audit`). The current name is INTERIM. The S-9.07 implementer (or the SS-01 implementer of any host-emit-fix story) MUST rename `internal.capability_denied` → `vsdd.capability.denied.exec_subprocess.v1` before merge. No new OQ filed; rename target is unambiguous per gap-analysis amendment.
+This BC's denial-path postcondition references the existing `internal.capability_denied` event name. Per ADR-015 D-15.2 reverse-DNS naming requirement and gap-analysis-w16-subprocess.md §"Existing denial-path telemetry" lines 341-351, this event MUST be renamed to `vsdd.capability.denied.exec_subprocess.v1` to map to the `audit` category per ADR-015 D-15.2 registry line 329 (`vsdd.capability.denied.* | audit`). The current name is INTERIM. The S-9.07 implementer (or the SS-01 implementer of any host-emit-fix story) MUST rename `internal.capability_denied` → `vsdd.capability.denied.exec_subprocess.v1` before merge. No new OQ filed; rename target is unambiguous per gap-analysis amendment.
 
 The dispatcher MUST call `Path::new(cmd).canonicalize()` on the binary path BEFORE the binary_allow capability check. Canonicalization resolves symlinks and eliminates `..` segments. NUL-byte rejection is performed earlier by the existing `read_wasm_string` error path (see §Postcondition 2 and the Precedence Ladder). This closes a defense-in-depth gap identified in gap-analysis-w16-subprocess.md Section 5: `exec_subprocess.rs:230` currently passes `cmd` directly to `Command::new` with no traversal check.
+
+**Pairing rationale (per pass-33 MED-P33-002):** Symlink-traversal escape returns `INVALID_ARGUMENT` (-4) — the cmd path is malformed-shaped after canonicalization — AND emits the existing `internal.capability_denied` event with reason `"symlink_traversal_escape"`. This pairing differs from the existing 4 denial paths (binary_not_on_allow_list, shell_bypass_not_acknowledged, no_exec_subprocess_capability, setuid_or_setgid_binary at exec_subprocess.rs:148/155/162/169) which all return `CAPABILITY_DENIED` (-1). Rationale: the symlink-escape guard is structurally a capability-denial (the cmd is rejected for traversal-shaping rather than any caller-supplied flaw), but the error code reflects the cause (malformed path shape post-canonicalize). Reusing `internal.capability_denied` ensures observability dashboards aggregate all rejection events under one channel.
 
 ## Preconditions
 
@@ -42,7 +44,7 @@ The dispatcher MUST call `Path::new(cmd).canonicalize()` on the binary path BEFO
 
 ## Postconditions
 
-1. If `cmd` passes string-level validation (`../` absent, no NUL bytes) AND `Path::new(cmd).canonicalize()` succeeds AND the canonicalized path does not contain `..` segments, the allow-list check proceeds normally.
+1. If `cmd` passes the existing `read_wasm_string` error path (NUL bytes rejected per Postcondition 2) AND `Path::new(cmd).canonicalize()` succeeds AND the canonicalized path does not contain `..` segments, the allow-list check proceeds normally.
 2. If `cmd` contains a NUL byte or fails basic string validation, returns `codes::INVALID_ARGUMENT` (-4) — existing `read_wasm_string` error path.
 3. If `Path::new(cmd).canonicalize()` fails (binary not on disk, path invalid, IO error), returns `codes::CAPABILITY_DENIED` (-1) — existing exec_subprocess error semantics preserved.
 4. If the canonicalized path contains `..` components after resolution (symlink-based escape attempt), returns `codes::INVALID_ARGUMENT` (-4) and the existing `internal.capability_denied` event is emitted. (event name `internal.capability_denied` is INTERIM — see §Description ADR-015 awareness clause; rename to `vsdd.capability.denied.exec_subprocess.v1` per ADR-015 D-15.2 registry line 329)
@@ -77,8 +79,8 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `cmd` contains `../etc/passwd` literal | Returns `CAPABILITY_DENIED` (-1); allow-list match never reached |
-| EC-002 | `cmd` is a symlink pointing outside CLAUDE_PROJECT_DIR | `canonicalize()` resolves it; `..` components detected; returns `INVALID_ARGUMENT` (-4) |
+| EC-001 | `cmd` contains `../etc/passwd` literal | Returns `CAPABILITY_DENIED` (-1); allow-list match never reached (caught by existing allow-list miss: basename "passwd" not in `binary_allow` → emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155 → CAPABILITY_DENIED. Pre-canonicalize string-level `../` reject is NOT a separate guard.) |
+| EC-002 | `cmd` is a symlink pointing outside CLAUDE_PROJECT_DIR | `canonicalize()` resolves it; `..` components detected; returns `INVALID_ARGUMENT` (-4) AND exactly one `internal.capability_denied` event emitted with reason `"symlink_traversal_escape"` (novel INVALID_ARGUMENT+capability_denied pairing per §Description rationale) |
 | EC-003 | `cmd` is a valid absolute path with no traversal | `canonicalize()` succeeds; allow-list check proceeds normally |
 | EC-004 | `cmd` binary does not exist on disk | `canonicalize()` fails with IO error; returns `CAPABILITY_DENIED` (-1) |
 | EC-005 | `cmd` contains NUL byte | Returns `INVALID_ARGUMENT` (-4) via existing `read_wasm_string` error path before canonicalize |
@@ -89,7 +91,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 |-------|----------------|----------|
 | `cmd = "../etc/passwd"` | `CAPABILITY_DENIED` (-1) | error |
 | `cmd = "/usr/bin/bash"` (exists, no traversal) | Proceeds to allow-list check | happy-path |
-| Symlink `cmd` resolving outside project dir (resolves to `../escape`) | `INVALID_ARGUMENT` (-4) | edge-case |
+| Symlink `cmd` resolving outside project dir (resolves to `../escape`) | `INVALID_ARGUMENT` (-4) AND exactly one `internal.capability_denied` event with reason `"symlink_traversal_escape"` | edge-case |
 | Non-existent binary path | `CAPABILITY_DENIED` (-1) | error |
 
 ## Verification Properties

@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.29"
+version: "1.30"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -490,7 +490,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.27 | 2026-05-05 | state-manager | D-271 comprehensive sibling-sweep fix burst — H-P28-001 (BC-1.05.036:38 §Description "normal sink chain" replaced with ADR-015-correct emit_internal/FileSink wording); H-P28-002 (BC-1.05.036:135 §Purity "sink chain + non-blocking try_send" replaced with actual synchronous Mutex::lock+Vec::push per host/mod.rs:105-116); M-P28-001 (EC-007 INTERNAL_ERROR row added to §Edge Cases); M-P28-002 (INTERNAL_ERROR test vector row added to §Canonical Test Vectors); M-P28-003 (EC-005 + Test Vector OUTPUT_TOO_LARGE aligned to EC-004 sibling form with "NO event emitted in v1" qualifier); L-P28-001 ("retired" → dual-verb "removed per line 154 / retired per line 130" per ADR-015 lifecycle taxonomy). Source-of-truth verification per TD-VSDD-075+078 applied to all 6 fixes. TD-VSDD-079 codified (TD-VSDD-076 extension: terminology-family grep checklist for sibling-sweep fixes; 3rd recurrence threshold met). ADR-013 clock RESET 0_of_3. |
 | 1.28 | 2026-05-05 | state-manager | D-272 cross-doc terminology drift fix — H-P29-001 (BC-1.05.036:51 "external fan-out to Datadog/Honeycomb" → "external export to remote observability backends" — scrubs fan-out + vendor names per TD-VSDD-079 8-term family grep); H-P29-002 (BC-1.05.035:35 §Description NUL-byte attribution corrected — "rejects NUL bytes" removed from canonicalize; redirected to `read_wasm_string` error path per §Postcondition 2 + §Precedence Ladder + §EC-005); full TD-VSDD-079 8-term grep across all 5 in-scope files (all non-changelog body: ZERO prohibited matches PASS); TD-VSDD-080 codified (mechanize TD-VSDD-079 as pre-commit hook; 5 consecutive narrative-discipline failures forces mechanical enforcement). ADR-013 clock 0_of_3 (reset by pass-29; remains 0). |
 | 1.29 | 2026-05-05 | state-manager | D-274 inverse-traceability fix — MED-P31-001 (gap-analysis:334-337 + audit-w16 B-7 row tense corrected: "are injected"/"automatic invariant" → "MUST be injected per D-15.4, normative future-state; pending E-10 Wave 1"); MED-P31-002 (BC-1.05.036 Postcondition 2: outcome enum field added + exit_code→outcome mapping per ADR-015 D-15.2:270); LOW-P31-003 (BC-1.05.036 stdin write-failure cite :262 → :259); LOW-P31-004 (perf-baseline "sub-millisecond I/O" → "measured throughput >10k events/minute per ADR-015 D-15.1 Rationale"); LOW-P31-005 SKIPPED (tense conflation cosmetic per S-7.03 SHIP-AS-IS). Source-of-truth verification per TD-VSDD-075: exec_subprocess.rs:242-247 env_clear+selective-forward confirmed; :259 write_all().is_err() confirmed; ADR-015 D-15.2:270 outcome enum confirmed; D-15.4:407-419 MUST-be-injected confirmed; D-15.1 Rationale:432-440 10k events/minute confirmed. ADR-013 clock 0_of_3 (RESET by pass-31 SUBSTANTIVE). |
-| 1.30 | — | — | (reserved) |
+| 1.30 | 2026-05-05 | state-manager | D-276 PC↔TV coherence fix — MED-P33-001 (BC-1.05.036: EC-008 outcome-enum-stamping row added + 2 Canonical Test Vector rows for outcome=success/outcome=failure; Postcondition 2 outcome-enum mandate now has test coverage); MED-P33-002 (BC-1.05.035: §Description pairing rationale added justifying INVALID_ARGUMENT+capability_denied novel pairing + EC-002 event-emission witness appended + Test Vector row 3 event assertion added with reason "symlink_traversal_escape"); MED-P33-003 (BC-1.05.035: Postcondition 1 misleading "(`../` absent, no NUL bytes)" parenthetical removed; replaced with `read_wasm_string` error path reference; EC-001 clarifying note added explaining CAPABILITY_DENIED via allow-list miss path — no separate `../` string-level guard exists); LOW-P33-001 (BC-1.05.035: §Description anchor corrected from §"How ADR-015 affects the telemetry gap" lines 339-349 → §"Existing denial-path telemetry" lines 341-351). Source-of-truth verification per TD-VSDD-075: gap-analysis H3 §"Existing denial-path telemetry" begins line 341 (confirmed); rename rationale at lines 343-351 (confirmed); exec_subprocess.rs:148/155/162/169 emit_denial 4 reasons all CAPABILITY_DENIED -1 (confirmed unchanged). TD-VSDD-079 8-term grep: BC-1.05.035 ZERO prohibited matches; BC-1.05.036 lines 38+51 are intentional ADR-015 retirement-status citations. ADR-013 clock 0_of_3 (RESET by pass-33 SUBSTANTIVE verdict). |
+| 1.31 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1535,5 +1536,45 @@ When a BC postcondition or normative BC section cites a CONCRETE ENUMERATION (li
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.28"` → `"1.29"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (seventeenth use):** State-manager handles pass-31 seal and 4-fix burst atomically. All fixes are textual corrections to arch docs and BC normative sections.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.30 (2026-05-05) — D-276 PC↔TV coherence fix: pass-33 0H/3M/1L; outcome-enum test coverage + symlink event witness + Postcondition 1 disambiguation + anchor correction; TD-VSDD-057 PC↔TV coherence angle (NEW — inverse direction); ADR-013 clock RESET 0_of_3
+
+**MED findings closed:**
+
+- **MED-P33-001 CLOSED (Fix 1):** BC-1.05.036 Postcondition 2 (added v1.29) mandates `outcome` enum stamping (`exit_code == 0 → 'success'`; `exit_code != 0 → 'failure'`) per ADR-015 D-15.3, but neither §Edge Cases nor §Canonical Test Vectors had any witness row. Added EC-008 ("Outcome enum stamping") to §Edge Cases. Added two §Canonical Test Vector rows ("Outcome enum (success): exit_code=0 invocation" → `outcome='success'`; "Outcome enum (failure): exit_code=1 invocation" → `outcome='failure'`) with `host-stamping` category. Postcondition 2 outcome-enum mandate now has verifiable test coverage.
+
+- **MED-P33-002 CLOSED (Fix 2):** BC-1.05.035 Postcondition 4 states symlink-traversal escape returns INVALID_ARGUMENT (-4) AND emits `internal.capability_denied`. EC-002 and Test Vector row 3 previously verified the error code only; neither mentioned event emission. Added §Description **Pairing rationale** paragraph explaining the novel INVALID_ARGUMENT+capability_denied combination (differs from existing 4 denial paths at exec_subprocess.rs:148/155/162/169 which all return CAPABILITY_DENIED -1; rationale: code reflects malformed path shape post-canonicalize; event channel reused for dashboard aggregation). Appended event-emission assertion to EC-002 outcome cell and to Test Vector row 3 outcome cell, both citing reason `"symlink_traversal_escape"`.
+
+- **MED-P33-003 CLOSED (Fix 3):** BC-1.05.035 Postcondition 1 contained parenthetical "(`../` absent, no NUL bytes)" implying a pre-canonicalize string-level `../` reject guard exists as a distinct step. No such guard exists — the Precedence Ladder has no `../` string-level step; EC-001 CAPABILITY_DENIED is explained by allow-list miss (basename "passwd" not in `binary_allow` → emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155 → CAPABILITY_DENIED). Removed the misleading parenthetical; replaced with reference to `read_wasm_string` error path (NUL bytes only, per Postcondition 2). Added clarifying note to EC-001 outcome cell explaining the CAPABILITY_DENIED path explicitly and stating pre-canonicalize string-level `../` reject is NOT a separate guard.
+
+**LOW findings closed:**
+
+- **LOW-P33-001 CLOSED (Fix 4):** BC-1.05.035 §Description line 33 cited `gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" lines 339-349`. Source-of-truth re-verification confirms: H3 `### How ADR-015 affects the telemetry gap` ends at line 339; H3 `### Existing denial-path telemetry` begins at line 341; rename rationale (`internal.capability_denied` → `vsdd.capability.denied.exec_subprocess.v1`) is at lines 343-351. Corrected citation to `§"Existing denial-path telemetry" lines 341-351`.
+
+**Source-of-truth verification per TD-VSDD-075/078:**
+- gap-analysis-w16-subprocess.md: H3 `### Existing denial-path telemetry` begins line 341 (after §"How ADR-015 affects the telemetry gap" ends line 339). Rename rationale at lines 343-351. CONFIRMED.
+- exec_subprocess.rs:148/155/162/169 emit_denial 4 reasons: all use CAPABILITY_DENIED (-1). CONFIRMED unchanged.
+- BC-1.05.035 Postcondition 4 INVALID_ARGUMENT+capability_denied pairing documented with rationale. CONFIRMED.
+- BC-1.05.036 Postcondition 2 outcome-enum mandate now witnessed by EC-008 + 2 Test Vector rows. CONFIRMED.
+
+**Post-edit grep verification:**
+- `grep -n 'How ADR-015 affects.*339' BC-1.05.035.md` → ZERO matches. PASS.
+- New citation `§"Existing denial-path telemetry"` present in BC-1.05.035 §Description. PASS.
+- `grep -n "string-level validation" BC-1.05.035.md` → ZERO matches. PASS.
+- EC-002 event-emission witness present in BC-1.05.035. PASS.
+- EC-008 outcome-enum row present in BC-1.05.036. PASS.
+- Two `host-stamping` Canonical Test Vector rows present in BC-1.05.036. PASS.
+
+**TD-VSDD-079 8-term family-grep (across all in-scope BC files):**
+- BC-1.05.035: ZERO prohibited matches. PASS.
+- BC-1.05.036 lines 38+51: intentional ADR-015 retirement-status citations (Router/SinkRegistry retired per ADR-015 lines 130/154; correct from D-271). PASS.
+
+**ADR-013 clock:** 0_of_3 (RESET by pass-33 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (34/35/36) needed to reach CONVERGENCE_REACHED per ADR-013 + TD-VSDD-057.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.29"` → `"1.30"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (eighteenth use):** State-manager handles pass-33 seal and 4-fix burst atomically. All fixes are textual corrections to BC normative sections.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

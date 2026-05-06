@@ -87,6 +87,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 | EC-005 | Subprocess output exceeds cap | Returns `Err(OUTPUT_TOO_LARGE -3)`; **NO event emitted in v1** (per Postcondition 5; future error-path emit is out-of-scope); `host.exec_subprocess.completed` NOT emitted |
 | EC-006 | Payload field type check | All 8 fields present with declared types (`plugin_id: String`, `binary: String`, `args_count: u32`, `exit_code: i32`, `duration_ms: u64`, `stdout_bytes: u64`, `stderr_bytes: u64`, `truncated: bool /* reserved for future ABI break: always false in v1; truncation currently returns Err(OUTPUT_TOO_LARGE -3); see gap-analysis Section 5 'fundamentally insufficient' Gap 1 */`) |
 | EC-007 | Subprocess spawn fails / pipe take/write fails / try_wait error | Returns `Err(INTERNAL_ERROR -99)`; **NO event emitted in v1** (per Postcondition 5; spawn at exec_subprocess.rs:252, stdin take/write at :258/:259, stdout/stderr take at :267-268, try_wait at :299); `host.exec_subprocess.completed` NOT emitted |
+| EC-008 | Outcome enum stamping | exit_code=0 → host stamps `outcome='success'` per ADR-015 D-15.3 (mapping per Postcondition 2); exit_code≠0 → `outcome='failure'`. TIMEOUT/OUTPUT_TOO_LARGE/INTERNAL_ERROR paths emit no event so no outcome stamping applies. |
 
 ## Canonical Test Vectors
 
@@ -94,6 +95,8 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 |-------|----------------|----------|
 | Capability passes; subprocess exits 0 | Exactly one `host.exec_subprocess.completed` event; `exit_code=0` | happy-path |
 | Capability passes; subprocess exits 1 | Exactly one `host.exec_subprocess.completed` event; `exit_code=1` | happy-path |
+| Outcome enum (success): exit_code=0 invocation | Exactly one event; payload exit_code=0; host-stamped outcome='success' (per Postcondition 2 mapping; ADR-015 D-15.3 enrichment) | host-stamping |
+| Outcome enum (failure): exit_code=1 invocation | Exactly one event; payload exit_code=1; host-stamped outcome='failure' | host-stamping |
 | Capability check fails | `internal.capability_denied` emitted; `host.exec_subprocess.completed` NOT emitted | error |
 | Subprocess timeout | Returns `Err(TIMEOUT -2)`; NO event emitted in v1 per Postcondition 5; `host.exec_subprocess.completed` NOT emitted | error |
 | Subprocess output exceeds cap | Returns `Err(OUTPUT_TOO_LARGE -3)`; **NO event emitted in v1** per Postcondition 5; `host.exec_subprocess.completed` NOT emitted | error |
