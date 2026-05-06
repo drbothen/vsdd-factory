@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -56,7 +56,7 @@ event's correlation state, including malformed or orphaned pairs."
 FIELDS. They are PLUGIN-ASSERTED during Wave 2 (for plugins that have not yet
 adopted `emit_pair`; `emit_pair` adopters have them host-assigned). After
 Wave 3 shim removal, all three fields are absent on all new events — the same
-state as a non-paired event. This BC specifies the four-state classification
+state as a non-paired event. This BC specifies the five-state classification
 that handles both the Wave 2 state and the post-Wave-3 state.
 
 ## Preconditions
@@ -195,8 +195,7 @@ that handles both the Wave 2 state and the post-Wave-3 state.
 8. After Wave 3 removes dual-emit shims, all three correlation fields are absent
    on all new events. A consumer that correctly handles the non-paired state
    (all three fields absent) handles post-Wave-3 events correctly without any
-   code change. The four-state classifier degrades gracefully: States 1–4 are
-   checked first; if no fields match any state, the event is non-paired.
+   code change. The five-state classifier degrades gracefully: States 1–4 are checked first; if no fields match, the event is in the non-paired (fifth) state.
 
 ## Invariants
 
@@ -304,7 +303,7 @@ contract that Wave 2 dashboard migrations MUST respect)
 | Architecture Module | SS-01 — consumer behavior specification for `events-*.jsonl` events; relevant production code lives in consumer tooling (factory-query, Grafana dashboard queries) and Wave 2 plugin shims |
 | Stories | S-10.05 (Wave 2: Plugin schema migration + dual-emit shims; shim authors implement the producer side; consumer implementations must conform to this BC) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
-| ADR | ADR-015 D-15.2.e (dual-emit pair identity contract — five-state classification reduced to four-state consumer taxonomy; orphaned-half detection scoped to `trace_id`); ADR-015 § Negative consequences (Wave 2 double-count dedup contract) |
+| ADR | ADR-015 D-15.2.e (dual-emit pair identity contract — five-state classification (paired-current, paired-deprecated, orphaned-deprecated-half, orphaned-current-half, non-paired) per ADR-015 D-15.2.e v1.5; orphaned-half detection scoped to `trace_id`); ADR-015 § Negative consequences (Wave 2 double-count dedup contract) |
 | Related BC | BC-1.11.003 (producer-side complement: `emit_pair` host helper; this BC governs the consumer-side interpretation; the two BCs form the complete dual-emit contract) |
 
 ### Purity Classification
@@ -313,7 +312,7 @@ contract that Wave 2 dashboard migrations MUST respect)
 |----------|-----------|
 | I/O operations | NO — this BC specifies consumer-side LOGIC for classifying event records; no I/O performed by the classifier itself (the events were already written to `events-*.jsonl` by the producer path) |
 | Global state access | DEPENDS ON CONSUMER — orphan detection requires trace-scoped event lookup; this is a read-only access to `events-*.jsonl` content |
-| Deterministic | YES — four-state classification is a pure function of the event record's field values and the set of `event.id` values in the same trace scope |
+| Deterministic | YES — five-state classification is a pure function of the event record's field values and the set of `event.id` values in the same trace scope |
 | Thread safety | YES — classification logic is read-only |
 | Overall classification | Pure function (consumer classification logic; no side effects) |
 
@@ -335,3 +334,11 @@ Consumer-side classification source-walk:
   are plugin bugs; they must be handled gracefully (degraded to single-event).
   A `let _ = classify(event)` pattern at the aggregation call site would silently
   drop classification results — prohibited.
+
+## Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-06 | Initial authoring. Five-state classification taxonomy, malformed → orphaned-half downgrade rule, consumer degradation rule, ADR-015 D-15.2.e v1.5. |
+| v1.1 | 2026-05-06 | D-315 F-12 fix: H1 updated to "five-state" (was "four-state" in original authoring). Body prose not fully propagated at that time. |
+| v1.2 | 2026-05-06 | D-319 — F-2 fix: body prose swept from "four-state classification" to "five-state classification" to match H1 (D-315 F-12 fix was incomplete). Postcondition 8 updated from "four-state classifier degrades gracefully: States 1–4" to "five-state classifier degrades gracefully." Purity Classification updated. ADR row updated to remove "reduced to four-state consumer taxonomy" and replace with the full five-state name list per ADR-015 D-15.2.e v1.5. |

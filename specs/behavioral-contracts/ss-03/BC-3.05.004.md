@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -236,8 +236,8 @@ v2 schema loading and debug-stream gate implementation)
 |-------|----------------|----------|
 | `observability-config.toml` absent | Dispatcher loads with all built-in defaults; no error | absent-config-defaults |
 | `schema_version = 2`; all fields at defaults | Config parsed; `events_file` resolves to `.factory/logs/events-YYYY-MM-DD.jsonl`; debug stream off by default | v2-default-parse |
-| `schema_version = 1` | Hard-error on stderr with migration hint; non-zero exit | v1-hard-error |
-| `schema_version = 3` (future version) | Hard-error on stderr: `unknown future schema version 3; this dispatcher build accepts schema_version = 2 only`; exit code 1; no silent accept or warn-and-default | future-version-hard-error |
+| `schema_version = 1` | Hard-error on stderr; non-zero exit; stderr matches regex `\[vsdd-dispatcher\] ERROR: observability-config\.toml has schema_version=1` (substring from Postcondition 4(a) / Invariant 2); migration hint substring `Remove all \[\[sinks\]\] stanzas and set schema_version=2` present | v1-hard-error |
+| `schema_version = 3` (future version) | Hard-error on stderr; exit code 1; no silent accept or warn-and-default; stderr matches regex `\[vsdd-dispatcher\] ERROR: unknown future schema version 3; this dispatcher build accepts schema_version = 2 only` (substring from Invariant 2 / EC-004 message format) | future-version-hard-error |
 | `debug_log_enabled = true`; `VSDD_DEBUG_LOG` unset | Debug stream active; events written to `dispatcher-internal-*.jsonl` | config-key-enables-debug |
 | `debug_log_enabled = false`; `VSDD_DEBUG_LOG=1` | Debug stream active (env var dominates) | env-var-overrides-config-false |
 | `debug_log_enabled = true`; `VSDD_DEBUG_LOG=0` | Debug stream active (config key governs; `"0"` is not the activation value) | env-var-non-1-config-governs |
@@ -306,3 +306,4 @@ Config load source-walk:
 |---------|------|--------|
 | v1.0 | 2026-05-06 | Initial authoring (D-313 Phase 1b). BC-3.05.004 is the corrected ID after D-312 corrigendum found BC-3.05.001 was a pre-existing brownfield BC. Two-key gate semantics incorporate OQ-W16-011 resolution (D-311). Supersedes retired BC-3.05.001/002/003. |
 | v1.1 | 2026-05-06 | D-315 F-2/F-11/F-18/F-4 BC-side. Re-anchored to CAP-029 (primary). EC-004 resolved: schema_version>2 → hard-error (option a, consistent with Invariant 1). Invariant 2 added: schema_version domain `{1, 2, >2}` with explicit behavior per partition. Canonical test vector for schema_version=3 added. Secondary Capability Reference (CAP-010) and BC-1.12.002 cross-reference paragraph added (F-18). L2 Domain Invariants populated: DI-014 (hard-error on mismatch, extended to v2). |
+| v1.2 | 2026-05-06 | D-319 — F-10 fix: Canonical Test Vectors strictness aligned with Postcondition 4(a) + Invariant 2 exact message texts using regex-substring form. schema_version=1 CTV row now asserts stderr matches `\[vsdd-dispatcher\] ERROR: observability-config\.toml has schema_version=1` (from PC4(a)). schema_version=3 CTV row now asserts stderr matches `\[vsdd-dispatcher\] ERROR: unknown future schema version 3; this dispatcher build accepts schema_version = 2 only` (from Invariant 2 / EC-004). |

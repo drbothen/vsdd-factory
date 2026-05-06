@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -220,6 +220,7 @@ All Canonical Test Vectors are future-implementation witnesses.
 S-10.02 (Wave 1: FileSink single-stream wiring + per-event stamping + `plugin.version` fix)
 S-10.03 (Wave 1: Resource-attribute enrichment, which provides the startup context this
 BC's per-event stamping draws from)
+S-10.04 (Wave 1: Trace propagation + lifecycle event types — registry entries for vsdd.internal.* lifecycle event names per BC-1.12.004 PC2)
 
 ## VP Anchors
 
@@ -276,7 +277,7 @@ BC's per-event stamping draws from)
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC governs the compile-time event-name registry (D-15.2.a), per-event host stamping, and the `dispatcher_version` stamping fix — all of which determine the content correctness of every event written to the single `events-*.jsonl` stream that CAP-029 defines. The registry ensures event.category is accurately derived before each record reaches FileSink; without it, the stream's semantic structure (which events are lifecycle vs domain vs audit) would be undefined. |
 | L2 Domain Invariants | DI-017 (renamed by ADR-015 v1.7 from dispatcher_trace_id → trace_id; this BC stamps `trace_id` at emit time as a per-event host-owned identity field; every event in the single stream must carry `trace_id` — see Postcondition 1 trace_id row) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/mod.rs` (`HostContext::emit_internal` bifurcation, per-event stamping), `factory-dispatcher::main::plugin_version_stamp_call_site` (plugin.version bug fix) |
-| Stories | S-10.02 (FileSink wiring + per-event stamping + plugin.version fix), S-10.03 (Resource context consumed here) |
+| Stories | S-10.02 (FileSink wiring + per-event stamping + plugin.version fix), S-10.03 (Resource context consumed here), S-10.04 (Trace propagation + lifecycle event types) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
 | ADR | ADR-015 D-15.2 (per-event attributes table); ADR-015 D-15.2.a (compile-time registry); ADR-015 D-15.2.b (unknown prefix default); ADR-015 D-15.2.d (per-event `event.schema_url`); ADR-015 D-15.3 (host fields win) |
 | Content-defect bug | `plugin_version = env!("CARGO_PKG_VERSION")` at `factory-dispatcher::main::plugin_version_stamp_call_site` — fixed in S-10.02 per ADR-015 Context "Field schema is critically incomplete" (stable anchor per TD-VSDD-091) |
@@ -311,3 +312,11 @@ Source-walk for silent-discard patterns in per-event stamping and `emit_internal
   without `event.host_overrides` annotation is a SOUL #4 violation for the plugin author
   (their field is discarded without signal). Phase 1b BC-1.12.005 covers this; it is
   flagged here for Phase 1b authoring awareness.
+
+## Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-06 | Initial authoring (D-315). Per-event host stamping, emit_internal Some/None bifurcation, event.category compile-time registry per ADR-015 D-15.2/D-15.2.a/D-15.2.b. |
+| v1.1 | 2026-05-06 | D-315/D-316 amendments — cap-anchor justification, edge case sharpening. |
+| v1.2 | 2026-05-06 | D-319 — F-3 fix: Story Anchor + Stories cell extended with S-10.04 (POLICY 8 reverse-direction drift from D-316 closed). |

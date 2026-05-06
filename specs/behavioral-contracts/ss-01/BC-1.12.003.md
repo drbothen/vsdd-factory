@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -170,6 +170,7 @@ misimplementation.
 ## Story Anchor
 
 S-10.03 (Wave 1: Resource-attribute enrichment; Windows registry cascade per OQ-2 resolution)
+S-10.04 (Wave 1: Trace propagation + lifecycle event types — host_id_fallback emission verification per BC-1.12.003 EC-014)
 
 ## VP Anchors
 
@@ -227,7 +228,7 @@ S-10.03 (Wave 1: Resource-attribute enrichment; Windows registry cascade per OQ-
 | Capability Anchor Justification | CAP-030 ("Enrich emitted events with OTel-aligned resource attributes") per capabilities.md §CAP-030. BC-1.12.003 Postcondition 1 enumerates the 15-field Resource attribute block authoritatively per ADR-015 D-15.2. CAP-030 anchors this BC to the resource-enrichment capability; for the canonical field list, refer to BC-1.12.003 Postcondition 1 (which mirrors ADR-015 D-15.2 verbatim). The fallback cascades (Postconditions 2 and 3) ensure no field is absent or null, fulfilling CAP-030's outcome: "every event in events-*.jsonl carries a complete OTel-aligned resource block enabling correlation across Grafana/Loki/Honeycomb without post-processing enrichment." |
 | L2 Domain Invariants | DI-017 (renamed by ADR-015 v1.7 from dispatcher_trace_id → trace_id; this BC stamps trace_id as part of per-event identity fields computed at startup from VSDD_TRACE_ID env or per-invocation UUID; the renamed field is used in all Resource events emitted by this BC) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (startup stamping), `crates/factory-dispatcher/src/resource_context.rs` (new module, S-10.03) |
-| Stories | S-10.03 (Wave 1 Resource-attribute enrichment; Windows registry cascade) |
+| Stories | S-10.03 (Wave 1 Resource-attribute enrichment; Windows registry cascade), S-10.04 (Wave 1: Trace propagation + lifecycle event types) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
 | ADR | ADR-015 D-15.2 (OTel-aligned schema; Resource attributes table); ADR-015 D-15.2.c (fallback cascade policy) |
 | OQ Resolved | OQ-2 (full Windows `host.id` registry-lookup cascade per ADR-015 v1.8 adjudication: `winreg` crate, target-OS-gated; NOT stubbed) |
@@ -258,3 +259,12 @@ Source-walk for silent-discard patterns in the Resource attribute computation:
   covers the routing; this BC requires the EMISSION to occur.
 - EC-014 covers the case where `gethostname()` returns empty string — the empty-string
   return must trigger fallback, not be used as a `host.id` value.
+
+## Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-06 | Initial authoring (D-315). 15-field Resource attribute startup stamping, fallback cascades for vcs.repository.url.full, host.id, worktree.id, project.id per ADR-015 D-15.2/D-15.2.c. |
+| v1.1 | 2026-05-06 | D-315 amendments — EC-014 added (gethostname empty string), Invariant 6 (strict-string CI detection), canonical test vectors sharpened. |
+| v1.2 | 2026-05-06 | D-318 — F-1 CAP-030 errata: capability re-anchored to CAP-030. |
+| v1.3 | 2026-05-06 | D-319 — F-3 fix: Story Anchor + Stories cell extended with S-10.04 (POLICY 8 reverse-direction drift from D-316 closed). |

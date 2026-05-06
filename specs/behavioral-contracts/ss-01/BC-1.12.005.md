@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -133,6 +133,7 @@ All Canonical Test Vectors describe post-Wave-1 behavior.
 S-10.02 (Wave 1: FileSink single-stream wiring + per-event stamping)
 S-10.03 (Wave 1: Resource-attribute enrichment — establishes the host-owned
 fields that this BC's override detection compares against)
+S-10.04 (Wave 1: Trace propagation + lifecycle event types — host_field_override emission task implementation T-2/T-3/T-4 per BC-1.12.005 PC5)
 
 ## VP Anchors
 
@@ -149,7 +150,7 @@ fields that this BC's override detection compares against)
 | EC-005 | Plugin supplies multiple host-owned fields: `["service.name", "plugin.version", "trace_id"]` | All three are overridden; emitted event has `event.host_overrides: ["service.name", "plugin.version", "trace_id"]`; three separate `vsdd.internal.host_field_override.v1` notices (one per field name, rate-limited per `(plugin.name, field_name)` pair); three stderr warnings |
 | EC-006 | Plugin supplies `event.category = "domain"` for a `vsdd.block.*` prefix event | Host overrides `event.category` with `"audit"` (registry lookup per BC-1.12.004); `event.host_overrides: ["event.category"]`; lifecycle notice + stderr warning |
 | EC-007 | Plugin calls `emit_pair` (BC-1.11.003) and supplies `event.correlation_id` | `emit_pair` host helper overrides plugin-supplied `event.correlation_id` with its own generated UUID; `event.host_overrides: ["event.correlation_id"]` stamped on both events; lifecycle notice emitted |
-| EC-008 | Lifecycle event itself is not subject to a meta-rate-limit | The `vsdd.internal.host_field_override.v1` lifecycle event is written via the normal FileSink path; it is NOT rate-limited against itself. The per-`(plugin.name, field_name)` rate-limit governs the ORIGINAL emission (the domain event whose host-owned field was overridden). The lifecycle event fires at most once per `(plugin.name, field_name)` per invocation regardless of how many domain events triggered the override. There is no separate rate-limit governing the lifecycle notice itself — it fires exactly once when the first domain-event override for that pair is detected, and is suppressed on subsequent domain-event overrides of the same pair within the same invocation. |
+| EC-008 | Lifecycle event meta-rate-limit clarification | The `vsdd.internal.host_field_override.v1` lifecycle event IS rate-limited per Postcondition 6: at most one emission per `(plugin.name, field_name)` per dispatcher invocation. There is NO SEPARATE meta-rate-limit on top of the per-pair rate-limit — the per-pair rate IS the only rate-limit. After the first override of a given `(plugin.name, field_name)` pair, all subsequent overrides of the same pair within the same dispatcher invocation are suppressed (no lifecycle event); the domain event still receives `event.host_overrides`, and the stderr warning still fires. |
 | EC-009 | Post-Wave-1 implementation silently discards plugin-supplied host-owned fields without stamping `event.host_overrides` | **Future-implementation witness (SOUL #4):** This is the wrong behavior. The distinguishing test: emit an event with a known host-owned field set by the plugin; assert `event.host_overrides` contains that field name. A misimplementation that silently discards the field without stamping `event.host_overrides` violates this BC. |
 
 ## Canonical Test Vectors
@@ -180,7 +181,7 @@ fields that this BC's override detection compares against)
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC specifies the `event.host_overrides` field stamping and the `vsdd.internal.host_field_override.v1` lifecycle event that make host-field override activity observable within the single `events-*.jsonl` stream. CAP-029's single-stream model depends on the stream carrying semantically correct host-field values; the override-visibility contract governed by this BC ensures that any host-stamped field taking precedence over a plugin-supplied value leaves an auditable trace on the same stream — a host-field semantics integrity guarantee intrinsic to the single-stream design. |
 | L2 Domain Invariants | (no domain invariants directly enforced; override-visibility behavior is fully specified by BC postconditions; the underlying host-field precedence policy is governed by ADR-015 D-15.3) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/emit_event.rs` (override detection, `event.host_overrides` stamping, lifecycle notice emission) |
-| Stories | S-10.02 (Wave 1 FileSink wiring + per-event stamping), S-10.03 (Resource-attribute enrichment) |
+| Stories | S-10.02 (Wave 1 FileSink wiring + per-event stamping), S-10.03 (Resource-attribute enrichment), S-10.04 (Trace propagation + lifecycle event types) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
 | ADR | ADR-015 D-15.3 (producer-side enrichment contract; host-field override visibility; two-channel approach) |
 
@@ -212,3 +213,11 @@ Per-emit override detection source-walk:
   equivalent. Must be checked BEFORE emitting the lifecycle event; after
   insertion, subsequent duplicates are suppressed. No `let _ =` on the
   rate-limiter check.
+
+## Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-06 | Initial authoring (D-315). Two-channel override-visibility contract: event.host_overrides inline + vsdd.internal.host_field_override.v1 lifecycle event + stderr warning per ADR-015 D-15.3. |
+| v1.1 | 2026-05-06 | D-315/D-316 amendments — cap-anchor justification, edge case clarifications. |
+| v1.2 | 2026-05-06 | D-319 — F-3 fix: Story Anchor + Stories cell extended with S-10.04 (POLICY 8 reverse-direction drift from D-316 closed). F-8 fix: EC-008 prose rewritten — unambiguously states the lifecycle event IS rate-limited per Postcondition 6 with no separate meta-rate-limit; the prior contradicting "NOT rate-limited against itself" phrase removed. |
