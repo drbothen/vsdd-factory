@@ -202,6 +202,42 @@ Every adversarial pass must sample at least 5 stories and verify bidirectional B
 
 This axis catches the specific class of drift where frontmatter changes (un-retirements, re-anchoring, burst-cycle fixes) fail to propagate to the human-readable body. The drift is invisible to index-level sanity checks but catastrophic for implementers working from the body.
 
+### CI-as-Code Review Axis: Positive-Coverage Assertion for Security-Critical CI Jobs
+
+For each CI job whose purpose is **regression detection** (compile-fail, lint-as-test, fuzz-smoke, perimeter-violation, schema-drift, visibility-violation, etc.), verify the job emits a positive-coverage assertion — exit code is necessary but **insufficient**.
+
+**Audit procedure:**
+
+1. **Identify intent.** What would a regression of this job look like? What symbol, file, property, or invariant is the job validating?
+2. **Verify positive-coverage log line.** The job's log must contain a machine-greppable confirmation of the form:
+   - `Check passed: N items validated` (where N is non-zero)
+   - `All <category> checks passed (N <unit>, M <unit>)`
+   - Equivalent runtime-computed phrasing
+3. **Verify N is runtime-computed, not hardcoded.** A literal `echo "All passed"` with no inputs to count is also a false-green generator. The count must derive from the inputs the job actually processed (e.g., `len(found_violations)`, `wc -l < extracted.txt`).
+4. **Verify text-parsing is exercised.** If the job depends on regex/parser extraction from tool output (cargo error logs, lint reports, fuzz-corpus diffs), confirm:
+   - The expected-input crate/file deliberately produces at least 1 expected violation
+   - The parser regex is exercised with that input — not a no-op match
+   - Tool output formatting (ANSI codes, color, prefixes, line wrapping) cannot suppress the regex
+5. **Verify timeout-minutes is generous.** A timeout tight enough to risk killing the assertion phase before it runs is itself a false-green vector. The cargo+parse phase must have enough headroom for cold caches and slow runners.
+
+**Anti-pattern indicators (any of these → finding):**
+
+- A regression-detector CI job whose only success output is `✓` + 0 stderr + 0 stdout
+- Hardcoded "All passed" without any computed count
+- Regex relying on line-start anchors when tool output may have ANSI/color/prefix wrappers
+- `timeout-minutes` so tight that recent successful runs bumped against it
+
+**Severity:**
+- Single regression-detector with no positive-coverage log: **MEDIUM**
+- Multiple regression-detectors with the pattern, OR a job designed to validate a security-critical perimeter (visibility/capability/auth boundary): **HIGH**
+- A job confirmed to have been functionally-inert across N+ converged adversarial passes: **HIGH** with `[process-gap]` tag
+
+**Reference example (real-world origin):**
+
+A downstream project (drbothen/prism PR #127, S-3.01 PrismQL Parser) had a `perimeter-compile-fail` CI job whose Python regex `re.match(r'error\[(?:E0603|E0624)\]:...')` matched zero symbols on every run because cargo 1.85+ emits ANSI color codes (`\x1b[1m\x1b[91merror[E0603]...`) even with stderr redirection. The per-symbol assertion was a no-op for **12 consecutive adversarial passes** — exit-1 was being treated as expected-failure success while the granular check was silently bypassed. Discovered when timeout was bumped from 3 → 12 minutes (the previous false-green also masked a tighter false-fail). Fix landed in commit 9557b647 via `--color=never`.
+
+This axis exists because the META-GAP — a security-critical CI job emitting false-green signals — was undetectable by every prior review axis. POL-11 (`ci_positive_coverage_assertion`) is the gating policy. Origin: TD-VSDD-057 / prism PR #127 pass-13 F-PG-001.
+
 ### Partial-Fix Regression Discipline (S-7.01)
 
 For every adversarial pass after pass 1, you MUST explicitly verify that prior-pass
