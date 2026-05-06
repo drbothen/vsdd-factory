@@ -26,10 +26,13 @@ _emit() {
   return 0
 }
 
-# Internal: trim trailing period so we can re-add it consistently.
+# Internal: trim ALL trailing periods so we can re-add exactly one consistently.
+# Uses a loop to match Rust's trim_end_matches('.') greedy behavior — both strip
+# every trailing period, not just the last one. Prevents double-period sequences
+# when callers pass strings already ending in '.'.
 _strip_trailing_period() {
   local s="$1"
-  s="${s%.}"
+  while [[ "$s" == *. ]]; do s="${s%.}"; done
   printf '%s' "$s"
 }
 
@@ -57,13 +60,20 @@ block_pre() {
 
 # Public: PreToolUse JSON envelope deny.
 # Usage: block_pre_json <hook> <reason> <recommendation> <code> [extra_emit_kv...]
-# Requires jq.
+# Requires jq. If jq is unavailable, falls back to block_pre (stderr + exit 2)
+# so the call is never silently allowed.
 block_pre_json() {
   local hook="${1:?block_pre_json: hook name required}"; shift
   local reason="${1:?block_pre_json: reason required}"; shift
   local rec="${1:?block_pre_json: recommendation required}"; shift
   local code="${1:?block_pre_json: reason code required}"; shift
   _emit type=hook.block hook="$hook" reason="$code" "$@"
+  # Fail-safe: if jq is absent fall back to the stderr+exit-2 path rather than
+  # silently allowing the tool call (exit 0 with no JSON envelope).
+  if ! command -v jq >/dev/null 2>&1; then
+    block_pre "$hook" "$reason" "$rec" "$code"
+    # block_pre exits 2; unreachable
+  fi
   local msg
   msg="$(_format_block_line "$hook" "$reason" "$rec" "$code")"
   jq -nc --arg msg "$msg" '{

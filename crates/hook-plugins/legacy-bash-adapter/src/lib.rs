@@ -108,11 +108,16 @@ where
             // multi-line stderr we surface all of it rather than dropping
             // everything after the first line. The 4 KiB cap keeps
             // `permissionDecisionReason` reasonable for Claude Code consumption.
+            //
+            // Safety: use floor_char_boundary (stable since Rust 1.65) so the
+            // byte-slice never lands in the middle of a multi-byte UTF-8 sequence,
+            // which would panic. Hook stderr may contain Unicode file paths.
             let raw = outcome.stderr.trim();
             let reason = if raw.is_empty() {
                 format!("legacy bash hook {script_path} blocked (no stderr)")
             } else if raw.len() > 4096 {
-                format!("{}…[truncated]", &raw[..4096])
+                let safe = raw.floor_char_boundary(4096);
+                format!("{}…[truncated]", &raw[..safe])
             } else {
                 raw.to_string()
             };
@@ -303,6 +308,27 @@ mod tests {
             HookResult::Block { reason } => {
                 assert!(reason.len() <= 4096 + 20); // 4 KiB + truncation marker
                 assert!(reason.contains("[truncated]"));
+            }
+            other => panic!("expected Block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn truncates_at_utf8_char_boundary_not_mid_char() {
+        // Build a string where a 3-byte UTF-8 character (€ = U+20AC) straddles
+        // the 4096-byte boundary: 4095 ASCII bytes + '€' (bytes 4095..4098).
+        // Without floor_char_boundary, &raw[..4096] would panic.
+        let mut s = "a".repeat(4095);
+        s.push('€'); // 3 bytes: E2 82 AC — byte positions 4095, 4096, 4097
+        s.push_str(&"b".repeat(100));
+        let p = payload_with_config(serde_json::json!({"script_path": "/x/v.sh"}));
+        let r = adapter_logic(p, always_ok(2, &s));
+        match r {
+            HookResult::Block { reason } => {
+                // Must not panic and must contain [truncated]
+                assert!(reason.contains("[truncated]"));
+                // The slice boundary must be at 4095 (before '€'), not 4096
+                assert!(reason.is_char_boundary(reason.len()));
             }
             other => panic!("expected Block, got {other:?}"),
         }

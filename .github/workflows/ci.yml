@@ -36,6 +36,9 @@ jobs:
       - name: Run hook tests
         run: bats plugins/vsdd-factory/tests/hooks.bats
 
+      - name: Run block-helper tests
+        run: bats tests/integration/hooks/block-helper.bats
+
       - name: Run bin tests
         run: bats plugins/vsdd-factory/tests/bin.bats
 
