@@ -103,13 +103,19 @@ where
     match outcome.exit_code {
         0 => HookResult::Continue,
         2 => {
-            let reason = outcome
-                .stderr
-                .lines()
-                .next()
-                .filter(|l| !l.is_empty())
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| format!("legacy bash hook {script_path} blocked"));
+            // Capture the full stderr (up to 4 KiB), trimmed. Bash hooks now emit
+            // a single canonical line via lib/block.sh, but if a hook emits
+            // multi-line stderr we surface all of it rather than dropping
+            // everything after the first line. The 4 KiB cap keeps
+            // `permissionDecisionReason` reasonable for Claude Code consumption.
+            let raw = outcome.stderr.trim();
+            let reason = if raw.is_empty() {
+                format!("legacy bash hook {script_path} blocked (no stderr)")
+            } else if raw.len() > 4096 {
+                format!("{}…[truncated]", &raw[..4096])
+            } else {
+                raw.to_string()
+            };
             HookResult::block(reason)
         }
         code => HookResult::error(format!(
@@ -258,15 +264,45 @@ mod tests {
     }
 
     #[test]
-    fn maps_exit_two_to_block_with_first_stderr_line() {
+    fn maps_exit_two_to_block_with_stderr() {
+        // After the truncation fix, single-line stderr is preserved as-is.
         let p = payload_with_config(serde_json::json!({"script_path": "validate.sh"}));
+        let r = adapter_logic(p, always_ok(2, "policy violation: imports unsafe"));
+        match r {
+            HookResult::Block { reason } => {
+                assert!(reason.contains("policy violation: imports unsafe"));
+            }
+            other => panic!("expected Block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn maps_exit_two_to_block_with_full_stderr() {
+        // After the truncation fix, multi-line stderr is preserved (joined as-is).
+        let p = payload_with_config(serde_json::json!({"script_path": "/x/v.sh"}));
         let r = adapter_logic(
             p,
-            always_ok(2, "policy violation: imports unsafe\nstack trace..."),
+            always_ok(2, "first line\nsecond line\nthird line"),
         );
         match r {
             HookResult::Block { reason } => {
-                assert_eq!(reason, "policy violation: imports unsafe");
+                assert!(reason.contains("first line"));
+                assert!(reason.contains("second line"));
+                assert!(reason.contains("third line"));
+            }
+            other => panic!("expected Block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn truncates_oversized_stderr_to_4kb() {
+        let big = "x".repeat(8000);
+        let p = payload_with_config(serde_json::json!({"script_path": "/x/v.sh"}));
+        let r = adapter_logic(p, always_ok(2, &big));
+        match r {
+            HookResult::Block { reason } => {
+                assert!(reason.len() <= 4096 + 20); // 4 KiB + truncation marker
+                assert!(reason.contains("[truncated]"));
             }
             other => panic!("expected Block, got {other:?}"),
         }
