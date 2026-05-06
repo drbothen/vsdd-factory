@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -61,9 +61,7 @@ internal log" misimplementation.
 1. The event is written to `.factory/logs/events-YYYY-MM-DD.jsonl` by `FileSink::write`
    (the sole writer after D-15.1). The event is serialized as a JSONL record
    (a single JSON object followed by `\n`) appended to the file.
-2. `Router::submit` is NOT called. `SinkRegistry` dispatch is NOT called.
-   `DlqWriter` is NOT called. These code paths are excluded from `Cargo.toml`
-   `default-members` (deprecated Wave 1) and physically removed (retired Wave 5).
+2. **Postcondition 2:** `Router::submit` is NOT called from any production code path in factory-dispatcher. `SinkRegistry` dispatch methods (e.g., `dispatch_event`, `route_to_sink`) are NOT called. `DlqWriter::write` is NOT called. These types are **deprecated TYPES within the kept `sink-core` crate** (marked `#[deprecated]` or behind feature gates per Wave 1). Wave 5 physically removes the type definitions from `sink-core`. The `sink-otel-grpc` CRATE is **excluded from `Cargo.toml` `default-members`** (Wave 1 deprecation marker for the crate-level retirement; physically removed by Wave 5 per BC-1.12.007). Router/SinkRegistry/DlqWriter exclusion is type-level (not crate-level — they remain compilable as part of `sink-core` until Wave 5 removal). [Stable anchor per TD-VSDD-091; line numbers are not authoritative — use the type/function name as the canonical reference.]
    **Future-implementation witness:** A misimplementation that still calls
    `Router::submit` after D-15.1 will cause events to route to the wrong destination
    or fail silently if the Router is wired but the downstream sinks are not configured.
@@ -103,9 +101,7 @@ internal log" misimplementation.
    written to the same file. Consumer-side category discrimination via `event.category`
    attribute (per D-15.2 registry — see BC-1.12.004) is the ONLY supported
    fan-out mechanism.
-3. `Router`, `SinkRegistry`, and `DlqWriter` are NOT on the production hot path
-   for any event emission after Wave 1. Their absence from `default-members` (deprecated)
-   and eventual physical deletion (retired Wave 5) enforces this invariant.
+3. **Invariant 3:** The deprecated TYPES Router, SinkRegistry, DlqWriter (within the kept `sink-core` crate) and the deprecated CRATE `sink-otel-grpc` (excluded from `Cargo.toml` `default-members`) are unreachable from any production code path in factory-dispatcher post-Wave-1. Type-level enforcement: Router/SinkRegistry/DlqWriter marked `#[deprecated]` or behind feature gates within sink-core. Crate-level enforcement: sink-otel-grpc removed from default-members. Both are physically removed in Wave 5.
 
 ## Related BCs
 
@@ -180,7 +176,7 @@ S-10.02 (Wave 1: FileSink single-stream wiring)
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
-| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC specifies the single-stream FileSink wiring that removes Router/SinkRegistry/DlqWriter from the production path — the exact architectural outcome that CAP-029 describes in its first paragraph: "The dispatcher writes every user-facing domain event as a JSONL record to a single `events-YYYY-MM-DD.jsonl` file via FileSink. Router, SinkRegistry, and DlqWriter are retired." BC-1.12.001 is the behavioral contract that makes that CAP-029 outcome verifiable. |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC specifies the single-stream FileSink wiring that removes Router/SinkRegistry/DlqWriter from the production path. Per CAP-029 (capabilities.md §CAP-029): the single-stream design retires Router, SinkRegistry, and DlqWriter; FileSink becomes the direct writer for `events-YYYY-MM-DD.jsonl`. This BC implements the Wave 1 wiring change that materializes that retirement at the dispatcher level. BC-1.12.001 is the behavioral contract that makes that CAP-029 outcome verifiable. |
 | L2 Domain Invariants | DI-011 (superseded by ADR-015 D-15.1 — single-sink eliminates submit-must-not-block; this BC is the post-supersession replacement); DI-012 (superseded by ADR-015 D-15.1 — single-sink eliminates per-sink isolation; this BC governs the single-sink behavior that replaces both DIs) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (emit_event call site), `crates/sink-file/src/lib.rs` (FileSink) |
 | Stories | S-10.02 (Wave 1 FileSink single-stream wiring) |
@@ -197,6 +193,14 @@ S-10.02 (Wave 1: FileSink single-stream wiring)
 | Deterministic | YES given fixed filesystem state and fixed date |
 | Thread safety | YES — FileSink is not shared across concurrent threads in the single-stream model (single-threaded dispatcher per ADR-008) |
 | Overall classification | Effectful shell (file I/O with defined failure contract per BC-1.11.002) |
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-05-04 | Initial authoring (D-313; ADR-015 D-15.1 single-stream FileSink routing contract). |
+| 1.1 | 2026-05-06 | D-318 — capability confirmed CAP-029; story anchor S-10.02 added; future-implementation witnesses added. |
+| 1.2 | 2026-05-06 | D-322 — F-1 fix: Postcondition 2 + Invariant 3 reworded — Router/SinkRegistry/DlqWriter are deprecated TYPES within the kept `sink-core` crate; only `sink-otel-grpc` CRATE is excluded from `default-members`. F-11 fix: CAP-029 paraphrase-as-quote replaced with proper non-quoted reference per capabilities.md §CAP-029. |
 
 ### TD-VSDD-092 (BC-SOUL4-coverage) Verification
 

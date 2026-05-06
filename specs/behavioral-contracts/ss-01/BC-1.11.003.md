@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-05-04T00:00:00Z
@@ -170,6 +170,14 @@ the Wave 3 deprecation announcement and operator audit gate sub-tasks.
   to prevent
 - ADR-015 OQ-8 — this BC resolves the open question
 
+## Story Anchor
+
+S-10.05 (Wave 2: Plugin schema migration — emit_pair host helper for atomic dual-emit, optional migration path per AC-009 / D-15.3 host-field-precedence preparation).
+
+## VP Anchors
+
+(TBD — to be assigned after S-10.05 story authoring)
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -203,11 +211,11 @@ the Wave 3 deprecation announcement and operator audit gate sub-tasks.
 | L2 Capability | CAP-009 — Author and publish WASM hook plugins using the Rust SDK |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/emit_event.rs`; SS-02 — `crates/hook-sdk/src/host.rs` |
-| Stories | Wave 2 story (TBD — dual-emit shim wave) |
+| Stories | S-10.05 (Wave 2: Plugin schema migration — emit_pair host helper for atomic dual-emit per AC-009) |
 | ADR | ADR-015 D-15.2.e (orphan-half detection); OQ-8 (this BC resolves it) |
 | OQ Resolved | OQ-8 (atomic dual-emit host helper; v1 accepts orphan-half risk for sequential two-call shims; emit_pair is the Wave 2 mitigation) |
 
-**Capability Anchor Justification:** CAP-009 is anchored here because `emit_pair` is a new host function binding added to the `vsdd-hook-sdk` crate's `host` module — the exact ABI surface described by CAP-009 ("The `vsdd-hook-sdk` crate provides the `#[hook]` macro, `HookPayload`, `HookResult`, and all `vsdd::*` host function bindings. A third-party plugin author can add a dependency and ship a `.wasm` without touching the dispatcher." — capabilities.md §CAP-009, Subsystems: SS-02). The `emit_pair` function is precisely one of those `vsdd::*` host function bindings: it lives in `vsdd_hook_sdk::host`, it extends the SDK ABI surface available to plugin authors, and its adoption is fully opt-in (plugin side adds a dependency; no dispatcher modification required beyond the host-side implementation). CAP-029 covers the dispatcher's single-stream FileSink wiring (D-15.1) — a different concern from the SDK-side dual-emit ABI extension. No new capability is required; CAP-009 is the correct anchor.
+**Capability Anchor Justification:** BC-1.11.003 governs the dispatcher-side coordination contract for atomic dual-emit (`emit_pair` host helper). The BC's primary semantic surface is SS-01 (factory-dispatcher::host::emit_event coordinates the legacy+new event pair atomically against the single events stream per CAP-029); SS-02 is a cross-reference because the SDK exposes the `emit_pair` ABI binding (vsdd_hook_sdk::host::emit_pair) that calls into the SS-01 coordination logic. CAP-009 anchors the BC because emit_pair is part of the WASM hook plugin SDK ABI surface — plugin authors call it from inside their WASM module, and the SDK provides the binding. SS-01 is the location of the BC because the host-side coordination is the dominant behavioral surface (the SDK is a thin pass-through binding with no policy decisions of its own). Architecture Module: SS-01 — crates/factory-dispatcher/src/host/emit_event.rs (primary); SS-02 — crates/hook-sdk/src/host.rs (pass-through binding).
 
 ### Purity Classification
 
@@ -218,3 +226,11 @@ the Wave 3 deprecation announcement and operator audit gate sub-tasks.
 | Deterministic | YES given fixed HostContext and FileSink state |
 | Thread safety | YES — FileSink is not shared across concurrent emit calls in single-thread dispatcher model |
 | Overall classification | Effectful shell (two sequential file writes with coordinated UUID assignment) |
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-05-04 | Initial authoring (architect; ADR-015 D-15.2.e + OQ-8 atomic dual-emit host helper). |
+| 1.1 | 2026-05-06 | D-317/D-318 — capability resolved CAP-TBD → CAP-009 (WASM hook SDK ABI surface for emit_pair binding). |
+| 1.2 | 2026-05-06 | D-322 — F-6 fix: Story Anchor section added (S-10.05 Wave 2 plugin schema migration); VP Anchors section added; Stories cell updated from "Wave 2 story (TBD)" to S-10.05. F-8 fix: Capability Anchor Justification rewritten to lead with SS-01 host-side coordination role rather than SS-02 SDK exposure (adjudication: keep BC in SS-01; SS-01 is the dominant behavioral surface). |

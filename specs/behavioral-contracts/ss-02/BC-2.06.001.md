@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-05-06T00:00:00Z
@@ -71,7 +71,7 @@ host-field-precedence is now in effect, per Cargo's SemVer resolver semantics.
    - A migration guidance paragraph explaining: "Plugin authors that set
      host-owned Resource fields (`service.name`, `service.namespace`,
      `service.instance.id`, `service.version`, `deployment.environment.name`,
-     `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.*`, `worktree.id`,
+     `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.repository.url.full, vcs.repository.name, vcs.provider.name, vcs.owner.name` (per BC-1.12.003 Postcondition 1's authoritative VCS Resource attribute list. Note that `vcs.ref.head.name`, `vcs.ref.head.revision`, `vcs.ref.head.type` are PER-EVENT identity fields per BC-1.12.004 Postcondition 1, NOT Resource attributes — also host-stamped but in a different category.), `worktree.id`,
      `schema_url`) or per-event identity fields (`trace_id`, `event.id`,
      `event.category`, `event.name`, `span_id`, `parent_span_id`,
      `plugin.invocation_id`, `session.id`, `timestamp`, `event.source`) must
@@ -202,3 +202,10 @@ D-15.3 host-field-precedence semantics per AC-008)
 | BC files (this BC) | ~1 BC |
 | Story anchor | S-10.05 (Wave 2 plugin schema migration) |
 | Subsystem | SS-02 |
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-05-06 | Initial authoring (D-321; ADR-015 D-15.3 SDK MAJOR semver bump for host-field-precedence Wave 2 release). |
+| 1.1 | 2026-05-06 | D-322 — F-14 fix: `vcs.*` wildcard in migration guidance (Postcondition 2) expanded to explicit four VCS Resource fields (`vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`) per BC-1.12.003 Postcondition 1; parenthetical note added clarifying `vcs.ref.head.*` fields are per-event identity fields (BC-1.12.004), not Resource attributes. |

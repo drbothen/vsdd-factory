@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.12.007: factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI check deferred to Wave 5
+# Behavioral Contract BC-1.12.007: factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI gate (tool selected D-318: cargo-call-stack; implementation deferred to Wave 5)
 
 ## Description
 
@@ -123,7 +123,16 @@ establishes). All Canonical Test Vectors describe the post-Wave-1 state.
 
 ## Open Questions / Future Work
 
-**TD-015-a (closed in D-318):** Original question was "which team owns implementing the CI check to reject any PR that adds NEW intra-workspace dependencies on the deprecated crates, and what tool: `cargo metadata` vs `cargo-deny` allow-list vs custom lint?" Resolution: `cargo-call-stack` chosen for consistency with Postcondition 1's named verification tool. Owner: TBD — assignment flagged for sprint planning. Decision-by date: Wave 5 closure (unchanged). The check is NOT a postcondition of Wave 1 but MUST be implemented before Wave 5 crate deletion to prevent a scenario where an undetected re-coupling causes workspace breakage when the deprecated crates are deleted.
+**TD-015-a — CI gate implementation (PARTIAL CLOSURE in D-318):**
+
+Closure scope: D-318 selected `cargo-call-stack` as the verification tool for the call-graph invariant (Postcondition 1 / Invariant 1 cite it).
+
+Remaining work (NOT closed):
+- **Owner assignment** — implementation of the cargo-call-stack-based CI gate is unowned; flagged for sprint planning.
+- **Decision-by date** — the CI gate MUST be wired before Wave 5 crate deletion (the static-analysis gate is the only mechanism that prevents post-Wave-5 silent re-coupling; without it, manual audit is the only fallback).
+- **Implementation pattern** — open question whether to invoke cargo-call-stack as a GitHub Actions step, a pre-commit hook, or a `cargo xtask` subcommand. Architect adjudication needed pre-Wave-5.
+
+This BC's Postcondition 1 + Invariant 1 cite cargo-call-stack as the named tool (D-318 closure); the BC's Invariant 3 documents the manual-audit fallback that applies until the CI gate ships.
 
 ## Related BCs
 
@@ -134,12 +143,12 @@ establishes). All Canonical Test Vectors describe the post-Wave-1 state.
 
 ## Architecture Anchors
 
-- `factory-dispatcher::sinks::Sink` trait dispatch surface (in
-  `crates/factory-dispatcher/src/sinks/mod.rs`) — the open integration point that
-  ADR-015 closes; `Router::submit` is NOT wired here after Wave 1; this TODO is
-  resolved by removing the comment and the dead code. (Stable anchor per TD-VSDD-091;
-  line numbers are not authoritative — use the trait/module name as the canonical
-  reference.)
+- the open integration TODO at `factory-dispatcher::sinks::mod` (in
+  `crates/factory-dispatcher/src/sinks/mod.rs`) — the wiring point for `Router::submit`
+  that ADR-015 closes by leaving it unwired. The `Sink` trait itself in `sink-core` is
+  KEPT per ADR-015 D-15.1; only the Router wiring is retired here. [Stable anchor per
+  TD-VSDD-091; line numbers are not authoritative — use the function/module name as the
+  canonical reference.]
 - `Cargo.toml` (workspace root) — `default-members` field; deprecated crates
   excluded from default build
 - `crates/sink-otel-grpc/Cargo.toml` — `publish = false` set at Wave 1
@@ -201,7 +210,7 @@ via physical deletion.
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
-| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC is the call-graph invariant that proves the single-stream architecture holds: CAP-029 states "Router, SinkRegistry, and DlqWriter are retired; all downstream multi-sink fan-out is delegated to an external OTel Collector." BC-1.12.007 is the verifiable behavioral contract that enforces that retirement — it specifies that no production code path calls these deprecated symbols, and mandates static analysis verification (cargo-call-stack) to prove the absence at every PR merge. |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC is the call-graph invariant that proves the single-stream architecture holds. Per CAP-029 (capabilities.md §CAP-029): the multi-sink fan-out is retired in favor of single-stream FileSink emission with downstream OTel Collector fan-out. This BC enforces the call-graph invariant that proves the retirement holds in the dispatcher's production binary. BC-1.12.007 specifies that no production code path calls the deprecated symbols, and mandates static analysis verification (cargo-call-stack) to prove the absence at every PR merge. |
 | L2 Domain Invariants | DI-011 (superseded by ADR-015 D-15.1 — single-sink eliminates submit-must-not-block; the multi-sink path that DI-011 governed is precisely the path this BC forbids from production); DI-012 (superseded by ADR-015 D-15.1 — single-sink eliminates per-sink isolation; this BC's call-graph invariant is what makes DI-012's per-sink concern moot) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (call-graph exclusion enforced by removing `Router::submit` wire); workspace `Cargo.toml` (`default-members` exclusion) |
 | Stories | S-10.02 (Wave 1: establishes call-graph invariant by removing Router wire), S-10.09 (Wave 5: completes lifecycle via physical deletion) |
@@ -218,6 +227,15 @@ via physical deletion.
 | Deterministic | YES — the call graph is static after compilation |
 | Thread safety | N/A |
 | Overall classification | Behavioral invariant (call-graph constraint; verified by integration test and static analysis) |
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-05-04 | Initial authoring (D-313; ADR-015 D-15.1 Wave 1 call-graph deprecation invariant). |
+| 1.1 | 2026-05-06 | D-315/D-318 — Postcondition 1 + Invariant 1 sharpened (full transitive callgraph scope; cargo-call-stack named as primary verification tool). |
+| 1.2 | 2026-05-06 | D-318/D-321 — capability confirmed CAP-029; story anchors S-10.02 + S-10.09 added. |
+| 1.3 | 2026-05-06 | D-322 — F-5 fix: TD-015-a "closed in D-318" contradiction resolved — reframed as PARTIAL CLOSURE (tool selected D-318: cargo-call-stack; CI gate implementation/owner assignment deferred to pre-Wave-5). H1 updated to reflect partial closure. F-16 fix: Architecture Anchor reworded — `Sink` trait is KEPT in `sink-core`; only the Router wiring in `sinks/mod.rs` is retired. F-11 fix: CAP-029 paraphrase-as-quote replaced with proper non-quoted reference per capabilities.md §CAP-029. F-7 fix: Changelog section added. |
 
 ### TD-VSDD-092 (BC-SOUL4-coverage) Verification
 

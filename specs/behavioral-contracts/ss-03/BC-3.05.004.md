@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -185,8 +185,7 @@ retired BC-3.05.001/002/003 (marked `lifecycle_status: retired`,
   as a behavioral reference)
 - BC-3.05.002 — **RETIRED** (lifecycle_status: retired; superseded_by: ADR-015)
 - BC-3.05.003 — **RETIRED** (lifecycle_status: retired; superseded_by: ADR-015)
-- BC-1.12.007 — Wave 1 call-graph invariant (sibling: the config schema also
-  removes multi-sink stanzas; this BC is the schema-side enforcement)
+- BC-1.12.007 — Wave 1 call-graph invariant (cross-cutting: BC-1.12.007 is the runtime call-graph enforcement that no production code path reaches Router/SinkRegistry/DlqWriter; this BC is the static config-schema enforcement that observability-config.toml v2 has no `[[sinks]]` stanzas. Together they ensure ADR-015 D-15.1 multi-sink retirement holds at both compile-time/config-time and runtime — orthogonal enforcement surfaces.)
 
 ## Architecture Anchors
 
@@ -307,3 +306,4 @@ Config load source-walk:
 | v1.0 | 2026-05-06 | Initial authoring (D-313 Phase 1b). BC-3.05.004 is the corrected ID after D-312 corrigendum found BC-3.05.001 was a pre-existing brownfield BC. Two-key gate semantics incorporate OQ-W16-011 resolution (D-311). Supersedes retired BC-3.05.001/002/003. |
 | v1.1 | 2026-05-06 | D-315 F-2/F-11/F-18/F-4 BC-side. Re-anchored to CAP-029 (primary). EC-004 resolved: schema_version>2 → hard-error (option a, consistent with Invariant 1). Invariant 2 added: schema_version domain `{1, 2, >2}` with explicit behavior per partition. Canonical test vector for schema_version=3 added. Secondary Capability Reference (CAP-010) and BC-1.12.002 cross-reference paragraph added (F-18). L2 Domain Invariants populated: DI-014 (hard-error on mismatch, extended to v2). |
 | v1.2 | 2026-05-06 | D-319 — F-10 fix: Canonical Test Vectors strictness aligned with Postcondition 4(a) + Invariant 2 exact message texts using regex-substring form. schema_version=1 CTV row now asserts stderr matches `\[vsdd-dispatcher\] ERROR: observability-config\.toml has schema_version=1` (from PC4(a)). schema_version=3 CTV row now asserts stderr matches `\[vsdd-dispatcher\] ERROR: unknown future schema version 3; this dispatcher build accepts schema_version = 2 only` (from Invariant 2 / EC-004). |
+| v1.3 | 2026-05-06 | D-322 — F-10 fix: BC-1.12.007 Related BCs entry corrected — false "sibling" claim replaced with accurate "cross-cutting orthogonal enforcement surfaces" description (call-graph runtime enforcement vs config-schema static enforcement; together enforce ADR-015 D-15.1 multi-sink retirement). |

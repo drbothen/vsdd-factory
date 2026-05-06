@@ -30,7 +30,7 @@ removal_reason: null
 ## Description
 
 Prior to ADR-015, when a plugin returned `HookResult::Block`, the dispatcher
-exited with code 2 (the block exit code) but emitted NO observable event. The
+exited with code 2 (per BC-1.08.001 — `HookResult::Block` exit-code semantics; this BC inherits the exit-code contract and adds the audit-event-emission-before-exit ordering) but emitted NO observable event. The
 block path had no audit trail. A security team could not determine after the
 fact which plugin had blocked which tool call, or when.
 
@@ -201,3 +201,10 @@ Block-path audit emission source-walk:
   `std::process::exit(2)`. Invariant 4 (emit-before-exit) is the SOUL #4 guard:
   an implementation that `let _ = emit_event(...)` and then exits may silently
   discard a block-audit event if the FileSink is slow. This is prohibited.
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-05-06 | Initial authoring (D-313; ADR-015 D-15.3 block-path audit-event emission). |
+| 1.1 | 2026-05-06 | D-318/D-322 — capability re-anchored CAP-008 → CAP-029 primary + CAP-008 secondary (single-stream audit emission with gating cross-reference). F-13 fix: exit code 2 in Description cited to BC-1.08.001 as authoritative source for `HookResult::Block` exit-code semantics. F-7 fix: Changelog section added. |

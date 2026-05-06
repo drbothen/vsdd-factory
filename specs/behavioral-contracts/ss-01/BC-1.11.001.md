@@ -145,3 +145,10 @@ S-10.04 (Wave 1: Trace propagation + lifecycle event types — exec_subprocess i
 | Deterministic | YES given fixed HostContext state |
 | Thread safety | YES — HostContext is immutable after startup; env builder is per-call |
 | Overall classification | Effectful shell (subprocess spawn) with pure env-construction step |
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-05-04 | Initial authoring (architect; ADR-015 D-15.4 trace propagation contract). |
+| 1.1 | 2026-05-06 | D-318 — capability resolved CAP-TBD → CAP-029 (single-stream emission requires trace_id stamping per DI-017 amendment); Story Anchor S-10.04 added. |

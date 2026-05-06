@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-05-04T00:00:00Z
@@ -13,7 +13,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: spec-revision
 subsystem: "SS-01"
-capability: "CAP-TBD"
+capability: "CAP-029"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -159,7 +159,8 @@ This BC resolves OQ-7 from ADR-015.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-TBD |
+| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. BC-1.11.002 governs the FileSink partial-write recovery cascade (write retry + fallback file + stderr warning per BC-1.12.001 Postcondition 3). Per CAP-029, the dispatcher writes every domain event as a JSONL record to a single events-YYYY-MM-DD.jsonl file via FileSink — this BC ensures CAP-029's single-stream guarantee survives transient FileSink IO errors. Without this BC, a FileSink::write failure would silently drop events; with it, the cascade preserves the at-least-once observable property. The BC's write-failure cascade (Postconditions: fallback to internal log + stderr warning) is the direct implementation of the durability contract that CAP-029's single-stream design requires. BC-1.12.001 Postcondition 3 is the failure-cascade entry point on the primary-path BC; BC-1.11.002 is the full specification of what that cascade does. |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01/SS-03 — `crates/sink-file/src/lib.rs`, `crates/factory-dispatcher/src/internal_log.rs` |
 | Stories | S-10.03 (Wave 1 enrichment + FileSink integration) |
@@ -192,3 +193,10 @@ JSONL append convention used by logrotate, OTel Collector filelog receiver,
 and Loki Promtail. It is compatible with all external consumer tooling and
 bounds the data loss to at most one event per crash — the event in flight at
 the moment of the crash.
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-05-04 | Initial authoring (architect; ADR-015 D-15.1 FileSink partial-write recovery and write-failure cascade contract). |
+| 1.1 | 2026-05-06 | D-322 — F-4 fix: capability resolved CAP-TBD → CAP-029 with substantive Capability Anchor Justification paragraph. FileSink partial-write recovery preserves CAP-029 single-stream guarantee against transient FileSink IO errors; cascade (BC-1.12.001 Postcondition 3 failure path) ensures at-least-once observable property. |
