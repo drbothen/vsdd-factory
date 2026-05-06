@@ -1,10 +1,10 @@
 ---
 document_type: story-index
 level: ops
-version: "2.03"
+version: "2.04"
 status: current
 producer: state-manager
-timestamp: 2026-05-06T10:00:00
+timestamp: 2026-05-06T00:00:00Z
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -45,6 +45,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-263 — STORY-INDEX bumped to reflect D-263 combined implementation-readiness seal-and-fix burst (ninth TD-VSDD-064 application; TD-VSDD-074 codified — TD-VSDD-073 scope extension to BCs cited in amendment landings). Pass-20 SUBSTANTIVE 0H/2M/2L sealed. M-P20-001 closed (OQ-3 pinned `timeout_ms = 30000` + `max_output_bytes = 65536`). M-P20-002 + L-P20-002 closed (BC-1.05.036 ADR-015 awareness clause + error-path reality). BC-1.05.035 + BC-1.05.036 gained `last_amended: 2026-05-05`. L-P20-001 SKIPPED with rationale. E-9 v1.20→v1.21. ADR-013 clock 1→0_of_3 RESET. STORY-INDEX v1.69 → v1.70.
 > Updated 2026-05-05: D-264 — STORY-INDEX bumped to reflect D-264 multi-fix burst (tenth TD-VSDD-064 application; TD-VSDD-075 codified — source-code-verification + dependent-citation-propagation disciplines). Pass-21 SUBSTANTIVE 2H/3M/2L sealed. H-P21-001 BC-1.05.036 error codes -7/-8→-2/-3 (source-code verified). H-P21-002 open-questions.md line citation 325→326. M-P21-001 BC-1.05.035 ADR-015 awareness. M-P21-002 BC-1.05.036 host category corrected. M-P21-003 truncated:bool reserved semantics. 2 LOWs DEFERRED. E-9 v1.21→v1.22. ADR-013 clock 0_of_3. STORY-INDEX v1.70 → v1.71.
 > Updated 2026-05-05: D-270 — STORY-INDEX bumped to reflect D-270 combined silence-audit seal-and-fix burst (fourteenth TD-VSDD-064 application). Pass-27 SUBSTANTIVE 1H/1M/0L sealed (negative-coverage / silence audit angle NEW per TD-VSDD-057). H-P27-001 closed (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; source-truth verified ADR-015 lines 99/130/154). M-P27-001 closed (Postcondition 5 INTERNAL_ERROR (-99) enumeration added; 5 source-code line citations exec_subprocess.rs:252/258/262/267-268/299; const mod.rs:184). E-9 v1.25→v1.26. ADR-013 clock RESET 0_of_3. STORY-INDEX v1.76 → v1.77.
+> Updated 2026-05-06: D-297 — STORY-INDEX bumped to reflect D-297 compact-prep state update + S-11.00 stub creation (verify-sha-currency.sh Rust port for cross-OS support; user directive 2026-05-06). New standalone story S-11.00 registered: status=draft, priority=P3, depends_on=E-9, points=TBD. Full story authoring (acceptance criteria, BCs, anchor justification, test plan) deferred to story-writer post-E-9 completion. Story count 67 → 68. STORY-INDEX v2.03 → v2.04.
 > Updated 2026-05-06: D-296 — STORY-INDEX bumped to reflect D-296 pass-52 TV-derivation seal-and-fix (SEVENTH PO-authored burst). Pass-52 verdict 0H/1M/2L (adversarial test-vector-derivation angle NEW per TD-VSDD-057); adversary classified NITPICK_ONLY but strict-protocol treats 1 MED as SUBSTANTIVE; ADR-013 clock RESETS 1_of_3 → 0_of_3. MED-P52-001 closed (BC-036 EC-005A boundary `strictly exceeds (>)` tightening + boundary-success-witness CTV row). LOW-P52-001 closed (BC-036 P4 NOTE ADR-015 FileSink rewire CTV gap — deferred to E-9 Wave 1). LOW-P52-002 closed (BC-036 EC-013A u32::MAX upper-bound ~49.7 days note). **Strict-protocol clock RESET 1→0_of_3** per quality-preference precedent (D-295). 3 fresh NITPICK_ONLY (53/54/55) needed for CONVERGENCE_REACHED. **PENDING: context-compaction + new story authoring (verify-sha-currency.sh Rust port) per user directive before pass-53.** E-9 v1.46→v1.47. STORY-INDEX v2.02 → v2.03.
 > Updated 2026-05-06: D-295 — STORY-INDEX bumped to reflect D-295 pass-51 LOW closures (user-directed; SIXTH PO-authored burst). All 6 pass-51 LOWs closed by PO Phase 1: LOW-P51-001 (BC-035 §Precedence Ladder step (1) cause-collapse note), LOW-P51-002 (BC-035 EC-013 file_name=None fallback), LOW-P51-003 (BC-036 EC-007 stdin write_all cause erasure), LOW-P51-004 (BC-036 EC-007 try_wait cause erasure), LOW-P51-005 (BC-036 EC-013A 5ms busy-poll granularity footnote), LOW-P51-006 (BC-036 EC-011 emit_internal poison vs IO asymmetry contrast). **TRADEOFF: ADR-013 clock RESET 1_of_3 → 0_of_3** (user accepted clock reset; 3 fresh NITPICK_ONLY passes (52/53/54) needed for CONVERGENCE_REACHED). E-9 v1.45→v1.46. STORY-INDEX v2.01 → v2.02.
 > Updated 2026-05-06: D-294 — STORY-INDEX bumped to reflect D-294 pass-51 NITPICK_ONLY seal. Pass-51 verdict 0H/0M/6L (signal-flow / data-flow audit angle NEW per TD-VSDD-057); all 6 LOWs deferred per S-7.03 SHIP-AS-IS. ADR-013 clock advances 0_of_3 → 1_of_3 (FIRST ADVANCE in fresh post-D-293 convergence path). No epic version bump per NITPICK seal pattern. **2 more NITPICK_ONLY (pass-52/53) needed for CONVERGENCE_REACHED.** STORY-INDEX v2.00 → v2.01.
@@ -388,6 +389,19 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
+## Standalone Story S-11.00 — verify-sha-currency.sh Rust port (STUB)
+
+> **S-11.00 stub registered (2026-05-06, D-297):** User directive to port `verify-sha-currency.sh`
+> to a Rust binary for cross-OS support (Linux, macOS, Windows). Standalone story (no epic yet);
+> depends_on E-9 completion. Full authoring deferred to story-writer post-E-9 completion.
+> See `S-11.00-verify-sha-currency-rust-port.md` for stub description, motivation, and preliminary scope.
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|--------|-----|
+| S-11.00 | Port verify-sha-currency.sh to Rust binary for cross-OS support | — | TBD | P3 | E-9 | — | draft | [] (pending full story authoring post-E-9; stub only at D-297) |
+
+---
+
 **Draft story policy:** Stories with `status: draft` MAY have empty
 `behavioral_contracts: []` arrays. BC anchoring is deferred to the elaboration phase
 (when status transitions to `ready`). **Source:** Phase 1d pass 3 F-035.
@@ -399,7 +413,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 300+ across 76 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 45 E-10***)
+**Total story points:** 300+ across 77 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 45 E-10*** + TBD S-11.00)
 
 > \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
 > \*\*E-9 in progress — S-9.00 + S-9.30 authored (TBD pts each); S-9.01..S-9.07 stub entries (TBD pts pending Burst 2+3 authoring); ~50-70 additional pts estimated across 9 stories.

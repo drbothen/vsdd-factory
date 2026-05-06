@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-06T22:00:00-05:00
+timestamp: 2026-05-06T23:30:00-05:00
 phase: post-rc11-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "D-296 pass-52 seal-and-fix applied. 1M+2L (MED-P52-001 EC-005A `strictly exceeds` boundary disambig + boundary CTV; LOW-P52-001 P4 ADR-015 rewire CTV gap NOTE; LOW-P52-002 EC-013A upper-bound u32::MAX note). v1.46→v1.47. **Strict-protocol verdict SUBSTANTIVE; clock RESETS 1→0_of_3** (despite adversary lenient NITPICK_ONLY classification). SEVENTH PO-authored burst. **PENDING: pause for context-compaction + new story authoring (verify-sha-currency.sh Rust port for cross-OS) per user directive.** Pass-53 PENDING after compact + story-creation. STATE current as of 2026-05-06."
+current_step: "**D-297 STATE-CURRENT for compact-prep + post-compact resumption.** D-296 sealed pass-52 (1M+2L; v1.46→v1.47; clock RESET 1→0_of_3 strict-protocol). New story S-11.00 stub filed (verify-sha-currency.sh Rust port; depends_on E-9; status draft). User compacting context after this burst. **POST-COMPACT RESUMPTION POINTERS:** Active step: (iv.f) adversary v1.7 amendment sweep — at v1.47, ADR-013 clock 0_of_3. Next adversary pass: pass-53 on E-9 v1.47 (need fresh angle per TD-VSDD-057). Convergence path: 3 fresh NITPICK_ONLY (53/54/55) → CONVERGENCE_REACHED → unblocks step (v) PO BC authorship for S-10.01..S-10.09. Routing: PO Phase 1 + state-manager Phase 2 per TD-VSDD-088 NORMATIVE. Stable-anchor citations per TD-VSDD-091 NORMATIVE. 53 prior pass angles exhausted; pass-53 recommended angle: append-only POLICY 1 byte-level audit OR doc-comment-vs-implementation audit OR comprehensive whole-document re-read (3rd time). Last factory-artifacts commit: f933be1 (D-296 v1.47 seal); D-297 commit seals this burst. OPEN BACKLOG: Task #77 (engine-level TD ban line-citations; TD-091-ENGINE filed; awaits impl); Task #87 (hooks plumbing fixes; engine-level; parallel to S-11.00); S-11.00 full authoring deferred to post-E-9 story-writer burst."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-06 (D-296 pass-52 seal-and-fix; v1.46→v1.47; 1M+2L closed; ADR-013 clock RESET 1_of_3 → 0_of_3 strict protocol; SEVENTH PO-authored burst; STORY-INDEX 2.02→2.03) |
+| **Last Updated** | 2026-05-06 (D-297 compact-prep STATE-CURRENT; S-11.00 stub filed; story count 67→68; STORY-INDEX 2.03→2.04) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -132,7 +132,9 @@ dtu_services: []
 | E-9 v1.45→v1.46 pass-51 LOW closures (D-295) | product-owner (Phase 1) + state-manager (Phase 2) | COMPLETE | SIXTH PO-authored burst; 6 LOW closures; ADR-013 clock RESET 1_of_3 → 0_of_3 per user directive (quality > pass count) |
 | E-9 v1.46 adversary pass-52 | adversary + state-manager | COMPLETE | pass-52 TV-derivation 1M+2L; strict-protocol SUBSTANTIVE; clock 1_of_3 → 0_of_3 RESET |
 | E-9 v1.46→v1.47 pass-52 seal-and-fix (D-296) | product-owner (Phase 1) + state-manager (Phase 2) | COMPLETE | SEVENTH PO-authored burst; MED-P52-001 EC-005A boundary + LOW-P52-001 P4 NOTE + LOW-P52-002 EC-013A upper-bound; clock RESET 1→0_of_3 per strict protocol |
-| E-9 v1.47 adversary pass-53 | adversary + state-manager | PENDING | ADR-013 clock 0_of_3; 3 NITPICK_ONLY (53/54/55) needed for CONVERGENCE_REACHED; PENDING context-compaction + story authoring first |
+| E-9 v1.46→v1.47 pass-52 seal-and-fix (D-296) | product-owner (Phase 1) + state-manager (Phase 2) | COMPLETE | SEVENTH PO-authored burst; MED-P52-001 EC-005A boundary + LOW-P52-001 P4 NOTE + LOW-P52-002 EC-013A upper-bound; clock RESET 1→0_of_3 per strict protocol |
+| D-297 compact-prep STATE-CURRENT + S-11.00 stub | state-manager | COMPLETE | S-11.00 stub filed (verify-sha-currency.sh Rust port; depends_on E-9; draft); STORY-INDEX 2.03→2.04; story count 67→68; post-compact resumption pointers explicit |
+| E-9 v1.47 adversary pass-53 | adversary + state-manager | PENDING | ADR-013 clock 0_of_3; 3 NITPICK_ONLY (53/54/55) needed for CONVERGENCE_REACHED; PENDING post-compact resumption |
 | E-10 BC authorship (S-10.01..S-10.09) | product-owner | PENDING | 9 stories × BCs anchored to BC-1.11.001/002/003 cluster |
 
 ## Identifier Conventions
@@ -145,15 +147,15 @@ dtu_services: []
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 67 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 68 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 10 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 14 |
 
-## Story Status (67 total — W-15 CONVERGED; W-16 spec in progress)
+## Story Status (68 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed)
 
 - **Merged (58):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (6):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending)
+- **Draft (7):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)
@@ -175,6 +177,7 @@ dtu_services: []
 
 | ID | Decision | Rationale | Phase | Date | Made By |
 |----|----------|-----------|-------|------|---------|
+| D-297 | **Compact-prep STATE-CURRENT + S-11.00 stub — D-297 STATE-CURRENT burst for context-compaction handoff + S-11.00 stub creation. New standalone story S-11.00 registered (verify-sha-currency.sh Rust port for cross-OS support; user directive 2026-05-06: "we should migrate that script as well to rust just like we did the rest of our system, so it can work across OS's"). Story slot S-11.00 chosen (standalone, no epic yet) to avoid polluting E-9 scope (verify-sha-currency.sh is a state-manager hygiene utility, not a Claude Code [[hooks]] registry entry). depends_on: E-9 (logical: WASM-ported hook invokes bash script; Rust port closes portability gap). Full authoring deferred to story-writer post-E-9. Post-compact resumption pointer: pass-53 on E-9 v1.47 (ADR-013 clock 0_of_3; 3 NITPICK_ONLY needed). Routing: PO Phase 1 + state-manager Phase 2 per TD-VSDD-088. STORY-INDEX 2.03→2.04; story count 67→68.** | User directive to compact context after D-296 + story for verify-sha-currency.sh Rust port. Standalone slot S-11.00 cleanest fit — distinct category from E-3 (high-value hooks) and E-9 (validate-*.sh hooks). State-manager scope: stub file creation is index-class metadata authoring. | Phase-D-4-compact-prep-D-297 | 2026-05-06 | state-manager |
 | D-296 | **Pass-52 TV-derivation seal-and-fix — D-296 SEALS pass-52 + APPLIES v1.46 → v1.47 fix. SEVENTH PO-authored burst (PO Phase 1 + state-manager Phase 2). Pass-52 verdict 0H/1M/2L (adversarial test-vector-derivation angle NEW per TD-VSDD-057). Adversary classified NITPICK_ONLY but strict-protocol treats 1 MED as SUBSTANTIVE; clock RESETS per quality-preference precedent (D-295). MED-P52-001 CLOSED: BC-036 EC-005A `strictly exceeds (>, not >=)` prose tightening + boundary-success-witness CTV row (len == max_output_bytes is success path per exec_subprocess.rs:278 strict `>`). LOW-P52-001 CLOSED (deferred to E-9 Wave 1): BC-036 P4 NOTE re ADR-015 FileSink rewire CTV gap. LOW-P52-002 CLOSED: BC-036 EC-013A upper-bound `timeout_ms = u32::MAX` ~49.7 days note. ADR-013 clock RESETS 1_of_3 → 0_of_3. **PENDING: pause for context-compaction + new story authoring (verify-sha-currency.sh Rust port for cross-OS) per user directive. Pass-53 PENDING after compact + story-creation.** STORY-INDEX 2.02→2.03.** | Adversary TV-derivation angle confirmed v1.46 BC pair convergence-clean at mechanism level; MED-P52-001 boundary disambiguation is strict-protocol SUBSTANTIVE. Strict-protocol clock reset applied per quality-preference precedent (D-295: any MED = SUBSTANTIVE despite adversary leniency). 3 fresh NITPICK_ONLY passes (53/54/55) needed for CONVERGENCE_REACHED after compaction + story authoring resumption. | Phase-D-4-E-9-v1.47-pass-52-TV-derivation-seal-and-fix | 2026-05-06 | product-owner (BC content) + state-manager (meta-content) |
 | D-295 | **Pass-51 LOW closures (user-directed) — D-295 SEALS 6 LOWs from pass-51 per user directive "lets fix all the lows". SIXTH PO-authored burst (PO Phase 1 + state-manager Phase 2). 6 LOWs closed: LOW-P51-001 BC-035 §Precedence Ladder step (1) cause-collapse note (MemoryOverflow/OutOfBounds/InvalidUtf8 variants enumerated); LOW-P51-002 BC-035 EC-013 file_name=None fallback paragraph; LOW-P51-003 BC-036 EC-007 stdin write_all is_err() cause erasure (parallel to MED-P50-001); LOW-P51-004 BC-036 EC-007 try_wait Err(_) cause erasure; LOW-P51-005 BC-036 EC-013A 5ms busy-poll granularity footnote; LOW-P51-006 BC-036 EC-011 emit_internal poison vs internal_log IO asymmetry contrast. **TRADEOFF ACKNOWLEDGED: ADR-013 clock RESET 1_of_3 → 0_of_3.** v1.45 surface amended to v1.46 per ADR-013 amendment-triggers-reset rule. User accepted clock reset for spec quality. 3 fresh NITPICK_ONLY passes (52/53/54) needed for CONVERGENCE_REACHED. STORY-INDEX 2.01→2.02.** | User directive "lets fix all the lows" received after D-294 advanced clock to 1_of_3. Quality-over-pass-count tradeoff: closing 6 LOWs improves spec coverage (cause-erasure disclosures per TD-VSDD-092 + descriptive enrichments) at cost of clock reset. TD-VSDD-092 BC-SOUL4-coverage applies to 4 of the 6 closures. | Phase-D-4-E-9-v1.46-pass-51-LOW-closures | 2026-05-06 | product-owner (BC content) + state-manager (meta-content) |
 | D-294 | **Pass-51 NITPICK_ONLY seal — D-294 SEALS pass-51 NITPICK_ONLY. ADR-013 clock advances 0_of_3 → 1_of_3 (FIRST ADVANCE in fresh post-D-293 convergence path). 0H/0M/6L. Angle: signal-flow / data-flow audit — end-to-end trace of single cmd value through 14 transformation steps in execute_bounded. All 14 steps coherently described by BC pair. 6 LOWs are descriptive enrichments deferred per S-7.03 SHIP-AS-IS (LOW-P51-001 read-WASM bounds-overflow variants; LOW-P51-002 binary_allowed file_name()=None fallback; LOW-P51-003 child_stdin write_all cause erasure; LOW-P51-004 try_wait Err cause erasure; LOW-P51-005 sleep(5ms) granularity; LOW-P51-006 emit_internal poison-arm no-fallback). NITPICK seal — no epic version bump per D-262/D-269/D-291/D-292 pattern. **2 more NITPICK_ONLY (pass-52/53) needed for CONVERGENCE_REACHED.** STORY-INDEX 2.00→2.01.** | FIRST clock advance post-D-293 SOUL #4 reset. Signal-flow / data-flow audit angle NEW per TD-VSDD-057 — methodologically distinct from all 50 prior angles. Pass-52 recommended angle: adversarial-test-vector-derivation. | Phase-D-4-E-9-v1.45-pass-51-NITPICK_ONLY-seal | 2026-05-06 | state-manager |
@@ -225,20 +228,27 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-05 (compact-state burst — STATE.md 220→183 lines; D-225..D-260 archived)
+**Last update:** 2026-05-06 (D-297 compact-prep burst — S-11.00 stub filed; story count 67→68; STORY-INDEX 2.03→2.04)
 **main HEAD:** fb3e297 (rc.11 bot bundle commit `chore: bundle dispatcher binaries for v1.0.0-rc.11`)
 **develop HEAD:** 5706f27 (`feat(S-9.00): perf baseline + bundle ceiling for E-9 Tier 2 migration`)
 **v1.0.0-rc.11 tag:** fb3e297; GH prerelease=true; PRs #89/#90/#91 merged 2026-05-04
 **Active worktrees:** main + .factory only
+**E-9 current version:** v1.47 (D-296 sealed pass-52; 1M+2L; strict-protocol clock RESET 1→0_of_3)
 
-**Current Phase:** TWO TRACKS — Phase C (rc.11 burn-in → v1.0 GA; ~7 days from 2026-05-04) and Phase D-4 Burst 2 pre-work (D-236 architect amendment + adversary sweep + E-10 BC authorship).
+**POST-COMPACT RESUMPTION — ACTIVE STEP:**
+
+Adversary pass-53 on E-9 v1.47. ADR-013 clock 0_of_3. Need 3 consecutive NITPICK_ONLY (53/54/55) for CONVERGENCE_REACHED.
+
+**Routing discipline:** PO Phase 1 (BC content) + state-manager Phase 2 (seal + meta) per TD-VSDD-088 NORMATIVE. Stable-anchor citations per TD-VSDD-091 NORMATIVE (no self-referential line numbers in state-manager artifacts).
+
+**Pass-53 recommended angle:** 53 prior angles exhausted. Options: (a) append-only POLICY 1 byte-level audit (whole E-9 body + all 5 supporting files); (b) doc-comment-vs-implementation audit (Rust doc comments in exec_subprocess.rs vs BC claims); (c) comprehensive whole-document fresh-read (3rd time, different ordering). Pick angle NOT used in passes 1-52 per TD-VSDD-057.
+
+**After CONVERGENCE_REACHED:**
+1. Product-owner: BC authorship for S-10.01..S-10.09 anchored to BC-1.11.001/002/003.
+2. Adversary: full spec-package pass on E-10 (ADR-013 3-of-3 clean).
+3. E-10 Wave 0 (S-10.01) read-only audit.
+
+**S-11.00 backlog:** verify-sha-currency.sh Rust port stub registered (D-297). Full authoring: story-writer burst post-E-9 completion. No action needed before convergence.
 
 **Track 1 — Phase C:** rc.11 SHIPPED CLEAN 2026-05-04 (PRs #89/#90/#91). Monitor burn-in ~7 days. Target GA cut ~2026-05-11 from develop.
-
-**Track 2 — Phase D-4 pre-Burst-2 sequence (D-236):**
-1. Architect: amend E-9 v1.6→v1.7 (4-file edit per D-236 impact map).
-2. Adversary: 1-of-3-clean ADR-013 sweep on v1.7 amendment surface (scoped diff only).
-3. Product-owner: BC authorship for S-10.01..S-10.09 anchored to BC-1.11.001/002/003.
-4. Adversary: full spec-package pass on E-10 (ADR-013 3-of-3 clean).
-5. E-10 Wave 0 (S-10.01) read-only audit — first implementation dispatch under new ordering.
 6. Flip back to E-9 Burst 2/3 story-writer (S-9.01..S-9.07) augmented by ADR-015 contract.
