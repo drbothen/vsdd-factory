@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.46"
+version: "1.47"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -507,6 +507,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.44 | 2026-05-05 | state-manager (no PO Phase 1 — all findings state-manager-domain; THIRD state-manager-only burst) | D-290 pass-47 seal-and-fix — THIRD state-manager-only burst; STRUCTURAL FIX (TD-VSDD-091 NORMATIVE codified: stable-anchor citations for self-referential intra-file references). Pass-47 SUBSTANTIVE 2H/1M/2L. HIGH-P47-001 FROZEN per POLICY 1 (v1.43 H3 line citations immutable; TD-091 prevents recurrence). HIGH-P47-002 FROZEN per POLICY 1 (v1.43 corrigendum's off-by-one immutable; v1.44 second corrigendum uses anchor-based language). MED-P47-001 closure: future bursts use TD-091 stable anchors — no line-number greps to mis-narrate. LOW-P47-001/002 noted. TD-VSDD-091 NORMATIVE codified. TD-VSDD-091-HOOK backlog filed. Pattern-tracking N=5→N=6 with empirical-refutation-of-narrative-discipline disclosure. ADR-013 clock RESET 0_of_3. STORY-INDEX 1.96→1.97. |
 | 1.45 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-293 pass-50 SOUL #4 seal-and-fix — FIFTH PO-authored burst (returning to PO/state-manager routing); FIRST application of TD-VSDD-092 BC-SOUL4-coverage discipline. Pass-50 SUBSTANTIVE 2H/1M/1L. HIGH-P50-001 read_to_end silent IO swallow acknowledged (BC-036 EC-015 + TV best-effort-read). HIGH-P50-002 kill/wait cleanup-phase no secondary deadline acknowledged (BC-036 EC-016 + TV no-secondary-deadline). MED-P50-001 spawn io::Error reason discarded (BC-036 EC-007 expanded). LOW-P50-001 emit_denial best-effort symmetry acknowledged (BC-035 §Description note). 2 new OQs: W16-009 (read_to_end v2 remediation) + W16-010 (cleanup-phase secondary deadline). BC-036 Postcondition 2 best-effort-read qualifier added; Postcondition 5 TIMEOUT footnote added. TD-VSDD-092 NORMATIVE codified (BC-SOUL4-coverage). TD-VSDD-092-HOOK backlog filed. ADR-013 clock RESET 2_of_3 → 0_of_3. STORY-INDEX 1.99→2.00. |
 | 1.46 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-295 pass-51 LOW closures — SIXTH PO-authored burst (user-directed quality-over-clock-speed tradeoff). 6 LOW closures: LOW-P51-001 BC-035 §Precedence Ladder step (1) cause-collapse note enumerating MemoryOverflow/OutOfBounds/InvalidUtf8 variants; LOW-P51-002 BC-035 EC-013 file_name=None fallback paragraph; LOW-P51-003 BC-036 EC-007 stdin write_all is_err() cause erasure (parallel to MED-P50-001); LOW-P51-004 BC-036 EC-007 try_wait Err(_) cause erasure parallel; LOW-P51-005 BC-036 EC-013A 5ms busy-poll granularity footnote; LOW-P51-006 BC-036 EC-011 emit_internal poison vs internal_log IO asymmetry contrast. **TRADEOFF: ADR-013 clock RESET 1_of_3 → 0_of_3** (user accepted clock reset for spec quality; 3 fresh NITPICK_ONLY (pass-52/53/54) needed for CONVERGENCE_REACHED). STORY-INDEX 2.01→2.02. |
+| 1.47 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-296 pass-52 TV-derivation seal-and-fix — SEVENTH PO-authored burst. 1 MED + 2 LOW closures: MED-P52-001 BC-036 EC-005A "strictly exceeds (`>`, not `>=`)" prose tightening + new boundary-success-witness CTV row; LOW-P52-001 BC-036 P4 NOTE re ADR-015 FileSink rewire CTV gap (deferred to E-9 Wave 1); LOW-P52-002 BC-036 EC-013A upper-bound `timeout_ms = u32::MAX` ~49.7 days note. Strict-protocol verdict SUBSTANTIVE (adversary classified NITPICK_ONLY but 1 MED triggers SUBSTANTIVE per quality-preference standard). **ADR-013 clock RESETS 1_of_3 → 0_of_3** per strict protocol. 3 fresh NITPICK_ONLY (pass-53/54/55) needed for CONVERGENCE_REACHED. STORY-INDEX 2.02→2.03. |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2271,5 +2272,35 @@ TD-VSDD-092 self-application: 4 of the 6 LOW closures (LOW-P51-001/003/004 cause
 **ADR-013 clock:** RESET 1_of_3 → 0_of_3 (v1.45 surface amended to v1.46 per user-directed LOW closures). Three fresh NITPICK_ONLY passes (pass-52/53/54) needed for CONVERGENCE_REACHED.
 
 **STORY-INDEX:** 2.01 → 2.02.
+
+### v1.47 (D-296 — pass-52 TV-derivation seal-and-fix; SEVENTH PO-authored burst)
+
+**Context:** D-296 closes 1 MED + 2 LOW from pass-52 (adversarial test-vector-derivation angle — NEW per TD-VSDD-057). The adversary classified pass-52 as NITPICK_ONLY, but strict-protocol treats any MED finding as SUBSTANTIVE, triggering an ADR-013 clock reset per the quality-preference precedent established at D-295.
+
+**Routing pattern: SEVENTH PO-authored burst (PO Phase 1 + state-manager Phase 2):** PO Phase 1 authored all BC content amendments (BC-036 edits for EC-005A boundary disambiguation, P4 NOTE, EC-013A upper-bound note). State-manager Phase 2 authors meta-content only (the pass-52 review file, the frontmatter version field, the summary table v1.47 row, this H3 block, STATE.md update, STORY-INDEX bump).
+
+**3 findings closed (PO Phase 1 — BC content):**
+
+- **MED-P52-001 CLOSED — BC-036 EC-005A `max_output_bytes` boundary disambiguation:** EC-005A prose tightened from ambiguous "exceeds" to "strictly exceeds (`>`, not `>=`)". Source at the truncation check uses strict `>`, and Postcondition 2 asserts `stdout_bytes ≤ max_output_bytes` (inclusive upper bound). A new boundary-success-witness CTV row was added to confirm that `len == max_output_bytes` is the success path, making the boundary case fully witnessed in the CTV table.
+
+- **LOW-P52-001 CLOSED (deferred to E-9 Wave 1) — BC-036 P4 NOTE re ADR-015 FileSink rewire CTV gap:** A NOTE was appended to Postcondition 4 (the INTERIM routing postcondition) acknowledging that the CTV table witnesses the post-rewire spec-frame state but does not include a pre-rewire INTERIM witness. Formal CTV coverage of the INTERIM → FileSink transition path is deferred to E-9 Wave 1 implementation when the actual rewire is in place.
+
+- **LOW-P52-002 CLOSED — BC-036 EC-013A `timeout_ms = u32::MAX` upper-bound note:** EC-013A (timeout busy-poll path) gained a note documenting the symmetric upper-bound: `timeout_ms = u32::MAX` corresponds to approximately 49.7 days of busy-polling. This is a v1 known limitation; the operator allow-list governs what values are permitted in practice.
+
+**Strict-protocol clock reset rationale:** The adversary's honest classification was NITPICK_ONLY, reflecting that the BC pair is genuinely convergence-clean under the TV-derivation lens. However, strict-protocol applies the MED threshold rule: any MED finding is SUBSTANTIVE regardless of adversary leniency classification. Per the quality-preference precedent established at D-295 (user accepted clock reset for spec quality), MED-P52-001 triggers a SUBSTANTIVE verdict and ADR-013 clock reset. This is the same pattern applied at D-295's tradeoff acknowledgment.
+
+**TD-VSDD-090/091/092 self-application audit (anchor-based — per TD-090 + TD-091 requirements):**
+
+This burst modifies: BC-036 (PO Phase 1), the pass-52 review file, this epic (the frontmatter version field, the summary table v1.47 row, this H3 block), STATE.md, STORY-INDEX.
+
+TD-VSDD-090 self-application: No new normative rule is codified in this burst. PASS (rule applies only to "normative-rule birth bursts").
+
+TD-VSDD-091 self-application: this H3 block uses ONLY anchor-based citations. Citations use section heading descriptors (e.g., "the frontmatter version field", "the summary table v1.47 row", "BC-036 EC-005A", "BC-036 Postcondition 4", "BC-036 EC-013A", "the pass-52 review file", "the CTV table"). Zero `line \d+` self-referential patterns pointing to this epic. PASS.
+
+TD-VSDD-092 self-application: MED-P52-001 and LOW-P52-002 closures are spec-completeness items (boundary disambiguation and upper-bound documentation), not silent-discard patterns governed by BC-SOUL4-coverage. LOW-P52-001 P4 NOTE is an INTERIM-status acknowledgment. None of the 3 closures introduce new `let _ =` discard patterns. PASS.
+
+**ADR-013 clock:** RESETS 1_of_3 → 0_of_3 (strict-protocol SUBSTANTIVE verdict despite adversary lenient NITPICK_ONLY classification). Three fresh NITPICK_ONLY passes (pass-53/54/55) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 2.02 → 2.03.
 
 **STORY-INDEX:** 1.99 → 2.00.
