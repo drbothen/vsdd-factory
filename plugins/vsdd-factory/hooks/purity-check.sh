@@ -67,14 +67,14 @@ for p in "${PATTERNS[@]}"; do
 done
 
 if (( ${#HITS[@]} > 0 )); then
-  _emit type=hook.block hook=purity-check matcher=PostToolUse \
+  _emit type=hook.warn hook=purity-check matcher=PostToolUse \
         reason=pure_core_boundary_violation file_path="$FILE_PATH" severity=warn \
         patterns="${HITS[*]}"
-  echo "purity-check: $FILE_PATH is in a pure-core path but contains side-effect patterns:" >&2
+  echo "purity-check [ADVISORY]: $FILE_PATH is in a pure-core path but contains side-effect patterns:" >&2
   for h in "${HITS[@]}"; do
     echo "  - $h" >&2
   done
-  echo "Consider moving side effects to an adapter layer. See SOUL.md (pure-core boundary)." >&2
+  echo "Fix: Move the side effect to an adapter at crates/<crate>/src/adapters/ and call it from the pure-core function via dependency injection or an explicit interface. See SOUL.md section pure-core boundary." >&2
 fi
 
 exit 0

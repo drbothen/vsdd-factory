@@ -41,11 +41,20 @@ const PHRASE_PATTERNS: &[(&str, &str)] = &[
     ("noreply@openai.com", "noreply@openai.com"),
 ];
 
-/// Detect the first AI attribution pattern in `command`, returning a
-/// human-readable description of the matched pattern, or `None` if clean.
+/// Detected AI attribution: (reason, recommendation, code).
+/// Returned by detect_attribution; consumed by on_hook_logic.
+#[derive(Debug)]
+pub struct Attribution {
+    pub reason: String,
+    pub recommendation: String,
+    pub code: &'static str,
+}
+
+/// Detect the first AI attribution pattern in `command`, returning a structured
+/// [`Attribution`] describing the match, or `None` if clean.
 ///
 /// Pure-core function — no I/O, no side effects (BC-4.05.004 candidate).
-pub fn detect_attribution(command: &str) -> Option<String> {
+pub fn detect_attribution(command: &str) -> Option<Attribution> {
     let lower = command.to_lowercase();
 
     // --- Co-Authored-By: <AI name> ---
@@ -58,10 +67,16 @@ pub fn detect_attribution(command: &str) -> Option<String> {
         let after_colon = lower[abs_pos + coauthor_marker.len()..].trim_start();
         for ai_name in COAUTHORED_AI_NAMES {
             if after_colon.starts_with(ai_name) {
-                return Some(format!(
-                    "AI attribution detected: Co-Authored-By: {}",
-                    ai_name
-                ));
+                return Some(Attribution {
+                    reason: format!(
+                        "Commit message contains AI attribution: Co-Authored-By: {ai_name}"
+                    ),
+                    recommendation:
+                        "Remove the Co-Authored-By line for AI vendors and retry the commit; \
+                         project policy disallows AI co-authorship"
+                            .to_string(),
+                    code: "ai_attribution_coauthor",
+                });
             }
         }
         search_from = abs_pos + coauthor_marker.len();
@@ -70,7 +85,19 @@ pub fn detect_attribution(command: &str) -> Option<String> {
     // --- Phrase patterns (Generated with/by, email addresses) ---
     for (pattern, label) in PHRASE_PATTERNS {
         if lower.contains(pattern) {
-            return Some(format!("AI attribution detected: {}", label));
+            // Pick a code per pattern category for telemetry distinction.
+            let code = if pattern.starts_with("generated") {
+                "ai_attribution_generated"
+            } else {
+                "ai_attribution_email"
+            };
+            return Some(Attribution {
+                reason: format!("Commit message contains AI attribution: {label}"),
+                recommendation: format!(
+                    "Remove the '{label}' reference from the commit message and retry"
+                ),
+                code,
+            });
         }
     }
 
@@ -101,7 +128,12 @@ pub fn on_hook_logic(payload: HookPayload) -> HookResult {
 
     // Scan for attribution patterns.
     match detect_attribution(&command) {
-        Some(reason) => HookResult::block(reason),
+        Some(att) => HookResult::block_with_fix(
+            "block-ai-attribution",
+            att.reason,
+            att.recommendation,
+            att.code,
+        ),
         None => HookResult::Continue,
     }
 }

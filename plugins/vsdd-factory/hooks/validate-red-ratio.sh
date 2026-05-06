@@ -17,6 +17,12 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper if available (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
@@ -99,9 +105,15 @@ total_effective=$(( total_new_tests - exempt_count ))
 # If total_effective <= 0 and no full_exception_path acknowledgment, block
 if (( total_effective <= 0 )); then
   _emit type=hook.block hook=validate-red-ratio matcher=PostToolUse \
-        reason=red_ratio_below_threshold file_path="$FILE_PATH"
-  echo "RED_RATIO BLOCK: total_effective=0 with no full_exception_path acknowledgment story=${STORY_ID}" >&2
-  exit 2
+        reason=red_ratio_zero_total file_path="$FILE_PATH"
+  _REASON="RED_RATIO BLOCK: total_effective=0 with no full_exception_path acknowledgment story=${STORY_ID}"
+  _REC="Add at least one acceptance criterion to the story, or set full_exception_path: true in story frontmatter with rationale if the story is intentionally implementation-only"
+  if declare -f block_pre >/dev/null 2>&1; then
+    block_pre "validate-red-ratio" "$_REASON" "$_REC" "red_ratio_zero_total"
+  else
+    echo "BLOCKED by validate-red-ratio: ${_REASON}. Fix: ${_REC}. Code: red_ratio_zero_total." >&2
+    exit 2
+  fi
 fi
 
 # Integer-precise RED_RATIO check: red_count * 2 >= total_effective
@@ -114,6 +126,12 @@ else
   # RED_RATIO < 0.5 — block
   _emit type=hook.block hook=validate-red-ratio matcher=PostToolUse \
         reason=red_ratio_below_threshold file_path="$FILE_PATH"
-  echo "RED_RATIO BLOCK: ratio=${red_count}/${total_effective} threshold=0.5 story=${STORY_ID} path=${FILE_PATH}" >&2
-  exit 2
+  _REASON="RED_RATIO BLOCK: ratio=${red_count}/${total_effective} threshold=0.5 story=${STORY_ID}"
+  _REC="Write more failing tests OR mark untested-but-acknowledged ACs with full_exception_path: true in the story frontmatter (with rationale). See per-story-delivery.md section Red Gate"
+  if declare -f block_pre >/dev/null 2>&1; then
+    block_pre "validate-red-ratio" "$_REASON" "$_REC" "red_ratio_below_threshold"
+  else
+    echo "BLOCKED by validate-red-ratio: ${_REASON}. Fix: ${_REC}. Code: red_ratio_below_threshold." >&2
+    exit 2
+  fi
 fi
