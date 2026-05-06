@@ -835,4 +835,26 @@ The orchestrator MUST observe these routing rules for fix bursts:
 **S-7.02 threshold:** This is a meta-pattern (governing the orchestrator itself, not artifact content). Recurrence is the 22-burst pattern in aggregate. Codified preemptively as NORMATIVE because (a) the user has explicitly requested stronger routing enforcement; (b) the pattern's correlate (content-defect recurrence including HIGH-P40-001) exceeds 3+ instances; (c) the mechanization candidate is straightforward to implement.
 
 **Date:** 2026-05-05
+
+---
+
+## TD-VSDD-089 — PO authoring bursts MUST run explicit 4-axis sibling sweep before commit
+
+**Source:** Pass-42 (3 MED + 1 SWEEP LOW = 4 sibling-sweep failures from v1.37 PO authoring burst). Sibling failures: EC-004 not refreshed when P3 introduced new mechanism; BC-036 P5 "4 denial paths" not reconciled with EC-003 "5 paths"; BC-035 line 65 inbound cross-ref pointed at wrong section; BC-036 line 66 self-referenced wrong section for same content. All within v1.37 D-283 burst.
+
+**Class:** When a PO authoring burst lands content edits to specific sections (Postconditions, ECs, TVs, Related BCs), the burst MUST run an EXPLICIT 4-axis sibling sweep before commit:
+
+1. **Postcondition ↔ Edge Case symmetry:** for each Postcondition that asserts a normative mechanism, grep ALL ECs that touch that mechanism. Verify each EC describes the mechanism consistently with the Postcondition.
+2. **Cross-BC reference target accuracy:** for every cross-reference pointing at a sibling BC, verify the cited section actually contains the claimed content.
+3. **Numeric enumeration consistency:** for every narrative count (e.g., "4 denial paths", "8 fields"), grep the same BC for sibling enumerations and verify they match.
+4. **Parenthetical-list consistency:** for every parenthetical list of error classes, grep adjacent sections to verify they reference compatible enumerations.
+
+**Codification (NORMATIVE):** PO dispatch prompts MUST include explicit instruction to perform this 4-axis sweep AND to report sweep coverage in output (even if no additional drift found). The sweep is MANDATORY, not advisory. State-manager Phase 2 verifies the PO output contains a sibling-sweep report; if missing, state-manager rejects the seal.
+
+**Mechanization candidate (filed as TD-VSDD-089-HOOK in backlog):** Pre-commit hook running automated 4-axis sweep; this is approximate (mechanism-symmetry sweep is hard to fully automate) but can catch the easy cases (numeric enumeration drift; cross-BC section pointer drift via grep).
+
+**S-7.02 threshold:** First codification (1 instance, 4 sub-instances within one burst). Codified preemptively because the burst that motivated it was the FIRST PO-authored burst (D-283); risk of recurrence is high until mechanically enforced.
+
+**Date:** 2026-05-05
+**Burst:** D-285 (E-9 v1.38 → v1.39; first application of sibling-sweep mandate)
 **Burst:** D-283 (E-9 v1.36 → v1.37; FIRST application of corrected routing pattern)

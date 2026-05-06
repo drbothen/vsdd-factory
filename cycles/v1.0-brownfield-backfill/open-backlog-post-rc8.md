@@ -86,3 +86,30 @@
 
 **Date:** 2026-05-05
 **Burst:** D-283
+
+## New from D-285 (2026-05-05)
+
+## TD-VSDD-089-HOOK — Pre-commit sibling-sweep validator for BC authoring bursts
+
+**Source:** TD-VSDD-089 (codified D-285 / 2026-05-05)
+
+**Class:** Mechanical enforcement of PO authoring sibling-sweep (TD-VSDD-089). Approximate but high-value automation.
+
+**Hook design:** Pre-commit hook script `validate-bc-sibling-sweep.sh` runs:
+- Numeric enumeration grep: find any narrative count ("\d+ denial paths", "\d+ fields", "\d+ categories") in modified BC files; for each, grep adjacent sections for matching counts; flag mismatches.
+- Cross-BC section pointer grep: for any line matching "BC-N.NN.NNN (Postcondition|EC-\d+|P\d+)" in modified BC files, run a sanity check on the cited target.
+- New mechanism string detection: extract recently-added emit_denial reason strings; verify each appears in at least one TV row.
+
+**Implementation surface:** Bash script in `dark-factory-engine/hooks/`; invoked as part of TD-VSDD-080-style pre-commit chain.
+
+**Acceptance criteria:**
+- Hook detects 100% of numeric enumeration drift in modified BC files
+- Hook detects 100% of cross-BC section pointer drift  
+- Hook does NOT false-positive on legitimate quotation marks or unrelated digit sequences
+
+**Priority:** MEDIUM (PO discipline narrative will catch most cases; hook is belt-and-suspenders)
+
+**Status:** OPEN — to be implemented in a future maintenance burst
+
+**Date:** 2026-05-05
+**Burst:** D-285

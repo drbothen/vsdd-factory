@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.38"
+version: "1.39"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -1918,5 +1918,36 @@ v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §
 **STORY-INDEX:** 1.90 → 1.91.
 
 **No new BCs or VPs added (scope discipline maintained). No new OQs. No new lessons codified this burst (P41-001/002 are sibling instances of TD-VSDD-081/088 class — already tracked).**
+
+### v1.39 (D-285 — partial-fix-regression sweep seal-and-fix; third PO-authored burst)
+
+**Pass-42 verdict:** SUBSTANTIVE. 0 HIGH / 3 MEDIUM / 2 LOW. Angle: partial-fix regression discipline (S-7.01) audit at the seam between changed and unchanged sections (NEW per TD-VSDD-057) — identify what D-283 (v1.36→v1.37) and D-284 (v1.37→v1.38) actually changed, then verify whether sibling sections those bursts did NOT touch remain coherent with the changes that DID land.
+
+**Routing pattern continued — THIRD PO-authored burst (TD-VSDD-088):** D-285 applies the TD-VSDD-088 corrected routing pattern for the third consecutive burst. Product-owner (Phase 1) read source-of-truth files and ran explicit 4-axis sibling sweep (Postcondition↔EC symmetry; cross-BC reference accuracy; numeric enumeration; parenthetical-list consistency), finding 1 additional drift instance (SWEEP-001) beyond the 3 specific findings. State-manager (Phase 2, this burst) persisted the pass-42 review, codified TD-VSDD-089, updated meta-content, and sealed the single commit per POLICY 3 + TD-VSDD-053.
+
+**Sibling sweep depth:** PO ran explicit 4-axis sibling sweep as mandated by TD-VSDD-089 (first application of this NORMATIVE rule). The sweep found SWEEP-001 (BC-036 line 66 self-reference to EC-006 for content that lives in P2) in addition to MED-P42-001/002/003 from the adversary pass. Total: 4 sibling-coherence fixes.
+
+**MEDIUM findings (3):**
+
+- **MED-P42-001 CLOSED — BC-035 EC-004 not refreshed when P3 introduced binary_canonicalize_failed emission:** EC-004 (untouched by v1.37/v1.38) did not mention emit_denial, while Postcondition 3 (touched in v1.37) explicitly requires `emit_denial(ctx, cmd, "binary_canonicalize_failed", details)` for ALL canonicalize-failure cases. Textbook S-7.01 partial-fix regression. PO added emit_denial annotation to EC-004.
+- **MED-P42-002 CLOSED — BC-036 P5 "4 denial paths" not reconciled with EC-003 "5 paths":** P5 lead cited "4 denial paths" but EC-003 (updated v1.37) enumerates 5: original 4 + `binary_canonicalize_failed` per BC-035 P3. PO updated P5 to "5 denial paths" with updated enumeration.
+- **MED-P42-003 CLOSED — BC-035 §Related BCs cross-reference pointed at wrong section:** Line 65 cited "BC-1.05.036 EC-006" for "canonicalized full path" annotation, but that annotation lives in BC-036 P2 (`binary: String /* canonicalized full path */`). PO corrected cross-reference to cite P2.
+
+**LOW findings (2):**
+
+- **LOW-P42-001 CLOSED — BC-036 EC-012 + EC-014 lack TV witnesses:** EC-012 (cwd_allow unenforced) and EC-014 (env_allow names absent silent omission), both new silent-no-op ECs from v1.37/D-283, had no TV witnesses. PO added TV witness rows for both.
+- **LOW-P42-002 CLOSED (cosmetic per S-7.03) — BC-035 P1 trailer redundant with P2 lead:** P1 end-sentence and P2 opening sentence were verbatim duplicates. PO trimmed P1 trailer.
+
+**Sweep-found drift (1):**
+
+- **SWEEP-001 CLOSED — BC-036 line 66 self-reference to EC-006 for content that lives in P2:** Found by PO's 4-axis sibling sweep (cross-BC reference accuracy axis). Same class as MED-P42-003. PO corrected to cite P2.
+
+**Codified:** TD-VSDD-089 (PO authoring sibling-sweep mandate NORMATIVE — PO dispatch prompts must include explicit 4-axis sibling sweep instruction; state-manager Phase 2 verifies sweep report present; see lessons.md). TD-VSDD-089-HOOK filed as backlog ticket in open-backlog-post-rc8.md.
+
+**ADR-013 clock:** RESET 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (43/44/45) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 1.91 → 1.92.
+
+**No new BCs or VPs added (scope discipline maintained). No new OQs beyond existing deferred list.**
 
 **No new BCs or VPs added (scope discipline maintained). 2 new OQs added (OQ-W16-007/008). 1 new lesson (TD-VSDD-088 NORMATIVE).**
