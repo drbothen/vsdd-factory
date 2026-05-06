@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.3"
+version: "1.4"
 status: accepted
 producer: state-manager
 timestamp: 2026-05-06T18:30:00
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-06
+    change: "D-327 E-10 ↔ rc.12 format-alignment seal: version bump v1.3 → v1.4. No BC subsystem count changes (4 BCs amended, not added). Courtesy bump to record rc.12 alignment cycle sealed (audit 119e70e → D-326 7afc64d → D-327). Engine baseline: v1.0.0-rc.12 (4cf59bc on develop)."
   - date: 2026-05-06
     change: "D-324 E-10 pass-3 fix burst seal: version bump v1.2 → v1.3. No substantive ARCH-INDEX changes this burst; BC subsystem counts unchanged (no new BCs in D-322). Courtesy bump to record D-324 seal."
   - date: 2026-05-06

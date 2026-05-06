@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "**D-324 SEALED — E-10 pass-3 fix burst COMPLETE.** Step (vi.e) fix cycle: adversary pass-3 was HIGH (16 findings; pass-counter still 0). Three-burst fix cycle D-322 (PO with F-8 architect routing folded in) → D-323 (story-writer) → D-324 (state-manager seal) completed 2026-05-06. D-322 (42555e5): 8 BCs amended (BC-1.11.001 changelog; BC-1.11.002 CAP-TBD→CAP-029 v1.0→v1.1; BC-1.11.003 Story Anchor S-10.05 + SS-01 justification v1.1→v1.2; BC-1.12.001 Postcondition 2 + Invariant 3 type-vs-crate fix v1.1→v1.2; BC-1.12.006 BC-1.08.001 exit-code-2 cite v1.0→v1.1; BC-1.12.007 TD-015-a PARTIAL CLOSURE reframe v1.2→v1.3; BC-2.06.001 vcs.* expanded 4 fields v1.0→v1.1; BC-3.05.004 Related BCs sibling claim corrected v1.2→v1.3). D-323 (42adb27): 5 stories touched (S-10.02 v1.2→v1.3 BC-1.12.007 H1 propagation; S-10.04 v1.3→v1.4 F-12 AC-005 re-targeted; S-10.05 v1.3→v1.4 F-3 five-state sweep; S-10.09 v1.2→v1.3 BC-1.12.007 H1 propagation; E-10 epic v1.5→v1.6 F-9 subsystems_affected expanded). D-324 (this burst): BC-INDEX v1.9→v1.10 (F-2 BC-1.11.001 Stories S-10.03→S-10.04; F-4 BC-1.11.002 CAP-TBD→CAP-029; F-6 BC-1.11.003 Stories Wave 2 TBD→S-10.05; BC-1.12.007 H1 propagated byte-for-byte); ARCH-INDEX v1.2→v1.3 (version bump); STORY-INDEX v2.19→v2.20 (4 story bumps + E-10 epic header v1.6); STATE.md + lessons.md sealed.\n\n**Next step:** Step (vi.f) — re-run adversary pass-4 on the sealed E-10 spec package. Pass counter still 0. Reading list: ADR-015 + E-10 epic v1.6 + all 11 E-10 BCs + BC-1.11.001 (v1.1) + BC-1.11.002 (v1.1 CAP-029) + BC-1.11.003 (v1.2 S-10.05 anchor) + BC-1.12.001 (v1.2) + BC-1.12.006 (v1.1) + BC-1.12.007 (v1.3 TD-015-a PARTIAL CLOSURE) + BC-2.06.001 (v1.1) + BC-3.05.004 (v1.3) + BC-INDEX line 166-168 corrections + 5 stories (S-10.02 v1.3; S-10.04 v1.4; S-10.05 v1.4; S-10.09 v1.3). ADR-013 convergence: 3-of-3 NITPICK_ONLY required. Fix-burst commits: 42555e5 (D-322), 42adb27 (D-323), D-324 SHA this burst."
+current_step: "**D-327 SEALED — E-10 ↔ rc.12 format-alignment cycle COMPLETE.** Three-commit alignment cycle: 119e70e (rc.12 audit DRIFT_MINOR) → 7afc64d (D-326 architect 4 BC amendments) → D-327 (state-manager seal, this burst). 4 DRIFT_MINOR items closed: BC-4.02.002 v1.0→v1.1 (full-stderr postcondition; H1 rewritten); BC-4.01.003 v1.0→v1.1 (same root cause); BC-1.12.006 v1.2→v1.3 (rc.12 note; reason_code OPTIONAL embedded per orchestrator adjudication); BC-2.06.001 v1.2→v1.3 (CHANGELOG policy Added/New API subsection required). D-327 index updates: BC-INDEX v1.10→v1.11 (4 BC version bumps, BC-4.02.002 H1 propagated byte-for-byte per POLICY 7); ARCH-INDEX v1.3→v1.4 (courtesy bump); STORY-INDEX v2.20→v2.21 (courtesy bump + changelog row). Engine baseline: v1.0.0-rc.12 (4cf59bc on develop, released 2026-05-06). Spec corpus on factory-artifacts now aligned with rc.12.\n\n**Next step:** Step (vi) E-10 adversarial-review cycle RESUMES from pass-4's verdict (HIGH, counter at 0). Dispatch adversary pass-5. Reading list for pass-5: same 12 BCs as pass-4 PLUS amendments — BC-4.02.002 (v1.1 full-stderr title + postcondition), BC-4.01.003 (v1.1 full-stderr description), BC-1.12.006 (v1.3 rc.12 note; reason_code OPTIONAL). BC-2.06.001 (v1.3 CHANGELOG policy) low pass-5 impact. ADR-013 convergence: 3-of-3 NITPICK_ONLY required. Alignment commits: 119e70e (audit), 7afc64d (D-326), D-327 SHA this burst."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-06 (D-324 SEALED — E-10 pass-3 fix burst sealed; 3-burst cycle D-322/D-323/D-324 complete; BC-INDEX v1.10 total_bcs 1931 unchanged; ARCH-INDEX v1.3; STORY-INDEX v2.20; Step (vi.f) adversary pass-4 next; pass counter 0) |
+| **Last Updated** | 2026-05-06 (D-327 SEALED — E-10 ↔ rc.12 format-alignment cycle complete; BC-INDEX v1.11 total_bcs 1931 unchanged; ARCH-INDEX v1.4; STORY-INDEX v2.21; rc.12 4cf59bc aligned; Step (vi) adversary pass-5 next; pass counter 0) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -74,7 +74,7 @@ dtu_services: []
 | Phase D-4 Burst 1 — E-9 + S-9.00 spec | **COMPLETE** | E-9 v1.6 CONVERGED pass-10 (D-235); S-9.00 v1.4 CONVERGED pass-7 (D-231) |
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
-| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) COMPLETE (D-313 SEALED); Step (vi.a) pass-1 CRITICAL fix burst D-314→D-317 SEALED; Step (vi.b) adversary pass-1' COMPLETE (CRITICAL 11 findings); Step (vi.c) pass-2 CRITICAL fix burst D-318→D-321 SEALED; Step (vi.d) adversary pass-2' COMPLETE (HIGH 16 findings); Step (vi.e) pass-3 HIGH fix burst D-322→D-324 SEALED; Step (vi.f) adversary pass-4 PENDING** | E-9 v1.53 HEAD; E-10 BC authorship D-310→D-313 COMPLETE. Pass-3 fix burst D-322 (42555e5 PO+F-8) → D-323 (42adb27 story-writer) → D-324 (state-manager seal) COMPLETE. total_bcs 1931 unchanged. Step (vi.f) pass-4 next; pass counter 0; 3-of-3 NITPICK_ONLY required. ADR-013 convergence: 3_of_3 CONVERGENCE_REACHED (D-308 for E-9). |
+| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) COMPLETE (D-313 SEALED); pass-1 CRITICAL fix D-314→D-317 SEALED; pass-2 CRITICAL fix D-318→D-321 SEALED; pass-3 HIGH fix D-322→D-324 SEALED; pass-4 HIGH verdict (see E-10-pass-4.md, e88651f); rc.12 audit 119e70e → D-326 7afc64d → D-327 SEALED; Step (vi) adversary pass-5 NEXT** | E-9 v1.53 HEAD; E-10 BC authorship D-310→D-313 COMPLETE. rc.12 alignment cycle COMPLETE (D-327). total_bcs 1931 unchanged. Pass-4 HIGH verdict; counter 0; 3-of-3 NITPICK_ONLY required. Spec corpus aligned with rc.12 (4cf59bc). ADR-013 convergence: 3_of_3 CONVERGENCE_REACHED (D-308 for E-9). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Current Phase Steps
@@ -188,8 +188,12 @@ dtu_services: []
 | Step (vi.d) — adversary pass-3 on sealed E-10 package | adversary | **COMPLETE — HIGH** | 16 findings; pass counter still 0; fix burst D-322+ dispatched. See cycles/v1.0-brownfield-backfill/E-10-pass-3.md (SHA 8aed9cc). |
 | D-322 PO fix burst — pass-3 findings (F-8 architect routing folded in) | product-owner | **COMPLETE (42555e5)** | 8 BCs amended: BC-1.11.002 CAP-TBD→CAP-029 v1.0→v1.1; BC-1.11.003 Story Anchor S-10.05 v1.1→v1.2; BC-1.12.001 v1.1→v1.2; BC-1.12.006 v1.0→v1.1; BC-1.12.007 TD-015-a PARTIAL CLOSURE v1.2→v1.3; BC-2.06.001 v1.0→v1.1; BC-3.05.004 v1.2→v1.3; BC-1.11.001 changelog only |
 | D-323 story-writer fix burst — pass-3 story propagations | story-writer | **COMPLETE (42adb27)** | S-10.02 v1.2→v1.3; S-10.04 v1.3→v1.4 (F-12); S-10.05 v1.3→v1.4 (F-3 five-state); S-10.09 v1.2→v1.3; E-10 epic v1.5→v1.6 (F-9 subsystems) |
-| **D-324 state-manager seal — E-10 pass-3 index propagation** | state-manager | **COMPLETE (this burst)** | BC-INDEX v1.9→v1.10 (F-2/F-4/F-6 + BC-1.12.007 H1; total_bcs 1931 unchanged); ARCH-INDEX v1.2→v1.3 (version bump); STORY-INDEX v2.19→v2.20; STATE.md + lessons.md sealed |
-| **Step (vi.f) — adversary pass-4 on sealed E-10 package** | adversary | **PENDING** | Reading list: E-10 epic v1.6 + all 11 E-10 BCs + BC-1.11.002 (v1.1 CAP-029) + BC-1.12.007 (v1.3 TD-015-a) + BC-INDEX line 166-168 corrections + 5 stories S-10.02/04/05/09. Pass counter 0. |
+| D-324 state-manager seal — E-10 pass-3 index propagation | state-manager | **COMPLETE** | BC-INDEX v1.9→v1.10; ARCH-INDEX v1.2→v1.3; STORY-INDEX v2.19→v2.20; STATE.md + lessons.md sealed |
+| Step (vi.f) — adversary pass-4 on E-10 package | adversary | **COMPLETE — HIGH** | HIGH verdict; see cycles/v1.0-brownfield-backfill/E-10-pass-4.md (e88651f). Pass counter still 0. |
+| rc.12 audit — E-10 spec ↔ rc.12 drift scan | architect | **COMPLETE (119e70e)** | DRIFT_MINOR: 2 MEDIUM (BC-4.02.002, BC-4.01.003 stale postconditions) + 2 LOW (BC-1.12.006 reason_code, BC-2.06.001 CHANGELOG policy). |
+| D-326 architect amendments — 4 BCs amended | architect | **COMPLETE (7afc64d)** | BC-4.02.002 v1.0→v1.1; BC-4.01.003 v1.0→v1.1; BC-1.12.006 v1.2→v1.3; BC-2.06.001 v1.2→v1.3. |
+| **D-327 state-manager seal — rc.12 alignment** | state-manager | **COMPLETE (this burst)** | BC-INDEX v1.10→v1.11; ARCH-INDEX v1.3→v1.4; STORY-INDEX v2.20→v2.21; STATE.md + lessons.md sealed. rc.12 alignment cycle COMPLETE. |
+| **Step (vi) — adversary pass-5 on rc.12-aligned E-10 package** | adversary | **NEXT** | Reading list: 12 BCs from pass-4 + note BC-4.02.002 v1.1 + BC-4.01.003 v1.1 + BC-1.12.006 v1.3 amendments. Pass counter 0. ADR-013: 3-of-3 NITPICK_ONLY required. |
 
 ## Identifier Conventions
 
@@ -219,8 +223,9 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
-| develop | 5706f27 | feat(S-9.00): perf baseline + bundle ceiling for E-9 |
-| factory-artifacts | (see git log) | Phase D-4 + rc.11 sealed; D-225..D-237 recorded |
+| develop | 4cf59bc | v1.0.0-rc.12 released 2026-05-06 |
+| factory-artifacts | (see git log) | Phase D-4 + rc.12 sealed; D-327 this burst |
+| v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
 | v1.0.0-rc.4..rc.10 (tags) | — | Historical tags; see `cycles/v1.0-brownfield-backfill/release-ladder.md` if present |
 

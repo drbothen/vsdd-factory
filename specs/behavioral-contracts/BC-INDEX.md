@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.10"
+version: "1.11"
 status: draft
 producer: state-manager
 timestamp: 2026-05-06T18:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1931
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-327 (2026-05-06) — E-10 ↔ rc.12 format-alignment seal: 4 BCs amended (BC-4.01.003 v1.0→v1.1, BC-4.02.002 v1.0→v1.1, BC-1.12.006 v1.2→v1.3, BC-2.06.001 v1.2→v1.3) closing 4 DRIFT_MINOR items from the rc.12 audit. BC-4.02.002 H1 propagated byte-for-byte (POLICY 7: title rewritten by architect in D-326 to reflect full-stderr-capture postcondition). Engine baseline: v1.0.0-rc.12 (4cf59bc on develop, released 2026-05-06). total_bcs unchanged at 1931. See cycles/v1.0-brownfield-backfill/E-10-rc12-format-audit.md (architect audit, 119e70e) and 7afc64d (D-326 amendments)."
   - date: 2026-05-06
     change: "D-324 (2026-05-06) — E-10 pass-3 fix burst seal: 8 BCs amended (BC-1.11.002 CAP-TBD→CAP-029; BC-1.11.003 + BC-1.12.001 + BC-1.12.006 + BC-1.12.007 + BC-2.06.001 + BC-3.05.004 body fixes; BC-1.11.001 changelog only). F-2 fix: BC-INDEX line 166 BC-1.11.001 Stories cell S-10.03 → S-10.04 (POLICY 8 reverse-direction completion from D-320). F-6 fix: BC-INDEX line 168 BC-1.11.003 Stories cell \"Wave 2 TBD\" → S-10.05. BC-1.12.007 H1 propagated byte-for-byte (TD-015-a PARTIAL CLOSURE reframe). total_bcs unchanged at 1931. See cycles/v1.0-brownfield-backfill/E-10-pass-3.md and follow-up commits 42555e5 (D-322), 42adb27 (D-323)."
   - date: 2026-05-06
@@ -279,7 +281,7 @@ changelog:
 | [BC-4.01.005](ss-04/BC-4.01.005.md) | legacy-bash-adapter caps wall-clock at 60_000ms (backstop only) | draft | CAP-TBD | TBD |
 | [BC-4.01.006](ss-04/BC-4.01.006.md) | hook-plugins::legacy-bash-adapter::passes_payload_bytes_to_bash_with_plugin_config_stripped — re-serialized payload reaches bash with plugin_config=null while preserving event_name + dispatcher_trace_id | draft | CAP-TBD | TBD |
 | [BC-4.02.001](ss-04/BC-4.02.001.md) | Adapter forwards stdout AND stderr to host log via `host::log_info` / `host::log_warn` (per-stream, non-empty) | draft | CAP-TBD | TBD |
-| [BC-4.02.002](ss-04/BC-4.02.002.md) | Adapter exit-code mapping: 0 → Continue, 2 → Block (reason=first stderr line OR synthetic), other → Error (message includes script path + code + stderr) | draft | CAP-TBD | TBD |
+| [BC-4.02.002](ss-04/BC-4.02.002.md) | Adapter exit-code mapping: 0 → Continue, 2 → Block (reason=full stderr trimmed to 4 KiB OR synthetic), other → Error (message includes script path + code + stderr) | draft | CAP-TBD | TBD |
 | [BC-4.02.003](ss-04/BC-4.02.003.md) | Adapter's plugin_config.script_path validation is checked BEFORE any subprocess invocation | draft | CAP-TBD | TBD |
 | [BC-4.02.004](ss-04/BC-4.02.004.md) | Adapter strips plugin_config to Null before piping to bash — bash hooks predate the field | draft | CAP-TBD | TBD |
 | [BC-4.02.005](ss-04/BC-4.02.005.md) | Adapter resolves relative `script_path` under `${CLAUDE_PLUGIN_ROOT}`; absolute paths bypass the join | draft | CAP-TBD | TBD |

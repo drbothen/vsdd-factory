@@ -1269,3 +1269,39 @@ F-15 [process-gap]: secondary capability anchors (CAP-029+CAP-008 in BC-1.12.006
 
 **Date:** 2026-05-06
 **Burst:** D-324 (state-manager seal — E-10 pass-3 fix burst D-322/D-323/D-324 SEALED; cycle still OPEN pending 3-of-3 NITPICK_ONLY)
+
+---
+
+## LESSON-D-327: Brownfield BC drift from engine release not caught by adversarial passes
+
+**Date:** 2026-05-06
+**Burst:** D-327 (state-manager seal — E-10 ↔ rc.12 format-alignment cycle SEALED)
+**Category:** spec-vs-engine-drift / release-cycle-discipline
+**Severity:** MEDIUM — 4 DRIFT_MINOR items; no CRITICAL or HIGH engine↔spec contradictions
+
+### Pattern: Brownfield BC drift from engine release not caught by adversarial passes
+
+Pass-1 through pass-4 of the E-10 adversarial review cycle did NOT catch BC-4.02.002 / BC-4.01.003's stale "first stderr line" postconditions. Root causes:
+
+1. **Scope framing:** Those BCs are in SS-04 (brownfield-extracted from legacy-bash-adapter behavior), outside the E-10 core scope (ADR-015 D-15.x OTel migration). The adversary was focused on the E-10 BC cluster (BC-1.12.x, BC-1.11.x, BC-2.06.001 primary). SS-04 was outside the primary reading list for passes 1–4.
+
+2. **Drift class mismatch:** Adversarial review checks intra-spec consistency (BC-vs-BC, BC-vs-story, BC-vs-ADR). It does NOT check spec-vs-engine alignment. BC-4.02.002 and BC-4.01.003 were internally consistent throughout — the drift was between the BC postcondition and the rc.12 source code change (`crates/hook-plugins/legacy-bash-adapter/src/lib.rs`).
+
+3. **Branch separation:** The engine change (rc.12 stderr-capture fix on `develop`) and the spec amendments (on `factory-artifacts`) live on different branches with no automatic cross-branch consistency gate.
+
+### The right tool
+
+The architect audit at 119e70e was the correct tool: a deliberate spec-vs-engine drift scan, triggered by a meaningful engine release (rc.12). The audit read the released source and compared it to the BC postconditions — exactly the class of check that adversarial review cannot do without explicit source-code grounding.
+
+### Codification candidate (occurrence 1 of N=3 trigger)
+
+Spec-vs-engine drift detection should be a release-cycle gate. Every release on develop should trigger an architect audit of the spec corpus on factory-artifacts to catch drift before the next adversary pass. This currently happens by orchestrator dispatch; it could be automated as a release-step hook (e.g., a CI job triggered on `v*-rc*` tag push that diffs released source against BC postconditions for active subsystem BCs).
+
+**Pattern occurrence count:** 1 of N=3 trigger. If recurrence happens (next release introduces another spec-vs-engine drift not caught organically), escalate to codification.
+
+### Cycle bookkeeping at D-327 seal
+
+- E-10 spec corpus now aligned with rc.12 (4cf59bc). 4 BCs amended (BC-4.02.002 v1.1, BC-4.01.003 v1.1, BC-1.12.006 v1.3, BC-2.06.001 v1.3).
+- Step (vi) E-10 adversarial-review cycle resumes from pass-4's verdict (HIGH, counter at 0). Pass-5 dispatches next.
+- BC-INDEX v1.10→v1.11; ARCH-INDEX v1.3→v1.4; STORY-INDEX v2.20→v2.21.
+- 4 follow-up tracking patterns from pass-3/D-324 still open: POLICY 8 reverse-direction drift (occurrence count per prior tracking), CAP enumeration mismatch, H1 update without body sweep (occurrence 2 of N=3), partial-fix regression (occurrence 1 of N=3).
