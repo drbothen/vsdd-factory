@@ -183,17 +183,8 @@ fn test_BC_4_05_002_detect_attribution_returns_none_for_clean_commit() {
 #[test]
 fn test_BC_4_05_004_detect_attribution_is_pure_function() {
     // Calling it twice with the same input must return the same result.
-    // Since Attribution doesn't impl PartialEq, verify both are Some with
-    // identical fields — sufficient to confirm determinism.
     let cmd = "git commit -m \"fix\n\nCo-Authored-By: Claude <x@anthropic.com>\"";
     let a = detect_attribution(cmd);
     let b = detect_attribution(cmd);
-    match (a, b) {
-        (Some(a), Some(b)) => {
-            assert_eq!(a.reason, b.reason, "reason must be deterministic");
-            assert_eq!(a.code, b.code, "code must be deterministic");
-        }
-        (None, None) => {}
-        _ => panic!("pure function must return the same Some/None for the same input"),
-    }
+    assert_eq!(a, b, "pure function must return the same result for the same input");
 }

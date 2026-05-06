@@ -11,6 +11,12 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre_json).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   echo "protect-bc.sh: jq is required but not found" >&2
   exit 1
@@ -20,29 +26,8 @@ INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "Edit|Write"')
 
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
-
 emit_allow() {
   printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}\n'
-  exit 0
-}
-
-emit_deny() {
-  local reason="$1"
-  local code="${2:-unknown}"
-  _emit type=hook.block hook=protect-bc matcher="$TOOL_NAME" reason="$code" file_path="$FILE_PATH"
-  jq -nc --arg reason "$reason" '{
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason: $reason
-    }
-  }'
   exit 0
 }
 
@@ -55,7 +40,10 @@ if [[ ! -f "$FILE_PATH" ]]; then
 fi
 
 if grep -q "^Status: green" "$FILE_PATH"; then
-  emit_deny "Blocked: $FILE_PATH has Status: green and is immutable per spec-format.md. To change a green BC, create a new BC that supersedes it. The old BC stays on disk; reference it from the new BC's 'Supersedes:' field." "bc_green_immutable"
+  block_pre_json "protect-bc" \
+    "$FILE_PATH has Status: green and is immutable per spec-format rules" \
+    "Create a new BC that supersedes it; cite the old BC via the new BC's 'Supersedes:' field" \
+    "bc_green_immutable"
 fi
 
 emit_allow

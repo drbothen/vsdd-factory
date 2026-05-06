@@ -12,19 +12,18 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]]; then
   exit 0
@@ -40,14 +39,19 @@ if [[ ! -f "$FILE_PATH" ]]; then
   exit 0
 fi
 
-LINE_COUNT=$(wc -l < "$FILE_PATH" | tr -d ' ')
+LINE_COUNT=$(wc -l < "$FILE_PATH" | tr -d ' \t\n')
 
 # Check if this write reduced the file size (compaction).
 # Use git to compare against the committed version.
 PARENT_DIR=$(dirname "$FILE_PATH")
 PRIOR_COUNT=0
 if command -v git &>/dev/null; then
-  PRIOR_COUNT=$(git -C "$PARENT_DIR" show HEAD:STATE.md 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+  _git_out=$(git -C "$PARENT_DIR" show HEAD:STATE.md 2>/dev/null | wc -l | tr -d ' ' 2>/dev/null) || _git_out=0
+  # Ensure PRIOR_COUNT is a clean integer (strip trailing newlines/spaces)
+  PRIOR_COUNT="${_git_out//[[:space:]]/}"
+  PRIOR_COUNT="${PRIOR_COUNT:-0}"
+  # If still not numeric, default to 0
+  [[ "$PRIOR_COUNT" =~ ^[0-9]+$ ]] || PRIOR_COUNT=0
 fi
 
 # If the write REDUCED lines, always allow (compaction in progress)
@@ -56,15 +60,10 @@ if [[ "$LINE_COUNT" -lt "$PRIOR_COUNT" ]]; then
 fi
 
 if [[ "$LINE_COUNT" -gt 500 ]]; then
-  _emit type=hook.block hook=validate-state-size matcher=PostToolUse \
-        reason=state_bloat file_path="$FILE_PATH" line_count="$LINE_COUNT" limit=500
-  echo "STATE.md BLOAT — BLOCKED:" >&2
-  echo "  STATE.md has $LINE_COUNT lines (limit: 500)." >&2
-  echo "  STATE.md should be a quick status check, not a history log." >&2
-  echo "  Run /vsdd-factory:compact-state to extract historical content" >&2
-  echo "  to cycle files (burst logs, adversary passes, session checkpoints)." >&2
-  echo "  See state-manager agent 'Content Routing Rules' for what belongs where." >&2
-  exit 2
+  block_pre "validate-state-size" \
+    "STATE.md exceeds 500-line limit ($LINE_COUNT lines). STATE.md should be a quick status check, not a history log" \
+    "Run /vsdd-factory:compact-state to extract historical content to cycle files" \
+    "state_md_bloat"
 elif [[ "$LINE_COUNT" -gt 200 ]]; then
   echo "STATE.md SIZE WARNING:" >&2
   echo "  STATE.md has $LINE_COUNT lines (recommended: <200, limit: 500)." >&2

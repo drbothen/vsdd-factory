@@ -24,19 +24,18 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -124,17 +123,11 @@ while IFS= read -r entry; do
 done <<< "$NEWLY_PASSED"
 
 if [[ -n "$ERRORS" ]]; then
-  _emit type=hook.block hook=validate-wave-gate-completeness matcher=PostToolUse \
-        reason=wave_gate_incomplete file_path="$FILE_PATH"
-  echo "WAVE GATE COMPLETENESS VIOLATION:" >&2
-  echo -e "$ERRORS" | while IFS= read -r line; do
-    echo "  - $line" >&2
-  done
-  echo "" >&2
-  echo "  All 6 gates must be evidenced in the gate report before marking passed." >&2
-  echo "  Run /vsdd-factory:wave-gate to complete all gates, or set gate_status: deferred" >&2
-  echo "  with a rationale if gates are intentionally skipped." >&2
-  exit 2
+  _ERRORS_SUMMARY=$(echo -e "$ERRORS" | tr '\n' '; ' | sed 's/; $//')
+  block_pre "validate-wave-gate-completeness" \
+    "Not all 6 gates evidenced: $_ERRORS_SUMMARY" \
+    "Run /vsdd-factory:wave-gate, OR set gate_status: deferred with rationale" \
+    "wave_gate_incomplete"
 fi
 
 exit 0

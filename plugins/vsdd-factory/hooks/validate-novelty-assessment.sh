@@ -13,19 +13,18 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -87,16 +86,11 @@ fi
 
 # --- Report ---
 if [[ -n "$ERRORS" ]]; then
-  _emit type=hook.block hook=validate-novelty-assessment matcher=PostToolUse \
-        reason=novelty_assessment_incomplete file_path="$FILE_PATH"
-  echo "NOVELTY ASSESSMENT VIOLATION:" >&2
-  echo -e "$ERRORS" | while IFS= read -r line; do
-    echo "  - $line" >&2
-  done
-  echo "  Adversarial review files MUST include a '## Novelty Assessment' section" >&2
-  echo "  with Pass, Novelty score, Trajectory, and Verdict fields." >&2
-  echo "  See adversarial-review-template.md for the required format." >&2
-  exit 2
+  _ERRORS_SUMMARY=$(echo -e "$ERRORS" | tr '\n' '; ' | sed 's/; $//')
+  block_pre "validate-novelty-assessment" \
+    "Adversary file missing '## Novelty Assessment' section or required fields: $_ERRORS_SUMMARY" \
+    "Add the section per templates/adversarial-review-template.md (Pass, Novelty score, Trajectory, Verdict required)" \
+    "novelty_section_missing"
 fi
 
 exit 0

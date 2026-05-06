@@ -15,6 +15,12 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 ERRFILE=$(mktemp)
 # Preserve exit code through EXIT trap (Defect 2 fix)
 # shellcheck disable=SC2154  # rc is assigned inside the trap via $?
@@ -27,13 +33,6 @@ fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]]; then
   exit 0
@@ -235,14 +234,11 @@ done
 
 # --- Report ---
 if [[ -s "$ERRFILE" ]]; then
-  _emit type=hook.block hook=validate-vp-consistency matcher=PostToolUse \
-        reason=policy9_vp_inconsistency file_path="$FILE_PATH"
-  echo "POLICY 9 VIOLATION (vp_index_is_vp_catalog_source_of_truth):" >&2
-  while IFS= read -r line; do
-    echo "  - $line" >&2
-  done < "$ERRFILE"
-  echo "Fix: ensure VP-INDEX.md, verification-architecture.md, and verification-coverage-matrix.md are consistent." >&2
-  exit 2
+  _ERRORS_SUMMARY=$(tr '\n' '; ' < "$ERRFILE" | sed 's/; $//')
+  block_pre "validate-vp-consistency" \
+    "VP-INDEX <-> verification-architecture <-> coverage-matrix divergence (POLICY 9): $_ERRORS_SUMMARY" \
+    "Sync all three docs to the same VP set" \
+    "policy_9_violation"
 fi
 
 exit 0

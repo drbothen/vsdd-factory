@@ -43,7 +43,7 @@ const PHRASE_PATTERNS: &[(&str, &str)] = &[
 
 /// Detected AI attribution: (reason, recommendation, code).
 /// Returned by detect_attribution; consumed by on_hook_logic.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Attribution {
     pub reason: String,
     pub recommendation: String,

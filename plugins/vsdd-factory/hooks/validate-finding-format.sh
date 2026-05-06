@@ -13,19 +13,18 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -76,14 +75,11 @@ fi
 
 # --- Report ---
 if [[ -n "$ERRORS" ]]; then
-  _emit type=hook.block hook=validate-finding-format matcher=PostToolUse \
-        reason=finding_id_legacy_format file_path="$FILE_PATH"
-  echo "ID FORMAT VIOLATION:" >&2
-  echo -e "$ERRORS" | while IFS= read -r line; do
-    echo "  - $line" >&2
-  done
-  echo "  See FACTORY.md ID Format Reference for current formats." >&2
-  exit 2
+  _ERRORS_SUMMARY=$(echo -e "$ERRORS" | head -1)
+  block_pre "validate-finding-format" \
+    "ID doesn't match canonical format: $_ERRORS_SUMMARY" \
+    "See FACTORY.md ID Format Reference" \
+    "id_format_violation"
 fi
 
 exit 0
