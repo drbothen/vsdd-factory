@@ -114,3 +114,29 @@
 
 **Date:** 2026-05-05
 **Burst:** D-285
+
+---
+
+## TD-VSDD-090-HOOK — Pre-commit self-application audit hook for normative-rule codification bursts
+
+**Source:** TD-VSDD-090 (codified D-287 / 2026-05-05)
+
+**Class:** Mechanical enforcement of TD-VSDD-090 self-application audit (orthogonal to TD-VSDD-088-HOOK and TD-VSDD-089-HOOK).
+
+**Hook design:** Pre-commit script `validate-td-vsdd-self-application.sh`:
+- Detects when commit adds a new `## TD-VSDD-NNN` entry to lessons.md
+- For each new entry, parses the rule's stated scope (axes / artifact types)
+- Runs lightweight automated self-application checks where machine-verifiable (e.g., trailer format consistency for TD-089; new mechanism string TV-witness presence for TD-085; numeric enumeration consistency for TD-059)
+- Flags un-checkable rules for manual review checklist (returned in commit message preface)
+
+**Acceptance criteria:**
+- Hook detects 100% of new TD-VSDD-NNN entries
+- Hook performs automated self-application for at least TD-085, TD-087, TD-089 axes 1-5
+- Hook produces clear manual review checklist for non-automatable axes
+
+**Priority:** HIGH (this is the third meta-rule the user has explicitly tracked under "make routing requirement stronger" thread; mechanical enforcement of TD-VSDD-088 + 089 + 090 is the structural payoff)
+
+**Status:** OPEN — to be implemented as part of the validate-bc-* hook chain
+
+**Date:** 2026-05-05
+**Burst:** D-287

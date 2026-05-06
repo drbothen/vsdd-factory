@@ -864,14 +864,47 @@ The orchestrator MUST observe these routing rules for fix bursts:
 
 ## TD-VSDD-pattern-tracking — Codification-burst-self-violation
 
-**Pattern observed:** Codification bursts that introduce a normative rule have, in 2 of N=2 sampled cases, partially violated that very rule within the same burst.
+**Pattern observed:** Codification bursts that introduce a normative rule have, in 3 of N=3 sampled cases, partially violated that very rule within the same burst.
 
 **Instances:**
 1. Pass-39 (D-282) — TD-VSDD-085 NORMATIVE codified (TV-witness mechanization extension) but the same burst produced 3 self-violations (3 new ECs without TV witnesses); closed by TD-VSDD-085-applying burst (D-282 sibling).
 2. Pass-43 (D-285) — TD-VSDD-089 NORMATIVE codified (PO sibling-sweep mandate) but produced 1 self-violation in BC content (MED-P43-001 BC-035 line 50 ordering missed by sibling sweep) AND 1 self-violation in codification artifact (MED-P43-002 lessons.md trailer drift in TD-VSDD-089's own body).
+3. Pass-44 (D-286) — TD-VSDD-089 axis-5 self-application: pattern-tracking section trailer was single-line `**Date tracking opened:** 2026-05-05 (D-286 / pass-43)` instead of canonical two-line `**Date:**/**Burst:**` form used by sibling TD entries; closed at D-287.
 
-**S-7.02 threshold:** 2 instances; below 3+ codification threshold. Tracking only.
+**S-7.02 threshold:** Met at N=3 (third instance: pass-44 D-286 TD-089-axis-5 self-violation). Codified as TD-VSDD-090.
 
-**Provisional codification candidate (TD-VSDD-090 if 3rd recurs):** "Normative-rule birth bursts MUST be audited against the rule itself before seal" — i.e., the codification burst's PO and state-manager Phase outputs should be re-reviewed against the rule they introduce, before commit.
+**Codified at TD-VSDD-090** — see below.
 
-**Date tracking opened:** 2026-05-05 (D-286 / pass-43)
+**Date:** 2026-05-05
+**Burst:** D-286 (pass-43 / E-9 v1.39 → v1.40)
+
+---
+
+## TD-VSDD-090 — Normative-rule birth bursts MUST be self-application audited before seal
+
+**Source:** TD-VSDD-pattern-tracking section escalated to codification at S-7.02 threshold (3 observed instances of "codification burst violates own rule": pass-39 D-282 TD-085 self-violation; pass-43 D-285 TD-089 self-violation; pass-44 D-286 TD-089-axis-5 self-violation).
+
+**Class:** When a fix burst codifies a new normative rule (TD-VSDD-NNN at NORMATIVE severity), the SAME burst is structurally at high risk of partially violating the rule it just introduced. The pattern recurs because the rule's full implications aren't yet internalized at codification time, AND because the codification text itself is a sibling artifact in lessons.md subject to the very disciplines being codified.
+
+**Codification (NORMATIVE):**
+
+Before any normative-rule codification burst can be sealed:
+
+1. **Self-application audit pass** — the codifying agent (state-manager or PO) MUST review the burst's own work product against the rule being codified. The audit must enumerate:
+   - Each artifact modified in the burst (BC files, lessons.md, epic, STATE.md, etc.)
+   - For each artifact, the rule's applicable axes/scope
+   - Whether the artifact complies with the rule
+   - Any non-compliance must be fixed in the SAME burst before seal.
+
+2. **Codification text self-application** — the lessons.md TD-VSDD-NNN entry being added MUST itself satisfy the rule's discipline (e.g., a sibling-sweep rule's own codification text must pass sibling-sweep against neighboring TD entries; a TV-witness rule's codification text must include witness examples; etc.).
+
+3. **State-manager seal-gate** — state-manager Phase 2 MUST refuse to seal if Phase 1 PO output (or state-manager's own meta-content) contains an unaddressed self-application violation against the new rule. The seal-gate MAY accept fixes deferred to a follow-up burst ONLY if explicitly documented as such in the seal commit message.
+
+**Severity when violated:** HIGH (codification produces structural drift that propagates to all downstream applications of the rule)
+
+**Mechanization candidate (filed as TD-VSDD-090-HOOK):** Pre-commit hook that detects burst commits adding new TD-VSDD-NNN entries to lessons.md. For each detected entry, the hook prompts an automated self-application checklist or rejects the commit if the entry's discipline can be machine-verified against the burst's other modified files.
+
+**S-7.02 threshold:** Met (3 instances). NORMATIVE.
+
+**Date:** 2026-05-05
+**Burst:** D-287 (E-9 v1.40 → v1.41; FIRST application of self-application audit gate)
