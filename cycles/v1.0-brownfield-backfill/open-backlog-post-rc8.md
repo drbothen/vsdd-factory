@@ -167,3 +167,37 @@
 
 **Date:** 2026-05-05
 **Burst:** D-290
+
+---
+
+## TD-VSDD-091-ENGINE — Engine-level ban on line-number citations across VSDD artifacts
+
+**Source:** User directive (2026-05-05 mid-pass-48): "we need to not use line number citations, lets add that to the technical debt for us to implement in vsdd"
+
+**Class:** Promote TD-VSDD-091 from project-level codification (lessons.md) to VSDD-engine-level enforcement. The structural insight from pass-47/48 (line numbers shift on insertion → manual narrative discipline cannot fix this) generalizes beyond self-referential intra-file: line-number citations across ANY artifact pair where the citing burst modifies the cited file are equally susceptible. The empirically validated fix (stable-anchor citations) should be the VSDD-wide default.
+
+**Scope extension vs TD-VSDD-091:**
+
+- **TD-VSDD-091** (project-level, NORMATIVE in lessons.md): Bans self-referential intra-file line citations; mandates stable anchors (section headings, ticket section names, postcondition numbers, frontmatter field names).
+- **TD-VSDD-091-ENGINE** (engine-level, NEW): Extends ban to ALL line-number citations across VSDD artifacts (BC bodies, epic changelogs, lessons.md, open-backlog tickets, pass review files, STATE.md). Carve-outs: read-only source-code references (e.g., `host/mod.rs:152` where citing burst doesn't modify the cited file) and external standards documents (e.g., RFC 9999 Section 4 line 12). Default: prefer anchors.
+
+**Implementation surfaces (in dark-factory engine repo):**
+
+1. **Agent prompts** — state-manager, product-owner, architect, adversary, spec-steward agent prompts updated to: (a) prefer anchor-based citations; (b) when line numbers must be cited, require post-stage grep verification + stable-anchor comment annotation explaining why line numbers were chosen.
+
+2. **Pre-commit hook** (extends TD-VSDD-091-HOOK proposal): `validate-stable-anchor-citations.sh` script in `dark-factory-engine/hooks/`. Detects line-number citations in modified .md files within commits; for each detected citation, classifies as (a) self-referential within same commit's modified files (REJECT — must use anchor); (b) cross-file to commit-modified file (REJECT — anchor preferred); (c) read-only source-code or external reference (ALLOW). Hook produces clear error message identifying the offending citation and suggesting the anchor-based alternative.
+
+3. **Citation linter** (eventual): integrated into validate-consistency / validate-bc-* skill chain. Surfaces stale line citations on every PR.
+
+**Acceptance criteria:**
+- All 5 dark-factory engine agent prompts (state-manager, PO, architect, adversary, spec-steward) reference TD-VSDD-091-ENGINE in their citation discipline guidance.
+- `validate-stable-anchor-citations.sh` hook implemented and added to the pre-commit chain.
+- Hook detects 100% of self-referential and within-commit cross-file line citations; zero false-positives on read-only source-code citations.
+- Existing project-level codifications (lessons.md TD-VSDD-091) reference TD-VSDD-091-ENGINE as the engine-level enforcement counterpart.
+
+**Priority:** HIGH (user explicitly requested "stronger routing" / mechanical enforcement; this is one of three concurrent engine-level hooks needed: TD-088-HOOK, TD-089-HOOK, TD-090-HOOK, TD-091-HOOK, plus this engine-level extension).
+
+**Status:** OPEN — to be implemented in dark-factory engine maintenance work alongside TD-088/089/090/091-HOOK chain.
+
+**Date:** 2026-05-06
+**Burst:** D-291 (filed during pass-48 NITPICK_ONLY seal)
