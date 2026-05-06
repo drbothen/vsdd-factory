@@ -884,6 +884,22 @@ The orchestrator MUST observe these routing rules for fix bursts:
 
 ---
 
+## TD-VSDD-pattern-tracking — Fabricated-source-code-constant-in-H3-closure-narrative
+
+### Pattern: fabricated-source-code-constant-in-H3-closure-narrative
+
+**N=2 occurrences below S-7.02 3-threshold; tracking for codification candidacy.**
+
+- **1st (H-P21-001 D-264 v1.21):** Closure narrative invented `TIMEOUT (-7)` and `OUTPUT_TOO_LARGE (-8)`; actual values are `-2` and `-3`. The D-264 fix burst corrected the BC body but the H3 closure narrative cited the wrong codes. Detected at pass-21 (BC-only deep-dive angle).
+- **2nd (HIGH-P54-001 D-295 v1.46):** Closure narrative wrote `INVALID_ARGUMENT (-2)`; actual value is `-4` per `crates/factory-dispatcher/src/host/mod.rs:183`. BC-1.05.035 body was correct throughout; only the D-295 H3 closure narrative was wrong. The pass-51 original finding text was correct; the defect was introduced in the closure prose. Detected at pass-54 (external-reference link integrity audit angle — novel, untouched in 53 prior passes).
+- **Hook-extension proposal (Obs-P54-001):** Extend TD-VSDD-080 hook (`validate-bc-terminology-family.sh`) to scan changelog H3 blocks for source-code-constant patterns (`INVALID_ARGUMENT (-?\d+)`, `TIMEOUT (-?\d+)`, `OUTPUT_TOO_LARGE (-?\d+)`, `INTERNAL_ERROR (-?\d+)`, `CAPABILITY_DENIED (-?\d+)`) and cross-validate against `host/mod.rs:179-184` constant definitions. Filed for orchestrator cycle-closing-checklist.
+- **Codification trigger:** If 3rd occurrence emerges, codify as TD-VSDD-093 (closure-narrative-source-constant-validation discipline) and codify the TD-VSDD-080 hook extension as NORMATIVE.
+
+**Date:** 2026-05-06
+**Burst:** D-299 (pattern entry created for N=2 occurrence)
+
+---
+
 ## TD-VSDD-090 — Normative-rule birth bursts MUST be self-application audited before seal
 
 **Source:** TD-VSDD-pattern-tracking section escalated to codification at S-7.02 threshold (3 observed instances of "codification burst violates own rule": pass-39 D-282 TD-085 self-violation; pass-43 D-285 TD-089 self-violation; pass-44 D-286 TD-089-axis-5 self-violation).

@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.48"
+version: "1.49"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -17,7 +17,7 @@ timestamp: 2026-05-03T00:00:00Z
 phase: 2
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: "2026-05-06 (D-298 — pass-53 META corrigendum: v1.34 row population + v1.45 trailer relocation)"
+last_amended: "2026-05-06 (D-299 — pass-54 META corrigendum: v1.46 H3 LOW-P51-001 closure narrative source-code-constant value error disclosure; INVALID_ARGUMENT (-2) → corrigendum -4)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -509,6 +509,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.46 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-295 pass-51 LOW closures — SIXTH PO-authored burst (user-directed quality-over-clock-speed tradeoff). 6 LOW closures: LOW-P51-001 BC-035 §Precedence Ladder step (1) cause-collapse note enumerating MemoryOverflow/OutOfBounds/InvalidUtf8 variants; LOW-P51-002 BC-035 EC-013 file_name=None fallback paragraph; LOW-P51-003 BC-036 EC-007 stdin write_all is_err() cause erasure (parallel to MED-P50-001); LOW-P51-004 BC-036 EC-007 try_wait Err(_) cause erasure parallel; LOW-P51-005 BC-036 EC-013A 5ms busy-poll granularity footnote; LOW-P51-006 BC-036 EC-011 emit_internal poison vs internal_log IO asymmetry contrast. **TRADEOFF: ADR-013 clock RESET 1_of_3 → 0_of_3** (user accepted clock reset for spec quality; 3 fresh NITPICK_ONLY (pass-52/53/54) needed for CONVERGENCE_REACHED). STORY-INDEX 2.01→2.02. |
 | 1.47 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-296 pass-52 TV-derivation seal-and-fix — SEVENTH PO-authored burst. 1 MED + 2 LOW closures: MED-P52-001 BC-036 EC-005A "strictly exceeds (`>`, not `>=`)" prose tightening + new boundary-success-witness CTV row; LOW-P52-001 BC-036 P4 NOTE re ADR-015 FileSink rewire CTV gap (deferred to E-9 Wave 1); LOW-P52-002 BC-036 EC-013A upper-bound `timeout_ms = u32::MAX` ~49.7 days note. Strict-protocol verdict SUBSTANTIVE (adversary classified NITPICK_ONLY but 1 MED triggers SUBSTANTIVE per quality-preference standard). **ADR-013 clock RESETS 1_of_3 → 0_of_3** per strict protocol. 3 fresh NITPICK_ONLY (pass-53/54/55) needed for CONVERGENCE_REACHED. STORY-INDEX 2.02→2.03. |
 | 1.48 | 2026-05-06 | state-manager | D-298 pass-53 META corrigendum — close MED-P53-001 (v1.45 trailer relocation: orphan `**STORY-INDEX:** 1.99 → 2.00.` line at EOF moved into v1.45 H3 block) + MED-P53-002 (v1.34 summary row population from H3 content). State-manager-only burst per TD-VSDD-088 META-routing (no BC content; no normative-rule codification). ADR-013 clock RESET 0_of_3. |
+| 1.49 | 2026-05-06 | state-manager | D-299 pass-54 META corrigendum — close HIGH-P54-001 (v1.46 H3 LOW-P51-001 closure narrative cited `INVALID_ARGUMENT (-2)`; correct value is `-4` per host/mod.rs:183; BC-1.05.035 body is correct; only H3 closure narrative wrong). 5th-gen TD-VSDD-081 violation; same defect class as H-P21-001 (D-264 v1.21). Per POLICY 1 append-only, v1.46 H3 prose NOT rewritten; corrigendum recorded in v1.49 H3 with explicit value-correction disclosure. Filed Obs-P54-001 hook-extension proposal (TD-VSDD-080 extend to scan H3 closure narratives for source-code constants) for orchestrator cycle-closing-checklist. State-manager-only burst per TD-VSDD-088 META-routing. ADR-013 clock 0_of_3 (no advance; SUBSTANTIVE). |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2351,3 +2352,48 @@ TD-VSDD-092 self-application: D-298 modifies no BC; the changes are pure changel
 **ADR-013 clock:** RESETS 0_of_3 → 0_of_3 (SUBSTANTIVE verdict by pass-53). Three fresh NITPICK_ONLY passes (54/55/56) needed for CONVERGENCE_REACHED.
 
 **STORY-INDEX:** 2.04 → 2.05.
+
+### v1.49 (D-299 — pass-54 META corrigendum; FOURTH state-manager-only burst this cycle; closes HIGH-P54-001 from pass-54 — v1.46 H3 source-code-constant value error disclosure)
+
+**Context:** Pass-54 adversarial review (angle: external-reference link integrity audit — novel, untouched in 53 prior passes) returned verdict SUBSTANTIVE — 1 HIGH / 0 MEDIUM / 0 LOW + 4 Observations. HIGH-P54-001 detected a fabricated `INVALID_ARGUMENT (-2)` value in the v1.46 H3 block's LOW-P51-001 closure description bullet. The actual source-code constant is `-4` per `crates/factory-dispatcher/src/host/mod.rs:183`. The BC-1.05.035 body is correct throughout (§Postconditions Postcondition 2, §Precedence Ladder step (1) cause-collapse note both cite `(-4)`). The defect was introduced solely in the H3 closure narrative at D-295 when the LOW-P51-001 finding was described. Per POLICY 1 append-only, the v1.46 H3 prose is NOT rewritten in place. This v1.49 H3 records the corrigendum disclosure. D-299 is a META corrigendum burst: no BC body changes, no normative-rule codification. State-manager-only routing per TD-VSDD-088 META-routing rule (precedents: D-288 first state-manager-only burst, D-289 second, D-290 third, D-298 also META).
+
+**Routing pattern: FOURTH state-manager-only burst (state-manager all phases):** HIGH-P54-001 is in the state-manager domain (H3 closure-narrative source-code constant integrity — no BC body authorship required). No PO Phase 1 required. State-manager authors all changes in a single atomic burst per TD-VSDD-053 single-commit protocol.
+
+**Findings closed:**
+
+- **HIGH-P54-001 CLOSED — v1.46 H3 LOW-P51-001 closure narrative source-code-constant value error:**
+  - Cited (incorrect) value in v1.46 H3 LOW-P51-001 closure bullet: `INVALID_ARGUMENT (-2)`
+  - Source-of-truth value: `INVALID_ARGUMENT (-4)` per `crates/factory-dispatcher/src/host/mod.rs:183`. The full constant mapping: `(-1)` is `CAPABILITY_DENIED`; `(-2)` is `TIMEOUT`; `(-3)` is `OUTPUT_TOO_LARGE`; `(-4)` is `INVALID_ARGUMENT`; `(-99)` is `INTERNAL_ERROR`.
+  - BC-1.05.035 body is CORRECT throughout: §Postconditions Postcondition 2 cites `INVALID_ARGUMENT (-4)`; §Precedence Ladder step (1) cause-collapse note cites `INVALID_ARGUMENT (-4)`.
+  - Pass-51 review file (adv-e9-v1.7-amendment-pass-51.md) LOW-P51-001 original finding text is CORRECT — the defect was introduced in the D-295 closure narrative, not in the finding itself.
+  - Defect class: 5th-generation TD-VSDD-081 violation (mechanism-verification beyond string-presence-grep; applies to source-code constants cited in H3 closure narratives). Sibling-class to H-P21-001 (D-264 v1.21 invented `TIMEOUT (-7)` / `OUTPUT_TOO_LARGE (-8)`).
+  - Per POLICY 1 append-only: v1.46 H3 prose is preserved. This v1.49 H3 corrigendum bullet serves as the canonical disclosure record. Future readers of v1.46 H3 should consult this corrigendum for the corrected value.
+
+**Process-gap acknowledgments / observations recorded:**
+
+- **Obs-P54-001 (TD-VSDD-080 hook extension proposal):** Filed for orchestrator cycle-closing-checklist as a candidate hook extension to scan H3 changelog closure-narrative blocks for source-code-constant patterns (`INVALID_ARGUMENT (-?\d+)`, `TIMEOUT (-?\d+)`, `OUTPUT_TOO_LARGE (-?\d+)`, `INTERNAL_ERROR (-?\d+)`, `CAPABILITY_DENIED (-?\d+)`) and cross-validate against `crates/factory-dispatcher/src/host/mod.rs:179-184` constant definitions. NOT codified as a new TD entry in this burst (recurrence count N=2; below S-7.02 3-occurrence threshold).
+- **Obs-P54-002 (TD-VSDD-071 OQ-propagation interpretation gap):** Filed as observation; the rule's "scope-owner" field interpretation (whether OQ-W16-002..010 owe propagation to E-9 OQ table) is orchestrator ownership. A reasonable reading of the rule supports the current state. NOT a finding.
+- **Obs-P54-003 (TD-VSDD-084 PROVISIONAL):** Confirmed correctly preserved. No action required.
+- **Obs-P54-004 (frontmatter intro `(reserved)` token):** Filed for orchestrator awareness; non-changelog body. NOT a finding.
+
+**TD-VSDD-089 5-axis sibling sweep (mandatory per NORMATIVE rule):**
+
+1. **Postcondition ↔ Edge Case parity:** BC-1.05.035 §Postconditions Postcondition 2, §Precedence Ladder step (1) cause-collapse note, and all §Edge Cases citing INVALID_ARGUMENT consistently use `(-4)`. BC-1.05.036 §Related BCs and §Postconditions are consistent. PC↔EC parity in BC body PRESERVED. Defect ONLY in v1.46 H3 narrative.
+2. **Cross-BC reference accuracy:** BC-1.05.036 §Related BCs row for BC-1.05.035 and BC-1.05.036 §Postcondition 5 INTERNAL_ERROR row are consistent with correct error-code mapping. No cross-BC defect.
+3. **Numeric enumeration:** Error-code mapping `(-1, -2, -3, -4, -99)` consistent throughout BC bodies. Only v1.46 H3 closure narrative deviated at the `(-2)` suffix for INVALID_ARGUMENT.
+4. **Parenthetical lists:** The `(MemoryOverflow, OutOfBounds, InvalidUtf8)` parenthetical list in v1.46 H3 LOW-P51-001 closure bullet is CORRECT. Only the trailing `(-2)` integer suffix was wrong.
+5. **Codification artifact sibling integrity:** lessons.md TD-VSDD-081 entry is the rule's source-of-truth; not affected by this defect. Pass-51 review file is correct. STATE.md continuity preserved. STORY-INDEX v2.05 does not cite the specific error-code value.
+
+**TD-VSDD-090/091/092 self-application audit:**
+
+This burst modifies: this epic (the frontmatter `version` field, the frontmatter `last_amended` field, the summary table v1.49 row appended, this v1.49 H3 block appended), the pass-54 review file created in the cycle directory, lessons.md (pattern-tracking section), STATE.md, STORY-INDEX.
+
+- **TD-VSDD-090:** D-299 introduces NO new normative rule. The burst applies existing routing (TD-VSDD-088 META-routing precedent) and existing POLICY 1 corrigendum discipline. N/A by scope. PASS.
+- **TD-VSDD-091:** This v1.49 H3 block uses ONLY anchor-based citations. Citations use section heading descriptors and stable identifiers: "v1.46 H3 block", "LOW-P51-001 closure description bullet", "BC-1.05.035 §Postconditions Postcondition 2", "BC-1.05.035 §Precedence Ladder step (1) cause-collapse note", "host/mod.rs:183", "TD-VSDD-088 META-routing rule", "POLICY 1 append-only". Zero `line N` self-referential patterns pointing into this epic file. PASS.
+- **TD-VSDD-092:** D-299 modifies no BC body content. No `let _ =` silent-discard surfaces touched. N/A by scope. PASS.
+
+**Pattern-tracking entry:** This is the 2nd occurrence of "fabricated source-code constant value in H3 closure narrative." 1st: H-P21-001 D-264 v1.21 (invented `TIMEOUT (-7)` / `OUTPUT_TOO_LARGE (-8)`). 2nd: HIGH-P54-001 D-295 v1.46 (closure narrative wrote `INVALID_ARGUMENT (-2)` instead of `(-4)`). Below S-7.02 3-occurrence threshold for fresh TD codification. Pattern-tracking entry added to lessons.md TD-VSDD-pattern-tracking section. Codification trigger: 3rd occurrence → codify as TD-VSDD-093 + codify TD-VSDD-080 hook extension.
+
+**ADR-013 clock:** 0_of_3 (no advance; SUBSTANTIVE verdict — 1 HIGH closed). Three fresh NITPICK_ONLY passes (55/56/57) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 2.05 → 2.06.
