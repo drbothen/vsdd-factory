@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "1.83"
+version: "1.84"
 status: current
 producer: state-manager
 timestamp: 2026-05-05T00:00:00

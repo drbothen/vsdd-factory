@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.30"
+version: "1.31"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -491,7 +491,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.28 | 2026-05-05 | state-manager | D-272 cross-doc terminology drift fix — H-P29-001 (BC-1.05.036:51 "external fan-out to Datadog/Honeycomb" → "external export to remote observability backends" — scrubs fan-out + vendor names per TD-VSDD-079 8-term family grep); H-P29-002 (BC-1.05.035:35 §Description NUL-byte attribution corrected — "rejects NUL bytes" removed from canonicalize; redirected to `read_wasm_string` error path per §Postcondition 2 + §Precedence Ladder + §EC-005); full TD-VSDD-079 8-term grep across all 5 in-scope files (all non-changelog body: ZERO prohibited matches PASS); TD-VSDD-080 codified (mechanize TD-VSDD-079 as pre-commit hook; 5 consecutive narrative-discipline failures forces mechanical enforcement). ADR-013 clock 0_of_3 (reset by pass-29; remains 0). |
 | 1.29 | 2026-05-05 | state-manager | D-274 inverse-traceability fix — MED-P31-001 (gap-analysis:334-337 + audit-w16 B-7 row tense corrected: "are injected"/"automatic invariant" → "MUST be injected per D-15.4, normative future-state; pending E-10 Wave 1"); MED-P31-002 (BC-1.05.036 Postcondition 2: outcome enum field added + exit_code→outcome mapping per ADR-015 D-15.2:270); LOW-P31-003 (BC-1.05.036 stdin write-failure cite :262 → :259); LOW-P31-004 (perf-baseline "sub-millisecond I/O" → "measured throughput >10k events/minute per ADR-015 D-15.1 Rationale"); LOW-P31-005 SKIPPED (tense conflation cosmetic per S-7.03 SHIP-AS-IS). Source-of-truth verification per TD-VSDD-075: exec_subprocess.rs:242-247 env_clear+selective-forward confirmed; :259 write_all().is_err() confirmed; ADR-015 D-15.2:270 outcome enum confirmed; D-15.4:407-419 MUST-be-injected confirmed; D-15.1 Rationale:432-440 10k events/minute confirmed. ADR-013 clock 0_of_3 (RESET by pass-31 SUBSTANTIVE). |
 | 1.30 | 2026-05-05 | state-manager | D-276 PC↔TV coherence fix — MED-P33-001 (BC-1.05.036: EC-008 outcome-enum-stamping row added + 2 Canonical Test Vector rows for outcome=success/outcome=failure; Postcondition 2 outcome-enum mandate now has test coverage); MED-P33-002 (BC-1.05.035: §Description pairing rationale added justifying INVALID_ARGUMENT+capability_denied novel pairing + EC-002 event-emission witness appended + Test Vector row 3 event assertion added with reason "symlink_traversal_escape"); MED-P33-003 (BC-1.05.035: Postcondition 1 misleading "(`../` absent, no NUL bytes)" parenthetical removed; replaced with `read_wasm_string` error path reference; EC-001 clarifying note added explaining CAPABILITY_DENIED via allow-list miss path — no separate `../` string-level guard exists); LOW-P33-001 (BC-1.05.035: §Description anchor corrected from §"How ADR-015 affects the telemetry gap" lines 339-349 → §"Existing denial-path telemetry" lines 341-351). Source-of-truth verification per TD-VSDD-075: gap-analysis H3 §"Existing denial-path telemetry" begins line 341 (confirmed); rename rationale at lines 343-351 (confirmed); exec_subprocess.rs:148/155/162/169 emit_denial 4 reasons all CAPABILITY_DENIED -1 (confirmed unchanged). TD-VSDD-079 8-term grep: BC-1.05.035 ZERO prohibited matches; BC-1.05.036 lines 38+51 are intentional ADR-015 retirement-status citations. ADR-013 clock 0_of_3 (RESET by pass-33 SUBSTANTIVE verdict). |
-| 1.31 | — | — | (reserved) |
+| 1.31 | 2026-05-05 | state-manager | D-277 mechanism-fix burst — HIGH-P34-001 (BC-1.05.035: NUL byte rejection corrected — `read_wasm_string` only rejects non-UTF-8; NUL bytes → Precedence Ladder step 2 → CAPABILITY_DENIED -1; Postcondition 2, Postcondition 1 preamble, EC-005, Precedence Ladder step (1) all corrected per source-truth at host/memory.rs:47-54); MED-P34-001 (BC-1.05.035 EC-001: binary_allow precondition explicitly added); MED-P34-002 (BC-1.05.036 §Related BCs: sibling-disclosure of novel INVALID_ARGUMENT+capability_denied 5th denial path appended); MED-P34-003 (gap-analysis §"Existing denial-path telemetry": INTERIM declaration added as source-of-truth anchor); LOW-P34-001 SKIPPED (outcome enum 3-site duplication cosmetic per S-7.03); LOW-P34-002 closed implicitly by Fix 1 rewrite; TD-VSDD-081 codified (mechanism-verification beyond string-presence-grep). |
+| 1.32 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1576,5 +1577,52 @@ When a BC postcondition or normative BC section cites a CONCRETE ENUMERATION (li
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.29"` → `"1.30"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (eighteenth use):** State-manager handles pass-33 seal and 4-fix burst atomically. All fixes are textual corrections to BC normative sections.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.31 (2026-05-05) — D-277 mechanism-fix: pass-34 1H/3M/2L; NUL byte rejection mechanism corrected + INTERIM declaration + sibling-disclosure; TD-VSDD-081 codified; ADR-013 clock RESET 0_of_3
+
+**HIGH findings closed:**
+
+- **HIGH-P34-001 CLOSED (Fix 1):** BC-1.05.035 contained a factual error: Postcondition 2, Postcondition 1 preamble, EC-005, and Precedence Ladder step (1) all claimed NUL bytes are rejected via `read_wasm_string` error path, returning `INVALID_ARGUMENT` (-4). Source-of-truth verification of `host/memory.rs:47-54` confirms `read_wasm_string` only fails on `String::from_utf8` errors; NUL bytes (0x00) are valid UTF-8 (U+0000) and pass through cleanly. Actual NUL handling: `Path::new(cmd).canonicalize()` on Unix returns EINVAL for NUL-containing paths via std::path CString conversion → Precedence Ladder step (2) → `CAPABILITY_DENIED` (-1). Corrections applied: Postcondition 1 preamble — dropped `read_wasm_string` error path claim; Postcondition 2 — rewritten to "non-UTF-8 byte sequence" with NOTE clarifying NUL byte correct path; EC-005 — corrected from `INVALID_ARGUMENT` (-4) to `CAPABILITY_DENIED` (-1) with explanation; Precedence Ladder step (1) — "NUL byte" → "Non-UTF-8 byte sequence" with NOTE that NUL bytes pass to step (2).
+
+**MED findings closed:**
+
+- **MED-P34-001 CLOSED (Fix 2):** BC-1.05.035 EC-001 outcome cell assumed `binary_allow` shape (basename "passwd" not in `binary_allow`) but the EC precondition did not bind it. Added `binary_allow = ["bash"]` (typical S-9.07 capability shape per OQ-3) and `cmd` basename "passwd" not in `binary_allow` to EC-001 precondition column.
+
+- **MED-P34-002 CLOSED (Fix 3):** BC-1.05.036 §Related BCs row for BC-1.05.035 did not disclose that BC-1.05.035 introduces a 5th denial-event path (`INVALID_ARGUMENT (-4) + internal.capability_denied`) differing from the existing 4 CAPABILITY_DENIED paths. Appended NOTE to the BC-1.05.035 row in §Related BCs: "BC-1.05.035 introduces a novel `INVALID_ARGUMENT (-4) + internal.capability_denied` pairing for symlink-traversal escape — a 5th denial-event path with a different error code than the existing 4 CAPABILITY_DENIED paths. Test-writers building denial-event taxonomy MUST include this 5th path."
+
+- **MED-P34-003 CLOSED (Fix 4):** gap-analysis §"Existing denial-path telemetry" (lines 341-351) used "MUST be renamed" but did not declare "INTERIM" as a lifecycle marker, leaving the INTERIM tag in BCs without a source-of-truth anchor. Appended declaration to gap-analysis after the rename clause: "Until the rename ships (in E-10 Wave 1 host-emit-fix story), the existing `internal.capability_denied` event name is **INTERIM** — BC-1.05.035 + BC-1.05.036 §Description ADR-015 awareness clauses use this INTERIM tag to lifecycle-mark the name."
+
+**LOW findings:**
+
+- **LOW-P34-001 SKIPPED per S-7.03 SHIP-AS-IS:** outcome enum mapping rule duplicated in 3 locations (§Postcondition 2, EC-008, §Canonical Test Vectors). Cosmetic refactoring; does not introduce bugs.
+- **LOW-P34-002 CLOSED implicitly:** Grammar awkwardness in Postcondition 1 preamble de facto resolved by Fix 1 rewrite.
+
+**Source-of-truth mechanism verification per TD-VSDD-081:**
+- `host/memory.rs:47-54` `read_wasm_string`: only rejects non-UTF-8 (`String::from_utf8` error); NUL bytes (0x00) are valid UTF-8 and pass through. CONFIRMED.
+- `exec_subprocess.rs:230` `Command::new(cmd)`: no string-level NUL guard pre-canonicalize. CONFIRMED.
+- `Path::new(cmd).canonicalize()` on Unix: returns Err(EINVAL) for NUL-containing paths via std::path CString conversion. CONFIRMED via std lib docs.
+- Ladder step (2) canonicalize() Err → `CAPABILITY_DENIED` (-1) per existing 4 emit_denial paths at exec_subprocess.rs:148/155/162/169. CONFIRMED.
+
+**Post-edit grep verification:**
+- `grep -n "NUL byte.*INVALID_ARGUMENT\|read_wasm_string.*NUL\|NUL bytes rejected" BC-1.05.035.md` → no residue of false claim. PASS.
+- EC-005 corrected to `CAPABILITY_DENIED` (-1). PASS.
+- Precedence Ladder step (1) updated to "Non-UTF-8 byte sequence". PASS.
+- BC-1.05.036 §Related BCs sibling-disclosure NOTE appended. PASS.
+- gap-analysis INTERIM declaration appended. PASS.
+
+**TD-VSDD-079 8-term family-grep:**
+- BC-1.05.035: ZERO prohibited matches. PASS.
+- BC-1.05.036 lines 38+51: intentional ADR-015 retirement-status citations (Router/SinkRegistry retired). PASS.
+- gap-analysis-w16-subprocess.md: ZERO prohibited matches. PASS.
+
+**TD-VSDD-081 codified:** Mechanism-verification beyond string-presence-grep. See lessons.md.
+
+**ADR-013 clock:** 0_of_3 (RESET by pass-34 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (35/36/37) needed for CONVERGENCE_REACHED.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.30"` → `"1.31"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (nineteenth use):** State-manager handles pass-34 seal and 4-fix burst atomically. All fixes are textual corrections to BC normative sections and gap-analysis.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

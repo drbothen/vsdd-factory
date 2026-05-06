@@ -44,12 +44,12 @@ The dispatcher MUST call `Path::new(cmd).canonicalize()` on the binary path BEFO
 
 ## Postconditions
 
-1. If `cmd` passes the existing `read_wasm_string` error path (NUL bytes rejected per Postcondition 2) AND `Path::new(cmd).canonicalize()` succeeds AND the canonicalized path does not contain `..` segments, the allow-list check proceeds normally.
-2. If `cmd` contains a NUL byte or fails basic string validation, returns `codes::INVALID_ARGUMENT` (-4) — existing `read_wasm_string` error path.
+1. If `Path::new(cmd).canonicalize()` succeeds AND the canonicalized path does not contain `..` segments, the allow-list check proceeds normally.
+2. If `read_wasm_string` returns Err (non-UTF-8 byte sequence in WASM memory), the existing host-call error path returns `codes::INVALID_ARGUMENT` (-4) before any canonicalize attempt. (NOTE: NUL bytes are valid UTF-8 and pass `read_wasm_string`; NUL-containing paths fail at `Path::new(cmd).canonicalize()` returning EINVAL via Unix CString conversion in std::path layer → Precedence Ladder step 2 → `CAPABILITY_DENIED` (-1), NOT step 1.)
 3. If `Path::new(cmd).canonicalize()` fails (binary not on disk, path invalid, IO error), returns `codes::CAPABILITY_DENIED` (-1) — existing exec_subprocess error semantics preserved.
 4. If the canonicalized path contains `..` components after resolution (symlink-based escape attempt), returns `codes::INVALID_ARGUMENT` (-4) and the existing `internal.capability_denied` event is emitted. (event name `internal.capability_denied` is INTERIM — see §Description ADR-015 awareness clause; rename to `vsdd.capability.denied.exec_subprocess.v1` per ADR-015 D-15.2 registry line 329)
 
-**Precedence ladder (per pass-22 M-P22-003):** When multiple validation conditions could fire, the host applies them in this order: (1) NUL byte in `cmd` → `Err(INVALID_ARGUMENT -4)`; (2) `Path::new(cmd).canonicalize()` returns Err → `Err(CAPABILITY_DENIED -1)` (path doesn't exist or symlink loop); (3) canonicalized path contains `..` segments (rare; only with non-existent intermediates) → `Err(INVALID_ARGUMENT -4)`; (4) canonicalized path not in `binary_allow` list → `Err(CAPABILITY_DENIED -1)`. Per `crates/factory-dispatcher/src/host/exec_subprocess.rs:230` (entry point) and BC-1.05.005/BC-1.05.032 sibling contracts.
+**Precedence ladder (per pass-22 M-P22-003; corrected per pass-34 HIGH-P34-001):** When multiple validation conditions could fire, the host applies them in this order: (1) Non-UTF-8 byte sequence in `cmd` (per `read_wasm_string` at `host/memory.rs:47-54`) → `Err(INVALID_ARGUMENT -4)` — NUL bytes are valid UTF-8 and pass to step (2); (2) `Path::new(cmd).canonicalize()` returns Err → `Err(CAPABILITY_DENIED -1)` (path doesn't exist, NUL-containing path via EINVAL, or symlink loop); (3) canonicalized path contains `..` segments (rare; only with non-existent intermediates) → `Err(INVALID_ARGUMENT -4)`; (4) canonicalized path not in `binary_allow` list → `Err(CAPABILITY_DENIED -1)`. Per `crates/factory-dispatcher/src/host/exec_subprocess.rs:230` (entry point) and BC-1.05.005/BC-1.05.032 sibling contracts.
 
 ## Invariants
 
@@ -79,11 +79,11 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `cmd` contains `../etc/passwd` literal | Returns `CAPABILITY_DENIED` (-1); allow-list match never reached (caught by existing allow-list miss: basename "passwd" not in `binary_allow` → emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155 → CAPABILITY_DENIED. Pre-canonicalize string-level `../` reject is NOT a separate guard.) |
+| EC-001 | `cmd = "../etc/passwd"` (literal traversal); `binary_allow = ["bash"]` (typical S-9.07 capability shape per OQ-3); `cmd` basename "passwd" not in `binary_allow` | Returns `CAPABILITY_DENIED` (-1); allow-list match never reached (caught by existing allow-list miss: basename "passwd" not in `binary_allow` → emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155 → CAPABILITY_DENIED. Pre-canonicalize string-level `../` reject is NOT a separate guard.) |
 | EC-002 | `cmd` is a symlink pointing outside CLAUDE_PROJECT_DIR | `canonicalize()` resolves it; `..` components detected; returns `INVALID_ARGUMENT` (-4) AND exactly one `internal.capability_denied` event emitted with reason `"symlink_traversal_escape"` (novel INVALID_ARGUMENT+capability_denied pairing per §Description rationale) |
 | EC-003 | `cmd` is a valid absolute path with no traversal | `canonicalize()` succeeds; allow-list check proceeds normally |
 | EC-004 | `cmd` binary does not exist on disk | `canonicalize()` fails with IO error; returns `CAPABILITY_DENIED` (-1) |
-| EC-005 | `cmd` contains NUL byte | Returns `INVALID_ARGUMENT` (-4) via existing `read_wasm_string` error path before canonicalize |
+| EC-005 | `cmd` contains NUL byte | Returns `CAPABILITY_DENIED` (-1) via Precedence Ladder step 2 (`Path::new(cmd).canonicalize()` returns Err with EINVAL on NUL-containing paths via Unix CString conversion in std::path layer); NOT `INVALID_ARGUMENT` (NUL bytes are valid UTF-8 and pass `read_wasm_string`) |
 
 ## Canonical Test Vectors
 

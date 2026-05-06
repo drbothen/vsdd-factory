@@ -348,7 +348,7 @@ semantics of a capability-denial event; (b) `vsdd.internal.*` maps to `lifecycle
 which fits engine-internal state transitions — not denial audit-trail events; (c) Audit-category events are queryable in SIEM dashboards by `event.category = audit`
 filter — ADR-015 D-15.2 § `event.category` taxonomy registry (lines 295–333) defines
 `audit` as the category for security-relevant events including capability denials. SS-01 implementer MUST
-apply this rename in E-10 Wave 1 or 2.
+apply this rename in E-10 Wave 1 or 2. Until the rename ships (in E-10 Wave 1 host-emit-fix story), the existing `internal.capability_denied` event name is **INTERIM** — BC-1.05.035 + BC-1.05.036 §Description ADR-015 awareness clauses use this INTERIM tag to lifecycle-mark the name.
 
 ### No structural change to gap analysis conclusions
 

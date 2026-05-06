@@ -662,3 +662,29 @@ The recurrence is structural: narrative-discipline lessons consistently fail to 
 - File as TD-VSDD-080 (Mechanize TD-VSDD-079 family-grep as pre-commit hook).
 
 **[codified]** by D-272 lessons.md append.
+
+---
+
+### LESSON: Mechanism-verification beyond string-presence-grep — TD-VSDD-079 / TD-VSDD-080 extension
+
+**Source:** D-277 pass-34 finding HIGH-P34-001 (v1.30 Fix 3 introduced factual error: BC asserts NUL bytes rejected via `read_wasm_string` but source code shows `read_wasm_string` only rejects non-UTF-8)
+**Date:** 2026-05-05
+**Category:** spec-verification-discipline
+
+**Pattern:** v1.30 burst's Fix 3 (MED-P33-003 disambiguation) anchored NUL-byte rejection to `read_wasm_string` error path. The post-edit grep-verification (TD-VSDD-079 8-term family + literal-phrase greps) all PASSED — the strings checked were properly removed/replaced. But the cited mechanism ("read_wasm_string rejects NUL bytes") was never verified against actual source code. Source: `crates/factory-dispatcher/src/host/memory.rs:47-54` shows `read_wasm_string` only fails on `String::from_utf8` errors; NUL bytes (0x00) are valid UTF-8 and pass through cleanly. Actual NUL handling: `Path::canonicalize()` on Unix returns EINVAL via CString conversion → ladder step 2 → CAPABILITY_DENIED, NOT step 1 INVALID_ARGUMENT.
+
+The v1.30 fix's claim was string-level plausible but mechanism-level wrong. TD-VSDD-079 / TD-VSDD-080 grep-checklist mandates string-presence verification but does NOT mandate mechanism-behavior verification.
+
+**Codification:**
+- Extend TD-VSDD-079/080 with a new sub-rule: when a fix-burst CITES a source-code mechanism as performing a particular check (e.g., "NUL bytes rejected via read_wasm_string error path"), the architect/state-manager MUST read the cited source file and verify the mechanism actually performs the asserted behavior — NOT just verify the string is present/absent in the spec.
+- Architect prompts must include: "Before commit, READ each source-code line cited in the fix prose and confirm the asserted behavior. Quote the actual source code in the commit message body. Do NOT rely solely on grep verification."
+- Adversary's source-code-traceability angle (TD-VSDD-057 menu) should add a "mechanism-verification" sub-axis that reads source code for each cited mechanism, not just verifies string anchors.
+- File as TD-VSDD-081 (Mechanism-verification beyond string-presence-grep).
+
+**[codified]** by D-277 lessons.md append.
+
+---
+
+## Open Backlog
+
+- **TD-VSDD-081** (Mechanism-verification beyond string-presence-grep): When fix-burst cites a source-code mechanism as performing a specific check, MUST read the cited source file and verify the mechanism actually performs the asserted behavior. Extends TD-VSDD-079/080 grep-checklist with mechanism-behavior verification sub-rule. Source: D-277 HIGH-P34-001.
