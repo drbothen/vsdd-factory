@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -147,7 +147,7 @@ that handles both the Wave 2 state and the post-Wave-3 state.
    - **Degradation rule:** Same as State 3 — treat as a single non-paired event
      for dedup purposes
 
-   **Non-paired (baseline state, also the post-Wave-3 state):**
+   **State 5 — Non-paired (baseline state, also the post-Wave-3 state):**
    - `event.deprecated_by`, `event.replaces_deprecated_alias`, and
      `event.correlation_id` are ALL ABSENT
    - Consumer classification: standard single-emission event; no pairing context
@@ -213,9 +213,16 @@ that handles both the Wave 2 state and the post-Wave-3 state.
    Asymmetric cross-references (one half's pointer does not match the other
    half's `event.id`) indicate a plugin-side UUID coordination bug in a legacy
    two-call shim.
-4. A consumer MUST handle malformed cross-references (Invariant 2 violation,
-   Invariant 3 asymmetry) as orphaned halves per the degradation rule
-   (Postcondition 5) — do NOT error or crash; degrade to single-event accounting.
+4. A consumer MUST handle malformed cross-references gracefully — do NOT error
+   or crash; degrade to single-event accounting per the appropriate state per
+   Postcondition 5:
+   - **Invariant 3 asymmetry** (paired event with mismatched correlation_id
+     targets): treat as orphaned halves (State 3 or 4) per the degradation rule.
+   - **Invariant 2 violation** (correlation_id present, both directional fields
+     absent): treat as non-paired (State 5) per EC-006 — `correlation_id` alone
+     does not establish a pair.
+   - **Invariant 1 violation** (both directional fields present on a single
+     event): treat as orphaned-half via the PC4 downgrade rule.
 
 ## Related BCs
 
@@ -343,3 +350,4 @@ Consumer-side classification source-walk:
 | v1.1 | 2026-05-06 | D-315 F-12 fix: H1 updated to "five-state" (was "four-state" in original authoring). Body prose not fully propagated at that time. |
 | v1.2 | 2026-05-06 | D-319 — F-2 fix: body prose swept from "four-state classification" to "five-state classification" to match H1 (D-315 F-12 fix was incomplete). Postcondition 8 updated from "four-state classifier degrades gracefully: States 1–4" to "five-state classifier degrades gracefully." Purity Classification updated. ADR row updated to remove "reduced to four-state consumer taxonomy" and replace with the full five-state name list per ADR-015 D-15.2.e v1.5. |
 | v1.3 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: Architecture Anchors reviewed; all references are to ADR sections and the physical `events-*.jsonl` file path (not code symbols); no stable-anchor disclaimer needed for this BC. |
+| v1.4 | 2026-05-06 | D-332 — F-2 fix: Invariant 4 disambiguated (Inv 2 violation routes to State 5 non-paired per EC-006; Inv 3 asymmetry routes to orphaned halves (State 3/4) per PC5; Inv 1 violation routes to orphaned-half via PC4 downgrade). F-3 fix: PC4 explicit "State 5 — Non-paired" labeling for ordinal uniformity with State 1–4. |
