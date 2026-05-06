@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: state-manager
 timestamp: 2026-05-06T00:00:00
@@ -72,9 +72,9 @@ The per-subsystem SS-NN files above collectively cover their content:
 | SS-ID | Name | Section File | Implementing Modules / Folders | BC-S Prefix | BCs | Phase |
 |-------|------|--------------|-------------------------------|-------------|-----|-------|
 | SS-01 | Hook Dispatcher Core | SS-01-hook-dispatcher.md | `crates/factory-dispatcher/src/{main,registry,routing,executor,invoke,engine,plugin_loader,payload}.rs` | BC-1 | 114 (106 prior + 4 Phase 1a BC-1.12.001–004 + 4 Phase 1b BC-1.12.005/006/007/009 per ADR-015 D-15.1/D-15.2/D-15.3) | Phase 1 |
-| SS-02 | Hook SDK and Plugin ABI | SS-02-hook-sdk.md | `crates/hook-sdk/`, `crates/hook-sdk-macros/` | BC-2 | 25 (includes 2 D-183 BCs: BC-2.02.011 host::write_file, BC-2.02.012 HookPayload SubagentStop fields; +1 D-219 BC-2.02.013 host::run_subprocess — WITHDRAWN D-224) | Phase 1 |
+| SS-02 | Hook SDK and Plugin ABI | SS-02-hook-sdk.md | `crates/hook-sdk/`, `crates/hook-sdk-macros/` | BC-2 | 26 (includes 2 D-183 BCs: BC-2.02.011 host::write_file, BC-2.02.012 HookPayload SubagentStop fields; +1 D-219 BC-2.02.013 host::run_subprocess — WITHDRAWN D-224; +1 D-321 BC-2.06.001 SDK semver bump) | Phase 1 |
 | SS-03 | Event Emission (OTel-Aligned) | SS-03-event-emission.md | `crates/sink-core/` (FileSink; Router/SinkRegistry deprecated), `crates/sink-file/`, `crates/factory-dispatcher/src/{host/emit_event,internal_log,sinks}.rs` (`sink-otel-grpc/` deprecated Wave 1) | BC-3 | 52 (51 prior + 1 Phase 1b BC-3.05.004 v2 schema validation per ADR-015 D-15.4) | Phase 1 |
-| SS-04 | Plugin Ecosystem | SS-04-plugin-ecosystem.md | `crates/hook-plugins/legacy-bash-adapter/`, `crates/hook-plugins/capture-commit-activity/`, `crates/hook-plugins/capture-pr-activity/` [PLANNED S-3.02], `crates/hook-plugins/block-ai-attribution/` [PLANNED S-3.03], `crates/hook-plugins/session-start-telemetry/` [PLANNED S-5.01], `crates/hook-plugins/session-end-telemetry/` [PLANNED S-5.02], `crates/hook-plugins/worktree-hooks/` [PLANNED S-5.03], `crates/hook-plugins/tool-failure-hooks/` [PLANNED S-5.04] | BC-4 | 30 | Phase 1 |
+| SS-04 | Plugin Ecosystem | SS-04-plugin-ecosystem.md | `crates/hook-plugins/legacy-bash-adapter/`, `crates/hook-plugins/capture-commit-activity/`, `crates/hook-plugins/capture-pr-activity/` [PLANNED S-3.02], `crates/hook-plugins/block-ai-attribution/` [PLANNED S-3.03], `crates/hook-plugins/session-start-telemetry/` [PLANNED S-5.01], `crates/hook-plugins/session-end-telemetry/` [PLANNED S-5.02], `crates/hook-plugins/worktree-hooks/` [PLANNED S-5.03], `crates/hook-plugins/tool-failure-hooks/` [PLANNED S-5.04] | BC-4 | 31 (+1 D-321 BC-4.09.001 plugin event-name migration) | Phase 1 |
 | SS-05 | Pipeline Orchestration | SS-05-orchestration.md | `plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows/*.lobster`, `plugins/vsdd-factory/workflows/phases/` | BC-5 | 646 | Phase 1 |
 | SS-06 | Skill Catalog | SS-06-skill-catalog.md | `plugins/vsdd-factory/skills/` (119 skills, 581 markdown files) | BC-6 | 585 | Phase 1 |
 | SS-07 | Hook Bash Layer | SS-07-hook-bash.md | `plugins/vsdd-factory/hooks/*.sh` (44 scripts), `plugins/vsdd-factory/hooks-registry.toml` | BC-7 | 196 | Phase 1 |
@@ -82,7 +82,7 @@ The per-subsystem SS-NN files above collectively cover their content:
 | SS-09 | Configuration and Activation | SS-09-config-activation.md | `plugins/vsdd-factory/hooks/hooks.json*`, `plugins/vsdd-factory/.claude-plugin/plugin.json`, `ci/platforms.yaml`, `scripts/generate-registry-from-hooks-json.sh` | BC-9 | 5 | Phase 1 |
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
-**Total BCs: 1,929 (per BC-INDEX; +4 from ADR-015 D-15.1/D-15.2 Phase 1a SS-01 additions BC-1.12.001–BC-1.12.004; +5 from Phase 1b SS-01/SS-03 additions BC-1.12.005/006/007/009 + BC-3.05.004)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
+**Total BCs: 1,931 (per BC-INDEX; +4 from ADR-015 D-15.1/D-15.2 Phase 1a SS-01 additions BC-1.12.001–BC-1.12.004; +5 from Phase 1b SS-01/SS-03 additions BC-1.12.005/006/007/009 + BC-3.05.004; +2 from D-321 E-10 pass-2 fix burst BC-2.06.001 SS-02 + BC-4.09.001 SS-04)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
 
 **Renumbering history — BC-1.12.008 → BC-3.05.004 (D-311/D-312):** BC-1.12.008 was originally proposed as an SS-01 routing target in D-311; renumbered to BC-3.05.004 (SS-03) in D-312 corrigendum per POLICY 1 ID-collision rule (BC-3.05.001/002/003 already existed as brownfield BCs authored by codebase-analyzer on 2026-04-25; BC-3.05.004 was the next free slot). Consequence: SS-01 has +4 Phase 1a additions (BC-1.12.001–BC-1.12.004) and +4 Phase 1b additions (BC-1.12.005/006/007/009; no BC-1.12.008 ID exists). SS-03 has +1 Phase 1b addition (BC-3.05.004 v2 schema validation per ADR-015 D-15.4). OQ-W16-012 filed-and-resolved in D-312.
 

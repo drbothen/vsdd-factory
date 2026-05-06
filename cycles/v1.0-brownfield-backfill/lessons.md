@@ -1128,3 +1128,69 @@ Pass-1 found 4–5 BCs with capability anchors justified by boilerplate phrases 
 
 **Date:** 2026-05-06
 **Burst:** D-317 (state-manager seal — E-10 pass-1 fix burst D-314/D-315/D-316/D-317 SEALED; cycle still OPEN pending 3-of-3 NITPICK_ONLY)
+
+---
+
+## E-10 adversary pass-2 outcome + D-321 seal (2026-05-06)
+
+### Pass-2 outcome and fix-burst summary
+
+**Adversary verdict:** CRITICAL — 11 findings across the E-10 spec package. ADR-013 pass-counter still 0. See cycles/v1.0-brownfield-backfill/E-10-pass-2.md (archived SHA 4720490) for full report.
+
+**Four-burst fix cycle (D-318 → D-321):**
+- D-318 (architect, 85507f5): capabilities.md CAP-030 errata (abstract-reference fix; v1.2→v1.3). BC-1.11.001 CAP-TBD→CAP-029 (v1.0→v1.1). BC-1.12.003 Capability Anchor Justification text added (v1.2→v1.3). BC-1.12.006 CAP-008→CAP-029 primary + CAP-008 secondary (v1.0→v1.1). BC-1.12.007 Invariant 2 rewrite + Open Questions section (v1.1→v1.2). 2 NEW BCs authored: BC-2.06.001 (SS-02, CAP-009, SDK semver bump for D-15.3 host-field-precedence) and BC-4.09.001 (SS-04, CAP-009 primary + CAP-029 secondary, plugin event-name migration with dual-emit).
+- D-319 (PO, 8cfffec): BC-1.12.003 Story Anchor + Stories cell updated (+=S-10.04; v1.2→v1.3). BC-1.12.004 v1.1→v1.2 (same). BC-1.12.005 v1.1→v1.2 (same + EC-008 rewrite). BC-1.12.009 v1.1→v1.2 (five-state body prose sweep; H1 unchanged). BC-3.05.004 v1.1→v1.2 (CTV strictness improvements).
+- D-320 (story-writer, 2e1e190): S-10.04 v1.2→v1.3 (BC-1.11.001 added to behavioral_contracts; bcs count 4→5). S-10.05 v1.2→v1.3 (BC-2.06.001 + BC-4.09.001 added; bcs count 2→4). S-10.02/03/09 unchanged.
+- D-321 (state-manager seal, this burst): BC-INDEX v1.8→v1.9 (8 BCs amended + 2 NEW rows; total_bcs 1929→1931); ARCH-INDEX v1.1→v1.2 (SS-02 25→26; SS-04 30→31); STORY-INDEX v2.18→v2.19; STATE.md current_step; lessons.md this entry.
+
+**Cycle still OPEN:** 3-of-3 NITPICK_ONLY not yet reached. D-321 is the burst seal, not the cycle close.
+
+### Regression-rich pass: pass-2 findings were partially self-introduced by the pass-1 fix burst
+
+Pass-2 was a regression-rich pass — several of its 11 findings were defects INTRODUCED by the pass-1 fix burst (D-314/D-315/D-316/D-317), not pre-existing gaps:
+
+- **F-1 (CAP-030 wrong enumeration):** D-314 authored CAP-030 with a 15-field enumeration that diverged from ADR-015's abstract specification at D-15.2. D-318 closed via abstract-reference + errata note.
+- **F-2 (incomplete five-state sweep):** D-315 updated BC-1.12.009 H1 to five-state taxonomy but body prose retained "four-state" references in multiple places. D-319 closed via body sweep. Closed as H1-update-without-body-sweep pattern occurrence (see below).
+- **F-8 (EC-008 prose self-contradicting):** D-315's BC-1.12.005 v1.0→v1.1 rewrite introduced a self-contradiction in EC-008. D-319 closed via EC-008 rewrite.
+- **F-11 (TD-015-a left as open question):** D-318's BC-1.12.007 Invariant 2 rewrite left the TD-015-a deferred CI check framing as an open question instead of asserting the invariant as normative deferred. D-318 also closed this in the same burst per architectural judgment.
+
+**Process discipline note:** Every fix-burst commit should include an internal-consistency check before sealing. The state-manager seal (POLICY 3 last agent) is a bookkeeping role, not a content-review role; the regression detection depends on the next adversary pass. Consider adding a pre-seal checklist step for the agent that authored BC body changes: "after writing, re-read each changed section for internal self-consistency before commit."
+
+### Process-gap pattern tracking (pass-2 findings)
+
+**POLICY 8 reverse-direction drift (occurrence 1 of N=3 trigger):**
+Pattern: frontmatter of a story gains new BC slots in a fix burst, but the corresponding BCs' Story Anchor / Stories fields are NOT back-propagated to acknowledge the new story mapping. D-316 expanded S-10.04's behavioral_contracts array (F-7+F-8: added BC-1.12.003/004/005) but did not back-propagate to those BCs' Story Anchor and Stories cells. D-319 closed the gap by updating BC-1.12.003/004/005 Story Anchor + Stories cells. Occurrence count: 1 of N=3 codification threshold. Adding a state-manager validation step to scan bidirectional asymmetry is a codification candidate at N=3.
+
+**Date:** 2026-05-06
+**Burst:** D-321 (state-manager seal — pattern occurrence 1 of N=3 codification threshold)
+
+---
+
+**CAP-TBD survival across capability-authoring bursts (occurrence 2 of N=3 trigger):**
+Pattern: a BC carries `capability: CAP-TBD` through multiple sealed bursts including a capability-authoring burst that should have resolved it. Occurrence 1: D-310/D-313 Phase 1a/Phase 1b BC authorship did not resolve BC-1.11.001 CAP-TBD. Occurrence 2: D-314 was a capability-authoring burst (authored CAP-029 and CAP-030) but missed BC-1.11.001 — still carried CAP-TBD into the sealed D-317 package. D-318 closed BC-1.11.001 → CAP-029. Occurrence count: 2 of N=3 codification threshold. Codification candidate at N=3: capability-author skill checklist step "scan workspace for `capability: CAP-TBD` and adjudicate each against newly-authored CAPs before sealing."
+
+**Date:** 2026-05-06
+**Burst:** D-321 (state-manager seal — pattern occurrence 2 of N=3 codification threshold)
+
+---
+
+**CAP enumeration vs source ADR enumeration (occurrence 1 of N=3 trigger):**
+Pattern: a capability file (capabilities.md) enumerates fields/attributes for a capability that diverges from the authoritative source document's enumeration. Occurrence 1: D-314 authored CAP-030 with a 15-field enumeration that didn't match ADR-015 D-15.2's abstract-reference clause. D-318 closed via abstract-reference approach + errata note in CAP-030 body. Occurrence count: 1 of N=3 codification threshold. Codification candidate at N=3: capability-author skill validation step "when authoring a CAP that cites a specific ADR clause, verify the enumeration in the CAP body matches the ADR clause's enumeration verbatim, or use abstract reference + errata pattern."
+
+**Date:** 2026-05-06
+**Burst:** D-321 (state-manager seal — pattern occurrence 1 of N=3 codification threshold)
+
+---
+
+**H1 update without body-sweep (occurrence 1 of N=3 trigger):**
+Pattern: a fix burst updates a BC's H1 heading text to new terminology, but body sections retain the old terminology from the previous H1. Occurrence 1: D-315 updated BC-1.12.009 H1 to "five-state" taxonomy but body prose retained "four-state" in 3+ places. D-319 closed via body sweep. Occurrence count: 1 of N=3 codification threshold. Codification candidate at N=3: a validation step "after H1 changes, scan body for terms named in old H1 vs new H1; warn on residual old-term usage."
+
+**Date:** 2026-05-06
+**Burst:** D-321 (state-manager seal — pattern occurrence 1 of N=3 codification threshold)
+
+---
+
+**No new follow-up stories created:** None of the 4 process-gap pattern entries above have hit the N=3 codification trigger threshold. Pattern-track only; record so future occurrences increment toward codification. No self-improvement epic stories created this burst.
+
+**Date:** 2026-05-06
+**Burst:** D-321 (state-manager seal — E-10 pass-2 fix burst D-318/D-319/D-320/D-321 SEALED; cycle still OPEN pending 3-of-3 NITPICK_ONLY)

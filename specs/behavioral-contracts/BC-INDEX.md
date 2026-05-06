@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.8"
+version: "1.9"
 status: draft
 producer: state-manager
 timestamp: 2026-05-06T18:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1929
+total_bcs: 1931
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-321 E-10 pass-2 fix burst seal: 8 BCs amended (BC-1.11.001 CAP-TBD→CAP-029; BC-1.12.006 CAP-008→CAP-029 primary + CAP-008 secondary; capability re-anchor + various body fixes for BC-1.12.003/004/005/007/009 + BC-3.05.004). 2 NEW BCs (BC-2.06.001 SS-02 SDK semver bump; BC-4.09.001 SS-04 plugin event-name migration with dual-emit). total_bcs 1929→1931. See cycles/v1.0-brownfield-backfill/E-10-pass-2.md and follow-up commits 85507f5 (D-318), 8cfffec (D-319), 2e1e190 (D-320)."
   - date: 2026-05-06
     change: "D-317 E-10 pass-1 fix burst seal: 9 BCs amended — BC-1.11.003 capability CAP-TBD→CAP-009; BC-1.12.001/004/005/007/009+BC-3.05.004 capability CAP-003→CAP-029; BC-1.12.003 capability CAP-003→CAP-030; BC-1.12.002 H1 synced byte-for-byte to v1.2 two-key gate semantics (VSDD_DEBUG_LOG=1 env var dominates when present; debug_log_enabled config key governs when env var absent); BC-1.12.009 H1 synced byte-for-byte to v1.1 five-state taxonomy enumeration. total_bcs unchanged at 1929. See cycles/v1.0-brownfield-backfill/E-10-pass-1.md and follow-up commits 69408f6 (D-314), 5803d28 (D-315), 07f946c (D-316)."
   - date: 2026-05-06
@@ -33,7 +35,7 @@ changelog:
 
 # Behavioral Contract Index
 
-> Master index of all 1,929 behavioral contracts across 10 subsystems.
+> Master index of all 1,931 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -41,16 +43,16 @@ changelog:
 | Subsystem | BC Prefix | Count | Shard Directory |
 |-----------|-----------|-------|----------------|
 | SS-01 Hook Dispatcher Core | BC-1 | 114 (112 active; 2 retired) | ss-01/ |
-| SS-02 Hook SDK and Plugin ABI | BC-2 | 25 | ss-02/ |
+| SS-02 Hook SDK and Plugin ABI | BC-2 | 26 | ss-02/ |
 | SS-03 Event Emission (OTel-Aligned) | BC-3 | 52 | ss-03/ |
-| SS-04 Plugin Ecosystem | BC-4 | 30 | ss-04/ |
+| SS-04 Plugin Ecosystem | BC-4 | 31 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1929** | |
+| **Total** | | **1931** | |
 
 ## Index by subsystem
 
@@ -161,7 +163,7 @@ changelog:
 | [BC-1.09.004](ss-01/BC-1.09.004.md) | Missing plugin path returns NotFound; corrupt bytes return Compile; IO errors carry path context | draft | CAP-TBD | TBD |
 | [BC-1.10.001](ss-01/BC-1.10.001.md) | Dispatcher exposes vsdd::activated_platform() host function returning activation record platform string | **retired** | CAP-002 | S-5.01 |
 | [BC-1.10.002](ss-01/BC-1.10.002.md) | Dispatcher suppresses duplicate once:true events by tracking per-event-name + per-session_id in dispatcher memory | **retired** | CAP-002 | S-5.01 |
-| [BC-1.11.001](ss-01/BC-1.11.001.md) | factory-dispatcher::host::exec_subprocess::injects_vsdd_trace_id_and_parent_span_id — dispatcher-side mandatory injection of VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID into every exec_subprocess invocation | draft | CAP-TBD | S-10.03 |
+| [BC-1.11.001](ss-01/BC-1.11.001.md) | factory-dispatcher::host::exec_subprocess::injects_vsdd_trace_id_and_parent_span_id — dispatcher-side mandatory injection of VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID into every exec_subprocess invocation | draft | CAP-029 | S-10.03 |
 | [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-TBD | S-10.03 |
 | [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-009 | Wave 2 TBD |
 | [BC-1.12.001](ss-01/BC-1.12.001.md) | factory-dispatcher::host::emit_event::single_stream_filesink_routing — host::emit_event writes all events exclusively to events-YYYY-MM-DD.jsonl via FileSink; Router/SinkRegistry/DlqWriter retired from production path | draft | CAP-029 | S-10.02 |
@@ -169,7 +171,7 @@ changelog:
 | [BC-1.12.003](ss-01/BC-1.12.003.md) | factory-dispatcher::resource_attributes::startup_stamping — all 15 OTel Resource attributes stamped at dispatcher startup with deterministic fallback cascade; no Resource field absent or null | draft | CAP-030 | S-10.03 |
 | [BC-1.12.004](ss-01/BC-1.12.004.md) | factory-dispatcher::emit_event::per_event_host_stamping_and_internal_bifurcation — per-event OTel fields stamped at emit time; emit_internal Some/None bifurcation post-FileSink-rewire; event.category derived from compile-time registry | draft | CAP-029 | S-10.02, S-10.03 |
 | [BC-1.12.005](ss-01/BC-1.12.005.md) | factory-dispatcher::host::emit_event::host_field_override_visibility — event.host_overrides field stamped on domain events + vsdd.internal.host_field_override.v1 lifecycle event emitted when host overrides plugin-supplied host-owned fields (ADR-015 D-15.3) | draft | CAP-029 | S-10.02, S-10.03 |
-| [BC-1.12.006](ss-01/BC-1.12.006.md) | factory-dispatcher::host::block_path_audit — vsdd.block.plugin_blocked.v1 audit event emitted with outcome=blocked, plugin.name, hook.tool_name when plugin returns HookResult::Block (ADR-015 D-15.3) | draft | CAP-008 | S-10.04 |
+| [BC-1.12.006](ss-01/BC-1.12.006.md) | factory-dispatcher::host::block_path_audit — vsdd.block.plugin_blocked.v1 audit event emitted with outcome=blocked, plugin.name, hook.tool_name when plugin returns HookResult::Block (ADR-015 D-15.3) | draft | CAP-029 | S-10.04 |
 | [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI check deferred to Wave 5 | draft | CAP-029 | S-10.02, S-10.09 |
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
 
@@ -202,6 +204,7 @@ changelog:
 | [BC-2.05.001](ss-02/BC-2.05.001.md) | hook-sdk::__internal::panic_message_extracts_static_str — panic of `&str` is extracted into the panic message | draft | CAP-009 | S-1.03 |
 | [BC-2.05.002](ss-02/BC-2.05.002.md) | hook-sdk::__internal::panic_message_extracts_string — panic of `String` is extracted | draft | CAP-009 | S-1.03 |
 | [BC-2.05.003](ss-02/BC-2.05.003.md) | hook-sdk::__internal::panic_message_falls_back_for_unknown_types — non-string panic payloads return "(no panic message)" | draft | CAP-009 | S-1.03 |
+| [BC-2.06.001](ss-02/BC-2.06.001.md) | vsdd-hook-sdk::versioning::wave2_major_semver_bump_for_d_15_3_host_field_precedence — SDK MAJOR version increment signals host-field-precedence semantics change per ADR-015 D-15.3 with migration guidance for plugin authors | draft | CAP-009 | S-10.05 |
 
 ### SS-03 — Event Emission (OTel-Aligned) (BC-3) — superseded by SS-03-event-emission.md per ADR-015; BCs under revision
 
@@ -297,6 +300,7 @@ changelog:
 | [BC-4.08.001](ss-04/BC-4.08.001.md) | tool-failure-hooks plugin emits tool.error event with {tool_name, error_message} on PostToolUseFailure event; tool_name="unknown" if absent; error_message truncated to 1000 chars; 10-field wire payload; RESERVED_FIELDS not set by plugin | draft | CAP-002 | S-5.04 |
 | [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); async:true; timeout:10000 | draft | CAP-002 | S-5.04 |
 | [BC-4.08.003](ss-04/BC-4.08.003.md) | hooks-registry.toml registers PostToolUseFailure with name="tool-failure-hooks", event="PostToolUseFailure", plugin="hook-plugins/tool-failure-hooks.wasm", timeout_ms=5000; ZERO capability tables; NO once field | draft | CAP-002 | S-5.04 |
+| [BC-4.09.001](ss-04/BC-4.09.001.md) | hook-plugins::event_naming::wave2_reverse_dns_event_name_migration_with_dual_emit — all native WASM plugins under crates/hook-plugins/ migrate event-name strings from legacy short-form to reverse-DNS .v1 canonical form; dual-emit shim active during Wave 2→Wave 3 window; legacy emission removed post-Wave-3 | draft | CAP-009 | S-10.05 |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 
