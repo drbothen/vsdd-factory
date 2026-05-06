@@ -246,7 +246,7 @@ fi
 TENSE_FLIP_PATTERNS='IN_PROGRESS|in progress|REMEDIATION_IN_PROGRESS|this burst remediates|burst remediates|REMEDIATION IN PROGRESS'
 for doc in "$STATE_MD" "$HANDOFF_MD" "$WAVE_STATE"; do
   [ -f "$doc" ] || continue
-  hits=$(grep -E "$TENSE_FLIP_PATTERNS" "$doc" 2>/dev/null | head -3)
+  hits=$(grep -E "$TENSE_FLIP_PATTERNS" "$doc" 2>/dev/null | head -3 || true)
   if [ -n "$hits" ]; then
     echo "WARN: $(basename "$doc") contains in-progress voice — Stage 1 commits should be past-tense:"
     echo "$hits" | sed 's/^/      /'
