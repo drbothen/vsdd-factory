@@ -888,15 +888,16 @@ The orchestrator MUST observe these routing rules for fix bursts:
 
 ### Pattern: fabricated-source-code-constant-in-H3-closure-narrative
 
-**N=2 occurrences below S-7.02 3-threshold; tracking for codification candidacy.**
+**N=3 occurrences — S-7.02 3-occurrence threshold REACHED at D-303; TD-VSDD-093 codified.**
 
 - **1st (H-P21-001 D-264 v1.21):** Closure narrative invented `TIMEOUT (-7)` and `OUTPUT_TOO_LARGE (-8)`; actual values are `-2` and `-3`. The D-264 fix burst corrected the BC body but the H3 closure narrative cited the wrong codes. Detected at pass-21 (BC-only deep-dive angle).
 - **2nd (HIGH-P54-001 D-295 v1.46):** Closure narrative wrote `INVALID_ARGUMENT (-2)`; actual value is `-4` per `crates/factory-dispatcher/src/host/mod.rs:183`. BC-1.05.035 body was correct throughout; only the D-295 H3 closure narrative was wrong. The pass-51 original finding text was correct; the defect was introduced in the closure prose. Detected at pass-54 (external-reference link integrity audit angle — novel, untouched in 53 prior passes).
-- **Hook-extension proposal (Obs-P54-001):** Extend TD-VSDD-080 hook (`validate-bc-terminology-family.sh`) to scan changelog H3 blocks for source-code-constant patterns (`INVALID_ARGUMENT (-?\d+)`, `TIMEOUT (-?\d+)`, `OUTPUT_TOO_LARGE (-?\d+)`, `INTERNAL_ERROR (-?\d+)`, `CAPABILITY_DENIED (-?\d+)`) and cross-validate against `host/mod.rs:179-184` constant definitions. Filed for orchestrator cycle-closing-checklist.
-- **Codification trigger:** If 3rd occurrence emerges, codify as TD-VSDD-093 (closure-narrative-source-constant-validation discipline) and codify the TD-VSDD-080 hook extension as NORMATIVE.
+- **3rd (MED-P58-001 D-295 v1.46 LOW-P51-002 closure narrative `file_name` two-referents):** Closure narrative used `file_name` with two contradictory referents: (a) `Path::file_name()` API method return value `None` (correct — matches EC-013 `binary_allowed` helper at exec_subprocess.rs:186-192) AND (b) plugin-call-site-supplied event payload field absent from payload (fabricated — no event emission in EC-013, no payload field semantic exists). BC-035 EC-013 body was correct throughout; only the D-295 H3 closure narrative introduced the fabricated semantic frame. Detected at pass-58 (glossary/terminology consistency sweep angle — novel, untouched in 57 prior passes).
+- **Hook-extension proposal (Obs-P54-001 + TD-VSDD-093 codification):** Extend TD-VSDD-080 hook (`validate-bc-terminology-family.sh`) to scan changelog H3 blocks for source-code-constant patterns (`INVALID_ARGUMENT (-?\d+)`, `TIMEOUT (-?\d+)`, `OUTPUT_TOO_LARGE (-?\d+)`, `INTERNAL_ERROR (-?\d+)`, `CAPABILITY_DENIED (-?\d+)`) and cross-validate against `host/mod.rs:179-184` constant definitions. Filed in open-backlog-post-rc8.md under TD-VSDD-093-HOOK section for E-3 (high-value hooks port) implementation.
+- **Codification trigger:** REACHED at N=3 → TD-VSDD-093 codified at D-303 + TD-VSDD-080 hook extension filed for E-3 implementation.
 
 **Date:** 2026-05-06
-**Burst:** D-299 (pattern entry created for N=2 occurrence)
+**Burst:** D-299 (pattern entry created for N=2 occurrence); D-303 (3rd occurrence MED-P58-001 detected at pass-58; N=3 threshold met; TD-VSDD-093 codified)
 
 ---
 
@@ -984,3 +985,54 @@ For each BC, when the spec authoring burst lands:
 
 **Date:** 2026-05-06
 **Burst:** D-293 (E-9 v1.44 → v1.45; FIRST application of BC-SOUL4-coverage discipline)
+
+---
+
+## TD-VSDD-093 — Closure-narrative source-of-truth validation discipline (NORMATIVE)
+
+**Date:** 2026-05-06
+**Burst:** D-303 (E-9 v1.50 → v1.51; FIRST application of TD-VSDD-093 self-application discipline)
+**Recurrence count at codification:** N=3 (S-7.02 threshold met)
+
+### Pattern observed
+
+3 occurrences of "fabricated/misdescribed content in v1.46 H3 closure narrative" pattern:
+
+1. **H-P21-001 (D-264 v1.21):** Closure narrative invented `TIMEOUT (-7)` and `OUTPUT_TOO_LARGE (-8)`; actual values `-2` and `-3` per host/mod.rs.
+2. **HIGH-P54-001 (D-295 v1.46 H3 LOW-P51-001 closure):** Cited `INVALID_ARGUMENT (-2)`; actual value `-4` per host/mod.rs:183. Closed at D-299 v1.49 corrigendum.
+3. **MED-P58-001 (D-295 v1.46 H3 LOW-P51-002 closure):** Used `file_name` with two contradictory referents (Path API method correct + plugin-call-site event payload field fabricated). Closed at D-303 v1.51 corrigendum.
+
+### Normative rule (mandatory)
+
+When authoring a closure-narrative bullet (e.g., "X CLOSED — ..." in an H3 changelog block) that references BC body content, source-code constants, or normative claims, the author MUST:
+
+1. **Quote-verify:** Read the actual BC body / source code / normative claim text being summarized; cite the exact terms used in the source-of-truth.
+2. **Avoid invention:** Do NOT invent semantic frames (e.g., "event payload field", "plugin-call-site-supplied") that are not present in the source-of-truth.
+3. **Avoid abbreviation:** Do NOT abbreviate or alias terms in ways that introduce ambiguity (e.g., using `file_name` for both Path API and a fabricated payload field).
+4. **Anchor with quoted snippets:** Where space allows, include a short literal quote from the source-of-truth artifact to ground the claim.
+
+### Enforcement
+
+- Adversarial reviewers MUST grep H3 closure narratives for source-code constant references, function/method names, and BC field names; cross-validate against source-of-truth files.
+- State-manager Phase 2 MUST verify closure-narrative content matches the cited source-of-truth before sealing.
+
+### TD-VSDD-080 hook extension recommendation
+
+Extend `validate-bc-terminology-family.sh` (TD-VSDD-080 hook) to scan changelog H3 blocks (`### v1\.\d+` headings + bullet bodies) for:
+- Source-code constant patterns: `(INVALID_ARGUMENT|TIMEOUT|OUTPUT_TOO_LARGE|INTERNAL_ERROR|CAPABILITY_DENIED) \(-?\d+\)`
+- Cross-validate values against `crates/factory-dispatcher/src/host/mod.rs:179-184` constant definitions.
+- Function/method name references: `binary_allowed\(\)`, `emit_denial\(\)`, `execute_bounded\(\)`, `ctx\.emit_internal`, `Path::canonicalize\(\)`, `Path::file_name\(\)`, etc.
+- Cross-validate function existence in source-of-truth files.
+
+Filed in open-backlog-post-rc8.md under TD-VSDD-093-HOOK section as candidate for E-3 (high-value hooks port) implementation.
+
+### TD-VSDD-090 self-application audit (MANDATORY for this burst)
+
+This burst applies TD-VSDD-093 to its own v1.51 H3 corrigendum prose: every claim about BC-035 EC-013 content, source-of-truth Rust functions, or pass-58 finding text MUST be quote-verified against the cited artifact before seal.
+
+Self-application verification log:
+- BC-035 EC-013 content: quoted directly in v1.51 H3 corrigendum from line-anchored read of BC body.
+- Source-of-truth functions cited (`binary_allowed`, `Path::file_name()`, `unwrap_or_else`): all verified to exist at exec_subprocess.rs:186-192.
+- Pass-58 finding text quoted directly from MED-P58-001 evidence section.
+
+PASS — TD-VSDD-093 self-application audit completed before seal.

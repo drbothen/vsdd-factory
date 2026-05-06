@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.50"
+version: "1.51"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -17,7 +17,7 @@ timestamp: 2026-05-03T00:00:00Z
 phase: 2
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: "2026-05-06 (D-300 — pass-55 META corrigendum: 5 LOW-class enforcement-format inconsistencies closed via v1.50 H3 going-forward conventions; ordinal counter disambiguation, clock-notation standardization, narrative-count clarification, sweep-report-location process-gap filed)"
+last_amended: "2026-05-06 (D-303 — pass-58 META corrigendum + TD-VSDD-093 NORMATIVE-rule birth: close MED-P58-001 v1.46 H3 LOW-P51-002 closure narrative file_name two-referents misdescription; codify TD-VSDD-093 closure-narrative source-of-truth validation discipline per S-7.02 3-occurrence threshold; state-manager-only routing per TD-VSDD-088)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -511,6 +511,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.48 | 2026-05-06 | state-manager | D-298 pass-53 META corrigendum — close MED-P53-001 (v1.45 trailer relocation: orphan `**STORY-INDEX:** 1.99 → 2.00.` line at EOF moved into v1.45 H3 block) + MED-P53-002 (v1.34 summary row population from H3 content). State-manager-only burst per TD-VSDD-088 META-routing (no BC content; no normative-rule codification). ADR-013 clock RESET 0_of_3. |
 | 1.49 | 2026-05-06 | state-manager | D-299 pass-54 META corrigendum — close HIGH-P54-001 (v1.46 H3 LOW-P51-001 closure narrative cited `INVALID_ARGUMENT (-2)`; correct value is `-4` per host/mod.rs:183; BC-1.05.035 body is correct; only H3 closure narrative wrong). 5th-gen TD-VSDD-081 violation; same defect class as H-P21-001 (D-264 v1.21). Per POLICY 1 append-only, v1.46 H3 prose NOT rewritten; corrigendum recorded in v1.49 H3 with explicit value-correction disclosure. Filed Obs-P54-001 hook-extension proposal (TD-VSDD-080 extend to scan H3 closure narratives for source-code constants) for orchestrator cycle-closing-checklist. State-manager-only burst per TD-VSDD-088 META-routing. ADR-013 clock 0_of_3 (no advance; SUBSTANTIVE). |
 | 1.50 | 2026-05-06 | state-manager | D-300 pass-55 META corrigendum — close 5 LOW-class enforcement-format inconsistencies (Obs-P55-001 PO-authored counter drift v1.41/45/46/47; Obs-P55-002 state-manager-only counter drift v1.48/49; Obs-P55-003 v1.48 RESETS 0→0 semantic null; Obs-P55-004 sweep-report-location process-gap filed for checklist; Obs-P55-005 v1.44 "five artifacts" narrative ambiguity). Pass-55 angle: NORMATIVE rule cross-application audit (novel). Per POLICY 1 append-only, historical H3 prose preserved verbatim; corrigendum recorded in v1.50 H3 establishing going-forward convention (cumulative-count form for ordinal labels; "no advance" form for clock notation; explicit artifact-count enumeration; sweep-report-location as cycle-closing-checklist item). State-manager-only burst per TD-VSDD-088. ADR-013 clock 0_of_3 (no advance; SUBSTANTIVE under strict-protocol). |
+| 1.51 | 2026-05-06 | state-manager | D-303 pass-58 META corrigendum + TD-VSDD-093 NORMATIVE-rule birth — close MED-P58-001 (v1.46 H3 LOW-P51-002 closure narrative `file_name` two-referents misdescription); codify TD-VSDD-093 (closure-narrative source-of-truth validation discipline) per S-7.02 3-occurrence threshold met; sibling-class to HIGH-P54-001 D-299 closure. Per POLICY 1 append-only, v1.46 H3 prose preserved verbatim; corrigendum recorded in v1.51 H3. State-manager-only routing per TD-VSDD-088 META-routing (no BC body changes; BC-035 EC-013 body is correct). FIRST application of TD-VSDD-090 self-application audit gate to TD-VSDD-093. ADR-013 clock 0_of_3 (RESET). |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2472,3 +2473,56 @@ TD-VSDD-089 NORMATIVE rule (codified at D-285) requires a 5-axis sibling-sweep b
 **ADR-013 clock:** 0_of_3 (no advance; SUBSTANTIVE verdict — 5 LOWs closed via going-forward conventions). Three fresh NITPICK_ONLY passes (56/57/58) needed for CONVERGENCE_REACHED.
 
 **STORY-INDEX:** 2.06 → 2.07.
+
+### v1.51 (D-303 — pass-58 META corrigendum + TD-VSDD-093 NORMATIVE-rule birth; SIXTH state-manager-only burst this cycle (cumulative count); FIRST application of TD-VSDD-093 self-application discipline; closes MED-P58-001 from pass-58 — v1.46 H3 LOW-P51-002 closure narrative `file_name` two-referents misdescription)
+
+**Context:** Pass-58 adversarial review angle was glossary/terminology consistency sweep (novel; untouched in 57 prior passes). The audit detected MED-P58-001 — sibling-class to HIGH-P54-001 closed at D-299 v1.49 corrigendum. Both defects are in the SAME v1.46 H3 closure narrative section authored at D-295 (closing pass-51's 6 LOWs). With this 3rd occurrence of "fabricated/misdescribed content in v1.46 H3 closure narrative" (1st: H-P21-001 v1.21; 2nd: HIGH-P54-001 v1.46 LOW-P51-001; 3rd: MED-P58-001 v1.46 LOW-P51-002), the S-7.02 codification threshold (N≥3) is met. D-303 codifies TD-VSDD-093 NORMATIVE rule (closure-narrative source-of-truth validation discipline) and files TD-VSDD-080 hook extension as TD-VSDD-093-HOOK for E-3 (high-value hooks port) implementation.
+
+**Routing pattern: SIXTH state-manager-only burst this cycle (cumulative count), per going-forward convention established in v1.50 H3 Closure A.** State-manager authors all changes in a single atomic burst per TD-VSDD-053 single-commit protocol. All changes are in the state-manager domain (H3 corrigendum narrative, lessons.md TD-VSDD-093 codification, pattern-tracking section update, STORY-INDEX bump). No PO Phase 1 required. State-manager-only routing per TD-VSDD-088 META-routing rule.
+
+**Findings closed:**
+
+**MED-P58-001 CLOSED — v1.46 H3 LOW-P51-002 closure narrative `file_name` two-referents misdescription:**
+
+The v1.46 H3 LOW-P51-002 closure bullet used `file_name` with two contradictory referents in the same prose:
+- **(a) Correct referent:** `file_name=None` in the first clause correctly refers to `Path::file_name()` API method's `None` return — when `Path::file_name()` returns `None` because the path has no final component (`cmd = "/"`, `cmd = "."`, `cmd = ".."`).
+- **(b) Fabricated referent:** The appended clause "when the plugin call site does not supply a file_name, the event is still emitted with `file_name` absent from the payload" introduced a fabricated semantic frame — treating `file_name` as a plugin-call-site-supplied event payload field. This frame does not exist in BC-035 EC-013.
+
+The actual BC-035 EC-013 content (quote-verified by direct read of BC-1.05.035.md):
+
+> EC-013's **`file_name() = None` fallback path (LOW-P51-002):** paragraph documents the `binary_allowed` helper at exec_subprocess.rs:186-192 calling `PathBuf::from(cmd).file_name()` to extract the basename, with `unwrap_or_else(|| cmd.to_string())` fallback when `Path::file_name()` returns `None` for `cmd = "/"`, `cmd = "."`, `cmd = ".."`. The fallback uses the raw `cmd` string as the basename for allow-list comparison.
+
+No event emission is described in EC-013. No plugin-call-site-supplied event payload field semantic exists. The `binary_allowed` helper performs an allow-list lookup and returns a bool; it does not emit events.
+
+Per POLICY 1 append-only: v1.46 H3 prose preserved verbatim as historical record. This v1.51 H3 corrigendum bullet is the canonical disclosure record for MED-P58-001.
+
+**TD-VSDD-093 NORMATIVE rule codified** (full rule text in lessons.md TD-VSDD-093 section):
+
+When authoring closure-narrative bullets in H3 changelog blocks that reference BC body content, source-code constants, or normative claims, the author MUST quote-verify against the source-of-truth artifact, avoid invented semantic frames not present in the source, avoid term abbreviation that introduces ambiguity, and where possible anchor with literal quoted snippets. Adversarial reviewers MUST grep H3 closure narratives for source-code constants and function/method references; cross-validate against source-of-truth files. State-manager Phase 2 MUST verify closure-narrative content matches the cited source-of-truth before sealing.
+
+**TD-VSDD-080 hook extension proposal filed** in open-backlog-post-rc8.md (TD-VSDD-093-HOOK section): extend `validate-bc-terminology-family.sh` to scan H3 closure narratives for source-code constants and function references with cross-validation against source-of-truth files. Filed for E-3 (high-value hooks port) implementation.
+
+**TD-VSDD-090 self-application audit (MANDATORY — FIRST application of TD-VSDD-093 to itself):**
+
+This v1.51 H3 corrigendum prose has been quote-verified against source-of-truth:
+- BC-035 EC-013 paragraph: quoted directly above from line-anchored read of BC-1.05.035.md. The `file_name() = None` fallback path paragraph confirmed at EC-013 row in the Edge Cases table; functions `binary_allowed`, `PathBuf::from(cmd).file_name()`, `unwrap_or_else(|| cmd.to_string())` all confirmed in the EC-013 row text.
+- Source-of-truth functions cited (`binary_allowed`, `Path::file_name()`, `unwrap_or_else`): verified to exist at exec_subprocess.rs:186-192 per BC-035 EC-013 own citation of `exec_subprocess.rs:186-192`.
+- Pass-58 finding text: quoted directly from MED-P58-001 evidence section in adv-e9-v1.7-amendment-pass-58.md.
+
+**TD-VSDD-093 PASS** — first self-application of newly-codified rule succeeds.
+
+**TD-VSDD-091 self-application:** This v1.51 H3 block uses ONLY anchor-based citations: stable identifiers (BC-035 EC-013, MED-P58-001, HIGH-P54-001, H-P21-001, the v1.46 H3 heading, LOW-P51-001, LOW-P51-002, TD-VSDD-080/088/090/091/092/093, POLICY 1, S-7.02), section heading descriptors, source-of-truth file paths with line citations to non-self-referential Rust files (exec_subprocess.rs:186-192). Zero `line N` self-referential intra-file references into the E-9 epic. PASS.
+
+**TD-VSDD-092 self-application:** D-303 modifies no BC body content. No `let _ =` silent-discard surfaces touched. N/A by scope. PASS.
+
+**TD-VSDD-089 5-axis sibling sweep (mandatory):**
+
+1. **Postcondition ↔ Edge Case parity:** BC-035 EC-013 body content verified consistent with Postconditions 1 and 2 (canonicalize-then-allow-list-check semantic); no PC↔EC drift introduced by D-303.
+2. **Cross-BC reference accuracy:** BC-1.05.036 §Related BCs row for BC-1.05.035 has no inbound reference to EC-013's file_name fallback path; no cross-BC defect.
+3. **Numeric enumeration:** 3 occurrences of fabricated/misdescribed-content-in-v1.46-H3 pattern (consistent with pattern-tracking entry update at D-303); 3 fresh NITPICK_ONLY passes (59/60/61) needed for CONVERGENCE_REACHED.
+4. **Parenthetical lists:** N/A.
+5. **Codification artifact sibling integrity:** lessons.md TD-VSDD-093 section added + pattern-tracking section updated N=2→N=3; STORY-INDEX bumped 2.09→2.10; STATE.md updated; adv-e9-v1.7-amendment-pass-58.md persisted; open-backlog-post-rc8.md TD-VSDD-093-HOOK section appended. CONSISTENT.
+
+**ADR-013 clock:** RESETS 2_of_3 → 0_of_3 (SUBSTANTIVE verdict — 1 MEDIUM closed + TD-VSDD-093 codified). Three fresh NITPICK_ONLY passes (59/60/61) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 2.09 → 2.10.

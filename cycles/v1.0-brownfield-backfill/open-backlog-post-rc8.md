@@ -229,3 +229,21 @@
 
 **Date:** 2026-05-06
 **Burst:** D-293
+
+---
+
+## TD-VSDD-093-HOOK — Extend validate-bc-terminology-family.sh to scan H3 closure narratives
+
+- **Filed:** 2026-05-06 (D-303)
+- **Severity:** MEDIUM (recurrence-pattern hardening; defense against the 3-occurrence pattern that produced HIGH-P54-001 + MED-P58-001)
+- **Scope:** Extend the TD-VSDD-080 hook (`plugins/vsdd-factory/hooks/validate-bc-terminology-family.sh`) to additionally scan changelog H3 blocks (`### v1\.\d+ ` heading + bullet bodies) for:
+  - Source-code constant patterns: `(INVALID_ARGUMENT|TIMEOUT|OUTPUT_TOO_LARGE|INTERNAL_ERROR|CAPABILITY_DENIED) \(-?\d+\)`
+  - Cross-validate values against `crates/factory-dispatcher/src/host/mod.rs:179-184` constant definitions.
+  - Function/method name references in closure narratives (e.g., `binary_allowed\(\)`, `emit_denial\(\)`, `execute_bounded\(\)`, `ctx\.emit_internal`, `Path::canonicalize\(\)`, `Path::file_name\(\)`).
+  - Cross-validate function existence in source-of-truth files.
+- **Owner:** Filed for E-3 (high-value hooks port) implementation.
+- **Codification trigger:** TD-VSDD-093 NORMATIVE rule codified at D-303 (lessons.md TD-VSDD-093 section); this hook operationalizes the rule.
+- **Path correction note:** Per Task #87 follow-up, the actual hook path is `plugins/vsdd-factory/hooks/` (NOT `dark-factory-engine/hooks/` as some earlier backlog tickets reference).
+
+**Date:** 2026-05-06
+**Burst:** D-303
