@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.49"
+version: "1.50"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -17,7 +17,7 @@ timestamp: 2026-05-03T00:00:00Z
 phase: 2
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: "2026-05-06 (D-299 — pass-54 META corrigendum: v1.46 H3 LOW-P51-001 closure narrative source-code-constant value error disclosure; INVALID_ARGUMENT (-2) → corrigendum -4)"
+last_amended: "2026-05-06 (D-300 — pass-55 META corrigendum: 5 LOW-class enforcement-format inconsistencies closed via v1.50 H3 going-forward conventions; ordinal counter disambiguation, clock-notation standardization, narrative-count clarification, sweep-report-location process-gap filed)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -510,6 +510,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.47 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-296 pass-52 TV-derivation seal-and-fix — SEVENTH PO-authored burst. 1 MED + 2 LOW closures: MED-P52-001 BC-036 EC-005A "strictly exceeds (`>`, not `>=`)" prose tightening + new boundary-success-witness CTV row; LOW-P52-001 BC-036 P4 NOTE re ADR-015 FileSink rewire CTV gap (deferred to E-9 Wave 1); LOW-P52-002 BC-036 EC-013A upper-bound `timeout_ms = u32::MAX` ~49.7 days note. Strict-protocol verdict SUBSTANTIVE (adversary classified NITPICK_ONLY but 1 MED triggers SUBSTANTIVE per quality-preference standard). **ADR-013 clock RESETS 1_of_3 → 0_of_3** per strict protocol. 3 fresh NITPICK_ONLY (pass-53/54/55) needed for CONVERGENCE_REACHED. STORY-INDEX 2.02→2.03. |
 | 1.48 | 2026-05-06 | state-manager | D-298 pass-53 META corrigendum — close MED-P53-001 (v1.45 trailer relocation: orphan `**STORY-INDEX:** 1.99 → 2.00.` line at EOF moved into v1.45 H3 block) + MED-P53-002 (v1.34 summary row population from H3 content). State-manager-only burst per TD-VSDD-088 META-routing (no BC content; no normative-rule codification). ADR-013 clock RESET 0_of_3. |
 | 1.49 | 2026-05-06 | state-manager | D-299 pass-54 META corrigendum — close HIGH-P54-001 (v1.46 H3 LOW-P51-001 closure narrative cited `INVALID_ARGUMENT (-2)`; correct value is `-4` per host/mod.rs:183; BC-1.05.035 body is correct; only H3 closure narrative wrong). 5th-gen TD-VSDD-081 violation; same defect class as H-P21-001 (D-264 v1.21). Per POLICY 1 append-only, v1.46 H3 prose NOT rewritten; corrigendum recorded in v1.49 H3 with explicit value-correction disclosure. Filed Obs-P54-001 hook-extension proposal (TD-VSDD-080 extend to scan H3 closure narratives for source-code constants) for orchestrator cycle-closing-checklist. State-manager-only burst per TD-VSDD-088 META-routing. ADR-013 clock 0_of_3 (no advance; SUBSTANTIVE). |
+| 1.50 | 2026-05-06 | state-manager | D-300 pass-55 META corrigendum — close 5 LOW-class enforcement-format inconsistencies (Obs-P55-001 PO-authored counter drift v1.41/45/46/47; Obs-P55-002 state-manager-only counter drift v1.48/49; Obs-P55-003 v1.48 RESETS 0→0 semantic null; Obs-P55-004 sweep-report-location process-gap filed for checklist; Obs-P55-005 v1.44 "five artifacts" narrative ambiguity). Pass-55 angle: NORMATIVE rule cross-application audit (novel). Per POLICY 1 append-only, historical H3 prose preserved verbatim; corrigendum recorded in v1.50 H3 establishing going-forward convention (cumulative-count form for ordinal labels; "no advance" form for clock notation; explicit artifact-count enumeration; sweep-report-location as cycle-closing-checklist item). State-manager-only burst per TD-VSDD-088. ADR-013 clock 0_of_3 (no advance; SUBSTANTIVE under strict-protocol). |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2397,3 +2398,77 @@ This burst modifies: this epic (the frontmatter `version` field, the frontmatter
 **ADR-013 clock:** 0_of_3 (no advance; SUBSTANTIVE verdict — 1 HIGH closed). Three fresh NITPICK_ONLY passes (55/56/57) needed for CONVERGENCE_REACHED.
 
 **STORY-INDEX:** 2.05 → 2.06.
+
+### v1.50 (D-300 — pass-55 META corrigendum; FIFTH state-manager-only burst this cycle (cumulative count); closes 5 LOW-class enforcement-format inconsistencies from pass-55 NORMATIVE rule cross-application audit)
+
+**Context:** Pass-55 adversarial review (angle: NORMATIVE rule cross-application audit — TD-VSDD-088/089/090/091/092 self-enforcement across post-codification bursts D-285..D-299, v1.39..v1.49; novel, untouched in 54 prior passes) returned verdict SUBSTANTIVE — 0 HIGH / 0 MEDIUM / 5 LOW. The audit confirmed all 5 NORMATIVE rules are being honored at the substantive tier (no routing violations, no self-application omissions, no `line N` self-references, no BC-SOUL4 silences). However, 5 LOW-class enforcement-format inconsistencies emerged in narrative-prose layers: ordinal counter drift, clock-notation phrasing, narrative-count ambiguity, and a process-gap on sweep-report-location convention. Per the pass-55 dispatch rubric (LOW = block convergence + clock reset) and the D-295/D-296 quality-preference precedent, the verdict is SUBSTANTIVE. D-300 is a META corrigendum burst: no BC body changes, no normative-rule codification. State-manager-only routing per TD-VSDD-088 META-routing rule.
+
+**Routing pattern: FIFTH state-manager-only burst this cycle (cumulative count), per going-forward convention established in Closure A below.** State-manager authors all changes in a single atomic burst per TD-VSDD-053 single-commit protocol. All 5 findings are in the state-manager domain (H3 changelog narrative consistency, clock-notation phrasing, process-gap filing). No PO Phase 1 required.
+
+**Findings closed:**
+
+**Closure A — Counter-drift disambiguation (Obs-P55-001 + Obs-P55-002):**
+
+The historical PO-authored ordinal labels in the v1.41 H3 heading (D-287 "FIFTH"), the v1.45 H3 heading (D-293 "FIFTH"), the v1.46 H3 heading (D-295 "SIXTH"), the v1.47 H3 heading (D-296 "SEVENTH") and the state-manager-only ordinal labels in the v1.48 H3 heading (D-298 "THIRD this cycle"), the v1.49 H3 heading (D-299 "FOURTH this cycle") used a "consecutive-since-resume" counter rather than a cumulative counter.
+
+The "consecutive-since-resume" semantics: PO-authored counter restarts after each state-manager-only interlude (e.g., D-288/289/290 broke PO-authored sequence; D-293 was "FIFTH" relative to the v1.45 resume context = first PO-authored burst since the interlude). The state-manager-only counter likewise restarts after each PO-authored interlude (D-293–296 broke the state-manager-only sequence; D-298 restarted with "THIRD" using some intermediate count). The specific semantics behind "THIRD" at D-298 were not documented in the H3 heading, making them ambiguous to future readers.
+
+**Going-forward convention:** Future H3 ordinal labels will use cumulative counts with explicit "(cumulative N / consecutive-since-resume M)" disambiguation when ambiguity is possible. The v1.50 H3 heading above demonstrates this: "FIFTH state-manager-only burst this cycle (cumulative count)".
+
+**Cumulative-count audit (established here as the canonical disambiguation reference):**
+
+PO-authored bursts cumulative count this cycle:
+- D-283 (1st): v1.37 H3 "FIRST PO-authored burst" — MATCHES
+- D-284 (2nd): v1.38 H3 "SECOND PO-authored burst" — MATCHES
+- D-285 (3rd): v1.39 H3 "THIRD PO-authored burst" — MATCHES
+- D-286 (4th): v1.40 H3 "FOURTH PO-authored burst" — MATCHES
+- D-287 (5th): v1.41 H3 "FIFTH PO-authored burst" — MATCHES (cumulative 5th)
+- D-293 (6th cumulative): v1.45 H3 "FIFTH PO-authored burst" — DRIFT (consecutive-since-resume 1st post-D-290 interlude, labeled "FIFTH")
+- D-295 (7th cumulative): v1.46 H3 "SIXTH PO-authored burst" — DRIFT (consecutive 2nd, labeled "SIXTH"; cumulative would be "SEVENTH")
+- D-296 (8th cumulative): v1.47 H3 "SEVENTH PO-authored burst" — DRIFT (consecutive 3rd, labeled "SEVENTH"; cumulative would be "EIGHTH")
+
+State-manager-only bursts cumulative count this cycle:
+- D-288 (1st): v1.42 H3 "FIRST state-manager-only burst" — MATCHES
+- D-289 (2nd): v1.43 H3 "SECOND state-manager-only burst" — MATCHES
+- D-290 (3rd): v1.44 H3 "THIRD state-manager-only burst" — MATCHES (cumulative 3rd)
+- D-298 (4th cumulative): v1.48 H3 "THIRD state-manager-only burst this cycle" — DRIFT (labeled "THIRD"; cumulative would be "FOURTH")
+- D-299 (5th cumulative): v1.49 H3 "FOURTH state-manager-only burst this cycle" — DRIFT (labeled "FOURTH"; cumulative would be "FIFTH")
+- D-300 (6th cumulative): this v1.50 H3 "FIFTH state-manager-only burst this cycle (cumulative count)" — ESTABLISHED by this going-forward convention
+
+Historical labels preserved per POLICY 1 append-only. This v1.50 H3 block is the canonical disambiguation reference for all future readers.
+
+**Closure B — Clock-notation standardization (Obs-P55-003):**
+
+The v1.48 H3 ADR-013 clock line reads "RESETS 0_of_3 → 0_of_3 (SUBSTANTIVE verdict by pass-53)" — semantically equivalent to the v1.49 H3 "0_of_3 (no advance; SUBSTANTIVE verdict — 1 HIGH closed)" form. When the clock was already at 0_of_3 and remains at 0_of_3, the "RESETS X→X" form is semantically null (no state change occurred despite the word "RESETS"). The v1.46 H3 "RESETS 1_of_3 → 0_of_3" form is correct because a genuine state change (1 → 0) occurred there.
+
+**Going-forward convention:** When a SUBSTANTIVE-verdict burst sits at clock=0 and the clock stays at 0, prefer "X_of_3 (no advance; SUBSTANTIVE)" form over "RESETS X→X" form to avoid the semantically-null reset framing. v1.48 H3 prose preserved per POLICY 1.
+
+**Closure C — Narrative-count clarification (Obs-P55-005):**
+
+The v1.44 H3 TD-VSDD-090/091/092 self-application subsection describes the burst's scope. A prior observation (NIT-P48-001 from pass-48) noted that the v1.44 H3 *heading* referenced "five artifacts" while the self-application *body* enumerated 4 distinct files (this epic, the pass-47 review file, STATE.md, STORY-INDEX). The count is potentially imprecise because lessons.md was also modified in D-290 (pattern-tracking N=5→N=6 entry per the STORY-INDEX D-290 entry), and the epic body had 4 distinct modification points within it. The ambiguity arises from conflating "N file paths modified" with "N distinct surfaces modified within those files."
+
+**Going-forward convention:** When narratively counting modifications in a H3 self-application block, distinguish "N file paths modified" from "N distinct surfaces modified within those files" when a single file receives multiple distinct modifications. This v1.50 H3 demonstrates the convention: this burst modifies 4 file paths (this epic, the pass-55 review file, STATE.md, STORY-INDEX) with this epic receiving frontmatter (`version`, `last_amended`), summary-table row, and this H3 block as 3 distinct surfaces within the same file. v1.44 H3 prose preserved per POLICY 1.
+
+**Closure D — Sweep-report-location process-gap filing (Obs-P55-004):**
+
+TD-VSDD-089 NORMATIVE rule (codified at D-285) requires a 5-axis sibling-sweep be performed before any PO-authored commit. The rule does NOT specify whether the sweep report must appear in (a) the epic H3 changelog block, (b) the PO output / commit body, (c) a separate review file, or (d) all of the above. The historical H3 documentation pattern is inconsistent across v1.39..v1.49: the v1.39 H3 (D-285), v1.44 H3 (D-290), v1.45 H3 (D-293), v1.48 H3 (D-298), and v1.49 H3 (D-299) include explicit "TD-VSDD-089 5-axis sibling sweep" subsections; the v1.40 H3 (D-286), v1.41 H3 (D-287), v1.46 H3 (D-295), and v1.47 H3 (D-296) do not (their sweep records exist in PO output or are implied by the findings-closure narrative).
+
+**Filed for orchestrator cycle-closing-checklist:** clarify TD-VSDD-089 sweep-report-location convention — specifically, whether epic H3 inclusion is mandatory or whether PO output / pass review file references suffice. Codification of the location convention deferred until orchestrator clarification. D-300 does not introduce a new normative rule for sweep-report-location.
+
+**TD-VSDD-090 self-application audit:** D-300 introduces NO new normative rule (no codification of TD-VSDD-093). Going-forward conventions (Closures A/B/C) are documentation conventions, not normative-rule-class codifications. The process-gap filing (Closure D) is a checklist item, not a normative codification. N/A by scope per TD-090. PASS.
+
+**TD-VSDD-091 self-application audit:** This v1.50 H3 block uses ONLY anchor-based citations to E-9. All citations use section heading identifiers, stable version identifiers, and named rules: "v1.41 H3 heading", "v1.45 H3 heading", "v1.46 H3 heading", "v1.47 H3 heading", "v1.48 H3 ADR-013 clock line", "v1.49 H3 heading", "v1.44 H3 TD-VSDD-090/091/092 self-application subsection", "the v1.45 H3 resume context", "TD-VSDD-088 META-routing rule", "POLICY 1 append-only", "Obs-P55-001 through Obs-P55-005". Zero `line N` self-referential patterns pointing into this epic file. The cumulative-count audit uses H3 heading version identifiers (v1.37..v1.50) which are stable anchors. Cross-file citations (counter-drift evidence locations enumerated in the pass-55 review file) are in the review file, not in this H3 block. PASS.
+
+**TD-VSDD-092 self-application audit:** D-300 modifies no BC body content. No `let _ =` silent-discard surfaces touched. N/A by scope. PASS.
+
+**TD-VSDD-089 5-axis sibling sweep:**
+
+1. **Postcondition ↔ Edge Case parity:** N/A (no BC body changes in this burst).
+2. **Cross-BC reference accuracy:** N/A (no cross-BC anchors modified in this burst).
+3. **Numeric enumeration:** Closure A applies to numeric ordinal labels; cumulative count enumerated and verified above (8 PO-authored + 6 state-manager-only, matching D-283..D-300 chronology). COVERED.
+4. **Parenthetical lists:** N/A (no parenthetical lists added or modified in this burst).
+5. **Codification artifact sibling integrity:** lessons.md is NOT modified in this burst (no new TD codification; no pattern-tracking N+1 trigger — Obs-P55-004 filing is a checklist item, not a codification). STORY-INDEX bumped 2.06→2.07. STATE.md updated. Pass-55 review file persisted to cycles directory. CONSISTENT.
+
+**ADR-013 clock:** 0_of_3 (no advance; SUBSTANTIVE verdict — 5 LOWs closed via going-forward conventions). Three fresh NITPICK_ONLY passes (56/57/58) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 2.06 → 2.07.
