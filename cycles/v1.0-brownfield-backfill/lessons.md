@@ -835,6 +835,7 @@ The orchestrator MUST observe these routing rules for fix bursts:
 **S-7.02 threshold:** This is a meta-pattern (governing the orchestrator itself, not artifact content). Recurrence is the 22-burst pattern in aggregate. Codified preemptively as NORMATIVE because (a) the user has explicitly requested stronger routing enforcement; (b) the pattern's correlate (content-defect recurrence including HIGH-P40-001) exceeds 3+ instances; (c) the mechanization candidate is straightforward to implement.
 
 **Date:** 2026-05-05
+**Burst:** D-283 (E-9 v1.36 → v1.37; FIRST application of corrected routing pattern)
 
 ---
 
@@ -848,6 +849,7 @@ The orchestrator MUST observe these routing rules for fix bursts:
 2. **Cross-BC reference target accuracy:** for every cross-reference pointing at a sibling BC, verify the cited section actually contains the claimed content.
 3. **Numeric enumeration consistency:** for every narrative count (e.g., "4 denial paths", "8 fields"), grep the same BC for sibling enumerations and verify they match.
 4. **Parenthetical-list consistency:** for every parenthetical list of error classes, grep adjacent sections to verify they reference compatible enumerations.
+5. **Codification artifact sibling integrity:** when adding a new TD-VSDD-NNN entry to lessons.md, verify the new entry's `**Date:**` and `**Burst:**` trailer lines do not bleed into adjacent TD entries; verify all sibling TD entries (TD-NNN-1, TD-NNN, TD-NNN+1) have consistent trailer formatting. This axis closes the meta-discipline gap surfaced by pass-43 MED-P43-002 (TD-VSDD-089's birth burst itself failed this axis).
 
 **Codification (NORMATIVE):** PO dispatch prompts MUST include explicit instruction to perform this 4-axis sweep AND to report sweep coverage in output (even if no additional drift found). The sweep is MANDATORY, not advisory. State-manager Phase 2 verifies the PO output contains a sibling-sweep report; if missing, state-manager rejects the seal.
 
@@ -857,4 +859,19 @@ The orchestrator MUST observe these routing rules for fix bursts:
 
 **Date:** 2026-05-05
 **Burst:** D-285 (E-9 v1.38 → v1.39; first application of sibling-sweep mandate)
-**Burst:** D-283 (E-9 v1.36 → v1.37; FIRST application of corrected routing pattern)
+
+---
+
+## TD-VSDD-pattern-tracking — Codification-burst-self-violation
+
+**Pattern observed:** Codification bursts that introduce a normative rule have, in 2 of N=2 sampled cases, partially violated that very rule within the same burst.
+
+**Instances:**
+1. Pass-39 (D-282) — TD-VSDD-085 NORMATIVE codified (TV-witness mechanization extension) but the same burst produced 3 self-violations (3 new ECs without TV witnesses); closed by TD-VSDD-085-applying burst (D-282 sibling).
+2. Pass-43 (D-285) — TD-VSDD-089 NORMATIVE codified (PO sibling-sweep mandate) but produced 1 self-violation in BC content (MED-P43-001 BC-035 line 50 ordering missed by sibling sweep) AND 1 self-violation in codification artifact (MED-P43-002 lessons.md trailer drift in TD-VSDD-089's own body).
+
+**S-7.02 threshold:** 2 instances; below 3+ codification threshold. Tracking only.
+
+**Provisional codification candidate (TD-VSDD-090 if 3rd recurs):** "Normative-rule birth bursts MUST be audited against the rule itself before seal" — i.e., the codification burst's PO and state-manager Phase outputs should be re-reviewed against the rule they introduce, before commit.
+
+**Date tracking opened:** 2026-05-05 (D-286 / pass-43)

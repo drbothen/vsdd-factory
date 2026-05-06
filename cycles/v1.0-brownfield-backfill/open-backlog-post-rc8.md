@@ -104,8 +104,9 @@
 
 **Acceptance criteria:**
 - Hook detects 100% of numeric enumeration drift in modified BC files
-- Hook detects 100% of cross-BC section pointer drift  
+- Hook detects 100% of cross-BC section pointer drift
 - Hook does NOT false-positive on legitimate quotation marks or unrelated digit sequences
+- **5th axis (D-286 extension):** when lessons.md is modified, hook verifies that no `**Burst:**` trailer from an adjacent TD entry has bled into a neighboring TD entry's body (codification artifact sibling integrity per TD-VSDD-089 axis 5)
 
 **Priority:** MEDIUM (PO discipline narrative will catch most cases; hook is belt-and-suspenders)
 

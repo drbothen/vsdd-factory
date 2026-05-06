@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.39"
+version: "1.40"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -1951,3 +1951,32 @@ v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §
 **No new BCs or VPs added (scope discipline maintained). No new OQs beyond existing deferred list.**
 
 **No new BCs or VPs added (scope discipline maintained). 2 new OQs added (OQ-W16-007/008). 1 new lesson (TD-VSDD-088 NORMATIVE).**
+
+### v1.40 (D-286 — TD-VSDD-089 self-application seal-and-fix; fourth PO-authored burst)
+
+**Pass-43 verdict:** SUBSTANTIVE. 0 HIGH / 2 MEDIUM / 3 LOW. Angle: TD-VSDD-089 self-application audit (NEW per TD-VSDD-057) — apply the just-codified TD-VSDD-089 NORMATIVE rule (4-axis sibling sweep mandate) to the v1.39 burst itself. D-285 is the FIRST burst that BOTH codified AND purportedly applied TD-VSDD-089. Mirrors pass-39's TD-VSDD-085 self-application audit.
+
+**Routing pattern continued — FOURTH PO-authored burst (TD-VSDD-088):** D-286 applies the TD-VSDD-088 corrected routing pattern for the fourth consecutive burst. Product-owner (Phase 1) authored BC content fixes (MED-P43-001 BC-035 line 50 ordering; LOW-P43-001 BC-035 line 65 source-frame qualifier; LOW-P43-003 EC-006 ETIMEDOUT bridge). State-manager (Phase 2, this burst) closed MED-P43-002 (lessons.md TD-VSDD-089 trailer drift), extended TD-VSDD-089 to 5 axes, opened meta-pattern tracking, persisted pass-43 review, and sealed the single commit per POLICY 3 + TD-VSDD-053.
+
+**MEDIUM findings (2):**
+
+- **MED-P43-001 CLOSED — BC-035 line 50 denial-reason name order contradicts source-of-truth:** BC-035 line 50 Postcondition 4 listed denial-reason names paired with line numbers `:148/:155/:162/:169` in wrong order. Source-of-truth at exec_subprocess.rs: :148 → `no_exec_subprocess_capability`; :155 → `binary_not_on_allow_list`; :162 → `shell_bypass_not_acknowledged`; :169 → `setuid_or_setgid_binary`. BC-036 P5 + EC-003 had correct positional ordering; BC-035 line 50 diverged. Sibling-sweep (axis 3 numeric enumeration consistency) should have caught this when v1.39 explicitly addressed BC-036 P5 enumeration. PO corrected ordering in Phase 1.
+- **MED-P43-002 CLOSED — TD-VSDD-089 codification text had misplaced `**Burst:**` trailer (codification artifact self-violation):** TD-VSDD-088 entry in lessons.md ended with `**Date:** 2026-05-05` but had NO `**Burst:**` trailer. A second `**Burst:** D-283` line appeared under TD-VSDD-089's section — semantically belonging to TD-VSDD-088. State-manager (Phase 2) moved D-283 trailer to TD-VSDD-088 and removed the duplicate from TD-VSDD-089. First application of TD-VSDD-089 axis 5 (codification artifact sibling integrity).
+
+**LOW findings (3):**
+
+- **LOW-P43-001 CLOSED — BC-035 line 65 lacks explicit source-frame qualifier present in BC-036 P5:** PO added source-frame qualifier per S-7.03 cosmetic fix pattern.
+- **LOW-P43-002 DEFERRED — BC-036 P5 "All three no-event error paths" wording mismatches enumerated path count:** Out of scope for BC-035 focus; carried as deferred per S-7.03 SHIP-AS-IS.
+- **LOW-P43-003 CLOSED — BC-035 line 52 ladder step (2) parenthetical names ETIMEDOUT without dedicated EC:** PO added EC-006 ETIMEDOUT bridge to close the naming gap.
+
+**TD-VSDD-089 scope extended:** Added 5th axis "Codification artifact sibling integrity" — when adding a new TD-VSDD-NNN entry to lessons.md, verify the new entry's `**Date:**` and `**Burst:**` trailer lines do not bleed into adjacent TD entries; verify all sibling TD entries (TD-NNN-1, TD-NNN, TD-NNN+1) have consistent trailer formatting. This axis closes the meta-discipline gap surfaced by MED-P43-002.
+
+**Meta-pattern tracking opened:** 2 observed instances of "codification burst violates own rule": (1) pass-39 (D-282) TD-VSDD-085 self-violation; (2) pass-43 (D-285) TD-VSDD-089 self-violation. Below S-7.02 3+ codification threshold. Provisional TD-VSDD-090 candidate: "Normative-rule birth bursts MUST be audited against the rule itself before seal." Tracked in lessons.md `TD-VSDD-pattern-tracking — Codification-burst-self-violation` section.
+
+**TD-VSDD-089-HOOK backlog extended:** Acceptance criteria updated to include axis 5 (lessons.md sibling TD-entry trailer integrity check).
+
+**ADR-013 clock:** RESET 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (44/45/46) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 1.92 → 1.93.
+
+**No new BCs or VPs added (scope discipline maintained). No new OQs. TD-VSDD-089 scope extended to 5 axes. Meta-pattern tracking section opened (tracking only; no new NORMATIVE rule).**
