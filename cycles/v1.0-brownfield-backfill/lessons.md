@@ -1418,4 +1418,51 @@ No progress in the pass-6 fix cycle.
 - Pass-7 dispatches next on the post-D-333 spec package.
 - BC-INDEX v1.12→v1.13 (BC-1.12.009 v1.3→v1.4); ARCH-INDEX v1.5→v1.6 (F-1 line 96); STORY-INDEX v2.22 unchanged.
 - Convergence trend: 22→11→16→16→12→2. Counter still 0. Pass-7 may be first NITPICK_ONLY.
+
+---
+
+## E-10 Pass-7 Outcome — 2026-05-06 (pre-compact pause)
+
+### Pass-7 result
+
+**Verdict: HIGH** — 1 substantive finding (F-1). Closure axes CC, DD, EE all VERIFIED PASS: pass-6 fixes landed cleanly in BC-1.12.009 and ARCH-INDEX.
+
+**Trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 substantive findings across 7 passes. Genuinely approaching convergence.
+
+**Counter:** Still 0. Pass-7 verdict is HIGH → counter does not advance. 3 consecutive NITPICK_ONLY still required.
+
+### F-1 pattern-flag escalation (4th occurrence — D-15.4 → D-15.1 misattribution)
+
+**History across 4 occurrences:**
+- Occurrence 1: BC-3.05.004 Description line 33 — closed D-328 (architect burst)
+- Occurrence 2: ARCH-INDEX line 83 — closed D-331 (state-manager seal)
+- Occurrence 3: ARCH-INDEX line 96 — closed D-333 (state-manager seal, same-document sibling drift)
+- Occurrence 4: invariants.md DI-013 line 102 — NEW pass-7 (different document than prior 3)
+
+**Pattern:** The D-15.4 → D-15.1 fix was applied to BC-3.05.004, then propagated to ARCH-INDEX (twice — two separate sibling paragraphs). But it never propagated to the domain-spec layer (invariants.md). Each fix burst swept `specs/` and `stories/` but did not include `specs/domain-spec/` in the sweep.
+
+**[process-gap] candidate:** Fix-burst checklists for cross-document canonical-value corrections must explicitly include `specs/domain-spec/` alongside `specs/behavioral-contracts/`, `specs/architecture/`, and `stories/`. This is a codification candidate for the next planning cycle if a 5th occurrence surfaces (current occurrence 4 already exceeds N=3 threshold — but the process-gap is filed as a task-level note per pass-7 F-1, not yet codified as a normative rule pending D-334 architect review).
+
+### Closure axes CC/DD/EE — pass-6 fix verification
+
+Pass-7 adversary ran explicit closure verification on all 3 pass-6 findings:
+- **CC (F-1 D-333 closure):** ARCH-INDEX lines 85-98 consistently reference D-15.1. Sibling-paragraph drift closed.
+- **DD (F-2 D-332 closure):** BC-1.12.009 Invariant 4 correctly disambiguates all 3 downgrade routes. EC-006 consistent.
+- **EE (F-3 D-332 closure):** BC-1.12.009 PC4 carries explicit "State 5 — Non-paired" label, ordinal-uniform with States 1-4.
+
+All 3 axes PASS. This confirms D-332 + D-333 fix bursts landed cleanly.
+
+### Pre-compact pause context
+
+Orchestrator preparing for context compact. STATE.md updated with comprehensive resumption pointer in current_step frontmatter field. Two parallel async tracks at pause point:
+
+1. **E-10 convergence track:** D-334 architect burst (F-1 invariants.md fix) → D-335 seal → pass-8.
+2. **Engine CI track:** async agent `ad190d8106711cb39` fixing release CI regression (Slice 3 reason code rename broke 22 bats test suites; binaries never bundled; marketplace PR never opened for rc.12).
+
+### Cycle bookkeeping at pass-7 archival
+
+- E-10 spec corpus at pass-7 archival: BC-INDEX v1.13; ARCH-INDEX v1.6; STORY-INDEX v2.22 (all unchanged from D-333).
+- invariants.md DI-013 line 102 carries the unresolved D-15.4 misattribution — awaiting D-334 architect fix.
+- F-7 + F-8 still deferred to cleanup stories #115/#116. Not re-flagged in pass-7.
+- Convergence trend: 22→11→16→16→12→2→1. Counter still 0. Pass-8 may be first NITPICK_ONLY.
 - Cycle still OPEN — 3-of-3 NITPICK_ONLY not yet reached.
