@@ -380,3 +380,80 @@ preview-2 / component-model migration:
 
 ABI 2 will not be back-compatible with ABI 1 plugins; the dispatcher
 will load both during a transition window per the semver commitment.
+
+---
+
+## Block-message convention (canonical Why/Fix/Code)
+
+All blocking hooks (bash + WASM) emit a single-line stderr message or
+`permissionDecisionReason` in the form:
+
+    BLOCKED by <hook-name>: <reason>. Fix: <recommendation>. Code: <code>.
+
+This format survives the legacy-bash-adapter's stderr-capture path
+(which reads only the first stderr line up to a 4 KiB cap) and ensures
+every blocking hook tells the agent (a) why the block fired and (b) what
+to do next.
+
+### Bash hooks
+
+Source `${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh` and call one of:
+
+```bash
+# Standard PreToolUse / PostToolUse block (exit 2 + single-line stderr):
+source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+block_pre <hook-name> "<reason>" "<recommendation>" "<code>"
+
+# JSON-envelope deny (for hooks that use permissionDecision: deny):
+source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+block_pre_json <hook-name> "<reason>" "<recommendation>" "<code>"
+```
+
+`block_pre` automatically:
+- Strips trailing periods from reason and recommendation to avoid double periods.
+- Emits telemetry via `bin/emit-event` if available (silent no-op otherwise).
+- Writes the canonical line to stderr and exits 2.
+
+`block_pre_json` does the same but emits a JSON envelope to stdout with
+`permissionDecision: "deny"` and `permissionDecisionReason` set to the
+canonical line, then exits 0. Falls back to `block_pre` if `jq` is absent.
+
+### WASM hooks
+
+Use `HookResult::block_with_fix(hook, reason, recommendation, code)`
+instead of `HookResult::block(reason)`:
+
+```rust
+use vsdd_hook_sdk::HookResult;
+
+// Preferred (canonical Why/Fix/Code format):
+HookResult::block_with_fix(
+    "my-hook",
+    "Descriptive reason why the block fired",
+    "Actionable recommendation for how to fix it",
+    "snake_case_code",
+)
+
+// Avoid (no recommendation, no code — harder to diagnose):
+HookResult::block("bare reason string")
+```
+
+### Rules for hook authors
+
+1. `<hook-name>` must be the kebab-case hook filename without `.sh` /
+   `.wasm` suffix (e.g., `verify-git-push`, `block-ai-attribution`).
+2. `<reason>` answers "why did this block fire?" — be specific, include
+   the offending value where safe to do so.
+3. `<recommendation>` answers "what should I do to unblock?" — be
+   actionable (include a command or file to edit where possible).
+4. `<code>` is a `snake_case` identifier used for telemetry bucketing.
+   Use a stable, descriptive code (e.g., `git_push_force`, `bc_green_immutable`).
+5. Do NOT end `<reason>` or `<recommendation>` with a period — the
+   helper appends exactly one period to each field.
+
+### Related rules
+
+- `plugins/vsdd-factory/hooks/lib/block.sh` — the bash helper implementation.
+- `crates/vsdd-hook-sdk/src/lib.rs` — the `HookResult::block_with_fix` Rust API.
+- `tests/integration/hooks/block-helper.bats` — unit tests for the bash helper.
+- `tests/integration/hooks/canonical-format-invariant.bats` — per-hook regression tests.

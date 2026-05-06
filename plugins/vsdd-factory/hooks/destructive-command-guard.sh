@@ -19,6 +19,12 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
@@ -29,29 +35,6 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 if [[ -z "$COMMAND" ]]; then
   exit 0
 fi
-
-# _emit — failure-tolerant wrapper around bin/emit-event.
-# Silently does nothing if emit-event is missing or CLAUDE_PLUGIN_ROOT unset.
-# Must never cause the hook to fail, so every path returns 0.
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
-
-block() {
-  local reason="$1"
-  local suggestion="${2:-}"
-  local code="${3:-unknown}"
-  _emit type=hook.block hook=destructive-command-guard matcher=Bash reason="$code" command="$COMMAND"
-  echo "BLOCKED by destructive-command-guard:" >&2
-  echo "  $reason" >&2
-  if [[ -n "$suggestion" ]]; then
-    echo "  Suggestion: $suggestion" >&2
-  fi
-  exit 2
-}
 
 # Regex fragment matching rm with a recursive flag (-r, -R, -rf, -fr, -Rf,
 # -fR, or long forms --recursive / -r combined with --force).
@@ -76,9 +59,9 @@ for target_re in \
   '\.\*' \
   ; do
   if echo "$COMMAND" | grep -qE "${RM_RECURSIVE}[^|&;]*\s${target_re}(\s|\$|;|&|\|)"; then
-    block \
+    block_pre "destructive-command-guard" \
       "Catastrophic rm target detected: $COMMAND" \
-      "Never 'rm -rf' system roots, home, or unscoped wildcards. Target a specific directory." \
+      "Never 'rm -rf' system roots, home, or unscoped wildcards. Target a specific directory" \
       "catastrophic_root"
   fi
 done
@@ -97,9 +80,9 @@ if echo "$COMMAND" | grep -qE "$RM_RECURSIVE"; then
       if echo "$COMMAND" | grep -qE '\brm\b[^|&;]*\b(target|node_modules|dist|build|\.next|__pycache__|\.pytest_cache)/'; then
         continue
       fi
-      block \
+      block_pre "destructive-command-guard" \
         "rm -rf on protected path detected: $COMMAND" \
-        "Deleting .factory/, src/, or tests/ causes irreversible data loss. Remove specific files instead." \
+        "Deleting .factory/, src/, or tests/ causes irreversible data loss. Remove specific files instead" \
         "protected_path_delete"
     fi
   done
@@ -113,9 +96,9 @@ SOT_FILES=(STATE.md BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md HS-INDE
 if echo "$COMMAND" | grep -qE '\brm\b'; then
   for sot_file in "${SOT_FILES[@]}"; do
     if [[ "$COMMAND" == *"$sot_file"* ]]; then
-      block \
+      block_pre "destructive-command-guard" \
         "Cannot delete source-of-truth file: $sot_file" \
-        "$sot_file is an authoritative artifact. Update it in place — do not delete." \
+        "$sot_file is an authoritative artifact. Update it in place — do not delete" \
         "sot_delete"
     fi
   done
@@ -130,30 +113,30 @@ for sot_file in "${SOT_FILES[@]}"; do
   # Clobbering redirect: `> FILE` or `> path/FILE` (but NOT `>> FILE`)
   # The [^>] lookbehind prevents matching >>.
   if echo "$COMMAND" | grep -qE "(^|[^>])>\s*[^ ]*${sot_file}(\s|$|;|&|\|)"; then
-    block \
+    block_pre "destructive-command-guard" \
       "Clobbering redirect to source-of-truth file: $sot_file" \
-      "Use '>>' to append, or edit the file with sed/Edit instead of overwriting." \
+      "Use '>>' to append, or edit the file with sed/Edit instead of overwriting" \
       "sot_clobber_redirect"
   fi
   # `: > FILE` truncation (idiom)
   if echo "$COMMAND" | grep -qE ":\s*>\s*[^ ]*${sot_file}(\s|$|;|&|\|)"; then
-    block \
+    block_pre "destructive-command-guard" \
       "Truncating source-of-truth file via ': >': $sot_file" \
-      "$sot_file must not be emptied. Edit in place instead." \
+      "$sot_file must not be emptied. Edit in place instead" \
       "sot_truncate_colon"
   fi
   # truncate -s 0 FILE
   if echo "$COMMAND" | grep -qE "\btruncate\b[^|&;]*${sot_file}"; then
-    block \
+    block_pre "destructive-command-guard" \
       "Truncating source-of-truth file: $sot_file" \
-      "$sot_file must not be emptied. Edit in place instead." \
+      "$sot_file must not be emptied. Edit in place instead" \
       "sot_truncate_cmd"
   fi
   # cp /dev/null FILE
   if echo "$COMMAND" | grep -qE "\bcp\b[^|&;]*/dev/null[^|&;]*${sot_file}"; then
-    block \
+    block_pre "destructive-command-guard" \
       "Wiping source-of-truth file via cp /dev/null: $sot_file" \
-      "$sot_file must not be emptied. Edit in place instead." \
+      "$sot_file must not be emptied. Edit in place instead" \
       "sot_clobber_cpnull"
   fi
 done
@@ -166,9 +149,9 @@ if echo "$COMMAND" | grep -qE '\bfind\b[^|&;]*(-delete|-exec\s+rm\b)'; then
   # - .factory followed by word-boundary (end, slash, or space)
   # - src/tests as full words
   if echo "$COMMAND" | grep -qE '\.factory\b|\bsrc\b|\btests\b'; then
-    block \
+    block_pre "destructive-command-guard" \
       "find with -delete or -exec rm on protected path: $COMMAND" \
-      "find -delete bypasses rm safety checks. Remove specific files explicitly." \
+      "find -delete bypasses rm safety checks. Remove specific files explicitly" \
       "find_delete_protected"
   fi
 fi
@@ -177,9 +160,9 @@ fi
 # git reset --hard (discards uncommitted work)
 # ---------------------------------------------------------------------------
 if [[ "$COMMAND" == *"git reset --hard"* ]] || [[ "$COMMAND" == *"git reset -hard"* ]]; then
-  block \
-    "git reset --hard discards all uncommitted changes irreversibly." \
-    "Use 'git stash' to preserve changes, or 'git reset --soft' to unstage without losing work." \
+  block_pre "destructive-command-guard" \
+    "git reset --hard discards all uncommitted changes irreversibly" \
+    "Use 'git stash' to preserve changes, or 'git reset --soft' to unstage without losing work" \
     "git_reset_hard"
 fi
 
@@ -190,9 +173,9 @@ if [[ "$COMMAND" == *"git clean"* ]]; then
   if [[ "$COMMAND" == *"-n"* ]] || [[ "$COMMAND" == *"--dry-run"* ]]; then
     : # dry-run is fine
   elif [[ "$COMMAND" == *"-f"* ]] || [[ "$COMMAND" == *"--force"* ]]; then
-    block \
-      "git clean -f removes untracked files irreversibly. This can delete specs, stories, and pipeline state." \
-      "Use 'git clean -n' for a dry-run first, then selectively remove specific files." \
+    block_pre "destructive-command-guard" \
+      "git clean -f removes untracked files irreversibly. This can delete specs, stories, and pipeline state" \
+      "Use 'git clean -n' for a dry-run first, then selectively remove specific files" \
       "git_clean_force"
   fi
 fi
@@ -201,15 +184,15 @@ fi
 # git checkout -- . / git restore . (discard all working tree changes)
 # ---------------------------------------------------------------------------
 if [[ "$COMMAND" == *"git checkout -- ."* ]] || [[ "$COMMAND" == *"git checkout -- '*'"* ]]; then
-  block \
-    "git checkout -- . discards all working tree changes irreversibly." \
-    "Use 'git stash' to preserve changes, or target specific files: 'git checkout -- <file>'." \
+  block_pre "destructive-command-guard" \
+    "git checkout -- . discards all working tree changes irreversibly" \
+    "Use 'git stash' to preserve changes, or target specific files: 'git checkout -- <file>'" \
     "git_checkout_dot"
 fi
 if [[ "$COMMAND" == *"git restore ."* ]] || [[ "$COMMAND" == *"git restore --staged ."* ]]; then
-  block \
-    "git restore . discards all working tree changes irreversibly." \
-    "Target specific files: 'git restore <file>'." \
+  block_pre "destructive-command-guard" \
+    "git restore . discards all working tree changes irreversibly" \
+    "Target specific files: 'git restore <file>'" \
     "git_restore_dot"
 fi
 
@@ -217,9 +200,9 @@ fi
 # git stash drop / git stash clear (discards stashed work)
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qE '\bgit\s+stash\s+(drop|clear)\b'; then
-  block \
-    "git stash drop/clear discards stashed work irreversibly." \
-    "If the stash is genuinely unneeded, use 'git stash show -p' to verify first, then run outside this hook context." \
+  block_pre "destructive-command-guard" \
+    "git stash drop/clear discards stashed work irreversibly" \
+    "If the stash is genuinely unneeded, use 'git stash show -p' to verify first, then run outside this hook context" \
     "git_stash_discard"
 fi
 
@@ -227,9 +210,9 @@ fi
 # git branch -D on protected branches (force-delete local main/master/develop)
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qE '\bgit\s+branch\s+-D\s+(main|master|develop)\b'; then
-  block \
+  block_pre "destructive-command-guard" \
     "git branch -D on a protected local branch: $COMMAND" \
-    "Protected branches should not be force-deleted locally. Check out another branch instead." \
+    "Protected branches should not be force-deleted locally. Check out another branch instead" \
     "git_branch_d_protected"
 fi
 
@@ -237,9 +220,9 @@ fi
 # git filter-branch / git filter-repo (rewrites history across all refs)
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qE '\bgit\s+(filter-branch|filter-repo)\b'; then
-  block \
-    "git filter-branch/filter-repo rewrites history across all refs — effectively unrecoverable." \
-    "If you truly need to rewrite history, do it in a fresh clone with explicit user confirmation." \
+  block_pre "destructive-command-guard" \
+    "git filter-branch/filter-repo rewrites history across all refs — effectively unrecoverable" \
+    "If you truly need to rewrite history, do it in a fresh clone with explicit user confirmation" \
     "git_filter_history"
 fi
 
@@ -247,15 +230,15 @@ fi
 # git reflog expire + git gc --prune=now (removes the undo safety net)
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qE '\bgit\s+reflog\s+expire\b.*--expire=now'; then
-  block \
-    "git reflog expire --expire=now removes the recovery safety net for dangling commits." \
-    "Let reflog expire naturally (default 90 days)." \
+  block_pre "destructive-command-guard" \
+    "git reflog expire --expire=now removes the recovery safety net for dangling commits" \
+    "Let reflog expire naturally (default 90 days)" \
     "git_reflog_expire"
 fi
 if echo "$COMMAND" | grep -qE '\bgit\s+gc\b.*--prune=now'; then
-  block \
-    "git gc --prune=now removes dangling objects immediately — you lose recovery options." \
-    "Use 'git gc' (with default 2-week grace) or skip pruning." \
+  block_pre "destructive-command-guard" \
+    "git gc --prune=now removes dangling objects immediately — you lose recovery options" \
+    "Use 'git gc' (with default 2-week grace) or skip pruning" \
     "git_gc_prune_now"
 fi
 
@@ -264,9 +247,9 @@ fi
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qE '\bgit\s+worktree\s+remove\s+.*--force\b'; then
   if [[ "$COMMAND" != *".worktrees/"* ]]; then
-    block \
+    block_pre "destructive-command-guard" \
       "git worktree remove --force outside .worktrees/: $COMMAND" \
-      "--force discards uncommitted changes in the worktree. Commit or stash first, or target a .worktrees/ path." \
+      "--force discards uncommitted changes in the worktree. Commit or stash first, or target a .worktrees/ path" \
       "git_worktree_force"
   fi
 fi
@@ -275,15 +258,15 @@ fi
 # --no-verify / --no-gpg-sign on git commit (bypasses hooks we built)
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qE '\bgit\s+(commit|merge|rebase|cherry-pick|am)\b[^|&;]*--no-verify\b'; then
-  block \
-    "--no-verify bypasses the hooks that enforce attribution, SoT protection, and wave gates." \
-    "Fix the underlying issue that triggered the hook. If a hook is wrong, update the hook." \
+  block_pre "destructive-command-guard" \
+    "--no-verify bypasses the hooks that enforce attribution, SoT protection, and wave gates" \
+    "Fix the underlying issue that triggered the hook. If a hook is wrong, update the hook" \
     "git_no_verify"
 fi
 if echo "$COMMAND" | grep -qE '\bgit\s+commit\b[^|&;]*--no-gpg-sign\b'; then
-  block \
-    "--no-gpg-sign bypasses commit signing." \
-    "If a signing key is missing, fix the config rather than skipping the signature." \
+  block_pre "destructive-command-guard" \
+    "--no-gpg-sign bypasses commit signing" \
+    "If a signing key is missing, fix the config rather than skipping the signature" \
     "git_no_gpg_sign"
 fi
 
@@ -293,9 +276,9 @@ fi
 if [[ "$COMMAND" == *"git rm"* ]]; then
   for protected in ".factory/specs/" ".factory/stories/" ".factory/STATE.md"; do
     if [[ "$COMMAND" == *"$protected"* ]]; then
-      block \
+      block_pre "destructive-command-guard" \
         "git rm on protected path: $COMMAND" \
-        "Living spec and story files should not be removed from version control. Use lifecycle status fields (retired, deprecated) instead." \
+        "Living spec and story files should not be removed from version control. Use lifecycle status fields (retired, deprecated) instead" \
         "git_rm_protected"
     fi
   done
@@ -305,27 +288,27 @@ fi
 # gh CLI destructive operations
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qE '\bgh\s+repo\s+delete\b'; then
-  block \
-    "gh repo delete is irreversible and affects shared GitHub state." \
-    "If a repo truly needs deletion, the user should do it from the GitHub UI with confirmation." \
+  block_pre "destructive-command-guard" \
+    "gh repo delete is irreversible and affects shared GitHub state" \
+    "If a repo truly needs deletion, the user should do it from the GitHub UI with confirmation" \
     "gh_repo_delete"
 fi
 if echo "$COMMAND" | grep -qE '\bgh\s+release\s+delete\b'; then
-  block \
-    "gh release delete removes a published release (may have downstream consumers)." \
-    "Releases should only be deleted by the user with explicit intent." \
+  block_pre "destructive-command-guard" \
+    "gh release delete removes a published release (may have downstream consumers)" \
+    "Releases should only be deleted by the user with explicit intent" \
     "gh_release_delete"
 fi
 if echo "$COMMAND" | grep -qE '\bgh\s+pr\s+close\b'; then
-  block \
-    "gh pr close discards PR work and breaks the review audit trail." \
-    "If the PR should be abandoned, add a comment explaining why and let the user close it." \
+  block_pre "destructive-command-guard" \
+    "gh pr close discards PR work and breaks the review audit trail" \
+    "If the PR should be abandoned, add a comment explaining why and let the user close it" \
     "gh_pr_close"
 fi
 if echo "$COMMAND" | grep -qE '\bgh\s+issue\s+delete\b'; then
-  block \
-    "gh issue delete removes issue history irreversibly." \
-    "Close the issue instead ('gh issue close') to preserve the record." \
+  block_pre "destructive-command-guard" \
+    "gh issue delete removes issue history irreversibly" \
+    "Close the issue instead ('gh issue close') to preserve the record" \
     "gh_issue_delete"
 fi
 
@@ -333,9 +316,9 @@ fi
 # curl|bash / wget|sh (remote code execution pattern)
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qE '\b(curl|wget|fetch)\b[^|]*\|\s*(bash|sh|zsh|python|perl|ruby)\b'; then
-  block \
-    "Piping remote content directly into a shell/interpreter is a supply-chain risk." \
-    "Download to a file, inspect it, then run it explicitly." \
+  block_pre "destructive-command-guard" \
+    "Piping remote content directly into a shell/interpreter is a supply-chain risk" \
+    "Download to a file, inspect it, then run it explicitly" \
     "rce_pipe_to_shell"
 fi
 
@@ -345,9 +328,9 @@ fi
 if echo "$COMMAND" | grep -qE '\b(chmod|chown)\s+(-R|--recursive)\b'; then
   for protected in ".factory" "src/" "tests/" ".git/"; do
     if [[ "$COMMAND" == *"$protected"* ]]; then
-      block \
+      block_pre "destructive-command-guard" \
         "Recursive chmod/chown on protected path: $COMMAND" \
-        "Recursive permission changes can break git metadata and hook executability. Target specific files." \
+        "Recursive permission changes can break git metadata and hook executability. Target specific files" \
         "recursive_permission_change"
     fi
   done

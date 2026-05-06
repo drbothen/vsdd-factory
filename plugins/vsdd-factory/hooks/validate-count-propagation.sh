@@ -24,13 +24,6 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/blo
   source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
 fi
 
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
-
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
@@ -163,8 +156,9 @@ for keyword in "${!SOURCE_COUNTS[@]}"; do
 done
 
 if [[ "$DRIFT_DETECTED" -eq 1 ]]; then
-  _ALL_DRIFT="${DRIFT_MESSAGES[*]}"
-  _REASON="Count propagation drift detected in $(basename "$FILE_PATH"): ${DRIFT_MESSAGES[0]}"
+  # S2 fix: join ALL drift messages so every violation is visible at once, not just the first.
+  _ALL_DRIFT=$(printf '%s; ' "${DRIFT_MESSAGES[@]}" | sed 's/; $//')
+  _REASON="Count propagation drift detected in $(basename "$FILE_PATH"): $_ALL_DRIFT"
   _REC="Update the lagging index to match the source-of-truth count: BC-INDEX total_bcs, ARCH-INDEX subsystem counts, or STORY-INDEX bcs count — see the specific drift cited above"
 
   if declare -f block_pre >/dev/null 2>&1; then
@@ -174,8 +168,6 @@ if [[ "$DRIFT_DETECTED" -eq 1 ]]; then
       "count_propagation_drift"
     # block_pre exits 2; unreachable
   else
-    _emit type=hook.block hook=validate-count-propagation matcher=PostToolUse \
-          reason=count_propagation_drift file_path="$FILE_PATH"
     echo "BLOCKED by validate-count-propagation: ${_REASON}. Fix: ${_REC}. Code: count_propagation_drift." >&2
     exit 2
   fi

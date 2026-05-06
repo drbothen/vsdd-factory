@@ -16,19 +16,18 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -167,18 +166,10 @@ EXPECTED=$(echo "$ALL_CAPS" | sort -u | tr '\n' ',' | sed 's/,$//')
 ACTUAL=$(echo "$ANCHOR_CAPS" | sort -u | tr '\n' ',' | sed 's/,$//')
 
 if [[ "$EXPECTED" != "$ACTUAL" ]]; then
-  _emit type=hook.block hook=validate-anchor-capabilities-union matcher=PostToolUse \
-        reason=anchor_capabilities_mismatch file_path="$FILE_PATH" \
-        expected="$EXPECTED" actual="$ACTUAL"
-  echo "ANCHOR CAPABILITIES UNION VIOLATION in $(basename "$FILE_PATH"):" >&2
-  echo "  Expected (from BCs): [$EXPECTED]" >&2
-  echo "  Actual (frontmatter): [$ACTUAL]" >&2
-  echo "  BC → CAP mapping:" >&2
-  echo "$BC_CAP_MAP" | sort -u | while IFS= read -r mapping; do
-    [[ -n "$mapping" ]] && echo "    $mapping" >&2
-  done
-  echo "  Fix: set anchor_capabilities: [$EXPECTED] in story frontmatter." >&2
-  exit 2
+  block_pre "validate-anchor-capabilities-union" \
+    "Story anchor_capabilities [$ACTUAL] != union of cited BC capabilities [$EXPECTED]" \
+    "Set anchor_capabilities: [$EXPECTED] in story frontmatter" \
+    "anchor_caps_drift"
 fi
 
 exit 0

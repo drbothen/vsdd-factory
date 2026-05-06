@@ -13,19 +13,18 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -77,39 +76,37 @@ if [[ "$STORED_HASH" == "[live-state]" ]] || [[ "$STORED_HASH" == "[pending-reco
   exit 0
 fi
 
-# --- Case 1a: Missing, template placeholder, or null → warn ---
+# --- Case 1a: Missing, template placeholder, or null → block ---
 if [[ -z "$STORED_HASH" ]] || [[ "$STORED_HASH" == "[md5]" ]] || [[ "$STORED_HASH" == "null" ]]; then
-  echo "input-hash: artifact $(basename "$FILE_PATH") has inputs: but no computed input-hash." >&2
-  echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
-  exit 0
+  block_pre "validate-input-hash" \
+    "$(basename "$FILE_PATH") has inputs: field but no computed input-hash" \
+    "compute-input-hash $(basename "$FILE_PATH") --update" \
+    "input_hash_missing"
 fi
 
 # --- Case 1b: Hash format validation — must be 7-char lowercase hex ---
 HASH_LEN=${#STORED_HASH}
 if [[ "$HASH_LEN" -ne 7 ]]; then
-  _emit type=hook.block hook=validate-input-hash matcher=PostToolUse \
-        reason=input_hash_invalid_format file_path="$FILE_PATH" \
-        stored_hash="$STORED_HASH" hash_len="$HASH_LEN" issue=length
-  echo "input-hash FORMAT: $(basename "$FILE_PATH") hash \"$STORED_HASH\" is $HASH_LEN chars; canonical is 7-char truncated MD5." >&2
-  echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
-  exit 2
+  block_pre "validate-input-hash" \
+    "input-hash \"$STORED_HASH\" in $(basename "$FILE_PATH") is $HASH_LEN chars; canonical is 7-char truncated MD5" \
+    "compute-input-hash $(basename "$FILE_PATH") --update" \
+    "input_hash_format"
 fi
 if ! echo "$STORED_HASH" | grep -qE '^[0-9a-f]{7}$'; then
-  _emit type=hook.block hook=validate-input-hash matcher=PostToolUse \
-        reason=input_hash_invalid_format file_path="$FILE_PATH" \
-        stored_hash="$STORED_HASH" issue=chars
-  echo "input-hash FORMAT: $(basename "$FILE_PATH") hash \"$STORED_HASH\" contains invalid chars; must be lowercase hex [0-9a-f]." >&2
-  echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
-  exit 2
+  block_pre "validate-input-hash" \
+    "input-hash \"$STORED_HASH\" in $(basename "$FILE_PATH") contains invalid chars; must be lowercase hex [0-9a-f]" \
+    "compute-input-hash $(basename "$FILE_PATH") --update" \
+    "input_hash_format"
 fi
 
 # --- Case 2: Hash exists → verify if possible ---
 if [[ -x "$HASH_TOOL" ]]; then
   COMPUTED=$("$HASH_TOOL" "$FILE_PATH" 2>/dev/null || true)
   if [[ -n "$COMPUTED" ]] && [[ "$COMPUTED" != "$STORED_HASH" ]]; then
-    echo "input-hash: DRIFT — $(basename "$FILE_PATH") stored hash ($STORED_HASH) ≠ computed ($COMPUTED)." >&2
-    echo "  Inputs may have changed since this artifact was produced." >&2
-    echo "  Run: compute-input-hash $(basename "$FILE_PATH") --update" >&2
+    block_pre "validate-input-hash" \
+      "input-hash drift in $(basename "$FILE_PATH"): stored $STORED_HASH != computed $COMPUTED. Inputs may have changed since this artifact was produced" \
+      "compute-input-hash $(basename "$FILE_PATH") --update" \
+      "input_hash_drift"
   fi
 fi
 

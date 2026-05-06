@@ -21,6 +21,12 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
@@ -33,35 +39,15 @@ if [[ "$COMMAND" != *"git push"* ]]; then
   exit 0
 fi
 
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
-
-block() {
-  local reason="$1"
-  local suggestion="${2:-}"
-  local code="${3:-unknown}"
-  _emit type=hook.block hook=verify-git-push matcher=Bash reason="$code" command="$COMMAND"
-  echo "BLOCKED by verify-git-push:" >&2
-  echo "  $reason" >&2
-  if [[ -n "$suggestion" ]]; then
-    echo "  Suggestion: $suggestion" >&2
-  fi
-  exit 2
-}
-
 # --- Block force push ---
 # Allow --force-with-lease (safe force push — only overwrites if remote matches local expectation)
 # Block --force and -f (unconditional force push — overwrites regardless)
 if [[ "$COMMAND" == *"--force-with-lease"* ]]; then
   : # Allowed — safe force push
 elif [[ "$COMMAND" == *"--force"* ]] || [[ "$COMMAND" == *" -f "* ]] || [[ "$COMMAND" == *" -f"$'\n'* ]] || [[ "$COMMAND" =~ " -f"$ ]]; then
-  block \
-    "Force push (--force / -f) overwrites remote history irreversibly." \
-    "Use 'git push --force-with-lease' for safe force push, or push to a new branch." \
+  block_pre "verify-git-push" \
+    "Force push (--force / -f) overwrites remote history irreversibly" \
+    "Use 'git push --force-with-lease' for safe force push, or push to a new branch" \
     "git_push_force"
 fi
 
@@ -74,8 +60,8 @@ for branch in $PROTECTED_BRANCHES; do
   # Match patterns: "git push origin main", "git push origin main:main",
   # "git push upstream main", etc.
   if [[ "$COMMAND" =~ git\ push\ [a-zA-Z_-]+\ ${branch}($|\ |:) ]]; then
-    block \
-      "Direct push to protected branch '$branch' bypasses PR and review gates." \
+    block_pre "verify-git-push" \
+      "Direct push to protected branch '$branch' bypasses PR and review gates" \
       "Push to a feature branch and create a PR: git push origin feature/STORY-NNN && gh pr create --base $branch" \
       "git_push_protected"
   fi
