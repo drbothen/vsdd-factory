@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,9 @@ removal_reason: null
 
 ## Description
 
-The legacy-bash-adapter maps bash subprocess exit codes deterministically into `HookResult` variants. Exit 0 → Continue; exit 2 → Block (reason taken from first stderr line, or empty/synthetic); any other non-zero exit code → Error with stderr in the message.
+The legacy-bash-adapter maps bash subprocess exit codes deterministically into `HookResult` variants. Exit 0 → Continue; exit 2 → Block (reason taken from the full stderr output, trimmed, up to a 4 KiB UTF-8-character-boundary-safe cap; or synthetic if stderr is empty); any other non-zero exit code → Error with stderr in the message.
+
+**rc.12 note:** Prior to v1.0.0-rc.12, the exit-2 path captured only the first non-empty stderr line. rc.12 changed `crates/hook-plugins/legacy-bash-adapter/src/lib.rs` to capture the full stderr (trimmed) up to a 4 KiB `floor_char_boundary`-safe cap. Stderr exceeding 4096 bytes is truncated with a `…[truncated]` suffix appended. This is the same root-cause change as documented in BC-4.02.002 (D-1 / D-2 co-located fix per audit E-10-rc12-format-audit.md).
 
 ## Preconditions
 
@@ -38,7 +40,7 @@ The legacy-bash-adapter maps bash subprocess exit codes deterministically into `
 ## Postconditions
 
 1. If `N == 0` → `HookResult::Continue`.
-2. If `N == 2` → `HookResult::Block { reason }` where reason is the first non-empty stderr line (or empty).
+2. If `N == 2` → `HookResult::Block { reason }` where reason is the full stderr output, trimmed, up to a 4 KiB UTF-8-safe cap. If stderr exceeds 4096 bytes, the reason string is truncated at `floor_char_boundary(4096)` and `…[truncated]` is appended. If stderr is empty, reason is empty (or a synthetic value per adapter implementation). (Pre-rc.12 behavior was to use only the first non-empty stderr line; changed in v1.0.0-rc.12.)
 3. If `N` is any other non-zero value → `HookResult::Error { message }` populated with stderr content.
 
 ## Invariants
@@ -50,6 +52,8 @@ The legacy-bash-adapter maps bash subprocess exit codes deterministically into `
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | exit 2 with empty stderr | Block with empty reason (synthetic or empty handled by adapter) |
+| EC-002 | exit 2 with multi-line stderr | Full stderr returned as reason (all lines preserved, trimmed, up to 4 KiB cap). Pre-rc.12 behavior was first-line only; changed in v1.0.0-rc.12. |
+| EC-003 | exit 2 with stderr > 4096 bytes | Reason truncated at `floor_char_boundary(4096)` with `…[truncated]` appended. |
 
 ## Canonical Test Vectors
 
@@ -101,3 +105,10 @@ The legacy-bash-adapter maps bash subprocess exit codes deterministically into `
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-04-25 | Initial brownfield extraction (codebase-analyzer; pass-3-behavioral-contracts.md). Postcondition 2 captured pre-rc.12 "first non-empty stderr line" behavior. |
+| 1.1 | 2026-05-06 | D-326 (D-2) — rc.12 alignment: same root cause as BC-4.02.002 D-1. Exit-2 path now captures full stderr trimmed to 4 KiB UTF-8-safe cap, not first line only. Description, Postcondition 2 updated. EC-002 and EC-003 added for multi-line and truncation edge cases. Pre-rc.12 "first non-empty stderr line" preserved in Postcondition 2 historical parenthetical and EC-002 historical note. Change at v1.0.0-rc.12 (4cf59bc). |

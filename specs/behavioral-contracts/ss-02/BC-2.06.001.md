@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
 timestamp: 2026-05-06T00:00:00Z
@@ -67,8 +67,20 @@ host-field-precedence is now in effect, per Cargo's SemVer resolver semantics.
    release that MUST include at minimum:
    - A section header with the new version and release date.
    - A "Breaking Changes" subsection documenting that host-field-precedence
-     (ADR-015 D-15.3) is now active.
-   - A migration guidance paragraph explaining: "Plugin authors that set
+     (ADR-015 D-15.3) is now active — REQUIRED when the public API surface
+     removes or changes signatures.
+   - An "Added / New API" subsection — REQUIRED when the public API gains new
+     constructors, methods, or types (additive, non-breaking). For the Wave 2
+     MAJOR release this MUST document:
+     - `HookResult::block_with_fix(hook, reason, recommendation, code)` — the
+       preferred constructor for agent-actionable block messages introduced in
+       v1.0.0-rc.12; formats the canonical
+       `"BLOCKED by <hook>: <reason>. Fix: <recommendation>. Code: <code>."`
+       single-line shape for `permissionDecisionReason` and telemetry.
+     - `HookResult::block(reason)` — retained for backward compatibility; new
+       plugin sites SHOULD prefer `block_with_fix`.
+   - A "Migration Guide" subsection — REQUIRED when "Breaking Changes" is
+     non-empty. Contains the guidance paragraph explaining: "Plugin authors that set
      host-owned Resource fields (`service.name`, `service.namespace`,
      `service.instance.id`, `service.version`, `deployment.environment.name`,
      `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name` (per BC-1.12.003 Postcondition 1's authoritative VCS Resource attribute list. Note that `vcs.ref.head.name`, `vcs.ref.head.revision`, `vcs.ref.head.type` are PER-EVENT identity fields per BC-1.12.004 Postcondition 1, NOT Resource attributes — also host-stamped but in a different category.), `worktree.id`,
@@ -94,10 +106,13 @@ host-field-precedence is now in effect, per Cargo's SemVer resolver semantics.
 1. The SDK MAJOR version is bumped EXACTLY ONCE for the D-15.3 host-field-
    precedence change. There is no intermediate MINOR bump followed by a later
    MAJOR bump for the same feature; the MAJOR bump is the Wave 2 release.
-2. The CHANGELOG MAJOR version entry is present and contains "Breaking Changes"
-   content before the SDK release tag is created. An SDK release without a
-   CHANGELOG "Breaking Changes" section documenting host-field-precedence
-   is a postcondition violation.
+2. The CHANGELOG MAJOR version entry is present and contains both a "Breaking
+   Changes" section and an "Added / New API" section before the SDK release tag
+   is created. An SDK release without either required section is a postcondition
+   violation. The "Breaking Changes" section MUST document host-field-precedence
+   (ADR-015 D-15.3); the "Added / New API" section MUST document
+   `HookResult::block_with_fix` as the preferred constructor for blocking plugins
+   introduced in v1.0.0-rc.12.
 3. The SemVer increment rule per Cargo convention is: MAJOR bump resets MINOR
    and PATCH to zero. `0.X.Y → 1.0.0` or `N.X.Y → (N+1).0.0`. Any other
    increment formula violates this invariant.
@@ -154,6 +169,7 @@ D-15.3 host-field-precedence semantics per AC-008)
 | EC-003 | `crates/hook-sdk/CHANGELOG.md` does not contain "Breaking Changes" before tag | Postcondition violation; tag creation must be blocked until CHANGELOG is updated |
 | EC-004 | MAJOR version bumped but dispatcher D-15.3 not yet active | Order invariant violated; the MAJOR bump MUST accompany the dispatcher D-15.3 activation, not precede it; separate the SDK release from the dispatcher release only if both are clearly documented as requiring simultaneous deployment |
 | EC-005 | Plugin emits no host-owned fields (well-behaved plugin) | MAJOR version bump is transparent; plugin compiles and runs identically against new SDK; no `vsdd.internal.host_field_override.v1` events emitted for that plugin |
+| EC-006 | `crates/hook-sdk/CHANGELOG.md` contains "Breaking Changes" but no "Added / New API" section | Postcondition violation; release validation MUST flag the missing "Added / New API" section documenting `block_with_fix`; tag creation must be blocked until both required sections are present |
 
 ## Canonical Test Vectors
 
@@ -161,6 +177,7 @@ D-15.3 host-field-precedence semantics per AC-008)
 |-------|----------------|----------|
 | `cat crates/hook-sdk/Cargo.toml \| grep "^version"` after Wave 2 release | `version = "1.0.0"` (or `(N+1).0.0` per current MAJOR) — MAJOR incremented, MINOR and PATCH = 0 | version-bump-format |
 | `grep "Breaking Changes" crates/hook-sdk/CHANGELOG.md` | Returns at least one match for the new MAJOR version entry | changelog-breaking-changes-present |
+| `grep "Added\|New API\|block_with_fix" crates/hook-sdk/CHANGELOG.md` | Returns at least one match documenting the `block_with_fix` additive API addition | changelog-added-new-api-present |
 | `grep "host.field.precedence\|D-15.3\|host_field_override" crates/hook-sdk/CHANGELOG.md` | Returns at least one match referencing the host-field-precedence change | changelog-host-field-precedence-documented |
 | Plugin compiled against old MAJOR version of SDK; deployed against Wave 2 dispatcher | Plugin runs without WASM ABI error; host-field-precedence applies silently; `vsdd.internal.host_field_override.v1` emitted if plugin sets host-owned fields | backward-abi-compat |
 | **Misimplementation distinguisher:** MAJOR not bumped; only MINOR bump | `grep "^version" crates/hook-sdk/Cargo.toml` returns `N.X+1.0` instead of `(N+1).0.0`; this violates Postcondition 1 — must be caught by release validation | misimplementation-witness-minor-not-major |
@@ -210,3 +227,4 @@ D-15.3 host-field-precedence semantics per AC-008)
 | 1.0 | 2026-05-06 | Initial authoring (D-321; ADR-015 D-15.3 SDK MAJOR semver bump for host-field-precedence Wave 2 release). |
 | 1.1 | 2026-05-06 | D-322 — F-14 fix: `vcs.*` wildcard in migration guidance (Postcondition 2) expanded to explicit four VCS Resource fields (`vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`) per BC-1.12.003 Postcondition 1; parenthetical note added clarifying `vcs.ref.head.*` fields are per-event identity fields (BC-1.12.004), not Resource attributes. |
 | 1.2 | 2026-05-06 | D-325 — F-9 fix: Postcondition 2 four VCS fields split into separate backtick code-spans (`vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`) — prior version had all four in a single backtick span. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-009`. F-14 sweep: Architecture Anchors reviewed; references are to TOML/MD file paths (not code symbols); no stable-anchor disclaimer needed. |
+| 1.3 | 2026-05-06 | D-326 (D-4) — rc.12 alignment: CHANGELOG requirement amended to add "Added / New API" subsection alongside "Breaking Changes" and "Migration Guide". Policy: Breaking Changes REQUIRED when API removes/changes signatures; Added/New API REQUIRED when API gains new constructors/methods/types (additive, non-breaking); Migration Guide REQUIRED when Breaking Changes is non-empty. Wave 2 MAJOR release MUST document `HookResult::block_with_fix` in the Added/New API section. Invariant 2 updated to require both sections. EC-006 added. Test vector `changelog-added-new-api-present` added. |
