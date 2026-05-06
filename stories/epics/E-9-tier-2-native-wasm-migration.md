@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.35"
+version: "1.36"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -1812,3 +1812,47 @@ v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §
 **TD-VSDD-064 sequential-burst protocol applied (twenty-third use):** State-manager handles pass-38 seal and failure-mode coverage fix burst atomically. All fixes are textual additions/corrections to BC normative sections.
 
 **No new BCs or VPs added (scope discipline maintained). 4 new OQs added to open-questions.md.**
+
+### v1.36 (2026-05-05) — D-282 diff-only-of-v1.35 + TD-VSDD-085 self-app seal-and-fix: pass-39 3H/5M/2L; OQ-W16-005 filed + markdown arity inlined + 3 TV witnesses; TD-VSDD-086/087; ADR-013 clock RESET 0_of_3
+
+**Pass-39 verdict:** SUBSTANTIVE. 3 HIGH / 5 MEDIUM / 2 LOW. Angle: two-part diff-only of v1.35 (D-281) + TD-VSDD-085 self-application audit. Part A audited ONLY content added/changed in D-281 for internal coherence. Part B applied the just-codified TD-VSDD-085 NORMATIVE rule retroactively to v1.35 — for each new mechanism string or normative Edge Case introduced, verified TV witness row exists. Methodologically novel: TD-VSDD-085 didn't exist before pass-38 codified it; pass-39 is the first opportunity to apply it self-referentially. NEW angle per TD-VSDD-057.
+
+**HIGH findings:**
+
+- **HIGH-P39-001 CLOSED (Fix 1 — OQ-W16-005 filed):** BC-1.05.035 EC-009, STATE.md D-281 row, and E-9 epic line 1792 each cite "OQ-W16-005 filed" but open-questions.md jumped from W16-004 to W16-006 — dead reference in three locations. v1.35 H3 changelog "New OQs filed" omitted OQ-W16-005. Fix: OQ-W16-005 added to open-questions.md: question "Should dispatcher distinguish directory-cmd (canonicalize succeeds) from missing-cmd (canonicalize fails)? Currently both produce different error codes with different observability semantics." Default v1 = option (a) retain current behavior.
+
+- **HIGH-P39-002 CLOSED (Fix 2 — markdown table arity merged inline):** All six new EC rows added in D-281 (EC-008/009/010 in BC-1.05.035; EC-009/010/011 in BC-1.05.036) carried a trailing 4th cell with category tag against a 3-column header — silent rendering defect across the entire burst. Fix: Option (b) adopted — category tag merged inline into the Expected Behavior cell (e.g., `... CAPABILITY_DENIED (-1). [edge-case]`). Preserves backward symmetry with all pre-existing 3-cell rows. Process-gap codified as TD-VSDD-087 (markdown table arity validation hook).
+
+- **HIGH-P39-003 CLOSED (Fix 3 — 3 new TV rows witnessing signal-death/emit-IO/Mutex-poison):** TD-VSDD-085 self-violation — the very burst that codified TD-VSDD-085 failed it 3 times: EC-009 signal-death (`status.code() == None`), EC-010 emit IO failure (`log.write` Err discarded), EC-011 Mutex poison (`if let Ok` short-circuits) each lacked TV witnesses. Fix: Added TV rows 10/11/12 to BC-1.05.036 witnessing (a) signal-death emission with `exit_code=-1`, `outcome='failure'` (row 10); (b) emit_internal IO failure → silent drop with host call `Ok(envelope)` unchanged (row 11, also closes MED-P39-003 P6 cross-ref); (c) Mutex poison → `emit_internal` silent drop (row 12).
+
+**MEDIUM findings:**
+
+- **MED-P39-001 CLOSED (Fix 4 — EC-005 step (3) → step (2)):** EC-005 (NUL byte) cited "Precedence Ladder step (3)" — stale residue from v1.32→v1.33 reframe that dropped step (3) prefix-check and renumbered. TV row 5 NUL-byte witness correctly cited "step (2)"; EC-008/EC-010 (other canonicalize-fail cases) correctly cited "step (2)". Only EC-005 remained stale. Fixed: EC-005 "step (3)" → "step (2)".
+
+- **MED-P39-002 CLOSED (Fix 4 — EC-009 "step (4)" removed):** BC-1.05.035 EC-009 described "step (4): Err(codes::INTERNAL_ERROR) (-99)" but the Ladder defines exactly 3 steps. Fixed: EC-009 reworded to "post-Ladder spawn failure path (exec_subprocess.rs:252) → Err(codes::INTERNAL_ERROR) (-99); no emit_denial; no event" (incorporated in Fix 2's EC-009 rewrite).
+
+- **MED-P39-003 CLOSED (Fix 5 — P6 cross-ref to TV row 11):** Postcondition 6 introduced normative best-effort emit semantic with no TV witness. Fix: Postcondition 6 appended "(Witnessed by Test Vector row 11 — best-effort-emit-witness — and EC-010.)" — satisfied by TV row 11 added in Fix 3.
+
+- **MED-P39-004 CLOSED (Fix 6 — P1 main clause signal-death wording):** P1 main clause "subprocess process actually exits before timeout" strictly excludes signal-death (kernel termination ≠ "exit"). Yet footnote and EC-009 affirm signal-death IS emitted. Fix: P1 reworded to "On successful subprocess termination (i.e., `child.wait()` returns `Ok(Some(status))` within timeout AND output cap; see Postcondition 5 for error-path reality and EC-009 for signal-death substitution)".
+
+- **MED-P39-005 CLOSED (Fix 7 — read_wasm_bytes mechanism precision):** Input bounds note claimed "`read_wasm_bytes` returns INVALID_ARGUMENT (-4)" — function actually returns `HostCallError::OutOfBounds`; mapping to `codes::INVALID_ARGUMENT` happens at caller (exec_subprocess.rs:54-67). Fix: reworded to cite both the function return type and the caller-side mapping separately.
+
+**LOW findings:**
+
+- **LOW-P39-001 CLOSED (Fix 8 — TD-VSDD-085 accounting unified):** Three slightly inconsistent "5 recurrences" phrasings across lessons.md and epic. Fix: lessons.md TD-VSDD-085 S-7.02 threshold unified to "5 prior fix-burst-introduced-mechanisms-without-TV-witness instances across passes 24/29/31/37/38, including 2 within pass 38 (HIGH-P38-001 4th + MED-P38-001 5th)."
+
+- **LOW-P39-002 CLOSED (Fix 9 — process-gap codified as TD-VSDD-086):** Orchestrator mission template referenced `ADR-015-single-stream-otel-emit-contract.md` (nonexistent slug); actual file is `ADR-015-single-stream-otel-schema.md`. Artifact content defect: none. Process-gap only. Fix: codified as TD-VSDD-086 (orchestrator mission-template must resolve artifact filenames via Glob at dispatch-time). No orchestrator template edit in this burst.
+
+**Codified:**
+- **TD-VSDD-086** (mission-template artifact-filename resolution via Glob; LOW; first observation).
+- **TD-VSDD-087** (markdown table arity validation hook; HIGH when violated; first observation; preemptive codification).
+
+**New OQs filed:** OQ-W16-005 (distinguish directory-cmd from missing-cmd in exec_subprocess).
+
+**ADR-013 clock:** RESET 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (40/41/42) needed for CONVERGENCE_REACHED.
+
+**TD-VSDD-085 self-application result:** Pass-39 applied TD-VSDD-085 retroactively to v1.35 burst. 4 FAILs identified (HIGH-P39-001 OQ dangling + HIGH-P39-003 three missing TV witnesses + MED-P39-003 P6 cross-ref). All 4 closed in this burst. TD-VSDD-085 self-referential loop complete.
+
+**TD-VSDD-064 sequential-burst protocol applied (twenty-fourth use):** State-manager handles pass-39 seal and diff-only + self-app fix burst atomically.
+
+**No new BCs or VPs added (scope discipline maintained). 1 new OQ added (OQ-W16-005). 2 new lessons (TD-VSDD-086/087).**

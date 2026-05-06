@@ -765,7 +765,7 @@ This is a class of error TD-VSDD-076/078/079/080/081/082 do NOT catch: introduci
 
 **Codification:** Promote TD-VSDD-080's proposed `validate-bc-terminology-family.sh` hook to also enforce: any new emit_denial reason string introduced in a BC body MUST appear in at least one row of the BC's §Canonical Test Vectors table. Pre-commit hook reads recently-modified BC files, extracts emit_denial reason strings via grep, and verifies each appears in a TV row.
 
-**S-7.02 threshold:** 5 recurrences observed → MET. Codification escalated from PROVISIONAL to NORMATIVE.
+**S-7.02 threshold:** 5 prior fix-burst-introduced-mechanisms-without-TV-witness instances across passes 24/29/31/37/38, including 2 within pass 38 (HIGH-P38-001 4th + MED-P38-001 5th) → MET. Codification escalated from PROVISIONAL to NORMATIVE.
 
 **Adversary axis (when verifying):** For each new normative Edge Case row or new mechanism string introduced in this burst, grep the BC's §Canonical Test Vectors for a row witnessing it. Flag any new mechanism without witness as HIGH severity.
 
@@ -773,3 +773,37 @@ This is a class of error TD-VSDD-076/078/079/080/081/082 do NOT catch: introduci
 **Burst:** D-281 (E-9 v1.34→v1.35)
 
 **[codified]** by D-281 lessons.md append.
+
+---
+
+## TD-VSDD-086 — Orchestrator mission-template artifact-filename resolution
+
+**Source:** Pass-39 LOW-P39-002 [process-gap]
+
+**Class:** When the orchestrator dispatches an adversary or other agent with a task that references repo-internal filenames (e.g., ADRs, BCs), the mission template MUST resolve those filenames via Glob at dispatch-time rather than hardcoding a slug. Hardcoded slugs become stale when files are renamed (as ADR-015 was renamed from `-emit-contract` to `-schema` at some prior burst).
+
+**Codification:** Orchestrator's adversary-dispatch generator and similar templates SHOULD consult `glob` patterns (e.g., `ADR-015-*.md`) and substitute the resolved filename into the prompt. Same pattern for BC-N.NN.NNN files, story files, etc.
+
+**Severity:** LOW (cosmetic; does not block content findings — adversary still found the file because the absolute path content was correct enough to navigate by)
+
+**S-7.02 threshold:** First observation; codified provisionally without recurrence-threshold escalation. Re-evaluate if recurs.
+
+**Date:** 2026-05-05
+**Burst:** D-282 (E-9 v1.35 → v1.36)
+
+---
+
+## TD-VSDD-087 — Markdown table column-count validation in BC editing
+
+**Source:** Pass-39 HIGH-P39-002 [process-gap]
+
+**Class:** When the state-manager (or any agent) edits a BC's structured markdown tables (§Edge Cases, §Canonical Test Vectors, §Architecture Anchors, etc.), the edit harness MUST validate that each row has exactly the column count declared in the table header. The v1.35 D-281 burst introduced 6 EC rows in 2 BCs uniformly with 4 cells against a 3-column header — silent rendering defect across the entire burst.
+
+**Codification:** Pre-commit hook `validate-bc-table-arity.sh` SHOULD parse all markdown tables in modified BC files, count cells per row vs declared column count from header separator (`|---|---|...`), and reject the commit if any row's cell count ≠ header column count.
+
+**Severity:** HIGH when violated (silent rendering defect; downstream consumers — readers, linters, schema validators — see misaligned data without warning)
+
+**S-7.02 threshold:** First observation; preemptively codified. Combined with TD-VSDD-080's `validate-bc-terminology-family.sh` mandate and TD-VSDD-085's TV-witness-presence mandate, the next un-mechanized BC defect class is rendering-arity. Hook landing target: before next BC-editing burst.
+
+**Date:** 2026-05-05
+**Burst:** D-282 (E-9 v1.35 → v1.36)

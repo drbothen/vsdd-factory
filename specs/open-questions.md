@@ -98,6 +98,27 @@ last_amended: 2026-05-05
 
 ---
 
+## OQ-W16-005 — Distinguish directory-cmd (canonicalize succeeds) from missing-cmd (canonicalize fails) in exec_subprocess
+
+**Source:** BC-1.05.035 EC-009 added in D-281 pass-38 LOW-P38-001 closure; HIGH-P39-001 (pass-39) identified this OQ as filed in three artifacts but absent from register.
+**Status:** OPEN
+**Owner:** SS-01 implementer or E-9 Wave 1 architect
+**Filed:** 2026-05-05
+
+**Question:** Should the dispatcher distinguish a `cmd` that resolves to a directory (canonicalize-succeeds) from a `cmd` that resolves to a missing or unspawnable file? Currently both produce CAPABILITY_DENIED via different ladder steps and observability semantics differ (binary_canonicalize_failed event for missing; INTERNAL_ERROR with no event for directory-spawn-fail).
+
+**Acceptance criterion (binary):**
+- (a) v1 retains current behavior — directory cmd reaches `Command::new` at exec_subprocess.rs:230 and spawn fails returning INTERNAL_ERROR (-99) with no emit_denial; documented as known-limitation in BC-1.05.035 EC-009. OR
+- (b) v2 adds a pre-spawn `Path::is_file()` check at line 152.5 (after canonicalize success, before allow-check) emitting `emit_denial(ctx, cmd, "binary_not_executable", details)` for directory or non-file paths.
+
+**Why this matters:** v1 option (a) masks broken-capability-config — if the allow-list contains a directory name (e.g., `bin`), the dispatcher silently returns INTERNAL_ERROR (-99) with no observability event, rather than CAPABILITY_DENIED with a `binary_canonicalize_failed` or `binary_not_executable` emit. Security observability gap: no Grafana alert can detect this misconfiguration.
+
+**Resolution path:** Default v1 = (a) per EC-009 known-limitation. Revisit at next major dispatcher ABI break, or earlier if directory-cmd masking surfaces as a security observability gap in production.
+
+**Decision needed by:** NEXT major dispatcher ABI break; or earlier if directory-cmd masking surfaces as a security observability gap.
+
+---
+
 ## OQ-W16-006 — NFD/NFC Unicode normalization on macOS HFS+ for non-ASCII binary allow-list entries
 
 **Source:** BC-1.05.035 Architecture Anchors cross-platform note added in D-281 pass-38 LOW-P38-003 closure.
