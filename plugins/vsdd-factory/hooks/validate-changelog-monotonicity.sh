@@ -13,6 +13,12 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper if available (provides block_pre).
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
+  # shellcheck source=lib/block.sh
+  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
+fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
@@ -60,6 +66,7 @@ FM_VERSION=$(awk '
 ' "$FILE_PATH")
 
 ERRORS=""
+FIRST_CODE=""
 PREV_VERSION=""
 PREV_DATE=""
 FIRST_VERSION=""
@@ -124,12 +131,14 @@ while IFS= read -r line; do
     # Check version ordering (must be strictly decreasing)
     if [[ -n "$PREV_VERSION" ]] && [[ "$PREV_VERSION" == "$VERSION" ]]; then
       ERRORS="${ERRORS:+$ERRORS\n}Line $LINE_NUM: duplicate version '$VERSION' (also at prior row)"
+      [[ -z "$FIRST_CODE" ]] && FIRST_CODE="changelog_duplicate_version"
     fi
 
     # Check date ordering (must be non-increasing — newer at top)
     if [[ -n "$PREV_DATE" ]] && [[ -n "$DATE" ]]; then
       if [[ "$DATE" > "$PREV_DATE" ]]; then
         ERRORS="${ERRORS:+$ERRORS\n}Line $LINE_NUM: date '$DATE' is newer than prior row '$PREV_DATE' — changelog should be newest-first"
+        [[ -z "$FIRST_CODE" ]] && FIRST_CODE="changelog_date_out_of_order"
       fi
     fi
 
@@ -144,17 +153,41 @@ done < "$FILE_PATH"
 if [[ -n "$FM_VERSION" ]] && [[ -n "$FIRST_VERSION" ]]; then
   if [[ "$FM_VERSION" != "$FIRST_VERSION" ]]; then
     ERRORS="${ERRORS:+$ERRORS\n}Frontmatter version '$FM_VERSION' != top changelog version '$FIRST_VERSION'"
+    [[ -z "$FIRST_CODE" ]] && FIRST_CODE="changelog_frontmatter_mismatch"
   fi
 fi
 
 if [[ -n "$ERRORS" ]]; then
-  _emit type=hook.block hook=validate-changelog-monotonicity matcher=PostToolUse \
-        reason=changelog_not_monotonic file_path="$FILE_PATH"
-  echo "CHANGELOG MONOTONICITY VIOLATION in $(basename "$FILE_PATH"):" >&2
-  echo -e "$ERRORS" | while IFS= read -r line; do
-    echo "  - $line" >&2
-  done
-  exit 2
+  # Determine the most-actionable recommendation based on the first detected code.
+  case "${FIRST_CODE:-changelog_duplicate_version}" in
+    changelog_duplicate_version)
+      _REC="Bump the most recent occurrence to the next semver, or remove the duplicate row"
+      ;;
+    changelog_date_out_of_order)
+      _REC="Reorder rows newest-first, or correct the row's date"
+      ;;
+    changelog_frontmatter_mismatch)
+      _REC="Set frontmatter 'version:' to match the top changelog row"
+      ;;
+    *)
+      _REC="Review the changelog ordering violations listed above"
+      ;;
+  esac
+
+  _REASON="CHANGELOG MONOTONICITY VIOLATION in $(basename "$FILE_PATH"): $(echo -e "$ERRORS" | head -1)"
+
+  if declare -f block_pre >/dev/null 2>&1; then
+    block_pre "validate-changelog-monotonicity" \
+      "$_REASON" \
+      "$_REC" \
+      "${FIRST_CODE:-changelog_duplicate_version}"
+    # block_pre exits 2; unreachable
+  else
+    _emit type=hook.block hook=validate-changelog-monotonicity matcher=PostToolUse \
+          reason="${FIRST_CODE:-changelog_not_monotonic}" file_path="$FILE_PATH"
+    echo "BLOCKED by validate-changelog-monotonicity: ${_REASON}. Fix: ${_REC}. Code: ${FIRST_CODE:-changelog_duplicate_version}." >&2
+    exit 2
+  fi
 fi
 
 exit 0

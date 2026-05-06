@@ -39,6 +39,27 @@ impl HookResult {
         }
     }
 
+    /// Canonical agent-actionable block constructor.
+    ///
+    /// Formats reason + recommendation + code into the single-line
+    /// `BLOCKED by <hook>: <reason>. Fix: <recommendation>. Code: <code>.`
+    /// shape used across all factory hooks (bash + WASM unified).
+    ///
+    /// Use this in every blocking plugin going forward — `block()` remains
+    /// for backward compatibility but new sites should prefer this.
+    pub fn block_with_fix(
+        hook: &str,
+        reason: impl AsRef<str>,
+        recommendation: impl AsRef<str>,
+        code: &str,
+    ) -> Self {
+        let reason = reason.as_ref().trim_end_matches('.');
+        let fix = recommendation.as_ref().trim_end_matches('.');
+        HookResult::Block {
+            reason: format!("BLOCKED by {hook}: {reason}. Fix: {fix}. Code: {code}."),
+        }
+    }
+
     /// Convenience constructor: `HookResult::error("message")`.
     pub fn error(message: impl Into<String>) -> Self {
         HookResult::Error {
@@ -92,5 +113,49 @@ mod tests {
         assert_eq!(HookResult::Continue.exit_code(), 0);
         assert_eq!(HookResult::block("x").exit_code(), 2);
         assert_eq!(HookResult::error("y").exit_code(), 1);
+    }
+
+    #[test]
+    fn block_with_fix_formats_canonical_line() {
+        let r = HookResult::block_with_fix(
+            "verify-git-push",
+            "Force push overwrites remote history irreversibly",
+            "Use 'git push --force-with-lease' for safe force push",
+            "git_push_force",
+        );
+        match r {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason,
+                    "BLOCKED by verify-git-push: Force push overwrites remote history irreversibly. Fix: Use 'git push --force-with-lease' for safe force push. Code: git_push_force."
+                );
+            }
+            _ => panic!("expected Block"),
+        }
+    }
+
+    #[test]
+    fn block_with_fix_strips_trailing_periods_to_avoid_duplication() {
+        let r = HookResult::block_with_fix(
+            "h",
+            "Reason already ends in period.",
+            "Recommendation already ends in period.",
+            "code",
+        );
+        match r {
+            HookResult::Block { reason } => {
+                // Verify exactly one period after each segment, never doubled.
+                assert!(!reason.contains(".."));
+                assert!(reason.contains("Reason already ends in period."));
+                assert!(reason.contains("Recommendation already ends in period."));
+            }
+            _ => panic!("expected Block"),
+        }
+    }
+
+    #[test]
+    fn block_with_fix_exit_code_matches_block() {
+        let r = HookResult::block_with_fix("h", "r", "f", "c");
+        assert_eq!(r.exit_code(), 2);
     }
 }

@@ -147,15 +147,23 @@ fn test_TV_011_noreply_openai_email_is_detected() {
 // detect_attribution returns matched pattern text (BC-4.05.001)
 // ---------------------------------------------------------------------------
 
-/// BC-4.05.001: detect_attribution returns Some(matched_text) — the returned
-/// string must be non-empty and describe the match.
+/// BC-4.05.001: detect_attribution returns Some(Attribution) — the returned
+/// reason string must be non-empty and describe the match.
 #[test]
 fn test_BC_4_05_001_detect_attribution_returns_matched_text() {
     let cmd = "git commit -m \"fix\n\nCo-Authored-By: Claude <noreply@anthropic.com>\"";
-    let matched = detect_attribution(cmd).expect("must return Some");
+    let att = detect_attribution(cmd).expect("must return Some");
     assert!(
-        !matched.is_empty(),
-        "matched pattern string must be non-empty"
+        !att.reason.is_empty(),
+        "Attribution.reason must be non-empty"
+    );
+    assert!(
+        !att.recommendation.is_empty(),
+        "Attribution.recommendation must be non-empty"
+    );
+    assert!(
+        !att.code.is_empty(),
+        "Attribution.code must be non-empty"
     );
 }
 
@@ -171,12 +179,21 @@ fn test_BC_4_05_002_detect_attribution_returns_none_for_clean_commit() {
 }
 
 /// BC-4.05.004: detect_attribution is callable with no payload context —
-/// confirms pure-core interface (no I/O, just string in / Option<String> out).
+/// confirms pure-core interface (no I/O, just string in / Option<Attribution> out).
 #[test]
 fn test_BC_4_05_004_detect_attribution_is_pure_function() {
     // Calling it twice with the same input must return the same result.
+    // Since Attribution doesn't impl PartialEq, verify both are Some with
+    // identical fields — sufficient to confirm determinism.
     let cmd = "git commit -m \"fix\n\nCo-Authored-By: Claude <x@anthropic.com>\"";
     let a = detect_attribution(cmd);
     let b = detect_attribution(cmd);
-    assert_eq!(a, b, "pure function must be deterministic");
+    match (a, b) {
+        (Some(a), Some(b)) => {
+            assert_eq!(a.reason, b.reason, "reason must be deterministic");
+            assert_eq!(a.code, b.code, "code must be deterministic");
+        }
+        (None, None) => {}
+        _ => panic!("pure function must return the same Some/None for the same input"),
+    }
 }
