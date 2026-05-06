@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-05-06T00:00:00Z
@@ -71,7 +71,7 @@ host-field-precedence is now in effect, per Cargo's SemVer resolver semantics.
    - A migration guidance paragraph explaining: "Plugin authors that set
      host-owned Resource fields (`service.name`, `service.namespace`,
      `service.instance.id`, `service.version`, `deployment.environment.name`,
-     `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.repository.url.full, vcs.repository.name, vcs.provider.name, vcs.owner.name` (per BC-1.12.003 Postcondition 1's authoritative VCS Resource attribute list. Note that `vcs.ref.head.name`, `vcs.ref.head.revision`, `vcs.ref.head.type` are PER-EVENT identity fields per BC-1.12.004 Postcondition 1, NOT Resource attributes — also host-stamped but in a different category.), `worktree.id`,
+     `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name` (per BC-1.12.003 Postcondition 1's authoritative VCS Resource attribute list. Note that `vcs.ref.head.name`, `vcs.ref.head.revision`, `vcs.ref.head.type` are PER-EVENT identity fields per BC-1.12.004 Postcondition 1, NOT Resource attributes — also host-stamped but in a different category.), `worktree.id`,
      `schema_url`) or per-event identity fields (`trace_id`, `event.id`,
      `event.category`, `event.name`, `span_id`, `parent_span_id`,
      `plugin.invocation_id`, `session.id`, `timestamp`, `event.source`) must
@@ -177,7 +177,7 @@ D-15.3 host-field-precedence semantics per AC-008)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 |
+| L2 Capability | CAP-009 |
 | Capability Anchor Justification | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009. BC-2.06.001 governs the SDK version bump that signals an ABI-level behavioral change to plugin authors — specifically, that host-field-precedence (ADR-015 D-15.3) is now active in the dispatcher. CAP-009 describes the SDK as the interface through which "a third-party plugin author can add a dependency and ship a `.wasm` without touching the dispatcher" (capabilities.md §CAP-009). The MAJOR version bump is the public-facing contract signal within that SDK surface: it is the mechanism by which the `vsdd-hook-sdk` crate communicates breaking behavioral changes to plugin authors per SemVer convention. The CHANGELOG migration guidance (Postcondition 2) is the SDK's documentation surface for the same audience. Both artifacts — the `Cargo.toml` version field and the CHANGELOG — are core outputs of CAP-009's "author and publish" capability. CAP-029 governs the dispatcher's single-stream emission concern (a different surface); this BC is squarely the SDK ABI versioning concern under CAP-009's scope. |
 | L2 Domain Invariants | No domain invariants directly enforced. The host-field-precedence semantics this bump signals are governed by BC-1.12.005 (dispatcher side); this BC governs the SDK publication contract. |
 | Architecture Module | SS-02 — `crates/hook-sdk/Cargo.toml` (version field); `crates/hook-sdk/CHANGELOG.md` (migration guidance) |
@@ -209,3 +209,4 @@ D-15.3 host-field-precedence semantics per AC-008)
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (D-321; ADR-015 D-15.3 SDK MAJOR semver bump for host-field-precedence Wave 2 release). |
 | 1.1 | 2026-05-06 | D-322 — F-14 fix: `vcs.*` wildcard in migration guidance (Postcondition 2) expanded to explicit four VCS Resource fields (`vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`) per BC-1.12.003 Postcondition 1; parenthetical note added clarifying `vcs.ref.head.*` fields are per-event identity fields (BC-1.12.004), not Resource attributes. |
+| 1.2 | 2026-05-06 | D-325 — F-9 fix: Postcondition 2 four VCS fields split into separate backtick code-spans (`vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`) — prior version had all four in a single backtick span. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-009`. F-14 sweep: Architecture Anchors reviewed; references are to TOML/MD file paths (not code symbols); no stable-anchor disclaimer needed. |

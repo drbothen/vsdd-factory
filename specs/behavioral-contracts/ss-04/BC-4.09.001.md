@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-05-06T00:00:00Z
@@ -52,14 +52,30 @@ path after Wave 3 cleanup per BC-1.11.003).
 
 ## Scope
 
-This BC covers the 11 native WASM plugins under `crates/hook-plugins/`:
+This BC covers all 11 native WASM plugins under `crates/hook-plugins/*/` (per
+S-10.05 Architecture Mapping inventory). The 11-plugin enumeration is
+source-of-truth in S-10.05; BC-4.09.001 governs the contract that each of the 11
+emits reverse-DNS .v1 event names with `emit_pair` dual-emit during Wave 2→Wave 3:
+
 - `capture-pr-activity`
 - `capture-commit-activity`
-- `session-start-telemetry`
-- `session-end-telemetry`
-- `worktree-hooks`
-- `tool-failure-hooks`
-- Any additional plugins added to `crates/hook-plugins/` before Wave 2 lands.
+- `block-ai-attribution`
+- `handoff-validator`
+- `pr-manager-completion-guard`
+- `track-agent-stop`
+- `update-wave-state-on-merge`
+- `validate-pr-review-posted`
+- `session-learning`
+- `warn-pending-wave-gate`
+- `track-agent-start`
+
+**Example subset of mapping patterns (5 of 11 plugins shown; full enumeration in
+S-10.05 Architecture Mapping):**
+- `pr_opened` → `vsdd.plugin.capture-pr-activity.pr_opened.v1`
+- `commit.made` → `vsdd.plugin.capture-commit-activity.commit_made.v1`
+- `session.started` (if present) → `vsdd.plugin.<plugin-name>.session_started.v1`
+- `tool.error` (if present) → `vsdd.plugin.<plugin-name>.tool_error.v1`
+- `worktree.created` (if present) → `vsdd.plugin.<plugin-name>.worktree_created.v1`
 
 It does NOT cover: bash hooks in `hooks/` (SS-07 scope), the dispatcher itself
 (SS-01 scope), or SDK internals (SS-02 scope).
@@ -82,16 +98,12 @@ It does NOT cover: bash hooks in `hooks/` (SS-07 scope), the dispatcher itself
    call per BC-1.11.003's `emit_pair` API surface.
 2. The new reverse-DNS canonical name for each event follows the pattern:
    `vsdd.plugin.<plugin-crate-name>.<event-concept>.v1`
-   Example mappings:
+   (Complete mapping table for all 11 plugins is defined in S-10.05 Architecture
+   Mapping inventory; this BC references the canonical pattern, not the exhaustive
+   list. Example subset — 2 of 11 plugins shown for illustration:
    - `pr_opened` → `vsdd.plugin.capture-pr-activity.pr_opened.v1`
-   - `session.started` → `vsdd.plugin.session-start-telemetry.session_started.v1`
-   - `session.ended` → `vsdd.plugin.session-end-telemetry.session_ended.v1`
-   - `tool.error` → `vsdd.plugin.tool-failure-hooks.tool_error.v1`
-   - `worktree.created` → `vsdd.plugin.worktree-hooks.worktree_created.v1`
-   - `worktree.removed` → `vsdd.plugin.worktree-hooks.worktree_removed.v1`
    - `commit.made` → `vsdd.plugin.capture-commit-activity.commit_made.v1`
-   (Complete mapping table is defined in the Wave 2 story S-10.05 File Structure
-   Requirements; this BC references the canonical pattern, not the exhaustive list.)
+   See S-10.05 Architecture Mapping for the full 11-plugin event-name mapping table.)
 3. The `emit_pair` call atomically assigns a shared `event.correlation_id`,
    sets `old_event.event.deprecated_by = new_event.event.id`, and sets
    `new_event.event.replaces_deprecated_alias = old_event.event.id` — all
@@ -129,10 +141,13 @@ It does NOT cover: bash hooks in `hooks/` (SS-07 scope), the dispatcher itself
    the entire Wave 2 → Wave 3 window.
 2. After Wave 3 lands, no plugin's `on_hook` implementation contains a reference
    to any legacy short-form event name string. Legacy names are absent from all
-   plugin source files under `crates/hook-plugins/`. This is verifiable by grep:
-   `grep -rn '"pr_opened"\|"session\.started"\|"session\.ended"\|"tool\.error"\|"worktree\.created"\|"worktree\.removed"\|"commit\.made"' crates/hook-plugins/`
-   returns zero matches in production source files (excluding test files that
-   explicitly test the migration).
+   plugin source files under `crates/hook-plugins/`. This is verifiable by grep
+   against the full 11-plugin inventory (per S-10.05 Architecture Mapping):
+   `grep -rn '"pr_opened"\|"commit\.made"\|"[a-z_]*\."' crates/hook-plugins/`
+   — the exact legacy name pattern for all 11 plugins is enumerated in S-10.05
+   Architecture Mapping's migration table; that table is source-of-truth for which
+   legacy strings to scan for. Returns zero matches in production source files
+   (excluding test files that explicitly test the migration).
 3. The `plugin_version` field (AC-005) is ALWAYS present in `capture-pr-activity`
    plugin emissions from Wave 2 onward. A missing or empty `plugin_version` field
    is a postcondition violation.
@@ -159,10 +174,16 @@ It does NOT cover: bash hooks in `hooks/` (SS-07 scope), the dispatcher itself
 ## Architecture Anchors
 
 - `crates/hook-plugins/*/src/lib.rs` — the `on_hook` function in each plugin;
-  the `emit_event` → `emit_pair` migration site for each of the 11 plugins
+  the `emit_event` → `emit_pair` migration site for each of the 11 plugins.
+  [Stable anchor per TD-VSDD-091; line numbers are not authoritative — use the
+  function name `on_hook` as the canonical reference.]
 - `crates/hook-plugins/capture-pr-activity/src/lib.rs` — additional fixes:
-  `plugin_version` field and `open_to_merge_seconds` computation
-- `crates/hook-sdk/src/host.rs` — `emit_pair` ABI surface consumed by plugins
+  `plugin_version` field and `open_to_merge_seconds` computation. [Stable anchor
+  per TD-VSDD-091; line numbers are not authoritative — use the field names
+  `plugin_version` and `open_to_merge_seconds` as the canonical references.]
+- `crates/hook-sdk/src/host.rs` — `emit_pair` ABI surface consumed by plugins.
+  [Stable anchor per TD-VSDD-091; line numbers are not authoritative — use the
+  function name `emit_pair` as the canonical reference.]
 - ADR-015 D-15.2 — reverse-DNS event naming convention; canonical form mandate
 - ADR-015 D-15.2.e — dual-emit pair identity contract (correlation fields;
   `emit_pair` enforces this on the host side)
@@ -214,7 +235,7 @@ all 11 native WASM plugins; dual-emit shim via `emit_pair` per BC-1.11.003;
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 |
+| L2 Capability | CAP-009 |
 | Capability Anchor Justification | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009. BC-4.09.001 governs the migration of the 11 native WASM plugins' event-emission code from legacy short-form names to reverse-DNS canonical names, using the Wave 2 `emit_pair` SDK host binding. CAP-009 describes the SDK as the interface through which plugin authors implement hook behavior: "The `vsdd-hook-sdk` crate provides the `#[hook]` macro, `HookPayload`, `HookResult`, and all `vsdd::*` host function bindings. A third-party plugin author can add a dependency and ship a `.wasm` without touching the dispatcher" (capabilities.md §CAP-009). This BC governs how those `vsdd::*` host function bindings — specifically `emit_pair` and `emit_event` — are used in the 11 first-party WASM plugins during the Wave 2 migration. The event-name migration (Postconditions 1–6) and plugin-specific fixes (Postconditions 7–8) are entirely within the plugin-authoring surface that CAP-009 defines. |
 | Secondary Capability Reference | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. Plugin emissions ultimately appear on the single CAP-029 stream; the reverse-DNS canonical event names emitted by this BC appear in `events-*.jsonl` per CAP-029's single-stream guarantee. CAP-029 is a secondary reference here because the primary concern of this BC is the plugin-authoring migration (CAP-009 surface), not the dispatcher's FileSink routing (CAP-029 surface). |
 | L2 Domain Invariants | No domain invariants directly enforced. The `emit_pair` atomicity and single-stream routing are governed by BC-1.11.003 and BC-1.12.001 respectively; this BC governs plugin-side migration behavior. |
@@ -240,3 +261,10 @@ all 11 native WASM plugins; dual-emit shim via `emit_pair` per BC-1.11.003;
 | BC files (this BC) | ~1 BC |
 | Story anchor | S-10.05 (Wave 2 plugin schema migration) |
 | Subsystem | SS-04 |
+
+## Changelog
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-05-06 | Initial authoring (architect; ADR-015 D-15.2 plugin schema migration contract for Wave 2 dual-emit). |
+| 1.1 | 2026-05-06 | D-325 — F-1 fix: Scope updated from 6-plugin enumeration to authoritative 11-plugin inventory per S-10.05 Architecture Mapping. Legacy 6-plugin list (session-start-telemetry, session-end-telemetry, worktree-hooks, tool-failure-hooks not in S-10.05; block-ai-attribution, handoff-validator, pr-manager-completion-guard, track-agent-stop, update-wave-state-on-merge, validate-pr-review-posted, session-learning, warn-pending-wave-gate, track-agent-start added). Postcondition 2 example mappings narrowed to 2-of-11 illustration; S-10.05 Architecture Mapping named as canonical source. Invariant 2 grep pattern updated to defer full legacy-name list to S-10.05. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-009`. F-14 sweep: stable-anchor disclaimers added to Architecture Anchor code symbol references (`on_hook`, `plugin_version`, `open_to_merge_seconds`, `emit_pair`). |

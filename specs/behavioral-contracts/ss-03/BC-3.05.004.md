@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -197,7 +197,9 @@ retired BC-3.05.001/002/003 (marked `lifecycle_status: retired`,
 - `crates/factory-dispatcher/src/sinks/mod.rs` — config load path; `ObservabilityConfig`
   struct must be updated from v1 (schema_version + sinks fields) to v2 fields
   (schema_version, events_file, retention_days, debug_log_retention_days,
-  debug_log_enabled, sync_on_write)
+  debug_log_enabled, sync_on_write). [Stable anchor per TD-VSDD-091; line numbers
+  are not authoritative — use the struct/module name `ObservabilityConfig` as the
+  canonical reference.]
 - ADR-015 D-15.1 — normative prose for debug stream being "gated by the
   `VSDD_DEBUG_LOG=1` environment variable"
 - ADR-015 OQ-1 (resolved in SS-03-event-emission.md) — v2 schema definition
@@ -259,7 +261,7 @@ v2 schema loading and debug-stream gate implementation)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| L2 Capability | CAP-029 |
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC specifies the `observability-config.toml` v2 schema — the operator's configuration surface for the single `events-*.jsonl` stream that CAP-029 defines. The schema governs the events stream file path (`events_file`), retention policy (`retention_days`), fsync behavior (`sync_on_write`), and the two-key debug-stream gate. All of these are direct configuration parameters for the CAP-029 single-stream architecture; without a correctly validated v2 schema, the FileSink write path cannot be safely initialized. |
 | L2 Domain Invariants | DI-014 (schema version mismatch is a hard load error — extended by D-314 to the v1→v2 transition: `schema_version = 1` hard-errors with a migration hint; `schema_version > 2` hard-errors with `unknown future schema version` message; DI-014's spirit — "never silently process a mismatched schema" — is preserved and extended to the full `{1, >2}` partition by Invariant 2 of this BC) |
 | Architecture Module | SS-03 — `crates/factory-dispatcher/src/sinks/mod.rs` (`ObservabilityConfig` struct v2 definition; schema_version validation; warn-and-skip for unknown keys) |
@@ -307,3 +309,4 @@ Config load source-walk:
 | v1.1 | 2026-05-06 | D-315 F-2/F-11/F-18/F-4 BC-side. Re-anchored to CAP-029 (primary). EC-004 resolved: schema_version>2 → hard-error (option a, consistent with Invariant 1). Invariant 2 added: schema_version domain `{1, 2, >2}` with explicit behavior per partition. Canonical test vector for schema_version=3 added. Secondary Capability Reference (CAP-010) and BC-1.12.002 cross-reference paragraph added (F-18). L2 Domain Invariants populated: DI-014 (hard-error on mismatch, extended to v2). |
 | v1.2 | 2026-05-06 | D-319 — F-10 fix: Canonical Test Vectors strictness aligned with Postcondition 4(a) + Invariant 2 exact message texts using regex-substring form. schema_version=1 CTV row now asserts stderr matches `\[vsdd-dispatcher\] ERROR: observability-config\.toml has schema_version=1` (from PC4(a)). schema_version=3 CTV row now asserts stderr matches `\[vsdd-dispatcher\] ERROR: unknown future schema version 3; this dispatcher build accepts schema_version = 2 only` (from Invariant 2 / EC-004). |
 | v1.3 | 2026-05-06 | D-322 — F-10 fix: BC-1.12.007 Related BCs entry corrected — false "sibling" claim replaced with accurate "cross-cutting orthogonal enforcement surfaces" description (call-graph runtime enforcement vs config-schema static enforcement; together enforce ADR-015 D-15.1 multi-sink retirement). |
+| v1.4 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimer added to `crates/factory-dispatcher/src/sinks/mod.rs` Architecture Anchor (struct `ObservabilityConfig` is the canonical reference). |

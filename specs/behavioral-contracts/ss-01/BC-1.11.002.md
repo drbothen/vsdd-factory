@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-05-04T00:00:00Z
@@ -119,12 +119,22 @@ This BC resolves OQ-7 from ADR-015.
 ## Architecture Anchors
 
 - `crates/sink-file/src/lib.rs` — `FileSink::write` implementation; write
-  sequence and failure cascade
+  sequence and failure cascade. [Stable anchor per TD-VSDD-091; line numbers are
+  not authoritative — use the function/method/symbol name as the canonical reference.]
 - `crates/factory-dispatcher/src/internal_log.rs` — unconditional fallback
-  write target on FileSink failure
+  write target on FileSink failure. [Stable anchor per TD-VSDD-091; line numbers are
+  not authoritative — use the function/method/symbol name as the canonical reference.]
 - `SS-03-event-emission.md` § FileSink Write Semantics — design rationale for
   boundary-marker over atomic-rename
 - ADR-015 D-15.1 — policy decision for write-failure cascade
+
+## Story Anchor
+
+S-10.02 (Wave 1: FileSink wiring + per-event stamping — FileSink partial-write recovery cascade is implemented inline with the Wave 1 wiring; this BC governs the failure-mode contract).
+
+## VP Anchors
+
+(TBD — to be assigned after S-10.02 implementation; verification properties for partial-write recovery cascade behavior under FileSink IO error conditions.)
 
 ## Edge Cases
 
@@ -159,11 +169,11 @@ This BC resolves OQ-7 from ADR-015.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
-| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. BC-1.11.002 governs the FileSink partial-write recovery cascade (write retry + fallback file + stderr warning per BC-1.12.001 Postcondition 3). Per CAP-029, the dispatcher writes every domain event as a JSONL record to a single events-YYYY-MM-DD.jsonl file via FileSink — this BC ensures CAP-029's single-stream guarantee survives transient FileSink IO errors. Without this BC, a FileSink::write failure would silently drop events; with it, the cascade preserves the at-least-once observable property. The BC's write-failure cascade (Postconditions: fallback to internal log + stderr warning) is the direct implementation of the durability contract that CAP-029's single-stream design requires. BC-1.12.001 Postcondition 3 is the failure-cascade entry point on the primary-path BC; BC-1.11.002 is the full specification of what that cascade does. |
-| L2 Domain Invariants | TBD |
-| Architecture Module | SS-01/SS-03 — `crates/sink-file/src/lib.rs`, `crates/factory-dispatcher/src/internal_log.rs` |
-| Stories | S-10.03 (Wave 1 enrichment + FileSink integration) |
+| L2 Capability | CAP-029 |
+| Capability Anchor Justification | BC-1.11.002 governs the FileSink partial-write recovery cascade — the contract for what happens when FileSink::write fails mid-record on the single events stream (CAP-029 single-stream guarantee under transient IO errors). BC-1.12.001 Postcondition 3 names this BC as the failure-cascade contract: "the emit_event → FileSink::write path uses the write-failure cascade per BC-1.11.002 (NOT silent discard) — the cascade writes to the fallback file and emits a stderr warning." This BC is the source-of-truth for that cascade's preconditions, postconditions, and observable side effects (fallback file format, stderr warning shape, retry semantics). Per CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029: the dispatcher writes every domain event as a JSONL record to a single events-YYYY-MM-DD.jsonl file via FileSink — this BC's recovery cascade preserves that single-stream guarantee against transient FileSink IO errors. |
+| L2 Domain Invariants | (no domain invariants directly enforced; recovery cascade is BC-postcondition-only — FileSink partial-write recovery and write-failure cascade behavior is fully specified by this BC's postconditions and invariants; DI-007 governs always-on telemetry at the debug-stream level, not at the FileSink-cascade level) |
+| Architecture Module | SS-01 — `crates/factory-dispatcher/src/internal_log.rs` (fallback write target); cross-references SS-03 — `crates/sink-file/src/lib.rs` (FileSink::write entry point and the partial-write recovery cascade implementation). Primary BC ownership is SS-01 (FileSink invocation by the factory-dispatcher). |
+| Stories | S-10.02 (Wave 1: FileSink wiring + per-event stamping — FileSink partial-write recovery cascade is implemented as part of S-10.02 Wave 1 wiring; this BC governs the failure-mode contract) |
 | ADR | ADR-015 D-15.1 (write-failure semantics); SS-03-event-emission.md § FileSink Write Semantics (OQ-7 resolution) |
 | OQ Resolved | OQ-7 (FileSink partial-write recovery — boundary-marker strategy chosen) |
 
@@ -200,3 +210,4 @@ the moment of the crash.
 |---------|------|-------------|
 | 1.0 | 2026-05-04 | Initial authoring (architect; ADR-015 D-15.1 FileSink partial-write recovery and write-failure cascade contract). |
 | 1.1 | 2026-05-06 | D-322 — F-4 fix: capability resolved CAP-TBD → CAP-029 with substantive Capability Anchor Justification paragraph. FileSink partial-write recovery preserves CAP-029 single-stream guarantee against transient FileSink IO errors; cascade (BC-1.12.001 Postcondition 3 failure path) ensures at-least-once observable property. |
+| 1.2 | 2026-05-06 | D-325 — F-3 fix: `## Story Anchor` section added (S-10.02); `## VP Anchors` stub added. F-2/F-4 fix: Stories cell updated S-10.03 → S-10.02 (FileSink partial-write recovery is Wave 1 wiring scope). F-6 fix: L2 Domain Invariants TBD resolved — no domain invariants directly enforced; FileSink cascade is BC-postcondition-only; DI-007 operates at a different abstraction level. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-11 fix: Capability Anchor Justification rewritten — BC-1.12.001 Postcondition 3 citation contextualized as the failure-cascade naming reference (PC3 names this BC as the cascade spec; the actual cascade trigger is the write failure condition PC3 identifies). F-14 sweep: stable-anchor disclaimers added to Architecture Anchors code symbol references. F-16 fix: Architecture Module updated — SS-01 primary with cross-reference to SS-03 for FileSink implementation; removed incorrect SS-01/SS-03 dual-ownership framing. |

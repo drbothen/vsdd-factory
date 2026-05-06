@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
 timestamp: 2026-05-04T00:00:00Z
@@ -164,8 +164,12 @@ the Wave 3 deprecation announcement and operator audit gate sub-tasks.
 ## Architecture Anchors
 
 - `crates/factory-dispatcher/src/host/emit_event.rs` — parent module;
-  `emit_pair` is a new entry point in the same module
-- `crates/hook-sdk/src/host.rs` — SDK-side `emit_pair` function
+  `emit_pair` is a new entry point in the same module. [Stable anchor per
+  TD-VSDD-091; line numbers are not authoritative — use the function/method/symbol
+  name as the canonical reference.]
+- `crates/hook-sdk/src/host.rs` — SDK-side `emit_pair` function. [Stable anchor
+  per TD-VSDD-091; line numbers are not authoritative — use the function/method/symbol
+  name as the canonical reference.]
 - ADR-015 D-15.2.e — orphan-half detection rule that `emit_pair` is designed
   to prevent
 - ADR-015 OQ-8 — this BC resolves the open question
@@ -208,8 +212,8 @@ S-10.05 (Wave 2: Plugin schema migration — emit_pair host helper for atomic du
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-009 — Author and publish WASM hook plugins using the Rust SDK |
-| L2 Domain Invariants | TBD |
+| L2 Capability | CAP-009 |
+| L2 Domain Invariants | (no domain invariants directly enforced; `emit_pair` atomicity and ordering are specified entirely by this BC's postconditions and invariants; DI-017 trace_id-on-every-event is satisfied by the `emit_pair` host enrichment which stamps `trace_id` on both events per BC-1.12.004, not by this BC directly) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/emit_event.rs`; SS-02 — `crates/hook-sdk/src/host.rs` |
 | Stories | S-10.05 (Wave 2: Plugin schema migration — emit_pair host helper for atomic dual-emit per AC-009) |
 | ADR | ADR-015 D-15.2.e (orphan-half detection); OQ-8 (this BC resolves it) |
@@ -234,3 +238,4 @@ S-10.05 (Wave 2: Plugin schema migration — emit_pair host helper for atomic du
 | 1.0 | 2026-05-04 | Initial authoring (architect; ADR-015 D-15.2.e + OQ-8 atomic dual-emit host helper). |
 | 1.1 | 2026-05-06 | D-317/D-318 — capability resolved CAP-TBD → CAP-009 (WASM hook SDK ABI surface for emit_pair binding). |
 | 1.2 | 2026-05-06 | D-322 — F-6 fix: Story Anchor section added (S-10.05 Wave 2 plugin schema migration); VP Anchors section added; Stories cell updated from "Wave 2 story (TBD)" to S-10.05. F-8 fix: Capability Anchor Justification rewritten to lead with SS-01 host-side coordination role rather than SS-02 SDK exposure (adjudication: keep BC in SS-01; SS-01 is the dominant behavioral surface). |
+| 1.3 | 2026-05-06 | D-325 — F-6 fix: L2 Domain Invariants TBD resolved — no domain invariants directly enforced; emit_pair atomicity is BC-postcondition-only; DI-017 trace_id satisfaction deferred to BC-1.12.004 per-event stamping. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-009`. F-14 sweep: stable-anchor disclaimers added to Architecture Anchors code symbol references. |

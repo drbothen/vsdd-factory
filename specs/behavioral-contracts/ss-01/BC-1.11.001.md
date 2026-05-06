@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-05-04T00:00:00Z
@@ -64,7 +64,19 @@ env_allowlist filter runs and are NOT subject to that filter.
 4. A subprocess that itself calls `exec_subprocess` inherits and forwards
    both variables; the `trace_id` is unchanged across the hop; the
    `parent_span_id` at each subsequent hop is the previous level's `span_id`.
-5. No other env_allowlist semantics are altered. Other variables are still
+5. **Span chain rule invariants (per ADR-015 D-15.4):** The following three rules
+   define the span chain contract across all `exec_subprocess` hops:
+   - **Rule 1:** Each subprocess generates its own `span_id` as a new UUID per
+     subprocess invocation. The subprocess's `span_id` is NOT inherited from the
+     parent — it is fresh per invocation.
+   - **Rule 2:** `VSDD_PARENT_SPAN_ID` received by the subprocess is set to the
+     invoking process's `span_id` (the parent-of relation). Any subprocess itself
+     calling `exec_subprocess` passes its own `span_id` as `VSDD_PARENT_SPAN_ID`
+     to its child.
+   - **Rule 3:** `VSDD_TRACE_ID` propagates verbatim from parent to child at every
+     hop (trace continuity). A subprocess MUST NOT generate a new `trace_id`; it
+     MUST forward the `VSDD_TRACE_ID` it received unchanged.
+6. No other env_allowlist semantics are altered. Other variables are still
    subject to the plugin's declared `env_allowlist`.
 
 ## Invariants
@@ -89,7 +101,9 @@ env_allowlist filter runs and are NOT subject to that filter.
 
 - `crates/factory-dispatcher/src/host/exec_subprocess.rs` — inject site;
   VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID added to the command env builder
-  unconditionally before the allowlist filter
+  unconditionally before the allowlist filter. [Stable anchor per TD-VSDD-091;
+  line numbers are not authoritative — use the function/method/symbol name as the
+  canonical reference.]
 - ADR-015 D-15.4 — policy decision; this BC is the implementation contract
 
 ## Story Anchor
@@ -128,7 +142,7 @@ S-10.04 (Wave 1: Trace propagation + lifecycle event types — exec_subprocess i
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| L2 Capability | CAP-029 |
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. BC-1.11.001 governs the dispatcher-side env-var injection that materializes `trace_id` for every subprocess emission. Per CAP-029, the single observability stream stamps `trace_id` on every event (DI-017 amended in invariants.md v1.1; `trace_id` is the audit correlation key for all events on the single stream). BC-1.11.001 is the upstream contract that ensures the trace context exists at injection-time — without the `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` injections this BC mandates, the trace chain required by DI-017 cannot be maintained across subprocess boundaries. This BC is therefore the prerequisite implementation contract that CAP-029's per-event `trace_id` guarantee depends on for subprocess-spawning plugin invocations. |
 | L2 Domain Invariants | DI-017 (renamed `dispatcher_trace_id` → `trace_id` per ADR-015 v1.7; this BC's mandatory env-var injection ensures `VSDD_TRACE_ID` is available to every subprocess so the `trace_id` field can be stamped on any events emitted by that subprocess, satisfying DI-017's invariant that `trace_id` is present on every emitted event) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/exec_subprocess.rs` |
@@ -152,3 +166,4 @@ S-10.04 (Wave 1: Trace propagation + lifecycle event types — exec_subprocess i
 |---------|------|-------------|
 | 1.0 | 2026-05-04 | Initial authoring (architect; ADR-015 D-15.4 trace propagation contract). |
 | 1.1 | 2026-05-06 | D-318 — capability resolved CAP-TBD → CAP-029 (single-stream emission requires trace_id stamping per DI-017 amendment); Story Anchor S-10.04 added. |
+| 1.2 | 2026-05-06 | D-325 — F-8 fix: Postcondition 5 added — span chain rule invariants (Rule 1: new UUID span_id per subprocess; Rule 2: VSDD_PARENT_SPAN_ID = invoking process's span_id; Rule 3: VSDD_TRACE_ID propagates verbatim across hops) per ADR-015 D-15.4. Story-writer D-326 to update S-10.04 AC-002 trace text from "postcondition 2" to "postcondition 5" accordingly. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimer added to Architecture Anchors code symbol reference. |

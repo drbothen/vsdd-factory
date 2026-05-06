@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -150,7 +150,10 @@ This BC's Postcondition 1 + Invariant 1 cite cargo-call-stack as the named tool 
   TD-VSDD-091; line numbers are not authoritative — use the function/module name as the
   canonical reference.]
 - `Cargo.toml` (workspace root) — `default-members` field; deprecated crates
-  excluded from default build
+  excluded from default build. [Note: `default-members` is a TOML key (not a Rust
+  symbol); TD-VSDD-091 stable-anchor guidance applies to Rust symbol references.
+  For TOML keys, use the key name `default-members` as the canonical reference —
+  it is stable and does not carry a line-number anchor risk.]
 - `crates/sink-otel-grpc/Cargo.toml` — `publish = false` set at Wave 1
 - ADR-015 D-15.1 — "Deprecated (Wave 1): Crates are excluded from
   `default-members` in the root `Cargo.toml` and marked `publish = false`.
@@ -209,7 +212,7 @@ via physical deletion.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| L2 Capability | CAP-029 |
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC is the call-graph invariant that proves the single-stream architecture holds. Per CAP-029 (capabilities.md §CAP-029): the multi-sink fan-out is retired in favor of single-stream FileSink emission with downstream OTel Collector fan-out. This BC enforces the call-graph invariant that proves the retirement holds in the dispatcher's production binary. BC-1.12.007 specifies that no production code path calls the deprecated symbols, and mandates static analysis verification (cargo-call-stack) to prove the absence at every PR merge. |
 | L2 Domain Invariants | DI-011 (superseded by ADR-015 D-15.1 — single-sink eliminates submit-must-not-block; the multi-sink path that DI-011 governed is precisely the path this BC forbids from production); DI-012 (superseded by ADR-015 D-15.1 — single-sink eliminates per-sink isolation; this BC's call-graph invariant is what makes DI-012's per-sink concern moot) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (call-graph exclusion enforced by removing `Router::submit` wire); workspace `Cargo.toml` (`default-members` exclusion) |
@@ -236,6 +239,7 @@ via physical deletion.
 | 1.1 | 2026-05-06 | D-315/D-318 — Postcondition 1 + Invariant 1 sharpened (full transitive callgraph scope; cargo-call-stack named as primary verification tool). |
 | 1.2 | 2026-05-06 | D-318/D-321 — capability confirmed CAP-029; story anchors S-10.02 + S-10.09 added. |
 | 1.3 | 2026-05-06 | D-322 — F-5 fix: TD-015-a "closed in D-318" contradiction resolved — reframed as PARTIAL CLOSURE (tool selected D-318: cargo-call-stack; CI gate implementation/owner assignment deferred to pre-Wave-5). H1 updated to reflect partial closure. F-16 fix: Architecture Anchor reworded — `Sink` trait is KEPT in `sink-core`; only the Router wiring in `sinks/mod.rs` is retired. F-11 fix: CAP-029 paraphrase-as-quote replaced with proper non-quoted reference per capabilities.md §CAP-029. F-7 fix: Changelog section added. |
+| 1.4 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 fix: `Cargo.toml default-members` Architecture Anchor clarified — TD-VSDD-091 applies to Rust symbol refs; `default-members` is a TOML key (key name is the stable canonical reference; no line-number anchor risk). |
 
 ### TD-VSDD-092 (BC-SOUL4-coverage) Verification
 

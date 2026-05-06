@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -297,7 +297,7 @@ contract that Wave 2 dashboard migrations MUST respect)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| L2 Capability | CAP-029 |
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC defines the consumer's five-state identity contract for events in the single `events-*.jsonl` stream that CAP-029 specifies. The dual-emit correlation fields (`event.correlation_id`, `event.deprecated_by`, `event.replaces_deprecated_alias`) only exist because all events — including both halves of a Wave 2 migration pair — appear in the same single stream. The five-state classification and malformed → orphaned downgrade rule ensure consumers of the CAP-029 stream can correctly deduplicate and aggregate without double-counting or data loss during the Wave 2 migration window. |
 | L2 Domain Invariants | (no domain invariants directly enforced; the five-state classification is a consumer-side interpretation contract for fields in the single stream; the underlying single-stream invariant is enforced by BC-1.12.001) |
 | Architecture Module | SS-01 — consumer behavior specification for `events-*.jsonl` events; relevant production code lives in consumer tooling (factory-query, Grafana dashboard queries) and Wave 2 plugin shims |
@@ -342,3 +342,4 @@ Consumer-side classification source-walk:
 | v1.0 | 2026-05-06 | Initial authoring. Five-state classification taxonomy, malformed → orphaned-half downgrade rule, consumer degradation rule, ADR-015 D-15.2.e v1.5. |
 | v1.1 | 2026-05-06 | D-315 F-12 fix: H1 updated to "five-state" (was "four-state" in original authoring). Body prose not fully propagated at that time. |
 | v1.2 | 2026-05-06 | D-319 — F-2 fix: body prose swept from "four-state classification" to "five-state classification" to match H1 (D-315 F-12 fix was incomplete). Postcondition 8 updated from "four-state classifier degrades gracefully: States 1–4" to "five-state classifier degrades gracefully." Purity Classification updated. ADR row updated to remove "reduced to four-state consumer taxonomy" and replace with the full five-state name list per ADR-015 D-15.2.e v1.5. |
+| v1.3 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: Architecture Anchors reviewed; all references are to ADR sections and the physical `events-*.jsonl` file path (not code symbols); no stable-anchor disclaimer needed for this BC. |

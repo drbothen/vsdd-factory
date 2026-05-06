@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -123,7 +123,9 @@ All Canonical Test Vectors describe post-Wave-1 behavior.
 
 - `crates/factory-dispatcher/src/host/emit_event.rs` — `event.host_overrides`
   stamping happens in the emit path after domain-field merge; the
-  `vsdd.internal.host_field_override.v1` emission happens here too
+  `vsdd.internal.host_field_override.v1` emission happens here too.
+  [Stable anchor per TD-VSDD-091; line numbers are not authoritative — use the
+  function/module name as the canonical reference.]
 - ADR-015 D-15.3 — policy decision for host-field override visibility;
   two-channel approach (inline `event.host_overrides` + lifecycle event with
   `affected.plugin.name`)
@@ -177,7 +179,7 @@ S-10.04 (Wave 1: Trace propagation + lifecycle event types — host_field_overri
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| L2 Capability | CAP-029 |
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC specifies the `event.host_overrides` field stamping and the `vsdd.internal.host_field_override.v1` lifecycle event that make host-field override activity observable within the single `events-*.jsonl` stream. CAP-029's single-stream model depends on the stream carrying semantically correct host-field values; the override-visibility contract governed by this BC ensures that any host-stamped field taking precedence over a plugin-supplied value leaves an auditable trace on the same stream — a host-field semantics integrity guarantee intrinsic to the single-stream design. |
 | L2 Domain Invariants | (no domain invariants directly enforced; override-visibility behavior is fully specified by BC postconditions; the underlying host-field precedence policy is governed by ADR-015 D-15.3) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/emit_event.rs` (override detection, `event.host_overrides` stamping, lifecycle notice emission) |
@@ -221,3 +223,4 @@ Per-emit override detection source-walk:
 | v1.0 | 2026-05-06 | Initial authoring (D-315). Two-channel override-visibility contract: event.host_overrides inline + vsdd.internal.host_field_override.v1 lifecycle event + stderr warning per ADR-015 D-15.3. |
 | v1.1 | 2026-05-06 | D-315/D-316 amendments — cap-anchor justification, edge case clarifications. |
 | v1.2 | 2026-05-06 | D-319 — F-3 fix: Story Anchor + Stories cell extended with S-10.04 (POLICY 8 reverse-direction drift from D-316 closed). F-8 fix: EC-008 prose rewritten — unambiguously states the lifecycle event IS rate-limited per Postcondition 6 with no separate meta-rate-limit; the prior contradicting "NOT rate-limited against itself" phrase removed. |
+| v1.3 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimer added to `crates/factory-dispatcher/src/host/emit_event.rs` Architecture Anchor. |

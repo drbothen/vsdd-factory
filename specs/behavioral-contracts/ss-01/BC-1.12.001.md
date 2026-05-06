@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -39,8 +39,11 @@ debug stream per BC-1.12.002 and the FileSink write-failure fallback per BC-1.11
 
 This is a future-implementation contract. The current source (pre-E-10 Wave 1)
 routes events through `dispatcher-internal-*.jsonl` via `InternalLog` (see
-BC-1.05.036 Postcondition 4 bifurcation). BC-1.12.001 specifies the post-Wave-1
-spec-frame state that S-10.02 must implement. All Canonical Test Vectors in this
+BC-1.05.036 Postcondition 4 — the `emit_internal` Some/None bifurcation: when
+`ctx.internal_log.is_some()`, production path writes to `InternalLog`; when
+`None`, the test-context path skips the file write; this is the pre-Wave-1
+bifurcation that BC-1.12.001 supersedes on the production path). BC-1.12.001
+specifies the post-Wave-1 spec-frame state that S-10.02 must implement. All Canonical Test Vectors in this
 BC are future-implementation witnesses designed to distinguish a correct
 single-stream implementation from a reasonable-but-wrong "still routes to
 internal log" misimplementation.
@@ -122,9 +125,13 @@ internal log" misimplementation.
 - `crates/factory-dispatcher/src/main.rs` — `host::emit_event` call site; FileSink wiring
   added here in Wave 1 (S-10.02)
 - `crates/sink-file/src/lib.rs` — `FileSink::write` implementation (the single writer)
-- `factory-dispatcher::sinks::Sink` trait dispatch surface — the open integration point that
-  ADR-015 resolves; `Router::submit` is NOT wired post-Wave-1 (stable anchor per TD-VSDD-091;
-  line numbers are not authoritative — use the function/method name as the canonical reference.)
+- the open integration TODO at `factory-dispatcher::sinks::mod` (in
+  `crates/factory-dispatcher/src/sinks/mod.rs`) — the wiring point for `Router::submit`
+  that ADR-015 closes by leaving it unwired. The `Sink` trait itself in `sink-core` is
+  KEPT per ADR-015 D-15.1; only the Router wiring in `factory-dispatcher::sinks` is
+  retired. See BC-1.12.007 Architecture Anchors for the authoritative clarification.
+  [Stable anchor per TD-VSDD-091; line numbers are not authoritative — use the
+  function/module name as the canonical reference.]
   See also BC-1.05.036 for the pre-Wave-1 `emit_internal` path and Mutex-poison silent-drop
   acknowledgment.
 - ADR-015 D-15.1 — policy decision for single physical stream
@@ -175,7 +182,7 @@ S-10.02 (Wave 1: FileSink single-stream wiring)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| L2 Capability | CAP-029 |
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC specifies the single-stream FileSink wiring that removes Router/SinkRegistry/DlqWriter from the production path. Per CAP-029 (capabilities.md §CAP-029): the single-stream design retires Router, SinkRegistry, and DlqWriter; FileSink becomes the direct writer for `events-YYYY-MM-DD.jsonl`. This BC implements the Wave 1 wiring change that materializes that retirement at the dispatcher level. BC-1.12.001 is the behavioral contract that makes that CAP-029 outcome verifiable. |
 | L2 Domain Invariants | DI-011 (superseded by ADR-015 D-15.1 — single-sink eliminates submit-must-not-block; this BC is the post-supersession replacement); DI-012 (superseded by ADR-015 D-15.1 — single-sink eliminates per-sink isolation; this BC governs the single-sink behavior that replaces both DIs) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (emit_event call site), `crates/sink-file/src/lib.rs` (FileSink) |
@@ -201,6 +208,7 @@ S-10.02 (Wave 1: FileSink single-stream wiring)
 | 1.0 | 2026-05-04 | Initial authoring (D-313; ADR-015 D-15.1 single-stream FileSink routing contract). |
 | 1.1 | 2026-05-06 | D-318 — capability confirmed CAP-029; story anchor S-10.02 added; future-implementation witnesses added. |
 | 1.2 | 2026-05-06 | D-322 — F-1 fix: Postcondition 2 + Invariant 3 reworded — Router/SinkRegistry/DlqWriter are deprecated TYPES within the kept `sink-core` crate; only `sink-otel-grpc` CRATE is excluded from `default-members`. F-11 fix: CAP-029 paraphrase-as-quote replaced with proper non-quoted reference per capabilities.md §CAP-029. |
+| 1.3 | 2026-05-06 | D-325 — F-5 fix: BC-1.05.036 Postcondition 4 citation contextualized in Description — PC4 is the `emit_internal` Some/None bifurcation (correct reference verified against BC-1.05.036). F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimer added to Architecture Anchors code symbol reference. F-15 fix: Architecture Anchor reworded — `Sink` trait is KEPT in `sink-core`; only the Router wiring in `factory-dispatcher::sinks` is retired (sibling-sweep from BC-1.12.007 D-322 F-16 fix). |
 
 ### TD-VSDD-092 (BC-SOUL4-coverage) Verification
 

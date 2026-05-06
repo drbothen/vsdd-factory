@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -273,7 +273,7 @@ S-10.04 (Wave 1: Trace propagation + lifecycle event types — registry entries 
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| L2 Capability | CAP-029 |
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC governs the compile-time event-name registry (D-15.2.a), per-event host stamping, and the `dispatcher_version` stamping fix — all of which determine the content correctness of every event written to the single `events-*.jsonl` stream that CAP-029 defines. The registry ensures event.category is accurately derived before each record reaches FileSink; without it, the stream's semantic structure (which events are lifecycle vs domain vs audit) would be undefined. |
 | L2 Domain Invariants | DI-017 (renamed by ADR-015 v1.7 from dispatcher_trace_id → trace_id; this BC stamps `trace_id` at emit time as a per-event host-owned identity field; every event in the single stream must carry `trace_id` — see Postcondition 1 trace_id row) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/mod.rs` (`HostContext::emit_internal` bifurcation, per-event stamping), `factory-dispatcher::main::plugin_version_stamp_call_site` (plugin.version bug fix) |
@@ -320,3 +320,4 @@ Source-walk for silent-discard patterns in per-event stamping and `emit_internal
 | v1.0 | 2026-05-06 | Initial authoring (D-315). Per-event host stamping, emit_internal Some/None bifurcation, event.category compile-time registry per ADR-015 D-15.2/D-15.2.a/D-15.2.b. |
 | v1.1 | 2026-05-06 | D-315/D-316 amendments — cap-anchor justification, edge case sharpening. |
 | v1.2 | 2026-05-06 | D-319 — F-3 fix: Story Anchor + Stories cell extended with S-10.04 (POLICY 8 reverse-direction drift from D-316 closed). |
+| v1.3 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: Architecture Anchors already carry `Stable anchor per TD-VSDD-091` on code symbol references (`HostContext::emit_internal`, `factory-dispatcher::main::plugin_version_stamp_call_site`); stable-anchor discipline confirmed applied. |

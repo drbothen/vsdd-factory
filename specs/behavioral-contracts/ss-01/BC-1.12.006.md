@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -116,9 +116,13 @@ Test Vectors describe post-Wave-1 behavior.
 
 - `crates/factory-dispatcher/src/main.rs` — the `HookResult::Block` branch in
   the plugin-invocation result handler; audit event emission added here in
-  S-10.04 before the `std::process::exit(2)` call
+  S-10.04 before the `std::process::exit(2)` call. [Stable anchor per TD-VSDD-091;
+  line numbers are not authoritative — use the branch/function name as the canonical
+  reference.]
 - `crates/factory-dispatcher/src/host/emit_event.rs` — standard per-event
-  stamping path (block-audit event goes through this same path)
+  stamping path (block-audit event goes through this same path). [Stable anchor per
+  TD-VSDD-091; line numbers are not authoritative — use the function/module name as
+  the canonical reference.]
 - ADR-015 D-15.3 — "When a plugin returns `HookResult::Block`, the dispatcher
   emits a `vsdd.block.plugin_blocked.v1` event with `outcome=blocked`,
   `plugin.name`, and `hook.tool_name` before exiting. Block path now has an
@@ -169,10 +173,10 @@ trail is a D-15.3 lifecycle event type deliverable)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| L2 Capability | CAP-029 |
 | Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. BC-1.12.006 governs single-stream emission of `vsdd.block.plugin_blocked.v1` audit events when a plugin returns HookResult::Block. Per CAP-029, every dispatched hook event appears as a parseable JSONL line on the single observability stream — this BC specifies the audit-event subset of CAP-029's surface. The BC's Postconditions 1–7 are entirely about FileSink emission path, field stamping, registry-derived `event.category=audit`, and emit-before-exit ordering — all single-stream-emission concerns that fall squarely within CAP-029's capability boundary. |
 | Secondary Capability Reference | CAP-008 ("Gate tool calls with pre-execution behavioral checks (PreToolUse hooks)") per capabilities.md §CAP-008. CAP-008 is the upstream gating capability whose decisions this BC's audit events observe. CAP-008 produces the `HookResult::Block` decision; CAP-029 (via this BC) emits the audit trail of that decision on the single observability stream. The two capabilities together close the auditability loop for PreToolUse hook gating: CAP-008 enforces the block; BC-1.12.006 (under CAP-029) makes the enforcement observable and auditable. |
-| L2 Domain Invariants | TBD |
+| L2 Domain Invariants | (no domain invariants directly enforced; emit-before-exit ordering and audit-event emission are specified entirely by this BC's postconditions and invariants; DI-017 trace_id-on-every-event is satisfied by the per-event host stamping applied to block-audit events per BC-1.12.004 PC1, not by this BC directly) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (`HookResult::Block` branch; audit event emission before exit) |
 | Stories | S-10.04 (Wave 1: Trace propagation + lifecycle event types; block audit trail) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
@@ -208,3 +212,4 @@ Block-path audit emission source-walk:
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (D-313; ADR-015 D-15.3 block-path audit-event emission). |
 | 1.1 | 2026-05-06 | D-318/D-322 — capability re-anchored CAP-008 → CAP-029 primary + CAP-008 secondary (single-stream audit emission with gating cross-reference). F-13 fix: exit code 2 in Description cited to BC-1.08.001 as authoritative source for `HookResult::Block` exit-code semantics. F-7 fix: Changelog section added. |
+| 1.2 | 2026-05-06 | D-325 — F-6 fix: L2 Domain Invariants TBD resolved — no domain invariants directly enforced; emit-before-exit ordering is BC-postcondition-only; DI-017 satisfied by BC-1.12.004 per-event stamping, not this BC directly. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimers added to Architecture Anchor code path references (`main.rs` HookResult::Block branch; `emit_event.rs` per-event stamping path). |

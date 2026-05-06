@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -184,7 +184,7 @@ S-10.02 (Wave 1: FileSink single-stream wiring; includes debug-stream gate)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-010 ("Always-on dispatcher self-telemetry independent of sink config") per capabilities.md §CAP-010 |
+| L2 Capability | CAP-010 |
 | Capability Anchor Justification | CAP-010 ("Always-on dispatcher self-telemetry independent of sink config") per capabilities.md §CAP-010. This BC governs the `dispatcher-internal-*.jsonl` self-telemetry file, which is exactly the always-on debug/audit mechanism that CAP-010 defines. ADR-015 D-15.1 amends the always-on guarantee to be opt-in via `VSDD_DEBUG_LOG=1`; CAP-010 is the correct anchor because the capability's purpose (providing an independent telemetry channel) is unchanged — only its activation model is amended. |
 | L2 Domain Invariants | DI-007 (amended by ADR-015 D-15.1 — debug stream opt-in; this BC is the enforcing contract for the amended invariant); DI-008 (reaffirmed by ADR-015 D-15.1 — filename pattern `dispatcher-internal-YYYY-MM-DD.jsonl` unchanged; timestamp-derived naming applies to the opt-in debug stream) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/internal_log.rs`, `crates/factory-dispatcher/src/main.rs` (gate check) |
@@ -209,6 +209,7 @@ S-10.02 (Wave 1: FileSink single-stream wiring; includes debug-stream gate)
 | v1.0 | 2026-05-06 | Initial authoring (D-310 Phase 1a). |
 | v1.1 | 2026-05-06 | OQ-W16-011 resolution (D-311). Two-key gate semantics: env var dominates when present; `debug_log_enabled` config key governs when env var absent (12-factor override). Description rewritten; Invariants 1–5 updated; Postconditions 1–5 updated; EC-007 amended from "MAY" to "MUST"; EC-007b added for env-var-beats-config case. |
 | v1.2 | 2026-05-06 | D-315 F-13 + F-4 BC-side. H1 tightened: "or" replaced with explicit 12-factor precedence (env var dominates / config key governs when env var absent). Description updated to match H1 precision. L2 Domain Invariants populated: DI-007 (amended — debug stream opt-in) + DI-008 (reaffirmed — filename pattern unchanged). |
+| v1.3 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-010`. F-14 sweep: Architecture Anchors reviewed; no code symbol references present (all anchors are file/config paths and ADR citations); no stable-anchor disclaimer needed for this BC. |
 
 ### TD-VSDD-092 (BC-SOUL4-coverage) Verification
 
