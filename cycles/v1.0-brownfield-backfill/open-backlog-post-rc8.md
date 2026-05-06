@@ -60,3 +60,29 @@
 | Cargo defaults `[lib] name` to underscore-converted package name | block-ai-attribution + capture-pr-activity crashed silently for weeks because registry expected hyphens but cdylib produced underscores | `[[bin]] name = "hyphenated"` is the only path; document in plugin-marketplace-architecture.md (already done) |
 | Self-referential same-repo `git-subdir` is broken empirically (works for cross-repo) | rc.6 attempted git-subdir within same repo as marketplace; cache stayed empty | Always split marketplace into a separate repo when nested layout is involved |
 | `hooks.json` is per-machine output of activate; tests should assert against `hooks-registry.toml` | rc.7 untracked hooks.json correctly per S-0.4, broke 11 bats suites that asserted against it | Done in rc.8 — bats migrated to registry assertions via `tests/helpers/registry.bash` |
+
+## New from D-283 (2026-05-05)
+
+## TD-VSDD-088-HOOK — Pre-dispatch hook for orchestrator-routing rule mechanical enforcement
+
+**Source:** TD-VSDD-088 (codified D-283 / 2026-05-05)
+
+**Class:** Mechanical enforcement of orchestrator-routing rule (TD-VSDD-088). Without a hook, the rule depends on orchestrator narrative discipline — which has demonstrably failed across 22 prior fix bursts.
+
+**Hook design:** Pre-dispatch validator inspects the Agent tool's `subagent_type` + `prompt` parameters. If `subagent_type == "vsdd-factory:state-manager"` AND the prompt contains keywords matching substantive BC content edit patterns (e.g., "Postcondition", "Edge Case row", "Test Vector row", "rewrite Postcondition", "add EC", "rewrite EC", "Add new EC", "amend Postcondition", "mechanism description"), reject the dispatch with error message: "Routing violation per TD-VSDD-088 NORMATIVE: BC content authorship must dispatch to product-owner or architect first; state-manager runs LAST per POLICY 3."
+
+**Implementation surface:** Either (a) Claude Code hook (PreToolUse on Agent tool); (b) orchestrator self-check at dispatch-time using a pattern-match function; (c) plugin-level hook in the orchestrator agent prompt enforcing the rule.
+
+**Acceptance criteria:**
+- Hook detects 100% of state-manager dispatches that contain BC content authorship instructions
+- Hook does NOT false-positive on legitimate state-manager dispatches (STATE.md updates, lessons.md codifications, STORY-INDEX bumps, seal commits)
+- Hook produces a clear error message citing TD-VSDD-088 and listing the offending keywords
+
+**Priority:** HIGH (the user explicitly requested stronger routing enforcement; TD-VSDD-088 narrative discipline alone is insufficient given the 22-burst drift history)
+
+**Estimated effort:** Small (single hook script; extends the validate-bc-terminology-family.sh pattern proposed under TD-VSDD-080)
+
+**Status:** OPEN — to be implemented in a future maintenance burst or as part of factory-engine work
+
+**Date:** 2026-05-05
+**Burst:** D-283

@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.36"
+version: "1.37"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -495,6 +495,9 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.32 | 2026-05-05 | state-manager | D-278 sibling-mechanism-sweep fix burst — HIGH-P35-001 (BC-1.05.035: EC-002 + Postcondition 4 + Ladder step (3) corrected from `..` scan mechanism to actual `canonical_path.starts_with(project_root)` prefix check; Path::canonicalize() resolves all `..` segments away — sibling-class error to NUL-byte mechanism caught at v1.30); MED-P35-001 (BC-1.05.035 Postcondition 3: "existing semantics preserved" replaced with explicit BEHAVIOR CHANGE disclosure — missing-binary -99 → -1); MED-P35-002 (BC-1.05.035 §Related BCs BC-1.05.036 row: reverse-direction sibling-disclosure NOTE added for success-path event class novelty); MED-P35-003 (BC-1.05.036 Postcondition 4: ADR-015 line-number citations replaced with stable quoted-phrase anchors); LOW-P35-001/002 SKIPPED per S-7.03; TD-VSDD-082 codified (Sibling-mechanism sweep + bidirectional-sibling-disclosure). |
 | 1.33 | 2026-05-05 | state-manager | D-279 architectural-reframe burst — HIGH-P36-001 + HIGH-P36-002 closed via architectural reframe: dropped "trusted project-root prefix" coinage, dropped "symlink_traversal_escape" concept, dropped novel INVALID_ARGUMENT+capability_denied pairing. BC-1.05.035 reframed around TOCTOU prevention — canonicalization feeds canonical path to existing `binary_allowed()` check; symlink resolving to non-allow-list path becomes normal allow-list miss → CAPABILITY_DENIED (-1) via existing emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155. MED-P36-001/002/003 + LOW-P36-001 closed. BC-1.05.036 §Related BCs NOTE updated (novel pairing dropped). TD-VSDD-083 codified (architectural-concept-anchoring rule). ADR-013 clock RESET 0_of_3. |
 | 1.34 | — | — | (reserved) |
+| 1.35 | 2026-05-05 | state-manager | D-281 failure-mode coverage matrix seal-and-fix — pass-38 3H/4M/3L; TV witnesses (signal-death row 4/5/6) + signal-death EC-009 + emit IO P6/EC-010/OQ-W16-003 + Mutex poison EC-011/OQ-W16-004 + stdout_bytes timing EC-006 + input bounds note + EC-008/009/010 (symlink loop/directory/ENAMETOOLONG) + NFD/NFC cross-platform note/OQ-W16-006; TD-VSDD-085 NORMATIVE codified. ADR-013 clock RESET 0_of_3. |
+| 1.36 | 2026-05-05 | state-manager | D-282 diff-only-of-v1.35 + TD-VSDD-085 self-app seal-and-fix — pass-39 3H/5M/2L; OQ-W16-005 filed + markdown table arity merged inline across 6 EC rows (2 BCs) + 3 TV witnesses (rows 10/11/12: signal-death/emit-IO/Mutex-poison); EC-005/EC-009 step-refs corrected; P1 signal-death wording; input-bounds caller mapping; TD-VSDD-085 recurrence accounting unified; TD-VSDD-086/087 codified. ADR-013 clock RESET 0_of_3. |
+| 1.37 | 2026-05-05 | product-owner (Phase 1) + state-manager (Phase 2) | D-283 contract-completeness seal-and-fix — FIRST PO-authored burst per TD-VSDD-088 corrected routing. Pass-40 5H/5M/2L: HIGH-P40-001 internal_log.write source-truth correction (returns () not Result; eprintln not silent); HIGH-P40-002 internal_log:None branch; HIGH-P40-003 OUTPUT_TOO_LARGE split EC-005A/5B; HIGH-P40-004 cwd_allow unenforcement disclosed + OQ-W16-007; HIGH-P40-005 panic-handling spec + OQ-W16-008; MED-P40-001..004 (args lossy UTF-8; timeout_ms=0/max_output_bytes=0 boundaries; env_allow silent-skip; binary_allow pathological-config); LOW-P40-001/002 closed. TD-VSDD-088 NORMATIVE codified (orchestrator-routing rule). ADR-013 clock RESET 0_of_3. |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1856,3 +1859,40 @@ v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §
 **TD-VSDD-064 sequential-burst protocol applied (twenty-fourth use):** State-manager handles pass-39 seal and diff-only + self-app fix burst atomically.
 
 **No new BCs or VPs added (scope discipline maintained). 1 new OQ added (OQ-W16-005). 2 new lessons (TD-VSDD-086/087).**
+
+### v1.37 (D-283 — contract-completeness seal-and-fix; FIRST PO-authored burst)
+
+**Pass-40 verdict:** SUBSTANTIVE. 5 HIGH / 5 MEDIUM / 2 LOW. Angle: contract-completeness audit (NEW per TD-VSDD-057) — treats the BC pair as a black-box specification, enumerates every distinguishable input state crossed with every capability-state, and verifies the BC pair specifies a (return code, event class, side-effect) outcome for each cell. Structural rather than narrative angle; derives contract domain/codomain from `register()` (host/exec_subprocess.rs:33-95) and the error code set (host/mod.rs:178-185).
+
+**Routing pattern shift — FIRST PO-authored burst (TD-VSDD-088):** D-283 is the FIRST burst applying the corrected TD-VSDD-088 routing pattern. Product-owner (Phase 1) read source-of-truth files (internal_log.rs:228, registry.rs:83, exec_subprocess.rs:127/248-250/270/278-283/101-109) and authored all BC content fixes to BC-1.05.035 and BC-1.05.036. State-manager (Phase 2, this burst) codified TD-VSDD-088, filed TD-VSDD-088-HOOK backlog ticket, and sealed the single commit per POLICY 3 + TD-VSDD-053.
+
+**HIGH findings (5):**
+
+- **HIGH-P40-001 CLOSED — internal_log.write return-type source-of-truth correction:** BC-1.05.036 P6/EC-010/TV row 11 described `log.write` returning Err that is "silently discarded" — contradicts source: `internal_log.rs:228` declares `pub fn write(&self, event: &InternalEvent)` returning `()` not `Result`; IO failure path eprintln!s to stderr (NOT silent). 4th-generation TD-VSDD-081 violation; both D-281 and D-282 cited host/mod.rs:111 without verifying the function signature. PO corrected P6/EC-010/TV row 11 to describe actual mechanism.
+- **HIGH-P40-002 CLOSED — internal_log: None branch unspecified:** Production wiring sets `internal_log: Some(...)`; test helpers set `None` (host/mod.rs:96). In the None branch at host/mod.rs:110, `log.write` is never called — TV row 11's premise unreachable in standard test fixtures. PO added P4 bifurcation note + TV row covering the None branch.
+- **HIGH-P40-003 CLOSED — Two distinct OUTPUT_TOO_LARGE paths conflated:** exec_subprocess.rs:86-88 (result_buf_cap overflow, recoverable) vs :278-283 (max_output_bytes policy violation, not recoverable) were both described only by EC-005. PO split EC-005 into 5A (subprocess-output-overflow) + 5B (result_buf_cap-overflow); documented 12-byte envelope overhead from encode_envelope at exec_subprocess.rs:101-109.
+- **HIGH-P40-004 CLOSED — cwd_allow unenforcement disclosed:** registry.rs:83 declares `pub cwd_allow: Vec<String>` but exec_subprocess.rs:248-250 uses `ctx.cwd` directly with NO consultation of `caps.cwd_allow` — a no-op field. Security gap: operators reading the BC pair would assume enforcement. PO added EC explicitly stating cwd_allow no-op semantics. OQ-W16-007 filed.
+- **HIGH-P40-005 CLOSED — Host-side panic semantics specified for canonicalize expansion:** Adding canonicalize to the host call expands panic surface without specifying behavior. PO added panic-handling spec. OQ-W16-008 filed.
+
+**MEDIUM findings (5):**
+
+- **MED-P40-001 CLOSED — args non-UTF-8 silent lossy conversion:** exec_subprocess.rs:127 uses `String::from_utf8_lossy` for args (lossy U+FFFD substitution) while BC-035 P2 specifies cmd strict UTF-8 enforcement. Asymmetric; PO added EC documenting the asymmetry.
+- **MED-P40-002 CLOSED — timeout_ms=0 and max_output_bytes=0 boundary semantics:** `timeout_ms=0` causes immediate TIMEOUT; `max_output_bytes=0` causes any-output-fails. Both surprising; PO added ECs for both edge cases.
+- **MED-P40-003 CLOSED — env_allow absent-name silent skip:** Plugin cannot distinguish "name set to empty" from "name absent from dispatcher env" (exec_subprocess.rs:243-247). PO added EC documenting silent-skip best-effort env-forwarding.
+- **MED-P40-004 CLOSED — binary_allow pathological-config not specified:** `binary_allow = ["passwd"]` allows `../etc/passwd` via canonicalize+basename match. Operator audit responsibility unstated. PO added sibling EC.
+- **MED-P40-005:** Closed by HIGH-P40-002 P4 bifurcation fix.
+
+**LOW findings (2):**
+
+- **LOW-P40-001 CLOSED — cmd="" empty-string case added to EC list.**
+- **LOW-P40-002:** Closed by HIGH-P40-003 EC-005B fix (encode_envelope 12-byte overhead surfaced).
+
+**Codified:** TD-VSDD-088 (orchestrator-routing rule NORMATIVE — orchestrator must route BC content authorship to PO/architect, NOT state-manager; see lessons.md). TD-VSDD-088-HOOK filed as backlog ticket in open-backlog-post-rc8.md.
+
+**New OQs filed:** OQ-W16-007 (cwd_allow enforcement — currently no-op; security observability gap); OQ-W16-008 (host-call panic-handling spec for canonicalize expansion).
+
+**ADR-013 clock:** RESET 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (41/42/43) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 1.89 → 1.90.
+
+**No new BCs or VPs added (scope discipline maintained). 2 new OQs added (OQ-W16-007/008). 1 new lesson (TD-VSDD-088 NORMATIVE).**

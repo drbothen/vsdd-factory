@@ -807,3 +807,32 @@ This is a class of error TD-VSDD-076/078/079/080/081/082 do NOT catch: introduci
 
 **Date:** 2026-05-05
 **Burst:** D-282 (E-9 v1.35 → v1.36)
+
+---
+
+## TD-VSDD-088 — Orchestrator must route fix bursts to authoring agents (PO/architect), NOT use state-manager as fingers-on-keyboard
+
+**Source:** User feedback during D-283 burst, post-pass-40 HIGH-P40-001 (4th-generation TD-VSDD-081 violation)
+
+**Class:** When the orchestrator dispatches a fix burst that includes substantive BC content edits (new ECs, new TVs, new Postconditions, mechanism-description rewrites), the burst MUST route the BC content authorship to product-owner (or architect for ADR-class architectural reframes) — NOT to state-manager. State-manager's role is restricted to STATE.md / STORY-INDEX / lessons.md updates and the single seal commit (per POLICY 3 state-manager-runs-last + TD-VSDD-053 single-commit-burst).
+
+**Symptom that motivated codification:** Across 22 fix bursts (D-261..D-282), the orchestrator drifted into a pattern of pre-designing BC content fixes in dispatch prompts and using state-manager to mechanically apply them. This produced two layers of role-drift: (1) orchestrator doing PO/architect authoring work; (2) state-manager executing pre-designed content without exercising fresh-context spec-author judgment. The drift correlates with 9+ burst-induced self-violations including HIGH-P40-001 — the BC pair claims `log.write` returns Err that's "silently discarded" at host/mod.rs:111 across 3 sites (P6 + EC-010 + TV row 11), but `internal_log.rs:228` shows `pub fn write` returns `()` not Result, and the IO-failure path eprintln!s to stderr. This mis-description was introduced in D-281 to close pass-38 MED-P38-002, then re-confirmed in D-282 with TV row 11 — both bursts cited line 111 without verifying the function signature because state-manager mechanically followed the orchestrator's pre-designed prose.
+
+**Codification (NORMATIVE):**
+
+The orchestrator MUST observe these routing rules for fix bursts:
+
+1. **BC content edits** (Postconditions, Edge Cases, Test Vectors, mechanism descriptions, traceability rows, anchors): dispatch `product-owner` for authorship.
+2. **Architectural reframes** (ADR-class changes, capability cluster restructuring): dispatch `architect` for authorship.
+3. **STATE.md / STORY-INDEX / lessons.md / epic changelog / pass-N review file persistence / git commit**: dispatch `state-manager` LAST in the burst.
+4. **Single-commit-burst preserved** (TD-VSDD-053): authoring agent stages files via scoped `git add` but does NOT commit; state-manager picks up staged work, adds its own staged updates, and makes the single seal commit.
+5. **Orchestrator dispatch prompts MUST NOT contain pre-designed BC prose for authoring agent to mechanically apply.** The dispatch prompt MAY summarize findings, point to source-of-truth files, and state recommended directions — but the authoring agent MUST exercise spec-author judgment when authoring text. Pre-designing prose in dispatch defeats the purpose of fresh-context routing.
+
+**Severity when violated:** HIGH (orchestrator structural error; correlates with content defect recurrence per the 22-burst pattern)
+
+**Mechanization candidate:** A pre-dispatch hook should detect when the orchestrator's task description for state-manager includes substantive BC content edits (Postcondition rewrite, EC addition, TV addition, mechanism description) and reject the dispatch with a routing-violation error. The hook would parse the task description for keywords like "Postcondition", "Edge Case", "Test Vector", "rewrite ... to describe" and require the dispatch agent be product-owner or architect, not state-manager. **Filed as backlog ticket TD-VSDD-088-HOOK in `cycles/v1.0-brownfield-backfill/open-backlog-post-rc8.md`.**
+
+**S-7.02 threshold:** This is a meta-pattern (governing the orchestrator itself, not artifact content). Recurrence is the 22-burst pattern in aggregate. Codified preemptively as NORMATIVE because (a) the user has explicitly requested stronger routing enforcement; (b) the pattern's correlate (content-defect recurrence including HIGH-P40-001) exceeds 3+ instances; (c) the mechanization candidate is straightforward to implement.
+
+**Date:** 2026-05-05
+**Burst:** D-283 (E-9 v1.36 → v1.37; FIRST application of corrected routing pattern)

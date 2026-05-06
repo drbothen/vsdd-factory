@@ -137,3 +137,65 @@ last_amended: 2026-05-05
 **Resolution path:** Default = (a) for W-16 scope (all S-9.0N stories use ASCII-only `bash` binary). Monitor if allow-list entries ever gain non-ASCII content.
 
 **Decision needed by:** Any story introducing non-ASCII binary allow-list entries
+
+---
+
+## OQ-W16-007 — `cwd_allow` enforcement and `env_allow` absent-name behavior in exec_subprocess
+
+**Source:** BC-1.05.036 EC-012 (cwd_allow unenforcement) and EC-014 (env_allow silent-skip) added in D-283 pass-40 HIGH-P40-004 and MED-P40-003 closure.
+**Status:** OPEN
+**Owner:** SS-01 implementer or E-9 Wave 1 architect
+**Filed:** 2026-05-05
+
+**Question (two related issues):**
+
+**(a) cwd_allow:** `ExecSubprocessCaps.cwd_allow: Vec<String>` is declared in `registry.rs:83` but the `execute_bounded` function at `exec_subprocess.rs:248-250` uses `ctx.cwd` directly — `if !cwd.as_os_str().is_empty() { command.current_dir(cwd); }` — without consulting `caps.cwd_allow`. The field is stored in the registry but has no enforcement effect in v1. Operators populating `cwd_allow` to restrict subprocess working directory receive no actual enforcement.
+
+**(b) env_allow absent-name:** At exec_subprocess.rs:243-247: `for name in &caps.env_allow { if let Some(val) = env_view.get(name) { command.env(name, val); } }` — names in `env_allow` that are absent from `ctx.env_view` are silently omitted. No event is emitted. A plugin cannot distinguish "variable was set to empty string in dispatcher env" from "variable was absent from dispatcher env".
+
+**Acceptance criterion (binary for each):**
+
+For `cwd_allow` enforcement:
+- (a) v1 retains no-op as documented in BC-1.05.036 EC-012 — `cwd_allow` field is config-only with no enforcement effect; OR
+- (b) v2 adds enforcement: after canonicalize succeeds and binary_allow passes, check `ctx.cwd` against `caps.cwd_allow`; if `cwd_allow` is non-empty and `ctx.cwd` is not on the list → `emit_denial(ctx, cmd, "cwd_not_on_allow_list", details)` → `CAPABILITY_DENIED` (-1); BC-1.05.036 EC-012 updated accordingly.
+
+For `env_allow` absent-name:
+- (a) v1 retains silent-omit as documented in BC-1.05.036 EC-014 — best-effort env-forwarding; OR
+- (b) v2 adds a debug-level `internal.env_var_not_forwarded` event (not an error; informational) when a listed name is absent from env_view; BC-1.05.036 EC-014 updated accordingly.
+
+**Why this matters:** `cwd_allow` enforcement: operators may believe they are restricting subprocess working directories when no enforcement is occurring — a silent security policy gap. `env_allow` absent-name: plugins cannot audit which env vars were actually forwarded, creating observability gaps for debugging permission issues.
+
+**Resolution path:** Default v1 = (a) for both, as documented. `cwd_allow` enforcement is the higher-priority item; it should be addressed in any security hardening pass on exec_subprocess. `env_allow` absent-name can be addressed opportunistically.
+
+**Decision needed by:** Next exec_subprocess security hardening story (S-9.07 or follow-on)
+
+---
+
+## OQ-W16-008 — Host-call panic handling and `args` non-UTF-8 lossy conversion in exec_subprocess
+
+**Source:** BC-1.05.035 EC-014 (panic propagation — no catch_unwind) and EC-012 (args lossy UTF-8) added in D-283 pass-40 HIGH-P40-005 and MED-P40-001 closure.
+**Status:** OPEN
+**Owner:** SS-01 implementer or E-9 Wave 1 architect
+**Filed:** 2026-05-05
+
+**Question (two related issues):**
+
+**(a) Host-call panic handling:** No `catch_unwind` wraps the host-call surface in `exec_subprocess.rs`. If any std-lib call in the canonicalize/allow-check/spawn chain panics (e.g., an unexpected OS-layer failure in `Path::canonicalize()`), the panic propagates uncaught to the wasmtime host-call boundary. Wasmtime converts it to a wasmtime `Trap`. The `internal.host_function_panic` event class (`INTERNAL_HOST_FUNCTION_PANIC` at internal_log.rs:83) is declared but the emit call is NOT implemented in `exec_subprocess` (host/mod.rs:72 comment references a planned `internal.host_function_panic` implementation). Panics in host calls are therefore unobservable in v1.
+
+**(b) `args` non-UTF-8 lossy conversion:** At `exec_subprocess.rs:127`, argument bytes are decoded using `String::from_utf8_lossy(&bytes[i..i+len]).into_owned()`. Non-UTF-8 bytes are silently replaced with U+FFFD replacement characters. This is asymmetric with `cmd` strict UTF-8 enforcement (`read_wasm_string` returns `INVALID_ARGUMENT` for non-UTF-8 `cmd`). A plugin can inadvertently pass mangled arguments to a subprocess with no error signal.
+
+**Acceptance criterion (binary for each):**
+
+For panic handling:
+- (a) v1 retains panic-propagates-as-Trap behavior as documented in BC-1.05.035 EC-014 and Panic semantics note — no change; OR
+- (b) future version wraps the host-call body in `std::panic::catch_unwind`; on panic: emits `INTERNAL_HOST_FUNCTION_PANIC` event via `ctx.emit_internal` (best-effort); returns `codes::INTERNAL_ERROR` (-99) to the plugin rather than propagating a Trap. BC-1.05.035 Postcondition/panic note and EC-014 updated accordingly.
+
+For `args` non-UTF-8:
+- (a) v1 retains lossy substitution as documented in BC-1.05.035 EC-012 — no change; OR
+- (b) future version symmetrizes: validate each arg with `String::from_utf8` (strict); return `INVALID_ARGUMENT` (-4) on non-UTF-8 arg bytes; BC-1.05.035 EC-012 updated accordingly.
+
+**Why this matters:** Panic handling: unhandled panics in host calls produce wasmtime Traps which may crash or destabilize the plugin invocation without any audit trail or operator signal. The `INTERNAL_HOST_FUNCTION_PANIC` event class exists in the codebase specifically to address this — its absence from exec_subprocess is a known gap. `args` non-UTF-8: silent mangling may cause cryptic subprocess failures when non-UTF-8 plugin-controlled data is passed as arguments; the asymmetry with `cmd` encoding creates a footgun for plugin authors.
+
+**Resolution path:** Default v1 = (a) for both. Panic handling (b) is the higher-priority item for security observability; consider addressing alongside the `INTERNAL_HOST_FUNCTION_PANIC` implementation referenced in host/mod.rs:72. `args` symmetry (b) is a usability improvement; can be addressed in a future ABI-compatible pass (no ABI break required — returning INVALID_ARGUMENT for invalid args was already the behavior if the length-prefix encoding was malformed).
+
+**Decision needed by:** Any story implementing `INTERNAL_HOST_FUNCTION_PANIC` event emission (host/mod.rs:72 TODO); or next security hardening pass on exec_subprocess
