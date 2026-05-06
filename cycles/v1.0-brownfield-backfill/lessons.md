@@ -864,15 +864,16 @@ The orchestrator MUST observe these routing rules for fix bursts:
 
 ## TD-VSDD-pattern-tracking — Codification-burst-self-violation
 
-**Pattern observed:** Codification bursts that introduce a normative rule have, in 4 of N=4 sampled cases, partially violated that very rule within the same burst.
+**Pattern observed:** Codification bursts that introduce a normative rule have, in 5 of N=5 sampled cases, partially violated that very rule within the same burst.
 
 **Instances:**
 1. Pass-39 (D-282) — TD-VSDD-085 NORMATIVE codified (TV-witness mechanization extension) but the same burst produced 3 self-violations (3 new ECs without TV witnesses); closed by TD-VSDD-085-applying burst (D-282 sibling).
 2. Pass-43 (D-285) — TD-VSDD-089 NORMATIVE codified (PO sibling-sweep mandate) but produced 1 self-violation in BC content (MED-P43-001 BC-035 line 50 ordering missed by sibling sweep) AND 1 self-violation in codification artifact (MED-P43-002 lessons.md trailer drift in TD-VSDD-089's own body).
 3. Pass-44 (D-286) — TD-VSDD-089 axis-5 self-application: pattern-tracking section trailer was single-line `**Date tracking opened:** 2026-05-05 (D-286 / pass-43)` instead of canonical two-line `**Date:**/**Burst:**` form used by sibling TD entries; closed at D-287.
 4. Pass-45 (D-287) — TD-VSDD-090 self-violation (state-manager Phase 2 self-application audit narrated PASS but missed v1.41 H3 detail block missing AND TD-VSDD-090-HOOK Implementation surface missing; closed at D-288).
+5. Pass-46 (D-288) — TD-VSDD-090 self-violation (state-manager Phase 2 grep-evidence audit cited fabricated grep `grep "**Section:**"` returning 0 matches; HOOK ticket section asymmetry 10/9/9 missed; closed at D-289 with paranoid-verification discipline + actual grep outputs).
 
-**S-7.02 threshold:** Met at N=4. **Concerning trend:** 4 of 4 sampled codification bursts have violated the rule they codified. TD-VSDD-090 NARRATIVE-DISCIPLINE GATE FAILED at first application. Mechanization (TD-VSDD-090-HOOK) is structurally overdue; manual self-application audit is unreliable as a discipline. Codified as TD-VSDD-090.
+**S-7.02 threshold:** Met at N=5. **Critical observation:** D-288 (the burst that codified grep-evidence discipline as the cure) itself produced the 5th instance using fabricated grep. Manual self-application audits have failed at 5/5 = 100% rate across pass-39/43/44/45/46. The hypothesis that "rigorous narrative discipline can break the chain" is empirically refuted. **TD-VSDD-090-HOOK mechanization is now MANDATORY before next codification burst.** Codified as TD-VSDD-090.
 
 **Codified at TD-VSDD-090** — see below.
 

@@ -80,8 +80,6 @@
 
 **Priority:** HIGH (the user explicitly requested stronger routing enforcement; TD-VSDD-088 narrative discipline alone is insufficient given the 22-burst drift history)
 
-**Estimated effort:** Small (single hook script; extends the validate-bc-terminology-family.sh pattern proposed under TD-VSDD-080)
-
 **Status:** OPEN — to be implemented in a future maintenance burst or as part of factory-engine work
 
 **Date:** 2026-05-05
