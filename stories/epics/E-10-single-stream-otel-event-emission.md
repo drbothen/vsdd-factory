@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-10"
-version: "1.2"
+version: "1.3"
 title: "Single-stream OTel-aligned event emission (ADR-015)"
 status: draft
 anchored_adr: ADR-015
@@ -136,7 +136,52 @@ S-10.08 ──→ S-10.09 (Wave 5)
 | OQ-7 | SS-01 | FileSink partial-write recovery semantics |
 | OQ-8 | SS-01 | Atomic dual-emit host helper (deferred) |
 | OQ-9 | SS-03 | Persistent deprecation registry artifact (post-Wave-3) |
-| OQ-W16-011 | SS-01/SS-03 | `VSDD_DEBUG_LOG=1` env var vs `debug_log_enabled = true` in `observability-config.toml` — precedence and interaction semantics. Decision needed by S-10.02 implementer. Owner: SS-01/SS-03 implementer. Filed D-310; referenced in BC-1.12.002 EC-007. |
+| ~~OQ-W16-011~~ | SS-01/SS-03 | ~~`VSDD_DEBUG_LOG=1` env var vs `debug_log_enabled = true` in `observability-config.toml` — precedence and interaction semantics.~~ RESOLVED D-311 (2026-05-06): 12-factor override semantics chosen. Env var dominates when present; config key governs when absent. BC-1.12.002 amended to v1.1. |
+
+## Architect Routing Decisions (D-311)
+
+These routing decisions were produced by the architect in D-311 to unblock PO Phase 1b/1c
+BC authorship. PO MUST follow these decisions when filing BC-1.12.007 and BC-1.12.008.
+
+### BC-1.12.007 — Deprecation/retirement lifecycle routing
+
+**Subsystem:** SS-01
+**File path:** `ss-01/BC-1.12.007.md`
+**Rationale:** The behavioral invariant being specified is that no production code path
+calls `Router`/`SinkRegistry`/`DlqWriter`/`sink-otel-grpc` after Wave 1. This is a
+dispatcher-hot-path concern enforced by the SS-01 runtime (`main.rs` call graph), not
+by the build system configuration. The `default-members` mutation in the workspace
+`Cargo.toml` is a mechanical consequence of the dispatcher's routing decision, not its
+subject. SS-03 Wave 5 cleanup (spec rewrite, BC-3.* revision/withdrawal, physical crate
+deletion — S-10.09) will have its own SS-03 BC. BC-1.12.007 covers the deprecation
+behavioral guarantee (call-graph invariant); BC-3.05.* covers the Wave 5 retirement
+physical contract.
+
+**TD-015-a note:** The CI `cargo metadata` re-coupling check is deferred per ADR-015
+D-15.1. BC-1.12.007 MUST document this deferral (the check is not a postcondition of
+Wave 1; it is a prerequisite for Wave 5 deletion safety).
+
+### BC-1.12.008 — `observability-config.toml` v2 schema routing
+
+**Subsystem:** SS-03
+**File path:** `ss-03/BC-3.05.001.md`
+**Rationale:** The schema definition (what fields are valid, what versions hard-error,
+what the precedence rule is for `debug_log_enabled` vs `VSDD_DEBUG_LOG`) is owned by
+SS-03. The authoritative text is in SS-03-event-emission.md § `observability-config.toml`
+Schema (OQ-1 resolution). ARCH-INDEX Cross-Cutting Concerns assigns observability
+ownership to SS-03. SS-01's role is to consume the parsed config, not to own its schema.
+
+**Content note for PO:** EC-007 in BC-1.12.002 was the source of OQ-W16-011. That OQ
+is now resolved (D-311). BC-3.05.001 MUST include the resolved two-key gate semantics:
+env var dominates when present; `debug_log_enabled` config key governs when env var
+absent. Quote from SS-03-event-emission.md as the authoritative source for the
+normative precedence text.
+
+### OQ-W16-011 — RESOLVED (D-311)
+
+The `VSDD_DEBUG_LOG` env var vs `debug_log_enabled` config key precedence question is
+RESOLVED. See open-questions.md § OQ-W16-011 for the full resolution text. BC-1.12.002
+has been amended to v1.1 in D-311 with the resolved two-key gate semantics.
 
 ## CHANGELOG
 
@@ -145,3 +190,4 @@ S-10.08 ──→ S-10.09 (Wave 5)
 | v1.0 | 2026-05-04 | Initial authoring from ADR-015 migration plan decomposition. |
 | v1.1 | 2026-05-04 | Story IDs corrected S-T.NN → S-10.NN (Q1); OQ-2 resolved (full Windows registry in S-10.03, Q4); OQ-5 resolved (Grafana dashboards in grafana-dashboards/ dir, Q6); OQ table updated. |
 | v1.2 | 2026-05-06 | D-310 Phase 1a BC authorship complete: 4 new BCs authored (BC-1.12.001..BC-1.12.004 per ADR-015 D-15.1/D-15.2). OQ-W16-011 added to Open Questions table (VSDD_DEBUG_LOG vs debug_log_enabled config precedence; owner SS-01/SS-03 implementer; decision needed by S-10.02). Per TD-VSDD-071 OQ-propagation-to-epic. |
+| v1.3 | 2026-05-06 | D-311 architect routing burst. OQ-W16-011 RESOLVED (12-factor override semantics; env var dominates when present; config key governs when absent). BC-1.12.007 routing: SS-01 (ss-01/BC-1.12.007.md) — dispatcher call-graph behavioral invariant. BC-1.12.008 routing: SS-03 (ss-03/BC-3.05.001.md) — config schema domain. Architect Routing Decisions section added. BC-1.12.002 amended to v1.1. |

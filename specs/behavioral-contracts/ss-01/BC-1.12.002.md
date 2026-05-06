@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -25,19 +25,30 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.12.002: factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by VSDD_DEBUG_LOG=1; off by default in release builds; ADR-007 always-on guarantee amended
+# Behavioral Contract BC-1.12.002: factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by VSDD_DEBUG_LOG=1 env var or debug_log_enabled=true config key; off by default in release builds; ADR-007 always-on guarantee amended
 
 ## Description
 
 ADR-015 D-15.1 amends ADR-007's "always-on" guarantee for the debug file
 `dispatcher-internal-YYYY-MM-DD.jsonl`. After the Wave 1 FileSink rewire, this
-file is an **opt-in debug stream** gated by the `VSDD_DEBUG_LOG=1` environment
-variable. In production (release) builds where `VSDD_DEBUG_LOG` is unset (or
-set to any value other than `"1"`), no writes occur to `dispatcher-internal-*.jsonl`
-on the normal execution path.
+file is an **opt-in debug stream** with a two-key gate:
+
+1. **`VSDD_DEBUG_LOG=1` env var** — when set in the dispatcher process environment,
+   enables the debug stream unconditionally. This is the runtime override.
+2. **`debug_log_enabled = true` in `observability-config.toml`** — when `VSDD_DEBUG_LOG`
+   is NOT set (or is set to any value other than `"1"`), the config key governs.
+   `debug_log_enabled = true` enables the stream; `debug_log_enabled = false` (the
+   default) disables it.
+
+The env var ALWAYS overrides the config key when present (12-factor override semantics
+per SS-03-event-emission.md § `observability-config.toml` Schema and OQ-W16-011
+resolution, D-311 2026-05-06). When `VSDD_DEBUG_LOG` is absent, the config key governs.
+
+In production (release) builds where neither gate is active, no writes occur to
+`dispatcher-internal-*.jsonl` on the normal execution path.
 
 The debug stream remains the unconditional **write-failure fallback** for
-`FileSink` (per BC-1.11.002) regardless of `VSDD_DEBUG_LOG` — this is a
+`FileSink` (per BC-1.11.002) regardless of either gate — this is a
 distinct code path from the gate described in this BC.
 
 This BC is a future-implementation contract for S-10.02 (Wave 1). All
@@ -57,38 +68,53 @@ is distinguishable by the test vectors below.
 
 ## Postconditions
 
-1. When `VSDD_DEBUG_LOG` is NOT set (or is set to a value other than `"1"`),
-   no write to `dispatcher-internal-YYYY-MM-DD.jsonl` occurs on the normal
-   execution path. The file MAY NOT exist at all in this case.
+1. When NEITHER `VSDD_DEBUG_LOG=1` is set NOR `debug_log_enabled = true` appears
+   in `observability-config.toml`, no write to `dispatcher-internal-YYYY-MM-DD.jsonl`
+   occurs on the normal execution path. The file MAY NOT exist at all in this case.
    **Future-implementation witness:** A misimplementation that still writes to
    `dispatcher-internal-*.jsonl` unconditionally (per the pre-Wave-1 always-on
-   behavior) will produce this file even when `VSDD_DEBUG_LOG` is unset. The
-   distinguishing test: run the dispatcher with events emitted; assert
-   `dispatcher-internal-*.jsonl` is absent or has zero new bytes (beyond any
-   pre-existing content) when `VSDD_DEBUG_LOG` is unset.
+   behavior) will produce this file even when both gates are off. The
+   distinguishing test: run the dispatcher with events emitted and both gates off;
+   assert `dispatcher-internal-*.jsonl` is absent or has zero new bytes.
 2. When `VSDD_DEBUG_LOG=1` is set in the dispatcher process environment, writes
    to `dispatcher-internal-YYYY-MM-DD.jsonl` occur for each event emission (in
    addition to the primary `events-*.jsonl` write per BC-1.12.001). The debug
    file receives a supplementary copy of every event written to `events-*.jsonl`.
-3. The `VSDD_DEBUG_LOG` gate is evaluated at the write site, not at startup.
-   A dispatcher started without `VSDD_DEBUG_LOG=1` that later has the variable
-   injected into its environment via a side-channel does not automatically acquire
-   debug writes (OS-level env vars are stable for a process lifetime after exec;
-   this is a non-issue in normal operation).
-4. Operators who relied on `dispatcher-internal-*.jsonl` being present without
+   This is true regardless of the `debug_log_enabled` config key value.
+3. When `VSDD_DEBUG_LOG` is absent (or set to any value other than `"1"`) and
+   `debug_log_enabled = true` is in `observability-config.toml`, writes to
+   `dispatcher-internal-YYYY-MM-DD.jsonl` occur for each event emission (same
+   additive behavior as Postcondition 2). The config key acts as a persistent
+   operator-controlled default.
+4. The gate is evaluated at the write site, not at startup. `VSDD_DEBUG_LOG` is
+   read from the process environment (stable for the process lifetime). The
+   `debug_log_enabled` key is read from the loaded config at startup and held
+   in the dispatcher's `ObservabilityConfig` struct for the process lifetime.
+5. Operators who relied on `dispatcher-internal-*.jsonl` being present without
    configuration (pre-Wave-1 always-on behavior) MUST set `VSDD_DEBUG_LOG=1`
-   to restore that file. This behavioral change is a KNOWN TRADE-OFF per ADR-015
-   Negative consequences (ADR-015 §"ADR-007 always-on guarantee is weakened").
+   OR set `debug_log_enabled = true` in `observability-config.toml` to restore
+   that file. This behavioral change is a KNOWN TRADE-OFF per ADR-015 Negative
+   consequences (ADR-015 §"ADR-007 always-on guarantee is weakened").
 
 ## Invariants
 
-1. `VSDD_DEBUG_LOG=1` is the only supported gate value. Any other non-empty string
-   (`"true"`, `"yes"`, `"on"`) does NOT enable the debug stream. The implementation
-   MUST check for the exact string `"1"`.
-2. The write-failure fallback path to `dispatcher-internal-*.jsonl` (BC-1.11.002)
-   is NEVER gated by `VSDD_DEBUG_LOG`. Fallback writes are unconditional.
-3. Setting `VSDD_DEBUG_LOG=1` does NOT change the primary write destination —
-   `events-*.jsonl` remains the primary stream. The debug file is additive.
+1. **Env var gate:** `VSDD_DEBUG_LOG=1` is the only supported env var value that enables
+   the debug stream. Any other non-empty string (`"true"`, `"yes"`, `"on"`, `"0"`) does
+   NOT enable the debug stream via the env var path. The implementation MUST check for
+   the exact string `"1"`.
+2. **Config key gate:** When `VSDD_DEBUG_LOG` is absent or set to any value other than
+   `"1"`, the `debug_log_enabled` config key in `observability-config.toml` governs.
+   `debug_log_enabled = true` enables the debug stream; `debug_log_enabled = false`
+   (the default) disables it. This is the 12-factor pattern: env var is runtime override;
+   config key is the static default. (OQ-W16-011 resolution, D-311.)
+3. **Env var takes precedence.** When `VSDD_DEBUG_LOG=1` is set, `debug_log_enabled = false`
+   in config does NOT suppress the debug stream. The env var wins unconditionally.
+4. The write-failure fallback path to `dispatcher-internal-*.jsonl` (BC-1.11.002)
+   is NEVER gated by either `VSDD_DEBUG_LOG` or `debug_log_enabled`. Fallback writes
+   are unconditional.
+5. Setting `VSDD_DEBUG_LOG=1` (or `debug_log_enabled = true`) does NOT change the primary
+   write destination — `events-*.jsonl` remains the primary stream. The debug file is
+   additive.
 
 ## Related BCs
 
@@ -127,7 +153,8 @@ S-10.02 (Wave 1: FileSink single-stream wiring; includes debug-stream gate)
 | EC-004 | `VSDD_DEBUG_LOG=0` (explicit disable) | Debug stream is NOT enabled; same as unset; behavior same as EC-001 |
 | EC-005 | `FileSink::write` fails (disk full); `VSDD_DEBUG_LOG` unset | Write-failure fallback (BC-1.11.002) writes to `dispatcher-internal-*.jsonl` unconditionally, bypassing the gate. This EC demonstrates that the fallback is NOT gated by `VSDD_DEBUG_LOG`. |
 | EC-006 | `FileSink::write` fails (disk full); `VSDD_DEBUG_LOG=1` | Fallback write to `dispatcher-internal-*.jsonl` per BC-1.11.002; AND debug supplementary write also triggered. Result: one write to the debug file (fallback + debug supplementary may merge or deduplicate — implementation detail; at minimum the event is written once to the debug file). |
-| EC-007 | `observability-config.toml` has `debug_log_enabled = true`; `VSDD_DEBUG_LOG` unset | The env var `VSDD_DEBUG_LOG=1` takes precedence if set; when unset, the `debug_log_enabled = true` config key MAY also enable the debug stream (implementation-level decision: the config key is a static default; the env var is a runtime override). This is a Phase 1b clarification point — the SS-03 spec owns the config schema. |
+| EC-007 | `observability-config.toml` has `debug_log_enabled = true`; `VSDD_DEBUG_LOG` unset | The `debug_log_enabled = true` config key MUST enable the debug stream when `VSDD_DEBUG_LOG` is absent (12-factor override semantics per OQ-W16-011 resolution, D-311). Writes to `dispatcher-internal-*.jsonl` occur for each event emission, same as when `VSDD_DEBUG_LOG=1`. The config key is the persistent operator-controlled default; the env var is the runtime override. |
+| EC-007b | `observability-config.toml` has `debug_log_enabled = false` AND `VSDD_DEBUG_LOG=1` | The env var wins. Debug stream is ENABLED. `debug_log_enabled = false` does not suppress the env var activation. |
 | EC-008 | Operator upgrades from pre-Wave-1 dispatcher to post-Wave-1; no `VSDD_DEBUG_LOG` set | `dispatcher-internal-*.jsonl` stops being written. Operator's monitoring systems relying on that file receive no new events. Operator MUST set `VSDD_DEBUG_LOG=1` to restore the file. This is a KNOWN BREAKING CHANGE per ADR-015 §Negative consequences. |
 
 ## Canonical Test Vectors
@@ -171,6 +198,13 @@ S-10.02 (Wave 1: FileSink single-stream wiring; includes debug-stream gate)
 | Deterministic | YES given fixed `VSDD_DEBUG_LOG` value |
 | Thread safety | YES — env var read is read-only; `InternalLog` write is bounded to single-threaded dispatcher |
 | Overall classification | Effectful shell (conditional I/O with defined gate semantics) |
+
+## Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-05-06 | Initial authoring (D-310 Phase 1a). |
+| v1.1 | 2026-05-06 | OQ-W16-011 resolution (D-311). Two-key gate semantics: env var dominates when present; `debug_log_enabled` config key governs when env var absent (12-factor override). Description rewritten; Invariants 1–5 updated; Postconditions 1–5 updated; EC-007 amended from "MAY" to "MUST"; EC-007b added for env-var-beats-config case. |
 
 ### TD-VSDD-092 (BC-SOUL4-coverage) Verification
 

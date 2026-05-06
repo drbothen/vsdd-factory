@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: state-manager
 timestamp: 2026-05-06T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1924
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-311 architect routing + OQ-W16-011 resolution: BC-1.12.002 title cell synced to v1.1 H1 verbatim (two-key gate semantics: VSDD_DEBUG_LOG=1 env var OR debug_log_enabled=true config key; ADR-007 always-on guarantee amended). POLICY 7 same-burst sync + HIGH-P59-001 lesson applied. No new BC rows — BC-1.12.007/008 not yet authored."
   - date: 2026-05-06
     change: "D-310 Step (v) Phase 1a: +4 new SS-01 BCs (BC-1.12.001 single-stream FileSink routing, BC-1.12.002 VSDD_DEBUG_LOG gate, BC-1.12.003 Resource attribute startup stamping, BC-1.12.004 per-event host stamping + emit_internal bifurcation + event.category registry). SS-01 count 106→110. Total BCs 1920→1924. OQ-W16-011 added (VSDD_DEBUG_LOG vs debug_log_enabled config precedence). Per ADR-015 D-15.1/D-15.2; POLICY 7 same-burst sync; HIGH-P59-001 lesson applied."
   - date: 2026-05-06
@@ -157,7 +159,7 @@ changelog:
 | [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-TBD | S-10.03 |
 | [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-TBD | Wave 2 TBD |
 | [BC-1.12.001](ss-01/BC-1.12.001.md) | factory-dispatcher::host::emit_event::single_stream_filesink_routing — host::emit_event writes all events exclusively to events-YYYY-MM-DD.jsonl via FileSink; Router/SinkRegistry/DlqWriter retired from production path | draft | CAP-003 | S-10.02 |
-| [BC-1.12.002](ss-01/BC-1.12.002.md) | factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by VSDD_DEBUG_LOG=1; off by default in release builds; ADR-007 always-on guarantee amended | draft | CAP-010 | S-10.02 |
+| [BC-1.12.002](ss-01/BC-1.12.002.md) | factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by VSDD_DEBUG_LOG=1 env var or debug_log_enabled=true config key; off by default in release builds; ADR-007 always-on guarantee amended | draft | CAP-010 | S-10.02 |
 | [BC-1.12.003](ss-01/BC-1.12.003.md) | factory-dispatcher::resource_attributes::startup_stamping — all 15 OTel Resource attributes stamped at dispatcher startup with deterministic fallback cascade; no Resource field absent or null | draft | CAP-003 | S-10.03 |
 | [BC-1.12.004](ss-01/BC-1.12.004.md) | factory-dispatcher::emit_event::per_event_host_stamping_and_internal_bifurcation — per-event OTel fields stamped at emit time; emit_internal Some/None bifurcation post-FileSink-rewire; event.category derived from compile-time registry | draft | CAP-003 | S-10.02 |
 
