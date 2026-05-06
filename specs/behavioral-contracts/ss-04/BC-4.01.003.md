@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts.md:374"
 subsystem: "SS-04"
-capability: "CAP-TBD"
+capability: "CAP-009"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -73,7 +73,8 @@ The legacy-bash-adapter maps bash subprocess exit codes deterministically into `
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (anchor in Phase 1.5) |
+| L2 Capability | CAP-009 — Author and publish WASM hook plugins using the Rust SDK |
+| Capability Anchor Justification | BC-4.01.003 governs the legacy-bash-adapter's brownfield extraction scope: the bash-subprocess exit-code → HookResult mapping that preserves pre-WASM hook behavior during the bash→WASM migration. Per CAP-009 (capabilities.md §CAP-009), the SDK is the surface through which plugin authors ship `.wasm` hooks without touching the dispatcher; the legacy-bash-adapter is the adapter layer that makes existing bash hooks first-class participants in that surface. This BC is the contract for how the adapter maps bash exit codes (0/2/other) to the HookResult variants (`Continue`/`Block`/`Error`) that the dispatcher consumes via the same CAP-009 plugin SDK ABI. Anchoring to CAP-009 ensures the bash-adapter's behavior contract is traceable to the same capability as its native-WASM sibling (BC-4.09.001 is also anchored to CAP-009 for the same reason). |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-04 — `crates/hook-plugins/legacy-bash-adapter/src/lib.rs` (`adapter_logic` exit-code switch) |
 | Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
@@ -112,3 +113,4 @@ The legacy-bash-adapter maps bash subprocess exit codes deterministically into `
 |---------|------|-------------|
 | 1.0 | 2026-04-25 | Initial brownfield extraction (codebase-analyzer; pass-3-behavioral-contracts.md). Postcondition 2 captured pre-rc.12 "first non-empty stderr line" behavior. |
 | 1.1 | 2026-05-06 | D-326 (D-2) — rc.12 alignment: same root cause as BC-4.02.002 D-1. Exit-2 path now captures full stderr trimmed to 4 KiB UTF-8-safe cap, not first line only. Description, Postcondition 2 updated. EC-002 and EC-003 added for multi-line and truncation edge cases. Pre-rc.12 "first non-empty stderr line" preserved in Postcondition 2 historical parenthetical and EC-002 historical note. Change at v1.0.0-rc.12 (4cf59bc). |
+| 1.2 | 2026-05-06 | D-328 — E-10 pass-5 F-12 fix: resolved CAP-TBD → CAP-009. Frontmatter `capability` field updated. Traceability `L2 Capability` row updated from `TBD (anchor in Phase 1.5)` to `CAP-009 — Author and publish WASM hook plugins using the Rust SDK`. Capability Anchor Justification added: legacy-bash-adapter (brownfield extraction scope) bridges pre-existing bash hooks into the CAP-009 WASM plugin SDK surface; this BC is the contract for the exit-code→HookResult mapping that makes bash hooks first-class CAP-009 participants. Anchors to the same capability as sibling BC-4.09.001. |

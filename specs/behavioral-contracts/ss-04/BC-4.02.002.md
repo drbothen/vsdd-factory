@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -12,7 +12,7 @@ traces_to: bc-id-mapping.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:449"
 subsystem: "SS-04"
-capability: "CAP-TBD"
+capability: "CAP-009"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -76,7 +76,8 @@ For every bash exit code N, the legacy-bash-adapter produces a deterministic `Ho
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD (anchor in Phase 1.5) |
+| L2 Capability | CAP-009 — Author and publish WASM hook plugins using the Rust SDK |
+| Capability Anchor Justification | BC-4.02.002 governs the legacy-bash-adapter exit-code-2 path that surfaces blocking-hook stderr (full 4 KiB UTF-8-safe capture per v1.0.0-rc.12) as `HookResult::Block.reason`. Per CAP-009 (capabilities.md §CAP-009), the SDK provides `HookResult::block` and `HookResult::block_with_fix` constructors for plugin authors to return blocking decisions; the legacy-bash-adapter is the bridge that lifts pre-existing bash hooks into the WASM hook plugin surface. This BC is the contract for that bridge's stderr-to-Block.reason translation. The exit-code-to-HookResult mapping (Continue/Block/Error) is precisely the adapter behavior that integrates bash-based hooks into the CAP-009 plugin SDK surface without requiring plugin authors to rewrite existing bash hooks in Rust. |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-04 — `crates/hook-plugins/legacy-bash-adapter/src/lib.rs` (exit-code match arms) |
 | Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
@@ -115,3 +116,4 @@ For every bash exit code N, the legacy-bash-adapter produces a deterministic `Ho
 |---------|------|-------------|
 | 1.0 | 2026-04-25 | Initial brownfield extraction (codebase-analyzer; pass-3-behavioral-contracts-deep-r1.md). Postcondition 2 captured pre-rc.12 "first non-empty stderr line" behavior. |
 | 1.1 | 2026-05-06 | D-326 (D-1) — rc.12 alignment: exit-2 path now captures full stderr trimmed to 4 KiB UTF-8-safe cap (`floor_char_boundary`), not first line only. Title, Description, Postcondition 2, EC-001, and test vectors updated. EC-003 added for truncation edge case (stderr > 4096 bytes). Source Evidence path annotation updated to note rc.12 change at v1.0.0-rc.12 (4cf59bc). Pre-rc.12 "first stderr line" language preserved in EC-001 historical note and Source Evidence rc.12 change row. |
+| 1.2 | 2026-05-06 | D-328 — E-10 pass-5 F-12 fix: resolved CAP-TBD → CAP-009. Frontmatter `capability` field updated. Traceability `L2 Capability` row updated from `TBD (anchor in Phase 1.5)` to `CAP-009 — Author and publish WASM hook plugins using the Rust SDK`. Capability Anchor Justification added: legacy-bash-adapter is the bridge that lifts pre-existing bash hooks into the WASM hook plugin surface (CAP-009); BC-4.02.002 governs the stderr-to-Block.reason translation that makes the exit-code-2 blocking path observable to the dispatcher's plugin SDK. |

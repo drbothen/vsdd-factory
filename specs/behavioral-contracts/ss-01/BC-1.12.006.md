@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -69,7 +69,7 @@ Test Vectors describe post-Wave-1 behavior.
    | `plugin.name` | plugin identifier from hooks-registry.toml (the plugin that returned `Block`) |
    | `hook.tool_name` | the tool name from the Claude envelope that triggered this hook invocation |
 
-   **Note (post-rc.12):** The audit-event's free-text description (sourced from `HookResult::Block.reason`) follows the canonical hook block-message format defined in v1.0.0-rc.12: `BLOCKED by <hook>: <reason>. Fix: <recommendation>. Code: <reason_code>.` Consumers may parse the `Code: <X>` substring to extract a stable machine-readable reason code per `crates/hook-sdk/HOST_ABI.md`. The reason_code is **NOT** a separate payload field — it is embedded in the description string. Future schema versions MAY promote it to an explicit `block.reason_code` field via additive schema bump; this would be backward-compatible (consumers parsing the reason string would still receive the code, plus an explicit field). This is a documentation-only note per orchestrator adjudication (D-326 D-3): `block.reason_code` remains OPTIONAL and embedded; no current postcondition field changes.
+   **Note (post-rc.12):** The audit-event's free-text description (sourced from `HookResult::Block.reason`) follows the canonical hook block-message format defined in v1.0.0-rc.12: `BLOCKED by <hook>: <reason>. Fix: <recommendation>. Code: <code>.` Consumers may parse the `Code: <X>` substring to extract a stable machine-readable reason code per `crates/hook-sdk/HOST_ABI.md`. The reason_code is **NOT** a separate payload field — it is embedded in the description string. Future schema versions MAY promote it to an explicit `block.reason_code` field via additive schema bump; this would be backward-compatible (consumers parsing the reason string would still receive the code, plus an explicit field). This is a documentation-only note per orchestrator adjudication (D-326 D-3): `block.reason_code` remains OPTIONAL and embedded; no current postcondition field changes.
 
 3. All host-stamped per-event fields (per BC-1.12.004 Postcondition 1) are also
    stamped on this event: `timestamp`, `event.id`, `event.source`, `trace_id`,
@@ -216,3 +216,4 @@ Block-path audit emission source-walk:
 | 1.1 | 2026-05-06 | D-318/D-322 — capability re-anchored CAP-008 → CAP-029 primary + CAP-008 secondary (single-stream audit emission with gating cross-reference). F-13 fix: exit code 2 in Description cited to BC-1.08.001 as authoritative source for `HookResult::Block` exit-code semantics. F-7 fix: Changelog section added. |
 | 1.2 | 2026-05-06 | D-325 — F-6 fix: L2 Domain Invariants TBD resolved — no domain invariants directly enforced; emit-before-exit ordering is BC-postcondition-only; DI-017 satisfied by BC-1.12.004 per-event stamping, not this BC directly. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimers added to Architecture Anchor code path references (`main.rs` HookResult::Block branch; `emit_event.rs` per-event stamping path). |
 | 1.3 | 2026-05-06 | D-326 (D-3) — rc.12 alignment: added post-rc.12 note after Postcondition 2 field table documenting that `HookResult::Block.reason` follows the canonical format `BLOCKED by <hook>: <reason>. Fix: <recommendation>. Code: <reason_code>.` Consumers may parse `Code: <X>` for a machine-readable reason code. `block.reason_code` stays embedded (NOT a separate payload field) per orchestrator adjudication. Future additive schema bump may promote it. Documentation-only addition; no postcondition fields changed. |
+| 1.4 | 2026-05-06 | D-328 — E-10 pass-5 F-4 fix: canonical block-message format-string placeholder aligned to `<code>` (was `<reason_code>`) in Postcondition 2 note. Matches HOST_ABI.md and rc.12 format-audit (E-10-rc12-format-audit.md line 151); aligns with BC-2.06.001 Postcondition 2. Body prose (`reason_code` variable name) unchanged. |

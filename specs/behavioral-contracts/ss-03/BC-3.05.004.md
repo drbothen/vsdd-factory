@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -30,8 +30,9 @@ removal_reason: null
 
 ## Description
 
-ADR-015 D-15.4 (OQ-1 resolution) defines the v2 `observability-config.toml`
-schema. The multi-sink stanza model of the v1 schema is removed. The v2 schema
+ADR-015 D-15.1 retires multi-sink stanzas; OQ-1 (resolved in
+SS-03-event-emission.md) defines the v2 `observability-config.toml` schema.
+The multi-sink stanza model of the v1 schema is removed. The v2 schema
 configures only the single `FileSink` path, retention policy, debug-stream gate,
 and fsync behavior. Operators who need remote OTel export configure the OTel
 Collector externally.
@@ -310,3 +311,4 @@ Config load source-walk:
 | v1.2 | 2026-05-06 | D-319 — F-10 fix: Canonical Test Vectors strictness aligned with Postcondition 4(a) + Invariant 2 exact message texts using regex-substring form. schema_version=1 CTV row now asserts stderr matches `\[vsdd-dispatcher\] ERROR: observability-config\.toml has schema_version=1` (from PC4(a)). schema_version=3 CTV row now asserts stderr matches `\[vsdd-dispatcher\] ERROR: unknown future schema version 3; this dispatcher build accepts schema_version = 2 only` (from Invariant 2 / EC-004). |
 | v1.3 | 2026-05-06 | D-322 — F-10 fix: BC-1.12.007 Related BCs entry corrected — false "sibling" claim replaced with accurate "cross-cutting orthogonal enforcement surfaces" description (call-graph runtime enforcement vs config-schema static enforcement; together enforce ADR-015 D-15.1 multi-sink retirement). |
 | v1.4 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimer added to `crates/factory-dispatcher/src/sinks/mod.rs` Architecture Anchor (struct `ObservabilityConfig` is the canonical reference). |
+| v1.5 | 2026-05-06 | D-328 — E-10 pass-5 F-2 fix: Description line 33 corrected — observability-config.toml v2 schema is defined by ADR-015 D-15.1 (multi-sink retirement) + OQ-1 (resolved in SS-03-event-emission.md), not D-15.4 (which governs VSDD_TRACE_ID/VSDD_PARENT_SPAN_ID trace propagation, unrelated to schema). Architecture Anchors (~line 192) and Traceability ADR row (~line 270) were already correct (D-15.1 + OQ-1). ARCH-INDEX line 83 same misattribution to be fixed in D-331 state-manager seal. |
