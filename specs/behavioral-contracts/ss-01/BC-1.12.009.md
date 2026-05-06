@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -13,7 +13,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-01"
-capability: "CAP-003"
+capability: "CAP-029"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.12.009: factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; four-state event classification (paired-current / paired-deprecated / orphaned-current-half / orphaned-deprecated-half); consumer degradation rule for orphaned halves (ADR-015 D-15.2.e)
+# Behavioral Contract BC-1.12.009: factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5)
 
 ## Description
 
@@ -38,8 +38,9 @@ without consulting a separate registry or requiring knowledge of which event
 families are in migration.
 
 This BC governs the **consumer-side identity contract**: the field semantics,
-the four-state classification taxonomy, and the degradation rule for orphaned
-pair halves. It is the consumer's contract for reading `events-*.jsonl`.
+the five-state classification taxonomy (per ADR-015 D-15.2.e v1.5 changelog),
+the malformed → orphaned-half downgrade rule, and the degradation rule for
+orphaned pair halves. It is the consumer's contract for reading `events-*.jsonl`.
 
 **Scope boundary vs BC-1.11.003:** BC-1.11.003 specifies the `emit_pair`
 HOST HELPER — the producer-side mechanism that assigns `event.correlation_id`,
@@ -91,10 +92,20 @@ that handles both the Wave 2 state and the post-Wave-3 state.
    Plugins that use `emit_pair` (BC-1.11.003) have these fields HOST-ASSIGNED.
    Either way, the field semantics and consumer classification rules are identical.
 
-### Four-state classification taxonomy
+### Five-state classification taxonomy
 
-4. Any event in `events-*.jsonl` falls into exactly one of four states
-   with respect to the dual-emit pair identity contract:
+4. Any event in `events-*.jsonl` falls into exactly one of FIVE states
+   (excluding malformed, which degrades to orphaned-half — see below)
+   with respect to the dual-emit pair identity contract (per ADR-015
+   D-15.2.e v1.5 changelog: paired-current, paired-deprecated,
+   orphaned-deprecated-half, orphaned-current-half, non-paired):
+
+   **Malformed event handling (downgrade rule):** EC-005 events that violate
+   Invariant 1 (both `event.deprecated_by` AND `event.replaces_deprecated_alias`
+   present) are MALFORMED — consumers MUST classify them as orphaned-half (with
+   explicit consumer-side downgrade) rather than treat as a sixth state.
+   Malformed = downgraded-to-orphaned-half for classification purposes. This
+   is not a separate state; it is a route INTO the orphaned states.
 
    **State 1 — Paired-Current (new-name emission, healthy pair):**
    - `event.replaces_deprecated_alias` is set (pointing to the old-name event's `event.id`)
@@ -227,9 +238,11 @@ that handles both the Wave 2 state and the post-Wave-3 state.
 
 ## Architecture Anchors
 
-- ADR-015 D-15.2.e — the authoritative five-state identity contract (non-paired,
-  paired-old, paired-new, post-Wave-3 absent, orphaned-half); this BC normalizes
-  it to the four-state consumer taxonomy used in dashboards and consumer code
+- ADR-015 D-15.2.e v1.5 changelog — the authoritative five-state identity contract
+  (paired-current, paired-deprecated, orphaned-deprecated-half, orphaned-current-half,
+  non-paired); this BC implements the five-state consumer taxonomy; non-paired subsumes
+  the post-Wave-3 absent state. The malformed → orphaned-half downgrade rule is explicit
+  in this BC to prevent a sixth state from appearing in consumer logic.
 - ADR-015 § Negative consequences — "Wave 2 dual-emit doubles event volume...
   Aggregation queries MUST filter to a single event-name namespace to avoid
   double-counting"
@@ -276,7 +289,7 @@ contract that Wave 2 dashboard migrations MUST respect)
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — Phase 1.6b) | Four-state classification correctly applied for all five input variants (States 1–4 + non-paired) | unit test: tabular test with one event per state; assert correct classification |
+| (TBD — Phase 1.6b) | Five-state classification correctly applied for all five input variants (States 1–4 + non-paired) + malformed downgrade | unit test: tabular test with one event per state + one malformed event; assert correct classification and orphaned-half downgrade for malformed |
 | (TBD) | Orphaned halves included in single-event accounting | integration test: write orphaned-half to events-*.jsonl; assert consumer aggregation count includes it |
 | (TBD) | Symmetric healthy pair: both halves classified correctly | integration test: write both halves; assert State 1 + State 2 classification |
 | (TBD) | Malformed (both fields present) degrades gracefully | unit test: inject malformed event; assert no crash; assert single-event accounting |
@@ -285,9 +298,9 @@ contract that Wave 2 dashboard migrations MUST respect)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
-| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003. This BC governs the consumer-side semantics of the dual-emit pair identity fields in `events-*.jsonl` — the stream that CAP-003 defines. The four-state classification and orphan degradation rule are essential for consumers (Grafana dashboards, factory-query, factory-sla) to correctly interpret events during and after the Wave 2 migration window. Without this contract, consumers would silently double-count or under-count events, breaking the stream's semantic correctness. |
-| L2 Domain Invariants | TBD |
+| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC defines the consumer's five-state identity contract for events in the single `events-*.jsonl` stream that CAP-029 specifies. The dual-emit correlation fields (`event.correlation_id`, `event.deprecated_by`, `event.replaces_deprecated_alias`) only exist because all events — including both halves of a Wave 2 migration pair — appear in the same single stream. The five-state classification and malformed → orphaned downgrade rule ensure consumers of the CAP-029 stream can correctly deduplicate and aggregate without double-counting or data loss during the Wave 2 migration window. |
+| L2 Domain Invariants | (no domain invariants directly enforced; the five-state classification is a consumer-side interpretation contract for fields in the single stream; the underlying single-stream invariant is enforced by BC-1.12.001) |
 | Architecture Module | SS-01 — consumer behavior specification for `events-*.jsonl` events; relevant production code lives in consumer tooling (factory-query, Grafana dashboard queries) and Wave 2 plugin shims |
 | Stories | S-10.05 (Wave 2: Plugin schema migration + dual-emit shims; shim authors implement the producer side; consumer implementations must conform to this BC) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |

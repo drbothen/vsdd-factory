@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -25,24 +25,27 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.12.002: factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by VSDD_DEBUG_LOG=1 env var or debug_log_enabled=true config key; off by default in release builds; ADR-007 always-on guarantee amended
+# Behavioral Contract BC-1.12.002: factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by two-key debug-stream gate (VSDD_DEBUG_LOG=1 env var dominates when present; debug_log_enabled config key governs when env var absent); off by default in release builds; ADR-007 always-on guarantee amended
 
 ## Description
 
 ADR-015 D-15.1 amends ADR-007's "always-on" guarantee for the debug file
 `dispatcher-internal-YYYY-MM-DD.jsonl`. After the Wave 1 FileSink rewire, this
-file is an **opt-in debug stream** with a two-key gate:
+file is an **opt-in debug stream** with a two-key gate and strict 12-factor precedence:
 
-1. **`VSDD_DEBUG_LOG=1` env var** — when set in the dispatcher process environment,
-   enables the debug stream unconditionally. This is the runtime override.
-2. **`debug_log_enabled = true` in `observability-config.toml`** — when `VSDD_DEBUG_LOG`
-   is NOT set (or is set to any value other than `"1"`), the config key governs.
+1. **`VSDD_DEBUG_LOG=1` env var DOMINATES when present** — when set to exactly `"1"`
+   in the dispatcher process environment, enables the debug stream unconditionally,
+   overriding any `debug_log_enabled` config key value. This is the runtime override.
+2. **`debug_log_enabled` config key GOVERNS when env var absent** — when `VSDD_DEBUG_LOG`
+   is NOT set (or is set to any value other than `"1"`), the `debug_log_enabled` config
+   key in `observability-config.toml` is the governing control.
    `debug_log_enabled = true` enables the stream; `debug_log_enabled = false` (the
    default) disables it.
 
-The env var ALWAYS overrides the config key when present (12-factor override semantics
-per SS-03-event-emission.md § `observability-config.toml` Schema and OQ-W16-011
-resolution, D-311 2026-05-06). When `VSDD_DEBUG_LOG` is absent, the config key governs.
+The env var ALWAYS overrides the config key when present with the exact value `"1"`
+(12-factor override semantics per SS-03-event-emission.md § `observability-config.toml`
+Schema and OQ-W16-011 resolution, D-311 2026-05-06). When `VSDD_DEBUG_LOG` is absent
+or set to a non-`"1"` value, the config key governs exclusively.
 
 In production (release) builds where neither gate is active, no writes occur to
 `dispatcher-internal-*.jsonl` on the normal execution path.
@@ -183,7 +186,7 @@ S-10.02 (Wave 1: FileSink single-stream wiring; includes debug-stream gate)
 |-------|-------|
 | L2 Capability | CAP-010 ("Always-on dispatcher self-telemetry independent of sink config") per capabilities.md §CAP-010 |
 | Capability Anchor Justification | CAP-010 ("Always-on dispatcher self-telemetry independent of sink config") per capabilities.md §CAP-010. This BC governs the `dispatcher-internal-*.jsonl` self-telemetry file, which is exactly the always-on debug/audit mechanism that CAP-010 defines. ADR-015 D-15.1 amends the always-on guarantee to be opt-in via `VSDD_DEBUG_LOG=1`; CAP-010 is the correct anchor because the capability's purpose (providing an independent telemetry channel) is unchanged — only its activation model is amended. |
-| L2 Domain Invariants | TBD |
+| L2 Domain Invariants | DI-007 (amended by ADR-015 D-15.1 — debug stream opt-in; this BC is the enforcing contract for the amended invariant); DI-008 (reaffirmed by ADR-015 D-15.1 — filename pattern `dispatcher-internal-YYYY-MM-DD.jsonl` unchanged; timestamp-derived naming applies to the opt-in debug stream) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/internal_log.rs`, `crates/factory-dispatcher/src/main.rs` (gate check) |
 | Stories | S-10.02 (Wave 1 FileSink single-stream wiring + debug-stream gate) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
@@ -205,6 +208,7 @@ S-10.02 (Wave 1: FileSink single-stream wiring; includes debug-stream gate)
 |---------|------|--------|
 | v1.0 | 2026-05-06 | Initial authoring (D-310 Phase 1a). |
 | v1.1 | 2026-05-06 | OQ-W16-011 resolution (D-311). Two-key gate semantics: env var dominates when present; `debug_log_enabled` config key governs when env var absent (12-factor override). Description rewritten; Invariants 1–5 updated; Postconditions 1–5 updated; EC-007 amended from "MAY" to "MUST"; EC-007b added for env-var-beats-config case. |
+| v1.2 | 2026-05-06 | D-315 F-13 + F-4 BC-side. H1 tightened: "or" replaced with explicit 12-factor precedence (env var dominates / config key governs when env var absent). Description updated to match H1 precision. L2 Domain Invariants populated: DI-007 (amended — debug stream opt-in) + DI-008 (reaffirmed — filename pattern unchanged). |
 
 ### TD-VSDD-092 (BC-SOUL4-coverage) Verification
 

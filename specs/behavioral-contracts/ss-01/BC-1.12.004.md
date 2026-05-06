@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -13,7 +13,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-01"
-capability: "CAP-003"
+capability: "CAP-029"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -40,10 +40,11 @@ Per ADR-015 D-15.2, the dispatcher stamps two categories of fields at emit time:
 
 2. **`emit_internal` Some/None bifurcation under FileSink rewire** — after S-10.02
    rewires `host::emit_event` to write directly to `FileSink`, the pre-Wave-1
-   `internal_log.is_some()` conditional in `host/mod.rs:109-112` behavior changes:
+   `internal_log.is_some()` conditional in `HostContext::emit_internal` behavior changes:
    `InternalLog` is no longer the primary write target; `FileSink` is. The bifurcation
    behavior for test contexts (`internal_log: None`) is preserved but its semantics
-   shift.
+   shift. (Stable anchor per TD-VSDD-091; use function name `HostContext::emit_internal`
+   not line numbers as the canonical reference.)
 
 3. **`event.category` compile-time registry** — the category is derived from the
    `event.name` prefix against a static compile-time registry table (D-15.2.a).
@@ -106,9 +107,11 @@ All Canonical Test Vectors are future-implementation witnesses.
    OTel Log Data Model (SEVERITY_NUMBER_INFO = 9). `outcome` canonical values
    (`success | failure | error | timeout | skipped | blocked`) are per ADR-015 D-15.2
    per-event attributes table. `plugin.version` is the plugin's own Cargo version, NOT
-   `env!("CARGO_PKG_VERSION")` — ADR-015 Context identifies this as a known bug:
-   "`plugin_version` is always the dispatcher's version (`env!("CARGO_PKG_VERSION")`
-   at `main.rs:143`), not the plugin's actual version."
+   `env!("CARGO_PKG_VERSION")` — ADR-015 Context identifies this as a known bug at
+   `factory-dispatcher::main::plugin_version_stamp_call_site` (the expression
+   `plugin_version = env!("CARGO_PKG_VERSION")` that stamps dispatcher version instead
+   of plugin version). (Stable anchor per TD-VSDD-091; line numbers are not authoritative
+   — use the function/method name as the canonical reference.)
 
 2. **`event.category` compile-time registry (D-15.2.a + D-15.2.b):** The host derives
    `event.category` from the `event.name` prefix using the static registry table below.
@@ -150,10 +153,13 @@ All Canonical Test Vectors are future-implementation witnesses.
      Post-Wave-1, the FileSink is also absent from test contexts unless explicitly injected —
      test behavior through the `events` queue is preserved.
    - **SOUL #4 acknowledgment:** The `if let Ok(mut events) = self.events.lock()` pattern
-     at `host/mod.rs:113` silently drops on Mutex poison (acknowledged in BC-1.05.036
-     EC-011 / OQ-W16-004). This known limitation is NOT changed by BC-1.12.004 — the
-     FileSink rewire adds a new primary path; the in-memory queue remains best-effort for
-     test contexts. The known asymmetry (silent-drop on poison vs panic on drain) persists.
+     in `HostContext::events::lock_push` silently drops on Mutex poison (acknowledged in
+     BC-1.05.036 EC-011 / OQ-W16-004). See also BC-1.05.036 EC-011. (Stable anchor per
+     TD-VSDD-091; use the expression name `HostContext::events::lock_push` not line
+     numbers as the canonical reference.) This known limitation is NOT changed by
+     BC-1.12.004 — the FileSink rewire adds a new primary path; the in-memory queue
+     remains best-effort for test contexts. The known asymmetry (silent-drop on poison
+     vs panic on drain) persists.
    - **Per-event `event.schema_url` (D-15.2.d):** Each event carries an `event.schema_url`
      attribute identifying the schema version of that specific event family
      (e.g., `"https://vsdd-factory.dev/schemas/events/v2/commit.made"`). This is DISTINCT
@@ -193,11 +199,16 @@ All Canonical Test Vectors are future-implementation witnesses.
 
 ## Architecture Anchors
 
-- `crates/factory-dispatcher/src/host/mod.rs:109-116` — current `emit_internal` bifurcation
-  (pre-Wave-1: `internal_log.is_some()` routes to `InternalLog::write`; post-Wave-1: routes
-  to `FileSink` as primary, `InternalLog` as debug-supplementary when `VSDD_DEBUG_LOG=1`)
-- `crates/factory-dispatcher/src/main.rs:143` — the `plugin_version = env!("CARGO_PKG_VERSION")`
-  bug cited in ADR-015 Context; fixed in S-10.02 to use actual plugin version
+- `HostContext::emit_internal` (in `crates/factory-dispatcher/src/host/mod.rs`) — current
+  `emit_internal` bifurcation (pre-Wave-1: `internal_log.is_some()` routes to
+  `InternalLog::write`; post-Wave-1: routes to `FileSink` as primary, `InternalLog` as
+  debug-supplementary when `VSDD_DEBUG_LOG=1`). Stable anchor per TD-VSDD-091; line numbers
+  are not authoritative — use the function name as the canonical reference. See BC-1.05.036
+  EC-011 for the Mutex-poison silent-drop acknowledgment.
+- `factory-dispatcher::main::plugin_version_stamp_call_site` (expression
+  `plugin_version = env!("CARGO_PKG_VERSION")` in `crates/factory-dispatcher/src/main.rs`)
+  — the bug cited in ADR-015 Context; fixed in S-10.02 to use actual plugin version.
+  Stable anchor per TD-VSDD-091; line numbers are not authoritative.
 - ADR-015 D-15.2 per-event attributes table — the authoritative list of all per-event fields
   and value sources
 - ADR-015 D-15.2.a — compile-time registry ownership decision
@@ -261,14 +272,14 @@ BC's per-event stamping draws from)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
-| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003. This BC governs the per-event host-stamping step that enriches every event with OTel-canonical identity fields before it reaches the observability stream. Without this stamping, the `events-*.jsonl` stream would lack the fields downstream consumers (Grafana, factory-query) require — the enrichment is integral to the streaming capability CAP-003 defines. |
-| L2 Domain Invariants | TBD |
-| Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/mod.rs` (emit_internal bifurcation, per-event stamping), `crates/factory-dispatcher/src/main.rs:143` (plugin.version bug fix) |
+| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC governs the compile-time event-name registry (D-15.2.a), per-event host stamping, and the `dispatcher_version` stamping fix — all of which determine the content correctness of every event written to the single `events-*.jsonl` stream that CAP-029 defines. The registry ensures event.category is accurately derived before each record reaches FileSink; without it, the stream's semantic structure (which events are lifecycle vs domain vs audit) would be undefined. |
+| L2 Domain Invariants | DI-017 (renamed by ADR-015 v1.7 from dispatcher_trace_id → trace_id; this BC stamps `trace_id` at emit time as a per-event host-owned identity field; every event in the single stream must carry `trace_id` — see Postcondition 1 trace_id row) |
+| Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/mod.rs` (`HostContext::emit_internal` bifurcation, per-event stamping), `factory-dispatcher::main::plugin_version_stamp_call_site` (plugin.version bug fix) |
 | Stories | S-10.02 (FileSink wiring + per-event stamping + plugin.version fix), S-10.03 (Resource context consumed here) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
 | ADR | ADR-015 D-15.2 (per-event attributes table); ADR-015 D-15.2.a (compile-time registry); ADR-015 D-15.2.b (unknown prefix default); ADR-015 D-15.2.d (per-event `event.schema_url`); ADR-015 D-15.3 (host fields win) |
-| Content-defect bug | `plugin_version = env!("CARGO_PKG_VERSION")` at `main.rs:143` — fixed in S-10.02 per ADR-015 Context "Field schema is critically incomplete" |
+| Content-defect bug | `plugin_version = env!("CARGO_PKG_VERSION")` at `factory-dispatcher::main::plugin_version_stamp_call_site` — fixed in S-10.02 per ADR-015 Context "Field schema is critically incomplete" (stable anchor per TD-VSDD-091) |
 
 ### Purity Classification
 
@@ -284,10 +295,12 @@ BC's per-event stamping draws from)
 
 Source-walk for silent-discard patterns in per-event stamping and `emit_internal` bifurcation:
 
-- `events.lock().push(event)` at `host/mod.rs:113-115`: uses `if let Ok(mut events) = self.events.lock()`
+- `HostContext::events::lock_push` (the `events.lock().push(event)` expression in
+  `HostContext::emit_internal`): uses `if let Ok(mut events) = self.events.lock()`
   which silently drops on Mutex poison. Acknowledged in EC-008 (test-context path) and as
-  known-limitation per BC-1.05.036 EC-011 / OQ-W16-004. This is the ONLY known silent-discard
-  in this path; it is documented, not new.
+  known-limitation per BC-1.05.036 EC-011 / OQ-W16-004. (Stable anchor per TD-VSDD-091;
+  use the expression name `HostContext::events::lock_push` not line numbers.) This is the
+  ONLY known silent-discard in this path; it is documented, not new.
 - Per-event field computation: `uuid::Uuid::new_v4()` for `event.id` is infallible (returns
   a value, no error path). `std::time::SystemTime::now()` for `timestamp` is infallible.
   No `let _ =` patterns expected or permitted for these computations.

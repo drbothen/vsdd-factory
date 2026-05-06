@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -13,7 +13,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-01"
-capability: "CAP-003"
+capability: "CAP-029"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -74,12 +74,17 @@ internal log" misimplementation.
    `VSDD_DEBUG_LOG=1` environment variable is set (see BC-1.12.002) or unless
    `FileSink::write` returns an error (fallback path per BC-1.11.002).
    **SOUL #4 acknowledgment (BC-SOUL4-coverage per TD-VSDD-092):** The pre-Wave-1
-   `emit_internal` code path at `host/mod.rs:109-116` discards IO errors from
-   `log.write` via a best-effort pattern — this discard is acknowledged and
-   intentional per BC-1.05.036 Postcondition 6. After the FileSink rewire, the
-   `emit_event` → `FileSink::write` path uses the write-failure cascade per BC-1.11.002
-   (NOT silent discard) — the cascade writes to the fallback file and emits a stderr
-   warning. Silent discard is no longer the failure mode on the critical path.
+   `HostContext::emit_internal` function discards IO errors from `log.write` via a
+   best-effort pattern — this discard is acknowledged and intentional per
+   BC-1.05.036 Postcondition 6 (stable anchor per TD-VSDD-091; line numbers are not
+   authoritative — use the function/method name as the canonical reference.) After the
+   FileSink rewire, the `emit_event` → `FileSink::write` path uses the write-failure
+   cascade per BC-1.11.002 (NOT silent discard) — the cascade writes to the fallback
+   file and emits a stderr warning. Silent discard is no longer the failure mode for
+   FileSink::write IO errors on the critical path. The pre-existing in-memory
+   events-queue Mutex-poison silent-drop (acknowledged per BC-1.05.036 EC-011 /
+   OQ-W16-004) is preserved as a documented known-limitation outside the scope of
+   ADR-015 D-15.1.
 4. The OTel Collector filelog receiver pointed at `events-*.jsonl` receives
    all events — both domain events from plugins AND lifecycle events from the
    dispatcher — via its normal file-tailing mechanism. No consumer-side
@@ -121,9 +126,11 @@ internal log" misimplementation.
 - `crates/factory-dispatcher/src/main.rs` — `host::emit_event` call site; FileSink wiring
   added here in Wave 1 (S-10.02)
 - `crates/sink-file/src/lib.rs` — `FileSink::write` implementation (the single writer)
-- `crates/factory-dispatcher/src/sinks/mod.rs` lines 11–15 — the open integration TODO
-  that ADR-015 resolves; Router::submit is NOT wired (per ADR-015 Context section, this
-  is the gap that motivated the architecture change)
+- `factory-dispatcher::sinks::Sink` trait dispatch surface — the open integration point that
+  ADR-015 resolves; `Router::submit` is NOT wired post-Wave-1 (stable anchor per TD-VSDD-091;
+  line numbers are not authoritative — use the function/method name as the canonical reference.)
+  See also BC-1.05.036 for the pre-Wave-1 `emit_internal` path and Mutex-poison silent-drop
+  acknowledgment.
 - ADR-015 D-15.1 — policy decision for single physical stream
 
 ## Story Anchor
@@ -172,9 +179,9 @@ S-10.02 (Wave 1: FileSink single-stream wiring)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
-| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003. This BC governs the routing of all events to the observability stream (`events-*.jsonl`) — the core streaming behavior that CAP-003 defines. ADR-015 D-15.1 simplifies CAP-003's multi-sink model to single-stream FileSink; the capability remains the canonical anchor because the outcome (events reaching the observability stream for downstream consumers) is unchanged. |
-| L2 Domain Invariants | TBD (domain spec invariants for event emission not yet cross-referenced) |
+| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC specifies the single-stream FileSink wiring that removes Router/SinkRegistry/DlqWriter from the production path — the exact architectural outcome that CAP-029 describes in its first paragraph: "The dispatcher writes every user-facing domain event as a JSONL record to a single `events-YYYY-MM-DD.jsonl` file via FileSink. Router, SinkRegistry, and DlqWriter are retired." BC-1.12.001 is the behavioral contract that makes that CAP-029 outcome verifiable. |
+| L2 Domain Invariants | DI-011 (superseded by ADR-015 D-15.1 — single-sink eliminates submit-must-not-block; this BC is the post-supersession replacement); DI-012 (superseded by ADR-015 D-15.1 — single-sink eliminates per-sink isolation; this BC governs the single-sink behavior that replaces both DIs) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (emit_event call site), `crates/sink-file/src/lib.rs` (FileSink) |
 | Stories | S-10.02 (Wave 1 FileSink single-stream wiring) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
@@ -195,6 +202,15 @@ S-10.02 (Wave 1: FileSink single-stream wiring)
 
 Source-walk for silent-discard patterns in the `host::emit_event` → `FileSink::write` future implementation path:
 
-- The pre-Wave-1 `emit_internal` call at `host/mod.rs:109-116` uses `if let Ok(mut events) = self.events.lock()` which silently drops on Mutex poison (EC-007 of BC-1.05.036 / EC-011). This is acknowledged in BC-1.05.036 and is NOT changed by BC-1.12.001 — the FileSink rewire adds a primary write path; the Mutex-guarded in-memory queue remains best-effort.
-- The `FileSink::write` failure path must NOT use `let _ =` pattern (silent discard is prohibited by BC-1.11.002 Invariant 3). The implementation MUST propagate write errors to the fallback cascade. This BC explicitly designates Postcondition 3 as the SOUL #4 guard: the implementation is required to use write-failure cascade, NOT silent discard.
-- No additional `let _ =` patterns are expected in the `host::emit_event` path for the FileSink routing change.
+- The pre-Wave-1 `HostContext::emit_internal` function uses
+  `if let Ok(mut events) = self.events.lock()` which silently drops on Mutex poison
+  (EC-007 of BC-1.05.036 / EC-011). This is acknowledged in BC-1.05.036 and is NOT
+  changed by BC-1.12.001 — the FileSink rewire adds a primary write path; the
+  Mutex-guarded in-memory queue remains best-effort. (Stable anchor per TD-VSDD-091;
+  use function name `HostContext::emit_internal` not line numbers as the canonical reference.)
+- The `FileSink::write` failure path must NOT use `let _ =` pattern (silent discard is
+  prohibited by BC-1.11.002 Invariant 3). The implementation MUST propagate write errors
+  to the fallback cascade. This BC explicitly designates Postcondition 3 as the SOUL #4
+  guard: the implementation is required to use write-failure cascade, NOT silent discard.
+- No additional `let _ =` patterns are expected in the `host::emit_event` path for the
+  FileSink routing change.

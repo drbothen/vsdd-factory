@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -13,7 +13,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-01"
-capability: "CAP-003"
+capability: "CAP-030"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -139,6 +139,12 @@ misimplementation.
    hex encoding of the absolute worktree path string).
 5. `project.id` is always the full SHA-256 hex string (64 characters) of
    `vcs.repository.url.full` after cascade.
+6. **`deployment.environment.name` strict-string CI detection:** `deployment.environment.name = "ci"`
+   requires the EXACT string `"true"` in the `CI` env var. `CI=1`, `CI=yes`, `CI=on`,
+   `CI=TRUE` (uppercase), `CI=True` all map to `"local-dev"`. This strict-string semantics
+   is a known sharp edge — environments using non-`"true"` CI flags (rare but possible)
+   will be classified as `"local-dev"` rather than `"ci"`. Operators relying on `CI=1`
+   (common in some CI systems) must set `CI=true` instead for correct classification.
 
 ## Related BCs
 
@@ -183,7 +189,8 @@ S-10.03 (Wave 1: Resource-attribute enrichment; Windows registry cascade per OQ-
 | EC-008 | `gethostname()` returns empty string or error | `host.id` falls through all platform steps to terminal default `"unknown-host"`; `vsdd.internal.host_id_fallback.v1` emitted |
 | EC-009 | `CLAUDE_PROJECT_DIR` is set to an absolute path | `service.namespace` = basename of that path; `worktree.id` = SHA-256 prefix of that absolute path |
 | EC-010 | `CLAUDE_PROJECT_DIR` is NOT set | Falls back to `current_dir()` per BC-1.08.004; `service.namespace` = basename of cwd; no error or null |
-| EC-011 | `CI=true` in environment | `deployment.environment.name` = `"ci"` |
+| EC-011 | `CI=true` in environment (exact string) | `deployment.environment.name` = `"ci"` (the ONLY value that triggers `"ci"` classification) |
+| EC-011b | `CI=1` in environment (non-`"true"` truthy string) | `deployment.environment.name` = `"local-dev"` (strict-string gate; `"1"` is NOT `"true"`; this is a known sharp edge per Invariant 6) |
 | EC-012 | `CI` not set or `CI=false` | `deployment.environment.name` = `"local-dev"` |
 | EC-013 | Two simultaneous dispatcher processes on the same machine | Each generates a fresh `service.instance.id` UUIDv4; they MUST be distinct (UUIDv4 collision probability negligible at this scale) |
 | EC-014 | **Terminal `host.id` fallback: `gethostname()` returns `""` (empty string)** | Empty string from `gethostname()` is treated as a failure condition (not a valid host.id). Falls to terminal default `"unknown-host"`. `vsdd.internal.host_id_fallback.v1` emitted. **v1 known limitation:** multiple distroless containers will share `host.id = "unknown-host"`; the observable fallback event makes this collision visible (per ADR-015 D-15.2.c). **SOUL #4 acknowledgment:** if the cascade implementation uses `let host_id = cascade().unwrap_or("unknown-host")` pattern, the `unwrap_or` must NOT silently suppress the `host_id_fallback` event emission. The implementation MUST emit the event when terminal default is reached. |
@@ -197,7 +204,8 @@ S-10.03 (Wave 1: Resource-attribute enrichment; Windows registry cascade per OQ-
 | **Misimplementation distinguisher:** `vcs.repository.url.full` left empty on no-remote | Test MUST assert `vcs.repository.url.full` starts with `file://` (not empty/null) when no git remote exists. | misimplementation-witness-empty-vcs-url |
 | No git remote; `CLAUDE_PROJECT_DIR = /home/user/my-project` | `vcs.repository.url.full = "file:///home/user/my-project"`; `vcs.repository.name = "my-project"`; `vcs.owner.name = "unknown"`; `vcs.provider.name = "unknown"`; `project.id = <SHA-256 of "file:///home/user/my-project">` (64 hex chars) | no-remote-fallback |
 | Distroless container (Linux, no `/etc/machine-id`); `gethostname()` returns `""` | `host.id = "unknown-host"`; `vsdd.internal.host_id_fallback.v1` event emitted in `events-*.jsonl` with `process.pid` and absolute cwd; event category `"lifecycle"` per `vsdd.internal.*` registry | host-id-terminal-fallback |
-| `CI=true` in environment | `deployment.environment.name = "ci"` | ci-detection |
+| `CI=true` in environment (exact string) | `deployment.environment.name = "ci"` | ci-detection-exact-string |
+| `CI=1` in environment (non-`"true"` value) | `deployment.environment.name = "local-dev"` (strict-string gate; `"1"` ≠ `"true"`; known sharp edge per Invariant 6) | ci-detection-non-true-string |
 | Worktree at absolute path `/Users/dev/repo` | `worktree.id` = first 12 hex chars of `sha256("/Users/dev/repo")`; exact value is implementation-computed; test MUST assert length = 12 and matches `[0-9a-f]{12}` pattern | worktree-id-format |
 | Two consecutive dispatcher invocations on the same machine | `service.instance.id` values are distinct (different UUIDv4s); `host.id` values are identical (machine-stable) | instance-id-uniqueness |
 | `gethostname()` returns non-empty hostname; no `/etc/machine-id` (Linux) | Step 1 fails (no machine-id); Step 4 (terminal) reached; `host.id = "unknown-host"`; **NOTE:** SHA-256 of `gethostname()` is NOT a valid fallback step — per ADR-015 D-15.2.c, the terminal default is the LITERAL `"unknown-host"`, NOT a hash. A misimplementation using `sha256(hostname)` as terminal default violates this postcondition. | terminal-fallback-not-sha256 |
@@ -215,9 +223,9 @@ S-10.03 (Wave 1: Resource-attribute enrichment; Windows registry cascade per OQ-
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
-| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003. This BC governs the OTel Resource attribute enrichment that makes each emitted event carry full process context — a prerequisite for the observability stream to be useful to downstream consumers (Grafana, factory-query, factory-sla). The enrichment is the producer-side half of the observability capability that CAP-003 defines. |
-| L2 Domain Invariants | TBD |
+| L2 Capability | CAP-030 ("Enrich emitted events with OTel-aligned resource attributes") per capabilities.md §CAP-030 |
+| Capability Anchor Justification | CAP-030 ("Enrich emitted events with OTel-aligned resource attributes") per capabilities.md §CAP-030. This BC specifies the computation and stamping of all 15 Resource attribute fields (service.name, service.version, host.id, host.name, os.type, process.pid, process.runtime.name, process.runtime.version, vsdd.dispatcher.version, vsdd.session_id, vsdd.worktree_id, vsdd.project_root, vsdd.config_hash, telemetry.sdk.name, telemetry.sdk.version) at dispatcher startup — exactly the Resource attribute block that CAP-030 defines in its P1 capability description. The fallback cascades (Postconditions 2 and 3) ensure no field is absent or null, fulfilling CAP-030's outcome: "every event in events-*.jsonl carries a complete OTel-aligned resource block enabling correlation across Grafana/Loki/Honeycomb without post-processing enrichment." |
+| L2 Domain Invariants | DI-017 (renamed by ADR-015 v1.7 from dispatcher_trace_id → trace_id; this BC stamps trace_id as part of per-event identity fields computed at startup from VSDD_TRACE_ID env or per-invocation UUID; the renamed field is used in all Resource events emitted by this BC) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (startup stamping), `crates/factory-dispatcher/src/resource_context.rs` (new module, S-10.03) |
 | Stories | S-10.03 (Wave 1 Resource-attribute enrichment; Windows registry cascade) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |

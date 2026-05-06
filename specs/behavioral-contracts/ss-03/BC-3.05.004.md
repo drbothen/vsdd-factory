@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -14,7 +14,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-03"
-capability: "CAP-003"
+capability: "CAP-029"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -147,17 +147,30 @@ retired BC-3.05.001/002/003 (marked `lifecycle_status: retired`,
 
 1. `schema_version = 2` is the only accepted version. Any other integer
    (including 1) hard-errors with a migration hint.
-2. The `debug_log_enabled` config key and `VSDD_DEBUG_LOG` env var are the ONLY
+2. **The `schema_version` domain is `{1, 2, >2}` with explicit behavior for each
+   partition:**
+   - `schema_version = 1` → hard-error with v1→v2 migration hint (message format:
+     `[vsdd-dispatcher] ERROR: observability-config.toml has schema_version=1 (v1
+     schema is no longer supported). Remove all [[sinks]] stanzas and set
+     schema_version=2. See ADR-015 migration guide.`; exit code 1)
+   - `schema_version = 2` → accepted; dispatcher loads config and operates normally
+   - `schema_version > 2` (any future version) → hard-error with unknown-future-version
+     message (message format: `[vsdd-dispatcher] ERROR: unknown future schema version
+     <N>; this dispatcher build accepts schema_version = 2 only.`; exit code 1)
+   No schema_version value outside `{2}` results in silent acceptance or
+   warn-and-use-defaults behavior. The hard-error on both `< 2` and `> 2` is
+   intentional and consistent with DI-014 (schema version mismatch is a hard load error).
+3. The `debug_log_enabled` config key and `VSDD_DEBUG_LOG` env var are the ONLY
    two mechanisms to enable the voluntary debug stream. No other config key
    or env var activates it.
-3. `VSDD_DEBUG_LOG=1` (exact string `"1"`) is the env var activation value.
+4. `VSDD_DEBUG_LOG=1` (exact string `"1"`) is the env var activation value.
    Any other string (`"true"`, `"yes"`, `"0"`, `"false"`) does NOT activate
    the env var path. The config key governs for any non-`"1"` env var value.
-4. The write-failure fallback path to `dispatcher-internal-*.jsonl` (BC-1.11.002)
+5. The write-failure fallback path to `dispatcher-internal-*.jsonl` (BC-1.11.002)
    is NEVER gated by `debug_log_enabled` or `VSDD_DEBUG_LOG`. Fallback writes are
    unconditional regardless of these gates. The two-key gate governs only the
    voluntary debug-supplementary write path.
-5. The multi-sink `[[sinks]]` stanza model is fully retired in the v2 schema.
+6. The multi-sink `[[sinks]]` stanza model is fully retired in the v2 schema.
    No v2 config file should contain sink-type declarations; such keys are warned
    and skipped.
 
@@ -207,7 +220,7 @@ v2 schema loading and debug-stream gate implementation)
 | EC-001 | `observability-config.toml` is absent | Dispatcher uses built-in defaults: `events_file = ".factory/logs/events-{date}.jsonl"`, `retention_days = 90`, `debug_log_retention_days = 30`, `debug_log_enabled = false`, `sync_on_write = false`; no error |
 | EC-002 | `schema_version = 2`; all fields at defaults | Parses successfully; dispatcher operates normally |
 | EC-003 | `schema_version = 1` (v1 schema file) | Hard-error: stderr error message with migration hint; non-zero exit; no silent fallback to defaults |
-| EC-004 | `schema_version = 3` (future version, not yet known) | Treated as unknown (version > 2 is not currently supported); hard-error or warn-and-use-defaults depending on implementation policy. **Note:** this edge case is a known unresolved detail — the current spec mandates `schema_version = 2` exactly. Future schema versions require a new BC. |
+| EC-004 | `schema_version = 3` (future version, not yet known) | Hard-errors with message: `[vsdd-dispatcher] ERROR: unknown future schema version 3; this dispatcher build accepts schema_version = 2 only.` Exit code 1. A future schema version must NOT be silently accepted or warn-and-defaulted — hard-error forces operators to upgrade the dispatcher binary before using a newer config format. (Resolved: option (a) hard-error for all non-2 versions, consistent with Invariant 1.) |
 | EC-005 | `debug_log_enabled = true` in config; `VSDD_DEBUG_LOG` not set | Debug stream ENABLED (config key governs; env var absent); debug file written |
 | EC-006 | `debug_log_enabled = false` in config; `VSDD_DEBUG_LOG=1` in env | Debug stream ENABLED (env var dominates regardless of config key value); `debug_log_enabled = false` does not suppress |
 | EC-007 | `debug_log_enabled = true` in config; `VSDD_DEBUG_LOG=0` in env | `VSDD_DEBUG_LOG=0` is NOT the activation value (only `"1"` activates via env); config key governs; debug stream ENABLED (via `debug_log_enabled = true`) |
@@ -224,6 +237,7 @@ v2 schema loading and debug-stream gate implementation)
 | `observability-config.toml` absent | Dispatcher loads with all built-in defaults; no error | absent-config-defaults |
 | `schema_version = 2`; all fields at defaults | Config parsed; `events_file` resolves to `.factory/logs/events-YYYY-MM-DD.jsonl`; debug stream off by default | v2-default-parse |
 | `schema_version = 1` | Hard-error on stderr with migration hint; non-zero exit | v1-hard-error |
+| `schema_version = 3` (future version) | Hard-error on stderr: `unknown future schema version 3; this dispatcher build accepts schema_version = 2 only`; exit code 1; no silent accept or warn-and-default | future-version-hard-error |
 | `debug_log_enabled = true`; `VSDD_DEBUG_LOG` unset | Debug stream active; events written to `dispatcher-internal-*.jsonl` | config-key-enables-debug |
 | `debug_log_enabled = false`; `VSDD_DEBUG_LOG=1` | Debug stream active (env var dominates) | env-var-overrides-config-false |
 | `debug_log_enabled = true`; `VSDD_DEBUG_LOG=0` | Debug stream active (config key governs; `"0"` is not the activation value) | env-var-non-1-config-governs |
@@ -246,15 +260,19 @@ v2 schema loading and debug-stream gate implementation)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
-| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003. This BC governs the `observability-config.toml` v2 schema — the configuration surface that operators use to control the observability stream (file path, retention, debug gate, fsync). CAP-003 defines the configurable-sinks capability; the config schema is the operator's control plane for that capability. ADR-015 simplifies CAP-003's multi-sink model to single-stream FileSink; this BC is the schema-side enforcement of that simplification. |
-| L2 Domain Invariants | TBD |
+| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC specifies the `observability-config.toml` v2 schema — the operator's configuration surface for the single `events-*.jsonl` stream that CAP-029 defines. The schema governs the events stream file path (`events_file`), retention policy (`retention_days`), fsync behavior (`sync_on_write`), and the two-key debug-stream gate. All of these are direct configuration parameters for the CAP-029 single-stream architecture; without a correctly validated v2 schema, the FileSink write path cannot be safely initialized. |
+| L2 Domain Invariants | DI-014 (schema version mismatch is a hard load error — extended by D-314 to the v1→v2 transition: `schema_version = 1` hard-errors with a migration hint; `schema_version > 2` hard-errors with `unknown future schema version` message; DI-014's spirit — "never silently process a mismatched schema" — is preserved and extended to the full `{1, >2}` partition by Invariant 2 of this BC) |
 | Architecture Module | SS-03 — `crates/factory-dispatcher/src/sinks/mod.rs` (`ObservabilityConfig` struct v2 definition; schema_version validation; warn-and-skip for unknown keys) |
 | Stories | S-10.02 (Wave 1: FileSink wiring + v2 config schema loading + debug-stream gate implementation) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
 | ADR | ADR-015 D-15.1 (multi-sink stanza removal; debug stream gated by `VSDD_DEBUG_LOG=1`); ADR-015 OQ-1 (resolved in SS-03-event-emission.md: v2 schema definition) |
 | OQ Resolved | OQ-W16-011 (D-311 2026-05-06: 12-factor override semantics — env var dominates when present; config key governs when env var absent) |
 | Supersedes | BC-3.05.001/002/003 (all `lifecycle_status: retired`, `superseded_by: ADR-015`, retired D-312 2026-05-06) |
+
+**Secondary Capability Reference: CAP-010 ("Always-on dispatcher self-telemetry independent of sink config") per capabilities.md §CAP-010.** BC-3.05.004 governs the `observability-config.toml` v2 schema, which configures BOTH the events stream (via `events_file`, `retention_days`, `sync_on_write`) AND the debug stream gate (via `debug_log_enabled`). The debug stream is the always-on self-telemetry described by CAP-010. The schema is therefore a dual-key gate: it configures the CAP-029 events stream path AND the CAP-010 debug-stream opt-in. This dual coverage is why BC-3.05.004 requires both capability references: CAP-029 for the events stream config (primary) and CAP-010 for the debug stream config (secondary). See also OQ-W16-011 RESOLVED at D-311 for the 12-factor override decision that governs the two-key gate semantics.
+
+**Cross-reference: BC-1.12.002 (runtime gate contract).** BC-3.05.004 is the compile-time schema contract (validates `observability-config.toml` v2 at load time); BC-1.12.002 is the runtime contract (debug stream gate evaluated at each write site). The two-key gate semantics — `VSDD_DEBUG_LOG=1` env var dominates when present; `debug_log_enabled` config key governs when env var absent — are identical in both BCs by design. See OQ-W16-011 RESOLVED at D-311 2026-05-06 for the 12-factor override decision that established this precedence.
 
 ### Purity Classification
 
@@ -287,3 +305,4 @@ Config load source-walk:
 | Version | Date | Change |
 |---------|------|--------|
 | v1.0 | 2026-05-06 | Initial authoring (D-313 Phase 1b). BC-3.05.004 is the corrected ID after D-312 corrigendum found BC-3.05.001 was a pre-existing brownfield BC. Two-key gate semantics incorporate OQ-W16-011 resolution (D-311). Supersedes retired BC-3.05.001/002/003. |
+| v1.1 | 2026-05-06 | D-315 F-2/F-11/F-18/F-4 BC-side. Re-anchored to CAP-029 (primary). EC-004 resolved: schema_version>2 → hard-error (option a, consistent with Invariant 1). Invariant 2 added: schema_version domain `{1, 2, >2}` with explicit behavior per partition. Canonical test vector for schema_version=3 added. Secondary Capability Reference (CAP-010) and BC-1.12.002 cross-reference paragraph added (F-18). L2 Domain Invariants populated: DI-014 (hard-error on mismatch, extended to v2). |

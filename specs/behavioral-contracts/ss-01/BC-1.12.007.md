@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -13,7 +13,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-01"
-capability: "CAP-003"
+capability: "CAP-029"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -69,9 +69,17 @@ establishes). All Canonical Test Vectors describe the post-Wave-1 state.
 
 1. **Call-graph invariant (post-Wave-1):** `Router::submit`, `SinkRegistry`
    dispatch methods, `DlqWriter::write`, and any public API of `sink-otel-grpc`
-   are NOT called from any code path reachable from `main.rs` in the production
-   dispatcher binary. This includes direct calls AND transitive calls through
-   any helper, wrapper, or trait method.
+   are NOT called from any code path reachable from `main()` in the production
+   dispatcher binary. This includes **direct calls from `main.rs` AND transitive
+   calls through any function reachable by the callgraph rooted at `main()`**.
+   The scope of "production code path" is the complete callgraph from the `main()`
+   entrypoint; any path that terminates in `Router::submit`, `SinkRegistry` dispatch,
+   `DlqWriter::write`, or `sink-otel-grpc` public API constitutes a violation.
+   The BC is testable via static analysis using `cargo-call-stack` (the primary
+   verification tool for Rust callgraph queries): run `cargo-call-stack` on the
+   dispatcher binary and assert no edge in the call graph reaches any of the
+   deprecated symbols. If `cargo-call-stack` is not available in CI, the fallback
+   is a grep-based whitelist check (see Canonical Test Vectors).
 2. The deprecated items (`sink-otel-grpc`, `Router`, `SinkRegistry`,
    `DlqWriter`) are excluded from `Cargo.toml` `default-members`. The
    workspace's default build (`cargo build`) does NOT compile these crates/types
@@ -88,18 +96,22 @@ establishes). All Canonical Test Vectors describe the post-Wave-1 state.
 
 ## Invariants
 
-1. **The call-graph invariant is enforced by the Wave 1 implementation
-   change**, NOT by a CI check. At Wave 1, `main.rs` is the sole wiring point;
-   removing the `Router::submit` call from `main.rs` enforces the invariant
-   mechanically. The invariant is testable via static analysis or integration
-   test (assert no events in `sink-otel-grpc`'s output path).
-2. **TD-015-a deferral (architect's D-311 note):** A CI check using
+1. **The call-graph invariant is mechanically enforced by removing the
+   `Router::submit` call from `main.rs` in Wave 1; verified by callgraph static
+   analysis using `cargo-call-stack` at every PR merge to develop.** The Wave 1
+   implementation change at `main.rs` is the sole wiring point for the deprecated
+   paths; removing it from production makes the invariant structurally true. Ongoing
+   enforcement requires the named static analysis tool to prevent inadvertent
+   re-introduction through refactoring.
+2. **TD-015-a open question (owner: TBD — flag for assignment):** A CI check using
    `cargo metadata` to reject any PR that adds NEW intra-workspace dependencies
-   on the deprecated crates is DEFERRED per ADR-015 D-15.1. This check is NOT
-   a postcondition of Wave 1. It MUST be implemented before Wave 5 crate
-   deletion to prevent a scenario where an undetected re-coupling causes workspace
-   breakage when the deprecated crates are deleted. TD-015-a is tracked as an
-   open technical debt item.
+   on the deprecated crates is an OPEN TECHNICAL QUESTION: which team owns
+   implementing it, and what is the implementation approach (`cargo metadata` vs
+   `cargo-deny` allow-list vs custom lint)? **Decision-by date: Wave 5 closure.**
+   This check is NOT a postcondition of Wave 1. It MUST be decided and implemented
+   before Wave 5 crate deletion to prevent a scenario where an undetected re-coupling
+   causes workspace breakage when the deprecated crates are deleted. TD-015-a remains
+   a tracked open technical debt item pending owner assignment.
 3. **`publish = false` is not sufficient re-coupling protection.** `publish =
    false` prevents crates.io publication but does NOT prevent other workspace
    crates from adding `sink-otel-grpc` as a dev-dependency or dependency in
@@ -120,9 +132,12 @@ establishes). All Canonical Test Vectors describe the post-Wave-1 state.
 
 ## Architecture Anchors
 
-- `crates/factory-dispatcher/src/sinks/mod.rs` lines 11–15 — the open
-  integration TODO that ADR-015 closes; `Router::submit` is NOT wired here;
-  after Wave 1, this TODO is resolved by removing the comment and the dead code
+- `factory-dispatcher::sinks::Sink` trait dispatch surface (in
+  `crates/factory-dispatcher/src/sinks/mod.rs`) — the open integration point that
+  ADR-015 closes; `Router::submit` is NOT wired here after Wave 1; this TODO is
+  resolved by removing the comment and the dead code. (Stable anchor per TD-VSDD-091;
+  line numbers are not authoritative — use the trait/module name as the canonical
+  reference.)
 - `Cargo.toml` (workspace root) — `default-members` field; deprecated crates
   excluded from default build
 - `crates/sink-otel-grpc/Cargo.toml` — `publish = false` set at Wave 1
@@ -132,7 +147,8 @@ establishes). All Canonical Test Vectors describe the post-Wave-1 state.
 - ADR-015 D-15.1 — "Retired (Wave 5): Crates are physically deleted from the
   repository."
 - ADR-015 D-15.1 — TD-015-a: `publish = false` on retired crates does not
-  prevent intra-workspace re-coupling; CI check deferred
+  prevent intra-workspace re-coupling; owner assignment and decision-by date
+  required before Wave 5
 
 ## Story Anchor
 
@@ -167,6 +183,8 @@ via physical deletion.
 | **Misimplementation distinguisher:** Wave 1 code still calls `Router::submit` | Test MUST assert no events appear in `sink-otel-grpc`'s output path AND no `Router::submit` call is made. A Wave 1 misimplementation that still calls `Router` routes events incorrectly. | misimplementation-witness-router-still-called |
 | `cargo publish --dry-run -p sink-otel-grpc` | Fails with "publish = false in Cargo.toml" error | publish-false-guard |
 | Static analysis (e.g., `cargo udeps` or custom lint) post-Wave-1 | No active workspace crate has `sink-otel-grpc`, `Router`, `SinkRegistry`, or `DlqWriter` as a live dependency | static-analysis-no-recoupling |
+| **Call-graph absence check (production builds):** `grep -rn "Router::submit\|SinkRegistry::dispatch\|DlqWriter::write" crates/factory-dispatcher/src/ \| grep -v "#\[deprecated\]\|#\[allow(dead_code)\]" \| wc -l` | Returns `0` — no non-deprecated calls to the forbidden symbols in the dispatcher production source | grep-callgraph-absence |
+| **Positive-coverage assertion (FileSink receives all events):** Emit one event via `host::emit_event` post-Wave-1; assert `events-*.jsonl` line count increments by 1 | Line count in `events-*.jsonl` INCREASES by exactly 1 (not 0 — confirming FileSink IS reached, not just that Router is absent) | positive-coverage-filesink-reached |
 
 ## Verification Properties
 
@@ -180,9 +198,9 @@ via physical deletion.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
-| Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003. This BC governs the routing invariant that ensures no event is silently lost to an uncalled deprecated sink path — preserving the stream's completeness. ADR-015 D-15.1 simplifies CAP-003's multi-sink model to single-stream FileSink; this BC is the negative-space enforcement guaranteeing the old multi-sink paths are not called from the production stream. |
-| L2 Domain Invariants | TBD |
+| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. This BC is the call-graph invariant that proves the single-stream architecture holds: CAP-029 states "Router, SinkRegistry, and DlqWriter are retired; all downstream multi-sink fan-out is delegated to an external OTel Collector." BC-1.12.007 is the verifiable behavioral contract that enforces that retirement — it specifies that no production code path calls these deprecated symbols, and mandates static analysis verification (cargo-call-stack) to prove the absence at every PR merge. |
+| L2 Domain Invariants | DI-011 (superseded by ADR-015 D-15.1 — single-sink eliminates submit-must-not-block; the multi-sink path that DI-011 governed is precisely the path this BC forbids from production); DI-012 (superseded by ADR-015 D-15.1 — single-sink eliminates per-sink isolation; this BC's call-graph invariant is what makes DI-012's per-sink concern moot) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (call-graph exclusion enforced by removing `Router::submit` wire); workspace `Cargo.toml` (`default-members` exclusion) |
 | Stories | S-10.02 (Wave 1: establishes call-graph invariant by removing Router wire), S-10.09 (Wave 5: completes lifecycle via physical deletion) |
 | Epic | E-10 (Single-stream OTel-aligned event emission) |
