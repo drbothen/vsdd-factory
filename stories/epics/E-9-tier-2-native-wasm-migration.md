@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.45"
+version: "1.46"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -506,6 +506,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.43 | 2026-05-05 | state-manager (no PO Phase 1 — all findings state-manager-domain; SECOND state-manager-only burst) | D-289 pass-46 seal-and-fix — SECOND state-manager-only burst; THIRD application of TD-VSDD-090 audit gate with paranoid-verification discipline post-5/5 self-violation pattern. Pass-46 SUBSTANTIVE 2H/1M/2L. HIGH-P46-001 closed: v1.42 H3 sub-check #5 used fabricated grep (`grep "**Section:**"` returns 0 matches); corrigendum in this v1.43 H3 block with correct grep + actual output (see below). HIGH-P46-002 closed: TD-088-HOOK section asymmetry resolved — `**Estimated effort:**` removed from TD-088-HOOK (TD-089/090 don't have it; consistency-by-removal per HIGH-P46-002 resolution). MED-P46-001 closed: v1.42 H3 sub-check #1 line citations off-by-one (1959→1960, 1988→1989); corrigendum in v1.43 H3. LOW-P46-001 closed: burst date sync (STORY-INDEX D-288 entry showed 2026-05-06; canonical date per `git show -s --format=%ci e08bc67` is 2026-05-05; STORY-INDEX corrected). LOW-P46-002 noted (pre-existing v1.34 placeholder; not D-288-introduced). Pattern-tracking section updated N=4→N=5; 5/5 codification self-violation rate; TD-VSDD-090-HOOK mechanization ESCALATED. ADR-013 clock RESET 0_of_3. STORY-INDEX 1.95→1.96. |
 | 1.44 | 2026-05-05 | state-manager (no PO Phase 1 — all findings state-manager-domain; THIRD state-manager-only burst) | D-290 pass-47 seal-and-fix — THIRD state-manager-only burst; STRUCTURAL FIX (TD-VSDD-091 NORMATIVE codified: stable-anchor citations for self-referential intra-file references). Pass-47 SUBSTANTIVE 2H/1M/2L. HIGH-P47-001 FROZEN per POLICY 1 (v1.43 H3 line citations immutable; TD-091 prevents recurrence). HIGH-P47-002 FROZEN per POLICY 1 (v1.43 corrigendum's off-by-one immutable; v1.44 second corrigendum uses anchor-based language). MED-P47-001 closure: future bursts use TD-091 stable anchors — no line-number greps to mis-narrate. LOW-P47-001/002 noted. TD-VSDD-091 NORMATIVE codified. TD-VSDD-091-HOOK backlog filed. Pattern-tracking N=5→N=6 with empirical-refutation-of-narrative-discipline disclosure. ADR-013 clock RESET 0_of_3. STORY-INDEX 1.96→1.97. |
 | 1.45 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-293 pass-50 SOUL #4 seal-and-fix — FIFTH PO-authored burst (returning to PO/state-manager routing); FIRST application of TD-VSDD-092 BC-SOUL4-coverage discipline. Pass-50 SUBSTANTIVE 2H/1M/1L. HIGH-P50-001 read_to_end silent IO swallow acknowledged (BC-036 EC-015 + TV best-effort-read). HIGH-P50-002 kill/wait cleanup-phase no secondary deadline acknowledged (BC-036 EC-016 + TV no-secondary-deadline). MED-P50-001 spawn io::Error reason discarded (BC-036 EC-007 expanded). LOW-P50-001 emit_denial best-effort symmetry acknowledged (BC-035 §Description note). 2 new OQs: W16-009 (read_to_end v2 remediation) + W16-010 (cleanup-phase secondary deadline). BC-036 Postcondition 2 best-effort-read qualifier added; Postcondition 5 TIMEOUT footnote added. TD-VSDD-092 NORMATIVE codified (BC-SOUL4-coverage). TD-VSDD-092-HOOK backlog filed. ADR-013 clock RESET 2_of_3 → 0_of_3. STORY-INDEX 1.99→2.00. |
+| 1.46 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-295 pass-51 LOW closures — SIXTH PO-authored burst (user-directed quality-over-clock-speed tradeoff). 6 LOW closures: LOW-P51-001 BC-035 §Precedence Ladder step (1) cause-collapse note enumerating MemoryOverflow/OutOfBounds/InvalidUtf8 variants; LOW-P51-002 BC-035 EC-013 file_name=None fallback paragraph; LOW-P51-003 BC-036 EC-007 stdin write_all is_err() cause erasure (parallel to MED-P50-001); LOW-P51-004 BC-036 EC-007 try_wait Err(_) cause erasure parallel; LOW-P51-005 BC-036 EC-013A 5ms busy-poll granularity footnote; LOW-P51-006 BC-036 EC-011 emit_internal poison vs internal_log IO asymmetry contrast. **TRADEOFF: ADR-013 clock RESET 1_of_3 → 0_of_3** (user accepted clock reset for spec quality; 3 fresh NITPICK_ONLY (pass-52/53/54) needed for CONVERGENCE_REACHED). STORY-INDEX 2.01→2.02. |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2234,5 +2235,41 @@ TD-VSDD-091 self-application: this H3 block uses ONLY anchor-based citations. No
 TD-VSDD-092 self-application: does the BC-SOUL4-coverage rule apply to the TD-VSDD-092 codification text itself? The codification text does not govern a Rust function with silent-discards — it is prose/normative text in a lessons.md file. N/A by scope. PASS.
 
 **ADR-013 clock:** RESET 2_of_3 → 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (51/52/53) needed for CONVERGENCE_REACHED.
+
+### v1.46 (D-295 — pass-51 LOW closures; SIXTH PO-authored burst; user-directed quality-over-clock-speed tradeoff)
+
+**Context:** D-294 sealed pass-51 NITPICK_ONLY (ADR-013 clock 0_of_3 → 1_of_3 — FIRST ADVANCE in fresh post-D-293 convergence path). D-295 closes the 6 LOWs deferred by D-294 per user directive "lets fix all the lows". This is a user-directed quality-over-clock-speed tradeoff: the spec surface is amended from v1.45 → v1.46, which resets the ADR-013 convergence clock.
+
+**Routing pattern: SIXTH PO-authored burst (PO Phase 1 + state-manager Phase 2):** PO Phase 1 authored all BC content amendments (BC-035 and BC-036 edits). State-manager Phase 2 authors meta-content only (this H3 block, summary table v1.46 row, frontmatter version and last_amended fields, STATE.md update, STORY-INDEX bump).
+
+**6 LOW closures (PO Phase 1 — BC content):**
+
+- **LOW-P51-001 CLOSED — BC-035 §Precedence Ladder step (1) cause-collapse note:** The cause-collapse note in the §Precedence Ladder step (1) row now enumerates the specific `read_wasm_string` error variants (MemoryOverflow, OutOfBounds, InvalidUtf8) that collapse to INVALID_ARGUMENT (-2), making the erasure visible to implementers. Parallel to the cause-erasure discipline established at MED-P50-001 and TD-VSDD-092.
+
+- **LOW-P51-002 CLOSED — BC-035 EC-013 file_name=None fallback paragraph:** BC-035 EC-013 gained a paragraph documenting the `file_name=None` fallback behavior: when the plugin call site does not supply a file_name, the event is still emitted with `file_name` absent from the payload. This ensures implementers understand the optional field semantics without inferring from absence.
+
+- **LOW-P51-003 CLOSED — BC-036 EC-007 stdin write_all is_err() cause erasure:** BC-036 EC-007 (existing INTERNAL_ERROR row for spawn io::Error cause erasure, expanded at MED-P50-001) is extended to acknowledge that the `child_stdin.write_all(...).is_err()` check on the stdin write path also erases the specific io::Error cause. Parallel structure to MED-P50-001's `spawn().map_err(|_|)` disclosure.
+
+- **LOW-P51-004 CLOSED — BC-036 EC-007 try_wait Err(_) cause erasure parallel:** BC-036 EC-007 is further extended to acknowledge that `child.try_wait()` returning `Err(_)` on the busy-poll path discards the specific OS error reason, collapsing to INTERNAL_ERROR (-99). Fourth cause-erasure disclosure in EC-007 per TD-VSDD-092 BC-SOUL4-coverage discipline.
+
+- **LOW-P51-005 CLOSED — BC-036 EC-013A 5ms busy-poll granularity footnote:** BC-036 EC-013A (timeout busy-poll path) gained a footnote noting the 5ms `sleep` granularity of the busy-poll loop: the observed TIMEOUT latency exceeds `timeout_ms` by up to 5ms per busy-poll cycle, and this overshoot is not bounded per v1. Implementers consulting the BC for timing guarantees now see this explicitly.
+
+- **LOW-P51-006 CLOSED — BC-036 EC-011 emit_internal poison vs internal_log IO asymmetry contrast:** BC-036 EC-011 (Mutex poison path) gained a sentence contrasting the poison arm (no fallback — the emit is silently skipped) against the internal_log IO failure arm (eprintln fallback to stderr). This explicit contrast closes the descriptive asymmetry flagged in LOW-P51-006 and is consistent with the best-effort symmetry note added to BC-035 §Description at LOW-P50-001.
+
+**TRADEOFF explicitly accepted (user directive):** The user directive "lets fix all the lows" was received after D-294 sealed pass-51 NITPICK_ONLY and advanced the ADR-013 clock to 1_of_3. Applying these 6 LOWs amends the BC pair spec surface from v1.45 → v1.46. Per ADR-013, any amendment to the spec surface resets the convergence clock. **ADR-013 clock RESETS 1_of_3 → 0_of_3.** Three consecutive fresh NITPICK_ONLY passes (52/53/54) are now needed for CONVERGENCE_REACHED. The user acknowledged this tradeoff: spec quality over pass-count speed.
+
+**TD-VSDD-090/091/092 self-application audit (anchor-based — per TD-090 + TD-091 requirements):**
+
+This burst modifies: BC-035/036 (PO Phase 1), this epic (the frontmatter version field, the frontmatter last_amended field, the summary table v1.46 row, this H3 block), STATE.md, STORY-INDEX.
+
+TD-VSDD-090 self-application: No new normative rule is codified in this burst. The burst applies existing TD-VSDD-092 BC-SOUL4-coverage discipline (4 cause-erasure disclosures in LOW-P51-001/003/004) without birthing a new TD entry. PASS (rule applies only to "normative-rule birth bursts").
+
+TD-VSDD-091 self-application: this H3 block uses ONLY anchor-based citations. Citations use section heading descriptors (e.g., "the frontmatter version field", "the summary table v1.46 row", "BC-035 §Precedence Ladder step (1)", "BC-035 EC-013", "BC-036 EC-007", "BC-036 EC-013A", "BC-036 EC-011", "BC-035 §Description"). Zero `line \d+` self-referential patterns pointing to this epic. PASS.
+
+TD-VSDD-092 self-application: 4 of the 6 LOW closures (LOW-P51-001/003/004 cause-erasure disclosures + LOW-P51-005 overshoot) directly apply the BC-SOUL4-coverage rule by acknowledging silent-discard patterns in BC EC rows. PASS — this burst is a first-order application of TD-VSDD-092, not a second-order self-violation.
+
+**ADR-013 clock:** RESET 1_of_3 → 0_of_3 (v1.45 surface amended to v1.46 per user-directed LOW closures). Three fresh NITPICK_ONLY passes (pass-52/53/54) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 2.01 → 2.02.
 
 **STORY-INDEX:** 1.99 → 2.00.
