@@ -1305,3 +1305,56 @@ Spec-vs-engine drift detection should be a release-cycle gate. Every release on 
 - Step (vi) E-10 adversarial-review cycle resumes from pass-4's verdict (HIGH, counter at 0). Pass-5 dispatches next.
 - BC-INDEX v1.10→v1.11; ARCH-INDEX v1.3→v1.4; STORY-INDEX v2.20→v2.21.
 - 4 follow-up tracking patterns from pass-3/D-324 still open: POLICY 8 reverse-direction drift (occurrence count per prior tracking), CAP enumeration mismatch, H1 update without body sweep (occurrence 2 of N=3), partial-fix regression (occurrence 1 of N=3).
+
+---
+
+## LESSON-2026-05-06-D331 [process-gap + pattern-tracking] E-10 pass-5 fix-cycle seal
+
+**Burst:** D-331 (state-manager seal — E-10 pass-5 fix-cycle SEALED; 4 commits D-328→D-331)
+**Category:** partial-fix-regression / cross-author-burst-completion / POLICY-8-reverse-direction
+**Severity:** HIGH verdict for pass-5 (12 findings; trend 22→11→16→16→12 — improving)
+
+### Pass-5 outcome summary
+
+Adversary pass-5 returned HIGH (12 findings) on the post-D-327 (rc.12-aligned) E-10 spec package. Counter still 0 (3-of-3 NITPICK_ONLY not yet reached). The 4-burst fix cycle D-328→D-331 closed 8 of 12 findings. F-7 and F-8 were deferred to dedicated cleanup stories #115 and #116 per the adversary's own recommendation (large-blast rename across architecture + domain docs, and TD-VSDD-091 line-N citation sweep — both too large to bundle in this fix cycle without risk of introducing new regressions).
+
+**Fix cycle routing:** D-328 architect (F-2, F-4, F-9, F-12 — 5 BCs amended) → D-329 PO (F-5 — BC-1.12.006 v1.4→v1.5 PC2 reason field) → D-330 story-writer (F-1, F-3, F-11 — 3 stories amended) → D-331 state-manager (index propagation + F-1/F-2 final propagation).
+
+### Pattern-tracking updates (three simultaneous triggers)
+
+#### Partial-fix regression discipline (S-7.01) — OCCURRENCE 3 of N=3 TRIGGER REACHED
+
+**Previous occurrences:** occurrence 1 (D-304: BC-035 D-279 TOCTOU reframe propagated to BC H1 but NOT to BC-INDEX), occurrence 2 (D-326: BC-1.11.001 v1.2 D-325 changelog flagged a story-writer follow-up that D-326 architect-only burst missed).
+
+**This occurrence (F-1, F-3):** BC-1.11.002 D-322 fix added Story Anchor S-10.02 to the BC body but never propagated the reverse direction to BC-INDEX line 171 (Stories cell stayed S-10.03) or to S-10.02 frontmatter `behavioral_contracts:` array. F-3: broader pattern of architect/PO/story-writer cross-author follow-ups dangling between bursts. The D-326 architect burst flagged `Story-writer D-NNN to ...` in its changelog but the dispatch was never explicitly verified.
+
+**Codification triggered (N=3 threshold met):** Every architect/PO burst that flags `Story-writer D-XXX to ...` or `state-manager D-XXX to ...` in its changelog MUST file a corresponding follow-up task in the orchestrator's TaskList AND the orchestrator MUST verify the follow-up is dispatched before declaring the cycle closed. Per S-7.02 cycle-closing checklist requirement: file follow-up story under self-improvement epic.
+
+#### Cross-author burst-completion gap [process-gap]
+
+When an architect-authored amendment requires story-writer or state-manager follow-up to fully propagate, the routing dispatch must explicitly include all required agents in the same fix cycle. D-326 was architect-only despite BC-1.11.001 v1.2 flagging a story-writer follow-up. The fix cycle was not closed until D-330 authored the story propagation.
+
+**Codification candidate (occurrence 1 of N=3 trigger):** Orchestrator dispatch checklist must include "scan recent BC changelogs for `Story-writer D-XXX` / `PO D-XXX` / `state-manager D-XXX` followup flags before closing the burst." Track recurrence.
+
+#### POLICY 8 reverse-direction drift — OCCURRENCE 3 of N=3 TRIGGER REACHED
+
+**Previous occurrences:** occurrence 1 (D-324: BC-1.11.001 D-320 added Story Anchor S-10.04 but BC-INDEX line 166 Stories cell was not propagated reverse-direction until D-324 seal), occurrence 2 (D-324: BC-1.11.003 Story Anchor Wave 2 TBD → S-10.05 fix was delayed by one burst).
+
+**This occurrence (F-1):** D-322 added BC-1.11.002 Story Anchor S-10.02 in the BC body but never propagated to BC-INDEX line 171 (Stories cell = S-10.03 instead of S-10.02) or to S-10.02 frontmatter `behavioral_contracts:` array. The BC body pointed at S-10.02; BC-INDEX pointed at S-10.03; S-10.02 didn't list BC-1.11.002. All three needed synchronization.
+
+**Codification triggered (N=3 threshold met):** State-manager validation step added: "after every BC Story Anchor change, scan BC-INDEX Stories cell AND the named story's frontmatter `behavioral_contracts:` array for matching propagation." This is a mandatory pre-commit check for every burst that modifies a BC's Story Anchor field.
+
+### F-7 / F-8 deferral rationale
+
+**F-7 (dispatcher_trace_id rename):** Approximately 7+ files across architecture docs and domain docs require renaming. The adversary itself flagged this as a candidate for a dedicated cleanup story rather than holding E-10 convergence. Story #115 filed.
+
+**F-8 (TD-VSDD-091 line-N citation sweep):** Approximately 5+ files across stories and ADR-015 require a citation sweep. Same recommendation. Story #116 filed.
+
+Both deferrals are explicitly blessed by the adversary's pass-5 report. The E-10 convergence cycle continues; the deferred items are not blocking.
+
+### Cycle bookkeeping at D-331 seal
+
+- E-10 spec corpus at D-331: 8 of 12 pass-5 findings closed; F-7+F-8 deferred to #115/#116.
+- Pass-6 dispatches next on the post-D-331 spec package.
+- BC-INDEX v1.11→v1.12; ARCH-INDEX v1.4→v1.5; STORY-INDEX v2.21→v2.22.
+- Convergence trend: pass-1 CRIT (22) → pass-2 CRIT (11) → pass-3 HIGH (16) → pass-4 HIGH (16) → pass-5 HIGH (12). Approaching but not at NITPICK_ONLY. Counter still 0.

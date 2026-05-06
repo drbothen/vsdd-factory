@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.11"
+version: "1.12"
 status: draft
 producer: state-manager
 timestamp: 2026-05-06T18:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1931
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-331 (2026-05-06) — E-10 pass-5 fix-cycle seal: 6 BCs amended (BC-1.11.002 anchor F-1; BC-3.05.004 D-15.4→D-15.1 F-2; BC-1.12.006 placeholder + reason field F-4+F-5; BC-2.06.001 placeholder + Wave 2 scope F-4+F-9; BC-4.02.002 + BC-4.01.003 CAP-009 F-12). F-1 fix: BC-INDEX line 171 BC-1.11.002 Stories S-10.03 → S-10.02 (POLICY 8 reverse-direction completion from D-322). 8 of 12 pass-5 findings closed; F-7 + F-8 deferred to follow-up cleanup stories #115 + #116 per adversary recommendation. See cycles/v1.0-brownfield-backfill/E-10-pass-5.md and follow-up commits 3ac6964 (D-328), 19cbd13 (D-329), c35fb1b (D-330)."
   - date: 2026-05-06
     change: "D-327 (2026-05-06) — E-10 ↔ rc.12 format-alignment seal: 4 BCs amended (BC-4.01.003 v1.0→v1.1, BC-4.02.002 v1.0→v1.1, BC-1.12.006 v1.2→v1.3, BC-2.06.001 v1.2→v1.3) closing 4 DRIFT_MINOR items from the rc.12 audit. BC-4.02.002 H1 propagated byte-for-byte (POLICY 7: title rewritten by architect in D-326 to reflect full-stderr-capture postcondition). Engine baseline: v1.0.0-rc.12 (4cf59bc on develop, released 2026-05-06). total_bcs unchanged at 1931. See cycles/v1.0-brownfield-backfill/E-10-rc12-format-audit.md (architect audit, 119e70e) and 7afc64d (D-326 amendments)."
   - date: 2026-05-06
@@ -168,7 +170,7 @@ changelog:
 | [BC-1.10.001](ss-01/BC-1.10.001.md) | Dispatcher exposes vsdd::activated_platform() host function returning activation record platform string | **retired** | CAP-002 | S-5.01 |
 | [BC-1.10.002](ss-01/BC-1.10.002.md) | Dispatcher suppresses duplicate once:true events by tracking per-event-name + per-session_id in dispatcher memory | **retired** | CAP-002 | S-5.01 |
 | [BC-1.11.001](ss-01/BC-1.11.001.md) | factory-dispatcher::host::exec_subprocess::injects_vsdd_trace_id_and_parent_span_id — dispatcher-side mandatory injection of VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID into every exec_subprocess invocation | draft | CAP-029 | S-10.04 |
-| [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-029 | S-10.03 |
+| [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-029 | S-10.02 |
 | [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-009 | S-10.05 |
 | [BC-1.12.001](ss-01/BC-1.12.001.md) | factory-dispatcher::host::emit_event::single_stream_filesink_routing — host::emit_event writes all events exclusively to events-YYYY-MM-DD.jsonl via FileSink; Router/SinkRegistry/DlqWriter retired from production path | draft | CAP-029 | S-10.02 |
 | [BC-1.12.002](ss-01/BC-1.12.002.md) | factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by two-key debug-stream gate (VSDD_DEBUG_LOG=1 env var dominates when present; debug_log_enabled config key governs when env var absent); off by default in release builds; ADR-007 always-on guarantee amended | draft | CAP-010 | S-10.02 |
@@ -276,12 +278,12 @@ changelog:
 |-------|-------|--------|-----------|---------|
 | [BC-4.01.001](ss-04/BC-4.01.001.md) | legacy-bash-adapter requires non-empty `plugin_config.script_path` | draft | CAP-TBD | TBD |
 | [BC-4.01.002](ss-04/BC-4.01.002.md) | legacy-bash-adapter strips plugin_config to Null before piping payload to bash | draft | CAP-TBD | TBD |
-| [BC-4.01.003](ss-04/BC-4.01.003.md) | legacy-bash-adapter maps bash exit codes to HookResult | draft | CAP-TBD | TBD |
+| [BC-4.01.003](ss-04/BC-4.01.003.md) | legacy-bash-adapter maps bash exit codes to HookResult | draft | CAP-009 | TBD |
 | [BC-4.01.004](ss-04/BC-4.01.004.md) | legacy-bash-adapter caps combined output at 1 MiB | draft | CAP-TBD | TBD |
 | [BC-4.01.005](ss-04/BC-4.01.005.md) | legacy-bash-adapter caps wall-clock at 60_000ms (backstop only) | draft | CAP-TBD | TBD |
 | [BC-4.01.006](ss-04/BC-4.01.006.md) | hook-plugins::legacy-bash-adapter::passes_payload_bytes_to_bash_with_plugin_config_stripped — re-serialized payload reaches bash with plugin_config=null while preserving event_name + dispatcher_trace_id | draft | CAP-TBD | TBD |
 | [BC-4.02.001](ss-04/BC-4.02.001.md) | Adapter forwards stdout AND stderr to host log via `host::log_info` / `host::log_warn` (per-stream, non-empty) | draft | CAP-TBD | TBD |
-| [BC-4.02.002](ss-04/BC-4.02.002.md) | Adapter exit-code mapping: 0 → Continue, 2 → Block (reason=full stderr trimmed to 4 KiB OR synthetic), other → Error (message includes script path + code + stderr) | draft | CAP-TBD | TBD |
+| [BC-4.02.002](ss-04/BC-4.02.002.md) | Adapter exit-code mapping: 0 → Continue, 2 → Block (reason=full stderr trimmed to 4 KiB OR synthetic), other → Error (message includes script path + code + stderr) | draft | CAP-009 | TBD |
 | [BC-4.02.003](ss-04/BC-4.02.003.md) | Adapter's plugin_config.script_path validation is checked BEFORE any subprocess invocation | draft | CAP-TBD | TBD |
 | [BC-4.02.004](ss-04/BC-4.02.004.md) | Adapter strips plugin_config to Null before piping to bash — bash hooks predate the field | draft | CAP-TBD | TBD |
 | [BC-4.02.005](ss-04/BC-4.02.005.md) | Adapter resolves relative `script_path` under `${CLAUDE_PLUGIN_ROOT}`; absolute paths bypass the join | draft | CAP-TBD | TBD |
