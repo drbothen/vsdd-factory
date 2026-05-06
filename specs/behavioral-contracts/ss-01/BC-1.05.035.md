@@ -16,7 +16,7 @@ subsystem: "SS-01"
 capability: "CAP-TBD"
 lifecycle_status: active
 introduced: v1.0.0
-modified: [D-293-pass-50, D-295-pass-51]
+modified: [D-293-pass-50, D-295-pass-51, D-305-pass-60]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -114,6 +114,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 | `cmd = ""`; `binary_allow = ["bash"]` | `Path::new("").canonicalize()` returns Err (ENOENT); `emit_denial(ctx, "", "binary_canonicalize_failed", details)` emits `internal.capability_denied`; returns `CAPABILITY_DENIED` (-1). Witnesses EC-011. | edge-case |
 | `args = [b"\xFF\xFE"]` (non-UTF-8 arg bytes); `cmd = "bash"` (on allow-list); capability passes | After canonicalize/allow-check pass for `cmd`, `decode_args` at exec_subprocess.rs:127 calls `String::from_utf8_lossy` → arg arrives at subprocess as `"??"` (U+FFFD substitution for each non-UTF-8 byte). No error returned; subprocess is spawned with mangled argument. Witnesses EC-012 args-lossy-UTF8 path. | edge-case |
 | `binary_allow = ["passwd"]`; `cmd = "/usr/bin/passwd"` (or any executable with basename `passwd`) | Canonicalize succeeds → basename `passwd` matches `binary_allow` → subprocess spawned. Witnesses EC-013 operator-must-audit-allow-list note. Subprocess receives full `passwd` access. | security-operator-audit |
+| `cmd = b"\xFF\xFE"` (non-UTF-8 byte sequence: invalid UTF-8 lead byte 0xFF, continuation byte 0xFE — fails `String::from_utf8` at memory.rs:53); `binary_allow = ["bash"]` | Returns `Err(codes::INVALID_ARGUMENT -4)` via Precedence Ladder step (1) — `read_wasm_string` returns `HostCallError::InvalidUtf8` at memory.rs:53; the catch-all `Err(_) =>` arm at exec_subprocess.rs:51-52 collapses to `INVALID_ARGUMENT` (-4); NO event emitted (PC-2 is the pre-canonicalize host-call error path, not a denial event); witnesses MED-P60-001 + LOW-P51-001 cause-collapse note. **Coverage extension (TD-VSDD-093 quote-verified vs Precedence Ladder step (1)):** the same `INVALID_ARGUMENT` (-4) outcome covers `HostCallError::MemoryOverflow` (memory.rs:33 integer overflow from `start.checked_add(len as usize)`) and `HostCallError::OutOfBounds { ptr, len, memory_size }` (memory.rs:35-40 span past memory size) via the same catch-all collapse — 3 distinct root causes silently erased to a single error code per LOW-P51-001 documentation. | [error] |
 
 ## Verification Properties
 

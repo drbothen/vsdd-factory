@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.52"
+version: "1.53"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -17,7 +17,7 @@ timestamp: 2026-05-03T00:00:00Z
 phase: 2
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: "2026-05-06 (D-304 — pass-59 META corrigendum + BC-INDEX sync: close HIGH-P59-001 BC-INDEX line 122 BC-035 title drift; proactive BC-INDEX-vs-H1 sweep 265 BCs; 2 drifts fixed (BC-035 TOCTOU + BC-3.03.001 truncation); pattern-tracking N=2 below S-7.02 threshold; state-manager-only routing per TD-VSDD-088)"
+last_amended: "2026-05-06 (D-305 — pass-60 SUBSTANTIVE seal-and-fix: close MED-P60-001 (BC-035 TV-10 InvalidUtf8 witness), MED-P60-002 (BC-036 TV-20 PC-3 timing witness), MED-P60-003 (BC-036 TV-21/22/23 EC-013A boundaries), MED-P60-004 (BC-036 TV-24/25 EC-013B bifurcation), LOW-P60-001 (BC-036 TV-9 by-design NOTE); 7 CTV rows added; EIGHTH PO-authored burst cumulative)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -513,6 +513,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.50 | 2026-05-06 | state-manager | D-300 pass-55 META corrigendum — close 5 LOW-class enforcement-format inconsistencies (Obs-P55-001 PO-authored counter drift v1.41/45/46/47; Obs-P55-002 state-manager-only counter drift v1.48/49; Obs-P55-003 v1.48 RESETS 0→0 semantic null; Obs-P55-004 sweep-report-location process-gap filed for checklist; Obs-P55-005 v1.44 "five artifacts" narrative ambiguity). Pass-55 angle: NORMATIVE rule cross-application audit (novel). Per POLICY 1 append-only, historical H3 prose preserved verbatim; corrigendum recorded in v1.50 H3 establishing going-forward convention (cumulative-count form for ordinal labels; "no advance" form for clock notation; explicit artifact-count enumeration; sweep-report-location as cycle-closing-checklist item). State-manager-only burst per TD-VSDD-088. ADR-013 clock 0_of_3 (no advance; SUBSTANTIVE under strict-protocol). |
 | 1.51 | 2026-05-06 | state-manager | D-303 pass-58 META corrigendum + TD-VSDD-093 NORMATIVE-rule birth — close MED-P58-001 (v1.46 H3 LOW-P51-002 closure narrative `file_name` two-referents misdescription); codify TD-VSDD-093 (closure-narrative source-of-truth validation discipline) per S-7.02 3-occurrence threshold met; sibling-class to HIGH-P54-001 D-299 closure. Per POLICY 1 append-only, v1.46 H3 prose preserved verbatim; corrigendum recorded in v1.51 H3. State-manager-only routing per TD-VSDD-088 META-routing (no BC body changes; BC-035 EC-013 body is correct). FIRST application of TD-VSDD-090 self-application audit gate to TD-VSDD-093. ADR-013 clock 0_of_3 (RESET). |
 | 1.52 | 2026-05-06 | state-manager | D-304 pass-59 META corrigendum + BC-INDEX sync — close HIGH-P59-001 (BC-INDEX line 122 BC-035 title drift; v1.33 D-279 reframe partial-fix regression). Performed proactive BC-INDEX-vs-H1 sweep across ALL 265 em-dash-format BCs per Obs-P59-001 process-gap recommendation; 2 additional drifts found and fixed (BC-035 TOCTOU framing + BC-3.03.001 truncation); N=2 total semantic drifts below S-7.02 3-occurrence threshold; TD-VSDD-094 NOT codified; pattern-tracking N=2 added for future monitoring. Per POLICY 1 append-only, v1.33 H3 prose preserved verbatim; corrigendum recorded in v1.52 H3. State-manager-only routing per TD-VSDD-088. ADR-013 clock 0_of_3 (HOLD before D-304; RESET applied via SUBSTANTIVE close). SEVENTH state-manager-only burst this cycle (cumulative). |
+| 1.53 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-305 pass-60 SUBSTANTIVE seal-and-fix — close MED-P60-001 (BC-035 PC-2 read_wasm_string Err InvalidUtf8 witness; consolidated row covers all 3 HostCallError variants per LOW-P51-001), MED-P60-002 (BC-036 PC-3 duration_ms active timing witness; sleep 0.5 + timeout 5000 → duration_ms ∈ [490, 600]), MED-P60-003 (BC-036 EC-013A 3 timeout boundaries: timeout_ms=0 lower, ~5ms granularity floor LOW-P51-005, u32::MAX upper LOW-P52-002 — 3 separate CTV rows), MED-P60-004 (BC-036 EC-013B max_output_bytes=0 bifurcation: any-byte → OUTPUT_TOO_LARGE + zero-byte → success — 2 separate CTV rows), LOW-P60-001 (BC-036 TV-9 by-design cause-collapse NOTE per TD-VSDD-092 framing). 7 new CTV rows authored + 1 TV-9 NOTE updated. EIGHTH PO-authored burst (cumulative count). ADR-013 clock 0_of_3 (HOLD; SUBSTANTIVE before D-305; RESET applied via close). |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2595,3 +2596,41 @@ This v1.52 H3 prose has been quote-verified against source-of-truth:
 **ADR-013 clock:** RESET 0_of_3 → 0_of_3 (SUBSTANTIVE verdict — 1 HIGH closed). Three fresh NITPICK_ONLY passes (60/61/62) needed for CONVERGENCE_REACHED.
 
 **STORY-INDEX:** 2.10 → 2.11.
+
+### v1.53 (D-305 — pass-60 SUBSTANTIVE seal-and-fix; EIGHTH PO-authored burst (cumulative count); FIRST adversary-side application of TD-VSDD-093 quote-verification with 10-row log; closes MED-P60-001/002/003/004 + LOW-P60-001 from pass-60 — CTV coverage matrix gaps)
+
+Pass-60 angle was CTV (Canonical Test Vector) coverage matrix vs Postcondition coverage audit (novel; untouched as primary angle in 59 prior passes). The audit detected 4 MEDIUM coverage gaps + 1 LOW collapsed-row finding by building a complete bidirectional PC/EC ↔ TV mapping for both BCs and applying the broad TD-VSDD-085 adversary axis (witness ALL PCs and ALL ECs, not just newly-introduced ones). The findings represent genuine pre-burst coverage gaps that prior single-mechanism or partial-fix-regression-frame audits did not surface.
+
+**MED-P60-001 CLOSED** — BC-035 §Canonical Test Vectors gained TV-10: `cmd = b"\xFF\xFE"` (non-UTF-8 bytes; fails `String::from_utf8` at memory.rs:53 → `HostCallError::InvalidUtf8`) → `INVALID_ARGUMENT (-4)` via Precedence Ladder step (1) catch-all `Err(_) =>` arm at exec_subprocess.rs:51-52. Row's coverage extension note documents all 3 HostCallError variants (InvalidUtf8, MemoryOverflow at memory.rs:33, OutOfBounds at memory.rs:35-40) collapsing to same -4 code per LOW-P51-001 silent-cause-collapse pattern. PC-2 normative postcondition + Precedence Ladder step (1) cause-collapse note now actively witnessed.
+
+**MED-P60-002 CLOSED** — BC-036 §Canonical Test Vectors gained TV-20: `command = "sleep"`, `args = ["0.5"]`, `timeout_ms = 5000` → subprocess exits ~500ms; `host.exec_subprocess.completed` event with `duration_ms ∈ [490, 600]` (covers kernel scheduling jitter). PC-3 active timing witness — confirms `Instant::now()` capture occurs immediately BEFORE `command.spawn()` at exec_subprocess.rs:252, NOT from the post-spawn deadline `Instant` at exec_subprocess.rs:270. PO authoring note: PC-3 is a FUTURE-IMPLEMENTATION requirement (current source has no `started` Instant); TV-20 is correctly framed as post-implementation witness.
+
+**MED-P60-003 CLOSED** — BC-036 §Canonical Test Vectors gained 3 boundary TV rows for EC-013A:
+- **TV-21 (lower bound `timeout_ms = 0`):** deadline expires on first poll at exec_subprocess.rs:292; returns `TIMEOUT (-2)`; race condition with fast-exiting processes documented in row.
+- **TV-22 (5ms granularity floor LOW-P51-005):** `timeout_ms = 1`, `sleep 0.01` (~10ms) → effective timeout `max(1ms, ~5ms)` via hardcoded `std::thread::sleep(Duration::from_millis(5))` at exec_subprocess.rs:297; TIMEOUT fires at ~5ms.
+- **TV-23 (upper bound `timeout_ms = u32::MAX` LOW-P52-002):** `Duration::from_millis(u32::MAX as u64)` at exec_subprocess.rs:270 produces ~49.7-day deadline; subprocess exits in ~10ms; success path; operationally unbounded.
+
+**MED-P60-004 CLOSED** — BC-036 §Canonical Test Vectors gained 2 bifurcation TV rows for EC-013B:
+- **TV-24 (any-byte → OUTPUT_TOO_LARGE):** `max_output_bytes = 0`, subprocess `/bin/echo x` (2 bytes stdout); strict-`>` check at exec_subprocess.rs:278 fires `2 > 0 = true`; returns `OUTPUT_TOO_LARGE (-3)`.
+- **TV-25 (zero-byte → success):** `max_output_bytes = 0`, subprocess `/usr/bin/true` (0 bytes total); `0 > 0 = false`; success path; event emitted with empty buffers. Reinforces MED-P52-001 boundary semantic at `max_output_bytes = 0`.
+
+**LOW-P60-001 CLOSED** — BC-036 TV-9 outcome cell gained "By-design cause-collapse NOTE" documenting that the single TV row witnesses the OUTCOME (INTERNAL_ERROR -99 + no event) for ALL 4 cause-erasure paths in EC-007 (spawn at :252 per MED-P50-001, stdin write_all at :259 per LOW-P51-003, try_wait at :299 per LOW-P51-004, pipe take at :267-268). Per TD-VSDD-092 BC-SOUL4-coverage v1 known-limitation framing, the collapsed witness is intentional. Mock-injection-required individual-path witnesses deferred to v2 (consistent with TV-19 EC-016 mock-injection precedent).
+
+**TD-VSDD-093 self-application audit (PO Phase 1 confirmed):** PO completed 13-row quote-verification log (memory.rs:33/35-40/53; exec_subprocess.rs:51-52/252/270/278/292/297; BC-035 PC-2; BC-036 PC-3/EC-013A/EC-013B). All 13 PASS. PO discovered PC-3 `started` Instant is future-implementation requirement (correctly noted in TV-20 framing). State-manager Phase 2 verified BC body content matches PO output before commit. PASS.
+
+**TD-VSDD-090 self-application audit:** D-305 introduces NO new normative rule. The CTV coverage matrix audit + fix is application of existing TD-VSDD-085 broad adversary axis + MED-P52-001 boundary precedent. N/A by scope.
+
+**TD-VSDD-091 stable-anchor citation discipline:** v1.53 H3 uses ONLY anchor-based citations (TV-NN identifiers; PC-N / EC-NNN; source-of-truth file paths with line citations to non-self-referential Rust files). NO `line N` self-referential intra-file references into E-9 epic. PASS.
+
+**TD-VSDD-092 BC-SOUL4-coverage:** TV-9 NOTE update directly addresses LOW-P60-001 (silent-cause-collapse pattern) per TD-VSDD-092 v1 known-limitation framing. The 4 cause-erasure paths in EC-007 are now ALL acknowledged in TV-9. Other CTV additions (TV-10, TV-20..25) do not touch new `let _ =` discard surfaces. PASS.
+
+**TD-VSDD-089 5-axis sibling sweep:**
+1. **Postcondition ↔ Edge Case parity:** PC-2 BC-035 (PC↔EC asymmetry — no sibling EC) now has TV-witness; PC-3 BC-036 (PC↔EC asymmetry) now has TV-witness. The structural asymmetries remain (no new EC added) but the TV-coverage gaps are closed.
+2. **Cross-BC reference accuracy:** No cross-BC anchors modified. BC-036 PC-2 cross-references BC-035 PC-1 propagation — verified intact.
+3. **Numeric enumeration:** BC-035 CTV grew 9 → 10 rows; BC-036 CTV grew 19 → 25 rows. Coverage density: BC-035 0.55 (10/18); BC-036 0.96 (25/26 — only EC-013B's 2-row bifurcation counts as 1 EC slot, and the 6 closures fill PC-3 + EC-013A 3-sub-cases + EC-013B 2-sub-cases). Numeric coherence verified.
+4. **Parenthetical lists:** TV-9's parenthetical "(or pipe take/write fails or try_wait error)" is now flanked by the by-design NOTE explaining the 4-path collapse. No drift introduced.
+5. **Codification artifact sibling integrity:** BC-035 + BC-036 `modified` field updated to D-305-pass-60; pass-60 review file persisted; STATE.md updated; STORY-INDEX bumped; lessons.md unchanged (no new TD codification).
+
+**ADR-013 clock:** RESET 0_of_3 → 0_of_3 (SUBSTANTIVE verdict — 4 MEDIUM + 1 LOW closed). Three fresh NITPICK_ONLY passes (61/62/63) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 2.11 → 2.12.
