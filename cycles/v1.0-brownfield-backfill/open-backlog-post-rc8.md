@@ -129,6 +129,8 @@
 - Runs lightweight automated self-application checks where machine-verifiable (e.g., trailer format consistency for TD-089; new mechanism string TV-witness presence for TD-085; numeric enumeration consistency for TD-059)
 - Flags un-checkable rules for manual review checklist (returned in commit message preface)
 
+**Implementation surface:** Bash script at `dark-factory-engine/hooks/validate-td-vsdd-self-application.sh`; invoked as part of the TD-VSDD-080-style pre-commit chain alongside `validate-bc-table-arity.sh` and `validate-bc-terminology-family.sh`. Triggered when a commit modifies `cycles/*/lessons.md` and adds a line matching `^## TD-VSDD-\d+`. Outputs a checklist of machine-verifiable sub-checks (e.g., grep for H3 detail block in modified epics, trailer format check for sibling TD entries) and a manual-review prompt for non-automatable axes.
+
 **Acceptance criteria:**
 - Hook detects 100% of new TD-VSDD-NNN entries
 - Hook performs automated self-application for at least TD-085, TD-087, TD-089 axes 1-5
