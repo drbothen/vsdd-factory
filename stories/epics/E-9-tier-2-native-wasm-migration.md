@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.31"
+version: "1.32"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -492,7 +492,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.29 | 2026-05-05 | state-manager | D-274 inverse-traceability fix — MED-P31-001 (gap-analysis:334-337 + audit-w16 B-7 row tense corrected: "are injected"/"automatic invariant" → "MUST be injected per D-15.4, normative future-state; pending E-10 Wave 1"); MED-P31-002 (BC-1.05.036 Postcondition 2: outcome enum field added + exit_code→outcome mapping per ADR-015 D-15.2:270); LOW-P31-003 (BC-1.05.036 stdin write-failure cite :262 → :259); LOW-P31-004 (perf-baseline "sub-millisecond I/O" → "measured throughput >10k events/minute per ADR-015 D-15.1 Rationale"); LOW-P31-005 SKIPPED (tense conflation cosmetic per S-7.03 SHIP-AS-IS). Source-of-truth verification per TD-VSDD-075: exec_subprocess.rs:242-247 env_clear+selective-forward confirmed; :259 write_all().is_err() confirmed; ADR-015 D-15.2:270 outcome enum confirmed; D-15.4:407-419 MUST-be-injected confirmed; D-15.1 Rationale:432-440 10k events/minute confirmed. ADR-013 clock 0_of_3 (RESET by pass-31 SUBSTANTIVE). |
 | 1.30 | 2026-05-05 | state-manager | D-276 PC↔TV coherence fix — MED-P33-001 (BC-1.05.036: EC-008 outcome-enum-stamping row added + 2 Canonical Test Vector rows for outcome=success/outcome=failure; Postcondition 2 outcome-enum mandate now has test coverage); MED-P33-002 (BC-1.05.035: §Description pairing rationale added justifying INVALID_ARGUMENT+capability_denied novel pairing + EC-002 event-emission witness appended + Test Vector row 3 event assertion added with reason "symlink_traversal_escape"); MED-P33-003 (BC-1.05.035: Postcondition 1 misleading "(`../` absent, no NUL bytes)" parenthetical removed; replaced with `read_wasm_string` error path reference; EC-001 clarifying note added explaining CAPABILITY_DENIED via allow-list miss path — no separate `../` string-level guard exists); LOW-P33-001 (BC-1.05.035: §Description anchor corrected from §"How ADR-015 affects the telemetry gap" lines 339-349 → §"Existing denial-path telemetry" lines 341-351). Source-of-truth verification per TD-VSDD-075: gap-analysis H3 §"Existing denial-path telemetry" begins line 341 (confirmed); rename rationale at lines 343-351 (confirmed); exec_subprocess.rs:148/155/162/169 emit_denial 4 reasons all CAPABILITY_DENIED -1 (confirmed unchanged). TD-VSDD-079 8-term grep: BC-1.05.035 ZERO prohibited matches; BC-1.05.036 lines 38+51 are intentional ADR-015 retirement-status citations. ADR-013 clock 0_of_3 (RESET by pass-33 SUBSTANTIVE verdict). |
 | 1.31 | 2026-05-05 | state-manager | D-277 mechanism-fix burst — HIGH-P34-001 (BC-1.05.035: NUL byte rejection corrected — `read_wasm_string` only rejects non-UTF-8; NUL bytes → Precedence Ladder step 2 → CAPABILITY_DENIED -1; Postcondition 2, Postcondition 1 preamble, EC-005, Precedence Ladder step (1) all corrected per source-truth at host/memory.rs:47-54); MED-P34-001 (BC-1.05.035 EC-001: binary_allow precondition explicitly added); MED-P34-002 (BC-1.05.036 §Related BCs: sibling-disclosure of novel INVALID_ARGUMENT+capability_denied 5th denial path appended); MED-P34-003 (gap-analysis §"Existing denial-path telemetry": INTERIM declaration added as source-of-truth anchor); LOW-P34-001 SKIPPED (outcome enum 3-site duplication cosmetic per S-7.03); LOW-P34-002 closed implicitly by Fix 1 rewrite; TD-VSDD-081 codified (mechanism-verification beyond string-presence-grep). |
-| 1.32 | — | — | (reserved) |
+| 1.32 | 2026-05-05 | state-manager | D-278 sibling-mechanism-sweep fix burst — HIGH-P35-001 (BC-1.05.035: EC-002 + Postcondition 4 + Ladder step (3) corrected from `..` scan mechanism to actual `canonical_path.starts_with(project_root)` prefix check; Path::canonicalize() resolves all `..` segments away — sibling-class error to NUL-byte mechanism caught at v1.30); MED-P35-001 (BC-1.05.035 Postcondition 3: "existing semantics preserved" replaced with explicit BEHAVIOR CHANGE disclosure — missing-binary -99 → -1); MED-P35-002 (BC-1.05.035 §Related BCs BC-1.05.036 row: reverse-direction sibling-disclosure NOTE added for success-path event class novelty); MED-P35-003 (BC-1.05.036 Postcondition 4: ADR-015 line-number citations replaced with stable quoted-phrase anchors); LOW-P35-001/002 SKIPPED per S-7.03; TD-VSDD-082 codified (Sibling-mechanism sweep + bidirectional-sibling-disclosure). |
+| 1.33 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1624,5 +1625,50 @@ When a BC postcondition or normative BC section cites a CONCRETE ENUMERATION (li
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.30"` → `"1.31"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (nineteenth use):** State-manager handles pass-34 seal and 4-fix burst atomically. All fixes are textual corrections to BC normative sections and gap-analysis.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+---
+
+### v1.32 (2026-05-05) — D-278 sibling-mechanism-sweep seal-and-fix: pass-35 1H/3M/2L; symlink prefix-check mechanism corrected + behavior-change disclosure; TD-VSDD-082 codified
+
+**Source-code mechanism verification per TD-VSDD-081 (MANDATORY — completed before commit):**
+- `Path::canonicalize()` std semantics: resolves ALL `..` segments away; returns absolute path with NO `..` components (Rust std::path canonicalize docs — resolves symlinks and eliminates `..` segments). Actual symlink-escape detection requires `canonical_path.starts_with(project_root)` prefix check, NOT `..` scan.
+- `exec_subprocess.rs:252`: `command.spawn().map_err(|_| codes::INTERNAL_ERROR)` confirms current missing-binary path returns `-99` (`INTERNAL_ERROR`), not `-1` (`CAPABILITY_DENIED`). Adding `canonicalize()` pre-spawn changes this to `-1` for missing-binary case — BEHAVIOR CHANGE acknowledged in Postcondition 3.
+
+**HIGH-P35-001 CLOSED — BC-1.05.035 EC-002 + Postcondition 4 + Ladder step (3): `..` scan mechanism corrected to prefix check**
+
+v1.31 correctly fixed the NUL-byte mechanism (read_wasm_string vs canonicalize path). The SAME BC contained a sibling mechanism (symlink-escape detection) using the same `Path::canonicalize()` predicate-shape but a DIFFERENT specific predicate — the `..` scan claim — which was also wrong. The actual escape detection is `canonical_path.starts_with(project_root)` prefix check; `Path::canonicalize()` resolves all `..` segments away by design. Three sites corrected:
+- **EC-002:** replaced "canonicalize() resolves it; `..` components detected" with "canonical path does NOT start with trusted project-root prefix → prefix check fires" + NOTE clarifying canonicalize() resolves `..` segments.
+- **Postcondition 4:** corrected from "`..` components after resolution" to "canonical path does NOT start with trusted project-root prefix" + NOTE explaining canonicalize()/`..`-resolution semantics.
+- **Precedence Ladder step (3):** corrected from "canonicalized path contains `..` segments" to "canonical path does NOT start with trusted project-root prefix (symlink-traversal escape)".
+
+**Postcondition 1 also updated** from "does not contain `..` segments" to "starts with the trusted project-root prefix" for internal coherence.
+
+**MED-P35-001 CLOSED — BC-1.05.035 Postcondition 3: BEHAVIOR CHANGE explicitly disclosed**
+
+The claim "existing exec_subprocess error semantics preserved" was factually wrong. Current missing-binary `cmd` returns `INTERNAL_ERROR (-99)` at `command.spawn()` (exec_subprocess.rs:252). Adding `canonicalize()` pre-spawn changes this to `CAPABILITY_DENIED (-1)` for the missing-binary case. Postcondition 3 now contains full BEHAVIOR CHANGE disclosure: -99 → -1 transition, test migration note (tests expecting INTERNAL_ERROR for missing-binary will break), and intentional-change rationale (aligning with 4 existing CAPABILITY_DENIED denial paths).
+
+**MED-P35-002 CLOSED — BC-1.05.035 §Related BCs BC-1.05.036 row: reverse-direction sibling-disclosure NOTE**
+
+v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §Related BCs. The reverse direction was missing. BC-1.05.035 §Related BCs row for BC-1.05.036 now discloses that BC-1.05.036 introduces the FIRST non-denial event via `ctx.emit_internal` (`host.exec_subprocess.completed`) — a structurally novel event class. Test-writers building event-taxonomy coverage MUST include success-path event class. Bidirectional sibling-disclosure symmetry restored.
+
+**MED-P35-003 CLOSED — BC-1.05.036 Postcondition 4: ADR-015 line-number citations replaced with quoted-phrase anchors**
+
+"multi-sink stanza model removed per ADR-015 line 154; Router/SinkRegistry retired per ADR-015 line 130" replaced with stable quoted-phrase anchors: "multi-sink stanza model removed per ADR-015 D-15.1 §'Decision' 'the multi-sink stanza model is removed'; Router/SinkRegistry retired per ADR-015 D-15.1 §'Decision' 'the `sink-otel-grpc` crate AND the `Router`, `SinkRegistry` types within `sink-core` are retired'". Line-number anchors are fragile when ADR-015 amends; quoted-phrase anchors are stable.
+
+**LOW-P35-001 SKIPPED per S-7.03:** Step (3) grammar inconsistency — cosmetic.
+
+**LOW-P35-002 SKIPPED per S-7.03:** EC-007 INTERNAL_ERROR source enumeration at BC-1.05.035 — detail belongs in BC-1.05.036 Postcondition 5; cross-BC granularity correct.
+
+**TD-VSDD-082 codified:** Sibling-mechanism sweep + bidirectional-sibling-disclosure. See lessons.md. Extends TD-VSDD-076 + TD-VSDD-081. When a fix-burst corrects a mechanism, MUST sweep ALL mechanisms within the SAME BC that invoke the same std-lib function. When adding a sibling-disclosure NOTE to BC-A §Related BCs → BC-B, the inverse BC-B § Related BCs → BC-A MUST receive a symmetric disclosure if applicable.
+
+**TD-VSDD-079 8-term family grep (MANDATORY per TD-VSDD-079/080):** `sink chain`, `Router`, `SinkRegistry`, `DlqWriter`, `multi-sink`, `fan-out`, `Datadog`, `Honeycomb`, `try_send` — ZERO non-changelog body matches in BC-1.05.035 and BC-1.05.036. PASS. BC-1.05.036 line 51's ADR-015 D-15.1 §"Decision" quoted-phrase anchors are intentional architecture citations, not prohibited terms.
+
+**ADR-013 clock:** 0_of_3 (RESET by pass-35 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (36/37/38) needed for CONVERGENCE_REACHED.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.31"` → `"1.32"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (twentieth use):** State-manager handles pass-35 seal and 4-fix burst atomically. All fixes are textual corrections to BC normative sections.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

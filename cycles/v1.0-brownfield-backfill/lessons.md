@@ -685,6 +685,25 @@ The v1.30 fix's claim was string-level plausible but mechanism-level wrong. TD-V
 
 ---
 
+### LESSON: Sibling-mechanism sweep + bidirectional-sibling-disclosure (extension of TD-VSDD-076 + TD-VSDD-081)
+
+**Source:** D-278 pass-35 findings HIGH-P35-001 (mechanism-error sibling) + MED-P35-002 (reverse-direction disclosure asymmetry)
+**Date:** 2026-05-05
+**Category:** spec-verification-discipline
+
+**Pattern:** v1.31 burst (D-277) correctly fixed NUL-byte mechanism error per TD-VSDD-081. But the SAME BC contained a structural sibling mechanism (symlink-escape detection) using the same `Path::canonicalize()` predicate-shape but a different specific predicate (`..` scan vs prefix check). The sibling mechanism had the same class of error and survived all 35 prior passes. Plus v1.31 added a forward-direction sibling-disclosure NOTE (BC-1.05.036 → BC-1.05.035) but missed reverse-direction (BC-1.05.035 → BC-1.05.036).
+
+**Codification:**
+- Extend TD-VSDD-081 with sub-rule: when a fix-burst corrects a mechanism (e.g., "NUL byte rejected via X"), the burst MUST sweep ALL mechanisms within the SAME BC that invoke the same std-lib function (e.g., all uses of `canonicalize()`) and verify each one's predicate is correctly described.
+- Extend TD-VSDD-076 with sibling-disclosure bidirectional-sweep rule: when adding a NOTE to BC-A's §Related BCs row referencing BC-B, the inverse row in BC-B's §Related BCs MUST receive a symmetric disclosure if applicable.
+- ADR line-number citations should prefer quoted-phrase anchors over line numbers when the cited content is short and grep-able.
+- File as TD-VSDD-082 (Sibling-mechanism sweep + bidirectional-sibling-disclosure).
+
+**[codified]** by D-278 lessons.md append.
+
+---
+
 ## Open Backlog
 
+- **TD-VSDD-082** (Sibling-mechanism sweep + bidirectional-sibling-disclosure): When fix-burst corrects a mechanism, MUST sweep ALL mechanisms in the SAME BC using the same std-lib function. When adding sibling-disclosure NOTE to BC-A §Related BCs → BC-B, inverse BC-B §Related BCs → BC-A MUST receive symmetric disclosure. ADR line-number citations prefer quoted-phrase anchors. Extends TD-VSDD-076 + TD-VSDD-081. Source: D-278 HIGH-P35-001 + MED-P35-002.
 - **TD-VSDD-081** (Mechanism-verification beyond string-presence-grep): When fix-burst cites a source-code mechanism as performing a specific check, MUST read the cited source file and verify the mechanism actually performs the asserted behavior. Extends TD-VSDD-079/080 grep-checklist with mechanism-behavior verification sub-rule. Source: D-277 HIGH-P34-001.
