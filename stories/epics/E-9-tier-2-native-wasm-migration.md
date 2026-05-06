@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.32"
+version: "1.33"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -493,7 +493,8 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.30 | 2026-05-05 | state-manager | D-276 PC↔TV coherence fix — MED-P33-001 (BC-1.05.036: EC-008 outcome-enum-stamping row added + 2 Canonical Test Vector rows for outcome=success/outcome=failure; Postcondition 2 outcome-enum mandate now has test coverage); MED-P33-002 (BC-1.05.035: §Description pairing rationale added justifying INVALID_ARGUMENT+capability_denied novel pairing + EC-002 event-emission witness appended + Test Vector row 3 event assertion added with reason "symlink_traversal_escape"); MED-P33-003 (BC-1.05.035: Postcondition 1 misleading "(`../` absent, no NUL bytes)" parenthetical removed; replaced with `read_wasm_string` error path reference; EC-001 clarifying note added explaining CAPABILITY_DENIED via allow-list miss path — no separate `../` string-level guard exists); LOW-P33-001 (BC-1.05.035: §Description anchor corrected from §"How ADR-015 affects the telemetry gap" lines 339-349 → §"Existing denial-path telemetry" lines 341-351). Source-of-truth verification per TD-VSDD-075: gap-analysis H3 §"Existing denial-path telemetry" begins line 341 (confirmed); rename rationale at lines 343-351 (confirmed); exec_subprocess.rs:148/155/162/169 emit_denial 4 reasons all CAPABILITY_DENIED -1 (confirmed unchanged). TD-VSDD-079 8-term grep: BC-1.05.035 ZERO prohibited matches; BC-1.05.036 lines 38+51 are intentional ADR-015 retirement-status citations. ADR-013 clock 0_of_3 (RESET by pass-33 SUBSTANTIVE verdict). |
 | 1.31 | 2026-05-05 | state-manager | D-277 mechanism-fix burst — HIGH-P34-001 (BC-1.05.035: NUL byte rejection corrected — `read_wasm_string` only rejects non-UTF-8; NUL bytes → Precedence Ladder step 2 → CAPABILITY_DENIED -1; Postcondition 2, Postcondition 1 preamble, EC-005, Precedence Ladder step (1) all corrected per source-truth at host/memory.rs:47-54); MED-P34-001 (BC-1.05.035 EC-001: binary_allow precondition explicitly added); MED-P34-002 (BC-1.05.036 §Related BCs: sibling-disclosure of novel INVALID_ARGUMENT+capability_denied 5th denial path appended); MED-P34-003 (gap-analysis §"Existing denial-path telemetry": INTERIM declaration added as source-of-truth anchor); LOW-P34-001 SKIPPED (outcome enum 3-site duplication cosmetic per S-7.03); LOW-P34-002 closed implicitly by Fix 1 rewrite; TD-VSDD-081 codified (mechanism-verification beyond string-presence-grep). |
 | 1.32 | 2026-05-05 | state-manager | D-278 sibling-mechanism-sweep fix burst — HIGH-P35-001 (BC-1.05.035: EC-002 + Postcondition 4 + Ladder step (3) corrected from `..` scan mechanism to actual `canonical_path.starts_with(project_root)` prefix check; Path::canonicalize() resolves all `..` segments away — sibling-class error to NUL-byte mechanism caught at v1.30); MED-P35-001 (BC-1.05.035 Postcondition 3: "existing semantics preserved" replaced with explicit BEHAVIOR CHANGE disclosure — missing-binary -99 → -1); MED-P35-002 (BC-1.05.035 §Related BCs BC-1.05.036 row: reverse-direction sibling-disclosure NOTE added for success-path event class novelty); MED-P35-003 (BC-1.05.036 Postcondition 4: ADR-015 line-number citations replaced with stable quoted-phrase anchors); LOW-P35-001/002 SKIPPED per S-7.03; TD-VSDD-082 codified (Sibling-mechanism sweep + bidirectional-sibling-disclosure). |
-| 1.33 | — | — | (reserved) |
+| 1.33 | 2026-05-05 | state-manager | D-279 architectural-reframe burst — HIGH-P36-001 + HIGH-P36-002 closed via architectural reframe: dropped "trusted project-root prefix" coinage, dropped "symlink_traversal_escape" concept, dropped novel INVALID_ARGUMENT+capability_denied pairing. BC-1.05.035 reframed around TOCTOU prevention — canonicalization feeds canonical path to existing `binary_allowed()` check; symlink resolving to non-allow-list path becomes normal allow-list miss → CAPABILITY_DENIED (-1) via existing emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155. MED-P36-001/002/003 + LOW-P36-001 closed. BC-1.05.036 §Related BCs NOTE updated (novel pairing dropped). TD-VSDD-083 codified (architectural-concept-anchoring rule). ADR-013 clock RESET 0_of_3. |
+| 1.34 | — | — | (reserved) |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -1670,5 +1671,54 @@ v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.31"` → `"1.32"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (twentieth use):** State-manager handles pass-35 seal and 4-fix burst atomically. All fixes are textual corrections to BC normative sections.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+---
+
+### v1.33 (2026-05-05) — D-279 architectural-reframe seal-and-fix: pass-36 2H/3M/1L; drop prefix-check + symlink_traversal_escape; TOCTOU framing; TD-VSDD-083 codified; ADR-013 clock RESET 0_of_3
+
+**Source-code mechanism verification per TD-VSDD-081/082/083 (MANDATORY — completed before commit):**
+- `host/mod.rs:49-76` `HostContext` struct: has `cwd: PathBuf`, NO `project_root` field. Confirmed: "trusted project-root prefix" concept has NO data-structure anchor.
+- `exec_subprocess.rs:148-192`: 4 `emit_denial` paths at lines 148/155/162/169 — all use `CAPABILITY_DENIED` (-1). Confirmed: no prior INVALID_ARGUMENT denial path.
+- `exec_subprocess.rs:152`: `binary_allowed()` call site. Confirmed: canonicalize insertion point is BEFORE this line, not at line 230.
+- `exec_subprocess.rs:155`: `emit_denial("binary_not_on_allow_list")` path. Confirmed: existing allow-list miss path.
+- `read_file.rs:122-148`: `path_allow` uses LOOP (canonicalize each allow-list entry, check `starts_with`) not single-prefix check. Confirmed: no sibling-implementation anchor for project-root prefix concept.
+- `gap-analysis-w16-subprocess.md` Section 5: proposes `if cmd.contains("../") { return CAPABILITY_DENIED; }` string-level `../` guard, NOT canonicalize-and-prefix-check mechanism. Confirmed: gap-analysis has no authority for prefix-check mechanism.
+
+**HIGH findings closed:**
+
+- **HIGH-P36-001 CLOSED (Fix 1 — architectural reframe):** v1.32 Postcondition 4 prefix-check mechanism was ANTI-CORRECT. `Path::canonicalize("/usr/bin/bash")` → `/usr/bin/bash`; `/usr/bin/bash` does NOT start with `$CLAUDE_PROJECT_DIR`. Postcondition 4 would therefore trigger `symlink_traversal_escape` → `INVALID_ARGUMENT` (-4) for the canonical S-9.07 happy-path case. Simultaneously, EC-003 + Test Vector for `/usr/bin/bash` says "proceeds to allow-list check". Direct internal contradiction. Fix: Dropped Postcondition 4 (prefix-check) entirely. Replaced with: "No new error path introduced for symlink-resolved targets — symlink resolving to path NOT in `binary_allow` → existing allow-list miss path → emit_denial at exec_subprocess.rs:155 → CAPABILITY_DENIED (-1)."
+
+- **HIGH-P36-002 CLOSED (Fix 1 + Fix 2 + Fix 3):** "trusted project-root prefix" concept had no architectural anchor in any upstream document. HostContext (host/mod.rs:49-76) has `cwd: PathBuf` but no `project_root` field. gap-analysis Section 5 proposes string-level `../` guard, NOT prefix-check. No HOST_ABI.md, ADR, or other document defines the concept. read_file.rs uses allow-list LOOP, not single-prefix check. Fix: Dropped all non-changelog references to "trusted project-root prefix", "project-root prefix", and "symlink_traversal_escape" in BC-1.05.035.md normative sections. Reframed BC-1.05.035 around TOCTOU prevention (canonicalize → feed canonical path to existing `binary_allowed()` → symlink-miss fires as normal allow-list miss).
+
+**MED findings closed:**
+
+- **MED-P36-001 CLOSED (Fix 1):** Precedence Ladder step (3) fired `INVALID_ARGUMENT` (-4) for symlink case — inconsistent with all 4 existing denial paths (all CAPABILITY_DENIED -1). Dropped step (3) prefix-check; renumbered: old step (4) allow-list miss becomes new step (3). All 3 ladder steps now fire CAPABILITY_DENIED.
+
+- **MED-P36-002 CLOSED (Fix 4):** §Architecture Anchors cited `exec_subprocess.rs:230` as "canonicalize-before-check step added here". Line 230 is inside `execute_bounded()` which runs AFTER all capability checks. Corrected to `exec_subprocess.rs:152` (`binary_allowed()` call site — actual insertion point).
+
+- **MED-P36-003 CLOSED (Fix 5):** EC-001 outcome cell's ladder step attribution was wrong under v1.32's model. Corrected to: step (2) canonicalize succeeds → step (3) allow-list miss fires → CAPABILITY_DENIED (-1).
+
+**LOW findings:**
+
+- **LOW-P36-001 CLOSED (implicitly by Fix 1):** ADR-015 Awareness clause referenced `"symlink_traversal_escape"` denial reason — stale after reframe. The clause now correctly reflects that BC-1.05.035's denial path is via existing `emit_denial("binary_not_on_allow_list")` (no novel reason). Awareness clause retained for event-rename tracking.
+
+**BC-1.05.036 §Related BCs sibling NOTE update:**
+
+- BC-1.05.035 §Related BCs row for BC-1.05.036 updated: removed reference to "5th symlink-pairing" (novel pairing dropped); added TOCTOU framing note.
+- BC-1.05.036 §Related BCs row for BC-1.05.035 updated: "novel INVALID_ARGUMENT+capability_denied pairing" note replaced with "TOCTOU prevention + CAPABILITY_DENIED via existing allow-list miss; no novel pairing".
+
+**TD-VSDD-083 codified:** Architectural-concept-anchoring rule — normative postconditions cannot rely on coined concepts without upstream definition. See lessons.md.
+
+**Post-edit grep verification:**
+- `grep -niE 'trusted project-root prefix|project-root prefix|symlink_traversal_escape' BC-1.05.035.md BC-1.05.036.md gap-analysis-w16-subprocess.md` → ZERO non-changelog body matches. PASS.
+- TD-VSDD-079 8-term family grep (sink chain, Router, SinkRegistry, DlqWriter, multi-sink, fan-out, Datadog, Honeycomb, try_send): BC-1.05.035 ZERO prohibited matches. BC-1.05.036 lines 38+51 are intentional ADR-015 D-15.1 retirement-status citations. PASS.
+
+**ADR-013 clock:** 0_of_3 (RESET by pass-36 SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (37/38/39) needed for CONVERGENCE_REACHED.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.32"` → `"1.33"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (twenty-first use):** State-manager handles pass-36 seal and architectural-reframe fix burst atomically. All fixes are textual corrections to BC normative sections.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

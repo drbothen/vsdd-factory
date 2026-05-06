@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.05.035: factory-dispatcher::host::exec_subprocess::canonicalizes_binary_path_before_allow_check — Path::canonicalize() applied before binary_allow match; symlink-based traversal rejected
+# Behavioral Contract BC-1.05.035: factory-dispatcher::host::exec_subprocess::canonicalizes_binary_path_before_allow_check — Path::canonicalize() applied before binary_allow match; TOCTOU prevention via canonicalize-then-allow-list-check ordering
 
 ## Description
 
@@ -34,7 +34,7 @@ This BC's denial-path postcondition references the existing `internal.capability
 
 The dispatcher MUST call `Path::new(cmd).canonicalize()` on the binary path BEFORE the binary_allow capability check. Canonicalization resolves symlinks and eliminates `..` segments. NUL-byte rejection is performed earlier by the existing `read_wasm_string` error path (see §Postcondition 2 and the Precedence Ladder). This closes a defense-in-depth gap identified in gap-analysis-w16-subprocess.md Section 5: `exec_subprocess.rs:230` currently passes `cmd` directly to `Command::new` with no traversal check.
 
-**Pairing rationale (per pass-33 MED-P33-002):** Symlink-traversal escape returns `INVALID_ARGUMENT` (-4) — the cmd path is malformed-shaped after canonicalization — AND emits the existing `internal.capability_denied` event with reason `"symlink_traversal_escape"`. This pairing differs from the existing 4 denial paths (binary_not_on_allow_list, shell_bypass_not_acknowledged, no_exec_subprocess_capability, setuid_or_setgid_binary at exec_subprocess.rs:148/155/162/169) which all return `CAPABILITY_DENIED` (-1). Rationale: the symlink-escape guard is structurally a capability-denial (the cmd is rejected for traversal-shaping rather than any caller-supplied flaw), but the error code reflects the cause (malformed path shape post-canonicalize). Reusing `internal.capability_denied` ensures observability dashboards aggregate all rejection events under one channel.
+**Canonicalization purpose (per gap-analysis Section 5 + TOCTOU mitigation discipline):** The canonicalize step's value is TOCTOU (time-of-check-time-of-use) prevention. Without canonicalization, an attacker could create a symlink that points to an allowed binary at allow-list-check time but to a different target at `Command::spawn` time. By canonicalizing BEFORE the allow-list check (and feeding the canonical path to `binary_allowed()`), the dispatcher ensures the spawned binary is the same as the allow-listed target. Symlink resolving to a non-allow-list path becomes a normal allow-list miss → CAPABILITY_DENIED via existing `emit_denial("binary_not_on_allow_list")` at exec_subprocess.rs:155 (the existing denial-path; no novel error-code pairing introduced).
 
 ## Preconditions
 
@@ -44,12 +44,12 @@ The dispatcher MUST call `Path::new(cmd).canonicalize()` on the binary path BEFO
 
 ## Postconditions
 
-1. If `Path::new(cmd).canonicalize()` succeeds AND the canonical path starts with the trusted project-root prefix, the allow-list check proceeds normally.
+1. The dispatcher MUST call `Path::new(cmd).canonicalize()` BEFORE the `binary_allowed()` check at exec_subprocess.rs:152. The canonical path (resolved symlinks, no `..` segments) is fed to `binary_allowed()` instead of the raw `cmd`. If `read_wasm_string` returns Err (non-UTF-8 in WASM memory), the existing host-call error path returns INVALID_ARGUMENT (-4) BEFORE any canonicalize attempt.
 2. If `read_wasm_string` returns Err (non-UTF-8 byte sequence in WASM memory), the existing host-call error path returns `codes::INVALID_ARGUMENT` (-4) before any canonicalize attempt. (NOTE: NUL bytes are valid UTF-8 and pass `read_wasm_string`; NUL-containing paths fail at `Path::new(cmd).canonicalize()` returning EINVAL via Unix CString conversion in std::path layer → Precedence Ladder step 2 → `CAPABILITY_DENIED` (-1), NOT step 1.)
 3. If `Path::new(cmd).canonicalize()` fails (binary not on disk, path invalid, IO error), returns `codes::CAPABILITY_DENIED` (-1). (NOTE: This is a BEHAVIOR CHANGE vs current implementation. Currently, missing-binary `cmd` paths fail at `command.spawn()` returning `INTERNAL_ERROR (-99)` per `exec_subprocess.rs:252`. Adding `canonicalize()` check pre-spawn changes the error code for the missing-binary case from `-99` → `-1`. Tests asserting `INTERNAL_ERROR` for missing-binary `cmd` will need to be updated to expect `CAPABILITY_DENIED`. This change is INTENTIONAL: aligning canonicalize-failure semantics with the existing 4 emit_denial paths under CAPABILITY_DENIED.)
-4. After canonicalization, if the canonical path does NOT start with the trusted project-root prefix (e.g., `CLAUDE_PROJECT_DIR` or workspace root), the `cmd` is a symlink-traversal escape attempt. Returns `codes::INVALID_ARGUMENT` (-4) AND emits `internal.capability_denied` event with reason `"symlink_traversal_escape"`. (NOTE: `Path::canonicalize()` itself resolves all `..` segments to absolute form — `..` components in the canonical-path-string are rare and only occur for non-existent intermediate paths. Escape detection is by prefix check, not `..` scan.) (event name `internal.capability_denied` is INTERIM — see §Description ADR-015 awareness clause; rename to `vsdd.capability.denied.exec_subprocess.v1` per ADR-015 D-15.2 registry line 329)
+4. **No new error path is introduced for symlink-resolved targets.** A symlink resolving to a path NOT in `binary_allow` → existing allow-list miss path → `emit_denial("binary_not_on_allow_list")` at exec_subprocess.rs:155 → CAPABILITY_DENIED (-1). This aligns with the existing 4 denial paths (binary_not_on_allow_list, shell_bypass_not_acknowledged, no_exec_subprocess_capability, setuid_or_setgid_binary at exec_subprocess.rs:148/155/162/169 — all CAPABILITY_DENIED -1) and avoids introducing a novel INVALID_ARGUMENT+capability_denied pairing.
 
-**Precedence ladder (per pass-22 M-P22-003; corrected per pass-34 HIGH-P34-001; step (3) corrected per pass-35 HIGH-P35-001):** When multiple validation conditions could fire, the host applies them in this order: (1) Non-UTF-8 byte sequence in `cmd` (per `read_wasm_string` at `host/memory.rs:47-54`) → `Err(INVALID_ARGUMENT -4)` — NUL bytes are valid UTF-8 and pass to step (2); (2) `Path::new(cmd).canonicalize()` returns Err → `Err(CAPABILITY_DENIED -1)` (path doesn't exist, NUL-containing path via EINVAL, or symlink loop); (3) canonical path does NOT start with trusted project-root prefix (symlink-traversal escape) → `Err(INVALID_ARGUMENT -4)` + emit `internal.capability_denied` with reason `"symlink_traversal_escape"`; (4) canonicalized path not in `binary_allow` list → `Err(CAPABILITY_DENIED -1)`. Per `crates/factory-dispatcher/src/host/exec_subprocess.rs:230` (entry point) and BC-1.05.005/BC-1.05.032 sibling contracts.
+**Precedence ladder (per pass-22 M-P22-003; corrected per pass-34 HIGH-P34-001; reframed per pass-36 D-279 — step (3) prefix-check DROPPED; renumbered):** When multiple validation conditions could fire, the host applies them in this order: (1) Non-UTF-8 byte sequence in `cmd` (per `read_wasm_string` at `host/memory.rs:47-54`) → `Err(INVALID_ARGUMENT -4)` — NUL bytes are valid UTF-8 and pass to step (2); (2) `Path::new(cmd).canonicalize()` returns Err → `Err(CAPABILITY_DENIED -1)` (path doesn't exist, NUL-containing path via EINVAL, or symlink loop); (3) canonicalized path not in `binary_allow` list (including symlink resolved to non-allow-list path) → existing `emit_denial("binary_not_on_allow_list")` at exec_subprocess.rs:155 → `Err(CAPABILITY_DENIED -1)`. No step (3) prefix-check; symlink resolution handled within step (2) canonicalize + step (3) allow-list miss. Per `crates/factory-dispatcher/src/host/exec_subprocess.rs:152` (`binary_allowed()` call site) and BC-1.05.005/BC-1.05.032 sibling contracts.
 
 ## Invariants
 
@@ -60,11 +60,11 @@ The dispatcher MUST call `Path::new(cmd).canonicalize()` on the binary path BEFO
 - BC-1.05.001 — exec_subprocess capability check (depends on: this BC extends the pre-check chain)
 - BC-1.05.002 — binary allow-list enforcement (composes with: this BC adds canonicalization before the allow-list match)
 - BC-1.05.003 — shell bypass gate (sibling pre-check in the same gate chain)
-- BC-1.05.036 — success-path telemetry (sibling extension from same gap analysis). NOTE: BC-1.05.036 introduces the FIRST non-denial event emitted via `ctx.emit_internal` (`host.exec_subprocess.completed`) — a structurally novel event class beyond the 4 existing denial events plus this BC's 5th symlink-pairing. Test-writers building event-taxonomy coverage MUST include this success-path event class.
+- BC-1.05.036 — success-path telemetry (sibling extension from same gap analysis). NOTE: BC-1.05.036 introduces the FIRST non-denial event emitted via `ctx.emit_internal` (`host.exec_subprocess.completed`) — a structurally novel event class beyond the 4 existing denial events. Test-writers building event-taxonomy coverage MUST include this success-path event class. BC-1.05.035 adds canonicalization for TOCTOU prevention; symlink-resolved targets that fall outside `binary_allow` reach the existing CAPABILITY_DENIED path via emit_denial('binary_not_on_allow_list'). No novel error-code pairing introduced.
 
 ## Architecture Anchors
 
-- `crates/factory-dispatcher/src/host/exec_subprocess.rs:230` — current `Command::new(cmd)` call site; canonicalize-before-check step added here
+- `crates/factory-dispatcher/src/host/exec_subprocess.rs:152` — current `binary_allowed()` call site; canonicalize step added BEFORE this line, feeding canonical path to `binary_allowed()` instead of raw `cmd`. Line 230 (`Command::new(cmd)`) is INSIDE `execute_bounded()` which runs AFTER all 4 capability checks — the canonicalize insertion site is at line 152, NOT line 230.
 - `.factory/architecture/gap-analysis-w16-subprocess.md` Section 5 — authority for this extension
 
 ## Story Anchor
@@ -79,8 +79,8 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `cmd = "../etc/passwd"` (literal traversal); `binary_allow = ["bash"]` (typical S-9.07 capability shape per OQ-3); `cmd` basename "passwd" not in `binary_allow` | Returns `CAPABILITY_DENIED` (-1); allow-list match never reached (caught by existing allow-list miss: basename "passwd" not in `binary_allow` → emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155 → CAPABILITY_DENIED. Pre-canonicalize string-level `../` reject is NOT a separate guard.) |
-| EC-002 | `cmd` is a symlink pointing outside `CLAUDE_PROJECT_DIR` (e.g., `bin/cmd` symlinks to `/etc/passwd`); `binary_allow = ["bash"]` | `Path::new(cmd).canonicalize()` resolves the symlink to absolute path `/etc/passwd`; the canonical path does NOT start with the trusted project-root prefix → returns `codes::INVALID_ARGUMENT` (-4) AND exactly one `internal.capability_denied` event emitted with reason `"symlink_traversal_escape"` (novel INVALID_ARGUMENT+capability_denied pairing per §Description rationale). NOTE: `canonicalize()` resolves all `..` segments — the actual escape detection uses prefix check (`canonical_path.starts_with(project_root)`), NOT `..` segment scan. |
+| EC-001 | `cmd = "../etc/passwd"` (literal traversal); `binary_allow = ["bash"]` (typical S-9.07 capability shape per OQ-3); `cmd` basename "passwd" not in `binary_allow` | Returns `CAPABILITY_DENIED` (-1) via Precedence Ladder step (2) (`canonicalize()` succeeds for `../etc/passwd` if `/etc/passwd` exists OR fails with EINVAL if not) → if canonicalize succeeds, step (3) allow-list miss fires (basename `passwd` not in `binary_allow`) → existing emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155 → CAPABILITY_DENIED (-1). Pre-canonicalize string-level `../` reject is NOT a separate guard. |
+| EC-002 | `cmd` is a symlink pointing outside `binary_allow` (e.g., `bin/cmd` symlinks to `/etc/passwd`); `binary_allow = ["bash"]` | `Path::new(cmd).canonicalize()` resolves the symlink to absolute path `/etc/passwd`; `binary_allowed("/etc/passwd", &["bash"])` returns false (basename "passwd" not in allow list) → existing emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155 → CAPABILITY_DENIED (-1). NO novel error-code pairing introduced. |
 | EC-003 | `cmd` is a valid absolute path with no traversal | `canonicalize()` succeeds; allow-list check proceeds normally |
 | EC-004 | `cmd` binary does not exist on disk | `canonicalize()` fails with IO error; returns `CAPABILITY_DENIED` (-1) |
 | EC-005 | `cmd` contains NUL byte | Returns `CAPABILITY_DENIED` (-1) via Precedence Ladder step 2 (`Path::new(cmd).canonicalize()` returns Err with EINVAL on NUL-containing paths via Unix CString conversion in std::path layer); NOT `INVALID_ARGUMENT` (NUL bytes are valid UTF-8 and pass `read_wasm_string`) |
@@ -91,7 +91,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 |-------|----------------|----------|
 | `cmd = "../etc/passwd"` | `CAPABILITY_DENIED` (-1) | error |
 | `cmd = "/usr/bin/bash"` (exists, no traversal) | Proceeds to allow-list check | happy-path |
-| Symlink `cmd` resolving outside project dir (resolves to `../escape`) | `INVALID_ARGUMENT` (-4) AND exactly one `internal.capability_denied` event with reason `"symlink_traversal_escape"` | edge-case |
+| Symlink `cmd` resolving to path not in `binary_allow` (e.g., resolves to `/etc/passwd`; `binary_allow = ["bash"]`) | `CAPABILITY_DENIED` (-1) via allow-list miss → emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155. No novel error-code pairing. | edge-case |
 | Non-existent binary path | `CAPABILITY_DENIED` (-1) | error |
 
 ## Verification Properties
@@ -114,7 +114,7 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 
 | Property | Value |
 |----------|-------|
-| **Path** | `.factory/architecture/gap-analysis-w16-subprocess.md` Section 5 item 1; `crates/factory-dispatcher/src/host/exec_subprocess.rs:230` |
+| **Path** | `.factory/architecture/gap-analysis-w16-subprocess.md` Section 5 item 1; `crates/factory-dispatcher/src/host/exec_subprocess.rs:152` (binary_allowed call site; canonicalize insertion point) |
 | **Confidence** | HIGH (gap explicitly identified by architect gap analysis) |
 | **Extraction Date** | 2026-05-03 |
 | **Extracted from** | `.factory/architecture/gap-analysis-w16-subprocess.md` Section 5 |

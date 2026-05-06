@@ -60,7 +60,7 @@ On successful subprocess completion (any exit code, including non-zero), the dis
 - BC-1.05.001 — exec_subprocess capability check (depends on: this event fires only after the capability check passes)
 - BC-1.05.032 — timeout enforcement (sibling: timeout path returns `Err(TIMEOUT -2)` and emits NO event in v1; future error-path emit is out-of-scope per BC-1.05.036 Postcondition 5)
 - BC-1.05.005 — OUTPUT_TOO_LARGE path (sibling: output-too-large path returns `Err(OUTPUT_TOO_LARGE -3)` and emits NO event in v1; aligns with BC-1.05.036 Postcondition 5)
-- BC-1.05.035 — path canonicalization guard (sibling extension from same gap analysis). NOTE: BC-1.05.035 introduces a novel `INVALID_ARGUMENT (-4) + internal.capability_denied` pairing for symlink-traversal escape — a 5th denial-event path with a different error code than the existing 4 CAPABILITY_DENIED paths. Test-writers building denial-event taxonomy MUST include this 5th path.
+- BC-1.05.035 — path canonicalization guard (sibling extension from same gap analysis). NOTE: BC-1.05.035 adds canonicalization for TOCTOU prevention. Symlink-resolved targets that fall outside `binary_allow` reach the existing CAPABILITY_DENIED path via emit_denial('binary_not_on_allow_list'). No novel error-code pairing introduced. All denial paths (including symlink-miss) return CAPABILITY_DENIED (-1), consistent with the 4 existing denial paths.
 
 ## Architecture Anchors
 

@@ -703,7 +703,36 @@ The v1.30 fix's claim was string-level plausible but mechanism-level wrong. TD-V
 
 ---
 
+### LESSON: Architectural-concept-anchoring rule — normative postconditions cannot rely on coined concepts without upstream definition
+
+**Source:** D-279 pass-36 finding HIGH-P36-002 (v1.32 introduced "trusted project-root prefix" concept with no source-code, gap-analysis, or ADR anchor)
+**Date:** 2026-05-05
+**Category:** spec-verification-discipline
+
+**Pattern:** v1.32 mechanism-sibling-sweep correctly identified that `Path::canonicalize()` resolves `..` segments away (so the prior "`..` scan" mechanism couldn't fire). The replacement mechanism cited a "trusted project-root prefix" concept. Verification (pass-36):
+- HostContext at host/mod.rs:49-76 has `cwd: PathBuf` but no `project_root` field
+- gap-analysis Section 5 (cited as authority) proposes string-level `../` guard, NOT prefix-check
+- No HOST_ABI.md, ADR, or other architecture document defines "project-root prefix" or any equivalent
+- read_file.rs uses path_allow LOOP, not single-prefix check
+
+The mechanism was unimplementable as written. Plus it was anti-correct: `/usr/bin/bash` (canonical happy path) doesn't start with project_root, so the new mechanism universally rejects the S-9.07 use case.
+
+This is a class of error TD-VSDD-076/078/079/080/081/082 do NOT catch: introducing a NEW architectural CONCEPT (vs. correcting an existing mechanism) requires upstream definition before normative postcondition can rely on it.
+
+**Codification:**
+- When a fix-burst introduces a NEW architectural concept (e.g., "trusted project-root prefix", "X allow-list", "Y registry") into a normative postcondition, the burst MUST FIRST verify the concept is defined in an upstream architecture document (gap-analysis, ARCH, ADR, HOST_ABI.md, BC-INDEX) AND verify the production code has a corresponding field/function/data structure.
+- Architect/state-manager prompts MUST include: "Before introducing a NEW architectural concept in spec prose, verify (a) the concept is defined in an upstream document with an explicit citation, AND (b) the production code has a corresponding implementation site (or open OQ tracks the implementation)."
+- Adversary should add "architectural-concept-anchoring" axis to TD-VSDD-057 menu.
+- File as TD-VSDD-083 (Architectural-concept-anchoring rule).
+
+**Meta-pattern:** This is the 9th burst-induced self-violation in the convergence cycle (passes 24, 25, 28, 29, 31, 33, 34, 35, 36). The cycle has codified TD-VSDD-076 → 077 → 078 → 079 → 080 → 081 → 082 → 083. Each lesson catches ONE class of burst-induced regression; new fresh-context angles continue finding new classes. The structural insight: narrative-discipline lessons fail their own burst because each burst's verifier checks string-presence, not semantic correctness against source-of-truth.
+
+**[codified]** by D-279 lessons.md append.
+
+---
+
 ## Open Backlog
 
+- **TD-VSDD-083** (Architectural-concept-anchoring rule): When a fix-burst introduces a NEW architectural concept into a normative postcondition, MUST verify (a) the concept is defined in an upstream document (gap-analysis, ARCH, ADR, HOST_ABI.md) with explicit citation, AND (b) production code has a corresponding field/function/data structure. Extends TD-VSDD-076/078/079/080/081/082. Source: D-279 HIGH-P36-002.
 - **TD-VSDD-082** (Sibling-mechanism sweep + bidirectional-sibling-disclosure): When fix-burst corrects a mechanism, MUST sweep ALL mechanisms in the SAME BC using the same std-lib function. When adding sibling-disclosure NOTE to BC-A §Related BCs → BC-B, inverse BC-B §Related BCs → BC-A MUST receive symmetric disclosure. ADR line-number citations prefer quoted-phrase anchors. Extends TD-VSDD-076 + TD-VSDD-081. Source: D-278 HIGH-P35-001 + MED-P35-002.
 - **TD-VSDD-081** (Mechanism-verification beyond string-presence-grep): When fix-burst cites a source-code mechanism as performing a specific check, MUST read the cited source file and verify the mechanism actually performs the asserted behavior. Extends TD-VSDD-079/080 grep-checklist with mechanism-behavior verification sub-rule. Source: D-277 HIGH-P34-001.
