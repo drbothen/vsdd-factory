@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.33"
+version: "1.34"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -1720,5 +1720,47 @@ v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §
 **TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.32"` → `"1.33"` (matches latest non-reserved row). PASS.
 
 **TD-VSDD-064 sequential-burst protocol applied (twenty-first use):** State-manager handles pass-36 seal and architectural-reframe fix burst atomically. All fixes are textual corrections to BC normative sections.
+
+**No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.34 (2026-05-05) — D-280 cross-BC sibling-symmetry seal-and-fix: pass-37 3H/3M/2L; emit_denial 5th reason + canonical propagation + routing INTERIM; TD-VSDD-084 provisional; ADR-013 clock RESET 0_of_3
+
+**Pass-37 verdict:** SUBSTANTIVE. 3 HIGH / 3 MEDIUM / 2 LOW. Angle: cross-BC sibling-pair structural symmetry audit (BC-1.05.035 vs BC-1.05.036 read side-by-side). NEW angle per TD-VSDD-057 inventory — no prior pass treated 035 and 036 as a structural pair asking where normative surfaces fail to mesh.
+
+**HIGH findings:**
+
+- **HIGH-P37-001 CLOSED (Fix 1 — emit_denial 5th reason):** BC-1.05.035 Postcondition 3 introduced a new `CAPABILITY_DENIED` (-1) return path for canonicalize() failure but did NOT specify emission. BC-1.05.036 EC-003 enumerated exactly 4 denial reasons — contradicted after BC-1.05.035 lands. Decision: add 5th `emit_denial` reason `"binary_canonicalize_failed"`. BC-1.05.035 Postcondition 3 updated to specify `emit_denial(ctx, cmd, "binary_canonicalize_failed", details)` before returning. Precedence Ladder step (2) updated to include emit. New EC-006 row added. BC-1.05.036 EC-003 enumeration extended to 5 reasons (added `binary_canonicalize_failed` per BC-1.05.035 Postcondition 3 NEW path inserted before line 152). Source-of-truth verification: emit_denial CALL sites confirmed at exec_subprocess.rs:148/155/162/169.
+
+- **HIGH-P37-002 CLOSED (Fix 2 — canonical path propagation through execute_bounded to Command::new):** BC-1.05.035 asserted TOCTOU prevention but Postcondition 1 mandated canonical path only at allow-check site (line 152). The spawn site (line 230, inside execute_bounded) was untouched — TOCTOU window between allow-check and spawn not closed. BC-1.05.035 Postcondition 1 rewritten to mandate canonical path at BOTH `binary_allowed(canonical_path, ...)` at line 152 AND `execute_bounded(canonical_path, args, ...)` at line 173 (propagating to `Command::new(canonical_path)` at line 230). New EC-007 added: implementer feeding canonical to allow-check only is a failing implementation. Cross-dependency disclosed in §Related BCs of both 035 (re: 036 EC-006 `binary` field correctness) and 036 (re: 035 Postcondition 1 propagation). Source-of-truth: `Command::new(cmd)` at exec_subprocess.rs:230 INSIDE `execute_bounded` starting 220 confirmed.
+
+- **HIGH-P37-003 CLOSED (Fix 3 — Postcondition 4 routing INTERIM tag + normative rewire requirement):** BC-1.05.036 Postcondition 4 asserted `ctx.emit_internal` routes to `events-*.jsonl` (false for current source; current `emit_internal` at host/mod.rs:109-116 routes to `internal_log`). BC-1.05.035 carefully tags event NAME as INTERIM; BC-1.05.036 made an asserted-as-current ROUTING claim. Fixed: Postcondition 4 rewritten to mark routing as INTERIM, cite current source state (host/mod.rs:109-116 → `internal_log`), and add normative requirement that implementation MUST rewire `emit_internal` to single-stream FileSink per ADR-015 D-15.1 before event is consumer-visible.
+
+**MEDIUM findings:**
+
+- **MED-P37-001 CLOSED (Fix 4 — anchor cite 304-309 → 155):** BC-1.05.036 §Architecture Anchors cited exec_subprocess.rs:304-309 as "existing emit_denial call" — those lines are the function DEFINITION, not a call site. Changed to `:155` (representative CALL site, matching BC-1.05.035's cite discipline). Definition at 304-309 retained as informational note.
+
+- **MED-P37-002 CLOSED (Fix 5 — cross-platform NUL-byte parity):** BC-1.05.035 EC-005 cited Unix-specific EINVAL mechanism. Generalized to platform-agnostic assertion (`Path::canonicalize()` returns Err on NUL-containing paths across all supported platforms — Unix via CString/EINVAL; Windows via WTF-16 conversion). Added emission spec per Postcondition 3 (`binary_canonicalize_failed`).
+
+- **MED-P37-003 CLOSED (Fix 6 — sibling-pattern anchor read_file.rs:122-148):** BC-1.05.035 had 2 anchor bullets; BC-1.05.036 had 3. Added 3rd anchor bullet to BC-1.05.035 citing `read_file.rs:122-148` as sibling-pattern reference (path_allow canonicalize-then-check loop mirrored by BC-1.05.035's binary_allow pattern). Restores 3-bullet symmetry.
+
+**LOW findings:**
+
+- **LOW-P37-001 CLOSED (Fix 7 — TD-VSDD-074 citation symmetry):** BC-1.05.036 ADR-015 awareness clause lacked "per TD-VSDD-074" cite present in BC-1.05.035. Added.
+
+- **LOW-P37-002 CLOSED (Fix 8 — line cite :259 → :259-262):** BC-1.05.036 Postcondition 5 and EC-007 cited `:259` for stdin write-failure INTERNAL_ERROR. Line 259 is the error-check predicate; return is line 262. Changed to `:259-262` (check+return range) in Postcondition 5, EC-007, and Canonical Test Vectors row.
+
+**TD-VSDD-084 PROVISIONAL codified:** Asserted-goal vs mandated-mechanism coherence. HIGH-P37-002 revealed a new process-gap class: BC's H1/Description/Architecture-Anchors asserted TOCTOU prevention but Postconditions mandated only the allow-check canonicalize sub-step, leaving the spawn-site sub-step to implementer interpretation. Full codification deferred pending recurrence per S-7.02 threshold (3+). See lessons.md.
+
+**ADR-013 clock:** RESET 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (38/39/40) needed for CONVERGENCE_REACHED.
+
+**Source-of-truth verification log:** emit_internal at host/mod.rs:109-116 (current state: routes to internal_log + Vec::push; does NOT write to FileSink/events-*.jsonl); 4 emit_denial CALL sites at exec_subprocess.rs:148/155/162/169 (confirmed); line 230 spawn site inside execute_bounded starting 220 (confirmed); stdin write return at :262 not :259 (confirmed).
+
+**Post-edit TD-VSDD-076 sibling sweep (BC-1.05.035):** §Related BCs cross-dependency note added; §Edge Cases EC-006/EC-007 added; §Postconditions Postcondition 1 rewritten + Postcondition 3 emission added + Ladder step (2) updated; §Architecture Anchors 3rd bullet added. All sections coherent.
+
+**Post-edit TD-VSDD-076 sibling sweep (BC-1.05.036):** §Related BCs cross-dependency note added; §Edge Cases EC-003 extended to 5 reasons; §Postconditions Postcondition 4 routing INTERIM rewrite; EC-007 + Canonical Test Vectors :259→:259-262; ADR-015 awareness TD-VSDD-074 cite added. All sections coherent.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.33"` → `"1.34"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (twenty-second use):** State-manager handles pass-37 seal and cross-BC symmetry fix burst atomically. All fixes are textual corrections to BC normative sections.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**

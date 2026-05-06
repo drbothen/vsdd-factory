@@ -731,8 +731,26 @@ This is a class of error TD-VSDD-076/078/079/080/081/082 do NOT catch: introduci
 
 ---
 
+## TD-VSDD-084 — Asserted-goal vs mandated-mechanism coherence (PROVISIONAL — flagged by pass-37, codification deferred pending recurrence)
+
+**Source:** PG-P37-001 (HIGH-P37-002 closure)
+
+**Class:** When a BC's H1 / Description / Architecture Anchors assert a behavioral GOAL G (e.g., "TOCTOU prevention", "atomic upsert", "deduplication"), the BC's Postconditions MUST collectively be sufficient to deliver G — not merely address one sub-step of G.
+
+**Symptom in pass-37:** BC-1.05.035 asserted TOCTOU prevention as architectural rationale, but Postcondition 1 mandated canonicalize at the allow-check site only (line 152). The spawn site (line 230, inside execute_bounded) was untouched in the spec — leaving a TOCTOU window between check and spawn that defeats the asserted goal.
+
+**Codification status:** PROVISIONAL. This is the FIRST recurrence; per S-7.02 recurrence threshold (3+), full codification is deferred. If this pattern recurs in v1.34→v1.35→v1.36 fix bursts, escalate to a hook-enforced lint per TD-VSDD-080's mechanization principle.
+
+**Adversary axis (when verifying):** For each H1/Description/Architecture-Anchors asserted goal G, enumerate every step in the call chain that MUST achieve some sub-condition for G to hold. Verify each Postcondition mandates the corresponding sub-condition. Flag any postcondition that addresses an upstream sub-condition while leaving downstream sub-conditions to implementer interpretation.
+
+**Date:** 2026-05-05
+**Burst:** D-280 (E-9 v1.33→v1.34)
+
+---
+
 ## Open Backlog
 
+- **TD-VSDD-084** (Asserted-goal vs mandated-mechanism coherence — PROVISIONAL): When a BC's H1/Description/Architecture Anchors assert a behavioral GOAL G (e.g., "TOCTOU prevention", "atomic upsert", "deduplication"), the BC's Postconditions MUST collectively be sufficient to deliver G — not merely address one sub-step of G. First instance: BC-1.05.035 asserted TOCTOU prevention but Postcondition 1 mandated canonicalize at allow-check site (line 152) only; spawn site (line 230, inside execute_bounded) was untouched. Full codification deferred pending recurrence per S-7.02 threshold (3+). Source: D-280 HIGH-P37-002.
 - **TD-VSDD-083** (Architectural-concept-anchoring rule): When a fix-burst introduces a NEW architectural concept into a normative postcondition, MUST verify (a) the concept is defined in an upstream document (gap-analysis, ARCH, ADR, HOST_ABI.md) with explicit citation, AND (b) production code has a corresponding field/function/data structure. Extends TD-VSDD-076/078/079/080/081/082. Source: D-279 HIGH-P36-002.
 - **TD-VSDD-082** (Sibling-mechanism sweep + bidirectional-sibling-disclosure): When fix-burst corrects a mechanism, MUST sweep ALL mechanisms in the SAME BC using the same std-lib function. When adding sibling-disclosure NOTE to BC-A §Related BCs → BC-B, inverse BC-B §Related BCs → BC-A MUST receive symmetric disclosure. ADR line-number citations prefer quoted-phrase anchors. Extends TD-VSDD-076 + TD-VSDD-081. Source: D-278 HIGH-P35-001 + MED-P35-002.
 - **TD-VSDD-081** (Mechanism-verification beyond string-presence-grep): When fix-burst cites a source-code mechanism as performing a specific check, MUST read the cited source file and verify the mechanism actually performs the asserted behavior. Extends TD-VSDD-079/080 grep-checklist with mechanism-behavior verification sub-rule. Source: D-277 HIGH-P34-001.
