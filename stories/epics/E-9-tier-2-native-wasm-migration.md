@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.51"
+version: "1.52"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -17,7 +17,7 @@ timestamp: 2026-05-03T00:00:00Z
 phase: 2
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: "2026-05-06 (D-303 — pass-58 META corrigendum + TD-VSDD-093 NORMATIVE-rule birth: close MED-P58-001 v1.46 H3 LOW-P51-002 closure narrative file_name two-referents misdescription; codify TD-VSDD-093 closure-narrative source-of-truth validation discipline per S-7.02 3-occurrence threshold; state-manager-only routing per TD-VSDD-088)"
+last_amended: "2026-05-06 (D-304 — pass-59 META corrigendum + BC-INDEX sync: close HIGH-P59-001 BC-INDEX line 122 BC-035 title drift; proactive BC-INDEX-vs-H1 sweep 265 BCs; 2 drifts fixed (BC-035 TOCTOU + BC-3.03.001 truncation); pattern-tracking N=2 below S-7.02 threshold; state-manager-only routing per TD-VSDD-088)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -512,6 +512,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.49 | 2026-05-06 | state-manager | D-299 pass-54 META corrigendum — close HIGH-P54-001 (v1.46 H3 LOW-P51-001 closure narrative cited `INVALID_ARGUMENT (-2)`; correct value is `-4` per host/mod.rs:183; BC-1.05.035 body is correct; only H3 closure narrative wrong). 5th-gen TD-VSDD-081 violation; same defect class as H-P21-001 (D-264 v1.21). Per POLICY 1 append-only, v1.46 H3 prose NOT rewritten; corrigendum recorded in v1.49 H3 with explicit value-correction disclosure. Filed Obs-P54-001 hook-extension proposal (TD-VSDD-080 extend to scan H3 closure narratives for source-code constants) for orchestrator cycle-closing-checklist. State-manager-only burst per TD-VSDD-088 META-routing. ADR-013 clock 0_of_3 (no advance; SUBSTANTIVE). |
 | 1.50 | 2026-05-06 | state-manager | D-300 pass-55 META corrigendum — close 5 LOW-class enforcement-format inconsistencies (Obs-P55-001 PO-authored counter drift v1.41/45/46/47; Obs-P55-002 state-manager-only counter drift v1.48/49; Obs-P55-003 v1.48 RESETS 0→0 semantic null; Obs-P55-004 sweep-report-location process-gap filed for checklist; Obs-P55-005 v1.44 "five artifacts" narrative ambiguity). Pass-55 angle: NORMATIVE rule cross-application audit (novel). Per POLICY 1 append-only, historical H3 prose preserved verbatim; corrigendum recorded in v1.50 H3 establishing going-forward convention (cumulative-count form for ordinal labels; "no advance" form for clock notation; explicit artifact-count enumeration; sweep-report-location as cycle-closing-checklist item). State-manager-only burst per TD-VSDD-088. ADR-013 clock 0_of_3 (no advance; SUBSTANTIVE under strict-protocol). |
 | 1.51 | 2026-05-06 | state-manager | D-303 pass-58 META corrigendum + TD-VSDD-093 NORMATIVE-rule birth — close MED-P58-001 (v1.46 H3 LOW-P51-002 closure narrative `file_name` two-referents misdescription); codify TD-VSDD-093 (closure-narrative source-of-truth validation discipline) per S-7.02 3-occurrence threshold met; sibling-class to HIGH-P54-001 D-299 closure. Per POLICY 1 append-only, v1.46 H3 prose preserved verbatim; corrigendum recorded in v1.51 H3. State-manager-only routing per TD-VSDD-088 META-routing (no BC body changes; BC-035 EC-013 body is correct). FIRST application of TD-VSDD-090 self-application audit gate to TD-VSDD-093. ADR-013 clock 0_of_3 (RESET). |
+| 1.52 | 2026-05-06 | state-manager | D-304 pass-59 META corrigendum + BC-INDEX sync — close HIGH-P59-001 (BC-INDEX line 122 BC-035 title drift; v1.33 D-279 reframe partial-fix regression). Performed proactive BC-INDEX-vs-H1 sweep across ALL 265 em-dash-format BCs per Obs-P59-001 process-gap recommendation; 2 additional drifts found and fixed (BC-035 TOCTOU framing + BC-3.03.001 truncation); N=2 total semantic drifts below S-7.02 3-occurrence threshold; TD-VSDD-094 NOT codified; pattern-tracking N=2 added for future monitoring. Per POLICY 1 append-only, v1.33 H3 prose preserved verbatim; corrigendum recorded in v1.52 H3. State-manager-only routing per TD-VSDD-088. ADR-013 clock 0_of_3 (HOLD before D-304; RESET applied via SUBSTANTIVE close). SEVENTH state-manager-only burst this cycle (cumulative). |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2526,3 +2527,71 @@ This v1.51 H3 corrigendum prose has been quote-verified against source-of-truth:
 **ADR-013 clock:** RESETS 2_of_3 → 0_of_3 (SUBSTANTIVE verdict — 1 MEDIUM closed + TD-VSDD-093 codified). Three fresh NITPICK_ONLY passes (59/60/61) needed for CONVERGENCE_REACHED.
 
 **STORY-INDEX:** 2.09 → 2.10.
+
+### v1.52 (D-304 — pass-59 META corrigendum + BC-INDEX sync; SEVENTH state-manager-only burst this cycle (cumulative count); closes HIGH-P59-001 from pass-59 — BC-INDEX line 122 BC-035 title drift)
+
+**Context:** Pass-59 adversarial review angle was capability anchoring per POLICY 4/5 audit (novel; untouched in 58 prior passes). The audit detected HIGH-P59-001 — a partial-fix regression from v1.33 (D-279, 2026-05-05) that reframed BC-035 around TOCTOU prevention. The D-279 reframe propagated to BC-035 H1 and body but did NOT propagate to BC-INDEX line 122 (BC-INDEX last updated 2026-05-04, before D-279). The defect went undetected for approximately 24 burst-iterations because (a) BC-INDEX was not in the v1.33 post-edit grep verification scope, and (b) prior adversary passes' angles did not include BC-INDEX-vs-H1 cross-comparison.
+
+**Findings closed:**
+
+**HIGH-P59-001 CLOSED** — BC-INDEX line 122 BC-035 entry title trailing fragment synced from `symlink-based traversal rejected` (pre-D-279 framing) to `TOCTOU prevention via canonicalize-then-allow-list-check ordering` (quote-verified verbatim against BC-035 H1 line 28: `factory-dispatcher::host::exec_subprocess::canonicalizes_binary_path_before_allow_check — Path::canonicalize() applied before binary_allow match; TOCTOU prevention via canonicalize-then-allow-list-check ordering`). BC-INDEX changelog entry added (D-304, 2026-05-06). POLICY 7 compliance restored. Compounding POLICY 4 semantic-mis-anchor concurrently resolved (BC-INDEX phrase `symlink-based traversal rejected` no longer misrepresents the BC-035 TOCTOU mechanism).
+
+**Per POLICY 1 append-only:** v1.33 H3 prose preserved verbatim as historical record. This v1.52 H3 corrigendum block is the canonical closure record for HIGH-P59-001.
+
+**BC-INDEX sweep results (Phase 2 proactive sweep):**
+
+Per Obs-P59-001 process-gap recommendation, a proactive sweep was performed across ALL BC-INDEX rows with em-dash-format titles (H1-comparable format) to detect any additional BC-INDEX-vs-H1 drifts.
+
+| Metric | Count |
+|--------|-------|
+| Total BCs in BC-INDEX | 1,922 |
+| BCs with em-dash-format titles (H1-comparable) | 265 |
+| PASS (BC-INDEX matches H1) | 261 |
+| DRIFT — semantic (content differs) | 2 |
+| Pipe-escape differences (not semantic drifts) | 2 |
+
+**Semantic drifts found (2 total):**
+
+| BC ID | BC-INDEX line | BC-INDEX fragment | H1 fragment | Classification |
+|-------|---------------|-------------------|-------------|----------------|
+| BC-1.05.035 | 122 | `symlink-based traversal rejected` | `TOCTOU prevention via canonicalize-then-allow-list-check ordering` | HIGH-P59-001 (known) — FIXED D-304 |
+| BC-3.03.001 | 215 | `\`size\` (default 100) AND \`interval_ms\` (default 5000` (truncated) | `\`size\` (default 100) AND \`interval_ms\` (default 5000ms) — either trigger fires a flush` | Truncation drift — H1 has two em-dash segments; BC-INDEX cell was cut off at `5000` — FIXED D-304 |
+
+**Pipe-escape differences (NOT semantic drifts):**
+
+| BC ID | BC-INDEX line | BC-INDEX (escaped) | H1 (unescaped) | Classification |
+|-------|---------------|--------------------|----------------|----------------|
+| BC-2.02.007 | 170 | `key_len\|key\|value_len\|value` | `key_len\|key\|value_len\|value` (unescaped `\|` in H1 prose) | Markdown table pipe-escape: `\|` in table cells is correct GFM escaping; H1 prose uses unescaped `\|`. Semantically identical — NOT a drift. |
+| BC-2.02.009 | 172 | `` `i32 \| u32 \| stdout \| u32 \| stderr` `` | `` `i32 | u32 | stdout | u32 | stderr` `` | Same markdown table pipe-escape pattern. Semantically identical — NOT a drift. |
+
+Both additional drifts (BC-035 HIGH-P59-001 + BC-3.03.001 truncation) fixed in D-304. Total real semantic drifts: 2.
+
+**TD-VSDD-094 codification decision:**
+
+S-7.02 threshold: N≥3 recurrences required for NORMATIVE codification. Sweep found N=2 total semantic drifts (BC-035 + BC-3.03.001). N=2 is BELOW the S-7.02 3-occurrence threshold. TD-VSDD-094 is NOT codified. Pattern-tracking entry added to lessons.md with N=2 count for future monitoring.
+
+**TD-VSDD-093 self-application audit (mandatory per just-codified rule):**
+
+This v1.52 H3 prose has been quote-verified against source-of-truth:
+- BC-035 H1 line 28 quoted verbatim above (direct read of `specs/behavioral-contracts/ss-01/BC-1.05.035.md`).
+- BC-INDEX line 122 before/after quoted verbatim above (direct read of `specs/behavioral-contracts/BC-INDEX.md`).
+- v1.33 D-279 reframe history quoted from E-9 epic summary table v1.33 row (D-279 entry) and v1.33 H3 block — `dropped "symlink_traversal_escape" concept…BC-1.05.035 reframed around TOCTOU prevention`.
+- BC-INDEX last changelog date quoted from BC-INDEX frontmatter `timestamp: 2026-05-04T00:00:00`.
+
+**TD-VSDD-093 PASS.**
+
+**TD-VSDD-091 self-application:** This v1.52 H3 block uses ONLY stable-anchor citations: section headings (`### v1.33` block, `BC-035 H1 line 28`), stable identifiers (HIGH-P59-001, Obs-P59-001, BC-1.05.035, BC-3.03.001, BC-INDEX line 122, BC-INDEX line 215, D-279, D-303, D-304, TD-VSDD-088/089/090/091/093/094, POLICY 1/4/7, S-7.02), source-of-truth file paths. Zero `line N` self-referential intra-file references into the E-9 epic. PASS.
+
+**TD-VSDD-090 self-application:** No new normative rule born in this burst (TD-VSDD-094 NOT codified — N=2 below threshold). TD-VSDD-090 self-application audit is N/A by scope.
+
+**TD-VSDD-089 5-axis sibling sweep:**
+
+1. **Postcondition ↔ EC parity:** BC-035 body internally consistent (TOCTOU framing throughout); fix is in BC-INDEX only — no BC body changes in D-304.
+2. **Cross-BC reference accuracy:** BC-INDEX line 123 BC-1.05.036 entry verified: `factory-dispatcher::host::exec_subprocess::emits_completed_event_on_success — host.exec_subprocess.completed event on every successful subprocess completion`. Matches BC-036 H1 verbatim. No drift. Blast radius confirmed to BC-035 + BC-3.03.001 only.
+3. **Numeric enumeration:** 2 semantic drifts found and fixed; 2 pipe-escape differences confirmed as non-drifts. N=2 total below S-7.02 threshold.
+4. **Parenthetical lists:** N/A.
+5. **Codification artifact sibling integrity:** BC-INDEX changelog entry added; STORY-INDEX bumped 2.10→2.11; STATE.md updated; pass-59 review file persisted; lessons.md pattern-tracking N=2 entry added. CONSISTENT.
+
+**ADR-013 clock:** RESET 0_of_3 → 0_of_3 (SUBSTANTIVE verdict — 1 HIGH closed). Three fresh NITPICK_ONLY passes (60/61/62) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 2.10 → 2.11.

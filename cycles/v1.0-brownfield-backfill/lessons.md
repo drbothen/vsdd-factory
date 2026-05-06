@@ -901,6 +901,23 @@ The orchestrator MUST observe these routing rules for fix bursts:
 
 ---
 
+## TD-VSDD-pattern-tracking — BC-INDEX-not-synced-to-BC-H1-reframe
+
+### Pattern: bc-index-not-synced-to-bc-h1-reframe
+
+**N=2 occurrences** (below S-7.02 3-occurrence threshold; TD-VSDD-094 NOT yet codified; monitoring for future codification).
+
+- **1st (HIGH-P59-001 D-279 v1.33 → detected at pass-59 D-304):** v1.33 D-279 BC-035 reframe (symlink_traversal_escape → TOCTOU prevention) propagated to BC-035 H1 + body but not to BC-INDEX line 122. BC-INDEX trailing fragment remained `symlink-based traversal rejected` while BC-035 H1 was updated to `TOCTOU prevention via canonicalize-then-allow-list-check ordering`. Detected approximately 24 burst-iterations after the originating burst (D-279 through D-304 pre-fix).
+- **2nd (BC-3.03.001 BC-INDEX line 215 truncation — detected at D-304 proactive sweep):** BC-3.03.001 BC-INDEX cell was truncated at `\`interval_ms\` (default 5000` — missing `ms) — either trigger fires a flush` (second em-dash segment). BC-3.03.001 H1 has a two-part em-dash title. Truncation origin unknown; corrected D-304.
+- **Detection angle:** Capability anchoring per POLICY 4/5 audit (Step 7 BC-INDEX cross-reference audit per POLICY 7). Proactive sweep triggered by Obs-P59-001 process-gap observation.
+- **Hook-extension proposal (Obs-P59-001):** Extend post-edit grep verification discipline to mandate BC-INDEX scan when BC body H1 changes. Filed for orchestrator cycle-closing-checklist. Not yet codified as TD-VSDD-094 (N=2 below S-7.02 threshold).
+- **Codification trigger:** NOT YET reached — N=2 below S-7.02 3-occurrence threshold. Tracking for future codification at N=3.
+
+**Date:** 2026-05-06
+**Burst:** D-304 (pattern entry created at N=2 via proactive BC-INDEX-vs-H1 sweep)
+
+---
+
 ## TD-VSDD-090 — Normative-rule birth bursts MUST be self-application audited before seal
 
 **Source:** TD-VSDD-pattern-tracking section escalated to codification at S-7.02 threshold (3 observed instances of "codification burst violates own rule": pass-39 D-282 TD-085 self-violation; pass-43 D-285 TD-089 self-violation; pass-44 D-286 TD-089-axis-5 self-violation).

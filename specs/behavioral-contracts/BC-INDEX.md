@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1920
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "Sync BC-1.05.035 title to v1.33 D-279 H1 reframe (TOCTOU framing); partial-fix regression closed per HIGH-P59-001 D-304 fix burst. Plus BC-3.03.001 title truncation corrected (H1 trailing fragment `ms) — either trigger fires a flush` was missing from BC-INDEX cell). Proactive BC-INDEX-vs-H1 sweep performed: 265 em-dash-format BCs checked; 2 additional drifts found and fixed (BC-035 + BC-3.03.001); BC-2.02.007 and BC-2.02.009 pipe-escape differences confirmed as correct markdown-table escaping (not semantic drifts)."
   - date: 2026-05-03
     change: "BC-2.02.013 withdrawn (ADR-014 D-9.2); BC-2.02.005 amended (+2 invariants: I-2 path-traversal-guard, I-3 success-telemetry)"
   - date: 2026-05-03
@@ -119,7 +121,7 @@ changelog:
 | [BC-1.05.032](ss-01/BC-1.05.032.md) | factory-dispatcher::host::exec_subprocess::timeout_enforced — command exceeding timeout_ms is killed and returns TIMEOUT | draft | CAP-TBD | TBD |
 | [BC-1.05.033](ss-01/BC-1.05.033.md) | factory-dispatcher::host_functions (integration)::setup_linker_registers_every_vsdd_import — setup_linker exports every named host fn in the vsdd namespace | draft | CAP-TBD | TBD |
 | [BC-1.05.034](ss-01/BC-1.05.034.md) | factory-dispatcher::host_functions (integration)::wat_module_importing_host_functions_instantiates — WAT module declaring vsdd imports links and runs to completion | draft | CAP-TBD | TBD |
-| [BC-1.05.035](ss-01/BC-1.05.035.md) | factory-dispatcher::host::exec_subprocess::canonicalizes_binary_path_before_allow_check — Path::canonicalize() applied before binary_allow match; symlink-based traversal rejected | draft | CAP-TBD | S-9.07 |
+| [BC-1.05.035](ss-01/BC-1.05.035.md) | factory-dispatcher::host::exec_subprocess::canonicalizes_binary_path_before_allow_check — Path::canonicalize() applied before binary_allow match; TOCTOU prevention via canonicalize-then-allow-list-check ordering | draft | CAP-TBD | S-9.07 |
 | [BC-1.05.036](ss-01/BC-1.05.036.md) | factory-dispatcher::host::exec_subprocess::emits_completed_event_on_success — host.exec_subprocess.completed event on every successful subprocess completion | draft | CAP-TBD | S-9.07 |
 | [BC-1.06.001](ss-01/BC-1.06.001.md) | Internal log writes are best-effort; never panic; never propagate | draft | CAP-TBD | TBD |
 | [BC-1.06.002](ss-01/BC-1.06.002.md) | Daily rotation by event timestamp produces separate files per UTC date | draft | CAP-TBD | TBD |
@@ -212,7 +214,7 @@ changelog:
 | [BC-3.02.014](ss-03/BC-3.02.014.md) | sink-file::backpressure_fills_queue_and_increments_counter: queue_depth=2 + 500 submitted events | draft | TBD | TBD |
 | [BC-3.02.015](ss-03/BC-3.02.015.md) | sink-file::shutdown_drains_queued_events: shutdown() drains pending events; post-shutdown submit | draft | TBD | TBD |
 | [BC-3.02.016](ss-03/BC-3.02.016.md) | sink-file::config_deserializes_from_toml: minimal TOML config parses with queue_depth defaulting | draft | TBD | TBD |
-| [BC-3.03.001](ss-03/BC-3.03.001.md) | Batch trigger thresholds are independent — `size` (default 100) AND `interval_ms` (default 5000 | draft | TBD | TBD |
+| [BC-3.03.001](ss-03/BC-3.03.001.md) | Batch trigger thresholds are independent — `size` (default 100) AND `interval_ms` (default 5000ms) — either trigger fires a flush | draft | TBD | TBD |
 | [BC-3.03.002](ss-03/BC-3.03.002.md) | Send failure protocol — drop the gRPC client on error; rebuild on next batch (self-healing tran | draft | TBD | TBD |
 | [BC-3.03.003](ss-03/BC-3.03.003.md) | Connection lifecycle — endpoint validated EAGERLY at constructor; channel built LAZILY in worke | draft | TBD | TBD |
 | [BC-3.03.004](ss-03/BC-3.03.004.md) | Worker thread owns its own current_thread tokio runtime on a dedicated OS thread | draft | TBD | TBD |
