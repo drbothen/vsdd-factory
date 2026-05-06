@@ -1,11 +1,11 @@
 ---
 document_type: epic
 epic_id: "E-10"
-version: "1.4"
+version: "1.5"
 title: "Single-stream OTel-aligned event emission (ADR-015)"
 status: draft
 anchored_adr: ADR-015
-prd_capabilities: [CAP-011, CAP-015]
+prd_capabilities: [CAP-029, CAP-030]
 prd_frs: []
 anchor_strategy: adr-driven-migration
 priority: P1
@@ -78,13 +78,8 @@ The epic delivers:
 
 | Capability ID | Name | Priority |
 |--------------|------|----------|
-| CAP-011 | Emit structured events to the observability stream | P0 |
-| CAP-015 | Enrich events with OTel-aligned resource attributes | P1 |
-
-> Note: CAP-011 and CAP-015 are the closest matches in the domain spec to ADR-015's
-> subject matter. If the PRD capabilities do not yet enumerate these by these exact IDs,
-> treat this section as aspirational; the story-writer anchored to the closest semantically
-> matching capabilities. The ADR-015 reference is the authoritative anchor for this epic.
+| CAP-029 | Emit structured events to a single observability stream (file path) | P0 |
+| CAP-030 | Enrich emitted events with OTel-aligned resource attributes | P1 |
 
 ## Subsystem Anchors
 
@@ -203,3 +198,4 @@ has been amended to v1.1 in D-311 with the resolved two-key gate semantics.
 | v1.2 | 2026-05-06 | D-310 Phase 1a BC authorship complete: 4 new BCs authored (BC-1.12.001..BC-1.12.004 per ADR-015 D-15.1/D-15.2). OQ-W16-011 added to Open Questions table (VSDD_DEBUG_LOG vs debug_log_enabled config precedence; owner SS-01/SS-03 implementer; decision needed by S-10.02). Per TD-VSDD-071 OQ-propagation-to-epic. |
 | v1.3 | 2026-05-06 | D-311 architect routing burst. OQ-W16-011 RESOLVED (12-factor override semantics; env var dominates when present; config key governs when absent). BC-1.12.007 routing: SS-01 (ss-01/BC-1.12.007.md) — dispatcher call-graph behavioral invariant. BC-1.12.008 routing: SS-03 (ss-03/BC-3.05.001.md) — config schema domain [ID COLLIDED; see v1.4 corrigendum]. Architect Routing Decisions section added. BC-1.12.002 amended to v1.1. |
 | v1.4 | 2026-05-06 | D-312 corrigendum. BC-1.12.008 routing corrected: ss-03/BC-3.05.001.md → ss-03/BC-3.05.004.md. D-311 assigned .001 without verifying the slot; BC-3.05.001/002/003 were pre-existing brownfield BCs (codebase-analyzer, 2026-04-25) covering SinkRegistry loading, multi-sink fan-out, and sink-otel-grpc integration respectively. Per POLICY 1 (append-only numbering), those IDs are immutable. Corrected assignment: BC-3.05.004 (next free slot). Legacy BC-3.05.001/002/003 marked lifecycle_status: retired / superseded_by: ADR-015 in frontmatter (bodies preserved verbatim per POLICY 1). |
+| v1.5 | 2026-05-06 | D-314 F-1 fix: capability anchors corrected from CAP-011/CAP-015 (unrelated capabilities — fuel/epoch budgets and brownfield ingestion) to CAP-029/CAP-030 (newly-authored ADR-015-aligned capabilities). CAP-029 = "Emit structured events to a single observability stream (file path)" (P0, ADR-015 D-15.1). CAP-030 = "Enrich emitted events with OTel-aligned resource attributes" (P1, ADR-015 D-15.2). Aspirational hedge note removed. |

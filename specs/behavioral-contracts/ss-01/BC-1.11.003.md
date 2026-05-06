@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-05-04T00:00:00Z
@@ -12,7 +12,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: spec-revision
 subsystem: "SS-01"
-capability: "CAP-TBD"
+capability: "CAP-009"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -143,6 +143,14 @@ All two-call shims MUST be removed at Wave 3 (shim removal) regardless of
 whether `emit_pair` was adopted; Wave 3 shim removal eliminates dual-emit
 entirely, making the atomicity question moot for post-Wave-3 operation.
 
+**Wave 3 removal:** Post-Wave-3, the SDK surface no longer exports `emit_pair`;
+plugins MUST migrate to `emit_event` with the new event name before Wave 3
+lands or face a compile error (EC-004). This is consistent with ADR-015 Wave 3
+("Remove dual-emit shims as a sub-task of Wave 3 or immediately after";
+see ADR-015 Migration Plan Wave 3 row). No silent drop path exists at or after
+Wave 3 — the compile error is the migration forcing function. See S-10.07 for
+the Wave 3 deprecation announcement and operator audit gate sub-tasks.
+
 ## Related BCs
 
 - BC-1.05.012 — emit_event enriches with host-owned fields (parent; emit_pair
@@ -169,7 +177,7 @@ entirely, making the atomicity question moot for post-Wave-3 operation.
 | EC-001 | `old_event` write succeeds; `new_event` write fails | `vsdd.internal.emit_pair_partial_failure.v1` emitted to debug file; stderr warning; old_event id logged as orphan |
 | EC-002 | `old_event` write fails (e.g., disk full at first write) | `new_event` write NOT attempted; no orphan created; failure cascade per BC-1.11.002 |
 | EC-003 | Plugin supplies `event.correlation_id` in the payload | Host overrides it with the emit_pair-generated UUID; `event.host_overrides` updated; `vsdd.internal.host_field_override.v1` emitted per D-15.3 |
-| EC-004 | Plugin calls `emit_pair` after Wave 3 shim removal (post-migration) | `emit_pair` remains available but is a no-op shim that calls `emit_event` with only the `new_event` payload; the `old_event` is silently dropped; a stderr warning is emitted that the plugin is using `emit_pair` post-migration |
+| EC-004 | Plugin calls `emit_pair` after Wave 3 shim removal (post-migration) | `emit_pair` is REMOVED from the SDK surface in Wave 3 (compile error). Plugins still on `emit_pair` post-Wave-3 fail to compile against the new hook-sdk version, forcing an explicit migration. No silent drop occurs. |
 | EC-005 | Plugin uses `emit_pair` for a non-deprecation-pair (two unrelated events) | Functionally works but produces misleading cross-reference fields; this is plugin misuse; not prevented at the host level; documented as unsupported usage |
 
 ## Canonical Test Vectors
@@ -192,12 +200,14 @@ entirely, making the atomicity question moot for post-Wave-3 operation.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-TBD |
+| L2 Capability | CAP-009 — Author and publish WASM hook plugins using the Rust SDK |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/emit_event.rs`; SS-02 — `crates/hook-sdk/src/host.rs` |
 | Stories | Wave 2 story (TBD — dual-emit shim wave) |
 | ADR | ADR-015 D-15.2.e (orphan-half detection); OQ-8 (this BC resolves it) |
 | OQ Resolved | OQ-8 (atomic dual-emit host helper; v1 accepts orphan-half risk for sequential two-call shims; emit_pair is the Wave 2 mitigation) |
+
+**Capability Anchor Justification:** CAP-009 is anchored here because `emit_pair` is a new host function binding added to the `vsdd-hook-sdk` crate's `host` module — the exact ABI surface described by CAP-009 ("The `vsdd-hook-sdk` crate provides the `#[hook]` macro, `HookPayload`, `HookResult`, and all `vsdd::*` host function bindings. A third-party plugin author can add a dependency and ship a `.wasm` without touching the dispatcher." — capabilities.md §CAP-009, Subsystems: SS-02). The `emit_pair` function is precisely one of those `vsdd::*` host function bindings: it lives in `vsdd_hook_sdk::host`, it extends the SDK ABI surface available to plugin authors, and its adoption is fully opt-in (plugin side adds a dependency; no dispatcher modification required beyond the host-side implementation). CAP-029 covers the dispatcher's single-stream FileSink wiring (D-15.1) — a different concern from the SDK-side dual-emit ABI extension. No new capability is required; CAP-009 is the correct anchor.
 
 ### Purity Classification
 

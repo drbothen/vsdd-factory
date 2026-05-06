@@ -2,10 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
+last_amended: 2026-05-06
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -39,6 +40,8 @@ Source: design doc "Decisions" §3; pass-1 §Layer Structure. Justification: gro
 The dispatcher fans out every internal event to all enabled sink drivers (file, OTel gRPC; HTTP/Datadog/Honeycomb planned for rc.1). Sinks are independently configured via `observability-config.toml`.
 Subsystems: SS-01, SS-03, SS-10. Outcome: operator sees events in Grafana/Loki or custom endpoint without modifying dispatcher code.
 Source: design doc "Decisions" §4; pass-8 §ADR-005. Justification: grounded in the multi-sink observability design decision.
+**Status:** REWRITTEN per ADR-015 D-15.1 (multi-sink model retired in favor of single events-*.jsonl stream + external OTel Collector fan-out).
+**Current canonical wording:** Stream observability events to a single `events-*.jsonl` file path; downstream multi-sink fan-out delegated to an external OTel Collector.
 
 **CAP-007 — Deploy and activate the plugin on any supported platform**
 The activate skill detects the operator's OS+arch, copies the matching per-platform `hooks.json`, and verifies the dispatcher binary. Supported platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x64.
@@ -88,7 +91,17 @@ The plugin is distributed via `.claude-plugin/marketplace.json` and installs thr
 Subsystems: SS-06, SS-09. <!-- Expanded SS-09 → SS-06,SS-09 per Wave 6 F-005 sanctioned per Wave 3 F-007 precedent (FR-029 activation skill consumes marketplace-installed plugin) --> <!-- F-101 (Wave 6 pass-2): SS-06 enforcer-BC pending — install/update flows through SS-06 activate skill (BC-6.12.x family per FR-029). Specific BC IDs TBD when SS-06 BC backfill closes. Mirrors CAP-007 line 46 inline-comment pattern. --> <!-- F-002 (Wave 7 pass-1): SS-10 target-module declarations on Wave 7 stories (S-0.02 Release.yml, S-4.08/S-5.07 bump-version.sh invocations) are SECONDARY architectural module (per ARCH-INDEX:83 scripts/ wildcard) NOT primary CAP-028 subsystem; primary subsystems remain SS-06,SS-09. F-007/F-005 sanctioned-template-anchor pattern. --> Outcome: `/plugin install vsdd-factory` succeeds and reports `1.0.0-beta.4`.
 Source: pass-8 §2 "Plugin (Claude Code marketplace plugin)". Justification: marketplace distribution is the product's delivery channel.
 
+**CAP-029 — Emit structured events to a single observability stream (file path)**
+The dispatcher writes every user-facing domain event as a JSONL record to a single `events-YYYY-MM-DD.jsonl` file via FileSink. Router, SinkRegistry, and DlqWriter are retired; all downstream multi-sink fan-out is delegated to an external OTel Collector that reads the file. The `dispatcher-internal-*.jsonl` debug stream is gated to `VSDD_DEBUG_LOG=1` env var or `debug_log_enabled = true` in `observability-config.toml`.
+Subsystems: SS-01, SS-03. Outcome: every dispatched hook event appears as a parseable JSONL line in `events-*.jsonl` with no Router/SinkRegistry indirection.
+Source: ADR-015 D-15.1 (single-stream FileSink design). Justification: CAP-003 described the now-retired multi-sink model; CAP-029 captures the ADR-015 replacement as a first-class capability.
+
 ## P1 Capabilities — Should-Have
+
+**CAP-030 — Enrich emitted events with OTel-aligned resource attributes**
+At dispatcher startup a Resource attribute block (15 fields: `service.name`, `service.version`, `host.id`, `host.name`, `os.type`, `process.pid`, `process.runtime.name`, `process.runtime.version`, `vsdd.dispatcher.version`, `vsdd.session_id`, `vsdd.worktree_id`, `vsdd.project_root`, `vsdd.config_hash`, `telemetry.sdk.name`, `telemetry.sdk.version`) is stamped once and attached to every emitted event. Per-event identity fields (`trace_id`, `event.id`, `event.category`, `event.name` in reverse-DNS + `.vN` format) are stamped at emit time by the host.
+Subsystems: SS-01, SS-03. Outcome: every event in `events-*.jsonl` carries a complete OTel-aligned resource block enabling correlation across Grafana/Loki/Honeycomb without post-processing enrichment.
+Source: ADR-015 D-15.2 (OTel-aligned schema; 15-attribute Resource block). Justification: no existing capability described the Resource attribute enrichment contract; ADR-015 D-15.2 adds it as a first-class normative decision.
 
 **CAP-004 — Enforce per-PR behavioral contract traceability**
 Every PR must contain evidence that new BCs are covered by tests and demo recordings before merge. The pr-manager-completion-guard and handoff-validator hooks enforce this at SubagentStop.
@@ -156,11 +169,13 @@ Source: pass-8 §Story coverage rollup Tier E; DRIFT-010.
 Planned sink drivers (S-4.1/4.2/4.3) allow direct event forwarding without a local OTel collector. Unknown sink driver types warn-and-skip today.
 Subsystems: SS-01, SS-03. Outcome: an operator forwards events to Datadog with zero local disk footprint.
 Source: pass-8 §ADR-005; design doc §Multi-instance, multi-backend observability.
+**Status:** SUPERSEDED by ADR-015 D-15.1 (multi-sink replaced by external OTel Collector fan-out; per-sink retry/circuit-breaker no longer in scope).
 
 **CAP-024 — Per-sink retry, circuit breaker, and dead-letter queue**
 S-4.4/4.5: each sink driver retries failed sends with exponential backoff, trips a circuit breaker on sustained failure, and routes dropped events to a `dead-letter-<sink>-<date>.jsonl`.
 Subsystems: SS-01, SS-03, SS-10. Outcome: a Datadog outage doesn't lose events — they land in the DLQ.
 Source: pass-8 §DRIFT-002; design doc §Multi-instance observability sinks.
+**Status:** SUPERSEDED by ADR-015 D-15.1 (per-sink DLQ no longer applicable to single-stream FileSink; FileSink uses BC-1.11.002 partial-write recovery instead).
 
 <!-- [process-gap] CAP subsystem drift sweep confirmed across 4 CAPs (CAP-003, CAP-010,
 CAP-023, CAP-024) during Wave 2 SS-03 adversarial pass-1 fix burst. Recommend
@@ -181,3 +196,10 @@ Source: pass-2 §Skill (multi-repo); pass-8 §convention catalog.
 The `bin/emit-event` CLI tool normalizes event emission from bash hooks, writing to the internal log and configured sinks. This bridges the legacy bash layer until native WASM ports complete.
 Subsystems: SS-07, SS-10. Outcome: a bash hook emits a `hook.block` event that appears in Grafana.
 Source: pass-2 §Event (logical); pass-8 §L-P0-004.
+
+## CHANGELOG
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 28 capabilities (CAP-001–CAP-028). |
+| v1.1 | 2026-05-06 | D-314 F-1/F-2 fix. Authored CAP-029 (P0 — single-stream FileSink; ADR-015 D-15.1) and CAP-030 (P1 — OTel resource enrichment; ADR-015 D-15.2). Marked CAP-003 REWRITTEN per ADR-015 D-15.1 (original description preserved per POLICY 1 append-only). Marked CAP-023 and CAP-024 SUPERSEDED per ADR-015 D-15.1 (original descriptions preserved per POLICY 1 append-only). |
