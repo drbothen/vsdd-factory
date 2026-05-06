@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -99,7 +99,11 @@ Source: ADR-015 D-15.1 (single-stream FileSink design). Justification: CAP-003 d
 ## P1 Capabilities — Should-Have
 
 **CAP-030 — Enrich emitted events with OTel-aligned resource attributes**
-At dispatcher startup a Resource attribute block (15 fields: `service.name`, `service.version`, `host.id`, `host.name`, `os.type`, `process.pid`, `process.runtime.name`, `process.runtime.version`, `vsdd.dispatcher.version`, `vsdd.session_id`, `vsdd.worktree_id`, `vsdd.project_root`, `vsdd.config_hash`, `telemetry.sdk.name`, `telemetry.sdk.version`) is stamped once and attached to every emitted event. Per-event identity fields (`trace_id`, `event.id`, `event.category`, `event.name` in reverse-DNS + `.vN` format) are stamped at emit time by the host.
+At dispatcher startup, a Resource attribute block of 15 OTel-aligned fields (per ADR-015 D-15.2 Resource attributes table — the authoritative enumeration; see ADR-015 §D-15.2 "Resource attributes") is stamped once and attached to every emitted event. Per-event identity fields (`trace_id`, `event.id`, `event.category`, `event.name` in reverse-DNS + `.vN` format) are stamped at emit time by the host.
+
+**CHANGELOG / Errata:**
+D-318 (2026-05-06): The original 15-field enumeration in this CAP description (authored 2026-05-06 in D-314) does not match ADR-015 D-15.2's canonical 15-field enumeration. CAP-030 is authoritatively defined by ADR-015 D-15.2 — see "Resource attributes" table in ADR-015. The original enumeration above is historical; do not rely on it. The authoritative 15-field set is: `service.name`, `service.namespace`, `service.instance.id`, `service.version`, `deployment.environment.name`, `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`, `worktree.id`, `schema_url`.
+
 Subsystems: SS-01, SS-03. Outcome: every event in `events-*.jsonl` carries a complete OTel-aligned resource block enabling correlation across Grafana/Loki/Honeycomb without post-processing enrichment.
 Source: ADR-015 D-15.2 (OTel-aligned schema; 15-attribute Resource block). Justification: no existing capability described the Resource attribute enrichment contract; ADR-015 D-15.2 adds it as a first-class normative decision.
 
@@ -203,3 +207,4 @@ Source: pass-2 §Event (logical); pass-8 §L-P0-004.
 |---------|------|--------|
 | v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 28 capabilities (CAP-001–CAP-028). |
 | v1.1 | 2026-05-06 | D-314 F-1/F-2 fix. Authored CAP-029 (P0 — single-stream FileSink; ADR-015 D-15.1) and CAP-030 (P1 — OTel resource enrichment; ADR-015 D-15.2). Marked CAP-003 REWRITTEN per ADR-015 D-15.1 (original description preserved per POLICY 1 append-only). Marked CAP-023 and CAP-024 SUPERSEDED per ADR-015 D-15.1 (original descriptions preserved per POLICY 1 append-only). |
+| v1.2 | 2026-05-06 | D-318 F-1 fix: CAP-030 enumeration corrected to reference ADR-015 D-15.2 authoritatively. Original enumeration preserved as historical record per POLICY 1. Errata note appended to CAP-030 documenting divergence and providing the authoritative 15-field set (`service.name`, `service.namespace`, `service.instance.id`, `service.version`, `deployment.environment.name`, `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`, `worktree.id`, `schema_url`). |

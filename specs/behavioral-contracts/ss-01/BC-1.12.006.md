@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -13,7 +13,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-01"
-capability: "CAP-008"
+capability: "CAP-029"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -169,8 +169,9 @@ trail is a D-15.3 lifecycle event type deliverable)
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-008 ("Gate tool calls with pre-execution behavioral checks (PreToolUse hooks)") per capabilities.md §CAP-008 |
-| Capability Anchor Justification | CAP-008 ("Gate tool calls with pre-execution behavioral checks (PreToolUse hooks)") per capabilities.md §CAP-008. This BC governs the audit trail produced when a PreToolUse hook blocks a tool call — the block-audit event is the observable evidence that the gating capability fired. Without this event, CAP-008's block enforcement is invisible to auditors. The `vsdd.block.plugin_blocked.v1` event is the verification signal for the gating outcome. |
+| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. BC-1.12.006 governs single-stream emission of `vsdd.block.plugin_blocked.v1` audit events when a plugin returns HookResult::Block. Per CAP-029, every dispatched hook event appears as a parseable JSONL line on the single observability stream — this BC specifies the audit-event subset of CAP-029's surface. The BC's Postconditions 1–7 are entirely about FileSink emission path, field stamping, registry-derived `event.category=audit`, and emit-before-exit ordering — all single-stream-emission concerns that fall squarely within CAP-029's capability boundary. |
+| Secondary Capability Reference | CAP-008 ("Gate tool calls with pre-execution behavioral checks (PreToolUse hooks)") per capabilities.md §CAP-008. CAP-008 is the upstream gating capability whose decisions this BC's audit events observe. CAP-008 produces the `HookResult::Block` decision; CAP-029 (via this BC) emits the audit trail of that decision on the single observability stream. The two capabilities together close the auditability loop for PreToolUse hook gating: CAP-008 enforces the block; BC-1.12.006 (under CAP-029) makes the enforcement observable and auditable. |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (`HookResult::Block` branch; audit event emission before exit) |
 | Stories | S-10.04 (Wave 1: Trace propagation + lifecycle event types; block audit trail) |

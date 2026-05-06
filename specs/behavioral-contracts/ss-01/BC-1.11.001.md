@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-05-04T00:00:00Z
@@ -12,7 +12,7 @@ input-hash: "[pending-recompute]"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: spec-revision
 subsystem: "SS-01"
-capability: "CAP-TBD"
+capability: "CAP-029"
 lifecycle_status: active
 introduced: v1.1.0
 modified: []
@@ -92,6 +92,14 @@ env_allowlist filter runs and are NOT subject to that filter.
   unconditionally before the allowlist filter
 - ADR-015 D-15.4 — policy decision; this BC is the implementation contract
 
+## Story Anchor
+
+S-10.04 (Wave 1: Trace propagation + lifecycle event types — exec_subprocess injection points implemented in T-1 + T-2; VSDD_TRACE_ID + VSDD_PARENT_SPAN_ID injection per ADR-015 D-15.4 is the primary deliverable of T-1)
+
+## VP Anchors
+
+(TBD — to be assigned after S-10.04 story authoring)
+
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
@@ -120,10 +128,11 @@ env_allowlist filter runs and are NOT subject to that filter.
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | CAP-TBD |
-| L2 Domain Invariants | TBD |
+| L2 Capability | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029 |
+| Capability Anchor Justification | CAP-029 ("Emit structured events to a single observability stream (file path)") per capabilities.md §CAP-029. BC-1.11.001 governs the dispatcher-side env-var injection that materializes `trace_id` for every subprocess emission. Per CAP-029, the single observability stream stamps `trace_id` on every event (DI-017 amended in invariants.md v1.1; `trace_id` is the audit correlation key for all events on the single stream). BC-1.11.001 is the upstream contract that ensures the trace context exists at injection-time — without the `VSDD_TRACE_ID` and `VSDD_PARENT_SPAN_ID` injections this BC mandates, the trace chain required by DI-017 cannot be maintained across subprocess boundaries. This BC is therefore the prerequisite implementation contract that CAP-029's per-event `trace_id` guarantee depends on for subprocess-spawning plugin invocations. |
+| L2 Domain Invariants | DI-017 (renamed `dispatcher_trace_id` → `trace_id` per ADR-015 v1.7; this BC's mandatory env-var injection ensures `VSDD_TRACE_ID` is available to every subprocess so the `trace_id` field can be stamped on any events emitted by that subprocess, satisfying DI-017's invariant that `trace_id` is present on every emitted event) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/exec_subprocess.rs` |
-| Stories | S-10.03 (Wave 1 enrichment implementation) |
+| Stories | S-10.04 (Wave 1: Trace propagation + lifecycle event types — exec_subprocess injection points implemented in T-1 + T-2) |
 | ADR | ADR-015 D-15.4 (dispatcher-side mandatory injection) |
 | OQ Resolved | OQ-3 (resolved via D-15.4; this BC formalizes the implementation contract) |
 

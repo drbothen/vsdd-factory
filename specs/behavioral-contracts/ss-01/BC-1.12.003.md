@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -224,7 +224,7 @@ S-10.03 (Wave 1: Resource-attribute enrichment; Windows registry cascade per OQ-
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-030 ("Enrich emitted events with OTel-aligned resource attributes") per capabilities.md §CAP-030 |
-| Capability Anchor Justification | CAP-030 ("Enrich emitted events with OTel-aligned resource attributes") per capabilities.md §CAP-030. This BC specifies the computation and stamping of all 15 Resource attribute fields (service.name, service.version, host.id, host.name, os.type, process.pid, process.runtime.name, process.runtime.version, vsdd.dispatcher.version, vsdd.session_id, vsdd.worktree_id, vsdd.project_root, vsdd.config_hash, telemetry.sdk.name, telemetry.sdk.version) at dispatcher startup — exactly the Resource attribute block that CAP-030 defines in its P1 capability description. The fallback cascades (Postconditions 2 and 3) ensure no field is absent or null, fulfilling CAP-030's outcome: "every event in events-*.jsonl carries a complete OTel-aligned resource block enabling correlation across Grafana/Loki/Honeycomb without post-processing enrichment." |
+| Capability Anchor Justification | CAP-030 ("Enrich emitted events with OTel-aligned resource attributes") per capabilities.md §CAP-030. BC-1.12.003 Postcondition 1 enumerates the 15-field Resource attribute block authoritatively per ADR-015 D-15.2. CAP-030 anchors this BC to the resource-enrichment capability; for the canonical field list, refer to BC-1.12.003 Postcondition 1 (which mirrors ADR-015 D-15.2 verbatim). The fallback cascades (Postconditions 2 and 3) ensure no field is absent or null, fulfilling CAP-030's outcome: "every event in events-*.jsonl carries a complete OTel-aligned resource block enabling correlation across Grafana/Loki/Honeycomb without post-processing enrichment." |
 | L2 Domain Invariants | DI-017 (renamed by ADR-015 v1.7 from dispatcher_trace_id → trace_id; this BC stamps trace_id as part of per-event identity fields computed at startup from VSDD_TRACE_ID env or per-invocation UUID; the renamed field is used in all Resource events emitted by this BC) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` (startup stamping), `crates/factory-dispatcher/src/resource_context.rs` (new module, S-10.03) |
 | Stories | S-10.03 (Wave 1 Resource-attribute enrichment; Windows registry cascade) |

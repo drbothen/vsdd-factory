@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -103,15 +103,13 @@ establishes). All Canonical Test Vectors describe the post-Wave-1 state.
    paths; removing it from production makes the invariant structurally true. Ongoing
    enforcement requires the named static analysis tool to prevent inadvertent
    re-introduction through refactoring.
-2. **TD-015-a open question (owner: TBD — flag for assignment):** A CI check using
-   `cargo metadata` to reject any PR that adds NEW intra-workspace dependencies
-   on the deprecated crates is an OPEN TECHNICAL QUESTION: which team owns
-   implementing it, and what is the implementation approach (`cargo metadata` vs
-   `cargo-deny` allow-list vs custom lint)? **Decision-by date: Wave 5 closure.**
-   This check is NOT a postcondition of Wave 1. It MUST be decided and implemented
-   before Wave 5 crate deletion to prevent a scenario where an undetected re-coupling
-   causes workspace breakage when the deprecated crates are deleted. TD-015-a remains
-   a tracked open technical debt item pending owner assignment.
+2. **Post-Wave-5 zero-dependency state:** After Wave 5 closure, no production-binary
+   code path within the factory-dispatcher reaches the deprecated crates' public
+   surfaces. Verified at every PR merge to develop by `cargo-call-stack` callgraph
+   analysis (matching the Postcondition 1 verification tool). The verification
+   command is the same as Postcondition 1's:
+   `cargo call-stack --bin factory-dispatcher --target x86_64-unknown-linux-gnu | grep -E "(Router::submit|SinkRegistry::dispatch|DlqWriter::write|sink_otel_grpc::)"`
+   returns zero matches.
 3. **`publish = false` is not sufficient re-coupling protection.** `publish =
    false` prevents crates.io publication but does NOT prevent other workspace
    crates from adding `sink-otel-grpc` as a dev-dependency or dependency in
@@ -122,6 +120,10 @@ establishes). All Canonical Test Vectors describe the post-Wave-1 state.
    unused-code warnings for these types MAY be suppressed with
    `#[allow(dead_code)]` in the interim period. This is acceptable; the code
    is intentionally kept for rollback safety, not because it is live.
+
+## Open Questions / Future Work
+
+**TD-015-a (closed in D-318):** Original question was "which team owns implementing the CI check to reject any PR that adds NEW intra-workspace dependencies on the deprecated crates, and what tool: `cargo metadata` vs `cargo-deny` allow-list vs custom lint?" Resolution: `cargo-call-stack` chosen for consistency with Postcondition 1's named verification tool. Owner: TBD — assignment flagged for sprint planning. Decision-by date: Wave 5 closure (unchanged). The check is NOT a postcondition of Wave 1 but MUST be implemented before Wave 5 crate deletion to prevent a scenario where an undetected re-coupling causes workspace breakage when the deprecated crates are deleted.
 
 ## Related BCs
 
