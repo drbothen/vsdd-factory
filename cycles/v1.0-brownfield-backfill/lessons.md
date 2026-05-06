@@ -1358,3 +1358,64 @@ Both deferrals are explicitly blessed by the adversary's pass-5 report. The E-10
 - Pass-6 dispatches next on the post-D-331 spec package.
 - BC-INDEX v1.11→v1.12; ARCH-INDEX v1.4→v1.5; STORY-INDEX v2.21→v2.22.
 - Convergence trend: pass-1 CRIT (22) → pass-2 CRIT (11) → pass-3 HIGH (16) → pass-4 HIGH (16) → pass-5 HIGH (12). Approaching but not at NITPICK_ONLY. Counter still 0.
+
+---
+
+## D-333 Seal — E-10 Pass-6 Fix Cycle (2026-05-06)
+
+### Pass-6 outcome
+
+Pass-6 verdict: HIGH. Only 2 substantive findings (F-1 HIGH + F-2 HIGH) + 1 LOW polish
+finding (F-3). The drop from 12 to 2 substantive findings is the largest single-pass
+improvement in the E-10 adversarial review cycle. Quality has clearly converged. Counter
+remains at 0 (not NITPICK_ONLY), but pass-7 may be the first NITPICK_ONLY pass.
+
+### 2-burst fix cycle
+
+D-332 PO (BC-1.12.009 F-2 Inv 4 disambiguation + F-3 PC4 State 5 label) → D-333
+state-manager seal (pass-6 archival + F-1 ARCH-INDEX line 96 propagation + index seal).
+Smallest fix cycle yet in the E-10 review. F-1 was an architect-typically-routed fix
+(ARCH-INDEX text update) but rolled into the state-manager seal as a 1-line text change.
+
+### Pattern-tracking entries
+
+#### Same-document sibling-paragraph drift — occurrence 2 of N=3 trigger
+
+**History:**
+- Occurrence 1 (D-322/D-331): BC-1.11.002 Story Anchor was updated in the BC body but
+  BC-INDEX and S-10.02 were not propagated in the same burst. POLICY 8 reverse-direction
+  drift; eventually closed in D-331.
+- Occurrence 2 (this pass — D-331/D-333): D-331 fixed ARCH-INDEX SS-03 row (line 85) from
+  D-15.4 → D-15.1 but missed the renumbering-history paragraph in the same file (line 96).
+  The paragraph still cited `ADR-015 D-15.4` even after line 85 was corrected in the same
+  file in the same burst.
+
+**Watch-item (NOT yet codified):** If pass-7 surfaces a third instance of same-document
+sibling-paragraph drift (same canonical value changed in one location but not all locations
+within the same file), codification is triggered. Rule to codify: "state-manager fix bursts
+that change a canonical value in a file MUST grep the same file for ALL occurrences of the
+changed value before sealing." Track as occurrence 2 of N=3.
+
+#### Convergence trend signal
+
+6 passes in, finding count: 22 → 11 → 16 → 16 → 12 → 2. The non-monotone passes (3 and 4
+both at 16, with pass-3 higher than pass-2) reflected genuine spec complexity being surfaced;
+they were not quality regressions. The overall direction is convergence. Pass-7 should be
+the first NITPICK_ONLY pass or very close to it.
+
+After 3 consecutive NITPICK_ONLY passes, CONVERGENCE_REACHED is declared. Step (vi) closes
+and Step (vii) begins (S-10.01 Wave 0 read-only audit).
+
+### F-7 / F-8 deferred status at D-333 seal
+
+Tasks #115 + #116 still pending. The adversary explicitly skipped F-7 and F-8 in pass-6
+per task instruction. They remain follow-up cleanup stories not blocking E-10 convergence.
+No progress in the pass-6 fix cycle.
+
+### Cycle bookkeeping at D-333 seal
+
+- E-10 spec corpus at D-333: all 3 pass-6 findings closed; F-7+F-8 still deferred to #115/#116.
+- Pass-7 dispatches next on the post-D-333 spec package.
+- BC-INDEX v1.12→v1.13 (BC-1.12.009 v1.3→v1.4); ARCH-INDEX v1.5→v1.6 (F-1 line 96); STORY-INDEX v2.22 unchanged.
+- Convergence trend: 22→11→16→16→12→2. Counter still 0. Pass-7 may be first NITPICK_ONLY.
+- Cycle still OPEN — 3-of-3 NITPICK_ONLY not yet reached.

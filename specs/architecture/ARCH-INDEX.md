@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.5"
+version: "1.6"
 status: accepted
 producer: state-manager
 timestamp: 2026-05-06T18:30:00
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-06
+    change: "D-333 E-10 pass-6 fix-cycle seal: version bump v1.5 → v1.6. F-1 fix: renumbering-history paragraph (line 96) D-15.4 → D-15.1 — same-document sibling-paragraph drift from D-331's primary fix at SS-03 row (line 85) now fully closed. No BC subsystem count changes."
   - date: 2026-05-06
     change: "D-331 E-10 pass-5 fix-cycle seal: version bump v1.4 → v1.5. F-2 propagation: BC-3.05.004 narrative in Subsystem Registry SS-03 row updated D-15.4 → D-15.1 (OQ-1 resolved in SS-03-event-emission.md). No BC subsystem count changes."
   - date: 2026-05-06
@@ -93,7 +95,7 @@ The per-subsystem SS-NN files above collectively cover their content:
 
 **Total BCs: 1,931 (per BC-INDEX; +4 from ADR-015 D-15.1/D-15.2 Phase 1a SS-01 additions BC-1.12.001–BC-1.12.004; +5 from Phase 1b SS-01/SS-03 additions BC-1.12.005/006/007/009 + BC-3.05.004; +2 from D-321 E-10 pass-2 fix burst BC-2.06.001 SS-02 + BC-4.09.001 SS-04)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
 
-**Renumbering history — BC-1.12.008 → BC-3.05.004 (D-311/D-312):** BC-1.12.008 was originally proposed as an SS-01 routing target in D-311; renumbered to BC-3.05.004 (SS-03) in D-312 corrigendum per POLICY 1 ID-collision rule (BC-3.05.001/002/003 already existed as brownfield BCs authored by codebase-analyzer on 2026-04-25; BC-3.05.004 was the next free slot). Consequence: SS-01 has +4 Phase 1a additions (BC-1.12.001–BC-1.12.004) and +4 Phase 1b additions (BC-1.12.005/006/007/009; no BC-1.12.008 ID exists). SS-03 has +1 Phase 1b addition (BC-3.05.004 v2 schema validation per ADR-015 D-15.4). OQ-W16-012 filed-and-resolved in D-312.
+**Renumbering history — BC-1.12.008 → BC-3.05.004 (D-311/D-312):** BC-1.12.008 was originally proposed as an SS-01 routing target in D-311; renumbered to BC-3.05.004 (SS-03) in D-312 corrigendum per POLICY 1 ID-collision rule (BC-3.05.001/002/003 already existed as brownfield BCs authored by codebase-analyzer on 2026-04-25; BC-3.05.004 was the next free slot). Consequence: SS-01 has +4 Phase 1a additions (BC-1.12.001–BC-1.12.004) and +4 Phase 1b additions (BC-1.12.005/006/007/009; no BC-1.12.008 ID exists). SS-03 has +1 Phase 1b addition (BC-3.05.004 v2 schema validation per ADR-015 D-15.1). OQ-W16-012 filed-and-resolved in D-312.
 
 ### Subsystem Registry Design Notes
 

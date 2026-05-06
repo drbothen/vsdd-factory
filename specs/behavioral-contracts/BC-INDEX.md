@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.12"
+version: "1.13"
 status: draft
 producer: state-manager
 timestamp: 2026-05-06T18:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1931
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-333 (2026-05-06) — E-10 pass-6 fix-cycle seal: BC-1.12.009 v1.3 → v1.4 (D-332 F-2 + F-3 — Inv 4 routing rules + PC4 State 5 label). F-1 fix in ARCH-INDEX line 96 (renumbering-history paragraph) — D-15.4 → D-15.1 propagation completed; same-document sibling drift from D-331's primary fix at line 85 closed. 3 of 3 pass-6 findings closed (F-1 + F-2 + F-3). Trend: 22→11→16→16→12→2 substantive findings. Approaching NITPICK_ONLY. See cycles/v1.0-brownfield-backfill/E-10-pass-6.md and follow-up commit fbe679d (D-332). total_bcs unchanged at 1931."
   - date: 2026-05-06
     change: "D-331 (2026-05-06) — E-10 pass-5 fix-cycle seal: 6 BCs amended (BC-1.11.002 anchor F-1; BC-3.05.004 D-15.4→D-15.1 F-2; BC-1.12.006 placeholder + reason field F-4+F-5; BC-2.06.001 placeholder + Wave 2 scope F-4+F-9; BC-4.02.002 + BC-4.01.003 CAP-009 F-12). F-1 fix: BC-INDEX line 171 BC-1.11.002 Stories S-10.03 → S-10.02 (POLICY 8 reverse-direction completion from D-322). 8 of 12 pass-5 findings closed; F-7 + F-8 deferred to follow-up cleanup stories #115 + #116 per adversary recommendation. See cycles/v1.0-brownfield-backfill/E-10-pass-5.md and follow-up commits 3ac6964 (D-328), 19cbd13 (D-329), c35fb1b (D-330)."
   - date: 2026-05-06
