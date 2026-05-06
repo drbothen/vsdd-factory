@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: state-manager
-timestamp: 2026-05-04T00:00:00
+timestamp: 2026-05-06T00:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1920
+total_bcs: 1924
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-310 Step (v) Phase 1a: +4 new SS-01 BCs (BC-1.12.001 single-stream FileSink routing, BC-1.12.002 VSDD_DEBUG_LOG gate, BC-1.12.003 Resource attribute startup stamping, BC-1.12.004 per-event host stamping + emit_internal bifurcation + event.category registry). SS-01 count 106→110. Total BCs 1920→1924. OQ-W16-011 added (VSDD_DEBUG_LOG vs debug_log_enabled config precedence). Per ADR-015 D-15.1/D-15.2; POLICY 7 same-burst sync; HIGH-P59-001 lesson applied."
   - date: 2026-05-06
     change: "Sync BC-1.05.035 title to v1.33 D-279 H1 reframe (TOCTOU framing); partial-fix regression closed per HIGH-P59-001 D-304 fix burst. Plus BC-3.03.001 title truncation corrected (H1 trailing fragment `ms) — either trigger fires a flush` was missing from BC-INDEX cell). Proactive BC-INDEX-vs-H1 sweep performed: 265 em-dash-format BCs checked; 2 additional drifts found and fixed (BC-035 + BC-3.03.001); BC-2.02.007 and BC-2.02.009 pipe-escape differences confirmed as correct markdown-table escaping (not semantic drifts)."
   - date: 2026-05-03
@@ -23,14 +25,14 @@ changelog:
 
 # Behavioral Contract Index
 
-> Master index of all 1,920 behavioral contracts across 10 subsystems.
+> Master index of all 1,924 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
 
 | Subsystem | BC Prefix | Count | Shard Directory |
 |-----------|-----------|-------|----------------|
-| SS-01 Hook Dispatcher Core | BC-1 | 106 (104 active; 2 retired) | ss-01/ |
+| SS-01 Hook Dispatcher Core | BC-1 | 110 (108 active; 2 retired) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 25 | ss-02/ |
 | SS-03 Event Emission (OTel-Aligned) | BC-3 | 51 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 30 | ss-04/ |
@@ -40,11 +42,11 @@ changelog:
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1920** | |
+| **Total** | | **1924** | |
 
 ## Index by subsystem
 
-### SS-01 — Hook Dispatcher Core (BC-1) — 106 BCs (104 active; 2 retired)
+### SS-01 — Hook Dispatcher Core (BC-1) — 110 BCs (108 active; 2 retired)
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
@@ -154,6 +156,10 @@ changelog:
 | [BC-1.11.001](ss-01/BC-1.11.001.md) | factory-dispatcher::host::exec_subprocess::injects_vsdd_trace_id_and_parent_span_id — dispatcher-side mandatory injection of VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID into every exec_subprocess invocation | draft | CAP-TBD | S-10.03 |
 | [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-TBD | S-10.03 |
 | [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-TBD | Wave 2 TBD |
+| [BC-1.12.001](ss-01/BC-1.12.001.md) | factory-dispatcher::host::emit_event::single_stream_filesink_routing — host::emit_event writes all events exclusively to events-YYYY-MM-DD.jsonl via FileSink; Router/SinkRegistry/DlqWriter retired from production path | draft | CAP-003 | S-10.02 |
+| [BC-1.12.002](ss-01/BC-1.12.002.md) | factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by VSDD_DEBUG_LOG=1; off by default in release builds; ADR-007 always-on guarantee amended | draft | CAP-010 | S-10.02 |
+| [BC-1.12.003](ss-01/BC-1.12.003.md) | factory-dispatcher::resource_attributes::startup_stamping — all 15 OTel Resource attributes stamped at dispatcher startup with deterministic fallback cascade; no Resource field absent or null | draft | CAP-003 | S-10.03 |
+| [BC-1.12.004](ss-01/BC-1.12.004.md) | factory-dispatcher::emit_event::per_event_host_stamping_and_internal_bifurcation — per-event OTel fields stamped at emit time; emit_internal Some/None bifurcation post-FileSink-rewire; event.category derived from compile-time registry | draft | CAP-003 | S-10.02 |
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)
 

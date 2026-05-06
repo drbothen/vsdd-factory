@@ -241,3 +241,29 @@ For `args` non-UTF-8:
 **Resolution path:** Default v1 = (a) per EC-016 known-limitation. Option (b) requires introducing `wait_timeout` or a reaper thread pattern. The simplest approach is to use `std::process::Child::try_wait` in a short loop after `kill()`, falling back to returning `TIMEOUT` after a secondary deadline (e.g., 500ms). This prevents indefinite hangs at the cost of potential zombie processes on NFS-backed filesystems.
 
 **Decision needed by:** Next exec_subprocess hardening story or E-9 Wave 1 timeout-enforcement audit
+
+---
+
+## OQ-W16-011 — `VSDD_DEBUG_LOG` env var vs `debug_log_enabled` config key precedence for debug stream gate
+
+**Source:** BC-1.12.002 EC-007 (surfaced during E-10 Phase 1a BC authorship, 2026-05-06).
+**Status:** OPEN
+**Owner:** SS-01 or SS-03 implementer (S-10.02 wave-1 story)
+**Filed:** 2026-05-06
+
+**Question:** ADR-015 D-15.1 states the debug file is "gated by the `VSDD_DEBUG_LOG=1` environment variable." The `observability-config.toml` schema (OQ-1, resolved in SS-03-event-emission.md) includes a `debug_log_enabled` config key (default `false`). When BOTH are present, which takes precedence? Specifically:
+
+- If `observability-config.toml` sets `debug_log_enabled = true` AND `VSDD_DEBUG_LOG` is NOT set in the environment: is the debug stream enabled?
+- If `observability-config.toml` sets `debug_log_enabled = false` AND `VSDD_DEBUG_LOG=1` is set: is the debug stream enabled?
+
+The ADR-015 D-15.1 text reads "gated by the `VSDD_DEBUG_LOG=1` environment variable" — which implies env var is the authoritative gate. The config key (`debug_log_enabled`) may be a static config default that the env var overrides at runtime.
+
+**Acceptance criterion (binary):**
+- (a) `VSDD_DEBUG_LOG=1` is the EXCLUSIVE runtime gate; `debug_log_enabled = true` in `observability-config.toml` has NO effect on runtime behavior (config key exists for documentation/tooling only, or is removed); BC-1.12.002 Invariant 1 confirmed: env var `"1"` is the only supported gate value. OR
+- (b) `debug_log_enabled = true` in `observability-config.toml` ALSO enables the debug stream; `VSDD_DEBUG_LOG=1` is an env-var OVERRIDE of the config default (i.e., env var takes precedence when both are set; but config-only `debug_log_enabled = true` also works); BC-1.12.002 Invariant 1 updated to acknowledge the config key as an additional gate.
+
+**Why this matters:** BC-1.12.002 EC-007 flags this as a "Phase 1b clarification point." An implementer of S-10.02 who reads only the ADR-015 D-15.1 prose (env var exclusive) and an implementer who reads only the `observability-config.toml` schema (config key `debug_log_enabled = true`) will produce different behaviors. Undefined precedence is a correctness gap.
+
+**Resolution path:** SS-03 implementer resolves via SS-03-event-emission.md § `observability-config.toml` Schema (where OQ-1 was resolved). Default recommendation: option (a) — env var exclusive, consistent with ADR-015 D-15.1 original framing. Update BC-1.12.002 Invariant 1 accordingly.
+
+**Decision needed by:** S-10.02 (Wave 1: FileSink single-stream wiring + debug-stream gate implementation)

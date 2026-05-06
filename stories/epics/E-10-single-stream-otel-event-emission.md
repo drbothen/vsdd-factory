@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-10"
-version: "1.1"
+version: "1.2"
 title: "Single-stream OTel-aligned event emission (ADR-015)"
 status: draft
 anchored_adr: ADR-015
@@ -17,7 +17,7 @@ timestamp: 2026-05-04T00:00:00Z
 phase: 2
 traces_to: .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
 depends_on: []
-last_amended: 2026-05-04
+last_amended: 2026-05-06
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
 input-hash: ""
@@ -136,6 +136,7 @@ S-10.08 ──→ S-10.09 (Wave 5)
 | OQ-7 | SS-01 | FileSink partial-write recovery semantics |
 | OQ-8 | SS-01 | Atomic dual-emit host helper (deferred) |
 | OQ-9 | SS-03 | Persistent deprecation registry artifact (post-Wave-3) |
+| OQ-W16-011 | SS-01/SS-03 | `VSDD_DEBUG_LOG=1` env var vs `debug_log_enabled = true` in `observability-config.toml` — precedence and interaction semantics. Decision needed by S-10.02 implementer. Owner: SS-01/SS-03 implementer. Filed D-310; referenced in BC-1.12.002 EC-007. |
 
 ## CHANGELOG
 
@@ -143,3 +144,4 @@ S-10.08 ──→ S-10.09 (Wave 5)
 |---------|------|--------|
 | v1.0 | 2026-05-04 | Initial authoring from ADR-015 migration plan decomposition. |
 | v1.1 | 2026-05-04 | Story IDs corrected S-T.NN → S-10.NN (Q1); OQ-2 resolved (full Windows registry in S-10.03, Q4); OQ-5 resolved (Grafana dashboards in grafana-dashboards/ dir, Q6); OQ table updated. |
+| v1.2 | 2026-05-06 | D-310 Phase 1a BC authorship complete: 4 new BCs authored (BC-1.12.001..BC-1.12.004 per ADR-015 D-15.1/D-15.2). OQ-W16-011 added to Open Questions table (VSDD_DEBUG_LOG vs debug_log_enabled config precedence; owner SS-01/SS-03 implementer; decision needed by S-10.02). Per TD-VSDD-071 OQ-propagation-to-epic. |

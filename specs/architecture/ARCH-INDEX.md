@@ -71,7 +71,7 @@ The per-subsystem SS-NN files above collectively cover their content:
 
 | SS-ID | Name | Section File | Implementing Modules / Folders | BC-S Prefix | BCs | Phase |
 |-------|------|--------------|-------------------------------|-------------|-----|-------|
-| SS-01 | Hook Dispatcher Core | SS-01-hook-dispatcher.md | `crates/factory-dispatcher/src/{main,registry,routing,executor,invoke,engine,plugin_loader,payload}.rs` | BC-1 | 106 (103 prior + 3 new: BC-1.11.001–BC-1.11.003 per ADR-015) | Phase 1 |
+| SS-01 | Hook Dispatcher Core | SS-01-hook-dispatcher.md | `crates/factory-dispatcher/src/{main,registry,routing,executor,invoke,engine,plugin_loader,payload}.rs` | BC-1 | 110 (106 prior + 4 new: BC-1.12.001–BC-1.12.004 per ADR-015 D-15.1/D-15.2 Phase 1a authorship) | Phase 1 |
 | SS-02 | Hook SDK and Plugin ABI | SS-02-hook-sdk.md | `crates/hook-sdk/`, `crates/hook-sdk-macros/` | BC-2 | 25 (includes 2 D-183 BCs: BC-2.02.011 host::write_file, BC-2.02.012 HookPayload SubagentStop fields; +1 D-219 BC-2.02.013 host::run_subprocess — WITHDRAWN D-224) | Phase 1 |
 | SS-03 | Event Emission (OTel-Aligned) | SS-03-event-emission.md | `crates/sink-core/` (FileSink; Router/SinkRegistry deprecated), `crates/sink-file/`, `crates/factory-dispatcher/src/{host/emit_event,internal_log,sinks}.rs` (`sink-otel-grpc/` deprecated Wave 1) | BC-3 | 51 | Phase 1 |
 | SS-04 | Plugin Ecosystem | SS-04-plugin-ecosystem.md | `crates/hook-plugins/legacy-bash-adapter/`, `crates/hook-plugins/capture-commit-activity/`, `crates/hook-plugins/capture-pr-activity/` [PLANNED S-3.02], `crates/hook-plugins/block-ai-attribution/` [PLANNED S-3.03], `crates/hook-plugins/session-start-telemetry/` [PLANNED S-5.01], `crates/hook-plugins/session-end-telemetry/` [PLANNED S-5.02], `crates/hook-plugins/worktree-hooks/` [PLANNED S-5.03], `crates/hook-plugins/tool-failure-hooks/` [PLANNED S-5.04] | BC-4 | 30 | Phase 1 |
@@ -82,7 +82,7 @@ The per-subsystem SS-NN files above collectively cover their content:
 | SS-09 | Configuration and Activation | SS-09-config-activation.md | `plugins/vsdd-factory/hooks/hooks.json*`, `plugins/vsdd-factory/.claude-plugin/plugin.json`, `ci/platforms.yaml`, `scripts/generate-registry-from-hooks-json.sh` | BC-9 | 5 | Phase 1 |
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
-**Total BCs: 1,920 (per BC-INDEX; +3 from ADR-015 SS-01 additions BC-1.11.001–BC-1.11.003)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
+**Total BCs: 1,924 (per BC-INDEX; +4 from ADR-015 D-15.1/D-15.2 Phase 1a SS-01 additions BC-1.12.001–BC-1.12.004)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
 
 ### Subsystem Registry Design Notes
 
