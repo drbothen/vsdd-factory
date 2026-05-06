@@ -6,6 +6,7 @@ status: active
 producer: state-manager
 timestamp: 2026-05-05T00:00:00Z
 last_amended: 2026-05-06
+d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendum (2026-05-06). See also OQ-W16-012."
 ---
 
 # Open Questions Register
@@ -296,3 +297,46 @@ enable") pending this resolution. BC-1.12.002 has been amended in D-311 to repla
 "MAY" with "MUST" and to add a new Invariant documenting the two-key gate semantics.
 
 **Decision needed by:** S-10.02 (Wave 1: FileSink single-stream wiring + debug-stream gate implementation)
+
+---
+
+## OQ-W16-012 — BC-3.05.001/002/003 supersession timing: close in D-312 or defer to Wave 5 cleanup
+
+**Source:** D-312 corrigendum (2026-05-06); process-gap discovery during D-311 ID-collision correction.
+**Status:** RESOLVED 2026-05-06 (in D-312)
+**Owner:** Architect (D-312 corrigendum burst)
+**Filed:** 2026-05-06
+**Resolved:** 2026-05-06 (D-312)
+
+**Question:** BC-3.05.001/002/003 document pre-ADR-015 multi-sink behavior
+(`load_builds_file_sink_from_parsed_config`, `registry_fans_events_to_file_sinks`,
+`ten_events_arrive_with_correct_attribute_mapping`). ADR-015 (accepted 2026-05-04)
+explicitly states in its Consequences section: "BC-3.* contracts covering multi-sink
+fan-out, DLQ, and sink health events are withdrawn or revised." Should supersession
+be marked now (D-312) or deferred to Wave 5 (S-10.09 SS-03 spec rewrite)?
+
+### Resolution
+
+**Option chosen:** (b) — mark superseded NOW in D-312 corrigendum.
+
+**Rationale:** ADR-015 is ACCEPTED and binding. The three BCs describe behavior
+that ADR-015 explicitly retires: SinkRegistry-based FileSink loading (BC-3.05.001),
+Router/SinkRegistry multi-sink fan-out (BC-3.05.002), and the sink-otel-grpc gRPC
+integration (BC-3.05.003). Wave 5 (S-10.09) delivers the PHYSICAL removal of the
+crates and types; the BEHAVIORAL supersession (the decision that these contracts
+no longer govern production behavior) is already established by ADR-015 acceptance.
+Deferring the supersession marker to Wave 5 would leave three `lifecycle_status:
+active` BCs in the BC-INDEX for contracts that describe retired architecture —
+an active drift source under POLICY 1 spirit.
+
+**Action taken in D-312:**
+- BC-3.05.001 frontmatter: `lifecycle_status: retired`, `superseded_by: "ADR-015"`,
+  `deprecated: 2026-05-06`, `retired: 2026-05-06`.
+- BC-3.05.002 frontmatter: same pattern.
+- BC-3.05.003 frontmatter: same pattern.
+- BC bodies preserved verbatim per POLICY 1 (append-only numbering).
+
+**Downstream:** State-manager Phase 2 must update BC-INDEX.md status column for
+BC-3.05.001, BC-3.05.002, BC-3.05.003 from `draft` to `retired`.
+
+**Decision needed by:** N/A — resolved in D-312.

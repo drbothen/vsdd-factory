@@ -15,15 +15,16 @@ origin: brownfield
 extracted_from: "pass-3-deep-rust-tests.md:618"
 subsystem: "SS-03"
 capability: "TBD"
-lifecycle_status: active
+lifecycle_status: retired
 introduced: v1.0.0-beta.4
 modified: []
-deprecated: null
-deprecated_by: null
+deprecated: 2026-05-06
+deprecated_by: ADR-015
 replacement: null
-retired: null
+retired: 2026-05-06
 removed: null
-removal_reason: null
+removal_reason: "ADR-015 (accepted 2026-05-04) retires the sink-otel-grpc crate. This BC describes pre-ADR-015 OTel gRPC sink integration (ten_events_arrive_with_correct_attribute_mapping) which is superseded by the single-stream FileSink architecture. Wave 5 (S-10.09) will physically delete the sink-otel-grpc crate. Preserved as audit trail per POLICY 1 (append-only numbering). D-312 corrigendum 2026-05-06."
+superseded_by: "ADR-015 (D-312 corrigendum 2026-05-06)"
 ---
 
 # Behavioral Contract BC-3.05.003: factory-dispatcher::sinks_otel_grpc (integration)::ten_events_arrive_with_correct_attribute_mappi

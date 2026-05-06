@@ -1053,3 +1053,20 @@ Self-application verification log:
 - Pass-58 finding text quoted directly from MED-P58-001 evidence section.
 
 PASS — TD-VSDD-093 self-application audit completed before seal.
+
+---
+
+## TD-VSDD-pattern-tracking — ID-assignment-without-free-slot-verification
+
+### Pattern: id-assignment-without-free-slot-verification (architect routing decisions)
+
+**N=1 occurrence** (below S-7.02 3-occurrence threshold; full codification NOT yet triggered; monitoring for recurrence).
+
+- **1st (D-312 / D-311 ID-collision slip):** D-311 architect routing burst assigned `BC-1.12.008 → ss-03/BC-3.05.001.md` as the target file path without first running `ls .factory/specs/behavioral-contracts/ss-03/BC-3.05.*` to verify the slot was free. BC-3.05.001/002/003 already existed, authored by codebase-analyzer on 2026-04-25 as brownfield BCs documenting the OLD pre-ADR-015 multi-sink behavior. Brownfield BC clusters from codebase-analyzer ingestion fill slots non-contiguously; greenfield routing decisions can collide with them. D-312 architect corrigendum: (1) new v2 schema BC ID reassigned to BC-3.05.004 (next free slot; SS-03-event-emission.md prescriptive cluster designation: "observability-config.toml v2 schema validation (BC-3.05.*)"). (2) Legacy BC-3.05.001/002/003 marked `lifecycle_status: retired` + `superseded_by: ADR-015` in frontmatter; bodies preserved verbatim per POLICY 1. Justified by ADR-015 Consequences section: "BC-3.* contracts covering multi-sink fan-out, DLQ, and sink health events are withdrawn or revised." (3) E-10 epic v1.3→v1.4 with corrigendum acknowledgment. (4) OQ-W16-012 filed-and-resolved.
+
+**Symptoms:** Architect or BC-creator agent assigns a target file path / BC ID without first running `ls .factory/specs/behavioral-contracts/ss-XX/BC-S.NN.*` to verify the slot is free. Brownfield BC clusters from codebase-analyzer ingestion fill non-contiguously; greenfield routing decisions can collide with them.
+
+**At N=3 codification trigger:** Codify TD-VSDD-NNN requiring architect-routing prompts and PO BC-creation prompts to include explicit free-slot verification step with quoted `ls` output as evidence before any new BC ID is assigned to a file path.
+
+**Date:** 2026-05-06
+**Burst:** D-312 (architect corrigendum for D-311 BC-3.05.001 ID-collision slip; occurrence 1 of N=3 codification threshold)

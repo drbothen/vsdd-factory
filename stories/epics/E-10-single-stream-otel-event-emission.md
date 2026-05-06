@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-10"
-version: "1.3"
+version: "1.4"
 title: "Single-stream OTel-aligned event emission (ADR-015)"
 status: draft
 anchored_adr: ADR-015
@@ -164,7 +164,18 @@ Wave 1; it is a prerequisite for Wave 5 deletion safety).
 ### BC-1.12.008 — `observability-config.toml` v2 schema routing
 
 **Subsystem:** SS-03
-**File path:** `ss-03/BC-3.05.001.md`
+**File path:** `ss-03/BC-3.05.004.md`
+
+> **D-312 Corrigendum (2026-05-06):** D-311 originally assigned `ss-03/BC-3.05.001.md`
+> as the target file path for this BC. That assignment collided with the pre-existing
+> brownfield BC-3.05.001 (authored 2026-04-25 by codebase-analyzer; covers
+> `factory-dispatcher::sinks::mod::load_builds_file_sink_from_parsed_config`). Per
+> POLICY 1 (append-only numbering), the pre-existing ID is immutable. The corrected
+> assignment is BC-3.05.004 — the next free slot in the BC-3.05.* cluster, which
+> SS-03-event-emission.md designates for "observability-config.toml v2 schema
+> validation." Existing BC-3.05.001/002/003 have been marked `lifecycle_status:
+> retired` / `superseded_by: ADR-015` in D-312.
+
 **Rationale:** The schema definition (what fields are valid, what versions hard-error,
 what the precedence rule is for `debug_log_enabled` vs `VSDD_DEBUG_LOG`) is owned by
 SS-03. The authoritative text is in SS-03-event-emission.md § `observability-config.toml`
@@ -172,7 +183,7 @@ Schema (OQ-1 resolution). ARCH-INDEX Cross-Cutting Concerns assigns observabilit
 ownership to SS-03. SS-01's role is to consume the parsed config, not to own its schema.
 
 **Content note for PO:** EC-007 in BC-1.12.002 was the source of OQ-W16-011. That OQ
-is now resolved (D-311). BC-3.05.001 MUST include the resolved two-key gate semantics:
+is now resolved (D-311). BC-3.05.004 MUST include the resolved two-key gate semantics:
 env var dominates when present; `debug_log_enabled` config key governs when env var
 absent. Quote from SS-03-event-emission.md as the authoritative source for the
 normative precedence text.
@@ -190,4 +201,5 @@ has been amended to v1.1 in D-311 with the resolved two-key gate semantics.
 | v1.0 | 2026-05-04 | Initial authoring from ADR-015 migration plan decomposition. |
 | v1.1 | 2026-05-04 | Story IDs corrected S-T.NN → S-10.NN (Q1); OQ-2 resolved (full Windows registry in S-10.03, Q4); OQ-5 resolved (Grafana dashboards in grafana-dashboards/ dir, Q6); OQ table updated. |
 | v1.2 | 2026-05-06 | D-310 Phase 1a BC authorship complete: 4 new BCs authored (BC-1.12.001..BC-1.12.004 per ADR-015 D-15.1/D-15.2). OQ-W16-011 added to Open Questions table (VSDD_DEBUG_LOG vs debug_log_enabled config precedence; owner SS-01/SS-03 implementer; decision needed by S-10.02). Per TD-VSDD-071 OQ-propagation-to-epic. |
-| v1.3 | 2026-05-06 | D-311 architect routing burst. OQ-W16-011 RESOLVED (12-factor override semantics; env var dominates when present; config key governs when absent). BC-1.12.007 routing: SS-01 (ss-01/BC-1.12.007.md) — dispatcher call-graph behavioral invariant. BC-1.12.008 routing: SS-03 (ss-03/BC-3.05.001.md) — config schema domain. Architect Routing Decisions section added. BC-1.12.002 amended to v1.1. |
+| v1.3 | 2026-05-06 | D-311 architect routing burst. OQ-W16-011 RESOLVED (12-factor override semantics; env var dominates when present; config key governs when absent). BC-1.12.007 routing: SS-01 (ss-01/BC-1.12.007.md) — dispatcher call-graph behavioral invariant. BC-1.12.008 routing: SS-03 (ss-03/BC-3.05.001.md) — config schema domain [ID COLLIDED; see v1.4 corrigendum]. Architect Routing Decisions section added. BC-1.12.002 amended to v1.1. |
+| v1.4 | 2026-05-06 | D-312 corrigendum. BC-1.12.008 routing corrected: ss-03/BC-3.05.001.md → ss-03/BC-3.05.004.md. D-311 assigned .001 without verifying the slot; BC-3.05.001/002/003 were pre-existing brownfield BCs (codebase-analyzer, 2026-04-25) covering SinkRegistry loading, multi-sink fan-out, and sink-otel-grpc integration respectively. Per POLICY 1 (append-only numbering), those IDs are immutable. Corrected assignment: BC-3.05.004 (next free slot). Legacy BC-3.05.001/002/003 marked lifecycle_status: retired / superseded_by: ADR-015 in frontmatter (bodies preserved verbatim per POLICY 1). |

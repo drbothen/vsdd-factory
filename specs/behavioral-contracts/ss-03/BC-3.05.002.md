@@ -15,15 +15,16 @@ origin: brownfield
 extracted_from: "pass-3-deep-rust-tests.md:607"
 subsystem: "SS-03"
 capability: "TBD"
-lifecycle_status: active
+lifecycle_status: retired
 introduced: v1.0.0-beta.4
 modified: []
-deprecated: null
-deprecated_by: null
+deprecated: 2026-05-06
+deprecated_by: ADR-015
 replacement: null
-retired: null
+retired: 2026-05-06
 removed: null
-removal_reason: null
+removal_reason: "ADR-015 (accepted 2026-05-04) retires the Router/SinkRegistry multi-sink architecture. This BC describes pre-ADR-015 multi-sink fan-out via registry (registry_fans_events_to_file_sinks_with_filter_and_tags) which is superseded. Wave 5 (S-10.09) will physically remove the multi-sink types. Preserved as audit trail per POLICY 1 (append-only numbering). D-312 corrigendum 2026-05-06."
+superseded_by: "ADR-015 (D-312 corrigendum 2026-05-06)"
 ---
 
 # Behavioral Contract BC-3.05.002: factory-dispatcher::sinks_file_integration::registry_fans_events_to_file_sinks_with_filter_and_ta

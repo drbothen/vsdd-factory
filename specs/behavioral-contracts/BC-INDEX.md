@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: state-manager
-timestamp: 2026-05-06T00:00:00
+timestamp: 2026-05-06T14:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1924
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-312 architect corrigendum: BC-3.05.001/002/003 status column updated draft → retired (frontmatter lifecycle_status: retired + superseded_by: ADR-015 set by architect in same burst per ADR-015 Consequences section). Per POLICY 1 append-only — retired BCs remain in index and count toward total_bcs. BC-3.05.004 row NOT added — PO Phase 1b will author body; BC-INDEX row to be added then."
   - date: 2026-05-06
     change: "D-311 architect routing + OQ-W16-011 resolution: BC-1.12.002 title cell synced to v1.1 H1 verbatim (two-key gate semantics: VSDD_DEBUG_LOG=1 env var OR debug_log_enabled=true config key; ADR-007 always-on guarantee amended). POLICY 7 same-burst sync + HIGH-P59-001 lesson applied. No new BC rows — BC-1.12.007/008 not yet authored."
   - date: 2026-05-06
@@ -239,9 +241,9 @@ changelog:
 | [BC-3.04.002](ss-03/BC-3.04.002.md) | Router exists as the future extension point for S-4.x retry / circuit-breaker / batching / routing | draft | TBD | fulfilled (S-4.06) |
 | [BC-3.04.003](ss-03/BC-3.04.003.md) | Router::submit silently drops events that fail RoutingFilter; no SinkFailure recorded; debug-level log emitted | draft | CAP-003 | active |
 | [BC-3.04.004](ss-03/BC-3.04.004.md) | Router::submit applies RoutingFilter before delegating to each sink (wired dispatch) | draft | CAP-003 | active |
-| [BC-3.05.001](ss-03/BC-3.05.001.md) | factory-dispatcher::sinks::mod::load_builds_file_sink_from_parsed_config: ObservabilityConfig wit | draft | TBD | TBD |
-| [BC-3.05.002](ss-03/BC-3.05.002.md) | factory-dispatcher::sinks_file_integration::registry_fans_events_to_file_sinks_with_filter_and_ta | draft | TBD | TBD |
-| [BC-3.05.003](ss-03/BC-3.05.003.md) | factory-dispatcher::sinks_otel_grpc (integration)::ten_events_arrive_with_correct_attribute_mappi | draft | TBD | TBD |
+| [BC-3.05.001](ss-03/BC-3.05.001.md) | factory-dispatcher::sinks::mod::load_builds_file_sink_from_parsed_config: ObservabilityConfig wit | retired | TBD | superseded_by: ADR-015 |
+| [BC-3.05.002](ss-03/BC-3.05.002.md) | factory-dispatcher::sinks_file_integration::registry_fans_events_to_file_sinks_with_filter_and_ta | retired | TBD | superseded_by: ADR-015 |
+| [BC-3.05.003](ss-03/BC-3.05.003.md) | factory-dispatcher::sinks_otel_grpc (integration)::ten_events_arrive_with_correct_attribute_mappi | retired | TBD | superseded_by: ADR-015 |
 | [BC-3.06.001](ss-03/BC-3.06.001.md) | sink-core::routing_filter_default_accepts_everything: empty allow + empty deny → every event pa | draft | TBD | TBD |
 | [BC-3.06.002](ss-03/BC-3.06.002.md) | sink-core::sink_event_event_type_accessor_reads_type_field: SinkEvent.event_type() returns the "t | draft | TBD | TBD |
 | [BC-3.06.003](ss-03/BC-3.06.003.md) | sink-core::sink_event_event_type_missing_returns_none: no "type" field → event_type() returns None | draft | TBD | TBD |
