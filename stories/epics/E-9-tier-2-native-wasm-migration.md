@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.37"
+version: "1.38"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -1894,5 +1894,29 @@ v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §
 **ADR-013 clock:** RESET 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (41/42/43) needed for CONVERGENCE_REACHED.
 
 **STORY-INDEX:** 1.89 → 1.90.
+
+### v1.38 (D-284 — type-signature-verification seal-and-fix; second PO-authored burst)
+
+**Pass-41 verdict:** SUBSTANTIVE. 0 HIGH / 2 MEDIUM / 2 LOW. Angle: type-signature-verification audit (NEW per TD-VSDD-057) — for every function-signature claim in BC prose (return type, parameters, error pattern, control flow), open Rust source at the cited file:line and verify the actual signature, the actual `Result`/`()`/`Option`/panic posture, and whether downstream BC claims that depend on the signature are coherent. Extends HIGH-P40-001's lesson that mechanism descriptions can be wrong at the type-system level. 20 function citations audited; 17 MATCH; 1 NEAR-MATCH; 2 DRIFT.
+
+**Routing pattern continued — SECOND PO-authored burst (TD-VSDD-088):** D-284 applies the TD-VSDD-088 corrected routing pattern for the second consecutive burst. Product-owner (Phase 1) read source-of-truth files (host/mod.rs:71-75, internal_log.rs:83, exec_subprocess.rs NUL-byte path, Rust std Path::canonicalize + Command::new docs) and authored all BC content fixes. State-manager (Phase 2, this burst) persisted the pass-41 review, updated meta-content, and sealed the single commit per POLICY 3 + TD-VSDD-053.
+
+**MEDIUM findings (2):**
+
+- **MED-P41-001 CLOSED — `host/mod.rs:72` mischaracterized as "planned-implementation comment":** BC-1.05.035 EC-014 and OQ-W16-008(a) both cited "host/mod.rs:72 references a planned implementation" of `internal.host_function_panic`. Actual source at host/mod.rs:71-75 is a struct-field doc comment for `internal_log: Option<Arc<...>>` — the field is designed to carry the log handle for that event class, not a TODO. Actual evidence emission is unimplemented is the **absence** of any call site invoking `ctx.emit_internal(...)` with `INTERNAL_HOST_FUNCTION_PANIC` (verified: only const declaration at internal_log.rs:83; zero call sites). PO replaced mis-citation with grep-confirmed call-site absence statement. **PO judgment exceeded orchestrator recommendation:** PO independently identified that EC-014's Description cell also named `Path::canonicalize()` and `Command::new` as panic examples (orchestrator only flagged the panic-semantics paragraph); PO chose positive re-anchoring phrasing ("this is field documentation, not a TODO") rather than mechanical mis-cite removal.
+- **MED-P41-002 CLOSED — Panic semantics paragraph cites infallible functions as panic vectors:** BC-035 panic-semantics paragraph cited `Path::canonicalize` and `Command::new(cmd)` as panic sources. Type-system incoherent: `Path::canonicalize` returns `io::Result<PathBuf>` (NUL-byte, ELOOP, ENOENT, ENAMETOOLONG all return `Err`; no documented panic vectors for filesystem inputs); `Command::new(cmd)` is an infallible builder returning `Command`. Verified: NO `unwrap()` or `expect()` in BC-035's prescribed canonicalize+allow-check+spawn chain. PO generalized paragraph to "any panic in the host-call body propagates to wasmtime as a Trap" without naming specific functions.
+
+**LOW findings (2):**
+
+- **LOW-P41-007 CLOSED — ETIMEDOUT not enumerated in Precedence Ladder step (2):** Ladder step (2) listed "path doesn't exist, NUL-containing path via EINVAL, or symlink loop" without ETIMEDOUT (networked-filesystem slow paths). Contract is correct (any IO Err → CAPABILITY_DENIED) but example list was incomplete. PO added ETIMEDOUT to the enumeration.
+- **LOW-P41-003 DEFERRED — BC-036 P5 stdin write_all span off-by-one:** `:259-262` vs actual `:259-263` (closing brace). Cosmetic; out of BC-035 scope for this burst. Carried as deferred.
+
+**Adversary positive observation:** "v1.37 prose evidences successful application of the routing pattern" — the corrected internal_log.write description (P6, EC-010, TV row 11) is accurate at the type-system level. Direct external confirmation TD-VSDD-088 is producing observable improvement.
+
+**ADR-013 clock:** RESET 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (42/43/44) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 1.90 → 1.91.
+
+**No new BCs or VPs added (scope discipline maintained). No new OQs. No new lessons codified this burst (P41-001/002 are sibling instances of TD-VSDD-081/088 class — already tracked).**
 
 **No new BCs or VPs added (scope discipline maintained). 2 new OQs added (OQ-W16-007/008). 1 new lesson (TD-VSDD-088 NORMATIVE).**
