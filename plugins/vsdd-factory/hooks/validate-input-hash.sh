@@ -2,12 +2,15 @@
 # validate-input-hash.sh — PostToolUse hook for input-hash drift detection
 #
 # After every Write to .factory/**/*.md, checks the input-hash field:
-# 1. If input-hash is missing/placeholder/null and inputs: exists → warn
-# 2. If input-hash is present and input files exist → recompute and compare
+# 1. If input-hash is missing/placeholder/null and inputs: exists → block (exit 2)
+# 2. If hash format is invalid (not 7-char lowercase hex) → block (exit 2)
+# 3. If hash tool is available and computed hash drifts from stored → block (exit 2)
 #
-# Non-blocking (advisory) — warns on stale hashes but doesn't block.
+# Blocking — enforces that input-hash is always present and current.
+# Use the input-hash bypass markers ([live-state], [pending-recompute]) to
+# exempt files that are intentionally unhashed during active pipeline runs.
 #
-# Exit 0 always (advisory hook). Diagnostics on stderr.
+# Exit 2 on violations. Exit 0 when no inputs: field or hash is current.
 #
 # Deterministic, <500ms, no LLM.
 
