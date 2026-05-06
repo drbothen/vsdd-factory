@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: state-manager
 timestamp: 2026-05-06T18:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1929
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-317 E-10 pass-1 fix burst seal: 9 BCs amended — BC-1.11.003 capability CAP-TBD→CAP-009; BC-1.12.001/004/005/007/009+BC-3.05.004 capability CAP-003→CAP-029; BC-1.12.003 capability CAP-003→CAP-030; BC-1.12.002 H1 synced byte-for-byte to v1.2 two-key gate semantics (VSDD_DEBUG_LOG=1 env var dominates when present; debug_log_enabled config key governs when env var absent); BC-1.12.009 H1 synced byte-for-byte to v1.1 five-state taxonomy enumeration. total_bcs unchanged at 1929. See cycles/v1.0-brownfield-backfill/E-10-pass-1.md and follow-up commits 69408f6 (D-314), 5803d28 (D-315), 07f946c (D-316)."
   - date: 2026-05-06
     change: "D-313 Step (v) Phase 1b + Phase 1c: +5 new BCs (BC-1.12.005 host_overrides visibility, BC-1.12.006 plugin_blocked audit, BC-1.12.007 deprecation Wave-1 call-graph invariant, BC-1.12.009 dual-emit identity contract, BC-3.05.004 v2 schema validation per ADR-015 D-15.3/D-15.4 + OQ-W16-011 RESOLVED). SS-01 110→114; SS-03 51→52; total_bcs 1924→1929. Phase 1c story-writer propagation: 13 BC-story slot insertions across 5 stories (S-10.02/03/04/05/09); BC-1.11.003 Wave 2 helper also propagated (D-310/D-310-deferral healing). POLICY 8 same-burst sync verified. Phase 1c TD-VSDD-093 source-of-truth corrections: BC-1.12.004 maps S-10.02+S-10.03 (not S-10.02 only); BC-1.12.007 maps S-10.02+S-10.09 (not S-10.09 only). D-312 process-gap remediation honored: PO performed free-slot verification for all 5 IDs; no ID-collision recurrence."
   - date: 2026-05-06
@@ -161,15 +163,15 @@ changelog:
 | [BC-1.10.002](ss-01/BC-1.10.002.md) | Dispatcher suppresses duplicate once:true events by tracking per-event-name + per-session_id in dispatcher memory | **retired** | CAP-002 | S-5.01 |
 | [BC-1.11.001](ss-01/BC-1.11.001.md) | factory-dispatcher::host::exec_subprocess::injects_vsdd_trace_id_and_parent_span_id — dispatcher-side mandatory injection of VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID into every exec_subprocess invocation | draft | CAP-TBD | S-10.03 |
 | [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-TBD | S-10.03 |
-| [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-TBD | Wave 2 TBD |
-| [BC-1.12.001](ss-01/BC-1.12.001.md) | factory-dispatcher::host::emit_event::single_stream_filesink_routing — host::emit_event writes all events exclusively to events-YYYY-MM-DD.jsonl via FileSink; Router/SinkRegistry/DlqWriter retired from production path | draft | CAP-003 | S-10.02 |
-| [BC-1.12.002](ss-01/BC-1.12.002.md) | factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by VSDD_DEBUG_LOG=1 env var or debug_log_enabled=true config key; off by default in release builds; ADR-007 always-on guarantee amended | draft | CAP-010 | S-10.02 |
-| [BC-1.12.003](ss-01/BC-1.12.003.md) | factory-dispatcher::resource_attributes::startup_stamping — all 15 OTel Resource attributes stamped at dispatcher startup with deterministic fallback cascade; no Resource field absent or null | draft | CAP-003 | S-10.03 |
-| [BC-1.12.004](ss-01/BC-1.12.004.md) | factory-dispatcher::emit_event::per_event_host_stamping_and_internal_bifurcation — per-event OTel fields stamped at emit time; emit_internal Some/None bifurcation post-FileSink-rewire; event.category derived from compile-time registry | draft | CAP-003 | S-10.02, S-10.03 |
-| [BC-1.12.005](ss-01/BC-1.12.005.md) | factory-dispatcher::host::emit_event::host_field_override_visibility — event.host_overrides field stamped on domain events + vsdd.internal.host_field_override.v1 lifecycle event emitted when host overrides plugin-supplied host-owned fields (ADR-015 D-15.3) | draft | CAP-003 | S-10.02, S-10.03 |
+| [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-009 | Wave 2 TBD |
+| [BC-1.12.001](ss-01/BC-1.12.001.md) | factory-dispatcher::host::emit_event::single_stream_filesink_routing — host::emit_event writes all events exclusively to events-YYYY-MM-DD.jsonl via FileSink; Router/SinkRegistry/DlqWriter retired from production path | draft | CAP-029 | S-10.02 |
+| [BC-1.12.002](ss-01/BC-1.12.002.md) | factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by two-key debug-stream gate (VSDD_DEBUG_LOG=1 env var dominates when present; debug_log_enabled config key governs when env var absent); off by default in release builds; ADR-007 always-on guarantee amended | draft | CAP-010 | S-10.02 |
+| [BC-1.12.003](ss-01/BC-1.12.003.md) | factory-dispatcher::resource_attributes::startup_stamping — all 15 OTel Resource attributes stamped at dispatcher startup with deterministic fallback cascade; no Resource field absent or null | draft | CAP-030 | S-10.03 |
+| [BC-1.12.004](ss-01/BC-1.12.004.md) | factory-dispatcher::emit_event::per_event_host_stamping_and_internal_bifurcation — per-event OTel fields stamped at emit time; emit_internal Some/None bifurcation post-FileSink-rewire; event.category derived from compile-time registry | draft | CAP-029 | S-10.02, S-10.03 |
+| [BC-1.12.005](ss-01/BC-1.12.005.md) | factory-dispatcher::host::emit_event::host_field_override_visibility — event.host_overrides field stamped on domain events + vsdd.internal.host_field_override.v1 lifecycle event emitted when host overrides plugin-supplied host-owned fields (ADR-015 D-15.3) | draft | CAP-029 | S-10.02, S-10.03 |
 | [BC-1.12.006](ss-01/BC-1.12.006.md) | factory-dispatcher::host::block_path_audit — vsdd.block.plugin_blocked.v1 audit event emitted with outcome=blocked, plugin.name, hook.tool_name when plugin returns HookResult::Block (ADR-015 D-15.3) | draft | CAP-008 | S-10.04 |
-| [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI check deferred to Wave 5 | draft | CAP-003 | S-10.02, S-10.09 |
-| [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; four-state event classification (paired-current / paired-deprecated / orphaned-current-half / orphaned-deprecated-half); consumer degradation rule for orphaned halves (ADR-015 D-15.2.e) | draft | CAP-003 | S-10.05 |
+| [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI check deferred to Wave 5 | draft | CAP-029 | S-10.02, S-10.09 |
+| [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)
 
@@ -250,7 +252,7 @@ changelog:
 | [BC-3.05.001](ss-03/BC-3.05.001.md) | factory-dispatcher::sinks::mod::load_builds_file_sink_from_parsed_config: ObservabilityConfig wit | retired | TBD | superseded_by: ADR-015 |
 | [BC-3.05.002](ss-03/BC-3.05.002.md) | factory-dispatcher::sinks_file_integration::registry_fans_events_to_file_sinks_with_filter_and_ta | retired | TBD | superseded_by: ADR-015 |
 | [BC-3.05.003](ss-03/BC-3.05.003.md) | factory-dispatcher::sinks_otel_grpc (integration)::ten_events_arrive_with_correct_attribute_mappi | retired | TBD | superseded_by: ADR-015 |
-| [BC-3.05.004](ss-03/BC-3.05.004.md) | factory-dispatcher::observability_config::v2_schema_validation — observability-config.toml v2 schema validated at load time; schema_version=1 hard-errors with migration hint; two-key debug-stream gate (VSDD_DEBUG_LOG=1 env var dominates; debug_log_enabled config key governs when env var absent) | draft | CAP-003 | S-10.02 |
+| [BC-3.05.004](ss-03/BC-3.05.004.md) | factory-dispatcher::observability_config::v2_schema_validation — observability-config.toml v2 schema validated at load time; schema_version=1 hard-errors with migration hint; two-key debug-stream gate (VSDD_DEBUG_LOG=1 env var dominates; debug_log_enabled config key governs when env var absent) | draft | CAP-029 | S-10.02 |
 | [BC-3.06.001](ss-03/BC-3.06.001.md) | sink-core::routing_filter_default_accepts_everything: empty allow + empty deny → every event pa | draft | TBD | TBD |
 | [BC-3.06.002](ss-03/BC-3.06.002.md) | sink-core::sink_event_event_type_accessor_reads_type_field: SinkEvent.event_type() returns the "t | draft | TBD | TBD |
 | [BC-3.06.003](ss-03/BC-3.06.003.md) | sink-core::sink_event_event_type_missing_returns_none: no "type" field → event_type() returns None | draft | TBD | TBD |

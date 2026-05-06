@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "**D-313 SEALED:** Step (v) PO BC authorship COMPLETE. Phase 1b authored 5 new E-10 BCs (BC-1.12.005/006/007/009 SS-01; BC-3.05.004 SS-03) covering ADR-015 D-15.3/D-15.4 + dual-emit identity + v2 config schema + 12-factor gate semantics. Phase 1c propagated 9 new E-10 BCs + BC-1.11.003 Wave 2 helper into 5 story files (S-10.02/03/04/05/09) under POLICY 8 (13 BC-story slot insertions; D-310 deferral healed). Phase 2 sealed: BC-INDEX +5 rows; ARCH-INDEX SS-01 110→114 + SS-03 51→52; total_bcs 1924→1929; STORY-INDEX v2.16→v2.17 with 5 story version bumps; lessons.md D-312 pattern-tracking non-recurrence note appended. D-312 process-gap remediation honored: PO performed free-slot verification (quoted ls evidence). TD-VSDD-093 source-of-truth corrections during Phase 1c (BC-1.12.004 + BC-1.12.007 each map to 2 stories per Traceability).\n\n**Active step:** (vi) adversary E-10 full spec-package sweep — full adversarial review of ADR-015 + E-10 epic v1.4 + 9 new BCs (BC-1.12.001..004 + BC-1.12.005/006/007/009 + BC-3.05.004) + BC-1.11.003 + 5 propagated stories (S-10.02/03/04/05/09) + open-questions resolutions. ADR-013 convergence protocol applies (3-of-3 NITPICK_ONLY required for CONVERGENCE_REACHED)."
+current_step: "**D-317 SEALED — E-10 pass-1 fix burst COMPLETE.** Step (vi.a) fix cycle: adversary pass-1 was CRITICAL (22 findings; pass-counter RESET to 0). Four-burst fix cycle D-314 (architect) → D-315 (PO) → D-316 (story-writer) → D-317 (state-manager seal) completed 2026-05-06. D-314 (69408f6): capabilities.md CAP-029+CAP-030 authored, CAP-003 REWRITTEN, CAP-023/024 SUPERSEDED; invariants.md DI-007/008/011/012/013/014/017 amended; E-10 epic v1.4→v1.5; BC-1.11.003 CAP-009+EC-004 rewrite v1.0→v1.1. D-315 (5803d28): 8 BC bodies rewritten (BC-1.12.001/002/003/004/005/007/009 v1.0→v1.1; BC-3.05.004 v1.0→v1.1; H1 changed for BC-1.12.002 + BC-1.12.009). D-316 (07f946c): 5 stories propagated (S-10.02 v1.1→v1.2; S-10.03 v1.2→v1.3; S-10.04 v1.1→v1.2 +3 BCs; S-10.05 v1.1→v1.2 +SS-02; S-10.09 v1.1→v1.2). D-317 (this burst): BC-INDEX v1.7→v1.8 (9 BC capability+H1 updates); ARCH-INDEX v1.0→v1.1 (F-19 renumbering footnote); STORY-INDEX v2.17→v2.18 (5 story version bumps + S-10.04 bcs 1→4 + S-10.05 +SS-02); STATE.md + lessons.md sealed.\n\n**Next step:** Step (vi.b) — re-run adversary pass-1' on the sealed E-10 spec package. Pass counter still 0. Reading list: ADR-015 + E-10 epic v1.5 + all 10 E-10 BCs + BC-1.11.003 (v1.1) + capabilities.md (v1.1, CAP-029/030) + invariants.md (amended) + 5 propagated stories (S-10.02/03/04/05/09 v1.2/v1.3/v1.2/v1.2/v1.2). If NITPICK_ONLY → counter 1; if SUBSTANTIVE → fix burst (D-318+). ADR-013 convergence protocol applies (3-of-3 NITPICK_ONLY required for CONVERGENCE_REACHED). Fix-burst commits: 69408f6 (D-314), 5803d28 (D-315), 07f946c (D-316), D-317 SHA this burst."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-06 (D-313 SEALED — Step (v) E-10 BC authorship COMPLETE: Phase 1b +5 BCs (BC-1.12.005/006/007/009+BC-3.05.004); Phase 1c 13 BC-story slot insertions across 5 stories (S-10.02/03/04/05/09); SS-01 110→114; SS-03 51→52; total_bcs 1924→1929; STORY-INDEX v2.16→v2.17; Step (vi) adversary E-10 full-package sweep ACTIVE) |
+| **Last Updated** | 2026-05-06 (D-317 SEALED — E-10 pass-1 fix burst sealed; 4-burst cycle D-314/D-315/D-316/D-317 complete; BC-INDEX v1.8; ARCH-INDEX v1.1 F-19 footnote; STORY-INDEX v2.18; Step (vi.b) adversary pass-1' next; pass counter 0) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -74,7 +74,7 @@ dtu_services: []
 | Phase D-4 Burst 1 — E-9 + S-9.00 spec | **COMPLETE** | E-9 v1.6 CONVERGED pass-10 (D-235); S-9.00 v1.4 CONVERGED pass-7 (D-231) |
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
-| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) COMPLETE (D-313 SEALED); Step (vi) adversary E-10 full spec-package sweep ACTIVE** | E-9 v1.53 HEAD; E-10 BC authorship Phase 1a SEALED (D-310): 4 BCs authored (BC-1.12.001..004). D-311 sealed: BC-1.12.007→SS-01; BC-1.12.008→SS-03 renumbered BC-3.05.001 (ID COLLIDED — corrected by D-312). D-312 corrigendum: new ID BC-3.05.004; BC-3.05.001/002/003 retired (superseded_by: ADR-015); E-10 epic v1.3→v1.4; OQ-W16-012 RESOLVED. OQ-W16-011 RESOLVED. BC-1.12.002 v1.0→v1.1. D-313 sealed: Step (v) COMPLETE — 9 BCs + 5-story POLICY 8 propagation; Step (vi) adversary sweep ACTIVE. ADR-013 convergence: 3_of_3 CONVERGENCE_REACHED (D-308). |
+| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) COMPLETE (D-313 SEALED); Step (vi.a) pass-1 CRITICAL fix burst D-314→D-317 SEALED; Step (vi.b) adversary pass-1' PENDING** | E-9 v1.53 HEAD; E-10 BC authorship D-310→D-313 COMPLETE (9 BCs + 5-story propagation). Adversary pass-1 CRITICAL (22 findings). Fix burst D-314 (69408f6 architect) → D-315 (5803d28 PO) → D-316 (07f946c story-writer) → D-317 (state-manager seal) COMPLETE. E-10 epic v1.4→v1.5; CAP-029/030 authored; 8 BC bodies rewritten; 5 stories bumped. Step (vi.b) pass-1' next; pass counter 0; 3-of-3 NITPICK_ONLY required. ADR-013 convergence: 3_of_3 CONVERGENCE_REACHED (D-308 for E-9). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Current Phase Steps
@@ -177,8 +177,14 @@ dtu_services: []
 | D-310 — Step (v) Phase 1a — E-10 BC authorship (BC-1.12.001..004) | product-owner (Phase 1) + state-manager (Phase 2) | **COMPLETE — Phase 1a SEALED** | 4 of 9 E-10 BCs authored; BC-INDEX/ARCH-INDEX/STORY-INDEX/E-10 epic synced same-burst; OQ-W16-011 filed; STORY-INDEX v2.16; E-10 epic v1.2 |
 | D-311 — Architect routing + OQ-W16-011 resolution | architect (Phase 1) + state-manager (Phase 2) | **COMPLETE — SEALED** | 3 decisions: BC-1.12.007→SS-01; BC-1.12.008→SS-03 renumbered BC-3.05.001 (ID COLLIDED — corrected by D-312); OQ-W16-011 RESOLVED. BC-1.12.002 v1.0→v1.1. E-10 epic v1.2→v1.3. |
 | D-312 — Architect corrigendum (BC-3.05.001 ID-collision fix) | architect (Phase 1) + state-manager (Phase 2) | **COMPLETE — SEALED** | New v2 schema BC ID: BC-3.05.004. Legacy BC-3.05.001/002/003 retired (superseded_by: ADR-015; bodies preserved per POLICY 1). E-10 epic v1.3→v1.4 with corrigendum. OQ-W16-012 filed-and-resolved. BC-INDEX v1.5→v1.6. Pattern-tracking: "ID assignment without free-slot verification" occurrence 1 of N=3. |
-| Step (v) Phase 1b — E-10 BC authorship (5 BCs) | product-owner | **ACTIVE** | Phase 1a + architect-routing + corrigendum COMPLETE; Phase 1b ACTIVE — 5 BCs in single batch: BC-1.12.005, BC-1.12.006, BC-1.12.007, **BC-3.05.004** (corrected from BC-3.05.001 per D-312), BC-1.12.009 |
+| Step (v) Phase 1b — E-10 BC authorship (5 BCs) | product-owner | **COMPLETE** | Phase 1a + architect-routing + corrigendum COMPLETE; Phase 1b COMPLETE — 5 BCs authored: BC-1.12.005, BC-1.12.006, BC-1.12.007, BC-3.05.004, BC-1.12.009 |
 | D-313 PO Phase 1b + story-writer Phase 1c + state-manager seal | product-owner + story-writer + state-manager | **COMPLETE** | +5 BCs (BC-1.12.005/006/007/009/BC-3.05.004); +13 BC-story slot insertions across 5 stories; SS-01 110→114; SS-03 51→52; total 1924→1929; D-312 process-gap remediation honored |
+| D-313 adversary pass-1 (E-10 full spec-package sweep) | adversary | **COMPLETE — CRITICAL** | 22 findings (see cycles/v1.0-brownfield-backfill/E-10-pass-1.md); pass counter RESET to 0; fix burst D-314+ dispatched |
+| D-314 architect fix burst — F-1/F-2/F-4/F-6/F-20 | architect | **COMPLETE (69408f6)** | CAP-029/030 authored; CAP-003 REWRITTEN; CAP-023/024 SUPERSEDED; 7 DIs amended; E-10 epic v1.4→v1.5; BC-1.11.003 v1.0→v1.1 (CAP-009 + EC-004 rewrite) |
+| D-315 PO fix burst — 8 BC body rewrites | product-owner | **COMPLETE (5803d28)** | BC-1.12.001/002/003/004/005/007/009 + BC-3.05.004 all v1.0→v1.1; H1 changed for BC-1.12.002 (two-key gate) + BC-1.12.009 (five-state taxonomy) |
+| D-316 story-writer fix burst — 5 story propagations | story-writer | **COMPLETE (07f946c)** | S-10.02 v1.1→v1.2; S-10.03 v1.2→v1.3; S-10.04 v1.1→v1.2 +3 BCs (F-7+F-8); S-10.05 v1.1→v1.2 +SS-02 (F-5); S-10.09 v1.1→v1.2 |
+| D-317 state-manager seal — index propagation | state-manager | **COMPLETE (this burst)** | BC-INDEX v1.7→v1.8 (9 BCs); ARCH-INDEX v1.0→v1.1 (F-19 footnote); STORY-INDEX v2.17→v2.18 (5 story bumps); STATE.md + lessons.md sealed |
+| **Step (vi.b) — adversary pass-1' on sealed E-10 package** | adversary | **PENDING** | Reading list: E-10 epic v1.5 + 10 BCs (incl. BC-1.11.003 v1.1) + capabilities.md v1.1 (CAP-029/030) + invariants.md (amended) + 5 stories v1.2/v1.3. Pass counter 0. |
 
 ## Identifier Conventions
 
@@ -187,7 +193,7 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,929 |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 66 |
-| Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
+| Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 68 |

@@ -1090,3 +1090,41 @@ PASS — TD-VSDD-093 self-application audit completed before seal.
 
 **Date:** 2026-05-06
 **Burst:** D-313 (Phase 1c story-writer propagation healing D-310 deferral; occurrence 1 of N=3 codification threshold)
+
+---
+
+## E-10 adversary pass-1 outcome + D-317 seal (2026-05-06)
+
+### Pass-1 outcome and fix-burst summary
+
+**Adversary verdict:** CRITICAL — 22 findings across the E-10 spec package (ADR-015 + E-10 epic v1.4 + 10 BCs + BC-1.11.003 + 5 stories). ADR-013 pass-counter RESET to 0. See cycles/v1.0-brownfield-backfill/E-10-pass-1.md for full report.
+
+**Four-burst fix cycle (D-314 → D-317):**
+- D-314 (architect, 69408f6): capabilities.md CAP-029+CAP-030 authored, CAP-003 REWRITTEN per ADR-015 D-15.1, CAP-023+CAP-024 SUPERSEDED. Invariants DI-007/008/011/012/013/014/017 amended. E-10 epic v1.4→v1.5 (re-anchored to CAP-029/030). BC-1.11.003 v1.0→v1.1 (CAP-009 anchor + EC-004 emit_pair rewrite per F-6 + F-20).
+- D-315 (PO, 5803d28): 8 BC bodies rewritten — BC-1.12.001/002/003/004/005/007/009 + BC-3.05.004, all v1.0→v1.1. H1 text changed for BC-1.12.002 (two-key debug-stream gate wording precision, F-13) and BC-1.12.009 (five-state event taxonomy enumeration, F-12).
+- D-316 (story-writer, 07f946c): 5 stories propagated per POLICY 8. S-10.04 gained BC-1.12.003/004/005 (F-7+F-8, bcs count 1→4). S-10.05 gained SS-02 subsystem (F-5). S-10.02/03/09 version bumps.
+- D-317 (state-manager seal, this burst): BC-INDEX v1.7→v1.8 (9 BC capability + H1 updates); ARCH-INDEX v1.0→v1.1 (F-19 renumbering footnote); STORY-INDEX v2.17→v2.18 (5 story row updates); STATE.md current_step; lessons.md this entry.
+
+**Cycle still OPEN:** 3-of-3 NITPICK_ONLY not yet reached. D-317 is the burst seal, not the cycle close. Cycle-closing checklist (S-7.02) re-applies after CONVERGENCE_REACHED.
+
+### Architect routing override for F-6 + F-20 (TD-VSDD-088 author-ownership rule)
+
+F-6 (BC-1.11.003 CAP-TBD — capability anchor missing) and F-20 (BC-1.11.003 EC-004 rewrite — emit_pair Wave-3 removal) were listed in the adversary's pass-1 summary routing table under "PO" as the suggested owner. The orchestrator overrode to "architect" for both.
+
+**Rationale:** BC-1.11.003 was architect-authored on 2026-05-04 (D-314 commit history). TD-VSDD-088 NORMATIVE rule establishes that the original author-agent is the correct owner for amendments to their own BCs (author-ownership principle). PO Phase 1 BC rewrites are reserved for BCs that PO authored or for cross-BC capability sweep work; BC-1.11.003 is an architect-domain BC covering the emit_pair host helper. The EC-004 rewrite (F-20) also required architectural judgment (deciding what the Wave-3 replacement contract should be, not just adjusting test vectors).
+
+**Lesson for future adversary routing tables:** When the adversary's summary table assigns "PO" to a finding on an architect-authored BC, the orchestrator should cross-check the BC's `producer:` frontmatter field before dispatching. If `producer: architect`, override to architect unless the finding is purely a capability-column or story-propagation mechanical update. Document the override reasoning in the burst commit message and lessons.md.
+
+### Process-gap pattern tracking (pass-1 findings)
+
+**F-3 — line-N citations across BCs (occurrence 5+ / N=3 threshold already passed):**
+Pass-1 flagged 5 BCs with unstable line-number citations (pattern: quoting "line 42" rather than a quoted prose anchor). This is the 5th+ occurrence; Task #77 already tracks the engine-level codification of the line-citation ban (TD-VSDD-091-ENGINE backlog ticket filed D-291). Pass-1 adds another data point to the existing TD ticket. No new codification action required here — the engineering fix already has a home.
+
+**F-6 — CAP-TBD persistence (occurrence 1 / N=3 trigger threshold: not yet reached):**
+BC-1.11.003 carried `capability: CAP-TBD` through two sealed bursts (architect-authored D-314 was the first time it was corrected to CAP-009). Pattern occurrence count = 1 as of pass-1. S-7.02 codification threshold is N=3. No new follow-up story or TD-VSDD entry created yet. If this recurs in pass-1' or a subsequent cycle on a different BC, escalate to story creation under self-improvement epics.
+
+**F-21 — mechanical CAP justifications across 4–5 BCs (occurrence 1 / N=3 trigger threshold: not yet reached):**
+Pass-1 found 4–5 BCs with capability anchors justified by boilerplate phrases rather than substantive rationale linking the BC's observable behavior to the capability's definition. Pattern occurrence count = 1 as of pass-1. S-7.02 codification threshold is N=3. No new follow-up story or TD-VSDD entry created yet. If this recurs in pass-1' or a subsequent cycle, escalate to story creation.
+
+**Date:** 2026-05-06
+**Burst:** D-317 (state-manager seal — E-10 pass-1 fix burst D-314/D-315/D-316/D-317 SEALED; cycle still OPEN pending 3-of-3 NITPICK_ONLY)

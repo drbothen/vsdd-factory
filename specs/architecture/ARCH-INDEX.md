@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.0"
+version: "1.1"
 status: accepted
-producer: architect
-timestamp: 2026-04-25T00:00:00
-phase: 1.1
+producer: state-manager
+timestamp: 2026-05-06T00:00:00
+phase: 1.4c
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
@@ -83,6 +83,8 @@ The per-subsystem SS-NN files above collectively cover their content:
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
 **Total BCs: 1,929 (per BC-INDEX; +4 from ADR-015 D-15.1/D-15.2 Phase 1a SS-01 additions BC-1.12.001–BC-1.12.004; +5 from Phase 1b SS-01/SS-03 additions BC-1.12.005/006/007/009 + BC-3.05.004)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
+
+**Renumbering history — BC-1.12.008 → BC-3.05.004 (D-311/D-312):** BC-1.12.008 was originally proposed as an SS-01 routing target in D-311; renumbered to BC-3.05.004 (SS-03) in D-312 corrigendum per POLICY 1 ID-collision rule (BC-3.05.001/002/003 already existed as brownfield BCs authored by codebase-analyzer on 2026-04-25; BC-3.05.004 was the next free slot). Consequence: SS-01 has +4 Phase 1a additions (BC-1.12.001–BC-1.12.004) and +4 Phase 1b additions (BC-1.12.005/006/007/009; no BC-1.12.008 ID exists). SS-03 has +1 Phase 1b addition (BC-3.05.004 v2 schema validation per ADR-015 D-15.4). OQ-W16-012 filed-and-resolved in D-312.
 
 ### Subsystem Registry Design Notes
 
