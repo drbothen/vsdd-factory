@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.47"
+version: "1.48"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -17,7 +17,7 @@ timestamp: 2026-05-03T00:00:00Z
 phase: 2
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: 2026-05-06
+last_amended: "2026-05-06 (D-298 — pass-53 META corrigendum: v1.34 row population + v1.45 trailer relocation)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -494,7 +494,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.31 | 2026-05-05 | state-manager | D-277 mechanism-fix burst — HIGH-P34-001 (BC-1.05.035: NUL byte rejection corrected — `read_wasm_string` only rejects non-UTF-8; NUL bytes → Precedence Ladder step 2 → CAPABILITY_DENIED -1; Postcondition 2, Postcondition 1 preamble, EC-005, Precedence Ladder step (1) all corrected per source-truth at host/memory.rs:47-54); MED-P34-001 (BC-1.05.035 EC-001: binary_allow precondition explicitly added); MED-P34-002 (BC-1.05.036 §Related BCs: sibling-disclosure of novel INVALID_ARGUMENT+capability_denied 5th denial path appended); MED-P34-003 (gap-analysis §"Existing denial-path telemetry": INTERIM declaration added as source-of-truth anchor); LOW-P34-001 SKIPPED (outcome enum 3-site duplication cosmetic per S-7.03); LOW-P34-002 closed implicitly by Fix 1 rewrite; TD-VSDD-081 codified (mechanism-verification beyond string-presence-grep). |
 | 1.32 | 2026-05-05 | state-manager | D-278 sibling-mechanism-sweep fix burst — HIGH-P35-001 (BC-1.05.035: EC-002 + Postcondition 4 + Ladder step (3) corrected from `..` scan mechanism to actual `canonical_path.starts_with(project_root)` prefix check; Path::canonicalize() resolves all `..` segments away — sibling-class error to NUL-byte mechanism caught at v1.30); MED-P35-001 (BC-1.05.035 Postcondition 3: "existing semantics preserved" replaced with explicit BEHAVIOR CHANGE disclosure — missing-binary -99 → -1); MED-P35-002 (BC-1.05.035 §Related BCs BC-1.05.036 row: reverse-direction sibling-disclosure NOTE added for success-path event class novelty); MED-P35-003 (BC-1.05.036 Postcondition 4: ADR-015 line-number citations replaced with stable quoted-phrase anchors); LOW-P35-001/002 SKIPPED per S-7.03; TD-VSDD-082 codified (Sibling-mechanism sweep + bidirectional-sibling-disclosure). |
 | 1.33 | 2026-05-05 | state-manager | D-279 architectural-reframe burst — HIGH-P36-001 + HIGH-P36-002 closed via architectural reframe: dropped "trusted project-root prefix" coinage, dropped "symlink_traversal_escape" concept, dropped novel INVALID_ARGUMENT+capability_denied pairing. BC-1.05.035 reframed around TOCTOU prevention — canonicalization feeds canonical path to existing `binary_allowed()` check; symlink resolving to non-allow-list path becomes normal allow-list miss → CAPABILITY_DENIED (-1) via existing emit_denial("binary_not_on_allow_list") at exec_subprocess.rs:155. MED-P36-001/002/003 + LOW-P36-001 closed. BC-1.05.036 §Related BCs NOTE updated (novel pairing dropped). TD-VSDD-083 codified (architectural-concept-anchoring rule). ADR-013 clock RESET 0_of_3. |
-| 1.34 | — | — | (reserved) |
+| 1.34 | 2026-05-05 | state-manager | D-280 cross-BC sibling-symmetry seal-and-fix — pass-37 3H/3M/2L; emit_denial 5th reason + canonical propagation + routing INTERIM; TD-VSDD-084 PROVISIONAL codified. ADR-013 clock RESET 0_of_3. (Row populated retroactively at D-298 per pass-53 MED-P53-002 closure; original `(reserved)` placeholder was authoring oversight, not a deliberate gap-marker convention.) |
 | 1.35 | 2026-05-05 | state-manager | D-281 failure-mode coverage matrix seal-and-fix — pass-38 3H/4M/3L; TV witnesses (signal-death row 4/5/6) + signal-death EC-009 + emit IO P6/EC-010/OQ-W16-003 + Mutex poison EC-011/OQ-W16-004 + stdout_bytes timing EC-006 + input bounds note + EC-008/009/010 (symlink loop/directory/ENAMETOOLONG) + NFD/NFC cross-platform note/OQ-W16-006; TD-VSDD-085 NORMATIVE codified. ADR-013 clock RESET 0_of_3. |
 | 1.36 | 2026-05-05 | state-manager | D-282 diff-only-of-v1.35 + TD-VSDD-085 self-app seal-and-fix — pass-39 3H/5M/2L; OQ-W16-005 filed + markdown table arity merged inline across 6 EC rows (2 BCs) + 3 TV witnesses (rows 10/11/12: signal-death/emit-IO/Mutex-poison); EC-005/EC-009 step-refs corrected; P1 signal-death wording; input-bounds caller mapping; TD-VSDD-085 recurrence accounting unified; TD-VSDD-086/087 codified. ADR-013 clock RESET 0_of_3. |
 | 1.37 | 2026-05-05 | product-owner (Phase 1) + state-manager (Phase 2) | D-283 contract-completeness seal-and-fix — FIRST PO-authored burst per TD-VSDD-088 corrected routing. Pass-40 5H/5M/2L: HIGH-P40-001 internal_log.write source-truth correction (returns () not Result; eprintln not silent); HIGH-P40-002 internal_log:None branch; HIGH-P40-003 OUTPUT_TOO_LARGE split EC-005A/5B; HIGH-P40-004 cwd_allow unenforcement disclosed + OQ-W16-007; HIGH-P40-005 panic-handling spec + OQ-W16-008; MED-P40-001..004 (args lossy UTF-8; timeout_ms=0/max_output_bytes=0 boundaries; env_allow silent-skip; binary_allow pathological-config); LOW-P40-001/002 closed. TD-VSDD-088 NORMATIVE codified (orchestrator-routing rule). ADR-013 clock RESET 0_of_3. |
@@ -508,6 +508,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.45 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-293 pass-50 SOUL #4 seal-and-fix — FIFTH PO-authored burst (returning to PO/state-manager routing); FIRST application of TD-VSDD-092 BC-SOUL4-coverage discipline. Pass-50 SUBSTANTIVE 2H/1M/1L. HIGH-P50-001 read_to_end silent IO swallow acknowledged (BC-036 EC-015 + TV best-effort-read). HIGH-P50-002 kill/wait cleanup-phase no secondary deadline acknowledged (BC-036 EC-016 + TV no-secondary-deadline). MED-P50-001 spawn io::Error reason discarded (BC-036 EC-007 expanded). LOW-P50-001 emit_denial best-effort symmetry acknowledged (BC-035 §Description note). 2 new OQs: W16-009 (read_to_end v2 remediation) + W16-010 (cleanup-phase secondary deadline). BC-036 Postcondition 2 best-effort-read qualifier added; Postcondition 5 TIMEOUT footnote added. TD-VSDD-092 NORMATIVE codified (BC-SOUL4-coverage). TD-VSDD-092-HOOK backlog filed. ADR-013 clock RESET 2_of_3 → 0_of_3. STORY-INDEX 1.99→2.00. |
 | 1.46 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-295 pass-51 LOW closures — SIXTH PO-authored burst (user-directed quality-over-clock-speed tradeoff). 6 LOW closures: LOW-P51-001 BC-035 §Precedence Ladder step (1) cause-collapse note enumerating MemoryOverflow/OutOfBounds/InvalidUtf8 variants; LOW-P51-002 BC-035 EC-013 file_name=None fallback paragraph; LOW-P51-003 BC-036 EC-007 stdin write_all is_err() cause erasure (parallel to MED-P50-001); LOW-P51-004 BC-036 EC-007 try_wait Err(_) cause erasure parallel; LOW-P51-005 BC-036 EC-013A 5ms busy-poll granularity footnote; LOW-P51-006 BC-036 EC-011 emit_internal poison vs internal_log IO asymmetry contrast. **TRADEOFF: ADR-013 clock RESET 1_of_3 → 0_of_3** (user accepted clock reset for spec quality; 3 fresh NITPICK_ONLY (pass-52/53/54) needed for CONVERGENCE_REACHED). STORY-INDEX 2.01→2.02. |
 | 1.47 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-296 pass-52 TV-derivation seal-and-fix — SEVENTH PO-authored burst. 1 MED + 2 LOW closures: MED-P52-001 BC-036 EC-005A "strictly exceeds (`>`, not `>=`)" prose tightening + new boundary-success-witness CTV row; LOW-P52-001 BC-036 P4 NOTE re ADR-015 FileSink rewire CTV gap (deferred to E-9 Wave 1); LOW-P52-002 BC-036 EC-013A upper-bound `timeout_ms = u32::MAX` ~49.7 days note. Strict-protocol verdict SUBSTANTIVE (adversary classified NITPICK_ONLY but 1 MED triggers SUBSTANTIVE per quality-preference standard). **ADR-013 clock RESETS 1_of_3 → 0_of_3** per strict protocol. 3 fresh NITPICK_ONLY (pass-53/54/55) needed for CONVERGENCE_REACHED. STORY-INDEX 2.02→2.03. |
+| 1.48 | 2026-05-06 | state-manager | D-298 pass-53 META corrigendum — close MED-P53-001 (v1.45 trailer relocation: orphan `**STORY-INDEX:** 1.99 → 2.00.` line at EOF moved into v1.45 H3 block) + MED-P53-002 (v1.34 summary row population from H3 content). State-manager-only burst per TD-VSDD-088 META-routing (no BC content; no normative-rule codification). ADR-013 clock RESET 0_of_3. |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2237,6 +2238,8 @@ TD-VSDD-092 self-application: does the BC-SOUL4-coverage rule apply to the TD-VS
 
 **ADR-013 clock:** RESET 2_of_3 → 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (51/52/53) needed for CONVERGENCE_REACHED.
 
+**STORY-INDEX:** 1.99 → 2.00.
+
 ### v1.46 (D-295 — pass-51 LOW closures; SIXTH PO-authored burst; user-directed quality-over-clock-speed tradeoff)
 
 **Context:** D-294 sealed pass-51 NITPICK_ONLY (ADR-013 clock 0_of_3 → 1_of_3 — FIRST ADVANCE in fresh post-D-293 convergence path). D-295 closes the 6 LOWs deferred by D-294 per user directive "lets fix all the lows". This is a user-directed quality-over-clock-speed tradeoff: the spec surface is amended from v1.45 → v1.46, which resets the ADR-013 convergence clock.
@@ -2303,4 +2306,48 @@ TD-VSDD-092 self-application: MED-P52-001 and LOW-P52-002 closures are spec-comp
 
 **STORY-INDEX:** 2.02 → 2.03.
 
-**STORY-INDEX:** 1.99 → 2.00.
+### v1.48 (D-298 — pass-53 META corrigendum; THIRD state-manager-only burst this cycle; closes MED-P53-001 + MED-P53-002 from pass-53)
+
+**Context:** Pass-53 adversarial review (angle: append-only POLICY 1 byte-level audit, pivoted to current-state structural integrity per Obs-P53-001 tool-profile process gap) returned verdict SUBSTANTIVE — 0 HIGH / 2 MEDIUM / 0 LOW. Both MEDs are structural/positional defects in the epic's changelog metadata: MED-P53-001 (v1.45 H3 STORY-INDEX trailer at wrong position in file) and MED-P53-002 (v1.34 summary-table row populated with placeholder `(reserved)` rather than D-280 burst content). This D-298 burst is META: no BC content changes, no normative-rule codification. State-manager-only routing per TD-VSDD-088 META-routing rule (precedent: D-288 first state-manager-only burst, D-289 second state-manager-only burst, D-290 third state-manager-only burst — all META-content fixes with no BC authorship required).
+
+**Routing pattern: THIRD state-manager-only burst (state-manager all phases):** Both MEDs are in the state-manager domain (changelog structural integrity). No PO Phase 1 required. State-manager authors all changes in a single atomic burst per TD-VSDD-053 single-commit protocol.
+
+**Findings closed:**
+
+- **MED-P53-001 CLOSED — v1.45 H3 block STORY-INDEX trailer relocated from EOF to correct position within v1.45 H3 block:** The `**STORY-INDEX:** 1.99 → 2.00.` trailer line was found at end-of-file, after the v1.47 H3 block's STORY-INDEX trailer (`**STORY-INDEX:** 2.02 → 2.03.`). Per POLICY 1 append-only, the repair is classified as a positional-defect correction: the trailer content was originally authored at D-293 (v1.45 burst), but the trailer was left at EOF when D-295's v1.46 H3 block was inserted before it. The v1.46 heading was inserted immediately after the v1.45 ADR-013 clock paragraph, displacing the STORY-INDEX trailer to EOF. D-296's v1.47 block was subsequently appended before the orphan was noticed, perpetuating the misplacement. The repair moves the trailer to its canonical position: after the v1.45 ADR-013 clock paragraph terminal text (`**ADR-013 clock:** RESET 2_of_3 → 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (51/52/53) needed for CONVERGENCE_REACHED.`) and before the v1.46 H3 heading. Corrigendum acknowledged here; v1.45 H3 body text is unchanged per POLICY 1.
+
+- **MED-P53-002 CLOSED — v1.34 summary-table row populated from D-280 H3 block content:** The v1.34 summary-table row previously contained `(reserved)` in all three data cells (Date, Author, Summary). Per POLICY 1 append-only, the original `(reserved)` token was an authoring placeholder — verified NOT a sealed deliberate value: (a) it is the only `(reserved)` row in the entire 48-row summary table; (b) the TD-VSDD-059 audit notes in the lessons corpus use the explicit qualifier "non-reserved row" at 12 locations to work around the gap when verifying summary-table completeness. The row is now populated from the v1.34 H3 block content heading text and body content: Date `2026-05-05`, Author `state-manager`, Summary describing D-280 cross-BC sibling-symmetry seal-and-fix with pass-37 3H/3M/2L verdict, TD-VSDD-084 PROVISIONAL codification, and ADR-013 clock reset. The corrigendum acknowledgment is present in the populated row's Summary cell prose.
+
+**Process-gap acknowledgment:**
+
+Pass-53 angle (append-only POLICY 1 byte-level audit via git-plumbing) was structurally outside the adversary's read-only tool profile (Obs-P53-001). The adversary correctly disclosed this limitation and pivoted to a current-state structural-integrity sibling angle, which is what produced MED-P53-001 and MED-P53-002. The process gap is filed for orchestrator's cycle-closing-checklist consideration. Three remediation paths were proposed by the adversary: (a) narrow git-plumbing carve-out for adversary profile; (b) state-manager pre-flight SHA-table the adversary can READ; (c) rotate angle to structurally compatible alternative. NOT escalated as a TD-VSDD candidate at this time — single occurrence, no recurrence pattern.
+
+**TD-VSDD-089 5-axis sibling sweep (MED-P53-001):**
+
+1. Frontmatter `version: "1.48"` updated in this burst — consistent.
+2. Summary table v1.45 row: prose includes `STORY-INDEX 1.99→2.00` in Summary cell — CONSISTENT with the repositioned trailer.
+3. H3 body: v1.45 H3 body states `STORY-INDEX v1.99 → v2.00` in self-application audit paragraph — CONSISTENT.
+4. STORY-INDEX.md: D-293 trailer-log entry says `STORY-INDEX v1.99 → v2.00` — CONSISTENT.
+5. STATE.md: updated in this burst with D-298 row — CONSISTENT.
+
+**TD-VSDD-089 5-axis sibling sweep (MED-P53-002):**
+
+1. Frontmatter: no inconsistency introduced by v1.34 row population — PASS.
+2. Summary table v1.34 row: populated from H3 content in this burst — the fix itself.
+3. H3 body: v1.34 H3 block fully authored (unchanged by this burst; POLICY 1) — CONSISTENT with the populated row.
+4. STORY-INDEX.md: D-280 trailer-log entry `E-9 v1.33→v1.34. ADR-013 clock RESET 0_of_3. STORY-INDEX v1.86 → v1.87.` — CONSISTENT with D-280 authorship.
+5. lessons.md: TD-VSDD-084 section references D-280 as the codification burst — CONSISTENT.
+
+**TD-VSDD-090/091/092 self-application audit (anchor-based — per TD-090 + TD-091 requirements):**
+
+This burst modifies: this epic (the frontmatter `version` field, the frontmatter `last_amended` field, the summary table v1.34 row content, the summary table v1.48 row appended, the v1.45 H3 STORY-INDEX trailer repositioned, this v1.48 H3 block appended), the pass-53 review file created in the cycle directory, STATE.md, STORY-INDEX.
+
+TD-VSDD-090 self-application: D-298 introduces NO new normative rule. The burst applies existing routing (TD-VSDD-088 META-routing precedent) and existing positional-defect-repair protocol (POLICY 1 corrigendum). N/A by scope. PASS.
+
+TD-VSDD-091 self-application: this H3 block uses ONLY anchor-based citations. Citations use section heading descriptors and stable identifiers (e.g., "the frontmatter `version` field", "the summary table v1.34 row content cell", "the v1.45 H3 STORY-INDEX trailer", "TD-VSDD-088 META-routing rule", "POLICY 1 append-only"). The v1.45 H3 block is referenced by its terminal paragraph text (`**ADR-013 clock:** RESET 2_of_3 → 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (51/52/53) needed for CONVERGENCE_REACHED.`). The v1.46 heading is referenced as "the v1.46 H3 heading". Zero `line N` self-referential patterns pointing into this epic. PASS.
+
+TD-VSDD-092 self-application: D-298 modifies no BC; the changes are pure changelog metadata repairs (trailer relocation, placeholder row population). No `let _ =` silent-discard surfaces are touched. N/A by scope. PASS.
+
+**ADR-013 clock:** RESETS 0_of_3 → 0_of_3 (SUBSTANTIVE verdict by pass-53). Three fresh NITPICK_ONLY passes (54/55/56) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 2.04 → 2.05.
