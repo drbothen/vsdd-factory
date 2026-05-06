@@ -1,10 +1,10 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.2"
+version: "1.3"
 status: accepted
 producer: state-manager
-timestamp: 2026-05-06T00:00:00
+timestamp: 2026-05-06T18:30:00
 phase: 1.4c
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -15,6 +15,11 @@ inputs:
   - .factory/phase-0-ingestion/pass-5-conventions.md
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
+changelog:
+  - date: 2026-05-06
+    change: "D-324 E-10 pass-3 fix burst seal: version bump v1.2 → v1.3. No substantive ARCH-INDEX changes this burst; BC subsystem counts unchanged (no new BCs in D-322). Courtesy bump to record D-324 seal."
+  - date: 2026-05-06
+    change: "D-321 E-10 pass-2 fix burst seal: version bump v1.1 → v1.2. SS-02 BC count 25→26 (+BC-2.06.001); SS-04 BC count 30→31 (+BC-4.09.001). Total BCs 1929→1931. See cycles/v1.0-brownfield-backfill/E-10-pass-2.md."
 ---
 
 # Architecture Index: vsdd-factory

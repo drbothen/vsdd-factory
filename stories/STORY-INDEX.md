@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "2.19"
+version: "2.20"
 status: current
 producer: state-manager
 timestamp: 2026-05-06T18:00:00Z
@@ -45,6 +45,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-263 — STORY-INDEX bumped to reflect D-263 combined implementation-readiness seal-and-fix burst (ninth TD-VSDD-064 application; TD-VSDD-074 codified — TD-VSDD-073 scope extension to BCs cited in amendment landings). Pass-20 SUBSTANTIVE 0H/2M/2L sealed. M-P20-001 closed (OQ-3 pinned `timeout_ms = 30000` + `max_output_bytes = 65536`). M-P20-002 + L-P20-002 closed (BC-1.05.036 ADR-015 awareness clause + error-path reality). BC-1.05.035 + BC-1.05.036 gained `last_amended: 2026-05-05`. L-P20-001 SKIPPED with rationale. E-9 v1.20→v1.21. ADR-013 clock 1→0_of_3 RESET. STORY-INDEX v1.69 → v1.70.
 > Updated 2026-05-05: D-264 — STORY-INDEX bumped to reflect D-264 multi-fix burst (tenth TD-VSDD-064 application; TD-VSDD-075 codified — source-code-verification + dependent-citation-propagation disciplines). Pass-21 SUBSTANTIVE 2H/3M/2L sealed. H-P21-001 BC-1.05.036 error codes -7/-8→-2/-3 (source-code verified). H-P21-002 open-questions.md line citation 325→326. M-P21-001 BC-1.05.035 ADR-015 awareness. M-P21-002 BC-1.05.036 host category corrected. M-P21-003 truncated:bool reserved semantics. 2 LOWs DEFERRED. E-9 v1.21→v1.22. ADR-013 clock 0_of_3. STORY-INDEX v1.70 → v1.71.
 > Updated 2026-05-05: D-270 — STORY-INDEX bumped to reflect D-270 combined silence-audit seal-and-fix burst (fourteenth TD-VSDD-064 application). Pass-27 SUBSTANTIVE 1H/1M/0L sealed (negative-coverage / silence audit angle NEW per TD-VSDD-057). H-P27-001 closed (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; source-truth verified ADR-015 lines 99/130/154). M-P27-001 closed (Postcondition 5 INTERNAL_ERROR (-99) enumeration added; 5 source-code line citations exec_subprocess.rs:252/258/262/267-268/299; const mod.rs:184). E-9 v1.25→v1.26. ADR-013 clock RESET 0_of_3. STORY-INDEX v1.76 → v1.77.
+> Updated 2026-05-06: D-322/D-323/D-324 — STORY-INDEX bumped to v2.20 to reflect D-323 E-10 pass-3 fix burst story propagation. S-10.02 v1.2→v1.3 (POLICY 8 propagation: BC-1.12.007 H1 update propagated to body BC table row). S-10.04 v1.3→v1.4 (F-12 AC-005 trace re-targeted BC-1.12.003 EC-014 → BC-1.12.004 PC2). S-10.05 v1.3→v1.4 (F-3 four-state → five-state sweep across AC-002, AC-010 title + body + enumeration; 5th row added for non-paired). S-10.09 v1.2→v1.3 (POLICY 8 propagation: BC-1.12.007 H1 update). E-10 epic v1.5→v1.6 (F-9 subsystems_affected expanded [SS-01, SS-03] → [SS-01, SS-02, SS-03, SS-04]; SS-02+SS-04 anchor entries; SS-01/SS-03 anchor names corrected to ARCH-INDEX canonical form). D-324 state-manager seal: BC-INDEX v1.9→v1.10 (F-2/F-4/F-6 fixes + BC-1.12.007 H1 propagation); ARCH-INDEX v1.2→v1.3 (version bump); STORY-INDEX v2.19→v2.20; STATE.md + lessons.md sealed.
 > Updated 2026-05-06: D-320/D-321 — STORY-INDEX bumped to v2.19 to reflect D-320/D-321 E-10 pass-2 fix burst story propagation. S-10.04 v1.2→v1.3 (BC-1.11.001 added; bcs count 4→5). S-10.05 v1.2→v1.3 (BC-2.06.001 + BC-4.09.001 added; bcs count 2→4). S-10.02/03/09 unchanged. D-318 (85507f5 architect): CAP-030 errata; BC-1.11.001 CAP-TBD→CAP-029; BC-1.12.006 CAP-008→CAP-029; 2 NEW BCs BC-2.06.001+BC-4.09.001. D-319 (8cfffec PO): BC-1.12.003/004/005 v+; BC-1.12.009 body sweep; BC-3.05.004 v+. D-320 (2e1e190 story-writer): S-10.04+S-10.05 bcs updated. D-321 (this burst state-manager seal): BC-INDEX v1.8→v1.9; ARCH-INDEX v1.1→v1.2; STORY-INDEX v2.18→v2.19; STATE.md + lessons.md sealed.
 > Updated 2026-05-06: D-316/D-317 — STORY-INDEX bumped to v2.18 to reflect D-316/D-317 POLICY 8 sweep + F-5/F-7/F-8/F-14/F-16 fixes propagated; 5 E-10 stories bumped. S-10.02 v1.1→v1.2 (capability updates CAP-003→CAP-029 on 5 BCs; BC-3.05.004 CAP-003→CAP-029). S-10.03 v1.2→v1.3 (CAP-030 anchor for BC-1.12.003). S-10.04 v1.1→v1.2 with bcs count 1→4 (BC-1.12.003/004/005 added per F-7+F-8). S-10.05 v1.1→v1.2 with subsystems +SS-02 (F-5); BC-1.11.003 capability CAP-TBD→CAP-009; BC-1.12.009 H1 five-state taxonomy. S-10.09 v1.1→v1.2 (BC-1.12.007 capability CAP-003→CAP-029). E-10 pass-1 fix cycle D-314/D-315/D-316/D-317 SEALED.
 > Updated 2026-05-06: D-313 — STORY-INDEX bumped to v2.17 to reflect D-313 Phase 1c POLICY 8 propagation: 13 BC-story slot insertions across 5 stories. Story versions bumped: S-10.02 1.0→1.1 (BCs: BC-1.12.001/002/004/005/007+BC-3.05.004); S-10.03 1.1→1.2 (BCs: BC-1.12.003/004/005); S-10.04 1.0→1.1 (BC: BC-1.12.006); S-10.05 1.0→1.1 (BCs: BC-1.11.003 Wave 2 helper + BC-1.12.009); S-10.09 1.0→1.1 (BC: BC-1.12.007). BC-1.11.003 propagation heals pre-existing D-310 deferral (D-310 authored 4 Phase 1a BCs but did not propagate them to stories same-burst). TD-VSDD-093 source-of-truth corrections applied during Phase 1c: BC-1.12.004 maps to S-10.02+S-10.03 (not S-10.02 only); BC-1.12.007 maps to S-10.02+S-10.09 (not S-10.09 only). D-312 process-gap remediation honored: PO performed free-slot verification for all 5 Phase 1b BC IDs (quoted ls evidence). POLICY 8 same-burst sync verified.
@@ -373,7 +374,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
-## Epic E-10 — Single-stream OTel-aligned event emission (ADR-015) (draft, v1.0)
+## Epic E-10 — Single-stream OTel-aligned event emission (ADR-015) (draft, v1.6)
 
 > **E-10 authored 2026-05-04:** E-10-single-stream-otel-event-emission.md v1.0 status=draft. 9 stories
 > (S-10.01..S-10.09) authored from ADR-015 migration plan. ADR-015 ACCEPTED 2026-05-04; supersedes
@@ -388,14 +389,14 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-10.01 | ADR-015 Wave 0 — Read-only audit and baseline measurements | E-10 | 2 | P1 | -- | S-10.02, S-10.03, S-10.04 | draft | [] (pending PO authorship) |
-| S-10.02 | ADR-015 Wave 1 — FileSink single-stream wiring (D-15.1) | E-10 | 5 | P1 | S-10.01 | S-10.05 | draft | [BC-1.12.001, BC-1.12.002, BC-1.12.004, BC-1.12.005, BC-1.12.007, BC-3.05.004] (v1.2 — D-316) |
+| S-10.02 | ADR-015 Wave 1 — FileSink single-stream wiring (D-15.1) | E-10 | 5 | P1 | S-10.01 | S-10.05 | draft | [BC-1.12.001, BC-1.12.002, BC-1.12.004, BC-1.12.005, BC-1.12.007, BC-3.05.004] (v1.3 — D-323 BC-1.12.007 H1 propagation) |
 | S-10.03 | ADR-015 Wave 1 — Resource-attribute enrichment (D-15.2) | E-10 | 8 | P1 | S-10.01 | S-10.05 | draft | [BC-1.12.003, BC-1.12.004, BC-1.12.005] (v1.3 — D-316) |
-| S-10.04 | ADR-015 Wave 1 — Trace propagation + lifecycle event types (D-15.4 + D-15.3) | E-10 | 5 | P1 | S-10.01 | S-10.05 | draft | [BC-1.11.001, BC-1.12.003, BC-1.12.004, BC-1.12.005, BC-1.12.006] (v1.3 — D-320 BC-1.11.001 added; bcs 4→5) |
-| S-10.05 | ADR-015 Wave 2 — Plugin schema migration, dual-emit shims, bug-fix bundle | E-10 | 8 | P1 | S-10.02, S-10.03, S-10.04 | S-10.06 | draft | [BC-1.11.003, BC-1.12.009, BC-2.06.001, BC-4.09.001] (v1.3 — D-320 BC-2.06.001+BC-4.09.001 added; bcs 2→4) |
+| S-10.04 | ADR-015 Wave 1 — Trace propagation + lifecycle event types (D-15.4 + D-15.3) | E-10 | 5 | P1 | S-10.01 | S-10.05 | draft | [BC-1.11.001, BC-1.12.003, BC-1.12.004, BC-1.12.005, BC-1.12.006] (v1.4 — D-323 F-12 AC-005 trace re-targeted) |
+| S-10.05 | ADR-015 Wave 2 — Plugin schema migration, dual-emit shims, bug-fix bundle | E-10 | 8 | P1 | S-10.02, S-10.03, S-10.04 | S-10.06 | draft | [BC-1.11.003, BC-1.12.009, BC-2.06.001, BC-4.09.001] (v1.4 — D-323 F-3 five-state sweep) |
 | S-10.06 | ADR-015 Wave 3 — Consumer migration (Grafana + tools + OTel collector) | E-10 | 5 | P1 | S-10.05 | S-10.07 | draft | [] (pending PO authorship) |
 | S-10.07 | ADR-015 Wave 3 sub-tasks — deprecation announcement + operator audit gate | E-10 | 2 | P1 | S-10.06 | S-10.08 | draft | [] (pending PO authorship) |
 | S-10.08 | ADR-015 Wave 4 — Bash hook parity (route-through-dispatcher via legacy-bash-adapter) | E-10 | 5 | P1 | S-10.07 | S-10.09 | draft | [] (pending PO authorship) |
-| S-10.09 | ADR-015 Wave 5 — Crate retirement + SS-03 spec rewrite | E-10 | 5 | P1 | S-10.08 | -- | draft | [BC-1.12.007] (v1.2 — D-316) |
+| S-10.09 | ADR-015 Wave 5 — Crate retirement + SS-03 spec rewrite | E-10 | 5 | P1 | S-10.08 | -- | draft | [BC-1.12.007] (v1.3 — D-323 BC-1.12.007 H1 propagation) |
 
 > **E-10 dependency chain:** S-10.01 → {S-10.02, S-10.03, S-10.04} → S-10.05 → S-10.06 → S-10.07 → S-10.08 → S-10.09.
 > S-10.02/S-10.03/S-10.04 are parallelizable within Wave 1.

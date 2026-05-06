@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.9"
+version: "1.10"
 status: draft
 producer: state-manager
 timestamp: 2026-05-06T18:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1931
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-324 (2026-05-06) — E-10 pass-3 fix burst seal: 8 BCs amended (BC-1.11.002 CAP-TBD→CAP-029; BC-1.11.003 + BC-1.12.001 + BC-1.12.006 + BC-1.12.007 + BC-2.06.001 + BC-3.05.004 body fixes; BC-1.11.001 changelog only). F-2 fix: BC-INDEX line 166 BC-1.11.001 Stories cell S-10.03 → S-10.04 (POLICY 8 reverse-direction completion from D-320). F-6 fix: BC-INDEX line 168 BC-1.11.003 Stories cell \"Wave 2 TBD\" → S-10.05. BC-1.12.007 H1 propagated byte-for-byte (TD-015-a PARTIAL CLOSURE reframe). total_bcs unchanged at 1931. See cycles/v1.0-brownfield-backfill/E-10-pass-3.md and follow-up commits 42555e5 (D-322), 42adb27 (D-323)."
   - date: 2026-05-06
     change: "D-321 E-10 pass-2 fix burst seal: 8 BCs amended (BC-1.11.001 CAP-TBD→CAP-029; BC-1.12.006 CAP-008→CAP-029 primary + CAP-008 secondary; capability re-anchor + various body fixes for BC-1.12.003/004/005/007/009 + BC-3.05.004). 2 NEW BCs (BC-2.06.001 SS-02 SDK semver bump; BC-4.09.001 SS-04 plugin event-name migration with dual-emit). total_bcs 1929→1931. See cycles/v1.0-brownfield-backfill/E-10-pass-2.md and follow-up commits 85507f5 (D-318), 8cfffec (D-319), 2e1e190 (D-320)."
   - date: 2026-05-06
@@ -163,16 +165,16 @@ changelog:
 | [BC-1.09.004](ss-01/BC-1.09.004.md) | Missing plugin path returns NotFound; corrupt bytes return Compile; IO errors carry path context | draft | CAP-TBD | TBD |
 | [BC-1.10.001](ss-01/BC-1.10.001.md) | Dispatcher exposes vsdd::activated_platform() host function returning activation record platform string | **retired** | CAP-002 | S-5.01 |
 | [BC-1.10.002](ss-01/BC-1.10.002.md) | Dispatcher suppresses duplicate once:true events by tracking per-event-name + per-session_id in dispatcher memory | **retired** | CAP-002 | S-5.01 |
-| [BC-1.11.001](ss-01/BC-1.11.001.md) | factory-dispatcher::host::exec_subprocess::injects_vsdd_trace_id_and_parent_span_id — dispatcher-side mandatory injection of VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID into every exec_subprocess invocation | draft | CAP-029 | S-10.03 |
-| [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-TBD | S-10.03 |
-| [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-009 | Wave 2 TBD |
+| [BC-1.11.001](ss-01/BC-1.11.001.md) | factory-dispatcher::host::exec_subprocess::injects_vsdd_trace_id_and_parent_span_id — dispatcher-side mandatory injection of VSDD_TRACE_ID and VSDD_PARENT_SPAN_ID into every exec_subprocess invocation | draft | CAP-029 | S-10.04 |
+| [BC-1.11.002](ss-01/BC-1.11.002.md) | factory-dispatcher::file_sink::partial_write_recovery — boundary-marker strategy for JSONL partial-write detection and write-failure cascade | draft | CAP-029 | S-10.03 |
+| [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-009 | S-10.05 |
 | [BC-1.12.001](ss-01/BC-1.12.001.md) | factory-dispatcher::host::emit_event::single_stream_filesink_routing — host::emit_event writes all events exclusively to events-YYYY-MM-DD.jsonl via FileSink; Router/SinkRegistry/DlqWriter retired from production path | draft | CAP-029 | S-10.02 |
 | [BC-1.12.002](ss-01/BC-1.12.002.md) | factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by two-key debug-stream gate (VSDD_DEBUG_LOG=1 env var dominates when present; debug_log_enabled config key governs when env var absent); off by default in release builds; ADR-007 always-on guarantee amended | draft | CAP-010 | S-10.02 |
 | [BC-1.12.003](ss-01/BC-1.12.003.md) | factory-dispatcher::resource_attributes::startup_stamping — all 15 OTel Resource attributes stamped at dispatcher startup with deterministic fallback cascade; no Resource field absent or null | draft | CAP-030 | S-10.03 |
 | [BC-1.12.004](ss-01/BC-1.12.004.md) | factory-dispatcher::emit_event::per_event_host_stamping_and_internal_bifurcation — per-event OTel fields stamped at emit time; emit_internal Some/None bifurcation post-FileSink-rewire; event.category derived from compile-time registry | draft | CAP-029 | S-10.02, S-10.03 |
 | [BC-1.12.005](ss-01/BC-1.12.005.md) | factory-dispatcher::host::emit_event::host_field_override_visibility — event.host_overrides field stamped on domain events + vsdd.internal.host_field_override.v1 lifecycle event emitted when host overrides plugin-supplied host-owned fields (ADR-015 D-15.3) | draft | CAP-029 | S-10.02, S-10.03 |
 | [BC-1.12.006](ss-01/BC-1.12.006.md) | factory-dispatcher::host::block_path_audit — vsdd.block.plugin_blocked.v1 audit event emitted with outcome=blocked, plugin.name, hook.tool_name when plugin returns HookResult::Block (ADR-015 D-15.3) | draft | CAP-029 | S-10.04 |
-| [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI check deferred to Wave 5 | draft | CAP-029 | S-10.02, S-10.09 |
+| [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI gate (tool selected D-318: cargo-call-stack; implementation deferred to Wave 5) | draft | CAP-029 | S-10.02, S-10.09 |
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)

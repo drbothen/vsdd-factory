@@ -1194,3 +1194,78 @@ Pattern: a fix burst updates a BC's H1 heading text to new terminology, but body
 
 **Date:** 2026-05-06
 **Burst:** D-321 (state-manager seal — E-10 pass-2 fix burst D-318/D-319/D-320/D-321 SEALED; cycle still OPEN pending 3-of-3 NITPICK_ONLY)
+
+---
+
+## E-10 Pass-3 Fix Burst — D-322/D-323/D-324 SEALED (2026-05-06)
+
+### Pass-3 outcome
+
+Pass-3 verdict: **HIGH** (improvement from CRITICAL in passes 1+2). 16 findings total. ADR-013 pass counter still 0 (HIGH is not NITPICK_ONLY). Fix burst dispatched as D-322/D-323/D-324. Pass-3 report: `cycles/v1.0-brownfield-backfill/E-10-pass-3.md` (archived at SHA 8aed9cc).
+
+### 3-burst fix cycle pattern
+
+The D-322/D-323/D-324 fix cycle reduced from the 4-burst D-318→D-321 pattern by combining the architect's F-8 finding (BC-1.11.003 subsystem justification) into PO scope (D-322). This worked because the adjudication was clear: keep BC-1.11.003 in SS-01 with a clarified justification, not a structural move. No separate architect burst was needed.
+
+**Burst sequence:** D-322 (PO, with F-8 architect routing folded in; SHA 42555e5) → D-323 (story-writer; SHA 42adb27) → D-324 (state-manager seal; this burst).
+
+### Process-gap pattern tracking (pass-3 findings)
+
+**POLICY 8 reverse-direction drift (occurrence 2 of N=3 trigger):**
+Pattern: story or BC index cells become stale after fix bursts that touch story-anchor or capability fields without back-propagating to the BC-INDEX. D-316 first instance (prior cycle). D-322 second instance: BC-INDEX line 166 BC-1.11.001 Stories cell S-10.03 stale (should be S-10.04 per BC body Story Anchor); BC-1.11.003 Stories cell "Wave 2 TBD" stale (should be S-10.05 per D-322 Story Anchor addition); BC-1.11.002 missed in CAP-anchor sweep (CAP-TBD survived into pass-3 sealed package). D-324 closes all three gaps. Occurrence count: 2 of N=3 codification threshold. Codification candidate accelerating; if next pass finds another instance, N=3 trigger is reached.
+
+**Date:** 2026-05-06
+**Burst:** D-324 (state-manager seal — POLICY 8 reverse-direction drift occurrence 2 of N=3)
+
+---
+
+**CAP-TBD survival across capability-authoring bursts (occurrence 3 of N=3 TRIGGER REACHED):**
+Pattern: a BC carries `capability: CAP-TBD` through multiple sealed bursts including a capability-authoring burst that should have resolved it. Occurrence 1: D-310/D-313 Phase 1a/Phase 1b BC authorship did not resolve BC-1.11.001 CAP-TBD. Occurrence 2: D-314 authored CAP-029 and CAP-030 but missed BC-1.11.001 — still carried CAP-TBD into D-317 sealed package; D-318 closed. Occurrence 3: D-310/D-313 Phase 1a/Phase 1b, D-314 (CAP-029/030 burst), and D-318 all missed BC-1.11.002 — still carried CAP-TBD through the entire pass-2 fix cycle into the pass-3 sealed package; D-322 finally closed. **Occurrence count: 3 of N=3 — CODIFICATION TRIGGER REACHED.**
+
+**CODIFICATION TRIGGER REACHED (N=3): CAP-TBD survival across capability-authoring bursts**
+
+- **Pattern recurrence count:** 3
+- **Instances:**
+  1. BC-1.11.001 had `capability: CAP-TBD` from 2026-05-04 authoring through D-310/D-313/D-314/D-317; finally resolved in D-318.
+  2. BC-1.12.008 was authored with CAP-TBD; renumbered to BC-3.05.004 in D-312 corrigendum (also resolved later in D-313).
+  3. BC-1.11.002 had `capability: CAP-TBD` from initial authoring through D-310/D-313/D-314/D-317/D-318; finally resolved in D-322.
+- **Required action per S-7.02:** File a follow-up story under self-improvement epic E-1 (or appropriate self-improvement epic) titled "capability-author skill checklist: CAP-TBD scan after CAP authoring". Acceptance criterion: every capability-authoring agent (architect) must, after authoring new CAP-IDs, scan the BC corpus for `capability: CAP-TBD` and re-attempt anchoring against the newly-authored CAPs OR explicitly defer with a recorded reason.
+- **Status:** TODO — story not yet authored. Orchestrator to file as drift item or self-improvement story in next planning cycle.
+
+**Date:** 2026-05-06
+**Burst:** D-324 (state-manager seal — CAP-TBD survival occurrence 3 of N=3 CODIFICATION TRIGGER REACHED)
+
+---
+
+**CAP enumeration vs source ADR enumeration (occurrence 1 of N=3 trigger):**
+No new occurrence this pass. Pattern count remains 1 of N=3. (D-314 CAP-030 vs ADR-015 D-15.2; D-318 closed via abstract-reference + errata.)
+
+---
+
+**H1 update without body-sweep (occurrence 2 of N=3 trigger):**
+D-322 updated BC-1.12.007 H1 (TD-015-a PARTIAL CLOSURE reframe) and the change was propagated to story body BC tables in D-323 (S-10.02, S-10.09) and to BC-INDEX in D-324. The H1 update was properly propagated within the same fix cycle, but the propagation required two separate bursts (D-323 story-writer, D-324 state-manager) rather than a same-burst sync. This is occurrence 2 because the H1 update and its full propagation were not atomic — the BC-INDEX propagation was left to the state-manager seal. Occurrence count: 2 of N=3 codification threshold. Pattern: a fix burst updates a BC H1 but the BC-INDEX cell still shows the old title until the state-manager seal burst.
+
+**Date:** 2026-05-06
+**Burst:** D-324 (state-manager seal — H1 update without body-sweep occurrence 2 of N=3)
+
+---
+
+**NEW PATTERN: Partial-fix regression discipline (S-7.01) recurrence (occurrence 1 of N=3 trigger):**
+Pass-2 found regressions introduced by the pass-1 fix burst (D-314→D-317): F-1 CAP-030 wrong enumeration, F-8 EC-008 incomplete prose, F-11 TD-015-a left as open question. Pass-3 found regressions introduced by the pass-2 fix burst (D-318→D-321): F-2 BC-INDEX line 166 stale, F-3 S-10.05 body four-state (BC-1.12.009 five-state sweep in D-319 not propagated to story body), F-4 BC-1.11.002 sibling missed in CAP-anchor sweep, F-7 changelog gap on 5 BCs. Pattern: each fix burst introduces new findings caught in the next adversary pass. Codification candidate: every fix-burst commit should include an internal-consistency sweep before sealing (scan for old terminology in updated sections; verify bidirectional BC-story linkage; verify BC-INDEX matches BC body H1 and capability fields). Occurrence count: 1 of N=3.
+
+**Date:** 2026-05-06
+**Burst:** D-324 (state-manager seal — partial-fix regression pattern NEW occurrence 1 of N=3)
+
+---
+
+**Secondary capability anchors (F-15 process-gap noted, not codified):**
+F-15 [process-gap]: secondary capability anchors (CAP-029+CAP-008 in BC-1.12.006, CAP-029+CAP-010 in BC-3.05.004, CAP-009+CAP-029 in BC-4.09.001) live only in BC body Traceability tables, not in frontmatter or BC-INDEX. Pattern occurrence 1 of N=3. If recurrence in future passes, codify either schema extension (`secondary_capabilities:` array) or BC-INDEX rendering policy (e.g., "secondary" column or footnote notation). No action this burst; recording for future tracking.
+
+**Date:** 2026-05-06
+
+---
+
+**Cycle still OPEN:** 3-of-3 NITPICK_ONLY not yet reached. D-324 is the BURST SEAL, not the cycle close.
+
+**Date:** 2026-05-06
+**Burst:** D-324 (state-manager seal — E-10 pass-3 fix burst D-322/D-323/D-324 SEALED; cycle still OPEN pending 3-of-3 NITPICK_ONLY)
