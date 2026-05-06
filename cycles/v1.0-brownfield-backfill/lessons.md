@@ -864,7 +864,7 @@ The orchestrator MUST observe these routing rules for fix bursts:
 
 ## TD-VSDD-pattern-tracking — Codification-burst-self-violation
 
-**Pattern observed:** Codification bursts that introduce a normative rule have, in 5 of N=5 sampled cases, partially violated that very rule within the same burst.
+**Pattern observed:** Codification bursts that introduce a normative rule have, in 6 of N=6 sampled cases, partially violated that very rule within the same burst.
 
 **Instances:**
 1. Pass-39 (D-282) — TD-VSDD-085 NORMATIVE codified (TV-witness mechanization extension) but the same burst produced 3 self-violations (3 new ECs without TV witnesses); closed by TD-VSDD-085-applying burst (D-282 sibling).
@@ -872,10 +872,12 @@ The orchestrator MUST observe these routing rules for fix bursts:
 3. Pass-44 (D-286) — TD-VSDD-089 axis-5 self-application: pattern-tracking section trailer was single-line `**Date tracking opened:** 2026-05-05 (D-286 / pass-43)` instead of canonical two-line `**Date:**/**Burst:**` form used by sibling TD entries; closed at D-287.
 4. Pass-45 (D-287) — TD-VSDD-090 self-violation (state-manager Phase 2 self-application audit narrated PASS but missed v1.41 H3 detail block missing AND TD-VSDD-090-HOOK Implementation surface missing; closed at D-288).
 5. Pass-46 (D-288) — TD-VSDD-090 self-violation (state-manager Phase 2 grep-evidence audit cited fabricated grep `grep "**Section:**"` returning 0 matches; HOOK ticket section asymmetry 10/9/9 missed; closed at D-289 with paranoid-verification discipline + actual grep outputs).
+6. Pass-47 (D-289) — TD-VSDD-090 paranoid-verification self-violation (line citations all 4 wrong: cited 1960/1989/2024/2063 vs actual 1961/1990/2025/2061; corrigendum's "correct" line numbers themselves off-by-one). Closed at D-290 with STRUCTURAL FIX (TD-VSDD-091 codified: switch from line numbers to stable anchors for self-referential intra-file citations).
 
-**S-7.02 threshold:** Met at N=5. **Critical observation:** D-288 (the burst that codified grep-evidence discipline as the cure) itself produced the 5th instance using fabricated grep. Manual self-application audits have failed at 5/5 = 100% rate across pass-39/43/44/45/46. The hypothesis that "rigorous narrative discipline can break the chain" is empirically refuted. **TD-VSDD-090-HOOK mechanization is now MANDATORY before next codification burst.** Codified as TD-VSDD-090.
+**S-7.02 threshold:** Met at N=6. **Empirical confirmation:** Three different narrative disciplines tried (audit-by-claim D-287, grep-evidence D-288, paranoid-verification D-289). All three failed identically (HIGH/MED in each subsequent adversary pass). Pass-47 root-cause analysis: the failure is STRUCTURAL — line numbers shift on insertion. **Resolved at D-290 by codifying TD-VSDD-091 (stable-anchor citations).** Mechanization (TD-091-HOOK) remains for definitive enforcement.
 
 **Codified at TD-VSDD-090** — see below.
+**Structural fix codified at TD-VSDD-091** — see below.
 
 **Date:** 2026-05-05
 **Burst:** D-286 (pass-43 / E-9 v1.39 → v1.40)
@@ -910,3 +912,30 @@ Before any normative-rule codification burst can be sealed:
 
 **Date:** 2026-05-05
 **Burst:** D-287 (E-9 v1.40 → v1.41; FIRST application of self-application audit gate)
+
+---
+
+## TD-VSDD-091 — Self-referential intra-file citations MUST use stable anchors, NOT line numbers
+
+**Source:** Pass-47 root-cause analysis (6th instance of codification-burst-self-violation pattern). Three prior fix bursts (D-287/288/289) tried three different narrative disciplines (audit-by-claim, grep-evidence, paranoid-verification); all three produced the same defect class because the root cause is STRUCTURAL not disciplinary.
+
+**Class:** When an H3 block (or any inserted text) contains line-number citations to its own host file, the act of inserting the H3 SHIFTS all subsequent line numbers. Citations are correct AT AUTHOR TIME but wrong AT COMMIT TIME. No amount of paranoid-verification or grep-evidence narrative discipline can fix this — the line numbers literally change when the insertion happens.
+
+**Codification (NORMATIVE):**
+
+For all self-referential intra-file citations (citations FROM a section TO another section in the SAME file):
+
+1. **Use stable anchors:** section headings (`### v1.40` block), frontmatter field names (`frontmatter version field`), table row identifiers (`summary table v1.40 row`), or section names (`Postcondition 3`).
+2. **Do NOT use line numbers** for self-referential citations. Line numbers are only stable for cross-file or read-only-source-code citations where the citing burst doesn't modify the cited file.
+3. **Cross-file line-number citations remain OK** (e.g., BC-035 citing `host/mod.rs:152` — that file isn't being modified by the citing burst).
+4. **Read-only-source citations remain OK** (e.g., adversary citing a specific line in the epic from within a review file — the epic is not being modified by the review file, so line numbers are stable at review-file-write time).
+5. **Hybrid case:** if a burst MUST cite a line number for its own added content (e.g., for a tool that requires line numbers), the burst MUST run grep AFTER staging and BEFORE commit, then UPDATE the citation to reflect post-stage line numbers (this requires a second-pass edit which is brittle; prefer stable anchors).
+
+**Severity when violated:** HIGH (intra-file self-citation drift is unavoidable without stable anchors; pattern recurs at 100% rate per pass-39/43/44/45/46/47 evidence).
+
+**Mechanization candidate (filed as TD-VSDD-091-HOOK):** Pre-commit hook that grep-detects self-referential line-number citations in H3 blocks (e.g., `line \d+` references to a file the same commit modifies) and rejects with error suggesting stable anchor replacement.
+
+**S-7.02 threshold:** N=6 instances pattern (pass-39/43/44/45/46/47). Codified preemptively as NORMATIVE because all three prior narrative-discipline framings failed at first application. Mechanization remains overdue.
+
+**Date:** 2026-05-05
+**Burst:** D-290 (E-9 v1.43 → v1.44; FIRST application of stable-anchor citation discipline)

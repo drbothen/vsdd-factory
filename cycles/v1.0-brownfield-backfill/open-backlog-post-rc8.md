@@ -140,3 +140,30 @@
 
 **Date:** 2026-05-05
 **Burst:** D-287
+
+---
+
+## TD-VSDD-091-HOOK — Pre-commit hook detecting self-referential line-number citations
+
+**Source:** TD-VSDD-091 (codified D-290 / 2026-05-05)
+
+**Class:** Mechanical enforcement of stable-anchor citation discipline. Detects when an H3 block (or any newly-added content) contains line-number citations to a file the same commit modifies.
+
+**Hook design:** Pre-commit script `validate-self-referential-citations.sh`:
+- For each modified .md file in commit, scan added lines for patterns matching `line \d+` or `:\d+` or similar line-number references.
+- For each match, check whether the cited file is also modified in the same commit.
+- If self-referential (citation to a file the commit modifies), flag for stable-anchor replacement OR require post-stage grep verification.
+
+**Implementation surface:** Bash script in `dark-factory-engine/hooks/validate-self-referential-citations.sh`. Invoked alongside validate-bc-table-arity.sh, validate-bc-terminology-family.sh, validate-td-vsdd-self-application.sh as part of the codification pre-commit chain.
+
+**Acceptance criteria:**
+- Hook detects 100% of self-referential line-number citations in H3 blocks
+- Hook does NOT false-positive on cross-file line citations (e.g., BC files citing source-code lines)
+- Hook produces clear error message identifying the offending citation and suggesting stable-anchor alternative
+
+**Priority:** HIGH (this is the empirically validated root cause of the 6/6 codification-burst-self-violation pattern; mechanization is the only proven path)
+
+**Status:** OPEN — to be implemented in dark-factory-engine alongside TD-088-HOOK / TD-089-HOOK / TD-090-HOOK
+
+**Date:** 2026-05-05
+**Burst:** D-290
