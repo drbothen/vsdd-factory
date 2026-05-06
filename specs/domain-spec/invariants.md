@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -11,7 +11,7 @@ phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
-input-hash: "08db1f1"
+input-hash: "a6c6f62"
 traces_to: L2-INDEX.md
 ---
 
@@ -99,7 +99,7 @@ Justification: DI-012 is a business invariant because a single bad sink config m
 If `observability-config.toml` names an unrecognized driver type (forward-compatible for S-4.x), the dispatcher emits a warning to stderr and continues loading other sinks.
 Enforcement owner: SS-03 (sinks::from_config warn-and-skip). BC range: BC-3.
 Justification: DI-013 is a business invariant because operators upgrading configs ahead of binary versions must not lose all observability. Source: pass-2 §BR-Unknown-driver.
-**Refined by:** ADR-015 D-15.4 — applies to unknown `observability-config.toml` v2 keys (warn-and-skip per BC-3.05.004 Postcondition 7). The forward-compatibility spirit is preserved: unknown keys in the v2 schema are non-fatal warnings, not hard errors (hard errors apply only to schema_version mismatch per DI-014).
+**Refined by:** ADR-015 D-15.1 (single-stream + multi-sink retirement decision) — the warn-and-skip behavior for unknown `observability-config.toml` v2 keys is specified in **BC-3.05.004 Postcondition 7** (the v2 schema validation contract that resolves OQ-1 in `SS-03-event-emission.md`). The forward-compatibility spirit is preserved: unknown keys in the v2 schema are non-fatal warnings, not hard errors (hard errors apply only to schema_version mismatch per DI-014).
 
 ## Configuration Invariants
 

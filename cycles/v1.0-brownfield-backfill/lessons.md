@@ -1466,3 +1466,19 @@ Orchestrator preparing for context compact. STATE.md updated with comprehensive 
 - F-7 + F-8 still deferred to cleanup stories #115/#116. Not re-flagged in pass-7.
 - Convergence trend: 22→11→16→16→12→2→1. Counter still 0. Pass-8 may be first NITPICK_ONLY.
 - Cycle still OPEN — 3-of-3 NITPICK_ONLY not yet reached.
+
+---
+
+### Lesson — D-15.4→D-15.1 misattribution propagation pattern (4th occurrence) [process-gap]
+
+**Trigger:** Pass-7 F-1 (D-334) — invariants.md DI-013 line 102 cited ADR-015 D-15.4 when the correct decision is D-15.1.
+
+**Pattern:** When a BC body cites the wrong ADR decision number, the misattribution propagates verbatim through downstream artifacts that reference the BC. We've now seen the same D-15.4→D-15.1 swap in:
+1. BC-3.05.004 body (D-326 fix)
+2. ARCH-INDEX.md line 83 (D-326 propagation fix)
+3. ARCH-INDEX.md line 96 (sibling-paragraph; D-327 catch)
+4. invariants.md DI-013 line 102 (D-334 — current fix)
+
+**N=3 trigger reached.** Codification candidate: when a BC body references an ADR decision, the adversary should explicitly trace every downstream "Refined by:" / "Per ADR-015 D-X.Y:" citation back to the source BC and verify the decision number matches. A `validate-adr-decision-citation.sh` lint hook could catch this mechanically: parse `D-15.\d+` references in spec files, look up the cited decision in `architecture-decisions.md`, and flag mismatches against the surrounding context (e.g., a paragraph about "warn-and-skip schema validation" should cite the schema-validation decision, not the trace-propagation decision).
+
+**Routing:** TD-VSDD entry to be opened post-cycle. Tag: `[codification-candidate]`.

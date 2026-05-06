@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-06T18:00:00Z
+timestamp: 2026-05-06T19:00:00Z
 phase: post-rc11-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "## CURRENT STATE — POST-COMPACT RESUMPTION GUIDE\n\n### Where we are\n\n**Step (vi) E-10 adversarial-review cycle on factory-artifacts:**\n- Pass-7 verdict: HIGH with 1 substantive finding (F-1: invariants.md DI-013 line 102 D-15.4 → D-15.1 misattribution; 4th occurrence pattern-flag).\n- Convergence counter: 0 (3-of-3 NITPICK_ONLY required for CONVERGENCE_REACHED).\n- Trend: 22 → 11 → 16 → 16 → 12 → 2 → 1 substantive findings. Pass-7 closure axes CC/DD/EE all verified.\n\n**Engine side (develop):**\n- HEAD: 4cf59bc (v1.0.0-rc.12)\n- Release CI broken: rc.11 + rc.12 release.yml workflows failed at validate stage (Slice 3 hook migration renamed reason codes; pre-existing bats tests assert old names; 22 test suites failed; downstream chain (build-binaries → bump-marketplace) never ran; no auto-PR to drbothen/claude-mp opened).\n- v1.0.0-rc.12 GitHub release object exists (manually created via gh release create) but has no bundled binaries and no marketplace PR.\n\n### What's running async\n\n**Background agent ad190d8106711cb39** (implementer): fixing release CI regression.\n- Per orchestrator decision: KEEP Slice 3 canonical reason codes; UPDATE the bats tests to assert the new codes.\n- Plus: investigate + fix wave-gate-hooks exit 127 'Command not found' (path-resolution issue, possibly lib/block.sh source-line robustness).\n- Will open a PR on feat/release-ci-reason-code-test-update (or similar branch).\n- When that completes: orchestrator dispatches pr-manager to drive merge → cuts v1.0.0-rc.13 to verify full release pipeline (Tasks #120 → #121).\n\n### Next dispatch sequence (post-compact)\n\n1. **Check on async agent ad190d8106711cb39** — has it completed? If yes, review the PR and dispatch pr-manager.\n2. **Dispatch architect for D-334**: 1-line fix to invariants.md DI-013 line 102 (D-15.4 → D-15.1 with new prose per pass-7 F-1 suggested fix). Plus lessons.md entry for 4th-occurrence pattern (codification candidate: 'fix-burst checklist needs domain-spec/ sweep for cross-document misattribution'). Single architect burst.\n3. **Dispatch state-manager for D-335 seal**: BC-INDEX/ARCH-INDEX courtesy version bumps if needed; STATE.md current_step refresh; lessons.md final pass-7 entry.\n4. **Dispatch adversary pass-8** on the post-D-335 spec package. If pass-8 = NITPICK_ONLY, counter → 1 (first of three needed).\n5. **Engine track:** after ad190d8106711cb39 reports back, drive PR through pr-manager → merge → cut rc.13 → verify auto-PR-to-claude-mp opens.\n\n### Outstanding follow-up tasks (deferred, non-blocking)\n\n- #77 — Engine TD: ban line-number citations across VSDD\n- #87 — Hooks plumbing: move verify-sha-currency.sh + correct backlog ticket paths\n- #111 — Hook test coverage extension (9 stub-required hooks)\n- #112 — Hook telemetry code split: validate-wave-gate-prerequisite\n- #113 — Hook test helper escaping refactor\n- #115 — dispatcher_trace_id rename sweep across architecture + domain docs\n- #116 — line-N citation sweep in stories + ADR-015 (TD-VSDD-091)\n- #117 — Codification: partial-fix regression discipline (S-7.01) — N=3 trigger reached at D-331\n- #118 — Codification: POLICY 8 reverse-direction drift validation — N=3 trigger reached at D-331\n- #120 — Release CI fix (in progress async — ad190d8106711cb39)\n- #121 — Cut v1.0.0-rc.13 (pending #120)\n\n### Key SHAs and refs\n\n- factory-artifacts: D-333 seal at 990610c → pass-7 archival at this commit (see git -C .factory log -1 --format='%h')\n- develop: 4cf59bc (v1.0.0-rc.12)\n- main: fb3e297 (rc.11 bot bundle)\n- rc.12 release URL: https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.12\n- pass-7 finding F-1 path: .factory/specs/domain-spec/invariants.md line 102\n- async PR (in progress): check gh pr list --state open post-compact\n\n### Engine baseline alignment\n\nE-10 spec corpus is currently aligned with v1.0.0-rc.12 engine baseline (per the rc.12 audit cycle: D-326 + D-327 closed at SHA 4c1b003). Pass-7 confirms alignment held through D-332/D-333 amendments. F-1 is internal-consistency drift (BC-3.05.004 D-15.4→D-15.1 fix didn't propagate to invariants.md), not engine-vs-spec drift.\n\n### Notes for the resuming orchestrator\n\n- The Slice 3 hook canonical-format work is COMPLETE on develop (PR #94 + PR #95 merged). The release CI broke as a side effect (test regression), not the hook work itself.\n- E-10 convergence is GENUINELY close (only 1 finding in pass-7). Don't manufacture findings; pass-8 may be the first NITPICK_ONLY.\n- F-7 + F-8 (large-blast cleanup work) remain explicitly deferred to #115 + #116; do not re-include them in adversary scope.\n- The 'same-document sibling-paragraph drift' pattern hit 4 occurrences in pass-7 F-1 — codification follow-up should be filed under self-improvement epic when capacity permits."
+current_step: "Cycle v1.0-brownfield-backfill / E-10 single-stream OTel — pass-7 fix-cycle SEALED at D-335. Pass-7 verdict was HIGH(1); F-1 resolved by D-334 invariants.md DI-013 D-15.4→D-15.1 fix. **Next dispatch:** adversary pass-8 against the post-D-335 spec package. NITPICK_ONLY counter: 0 (need 3-of-3 for CONVERGENCE_REACHED). If pass-8 = NITPICK_ONLY → counter becomes 1. **Engine-side parallel track:** background agent ad190d8106711cb39 still investigating release.yml validate-job bats failures (perf-baseline.bats cargo dependency in validate job — needs gating or relocation to cargo-host). Unblock: cut rc.13 once that PR lands. **Outstanding follow-up tasks:** Process-gap codifications: TD-VSDD #117 (partial-fix regression S-7.01 N=3), #118 (POLICY 8 reverse-direction N=3), and new candidate from D-334 lessons entry (D-15.4→D-15.1 misattribution N=4 — recommend validate-adr-decision-citation.sh lint hook). Hook-related stories: #111 (test coverage 9 stub-required), #112 (telemetry-code split wave-gate-prerequisite), #113 (test helper escaping), #115 (dispatcher_trace_id sweep), #116 (line-N citation sweep). Engine-baseline alignment: #87 (verify-sha-currency.sh relocation). Release: #120 (release CI fix in flight async), #121 (cut rc.13 after #120). E-10 epic continuation: #7-#11 (S-10.01 audit → flip to E-9 → implementation phases)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-06 (pass-7 archived — HIGH verdict 1 finding; closure axes CC/DD/EE PASS; trend 22→11→16→16→12→2→1; counter 0; D-334 architect F-1 fix next; pre-compact STATE update) |
+| **Last Updated** | 2026-05-06 (D-335 seal — pass-7 fix-cycle complete; invariants.md DI-013 D-15.4→D-15.1 fixed by D-334; pass-8 is next dispatch; NITPICK_ONLY counter 0) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -74,7 +74,7 @@ dtu_services: []
 | Phase D-4 Burst 1 — E-9 + S-9.00 spec | **COMPLETE** | E-9 v1.6 CONVERGED pass-10 (D-235); S-9.00 v1.4 CONVERGED pass-7 (D-231) |
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
-| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) COMPLETE (D-313 SEALED); pass-1 CRITICAL fix D-314→D-317 SEALED; pass-2 CRITICAL fix D-318→D-321 SEALED; pass-3 HIGH fix D-322→D-324 SEALED; pass-4 HIGH verdict (see E-10-pass-4.md, e88651f); rc.12 audit 119e70e → D-326 7afc64d → D-327 SEALED; pass-5 HIGH fix D-328→D-331 SEALED; pass-6 HIGH fix D-332→D-333 SEALED; pass-7 HIGH (1 finding — F-1 invariants.md DI-013 D-15.4→D-15.1; 4th occurrence pattern-flag); D-334 architect fix NEXT** | E-9 v1.53 HEAD; E-10 BC authorship D-310→D-313 COMPLETE. rc.12 alignment cycle COMPLETE (D-327). total_bcs 1931 unchanged. Pass-7 HIGH (1 finding; closure axes CC/DD/EE verified PASS); counter 0; 3-of-3 NITPICK_ONLY required. Trend: 22→11→16→16→12→2→1. D-334 architect fix burst dispatched next. Spec corpus aligned with rc.12 (4cf59bc). ADR-013 convergence: 3_of_3 CONVERGENCE_REACHED (D-308 for E-9). |
+| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) COMPLETE (D-313 SEALED); pass-1 CRITICAL fix D-314→D-317 SEALED; pass-2 CRITICAL fix D-318→D-321 SEALED; pass-3 HIGH fix D-322→D-324 SEALED; pass-4 HIGH verdict (see E-10-pass-4.md, e88651f); rc.12 audit 119e70e → D-326 7afc64d → D-327 SEALED; pass-5 HIGH fix D-328→D-331 SEALED; pass-6 HIGH fix D-332→D-333 SEALED; pass-7 HIGH fix D-334→D-335 SEALED; **pass-8 NEXT DISPATCH**** | E-9 v1.53 HEAD; E-10 BC authorship D-310→D-313 COMPLETE. rc.12 alignment cycle COMPLETE (D-327). total_bcs 1931 unchanged. Pass-7 HIGH(1) → F-1 resolved (D-334 invariants.md DI-013 D-15.4→D-15.1 + BC-3.05.004 PC7 anchor). NITPICK_ONLY counter: 0; 3-of-3 required for CONVERGENCE_REACHED. Trend: 22→11→16→16→12→2→1. Spec corpus aligned with rc.12 (4cf59bc). ADR-013: 3_of_3 CONVERGENCE_REACHED (D-308 for E-9). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Current Phase Steps
@@ -202,7 +202,8 @@ dtu_services: []
 | D-332 PO fix burst — F-2 + F-3 | product-owner | **COMPLETE (fbe679d)** | BC-1.12.009 v1.3→v1.4: Inv 4 Inv-2-routing disambiguation (F-2); PC4 "State 5 — Non-paired" label (F-3). |
 | **D-333 state-manager seal — E-10 pass-6 fix-cycle archival + F-1 ARCH-INDEX propagation + index seal** | state-manager | **COMPLETE (this burst)** | BC-INDEX v1.12→v1.13; ARCH-INDEX v1.5→v1.6 (F-1 line 96 D-15.4→D-15.1); STATE.md + lessons.md sealed. All 3 pass-6 findings closed. |
 | **Step (vi) — adversary pass-7 on post-D-333 E-10 package** | adversary | **COMPLETE — HIGH** | 1 finding (F-1 invariants.md DI-013 line 102 D-15.4→D-15.1 misattribution; 4th pattern-flag occurrence). Closure axes CC/DD/EE VERIFIED PASS. See E-10-pass-7.md. Pass counter still 0. |
-| **D-334 architect fix burst — F-1 invariants.md DI-013 amendment** | architect | **NEXT** | 1-line fix: DI-013 line 102 D-15.4→D-15.1 per pass-7 F-1 suggested fix. Routing: architect (domain invariant amendment). Then D-335 state-manager seal → pass-8. |
+| **D-334 architect fix burst — F-1 invariants.md DI-013 amendment** | architect | **COMPLETE** | invariants.md DI-013 line 102 D-15.4→D-15.1 fixed; BC-3.05.004 PC7 anchor added; v1.1→v1.2 bump; input-hash 08db1f1→a6c6f62; lessons.md entry (4th occurrence pattern-flag). |
+| **D-335 state-manager seal — pass-7 fix-cycle** | state-manager | **COMPLETE (this burst)** | STATE.md current_step refreshed; runtime artifacts swept; pass-7 fix-cycle sealed. Pass-8 is next dispatch. |
 
 ## Identifier Conventions
 
@@ -299,12 +300,12 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-06 — pass-7 archived + pre-compact STATE update. Pass-7 verdict: HIGH, 1 finding (F-1 invariants.md DI-013 line 102 D-15.4→D-15.1; 4th pattern-flag occurrence). Closure axes CC/DD/EE PASS.
+**Last update:** 2026-05-06 — D-335 seal. Pass-7 fix-cycle complete. invariants.md DI-013 D-15.4→D-15.1 fixed (D-334). Pass-8 is next dispatch.
 
-**factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (this burst = pass-7 archival)
-**develop HEAD:** 4cf59bc (v1.0.0-rc.12 — SHIPPED 2026-05-06; release CI broken, see current_step)
-**main HEAD:** fb3e297 (rc.11 bot bundle; run `git log --oneline origin/main -3` post-compact to verify)
-**v1.0.0-rc.12 tag:** 4cf59bc; GH release object exists but no binaries (release CI broken)
+**factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (this burst = D-334+D-335 seal)
+**develop HEAD:** 4cf59bc (v1.0.0-rc.12 — SHIPPED 2026-05-06; release CI broken, fix in flight async #120)
+**main HEAD:** fb3e297 (rc.11 bot bundle)
+**v1.0.0-rc.12 tag:** 4cf59bc; GH release object exists but no binaries (release CI broken — async #120)
 **v1.0.0-rc.11 tag:** fb3e297; GH prerelease=true; PRs #89/#90/#91 merged 2026-05-04
 **Active worktrees:** main + .factory only
 **E-9 current version:** v1.53 (CONVERGENCE_REACHED; ADR-013 clock 3_of_3; D-308)
@@ -312,16 +313,12 @@ dtu_services: []
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-7 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1
 
-**ACTIVE STEP: Step (vi) E-10 adversarial-review cycle — D-334 architect fix next**
+**ACTIVE STEP: Step (vi) E-10 adversarial-review cycle — DISPATCH pass-8 adversary now**
 
-**NEXT ACTION (1 of 2 parallel tracks):** Dispatch architect for D-334 — 1-line fix to invariants.md DI-013 line 102: change "ADR-015 D-15.4" to "ADR-015 D-15.1" with updated prose per pass-7 F-1 suggested fix. Then state-manager D-335 seal. Then adversary pass-8.
+**NEXT ACTION (1 of 2 parallel tracks):** Dispatch adversary pass-8 on post-D-335 spec package. Spec corpus: invariants.md v1.2, BC-3.05.004 v1.3 (pass-5 fixes), full E-10 package as sealed at this commit. If pass-8 = NITPICK_ONLY → counter becomes 1-of-3.
 
-**NEXT ACTION (2 of 2 parallel tracks):** Check on async agent `ad190d8106711cb39` (release CI regression fix). Run `gh pr list --state open` post-compact. When complete: dispatch pr-manager → merge → cut rc.13.
+**NEXT ACTION (2 of 2 parallel tracks):** Check on async agent `ad190d8106711cb39` (release CI regression fix). Run `gh pr list --state open`. When complete: dispatch pr-manager → merge → cut rc.13 (Tasks #120 → #121).
 
-**F-1 fix location:** `.factory/specs/domain-spec/invariants.md` line 102 — DI-013 "Refined by:" paragraph.
-**pass-7 report:** `.factory/cycles/v1.0-brownfield-backfill/E-10-pass-7.md`
 **F-7 + F-8 status:** Still deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
-
 **S-11.00 backlog:** verify-sha-currency.sh Rust port stub registered (D-297). Full authoring: post-E-10 convergence.
-
 **Track 1 — Phase C:** rc.11 SHIPPED 2026-05-04. rc.12 SHIPPED 2026-05-06. GA target ~2026-05-11. Release CI must be fixed (async task #120) before rc.13 validation run.
