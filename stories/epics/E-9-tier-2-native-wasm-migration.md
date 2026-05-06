@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.34"
+version: "1.35"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -1764,3 +1764,51 @@ v1.31 burst (D-277 MED-P34-002) added a forward-direction NOTE to BC-1.05.036 §
 **TD-VSDD-064 sequential-burst protocol applied (twenty-second use):** State-manager handles pass-37 seal and cross-BC symmetry fix burst atomically. All fixes are textual corrections to BC normative sections.
 
 **No new BCs, VPs, or FRs added (scope discipline maintained).**
+
+### v1.35 (2026-05-05) — D-281 failure-mode coverage matrix seal-and-fix: pass-38 3H/4M/3L; TV witnesses + signal-death + emit IO + Mutex poison + 4 new OQs; TD-VSDD-085; ADR-013 clock RESET 0_of_3
+
+**Pass-38 verdict:** SUBSTANTIVE. 3 HIGH / 4 MEDIUM / 3 LOW. Angle: failure-mode coverage matrix audit — built 2D matrix of (failure-input × specification-coverage) for BC pair (BC-1.05.035, BC-1.05.036). NEW angle per TD-VSDD-057 inventory; contrasts with 37 prior angles by auditing outward coverage (does the BC pair specify behavior for every distinguishable failure mode the production code can produce?), rather than internal coherence, citation validity, or structural symmetry.
+
+**HIGH findings:**
+
+- **HIGH-P38-001 CLOSED (Fix 1 — TV witnesses for binary_canonicalize_failed):** Pass-37 closed HIGH-P37-001 by adding `binary_canonicalize_failed` as the 5th `emit_denial` reason, but POLICY 12 requires TV witnesses for emitter contracts. Existing TV row 4 (non-existent binary) did not explicitly assert emission. Fixes: (a) Row 4 amended to explicitly specify `emit_denial(ctx, cmd, "binary_canonicalize_failed", details)` emission; (b) new row 5 added for NUL-byte cmd asserting `binary_canonicalize_failed` via CString EINVAL path; (c) new row 6 added as TOCTOU symlink swap negative witness (also closes MED-P38-001 EC-007 TV gap — combined Fix 1+7).
+
+- **HIGH-P38-002 CLOSED (Fix 2 — EC-001 self-contradiction + EINVAL/ENOENT correction):** EC-001 said "canonicalize() succeeds for `../etc/passwd` if `/etc/passwd` exists OR fails with EINVAL if not." Two defects: (1) when canonicalize SUCCEEDS, it's not step (2) firing — step (2) is the canonicalize-fails branch; success falls through to step (3) allow-list miss; (2) missing path returns ENOENT (NotFound), NOT EINVAL (which is for NUL bytes). Fixed: EC-001 rewritten as Branch A (canonicalize succeeds → step 3 allow-list miss → `binary_not_on_allow_list`) / Branch B (canonicalize fails → ENOENT → step 2 → `binary_canonicalize_failed`). EINVAL corrected to be NUL-only per EC-005.
+
+- **HIGH-P38-003 CLOSED (Fix 3 — signal-death disambiguation + OQ-W16-002):** `status.code().unwrap_or(-1)` at exec_subprocess.rs:286 substitutes -1 when subprocess is killed by signal. The BC had no Edge Case, TV witness, or Postcondition for signal-death. Added: new BC-1.05.036 EC-009 specifying signal-death v1 semantics (substitute -1; `exit_code=-1` indistinguishable from literal `_exit(-1)` in v1; POSIX 128+signum convention deferred to v2 ABI break); Postcondition 1 footnote citing EC-009 and OQ-W16-002; OQ-W16-002 filed tracking v2 signal disambiguation.
+
+**MEDIUM findings:**
+
+- **MED-P38-001 CLOSED (Fix 7 — EC-007 TV witness via row 6, combined with Fix 1):** EC-007 (canonical-path propagation, added v1.34) had no TV witness despite being the load-bearing TOCTOU security postcondition. POLICY 12 + TD-VSDD-076/079 require witness. Fixed by TV row 6 (toctou symlink swap negative case) which explicitly demonstrates the canonical-propagation requirement. EC-007 Expected Behavior column updated with cross-reference to TV row 6.
+
+- **MED-P38-002 CLOSED (Fix 4 — P6 best-effort emit + EC-010 + OQ-W16-003):** `emit_internal` silently drops `log.write` failures; BC-1.05.036 Postcondition 1 claim "exactly one event emitted" was unqualified. Added: Postcondition 6 specifying v1 best-effort silent-drop semantics; EC-010 row for emit IO failure; Postcondition 1 footnote; OQ-W16-003 filed.
+
+- **MED-P38-003 CLOSED (Fix 5 — EC-011 Mutex poison + Purity Classification update + OQ-W16-004):** Reader/writer Mutex asymmetry: `emit_internal` silently drops on poison; `drain_events` panics. BC Purity Classification claimed "YES — follows same pattern" without disclosing asymmetry. Added: EC-011 specifying Mutex poison v1 known limitation; Purity Classification Thread safety entry updated to disclose asymmetry; OQ-W16-004 filed.
+
+- **MED-P38-004 CLOSED (Fix 6 — stdout_bytes/stderr_bytes timing under truncation):** Postcondition 2 listed `stdout_bytes: u64` without specifying pre-truncate vs post-truncate. Fixed: explicit definition "bytes returned in envelope AFTER truncation (post-truncate, equal to bytes encoded into the envelope)"; invariant `stdout_bytes ≤ max_output_bytes` stated; future ABI break semantics acknowledged. EC-006 updated with cross-reference to Postcondition 2 field description.
+
+**LOW findings:**
+
+- **LOW-P38-001 CLOSED (Fix 8 — EC-008/009/010 symlink loop + directory + ENAMETOOLONG):** EC-006 lumped "missing binary, broken symlink, permission denied" together without enumerating ELOOP symlink loop, canonicalize-on-directory (succeeds but spawn fails → INTERNAL_ERROR masking broken config), or ENAMETOOLONG. Added: EC-008 (symlink loop → ELOOP → `binary_canonicalize_failed`); EC-009 (cmd is a directory → canonicalize succeeds → spawn fails EACCES/EISDIR → INTERNAL_ERROR; noted as v1 known limitation; OQ-W16-005 filed); EC-010 (ENAMETOOLONG → `binary_canonicalize_failed`). Note: BC-1.05.036 EC-010 was reassigned from the LOW fix to maintain intra-BC numbering; BC-1.05.035 EC-008/009/010 are the new symlink-loop / directory / ENAMETOOLONG rows.
+
+- **LOW-P38-002 CLOSED (Fix 9 — input bounds disclosure):** Neither BC specified bounds for `args_len`, `stdin_len`, total argv+envp ≤ ARG_MAX. Added explicit Input bounds note to BC-1.05.036 Postconditions section: `read_wasm_bytes` (memory.rs:35) enforces memory bounds → INVALID_ARGUMENT (-4); `command.spawn()` (exec_subprocess.rs:252) enforces kernel ARG_MAX → INTERNAL_ERROR (-99); no pre-spawn argv-length check performed.
+
+- **LOW-P38-003 CLOSED (Fix 10 — NFD/NFC cross-platform note + OQ-W16-006):** BC-1.05.035 claimed general validity without addressing macOS HFS+ NFD/NFC normalization. `binary_allowed` at host/exec_subprocess.rs:191 is byte-exact; on macOS HFS+ `Path::canonicalize` may return NFD-normalized paths not byte-equal to NFC allow-list entries. For ASCII-only allow-list entries (typical `bash`), non-issue. Added: cross-platform note in §Architecture Anchors pointing to OQ-W16-006 for non-ASCII allow-list tracking.
+
+**TD-VSDD-085 NORMATIVE codified:** TV-witness mechanization for new mechanism strings (extension of TD-VSDD-080). HIGH-P38-001 + MED-P38-001 are the 4th-and-5th observed "fix-burst-introduces-new-mechanism-but-omits-TV-witness" (passes 24, 29, 31, 37, 38 — S-7.02 threshold of 5 MET). Pre-commit hook `validate-bc-terminology-family.sh` extended to enforce: any new `emit_denial` reason string introduced in a BC body MUST appear in at least one row of the BC's §Canonical Test Vectors table. See lessons.md TD-VSDD-085.
+
+**New OQs filed:** OQ-W16-002 (signal-death disambiguation for v2 ABI break); OQ-W16-003 (emit-side IO failure observability); OQ-W16-004 (Mutex poison harmonization); OQ-W16-006 (NFD/NFC normalization for non-ASCII allow-list entries).
+
+**ADR-013 clock:** RESET 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (39/40/41) needed for CONVERGENCE_REACHED.
+
+**Source-of-truth verification log (re-verified for this burst):** `status.code().unwrap_or(-1)` at exec_subprocess.rs:286 (signal-death -1 substitution confirmed); `emit_internal` at host/mod.rs:109-116 (silent on `log.write` failure confirmed — `if let Ok` at line 113); `drain_events` `.expect` at host/mod.rs:102 (panics on Mutex poison confirmed); `binary_allowed` at host/exec_subprocess.rs:191 (byte-exact comparison confirmed); ENOENT vs EINVAL for missing-path vs NUL-path `Path::canonicalize` behavior (ENOENT for NotFound confirmed per std docs; EINVAL for NUL via CString confirmed per EC-005 source trace).
+
+**Post-edit TD-VSDD-076 sibling sweep (BC-1.05.035):** EC-001 rewritten (Branch A/B disambiguation); EC-007 cross-ref added; EC-008/009/010 new rows added; TV rows 4 amended + 5+6 added; Architecture Anchors cross-platform note added. All sections coherent.
+
+**Post-edit TD-VSDD-076 sibling sweep (BC-1.05.036):** Postcondition 1 footnotes added (signal-death + best-effort emit); Postcondition 2 stdout_bytes/stderr_bytes semantic defined; Postcondition 6 added (best-effort emit); Input bounds note added; EC-006 cross-ref updated; EC-009/010/011 new rows added; Purity Classification Thread safety updated. All sections coherent.
+
+**TD-VSDD-059 frontmatter coherence:** frontmatter `version: "1.34"` → `"1.35"` (matches latest non-reserved row). PASS.
+
+**TD-VSDD-064 sequential-burst protocol applied (twenty-third use):** State-manager handles pass-38 seal and failure-mode coverage fix burst atomically. All fixes are textual additions/corrections to BC normative sections.
+
+**No new BCs or VPs added (scope discipline maintained). 4 new OQs added to open-questions.md.**

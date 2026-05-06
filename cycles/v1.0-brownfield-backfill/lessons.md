@@ -754,3 +754,22 @@ This is a class of error TD-VSDD-076/078/079/080/081/082 do NOT catch: introduci
 - **TD-VSDD-083** (Architectural-concept-anchoring rule): When a fix-burst introduces a NEW architectural concept into a normative postcondition, MUST verify (a) the concept is defined in an upstream document (gap-analysis, ARCH, ADR, HOST_ABI.md) with explicit citation, AND (b) production code has a corresponding field/function/data structure. Extends TD-VSDD-076/078/079/080/081/082. Source: D-279 HIGH-P36-002.
 - **TD-VSDD-082** (Sibling-mechanism sweep + bidirectional-sibling-disclosure): When fix-burst corrects a mechanism, MUST sweep ALL mechanisms in the SAME BC using the same std-lib function. When adding sibling-disclosure NOTE to BC-A §Related BCs → BC-B, inverse BC-B §Related BCs → BC-A MUST receive symmetric disclosure. ADR line-number citations prefer quoted-phrase anchors. Extends TD-VSDD-076 + TD-VSDD-081. Source: D-278 HIGH-P35-001 + MED-P35-002.
 - **TD-VSDD-081** (Mechanism-verification beyond string-presence-grep): When fix-burst cites a source-code mechanism as performing a specific check, MUST read the cited source file and verify the mechanism actually performs the asserted behavior. Extends TD-VSDD-079/080 grep-checklist with mechanism-behavior verification sub-rule. Source: D-277 HIGH-P34-001.
+
+---
+
+## TD-VSDD-085 — TV-witness mechanization for new mechanism strings (extension of TD-VSDD-080)
+
+**Source:** Pass-38 HIGH-P38-001 + MED-P38-001 (5th observed recurrence of "fix-burst-introduces-new-mechanism-but-omits-TV-witness")
+
+**Class:** When a fix burst introduces a new mechanism string (e.g., new `emit_denial` reason like `binary_canonicalize_failed`) or new normative Edge Case, the SAME burst MUST add a Canonical Test Vector witness row asserting that exact mechanism string in the expected emission. Narrative discipline (TD-VSDD-076/079) keeps failing for this class — recurrences observed at passes 24, 29, 31, 37, 38.
+
+**Codification:** Promote TD-VSDD-080's proposed `validate-bc-terminology-family.sh` hook to also enforce: any new emit_denial reason string introduced in a BC body MUST appear in at least one row of the BC's §Canonical Test Vectors table. Pre-commit hook reads recently-modified BC files, extracts emit_denial reason strings via grep, and verifies each appears in a TV row.
+
+**S-7.02 threshold:** 5 recurrences observed → MET. Codification escalated from PROVISIONAL to NORMATIVE.
+
+**Adversary axis (when verifying):** For each new normative Edge Case row or new mechanism string introduced in this burst, grep the BC's §Canonical Test Vectors for a row witnessing it. Flag any new mechanism without witness as HIGH severity.
+
+**Date:** 2026-05-05
+**Burst:** D-281 (E-9 v1.34→v1.35)
+
+**[codified]** by D-281 lessons.md append.
