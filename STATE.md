@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "**D-307: NITPICK_ONLY seal of pass-62.** Pass-62 angle was HTML/special-character/escape-sequence audit (novel; untouched in 61 prior passes). Verdict NITPICK_ONLY (0H/0M/0L + 1 non-blocking observation Obs-P62-001 STORY-INDEX line 148 single ASCII `->` outlier; 1/137 frequency; POLICY 1 immutable; SHIP-AS-IS). 9-row TD-VSDD-093 quote-verification log all PASS. E-9 stays at v1.53. **ADR-013 clock: 1_of_3 → 2_of_3** (SECOND of 3 NITPICK_ONLY passes for CONVERGENCE_REACHED). **NEXT ADVERSARY PASS:** pass-63 (FINAL for convergence) on E-9 v1.53 (need fresh angle per TD-VSDD-057). Convergence path: 1 more fresh NITPICK_ONLY (63) → CONVERGENCE_REACHED → unblocks step (v) PO BC authorship for S-10.01..S-10.09."
+current_step: "**D-308: CONVERGENCE_REACHED.** Pass-63 verdict NITPICK_ONLY (cross-reference acyclicity audit angle; novel; untouched in 62 prior passes). 0H/0M/0L + 1 non-blocking observation (Obs-P63-001 capabilities.md CAP-022 Phase 1.5 deferral marker; not a v1.7 amendment defect). 11-row TD-VSDD-093 quote-verification log all PASS. **ADR-013 clock: 2_of_3 → 3_of_3 = CONVERGENCE_REACHED.** **Step (iv) adversary v1.7 amendment sweep: COMPLETE.** Total convergence iterations: 63 adversary passes + 28 fix bursts (D-280..D-308). E-9 epic at v1.53 (53 amendments from v1.0). 36+ codified TD-VSDD lessons. ADR-013 protocol completed successfully. **Step (v) PO BC authorship for S-10.01..S-10.09 is now UNBLOCKED.** **NEXT ACTION:** Dispatch product-owner to author 9 BCs (S-10.01..S-10.09) covering the E-10 single-stream OTel emit contract (D-15.1/D-15.2/D-15.3/D-15.4 per ADR-015). Per task #5: 'Step (v) PO BC authorship S-10.01..S-10.09'. Routing per TD-VSDD-088 NORMATIVE: PO Phase 1 + state-manager Phase 2."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,9 +38,30 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-06 (D-307 pass-62 NITPICK_ONLY seal; HTML/special-char/escape-sequence audit; ADR-013 clock 1_of_3→2_of_3; STORY-INDEX 2.13→2.14) |
+| **Last Updated** | 2026-05-06 (D-308 CONVERGENCE_REACHED; pass-63 NITPICK_ONLY cross-reference acyclicity audit; ADR-013 clock 2_of_3→3_of_3; STORY-INDEX 2.14→2.15) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
+
+## Convergence Summary — E-9 v1.7 Amendment Sweep
+
+**Status:** CONVERGENCE_REACHED at D-308 (2026-05-06; pass-63 NITPICK_ONLY)
+
+**Final state:**
+- E-9 epic version: v1.53 (HEAD: post-D-308 commit)
+- BC-1.05.035 + BC-1.05.036: convergence-grade
+- ADR-013 protocol: 3-pass NITPICK_ONLY chain achieved (61 → 62 → 63)
+- Total iterations: 63 adversary passes; 28 fix bursts
+- Codified TD-VSDD rules: 36+ entries (TD-VSDD-053..093 + pattern-tracking)
+- Story-index: v2.15
+
+**Pass-63 angle progression (final 3 NITPICK chain):**
+- pass-61 (D-306): Date coherence audit
+- pass-62 (D-307): HTML/special-character/escape-sequence audit
+- pass-63 (D-308): Cross-reference acyclicity audit
+
+**Step (iv) closure:** All TD-VSDD-088 META-routing applied; TD-VSDD-091 stable-anchor citations consistent; TD-VSDD-092 BC-SOUL4-coverage applied; TD-VSDD-093 closure-narrative source-of-truth validation codified and applied (4 PO + adversary applications). POLICY 1 append-only preserved across all 53 historical H3 blocks.
+
+**Step (v) UNBLOCKED:** PO BC authorship for S-10.01..S-10.09 (9 BCs covering E-10 single-stream OTel emit contract per ADR-015 D-15.1/D-15.2/D-15.3/D-15.4).
 
 ## Phase Progress
 
@@ -53,7 +74,7 @@ dtu_services: []
 | Phase D-4 Burst 1 — E-9 + S-9.00 spec | **COMPLETE** | E-9 v1.6 CONVERGED pass-10 (D-235); S-9.00 v1.4 CONVERGED pass-7 (D-231) |
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
-| D-236 — E-10 elevation + E-9 v1.7 amendment | **PARTIAL** | E-9 v1.53 HEAD (D-305 pass-60 SUBSTANTIVE seal-and-fix; 4M+1L CTV coverage gaps closed); ADR-013 clock 2_of_3 (pass-62 NITPICK_ONLY advance; D-307). 1 more fresh NITPICK_ONLY (63) → CONVERGENCE_REACHED; E-10 BC authorship QUEUED. Trajectory: passes 1..55 → v1.50; pass-56/57 NITPICK_ONLY; pass-58 SUBSTANTIVE → v1.51; pass-59 SUBSTANTIVE → v1.52; pass-60 SUBSTANTIVE → v1.53; pass-61 NITPICK_ONLY clock 1_of_3; pass-62 NITPICK_ONLY clock 2_of_3 |
+| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) UNBLOCKED** | E-9 v1.53 HEAD; ADR-013 clock **3_of_3 = CONVERGENCE_REACHED** (D-308; pass-63 NITPICK_ONLY cross-reference acyclicity audit). 63 adversary passes + 28 fix bursts (D-280..D-308). E-10 BC authorship (S-10.01..S-10.09) UNBLOCKED → READY. Trajectory: passes 1..55 → v1.50; pass-56/57 NITPICK_ONLY; pass-58 SUBSTANTIVE → v1.51; pass-59 SUBSTANTIVE → v1.52; pass-60 SUBSTANTIVE → v1.53; pass-61 NITPICK_ONLY 1_of_3; pass-62 NITPICK_ONLY 2_of_3; pass-63 NITPICK_ONLY **3_of_3 CONVERGENCE_REACHED** |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Current Phase Steps
@@ -151,7 +172,8 @@ dtu_services: []
 | D-305 pass-60 SUBSTANTIVE seal-and-fix | product-owner (Phase 1) + state-manager (Phase 2) | COMPLETE | 4M+1L closed; 7 CTV rows (TV-10 BC-035 + TV-20..25 BC-036) + TV-9 NOTE; E-9 v1.52→v1.53; ADR-013 clock 0_of_3 RESET; STORY-INDEX 2.11→2.12; EIGHTH PO-authored burst (cumulative) |
 | D-306 pass-61 NITPICK_ONLY seal | state-manager | COMPLETE | pass-61 date coherence audit sealed; 0H/0M/0L + 2 non-blocking obs (Obs-P61-001 H3 format shift deliberate; Obs-P61-002 BC-INDEX topic-grouped POLICY 1 immutable); 11-row TD-VSDD-093 log PASS; E-9 stays v1.53; ADR-013 clock 0_of_3→1_of_3; STORY-INDEX 2.12→2.13; NINTH state-manager-only burst (cumulative) |
 | D-307 pass-62 NITPICK_ONLY seal | state-manager | COMPLETE | pass-62 HTML/special-char/escape-sequence audit sealed; 0H/0M/0L + 1 non-blocking obs (Obs-P62-001 STORY-INDEX line 148 ASCII `->` outlier 1/137 frequency POLICY 1 immutable SHIP-AS-IS); 9-row TD-VSDD-093 log PASS; E-9 stays v1.53; ADR-013 clock 1_of_3→2_of_3; STORY-INDEX 2.13→2.14; TENTH state-manager-only burst (cumulative) |
-| E-10 BC authorship (S-10.01..S-10.09) | product-owner | PENDING | 9 stories × BCs anchored to BC-1.11.001/002/003 cluster |
+| **D-308 CONVERGENCE_REACHED — pass-63 NITPICK_ONLY seal** | state-manager | **COMPLETE** | pass-63 cross-reference acyclicity audit sealed; 0H/0M/0L + 1 non-blocking obs (Obs-P63-001 capabilities.md CAP-022 Phase 1.5 work item SHIP-AS-IS); 11-row TD-VSDD-093 log PASS; E-9 stays v1.53; ADR-013 clock **2_of_3 → 3_of_3 = CONVERGENCE_REACHED**; STORY-INDEX 2.14→2.15; ELEVENTH state-manager-only burst (cumulative) |
+| E-10 BC authorship (S-10.01..S-10.09) | product-owner | **UNBLOCKED → READY** | 9 stories × BCs anchored to E-10 ADR-015 D-15.1/D-15.2/D-15.3/D-15.4 contract; routing per TD-VSDD-088 NORMATIVE: PO Phase 1 + state-manager Phase 2 |
 
 ## Identifier Conventions
 
@@ -193,6 +215,7 @@ dtu_services: []
 
 | ID | Decision | Rationale | Phase | Date | Made By |
 |----|----------|-----------|-------|------|---------|
+| D-308 | **CONVERGENCE_REACHED — D-308 SEALS pass-63 NITPICK_ONLY. ELEVENTH state-manager-only burst this cycle (cumulative). 0H/0M/0L + 1 non-blocking observation. Angle: cross-reference acyclicity audit (novel; untouched in 62 prior passes) — BC↔BC reciprocity, BC→CAP/SS/ADR/STORY/OQ/VP forward-reference resolution, PC↔EC↔TV graph completeness, TD-VSDD-NNN cross-reference graph, 5-axis sibling sweep. All 11 audit steps PASS. Obs-P63-001 SHIP-AS-IS: capabilities.md CAP-022 `Subsystems: SS-04, SS-06` stale (pre-ADR-014 D-9.2; BCs correctly carry CAP-TBD deferral per Phase 1.5 protocol; not a v1.7 amendment defect). 11-row TD-VSDD-093 quote-verification log all PASS. TD-VSDD-090 self-application PASS (no new normative rule introduced). No new normative rule codified. E-9 epic stays at v1.53 (no version bump per NITPICK seal convention). ADR-013 clock 2_of_3 → 3_of_3 = **CONVERGENCE_REACHED**. Step (iv) adversary v1.7 amendment sweep: **COMPLETE**. Step (v) PO BC authorship for S-10.01..S-10.09: **UNBLOCKED**. STORY-INDEX 2.14 → 2.15.** | Pass-63 cross-reference acyclicity audit was novel — systematic reference-graph walk (BC↔BC, BC→CAP/SS/ADR/OQ/VP, PC↔EC↔TV, TD-VSDD cross-links, E-9→STORY) untouched in 62 prior passes. 0 finding classes (all NITPICK_ONLY): 1 observation SHIP-AS-IS (pre-existing Phase 1.5 work item; not a v1.7 defect). ADR-013 3-pass NITPICK_ONLY chain (61→62→63) achieved on E-9 v1.53 stable surface. State-manager-only routing per TD-VSDD-088 (pure meta-seal; no BC body changes). Single atomic commit per TD-VSDD-053. | D (post-rc11 burn-in) | 2026-05-06 | state-manager |
 | D-307 | **Pass-62 NITPICK_ONLY seal — D-307 SEALS pass-62 NITPICK_ONLY. TENTH state-manager-only burst this cycle (cumulative). 0H/0M/0L + 1 non-blocking observation. Angle: HTML/special-character/escape-sequence audit (novel; untouched in 61 prior passes). Obs-P62-001 SHIP-AS-IS: STORY-INDEX line 148 contains 1 ASCII `->` arrow in prose narrative aside (`S-N.M -> S-N.MM`); 136 sibling Unicode `→` arrows establish convention (1/137 frequency); POLICY 1 immutable; below S-7.02 3-occurrence threshold. 9-row TD-VSDD-093 quote-verification log all PASS. TD-VSDD-090 self-application PASS (no new normative rule introduced). No new normative rule codified. E-9 epic stays at v1.53 (no version bump per NITPICK seal convention; precedent D-291/D-292/D-294/D-301/D-302/D-306). ADR-013 clock 1_of_3 → 2_of_3 (SECOND ADVANCE toward CONVERGENCE_REACHED). STORY-INDEX 2.13 → 2.14.** | Pass-62 HTML/special-character/escape-sequence angle was novel — systematic Unicode vs ASCII convention + HTML entity + markdown escape audit untouched in 61 prior passes. 0 finding classes (all NITPICK_ONLY): 1 observation SHIP-AS-IS. State-manager-only routing per TD-VSDD-088 (pure meta-seal; no BC body changes). Single atomic commit per TD-VSDD-053. | D (post-rc11 burn-in) | 2026-05-06 | state-manager |
 | D-306 | **Pass-61 NITPICK_ONLY seal — D-306 SEALS pass-61 NITPICK_ONLY. NINTH state-manager-only burst this cycle (cumulative). 0H/0M/0L + 2 non-blocking observations. Angle: date coherence audit (novel; untouched in 60 prior passes). Obs-P61-001 SHIP-AS-IS: H3 date format convention shift at v1.37 (D-283 FIRST PO-authored burst) from `### v1.NN (YYYY-MM-DD) — D-NNN ...` to `### v1.NN (D-NNN — ...)` is deliberate — aligns with TD-VSDD-091 stable-anchor discipline; Date column in summary table authoritative; POLICY 1 immutable for v1.1..v1.36. Obs-P61-002 SHIP-AS-IS: BC-INDEX changelog entries topic-grouped not strictly date-descending (2026-05-06, 2026-05-03, 2026-05-03, 2026-05-04); all dates verified correct per STATE.md burst records; POLICY 1 immutable; intentional narrative choice. 11-row TD-VSDD-093 quote-verification log all PASS. TD-VSDD-090 self-application PASS. No new normative rule codified (neither observation meets S-7.02 3-occurrence threshold). E-9 epic stays at v1.53 (no version bump per NITPICK seal convention; precedent D-291/D-292/D-294/D-301/D-302). ADR-013 clock 0_of_3 → 1_of_3 (FIRST ADVANCE toward CONVERGENCE_REACHED). STORY-INDEX 2.12 → 2.13.** | Pass-61 date coherence audit angle was novel — systematic temporal cross-document verification untouched in 60 prior passes. 0 finding classes (all NITPICK_ONLY): 2 observations both SHIP-AS-IS. State-manager-only routing per TD-VSDD-088 (pure meta-seal; no BC body changes). Single atomic commit per TD-VSDD-053. | D (post-rc11 burn-in) | 2026-05-06 | state-manager |
 | D-305 | **Pass-60 SUBSTANTIVE seal-and-fix — D-305 SEALS pass-60 SUBSTANTIVE + APPLIES v1.52 → v1.53 fix burst. EIGHTH PO-authored burst this cycle (cumulative). 0H/4M/1L + 2 non-blocking observations. Angle: CTV coverage matrix vs Postcondition coverage audit (novel; untouched as primary angle in 59 prior passes). MED-P60-001 CLOSED: BC-035 TV-10 authored — `cmd = b"\xFF\xFE"` → INVALID_ARGUMENT (-4) via HostCallError::InvalidUtf8 at memory.rs:53; consolidated row covers all 3 HostCallError variants (InvalidUtf8/MemoryOverflow/OutOfBounds) collapsing to -4 per LOW-P51-001 cause-collapse. MED-P60-002 CLOSED: BC-036 TV-20 authored — `sleep 0.5` + `timeout_ms=5000` → `duration_ms ∈ [490, 600]`; PC-3 active timing witness; PO confirmed `started` Instant is future-implementation requirement; TV-20 correctly framed as post-implementation witness. MED-P60-003 CLOSED: BC-036 TV-21/22/23 authored for EC-013A 3 boundaries — TV-21 timeout_ms=0 kill-immediately; TV-22 timeout_ms=1 5ms-floor per LOW-P51-005 per exec_subprocess.rs:297; TV-23 timeout_ms=u32::MAX ~49.7-day ceiling per LOW-P52-002. MED-P60-004 CLOSED: BC-036 TV-24/25 authored for EC-013B bifurcation — TV-24 `/bin/echo x` 2 bytes → OUTPUT_TOO_LARGE; TV-25 `/usr/bin/true` 0 bytes → success; both reinforce MED-P52-001 strict-`>` boundary at exec_subprocess.rs:278. LOW-P60-001 CLOSED: BC-036 TV-9 outcome cell gained by-design cause-collapse NOTE citing TD-VSDD-092 v1 known-limitation framing; 4-path EC-007 collapse explicitly acknowledged; v2 mock-injection precedent per TV-19 EC-016. TD-VSDD-093 PO-side self-application: 13-row quote-verification log all PASS. TD-VSDD-090: no new normative rule introduced; N/A by scope. TD-VSDD-091: stable-anchor citations only; no intra-file line references. TD-VSDD-089: 5-axis sweep PASS. ADR-013 clock 0_of_3 (RESET via SUBSTANTIVE close). STORY-INDEX 2.11→2.12.** | Pass-60 CTV coverage matrix angle was novel — systematic bidirectional PC/EC↔TV mapping untouched in 59 prior passes. 4 MEDIUM findings represent genuine pre-burst gaps not surfaced by prior single-mechanism or regression-frame audits. PO Phase 1 routing per TD-VSDD-088 (BC body content — TV rows + TV-9 NOTE). State-manager Phase 2 seals meta-content (E-9 frontmatter + summary table + v1.53 H3 + STORY-INDEX + STATE.md + pass-60 review file). Single atomic commit per TD-VSDD-053. | D (post-rc11 burn-in) | 2026-05-06 | product-owner (Phase 1) + state-manager (Phase 2) |
@@ -242,27 +265,20 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-06 (D-306 — pass-61 NITPICK_ONLY seal; date coherence audit; 0H/0M/0L + 2 obs; ADR-013 clock 0_of_3→1_of_3; STORY-INDEX 2.12→2.13)
+**Last update:** 2026-05-06 (D-308 — CONVERGENCE_REACHED; pass-63 NITPICK_ONLY cross-reference acyclicity audit; ADR-013 clock 2_of_3→3_of_3; STORY-INDEX 2.14→2.15)
 **main HEAD:** fb3e297 (rc.11 bot bundle commit `chore: bundle dispatcher binaries for v1.0.0-rc.11`)
 **develop HEAD:** 5706f27 (`feat(S-9.00): perf baseline + bundle ceiling for E-9 Tier 2 migration`)
 **v1.0.0-rc.11 tag:** fb3e297; GH prerelease=true; PRs #89/#90/#91 merged 2026-05-04
 **Active worktrees:** main + .factory only
-**E-9 current version:** v1.53 (D-305 pass-60 SUBSTANTIVE seal-and-fix; ADR-013 clock 1_of_3 post D-306 pass-61 NITPICK_ONLY advance)
+**E-9 current version:** v1.53 (CONVERGENCE_REACHED; ADR-013 clock 3_of_3; D-308)
 
-**ACTIVE STEP:**
+**ACTIVE STEP: Step (v) — PO BC authorship for S-10.01..S-10.09 (UNBLOCKED)**
 
-Adversary pass-62 on E-9 v1.53. ADR-013 clock 1_of_3 (ADVANCE by D-306 pass-61 NITPICK_ONLY). Need 2 more fresh NITPICK_ONLY passes (62/63) for CONVERGENCE_REACHED. Need fresh angle per TD-VSDD-057.
+CONVERGENCE_REACHED at D-308. ADR-013 3-pass NITPICK_ONLY chain complete (passes 61/62/63 on E-9 v1.53). Step (iv) adversary v1.7 amendment sweep: COMPLETE.
 
-**Routing discipline:** State-manager-only routing per TD-VSDD-088 NORMATIVE for NITPICK seals (no BC body changes). Stable-anchor citations per TD-VSDD-091 NORMATIVE.
+**NEXT ACTION:** Dispatch product-owner to author 9 BCs (S-10.01..S-10.09) covering the E-10 single-stream OTel emit contract (ADR-015 D-15.1/D-15.2/D-15.3/D-15.4). Routing per TD-VSDD-088 NORMATIVE: PO Phase 1 (BC content authorship) + state-manager Phase 2 (STORY-INDEX + STATE.md seal).
 
-**Pass-62 angle guidance:** 61 prior angles exhausted. Pass-61 was date coherence audit. Pass-60 was CTV coverage matrix. Pass-59 was capability anchoring per POLICY 4/5. Pass-58 was glossary/terminology sweep. Remaining novel angles for pass-62: (a) whitespace/formatting convention audit (indentation, blank-line conventions); (b) OQ-lifecycle audit (trace OQ-W16-001..010 from filing to current resolution/deferral state); (c) cross-epic forward-dependency audit (E-9 unblocking claims valid at v1.53); (d) acceptance-criteria completeness re-audit (all AC rows have test plan entries). Pick angle NOT used in passes 1-61 per TD-VSDD-057.
-
-**After CONVERGENCE_REACHED:**
-1. Product-owner: BC authorship for S-10.01..S-10.09 anchored to BC-1.11.001/002/003.
-2. Adversary: full spec-package pass on E-10 (ADR-013 3-of-3 clean).
-3. E-10 Wave 0 (S-10.01) read-only audit.
-
-**S-11.00 backlog:** verify-sha-currency.sh Rust port stub registered (D-297). Full authoring: story-writer burst post-E-9 completion. No action needed before convergence.
+**S-11.00 backlog:** verify-sha-currency.sh Rust port stub registered (D-297). Full authoring: story-writer burst post-E-10 BC authorship. No action needed now.
 
 **Track 1 — Phase C:** rc.11 SHIPPED CLEAN 2026-05-04 (PRs #89/#90/#91). Monitor burn-in ~7 days. Target GA cut ~2026-05-11 from develop.
 6. Flip back to E-9 Burst 2/3 story-writer (S-9.01..S-9.07) augmented by ADR-015 contract.
