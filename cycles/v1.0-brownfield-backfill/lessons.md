@@ -939,3 +939,32 @@ For all self-referential intra-file citations (citations FROM a section TO anoth
 
 **Date:** 2026-05-05
 **Burst:** D-290 (E-9 v1.43 → v1.44; FIRST application of stable-anchor citation discipline)
+
+---
+
+## TD-VSDD-092 — BC-SOUL4-coverage: BCs governing functions with silent-discard patterns MUST acknowledge them in EC rows
+
+**Source:** Pass-50 SOUL #4 systemic sweep (HIGH-P50-001 + HIGH-P50-002 + MED-P50-001 + LOW-P50-001). Four `let _ =` and `map_err(|_|)` discards in `execute_bounded` had been unacknowledged across 49 prior adversary passes.
+
+**Class:** When a BC governs a function that contains silent-discard patterns (`let _ = expr` where expr returns Result; `.map_err(|_| ...)`; `unwrap_or` on side-effecting Results; etc.), the BC MUST acknowledge each silent-discard in either an Edge Case row or an explicit out-of-scope declaration. Failure to do so creates SOUL #4 silent-failure paths where the spec appears formally complete but masks operational failure modes.
+
+**Codification (NORMATIVE):**
+
+For each BC, when the spec authoring burst lands:
+
+1. **Source-walk discipline:** Read the source-of-truth function the BC governs. Grep for `let _ =`, `map_err(\|_\|`, `unwrap_or(`, `unwrap_or_else(\|_\|`, `\.ok();`, `if let Err(_) =` patterns. Each match is a silent-discard candidate.
+
+2. **EC coverage requirement:** For each silent-discard candidate, the BC MUST contain an Edge Case row acknowledging the discard, OR an explicit out-of-scope declaration in §Postconditions explaining why the discard is acceptable.
+
+3. **TV witness:** Per TD-VSDD-085 NORMATIVE, each new EC introduced by this rule MUST have a Canonical Test Vector witness row.
+
+4. **OQ tracking:** Significant silent-discard cases (security, observability, data-integrity implications) SHOULD file an OQ entry tracking v2-or-later remediation candidates.
+
+**Severity when violated:** HIGH (silent-failure paths in source code are exactly what SOUL #4 warns against; the BC's claim of completeness is materially false if it doesn't acknowledge them)
+
+**Mechanization candidate (filed as TD-VSDD-092-HOOK):** Pre-commit hook scanning source-of-truth files cited by BCs for silent-discard patterns; for each, verify a corresponding EC row exists in the BC.
+
+**S-7.02 threshold:** N=4 instances within a single BC pair (read_to_end x2, kill/wait x2 — all in execute_bounded). Codified preemptively as NORMATIVE because the SOUL #4 principle is an established rule (SOUL.md), and the gap is structural (49 prior angles all missed it because none did exhaustive source-walk for silent-discard patterns).
+
+**Date:** 2026-05-06
+**Burst:** D-293 (E-9 v1.44 → v1.45; FIRST application of BC-SOUL4-coverage discipline)

@@ -5,7 +5,7 @@ version: "1.0"
 status: active
 producer: state-manager
 timestamp: 2026-05-05T00:00:00Z
-last_amended: 2026-05-05
+last_amended: 2026-05-06
 ---
 
 # Open Questions Register
@@ -199,3 +199,45 @@ For `args` non-UTF-8:
 **Resolution path:** Default v1 = (a) for both. Panic handling (b) is the higher-priority item for security observability; consider addressing in the story that first implements `INTERNAL_HOST_FUNCTION_PANIC` emission (the const is declared at internal_log.rs:83; the `HostContext.internal_log` field at host/mod.rs:71-75 exists to carry the log handle to host functions for exactly this purpose). `args` symmetry (b) is a usability improvement; can be addressed in a future ABI-compatible pass (no ABI break required — returning INVALID_ARGUMENT for invalid args was already the behavior if the length-prefix encoding was malformed).
 
 **Decision needed by:** Any story implementing `INTERNAL_HOST_FUNCTION_PANIC` event emission (const declared at internal_log.rs:83; `HostContext.internal_log` field at host/mod.rs:71-75 carries the handle); or next security hardening pass on exec_subprocess
+
+---
+
+## OQ-W16-009 — Silent stdout/stderr under-count from `read_to_end` IO error in exec_subprocess
+
+**Source:** BC-1.05.036 §Edge Cases EC-015 added in D-293 pass-50 HIGH-P50-001 closure.
+**Status:** OPEN
+**Owner:** SS-01 implementer or E-9 Wave 1 architect
+**Filed:** 2026-05-06
+
+**Question:** At exec_subprocess.rs:276-277, `let _ = stdout.read_to_end(&mut stdout_buf)` and `let _ = stderr.read_to_end(&mut stderr_buf)` discard their `io::Result` via `let _ =`. If a kernel pipe IO error occurs mid-read (e.g., EIO on a tmpfs-backed pipe, disk-backed swap failure, or kernel pipe buffer corruption), `read_to_end` halts with a partial buffer. Execution continues: the `truncated` check at line 278 evaluates against the partial buffer; if the partial buffer is under `max_output_bytes`, `truncated = false`; the success path completes; `host.exec_subprocess.completed` is emitted with `stdout_bytes`/`stderr_bytes` counts reflecting only the partially-read bytes, and `outcome = 'success'`. The plugin caller receives a success envelope with under-counted byte fields and has no mechanism to detect that a pipe IO error occurred.
+
+**Acceptance criterion (binary):**
+- (a) v1 retains silent-discard per exec_subprocess.rs:276-277 — `stdout_bytes`/`stderr_bytes` remain best-effort counts as documented in BC-1.05.036 §Postconditions Postcondition 2 and §Edge Cases EC-015; OR
+- (b) future version propagates `read_to_end` errors: on `Err`, returns `Err(codes::INTERNAL_ERROR)` (or a new `IO_ERROR` code) so the caller can distinguish a complete-read success from an IO-truncated-read. BC-1.05.036 Postcondition 2 and EC-015 updated accordingly.
+
+**Why this matters:** Silent pipe IO errors produce success envelopes with under-counted `stdout_bytes`/`stderr_bytes`. In a security audit context, a tool relying on `stdout_bytes` for completeness verification would be silently misled. The `outcome='success'` stamp is affirmatively misleading when the underlying read failed partway through.
+
+**Resolution path:** Default v1 = (a) per EC-015 known-limitation. Option (b) is the preferred long-term behavior; it can be addressed in any future hardening pass that revisits `execute_bounded` IO error handling without requiring an ABI break (the error is internal to the dispatcher; plugin-visible behavior would change only for the failure case, which currently returns INTERNAL_ERROR anyway in other error paths).
+
+**Decision needed by:** Next exec_subprocess hardening story or E-9 Wave 1 INTERNAL_ERROR-path audit
+
+---
+
+## OQ-W16-010 — `child.kill()` / `child.wait()` cleanup-phase hang with no secondary deadline in exec_subprocess
+
+**Source:** BC-1.05.036 §Edge Cases EC-016 added in D-293 pass-50 HIGH-P50-002 closure.
+**Status:** OPEN
+**Owner:** SS-01 implementer or E-9 Wave 1 architect
+**Filed:** 2026-05-06
+
+**Question:** At exec_subprocess.rs:293-294 (TIMEOUT branch) and :260-261 (stdin-fail branch), the cleanup sequence `let _ = child.kill(); let _ = child.wait()` discards `io::Result` from both calls via `let _ =`. If `child.kill()` returns `Err` (e.g., child already exited, kernel error, permission denied) AND `child.wait()` subsequently blocks indefinitely (e.g., child in NFS D-state, kernel-level uninterruptible wait, or zombie process that cannot be reaped), `execute_bounded` hangs inside `child.wait()` with no secondary deadline. The host call never returns to the wasm caller; no TIMEOUT (-2) is reported; no event is emitted. The TIMEOUT enforcement at exec_subprocess.rs:292 (`if Instant::now() >= deadline`) covers only the deadline check — post-TIMEOUT cleanup has no second timeout. The same hazard applies to the stdin-fail branch at :260-261.
+
+**Acceptance criterion (binary):**
+- (a) v1 retains no-secondary-deadline behavior as documented in BC-1.05.036 §Postconditions Postcondition 5 footnote and §Edge Cases EC-016 — both `child.kill()` and `child.wait()` errors are silently discarded; OR
+- (b) future version wraps the cleanup sequence with a secondary deadline (e.g., `child.wait_timeout(Duration::from_millis(500))` or a separate thread with a timeout); on secondary deadline expiry, logs a `internal.host_function_cleanup_timeout` event (best-effort) and returns `Err(codes::TIMEOUT)` to the wasm caller anyway. BC-1.05.036 Postcondition 5 footnote and EC-016 updated accordingly.
+
+**Why this matters:** A subprocess in D-state (uninterruptible wait, common on NFS mounts or under swap pressure) cannot be killed via SIGKILL and will cause `child.wait()` to block indefinitely. In a production dispatcher handling plugin invocations, this hangs a worker thread indefinitely — the wasm caller receives no response, and the hang is invisible from the caller's perspective. The TIMEOUT mechanism, intended to bound host-call duration, is defeated for any subprocess that enters D-state during the cleanup phase.
+
+**Resolution path:** Default v1 = (a) per EC-016 known-limitation. Option (b) requires introducing `wait_timeout` or a reaper thread pattern. The simplest approach is to use `std::process::Child::try_wait` in a short loop after `kill()`, falling back to returning `TIMEOUT` after a secondary deadline (e.g., 500ms). This prevents indefinite hangs at the cost of potential zombie processes on NFS-backed filesystems.
+
+**Decision needed by:** Next exec_subprocess hardening story or E-9 Wave 1 timeout-enforcement audit

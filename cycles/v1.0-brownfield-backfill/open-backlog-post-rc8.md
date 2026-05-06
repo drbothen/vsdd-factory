@@ -201,3 +201,31 @@
 
 **Date:** 2026-05-06
 **Burst:** D-291 (filed during pass-48 NITPICK_ONLY seal)
+
+---
+
+## TD-VSDD-092-HOOK — Pre-commit hook scanning source-of-truth for silent-discard pattern coverage
+
+**Source:** TD-VSDD-092 (codified D-293 / 2026-05-06)
+
+**Class:** Mechanical enforcement of BC-SOUL4-coverage. For each BC, scan the cited source-of-truth function for silent-discard patterns; verify each has corresponding EC coverage.
+
+**Hook design:** Pre-commit script `validate-bc-soul4-coverage.sh`:
+- For each modified BC file, parse §Architecture Anchors / §Postconditions for cited source files
+- For each cited source file, grep for silent-discard patterns: `let _ =`, `map_err(|_|`, `unwrap_or(`, `unwrap_or_else(|_|`, `\.ok();`, `if let Err(_) =`
+- For each match, search the BC body for an EC row that anchor-references the source line OR contains an out-of-scope declaration
+- Report mismatches; reject commit if any uncovered silent-discard
+
+**Implementation surface:** Bash script in `dark-factory-engine/hooks/validate-bc-soul4-coverage.sh`. Invoked alongside validate-bc-table-arity.sh, validate-bc-terminology-family.sh, validate-td-vsdd-self-application.sh, validate-self-referential-citations.sh as part of the codification pre-commit chain.
+
+**Acceptance criteria:**
+- Hook detects 100% of silent-discard patterns in source files cited by modified BCs
+- Hook does NOT false-positive on legitimate non-silent-discard patterns (e.g., `let _ = serde_json::to_string()` where the discard IS the intent and is documented)
+- Hook produces clear error message identifying uncovered silent-discards and suggesting EC row authoring
+
+**Priority:** HIGH (this is the 5th engine-level hook needed; combined with TD-088/089/090/091-HOOK chain, this completes the BC-coverage pre-commit suite)
+
+**Status:** OPEN — to be implemented in dark-factory engine maintenance work alongside TD-088/089/090/091-HOOK chain
+
+**Date:** 2026-05-06
+**Burst:** D-293

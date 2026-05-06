@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-9"
-version: "1.44"
+version: "1.45"
 title: "Tier 2 Native WASM Migration (W-16) — 23 validate-*.sh hooks"
 status: in-review
 tech_debt_ref: TD-014
@@ -17,7 +17,7 @@ timestamp: 2026-05-03T00:00:00Z
 phase: 2
 traces_to: .factory/tech-debt-register.md#TD-014
 depends_on: ["E-8"]
-last_amended: 2026-05-05
+last_amended: 2026-05-06
 inputs:
   - .factory/specs/architecture/decisions/ADR-014-tier-2-native-wasm-migration.md
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -505,6 +505,7 @@ S-9.01, S-9.02, S-9.03, S-9.04, S-9.05, S-9.06, S-9.07  ← all parallel, depend
 | 1.42 | 2026-05-05 | state-manager (no PO Phase 1 — all findings state-manager-domain) | D-288 pass-45 seal-and-fix — state-manager-only burst; SECOND application of TD-VSDD-090 audit gate with grep-evidence discipline. Pass-45 SUBSTANTIVE 2H/1M. HIGH-P45-001 closed: v1.41 H3 detail block authored (partial-fix regression of HIGH-P44-001 — D-287 added summary row but omitted H3 block). HIGH-P45-002 closed: TD-VSDD-090 self-application audit re-performed with grep-evidence discipline (each sub-check backed by explicit grep command + output). MED-P45-001 closed: TD-VSDD-090-HOOK Implementation surface section added (TD-089 axis-5 violation — sibling tickets TD-088-HOOK and TD-089-HOOK both had Implementation surface; TD-090-HOOK was missing it). Pattern-tracking section updated N=3→N=4; 4 of 4 codification bursts violated their own rule; mechanization (TD-090-HOOK) structurally overdue. ADR-013 clock RESET 0_of_3. STORY-INDEX 1.94→1.95. |
 | 1.43 | 2026-05-05 | state-manager (no PO Phase 1 — all findings state-manager-domain; SECOND state-manager-only burst) | D-289 pass-46 seal-and-fix — SECOND state-manager-only burst; THIRD application of TD-VSDD-090 audit gate with paranoid-verification discipline post-5/5 self-violation pattern. Pass-46 SUBSTANTIVE 2H/1M/2L. HIGH-P46-001 closed: v1.42 H3 sub-check #5 used fabricated grep (`grep "**Section:**"` returns 0 matches); corrigendum in this v1.43 H3 block with correct grep + actual output (see below). HIGH-P46-002 closed: TD-088-HOOK section asymmetry resolved — `**Estimated effort:**` removed from TD-088-HOOK (TD-089/090 don't have it; consistency-by-removal per HIGH-P46-002 resolution). MED-P46-001 closed: v1.42 H3 sub-check #1 line citations off-by-one (1959→1960, 1988→1989); corrigendum in v1.43 H3. LOW-P46-001 closed: burst date sync (STORY-INDEX D-288 entry showed 2026-05-06; canonical date per `git show -s --format=%ci e08bc67` is 2026-05-05; STORY-INDEX corrected). LOW-P46-002 noted (pre-existing v1.34 placeholder; not D-288-introduced). Pattern-tracking section updated N=4→N=5; 5/5 codification self-violation rate; TD-VSDD-090-HOOK mechanization ESCALATED. ADR-013 clock RESET 0_of_3. STORY-INDEX 1.95→1.96. |
 | 1.44 | 2026-05-05 | state-manager (no PO Phase 1 — all findings state-manager-domain; THIRD state-manager-only burst) | D-290 pass-47 seal-and-fix — THIRD state-manager-only burst; STRUCTURAL FIX (TD-VSDD-091 NORMATIVE codified: stable-anchor citations for self-referential intra-file references). Pass-47 SUBSTANTIVE 2H/1M/2L. HIGH-P47-001 FROZEN per POLICY 1 (v1.43 H3 line citations immutable; TD-091 prevents recurrence). HIGH-P47-002 FROZEN per POLICY 1 (v1.43 corrigendum's off-by-one immutable; v1.44 second corrigendum uses anchor-based language). MED-P47-001 closure: future bursts use TD-091 stable anchors — no line-number greps to mis-narrate. LOW-P47-001/002 noted. TD-VSDD-091 NORMATIVE codified. TD-VSDD-091-HOOK backlog filed. Pattern-tracking N=5→N=6 with empirical-refutation-of-narrative-discipline disclosure. ADR-013 clock RESET 0_of_3. STORY-INDEX 1.96→1.97. |
+| 1.45 | 2026-05-06 | product-owner (Phase 1 — BC content) + state-manager (Phase 2 — meta-content) | D-293 pass-50 SOUL #4 seal-and-fix — FIFTH PO-authored burst (returning to PO/state-manager routing); FIRST application of TD-VSDD-092 BC-SOUL4-coverage discipline. Pass-50 SUBSTANTIVE 2H/1M/1L. HIGH-P50-001 read_to_end silent IO swallow acknowledged (BC-036 EC-015 + TV best-effort-read). HIGH-P50-002 kill/wait cleanup-phase no secondary deadline acknowledged (BC-036 EC-016 + TV no-secondary-deadline). MED-P50-001 spawn io::Error reason discarded (BC-036 EC-007 expanded). LOW-P50-001 emit_denial best-effort symmetry acknowledged (BC-035 §Description note). 2 new OQs: W16-009 (read_to_end v2 remediation) + W16-010 (cleanup-phase secondary deadline). BC-036 Postcondition 2 best-effort-read qualifier added; Postcondition 5 TIMEOUT footnote added. TD-VSDD-092 NORMATIVE codified (BC-SOUL4-coverage). TD-VSDD-092-HOOK backlog filed. ADR-013 clock RESET 2_of_3 → 0_of_3. STORY-INDEX 1.99→2.00. |
 
 ### v1.1 (2026-05-03) — Pass-1 fix burst + D-9.2 scope reduction
 
@@ -2197,3 +2198,41 @@ All 5 sub-checks PASS per anchor-based discipline. This audit contains ZERO self
 **STORY-INDEX:** 1.96 → 1.97.
 
 **No new BCs or VPs added (scope discipline maintained). No new OQs.**
+
+### v1.45 (D-293 — pass-50 SOUL #4 silent-failure seal-and-fix; FIFTH PO-authored burst (returning to PO/state-manager routing); FIRST application of TD-VSDD-092 BC-SOUL4-coverage discipline)
+
+**Pass-50 verdict:** SUBSTANTIVE. 2 HIGH / 1 MEDIUM / 1 LOW. Angle: Append-only POLICY 1 byte-level audit (Part A) + SOUL.md #4 silent-failure systemic sweep (Part B) — exhaustive `let _ =` and `map_err(|_|)` source-walk across `execute_bounded` in `host/exec_subprocess.rs`. Part A clean. Part B found 4 unacknowledged silent-discard patterns across 49 prior adversary passes.
+
+**Routing pattern: FIFTH PO-authored burst (returning to PO/state-manager routing):** PO Phase 1 authored BC content (BC-036 EC-015 + EC-016 + EC-007 expansion + Postcondition 2/5 updates + BC-035 §Description symmetry note + 2 new OQs W16-009/010 + 2 TV witnesses best-effort-read/no-secondary-deadline). State-manager Phase 2 authors meta-content only (pass-50 review file, TD-VSDD-092 NORMATIVE codification, TD-VSDD-092-HOOK backlog ticket, v1.45 summary table row, this H3 block, STATE.md update, STORY-INDEX bump).
+
+**HIGH findings (2):**
+
+- **HIGH-P50-001 CLOSED — `stdout/stderr.read_to_end` silent IO error swallow:** `host/exec_subprocess.rs` contains `let _ = stdout.read_to_end(...)` and `let _ = stderr.read_to_end(...)`. When read_to_end errors mid-read, a partial buffer is used: the success envelope is emitted with under-counted `stdout_bytes`/`stderr_bytes` and `outcome='success'`; `truncated=false` because partial < `max_output_bytes`. Plugin caller cannot distinguish a complete read from an IO-truncated read. BC-036 EC-015 added acknowledging this silent partial-success path. TV `best-effort-read` witness row added per TD-VSDD-085 NORMATIVE. OQ-W16-009 filed for v2 remediation candidate (return distinct `outcome='partial_read'` or set `truncated=true` on IO error). BC-036 Postcondition 2 updated with best-effort-read qualifier.
+
+- **HIGH-P50-002 CLOSED — `child.kill()` / `child.wait()` cleanup-phase no secondary deadline:** `host/exec_subprocess.rs` contains `let _ = child.kill(); let _ = child.wait()` on both the TIMEOUT path and the stdin-fail path. On the TIMEOUT path, if `kill()` errors AND `wait()` blocks (e.g., NFS D-state), the dispatcher hangs with no secondary deadline. The TIMEOUT enforcement covers only the `execute_bounded` deadline check; the cleanup phase itself has no deadline. BC-036 EC-016 added acknowledging this no-secondary-deadline hazard. TV `no-secondary-deadline` witness row added. OQ-W16-010 filed for v2 remediation candidate (add cleanup-phase secondary deadline via `SIGKILL` escalation or timeout wrapper). BC-036 Postcondition 5 TIMEOUT footnote updated to acknowledge cleanup-phase gap.
+
+**MEDIUM findings (1):**
+
+- **MED-P50-001 CLOSED — `command.spawn().map_err(|_|)` io::Error reason discarded:** `host/exec_subprocess.rs` contains `command.spawn().map_err(|_| codes::INTERNAL_ERROR)?`. `ENOENT` / `EACCES` / `ETXTBSY` / `ENOMEM` / `EAGAIN` all collapse to undifferentiated `INTERNAL_ERROR` (-99) with no diagnostic. BC-036 EC-007 (existing INTERNAL_ERROR row) expanded to acknowledge that the io::Error variant is discarded — the specific OS error reason is not surfaced in the return code.
+
+**LOW findings (1):**
+
+- **LOW-P50-001 CLOSED — `emit_denial` denial-path best-effort symmetry not acknowledged:** All 5 denial paths route through `emit_denial` → `ctx.emit_internal`, which has the same best-effort `eprintln`-fallback as the success-path event (BC-036 EC-010 + Postcondition 6). BC-035 §Description did not acknowledge this symmetrically. Note added to BC-035 §Description clarifying that the denial-path event emission is also best-effort, matching BC-036's disclosure.
+
+**TD-VSDD-092 NORMATIVE codified:** See the TD-VSDD-092 section in the lessons.md file. BC-SOUL4-coverage rule: BCs governing functions with silent-discard patterns MUST acknowledge each discard in an EC row or explicit out-of-scope declaration. FIRST application of this discipline is this burst (BC-035/036 v1.45 fixes).
+
+**TD-VSDD-092-HOOK backlog filed:** Pre-commit script `validate-bc-soul4-coverage.sh` — scans source-of-truth files cited by BCs for silent-discard patterns and verifies EC coverage. Filed in the TD-VSDD-092-HOOK section in open-backlog-post-rc8.md.
+
+**TD-VSDD-090/091/092 self-application audit (anchor-based — per TD-090 + TD-091 requirements):**
+
+This burst modifies: BC-035/036 (PO Phase 1), the pass-50 review file, the TD-VSDD-092 section in lessons.md, the TD-VSDD-092-HOOK section in open-backlog-post-rc8.md, this epic (frontmatter version field + frontmatter last_amended field + summary table v1.45 row + this H3 block), STATE.md, STORY-INDEX.
+
+TD-VSDD-090 self-application: TD-VSDD-092 codification text in lessons.md has canonical `**Date:**`/`**Burst:**` trailer. No self-violation of the normative-rule-birth-burst-self-application requirement — the TD-VSDD-092 section itself is authored with source-walk evidence (pass-50 review file cites 4 concrete `let _ =` patterns from exec_subprocess.rs). PASS.
+
+TD-VSDD-091 self-application: this H3 block uses ONLY anchor-based citations. No `line \d+` self-referential patterns pointing to this epic. Citations use section heading descriptors (e.g., "the TD-VSDD-092 section in the lessons.md file", "the TD-VSDD-092-HOOK section in open-backlog-post-rc8.md", "the frontmatter version field", "the summary table v1.45 row", "BC-036 EC-015/EC-016/EC-007", "BC-036 Postcondition 2/5", "BC-035 §Description"). PASS.
+
+TD-VSDD-092 self-application: does the BC-SOUL4-coverage rule apply to the TD-VSDD-092 codification text itself? The codification text does not govern a Rust function with silent-discards — it is prose/normative text in a lessons.md file. N/A by scope. PASS.
+
+**ADR-013 clock:** RESET 2_of_3 → 0_of_3 (SUBSTANTIVE verdict). Three consecutive NITPICK_ONLY passes (51/52/53) needed for CONVERGENCE_REACHED.
+
+**STORY-INDEX:** 1.99 → 2.00.

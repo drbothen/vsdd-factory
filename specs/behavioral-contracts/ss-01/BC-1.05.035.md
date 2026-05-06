@@ -5,7 +5,7 @@ version: "1.0"
 status: draft
 producer: product-owner
 timestamp: 2026-05-03T00:00:00Z
-last_amended: 2026-05-05
+last_amended: 2026-05-06
 phase: 1.4b
 inputs: [gap-analysis-w16-subprocess.md]
 input-hash: "[pending-recompute]"
@@ -16,7 +16,7 @@ subsystem: "SS-01"
 capability: "CAP-TBD"
 lifecycle_status: active
 introduced: v1.0.0
-modified: []
+modified: [D-293-pass-50]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,6 +33,8 @@ removal_reason: null
 This BC's denial-path postcondition references the existing `internal.capability_denied` event name. Per ADR-015 D-15.2 reverse-DNS naming requirement and gap-analysis-w16-subprocess.md §"Existing denial-path telemetry" lines 341-351, this event MUST be renamed to `vsdd.capability.denied.exec_subprocess.v1` to map to the `audit` category per ADR-015 D-15.2 registry line 329 (`vsdd.capability.denied.* | audit`). The current name is INTERIM. The S-9.07 implementer (or the SS-01 implementer of any host-emit-fix story) MUST rename `internal.capability_denied` → `vsdd.capability.denied.exec_subprocess.v1` before merge. No new OQ filed; rename target is unambiguous per gap-analysis amendment.
 
 The dispatcher MUST call `Path::new(cmd).canonicalize()` on the binary path BEFORE the binary_allow capability check. Canonicalization resolves symlinks and eliminates `..` segments. NUL-byte rejection is performed earlier by the existing `read_wasm_string` error path (see §Postcondition 2 and the Precedence Ladder). This closes a defense-in-depth gap identified in gap-analysis-w16-subprocess.md Section 5: `exec_subprocess.rs:230` currently passes `cmd` directly to `Command::new` with no traversal check.
+
+**Denial-path emit symmetry with BC-1.05.036 (LOW-P50-001):** The `emit_denial` function at exec_subprocess.rs:304-309 calls `ctx.emit_internal(ev)`, which routes through the same best-effort `internal_log.write` path documented in BC-1.05.036 §Postconditions Postcondition 6 and BC-1.05.036 §Edge Cases EC-010. All five denial paths governed by this BC — `no_exec_subprocess_capability`, `binary_not_on_allow_list`, `shell_bypass_not_acknowledged`, `setuid_or_setgid_binary`, and `binary_canonicalize_failed` (per Postcondition 3) — are therefore also best-effort: if `internal_log.write_inner` encounters an IO error, the eprintln-fallback fires and the event is still pushed to the in-memory `events` queue, but the denial event is NOT guaranteed delivered to `dispatcher-internal-*.jsonl`. This best-effort semantic is identical to the success-path event described in BC-1.05.036 §Postconditions Postcondition 6 and BC-1.05.036 §Edge Cases EC-010.
 
 **Canonicalization purpose (per gap-analysis Section 5 + TOCTOU mitigation discipline):** The canonicalize step's value is TOCTOU (time-of-check-time-of-use) prevention. Without canonicalization, an attacker could create a symlink that points to an allowed binary at allow-list-check time but to a different target at `Command::spawn` time. By canonicalizing BEFORE the allow-list check (and feeding the canonical path to `binary_allowed()`), the dispatcher ensures the spawned binary is the same as the allow-listed target. Symlink resolving to a non-allow-list path becomes a normal allow-list miss → CAPABILITY_DENIED via existing `emit_denial("binary_not_on_allow_list")` at exec_subprocess.rs:155 (the existing denial-path; no novel error-code pairing introduced).
 
