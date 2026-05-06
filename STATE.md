@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-06T14:00:00Z
+timestamp: 2026-05-06T18:00:00Z
 phase: post-rc11-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "**D-312 SEALED:** Architect corrigendum for D-311 BC-3.05.001 ID-collision slip. New v2 schema BC ID: BC-3.05.004 (was incorrectly BC-3.05.001 in D-311). Legacy BC-3.05.001/002/003 retired with `superseded_by: ADR-015` frontmatter (bodies preserved per POLICY 1). E-10 epic v1.3→v1.4 with full corrigendum acknowledgment. OQ-W16-012 filed-and-resolved. Pattern-tracking: \"ID assignment without free-slot verification\" recorded as occurrence 1 of N=3 codification threshold.\n\n**Active step:** (v) Phase 1b — author 5 remaining E-10 BCs in single coherent burst (5 ≤ 8 split threshold):\n- BC-1.12.005 (override visibility, SS-01)\n- BC-1.12.006 (block audit, SS-01)\n- BC-1.12.007 (deprecation lifecycle, SS-01) — Wave-1 invariant only\n- **BC-3.05.004** (config schema v2, SS-03) — corrected from BC-3.05.001 per D-312\n- BC-1.12.009 (dual-emit identity, SS-01) — PO must check BC-1.11.003 emit_pair scope before authoring\n\n**Phase 1b dispatch references:** ADR-015, E-10 epic v1.4 (post-D-312), architect routing decisions section in epic + D-312 corrigendum subsection, BC-1.12.002 v1.1 (D-311 amended), open-questions.md OQ-W16-011/012 RESOLVED sections, SS-03-event-emission.md (BC-3.05.* prescriptive cluster designation), BC-1.11.003 (emit_pair scope), retired BC-3.05.001/002/003 (do NOT model after; these are legacy-multi-sink superseded contracts).\n\n**Mandatory disciplines (carry forward):** TD-VSDD-088/091/092/093, POLICY 1/4/5/6/7."
+current_step: "**D-313 SEALED:** Step (v) PO BC authorship COMPLETE. Phase 1b authored 5 new E-10 BCs (BC-1.12.005/006/007/009 SS-01; BC-3.05.004 SS-03) covering ADR-015 D-15.3/D-15.4 + dual-emit identity + v2 config schema + 12-factor gate semantics. Phase 1c propagated 9 new E-10 BCs + BC-1.11.003 Wave 2 helper into 5 story files (S-10.02/03/04/05/09) under POLICY 8 (13 BC-story slot insertions; D-310 deferral healed). Phase 2 sealed: BC-INDEX +5 rows; ARCH-INDEX SS-01 110→114 + SS-03 51→52; total_bcs 1924→1929; STORY-INDEX v2.16→v2.17 with 5 story version bumps; lessons.md D-312 pattern-tracking non-recurrence note appended. D-312 process-gap remediation honored: PO performed free-slot verification (quoted ls evidence). TD-VSDD-093 source-of-truth corrections during Phase 1c (BC-1.12.004 + BC-1.12.007 each map to 2 stories per Traceability).\n\n**Active step:** (vi) adversary E-10 full spec-package sweep — full adversarial review of ADR-015 + E-10 epic v1.4 + 9 new BCs (BC-1.12.001..004 + BC-1.12.005/006/007/009 + BC-3.05.004) + BC-1.11.003 + 5 propagated stories (S-10.02/03/04/05/09) + open-questions resolutions. ADR-013 convergence protocol applies (3-of-3 NITPICK_ONLY required for CONVERGENCE_REACHED)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-06 (D-312 architect corrigendum SEALED — BC-3.05.001 ID-collision fixed; BC-3.05.001/002/003 retired (superseded_by: ADR-015); BC-3.05.004 reserved for v2 schema; E-10 epic v1.3→v1.4; OQ-W16-012 filed-and-resolved; BC-INDEX v1.5→v1.6; pattern-tracking occurrence 1 of N=3 codification threshold) |
+| **Last Updated** | 2026-05-06 (D-313 SEALED — Step (v) E-10 BC authorship COMPLETE: Phase 1b +5 BCs (BC-1.12.005/006/007/009+BC-3.05.004); Phase 1c 13 BC-story slot insertions across 5 stories (S-10.02/03/04/05/09); SS-01 110→114; SS-03 51→52; total_bcs 1924→1929; STORY-INDEX v2.16→v2.17; Step (vi) adversary E-10 full-package sweep ACTIVE) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -74,7 +74,7 @@ dtu_services: []
 | Phase D-4 Burst 1 — E-9 + S-9.00 spec | **COMPLETE** | E-9 v1.6 CONVERGED pass-10 (D-235); S-9.00 v1.4 CONVERGED pass-7 (D-231) |
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
-| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) Phase 1a COMPLETE; D-311 architect routing SEALED; D-312 corrigendum SEALED; Phase 1b ACTIVE** | E-9 v1.53 HEAD; E-10 BC authorship Phase 1a SEALED (D-310): 4 BCs authored (BC-1.12.001..004). D-311 sealed: BC-1.12.007→SS-01; BC-1.12.008→SS-03 renumbered BC-3.05.001 (ID COLLIDED — corrected by D-312). D-312 corrigendum: new ID BC-3.05.004; BC-3.05.001/002/003 retired (superseded_by: ADR-015); E-10 epic v1.3→v1.4; OQ-W16-012 RESOLVED. OQ-W16-011 RESOLVED. BC-1.12.002 v1.0→v1.1. Phase 1b ACTIVE: 5 BCs (BC-1.12.005/006/007, **BC-3.05.004**, BC-1.12.009) in single batch. ADR-013 convergence: 3_of_3 CONVERGENCE_REACHED (D-308). |
+| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) COMPLETE (D-313 SEALED); Step (vi) adversary E-10 full spec-package sweep ACTIVE** | E-9 v1.53 HEAD; E-10 BC authorship Phase 1a SEALED (D-310): 4 BCs authored (BC-1.12.001..004). D-311 sealed: BC-1.12.007→SS-01; BC-1.12.008→SS-03 renumbered BC-3.05.001 (ID COLLIDED — corrected by D-312). D-312 corrigendum: new ID BC-3.05.004; BC-3.05.001/002/003 retired (superseded_by: ADR-015); E-10 epic v1.3→v1.4; OQ-W16-012 RESOLVED. OQ-W16-011 RESOLVED. BC-1.12.002 v1.0→v1.1. D-313 sealed: Step (v) COMPLETE — 9 BCs + 5-story POLICY 8 propagation; Step (vi) adversary sweep ACTIVE. ADR-013 convergence: 3_of_3 CONVERGENCE_REACHED (D-308). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Current Phase Steps
@@ -178,13 +178,14 @@ dtu_services: []
 | D-311 — Architect routing + OQ-W16-011 resolution | architect (Phase 1) + state-manager (Phase 2) | **COMPLETE — SEALED** | 3 decisions: BC-1.12.007→SS-01; BC-1.12.008→SS-03 renumbered BC-3.05.001 (ID COLLIDED — corrected by D-312); OQ-W16-011 RESOLVED. BC-1.12.002 v1.0→v1.1. E-10 epic v1.2→v1.3. |
 | D-312 — Architect corrigendum (BC-3.05.001 ID-collision fix) | architect (Phase 1) + state-manager (Phase 2) | **COMPLETE — SEALED** | New v2 schema BC ID: BC-3.05.004. Legacy BC-3.05.001/002/003 retired (superseded_by: ADR-015; bodies preserved per POLICY 1). E-10 epic v1.3→v1.4 with corrigendum. OQ-W16-012 filed-and-resolved. BC-INDEX v1.5→v1.6. Pattern-tracking: "ID assignment without free-slot verification" occurrence 1 of N=3. |
 | Step (v) Phase 1b — E-10 BC authorship (5 BCs) | product-owner | **ACTIVE** | Phase 1a + architect-routing + corrigendum COMPLETE; Phase 1b ACTIVE — 5 BCs in single batch: BC-1.12.005, BC-1.12.006, BC-1.12.007, **BC-3.05.004** (corrected from BC-3.05.001 per D-312), BC-1.12.009 |
+| D-313 PO Phase 1b + story-writer Phase 1c + state-manager seal | product-owner + story-writer + state-manager | **COMPLETE** | +5 BCs (BC-1.12.005/006/007/009/BC-3.05.004); +13 BC-story slot insertions across 5 stories; SS-01 110→114; SS-03 51→52; total 1924→1929; D-312 process-gap remediation honored |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,924 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,929 |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 66 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 28 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |

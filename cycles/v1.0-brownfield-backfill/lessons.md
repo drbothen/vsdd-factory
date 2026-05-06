@@ -1068,5 +1068,25 @@ PASS — TD-VSDD-093 self-application audit completed before seal.
 
 **At N=3 codification trigger:** Codify TD-VSDD-NNN requiring architect-routing prompts and PO BC-creation prompts to include explicit free-slot verification step with quoted `ls` output as evidence before any new BC ID is assigned to a file path.
 
+- **D-313 (2026-05-06):** PO Phase 1b honored the D-312 remediation procedure — quoted `ls` output as free-slot evidence for all 5 BC IDs (BC-1.12.005, BC-1.12.006, BC-1.12.007, BC-1.12.009, BC-3.05.004). No ID collision. Pattern occurrence count remains 1 of N=3. Practice is operational; codification trigger not yet hit.
+
 **Date:** 2026-05-06
 **Burst:** D-312 (architect corrigendum for D-311 BC-3.05.001 ID-collision slip; occurrence 1 of N=3 codification threshold)
+
+---
+
+## TD-VSDD-pattern-tracking — BC-authorship-without-same-burst-story-propagation (occurrence 1 of N=3)
+
+### Pattern: bc-authorship-without-same-burst-story-propagation (PO BC-authoring bursts)
+
+**N=1 occurrence** (below S-7.02 3-occurrence threshold; full codification NOT yet triggered; monitoring for recurrence).
+
+- **D-310 (2026-05-06):** Phase 1a authored 4 BCs but did NOT propagate them into the relevant stories' `behavioral_contracts:` arrays the same burst — stories continued carrying `behavioral_contracts: []` placeholder. The deferral was structural (Phase 1a/Phase 1b split) but not codified or documented as a deferral.
+- **D-313 (2026-05-06):** Phase 1c healed the deferral by propagating ALL 9 new BCs (Phase 1a + Phase 1b) plus BC-1.11.003 (architect-authored 2026-05-04, never propagated) into 5 stories under POLICY 8. 13 BC-story slot insertions; sync verified.
+
+**Symptoms:** A BC-authoring burst completes (PO or architect) without updating the relevant stories' `behavioral_contracts:` frontmatter arrays and body BC tables in the same burst. Stories carry stale `behavioral_contracts: []` or incomplete arrays until a follow-up burst heals the gap.
+
+**At N=3 codification trigger:** Codify a new TD-VSDD entry mandating same-burst BC→story propagation OR a documented deferral-justification entry for the multi-burst case.
+
+**Date:** 2026-05-06
+**Burst:** D-313 (Phase 1c story-writer propagation healing D-310 deferral; occurrence 1 of N=3 codification threshold)
