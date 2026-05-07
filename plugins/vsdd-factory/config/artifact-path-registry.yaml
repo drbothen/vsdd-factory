@@ -1,4 +1,237 @@
-# Artifact Path Registry — single source of truth for canonical .factory/ artifact locations
-# See ADR-016. S-13.01 Step 4 implementer fills this in.
+# Artifact Path Registry — single source of truth for canonical .factory/ artifact locations.
+# See ADR-016-artifact-path-registry-single-source-of-truth.md
+#
+# Schema version: 1
+# enforcement_level values: block | warn | advisory
+#   block    — this path pattern is the CANONICAL location; validate-artifact-path hook allows writes here
+#   warn     — write proceeds but a hook.warn event is emitted
+#   advisory — write proceeds with a log_debug advisory only
+#
+# Per OQ5 resolution: all entries ship at enforcement_level: block.
+# The hook always blocks writes to .factory/ paths that match NO entry (ARTIFACT_PATH_UNREGISTERED).
+#
+# Pattern syntax: {placeholder} matches any non-empty path segment or sequence.
+# Example: ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md"
+#   matches: ".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md"
+
 version: 1
-artifact_types: []
+artifacts:
+  # ── Behavioral Contracts ─────────────────────────────────────────────────
+  - artifact_type: behavioral-contract
+    canonical_path_pattern: ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md"
+    description: Behavioral contract spec sharded by subsystem directory
+    enforcement_level: block
+
+  - artifact_type: behavioral-contract-index
+    canonical_path_pattern: ".factory/specs/behavioral-contracts/BC-INDEX.md"
+    description: Behavioral contract master index
+    enforcement_level: block
+
+  - artifact_type: behavioral-contract-id-mapping
+    canonical_path_pattern: ".factory/specs/behavioral-contracts/bc-id-mapping.md"
+    description: Behavioral contract ID allocation mapping
+    enforcement_level: block
+
+  # ── Architecture Decision Records ────────────────────────────────────────
+  - artifact_type: adr
+    canonical_path_pattern: ".factory/specs/architecture/decisions/ADR-{adr-id}-{slug}.md"
+    description: Architecture decision record
+    enforcement_level: block
+
+  - artifact_type: architecture-index
+    canonical_path_pattern: ".factory/specs/architecture/ARCH-INDEX.md"
+    description: Architecture master index
+    enforcement_level: block
+
+  - artifact_type: architecture-subsystem-doc
+    canonical_path_pattern: ".factory/specs/architecture/SS-{subsystem}-{slug}.md"
+    description: Per-subsystem architecture document
+    enforcement_level: block
+
+  # ── Verification Properties ──────────────────────────────────────────────
+  - artifact_type: verification-property
+    canonical_path_pattern: ".factory/specs/verification-properties/VP-{vp-id}.md"
+    description: Verification property specification
+    enforcement_level: block
+
+  # ── Stories ─────────────────────────────────────────────────────────────
+  - artifact_type: story-spec
+    canonical_path_pattern: ".factory/stories/S-{story-id}-{slug}.md"
+    description: Story specification
+    enforcement_level: block
+
+  - artifact_type: story-index
+    canonical_path_pattern: ".factory/stories/STORY-INDEX.md"
+    description: Story master index
+    enforcement_level: block
+
+  - artifact_type: sprint-state
+    canonical_path_pattern: ".factory/stories/sprint-state.yaml"
+    description: Sprint state tracking file
+    enforcement_level: block
+
+  - artifact_type: story-id-mapping
+    canonical_path_pattern: ".factory/stories/legacy-id-mapping.md"
+    description: Legacy story ID mapping
+    enforcement_level: block
+
+  # ── Epics ────────────────────────────────────────────────────────────────
+  - artifact_type: epic
+    canonical_path_pattern: ".factory/stories/epics/E-{epic-id}-{slug}.md"
+    description: Epic definition
+    enforcement_level: block
+
+  # ── Cycle Documents ──────────────────────────────────────────────────────
+  - artifact_type: cycle-decision-log
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/decision-log.md"
+    description: Per-cycle decision log
+    enforcement_level: block
+
+  - artifact_type: cycle-index
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/INDEX.md"
+    description: Per-cycle index document
+    enforcement_level: block
+
+  - artifact_type: phase-delta-analysis
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/{phase}-delta-analysis.md"
+    description: Phase delta analysis document (F1, F2, etc.)
+    enforcement_level: block
+
+  - artifact_type: cycle-document
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/{filename}.md"
+    description: Generic cycle-level document
+    enforcement_level: block
+
+  - artifact_type: cycle-story-implementation
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/implementation/{filename}.md"
+    description: Per-cycle implementation artifact (e.g. red-gate-log)
+    enforcement_level: block
+
+  - artifact_type: adversarial-review
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/adv-{slug}.md"
+    description: Adversarial review document for a cycle
+    enforcement_level: block
+
+  # ── Product Requirements / State ─────────────────────────────────────────
+  - artifact_type: prd
+    canonical_path_pattern: ".factory/specs/prd.md"
+    description: Product requirements document
+    enforcement_level: block
+
+  - artifact_type: state
+    canonical_path_pattern: ".factory/STATE.md"
+    description: Pipeline state document
+    enforcement_level: block
+
+  - artifact_type: state-runtime-regression
+    canonical_path_pattern: ".factory/regression-state.json"
+    description: Regression gate runtime state file
+    enforcement_level: block
+
+  - artifact_type: state-runtime-adversary
+    canonical_path_pattern: ".factory/adversary-convergence-state.json"
+    description: Adversary convergence runtime state file
+    enforcement_level: block
+
+  - artifact_type: state-runtime-wave
+    canonical_path_pattern: ".factory/wave-state.yaml"
+    description: Wave state runtime file
+    enforcement_level: block
+
+  # ── Domain Spec ──────────────────────────────────────────────────────────
+  - artifact_type: domain-spec
+    canonical_path_pattern: ".factory/specs/domain-spec/{filename}.md"
+    description: Domain specification shard
+    enforcement_level: block
+
+  - artifact_type: spec-open-questions
+    canonical_path_pattern: ".factory/specs/open-questions.md"
+    description: Open questions spec document
+    enforcement_level: block
+
+  - artifact_type: spec-dtu-assessment
+    canonical_path_pattern: ".factory/specs/dtu-assessment.md"
+    description: DTU assessment document
+    enforcement_level: block
+
+  # ── Logs ─────────────────────────────────────────────────────────────────
+  - artifact_type: runtime-log
+    canonical_path_pattern: ".factory/logs/{filename}"
+    description: Runtime telemetry and dispatcher logs
+    enforcement_level: block
+
+  # ── Policies ─────────────────────────────────────────────────────────────
+  - artifact_type: policies
+    canonical_path_pattern: ".factory/policies.yaml"
+    description: Governance policy registry
+    enforcement_level: block
+
+  # ── Config ───────────────────────────────────────────────────────────────
+  - artifact_type: release-config
+    canonical_path_pattern: ".factory/release-config.yaml"
+    description: Release pipeline configuration
+    enforcement_level: block
+
+  - artifact_type: reference-manifest
+    canonical_path_pattern: ".factory/reference-manifest.yaml"
+    description: Reference manifest for brownfield ingestion
+    enforcement_level: block
+
+  # ── Holdout Evaluations ──────────────────────────────────────────────────
+  - artifact_type: holdout-evaluation
+    canonical_path_pattern: ".factory/holdout-evaluations/{filename}.md"
+    description: Holdout evaluation document
+    enforcement_level: block
+
+  # ── Measurements ─────────────────────────────────────────────────────────
+  - artifact_type: measurement
+    canonical_path_pattern: ".factory/measurements/{filename}.md"
+    description: Measurement and baseline document
+    enforcement_level: block
+
+  # ── Research / Plans ─────────────────────────────────────────────────────
+  - artifact_type: research-doc
+    canonical_path_pattern: ".factory/research/{filename}.md"
+    description: Research document
+    enforcement_level: block
+
+  - artifact_type: plan-doc
+    canonical_path_pattern: ".factory/plans/{filename}.md"
+    description: Planning document
+    enforcement_level: block
+
+  # ── Legacy / Migration ───────────────────────────────────────────────────
+  - artifact_type: legacy-design-doc
+    canonical_path_pattern: ".factory/legacy-design-docs/{filename}.md"
+    description: Legacy design document (pre-VSDD era)
+    enforcement_level: block
+
+  # ── Tech Debt ────────────────────────────────────────────────────────────
+  - artifact_type: tech-debt-register
+    canonical_path_pattern: ".factory/tech-debt-register.md"
+    description: Technical debt register
+    enforcement_level: block
+
+  # ── Sidecar / Session Learning ───────────────────────────────────────────
+  - artifact_type: sidecar-learning
+    canonical_path_pattern: ".factory/sidecar-learning.md"
+    description: Session learning sidecar document
+    enforcement_level: block
+
+  # ── PO Obligations ───────────────────────────────────────────────────────
+  - artifact_type: po-obligations
+    canonical_path_pattern: ".factory/po-obligations.md"
+    description: Product owner obligations document
+    enforcement_level: block
+
+  # ── Semport ──────────────────────────────────────────────────────────────
+  - artifact_type: semport-artifact
+    canonical_path_pattern: ".factory/semport/{filename}.md"
+    description: Semport translation artifact
+    enforcement_level: block
+
+  # ── Code Delivery ────────────────────────────────────────────────────────
+  - artifact_type: code-delivery-artifact
+    canonical_path_pattern: ".factory/code-delivery/{filename}.md"
+    description: Code delivery tracking document
+    enforcement_level: block
