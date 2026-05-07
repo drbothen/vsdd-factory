@@ -208,7 +208,8 @@ dtu_services: []
 | **Step (vi) — adversary pass-8 on post-D-335 E-10 package** | adversary | **COMPLETE — HIGH(4)** | F-1 BC-1.11.001 PC2 dispatcher_trace_id; F-2 ARCH-INDEX trace; F-3 ARCH-INDEX schema_version; F-4 S-10.05 AC-008 BC-2.06.001 v1.4 CHANGELOG reqs. See E-10-pass-8.md. Pass counter: 0. |
 | **D-336 unified fix burst — PO + architect + story-writer (parallel)** | product-owner + architect + story-writer | **COMPLETE** | F-1: BC-1.11.001 PC2 + 15-BC DI-017 sweep (~40 occurrences). F-2/F-3: ARCH-INDEX 1.6→1.7 + SS-01 1.0→1.1 + ADR-004/008/011 amended. F-4: S-10.05 1.4→1.5 AC-008 extended. |
 | **D-337 state-manager seal — pass-8 fix-cycle** | state-manager | **COMPLETE** | BC-INDEX 1.13→1.14 (16 BC version pins); STORY-INDEX 2.22→2.23 (S-10.05 1.4→1.5); E-10-pass-8.md created; STATE.md + lessons.md sealed. Pass-9 is next dispatch (PAUSED). |
-| **D-340 F2 spec evolution — engine-discipline-pass-1** | product-owner + architect + state-manager | **COMPLETE (this burst)** | 6 BCs (BC-5.39.001/002 SS-05; BC-4.10.001/002 + BC-4.11.001 SS-04; BC-6.22.001 SS-06). ADR-016 + ADR-017. VP-069..072. PRD 1.0→1.1 (FR-047). BC-INDEX 1.14→1.15; ARCH-INDEX 1.7→1.8; VP-INDEX 1.0→1.1. total_bcs 1931→1937. current_cycle flipped. Next: F3 (3 stories: C path governance, A workflow+agent docs, B WASM hook). |
+| **D-340 F2 spec evolution — engine-discipline-pass-1** | product-owner + architect + state-manager | **COMPLETE** | 6 BCs (BC-5.39.001/002 SS-05; BC-4.10.001/002 + BC-4.11.001 SS-04; BC-6.22.001 SS-06). ADR-016 + ADR-017. VP-069..072. PRD 1.0→1.1 (FR-047). BC-INDEX 1.14→1.15; ARCH-INDEX 1.7→1.8; VP-INDEX 1.0→1.1. total_bcs 1931→1937. current_cycle flipped. Next: F3 (3 stories: C path governance, A workflow+agent docs, B WASM hook). |
+| **E-11 authoring + indexing burst (orphan-hook anchor) — D-11.7** | product-owner (E-11 epic) + state-manager (indexing) | **COMPLETE** | E-11 epic v1.0/draft authored (491L; 8 stories S-11.01..S-11.08; target v1.3); collision resolved: S-11.00 already registered as verify-sha-currency.sh stub (D-297); E-11 stories renumbered +1 (S-11.01..S-11.08); PO must amend E-11 body; STORY-INDEX 2.23→2.24 (8 new rows + 8 pointer updates S-8.20–S-8.27 re-pointed from "future E-10" to E-11); E-11 frontmatter story_count corrected 7→8. Orthogonal to engine-discipline cycle; no current_cycle flip. |
 
 ## Identifier Conventions
 
@@ -220,15 +221,15 @@ dtu_services: []
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 68 |
-| Epic | E-N | `stories/epics/E-N-<short>.md` | 10 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 76 |
+| Epic | E-N | `stories/epics/E-N-<short>.md` | 11 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 17 |
 
-## Story Status (68 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed)
+## Story Status (76 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11 registered)
 
 - **Merged (58):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (7):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9)
+- **Draft (15):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)

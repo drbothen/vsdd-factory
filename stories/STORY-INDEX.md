@@ -1,10 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.23"
+version: "2.24"
 status: current
 producer: state-manager
 timestamp: 2026-05-06T21:00:00Z
+last_amended: "2026-05-06 (v2.24) — E-11 epic registration; 8 new rows S-11.01..S-11.08 (renumbered from S-11.00..S-11.07 due to POLICY 1 collision with S-11.00 verify-sha-currency.sh stub at D-297); 8 retirement pointers S-8.20–S-8.27 re-pointed from 'future E-10' to E-11 per E-11 D-11.7"
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -322,14 +323,14 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-8.17 | ~~Native port: validate-template-compliance (solo)~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.06 (2026-05-03; E-8 v1.10 CHANGELOG) |
 | S-8.18 | ~~Native port bundle B-6a~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.05 (2026-05-03; E-8 v1.10 CHANGELOG) |
 | S-8.19 | ~~Native port bundle B-6b~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.05/S-9.06 (2026-05-03; E-8 v1.10 CHANGELOG) |
-| S-8.20 | ~~Native port: protect-bc (PreToolUse gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
-| S-8.21 | ~~Native port: protect-vp (PreToolUse gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
-| S-8.22 | ~~Native port: protect-secrets~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
-| S-8.23 | ~~Native port: red-gate (PreToolUse strict-TDD gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
-| S-8.24 | ~~Native port: brownfield-discipline~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
-| S-8.25 | ~~Native port: factory-branch-guard~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
-| S-8.26 | ~~Native port: check-factory-commit~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
-| S-8.27 | ~~Native port: destructive-command-guard~~ | E-8 | — | — | — | — | **retired** | superseded_by: future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
+| S-8.20 | ~~Native port: protect-bc (PreToolUse gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-11 S-11.02 (originally pointed to "future E-10" 2026-05-03; redirected 2026-05-06 after E-10 reallocation to ADR-015 D-236 — see E-11 D-11.7) |
+| S-8.21 | ~~Native port: protect-vp (PreToolUse gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-11 S-11.02 (originally pointed to "future E-10" 2026-05-03; redirected 2026-05-06 after E-10 reallocation to ADR-015 D-236 — see E-11 D-11.7) |
+| S-8.22 | ~~Native port: protect-secrets~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-11 S-11.05 (originally pointed to "future E-10" 2026-05-03; redirected 2026-05-06 after E-10 reallocation to ADR-015 D-236 — see E-11 D-11.7) |
+| S-8.23 | ~~Native port: red-gate (PreToolUse strict-TDD gate)~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-11 S-11.07 (originally pointed to "future E-10" 2026-05-03; redirected 2026-05-06 after E-10 reallocation to ADR-015 D-236 — see E-11 D-11.7) |
+| S-8.24 | ~~Native port: brownfield-discipline~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-11 S-11.04 (originally pointed to "future E-10" 2026-05-03; redirected 2026-05-06 after E-10 reallocation to ADR-015 D-236 — see E-11 D-11.7) |
+| S-8.25 | ~~Native port: factory-branch-guard~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-11 S-11.04 (originally pointed to "future E-10" 2026-05-03; redirected 2026-05-06 after E-10 reallocation to ADR-015 D-236 — see E-11 D-11.7) |
+| S-8.26 | ~~Native port: check-factory-commit~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-11 S-11.06 (originally pointed to "future E-10" 2026-05-03; redirected 2026-05-06 after E-10 reallocation to ADR-015 D-236 — see E-11 D-11.7) |
+| S-8.27 | ~~Native port: destructive-command-guard~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-11 S-11.08 (originally pointed to "future E-10" 2026-05-03; redirected 2026-05-06 after E-10 reallocation to ADR-015 D-236 — see E-11 D-11.7) |
 | S-8.28 | ~~Native port: validate-pr-merge-prerequisites~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.03 / future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
 | S-8.29 | ~~Native port: validate-wave-gate-prerequisite~~ | E-8 | — | — | — | — | **retired** | superseded_by: E-9 S-9.07 / future E-10 (2026-05-03; E-8 v1.10 CHANGELOG) |
 
@@ -421,6 +422,39 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
+## Epic E-11 — Tier 3 Native WASM Migration (W-17) — PreToolUse protections + process discipline (draft, v1.0)
+
+> **E-11 authored 2026-05-06 (D-11.7 indexing burst):** E-11 anchors 10 orphan bash hooks
+> (8 Tier 3 PreToolUse + 2 Tier 2 PostToolUse residuals) following E-10's reallocation to
+> ADR-015 OTel emission (D-236, 2026-05-04). E-8 v1.10 CHANGELOG (2026-05-03) retired
+> S-8.20–S-8.27 with `superseded_by: future E-10`; that pointer is now corrected to E-11.
+> **Collision resolution:** S-11.00 is already registered as a standalone story (verify-sha-currency.sh
+> Rust port, D-297, epic: —). E-11 stories are therefore numbered S-11.01..S-11.08 (shifted +1).
+> PO must amend E-11 epic body to reflect the renumbered IDs (original epic body uses S-11.00..S-11.07).
+> behavioral_contracts: [] on all stories (pending story-writer authorship per Spec-First Gate).
+> Target release: v1.3 (Tier 3). Depends on E-8 + E-9.
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|--------|-----|
+| S-11.01 | Perf baseline + W-17 bundle ceiling (reuse W-16 model) | E-11 | TBD | P2 | E-9 W-16 closure | S-11.02..S-11.07 | draft | [] |
+| S-11.02 | Batch B-1: artifact guard hooks (protect-bc, protect-vp) | E-11 | TBD | P2 | S-11.01 | — | draft | [] |
+| S-11.03 | Batch B-2: process-discipline PostToolUse hooks (convergence-tracker, purity-check) | E-11 | TBD | P2 | S-11.01 | — | draft | [] |
+| S-11.04 | Batch B-3: identity guard hooks (brownfield-discipline, factory-branch-guard) | E-11 | TBD | P2 | S-11.01 | — | draft | [] |
+| S-11.05 | Native port: protect-secrets (dual-event PreToolUse:Bash+Read) | E-11 | TBD | P2 | S-11.01 | — | draft | [] |
+| S-11.06 | Native port: check-factory-commit (PreToolUse:Bash, git log) | E-11 | TBD | P2 | S-11.01 | — | draft | [] |
+| S-11.07 | Native port: red-gate (High complexity, state-file + path matching) | E-11 | TBD | P2 | S-11.01 | — | draft | [] |
+| S-11.08 | Native port: destructive-command-guard (High complexity, command tokenization) + adapter retirement | E-11 | TBD | P2 | S-11.02..S-11.07 | — | draft | [] |
+
+> **E-11 dependency chain:** S-11.01 → {S-11.02, S-11.03, S-11.04, S-11.05, S-11.06, S-11.07} → S-11.08.
+> Wave 0: S-11.01 (perf baseline). Wave 1: S-11.02..S-11.07 (all parallel, depends on S-11.01).
+> Wave 2: S-11.08 (adapter retirement; must follow all Wave 1 merged + pre-deletion audit PASS).
+> Total E-11 stories: 8 (S-11.01..S-11.08). Points: TBD (pending story-writer authorship).
+> **Renumbering note:** Stories originally spec'd as S-11.00..S-11.07 in E-11 epic v1.0 body.
+> Renumbered to S-11.01..S-11.08 due to POLICY 1 collision with S-11.00 (verify-sha-currency.sh stub; D-297).
+> PO amendment to E-11 epic body required to sync IDs.
+
+---
+
 **Draft story policy:** Stories with `status: draft` MAY have empty
 `behavioral_contracts: []` arrays. BC anchoring is deferred to the elaboration phase
 (when status transitions to `ready`). **Source:** Phase 1d pass 3 F-035.
@@ -432,7 +466,12 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 300+ across 77 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 45 E-10*** + TBD S-11.00)
+**Total story points:** 300+ across 85 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 45 E-10*** + TBD S-11.00 + TBD E-11****)
+
+> \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
+> \*\*E-9 in progress — S-9.00 + S-9.30 authored (TBD pts each); S-9.01..S-9.07 stub entries (TBD pts pending Burst 2+3 authoring); ~50-70 additional pts estimated across 9 stories.
+> \*\*\*E-10 authored 2026-05-04 — 9 stories (S-10.01..S-10.09) at 45 pts total (S-10.03 bumped 5→8 pts for full Windows registry cascade per Q4 adjudication); behavioral_contracts: [] on all stories (pending PO authorship per Spec-First Gate); OQ-2 + OQ-5 RESOLVED 2026-05-04.
+> \*\*\*\*E-11 authored 2026-05-06 — 8 stories (S-11.01..S-11.08; renumbered from S-11.00..S-11.07 due to POLICY 1 collision with S-11.00 verify-sha-currency.sh stub at D-297); behavioral_contracts: [] pending story-writer authorship; target v1.3.
 
 > \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
 > \*\*E-9 in progress — S-9.00 + S-9.30 authored (TBD pts each); S-9.01..S-9.07 stub entries (TBD pts pending Burst 2+3 authoring); ~50-70 additional pts estimated across 9 stories.
