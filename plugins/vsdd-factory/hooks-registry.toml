@@ -900,3 +900,21 @@ priority = 950
 timeout_ms = 5000
 on_error = "continue"
 
+[[hooks]]
+# BC-4.10.001: blocks wave-gate dispatch when any story lacks convergence clearance.
+# BC-4.10.002: gracefully degrades (Continue) when not in wave-gate dispatch context.
+# Scoped to wave-gate dispatch via payload.agent_type == "wave-gate-dispatch" check
+# (enforced inside the hook itself — BC-4.10.001 invariant 1).
+# HOST_ABI_VERSION = 1; no new host functions (AC-011).
+name = "validate-per-story-adversary-convergence"
+event = "SubagentStop"
+plugin = "hook-plugins/validate-per-story-adversary-convergence.wasm"
+priority = 960
+timeout_ms = 10000
+# Advisory-block-mode: hook returns Continue in all cases; block signal via
+# stdout JSON {"outcome":"block",...} + hook.block event (BC-4.10.002 Dev Notes).
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/cycles"]
+
