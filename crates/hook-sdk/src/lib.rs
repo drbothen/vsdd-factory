@@ -39,6 +39,11 @@ pub mod host;
 mod payload;
 mod result;
 
+#[cfg(feature = "resolver-authoring")]
+pub mod resolver;
+#[cfg(feature = "resolver-authoring")]
+pub use resolver::*;
+
 #[doc(hidden)]
 pub mod __internal;
 
