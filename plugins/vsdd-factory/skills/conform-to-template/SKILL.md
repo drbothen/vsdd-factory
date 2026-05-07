@@ -4,6 +4,15 @@ description: Fix structural gaps in a VSDD artifact file by adding missing front
 argument-hint: "<file-path> [--template=<template-name>]"
 ---
 
+## Path Resolution (Mandatory)
+
+Before writing any artifact, resolve the canonical path via
+`plugins/vsdd-factory/config/artifact-path-registry.yaml`. Do not invent paths.
+
+Read the registry at the start of this skill's procedure and verify the target path
+matches a registered pattern before calling `Write`. If the artifact type is not in
+the registry, use `/vsdd-factory:register-artifact` to add it first.
+
 # Conform to Template
 
 Fix structural gaps in a VSDD artifact file by comparing it against its template and adding missing structure.

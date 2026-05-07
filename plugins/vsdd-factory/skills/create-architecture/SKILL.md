@@ -5,6 +5,15 @@ description: Create sharded architecture documents from PRD and behavioral contr
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
+## Path Resolution (Mandatory)
+
+Before writing any artifact, resolve the canonical path via
+`plugins/vsdd-factory/config/artifact-path-registry.yaml`. Do not invent paths.
+
+Read the registry at the start of this skill's procedure and verify the target path
+matches a registered pattern before calling `Write`. If the artifact type is not in
+the registry, use `/vsdd-factory:register-artifact` to add it first.
+
 ## The Iron Law
 
 > **NO ARCHITECTURE WITHOUT VERIFICATION FEASIBILITY ASSESSMENT**
