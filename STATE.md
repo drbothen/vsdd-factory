@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F4 COMPLETE for v1.0-feature-engine-discipline-pass-1. All 3 stories merged to develop: S-13.01 (Path Governance Bundle, E-13) at 2c97cb0 (PR #97, 2026-05-07); S-12.01 (Per-Story Adversary Workflow, E-12) at 2e9b670 (PR #98, 2026-05-07); S-12.02 (Per-Story Adversary Convergence WASM Hook, E-12) at e2fd3d4 (PR #99, 2026-05-07). Now LIVE on develop: validate-artifact-path WASM hook (block mode) governs .factory/ writes via artifact-path-registry.yaml; validate-per-story-adversary-convergence WASM hook (SubagentStop, priority 960) blocks wave-gate dispatch on unconverged stories; per-story-delivery.md Step 4.5 (per-story adversary convergence loop) applies to NEW stories started AFTER S-12.01 merge (2026-05-07T05:30Z); adversary.md three-perimeter scope contract documented; wave-gate Gate 3 narrowed to integration/cross-story concerns; orchestrator.md MANDATORY STEPS reconciled with workflow. Next: F5 scoped adversarial review on cycle delta."
+current_step: "F5 pass-1 COMPLETE for v1.0-feature-engine-discipline-pass-1. Classification: CRITICAL. 29 findings (4C/14H/6M/5L). Top concerns: (1) Lobster workflow references non-existent step-d5-adversary-convergence.md; (2) 3 story specs have wrong ADR path slug; (3) VP-071 kani harness tests wrong HookResult variant (Block vs BlockWithFix). Review persisted at adv-cycle-pass-1.md (65KB/704L; D-356). Two [process-gap] observations flagged for follow-up stories. Next: route all 29 findings via fix-pr-delivery before pass-2 dispatch."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (D-352..D-355; F4 COMPLETE; S-12.01 merged PR #98 at 2e9b670; S-12.02 merged PR #99 at e2fd3d4; all 3 cycle stories shipped) |
-| **Current Phase** | F4 COMPLETE — all 3 stories merged; Next: F5 scoped adversarial review |
+| **Last Updated** | 2026-05-07 (D-356; F5 pass-1 CRITICAL — 29 findings; adv-cycle-pass-1.md persisted; fix routing pending) |
+| **Current Phase** | F5 IN PROGRESS — pass-1 CRITICAL; fix routing before pass-2 |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -75,7 +75,7 @@ dtu_services: []
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
-| v1.0-feature-engine-discipline-pass-1 | **F4 COMPLETE** | All 3 stories merged to develop: S-13.01 2c97cb0 PR #97 (D-350); S-12.01 2e9b670 PR #98 (D-352); S-12.02 e2fd3d4 PR #99 (D-353); F4 closeout D-354/D-355. Next: F5 scoped adversarial review. |
+| v1.0-feature-engine-discipline-pass-1 | **F5 IN PROGRESS** | Pass-1: CRITICAL — 29 findings (4C/14H/6M/5L); adv-cycle-pass-1.md (65KB) persisted D-356. Fix routing pending. Pass-2 after remediation. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -99,6 +99,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-349 F3 story decomposition — v1.0-feature-engine-discipline-pass-1** | product-owner (epics E-12/E-13) + story-writer (S-13.01/S-12.01/S-12.02) + state-manager (indexing + commit) | **COMPLETE** | E-12 Engine Governance (S-12.01/S-12.02) + E-13 Artifact Integrity (S-13.01). 38 ACs total. Linear: S-13.01→S-12.01→S-12.02. All tdd_mode strict. STORY-INDEX 2.24→2.25. D-345..D-348 logged. OQ-9 surfaced (VP-071 vs BC-4.10.001 discrepancy; pre-F4 gate). |
 | **D-350 S-13.01 merged — state update post-merge** | state-manager | **COMPLETE** | S-13.01 (Path Governance Bundle, E-13) merged to develop at 2c97cb0 (PR #97, 2026-05-07). validate-artifact-path WASM hook live in block mode. sprint-state.yaml S-13.01 → completed; STORY-INDEX 2.25→2.26 (S-13.01 draft→completed); STATE.md F4 IN PROGRESS; decision-log D-350+D-351 appended. S-12.01 + S-12.02 unblocked. |
 | **D-352..D-355 F4 closeout — S-12.01 + S-12.02 merged** | state-manager | **COMPLETE** | S-12.01 merged at 2e9b670 (PR #98, 2026-05-07): 31/31 bats, CLEAN security, 1-cycle convergence. S-12.02 merged at e2fd3d4 (PR #99, 2026-05-07): 148KB WASM, SubagentStop priority 960, 30/30 cargo + 11+1skip bats, conflict resolution at 7100431. sprint-state.yaml S-12.01+S-12.02 → completed; STORY-INDEX 2.26→2.27; STATE.md F4 COMPLETE; decision-log D-352..D-355 appended. Next: F5. |
+| **D-356 F5 pass-1 — adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 29 findings (4C/14H/6M/5L). adv-cycle-pass-1.md persisted (65KB, 704L). 2 [process-gap] observations surfaced. INDEX.md + decision-log updated. Next: route findings via fix-pr-delivery; pass-2 after remediation. |
 
 ## Identifier Conventions
 
@@ -163,7 +164,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — D-352..D-355 F4 closeout. S-12.01 (Per-Story Adversary Workflow) MERGED at 2e9b670 (PR #98). S-12.02 (Per-Story Adversary Convergence WASM Hook) MERGED at e2fd3d4 (PR #99). F4 COMPLETE for v1.0-feature-engine-discipline-pass-1.
+**Last update:** 2026-05-07 — D-356 F5 pass-1 persisted. Classification: CRITICAL. 29 findings (4C/14H/6M/5L). adv-cycle-pass-1.md written (65KB, 704L). Fix routing pending via fix-pr-delivery. Pass-2 after remediation.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
@@ -179,9 +180,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
 **BC-INDEX:** v1.15 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.8
 
-**ACTIVE STEP: F5 — scoped adversarial review on cycle delta (v1.0-feature-engine-discipline-pass-1)**
+**ACTIVE STEP: F5 — fix routing for pass-1 CRITICAL findings (v1.0-feature-engine-discipline-pass-1)**
 
-**F5 pickup:** Dispatch `vsdd-factory:phase-f5-scoped-adversarial`. Scope: all artifacts introduced/modified in this cycle (6 BCs, 2 ADRs, 4 VPs, 3 story files, per-story-delivery.md, agent docs, 2 WASM hooks). Bootstrap exception applies: S-12.01 + S-12.02 did NOT go through Step 4.5 (chicken-and-egg); F5 adversarial review covers the cycle delta holistically.
+**F5 pickup:** Run `vsdd-factory:fix-pr-delivery` on the 29 pass-1 findings (adv-cycle-pass-1.md). Route by severity: 4 CRITICAL first, then 14 HIGH, then 6 MEDIUM. Two [process-gap] observations need follow-up story authorship (per cycle-closing checklist). After all fixes merged, dispatch pass-2 adversary review.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
