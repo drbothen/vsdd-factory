@@ -525,6 +525,7 @@ Fields:
 | `name` | yes | The resolver's unique name. Matches the string declared in `needs_context`. This name is the key under which the resolver's output is written in `plugin_config`. |
 | `plugin` | yes | Relative path to the `.wasm` artifact (relative to the registry file's directory). |
 | `path_allow` | yes | List of path prefixes the resolver may read via `host::read_file`. Empty list = no reads allowed (deny-by-default). |
+| `fail_closed` | no (default: `true`) | Controls startup behavior if the resolver `.wasm` artifact fails to compile. `true` (default): dispatcher emits `resolver.load_error` and fails startup — fail-loud semantics. `false`: the entry is skipped with a warning and the dispatcher starts with the remaining resolvers — fail-open for optional resolvers. (BC-4.12.001 PC6) |
 
 **Critical constraint (BC-1.13.001 PC1):** If `resolvers-registry.toml` is absent at
 startup, the dispatcher initializes with zero resolvers configured — this is NOT a startup
