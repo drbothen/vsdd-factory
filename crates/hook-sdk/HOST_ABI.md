@@ -705,7 +705,7 @@ exposes a restricted set of host functions:
 | Host function | Available to resolvers | Notes |
 |---------------|----------------------|-------|
 | `host::read_file` | Yes (capability-gated) | Subject to `path_allow` declarations. |
-| `host::log_info`, `host::log_warn`, `host::log_error` | Yes, always | No restriction; available without path declaration. `host::log` is always available for diagnostics. |
+| `host::log(level, msg_ptr, msg_len)` | Yes, always | Single host function with level argument (Trace=0, Debug=1, Info=2, Warn=3, Error=4). The SDK exposes ergonomic wrappers `log_info(msg)`, `log_warn(msg)`, `log_error(msg)` over this base function for resolver authors. Available at all times for diagnostics. |
 | `host::write_file` | **No** — absent from resolver linker | Resolvers are read-only; `host::write_file` is not available to resolvers. |
 | `host::exec_subprocess` | **No** — absent from resolver linker | Resolvers cannot execute subprocesses. |
 | `host::emit_event` | **No** — absent from resolver linker | Resolvers cannot emit telemetry events directly. |
