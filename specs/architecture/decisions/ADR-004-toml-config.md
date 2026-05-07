@@ -34,10 +34,17 @@ significant disadvantages in this context.
 ## Decision
 
 All new configuration files introduced in v1.0 (`hooks-registry.toml`,
-`observability-config.toml`) use TOML. The `schema_version = 1` field is mandatory
+`observability-config.toml`) use TOML. The `schema_version` field is mandatory
 in both files; the loader rejects any file whose `schema_version` does not equal the
-expected constant (`REGISTRY_SCHEMA_VERSION: u32 = 1` in `registry.rs`). New
-configuration surfaces added after v1.0 follow the same convention.
+expected constant. New configuration surfaces added after v1.0 follow the same convention.
+
+**Amendment (ADR-015 D-15.1, 2026-05-06):** `observability-config.toml` was promoted
+to `schema_version = 2` by ADR-015 D-15.1 (v2 schema defines `events_file`,
+`retention_days`, `debug_log_enabled`, `sync_on_write`). `hooks-registry.toml`
+remains at `schema_version = 1` (`REGISTRY_SCHEMA_VERSION: u32 = 1` in `registry.rs`).
+A v1→v2 mismatch on `observability-config.toml` hard-errors with a migration hint
+per BC-3.05.004 PC4. The "mandatory `schema_version`" and "mismatch = hard error"
+principles are unchanged; only the target version differs per config file.
 
 ## Rationale
 
@@ -86,9 +93,10 @@ or upgrade the dispatcher.
 
 ### Status as of v1.0.0-beta.5
 
-IN-EFFECT. `hooks-registry.toml` and `observability-config.toml` both ship as TOML
-with `schema_version = 1`. The `REGISTRY_SCHEMA_VERSION: u32 = 1` constant is enforced
-in `crates/factory-dispatcher/src/registry.rs:16`.
+IN-EFFECT. `hooks-registry.toml` ships as TOML with `schema_version = 1`
+(`REGISTRY_SCHEMA_VERSION: u32 = 1` enforced in `crates/factory-dispatcher/src/registry.rs:16`).
+`observability-config.toml` ships as TOML with `schema_version = 2` (amended by ADR-015 D-15.1;
+v1 hard-errors with migration hint per BC-3.05.004 PC4).
 
 ## Alternatives Considered
 

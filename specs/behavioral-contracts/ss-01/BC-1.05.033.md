@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Integration test: `setup_linker(&engine)` returns a fresh linker. `linker.get(&mut store, "vsdd", name)` succeeds for each of `{log, emit_event, read_file, exec_subprocess, session_id, dispatcher_trace_id, plugin_root, plugin_version, cwd, env}`. The named-import surface is complete and stable.
+Integration test: `setup_linker(&engine)` returns a fresh linker. `linker.get(&mut store, "vsdd", name)` succeeds for each of `{log, emit_event, read_file, exec_subprocess, session_id, trace_id (renamed from dispatcher_trace_id per DI-017 / ADR-015 v1.7), plugin_root, plugin_version, cwd, env}`. The named-import surface is complete and stable.
 
 ## Preconditions
 
@@ -36,7 +36,7 @@ Integration test: `setup_linker(&engine)` returns a fresh linker. `linker.get(&m
 
 ## Postconditions
 
-1. Lookup of every named host fn under `vsdd::` succeeds: log, emit_event, read_file, exec_subprocess, session_id, dispatcher_trace_id, plugin_root, plugin_version, cwd, env.
+1. Lookup of every named host fn under `vsdd::` succeeds: log, emit_event, read_file, exec_subprocess, session_id, trace_id (renamed from dispatcher_trace_id per DI-017 / ADR-015 v1.7), plugin_root, plugin_version, cwd, env.
 
 ## Invariants
 
@@ -97,3 +97,10 @@ Integration test: `setup_linker(&engine)` returns a fresh linker. `linker.get(&m
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description and Postcondition 1 host fn list per DI-017 / ADR-015 v1.7 canonicalization. |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

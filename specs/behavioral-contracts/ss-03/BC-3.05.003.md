@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -34,7 +34,7 @@ superseded_by: "ADR-015 (D-312 corrigendum 2026-05-06)"
 
 ## Description
 
-Given Mock LogsService bound on 127.0.0.1:0; sink configured with batch.size=100, batch.interval=60s; 10 events submitted. When sink.flush() then mock server's snapshot is taken.. Then 10 records arrive; first record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000 (ms→ns); attributes contain dispatcher_trace_id, session_id, plugin_name, plugin_version, seq; type and ts_epoch are NOT attributes (they were lifted to body and time_unix_nano).
+Given Mock LogsService bound on 127.0.0.1:0; sink configured with batch.size=100, batch.interval=60s; 10 events submitted. When sink.flush() then mock server's snapshot is taken.. Then 10 records arrive; first record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000 (ms→ns); attributes contain `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), session_id, plugin_name, plugin_version, seq; type and ts_epoch are NOT attributes (they were lifted to body and time_unix_nano).
 
 ## Preconditions
 
@@ -42,7 +42,7 @@ Given Mock LogsService bound on 127.0.0.1:0; sink configured with batch.size=100
 
 ## Postconditions
 
-1. 10 records arrive; first record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000 (ms→ns); attributes contain dispatcher_trace_id, session_id, plugin_name, plugin_version, seq; type and ts_epoch are NOT attributes (they were lifted to body and time_unix_nano).
+1. 10 records arrive; first record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000 (ms→ns); attributes contain `trace_id` (renamed from `dispatcher_trace_id` per DI-017), session_id, plugin_name, plugin_version, seq; type and ts_epoch are NOT attributes (they were lifted to body and time_unix_nano).
 
 ## Invariants
 
@@ -123,4 +123,11 @@ Given Mock LogsService bound on 127.0.0.1:0; sink configured with batch.size=100
 #### Refactoring Notes
 
 TBD — Phase 1.6b will produce refactoring guidance.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description and Postcondition 1 per DI-017 / ADR-015 v1.7 canonicalization. (BC is retired; update preserves canonical naming for audit trail accuracy.) |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |
 

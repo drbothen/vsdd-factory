@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `WorktreeRemove` event to the `worktree-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `worktree.removed` event via the `emit_event` host function. One field is set by the plugin: `worktree_path`, sourced from the incoming `WorktreeRemove` envelope. Eight additional fields are reserved and NOT settable by the plugin (RESERVED_FIELDS), set by the host in two groups: (a) 4 host-enriched from `HostContext` by `emit_event`: `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`; (b) 4 construction-time fields set somewhere in the dispatcher between plugin `emit_event` call and final wire format: `ts`, `ts_epoch`, `schema_version`, `type`. The plugin MUST NOT set any of the 8 RESERVED_FIELDS. Total fields on wire: 9. The plugin performs NO filesystem writes, NO subprocess invocations, and requires ZERO declared capabilities (Option A zero-capability scoping — same as BC-4.07.001). WorktreeRemove is the cleanup complement to WorktreeCreate; the plugin emits the event regardless of whether the worktree was previously registered (unknown-worktree no-op per EC-002).
+When the dispatcher routes a `WorktreeRemove` event to the `worktree-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `worktree.removed` event via the `emit_event` host function. One field is set by the plugin: `worktree_path`, sourced from the incoming `WorktreeRemove` envelope. Eight additional fields are reserved and NOT settable by the plugin (RESERVED_FIELDS), set by the host in two groups: (a) 4 host-enriched from `HostContext` by `emit_event`: `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`; (b) 4 construction-time fields set somewhere in the dispatcher between plugin `emit_event` call and final wire format: `ts`, `ts_epoch`, `schema_version`, `type`. The plugin MUST NOT set any of the 8 RESERVED_FIELDS. Total fields on wire: 9. The plugin performs NO filesystem writes, NO subprocess invocations, and requires ZERO declared capabilities (Option A zero-capability scoping — same as BC-4.07.001). WorktreeRemove is the cleanup complement to WorktreeCreate; the plugin emits the event regardless of whether the worktree was previously registered (unknown-worktree no-op per EC-002).
 
 ## Preconditions
 
@@ -47,7 +47,7 @@ When the dispatcher routes a `WorktreeRemove` event to the `worktree-hooks.wasm`
    **Plugin-set fields (1 field — the plugin sets this via `emit_event` key/value pair):**
    - `worktree_path` (string): absolute path to the removed worktree, sourced from the envelope's `worktree_path` field. If absent from the envelope, `worktree_path = ""` (empty string default). Value is always a string on the wire (per `emit_event.rs:49` string coercion).
 
-   **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Each is a non-empty string per BC-1.05.012 unconditional enrichment. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
+   **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. Each is a non-empty string per BC-1.05.012 unconditional enrichment. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
 
    **Construction-time fields (4 fields — set by the dispatcher between plugin `emit_event` call and final wire format, NOT by the plugin):** `ts`, `ts_epoch`, `schema_version`, `type`. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped. `type` MUST equal `"worktree.removed"`.
 
@@ -80,7 +80,7 @@ When the dispatcher routes a `WorktreeRemove` event to the `worktree-hooks.wasm`
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `WorktreeRemove` envelope with `worktree_path = "/workspace/feat-branch"`, `session_id = "wt-sess-001"`, dispatcher routes to worktree-hooks.wasm | `worktree.removed` emitted once; `worktree_path = "/workspace/feat-branch"` (string on wire); `session_id = "wt-sess-001"` (host-enriched); `dispatcher_trace_id` non-empty string; `plugin_name` non-empty string; `plugin_version` non-empty string; `type = "worktree.removed"`; total 9 fields; `exec_subprocess` CountingMock invocation_count == 0 | happy-path |
+| `WorktreeRemove` envelope with `worktree_path = "/workspace/feat-branch"`, `session_id = "wt-sess-001"`, dispatcher routes to worktree-hooks.wasm | `worktree.removed` emitted once; `worktree_path = "/workspace/feat-branch"` (string on wire); `session_id = "wt-sess-001"` (host-enriched); `trace_id` non-empty string (renamed from `dispatcher_trace_id` per DI-017; host-enriched); `plugin_name` non-empty string; `plugin_version` non-empty string; `type = "worktree.removed"`; total 9 fields; `exec_subprocess` CountingMock invocation_count == 0 | happy-path |
 | `WorktreeRemove` envelope with `worktree_path = "/workspace/unknown-path"` (path never registered) | `worktree.removed` emitted once with `worktree_path = "/workspace/unknown-path"`; plugin does not error; returns `HookResult::Ok` | edge-case (unknown worktree, EC-002) |
 | `WorktreeRemove` envelope with `worktree_path` absent | `worktree.removed` emitted once with `worktree_path = ""`; plugin does not abort | edge-case (missing field, EC-003) |
 | Two consecutive `WorktreeRemove` events with same `worktree_path` | Two `worktree.removed` events emitted (no Layer 1 dedup — `once` key absent); each event has correct 9-field payload | edge-case (idempotent re-fire, EC-001) |
@@ -127,7 +127,7 @@ VP-067
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-007 **REMOVED** (DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events. No current DI for plugin event emission unconditionally; v1.1 candidate per PRD §S-5.03 flag.); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext) |
+| L2 Domain Invariants | DI-007 **REMOVED** (DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events. No current DI for plugin event emission unconditionally; v1.1 candidate per PRD §S-5.03 flag.); DI-017 (`trace_id` (renamed from `dispatcher_trace_id` per ADR-015 v1.7) on every emitted event — automatically enriched by emit_event host fn from HostContext) |
 | Architecture Module | SS-04 — `crates/hook-plugins/worktree-hooks/src/lib.rs` |
 | Stories | S-5.03 |
 | Functional Requirement | FR-046 |
@@ -136,6 +136,7 @@ VP-067
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields), Canonical Test Vectors, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.2 | 2026-04-28 | product-owner | Pass-2 reversal ADV-S5.03-P02: (CRIT-P02-001/003 + HIGH-P02-005) HIGH-003 4+3+1 split reverted to 4+4 grouping for sibling consistency with BC-4.04.001 + BC-4.05.001. The implementation-detail 4-vs-3 distinction is not surfaced in HOST_ABI.md; HOST_ABI.md lumps all 8 RESERVED_FIELDS together. Restored: "Wire payload: 9 fields (1 plugin-set + 4 host-enriched + 4 construction-time)". HOST_ABI.md authoritative-for-4-vs-3-split claim dropped entirely. (CRIT-P02-002) EC-001 once-key-absence pinned: "`once` key ABSENT" replaces "`once: false` (or absent)" — matches BC-4.07.003 PC-4 exactly. |
 | v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (HIGH-003) RESERVED_FIELDS split corrected from 4-vs-4 to 4-vs-3-vs-1 per HOST_ABI.md §emit_event; (HIGH-004) DI-007 removed — DI-007 is dispatcher self-telemetry scope (SS-03), not plugin event emission; replaced with "no current DI; v1.1 candidate" annotation |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.03 foundation burst) |

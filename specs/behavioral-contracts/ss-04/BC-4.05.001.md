@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wasm` plugin via the `hooks.json.template` registration, the plugin emits a `session.ended` event via the `emit_event` host function. Three fields are set by the plugin: `duration_ms`, `tool_call_count`, and `timestamp`. These are computed from the incoming envelope's `session_start_ts` and `tool_call_count` fields; if either is absent, the plugin substitutes `"0"`. `duration_ms = "0"` also applies when `session_start_ts` is present but in the future relative to `now_ms` (clock skew safeguard — a future timestamp yields a negative elapsed duration, which is clamped to `"0"`). Four additional fields are automatically injected by the `emit_event` host fn from `HostContext` (per BC-1.05.012 enrichment; the plugin does not set these): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Four construction-time fields are set by the dispatcher between the plugin's `emit_event` call and the final wire format (implementation provenance is opaque from the spec layer): `ts`, `ts_epoch`, `schema_version`, `type`. Total fields on wire: 11. The `session.ended` event-name literal is reserved per PRD FR-046.
+When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wasm` plugin via the `hooks.json.template` registration, the plugin emits a `session.ended` event via the `emit_event` host function. Three fields are set by the plugin: `duration_ms`, `tool_call_count`, and `timestamp`. These are computed from the incoming envelope's `session_start_ts` and `tool_call_count` fields; if either is absent, the plugin substitutes `"0"`. `duration_ms = "0"` also applies when `session_start_ts` is present but in the future relative to `now_ms` (clock skew safeguard — a future timestamp yields a negative elapsed duration, which is clamped to `"0"`). Four additional fields are automatically injected by the `emit_event` host fn from `HostContext` (per BC-1.05.012 enrichment; the plugin does not set these): `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. Four construction-time fields are set by the dispatcher between the plugin's `emit_event` call and the final wire format (implementation provenance is opaque from the spec layer): `ts`, `ts_epoch`, `schema_version`, `type`. Total fields on wire: 11. The `session.ended` event-name literal is reserved per PRD FR-046.
 
 ## Preconditions
 
@@ -52,14 +52,14 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 
    **Field provenance — 4+4+3 split (SessionEnd analog of F-P7-02):** The 11 fields on the wire come from three distinct sources:
 
-   - **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and would be silently dropped if the plugin attempted to set them. `session_id` originates from the incoming `SessionEnd` envelope parsed by BC-1.02.005 lifecycle-tolerant envelope parsing; when missing or empty, BC-1.02.005 sets `HostContext.session_id = "unknown"`.
+   - **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and would be silently dropped if the plugin attempted to set them. `session_id` originates from the incoming `SessionEnd` envelope parsed by BC-1.02.005 lifecycle-tolerant envelope parsing; when missing or empty, BC-1.02.005 sets `HostContext.session_id = "unknown"`.
 
    - **Construction-time fields (4 fields — set by the dispatcher between the plugin's `emit_event` call and the final wire format; the plugin must NOT set them — implementation provenance is opaque from the spec layer):** `ts` (current UTC time), `ts_epoch` (current Unix timestamp), `schema_version` (struct constant), `type` (the plugin-supplied `event_name` argument — `"session.ended"` in this case). Also part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
 
    - **Plugin-set fields (3 fields listed above):** set by the plugin via `emit_event` key/value pairs and pass through the non-reserved field path in `emit_event.rs`.
 
    **RESERVED_FIELDS — plugin must NOT set (8 total):**
-   4 host-enriched (auto-injected by `emit_event` from `HostContext`): `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`.
+   4 host-enriched (auto-injected by `emit_event` from `HostContext`): `trace_id` (renamed from `dispatcher_trace_id` per DI-017), `session_id`, `plugin_name`, `plugin_version`.
    4 construction-time (set by the dispatcher between the plugin's `emit_event` call and the final wire format; implementation provenance is opaque from the spec layer): `ts`, `ts_epoch`, `schema_version`, `type`.
    Any plugin attempt to set a RESERVED_FIELD is silently dropped by `emit_event.rs`.
 
@@ -93,7 +93,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `SessionEnd` envelope with `session_id = "sess-abc-123"`, `session_start_ts = "2026-04-28T12:00:00.000Z"`, `tool_call_count = 42`, dispatcher routes to session-end-telemetry.wasm | `session.ended` emitted once; `duration_ms` is a non-negative decimal string representing elapsed ms since session_start_ts; `tool_call_count = "42"` (string on wire per emit_event.rs:49); `timestamp` matches regex `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; host-enriched fields present: `session_id = "sess-abc-123"`, `dispatcher_trace_id` non-empty string, `plugin_name` non-empty string, `plugin_version` non-empty string | happy-path |
+| `SessionEnd` envelope with `session_id = "sess-abc-123"`, `session_start_ts = "2026-04-28T12:00:00.000Z"`, `tool_call_count = 42`, dispatcher routes to session-end-telemetry.wasm | `session.ended` emitted once; `duration_ms` is a non-negative decimal string representing elapsed ms since session_start_ts; `tool_call_count = "42"` (string on wire per emit_event.rs:49); `timestamp` matches regex `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; host-enriched fields present: `session_id = "sess-abc-123"`, `trace_id` non-empty string (renamed from `dispatcher_trace_id` per DI-017), `plugin_name` non-empty string, `plugin_version` non-empty string | happy-path |
 | `SessionEnd` envelope with `session_id = "sess-def-456"`, `session_start_ts` absent, `tool_call_count` absent | `session.ended` emitted once; `duration_ms = "0"`, `tool_call_count = "0"`, `timestamp` present with correct format; `session_id = "sess-def-456"` (host-enriched) | edge-case (both absent) |
 | `SessionEnd` envelope with `session_id = ""` (empty string) | `session.ended` emitted once; `session_id = "unknown"` (BC-1.02.005 sets "unknown" sentinel; emit_event auto-enriches); `duration_ms = "0"` if session_start_ts absent; plugin does not abort | edge-case (missing session_id) |
 | `SessionEnd` envelope with `session_start_ts` set to a timestamp 60 seconds in the future relative to dispatch time | `session.ended` emitted once; `duration_ms = "0"` (clock-skew safeguard: negative elapsed time clamped to zero per EC-001b); all other fields emitted normally | edge-case (future session_start_ts / clock skew) |
@@ -117,7 +117,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 - **BC-4.05.004** — depends on (hooks.json.template registration triggers this plugin; Layer 1 `once: true` directive is the upstream once-per-session guarantee)
 - **BC-4.05.005** — depends on (hooks-registry.toml registration provides dispatcher-side routing to this plugin)
 - **BC-1.02.005** — depends on (dispatcher envelope parsing delivers `session_id` to this plugin)
-- **BC-1.05.012** — depends on (emit_event host fn auto-enriches with host-enriched fields including session_id, dispatcher_trace_id, plugin_name, plugin_version)
+- **BC-1.05.012** — depends on (emit_event host fn auto-enriches with host-enriched fields including session_id, trace_id (renamed from dispatcher_trace_id per DI-017), plugin_name, plugin_version)
 - **BC-4.04.001** — structural analog (SessionStart counterpart; BC-4.05.001 mirrors BC-4.04.001 pattern adapted for SessionEnd semantics)
 
 ## Architecture Anchors
@@ -139,7 +139,7 @@ VP-066
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-007 **REMOVED** (retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events. No current DI for plugin event emission unconditionally; v1.1 candidate.); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set); BC-1.02.005 (lifecycle-tolerant envelope parsing populates HostContext.session_id used by emit_event auto-enrichment; "unknown" sentinel set at envelope-parse layer, not by the plugin) |
+| L2 Domain Invariants | DI-007 **REMOVED** (retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and SS-03 internal_log.rs; does NOT govern plugin-emitted events. No current DI for plugin event emission unconditionally; v1.1 candidate.); DI-017 (`trace_id` (renamed from `dispatcher_trace_id` per ADR-015 v1.7) on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set); BC-1.02.005 (lifecycle-tolerant envelope parsing populates HostContext.session_id used by emit_event auto-enrichment; "unknown" sentinel set at envelope-parse layer, not by the plugin) |
 | Architecture Module | SS-04 — `crates/hook-plugins/session-end-telemetry/src/lib.rs` |
 | Stories | S-5.02 |
 | Functional Requirement | FR-046 |
@@ -148,6 +148,7 @@ VP-066
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields, RESERVED_FIELDS inline), Canonical Test Vectors, Related BCs, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.03-P04 sibling-sweep MED-P04-006 — abstract construction-time framing propagated from VP-067 v1.2 (MED-P03-001 closure). "set by `InternalEvent::now()`" concrete attribution replaced with "set by the dispatcher between the plugin's `emit_event` call and the final wire format; the plugin must NOT set them — implementation provenance is opaque from the spec layer" in Postconditions §2 Construction-time fields description (line 57) and RESERVED_FIELDS inline note (line 63). Third retroactive edit to S-5.02 BCs in S-5.03 cycle. |
 | v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.02 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.05.001 already uses 4+4 grouping per "Field provenance — 4+4+3 split"; HIGH-003 was reverted in S-5.03 P02 confirming 4+4 is canonical). |
 | v1.0 | 2026-04-27 | product-owner | Final state after S-5.02 convergence passes (v1.0-pass-1 through v1.0-pass-5) |

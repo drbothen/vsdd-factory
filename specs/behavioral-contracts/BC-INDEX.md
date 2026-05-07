@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.13"
+version: "1.14"
 status: draft
 producer: state-manager
-timestamp: 2026-05-06T18:00:00
+timestamp: 2026-05-06T21:00:00
 phase: 1.4c
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1931
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-06
+    change: "D-337 (2026-05-06) — E-10 pass-8 fix-cycle seal: D-336 mass version bump for DI-017 dispatcher_trace_id→trace_id propagation sweep (15 BCs touched: BC-1.05.010 1.0→1.1, BC-1.05.012 1.1→1.2, BC-1.05.018 1.0→1.1, BC-1.05.033 1.0→1.1, BC-1.06.007 1.0→1.1, BC-1.06.008 1.0→1.1, BC-1.06.009 1.0→1.1, BC-1.10.001 1.0→1.1, BC-1.11.001 1.2→1.3, BC-3.03.008 1.0→1.1, BC-3.05.003 1.0→1.1, BC-4.04.001 1.2→1.3, BC-4.05.001 1.2→1.3, BC-4.07.001 1.3→1.4, BC-4.07.002 1.2→1.3, BC-4.08.001 1.2→1.3). F-1 primary: BC-1.11.001 PC2 dispatcher_trace_id→trace_id (DI-017). BC-3.05.003 audit-trail accuracy (retired BC). total_bcs unchanged at 1931. last_updated: 2026-05-06."
   - date: 2026-05-06
     change: "D-333 (2026-05-06) — E-10 pass-6 fix-cycle seal: BC-1.12.009 v1.3 → v1.4 (D-332 F-2 + F-3 — Inv 4 routing rules + PC4 State 5 label). F-1 fix in ARCH-INDEX line 96 (renumbering-history paragraph) — D-15.4 → D-15.1 propagation completed; same-document sibling drift from D-331's primary fix at line 85 closed. 3 of 3 pass-6 findings closed (F-1 + F-2 + F-3). Trend: 22→11→16→16→12→2 substantive findings. Approaching NITPICK_ONLY. See cycles/v1.0-brownfield-backfill/E-10-pass-6.md and follow-up commit fbe679d (D-332). total_bcs unchanged at 1931."
   - date: 2026-05-06

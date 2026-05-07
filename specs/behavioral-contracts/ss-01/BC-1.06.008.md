@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-For an `InternalEvent::with_ts(DISPATCHER_STARTED, ts)` (no `with_trace_id`, no `with_session_id`, no `with_plugin_*`), serialization produces JSON without keys `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. Absent — not null. Downstream pipelines see absence (not null) when a correlation field doesn't apply.
+For an `InternalEvent::with_ts(DISPATCHER_STARTED, ts)` (no `with_trace_id`, no `with_session_id`, no `with_plugin_*`), serialization produces JSON without keys `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. Absent — not null. Downstream pipelines see absence (not null) when a correlation field doesn't apply.
 
 ## Preconditions
 
@@ -36,7 +36,7 @@ For an `InternalEvent::with_ts(DISPATCHER_STARTED, ts)` (no `with_trace_id`, no 
 
 ## Postconditions
 
-1. JSON output has no `dispatcher_trace_id` key.
+1. JSON output has no `trace_id` key (renamed from `dispatcher_trace_id` per DI-017).
 2. JSON output has no `session_id` key.
 3. JSON output has no `plugin_name` key.
 4. JSON output has no `plugin_version` key.
@@ -100,3 +100,10 @@ For an `InternalEvent::with_ts(DISPATCHER_STARTED, ts)` (no `with_trace_id`, no 
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description and Postcondition 1 per DI-017 / ADR-015 v1.7 canonicalization. |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

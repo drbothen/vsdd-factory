@@ -1482,3 +1482,19 @@ Orchestrator preparing for context compact. STATE.md updated with comprehensive 
 **N=3 trigger reached.** Codification candidate: when a BC body references an ADR decision, the adversary should explicitly trace every downstream "Refined by:" / "Per ADR-015 D-X.Y:" citation back to the source BC and verify the decision number matches. A `validate-adr-decision-citation.sh` lint hook could catch this mechanically: parse `D-15.\d+` references in spec files, look up the cited decision in `architecture-decisions.md`, and flag mismatches against the surrounding context (e.g., a paragraph about "warn-and-skip schema validation" should cite the schema-validation decision, not the trace-propagation decision).
 
 **Routing:** TD-VSDD entry to be opened post-cycle. Tag: `[codification-candidate]`.
+
+---
+
+### Lesson — DI-017 dispatcher_trace_id rename propagation gap [process-gap]
+
+**Trigger:** Pass-8 F-1 (D-336) — BC-1.11.001 Precondition 2 line 50 carried `dispatcher_trace_id` despite DI-017 v1.1 (D-314, 2026-05-06) explicitly canonicalizing the rename to `trace_id`. Comprehensive sweep on D-336 found additional instances at: BC-1.05.012 (Description+Postconditions+Invariants+Test Vectors), BC-1.05.018 (Description RESERVED_FIELDS list), BC-1.06.007 (Description test vector field), BC-1.06.008 (Description+Postcondition 1), BC-1.06.009 (Description envelope field), BC-1.05.010 (H1 title+Description), BC-1.05.033 (Description+Postcondition 1), BC-1.10.001 (Invariant 1), BC-3.03.008 (Description+Preconditions+Postconditions+TVs+VPs), BC-3.05.003 (Description+Postcondition 1, retired BC), BC-4.04.001 (Description+Postconditions+TVs+DI-017 row), BC-4.05.001 (Description+Postconditions+TVs+Related BCs+DI-017 row), BC-4.07.001 (Description+Postconditions+TVs+Related BCs+DI-017 row), BC-4.07.002 (Description+Postconditions+TVs+DI-017 row), BC-4.08.001 (Description+Postconditions+TVs+Related BCs+DI-017 row). Total: 15 BC files modified, 40+ individual occurrences corrected.
+
+**Pattern:** When `invariants.md` declares a rename mandate ("Any reference to `<OLD>` in existing code or specs is a drift artifact to be corrected"), there is no automated gate that grep-verifies the entire spec tree at seal time. The same mandate exists for `schema_version=1`→`schema_version=2` for observability-config.toml (DI-014 v2 update) — and that rename ALSO leaked into ARCH-INDEX line 151 (D-336 F-3, separate fix).
+
+**Codification candidate:** Add a `validate-rename-propagation.sh` lint hook that:
+1. Reads invariants.md for any "Renamed by ... `<OLD>` → `<NEW>`" or "Any reference to `<OLD>`... is a drift artifact" pattern
+2. Greps the entire `specs/` tree for `<OLD>`
+3. Excludes lines that match historical-reference patterns ("renamed from", "Updated per", inside CHANGELOG sections, inside Q&A blocks)
+4. Reports remaining hits as findings on next state-manager seal
+
+**Routing:** TD-VSDD entry post-cycle. Tag: `[codification-candidate]`. Already have N=2 trigger here (DI-013 D-15.4→D-15.1 was 4-occurrence; DI-017 dispatcher_trace_id is 2nd known propagation pattern in this cycle). Recommend codifying after the 3rd distinct rename-propagation event.

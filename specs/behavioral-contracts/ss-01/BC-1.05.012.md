@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -30,9 +30,9 @@ removal_reason: null
 
 The `emit_event` host fn has two inseparable halves that operate on every call:
 
-**Enrichment half:** On every `emit_event` call, the host fn unconditionally enriches the event with four host-owned identity fields sourced from `HostContext`: `dispatcher_trace_id` (via `.with_trace_id`), `session_id` (via `.with_session_id`), `plugin_name` (via `.with_plugin_name`), and `plugin_version` (via `.with_plugin_version`). These values are populated by the dispatcher's routing layer before the plugin is invoked. The plugin has no responsibility to set these fields.
+**Enrichment half:** On every `emit_event` call, the host fn unconditionally enriches the event with four host-owned identity fields sourced from `HostContext`: `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7; via `.with_trace_id`), `session_id` (via `.with_session_id`), `plugin_name` (via `.with_plugin_name`), and `plugin_version` (via `.with_plugin_version`). These values are populated by the dispatcher's routing layer before the plugin is invoked. The plugin has no responsibility to set these fields.
 
-**Filter half:** When a plugin emits an event with fields that include any of the eight reserved names (`dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`), those reserved fields are silently dropped from the plugin's submitted payload before the event is stored. This prevents plugins from spoofing host-owned or construction-time fields.
+**Filter half:** When a plugin emits an event with fields that include any of the eight reserved names (`trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`), those reserved fields are silently dropped from the plugin's submitted payload before the event is stored. This prevents plugins from spoofing host-owned or construction-time fields. (`trace_id` renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7.)
 
 The four remaining reserved fields (`ts`, `ts_epoch`, `schema_version`, `type`) are set at event construction time by `InternalEvent::now()` — not by the `emit_event` enrichment path — but are equally protected by the filter.
 
@@ -44,15 +44,15 @@ Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS alw
 
 ## Postconditions
 
-1. The emitted event unconditionally contains `dispatcher_trace_id`, `session_id`, `plugin_name`, and `plugin_version` sourced from `HostContext` — set by the enrichment path regardless of whether the plugin provided those fields.
-2. Any reserved field names (`dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`) present in the plugin's submitted payload are dropped before the event is stored.
+1. The emitted event unconditionally contains `trace_id` (renamed from `dispatcher_trace_id` per DI-017), `session_id`, `plugin_name`, and `plugin_version` sourced from `HostContext` — set by the enrichment path regardless of whether the plugin provided those fields.
+2. Any reserved field names (`trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`) present in the plugin's submitted payload are dropped before the event is stored. (`trace_id` was formerly `dispatcher_trace_id` per DI-017 / ADR-015 v1.7.)
 3. All non-reserved fields in the plugin's submitted payload pass through unchanged.
 
 ## Invariants
 
-1. Reserved field set is closed: `{dispatcher_trace_id, session_id, plugin_name, plugin_version, ts, ts_epoch, schema_version, type}`.
+1. Reserved field set is closed: `{trace_id, session_id, plugin_name, plugin_version, ts, ts_epoch, schema_version, type}`. (`trace_id` renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7.)
 2. Plugins cannot spoof host-owned or construction-time fields.
-3. `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version` are unconditionally present on every emitted event (sourced from `HostContext` via `.with_X(&str)` calls in emit_event.rs:38-42). Non-empty guarantee is upstream-BC-conditional: the dispatcher routing layer is responsible for populating `dispatcher_trace_id`, `plugin_name`, `plugin_version` before plugin invocation; the host fn handles any absent `session_id` value from the envelope (specific sentinel behavior is a host fn implementation detail — v1.1 candidate BC-1.02.NNN-session-id-unknown-fallback to formalize). No current BC enforces non-empty for these fields at the dispatcher-routing layer — v1.1 candidate to lift to dispatcher-routing-layer BCs.
+3. `trace_id`, `session_id`, `plugin_name`, `plugin_version` are unconditionally present on every emitted event (sourced from `HostContext` via `.with_X(&str)` calls in emit_event.rs:38-42). Non-empty guarantee is upstream-BC-conditional: the dispatcher routing layer is responsible for populating `trace_id`, `plugin_name`, `plugin_version` before plugin invocation; the host fn handles any absent `session_id` value from the envelope (specific sentinel behavior is a host fn implementation detail — v1.1 candidate BC-1.02.NNN-session-id-unknown-fallback to formalize). No current BC enforces non-empty for these fields at the dispatcher-routing layer — v1.1 candidate to lift to dispatcher-routing-layer BCs.
 
 ## Edge Cases
 
@@ -66,7 +66,7 @@ Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS alw
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Plugin emits `{type:"my.evt", session_id:"x"}` | Event has `session_id` from HostContext (enrichment), plugin's `session_id:"x"` is dropped (filter), `dispatcher_trace_id` is present from HostContext | happy-path |
+| Plugin emits `{type:"my.evt", session_id:"x"}` | Event has `session_id` from HostContext (enrichment), plugin's `session_id:"x"` is dropped (filter), `trace_id` is present from HostContext (renamed from `dispatcher_trace_id` per DI-017) | happy-path |
 | Plugin emits `{commit_sha: "abc"}` | Field passes through unchanged; host-enriched fields also present | edge-case |
 | Plugin emits empty payload `{}` | Event stored with HostContext-enriched fields only (plus construction-time fields from `InternalEvent::now`) | edge-case |
 
@@ -116,5 +116,6 @@ Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS alw
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` throughout Description, Postconditions, Invariants, and Test Vectors per DI-017 / ADR-015 v1.7 canonicalization. Parenthetical "renamed from" annotations added for reader traceability. |
 | 1.1 | 2026-04-28 | product-owner | Sibling-sweep from S-5.04 ADV-P01 HIGH-P01-002: Invariant 3 simplified — removed BC-1.02.005 citation for session_id non-empty guarantee. BC-1.02.005 only contracts tool_name="" default for lifecycle events, not session_id sentinel behavior. Invariant 3 now reads: host fn handles any absent session_id value from the envelope; specific sentinel is a host fn implementation detail (v1.1 candidate BC-1.02.NNN-session-id-unknown-fallback). |
 | 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction (pass-7 + pass-8 modifications). |

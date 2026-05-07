@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `worktree.created` event via the `emit_event` host function. Two fields are set by the plugin: `worktree_path` and `worktree_name`, sourced from the incoming `WorktreeCreate` envelope. Eight additional fields are reserved and NOT settable by the plugin (RESERVED_FIELDS), set by the host in two groups: (a) 4 host-enriched from `HostContext` by `emit_event`: `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`; (b) 4 construction-time fields set somewhere in the dispatcher between plugin `emit_event` call and final wire format: `ts`, `ts_epoch`, `schema_version`, `type`. The plugin MUST NOT set any of the 8 RESERVED_FIELDS. Total fields on wire: 10. The plugin performs NO filesystem writes, NO subprocess invocations, and requires ZERO declared capabilities — it reads all required data from the incoming envelope. This is the Option A (zero-capability) scoping decision applied to WorktreeCreate.
+When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `worktree.created` event via the `emit_event` host function. Two fields are set by the plugin: `worktree_path` and `worktree_name`, sourced from the incoming `WorktreeCreate` envelope. Eight additional fields are reserved and NOT settable by the plugin (RESERVED_FIELDS), set by the host in two groups: (a) 4 host-enriched from `HostContext` by `emit_event`: `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`; (b) 4 construction-time fields set somewhere in the dispatcher between plugin `emit_event` call and final wire format: `ts`, `ts_epoch`, `schema_version`, `type`. The plugin MUST NOT set any of the 8 RESERVED_FIELDS. Total fields on wire: 10. The plugin performs NO filesystem writes, NO subprocess invocations, and requires ZERO declared capabilities — it reads all required data from the incoming envelope. This is the Option A (zero-capability) scoping decision applied to WorktreeCreate.
 
 ## Scoping Decision: Option A (Zero-Capability) — Rationale
 
@@ -38,7 +38,7 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 
 **Option B (REJECTED):** Use `exec_subprocess` to invoke a config-write CLI tool (`factory-worktree-register`). Adds capability scope creep; hard to test deterministically; requires a new CLI binary. Violates S-5.01 lesson 3 (avoid bespoke host fns / shell-out tricks). Rejected.
 
-**Option C (REJECTED):** Add a new `write_file` host fn to vsdd-hook-sdk. HOST_ABI bump (major). Out of scope for v1.0 (release-gate calendar). Verified at `crates/hook-sdk/HOST_ABI.md`: available host fns are `log`, `emit_event` (always), `read_file` (capability-gated), `exec_subprocess` (capability-gated), and zero-capability info getters (`session_id`, `dispatcher_trace_id`, `plugin_root`, `plugin_version`, `cwd`, `env`). No `write_file` host fn exists. Rejected.
+**Option C (REJECTED):** Add a new `write_file` host fn to vsdd-hook-sdk. HOST_ABI bump (major). Out of scope for v1.0 (release-gate calendar). Verified at `crates/hook-sdk/HOST_ABI.md`: available host fns are `log`, `emit_event` (always), `read_file` (capability-gated), `exec_subprocess` (capability-gated), and zero-capability info getters (`session_id`, `trace_id` (renamed from `dispatcher_trace_id` per DI-017), `plugin_root`, `plugin_version`, `cwd`, `env`). No `write_file` host fn exists. Rejected.
 
 **Deferred to v1.1:** BC-4.07.005 (worktree-config-write — filesystem sink config auto-generation via a future `write_file` host fn). Filesystem-write capability deferred to v1.1 — no CAP ID allocated yet; v1.1 capability registry expansion required (provisional name: `CAP-NNN-filesystem-write` to be assigned in v1.1).
 
@@ -58,7 +58,7 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
    - `worktree_path` (string): absolute path to the newly created worktree, sourced from the envelope's `worktree_path` field. If absent from the envelope, `worktree_path = ""` (empty string default per PC-3). Value is always a string on the wire (per `emit_event.rs:49` string coercion).
    - `worktree_name` (string): human-readable identifier for the worktree, sourced from the envelope's `worktree_name` field. If absent from the envelope, `worktree_name = ""` (empty string default). Value is always a string on the wire.
 
-   **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and are silently dropped if the plugin attempts to set them. Each is a non-empty string per BC-1.05.012 unconditional enrichment.
+   **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and are silently dropped if the plugin attempts to set them. Each is a non-empty string per BC-1.05.012 unconditional enrichment.
 
    **Construction-time fields (4 fields — set by the dispatcher between plugin `emit_event` call and final wire format, NOT by the plugin):** `ts`, `ts_epoch`, `schema_version`, `type`. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped. `type` MUST equal `"worktree.created"`.
 
@@ -92,7 +92,7 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `WorktreeCreate` envelope with `worktree_path = "/workspace/feat-branch"`, `worktree_name = "feat-branch"`, `session_id = "wt-sess-001"`, dispatcher routes to worktree-hooks.wasm | `worktree.created` emitted once; `worktree_path = "/workspace/feat-branch"` (string on wire); `worktree_name = "feat-branch"` (string on wire); `session_id = "wt-sess-001"` (host-enriched); `dispatcher_trace_id` non-empty string (host-enriched); `plugin_name` non-empty string (host-enriched); `plugin_version` non-empty string (host-enriched); `type = "worktree.created"` (construction-time); total 10 fields; `exec_subprocess` CountingMock invocation_count == 0 | happy-path |
+| `WorktreeCreate` envelope with `worktree_path = "/workspace/feat-branch"`, `worktree_name = "feat-branch"`, `session_id = "wt-sess-001"`, dispatcher routes to worktree-hooks.wasm | `worktree.created` emitted once; `worktree_path = "/workspace/feat-branch"` (string on wire); `worktree_name = "feat-branch"` (string on wire); `session_id = "wt-sess-001"` (host-enriched); `trace_id` non-empty string (renamed from `dispatcher_trace_id` per DI-017; host-enriched); `plugin_name` non-empty string (host-enriched); `plugin_version` non-empty string (host-enriched); `type = "worktree.created"` (construction-time); total 10 fields; `exec_subprocess` CountingMock invocation_count == 0 | happy-path |
 | `WorktreeCreate` envelope with `worktree_path` absent, `worktree_name` absent | `worktree.created` emitted once; `worktree_path = ""`, `worktree_name = ""`; host-enriched and construction-time fields present normally | edge-case (both absent) |
 | `WorktreeCreate` envelope with `session_id = ""` (empty) | `worktree.created` emitted once; `session_id` is host-enriched from HostContext; host fn handles absent value; other fields emitted normally | edge-case (missing session_id, EC-005) |
 | Two consecutive `WorktreeCreate` events with same `worktree_path` (reconnect simulation) | Two `worktree.created` events emitted (`once` key absent — no Layer 1 dedup for WorktreeCreate); each event has correct 10-field payload | edge-case (idempotent re-fire, EC-001) |
@@ -115,7 +115,7 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 - **BC-4.07.003** — depends on (hooks.json.template WorktreeCreate registration triggers this plugin via dispatcher routing)
 - **BC-4.07.004** — depends on (hooks-registry.toml WorktreeCreate routing entry provides dispatcher-side routing to worktree-hooks.wasm)
 - **BC-1.02.005** — depends on (dispatcher envelope parsing delivers `tool_name` and other envelope fields; `tool_name=""` default when absent)
-- **BC-1.05.012** — depends on (emit_event host fn auto-enriches with host-enriched fields including session_id, dispatcher_trace_id, plugin_name, plugin_version; session_id is RESERVED_FIELDS host-enriched — plugin must not set it)
+- **BC-1.05.012** — depends on (emit_event host fn auto-enriches with host-enriched fields including session_id, trace_id (renamed from dispatcher_trace_id per DI-017), plugin_name, plugin_version; session_id is RESERVED_FIELDS host-enriched — plugin must not set it)
 - **BC-4.05.001** — structural analog (SessionEnd event emission pattern; WorktreeCreate is simpler with only 2 plugin-set fields vs. 3 for SessionEnd)
 - **BC-4.04.001** — structural analog (SessionStart event emission pattern; canonical reference for the Tier F BC family shape)
 
@@ -138,7 +138,7 @@ VP-067
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
-| L2 Domain Invariants | DI-007 **REMOVED** (DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and enforced by SS-03 internal_log.rs; it does NOT govern plugin-emitted events. Replaced by: no current DI for plugin event emission unconditionally; this is a v1.1 candidate per PRD §S-5.03 flag. Plugin-emitted events are always-on by convention, but no DI formalizes this at v1.0.); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set) |
+| L2 Domain Invariants | DI-007 **REMOVED** (DI-007 is "Dispatcher self-telemetry is always-on" — scoped to dispatcher-internal-YYYY-MM-DD.jsonl and enforced by SS-03 internal_log.rs; it does NOT govern plugin-emitted events. Replaced by: no current DI for plugin event emission unconditionally; this is a v1.1 candidate per PRD §S-5.03 flag. Plugin-emitted events are always-on by convention, but no DI formalizes this at v1.0.); DI-017 (`trace_id` (renamed from `dispatcher_trace_id` per ADR-015 v1.7) on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set) |
 | Architecture Module | SS-04 — `crates/hook-plugins/worktree-hooks/src/lib.rs` |
 | Stories | S-5.03 |
 | Functional Requirement | FR-046 |
@@ -147,6 +147,7 @@ VP-067
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields, Option C zero-capability host fns list), Canonical Test Vectors, Related BCs, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.3 | 2026-04-28 | product-owner | Sibling-sweep from S-5.04 ADV-P01 HIGH-P01-002: EC-005 simplified — drop BC-1.02.005 mis-citation for session_id sentinel; BC-1.02.005 only contracts tool_name="" default, not session_id. EC-005 now reads: session_id is RESERVED_FIELDS host-enriched; host fn handles absent value; plugin does not set it. Same fix applied to EC-005 test vector row. Related BCs: BC-1.02.005 citation narrowed to envelope-field parsing (tool_name); BC-1.05.012 added as the correct anchor for session_id host-enrichment. |
 | v1.2 | 2026-04-28 | product-owner | Pass-2 reversal ADV-S5.03-P02: (CRIT-P02-001/003 + HIGH-P02-005) HIGH-003 4+3+1 split reverted to 4+4 grouping for sibling consistency with BC-4.04.001 + BC-4.05.001. The implementation-detail 4-vs-3 distinction (HostContext-enriched vs. InternalEvent::now()) is not surfaced in HOST_ABI.md and added complexity without spec value — HOST_ABI.md lumps all 8 RESERVED_FIELDS together. Restored: "Wire payload: 10 fields (2 plugin-set + 4 host-enriched + 4 construction-time)". HOST_ABI.md authoritative-for-4-vs-3-split claim dropped entirely. (CRIT-P02-002) EC-001 once-key-absence pinned: "`once` key absent" replaces "`once: false` (or absent)" — matches BC-4.07.003 PC-4 exactly; same fix applied to test vector row 4. |
 | v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (CRIT-001) CAP-003 parenthetical removed — filesystem-write capability deferred to v1.1 with no CAP ID; (CRIT-002) BC-1.05.022 deny-by-default re-anchored to correct pair BC-1.05.001+BC-1.05.021; (CRIT-003) event_type → event_name (HookPayload envelope field per HOST_ABI.md); (HIGH-003) RESERVED_FIELDS split corrected from 4-vs-4 to 4-vs-3-vs-1 per HOST_ABI.md §emit_event (authoritative production contract); (HIGH-004) DI-007 removed — DI-007 is dispatcher self-telemetry (SS-03 internal_log.rs scope), not plugin event emission; replaced with "no current DI for plugin event emission; v1.1 candidate" annotation |

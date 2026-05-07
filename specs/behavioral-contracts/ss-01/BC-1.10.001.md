@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-04-28T00:00:00
@@ -78,7 +78,7 @@ in the `session.started` payload. Two options were evaluated:
 ## Invariants
 
 1. The `activated_platform` host function is registered in the vsdd namespace alongside
-   `session_id`, `dispatcher_trace_id`, `plugin_root`, `plugin_version`, `cwd`, and `env`
+   `session_id`, `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `plugin_root`, `plugin_version`, `cwd`, and `env`
    (per BC-1.05.033 vsdd-namespace import surface completeness).
 2. The returned value is always a valid UTF-8 string. Invalid UTF-8 in
    settings.local.json causes the fallback `"unknown"` to be returned.
@@ -144,3 +144,10 @@ S-5.01
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/context_fns.rs` |
 | Stories | S-5.01 |
 | Functional Requirement | FR-046 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Invariant 1 context getter list per DI-017 / ADR-015 v1.7 canonicalization. |
+| 1.0 | 2026-04-28 | architect | Initial greenfield authoring (S-5.01 Pass-2 F-3; activated_platform host fn). |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -30,7 +30,7 @@ removal_reason: null
 
 ## Description
 
-When the dispatcher routes a `PostToolUseFailure` event to the `tool-failure-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `tool.error` event via the `emit_event` host function. Two fields are set by the plugin: `tool_name` (sourced from the incoming `PostToolUseFailure` envelope, defaulting to `"unknown"` if absent — EC-002) and `error_message` (sourced from the envelope, truncated to 1000 characters if longer — EC-001). Eight additional fields are reserved and NOT settable by the plugin (RESERVED_FIELDS), set by the host in two groups: (a) 4 host-enriched from `HostContext` by `emit_event`: `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`; (b) 4 construction-time fields set by the dispatcher between plugin `emit_event` call and final wire format: `ts`, `ts_epoch`, `schema_version`, `type`. The plugin MUST NOT set any of the 8 RESERVED_FIELDS. Total fields on wire: 10 (2 plugin-set + 4 host-enriched + 4 construction-time). The plugin performs NO filesystem reads, NO subprocess invocations, and requires ZERO declared capabilities — all required data is read from the incoming envelope. This is the Option A (zero-capability) scoping decision applied to PostToolUseFailure, mirroring S-5.02 (BC-4.05.001–005) and S-5.03 (BC-4.07.001–004).
+When the dispatcher routes a `PostToolUseFailure` event to the `tool-failure-hooks.wasm` plugin via the `hooks.json.template` + `hooks-registry.toml` dual-layer registration, the plugin emits a `tool.error` event via the `emit_event` host function. Two fields are set by the plugin: `tool_name` (sourced from the incoming `PostToolUseFailure` envelope, defaulting to `"unknown"` if absent — EC-002) and `error_message` (sourced from the envelope, truncated to 1000 characters if longer — EC-001). Eight additional fields are reserved and NOT settable by the plugin (RESERVED_FIELDS), set by the host in two groups: (a) 4 host-enriched from `HostContext` by `emit_event`: `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`; (b) 4 construction-time fields set by the dispatcher between plugin `emit_event` call and final wire format: `ts`, `ts_epoch`, `schema_version`, `type`. The plugin MUST NOT set any of the 8 RESERVED_FIELDS. Total fields on wire: 10 (2 plugin-set + 4 host-enriched + 4 construction-time). The plugin performs NO filesystem reads, NO subprocess invocations, and requires ZERO declared capabilities — all required data is read from the incoming envelope. This is the Option A (zero-capability) scoping decision applied to PostToolUseFailure, mirroring S-5.02 (BC-4.05.001–005) and S-5.03 (BC-4.07.001–004).
 
 ## Scoping Decision: Option A (Zero-Capability) — Rationale
 
@@ -58,7 +58,7 @@ When the dispatcher routes a `PostToolUseFailure` event to the `tool-failure-hoo
    - `tool_name` (string): name of the failing tool, sourced from the envelope's `tool_name` field. If absent from the envelope, `tool_name = "unknown"` (fallback sentinel per EC-002). Value is always a string on the wire (per `emit_event.rs:49` string coercion).
    - `error_message` (string): description of the failure, sourced from the envelope's `error_message` field. If the envelope value exceeds 1000 characters, it is truncated to exactly 1000 characters before being set (EC-001). If absent from the envelope, `error_message = ""` (empty string default per EC-003). Value is always a string on the wire.
 
-   **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and are silently dropped if the plugin attempts to set them. Each is a non-empty string per BC-1.05.012 unconditional enrichment. The plugin MUST NOT set `session_id` — it is RESERVED_FIELDS host-enriched (per BC-1.05.012).
+   **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and are silently dropped if the plugin attempts to set them. Each is a non-empty string per BC-1.05.012 unconditional enrichment. The plugin MUST NOT set `session_id` — it is RESERVED_FIELDS host-enriched (per BC-1.05.012).
 
    **Construction-time fields (4 fields — set by the dispatcher between plugin `emit_event` call and final wire format, NOT by the plugin):** `ts`, `ts_epoch`, `schema_version`, `type`. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped. `type` MUST equal `"tool.error"`. Implementation provenance for these 4 fields is opaque from the spec layer.
 
@@ -94,7 +94,7 @@ When the dispatcher routes a `PostToolUseFailure` event to the `tool-failure-hoo
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `PostToolUseFailure` envelope with `tool_name = "Bash"`, `error_message = "command not found"`, `session_id = "fail-sess-001"`, dispatcher routes to tool-failure-hooks.wasm | `tool.error` emitted once; `tool_name = "Bash"` (string on wire); `error_message = "command not found"` (string on wire); `session_id = "fail-sess-001"` (host-enriched, NOT plugin-set); `dispatcher_trace_id` non-empty string (host-enriched); `plugin_name` non-empty string (host-enriched); `plugin_version` non-empty string (host-enriched); `type = "tool.error"` (construction-time); total 10 fields; `exec_subprocess` CountingMock invocation_count == 0 | happy-path |
+| `PostToolUseFailure` envelope with `tool_name = "Bash"`, `error_message = "command not found"`, `session_id = "fail-sess-001"`, dispatcher routes to tool-failure-hooks.wasm | `tool.error` emitted once; `tool_name = "Bash"` (string on wire); `error_message = "command not found"` (string on wire); `session_id = "fail-sess-001"` (host-enriched, NOT plugin-set); `trace_id` non-empty string (renamed from `dispatcher_trace_id` per DI-017; host-enriched); `plugin_name` non-empty string (host-enriched); `plugin_version` non-empty string (host-enriched); `type = "tool.error"` (construction-time); total 10 fields; `exec_subprocess` CountingMock invocation_count == 0 | happy-path |
 | `PostToolUseFailure` envelope with `tool_name` absent, `error_message = "timeout"` | `tool.error` emitted once; `tool_name = "unknown"` (fallback sentinel); `error_message = "timeout"` (string on wire); host-enriched and construction-time fields present normally | edge-case (missing tool_name, EC-002) |
 | `PostToolUseFailure` envelope with `error_message` = 1500-character string | `tool.error` emitted once; `error_message` is exactly 1000 characters (truncated from 1500); all other fields present normally | edge-case (truncation, EC-001) |
 | `PostToolUseFailure` envelope with `error_message` absent | `tool.error` emitted once; `error_message = ""` (empty string); `tool_name` present or `"unknown"`; plugin does not abort | edge-case (missing error_message, EC-003) |
@@ -113,7 +113,7 @@ When the dispatcher routes a `PostToolUseFailure` event to the `tool-failure-hoo
 - **BC-1.02.005** — depends on (dispatcher envelope parsing delivers `tool_name` to this plugin via envelope fields; `tool_name=""` default when absent — see EC-002 for the "unknown" fallback that this BC applies on top of that)
 - **BC-4.08.005** (v1.1 candidate) — `tool-failure-is-interrupt-field` — distinguishes user-interrupt from genuine tool failure; deferred to v1.1 for stability across SDK versions and observability dashboard requirements
 - **BC-4.08.006** (v1.1 candidate) — `tool-failure-tool-use-id-correlation` — `tool_use_id` correlation field for joining `tool.error` to tool-call invocation; deferred to v1.1; v1.0 minimum scope is `tool_name + error_message`
-- **BC-1.05.012** — depends on (emit_event host fn auto-enriches with host-enriched fields including session_id, dispatcher_trace_id, plugin_name, plugin_version)
+- **BC-1.05.012** — depends on (emit_event host fn auto-enriches with host-enriched fields including session_id, trace_id (renamed from dispatcher_trace_id per DI-017), plugin_name, plugin_version)
 - **BC-4.05.001** — structural analog (SessionEnd event emission pattern; PostToolUseFailure is same field count: 2 plugin-set + 4 host-enriched + 4 construction-time = 10)
 - **BC-4.07.001** — structural analog (WorktreeCreate event emission pattern; same 10-field count; same zero-capability profile)
 - **BC-1.05.001** — depends on (exec_subprocess denied when no exec_subprocess capability declared — enforces zero-capability sandbox for this plugin)
@@ -138,7 +138,7 @@ VP-068
 |-------|-------|
 | L2 Capability | CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002. Failure-path is part of the lifecycle hooks family (CAP-002 widened to include lifecycle events including failure path per S-5.01 arch-decision). Consistent with sibling BCs BC-4.07.001–004 (CAP-002) per PRD FR-046. |
-| L2 Domain Invariants | DI-004 (capability denial — by declaring ZERO capabilities, deny-by-default ensures exec_subprocess and read_file are both denied; plugin never attempts to call them); DI-017 (dispatcher_trace_id on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set) |
+| L2 Domain Invariants | DI-004 (capability denial — by declaring ZERO capabilities, deny-by-default ensures exec_subprocess and read_file are both denied; plugin never attempts to call them); DI-017 (`trace_id` (renamed from `dispatcher_trace_id` per ADR-015 v1.7) on every emitted event — automatically enriched by emit_event host fn from HostContext; not the plugin's responsibility to set) |
 | Architecture Module | SS-04 — `crates/hook-plugins/tool-failure-hooks/src/lib.rs` |
 | Stories | S-5.04 |
 | Functional Requirement | FR-046 |
@@ -147,6 +147,7 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields), Canonical Test Vectors, Related BCs, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; BC-4.07.001-004 and BC-4.05.001-005 all draft; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (CRIT-P01-001) Strip phantom legacy-story citation — Description, Invariant 8, Related BCs reframed as positive statements; no "authoritative correction" framing. (CRIT-P01-002) Add v1.1 candidates BC-4.08.005 and BC-4.08.006 with justification. (CRIT-P01-003) Revert error_message truncation limit from 2000 → 1000 chars (match legacy intent; avoid sink stream bloat). (HIGH-P01-001) CAP-013 → CAP-002 with sibling-consistency justification. (HIGH-P01-002) EC-006 mis-citation of BC-1.02.005 for session_id sentinel removed; simplified to "session_id is host-enriched; host fn handles absent value". + state-manager pre-commit cleanup: residual "2000 characters" in Description body fixed to 1000; Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.04 foundation burst). Promoted from v1.1 BC candidate BC-4.08.001 in legacy story. All S-5.01/02/03 lessons applied: 4+4 opaque RESERVED_FIELDS grouping; event_name (not event_type); ZERO declared capabilities (Option A); once key absent (mirrors S-5.03 pattern); session_id corrected to RESERVED (not plugin-set); 2-plugin-set-field count confirmed (tool_name + error_message). |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -24,11 +24,11 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.05.010: Context getters (session_id, dispatcher_trace_id, plugin_root, plugin_version, cwd) always return current value
+# Behavioral Contract BC-1.05.010: Context getters (session_id, trace_id, plugin_root, plugin_version, cwd) always return current value
 
 ## Description
 
-Per-invocation context getters (`session_id`, `dispatcher_trace_id`, `plugin_root`, `plugin_version`, `cwd`) always return the host-context-stored value as bytes. If the caller's `out_cap` is 0, the host returns the required size for the second-call protocol.
+Per-invocation context getters (`session_id`, `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `plugin_root`, `plugin_version`, `cwd`) always return the host-context-stored value as bytes. If the caller's `out_cap` is 0, the host returns the required size for the second-call protocol.
 
 ## Preconditions
 
@@ -98,3 +98,10 @@ Per-invocation context getters (`session_id`, `dispatcher_trace_id`, `plugin_roo
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in H1 title and Description per DI-017 / ADR-015 v1.7 canonicalization. |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

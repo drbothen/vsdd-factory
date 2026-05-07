@@ -1,14 +1,14 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
 timestamp: 2026-05-04T00:00:00Z
 phase: 1.2-rev
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
-input-hash: "[pending-recompute]"
+input-hash: "1da16ae"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: spec-revision
 subsystem: "SS-01"
@@ -47,8 +47,9 @@ env_allowlist filter runs and are NOT subject to that filter.
 ## Preconditions
 
 1. Plugin calls `vsdd::exec_subprocess` with a valid capability grant.
-2. The dispatcher has an active `dispatcher_trace_id` (UUID, generated at
-   process startup per ADR-015 D-15.2).
+2. The dispatcher has an active `trace_id` (UUID, generated at process startup
+   per ADR-015 D-15.2; renamed from `dispatcher_trace_id` per DI-017 / ADR-015
+   v1.7 changelog).
 3. The invoking plugin has an active `plugin.invocation_id` (the `span_id`
    for this plugin invocation).
 
@@ -167,3 +168,4 @@ S-10.04 (Wave 1: Trace propagation + lifecycle event types — exec_subprocess i
 | 1.0 | 2026-05-04 | Initial authoring (architect; ADR-015 D-15.4 trace propagation contract). |
 | 1.1 | 2026-05-06 | D-318 — capability resolved CAP-TBD → CAP-029 (single-stream emission requires trace_id stamping per DI-017 amendment); Story Anchor S-10.04 added. |
 | 1.2 | 2026-05-06 | D-325 — F-8 fix: Postcondition 5 added — span chain rule invariants (Rule 1: new UUID span_id per subprocess; Rule 2: VSDD_PARENT_SPAN_ID = invoking process's span_id; Rule 3: VSDD_TRACE_ID propagates verbatim across hops) per ADR-015 D-15.4. Story-writer D-326 to update S-10.04 AC-002 trace text from "postcondition 2" to "postcondition 5" accordingly. F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimer added to Architecture Anchors code symbol reference. |
+| 1.3 | 2026-05-06 | D-336 — Pass-8 F-1 fix: Precondition 2 renamed `dispatcher_trace_id` → `trace_id` per DI-017 / ADR-015 v1.7 canonicalization. Parenthetical "renamed from" added for reader traceability. |

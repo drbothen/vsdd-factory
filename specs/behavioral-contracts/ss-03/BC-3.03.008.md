@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -33,15 +33,15 @@ removal_reason: null
 
 ## Description
 
-Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher_trace_id, session_id, plugin_name, plugin_version. When `event_to_log_record(event)`.. Then Record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000; observed_time_unix_nano == time_unix_nano; attributes contain dispatcher_trace_id, session_id, plugin_name, plugin_version; type and ts_epoch are NOT also attributes.
+Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), session_id, plugin_name, plugin_version. When `event_to_log_record(event)`.. Then Record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000; observed_time_unix_nano == time_unix_nano; attributes contain `trace_id`, session_id, plugin_name, plugin_version; type and ts_epoch are NOT also attributes.
 
 ## Preconditions
 
-1. Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher_trace_id, session_id, plugin_name, plugin_version.
+1. Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, `trace_id` (renamed from `dispatcher_trace_id` per DI-017), session_id, plugin_name, plugin_version.
 
 ## Postconditions
 
-1. Record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000; observed_time_unix_nano == time_unix_nano; attributes contain dispatcher_trace_id, session_id, plugin_name, plugin_version; type and ts_epoch are NOT also attributes.
+1. Record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000; observed_time_unix_nano == time_unix_nano; attributes contain `trace_id`, session_id, plugin_name, plugin_version; type and ts_epoch are NOT also attributes.
 
 ## Invariants
 
@@ -59,7 +59,7 @@ Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher_trace_id, session_id, plugin_name, plugin_ver | Record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000; observed_time_unix_nano == time_unix_n | happy-path |
+| Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, `trace_id`, session_id, plugin_name, plugin_ver | Record body == "plugin.invoked"; time_unix_nano == 1_777_003_425_000 * 1_000_000; observed_time_unix_nano == time_unix_n | happy-path |
 | TBD | TBD | edge-case |
 | TBD | TBD | error |
 
@@ -67,7 +67,7 @@ Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher_trace_id, session_id, plugin_name, plug | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_to_log_record_maps_reserved_fields`) |
+| (TBD — to be assigned in Phase 1.6c) | Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, `trace_id`, session_id, plugin_name, plug | manual (existing test: `crates/sink-otel-grpc/src/lib.rs::tests::event_to_log_record_maps_reserved_fields`) |
 
 ## Traceability
 
@@ -122,4 +122,11 @@ Given Event with `type=plugin.invoked`, `ts_epoch=1_777_003_425_000`, dispatcher
 #### Refactoring Notes
 
 TBD — Phase 1.6b will produce refactoring guidance.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Preconditions, Postconditions, Canonical Test Vectors, and VP table per DI-017 / ADR-015 v1.7 canonicalization. |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |
 

@@ -255,15 +255,14 @@ include it in its required-fields list.
 Plugins MUST NOT include any of these four fields in their required-fields lists. All four are
 always **present** on every event by construction (BC-1.05.012 unconditional `.with_X(&str)`
 enrichment). **Non-empty** guarantee is upstream-BC-conditional per BC-1.05.012 Invariant 3
-hedge: `session_id` non-empty is covered by BC-1.02.005; `dispatcher_trace_id`, `plugin_name`,
+hedge: `session_id` non-empty is covered by BC-1.02.005; `trace_id` (the emitted JSON field; Rust struct field `HostContext.dispatcher_trace_id` — renamed in emitted schema per DI-017 v1.1 / ADR-015 v1.7), `plugin_name`,
 and `plugin_version` non-empty are dispatcher-routing-layer concerns (v1.1 candidate to lift to
-BC level). DI-017 mandates presence of `dispatcher_trace_id` on every event but does not
+BC level). DI-017 mandates presence of `trace_id` on every emitted event but does not
 directly enforce non-empty at the host-fn layer. Integration harnesses MUST assert these fields
 at the *host enrichment layer* — not as plugin-set fields.
 
 **Harness implication:** For any VP that verifies trace correlation, assert
-`event["dispatcher_trace_id"].is_string()` (not `event["trace_id"]`). The field name is
-`dispatcher_trace_id` — the `trace_id` alias does not exist in the event schema. Similarly,
+`event["trace_id"].is_string()` (renamed from `dispatcher_trace_id` per DI-017 v1.1; old harnesses asserting `event["dispatcher_trace_id"]` must be updated). Similarly,
 assert `event["session_id"].is_string()` — this is a host-enriched field, not a plugin-set field.
 
 ### InternalEvent::now Construction-Time Fields (4 fields)

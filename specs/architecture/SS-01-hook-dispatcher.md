@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-01-hook-dispatcher"
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -33,8 +33,9 @@ aggregation, and error handling. It deliberately exits 0 on any registry, payloa
 or engine error so that a misconfigured dispatcher never blocks a user's tool call
 (ADR-001, NFR-REL-001).
 
-The dispatcher also generates and propagates a `dispatcher_trace_id` (UUID v4) per
-invocation, attaches it to every emitted event, and drives the always-on
+The dispatcher also generates and propagates a `trace_id` (UUID v4) per
+invocation (renamed from `dispatcher_trace_id` per DI-017 v1.1 / ADR-015 v1.7),
+attaches it to every emitted event, and drives the always-on
 `dispatcher-internal-YYYY-MM-DD.jsonl` self-telemetry log independently of any
 configured external sink (ADR-007, Q6 Option B). This ensures debuggability even
 when all sinks are misconfigured or unreachable.
@@ -77,7 +78,7 @@ activate skill). Its external API is entirely I/O-level:
 - **`hooks-registry.toml`:** Configuration file consumed at startup. Schema version
   REGISTRY_SCHEMA_VERSION = 1; mismatch = hard error.
 - **`observability-config.toml`:** Sink configuration consumed at startup.
-  Schema version 1; mismatch = hard error.
+  Schema version 2 (post-ADR-015 D-15.1; v1→v2 hard-errors with migration hint per BC-3.05.004 PC4).
 
 Internal (crate-level) public surface: exposed via `factory-dispatcher` lib target
 for use by integration tests.
@@ -128,7 +129,7 @@ Key Rust types: `HookPayload`, `Registry`, `RegistryEntry`, `Capabilities`,
 - **Observability:** Every invocation emits `dispatcher.started`, per-plugin
   `plugin.invoked`/`plugin.completed`/`plugin.timeout`/`plugin.crashed`, and
   `dispatcher.completed` to `dispatcher-internal-YYYY-MM-DD.jsonl` (always-on,
-  independent of sink config; ADR-007). All events carry `dispatcher_trace_id`.
+  independent of sink config; ADR-007). All events carry `trace_id` (renamed from `dispatcher_trace_id` per DI-017 v1.1).
 - **Security:** Deny-by-default capability model. `exec_subprocess` requires
   `binary_allow` + `shell_bypass_acknowledged`. `read_file` requires `path_allow`.
   `env` read requires `env_allow`. Denials emit audit event and return -1.

@@ -1,10 +1,10 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.6"
+version: "1.7"
 status: accepted
-producer: state-manager
-timestamp: 2026-05-06T18:30:00
+producer: architect
+timestamp: 2026-05-06T19:00:00
 phase: 1.4c
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-06
+    change: "D-336 E-10 pass-8 fix-cycle (architect): version bump v1.6 → v1.7. F-2 fix: Cross-Cutting Concerns line 152 — `dispatcher_trace_id` → `trace_id` per DI-017 v1.1 / ADR-015 v1.7 canonicalization. F-3 fix: Schema versioning row — differentiated per-config (hooks-registry=1, observability-config=2 per ADR-015 D-15.1); added SS-03 to subsystem list; cited BC-3.05.004 PC4 migration hint and DI-014. last_updated: 2026-05-06."
   - date: 2026-05-06
     change: "D-333 E-10 pass-6 fix-cycle seal: version bump v1.5 → v1.6. F-1 fix: renumbering-history paragraph (line 96) D-15.4 → D-15.1 — same-document sibling-paragraph drift from D-331's primary fix at SS-03 row (line 85) now fully closed. No BC subsystem count changes."
   - date: 2026-05-06
@@ -148,8 +150,8 @@ graph TD
 |---------|-------|-----------|
 | Observability (single-stream) | SS-03 | `events-YYYY-MM-DD.jsonl` — all lifecycle + domain events (ADR-015). Debug file `dispatcher-internal-*.jsonl` opt-in via `VSDD_DEBUG_LOG=1`; ADR-007 amended. |
 | Capability enforcement | SS-01 | Deny-by-default; cap-gated host fns emit denial event + return code |
-| Schema versioning | SS-01, SS-09 | `schema_version = 1` on all TOML configs; mismatch = hard error |
-| Trace correlation | SS-01 | `dispatcher_trace_id` (UUID v4) propagated on every emitted event |
+| Schema versioning | SS-01, SS-09, SS-03 | per-config: `hooks-registry.toml` schema_version=1; `observability-config.toml` schema_version=2 (post-ADR-015 D-15.1; v1→v2 hard-errors with migration hint per BC-3.05.004 PC4); other TOML configs schema_version=1; mismatch = hard error per DI-014 |
+| Trace correlation | SS-01 | `trace_id` (UUID v4) propagated on every emitted event (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7) |
 | Platform selection | SS-09 | Activation skill copies `hooks.json.<platform>` (ADR-009) |
 | Error non-blocking | SS-01 | Registry/payload/engine errors → `internal.dispatcher_error` → exit 0 |
 | Bash hook compatibility | SS-04 | `legacy-bash-adapter.wasm` via `exec_subprocess` (ADR-012) |

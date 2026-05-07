@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Integration test: a fresh `InternalLog` at a nested non-existent dir. 4 events written: `dispatcher.started`, `plugin.loaded`, `plugin.invoked`, `internal.dispatcher_error`. Files are read back: exactly one rotated file; 4 lines; each carries the common envelope (schema_version, ts, ts_epoch, dispatcher_trace_id) plus event-specific extras (dispatcher_version, loaded_plugin_count, plugin_name, plugin_version, tool_name, message). `plugin.loaded` event has no `session_id` (omitted because not set).
+Integration test: a fresh `InternalLog` at a nested non-existent dir. 4 events written: `dispatcher.started`, `plugin.loaded`, `plugin.invoked`, `internal.dispatcher_error`. Files are read back: exactly one rotated file; 4 lines; each carries the common envelope (schema_version, ts, ts_epoch, `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7)) plus event-specific extras (dispatcher_version, loaded_plugin_count, plugin_name, plugin_version, tool_name, message). `plugin.loaded` event has no `session_id` (omitted because not set).
 
 ## Preconditions
 
@@ -101,3 +101,10 @@ Integration test: a fresh `InternalLog` at a nested non-existent dir. 4 events w
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description envelope field per DI-017 / ADR-015 v1.7 canonicalization. |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

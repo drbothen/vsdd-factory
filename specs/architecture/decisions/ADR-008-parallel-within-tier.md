@@ -93,7 +93,7 @@ I/O work (sink drain, internal log writes).
 
 - Parallel execution within a tier means event ordering in the sink pipeline is
   non-deterministic within a tier. Events from plugins in the same tier may arrive
-  out-of-insertion order. The `dispatcher_trace_id` and per-event timestamps are the
+  out-of-insertion order. The `trace_id` (renamed from `dispatcher_trace_id` per DI-017 v1.1) and per-event timestamps are the
   reconstruction primitive, not order of arrival.
 - `spawn_blocking` consumes tokio blocking threads. High fan-out events (many plugins
   at the same priority) on low-core machines may see thread pool pressure. In practice,

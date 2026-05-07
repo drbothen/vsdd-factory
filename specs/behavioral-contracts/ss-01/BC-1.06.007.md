@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-With `InternalLog::new(tempdir)` and a fixed timestamp `2026-04-24T12:00:00`, 10 events written via `log.write(...)` produce a single rotated file `dispatcher-internal-2026-04-24.jsonl` with 10 valid JSON lines. Each line has `type="dispatcher.started"`, `schema_version=INTERNAL_EVENT_SCHEMA_VERSION (=1)`, `dispatcher_trace_id="trace-{i}"`, `iteration=i`, `ts` starting with `"2026-04-24"`, and an i64 `ts_epoch`.
+With `InternalLog::new(tempdir)` and a fixed timestamp `2026-04-24T12:00:00`, 10 events written via `log.write(...)` produce a single rotated file `dispatcher-internal-2026-04-24.jsonl` with 10 valid JSON lines. Each line has `type="dispatcher.started"`, `schema_version=INTERNAL_EVENT_SCHEMA_VERSION (=1)`, `trace_id="trace-{i}"` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `iteration=i`, `ts` starting with `"2026-04-24"`, and an i64 `ts_epoch`.
 
 ## Preconditions
 
@@ -100,3 +100,10 @@ With `InternalLog::new(tempdir)` and a fixed timestamp `2026-04-24T12:00:00`, 10
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description test vector per DI-017 / ADR-015 v1.7 canonicalization. |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

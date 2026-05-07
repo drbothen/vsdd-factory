@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Every name in the `RESERVED_FIELDS` slice (8 names: `dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`) is recognized by `is_reserved_field(name)` returning true. The reserved-name list is the authoritative gate.
+Every name in the `RESERVED_FIELDS` slice (8 names: `trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`) is recognized by `is_reserved_field(name)` returning true. The reserved-name list is the authoritative gate. (`trace_id` renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7.)
 
 ## Preconditions
 
@@ -98,3 +98,10 @@ Every name in the `RESERVED_FIELDS` slice (8 names: `dispatcher_trace_id`, `sess
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description RESERVED_FIELDS list per DI-017 / ADR-015 v1.7 canonicalization. |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |
