@@ -50,10 +50,7 @@ impl ContextResolver for FixedResolver {
         &self.name
     }
 
-    fn resolve(
-        &self,
-        _input: &ResolverInput,
-    ) -> Result<Option<ResolverOutput>, ResolverError> {
+    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
         *self.call_count.lock().unwrap() += 1;
         Ok(self.output.clone())
     }
@@ -67,11 +64,7 @@ struct OrderRecordingResolver {
 }
 
 impl OrderRecordingResolver {
-    fn new(
-        name: &str,
-        output: ResolverOutput,
-        order_log: Arc<Mutex<Vec<String>>>,
-    ) -> Self {
+    fn new(name: &str, output: ResolverOutput, order_log: Arc<Mutex<Vec<String>>>) -> Self {
         Self {
             name: name.to_string(),
             output,
@@ -85,10 +78,7 @@ impl ContextResolver for OrderRecordingResolver {
         &self.name
     }
 
-    fn resolve(
-        &self,
-        _input: &ResolverInput,
-    ) -> Result<Option<ResolverOutput>, ResolverError> {
+    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
         self.order_log.lock().unwrap().push(self.name.clone());
         Ok(Some(self.output.clone()))
     }
@@ -124,7 +114,7 @@ fn test_BC_1_13_001_ac001_needs_context_defaults_to_empty_when_absent() {
     use factory_dispatcher::registry::Registry;
 
     let toml_without_needs_context = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "legacy-hook"
@@ -150,7 +140,7 @@ fn test_BC_1_13_001_ac001_needs_context_round_trips_through_toml() {
     use factory_dispatcher::registry::Registry;
 
     let toml_with_needs_context = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "context-hook"
@@ -244,14 +234,13 @@ fn test_BC_1_13_001_ac003_declared_resolver_is_invoked_and_output_returned() {
     let reg_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         registry.register(Box::new(resolver))
     }));
-    assert!(reg_result.is_ok(), "first register must not panic (AC-003 setup)");
+    assert!(
+        reg_result.is_ok(),
+        "first register must not panic (AC-003 setup)"
+    );
 
     let resolved = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        registry.resolve_context_for_entry(
-            &["foo".to_string()],
-            &test_input(),
-            noop_emit,
-        )
+        registry.resolve_context_for_entry(&["foo".to_string()], &test_input(), noop_emit)
     }));
     assert!(
         resolved.is_ok(),
@@ -296,16 +285,16 @@ fn test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map() {
         }),
     );
 
-    let reg_result =
-        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| registry.register(Box::new(resolver))));
-    assert!(reg_result.is_ok(), "first register must not panic (AC-004 setup)");
+    let reg_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        registry.register(Box::new(resolver))
+    }));
+    assert!(
+        reg_result.is_ok(),
+        "first register must not panic (AC-004 setup)"
+    );
 
     let resolved = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        registry.resolve_context_for_entry(
-            &["foo".to_string()],
-            &test_input(),
-            noop_emit,
-        )
+        registry.resolve_context_for_entry(&["foo".to_string()], &test_input(), noop_emit)
     }));
     assert!(
         resolved.is_ok(),
@@ -341,7 +330,9 @@ fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() 
     );
 
     let result = merged.unwrap();
-    let obj = result.as_object().expect("merged result must be a JSON object");
+    let obj = result
+        .as_object()
+        .expect("merged result must be a JSON object");
     assert!(
         !obj.contains_key("foo"),
         "key 'foo' must be absent (not null) in merged plugin_config \
@@ -474,8 +465,7 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
         value: Some(json!("new")),
     }];
 
-    let collisions: Arc<Mutex<Vec<(String, Value, Value)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let collisions: Arc<Mutex<Vec<(String, Value, Value)>>> = Arc::new(Mutex::new(Vec::new()));
     let collisions_clone = collisions.clone();
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -483,10 +473,11 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
             static_config.clone(),
             &outputs,
             move |key: &str, old: &Value, new_val: &Value| {
-                collisions_clone
-                    .lock()
-                    .unwrap()
-                    .push((key.to_string(), old.clone(), new_val.clone()));
+                collisions_clone.lock().unwrap().push((
+                    key.to_string(),
+                    old.clone(),
+                    new_val.clone(),
+                ));
             },
         )
     }));
@@ -497,7 +488,9 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
     );
 
     let result = merged.unwrap();
-    let obj = result.as_object().expect("merged result must be a JSON object");
+    let obj = result
+        .as_object()
+        .expect("merged result must be a JSON object");
     assert_eq!(
         obj["foo"],
         json!("new"),
@@ -513,8 +506,7 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
          (AC-007 / BC-4.12.005 PC5 — resolver.merge_collision event)"
     );
     assert_eq!(
-        captured_collisions[0].0,
-        "foo",
+        captured_collisions[0].0, "foo",
         "collision callback must be called with key 'foo' \
          (AC-007 / BC-4.12.005 PC5)"
     );
@@ -541,7 +533,9 @@ fn test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_mer
     );
 
     let result = merged.unwrap();
-    let obj = result.as_object().expect("merged result must be a JSON object");
+    let obj = result
+        .as_object()
+        .expect("merged result must be a JSON object");
     assert_eq!(
         obj["wave_context"],
         json!({"new": 2}),
@@ -863,11 +857,7 @@ fn test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails() {
 
     // Invoke: must use the FIRST resolver (source == "first"), not the duplicate.
     let resolved = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        registry.resolve_context_for_entry(
-            &["bar".to_string()],
-            &test_input(),
-            noop_emit,
-        )
+        registry.resolve_context_for_entry(&["bar".to_string()], &test_input(), noop_emit)
     }));
     assert!(
         resolved.is_ok(),
@@ -943,8 +933,16 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
 
     let result = merged.unwrap();
     let obj = result.as_object().expect("result must be an object");
-    assert_eq!(obj.get("a").and_then(|v| v.as_i64()), Some(1), "key 'a' must equal 1");
-    assert_eq!(obj.get("b").and_then(|v| v.as_i64()), Some(2), "key 'b' must equal 2");
+    assert_eq!(
+        obj.get("a").and_then(|v| v.as_i64()),
+        Some(1),
+        "key 'a' must equal 1"
+    );
+    assert_eq!(
+        obj.get("b").and_then(|v| v.as_i64()),
+        Some(2),
+        "key 'b' must equal 2"
+    );
 }
 
 /// BC-4.12.005 EC-002: resolver returns Some({}) (empty object).

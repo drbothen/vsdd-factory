@@ -30,14 +30,8 @@ use serde_json::{Map, Value};
 /// Strategy: arbitrary JSON object (no null values at top level).
 /// Matches the shape of a `plugin_config` — always an Object.
 fn arb_json_object() -> impl Strategy<Value = Value> {
-    prop::collection::hash_map(
-        "[a-z_]{1,16}",
-        arb_non_null_json_value(),
-        0..8,
-    )
-    .prop_map(|map| {
-        Value::Object(map.into_iter().collect::<Map<_, _>>())
-    })
+    prop::collection::hash_map("[a-z_]{1,16}", arb_non_null_json_value(), 0..8)
+        .prop_map(|map| Value::Object(map.into_iter().collect::<Map<_, _>>()))
 }
 
 /// Strategy: non-null JSON values (scalars + simple nested objects/arrays).
@@ -50,22 +44,22 @@ fn arb_non_null_json_value() -> impl Strategy<Value = Value> {
         "[a-zA-Z0-9_\\-]{0,32}".prop_map(Value::String),
         prop::collection::vec(any::<i64>().prop_map(|n| Value::Number(n.into())), 0..4)
             .prop_map(Value::Array),
-        prop::collection::hash_map("[a-z_]{1,8}", "[a-z0-9]{0,16}".prop_map(Value::String), 0..3)
-            .prop_map(|m| Value::Object(m.into_iter().collect::<Map<_, _>>())),
+        prop::collection::hash_map(
+            "[a-z_]{1,8}",
+            "[a-z0-9]{0,16}".prop_map(Value::String),
+            0..3
+        )
+        .prop_map(|m| Value::Object(m.into_iter().collect::<Map<_, _>>())),
     ]
 }
 
 /// Strategy: a `ResolverOutput` with `Some` value (key must not collide with
 /// base config by using a distinct prefix).
 fn arb_resolver_output_with_value() -> impl Strategy<Value = ResolverOutput> {
-    (
-        "resolver_[a-z]{1,16}",
-        arb_non_null_json_value(),
-    )
-        .prop_map(|(key, value)| ResolverOutput {
-            key,
-            value: Some(value),
-        })
+    ("resolver_[a-z]{1,16}", arb_non_null_json_value()).prop_map(|(key, value)| ResolverOutput {
+        key,
+        value: Some(value),
+    })
 }
 
 /// Strategy: a `ResolverOutput` with `None` value.
@@ -77,11 +71,11 @@ fn arb_resolver_output_none() -> impl Strategy<Value = ResolverOutput> {
 // VP-075-B: merge determinism
 // ---------------------------------------------------------------------------
 
-/// VP-075-B / AC-008 / BC-4.12.005 INV1:
-/// `merge_resolver_outputs(base, outputs)` is a pure function.
-/// Calling it twice with identical inputs must produce identical output.
-///
-/// 200 trials per VP-075 specification.
+// VP-075-B / AC-008 / BC-4.12.005 INV1:
+// `merge_resolver_outputs(base, outputs)` is a pure function.
+// Calling it twice with identical inputs must produce identical output.
+//
+// 200 trials per VP-075 specification.
 proptest! {
     #![proptest_config(proptest::test_runner::Config {
         cases: 200,
@@ -124,11 +118,11 @@ proptest! {
 // VP-075-C: additive preservation
 // ---------------------------------------------------------------------------
 
-/// VP-075-C / AC-006 / BC-4.12.005 PC1:
-/// All base_config fields must be present in the merged result.
-/// The resolver's key (with "resolver_" prefix) must also be present.
-///
-/// 100 trials per VP-075 specification.
+// VP-075-C / AC-006 / BC-4.12.005 PC1:
+// All base_config fields must be present in the merged result.
+// The resolver's key (with "resolver_" prefix) must also be present.
+//
+// 100 trials per VP-075 specification.
 proptest! {
     #![proptest_config(proptest::test_runner::Config {
         cases: 100,
@@ -188,11 +182,11 @@ proptest! {
 // VP-075-D: None value determinism (AC-004 boundary)
 // ---------------------------------------------------------------------------
 
-/// VP-075-D / AC-004 / BC-4.12.005 PC2:
-/// When a resolver returns value: None, the merged result must not contain
-/// that key, AND the merge must be deterministic across two calls.
-///
-/// 100 trials.
+// VP-075-D / AC-004 / BC-4.12.005 PC2:
+// When a resolver returns value: None, the merged result must not contain
+// that key, AND the merge must be deterministic across two calls.
+//
+// 100 trials.
 proptest! {
     #![proptest_config(proptest::test_runner::Config {
         cases: 100,
