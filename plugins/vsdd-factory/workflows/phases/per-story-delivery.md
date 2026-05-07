@@ -65,11 +65,11 @@ Integer-precise form (avoids float rounding): `RED_TESTS * 2 >= (TOTAL_NEW_TESTS
 
 ### Full-Exception Path (denominator = 0)
 
-When all effective tests (after excluding GREEN-BY-DESIGN + WIRING-EXEMPT) are themselves exempt (denominator = 0), the gate does NOT vacuously pass. The orchestrator must explicitly acknowledge this in the red-gate-log file (`.factory/logs/red-gate-log-<story-id>.md`) with `full_exception_path: true`. This documents intent and prevents silent bypass.
+When all effective tests (after excluding GREEN-BY-DESIGN + WIRING-EXEMPT) are themselves exempt (denominator = 0), the gate does NOT vacuously pass. The orchestrator must explicitly acknowledge this in the red-gate-log file (`.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md`) with `full_exception_path: true`. This documents intent and prevents silent bypass.
 
 ### Red Gate Log Format
 
-Write to `.factory/logs/red-gate-log-<story-id>.md` BEFORE any exception-path invocation. Required fields:
+Write to `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md` BEFORE any exception-path invocation. Required fields:
 
 ```yaml
 red_ratio: <computed value>
