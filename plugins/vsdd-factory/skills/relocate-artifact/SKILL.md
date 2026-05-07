@@ -263,6 +263,16 @@ Report total counts:
 <N> file(s) moved. <M> cross-reference(s) updated.
 ```
 
+## Scope
+
+This skill scans **only `.factory/`**. Files in `plugins/`, `crates/`, `src/`, or any
+other directory outside `.factory/` are out of scope and are ignored even if registry
+patterns hypothetically reference those paths. If a future cycle adds registry entries
+for paths outside `.factory/`, a new skill (or an extension to this skill's scope
+clause) must be explicitly authored before those paths can be governed by relocate-artifact.
+This constraint is consistent with BC-6.22.001 PC2, which explicitly binds the skill's
+scan root to `.factory/`.
+
 ## Safety Constraints
 
 1. **Never embed path list:** This skill reads `plugins/vsdd-factory/config/artifact-path-registry.yaml`
