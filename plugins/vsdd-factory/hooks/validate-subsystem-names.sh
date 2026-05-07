@@ -13,10 +13,11 @@
 set -euo pipefail
 
 # Source canonical block-message helper (provides block_pre).
-if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
-  # shellcheck source=lib/block.sh
-  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
-fi
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
 
 if ! command -v jq &>/dev/null; then
   exit 0
@@ -67,17 +68,6 @@ CANONICAL_IDS=$(awk '
   }
 ' "$ARCH_INDEX")
 
-# Also build an ID→Name map for error messages
-CANONICAL_MAP=$(awk '
-  /[Ss]ubsystem.*[Rr]egistry/ { found=1; next }
-  found && /^#[^|]/ { exit }
-  found && /^\|/ && !/---/ && !/SS.*ID/ {
-    split($0, cols, "|")
-    gsub(/^[ \t]+|[ \t]+$/, "", cols[2])
-    gsub(/^[ \t]+|[ \t]+$/, "", cols[3])
-    if (cols[2] ~ /^SS-[0-9]+$/) print cols[2] " (" cols[3] ")"
-  }
-' "$ARCH_INDEX")
 
 # If no canonical IDs found, skip (ARCH-INDEX may not have registry yet)
 if [[ -z "$CANONICAL_IDS" ]]; then

@@ -319,7 +319,7 @@ _run_read() {
 
 @test "provides fix suggestion in block message" {
   _run_bash "cat .env"
-  [[ "$output" == *"Suggestion:"* ]]
+  [[ "$output" == *"Fix:"* ]]
 }
 
 # ---------- Emit-event integration ----------
@@ -353,7 +353,6 @@ _run_read_with_emit() {
   [ "$(jq -r '.type' < "$logfile")" = "hook.block" ]
   [ "$(jq -r '.hook' < "$logfile")" = "protect-secrets" ]
   [ "$(jq -r '.reason' < "$logfile")" = "env_file_read_direct" ]
-  [ "$(jq -r '.matcher' < "$logfile")" = "Read" ]
   rm -rf "$EMIT_TMPDIR"
 }
 

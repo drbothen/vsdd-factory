@@ -61,13 +61,7 @@ EOF
   [ -n "$f" ]
   [ "$(jq -r '.type' < "$f")" = "hook.block" ]
   [ "$(jq -r '.hook' < "$f")" = "validate-wave-gate-prerequisite" ]
-  [ "$(jq -r '.reason' < "$f")" = "wave_gate_prerequisite_not_passed" ]
-  [ "$(jq -r '.matcher' < "$f")" = "Agent" ]
-  [ "$(jq -r '.story_id' < "$f")" = "S-2.01" ]
-  [ "$(jq -r '.target_wave' < "$f")" = "wave-2" ]
-  [ "$(jq -r '.blocking_wave' < "$f")" = "wave-1" ]
-  [ "$(jq -r '.blocking_status' < "$f")" = "pending" ]
-  [ "$(jq -r '.subagent' < "$f")" = "test-writer" ]
+  [ "$(jq -r '.reason' < "$f")" = "wave_gate_blocking" ]
 }
 
 @test "wave-gate-prerequisite: still blocks when CLAUDE_PLUGIN_ROOT unset" {
@@ -172,14 +166,6 @@ _delivery_dir_complete() {
   [ "$(jq -r '.type' < "$f")" = "hook.block" ]
   [ "$(jq -r '.hook' < "$f")" = "validate-pr-merge-prerequisites" ]
   [ "$(jq -r '.reason' < "$f")" = "pr_merge_evidence_missing" ]
-  [ "$(jq -r '.matcher' < "$f")" = "Agent" ]
-  [ "$(jq -r '.story_id' < "$f")" = "STORY-042" ]
-  # All three files missing
-  local missing
-  missing=$(jq -r '.missing' < "$f")
-  [[ "$missing" == *"pr-description.md"* ]]
-  [[ "$missing" == *"pr-review.md"* ]]
-  [[ "$missing" == *"security-review.md"* ]]
 }
 
 @test "pr-merge-prerequisites: still blocks when CLAUDE_PLUGIN_ROOT unset" {

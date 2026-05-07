@@ -71,7 +71,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$WORK/.factory/specs/behavioral-contracts/BC-2.01.002.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | CLAUDE_PLUGIN_ROOT='$CLAUDE_PLUGIN_ROOT' '$HOOK' 2>&1"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"TEMPLATE COMPLIANCE WARNING"* ]]
+  [[ "$output" == *"BLOCKED by validate-template-compliance"* ]]
 }
 
 @test "template-compliance: bad BC reports missing frontmatter" {
@@ -81,7 +81,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$WORK/.factory/specs/behavioral-contracts/BC-2.01.002.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | CLAUDE_PLUGIN_ROOT='$CLAUDE_PLUGIN_ROOT' '$HOOK' 2>&1"
   [[ "$output" == *"Frontmatter"* ]]
-  [[ "$output" == *"Missing"* ]]
+  [[ "$output" == *"missing"* ]]
 }
 
 @test "template-compliance: bad BC reports missing sections" {
@@ -90,7 +90,7 @@ _run_hook() {
   cp "$FIX/bad-bc.md" "$WORK/.factory/specs/behavioral-contracts/BC-2.01.002.md"
   INPUT=$(jq -nc --arg fp "$WORK/.factory/specs/behavioral-contracts/BC-2.01.002.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | CLAUDE_PLUGIN_ROOT='$CLAUDE_PLUGIN_ROOT' '$HOOK' 2>&1"
-  [[ "$output" == *"Sections missing"* ]]
+  [[ "$output" == *"missing sections"* ]]
   # Should report missing Edge Cases, Canonical Test Vectors, Verification Properties, Traceability
   [[ "$output" == *"Canonical Test Vectors"* ]] || [[ "$output" == *"Traceability"* ]]
 }
@@ -104,7 +104,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$WORK/.factory/stories/STORY-001.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | CLAUDE_PLUGIN_ROOT='$CLAUDE_PLUGIN_ROOT' '$HOOK' 2>&1"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"TEMPLATE COMPLIANCE WARNING"* ]]
+  [[ "$output" == *"BLOCKED by validate-template-compliance"* ]]
 }
 
 @test "template-compliance: bad story reports missing document_type" {
@@ -125,7 +125,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$WORK/.factory/holdout-scenarios/HS-001.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | CLAUDE_PLUGIN_ROOT='$CLAUDE_PLUGIN_ROOT' '$HOOK' 2>&1"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"TEMPLATE COMPLIANCE WARNING"* ]]
+  [[ "$output" == *"BLOCKED by validate-template-compliance"* ]]
 }
 
 # ---------- Suggests conform-to-template ----------

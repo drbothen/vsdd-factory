@@ -12,10 +12,11 @@
 set -euo pipefail
 
 # Source canonical block-message helper (provides block_pre_json).
-if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
-  # shellcheck source=lib/block.sh
-  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
-fi
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
 
 if ! command -v jq &>/dev/null; then
   echo "protect-bc.sh: jq is required but not found" >&2
@@ -24,7 +25,6 @@ fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "Edit|Write"')
 
 emit_allow() {
   printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}\n'

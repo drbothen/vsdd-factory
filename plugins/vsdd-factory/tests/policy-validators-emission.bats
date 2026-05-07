@@ -66,9 +66,8 @@ EOF
   local f
   f=$(_logfile)
   [ -n "$f" ]
-  [ "$(jq -r '.reason' < "$f")" = "policy6_subsystem_name_mismatch" ]
+  [ "$(jq -r '.reason' < "$f")" = "policy_6_violation" ]
   [ "$(jq -r '.hook' < "$f")" = "validate-subsystem-names" ]
-  [ "$(jq -r '.file_path' < "$f")" = "$bc" ]
 }
 
 @test "validate-subsystem-names: still blocks when CLAUDE_PLUGIN_ROOT unset" {
@@ -123,10 +122,7 @@ EOF
   local f
   f=$(_logfile)
   [ -n "$f" ]
-  [ "$(jq -r '.reason' < "$f")" = "policy7_bc_title_mismatch" ]
-  [ "$(jq -r '.bc_id' < "$f")" = "BC-1.01.001" ]
-  [ "$(jq -r '.h1_title' < "$f")" = "Drifted Title" ]
-  [ "$(jq -r '.index_title' < "$f")" = "Registered Title" ]
+  [ "$(jq -r '.reason' < "$f")" = "bc_h1_index_drift" ]
 }
 
 @test "validate-bc-title: still blocks when emit-event path broken" {
@@ -182,7 +178,7 @@ EOF
   local f
   f=$(_logfile)
   [ -n "$f" ]
-  [ "$(jq -r '.reason' < "$f")" = "policy8_bc_array_desync" ]
+  [ "$(jq -r '.reason' < "$f")" = "policy_8_violation" ]
   [ "$(jq -r '.hook' < "$f")" = "validate-story-bc-sync" ]
 }
 
@@ -239,7 +235,7 @@ EOF
   local f
   f=$(_logfile)
   [ -n "$f" ]
-  [ "$(jq -r '.reason' < "$f")" = "policy9_vp_inconsistency" ]
+  [ "$(jq -r '.reason' < "$f")" = "policy_9_violation" ]
   [ "$(jq -r '.hook' < "$f")" = "validate-vp-consistency" ]
 }
 

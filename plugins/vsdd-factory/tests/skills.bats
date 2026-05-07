@@ -185,14 +185,14 @@ setup() {
   yq '.' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml" >/dev/null
 }
 
-@test "policies-template has 10 baseline policies" {
+@test "policies-template has 11 baseline policies" {
   count=$(yq '.policies | length' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml")
-  [ "$count" -eq 10 ]
+  [ "$count" -eq 11 ]
 }
 
-@test "policies-template policy IDs are sequential 1-10" {
+@test "policies-template policy IDs are sequential 1-11" {
   ids=$(yq '.policies[].id' "${BATS_TEST_DIRNAME}/../templates/policies-template.yaml" | sort -n | tr '\n' ',')
-  [ "$ids" = "1,2,3,4,5,6,7,8,9,10," ]
+  [ "$ids" = "1,2,3,4,5,6,7,8,9,10,11," ]
 }
 
 @test "policies-template policy names are unique" {

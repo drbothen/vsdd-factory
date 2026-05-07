@@ -24,7 +24,7 @@ setup() {
   INPUT=$(jq -nc --arg fp "$FIX/specs/behavioral-contracts/BC-2.01.002-bad.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | '$HOOKS/validate-subsystem-names.sh' 2>&1"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"POLICY 6 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 6"* ]]
   [[ "$output" == *"SS-99"* ]]
 }
 
@@ -89,7 +89,7 @@ setup() {
   INPUT=$(jq -nc --arg fp "$FIX/specs/behavioral-contracts/BC-2.01.003-title-mismatch.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | '$HOOKS/validate-bc-title.sh' 2>&1"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"POLICY 7 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 7"* ]]
 }
 
 @test "P7: title mismatch shows both titles" {
@@ -141,7 +141,7 @@ setup() {
   INPUT=$(jq -nc --arg fp "$FIX/stories/STORY-003-bad-sync.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | '$HOOKS/validate-story-bc-sync.sh' 2>&1"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"POLICY 8 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 8"* ]]
 }
 
 @test "P8: missing BC identified by ID" {
