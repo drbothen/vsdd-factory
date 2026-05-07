@@ -457,3 +457,5 @@ HookResult::block("bare reason string")
 - `crates/vsdd-hook-sdk/src/lib.rs` — the `HookResult::block_with_fix` Rust API.
 - `tests/integration/hooks/block-helper.bats` — unit tests for the bash helper.
 - `tests/integration/hooks/canonical-format-invariant.bats` — per-hook regression tests.
+
+<!-- TODO S-12.06 Step 4: insert "Context Injection Contract" section here per S-12.06 ACs -->
