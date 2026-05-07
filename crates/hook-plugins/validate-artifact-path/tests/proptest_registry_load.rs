@@ -18,7 +18,7 @@
 use proptest::prelude::*;
 use serde_json::json;
 use std::panic;
-use validate_artifact_path::{load_registry, hook_logic, HookCallbacks};
+use validate_artifact_path::{HookCallbacks, hook_logic, load_registry};
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------

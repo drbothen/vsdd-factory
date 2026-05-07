@@ -25,8 +25,8 @@
 
 // Under cargo test (not cargo kani), we import the production types to
 // verify the test file compiles alongside the stub.
-use validate_artifact_path::{matches_canonical, MatchResult, PathRegistry, RegistryEntry};
 use std::panic;
+use validate_artifact_path::{MatchResult, PathRegistry, RegistryEntry, matches_canonical};
 
 // ---------------------------------------------------------------------------
 // Cargo-test equivalents of the kani proofs (compile + Red Gate check)
@@ -41,8 +41,8 @@ use std::panic;
 fn fixture_single_entry_block() -> PathRegistry {
     let entry = RegistryEntry {
         artifact_type: "behavioral-contract".to_string(),
-        canonical_path_pattern:
-            ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md".to_string(),
+        canonical_path_pattern: ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md"
+            .to_string(),
         description: "Behavioral contract spec".to_string(),
         enforcement_level: "block".to_string(),
     };
@@ -56,8 +56,8 @@ fn fixture_single_entry_block() -> PathRegistry {
 fn fixture_advisory_only() -> PathRegistry {
     let entry = RegistryEntry {
         artifact_type: "behavioral-contract".to_string(),
-        canonical_path_pattern:
-            ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md".to_string(),
+        canonical_path_pattern: ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md"
+            .to_string(),
         description: "Behavioral contract spec".to_string(),
         enforcement_level: "advisory".to_string(),
     };
@@ -181,8 +181,8 @@ fn test_BC_4_11_001_vp070_proof4_advisory_registry_never_produces_block() {
     let registry = fixture_advisory_only();
     let test_paths = [
         ".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md", // would match if block
-        ".factory/feature-deltas/F1-delta.md",                        // no match
-        "src/lib.rs",                                                   // non-.factory/
+        ".factory/feature-deltas/F1-delta.md",                      // no match
+        "src/lib.rs",                                               // non-.factory/
         "",
     ];
     for path in &test_paths {
@@ -225,8 +225,7 @@ mod kani_proofs_vp070 {
             artifacts: vec![RegistryEntry {
                 artifact_type: "behavioral-contract".to_string(),
                 canonical_path_pattern:
-                    ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md"
-                        .to_string(),
+                    ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md".to_string(),
                 description: "Behavioral contract spec".to_string(),
                 enforcement_level: "block".to_string(),
             }],
@@ -239,8 +238,7 @@ mod kani_proofs_vp070 {
             artifacts: vec![RegistryEntry {
                 artifact_type: "behavioral-contract".to_string(),
                 canonical_path_pattern:
-                    ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md"
-                        .to_string(),
+                    ".factory/specs/behavioral-contracts/ss-{subsystem}/BC-{bc-id}.md".to_string(),
                 description: "Behavioral contract spec".to_string(),
                 enforcement_level: "advisory".to_string(),
             }],
