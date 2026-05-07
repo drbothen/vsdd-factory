@@ -12,6 +12,12 @@ color: blue
 Agent ID: `product-owner`
 
 
+## Artifact Path Constraint
+
+Before any Write under `.factory/`, verify the target path matches a pattern in
+`plugins/vsdd-factory/config/artifact-path-registry.yaml`. If unsure, use the
+`register-artifact` skill or list existing structure first. Do not invent directory names.
+
 ## Operating Procedure
 
 > **Global Operating Rules:** Read `../../FACTORY.md` and `../../VSDD.md` for factory-wide constraints.
