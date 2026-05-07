@@ -256,3 +256,81 @@ EOF
   grep -q "document_type field absent" "$SKILL_FILE"
   grep -q "EC-002" "$SKILL_FILE"
 }
+
+# ============================================================================
+# BC-6.22.001 invariant 4: git mv history preservation (F-HIGH-7)
+#
+# The skill mandates "git mv is the ONLY mechanism for moving files. Direct
+# file copy + delete is PROHIBITED because it breaks `git log --follow`."
+#
+# This test verifies that a `git mv`-based relocation preserves the rename
+# chain in git history so that `git log --follow <new_path>` reports the
+# original commit. A copy+delete would break this and yield an empty log.
+#
+# The test simulates the invariant at the git level: after a `git mv`, git
+# log --follow on the new path must show the commit that created the file.
+# ============================================================================
+
+@test "BC-6.22.001 invariant 4: SKILL.md documents git mv as only move mechanism" {
+  # BC-6.22.001 invariant 4: skill must document that git mv is required and
+  # that direct file copy + delete is PROHIBITED (to preserve git log --follow).
+  # Verified structurally: SKILL.md must contain both the git mv mandate and
+  # the PROHIBITED keyword so that any agent following the skill cannot miss it.
+  grep -q "git mv" "$SKILL_FILE"
+  grep -q "PROHIBITED" "$SKILL_FILE"
+}
+
+@test "BC-6.22.001 invariant 4: git mv preserves git log --follow history (git semantics)" {
+  # BC-6.22.001 invariant 4: git mv (rename) must produce a rename entry in git
+  # history so that `git log --follow <new_path>` shows the original commit.
+  # A copy+delete would yield an add+delete pair, breaking --follow.
+  #
+  # This test verifies the git property that the skill MUST use.
+  # If this git-level property holds, then a correct implementation of the skill
+  # (using git mv) will pass. An incorrect implementation (cp + rm) would NOT
+  # show the original commit in git log --follow output.
+
+  local old_path="$WORK/.factory/WRONG-LOCATION/BC-4.11.001.md"
+  local new_dir="$WORK/.factory/specs/behavioral-contracts/ss-04"
+  local new_path="$new_dir/BC-4.11.001.md"
+
+  # Create a file and commit it at the old location
+  mkdir -p "$WORK/.factory/WRONG-LOCATION"
+  cat > "$old_path" << 'EOF'
+---
+document_type: behavioral-contract
+bc_id: BC-4.11.001
+---
+# Test BC for git mv history verification
+EOF
+  git -C "$WORK" add "$old_path"
+  git -C "$WORK" commit --quiet -m "add BC at wrong location (pre-move)"
+
+  local original_sha
+  original_sha=$(git -C "$WORK" log --oneline --follow "$old_path" | head -1 | awk '{print $1}')
+
+  # Perform git mv (the ONLY mechanism permitted by BC-6.22.001 invariant 4)
+  mkdir -p "$new_dir"
+  git -C "$WORK" mv "$old_path" "$new_path"
+  git -C "$WORK" commit --quiet -m "relocate BC to canonical path (git mv)"
+
+  # `git log --follow <new_path>` must show the original commit
+  local follow_log
+  follow_log=$(git -C "$WORK" log --oneline --follow "$new_path")
+
+  # The log must contain the original commit SHA
+  echo "$follow_log" | grep -q "$original_sha" || {
+    echo "BC-6.22.001 invariant 4: git log --follow must show original commit after git mv"
+    echo "Original SHA: $original_sha"
+    echo "git log --follow output:"
+    echo "$follow_log"
+    echo "A copy+delete would break --follow; only git mv preserves rename history."
+    return 1
+  }
+
+  # The old path must no longer exist (confirming the move, not a copy)
+  [ ! -f "$old_path" ] || {
+    echo "BC-6.22.001 invariant 4: old path must not exist after git mv"
+    return 1
+  }
+}
