@@ -457,3 +457,399 @@ HookResult::block("bare reason string")
 - `crates/vsdd-hook-sdk/src/lib.rs` — the `HookResult::block_with_fix` Rust API.
 - `tests/integration/hooks/block-helper.bats` — unit tests for the bash helper.
 - `tests/integration/hooks/canonical-format-invariant.bats` — per-hook regression tests.
+
+---
+
+## Context Injection Contract
+
+This section documents the **context injection** platform: a factory-agnostic mechanism by
+which the dispatcher enriches a hook's `plugin_config` with runtime context values before
+each dispatch. Context is produced by **resolver plugins** — separate WASM artifacts that
+read domain-specific data and return a structured output that the dispatcher merges into
+`plugin_config`. The hook plugin receives the enriched `plugin_config` and has no visibility
+into whether its configuration came from the static registry or from resolver output.
+
+The resolver ABI is versioned independently from the hook ABI:
+
+```
+RESOLVER_ABI_VERSION = 1
+```
+
+`RESOLVER_ABI_VERSION` and `HOST_ABI_VERSION` evolve on separate tracks. A bump to one
+does not imply a bump to the other. (BC-4.12.002)
+
+---
+
+### Overview
+
+The context injection flow is:
+
+1. At dispatcher startup, the dispatcher loads `resolvers-registry.toml` (a separate file
+   from `hooks-registry.toml`) and compiles each declared resolver WASM artifact into a
+   `Module` held in the resolver cache.
+2. When a hook dispatch is triggered, the dispatcher reads the `needs_context` field of the
+   matched hooks-registry entry.
+3. For each resolver name declared in `needs_context`, the dispatcher creates a fresh
+   `Store`, invokes the resolver's `resolve()` export with a `ResolverInput`, and receives a
+   `ResolverOutput`.
+4. Each resolver's output is merged additively into `plugin_config` under the resolver's
+   declared key.
+5. The hook plugin is dispatched with the enriched `plugin_config`.
+
+A hook with an empty or absent `needs_context` field skips all resolver invocations
+entirely. This is the **zero-overhead path**: no resolver code executes, no Store is
+created, and hook dispatch latency is unaffected. (BC-1.13.001)
+
+---
+
+### Resolver Registration (`resolvers-registry.toml`)
+
+Resolvers are registered in `resolvers-registry.toml`. This file is **distinct** from
+`hooks-registry.toml`: it has a different schema, a different lifecycle role (pre-dispatch
+data providers, not event handlers), and is versioned independently. The dispatcher loads
+both files at startup. (BC-1.13.001 INV7, ADR-018 OD-2)
+
+Example entry:
+
+```toml
+[[resolvers]]
+name        = "my-context"
+plugin      = "hook-plugins/my-context-resolver.wasm"
+path_allow  = [".factory/"]
+```
+
+Fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | yes | The resolver's unique name. Matches the string declared in `needs_context`. This name is the key under which the resolver's output is written in `plugin_config`. |
+| `plugin` | yes | Relative path to the `.wasm` artifact (relative to the registry file's directory). |
+| `path_allow` | yes | List of path prefixes the resolver may read via `host::read_file`. Empty list = no reads allowed (deny-by-default). |
+| `fail_closed` | no (default: `true`) | Controls startup behavior if the resolver `.wasm` artifact fails to compile. `true` (default): dispatcher emits `resolver.load_error` and fails startup — fail-loud semantics. `false`: the entry is skipped with a warning and the dispatcher starts with the remaining resolvers — fail-open for optional resolvers. (BC-4.12.001 PC6) |
+
+**Critical constraint (BC-1.13.001 PC1):** If `resolvers-registry.toml` is absent at
+startup, the dispatcher initializes with zero resolvers configured — this is NOT a startup
+error. An absent `resolvers-registry.toml` yields zero resolvers and MUST NOT be treated
+as a startup error. Existing deployments without the file behave identically to before this
+feature. No error is emitted and no hook dispatch is blocked. Only when the file is present
+but malformed does the dispatcher fail loudly.
+
+Duplicate `name` entries in `resolvers-registry.toml` are a **startup error** (fail-loud):
+the dispatcher emits `resolver.load_error` and does not start with a partial resolver set.
+(BC-4.12.005 PC6, EC-004)
+
+---
+
+### `needs_context` Field in `hooks-registry.toml`
+
+Each hooks-registry entry may declare which resolvers it requires:
+
+```toml
+[[hooks]]
+name         = "my-hook"
+plugin       = "hook-plugins/my-hook.wasm"
+needs_context = ["my-context"]
+```
+
+The `needs_context` field is a `Vec<String>` that defaults to `[]` when absent. All
+existing hooks-registry entries that omit the field parse correctly (backward-compatible
+via `#[serde(default)]`).
+
+**Semantics:**
+
+- If `needs_context = []` or the field is absent, the dispatcher skips resolver invocation
+  entirely and dispatches the hook with the unmodified `plugin_config` (zero-overhead path).
+- If `needs_context = ["my-context"]`, the dispatcher invokes the `my-context` resolver
+  before dispatch and merges its output into `plugin_config["my-context"]`.
+- If a `needs_context` entry names a resolver that is not registered, the dispatcher emits
+  a `resolver.not_found` event and dispatch proceeds without context injection for that
+  entry. The hook receives a `plugin_config` that lacks the expected key. (BC-1.13.001 PC6)
+
+---
+
+### Resolver Lifecycle (BC-4.12.001)
+
+The resolver lifecycle follows the same compile-once, instantiate-per-call pattern as hook
+plugins:
+
+**Startup (Module compilation):**
+- The dispatcher loads each resolver WASM artifact listed in `resolvers-registry.toml` and
+  compiles it into a `Module` at dispatcher startup.
+- Module compilation is amortized across all dispatches within the process lifetime.
+- The module cache is keyed by `(canonical_path, mtime)` — the same mtime-based cache
+  invalidation pattern used by `plugin_loader.rs`.
+
+**Per-dispatch (Store creation):**
+- Each resolver invocation creates a fresh `Store<HostContext>` (per-dispatch Store
+  isolation).
+- The `Store` is created, used for one `resolve()` invocation, and then dropped. No state
+  persists between invocations via the Store.
+- Multiple resolvers in a single dispatch each get their own independent `Store`.
+
+**Mtime-based cache invalidation:**
+- On each dispatch that needs a resolver, the dispatcher checks the current mtime of the
+  resolver's `.wasm` file.
+- If mtime has changed since the module was cached, the old module is evicted and the
+  artifact is recompiled into a new Module before invocation.
+- This ensures that a resolver update takes effect on the next dispatch after the file
+  changes, without requiring a dispatcher restart.
+
+---
+
+### Resolver ABI Types (BC-4.12.002)
+
+The resolver ABI uses distinct types from the hook ABI. `ResolverInput` and `ResolverOutput`
+are NOT the same as `HookPayload` and `HookResult`.
+
+**Exported function signature:**
+
+```
+resolve(input_ptr: i32, input_len: i32) -> i64
+```
+
+The `i64` return value encodes a packed `(ptr: i32, len: i32)` pair:
+`((ptr as i64) << 32) | (len as i64)`.
+
+**`ResolverInput` (dispatcher → resolver):**
+
+```json
+{
+  "event_type":      "SubagentStop",
+  "hook_event_name": "my-hook",
+  "agent_type":      "my-agent-type",
+  "project_dir":     "/absolute/path/to/project",
+  "plugin_config":   { "static_key": "static_value" }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `event_type` | `String` | The host platform's event-type string. For Claude Code dispatch events, common values include `PreToolUse`, `PostToolUse`, `SubagentStop`, `UserPromptSubmit`, `Stop`. The dispatcher passes this through unchanged; resolvers may treat it as an opaque key for branching. Consult the host platform's reference for the canonical list. |
+| `hook_event_name` | `String` | The name of the hook being dispatched. |
+| `agent_type` | `Option<String>` | The agent type if present in the dispatch context; `null` if absent. |
+| `project_dir` | `String` | Absolute path to the factory project root. |
+| `plugin_config` | `Value` | The hook's static `plugin_config` from `hooks-registry.toml` (read-only; resolver outputs are not yet merged). |
+
+**`ResolverOutput` (resolver → dispatcher):**
+
+```json
+{
+  "key":   "my-context",
+  "value": { "data": "runtime-value" }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `key` | `String` | The context key under which the value is merged into `plugin_config`. |
+| `value` | `Option<Value>` | The context payload; `null` means the key is absent (not written to `plugin_config`). |
+
+Resolvers do NOT return block/continue decisions. They return data only. A resolver cannot
+block a hook dispatch.
+
+**No inter-resolver dependencies (OD-5):** Resolvers cannot observe or depend on other
+resolvers' outputs. Each resolver receives only the static `plugin_config` from
+`hooks-registry.toml` — the value that existed before any resolver has run. Resolver outputs
+are merged after ALL resolvers have completed their invocations. A resolver that attempts to
+design around another resolver's output is a design error. (BC-4.12.002 INV4)
+
+---
+
+### SDK Authoring Surface (BC-4.12.002 PC5, PC8)
+
+Resolver plugins are authored using the `resolver-authoring` feature flag on `vsdd-hook-sdk`.
+Enable it in the resolver crate's `Cargo.toml`:
+
+```toml
+[dependencies]
+vsdd-hook-sdk = { version = "...", features = ["resolver-authoring"] }
+```
+
+Use the `#[resolver]` proc-macro to annotate the implementation function:
+
+```rust
+use vsdd_hook_sdk::{ResolverInput, ResolverOutput};
+
+#[resolver]
+fn resolve_impl(input: ResolverInput) -> ResolverOutput {
+    // Read domain-specific data from project_dir using host::read_file,
+    // then return the computed context as a ResolverOutput.
+    ResolverOutput {
+        key: "my-context".to_string(),
+        value: Some(serde_json::json!({ "data": "runtime-value" })),
+    }
+}
+```
+
+The `#[resolver]` macro generates the WASM-compatible `resolve()` export that:
+1. Reads the input byte slice from WASM memory.
+2. Deserializes it from JSON into `ResolverInput`.
+3. Calls the user's `resolve_impl` function.
+4. Serializes the `ResolverOutput` to JSON.
+5. Writes the output to a WASM memory allocation and returns the ptr+len pair.
+
+The user function MUST be named `resolve_impl` and MUST have the exact signature
+`fn resolve_impl(input: ResolverInput) -> ResolverOutput`.
+
+Hook crates that are NOT resolvers MUST NOT enable the `resolver-authoring` feature.
+The feature flag ensures `ResolverInput`, `ResolverOutput`, and `#[resolver]` are only
+available to crates that explicitly opt in.
+
+---
+
+### Capability Model (BC-4.12.003)
+
+Resolvers are **read-only** by design. The dispatcher's host linker for resolver execution
+exposes a restricted set of host functions:
+
+| Host function | Available to resolvers | Notes |
+|---------------|----------------------|-------|
+| `host::read_file` | Yes (capability-gated) | Subject to `path_allow` declarations. |
+| `host::log(level, msg_ptr, msg_len)` | Yes, always | Single host function with level argument (Trace=0, Debug=1, Info=2, Warn=3, Error=4). The SDK exposes ergonomic wrappers `log_info(msg)`, `log_warn(msg)`, `log_error(msg)` over this base function for resolver authors. Available at all times for diagnostics. |
+| `host::write_file` | **No** — absent from resolver linker | Resolvers are read-only; `host::write_file` is not available to resolvers. |
+| `host::exec_subprocess` | **No** — absent from resolver linker | Resolvers cannot execute subprocesses. |
+| `host::emit_event` | **No** — absent from resolver linker | Resolvers cannot emit telemetry events directly. |
+
+**Deny-by-default (DI-004):** A resolver without an explicit `path_allow` entry (or with
+`path_allow = []`) cannot read any files. Every `host::read_file` call returns
+`CapabilityDenied`. This is valid registry configuration for a resolver that computes its
+output purely from `ResolverInput` fields without filesystem I/O.
+
+**`CapabilityDenied` return code:** A resolver that attempts to read a path outside its
+declared `path_allow` prefixes receives `CapabilityDenied` as a return code from
+`host::read_file` — not a WASM trap. The resolver can observe the error in Rust code and
+handle it gracefully (e.g., returning `value: None`). (BC-4.12.003 INV3)
+
+**Telemetry on capability denial:** When a resolver receives `CapabilityDenied` from
+`host::read_file`, the dispatcher emits a `resolver.capability_denied` telemetry event
+(BC-4.12.003 PC2) with three fields: (1) the **resolver name**, (2) the **denied path**
+(the path the resolver passed to the host function), and (3) the **resolved path that was
+attempted** (the canonicalized path the host computed before failing the prefix check). The
+third field is forensically valuable: it lets operators detect path-traversal attempts where
+the user-supplied path looks innocent but the resolved path is not. Capability denials are
+also surfaced via the `resolver.error` event with `error_kind: "capability_denied"` if the
+denial causes the resolver to fail (BC-4.12.004 PC2). The `resolver.capability_denied`
+event fires at the host-function boundary; the `resolver.error` event fires if the resolver
+subsequently returns an error result. Both may fire for the same denial depending on
+dispatcher implementation. Cross-reference: BC-4.12.003 PC2, BC-4.12.004 PC2.
+
+**Path-prefix matching:** `path_allow` entries are matched as path prefixes. A
+`path_allow = [".factory/"]` entry allows reading any path that starts with `.factory/`
+relative to `project_dir`. Matching is case-sensitive on case-sensitive filesystems.
+
+A resolver module that references `host::write_file` fails at instantiation time (linker
+error), not at runtime. This prevents resolvers from accidentally or maliciously writing
+files. (BC-4.12.003 INV2)
+
+**Per-resolver isolation:** The capability restrictions for resolver A do NOT apply to
+resolver B and vice versa. Each resolver's `Store` is initialized with that resolver's own
+`path_allow` list from its registry entry. (BC-4.12.003 PC6)
+
+---
+
+### Error and Crash Isolation (BC-4.12.004)
+
+The WASM sandbox provides hard isolation between a resolver's execution and the dispatcher
+process. A resolver panic, WASM trap, execution timeout (fuel/epoch budget exceeded), or
+ABI violation (e.g., invalid output JSON) MUST NOT propagate to the dispatcher.
+
+**`resolver.error` telemetry event:**
+
+When a resolver fails, the dispatcher emits a `resolver.error` event with the following
+fields:
+
+| Field | Description |
+|-------|-------------|
+| `resolver_name` | The registry name of the failed resolver. |
+| `error_kind` | One of: `"trap"`, `"timeout"`, `"abi_violation"`, `"capability_denied"`, `"not_found"`, `"load_error"`. |
+| `error_detail` | Human-readable description of the specific error. |
+| `hook_event_name` | The hook dispatch context that triggered this resolver. |
+
+In addition to the telemetry event, the dispatcher writes an error-level log entry at the configured log path with the same fields (BC-4.12.004 PC7).
+
+**Isolation guarantees:**
+
+- A resolver crash does NOT propagate to the dispatcher; `invoke_resolver` returns
+  `Result<ResolverOutput, ResolverError>` in all cases. The dispatcher continues executing
+  normally after handling the error.
+- The failed resolver's key is NOT written to `plugin_config`. No partial output, no null
+  value, no default value — the key is simply absent.
+- Dispatch proceeds without the missing context: the hook receives a `plugin_config` that
+  lacks the failed resolver's key and must decide how to handle the absent context.
+- If multiple resolvers are declared in `needs_context` and one fails, the remaining
+  resolvers still execute. A failure in resolver A does not skip resolver B.
+
+---
+
+### Merging Contract (BC-4.12.005)
+
+Context injection uses **additive overlay** merge semantics:
+
+- The final `plugin_config` passed to the hook is the union of:
+  - All fields from the static hooks-registry `plugin_config` (preserved as-is).
+  - All fields from successful resolver outputs (one field per resolver:
+    `plugin_config[key] = value`).
+- Resolvers are merged in the order they are declared in `needs_context`.
+
+**Whole-value replacement (no deep merge):** If a resolver returns a value for a key
+that already exists in `plugin_config`, the resolver's value **replaces the key wholesale**.
+There is no deep merge of nested objects. The static value at that key is gone after the
+overlay.
+
+**`value: None` → key absent:** If a resolver returns `ResolverOutput { key: "foo",
+value: None }`, the key `"foo"` is NOT written to `plugin_config`. The key remains absent
+from the merged `plugin_config`. The hook reading `plugin_config["foo"]` sees a missing
+key, not a null value. This is distinct from `value: Some(null)` — a resolver returns
+`Option<Value>`, and returning `None` means the resolver has no output for this dispatch.
+(BC-4.12.005 PC2)
+
+**`resolver.merge_collision` event:** If a resolver outputs a key that already exists in
+the static `plugin_config`, the dispatcher emits a `resolver.merge_collision` telemetry
+event with the key name, static value, and resolver value. The resolver's output wins.
+This is not an error; it is an expected enrichment pattern.
+
+**`needs_context` is the merge scope:** Only resolvers named in the `needs_context` field
+of the hooks-registry entry contribute to the merge for that dispatch. Other registered
+resolvers (in `resolvers-registry.toml` but not in `needs_context`) are NOT invoked and do
+NOT contribute any keys. This zero-overhead path ensures registry entries without
+`needs_context` skip resolver invocation entirely. (BC-4.12.005 INV5, BC-1.13.001 PC3)
+
+**Merge example:**
+
+Before merge (static config from hooks-registry entry):
+```json
+{ "threshold": 3 }
+```
+
+After merge (resolver returns `{ "key": "my-context", "value": { "items": ["a", "b"] } }`):
+```json
+{ "threshold": 3, "my-context": { "items": ["a", "b"] } }
+```
+
+If the resolver returns `{ "key": "my-context", "value": null }`, the result is:
+```json
+{ "threshold": 3 }
+```
+(key absent — not written to `plugin_config`)
+
+---
+
+### Cross-References
+
+- **ADR-018** — WASM-Plugin Context Resolvers: Design and Layering. Codifies the
+  factory-agnostic invariant, separate registry file (OD-2), resolver ABI types (OD-3),
+  load-once lifecycle (OD-1), read-only capability model, and explicit registration (OD-6).
+- **BC-1.13.001** — Dispatcher loads `resolvers-registry.toml` at startup and injects
+  resolver context into `plugin_config` before each hook dispatch. Contains the absent-file
+  = zero resolvers constraint (PC1) and `needs_context` semantics.
+- **BC-4.12.001** — Resolver lifecycle: load-once with mtime-based cache invalidation;
+  per-dispatch Store isolation.
+- **BC-4.12.002** — Resolver ABI types (`ResolverInput`, `ResolverOutput`),
+  `RESOLVER_ABI_VERSION = 1`, `#[resolver]` macro contract, `resolver-authoring` feature.
+- **BC-4.12.003** — Resolver capability model: `path_allow` declarations, deny-by-default,
+  `CapabilityDenied` return code, read-only linker (no `write_file`).
+- **BC-4.12.004** — Resolver error and crash isolation: `resolver.error` event,
+  `resolver_name` and `error_kind` fields, dispatch continues after resolver failure.
+- **BC-4.12.005** — Context-injection merging: additive overlay, whole-value replacement,
+  `None` → key absent, `resolver.merge_collision` event, duplicate `context_key` = startup
+  error.
