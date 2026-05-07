@@ -149,20 +149,44 @@ teardown() {
 # AC-002 traces to BC-4.10.001 PC8: canonical block_with_fix format
 #
 # Structural: source must use block_with_fix (canonical Why/Fix/Code form per
-# HOST_ABI.md §WASM hooks). Registry must set on_error = "continue" (advisory-block mode).
+# HOST_ABI.md §WASM hooks).
 # Behavioral correctness: test_BC_4_10_001_vp071_equiv_block_with_fix_fields_populated
+#
+# Note: this test was previously merged with the on_error=continue registry check
+# (F-HIGH-2 fix). The two assertions are orthogonal:
+#   - block_with_fix governs the BLOCK MESSAGE FORMAT (BC-4.10.001 PC8).
+#   - on_error governs what happens when the HOOK ITSELF CRASHES (BC-4.10.002).
+# Separating them prevents false failures if the operator policy on on_error changes.
 # ---------------------------------------------------------------------------
 
-@test "structural: source uses block_with_fix and registry sets on_error=continue (AC-002, BC-4.10.001 PC8)" {
-    # Production code must call block_with_fix (canonical HOST_ABI block pattern)
+@test "structural: source uses block_with_fix canonical Why/Fix/Code form (AC-002, BC-4.10.001 PC8)" {
+    # Production code must call block_with_fix (canonical HOST_ABI block pattern).
+    # This verifies BC-4.10.001 PC8: the block reason string must embed hook name,
+    # reason, fix recommendation, and block code in canonical Why/Fix/Code format.
     grep -q 'block_with_fix(' "$LIB_RS" || {
         echo "BC-4.10.001 PC8: src/lib.rs must use HookResult::block_with_fix canonical form"
         return 1
     }
-    # Registry must declare on_error = "continue" (advisory-block mode)
+}
+
+# ---------------------------------------------------------------------------
+# Operator policy: on_error = "continue" in hooks-registry.toml
+#
+# This is a separate operational decision from block_with_fix format (F-HIGH-2 fix).
+# on_error = "continue" means a hook CRASH does not block the tool call.
+# This aligns with BC-4.10.002: graceful degrade on hook failure.
+# Rationale: the hook is a monitoring/enforcement gate, not a build gate.
+# A hook crash (OOM, WASM trap) should not halt developer workflow.
+# ---------------------------------------------------------------------------
+
+@test "structural: registry sets on_error=continue for hook crash policy (BC-4.10.002 graceful degrade)" {
+    # on_error = "continue" is the hook-crash policy (separate from block_with_fix format).
+    # BC-4.10.002: if the hook itself crashes, the dispatcher continues (graceful degrade).
+    # This is NOT related to advisory-block mode (retired per D-349/OQ-9).
     grep -A 20 'name = "validate-per-story-adversary-convergence"' "$REGISTRY" |
         grep -q 'on_error = "continue"' || {
-        echo 'BC-4.10.001 PC8: hooks-registry.toml must set on_error = "continue" for this hook'
+        echo 'BC-4.10.002: hooks-registry.toml must set on_error = "continue" for hook-crash policy'
+        echo 'Note: this is the hook CRASH policy, not the block signal format.'
         return 1
     }
 }
