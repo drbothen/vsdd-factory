@@ -85,7 +85,9 @@ If any exist, run DTU comparison:
 - The wave diff (integration of all story branches on `develop`)
 - The aggregated `deferred_findings` from per-story convergence state files (`.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`) across all stories in the wave — these are findings tagged `target: "wave-gate"` during per-story passes
 
-Out of scope for Gate 3: within-story findings (assumed converged), system-level findings (deferred to Phase-5), architectural findings (deferred to Phase-5).
+Out of scope for Gate 3 origination: within-story findings should be discovered at Step 4.5. System-level and architectural findings are deferred to Phase-5.
+
+**Bootstrap exception (D-354):** Stories that pre-date Step 4.5 (the bootstrap cohort) may carry un-converged within-story findings. Gate 3 RETAINS blocking authority over CRITICAL or HIGH within-story findings that surface at the wave perimeter for bootstrap-exception stories. If a within-story finding was not caught at Step 4.5 because the step did not exist for that story, Gate 3 is the last line of defense and MUST block on CRITICAL/HIGH severity. Narrowing of scope applies only to origination, not to blocking authority.
 
 Get the wave diff:
 ```bash
