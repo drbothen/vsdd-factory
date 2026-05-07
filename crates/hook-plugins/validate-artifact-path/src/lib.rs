@@ -14,7 +14,6 @@
 //! # Architecture compliance
 //!
 //! - HOST_ABI_VERSION = 1 (no new host functions introduced).
-//! - All non-trivial function bodies are `todo!()` per BC-5.38.001 (S-13.01 stub).
 //! - Pure `fn hook_logic(...)` takes all host I/O as injectable closures.
 //!   Unit tests exercise every branch without a WASM runtime.
 //! - No hardcoded `.factory/` path pattern literals in source (BC-4.11.001 invariant 1).
@@ -117,12 +116,13 @@ pub enum MatchResult {
 /// # BC trace
 /// BC-4.11.001 postcondition 1 — registry is read, never embedded as literals.
 /// VP-069 Part A — registry-load never panics on malformed YAML.
-///
-/// # S-13.01 Step 4 implementer
-/// Implement YAML parsing using `serde_yaml`. If binary > 500 KB after linking,
-/// switch to minimal YAML-subset parser per F1 OQ-1 (story dev notes).
-pub fn load_registry(_yaml: &str) -> Result<PathRegistry, RegistryError> {
-    todo!("S-13.01 Step 4 implementer — see BC-4.11.001 PC1; VP-069 harness; parse yaml str into PathRegistry using serde_yaml")
+pub fn load_registry(yaml: &str) -> Result<PathRegistry, RegistryError> {
+    if yaml.is_empty() {
+        return Err(RegistryError::ParseError("empty registry YAML".to_string()));
+    }
+    let registry: PathRegistry = serde_yaml::from_str(yaml)
+        .map_err(|e| RegistryError::ParseError(e.to_string()))?;
+    Ok(registry)
 }
 
 /// Match a write-target `path` against all entries in `registry`.
@@ -130,19 +130,175 @@ pub fn load_registry(_yaml: &str) -> Result<PathRegistry, RegistryError> {
 /// Returns the `MatchResult` for the first matching entry (first-match-wins,
 /// per BC-4.11.001 EC-005). Returns `MatchResult::NoMatch` if no entry matches.
 ///
+/// Non-`.factory/` paths always return `MatchResult::NoMatch` — `hook_logic`
+/// uses this to distinguish early-exit Continue from a genuine no-match block.
+///
 /// This function is pure and deterministic: for the same `(path, registry)`
 /// pair it always returns the same `MatchResult` (VP-070 invariant).
+///
+/// # Pattern matching
+///
+/// Patterns use `{placeholder}` syntax. Each placeholder matches any
+/// non-empty path segment or sequence of segments. The algorithm converts
+/// the pattern into a structure that allows `{placeholder}` to match
+/// one or more path characters (excluding nothing).
 ///
 /// # BC trace
 /// BC-4.11.001 postcondition 2b — match path against registered patterns.
 /// BC-4.11.001 EC-005 — first matching entry wins.
 /// VP-070 — path matching is pure and deterministic.
+pub fn matches_canonical(path: &str, registry: &PathRegistry) -> MatchResult {
+    // Non-.factory/ paths are out of scope — return NoMatch so hook_logic
+    // can do an early-exit Continue without blocking.
+    if !path.starts_with(".factory/") {
+        return MatchResult::NoMatch;
+    }
+
+    for entry in &registry.artifacts {
+        if pattern_matches(path, &entry.canonical_path_pattern) {
+            return match entry.enforcement_level.as_str() {
+                "block" => MatchResult::Block,
+                "warn" => MatchResult::Warn {
+                    pattern: entry.canonical_path_pattern.clone(),
+                },
+                "advisory" => MatchResult::Advisory {
+                    pattern: entry.canonical_path_pattern.clone(),
+                },
+                // Unknown enforcement_level: treat as advisory (don't block valid paths)
+                _ => MatchResult::Advisory {
+                    pattern: entry.canonical_path_pattern.clone(),
+                },
+            };
+        }
+    }
+
+    MatchResult::NoMatch
+}
+
+/// Check whether `path` matches `pattern`, where `{placeholder}` in the
+/// pattern matches any non-empty sequence of characters (greedy).
 ///
-/// # S-13.01 Step 4 implementer
-/// Implement `canonical_path_pattern` matching with `{placeholder}` expansion
-/// per BC-4.11.001 invariant 6. Pattern semantics are defined in F4 implementation scope.
-pub fn matches_canonical(_path: &str, _registry: &PathRegistry) -> MatchResult {
-    todo!("S-13.01 Step 4 implementer — see BC-4.11.001 PC2b, EC-005; VP-070 kani harness; first-match-wins pattern matching with placeholder expansion")
+/// This implements a simple glob-like match: literal characters must match
+/// exactly, and `{placeholder}` segments match one or more characters in the
+/// path. The matching is done segment-aware: placeholders may span segment
+/// boundaries (slashes) so that e.g. `{cycle-id}` can match
+/// `v1.0-feature-engine-discipline-pass-1`.
+///
+/// Algorithm: split the pattern on `{...}` tokens; check that the path
+/// contains each literal segment in order, with at least one character
+/// between consecutive literal segments (where a placeholder is expected).
+fn pattern_matches(path: &str, pattern: &str) -> bool {
+    // Split pattern into alternating literal / placeholder segments.
+    // E.g. ".factory/cycles/{cycle-id}/{doc-type}.md" becomes:
+    //   [".factory/cycles/", "cycle-id", "/", "doc-type", ".md"]
+    // We only care about the literal parts for matching purposes.
+    let parts = split_pattern(pattern);
+
+    // Walk through the literal parts ensuring each appears in the path
+    // in order, with at least one character between consecutive parts
+    // where a placeholder should sit.
+    let mut pos = 0usize;
+    let path_bytes = path.as_bytes();
+
+    for (i, part) in parts.iter().enumerate() {
+        match part {
+            PatternPart::Literal(lit) => {
+                if lit.is_empty() {
+                    continue;
+                }
+                // Find this literal in path starting at pos.
+                // If this is the very first literal, it must match at pos=0.
+                if i == 0 || (i > 0 && !matches!(parts.get(i - 1), Some(PatternPart::Placeholder(_)))) {
+                    // Consecutive literals — must appear immediately
+                    if path_bytes[pos..].starts_with(lit.as_bytes()) {
+                        pos += lit.len();
+                    } else {
+                        return false;
+                    }
+                } else {
+                    // After a placeholder — must find the literal somewhere ahead
+                    // but there must be at least one char before it (the placeholder content).
+                    if pos >= path_bytes.len() {
+                        return false;
+                    }
+                    // Find the literal starting from pos+1 (placeholder must have >=1 char)
+                    match find_subsequence(&path_bytes[pos + 1..], lit.as_bytes()) {
+                        Some(offset) => {
+                            pos = pos + 1 + offset + lit.len();
+                        }
+                        None => return false,
+                    }
+                }
+            }
+            PatternPart::Placeholder(_) => {
+                // Placeholder is handled when the NEXT literal is processed.
+                // Just record that we need at least one char consumed.
+            }
+        }
+    }
+
+    // After all pattern parts, the entire path must be consumed
+    // (the last placeholder, if any, must match the rest of the path).
+    let last_is_placeholder = matches!(parts.last(), Some(PatternPart::Placeholder(_)));
+    if last_is_placeholder {
+        // Last placeholder must match at least one character.
+        pos < path_bytes.len()
+    } else {
+        // All literal parts matched; path must be exactly consumed.
+        pos == path_bytes.len()
+    }
+}
+
+/// A parsed pattern part.
+#[derive(Debug, Clone)]
+enum PatternPart {
+    Literal(String),
+    Placeholder(String),
+}
+
+/// Split a pattern like ".factory/{cycle-id}/doc.md" into alternating
+/// literal and placeholder parts.
+fn split_pattern(pattern: &str) -> Vec<PatternPart> {
+    let mut parts = Vec::new();
+    let mut remaining = pattern;
+
+    while !remaining.is_empty() {
+        if let Some(start) = remaining.find('{') {
+            // Literal before the placeholder
+            let literal = &remaining[..start];
+            if !literal.is_empty() {
+                parts.push(PatternPart::Literal(literal.to_string()));
+            }
+            remaining = &remaining[start + 1..];
+            // Find the closing brace
+            if let Some(end) = remaining.find('}') {
+                let placeholder = &remaining[..end];
+                parts.push(PatternPart::Placeholder(placeholder.to_string()));
+                remaining = &remaining[end + 1..];
+            } else {
+                // No closing brace — treat the rest as a literal
+                parts.push(PatternPart::Literal(format!("{{{}", remaining)));
+                break;
+            }
+        } else {
+            // No more placeholders — rest is a literal
+            parts.push(PatternPart::Literal(remaining.to_string()));
+            break;
+        }
+    }
+
+    parts
+}
+
+/// Find the first occurrence of `needle` in `haystack`.
+/// Returns the byte offset of the start, or `None` if not found.
+fn find_subsequence(haystack: &[u8], needle: &[u8]) -> Option<usize> {
+    if needle.is_empty() {
+        return Some(0);
+    }
+    haystack
+        .windows(needle.len())
+        .position(|window| window == needle)
 }
 
 // ---------------------------------------------------------------------------
@@ -183,18 +339,111 @@ where
 /// - BC-4.11.001 EC-002: registry malformed → Continue + log_error
 /// - BC-4.11.001 EC-004/PC7: non-.factory/ path → early-exit Continue
 /// - BC-4.11.001 EC-006: file_path absent → Continue + log_warn
-///
-/// # S-13.01 Step 4 implementer — see BC-4.11.001 full postcondition/edge-case spec
 pub fn hook_logic<R, E, L>(
-    _payload: HookPayload,
-    _callbacks: HookCallbacks<R, E, L>,
+    payload: HookPayload,
+    mut callbacks: HookCallbacks<R, E, L>,
 ) -> HookResult
 where
     R: FnOnce(&str) -> Result<String, String>,
     E: FnMut(&str, &[(&str, &str)]),
     L: FnMut(u8, &str),
 {
-    todo!("S-13.01 Step 4 implementer — see BC-4.11.001 PC2-9, EC-001/002/004/005/006; wire load_registry + matches_canonical + block_with_fix; all branches must be covered by unit tests")
+    // BC-4.11.001 EC-006: extract file_path from tool_input; graceful degrade if absent.
+    let file_path = match payload.tool_input.get("file_path").and_then(|v| v.as_str()) {
+        Some(p) => p.to_string(),
+        None => {
+            // EC-006: file_path absent — log_warn (level 3) and continue.
+            (callbacks.log)(
+                3,
+                "[validate-artifact-path] WARN: file_path absent from tool_input payload — graceful degrade",
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    // BC-4.11.001 PC7 / EC-004: non-.factory/ path → early-exit Continue.
+    // No registry lookup performed.
+    if !file_path.starts_with(".factory/") {
+        return HookResult::Continue;
+    }
+
+    // Load the registry via the injectable read_file callback.
+    let registry_yaml = match (callbacks.read_file)(REGISTRY_PATH) {
+        Ok(contents) => contents,
+        Err(_) => {
+            // BC-4.11.001 EC-001: registry absent — log_debug (level 1) and continue.
+            (callbacks.log)(
+                1,
+                &format!(
+                    "[validate-artifact-path] registry absent at {} — graceful degrade",
+                    REGISTRY_PATH
+                ),
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    // Parse the registry YAML.
+    let registry = match load_registry(&registry_yaml) {
+        Ok(r) => r,
+        Err(e) => {
+            // BC-4.11.001 EC-002: registry malformed — log_error (level 4) and continue.
+            (callbacks.log)(
+                4,
+                &format!(
+                    "[validate-artifact-path] registry parse error: {} — graceful degrade",
+                    e
+                ),
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    // Match the path against the registry.
+    match matches_canonical(&file_path, &registry) {
+        MatchResult::Block => {
+            // BC-4.11.001 PC3: path matches block-level entry → write proceeds.
+            HookResult::Continue
+        }
+        MatchResult::Warn { pattern } => {
+            // BC-4.11.001 PC4: warn-level match → emit hook.warn + continue.
+            (callbacks.emit_event)(
+                "hook.warn",
+                &[
+                    ("hook", "validate-artifact-path"),
+                    ("path", &file_path),
+                    ("pattern", &pattern),
+                    ("enforcement_level", "warn"),
+                ],
+            );
+            HookResult::Continue
+        }
+        MatchResult::Advisory { .. } => {
+            // BC-4.11.001 PC5: advisory-level match → log_debug + continue.
+            (callbacks.log)(
+                1,
+                &format!(
+                    "[validate-artifact-path] advisory: '{}' matches registry pattern with enforcement_level: advisory",
+                    file_path
+                ),
+            );
+            HookResult::Continue
+        }
+        MatchResult::NoMatch => {
+            // BC-4.11.001 PC6 / invariant 3: unregistered .factory/ path → block.
+            HookResult::block_with_fix(
+                "validate-artifact-path",
+                &format!(
+                    "Write to '{}' under .factory/ has no matching entry in {}",
+                    file_path, REGISTRY_PATH
+                ),
+                "Consult the registry to find the canonical path for this artifact type. \
+                 If the artifact type is new, use /vsdd-factory:register-artifact to add it \
+                 to the registry first. Do not invent directory names",
+                "ARTIFACT_PATH_UNREGISTERED",
+            )
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -205,24 +454,32 @@ where
 ///
 /// Wires the real vsdd_hook_sdk host functions to the injectable-callback
 /// surface of `hook_logic`.
-///
-/// # S-13.01 Step 4 implementer
-/// Wire `host::read_file`, `host::emit_event`, `host::log_*` to
-/// `hook_logic`'s injectable callbacks. See `regression_gate::on_post_tool_use`
-/// in `regression-gate/src/lib.rs` for the canonical wiring pattern.
-pub fn on_pre_tool_use(_payload: HookPayload) -> HookResult {
-    todo!("S-13.01 Step 4 implementer — wire host::read_file, host::emit_event, host::log_* to hook_logic callbacks; see regression-gate on_post_tool_use for canonical pattern")
+pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
+    use vsdd_hook_sdk::host;
+
+    hook_logic(
+        payload,
+        HookCallbacks {
+            read_file: |path| match host::read_file(path, 65536, 5000) {
+                Ok(bytes) => String::from_utf8(bytes).map_err(|e| e.to_string()),
+                Err(e) => Err(format!("{:?}", e)),
+            },
+            emit_event: |event_type, fields| {
+                host::emit_event(event_type, fields);
+            },
+            log: |level, msg| match level {
+                0 | 1 | 2 => host::log_info(msg),
+                3 => host::log_warn(msg),
+                _ => host::log_error(msg),
+            },
+        },
+    )
 }
 
 // ---------------------------------------------------------------------------
 // Unit tests — Red Gate (BC-5.36.001)
 //
 // All tests in this module exercise the production functions declared above.
-// Because those functions contain `todo!()`, every test here FAILS at runtime.
-// Failures surface as assertion errors (via catch_unwind) rather than raw
-// "not yet implemented" panics, satisfying the Red Gate requirement that
-// failure messages describe the BEHAVIOR under test.
-//
 // Test naming follows the BC-based convention: test_BC_S_SS_NNN_xxx().
 // ---------------------------------------------------------------------------
 
@@ -317,13 +574,6 @@ artifacts:
     }
 
     /// Attempt to call `load_registry` on `yaml` and ASSERT it returns Ok.
-    ///
-    /// If `load_registry` panics (because it is `todo!()`), this helper's assertion fails
-    /// with a clear message describing the required behavior. This ensures all tests that
-    /// depend on `load_registry` fail at Red Gate (not vacuously pass).
-    ///
-    /// When production code is implemented, this returns the parsed `PathRegistry`.
-    /// Tests that call this helper therefore fail at this point until `load_registry` works.
     fn require_registry(yaml: &str, context: &str) -> PathRegistry {
         let result = panic::catch_unwind(|| load_registry(yaml));
         assert!(
@@ -379,8 +629,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac001_load_registry_valid_yaml_returns_ok() {
-        // AC-001 traces to BC-4.11.001 PC1: load_registry parses valid YAML into
-        // PathRegistry; registry is read, never embedded as literals.
         let yaml = registry_yaml("block");
         let result = panic::catch_unwind(|| load_registry(&yaml));
         assert!(
@@ -389,7 +637,6 @@ artifacts:
              but the production function is unimplemented (todo!()). \
              BC-4.11.001 PC1: registry must be parseable at hook invocation time."
         );
-        // If production function ever returns without panicking, assert it parsed entries.
         if let Ok(Ok(registry)) = result {
             assert!(
                 !registry.artifacts.is_empty(),
@@ -402,7 +649,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac001_load_registry_parses_artifact_type_field() {
-        // AC-001 traces to BC-4.11.001 PC1: parsed entries must include artifact_type field.
         let yaml = registry_yaml("block");
         let result = panic::catch_unwind(|| load_registry(&yaml));
         assert!(
@@ -425,7 +671,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac001_load_registry_parses_enforcement_level_field() {
-        // AC-001 traces to BC-4.11.001 PC2c: parsed entries must include enforcement_level.
         let yaml = registry_yaml("warn");
         let result = panic::catch_unwind(|| load_registry(&yaml));
         assert!(
@@ -452,8 +697,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac001_load_registry_malformed_yaml_returns_err() {
-        // AC-001 / BC-4.11.001 EC-002: malformed YAML must return Err(RegistryError::ParseError),
-        // not panic. VP-069 Part A invariant: load_registry never panics on any input.
         let malformed = "{ this is not: valid yaml: [unclosed bracket";
         let result = panic::catch_unwind(|| load_registry(malformed));
         assert!(
@@ -466,7 +709,6 @@ artifacts:
                 outcome.is_err(),
                 "load_registry must return Err for malformed YAML (BC-4.11.001 EC-002)"
             );
-            // Verify it's the ParseError variant, not MissingField
             if let Err(err) = outcome {
                 let msg = format!("{}", err);
                 assert!(
@@ -479,7 +721,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac001_load_registry_empty_string_returns_err() {
-        // VP-069: empty string is valid input; function must not panic.
         let result = panic::catch_unwind(|| load_registry(""));
         assert!(
             result.is_ok(),
@@ -490,8 +731,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac001_load_registry_missing_required_field_returns_missing_field_err() {
-        // AC-001 / BC-4.11.001 PC1: entries missing required fields must return
-        // RegistryError::MissingField, not panic.
         let missing_fields_yaml = "version: 1\nartifacts:\n  - artifact_type: behavioral-contract\n";
         let result = panic::catch_unwind(|| load_registry(missing_fields_yaml));
         assert!(
@@ -510,10 +749,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_matches_canonical_bc_path_returns_match() {
-        // AC-002 traces to BC-4.11.001 invariant 2 + VP-070:
-        // A canonical BC path matching the registered pattern must return MatchResult::Block
-        // (the naming is confusing: Block variant means "this is a valid canonical path,
-        //  write proceeds"). The path matches with enforcement_level=block.
         let yaml = multi_entry_registry_yaml();
         let registry = require_registry(
             &yaml,
@@ -542,7 +777,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_matches_canonical_adr_path_returns_match() {
-        // AC-002: ADR paths must match their registry pattern.
         let yaml = multi_entry_registry_yaml();
         let registry = require_registry(&yaml, "ac002_adr_path");
         let result = panic::catch_unwind(|| {
@@ -564,7 +798,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_matches_canonical_vp_path_returns_match() {
-        // AC-002: VP paths must match their registry pattern.
         let yaml = multi_entry_registry_yaml();
         let registry = require_registry(&yaml, "ac002_vp_path");
         let result = panic::catch_unwind(|| {
@@ -585,7 +818,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_matches_canonical_story_path_returns_match() {
-        // AC-002: Story spec paths must match their registry pattern.
         let yaml = multi_entry_registry_yaml();
         let registry = require_registry(&yaml, "ac002_story_path");
         let result = panic::catch_unwind(|| {
@@ -606,7 +838,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_matches_canonical_prd_path_returns_match() {
-        // AC-002: PRD path must match its registry pattern.
         let yaml = multi_entry_registry_yaml();
         let registry = require_registry(&yaml, "ac002_prd_path");
         let result = panic::catch_unwind(|| {
@@ -624,7 +855,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_matches_canonical_cycle_doc_path_returns_match() {
-        // AC-002: Cycle document paths must match their registry pattern.
         let yaml = multi_entry_registry_yaml();
         let registry = require_registry(&yaml, "ac002_cycle_doc_path");
         let result = panic::catch_unwind(|| {
@@ -653,8 +883,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_matches_canonical_unregistered_path_returns_nomatch() {
-        // AC-002 / BC-4.11.001 invariant 3: path that matches no registry entry → NoMatch.
-        // This drives the ARTIFACT_PATH_UNREGISTERED block in hook_logic.
         let yaml = registry_yaml("block");
         let registry = require_registry(&yaml, "ac002_unregistered_path_nomatch");
         let result = panic::catch_unwind(|| {
@@ -680,9 +908,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_matches_canonical_first_match_wins_for_ambiguous_path() {
-        // AC-002 / BC-4.11.001 EC-005: when multiple patterns match, the first
-        // matching entry wins and its enforcement_level is applied.
-        // Build a registry where two entries could match the same path prefix.
         let ambiguous_yaml = r#"version: 1
 artifacts:
   - artifact_type: first-match
@@ -723,11 +948,8 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_placeholder_subsystem_expansion_in_bc_pattern() {
-        // AC-002 / BC-4.11.001 invariant 6: patterns use {placeholder} expansion.
-        // {subsystem} must be substitutable with actual subsystem values.
         let yaml = registry_yaml("block");
         let registry = require_registry(&yaml, "ac002_placeholder_subsystem");
-        // Different subsystem IDs should match the same pattern template.
         for subsystem in &["01", "04", "06", "13"] {
             let path = format!(
                 ".factory/specs/behavioral-contracts/ss-{}/BC-{}.01.001.md",
@@ -757,8 +979,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_placeholder_bc_id_expansion_in_bc_pattern() {
-        // AC-002 / BC-4.11.001 invariant 6: {bc-id} placeholder must expand
-        // to allow any valid BC ID format (e.g. "4.11.001", "6.22.001").
         let yaml = registry_yaml("block");
         let registry = require_registry(&yaml, "ac002_placeholder_bc_id");
         let paths = [
@@ -791,7 +1011,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_placeholder_cycle_id_expansion_in_cycle_doc_pattern() {
-        // AC-002 / BC-4.11.001 invariant 6: {cycle-id} placeholder expansion.
         let yaml = r#"version: 1
 artifacts:
   - artifact_type: cycle-document
@@ -822,7 +1041,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_placeholder_story_id_expansion_in_story_pattern() {
-        // AC-002 / BC-4.11.001 invariant 6: {story-id} and {slug} placeholder expansion.
         let yaml = r#"version: 1
 artifacts:
   - artifact_type: story-spec
@@ -853,7 +1071,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac002_placeholder_phase_expansion_in_phase_pattern() {
-        // AC-002 / BC-4.11.001 invariant 6: {phase} placeholder expansion.
         let yaml = r#"version: 1
 artifacts:
   - artifact_type: phase-delta-analysis
@@ -888,8 +1105,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac003_unregistered_path_blocked() {
-        // AC-003 traces to BC-4.11.001 PC6: Write to an unregistered .factory/ path
-        // must return HookResult::block_with_fix with code ARTIFACT_PATH_UNREGISTERED.
         let payload = make_payload("Write", Some(".factory/feature-deltas/F1-delta.md"));
         let result = panic::catch_unwind(|| {
             run_logic(payload, Ok(registry_yaml("block")))
@@ -929,8 +1144,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac003_block_reason_contains_path_under_test() {
-        // AC-003 / BC-4.11.001 PC6: block reason string must include the
-        // write target path so the agent understands what triggered the block.
         let target_path = ".factory/feature-deltas/F1-delta.md";
         let payload = make_payload("Write", Some(target_path));
         let result = panic::catch_unwind(|| {
@@ -961,8 +1174,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac004_non_factory_path_returns_continue() {
-        // AC-004 traces to BC-4.11.001 PC7: path outside .factory/ must return
-        // HookResult::Continue immediately with no registry lookup.
         let mut read_file_called = false;
         let payload = make_payload("Write", Some("src/lib.rs"));
         let result = panic::catch_unwind(move || {
@@ -996,8 +1207,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac004_non_factory_path_does_not_invoke_read_file() {
-        // AC-004 / BC-4.11.001 PC7: the registry read (read_file callback) must
-        // NOT be invoked for non-.factory/ paths. Early exit before registry lookup.
         use std::sync::{Arc, Mutex};
         let called = Arc::new(Mutex::new(false));
         let called_clone = called.clone();
@@ -1020,8 +1229,6 @@ artifacts:
             "hook_logic should return Continue without reading registry for non-.factory/ path \
              (BC-4.11.001 PC7). Production unimplemented."
         );
-        // Note: cannot assert called==false here because the panic means we can't access Arc,
-        // but the test structure documents the expected contract.
         if let Ok(hook_result) = result {
             assert_eq!(
                 hook_result,
@@ -1043,9 +1250,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac005_enforcement_level_block_entry_returns_continue() {
-        // AC-005 branch 1 traces to BC-4.11.001 PC3: path matches an entry with
-        // enforcement_level=block → write PROCEEDS, HookResult::Continue.
-        // "block" in the enforcement_level means "this is a valid/canonical path."
         let payload = make_payload(
             "Write",
             Some(".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md"),
@@ -1071,8 +1275,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac005_enforcement_level_warn_entry_returns_continue_with_event() {
-        // AC-005 branch 2 traces to BC-4.11.001 PC4: path matches enforcement_level=warn →
-        // emits hook.warn event AND returns HookResult::Continue.
         let payload = make_payload(
             "Write",
             Some(".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md"),
@@ -1103,8 +1305,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac005_enforcement_level_advisory_entry_returns_continue_with_log() {
-        // AC-005 branch 3 traces to BC-4.11.001 PC5: path matches enforcement_level=advisory →
-        // calls host::log_debug AND returns HookResult::Continue. No stderr output.
         let payload = make_payload(
             "Write",
             Some(".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md"),
@@ -1143,8 +1343,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac005_no_match_returns_block_with_fix() {
-        // AC-005 branch 4 / BC-4.11.001 PC6: no registry match → block_with_fix.
-        // This is the "unregistered path" case.
         let payload = make_payload("Write", Some(".factory/unknown/path/artifact.md"));
         let result = panic::catch_unwind(|| {
             run_logic(payload, Ok(registry_yaml("block")))
@@ -1169,8 +1367,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac006_graceful_degrade_absent_registry_returns_continue() {
-        // AC-006 traces to BC-4.11.001 EC-001: registry file absent (read_file returns Err)
-        // → graceful degrade: HookResult::Continue + log_debug advisory.
         let payload = make_payload("Write", Some(".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md"));
         let result = panic::catch_unwind(|| {
             run_logic(
@@ -1201,8 +1397,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ac006_graceful_degrade_malformed_registry_returns_continue() {
-        // AC-006 traces to BC-4.11.001 EC-002: registry YAML malformed (parse error)
-        // → graceful degrade: HookResult::Continue + log_error.
         let payload = make_payload("Write", Some(".factory/specs/prd.md"));
         let result = panic::catch_unwind(|| {
             run_logic(
@@ -1245,8 +1439,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_ec006_missing_file_path_returns_continue() {
-        // BC-4.11.001 EC-006: tool_input.file_path absent → graceful degrade:
-        // HookResult::Continue + log_warn. No block on missing data.
         let payload = make_payload("Write", None); // no file_path
         let result = panic::catch_unwind(|| {
             run_logic(payload, Ok(registry_yaml("block")))
@@ -1279,8 +1471,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_invariant3_unregistered_factory_path_always_blocked() {
-        // BC-4.11.001 invariant 3: unregistered .factory/ paths are always blocked,
-        // even if other registered entries have advisory enforcement_level.
         let payload = make_payload("Write", Some(".factory/some/new/artifact-type/file.md"));
         let result = panic::catch_unwind(|| {
             run_logic(payload, Ok(advisory_only_registry_yaml()))
@@ -1308,11 +1498,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_invariant4_hook_does_not_write_registry() {
-        // BC-4.11.001 invariant 4: hook is read-only for the registry.
-        // The HookCallbacks only has a read_file callback (not a write callback).
-        // This test verifies the type-level constraint: there is no write_file in HookCallbacks.
-        // We test this structurally — if the struct had write_file, it would have a different type.
-        // The registry YAML content must be identical before and after hook_logic invocation.
         let original_yaml = registry_yaml("block");
         let yaml_snapshot = original_yaml.clone();
         let payload = make_payload(
@@ -1341,9 +1526,6 @@ artifacts:
 
     #[test]
     fn test_BC_4_11_001_invariant9_block_uses_block_with_fix_pattern() {
-        // BC-4.11.001 invariant 9 / architecture compliance rule 2:
-        // All block messages use block_with_fix. The reason string must contain
-        // the canonical "BLOCKED by <hook>: <reason>. Fix: <recommendation>. Code: <code>." pattern.
         let payload = make_payload("Write", Some(".factory/feature-deltas/F1-delta.md"));
         let result = panic::catch_unwind(|| {
             run_logic(payload, Ok(registry_yaml("block")))
@@ -1516,9 +1698,6 @@ artifacts:
     #[test]
     fn proof_BC_4_11_001_vp070_non_factory_path_always_returns_nomatch() {
         // VP-070 Proof 2: non-.factory/ paths always return MatchResult::NoMatch
-        // (not Block; block_with_fix is issued by hook_logic for NoMatch .factory/ paths,
-        // but matches_canonical should return NoMatch for non-.factory/ paths which
-        // the caller treats as early-exit Continue).
         let yaml = registry_yaml("block");
         let registry = require_registry(&yaml, "vp070_proof2_non_factory");
         let non_factory_paths = [
@@ -1555,7 +1734,6 @@ artifacts:
     #[test]
     fn proof_BC_4_11_001_vp070_empty_path_returns_nomatch() {
         // VP-070 Proof 3: empty path returns MatchResult::NoMatch.
-        // Empty paths cannot match any .factory/ prefix.
         let yaml = registry_yaml("block");
         let registry = require_registry(&yaml, "vp070_proof3_empty_path");
         let result = panic::catch_unwind(move || matches_canonical("", &registry));
@@ -1577,11 +1755,8 @@ artifacts:
     #[test]
     fn proof_BC_4_11_001_vp070_advisory_only_registry_never_produces_block_in_matches() {
         // VP-070 Proof 4: advisory-only registry must never return MatchResult::Block
-        // from matches_canonical. (MatchResult::Block means "valid canonical path —
-        // enforcement_level=block." Advisory entries produce Advisory variant.)
         let yaml = advisory_only_registry_yaml();
         let registry = require_registry(&yaml, "vp070_proof4_advisory_only");
-        // Even a path that DOES match the advisory-level entry should not return Block
         let result = panic::catch_unwind({
             let reg = registry.clone();
             move || {
@@ -1630,12 +1805,9 @@ mod kani_proofs {
     #[kani::proof]
     #[kani::unwind(16)]
     fn proof_vp070_match_path_is_deterministic() {
-        // Kani constructs arbitrary bounded inputs.
         let path: String = kani::any();
         kani::assume(path.len() <= 64);
 
-        // Use a fixed single-entry registry for bounded verification.
-        // The registry is constructed inline to avoid kani::any() on complex types.
         let entry = RegistryEntry {
             artifact_type: ".factory/specs/behavioral-contracts/ss-".to_string(),
             canonical_path_pattern:
@@ -1678,16 +1850,16 @@ mod kani_proofs {
             artifacts: vec![entry],
         };
 
-        let decision = matches_canonical(&path, &registry);
-
+        let result = matches_canonical(&path, &registry);
         kani::assert(
-            matches!(decision, MatchResult::NoMatch),
-            "VP-070 Proof 2: non-.factory/ path must always return MatchResult::NoMatch",
+            result == MatchResult::NoMatch,
+            "VP-070 Proof 2: non-.factory/ paths must return NoMatch",
         );
     }
 
-    /// VP-070 Proof 3: Empty path must return MatchResult::NoMatch.
+    /// VP-070 Proof 3: empty path always returns NoMatch.
     #[kani::proof]
+    #[kani::unwind(16)]
     fn proof_vp070_empty_path_returns_nomatch() {
         let entry = RegistryEntry {
             artifact_type: "behavioral-contract".to_string(),
@@ -1701,14 +1873,14 @@ mod kani_proofs {
             artifacts: vec![entry],
         };
 
-        let decision = matches_canonical("", &registry);
+        let result = matches_canonical("", &registry);
         kani::assert(
-            matches!(decision, MatchResult::NoMatch),
-            "VP-070 Proof 3: empty path must return MatchResult::NoMatch",
+            result == MatchResult::NoMatch,
+            "VP-070 Proof 3: empty path must return NoMatch",
         );
     }
 
-    /// VP-070 Proof 4: advisory-only registry must never produce MatchResult::Block.
+    /// VP-070 Proof 4: advisory-only registry never returns Block from matches_canonical.
     #[kani::proof]
     #[kani::unwind(16)]
     fn proof_vp070_advisory_only_registry_never_produces_block() {
@@ -1727,11 +1899,10 @@ mod kani_proofs {
             artifacts: vec![entry],
         };
 
-        let decision = matches_canonical(&path, &registry);
-
+        let result = matches_canonical(&path, &registry);
         kani::assert(
-            !matches!(decision, MatchResult::Block),
-            "VP-070 Proof 4: advisory-only registry must never produce MatchResult::Block",
+            result != MatchResult::Block,
+            "VP-070 Proof 4: advisory-only registry must never return MatchResult::Block",
         );
     }
 }
