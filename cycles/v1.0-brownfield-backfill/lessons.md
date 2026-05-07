@@ -1497,4 +1497,16 @@ Orchestrator preparing for context compact. STATE.md updated with comprehensive 
 3. Excludes lines that match historical-reference patterns ("renamed from", "Updated per", inside CHANGELOG sections, inside Q&A blocks)
 4. Reports remaining hits as findings on next state-manager seal
 
+---
+
+### Lesson — perf-baseline.bats relative-path bug (rc.13 release blocker) [process-gap]
+
+**Trigger:** rc.13 tag push on 2026-05-07 — release.yml validate job failed at perf-baseline.bats line 23. PR #96 (Slice 3 reason code test alignment) had restored 22 previously-failing bats suites; this exposed perf-baseline.bats as the ONE remaining validate-job failure that's been latent since PR #91 (perf baseline + bundle ceiling addition).
+
+**Pattern:** Latent CI bugs in test-infrastructure files become visible only when prior bugs in the SAME workflow are fixed. perf-baseline.bats was added in PR #91 but never verified end-to-end on a release tag because the OTHER bats failures (Slice 3 reason codes) blocked validate from ever reaching it. POLICY 11 (`ci_positive_coverage_assertion`) would have caught this: a regression-detector CI job that doesn't emit a positive-coverage assertion in its log on every run is undetectable when ANOTHER regression masks it.
+
+**Bug detail:** perf-baseline.bats line 23 used `git -C "$BATS_TEST_DIRNAME" rev-parse --git-common-dir 2>/dev/null | sed 's|/\.git$||'` which returns a RELATIVE path (e.g., `../../.git` → after sed → `../../..`). When `run-all.sh` runs bats from `plugins/vsdd-factory/`, `FACTORY_DIR="../../../.factory"` resolves THREE levels above the repo root — pointing into the parent of `/Users/jmagady/Dev/`. Fix: replace with `git rev-parse --show-toplevel` (cwd-independent absolute path).
+
+**Routing:** Open follow-up: TD-VSDD entry to enforce POLICY 11 retroactively on all `tests/*.bats` that gate validate. Specifically: every bats suite that touches the `.factory` mount must emit a positive-coverage assertion ("FACTORY_DIR resolved to: <abs path>; mount confirmed") so a missing assertion in the run log signals a path-resolution latent bug. Tag: `[codification-candidate]`.
+
 **Routing:** TD-VSDD entry post-cycle. Tag: `[codification-candidate]`. Already have N=2 trigger here (DI-013 D-15.4→D-15.1 was 4-occurrence; DI-017 dispatcher_trace_id is 2nd known propagation pattern in this cycle). Recommend codifying after the 3rd distinct rename-propagation event.

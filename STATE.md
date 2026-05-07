@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Cycle v1.0-brownfield-backfill / E-10 single-stream OTel — pass-8 fix-cycle SEALED at D-337. Pass-8 verdict was HIGH(4); F-1 (BC-1.11.001 dispatcher_trace_id), F-2/F-3 (ARCH-INDEX dispatcher_trace_id + schema_version), F-4 (S-10.05 AC-008 BC-2.06.001 v1.4 CHANGELOG reqs) all closed. D-336 also performed comprehensive sweeps: 15 BC files + 5 architecture files received DI-017 trace_id rename propagation. **Next dispatch:** adversary pass-9 against the post-D-337 spec package. NITPICK_ONLY counter: 0 (need 3-of-3 for CONVERGENCE_REACHED). If pass-9 = NITPICK_ONLY → counter becomes 1. **Engine track:** PR #96 (release CI fix) merged at develop=ba63c9f on 2026-05-07. rc.13 cut in flight (devops-engineer dispatched in parallel with this seal). Validate job will pass on the rc.13 tag push, unblocking auto-PR-to-claude-mp. **Closure axes for pass-9 to verify:** CC: D-15.x decision-number citation correctness (clean per pass-8). DD: BC-3.05.004 PC7 ↔ DI-013 ↔ DI-014 ↔ ADR-015 D-15.1 chain (clean per pass-8). EE: Sibling-paragraph residue (clean per pass-8 for D-15.4→D-15.1 pattern). NEW FF (pass-9 axis): DI-017 dispatcher_trace_id→trace_id rename propagation completeness (post-D-336 sweep). NEW GG (pass-9 axis): schema_version=1 vs schema_version=2 differentiation completeness (post-D-336 sweep). **Outstanding follow-up tasks:** Process-gap codifications (now 3 distinct rename-propagation patterns observed: D-15.4→D-15.1, dispatcher_trace_id→trace_id, schema_version=1→2 for observability-config — recommend codifying validate-rename-propagation.sh lint hook). TD-VSDD #117 (partial-fix regression S-7.01), #118 (POLICY 8 reverse-direction). Hook stories #111, #112, #113, #115 (now largely complete by D-336 sweep; only ss-02 and ss-04 envelope-related instances remain intentionally), #116. Engine-baseline #87. E-10 epic continuation: #7-#11."
+current_step: "PAUSE POINT — E-10 ready for pass-9 pickup. Cycle v1.0-brownfield-backfill / E-10 single-stream OTel — D-337 sealed pass-8 fix-cycle. All HIGH findings F-1..F-4 closed via D-336 (PO + architect + story-writer parallel burst). DI-017 dispatcher_trace_id→trace_id rename swept across 15 BC files + 5 architecture files. ARCH-INDEX schema_version differentiation now per-config (hooks-registry=1, observability-config=2). S-10.05 AC-008 extended for BC-2.06.001 v1.4 CHANGELOG-content reqs. **Next dispatch (Path A — recommended pickup):** Adversary E-10 pass-9 against post-D-337 spec package. Closure axes: CC/DD/EE (clean per pass-8) + NEW FF (DI-017 sweep completeness) + NEW GG (schema_version differentiation completeness). **NITPICK_ONLY counter: 0.** Need 3-of-3 for CONVERGENCE_REACHED. Pass-9 may be first NITPICK_ONLY if D-336 sweep was exhaustive. **Pass trend:** 1 CRIT(22) → 2 CRIT(11) → 3 HIGH(16) → 4 HIGH(16) → 5 HIGH(12) → 6 HIGH(2) → 7 HIGH(1) → 8 HIGH(4) → 9 ? **Engine track parallel:** PR #96 merged on develop=ba63c9f. rc.13 cut FAILED at validate due to perf-baseline.bats absolute-path bug. Local rc.13 tag deleted; remote tag STILL PINNED at ba63c9f and requires user auth to delete. Stash@{0} on develop carries the verified one-line fix (git rev-parse --show-toplevel). Path B (engine unblock): pop stash → feature branch → PR #97 → merge → retag rc.13. **Outstanding follow-up tasks:** TD-VSDD #117 (partial-fix regression S-7.01), #118 (POLICY 8 reverse-direction). Hook stories #111, #112, #113, #115 (largely complete by D-336; only ss-02/ss-04 envelope instances remain intentionally), #116. Engine-baseline #87. E-10 epic: #7-#11. rc.13 cut: #121 (BLOCKED on #127 perf-baseline fix). Pass-9 dispatch: #125."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-06 (D-337 seal — pass-8 fix-cycle SEALED; D-336 DI-017 dispatcher_trace_id sweep (15 BCs + 5 arch files); BC-INDEX 1.14, STORY-INDEX 2.23, ARCH-INDEX 1.7; pass-9 is next dispatch; NITPICK_ONLY counter 0) |
+| **Last Updated** | 2026-05-07 (PAUSE POINT — pre-pass-9 / pre-rc.13-fix resumption pointer; D-337 sealed at 374b398; RC.13 attempt failed on perf-baseline.bats; stash@{0} holds fix) |
 | **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -310,25 +310,92 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-06 — D-335 seal. Pass-7 fix-cycle complete. invariants.md DI-013 D-15.4→D-15.1 fixed (D-334). Pass-8 is next dispatch.
+**Last update:** 2026-05-07 — PAUSE POINT. D-337 sealed pass-8 fix-cycle. rc.13 cut attempted and FAILED (perf-baseline.bats). User-requested pause before pass-9.
 
-**factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (this burst = D-334+D-335 seal)
-**develop HEAD:** 4cf59bc (v1.0.0-rc.12 — SHIPPED 2026-05-06; release CI broken, fix in flight async #120)
-**main HEAD:** fb3e297 (rc.11 bot bundle)
-**v1.0.0-rc.12 tag:** 4cf59bc; GH release object exists but no binaries (release CI broken — async #120)
+**factory-artifacts HEAD:** 374b398 (D-337 seal — run `git -C .factory log -1 --format='%h %s'` to confirm)
+**develop HEAD:** ba63c9f (PR #96 squash-merge — release CI Slice 3 reason code test alignment)
+**main HEAD:** fb3e297 (rc.11 bot bundle; behind develop)
+**v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID (validate fails; user must delete: `git push origin :refs/tags/v1.0.0-rc.13`)
+**v1.0.0-rc.12 tag:** 4cf59bc; SHIPPED 2026-05-06
 **v1.0.0-rc.11 tag:** fb3e297; GH prerelease=true; PRs #89/#90/#91 merged 2026-05-04
 **Active worktrees:** main + .factory only
+**Stash on develop:** stash@{0} = perf-baseline.bats one-line fix (git rev-parse --show-toplevel); restore with `git stash pop`
 **E-9 current version:** v1.53 (CONVERGENCE_REACHED; ADR-013 clock 3_of_3; D-308)
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
-**E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-7 was HIGH)
-**E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1
+**E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
+**E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
+**BC-INDEX:** v1.14 | **STORY-INDEX:** v2.23 | **ARCH-INDEX:** v1.7
 
-**ACTIVE STEP: Step (vi) E-10 adversarial-review cycle — DISPATCH pass-8 adversary now**
+**ACTIVE STEP: PAUSED — next dispatch is adversary pass-9 (Path A) or perf-baseline fix PR (Path B)**
 
-**NEXT ACTION (1 of 2 parallel tracks):** Dispatch adversary pass-8 on post-D-335 spec package. Spec corpus: invariants.md v1.2, BC-3.05.004 v1.3 (pass-5 fixes), full E-10 package as sealed at this commit. If pass-8 = NITPICK_ONLY → counter becomes 1-of-3.
+**Path A pickup:** Dispatch `vsdd-factory:adversary` pass-9 on post-D-337 spec package at factory-artifacts=374b398. Axes CC/DD/EE VERIFIED CLEAN per pass-8. New axes FF (DI-017 sweep completeness) + GG (schema_version differentiation) to verify. If NITPICK_ONLY → counter 0→1.
 
-**NEXT ACTION (2 of 2 parallel tracks):** Check on async agent `ad190d8106711cb39` (release CI regression fix). Run `gh pr list --state open`. When complete: dispatch pr-manager → merge → cut rc.13 (Tasks #120 → #121).
+**Path B pickup:** `git stash pop` on develop → `git checkout -b fix/perf-baseline-abspath` → commit + push → PR #97 → pr-manager. After merge: USER must delete remote rc.13 tag, then re-cut rc.13.
 
-**F-7 + F-8 status:** Still deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
-**S-11.00 backlog:** verify-sha-currency.sh Rust port stub registered (D-297). Full authoring: post-E-10 convergence.
-**Track 1 — Phase C:** rc.11 SHIPPED 2026-05-04. rc.12 SHIPPED 2026-05-06. GA target ~2026-05-11. Release CI must be fixed (async task #120) before rc.13 validation run.
+**F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
+**S-11.00 backlog:** verify-sha-currency.sh Rust port stub (D-297). Full authoring: post-E-10 convergence.
+
+## PAUSE STATE — Resume Procedures
+
+**Pause invoked:** 2026-05-07 (post-D-337 seal, post-rc.13 attempt, pre-pass-9)
+
+### Resume Path A (E-10 spec — single dispatch):
+1. Read this STATE.md + `cycles/v1.0-brownfield-backfill/E-10-pass-8.md`
+2. Dispatch `vsdd-factory:adversary` with prompt:
+   - "Pass-9 fresh-context review on E-10 spec package at factory-artifacts SHA 374b398"
+   - Inject 12-policy rubric from `.factory/policies.yaml`
+   - List closure axes CC/DD/EE/FF/GG with verification scope
+   - Expected verdict: NITPICK_ONLY (counter advances 0→1) OR HIGH (new findings → fix burst)
+3. Follow standard dispatch sequence:
+   - If NITPICK_ONLY: state-manager seal pass-9 → dispatch pass-10 (counter 1→2)
+   - If HIGH: route findings to PO/architect/story-writer → fix burst → state-manager seal → dispatch pass-9'
+
+### Resume Path B (engine — rc.13 unblock):
+1. From `/Users/jmagady/Dev/vsdd-factory` (develop branch):
+   ```
+   git stash pop  # restores perf-baseline.bats fix
+   git checkout -b fix/perf-baseline-abspath
+   git add plugins/vsdd-factory/tests/perf-baseline.bats
+   git commit -m "fix(tests): resolve FACTORY_DIR as absolute path in perf-baseline.bats"
+   git push -u origin fix/perf-baseline-abspath
+   gh pr create --title "fix(tests): resolve FACTORY_DIR as absolute path in perf-baseline.bats" --body "..."
+   ```
+2. Dispatch `vsdd-factory:pr-manager` for PR #97 (9-step lifecycle)
+3. After merge: USER ACTION REQUIRED — delete remote rc.13 tag:
+   ```
+   git push origin :refs/tags/v1.0.0-rc.13
+   ```
+   (Orchestrator was denied permission — user must authorize.)
+4. Re-cut rc.13 on new develop HEAD; watch release.yml validate → build-binaries → commit-binaries → release → bump-marketplace
+5. Verify auto-PR opens on `drbothen/claude-mp`
+
+### Outstanding follow-up tasks (12 deferred):
+- #77 Engine TD: ban line-number citations
+- #87 Hooks plumbing: verify-sha-currency.sh relocation
+- #111 Hook test coverage extension (9 stub-required hooks)
+- #112 Hook telemetry code split: validate-wave-gate-prerequisite
+- #113 Hook test helper escaping refactor
+- #115 dispatcher_trace_id sweep cleanup story (largely discharged by D-336; only ss-02/ss-04 envelope-related instances remain intentionally; cleanup story scope shrunk significantly)
+- #116 line-N citation sweep cleanup
+- #117 Codification: partial-fix regression S-7.01 (N=3)
+- #118 Codification: POLICY 8 reverse-direction drift (N=3)
+- #121 Cut rc.13 (BLOCKED on #127)
+- #125 Adversary pass-9 (next E-10 dispatch — Path A pickup)
+- #127 Fix perf-baseline.bats absolute-path bug (Path B pickup, fix in stash)
+
+### Codification status
+Three rename-propagation patterns observed this cycle (each reached N=3 trigger):
+1. D-15.4 → D-15.1 misattribution (4 occurrences: BC-3.05.004 body → ARCH-INDEX line 83 → ARCH-INDEX line 96 → invariants.md line 102) — see D-334 lessons entry
+2. dispatcher_trace_id → trace_id rename propagation (15 BCs + 5 arch files swept in D-336) — see D-336 lessons entry
+3. schema_version=1 → schema_version=2 for observability-config (3 instances swept in D-336) — see D-336 lessons entry
+
+Strong codification recommendation: add `validate-rename-propagation.sh` lint hook that reads invariants.md for rename mandates and greps spec/ tree for unconverted instances at seal time. Scoped in lessons.md; needs TD-VSDD ticket.
+
+### Key SHAs and refs
+- factory-artifacts HEAD: 374b398 (D-337 seal)
+- develop HEAD: ba63c9f (PR #96 squash-merge)
+- main HEAD: fb3e297 (behind develop; rc.11/rc.12 commit-binaries job never ran due to validate failures)
+- Pass-7 archive: `cycles/v1.0-brownfield-backfill/E-10-pass-7.md`
+- Pass-8 archive: `cycles/v1.0-brownfield-backfill/E-10-pass-8.md`
+- D-336 lessons entry: `cycles/v1.0-brownfield-backfill/lessons.md` (DI-017 propagation pattern)
+- D-334 lessons entry: `cycles/v1.0-brownfield-backfill/lessons.md` (D-15.4→D-15.1 4-occurrence pattern)
