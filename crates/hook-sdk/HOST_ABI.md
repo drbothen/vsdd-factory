@@ -786,6 +786,12 @@ the static `plugin_config`, the dispatcher emits a `resolver.merge_collision` te
 event with the key name, static value, and resolver value. The resolver's output wins.
 This is not an error; it is an expected enrichment pattern.
 
+**`needs_context` is the merge scope:** Only resolvers named in the `needs_context` field
+of the hooks-registry entry contribute to the merge for that dispatch. Other registered
+resolvers (in `resolvers-registry.toml` but not in `needs_context`) are NOT invoked and do
+NOT contribute any keys. This zero-overhead path ensures registry entries without
+`needs_context` skip resolver invocation entirely. (BC-4.12.005 INV5, BC-1.13.001 PC3)
+
 **Merge example:**
 
 Before merge (static config from hooks-registry entry):
