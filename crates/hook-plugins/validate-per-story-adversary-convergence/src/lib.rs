@@ -269,10 +269,11 @@ pub trait HookCallbacks {
     /// Returns `Err(IoError)` when the cycle directory itself is absent.
     fn list_stories(&self, cycle_id: &str) -> Result<Vec<String>, IoError>;
 
-    /// Log a debug/info-level advisory message (maps to `host::log_info` in
-    /// the SDK — the SDK does not expose a separate `log_debug` function;
-    /// BC-4.10.002 postcondition 3 references `host::log_debug` but the
-    /// implemented hook uses `host::log_info` for advisory messages).
+    /// Log an advisory message via `host::log_info`.
+    ///
+    /// HOST_ABI v1 does not expose a `log_debug` endpoint; `log_info` is the
+    /// lowest-severity level available. BC-4.10.002 PC3 (amended v1.1,
+    /// F5 pass-1 B2) now correctly references `host::log_info`.
     fn log_debug(&self, msg: &str);
 
     /// Log an error-level message via `host::log_error`.
