@@ -2,10 +2,30 @@
 document_type: tech-debt-register
 producer: state-manager
 version: "1.0"
-last_updated: 2026-05-04T00:00:00
+last_updated: 2026-05-07T00:00:00
 ---
 
 # Technical Debt Register
+
+## Purpose
+
+This register is the canonical inbox for deferred work — anything the project should address later but is not actively in flight. That includes:
+
+- **Bugs and defects** that aren't critical enough to fix today
+- **Architectural improvements** identified during reviews or audits
+- **Process gaps** discovered during pipeline runs (often tagged `[process-gap]`)
+- **Follow-up enhancements** to specs, hooks, agent prompts, or workflows
+- **Documentation gaps** that don't block current work
+- **Optimization opportunities** without urgent need
+- **Migration items** that ride a future release
+
+Entries do not require the issue to be a hard block or the bug to be reproducible today. The register's job is to capture intent — to ensure that "we should do X later" doesn't get lost in a pipeline cycle's burst log or session checkpoint.
+
+Every entry must have: title, severity, effort estimate, target release (or "TBD"), problem statement, proposed solution sketch, and references back to the originating evidence.
+
+Closure: an entry moves to status `resolved` when the work ships, or `withdrawn` when the project decides not to do it (with rationale).
+
+---
 
 ## Summary
 
@@ -14,6 +34,7 @@ last_updated: 2026-05-04T00:00:00
 | P0 (next cycle) | 1 | TD-013 branch protection restore |
 | P1 (within 3 cycles) | 3 | XL (29–39 across 6 sub-stories) + TD-010 publish + TD-017 bats-orphan-detection |
 | P2 (backlog) | 18 | — (TD-015 per-invocation correlation ~30 pts; TD-016 run-all.sh glob; TD-018 clippy debt; TD-019 activate-helpers PowerShell-parity + Rust consolidation; TD-019a pwsh syntactic CI gate; TD-020 RESOLVED 2026-05-04 — sweep landed; TD-022 novelty-assessment hook phase-f5 path gap; TD-023 RESOLVED 2026-05-04 — single-commit burst protocol; TD-024 SKIP_SUITES un-skip needs CI-equivalent validation; TD-025 S-9.00 perf-baseline minor follow-ups [passes 1+2+3+4+5]) |
+| P2 (backlog) | 1 new | TD-027 Stop-hook async-block surfacing (S-M effort, v1.1 target; added 2026-05-07) |
 | P3 (v1.1+) | 6 | — (TD-021 frontmatter↔STORY-INDEX status drift, added 2026-05-04; TD-026 unaccounted_wasm_bytes policy, added 2026-05-05) |
 
 ## Debt Items
@@ -22,6 +43,7 @@ last_updated: 2026-05-04T00:00:00
 |----|--------|-------------|----------|-----------|-------|-------|-----|
 | TD-025 | S-9.00 adversary pass 1+2+3 deferred findings (2026-05-05) | S-9.00 perf-baseline minor follow-ups deferred from adversary passes 1, 2, and 3. Pass-1 items (six): LOW-1 — 30MB kill-switch regex in bats (`.wasm` glob) is too permissive, acceptable risk; LOW-2 — AC-7 test does not assert `cold_start_p95_measured_ms ≤ 500ms` (currently record-but-don't-enforce per spec; methodologically suspect per adversary — fold into a future enforcement gate when CI linux-x64 measurement is available); LOW-3 — IFS discipline in bats AC-8 sorted-array computation (theoretical IFS clobber risk; bash local scope limits blast radius); LOW-4 — AC-8 median doc-vs-test divergence (test independently computes median from bundle; doc records a specific value; both pass regardless of drift); NITPICK — `darwin` vs `Darwin` platform string in baseline doc (cosmetic, does not affect functionality); NITPICK — cold-start fixture envelope realism (fixture uses synthetic envelope; a real Claude Code recording would be more representative but requires live session capture). Pass-2 additional deferrals (two): MEDIUM-4 — hyperfine command in `measure-bundle-sizes.sh` does not quote paths (`${DISPATCHER_BINARY} < ${FIXTURE}`); currently safe because REPO_ROOT has no spaces, but paths with spaces would break the shell-string passed to hyperfine — defer until a path-with-spaces test scenario is added; MEDIUM-5 — RESOLVED in adversary pass 3 (2026-05-05): p95 formula corrected to NIST nearest-rank `ceil(N*0.95)-1` (methodology_version 2); canonical baseline updated to 642.6ms; TD-025 entry preserved for audit trail. Pass-3 additional deferrals (three): LOW-1-P3 — hello-hook accounting drift between rc.1 baseline and current (denominator-numerator scope mismatch; not a correctness issue, the frozen-17 sum is correctly scoped); LOW-2-P3 — fixture missing `transcript_path`/`cwd` fields (may bias cold-start measurement; synthetic envelope used; requires live session capture to fix); LOW-3-P3 — dispatcher binary path hardcoded to `target/release/`, but CI matrix uses `target/${target}/release/` (safe for darwin-arm64 local; CI cross-compilation contexts may differ). Fix when: LOW-2 (original pass-1) is the highest-priority item — resolve when CI linux-x64 cold-start measurement is available (recommended before S-9.01 dispatch). Pass-3 LOWs may be addressed in a batch follow-up. Pass-4 additional deferral (one): LOW-4-P4 — frontmatter version drift in evidence-report.md (cosmetic; evidence-report version bumped from 1.3 → 1.4 per pass-4 fix, but no structural enforcement on evidence-report frontmatter versioning exists; defer until a formal evidence-report versioning policy is adopted). Pass-5 additional deferrals (two): LOW-1-P5 — AC-5 anti-tautology check validates script output vs OS `wc` counts, but does NOT compare doc values vs script output (script-vs-doc gap); renaming the test description to clarify scope would help discoverability; defer until a doc-vs-script integration test is warranted; LOW-2-P5 — AC-1.md bats output section is template-shaped rather than a real captured run (cosmetic; CI is the actual gate for correctness; the bats test itself exercises the correct assertion path). | P2 | S-9.00 adversary passes 1+2+3+4+5 (2026-05-05) | v1.0-brownfield-backfill | S-9.00 | v1.0.1 |
 | TD-026 | S-9.00 adversary pass 3 (2026-05-05) | `unaccounted_wasm_bytes` is reported by `measure-bundle-sizes.sh` but ungated by any AC. Per `perf-baseline-w16.md` Unaccounted Bytes Policy section: S-9.07 must reduce to documented minimum and assert floor. Current value: 155053B (hello-hook.wasm SDK example + underscore-named stubs). Silent drift into `unaccounted_wasm_bytes` by S-9.01..S-9.06 stories is forbidden — each wave must explicitly add to frozen-17 OR to a known-overhead allowlist with a TD entry. | P3 | S-9.00 adversary pass 3 (2026-05-05) | v1.0-brownfield-backfill | S-9.07 | v1.1 |
+| TD-027 | Prism audit 2026-05-07 + F1 delta analysis OQ-1 | Stop-hook (or SubagentStop) to surface accumulated async-hook block decisions at turn end. Today, plugins with `on_error = "block"` that run async emit `hook.block` to `events-*.jsonl` invisibly. The plugin-async-semantics cycle closes this for validators that should never be async; but plugins that legitimately stay async (telemetry, optional advisories) will continue to log silently. A Stop hook reads the events log and emits a summary to stderr at turn end: "FYI: N async-hook block decisions this turn — hook name, file, reason." Soft-blocked-by v1.0-feature-plugin-async-semantics-pass-1 (need correct partition first). | P2 | prism audit + F1 delta analysis 2026-05-07 | v1.0-feature-plugin-async-semantics-pass-1 | — | v1.1 |
 | TD-024 | rc.11 retag process-gap (2026-05-04 → 2026-05-05) | Un-skipping a previously-skipped `SKIP_SUITES` bats suite must be validated in a CI-equivalent environment before being marked passing. TD-020 sweep (RESOLVED 2026-05-04) marked `state-health` and `generate-registry` as UN-SKIPPED with no test changes based on local-pass evidence; both failed in CI during rc.11 release, requiring two retag rounds (external TD-VSDD-054: shallow-clone history dependency in `scripts/generate-registry-from-hooks-json.sh`, fixed by vendoring `scripts/legacy/hooks-json-pre-templating.json`; external TD-VSDD-055: missing local git config in `state-health.bats` setup, fixed by adding `git config user.email/user.name/commit.gpgsign` after `git init`). Local-pass is necessary but not sufficient. Required CI-equivalence checks: empty global git config; shallow-clone (no history beyond depth=1); no operator-installed CLI tools beyond what the workflow declares; clean shell env. Disposition: add a checklist item to the SKIP_SUITES un-skip workflow / agent prompt / CONTRIBUTING note and (optionally) a CI smoke job that runs the full bats suite under a minimal-environment matrix. | P2 | rc.11 retag rounds (2026-05-04 → 2026-05-05) | v1.0-brownfield-backfill | — | v1.0.1 |
 | TD-023 | External TD-VSDD-053 — single-commit burst protocol (2026-05-04) | RESOLVED 2026-05-04. Cross-references external TD-VSDD-044 (self-referential factory-artifacts HEAD cite in STATE.md/HANDOFF.md "current state" sections caused 6× recurrence loops in real-world dogfood) and external TD-VSDD-053 (the structural fix). **Engine-side changes shipped:** (a) `templates/verify-sha-currency.sh` — removed factory-arts cite extraction + cite-vs-HEAD comparison + fabrication check on factory-arts SHAs (~80 lines); preserved develop cite check, MULTI_COMMIT_CHAIN_NOT_ALLOWED guard, wave-state↔STATE cross-record python check. (b) `agents/state-manager.md` — protocol references updated from "Single Canonical SHA + Two-Commit Protocol" to "Single-Commit Burst Protocol"; added explicit guidance that current factory-artifacts HEAD is `git -C .factory log -1`, not a string in any artifact. (c) `skills/state-burst/SKILL.md` — full rewrite to single-commit; Stage 1/2 sections removed; `15fa97e6` placeholder pattern removed; commit message must NOT contain `backfill` (regression-guard token). (d) `templates/state-manager-checklist-template.md` — full rewrite to single-commit; `remediation_sha:` field handling now offers (a) omit-and-look-up vs (b) post-commit amendment; historical past-pass `remediation_sha` values stay immutable. **Preserved unchanged:** `validate-input-hash.sh` (artifact-level drift detection), `validate-state-pin-freshness.sh` (version-pin freshness), historical SHA references in changelog rows / decisions log / cycle manifests / TL;DR History. **Acceptance:** input-hash drift detection unchanged; historical SHA audit trail unchanged; single-commit state-manager protocol works for 10+ consecutive bursts (verify in next 10 wave-gate convergence cycles). | P2 | engine fix 2026-05-04 | v1.0-brownfield-backfill | — | RESOLVED |
 | TD-022 | TD-020 sweep follow-on (2026-05-04) | `validate-novelty-assessment.sh` case-statement does not match `.factory/phase-f5-adversarial/adversarial-delta-review.md` — path falls through to `exit 0`. `phase-f5-scoped-adversarial` skill writes to that path (SKILL.md:84,171). Hook silently passes phase-f5 delta reviews without Novelty Assessment validation. Fix: add case arm + 2 bats tests. TD-020 deleted the tests that described this gap (correct — they asserted unimplemented behavior). | P2 | TD-020 sweep PR #82 (2026-05-04) | v1.0-brownfield-backfill | — | v1.0.1 |
@@ -686,6 +708,71 @@ The TD-020 sweep workflow had no checklist item or validation gate requiring CI-
 - External TD-VSDD-055 — missing local git config in `state-health.bats` setup (PR #87)
 - TD-020 — the SKIP_SUITES sweep whose "UN-SKIPPED with no test changes" closure triggered this gap
 - Lesson: `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — "TD-020 sweep: un-skipping bats suites without CI-equivalent validation shipped CI regressions"
+
+---
+
+## TD-027 — Stop-hook to surface accumulated async-block decisions at turn end
+
+**Severity:** MEDIUM — silent-block bleed today; will partially persist post-async-semantics for plugins that legitimately stay async.
+**Effort:** S–M (one new WASM hook plugin + one event-log reader; ~3-5 days).
+**Target release:** v1.1 (post-async-semantics ship).
+**Status:** identified.
+**Adopted:** 2026-05-07
+
+### Problem Statement
+
+Today, every async hook plugin that emits a `hook.block` decision logs to `events-*.jsonl`
+but never surfaces to the user. The prism audit (2026-05-07) revealed
+`validate-template-compliance` blocking 55 times silently in a single day on real template
+violations (S-3.03/04/05, S-MAINT-001 missing `tdd_mode`). The plugin-async-semantics cycle
+(v1.0-feature-plugin-async-semantics-pass-1) addresses this for plugins that should never be
+async (validators with `on_error = "block"`), but plugins that legitimately stay async —
+telemetry, optional advisories — will continue to log block decisions invisibly.
+
+A second-tier fix: a Stop hook (or SubagentStop hook) reads the events log accumulated during
+the assistant turn and emits a summary message at turn end. The user sees: "FYI: 3 async-hook
+block decisions during this turn — validate-X on file Y reason Z, …". This makes async-block
+bleed observable without forcing every advisory plugin into the sync critical path.
+
+### Proposed Solution
+
+- New native WASM plugin: `surface-async-blocks` (or similar name).
+- Event: Stop (PostUserMessage end) and/or SubagentStop.
+- Behavior: read `events-*.jsonl` filtered by `dispatcher_trace_id` matching the current turn
+  (or by timestamp window since turn start; needs design) — collect all `type: hook.block`
+  records — emit a summary stderr message with file paths, hook names, reasons.
+- Output: visible to the user via stop-hook stdout/stderr (Claude Code surfaces Stop hook output).
+- Configuration: registry-driven; user can disable via `.claude/settings.local.json` if too noisy.
+
+### Acceptance Criteria (sketch)
+
+- AC-1: After any assistant turn that triggers ≥1 async-hook block, the Stop hook produces
+  a structured summary visible in the next user-facing message.
+- AC-2: The summary identifies plugin name, file_path, reason, and timestamp for each block.
+- AC-3: Zero async-hook blocks → Stop hook is silent (no spam).
+- AC-4: Stop hook latency ≤100ms p95 (does not noticeably delay turn end).
+- AC-5: Filter scope is the current turn only (not historical days).
+
+### Dependencies
+
+- Soft-blocked-by: v1.0-feature-plugin-async-semantics-pass-1 (correct partition of
+  "should-be-sync" vs "legitimately-async" plugins must exist first; otherwise this hook
+  would surface noise from misclassified plugins).
+- Related-to: ADR-015 single-stream OTel emission (`events-*.jsonl` is the read source).
+- Not-blocked-by: any specific story.
+
+### Risk if Deferred
+
+LOW. Async-semantics work alone closes the bulk of today's silent-block bleed. The Stop hook
+closes the residual ~5-10% (telemetry advisories that legitimately stay async). Deferral
+acceptable until async-semantics ships and we measure residual bleed.
+
+### References
+
+- Prism audit, 2026-05-07: 1965 invocations of `validate-template-compliance`, 55 silent
+  blocks, all `template_noncompliant`.
+- F1 delta analysis: `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F1-delta-analysis.md`
+  § Open Questions OQ-1 (proposes a similar idea inline).
 
 ---
 
