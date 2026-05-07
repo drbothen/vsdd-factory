@@ -32,16 +32,30 @@ pub const HOST_ABI_VERSION: u32 = vsdd_hook_sdk::HOST_ABI_VERSION;
 fn on_hook(payload: HookPayload) -> HookResult {
     use validate_per_story_adversary_convergence::HookCallbacks;
     use validate_per_story_adversary_convergence::IoError;
+    use validate_per_story_adversary_convergence::extract_stories_from_config;
     use vsdd_hook_sdk::host;
 
-    struct RealCallbacks;
+    /// Production callback implementation.
+    ///
+    /// `stories` holds the story list extracted from `plugin_config.stories`
+    /// (F-HIGH-3 fix). When the dispatcher populates `plugin_config.stories`
+    /// before the SubagentStop event, `list_stories` returns those IDs rather
+    /// than always returning Err (which previously made the hook operationally
+    /// inert in every wave-gate dispatch).
+    ///
+    /// When `plugin_config.stories` is absent or not a string array,
+    /// `list_stories` returns `Err(IoError(...))` and `hook_logic` gracefully
+    /// degrades to Continue (BC-4.10.002 invariant 3).
+    struct RealCallbacks {
+        stories: Result<Vec<String>, IoError>,
+    }
 
     impl HookCallbacks for RealCallbacks {
-        fn read_file(&self, _path: &str) -> Result<Option<String>, IoError> {
+        fn read_file(&self, path: &str) -> Result<Option<String>, IoError> {
             // Use host::read_file with a generous cap (64 KiB) and 5s timeout.
             // Returns Ok(None) when the file is absent (HostError maps to None
             // for capability-denied / not-found; other errors surface as Err).
-            match host::read_file(_path, 65536, 5000) {
+            match host::read_file(path, 65536, 5000) {
                 Ok(bytes) => {
                     if bytes.is_empty() {
                         Ok(None)
@@ -59,19 +73,19 @@ fn on_hook(payload: HookPayload) -> HookResult {
         }
 
         fn list_stories(&self, _cycle_id: &str) -> Result<Vec<String>, IoError> {
-            // In production, read the cycle directory listing via a manifest file
-            // or delegate to the wave-state. The hook registry config should supply
-            // the story list via plugin_config.stories.
-            // Graceful degrade: if no list is available, return Err so hook_logic
-            // treats this as absent cycle directory (BC-4.10.002 invariant 3).
-            Err(IoError(
-                "list_stories: story list must be supplied via plugin_config.stories".to_string(),
-            ))
+            // F-HIGH-3 fix: return the story list extracted from plugin_config.stories.
+            // The wave-gate dispatcher must populate plugin_config.stories in the
+            // registry [hooks.config] table before triggering SubagentStop.
+            // If absent, Err triggers graceful degrade in hook_logic (BC-4.10.002 inv-3).
+            match &self.stories {
+                Ok(v) => Ok(v.clone()),
+                Err(e) => Err(IoError(e.0.clone())),
+            }
         }
 
         fn log_debug(&self, msg: &str) {
             // SDK exposes log_info as the closest equivalent to log_debug
-            // (no separate log_debug in HOST_ABI v1).
+            // (no separate log_debug in HOST_ABI v1; BC-4.10.002 PC3 amended v1.1).
             host::log_info(msg);
         }
 
@@ -87,7 +101,10 @@ fn on_hook(payload: HookPayload) -> HookResult {
         }
     }
 
-    hook_logic(&payload, &RealCallbacks)
+    // Extract story list from plugin_config.stories before constructing callbacks.
+    // If absent, RealCallbacks.stories holds Err → graceful degrade (F-HIGH-3 fix).
+    let stories = extract_stories_from_config(&payload.plugin_config);
+    hook_logic(&payload, &RealCallbacks { stories })
 }
 
 fn main() {
