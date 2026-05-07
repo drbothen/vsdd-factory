@@ -239,6 +239,13 @@ dtu_services: []
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
 | v1.0.0-rc.4..rc.10 (tags) | — | Historical tags; see `cycles/v1.0-brownfield-backfill/release-ladder.md` if present |
 
+## Concurrent Cycles
+
+| Cycle | Type | Status | Notes |
+|-------|------|--------|-------|
+| v1.0-brownfield-backfill | brownfield | IN PROGRESS | current_cycle; E-10 pass-8 next |
+| v1.0-feature-engine-discipline-pass-1 | feature | F1 COMPLETE | Per-story adversary workflow + artifact path governance; F2 pending; D-336..D-339; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
+
 ## Decisions Log
 
 > D-001..D-102: `cycles/v1.0-brownfield-backfill/decision-log.md`
