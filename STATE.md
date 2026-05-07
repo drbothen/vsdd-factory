@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-13.01 (Path Governance Bundle, E-13) MERGED to develop at 2c97cb0 (PR #97, 2026-05-07). validate-artifact-path WASM hook now LIVE in block mode on develop. F4 continues: S-12.01 (per-story adversary workflow, E-12) at Step 5 (demos); S-12.02 (per-story adversary convergence WASM hook, E-12) at Step 4 fix completed (30/30 cargo + 12/12 bats), Step 5 next. Linear delivery order: S-13.01 completed → S-12.01 → S-12.02."
+current_step: "F4 COMPLETE for v1.0-feature-engine-discipline-pass-1. All 3 stories merged to develop: S-13.01 (Path Governance Bundle, E-13) at 2c97cb0 (PR #97, 2026-05-07); S-12.01 (Per-Story Adversary Workflow, E-12) at 2e9b670 (PR #98, 2026-05-07); S-12.02 (Per-Story Adversary Convergence WASM Hook, E-12) at e2fd3d4 (PR #99, 2026-05-07). Now LIVE on develop: validate-artifact-path WASM hook (block mode) governs .factory/ writes via artifact-path-registry.yaml; validate-per-story-adversary-convergence WASM hook (SubagentStop, priority 960) blocks wave-gate dispatch on unconverged stories; per-story-delivery.md Step 4.5 (per-story adversary convergence loop) applies to NEW stories started AFTER S-12.01 merge (2026-05-07T05:30Z); adversary.md three-perimeter scope contract documented; wave-gate Gate 3 narrowed to integration/cross-story concerns; orchestrator.md MANDATORY STEPS reconciled with workflow. Next: F5 scoped adversarial review on cycle delta."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (D-350; S-13.01 merged PR #97 at 2c97cb0; validate-artifact-path WASM hook live) |
-| **Current Phase** | F4 IN PROGRESS — S-13.01 MERGED; S-12.01 at Step 5; S-12.02 at Step 4→5 |
+| **Last Updated** | 2026-05-07 (D-352..D-355; F4 COMPLETE; S-12.01 merged PR #98 at 2e9b670; S-12.02 merged PR #99 at e2fd3d4; all 3 cycle stories shipped) |
+| **Current Phase** | F4 COMPLETE — all 3 stories merged; Next: F5 scoped adversarial review |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -75,7 +75,7 @@ dtu_services: []
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
-| v1.0-feature-engine-discipline-pass-1 | **F4 IN PROGRESS** | F1-F3 complete (D-339/D-340/D-349); S-13.01 MERGED 2c97cb0 PR #97 2026-05-07 (D-350); S-12.01 at Step 5 (demos); S-12.02 at Step 4→5 |
+| v1.0-feature-engine-discipline-pass-1 | **F4 COMPLETE** | All 3 stories merged to develop: S-13.01 2c97cb0 PR #97 (D-350); S-12.01 2e9b670 PR #98 (D-352); S-12.02 e2fd3d4 PR #99 (D-353); F4 closeout D-354/D-355. Next: F5 scoped adversarial review. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -98,6 +98,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **E-11 epic v1.1 amendment — sync body to STORY-INDEX renumber** | product-owner (epic body) + state-manager (commit) | **COMPLETE (25b3c20)** | E-11 epic body v1.0→v1.1: all live story-pointer refs renumbered S-11.00..S-11.07 → S-11.01..S-11.08 to match STORY-INDEX (14bb9c4). CHANGELOG v1.1 entry + narrative appended. Verification: zero live S-11.00 refs; dependency graph topology preserved. No semantic changes. |
 | **D-349 F3 story decomposition — v1.0-feature-engine-discipline-pass-1** | product-owner (epics E-12/E-13) + story-writer (S-13.01/S-12.01/S-12.02) + state-manager (indexing + commit) | **COMPLETE** | E-12 Engine Governance (S-12.01/S-12.02) + E-13 Artifact Integrity (S-13.01). 38 ACs total. Linear: S-13.01→S-12.01→S-12.02. All tdd_mode strict. STORY-INDEX 2.24→2.25. D-345..D-348 logged. OQ-9 surfaced (VP-071 vs BC-4.10.001 discrepancy; pre-F4 gate). |
 | **D-350 S-13.01 merged — state update post-merge** | state-manager | **COMPLETE** | S-13.01 (Path Governance Bundle, E-13) merged to develop at 2c97cb0 (PR #97, 2026-05-07). validate-artifact-path WASM hook live in block mode. sprint-state.yaml S-13.01 → completed; STORY-INDEX 2.25→2.26 (S-13.01 draft→completed); STATE.md F4 IN PROGRESS; decision-log D-350+D-351 appended. S-12.01 + S-12.02 unblocked. |
+| **D-352..D-355 F4 closeout — S-12.01 + S-12.02 merged** | state-manager | **COMPLETE** | S-12.01 merged at 2e9b670 (PR #98, 2026-05-07): 31/31 bats, CLEAN security, 1-cycle convergence. S-12.02 merged at e2fd3d4 (PR #99, 2026-05-07): 148KB WASM, SubagentStop priority 960, 30/30 cargo + 11+1skip bats, conflict resolution at 7100431. sprint-state.yaml S-12.01+S-12.02 → completed; STORY-INDEX 2.26→2.27; STATE.md F4 COMPLETE; decision-log D-352..D-355 appended. Next: F5. |
 
 ## Identifier Conventions
 
@@ -113,11 +114,11 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 13 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 17 |
 
-## Story Status (79 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13 registered)
+## Story Status (79 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13 registered; F4 COMPLETE)
 
-- **Merged (59):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
+- **Merged (61):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (14):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence)
+- **Draft (12):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)
@@ -138,7 +139,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F4 IN PROGRESS | S-13.01 MERGED 2c97cb0 (PR #97, 2026-05-07; D-350); validate-artifact-path WASM hook live; S-12.01 at Step 5; S-12.02 at Step 4→5; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
+| v1.0-feature-engine-discipline-pass-1 | feature | F4 COMPLETE | All 3 stories merged to develop (D-350/D-352/D-353; PRs #97/#98/#99); F4 closeout D-354/D-355; Next: F5 scoped adversarial review; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
 
 ## Decisions Log
 
@@ -162,27 +163,26 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — D-350 state update. S-13.01 (Path Governance Bundle) MERGED to develop at 2c97cb0 (PR #97). F4 in progress for S-12.01 (Step 5) and S-12.02 (Step 4→5).
+**Last update:** 2026-05-07 — D-352..D-355 F4 closeout. S-12.01 (Per-Story Adversary Workflow) MERGED at 2e9b670 (PR #98). S-12.02 (Per-Story Adversary Convergence WASM Hook) MERGED at e2fd3d4 (PR #99). F4 COMPLETE for v1.0-feature-engine-discipline-pass-1.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
-**develop HEAD:** 2c97cb008c8a05d39eedcf8f26ecf472bd2d5816 (S-13.01 PR #97 squash-merge 2026-05-07)
+**develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
 **main HEAD:** fb3e297 (rc.11 bot bundle; behind develop)
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID (validate fails; user must delete: `git push origin :refs/tags/v1.0.0-rc.13`)
 **v1.0.0-rc.12 tag:** 4cf59bc; SHIPPED 2026-05-06
 **v1.0.0-rc.11 tag:** fb3e297; GH prerelease=true; PRs #89/#90/#91 merged 2026-05-04
-**Active worktrees:** main + .factory only (S-12.01 + S-12.02 worktrees in-flight on their own branches)
-**Stash on develop:** cleared (S-13.01 merge supersedes perf-baseline stash path; verify with `git stash list`)
+**Active worktrees:** main + .factory only (S-12.01 + S-12.02 worktrees merged and closed)
+**Stash on develop:** cleared
 **E-9 current version:** v1.53 (CONVERGENCE_REACHED; ADR-013 clock 3_of_3; D-308)
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.15 | **STORY-INDEX:** v2.26 | **ARCH-INDEX:** v1.8
+**BC-INDEX:** v1.15 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.8
 
-**ACTIVE STEP: F4 — S-12.01 at Step 5 (demos); S-12.02 at Step 4→5 (fix complete, demos next)**
+**ACTIVE STEP: F5 — scoped adversarial review on cycle delta (v1.0-feature-engine-discipline-pass-1)**
 
-**S-12.01 pickup:** Step 5 demo recording. Dispatch `vsdd-factory:record-demo` for per-story adversary workflow story.
-**S-12.02 pickup:** Step 5 demo recording after Step 4 bats confirmed green (30/30 cargo + 12/12 bats).
-**E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle completes.
+**F5 pickup:** Dispatch `vsdd-factory:phase-f5-scoped-adversarial`. Scope: all artifacts introduced/modified in this cycle (6 BCs, 2 ADRs, 4 VPs, 3 story files, per-story-delivery.md, agent docs, 2 WASM hooks). Bootstrap exception applies: S-12.01 + S-12.02 did NOT go through Step 4.5 (chicken-and-egg); F5 adversarial review covers the cycle delta holistically.
+**E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
 **S-11.00 backlog:** verify-sha-currency.sh Rust port stub (D-297). Full authoring: post-E-10 convergence.

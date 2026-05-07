@@ -232,3 +232,17 @@ story_updates:
     merge_sha: 2c97cb0
     merged_at: 2026-05-07
     note: "Path Governance Bundle (E-13). validate-artifact-path WASM hook live in block mode. 50/50 cargo + 11/11 relocate-artifact bats + 28/28 vp-072 bats green at merge. 26 files (7 new + 18 modified + 1 build output). relocate-artifact preflight confirmed zero violations during Step 4 Chunk 6. D-350."
+
+  S-12.01:
+    status: completed
+    pr: 98
+    merge_sha: 2e9b670
+    merged_at: 2026-05-07
+    note: "Per-story adversary workflow + agent doc updates (E-12). 31/31 bats green at merge. CLEAN security review. 1-cycle pr-reviewer convergence. D-352."
+
+  S-12.02:
+    status: completed
+    pr: 99
+    merge_sha: e2fd3d4
+    merged_at: 2026-05-07
+    note: "validate-per-story-adversary-convergence WASM hook (E-12). 148KB binary. SubagentStop priority 960. 30/30 cargo + 11+1skip bats green. Required develop conflict resolution at 7100431 (Cargo.toml workspace members + Cargo.lock regenerated + hooks-registry.toml auto-merged). D-353."
