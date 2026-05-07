@@ -1,8 +1,8 @@
 {
-  "passes_clean": 0,
-  "last_finding_count": 2,
-  "last_classification": "LOW",
-  "last_timestamp": "2026-05-07T08:30:00Z",
+  "passes_clean": 1,
+  "last_finding_count": 0,
+  "last_classification": "NITPICK_ONLY",
+  "last_timestamp": "2026-05-07T12:00:00Z",
   "deferred_findings": [
     {
       "finding_id": "S12.06-DEFER-1",
@@ -32,7 +32,7 @@
       "finding_id": "S12.06-DEFER-5",
       "category": "system-level",
       "target": "phase-5",
-      "note": "BC-4.12.001 INV3 (same Engine instance for resolvers and hooks) + PC4 (determinism) not surfaced in HOST_ABI section. Dispatcher-impl territory; relevant for S-12.04. Author should read BC-4.12.001 directly."
+      "note": "BC-4.12.001 INV3 (same Engine instance for resolvers and hooks) + PC4 (determinism) not surfaced in HOST_ABI section. Dispatcher-impl territory; relevant for S-12.04. Author should read BC-4.12.001 directly. Pass-4 candidate BC-4.12.001 PC5 (startup log 'Compiled N resolver modules') demoted symmetrically into this entry — same dispatcher-internal observability category per pass-3 classification rule."
     }
   ]
 }
