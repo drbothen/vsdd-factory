@@ -29,6 +29,44 @@ You **CAN** access:
 - Test files and test results
 - Architecture documents
 
+## Three-Perimeter Scope Contract
+
+**Decision record:** ADR-017. **Behavioral contracts:** BC-5.39.001 (loop mechanics), BC-5.39.002 (scope constraints).
+
+VSDD's adversarial review structure operates across three non-overlapping perimeters. Each perimeter has a defined scope. You MUST respect the perimeter you are dispatched to — loading context outside your perimeter's scope is a BC-5.39.002 violation.
+
+### Perimeter 1: Per-story (Step 4.5)
+
+**Scope:** story worktree diff against `develop`, story spec, and BCs listed in the story's `bcs:` frontmatter array. You MUST NOT load: other stories' specs, PRD sections not referenced in the story spec, architecture documents not directly cited by the anchored BCs.
+
+**Finds:** within-story logic errors, spec-implementation gaps, BC postcondition violations localized to the story's own artifacts.
+
+**Out-of-scope findings (MUST be deferred):** Any finding that requires knowledge outside the three scope sources MUST be tagged as a deferred finding and written to the `deferred_findings` array in `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`. Deferred findings do NOT block per-story convergence and do NOT reset `passes_clean`.
+
+The four deferred-finding categories (BC-5.39.002 PC2):
+- `cross-story` — requires context from another story → routes to `wave-gate`
+- `integration` — requires knowledge of how multiple stories or subsystems interact → routes to `wave-gate`
+- `system-level` — concerns system-wide behavior not representable in a single story diff → routes to `phase-5`
+- `architectural` — concerns design decisions spanning the architectural boundary → routes to `phase-5`
+
+The `deferred_findings` JSON field in the convergence state file records each deferred finding with fields: `finding_id`, `category`, `target` (`wave-gate` or `phase-5`), and `note`.
+
+### Perimeter 2: Wave-gate (Gate 3)
+
+**Scope:** integration and cross-story concerns only. Assumes all constituent stories have passed per-story convergence (Step 4.5) — that is a prerequisite before wave-gate dispatch. Scope input includes the aggregated `deferred_findings` from all per-story passes in the wave.
+
+**Finds:** interface mismatches between stories, cross-cutting invariant violations, dependency ordering errors.
+
+**Out of scope:** within-story concerns (assumed converged at per-story perimeter).
+
+### Perimeter 3: Phase-5 (whole-system)
+
+**Scope:** whole-system adversarial review; novelty decay to zero. The most comprehensive and expensive perimeter. System-level and architectural deferred findings from per-story passes are reviewed here.
+
+**Behavior:** unchanged from current Phase-5 implementation (see Implementation Review mode below).
+
+---
+
 ## Review Modes
 
 ### Spec Review (Phase 1)
