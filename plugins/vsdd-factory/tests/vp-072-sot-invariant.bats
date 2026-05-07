@@ -258,3 +258,82 @@ setup() {
   # it reads the registry at runtime.
   grep -q "artifact-path-registry.yaml" "$SKILLS_DIR/relocate-artifact/SKILL.md"
 }
+
+# ============================================================================
+# F-MED-3: Programmatic enumeration — all create-* / scaffold-* / register-*
+# skills must reference artifact-path-registry.yaml (VP-072 / BC-4.11.001 PC8)
+#
+# The named-skill tests above only catch skills known at S-13.01 implementation
+# time. This enumeration test catches NEW creation skills added in future cycles
+# that forget the registry-read preamble. F1 OQ-4 flagged this gap explicitly.
+#
+# Exemptions: skills that provably write ONLY outside .factory/ (e.g., to
+# .claude/, crates/, plugins/) are exempt because their writes are not governed
+# by the artifact-path registry. Exemptions are listed explicitly in the
+# EXEMPT_SKILLS array below so the omission is intentional and reviewable,
+# not accidental.
+# ============================================================================
+
+@test "VP-072 F-MED-3: all create-* / scaffold-* / register-* skills reference artifact-path-registry.yaml (or are explicitly exempted)" {
+  # VP-072 / BC-4.11.001 PC8: every creation skill must read the artifact-path
+  # registry before writing to .factory/. This test enumerates the skill directory
+  # programmatically so that future cycles adding new create-* skills are caught
+  # automatically — without requiring a manual addition to the named-skill list above.
+  #
+  # Exemptions: skills that only write to non-.factory/ targets.
+  # scaffold-claude-md: writes .claude/CLAUDE.md (not a .factory/ artifact).
+  local -a EXEMPT_SKILLS=("scaffold-claude-md")
+
+  local violations=0
+  local checked=0
+
+  while IFS= read -r -d '' skill_dir; do
+    local skill_name
+    skill_name=$(basename "$skill_dir")
+    local skill_file="$skill_dir/SKILL.md"
+
+    # Skip if SKILL.md doesn't exist yet (pre-implementation stubs)
+    [ -f "$skill_file" ] || continue
+
+    # Check if this skill is in the exemption list
+    local exempt=0
+    for ex in "${EXEMPT_SKILLS[@]}"; do
+      if [ "$skill_name" = "$ex" ]; then
+        exempt=1
+        break
+      fi
+    done
+    [ "$exempt" -eq 1 ] && continue
+
+    # Check for registry reference
+    checked=$((checked + 1))
+    if ! grep -q "artifact-path-registry.yaml" "$skill_file"; then
+      echo "VIOLATION: $skill_name/SKILL.md does not reference artifact-path-registry.yaml"
+      echo "  VP-072 / BC-4.11.001 PC8: creation skills must read the registry before writing"
+      echo "  to .factory/. Add a registry-read preamble or add to EXEMPT_SKILLS if this"
+      echo "  skill only writes outside .factory/."
+      violations=$((violations + 1))
+    fi
+  done < <(find "$SKILLS_DIR" -maxdepth 1 -type d \( \
+    -name "create-*" -o \
+    -name "scaffold-*" -o \
+    -name "register-*" \
+  \) -print0 2>/dev/null | sort -z)
+
+  if [ "$violations" -gt 0 ]; then
+    echo ""
+    echo "Total violations: $violations (checked $checked skills, ${#EXEMPT_SKILLS[@]} exempted)"
+    return 1
+  fi
+
+  # Sanity check: we must have checked at least the 8 known create-*/scaffold-*/register-*
+  # skills (create-adr, create-architecture, create-brief, create-domain-spec,
+  # create-excalidraw, create-prd, create-story, register-artifact).
+  # Note: conform-to-template is also a creation skill but doesn't match the name
+  # patterns above — it is covered by the named test at line 130.
+  [ "$checked" -ge 8 ] || {
+    echo "SANITY FAIL: only checked $checked skills; expected >= 8 create-*/scaffold-*/register-* skills"
+    echo "Skills dir: $SKILLS_DIR"
+    return 1
+  }
+}
