@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.7"
+version: "1.8"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -9,6 +9,10 @@ phase: F2
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-2 fix burst close (2026-05-07) — VP-077 v1.3→v1.4 (forward-ref resolved: BC-7.06.001 Invariant 7 cited for (name,event) tuple uniqueness; Harness 1 kani::assume expanded for duplicate-name-different-event semantics). No VP count change. last_amended: 2026-05-07 (async-semantics F2 pass-2 fix burst: VP-077 forward-ref resolution)."
+  - date: 2026-05-07
+    change: "F2 pass-2 fix burst (2026-05-07) — VP-077 v1.2→v1.3 (Harness renumber propagation VP-078 H3→H4; 6-property title expansion). VP-078 v1.3→v1.4 (Harness 2 CLI surface fix; registry schema fix). VP-079 v1.0→v1.1 (CLI surface fix all 4 scenarios; fixture schema fix; trace_id relaxation). ADR-019 v1.1→v1.2 (PermissionRequest enumeration; 6-property VP-077 ref; VP-079 added). No VP count change."
   - date: 2026-05-07
     change: "F2 pass-1 fix burst (2026-05-07) — +1 new VP (VP-079 async-semantics event payload schema conformance; integration; SS-03). VP-077 polished v1.0→v1.2 (Kani harness uniqueness constraint; serde-default scope). VP-078 polished v1.0→v1.3 (Harness 2 dispatcher-flag rewrite; Harness 3 positive classification; serde-default tests). total_vps 78→79. last_amended: 2026-05-07."
   - date: 2026-05-07
@@ -137,7 +141,7 @@ changelog:
 | [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process | safety | integration | SS-04 | — | draft |
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
-| [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, disjointness, union completeness, exit-code independence from async group | invariant | kani-proof | SS-01 | — | draft |
+| [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name,event) tuple unique per BC-7.06.001 Invariant 7 | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml | safety | integration | SS-07, SS-01 | — | draft |
 | [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema | invariant | integration | SS-03 | — | draft |
 

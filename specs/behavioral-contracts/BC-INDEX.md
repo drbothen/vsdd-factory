@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.20"
+version: "1.21"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-2 fix burst close (2026-05-07) — 7 BC amendments + 1 DI amendment. BC-7.06.001 v1.1→v1.2 (Invariant 7: (name,event) tuple uniqueness; Invariant 6 expanded to 9 plugins; Postcondition 3 reworded). BC-1.14.001 v1.1→v1.2 (postconditions renumbered 4,5,6 monotonic; Error Paths row for async exit-2; Precondition 4 BC-7.06.001 pin). BC-4.04.004 v2.0→v2.1 (BC-7.06.001 ref Postcondition 7→Invariant 6). BC-4.05.004 v2.0→v2.1 (same fix). BC-4.07.003 v1.2→v1.3 (Description body: async key absent, not async:true). BC-3.08.001 v1.0→v1.1 (SS-07→SS-01 reanchor). BC-1.08.001 v1.1→v1.2 (Stories field appended). DI-014 in invariants.md v1.3→v1.4 (BC range reworded). No count change. last_amended: 2026-05-07 (async-semantics F2 pass-2 fix burst: 7 BC amendments + 1 DI amendment)."
   - date: 2026-05-07
     change: "F2 pass-1 fix burst (2026-05-07) — +2 new BCs (BC-9.01.006 SS-09 hooks.json.template envelope-sync invariant; BC-3.08.001 SS-03 async-semantics event catalog: 4 new event types). 3 BCs amended: BC-1.14.001 v1.0→v1.1 (fail-closed schema mismatch; async plugin lifetime; spawn ordering), BC-7.06.001 v1.0→v1.1 (subsystem reanchored SS-07→SS-01; pre-commit defense layer; classification list promoted to invariant), BC-1.08.001 v1.0→v1.1 (fail-closed exception clause for schema-mismatch). SS-03 52→53; SS-09 5→6. total_bcs 1945→1947. last_amended: 2026-05-07 (async-semantics F2 pass-1 fix burst: +2 new, 3 amendments, BC-7.06.001 subsystem reanchored SS-07→SS-01)."
   - date: 2026-05-07

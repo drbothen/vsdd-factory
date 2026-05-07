@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -73,7 +73,7 @@ For any startup-side error (registry, payload, or engine), the dispatcher emits 
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's fail-safe non-blocking behavior on startup errors, which is a core invariant for the WASM dispatcher to never block Claude Code on its own internal failures |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` |
-| Stories | S-2.07 (Wave 9 SS-01 straggler re-anchor) |
+| Stories | S-2.07 (Wave 9 SS-01 straggler re-anchor); TBD — single story per ADR-019 §6 (cycle v1.0-feature-plugin-async-semantics-pass-1) |
 
 ### Source Evidence
 
@@ -101,6 +101,12 @@ For any startup-side error (registry, payload, or engine), the dispatcher emits 
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Amendment 2026-05-07 (v1.2 — F2 pass-2 fix burst)
+
+Addresses adversary pass-2 finding F-P2-017.
+
+**F-P2-017 (Stories field unattached)**: BC-1.08.001 was amended this cycle (v1.1 added the schema-version mismatch exception) but the Stories field remained pinned to only S-2.07 (a prior wave story). Appended "TBD — single story per ADR-019 §6 (cycle v1.0-feature-plugin-async-semantics-pass-1)" to link this cycle's story once assigned.
 
 ## Amendment 2026-05-07 (v1.1 — F2 pass-1 fix burst)
 

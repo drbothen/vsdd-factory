@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "2.0"
+version: "2.1"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -42,7 +42,7 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Ses
 
 1. `hooks.json.template` contains a `SessionEnd` key in its top-level `hooks` object.
 2. The `SessionEnd` entry's `command` field in the nested `hooks` array references the dispatcher binary path: `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`. It does NOT reference `session-end-telemetry.wasm` or any other WASM plugin filename (per ADR-011 layer separation).
-3. The `SessionEnd` hook entry has `once: true`. The `async` key is ABSENT from the entry (per ADR-019: all hook envelopes are synchronous; async classification belongs in `hooks-registry.toml`). The `session-end-telemetry` plugin is classified `async = true` in `hooks-registry.toml` (BC-7.06.001 Postcondition 7).
+3. The `SessionEnd` hook entry has `once: true`. The `async` key is ABSENT from the entry (per ADR-019: all hook envelopes are synchronous; async classification belongs in `hooks-registry.toml`). The `session-end-telemetry` plugin is classified `async = true` in `hooks-registry.toml` (BC-7.06.001 Invariant 6).
 4. The entry follows the array-of-objects schema: `template["hooks"]["SessionEnd"]` is an array; each element is an object with a nested `hooks` array; each nested entry has `type = "command"` and `command` = dispatcher binary path.
 5. The `SessionEnd` hook entry has `timeout: 10000`. This is the Claude Code harness timeout (ms). For `SessionEnd`, the dispatcher timeout is 5000ms (BC-4.05.005 Postcondition 4); the harness timeout of 10000ms provides adequate headroom above the dispatcher budget, preserving the timeout hierarchy: dispatcher timeout (5000ms) < harness timeout (10000ms).
 
@@ -108,7 +108,13 @@ VP-066
 | Stories | S-5.02 |
 | Functional Requirement | FR-046 |
 
-## Amendment 2026-05-07
+## Amendment 2026-05-07 (v2.1 — F2 pass-2 fix burst)
+
+Addresses adversary pass-2 finding F-P2-003.
+
+**F-P2-003 (Stale cross-reference)**: Postcondition 3 cited "BC-7.06.001 Postcondition 7" for the `session-end-telemetry` async classification. During pass-1, the classification table was promoted from Postcondition 7 to Invariant 6. Updated to "BC-7.06.001 Invariant 6".
+
+## Amendment 2026-05-07 (v2.0 — F2 pass-1 fix burst)
 
 **Cycle:** v1.0-feature-plugin-async-semantics-pass-1 (F2). **ADR:** ADR-019.
 

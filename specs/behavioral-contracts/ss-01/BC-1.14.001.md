@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -40,7 +40,7 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
 1. Registry loaded from `hooks-registry.toml` with `schema_version = 2`. A registry with `schema_version != 2` causes a hard error before partitioning begins (see Error Paths: schema_version mismatch).
 2. Dispatcher is invoked by Claude Code with a tool event on a synchronous hook envelope. All hook event types (PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, WorktreeCreate, WorktreeRemove, PostToolUseFailure, PermissionRequest) are synchronous at the envelope layer per ADR-019. There are no per-event carve-outs.
 3. At least one plugin entry in the registry matches the event (by event name and optional tool regex filter per BC-1.01.005).
-4. Registry validation has already confirmed that no entry has both `on_error = "block"` and `async = true` (enforced at registry-load time; violation causes hard error before dispatch).
+4. Registry validation has already confirmed that no entry has both `on_error = "block"` and `async = true` (enforced at registry-load time; violation causes hard error before dispatch) (per BC-7.06.001 Invariant 1).
 
 ## Postconditions
 
@@ -66,11 +66,10 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
    - Async group results never reach Claude Code as a blocking signal.
    - **Async plugin lifetime is best-effort**: Async plugins are spawned as tokio tasks (or runtime-equivalent fire-and-forget primitives). The dispatcher does NOT await async tasks. The dispatcher process exits as soon as `sync_group` completes. If a plugin's I/O does not complete before dispatcher process exit, that plugin's output may be truncated. This is an explicit trade-off accepted to preserve user-facing latency for `sync_group`. Telemetry plugins classified `async = true` (e.g., `capture-commit-activity`) accept this truncation risk.
 
+5. The partition function `partition_plugins(matched_plugins, registry)` is pure and deterministic: given identical inputs it always produces identical `(sync_group, async_group)` splits. No side effects occur during partitioning.
+
 6. Async group spawn ordering:
    - Async group plugins are spawned **only after** `sync_group` execution completes (per ADR-019 §Decision 3 pseudocode). The dispatcher does not interleave async spawns with sync execution. Async spawning is a post-sync-group step.
-   - Note: Postconditions 4 and 6 are both async-group behaviors. Postcondition 5 remains the determinism invariant (see § Invariants).
-
-5. The partition function `partition_plugins(matched_plugins, registry)` is pure and deterministic: given identical inputs it always produces identical `(sync_group, async_group)` splits. No side effects occur during partitioning.
 
 ## Invariants
 
@@ -91,6 +90,7 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
 | Async plugin crashes | Crash logged to `events-*.jsonl` as `plugin.crashed`. No impact on dispatcher exit code. |
 | Registry entry has `on_error = "block"` AND `async = true` | Hard error at registry-load time (`E-REG-002`). Dispatcher refuses to start. No plugins executed. |
 | `partition_plugins` receives empty matched list | Both groups are empty; dispatcher exits 0 immediately. No plugins executed. |
+| Async plugin returns exit code 2 | `plugin.async_block_discarded` event logged with `reason: "async_plugin_block_verdict_discarded"`; dispatcher exit code unaffected (async group verdicts never reach Claude Code); result discarded per BC-7.06.001 Invariant 1 (block + async coexistence forbidden by load-time validation, so no async plugin can have a legitimate block intent). See also EC-005. |
 
 ## Related BCs
 
@@ -178,6 +178,16 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-07 (v1.2 — F2 pass-2 fix burst)
+
+Addresses adversary pass-2 findings F-P2-005, F-P2-009, F-P2-015.
+
+**F-P2-005 (Postcondition renumbering)**: Postconditions were out of monotonic order (1, 2, 3, 4, 6, 5) due to insertion artifact during pass-1 burst. Renumbered to strict 1-2-3-4-5-6. New order: 1=sync_group/async_group partition, 2=sync execution, 3=sync verdict, 4=async execution, 5=partition purity/determinism, 6=async spawn ordering. The apologetic note about "PC5 vs PC6" gap removed (now obsolete). Ripple-check: no sibling BCs were found to cite specific BC-1.14.001 postcondition numbers; VP citations are by property description not number.
+
+**F-P2-009 (Error Paths — async-plugin-exit-2)**: Added Error Paths row for "Async plugin returns exit code 2". EC-005 already documented this case fully; the Error Paths table now cross-references it explicitly. The new row notes the `plugin.async_block_discarded` emission and cross-links to BC-7.06.001 Invariant 1.
+
+**F-P2-015 (Precondition 4 BC pin)**: Appended "(per BC-7.06.001 Invariant 1)" to Precondition 4. The load-time invariant is enforced externally by BC-7.06.001; the pin makes the dependency explicit.
 
 ## Amendment 2026-05-07 (v1.1 — F2 pass-1 fix burst)
 

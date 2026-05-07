@@ -186,3 +186,86 @@ F2 SPECS AUTHORED. Adversarial spec convergence next (≥3 NITPICK_ONLY passes p
 F2 PASS-1 FIX BURST CLOSED. Adversary pass-2 next (ADR-013 clock at 0_of_3 — 3 consecutive NITPICK_ONLY required before F3 story decomposition).
 
 ---
+
+## Burst: F2 pass-2 fix burst — 19 findings (1 SKIP_FIX) closed (2026-05-07)
+
+| Field | Value |
+|-------|-------|
+| **Burst date** | 2026-05-07 |
+| **Dispatch chain** | orchestrator → adversary → state-manager(persist) → (PO ∥ architect) → state-manager(close + forward-ref) |
+| **Adversary verdict** | SUBSTANTIVE (6H/7M/4L/2N; pass-2 returned multiple partial-fix regressions from pass-1: renumbering ripple, sibling-pointer drift, body-vs-postcondition contradictions) |
+| **ADR-013 clock** | RESET to 0_of_3 |
+
+### Outputs
+
+**Amended artifacts (PO):**
+
+| File | Old Version | New Version | Findings addressed |
+|------|-------------|-------------|-------------------|
+| `ss-07/BC-7.06.001.md` | v1.1 | v1.2 | F-P2-001 (Invariant 7: (name,event) tuple uniqueness); F-P2-006 (Invariant 6 expanded: track-agent-start, track-agent-stop, session-learning added; warn-pending-wave-gate/regression-gate kept SYNC); F-P2-013 (Postcondition 3 reworded, no v1 compat framing) |
+| `ss-01/BC-1.14.001.md` | v1.1 | v1.2 | F-P2-005 (postconditions renumbered 4,5,6 monotonic); F-P2-009 (Error Paths row for async exit-2 added); F-P2-015 (Precondition 4: BC-7.06.001 pin) |
+| `ss-04/BC-4.04.004.md` | v2.0 | v2.1 | F-P2-003 (BC-7.06.001 reference: Postcondition 7 → Invariant 6) |
+| `ss-04/BC-4.05.004.md` | v2.0 | v2.1 | F-P2-003 (same fix) |
+| `ss-04/BC-4.07.003.md` | v1.2 | v1.3 | F-P2-004 (Description body: "async:true removed" → "async key absent"; matches actual schema where absence = false default) |
+| `ss-03/BC-3.08.001.md` | v1.0 | v1.1 | F-P2-010 (Architecture Module: SS-07 → SS-01 reanchor for registry.rs enforcement path) |
+| `ss-01/BC-1.08.001.md` | v1.1 | v1.2 | F-P2-017 (Stories field appended for new cycle) |
+| `specs/domain-spec/invariants.md` (DI-014) | v1.3 | v1.4 | F-P2-014 (BC range reworded post-reanchor) |
+
+**Amended artifacts (architect):**
+
+| File | Old Version | New Version | Findings addressed |
+|------|-------------|-------------|-------------------|
+| `decisions/ADR-019-plugin-async-semantics-at-registry-layer.md` | v1.2 | v1.3 | F-P2-012 (PermissionRequest enumerated; already covered in v1.2); §Consequences sync: warn-pending-wave-gate/regression-gate SYNC rationale; async list expanded to 9 plugins per BC-7.06.001 Invariant 6; F-P2-011 (6 properties for VP-077 already in v1.2; §Consequences now cross-references Invariant 6) |
+| `VP-077.md` | v1.2 | v1.3 | F-P2-002 (VP-078 H3→H4 Harness renumber); F-P2-011 (6 properties for VP-INDEX + ADR-019) |
+| `VP-078.md` | v1.3 | v1.4 | F-P2-007 (Harness 2 CLI surface: no CLI flags; stdin envelope + env vars); F-P2-008 (fixture schema fix) |
+| `VP-079.md` | v1.0 | v1.1 | F-P2-007 (all 4 scenarios CLI/fixture rewrite); F-P2-008 (fixtures); F-P2-016 (trace_id property relaxed) |
+| `VP-INDEX.md` | v1.7 | v1.8 (prior burst) | F-P2-011 (VP-077 title expanded to cite 6 properties) |
+
+**State-manager forward-reference resolution:**
+
+| File | Old Version | New Version | Change |
+|------|-------------|-------------|--------|
+| `VP-077.md` | v1.3 | v1.4 | Forward-ref resolved: BC-7.06.001 Invariant 7 cited for (name,event) tuple uniqueness. Harness 1 kani::assume updated to allow duplicate names across different events. Feasibility row updated. Amendment block added. |
+| `VP-INDEX.md` | v1.7 | v1.8 | VP-077 row title updated; changelog entry for forward-ref resolution |
+| `BC-INDEX.md` | v1.20 | v1.21 | Changelog entry for 7 BC amendments + 1 DI |
+| `ARCH-INDEX.md` | v1.11 | v1.12 | ADR-019 row updated to v1.3; changelog entry |
+| `STATE.md` | — | — | current_step, phase, cycle table, burst table, session checkpoint updated |
+
+### Decisions sealed
+
+- **F-P2-006 (ASYNC CLASSIFICATION EXPANSION):** 3 telemetry plugins added to Invariant 6
+  async-required list: `track-agent-start`, `track-agent-stop`, `session-learning`. All
+  three are telemetry-only and always return Continue. `warn-pending-wave-gate` (Stop) and
+  `regression-gate` (PostToolUse) are deliberately classified SYNC with `on_error=continue`
+  because they emit human-visible stderr warnings — async classification would silently drop
+  warnings at dispatcher process exit. Determined by reading plugin source (`lib.rs`);
+  both call `write_stderr`/`eprint!` and always return `HookResult::Continue`. Invariant 6
+  now enumerates 9 ASYNC plugins + 2 deliberate SYNC (with rationale).
+- **F-P2-007 (DISPATCHER CLI FLAGS DO NOT EXIST):** VP-078 Harness 2 and VP-079 scenarios
+  previously scripted flags like `--async` that don't exist in the dispatcher binary.
+  Architect rewrote all harnesses to use stdin envelope + env vars (the actual dispatcher
+  interface). VP-078 Harness 2 and all VP-079 scenarios rewritten accordingly.
+- **F-P2-011 (VP-077 6 PROPERTIES CANONICAL):** VP-077 enumerates 6 properties (totality,
+  async-field respect, disjointness, union completeness, exit-code independence, aggregation
+  correctness). VP-INDEX row and ADR-019 §Implementation Pointers now match VP-077's
+  canonical enumeration. No other VPs added.
+- **F-P2-001 (TUPLE UNIQUENESS):** PO assigned BC-7.06.001 Invariant 7 for (name, event)
+  tuple uniqueness — not plain plugin-name uniqueness. Duplicate names across different
+  events are intentional (worktree-hooks: WorktreeCreate + WorktreeRemove; protect-secrets:
+  Bash + Read). Forward reference in VP-077 closed by state-manager.
+
+### Findings summary (19 total)
+
+| Severity | Count | Notable |
+|----------|-------|---------|
+| HIGH | 6 | F-P2-001 (uniqueness scope), F-P2-003 (sibling pointer drift), F-P2-004 (body contradiction), F-P2-006 (async list incomplete), F-P2-007 (CLI flags don't exist), F-P2-008 (fixture schema) |
+| MED | 7 | F-P2-002 (harness renumber), F-P2-005 (PC renumber), F-P2-009 (Error Paths), F-P2-010 (SS reanchor), F-P2-011 (property count), F-P2-012 (PermissionRequest), F-P2-013 (PC3 framing) |
+| LOW | 4 | F-P2-014 (BC range), F-P2-015 (pin), F-P2-016 (trace_id), F-P2-017 (Stories) |
+| NIT | 1 | F-P2-018 |
+| SKIP_FIX | 1 | F-P2-019 (events-*.jsonl glob form — intentional; no action) |
+
+### Status
+
+F2 PASS-2 FIX BURST CLOSED. Adversary pass-3 next (ADR-013 clock at 0_of_3 — 3 consecutive NITPICK_ONLY required before F3 story decomposition).
+
+---

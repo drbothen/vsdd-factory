@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -31,7 +31,7 @@ removal_reason: null
 
 ## Description
 
-The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain both a `WorktreeCreate` entry and a `WorktreeRemove` entry in its `hooks` object. Each entry's `command` field routes to the **dispatcher binary** (`${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`), not directly to a WASM plugin filename. This is Layer 1 of the dual-routing-tables pattern per ADR-011. Critically, worktree events MUST NOT carry `once: true` — worktree events can re-fire on Claude Code reconnect after disconnect, and once-per-session suppression would silently drop legitimate events. This is the key behavioral difference from SessionStart/SessionEnd (which use `once: true`). Both entries have `async: true` and `timeout: 10000`. Per-platform variants (`hooks.json.darwin-arm64`, etc.) must be kept in sync with the template (EC-003).
+The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain both a `WorktreeCreate` entry and a `WorktreeRemove` entry in its `hooks` object. Each entry's `command` field routes to the **dispatcher binary** (`${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`), not directly to a WASM plugin filename. This is Layer 1 of the dual-routing-tables pattern per ADR-011. Critically, worktree events MUST NOT carry `once: true` — worktree events can re-fire on Claude Code reconnect after disconnect, and once-per-session suppression would silently drop legitimate events. This is the key behavioral difference from SessionStart/SessionEnd (which use `once: true`). Both entries have `timeout: 10000` (the `async` key is absent per ADR-019). Per-platform variants (`hooks.json.darwin-arm64`, etc.) must be kept in sync with the template (EC-003).
 
 ## Preconditions
 
@@ -119,11 +119,18 @@ VP-067
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-05-07 | product-owner | F2 pass-2 fix (F-P2-004): Description body corrected — replaced "Both entries have `async: true` and `timeout: 10000`" with "Both entries have `timeout: 10000` (the `async` key is absent per ADR-019)" to match Postcondition 5 |
 | v1.2 | 2026-05-07 | product-owner | Async-semantics cycle F2 (ADR-019): `async: true` removed from WorktreeCreate and WorktreeRemove entries; envelope is now synchronous; `async` key MUST BE ABSENT; H1 title updated; Postcondition 5 updated; Canonical Test Vectors updated |
 | v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (HIGH-002) `once` key absence pinned — "once key MUST be absent" replaces "omitting once is equivalent to once:false"; H1 title updated to reflect "once key ABSENT"; test vectors and invariants clarified; once:false references in prose replaced with unambiguous "once key must not exist" language |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.03 foundation burst) |
 
-## Amendment 2026-05-07
+## Amendment 2026-05-07 (v1.3 — F2 pass-2 fix burst)
+
+Addresses adversary pass-2 finding F-P2-004.
+
+**F-P2-004 (Body-postcondition contradiction)**: Description paragraph said "Both entries have `async: true` and `timeout: 10000`" which directly contradicts Postcondition 5 ("The `async` key is ABSENT from both `WorktreeCreate` and `WorktreeRemove` hook entries per ADR-019"). Description corrected to "Both entries have `timeout: 10000` (the `async` key is absent per ADR-019)." Ripple-check within BC-4.07.003: no other body text references `async: true` as current state — remaining occurrences of `async` in this BC are in the Canonical Test Vectors and Postcondition 5 which correctly assert `async` key MUST BE ABSENT.
+
+## Amendment 2026-05-07 (v1.2 — F2 pass-1 fix burst)
 
 **Cycle:** v1.0-feature-plugin-async-semantics-pass-1 (F2). **ADR:** ADR-019.
 

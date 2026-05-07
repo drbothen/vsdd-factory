@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -46,7 +46,7 @@ removal_reason: null
 
 2. **Per-plugin `async` field**: Each `[[hooks]]` entry MAY include `async = true` or `async = false`. Absence of the field is equivalent to `async = false`. The field is type-checked at parse time: non-boolean values (e.g., `async = "true"`) produce a `RegistryError::ParseError`. The `async` field is NOT a global default — it is per-entry only.
 
-3. **Default-false semantics**: All existing plugin entries that do not declare `async` are treated as `async = false` (synchronous). This preserves the behavior of every validator and governance plugin (which must run synchronously to gate Claude Code).
+3. **Default-false semantics**: Within a `schema_version = 2` registry, entries that do not declare `async` are parsed as `async = false`. Operators migrating from v1 must bump the schema_version header; per-entry `async` field absence is acceptable and does not require explicit `false`.
 
 4. **No backward compatibility**: A v2 dispatcher receiving a `schema_version = 1` registry produces a deterministic error and halts. There is no compat shim, no silent acceptance of v1 fields, and no migration tooling provided. The operator must bump `schema_version = 2` in the registry file before deploying the v2 dispatcher. Migration is mechanical: the `async` field defaults to `false` when absent, so no content changes are required beyond the header bump.
 
@@ -72,7 +72,9 @@ removal_reason: null
    - **Layer 3 (CI-PR)**: VP-078 integration test scans the registry file; CI fails before merge.
    Per ADR-019 §Decision 4. Missing any single layer is a spec violation.
 
-6. **Specific plugins MUST be `async = true`**: The following telemetry-only plugins MUST be classified `async = true` in the v2 registry: `capture-commit-activity`, `capture-pr-activity`, `session-start-telemetry`, `session-end-telemetry`, `worktree-hooks`, `tool-failure-hooks`. All validator and governance plugins with `on_error = "block"` MUST remain `async = false`. This is an invariant (not merely a postcondition) because a future engineer flipping any of these to `async = false` would silently degrade user-facing latency. Positive classification is verified by VP-078 Harness 3 (architect to add per F-P1-016).
+6. **Specific plugins MUST be `async = true`**: The following telemetry-only plugins MUST be classified `async = true` in the v2 registry: `capture-commit-activity`, `capture-pr-activity`, `session-start-telemetry`, `session-end-telemetry`, `worktree-hooks`, `tool-failure-hooks`, `track-agent-start`, `track-agent-stop`, `session-learning`. All validator and governance plugins with `on_error = "block"` MUST remain `async = false`. The following plugins are SYNC (on_error=continue but user-visible stderr warnings require reliable delivery): `warn-pending-wave-gate`, `regression-gate`. This is an invariant (not merely a postcondition) because a future engineer flipping any of these to `async = false` would silently degrade user-facing latency, or flipping a warn plugin to async would silently drop stderr warnings. Positive classification is verified by VP-078 Harness 3.
+
+7. **(`name`, `event`) tuple is unique per registry**: Within a `schema_version = 2` registry, the tuple (`name`, `event`) is unique across all `[[hooks]]` entries. Duplicate `name` values across DIFFERENT events are permitted (e.g., `worktree-hooks` may appear once with `event = "WorktreeCreate"` and once with `event = "WorktreeRemove"`). The `(name, event)` uniqueness is enforced at registry-load time by `registry.rs::validate()`. Violations produce `dispatcher.registry_invalid` with reason `duplicate_hook_registration` and dispatcher exits non-zero (fail-closed).
 
 ## Error Paths
 
@@ -169,6 +171,16 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-07 (v1.2 — F2 pass-2 fix burst)
+
+Addresses adversary pass-2 findings F-P2-001, F-P2-006, F-P2-013.
+
+**F-P2-001 (Plugin-name uniqueness invariant)**: Added Invariant 7. The correct uniqueness constraint is on the (`name`, `event`) tuple, not `name` alone. The actual registry has intentional duplicate names across different events (e.g., `worktree-hooks` for WorktreeCreate and WorktreeRemove, `protect-secrets` for Bash and Read). Invariant 7 scopes uniqueness to the tuple and documents this correctly. Architect must update VP-077 to cite Invariant 7 (not Invariant 1) for the name-uniqueness property.
+
+**F-P2-006 (Incomplete Invariant 6)**: Added `track-agent-start`, `track-agent-stop`, and `session-learning` to the async=true required list — all three are telemetry-only and always return Continue. `warn-pending-wave-gate` (Stop) and `regression-gate` (PostToolUse) are classified SYNC: both emit human-visible stderr warnings that must reach the user reliably; async classification would silently truncate those warnings at dispatcher process exit. Classification determined by reading plugin source (`lib.rs`) — both call `write_stderr`/`eprint!` and always return `HookResult::Continue`. ADR-019 Consequences should be updated to note that `warn-pending-wave-gate` and `regression-gate` are deliberately SYNC with `on_error=continue`. (Flag for architect to sync ADR-019.)
+
+**F-P2-013 (Postcondition 3 framing)**: Postcondition 3 reworded to remove "preserves the behavior of every validator and governance plugin" framing. ADR-019 prohibits backward compat shim. New wording: "Within a `schema_version = 2` registry, entries that do not declare `async` are parsed as `async = false`. Operators migrating from v1 must bump the schema_version header."
 
 ## Amendment 2026-05-07 (v1.1 — F2 pass-1 fix burst)
 

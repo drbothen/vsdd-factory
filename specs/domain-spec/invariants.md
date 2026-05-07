@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.3"
+version: "1.4"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -108,7 +108,8 @@ Justification: DI-013 is a business invariant because operators upgrading config
 Enforcement owner: SS-01 (registry.rs::validate), SS-03 (sinks::from_config). BC range: BC-1, BC-3, BC-7.
 Justification: DI-014 is a business invariant because silently processing a mismatched schema would produce incorrect behavior with no error signal. Source: pass-2 §BR-Schema-version.
 **Updated per ADR-015 (D-314):** `observability-config.toml` schema_version=2 is the ADR-015 target format. BC-3.05.004 Postcondition 4 hard-errors on schema_version=1 (old format no longer accepted post-migration) and accepts schema_version=2. The invariant extends to v2: any schema_version value other than 2 in a post-Wave-2 deployment emits `internal.dispatcher_error` and exits. DI-014 remains active and its spirit (hard error on mismatch, never silent) is preserved.
-**Updated per ADR-019 (F2 2026-05-07):** `REGISTRY_SCHEMA_VERSION` in `registry.rs` bumped from 1 to 2. The BC-1 enforcement arm (BC-1.14.001) and BC-7 enforcement arm (BC-7.06.001) both cite DI-014. Schema-version mismatch for `hooks-registry.toml` is explicitly fail-closed (exit code 2), not fail-open (exit 0) — this is the named exception to BC-1.08.001 fail-open policy. The BC range is extended: BC range: BC-1, BC-3, BC-7.
+**Updated per ADR-019 (F2 2026-05-07):** `REGISTRY_SCHEMA_VERSION` in `registry.rs` bumped from 1 to 2. The BC-1 enforcement arm (BC-1.14.001) and BC-7 enforcement arm (BC-7.06.001) both cite DI-014. Schema-version mismatch for `hooks-registry.toml` is explicitly fail-closed (exit code 2), not fail-open (exit 0) — this is the named exception to BC-1.08.001 fail-open policy. The BC range is: BC-1, BC-3 (and BC-7.06.001 by ID-prefix retention per POLICY 1; authoritative subsystem is SS-01 per F-P1-006 reanchor — the ID prefix "BC-7" is preserved for append-only continuity, not as a subsystem designation).
+**Amendment note (F2 pass-2 2026-05-07, F-P2-014):** "BC-7" in the BC range was misleading because BC-7.06.001's frontmatter `subsystem` was reanchored to SS-01 during pass-1. The BC range now explicitly notes this ID-prefix retention to avoid implying the BC is subsystem-SS-07-owned.
 
 **DI-015 — Per-project activation is required before the dispatcher can run**
 `hooks.json` is gitignored. Without activation, no `hooks.json` exists, so Claude Code cannot invoke the dispatcher. Activation is the gate — not install.

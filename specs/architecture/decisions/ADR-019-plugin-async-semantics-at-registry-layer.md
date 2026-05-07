@@ -4,7 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
-version: "1.1"
+version: "1.3"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -75,7 +75,13 @@ into the registry and have the dispatcher implement the partition at runtime.
 The `"async": true` flag is removed from all event declarations in `hooks.json.template` and
 all five platform-specific variants. Every Claude Code hook event — PreToolUse, PostToolUse,
 Stop, SubagentStop, SessionStart, SessionEnd, WorktreeCreate, WorktreeRemove,
-PostToolUseFailure — is synchronous at the envelope. No per-event carve-outs.
+PostToolUseFailure, PermissionRequest — is synchronous at the envelope. No per-event
+carve-outs.
+
+Note on PermissionRequest: this event was already synchronous prior to ADR-019 (it was never
+declared `async: true` in any envelope variant). It is enumerated here for completeness —
+ADR-019 imposes no behavior change for PermissionRequest; the decision simply preserves its
+existing synchronous status and makes the full event enumeration explicit.
 
 **User explicit decision: every Claude Code hook event must be sync at the envelope. No
 per-event carve-outs in hooks.json. Cited verbatim from user decisions, 2026-05-07.**
@@ -174,9 +180,19 @@ the converse case (`on_error = "block"` tagged `async = true`).
 
 ### Telemetry plugins must be classified async
 
-`capture-commit-activity`, `capture-pr-activity`, `session-start-telemetry`, and
-`session-end-telemetry` MUST be classified `async = true` to preserve the current
-latency profile. They have no block intent; they must not gate the user.
+`capture-commit-activity`, `capture-pr-activity`, `session-start-telemetry`,
+`session-end-telemetry`, `track-agent-start`, `track-agent-stop`, and `session-learning`
+MUST be classified `async = true` to preserve the current latency profile. They have no
+block intent and always return `Continue`; they must not gate the user.
+
+Plugins with `on_error = 'continue'` that emit user-visible stderr warnings
+(e.g., `warn-pending-wave-gate`, `regression-gate`) are deliberately classified SYNC
+despite being non-blocking, so that the dispatcher's parent process delivers their output
+reliably before exit. Telemetry-only continue plugins (`track-agent-start`,
+`track-agent-stop`, `session-learning`, `capture-commit-activity`,
+`capture-pr-activity`, `session-start-telemetry`, `session-end-telemetry`,
+`worktree-hooks`, `tool-failure-hooks`) are classified ASYNC. See BC-7.06.001 Invariant 6
+for the canonical async-required list.
 
 ### Schema v2 hard-error on v1 registry — deliberate
 
@@ -235,8 +251,12 @@ Do not author these BCs here — PO authored BC-1.14.001, BC-7.06.001, and BC-9.
 Verification properties produced alongside this ADR:
 
 - **VP-077**: Dispatcher partition correctness (Kani-provable) — partition function
-  totality, set disjointness, union completeness, exit code independence
+  totality, async-field respect, disjointness, union completeness, exit-code independence
+  from async group, aggregation correctness (6 properties; VP-077 §Property Statement
+  is canonical)
 - **VP-078**: CI lint invariant — `on_error = "block"` implies `async = false` (integration)
+- **VP-079**: Async-semantics event payload schema conformance — each of the four event
+  types introduced by this ADR conforms to BC-3.08.001 schema (integration)
 
 ---
 
@@ -286,3 +306,38 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
   - §Implementation Pointers line 2: `BC-7.NN.001` → `BC-7.06.001`
 - **Forward reference (RESOLVED by state-manager close-burst 2026-05-07):** PO assigned BC-9.01.006 (SS-09) for the hooks.json.template envelope-sync invariant (F-P1-001). BC-9.01.006 has been added to §Implementation Pointers and §Subsystem Assignments under SS-09. Forward reference closed.
 - **No decision changes:** All §Decision entries are unchanged. This amendment corrects stale text only.
+
+## Amendment 2026-05-07: v1.2 → v1.3 (F2 pass-2 fix burst close)
+
+- **Amendment date:** 2026-05-07
+- **Reason:** PO's F-P2-006 fix expanded BC-7.06.001 Invariant 6 from 6 to 9 async-required
+  plugins. ADR-019 §Consequences "Telemetry plugins must be classified async" required sync
+  to reflect the expanded list and to document the deliberate SYNC classification rationale
+  for `warn-pending-wave-gate` and `regression-gate`.
+- **Changes:**
+  - §Consequences "Telemetry plugins must be classified async": expanded telemetry plugin
+    list to include `track-agent-start`, `track-agent-stop`, `session-learning`; added
+    clarification paragraph: `warn-pending-wave-gate` and `regression-gate` are deliberately
+    SYNC (on_error=continue) because they emit user-visible stderr warnings that must be
+    delivered reliably before dispatcher exit; telemetry-only plugins are ASYNC. Canonical
+    list reference: BC-7.06.001 Invariant 6.
+- **No decision changes:** All §Decision policy text is unchanged. This amendment corrects
+  §Consequences prose to match the expanded Invariant 6 classification list.
+
+## Amendment 2026-05-07: v1.1 → v1.2 (F2 pass-2 fix burst)
+
+- **Amendment date:** 2026-05-07
+- **Reason:** Adversary pass-2 findings F-P2-011 and F-P2-012.
+- **Changes:**
+  - §Decision 1 event enumeration: added `PermissionRequest` to the ten-event list with
+    an explanatory note that PermissionRequest was already synchronous prior to ADR-019
+    and this ADR imposes no behavior change for it (F-P2-012). BC-1.14.001 Precondition 2
+    and BC-9.01.006 Postcondition 2 enumerate 10 events including PermissionRequest; the
+    ADR's decision enumeration now matches.
+  - §Implementation Pointers VP-077 entry: expanded from 4 properties to the canonical 6
+    (totality, async-field respect, disjointness, union completeness, exit-code independence,
+    aggregation correctness) per VP-077 §Property Statement (F-P2-011).
+  - §Implementation Pointers: added VP-079 entry (was produced alongside this ADR but not
+    previously listed here).
+- **No decision changes:** All §Decision policy text is unchanged. This amendment adds
+  enumeration completeness and cross-reference accuracy only.

@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F2 PASS-1 FIX BURST CLOSED for v1.0-feature-plugin-async-semantics-pass-1. 19 adversary findings addressed: 2 new BCs (BC-9.01.006, BC-3.08.001), 1 new VP (VP-079), 6 amendments (3 BCs + DI-014 + ADR-019 + 2 SS docs), VP-077/VP-078 polished. Awaiting F2 adversary pass-2 (clock at 0_of_3 per ADR-013)."
+current_step: "F2 PASS-2 FIX BURST CLOSED for v1.0-feature-plugin-async-semantics-pass-1. 19 adversary findings addressed (1 SKIP_FIX). 7 BC amendments + 1 DI + ADR-019 + 3 VP amendments + VP-INDEX. Awaiting F2 adversary pass-3 (clock at 0_of_3 per ADR-013)."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (F2 pass-1 fix burst closed: +2 BCs, +1 VP, 6 amendments; ADR-013 clock at 0_of_3; adversary pass-2 next) |
-| **Current Phase** | F2 PASS-1 FIX BURST CLOSED — v1.0-feature-plugin-async-semantics-pass-1; adversary pass-2 next (clock at 0_of_3) |
+| **Last Updated** | 2026-05-07 (F2 pass-2 fix burst closed: 7 BC amendments + 1 DI + ADR-019 v1.3 + 3 VP amendments; ADR-013 clock at 0_of_3; adversary pass-3 next) |
+| **Current Phase** | F2 PASS-2 FIX BURST CLOSED — v1.0-feature-plugin-async-semantics-pass-1; adversary pass-3 next (clock at 0_of_3) |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F2 PASS-1 FIX BURST CLOSED → adversary pass-2** | F2 specs authored + adversary pass-1 SUBSTANTIVE (19 findings; clock RESET 0_of_3). Fix burst: +2 BCs, +1 VP, 6 amendments. Adversary pass-2 next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F2 PASS-2 FIX BURST CLOSED → adversary pass-3** | F2 specs authored + adversary pass-1 SUBSTANTIVE (19 findings; clock RESET). Pass-1 fix burst: +2 BCs, +1 VP, 6 amendments. Adversary pass-2 SUBSTANTIVE (19 findings; 1 SKIP_FIX). Pass-2 fix burst: 7 BC amendments + 1 DI + ADR-019 v1.3 + VP-077 v1.4. Clock at 0_of_3. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -98,6 +98,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-376 S-12.06 merged — Step 9 state update** | state-manager | **COMPLETE** | S-12.06 (HOST_ABI Context Injection Contract) MERGED via PR #105 at 15432c6 (2026-05-07). First E-12 platform story. First in cycle history to complete Step 4.5 per-story adversary convergence (D-375; 6 passes; decay 5→3→2→0→0→0). sprint-state.yaml + STORY-INDEX 2.29→2.30 + decision-log D-376 updated. Next: S-12.03 + S-12.05 in parallel. |
 | **F2 spec evolution — plugin-async-semantics-pass-1** | product-owner + architect + state-manager | **COMPLETE** | ADR-019 accepted (async semantics at registry layer; hard cut, no backcompat). BC-1.14.001 (dispatcher partition contract). BC-7.06.001 (registry schema v2 + CI lint). VP-077 (partition correctness, Kani). VP-078 (CI lint invariant, integration). 7 BCs amended (envelope sync; schema v2 gates). 2 VPs amended (scope to sync group). BC-INDEX 1.18→1.19; ARCH-INDEX 1.9→1.10; VP-INDEX 1.5→1.6. Adversarial convergence next (≥3 NITPICK_ONLY). |
 | **F2 pass-1 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 19 adversary findings addressed across 4 specialist bursts (PO ∥ architect → architect-followup → state-manager-close). New: BC-9.01.006 (SS-09), BC-3.08.001 (SS-03), VP-079. Amended: BC-1.14.001 v1.1, BC-7.06.001 v1.1 (subsystem SS-01), BC-1.08.001 v1.1, DI-014 v1.3, ADR-019 v1.1, SS-09 v1.1, SS-07 v1.1, VP-077 v1.2, VP-078 v1.3. INDEX bumps: BC-INDEX v1.20 (1947 total), ARCH-INDEX v1.11, VP-INDEX v1.7 (79 total). Sealed: schema-mismatch fail-CLOSED; BC-7.06.001 primary SS-01; async lifetime best-effort. Adversary pass-2 next. |
+| **F2 pass-2 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 19 adversary findings addressed (1 SKIP_FIX F-P2-019). PO: BC-7.06.001 v1.2 (Invariant 7 tuple-unique; Invariant 6 → 9 plugins; PC3 reword), BC-1.14.001 v1.2 (PCs renumbered; Error Paths; PC4 pin), BC-4.04.004 v2.1 + BC-4.05.004 v2.1 (PC7→Inv6 ref), BC-4.07.003 v1.3 (body fix), BC-3.08.001 v1.1 (SS-07→SS-01), BC-1.08.001 v1.2 (Stories). DI-014 v1.4 (BC range reword). Architect: ADR-019 v1.3 (§Consequences sync; SYNC/ASYNC rationale). State-manager: VP-077 v1.4 (Invariant 7 forward-ref). INDEX bumps: BC-INDEX v1.21, ARCH-INDEX v1.12, VP-INDEX v1.8. Sealed decisions: F-P2-006 (9 plugins ASYNC; warn-pending-wave-gate/regression-gate SYNC); F-P2-007 (no CLI flags; stdin envelope + env vars); F-P2-011 (VP-077 6 properties canonical). Pass-3 next. |
 
 ## Identifier Conventions
 
@@ -139,7 +140,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F2 PASS-1 FIX BURST CLOSED → adversary pass-2 next | 19 findings closed (6H/7M/4L/2N; 1 SKIP_FIX F-P1-014). +2 BCs (BC-9.01.006 SS-09, BC-3.08.001 SS-03). +1 VP (VP-079). 3 BCs amended (BC-1.14.001, BC-7.06.001 subsystem SS-01, BC-1.08.001). DI-014 + ADR-019 + SS-09 + SS-07 amended. VP-077 v1.2, VP-078 v1.3. ADR-013 clock at 0_of_3. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F2 PASS-2 FIX BURST CLOSED → adversary pass-3 next | Pass-2 SUBSTANTIVE (6H/7M/4L/2N; 1 SKIP_FIX F-P2-019). 7 BC amendments (BC-7.06.001 v1.2, BC-1.14.001 v1.2, BC-4.04.004 v2.1, BC-4.05.004 v2.1, BC-4.07.003 v1.3, BC-3.08.001 v1.1, BC-1.08.001 v1.2). DI-014 v1.4 + ADR-019 v1.3 + VP-077 v1.4. ADR-013 clock at 0_of_3. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
 
 ## Decisions Log
 
@@ -163,7 +164,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — F2 pass-1 fix burst CLOSED for v1.0-feature-plugin-async-semantics-pass-1. 19 adversary findings addressed (6H/7M/4L/2N; 1 SKIP_FIX F-P1-014 H1 length intentional). New: BC-9.01.006 (SS-09), BC-3.08.001 (SS-03), VP-079. Amended: 3 BCs + DI-014 + ADR-019 + SS-09 + SS-07 + VP-077 v1.2 + VP-078 v1.3. BC-INDEX v1.20 (1947 total); ARCH-INDEX v1.11; VP-INDEX v1.7 (79 total). ADR-013 clock at 0_of_3. Adversary pass-2 next. engine-discipline F4 (S-12.03 + S-12.05) in parallel.
+**Last update:** 2026-05-07 — F2 pass-2 fix burst CLOSED for v1.0-feature-plugin-async-semantics-pass-1. 19 adversary findings addressed (6H/7M/4L/2N; 1 SKIP_FIX F-P2-019 events-*.jsonl glob form intentional). 7 BC amendments: BC-7.06.001 v1.2 (Invariant 7 tuple-unique; Invariant 6 → 9 plugins), BC-1.14.001 v1.2, BC-4.04.004 v2.1, BC-4.05.004 v2.1, BC-4.07.003 v1.3, BC-3.08.001 v1.1, BC-1.08.001 v1.2. DI-014 v1.4. ADR-019 v1.3 (§Consequences sync). VP-077 v1.4 (BC-7.06.001 Invariant 7 forward-ref). BC-INDEX v1.21; ARCH-INDEX v1.12; VP-INDEX v1.8. ADR-013 clock at 0_of_3. Adversary pass-3 next.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** 15432c6 (S-12.06 PR #105 squash-merge 2026-05-07)
@@ -177,9 +178,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.20 | **VP-INDEX:** v1.7 | **STORY-INDEX:** v2.30 | **ARCH-INDEX:** v1.11
+**BC-INDEX:** v1.21 | **VP-INDEX:** v1.8 | **STORY-INDEX:** v2.30 | **ARCH-INDEX:** v1.12
 
-**ACTIVE STEP: F2 pass-1 fix burst CLOSED for plugin-async-semantics-pass-1. Adversary pass-2 next (ADR-013 clock 0_of_3). Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
+**ACTIVE STEP: F2 pass-2 fix burst CLOSED for plugin-async-semantics-pass-1. Adversary pass-3 next (ADR-013 clock 0_of_3). Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
 
 **F5 pickup (post-amendment):** After F1/F2/F3/F4 amendment cycle completes, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
