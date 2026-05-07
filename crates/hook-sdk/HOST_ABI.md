@@ -722,8 +722,12 @@ handle it gracefully (e.g., returning `value: None`). (BC-4.12.003 INV3)
 
 **Telemetry on capability denial:** When a resolver receives `CapabilityDenied` from
 `host::read_file`, the dispatcher emits a `resolver.capability_denied` telemetry event
-(BC-4.12.003 PC2) with the resolver name and denied path. Capability denials are also
-surfaced via the `resolver.error` event with `error_kind: "capability_denied"` if the
+(BC-4.12.003 PC2) with three fields: (1) the **resolver name**, (2) the **denied path**
+(the path the resolver passed to the host function), and (3) the **resolved path that was
+attempted** (the canonicalized path the host computed before failing the prefix check). The
+third field is forensically valuable: it lets operators detect path-traversal attempts where
+the user-supplied path looks innocent but the resolved path is not. Capability denials are
+also surfaced via the `resolver.error` event with `error_kind: "capability_denied"` if the
 denial causes the resolver to fail (BC-4.12.004 PC2). The `resolver.capability_denied`
 event fires at the host-function boundary; the `resolver.error` event fires if the resolver
 subsequently returns an error result. Both may fire for the same denial depending on
@@ -760,6 +764,8 @@ fields:
 | `error_kind` | One of: `"trap"`, `"timeout"`, `"abi_violation"`, `"capability_denied"`, `"not_found"`, `"load_error"`. |
 | `error_detail` | Human-readable description of the specific error. |
 | `hook_event_name` | The hook dispatch context that triggered this resolver. |
+
+In addition to the telemetry event, the dispatcher writes an error-level log entry at the configured log path with the same fields (BC-4.12.004 PC7).
 
 **Isolation guarantees:**
 
