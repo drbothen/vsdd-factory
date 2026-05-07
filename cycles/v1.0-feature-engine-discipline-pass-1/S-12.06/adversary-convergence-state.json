@@ -1,8 +1,8 @@
 {
   "passes_clean": 0,
-  "last_finding_count": 5,
+  "last_finding_count": 3,
   "last_classification": "LOW",
-  "last_timestamp": "2026-05-07T00:00:00Z",
+  "last_timestamp": "2026-05-07T05:45:00Z",
   "deferred_findings": [
     {
       "finding_id": "S12.06-DEFER-1",
@@ -21,6 +21,12 @@
       "category": "integration",
       "target": "phase-5",
       "note": "Section does not cover concurrency model for resolver invocation (BC-4.12.001 EC-003 inherits from plugin_loader pattern but section is silent)."
+    },
+    {
+      "finding_id": "S12.06-DEFER-4",
+      "category": "system-level",
+      "target": "wave-gate",
+      "note": "BC-4.12.003 PC4 host log triplet vs HOST_ABI host-functions section single log(level, ...) API. Documented as SDK wrapper convention in pass-2 fix, but the underlying BC text still describes 3 functions. Wave-gate to adjudicate whether BC should be amended."
     }
   ]
 }
