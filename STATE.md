@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-2 CRITICAL — 15 findings (2C/6H/4M/3L process-gap). Novelty decay 29→15. F-P2-001 CRITICAL: convergence hook inert in prod (consumer added, no producer wiring). F-P2-002 CRITICAL: BC-4.10.001+BC-5.39.001 VP-071 traceability rows still have advisory-block wording. Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst. D-360."
+current_step: "F5 pass-2 PAUSED for mid-cycle amendment. User authorized 2026-05-07 addition of WASM-plugin Context Resolver platform to fix F-P2-001 (convergence hook operationally inert in production). Architectural choice: γ-generic, factory-agnostic, sandboxed WASM-plugin resolvers. Cycle structure: F1-amendment → F2-amendment → F3-amendment → F4 platform delivery → F5 resumption. ~6 new stories under E-12 (S-12.03..S-12.08). Next: F1-amendment delta analysis (architect dispatched). Original cycle scope 3 stories; amended ~9 stories. D-361."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (D-360; F5 pass-2 CRITICAL — 15 findings; human review of F-P2-001 fix architecture pending) |
-| **Current Phase** | F5 IN PROGRESS — pass-2 CRITICAL (15 findings; 29→15 decay); awaiting human review of F-P2-001 arch |
+| **Last Updated** | 2026-05-07 (D-361; F5 pass-2 PAUSED — mid-cycle amendment authorized; WASM-plugin Context Resolver platform; F1-amendment dispatched) |
+| **Current Phase** | F5 PAUSED — mid-cycle amendment (D-361); F1-amendment in progress; γ-generic Context Resolver platform; ~6 new stories under E-12 |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -144,7 +144,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F4 COMPLETE | All 3 stories merged to develop (D-350/D-352/D-353; PRs #97/#98/#99); F4 closeout D-354/D-355; Next: F5 scoped adversarial review; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5 PAUSED (mid-cycle amendment D-361) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle amendment authorized 2026-05-07: γ-generic WASM-plugin Context Resolver platform. F1-amendment dispatched. ~6 new stories (S-12.03..S-12.08) under E-12. See `cycles/v1.0-feature-engine-discipline-pass-1/` |
 
 ## Decisions Log
 
@@ -168,7 +168,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — D-360 F5 pass-2 review persisted. Pass-2 classification: CRITICAL. 15 findings (2C/6H/4M/3L). Novelty decay 29→15. Two CRITICAL findings: F-P2-001 convergence hook inert in prod (consumer wired, no producer; wave-state→plugin_config not wired); F-P2-002 BC-4.10.001 + BC-5.39.001 VP-071 traceability rows still have deprecated advisory-block wording (sibling regression of F-CRIT-3). adv-cycle-pass-2.md persisted (395L). Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst dispatches.
+**Last update:** 2026-05-07 — D-361 mid-cycle scope expansion authorized. F5 pass-2 PAUSED. User authorized addition of γ-generic WASM-plugin Context Resolver platform to fix F-P2-001 (convergence hook inert in prod — consumer wired, no producer). Architectural choice: factory-agnostic WASM-plugin resolvers; per-factory crates; dispatcher core stays domain-agnostic. Cycle structure: F1-amendment → F2-amendment → F3-amendment (5-7 new stories under E-12, S-12.03..S-12.08) → F4 platform delivery (Step 4.5 active) → F5 resumption. F1-amendment delta analysis dispatched to architect. Original 3 stories merged; amended scope ~9 stories, effort ~3-4x original.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
@@ -184,9 +184,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
 **BC-INDEX:** v1.17 | **VP-INDEX:** v1.4 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.8
 
-**ACTIVE STEP: F5 — Pass-2 CRITICAL (D-360); awaiting human review of F-P2-001 fix architecture (v1.0-feature-engine-discipline-pass-1)**
+**ACTIVE STEP: F1-amendment delta analysis — mid-cycle amendment (D-361); architect dispatched for WASM-plugin Context Resolver platform analysis (v1.0-feature-engine-discipline-pass-1)**
 
-**F5 pickup:** Human review of F-P2-001 fix architecture required first (convergence hook producer wiring — choose between: (a) wave-gate writes plugin_config at dispatch time, or (b) hook reads wave-state directly). After architecture decision, dispatch pass-2 fix burst via `vsdd-factory:fix-pr-delivery`. Then dispatch pass-3 adversary review.
+**F5 pickup (post-amendment):** After F1/F2/F3/F4 amendment cycle completes, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
