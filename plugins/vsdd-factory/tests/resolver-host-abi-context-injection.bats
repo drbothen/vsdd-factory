@@ -310,8 +310,8 @@ section_text() {
 # =============================================================================
 
 @test "AC-008 factory-agnostic: section contains no forbidden vsdd-factory domain terms" {
-    # Extract just the Context Injection Contract section, then grep for forbidden terms.
-    # grep -iE returns exit 0 if any match found; we assert it returns 1 (no matches).
+    # Extract just the Context Injection Contract section, then assert it contains
+    # no forbidden vsdd-factory domain-specific terms.
     # Forbidden: wave, wave_context, WaveContext, wave-state, STATE.md, story_id, cycle_id,
     # story (as standalone word), cycle (as standalone word), article, companion, PR
     # (as standalone), review (as standalone in this context).
@@ -321,21 +321,12 @@ section_text() {
     local section
     section="$(section_text)"
 
-    # If the section is empty (step 4 not done), this grep returns non-zero because
-    # there is nothing to search — we still want a clear FAIL, so we check section
-    # is non-empty first.  An empty section is itself a failure (AC-001 catches it).
-    # Here we run the forbidden-terms grep on whatever text exists; if the section
-    # is non-empty and contains forbidden terms, the test fails.  If it is empty,
-    # the section_text() produces no output and the forbidden-terms grep returns 1
-    # (no match), which would incorrectly pass.  Guard with an explicit non-empty check.
+    # Guard: an empty section is itself a failure (AC-001 catches it, but be explicit).
     [ -n "$section" ]
 
-    # Now assert NO forbidden terms appear.
-    echo "$section" | grep -qiE '\bwave\b|\bwave_context\b|\bWaveContext\b|\bwave-state\b|STATE\.md|\bstory_id\b|\bcycle_id\b|\bstory\b|\bcycle\b'
-    # grep found a match — that is a failure. We invert: the test passes only if
-    # the grep exits non-zero (no forbidden terms found).
-    local rc=$?
-    [ "$rc" -ne 0 ]
+    # Assert NO forbidden terms appear.  The `!` prefix inverts grep's exit code so
+    # set -e does not fire when grep exits 1 (no match found = clean = pass).
+    ! echo "$section" | grep -qiE '\bwave\b|\bwave_context\b|\bWaveContext\b|\bwave-state\b|STATE\.md|\bstory_id\b|\bcycle_id\b|\bstory\b|\bcycle\b'
 }
 
 # =============================================================================
