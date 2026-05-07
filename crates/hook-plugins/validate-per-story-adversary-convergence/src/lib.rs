@@ -217,9 +217,12 @@ pub fn graceful_degrade_outside_wave_gate(payload: &HookPayload) -> bool {
         .or(payload.subagent_name.as_deref())
         .unwrap_or("unknown");
 
-    // Only "wave-gate-dispatch" is the recognized wave-gate agent type.
+    // Any identity starting with "wave-gate" is treated as a wave-gate dispatch
+    // context (F-MED-8 fix). The canonical identity is "wave-gate-dispatch"
+    // (BC-4.10.002 invariant 4), but starts_with("wave-gate") prevents silent
+    // hook deactivation if the dispatcher uses a future variant like "wave-gate-v2".
     // All other identities (including "unknown") trigger graceful degrade.
-    identity != "wave-gate-dispatch"
+    !identity.starts_with("wave-gate")
 }
 
 // ---------------------------------------------------------------------------
@@ -1901,6 +1904,51 @@ mod tests {
             1,
             "BC-4.10.001 + F-CRIT-4: hook MUST emit exactly one hook.block event \
              before returning Block (missing state file path)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-MED-8: wave-gate identity starts_with("wave-gate") prefix match
+    // (BC-4.10.002 invariant 4 — conservative match; "wave-gate-dispatch" is
+    // the canonical identity but any future wave-gate variant should not
+    // silently disable the gate due to a single-string literal mismatch)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_BC_4_10_002_wave_gate_identity_prefix_match() {
+        // F-MED-8: graceful_degrade_outside_wave_gate must return false (do NOT degrade)
+        // for any agent_type that starts with "wave-gate", not just the exact literal
+        // "wave-gate-dispatch". This prevents silent hook deactivation if the dispatcher
+        // uses a variant like "wave-gate-v2" or "wave-gate-integration".
+        //
+        // Canonical identity is "wave-gate-dispatch" (BC-4.10.002 invariant 4).
+        // The prefix match is conservative: false negatives (missing a non-wave-gate
+        // agent) are preferable to false positives (blocking a non-wave-gate context).
+        // The starts_with("wave-gate") prefix covers known and future wave-gate variants.
+        let payload_exact = make_payload(Some("wave-gate-dispatch"));
+        let payload_variant = make_payload(Some("wave-gate-v2"));
+        let payload_not_wg = make_payload(Some("implementer"));
+        let payload_none = make_payload(None);
+
+        // Canonical identity → should NOT degrade (false = proceed with check)
+        assert!(
+            !graceful_degrade_outside_wave_gate(&payload_exact),
+            "F-MED-8: 'wave-gate-dispatch' must return false (do not degrade)"
+        );
+        // Future variant with wave-gate prefix → should NOT degrade
+        assert!(
+            !graceful_degrade_outside_wave_gate(&payload_variant),
+            "F-MED-8: 'wave-gate-v2' (starts_with 'wave-gate') must return false (do not degrade)"
+        );
+        // Non-wave-gate agent → SHOULD degrade (true = degrade)
+        assert!(
+            graceful_degrade_outside_wave_gate(&payload_not_wg),
+            "F-MED-8: 'implementer' must return true (degrade — not wave-gate context)"
+        );
+        // No agent_type → SHOULD degrade
+        assert!(
+            graceful_degrade_outside_wave_gate(&payload_none),
+            "F-MED-8: missing agent_type must return true (degrade — unknown context)"
         );
     }
 
