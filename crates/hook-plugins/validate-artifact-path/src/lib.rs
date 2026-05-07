@@ -375,10 +375,19 @@ where
     let file_path = match payload.tool_input.get("file_path").and_then(|v| v.as_str()) {
         Some(p) => p.to_string(),
         None => {
-            // EC-006: file_path absent — log_warn (level 3) and continue.
+            // EC-006: file_path absent — log_warn (level 3) and emit hook.warn event
+            // (F-MED-4 fix: emit_event for observability, mirrors MatchResult::Warn path).
             (callbacks.log)(
                 3,
                 "[validate-artifact-path] WARN: file_path absent from tool_input payload — graceful degrade",
+            );
+            (callbacks.emit_event)(
+                "hook.warn",
+                &[
+                    ("hook", "validate-artifact-path"),
+                    ("code", "EC_006_FILE_PATH_ABSENT"),
+                    ("enforcement_level", "warn"),
+                ],
             );
             return HookResult::Continue;
         }

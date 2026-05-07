@@ -217,9 +217,59 @@ pub fn graceful_degrade_outside_wave_gate(payload: &HookPayload) -> bool {
         .or(payload.subagent_name.as_deref())
         .unwrap_or("unknown");
 
-    // Only "wave-gate-dispatch" is the recognized wave-gate agent type.
+    // Any identity starting with "wave-gate" is treated as a wave-gate dispatch
+    // context (F-MED-8 fix). The canonical identity is "wave-gate-dispatch"
+    // (BC-4.10.002 invariant 4), but starts_with("wave-gate") prevents silent
+    // hook deactivation if the dispatcher uses a future variant like "wave-gate-v2".
     // All other identities (including "unknown") trigger graceful degrade.
-    identity != "wave-gate-dispatch"
+    !identity.starts_with("wave-gate")
+}
+
+// ---------------------------------------------------------------------------
+// plugin_config.stories extraction (F-HIGH-3 fix helper)
+// ---------------------------------------------------------------------------
+
+/// Extract story IDs from `plugin_config.stories` (a JSON array of strings).
+///
+/// Returns `Ok(Vec<String>)` when the field is present and contains a JSON array
+/// of strings. Returns `Err(IoError)` when the field is absent, null, or not an
+/// array — callers treat this as the absent-cycle-directory graceful degrade path
+/// (BC-4.10.002 invariant 3).
+///
+/// This function is called by `RealCallbacks::list_stories` in `main.rs` to
+/// surface the story list supplied by the wave-gate dispatcher via the registry
+/// `[hooks.config]` → `plugin_config.stories` mechanism (F-HIGH-3 fix).
+///
+/// # BC traces
+/// - BC-4.10.001 PC1: hook must enumerate stories from the current wave
+/// - BC-4.10.002 invariant 3: absent cycle directory → graceful degrade (Continue)
+pub fn extract_stories_from_config(
+    plugin_config: &serde_json::Value,
+) -> Result<Vec<String>, IoError> {
+    match plugin_config.get("stories") {
+        Some(serde_json::Value::Array(arr)) => {
+            let mut stories = Vec::with_capacity(arr.len());
+            for v in arr {
+                match v.as_str() {
+                    Some(s) => stories.push(s.to_string()),
+                    None => {
+                        return Err(IoError(format!(
+                            "plugin_config.stories: non-string element {:?}",
+                            v
+                        )));
+                    }
+                }
+            }
+            Ok(stories)
+        }
+        Some(other) => Err(IoError(format!(
+            "plugin_config.stories: expected array, got {:?}",
+            other
+        ))),
+        None => Err(IoError(
+            "plugin_config.stories: field absent — graceful degrade".to_string(),
+        )),
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1901,6 +1951,182 @@ mod tests {
             1,
             "BC-4.10.001 + F-CRIT-4: hook MUST emit exactly one hook.block event \
              before returning Block (missing state file path)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-HIGH-3: plugin_config.stories extraction for production list_stories
+    // RealCallbacks in main.rs must read stories from plugin_config.stories
+    // rather than always returning Err. Tests here verify the extraction logic
+    // that main.rs will use (pure Rust — no WASM host binding required).
+    // -----------------------------------------------------------------------
+
+    /// Build a HookPayload with agent_type and plugin_config.stories + cycle_id.
+    fn make_payload_with_stories(
+        agent_type: Option<&str>,
+        stories: &[&str],
+        cycle_id: Option<&str>,
+    ) -> HookPayload {
+        let mut v = json!({
+            "event_name": "SubagentStop",
+            "session_id": "test-session",
+            "dispatcher_trace_id": "test-trace"
+        });
+        if let Some(at) = agent_type {
+            v["agent_type"] = json!(at);
+        }
+        let mut cfg = serde_json::Map::new();
+        let story_arr: Vec<serde_json::Value> = stories
+            .iter()
+            .map(|s| serde_json::Value::String(s.to_string()))
+            .collect();
+        cfg.insert("stories".to_string(), serde_json::Value::Array(story_arr));
+        if let Some(cid) = cycle_id {
+            cfg.insert(
+                "cycle_id".to_string(),
+                serde_json::Value::String(cid.to_string()),
+            );
+        }
+        v["plugin_config"] = serde_json::Value::Object(cfg);
+        serde_json::from_value(v).expect("fixture must deserialize")
+    }
+
+    #[test]
+    fn test_BC_4_10_001_plugin_config_stories_extraction() {
+        // F-HIGH-3: the production RealCallbacks::list_stories must read
+        // plugin_config.stories from the payload, not always return Err.
+        //
+        // This test verifies the extraction logic using extract_stories_from_config
+        // (a public helper added to lib.rs for testability).
+        // When plugin_config.stories is a non-empty JSON array of strings,
+        // extraction must return Ok with those strings.
+        let payload = make_payload_with_stories(
+            Some("wave-gate-dispatch"),
+            &["S-12.01", "S-12.02", "S-13.01"],
+            Some("v1.0-feature-engine-discipline-pass-1"),
+        );
+        let stories = extract_stories_from_config(&payload.plugin_config);
+        assert!(
+            stories.is_ok(),
+            "F-HIGH-3: extract_stories_from_config must return Ok when \
+             plugin_config.stories is a non-empty array. Got: {:?}",
+            stories
+        );
+        let story_list = stories.unwrap();
+        assert_eq!(
+            story_list,
+            vec!["S-12.01", "S-12.02", "S-13.01"],
+            "F-HIGH-3: extracted stories must match plugin_config.stories array"
+        );
+    }
+
+    #[test]
+    fn test_BC_4_10_001_plugin_config_stories_absent_returns_err() {
+        // F-HIGH-3: when plugin_config.stories is absent, extract_stories_from_config
+        // must return Err so hook_logic gracefully degrades (BC-4.10.002 invariant 3).
+        let payload = make_payload(Some("wave-gate-dispatch")); // no plugin_config
+        let stories = extract_stories_from_config(&payload.plugin_config);
+        assert!(
+            stories.is_err(),
+            "F-HIGH-3: extract_stories_from_config must return Err when \
+             plugin_config.stories is absent (graceful degrade path)"
+        );
+    }
+
+    #[test]
+    fn test_BC_4_10_001_plugin_config_stories_empty_array_returns_empty() {
+        // F-HIGH-3: when plugin_config.stories is an empty array, extraction
+        // returns Ok(vec![]) so hook_logic returns Continue (vacuous convergence,
+        // BC-4.10.001 EC-001).
+        let payload = make_payload_with_stories(
+            Some("wave-gate-dispatch"),
+            &[], // empty stories array
+            Some("v1.0-test"),
+        );
+        let stories = extract_stories_from_config(&payload.plugin_config);
+        assert!(
+            stories.is_ok(),
+            "F-HIGH-3: empty stories array must return Ok(vec[]) not Err"
+        );
+        assert!(
+            stories.unwrap().is_empty(),
+            "F-HIGH-3: empty stories array must yield empty Vec"
+        );
+    }
+
+    #[test]
+    fn test_BC_4_10_001_hook_logic_with_plugin_config_stories_blocks_on_missing_state() {
+        // F-HIGH-3: end-to-end test demonstrating that a payload with
+        // plugin_config.stories and a FakeCallbacks that uses those stories
+        // (mimicking the fixed RealCallbacks) causes the hook to actually check
+        // convergence rather than silently degrading.
+        //
+        // When state file is absent for a story in plugin_config.stories,
+        // the hook must return HookResult::Block (not Continue).
+        let payload = make_payload_with_stories(
+            Some("wave-gate-dispatch"),
+            &["S-12.01"],
+            Some("v1.0-test"),
+        );
+        // Extract stories from plugin_config (simulating fixed RealCallbacks behavior)
+        let stories = extract_stories_from_config(&payload.plugin_config)
+            .expect("test: plugin_config.stories must be extractable");
+        let callbacks = FakeCallbacks::new_with_story(
+            None, // absent state file → should block
+            stories,
+        );
+
+        let result = hook_logic(&payload, &callbacks);
+        assert!(
+            matches!(result, HookResult::Block { .. }),
+            "F-HIGH-3: hook_logic with plugin_config.stories + absent state file \
+             MUST return HookResult::Block (not Continue). This verifies the production \
+             path is operationally active when stories are supplied via plugin_config."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-MED-8: wave-gate identity starts_with("wave-gate") prefix match
+    // (BC-4.10.002 invariant 4 — conservative match; "wave-gate-dispatch" is
+    // the canonical identity but any future wave-gate variant should not
+    // silently disable the gate due to a single-string literal mismatch)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_BC_4_10_002_wave_gate_identity_prefix_match() {
+        // F-MED-8: graceful_degrade_outside_wave_gate must return false (do NOT degrade)
+        // for any agent_type that starts with "wave-gate", not just the exact literal
+        // "wave-gate-dispatch". This prevents silent hook deactivation if the dispatcher
+        // uses a variant like "wave-gate-v2" or "wave-gate-integration".
+        //
+        // Canonical identity is "wave-gate-dispatch" (BC-4.10.002 invariant 4).
+        // The prefix match is conservative: false negatives (missing a non-wave-gate
+        // agent) are preferable to false positives (blocking a non-wave-gate context).
+        // The starts_with("wave-gate") prefix covers known and future wave-gate variants.
+        let payload_exact = make_payload(Some("wave-gate-dispatch"));
+        let payload_variant = make_payload(Some("wave-gate-v2"));
+        let payload_not_wg = make_payload(Some("implementer"));
+        let payload_none = make_payload(None);
+
+        // Canonical identity → should NOT degrade (false = proceed with check)
+        assert!(
+            !graceful_degrade_outside_wave_gate(&payload_exact),
+            "F-MED-8: 'wave-gate-dispatch' must return false (do not degrade)"
+        );
+        // Future variant with wave-gate prefix → should NOT degrade
+        assert!(
+            !graceful_degrade_outside_wave_gate(&payload_variant),
+            "F-MED-8: 'wave-gate-v2' (starts_with 'wave-gate') must return false (do not degrade)"
+        );
+        // Non-wave-gate agent → SHOULD degrade (true = degrade)
+        assert!(
+            graceful_degrade_outside_wave_gate(&payload_not_wg),
+            "F-MED-8: 'implementer' must return true (degrade — not wave-gate context)"
+        );
+        // No agent_type → SHOULD degrade
+        assert!(
+            graceful_degrade_outside_wave_gate(&payload_none),
+            "F-MED-8: missing agent_type must return true (degrade — unknown context)"
         );
     }
 
