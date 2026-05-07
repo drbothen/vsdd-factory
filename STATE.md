@@ -11,8 +11,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "PAUSE POINT — E-10 ready for pass-9 pickup. Cycle v1.0-brownfield-backfill / E-10 single-stream OTel — D-337 sealed pass-8 fix-cycle. All HIGH findings F-1..F-4 closed via D-336 (PO + architect + story-writer parallel burst). DI-017 dispatcher_trace_id→trace_id rename swept across 15 BC files + 5 architecture files. ARCH-INDEX schema_version differentiation now per-config (hooks-registry=1, observability-config=2). S-10.05 AC-008 extended for BC-2.06.001 v1.4 CHANGELOG-content reqs. **Next dispatch (Path A — recommended pickup):** Adversary E-10 pass-9 against post-D-337 spec package. Closure axes: CC/DD/EE (clean per pass-8) + NEW FF (DI-017 sweep completeness) + NEW GG (schema_version differentiation completeness). **NITPICK_ONLY counter: 0.** Need 3-of-3 for CONVERGENCE_REACHED. Pass-9 may be first NITPICK_ONLY if D-336 sweep was exhaustive. **Pass trend:** 1 CRIT(22) → 2 CRIT(11) → 3 HIGH(16) → 4 HIGH(16) → 5 HIGH(12) → 6 HIGH(2) → 7 HIGH(1) → 8 HIGH(4) → 9 ? **Engine track parallel:** PR #96 merged on develop=ba63c9f. rc.13 cut FAILED at validate due to perf-baseline.bats absolute-path bug. Local rc.13 tag deleted; remote tag STILL PINNED at ba63c9f and requires user auth to delete. Stash@{0} on develop carries the verified one-line fix (git rev-parse --show-toplevel). Path B (engine unblock): pop stash → feature branch → PR #97 → merge → retag rc.13. **Outstanding follow-up tasks:** TD-VSDD #117 (partial-fix regression S-7.01), #118 (POLICY 8 reverse-direction). Hook stories #111, #112, #113, #115 (largely complete by D-336; only ss-02/ss-04 envelope instances remain intentionally), #116. Engine-baseline #87. E-10 epic: #7-#11. rc.13 cut: #121 (BLOCKED on #127 perf-baseline fix). Pass-9 dispatch: #125."
-current_cycle: v1.0-brownfield-backfill
+current_step: "F2 complete for v1.0-feature-engine-discipline-pass-1. 6 BCs created (BC-5.39.001-002 SS-05, BC-4.10.001-002 + BC-4.11.001 SS-04, BC-6.22.001 SS-06). 2 ADRs (ADR-016 path registry SoT, ADR-017 per-story adversary phasing). 4 VPs (VP-069-072). PRD bumped 1.0→1.1 with FR-047. E-10 paused by user; current_cycle flipped to engine-discipline-pass-1. Next: F3 story decomposition (3 stories: A workflow+agent docs, B per-story adversary WASM hook, C path governance bundle; delivery order C→A→B). E-10 pickup (Path A: adversary pass-9; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4→9?) resumes after F3. rc.13 unblock: pop stash@{0} → PR #97 → retag."
+current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
 dtu_clones_built: "n/a"
@@ -38,9 +38,9 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (PAUSE POINT — pre-pass-9 / pre-rc.13-fix resumption pointer; D-337 sealed at 374b398; RC.13 attempt failed on perf-baseline.bats; stash@{0} holds fix) |
-| **Current Phase** | post-rc11-burn-in (Phase C / Phase D-4 parallel-track; E-10 elevation pending) |
-| **Current Cycle** | v1.0-brownfield-backfill |
+| **Last Updated** | 2026-05-07 (F2 sealed D-340; current_cycle flipped to feature-engine-discipline-pass-1; E-10 paused by user) |
+| **Current Phase** | F2 COMPLETE — F3 story decomposition next |
+| **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
 
@@ -74,8 +74,9 @@ dtu_services: []
 | Phase D-4 Burst 1 — E-9 + S-9.00 spec | **COMPLETE** | E-9 v1.6 CONVERGED pass-10 (D-235); S-9.00 v1.4 CONVERGED pass-7 (D-231) |
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
-| D-236 — E-10 elevation + E-9 v1.7 amendment | **STEP (iv) COMPLETE — Step (v) COMPLETE (D-313 SEALED); pass-1 CRITICAL fix D-314→D-317 SEALED; pass-2 CRITICAL fix D-318→D-321 SEALED; pass-3 HIGH fix D-322→D-324 SEALED; pass-4 HIGH verdict (see E-10-pass-4.md, e88651f); rc.12 audit 119e70e → D-326 7afc64d → D-327 SEALED; pass-5 HIGH fix D-328→D-331 SEALED; pass-6 HIGH fix D-332→D-333 SEALED; pass-7 HIGH fix D-334→D-335 SEALED; pass-8 HIGH(4) fix D-336 → D-337 SEALED; **pass-9 NEXT DISPATCH**** | E-9 v1.53 HEAD; E-10 BC authorship D-310→D-313 COMPLETE. rc.12 alignment cycle COMPLETE (D-327). total_bcs 1931 unchanged. Pass-8 HIGH(4) → F-1/F-2/F-3/F-4 closed (D-336); DI-017 sweep: 15 BCs + 5 arch files. NITPICK_ONLY counter: 0; 3-of-3 required for CONVERGENCE_REACHED. Trend: 22→11→16→16→12→2→1→4. Spec corpus aligned with rc.12 (4cf59bc). ADR-013: 3_of_3 CONVERGENCE_REACHED (D-308 for E-9). |
-| Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | Pre-Burst-2 architect amendment queued (D-236) |
+| D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
+| v1.0-feature-engine-discipline-pass-1 | **F2 COMPLETE** 2026-05-07 (D-340) | F1 complete (D-339); F2 sealed: 6 BCs, 2 ADRs (ADR-016/017), 4 VPs (VP-069-072), PRD 1.0→1.1; F3 next |
+| Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Current Phase Steps
 
@@ -206,21 +207,22 @@ dtu_services: []
 | **D-335 state-manager seal — pass-7 fix-cycle** | state-manager | **COMPLETE** | STATE.md current_step refreshed; runtime artifacts swept; pass-7 fix-cycle sealed. |
 | **Step (vi) — adversary pass-8 on post-D-335 E-10 package** | adversary | **COMPLETE — HIGH(4)** | F-1 BC-1.11.001 PC2 dispatcher_trace_id; F-2 ARCH-INDEX trace; F-3 ARCH-INDEX schema_version; F-4 S-10.05 AC-008 BC-2.06.001 v1.4 CHANGELOG reqs. See E-10-pass-8.md. Pass counter: 0. |
 | **D-336 unified fix burst — PO + architect + story-writer (parallel)** | product-owner + architect + story-writer | **COMPLETE** | F-1: BC-1.11.001 PC2 + 15-BC DI-017 sweep (~40 occurrences). F-2/F-3: ARCH-INDEX 1.6→1.7 + SS-01 1.0→1.1 + ADR-004/008/011 amended. F-4: S-10.05 1.4→1.5 AC-008 extended. |
-| **D-337 state-manager seal — pass-8 fix-cycle** | state-manager | **COMPLETE (this burst)** | BC-INDEX 1.13→1.14 (16 BC version pins); STORY-INDEX 2.22→2.23 (S-10.05 1.4→1.5); E-10-pass-8.md created; STATE.md + lessons.md sealed. Pass-9 is next dispatch. |
+| **D-337 state-manager seal — pass-8 fix-cycle** | state-manager | **COMPLETE** | BC-INDEX 1.13→1.14 (16 BC version pins); STORY-INDEX 2.22→2.23 (S-10.05 1.4→1.5); E-10-pass-8.md created; STATE.md + lessons.md sealed. Pass-9 is next dispatch (PAUSED). |
+| **D-340 F2 spec evolution — engine-discipline-pass-1** | product-owner + architect + state-manager | **COMPLETE (this burst)** | 6 BCs (BC-5.39.001/002 SS-05; BC-4.10.001/002 + BC-4.11.001 SS-04; BC-6.22.001 SS-06). ADR-016 + ADR-017. VP-069..072. PRD 1.0→1.1 (FR-047). BC-INDEX 1.14→1.15; ARCH-INDEX 1.7→1.8; VP-INDEX 1.0→1.1. total_bcs 1931→1937. current_cycle flipped. Next: F3 (3 stories: C path governance, A workflow+agent docs, B WASM hook). |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,931 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 66 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,937 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 72 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 68 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 10 |
-| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 14 |
+| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 17 |
 
 ## Story Status (68 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed)
 
@@ -246,8 +248,8 @@ dtu_services: []
 
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
-| v1.0-brownfield-backfill | brownfield | IN PROGRESS | current_cycle; E-10 pass-8 next |
-| v1.0-feature-engine-discipline-pass-1 | feature | F1 COMPLETE | Per-story adversary workflow + artifact path governance; F2 pending; D-336..D-339; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
+| v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
+| v1.0-feature-engine-discipline-pass-1 | feature | F2 COMPLETE — F3 NEXT | Per-story adversary workflow + artifact path governance; D-340 F2 sealed; 6 BCs, 2 ADRs, 4 VPs; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
 
 ## Decisions Log
 

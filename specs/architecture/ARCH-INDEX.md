@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.7"
+version: "1.8"
 status: accepted
 producer: architect
-timestamp: 2026-05-06T19:00:00
-phase: 1.4c
+timestamp: 2026-05-07T00:00:00
+phase: F2
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-07
+    change: "D-340 F2 spec evolution for engine discipline pass-1: +2 ADRs (ADR-016 artifact path registry SoT — SS-04/SS-06; ADR-017 per-story adversary three-perimeter model — SS-04/SS-05). SS-04 BC count 31→34 (+BC-4.10.001/002 + BC-4.11.001); SS-05 BC count 646→648 (+BC-5.39.001/002); SS-06 BC count 585→586 (+BC-6.22.001). Total BCs 1931→1937. ADR-016 and ADR-017 are next-available after ADR-015."
   - date: 2026-05-06
     change: "D-336 E-10 pass-8 fix-cycle (architect): version bump v1.6 → v1.7. F-2 fix: Cross-Cutting Concerns line 152 — `dispatcher_trace_id` → `trace_id` per DI-017 v1.1 / ADR-015 v1.7 canonicalization. F-3 fix: Schema versioning row — differentiated per-config (hooks-registry=1, observability-config=2 per ADR-015 D-15.1); added SS-03 to subsystem list; cited BC-3.05.004 PC4 migration hint and DI-014. last_updated: 2026-05-06."
   - date: 2026-05-06
@@ -87,15 +89,15 @@ The per-subsystem SS-NN files above collectively cover their content:
 | SS-01 | Hook Dispatcher Core | SS-01-hook-dispatcher.md | `crates/factory-dispatcher/src/{main,registry,routing,executor,invoke,engine,plugin_loader,payload}.rs` | BC-1 | 114 (106 prior + 4 Phase 1a BC-1.12.001–004 + 4 Phase 1b BC-1.12.005/006/007/009 per ADR-015 D-15.1/D-15.2/D-15.3) | Phase 1 |
 | SS-02 | Hook SDK and Plugin ABI | SS-02-hook-sdk.md | `crates/hook-sdk/`, `crates/hook-sdk-macros/` | BC-2 | 26 (includes 2 D-183 BCs: BC-2.02.011 host::write_file, BC-2.02.012 HookPayload SubagentStop fields; +1 D-219 BC-2.02.013 host::run_subprocess — WITHDRAWN D-224; +1 D-321 BC-2.06.001 SDK semver bump) | Phase 1 |
 | SS-03 | Event Emission (OTel-Aligned) | SS-03-event-emission.md | `crates/sink-core/` (FileSink; Router/SinkRegistry deprecated), `crates/sink-file/`, `crates/factory-dispatcher/src/{host/emit_event,internal_log,sinks}.rs` (`sink-otel-grpc/` deprecated Wave 1) | BC-3 | 52 (51 prior + 1 Phase 1b BC-3.05.004 v2 schema validation per ADR-015 D-15.1 (OQ-1 resolved in SS-03-event-emission.md)) | Phase 1 |
-| SS-04 | Plugin Ecosystem | SS-04-plugin-ecosystem.md | `crates/hook-plugins/legacy-bash-adapter/`, `crates/hook-plugins/capture-commit-activity/`, `crates/hook-plugins/capture-pr-activity/` [PLANNED S-3.02], `crates/hook-plugins/block-ai-attribution/` [PLANNED S-3.03], `crates/hook-plugins/session-start-telemetry/` [PLANNED S-5.01], `crates/hook-plugins/session-end-telemetry/` [PLANNED S-5.02], `crates/hook-plugins/worktree-hooks/` [PLANNED S-5.03], `crates/hook-plugins/tool-failure-hooks/` [PLANNED S-5.04] | BC-4 | 31 (+1 D-321 BC-4.09.001 plugin event-name migration) | Phase 1 |
-| SS-05 | Pipeline Orchestration | SS-05-orchestration.md | `plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows/*.lobster`, `plugins/vsdd-factory/workflows/phases/` | BC-5 | 646 | Phase 1 |
-| SS-06 | Skill Catalog | SS-06-skill-catalog.md | `plugins/vsdd-factory/skills/` (119 skills, 581 markdown files) | BC-6 | 585 | Phase 1 |
+| SS-04 | Plugin Ecosystem | SS-04-plugin-ecosystem.md | `crates/hook-plugins/legacy-bash-adapter/`, `crates/hook-plugins/capture-commit-activity/`, `crates/hook-plugins/capture-pr-activity/` [PLANNED S-3.02], `crates/hook-plugins/block-ai-attribution/` [PLANNED S-3.03], `crates/hook-plugins/session-start-telemetry/` [PLANNED S-5.01], `crates/hook-plugins/session-end-telemetry/` [PLANNED S-5.02], `crates/hook-plugins/worktree-hooks/` [PLANNED S-5.03], `crates/hook-plugins/tool-failure-hooks/` [PLANNED S-5.04], `crates/hook-plugins/validate-per-story-adversary-convergence/` [PLANNED], `crates/hook-plugins/validate-artifact-path/` [PLANNED] | BC-4 | 34 (+1 D-321 BC-4.09.001; +3 D-340 BC-4.10.001/002 + BC-4.11.001) | Phase 1 |
+| SS-05 | Pipeline Orchestration | SS-05-orchestration.md | `plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows/*.lobster`, `plugins/vsdd-factory/workflows/phases/` | BC-5 | 648 (+2 D-340 BC-5.39.001/002 per-story adversary workflow) | Phase 1 |
+| SS-06 | Skill Catalog | SS-06-skill-catalog.md | `plugins/vsdd-factory/skills/` (119 skills, 581 markdown files) | BC-6 | 586 (+1 D-340 BC-6.22.001 relocate-artifact skill) | Phase 1 |
 | SS-07 | Hook Bash Layer | SS-07-hook-bash.md | `plugins/vsdd-factory/hooks/*.sh` (44 scripts), `plugins/vsdd-factory/hooks-registry.toml` | BC-7 | 196 | Phase 1 |
 | SS-08 | Templates and Rules | SS-08-templates-rules.md | `plugins/vsdd-factory/templates/` (108 files), `plugins/vsdd-factory/rules/` (9 files) | BC-8 | 218 | Phase 1 |
 | SS-09 | Configuration and Activation | SS-09-config-activation.md | `plugins/vsdd-factory/hooks/hooks.json*`, `plugins/vsdd-factory/.claude-plugin/plugin.json`, `ci/platforms.yaml`, `scripts/generate-registry-from-hooks-json.sh` | BC-9 | 5 | Phase 1 |
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
-**Total BCs: 1,931 (per BC-INDEX; +4 from ADR-015 D-15.1/D-15.2 Phase 1a SS-01 additions BC-1.12.001–BC-1.12.004; +5 from Phase 1b SS-01/SS-03 additions BC-1.12.005/006/007/009 + BC-3.05.004; +2 from D-321 E-10 pass-2 fix burst BC-2.06.001 SS-02 + BC-4.09.001 SS-04)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
+**Total BCs: 1,937 (per BC-INDEX; +4 from ADR-015 D-15.1/D-15.2 Phase 1a SS-01 additions BC-1.12.001–BC-1.12.004; +5 from Phase 1b SS-01/SS-03 additions BC-1.12.005/006/007/009 + BC-3.05.004; +2 from D-321 E-10 pass-2 fix burst BC-2.06.001 SS-02 + BC-4.09.001 SS-04; +6 from D-340 F2 engine discipline pass-1 BC-5.39.001/002 SS-05 + BC-4.10.001/002 + BC-4.11.001 SS-04 + BC-6.22.001 SS-06)** (remaining span cross-cutting test scaffolding in `crates/factory-dispatcher/tests/` — assigned to SS-01 via proximity).
 
 **Renumbering history — BC-1.12.008 → BC-3.05.004 (D-311/D-312):** BC-1.12.008 was originally proposed as an SS-01 routing target in D-311; renumbered to BC-3.05.004 (SS-03) in D-312 corrigendum per POLICY 1 ID-collision rule (BC-3.05.001/002/003 already existed as brownfield BCs authored by codebase-analyzer on 2026-04-25; BC-3.05.004 was the next free slot). Consequence: SS-01 has +4 Phase 1a additions (BC-1.12.001–BC-1.12.004) and +4 Phase 1b additions (BC-1.12.005/006/007/009; no BC-1.12.008 ID exists). SS-03 has +1 Phase 1b addition (BC-3.05.004 v2 schema validation per ADR-015 D-15.1). OQ-W16-012 filed-and-resolved in D-312.
 
@@ -176,6 +178,8 @@ graph TD
 | ADR-013 | Cycle-keyed adversarial review structure | SS-05, SS-06 | decisions/ADR-013-adversarial-review-structure.md |
 | ADR-014 | Tier-2 native WASM migration (latency-primary gate + bundle-size advisory + 30MB hard kill-switch) | SS-02, SS-04, SS-07 | decisions/ADR-014-tier-2-native-wasm-migration.md |
 | ADR-015 | Single-stream OTel schema + producer-side enrichment — **ACCEPTED 2026-05-04; supersedes ADR-005, amends ADR-007** | SS-01, SS-03 | decisions/ADR-015-single-stream-otel-schema.md |
+| ADR-016 | Artifact path registry as single source of truth for `.factory/` canonical paths — **ACCEPTED 2026-05-07; D-340 F2** | SS-04, SS-06 | decisions/ADR-016-artifact-path-registry-sot.md |
+| ADR-017 | Per-story adversarial convergence gate — three-perimeter model and WASM hook phasing — **ACCEPTED 2026-05-07; D-340 F2** | SS-04, SS-05 | decisions/ADR-017-per-story-adversary-phasing.md |
 
 ## Phase 1.4 BC Renumbering Map
 

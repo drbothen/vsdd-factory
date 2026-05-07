@@ -1,13 +1,13 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
-timestamp: 2026-04-26T00:00:00
-phase: 1.6b
+timestamp: 2026-05-07T00:00:00
+phase: F2
 traces_to: ARCH-INDEX.md
-total_vps: 68
+total_vps: 72
 ---
 
 # VP-INDEX: Verification Properties Master Index
@@ -35,18 +35,19 @@ total_vps: 68
 | Process Codification VPs | 2 | VP-061..VP-062 |
 | TDD Discipline VPs | 2 | VP-063..VP-064 |
 | Lifecycle Hook VPs | 4 | VP-065..VP-068 |
-| **Total** | **68** | **VP-001..VP-068** |
+| Engine Discipline VPs | 4 | VP-069..VP-072 |
+| **Total** | **72** | **VP-001..VP-072** |
 
 ## Proof Method Breakdown
 
 | Method | Count | VPs |
 |--------|-------|-----|
 | unit-test | 40 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052 |
-| integration | 16 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068 |
+| integration | 17 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
-| kani-proof | 0 | — (upgrade candidates: VP-020, VP-023, VP-042) |
-| proptest | 1 | VP-059 (upgrade candidates: VP-019, VP-029, VP-032) |
+| kani-proof | 2 | VP-070, VP-071 (upgrade candidates: VP-020, VP-023, VP-042) |
+| proptest | 2 | VP-059, VP-069 (upgrade candidates: VP-019, VP-029, VP-032) |
 
 ## Full Index
 
@@ -120,6 +121,10 @@ total_vps: 68
 | [VP-066](VP-066.md) | Session-End Plugin Surface Invariant — All BC-4.05.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
 | [VP-067](VP-067.md) | Worktree Hook Plugin Surface Invariant — All BC-4.07.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
 | [VP-068](VP-068.md) | Tool-Failure Hook Plugin Surface Invariant — All BC-4.08.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
+| [VP-069](VP-069.md) | validate-artifact-path Registry-Load Purity — Parsing Never Panics on Arbitrary Input | safety | proptest | SS-04 | — | draft |
+| [VP-070](VP-070.md) | validate-artifact-path Path-Pattern Matching Is Pure and Deterministic | invariant | kani | SS-04 | — | draft |
+| [VP-071](VP-071.md) | validate-per-story-adversary-convergence Block Invariant | safety | kani | SS-04 | — | draft |
+| [VP-072](VP-072.md) | artifact-path-registry.yaml Single Source of Truth — All Writers Resolve Through Registry | invariant | integration | SS-04 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -168,6 +173,6 @@ total_vps: 68
 ## Traceability
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
-- BCs cross-referenced: 112 BC IDs across 68 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068)
+- BCs cross-referenced: 120 BC IDs across 72 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001)
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
-- 15 VPs have TBD test evidence (manual or pending CI automation)
+- 19 VPs have TBD test evidence (manual or pending CI automation; +4 VP-069..072 feasible-pending-harness)

@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.14"
+version: "1.15"
 status: draft
 producer: state-manager
-timestamp: 2026-05-06T21:00:00
-phase: 1.4c
+timestamp: 2026-05-07T00:00:00
+phase: F2
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1931
+total_bcs: 1937
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "D-340 (2026-05-07) — F2 spec evolution for engine discipline pass-1: +6 new BCs (BC-5.39.001/002 SS-05 per-story adversary workflow; BC-4.10.001/002 SS-04 per-story adversary WASM hook; BC-4.11.001 SS-04 path-validation WASM hook + SoT; BC-6.22.001 SS-06 relocate-artifact skill + sequencing gate). SS-04 31→34; SS-05 646→648; SS-06 585→586. total_bcs 1931→1937. current_cycle flipped to v1.0-feature-engine-discipline-pass-1."
   - date: 2026-05-06
     change: "D-337 (2026-05-06) — E-10 pass-8 fix-cycle seal: D-336 mass version bump for DI-017 dispatcher_trace_id→trace_id propagation sweep (15 BCs touched: BC-1.05.010 1.0→1.1, BC-1.05.012 1.1→1.2, BC-1.05.018 1.0→1.1, BC-1.05.033 1.0→1.1, BC-1.06.007 1.0→1.1, BC-1.06.008 1.0→1.1, BC-1.06.009 1.0→1.1, BC-1.10.001 1.0→1.1, BC-1.11.001 1.2→1.3, BC-3.03.008 1.0→1.1, BC-3.05.003 1.0→1.1, BC-4.04.001 1.2→1.3, BC-4.05.001 1.2→1.3, BC-4.07.001 1.3→1.4, BC-4.07.002 1.2→1.3, BC-4.08.001 1.2→1.3). F-1 primary: BC-1.11.001 PC2 dispatcher_trace_id→trace_id (DI-017). BC-3.05.003 audit-trail accuracy (retired BC). total_bcs unchanged at 1931. last_updated: 2026-05-06."
   - date: 2026-05-06
@@ -45,7 +47,7 @@ changelog:
 
 # Behavioral Contract Index
 
-> Master index of all 1,931 behavioral contracts across 10 subsystems.
+> Master index of all 1,937 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -311,6 +313,9 @@ changelog:
 | [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); async:true; timeout:10000 | draft | CAP-002 | S-5.04 |
 | [BC-4.08.003](ss-04/BC-4.08.003.md) | hooks-registry.toml registers PostToolUseFailure with name="tool-failure-hooks", event="PostToolUseFailure", plugin="hook-plugins/tool-failure-hooks.wasm", timeout_ms=5000; ZERO capability tables; NO once field | draft | CAP-002 | S-5.04 |
 | [BC-4.09.001](ss-04/BC-4.09.001.md) | hook-plugins::event_naming::wave2_reverse_dns_event_name_migration_with_dual_emit — all native WASM plugins under crates/hook-plugins/ migrate event-name strings from legacy short-form to reverse-DNS .v1 canonical form; dual-emit shim active during Wave 2→Wave 3 window; legacy emission removed post-Wave-3 | draft | CAP-009 | S-10.05 |
+| [BC-4.10.001](ss-04/BC-4.10.001.md) | validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance | draft | CAP-009 | TBD |
+| [BC-4.10.002](ss-04/BC-4.10.002.md) | validate-per-story-adversary-convergence WASM hook MUST gracefully degrade (exit 0) when invoked outside wave-gate context or when cycle directory is absent | draft | CAP-009 | TBD |
+| [BC-4.11.001](ss-04/BC-4.11.001.md) | validate-artifact-path WASM hook MUST consult artifact-path-registry.yaml as single source of truth and block (immediate mode) writes whose paths do not match a registered pattern | draft | CAP-009 | TBD |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 
@@ -958,6 +963,8 @@ changelog:
 | [BC-5.38.004](ss-05/BC-5.38.004.md) | stub-architect must not use pre-implemented sibling crates as stub templates | draft | CAP-016 | S-7.03 |
 | [BC-5.38.005](ss-05/BC-5.38.005.md) | stub-architect applies self-check before committing any non-todo!() function body | draft | CAP-016 | S-7.03 |
 | [BC-5.38.006](ss-05/BC-5.38.006.md) | deliver-story SKILL.md and per-story-delivery.md Step 2 must contain anti-precedent guard text verbatim | draft | CAP-016 | S-7.03 |
+| [BC-5.39.001](ss-05/BC-5.39.001.md) | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | draft | CAP-005 | TBD |
+| [BC-5.39.002](ss-05/BC-5.39.002.md) | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | draft | CAP-005 | TBD |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
 | [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |
@@ -1554,6 +1561,7 @@ changelog:
 | [BC-6.20.012](ss-06/BC-6.20.012.md) | create-adr is atomic — any partial-state failure rolls back all side-effects | draft | CAP-017 | S-6.01 |
 | [BC-6.21.001](ss-06/BC-6.21.001.md) | wave-gate skill must run cargo mutants for every story with tdd_mode=facade in the wave | draft | CAP-016 | S-7.03 |
 | [BC-6.21.002](ss-06/BC-6.21.002.md) | mutation kill rate floor is 80%; surviving mutants must be addressed via test, dead-code confirmation, or explicit waiver | draft | CAP-016 | S-7.03 |
+| [BC-6.22.001](ss-06/BC-6.22.001.md) | relocate-artifact skill MUST scan .factory/ for registry violations, propose canonical destinations, perform git mv, and update cross-references; MUST run to zero violations before validate-artifact-path hook is registered | draft | CAP-018 | TBD |
 
 ### SS-07 — Hook Bash Layer (BC-7)
 

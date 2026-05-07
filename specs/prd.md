@@ -1,10 +1,10 @@
 ---
 document_type: prd
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
-timestamp: 2026-04-25T00:00:00
+timestamp: 2026-05-06T00:00:00Z
 phase: 1.5
 origin: brownfield
 inputs:
@@ -35,16 +35,16 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,905-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
-> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 foundation + 2 S-5.01 pass-2 SS-01 host fns + 5 S-5.02 Wave 13) into a formal L3 requirements artifact. Section 2 is the
+> It synthesizes the 1,911-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
+> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 foundation + 2 S-5.01 pass-2 SS-01 host fns + 5 S-5.02 Wave 13 + 6 F2 engine-discipline-pass-1) into a formal L3 requirements artifact. Section 2 is the
 > primary machine-consumed surface: it groups BCs by functional requirement (FR-NNN)
 > and provides subsystem-level traceability. Agents needing deep BC content load
 > individual `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
 > Sections 3-5 point to supplement files (DF-021 context discipline).
 
-> **BC Index Model:** 1,905 individual BC files live under
+> **BC Index Model:** 1,911 individual BC files live under
 > `.factory/specs/behavioral-contracts/ss-NN/`. Section 2 groups them into
-> 46 logical FRs. Do NOT inline full contract details here — cross-reference only.
+> 47 logical FRs. Do NOT inline full contract details here — cross-reference only.
 
 ---
 
@@ -469,6 +469,42 @@ Status: **in-progress** (S-5.01 + S-5.02 + S-5.03 + S-5.04 BCs allocated; implem
 
 ---
 
+#### FR-047 (SS-04 slice) — Engine Governance: WASM Hooks for Convergence and Path Governance
+
+**Source CAPs:** CAP-009 ("Author and publish WASM hook plugins using the Rust SDK"), CAP-008 (PreToolUse gating)
+**Behavioral Contracts:** BC-4.10.001, BC-4.10.002, BC-4.11.001
+**Stories:** Story B (validate-per-story-adversary-convergence), Story C (validate-artifact-path)
+**Status:** pending (v1.0-feature-engine-discipline-pass-1)
+**Subsystem(s):** SS-04
+
+Two new WASM plugins are introduced by this FR in the SS-04 Plugin Ecosystem:
+
+**1. `validate-per-story-adversary-convergence`** (Story B): Fires on `SubagentStop` at wave-gate dispatch.
+Reads `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json` for each story in the wave.
+Blocks if any story is missing the file, has `passes_clean < 3`, or has `last_classification != "NITPICK_ONLY"`.
+Gracefully degrades (returns Continue) when invoked outside wave-gate context (BC-4.10.002).
+
+**2. `validate-artifact-path`** (Story C): Fires on `PreToolUse` for `Write`/`Edit` tool calls targeting `.factory/`.
+Reads `plugins/vsdd-factory/config/artifact-path-registry.yaml` as the single source of truth.
+Blocks writes whose paths match no registered pattern (`code: ARTIFACT_PATH_UNREGISTERED`).
+Respects `enforcement_level: block | warn | advisory` per registry entry.
+Ships in immediate `block` mode from registration (no phased rollout of the hook itself; registry entries start at `warn` per F1 design).
+
+Both hooks use `HOST_ABI_VERSION = 1`, injectable-callback pure logic functions, and
+`HookResult::block_with_fix(hook, reason, recommendation, code)` per the canonical Why/Fix/Code pattern.
+Both follow the `handoff-validator` / `regression-gate` structural template.
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-4.10.001 | validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance | P1 |
+| BC-4.10.002 | validate-per-story-adversary-convergence WASM hook MUST gracefully degrade (exit 0) when invoked outside wave-gate context or when cycle directory is absent | P1 |
+| BC-4.11.001 | validate-artifact-path WASM hook MUST consult artifact-path-registry.yaml as single source of truth and block (immediate mode) writes whose paths do not match a registered pattern | P1 |
+
+Source BCs: `ss-04/BC-4.10.001.md`, `ss-04/BC-4.10.002.md`, `ss-04/BC-4.11.001.md` — 3 BCs (SS-04 slice of FR-047).
+Verification Properties: VP-069 (registry load never panics — proptest), VP-070 (path matching deterministic — kani), VP-071 (adversary convergence gate block always emitted — kani), VP-072 (single-source-of-truth invariant — integration).
+
+---
+
 ### 2.5 Pipeline Orchestration (SS-05)
 
 #### FR-015 — Lobster workflow format (YAML-based DAG with typed step kinds)
@@ -618,8 +654,36 @@ Note: BC-8.29.001–003 and BC-8.30.002 have BC-ID prefixes historically assigne
 Source BCs: `ss-05/BC-5.38.001–006.md` (6 BCs), `ss-08/BC-8.29.001–003.md` (3 BCs, SS-05 reanchored), `ss-08/BC-8.30.002.md` (1 BC, SS-05 reanchored).
 Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 
-> Full contracts: `.factory/specs/behavioral-contracts/ss-05/` (646 BCs total)
+> Full contracts: `.factory/specs/behavioral-contracts/ss-05/` (646 BCs total + 2 new FR-047 BCs = 648 BCs)
 > Demo-recorder, accessibility-auditor, ux-designer agents: BC-5.03.001–018 (18 BCs)
+
+#### FR-047 (SS-05 slice) — Engine Governance: Per-Story Adversary Workflow Gate
+
+**Source CAP:** CAP-005 ("Run adversarial review with information asymmetry")
+**Behavioral Contracts:** BC-5.39.001, BC-5.39.002
+**Stories:** Story A (v1.0-feature-engine-discipline-pass-1)
+**Status:** pending (v1.0-feature-engine-discipline-pass-1)
+**Subsystem(s):** SS-05
+
+The per-story adversary workflow gate formalizes the adversarial review loop that runs at
+Step 4.5 of the per-story-delivery Lobster workflow (between Step 4 Implement and Step 5 Record demos).
+The adversary agent (defined in `agents/adversary.md`) must achieve minimum 3 consecutive clean passes
+where `last_classification == "NITPICK_ONLY"` before the demo recording step executes.
+Convergence state is persisted in `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`
+per the schema in BC-5.39.001 Postcondition 2 (OQ3 resolution).
+
+Adversary scope is strictly bounded (BC-5.39.002): the adversary reads only the story worktree diff
+vs `develop`, the story spec, and the anchored BCs. Out-of-scope findings (cross-story, integration,
+system-level, architectural) are deferred to `deferred_findings` and routed to wave-gate or Phase-5.
+Deferred findings do not block per-story convergence (OQ6: adversary agent owns convergence assessment).
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-5.39.001 | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | P0 |
+| BC-5.39.002 | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | P0 |
+
+Source BCs: `ss-05/BC-5.39.001.md`, `ss-05/BC-5.39.002.md` — 2 BCs (SS-05 slice of FR-047).
+Enforces: CAP-005. Status: **pending** (Story A not yet implemented).
 
 ---
 
@@ -945,6 +1009,37 @@ Status: **pending** (E-7 story not yet implemented).
 
 > Full contracts: `.factory/specs/behavioral-contracts/ss-05/BC-5.38.*.md`, `ss-06/BC-6.21.*.md`, `ss-08/BC-8.29.*.md`, `ss-08/BC-8.30.*.md`
 
+#### FR-047 (SS-06 slice) — Engine Governance: Artifact Path Governance — relocate-artifact Skill
+
+**Source CAP:** CAP-018 ("Validate spec consistency across all artifact layers")
+**Behavioral Contracts:** BC-6.22.001
+**Stories:** Story C (v1.0-feature-engine-discipline-pass-1)
+**Status:** pending (v1.0-feature-engine-discipline-pass-1)
+**Subsystem(s):** SS-06
+
+The `relocate-artifact` skill (`/vsdd-factory:relocate-artifact`) is a new skill that
+enforces artifact path consistency across `.factory/`. It reads `plugins/vsdd-factory/config/artifact-path-registry.yaml`
+as the single source of truth and detects files whose current paths violate canonical patterns.
+
+Default mode is dry-run (reports violations, no filesystem changes). The `--apply` flag executes
+`git mv` and updates cross-references. The skill MUST run to zero violations before
+`validate-artifact-path` is registered in `hooks-registry.toml` (OQ5 hard delivery prerequisite).
+
+The 9 creation skills (`create-adr`, `create-architecture`, `create-brief`, `create-domain-spec`,
+`create-excalidraw`, `create-prd`, `create-story`, `register-artifact`, `conform-to-template`) also
+receive a registry-read step as part of this FR's Story C scope: each skill reads the registry at
+the start of its procedure and resolves target paths before calling `Write`.
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-6.22.001 | relocate-artifact skill MUST scan .factory/ for registry violations, propose canonical destinations, perform git mv, and update cross-references; MUST run to zero violations before validate-artifact-path hook is registered | P0 |
+
+Source BCs: `ss-06/BC-6.22.001.md` — 1 BC (SS-06 slice of FR-047).
+Verification Properties: VP-072 (single-source-of-truth invariant — no embedded path lists in skill or hook source).
+Enforces: CAP-018. Status: **pending** (Story C not yet implemented).
+
+> Full contracts: `.factory/specs/behavioral-contracts/ss-06/BC-6.22.001.md`
+
 ---
 
 ## 3. Interface Definition
@@ -1172,8 +1267,9 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-044 | Per-sink resilience: retry, circuit breaker, dead-letter queue | CAP-024 | SS-03 | BC-3.01.008, BC-3.03.002, BC-3.07.001 + v1.1 candidates (8 pending) | 3 anchored + 8 v1.1 candidates | partial | E-4 |
 | FR-045 | Emit `internal.sink_error` structured event on each sink failure | CAP-003 | SS-03 | BC-3.07.002 | 1 | pending | E-4 |
 | FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002, CAP-013 | SS-04, SS-01 | BC-4.04.001–005 (S-5.01 anchored); BC-4.05.001–005 (S-5.02 anchored); BC-1.10.001–002 (retired pass-4); BC-4.07.001–004 (S-5.03 anchored); BC-4.08.001–003 (S-5.04 anchored) | 17 anchored; all Tier F BCs allocated | in-progress | E-5 |
+| FR-047 | Engine governance: per-story adversarial convergence loop + artifact path discipline (validate-artifact-path WASM hook + artifact-path-registry.yaml + relocate-artifact skill + per-story adversary workflow gate + validate-per-story-adversary-convergence WASM hook) | CAP-005, CAP-009, CAP-018 | SS-04, SS-05, SS-06 | BC-5.39.001–002 (Stories A workflow); BC-4.10.001–002 (Story B WASM hook); BC-4.11.001 (Story C path hook); BC-6.22.001 (Story C relocate skill) | 6 | pending | v1.0-feature-engine-discipline-pass-1 |
 
-**Total: 46 FRs across 10 subsystems**
+**Total: 47 FRs across 10 subsystems**
 
 ---
 
@@ -1188,12 +1284,12 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-002 | Hook Claude Code tool calls with sandboxed WASM plugins | BC-1.01–1.09 (dispatcher); BC-4.01–4.02 (legacy-bash-adapter) | SS-01, SS-02, SS-04 |
 | CAP-003 | Stream observability events to multiple configurable sinks | BC-3.01–3.06 (sink registry/routing); BC-10.02 (factory-obs bin) | SS-01, SS-03, SS-10 |
 | CAP-004 | Enforce per-PR behavioral contract traceability | BC-5.05.007–010 (consistency-validator); BC-7.08–7.09 (validate-* hooks) | SS-05, SS-06 |
-| CAP-005 | Run adversarial review with information asymmetry | BC-5.04.001–007 (adversary); BC-6.10 (adversarial-review skill); BC-7.10 (SHA-currency) | SS-05, SS-06 |
+| CAP-005 | Run adversarial review with information asymmetry | BC-5.04.001–007 (adversary); BC-6.10 (adversarial-review skill); BC-7.10 (SHA-currency); BC-5.39.001–002 (FR-047: per-story convergence loop + scope bounding) | SS-05, SS-06 |
 | CAP-006 | Decompose specs into wave-scheduled stories with parallel execution | BC-6.06–6.08 (decompose-stories, wave-scheduling, wave-gate); BC-5.22 (phase-2 workflow) | SS-05, SS-06 |
 | CAP-007 | Deploy and activate the plugin on any supported platform | BC-6.01.003–006 (activation skill); BC-6.03.001–006 (activate behavior); BC-9.01.004-005 (CI matrix + hooks.json gitignore — activation-gate prerequisites) | SS-06, SS-09 |
 | CAP-008 | Gate tool calls with pre-execution behavioral checks (PreToolUse) | BC-1.05.001–004 (host fn deny gates); BC-7.01–7.04 (bash PreToolUse hooks) | SS-01, SS-02, SS-04, SS-07 |
 <!-- F-208 (Wave 6 pass-3): BC-list cites SS-01 + SS-07 BCs only; SS-02 enforcer-BC is BC-2.01.002 (HookResult exit-code contract) per capabilities.md:51 defensive comment; SS-04 enforcer-BCs TBD pending plugin-ecosystem BC backfill (task #108). -->
-| CAP-009 | Author and publish WASM hook plugins using the Rust SDK | BC-2.01–2.05 (SDK types, ABI, proc-macro, payload) | SS-02 |
+| CAP-009 | Author and publish WASM hook plugins using the Rust SDK | BC-2.01–2.05 (SDK types, ABI, proc-macro, payload); BC-4.10.001–002 (FR-047: validate-per-story-adversary-convergence hook); BC-4.11.001 (FR-047: validate-artifact-path hook) | SS-02, SS-04 |
 | CAP-010 | Always-on dispatcher self-telemetry independent of sink config | BC-1.06.001–010 (internal log); BC-10.02 (factory-obs bin) | SS-01, SS-03, SS-10 |
 | CAP-011 | Enforce fuel and epoch budgets on plugin execution | BC-1.03.001–002 (timeout/fuel BCs); BC-1.04.001–003 (engine/ticker) | SS-01 |
 | CAP-012 | Recover from workflow interruption (crash recovery) | BC-5.10.001–005 (state-manager); BC-5.23 (phase-3 resume semantics) | SS-05 |
@@ -1205,7 +1301,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-016 | Drive TDD delivery with red/green/refactor gate enforcement | BC-5.07.028–033 (implementer agent); BC-6.09 (deliver-story skill); BC-5.23 (phase-3 workflow); BC-5.38.001–006, BC-8.29.001–003, BC-8.30.001–002, BC-6.21.001–002 (TDD hardening — S-7.03) | SS-05, SS-06, SS-08 |
 | CAP-017 | Create and manage formal ADR records | BC-6.05 (create-architecture skill); BC-8.04 (ADR templates); BC-6.20.001–012 (create-adr skill) | SS-06, SS-08, SS-10 |
 <!-- F-301 (Wave 6 pass-4): SS-10 added to match capabilities.md:123 (single source of truth). BC-list cites SS-06+SS-08 BCs only; SS-10 enforcer-BC pending — ADR-INDEX maintenance involves CLI tools (SS-10). Specific BC IDs TBD when SS-10 BC backfill closes (deferred to task #112). -->
-| CAP-018 | Validate spec consistency across all artifact layers | BC-5.05.007–010 (consistency-validator agent); BC-6 (consistency-validation skill) | SS-05, SS-06 |
+| CAP-018 | Validate spec consistency across all artifact layers | BC-5.05.007–010 (consistency-validator agent); BC-6 (consistency-validation skill); BC-6.22.001 (FR-047: relocate-artifact skill — path consistency enforcement) | SS-05, SS-06 |
 <!-- F-302 (Wave 6 pass-4): capabilities.md:128 expanded to match (SS-05 added to source of truth). -->
 | CAP-019 | Generate domain specs from product briefs | BC-6.03 (create-domain-spec skill) | SS-06, SS-08 |
 | CAP-020 | Produce and maintain a PRD with NFR catalog | BC-6.04 (create-prd skill); BC-8.02 (prd-template) | SS-06 |
@@ -1417,19 +1513,20 @@ The following features must NOT appear in any story acceptance criteria or imple
 
 | Field | Value |
 |-------|-------|
-| Phase | 1.5 (brownfield spec backfill) |
-| BC catalog version | 1,909 BCs at phase 1.5 (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13 + 2 S-5.01 pass-2 + 5 S-5.02 Wave 13 + 4 S-5.03 foundation burst) |
+| Phase | 1.5 (brownfield spec backfill) + F2 feature delta (v1.0-feature-engine-discipline-pass-1) |
+| BC catalog version | 1,911 BCs (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13 + 2 S-5.01 pass-2 + 5 S-5.02 Wave 13 + 4 S-5.03 foundation burst + [various E-10 amendments] + 6 F2 engine-discipline-pass-1: BC-5.39.001/002, BC-4.10.001/002, BC-4.11.001, BC-6.22.001) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.7 (commit b08e085, 2026-04-26) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
 | DRIFT items open | 11 (DRIFT-001 through DRIFT-011) |
 | Stories shipped (merged) | 26 (Tier A–D + S-3.04 + S-6.01 + S-7.01 + S-7.02 fully merged) |
 | Stories partial | 3 (S-2.05, S-4.06, S-5.05) |
-| Stories pending (draft) | 18 (Tiers E–H draft) |
+| Stories pending (draft) | 18 (Tiers E–H draft) + 3 (v1.0-feature-engine-discipline-pass-1 F3 pending) |
 | CAPs covered | 28 / 28 |
-| FRs defined | 46 |
+| FRs defined | 47 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
+| PRD version | 1.1 (2026-05-06 — FR-047 delta: engine governance BCs for v1.0-feature-engine-discipline-pass-1) |
 
 This PRD should be updated when:
 - A Tier E/F/G story ships and its FR status changes from `pending` to `shipped`
