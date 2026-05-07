@@ -1,0 +1,5 @@
+error: #[resolver] expects exactly one argument of type `ResolverInput`; `resolve_impl` must have signature `fn resolve_impl(input: ResolverInput) -> ResolverOutput`
+  --> tests/ui/wrong_sig.rs:18:1
+   |
+18 | #[resolver]
+   | ^^^^^^^^^^^
