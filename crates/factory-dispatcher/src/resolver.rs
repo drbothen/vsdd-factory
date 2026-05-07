@@ -12,9 +12,9 @@
 //! - ADR-018 — WASM-plugin Context Resolvers design
 //! - VP-075 — context-injection determinism (proptest harness in S-12.03 tests)
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
 use thiserror::Error;
 
 // ---------------------------------------------------------------------------
@@ -159,11 +159,20 @@ impl ResolverRegistry {
     /// caller can propagate the registry-load error cleanly. The registry
     /// state is unchanged after a failed registration (first registration
     /// preserved — EC-005 expected behavior).
-    pub fn register(
-        &mut self,
-        _resolver: Box<dyn ContextResolver>,
-    ) -> Result<(), ResolverError> {
-        todo!("S-12.03 Step 4 implementer — verify no duplicate name per BC-4.12.005 PC6, then push; return Err(ResolverError::Crashed{{ name, detail }}) on duplicate")
+    pub fn register(&mut self, resolver: Box<dyn ContextResolver>) -> Result<(), ResolverError> {
+        let name = resolver.name().to_string();
+        if self.resolvers.iter().any(|r| r.name() == name) {
+            return Err(ResolverError::Crashed {
+                name: name.clone(),
+                detail: format!(
+                    "duplicate context_key '{}' — each resolver name must be unique \
+                     (BC-4.12.005 PC6 / EC-005); first registration preserved",
+                    name
+                ),
+            });
+        }
+        self.resolvers.push(resolver);
+        Ok(())
     }
 
     /// Resolve context for a single named resolver and return its output.
@@ -177,11 +186,24 @@ impl ResolverRegistry {
     /// (keeping telemetry non-blocking — BC-1.13.001 architecture rule 5).
     pub fn invoke_resolver(
         &self,
-        _name: &str,
-        _input: &ResolverInput,
-        _emit_not_found: impl FnOnce(&str),
+        name: &str,
+        input: &ResolverInput,
+        emit_not_found: impl FnOnce(&str),
     ) -> Option<Result<ResolverOutput, ResolverError>> {
-        todo!("S-12.03 Step 4 implementer — look up resolver by name; if missing, call emit_not_found(name) and return None; if found, call resolve(input) and return Some(result)")
+        match self.resolvers.iter().find(|r| r.name() == name) {
+            None => {
+                emit_not_found(name);
+                None
+            }
+            Some(resolver) => match resolver.resolve(input) {
+                // Resolver returned data — wrap in Some(Ok(...)).
+                Ok(Some(output)) => Some(Ok(output)),
+                // Resolver has no data for this event — treat as not-produced.
+                Ok(None) => None,
+                // Hard failure — propagate as Some(Err(...)).
+                Err(e) => Some(Err(e)),
+            },
+        }
     }
 
     /// Resolve all context declared in `requested_names` for one dispatch.
@@ -198,11 +220,28 @@ impl ResolverRegistry {
     /// `plugin_config`; resolver outputs are merged after all invocations.
     pub fn resolve_context_for_entry(
         &self,
-        _requested_names: &[String],
-        _input: &ResolverInput,
-        _emit_not_found: impl Fn(&str),
+        requested_names: &[String],
+        input: &ResolverInput,
+        emit_not_found: impl Fn(&str),
     ) -> HashMap<String, Value> {
-        todo!("S-12.03 Step 4 implementer — iterate requested_names in order; invoke_resolver each; collect Some(Ok(output)) where output.value.is_some() into HashMap<key, value>; skip None outputs and Err results (log errors but do not fail dispatch)")
+        let mut map = HashMap::new();
+        for name in requested_names {
+            match self.invoke_resolver(name, input, &emit_not_found) {
+                None => {
+                    // Not found — emit_not_found already called; skip this key.
+                }
+                Some(Err(_err)) => {
+                    // Resolver errored — skip this key; dispatch continues.
+                }
+                Some(Ok(output)) => {
+                    if let Some(value) = output.value {
+                        map.insert(output.key, value);
+                    }
+                    // value: None → key absent (BC-4.12.005 PC2)
+                }
+            }
+        }
+        map
     }
 
     /// Number of registered resolvers (for startup log: "Loaded N context resolvers").
@@ -246,9 +285,30 @@ impl Default for ResolverRegistry {
 /// existing entry in `static_config`, allowing the caller to emit the
 /// `resolver.merge_collision` telemetry event non-blockingly.
 pub fn merge_resolver_outputs(
-    _static_config: Value,
-    _resolver_outputs: &[ResolverOutput],
-    _on_collision: impl Fn(&str, &Value, &Value),
+    static_config: Value,
+    resolver_outputs: &[ResolverOutput],
+    on_collision: impl Fn(&str, &Value, &Value),
 ) -> Value {
-    todo!("S-12.03 Step 4 implementer — start from static_config as a JSON object; for each ResolverOutput where value.is_some(): check if key exists in map (call on_collision if so), then insert; return merged Value::Object")
+    // Start from the static config — must be a JSON object (plugin_config shape).
+    let mut map = match static_config {
+        Value::Object(m) => m,
+        // If static_config is not an object (should not happen in practice),
+        // treat it as an empty object — resolver outputs still apply.
+        _ => serde_json::Map::new(),
+    };
+
+    // Apply resolver outputs in order (BC-4.12.005 PC4).
+    for output in resolver_outputs {
+        // value: None → do not write the key (BC-4.12.005 PC2).
+        if let Some(new_val) = &output.value {
+            if let Some(old_val) = map.get(&output.key) {
+                // Key collision: call callback so caller can emit telemetry,
+                // then resolver wins (BC-4.12.005 PC5 — whole-value replacement).
+                on_collision(&output.key, old_val, new_val);
+            }
+            map.insert(output.key.clone(), new_val.clone());
+        }
+    }
+
+    Value::Object(map)
 }
