@@ -225,3 +225,10 @@ story_updates:
     pr: 91
     merge_sha: 5706f27
     note: "8 adversarial passes (5 fix bursts + 3 consecutive clean); PR #91 squash-merged at 5706f27"
+
+  S-13.01:
+    status: completed
+    pr: 97
+    merge_sha: 2c97cb0
+    merged_at: 2026-05-07
+    note: "Path Governance Bundle (E-13). validate-artifact-path WASM hook live in block mode. 50/50 cargo + 11/11 relocate-artifact bats + 28/28 vp-072 bats green at merge. 26 files (7 new + 18 modified + 1 build output). relocate-artifact preflight confirmed zero violations during Step 4 Chunk 6. D-350."

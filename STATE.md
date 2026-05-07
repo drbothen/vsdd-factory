@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F3 complete for v1.0-feature-engine-discipline-pass-1. Epics E-12 (Engine Governance, 2 stories) and E-13 (Artifact Integrity, 1 story) created. Stories S-13.01 (path governance bundle, 15 ACs), S-12.01 (per-story adversary workflow, 9 ACs), S-12.02 (per-story adversary convergence WASM hook, 14 ACs) authored. Linear delivery order: S-13.01 → S-12.01 → S-12.02. All tdd_mode strict. Total 38 ACs anchored to BC-4.10.001-002, BC-4.11.001, BC-5.39.001-002, BC-6.22.001 + VPs 069/070/071/072. OQ-9 (BC-4.10.001 vs VP-071 hook semantics) resolved by VP-071 v1.0→v1.1 amendment to canonical block_with_fix pattern (D-349). F4 entry gate clear. Next: F4 TDD implementation, beginning with S-13.01 (path governance) which has hard sequencing as block-mode hook."
+current_step: "S-13.01 (Path Governance Bundle, E-13) MERGED to develop at 2c97cb0 (PR #97, 2026-05-07). validate-artifact-path WASM hook now LIVE in block mode on develop. F4 continues: S-12.01 (per-story adversary workflow, E-12) at Step 5 (demos); S-12.02 (per-story adversary convergence WASM hook, E-12) at Step 4 fix completed (30/30 cargo + 12/12 bats), Step 5 next. Linear delivery order: S-13.01 completed → S-12.01 → S-12.02."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (F3 sealed D-349; E-12/E-13 epics + S-13.01/S-12.01/S-12.02 stories authored) |
-| **Current Phase** | F3 COMPLETE — F4 TDD implementation next (begin S-13.01) |
+| **Last Updated** | 2026-05-07 (D-350; S-13.01 merged PR #97 at 2c97cb0; validate-artifact-path WASM hook live) |
+| **Current Phase** | F4 IN PROGRESS — S-13.01 MERGED; S-12.01 at Step 5; S-12.02 at Step 4→5 |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -75,7 +75,7 @@ dtu_services: []
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
-| v1.0-feature-engine-discipline-pass-1 | **F3 COMPLETE** 2026-05-07 (D-349) | F1 complete (D-339); F2 sealed: 6 BCs, 2 ADRs (ADR-016/017), 4 VPs (VP-069-072), PRD 1.0→1.1; F3 sealed: E-12 (2 stories) + E-13 (1 story); S-13.01→S-12.01→S-12.02; F4 next (begin S-13.01) |
+| v1.0-feature-engine-discipline-pass-1 | **F4 IN PROGRESS** | F1-F3 complete (D-339/D-340/D-349); S-13.01 MERGED 2c97cb0 PR #97 2026-05-07 (D-350); S-12.01 at Step 5 (demos); S-12.02 at Step 4→5 |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -97,6 +97,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **E-11 authoring + indexing burst (orphan-hook anchor) — D-11.7** | product-owner (E-11 epic) + state-manager (indexing) | **COMPLETE** | E-11 epic v1.0/draft authored (491L; 8 stories S-11.01..S-11.08; target v1.3); collision resolved: S-11.00 already registered as verify-sha-currency.sh stub (D-297); E-11 stories renumbered +1 (S-11.01..S-11.08); STORY-INDEX 2.23→2.24 (8 new rows + 8 pointer updates S-8.20–S-8.27 re-pointed to E-11); E-11 frontmatter story_count corrected 7→8. |
 | **E-11 epic v1.1 amendment — sync body to STORY-INDEX renumber** | product-owner (epic body) + state-manager (commit) | **COMPLETE (25b3c20)** | E-11 epic body v1.0→v1.1: all live story-pointer refs renumbered S-11.00..S-11.07 → S-11.01..S-11.08 to match STORY-INDEX (14bb9c4). CHANGELOG v1.1 entry + narrative appended. Verification: zero live S-11.00 refs; dependency graph topology preserved. No semantic changes. |
 | **D-349 F3 story decomposition — v1.0-feature-engine-discipline-pass-1** | product-owner (epics E-12/E-13) + story-writer (S-13.01/S-12.01/S-12.02) + state-manager (indexing + commit) | **COMPLETE** | E-12 Engine Governance (S-12.01/S-12.02) + E-13 Artifact Integrity (S-13.01). 38 ACs total. Linear: S-13.01→S-12.01→S-12.02. All tdd_mode strict. STORY-INDEX 2.24→2.25. D-345..D-348 logged. OQ-9 surfaced (VP-071 vs BC-4.10.001 discrepancy; pre-F4 gate). |
+| **D-350 S-13.01 merged — state update post-merge** | state-manager | **COMPLETE** | S-13.01 (Path Governance Bundle, E-13) merged to develop at 2c97cb0 (PR #97, 2026-05-07). validate-artifact-path WASM hook live in block mode. sprint-state.yaml S-13.01 → completed; STORY-INDEX 2.25→2.26 (S-13.01 draft→completed); STATE.md F4 IN PROGRESS; decision-log D-350+D-351 appended. S-12.01 + S-12.02 unblocked. |
 
 ## Identifier Conventions
 
@@ -114,9 +115,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Story Status (79 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13 registered)
 
-- **Merged (58):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
+- **Merged (59):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (15):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence)
+- **Draft (14):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)
@@ -137,7 +138,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F3 COMPLETE — F4 NEXT | Per-story adversary workflow + artifact path governance; D-349 F3 sealed; E-12 (2 stories) + E-13 (1 story); linear S-13.01→S-12.01→S-12.02; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
+| v1.0-feature-engine-discipline-pass-1 | feature | F4 IN PROGRESS | S-13.01 MERGED 2c97cb0 (PR #97, 2026-05-07; D-350); validate-artifact-path WASM hook live; S-12.01 at Step 5; S-12.02 at Step 4→5; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
 
 ## Decisions Log
 
@@ -161,27 +162,27 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — PAUSE POINT. D-337 sealed pass-8 fix-cycle. rc.13 cut attempted and FAILED (perf-baseline.bats). User-requested pause before pass-9.
+**Last update:** 2026-05-07 — D-350 state update. S-13.01 (Path Governance Bundle) MERGED to develop at 2c97cb0 (PR #97). F4 in progress for S-12.01 (Step 5) and S-12.02 (Step 4→5).
 
-**factory-artifacts HEAD:** 374b398 (D-337 seal — run `git -C .factory log -1 --format='%h %s'` to confirm)
-**develop HEAD:** ba63c9f (PR #96 squash-merge — release CI Slice 3 reason code test alignment)
+**factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
+**develop HEAD:** 2c97cb008c8a05d39eedcf8f26ecf472bd2d5816 (S-13.01 PR #97 squash-merge 2026-05-07)
 **main HEAD:** fb3e297 (rc.11 bot bundle; behind develop)
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID (validate fails; user must delete: `git push origin :refs/tags/v1.0.0-rc.13`)
 **v1.0.0-rc.12 tag:** 4cf59bc; SHIPPED 2026-05-06
 **v1.0.0-rc.11 tag:** fb3e297; GH prerelease=true; PRs #89/#90/#91 merged 2026-05-04
-**Active worktrees:** main + .factory only
-**Stash on develop:** stash@{0} = perf-baseline.bats one-line fix (git rev-parse --show-toplevel); restore with `git stash pop`
+**Active worktrees:** main + .factory only (S-12.01 + S-12.02 worktrees in-flight on their own branches)
+**Stash on develop:** cleared (S-13.01 merge supersedes perf-baseline stash path; verify with `git stash list`)
 **E-9 current version:** v1.53 (CONVERGENCE_REACHED; ADR-013 clock 3_of_3; D-308)
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.14 | **STORY-INDEX:** v2.23 | **ARCH-INDEX:** v1.7
+**BC-INDEX:** v1.15 | **STORY-INDEX:** v2.26 | **ARCH-INDEX:** v1.8
 
-**ACTIVE STEP: PAUSED — next dispatch is adversary pass-9 (Path A) or perf-baseline fix PR (Path B)**
+**ACTIVE STEP: F4 — S-12.01 at Step 5 (demos); S-12.02 at Step 4→5 (fix complete, demos next)**
 
-**Path A pickup:** Dispatch `vsdd-factory:adversary` pass-9 on post-D-337 spec package at factory-artifacts=374b398. Axes CC/DD/EE VERIFIED CLEAN per pass-8. New axes FF (DI-017 sweep completeness) + GG (schema_version differentiation) to verify. If NITPICK_ONLY → counter 0→1.
-
-**Path B pickup:** `git stash pop` on develop → `git checkout -b fix/perf-baseline-abspath` → commit + push → PR #97 → pr-manager. After merge: USER must delete remote rc.13 tag, then re-cut rc.13.
+**S-12.01 pickup:** Step 5 demo recording. Dispatch `vsdd-factory:record-demo` for per-story adversary workflow story.
+**S-12.02 pickup:** Step 5 demo recording after Step 4 bats confirmed green (30/30 cargo + 12/12 bats).
+**E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle completes.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
 **S-11.00 backlog:** verify-sha-currency.sh Rust port stub (D-297). Full authoring: post-E-10 convergence.

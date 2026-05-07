@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.25"
+version: "2.26"
 status: current
 producer: state-manager
 timestamp: 2026-05-07T00:00:00Z
-last_amended: "2026-05-07 (v2.25) — F3 story decomposition for v1.0-feature-engine-discipline-pass-1; E-12 (Engine Governance, 2 stories S-12.01/S-12.02) and E-13 (Artifact Integrity, 1 story S-13.01) registered; 3 new rows added; linear delivery order S-13.01 → S-12.01 → S-12.02; all tdd_mode strict; D-349"
+last_amended: "2026-05-07 (v2.26) — S-13.01 status draft → completed; merged to develop at 2c97cb0 via PR #97 (2026-05-07); D-350"
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -46,6 +46,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-263 — STORY-INDEX bumped to reflect D-263 combined implementation-readiness seal-and-fix burst (ninth TD-VSDD-064 application; TD-VSDD-074 codified — TD-VSDD-073 scope extension to BCs cited in amendment landings). Pass-20 SUBSTANTIVE 0H/2M/2L sealed. M-P20-001 closed (OQ-3 pinned `timeout_ms = 30000` + `max_output_bytes = 65536`). M-P20-002 + L-P20-002 closed (BC-1.05.036 ADR-015 awareness clause + error-path reality). BC-1.05.035 + BC-1.05.036 gained `last_amended: 2026-05-05`. L-P20-001 SKIPPED with rationale. E-9 v1.20→v1.21. ADR-013 clock 1→0_of_3 RESET. STORY-INDEX v1.69 → v1.70.
 > Updated 2026-05-05: D-264 — STORY-INDEX bumped to reflect D-264 multi-fix burst (tenth TD-VSDD-064 application; TD-VSDD-075 codified — source-code-verification + dependent-citation-propagation disciplines). Pass-21 SUBSTANTIVE 2H/3M/2L sealed. H-P21-001 BC-1.05.036 error codes -7/-8→-2/-3 (source-code verified). H-P21-002 open-questions.md line citation 325→326. M-P21-001 BC-1.05.035 ADR-015 awareness. M-P21-002 BC-1.05.036 host category corrected. M-P21-003 truncated:bool reserved semantics. 2 LOWs DEFERRED. E-9 v1.21→v1.22. ADR-013 clock 0_of_3. STORY-INDEX v1.70 → v1.71.
 > Updated 2026-05-05: D-270 — STORY-INDEX bumped to reflect D-270 combined silence-audit seal-and-fix burst (fourteenth TD-VSDD-064 application). Pass-27 SUBSTANTIVE 1H/1M/0L sealed (negative-coverage / silence audit angle NEW per TD-VSDD-057). H-P27-001 closed (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; source-truth verified ADR-015 lines 99/130/154). M-P27-001 closed (Postcondition 5 INTERNAL_ERROR (-99) enumeration added; 5 source-code line citations exec_subprocess.rs:252/258/262/267-268/299; const mod.rs:184). E-9 v1.25→v1.26. ADR-013 clock RESET 0_of_3. STORY-INDEX v1.76 → v1.77.
+> Updated 2026-05-07: D-350 — STORY-INDEX bumped to v2.26. S-13.01 (Path Governance Bundle, E-13) status draft → completed; merged to develop at 2c97cb0 via PR #97 on 2026-05-07. validate-artifact-path WASM hook live in block mode on develop. S-12.01 and S-12.02 unblocked from path governance dependency. STORY-INDEX v2.25 → v2.26.
 > Updated 2026-05-07: D-349 — STORY-INDEX bumped to v2.25 to reflect F3 story decomposition for v1.0-feature-engine-discipline-pass-1. E-12 Engine Governance registered (2 stories: S-12.01 per-story adversary workflow, S-12.02 per-story adversary convergence WASM hook). E-13 Artifact Integrity registered (1 story: S-13.01 path governance bundle, 24 files, 15 ACs). Linear delivery order: S-13.01 → S-12.01 → S-12.02. All tdd_mode strict. Total 38 ACs. STORY-INDEX v2.24 → v2.25.
 > Updated 2026-05-06: D-337 — STORY-INDEX bumped to v2.23 to reflect D-337 E-10 pass-8 seal. S-10.05 v1.4→v1.5 (D-336 story-writer F-4: AC-008 extended with BC-2.06.001 v1.3+v1.4 CHANGELOG-content requirements — Breaking Changes + Added/New API + HookResult::block_with_fix). BC-INDEX v1.13→v1.14 (D-336 DI-017 dispatcher_trace_id→trace_id sweep: 15 BCs version-bumped + BC-1.11.001 PC2 F-1 primary; BC-3.05.003 retired audit-trail accuracy). ARCH-INDEX 1.6→1.7 confirmed (D-336 architect). Pass-8 HIGH(4) fix-cycle SEALED. Pass-9 next. NITPICK_ONLY counter: 0.
 > Updated 2026-05-06: D-330/D-331 — STORY-INDEX bumped to v2.22 to reflect D-330 E-10 pass-5 fix burst story propagation + D-331 state-manager seal. S-10.02 v1.3→v1.4 (F-1 BC-1.11.002 added; bcs 6→7). S-10.03 v1.3→v1.4 (D-330). S-10.04 v1.4→v1.5 (D-330). D-331 seal: BC-INDEX v1.11→v1.12 (F-1 fix BC-1.11.002 Stories S-10.03→S-10.02; 6 BC version + capability bumps); ARCH-INDEX v1.4→v1.5 (F-2 D-15.4→D-15.1 propagation); STORY-INDEX v2.21→v2.22; STATE.md + lessons.md sealed. 8 of 12 pass-5 findings closed; F-7+F-8 deferred to cleanup stories #115/#116.
@@ -467,7 +468,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-13.01 | Path governance bundle (registry SoT + WASM hook + 9 skill updates + relocate-artifact) | E-13 | TBD | P1 | [] | [S-12.01, S-12.02] | draft | [BC-4.11.001, BC-6.22.001] (15 ACs, 24 files, tdd_mode strict) |
+| S-13.01 | Path governance bundle (registry SoT + WASM hook + 9 skill updates + relocate-artifact) | E-13 | TBD | P1 | [] | [S-12.01, S-12.02] | completed | [BC-4.11.001, BC-6.22.001] (15 ACs, 24 files, tdd_mode strict; merged 2c97cb0 PR #97 2026-05-07) |
 
 > **E-13 delivery:** S-13.01 is the single story in this epic. Ships first in cycle. 24 files in scope.
 > Full list in S-13.01 story file. Subsystems: SS-04 (path registry hook), SS-05 (relocate-artifact skill).
