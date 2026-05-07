@@ -1357,6 +1357,91 @@ artifacts:
 }
 
 // -----------------------------------------------------------------------
+// BC-4.11.001 EC-007: execution time ceiling ≤200ms for matches_canonical
+//
+// F-MED-5: no benchmark existed to enforce the 200ms ceiling from EC-007.
+// This test loads the actual artifact-path-registry.yaml (the production
+// registry), runs matches_canonical 1000 times against a fixture path,
+// and asserts the total elapsed time is under 200ms.
+//
+// Why 1000 iterations instead of 1? A single call is too fast to time
+// reliably (sub-microsecond on modern hardware). 1000 iterations at once
+// gives a stable measurement and still should complete well under the
+// 200ms WASM ceiling. If the total 1000-call time exceeds 200ms, each
+// individual call would be averaging ~200µs — already 10x too slow for
+// a WASM execution budget of the whole hook.
+// -----------------------------------------------------------------------
+
+#[test]
+fn test_BC_4_11_001_ec007_matches_canonical_1000_calls_under_200ms() {
+    // BC-4.11.001 EC-007: "WASM execution time MUST remain under 200ms."
+    // Load the actual production registry and time 1000 matches_canonical
+    // calls. Total elapsed must be < 200ms (a 1000-call batch under 200ms
+    // means each call is < 200µs on average — comfortably within WASM budget).
+    //
+    // If this test becomes flaky on heavily loaded CI machines, the ceiling
+    // can be raised to 1000ms (still proves no O(n²) regression).
+    use std::time::Instant;
+
+    // Locate the production registry relative to CARGO_MANIFEST_DIR.
+    // Path: <workspace>/plugins/vsdd-factory/config/artifact-path-registry.yaml
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+        .expect("CARGO_MANIFEST_DIR must be set during cargo test");
+    let registry_path = std::path::Path::new(&manifest_dir)
+        .join("../../../../plugins/vsdd-factory/config/artifact-path-registry.yaml");
+
+    if !registry_path.exists() {
+        // Registry not present (e.g., running in a context without plugin dir).
+        // Fall back to the multi-entry fixture — still exercises the algorithm.
+        let yaml = multi_entry_registry_yaml();
+        let registry = load_registry(&yaml)
+            .expect("fixture registry must load");
+        let path = ".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+
+        let start = Instant::now();
+        for _ in 0..1000 {
+            let _ = matches_canonical(path, &registry);
+        }
+        let elapsed_ms = start.elapsed().as_millis();
+
+        assert!(
+            elapsed_ms < 200,
+            "BC-4.11.001 EC-007: 1000 matches_canonical calls on fixture registry \
+             must complete in < 200ms total; got {}ms (fixture fallback — production \
+             registry absent at {})",
+            elapsed_ms,
+            registry_path.display()
+        );
+        return;
+    }
+
+    let yaml = std::fs::read_to_string(&registry_path)
+        .unwrap_or_else(|e| panic!("failed to read registry at {}: {}", registry_path.display(), e));
+
+    let registry = load_registry(&yaml)
+        .expect("production registry must load");
+
+    // Use an unregistered path to exercise the full scan (worst case: no early match).
+    let path = ".factory/cycles/v1.0-feature-engine-discipline-pass-1/S-99.99/implementation/red-gate-log.md";
+
+    let start = Instant::now();
+    for _ in 0..1000 {
+        let _ = matches_canonical(path, &registry);
+    }
+    let elapsed_ms = start.elapsed().as_millis();
+
+    assert!(
+        elapsed_ms < 200,
+        "BC-4.11.001 EC-007: 1000 matches_canonical calls on production registry \
+         ({} entries) must complete in < 200ms total; got {}ms. \
+         A regression in pattern_matches complexity (e.g., O(n²)) would cause \
+         this to exceed the budget.",
+        registry.artifacts.len(),
+        elapsed_ms
+    );
+}
+
+// -----------------------------------------------------------------------
 // F-MED-4: EC-006 branch must emit hook.warn event (not just log)
 // BC-4.11.001 EC-006: file_path absent → Continue + log_warn + hook.warn event
 // -----------------------------------------------------------------------
