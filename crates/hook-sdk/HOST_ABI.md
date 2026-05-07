@@ -624,7 +624,7 @@ The `i64` return value encodes a packed `(ptr: i32, len: i32)` pair:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `event_type` | `String` | The Claude Code event type (e.g., `"PreToolUse"`, `"SubagentStop"`). |
+| `event_type` | `String` | The host platform's event-type string. For Claude Code dispatch events, common values include `PreToolUse`, `PostToolUse`, `SubagentStop`, `UserPromptSubmit`, `Stop`. The dispatcher passes this through unchanged; resolvers may treat it as an opaque key for branching. Consult the host platform's reference for the canonical list. |
 | `hook_event_name` | `String` | The name of the hook being dispatched. |
 | `agent_type` | `Option<String>` | The agent type if present in the dispatch context; `null` if absent. |
 | `project_dir` | `String` | Absolute path to the factory project root. |
