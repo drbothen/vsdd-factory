@@ -114,7 +114,7 @@ Use the resolved path in ALL Agent tool dispatch prompts for the rest of the ses
   - Phase 2: adversarial story convergence — always 3 clean passes minimum
   - Pre-Phase 3: DTU clone existence check (if DTU_REQUIRED: true)
   - Pre-Phase 3: CI/CD verification (ci.yml exists, branch protection configured)
-  - Phase 3: per-story adversarial convergence — always 3 clean passes minimum per story
+  - Phase 3: per-story adversarial convergence — Step 4.5 of per-story-delivery.md (BC-5.39.001); always 3 clean passes minimum per story; MUST complete before Step 5 demo recording
   - Phase 3: wave-level adversarial convergence — always 3 clean passes minimum per wave
   - Phase 4: holdout evaluation — always runs against DTU clones if DTU_REQUIRED: true
   - Phase 5: adversarial implementation convergence — always 3 clean passes minimum
