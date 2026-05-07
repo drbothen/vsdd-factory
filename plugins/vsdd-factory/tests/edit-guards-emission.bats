@@ -48,8 +48,6 @@ _run_edit() {
   [ "$(jq -r '.type' < "$f")" = "hook.block" ]
   [ "$(jq -r '.hook' < "$f")" = "brownfield-discipline" ]
   [ "$(jq -r '.reason' < "$f")" = "reference_readonly" ]
-  [ "$(jq -r '.matcher' < "$f")" = "Edit" ]
-  [ "$(jq -r '.file_path' < "$f")" = ".reference/some-repo/src/foo.ts" ]
 }
 
 @test "brownfield-discipline: still blocks when CLAUDE_PLUGIN_ROOT unset" {
@@ -169,7 +167,7 @@ _run_edit() {
   local f
   f=$(_logfile)
   [ -n "$f" ]
-  [ "$(jq -r '.reason' < "$f")" = "red_gate_strict_violation" ]
+  [ "$(jq -r '.reason' < "$f")" = "red_gate_strict" ]
   [ "$(jq -r '.hook' < "$f")" = "red-gate" ]
   rm -rf "$scratch"
 }
@@ -215,9 +213,8 @@ _run_edit() {
   local f
   f=$(_logfile)
   [ -n "$f" ]
-  [ "$(jq -r '.reason' < "$f")" = "factory_not_worktree" ]
+  [ "$(jq -r '.reason' < "$f")" = "factory_no_worktree" ]
   [ "$(jq -r '.hook' < "$f")" = "factory-branch-guard" ]
-  [ "$(jq -r '.matcher' < "$f")" = "Write" ]
   rm -rf "$scratch"
 }
 

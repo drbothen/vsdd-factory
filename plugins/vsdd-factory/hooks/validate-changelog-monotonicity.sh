@@ -14,10 +14,11 @@
 set -euo pipefail
 
 # Source canonical block-message helper if available (provides block_pre).
-if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh" ]; then
-  # shellcheck source=lib/block.sh
-  source "${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh"
-fi
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
 
 if ! command -v jq &>/dev/null; then
   exit 0

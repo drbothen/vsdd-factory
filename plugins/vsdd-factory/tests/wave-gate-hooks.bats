@@ -232,7 +232,7 @@ waves:
   _run_pretool_agent "vsdd-factory:pr-manager" "cd $WORK && Run PR process for S-6.07"
   [ "$status" -eq 2 ]
   [[ "$output" == *"wave-gate"* ]]
-  [[ "$output" == *"deferred"* ]]
+  [[ "$output" == *"gate_status"* ]]
 }
 
 @test "prerequisite: blocks pr-manager dispatch" {

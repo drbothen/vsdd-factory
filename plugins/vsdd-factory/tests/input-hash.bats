@@ -187,7 +187,7 @@ EOF
 
 # ===== hooks/validate-input-hash.sh =====
 
-@test "input-hash hook: warns when hash is placeholder" {
+@test "input-hash hook: blocks when hash is placeholder" {
   cat > "$WORK/.factory/specs/prd.md" << 'EOF'
 ---
 inputs: [product-brief.md]
@@ -196,11 +196,11 @@ input-hash: "[md5]"
 EOF
   INPUT=$(jq -nc --arg fp "$WORK/.factory/specs/prd.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | CLAUDE_PLUGIN_ROOT='$PLUGIN_ROOT' '$HOOK' 2>&1"
-  [ "$status" -eq 0 ]
+  [ "$status" -eq 2 ]
   [[ "$output" == *"no computed input-hash"* ]]
 }
 
-@test "input-hash hook: warns when hash is null" {
+@test "input-hash hook: blocks when hash is null" {
   cat > "$WORK/.factory/specs/prd.md" << 'EOF'
 ---
 inputs: [product-brief.md]
@@ -209,7 +209,7 @@ input-hash: null
 EOF
   INPUT=$(jq -nc --arg fp "$WORK/.factory/specs/prd.md" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | CLAUDE_PLUGIN_ROOT='$PLUGIN_ROOT' '$HOOK' 2>&1"
-  [ "$status" -eq 0 ]
+  [ "$status" -eq 2 ]
   [[ "$output" == *"no computed input-hash"* ]]
 }
 

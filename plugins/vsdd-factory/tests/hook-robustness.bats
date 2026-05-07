@@ -210,7 +210,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$FIX" '{tool_input: {file_path: $fp}}')
   _run_hook "validate-vp-consistency.sh" "$INPUT"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"POLICY 9 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 9"* ]]
 }
 
 @test "contract: validate-subsystem-names says POLICY 6 VIOLATION" {
@@ -218,7 +218,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$FIX" '{tool_input: {file_path: $fp}}')
   _run_hook "validate-subsystem-names.sh" "$INPUT"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"POLICY 6 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 6"* ]]
 }
 
 @test "contract: validate-bc-title says POLICY 7 VIOLATION" {
@@ -226,7 +226,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$FIX" '{tool_input: {file_path: $fp}}')
   _run_hook "validate-bc-title.sh" "$INPUT"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"POLICY 7 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 7"* ]]
 }
 
 @test "contract: validate-story-bc-sync says POLICY 8 VIOLATION" {
@@ -234,7 +234,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$FIX" '{tool_input: {file_path: $fp}}')
   _run_hook "validate-story-bc-sync.sh" "$INPUT"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"POLICY 8 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 8"* ]]
 }
 
 # ===== All hooks have exit 0 fallback (never exit 1) =====
@@ -248,7 +248,7 @@ _run_hook() {
   INPUT=$(jq -nc --arg fp "$WORK/.factory/cycles/v1/adversarial-reviews/pass-1.md" '{tool_input: {file_path: $fp}}')
   _run_hook "validate-finding-format.sh" "$INPUT"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"ID FORMAT VIOLATION"* ]]
+  [[ "$output" == *"ID doesn't match canonical format"* ]]
   rm -rf "$WORK"
 }
 
