@@ -647,6 +647,12 @@ The `i64` return value encodes a packed `(ptr: i32, len: i32)` pair:
 Resolvers do NOT return block/continue decisions. They return data only. A resolver cannot
 block a hook dispatch.
 
+**No inter-resolver dependencies (OD-5):** Resolvers cannot observe or depend on other
+resolvers' outputs. Each resolver receives only the static `plugin_config` from
+`hooks-registry.toml` — the value that existed before any resolver has run. Resolver outputs
+are merged after ALL resolvers have completed their invocations. A resolver that attempts to
+design around another resolver's output is a design error. (BC-4.12.002 INV4)
+
 ---
 
 ### SDK Authoring Surface (BC-4.12.002 PC5, PC8)
