@@ -9,14 +9,14 @@ prd_frs: []
 anchor_strategy: greenfield-discipline-gap-codification
 priority: P1
 target_release: "v1.0-feature-engine-discipline-pass-1"
-story_count: 2
-subsystems_affected: [SS-04, SS-05]
+story_count: 8
+subsystems_affected: [SS-01, SS-04, SS-05]
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
 phase: 2
 traces_to: .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
 depends_on: ["E-7"]
-last_amended: "2026-05-06 (v1.0 — initial authoring for cycle v1.0-feature-engine-discipline-pass-1)"
+last_amended: "2026-05-07 (v1.1 — F3-amendment: 6 new platform stories S-12.03..S-12.08; scope widened to engine governance platform; story_count 2→8)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
   - .factory/specs/architecture/ARCH-INDEX.md
@@ -26,26 +26,35 @@ input-hash: "TBD"
 ---
 <!-- [process-gap] Frontmatter fields anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-9 v1.0 / E-11 v1.0). Template update tracked as follow-up. -->
 
-# Epic E-12: Engine Governance — Per-Story Adversarial Convergence Discipline
+# Epic E-12: Engine Governance — Per-Story Adversarial Convergence Discipline + WASM-Plugin Context Resolver Platform
 
 ## Description
 
-Closes the documented-vs-implemented gap on per-story adversarial convergence.
-The current pipeline runs a single end-of-cycle adversarial pass; individual stories
-ship without enforced convergence at story boundary. ADR-017 defines a three-perimeter
-scope contract (in-story body, story boundary, wave close) for the adversary agent and
-mandates per-story convergence as a gate condition before PR merge. E-12 codifies that
-discipline into two layers: (1) workflow + agent documentation updates that define the
-process (Step 4.5 in `per-story-delivery.md`, adversary scope contract, orchestrator
-MANDATORY STEPS reconciliation, wave-gate Gate 3 narrowing), and (2) a native WASM
-enforcement hook (`validate-per-story-adversary-convergence`) that mechanically blocks
-PR merge when the per-story convergence gate has not been satisfied.
+E-12 is the engine governance platform epic for cycle v1.0-feature-engine-discipline-pass-1.
+It spans two delivery phases:
+
+**Phase 1 (original, completed):** Closes the documented-vs-implemented gap on per-story
+adversarial convergence. ADR-017 defines a three-perimeter scope contract (in-story body,
+story boundary, wave close) for the adversary agent and mandates per-story convergence as a
+gate condition before PR merge. Delivered via: (1) workflow + agent documentation updates
+(Step 4.5 in `per-story-delivery.md`, adversary scope contract, orchestrator MANDATORY STEPS
+reconciliation, wave-gate Gate 3 narrowing — S-12.01), and (2) a native WASM enforcement hook
+(`validate-per-story-adversary-convergence` — S-12.02). Both stories merged 2026-05-07.
+
+**Phase 2 (F3-amendment, D-361/D-366):** Closes F-P2-001 (convergence hook inert in production
+due to missing wave-state→plugin_config wiring) via a generic, factory-agnostic WASM-plugin
+Context Resolver platform. ADR-018 codifies the platform architecture. 6 new stories:
+S-12.06 (HOST_ABI docs), S-12.03 (ContextResolver trait + ResolverRegistry), S-12.05
+(hook-sdk extensions), S-12.04 (WASM loading + lifecycle), S-12.07 (vsdd-context-resolvers
+crate + WaveContextResolver), S-12.08 (convergence hook migration — closes F-P2-001).
+Platform is factory-agnostic: dispatcher core knows nothing about wave/story/cycle vocabulary;
+per-factory resolvers ship in separate crates (WaveContextResolver is the first concrete resolver).
 
 This is the spiritual successor to E-7 (Process Codification): E-7 codified
 spec-first/TDD-Iron-Law discipline gaps surfaced in the S-6.01 sub-cycle; E-12
 codifies the per-story adversarial convergence gap surfaced in the
 v1.0-feature-engine-discipline-pass-1 F2 spec evolution. Pattern is identical —
-process gap identified, documented in ADR, codified into enforcement hook.
+process gap identified, documented in ADR, codified into enforcement mechanism.
 
 ## PRD Capabilities Covered
 
@@ -88,13 +97,20 @@ SS-05 artifacts (`plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows
 
 ## Stories Planned
 
-| Story | Description | Size | Subsystem | Depends On |
-|-------|-------------|------|-----------|------------|
-| S-12.01 | Workflow + agent doc updates (per-story-delivery.md Step 4.5, adversary.md scope contract, wave-gate Gate 3 narrowing, orchestrator MANDATORY STEPS reconciliation) | M | SS-05 | — |
-| S-12.02 | `validate-per-story-adversary-convergence` WASM hook (Rust crate, hooks-registry.toml registration, bats tests + cargo tests) | M | SS-04 | S-12.01 |
+| Story | Description | Size | Subsystem | Depends On | Status |
+|-------|-------------|------|-----------|------------|--------|
+| S-12.01 | Workflow + agent doc updates (per-story-delivery.md Step 4.5, adversary.md scope contract, wave-gate Gate 3 narrowing, orchestrator MANDATORY STEPS reconciliation) | M | SS-05 | — | completed |
+| S-12.02 | `validate-per-story-adversary-convergence` WASM hook (Rust crate, hooks-registry.toml registration, bats tests + cargo tests) | M | SS-04 | S-12.01 | completed |
+| S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic; ships first in Phase 2) | S | SS-01 | — | draft |
+| S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | M | SS-04 | S-12.06 | draft |
+| S-12.05 | hook-sdk resolver-authoring extensions | M | SS-04 | S-12.06 | draft |
+| S-12.04 | WASM resolver loading + lifecycle + error isolation | M | SS-04 | S-12.03 | draft |
+| S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | M | SS-04 | S-12.04, S-12.05 | draft |
+| S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | M | SS-04 | S-12.07 | draft |
 
 ## Dependency Topology (Intra-epic)
 
+**Phase 1 (completed):**
 ```
 S-12.01 (Workflow + agent docs) ──→ S-12.02 (WASM hook implementation)
 ```
@@ -102,6 +118,24 @@ S-12.01 (Workflow + agent docs) ──→ S-12.02 (WASM hook implementation)
 S-12.01 must ship first because the WASM hook (S-12.02) enforces the contract
 defined by the Step 4.5 workflow update. Implementing the hook before the workflow
 is defined would produce a gate with no documented recovery path.
+
+**Phase 2 — F3-amendment (WASM-plugin Context Resolver platform):**
+```
+S-12.06 (HOST_ABI docs) ──→ S-12.03 (ContextResolver trait + ResolverRegistry)
+                        ──→ S-12.05 (hook-sdk extensions)
+                                ↓                    ↓
+                            S-12.04 (WASM loading + lifecycle)
+                                ↓
+                            S-12.07 (vsdd-context-resolvers + WaveContextResolver)
+                                ↓
+                            S-12.08 (convergence hook migration — closes F-P2-001)
+```
+
+S-12.06 ships first (HOST_ABI docs establish the factory-agnostic context-injection
+contract; foundational, doc-only). S-12.03 and S-12.05 can proceed in parallel once
+S-12.06 is merged. S-12.04 (WASM loading) requires S-12.03 (trait definition).
+S-12.07 (concrete resolver crate) requires both S-12.04 and S-12.05.
+S-12.08 (migration) requires S-12.07 (WaveContextResolver available).
 
 ## Anchored BCs
 
@@ -111,18 +145,29 @@ is defined would produce a gate with no documented recovery path.
 | BC-5.39.002 | Adversary.md scope contract covers all three perimeters (in-story body, story boundary, wave close) | SS-05 | P0 |
 | BC-4.10.001 | validate-per-story-adversary-convergence WASM hook blocks PR merge when convergence gate unsatisfied | SS-04 | P0 |
 | BC-4.10.002 | validate-per-story-adversary-convergence degrades gracefully when convergence state file absent | SS-04 | P1 |
+| BC-1.13.001 | Dispatcher loads resolver registry + injects context before hook dispatch (SS-01) | SS-01 | P0 |
+| BC-4.12.001 | Resolver lifecycle invariant (mtime-cache load-at-startup) | SS-04 | P0 |
+| BC-4.12.002 | Resolver ABI/payload schema (ResolverInput/ResolverOutput; RESOLVER_ABI_VERSION=1) | SS-04 | P0 |
+| BC-4.12.003 | Resolver capability model (path_allow per resolver in resolvers-registry.toml) | SS-04 | P0 |
+| BC-4.12.004 | Resolver error/crash isolation | SS-04 | P0 |
+| BC-4.12.005 | Context-injection merging contract | SS-04 | P0 |
 
 ## Anchored ADRs
 
 | ADR ID | Title |
 |--------|-------|
 | ADR-017 | Per-story adversary three-perimeter model + phasing |
+| ADR-018 | WASM-plugin Context Resolver platform architecture |
 
 ## Anchored VPs
 
 | VP ID | Type | Description |
 |-------|------|-------------|
 | VP-071 | kani | Convergence block invariant: hook always returns deny when convergence flag absent |
+| VP-073 | kani | Resolver load purity (F2-amendment) |
+| VP-074 | kani | Resolver error isolation (F2-amendment) |
+| VP-075 | kani | Context-injection determinism (F2-amendment) |
+| VP-076 | kani | Resolver capability confinement (F2-amendment) |
 
 ## Relationship to E-7
 
@@ -144,3 +189,4 @@ The pattern is identical; the discipline gap is distinct.
 | Version | Date | Change |
 |---------|------|--------|
 | v1.0 | 2026-05-06 | Initial authoring for cycle v1.0-feature-engine-discipline-pass-1 as F3 prerequisite. Two stories: S-12.01 (workflow + agent docs, SS-05) + S-12.02 (WASM hook, SS-04). Anchored BCs: BC-5.39.001/002 (SS-05), BC-4.10.001/002 (SS-04). ADR: ADR-017. VP: VP-071. |
+| v1.1 | 2026-05-07 | F3-amendment (D-366): scope widened from 'per-story adversary workflow' to 'engine governance platform'. 6 new stories added (S-12.03..S-12.08; WASM-plugin Context Resolver platform). story_count 2→8. New BCs: BC-1.13.001 (SS-01) + BC-4.12.001-005 (SS-04). New ADR: ADR-018. New VPs: VP-073-076. subsystems_affected expanded to include SS-01. Dependency graph established: S-12.06 → {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08. Bootstrap pattern flipping right-side-up: S-12.03..S-12.08 are first stories in cycle history subject to Step 4.5 per-story adversary convergence. |

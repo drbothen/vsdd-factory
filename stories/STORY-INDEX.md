@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.28"
+version: "2.29"
 status: current
 producer: state-manager
 timestamp: 2026-05-07T00:00:00Z
-last_amended: "2026-05-07 (v2.28) — E-14 Engine Discipline Pass-2 added (5 stories: S-14.01 P0, S-14.02 P1, S-14.03 P2, S-14.04 P1, S-14.05 P1); PG-2 inline backfill noted; D-359"
+last_amended: "2026-05-07 (v2.29) — F3-amendment: 6 new platform stories under E-12 (S-12.03..S-12.08; WASM-plugin Context Resolver platform; 65 ACs; D-366)"
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -46,6 +46,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-263 — STORY-INDEX bumped to reflect D-263 combined implementation-readiness seal-and-fix burst (ninth TD-VSDD-064 application; TD-VSDD-074 codified — TD-VSDD-073 scope extension to BCs cited in amendment landings). Pass-20 SUBSTANTIVE 0H/2M/2L sealed. M-P20-001 closed (OQ-3 pinned `timeout_ms = 30000` + `max_output_bytes = 65536`). M-P20-002 + L-P20-002 closed (BC-1.05.036 ADR-015 awareness clause + error-path reality). BC-1.05.035 + BC-1.05.036 gained `last_amended: 2026-05-05`. L-P20-001 SKIPPED with rationale. E-9 v1.20→v1.21. ADR-013 clock 1→0_of_3 RESET. STORY-INDEX v1.69 → v1.70.
 > Updated 2026-05-05: D-264 — STORY-INDEX bumped to reflect D-264 multi-fix burst (tenth TD-VSDD-064 application; TD-VSDD-075 codified — source-code-verification + dependent-citation-propagation disciplines). Pass-21 SUBSTANTIVE 2H/3M/2L sealed. H-P21-001 BC-1.05.036 error codes -7/-8→-2/-3 (source-code verified). H-P21-002 open-questions.md line citation 325→326. M-P21-001 BC-1.05.035 ADR-015 awareness. M-P21-002 BC-1.05.036 host category corrected. M-P21-003 truncated:bool reserved semantics. 2 LOWs DEFERRED. E-9 v1.21→v1.22. ADR-013 clock 0_of_3. STORY-INDEX v1.70 → v1.71.
 > Updated 2026-05-05: D-270 — STORY-INDEX bumped to reflect D-270 combined silence-audit seal-and-fix burst (fourteenth TD-VSDD-064 application). Pass-27 SUBSTANTIVE 1H/1M/0L sealed (negative-coverage / silence audit angle NEW per TD-VSDD-057). H-P27-001 closed (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; source-truth verified ADR-015 lines 99/130/154). M-P27-001 closed (Postcondition 5 INTERNAL_ERROR (-99) enumeration added; 5 source-code line citations exec_subprocess.rs:252/258/262/267-268/299; const mod.rs:184). E-9 v1.25→v1.26. ADR-013 clock RESET 0_of_3. STORY-INDEX v1.76 → v1.77.
+> Updated 2026-05-07: D-366 — STORY-INDEX bumped to v2.29. F3-amendment: 6 new platform stories under E-12 Engine Governance (WASM-plugin Context Resolver platform). S-12.06 (HOST_ABI docs, 10 ACs), S-12.03 (ContextResolver trait + ResolverRegistry, 12 ACs), S-12.05 (hook-sdk resolver extensions, 10 ACs), S-12.04 (WASM resolver loading + lifecycle, 13 ACs), S-12.07 (vsdd-context-resolvers crate + WaveContextResolver, 10 ACs), S-12.08 (migrate convergence hook, closes F-P2-001, 10 ACs). 65 ACs total. Anchored to BC-1.13.001 + BC-4.12.001-005 + ADR-018 + VP-073-076. E-12 story count 2→8. STORY-INDEX v2.28 → v2.29.
 > Updated 2026-05-07: D-359 — STORY-INDEX bumped to v2.28. E-14 Engine Discipline Pass-2 authored (5 stories: S-14.01 P0 bootstrap convergence-state backfill PG-2, S-14.02 P1 F5 dispatch state-manager persist PG-1, S-14.03 P2 pre-F5 placeholder lint PG-3, S-14.04 P1 adversary policy-rubric injection PG-4, S-14.05 P1 pr-manager early-exit codification PG-6). PG-2 inline backfill: 3 adversary-convergence-state.json files created for S-13.01, S-12.01, S-12.02 with bootstrap_annotation. STORY-INDEX v2.27 → v2.28.
 > Updated 2026-05-07: D-352..D-355 — STORY-INDEX bumped to v2.27. F4 cycle closeout for v1.0-feature-engine-discipline-pass-1. S-12.01 (Per-story adversary workflow + agent doc updates, E-12) status draft → completed; merged to develop at 2e9b670 via PR #98 on 2026-05-07. S-12.02 (validate-per-story-adversary-convergence WASM hook, E-12) status draft → completed; merged to develop at e2fd3d4 via PR #99 on 2026-05-07 (conflict resolution at 7100431). All 3 cycle stories now MERGED. STORY-INDEX v2.26 → v2.27.
 > Updated 2026-05-07: D-350 — STORY-INDEX bumped to v2.26. S-13.01 (Path Governance Bundle, E-13) status draft → completed; merged to develop at 2c97cb0 via PR #97 on 2026-05-07. validate-artifact-path WASM hook live in block mode on develop. S-12.01 and S-12.02 unblocked from path governance dependency. STORY-INDEX v2.25 → v2.26.
@@ -156,7 +157,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **ADR-015 housekeeping follow-up burst (2026-05-04): STORY-INDEX v1.41 → v1.42.** Q2/Q3/Q4/Q5 cleanup follow-ups from prior audit. **Q2 multi-sink ecosystem annotated `deprecated_by: ADR-015`:** 6 stories tagged — S-4.01 (sink-http), S-4.02 (sink-datadog), S-4.03 (sink-honeycomb), S-4.04 (per-sink retry+CB), S-4.10 (cross-sink internal.sink_error events), S-4.09 (sink-http retry backoff — sink-coupled per investigation); S-4.05 (DLQ) SKIPPED per "skip drafts" rule (status: draft). S-4.08 (rc1 release gate) SKIPPED — release-process story, not sink-mechanism-coupled. **Q4 status-taxonomy normalized:** S-3.04 frontmatter `status: partially_shipped` → `status: partial` to align with documented status set (draft, ready, in-progress, merged, partial, blocked); STORY-INDEX row updated likewise. **Q5 ADR-015 path/anchor added:** all 6 prior-burst stories (S-3.04, S-1.04, S-1.08, S-1.09, S-4.06, S-4.07) gained a `supersession_ref: ".factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md"` frontmatter field; the 6 multi-sink stories newly annotated above also carry the same `supersession_ref`. **Q3 TD-020 logged** in `.factory/tech-debt-register.md` (line 23 + detail at line 557; P3) capturing pre-existing frontmatter↔STORY-INDEX status drift (sample: S-4.06/S-4.07 frontmatter `status: ready` while index shows merged). Status row counts: `partially_shipped` retired from taxonomy (count 1 → 0); `partial` 1 → 2.
 
 > This index is the authoritative source for story count and status.
-> 84 stories across 14 epics (E-0 through E-14). E-10 added 2026-05-04 (ADR-015 migration; 9 stories, 42 pts). E-11 added 2026-05-06 (Tier 3 WASM; 8 stories). E-12 + E-13 added 2026-05-07 (F3 engine-discipline-pass-1; 3 stories: S-12.01, S-12.02, S-13.01). E-14 added 2026-05-07 (Engine Discipline Pass-2; 5 process-gap follow-up stories: S-14.01..S-14.05).
+> 90 stories across 14 epics (E-0 through E-14). E-10 added 2026-05-04 (ADR-015 migration; 9 stories, 42 pts). E-11 added 2026-05-06 (Tier 3 WASM; 8 stories). E-12 + E-13 added 2026-05-07 (F3 engine-discipline-pass-1; 3 stories: S-12.01, S-12.02, S-13.01). E-14 added 2026-05-07 (Engine Discipline Pass-2; 5 process-gap follow-up stories: S-14.01..S-14.05). E-12 F3-amendment added 2026-05-07 (D-366; 6 platform stories: S-12.03..S-12.08).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -168,11 +169,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 57 |
 | partial | 2 |
-| draft | 22 |
+| draft | 28 |
 | ready | 0 |
 | withdrawn | 1 |
 | retired | 19 |
-| **Total (active)** | **82** |
+| **Total (active)** | **88** |
 
 > `partial`: S-2.05 (hook-sdk publish to crates.io — pre-existing); S-3.04 (status: merged → partial 2026-05-04 [normalized from earlier `partially_shipped` to align with documented taxonomy]; AC-001 Router::submit integration never wired in main.rs; superseded by ADR-015 — see LESSON-2026-05-04-001).
 
@@ -490,10 +491,18 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-12.01 | Per-story adversary workflow + agent doc updates (per-story-delivery.md + 3 agent docs) | E-12 | TBD | P1 | [S-13.01] | [S-12.02] | completed | [BC-4.10.001, BC-4.10.002, BC-5.39.001, BC-5.39.002] (9 ACs, 4-6 files, tdd_mode strict; merged 2e9b670 PR #98 2026-05-07) |
 | S-12.02 | validate-per-story-adversary-convergence WASM hook (convergence state machine + hook binary) | E-12 | TBD | P1 | [S-12.01, S-13.01] | [] | completed | [BC-4.10.001, BC-4.10.002, BC-4.11.001, BC-5.39.001, BC-5.39.002, BC-6.22.001] (14 ACs, 6 files, tdd_mode strict; merged e2fd3d4 PR #99 2026-05-07; conflict resolution at 7100431) |
+| S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | E-12 | TBD | P1 | [S-12.06] | [S-12.04, S-12.07] | draft | [BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003] (12 ACs, tdd_mode strict) |
+| S-12.04 | WASM resolver loading + lifecycle + error isolation | E-12 | TBD | P1 | [S-12.03] | [S-12.07] | draft | [BC-4.12.001, BC-4.12.003, BC-4.12.004] (13 ACs, tdd_mode strict) |
+| S-12.05 | hook-sdk resolver-authoring extensions | E-12 | TBD | P1 | [S-12.06] | [S-12.07] | draft | [BC-4.12.002, BC-4.12.003] (10 ACs, tdd_mode strict) |
+| S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic) | E-12 | TBD | P1 | [] | [S-12.03, S-12.04, S-12.05] | draft | [BC-1.13.001, BC-4.12.002] (10 ACs, tdd_mode strict; ships first — foundational doc-only) |
+| S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | E-12 | TBD | P1 | [S-12.04, S-12.05] | [S-12.08] | draft | [BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs, tdd_mode strict) |
+| S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | E-12 | TBD | P1 | [S-12.07] | [] | draft | [BC-1.13.001, BC-4.12.005] (10 ACs, tdd_mode strict) |
 
-> **E-12 delivery chain:** S-12.01 → S-12.02. Both depend on S-13.01 (E-13) shipping first.
-> Linear: S-13.01 → S-12.01 → S-12.02. OQ-9 must be resolved before F4 dispatch of S-12.02.
-> VPs: VP-069 (proptest), VP-070 (kani), VP-071 (kani), VP-072 (integration/bats).
+> **E-12 delivery chain:** S-12.01 → S-12.02 (original 2 stories, completed). F3-amendment adds 6 platform stories.
+> Platform delivery order: S-12.06 (foundation, ships first) → {S-12.03, S-12.05} parallel → S-12.04 → S-12.07 → S-12.08.
+> S-12.08 closes F-P2-001 (convergence hook inert in prod) and unblocks F5 resumption.
+> All 6 F3-amendment stories are first in cycle history subject to Step 4.5 per-story adversary convergence.
+> VPs: VP-069 (proptest), VP-070 (kani), VP-071 (kani), VP-072 (integration/bats), VP-073-076 (F2-amendment).
 
 ---
 
@@ -533,7 +542,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 300+ across 93 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 45 E-10*** + TBD S-11.00 + TBD E-11**** + TBD E-12/E-13***** + TBD E-14******)
+**Total story points:** 300+ across 99 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 45 E-10*** + TBD S-11.00 + TBD E-11**** + TBD E-12/E-13***** + TBD E-14****** + TBD E-12-F3-amendment*******)
 
 > \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
 > \*\*E-9 in progress — S-9.00 + S-9.30 authored (TBD pts each); S-9.01..S-9.07 stub entries (TBD pts pending Burst 2+3 authoring); ~50-70 additional pts estimated across 9 stories.
@@ -541,6 +550,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > \*\*\*\*E-11 authored 2026-05-06 — 8 stories (S-11.01..S-11.08; renumbered from S-11.00..S-11.07 due to POLICY 1 collision with S-11.00 verify-sha-currency.sh stub at D-297); behavioral_contracts: [] pending story-writer authorship; target v1.3.
 > \*\*\*\*\*E-12 + E-13 authored 2026-05-07 (F3 engine-discipline-pass-1) — 3 stories (S-13.01 path governance bundle 15 ACs, S-12.01 per-story adversary workflow 9 ACs, S-12.02 per-story adversary convergence hook 14 ACs); tdd_mode strict; delivery order S-13.01 → S-12.01 → S-12.02; behavioral_contracts anchored to BC-4.10.001-002, BC-4.11.001, BC-5.39.001-002, BC-6.22.001 + VPs 069/070/071/072.
 > \*\*\*\*\*\*E-14 authored 2026-05-07 (D-359 B6 burst) — 5 process-gap follow-up stories (S-14.01..S-14.05); all draft, behavioral_contracts: [] pending elaboration; process-gap source: F5 pass-1 adversarial review [process-gap] annotations + 1 orchestrator-surfaced gap (PG-6); S-14.01 PG-2 inline backfill executed in same burst (3 adversary-convergence-state.json files).
+> \*\*\*\*\*\*\*E-12 F3-amendment 2026-05-07 (D-366) — 6 new platform stories under E-12 Engine Governance (WASM-plugin Context Resolver platform): S-12.06 (HOST_ABI context-injection contract docs, 10 ACs), S-12.03 (ContextResolver trait + ResolverRegistry, 12 ACs), S-12.05 (hook-sdk resolver-authoring extensions, 10 ACs), S-12.04 (WASM resolver loading + lifecycle + error isolation, 13 ACs), S-12.07 (vsdd-context-resolvers crate + WaveContextResolver, 10 ACs), S-12.08 (migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories, 10 ACs; closes F-P2-001). 65 ACs total. tdd_mode strict. Anchored to BC-1.13.001 + BC-4.12.001-005 + ADR-018 + VP-073-076. Dependency chain: S-12.06 → {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08.
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

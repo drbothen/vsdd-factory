@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F1 COMPLETE for v1.0-feature-plugin-async-semantics-pass-1. Architect produced delta analysis (4 stories sketched, 1 ADR + 2 new BCs + 2 new VPs proposed). Awaiting human approval gate before F2 spec evolution. Engine-discipline-pass-1 paused at F3-pending."
+current_step: "F3-amendment COMPLETE for v1.0-feature-engine-discipline-pass-1 platform expansion. 6 new stories authored under E-12 (now 8 stories total in E-12): S-12.06 (HOST_ABI docs, 10 ACs), S-12.03 (ContextResolver trait + ResolverRegistry, 12 ACs), S-12.05 (hook-sdk resolver extensions, 10 ACs), S-12.04 (WASM resolver loading + lifecycle, 13 ACs), S-12.07 (vsdd-context-resolvers crate + WaveContextResolver, 10 ACs), S-12.08 (migrate convergence hook to consume wave_context, closes F-P2-001, 10 ACs). Total 65 ACs anchored to BC-1.13.001 + BC-4.12.001-005 + ADR-018 + VP-073-076. Chain: S-12.06 → {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08. Next: F4-platform delivery — S-12.06 ships first."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -106,7 +106,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-359 F5 B6 process-gap stories + PG-2 backfill** | state-manager | **COMPLETE** | E-14 Engine Discipline Pass-2 authored (5 stories: S-14.01 P0, S-14.02..S-14.04 P1, S-14.03 P2). PG-2 inline backfill: adversary-convergence-state.json created for S-13.01/S-12.01/S-12.02 with bootstrap_annotation (exception_type: cycle_self_introduction). STORY-INDEX 2.27→2.28 (84 stories, 14 epics). F7 CONVERGENCE_STATE_MISSING risk cleared. B3+B4 source PRs in flight (#103, #104). |
 | **D-360 F5 pass-2 adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 15 findings (2C/6H/4M/3L). Novelty decay 29→15. F-P2-001 CRITICAL: convergence hook inert in prod — consumer wiring present but no producer (wave-state→plugin_config not wired). F-P2-002 CRITICAL: BC-4.10.001+BC-5.39.001 VP-071 traceability rows have deprecated advisory-block wording (sibling-file regression). adv-cycle-pass-2.md persisted (395L). INDEX.md + decision-log updated. Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst. |
 | **D-362 F2-amendment integration burst** | state-manager | **COMPLETE** | 6 new BCs (BC-1.13.001 SS-01; BC-4.12.001-005 SS-04). ADR-018. 4 new VPs (VP-073-076). PRD 1.1→1.2 (FR-048). F-P2-002 fix (BC-4.10.001 v1.1 + BC-5.39.001 v1.1). BC-INDEX 1.17→1.18 (total_bcs 1937→1943; SS-01 114→115, SS-04 34→39). ARCH-INDEX 1.8→1.9 (ADR-018 added). VP-INDEX 1.4→1.5 (total_vps 72→76). Next: F3-amendment story authoring (S-12.03-S-12.08 under E-12). |
-| **plugin-async-semantics cycle open + TD register burst** | orchestrator → architect → state-manager | **COMPLETE** | F1 delta analysis authored. Cycle v1.0-feature-plugin-async-semantics-pass-1 registered in STATE.md. Engine-discipline-pass-1 flipped to PAUSED. TD-027 registered (Stop-hook async-block surfacing; medium severity, S-M effort, v1.1 target). Tech-debt register scope broadened to general deferred-work inbox. Burst-log.md created for new cycle. |
+| **D-366 F3-amendment integration burst** | state-manager | **COMPLETE** | 6 new stories under E-12 (S-12.03..S-12.08; 65 ACs; WASM-plugin Context Resolver platform). E-12 story_count 2→8. STORY-INDEX 2.28→2.29 (90 stories). E-12 epic v1.0→v1.1 (scope widened; +6 BCs +1 ADR +4 VPs). Decision-log D-366..D-369. Next: F4-platform delivery, S-12.06 ships first. |
 
 ## Identifier Conventions
 
@@ -118,15 +118,15 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 84 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 90 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 14 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 18 |
 
-## Story Status (84 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13 registered; E-14 registered 2026-05-07; F4 COMPLETE)
+## Story Status (90 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14 registered; E-12 F3-amendment 6 stories added D-366; F4 COMPLETE)
 
 - **Merged (61):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (17):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359)
+- **Draft (23):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)
@@ -147,7 +147,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | PAUSED | F2 sealed (D-362); F3 deferred while plugin-async-semantics cycle runs. Resume after human-review gate clears for plugin-async-semantics. See `cycles/v1.0-feature-engine-discipline-pass-1/` |
+| v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | F1 COMPLETE → human-review-gate | Plugin async semantics — partition belongs at registry layer; defeats silent-block bleed observed in prism audit. Architect delta analysis complete. 4 stories sketched, 1 ADR + 2 BCs + 2 VPs proposed. Awaiting human approval before F2. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
 
 ## Decisions Log
@@ -172,7 +172,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — plugin-async-semantics cycle opened. F1 delta analysis authored by architect at `cycles/v1.0-feature-plugin-async-semantics-pass-1/F1-delta-analysis.md`. 4 stories sketched (dispatcher partition, plugin classification, envelope flip, CI lint invariant). 1 ADR + 2 BCs + 2 VPs proposed for F2. Engine-discipline-pass-1 paused (F2 sealed D-362; F3 deferred). TD-027 registered (Stop-hook async-block surfacing). Tech-debt register scope broadened to general deferred-work inbox. Awaiting human approval gate before F2 spec evolution on plugin-async-semantics.
+**Last update:** 2026-05-07 — D-366 F3-amendment COMPLETE. 6 new stories (S-12.03..S-12.08) under E-12 Engine Governance; 65 ACs; WASM-plugin Context Resolver platform (BC-1.13.001 + BC-4.12.001-005 + ADR-018 + VP-073-076). E-12 story_count 2→8. STORY-INDEX 2.28→2.29 (90 stories). Decision-log D-366..D-369 appended. Next: F4-platform delivery, S-12.06 first.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
@@ -186,9 +186,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.18 | **VP-INDEX:** v1.5 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.9
+**BC-INDEX:** v1.18 | **VP-INDEX:** v1.5 | **STORY-INDEX:** v2.29 | **ARCH-INDEX:** v1.9
 
-**ACTIVE STEP: Human review gate for v1.0-feature-plugin-async-semantics-pass-1 F1 delta analysis. Human must approve before F2 spec evolution (product-owner + architect dispatch). Engine-discipline-pass-1 paused; F3-amendment (S-12.03..S-12.08) resumes after plugin-async-semantics cycle clears.**
+**ACTIVE STEP: F4-platform delivery for v1.0-feature-engine-discipline-pass-1. Dispatch story-writer/implementer for S-12.06 first (HOST_ABI docs; foundational, doc-only). Dependency chain: S-12.06 → {S-12.03, S-12.05} parallel → S-12.04 → S-12.07 → S-12.08. All 6 stories subject to Step 4.5 per-story adversary convergence. S-12.08 closes F-P2-001 → unblocks F5 resumption.**
 
 **F5 pickup (post-amendment):** After F1/F2/F3/F4 amendment cycle completes, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
