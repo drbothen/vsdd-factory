@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-12.06 MERGED PR #105 at 15432c6 (D-376, 2026-05-07). First E-12 platform story. Step 4.5 converged D-375 (decay 5→3→2→0→0→0; 6 passes). S-12.03 + S-12.05 in flight (parallel, unblocked by S-12.06 foundation)."
+current_step: "F2 SPECS AUTHORED for v1.0-feature-plugin-async-semantics-pass-1. New: BC-1.14.001, BC-7.06.001, ADR-019, VP-077, VP-078. Amended: 7 BCs, 2 VPs. Awaiting F2 adversarial spec convergence (≥3 NITPICK_ONLY passes per ADR-013)."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (plugin-async-semantics cycle opened; engine-discipline-pass-1 paused; TD-027 registered; register scope broadened) |
-| **Current Phase** | F1 COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; awaiting human review gate before F2 |
+| **Last Updated** | 2026-05-07 (F2 specs authored: ADR-019 + BC-1.14.001 + BC-7.06.001 + VP-077 + VP-078; 7 BCs + 2 VPs amended; async semantics at registry layer) |
+| **Current Phase** | F2 SPECS AUTHORED — v1.0-feature-plugin-async-semantics-pass-1; adversarial spec convergence pending (≥3 NITPICK_ONLY passes per ADR-013) |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -92,36 +92,25 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| *(earlier steps archived to cycles/v1.0-brownfield-backfill/burst-log.md)* | | | |
-| **D-337 state-manager seal — pass-8 fix-cycle** | state-manager | **COMPLETE** | BC-INDEX 1.13→1.14 (16 BC version pins); STORY-INDEX 2.22→2.23 (S-10.05 1.4→1.5); E-10-pass-8.md created; STATE.md + lessons.md sealed. Pass-9 is next dispatch (PAUSED). |
-| **D-340 F2 spec evolution — engine-discipline-pass-1** | product-owner + architect + state-manager | **COMPLETE** | 6 BCs (BC-5.39.001/002 SS-05; BC-4.10.001/002 + BC-4.11.001 SS-04; BC-6.22.001 SS-06). ADR-016 + ADR-017. VP-069..072. PRD 1.0→1.1 (FR-047). BC-INDEX 1.14→1.15; ARCH-INDEX 1.7→1.8; VP-INDEX 1.0→1.1. total_bcs 1931→1937. current_cycle flipped. Next: F3 (3 stories: C path governance, A workflow+agent docs, B WASM hook). |
-| **E-11 authoring + indexing burst (orphan-hook anchor) — D-11.7** | product-owner (E-11 epic) + state-manager (indexing) | **COMPLETE** | E-11 epic v1.0/draft authored (491L; 8 stories S-11.01..S-11.08; target v1.3); collision resolved: S-11.00 already registered as verify-sha-currency.sh stub (D-297); E-11 stories renumbered +1 (S-11.01..S-11.08); STORY-INDEX 2.23→2.24 (8 new rows + 8 pointer updates S-8.20–S-8.27 re-pointed to E-11); E-11 frontmatter story_count corrected 7→8. |
-| **E-11 epic v1.1 amendment — sync body to STORY-INDEX renumber** | product-owner (epic body) + state-manager (commit) | **COMPLETE (25b3c20)** | E-11 epic body v1.0→v1.1: all live story-pointer refs renumbered S-11.00..S-11.07 → S-11.01..S-11.08 to match STORY-INDEX (14bb9c4). CHANGELOG v1.1 entry + narrative appended. Verification: zero live S-11.00 refs; dependency graph topology preserved. No semantic changes. |
-| **D-349 F3 story decomposition — v1.0-feature-engine-discipline-pass-1** | product-owner (epics E-12/E-13) + story-writer (S-13.01/S-12.01/S-12.02) + state-manager (indexing + commit) | **COMPLETE** | E-12 Engine Governance (S-12.01/S-12.02) + E-13 Artifact Integrity (S-13.01). 38 ACs total. Linear: S-13.01→S-12.01→S-12.02. All tdd_mode strict. STORY-INDEX 2.24→2.25. D-345..D-348 logged. OQ-9 surfaced (VP-071 vs BC-4.10.001 discrepancy; pre-F4 gate). |
-| **D-350 S-13.01 merged — state update post-merge** | state-manager | **COMPLETE** | S-13.01 (Path Governance Bundle, E-13) merged to develop at 2c97cb0 (PR #97, 2026-05-07). validate-artifact-path WASM hook live in block mode. sprint-state.yaml S-13.01 → completed; STORY-INDEX 2.25→2.26 (S-13.01 draft→completed); STATE.md F4 IN PROGRESS; decision-log D-350+D-351 appended. S-12.01 + S-12.02 unblocked. |
-| **D-352..D-355 F4 closeout — S-12.01 + S-12.02 merged** | state-manager | **COMPLETE** | S-12.01 merged at 2e9b670 (PR #98, 2026-05-07): 31/31 bats, CLEAN security, 1-cycle convergence. S-12.02 merged at e2fd3d4 (PR #99, 2026-05-07): 148KB WASM, SubagentStop priority 960, 30/30 cargo + 11+1skip bats, conflict resolution at 7100431. sprint-state.yaml S-12.01+S-12.02 → completed; STORY-INDEX 2.26→2.27; STATE.md F4 COMPLETE; decision-log D-352..D-355 appended. Next: F5. |
-| **D-356 F5 pass-1 — adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 29 findings (4C/14H/6M/5L). adv-cycle-pass-1.md persisted (65KB, 704L). 2 [process-gap] observations surfaced. INDEX.md + decision-log updated. Next: route findings via fix-pr-delivery; pass-2 after remediation. |
-| **D-357 F5 pass-1 B1 spec amendments** | state-manager | **COMPLETE** | VP-071 v1.1→v1.2 (BlockWithFix→Block; F-CRIT-3/F-HIGH-5/F-MED-7). BC-4.11.001 v1.0→v1.1 (NC-1 single-segment semantics). 6 BC input-hashes → 40a6fb6 (F-LOW-5). ADR-017 slug fixed in S-12.01, S-12.02, E-12 (F-CRIT-2). BC-INDEX 1.15→1.16; VP-INDEX 1.2→1.3. B1 source fix PR in flight. |
-| **D-358 F5 pass-1 B2 spec amendments** | state-manager | **COMPLETE** | BC-4.10.002 v1.0→v1.1 (PC3 log_debug→log_info; F-HIGH-4). VP-070 v1.0→v1.1 (match_path→matches_canonical, BC-4.11.001 resolved, MatchResult/PathRegistry types corrected; F-HIGH-10). S-13.01 terminology (parse_registry→load_registry, match_path→matches_canonical; F-HIGH-9). S-12.02 block_with_fix throughout (F-HIGH-12). BC-INDEX 1.16→1.17; VP-INDEX 1.3→1.4. B2 source fix PR in flight. |
-| **D-359 F5 B6 process-gap stories + PG-2 backfill** | state-manager | **COMPLETE** | E-14 Engine Discipline Pass-2 authored (5 stories: S-14.01 P0, S-14.02..S-14.04 P1, S-14.03 P2). PG-2 inline backfill: adversary-convergence-state.json created for S-13.01/S-12.01/S-12.02 with bootstrap_annotation (exception_type: cycle_self_introduction). STORY-INDEX 2.27→2.28 (84 stories, 14 epics). F7 CONVERGENCE_STATE_MISSING risk cleared. B3+B4 source PRs in flight (#103, #104). |
-| **D-360 F5 pass-2 adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 15 findings (2C/6H/4M/3L). Novelty decay 29→15. F-P2-001 CRITICAL: convergence hook inert in prod — consumer wiring present but no producer (wave-state→plugin_config not wired). F-P2-002 CRITICAL: BC-4.10.001+BC-5.39.001 VP-071 traceability rows have deprecated advisory-block wording (sibling-file regression). adv-cycle-pass-2.md persisted (395L). INDEX.md + decision-log updated. Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst. |
+| *(earlier steps archived to cycles/v1.0-brownfield-backfill/burst-log.md and cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md)* | | | |
 | **D-362 F2-amendment integration burst** | state-manager | **COMPLETE** | 6 new BCs (BC-1.13.001 SS-01; BC-4.12.001-005 SS-04). ADR-018. 4 new VPs (VP-073-076). PRD 1.1→1.2 (FR-048). F-P2-002 fix (BC-4.10.001 v1.1 + BC-5.39.001 v1.1). BC-INDEX 1.17→1.18 (total_bcs 1937→1943; SS-01 114→115, SS-04 34→39). ARCH-INDEX 1.8→1.9 (ADR-018 added). VP-INDEX 1.4→1.5 (total_vps 72→76). Next: F3-amendment story authoring (S-12.03-S-12.08 under E-12). |
 | **D-366 F3-amendment integration burst** | state-manager | **COMPLETE** | 6 new stories under E-12 (S-12.03..S-12.08; 65 ACs; WASM-plugin Context Resolver platform). E-12 story_count 2→8. STORY-INDEX 2.28→2.29 (90 stories). E-12 epic v1.0→v1.1 (scope widened; +6 BCs +1 ADR +4 VPs). Decision-log D-366..D-369. Next: F4-platform delivery, S-12.06 ships first. |
 | **D-376 S-12.06 merged — Step 9 state update** | state-manager | **COMPLETE** | S-12.06 (HOST_ABI Context Injection Contract) MERGED via PR #105 at 15432c6 (2026-05-07). First E-12 platform story. First in cycle history to complete Step 4.5 per-story adversary convergence (D-375; 6 passes; decay 5→3→2→0→0→0). sprint-state.yaml + STORY-INDEX 2.29→2.30 + decision-log D-376 updated. Next: S-12.03 + S-12.05 in parallel. |
+| **F2 spec evolution — plugin-async-semantics-pass-1** | product-owner + architect + state-manager | **COMPLETE** | ADR-019 accepted (async semantics at registry layer; hard cut, no backcompat). BC-1.14.001 (dispatcher partition contract). BC-7.06.001 (registry schema v2 + CI lint). VP-077 (partition correctness, Kani). VP-078 (CI lint invariant, integration). 7 BCs amended (envelope sync; schema v2 gates). 2 VPs amended (scope to sync group). BC-INDEX 1.18→1.19; ARCH-INDEX 1.9→1.10; VP-INDEX 1.5→1.6. Adversarial convergence next (≥3 NITPICK_ONLY). |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,943 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 76 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,945 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 78 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 90 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 14 |
-| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 18 |
+| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 19 |
 
 ## Story Status (90 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14 registered; E-12 F3-amendment 6 stories added D-366; F4 COMPLETE)
 
@@ -149,7 +138,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F1 COMPLETE → human-review-gate | Plugin async semantics — partition belongs at registry layer; defeats silent-block bleed observed in prism audit. Architect delta analysis complete. 4 stories sketched, 1 ADR + 2 BCs + 2 VPs proposed. Awaiting human approval before F2. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F2 SPECS AUTHORED → adversarial convergence pending | ADR-019 accepted (async at registry layer; hard cut). BC-1.14.001 (dispatcher partition contract) + BC-7.06.001 (schema v2 + CI lint) ratified. VP-077 (Kani) + VP-078 (integration lint) sealed. 7 BCs + 2 VPs amended (envelope sync). Adversarial convergence (≥3 NITPICK_ONLY) before F3. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
 
 ## Decisions Log
 
@@ -187,7 +176,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.18 | **VP-INDEX:** v1.5 | **STORY-INDEX:** v2.30 | **ARCH-INDEX:** v1.9
+**BC-INDEX:** v1.19 | **VP-INDEX:** v1.6 | **STORY-INDEX:** v2.30 | **ARCH-INDEX:** v1.10
 
 **ACTIVE STEP: F4-platform delivery for v1.0-feature-engine-discipline-pass-1. S-12.06 MERGED (D-376). Now dispatching S-12.03 (ContextResolver trait + ResolverRegistry) + S-12.05 (hook-sdk resolver extensions) in parallel. Dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08. All remaining stories subject to Step 4.5 per-story adversary convergence. S-12.08 closes F-P2-001 → unblocks F5 resumption.**
 

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,8 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: draft
 introduced: v1.0.0-rc.1
-modified: [v1.1-adv-s5.04-p01, v1.2-adv-s5.04-p02]
+modified: [v1.1-adv-s5.04-p01, v1.2-adv-s5.04-p02, v1.3-async-semantics-F2-2026-05-07]
+last_amended: "2026-05-07 (v1.0-feature-plugin-async-semantics-pass-1 cycle F2; see ADR-019)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,11 +27,11 @@ removed: null
 removal_reason: null
 ---
 
-# BC-4.08.002: hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); async:true; timeout:10000
+# BC-4.08.002: hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); synchronous envelope (async:true removed per ADR-019); timeout:10000
 
 ## Description
 
-The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `PostToolUseFailure` entry in its `hooks` object. The entry's `command` field routes to the **dispatcher binary** (`${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`), not directly to a WASM plugin filename. This is Layer 1 of the dual-routing-tables pattern per ADR-011. Critically, PostToolUseFailure MUST NOT carry `once: true` — PostToolUseFailure fires once per tool failure event from Claude Code, and suppression would silently drop legitimate tool error events. The `once` key MUST be absent (defensive omission, same pattern as WorktreeCreate/WorktreeRemove per BC-4.07.003). The entry has `async: true` and `timeout: 10000`. Per-platform variants (`hooks.json.darwin-arm64`, `hooks.json.darwin-x64`, `hooks.json.linux-arm64`, `hooks.json.linux-x64`, `hooks.json.windows-x64`) must be regenerated from the template via `scripts/generate-hooks-json.sh` after every template change (EC-003).
+The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `PostToolUseFailure` entry in its `hooks` object. The entry's `command` field routes to the **dispatcher binary** (`${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`), not directly to a WASM plugin filename. This is Layer 1 of the dual-routing-tables pattern per ADR-011. Critically, PostToolUseFailure MUST NOT carry `once: true` — PostToolUseFailure fires once per tool failure event from Claude Code, and suppression would silently drop legitimate tool error events. The `once` key MUST be absent (defensive omission, same pattern as WorktreeCreate/WorktreeRemove per BC-4.07.003). Per ADR-019, `async: true` is REMOVED — the Claude Code envelope is uniformly synchronous. The entry has `timeout: 10000`. Per-platform variants must be regenerated from the template via `scripts/generate-hooks-json.sh` after every template change (EC-003).
 
 ## Preconditions
 
@@ -42,7 +43,7 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Pos
 1. `hooks.json.template` contains a `PostToolUseFailure` key in its top-level `hooks` object.
 2. The entry's `command` field references the dispatcher binary path: `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`. The entry does NOT reference `tool-failure-hooks.wasm` or any WASM plugin filename directly (per ADR-011 layer separation).
 3. The `PostToolUseFailure` hook entry does NOT carry a `once` key at all. **The `once` key MUST be absent** (not `once: false`, not `once: true`, not `once: "false"` — key must not exist). PostToolUseFailure fires per-failure from Claude Code; the `once` key is inapplicable. Claude Code's default semantics treat absence as re-firable (fires for each occurrence); explicit `false` semantics are unspecified — defensive omission protects against future Claude Code parser changes. This is the same pattern as WorktreeCreate/WorktreeRemove (BC-4.07.003), and differs from SessionStart/SessionEnd (which use `once: true`).
-4. The `PostToolUseFailure` hook entry has `async: true`.
+4. The `PostToolUseFailure` hook entry does NOT have an `async` key. The `async` key is ABSENT from the entry (per ADR-019: all hook envelopes are synchronous; async classification belongs in `hooks-registry.toml`).
 5. The entry has `timeout: 10000`. This is the Claude Code harness timeout (ms). The dispatcher's per-call budget is `timeout_ms = 5000` (BC-4.08.003 Postcondition 3), preserving the timeout hierarchy: dispatcher timeout (5000ms) < harness timeout (10000ms).
 6. The entry follows the array-of-objects schema: `template["hooks"]["PostToolUseFailure"]` is an array; each element is an object with a nested `hooks` array; each nested entry has `type = "command"` and `command` = dispatcher binary path.
 
@@ -67,7 +68,7 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Pos
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Parse `hooks.json.template`; inspect `hooks.PostToolUseFailure[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once` key MUST BE ABSENT (not `false`, not any value — key must not exist); `async: true` present; no reference to `.wasm` filename in `command` field | happy-path |
+| Parse `hooks.json.template`; inspect `hooks.PostToolUseFailure[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once` key MUST BE ABSENT; **`async` key MUST BE ABSENT** (per ADR-019); no reference to `.wasm` filename in `command` field | happy-path |
 | Parse `hooks.json.template`; inspect `hooks.PostToolUseFailure[0].hooks[0].timeout` | Value equals `10000` (harness timeout ms) | happy-path (timeout hierarchy) |
 | `hooks.json.template` is missing `PostToolUseFailure` key | No PostToolUseFailure entry in `template["hooks"]`; dispatcher never invoked for PostToolUseFailure events | error (missing key) |
 | `hooks.json.template` has `once: true` on `PostToolUseFailure` entry | VP-068 assertion `once key absent` fails; per-failure semantics violated | error (once:true) |
@@ -116,6 +117,17 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-05-07 | product-owner | Async-semantics cycle F2 (ADR-019): `async: true` removed from PostToolUseFailure entry; envelope is now synchronous; `async` key MUST BE ABSENT; H1 title updated; Postcondition 4 updated; Canonical Test Vector updated |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (HIGH-P01-001) CAP-013 → CAP-002; failure-path is part of the lifecycle hooks family per S-5.01 arch-decision; consistent with sibling BCs BC-4.07.001–004. + state-manager pre-commit cleanup: Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.04 foundation burst). Promoted from v1.1 BC candidate BC-4.08.002 in legacy story. `once` key ABSENT (not `once: false` — defensive omission per BC-4.07.003 pattern). Platform variant regeneration requirement (EC-003) explicitly documented per S-5.03 PR-cycle-1 lesson. |
+
+## Amendment 2026-05-07
+
+**Cycle:** v1.0-feature-plugin-async-semantics-pass-1 (F2). **ADR:** ADR-019.
+
+**Delta:** `async: true` removed from the `PostToolUseFailure` hook entry in `hooks.json.template`. Per ADR-019, all Claude Code hook envelopes are uniformly synchronous. The original `async: true` caused the dispatcher's block verdicts for PostToolUseFailure hooks to be discarded by Claude Code.
+
+**User decision:** "Every Claude Code hook event must be sync at the envelope. No per-event carve-outs." PostToolUseFailure is not exempt.
+
+**Changes:** H1 title updated; Description updated; Postcondition 4 updated (`async` key absent); Canonical Test Vector updated.

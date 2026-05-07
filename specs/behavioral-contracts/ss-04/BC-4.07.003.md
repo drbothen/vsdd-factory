@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.1"
+version: "v1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,8 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.1-adv-s5.03-p01]
+modified: [v1.1-adv-s5.03-p01, v1.2-async-semantics-F2-2026-05-07]
+last_amended: "2026-05-07 (v1.0-feature-plugin-async-semantics-pass-1 cycle F2; see ADR-019)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,7 +27,7 @@ removed: null
 removal_reason: null
 ---
 
-# BC-4.07.003: hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); async:true; timeout:10000
+# BC-4.07.003: hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); synchronous envelope (async:true removed per ADR-019); timeout:10000
 
 ## Description
 
@@ -43,7 +44,7 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain both a
 2. `hooks.json.template` contains a `WorktreeRemove` key in its top-level `hooks` object.
 3. Each entry's `command` field references the dispatcher binary path: `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`. Neither entry references `worktree-hooks.wasm` or any WASM plugin filename directly (per ADR-011 layer separation).
 4. Neither `WorktreeCreate` nor `WorktreeRemove` hook entries carry a `once` key at all. **The `once` key MUST be absent** (not `once: false`, not `once: "false"`). Worktree events can re-fire (e.g., on Claude Code reconnect after disconnect). Claude Code's default semantics treat absence as re-firable; explicit `false` semantics are unspecified — defensive omission protects against future Claude Code parser changes. This is a deliberate departure from the SessionStart/SessionEnd pattern (which use `once: true`).
-5. Both `WorktreeCreate` and `WorktreeRemove` hook entries have `async: true`.
+5. The `async` key is ABSENT from both `WorktreeCreate` and `WorktreeRemove` hook entries (per ADR-019: all hook envelopes are synchronous; async classification belongs in `hooks-registry.toml`).
 6. Both entries have `timeout: 10000`. This is the Claude Code harness timeout (ms). The dispatcher's per-call budget is `timeout_ms = 5000` (BC-4.07.004 Postcondition 3), preserving the timeout hierarchy: dispatcher timeout (5000ms) < harness timeout (10000ms).
 7. Each entry follows the array-of-objects schema: `template["hooks"]["WorktreeCreate"]` is an array; each element is an object with a nested `hooks` array; each nested entry has `type = "command"` and `command` = dispatcher binary path. Same for `WorktreeRemove`.
 
@@ -68,8 +69,8 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain both a
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Parse `hooks.json.template`; inspect `hooks.WorktreeCreate[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once` key MUST BE ABSENT (not `false`, not any value — key must not exist); `async: true` present; no reference to `.wasm` filename in `command` field | happy-path (WorktreeCreate) |
-| Parse `hooks.json.template`; inspect `hooks.WorktreeRemove[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once` key MUST BE ABSENT (not `false`, not any value — key must not exist); `async: true` present; no reference to `.wasm` filename in `command` field | happy-path (WorktreeRemove) |
+| Parse `hooks.json.template`; inspect `hooks.WorktreeCreate[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once` key MUST BE ABSENT; **`async` key MUST BE ABSENT** (per ADR-019); no reference to `.wasm` filename in `command` field | happy-path (WorktreeCreate) |
+| Parse `hooks.json.template`; inspect `hooks.WorktreeRemove[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once` key MUST BE ABSENT; **`async` key MUST BE ABSENT** (per ADR-019); no reference to `.wasm` filename in `command` field | happy-path (WorktreeRemove) |
 | Parse `hooks.json.template`; inspect `hooks.WorktreeCreate[0].hooks[0].timeout` | Value equals `10000` (harness timeout ms) | happy-path (timeout hierarchy) |
 | `hooks.json.template` is missing `WorktreeCreate` key | No WorktreeCreate entry in `template["hooks"]`; dispatcher never invoked for WorktreeCreate events | error (missing key) |
 | `hooks.json.template` has `once: true` on `WorktreeCreate` entry | VP-067 assertion `once != true` fails; worktree re-fire semantics violated | error (once:true) |
@@ -118,5 +119,16 @@ VP-067
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-05-07 | product-owner | Async-semantics cycle F2 (ADR-019): `async: true` removed from WorktreeCreate and WorktreeRemove entries; envelope is now synchronous; `async` key MUST BE ABSENT; H1 title updated; Postcondition 5 updated; Canonical Test Vectors updated |
 | v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (HIGH-002) `once` key absence pinned — "once key MUST be absent" replaces "omitting once is equivalent to once:false"; H1 title updated to reflect "once key ABSENT"; test vectors and invariants clarified; once:false references in prose replaced with unambiguous "once key must not exist" language |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.03 foundation burst) |
+
+## Amendment 2026-05-07
+
+**Cycle:** v1.0-feature-plugin-async-semantics-pass-1 (F2). **ADR:** ADR-019.
+
+**Delta:** `async: true` removed from both `WorktreeCreate` and `WorktreeRemove` hook entries in `hooks.json.template`. Per ADR-019, all Claude Code hook envelopes are uniformly synchronous. The original `async: true` on these events caused the dispatcher's exit code to be discarded by Claude Code for WorktreeCreate/WorktreeRemove hooks. With the synchronous envelope, the dispatcher's verdict (exit 0 or exit 2) is now observable by Claude Code.
+
+**User decision:** "Every Claude Code hook event must be sync at the envelope. No per-event carve-outs." WorktreeCreate and WorktreeRemove are not exempt.
+
+**Changes:** H1 title updated; Description updated; Postcondition 5 updated (`async` key absent); Canonical Test Vectors updated (both WorktreeCreate and WorktreeRemove rows).

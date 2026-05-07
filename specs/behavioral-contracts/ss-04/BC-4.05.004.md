@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "2.0"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +17,8 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2]
+modified: [v1.0-pass-1, v1.0-pass-2, v2.0-async-semantics-F2-2026-05-07]
+last_amended: "2026-05-07 (v1.0-feature-plugin-async-semantics-pass-1 cycle F2; see ADR-019)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,11 +27,11 @@ removed: null
 removal_reason: null
 ---
 
-# BC-4.05.004: hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and async:true
+# BC-4.05.004: hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019)
 
 ## Description
 
-The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `SessionEnd` entry in its `hooks` object whose `command` field routes to the **dispatcher binary** (`${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`), not directly to a WASM plugin filename. This is Layer 1 of the dual-routing-tables pattern per ADR-011: `hooks.json.template` is the Claude Code harness wiring document and knows only about the dispatcher binary. The dispatcher, once invoked, reads `hooks-registry.toml` (BC-4.05.005 — Layer 2) to route the `SessionEnd` event to `session-end-telemetry.wasm`. The `once: true` and `async: true` flags are set on the `SessionEnd` hook entry. This mirrors BC-4.04.004 exactly, applied to `SessionEnd`.
+The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `SessionEnd` entry in its `hooks` object whose `command` field routes to the **dispatcher binary** (`${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`), not directly to a WASM plugin filename. This is Layer 1 of the dual-routing-tables pattern per ADR-011: `hooks.json.template` is the Claude Code harness wiring document and knows only about the dispatcher binary. The dispatcher, once invoked, reads `hooks-registry.toml` (BC-4.05.005 — Layer 2) to route the `SessionEnd` event to `session-end-telemetry.wasm`. The `once: true` flag is set on the `SessionEnd` hook entry. Per ADR-019, `async: true` is REMOVED — the Claude Code envelope is uniformly synchronous for all event types. This mirrors BC-4.04.004 (amended), applied to `SessionEnd`.
 
 ## Preconditions
 
@@ -41,7 +42,7 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Ses
 
 1. `hooks.json.template` contains a `SessionEnd` key in its top-level `hooks` object.
 2. The `SessionEnd` entry's `command` field in the nested `hooks` array references the dispatcher binary path: `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}`. It does NOT reference `session-end-telemetry.wasm` or any other WASM plugin filename (per ADR-011 layer separation).
-3. The `SessionEnd` hook entry has `once: true` AND `async: true` set.
+3. The `SessionEnd` hook entry has `once: true`. The `async` key is ABSENT from the entry (per ADR-019: all hook envelopes are synchronous; async classification belongs in `hooks-registry.toml`). The `session-end-telemetry` plugin is classified `async = true` in `hooks-registry.toml` (BC-7.06.001 Postcondition 7).
 4. The entry follows the array-of-objects schema: `template["hooks"]["SessionEnd"]` is an array; each element is an object with a nested `hooks` array; each nested entry has `type = "command"` and `command` = dispatcher binary path.
 5. The `SessionEnd` hook entry has `timeout: 10000`. This is the Claude Code harness timeout (ms). For `SessionEnd`, the dispatcher timeout is 5000ms (BC-4.05.005 Postcondition 4); the harness timeout of 10000ms provides adequate headroom above the dispatcher budget, preserving the timeout hierarchy: dispatcher timeout (5000ms) < harness timeout (10000ms).
 
@@ -63,7 +64,7 @@ The shipped `plugins/vsdd-factory/hooks/hooks.json.template` must contain a `Ses
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Parse `hooks.json.template`; inspect `hooks.SessionEnd[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once: true` present; `async: true` present; no reference to `.wasm` filename in `command` field | happy-path |
+| Parse `hooks.json.template`; inspect `hooks.SessionEnd[0].hooks[0]` | `command` field contains `factory-dispatcher`; `once: true` present; **`async` key ABSENT** (per ADR-019); no reference to `.wasm` filename in `command` field | happy-path |
 | Parse `hooks.json.template`; inspect `hooks.SessionEnd[0].hooks[0].command` | Value matches pattern `${CLAUDE_PLUGIN_ROOT}/hooks/dispatcher/bin/{{PLATFORM}}/factory-dispatcher{{EXE_SUFFIX}}` (placeholder-unsubstituted form) | happy-path (dispatcher binary routing) |
 | Parse `hooks.json.template`; inspect `hooks.SessionEnd[0].hooks[0].timeout` | Value equals `10000` (harness timeout ms; must exceed dispatcher per-call budget of 5000ms per ADR-011 timeout hierarchy) | happy-path (timeout hierarchy) |
 | `hooks.json.template` is missing `SessionEnd` key | No SessionEnd entry in `template["hooks"]`; dispatcher never invoked for SessionEnd events | error (missing key) |
@@ -106,3 +107,13 @@ VP-066
 | Architecture Module | SS-07 — `plugins/vsdd-factory/hooks/hooks.json.template` (harness wiring); SS-04 contracts SessionEnd routing semantics within this file |
 | Stories | S-5.02 |
 | Functional Requirement | FR-046 |
+
+## Amendment 2026-05-07
+
+**Cycle:** v1.0-feature-plugin-async-semantics-pass-1 (F2). **ADR:** ADR-019.
+
+**Delta:** `async: true` removed from the `SessionEnd` hook entry in `hooks.json.template`. Mirrors BC-4.04.004 Amendment 2026-05-07 (SessionStart). Per ADR-019, all Claude Code hook envelopes are uniformly synchronous; async classification for `session-end-telemetry` lives in `hooks-registry.toml` (BC-7.06.001).
+
+**User decision:** "Every Claude Code hook event must be sync at the envelope. No per-event carve-outs." SessionEnd is not exempt.
+
+**Changes:** H1 title updated; Description updated; Postcondition 3 updated (`async` key absent); Canonical Test Vector updated.
