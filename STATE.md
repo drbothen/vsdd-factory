@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F3-amendment COMPLETE for v1.0-feature-engine-discipline-pass-1 platform expansion. 6 new stories authored under E-12 (now 8 stories total in E-12): S-12.06 (HOST_ABI docs, 10 ACs), S-12.03 (ContextResolver trait + ResolverRegistry, 12 ACs), S-12.05 (hook-sdk resolver extensions, 10 ACs), S-12.04 (WASM resolver loading + lifecycle, 13 ACs), S-12.07 (vsdd-context-resolvers crate + WaveContextResolver, 10 ACs), S-12.08 (migrate convergence hook to consume wave_context, closes F-P2-001, 10 ACs). Total 65 ACs anchored to BC-1.13.001 + BC-4.12.001-005 + ADR-018 + VP-073-076. Chain: S-12.06 → {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08. Next: F4-platform delivery — S-12.06 ships first."
+current_step: "S-12.06 Step 4.5 CONVERGED (D-375, 2026-05-07). 3/3 NITPICK_ONLY passes; decay 5→3→2→0→0→0; passes_clean=3; 5 findings deferred to wave-gate/phase-5. Advancing to Step 5 (demo recording). F4-platform delivery in progress: S-12.06 → {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
