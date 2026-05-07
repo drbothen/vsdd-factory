@@ -1,0 +1,4 @@
+# Artifact Path Registry — single source of truth for canonical .factory/ artifact locations
+# See ADR-016. S-13.01 Step 4 implementer fills this in.
+version: 1
+artifact_types: []

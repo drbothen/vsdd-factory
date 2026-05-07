@@ -3552,6 +3552,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "validate-artifact-path"
+version = "0.0.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "validate-pr-review-posted"
 version = "0.0.1"
 dependencies = [
