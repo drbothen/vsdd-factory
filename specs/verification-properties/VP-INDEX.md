@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-05-07T00:00:00

@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F3 complete for v1.0-feature-engine-discipline-pass-1. Epics E-12 (Engine Governance, 2 stories) and E-13 (Artifact Integrity, 1 story) created. Stories S-13.01 (path governance bundle, 15 ACs), S-12.01 (per-story adversary workflow, 9 ACs), S-12.02 (per-story adversary convergence WASM hook, 14 ACs) authored. Linear delivery order: S-13.01 → S-12.01 → S-12.02. All tdd_mode strict. Total 38 ACs anchored to BC-4.10.001-002, BC-4.11.001, BC-5.39.001-002, BC-6.22.001 + VPs 069/070/071/072. Next: F4 TDD implementation, beginning with S-13.01 (path governance) which has hard sequencing as block-mode hook."
+current_step: "F3 complete for v1.0-feature-engine-discipline-pass-1. Epics E-12 (Engine Governance, 2 stories) and E-13 (Artifact Integrity, 1 story) created. Stories S-13.01 (path governance bundle, 15 ACs), S-12.01 (per-story adversary workflow, 9 ACs), S-12.02 (per-story adversary convergence WASM hook, 14 ACs) authored. Linear delivery order: S-13.01 → S-12.01 → S-12.02. All tdd_mode strict. Total 38 ACs anchored to BC-4.10.001-002, BC-4.11.001, BC-5.39.001-002, BC-6.22.001 + VPs 069/070/071/072. OQ-9 (BC-4.10.001 vs VP-071 hook semantics) resolved by VP-071 v1.0→v1.1 amendment to canonical block_with_fix pattern (D-349). F4 entry gate clear. Next: F4 TDD implementation, beginning with S-13.01 (path governance) which has hard sequencing as block-mode hook."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
