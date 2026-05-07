@@ -928,8 +928,11 @@ event = "SubagentStop"
 plugin = "hook-plugins/validate-per-story-adversary-convergence.wasm"
 priority = 960
 timeout_ms = 10000
-# Advisory-block-mode: hook returns Continue in all cases; block signal via
-# stdout JSON {"outcome":"block",...} + hook.block event (BC-4.10.002 Dev Notes).
+# Canonical-form WASM hook (HOST_ABI block_with_fix). Block signal:
+# HookResult::Block via dispatcher exit code 2 (BC-4.10.001 PC8). D-349
+# retired advisory-block-mode for new hooks; canonical form applies here.
+# on_error = "continue" means a hook CRASH does NOT block — graceful-degrade
+# on hook failure per BC-4.10.002 PC3. This is orthogonal to the block signal.
 on_error = "continue"
 
 [hooks.capabilities.read_file]
