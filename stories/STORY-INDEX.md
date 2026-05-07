@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.24"
+version: "2.25"
 status: current
 producer: state-manager
-timestamp: 2026-05-06T21:00:00Z
-last_amended: "2026-05-06 (v2.24) — E-11 epic registration; 8 new rows S-11.01..S-11.08 (renumbered from S-11.00..S-11.07 due to POLICY 1 collision with S-11.00 verify-sha-currency.sh stub at D-297); 8 retirement pointers S-8.20–S-8.27 re-pointed from 'future E-10' to E-11 per E-11 D-11.7"
+timestamp: 2026-05-07T00:00:00Z
+last_amended: "2026-05-07 (v2.25) — F3 story decomposition for v1.0-feature-engine-discipline-pass-1; E-12 (Engine Governance, 2 stories S-12.01/S-12.02) and E-13 (Artifact Integrity, 1 story S-13.01) registered; 3 new rows added; linear delivery order S-13.01 → S-12.01 → S-12.02; all tdd_mode strict; D-349"
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -46,6 +46,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-263 — STORY-INDEX bumped to reflect D-263 combined implementation-readiness seal-and-fix burst (ninth TD-VSDD-064 application; TD-VSDD-074 codified — TD-VSDD-073 scope extension to BCs cited in amendment landings). Pass-20 SUBSTANTIVE 0H/2M/2L sealed. M-P20-001 closed (OQ-3 pinned `timeout_ms = 30000` + `max_output_bytes = 65536`). M-P20-002 + L-P20-002 closed (BC-1.05.036 ADR-015 awareness clause + error-path reality). BC-1.05.035 + BC-1.05.036 gained `last_amended: 2026-05-05`. L-P20-001 SKIPPED with rationale. E-9 v1.20→v1.21. ADR-013 clock 1→0_of_3 RESET. STORY-INDEX v1.69 → v1.70.
 > Updated 2026-05-05: D-264 — STORY-INDEX bumped to reflect D-264 multi-fix burst (tenth TD-VSDD-064 application; TD-VSDD-075 codified — source-code-verification + dependent-citation-propagation disciplines). Pass-21 SUBSTANTIVE 2H/3M/2L sealed. H-P21-001 BC-1.05.036 error codes -7/-8→-2/-3 (source-code verified). H-P21-002 open-questions.md line citation 325→326. M-P21-001 BC-1.05.035 ADR-015 awareness. M-P21-002 BC-1.05.036 host category corrected. M-P21-003 truncated:bool reserved semantics. 2 LOWs DEFERRED. E-9 v1.21→v1.22. ADR-013 clock 0_of_3. STORY-INDEX v1.70 → v1.71.
 > Updated 2026-05-05: D-270 — STORY-INDEX bumped to reflect D-270 combined silence-audit seal-and-fix burst (fourteenth TD-VSDD-064 application). Pass-27 SUBSTANTIVE 1H/1M/0L sealed (negative-coverage / silence audit angle NEW per TD-VSDD-057). H-P27-001 closed (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; source-truth verified ADR-015 lines 99/130/154). M-P27-001 closed (Postcondition 5 INTERNAL_ERROR (-99) enumeration added; 5 source-code line citations exec_subprocess.rs:252/258/262/267-268/299; const mod.rs:184). E-9 v1.25→v1.26. ADR-013 clock RESET 0_of_3. STORY-INDEX v1.76 → v1.77.
+> Updated 2026-05-07: D-349 — STORY-INDEX bumped to v2.25 to reflect F3 story decomposition for v1.0-feature-engine-discipline-pass-1. E-12 Engine Governance registered (2 stories: S-12.01 per-story adversary workflow, S-12.02 per-story adversary convergence WASM hook). E-13 Artifact Integrity registered (1 story: S-13.01 path governance bundle, 24 files, 15 ACs). Linear delivery order: S-13.01 → S-12.01 → S-12.02. All tdd_mode strict. Total 38 ACs. STORY-INDEX v2.24 → v2.25.
 > Updated 2026-05-06: D-337 — STORY-INDEX bumped to v2.23 to reflect D-337 E-10 pass-8 seal. S-10.05 v1.4→v1.5 (D-336 story-writer F-4: AC-008 extended with BC-2.06.001 v1.3+v1.4 CHANGELOG-content requirements — Breaking Changes + Added/New API + HookResult::block_with_fix). BC-INDEX v1.13→v1.14 (D-336 DI-017 dispatcher_trace_id→trace_id sweep: 15 BCs version-bumped + BC-1.11.001 PC2 F-1 primary; BC-3.05.003 retired audit-trail accuracy). ARCH-INDEX 1.6→1.7 confirmed (D-336 architect). Pass-8 HIGH(4) fix-cycle SEALED. Pass-9 next. NITPICK_ONLY counter: 0.
 > Updated 2026-05-06: D-330/D-331 — STORY-INDEX bumped to v2.22 to reflect D-330 E-10 pass-5 fix burst story propagation + D-331 state-manager seal. S-10.02 v1.3→v1.4 (F-1 BC-1.11.002 added; bcs 6→7). S-10.03 v1.3→v1.4 (D-330). S-10.04 v1.4→v1.5 (D-330). D-331 seal: BC-INDEX v1.11→v1.12 (F-1 fix BC-1.11.002 Stories S-10.03→S-10.02; 6 BC version + capability bumps); ARCH-INDEX v1.4→v1.5 (F-2 D-15.4→D-15.1 propagation); STORY-INDEX v2.21→v2.22; STATE.md + lessons.md sealed. 8 of 12 pass-5 findings closed; F-7+F-8 deferred to cleanup stories #115/#116.
 > Updated 2026-05-06: D-327 — STORY-INDEX bumped to v2.21 to record E-10 ↔ rc.12 format-alignment cycle seal. No story body changes. Index version bumped for state continuity: BC-INDEX v1.10→v1.11 (4 BCs amended: BC-4.02.002 v1.1, BC-4.01.003 v1.1, BC-1.12.006 v1.3, BC-2.06.001 v1.3); ARCH-INDEX v1.3→v1.4 (version bump); spec corpus now aligned with v1.0.0-rc.12 engine baseline (4cf59bc on develop). Step (vi) E-10 adversarial-review cycle resumes; adversary pass-5 dispatches next.
@@ -152,7 +153,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **ADR-015 housekeeping follow-up burst (2026-05-04): STORY-INDEX v1.41 → v1.42.** Q2/Q3/Q4/Q5 cleanup follow-ups from prior audit. **Q2 multi-sink ecosystem annotated `deprecated_by: ADR-015`:** 6 stories tagged — S-4.01 (sink-http), S-4.02 (sink-datadog), S-4.03 (sink-honeycomb), S-4.04 (per-sink retry+CB), S-4.10 (cross-sink internal.sink_error events), S-4.09 (sink-http retry backoff — sink-coupled per investigation); S-4.05 (DLQ) SKIPPED per "skip drafts" rule (status: draft). S-4.08 (rc1 release gate) SKIPPED — release-process story, not sink-mechanism-coupled. **Q4 status-taxonomy normalized:** S-3.04 frontmatter `status: partially_shipped` → `status: partial` to align with documented status set (draft, ready, in-progress, merged, partial, blocked); STORY-INDEX row updated likewise. **Q5 ADR-015 path/anchor added:** all 6 prior-burst stories (S-3.04, S-1.04, S-1.08, S-1.09, S-4.06, S-4.07) gained a `supersession_ref: ".factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md"` frontmatter field; the 6 multi-sink stories newly annotated above also carry the same `supersession_ref`. **Q3 TD-020 logged** in `.factory/tech-debt-register.md` (line 23 + detail at line 557; P3) capturing pre-existing frontmatter↔STORY-INDEX status drift (sample: S-4.06/S-4.07 frontmatter `status: ready` while index shows merged). Status row counts: `partially_shipped` retired from taxonomy (count 1 → 0); `partial` 1 → 2.
 
 > This index is the authoritative source for story count and status.
-> 68 stories across 10 epics (E-0 through E-10). E-10 added 2026-05-04 (ADR-015 migration; 9 stories, 42 pts).
+> 79 stories across 13 epics (E-0 through E-13). E-10 added 2026-05-04 (ADR-015 migration; 9 stories, 42 pts). E-11 added 2026-05-06 (Tier 3 WASM; 8 stories). E-12 + E-13 added 2026-05-07 (F3 engine-discipline-pass-1; 3 stories: S-12.01, S-12.02, S-13.01).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -164,11 +165,11 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |--------|-------|
 | merged | 57 |
 | partial | 2 |
-| draft | 19 |
+| draft | 22 |
 | ready | 0 |
 | withdrawn | 1 |
 | retired | 19 |
-| **Total (active)** | **79** |
+| **Total (active)** | **82** |
 
 > `partial`: S-2.05 (hook-sdk publish to crates.io — pre-existing); S-3.04 (status: merged → partial 2026-05-04 [normalized from earlier `partially_shipped` to align with documented taxonomy]; AC-001 Router::submit integration never wired in main.rs; superseded by ADR-015 — see LESSON-2026-05-04-001).
 
@@ -455,6 +456,44 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 ---
 
+## Epic E-13 — Artifact Integrity (v1.0-feature-engine-discipline-pass-1) — path governance bundle (draft, v1.0)
+
+> **E-13 authored 2026-05-07 (D-349 F3 burst):** E-13 anchors the artifact path governance cluster:
+> artifact path SoT registry (ADR-016), WASM validation hook, 9 creation-skill updates, and
+> relocate-artifact skill. Story S-13.01 ships FIRST in the delivery chain because the
+> block-mode path-validation hook activates immediately (OQ5 resolution); registering before
+> .factory/ is clean would brick subsequent agents. relocate-artifact preflight is the safety
+> mechanism. Depends on F2 spec (ADR-016 + BC-4.11.001 + BC-6.22.001).
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|--------|-----|
+| S-13.01 | Path governance bundle (registry SoT + WASM hook + 9 skill updates + relocate-artifact) | E-13 | TBD | P1 | [] | [S-12.01, S-12.02] | draft | [BC-4.11.001, BC-6.22.001] (15 ACs, 24 files, tdd_mode strict) |
+
+> **E-13 delivery:** S-13.01 is the single story in this epic. Ships first in cycle. 24 files in scope.
+> Full list in S-13.01 story file. Subsystems: SS-04 (path registry hook), SS-05 (relocate-artifact skill).
+
+---
+
+## Epic E-12 — Engine Governance (v1.0-feature-engine-discipline-pass-1) — per-story adversarial convergence loop (draft, v1.0)
+
+> **E-12 authored 2026-05-07 (D-349 F3 burst):** E-12 anchors the per-story adversarial convergence
+> loop: per-story-delivery.md workflow amendments + agent doc updates (S-12.01) and the
+> validate-per-story-adversary-convergence WASM hook (S-12.02). Depends on S-13.01 (path governance
+> bundle must ship first — hook registration requires clean .factory/ preflight). Open question OQ-9
+> (VP-071 advisory-block vs BC-4.10.001 block_with_fix discrepancy) is a spec contradiction requiring
+> resolution before S-12.02 implementation; logged in D-348 for F4 entry-gate review.
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|------------|--------|--------|-----|
+| S-12.01 | Per-story adversary workflow + agent doc updates (per-story-delivery.md + 3 agent docs) | E-12 | TBD | P1 | [S-13.01] | [S-12.02] | draft | [BC-4.10.001, BC-4.10.002, BC-5.39.001, BC-5.39.002] (9 ACs, 4-6 files, tdd_mode strict) |
+| S-12.02 | validate-per-story-adversary-convergence WASM hook (convergence state machine + hook binary) | E-12 | TBD | P1 | [S-12.01, S-13.01] | [] | draft | [BC-4.10.001, BC-4.10.002, BC-4.11.001, BC-5.39.001, BC-5.39.002, BC-6.22.001] (14 ACs, 6 files, tdd_mode strict; OQ-9 open — VP-071 advisory-block vs BC-4.10.001 block_with_fix) |
+
+> **E-12 delivery chain:** S-12.01 → S-12.02. Both depend on S-13.01 (E-13) shipping first.
+> Linear: S-13.01 → S-12.01 → S-12.02. OQ-9 must be resolved before F4 dispatch of S-12.02.
+> VPs: VP-069 (proptest), VP-070 (kani), VP-071 (kani), VP-072 (integration/bats).
+
+---
+
 **Draft story policy:** Stories with `status: draft` MAY have empty
 `behavioral_contracts: []` arrays. BC anchoring is deferred to the elaboration phase
 (when status transitions to `ready`). **Source:** Phase 1d pass 3 F-035.
@@ -466,16 +505,13 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 **Status values:** draft, ready, in-progress, merged, partial, blocked
 
-**Total story points:** 300+ across 85 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 45 E-10*** + TBD S-11.00 + TBD E-11****)
+**Total story points:** 300+ across 88 stories (190 E-0..E-5 + 3 E-6 + 21 E-7 + 44 E-8* + TBD E-9** + 45 E-10*** + TBD S-11.00 + TBD E-11**** + TBD E-12/E-13*****)
 
 > \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
 > \*\*E-9 in progress — S-9.00 + S-9.30 authored (TBD pts each); S-9.01..S-9.07 stub entries (TBD pts pending Burst 2+3 authoring); ~50-70 additional pts estimated across 9 stories.
 > \*\*\*E-10 authored 2026-05-04 — 9 stories (S-10.01..S-10.09) at 45 pts total (S-10.03 bumped 5→8 pts for full Windows registry cascade per Q4 adjudication); behavioral_contracts: [] on all stories (pending PO authorship per Spec-First Gate); OQ-2 + OQ-5 RESOLVED 2026-05-04.
 > \*\*\*\*E-11 authored 2026-05-06 — 8 stories (S-11.01..S-11.08; renumbered from S-11.00..S-11.07 due to POLICY 1 collision with S-11.00 verify-sha-currency.sh stub at D-297); behavioral_contracts: [] pending story-writer authorship; target v1.3.
-
-> \*E-8 in progress — S-8.00 + 9 Tier 1 stories + S-8.10 (5pts) + S-8.30 (3pts) authored at 44pts; ~85 additional pts pending S-8.11..S-8.29 (Tier 2 + Tier 3).
-> \*\*E-9 in progress — S-9.00 + S-9.30 authored (TBD pts each); S-9.01..S-9.07 stub entries (TBD pts pending Burst 2+3 authoring); ~50-70 additional pts estimated across 9 stories.
-> \*\*\*E-10 authored 2026-05-04 — 9 stories (S-10.01..S-10.09) at 45 pts total (S-10.03 bumped 5→8 pts for full Windows registry cascade per Q4 adjudication); behavioral_contracts: [] on all stories (pending PO authorship per Spec-First Gate); OQ-2 + OQ-5 RESOLVED 2026-05-04.
+> \*\*\*\*\*E-12 + E-13 authored 2026-05-07 (F3 engine-discipline-pass-1) — 3 stories (S-13.01 path governance bundle 15 ACs, S-12.01 per-story adversary workflow 9 ACs, S-12.02 per-story adversary convergence hook 14 ACs); tdd_mode strict; delivery order S-13.01 → S-12.01 → S-12.02; behavioral_contracts anchored to BC-4.10.001-002, BC-4.11.001, BC-5.39.001-002, BC-6.22.001 + VPs 069/070/071/072.
 
 **Rules:**
 - Every story has a unique sequential ID (zero-padded: S-N.MM)

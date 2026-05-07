@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F2 complete for v1.0-feature-engine-discipline-pass-1. 6 BCs created (BC-5.39.001-002 SS-05, BC-4.10.001-002 + BC-4.11.001 SS-04, BC-6.22.001 SS-06). 2 ADRs (ADR-016 path registry SoT, ADR-017 per-story adversary phasing). 4 VPs (VP-069-072). PRD bumped 1.0→1.1 with FR-047. E-10 paused by user; current_cycle flipped to engine-discipline-pass-1. Next: F3 story decomposition (3 stories: A workflow+agent docs, B per-story adversary WASM hook, C path governance bundle; delivery order C→A→B). E-10 pickup (Path A: adversary pass-9; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4→9?) resumes after F3. rc.13 unblock: pop stash@{0} → PR #97 → retag."
+current_step: "F3 complete for v1.0-feature-engine-discipline-pass-1. Epics E-12 (Engine Governance, 2 stories) and E-13 (Artifact Integrity, 1 story) created. Stories S-13.01 (path governance bundle, 15 ACs), S-12.01 (per-story adversary workflow, 9 ACs), S-12.02 (per-story adversary convergence WASM hook, 14 ACs) authored. Linear delivery order: S-13.01 → S-12.01 → S-12.02. All tdd_mode strict. Total 38 ACs anchored to BC-4.10.001-002, BC-4.11.001, BC-5.39.001-002, BC-6.22.001 + VPs 069/070/071/072. Next: F4 TDD implementation, beginning with S-13.01 (path governance) which has hard sequencing as block-mode hook."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (F2 sealed D-340; current_cycle flipped to feature-engine-discipline-pass-1; E-10 paused by user) |
-| **Current Phase** | F2 COMPLETE — F3 story decomposition next |
+| **Last Updated** | 2026-05-07 (F3 sealed D-349; E-12/E-13 epics + S-13.01/S-12.01/S-12.02 stories authored) |
+| **Current Phase** | F3 COMPLETE — F4 TDD implementation next (begin S-13.01) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -75,7 +75,7 @@ dtu_services: []
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
-| v1.0-feature-engine-discipline-pass-1 | **F2 COMPLETE** 2026-05-07 (D-340) | F1 complete (D-339); F2 sealed: 6 BCs, 2 ADRs (ADR-016/017), 4 VPs (VP-069-072), PRD 1.0→1.1; F3 next |
+| v1.0-feature-engine-discipline-pass-1 | **F3 COMPLETE** 2026-05-07 (D-349) | F1 complete (D-339); F2 sealed: 6 BCs, 2 ADRs (ADR-016/017), 4 VPs (VP-069-072), PRD 1.0→1.1; F3 sealed: E-12 (2 stories) + E-13 (1 story); S-13.01→S-12.01→S-12.02; F4 next (begin S-13.01) |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -96,6 +96,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-340 F2 spec evolution — engine-discipline-pass-1** | product-owner + architect + state-manager | **COMPLETE** | 6 BCs (BC-5.39.001/002 SS-05; BC-4.10.001/002 + BC-4.11.001 SS-04; BC-6.22.001 SS-06). ADR-016 + ADR-017. VP-069..072. PRD 1.0→1.1 (FR-047). BC-INDEX 1.14→1.15; ARCH-INDEX 1.7→1.8; VP-INDEX 1.0→1.1. total_bcs 1931→1937. current_cycle flipped. Next: F3 (3 stories: C path governance, A workflow+agent docs, B WASM hook). |
 | **E-11 authoring + indexing burst (orphan-hook anchor) — D-11.7** | product-owner (E-11 epic) + state-manager (indexing) | **COMPLETE** | E-11 epic v1.0/draft authored (491L; 8 stories S-11.01..S-11.08; target v1.3); collision resolved: S-11.00 already registered as verify-sha-currency.sh stub (D-297); E-11 stories renumbered +1 (S-11.01..S-11.08); STORY-INDEX 2.23→2.24 (8 new rows + 8 pointer updates S-8.20–S-8.27 re-pointed to E-11); E-11 frontmatter story_count corrected 7→8. |
 | **E-11 epic v1.1 amendment — sync body to STORY-INDEX renumber** | product-owner (epic body) + state-manager (commit) | **COMPLETE (25b3c20)** | E-11 epic body v1.0→v1.1: all live story-pointer refs renumbered S-11.00..S-11.07 → S-11.01..S-11.08 to match STORY-INDEX (14bb9c4). CHANGELOG v1.1 entry + narrative appended. Verification: zero live S-11.00 refs; dependency graph topology preserved. No semantic changes. |
+| **D-349 F3 story decomposition — v1.0-feature-engine-discipline-pass-1** | product-owner (epics E-12/E-13) + story-writer (S-13.01/S-12.01/S-12.02) + state-manager (indexing + commit) | **COMPLETE** | E-12 Engine Governance (S-12.01/S-12.02) + E-13 Artifact Integrity (S-13.01). 38 ACs total. Linear: S-13.01→S-12.01→S-12.02. All tdd_mode strict. STORY-INDEX 2.24→2.25. D-345..D-348 logged. OQ-9 surfaced (VP-071 vs BC-4.10.001 discrepancy; pre-F4 gate). |
 
 ## Identifier Conventions
 
@@ -107,11 +108,11 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 76 |
-| Epic | E-N | `stories/epics/E-N-<short>.md` | 11 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 79 |
+| Epic | E-N | `stories/epics/E-N-<short>.md` | 13 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 17 |
 
-## Story Status (76 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11 registered)
+## Story Status (79 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13 registered)
 
 - **Merged (58):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
@@ -136,7 +137,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F2 COMPLETE — F3 NEXT | Per-story adversary workflow + artifact path governance; D-340 F2 sealed; 6 BCs, 2 ADRs, 4 VPs; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
+| v1.0-feature-engine-discipline-pass-1 | feature | F3 COMPLETE — F4 NEXT | Per-story adversary workflow + artifact path governance; D-349 F3 sealed; E-12 (2 stories) + E-13 (1 story); linear S-13.01→S-12.01→S-12.02; see `cycles/v1.0-feature-engine-discipline-pass-1/` |
 
 ## Decisions Log
 
