@@ -138,10 +138,10 @@ pub fn load_registry(yaml: &str) -> Result<PathRegistry, RegistryError> {
 ///
 /// # Pattern matching
 ///
-/// Patterns use `{placeholder}` syntax. Each placeholder matches any
-/// non-empty path segment or sequence of segments. The algorithm converts
-/// the pattern into a structure that allows `{placeholder}` to match
-/// one or more path characters (excluding nothing).
+/// Patterns use `{placeholder}` syntax. Each placeholder matches a single
+/// non-empty path segment — one or more characters that do NOT contain `/`.
+/// Multi-segment spanning across `/` is prohibited per BC-4.11.001 invariant
+/// 6 (amended v1.1, NC-1, F5 pass-1 fix burst 2026-05-07).
 ///
 /// # BC trace
 /// BC-4.11.001 postcondition 2b — match path against registered patterns.
@@ -176,17 +176,23 @@ pub fn matches_canonical(path: &str, registry: &PathRegistry) -> MatchResult {
 }
 
 /// Check whether `path` matches `pattern`, where `{placeholder}` in the
-/// pattern matches any non-empty sequence of characters (greedy).
+/// pattern matches any single path segment (one or more characters that do
+/// NOT contain `/`).
 ///
 /// This implements a simple glob-like match: literal characters must match
-/// exactly, and `{placeholder}` segments match one or more characters in the
-/// path. The matching is done segment-aware: placeholders may span segment
-/// boundaries (slashes) so that e.g. `{cycle-id}` can match
-/// `v1.0-feature-engine-discipline-pass-1`.
+/// exactly, and `{placeholder}` segments match exactly one non-empty path
+/// segment (no `/` in matched content). For example, `{cycle-id}` matches
+/// `v1.0-feature-engine-discipline-pass-1` but NOT `v1.0/sub`.
 ///
 /// Algorithm: split the pattern on `{...}` tokens; check that the path
-/// contains each literal segment in order, with at least one character
-/// between consecutive literal segments (where a placeholder is expected).
+/// contains each literal segment in order, with at least one non-slash
+/// character between consecutive literal segments (where a placeholder
+/// is expected).
+///
+/// # BC trace
+/// BC-4.11.001 invariant 6 (v1.1): `{placeholder}` matches any non-empty
+/// sequence of characters that does NOT contain `/` (single path segment).
+/// Amended 2026-05-07 per NC-1 / F5 pass-1 fix burst B2 (F-HIGH-6).
 fn pattern_matches(path: &str, pattern: &str) -> bool {
     // Split pattern into alternating literal / placeholder segments.
     // E.g. ".factory/cycles/{cycle-id}/{doc-type}.md" becomes:
@@ -195,8 +201,8 @@ fn pattern_matches(path: &str, pattern: &str) -> bool {
     let parts = split_pattern(pattern);
 
     // Walk through the literal parts ensuring each appears in the path
-    // in order, with at least one character between consecutive parts
-    // where a placeholder should sit.
+    // in order, with at least one non-slash character between consecutive
+    // parts where a placeholder should sit.
     let mut pos = 0usize;
     let path_bytes = path.as_bytes();
 
@@ -218,15 +224,28 @@ fn pattern_matches(path: &str, pattern: &str) -> bool {
                         return false;
                     }
                 } else {
-                    // After a placeholder — must find the literal somewhere ahead
-                    // but there must be at least one char before it (the placeholder content).
+                    // After a placeholder — the placeholder content must be:
+                    //   (a) at least one character (non-empty), and
+                    //   (b) contain no '/' (single path segment, per invariant 6 v1.1).
+                    //
+                    // Find the next literal anywhere ahead, then verify that the
+                    // placeholder content (bytes from pos+1 to literal_start) has no '/'.
                     if pos >= path_bytes.len() {
                         return false;
                     }
-                    // Find the literal starting from pos+1 (placeholder must have >=1 char)
-                    match find_subsequence(&path_bytes[pos + 1..], lit.as_bytes()) {
+                    // The placeholder content starts at pos+1 (must have >=1 char before literal).
+                    let search_start = pos + 1;
+                    match find_subsequence(&path_bytes[search_start..], lit.as_bytes()) {
                         Some(offset) => {
-                            pos = pos + 1 + offset + lit.len();
+                            // offset is relative to search_start; literal_start is absolute.
+                            let literal_start = search_start + offset;
+                            // Placeholder content: path[pos+1 .. literal_start]
+                            // Must not contain '/' (single-segment invariant).
+                            let placeholder_content = &path_bytes[search_start..literal_start];
+                            if placeholder_content.contains(&b'/') {
+                                return false;
+                            }
+                            pos = literal_start + lit.len();
                         }
                         None => return false,
                     }
@@ -240,11 +259,12 @@ fn pattern_matches(path: &str, pattern: &str) -> bool {
     }
 
     // After all pattern parts, the entire path must be consumed
-    // (the last placeholder, if any, must match the rest of the path).
+    // (the last placeholder, if any, must match the rest of the path,
+    // and that remainder must contain no '/' per single-segment rule).
     let last_is_placeholder = matches!(parts.last(), Some(PatternPart::Placeholder(_)));
     if last_is_placeholder {
-        // Last placeholder must match at least one character.
-        pos < path_bytes.len()
+        // Last placeholder: must match at least one character and no '/'.
+        pos < path_bytes.len() && !path_bytes[pos..].contains(&b'/')
     } else {
         // All literal parts matched; path must be exactly consumed.
         pos == path_bytes.len()
