@@ -27,6 +27,8 @@ serde_yaml = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
+proptest = "1.6"
+vsdd-hook-sdk = { path = "../../hook-sdk" }
 
 [lints]
 workspace = true
