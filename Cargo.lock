@@ -3552,6 +3552,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "validate-per-story-adversary-convergence"
+version = "0.0.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "validate-pr-review-posted"
 version = "0.0.1"
 dependencies = [
