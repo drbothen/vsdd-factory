@@ -92,7 +92,59 @@ pub struct IoError(pub String);
 /// - BC-4.10.001 postconditions 2–5 (block on missing / passes < 3 / non-nitpick)
 /// - VP-071 formal property statement
 pub fn hook_result_for(state: Option<&ConvergenceState>) -> HookResult {
-    todo!("S-12.02 Step 4 — implement pure convergence criterion check per BC-4.10.001 PC2-5 and VP-071")
+    match state {
+        // BC-4.10.001 PC2: absent state file → CONVERGENCE_STATE_MISSING
+        // Code uses HOOK_CODE_BASE prefix per VP-071 telemetry bucketing convention.
+        None => {
+            let code = format!("{}_CONVERGENCE_STATE_MISSING", HOOK_CODE_BASE);
+            HookResult::block_with_fix(
+                HOOK_NAME,
+                "story is missing adversary-convergence-state.json — convergence gate not run",
+                "Run the per-story adversary convergence loop (BC-5.39.001) before dispatching the wave gate",
+                &code,
+            )
+        }
+        Some(s) => {
+            // BC-4.10.001 PC3: passes_clean < 3 → CONVERGENCE_PASSES_INSUFFICIENT
+            if s.passes_clean < 3 {
+                let code = format!("{}_CONVERGENCE_PASSES_INSUFFICIENT", HOOK_CODE_BASE);
+                return HookResult::block_with_fix(
+                    HOOK_NAME,
+                    format!(
+                        "story has passes_clean={} — convergence requires passes_clean >= 3",
+                        s.passes_clean
+                    ),
+                    "Continue adversary review passes until passes_clean reaches 3",
+                    &code,
+                );
+            }
+            // BC-4.10.001 PC4: last_classification != "NITPICK_ONLY" (including None) →
+            // CONVERGENCE_CLASSIFICATION_INSUFFICIENT (or SCHEMA_INVALID for None)
+            let code = format!("{}_CONVERGENCE_CLASSIFICATION_INSUFFICIENT", HOOK_CODE_BASE);
+            match s.last_classification.as_deref() {
+                None => HookResult::block_with_fix(
+                    HOOK_NAME,
+                    "story last_classification field is missing or null — convergence state schema invalid",
+                    "Ensure the adversary convergence loop writes a valid last_classification field",
+                    &code,
+                ),
+                Some(cls) if cls != "NITPICK_ONLY" => HookResult::block_with_fix(
+                    HOOK_NAME,
+                    format!(
+                        "story last adversary pass classified as {} — must be NITPICK_ONLY",
+                        cls
+                    ),
+                    format!(
+                        "Resolve remaining {} findings before dispatching the wave gate",
+                        cls
+                    ),
+                    &code,
+                ),
+                // BC-4.10.001 PC5: passes_clean >= 3 AND last_classification == "NITPICK_ONLY"
+                Some(_) => HookResult::Continue,
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -109,7 +161,7 @@ pub fn hook_result_for(state: Option<&ConvergenceState>) -> HookResult {
 /// - BC-4.10.001 edge cases EC-002 (malformed JSON), EC-003 (missing field)
 /// - AC-007, AC-008
 pub fn parse_convergence_state(json: &str) -> Result<ConvergenceState, ParseError> {
-    todo!("S-12.02 Step 4 — parse JSON and validate required fields are present")
+    serde_json::from_str(json).map_err(|e| ParseError(e.to_string()))
 }
 
 // ---------------------------------------------------------------------------
@@ -132,7 +184,20 @@ pub fn parse_convergence_state(json: &str) -> Result<ConvergenceState, ParseErro
 /// - BC-4.10.002 preconditions 2d, postcondition 1
 /// - AC-003 (graceful degrade on missing wave-gate indicator)
 pub fn graceful_degrade_outside_wave_gate(payload: &HookPayload) -> bool {
-    todo!("S-12.02 Step 4 — determine if payload indicates wave-gate dispatch context")
+    // Returns true when the hook SHOULD degrade (i.e., NOT in wave-gate context).
+    // BC-4.10.002 invariant 4: errs on the side of Continue rather than blocking
+    // on uncertainty. Unknown/missing agent types default to degrade.
+    //
+    // The canonical agent identity fallback chain (BC-2.02.012 Postcondition 5):
+    let identity = payload
+        .agent_type
+        .as_deref()
+        .or(payload.subagent_name.as_deref())
+        .unwrap_or("unknown");
+
+    // Only "wave-gate-dispatch" is the recognized wave-gate agent type.
+    // All other identities (including "unknown") trigger graceful degrade.
+    identity != "wave-gate-dispatch"
 }
 
 // ---------------------------------------------------------------------------
@@ -156,7 +221,7 @@ pub fn list_wave_stories(
     cycle_id: &str,
     callbacks: &impl HookCallbacks,
 ) -> Result<Vec<String>, IoError> {
-    todo!("S-12.02 Step 4 — read story dirs from .factory/cycles/<cycle-id>/")
+    callbacks.list_stories(cycle_id)
 }
 
 // ---------------------------------------------------------------------------
@@ -218,7 +283,182 @@ pub trait HookCallbacks {
 /// - BC-4.10.002 postconditions 1–5 (graceful degrade path)
 /// - AC-001 through AC-012
 pub fn hook_logic(payload: &HookPayload, callbacks: &impl HookCallbacks) -> HookResult {
-    todo!("S-12.02 Step 4 — implement full hook logic: graceful-degrade check, story enumeration, per-story convergence evaluation, deferred-findings aggregation")
+    // Step 1: Graceful-degrade check BEFORE any file reads (BC-4.10.002 invariant 2).
+    if graceful_degrade_outside_wave_gate(payload) {
+        callbacks.log_debug(
+            "validate-per-story-adversary-convergence: graceful degrade \
+             — invoked outside wave-gate context or cycle directory absent; returning Continue",
+        );
+        return HookResult::Continue;
+    }
+
+    // Step 2: Determine cycle_id from plugin_config or payload.
+    // In production, the registry config may supply the cycle_id.
+    // For tests, FakeCallbacks ignores cycle_id, so any string works.
+    let cycle_id = payload
+        .plugin_config
+        .get("cycle_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("current");
+
+    // Step 3: List wave stories. Absent cycle directory → graceful degrade (BC-4.10.002 inv-3).
+    let story_ids = match list_wave_stories(cycle_id, callbacks) {
+        Ok(ids) => ids,
+        Err(_) => {
+            callbacks.log_debug(
+                "validate-per-story-adversary-convergence: graceful degrade \
+                 — invoked outside wave-gate context or cycle directory absent; returning Continue",
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    // BC-4.10.001 EC-001: empty wave → Continue (vacuously all stories cleared).
+    if story_ids.is_empty() {
+        callbacks.log_debug(
+            "validate-per-story-adversary-convergence: Wave has zero stories. \
+             Returning Continue (vacuous convergence).",
+        );
+        return HookResult::Continue;
+    }
+
+    // Step 4: For each story, read state file, parse, evaluate.
+    // Block on FIRST non-cleared story (BC-4.10.001 postcondition 5 / EC-005).
+    let mut all_deferred: Vec<serde_json::Value> = Vec::new();
+
+    for story_id in &story_ids {
+        let state_path = format!(
+            ".factory/cycles/{}/{}/adversary-convergence-state.json",
+            cycle_id, story_id
+        );
+
+        // Closure to build the missing-state block with a story-specific message.
+        let missing_code = format!("{}_CONVERGENCE_STATE_MISSING", HOOK_CODE_BASE);
+        let missing_block = || {
+            HookResult::block_with_fix(
+                HOOK_NAME,
+                format!(
+                    "Story {} is missing adversary-convergence-state.json \
+                     — convergence gate not run",
+                    story_id
+                ),
+                format!(
+                    "Run the per-story adversary convergence loop (BC-5.39.001) \
+                     for story {} before dispatching the wave gate",
+                    story_id
+                ),
+                &missing_code,
+            )
+        };
+
+        let file_contents = match callbacks.read_file(&state_path) {
+            Ok(Some(contents)) => contents,
+            // BC-4.10.001 PC2: state file absent → CONVERGENCE_STATE_MISSING
+            Ok(None) => return missing_block(),
+            // Unreadable state file treated as absent (BC-4.10.001 PC2)
+            Err(_) => return missing_block(),
+        };
+
+        // Parse the JSON. Malformed → CONVERGENCE_STATE_MALFORMED (BC-4.10.001 EC-002).
+        let state = match parse_convergence_state(&file_contents) {
+            Ok(s) => s,
+            Err(_) => {
+                callbacks.log_error(&format!(
+                    "validate-per-story-adversary-convergence: malformed JSON in state file \
+                     for story {}",
+                    story_id
+                ));
+                let malformed_code = format!("{}_CONVERGENCE_STATE_MALFORMED", HOOK_CODE_BASE);
+                return HookResult::block_with_fix(
+                    HOOK_NAME,
+                    format!(
+                        "Story {} adversary-convergence-state.json contains malformed JSON \
+                         — convergence state unreadable",
+                        story_id
+                    ),
+                    format!(
+                        "Fix the malformed JSON in .factory/cycles/{}/{}/\
+                         adversary-convergence-state.json or re-run the convergence loop",
+                        cycle_id, story_id
+                    ),
+                    &malformed_code,
+                );
+            }
+        };
+
+        // Evaluate convergence for this story.
+        // We build story-specific messages (includes the story_id for actionability).
+        let verdict = if state.passes_clean < 3 {
+            let code = format!("{}_CONVERGENCE_PASSES_INSUFFICIENT", HOOK_CODE_BASE);
+            HookResult::block_with_fix(
+                HOOK_NAME,
+                format!(
+                    "Story {} has passes_clean={} — convergence requires passes_clean >= 3",
+                    story_id, state.passes_clean
+                ),
+                format!(
+                    "Continue adversary review passes for story {} until passes_clean reaches 3",
+                    story_id
+                ),
+                &code,
+            )
+        } else {
+            let code = format!("{}_CONVERGENCE_CLASSIFICATION_INSUFFICIENT", HOOK_CODE_BASE);
+            match state.last_classification.as_deref() {
+                None => HookResult::block_with_fix(
+                    HOOK_NAME,
+                    format!(
+                        "Story {} last_classification field is missing or null \
+                         — convergence state schema invalid",
+                        story_id
+                    ),
+                    format!(
+                        "Ensure the adversary convergence loop writes a valid last_classification \
+                         field for story {}",
+                        story_id
+                    ),
+                    &code,
+                ),
+                Some(cls) if cls != "NITPICK_ONLY" => HookResult::block_with_fix(
+                    HOOK_NAME,
+                    format!(
+                        "Story {} last adversary pass classified as {} — must be NITPICK_ONLY",
+                        story_id, cls
+                    ),
+                    format!(
+                        "Resolve remaining {} findings for story {} before dispatching the wave gate",
+                        cls, story_id
+                    ),
+                    &code,
+                ),
+                Some(_) => HookResult::Continue,
+            }
+        };
+
+        match verdict {
+            HookResult::Continue => {
+                // Story cleared. Accumulate deferred findings for aggregation (BC-4.10.001 PC6).
+                all_deferred.extend(state.deferred_findings);
+            }
+            block => {
+                // First failure → return immediately (BC-4.10.001 PC5 / EC-005).
+                return block;
+            }
+        }
+    }
+
+    // Step 5: All stories converged. Aggregate deferred findings and log (BC-4.10.001 PC6).
+    if !all_deferred.is_empty() {
+        let summary = serde_json::to_string(&all_deferred).unwrap_or_else(|_| "[]".to_string());
+        callbacks.log_debug(&format!(
+            "validate-per-story-adversary-convergence: wave convergence cleared. \
+             {} deferred finding(s) across all stories: {}",
+            all_deferred.len(),
+            summary
+        ));
+    }
+
+    HookResult::Continue
 }
 
 // ---------------------------------------------------------------------------

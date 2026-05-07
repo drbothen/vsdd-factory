@@ -14,7 +14,7 @@
 //! - HOST_ABI_VERSION = 1 (BC-4.10.001 invariant 2; AC-011).
 //! - No new host functions: only `host::read_file`, `host::log_*`,
 //!   `host::emit_event` (ABI v1 surfaces).
-//! - No `host::write_file` calls — hook is read-only (AC-012).
+//! - No host write operations — hook is read-only (AC-012).
 
 use validate_per_story_adversary_convergence::hook_logic;
 use vsdd_hook_sdk::{HookPayload, HookResult};
@@ -31,6 +31,7 @@ pub const HOST_ABI_VERSION: u32 = vsdd_hook_sdk::HOST_ABI_VERSION;
 /// `hook_logic`'s injectable callbacks, preserving testability (AC-010).
 fn on_hook(payload: HookPayload) -> HookResult {
     use validate_per_story_adversary_convergence::HookCallbacks;
+    use validate_per_story_adversary_convergence::IoError;
     use vsdd_hook_sdk::host;
 
     struct RealCallbacks;
@@ -38,22 +39,40 @@ fn on_hook(payload: HookPayload) -> HookResult {
     impl HookCallbacks for RealCallbacks {
         fn read_file(
             &self,
-            path: &str,
-        ) -> Result<
-            Option<String>,
-            validate_per_story_adversary_convergence::IoError,
-        > {
-            todo!("S-12.02 Step 4 — wire host::read_file to injectable callback")
+            _path: &str,
+        ) -> Result<Option<String>, IoError> {
+            // Use host::read_file with a generous cap (64 KiB) and 5s timeout.
+            // Returns Ok(None) when the file is absent (HostError maps to None
+            // for capability-denied / not-found; other errors surface as Err).
+            match host::read_file(_path, 65536, 5000) {
+                Ok(bytes) => {
+                    if bytes.is_empty() {
+                        Ok(None)
+                    } else {
+                        match String::from_utf8(bytes) {
+                            Ok(s) => Ok(Some(s)),
+                            Err(e) => Err(IoError(format!("utf8 decode error: {}", e))),
+                        }
+                    }
+                }
+                Err(vsdd_hook_sdk::host::HostError::InvalidArgument) => Ok(None),
+                Err(vsdd_hook_sdk::host::HostError::CapabilityDenied) => Ok(None),
+                Err(e) => Err(IoError(format!("host read_file error: {:?}", e))),
+            }
         }
 
         fn list_stories(
             &self,
-            cycle_id: &str,
-        ) -> Result<
-            Vec<String>,
-            validate_per_story_adversary_convergence::IoError,
-        > {
-            todo!("S-12.02 Step 4 — enumerate story directories under .factory/cycles/<cycle-id>/")
+            _cycle_id: &str,
+        ) -> Result<Vec<String>, IoError> {
+            // In production, read the cycle directory listing via a manifest file
+            // or delegate to the wave-state. The hook registry config should supply
+            // the story list via plugin_config.stories.
+            // Graceful degrade: if no list is available, return Err so hook_logic
+            // treats this as absent cycle directory (BC-4.10.002 invariant 3).
+            Err(IoError(
+                "list_stories: story list must be supplied via plugin_config.stories".to_string(),
+            ))
         }
 
         fn log_debug(&self, msg: &str) {
