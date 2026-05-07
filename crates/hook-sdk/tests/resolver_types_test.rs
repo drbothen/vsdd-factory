@@ -26,7 +26,7 @@
 #[cfg(feature = "resolver-authoring")]
 mod tests {
     use serde_json::{Value, json};
-    use vsdd_hook_sdk::resolver::{ResolverInput, ResolverOutput, RESOLVER_ABI_VERSION};
+    use vsdd_hook_sdk::resolver::{RESOLVER_ABI_VERSION, ResolverInput, ResolverOutput};
 
     // ── AC-001: RESOLVER_ABI_VERSION constant ─────────────────────────────────
 
@@ -36,8 +36,7 @@ mod tests {
     #[test]
     fn test_BC_4_12_002_resolver_abi_version_is_1() {
         assert_eq!(
-            RESOLVER_ABI_VERSION,
-            1u32,
+            RESOLVER_ABI_VERSION, 1u32,
             "RESOLVER_ABI_VERSION must be 1 (BC-4.12.002 PC4, AC-001)"
         );
     }
@@ -86,8 +85,7 @@ mod tests {
         };
 
         let json_str = serde_json::to_string(&input).expect("must serialize");
-        let parsed: Value =
-            serde_json::from_str(&json_str).expect("must produce valid JSON");
+        let parsed: Value = serde_json::from_str(&json_str).expect("must produce valid JSON");
 
         assert!(
             parsed.get("agent_type").is_some(),
@@ -117,7 +115,13 @@ mod tests {
         let parsed: Value = serde_json::from_str(&json_str).expect("must be valid JSON");
 
         // All five field names must be present exactly as specified (BC-4.12.002 PC2)
-        for field in &["event_type", "hook_event_name", "agent_type", "project_dir", "plugin_config"] {
+        for field in &[
+            "event_type",
+            "hook_event_name",
+            "agent_type",
+            "project_dir",
+            "plugin_config",
+        ] {
             assert!(
                 parsed.get(*field).is_some(),
                 "ResolverInput JSON must contain field '{}' (BC-4.12.002 PC2, AC-002)",
@@ -287,11 +291,19 @@ mod tests {
         // Verify this test is only reachable because the feature is active.
         // If the feature were absent, this entire module (#[cfg(feature = ...)])
         // would not compile, and this test would not exist.
-        assert!(
-            cfg!(feature = "resolver-authoring"),
-            "test_BC_4_12_002_resolver_authoring_feature_gates_types must only run \
-             when the resolver-authoring feature is enabled (AC-007)"
-        );
+        // Allow: cfg! expands to a constant; the assertion is intentional
+        // self-documentation, not a logic guard. The constant-value lint
+        // fires because cfg!(feature = "...") is always true inside a
+        // #[cfg(feature = "...")] block, which is exactly the invariant
+        // we are documenting. (AC-007, BC-4.12.002 PC8)
+        #[allow(clippy::assertions_on_constants)]
+        {
+            assert!(
+                cfg!(feature = "resolver-authoring"),
+                "test_BC_4_12_002_resolver_authoring_feature_gates_types must only run \
+                 when the resolver-authoring feature is enabled (AC-007)"
+            );
+        }
 
         // Verify the resolver module is accessible via the feature-gated path.
         // This import succeeds only because the outer #[cfg(feature)] is active.
@@ -305,8 +317,9 @@ mod tests {
         // Read lib.rs and confirm the #[cfg(feature = "resolver-authoring")] annotation.
         let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
             .expect("CARGO_MANIFEST_DIR must be set during cargo test");
-        let lib_rs_path =
-            std::path::Path::new(&manifest_dir).join("src").join("lib.rs");
+        let lib_rs_path = std::path::Path::new(&manifest_dir)
+            .join("src")
+            .join("lib.rs");
         let lib_rs_content = std::fs::read_to_string(&lib_rs_path)
             .unwrap_or_else(|e| panic!("failed to read {}: {}", lib_rs_path.display(), e));
 
@@ -344,10 +357,7 @@ mod tests {
             resolver_version, 1u32,
             "RESOLVER_ABI_VERSION must be 1 (AC-008)"
         );
-        assert_eq!(
-            host_version, 1u32,
-            "HOST_ABI_VERSION must be 1 (AC-008)"
-        );
+        assert_eq!(host_version, 1u32, "HOST_ABI_VERSION must be 1 (AC-008)");
 
         // They happen to be equal now, but they are NOT aliases.
         // Verify they are independently re-exported from separate paths:
@@ -373,7 +383,7 @@ mod tests {
     /// Traces: AC-009, S-12.05 regression requirement.
     #[test]
     fn test_BC_4_12_002_hook_payload_and_hook_result_surfaces_unchanged() {
-        use vsdd_hook_sdk::{HookPayload, HookResult, HOST_ABI_VERSION};
+        use vsdd_hook_sdk::{HOST_ABI_VERSION, HookPayload, HookResult};
 
         // HOST_ABI_VERSION still == 1
         assert_eq!(
@@ -428,37 +438,53 @@ mod proptest_tests {
 
     // Arbitrary strategy for Option<String>
     fn arb_opt_string() -> impl Strategy<Value = Option<String>> {
-        prop_oneof![
-            Just(None),
-            ".*".prop_map(Some),
-        ]
+        prop_oneof![Just(None), ".*".prop_map(Some),]
     }
 
     // Arbitrary strategy for ResolverInput
     fn arb_resolver_input() -> impl Strategy<Value = ResolverInput> {
         (
-            ".*",            // event_type
-            ".*",            // hook_event_name
+            ".*",             // event_type
+            ".*",             // hook_event_name
             arb_opt_string(), // agent_type
-            ".*",            // project_dir
+            ".*",             // project_dir
             arb_json_value(), // plugin_config
         )
-            .prop_map(|(event_type, hook_event_name, agent_type, project_dir, plugin_config)| {
-                ResolverInput {
-                    event_type,
-                    hook_event_name,
-                    agent_type,
-                    project_dir,
-                    plugin_config,
-                }
-            })
+            .prop_map(
+                |(event_type, hook_event_name, agent_type, project_dir, plugin_config)| {
+                    ResolverInput {
+                        event_type,
+                        hook_event_name,
+                        agent_type,
+                        project_dir,
+                        plugin_config,
+                    }
+                },
+            )
     }
 
     // Arbitrary strategy for ResolverOutput
+    //
+    // AC-010 spec-gap resolution (Option A): `Some(Value::Null)` is excluded from
+    // the strategy. Per BC-4.12.002 EC-001: "value: null means key is absent" — the
+    // dispatcher treats `ResolverOutput { value: None }` and `{ value: Some(Null) }`
+    // identically (neither writes the key to plugin_config). Standard serde Option
+    // semantics serialize both as `"value":null` and deserialize the JSON null back
+    // to `None`, so `Some(Null)` is a degenerate input that does not survive a
+    // serde round-trip unchanged. Filtering it avoids a false negative while
+    // preserving full coverage of all semantically-distinct ResolverOutput values.
     fn arb_resolver_output() -> impl Strategy<Value = ResolverOutput> {
         (
             ".*",
-            prop_oneof![Just(None), arb_json_value().prop_map(Some)],
+            prop_oneof![
+                Just(None),
+                // Exclude Value::Null from Some variants: Some(Null) serializes
+                // to JSON null, which deserializes back to None, not Some(Null).
+                arb_json_value()
+                    .prop_filter("Some(Null) excluded — degenerate per EC-001", |v| !v
+                        .is_null())
+                    .prop_map(Some),
+            ],
         )
             .prop_map(|(key, value)| ResolverOutput { key, value })
     }
