@@ -46,6 +46,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | Pass | Date | Findings | Status |
 |------|------|----------|--------|
 | 1 | 2026-05-07 | 29 (4 CRITICAL / 14 HIGH / 6 MEDIUM / 5 LOW) | CRITICAL — fix routing pending |
+| 2 | 2026-05-07 | 15 (2 CRIT + 6 HIGH + 4 MED + 3 LOW process-gap) | CRITICAL — substantive |
 
 ## Convergence Status
 
@@ -53,7 +54,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): PENDING
 - F3 (incremental stories): PENDING
 - F4 (implementation): PENDING
-- F5 (scoped adversarial review): **IN PROGRESS** — Pass 1 CRITICAL (29 findings); fix routing pending via fix-pr-delivery; pass-2 after remediation
+- F5 (scoped adversarial review): **IN PROGRESS** — Pass 1 CRITICAL (29 findings); Pass 2 CRITICAL (15 findings — 29→15 novelty decay); human review of F-P2-001 fix architecture pending before pass-2 fix burst
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

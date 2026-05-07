@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 B6: E-14 stories committed (D-359). 5 process-gap follow-up stories (S-14.01..S-14.05) + PG-2 inline backfill (3 adversary-convergence-state.json for S-13.01/S-12.01/S-12.02). STORY-INDEX 2.27→2.28. B3+B4 source fix PRs in flight (#103, #104). Pass-2 entry after B3+B4 merge."
+current_step: "F5 pass-2 CRITICAL — 15 findings (2C/6H/4M/3L process-gap). Novelty decay 29→15. F-P2-001 CRITICAL: convergence hook inert in prod (consumer added, no producer wiring). F-P2-002 CRITICAL: BC-4.10.001+BC-5.39.001 VP-071 traceability rows still have advisory-block wording. Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst. D-360."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (D-359; F5 B6 — E-14 process-gap stories + PG-2 inline backfill; STORY-INDEX 2.27→2.28) |
-| **Current Phase** | F5 IN PROGRESS — pass-1 CRITICAL; fix routing before pass-2 |
+| **Last Updated** | 2026-05-07 (D-360; F5 pass-2 CRITICAL — 15 findings; human review of F-P2-001 fix architecture pending) |
+| **Current Phase** | F5 IN PROGRESS — pass-2 CRITICAL (15 findings; 29→15 decay); awaiting human review of F-P2-001 arch |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -75,7 +75,7 @@ dtu_services: []
 | Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
-| v1.0-feature-engine-discipline-pass-1 | **F5 IN PROGRESS** | Pass-1: CRITICAL — 29 findings (4C/14H/6M/5L); adv-cycle-pass-1.md (65KB) persisted D-356. Fix routing pending. Pass-2 after remediation. |
+| v1.0-feature-engine-discipline-pass-1 | **F5 IN PROGRESS** | Pass-1: CRITICAL (29 findings, D-356). Pass-2: CRITICAL (15 findings, D-360; 29→15 novelty decay). Top: F-P2-001 convergence hook inert in prod; F-P2-002 advisory-block wording regression. Human review of F-P2-001 fix arch pending before fix burst. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -103,6 +103,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-357 F5 pass-1 B1 spec amendments** | state-manager | **COMPLETE** | VP-071 v1.1→v1.2 (BlockWithFix→Block; F-CRIT-3/F-HIGH-5/F-MED-7). BC-4.11.001 v1.0→v1.1 (NC-1 single-segment semantics). 6 BC input-hashes → 40a6fb6 (F-LOW-5). ADR-017 slug fixed in S-12.01, S-12.02, E-12 (F-CRIT-2). BC-INDEX 1.15→1.16; VP-INDEX 1.2→1.3. B1 source fix PR in flight. |
 | **D-358 F5 pass-1 B2 spec amendments** | state-manager | **COMPLETE** | BC-4.10.002 v1.0→v1.1 (PC3 log_debug→log_info; F-HIGH-4). VP-070 v1.0→v1.1 (match_path→matches_canonical, BC-4.11.001 resolved, MatchResult/PathRegistry types corrected; F-HIGH-10). S-13.01 terminology (parse_registry→load_registry, match_path→matches_canonical; F-HIGH-9). S-12.02 block_with_fix throughout (F-HIGH-12). BC-INDEX 1.16→1.17; VP-INDEX 1.3→1.4. B2 source fix PR in flight. |
 | **D-359 F5 B6 process-gap stories + PG-2 backfill** | state-manager | **COMPLETE** | E-14 Engine Discipline Pass-2 authored (5 stories: S-14.01 P0, S-14.02..S-14.04 P1, S-14.03 P2). PG-2 inline backfill: adversary-convergence-state.json created for S-13.01/S-12.01/S-12.02 with bootstrap_annotation (exception_type: cycle_self_introduction). STORY-INDEX 2.27→2.28 (84 stories, 14 epics). F7 CONVERGENCE_STATE_MISSING risk cleared. B3+B4 source PRs in flight (#103, #104). |
+| **D-360 F5 pass-2 adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 15 findings (2C/6H/4M/3L). Novelty decay 29→15. F-P2-001 CRITICAL: convergence hook inert in prod — consumer wiring present but no producer (wave-state→plugin_config not wired). F-P2-002 CRITICAL: BC-4.10.001+BC-5.39.001 VP-071 traceability rows have deprecated advisory-block wording (sibling-file regression). adv-cycle-pass-2.md persisted (395L). INDEX.md + decision-log updated. Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst. |
 
 ## Identifier Conventions
 
@@ -167,7 +168,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — D-359 F5 B6 burst. E-14 Engine Discipline Pass-2 epic + 5 process-gap stories (S-14.01 P0, S-14.02..S-14.04 P1, S-14.03 P2) committed. PG-2 inline backfill: adversary-convergence-state.json created for S-13.01, S-12.01, S-12.02 with bootstrap_annotation. STORY-INDEX 2.27→2.28 (84 stories, 14 epics). F7 CONVERGENCE_STATE_MISSING risk cleared. B3 (#103) + B4 (#104) source fix PRs in flight. Pass-2 entry after B3+B4 merge.
+**Last update:** 2026-05-07 — D-360 F5 pass-2 review persisted. Pass-2 classification: CRITICAL. 15 findings (2C/6H/4M/3L). Novelty decay 29→15. Two CRITICAL findings: F-P2-001 convergence hook inert in prod (consumer wired, no producer; wave-state→plugin_config not wired); F-P2-002 BC-4.10.001 + BC-5.39.001 VP-071 traceability rows still have deprecated advisory-block wording (sibling regression of F-CRIT-3). adv-cycle-pass-2.md persisted (395L). Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst dispatches.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
@@ -183,9 +184,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
 **BC-INDEX:** v1.17 | **VP-INDEX:** v1.4 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.8
 
-**ACTIVE STEP: F5 — B2 spec amendments committed (D-358); B1+B2 source fix PRs in flight; B5 + remaining fix batches pending before pass-2 (v1.0-feature-engine-discipline-pass-1)**
+**ACTIVE STEP: F5 — Pass-2 CRITICAL (D-360); awaiting human review of F-P2-001 fix architecture (v1.0-feature-engine-discipline-pass-1)**
 
-**F5 pickup:** Run `vsdd-factory:fix-pr-delivery` on the 29 pass-1 findings (adv-cycle-pass-1.md). Route by severity: 4 CRITICAL first, then 14 HIGH, then 6 MEDIUM. Two [process-gap] observations need follow-up story authorship (per cycle-closing checklist). After all fixes merged, dispatch pass-2 adversary review.
+**F5 pickup:** Human review of F-P2-001 fix architecture required first (convergence hook producer wiring — choose between: (a) wave-gate writes plugin_config at dispatch time, or (b) hook reads wave-state directly). After architecture decision, dispatch pass-2 fix burst via `vsdd-factory:fix-pr-delivery`. Then dispatch pass-3 adversary review.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
