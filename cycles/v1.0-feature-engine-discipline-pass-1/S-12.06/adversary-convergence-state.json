@@ -1,8 +1,8 @@
 {
-  "passes_clean": 1,
-  "last_finding_count": 0,
+  "passes_clean": 2,
+  "last_finding_count": 2,
   "last_classification": "NITPICK_ONLY",
-  "last_timestamp": "2026-05-07T12:00:00Z",
+  "last_timestamp": "2026-05-07T18:00:00Z",
   "deferred_findings": [
     {
       "finding_id": "S12.06-DEFER-1",
