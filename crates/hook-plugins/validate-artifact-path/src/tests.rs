@@ -1301,3 +1301,57 @@ fn proof_BC_4_11_001_vp070_advisory_only_registry_never_produces_block_in_matche
         }
     }
 }
+
+// -----------------------------------------------------------------------
+// BC-4.11.001 invariant 6 (v1.1): single-segment placeholder semantics
+// {placeholder} must NOT match empty content or content containing '/'
+// (Amended NC-1, F5 pass-1 fix burst 2026-05-07)
+// -----------------------------------------------------------------------
+
+#[test]
+fn test_BC_4_11_001_invariant6_placeholder_rejects_empty_segment() {
+    // ".factory/cycles//decision-log.md" has an empty segment where {cycle-id} is expected.
+    // Per invariant 6 (v1.1): placeholder must match >=1 character AND no '/'.
+    // Double-slash means the placeholder would match zero characters — must reject.
+    let yaml = r#"version: 1
+artifacts:
+  - artifact_type: cycle-decision-log
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/decision-log.md"
+    description: Cycle decision log
+    enforcement_level: "block"
+"#;
+    let registry = require_registry(yaml, "invariant6_empty_segment");
+    let path = ".factory/cycles//decision-log.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::NoMatch,
+        "BC-4.11.001 invariant 6 (v1.1): placeholder must match at least one character. \
+         Empty segment (double-slash) MUST NOT match. Path: '{}'",
+        path
+    );
+}
+
+#[test]
+fn test_BC_4_11_001_invariant6_placeholder_rejects_multi_segment() {
+    // ".factory/cycles/a/b/decision-log.md" has "a/b" where {cycle-id} is expected.
+    // Per invariant 6 (v1.1): placeholder is single-segment — no '/' allowed in matched content.
+    // "a/b" spans two segments and MUST NOT match {cycle-id}.
+    let yaml = r#"version: 1
+artifacts:
+  - artifact_type: cycle-decision-log
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/decision-log.md"
+    description: Cycle decision log
+    enforcement_level: "block"
+"#;
+    let registry = require_registry(yaml, "invariant6_multi_segment");
+    let path = ".factory/cycles/a/b/decision-log.md";
+    let result = matches_canonical(path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::NoMatch,
+        "BC-4.11.001 invariant 6 (v1.1): {{placeholder}} is single-segment — \
+         content containing '/' MUST NOT match. Path: '{}'",
+        path
+    );
+}
