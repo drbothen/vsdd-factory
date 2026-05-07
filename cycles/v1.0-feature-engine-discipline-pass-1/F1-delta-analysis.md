@@ -339,7 +339,7 @@ Next available VP is VP-069 (current max: VP-068).
 |---|---|---|---|---|
 | VP-069 | `validate-artifact-path`: registry load never panics on malformed YAML | validate-artifact-path | proptest | P1 |
 | VP-070 | `validate-artifact-path`: path matching is pure (deterministic given same registry + path) | validate-artifact-path | kani | P1 |
-| VP-071 | `validate-per-story-adversary-convergence`: advisory-block output always emitted on non-cleared gate | validate-per-story-adversary-convergence | kani | P1 |
+| VP-071 | `validate-per-story-adversary-convergence`: Block Invariant — kani harness verifies `HookResult::Block` on non-converged input (canonical `block_with_fix` form; OQ-9 resolved D-349, VP-071 v1.1) | validate-per-story-adversary-convergence | kani | P1 |
 | VP-072 | `artifact-path-registry.yaml` as single source: no skill or hook embeds a duplicate path list | cross-cutting | integration | P1 |
 
 VP-072 is notable as a cross-cutting integration-test VP — it verifies the
