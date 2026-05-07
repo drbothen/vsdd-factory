@@ -50,7 +50,7 @@ Scanning .factory/ for registry violations...
 
 | Current Path | Proposed Canonical Path | Artifact Type | Frontmatter Fields Used |
 |---|---|---|---|
-| .factory/WRONG-LOCATION/BC-4.11.001.md | .factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md | behavioral-contract | bc_id=BC-4.11.001, subsystem=SS-04 |
+| .factory/WRONG-LOCATION/BC-4.11.001.md | .factory/specs/bc/ss-NN/BC-S.SS.NNN.md | behavioral-contract | bc_id=BC-4.11.001, subsystem=SS-04 |
 
 1 violations found. Re-run with --apply to execute.
 ```
@@ -70,10 +70,10 @@ Scanning .factory/ for registry violations...
 
 Detected 1 violation(s). Beginning relocation...
 
-git mv .factory/WRONG-LOCATION/BC-4.11.001.md .factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md
+git mv .factory/WRONG-LOCATION/BC-4.11.001.md .factory/specs/bc/ss-NN/BC-S.SS.NNN.md
 
 Updating cross-references...
-  Updated 2 reference(s) in .factory/specs/behavioral-contracts/BC-INDEX.md
+  Updated 2 reference(s) in .factory/specs/bc/BC-INDEX.md
 
 Appending to decision-log...
 

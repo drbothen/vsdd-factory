@@ -7,7 +7,7 @@
 #   warn     — write proceeds but a hook.warn event is emitted
 #   advisory — write proceeds with a log_debug advisory only
 #
-# Per OQ5 resolution: all entries ship at enforcement_level: block.
+# Per OQ5 resolution: all entries ship with enforcement_level set to block.
 # The hook always blocks writes to .factory/ paths that match NO entry (ARTIFACT_PATH_UNREGISTERED).
 #
 # Pattern syntax: {placeholder} matches any non-empty path segment or sequence.

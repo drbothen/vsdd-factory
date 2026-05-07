@@ -132,7 +132,8 @@ Trace each behavioral contract to the component(s) responsible for implementing 
 
 ### 6. Define Verification Properties
 
-Based on architecture decisions, create verification properties (VP-NNN) in `.factory/specs/verification-properties/`:
+Based on architecture decisions, create verification properties (VP-NNN) in the canonical
+VP location (per `plugins/vsdd-factory/config/artifact-path-registry.yaml`):
 - Invariants that the architecture must maintain
 - Safety properties (bad things that must not happen)
 - Liveness properties (good things that must eventually happen)
@@ -143,7 +144,7 @@ Write sharded files to `.factory/specs/architecture/` following `spec-format.md`
 
 Write ARCH-INDEX.md linking all sections.
 
-Write VP files to `.factory/specs/verification-properties/` with VP-INDEX.md.
+Write VP files to the canonical VP directory (see `artifact-path-registry.yaml`) with VP-INDEX.md.
 
 ## Self-Review (before adversarial review)
 
