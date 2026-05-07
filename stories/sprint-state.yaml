@@ -246,3 +246,12 @@ story_updates:
     merge_sha: e2fd3d4
     merged_at: 2026-05-07
     note: "validate-per-story-adversary-convergence WASM hook (E-12). 148KB binary. SubagentStop priority 960. 30/30 cargo + 11+1skip bats green. Required develop conflict resolution at 7100431 (Cargo.toml workspace members + Cargo.lock regenerated + hooks-registry.toml auto-merged). D-353."
+
+  S-12.06:
+    status: completed
+    pr: 105
+    merge_sha: 15432c6
+    merged_at: 2026-05-07
+    step_4_5_convergence: true
+    convergence_passes: 6
+    note: "HOST_ABI Context Injection Contract (E-12). First platform story of E-12 expansion. First story in cycle history to complete Step 4.5 per-story adversary convergence (D-375). Decay 5→3→2→0→0→0 across 6 passes; 3 consecutive NITPICK_ONLY. 5 findings deferred to wave-gate/phase-5. Section 393L, factory-agnostic, BC-source-of-truth coherent. D-376."

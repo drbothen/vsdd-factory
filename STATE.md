@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-12.06 Step 4.5 CONVERGED (D-375, 2026-05-07). 3/3 NITPICK_ONLY passes; decay 5→3→2→0→0→0; passes_clean=3; 5 findings deferred to wave-gate/phase-5. Advancing to Step 5 (demo recording). F4-platform delivery in progress: S-12.06 → {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08."
+current_step: "S-12.06 MERGED PR #105 at 15432c6 (D-376, 2026-05-07). First E-12 platform story. Step 4.5 converged D-375 (decay 5→3→2→0→0→0; 6 passes). S-12.03 + S-12.05 in flight (parallel, unblocked by S-12.06 foundation)."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -107,6 +107,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-360 F5 pass-2 adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 15 findings (2C/6H/4M/3L). Novelty decay 29→15. F-P2-001 CRITICAL: convergence hook inert in prod — consumer wiring present but no producer (wave-state→plugin_config not wired). F-P2-002 CRITICAL: BC-4.10.001+BC-5.39.001 VP-071 traceability rows have deprecated advisory-block wording (sibling-file regression). adv-cycle-pass-2.md persisted (395L). INDEX.md + decision-log updated. Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst. |
 | **D-362 F2-amendment integration burst** | state-manager | **COMPLETE** | 6 new BCs (BC-1.13.001 SS-01; BC-4.12.001-005 SS-04). ADR-018. 4 new VPs (VP-073-076). PRD 1.1→1.2 (FR-048). F-P2-002 fix (BC-4.10.001 v1.1 + BC-5.39.001 v1.1). BC-INDEX 1.17→1.18 (total_bcs 1937→1943; SS-01 114→115, SS-04 34→39). ARCH-INDEX 1.8→1.9 (ADR-018 added). VP-INDEX 1.4→1.5 (total_vps 72→76). Next: F3-amendment story authoring (S-12.03-S-12.08 under E-12). |
 | **D-366 F3-amendment integration burst** | state-manager | **COMPLETE** | 6 new stories under E-12 (S-12.03..S-12.08; 65 ACs; WASM-plugin Context Resolver platform). E-12 story_count 2→8. STORY-INDEX 2.28→2.29 (90 stories). E-12 epic v1.0→v1.1 (scope widened; +6 BCs +1 ADR +4 VPs). Decision-log D-366..D-369. Next: F4-platform delivery, S-12.06 ships first. |
+| **D-376 S-12.06 merged — Step 9 state update** | state-manager | **COMPLETE** | S-12.06 (HOST_ABI Context Injection Contract) MERGED via PR #105 at 15432c6 (2026-05-07). First E-12 platform story. First in cycle history to complete Step 4.5 per-story adversary convergence (D-375; 6 passes; decay 5→3→2→0→0→0). sprint-state.yaml + STORY-INDEX 2.29→2.30 + decision-log D-376 updated. Next: S-12.03 + S-12.05 in parallel. |
 
 ## Identifier Conventions
 
@@ -124,7 +125,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Story Status (90 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14 registered; E-12 F3-amendment 6 stories added D-366; F4 COMPLETE)
 
-- **Merged (61):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
+- **Merged (62):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07) + S-12.06 (PR #105 15432c6 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
 - **Draft (23):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
@@ -172,10 +173,10 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — D-366 F3-amendment COMPLETE. 6 new stories (S-12.03..S-12.08) under E-12 Engine Governance; 65 ACs; WASM-plugin Context Resolver platform (BC-1.13.001 + BC-4.12.001-005 + ADR-018 + VP-073-076). E-12 story_count 2→8. STORY-INDEX 2.28→2.29 (90 stories). Decision-log D-366..D-369 appended. Next: F4-platform delivery, S-12.06 first.
+**Last update:** 2026-05-07 — D-376 S-12.06 MERGED (PR #105 at 15432c6). First E-12 platform story; first in cycle history to complete Step 4.5 per-story adversary convergence (D-375; 6 passes; decay 5→3→2→0→0→0; 3 consecutive NITPICK_ONLY; 5 findings deferred to wave-gate/phase-5). sprint-state.yaml + STORY-INDEX 2.29→2.30 + decision-log D-376 updated. Next: S-12.03 (ContextResolver trait + Registry) + S-12.05 (hook-sdk resolver extensions) in parallel.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
-**develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
+**develop HEAD:** 15432c6 (S-12.06 PR #105 squash-merge 2026-05-07)
 **main HEAD:** fb3e297 (rc.11 bot bundle; behind develop)
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID (validate fails; user must delete: `git push origin :refs/tags/v1.0.0-rc.13`)
 **v1.0.0-rc.12 tag:** 4cf59bc; SHIPPED 2026-05-06
@@ -186,9 +187,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.18 | **VP-INDEX:** v1.5 | **STORY-INDEX:** v2.29 | **ARCH-INDEX:** v1.9
+**BC-INDEX:** v1.18 | **VP-INDEX:** v1.5 | **STORY-INDEX:** v2.30 | **ARCH-INDEX:** v1.9
 
-**ACTIVE STEP: F4-platform delivery for v1.0-feature-engine-discipline-pass-1. Dispatch story-writer/implementer for S-12.06 first (HOST_ABI docs; foundational, doc-only). Dependency chain: S-12.06 → {S-12.03, S-12.05} parallel → S-12.04 → S-12.07 → S-12.08. All 6 stories subject to Step 4.5 per-story adversary convergence. S-12.08 closes F-P2-001 → unblocks F5 resumption.**
+**ACTIVE STEP: F4-platform delivery for v1.0-feature-engine-discipline-pass-1. S-12.06 MERGED (D-376). Now dispatching S-12.03 (ContextResolver trait + ResolverRegistry) + S-12.05 (hook-sdk resolver extensions) in parallel. Dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08. All remaining stories subject to Step 4.5 per-story adversary convergence. S-12.08 closes F-P2-001 → unblocks F5 resumption.**
 
 **F5 pickup (post-amendment):** After F1/F2/F3/F4 amendment cycle completes, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.

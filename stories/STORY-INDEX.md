@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.29"
+version: "2.30"
 status: current
 producer: state-manager
 timestamp: 2026-05-07T00:00:00Z
-last_amended: "2026-05-07 (v2.29) — F3-amendment: 6 new platform stories under E-12 (S-12.03..S-12.08; WASM-plugin Context Resolver platform; 65 ACs; D-366)"
+last_amended: "2026-05-07 (v2.30) — S-12.06 merged (PR #105 at 15432c6); draft→completed; Step 4.5 converged D-375; D-376"
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -494,7 +494,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | E-12 | TBD | P1 | [S-12.06] | [S-12.04, S-12.07] | draft | [BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003] (12 ACs, tdd_mode strict) |
 | S-12.04 | WASM resolver loading + lifecycle + error isolation | E-12 | TBD | P1 | [S-12.03] | [S-12.07] | draft | [BC-4.12.001, BC-4.12.003, BC-4.12.004] (13 ACs, tdd_mode strict) |
 | S-12.05 | hook-sdk resolver-authoring extensions | E-12 | TBD | P1 | [S-12.06] | [S-12.07] | draft | [BC-4.12.002, BC-4.12.003] (10 ACs, tdd_mode strict) |
-| S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic) | E-12 | TBD | P1 | [] | [S-12.03, S-12.04, S-12.05] | draft | [BC-1.13.001, BC-4.12.002] (10 ACs, tdd_mode strict; ships first — foundational doc-only) |
+| S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic) | E-12 | 105 | P1 | [] | [S-12.03, S-12.04, S-12.05] | completed | [BC-1.13.001, BC-4.12.002] (10 ACs; merged 2026-05-07 at 15432c6; Step 4.5 converged D-375; decay 5→3→2→0→0→0) |
 | S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | E-12 | TBD | P1 | [S-12.04, S-12.05] | [S-12.08] | draft | [BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs, tdd_mode strict) |
 | S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | E-12 | TBD | P1 | [S-12.07] | [] | draft | [BC-1.13.001, BC-4.12.005] (10 ACs, tdd_mode strict) |
 
