@@ -79,13 +79,23 @@ If any exist, run DTU comparison:
 
 ### Gate 3: Adversarial Review of Wave Diff
 
+**Prerequisite:** All stories in the wave MUST have completed per-story adversary convergence (Step 4.5 of per-story-delivery.md) before Gate 3 runs. Gate 3 is a cross-story integration review — not a within-story discovery pass. Within-story defects should have been caught at Step 4.5.
+
+**Scope (BC-5.39.002 PC7 — three-perimeter model):** Gate 3 is scoped exclusively to cross-story and integration concerns. Review input includes:
+- The wave diff (integration of all story branches on `develop`)
+- The aggregated `deferred_findings` from per-story convergence state files (`.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`) across all stories in the wave — these are findings tagged `target: "wave-gate"` during per-story passes
+
+Out of scope for Gate 3: within-story findings (assumed converged), system-level findings (deferred to Phase-5), architectural findings (deferred to Phase-5).
+
 Get the wave diff:
 ```bash
 git log develop --oneline --since="<wave start date>"
 git diff <pre-wave commit>..develop
 ```
 
-Launch `/adversarial-review implementation` scoped to the wave's changes.
+Collect `deferred_findings` with `target: "wave-gate"` from each story's convergence state file and include them as review context for the adversary dispatch.
+
+Launch `/adversarial-review implementation` scoped to the wave's cross-story and integration changes.
 
 **Pass criteria:** No CRITICAL findings. HIGH findings documented in tech debt register or addressed.
 
