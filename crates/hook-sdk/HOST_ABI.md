@@ -721,6 +721,10 @@ A resolver module that references `host::write_file` fails at instantiation time
 error), not at runtime. This prevents resolvers from accidentally or maliciously writing
 files. (BC-4.12.003 INV2)
 
+**Per-resolver isolation:** The capability restrictions for resolver A do NOT apply to
+resolver B and vice versa. Each resolver's `Store` is initialized with that resolver's own
+`path_allow` list from its registry entry. (BC-4.12.003 PC6)
+
 ---
 
 ### Error and Crash Isolation (BC-4.12.004)
