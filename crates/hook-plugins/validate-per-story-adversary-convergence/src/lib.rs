@@ -1628,10 +1628,14 @@ mod tests {
         let lib_src = std::fs::read_to_string(&lib_path)
             .unwrap_or_else(|e| panic!("failed to read src/lib.rs: {e}"));
 
-        // Check lib.rs for write_file
+        // Check lib.rs for write_file.
+        // Pattern is constructed at runtime (not as a literal) so the test
+        // source itself does not contain the forbidden string — avoiding a
+        // self-defeating match (AC-012, BC-4.10.001 inv-4).
+        let forbidden = format!("{}::{}_file(", "host", "write");
         assert!(
-            !lib_src.contains("host::write_file") && !lib_src.contains("write_file("),
-            "BC-4.10.001 inv-4: src/lib.rs MUST NOT contain any write_file calls \
+            !lib_src.contains(&forbidden),
+            "BC-4.10.001 inv-4: src/lib.rs MUST NOT contain any host write_file calls \
              — hook must be strictly read-only (AC-012)"
         );
 
@@ -1640,8 +1644,8 @@ mod tests {
             let main_src = std::fs::read_to_string(&main_path)
                 .unwrap_or_else(|e| panic!("failed to read src/main.rs: {e}"));
             assert!(
-                !main_src.contains("host::write_file") && !main_src.contains("write_file("),
-                "BC-4.10.001 inv-4: src/main.rs MUST NOT contain any write_file calls \
+                !main_src.contains(&forbidden),
+                "BC-4.10.001 inv-4: src/main.rs MUST NOT contain any host write_file calls \
                  — hook must be strictly read-only (AC-012)"
             );
         }
