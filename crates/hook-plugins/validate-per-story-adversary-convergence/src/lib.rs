@@ -647,7 +647,9 @@ mod tests {
             self.read_called.set(true);
             match &self.read_result {
                 Some(v) => Ok(v.clone()),
-                None => Err(IoError("fake: cycle dir absent — no read result".to_string())),
+                None => Err(IoError(
+                    "fake: cycle dir absent — no read result".to_string(),
+                )),
             }
         }
 
@@ -742,10 +744,8 @@ mod tests {
         // last_timestamp, deferred_findings). BC-4.10.001 canonical test vector
         // row 1: {passes_clean: 3, last_classification: "NITPICK_ONLY"} → Continue.
         let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(cleared_state_json()),
-            vec!["S-A".to_string()],
-        );
+        let callbacks =
+            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             hook_logic(&payload, &callbacks)
@@ -819,9 +819,8 @@ mod tests {
         // BC-4.10.001 canonical test vector: [S-A] | S-A file absent → BLOCK.
         let state: Option<&ConvergenceState> = None;
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(state)
-        }));
+        let result =
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| hook_result_for(state)));
 
         assert!(
             result.is_ok(),
@@ -858,9 +857,8 @@ mod tests {
     fn test_BC_4_10_001_vp071_equiv_missing_state_file_always_blocks() {
         // AC-002 traces to BC-4.10.001 PC2; VP-071 kani harness cargo-test
         // equivalent. hook_result_for(None) must return HookResult::Block.
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(None)
-        }));
+        let result =
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| hook_result_for(None)));
 
         assert!(
             result.is_ok(),
@@ -872,7 +870,8 @@ mod tests {
             assert!(
                 matches!(r, HookResult::Block { .. }),
                 "VP-071: missing state file must return HookResult::Block (block_with_fix form), \
-                 got {:?}", r
+                 got {:?}",
+                r
             );
         }
     }
@@ -955,7 +954,8 @@ mod tests {
             if let Ok(r) = result {
                 assert!(
                     matches!(r, HookResult::Block { .. }),
-                    "VP-071: passes_clean={passes} < 3 must return HookResult::Block, got {:?}", r
+                    "VP-071: passes_clean={passes} < 3 must return HookResult::Block, got {:?}",
+                    r
                 );
             }
         }
@@ -1042,7 +1042,8 @@ mod tests {
             assert!(
                 matches!(r, HookResult::Block { .. }),
                 "VP-071: last_classification=HIGH with passes_clean=3 must return \
-                 HookResult::Block, got {:?}", r
+                 HookResult::Block, got {:?}",
+                r
             );
         }
     }
@@ -1074,7 +1075,8 @@ mod tests {
             assert!(
                 matches!(r, HookResult::Block { .. }),
                 "VP-071: None last_classification (JSON null) must return HookResult::Block, \
-                 got {:?}", r
+                 got {:?}",
+                r
             );
         }
     }
@@ -1088,9 +1090,8 @@ mod tests {
         // AC-002 traces to BC-4.10.001 PC2+PC8; VP-071 proof E cargo-test equivalent.
         // Missing state file (guaranteed block path). Verifies canonical
         // block_with_fix form: HOOK_NAME in reason, code in reason, non-empty.
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(None)
-        }));
+        let result =
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| hook_result_for(None)));
         assert!(
             result.is_ok(),
             "VP-071 proof_block_with_fix_fields_populated: hook_result_for(None) must \
@@ -1099,17 +1100,18 @@ mod tests {
         if let Ok(r) = result {
             match r {
                 HookResult::Block { reason } => {
-                    assert!(
-                        !reason.is_empty(),
-                        "VP-071: block reason must not be empty"
-                    );
+                    assert!(!reason.is_empty(), "VP-071: block reason must not be empty");
                     assert!(
                         reason.contains(HOOK_NAME),
-                        "VP-071: block reason must contain HOOK_NAME '{}', got: {}", HOOK_NAME, reason
+                        "VP-071: block reason must contain HOOK_NAME '{}', got: {}",
+                        HOOK_NAME,
+                        reason
                     );
                     assert!(
                         reason.contains(HOOK_CODE_BASE),
-                        "VP-071: block reason must contain HOOK_CODE_BASE '{}', got: {}", HOOK_CODE_BASE, reason
+                        "VP-071: block reason must contain HOOK_CODE_BASE '{}', got: {}",
+                        HOOK_CODE_BASE,
+                        reason
                     );
                     assert!(
                         reason.contains("Fix:"),
@@ -1121,7 +1123,8 @@ mod tests {
                     );
                 }
                 other => panic!(
-                    "VP-071: hook_result_for(None) must return HookResult::Block, got {:?}", other
+                    "VP-071: hook_result_for(None) must return HookResult::Block, got {:?}",
+                    other
                 ),
             }
         }
@@ -1155,7 +1158,8 @@ mod tests {
                 assert!(
                     matches!(r, HookResult::Continue),
                     "VP-071: fully converged story (passes_clean={passes}, NITPICK_ONLY) \
-                     must return HookResult::Continue, got {:?}", r
+                     must return HookResult::Continue, got {:?}",
+                    r
                 );
             }
         }
@@ -1173,10 +1177,8 @@ mod tests {
         // Graceful degrade: no block signal emitted, no file I/O performed.
         let payload = make_payload(None); // no agent_type → not wave-gate context
         // Callbacks that would error if read_file is called (confirms no file I/O)
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(cleared_state_json()),
-            vec!["S-A".to_string()],
-        );
+        let callbacks =
+            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             hook_logic(&payload, &callbacks)
@@ -1192,7 +1194,8 @@ mod tests {
             assert!(
                 matches!(hook_result, HookResult::Continue),
                 "BC-4.10.002 PC1: no wave-gate context must produce HookResult::Continue, \
-                 got {:?}", hook_result
+                 got {:?}",
+                hook_result
             );
         }
     }
@@ -1208,10 +1211,8 @@ mod tests {
         // occur BEFORE any attempt to read state files. When context cannot be
         // determined, hook exits immediately without any file reads.
         let payload = make_payload(None); // no wave-gate context
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(cleared_state_json()),
-            vec!["S-A".to_string()],
-        );
+        let callbacks =
+            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             hook_logic(&payload, &callbacks)
@@ -1260,7 +1261,8 @@ mod tests {
             assert!(
                 matches!(hook_result, HookResult::Continue),
                 "BC-4.10.002 inv-3: absent cycle dir must produce HookResult::Continue, \
-                 got {:?}", hook_result
+                 got {:?}",
+                hook_result
             );
         }
     }
@@ -1327,7 +1329,8 @@ mod tests {
             assert!(
                 matches!(hook_result, HookResult::Continue),
                 "BC-4.10.001 PC6: converged story with deferred_findings must produce \
-                 HookResult::Continue, got {:?}", hook_result
+                 HookResult::Continue, got {:?}",
+                hook_result
             );
         }
     }
@@ -1364,7 +1367,8 @@ mod tests {
             assert!(
                 matches!(hook_result, HookResult::Block { .. }),
                 "BC-4.10.001 EC-005: multiple failing stories must produce HookResult::Block \
-                 (on first failure), got {:?}", hook_result
+                 (on first failure), got {:?}",
+                hook_result
             );
         }
     }
@@ -1490,7 +1494,8 @@ mod tests {
                 }
                 other => panic!(
                     "BC-4.10.001 EC-003: missing last_classification must produce \
-                     HookResult::Block, got {:?}", other
+                     HookResult::Block, got {:?}",
+                    other
                 ),
             }
         }
@@ -1533,7 +1538,8 @@ mod tests {
             assert!(
                 matches!(hook_result, HookResult::Continue),
                 "BC-4.10.001 EC-004: passes_clean=3, NITPICK_ONLY, non-empty deferred_findings \
-                 must produce HookResult::Continue, got {:?}", hook_result
+                 must produce HookResult::Continue, got {:?}",
+                hook_result
             );
         }
     }
@@ -1552,10 +1558,8 @@ mod tests {
         // If this test compiles and the project links without wasm32 target,
         // the injectable-callback pattern is in use.
         let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(cleared_state_json()),
-            vec!["S-A".to_string()],
-        );
+        let callbacks =
+            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
         // The fact that this compiles and runs natively (not under WASM) proves
         // the injectable-callback pattern is correctly implemented.
@@ -1653,10 +1657,8 @@ mod tests {
         // (not wave-gate). Must gracefully degrade: return Continue, log advisory.
         // The agent_type "implementer" is not a wave-gate dispatch agent.
         let payload = make_payload(Some("implementer")); // per-story agent
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(cleared_state_json()),
-            vec!["S-A".to_string()],
-        );
+        let callbacks =
+            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             hook_logic(&payload, &callbacks)
@@ -1672,7 +1674,8 @@ mod tests {
             assert!(
                 matches!(hook_result, HookResult::Continue),
                 "BC-4.10.002 EC-001: per-story SubagentStop must produce HookResult::Continue, \
-                 got {:?}", hook_result
+                 got {:?}",
+                hook_result
             );
         }
     }
@@ -1686,10 +1689,8 @@ mod tests {
         // BC-4.10.002 EC-004: Payload missing subagent_name and agent_type fields.
         // Cannot determine context. Graceful degrade: return Continue, log advisory.
         let payload = make_payload(None); // both agent_type and subagent_name absent
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(cleared_state_json()),
-            vec!["S-A".to_string()],
-        );
+        let callbacks =
+            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             hook_logic(&payload, &callbacks)
@@ -1704,7 +1705,8 @@ mod tests {
             assert!(
                 matches!(hook_result, HookResult::Continue),
                 "BC-4.10.002 EC-004: missing agent fields must produce HookResult::Continue, \
-                 got {:?}", hook_result
+                 got {:?}",
+                hook_result
             );
         }
     }
@@ -1764,7 +1766,8 @@ mod tests {
             assert!(
                 matches!(r, HookResult::Continue),
                 "BC-4.10.001 boundary: passes_clean=3 (exact threshold) must produce \
-                 HookResult::Continue, got {:?}", r
+                 HookResult::Continue, got {:?}",
+                r
             );
         }
     }
@@ -1798,7 +1801,8 @@ mod tests {
             assert!(
                 matches!(r, HookResult::Block { .. }),
                 "BC-4.10.001 boundary: passes_clean=2 must produce HookResult::Block, \
-                 got {:?}", r
+                 got {:?}",
+                r
             );
         }
     }

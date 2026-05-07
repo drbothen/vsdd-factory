@@ -37,10 +37,7 @@ fn on_hook(payload: HookPayload) -> HookResult {
     struct RealCallbacks;
 
     impl HookCallbacks for RealCallbacks {
-        fn read_file(
-            &self,
-            _path: &str,
-        ) -> Result<Option<String>, IoError> {
+        fn read_file(&self, _path: &str) -> Result<Option<String>, IoError> {
             // Use host::read_file with a generous cap (64 KiB) and 5s timeout.
             // Returns Ok(None) when the file is absent (HostError maps to None
             // for capability-denied / not-found; other errors surface as Err).
@@ -61,10 +58,7 @@ fn on_hook(payload: HookPayload) -> HookResult {
             }
         }
 
-        fn list_stories(
-            &self,
-            _cycle_id: &str,
-        ) -> Result<Vec<String>, IoError> {
+        fn list_stories(&self, _cycle_id: &str) -> Result<Vec<String>, IoError> {
             // In production, read the cycle directory listing via a manifest file
             // or delegate to the wave-state. The hook registry config should supply
             // the story list via plugin_config.stories.
