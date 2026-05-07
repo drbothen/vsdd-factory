@@ -17,6 +17,7 @@ pub mod partition;
 pub mod payload;
 pub mod plugin_loader;
 pub mod registry;
+pub mod resolver;
 pub mod routing;
 pub mod sinks;
 

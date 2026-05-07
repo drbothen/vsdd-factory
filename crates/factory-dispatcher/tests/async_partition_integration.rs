@@ -61,6 +61,7 @@ fn make_entry(name: &str, async_flag: bool) -> RegistryEntry {
         capabilities: None,
         config: toml::Value::Table(toml::Table::new()),
         async_flag,
+        needs_context: vec![],
     }
 }
 
@@ -79,6 +80,7 @@ fn make_entry_with_on_error(name: &str, async_flag: bool, on_error: OnError) -> 
         capabilities: None,
         config: toml::Value::Table(toml::Table::new()),
         async_flag,
+        needs_context: vec![],
     }
 }
 
