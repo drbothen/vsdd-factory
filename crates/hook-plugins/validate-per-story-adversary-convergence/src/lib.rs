@@ -670,17 +670,12 @@ mod kani_proofs {
 }
 
 // ---------------------------------------------------------------------------
-// Unit tests (Step 3 — test-writer; all tests use catch_unwind pattern per
-// orchestrator Red Gate requirements: compile OK, fail with behavioral context)
+// Unit tests — production is implemented; tests assert correct behavior directly.
 // ---------------------------------------------------------------------------
 //
-// Pattern: std::panic::catch_unwind calls the production stub (todo!()), then
-// asserts the result is Ok with a behavioral message. Since todo!() always
-// panics, catch_unwind returns Err, so the outer assert!(result.is_ok(), ...)
-// fails with the behavioral message — NOT a raw "not yet implemented" panic.
-//
-// This satisfies BC-8.29.001 RED_RATIO >= 0.5 and the Red Gate assertion-style
-// failure requirement from the S-12.02 dispatch instructions.
+// Pattern (post-Red Gate cleanup, F-HIGH-11): each test calls the production
+// function directly and asserts the expected HookResult. The catch_unwind
+// scaffolding has been removed — it was only needed when production was todo!().
 
 #[cfg(test)]
 mod tests {
@@ -818,18 +813,6 @@ mod tests {
         .to_string()
     }
 
-    /// Non-NITPICK_ONLY classification state (BC-4.10.001 test vector row 4).
-    fn high_classification_json() -> String {
-        json!({
-            "passes_clean": 3,
-            "last_classification": "HIGH",
-            "last_finding_count": 2,
-            "last_timestamp": "2026-05-06T00:00:00Z",
-            "deferred_findings": []
-        })
-        .to_string()
-    }
-
     // -----------------------------------------------------------------------
     // AC-001 traces to BC-4.10.001 PC1: parse_convergence_state reads OQ3
     // schema fields; hook_logic returns Continue when state is cleared.
@@ -845,23 +828,13 @@ mod tests {
         let callbacks =
             FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.001 PC1+PC5: hook_logic with a cleared story (passes_clean=3, \
-             last_classification=NITPICK_ONLY) MUST return HookResult::Continue — \
-             production function is not yet implemented (AC-001)"
+            matches!(hook_result, HookResult::Continue),
+            "BC-4.10.001 PC5: cleared story must produce HookResult::Continue, got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Continue),
-                "BC-4.10.001 PC5: cleared story must produce HookResult::Continue, got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -876,17 +849,9 @@ mod tests {
         // last_timestamp, deferred_findings.
         let json = cleared_state_json();
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            parse_convergence_state(&json)
-        }));
+        let parse_result = parse_convergence_state(&json);
 
-        assert!(
-            result.is_ok(),
-            "BC-4.10.001 PC1: parse_convergence_state MUST successfully parse a valid \
-             OQ3 schema JSON string with all five fields — production function is \
-             not yet implemented (AC-001)"
-        );
-        if let Ok(parse_result) = result {
+        {
             let state = parse_result.expect("BC-4.10.001 PC1: valid JSON must parse without error");
             assert_eq!(
                 state.passes_clean, 3,
@@ -917,16 +882,9 @@ mod tests {
         // BC-4.10.001 canonical test vector: [S-A] | S-A file absent → BLOCK.
         let state: Option<&ConvergenceState> = None;
 
-        let result =
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| hook_result_for(state)));
+        let hook_result = hook_result_for(state);
 
-        assert!(
-            result.is_ok(),
-            "BC-4.10.001 PC2: hook_result_for(None) MUST return \
-             HookResult::block_with_fix with code CONVERGENCE_STATE_MISSING — \
-             production function is not yet implemented (AC-002 branch 1)"
-        );
-        if let Ok(hook_result) = result {
+        {
             match &hook_result {
                 HookResult::Block { reason } => {
                     assert!(
@@ -955,16 +913,9 @@ mod tests {
     fn test_BC_4_10_001_vp071_equiv_missing_state_file_always_blocks() {
         // AC-002 traces to BC-4.10.001 PC2; VP-071 kani harness cargo-test
         // equivalent. hook_result_for(None) must return HookResult::Block.
-        let result =
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| hook_result_for(None)));
+        let r = hook_result_for(None);
 
-        assert!(
-            result.is_ok(),
-            "VP-071 proof_missing_state_file_always_blocks (cargo-test equivalent): \
-             hook_result_for(None) must return HookResult::Block (not panic) — \
-             production function is not yet implemented"
-        );
-        if let Ok(r) = result {
+        {
             assert!(
                 matches!(r, HookResult::Block { .. }),
                 "VP-071: missing state file must return HookResult::Block (block_with_fix form), \
@@ -992,17 +943,9 @@ mod tests {
             deferred_findings: vec![],
         };
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(Some(&state))
-        }));
+        let hook_result = hook_result_for(Some(&state));
 
-        assert!(
-            result.is_ok(),
-            "BC-4.10.001 PC3: hook_result_for(state with passes_clean=2) MUST return \
-             HookResult::Block with code CONVERGENCE_PASSES_INSUFFICIENT — \
-             production function is not yet implemented (AC-002 branch 2)"
-        );
-        if let Ok(hook_result) = result {
+        {
             match &hook_result {
                 HookResult::Block { reason } => {
                     assert!(
@@ -1041,15 +984,8 @@ mod tests {
                 last_timestamp: None,
                 deferred_findings: vec![],
             };
-            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                hook_result_for(Some(&state))
-            }));
-            assert!(
-                result.is_ok(),
-                "VP-071 proof_insufficient_passes_always_blocks (passes={passes}): \
-                 hook_result_for must return Block, not panic"
-            );
-            if let Ok(r) = result {
+            let r = hook_result_for(Some(&state));
+            {
                 assert!(
                     matches!(r, HookResult::Block { .. }),
                     "VP-071: passes_clean={passes} < 3 must return HookResult::Block, got {:?}",
@@ -1079,17 +1015,9 @@ mod tests {
             deferred_findings: vec![],
         };
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(Some(&state))
-        }));
+        let hook_result = hook_result_for(Some(&state));
 
-        assert!(
-            result.is_ok(),
-            "BC-4.10.001 PC4: hook_result_for(state with last_classification=HIGH) MUST \
-             return HookResult::Block with code CONVERGENCE_CLASSIFICATION_INSUFFICIENT — \
-             production function is not yet implemented (AC-002 branch 3)"
-        );
-        if let Ok(hook_result) = result {
+        {
             match &hook_result {
                 HookResult::Block { reason } => {
                     assert!(
@@ -1128,22 +1056,14 @@ mod tests {
             last_timestamp: None,
             deferred_findings: vec![],
         };
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(Some(&state))
-        }));
+        let r = hook_result_for(Some(&state));
+
         assert!(
-            result.is_ok(),
-            "VP-071 proof_non_nitpick_classification_always_blocks: \
-             hook_result_for must return Block, not panic"
+            matches!(r, HookResult::Block { .. }),
+            "VP-071: last_classification=HIGH with passes_clean=3 must return \
+             HookResult::Block, got {:?}",
+            r
         );
-        if let Ok(r) = result {
-            assert!(
-                matches!(r, HookResult::Block { .. }),
-                "VP-071: last_classification=HIGH with passes_clean=3 must return \
-                 HookResult::Block, got {:?}",
-                r
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1161,22 +1081,14 @@ mod tests {
             last_timestamp: None,
             deferred_findings: vec![],
         };
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(Some(&state))
-        }));
+        let r = hook_result_for(Some(&state));
+
         assert!(
-            result.is_ok(),
-            "VP-071 proof_null_classification_blocks (cargo-test equivalent): \
-             hook_result_for with null last_classification must return Block, not panic"
+            matches!(r, HookResult::Block { .. }),
+            "VP-071: None last_classification (JSON null) must return HookResult::Block, \
+             got {:?}",
+            r
         );
-        if let Ok(r) = result {
-            assert!(
-                matches!(r, HookResult::Block { .. }),
-                "VP-071: None last_classification (JSON null) must return HookResult::Block, \
-                 got {:?}",
-                r
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1188,14 +1100,9 @@ mod tests {
         // AC-002 traces to BC-4.10.001 PC2+PC8; VP-071 proof E cargo-test equivalent.
         // Missing state file (guaranteed block path). Verifies canonical
         // block_with_fix form: HOOK_NAME in reason, code in reason, non-empty.
-        let result =
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| hook_result_for(None)));
-        assert!(
-            result.is_ok(),
-            "VP-071 proof_block_with_fix_fields_populated: hook_result_for(None) must \
-             return Block with populated fields, not panic"
-        );
-        if let Ok(r) = result {
+        let r = hook_result_for(None);
+
+        {
             match r {
                 HookResult::Block { reason } => {
                     assert!(!reason.is_empty(), "VP-071: block reason must not be empty");
@@ -1244,15 +1151,9 @@ mod tests {
                 last_timestamp: None,
                 deferred_findings: vec![],
             };
-            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                hook_result_for(Some(&state))
-            }));
-            assert!(
-                result.is_ok(),
-                "VP-071 proof_converged_story_produces_continue (passes={passes}): \
-                 hook_result_for must return Continue, not panic"
-            );
-            if let Ok(r) = result {
+            let r = hook_result_for(Some(&state));
+
+            {
                 assert!(
                     matches!(r, HookResult::Continue),
                     "VP-071: fully converged story (passes_clean={passes}, NITPICK_ONLY) \
@@ -1278,24 +1179,14 @@ mod tests {
         let callbacks =
             FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.002 PC1: hook_logic with no wave-gate context indicator (no agent_type) \
-             MUST return HookResult::Continue (graceful degrade) without blocking — \
-             production function is not yet implemented (AC-003)"
+            matches!(hook_result, HookResult::Continue),
+            "BC-4.10.002 PC1: no wave-gate context must produce HookResult::Continue, \
+             got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Continue),
-                "BC-4.10.002 PC1: no wave-gate context must produce HookResult::Continue, \
-                 got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1312,24 +1203,14 @@ mod tests {
         let callbacks =
             FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let _hook_result = hook_logic(&payload, &callbacks);
 
+        // Verify no I/O occurred (graceful degrade exits before file reads):
         assert!(
-            result.is_ok(),
-            "BC-4.10.002 inv-2: hook_logic must exit before any read_file call when \
-             wave-gate context is absent — production function is not yet implemented \
-             (AC-003 + AC-004)"
+            !callbacks.was_read_called(),
+            "BC-4.10.002 invariant 2: read_file MUST NOT be called before context check \
+             — graceful degrade must exit before any file I/O"
         );
-        // After production is implemented, also verify no I/O occurred:
-        if result.is_ok() {
-            assert!(
-                !callbacks.was_read_called(),
-                "BC-4.10.002 invariant 2: read_file MUST NOT be called before context check \
-                 — graceful degrade must exit before any file I/O"
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1345,24 +1226,14 @@ mod tests {
         let payload = make_payload(Some("wave-gate-dispatch")); // wave-gate context present
         let callbacks = FakeCallbacks::new_no_context(); // cycle dir absent
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.002 inv-3: hook_logic with absent cycle directory MUST return \
-             HookResult::Continue (graceful degrade), not block or error — \
-             production function is not yet implemented (AC-004)"
+            matches!(hook_result, HookResult::Continue),
+            "BC-4.10.002 inv-3: absent cycle dir must produce HookResult::Continue, \
+             got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Continue),
-                "BC-4.10.002 inv-3: absent cycle dir must produce HookResult::Continue, \
-                 got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1379,22 +1250,13 @@ mod tests {
             vec![], // zero stories in wave
         );
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.001 EC-001: hook_logic with zero-story wave MUST return \
-             HookResult::Continue — production function is not yet implemented"
+            matches!(hook_result, HookResult::Continue),
+            "BC-4.10.001 EC-001: empty wave must produce HookResult::Continue, got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Continue),
-                "BC-4.10.001 EC-001: empty wave must produce HookResult::Continue, got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1413,24 +1275,14 @@ mod tests {
             vec!["S-A".to_string(), "S-B".to_string()],
         );
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.001 PC6: hook_logic with cleared stories having non-empty \
-             deferred_findings MUST return HookResult::Continue (deferred findings \
-             do not block) — production function is not yet implemented (AC-005)"
+            matches!(hook_result, HookResult::Continue),
+            "BC-4.10.001 PC6: converged story with deferred_findings must produce \
+             HookResult::Continue, got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Continue),
-                "BC-4.10.001 PC6: converged story with deferred_findings must produce \
-                 HookResult::Continue, got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1451,24 +1303,14 @@ mod tests {
             vec!["S-A".to_string(), "S-B".to_string()],
         );
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.001 EC-005: hook_logic with multiple failing stories MUST block \
-             on the FIRST failure and return immediately (not enumerate all failures) — \
-             production function is not yet implemented (AC-006)"
+            matches!(hook_result, HookResult::Block { .. }),
+            "BC-4.10.001 EC-005: multiple failing stories must produce HookResult::Block \
+             (on first failure), got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Block { .. }),
-                "BC-4.10.001 EC-005: multiple failing stories must produce HookResult::Block \
-                 (on first failure), got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1488,17 +1330,9 @@ mod tests {
             vec!["S-A".to_string()],
         );
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
-        assert!(
-            result.is_ok(),
-            "BC-4.10.001 EC-002: hook_logic with malformed JSON state file MUST return \
-             HookResult::Block with code CONVERGENCE_STATE_MALFORMED (not panic) — \
-             production function is not yet implemented (AC-007)"
-        );
-        if let Ok(hook_result) = result {
+        {
             match &hook_result {
                 HookResult::Block { reason } => {
                     assert!(
@@ -1520,21 +1354,12 @@ mod tests {
     fn test_BC_4_10_001_parse_convergence_state_malformed_json_returns_err() {
         // AC-007 traces to BC-4.10.001 EC-002: parse_convergence_state MUST return
         // Err(ParseError) when given malformed JSON, not panic.
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            parse_convergence_state("{ this is not json ")
-        }));
+        let parse_result = parse_convergence_state("{ this is not json ");
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.001 EC-002: parse_convergence_state with malformed JSON MUST return \
-             Err(ParseError) without panicking — production function not yet implemented"
+            parse_result.is_err(),
+            "BC-4.10.001 EC-002: malformed JSON must return Err(ParseError), got Ok"
         );
-        if let Ok(parse_result) = result {
-            assert!(
-                parse_result.is_err(),
-                "BC-4.10.001 EC-002: malformed JSON must return Err(ParseError), got Ok"
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1565,17 +1390,9 @@ mod tests {
             vec!["S-A".to_string()],
         );
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
-        assert!(
-            result.is_ok(),
-            "BC-4.10.001 EC-003: hook_logic with missing last_classification field MUST \
-             return HookResult::Block with code CONVERGENCE_STATE_SCHEMA_INVALID — \
-             production function is not yet implemented (AC-008)"
-        );
-        if let Ok(hook_result) = result {
+        {
             match &hook_result {
                 HookResult::Block { reason } => {
                     // The block code should be either SCHEMA_INVALID (EC-003: field absent)
@@ -1622,24 +1439,14 @@ mod tests {
             ],
         };
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(Some(&state))
-        }));
+        let hook_result = hook_result_for(Some(&state));
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.001 EC-004: hook_result_for with converged state + non-empty \
-             deferred_findings MUST return HookResult::Continue (deferred findings \
-             do not block) — production function is not yet implemented (AC-009)"
+            matches!(hook_result, HookResult::Continue),
+            "BC-4.10.001 EC-004: passes_clean=3, NITPICK_ONLY, non-empty deferred_findings \
+             must produce HookResult::Continue, got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Continue),
-                "BC-4.10.001 EC-004: passes_clean=3, NITPICK_ONLY, non-empty deferred_findings \
-                 must produce HookResult::Continue, got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1661,16 +1468,8 @@ mod tests {
 
         // The fact that this compiles and runs natively (not under WASM) proves
         // the injectable-callback pattern is correctly implemented.
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
-
-        assert!(
-            result.is_ok(),
-            "BC-4.10.001 inv-3: hook_logic MUST be exercisable without a WASM runtime \
-             via the injectable-callback pattern — production function not yet \
-             implemented (AC-010)"
-        );
+        let _result = hook_logic(&payload, &callbacks);
+        // If the above call compiles and runs without a WASM runtime, the pattern is verified.
     }
 
     // -----------------------------------------------------------------------
@@ -1762,24 +1561,14 @@ mod tests {
         let callbacks =
             FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.002 EC-001: hook_logic fired on per-story SubagentStop (agent_type=implementer) \
-             MUST return HookResult::Continue (graceful degrade) — \
-             production function is not yet implemented"
+            matches!(hook_result, HookResult::Continue),
+            "BC-4.10.002 EC-001: per-story SubagentStop must produce HookResult::Continue, \
+             got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Continue),
-                "BC-4.10.002 EC-001: per-story SubagentStop must produce HookResult::Continue, \
-                 got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1794,23 +1583,14 @@ mod tests {
         let callbacks =
             FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_logic(&payload, &callbacks)
-        }));
+        let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.002 EC-004: hook_logic with missing agent fields MUST return \
-             HookResult::Continue (graceful degrade) — production function not yet implemented"
+            matches!(hook_result, HookResult::Continue),
+            "BC-4.10.002 EC-004: missing agent fields must produce HookResult::Continue, \
+             got {:?}",
+            hook_result
         );
-        if let Ok(hook_result) = result {
-            assert!(
-                matches!(hook_result, HookResult::Continue),
-                "BC-4.10.002 EC-004: missing agent fields must produce HookResult::Continue, \
-                 got {:?}",
-                hook_result
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1824,18 +1604,14 @@ mod tests {
         // Inversely: the function signals "not wave-gate" → hook degrades.
         let payload = make_payload(None);
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            graceful_degrade_outside_wave_gate(&payload)
-        }));
+        let should_degrade = graceful_degrade_outside_wave_gate(&payload);
 
+        // For a no-context payload (no agent_type), the function must signal degrade.
         assert!(
-            result.is_ok(),
+            should_degrade,
             "BC-4.10.002 PC1: graceful_degrade_outside_wave_gate with no wave-gate \
-             indicator MUST return without panicking — production function not yet \
-             implemented (AC-003)"
+             indicator MUST return true (degrade) for no-context payload (AC-003)"
         );
-        // When implemented: must signal degrade (true = should degrade) for no-context payload.
-        // The exact bool semantics depend on implementation, but the function must not panic.
     }
 
     // -----------------------------------------------------------------------
@@ -1855,23 +1631,14 @@ mod tests {
             deferred_findings: vec![],
         };
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(Some(&state))
-        }));
+        let r = hook_result_for(Some(&state));
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.001 boundary: hook_result_for with passes_clean=3 (exact threshold) \
-             MUST return HookResult::Continue — production function not yet implemented"
+            matches!(r, HookResult::Continue),
+            "BC-4.10.001 boundary: passes_clean=3 (exact threshold) must produce \
+             HookResult::Continue, got {:?}",
+            r
         );
-        if let Ok(r) = result {
-            assert!(
-                matches!(r, HookResult::Continue),
-                "BC-4.10.001 boundary: passes_clean=3 (exact threshold) must produce \
-                 HookResult::Continue, got {:?}",
-                r
-            );
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -1920,22 +1687,13 @@ mod tests {
             deferred_findings: vec![],
         };
 
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hook_result_for(Some(&state))
-        }));
+        let r = hook_result_for(Some(&state));
 
         assert!(
-            result.is_ok(),
-            "BC-4.10.001 boundary: hook_result_for with passes_clean=2 MUST return \
-             HookResult::Block — production function not yet implemented"
+            matches!(r, HookResult::Block { .. }),
+            "BC-4.10.001 boundary: passes_clean=2 must produce HookResult::Block, \
+             got {:?}",
+            r
         );
-        if let Ok(r) = result {
-            assert!(
-                matches!(r, HookResult::Block { .. }),
-                "BC-4.10.001 boundary: passes_clean=2 must produce HookResult::Block, \
-                 got {:?}",
-                r
-            );
-        }
     }
 }
