@@ -78,6 +78,13 @@ fn on_hook(payload: HookPayload) -> HookResult {
         fn log_error(&self, msg: &str) {
             host::log_error(msg);
         }
+
+        fn emit_event(&self, event_type: &str, fields: &[(&str, &str)]) {
+            // Emit structured event via host ABI (BC-4.10.001 observability mandate;
+            // BC-7.03.075 hook.block event pattern; F-CRIT-4 fix).
+            // HOST_ABI_VERSION = 1 exposes host::emit_event (ABI v1 surface).
+            host::emit_event(event_type, fields);
+        }
     }
 
     hook_logic(&payload, &RealCallbacks)

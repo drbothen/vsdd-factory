@@ -103,8 +103,8 @@ artifacts:
     enforcement_level: block
 
   - artifact_type: cycle-story-implementation
-    canonical_path_pattern: ".factory/cycles/{cycle-id}/implementation/{filename}.md"
-    description: Per-cycle implementation artifact (e.g. red-gate-log)
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/{story-id}/implementation/{filename}.md"
+    description: Per-story implementation artifact (e.g. red-gate-log)
     enforcement_level: block
 
   - artifact_type: adversarial-review
@@ -129,8 +129,8 @@ artifacts:
     enforcement_level: block
 
   - artifact_type: state-runtime-adversary
-    canonical_path_pattern: ".factory/adversary-convergence-state.json"
-    description: Adversary convergence runtime state file
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/{story-id}/adversary-convergence-state.json"
+    description: Per-story adversary convergence runtime state file (BC-5.39.001 PC2)
     enforcement_level: block
 
   - artifact_type: state-runtime-wave

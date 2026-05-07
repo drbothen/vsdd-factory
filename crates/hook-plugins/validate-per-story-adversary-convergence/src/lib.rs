@@ -37,6 +37,28 @@ pub const HOOK_CODE_BASE: &str = "per_story_adversary_unconverged";
 pub const HOST_ABI_VERSION: u32 = 1;
 
 // ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+/// Extract the telemetry code from a canonical block_with_fix reason string.
+///
+/// The canonical format is "BLOCKED by <hook>: <reason>. Fix: <fix>. Code: <code>."
+/// Returns the `<code>` segment if present, or `None` if the format doesn't match.
+///
+/// Used to surface the telemetry code in `hook.block` events without duplicating
+/// the code construction logic from the block-path branches.
+pub(crate) fn extract_code_from_reason(reason: &str) -> Option<&str> {
+    // Find "Code: " then extract up to the trailing "."
+    let prefix = "Code: ";
+    let start = reason.find(prefix)? + prefix.len();
+    let end = reason[start..]
+        .find('.')
+        .map(|i| start + i)
+        .unwrap_or(reason.len());
+    Some(&reason[start..end])
+}
+
+// ---------------------------------------------------------------------------
 // State file schema (BC-5.39.001 postcondition 2)
 // ---------------------------------------------------------------------------
 
@@ -255,6 +277,16 @@ pub trait HookCallbacks {
 
     /// Log an error-level message via `host::log_error`.
     fn log_error(&self, msg: &str);
+
+    /// Emit a structured event via `host::emit_event`.
+    ///
+    /// Called immediately before returning `HookResult::Block` to provide
+    /// observability into convergence gate firings (BC-4.10.001 observability
+    /// mandate; BC-7.03.075 hook.block event pattern).
+    ///
+    /// `event_type` is `"hook.block"` for block events.
+    /// `fields` is a slice of key-value pairs (e.g., hook name, code, story).
+    fn emit_event(&self, event_type: &str, fields: &[(&str, &str)]);
 }
 
 // ---------------------------------------------------------------------------
@@ -354,9 +386,41 @@ pub fn hook_logic(payload: &HookPayload, callbacks: &impl HookCallbacks) -> Hook
         let file_contents = match callbacks.read_file(&state_path) {
             Ok(Some(contents)) => contents,
             // BC-4.10.001 PC2: state file absent → CONVERGENCE_STATE_MISSING
-            Ok(None) => return missing_block(),
+            Ok(None) => {
+                let block = missing_block();
+                // Emit hook.block event before returning (BC-4.10.001 observability mandate;
+                // BC-7.03.075 hook.block event pattern; F-CRIT-4 fix).
+                if let HookResult::Block { ref reason } = block {
+                    let code = format!("{}_CONVERGENCE_STATE_MISSING", HOOK_CODE_BASE);
+                    callbacks.emit_event(
+                        "hook.block",
+                        &[
+                            ("hook", HOOK_NAME),
+                            ("code", &code),
+                            ("story", story_id),
+                            ("reason", reason.as_str()),
+                        ],
+                    );
+                }
+                return block;
+            }
             // Unreadable state file treated as absent (BC-4.10.001 PC2)
-            Err(_) => return missing_block(),
+            Err(_) => {
+                let block = missing_block();
+                if let HookResult::Block { ref reason } = block {
+                    let code = format!("{}_CONVERGENCE_STATE_MISSING", HOOK_CODE_BASE);
+                    callbacks.emit_event(
+                        "hook.block",
+                        &[
+                            ("hook", HOOK_NAME),
+                            ("code", &code),
+                            ("story", story_id),
+                            ("reason", reason.as_str()),
+                        ],
+                    );
+                }
+                return block;
+            }
         };
 
         // Parse the JSON. Malformed → CONVERGENCE_STATE_MALFORMED (BC-4.10.001 EC-002).
@@ -369,7 +433,7 @@ pub fn hook_logic(payload: &HookPayload, callbacks: &impl HookCallbacks) -> Hook
                     story_id
                 ));
                 let malformed_code = format!("{}_CONVERGENCE_STATE_MALFORMED", HOOK_CODE_BASE);
-                return HookResult::block_with_fix(
+                let block = HookResult::block_with_fix(
                     HOOK_NAME,
                     format!(
                         "Story {} adversary-convergence-state.json contains malformed JSON \
@@ -383,6 +447,18 @@ pub fn hook_logic(payload: &HookPayload, callbacks: &impl HookCallbacks) -> Hook
                     ),
                     &malformed_code,
                 );
+                if let HookResult::Block { ref reason } = block {
+                    callbacks.emit_event(
+                        "hook.block",
+                        &[
+                            ("hook", HOOK_NAME),
+                            ("code", &malformed_code),
+                            ("story", story_id),
+                            ("reason", reason.as_str()),
+                        ],
+                    );
+                }
+                return block;
             }
         };
 
@@ -441,7 +517,22 @@ pub fn hook_logic(payload: &HookPayload, callbacks: &impl HookCallbacks) -> Hook
                 all_deferred.extend(state.deferred_findings);
             }
             block => {
-                // First failure → return immediately (BC-4.10.001 PC5 / EC-005).
+                // First failure → emit hook.block event, then return immediately
+                // (BC-4.10.001 PC5 / EC-005; BC-4.10.001 observability mandate F-CRIT-4).
+                if let HookResult::Block { ref reason } = block {
+                    // Extract code suffix from the reason string for telemetry.
+                    // The code is embedded in the canonical reason as "Code: <code>."
+                    let code = extract_code_from_reason(reason).unwrap_or(HOOK_CODE_BASE);
+                    callbacks.emit_event(
+                        "hook.block",
+                        &[
+                            ("hook", HOOK_NAME),
+                            ("code", code),
+                            ("story", story_id),
+                            ("reason", reason.as_str()),
+                        ],
+                    );
+                }
                 return block;
             }
         }
@@ -662,6 +753,12 @@ mod tests {
 
         fn log_debug(&self, _msg: &str) {}
         fn log_error(&self, _msg: &str) {}
+
+        fn emit_event(&self, _event_type: &str, _fields: &[(&str, &str)]) {
+            // Increment the block-event counter for test assertions (F-CRIT-4).
+            self.block_events_emitted
+                .set(self.block_events_emitted.get() + 1);
+        }
     }
 
     /// Build a HookPayload with an optional agent_type field.
@@ -1774,6 +1871,36 @@ mod tests {
                 r
             );
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // F-CRIT-4: emit_event("hook.block") called before each block return
+    // (BC-7.03.075 pattern; BC-4.10.001 observability mandate)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_BC_4_10_001_missing_state_emits_hook_block_event() {
+        // BC-4.10.001 + BC-7.03.075: hook MUST emit a "hook.block" event via
+        // emit_event before returning HookResult::Block. Without this event,
+        // wave-gate monitoring dashboards never see convergence gate firings.
+        let payload = make_payload(Some("wave-gate-dispatch"));
+        let callbacks = FakeCallbacks::new_with_story(
+            None, // absent state file
+            vec!["S-A".to_string()],
+        );
+
+        let result = hook_logic(&payload, &callbacks);
+
+        assert!(
+            matches!(result, HookResult::Block { .. }),
+            "BC-4.10.001: hook_logic with absent state file must return HookResult::Block"
+        );
+        assert_eq!(
+            callbacks.block_events_emitted(),
+            1,
+            "BC-4.10.001 + F-CRIT-4: hook MUST emit exactly one hook.block event \
+             before returning Block (missing state file path)"
+        );
     }
 
     // -----------------------------------------------------------------------
