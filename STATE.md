@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-1 B2 spec amendments committed (D-358). BC-4.10.002 v1.1 (PC3 log_debug→log_info). VP-070 v1.1 (match_path→matches_canonical, placeholder BC IDs resolved, type names corrected). S-13.01+S-12.02 story terminology aligned. BC-INDEX 1.17; VP-INDEX 1.4. B2 source fix PR in flight. Next: B5 (Lobster workflow step-ref fix) + pass-2 dispatch after all fix PRs merged."
+current_step: "F5 B6: E-14 stories committed (D-359). 5 process-gap follow-up stories (S-14.01..S-14.05) + PG-2 inline backfill (3 adversary-convergence-state.json for S-13.01/S-12.01/S-12.02). STORY-INDEX 2.27→2.28. B3+B4 source fix PRs in flight (#103, #104). Pass-2 entry after B3+B4 merge."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (D-358; F5 pass-1 B2 spec amendments — BC-4.10.002 v1.1, VP-070 v1.1, S-13.01+S-12.02 terminology aligned) |
+| **Last Updated** | 2026-05-07 (D-359; F5 B6 — E-14 process-gap stories + PG-2 inline backfill; STORY-INDEX 2.27→2.28) |
 | **Current Phase** | F5 IN PROGRESS — pass-1 CRITICAL; fix routing before pass-2 |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
@@ -102,6 +102,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-356 F5 pass-1 — adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 29 findings (4C/14H/6M/5L). adv-cycle-pass-1.md persisted (65KB, 704L). 2 [process-gap] observations surfaced. INDEX.md + decision-log updated. Next: route findings via fix-pr-delivery; pass-2 after remediation. |
 | **D-357 F5 pass-1 B1 spec amendments** | state-manager | **COMPLETE** | VP-071 v1.1→v1.2 (BlockWithFix→Block; F-CRIT-3/F-HIGH-5/F-MED-7). BC-4.11.001 v1.0→v1.1 (NC-1 single-segment semantics). 6 BC input-hashes → 40a6fb6 (F-LOW-5). ADR-017 slug fixed in S-12.01, S-12.02, E-12 (F-CRIT-2). BC-INDEX 1.15→1.16; VP-INDEX 1.2→1.3. B1 source fix PR in flight. |
 | **D-358 F5 pass-1 B2 spec amendments** | state-manager | **COMPLETE** | BC-4.10.002 v1.0→v1.1 (PC3 log_debug→log_info; F-HIGH-4). VP-070 v1.0→v1.1 (match_path→matches_canonical, BC-4.11.001 resolved, MatchResult/PathRegistry types corrected; F-HIGH-10). S-13.01 terminology (parse_registry→load_registry, match_path→matches_canonical; F-HIGH-9). S-12.02 block_with_fix throughout (F-HIGH-12). BC-INDEX 1.16→1.17; VP-INDEX 1.3→1.4. B2 source fix PR in flight. |
+| **D-359 F5 B6 process-gap stories + PG-2 backfill** | state-manager | **COMPLETE** | E-14 Engine Discipline Pass-2 authored (5 stories: S-14.01 P0, S-14.02..S-14.04 P1, S-14.03 P2). PG-2 inline backfill: adversary-convergence-state.json created for S-13.01/S-12.01/S-12.02 with bootstrap_annotation (exception_type: cycle_self_introduction). STORY-INDEX 2.27→2.28 (84 stories, 14 epics). F7 CONVERGENCE_STATE_MISSING risk cleared. B3+B4 source PRs in flight (#103, #104). |
 
 ## Identifier Conventions
 
@@ -113,15 +114,15 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 79 |
-| Epic | E-N | `stories/epics/E-N-<short>.md` | 13 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 84 |
+| Epic | E-N | `stories/epics/E-N-<short>.md` | 14 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 17 |
 
-## Story Status (79 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13 registered; F4 COMPLETE)
+## Story Status (84 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13 registered; E-14 registered 2026-05-07; F4 COMPLETE)
 
 - **Merged (61):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (12):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence)
+- **Draft (17):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)
@@ -166,7 +167,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — D-358 F5 pass-1 B2 spec amendments committed. BC-4.10.002 v1.1 (PC3 log_debug→log_info; F-HIGH-4). VP-070 v1.1 (match_path→matches_canonical, BC-4.11.001 resolved, types corrected; F-HIGH-10). S-13.01+S-12.02 story terminology aligned (F-HIGH-9, F-HIGH-12). BC-INDEX v1.17; VP-INDEX v1.4. B1+B2 source fix PRs in flight; B5 (Lobster step-ref) and other fix batches pending before pass-2.
+**Last update:** 2026-05-07 — D-359 F5 B6 burst. E-14 Engine Discipline Pass-2 epic + 5 process-gap stories (S-14.01 P0, S-14.02..S-14.04 P1, S-14.03 P2) committed. PG-2 inline backfill: adversary-convergence-state.json created for S-13.01, S-12.01, S-12.02 with bootstrap_annotation. STORY-INDEX 2.27→2.28 (84 stories, 14 epics). F7 CONVERGENCE_STATE_MISSING risk cleared. B3 (#103) + B4 (#104) source fix PRs in flight. Pass-2 entry after B3+B4 merge.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
@@ -174,7 +175,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID (validate fails; user must delete: `git push origin :refs/tags/v1.0.0-rc.13`)
 **v1.0.0-rc.12 tag:** 4cf59bc; SHIPPED 2026-05-06
 **v1.0.0-rc.11 tag:** fb3e297; GH prerelease=true; PRs #89/#90/#91 merged 2026-05-04
-**Active worktrees:** main + .factory only (S-12.01 + S-12.02 worktrees merged and closed)
+**Active worktrees:** main + .factory + B3-fix + B4-fix (B3/B4 fix PRs in flight; B6 state-manager burst executed from B4-fix worktree)
 **Stash on develop:** cleared
 **E-9 current version:** v1.53 (CONVERGENCE_REACHED; ADR-013 clock 3_of_3; D-308)
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
