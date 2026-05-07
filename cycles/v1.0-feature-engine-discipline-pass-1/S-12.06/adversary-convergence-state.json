@@ -1,0 +1,26 @@
+{
+  "passes_clean": 0,
+  "last_finding_count": 5,
+  "last_classification": "LOW",
+  "last_timestamp": "2026-05-07T00:00:00Z",
+  "deferred_findings": [
+    {
+      "finding_id": "S12.06-DEFER-1",
+      "category": "architectural",
+      "target": "wave-gate",
+      "note": "BC-4.12.005 PC4 vs ADR-018 collision-order contradiction (first-declared-wins vs last-write-wins). PC6 makes scenario unreachable but BC↔ADR drift remains."
+    },
+    {
+      "finding_id": "S12.06-DEFER-2",
+      "category": "system-level",
+      "target": "wave-gate",
+      "note": "BC-4.12.003 PC2 vs BC-4.12.004 PC2 duplicate event naming (resolver.capability_denied vs resolver.error with error_kind=capability_denied). Requires PO adjudication."
+    },
+    {
+      "finding_id": "S12.06-DEFER-3",
+      "category": "integration",
+      "target": "phase-5",
+      "note": "Section does not cover concurrency model for resolver invocation (BC-4.12.001 EC-003 inherits from plugin_loader pattern but section is silent)."
+    }
+  ]
+}
