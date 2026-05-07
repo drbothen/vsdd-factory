@@ -1,11 +1,11 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.3"
+version: "1.4"
 status: draft
-producer: architect
+producer: state-manager
 timestamp: 2026-05-07T00:00:00
-phase: F2
+phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 72
 ---

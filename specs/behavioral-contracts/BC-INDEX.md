@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.16"
+version: "1.17"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1937
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "D-358 (2026-05-07) — F5 pass-1 B2 spec amendments: BC-4.10.002 v1.0→v1.1 (PC3 host::log_debug → host::log_info; F-HIGH-4). total_bcs unchanged at 1937."
   - date: 2026-05-07
     change: "D-357 (2026-05-07) — F5 pass-1 B1 spec amendments: BC-4.11.001 v1.0→v1.1 (invariant 6 single-segment placeholder semantics per NC-1 / OQ5 tightening). Summary table SS-04 count corrected 31→34 and total_bcs corrected 1931→1937 (D-340 changelog was accurate but table was not updated). total_bcs unchanged at 1937."
   - date: 2026-05-07

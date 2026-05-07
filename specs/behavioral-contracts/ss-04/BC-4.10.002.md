@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -53,8 +53,11 @@ lines 64–70 and the `regression-gate` BC-7.03.074 precedent.
 
 1. The hook returns `HookResult::Continue` (exit 0 in WASM terms).
 2. The hook MUST NOT emit a block message in any graceful-degrade case.
-3. The hook logs a single advisory message via `host::log_debug(...)`:
+3. The hook logs a single advisory message via `host::log_info(...)`:
    `"validate-per-story-adversary-convergence: graceful degrade — invoked outside wave-gate context or cycle directory absent; returning Continue"`
+   Note: HOST_ABI v1 does not expose a `log_debug` endpoint; `log_info` is the
+   lowest-severity level available. The `log_debug` symbol referenced in early drafts
+   is absent from the SDK.
 4. The hook does NOT write to stderr in the graceful-degrade path. Advisory logging only.
 5. The hook does NOT emit any `hook.block` or `hook.warn` events in the graceful-degrade path.
 6. The hook's execution time in the graceful-degrade path MUST be under 50ms (fast-path exit
@@ -141,3 +144,4 @@ Story B — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). Pattern follows validate-wave-gate-prerequisite.sh lines 64–70 and regression-gate BC-7.03.074 as specified in the F2 dispatch. |
+| 1.1 | 2026-05-07 | PC3 amendment (architect; F-HIGH-4, F5 pass-1 fix burst B2): `host::log_debug` changed to `host::log_info`. HOST_ABI v1 does not expose a `log_debug` endpoint; the implementation correctly maps `log_debug` → `host::log_info` (the lowest-severity level available). Spec amended to match implementation. |
