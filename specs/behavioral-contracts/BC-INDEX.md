@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.15"
+version: "1.16"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1937
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "D-357 (2026-05-07) — F5 pass-1 B1 spec amendments: BC-4.11.001 v1.0→v1.1 (invariant 6 single-segment placeholder semantics per NC-1 / OQ5 tightening). Summary table SS-04 count corrected 31→34 and total_bcs corrected 1931→1937 (D-340 changelog was accurate but table was not updated). total_bcs unchanged at 1937."
   - date: 2026-05-07
     change: "D-340 (2026-05-07) — F2 spec evolution for engine discipline pass-1: +6 new BCs (BC-5.39.001/002 SS-05 per-story adversary workflow; BC-4.10.001/002 SS-04 per-story adversary WASM hook; BC-4.11.001 SS-04 path-validation WASM hook + SoT; BC-6.22.001 SS-06 relocate-artifact skill + sequencing gate). SS-04 31→34; SS-05 646→648; SS-06 585→586. total_bcs 1931→1937. current_cycle flipped to v1.0-feature-engine-discipline-pass-1."
   - date: 2026-05-06
@@ -57,14 +59,14 @@ changelog:
 | SS-01 Hook Dispatcher Core | BC-1 | 114 (112 active; 2 retired) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 26 | ss-02/ |
 | SS-03 Event Emission (OTel-Aligned) | BC-3 | 52 | ss-03/ |
-| SS-04 Plugin Ecosystem | BC-4 | 31 | ss-04/ |
+| SS-04 Plugin Ecosystem | BC-4 | 34 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1931** | |
+| **Total** | | **1937** | |
 
 ## Index by subsystem
 

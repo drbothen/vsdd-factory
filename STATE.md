@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-1 COMPLETE for v1.0-feature-engine-discipline-pass-1. Classification: CRITICAL. 29 findings (4C/14H/6M/5L). Top concerns: (1) Lobster workflow references non-existent step-d5-adversary-convergence.md; (2) 3 story specs have wrong ADR path slug; (3) VP-071 kani harness tests wrong HookResult variant (Block vs BlockWithFix). Review persisted at adv-cycle-pass-1.md (65KB/704L; D-356). Two [process-gap] observations flagged for follow-up stories. Next: route all 29 findings via fix-pr-delivery before pass-2 dispatch."
+current_step: "F5 pass-1 B1 spec amendments committed (D-357). VP-071 v1.2 (BlockWithFix→Block). BC-4.11.001 v1.1 (NC-1 single-segment). 6 BC input-hashes backfilled (40a6fb6). ADR slug fixes S-12.01/S-12.02/E-12. BC-INDEX 1.16; VP-INDEX 1.3. B1 source fix PR in flight. Next: B5 (Lobster workflow step-ref fix) + pass-2 dispatch after all fix PRs merged."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (D-356; F5 pass-1 CRITICAL — 29 findings; adv-cycle-pass-1.md persisted; fix routing pending) |
+| **Last Updated** | 2026-05-07 (D-357; F5 pass-1 B1 spec amendments — VP-071 v1.2, BC-4.11.001 v1.1, 6 BC input-hashes, ADR slugs fixed) |
 | **Current Phase** | F5 IN PROGRESS — pass-1 CRITICAL; fix routing before pass-2 |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
@@ -100,6 +100,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-350 S-13.01 merged — state update post-merge** | state-manager | **COMPLETE** | S-13.01 (Path Governance Bundle, E-13) merged to develop at 2c97cb0 (PR #97, 2026-05-07). validate-artifact-path WASM hook live in block mode. sprint-state.yaml S-13.01 → completed; STORY-INDEX 2.25→2.26 (S-13.01 draft→completed); STATE.md F4 IN PROGRESS; decision-log D-350+D-351 appended. S-12.01 + S-12.02 unblocked. |
 | **D-352..D-355 F4 closeout — S-12.01 + S-12.02 merged** | state-manager | **COMPLETE** | S-12.01 merged at 2e9b670 (PR #98, 2026-05-07): 31/31 bats, CLEAN security, 1-cycle convergence. S-12.02 merged at e2fd3d4 (PR #99, 2026-05-07): 148KB WASM, SubagentStop priority 960, 30/30 cargo + 11+1skip bats, conflict resolution at 7100431. sprint-state.yaml S-12.01+S-12.02 → completed; STORY-INDEX 2.26→2.27; STATE.md F4 COMPLETE; decision-log D-352..D-355 appended. Next: F5. |
 | **D-356 F5 pass-1 — adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 29 findings (4C/14H/6M/5L). adv-cycle-pass-1.md persisted (65KB, 704L). 2 [process-gap] observations surfaced. INDEX.md + decision-log updated. Next: route findings via fix-pr-delivery; pass-2 after remediation. |
+| **D-357 F5 pass-1 B1 spec amendments** | state-manager | **COMPLETE** | VP-071 v1.1→v1.2 (BlockWithFix→Block; F-CRIT-3/F-HIGH-5/F-MED-7). BC-4.11.001 v1.0→v1.1 (NC-1 single-segment semantics). 6 BC input-hashes → 40a6fb6 (F-LOW-5). ADR-017 slug fixed in S-12.01, S-12.02, E-12 (F-CRIT-2). BC-INDEX 1.15→1.16; VP-INDEX 1.2→1.3. B1 source fix PR in flight. |
 
 ## Identifier Conventions
 
@@ -164,7 +165,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — D-356 F5 pass-1 persisted. Classification: CRITICAL. 29 findings (4C/14H/6M/5L). adv-cycle-pass-1.md written (65KB, 704L). Fix routing pending via fix-pr-delivery. Pass-2 after remediation.
+**Last update:** 2026-05-07 — D-357 F5 pass-1 B1 spec amendments committed. VP-071 v1.2, BC-4.11.001 v1.1, 6 BC input-hashes (40a6fb6), ADR-017 slug fixes (S-12.01/S-12.02/E-12). BC-INDEX v1.16; VP-INDEX v1.3. B1 source fix PR in flight; B5 (Lobster step-ref) and other fix batches pending before pass-2.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
@@ -178,9 +179,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.15 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.8
+**BC-INDEX:** v1.16 | **VP-INDEX:** v1.3 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.8
 
-**ACTIVE STEP: F5 — fix routing for pass-1 CRITICAL findings (v1.0-feature-engine-discipline-pass-1)**
+**ACTIVE STEP: F5 — B1 spec amendments committed (D-357); B1 source fix PR in flight; B5 + remaining fix batches pending before pass-2 (v1.0-feature-engine-discipline-pass-1)**
 
 **F5 pickup:** Run `vsdd-factory:fix-pr-delivery` on the 29 pass-1 findings (adv-cycle-pass-1.md). Route by severity: 4 CRITICAL first, then 14 HIGH, then 6 MEDIUM. Two [process-gap] observations need follow-up story authorship (per cycle-closing checklist). After all fixes merged, dispatch pass-2 adversary review.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.

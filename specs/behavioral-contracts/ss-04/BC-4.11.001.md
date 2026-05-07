@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "[pending-recompute]"
+input-hash: "40a6fb6"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
 origin: greenfield
 subsystem: "SS-04"
@@ -101,7 +101,12 @@ The hook uses `HOST_ABI_VERSION = 1` and the canonical Why/Fix/Code block-messag
 5. The hook fires on `PreToolUse` — before the write occurs. The block prevents the write.
    A block on a tool already in flight (PostToolUse) would be too late.
 6. Pattern matching uses `canonical_path_pattern` fields with `{placeholder}` expansion.
-   Placeholder expansion is defined by the registry schema spec (F4 implementation scope).
+   A `{placeholder}` matches any non-empty sequence of characters that does NOT contain
+   `/` (a single path segment). Multi-segment spanning is prohibited — `{placeholder}`
+   cannot match a path containing a slash. This means `.factory/cycles/foo/bar/doc.md`
+   does NOT match `.factory/cycles/{cycle-id}/doc.md` because `foo/bar` spans two
+   segments. (Amended v1.1 per NC-1 / F5 pass-1 fix burst 2026-05-07: tightens from
+   "sequence of segments" to "single segment" to match the implemented behavior.)
 7. The relocate-artifact delivery prerequisite (Postcondition 5) is a hard sequencing
    constraint. Registering the hook before `relocate-artifact --apply` produces zero
    violations is a delivery error.
@@ -183,3 +188,4 @@ Story C — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ5 resolution applied: immediate `block` mode from registration — no phased warn-then-block rollout for the hook itself. Enforcement_level field in registry governs per-entry behavior (block/warn/advisory), not a global rollout phase. D-337 constraint applied: WASM-only. |
+| 1.1 | 2026-05-07 | Invariant 6 amendment (architect; NC-1, F5 pass-1 fix burst): `{placeholder}` semantics tightened from "any non-empty path segment or sequence of segments" to "single path segment (no `/`)". This is Option A per Appendix A of F5-pass-1-fix-plan.md and matches the implemented behavior in `validate-artifact-path/src/lib.rs`. Input-hash recomputed from `[pending-recompute]` to `40a6fb6`. |

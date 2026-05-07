@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "[pending-recompute]"
+input-hash: "40a6fb6"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
 origin: greenfield
 subsystem: "SS-04"

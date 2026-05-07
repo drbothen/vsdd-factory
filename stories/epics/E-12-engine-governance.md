@@ -14,11 +14,11 @@ subsystems_affected: [SS-04, SS-05]
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
 phase: 2
-traces_to: .factory/specs/architecture/decisions/ADR-017-per-story-adversary-three-perimeter-model.md
+traces_to: .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
 depends_on: ["E-7"]
 last_amended: "2026-05-06 (v1.0 — initial authoring for cycle v1.0-feature-engine-discipline-pass-1)"
 inputs:
-  - .factory/specs/architecture/decisions/ADR-017-per-story-adversary-three-perimeter-model.md
+  - .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/stories/epics/E-7-process-codification.md
