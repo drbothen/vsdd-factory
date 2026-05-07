@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-2 PAUSED for mid-cycle amendment. User authorized 2026-05-07 addition of WASM-plugin Context Resolver platform to fix F-P2-001 (convergence hook operationally inert in production). Architectural choice: γ-generic, factory-agnostic, sandboxed WASM-plugin resolvers. Cycle structure: F1-amendment → F2-amendment → F3-amendment → F4 platform delivery → F5 resumption. ~6 new stories under E-12 (S-12.03..S-12.08). Next: F1-amendment delta analysis (architect dispatched). Original cycle scope 3 stories; amended ~9 stories. D-361."
+current_step: "F2-amendment COMPLETE for v1.0-feature-engine-discipline-pass-1 platform expansion. 6 new BCs (BC-1.13.001 SS-01; BC-4.12.001-005 SS-04 — resolver lifecycle/ABI/capabilities/error-isolation/merging). 1 new ADR-018 (WASM-plugin Context Resolvers — Design and Layering). 4 new VPs (VP-073-076). PRD bumped 1.1->1.2 with FR-048 (factory-agnostic runtime context injection for hooks via sandboxed WASM-plugin resolvers). Plus F-P2-002 sibling fix: BC-4.10.001 v1.1 + BC-5.39.001 v1.1 (VP-071 traceability rows aligned to canonical block_with_fix wording). Total BCs 1937->1943. Total VPs 72->76. Next: F3-amendment (story-writer authors S-12.03 through S-12.08 under E-12)."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (D-361; F5 pass-2 PAUSED — mid-cycle amendment authorized; WASM-plugin Context Resolver platform; F1-amendment dispatched) |
-| **Current Phase** | F5 PAUSED — mid-cycle amendment (D-361); F1-amendment in progress; γ-generic Context Resolver platform; ~6 new stories under E-12 |
+| **Last Updated** | 2026-05-07 (D-362; F2-amendment COMPLETE — 6 new BCs, ADR-018, 4 new VPs, PRD 1.1→1.2; total_bcs 1937→1943) |
+| **Current Phase** | F2-amendment COMPLETE (D-362); Next: F3-amendment — story-writer authors S-12.03..S-12.08 under E-12 |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -104,20 +104,21 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **D-358 F5 pass-1 B2 spec amendments** | state-manager | **COMPLETE** | BC-4.10.002 v1.0→v1.1 (PC3 log_debug→log_info; F-HIGH-4). VP-070 v1.0→v1.1 (match_path→matches_canonical, BC-4.11.001 resolved, MatchResult/PathRegistry types corrected; F-HIGH-10). S-13.01 terminology (parse_registry→load_registry, match_path→matches_canonical; F-HIGH-9). S-12.02 block_with_fix throughout (F-HIGH-12). BC-INDEX 1.16→1.17; VP-INDEX 1.3→1.4. B2 source fix PR in flight. |
 | **D-359 F5 B6 process-gap stories + PG-2 backfill** | state-manager | **COMPLETE** | E-14 Engine Discipline Pass-2 authored (5 stories: S-14.01 P0, S-14.02..S-14.04 P1, S-14.03 P2). PG-2 inline backfill: adversary-convergence-state.json created for S-13.01/S-12.01/S-12.02 with bootstrap_annotation (exception_type: cycle_self_introduction). STORY-INDEX 2.27→2.28 (84 stories, 14 epics). F7 CONVERGENCE_STATE_MISSING risk cleared. B3+B4 source PRs in flight (#103, #104). |
 | **D-360 F5 pass-2 adversarial review persisted** | state-manager | **COMPLETE** | Classification: CRITICAL. 15 findings (2C/6H/4M/3L). Novelty decay 29→15. F-P2-001 CRITICAL: convergence hook inert in prod — consumer wiring present but no producer (wave-state→plugin_config not wired). F-P2-002 CRITICAL: BC-4.10.001+BC-5.39.001 VP-071 traceability rows have deprecated advisory-block wording (sibling-file regression). adv-cycle-pass-2.md persisted (395L). INDEX.md + decision-log updated. Awaiting human review of F-P2-001 fix architecture before pass-2 fix burst. |
+| **D-362 F2-amendment integration burst** | state-manager | **COMPLETE** | 6 new BCs (BC-1.13.001 SS-01; BC-4.12.001-005 SS-04). ADR-018. 4 new VPs (VP-073-076). PRD 1.1→1.2 (FR-048). F-P2-002 fix (BC-4.10.001 v1.1 + BC-5.39.001 v1.1). BC-INDEX 1.17→1.18 (total_bcs 1937→1943; SS-01 114→115, SS-04 34→39). ARCH-INDEX 1.8→1.9 (ADR-018 added). VP-INDEX 1.4→1.5 (total_vps 72→76). Next: F3-amendment story authoring (S-12.03-S-12.08 under E-12). |
 
 ## Identifier Conventions
 
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,937 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 72 |
+| Behavioral Contract | BC-S.SS.NNN (one-per-file) | `specs/behavioral-contracts/ss-NN/` | 1,943 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 76 |
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 17 |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 84 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 14 |
-| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 17 |
+| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 18 |
 
 ## Story Status (84 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13 registered; E-14 registered 2026-05-07; F4 COMPLETE)
 
@@ -168,7 +169,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — D-361 mid-cycle scope expansion authorized. F5 pass-2 PAUSED. User authorized addition of γ-generic WASM-plugin Context Resolver platform to fix F-P2-001 (convergence hook inert in prod — consumer wired, no producer). Architectural choice: factory-agnostic WASM-plugin resolvers; per-factory crates; dispatcher core stays domain-agnostic. Cycle structure: F1-amendment → F2-amendment → F3-amendment (5-7 new stories under E-12, S-12.03..S-12.08) → F4 platform delivery (Step 4.5 active) → F5 resumption. F1-amendment delta analysis dispatched to architect. Original 3 stories merged; amended scope ~9 stories, effort ~3-4x original.
+**Last update:** 2026-05-07 — D-362 F2-amendment integration burst COMPLETE. 6 new BCs (BC-1.13.001 SS-01 + BC-4.12.001-005 SS-04), ADR-018 (WASM-plugin Context Resolvers), 4 new VPs (VP-073-076), PRD 1.1→1.2 (FR-048). F-P2-002 fix sealed (BC-4.10.001 v1.1 + BC-5.39.001 v1.1). Indexes: BC-INDEX 1.17→1.18, ARCH-INDEX 1.8→1.9, VP-INDEX 1.4→1.5. total_bcs 1937→1943, total_vps 72→76. Next: F3-amendment story authoring (S-12.03..S-12.08 under E-12 Engine Governance).
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** e2fd3d4 (S-12.02 PR #99 squash-merge 2026-05-07; conflict resolution at 7100431)
@@ -182,9 +183,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.17 | **VP-INDEX:** v1.4 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.8
+**BC-INDEX:** v1.18 | **VP-INDEX:** v1.5 | **STORY-INDEX:** v2.27 | **ARCH-INDEX:** v1.9
 
-**ACTIVE STEP: F1-amendment delta analysis — mid-cycle amendment (D-361); architect dispatched for WASM-plugin Context Resolver platform analysis (v1.0-feature-engine-discipline-pass-1)**
+**ACTIVE STEP: F3-amendment story authoring — dispatch story-writer to author S-12.03 through S-12.08 under E-12 Engine Governance. Dependency chain per architect: S-12.06 (HOST_ABI docs) → S-12.03+S-12.05 parallel (trait + SDK) → S-12.04 (WASM loading) → S-12.07 (vsdd-context-resolvers crate) → S-12.08 (F-P2-001 migration).**
 
 **F5 pickup (post-amendment):** After F1/F2/F3/F4 amendment cycle completes, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.

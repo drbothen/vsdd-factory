@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -25,6 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.001
 section: "5.39"
+last_amended: 2026-05-07
 ---
 
 # BC-5.39.001: Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording
@@ -118,7 +119,7 @@ separate convergence-checker agent is introduced. This gate is inserted between 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-071 | advisory-block output always emitted when per-story gate has not been cleared | kani / adversarial review |
+| VP-071 | Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2) | kani |
 | (static-check) | per-story-delivery.md Step 4.5 references BC-5.39.001 and BC-5.39.002 verbatim | grep-based static check |
 
 ## Traceability
@@ -159,3 +160,4 @@ Story A — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ3 resolution applied: per-story state file schema and convergence criterion codified. |
+| 1.1 | 2026-05-07 | VP-071 traceability row amended (product-owner; F-P2-002, F2-amendment): stale "advisory-block output always emitted when per-story gate has not been cleared" description replaced with canonical "Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2)". Proof method column corrected to "kani" (was "kani / adversarial review"). Fixes sibling-file regression of F-CRIT-3 — BC-5.39.001 was the second sibling BC missed in the B1 pass-1 fix. |

@@ -1,10 +1,10 @@
 ---
 document_type: prd
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
-timestamp: 2026-05-06T00:00:00Z
+timestamp: 2026-05-07T00:00:00Z
 phase: 1.5
 origin: brownfield
 inputs:
@@ -35,16 +35,16 @@ supplements: []
 
 > **Context Engineering — Extended ToC Pattern:**
 > This PRD is an index document for Phase 1.5 brownfield spec backfill.
-> It synthesizes the 1,911-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
-> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 foundation + 2 S-5.01 pass-2 SS-01 host fns + 5 S-5.02 Wave 13 + 6 F2 engine-discipline-pass-1) into a formal L3 requirements artifact. Section 2 is the
+> It synthesizes the 1,943-BC catalog (1,863 pre-E-7 baseline + 15 E-7 process
+> codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 foundation + 2 S-5.01 pass-2 SS-01 host fns + 5 S-5.02 Wave 13 + 6 F2 engine-discipline-pass-1 + 6 F2-amendment resolver platform) into a formal L3 requirements artifact. Section 2 is the
 > primary machine-consumed surface: it groups BCs by functional requirement (FR-NNN)
 > and provides subsystem-level traceability. Agents needing deep BC content load
 > individual `.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md` files on demand.
 > Sections 3-5 point to supplement files (DF-021 context discipline).
 
-> **BC Index Model:** 1,911 individual BC files live under
+> **BC Index Model:** 1,943 individual BC files live under
 > `.factory/specs/behavioral-contracts/ss-NN/`. Section 2 groups them into
-> 47 logical FRs. Do NOT inline full contract details here — cross-reference only.
+> 48 logical FRs. Do NOT inline full contract details here — cross-reference only.
 
 ---
 
@@ -127,7 +127,7 @@ Tiers E through H (18 draft stories) are the active backlog for rc.1 and 1.0 GA.
 
 ## 2. Behavioral Contracts Index
 
-> BCs are grouped into 45 logical FRs. Each FR maps to one or more CAP-NNN
+> BCs are grouped into 48 logical FRs. Each FR maps to one or more CAP-NNN
 > capabilities, one or more SS-NN subsystems, and the specific BC prefix ranges
 > that implement it. Full BC files live in
 > `.factory/specs/behavioral-contracts/ss-NN/`. Status = shipped / partial / pending
@@ -502,6 +502,61 @@ Both follow the `handoff-validator` / `regression-gate` structural template.
 
 Source BCs: `ss-04/BC-4.10.001.md`, `ss-04/BC-4.10.002.md`, `ss-04/BC-4.11.001.md` — 3 BCs (SS-04 slice of FR-047).
 Verification Properties: VP-069 (registry load never panics — proptest), VP-070 (path matching deterministic — kani), VP-071 (adversary convergence gate block always emitted — kani), VP-072 (single-source-of-truth invariant — integration).
+
+#### FR-048 (SS-01 + SS-04 slices) — Factory-Agnostic Runtime Context Injection via Sandboxed WASM-Plugin Resolvers
+
+**Source CAPs:** CAP-009 ("Author and publish WASM hook plugins using the Rust SDK"), CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins")
+**Behavioral Contracts:** BC-1.13.001 (SS-01), BC-4.12.001 through BC-4.12.005 (SS-04)
+**Stories:** S-12.03 (ContextResolver trait + ResolverRegistry), S-12.04 (WASM resolver loading + lifecycle), S-12.05 (hook-sdk resolver authoring), S-12.06 (HOST_ABI.md contract section), S-12.07 (vsdd-context-resolvers crate + WaveContextResolver), S-12.08 (convergence hook migration; closes F-P2-001)
+**ADR:** ADR-018 (WASM-Plugin Context Resolvers — Design and Layering)
+**Status:** pending (v1.0-feature-engine-discipline-pass-1 F2-amendment)
+**Subsystem(s):** SS-01, SS-04
+
+The dispatcher MUST support a resolver registry (`resolvers-registry.toml`) containing
+zero or more WASM resolver plugins. When a hooks-registry entry declares
+`needs_context = [resolver-name, ...]`, the dispatcher MUST invoke the named resolvers
+before hook dispatch and merge their outputs into `plugin_config` under each resolver's
+declared key. Resolvers MUST run with capability-restricted filesystem access
+(`path_allow` declarations; no `write_file`, `exec_subprocess`, or `emit_event`). A
+resolver crash, trap, or capability denial MUST NOT prevent hook dispatch. The
+dispatcher core MUST have zero compile-time dependency on any per-factory resolver crate.
+
+**SS-01 slice (BC-1.13.001):** Resolver-registry loading and pre-dispatch context
+injection contract. The dispatcher loads `resolvers-registry.toml` at startup (same
+mtime-cache pattern as `hooks-registry.toml`). Absent `resolvers-registry.toml` is
+treated as zero resolvers (not an error). Before each hook dispatch, the dispatcher
+calls registered resolvers for entries that declare `needs_context`; resolver outputs
+are merged into `plugin_config` before `invoke_plugin`.
+
+**SS-04 slice (BC-4.12.001 through BC-4.12.005):** Resolver lifecycle (load-once,
+mtime-cache), ABI (`ResolverInput`/`ResolverOutput`, `RESOLVER_ABI_VERSION = 1`),
+capability model (`path_allow` deny-by-default), error/crash isolation semantics
+(fail-loud: absent key, `resolver.error` event), and context-injection merging contract
+(additive overlay, first-declared-resolver wins on collision with `resolver.merge_collision`
+event).
+
+**Factory-agnostic layering:** `factory-dispatcher` is resolver-agnostic.
+Per-factory resolver crates (`crates/vsdd-context-resolvers/`) compile to `.wasm` and
+are referenced by `resolvers-registry.toml` entries only. The first concrete resolver
+— `WaveContextResolver` — reads `.factory/wave-state.yaml` and returns the active
+wave's story list as `plugin_config["wave_context"]`. This resolver closes F-P2-001
+(convergence hook inert in production) when S-12.08 ships.
+
+| BC ID | Title | Priority |
+|-------|-------|----------|
+| BC-1.13.001 | Resolver-registry loading and pre-dispatch context injection (SS-01) | P1 |
+| BC-4.12.001 | Resolver lifecycle invariant: load at startup, mtime-cache, per-dispatch fresh Store | P1 |
+| BC-4.12.002 | Resolver ABI and payload schema: `resolve()` export, `ResolverInput`/`ResolverOutput`, `RESOLVER_ABI_VERSION = 1` | P1 |
+| BC-4.12.003 | Resolver capability model: `path_allow` deny-by-default; read-only resolvers; `CapabilityDenied` return | P1 |
+| BC-4.12.004 | Resolver error and crash isolation: no propagation to dispatcher; `resolver.error` event; absent key in `plugin_config` | P1 |
+| BC-4.12.005 | Context-injection merging contract: additive overlay, registry-order collision resolution, `resolver.merge_collision` event | P1 |
+
+Source BCs: `ss-01/BC-1.13.001.md` (1 BC SS-01 slice), `ss-04/BC-4.12.001.md` through
+`ss-04/BC-4.12.005.md` (5 BCs SS-04 slice) — 6 BCs total.
+Verification Properties: VP-073 (resolver-load purity — integration), VP-074 (resolver-error
+isolation — kani + integration), VP-075 (context-injection determinism — proptest),
+VP-076 (resolver-capability confinement — integration).
+Decision: ADR-018.
 
 ---
 
@@ -1268,8 +1323,9 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | FR-045 | Emit `internal.sink_error` structured event on each sink failure | CAP-003 | SS-03 | BC-3.07.002 | 1 | pending | E-4 |
 | FR-046 | New Claude Code lifecycle hook events: SessionStart/SessionEnd/WorktreeCreate/WorktreeRemove/PostToolUseFailure | CAP-002, CAP-013 | SS-04, SS-01 | BC-4.04.001–005 (S-5.01 anchored); BC-4.05.001–005 (S-5.02 anchored); BC-1.10.001–002 (retired pass-4); BC-4.07.001–004 (S-5.03 anchored); BC-4.08.001–003 (S-5.04 anchored) | 17 anchored; all Tier F BCs allocated | in-progress | E-5 |
 | FR-047 | Engine governance: per-story adversarial convergence loop + artifact path discipline (validate-artifact-path WASM hook + artifact-path-registry.yaml + relocate-artifact skill + per-story adversary workflow gate + validate-per-story-adversary-convergence WASM hook) | CAP-005, CAP-009, CAP-018 | SS-04, SS-05, SS-06 | BC-5.39.001–002 (Stories A workflow); BC-4.10.001–002 (Story B WASM hook); BC-4.11.001 (Story C path hook); BC-6.22.001 (Story C relocate skill) | 6 | pending | v1.0-feature-engine-discipline-pass-1 |
+| FR-048 | Factory-agnostic runtime context injection for hooks via sandboxed WASM-plugin resolvers (ContextResolver trait + ResolverRegistry + resolver ABI + WaveContextResolver; closes F-P2-001) | CAP-009, CAP-002 | SS-01, SS-04 | BC-1.13.001 (SS-01 pre-dispatch injection); BC-4.12.001–005 (SS-04 resolver lifecycle/ABI/capability/isolation/merge) | 6 | pending | v1.0-feature-engine-discipline-pass-1 |
 
-**Total: 47 FRs across 10 subsystems**
+**Total: 48 FRs across 10 subsystems**
 
 ---
 
@@ -1289,7 +1345,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 | CAP-007 | Deploy and activate the plugin on any supported platform | BC-6.01.003–006 (activation skill); BC-6.03.001–006 (activate behavior); BC-9.01.004-005 (CI matrix + hooks.json gitignore — activation-gate prerequisites) | SS-06, SS-09 |
 | CAP-008 | Gate tool calls with pre-execution behavioral checks (PreToolUse) | BC-1.05.001–004 (host fn deny gates); BC-7.01–7.04 (bash PreToolUse hooks) | SS-01, SS-02, SS-04, SS-07 |
 <!-- F-208 (Wave 6 pass-3): BC-list cites SS-01 + SS-07 BCs only; SS-02 enforcer-BC is BC-2.01.002 (HookResult exit-code contract) per capabilities.md:51 defensive comment; SS-04 enforcer-BCs TBD pending plugin-ecosystem BC backfill (task #108). -->
-| CAP-009 | Author and publish WASM hook plugins using the Rust SDK | BC-2.01–2.05 (SDK types, ABI, proc-macro, payload); BC-4.10.001–002 (FR-047: validate-per-story-adversary-convergence hook); BC-4.11.001 (FR-047: validate-artifact-path hook) | SS-02, SS-04 |
+| CAP-009 | Author and publish WASM hook plugins using the Rust SDK | BC-2.01–2.05 (SDK types, ABI, proc-macro, payload); BC-4.10.001–002 (FR-047: validate-per-story-adversary-convergence hook); BC-4.11.001 (FR-047: validate-artifact-path hook); BC-4.12.001–005 (FR-048: resolver ABI, lifecycle, capability, isolation, merge); BC-1.13.001 (FR-048: pre-dispatch injection) | SS-01, SS-02, SS-04 |
 | CAP-010 | Always-on dispatcher self-telemetry independent of sink config | BC-1.06.001–010 (internal log); BC-10.02 (factory-obs bin) | SS-01, SS-03, SS-10 |
 | CAP-011 | Enforce fuel and epoch budgets on plugin execution | BC-1.03.001–002 (timeout/fuel BCs); BC-1.04.001–003 (engine/ticker) | SS-01 |
 | CAP-012 | Recover from workflow interruption (crash recovery) | BC-5.10.001–005 (state-manager); BC-5.23 (phase-3 resume semantics) | SS-05 |
@@ -1513,20 +1569,20 @@ The following features must NOT appear in any story acceptance criteria or imple
 
 | Field | Value |
 |-------|-------|
-| Phase | 1.5 (brownfield spec backfill) + F2 feature delta (v1.0-feature-engine-discipline-pass-1) |
-| BC catalog version | 1,911 BCs (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13 + 2 S-5.01 pass-2 + 5 S-5.02 Wave 13 + 4 S-5.03 foundation burst + [various E-10 amendments] + 6 F2 engine-discipline-pass-1: BC-5.39.001/002, BC-4.10.001/002, BC-4.11.001, BC-6.22.001) |
+| Phase | 1.5 (brownfield spec backfill) + F2-amendment feature delta (v1.0-feature-engine-discipline-pass-1 WASM-plugin context resolver platform) |
+| BC catalog version | 1,943 BCs (1,863 pre-E-7 baseline + 15 E-7 process codification + 13 S-7.03 TDD hardening + 2 Wave 11 SS-03 + 5 S-5.01 Wave 13 + 2 S-5.01 pass-2 + 5 S-5.02 Wave 13 + 4 S-5.03 foundation burst + [various E-10 amendments] + 6 F2 engine-discipline-pass-1: BC-5.39.001/002, BC-4.10.001/002, BC-4.11.001, BC-6.22.001 + 6 F2-amendment resolver platform: BC-1.13.001, BC-4.12.001–005) |
 | Validation basis | extraction-validation.md (97.6% confirmation) |
 | Current release | 1.0.0-beta.7 (commit b08e085, 2026-04-26) |
 | Next gate | rc.1 (S-4.08, pending Tier E) |
 | DRIFT items open | 11 (DRIFT-001 through DRIFT-011) |
 | Stories shipped (merged) | 26 (Tier A–D + S-3.04 + S-6.01 + S-7.01 + S-7.02 fully merged) |
 | Stories partial | 3 (S-2.05, S-4.06, S-5.05) |
-| Stories pending (draft) | 18 (Tiers E–H draft) + 3 (v1.0-feature-engine-discipline-pass-1 F3 pending) |
+| Stories pending (draft) | 18 (Tiers E–H draft) + 3 (v1.0-feature-engine-discipline-pass-1 F3 pending) + 6 (F2-amendment resolver platform S-12.03–S-12.08 pending F3-amendment authoring) |
 | CAPs covered | 28 / 28 |
-| FRs defined | 47 |
+| FRs defined | 48 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
-| PRD version | 1.1 (2026-05-06 — FR-047 delta: engine governance BCs for v1.0-feature-engine-discipline-pass-1) |
+| PRD version | 1.2 (2026-05-07 — FR-048 delta: WASM-plugin context resolver platform; +6 BCs BC-1.13.001 + BC-4.12.001–005; +4 VPs VP-073–076; ADR-018; SS-01 BC count 114→115, SS-04 BC count 34→39, total BCs 1937→1943) |
 
 This PRD should be updated when:
 - A Tier E/F/G story ships and its FR status changes from `pending` to `shipped`

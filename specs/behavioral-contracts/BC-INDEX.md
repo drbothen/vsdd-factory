@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.17"
+version: "1.18"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
 phase: F2
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1937
+total_bcs: 1943
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "D-362 (2026-05-07) — F2-amendment WASM-plugin Context Resolver platform: +6 new BCs (BC-1.13.001 SS-01 resolver-registry loading + pre-dispatch context injection; BC-4.12.001-005 SS-04 resolver lifecycle/ABI/capabilities/error-isolation/merging). F-P2-002 fix: BC-4.10.001 v1.0→v1.1 + BC-5.39.001 v1.0→v1.1 (VP-071 traceability rows aligned). SS-01 114→115; SS-04 34→39. Also corrects Summary table SS-05 646→648 and SS-06 585→586 (stale post-D-340 propagation gap). total_bcs 1937→1943."
   - date: 2026-05-07
     change: "D-358 (2026-05-07) — F5 pass-1 B2 spec amendments: BC-4.10.002 v1.0→v1.1 (PC3 host::log_debug → host::log_info; F-HIGH-4). total_bcs unchanged at 1937."
   - date: 2026-05-07
@@ -51,28 +53,28 @@ changelog:
 
 # Behavioral Contract Index
 
-> Master index of all 1,937 behavioral contracts across 10 subsystems.
+> Master index of all 1,943 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
 
 | Subsystem | BC Prefix | Count | Shard Directory |
 |-----------|-----------|-------|----------------|
-| SS-01 Hook Dispatcher Core | BC-1 | 114 (112 active; 2 retired) | ss-01/ |
+| SS-01 Hook Dispatcher Core | BC-1 | 115 (113 active; 2 retired) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 26 | ss-02/ |
 | SS-03 Event Emission (OTel-Aligned) | BC-3 | 52 | ss-03/ |
-| SS-04 Plugin Ecosystem | BC-4 | 34 | ss-04/ |
-| SS-05 Pipeline Orchestration | BC-5 | 646 | ss-05/ |
-| SS-06 Skill Catalog | BC-6 | 585 | ss-06/ |
+| SS-04 Plugin Ecosystem | BC-4 | 39 | ss-04/ |
+| SS-05 Pipeline Orchestration | BC-5 | 648 | ss-05/ |
+| SS-06 Skill Catalog | BC-6 | 586 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1937** | |
+| **Total** | | **1943** | |
 
 ## Index by subsystem
 
-### SS-01 — Hook Dispatcher Core (BC-1) — 114 BCs (112 active; 2 retired)
+### SS-01 — Hook Dispatcher Core (BC-1) — 115 BCs (113 active; 2 retired)
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
@@ -190,6 +192,7 @@ changelog:
 | [BC-1.12.006](ss-01/BC-1.12.006.md) | factory-dispatcher::host::block_path_audit — vsdd.block.plugin_blocked.v1 audit event emitted with outcome=blocked, plugin.name, hook.tool_name when plugin returns HookResult::Block (ADR-015 D-15.3) | draft | CAP-029 | S-10.04 |
 | [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI gate (tool selected D-318: cargo-call-stack; implementation deferred to Wave 5) | draft | CAP-029 | S-10.02, S-10.09 |
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
+| [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch | draft | CAP-TBD | TBD |
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)
 
@@ -282,7 +285,7 @@ changelog:
 | [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
 | [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
 
-### SS-04 — Plugin Ecosystem (BC-4)
+### SS-04 — Plugin Ecosystem (BC-4) — 39 BCs
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
@@ -320,6 +323,11 @@ changelog:
 | [BC-4.10.001](ss-04/BC-4.10.001.md) | validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance | draft | CAP-009 | TBD |
 | [BC-4.10.002](ss-04/BC-4.10.002.md) | validate-per-story-adversary-convergence WASM hook MUST gracefully degrade (exit 0) when invoked outside wave-gate context or when cycle directory is absent | draft | CAP-009 | TBD |
 | [BC-4.11.001](ss-04/BC-4.11.001.md) | validate-artifact-path WASM hook MUST consult artifact-path-registry.yaml as single source of truth and block (immediate mode) writes whose paths do not match a registered pattern | draft | CAP-009 | TBD |
+| [BC-4.12.001](ss-04/BC-4.12.001.md) | Resolver WASM modules MUST be loaded once at dispatcher startup and held in-process for the lifetime of the dispatcher session with mtime-based cache invalidation | draft | CAP-TBD | TBD |
+| [BC-4.12.002](ss-04/BC-4.12.002.md) | Resolver ABI MUST use distinct `ResolverInput` / `ResolverOutput` types versioned independently as Resolver ABI v1 (NOT reusing `HookPayload` / `HookResult`) | draft | CAP-TBD | TBD |
+| [BC-4.12.003](ss-04/BC-4.12.003.md) | Resolver plugins MUST operate within explicitly declared `path_allow` capabilities; capability violations MUST return `CapabilityDenied` and MUST NOT silently succeed | draft | CAP-TBD | TBD |
+| [BC-4.12.004](ss-04/BC-4.12.004.md) | Resolver crashes (panic, trap, timeout, ABI violation) MUST NOT propagate to the dispatcher process and MUST produce a `resolver.error` telemetry event with fail-loud semantics for declared resolvers | draft | CAP-TBD | TBD |
+| [BC-4.12.005](ss-04/BC-4.12.005.md) | Context-injection merging MUST be additive (resolver output overlays `plugin_config` under its key); two resolvers with the same `context_key` is a registry-load error | draft | CAP-TBD | TBD |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -25,6 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.10.001
 section: "4.10"
+last_amended: 2026-05-07
 ---
 
 # BC-4.10.001: validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance
@@ -123,7 +124,7 @@ with `HOST_ABI_VERSION = 1`.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-071 | advisory-block output always emitted on non-cleared gate | kani (pure logic branch coverage) |
+| VP-071 | Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2) | kani |
 | (unit-test) | hook_logic returns Continue when all stories pass convergence | Rust unit test (injectable callbacks; no WASM runtime) |
 | (unit-test) | hook_logic blocks on missing state file | Rust unit test |
 | (unit-test) | hook_logic blocks on passes_clean < 3 | Rust unit test |
@@ -169,3 +170,4 @@ Story B — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). D-337 constraint applied: WASM-only (no Bash hook). HOST_ABI_VERSION = 1 confirmed by F1 architect. |
+| 1.1 | 2026-05-07 | VP-071 traceability row amended (product-owner; F-P2-002, F2-amendment): stale "advisory-block output always emitted on non-cleared gate" description replaced with canonical "Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2)". Fixes bidirectional drift with VP-071 v1.2 ("Block Invariant" canonical form). Proof method column corrected to "kani" (was "kani (pure logic branch coverage)"). |

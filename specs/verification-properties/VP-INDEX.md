@@ -1,13 +1,13 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.4"
+version: "1.5"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
-phase: F5
+phase: F2
 traces_to: ARCH-INDEX.md
-total_vps: 72
+total_vps: 76
 ---
 
 # VP-INDEX: Verification Properties Master Index
@@ -36,18 +36,19 @@ total_vps: 72
 | TDD Discipline VPs | 2 | VP-063..VP-064 |
 | Lifecycle Hook VPs | 4 | VP-065..VP-068 |
 | Engine Discipline VPs | 4 | VP-069..VP-072 |
-| **Total** | **72** | **VP-001..VP-072** |
+| Context Resolver VPs | 4 | VP-073..VP-076 |
+| **Total** | **76** | **VP-001..VP-076** |
 
 ## Proof Method Breakdown
 
 | Method | Count | VPs |
 |--------|-------|-----|
 | unit-test | 40 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052 |
-| integration | 17 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072 |
+| integration | 20 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-074, VP-076 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 2 | VP-070, VP-071 (upgrade candidates: VP-020, VP-023, VP-042) |
-| proptest | 2 | VP-059, VP-069 (upgrade candidates: VP-019, VP-029, VP-032) |
+| proptest | 3 | VP-059, VP-069, VP-075 (upgrade candidates: VP-019, VP-029, VP-032) |
 
 ## Full Index
 
@@ -125,6 +126,10 @@ total_vps: 72
 | [VP-070](VP-070.md) | validate-artifact-path Path-Pattern Matching Is Pure and Deterministic | invariant | kani | SS-04 | — | draft |
 | [VP-071](VP-071.md) | validate-per-story-adversary-convergence Block Invariant | safety | kani | SS-04 | — | draft |
 | [VP-072](VP-072.md) | artifact-path-registry.yaml Single Source of Truth — All Writers Resolve Through Registry | invariant | integration | SS-04 | — | draft |
+| [VP-073](VP-073.md) | Resolver-Load Purity — resolver WASM module loading must be pure: same registry file always produces same resolver set, no side effects | invariant | integration | SS-01, SS-04 | — | draft |
+| [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process | safety | integration | SS-04 | — | draft |
+| [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
+| [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -173,6 +178,6 @@ total_vps: 72
 ## Traceability
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
-- BCs cross-referenced: 120 BC IDs across 72 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001)
+- BCs cross-referenced: 127 BC IDs across 76 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003)
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
-- 19 VPs have TBD test evidence (manual or pending CI automation; +4 VP-069..072 feasible-pending-harness)
+- 23 VPs have TBD test evidence (manual or pending CI automation; +4 VP-073..076 feasible-pending-harness)
