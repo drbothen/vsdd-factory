@@ -21,6 +21,7 @@ members = [
     "crates/hook-plugins/update-wave-state-on-merge",
     "crates/hook-plugins/warn-pending-wave-gate",
     "crates/hook-plugins/validate-pr-review-posted",
+    "crates/hook-plugins/validate-artifact-path",
     "crates/hook-plugins/validate-per-story-adversary-convergence",
     "crates/sink-core",
     "crates/sink-file",

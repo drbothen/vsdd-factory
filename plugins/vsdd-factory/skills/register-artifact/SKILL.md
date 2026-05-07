@@ -4,6 +4,15 @@ description: Register a newly created artifact (BC, VP, story, holdout scenario)
 argument-hint: "<file-path>"
 ---
 
+## Path Resolution (Mandatory)
+
+Before writing any artifact, resolve the canonical path via
+`plugins/vsdd-factory/config/artifact-path-registry.yaml`. Do not invent paths.
+
+Read the registry at the start of this skill's procedure and verify the target path
+matches a registered pattern before calling `Write`. If the artifact type is not in
+the registry, add it to the registry first (this skill's purpose includes registry extension).
+
 # Register Artifact
 
 After creating a new BC, VP, story, or holdout scenario file, register it in the corresponding INDEX file to prevent orphan artifacts.

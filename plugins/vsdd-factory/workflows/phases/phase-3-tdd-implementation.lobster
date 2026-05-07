@@ -72,12 +72,27 @@ workflow:
       task: >
         Update STATE.md: phase: 3, step: implement, status: complete.
 
+    # === Step D.5: Per-Story Adversary Convergence (BC-5.39.001, BC-5.39.002, ADR-017) ===
+
+    - name: adversary-convergence
+      type: skill
+      skill: "skills/deliver-story/steps/step-d5-adversary-convergence.md"
+      depends_on: [backup-implement]
+
+    - name: backup-adversary-convergence
+      type: agent
+      agent: state-manager
+      depends_on: [adversary-convergence]
+      task: >
+        Update STATE.md: phase: 3, step: adversary-convergence, status: complete.
+        Commit adversary-convergence-state.json to factory-artifacts.
+
     # === Step E: Record Demos ===
 
     - name: record-demos
       type: skill
       skill: "skills/deliver-story/steps/step-e-record-demos.md"
-      depends_on: [backup-implement]
+      depends_on: [backup-adversary-convergence]
 
     - name: backup-record-demos
       type: agent
