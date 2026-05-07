@@ -1355,3 +1355,31 @@ artifacts:
         path
     );
 }
+
+// -----------------------------------------------------------------------
+// F-MED-4: EC-006 branch must emit hook.warn event (not just log)
+// BC-4.11.001 EC-006: file_path absent → Continue + log_warn + hook.warn event
+// -----------------------------------------------------------------------
+
+#[test]
+fn test_BC_4_11_001_ec006_missing_file_path_emits_hook_warn_event() {
+    // F-MED-4: validate-artifact-path EC-006 branch (file_path absent from payload)
+    // must emit a "hook.warn" event via emit_event in addition to logging.
+    //
+    // The Warn level path (MatchResult::Warn, lines 431-442 in lib.rs) already
+    // emits hook.warn. EC-006 (missing file_path) is an analogous observability
+    // gap: the operator cannot distinguish "missing file_path" from "no events at all"
+    // without an emitted event. This test asserts the event is emitted.
+    //
+    // BC-4.11.001 EC-006: file_path absent → graceful degrade (Continue) + warn.
+    // Observability: emit hook.warn so monitoring can detect malformed payloads.
+    let payload = make_payload("Write", None); // no file_path
+    let (_hook_result, _log_calls, events) = run_logic(payload, Ok(registry_yaml("block")));
+
+    assert!(
+        events.iter().any(|(event_type, _)| event_type == "hook.warn"),
+        "F-MED-4: BC-4.11.001 EC-006 (missing file_path) MUST emit a hook.warn event \
+         via emit_event for observability. Got events: {:?}",
+        events
+    );
+}
