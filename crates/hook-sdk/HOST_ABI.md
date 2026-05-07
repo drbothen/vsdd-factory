@@ -720,6 +720,15 @@ declared `path_allow` prefixes receives `CapabilityDenied` as a return code from
 `host::read_file` — not a WASM trap. The resolver can observe the error in Rust code and
 handle it gracefully (e.g., returning `value: None`). (BC-4.12.003 INV3)
 
+**Telemetry on capability denial:** When a resolver receives `CapabilityDenied` from
+`host::read_file`, the dispatcher emits a `resolver.capability_denied` telemetry event
+(BC-4.12.003 PC2) with the resolver name and denied path. Capability denials are also
+surfaced via the `resolver.error` event with `error_kind: "capability_denied"` if the
+denial causes the resolver to fail (BC-4.12.004 PC2). The `resolver.capability_denied`
+event fires at the host-function boundary; the `resolver.error` event fires if the resolver
+subsequently returns an error result. Both may fire for the same denial depending on
+dispatcher implementation. Cross-reference: BC-4.12.003 PC2, BC-4.12.004 PC2.
+
 **Path-prefix matching:** `path_allow` entries are matched as path prefixes. A
 `path_allow = [".factory/"]` entry allows reading any path that starts with `.factory/`
 relative to `project_dir`. Matching is case-sensitive on case-sensitive filesystems.
