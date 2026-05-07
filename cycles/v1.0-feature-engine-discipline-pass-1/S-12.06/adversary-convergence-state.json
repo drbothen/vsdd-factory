@@ -1,8 +1,8 @@
 {
   "passes_clean": 0,
-  "last_finding_count": 3,
+  "last_finding_count": 2,
   "last_classification": "LOW",
-  "last_timestamp": "2026-05-07T05:45:00Z",
+  "last_timestamp": "2026-05-07T08:30:00Z",
   "deferred_findings": [
     {
       "finding_id": "S12.06-DEFER-1",
@@ -27,6 +27,12 @@
       "category": "system-level",
       "target": "wave-gate",
       "note": "BC-4.12.003 PC4 host log triplet vs HOST_ABI host-functions section single log(level, ...) API. Documented as SDK wrapper convention in pass-2 fix, but the underlying BC text still describes 3 functions. Wave-gate to adjudicate whether BC should be amended."
+    },
+    {
+      "finding_id": "S12.06-DEFER-5",
+      "category": "system-level",
+      "target": "phase-5",
+      "note": "BC-4.12.001 INV3 (same Engine instance for resolvers and hooks) + PC4 (determinism) not surfaced in HOST_ABI section. Dispatcher-impl territory; relevant for S-12.04. Author should read BC-4.12.001 directly."
     }
   ]
 }
