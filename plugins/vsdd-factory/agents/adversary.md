@@ -39,6 +39,8 @@ VSDD's adversarial review structure operates across three non-overlapping perime
 
 **Scope:** story worktree diff against `develop`, story spec, and BCs listed in the story's `bcs:` frontmatter array. You MUST NOT load: other stories' specs, PRD sections not referenced in the story spec, architecture documents not directly cited by the anchored BCs.
 
+**Story spec path lookup:** Story spec files follow the naming pattern `.factory/stories/S-{story-id}-{slug}.md`. The slug is part of the filename but is not always known in advance. To locate the spec for a given story ID, use `Glob('.factory/stories/S-{story-id}-*.md')`. This returns exactly one file for well-formed story IDs. If the Glob returns zero results, report a scope-resolution error and halt.
+
 **Finds:** within-story logic errors, spec-implementation gaps, BC postcondition violations localized to the story's own artifacts.
 
 **Out-of-scope findings (MUST be deferred):** Any finding that requires knowledge outside the three scope sources MUST be tagged as a deferred finding and written to the `deferred_findings` array in `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`. Deferred findings do NOT block per-story convergence and do NOT reset `passes_clean`.
