@@ -2,10 +2,11 @@
 document_type: architecture-section
 level: L3
 section: "SS-09-config-activation"
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
+amended: 2026-05-07
 phase: 1.2
 inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
@@ -192,3 +193,96 @@ generation idempotence (BC-9.019–BC-9.020).
   `hooks.json.windows-x64`. The dispatcher binary is present. The bash hooks
   still require git-bash (DRIFT-010), so activation succeeds but hook execution
   degrades without git-bash.
+
+---
+
+## Amendment 2026-05-07 (v1.0 → v1.1 — async semantics cycle F2 pass-1 fix)
+
+**Reason:** ADR-019 (accepted 2026-05-07) moves async classification from the
+`hooks.json` envelope layer to `hooks-registry.toml`. SS-09 was listed as an
+affected subsystem in ADR-019 frontmatter but was not amended in the F2 burst-v1
+package. Adversary pass-1 finding F-P1-002 flagged the stale content. This
+amendment corrects the following specific stale claims:
+
+### Modules table correction
+
+The original Modules row for `hooks.json.template` read:
+
+> "Source of truth for hooks.json; declares event types, dispatcher binary path template, `"async"` flags per event type"
+
+**Corrected description:** `hooks.json.template` is the source of truth for
+`hooks.json` platform variants. It declares event types and the dispatcher binary
+path template (`<PLATFORM>` token). Per ADR-019 §Decision 1, `hooks.json.template`
+does **not** declare `async` flags per event type — all event declarations in
+`hooks.json.template` and all five platform variants are synchronous (no `"async":
+true` key present on any entry). Async classification belongs in
+`hooks-registry.toml` at the per-plugin registry layer, not in the envelope.
+
+### Public Interface schema correction
+
+The original `hooks.json.template` schema example showed:
+
+```json
+"PostToolUse": [
+  {
+    "command": "...",
+    "async": true
+  }
+]
+```
+
+**Corrected schema:** All event declarations are synchronous. The `"async": true`
+key is absent from every entry in `hooks.json.template` and all platform variants
+post-ADR-019. The canonical schema is:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "command": "plugins/vsdd-factory/hooks/dispatcher/bin/<PLATFORM>/factory-dispatcher"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "command": "plugins/vsdd-factory/hooks/dispatcher/bin/<PLATFORM>/factory-dispatcher"
+      }
+    ]
+  }
+}
+```
+
+Every event entry — PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart,
+SessionEnd, WorktreeCreate, WorktreeRemove, PostToolUseFailure — follows this
+synchronous form. No per-event carve-outs. See ADR-019 §Decision 1.
+
+### Async vs sync hook events — correction
+
+The original paragraph read:
+
+> "PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd use `"async": true`
+> in `hooks.json.template`. PreToolUse and PermissionRequest are sync."
+
+**Corrected statement:** All Claude Code hook events are synchronous at the
+envelope per ADR-019 §Decision 1. Per-plugin async classification lives in
+`hooks-registry.toml`. The dispatcher partitions matched plugins into
+`sync_group` (await-all, gates user-facing exit code) and `async_group`
+(fire-and-forget, never gates). The envelope no longer distinguishes sync vs async
+events — that distinction moved to the registry layer.
+
+### Schema version correction
+
+The original Cross-Cutting section stated:
+
+> `REGISTRY_SCHEMA_VERSION = 1` in `hooks-registry.toml`; mismatch = hard error
+> in the dispatcher.
+
+**Corrected:** `REGISTRY_SCHEMA_VERSION = 2` post-ADR-019. The schema version was
+bumped from 1 → 2 when the `async: bool` per-plugin field was added. The generate
+script (`generate-registry-from-hooks-json.sh`) must embed `schema_version = 2`.
+The dispatcher's `registry.rs::REGISTRY_SCHEMA_VERSION` constant = 2. A registry
+with `schema_version = 1` triggers a hard schema-version error at dispatcher
+startup (ADR-019 §Decision 5 — no backwards compatibility; no downgrade path).
+
+**All references to `schema_version = 1` in this document (original Cross-Cutting
+section lines 152-155) are superseded by this amendment.**

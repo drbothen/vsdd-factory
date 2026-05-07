@@ -2,10 +2,11 @@
 document_type: architecture-section
 level: L3
 section: "SS-07-hook-bash"
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
+amended: 2026-05-07
 phase: 1.2
 inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
@@ -185,3 +186,61 @@ body as the authoritative source.
 - **S-3.4 PARTIAL:** Scripts emit events via `bin/emit-event` shell tool rather
   than directly through the `vsdd::emit_event` host fn path. Two emission paths
   write to different internal structures.
+
+---
+
+## Amendment 2026-05-07 (v1.0 → v1.1 — async semantics cycle F2 pass-1 fix)
+
+**Reason:** ADR-019 (accepted 2026-05-07) bumps `hooks-registry.toml` schema from
+version 1 to version 2, adding a per-plugin `async: bool` field. SS-07 was listed
+as an affected subsystem in ADR-019 frontmatter but was not amended in the F2
+burst-v1 package. Adversary pass-1 finding F-P1-002 flagged stale
+`schema_version = 1` references. This amendment corrects them.
+
+### Modules table correction
+
+The original Modules row for `hooks-registry.toml` read:
+
+> "Routing table; 45 entries; `schema_version = 1`; all entries point to
+> `legacy-bash-adapter.wasm` with `plugin_config.script_path`"
+
+**Corrected description:** `hooks-registry.toml` routing table; 45+ entries;
+`schema_version = 2` (post-ADR-019); all entries point to `legacy-bash-adapter.wasm`
+with `plugin_config.script_path`; each entry additionally carries `async: bool`
+(default false) classifying the plugin for the dispatcher's sync/async partition.
+
+### Public Interface schema correction
+
+The original Public Interface section showed the routing table schema header as:
+
+```toml
+schema_version = 1
+```
+
+**Corrected schema header:** `schema_version = 2` post-ADR-019. Each `[[hooks]]`
+entry gains an optional `async` boolean field. The corrected canonical example:
+
+```toml
+schema_version = 2
+
+[[hooks]]
+event = "PreToolUse"
+tool_match = "Bash"
+plugin = "legacy-bash-adapter.wasm"
+priority = 100
+on_error = "block"
+async = false
+[hooks.capabilities]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = true
+[hooks.plugin_config]
+script_path = "hooks/protect-secrets.sh"
+```
+
+`async = false` (or field absent, defaulting false) is the correct value for any
+plugin with `on_error = "block"`. Telemetry plugins use `async = true` with
+`on_error = "continue"`. The CI lint invariant (VP-078 / BC-7.06.001) enforces
+that no entry has both `on_error = "block"` and `async = true`.
+
+**All references to `schema_version = 1` in this document (original Modules table
+line 45 and Public Interface section line 69) are superseded by this amendment.**

@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: null
+last_amended: 2026-05-07
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F1-delta-analysis.md
@@ -15,7 +15,7 @@ input-hash: "[to-be-computed-by-state-manager]"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
-subsystem: "SS-07"
+subsystem: "SS-01"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0-feature-plugin-async-semantics-pass-1
@@ -42,7 +42,7 @@ removal_reason: null
 
 ## Postconditions
 
-1. **Schema version**: `hooks-registry.toml` top-level header specifies `schema_version = 2`. A registry with any other value is rejected by the dispatcher at load time with `E-REG-001` (`dispatcher.schema_mismatch` event logged).
+1. **Schema version**: `hooks-registry.toml` top-level header specifies `schema_version = 2`. A registry with any other value is rejected by the dispatcher at load time with `E-REG-001` (`dispatcher.schema_mismatch` event logged); **dispatcher exits with exit code 2 (fail-closed)**; explicit stderr diagnostic is emitted. This is an explicit exception to BC-1.08.001 fail-open semantics — schema-version mismatch must not be a silent failure.
 
 2. **Per-plugin `async` field**: Each `[[hooks]]` entry MAY include `async = true` or `async = false`. Absence of the field is equivalent to `async = false`. The field is type-checked at parse time: non-boolean values (e.g., `async = "true"`) produce a `RegistryError::ParseError`. The `async` field is NOT a global default — it is per-entry only.
 
@@ -54,11 +54,11 @@ removal_reason: null
 
 6. **Lint invariant (CI)**: VP-078 is a CI integration test that scans `hooks-registry.toml` and asserts no entry has both `on_error = "block"` and `async = true`. CI fails if this invariant is violated. This prevents future regressions where a new plugin is added with conflicting classification.
 
-7. **Classification table**: The following plugins MUST be declared `async = true` in the v2 registry (telemetry-only, non-blocking): `capture-commit-activity`, `capture-pr-activity`, `session-start-telemetry`, `session-end-telemetry`. All validator and governance plugins with `on_error = "block"` MUST remain `async = false` (default; may be explicit for clarity).
+7. **Lint invariant (pre-commit)**: A pre-commit hook scans `hooks-registry.toml` for the `on_error = "block"` ⇒ `async = false` invariant. Violations fail the commit. This is the first defense layer — it catches violations before they reach CI. Pre-commit, registry-load-time, and CI-PR are the three defense layers per ADR-019 §Decision 4.
 
 ## Invariants
 
-1. **`on_error = "block"` implies `async = false`**: An entry with `on_error = "block"` and `async = true` simultaneously is structurally invalid. Enforcement is at both registry-load time (hard error `E-REG-002`) and CI (VP-078). This invariant exists because a blocking plugin that is classified async would have its block verdict silently discarded by the dispatcher's fire-and-forget execution model.
+1. **`on_error = "block"` implies `async = false`**: An entry with `on_error = "block"` and `async = true` simultaneously is structurally invalid. Enforcement is at registry-load time (hard error `E-REG-002`), pre-commit (Invariant 5 layer 1), and CI (VP-078 layer 3). This invariant exists because a blocking plugin that is classified async would have its block verdict silently discarded by the dispatcher's fire-and-forget execution model.
 
 2. **`async` field absence is equivalent to `async = false`**: The field is optional with a `serde(default)` of `false`. This means all legacy entries (authored before schema v2) are implicitly sync. No registry edit is required for plugins that should remain synchronous.
 
@@ -66,11 +66,19 @@ removal_reason: null
 
 4. **Per-plugin `async` field does not affect the Claude Code envelope**: The envelope (hooks.json.template and per-platform variants) is uniformly synchronous per ADR-019. The `async` field in the registry is the dispatcher's internal classification; it has no representation in `hooks.json`. The Claude Code harness never sees per-plugin async flags.
 
+5. **Three-layer defense in depth for `on_error=block ⇒ async=false`**: The invariant is enforced at three independent layers:
+   - **Layer 1 (pre-commit)**: Pre-commit hook scans `hooks-registry.toml`; fails commit on violation. Developer learns before CI.
+   - **Layer 2 (registry-load-time)**: `registry.rs::validate()` hard-errors with `E-REG-002` if invariant is violated; dispatcher refuses to start.
+   - **Layer 3 (CI-PR)**: VP-078 integration test scans the registry file; CI fails before merge.
+   Per ADR-019 §Decision 4. Missing any single layer is a spec violation.
+
+6. **Specific plugins MUST be `async = true`**: The following telemetry-only plugins MUST be classified `async = true` in the v2 registry: `capture-commit-activity`, `capture-pr-activity`, `session-start-telemetry`, `session-end-telemetry`, `worktree-hooks`, `tool-failure-hooks`. All validator and governance plugins with `on_error = "block"` MUST remain `async = false`. This is an invariant (not merely a postcondition) because a future engineer flipping any of these to `async = false` would silently degrade user-facing latency. Positive classification is verified by VP-078 Harness 3 (architect to add per F-P1-016).
+
 ## Error Paths
 
 | Condition | Behavior |
 |-----------|----------|
-| Registry `schema_version = 1` (or any non-2 value) | Dispatcher hard-errors at load time; `dispatcher.schema_mismatch` logged; exit per BC-1.08.001 fail-open convention; no plugins executed |
+| Registry `schema_version = 1` (or any non-2 value) | Dispatcher hard-errors at load time; `dispatcher.schema_mismatch` logged; **exit code 2 (fail-closed)** — explicit exception to BC-1.08.001 fail-open; explicit stderr diagnostic emitted; no plugins executed |
 | `async = true` (non-boolean) in a `[[hooks]]` entry | `RegistryError::ParseError` at TOML parse time; dispatcher refuses to start |
 | Entry has `on_error = "block"` AND `async = true` | `E-REG-002` at `validate()` time; `dispatcher.registry_invalid` logged with plugin name; dispatcher refuses to start |
 | Registry file missing | Existing behavior per BC-1.01.014 (`RegistryError::NotFound`); unchanged |
@@ -90,7 +98,7 @@ removal_reason: null
 
 ## Story Anchor
 
-TBD — Story A (schema bump + partition runtime) and Story B (plugin classification audit + registry v2) per F1 Section 12 sketch
+TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07)
 
 ## VP Anchors
 
@@ -138,10 +146,10 @@ TBD — Story A (schema bump + partition runtime) and Story B (plugin classifica
 |-------|-------|
 | L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the registry schema that classifies each WASM plugin as sync or async, which is the mechanism enabling per-plugin async semantics while preserving `on_error = "block"` enforcement |
-| L2 Domain Invariants | TBD — to be linked to DI entries for registry schema invariants |
-| Architecture Module | SS-07 — `plugins/vsdd-factory/hooks-registry.toml`; SS-01 — `crates/factory-dispatcher/src/registry.rs` |
+| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement here is the BC-7 enforcement arm of DI-014, complementing the BC-1 arm in BC-1.14.001; DI-014 enforcement-owner now extends to BC-7) |
+| Architecture Module | SS-01 (primary — runtime enforcement via `crates/factory-dispatcher/src/registry.rs::validate()`) + SS-07 (registry file shape — `plugins/vsdd-factory/hooks-registry.toml`). Frontmatter `subsystem` is SS-01 per F-P1-006 resolution: the runtime enforcement is the failure-loud mechanism and is housed in SS-01. |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
-| Stories | TBD — Story A (schema bump) + Story B (plugin classification audit) + Story D (CI lint) |
+| Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
 
 ### Source Evidence
@@ -161,3 +169,19 @@ TBD — Story A (schema bump + partition runtime) and Story B (plugin classifica
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-07 (v1.1 — F2 pass-1 fix burst)
+
+Addresses adversary pass-1 findings F-P1-003, F-P1-004, F-P1-005, F-P1-006, F-P1-010, F-P1-016.
+
+**F-P1-006 (Subsystem anchor)**: Frontmatter `subsystem` changed from `SS-07` to `SS-01`. The runtime enforcement (`registry.rs::validate()`) lives in SS-01. SS-07 remains as secondary subsystem in the Architecture Module field. Per adversary option (b): keep one BC, choose primary subsystem reflecting the runtime enforcement mechanism. Architecture Module field updated to document both subsystems with rationale.
+
+**F-P1-004 / F-P1-011 (Fail-closed)**: Postcondition 1 and Error Paths row 1 amended. Schema-version mismatch is now explicitly **exit code 2 (fail-closed)** with explicit stderr diagnostic. Previous text "exit per BC-1.08.001 fail-open convention" was contradictory with "hard error." Same fix applied in BC-1.14.001 and BC-1.08.001.
+
+**F-P1-005 (Pre-commit layer)**: Postcondition 7 (pre-commit) added. Previously BCs documented only two defense layers (load-time + CI); ADR-019 §Decision 4 mandated three. Invariant 5 added to enumerate all three layers (pre-commit, registry-load-time, CI-PR) explicitly.
+
+**F-P1-016 (Classification as invariant)**: Postcondition 7 (old classification table) promoted to Invariant 6. The specific named plugins that MUST be `async = true` are now invariant-level (catching future flips), not just a postcondition. Added `worktree-hooks` and `tool-failure-hooks` to the list per F-P1-016 adversary finding. Note to architect: VP-078 needs a positive-classification verification harness (Harness 3) per F-P1-016 — this is a cross-burst dependency on architect's VP-078 work.
+
+**F-P1-010 (Story Anchor)**: Story Anchor updated from "Story A + Story B + Story D" to "TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07)". Same change in Traceability Stories field.
+
+**F-P1-003 (DI-014 citation)**: L2 Domain Invariants updated from "TBD" to DI-014 with explanation of the BC-7 enforcement arm.

@@ -4,6 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
+version: "1.1"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -222,13 +223,14 @@ path to per-plugin granularity (OQ-3 from F1 delta analysis).
 
 The following BCs codify the partition contract (PO authors these in parallel):
 
-- **BC-1.NN.001** (SS-01): Dispatcher partition contract — sync group runs await-all
+- **BC-1.14.001** (SS-01): Dispatcher partition contract — sync group runs await-all
   with tier ordering per ADR-008; async group fire-and-forget; `dispatcher_exit` is
   the sync group aggregate and is independent of async group exit codes.
-- **BC-7.NN.001** (SS-07): Per-plugin `async: bool` declaration semantics in
+- **BC-7.06.001** (SS-07 filed; authoritative subsystem SS-01 per F-P1-006 reanchoring): Per-plugin `async: bool` declaration semantics in
   hooks-registry.toml v2 schema; CI lint invariant `on_error = "block"` ⇒ `async = false`.
+- **BC-9.01.006** (SS-09): hooks.json.template envelope uniformly synchronous — every event entry has the `async` key absent or `async: false`; no entry has `async: true`. Addresses F-P1-001.
 
-Do not author these BCs here — PO is doing that in parallel.
+Do not author these BCs here — PO authored BC-1.14.001, BC-7.06.001, and BC-9.01.006.
 
 Verification properties produced alongside this ADR:
 
@@ -252,6 +254,9 @@ the CI lint invariant are SS-07 obligations.
 **SS-09 (Configuration and Activation):** Referencing SS-09 because `hooks.json.template`
 and the five platform-specific variants are SS-09 artifacts (per Subsystem Registry,
 `plugins/vsdd-factory/hooks/hooks.json*`). The envelope synchronization change lives here.
+BC-9.01.006 (authored by PO in F2 pass-1 fix burst) codifies the envelope-sync invariant
+for this subsystem: every event entry must have `async` absent or `async: false`; any
+entry with `async: true` is a hard violation caught by CI lint and VP-079.
 
 ---
 
@@ -269,3 +274,15 @@ and the five platform-specific variants are SS-09 artifacts (per Subsystem Regis
 | ADR-011 (dual routing tables) | `decisions/ADR-011-dual-hook-routing-tables.md` |
 | VP-077 | `/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-077.md` |
 | VP-078 | `/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-078.md` |
+
+---
+
+## Amendment 2026-05-07: v1.0 → v1.1 (F2 pass-1 fix burst)
+
+- **Amendment date:** 2026-05-07
+- **Reason:** Adversary pass-1 finding F-P1-018 identified that §Implementation Pointers used placeholder BC IDs (`BC-1.NN.001`, `BC-7.NN.001`) from the pre-burst draft; the actual authored BCs are `BC-1.14.001` and `BC-7.06.001`.
+- **Changes:**
+  - §Implementation Pointers line 1: `BC-1.NN.001` → `BC-1.14.001`
+  - §Implementation Pointers line 2: `BC-7.NN.001` → `BC-7.06.001`
+- **Forward reference (RESOLVED by state-manager close-burst 2026-05-07):** PO assigned BC-9.01.006 (SS-09) for the hooks.json.template envelope-sync invariant (F-P1-001). BC-9.01.006 has been added to §Implementation Pointers and §Subsystem Assignments under SS-09. Forward reference closed.
+- **No decision changes:** All §Decision entries are unchanged. This amendment corrects stale text only.

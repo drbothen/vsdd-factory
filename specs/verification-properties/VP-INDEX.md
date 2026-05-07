@@ -1,13 +1,18 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.6"
+version: "1.7"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
 phase: F2
 traces_to: ARCH-INDEX.md
-total_vps: 78
+total_vps: 79
+changelog:
+  - date: 2026-05-07
+    change: "F2 pass-1 fix burst (2026-05-07) — +1 new VP (VP-079 async-semantics event payload schema conformance; integration; SS-03). VP-077 polished v1.0→v1.2 (Kani harness uniqueness constraint; serde-default scope). VP-078 polished v1.0→v1.3 (Harness 2 dispatcher-flag rewrite; Harness 3 positive classification; serde-default tests). total_vps 78→79. last_amended: 2026-05-07."
+  - date: 2026-05-07
+    change: "F2 async-semantics (2026-05-07) — +2 new VPs (VP-077 dispatcher partition correctness Kani-provable; VP-078 CI lint invariant integration). total_vps 76→78."
 ---
 
 # VP-INDEX: Verification Properties Master Index
@@ -38,14 +43,15 @@ total_vps: 78
 | Engine Discipline VPs | 4 | VP-069..VP-072 |
 | Context Resolver VPs | 4 | VP-073..VP-076 |
 | Async Semantics VPs | 2 | VP-077..VP-078 |
-| **Total** | **78** | **VP-001..VP-078** |
+| Async Semantics Event Schema VPs | 1 | VP-079 |
+| **Total** | **79** | **VP-001..VP-079** |
 
 ## Proof Method Breakdown
 
 | Method | Count | VPs |
 |--------|-------|-----|
 | unit-test | 40 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052 |
-| integration | 21 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-074, VP-076, VP-078 |
+| integration | 22 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-074, VP-076, VP-078, VP-079 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 3 | VP-070, VP-071, VP-077 (upgrade candidates: VP-020, VP-023, VP-042) |
@@ -133,6 +139,7 @@ total_vps: 78
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, disjointness, union completeness, exit-code independence from async group | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml | safety | integration | SS-07, SS-01 | — | draft |
+| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema | invariant | integration | SS-03 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -181,6 +188,6 @@ total_vps: 78
 ## Traceability
 
 - All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
-- BCs cross-referenced: 129 BC IDs across 78 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001)
+- BCs cross-referenced: 130 BC IDs across 79 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001; +1 F2 pass-1 fix burst: VP-079→BC-3.08.001)
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
-- 25 VPs have TBD test evidence (manual or pending CI automation; +4 VP-073..076 feasible-pending-harness; +2 VP-077..078 feasible-pending-harness)
+- 26 VPs have TBD test evidence (manual or pending CI automation; +4 VP-073..076 feasible-pending-harness; +2 VP-077..078 feasible-pending-harness; +1 VP-079 feasible-pending-harness)

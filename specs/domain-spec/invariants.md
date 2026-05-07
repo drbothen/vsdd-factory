@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.2"
+version: "1.3"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-05-06
+last_amended: 2026-05-07
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -104,10 +104,11 @@ Justification: DI-013 is a business invariant because operators upgrading config
 ## Configuration Invariants
 
 **DI-014 — Schema version mismatch is a hard load error**
-`REGISTRY_SCHEMA_VERSION = 1`, `INTERNAL_EVENT_SCHEMA_VERSION = 1`, and `schema_version = 1` in observability config must match. Any mismatch emits `internal.dispatcher_error` and exits.
-Enforcement owner: SS-01 (registry.rs::validate), SS-03 (sinks::from_config). BC range: BC-1, BC-3.
+`REGISTRY_SCHEMA_VERSION = 2` (post-ADR-019; was 1 pre-2026-05-07), `INTERNAL_EVENT_SCHEMA_VERSION = 1`, and `schema_version = 2` in hooks-registry.toml (and `schema_version = 2` in observability config) must match their respective expected versions. Any mismatch emits `internal.dispatcher_error` (registry mismatch: `dispatcher.schema_mismatch`; observability mismatch: `internal.dispatcher_error`) and exits non-zero.
+Enforcement owner: SS-01 (registry.rs::validate), SS-03 (sinks::from_config). BC range: BC-1, BC-3, BC-7.
 Justification: DI-014 is a business invariant because silently processing a mismatched schema would produce incorrect behavior with no error signal. Source: pass-2 §BR-Schema-version.
 **Updated per ADR-015 (D-314):** `observability-config.toml` schema_version=2 is the ADR-015 target format. BC-3.05.004 Postcondition 4 hard-errors on schema_version=1 (old format no longer accepted post-migration) and accepts schema_version=2. The invariant extends to v2: any schema_version value other than 2 in a post-Wave-2 deployment emits `internal.dispatcher_error` and exits. DI-014 remains active and its spirit (hard error on mismatch, never silent) is preserved.
+**Updated per ADR-019 (F2 2026-05-07):** `REGISTRY_SCHEMA_VERSION` in `registry.rs` bumped from 1 to 2. The BC-1 enforcement arm (BC-1.14.001) and BC-7 enforcement arm (BC-7.06.001) both cite DI-014. Schema-version mismatch for `hooks-registry.toml` is explicitly fail-closed (exit code 2), not fail-open (exit 0) — this is the named exception to BC-1.08.001 fail-open policy. The BC range is extended: BC range: BC-1, BC-3, BC-7.
 
 **DI-015 — Per-project activation is required before the dispatcher can run**
 `hooks.json` is gitignored. Without activation, no `hooks.json` exists, so Claude Code cannot invoke the dispatcher. Activation is the gate — not install.
@@ -137,3 +138,4 @@ Justification: DI-017 is a business invariant because the trace ID is the audit 
 |---------|------|--------|
 | v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 17 invariants (DI-001–DI-017). |
 | v1.1 | 2026-05-06 | D-314 F-4 fix: DI-007/008/011/012/013/014/017 amended/refined/superseded per ADR-015. DI-007 amended (debug stream is opt-in). DI-008 reaffirmed (filename pattern unchanged). DI-011 superseded (single-sink eliminates mpsc+try_send). DI-012 superseded (single-sink; per-sink isolation moot). DI-013 refined (warn-and-skip extended to v2 unknown keys per BC-3.05.004). DI-014 updated (schema_version=2 target; hard error on mismatch preserved). DI-017 renamed dispatcher_trace_id → trace_id per ADR-015 v1.7 canonicalization. BC-side L2 citation work (adding DI references to BC-1.12.002/003/004 and BC-3.05.004) deferred to D-315 (PO). |
+| v1.2 | 2026-05-07 | F2 pass-1 fix burst: DI-014 amended — `REGISTRY_SCHEMA_VERSION` updated from 1 to 2 (post-ADR-019); BC range extended to include BC-7 (BC-7.06.001 is the BC-7 enforcement arm). DI-014 prose now explicitly notes the fail-closed (exit 2) exception to BC-1.08.001 fail-open for registry schema mismatch. |

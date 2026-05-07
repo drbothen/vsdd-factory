@@ -122,3 +122,67 @@ The following step rows were in STATE.md before compaction and are now archived 
 F2 SPECS AUTHORED. Adversarial spec convergence next (≥3 NITPICK_ONLY passes per ADR-013) before F3 story decomposition.
 
 ---
+
+## Burst: F2 pass-1 fix burst — 19 adversary findings closed (2026-05-07)
+
+| Field | Value |
+|-------|-------|
+| **Burst date** | 2026-05-07 |
+| **Dispatch chain** | orchestrator → adversary → state-manager(persist) → (PO ∥ architect) → architect(followup) → state-manager(close) |
+| **Adversary verdict** | SUBSTANTIVE (19 findings: 6 HIGH, 7 MED, 4 LOW, 2 NIT) |
+| **ADR-013 clock** | RESET to 0_of_3 |
+
+### Outputs
+
+**New artifacts:**
+
+| File | Producer | Notes |
+|------|----------|-------|
+| `.factory/specs/behavioral-contracts/ss-09/BC-9.01.006.md` | PO | hooks.json.template envelope-sync invariant; v1.0; addresses F-P1-001 |
+| `.factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md` | PO | SS-03 event catalog for 4 async-semantics event types; v1.0; addresses F-P1-008 |
+| `.factory/specs/verification-properties/VP-079.md` | architect | Event payload schema conformance; v1.0; addresses BC-3.08.001 VP anchor (was TBD) |
+
+**Amended artifacts:**
+
+| File | Producer | Version | Findings addressed |
+|------|----------|---------|-------------------|
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.14.001.md` | PO | v1.0→v1.1 | F-P1-003/004/009/010/011/013/015 |
+| `.factory/specs/behavioral-contracts/ss-07/BC-7.06.001.md` | PO | v1.0→v1.1 | F-P1-005/006/010/016 |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.08.001.md` | PO | v1.0→v1.1 | F-P1-004/011 |
+| `.factory/specs/domain-spec/invariants.md` | PO | v1.2→v1.3 | F-P1-003 |
+| `.factory/specs/architecture/decisions/ADR-019-plugin-async-semantics-at-registry-layer.md` | architect | v1.0→v1.1 | F-P1-018 (placeholder BC IDs resolved; BC-9.01.006 forward ref added by state-manager close) |
+| `.factory/specs/architecture/SS-09-config-activation.md` | architect | v1.0→v1.1 | F-P1-002 |
+| `.factory/specs/architecture/SS-07-hook-bash.md` | architect | v1.0→v1.1 | F-P1-002 |
+| `.factory/specs/verification-properties/VP-077.md` | architect | v1.0→v1.2 | F-P1-007/017/019 |
+| `.factory/specs/verification-properties/VP-078.md` | architect | v1.0→v1.3 | F-P1-007/012/016 (Harness 2 rewrite + Harness 3 added in follow-up) |
+
+**Index bumps:**
+
+| Index | Old | New | Notes |
+|-------|-----|-----|-------|
+| BC-INDEX | v1.19 (1945) | v1.20 (1947) | +2 new, 3 amendments, BC-7.06.001 subsystem reanchored SS-07→SS-01 |
+| ARCH-INDEX | v1.10 | v1.11 | ADR-019 v1.1; SS-09 v1.1; SS-07 v1.1 noted |
+| VP-INDEX | v1.6 (78) | v1.7 (79) | +1 new VP-079; VP-077 v1.2; VP-078 v1.3 |
+
+### Findings summary (19 total)
+
+| Severity | Count | Notable |
+|----------|-------|---------|
+| HIGH | 6 | F-P1-001 (envelope async), F-P1-003 (schema version), F-P1-004 (fail-closed), F-P1-008 (event catalog missing), F-P1-013 (async lifetime), F-P1-018 (placeholder BCs) |
+| MED | 7 | F-P1-002, F-P1-005, F-P1-006 (subsystem reanchor), F-P1-007, F-P1-009, F-P1-010, F-P1-011 |
+| LOW | 4 | F-P1-012, F-P1-015, F-P1-016, F-P1-017 |
+| NIT | 2 | F-P1-019, F-P1-020 |
+| SKIP_FIX | 1 | F-P1-014 (H1 length — intentional; no action) |
+
+### Decisions sealed
+
+- **F-P1-004/011 (FAIL-CLOSED):** schema-version mismatch exit code is **exit 2 (fail-closed)** — explicit exception to BC-1.08.001 fail-open. "No silent failures" is the user-stated principle. BC-1.14.001 EC-006, BC-1.08.001, and ADR-019 §Consequences all updated.
+- **F-P1-006 (SUBSYSTEM REANCHOR):** BC-7.06.001 primary subsystem reanchored SS-07→SS-01. Runtime enforcement of the `on_error=block ⇒ async=false` invariant belongs to the dispatcher (SS-01), not the bash layer. Artifact frontmatter `subsystem: SS-01` is authoritative. File remains in `ss-07/` per POLICY 1 append-only.
+- **F-P1-008 (EVENT CATALOG):** SS-03 event catalog handled via new BC-3.08.001 + VP-079. Four new event types codified: `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path).
+- **F-P1-013 (ASYNC LIFETIME):** async plugin lifetime is **best-effort**; truncated telemetry is explicitly acceptable cost. Dispatcher shutdown does not await async group completion. VP-078 Harness 3 validates the positive-classification path. This is not a regression — it is intentional design for the fire-and-forget async group.
+
+### Status
+
+F2 PASS-1 FIX BURST CLOSED. Adversary pass-2 next (ADR-013 clock at 0_of_3 — 3 consecutive NITPICK_ONLY required before F3 story decomposition).
+
+---

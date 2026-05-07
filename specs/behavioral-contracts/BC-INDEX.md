@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.19"
+version: "1.20"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
 phase: F2
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1945
+total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-1 fix burst (2026-05-07) — +2 new BCs (BC-9.01.006 SS-09 hooks.json.template envelope-sync invariant; BC-3.08.001 SS-03 async-semantics event catalog: 4 new event types). 3 BCs amended: BC-1.14.001 v1.0→v1.1 (fail-closed schema mismatch; async plugin lifetime; spawn ordering), BC-7.06.001 v1.0→v1.1 (subsystem reanchored SS-07→SS-01; pre-commit defense layer; classification list promoted to invariant), BC-1.08.001 v1.0→v1.1 (fail-closed exception clause for schema-mismatch). SS-03 52→53; SS-09 5→6. total_bcs 1945→1947. last_amended: 2026-05-07 (async-semantics F2 pass-1 fix burst: +2 new, 3 amendments, BC-7.06.001 subsystem reanchored SS-07→SS-01)."
   - date: 2026-05-07
     change: "F2 async-semantics (2026-05-07) — +2 new BCs (BC-1.14.001 SS-01 dispatcher partition contract; BC-7.06.001 SS-07 registry schema v2 + CI lint invariant). 7 BCs amended: BC-1.01.001 v1.0→v1.1 (schema v2 gate), BC-1.01.007 v1.0→v1.1 (minimal fixture v2), BC-1.08.002 v1.0→v1.1 (exit code scoped to sync group), BC-4.04.004 v1.0→v2.0 (SessionStart envelope sync), BC-4.05.004 v1.0→v2.0 (SessionEnd envelope sync), BC-4.07.003 v1.1→v1.2 (Worktree* envelope sync), BC-4.08.002 v1.2→v1.3 (PostToolUseFailure envelope sync). SS-01 115→116; SS-07 196→197. total_bcs 1943→1945."
   - date: 2026-05-07
@@ -55,7 +57,7 @@ changelog:
 
 # Behavioral Contract Index
 
-> Master index of all 1,945 behavioral contracts across 10 subsystems.
+> Master index of all 1,947 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -64,15 +66,15 @@ changelog:
 |-----------|-----------|-------|----------------|
 | SS-01 Hook Dispatcher Core | BC-1 | 116 (114 active; 2 retired) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 26 | ss-02/ |
-| SS-03 Event Emission (OTel-Aligned) | BC-3 | 52 | ss-03/ |
+| SS-03 Event Emission (OTel-Aligned) | BC-3 | 53 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 39 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 648 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 586 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 197 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
-| SS-09 Configuration and Activation | BC-9 | 5 | ss-09/ |
+| SS-09 Configuration and Activation | BC-9 | 6 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1945** | |
+| **Total** | | **1947** | |
 
 ## Index by subsystem
 
@@ -228,7 +230,7 @@ changelog:
 | [BC-2.05.003](ss-02/BC-2.05.003.md) | hook-sdk::__internal::panic_message_falls_back_for_unknown_types — non-string panic payloads return "(no panic message)" | draft | CAP-009 | S-1.03 |
 | [BC-2.06.001](ss-02/BC-2.06.001.md) | vsdd-hook-sdk::versioning::wave2_major_semver_bump_for_d_15_3_host_field_precedence — SDK MAJOR version increment signals host-field-precedence semantics change per ADR-015 D-15.3 with migration guidance for plugin authors | draft | CAP-009 | S-10.05 |
 
-### SS-03 — Event Emission (OTel-Aligned) (BC-3) — superseded by SS-03-event-emission.md per ADR-015; BCs under revision
+### SS-03 — Event Emission (OTel-Aligned) (BC-3) — 53 BCs — superseded by SS-03-event-emission.md per ADR-015; BCs under revision
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
@@ -287,6 +289,7 @@ changelog:
 | [BC-3.06.007](ss-03/BC-3.06.007.md) | sink-core::routing_filter_plugin_ids_allow — only events from listed plugins pass; empty list = pass-through | draft | CAP-003 | active |
 | [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
 | [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
+| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) | draft | CAP-003 | TBD |
 
 ### SS-04 — Plugin Ecosystem (BC-4) — 39 BCs
 
@@ -1779,6 +1782,7 @@ changelog:
 | [BC-7.05.003](ss-07/BC-7.05.003.md) | validate-template-compliance.sh enforces VP multi-BC source_bc convention | draft | CAP-001 | S-7.02 |
 | [BC-7.05.004](ss-07/BC-7.05.004.md) | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | draft | CAP-001 | S-7.02 |
 | [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` | draft | CAP-002 | TBD |
+<!-- BC-7.06.001: authoritative subsystem reanchored SS-07→SS-01 (F-P1-006, F2 pass-1 fix burst 2026-05-07); file remains in ss-07/ per POLICY 1 append-only; artifact frontmatter subsystem=SS-01 is authoritative -->
 
 ### SS-08 — Templates and Rules (BC-8)
 
@@ -2004,7 +2008,7 @@ changelog:
 | [BC-8.30.001](ss-08/BC-8.30.001.md) | story template must include tdd_mode field with strict\|facade enum and strict default | draft | CAP-016 | S-7.03 |
 <!-- BC-8.29.001, BC-8.29.002, BC-8.29.003, BC-8.30.002 listed under SS-05 above — authoritative subsystem is SS-05 (files remain in ss-08/ per POLICY 1 append-only) -->
 
-### SS-09 — Configuration and Activation (BC-9)
+### SS-09 — Configuration and Activation (BC-9) — 6 BCs
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
@@ -2013,6 +2017,7 @@ changelog:
 | [BC-9.01.003](ss-09/BC-9.01.003.md) | release workflow's bot commit atomically writes binaries + plugin.json + marketplace.json | draft | CAP-028 | S-2.04, S-2.08, S-0.02 |
 | [BC-9.01.004](ss-09/BC-9.01.004.md) | 5-platform CI matrix is the build matrix; drift gated by check-platforms-drift.py | draft | CAP-007 | S-0.03, S-2.03, S-2.08 |
 | [BC-9.01.005](ss-09/BC-9.01.005.md) | hooks.json is gitignored; hooks.json.template + per-platform variants are committed | draft | CAP-007 | S-2.06, S-0.04, S-2.02, S-2.08 |
+| [BC-9.01.006](ss-09/BC-9.01.006.md) | hooks.json.template envelope is uniformly synchronous — every event entry has the `async` key absent (or `async: false`); no entry has `async: true` | draft | CAP-007 | TBD |
 
 ### SS-10 — CLI Tools and Bin (BC-10)
 

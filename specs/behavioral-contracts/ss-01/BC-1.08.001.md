@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -42,6 +42,8 @@ For any startup-side error (registry, payload, or engine), the dispatcher emits 
 ## Invariants
 
 1. Dispatcher errors are non-blocking; the harness flow continues.
+
+2. **Exception — schema-version mismatch is fail-closed (exit 2)**: A `hooks-registry.toml` with `schema_version != 2` (e.g., a v1 registry loaded into a v2 dispatcher) is the one startup error that is NOT fail-open. The dispatcher exits with code 2 (blocking) and emits an explicit stderr diagnostic. This exception was introduced by ADR-019 (F2 cycle) because fail-open on a schema mismatch reproduces the silent-failure root cause the entire cycle was created to eliminate. **All other** registry, payload, and engine errors retain fail-open (exit 0) semantics per Invariant 1. Enforced by BC-1.14.001 Error Paths and BC-7.06.001 Postcondition 1.
 
 ## Edge Cases
 
@@ -99,3 +101,9 @@ For any startup-side error (registry, payload, or engine), the dispatcher emits 
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Amendment 2026-05-07 (v1.1 — F2 pass-1 fix burst)
+
+Addresses adversary pass-1 findings F-P1-004 / F-P1-011 (schema-version mismatch fail-closed exception).
+
+**F-P1-004 / F-P1-011**: Invariant 2 added. BC-1.08.001's fail-open rule (exit 0 on startup errors) now has an explicit named exception: `hooks-registry.toml` schema-version mismatch exits 2 (fail-closed). Previously, BC-1.14.001 and BC-7.06.001 referenced this BC's "fail-open convention" for schema mismatch exit behavior, creating a contradiction: "hard error" + "exit 0 per fail-open" is observationally identical to a clean run — a silent failure. The exception is motivated by ADR-019 §Decision 5 and the user's stated principle ("no silent failures").
