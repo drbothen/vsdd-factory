@@ -6,7 +6,7 @@ status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
 last_amended: 2026-05-08
-phase: F8
+phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.14.001.md
@@ -255,6 +255,14 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-05-08 (v1.7 — O-P10-001: phase frontmatter corrected F8 → F2)
+
+**Driver:** O-P10-001 metadata defect — frontmatter field `phase:` contained `F8`, a value that appears nowhere else in the F-series BC corpus. All sibling BCs produced in the same feature cycle (BC-7.06.001, BC-1.14.001, BC-9.01.006) declare `phase: F2`. This was a typo introduced when the frontmatter was last written.
+
+**Change:** `phase: F8` → `phase: F2` (line 9). No body content altered. No version bump — pure metadata correction per project convention for frontmatter-only fixes.
+
+---
 
 ## Amendment 2026-05-08 (v1.6 → v1.7 — F-P8-001 sibling: Event 3 E-REG-003 added; violation string canonicalized)
 
