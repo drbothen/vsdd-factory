@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.8"
+version: "1.9"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -40,6 +40,23 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 2. FileSink is initialized and the `events-YYYY-MM-DD.jsonl` file is writable.
 3. The triggering condition for each event type has occurred (see Postconditions for per-event triggers).
 
+## Common Fields
+
+All four event types carry the following dispatcher-owned fields on the wire. These fields are injected by the host (see `emit_event.rs` enrichment path) and are never supplied by plugins (they are RESERVED_FIELDS — see §Implementation Notes):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `trace_id` | UUID v4 string | Trace correlation value from the invoking hook envelope (DI-017). Canonical wire-format name; `dispatcher_trace_id` must NOT appear on wire (Invariant 5). |
+| `session_id` | UUID v4 string | Claude Code session identifier from the hook envelope context (`ctx.session_id`). Present on all four event types (O-P15-001). |
+| `plugin_name` | string | Name of the plugin registry entry, injected by the host. |
+| `plugin_version` | string | Version of the plugin registry entry, injected by the host. |
+| `ts` | string | Emission timestamp (internal format). |
+| `ts_epoch` | integer | Emission timestamp as Unix epoch milliseconds. |
+| `schema_version` | integer | Registry schema version at emission time. |
+| `type` | string | The event type string (e.g. `"plugin.async_block_discarded"`). |
+
+The wire-format examples in §Postconditions show only the behaviorally significant fields. `session_id` and `trace_id` appear explicitly because they are verified by VP-079 payload conformance. The remaining common fields (`plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`) are present on the wire but omitted from examples for readability — they are always emitted.
+
 ## Postconditions
 
 ### Event 1: `plugin.async_block_discarded`
@@ -52,6 +69,7 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 {
   "type": "plugin.async_block_discarded",
   "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
   "plugin_name": "<string — registry entry name>",
   "exit_code": 2,
   "timestamp": "<ISO-8601>",
@@ -59,7 +77,7 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 }
 ```
 
-**Mandatory fields**: `type`, `trace_id`, `plugin_name`, `exit_code`, `timestamp`, `reason`.
+**Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `exit_code`, `timestamp`, `reason`.
 
 ### Event 2: `dispatcher.schema_mismatch`
 
@@ -71,6 +89,7 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 {
   "type": "dispatcher.schema_mismatch",
   "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
   "found_version": <integer or null>,
   "expected_version": 2,
   "timestamp": "<ISO-8601>",
@@ -78,7 +97,7 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 }
 ```
 
-**Mandatory fields**: `type`, `trace_id`, `found_version`, `expected_version`, `timestamp`, `error_code`.
+**Mandatory fields**: `type`, `trace_id`, `session_id`, `found_version`, `expected_version`, `timestamp`, `error_code`.
 
 ### Event 3: `dispatcher.registry_invalid`
 
@@ -97,6 +116,7 @@ Dispatcher emits this event and hard-errors (non-zero exit) for either condition
 {
   "type": "dispatcher.registry_invalid",
   "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
   "offending_plugin": "<string — name of the plugin entry that violates the invariant>",
   "violation": "async_block_conflict",
   "timestamp": "<ISO-8601>",
@@ -136,6 +156,7 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
 {
   "type": "plugin.timeout",
   "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
   "plugin_name": "<string>",
   "execution_group": "async",
   "timeout_ms": <integer>,
@@ -143,7 +164,7 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
 }
 ```
 
-**Mandatory fields**: `type`, `trace_id`, `plugin_name`, `execution_group`, `timeout_ms`, `timestamp`.
+**Mandatory fields**: `type`, `trace_id`, `session_id`, `plugin_name`, `execution_group`, `timeout_ms`, `timestamp`.
 
 **Sink destination**: All four events are routed to `events-*.jsonl` via FileSink. They are NOT routed to the dispatcher-internal debug stream (which is opt-in per DI-007 amended). The VP-028 sink-fan-out invariant applies: if multiple sinks are configured, all four events must fan out to all applicable sinks.
 
@@ -157,17 +178,29 @@ The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` a
 
 ## Implementation Notes
 
-### RESERVED_FIELDS and `trace_id` (F-P1-007)
+### RESERVED_FIELDS and `trace_id` (F-P1-007, O-P15-003)
 
 Implementations MUST add `trace_id` to the host-side reserved-fields filter (e.g., `RESERVED_FIELDS` in `crates/factory-dispatcher/src/host/emit_event.rs`). This prevents plugins from spoofing the dispatcher's trace correlation value via `with_field("trace_id", ...)`.
 
 The reserved-fields filter MUST also retain `dispatcher_trace_id` for backward defense (defense-in-depth): even though the dispatcher no longer emits `dispatcher_trace_id` on the wire, plugins must not be allowed to inject it. Both names are reserved regardless of which name the dispatcher currently uses as the canonical field.
 
-Summary of the required `RESERVED_FIELDS` state after this amendment:
-- `trace_id` — added by this amendment; canonical wire field name; dispatcher-owned
-- `dispatcher_trace_id` — already present; legacy field; retained for defense-in-depth
+**Full `RESERVED_FIELDS` enumeration** (O-P15-003 — authoritative source: `crates/factory-dispatcher/src/host/emit_event.rs` lines 62-78):
 
-Plugins that attempt to set either field via `with_field()` MUST have the field silently stripped by the host-side filter before serialization.
+| Field name | Reason reserved |
+|------------|----------------|
+| `trace_id` | Canonical wire-format trace correlation value; dispatcher-owned per DI-017 and Invariant 5 of this BC (added by F-P1-007) |
+| `dispatcher_trace_id` | Legacy field name; retained for defense-in-depth per F-P1-007; dispatcher no longer emits this on the wire but plugins must not inject it |
+| `session_id` | Claude Code session identifier; dispatcher-owned; injected from `ctx.session_id` (see §Common Fields) |
+| `plugin_name` | Plugin identity; dispatcher-owned; injected from `ctx.plugin_name` |
+| `plugin_version` | Plugin version; dispatcher-owned; injected from `ctx.plugin_version` |
+| `ts` | Emission timestamp (internal format); dispatcher-owned |
+| `ts_epoch` | Emission timestamp as Unix epoch milliseconds; dispatcher-owned |
+| `schema_version` | Registry schema version; dispatcher-owned |
+| `type` | Event type string; provided by the emitting call site (not the plugin's field buffer); reserved to prevent shadowing |
+
+Plugins that attempt to set any of these fields via `with_field()` MUST have the field silently stripped by the host-side filter before serialization. The full set is tested by `reserved_fields_rejected` in `crates/factory-dispatcher/src/host/emit_event.rs` (test at line 348).
+
+For canonical HOST_ABI documentation of which fields the dispatcher enriches automatically, see `crates/hook-sdk/HOST_ABI.md` §`emit_event`. Note: HOST_ABI.md uses the legacy name `dispatcher_trace_id` in its enrichment description (line 267) — the actual wire-format name is `trace_id` per BC-3.08.001 Invariant 5. RESERVED_FIELDS in `emit_event.rs` is the authoritative implementation reference.
 
 ## Error Paths
 
@@ -260,6 +293,40 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-05-08 (v1.8 → v1.9 — O-P15-001: session_id on wire for all four event types; O-P15-003: RESERVED_FIELDS full enumeration)
+
+**Drivers:**
+- **O-P15-001** — Wire-format examples for Events 1, 2, 3-E-REG-002, and 4 did not show the `session_id` field. All four emit functions in `crates/factory-dispatcher/src/host/emit_event.rs` (lines 162, 193, 243, 289) call `.with_session_id(&ctx.session_id)`, so `session_id` IS on the wire for all four event types. Only the E-REG-003 example (introduced in v1.8) showed `session_id`. This was a spec omission, not an implementation gap.
+- **O-P15-003** — §Implementation Notes discussed only `trace_id` and `dispatcher_trace_id` from the reserved-fields filter. The full `RESERVED_FIELDS` constant in `emit_event.rs:62-78` contains 9 fields; the remaining 7 (`session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`) were invisible to spec readers.
+
+**Changes made:**
+
+1. **§Common Fields section added** (O-P15-001, O-P15-003): New section between Preconditions and Postconditions. Enumerates all 8 dispatcher-owned fields present on every event (`trace_id`, `session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`). States that `session_id` and `trace_id` appear explicitly in wire-format examples because VP-079 verifies them; remaining fields present but omitted from examples for readability.
+
+2. **Event 1 (`plugin.async_block_discarded`) wire-format example** (O-P15-001): `session_id` field added between `trace_id` and `plugin_name`. Mandatory fields paragraph updated: `session_id` added.
+
+3. **Event 2 (`dispatcher.schema_mismatch`) wire-format example** (O-P15-001): `session_id` field added between `trace_id` and `found_version`. Mandatory fields paragraph updated: `session_id` added.
+
+4. **Event 3 E-REG-002 (`dispatcher.registry_invalid`) wire-format example** (O-P15-001): `session_id` field added between `trace_id` and `offending_plugin`. (E-REG-003 example already showed `session_id` per v1.8; unchanged.)
+
+5. **Event 4 (`plugin.timeout` async path) wire-format example** (O-P15-001): `session_id` field added between `trace_id` and `plugin_name`. Mandatory fields paragraph updated: `session_id` added.
+
+6. **§Implementation Notes — RESERVED_FIELDS subsection extended** (O-P15-003): Subsection heading updated to cite O-P15-003. Full 9-field enumeration table added. Cross-reference to HOST_ABI.md and implementation test added.
+
+7. **Frontmatter:** `version: "1.8"` → `"1.9"`.
+
+**POLICY 1 verification:** All prior content preserved verbatim. No event IDs renumbered. E-REG-003 wire-format example unchanged.
+
+**POLICY 7 verification:** H1 heading unchanged.
+
+**POLICY 12 (TV emitter consistency):** Canonical Test Vectors table rows assert `trace_id present on all` (fan-out-happy-path row) — this coverage already included `session_id` implicitly via the Common Fields definition. No TV row changes required: VP-079's payload conformance check now has the §Common Fields section as the authoritative field list, and the test vectors continue to exercise the same triggering scenarios.
+
+**Sync notes for story-writer:** BC-3.08.001 v1.9 changes are spec-only (wire examples and notes); no story task changes required. If any story task currently references "mandatory fields" from the pre-v1.9 wire examples, those task bodies should be updated to include `session_id` in each event's field list.
+
+**Sync notes for test-writer:** Bats tests that assert `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid` (E-REG-002 path), and `plugin.timeout` events MUST be updated to assert `session_id` is present and non-null in the emitted JSON. The E-REG-003 path already required `session_id` per v1.8 — only the other three event types need test updates.
+
+---
 
 ## Amendment 2026-05-08 (v1.7 → v1.8 — F-P14-001 Path B: E-REG-003 wire schema extended with offending_event + offending_tool)
 

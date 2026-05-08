@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-15 COMPLETE — verdict HIGH (3H/3M/3L + 1 process-gap). F-P14-001 Path B propagation INCOMPLETE — VP-079 spec stale (F-P15-001/003/004/006); impl wildcard contradiction (F-P15-002). Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4→5→7. Fix-burst-14 dispatching: VP-079 v1.14 + impl Path A + AC-018 + BC docs + TD-031."
+current_step: "F5 fix-burst-14 COMPLETE — VP-079 v1.14 closed F-P14-001 Path B propagation gap; F-P15-002 wildcard fixed; AC-018 added; BC-3.08.001 v1.9 docs; TD-031 codified for F-P15-007. Branch fix/S-15.01-F5-convergence at 7f2914b6 (29 commits ahead). PR remains held until ADR-013 = 3_of_3. F5 pass-16 dispatch next."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 pass-15 COMPLETE — verdict HIGH (3H/3M/3L + 1 process-gap); F-P14-001 Path B propagation gap surfaces into VP-079; impl wildcard contradiction F-P15-002; trajectory regressed to 7) |
-| **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
+| **Last Updated** | 2026-05-08 (F5 fix-burst-14 COMPLETE — VP-079 v1.14 + BC-3.08.001 v1.9 + S-15.01 v1.18 (AC-018) + impl wildcard + tests + TD-031; branch @ 7f2914b6 (29 ahead); F5 pass-16 next) |
+| **Current Phase** | F5 FIX-BURST-14 COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; VP-079 v1.14 propagation closure; BC-3.08.001 v1.9 session_id docs; AC-018 wildcard anchor; TD-031 codified; pass-16 dispatch next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -100,6 +100,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-14 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (2H/2M/1L). F-P14-001 [H] cross-BC wire-format contradiction: BC-7.06.001 v1.8 declares E-REG-003 payload includes offending_event+offending_tool; BC-3.08.001+impl emit only offending_plugin (defect since fix-burst-7, 7+ passes). F-P14-002 [H] DI-019 cites stale main.rs:308-312 (actual :329-334) — 3rd post-EC-012 line drift. F-P14-003 [M] VP-079 mutants target wrong file. F-P14-004 [M] 5-file version-cite propagation gap. F-P14-005 [L] BC-7.06.001:106 wording ambiguous. ADR-013 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4→5. STRATEGIC DECISION surfaced to user. See `F5-adversary-pass-14.md`. |
 | **F5 fix-burst-13 — BC-3.08.001 v1.8 + BC-7.06.001 v1.9 + VP-079 v1.13 + DI-019 v1.10 + impl Path B + tests + story propagation** | PO + architect + implementer + test-writer + story-writer + state-manager | **COMPLETE** | F-P14-001 Path B: BC-3.08.001 v1.8 (E-REG-003 wire schema extended with offending_event+offending_tool); impl emit_dispatcher_registry_invalid DuplicateEntry path extended; bats S8 assertions updated; 5-file version-cite sweep. F-P14-002: DI-019 v1.10 (stable symbol anchors per TD-VSDD-091; stale main.rs:308-312 → effective_drain_window binding symbol). F-P14-003: VP-079 v1.13 (cargo-mutants target corrected to bats production-path harness). F-P14-005: BC-7.06.001 v1.9 (§Fail-Closed Symmetry E-REG-003 rewritten resolved-state framing). Branch fix/S-15.01-F5-convergence @ 1d19d73 (27 ahead). |
 | **F5 pass-15 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (3H/3M/3L + 1 process-gap). F-P15-001 [H] VP-079 mandatory-fields table omits E-REG-003 enrichment fields (offending_event+offending_tool+session_id). F-P15-002 [H] impl omits offending_tool field for wildcard (tool=None) E-REG-003 path. F-P15-003 [H] VP-079 frontmatter bcs: missing BC-7.06.001 cite. F-P15-004 [M] VP-079 missing §Scenario 7+8 prose. F-P15-005 [M] S-15.01 AC-013 silent on E-REG-003; no AC anchor for bats S8/Rust S8. F-P15-006 [M] VP-079 v1.13 changelog doesn't cite F-P14-001 Path B. F-P15-007 [process-gap] post-EC-012 line-drift recurrent (4+ docs); TD-VSDD-091 unenforced. Trajectory: 17→15→6→5→0→2→5→1→4→2→2→4→4→5→7. ADR-013 clock 0_of_3. See `F5-adversary-pass-15.md`. |
+| **F5 fix-burst-14 — VP-079 v1.14 + BC-3.08.001 v1.9 + S-15.01 v1.18 (AC-018) + impl wildcard + tests + TD-031** | implementer + test-writer + state-manager | **COMPLETE** | F-P15-001/003/004/006: VP-079 v1.14 (mandatory-fields table updated; bcs frontmatter extended [BC-3.08.001, BC-7.06.001]; §Scenario 7+8 prose added; F-P14-001 Path B changelog entry). F-P15-002: impl emit_dispatcher_registry_invalid DuplicateEntry wildcard path unconditionally emits offending_tool: null. F-P15-005: S-15.01 AC-018 added (E-REG-003 wildcard bats test anchor; 17→18 ACs). O-P15-001/003: BC-3.08.001 v1.9 (session_id in all four event examples + RESERVED_FIELDS full enumeration). F-P15-007: TD-031 codified (rules/ line-drift enforcement — decision pending architect adjudication). Branch fix/S-15.01-F5-convergence @ 7f2914b6 (29 commits ahead). |
 
 ## Identifier Conventions
 
@@ -141,7 +142,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-15 COMPLETE — verdict HIGH | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..15 + fix-bursts 1..13 complete. Pass-15: 3H/3M/3L + 1 process-gap. F-P14-001 Path B propagation truncated before VP-079 (F-P15-001/003/004/006); impl wildcard gap F-P15-002; AC anchor gap F-P15-005; line-drift process-gap F-P15-007. ADR-013 clock 0_of_3. Branch fix/S-15.01-F5-convergence @ 1d19d73 (27 ahead). Fix-burst-14 dispatching next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-14 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..15 + fix-bursts 1..14 complete. Fix-burst-14: VP-079 v1.14 (F-P15-001/003/004/006) + BC-3.08.001 v1.9 (O-P15-001/003) + S-15.01 v1.18 (AC-018; 18 ACs) + impl wildcard (F-P15-002) + TD-031 codified (F-P15-007). ADR-013 clock 0_of_3. Branch fix/S-15.01-F5-convergence @ 7f2914b6 (29 ahead). PR held until 3_of_3. F5 pass-16 dispatch next. |
 
 ## Decisions Log
 
@@ -165,18 +166,18 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 pass-15 COMPLETE. Verdict: HIGH (3H/3M/3L + 1 process-gap). Trajectory regressed to 7 (17→15→6→5→0→2→5→1→4→2→2→4→4→5→7). Root cause: F-P14-001 Path B propagation truncated — BC-3.08.001 v1.8 + impl were updated but VP-079 spec was not. Key findings: F-P15-001 VP-079 mandatory-fields table missing E-REG-003 enrichment fields; F-P15-002 impl omits offending_tool field for wildcard (tool=None) E-REG-003 path (None branch omits field entirely); F-P15-003 VP-079 frontmatter bcs: missing BC-7.06.001; F-P15-005 no AC anchor for E-REG-003 path (S-15.01 self-acknowledged gap); F-P15-007 post-EC-012 line-drift recurrent pattern (4+ docs) — TD-VSDD-091 exists but unenforced. ADR-013 clock: 0_of_3 (pass-15 HIGH resets).
+**Last update:** 2026-05-08 — F5 fix-burst-14 COMPLETE. All pass-15 findings addressed. VP-079 v1.14: mandatory-fields table updated (E-REG-003 offending_event+offending_tool+session_id for all four event types); frontmatter bcs extended [BC-3.08.001, BC-7.06.001]; §Scenario 7+8 prose added; F-P14-001 Path B changelog entry added. BC-3.08.001 v1.9: session_id added to Events 1/2/3-E-REG-002/4 wire-format examples + mandatory-fields paragraphs; RESERVED_FIELDS full 9-field enumeration table added. S-15.01 v1.18: AC-018 added (E-REG-003 bats wildcard test anchor; 17→18 ACs). Impl (fix-burst-14 branch @ 146d259): emit_dispatcher_registry_invalid DuplicateEntry wildcard path unconditionally emits offending_tool: null (None branch was previously omitting the field entirely). Test-writer (fix-burst-14 branch @ 7f2914b6): bats wildcard scenario + BC-3.08.001 v1.9 session_id assertion sweep + version cites refresh. TD-031 codified (F-P15-007 process-gap: rules/ line-drift enforcement pending architect adjudication). ADR-013 clock: 0_of_3 (pass-15 HIGH resets; 3 consecutive NITPICK_ONLY required).
 
-**ACTIVE STEP: Fix-burst-14 dispatching. Scope: VP-079 v1.14 (F-P15-001/003/004/006) + impl Path A offending_tool unconditional emit + bats wildcard test (F-P15-002) + S-15.01 AC-018 (F-P15-005) + BC-3.08.001 v1.9 (O-P15-001/003) + rules/ codification TD-031 (F-P15-007). Branch @ 1d19d73 (27 ahead). PR held until ADR-013 = 3_of_3.**
+**ACTIVE STEP: F5 pass-16 adversary dispatch. Scope: all pass-15 findings closed; branch @ 7f2914b6 (29 ahead). PR held until ADR-013 = 3_of_3.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 1d19d73 — long-lived; 27 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ 7f2914b6 — long-lived; 29 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this burst — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.38 | VP-INDEX v1.24 | STORY-INDEX v2.46 | ARCH-INDEX v1.22
-**ADR-013 clock:** **0_of_3** (RESET — pass-13 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.39 | VP-INDEX v1.25 | STORY-INDEX v2.47 | ARCH-INDEX v1.22
+**ADR-013 clock:** **0_of_3** (RESET — pass-15 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931); finding trend 22→11→16→16→12→2→1→4

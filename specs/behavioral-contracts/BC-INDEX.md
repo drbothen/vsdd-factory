@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.38"
+version: "1.39"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-14 (2026-05-08) — BC-3.08.001 v1.8→v1.9 (O-P15-001: session_id added to all four event wire-format examples + mandatory-fields paragraphs; O-P15-003: RESERVED_FIELDS full 9-field enumeration table added). No count change. BC-INDEX v1.38→v1.39. last_amended: 2026-05-08 (F5 fix-burst-14: BC-3.08.001 v1.9; O-P15-001/O-P15-003 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-13 (2026-05-08) — BC-3.08.001 v1.7→v1.8 (F-P14-001 Path B: E-REG-003 wire schema extended with offending_event + offending_tool). BC-7.06.001 v1.8→v1.9 (F-P14-005: §Fail-Closed Symmetry E-REG-003 wording clarified to resolved-state framing). No count change. BC-INDEX v1.37→v1.38. last_amended: 2026-05-08 (F5 fix-burst-13: BC-3.08.001 v1.8; BC-7.06.001 v1.9; F-P14-001/F-P14-005 closed)."
   - date: 2026-05-08
@@ -327,7 +329,7 @@ changelog:
 | [BC-3.06.007](ss-03/BC-3.06.007.md) | sink-core::routing_filter_plugin_ids_allow — only events from listed plugins pass; empty list = pass-through | draft | CAP-003 | active |
 | [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
 | [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
-| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) (v1.8: F5 fix-burst-13 — E-REG-003 wire schema extended with offending_event + offending_tool; F-P14-001 Path B) | draft | CAP-003 | S-15.01 |
+| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) (v1.9: F5 fix-burst-14 — session_id added to all four event wire-format examples + mandatory-fields paragraphs; RESERVED_FIELDS full 9-field enumeration; O-P15-001/O-P15-003 closed) | draft | CAP-003 | S-15.01 |
 
 ### SS-04 — Plugin Ecosystem (BC-4) — 39 BCs
 
