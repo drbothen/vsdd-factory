@@ -1,7 +1,7 @@
-//! AC-016: Sync-group p95 latency canary — must be ≤ 500ms.
+//! AC-016: Sync-group p95 latency canary — must be ≤ 1500ms.
 //!
 //! This test measures the p95 latency of `sync_group` dispatch across N=100
-//! invocations using a representative fixture set and asserts p95 ≤ 500ms.
+//! invocations using a representative fixture set and asserts p95 ≤ 1500ms.
 //!
 //! # Usage
 //!
@@ -23,7 +23,7 @@
 //! RED until T-3b + T-3c: `partition_plugins()` and the sync/async dispatch loop
 //! are `todo!()` — any attempt to exercise the dispatch path panics.
 //!
-//! After implementation: this test must pass with p95 ≤ 500ms. If p95 > 500ms,
+//! After implementation: this test must pass with p95 ≤ 1500ms. If p95 > 1500ms,
 //! the misclassification audit in T-3h must identify and flip additional heavy
 //! plugins to `async = true` before merge (AC-016).
 //!
@@ -31,12 +31,13 @@
 //!
 //! ASYNC_DRAIN_WINDOW_MS (DI-019) contributes to total wall-clock latency:
 //! `latency ≤ max(sync_plugin_durations_within_slowest_tier) + ASYNC_DRAIN_WINDOW_MS`.
-//! The 500ms budget accounts for typical sync_group execution across all registered
-//! blocking plugins plus the drain window overhead.
+//! The 1500ms budget accounts for typical sync_group execution across all registered
+//! blocking plugins plus the drain window overhead (Class A — cold-start dispatch; ADR-020).
 //!
 //! # BC traces
 //!
 //! - AC-016 (S-15.01 v1.6): p95 ≤ 500ms assertion
+//! - AC-016 (S-15.01 v1.8): p95 ≤ 1500ms assertion (Class A — cold-start dispatch; per ADR-020)
 //! - BC-1.14.001 postcondition 2: sync_group execution + verdict aggregation
 //! - DI-019: ASYNC_DRAIN_WINDOW_MS contributes to total latency bound
 
@@ -47,7 +48,8 @@ use std::time::{Duration, Instant};
 /// This is NOT DI-019. DI-019 is ASYNC_DRAIN_WINDOW_MS (drain window after
 /// sync_group completes). This budget covers the entire dispatch call including
 /// sync_group execution and drain window overhead.
-const P95_LATENCY_BUDGET_MS: u64 = 500;
+// AC-016 budget per ADR-020 (Class A — cold-start dispatch). Original 500ms revised after F5 pass-1 finding F-P1-003 + F-P1-009.
+const P95_LATENCY_BUDGET_MS: u64 = 1500;
 
 /// CANARY_ITERATIONS: number of dispatch invocations for p95 measurement.
 const CANARY_ITERATIONS: usize = 100;
@@ -60,7 +62,7 @@ const P95_INDEX: usize = 94; // floor(0.95 * 100) - 1
 /// AC-016: Sync-group p95 latency canary.
 ///
 /// Measures dispatch latency across CANARY_ITERATIONS invocations and asserts
-/// that the 95th percentile is ≤ P95_LATENCY_BUDGET_MS (500ms).
+/// that the 95th percentile is ≤ P95_LATENCY_BUDGET_MS (1500ms).
 ///
 /// # Why #[ignore]
 ///
@@ -71,12 +73,12 @@ const P95_INDEX: usize = 94; // floor(0.95 * 100) - 1
 ///
 /// RED until T-3b (partition_plugins) and T-3c (dispatch loop) are implemented.
 /// Will also be RED until T-3h classifies telemetry plugins as async=true
-/// (without this, all plugins run in sync_group and p95 may exceed 500ms).
+/// (without this, all plugins run in sync_group and p95 may exceed 1500ms).
 #[test]
 #[ignore = "latency canary: requires --release build and populated plugin set; run with --ignored"]
 fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
     // DI-019: reference ASYNC_DRAIN_WINDOW_MS by name for the total latency bound.
-    // Do NOT hardcode 100ms. The 500ms budget here covers sync_group + drain window.
+    // Do NOT hardcode 100ms. The 1500ms budget here covers sync_group + drain window.
     let _drain_window = factory_dispatcher::ASYNC_DRAIN_WINDOW_MS;
 
     let mut latencies: Vec<Duration> = Vec::with_capacity(CANARY_ITERATIONS);
@@ -194,11 +196,11 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
         CANARY_ITERATIONS, latencies[49], p95, latencies[98],
     );
 
-    // The primary assertion: p95 ≤ 500ms.
+    // The primary assertion: p95 ≤ 1500ms (Class A — cold-start dispatch, per ADR-020).
     assert!(
         p95_ms <= P95_LATENCY_BUDGET_MS,
         "test_BC_1_14_001_ac016_sync_group_p95_latency: \
-         AC-016 FAIL — sync_group p95 latency is {}ms, budget is {}ms. \
+         AC-016 FAIL — sync_group p95 latency is {}ms, budget is {}ms (ADR-020 Class A). \
          Run T-3h misclassification audit to flip heavy sync plugins to async=true \
          (DI-019 ASYNC_DRAIN_WINDOW_MS contributes to total latency bound).",
         p95_ms,
@@ -216,13 +218,14 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
 /// GREEN: this test does not exercise todo!() paths.
 /// Verifies the budget constant itself is sane.
 #[test]
-fn test_BC_1_14_001_ac016_latency_budget_constant_is_500ms() {
-    // The 500ms budget covers sync_group execution + ASYNC_DRAIN_WINDOW_MS (DI-019).
+fn test_BC_1_14_001_ac016_latency_budget_constant_is_1500ms() {
+    // The 1500ms budget covers sync_group execution + ASYNC_DRAIN_WINDOW_MS (DI-019).
+    // Revised from 500ms per ADR-020 (Class A — cold-start dispatch).
     // This is not a tight bound — it is a regression guard for gross misclassification.
     assert_eq!(
-        P95_LATENCY_BUDGET_MS, 500,
-        "test_BC_1_14_001_ac016_latency_budget_constant_is_500ms: \
-         P95 latency budget must be 500ms per AC-016 (S-15.01 v1.6)"
+        P95_LATENCY_BUDGET_MS, 1500,
+        "test_BC_1_14_001_ac016_latency_budget_constant_is_1500ms: \
+         P95 latency budget must be 1500ms per AC-016 (S-15.01 v1.8, ADR-020)"
     );
 }
 
