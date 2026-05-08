@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 fix-burst-3 COMPLETE (Stage 1 specs + Stage 2 code/test). All 6 pass-3 findings addressed (0H + 2M + 2L + 2NIT). Branch fix/S-15.01-F5-convergence at 100395d; long-lived; PR held until ADR-013 = 3_of_3. F5 pass-4 adversary dispatch next; targeting NITPICK_ONLY to start clock advancement (1_of_3)."
+current_step: "F5 pass-4 COMPLETE — verdict MEDIUM (0H/1M/4L/0NIT). ADR-013 clock 0_of_3 (resets on M). Trajectory 17 → 15 → 6 → 5 (improving but plateauing). Fix-burst-4 dispatching: VP-077 v1.10 + partition.rs sweeps (5 cite sites); DI-019 v1.4 edge-case clauses; H2/H4 doc-comment additions. Pass-5 targets NITPICK_ONLY → 1_of_3."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 fix-burst-3 COMPLETE — all 6 pass-3 findings addressed; spec+code+test; pass-4 adversary dispatch next; targeting NITPICK_ONLY for ADR-013 clock 1_of_3) |
+| **Last Updated** | 2026-05-08 (F5 pass-4 COMPLETE — verdict MEDIUM 0H/1M/4L/0NIT; ADR-013 clock 0_of_3; trajectory 17→15→6→5; fix-burst-4 dispatching) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -94,7 +94,8 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-2 Stage 1 — spec amendments** | architect + product-owner + story-writer + state-manager | **COMPLETE** | VP-077 v1.7→v1.9 (F-P2-009/010/011). VP-079 v1.7→v1.8 (F-P2-002). BC-1.14.001 v1.8→v1.9 (F-P2-004). BC-3.08.001 v1.5→v1.6 (F-P2-015). BC-7.06.001 v1.3→v1.4 (F-P2-011 USER-APPROVED tuple). DI-019 v1.1→v1.2. ADR-020 typo fix. S-15.01 v1.8→v1.9 (version-label sweep). S-15.02 v1.0→v1.1 (References sweep). Indexes: BC-INDEX v1.33; VP-INDEX v1.18; STORY-INDEX v2.39; ARCH-INDEX v1.21. factory-artifacts @ 83c7056. |
 | **F5 fix-burst-2 Stage 2 — code/test/demo** | test-writer + implementer + demo-recorder | **COMPLETE** | F-P2-001: ac017_demo_evidence error-msg sweep (1d3ba70). F-P2-003: latency-canary re-record p95=1161ms PASS@1500ms (d70b6e4). F-P2-005: bats H2 disjunct removal (b266e16). F-P2-006: vp079-scenario6 mutation soundness (932fbac). F-P2-011: registry validate (name,event,tool) tuple (19ead6a). F-P2-013: stderr asymmetry comment (79370a6). F-P2-014: AC-017 guard numeric extraction (c07df8f). cargo fmt (2cfe3c1). Verification: `cargo test` PASS; clippy clean; bats 11/11 ok; AC-017 guard 3/3 PASS. Branch fix/S-15.01-F5-convergence @ 2cfe3c1 (long-lived; 8 commits ahead of develop). |
 | **F5 pass-3 adversary review** | adversary | **COMPLETE** | Verdict: MEDIUM (0H/2M/2L/2NIT). ADR-013 clock 0_of_3 (resets on M). All 14 pass-2 findings RESOLVED. F-P3-001 [M] VP-079 v1.8 sibling-doc gap in Proof Harness Skeleton; F-P3-002 [M] partition.rs doc-comment stale (name,event) tuple; F-P3-003 [L] BC-7.06.001 Inv-7 string-equality clause missing; F-P3-004 [L] DI-019 silent-fallback not documented; F-P3-005 [NIT] bats H2 overly-broad matchers; F-P3-006 [NIT] ADR-020 p99 margin stale. See `cycles/…/F5-adversary-pass-3.md`. Fix-burst-3 dispatching. |
-| **F5 fix-burst-3 (Stage 1 specs + Stage 2 code/test)** | architect + product-owner + story-writer + implementer + test-writer + state-manager | **COMPLETE** | VP-079 v1.8→v1.9 (F-P3-001). BC-7.06.001 v1.4→v1.5 (F-P3-003). DI-019 v1.2→v1.3 (F-P3-004). ADR-020 rationale clarification (F-P3-006, no version bump). S-15.01 v1.9→v1.10. S-15.02 v1.1→v1.2. Code: partition.rs doc-comments (F-P3-002, f5bed48). Test: bats H2 tightening (F-P3-005, 100395d). Indexes: BC-INDEX v1.34; VP-INDEX v1.19; STORY-INDEX v2.40; ARCH-INDEX v1.22. Pass-4 adversary dispatch next; targeting NITPICK_ONLY (ADR-013 clock 1_of_3). |
+| **F5 fix-burst-3 (Stage 1 specs + Stage 2 code/test)** | architect + product-owner + story-writer + implementer + test-writer + state-manager | **COMPLETE** | VP-079 v1.8→v1.9 (F-P3-001). BC-7.06.001 v1.4→v1.5 (F-P3-003). DI-019 v1.2→v1.3 (F-P3-004). ADR-020 rationale clarification (F-P3-006, no version bump). S-15.01 v1.9→v1.10. S-15.02 v1.1→v1.2. Code: partition.rs doc-comments (F-P3-002, f5bed48). Test: bats H2 tightening (F-P3-005, 100395d). Indexes: BC-INDEX v1.34; VP-INDEX v1.19; STORY-INDEX v2.40; ARCH-INDEX v1.22. |
+| **F5 pass-4 adversary review** | adversary | **COMPLETE** | Verdict: MEDIUM (0H/1M/4L/0NIT). ADR-013 clock 0_of_3 (MEDIUM resets). F-P3-002 PARTIALLY RESOLVED. F-P4-001 [M] VP-077 v1.9 has 4 stale BC-7.06.001 v1.4 cites (propagation gap from F-P3-003 BC v1.5 bump). F-P4-002 [L] partition.rs:150 stale v1.4 cite. F-P4-003 [L] H2/H4 doc-comment precondition notes missing. F-P4-004 [L] DI-019 §Malformed missing 0ms edge case. F-P4-005 [L] DI-019 §Malformed missing upper-bound ack. Trajectory: 17→15→6→5. See `cycles/…/F5-adversary-pass-4.md`. Fix-burst-4 dispatching. |
 
 ## Identifier Conventions
 
@@ -136,7 +137,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-3 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1 (5H/6M/4L/2NIT) → pass-2 (3H/6M/4L/2NIT) → pass-3 (0H/2M/2L/2NIT) — IMPROVING. ADR-013 clock 0_of_3. Fix-burst-3 COMPLETE (all 6 findings: F-P3-001..006). Branch fix/S-15.01-F5-convergence @ 100395d (long-lived; 10 commits ahead of develop). PR held until ADR-013 = 3_of_3. Pass-4 adversary dispatch next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-4 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1 (5H/6M/4L/2NIT) → pass-2 (3H/6M/4L/2NIT) → pass-3 (0H/2M/2L/2NIT) → pass-4 (0H/1M/4L/0NIT). ADR-013 clock 0_of_3 (MEDIUM resets). Trajectory 17→15→6→5 improving but plateauing. Branch fix/S-15.01-F5-convergence @ 100395d. PR held until ADR-013 = 3_of_3. Fix-burst-4 dispatching (VP-077 v1.10 + partition.rs + DI-019 v1.4 + H2/H4 doc-comments). |
 
 ## Decisions Log
 
@@ -160,9 +161,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 fix-burst-3 COMPLETE. All 6 pass-3 findings addressed (F-P3-001..F-P3-006). Trajectory: pass-1 (5H/6M/4L/2NIT) → pass-2 (3H/6M/4L/2NIT) → pass-3 (0H/2M/2L/2NIT) → pass-4 (TBD). ADR-013 clock 0_of_3 (MEDIUM verdict resets; targeting NITPICK_ONLY at pass-4 for 1_of_3).
+**Last update:** 2026-05-08 — F5 pass-4 COMPLETE. Verdict: MEDIUM (0H/1M/4L/0NIT). ADR-013 clock 0_of_3 (MEDIUM resets). Trajectory: pass-1 (5H/6M/4L/2NIT) → pass-2 (3H/6M/4L/2NIT) → pass-3 (0H/2M/2L/2NIT) → pass-4 (0H/1M/4L/0NIT). Improving but plateauing. 5 findings: F-P4-001 [M] VP-077 stale BC-7.06.001 v1.4 cites (4 sites); F-P4-002 [L] partition.rs:150 stale cite; F-P4-003 [L] H2/H4 doc-comment gaps; F-P4-004/005 [L] DI-019 edge-case acks missing.
 
-**ACTIVE STEP: F5 pass-4 adversary dispatch. Scope: fix/S-15.01-F5-convergence @ 100395d. Targeting NITPICK_ONLY to advance ADR-013 clock to 1_of_3. PR held until 3_of_3.**
+**ACTIVE STEP: F5 fix-burst-4 dispatching. Scope: VP-077 v1.9→v1.10 (4-site sweep) + partition.rs:150 cite update + H2/H4 doc-comment additions + DI-019 v1.3→v1.4 §Malformed edge-case acks. Branch fix/S-15.01-F5-convergence @ 100395d. Pass-5 targets NITPICK_ONLY → ADR-013 clock 1_of_3.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 100395d — long-lived; 10 commits ahead of develop; no PR until 3_of_3
