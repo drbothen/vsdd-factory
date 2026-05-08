@@ -2,7 +2,7 @@
 #
 # vp079-scenario6-mutation-counter-proof.bats
 #
-# VP-079 v1.11 Property 6: Production-caller mutation counter-proof.
+# VP-079 v1.13 Property 6: Production-caller mutation counter-proof.
 #
 # For each of the 5 production emit-caller sites in main.rs, comment out the
 # emit call in a temporary worktree checkout, rebuild the dispatcher, and assert
@@ -18,7 +18,7 @@
 # Gate it in CI behind a job triggered only on diffs touching main.rs or
 # host/emit_event.rs (preferred: cargo mutants --filter='emit_'; bash fallback below).
 #
-# SITES (5 production caller sites per VP-079 v1.11 Property 6):
+# SITES (5 production caller sites per VP-079 v1.13 Property 6):
 #   SITE_1: ~main.rs:133 — emit_dispatcher_schema_mismatch (schema_version != 2)
 #   SITE_2: ~main.rs:142 — emit_dispatcher_registry_invalid (AsyncBlockConflict / E-REG-002)
 #   SITE_3: ~main.rs:416 — emit_plugin_async_block_discarded (async result exit_code=2)
@@ -31,7 +31,7 @@
 #
 # BC traces:
 #   BC-3.08.001 v1.7 — async-semantics event types, production caller obligation
-#   VP-079 v1.11 Property 6 — production-path emission counter-proof
+#   VP-079 v1.13 Property 6 — production-path emission counter-proof
 #   S-15.01 v1.7 — F5 pass-1 fix (F-P1-002)
 #   DI-019 — ASYNC_DRAIN_WINDOW_MS (referenced by name; do NOT hardcode 100)
 

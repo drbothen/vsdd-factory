@@ -32,8 +32,8 @@
 //! - BC-1.14.001 — dispatch partition contract (async group fire-and-forget)
 //! - BC-7.06.001 — registry validation (schema_mismatch / registry_invalid triggers)
 //! - DI-019 — ASYNC_DRAIN_WINDOW_MS (do NOT hardcode; cite by name)
-//! - VP-079 v1.6 — fault injection verification property
-//! - AC-011, AC-012, AC-013, AC-014, AC-005 (S-15.01 v1.6)
+//! - VP-079 v1.13 — fault injection verification property
+//! - AC-011, AC-012, AC-013, AC-014, AC-005 (S-15.01 v1.15)
 
 use factory_dispatcher::host::emit_event::{
     emit_dispatcher_registry_invalid, emit_dispatcher_schema_mismatch,
@@ -223,21 +223,28 @@ fn test_BC_3_08_001_vp079_s2_v1_registry_triggers_schema_mismatch() {
 // dispatcher.registry_invalid with mandatory fields:
 //   type, trace_id, offending_plugin, violation, timestamp, error_code.
 // offending_plugin MUST name the violating entry.
-// violation MUST be "async_block_conflict" (BC-3.08.001 v1.7 canonical).
+// violation MUST be "async_block_conflict" (BC-3.08.001 v1.9 canonical).
 // error_code MUST be "E-REG-002".
 // ---------------------------------------------------------------------------
 
 /// VP-079 S3: emit_dispatcher_registry_invalid emits event with mandatory fields.
 ///
 /// GREEN after T-3e.
-/// Violation string updated to "async_block_conflict" per BC-3.08.001 v1.7 amendment.
+/// Violation string updated to "async_block_conflict" per BC-3.08.001 v1.9 amendment.
 #[test]
 fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     let ctx = make_test_ctx();
     // Scenario: entry "invalid-blocker" has on_error=block AND async=true.
     // Mandatory fields: type, trace_id, offending_plugin, violation, timestamp, error_code.
     // BC-3.08.001 v1.7: violation canonical string is "async_block_conflict".
-    emit_dispatcher_registry_invalid(&ctx, "invalid-blocker", "E-REG-002", "async_block_conflict");
+    emit_dispatcher_registry_invalid(
+        &ctx,
+        "invalid-blocker",
+        "E-REG-002",
+        "async_block_conflict",
+        None,
+        None,
+    );
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];
@@ -253,7 +260,7 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     assert_eq!(
         ev.fields.get("violation").and_then(|v| v.as_str()),
         Some("async_block_conflict"),
-        "violation must be async_block_conflict (BC-3.08.001 v1.7 canonical)"
+        "violation must be async_block_conflict (BC-3.08.001 v1.9 canonical)"
     );
     assert_eq!(
         ev.fields.get("error_code").and_then(|v| v.as_str()),
@@ -270,7 +277,14 @@ fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
     let ctx = make_test_ctx();
     // Verify the emitted event has offending_plugin = "bad-validator".
     // BC-3.08.001 v1.7: violation canonical string is "async_block_conflict".
-    emit_dispatcher_registry_invalid(&ctx, "bad-validator", "E-REG-002", "async_block_conflict");
+    emit_dispatcher_registry_invalid(
+        &ctx,
+        "bad-validator",
+        "E-REG-002",
+        "async_block_conflict",
+        None,
+        None,
+    );
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1);
     let ev = &events[0];
@@ -283,6 +297,116 @@ fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
         ev.fields.get("error_code").and_then(|v| v.as_str()),
         Some("E-REG-002"),
         "error_code must be E-REG-002 (AC-013)"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// VP-079 Scenario 8: DuplicateEntry → dispatcher.registry_invalid (E-REG-003)
+//
+// F-P14-001 Path B: emit_dispatcher_registry_invalid extended with two new params:
+//   event: Option<&str>  — the offending hook's event field ("PreToolUse")
+//   tool:  Option<&str>  — the offending hook's tool field ("Bash")
+//
+// E-REG-003 wire payload MUST include offending_event + offending_tool fields.
+// E-REG-002 (AsyncBlockConflict) passes None, None — fields absent or null.
+//
+// BC-3.08.001 v1.9 Event 3 schema: offending_event and offending_tool are
+// present only for the DuplicateEntry path (E-REG-003).
+// ---------------------------------------------------------------------------
+
+/// VP-079 S8: E-REG-003 DuplicateEntry emits offending_event and offending_tool fields.
+///
+/// F-P14-001 Path B: emit_dispatcher_registry_invalid must propagate the new
+/// event and tool params to the wire payload for the DuplicateEntry path.
+/// GREEN after implementer wires the new params in emit_dispatcher_registry_invalid.
+#[test]
+fn test_BC_3_08_001_vp079_s8_duplicate_entry_emits_offending_event_and_tool() {
+    let ctx = make_test_ctx();
+    // Fixture: duplicate (name="duplicate-test", event="PreToolUse", tool="Bash").
+    // F-P14-001 Path B: offending_event = Some("PreToolUse"), offending_tool = Some("Bash").
+    emit_dispatcher_registry_invalid(
+        &ctx,
+        "duplicate-test",
+        "E-REG-003",
+        "duplicate_hook_registration",
+        Some("PreToolUse"),
+        Some("Bash"),
+    );
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1, "exactly one event must be emitted");
+    let ev = &events[0];
+    assert_eq!(
+        ev.type_, "dispatcher.registry_invalid",
+        "event type must be dispatcher.registry_invalid"
+    );
+    assert_eq!(
+        ev.fields.get("error_code").and_then(|v| v.as_str()),
+        Some("E-REG-003"),
+        "error_code must be E-REG-003 for DuplicateEntry"
+    );
+    assert_eq!(
+        ev.fields.get("violation").and_then(|v| v.as_str()),
+        Some("duplicate_hook_registration"),
+        "violation must be duplicate_hook_registration (BC-3.08.001 v1.9 canonical)"
+    );
+    // F-P14-001 Path B assertions: new wire fields.
+    assert_eq!(
+        ev.fields.get("offending_event").and_then(|v| v.as_str()),
+        Some("PreToolUse"),
+        "offending_event must be 'PreToolUse' (F-P14-001 Path B)"
+    );
+    assert_eq!(
+        ev.fields.get("offending_tool").and_then(|v| v.as_str()),
+        Some("Bash"),
+        "offending_tool must be 'Bash' (F-P14-001 Path B)"
+    );
+}
+
+/// VP-079 S8: E-REG-002 AsyncBlockConflict does NOT emit offending_event/offending_tool.
+///
+/// F-P14-001 Path B: when None, None are passed (E-REG-002 path), the emitted
+/// event must NOT include offending_event or offending_tool fields (or they are null).
+/// GREEN after implementer wires the new params.
+#[test]
+fn test_BC_3_08_001_vp079_s3_async_block_conflict_omits_offending_event_tool() {
+    let ctx = make_test_ctx();
+    // E-REG-002 / AsyncBlockConflict: event and tool are not applicable.
+    // Passing None, None — fields must be absent or null in the wire payload.
+    emit_dispatcher_registry_invalid(
+        &ctx,
+        "invalid-blocker",
+        "E-REG-002",
+        "async_block_conflict",
+        None,
+        None,
+    );
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1, "exactly one event must be emitted");
+    let ev = &events[0];
+    assert_eq!(
+        ev.fields.get("error_code").and_then(|v| v.as_str()),
+        Some("E-REG-002"),
+        "error_code must be E-REG-002 for AsyncBlockConflict"
+    );
+    // F-P14-001 Path B: offending_event and offending_tool must be absent for E-REG-002.
+    // The field may be absent OR present as JSON null — both are acceptable.
+    let offending_event_present = ev
+        .fields
+        .get("offending_event")
+        .and_then(|v| v.as_str())
+        .is_some();
+    assert!(
+        !offending_event_present,
+        "offending_event must NOT be a non-null string for E-REG-002 (F-P14-001 Path B)"
+    );
+    let offending_tool_present = ev
+        .fields
+        .get("offending_tool")
+        .and_then(|v| v.as_str())
+        .is_some();
+    assert!(
+        !offending_tool_present,
+        "offending_tool must NOT be a non-null string for E-REG-002 (F-P14-001 Path B)"
     );
 }
 

@@ -2,7 +2,7 @@
 #
 # async-event-schema-conformance.bats
 #
-# VP-079 v1.11: Async-Semantics Event Types — Payload Schema Conformance.
+# VP-079 v1.13: Async-Semantics Event Types — Payload Schema Conformance.
 # Five scenarios, one per triggering condition.
 #
 # RED: All scenarios require a compiled factory-dispatcher binary with T-3e
@@ -18,7 +18,7 @@
 # infrastructure for controlled exit-code injection. They are NOT the production
 # plugin under test. Per project WASM-migration directive, NEW shipped plugins
 # are native WASM; legacy-bash-adapter in test fixtures is a transitional
-# convenience (VP-078 v1.8, VP-079 v1.11 annotations).
+# convenience (VP-078 v1.8, VP-079 v1.13 annotations).
 #
 # BC traces:
 #   BC-3.08.001 v1.7 — event catalog (4 new event types)
@@ -26,7 +26,7 @@
 #   BC-7.06.001 — schema validation (schema_mismatch / registry_invalid triggers)
 #   DI-017 — trace_id on every emitted event
 #   DI-019 — ASYNC_DRAIN_WINDOW_MS (canonical; must not be hardcoded)
-#   VP-079 v1.11 — fault injection verification property
+#   VP-079 v1.13 — fault injection verification property
 #   AC-011, AC-012, AC-013, AC-014, AC-005 (S-15.01 v1.14)
 
 PLUGIN_ROOT=""
@@ -568,7 +568,7 @@ shell_bypass_acknowledged = "VP-079-S7-test-fixture"
 # Scenario 8: DuplicateEntry → dispatcher.registry_invalid (E-REG-003)
 #
 # Trigger: registry has two [[hooks]] entries with identical (name, event, tool) tuple.
-# Per BC-7.06.001 v1.7 Invariant 7, this MUST be rejected at validate() time.
+# Per BC-7.06.001 v1.9 Invariant 7, this MUST be rejected at validate() time.
 # Per F-P8-001 fix (main.rs), the dispatcher MUST:
 #   1. Exit 2 (fail-closed per ADR-019 §Decision 2).
 #   2. Write "[E-REG-003]" to stderr.
@@ -578,14 +578,14 @@ shell_bypass_acknowledged = "VP-079-S7-test-fixture"
 # No WASM plugin is invoked — validation fails before dispatch begins.
 # ---
 
-@test "VP-079 S8: BC-7.06.001 v1.7 Invariant 7 [fail-closed] — DuplicateEntry → exit 2 + dispatcher.registry_invalid (E-REG-003)" {
+@test "VP-079 S8: BC-7.06.001 v1.9 Invariant 7 [fail-closed] — DuplicateEntry → exit 2 + dispatcher.registry_invalid (E-REG-003)" {
     require_dispatcher
 
     # No test fixtures needed: DuplicateEntry is detected at registry validate()
     # time, before any plugin is loaded or executed.
 
     # Registry: TWO entries with identical (name="duplicate-test", event="PreToolUse",
-    # tool="Bash"). BC-7.06.001 v1.7 Invariant 7 requires rejection at validate().
+    # tool="Bash"). BC-7.06.001 v1.9 Invariant 7 requires rejection at validate().
     printf '%s' '
 schema_version = 2
 
@@ -627,11 +627,11 @@ script_path = "test-fixtures/exit0.sh"
         CLAUDE_PROJECT_DIR=\"$PLUGIN_ROOT\" \
         factory-dispatcher 2>\"$stderr_file\""
 
-    # Assertion 1 (BC-7.06.001 v1.7 Invariant 7 + ADR-019 §Decision 2):
+    # Assertion 1 (BC-7.06.001 v1.9 Invariant 7 + ADR-019 §Decision 2):
     # dispatcher must exit 2 (fail-closed).
     [ "$status" -eq 2 ] || {
         echo "FAIL: expected exit 2 for DuplicateEntry; got: $status"
-        echo "BC-7.06.001 v1.7 Invariant 7 requires fail-closed (exit 2) on duplicate (name,event,tool) tuple."
+        echo "BC-7.06.001 v1.9 Invariant 7 requires fail-closed (exit 2) on duplicate (name,event,tool) tuple."
         rm -f "$stderr_file"
         return 1
     }
@@ -670,7 +670,31 @@ script_path = "test-fixtures/exit0.sh"
         "import sys,json; print(json.load(sys.stdin)['violation'])")
     [ "$violation" = "duplicate_hook_registration" ] || {
         echo "FAIL: violation must be 'duplicate_hook_registration'; got: $violation"
-        echo "BC-3.08.001 v1.7 Event 3: canonical violation string for DuplicateEntry."
+        echo "BC-3.08.001 v1.9 Event 3: canonical violation string for DuplicateEntry."
+        return 1
+    }
+
+    # Assertion 6 (F-P14-001 Path B): offending_event must be "PreToolUse".
+    # The duplicate registry entries both have event = "PreToolUse"; the dispatcher
+    # must propagate this to the wire payload per BC-3.08.001 v1.9 E-REG-003 schema.
+    local offending_event
+    offending_event=$(echo "$line" | python3 -c \
+        "import sys,json; print(json.load(sys.stdin)['offending_event'])")
+    [ "$offending_event" = "PreToolUse" ] || {
+        echo "FAIL: offending_event must be 'PreToolUse' (the duplicate registry's event); got: $offending_event"
+        echo "F-P14-001 Path B: emit_dispatcher_registry_invalid must propagate offending_event to wire payload."
+        return 1
+    }
+
+    # Assertion 7 (F-P14-001 Path B): offending_tool must be "Bash".
+    # The duplicate registry entries both have tool = "Bash"; the dispatcher
+    # must propagate this to the wire payload per BC-3.08.001 v1.9 E-REG-003 schema.
+    local offending_tool
+    offending_tool=$(echo "$line" | python3 -c \
+        "import sys,json; t=json.load(sys.stdin).get('offending_tool'); print(t if t is not None else 'null')")
+    [ "$offending_tool" = "Bash" ] || {
+        echo "FAIL: offending_tool must be 'Bash' (the duplicate fixture's tool); got: $offending_tool"
+        echo "F-P14-001 Path B: emit_dispatcher_registry_invalid must propagate offending_tool to wire payload."
         return 1
     }
 }

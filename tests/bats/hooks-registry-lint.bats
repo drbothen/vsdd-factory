@@ -17,7 +17,7 @@
 # DI-019: ASYNC_DRAIN_WINDOW_MS — referenced by name; do NOT hardcode 100.
 #
 # BC traces:
-#   BC-7.06.001 v1.7 — schema_version 2 + on_error=block implies async=false
+#   BC-7.06.001 v1.9 — schema_version 2 + on_error=block implies async=false
 #   VP-078 v1.8 Harnesses 1+2
 #   AC-006, AC-008 (S-15.01 v1.14)
 
