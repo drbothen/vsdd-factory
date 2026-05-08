@@ -615,3 +615,83 @@ ADR-013 clock 2_of_3. One more NITPICK_ONLY pass required for CONVERGENCE_REACHE
 F2 PASS-9 CLOSED. ADR-013 clock 2_of_3. Pass-10 next.
 
 ---
+
+## Burst 11 — F2 CONVERGENCE close — pass-10 NITPICK_ONLY; clock 2→3_of_3; CONVERGENCE_REACHED
+
+**Date:** 2026-05-07
+**Dispatchers:** orchestrator → state-manager (closing burst)
+**Phase:** F2 CONVERGED
+
+### Summary
+
+Pass-10 returned NITPICK_ONLY (third consecutive for this cycle). ADR-013 clock advances 2→3_of_3. Three consecutive NITPICK_ONLY passes = CONVERGENCE_REACHED per ADR-013.
+
+Trajectory across all 10 passes + 7 fix bursts: **19 → 19 → 7 → 6 → 3 → 5 → 4 → 1 → 2 → 1**.
+
+### NIT-P10-001 — Fix applied
+
+- **File:** BC-3.08.001.md line 196 (Traceability §L2 Domain Invariants cell)
+- **Fix:** Redundant `(per DI-019)` parenthetical removed. Cell already began with `DI-019 —` prefix. Sibling fix to F-P7-004 (which fixed the same pattern in BC-1.14.001 v1.5→v1.6 during pass-7).
+- **Version bump:** BC-3.08.001 v1.3 → v1.4. Amendment section added.
+
+### Files touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-10.md` | Created — pass-10 findings persisted (verdict: NITPICK_ONLY; clock 3_of_3; CONVERGENCE_REACHED) |
+| `.factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md` | v1.3→v1.4 — NIT-P10-001 cleanup; amendment section added |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v1.26→v1.27 — BC-3.08.001 v1.4 noted; changelog entry added |
+| `.factory/specs/architecture/ARCH-INDEX.md` | v1.18→v1.19 — BC-INDEX cite refreshed v1.26→v1.27; changelog entry added |
+| `.factory/STATE.md` | current_step, last_amended, phase progress, concurrent cycles, current phase steps, session checkpoint, index versions updated |
+
+### Index versions at F2 convergence close
+
+| Index | Version |
+|-------|---------|
+| BC-INDEX | v1.27 |
+| ARCH-INDEX | v1.19 |
+| VP-INDEX | v1.14 (no change) |
+
+### Final F2 Statistics
+
+| Metric | Value |
+|--------|-------|
+| Total adversary passes | 10 |
+| SUBSTANTIVE passes | 7 (passes 1–7) |
+| NITPICK_ONLY passes | 3 (passes 8, 9, 10 — final ADR-013 clock chain) |
+| Fix bursts | 7 (pass-1, pass-2, pass-3, pass-3-user-correction, pass-4, pass-5, pass-6, pass-7 — 7 distinct fix bursts) |
+| Finding trajectory | 19→19→7→6→3→5→4→1→2→1 |
+| Final ADR-013 clock | 3_of_3 (CONVERGENCE_REACHED) |
+| New BCs | 5 (BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001 amendment exception) |
+| New ADR | 1 (ADR-019) |
+| New VPs | 3 (VP-077, VP-078, VP-079) |
+| New DI | 1 (DI-019) |
+| Amended BCs | 9 (BC-1.01.001, BC-1.01.007, BC-1.08.001, BC-1.08.002, BC-4.04.004, BC-4.05.004, BC-4.07.003, BC-4.08.002, plus retroactive cite updates) |
+| Amended VPs | 2 (VP-001, VP-002) |
+| Amended SS docs | 2 (SS-09, SS-07) |
+
+### User-locked decisions sealed
+
+1. Every Claude Code hook event sync at envelope (no carve-outs) — all 4 envelope BCs amended
+2. No backwards compatibility — v2 dispatcher hard-errors on v1 registry (ADR-019; BC-1.08.001 fail-closed exception)
+3. No phased rollout — single story consolidating all changes (ADR-019 §6)
+4. ASYNC_DRAIN_WINDOW_MS = 100ms via DI-019 (lifted from BC to domain layer; propagated to all 4 citing artifacts)
+
+### Lessons captured
+
+| Lesson | Manifestation | Codification |
+|--------|--------------|--------------|
+| Byte-for-byte grep verification beats visual inspection | Pass-3 claimed "confirmed matching" without grep; pass-5 found 4-BC H1↔BC-INDEX drift | S-7.01 discipline applied from pass-5 onward |
+| Sibling-fix propagation: amendments to one artifact must scan every citing sibling | F-P7-004 fixed BC-1.14.001 parenthetical but missed BC-3.08.001 sibling — caught at pass-10 | NIT-P10-001 |
+| User-correction principle: choose architecturally correct over expedient | Q2 (ARCH-INDEX re-tally to authoritative subsystem); Q3 (DI-019 lift from BC to domain layer) | ADR-019 + DI-019 in spec package |
+| Recurring NIT codification trigger at 3+ recurrences | ARCH-INDEX BC-INDEX cite drift refreshed 4 times (passes 5/6/8/10) | Burst-close protocol: any BC-INDEX version bump triggers ARCH-INDEX cite refresh |
+
+### Next phase
+
+F3 story decomposition (1 consolidated story per ADR-019 §6; covers schema v2 + dispatcher partition + plugin classification + envelope flip + CI lint). Gated behind human approval.
+
+### Status
+
+F2 CONVERGED. Human approval gate pending. F3 story decomposition queued.
+
+---

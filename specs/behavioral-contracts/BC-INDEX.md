@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.26"
+version: "1.27"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F2 CONVERGENCE close — pass-10 NIT-P10-001 cleanup (2026-05-07) — BC-3.08.001 v1.3→v1.4 (redundant `(per DI-019)` parenthetical removed from Traceability L2 Domain Invariants cell; sibling fix to F-P7-004 applied in BC-1.14.001 v1.5→v1.6). No count change. BC-3.08.001 H1 title unchanged. F2 CONVERGED for v1.0-feature-plugin-async-semantics-pass-1 (ADR-013 clock 3_of_3; 10 passes; trajectory 19→19→7→6→3→5→4→1→2→1)."
   - date: 2026-05-07
     change: "F2 pass-7 fix burst (2026-05-07) — BC-9.01.006 v1.0→v1.1 (F-P7-002: inputs frontmatter ADR-019 path corrected to canonical decisions/ADR-019-plugin-async-semantics-at-registry-layer.md; cosmetic only). BC-1.14.001 v1.5→v1.6 (F-P7-004: redundant `(per DI-019;` parenthetical removed from L2 Domain Invariants DI-019 cell; cosmetic only). No count change. last_amended: 2026-05-07 (async-semantics F2 pass-7 fix burst: BC-9.01.006 v1.1; BC-1.14.001 v1.6; F-P7-002 + F-P7-004 closed)."
   - date: 2026-05-07
