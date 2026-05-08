@@ -147,7 +147,7 @@ mod kani_proofs {
     /// groups cannot satisfy H1 by accident.
     ///
     /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
-    /// time by BC-7.06.001 v1.6 Invariant 7 via registry.rs::validate(). Bounded to
+    /// time by BC-7.06.001 v1.7 Invariant 7 via registry.rs::validate(). Bounded to
     /// n<=4 for Kani tractability.
     #[kani::proof]
     #[kani::unwind(8)]
@@ -178,7 +178,7 @@ mod kani_proofs {
     /// satisfied by a partition that duplicates every plugin into both groups.
     ///
     /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
-    /// time by BC-7.06.001 v1.6 Invariant 7 via registry.rs::validate(). Bounded to
+    /// time by BC-7.06.001 v1.7 Invariant 7 via registry.rs::validate(). Bounded to
     /// n<=4 for Kani tractability; uniqueness ensured by-construction via
     /// format!("plugin-{}", i) rather than explicit kani::assume guards
     /// (equivalent semantics).
@@ -255,7 +255,7 @@ mod kani_proofs {
     /// asserts positive coverage — no plugin is silently dropped.
     ///
     /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
-    /// time by BC-7.06.001 v1.6 Invariant 7 via registry.rs::validate(). Bounded to
+    /// time by BC-7.06.001 v1.7 Invariant 7 via registry.rs::validate(). Bounded to
     /// n<=4 for Kani tractability; uniqueness ensured by-construction via
     /// format!("plugin-{}", i) rather than explicit kani::assume guards
     /// (equivalent semantics).

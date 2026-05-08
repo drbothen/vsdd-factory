@@ -1073,7 +1073,7 @@ on_error = "block"
         );
     }
 
-    /// F-P6-002 / BC-7.06.001 v1.6 Invariant 7 (F-P3-003 amendment):
+    /// F-P6-002 / BC-7.06.001 v1.7 Invariant 7 (F-P3-003 amendment):
     /// String equality, not regex equivalence — `tool='^Bash$'` and `tool='Bash'` are
     /// DISTINCT entries because the uniqueness key is the raw string value, not the set of
     /// tool surfaces the pattern matches. Two entries that happen to match the same tool
@@ -1101,7 +1101,7 @@ plugin = "hook-plugins/regex-test.wasm"
         let result = Registry::parse_str(toml);
         assert!(
             result.is_ok(),
-            "BC-7.06.001 v1.6 Invariant 7: tool='^Bash$' and tool='Bash' MUST be DISTINCT entries \
+            "BC-7.06.001 v1.7 Invariant 7: tool='^Bash$' and tool='Bash' MUST be DISTINCT entries \
 (raw-string equality, not regex equivalence). Got: {:?}",
             result.err()
         );

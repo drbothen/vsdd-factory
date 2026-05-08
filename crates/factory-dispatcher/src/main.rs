@@ -156,7 +156,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                     // F-P8-001: fail-closed; dispatcher refuses to start on duplicate (name,event,tool) tuple.
                     eprintln!(
                         "[E-REG-003] Duplicate hook registration: name={name}, event={event}, tool={tool:?} \
-                         (BC-7.06.001 v1.6 Invariant 7). Each (name, event, tool) tuple must be unique \
+                         (BC-7.06.001 v1.7 Invariant 7). Each (name, event, tool) tuple must be unique \
                          across all [[hooks]] entries; dispatcher refuses to start."
                     );
                     emit_dispatcher_registry_invalid(
