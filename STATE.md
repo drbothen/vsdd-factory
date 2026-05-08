@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-1 fix-burst MERGED — PR #107 squash-merged at 6050d24 (2026-05-08). 17 adversary findings addressed: drain refactor (spawn+channel+select!), aggregate_exit_code, trace_id flip, latency canary real measurement, VP-078 H3 tuple fix, bats controls. F5 pass-2 adversary dispatch NEXT."
+current_step: "F5 pass-2 COMPLETE — verdict HIGH (3H/6M/4L/2NIT). ADR-013 clock 0_of_3. Fix-burst-2 dispatch pending: 3 HIGHs (sweep gap + VP-079 anchor + demo re-record), 6 MEDIUMs, plus deferred F-P1-012 protect-secrets needing user decision."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 fix-burst Path A complete — ADR-020 v1.0; S-15.01 v1.8 AC-016 1500ms; S-15.02 added draft; BC-1.14.001 v1.8 DI-017; STORY-INDEX v2.38; BC-INDEX v1.32; ARCH-INDEX v1.20) |
+| **Last Updated** | 2026-05-08 (F5 pass-2 complete — verdict HIGH 3H/6M/4L/2NIT; ADR-013 clock 0_of_3; fix-burst-2 pending) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -102,6 +102,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-1 — adversary review of merged S-15.01** | adversary | **COMPLETE** | Verdict: HIGH (5H/6M/4L/2NIT). ADR-013 clock 0_of_3. Sanity-probe REDO (initial run on stale local tree). Key findings: F-P1-001 VP-077 properties 5/6 unproven; F-P1-002 VP-079 structurally insufficient (USER Q1/Q2/Q3 confirmed); F-P1-003 latency canary measures no-op (POLICY 11); F-P1-004 BC-1.14.001+VP-077 cite routing.rs but impl is partition.rs; F-P1-005 STORY-INDEX status drift post-merge; F-P1-006 T-3c drain semantically violates BC-1.14.001 PC4 + Invariant 3; F-P1-010 drain truncation discards completed events (PC4+EC-010). VP-079 v1.7 amendment recommended. |
 | **F5 fix-burst Stage 1 — spec amendments** | architect + product-owner + story-writer + state-manager | **COMPLETE** | VP-077 v1.7 (F-P1-001 + F-P1-004: partition.rs anchor, 6 Kani harnesses, aggregate_exit_code design). VP-079 v1.7 (F-P1-002: Property 6 counter-proof, Scenario 6). BC-1.14.001 v1.7 (F-P1-004 + F-P1-006 + F-P1-010: partition.rs anchor, spawn-based drain, EC-012). BC-3.08.001 v1.5 (F-P1-007: Invariant 5 trace_id, RESERVED_FIELDS). DI-017 v1.1 (F-P1-007: wire-format exclusivity). S-15.01 v1.7 (POLICY 8 body propagation). Indexes: BC-INDEX v1.31, VP-INDEX v1.17, STORY-INDEX v2.37. Stage 2 (implementer refactor) next. |
 | **F5 fix-burst Path A close — ADR-020 + AC-016 + S-15.02 + BC-1.14.001 v1.8** | state-manager | **COMPLETE** | ADR-020 v1.0 (dispatcher latency budget classes; Class A p95≤1500ms; Class B daemon-mode TBD; 299L). S-15.01 v1.7→v1.8 (AC-016 budget 500ms→1500ms; ADR-020 cited in References + Architecture Mapping + T-5 + R-E15-001; F-P1-003 + F-P1-009 closed). S-15.02 v1.0 added (follow-up optimization story; draft; 393L; E-15 story_count 1→2). BC-1.14.001 v1.7→v1.8 (DI-017 reciprocal traceability citation; Stage-1-deferred; F-P1-007 sibling). Indexes: BC-INDEX v1.32; STORY-INDEX v2.38 (story_count 91→92); ARCH-INDEX v1.20 (ADR-020 registered). Stage 4 (pr-manager) next: PR against develop on branch fix/S-15.01-F5-pass-1. |
+| **F5 pass-2 adversary review — S-15.01 fix-burst (against merged 6050d24)** | adversary | **COMPLETE** | Verdict: HIGH (3H/6M/4L/2NIT). ADR-013 clock 0_of_3. Key findings: F-P2-001 [H] ac017_demo_evidence.rs still cites 500ms; F-P2-002 [H] VP-079 Scenario 6 SITES short fn names stale; F-P2-003 [H] latency-canary.md NOT re-recorded with canonical command post-compile-fix; F-P2-004 [M] BC-1.14.001 PC4 vs PC6 contradiction; F-P2-005 [M] H2 legacy panic-msg disjunct is regression-mask; F-P2-006 [M] mutation build-failure counts as caught (verdict laundering). Drain refactor SOUND. Fix-burst-2 dispatch NEXT. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-2.md`. |
 
 ## Identifier Conventions
 
@@ -143,7 +144,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST MERGED — F5 pass-2 PENDING | F4 COMPLETE (PR #106 453eee1 2026-05-08). F5 fix-burst MERGED (PR #107 6050d24 2026-05-08). F5 pass-1 verdict HIGH 5H/6M/4L/2NIT — all 17 findings addressed. F5 pass-2 adversary dispatch NEXT. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-1.md` |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 pass-2 COMPLETE — fix-burst-2 PENDING | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24 2026-05-08). Pass-2 verdict HIGH 3H/6M/4L/2NIT; ADR-013 clock 0_of_3. Fix-burst-2 dispatch NEXT. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-2.md` |
 
 ## Decisions Log
 
@@ -167,9 +168,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 fix-burst PR #107 MERGED at 6050d24. All 17 F5 pass-1 adversary findings addressed: drain refactor (tokio::spawn+mpsc+select!), aggregate_exit_code + Kani H5/H6, trace_id serde rename, latency canary real binary-spawn measurement + 1500ms budget (ADR-020), VP-078 H3 (name,event) tuple fix, bats positive/negative controls, VP-079 Scenario 6 mutation counter-proof. Security: CLEAN. AI review: APPROVE (0 blocking findings). CI: SAST PASS.
+**Last update:** 2026-05-08 — F5 pass-2 adversary review COMPLETE. Verdict: HIGH (3H/6M/4L/2NIT). ADR-013 clock 0_of_3 (HIGH findings present; clock does not advance). 3 HIGHs: ac017_demo_evidence.rs still cites 500ms (F-P2-001); VP-079 Scenario 6 SITES fn names stale (F-P2-002); latency-canary.md not re-recorded with canonical command (F-P2-003). 6 MEDIUMs: BC-1.14.001 PC4/PC6 contradiction; H2 regression-mask; mutation build-fail counts as caught; DI-019 deferred but implemented; BC version citations stale; Kani harness name drift. Drain refactor SOUND. F-P2-011 (protect-secrets duplicate) needs user adjudication. Fix-burst-2 dispatch NEXT.
 
-**ACTIVE STEP: F5 pass-2 adversary dispatch — adversary runs fresh-context pass against develop @ 6050d24 + spec on factory-artifacts @ a50ba72. Scope: all 17 F-P1 findings + new code paths (aggregator.rs, spawn_async_plugin, drain loop). ADR-013 clock: 0_of_3 (HIGH in pass-1; clock resets; pass-2 starts fresh count).**
+**ACTIVE STEP: F5 fix-burst-2 dispatch — address 3 HIGHs (F-P2-001/002/003) + 6 MEDIUMs + NITs/LOWs. F-P2-011 protect-secrets needs user decision before fix. ADR-013 clock: 0_of_3 (resets on each HIGH pass; 3 consecutive NITPICK_ONLY required).**
 
 **factory-artifacts HEAD:** run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
