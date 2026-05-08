@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -60,11 +60,11 @@ steps; inputs flow via the parent workflow's variable scope.
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `greenfield.lobster:98-100` (planning.lobster sub-workflow) | planning steps inlined | happy-path |
-| `greenfield.lobster:907-909` (code-delivery.lobster invoked from wave-integration-fix loop) | code-delivery steps inlined per wave fix | happy-path |
-| `greenfield.lobster:1237-1239` (code-delivery as ui-fix-delivery) | code-delivery reused for UI fix | happy-path |
-| `brownfield.lobster:336-338` (greenfield.lobster invoked as sub-workflow) | greenfield steps inlined | happy-path |
-| `brownfield.lobster:359-362` (multi-repo.lobster sub-workflow) | multi-repo steps inlined | happy-path |
+| `greenfield.lobster::adaptive-planning` (planning.lobster sub-workflow) | planning steps inlined | happy-path |
+| `greenfield.lobster::fix-and-deliver` (code-delivery.lobster invoked from wave-integration-fix loop) | code-delivery steps inlined per wave fix | happy-path |
+| `greenfield.lobster::phase-6-ui-fix-delivery` (code-delivery as ui-fix-delivery) | code-delivery reused for UI fix | happy-path |
+| `brownfield.lobster::greenfield-pipeline` (greenfield.lobster invoked as sub-workflow) | greenfield steps inlined | happy-path |
+| `brownfield.lobster::multi-repo-pipeline` (multi-repo.lobster sub-workflow) | multi-repo steps inlined | happy-path |
 
 ## Verification Properties
 
@@ -108,7 +108,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:98-100, 907-909, 1237-1239`; `brownfield.lobster:336-338, 359-362` |
+| **Path** | `greenfield.lobster::adaptive-planning`, `greenfield.lobster::fix-and-deliver`, `greenfield.lobster::phase-6-ui-fix-delivery`; `brownfield.lobster::greenfield-pipeline`, `brownfield.lobster::multi-repo-pipeline` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -129,3 +129,7 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Changelog
+
+- v1.2 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 2) — 6 cites migrated. `greenfield.lobster:98-100/907-909/1237-1239` and `brownfield.lobster:336-338/359-362` replaced with named step anchors (`::adaptive-planning`, `::fix-and-deliver`, `::phase-6-ui-fix-delivery`, `::greenfield-pipeline`, `::multi-repo-pipeline`) in Canonical Test Vectors table and Source Evidence Path row.

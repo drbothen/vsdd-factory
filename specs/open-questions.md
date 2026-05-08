@@ -1,11 +1,11 @@
 ---
 document_type: open-questions-register
 level: ops
-version: "1.0"
+version: "1.1"
 status: active
 producer: state-manager
 timestamp: 2026-05-05T00:00:00Z
-last_amended: 2026-05-06
+last_amended: 2026-05-08
 d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendum (2026-05-06). See also OQ-W16-012."
 ---
 
@@ -43,7 +43,7 @@ d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendu
 **Owner:** SS-01 implementer or E-9 Wave 1 architect
 **Filed:** 2026-05-05
 
-**Question:** Should `host.exec_subprocess.completed` events distinguish signal-death (SIGSEGV/SIGKILL/SIGINT) from a literal exit code `-1`? Current v1 implementation at exec_subprocess.rs:286 (`status.code().unwrap_or(-1)`) substitutes -1 for both signal-death (Unix) and literal `_exit(-1)` from C — the two cases are indistinguishable in the emitted event.
+**Question:** Should `host.exec_subprocess.completed` events distinguish signal-death (SIGSEGV/SIGKILL/SIGINT) from a literal exit code `-1`? Current v1 implementation in `execute_bounded` (`status.code().unwrap_or(-1)`) substitutes -1 for both signal-death (Unix) and literal `_exit(-1)` from C — the two cases are indistinguishable in the emitted event.
 
 **Acceptance criterion (binary):**
 - (a) v1 retains `-1` substitution as documented in BC-1.05.036 EC-009 + Postcondition 1 footnote — no change; OR
@@ -64,7 +64,7 @@ d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendu
 **Owner:** SS-01 implementer or E-10 Wave 1 architect
 **Filed:** 2026-05-05
 
-**Question:** Should v2 expose emit-side IO failures (FileSink write error, broken pipe, ENOSPC) via a fallback channel (stderr, health metric, counter) rather than silently dropping? Current v1 at host/mod.rs:109-116 ignores `log.write(&event)` return value — failures are unobservable.
+**Question:** Should v2 expose emit-side IO failures (FileSink write error, broken pipe, ENOSPC) via a fallback channel (stderr, health metric, counter) rather than silently dropping? Current v1 in `HostContext::emit_internal` ignores `log.write(&event)` return value — failures are unobservable.
 
 **Acceptance criterion (binary):**
 - (a) v1 retains silent-drop per Postcondition 6 — no change; OR
@@ -109,7 +109,7 @@ d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendu
 **Question:** Should the dispatcher distinguish a `cmd` that resolves to a directory (canonicalize-succeeds) from a `cmd` that resolves to a missing or unspawnable file? Currently both produce CAPABILITY_DENIED via different ladder steps and observability semantics differ (binary_canonicalize_failed event for missing; INTERNAL_ERROR with no event for directory-spawn-fail).
 
 **Acceptance criterion (binary):**
-- (a) v1 retains current behavior — directory cmd reaches `Command::new` at exec_subprocess.rs:230 and spawn fails returning INTERNAL_ERROR (-99) with no emit_denial; documented as known-limitation in BC-1.05.035 EC-009. OR
+- (a) v1 retains current behavior — directory cmd reaches `Command::new` in `execute_bounded` and spawn fails returning INTERNAL_ERROR (-99) with no emit_denial; documented as known-limitation in BC-1.05.035 EC-009. OR
 - (b) v2 adds a pre-spawn `Path::is_file()` check at line 152.5 (after canonicalize success, before allow-check) emitting `emit_denial(ctx, cmd, "binary_not_executable", details)` for directory or non-file paths.
 
 **Why this matters:** v1 option (a) masks broken-capability-config — if the allow-list contains a directory name (e.g., `bin`), the dispatcher silently returns INTERNAL_ERROR (-99) with no observability event, rather than CAPABILITY_DENIED with a `binary_canonicalize_failed` or `binary_not_executable` emit. Security observability gap: no Grafana alert can detect this misconfiguration.
@@ -127,7 +127,7 @@ d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendu
 **Owner:** SS-01 implementer or security reviewer
 **Filed:** 2026-05-05
 
-**Question:** If non-ASCII binary allow-list entries are introduced (e.g., paths containing Japanese, Arabic, or other Unicode characters), `Path::canonicalize` on macOS HFS+ may return NFD-normalized paths that are not byte-equal to NFC-normalized allow-list entries. The `binary_allowed` byte-exact comparison at host/exec_subprocess.rs:191 would then silently deny valid allow-listed binaries.
+**Question:** If non-ASCII binary allow-list entries are introduced (e.g., paths containing Japanese, Arabic, or other Unicode characters), `Path::canonicalize` on macOS HFS+ may return NFD-normalized paths that are not byte-equal to NFC-normalized allow-list entries. The `binary_allowed` byte-exact comparison in `host/exec_subprocess.rs::binary_allowed` would then silently deny valid allow-listed binaries.
 
 **Acceptance criterion (binary):**
 - (a) W-16 allow-list entries remain ASCII-only (typical `bash`, `/usr/bin/bash` etc.) — non-issue; OQ remains OPEN but dormant; OR
@@ -150,9 +150,9 @@ d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendu
 
 **Question (two related issues):**
 
-**(a) cwd_allow:** `ExecSubprocessCaps.cwd_allow: Vec<String>` is declared in `registry.rs:83` but the `execute_bounded` function at `exec_subprocess.rs:248-250` uses `ctx.cwd` directly — `if !cwd.as_os_str().is_empty() { command.current_dir(cwd); }` — without consulting `caps.cwd_allow`. The field is stored in the registry but has no enforcement effect in v1. Operators populating `cwd_allow` to restrict subprocess working directory receive no actual enforcement.
+**(a) cwd_allow:** `ExecSubprocessCaps.cwd_allow: Vec<String>` is declared in `registry.rs::ExecSubprocessCaps` but the `execute_bounded` function in `exec_subprocess.rs` uses `ctx.cwd` directly — `if !cwd.as_os_str().is_empty() { command.current_dir(cwd); }` — without consulting `caps.cwd_allow`. The field is stored in the registry but has no enforcement effect in v1. Operators populating `cwd_allow` to restrict subprocess working directory receive no actual enforcement.
 
-**(b) env_allow absent-name:** At exec_subprocess.rs:243-247: `for name in &caps.env_allow { if let Some(val) = env_view.get(name) { command.env(name, val); } }` — names in `env_allow` that are absent from `ctx.env_view` are silently omitted. No event is emitted. A plugin cannot distinguish "variable was set to empty string in dispatcher env" from "variable was absent from dispatcher env".
+**(b) env_allow absent-name:** In `execute_bounded`, the `env_allow` loop (`for name in &caps.env_allow { if let Some(val) = env_view.get(name) { command.env(name, val); } }`) — names in `env_allow` that are absent from `ctx.env_view` are silently omitted. No event is emitted. A plugin cannot distinguish "variable was set to empty string in dispatcher env" from "variable was absent from dispatcher env".
 
 **Acceptance criterion (binary for each):**
 
@@ -181,9 +181,9 @@ For `env_allow` absent-name:
 
 **Question (two related issues):**
 
-**(a) Host-call panic handling:** No `catch_unwind` wraps the host-call surface in `exec_subprocess.rs`. If any call in the host-call body panics (e.g., due to a future `unwrap()` introduced in a helper, or an unexpected stdlib programming error), the panic propagates uncaught to the wasmtime host-call boundary. Wasmtime converts it to a wasmtime `Trap`. The `internal.host_function_panic` event class (`INTERNAL_HOST_FUNCTION_PANIC` at internal_log.rs:83) is declared as a `pub const` but has zero emit call sites in `exec_subprocess` or any other host function (grep of `crates/factory-dispatcher/src/` finds only the const declaration at internal_log.rs:83 and the import at lib.rs:27). The `HostContext.internal_log` field doc-comment (host/mod.rs:71-75) documents that the field exists to support both `internal.capability_denied` and `internal.host_function_panic` emission — this is field-purpose documentation, not a TODO; the emit call for panic events has simply not been written. Panics in host calls are therefore unobservable in v1.
+**(a) Host-call panic handling:** No `catch_unwind` wraps the host-call surface in `exec_subprocess.rs`. If any call in the host-call body panics (e.g., due to a future `unwrap()` introduced in a helper, or an unexpected stdlib programming error), the panic propagates uncaught to the wasmtime host-call boundary. Wasmtime converts it to a wasmtime `Trap`. The `internal.host_function_panic` event class (`internal_log::INTERNAL_HOST_FUNCTION_PANIC`) is declared as a `pub const` but has zero emit call sites in `exec_subprocess` or any other host function (grep of `crates/factory-dispatcher/src/` finds only the const declaration in `internal_log.rs::INTERNAL_HOST_FUNCTION_PANIC` and the re-export in `lib.rs::pub use internal_log`). The `HostContext.internal_log` field doc-comment (`host/mod.rs::HostContext::internal_log` field) documents that the field exists to support both `internal.capability_denied` and `internal.host_function_panic` emission — this is field-purpose documentation, not a TODO; the emit call for panic events has simply not been written. Panics in host calls are therefore unobservable in v1.
 
-**(b) `args` non-UTF-8 lossy conversion:** At `exec_subprocess.rs:127`, argument bytes are decoded using `String::from_utf8_lossy(&bytes[i..i+len]).into_owned()`. Non-UTF-8 bytes are silently replaced with U+FFFD replacement characters. This is asymmetric with `cmd` strict UTF-8 enforcement (`read_wasm_string` returns `INVALID_ARGUMENT` for non-UTF-8 `cmd`). A plugin can inadvertently pass mangled arguments to a subprocess with no error signal.
+**(b) `args` non-UTF-8 lossy conversion:** In `exec_subprocess.rs::register`, argument bytes are decoded using `String::from_utf8_lossy(&bytes[i..i+len]).into_owned()`. Non-UTF-8 bytes are silently replaced with U+FFFD replacement characters. This is asymmetric with `cmd` strict UTF-8 enforcement (`read_wasm_string` returns `INVALID_ARGUMENT` for non-UTF-8 `cmd`). A plugin can inadvertently pass mangled arguments to a subprocess with no error signal.
 
 **Acceptance criterion (binary for each):**
 
@@ -197,9 +197,9 @@ For `args` non-UTF-8:
 
 **Why this matters:** Panic handling: unhandled panics in host calls produce wasmtime Traps which may crash or destabilize the plugin invocation without any audit trail or operator signal. The `INTERNAL_HOST_FUNCTION_PANIC` event class exists in the codebase specifically to address this — its absence from exec_subprocess is a known gap. `args` non-UTF-8: silent mangling may cause cryptic subprocess failures when non-UTF-8 plugin-controlled data is passed as arguments; the asymmetry with `cmd` encoding creates a footgun for plugin authors.
 
-**Resolution path:** Default v1 = (a) for both. Panic handling (b) is the higher-priority item for security observability; consider addressing in the story that first implements `INTERNAL_HOST_FUNCTION_PANIC` emission (the const is declared at internal_log.rs:83; the `HostContext.internal_log` field at host/mod.rs:71-75 exists to carry the log handle to host functions for exactly this purpose). `args` symmetry (b) is a usability improvement; can be addressed in a future ABI-compatible pass (no ABI break required — returning INVALID_ARGUMENT for invalid args was already the behavior if the length-prefix encoding was malformed).
+**Resolution path:** Default v1 = (a) for both. Panic handling (b) is the higher-priority item for security observability; consider addressing in the story that first implements `INTERNAL_HOST_FUNCTION_PANIC` emission (the const is `internal_log::INTERNAL_HOST_FUNCTION_PANIC`; the `HostContext::internal_log` field in `host/mod.rs` exists to carry the log handle to host functions for exactly this purpose). `args` symmetry (b) is a usability improvement; can be addressed in a future ABI-compatible pass (no ABI break required — returning INVALID_ARGUMENT for invalid args was already the behavior if the length-prefix encoding was malformed).
 
-**Decision needed by:** Any story implementing `INTERNAL_HOST_FUNCTION_PANIC` event emission (const declared at internal_log.rs:83; `HostContext.internal_log` field at host/mod.rs:71-75 carries the handle); or next security hardening pass on exec_subprocess
+**Decision needed by:** Any story implementing `INTERNAL_HOST_FUNCTION_PANIC` event emission (const: `internal_log::INTERNAL_HOST_FUNCTION_PANIC`; `HostContext::internal_log` field in `host/mod.rs` carries the handle); or next security hardening pass on exec_subprocess
 
 ---
 
@@ -210,10 +210,10 @@ For `args` non-UTF-8:
 **Owner:** SS-01 implementer or E-9 Wave 1 architect
 **Filed:** 2026-05-06
 
-**Question:** At exec_subprocess.rs:276-277, `let _ = stdout.read_to_end(&mut stdout_buf)` and `let _ = stderr.read_to_end(&mut stderr_buf)` discard their `io::Result` via `let _ =`. If a kernel pipe IO error occurs mid-read (e.g., EIO on a tmpfs-backed pipe, disk-backed swap failure, or kernel pipe buffer corruption), `read_to_end` halts with a partial buffer. Execution continues: the `truncated` check at line 278 evaluates against the partial buffer; if the partial buffer is under `max_output_bytes`, `truncated = false`; the success path completes; `host.exec_subprocess.completed` is emitted with `stdout_bytes`/`stderr_bytes` counts reflecting only the partially-read bytes, and `outcome = 'success'`. The plugin caller receives a success envelope with under-counted byte fields and has no mechanism to detect that a pipe IO error occurred.
+**Question:** In `execute_bounded`, `let _ = stdout.read_to_end(&mut stdout_buf)` and `let _ = stderr.read_to_end(&mut stderr_buf)` discard their `io::Result` via `let _ =`. If a kernel pipe IO error occurs mid-read (e.g., EIO on a tmpfs-backed pipe, disk-backed swap failure, or kernel pipe buffer corruption), `read_to_end` halts with a partial buffer. Execution continues: the `truncated` check evaluates against the partial buffer; if the partial buffer is under `max_output_bytes`, `truncated = false`; the success path completes; `host.exec_subprocess.completed` is emitted with `stdout_bytes`/`stderr_bytes` counts reflecting only the partially-read bytes, and `outcome = 'success'`. The plugin caller receives a success envelope with under-counted byte fields and has no mechanism to detect that a pipe IO error occurred.
 
 **Acceptance criterion (binary):**
-- (a) v1 retains silent-discard per exec_subprocess.rs:276-277 — `stdout_bytes`/`stderr_bytes` remain best-effort counts as documented in BC-1.05.036 §Postconditions Postcondition 2 and §Edge Cases EC-015; OR
+- (a) v1 retains silent-discard in `execute_bounded` (stdout/stderr `read_to_end` results discarded via `let _ =`) — `stdout_bytes`/`stderr_bytes` remain best-effort counts as documented in BC-1.05.036 §Postconditions Postcondition 2 and §Edge Cases EC-015; OR
 - (b) future version propagates `read_to_end` errors: on `Err`, returns `Err(codes::INTERNAL_ERROR)` (or a new `IO_ERROR` code) so the caller can distinguish a complete-read success from an IO-truncated-read. BC-1.05.036 Postcondition 2 and EC-015 updated accordingly.
 
 **Why this matters:** Silent pipe IO errors produce success envelopes with under-counted `stdout_bytes`/`stderr_bytes`. In a security audit context, a tool relying on `stdout_bytes` for completeness verification would be silently misled. The `outcome='success'` stamp is affirmatively misleading when the underlying read failed partway through.
@@ -231,7 +231,7 @@ For `args` non-UTF-8:
 **Owner:** SS-01 implementer or E-9 Wave 1 architect
 **Filed:** 2026-05-06
 
-**Question:** At exec_subprocess.rs:293-294 (TIMEOUT branch) and :260-261 (stdin-fail branch), the cleanup sequence `let _ = child.kill(); let _ = child.wait()` discards `io::Result` from both calls via `let _ =`. If `child.kill()` returns `Err` (e.g., child already exited, kernel error, permission denied) AND `child.wait()` subsequently blocks indefinitely (e.g., child in NFS D-state, kernel-level uninterruptible wait, or zombie process that cannot be reaped), `execute_bounded` hangs inside `child.wait()` with no secondary deadline. The host call never returns to the wasm caller; no TIMEOUT (-2) is reported; no event is emitted. The TIMEOUT enforcement at exec_subprocess.rs:292 (`if Instant::now() >= deadline`) covers only the deadline check — post-TIMEOUT cleanup has no second timeout. The same hazard applies to the stdin-fail branch at :260-261.
+**Question:** In `execute_bounded`, both the TIMEOUT cleanup branch and the stdin-fail cleanup branch execute `let _ = child.kill(); let _ = child.wait()`, discarding `io::Result` from both calls via `let _ =`. If `child.kill()` returns `Err` (e.g., child already exited, kernel error, permission denied) AND `child.wait()` subsequently blocks indefinitely (e.g., child in NFS D-state, kernel-level uninterruptible wait, or zombie process that cannot be reaped), `execute_bounded` hangs inside `child.wait()` with no secondary deadline. The host call never returns to the wasm caller; no TIMEOUT (-2) is reported; no event is emitted. The TIMEOUT enforcement (`if Instant::now() >= deadline`) covers only the deadline check — post-TIMEOUT cleanup has no second timeout. The same hazard applies to the stdin-fail cleanup branch.
 
 **Acceptance criterion (binary):**
 - (a) v1 retains no-secondary-deadline behavior as documented in BC-1.05.036 §Postconditions Postcondition 5 footnote and §Edge Cases EC-016 — both `child.kill()` and `child.wait()` errors are silently discarded; OR
@@ -340,3 +340,7 @@ an active drift source under POLICY 1 spirit.
 BC-3.05.001, BC-3.05.002, BC-3.05.003 from `draft` to `retired`.
 
 **Decision needed by:** N/A — resolved in D-312.
+
+## Changelog
+
+- v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 2) — 13 body cites migrated from file.ext:NNN line anchors to stable symbol anchors across OQ-W16-002 through OQ-W16-010.

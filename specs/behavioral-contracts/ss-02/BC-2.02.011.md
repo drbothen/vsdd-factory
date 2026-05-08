@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: ready
 producer: product-owner
 timestamp: 2026-05-01T00:00:00Z
@@ -45,17 +45,17 @@ removal_reason: null
 2. **Byte cap exceeded:** If `contents.len() > max_bytes` → returns `Err(HostError::OutputTooLarge)`; dispatcher emits `codes::OUTPUT_TOO_LARGE (-3)` at the FFI boundary; no bytes are written to disk.
 3. **Successful write:** If `path_allowed` is true AND `contents.len() <= max_bytes` AND the write completes within `timeout_ms` → returns `Ok(())`; the full byte slice is durably written to `path`.
 4. **Timeout:** If the write exceeds `timeout_ms` → returns `Err(HostError::Timeout)`; dispatcher emits `codes::TIMEOUT (-2)` at the FFI boundary.
-5. **Path resolution error or no parent directory:** If the resolved path's parent directory does not exist, or if a relative path cannot be resolved within `ctx.plugin_root` → returns `Err(HostError::Other(-99))`; dispatcher emits `codes::INTERNAL_ERROR (-99)` at the FFI boundary. Mirrors the `ReadErr::Other → INTERNAL_ERROR` pattern in `read_file.rs:92`.
+5. **Path resolution error or no parent directory:** If the resolved path's parent directory does not exist, or if a relative path cannot be resolved within `ctx.plugin_root` → returns `Err(HostError::Other(-99))`; dispatcher emits `codes::INTERNAL_ERROR (-99)` at the FFI boundary. Mirrors the `ReadErr::Other → INTERNAL_ERROR` pattern in `read_file.rs::prepare`.
 6. **ABI catalog update:** After this story merges, `crates/hook-sdk/HOST_ABI.md` lists `write_file` in the host export catalog with: signature, input-pointer protocol, timeout semantics, byte-cap semantics, and safety policy (AC-8).
 
 ## Invariants
 
-1. **HOST_ABI_VERSION = 1 unchanged:** Adding `write_file` is an additive ABI extension per D-6 Option A. `crates/hook-sdk/src/lib.rs:58` and `crates/factory-dispatcher/src/lib.rs:43` both remain `pub const HOST_ABI_VERSION: u32 = 1;`. No bump is permitted in v1.x per D-6 Option B prohibition. Verified cross-crate by BC-2.01.003.
+1. **HOST_ABI_VERSION = 1 unchanged:** Adding `write_file` is an additive ABI extension per D-6 Option A. `crates/hook-sdk/src/lib.rs::HOST_ABI_VERSION` and `crates/factory-dispatcher/src/lib.rs::HOST_ABI_VERSION` both remain `pub const HOST_ABI_VERSION: u32 = 1;`. No bump is permitted in v1.x per D-6 Option B prohibition. Verified cross-crate by BC-2.01.003.
 2. **`max_bytes` is mandatory — no opt-out:** `host::write_file` is a bounded host call per BC-2.02.002. Story-writer MUST NOT introduce conditional language that allows eliding the `max_bytes` parameter. The API signature enforces this at the type level.
-3. **Path resolution mirrors `resolve_for_read`:** Absolute paths pass through as-is; relative paths are joined with `ctx.plugin_root`. This matches the resolution logic at `read_file.rs:101-107`.
+3. **Path resolution mirrors `resolve_for_read`:** Absolute paths pass through as-is; relative paths are joined with `ctx.plugin_root`. This matches the resolution logic in `read_file.rs::resolve_for_read`.
 4. **FFI input-pointer protocol:** The SDK wrapper passes `(path_ptr, path_len, contents_ptr, contents_len, max_bytes, timeout_ms)` to the dispatcher's `vsdd::write_file` host import. The dispatcher reads guest memory via `read_wasm_bytes` (not an output-pointer protocol like `read_file`). This protocol difference MUST be documented in AC-8 and respected in any FFI declaration.
 5. **Error codes are stable — no new codes:** `write_file` returns from the existing set `{0: success, -1: CapabilityDenied, -2: Timeout, -3: OutputTooLarge, -4: InvalidArgument, -99: InternalError}`. No new negative codes are introduced by this story (per Architecture Compliance Rule 4 in S-8.10 v1.1).
-6. **Deny-by-default capability model:** Absence of a `capabilities.write_file` block in the plugin registry entry produces `CAPABILITY_DENIED (-1)`. This matches `read_file.rs:73-77`.
+6. **Deny-by-default capability model:** Absence of a `capabilities.write_file` block in the plugin registry entry produces `CAPABILITY_DENIED (-1)`. This matches the capability-absent guard in `read_file.rs::prepare`.
 
 ## Edge Cases
 
@@ -64,7 +64,7 @@ removal_reason: null
 | EC-001 | Path traversal attempt (e.g. `../../../etc/passwd`) | `CAPABILITY_DENIED (-1)`; `internal.capability_denied` telemetry event emitted |
 | EC-002 | Path is not in `write_file.path_allow` list | `CAPABILITY_DENIED (-1)`; same denial path as EC-001 |
 | EC-003 | No `write_file` capability block present in plugin registry entry | `CAPABILITY_DENIED (-1)`; allowlist check fails at capability-absent guard |
-| EC-004 | `timeout_ms = 0` | Accepted for ABI stability; epoch interruption policy handles actual enforcement (mirrors `read_file.rs:36` comment) |
+| EC-004 | `timeout_ms = 0` | Accepted for ABI stability; epoch interruption policy handles actual enforcement (mirrors the `let _ = timeout_ms` comment in `read_file.rs::register`) |
 | EC-005 | `contents = &[]` (empty slice) | Write succeeds (0); creates or truncates the file with zero bytes |
 | EC-006 | Parent directory of destination path does not exist | `io::Error` propagated → `codes::INTERNAL_ERROR (-99)` |
 | EC-007 | Plugin compiled against SDK 0.1.x (no `write_file` import) loaded against dispatcher that exports `write_file` | Plugin loads normally; wasmtime ignores unimported host exports; no error — confirmed ABI-safe per D-6 Option A |
@@ -126,7 +126,7 @@ S-8.10 — "SDK extension: host::write_file (D-6 Option A unblocker)" resolves O
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-sdk/src/host.rs:187` (read_file symmetric target); `crates/factory-dispatcher/src/host/read_file.rs` (dispatcher reference implementation, 206 lines); `.factory/stories/S-8.10-sdk-extension-write-file.md` v1.1 (story spec, AC-1 through AC-8) |
+| **Path** | `crates/hook-sdk/src/host.rs::read_file` (read_file symmetric target); `crates/factory-dispatcher/src/host/read_file.rs` (dispatcher reference implementation); `.factory/stories/S-8.10-sdk-extension-write-file.md` v1.1 (story spec, AC-1 through AC-8) |
 | **Confidence** | HIGH — sibling `read_file` implementation confirmed in codebase; story spec pinned all signature details and error code mappings |
 | **Extraction Date** | 2026-05-01 |
 | **Extracted from** | `.factory/stories/S-8.10-sdk-extension-write-file.md` v1.1 |
@@ -149,4 +149,8 @@ S-8.10 — "SDK extension: host::write_file (D-6 Option A unblocker)" resolves O
 
 #### Refactoring Notes
 
-`path_allowed` (pure-core subset) should be extracted as a standalone function to enable unit testing without dispatcher context, matching the pattern implied by `read_file.rs` lines 73-77. The remaining `register`/`prepare` logic is inherently effectful-shell.
+`path_allowed` (pure-core subset) should be extracted as a standalone function to enable unit testing without dispatcher context, matching the pattern in `read_file.rs::path_allowed`. The remaining `register`/`prepare` logic is inherently effectful-shell.
+
+## Changelog
+
+- v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 2) — 6 body cites migrated. `read_file.rs:92/101-107/73-77/36` and `lib.rs:58/43` and `host.rs:187` replaced with stable function/struct symbol anchors. Refactoring Notes cite also migrated.

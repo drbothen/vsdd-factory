@@ -69,7 +69,7 @@ pointer is bounds-checked against wasm memory size on every call. Thread-local s
 would break the per-invocation isolation guarantee — two plugins running in parallel
 `spawn_blocking` tasks (ADR-008) would share thread-local state.
 
-The comment in `invoke.rs:275–283` is candid about the implementation: wasmtime
+The comment in `invoke.rs::proxy_host_imports` is candid about the implementation: wasmtime
 does not support cloning `Func` between different `Store` types, so
 `proxy_host_imports` effectively rebuilds the linker from scratch via
 `setup_host_on_store_data`. The `_host_linker_reference` parameter is kept in the
@@ -121,12 +121,15 @@ invocation path.
 
 ## Source / Origin
 
-- **Code as-built:** `crates/factory-dispatcher/src/invoke.rs:136` (`StoreData`
-  struct construction), `invoke.rs:150` (`Linker<StoreData>` creation),
-  `invoke.rs:156` (`p1::add_to_linker_sync` with `|d: &mut StoreData| &mut d.wasi`).
-- **Code as-built:** `crates/factory-dispatcher/src/invoke.rs:275–294`
-  (`proxy_host_imports` comment explaining the bridge pattern).
-- **Code as-built:** `crates/factory-dispatcher/src/invoke.rs:297–549`
-  (`setup_host_on_store_data` implementing all host imports against `StoreData`).
-- **Code as-built:** `crates/factory-dispatcher/src/host/mod.rs:38–68`
-  (`HostContext` struct definition and doc explaining it does not contain WASI context).
+- **Code as-built:** `crates/factory-dispatcher/src/invoke.rs::invoke_plugin` (`StoreData`
+  struct construction, `Linker<StoreData>` creation, and `p1::add_to_linker_sync` with `|d: &mut StoreData| &mut d.wasi`).
+- **Code as-built:** `crates/factory-dispatcher/src/invoke.rs::proxy_host_imports`
+  (comment explaining the bridge pattern).
+- **Code as-built:** `crates/factory-dispatcher/src/invoke.rs::setup_host_on_store_data`
+  (implementing all host imports against `StoreData`).
+- **Code as-built:** `crates/factory-dispatcher/src/host/mod.rs::HostContext`
+  (struct definition and doc explaining it does not contain WASI context).
+
+## Changelog
+
+- v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 2) — 7 cites migrated. `invoke.rs:275–283/275–294/136/150/156/297–549` and `host/mod.rs:38–68` replaced with stable function/struct symbol anchors (`proxy_host_imports`, `invoke_plugin`, `setup_host_on_store_data`, `HostContext`).

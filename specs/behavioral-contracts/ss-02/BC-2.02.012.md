@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: ready
 producer: product-owner
 timestamp: 2026-05-01T00:00:00Z
@@ -54,7 +54,7 @@ SubagentStop events from the Claude Code dispatcher carry agent identity and ass
 
 ## Invariants
 
-1. **HOST_ABI_VERSION = 1 unchanged:** These four fields are an additive `HookPayload` extension per D-6 Option A and D-183. No bump to HOST_ABI_VERSION is permitted. Both `crates/hook-sdk/src/lib.rs:58` and `crates/factory-dispatcher/src/lib.rs:43` remain `pub const HOST_ABI_VERSION: u32 = 1;`. See also BC-2.01.003 and BC-2.02.011 Invariant 1.
+1. **HOST_ABI_VERSION = 1 unchanged:** These four fields are an additive `HookPayload` extension per D-6 Option A and D-183. No bump to HOST_ABI_VERSION is permitted. Both `crates/hook-sdk/src/lib.rs::HOST_ABI_VERSION` and `crates/factory-dispatcher/src/lib.rs::HOST_ABI_VERSION` remain `pub const HOST_ABI_VERSION: u32 = 1;`. See also BC-2.01.003 and BC-2.02.011 Invariant 1.
 2. **Backward-compatible deserialization:** All four fields carry `#[serde(default)]`. Envelopes that predate the typed-projection (e.g., PreToolUse payloads) deserialize successfully with all four fields as `None`; no deserialization error occurs.
 3. **JSON null → None semantics:** serde_json's documented behavior for `Option<T>` with `#[serde(default)]` maps JSON `null` to `None`. This provides jq-`//`-equivalent null-as-advance fallback semantics without additional transformation logic.
 4. **Field names are canonical and immutable:** The field names `agent_type`, `subagent_name`, `last_assistant_message`, `result` are the empirically verified Claude Code SubagentStop envelope field names, confirmed against all four bash hooks at the source paths listed in Evidence below. These names MUST NOT be renamed or aliased without updating all four hook scripts and this BC.
@@ -67,7 +67,7 @@ SubagentStop events from the Claude Code dispatcher carry agent identity and ass
 | EC-001 | Field present in envelope with JSON null value (e.g., `"agent_type": null`) | `payload.agent_type = None`; fallback chain advances to `subagent_name` |
 | EC-002 | Field absent entirely from envelope | `payload.agent_type = None` (via `#[serde(default)]`); fallback chain advances |
 | EC-003 | All four SubagentStop fields absent or null | Agent identity resolves to `"unknown"` (final `unwrap_or`); assistant-message resolves to `""` |
-| EC-004 | handoff-validator 3-stage assistant-message chain | `handoff-validator.sh:28` uses `.last_assistant_message \| .result \| .output` as a 3-stage chain (adds `output` as third fallback). The canonical 2-stage chain in Postcondition 6 does NOT include `output`. Story-writer implementing S-8.01 MUST cite this divergence explicitly when adding the third arm: `payload.last_assistant_message.as_deref().or(payload.result.as_deref()).or(payload.output.as_deref()).unwrap_or("")`. Adding `output: Option<String>` to `HookPayload` may be required; if added, it follows the same `#[serde(default)]` pattern and does not bump HOST_ABI_VERSION. |
+| EC-004 | handoff-validator 3-stage assistant-message chain | `handoff-validator.sh` (§ `@test` or jq chain at the `last_assistant_message \| result \| output` expression) uses a 3-stage chain (adds `output` as third fallback). The canonical 2-stage chain in Postcondition 6 does NOT include `output`. Story-writer implementing S-8.01 MUST cite this divergence explicitly when adding the third arm: `payload.last_assistant_message.as_deref().or(payload.result.as_deref()).or(payload.output.as_deref()).unwrap_or("")`. Adding `output: Option<String>` to `HookPayload` may be required; if added, it follows the same `#[serde(default)]` pattern and does not bump HOST_ABI_VERSION. |
 | EC-005 | Non-SubagentStop event (e.g., PreToolUse) with no SubagentStop fields | All four fields = `None`; plugins that guard on `event_name == "SubagentStop"` before accessing these fields are safe |
 | EC-006 | SubagentStop envelope with unexpected additional top-level fields | `HookPayload` does not use `#[serde(deny_unknown_fields)]`; additional fields are silently ignored by serde_json |
 
@@ -99,10 +99,10 @@ SubagentStop events from the Claude Code dispatcher carry agent identity and ass
 ## Architecture Anchors
 
 - `crates/hook-sdk/src/payload.rs` (HookPayload struct — four new `#[serde(default)] pub agent_type: Option<String>` etc. fields added after existing fields)
-- `plugins/vsdd-factory/hooks/handoff-validator.sh:25-28` (empirical source for 3-stage message chain including `.output` fallback — EC-004)
-- `plugins/vsdd-factory/hooks/pr-manager-completion-guard.sh:25-26` (empirical source for agent identity + 2-stage message chain)
-- `plugins/vsdd-factory/hooks/validate-pr-review-posted.sh:21-22` (empirical source for agent identity + 2-stage message chain)
-- `plugins/vsdd-factory/hooks/track-agent-stop.sh:22-23` (empirical source for agent identity + 2-stage message chain)
+- `plugins/vsdd-factory/hooks/handoff-validator.sh` § jq chain (empirical source for 3-stage message chain including `.output` fallback — EC-004)
+- `plugins/vsdd-factory/hooks/pr-manager-completion-guard.sh` § jq chain (empirical source for agent identity + 2-stage message chain)
+- `plugins/vsdd-factory/hooks/validate-pr-review-posted.sh` § jq chain (empirical source for agent identity + 2-stage message chain)
+- `plugins/vsdd-factory/hooks/track-agent-stop.sh` § jq chain (empirical source for agent identity + 2-stage message chain)
 
 ## Story Anchor
 
@@ -126,7 +126,7 @@ S-8.30 — SDK extension story for HookPayload SubagentStop typed projection (au
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-sdk/src/payload.rs:15-53` (current HookPayload struct); `plugins/vsdd-factory/hooks/handoff-validator.sh:25-28` (3-stage chain: `.agent_type \| .subagent_name \| "unknown"` and `.last_assistant_message \| .result \| .output`); `plugins/vsdd-factory/hooks/pr-manager-completion-guard.sh:25-26` (2-stage chains); `plugins/vsdd-factory/hooks/validate-pr-review-posted.sh:21-22` (2-stage chains); `plugins/vsdd-factory/hooks/track-agent-stop.sh:22-23` (2-stage chains) |
+| **Path** | `crates/hook-sdk/src/payload.rs::HookPayload` (current HookPayload struct); `plugins/vsdd-factory/hooks/handoff-validator.sh` § jq chain (3-stage chain: `.agent_type \| .subagent_name \| "unknown"` and `.last_assistant_message \| .result \| .output`); `plugins/vsdd-factory/hooks/pr-manager-completion-guard.sh` § jq chain (2-stage chains); `plugins/vsdd-factory/hooks/validate-pr-review-posted.sh` § jq chain (2-stage chains); `plugins/vsdd-factory/hooks/track-agent-stop.sh` § jq chain (2-stage chains) |
 | **Confidence** | HIGH — all four bash hooks confirmed present and read verbatim; field names verified empirically; D-183 decision seals the architectural path |
 | **Extraction Date** | 2026-05-01 |
 | **Extracted from** | `crates/hook-sdk/src/payload.rs` + 4 bash hook scripts (D-183 burst) |
@@ -156,3 +156,7 @@ The canonical fallback chain expressions (Postconditions 5-6) are short enough t
 ### v1.1 (2026-05-01) — D-183 Phase B canonical story reference update
 
 Replaced provisional "S-8.11" reference with canonical "S-8.30" in Story Anchor section, Invariant 5, and Traceability Stories row. POLICY 1: append-after-Tier-3 chosen over placeholder renumber (Tier 2/3 placeholder IDs S-8.11..S-8.29 remain untouched). S-8.30 was authored as the implementing story for this BC in D-183 Phase B (2026-05-01).
+
+### v1.2 (2026-05-08) — TD-VSDD-091 stable-anchor migration sweep (Chunk 2) — 7 cites migrated
+
+Migrated file.ext:NNN line citations to stable symbol anchors: Invariant 1 (`lib.rs:58`/`lib.rs:43` → `::HOST_ABI_VERSION`), EC-004 (`handoff-validator.sh:28` → § jq chain), Architecture Anchors (4 hook sh files with line ranges → § jq chain), Source Evidence Path row (same 5 cites → stable symbols).
