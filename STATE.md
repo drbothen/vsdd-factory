@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 fix-burst-7 COMPLETE — F-P8-001 SILENT FAILURE in DuplicateEntry path RESOLVED. Implementer wired main.rs DuplicateEntry arm with E-REG-003 + stderr + structured event + exit 2. PO BC-7.06.001 v1.6 [fail-closed] classification + E-REG-NNN table. Architect BC-3.08.001 v1.7 sibling enumerates both error codes. Test-writer bats Scenario 8 + violation string alignment. Branch fix/S-15.01-F5-convergence at 8b0050a (17 commits ahead). PR remains held until ADR-013 = 3_of_3. F5 pass-9 dispatch next."
+current_step: "F5 pass-9 COMPLETE — verdict MEDIUM (0H/1M/3L/0NIT). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4. Fix-burst-8 dispatching all 4 findings. PR remains held."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 fix-burst-7 COMPLETE — F-P8-001 RESOLVED; main.rs DuplicateEntry arm E-REG-003 exit-2; BC-7.06.001 v1.6; BC-3.08.001 v1.7; bats Scenario 8; ADR-013 clock 0_of_3; pass-9 dispatch next) |
+| **Last Updated** | 2026-05-08 (F5 pass-9 COMPLETE — verdict MEDIUM 0H/1M/3L/0NIT; ADR-013 clock 0_of_3; trajectory 17→15→6→5→0→2→5→1→4; fix-burst-8 dispatching) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -104,6 +104,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-6 — source-tree sweep + AC-005 enumeration** | implementer + story-writer + state-manager | **COMPLETE** | F-P7-001/003/004/005 (M+L+L+L): implementer sweep 4b2eb6a — BC-1.14.001 v1.9, BC-3.08.001 v1.6, BC-7.06.001 v1.5 (name+event+tool tuple), VP-077 v1.10 H1-H6, latency_canary.rs assertion msg; 8 files, 21 sites; cargo checks clean. F-P7-002 (M): S-15.01 v1.11→v1.12 — AC-005 Scenario 7 (EC-012 partial-drain multi-plugin) enumerated by story-writer. STORY-INDEX v2.41→v2.42. Branch fix/S-15.01-F5-convergence @ 4b2eb6a (14 commits ahead of develop). PR held until ADR-013 = 3_of_3. |
 | **F5 pass-8 adversary review** | adversary | **COMPLETE** | Verdict: MEDIUM (0H/1M/0L/0NIT). ADR-013 clock 0_of_3 (MEDIUM resets). All 5 pass-7 findings (F-P7-001..005) CONFIRMED RESOLVED. F-P8-001 [M] DuplicateEntry catch-all exits 0 (fail-open) while BC-7.06.001 v1.5 mandates "refuses to start" (fail-closed) — same spec contract as E-REG-001/002 but asymmetric impl. No bats scenario for DuplicateEntry (compounding gap). Trajectory: 17→15→6→5→0→2→5→1 (improving). Fix-burst-7 dispatching. See `cycles/…/F5-adversary-pass-8.md`. |
 | **F5 fix-burst-7 — DuplicateEntry arm + BC v1.6/v1.7 + bats S8 + story propagation** | implementer + product-owner + architect + test-writer + state-manager | **COMPLETE** | F-P8-001 [M] RESOLVED. Implementer: main.rs DuplicateEntry arm wired — E-REG-003 + stderr eprintln + structured dispatcher.registry_invalid event + exit 2 (d06f178). BC-7.06.001 v1.5→v1.6: Invariant 7 [fail-closed] classification + E-REG-NNN Error Code Table + Fail-Closed Symmetry §Implementation Notes. BC-3.08.001 v1.6→v1.7: Event 3 expanded (E-REG-002/async_block_conflict + E-REG-003/duplicate_hook_registration); violation string canonicalized. Test-writer: violation string alignment + bats Scenario 8 DuplicateEntry→E-REG-003 (16495c7 + 8b0050a). S-15.01 v1.12→v1.13 (AC-013 async_block_conflict rename + body propagation). S-15.02 v1.3→v1.4 (version-label propagation). Indexes: BC-INDEX v1.34→v1.35; STORY-INDEX v2.42→v2.43. Process-gap TD-028 + TD-029 added. Branch fix/S-15.01-F5-convergence @ 8b0050a (17 commits ahead). ADR-013 clock 0_of_3. F5 pass-9 dispatch next. |
+| **F5 pass-9 adversary review** | adversary | **COMPLETE** | Verdict: MEDIUM (0H/1M/3L/0NIT). ADR-013 clock 0_of_3 (MEDIUM resets). F-P8-001 CONFIRMED RESOLVED. F-P9-001 [M] BC-7.06.001 line 204 stale sibling note misstates BC-3.08.001 v1.7 completed state. F-P9-002 [L] bats Scenario 3 asserts field presence only, not violation value. F-P9-003 [L] source-code doc-comment BC version-label staleness 4 files / 13 sites. F-P9-004 [L] VP-079 SITES enumeration missing main.rs:162 (5th DuplicateEntry caller). Trajectory: 17→15→6→5→0→2→5→1→4. See `cycles/…/F5-adversary-pass-9.md`. Fix-burst-8 dispatching all 4 findings. |
 
 ## Identifier Conventions
 
@@ -145,7 +146,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-7 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1 (5H/6M/4L/2NIT) → pass-2 (3H/6M/4L/2NIT) → pass-3 (0H/2M/2L/2NIT) → pass-4 (0H/1M/4L/0NIT) → pass-5 (NITPICK_ONLY; 1_of_3) → pass-6 (MEDIUM; RESET 0_of_3) → pass-7 (MEDIUM; 0_of_3) → pass-8 (MEDIUM; 0_of_3; F-P8-001 DuplicateEntry silent exit-0). Trajectory 17→15→6→5→0→2→5→1. Fix-burst-7 COMPLETE: main.rs DuplicateEntry arm + BC-7.06.001 v1.6 + BC-3.08.001 v1.7 + bats S8. Branch @ 8b0050a (17 commits ahead). Pass-9 dispatch next; PR held until ADR-013 = 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-9 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..8 complete. Pass-9: MEDIUM (0H/1M/3L/0NIT); ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4. Fix-burst-8 dispatching: BC-7.06.001 v1.7 (stale sibling note), VP-079 v1.10 (5th SITE), source-tree doc-comment sweep 13+ sites, bats S3 violation assertion. Branch @ 8b0050a (17 commits ahead). PR held until ADR-013 = 3_of_3. |
 
 ## Decisions Log
 
@@ -169,9 +170,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 fix-burst-7 COMPLETE. F-P8-001 [M] RESOLVED: RegistryError::DuplicateEntry now wired with explicit exit-2 arm in main.rs (E-REG-003 + stderr eprintln `[E-REG-003]` + dispatcher.registry_invalid structured event). BC-7.06.001 updated to v1.6 ([fail-closed] classification + E-REG-NNN Error Code Table). BC-3.08.001 updated to v1.7 (Event 3 enumerates both E-REG-002/async_block_conflict and E-REG-003/duplicate_hook_registration; violation string canonicalized). Bats Scenario 8 added (test-writer). S-15.01 v1.13 (AC-013 async_block_conflict rename). S-15.02 v1.4. Process-gap TD-028 (fail-closed variant exhaustiveness) + TD-029 (bats coverage per RegistryError variant) added to tech-debt-register. ADR-013 clock 0_of_3. Trajectory: 17→15→6→5→0→2→5→1. Pass-9 dispatch next.
+**Last update:** 2026-05-08 — F5 pass-9 COMPLETE. Verdict: MEDIUM (0H/1M/3L/0NIT). F-P8-001 CONFIRMED RESOLVED. 4 new findings: F-P9-001 [M] BC-7.06.001 line 204 stale sibling note (BC-3.08.001 v1.7 completed state not reflected). F-P9-002 [L] bats Scenario 3 checks violation field presence only, not value. F-P9-003 [L] source-code doc-comment BC version-label staleness 4 files / 13+ sites. F-P9-004 [L] VP-079 SITES missing main.rs:162 (5th DuplicateEntry caller). ADR-013 clock 0_of_3 (MEDIUM resets; pass-5 1_of_3 advance lost). Trajectory: 17→15→6→5→0→2→5→1→4. Fix-burst-8 dispatching all 4 findings.
 
-**ACTIVE STEP: F5 pass-9 adversary review — dispatching. PR held until ADR-013 = 3_of_3.**
+**ACTIVE STEP: F5 fix-burst-8 — dispatching. PR held until ADR-013 = 3_of_3.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 8b0050a — long-lived; 17 commits ahead of develop; no PR until 3_of_3
