@@ -20,10 +20,13 @@
 #
 # SITES (5 production caller sites per VP-079 v1.13 Property 6):
 #   SITE_1: ~main.rs:133 — emit_dispatcher_schema_mismatch (schema_version != 2)
-#   SITE_2: ~main.rs:142 — emit_dispatcher_registry_invalid (AsyncBlockConflict / E-REG-002)
-#   SITE_3: ~main.rs:416 — emit_plugin_async_block_discarded (async result exit_code=2)
-#   SITE_4: ~main.rs:427 — emit_plugin_timeout_async (async timeout arm)
-#   SITE_5: ~main.rs:162 — emit_dispatcher_registry_invalid (DuplicateEntry / E-REG-003)
+#   SITE_2: ~main.rs:143 — emit_dispatcher_registry_invalid (AsyncBlockConflict / E-REG-002)
+#   SITE_3: ~main.rs:423 — emit_plugin_async_block_discarded (async result exit_code=2)
+#   SITE_4: ~main.rs:434 — emit_plugin_timeout_async (async timeout arm)
+#   SITE_5: ~main.rs:167 — emit_dispatcher_registry_invalid (DuplicateEntry / E-REG-003)
+#
+# Line ranges below are operationally required by sed; spec text in VP-079 v1.15
+# uses stable anchors per TD-031. Update ranges here whenever main.rs is refactored.
 #
 # Preferred tool: cargo mutants (call-site suppression via --filter); bash sed-mutation
 # is the fallback for environments where cargo-mutants is unavailable or does not
@@ -203,19 +206,19 @@ mutate_and_verify_caught() {
 # Property 6: removing this call must cause Scenario 3 (registry_invalid) to fail.
 # ---------------------------------------------------------------------------
 
-@test "VP-079 S6/SITE_2: removing emit_dispatcher_registry_invalid at line 142 (E-REG-002) breaks at least one Scenario" {
+@test "VP-079 S6/SITE_2: removing emit_dispatcher_registry_invalid at line 143 (E-REG-002) breaks at least one Scenario" {
     require_scenario6_enabled
     require_dispatcher_source
     require_cargo_build_ok
 
     mutate_and_verify_caught \
         "emit_dispatcher_registry_invalid" \
-        "SITE_2: AsyncBlockConflict/E-REG-002 path (main.rs:142)" \
-        "142,147"
+        "SITE_2: AsyncBlockConflict/E-REG-002 path (main.rs:143)" \
+        "143,150"
 
     local result=$?
     [ "$result" -ne 1 ] || {
-        echo "FAIL: emit_dispatcher_registry_invalid (line 142) removed but all Scenarios 1-5 passed."
+        echo "FAIL: emit_dispatcher_registry_invalid (line 143) removed but all Scenarios 1-5 passed."
         echo "      VP-079 Scenario 3 must fail when registry_invalid emit (E-REG-002) is suppressed."
         return 1
     }
@@ -234,7 +237,7 @@ mutate_and_verify_caught() {
 
     mutate_and_verify_caught \
         "emit_plugin_async_block_discarded" \
-        "SITE_3 (async result exit_code=2 path, ~main.rs:416)"
+        "SITE_3 (async result exit_code=2 path, ~main.rs:423)"
 
     local result=$?
     [ "$result" -ne 1 ] || {
@@ -257,7 +260,7 @@ mutate_and_verify_caught() {
 
     mutate_and_verify_caught \
         "emit_plugin_timeout_async" \
-        "SITE_4 (async timeout arm, ~main.rs:427)"
+        "SITE_4 (async timeout arm, ~main.rs:434)"
 
     local result=$?
     [ "$result" -ne 1 ] || {
@@ -270,24 +273,24 @@ mutate_and_verify_caught() {
 # ---------------------------------------------------------------------------
 # Scenario 6, Site 5: emit_dispatcher_registry_invalid (E-REG-003 / DuplicateEntry)
 #
-# Property 6: removing this call at line 162 must cause at least one Scenario to fail.
-# This site shares the function name with SITE_2 (line 142); the line-range argument
+# Property 6: removing this call at line 167 must cause at least one Scenario to fail.
+# This site shares the function name with SITE_2 (line 143); the line-range argument
 # disambiguates the mutation so only the DuplicateEntry path is suppressed.
 # ---------------------------------------------------------------------------
 
-@test "VP-079 S6/SITE_5: removing emit_dispatcher_registry_invalid at line 162 (E-REG-003) breaks at least one Scenario" {
+@test "VP-079 S6/SITE_5: removing emit_dispatcher_registry_invalid at line 167 (E-REG-003) breaks at least one Scenario" {
     require_scenario6_enabled
     require_dispatcher_source
     require_cargo_build_ok
 
     mutate_and_verify_caught \
         "emit_dispatcher_registry_invalid" \
-        "SITE_5: DuplicateEntry/E-REG-003 path (main.rs:162)" \
-        "162,167"
+        "SITE_5: DuplicateEntry/E-REG-003 path (main.rs:167)" \
+        "167,174"
 
     local result=$?
     [ "$result" -ne 1 ] || {
-        echo "FAIL: emit_dispatcher_registry_invalid (line 162) removed but all Scenarios 1-5 passed."
+        echo "FAIL: emit_dispatcher_registry_invalid (line 167) removed but all Scenarios 1-5 passed."
         echo "      VP-079 must fail when registry_invalid emit (E-REG-003 / DuplicateEntry) is suppressed."
         return 1
     }
