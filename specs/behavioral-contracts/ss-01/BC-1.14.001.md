@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.8"
+version: "1.9"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -61,7 +61,7 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
 
 4. Async group execution:
    - **Each async group plugin is spawned via `tokio::spawn` (or equivalent independent task)**. The dispatcher does NOT call `execute_tiers` or any tier-ordered execution path for async group plugins. Each plugin becomes an independent task; partial completion is therefore observable.
-   - **Plugin results MAY be received concurrently**: Async plugin results (terminal events) may be received while `sync_group` is still running OR during the drain window — whichever ordering the tokio scheduler produces. The dispatcher collects completed results via a shared channel or equivalent collection mechanism.
+   - **Plugin results MAY arrive in any order during the drain window.** Specifically: after `sync_group` completes and `async_group` plugins are spawned, their terminal events MAY arrive in any order produced by the tokio scheduler before the drain timer fires. (Concurrent reception during `sync_group` execution is structurally impossible — see PC6.) The dispatcher collects completed results via a shared channel or equivalent collection mechanism.
    - The dispatcher does NOT await async group plugin completions beyond the drain window defined below.
    - Async group plugin verdicts (including any exit codes) are logged to `events-*.jsonl` via the standard FileSink path.
    - Async group results never reach Claude Code as a blocking signal.
@@ -193,6 +193,15 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-08 (v1.8 → v1.9 — F5 fix-burst-2 F-P2-004: PC4 concurrent-reception clause corrected)
+
+**Driver:** F5 pass-2 finding F-P2-004 — PC4 contained an internal contradiction with PC6. PC4 previously stated async plugin results "may be received while `sync_group` is still running OR during the drain window," but PC6 establishes that async group plugins are spawned **only after** `sync_group` execution completes. Reception during `sync_group` execution is therefore structurally impossible; the "during sync_group running" clause was unreachable and misleading.
+
+**Change made:**
+- PC4 second bullet amended: the "MAY be received concurrently ... while `sync_group` is still running OR during the drain window" phrasing replaced with "MAY arrive in any order during the drain window" with an explicit parenthetical cross-referencing PC6 as the authority establishing that concurrent reception during `sync_group` is structurally impossible.
+
+No postcondition semantics were changed. The spawn-after-sync ordering (PC6) is unmodified. This is a spec-consistency correction only.
 
 ## Amendment 2026-05-08 (v1.7 → v1.8 — F5 pass-1 path-A: deferred DI-017 reciprocal citation)
 

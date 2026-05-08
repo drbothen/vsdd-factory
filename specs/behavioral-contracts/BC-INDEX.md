@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.32"
+version: "1.33"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-2 Stage 1 (2026-05-08) — BC-1.14.001 v1.8→v1.9 (F-P2-004: PC4 vs PC6 contradiction resolved). BC-3.08.001 v1.5→v1.6 (F-P2-015: frontmatter hygiene). BC-7.06.001 v1.3→v1.4 (F-P2-011: USER-APPROVED Path A — Invariant 7 respecified as (name, event, tool) tuple). No count change. BC-INDEX v1.32→v1.33. last_amended: 2026-05-08 (F5 fix-burst-2 Stage 1: BC-1.14.001 v1.9; BC-3.08.001 v1.6; BC-7.06.001 v1.4; F-P2-004/011/015 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst Path A (2026-05-08) — BC-1.14.001 v1.7→v1.8 (deferred DI-017 reciprocal citation in Traceability §L2 Domain Invariants; bidirectional pairing with invariants.md DI-017 v1.1 BC-range extension from Stage 1). No count change. BC-INDEX v1.31→v1.32. last_amended: 2026-05-08 (F5 pass-1 path-A deferred fix: BC-1.14.001 v1.8; DI-017 traceability citation added)."
   - date: 2026-05-08

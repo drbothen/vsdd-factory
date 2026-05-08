@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.6"
+version: "1.7"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -136,14 +136,16 @@ Justification: DI-017 is a business invariant because the trace ID is the audit 
 
 ## Dispatcher Timing Invariants
 
-**DI-019 — ASYNC_DRAIN_WINDOW_MS = 100 (milliseconds, runtime constant)**
+**DI-019 — ASYNC_DRAIN_WINDOW_MS = 100 (milliseconds, runtime constant)** _(v1.2 — amended 2026-05-08 per F-P2-007)_
 After `sync_group` plugin execution completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` milliseconds for spawned async-group tasks to emit terminal events to FileSink before forcibly terminating them and exiting. The constant bounds the dispatcher's user-facing latency tail and ensures bounded-but-reliable async telemetry emission.
 
 **Statement:** `ASYNC_DRAIN_WINDOW_MS = 100` ms. This is the canonical default value. The total dispatcher wall-clock latency upper bound is therefore: `max(sync_plugin_durations_within_slowest_tier) + ASYNC_DRAIN_WINDOW_MS + bounded_overhead`.
 
 **Scope:** Applies to all dispatcher invocations across all hook event types (PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, WorktreeCreate, WorktreeRemove, PostToolUseFailure, PermissionRequest). Not configurable per event; applies uniformly.
 
-**Configurability:** Future may permit env-var override (e.g., `VSDD_ASYNC_DRAIN_WINDOW_MS`); this is a deferred decision. The value 100 ms is the canonical baseline and the only value with specified behavior.
+**Configurability:** The canonical production value is 100 ms and is not runtime-configurable in release builds.
+
+**Debug-build env-var override:** In `#[cfg(debug_assertions)]` builds, the constant may be overridden via the environment variable `VSDD_ASYNC_DRAIN_WINDOW_MS`. This is used by VP-079 fixture execution to inject test-controlled drain timings (e.g., 5000 ms for slow-async scenarios). Release builds compile out the override per SEC-003 — production behavior remains the canonical 100 ms. Implementation: `crates/factory-dispatcher/src/main.rs:75-76` defines the env-var name; `:308-314` reads it under `#[cfg(debug_assertions)]`.
 
 **Rationale:** 100 ms is long enough for in-flight tokio tasks to complete a sub-millisecond FileSink append; short enough to be imperceptible to a human user after `sync_group` finishes. Async plugins requiring longer drain (e.g., network I/O) must be redesigned — the drain is for terminal-event flush only, not for completing arbitrary async work.
 
@@ -164,6 +166,7 @@ Justification: DI-019 is a domain invariant because the drain-window constant di
 | v1.4 | 2026-05-07 | F2 pass-3 fix burst (BC-1.14.001 v1.3): BC-1.14.001 v1.3 inlined `ASYNC_DRAIN_WINDOW_MS = 100` as a Constant Definitions table. State after pass-3 fix burst; constant was in BC, not yet lifted to DI. |
 | v1.5 | 2026-05-07 | F2 pass-3 user-correction: DI-019 authored — `ASYNC_DRAIN_WINDOW_MS = 100 ms` lifted from BC-1.14.001 Constant Definitions table to a domain invariant. BC-1.14.001 v1.3 → v1.4 refactored to cite DI-019 by reference; constant value removed from BC inline definition. BC-3.08.001 v1.1 → v1.2 updated to cite DI-019 in L2 Domain Invariants. New section "Dispatcher Timing Invariants" added. |
 | v1.6 | 2026-05-08 | Amended 2026-05-08 per F-P1-007 (F5 pass-1 fix-burst): wire-format exclusivity strengthened in DI-017. Added normative paragraph: `trace_id` is the exclusive wire-format field name in `events-*.jsonl`; `dispatcher_trace_id` MUST NOT appear in serialized output; host-side reserved-fields filters MUST strip both names (defense-in-depth). BC range extended to include BC-1.14.001 and BC-3.08.001 (Invariant 5). DI-017 version label bumped to v1.1. |
+| v1.7 | 2026-05-08 | F-P2-007 (F5 fix-burst-2): DI-019 §Debug-build env-var override clause added. Documents shipped feature `VSDD_ASYNC_DRAIN_WINDOW_MS` (debug-only, compiled out in release per SEC-003). Replaces the prior "deferred decision" placeholder. DI-019 version label bumped to v1.2. |
 
 ## Amendment 2026-05-07 (v1.4 → v1.5 — F2 pass-3 user-correction)
 

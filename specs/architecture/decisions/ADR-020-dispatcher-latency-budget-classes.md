@@ -5,6 +5,7 @@ status: accepted
 accepted_date: 2026-05-08
 date: 2026-05-08
 version: "1.0"
+last_amended: 2026-05-08
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01]
 supersedes: null
@@ -257,7 +258,7 @@ development hardware.
 ### (b) 2000ms budget (maximum safety margin)
 
 Rejected. 2000ms is nearly 2× the current p95. A newly added sync plugin that
-introduces 400ms of regression would pass undetected. 1500ms retects regressions
+introduces 400ms of regression would pass undetected. 1500ms detects regressions
 that add ≥450ms and is the tightest budget that comfortably clears the observed p99
 plus hardware variance band.
 

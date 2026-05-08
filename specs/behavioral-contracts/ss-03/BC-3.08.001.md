@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: 2026-05-08 (v1.5 — F5 pass-1 fix-burst F-P1-007)
+last_amended: 2026-05-08
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
@@ -231,6 +231,17 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-05-08 (v1.5 → v1.6 — F5 fix-burst-2 F-P2-015: last_amended frontmatter format normalized)
+
+**Driver:** F5 pass-2 finding F-P2-015 — the `last_amended:` frontmatter field contained an embedded parenthetical annotation `(v1.5 — F5 pass-1 fix-burst F-P1-007)` appended to the date string. This non-standard format may break date-parsing tooling that expects a bare ISO-8601 date value in this field.
+
+**Changes made:**
+- Frontmatter `last_amended:` cleaned to bare date `2026-05-08` (parenthetical removed).
+- Parenthetical content ("v1.5 — F5 pass-1 fix-burst F-P1-007") is preserved in the §Amendment 2026-05-08 (v1.4 → v1.5) changelog entry below, where it already appeared as the section title.
+- Frontmatter `version:` bumped `"1.5"` → `"1.6"`.
+
+No behavioral, wire-format, invariant, or test-vector content was changed. This is a frontmatter hygiene fix only.
 
 ## Amendment 2026-05-08 (v1.4 → v1.5 — F5 pass-1 fix-burst F-P1-007)
 

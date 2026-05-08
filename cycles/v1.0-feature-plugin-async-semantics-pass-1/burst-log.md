@@ -1057,3 +1057,50 @@ F3 CONVERGED. S-15.01 v1.6 status: ready. ADR-013 clock 3_of_3. F4 TDD implement
 ### Status
 
 F4-handoff.md on disk. User intends to /compact, then issue "go F4 Option A". All dispatch context is now on disk; no live conversation memory required.
+
+---
+
+## Burst 14 — F5 fix-burst-2 Stage 1: spec amendments (VP/BC/DI/ADR/stories)
+
+**Date:** 2026-05-08
+**Dispatcher:** state-manager
+**Phase:** F5 fix-burst-2 Stage 1
+
+### Findings addressed this burst
+
+- F-P2-002 [H] VP-079 Scenario 6 SITES short fn names stale — VP-079 v1.7→v1.8 (stable fn name citations)
+- F-P2-004 [M] BC-1.14.001 PC4 vs PC6 contradiction — BC-1.14.001 v1.8→v1.9 (PC4 amended)
+- F-P2-007 [M] BC version citations stale across S-15.01 — addressed via version-label sweep (S-15.01 v1.8→v1.9)
+- F-P2-009 [M] VP-077 H5 harness name incorrect — VP-077 v1.7→v1.9 (H5 name corrected; doc clarification; kani::assume tuple)
+- F-P2-010 [M] VP-077 doc clarification needed — included in v1.9 amendment
+- F-P2-011 [M] Kani harness name drift + USER-APPROVED Path A: Invariant 7 → (name, event, tool) tuple — BC-7.06.001 v1.3→v1.4; VP-077 kani::assume aligned
+- F-P2-015 [NIT] BC-3.08.001 frontmatter hygiene — BC-3.08.001 v1.5→v1.6
+
+### Spec files amended
+
+| File | Change |
+|------|--------|
+| `.factory/specs/verification-properties/VP-079.md` | v1.7→v1.8: F-P2-002 SITES + stable fn name citations |
+| `.factory/specs/verification-properties/VP-077.md` | v1.7→v1.9: F-P2-009 H5 name + F-P2-010 doc clarify + F-P2-011 sibling kani::assume tuple |
+| `.factory/specs/domain-spec/invariants.md` | v1.6→v1.7: DI-019 v1.1→v1.2 §Debug-build env-var clause |
+| `.factory/specs/architecture/decisions/ADR-020-dispatcher-latency-budget-classes.md` | typo fix line 261, last_amended bumped |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.14.001.md` | v1.8→v1.9: F-P2-004 PC4 amend |
+| `.factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md` | v1.5→v1.6: F-P2-015 frontmatter hygiene |
+| `.factory/specs/behavioral-contracts/ss-07/BC-7.06.001.md` | v1.3→v1.4: F-P2-011 USER-APPROVED Path A Invariant 7 → (name, event, tool) tuple |
+| `.factory/stories/S-15.01-plugin-async-semantics.md` | v1.8→v1.9: version-label sweep across 6+ sites |
+| `.factory/stories/S-15.02-dispatcher-cold-start-optimization.md` | v1.0→v1.1: References table version-label sweep |
+
+### Index updates
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v1.32 | v1.33 |
+| VP-INDEX | v1.17 | v1.18 |
+| STORY-INDEX | v2.38 | v2.39 |
+| ARCH-INDEX | v1.20 | v1.21 |
+
+### Status
+
+Stage 1 complete. All spec amendments committed to factory-artifacts.
+Stage 2 next: code/test/demo on branch fix/S-15.01-F5-convergence (long-lived; no PR until ADR-013 clock = 3_of_3).
+F-P2-001 [H] (ac017_demo_evidence.rs still cites 500ms) and F-P2-003 [H] (latency-canary.md re-record) are Stage 2 scope — code/test/demo files, not touched in Stage 1.

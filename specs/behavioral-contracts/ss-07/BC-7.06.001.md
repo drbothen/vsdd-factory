@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: 2026-05-07
+last_amended: 2026-05-08
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F1-delta-analysis.md
@@ -74,7 +74,22 @@ removal_reason: null
 
 6. **Specific plugins MUST be `async = true`**: The following telemetry-only plugins MUST be classified `async = true` in the v2 registry: `capture-commit-activity`, `capture-pr-activity`, `session-start-telemetry`, `session-end-telemetry`, `worktree-hooks`, `tool-failure-hooks`, `track-agent-start`, `track-agent-stop`, `session-learning`. All validator and governance plugins with `on_error = "block"` MUST remain `async = false`. The following plugins are SYNC (on_error=continue but user-visible stderr warnings require reliable delivery): `warn-pending-wave-gate`, `regression-gate`. This is an invariant (not merely a postcondition) because a future engineer flipping any of these to `async = false` would silently degrade user-facing latency, or flipping a warn plugin to async would silently drop stderr warnings. Positive classification is verified by VP-078 Harness 3.
 
-7. **(`name`, `event`) tuple is unique per registry**: Within a `schema_version = 2` registry, the tuple (`name`, `event`) is unique across all `[[hooks]]` entries. Duplicate `name` values across DIFFERENT events are permitted (e.g., `worktree-hooks` may appear once with `event = "WorktreeCreate"` and once with `event = "WorktreeRemove"`). The `(name, event)` uniqueness is enforced at registry-load time by `registry.rs::validate()`. Violations produce `dispatcher.registry_invalid` with reason `duplicate_hook_registration` and dispatcher exits non-zero (fail-closed).
+7. **(`name`, `event`, `tool`) tuple is unique across all `[[hooks]]` entries.** Two entries MAY share `name` and `event` if they bind to different `tool` regex values — this permits a single named plugin to enforce against multiple tool surfaces (e.g., `protect-secrets` running on both `Bash` and `Read` PreToolUse events). The `(name, event, tool)` uniqueness is enforced at registry-load time by `registry.rs::validate()`. Violations produce `RegistryError::DuplicateEntry { name, event, tool }` (`dispatcher.registry_invalid` with reason `duplicate_hook_registration`); dispatcher exits non-zero (fail-closed). Note: `tool` in this tuple is the raw regex string value (or `None` for "all tools"); two entries with `tool = None` and the same `name`+`event` are duplicates.
+
+## Implementation Notes
+
+### (name, event, tool) Tuple Uniqueness Check — validate() Obligation (F-P2-011)
+
+Implementations MUST add a load-time uniqueness check for the `(name, event, tool)` tuple in `crates/factory-dispatcher/src/registry.rs::validate()` (or equivalent). The check must:
+
+1. Iterate all `[[hooks]]` entries and collect `(name, event, tool)` tuples.
+2. Detect any duplicate tuple (same `name`, same `event`, same `tool` regex string or both `None`).
+3. Hard-error with `RegistryError::DuplicateEntry { name, event, tool }` on the first violation; dispatcher refuses to start.
+4. The error message MUST name the offending plugin `name`, `event`, and `tool` value to aid operator debugging.
+
+The existing CI lint plugin (`lint-registry-async-invariant`, VP-078) MAY also enforce this at edit time; verify and extend its check set as needed to cover the `(name, event, tool)` tuple constraint in addition to the `on_error=block ⇒ async=false` invariant.
+
+**Rationale:** `protect-secrets` legitimately appears twice with `event = "PreToolUse"` — once with `tool = "Bash"` and once with `tool = "Read"`. Under the prior `(name, event)` uniqueness check, this valid configuration would have produced a false-positive duplicate error. The `(name, event, tool)` tuple correctly allows this pattern while still rejecting true duplicates (identical name+event+tool).
 
 ## Error Paths
 
@@ -135,6 +150,9 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | Registry v2; `validate-template-compliance` with `async = false` + `on_error = "block"` | Valid; `validate-template-compliance` in sync_group; block verdict can reach Claude Code | validator-classification |
 | CI lint scan: registry with `on_error = "block"` AND `async = true` | VP-078 bats test fails; CI reports violation with plugin name | ci-lint-failure |
 | CI lint scan: fully valid v2 registry | VP-078 bats test passes; CI continues | ci-lint-pass |
+| Registry v2; entry `(name="protect-secrets", event="PreToolUse", tool="Bash")` AND entry `(name="protect-secrets", event="PreToolUse", tool="Read")` — different `tool` values | Valid: `(name, event, tool)` tuples are distinct; registry loads successfully; both entries dispatched independently per event+tool match | tuple-uniqueness-allowed-multi-tool |
+| Registry v2; two entries with identical `(name="protect-secrets", event="PreToolUse", tool="Bash")` | Invalid: `RegistryError::DuplicateEntry { name: "protect-secrets", event: "PreToolUse", tool: Some("Bash") }`; dispatcher refuses to start | tuple-uniqueness-violation |
+| Registry v2; two entries with `name="x"`, `event="PreToolUse"`, both with `tool = None` (absent) | Invalid: `RegistryError::DuplicateEntry { name: "x", event: "PreToolUse", tool: None }`; dispatcher refuses to start | tuple-uniqueness-violation-no-tool |
 
 ## Verification Properties
 
@@ -153,6 +171,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
+| VP-077 Harness 1 Amendment Obligation | VP-077 Harness 1 `kani::assume` precondition for entry uniqueness must be updated from `(name, event)` to `(name, event, tool)` tuple uniqueness to remain consistent with Invariant 7 v1.4. **Architect handles VP-077 v1.8** — this row is a PO sync note for handoff. If VP-077 v1.8 has not already addressed this, architect must amend the `kani::assume` precondition in the Harness 1 fixture to reflect `(name, event, tool)` tuple uniqueness. |
 
 ### Source Evidence
 
@@ -171,6 +190,24 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-08 (v1.3 → v1.4 — F5 fix-burst-2 F-P2-011: Invariant 7 amended to (name, event, tool) tuple uniqueness — USER-APPROVED PATH A)
+
+**Driver:** F5 pass-2 finding F-P2-011 — Invariant 7 defined `(name, event)` tuple uniqueness, which incorrectly prohibited a single named plugin (`protect-secrets`) from binding to two tool regex values (`Bash` and `Read`) on the same event (`PreToolUse`). This is a valid and intentional configuration: same purpose, two tool surfaces. Renaming the plugin entries would create artificial divergence. User approved Path A: amend the uniqueness predicate rather than rename plugins.
+
+**Changes made:**
+
+1. **Invariant 7 amended (append-only per POLICY 1 — no renumbering):** uniqueness constraint changed from `(name, event)` to `(name, event, tool)` tuple. Two entries MAY share `name` and `event` if they bind to different `tool` regex values. Load-time error updated to `RegistryError::DuplicateEntry { name, event, tool }`. Added note that `tool = None` (absent) is a distinct value for comparison purposes.
+
+2. **`## Implementation Notes` section added** with `### (name, event, tool) Tuple Uniqueness Check — validate() Obligation` subsection: explicit guidance that `registry.rs::validate()` must implement the `(name, event, tool)` tuple uniqueness check with `RegistryError::DuplicateEntry`; CI lint plugin (`lint-registry-async-invariant`) should be verified/extended to cover this constraint.
+
+3. **Canonical Test Vectors table extended** with three new rows: (a) protect-secrets-Bash + protect-secrets-Read (different `tool`) — valid; (b) identical `(name, event, tool=Bash)` — `DuplicateEntry` error; (c) identical `(name, event, tool=None)` — `DuplicateEntry` error. Per POLICY 12 (bc_tv_emitter_consistency).
+
+4. **Traceability table:** VP-077 Harness 1 Amendment Obligation row added — flags that VP-077 Harness 1 `kani::assume` precondition for entry uniqueness must be updated to `(name, event, tool)` tuple. Architect handles VP-077 v1.8; this row is a PO sync note.
+
+5. **Frontmatter:** `version: "1.3"` → `"1.4"`; `last_amended:` updated to `2026-05-08`.
+
+**POLICY 4 verification (semantic anchoring):** Confirmed via `registry.rs` line 168 that `pub tool: Option<String>` is a first-class field on `RegistryEntry`. The `(name, event, tool)` tuple uniqueness check is semantically grounded in the existing data model. No new field is required.
 
 ## Amendment 2026-05-07 (v1.2 → v1.3 — F3 pass-2 fix burst follow-up)
 
