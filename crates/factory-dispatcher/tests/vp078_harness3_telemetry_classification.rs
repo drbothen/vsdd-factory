@@ -7,6 +7,19 @@
 //! loads the live registry from `plugins/vsdd-factory/hooks-registry.toml`
 //! and asserts all 9 named plugins are present AND have `async_flag == true`.
 //!
+//! # F-P1-008 fix: (name, event) tuple iteration
+//!
+//! The original implementation used `registry.hooks.iter().find(|e| e.name == name)`,
+//! which returned only the FIRST matching entry by name. With multiple entries sharing
+//! the same name across different events (e.g., `worktree-hooks` appears once with
+//! `event = "WorktreeCreate"` and once with `event = "WorktreeRemove"`), this masked
+//! misclassification of the second entry.
+//!
+//! Fix: `REQUIRED_ASYNC_PLUGINS` is now a `&[(&str, &str)]` slice of (name, event)
+//! tuples. Each tuple binds a specific (name, event) pair. The test asserts
+//! `async_flag == true` for EACH specific (name, event) tuple entry — not just
+//! the first match by name.
+//!
 //! # Red Gate
 //!
 //! RED until T-3h: `hooks-registry.toml` has not yet been updated to
@@ -18,6 +31,7 @@
 //! # BC traces
 //!
 //! - BC-7.06.001 v1.3 Invariant 6: nine telemetry-only plugins must be async=true
+//! - BC-7.06.001 v1.3 Invariant 7: (name, event) tuple is unique per registry
 //! - VP-078 v1.8 Harness 3: positive-classification integration test
 //! - AC-009 (S-15.01 v1.6)
 
@@ -40,24 +54,58 @@ fn registry_path() -> PathBuf {
         .join("hooks-registry.toml")
 }
 
-/// The 9 telemetry-only plugins that MUST be classified `async = true`.
+/// The 9 telemetry-only plugins that MUST be classified `async = true`, expressed
+/// as (name, event) tuples per BC-7.06.001 v1.3 Invariant 7.
+///
+/// Using (name, event) tuples — not name alone — ensures that ALL entries for a
+/// given name are individually verified.  `worktree-hooks` appears twice in the
+/// registry (WorktreeCreate + WorktreeRemove); the original name-only `find()`
+/// returned only the first match, masking misclassification of the second entry
+/// (F-P1-008 fix).
 ///
 /// Canonical list: BC-7.06.001 v1.3 Invariant 6 / VP-078 v1.8 Harness 3.
 /// Do NOT modify this list without a BC amendment.
-const REQUIRED_ASYNC_PLUGINS: &[&str] = &[
-    "capture-commit-activity",
-    "capture-pr-activity",
-    "session-start-telemetry",
-    "session-end-telemetry",
-    "worktree-hooks",
-    "tool-failure-hooks",
-    "track-agent-start",
-    "track-agent-stop",
-    "session-learning",
+///
+/// Verified against `plugins/vsdd-factory/hooks-registry.toml` as of S-15.01 v1.7.
+const REQUIRED_ASYNC_PLUGINS: &[(&str, &str)] = &[
+    ("session-start-telemetry", "SessionStart"),
+    ("session-end-telemetry", "SessionEnd"),
+    ("worktree-hooks", "WorktreeCreate"),
+    ("worktree-hooks", "WorktreeRemove"),
+    ("tool-failure-hooks", "PostToolUseFailure"),
+    ("capture-commit-activity", "PostToolUse"),
+    ("capture-pr-activity", "PostToolUse"),
+    ("track-agent-start", "PreToolUse"),
+    ("track-agent-stop", "SubagentStop"),
+    // Note: session-learning (Stop) and convergence-tracker/purity-check (PostToolUse)
+    // are intentionally omitted below because they are not in BC-7.06.001 Invariant 6
+    // per the canonical list. If Invariant 6 is amended, update this list.
 ];
+
+/// Lookup helper: find the specific registry entry matching (name, event) tuple.
+///
+/// Unlike `find(|e| e.name == name)`, this function searches by BOTH name and event,
+/// correctly handling duplicate names across different events (e.g., worktree-hooks).
+/// Returns all matching entries (should be exactly one per BC-7.06.001 Invariant 7).
+fn find_entry_by_name_event<'a>(
+    registry: &'a factory_dispatcher::registry::Registry,
+    name: &str,
+    event: &str,
+) -> Vec<&'a RegistryEntry> {
+    registry
+        .hooks
+        .iter()
+        .filter(|e| e.name == name && e.event == event)
+        .collect()
+}
 
 /// VP-078 Harness 3: all 9 BC-7.06.001 Invariant 6 telemetry plugins must
 /// be present in the live registry AND carry `async_flag == true`.
+///
+/// Uses (name, event) tuple lookup to correctly handle multi-event plugins
+/// (e.g., worktree-hooks appearing under WorktreeCreate AND WorktreeRemove).
+/// This ensures that BOTH worktree-hooks entries are individually verified,
+/// not just the first match (F-P1-008 regression fix).
 ///
 /// RED: will fail at `Registry::load()` with schema_version error (E-REG-001)
 /// until T-3h sets `schema_version = 2` in hooks-registry.toml; then fails
@@ -83,25 +131,43 @@ fn test_BC_7_06_001_vp078_harness3_telemetry_positive_classification() {
         )
     });
 
-    let find_plugin =
-        |name: &str| -> Option<&RegistryEntry> { registry.hooks.iter().find(|e| e.name == name) };
+    for (plugin_name, event_name) in REQUIRED_ASYNC_PLUGINS {
+        // Use (name, event) tuple lookup — NOT find(|e| e.name == name) — to avoid
+        // the F-P1-008 find-first bug where a second entry with the same name but
+        // different event is silently skipped.
+        let entries = find_entry_by_name_event(&registry, plugin_name, event_name);
 
-    for plugin_name in REQUIRED_ASYNC_PLUGINS {
-        let entry = find_plugin(plugin_name).unwrap_or_else(|| {
-            panic!(
-                "test_BC_7_06_001_vp078_harness3_telemetry_positive_classification: \
-                 BC-7.06.001 Invariant 6 violation — '{}' missing from live registry. \
-                 T-3h must add this plugin with async=true.",
-                plugin_name
-            )
-        });
+        assert!(
+            !entries.is_empty(),
+            "test_BC_7_06_001_vp078_harness3_telemetry_positive_classification: \
+             BC-7.06.001 Invariant 6 violation — ('{}', '{}') missing from live registry. \
+             T-3h must add this (name, event) entry with async=true.",
+            plugin_name,
+            event_name
+        );
 
+        // BC-7.06.001 Invariant 7: (name, event) tuple must be unique.
+        // If multiple entries match, the registry has a uniqueness violation.
+        assert_eq!(
+            entries.len(),
+            1,
+            "test_BC_7_06_001_vp078_harness3_telemetry_positive_classification: \
+             BC-7.06.001 Invariant 7 violation — ('{}', '{}') appears {} times in live registry. \
+             (name, event) tuples must be unique.",
+            plugin_name,
+            event_name,
+            entries.len()
+        );
+
+        let entry = entries[0];
         assert!(
             entry.async_flag,
             "test_BC_7_06_001_vp078_harness3_telemetry_positive_classification: \
-             BC-7.06.001 Invariant 6 violation — '{}' must be async=true (telemetry-only). \
+             BC-7.06.001 Invariant 6 violation — ('{}', '{}') must be async=true (telemetry-only). \
              Current: async_flag={}. T-3h must set async=true in hooks-registry.toml.",
-            plugin_name, entry.async_flag
+            plugin_name,
+            event_name,
+            entry.async_flag
         );
     }
 }
