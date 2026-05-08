@@ -37,7 +37,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use factory_dispatcher::engine::{EpochTicker, build_engine};
-use factory_dispatcher::executor::{ExecutorInputs, execute_tiers};
+use factory_dispatcher::executor::{
+    ExecutorInputs, PluginOutcome, execute_tiers, spawn_async_plugin,
+};
 use factory_dispatcher::host::HostContext;
 use factory_dispatcher::host::emit_event::{
     emit_dispatcher_registry_invalid, emit_dispatcher_schema_mismatch,
@@ -54,6 +56,8 @@ use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{Registry, RegistryError};
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
 use factory_dispatcher::{ASYNC_DRAIN_WINDOW_MS, HOST_ABI_VERSION, new_trace_id};
+use factory_dispatcher::{AggregatorPluginResult, aggregate_exit_code};
+use tokio::sync::mpsc;
 
 const ENV_PLUGIN_ROOT: &str = "CLAUDE_PLUGIN_ROOT";
 const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
@@ -217,7 +221,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         }
     };
     let _ticker = EpochTicker::start(engine.clone());
-    let cache = PluginCache::new(engine.clone());
+    let cache = Arc::new(PluginCache::new(engine.clone()));
 
     let mut base_host_ctx = HostContext::new(
         "", // executor overrides per plugin
@@ -287,36 +291,19 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
 
     let summary = execute_tiers(inputs, sync_tiers).await;
 
-    // S-15.01 T-3c/T-3e: run async_group with bounded drain window.
-    // Fire-and-forget semantics: async verdicts NEVER influence dispatcher exit code
-    // (BC-1.14.001 postcondition 5). After sync_group completes, run async_group
-    // with a drain window of ASYNC_DRAIN_WINDOW_MS (DI-019). Tasks that do not
-    // complete within the drain window are abandoned when the timeout expires.
+    // S-15.01 F5-T-A: async_group dispatch via tokio::spawn per-plugin + tokio::select! drain.
     //
-    // T-3e wiring: inspect async_summary results to emit:
-    //   - plugin.async_block_discarded (BC-3.08.001 Event 1, VP-079 S1) when exit_code==2
-    //   - plugin.timeout with execution_group=async (BC-3.08.001 Event 4, VP-079 S4) on Timeout
+    // BC-1.14.001 v1.7 PC4 + Invariant 3 (F-P1-006 + F-P1-010):
+    //   - Each async plugin is spawned as an INDEPENDENT tokio task (NOT via execute_tiers).
+    //   - group_by_priority MUST NOT be called on async-group plugins (Invariant 3).
+    //   - Results are collected via an unbounded channel + tokio::select! drain timer.
+    //   - Completed plugins' terminal events MUST emit (EC-012).
+    //   - In-flight plugins when drain timer fires are abandoned (EC-011).
+    //
+    // In debug builds, VSDD_ASYNC_DRAIN_WINDOW_MS env var can override the window
+    // to account for WASM cold-start time in bats integration tests (VP-079 S1/S4).
+    // Release builds always use ASYNC_DRAIN_WINDOW_MS (DI-019). SEC-003.
     if !partition.async_group.is_empty() {
-        let async_tiers = group_by_priority(&registry, partition.async_group.iter().collect());
-        let async_inputs = ExecutorInputs {
-            engine: &engine,
-            cache: &cache,
-            registry: &registry,
-            payload_value,
-            base_host_ctx: base_host_ctx.clone(),
-            internal_log: internal_log.clone(),
-        };
-        // Drain: run async plugins, bounded by ASYNC_DRAIN_WINDOW_MS (DI-019).
-        // Verdict is intentionally discarded — async group never gates Claude Code.
-        // BC-1.14.001 postcondition 4: bounded drain window contract.
-        //
-        // If the timeout fires, async_summary is None (drain truncated).
-        // VP-079 S5: drain truncation means plugin.timeout is NOT emitted for
-        // tasks that did not complete (we never got their result).
-        //
-        // In debug builds, VSDD_ASYNC_DRAIN_WINDOW_MS env var can override the window
-        // to account for WASM cold-start time in bats integration tests (VP-079 S1/S4).
-        // Release builds always use ASYNC_DRAIN_WINDOW_MS (DI-019). SEC-003.
         #[cfg(debug_assertions)]
         let effective_drain_window = std::env::var(ENV_ASYNC_DRAIN_WINDOW_MS)
             .ok()
@@ -326,60 +313,98 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         #[cfg(not(debug_assertions))]
         let effective_drain_window = ASYNC_DRAIN_WINDOW_MS;
 
-        let async_summary = tokio::time::timeout(
-            effective_drain_window,
-            execute_tiers(async_inputs, async_tiers),
-        )
-        .await
-        .ok(); // Ok(summary) if completed within window; None if drained/truncated
+        // Spawn each async plugin as an independent task with a results channel.
+        // BC-1.14.001 v1.7 PC4: tokio::spawn per-plugin, NOT execute_tiers.
+        // Invariant 3: MUST NOT call group_by_priority on async-group plugins.
+        let (tx, mut rx) = mpsc::unbounded_channel::<PluginOutcome>();
+        // For each async plugin: spawn an independent task and wire its result to the channel.
+        // Each spawn_async_plugin call returns a JoinHandle; we wrap it in a forwarding task
+        // so the channel gets the PluginOutcome once the plugin completes.
+        let _async_handles: Vec<_> = partition
+            .async_group
+            .into_iter()
+            .map(|entry| {
+                let tx_for_task = tx.clone();
+                let handle = spawn_async_plugin(
+                    engine.clone(),
+                    cache.clone(),
+                    registry.defaults.clone(),
+                    entry,
+                    payload_value.clone(),
+                    base_host_ctx.clone(),
+                    internal_log.clone(),
+                );
+                // Forward the JoinHandle result to the drain channel.
+                // EC-012: completed results MUST reach the channel so they can be emitted.
+                tokio::spawn(async move {
+                    match handle.await {
+                        Ok(outcome) => {
+                            let _ = tx_for_task.send(outcome);
+                        }
+                        Err(_join_err) => {} // spawn_blocking panic — lifecycle event already emitted
+                    }
+                })
+            })
+            .collect();
+        // Drop the original sender so rx terminates when all forwarding tasks finish.
+        drop(tx);
 
-        // T-3e: emit diagnostic events for async plugin results.
-        // These are observability-only; they never change the dispatcher exit code.
+        // Drain timer: bound the wait at effective_drain_window (DI-019).
+        let drain_timer = tokio::time::sleep(effective_drain_window);
+        tokio::pin!(drain_timer);
+
+        // Collect partial results until timer fires OR all tasks complete.
+        // EC-012: events for plugins that completed before the timer MUST emit;
+        // in-flight plugins (still running when timer fires) are abandoned.
+        let mut partial_outcomes: Vec<PluginOutcome> = Vec::new();
+        loop {
+            tokio::select! {
+                // Bias toward draining the channel before checking the timer.
+                biased;
+                maybe_outcome = rx.recv() => {
+                    match maybe_outcome {
+                        Some(outcome) => partial_outcomes.push(outcome),
+                        None => break, // all senders dropped: all tasks finished
+                    }
+                }
+                _ = &mut drain_timer => {
+                    // EC-011: in-flight tasks are abandoned. Drain timer fired.
+                    break;
+                }
+            }
+        }
+
+        // T-3e: emit diagnostic events for async plugin results that completed
+        // within the drain window. These are observability-only; they NEVER change
+        // the dispatcher exit code (BC-1.14.001 PC5 + Invariant 3).
         //
         // Block detection: plugins express block intent via stdout JSON
-        // `{"outcome":"block","reason":"..."}` (HOST_ABI.md contract) or
-        // via WASI exit code 2 (non-zero I32Exit). Both are checked below.
+        // `{"outcome":"block","reason":"..."}` (HOST_ABI.md) or WASI exit code 2.
         // Invariant 4 (BC-1.14.001) guarantees no async plugin has on_error=block,
-        // so block_intent is structurally false — but we still emit the event for
-        // diagnostic visibility when exit code 2 or block JSON is observed.
-        if let Some(async_summary) = async_summary {
-            for outcome in &async_summary.per_plugin_results {
-                match &outcome.result {
-                    PluginResult::Ok {
-                        exit_code, stdout, ..
-                    } => {
-                        // Detect block intent from either WASI exit code 2 or stdout JSON.
-                        // SDK-style plugins (vsdd-hook-sdk) emit `{"outcome":"block",...}` on
-                        // stdout and the WASM process exits 0 (block is in protocol, not WASI exit).
-                        // Legacy-bash-adapter also emits block JSON + WASM exits 0.
-                        // Raw WASI plugins (if any) might exit with code 2 directly.
-                        let has_block_json = stdout.contains(r#""outcome":"block""#);
-                        let has_exit_2 = *exit_code == 2;
-                        if has_block_json || has_exit_2 {
-                            // BC-3.08.001 Event 1: async plugin returned block verdict.
-                            // Block is discarded (BC-1.14.001 Invariant 4).
-                            // Canonical exit code for this event: 2 (block signal).
-                            emit_plugin_async_block_discarded(
-                                &base_host_ctx,
-                                &outcome.plugin_name,
-                                2,
-                            );
-                        }
+        // so block_intent is structurally false — event emitted for diagnostic visibility only.
+        for outcome in &partial_outcomes {
+            match &outcome.result {
+                PluginResult::Ok {
+                    exit_code, stdout, ..
+                } => {
+                    let has_block_json = stdout.contains(r#""outcome":"block""#);
+                    let has_exit_2 = *exit_code == 2;
+                    if has_block_json || has_exit_2 {
+                        // BC-3.08.001 Event 1: async plugin returned block verdict (discarded).
+                        emit_plugin_async_block_discarded(&base_host_ctx, &outcome.plugin_name, 2);
                     }
-                    PluginResult::Timeout { .. } => {
-                        // BC-3.08.001 Event 4: async plugin timed out.
-                        // emit_plugin_timeout_async uses the entry's configured timeout_ms.
-                        // We recover timeout_ms from the registry for the named plugin (best-effort).
-                        let timeout_ms = registry
-                            .hooks
-                            .iter()
-                            .find(|e| e.name == outcome.plugin_name)
-                            .and_then(|e| e.timeout_ms)
-                            .unwrap_or(registry.defaults.timeout_ms);
-                        emit_plugin_timeout_async(&base_host_ctx, &outcome.plugin_name, timeout_ms);
-                    }
-                    _ => {} // Crash or non-block result — no structured event needed
                 }
+                PluginResult::Timeout { .. } => {
+                    // BC-3.08.001 Event 4: async plugin timed out.
+                    let timeout_ms = registry
+                        .hooks
+                        .iter()
+                        .find(|e| e.name == outcome.plugin_name)
+                        .and_then(|e| e.timeout_ms)
+                        .unwrap_or(registry.defaults.timeout_ms);
+                    emit_plugin_timeout_async(&base_host_ctx, &outcome.plugin_name, timeout_ms);
+                }
+                _ => {} // Crash or non-block result — no structured event emitted
             }
         }
     }
@@ -397,12 +422,40 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         }
     }
 
+    // Compute the dispatcher exit code from sync_group results only.
+    // VP-077 H5/H6: aggregate_exit_code is the pure, Kani-provable computation.
+    // It checks exit_code==2 && on_error==Block (WASI-exit-code path).
+    // The existing summary.exit_code also handles advisory blocks (stdout JSON path).
+    // Final exit code is the OR of both: either signal triggers exit 2.
+    // Async group results are structurally excluded (not passed to aggregate_exit_code).
+    let sync_agg_results: Vec<AggregatorPluginResult> = summary
+        .per_plugin_results
+        .iter()
+        .map(|o| {
+            let exit_code = match &o.result {
+                PluginResult::Ok { exit_code, .. } => *exit_code as u8,
+                _ => 0u8,
+            };
+            AggregatorPluginResult {
+                exit_code,
+                on_error: o.on_error,
+            }
+        })
+        .collect();
+    let aggregate_code = aggregate_exit_code(&sync_agg_results) as i32;
+    // Combine: advisory-block (stdout JSON, summary.exit_code) OR WASI-block (exit_code==2+Block).
+    let final_exit_code = if summary.exit_code == 2 || aggregate_code == 2 {
+        2
+    } else {
+        0
+    };
+
     eprintln!(
         "  plugins_run={} total_ms={} block_intent={} exit_code={}",
         summary.per_plugin_results.len(),
         summary.total_elapsed_ms,
         summary.block_intent,
-        summary.exit_code,
+        final_exit_code,
     );
 
     // SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
@@ -424,7 +477,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         }
     }
 
-    Ok(summary.exit_code)
+    Ok(final_exit_code)
 }
 
 fn resolve_registry_path() -> anyhow::Result<PathBuf> {

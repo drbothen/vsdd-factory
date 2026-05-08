@@ -1830,11 +1830,8 @@ mod tests {
         //
         // When state file is absent for a story in plugin_config.stories,
         // the hook must return HookResult::Block (not Continue).
-        let payload = make_payload_with_stories(
-            Some("wave-gate-dispatch"),
-            &["S-12.01"],
-            Some("v1.0-test"),
-        );
+        let payload =
+            make_payload_with_stories(Some("wave-gate-dispatch"), &["S-12.01"], Some("v1.0-test"));
         // Extract stories from plugin_config (simulating fixed RealCallbacks behavior)
         let stories = extract_stories_from_config(&payload.plugin_config)
             .expect("test: plugin_config.stories must be extractable");

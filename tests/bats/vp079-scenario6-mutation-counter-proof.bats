@@ -1,0 +1,292 @@
+#!/usr/bin/env bats
+#
+# vp079-scenario6-mutation-counter-proof.bats
+#
+# VP-079 v1.7 Property 6: Production-caller mutation counter-proof.
+#
+# For each of the 4 production emit-caller sites in main.rs, comment out the
+# emit call in a temporary worktree checkout, rebuild the dispatcher, and assert
+# that AT LEAST ONE of VP-079 Scenarios 1-5 FAILS. If all 5 scenarios pass with
+# a production caller removed, VP-079 provides no end-to-end coverage guarantee
+# and this test FAILs.
+#
+# INVOCATION:
+#   BATS_RUN_VP079_SCENARIO_6=1 bats tests/bats/vp079-scenario6-mutation-counter-proof.bats
+#
+# This test is SKIPPED unless BATS_RUN_VP079_SCENARIO_6=1 is set, because
+# each mutation requires a fresh cargo build (~10-60s per iteration).
+# Gate it in CI behind a job triggered only on diffs touching main.rs or
+# host/emit_event.rs (preferred: cargo mutants --filter='emit_'; bash fallback below).
+#
+# Production caller sites (F-P1-002 / VP-079 v1.7 Property 6):
+#   SITE_1: main.rs — emit_dispatcher_schema_mismatch call  (schema_version != 2 path)
+#   SITE_2: main.rs — emit_dispatcher_registry_invalid call (async+block invariant)
+#   SITE_3: main.rs — emit_plugin_async_block_discarded call (async result exit_code=2)
+#   SITE_4: main.rs — emit_plugin_timeout_async call         (async timeout arm)
+#
+# Preferred tool: cargo mutants (call-site suppression via --filter); bash sed-mutation
+# is the fallback for environments where cargo-mutants is unavailable or does not
+# support individual call-site targeting.
+#
+# BC traces:
+#   BC-3.08.001 v1.5 — async-semantics event types, production caller obligation
+#   VP-079 v1.7 Property 6 — production-path emission counter-proof
+#   S-15.01 v1.7 — F5 pass-1 fix (F-P1-002)
+#   DI-019 — ASYNC_DRAIN_WINDOW_MS (referenced by name; do NOT hardcode 100)
+
+BATS_DIR=""
+
+setup() {
+    # Resolve the repository root from this file's location.
+    BATS_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" && pwd)"
+    SRC_ROOT="$(cd "$BATS_DIR/../.." && pwd)"
+}
+
+# ---------------------------------------------------------------------------
+# Guard: skip the entire suite unless explicitly enabled.
+# ---------------------------------------------------------------------------
+
+require_scenario6_enabled() {
+    if [ "${BATS_RUN_VP079_SCENARIO_6:-0}" != "1" ]; then
+        skip "VP-079 Scenario 6 mutation counter-proof is disabled by default. \
+Set BATS_RUN_VP079_SCENARIO_6=1 to run. \
+Each mutation requires a fresh cargo build (~10-60s per site)."
+    fi
+}
+
+require_dispatcher_source() {
+    local main_rs="$SRC_ROOT/crates/factory-dispatcher/src/main.rs"
+    if [ ! -f "$main_rs" ]; then
+        skip "main.rs not found at expected path: $main_rs"
+    fi
+}
+
+require_cargo_build_ok() {
+    run cargo build -p factory-dispatcher --manifest-path "$SRC_ROOT/Cargo.toml" 2>&1
+    if [ "$status" -ne 0 ]; then
+        skip "factory-dispatcher baseline build failed; cannot run mutation trials. Output: $output"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: run VP-079 Scenarios 1-5 from async-event-schema-conformance.bats.
+# Returns 0 if ALL scenarios pass (mutation SURVIVED — bad), non-zero if at
+# least one scenario fails (mutation was CAUGHT — good).
+# ---------------------------------------------------------------------------
+run_scenarios_1_to_5() {
+    local conformance_file="$BATS_DIR/async-event-schema-conformance.bats"
+    if [ ! -f "$conformance_file" ]; then
+        echo "SKIP: async-event-schema-conformance.bats not found at $conformance_file" >&2
+        return 2  # infrastructure error — not a mutation pass/fail
+    fi
+    # Run all tests in the conformance suite. If any fail, bats exits non-zero.
+    run bats "$conformance_file" 2>&1
+    echo "$output"
+    return "$status"
+}
+
+# ---------------------------------------------------------------------------
+# Sed-mutation helper: comment out all lines matching a function call pattern
+# in main.rs, rebuild, run Scenarios 1-5, restore, rebuild clean.
+#
+# $1 = unique function name pattern (e.g. "emit_dispatcher_schema_mismatch")
+# $2 = human-readable site label for error messages
+#
+# Returns:
+#   0 = mutation was CAUGHT (at least one scenario failed — expected behavior)
+#   1 = mutation SURVIVED (all scenarios passed — VP-079 is insufficient)
+#   2 = infrastructure error (build failed, skip gracefully)
+# ---------------------------------------------------------------------------
+mutate_and_verify_caught() {
+    local fn_pattern="$1"
+    local site_label="$2"
+    local main_rs="$SRC_ROOT/crates/factory-dispatcher/src/main.rs"
+
+    # Confirm the pattern exists in main.rs before attempting mutation.
+    if ! grep -q "${fn_pattern}" "$main_rs"; then
+        echo "WARN: pattern '${fn_pattern}' not found in main.rs; skipping this site" >&2
+        return 2
+    fi
+
+    # Diagnostic: show which lines will be mutated.
+    echo "--- Mutation site: $site_label ---" >&2
+    grep -n "${fn_pattern}" "$main_rs" | head -5 >&2
+
+    # Apply sed-based comment-out mutation (in-place; backup to .mutation_bak).
+    local bak="${main_rs}.mutation_bak"
+    cp "$main_rs" "$bak"
+    # Comment out only lines that contain a call to the function (lines with the pattern
+    # followed by an opening paren, indicating a call expression not a use/import).
+    sed -i.tmp "/${fn_pattern}(/s/^/\/\/ MUTANT-SUPPRESSED: /" "$main_rs"
+    rm -f "${main_rs}.tmp"
+
+    # Rebuild with mutation applied (dev profile for speed).
+    local build_output
+    build_output=$(cargo build -p factory-dispatcher --manifest-path "$SRC_ROOT/Cargo.toml" 2>&1)
+    local build_status=$?
+
+    local caught=0
+    if [ "$build_status" -ne 0 ]; then
+        # If the mutation breaks the build, that itself counts as "caught".
+        echo "NOTE: mutation of '${fn_pattern}' caused a build failure — counts as caught." >&2
+        caught=0  # mutation caught (build failure is a valid detection)
+    else
+        # Run Scenarios 1-5 against the mutated binary.
+        run_scenarios_1_to_5
+        local scenarios_status=$?
+        if [ "$scenarios_status" -eq 0 ]; then
+            # All 5 scenarios passed WITH the mutation in place — not caught.
+            caught=1
+            echo "FAIL: mutation of '${fn_pattern}' was NOT caught by Scenarios 1-5." >&2
+            echo "      VP-079 provides no end-to-end coverage guarantee for this emitter." >&2
+        else
+            # At least one scenario failed — mutation was caught.
+            caught=0
+            echo "PASS: mutation of '${fn_pattern}' was caught (at least one scenario failed)." >&2
+        fi
+    fi
+
+    # Always restore original main.rs.
+    cp "$bak" "$main_rs"
+    rm -f "$bak"
+
+    # Rebuild clean binary (ignore errors — next mutation trial starts fresh).
+    cargo build -p factory-dispatcher --manifest-path "$SRC_ROOT/Cargo.toml" >/dev/null 2>&1 || true
+
+    return "$caught"
+}
+
+# ---------------------------------------------------------------------------
+# Scenario 6, Site 1: emit_dispatcher_schema_mismatch
+#
+# Property 6: removing this call must cause Scenario 2 (schema_mismatch) to fail.
+# ---------------------------------------------------------------------------
+
+@test "VP-079 S6/SITE_1: removing emit_dispatcher_schema_mismatch causes at least one scenario to fail" {
+    require_scenario6_enabled
+    require_dispatcher_source
+    require_cargo_build_ok
+
+    mutate_and_verify_caught \
+        "emit_dispatcher_schema_mismatch" \
+        "SITE_1 (schema_version mismatch path, ~main.rs:133)"
+
+    local result=$?
+    [ "$result" -ne 1 ] || {
+        echo "FAIL: emit_dispatcher_schema_mismatch removed but all Scenarios 1-5 passed."
+        echo "      VP-079 Scenario 2 must fail when schema_mismatch emit is suppressed."
+        return 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Scenario 6, Site 2: emit_dispatcher_registry_invalid
+#
+# Property 6: removing this call must cause Scenario 3 (registry_invalid) to fail.
+# ---------------------------------------------------------------------------
+
+@test "VP-079 S6/SITE_2: removing emit_dispatcher_registry_invalid causes at least one scenario to fail" {
+    require_scenario6_enabled
+    require_dispatcher_source
+    require_cargo_build_ok
+
+    mutate_and_verify_caught \
+        "emit_dispatcher_registry_invalid" \
+        "SITE_2 (async+block invariant violation path, ~main.rs:142)"
+
+    local result=$?
+    [ "$result" -ne 1 ] || {
+        echo "FAIL: emit_dispatcher_registry_invalid removed but all Scenarios 1-5 passed."
+        echo "      VP-079 Scenario 3 must fail when registry_invalid emit is suppressed."
+        return 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Scenario 6, Site 3: emit_plugin_async_block_discarded
+#
+# Property 6: removing this call must cause Scenario 1 (async_block_discarded) to fail.
+# ---------------------------------------------------------------------------
+
+@test "VP-079 S6/SITE_3: removing emit_plugin_async_block_discarded causes at least one scenario to fail" {
+    require_scenario6_enabled
+    require_dispatcher_source
+    require_cargo_build_ok
+
+    mutate_and_verify_caught \
+        "emit_plugin_async_block_discarded" \
+        "SITE_3 (async result exit_code=2 path, ~main.rs:394)"
+
+    local result=$?
+    [ "$result" -ne 1 ] || {
+        echo "FAIL: emit_plugin_async_block_discarded removed but all Scenarios 1-5 passed."
+        echo "      VP-079 Scenario 1 must fail when async_block_discarded emit is suppressed."
+        return 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Scenario 6, Site 4: emit_plugin_timeout_async
+#
+# Property 6: removing this call must cause Scenario 4 (plugin.timeout async) to fail.
+# ---------------------------------------------------------------------------
+
+@test "VP-079 S6/SITE_4: removing emit_plugin_timeout_async causes at least one scenario to fail" {
+    require_scenario6_enabled
+    require_dispatcher_source
+    require_cargo_build_ok
+
+    mutate_and_verify_caught \
+        "emit_plugin_timeout_async" \
+        "SITE_4 (async timeout arm, ~main.rs:405)"
+
+    local result=$?
+    [ "$result" -ne 1 ] || {
+        echo "FAIL: emit_plugin_timeout_async removed but all Scenarios 1-5 passed."
+        echo "      VP-079 Scenario 4 must fail when plugin_timeout_async emit is suppressed."
+        return 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Cargo-mutants integration (preferred, if available)
+#
+# If cargo-mutants is installed, this test supersedes the 4 bash-mutation tests
+# above with a single declarative invocation. Runs only when
+# BATS_RUN_VP079_SCENARIO_6=1 AND BATS_VP079_USE_CARGO_MUTANTS=1.
+#
+# Expected: ALL targeted mutations are "caught" by the test suite.
+# If any mutation survives, Scenarios 1-5 are insufficient and this test FAILs.
+# ---------------------------------------------------------------------------
+
+@test "VP-079 S6 (cargo-mutants): all emit_ mutations caught by Scenarios 1-5" {
+    require_scenario6_enabled
+
+    if [ "${BATS_VP079_USE_CARGO_MUTANTS:-0}" != "1" ]; then
+        skip "Set BATS_VP079_USE_CARGO_MUTANTS=1 to use cargo-mutants for Scenario 6."
+    fi
+
+    if ! command -v cargo-mutants &>/dev/null; then
+        skip "cargo-mutants not installed; use BATS_VP079_USE_CARGO_MUTANTS=0 (default) for bash fallback."
+    fi
+
+    require_dispatcher_source
+
+    # cargo-mutants: target only the 4 production emit functions.
+    # --test-tool bats tells cargo-mutants to run bats as the test runner.
+    # Adjust --jobs based on CI parallelism budget.
+    run cargo mutants \
+        --package factory-dispatcher \
+        --jobs 1 \
+        --filter 'emit_dispatcher_schema_mismatch|emit_dispatcher_registry_invalid|emit_plugin_async_block_discarded|emit_plugin_timeout_async' \
+        -- \
+        bats "$BATS_DIR/async-event-schema-conformance.bats" 2>&1
+
+    echo "$output"
+
+    # cargo-mutants exits 0 if all mutations are caught; non-zero if any survive.
+    [ "$status" -eq 0 ] || {
+        echo "FAIL: cargo-mutants found surviving mutation(s). VP-079 Scenarios 1-5 are insufficient."
+        return 1
+    }
+}

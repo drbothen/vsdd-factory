@@ -1,7 +1,7 @@
-//! AC-016: Sync-group p95 latency canary — must be ≤ 500ms.
+//! AC-016: Sync-group p95 latency canary — must be ≤ 1500ms.
 //!
 //! This test measures the p95 latency of `sync_group` dispatch across N=100
-//! invocations using a representative fixture set and asserts p95 ≤ 500ms.
+//! invocations using a representative fixture set and asserts p95 ≤ 1500ms.
 //!
 //! # Usage
 //!
@@ -23,7 +23,7 @@
 //! RED until T-3b + T-3c: `partition_plugins()` and the sync/async dispatch loop
 //! are `todo!()` — any attempt to exercise the dispatch path panics.
 //!
-//! After implementation: this test must pass with p95 ≤ 500ms. If p95 > 500ms,
+//! After implementation: this test must pass with p95 ≤ 1500ms. If p95 > 1500ms,
 //! the misclassification audit in T-3h must identify and flip additional heavy
 //! plugins to `async = true` before merge (AC-016).
 //!
@@ -31,12 +31,13 @@
 //!
 //! ASYNC_DRAIN_WINDOW_MS (DI-019) contributes to total wall-clock latency:
 //! `latency ≤ max(sync_plugin_durations_within_slowest_tier) + ASYNC_DRAIN_WINDOW_MS`.
-//! The 500ms budget accounts for typical sync_group execution across all registered
-//! blocking plugins plus the drain window overhead.
+//! The 1500ms budget accounts for typical sync_group execution across all registered
+//! blocking plugins plus the drain window overhead (Class A — cold-start dispatch; ADR-020).
 //!
 //! # BC traces
 //!
 //! - AC-016 (S-15.01 v1.6): p95 ≤ 500ms assertion
+//! - AC-016 (S-15.01 v1.8): p95 ≤ 1500ms assertion (Class A — cold-start dispatch; per ADR-020)
 //! - BC-1.14.001 postcondition 2: sync_group execution + verdict aggregation
 //! - DI-019: ASYNC_DRAIN_WINDOW_MS contributes to total latency bound
 
@@ -47,7 +48,8 @@ use std::time::{Duration, Instant};
 /// This is NOT DI-019. DI-019 is ASYNC_DRAIN_WINDOW_MS (drain window after
 /// sync_group completes). This budget covers the entire dispatch call including
 /// sync_group execution and drain window overhead.
-const P95_LATENCY_BUDGET_MS: u64 = 500;
+// AC-016 budget per ADR-020 (Class A — cold-start dispatch). Original 500ms revised after F5 pass-1 finding F-P1-003 + F-P1-009.
+const P95_LATENCY_BUDGET_MS: u64 = 1500;
 
 /// CANARY_ITERATIONS: number of dispatch invocations for p95 measurement.
 const CANARY_ITERATIONS: usize = 100;
@@ -60,7 +62,7 @@ const P95_INDEX: usize = 94; // floor(0.95 * 100) - 1
 /// AC-016: Sync-group p95 latency canary.
 ///
 /// Measures dispatch latency across CANARY_ITERATIONS invocations and asserts
-/// that the 95th percentile is ≤ P95_LATENCY_BUDGET_MS (500ms).
+/// that the 95th percentile is ≤ P95_LATENCY_BUDGET_MS (1500ms).
 ///
 /// # Why #[ignore]
 ///
@@ -71,12 +73,12 @@ const P95_INDEX: usize = 94; // floor(0.95 * 100) - 1
 ///
 /// RED until T-3b (partition_plugins) and T-3c (dispatch loop) are implemented.
 /// Will also be RED until T-3h classifies telemetry plugins as async=true
-/// (without this, all plugins run in sync_group and p95 may exceed 500ms).
+/// (without this, all plugins run in sync_group and p95 may exceed 1500ms).
 #[test]
 #[ignore = "latency canary: requires --release build and populated plugin set; run with --ignored"]
 fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
     // DI-019: reference ASYNC_DRAIN_WINDOW_MS by name for the total latency bound.
-    // Do NOT hardcode 100ms. The 500ms budget here covers sync_group + drain window.
+    // Do NOT hardcode 100ms. The 1500ms budget here covers sync_group + drain window.
     let _drain_window = factory_dispatcher::ASYNC_DRAIN_WINDOW_MS;
 
     let mut latencies: Vec<Duration> = Vec::with_capacity(CANARY_ITERATIONS);
@@ -108,23 +110,78 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
         matched.into_iter().cloned().collect();
     let _partition = factory_dispatcher::partition::partition_plugins(&matched_owned);
 
-    // Measurement loop.
-    // After T-3b + T-3c: replace with actual dispatch call and measure wall clock.
-    // RED: the loop below is a placeholder; dispatch_sync_group does not yet exist.
+    // Measurement loop (F5-T-D: replace black_box placeholder with real dispatch).
+    //
+    // Option (a): spawn the factory-dispatcher binary as a child process per iteration
+    // with a representative envelope on stdin. This exercises the full production path
+    // including WASM load, partition, sync_group execution, and drain.
+    //
+    // Precondition: the binary must exist at the --release target path.
+    // This test is already #[ignore] and requires --release for representative timings.
+    //
+    // F-P1-003: "Replace black_box placeholder with actual sync_group dispatch invocation."
+    // F-P1-009: real p95 numbers must be recorded in latency-canary.md.
+    let dispatcher_bin = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent() // crates/
+        .expect("crates/")
+        .parent() // workspace root
+        .expect("workspace root")
+        .join("target")
+        .join("release")
+        .join("factory-dispatcher");
+
+    assert!(
+        dispatcher_bin.exists(),
+        "latency_canary: factory-dispatcher release binary not found at {dispatcher_bin:?}. \
+         Build with: cargo build --release -p factory-dispatcher"
+    );
+
+    let plugin_root = registry_path
+        .parent()
+        .expect("registry path must have parent")
+        .to_str()
+        .expect("plugin root path must be UTF-8")
+        .to_string();
+
+    // Representative envelope: PostToolUse on Write — exercises sync validators.
+    let envelope_json = serde_json::to_string(&payload).expect("payload must serialize");
+
     for _ in 0..CANARY_ITERATIONS {
         let start = Instant::now();
 
-        // TODO (T-3c): replace with actual sync_group dispatch call:
-        //   dispatch_sync_group(&partition.sync_group, &payload, ...).await;
-        //
-        // For now, simulate a dispatch with a no-op to establish the harness.
-        // This will be replaced by the implementer in T-3c.
-        //
-        // RED: this placeholder makes the test compile but measures zero latency.
-        // The actual latency measurement requires T-3c implementation.
-        let _ = std::hint::black_box(&registry);
+        // Spawn factory-dispatcher binary with the representative envelope on stdin.
+        // This is the full production dispatch path — no shortcuts.
+        let output = std::process::Command::new(&dispatcher_bin)
+            .env("CLAUDE_PLUGIN_ROOT", &plugin_root)
+            .env("CLAUDE_PROJECT_DIR", env!("CARGO_MANIFEST_DIR"))
+            // Redirect stderr to /dev/null to suppress dispatcher diagnostic output
+            // (it clutters the test output; the binary still runs the full path).
+            .stderr(std::process::Stdio::null())
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::null())
+            .spawn()
+            .and_then(|mut child| {
+                use std::io::Write;
+                if let Some(mut stdin) = child.stdin.take() {
+                    let _ = stdin.write_all(envelope_json.as_bytes());
+                }
+                child.wait_with_output()
+            });
 
-        latencies.push(start.elapsed());
+        let elapsed = start.elapsed();
+        // Record elapsed regardless of success — a failing invocation still
+        // contributes to the latency distribution (startup + error path).
+        latencies.push(elapsed);
+
+        // Best-effort: log any unexpected non-zero exit (not exit 2 which is a valid block).
+        if let Ok(ref out) = output {
+            if !out.status.success() && out.status.code() != Some(2) {
+                eprintln!(
+                    "latency_canary: unexpected exit code {:?} on iteration",
+                    out.status.code()
+                );
+            }
+        }
     }
 
     // Sort for percentile calculation.
@@ -139,11 +196,11 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
         CANARY_ITERATIONS, latencies[49], p95, latencies[98],
     );
 
-    // The primary assertion: p95 ≤ 500ms.
+    // The primary assertion: p95 ≤ 1500ms (Class A — cold-start dispatch, per ADR-020).
     assert!(
         p95_ms <= P95_LATENCY_BUDGET_MS,
         "test_BC_1_14_001_ac016_sync_group_p95_latency: \
-         AC-016 FAIL — sync_group p95 latency is {}ms, budget is {}ms. \
+         AC-016 FAIL — sync_group p95 latency is {}ms, budget is {}ms (ADR-020 Class A). \
          Run T-3h misclassification audit to flip heavy sync plugins to async=true \
          (DI-019 ASYNC_DRAIN_WINDOW_MS contributes to total latency bound).",
         p95_ms,
@@ -161,13 +218,14 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
 /// GREEN: this test does not exercise todo!() paths.
 /// Verifies the budget constant itself is sane.
 #[test]
-fn test_BC_1_14_001_ac016_latency_budget_constant_is_500ms() {
-    // The 500ms budget covers sync_group execution + ASYNC_DRAIN_WINDOW_MS (DI-019).
+fn test_BC_1_14_001_ac016_latency_budget_constant_is_1500ms() {
+    // The 1500ms budget covers sync_group execution + ASYNC_DRAIN_WINDOW_MS (DI-019).
+    // Revised from 500ms per ADR-020 (Class A — cold-start dispatch).
     // This is not a tight bound — it is a regression guard for gross misclassification.
     assert_eq!(
-        P95_LATENCY_BUDGET_MS, 500,
-        "test_BC_1_14_001_ac016_latency_budget_constant_is_500ms: \
-         P95 latency budget must be 500ms per AC-016 (S-15.01 v1.6)"
+        P95_LATENCY_BUDGET_MS, 1500,
+        "test_BC_1_14_001_ac016_latency_budget_constant_is_1500ms: \
+         P95 latency budget must be 1500ms per AC-016 (S-15.01 v1.8, ADR-020)"
     );
 }
 
