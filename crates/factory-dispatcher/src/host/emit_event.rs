@@ -2,10 +2,14 @@
 //!
 //! Decodes the length-prefixed key/value fields buffer the SDK writes,
 //! enriches the event with dispatcher-owned identity fields
-//! (`dispatcher_trace_id`, `session_id`, `plugin_name`, `plugin_version`,
+//! (`trace_id`, `session_id`, `plugin_name`, `plugin_version`,
 //! `ts`, `ts_epoch`, `schema_version`) and pushes onto the
 //! [`HostContext::events`] stub queue. S-1.8's file sink becomes the
 //! consumer.
+//!
+//! Note: the wire-format name for the trace correlation field is `trace_id`
+//! (BC-3.08.001 v1.5 Invariant 5). The internal Rust field in `InternalEvent`
+//! is named `dispatcher_trace_id` but serializes as `"trace_id"` via serde rename.
 
 use serde_json::Value;
 use wasmtime::Linker;
@@ -56,6 +60,13 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
 }
 
 const RESERVED_FIELDS: &[&str] = &[
+    // Canonical wire-format name per BC-3.08.001 v1.5 Invariant 5 + DI-017.
+    // Plugins must not spoof the dispatcher's trace correlation value.
+    "trace_id",
+    // Legacy field name — retained for defense-in-depth per BC-3.08.001 v1.5
+    // Implementation Notes. The dispatcher no longer emits this on the wire
+    // (InternalEvent serializes as "trace_id" via serde rename), but plugins
+    // must still be prevented from injecting it.
     "dispatcher_trace_id",
     "session_id",
     "plugin_name",
@@ -143,14 +154,12 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, exit_code: i32) {
     let ev = InternalEvent::now("plugin.async_block_discarded");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // InternalEvent serializes the trace as `dispatcher_trace_id` and time as `ts`;
-    // wire format requires `trace_id` and `timestamp`. Add both so both naming
-    // conventions are present in the serialized event.
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_field("timestamp", ...)` adds the BC-required `timestamp` alias for `ts`.
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
-        .with_field("trace_id", ctx.dispatcher_trace_id.as_str())
         .with_field("timestamp", ts.as_str())
         .with_plugin_name(plugin_name)
         .with_field("reason", "async_plugin_block_verdict_discarded")
@@ -177,11 +186,11 @@ pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, e
 pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u32) {
     let ev = InternalEvent::now("dispatcher.schema_mismatch");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
-        .with_field("trace_id", ctx.dispatcher_trace_id.as_str())
         .with_field("timestamp", ts.as_str())
         .with_field("found_version", got as i64)
         .with_field("expected_version", expected as i64)
@@ -207,11 +216,11 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
 pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
     let ev = InternalEvent::now("dispatcher.registry_invalid");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
-        .with_field("trace_id", ctx.dispatcher_trace_id.as_str())
         .with_field("timestamp", ts.as_str())
         .with_field("offending_plugin", plugin_name)
         .with_field("violation", "on_error_block_with_async_true")
@@ -243,11 +252,11 @@ pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
 pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_ms: u32) {
     let ev = InternalEvent::now("plugin.timeout");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
-        .with_field("trace_id", ctx.dispatcher_trace_id.as_str())
         .with_field("timestamp", ts.as_str())
         .with_plugin_name(plugin_name)
         .with_field("execution_group", "async")
@@ -316,5 +325,45 @@ mod tests {
     fn non_reserved_field_accepted() {
         assert!(!is_reserved_field("commit_sha"));
         assert!(!is_reserved_field("file_path"));
+    }
+
+    /// BC-3.08.001 v1.5 Invariant 5: `trace_id` is the exclusive wire-format name.
+    /// Both `trace_id` and `dispatcher_trace_id` must be in RESERVED_FIELDS.
+    #[test]
+    fn bc3_08_001_invariant5_trace_id_reserved_and_dispatcher_trace_id_reserved() {
+        assert!(
+            is_reserved_field("trace_id"),
+            "trace_id must be in RESERVED_FIELDS (canonical wire field name per BC-3.08.001 v1.5 Invariant 5)"
+        );
+        assert!(
+            is_reserved_field("dispatcher_trace_id"),
+            "dispatcher_trace_id must remain in RESERVED_FIELDS for defense-in-depth per BC-3.08.001 v1.5"
+        );
+    }
+
+    /// BC-3.08.001 v1.5 Invariant 5: InternalEvent must serialize as "trace_id" on wire,
+    /// never as "dispatcher_trace_id". Verifies zero occurrences of the legacy field name.
+    #[test]
+    fn bc3_08_001_invariant5_wire_output_uses_trace_id_not_dispatcher_trace_id() {
+        use crate::internal_log::InternalEvent;
+        let ev = InternalEvent::now("test.event")
+            .with_trace_id("test-uuid-1234")
+            .with_field("extra", "value");
+        let json = serde_json::to_string(&ev).expect("serialization must not fail");
+        assert!(
+            json.contains("\"trace_id\""),
+            "serialized event must contain \"trace_id\" key; got: {json}"
+        );
+        assert!(
+            !json.contains("\"dispatcher_trace_id\""),
+            "serialized event must NOT contain \"dispatcher_trace_id\" in wire output; \
+             BC-3.08.001 v1.5 Invariant 5 violation; got: {json}"
+        );
+        // Verify exactly one occurrence of trace_id
+        let occurrences = json.matches("\"trace_id\"").count();
+        assert_eq!(
+            occurrences, 1,
+            "\"trace_id\" must appear exactly once in wire output; found {occurrences}; got: {json}"
+        );
     }
 }
