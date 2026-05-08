@@ -223,23 +223,25 @@ fn test_BC_3_08_001_vp079_s2_v1_registry_triggers_schema_mismatch() {
 // dispatcher.registry_invalid with mandatory fields:
 //   type, trace_id, offending_plugin, violation, timestamp, error_code.
 // offending_plugin MUST name the violating entry.
-// violation MUST be "on_error_block_with_async_true".
+// violation MUST be "async_block_conflict" (BC-3.08.001 v1.7 canonical).
 // error_code MUST be "E-REG-002".
 // ---------------------------------------------------------------------------
 
 /// VP-079 S3: emit_dispatcher_registry_invalid emits event with mandatory fields.
 ///
 /// GREEN after T-3e.
+/// Violation string updated to "async_block_conflict" per BC-3.08.001 v1.7 amendment.
 #[test]
 fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     let ctx = make_test_ctx();
     // Scenario: entry "invalid-blocker" has on_error=block AND async=true.
     // Mandatory fields: type, trace_id, offending_plugin, violation, timestamp, error_code.
+    // BC-3.08.001 v1.7: violation canonical string is "async_block_conflict".
     emit_dispatcher_registry_invalid(
         &ctx,
         "invalid-blocker",
         "E-REG-002",
-        "on_error_block_with_async_true",
+        "async_block_conflict",
     );
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
@@ -255,8 +257,8 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     );
     assert_eq!(
         ev.fields.get("violation").and_then(|v| v.as_str()),
-        Some("on_error_block_with_async_true"),
-        "violation must be on_error_block_with_async_true"
+        Some("async_block_conflict"),
+        "violation must be async_block_conflict (BC-3.08.001 v1.7 canonical)"
     );
     assert_eq!(
         ev.fields.get("error_code").and_then(|v| v.as_str()),
@@ -272,11 +274,12 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
 fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
     let ctx = make_test_ctx();
     // Verify the emitted event has offending_plugin = "bad-validator".
+    // BC-3.08.001 v1.7: violation canonical string is "async_block_conflict".
     emit_dispatcher_registry_invalid(
         &ctx,
         "bad-validator",
         "E-REG-002",
-        "on_error_block_with_async_true",
+        "async_block_conflict",
     );
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1);
