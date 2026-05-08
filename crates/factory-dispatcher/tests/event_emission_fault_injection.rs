@@ -237,12 +237,7 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     // Scenario: entry "invalid-blocker" has on_error=block AND async=true.
     // Mandatory fields: type, trace_id, offending_plugin, violation, timestamp, error_code.
     // BC-3.08.001 v1.7: violation canonical string is "async_block_conflict".
-    emit_dispatcher_registry_invalid(
-        &ctx,
-        "invalid-blocker",
-        "E-REG-002",
-        "async_block_conflict",
-    );
+    emit_dispatcher_registry_invalid(&ctx, "invalid-blocker", "E-REG-002", "async_block_conflict");
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];
@@ -275,12 +270,7 @@ fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
     let ctx = make_test_ctx();
     // Verify the emitted event has offending_plugin = "bad-validator".
     // BC-3.08.001 v1.7: violation canonical string is "async_block_conflict".
-    emit_dispatcher_registry_invalid(
-        &ctx,
-        "bad-validator",
-        "E-REG-002",
-        "async_block_conflict",
-    );
+    emit_dispatcher_registry_invalid(&ctx, "bad-validator", "E-REG-002", "async_block_conflict");
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1);
     let ev = &events[0];

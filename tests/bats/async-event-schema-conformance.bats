@@ -556,6 +556,117 @@ shell_bypass_acknowledged = "VP-079-S7-test-fixture"
     }
 }
 
+# ---
+# Scenario 8: DuplicateEntry → dispatcher.registry_invalid (E-REG-003)
+#
+# Trigger: registry has two [[hooks]] entries with identical (name, event, tool) tuple.
+# Per BC-7.06.001 v1.6 Invariant 7, this MUST be rejected at validate() time.
+# Per F-P8-001 fix (main.rs), the dispatcher MUST:
+#   1. Exit 2 (fail-closed per ADR-019 §Decision 2).
+#   2. Write "[E-REG-003]" to stderr.
+#   3. Emit dispatcher.registry_invalid with error_code="E-REG-003" and
+#      violation="duplicate_hook_registration" (BC-3.08.001 v1.7 Event 3).
+#
+# No WASM plugin is invoked — validation fails before dispatch begins.
+# ---
+
+@test "VP-079 S8: BC-7.06.001 v1.6 Invariant 7 [fail-closed] — DuplicateEntry → exit 2 + dispatcher.registry_invalid (E-REG-003)" {
+    require_dispatcher
+
+    # No test fixtures needed: DuplicateEntry is detected at registry validate()
+    # time, before any plugin is loaded or executed.
+
+    # Registry: TWO entries with identical (name="duplicate-test", event="PreToolUse",
+    # tool="Bash"). BC-7.06.001 v1.6 Invariant 7 requires rejection at validate().
+    printf '%s' '
+schema_version = 2
+
+[[hooks]]
+name = "duplicate-test"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = false
+event = "PreToolUse"
+tool = "Bash"
+priority = 100
+
+[hooks.config]
+script_path = "test-fixtures/exit0.sh"
+
+[[hooks]]
+name = "duplicate-test"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = false
+event = "PreToolUse"
+tool = "Bash"
+priority = 200
+
+[hooks.config]
+script_path = "test-fixtures/exit0.sh"
+' > "$PLUGIN_ROOT/hooks-registry.toml"
+
+    local envelope
+    envelope=$(printf '{"hook_event_name":"PreToolUse","tool_name":"Bash","session_id":"vp079-s8-test","tool_input":{}}')
+
+    # Capture stderr separately to verify [E-REG-003] prefix.
+    local stderr_file
+    stderr_file="$(mktemp)"
+
+    run sh -c "printf '%s' '$envelope' | \
+        CLAUDE_PLUGIN_ROOT=\"$PLUGIN_ROOT\" \
+        VSDD_SINK_FILE=\"$SINK_FILE\" \
+        CLAUDE_PROJECT_DIR=\"$PLUGIN_ROOT\" \
+        factory-dispatcher 2>\"$stderr_file\""
+
+    # Assertion 1 (BC-7.06.001 v1.6 Invariant 7 + ADR-019 §Decision 2):
+    # dispatcher must exit 2 (fail-closed).
+    [ "$status" -eq 2 ] || {
+        echo "FAIL: expected exit 2 for DuplicateEntry; got: $status"
+        echo "BC-7.06.001 v1.6 Invariant 7 requires fail-closed (exit 2) on duplicate (name,event,tool) tuple."
+        rm -f "$stderr_file"
+        return 1
+    }
+
+    # Assertion 2 (F-P8-001): stderr must contain "[E-REG-003]".
+    local stderr_content
+    stderr_content=$(cat "$stderr_file")
+    rm -f "$stderr_file"
+    echo "$stderr_content" | grep -q "\[E-REG-003\]" || {
+        echo "FAIL: stderr must contain '[E-REG-003]'; got: $stderr_content"
+        echo "F-P8-001: main.rs DuplicateEntry arm must write [E-REG-003] to stderr."
+        return 1
+    }
+
+    # Assertion 3 (BC-3.08.001 v1.7 Event 3): dispatcher.registry_invalid must be emitted.
+    local line
+    line=$(find_event_line "dispatcher.registry_invalid")
+    [ -n "$line" ] || {
+        echo "FAIL: dispatcher.registry_invalid event not found in $SINK_FILE"
+        echo "BC-3.08.001 v1.7 Event 3: dispatcher must emit registry_invalid on DuplicateEntry."
+        return 1
+    }
+
+    # Assertion 4: error_code must be "E-REG-003".
+    local error_code
+    error_code=$(echo "$line" | python3 -c \
+        "import sys,json; print(json.load(sys.stdin)['error_code'])")
+    [ "$error_code" = "E-REG-003" ] || {
+        echo "FAIL: error_code must be 'E-REG-003'; got: $error_code"
+        return 1
+    }
+
+    # Assertion 5: violation must be "duplicate_hook_registration".
+    local violation
+    violation=$(echo "$line" | python3 -c \
+        "import sys,json; print(json.load(sys.stdin)['violation'])")
+    [ "$violation" = "duplicate_hook_registration" ] || {
+        echo "FAIL: violation must be 'duplicate_hook_registration'; got: $violation"
+        echo "BC-3.08.001 v1.7 Event 3: canonical violation string for DuplicateEntry."
+        return 1
+    }
+}
+
 @test "VP-079 S5: async task exceeding drain window does NOT emit plugin.timeout (AC-005)" {
     require_dispatcher
 
