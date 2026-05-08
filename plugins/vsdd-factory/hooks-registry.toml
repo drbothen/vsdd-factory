@@ -951,7 +951,8 @@ path_allow = [".factory/cycles"]
 # ---------- validate-stable-anchors (PreToolUse, Write|Edit) ----------
 # TD-VSDD-091 stable-anchor convention enforcement for .factory/specs/**/*.md.
 # Initial driver: TD-031 (P1 escalated O-P16-001).
-# Blocks spec body text containing `*.rs:NNN` volatile line citations.
+# Blocks spec body text containing `*.<ext>:NNN` volatile line citations
+# (any source/config/test file extension: rs, sh, py, toml, bats, yaml, etc.).
 # Exempt zones: Amendment/Changelog sections; VP-079 Scenario 6 SITES arrays.
 # F-P16-001 / F-P16-002 / F-P17-001: recurrence-breaking mechanical enforcement.
 # NOT via legacy-bash-adapter (Decision 5 WASM-migration rule).

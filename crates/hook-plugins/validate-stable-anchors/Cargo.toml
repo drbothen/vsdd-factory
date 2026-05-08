@@ -1,12 +1,12 @@
 [package]
-name = "validate-td031-stable-anchors"
+name = "validate-stable-anchors"
 version = "0.0.1"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-description = "WASM hook plugin: enforces TD-VSDD-091 stable-anchor convention — blocks spec body text containing `*.rs:NNN` volatile line citations (TD-031, F-P16-001/002, F-P17-001)"
+description = "WASM hook plugin: enforces TD-VSDD-091 stable-anchor convention — blocks spec body text containing volatile source-file line citations (`*.<ext>:NNN` where ext is any source/config/test file extension). Initial driver: TD-031 (P1)."
 publish = false
 
 # Hook plugins ship as WASI commands (_start entry point) built via
@@ -16,7 +16,7 @@ publish = false
 path = "src/lib.rs"
 
 [[bin]]
-name = "validate-td031-stable-anchors"
+name = "validate-stable-anchors"
 path = "src/main.rs"
 
 [dependencies]

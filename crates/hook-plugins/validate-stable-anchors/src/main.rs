@@ -1,4 +1,4 @@
-//! WASI command entry point for validate-td031-stable-anchors.
+//! WASI command entry point for validate-stable-anchors.
 //!
 //! Reads the PreToolUse JSON payload from stdin via the SDK's
 //! `__internal::run` trampoline, calls `on_pre_tool_use`, and exits.
@@ -22,7 +22,7 @@
 //! - TD-031 (tech-debt-register.md)
 //! - F-P16-001 / F-P16-002 / F-P17-001
 
-use validate_td031_stable_anchors::on_pre_tool_use;
+use validate_stable_anchors::on_pre_tool_use;
 
 fn main() {
     vsdd_hook_sdk::__internal::run(on_pre_tool_use);

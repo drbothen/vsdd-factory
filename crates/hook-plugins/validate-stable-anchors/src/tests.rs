@@ -1,15 +1,16 @@
-//! Unit tests for validate-td031-stable-anchors.
+//! Unit tests for validate-stable-anchors.
 //!
 //! Exercises the production functions in `lib.rs` via injectable callbacks.
 //! Test naming follows the BC-based convention: test_BC_S_SS_NNN_xxx() where
 //! applicable. Since TD-031 has no BC yet, tests use test_TD031_xxx naming.
 //!
 //! # Coverage areas
-//! - scan_line: detects `*.rs:NNN` patterns, ignores non-matching lines
+//! - scan_line: detects `*.<ext>:NNN` patterns, ignores non-matching lines
 //! - scan_spec: exemption zones (Amendment, Changelog, SITES fence)
 //! - is_spec_target: only `.factory/specs/**/*.md` targeted
 //! - hook_logic: end-to-end with injectable callbacks
 //! - format_violations: sanity check on output
+//! - is_source_line_cite: boundary conditions and URL exclusion
 
 #![allow(clippy::type_complexity)]
 
@@ -484,7 +485,7 @@ fn test_TD031_hook_logic_violation_in_write_content_blocks() {
             reason
         );
         assert!(
-            reason.contains("validate-td031-stable-anchors"),
+            reason.contains("validate-stable-anchors"),
             "block reason must contain hook name. Got: {}",
             reason
         );
@@ -546,7 +547,8 @@ fn test_TD031_hook_logic_file_unreadable_returns_continue() {
 #[test]
 fn test_TD031_hook_logic_amendment_in_write_content_exempt() {
     // Write content with an Amendment section — exempt from lint.
-    let content = "# BC-7.06.001\n\n## Amendment 2026-05-08\n\nOld cite: main.rs:289 → stable anchor.\n";
+    let content =
+        "# BC-7.06.001\n\n## Amendment 2026-05-08\n\nOld cite: main.rs:289 → stable anchor.\n";
     let payload = make_payload(
         "Write",
         Some(".factory/specs/behavioral-contracts/ss-07/BC-7.06.001.md"),
@@ -561,34 +563,175 @@ fn test_TD031_hook_logic_amendment_in_write_content_exempt() {
 }
 
 // -----------------------------------------------------------------------
-// is_rs_line_cite boundary tests
+// is_source_line_cite boundary tests
 // -----------------------------------------------------------------------
 
 #[test]
-fn test_TD031_is_rs_line_cite_basic_match() {
+fn test_TD031_is_source_line_cite_basic_rs_match() {
     let line = "main.rs:416";
-    let pos = line.find(".rs:").unwrap();
-    assert!(is_rs_line_cite(line, pos));
+    let bytes = line.as_bytes();
+    let pos = line.find('.').unwrap();
+    assert!(is_source_line_cite(bytes, pos));
 }
 
 #[test]
-fn test_TD031_is_rs_line_cite_no_digit_after_colon() {
+fn test_TD031_is_source_line_cite_no_digit_after_colon() {
     let line = "main.rs:emit";
-    let pos = line.find(".rs:").unwrap();
-    assert!(!is_rs_line_cite(line, pos));
+    let bytes = line.as_bytes();
+    let pos = line.find('.').unwrap();
+    assert!(!is_source_line_cite(bytes, pos));
 }
 
 #[test]
-fn test_TD031_is_rs_line_cite_no_word_char_before() {
+fn test_TD031_is_source_line_cite_no_word_char_before() {
     // `.rs:416` with no stem before — should not match.
     let line = ".rs:416";
-    let pos = line.find(".rs:").unwrap();
-    assert!(!is_rs_line_cite(line, pos));
+    let bytes = line.as_bytes();
+    let pos = 0usize; // dot is at position 0
+    assert!(!is_source_line_cite(bytes, pos));
 }
 
 #[test]
-fn test_TD031_is_rs_line_cite_underscore_stem_matches() {
+fn test_TD031_is_source_line_cite_underscore_stem_matches() {
     let line = "my_file.rs:100 reference";
-    let pos = line.find(".rs:").unwrap();
-    assert!(is_rs_line_cite(line, pos));
+    let bytes = line.as_bytes();
+    let pos = line.find('.').unwrap();
+    assert!(is_source_line_cite(bytes, pos));
+}
+
+// -----------------------------------------------------------------------
+// scan_line — additional extension tests (Task C)
+// -----------------------------------------------------------------------
+
+#[test]
+fn test_TD031_scan_line_detects_bats_colon_nnn() {
+    assert!(
+        scan_line("See `setup.bats:42` for the failing hook test."),
+        "scan_line must detect setup.bats:42 (.bats extension)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_toml_colon_nnn() {
+    assert!(
+        scan_line("The workspace setting at `Cargo.toml:17` is wrong."),
+        "scan_line must detect Cargo.toml:17 (.toml extension)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_sh_colon_nnn() {
+    assert!(
+        scan_line("install.sh:99 is the deployment step."),
+        "scan_line must detect install.sh:99 (.sh extension)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_md_colon_nnn() {
+    assert!(
+        scan_line("Cross-spec citation: `ARCHITECTURE.md:55`."),
+        "scan_line must detect ARCHITECTURE.md:55 (.md extension)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_py_colon_nnn() {
+    assert!(
+        scan_line("Python entry point at `manage.py:12`."),
+        "scan_line must detect manage.py:12 (.py extension)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_yaml_colon_nnn() {
+    assert!(
+        scan_line("Pipeline step at `deploy.yaml:88`."),
+        "scan_line must detect deploy.yaml:88 (.yaml extension)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_yml_colon_nnn() {
+    assert!(
+        scan_line("CI config at `ci.yml:33` needs updating."),
+        "scan_line must detect ci.yml:33 (.yml extension)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_ts_colon_nnn() {
+    assert!(
+        scan_line("TypeScript type at `types.ts:200`."),
+        "scan_line must detect types.ts:200 (.ts extension)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_go_colon_nnn() {
+    assert!(
+        scan_line("Go handler at `server.go:77`."),
+        "scan_line must detect server.go:77 (.go extension)"
+    );
+}
+
+// -----------------------------------------------------------------------
+// URL exclusion tests (Task C)
+// -----------------------------------------------------------------------
+
+#[test]
+fn test_TD031_scan_line_no_match_for_url_with_port() {
+    // https://example.com:8080/foo — the ":8080" follows ".com" which looks
+    // like "com:8" but the URL guard (lookbehind for "://") must prevent match.
+    assert!(
+        !scan_line("See https://example.com:8080/foo for details."),
+        "scan_line must NOT flag https://example.com:8080 (URL port, not source cite)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_no_match_for_http_url() {
+    assert!(
+        !scan_line("Visit http://localhost.dev:3000/api to test."),
+        "scan_line must NOT flag http://localhost.dev:3000 (URL port)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_git_at_url_no_match() {
+    // git@github.com:user/repo.git — ".git" would match if not excluded, but
+    // "github.com:user" has "://" nowhere near; however ".git:u" — 'u' is not
+    // a digit, so the digit check prevents this regardless.
+    assert!(
+        !scan_line("Clone: git@github.com:user/repo.git"),
+        "scan_line must NOT flag git@github.com:user/repo.git (no digit after colon)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_extension_too_long_no_match() {
+    // Extension longer than 8 characters should not match.
+    assert!(
+        !scan_line("See file.toolongext:42 for details."),
+        "scan_line must NOT flag extensions longer than 8 characters"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_uppercase_ext_no_match() {
+    // Uppercase extension bytes are not ASCII lowercase — should not match.
+    assert!(
+        !scan_line("See file.RS:42 for the Rust source."),
+        "scan_line must NOT flag uppercase extensions (only lowercase ext bytes match)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_no_match_for_bats_range_notation_no_digit_gap() {
+    // ".bats:NNN-NNN" — scan_line checks if the first char after colon is a
+    // digit. "133" starts with '1' so this SHOULD match (same as main.rs:133-142).
+    assert!(
+        scan_line("See `validate.bats:133-142` for the range."),
+        "scan_line must detect .bats:133-142 (first char after colon is a digit)"
+    );
 }

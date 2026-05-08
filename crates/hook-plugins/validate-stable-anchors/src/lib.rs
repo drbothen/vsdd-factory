@@ -1,15 +1,16 @@
-//! validate-td031-stable-anchors — PreToolUse WASM hook plugin.
+//! validate-stable-anchors — PreToolUse WASM hook plugin.
 //!
 //! Enforces TD-VSDD-091 stable-anchor convention for spec files under
 //! `.factory/specs/**/*.md`. Blocks writes whose body text contains volatile
-//! `*.rs:NNN` line-cite patterns (e.g., `main.rs:416`, `emit_event.rs:49`).
+//! `*.<ext>:NNN` line-cite patterns (e.g., `main.rs:416`, `setup.bats:42`,
+//! `Cargo.toml:17`, `install.sh:99`).
 //!
 //! # Rationale
 //!
 //! TD-031 (escalated P2→P1, fix-burst-15, O-P16-001) documents a recurrent
 //! convergence loop: the same fix-bursts that codify TD-031 introduce new
 //! TD-031 violations because there was no mechanical enforcement. This hook
-//! breaks the loop by blocking `*.rs:NNN` patterns at write time.
+//! breaks the loop by blocking `*.<ext>:NNN` patterns at write time.
 //!
 //! # Exemption zones
 //!
@@ -55,66 +56,105 @@ pub const HOST_ABI_VERSION: u32 = 1;
 // Pattern detection
 // ---------------------------------------------------------------------------
 
-/// File suffixes that contain line-cite patterns considered volatile.
+/// Human-readable description of the source-file line-cite pattern.
 ///
-/// `(main|emit_event|registry|partition|aggregator)` are the primary offenders
-/// per TD-031 history. The pattern generalises to any `*.rs:NNN` cite because
-/// any Rust source file line number is equally volatile post-refactor.
-/// We match: `<ident>.rs:<digits>` — any `*.rs:NNN`.
+/// Matches `<word_char>.<1-8 lowercase letters>:<digit>` — any
+/// `*.<ext>:NNN` cite where `<ext>` is a source, config, or test file
+/// extension (rs, sh, py, go, ts, js, md, toml, yaml, yml, bats, json, …).
 ///
-/// Rationale for broad match (not just named files): Future refactors will
-/// introduce new source files. Locking the lint to specific filenames would
-/// recreate the recurrence gap. TD-VSDD-091 bars ALL volatile line citations.
-pub const RS_LINE_CITE_PATTERN: &str = ".rs:";
+/// Rationale for broad match (not just `.rs`): TD-VSDD-091 bars ALL volatile
+/// source-file line citations, not only Rust. Known offenders in the spec
+/// corpus include `.bats:NNN-NNN` (F-P17-003), `.toml:NNN`, `.sh:NNN`.
+/// Locking the lint to a single extension would recreate the recurrence gap.
+pub const SOURCE_LINE_CITE_PATTERN: &str =
+    ".<ext>:NNN (word_char before dot; 1-8 lowercase letters; digit after colon; not a URL)";
 
-/// Check whether a single character sequence at position `pos` in `line`
-/// matches `<word_chars>.rs:<digits>`.
+/// Check whether `line` contains a volatile source-file line citation starting
+/// at byte position `dot_pos` (the position of the `.` in `.<ext>:`).
 ///
-/// Returns `true` if `line[pos..]` contains a pattern that looks like
-/// `somefile.rs:123`. The caller (scan_line) walks the line byte-by-byte
-/// looking for `.rs:` and then calls this to verify the surrounding context.
+/// Returns `true` if the sequence at `line[dot_pos..]` matches:
 ///
-/// Validation rules:
-/// - Before `.rs:` there must be at least one word character (letter, digit,
-///   underscore). This avoids matching bare `.rs:` with no stem.
-/// - After `.rs:` there must be at least one ASCII digit.
+/// ```text
+/// <word_char> . <1-8 lowercase ASCII letters> : <ASCII digit>
+/// ```
+///
+/// where `<word_char>` is the character immediately before the dot, AND the
+/// three bytes before the dot are NOT `://` (URL exclusion guard).
 ///
 /// This is a pure function: no I/O, no globals.
-pub fn is_rs_line_cite(line: &str, dot_rs_colon_pos: usize) -> bool {
-    // Verify at least one digit follows `.rs:`
-    let after = &line[dot_rs_colon_pos + 4..]; // skip ".rs:"
-    if !after.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+pub fn is_source_line_cite(line: &[u8], dot_pos: usize) -> bool {
+    // -- 1. Collect the extension: 1-8 lowercase ASCII letters after the dot --
+    let after_dot = &line[dot_pos + 1..];
+    let ext_len = after_dot
+        .iter()
+        .take(8)
+        .take_while(|&&b| b.is_ascii_lowercase())
+        .count();
+    if ext_len == 0 {
         return false;
     }
 
-    // Verify at least one word character before `.rs:`
-    let before = &line[..dot_rs_colon_pos];
-    if !before
-        .chars()
-        .last()
-        .map(|c| c.is_alphanumeric() || c == '_')
+    // -- 2. Verify the character after the extension is ':' --
+    let colon_pos = dot_pos + 1 + ext_len;
+    if line.get(colon_pos) != Some(&b':') {
+        return false;
+    }
+
+    // -- 3. Verify at least one ASCII digit follows ':' --
+    let after_colon_pos = colon_pos + 1;
+    if !line
+        .get(after_colon_pos)
+        .map(|b| b.is_ascii_digit())
         .unwrap_or(false)
     {
+        return false;
+    }
+
+    // -- 4. Verify a word character immediately precedes the dot --
+    if dot_pos == 0 {
+        return false;
+    }
+    let before_byte = line[dot_pos - 1];
+    let is_word_char = before_byte.is_ascii_alphanumeric() || before_byte == b'_';
+    if !is_word_char {
+        return false;
+    }
+
+    // -- 5. URL exclusion guard: reject if "://" appears anywhere before the dot --
+    // e.g. `https://example.com:8080` or `http://localhost.dev:3000` — the dot
+    // is in a hostname and the scheme indicator "://" appears before it.
+    // We scan the entire prefix before dot_pos (bounded by the line start).
+    let lookbehind = &line[..dot_pos];
+    if lookbehind.windows(3).any(|w| w == b"://") {
         return false;
     }
 
     true
 }
 
-/// Scan a single line for `*.rs:NNN` patterns.
+/// Scan a single line for `*.<ext>:NNN` volatile source-file line-cite patterns.
 ///
-/// Returns `true` if the line contains at least one volatile line citation.
+/// Detects any `<word_char>.<1-8 lowercase letters>:<digit>` sequence.
+/// Returns `true` if at least one such pattern is found.
 /// This is a pure function.
 pub fn scan_line(line: &str) -> bool {
-    let mut search_start = 0;
-    while let Some(pos) = line[search_start..].find(RS_LINE_CITE_PATTERN) {
-        let abs_pos = search_start + pos;
-        if is_rs_line_cite(line, abs_pos) {
+    let bytes = line.as_bytes();
+    for dot_pos in memchr_iter(b'.', bytes) {
+        if is_source_line_cite(bytes, dot_pos) {
             return true;
         }
-        search_start = abs_pos + 1;
     }
     false
+}
+
+/// Simple byte-by-byte iterator over positions of `needle` in `haystack`.
+///
+/// Used by `scan_line` to locate all `.` bytes without pulling in a dependency.
+fn memchr_iter(needle: u8, haystack: &[u8]) -> impl Iterator<Item = usize> + '_ {
+    haystack
+        .iter()
+        .enumerate()
+        .filter_map(move |(i, &b)| if b == needle { Some(i) } else { None })
 }
 
 // ---------------------------------------------------------------------------
@@ -155,8 +195,8 @@ pub fn classify_heading(line: &str) -> Option<bool> {
         return None;
     }
     let rest = &line[3..];
-    let exempt = rest.starts_with("Amendment")
-        || rest.to_ascii_lowercase().starts_with("changelog");
+    let exempt =
+        rest.starts_with("Amendment") || rest.to_ascii_lowercase().starts_with("changelog");
     Some(exempt)
 }
 
@@ -219,15 +259,13 @@ pub fn scan_spec(content: &str) -> Vec<Violation> {
         }
 
         // Heading transition (only outside fences).
-        if !in_fence {
-            if let Some(is_exempt) = classify_heading(line) {
-                zone = if is_exempt {
-                    ExemptZone::Changelog
-                } else {
-                    ExemptZone::Body
-                };
-                continue;
-            }
+        if !in_fence && let Some(is_exempt) = classify_heading(line) {
+            zone = if is_exempt {
+                ExemptZone::Changelog
+            } else {
+                ExemptZone::Body
+            };
+            continue;
         }
 
         // Skip exempt zones.
@@ -272,7 +310,7 @@ where
     pub log: L,
 }
 
-/// Core validate-td031-stable-anchors hook logic.
+/// Core validate-stable-anchors hook logic.
 ///
 /// Called on PreToolUse Edit|Write events. Reads `tool_input.file_path`; if the
 /// target is a spec file under `.factory/specs/**/*.md`, reads its prospective
@@ -282,7 +320,8 @@ where
 ///
 /// # Error codes
 ///
-/// - `TD_031_STABLE_ANCHOR_VIOLATION`: spec body text contains `*.rs:NNN` line cite.
+/// - `TD_031_STABLE_ANCHOR_VIOLATION`: spec body text contains `*.<ext>:NNN` line cite
+///   (any source, config, or test file extension).
 pub fn hook_logic<R, E, L>(
     payload: HookPayload,
     mut callbacks: HookCallbacks<R, E, L>,
@@ -298,7 +337,7 @@ where
         None => {
             (callbacks.log)(
                 1,
-                "[validate-td031-stable-anchors] no file_path in payload — skipping",
+                "[validate-stable-anchors] no file_path in payload — skipping",
             );
             return HookResult::Continue;
         }
@@ -312,7 +351,7 @@ where
     (callbacks.log)(
         2,
         &format!(
-            "[validate-td031-stable-anchors] checking spec file: {}",
+            "[validate-stable-anchors] checking spec file: {}",
             file_path
         ),
     );
@@ -336,10 +375,14 @@ where
     }
 
     // For Edit: check the "new_string" field (the replacement text).
-    if let Some(new_str) = payload.tool_input.get("new_string").and_then(|v| v.as_str()) {
+    if let Some(new_str) = payload
+        .tool_input
+        .get("new_string")
+        .and_then(|v| v.as_str())
+    {
         // new_string is a fragment, not the full file. Scan it directly.
         // Exemption zones can't be tracked for fragments, but Edit's new_string
-        // that contains *.rs:NNN is almost certainly a violation if it reaches
+        // that contains *.<ext>:NNN is almost certainly a violation if it reaches
         // spec body text. We apply simple scan_line per line (no exemption state).
         let fragment_violations: Vec<Violation> = new_str
             .lines()
@@ -361,18 +404,18 @@ where
             (callbacks.emit_event)(
                 "td031.violation",
                 &[
-                    ("hook", "validate-td031-stable-anchors"),
+                    ("hook", "validate-stable-anchors"),
                     ("file", &file_path),
                     ("violation_count", &fragment_violations.len().to_string()),
                 ],
             );
             return HookResult::block_with_fix(
-                "validate-td031-stable-anchors",
+                "validate-stable-anchors",
                 format!(
-                    "TD-031 violation in new_string for '{}': `*.rs:NNN` volatile line cites found. {}",
+                    "TD-031 violation in new_string for '{}': `*.<ext>:NNN` volatile line cites found. {}",
                     file_path, violation_list
                 ),
-                "Replace `*.rs:NNN` line citations with stable symbol anchors per TD-VSDD-091. \
+                "Replace `*.<ext>:NNN` line citations with stable symbol anchors per TD-VSDD-091. \
                  Example: instead of `main.rs:416`, use the function name `emit_plugin_async_block_discarded` \
                  or qualified path `factory_dispatcher::main::run`. \
                  Amendment/Changelog sections and VP-079 Scenario 6 SITES arrays are exempt.",
@@ -394,7 +437,7 @@ where
                 (callbacks.log)(
                     1,
                     &format!(
-                        "[validate-td031-stable-anchors] could not read '{}' for full-file scan — skipping",
+                        "[validate-stable-anchors] could not read '{}' for full-file scan — skipping",
                         file_path
                     ),
                 );
@@ -410,7 +453,7 @@ where
                 (callbacks.log)(
                     1,
                     &format!(
-                        "[validate-td031-stable-anchors] could not read '{}' — skipping",
+                        "[validate-stable-anchors] could not read '{}' — skipping",
                         file_path
                     ),
                 );
@@ -427,19 +470,19 @@ where
             (callbacks.emit_event)(
                 "td031.violation",
                 &[
-                    ("hook", "validate-td031-stable-anchors"),
+                    ("hook", "validate-stable-anchors"),
                     ("file", &file_path),
                     ("source", label.as_str()),
                     ("violation_count", &violations.len().to_string()),
                 ],
             );
             return HookResult::block_with_fix(
-                "validate-td031-stable-anchors",
+                "validate-stable-anchors",
                 format!(
-                    "TD-031 violation in '{}' ({}): `*.rs:NNN` volatile line cites found. {}",
+                    "TD-031 violation in '{}' ({}): `*.<ext>:NNN` volatile line cites found. {}",
                     file_path, label, violation_list
                 ),
-                "Replace `*.rs:NNN` line citations with stable symbol anchors per TD-VSDD-091. \
+                "Replace `*.<ext>:NNN` line citations with stable symbol anchors per TD-VSDD-091. \
                  Example: instead of `main.rs:416`, use the function name `emit_plugin_async_block_discarded` \
                  or qualified path `factory_dispatcher::main::run`. \
                  Amendment/Changelog sections and VP-079 Scenario 6 SITES arrays are exempt.",
@@ -451,7 +494,7 @@ where
     (callbacks.log)(
         2,
         &format!(
-            "[validate-td031-stable-anchors] PASS — no TD-031 violations in '{}'",
+            "[validate-stable-anchors] PASS — no TD-031 violations in '{}'",
             file_path
         ),
     );
