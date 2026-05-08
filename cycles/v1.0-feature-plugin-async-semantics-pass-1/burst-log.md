@@ -984,3 +984,56 @@ Pass-4 adversary findings persisted at `.factory/cycles/v1.0-feature-plugin-asyn
 F3 PASS-4 CLOSED. ADR-013 clock 2_of_3. Awaiting F3 adversary pass-5 (potential convergence pass). ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED.
 
 ---
+
+## Burst 8 — F3 CONVERGENCE close — pass-5 NITPICK_ONLY NIT-0; clock 2→3_of_3; CONVERGENCE_REACHED
+
+**Date:** 2026-05-07
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F3 CONVERGED
+**Story version:** S-15.01 v1.5 → v1.6
+
+### Summary
+
+Pass-5 returned NITPICK_ONLY with zero findings. ADR-013 clock advances 2→3_of_3. Three consecutive NITPICK_ONLY passes (pass-3 NIT-1, pass-4 NIT-1, pass-5 NIT-0) per ADR-013 = CONVERGENCE_REACHED. S-15.01 status flipped draft → ready. F4 TDD implementation dispatch next.
+
+F3 trajectory: **9 → 3 → 3 → 1 → 0** (5 passes, 4 fix bursts).
+
+### Final F3 statistics
+
+| Metric | Value |
+|--------|-------|
+| Total adversary passes | 5 |
+| SUBSTANTIVE passes | 2 (passes 1 and 2) |
+| NITPICK_ONLY passes | 3 (passes 3, 4, 5 — final ADR-013 clock chain) |
+| Fix bursts (substantive) | 2 (pass-1, pass-2) |
+| Fix bursts (NIT-only) | 2 (pass-3, pass-4) |
+| Total fix bursts | 4 |
+| Finding trajectory | 9 → 3 → 3 → 1 → 0 |
+| Final ADR-013 clock | 3_of_3 (CONVERGENCE_REACHED) |
+| WASM-rule conformance | VERIFIED (native WASM crate; legacy-bash-adapter mentions are explicit negations) |
+| File count | 30 paths (Rust crate, .wasm artifact, hooks-registry.toml with plugin= field per S-13.01 precedent) |
+| Primary BCs | BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001 |
+| VPs | VP-077, VP-078, VP-079 |
+| DIs | DI-014, DI-019 |
+
+### Lessons captured
+
+| Lesson | Manifestation |
+|--------|--------------|
+| Architect's "matches existing precedent" reasoning gap | User intervention "we are migrating to WASM" mid-pass-2 fix burst surfaced that the architect's Option C recommendation cited 6 existing bash hooks as precedents — which are themselves under migration (E-8/E-9/E-11). Architects should verify whether cited precedents are themselves migrating before recommending adoption. |
+| Sibling-fix discipline: version sync alongside title sync | NIT-P3-003 confirmed by NIT-P4-001. Pass-2 F-P2-003 fixed BC title sync but did not refresh cited versions; pass-3 addressed body table (NIT-P3-001) but missed References table, requiring pass-4 NIT-P4-001. Protocol: any title sync must co-locate version sync across all citing tables in the same fix burst. |
+| Byte-for-byte grep > visual inspection | Carried from F2 pass-5/6 lessons. All close-burst verification in F3 used grep to confirm zero residual occurrences of stale values. |
+
+### Artifacts touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F3-S-15.01-adversary-pass-5.md` | Created — pass-5 findings persisted (NITPICK_ONLY; clock 3_of_3; CONVERGENCE_REACHED) |
+| `.factory/stories/S-15.01-plugin-async-semantics.md` | v1.5 → v1.6 (status draft→ready; amendment section added) |
+| `.factory/stories/STORY-INDEX.md` | v2.35 → v2.36 (S-15.01 row: status draft→ready, v1.6; update notice added) |
+| `.factory/STATE.md` | current_step, last_amended, phase progress, concurrent cycles, current phase steps (F3 convergence row added), story status (Ready 0→1, Draft 24→23), session checkpoint, ACTIVE STEP, index versions updated |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | this entry appended |
+
+### Status
+
+F3 CONVERGED. S-15.01 v1.6 status: ready. ADR-013 clock 3_of_3. F4 TDD implementation dispatch pending (stub-architect → test-writer → implementer → demo-recorder → pr-manager). Engine-discipline-pass-1 cycle remains paused at F3-pending; will resume after S-15.01 ships.
