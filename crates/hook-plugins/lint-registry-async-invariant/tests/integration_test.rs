@@ -20,7 +20,7 @@
 //! will the test for this function pass trivially without any implementer work?"
 //! Answer: YES for every test below — therefore all call into `todo!()` stubs.
 
-use lint_registry_async_invariant::{run_lint, LintResult};
+use lint_registry_async_invariant::{LintResult, run_lint};
 
 // ---------------------------------------------------------------------------
 // VP-078 Harness 1 — lint_invariant
@@ -61,7 +61,8 @@ plugin = "hook-plugins/some-validator.wasm"
     let result = run_lint(toml);
     assert!(
         matches!(result, LintResult::SchemaMismatch { got: Some(1) }),
-        "expected SchemaMismatch {{ got: Some(1) }}, got {:?}", result
+        "expected SchemaMismatch {{ got: Some(1) }}, got {:?}",
+        result
     );
 }
 
@@ -86,7 +87,8 @@ async = true
             result,
             LintResult::InvariantViolation { ref plugin_name } if plugin_name == "bad-validator"
         ),
-        "expected InvariantViolation for 'bad-validator', got {:?}", result
+        "expected InvariantViolation for 'bad-validator', got {:?}",
+        result
     );
 }
 
@@ -168,7 +170,8 @@ async = true
             result,
             LintResult::InvariantViolation { ref plugin_name } if plugin_name == "violating-plugin"
         ),
-        "expected InvariantViolation for 'violating-plugin', got {:?}", result
+        "expected InvariantViolation for 'violating-plugin', got {:?}",
+        result
     );
 }
 

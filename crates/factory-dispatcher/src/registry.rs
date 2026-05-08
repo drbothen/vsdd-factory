@@ -774,8 +774,11 @@ script_path = "bad.sh"
         );
         let err_str = result.unwrap_err().to_string();
         assert!(
-            err_str.contains("on_error") || err_str.contains("async") || err_str.contains("E-REG-002"),
-            "error must name the violating fields or error code: {}", err_str
+            err_str.contains("on_error")
+                || err_str.contains("async")
+                || err_str.contains("E-REG-002"),
+            "error must name the violating fields or error code: {}",
+            err_str
         );
     }
 

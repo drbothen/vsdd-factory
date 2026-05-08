@@ -37,8 +37,10 @@ const REQUIRED_DEMO_FILES: &[&str] = &[
 /// CARGO_MANIFEST_DIR = crates/factory-dispatcher; walk up 2 to workspace root.
 fn evidence_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent().expect("crates/")
-        .parent().expect("workspace root")
+        .parent()
+        .expect("crates/")
+        .parent()
+        .expect("workspace root")
         .join("docs/demo-evidence/S-15.01")
 }
 
@@ -109,8 +111,7 @@ fn test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value() {
         );
     }
 
-    let content = std::fs::read_to_string(canary_path)
-        .expect("latency-canary.md must be readable");
+    let content = std::fs::read_to_string(canary_path).expect("latency-canary.md must be readable");
 
     assert!(
         content.contains("p95") || content.contains("P95"),

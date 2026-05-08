@@ -51,9 +51,9 @@ use factory_dispatcher::registry::REGISTRY_SCHEMA_VERSION;
 
 fn make_test_ctx() -> factory_dispatcher::host::HostContext {
     factory_dispatcher::host::HostContext::new(
-        "test-plugin",       // plugin_name
-        "0.0.0",             // plugin_version
-        "test-session-vp079",// session_id
+        "test-plugin",         // plugin_name
+        "0.0.0",               // plugin_version
+        "test-session-vp079",  // session_id
         "test-trace-id-vp079", // dispatcher_trace_id
     )
 }
@@ -82,8 +82,15 @@ fn test_BC_3_08_001_vp079_s1_async_block_discarded_stub_panics() {
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];
-    assert_eq!(ev.type_, "plugin.async_block_discarded", "event type must match");
-    assert_eq!(ev.plugin_name.as_deref(), Some("test-async-blocker"), "plugin_name field");
+    assert_eq!(
+        ev.type_, "plugin.async_block_discarded",
+        "event type must match"
+    );
+    assert_eq!(
+        ev.plugin_name.as_deref(),
+        Some("test-async-blocker"),
+        "plugin_name field"
+    );
     assert_eq!(
         ev.fields.get("reason").and_then(|v| v.as_str()),
         Some("async_plugin_block_verdict_discarded"),
@@ -143,7 +150,10 @@ fn test_BC_3_08_001_vp079_s2_schema_mismatch_stub_panics() {
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];
-    assert_eq!(ev.type_, "dispatcher.schema_mismatch", "event type must match");
+    assert_eq!(
+        ev.type_, "dispatcher.schema_mismatch",
+        "event type must match"
+    );
     assert_eq!(
         ev.fields.get("found_version").and_then(|v| v.as_i64()),
         Some(1),
@@ -171,8 +181,7 @@ fn test_BC_3_08_001_vp079_s2_expected_version_is_2() {
     // DI-019: ASYNC_DRAIN_WINDOW_MS is cited by name (not hardcoded) elsewhere;
     // here we only validate the schema version constant.
     assert_eq!(
-        REGISTRY_SCHEMA_VERSION,
-        2,
+        REGISTRY_SCHEMA_VERSION, 2,
         "test_BC_3_08_001_vp079_s2_expected_version_is_2: \
          REGISTRY_SCHEMA_VERSION must be 2 per AC-001 / BC-7.06.001 PC1"
     );
@@ -191,7 +200,10 @@ fn test_BC_3_08_001_vp079_s2_v1_registry_triggers_schema_mismatch() {
     let ev = &events[0];
     // All mandatory fields present per BC-3.08.001 PC2.
     assert!(ev.dispatcher_trace_id.is_some(), "trace_id must be present");
-    assert_eq!(ev.fields.get("found_version").and_then(|v| v.as_i64()), Some(1));
+    assert_eq!(
+        ev.fields.get("found_version").and_then(|v| v.as_i64()),
+        Some(1)
+    );
     assert_eq!(
         ev.fields.get("expected_version").and_then(|v| v.as_i64()),
         Some(2),
@@ -227,7 +239,10 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];
-    assert_eq!(ev.type_, "dispatcher.registry_invalid", "event type must match");
+    assert_eq!(
+        ev.type_, "dispatcher.registry_invalid",
+        "event type must match"
+    );
     assert_eq!(
         ev.fields.get("offending_plugin").and_then(|v| v.as_str()),
         Some("invalid-blocker"),
@@ -294,8 +309,15 @@ fn test_BC_3_08_001_vp079_s4_plugin_timeout_async_stub_panics() {
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];
-    assert_eq!(ev.type_, "plugin.timeout", "event type must be plugin.timeout");
-    assert_eq!(ev.plugin_name.as_deref(), Some("slow-async-plugin"), "plugin_name field");
+    assert_eq!(
+        ev.type_, "plugin.timeout",
+        "event type must be plugin.timeout"
+    );
+    assert_eq!(
+        ev.plugin_name.as_deref(),
+        Some("slow-async-plugin"),
+        "plugin_name field"
+    );
     assert_eq!(
         ev.fields.get("execution_group").and_then(|v| v.as_str()),
         Some("async"),
@@ -368,8 +390,7 @@ fn test_BC_1_14_001_vp079_s5_async_drain_window_constant_exported() {
     // The bats Scenario 5 provides the full runtime verification.
     let drain_window_ms: u64 = factory_dispatcher::ASYNC_DRAIN_WINDOW_MS.as_millis() as u64;
     assert_eq!(
-        drain_window_ms,
-        100,
+        drain_window_ms, 100,
         "test_BC_1_14_001_vp079_s5_async_drain_window_constant_exported: \
          ASYNC_DRAIN_WINDOW_MS must equal 100ms per DI-019 (canonical constant). \
          Do NOT hardcode 100 — reference factory_dispatcher::ASYNC_DRAIN_WINDOW_MS."

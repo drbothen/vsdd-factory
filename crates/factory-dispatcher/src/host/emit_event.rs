@@ -140,11 +140,7 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 /// - BC-3.08.001 v1.4 — event catalog
 /// - BC-1.14.001 EC-005 — async plugin exit code 2 behavior
 /// - BC-1.14.001 Error Paths — async plugin returns exit code 2
-pub fn emit_plugin_async_block_discarded(
-    ctx: &HostContext,
-    plugin_name: &str,
-    exit_code: i32,
-) {
+pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, exit_code: i32) {
     let ev = InternalEvent::now("plugin.async_block_discarded")
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
@@ -170,11 +166,7 @@ pub fn emit_plugin_async_block_discarded(
 /// - BC-3.08.001 v1.4 — event catalog
 /// - BC-1.14.001 Error Paths — schema_version mismatch
 /// - BC-1.08.001 amendment — schema-mismatch is the explicit fail-closed exception
-pub fn emit_dispatcher_schema_mismatch(
-    ctx: &HostContext,
-    got: u32,
-    expected: u32,
-) {
+pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u32) {
     let ev = InternalEvent::now("dispatcher.schema_mismatch")
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
@@ -199,10 +191,7 @@ pub fn emit_dispatcher_schema_mismatch(
 /// - BC-3.08.001 v1.4 — event catalog
 /// - BC-1.14.001 Error Paths — on_error=block AND async=true
 /// - BC-7.06.001 Invariant 1 — load-time invariant enforcement
-pub fn emit_dispatcher_registry_invalid(
-    ctx: &HostContext,
-    plugin_name: &str,
-) {
+pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
     let ev = InternalEvent::now("dispatcher.registry_invalid")
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
@@ -233,11 +222,7 @@ pub fn emit_dispatcher_registry_invalid(
 /// - BC-1.14.001 Error Paths — async plugin times out
 /// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)
-pub fn emit_plugin_timeout_async(
-    ctx: &HostContext,
-    plugin_name: &str,
-    timeout_ms: u32,
-) {
+pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_ms: u32) {
     let ev = InternalEvent::now("plugin.timeout")
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)

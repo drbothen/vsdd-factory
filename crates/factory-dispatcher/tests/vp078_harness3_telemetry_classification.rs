@@ -83,9 +83,8 @@ fn test_BC_7_06_001_vp078_harness3_telemetry_positive_classification() {
         )
     });
 
-    let find_plugin = |name: &str| -> Option<&RegistryEntry> {
-        registry.hooks.iter().find(|e| e.name == name)
-    };
+    let find_plugin =
+        |name: &str| -> Option<&RegistryEntry> { registry.hooks.iter().find(|e| e.name == name) };
 
     for plugin_name in REQUIRED_ASYNC_PLUGINS {
         let entry = find_plugin(plugin_name).unwrap_or_else(|| {
@@ -102,8 +101,7 @@ fn test_BC_7_06_001_vp078_harness3_telemetry_positive_classification() {
             "test_BC_7_06_001_vp078_harness3_telemetry_positive_classification: \
              BC-7.06.001 Invariant 6 violation — '{}' must be async=true (telemetry-only). \
              Current: async_flag={}. T-3h must set async=true in hooks-registry.toml.",
-            plugin_name,
-            entry.async_flag
+            plugin_name, entry.async_flag
         );
     }
 }

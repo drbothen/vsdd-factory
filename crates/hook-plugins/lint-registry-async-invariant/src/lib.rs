@@ -116,17 +116,26 @@ where
         .unwrap_or("");
 
     if !changed_path.ends_with("hooks-registry.toml") {
-        (callbacks.log)(0, "lint-registry-async-invariant: skipping — not hooks-registry.toml");
+        (callbacks.log)(
+            0,
+            "lint-registry-async-invariant: skipping — not hooks-registry.toml",
+        );
         return HookResult::Continue;
     }
 
-    (callbacks.log)(2, "lint-registry-async-invariant: checking hooks-registry.toml");
+    (callbacks.log)(
+        2,
+        "lint-registry-async-invariant: checking hooks-registry.toml",
+    );
 
     // Read the registry file via the host read_file capability.
     let toml_text = match (callbacks.read_file)(REGISTRY_PATH) {
         Ok(text) => text,
         Err(e) => {
-            (callbacks.log)(3, &format!("lint-registry-async-invariant: cannot read {REGISTRY_PATH}: {e}"));
+            (callbacks.log)(
+                3,
+                &format!("lint-registry-async-invariant: cannot read {REGISTRY_PATH}: {e}"),
+            );
             // Best-effort: if we can't read the file, don't block (fail-open).
             return HookResult::Continue;
         }
@@ -134,11 +143,16 @@ where
 
     match run_lint(&toml_text) {
         LintResult::Pass => {
-            (callbacks.log)(2, "lint-registry-async-invariant: PASS — registry invariants satisfied");
+            (callbacks.log)(
+                2,
+                "lint-registry-async-invariant: PASS — registry invariants satisfied",
+            );
             HookResult::Continue
         }
         LintResult::SchemaMismatch { got } => {
-            let got_str = got.map(|v| v.to_string()).unwrap_or_else(|| "missing".to_string());
+            let got_str = got
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "missing".to_string());
             (callbacks.emit_event)(
                 "dispatcher.schema_mismatch",
                 &[
@@ -192,13 +206,15 @@ pub fn run_lint(toml_text: &str) -> LintResult {
     };
 
     // Check schema_version == 2 (BC-7.06.001 postcondition 1).
-    let schema_version = table
-        .get("schema_version")
-        .and_then(|v| v.as_integer());
+    let schema_version = table.get("schema_version").and_then(|v| v.as_integer());
 
     match schema_version {
         Some(2) => {} // OK
-        Some(v) => return LintResult::SchemaMismatch { got: Some(v as u32) },
+        Some(v) => {
+            return LintResult::SchemaMismatch {
+                got: Some(v as u32),
+            };
+        }
         None => return LintResult::SchemaMismatch { got: None },
     }
 
@@ -207,10 +223,8 @@ pub fn run_lint(toml_text: &str) -> LintResult {
     if let Some(toml::Value::Array(hooks)) = table.get("hooks") {
         for hook in hooks {
             if let toml::Value::Table(entry) = hook {
-                let on_error_is_block = entry
-                    .get("on_error")
-                    .and_then(|v| v.as_str())
-                    == Some("block");
+                let on_error_is_block =
+                    entry.get("on_error").and_then(|v| v.as_str()) == Some("block");
 
                 let async_is_true = entry
                     .get("async")
