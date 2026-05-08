@@ -114,8 +114,9 @@ Rationale for 1500ms over alternatives:
   safety margin, it also masks meaningful performance regressions. A plugin that adds
   400ms of startup cost would pass undetected. 1500ms is the tightest budget that
   comfortably clears the p99 + CI variance band.
-- **1500ms chosen:** Clears p99 by 35%, accommodates CI hardware variance, and
-  detects regressions that would add ≥450ms to the current baseline.
+- **1500ms chosen:** **Class A budget rationale (refreshed v1.9 release measurement):** Measured p95 = 1161ms; p99 = 1570ms. The 1500ms p95 budget provides 1.29× headroom over measured p95 (339ms margin). p99 of 1570ms is 4.6% over the 1500ms reference (a non-blocking observation; AC-016 enforces p95 only). The budget remains defensible: regressions of >340ms above measured p95 will breach the budget and surface in CI.
+
+**Soft-guard (informational):** Latency canary records p99 alongside p95 (per `latency-canary.md` v1.9). When p99 trends upward past 1800ms across 3 consecutive measurements, this should be treated as a potential class-of-regression signal even if AC-016 (p95-only) continues to PASS. Operators should investigate; not a blocking criterion.
 
 ---
 
@@ -288,6 +289,16 @@ The Class B target is a future SS-01 architectural goal (daemon mode).
 ---
 
 ## Changelog
+
+### v1.0 rationale clarification — 2026-05-08 (F5 fix-burst-3; F-P3-006)
+
+Addresses adversary pass-3 finding **F-P3-006**: the rationale paragraph for the 1500ms budget choice cited "Clears p99 by 35%" which was based on the initial v1.7 debug measurement (p99 = 1111ms release). The v1.9 release measurement records p99 = 1570ms, which is 4.6% over 1500ms, making the 35% claim incorrect.
+
+**Changes:**
+- Replaced the stale "Clears p99 by 35%" sentence with a refreshed rationale citing v1.9 measured values: p95 = 1161ms, p99 = 1570ms, 1.29× headroom over p95 (339ms margin), p99 non-blocking observation noted.
+- Added §Soft-guard (informational) paragraph: p99 > 1800ms trending across 3 consecutive measurements should trigger investigation even if AC-016 (p95-only) continues to PASS.
+- `last_amended` confirmed 2026-05-08.
+- No version bump (v1.0 stands; this is a rationale clarification, not a decision change).
 
 ### v1.0 — 2026-05-08 (initial; F5 pass-1 fix-burst origin)
 

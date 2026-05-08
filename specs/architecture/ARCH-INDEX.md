@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.21"
+version: "1.22"
 status: accepted
 producer: architect
 timestamp: 2026-05-08T00:00:00
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-08
+    change: "v1.22 (2026-05-08; F5 fix-burst-3 Stage 1): ADR-020 rationale clarification (F-P3-006; no version bump). BC-INDEX cite refreshed v1.33→v1.34. VP-INDEX cite refreshed v1.18→v1.19. STORY-INDEX cite refreshed v2.39→v2.40. ARCH-INDEX v1.21→v1.22."
   - date: 2026-05-08
     change: "v1.21 (2026-05-08; F5 fix-burst-2 Stage 1): ADR-020 line 261 typo fix + last_amended bumped. BC-INDEX cite refreshed v1.32→v1.33. VP-INDEX cite refreshed v1.17→v1.18. STORY-INDEX cite refreshed v2.38→v2.39. ARCH-INDEX v1.20→v1.21."
   - date: 2026-05-08
@@ -210,7 +212,7 @@ graph TD
 | ADR-017 | Per-story adversarial convergence gate — three-perimeter model and WASM hook phasing — **ACCEPTED 2026-05-07; D-340 F2** | SS-04, SS-05 | decisions/ADR-017-per-story-adversary-phasing.md |
 | ADR-018 | WASM-plugin Context Resolvers — design and layering for factory-agnostic runtime context injection via sandboxed WASM-plugin resolvers — **ACCEPTED 2026-05-07; D-362 F2-amendment** | SS-01, SS-04 | decisions/ADR-018-wasm-plugin-context-resolvers.md |
 | ADR-019 | Plugin Async Semantics Belong at the Registry Layer — hard cut to registry-layer `async: bool` per-plugin field; envelope uniformly synchronous; dispatcher partition (sync_group/async_group); CI lint `on_error=block ⇒ async=false` — **ACCEPTED 2026-05-07; F2 async-semantics; v1.8 (F2 pass-6 fix burst close: §Consequences inline 100ms parenthetical removed; cites DI-019 by reference; F-P6-005 closed)** | SS-01, SS-07, SS-09 | decisions/ADR-019-plugin-async-semantics-at-registry-layer.md |
-| ADR-020 | Dispatcher Latency Budget Classes — defines Class A (binary-spawn current model, p95 ≤ 1500ms) and Class B (daemon-mode target, TBD); AC-016 in S-15.01 is anchored to Class A; S-15.02 escalation path for Class B — **ACCEPTED 2026-05-08; F5 pass-1 path-A; v1.0; typo fix line 261 + last_amended bumped 2026-05-08** | SS-01 | decisions/ADR-020-dispatcher-latency-budget-classes.md |
+| ADR-020 | Dispatcher Latency Budget Classes — defines Class A (binary-spawn current model, p95 ≤ 1500ms) and Class B (daemon-mode target, TBD); AC-016 in S-15.01 is anchored to Class A; S-15.02 escalation path for Class B — **ACCEPTED 2026-05-08; F5 pass-1 path-A; v1.0; rationale clarification F-P3-006 last_amended 2026-05-08** | SS-01 | decisions/ADR-020-dispatcher-latency-budget-classes.md |
 
 ## Phase 1.4 BC Renumbering Map
 

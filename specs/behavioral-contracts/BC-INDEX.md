@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.33"
+version: "1.34"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-3 Stage 1 (2026-05-08) — BC-7.06.001 v1.4→v1.5 (F-P3-003 string-equality clause added to Inv-7). No count change. BC-INDEX v1.33→v1.34. last_amended: 2026-05-08 (F5 fix-burst-3 Stage 1: BC-7.06.001 v1.5; F-P3-003 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-2 Stage 1 (2026-05-08) — BC-1.14.001 v1.8→v1.9 (F-P2-004: PC4 vs PC6 contradiction resolved). BC-3.08.001 v1.5→v1.6 (F-P2-015: frontmatter hygiene). BC-7.06.001 v1.3→v1.4 (F-P2-011: USER-APPROVED Path A — Invariant 7 respecified as (name, event, tool) tuple). No count change. BC-INDEX v1.32→v1.33. last_amended: 2026-05-08 (F5 fix-burst-2 Stage 1: BC-1.14.001 v1.9; BC-3.08.001 v1.6; BC-7.06.001 v1.4; F-P2-004/011/015 closed)."
   - date: 2026-05-08
@@ -224,7 +226,7 @@ changelog:
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
 | [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch | draft | CAP-TBD | TBD |
 | [BC-1.14.001](ss-01/BC-1.14.001.md) | factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget with bounded ASYNC_DRAIN_WINDOW_MS, no verdict gate) | draft | CAP-002 | S-15.01 |
-| [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` | draft | CAP-002 | S-15.01 |
+| [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` (v1.5: F5 fix-burst-3 — Inv-7 string-equality clause added; F-P3-003) | draft | CAP-002 | S-15.01 |
 <!-- BC-7.06.001 filename slug retained in ss-07/ per POLICY 1 append-only; authoritative subsystem is SS-01 per frontmatter (post-F-P1-006 reanchor 2026-05-07). Unified here to match BC-8.29.001/002/003 + BC-8.30.002 authoritative-frontmatter convention (F-P4-001 BC-INDEX listing convention unification). -->
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)

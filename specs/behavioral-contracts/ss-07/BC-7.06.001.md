@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -74,7 +74,7 @@ removal_reason: null
 
 6. **Specific plugins MUST be `async = true`**: The following telemetry-only plugins MUST be classified `async = true` in the v2 registry: `capture-commit-activity`, `capture-pr-activity`, `session-start-telemetry`, `session-end-telemetry`, `worktree-hooks`, `tool-failure-hooks`, `track-agent-start`, `track-agent-stop`, `session-learning`. All validator and governance plugins with `on_error = "block"` MUST remain `async = false`. The following plugins are SYNC (on_error=continue but user-visible stderr warnings require reliable delivery): `warn-pending-wave-gate`, `regression-gate`. This is an invariant (not merely a postcondition) because a future engineer flipping any of these to `async = false` would silently degrade user-facing latency, or flipping a warn plugin to async would silently drop stderr warnings. Positive classification is verified by VP-078 Harness 3.
 
-7. **(`name`, `event`, `tool`) tuple is unique across all `[[hooks]]` entries.** Two entries MAY share `name` and `event` if they bind to different `tool` regex values — this permits a single named plugin to enforce against multiple tool surfaces (e.g., `protect-secrets` running on both `Bash` and `Read` PreToolUse events). The `(name, event, tool)` uniqueness is enforced at registry-load time by `registry.rs::validate()`. Violations produce `RegistryError::DuplicateEntry { name, event, tool }` (`dispatcher.registry_invalid` with reason `duplicate_hook_registration`); dispatcher exits non-zero (fail-closed). Note: `tool` in this tuple is the raw regex string value (or `None` for "all tools"); two entries with `tool = None` and the same `name`+`event` are duplicates.
+7. **(`name`, `event`, `tool`) tuple is unique across all `[[hooks]]` entries.** Two entries MAY share `name` and `event` if they bind to different `tool` regex values — this permits a single named plugin to enforce against multiple tool surfaces (e.g., `protect-secrets` running on both `Bash` and `Read` PreToolUse events). The `(name, event, tool)` uniqueness is enforced at registry-load time by `registry.rs::validate()`. Violations produce `RegistryError::DuplicateEntry { name, event, tool }` (`dispatcher.registry_invalid` with reason `duplicate_hook_registration`); dispatcher exits non-zero (fail-closed). Note: `tool` in this tuple is the raw regex string value (or `None` for "all tools"); two entries with `tool = None` and the same `name`+`event` are duplicates. **String equality, not regex equivalence:** Comparison of the `tool` field uses raw-string equality (Rust `Option<String>` equality). Two entries with `tool = '^Bash$'` and `tool = 'Bash'` are DISTINCT entries despite matching the same tool surface — the registry does NOT perform regex-equivalence detection. Operators MUST normalize their `tool` regex strings if they intend semantic deduplication.
 
 ## Implementation Notes
 
@@ -90,6 +90,10 @@ Implementations MUST add a load-time uniqueness check for the `(name, event, too
 The existing CI lint plugin (`lint-registry-async-invariant`, VP-078) MAY also enforce this at edit time; verify and extend its check set as needed to cover the `(name, event, tool)` tuple constraint in addition to the `on_error=block ⇒ async=false` invariant.
 
 **Rationale:** `protect-secrets` legitimately appears twice with `event = "PreToolUse"` — once with `tool = "Bash"` and once with `tool = "Read"`. Under the prior `(name, event)` uniqueness check, this valid configuration would have produced a false-positive duplicate error. The `(name, event, tool)` tuple correctly allows this pattern while still rejecting true duplicates (identical name+event+tool).
+
+### Equality Semantics — Raw-String, Not Regex-Equivalence (F-P3-003)
+
+`registry.rs::validate()` implements the uniqueness check using `HashSet<(String, String, Option<String>)>` with derived `PartialEq`. This is the canonical implementation surface for the equality semantics specified in Invariant 7. Comparison is byte-for-byte string equality on the raw regex string value — the registry does NOT parse, compile, or normalize regex patterns before comparison. Consequently, `tool = '^Bash$'` and `tool = 'Bash'` are treated as distinct keys and will NOT raise a `DuplicateEntry` error even though both patterns match the same tool surface. Operators who intend semantic deduplication MUST normalize their regex strings to a canonical form before authoring registry entries.
 
 ## Error Paths
 
@@ -190,6 +194,22 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-08 (v1.4 → v1.5 — F-P3-003: Invariant 7 clarified — comparison is raw-string equality, not regex equivalence)
+
+**Driver:** F-P3-003 — Invariant 7 (v1.4) stated that the `tool` field comparison uses the "raw regex string value" but did not explicitly specify that comparison is raw-string equality rather than regex equivalence. A future operator could reasonably assume the dispatcher performs regex-equivalence detection before deciding whether two entries are duplicates. The implementation uses `HashSet<(String, String, Option<String>)>` with derived `PartialEq`, meaning comparison is byte-for-byte string equality — no regex parsing, no normalization.
+
+**Changes made:**
+
+1. **Invariant 7 amended (append-only per POLICY 1):** Added clarifying sentence after the existing `tool = None` note: "**String equality, not regex equivalence:** Comparison of the `tool` field uses raw-string equality (Rust `Option<String>` equality). Two entries with `tool = '^Bash$'` and `tool = 'Bash'` are DISTINCT entries despite matching the same tool surface — the registry does NOT perform regex-equivalence detection. Operators MUST normalize their `tool` regex strings if they intend semantic deduplication."
+
+2. **Implementation Notes section extended** with `### Equality Semantics — Raw-String, Not Regex-Equivalence (F-P3-003)` subsection: names `HashSet<(String, String, Option<String>)>` with derived `PartialEq` as the canonical implementation surface; explains that no regex compilation occurs before comparison; restates operator normalization obligation.
+
+3. **Frontmatter:** `version: "1.4"` → `"1.5"`; `last_amended:` value unchanged (already 2026-05-08 from the same session day).
+
+**POLICY 7 verification:** H1 heading unchanged — title remains authoritative as authored in v1.0.
+
+**POLICY 1 verification:** No content removed. Invariant 7 text extended by appending the new sentence; Implementation Notes extended by appending a new subsection. All prior wording preserved verbatim.
 
 ## Amendment 2026-05-08 (v1.3 → v1.4 — F5 fix-burst-2 F-P2-011: Invariant 7 amended to (name, event, tool) tuple uniqueness — USER-APPROVED PATH A)
 
