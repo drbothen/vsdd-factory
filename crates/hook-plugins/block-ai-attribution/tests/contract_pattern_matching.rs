@@ -161,10 +161,7 @@ fn test_BC_4_05_001_detect_attribution_returns_matched_text() {
         !att.recommendation.is_empty(),
         "Attribution.recommendation must be non-empty"
     );
-    assert!(
-        !att.code.is_empty(),
-        "Attribution.code must be non-empty"
-    );
+    assert!(!att.code.is_empty(), "Attribution.code must be non-empty");
 }
 
 /// BC-4.05.002: detect_attribution returns None for clean commit message.
@@ -186,5 +183,8 @@ fn test_BC_4_05_004_detect_attribution_is_pure_function() {
     let cmd = "git commit -m \"fix\n\nCo-Authored-By: Claude <x@anthropic.com>\"";
     let a = detect_attribution(cmd);
     let b = detect_attribution(cmd);
-    assert_eq!(a, b, "pure function must return the same result for the same input");
+    assert_eq!(
+        a, b,
+        "pure function must return the same result for the same input"
+    );
 }

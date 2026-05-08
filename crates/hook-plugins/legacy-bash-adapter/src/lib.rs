@@ -285,10 +285,7 @@ mod tests {
     fn maps_exit_two_to_block_with_full_stderr() {
         // After the truncation fix, multi-line stderr is preserved (joined as-is).
         let p = payload_with_config(serde_json::json!({"script_path": "/x/v.sh"}));
-        let r = adapter_logic(
-            p,
-            always_ok(2, "first line\nsecond line\nthird line"),
-        );
+        let r = adapter_logic(p, always_ok(2, "first line\nsecond line\nthird line"));
         match r {
             HookResult::Block { reason } => {
                 assert!(reason.contains("first line"));

@@ -1860,6 +1860,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "lint-registry-async-invariant"
+version = "0.0.1"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "toml 0.8.23",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.4.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"

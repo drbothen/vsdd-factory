@@ -8,7 +8,7 @@
 # entries one-by-one; legacy entries can coexist with native ones in
 # this same file.
 
-schema_version = 1
+schema_version = 2
 
 # ---------- SessionStart ----------
 
@@ -17,6 +17,7 @@ name = "session-start-telemetry"
 event = "SessionStart"
 plugin = "hook-plugins/session-start-telemetry.wasm"
 timeout_ms = 8000
+async = true
 
 [hooks.capabilities.read_file]
 path_allow = [".claude/settings.local.json"]
@@ -31,6 +32,7 @@ name = "session-end-telemetry"
 event = "SessionEnd"
 plugin = "hook-plugins/session-end-telemetry.wasm"
 timeout_ms = 5000
+async = true
 
 # ---------- WorktreeCreate ----------
 
@@ -39,6 +41,7 @@ name = "worktree-hooks"
 event = "WorktreeCreate"
 plugin = "hook-plugins/worktree-hooks.wasm"
 timeout_ms = 5000
+async = true
 
 # ---------- WorktreeRemove ----------
 
@@ -47,6 +50,7 @@ name = "worktree-hooks"
 event = "WorktreeRemove"
 plugin = "hook-plugins/worktree-hooks.wasm"
 timeout_ms = 5000
+async = true
 
 # ---------- PostToolUseFailure ----------
 
@@ -55,6 +59,7 @@ name = "tool-failure-hooks"
 event = "PostToolUseFailure"
 plugin = "hook-plugins/tool-failure-hooks.wasm"
 timeout_ms = 5000
+async = true
 
 # ---------- PostToolUse ----------
 
@@ -65,6 +70,7 @@ plugin = "hook-plugins/capture-commit-activity.wasm"
 priority = 110
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [hooks.capabilities]
 env_allow = []
@@ -79,6 +85,7 @@ plugin = "hook-plugins/capture-pr-activity.wasm"
 priority = 120
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [hooks.capabilities]
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
@@ -763,6 +770,7 @@ plugin = "hook-plugins/track-agent-start.wasm"
 priority = 110
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [[hooks]]
 name = "validate-pr-merge-prerequisites"
@@ -850,6 +858,7 @@ plugin = "hook-plugins/session-learning.wasm"
 priority = 910
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [[hooks]]
 name = "warn-pending-wave-gate"
@@ -893,6 +902,7 @@ plugin = "hook-plugins/track-agent-stop.wasm"
 priority = 930
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [[hooks]]
 name = "update-wave-state-on-merge"
@@ -938,3 +948,20 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = [".factory/cycles"]
 
+# ---------- lint-registry-async-invariant (PostToolUse, Edit|Write) ----------
+# S-15.01 T-3i: native WASM CI lint plugin (BC-7.06.001 Invariant 5 Layer 1).
+# Enforces: schema_version=2 required + on_error=block implies async=false.
+# Fires on any Edit|Write to hooks-registry.toml; no-ops for other paths.
+# NOT via legacy-bash-adapter (Decision 5 WASM-migration rule).
+
+[[hooks]]
+name = "lint-registry-async-invariant"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/lint-registry-async-invariant.wasm"
+priority = 160
+timeout_ms = 5000
+on_error = "block"
+
+[hooks.capabilities.read_file]
+path_allow = ["plugins/vsdd-factory/hooks-registry.toml"]

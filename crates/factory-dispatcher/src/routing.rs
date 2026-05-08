@@ -94,7 +94,7 @@ mod tests {
 
     fn registry_fixture() -> Registry {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "fast-pre"
@@ -224,7 +224,7 @@ priority = 200
     #[test]
     fn group_packs_multiple_entries_at_same_priority() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "a"
