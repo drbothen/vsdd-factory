@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-13 COMPLETE — verdict HIGH (2H/2M/3L). Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4. ADR-013 clock 0_of_3. Fix-burst-12 dispatching: VP-079 v1.12 + BC-7.06.001 v1.8 + S-15.01 v1.15 + bats PATH fix + LOW cleanups. PR remains held."
+current_step: "F5 fix-burst-12 COMPLETE — F-P13-001/002 (HIGH) + F-P13-003/004 (M) + F-P13-005/006 (LOW) all addressed. VP-079 v1.12 spec rewrite mirrors fix-burst-11 bats helper. BC-7.06.001 v1.8 migrated to stable symbol anchors per TD-VSDD-091. Branch fix/S-15.01-F5-convergence at 028a596 (25 commits ahead). PR remains held until ADR-013 = 3_of_3. F5 pass-14 dispatch next."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 pass-13 COMPLETE — verdict HIGH (2H/2M/3L); trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4; ADR-013 clock 0_of_3; fix-burst-12 dispatching) |
+| **Last Updated** | 2026-05-08 (F5 fix-burst-12 COMPLETE — VP-079 v1.12 + BC-7.06.001 v1.8 + S-15.01 v1.15 + S-15.02 v1.6 + bats PATH/rename + story propagation; F-P13-001/002/003/004/005/006 closed; F5 pass-14 dispatch next) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -96,6 +96,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-12 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (1H/0M/1L/2obs). ADR-013 clock 0_of_3 (HIGH resets). F-P12-001 [H] SITE_2/SITE_5 mutation vacuous — single-line sed on 6-line emit call causes build failure; caught==2 misread as success. F-P12-002 [L] SITE_3/4 per-test annotations stale (394→416, 405→427). O-P12-001/002: sibling bats+source BC version-label staleness (pending intent). Trajectory: →4 (regressed). See `F5-adversary-pass-12.md`. |
 | **F5 fix-burst-11 — bats helper repair + annotation refresh + sibling cite sweep** | test-writer + implementer (2 agents, 3 commits) | **COMPLETE** | 302963c: bats helper line-range covers multi-line emit calls 142-147+162-167; SITE_3/4 annotation refresh; sibling bats cite sweep 14+ sites. 197f8e2: source-tree BC-7.06.001 v1.6→v1.7 (6 sites: main.rs:1, partition.rs:3, registry.rs:2). e5108a2: vp078_harness3.rs (4 sites) + cargo fmt cleanup. All cargo checks clean. Branch @ e5108a2 (24 ahead). |
 | **F5 pass-13 adversary review** | adversary | **COMPLETE** | Verdict: HIGH. F-P13-001 [H] VP-079 §Proof Harness Skeleton retains broken sed + only 4 SITES (5 enumerated); F-P13-002 [H] BC-7.06.001 line 106 stale main.rs line cites post-EC-012; F-P13-003 [M] S-15.01 References cites VP-079 v1.10 not v1.11; F-P13-004 [M] bats PATH may make mutations no-op. Trajectory: →4. ADR-013 clock 0_of_3 (HIGH resets). See `F5-adversary-pass-13.md`. |
+| **F5 fix-burst-12 — VP-079 v1.12 + BC-7.06.001 v1.8 + story propagation + bats PATH/rename** | test-writer + architect + PO + story-writer | **COMPLETE** | VP-079 v1.12: §Proof Harness Skeleton rewritten; 5 SITES enumerated; broken sed replaced with fn-name mutation (F-P13-001). BC-7.06.001 v1.8: stable symbol anchors per TD-VSDD-091 (F-P13-002). S-15.01 v1.15: References VP-079 cite refresh (F-P13-003). S-15.02 v1.6: sibling propagation. bats PATH injection + helper rename + sed portability (F-P13-004/005/006). Branch @ 028a596 (25 ahead). |
 
 ## Identifier Conventions
 
@@ -137,7 +138,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-13 COMPLETE — fix-burst-12 dispatching | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..13 + fix-bursts 1..11 complete. Pass-13 verdict: HIGH (2H/2M/3L). F-P13-001 [H] VP-079 spec skeleton retains broken sed; F-P13-002 [H] BC-7.06.001 stale line cites; F-P13-003/004 [M] story ref + PATH fix. ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4. Fix-burst-12 dispatching: VP-079 v1.12 + BC-7.06.001 v1.8 + S-15.01 v1.15 + bats PATH fix + LOWs. PR held until ADR-013 = 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-12 COMPLETE — pass-14 dispatch next | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..13 + fix-bursts 1..12 complete. Fix-burst-12: VP-079 v1.12 (F-P13-001) + BC-7.06.001 v1.8 stable anchors (F-P13-002) + S-15.01 v1.15 + S-15.02 v1.6 + bats PATH/rename/portability (F-P13-003..006). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4. Branch @ 028a596 (25 ahead). PR held until ADR-013 = 3_of_3. Pass-14 dispatch next. |
 
 ## Decisions Log
 
@@ -161,17 +162,17 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 pass-13 COMPLETE. Verdict: HIGH (2H/2M/3L). F-P13-001 [H] VP-079 §Proof Harness Skeleton retains broken sed + 4 SITES vs 5 enumerated; spec is canonical so future rebuild hits same bug. F-P13-002 [H] BC-7.06.001:106 cites stale main.rs line numbers post-EC-012 shift. F-P13-003 [M] S-15.01 References cites VP-079 v1.10 not v1.11. F-P13-004 [M] bats PATH gap may make mutations no-op against wrong binary. F-P13-005/006/O-P13-001 [L] BSD sed portability + misleading helper name + marker divergence. ADR-013 clock 0_of_3 (HIGH resets clock).
+**Last update:** 2026-05-08 — F5 fix-burst-12 COMPLETE. All 6 pass-13 findings addressed: F-P13-001 [H] VP-079 v1.12 §Proof Harness Skeleton rewritten — broken sed replaced with fn-name mutation approach; all 5 SITES enumerated. F-P13-002 [H] BC-7.06.001 v1.8 migrated to stable symbol anchors per TD-VSDD-091. F-P13-003 [M] S-15.01 v1.15 References VP-079 cite refreshed v1.10→v1.12. F-P13-004 [M] bats PATH injection added; helper renamed. F-P13-005/006 [L] BSD sed portability + helper rename. S-15.02 v1.6 sibling propagation. Branch @ 028a596 (25 ahead). F5 pass-14 dispatch next.
 
-**ACTIVE STEP: Fix-burst-12 dispatching: VP-079 v1.12 spec rewrite + BC-7.06.001 v1.8 stable anchors + S-15.01 v1.15 ref propagation + bats PATH injection + LOW cleanups. PR held until ADR-013 = 3_of_3.**
+**ACTIVE STEP: F5 pass-14 adversary review — dispatch next. PR held until ADR-013 = 3_of_3.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ e5108a2 — long-lived; 24 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ 028a596 — long-lived; 25 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this burst — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.36 | VP-INDEX v1.22 | STORY-INDEX v2.44 | ARCH-INDEX v1.22
+**Index versions:** BC-INDEX v1.37 | VP-INDEX v1.23 | STORY-INDEX v2.45 | ARCH-INDEX v1.22
 **ADR-013 clock:** **0_of_3** (RESET — pass-13 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete

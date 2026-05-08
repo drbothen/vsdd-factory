@@ -234,6 +234,24 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
 
+## Amendment 2026-05-08 (v1.7 → v1.8 — F-P13-002: §Fail-Closed Symmetry line citations refreshed post-EC-012 refactor)
+
+**Driver:** F-P13-002 — §Fail-Closed Symmetry Across E-REG-NNN Error Codes (added in v1.6, F-P8-001) cited stale `main.rs` line numbers that drifted after the EC-012 partial-drain refactor: the catch-all `_ => 0` was cited at `main.rs:148–151` (actual: line 173 post-refactor), and the `AsyncBlockConflict` explicit-exit-2 arm was cited at `lines 143–145` (actual: arm spans lines 139–152 post-refactor, with arguments to the emit call occupying lines 143–145). This is the same drift class as F-P10-002. EC-012 shifted all these line numbers.
+
+**Changes made:**
+
+1. **§Fail-Closed Symmetry — E-REG-002 bullet refreshed** (F-P13-002): Stale `lines 143–145` citation replaced with stable symbol anchor: the `RegistryError::AsyncBlockConflict { name }` arm in `factory_dispatcher::main::run` (the arm carrying `eprintln! + 2` above the catch-all in `main.rs::run`). Migrated from line numbers to symbol anchors per TD-VSDD-091.
+
+2. **§Fail-Closed Symmetry — E-REG-003 bullet refreshed** (F-P13-002 primary fix): Stale `main.rs:148–151` catch-all citation and stale `lines 143–145` AsyncBlockConflict reference replaced with stable symbol anchors: the catch-all `_ => 0` arm is identified as `factory_dispatcher::main::run` (the arm guarding unmatched `RegistryError::*` variants); the AsyncBlockConflict reference uses `RegistryError::AsyncBlockConflict` arm name. Per TD-VSDD-091 stable-anchor convention, symbol-based anchors are preferred over line numbers for implementation references subject to refactor drift.
+
+3. **Frontmatter:** `version: "1.7"` → `"1.8"`.
+
+**POLICY 1 verification:** Historical changelog references at the former lines 257 and 263 (now in §Amendment 2026-05-08 v1.5 → v1.6 historical text) are preserved verbatim and untouched — those are records of the implementation state at v1.6 amendment time.
+
+**POLICY 7 verification:** H1 heading unchanged.
+
+**grep verification (HEAD e5108a2):** `RegistryError::AsyncBlockConflict` arm at `main.rs:139`; catch-all `_ => 0` at `main.rs:173`. Symbol anchors are stable across future refactors.
+
 ## Amendment 2026-05-08 (v1.6 → v1.7 — F-P9-001: stale sibling note cleaned; E-REG-002 violation string canonicalized)
 
 **Driver:** F-P9-001 — The sibling BC-3.08.001 PO sync note authored at line 204 during the v1.6 burst cited "BC-3.08.001 v1.6" and stated that E-REG-003 "MUST be added" — both facts were stale. BC-3.08.001 was amended to v1.7 in the same fix-burst-7 that produced BC-7.06.001 v1.6, and that amendment (a) added E-REG-003 to Event 3 and (b) canonicalized the E-REG-002 violation string from `"on_error_block_with_async_true"` to `"async_block_conflict"`. Additionally, BC-7.06.001's own E-REG-NNN Error Code Table at the former line 187 still carried the legacy violation string `"on_error_block_with_async_true"` for E-REG-002.

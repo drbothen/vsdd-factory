@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-08T18:16:19Z","command":"cargo test -p factory-dispatcher 2>&1 | tail -50"}
+{"status":"pass","timestamp":"2026-05-08T18:31:37Z","command":"git stash && cargo test -p sink-http 2>&1 | tail -10 && git stash pop"}
