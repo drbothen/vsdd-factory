@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-08T16:51:44Z","command":"cargo test --workspace 2>&1 | grep -E \"^(test result|FAILED|error)\" | head -20"}
+{"status":"pass","timestamp":"2026-05-08T17:20:09Z","command":"cargo test --workspace 2>&1 | grep -E \"^test result|FAILED|error\" | head -30"}

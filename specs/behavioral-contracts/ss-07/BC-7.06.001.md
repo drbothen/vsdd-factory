@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -184,7 +184,7 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 | Code | Error Variant | Event Type | Violation / Reason | Fail-Closed | Notes |
 |------|--------------|------------|-------------------|-------------|-------|
 | E-REG-001 | `RegistryError::SchemaVersion { got, expected }` | `dispatcher.schema_mismatch` | `schema_version` mismatch | YES — exit 2 | Existing; Postcondition 1 |
-| E-REG-002 | `RegistryError::AsyncBlockConflict { name }` | `dispatcher.registry_invalid` | `on_error_block_with_async_true` | YES — exit 2 | Existing; Postcondition 5 / Invariant 1 |
+| E-REG-002 | `RegistryError::AsyncBlockConflict { name }` | `dispatcher.registry_invalid` | `async_block_conflict` | YES — exit 2 | Existing; Postcondition 5 / Invariant 1 |
 | E-REG-003 | `RegistryError::DuplicateEntry { name, event, tool }` | `dispatcher.registry_invalid` | `duplicate_hook_registration` | YES — exit 2 | **NEW per F-P8-001**; Invariant 7 |
 
 **E-REG-003 event payload** (for `dispatcher.registry_invalid`):
@@ -201,7 +201,7 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 }
 ```
 
-**Sibling BC-3.08.001 note**: BC-3.08.001 v1.6 Event 3 (`dispatcher.registry_invalid`) currently enumerates only `error_code: "E-REG-002"` with `violation: "on_error_block_with_async_true"`. E-REG-003 (`violation: "duplicate_hook_registration"`) is a new valid value for this event type and MUST be added to BC-3.08.001's Event 3 payload schema. This is a PO sync note for a sibling architect amendment — see §PO Sync Notes below.
+**Sibling BC-3.08.001 cross-reference**: BC-3.08.001 v1.7 Event 3 (`dispatcher.registry_invalid`) enumerates two valid `error_code` values: `E-REG-002` (`violation: "async_block_conflict"`) and `E-REG-003` (`violation: "duplicate_hook_registration"`). The E-REG-003 wire-format payload defined here is the authoritative schema; BC-3.08.001 v1.7 lines 107-117 are the SS-03 catalog mirror.
 
 ## Traceability
 
@@ -233,6 +233,24 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-08 (v1.6 → v1.7 — F-P9-001: stale sibling note cleaned; E-REG-002 violation string canonicalized)
+
+**Driver:** F-P9-001 — The sibling BC-3.08.001 PO sync note authored at line 204 during the v1.6 burst cited "BC-3.08.001 v1.6" and stated that E-REG-003 "MUST be added" — both facts were stale. BC-3.08.001 was amended to v1.7 in the same fix-burst-7 that produced BC-7.06.001 v1.6, and that amendment (a) added E-REG-003 to Event 3 and (b) canonicalized the E-REG-002 violation string from `"on_error_block_with_async_true"` to `"async_block_conflict"`. Additionally, BC-7.06.001's own E-REG-NNN Error Code Table at the former line 187 still carried the legacy violation string `"on_error_block_with_async_true"` for E-REG-002.
+
+**Changes made:**
+
+1. **Sibling note at former line 204 replaced** (F-P9-001 primary fix): Stale "BC-3.08.001 v1.6 / MUST be added" text replaced with a cross-reference reflecting the completed state: BC-3.08.001 v1.7 enumerates both E-REG-002 (`async_block_conflict`) and E-REG-003 (`duplicate_hook_registration`); the E-REG-003 payload defined here is authoritative; BC-3.08.001 v1.7 lines 107-117 are the SS-03 catalog mirror.
+
+2. **E-REG-NNN Error Code Table E-REG-002 violation string canonicalized**: `"on_error_block_with_async_true"` updated to `"async_block_conflict"` to match BC-3.08.001 v1.7's canonical value. This was a stale legacy string in this BC's own table; the v1.5→v1.6 changelog at line 259 (historical record of BC-3.08.001 v1.6 state) is preserved unchanged per POLICY 1 append-only.
+
+3. **§PO Sync Notes audit**: No standalone §PO Sync Notes section exists in this file — the sync note was inline at former line 204 and in the v1.5→v1.6 amendment changelog (line 259). The inline note at line 204 is now replaced (change 1 above). The v1.5→v1.6 changelog entry at line 259 is a historical record of what was outstanding at v1.6 amendment time and is preserved verbatim per POLICY 1 — it accurately describes the state of BC-3.08.001 at the time of that amendment. The VP-077 Harness 1 Amendment Obligation row in Traceability remains active (architect scope, not resolved by this amendment).
+
+4. **Frontmatter:** `version: "1.6"` → `"1.7"`.
+
+**POLICY 7 verification:** H1 heading unchanged.
+
+**POLICY 1 verification:** No content removed. The stale note replacement is a factual correction of a cross-reference, not removal of an invariant or ID. The v1.5→v1.6 changelog text at line 259 (historical record) is untouched.
 
 ## Amendment 2026-05-08 (v1.5 → v1.6 — F-P8-001: Invariant 7 explicitly classified as [fail-closed] with E-REG-003 reservation)
 
