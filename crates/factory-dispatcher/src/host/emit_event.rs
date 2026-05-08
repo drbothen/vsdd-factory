@@ -216,10 +216,10 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
 /// - `error_code`: caller-supplied error code string (e.g. `"E-REG-002"`)
 /// - `violation`: caller-supplied violation identifier string
 ///
-/// Optional fields emitted only when `Some(_)` (E-REG-003 path):
+/// Conditional fields for E-REG-003 path (both always emitted when error_code == "E-REG-003"):
 /// - `offending_event`: the hook event that caused the duplicate
-/// - `offending_tool`: the tool filter that caused the duplicate (omitted when `None`,
-///   which represents a wildcard/"all tools" binding — distinct from absent)
+/// - `offending_tool`: the tool filter that caused the duplicate; emitted as JSON `null` when
+///   `tool=None` (wildcard/"all tools" binding) per BC-3.08.001 v1.8 mandatory field semantics
 ///
 /// # BC traces
 /// - BC-3.08.001 v1.7 / v1.8 — event catalog
@@ -245,15 +245,26 @@ pub fn emit_dispatcher_registry_invalid(
         .with_field("offending_plugin", plugin_name)
         .with_field("violation", violation)
         .with_field("error_code", error_code);
-    // E-REG-003 inter-entry fields: emit only when present.
-    // `event` being Some signals an inter-entry violation (E-REG-003).
-    // `tool` being None with E-REG-003 means wildcard ("all tools") and is intentionally omitted
-    // — receivers distinguish "no offending_tool field" (E-REG-002) from E-REG-003 via error_code.
-    if let Some(ev_name) = event {
-        ev = ev.with_field("offending_event", ev_name);
-    }
-    if let Some(tool_name) = tool {
-        ev = ev.with_field("offending_tool", tool_name);
+    // For E-REG-003 (DuplicateEntry), offending_event and offending_tool are MANDATORY per
+    // BC-3.08.001 v1.8 line 123. offending_tool is JSON null when the duplicating entry has
+    // no tool filter (wildcard "all tools"). For E-REG-002 (AsyncBlockConflict), event and
+    // tool are not applicable (intra-entry); fields are omitted.
+    if error_code == "E-REG-003" {
+        // event MUST be Some for E-REG-003; fall back to empty string only as defense-in-depth.
+        ev = ev.with_field("offending_event", event.unwrap_or(""));
+        // tool MAY be None (wildcard); emit as JSON null per BC-3.08.001 v1.8 mandatory field.
+        ev = match tool {
+            Some(t) => ev.with_field("offending_tool", t),
+            None => ev.with_field("offending_tool", Value::Null),
+        };
+    } else {
+        // E-REG-002 path or other: keep optional emission semantics (fields absent).
+        if let Some(ev_name) = event {
+            ev = ev.with_field("offending_event", ev_name);
+        }
+        if let Some(tool_name) = tool {
+            ev = ev.with_field("offending_tool", tool_name);
+        }
     }
     ctx.emit_internal(ev);
 }
