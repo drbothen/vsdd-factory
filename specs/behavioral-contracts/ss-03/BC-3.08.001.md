@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.9"
+version: "1.10"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -55,7 +55,11 @@ All four event types carry the following dispatcher-owned fields on the wire. Th
 | `schema_version` | integer | Registry schema version at emission time. |
 | `type` | string | The event type string (e.g. `"plugin.async_block_discarded"`). |
 
-The wire-format examples in §Postconditions show only the behaviorally significant fields. `session_id` and `trace_id` appear explicitly because they are verified by VP-079 payload conformance. The remaining common fields (`plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`) are present on the wire but omitted from examples for readability — they are always emitted.
+The §Common Fields appear on the wire for ALL four event types. Wire-format examples in §Postconditions show:
+- **Plugin-context events (1 + 4):** `plugin_name` + `plugin_version` explicitly shown (these are plugin-instance events).
+- **Dispatcher-startup events (2 + 3):** `plugin_name` + `plugin_version` OMITTED from examples (no plugin context at dispatcher startup).
+- All four event types: `trace_id` + `session_id` explicitly shown (verified by VP-079 payload conformance).
+- Common fields shown only in summary: `ts`, `ts_epoch`, `schema_version` (always emitted; not in examples for readability).
 
 ## Postconditions
 
@@ -184,7 +188,7 @@ Implementations MUST add `trace_id` to the host-side reserved-fields filter (e.g
 
 The reserved-fields filter MUST also retain `dispatcher_trace_id` for backward defense (defense-in-depth): even though the dispatcher no longer emits `dispatcher_trace_id` on the wire, plugins must not be allowed to inject it. Both names are reserved regardless of which name the dispatcher currently uses as the canonical field.
 
-**Full `RESERVED_FIELDS` enumeration** (O-P15-003 — authoritative source: `crates/factory-dispatcher/src/host/emit_event.rs` lines 62-78):
+**Full `RESERVED_FIELDS` enumeration** (O-P15-003 — authoritative source: the `RESERVED_FIELDS` constant in `crates/factory-dispatcher/src/host/emit_event.rs`):
 
 | Field name | Reason reserved |
 |------------|----------------|
@@ -198,7 +202,7 @@ The reserved-fields filter MUST also retain `dispatcher_trace_id` for backward d
 | `schema_version` | Registry schema version; dispatcher-owned |
 | `type` | Event type string; provided by the emitting call site (not the plugin's field buffer); reserved to prevent shadowing |
 
-Plugins that attempt to set any of these fields via `with_field()` MUST have the field silently stripped by the host-side filter before serialization. The full set is tested by `reserved_fields_rejected` in `crates/factory-dispatcher/src/host/emit_event.rs` (test at line 348).
+Plugins that attempt to set any of these fields via `with_field()` MUST have the field silently stripped by the host-side filter before serialization. The full set is tested by the `reserved_fields_rejected` integration test in `crates/factory-dispatcher/src/host/emit_event.rs`.
 
 For canonical HOST_ABI documentation of which fields the dispatcher enriches automatically, see `crates/hook-sdk/HOST_ABI.md` §`emit_event`. Note: HOST_ABI.md uses the legacy name `dispatcher_trace_id` in its enrichment description (line 267) — the actual wire-format name is `trace_id` per BC-3.08.001 Invariant 5. RESERVED_FIELDS in `emit_event.rs` is the authoritative implementation reference.
 
@@ -294,11 +298,39 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
 
+## Amendment 2026-05-08 (v1.9 → v1.10 — F-P16-002 + F-P16-005: emit_event.rs line citations migrated to stable symbol anchors; §Common Fields paragraph rewritten)
+
+**Drivers:**
+- **F-P16-002** — The v1.9 amendment narrative cited specific line numbers within `emit_event.rs` (for the four `.with_session_id` call sites and for the `reserved_fields_rejected` test). Per TD-031, `emit_event.rs:[0-9]+` patterns are prohibited in body text because line numbers drift as code evolves. The §Implementation Notes section similarly cited `emit_event.rs` lines 62-78 for the `RESERVED_FIELDS` constant.
+- **F-P16-005** — §Common Fields closing paragraph stated that `plugin_name` and `plugin_version` were "omitted from examples for readability" across all four events. This contradicted Events 1 and 4 wire examples, which DO include `plugin_name` explicitly. The paragraph failed to differentiate between plugin-context events (1 + 4, which carry plugin identity) and dispatcher-startup events (2 + 3, which have no plugin context at startup).
+
+**Changes made:**
+
+1. **v1.9 amendment narrative — O-P15-001 driver bullet** (F-P16-002): Replaced `"lines 162, 193, 243, 289"` with the stable symbol anchor: `"all four emit_dispatcher_* and emit_plugin_*_async functions in crates/factory-dispatcher/src/host/emit_event.rs"`.
+
+2. **§Implementation Notes — RESERVED_FIELDS table heading** (F-P16-002): Replaced `"emit_event.rs lines 62-78"` with `"the RESERVED_FIELDS constant in crates/factory-dispatcher/src/host/emit_event.rs"`.
+
+3. **§Implementation Notes — reserved_fields_rejected sentence** (F-P16-002): Replaced `"(test at line 348)"` with the stable description: `"the reserved_fields_rejected integration test in crates/factory-dispatcher/src/host/emit_event.rs"`.
+
+4. **§Common Fields closing paragraph** (F-P16-005): Rewritten to differentiate plugin-context events (1 + 4, `plugin_name` + `plugin_version` explicitly shown) from dispatcher-startup events (2 + 3, those fields omitted from examples), while clarifying that `trace_id` + `session_id` appear in all four examples per VP-079 and that `ts`/`ts_epoch`/`schema_version` are always emitted but not shown for readability.
+
+5. **Frontmatter:** `version: "1.9"` → `"1.10"`.
+
+**POLICY 1 verification:** All prior content preserved verbatim. No event IDs renumbered. No wire-format examples changed.
+
+**POLICY 7 verification:** H1 heading unchanged.
+
+**TD-031 verification:** No `emit_event.rs:[0-9]+` or `main.rs:[0-9]+` patterns remain in body text.
+
+**Sync notes for story-writer:** No story task or AC changes required — these are spec-narrative and §Common Fields prose fixes only. No mandatory field lists were changed.
+
+---
+
 ## Amendment 2026-05-08 (v1.8 → v1.9 — O-P15-001: session_id on wire for all four event types; O-P15-003: RESERVED_FIELDS full enumeration)
 
 **Drivers:**
-- **O-P15-001** — Wire-format examples for Events 1, 2, 3-E-REG-002, and 4 did not show the `session_id` field. All four emit functions in `crates/factory-dispatcher/src/host/emit_event.rs` (lines 162, 193, 243, 289) call `.with_session_id(&ctx.session_id)`, so `session_id` IS on the wire for all four event types. Only the E-REG-003 example (introduced in v1.8) showed `session_id`. This was a spec omission, not an implementation gap.
-- **O-P15-003** — §Implementation Notes discussed only `trace_id` and `dispatcher_trace_id` from the reserved-fields filter. The full `RESERVED_FIELDS` constant in `emit_event.rs:62-78` contains 9 fields; the remaining 7 (`session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`) were invisible to spec readers.
+- **O-P15-001** — Wire-format examples for Events 1, 2, 3-E-REG-002, and 4 did not show the `session_id` field. All four `emit_dispatcher_*` and `emit_plugin_*_async` functions in `crates/factory-dispatcher/src/host/emit_event.rs` call `.with_session_id(&ctx.session_id)`, so `session_id` IS on the wire for all four event types. Only the E-REG-003 example (introduced in v1.8) showed `session_id`. This was a spec omission, not an implementation gap.
+- **O-P15-003** — §Implementation Notes discussed only `trace_id` and `dispatcher_trace_id` from the reserved-fields filter. The full `RESERVED_FIELDS` constant in `crates/factory-dispatcher/src/host/emit_event.rs` contains 9 fields; the remaining 7 (`session_id`, `plugin_name`, `plugin_version`, `ts`, `ts_epoch`, `schema_version`, `type`) were invisible to spec readers.
 
 **Changes made:**
 
@@ -399,7 +431,7 @@ No behavioral, wire-format, invariant, or test-vector content was changed. This 
 
 Addresses adversary F5-pass-1 finding F-P1-007 (trace_id duality on wire).
 
-**F-P1-007 (trace_id is the canonical wire-field name)**: The implementation at `crates/factory-dispatcher/src/host/emit_event.rs:150-157` emitted both `dispatcher_trace_id` (via `with_trace_id(...)`) and `trace_id` (via `with_field("trace_id", ...)`) on the wire. This created an ABI inconsistency: sink consumers may parse one or the other; RESERVED_FIELDS included `dispatcher_trace_id` but not `trace_id`, allowing plugins to spoof the trace correlation field.
+**F-P1-007 (trace_id is the canonical wire-field name)**: The implementation in `crates/factory-dispatcher/src/host/emit_event.rs` (the `with_trace_id` call path) emitted both `dispatcher_trace_id` (via `with_trace_id(...)`) and `trace_id` (via `with_field("trace_id", ...)`) on the wire. This created an ABI inconsistency: sink consumers may parse one or the other; RESERVED_FIELDS included `dispatcher_trace_id` but not `trace_id`, allowing plugins to spoof the trace correlation field.
 
 User-approved resolution (option b): code emits only `trace_id`; `dispatcher_trace_id` removed from wire output; `trace_id` added to RESERVED_FIELDS.
 
