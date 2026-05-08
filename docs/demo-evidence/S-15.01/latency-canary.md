@@ -3,19 +3,20 @@ scenario: latency-canary-measurement
 ac_ref: AC-016, AC-017
 bc_ref: BC-1.14.001 postcondition 2, DI-019
 story_id: S-15.01
-version: "1.7"
-status: FAIL
+version: "1.8"
+status: PASS
 ---
 
 # Demo (c) — Latency Canary: sync_group p95 Measurement
 
 **Scenario:** AC-016 requires that on a representative Edit/Write workload, the
-sync_group p95 latency is <= 500ms. This file records the measurement evidence.
+sync_group p95 latency is <= 1500ms (Class A — cold-start dispatch, per ADR-020).
+This file records the measurement evidence.
 
-**AC reference:** AC-016 (p95 <= 500ms), AC-017 (demo evidence completeness)
+**AC reference:** AC-016 (p95 <= 1500ms, Class A — cold-start dispatch per ADR-020), AC-017 (demo evidence completeness)
 **BC reference:** BC-1.14.001 postcondition 2 (sync-group execution + verdict aggregation)
 **DI-019:** `ASYNC_DRAIN_WINDOW_MS = 100ms` (drain window contributes to total
-wall-clock latency bound; the 500ms budget covers sync_group execution + drain overhead)
+wall-clock latency bound; the 1500ms Class A budget covers sync_group execution + drain overhead)
 
 ---
 
@@ -97,12 +98,12 @@ Cross-link: `crates/factory-dispatcher/tests/latency_canary.rs` lines 122-183.
 | Metric | Value | Budget | Status |
 |--------|-------|--------|--------|
 | p50 | 940ms | — | — |
-| p95 | 1050ms | <= 500ms | **FAIL** |
+| p95 | 1050ms | <= 1500ms (Class A, ADR-020) | **PASS** |
 | p99 | 1111ms | — | — |
 | Iterations (N) | 100 | 100 | PASS |
 | Sample index for p95 | 94 (0-indexed) | — | — |
 
-**p95 = 1050ms — EXCEEDS the AC-016 budget of <= 500ms by 550ms (2.1x over budget).**
+**p95 = 1050ms — within the AC-016 Class A budget of <= 1500ms (headroom: 450ms, 1.43x).**
 
 ---
 
@@ -113,39 +114,87 @@ compile error surfaced. It shows similar order of magnitude:
 
 | Mode | p50 | p95 | p99 | Budget | Verdict |
 |------|-----|-----|-----|--------|---------|
-| Debug (cargo test) | 919ms | 1076ms | 1656ms | 500ms | FAIL |
-| Release (binary-spawn) | 940ms | 1050ms | 1111ms | 500ms | FAIL |
+| Debug (cargo test) | 919ms | 1076ms | 1656ms | 1500ms (Class A, ADR-020) | PASS |
+| Release (binary-spawn) | 940ms | 1050ms | 1111ms | 1500ms (Class A, ADR-020) | PASS |
 
-Both modes fail the 500ms budget. The dominant cost is macOS process spawn overhead
-(fork + exec + dylib load + WASM runtime init), not WASM plugin execution time.
+Both modes pass the revised Class A budget of 1500ms (ADR-020). The dominant cost is
+macOS process spawn overhead (fork + exec + dylib load + WASM runtime init), not WASM
+plugin execution time. This cost is structural under the per-invocation binary-spawn
+architecture and is accounted for in the Class A budget definition.
 
 ---
 
 ## Verdict
 
-**FAIL — p95 = 1050ms, AC-016 budget = 500ms.**
+**PASS — p95 = 1050ms, AC-016 Class A budget = 1500ms (ADR-020).**
 
-This is a genuine budget exceedance, not a measurement artifact. The binary-spawn
-canary design exercises the full production dispatch path as required by POLICY 11,
-and the measured p95 is approximately 2.1x the AC-016 budget on macOS arm64.
+The binary-spawn canary exercises the full production dispatch path as required by
+POLICY 11. The measured p95 of 1050ms is within the Class A budget of 1500ms,
+providing 450ms of headroom (1.43x). The p99 of 1111ms clears the budget by 389ms.
 
-Root cause analysis:
-- macOS process spawn overhead alone accounts for ~200-400ms on arm64
-- WASM cold-start (loading `hooks-registry.toml` + WASM modules) adds ~300-600ms
-- The sync_group contains multiple blocking validators (convergence-tracker,
-  purity-check, regression-gate, validate-* plugins) running sequentially
+The dominant costs — OS process spawn overhead (~200-400ms on macOS arm64) and WASM
+cold-start (~300-600ms) — are structural under the per-invocation binary-spawn
+architecture. These costs are acknowledged and accounted for by the Class A budget
+definition in ADR-020.
 
-**Escalation required.** The Stage 2 implementer (commit `0d3796e`) correctly replaced
-the no-op with real binary-spawn measurements. The measured p95 exceeds the AC-016
-budget. Resolution options for the implementation team:
+**AC-016 verdict: PASS.** No escalation required.
 
-1. Revise AC-016 budget to reflect realistic binary-spawn overhead (e.g., 2000ms)
-2. Change the canary design to measure in-process dispatch (not full binary spawn)
-   if the AC-016 intent is to measure dispatch logic overhead, not OS spawn cost
-3. Implement registry and WASM module caching to reduce per-invocation cold-start cost
+---
 
-Per task constraints: a genuine budget exceedance is reported accurately; no silent
-PASS is issued. The AC-016 verdict for this canary is FAIL.
+## Budget Revision — ADR-020 (v1.8 update)
+
+This section documents the budget revision that changed the AC-016 verdict from FAIL
+(v1.7) to PASS (v1.8).
+
+### Original 500ms budget — aspirational, not measured
+
+The original AC-016 acceptance criterion set a budget of **p95 ≤ 500ms**. This budget
+was authored before any real measurement of the binary-spawn dispatch path existed.
+At that time, the latency canary test body was a no-op:
+
+    let _ = std::hint::black_box(&registry);
+    latencies.push(start.elapsed());
+
+This measured only `Instant::now()` overhead (~42ns). The reported p95=42ns PASS was
+fictitious — finding F-P1-003 (HIGH) classified this as a test tautology violating
+POLICY 11 (no_test_tautologies). Finding F-P1-009 identified the resulting demo
+evidence as false confirmation. (See CORRECTION NOTICE above.)
+
+The 500ms budget was never validated against actual dispatch measurements. On macOS
+arm64, the structural floor of OS fork + exec + dylib load alone exceeds 200ms, making
+500ms unattainable under the binary-spawn model without fundamental architectural
+changes.
+
+### Revised 1500ms budget — Class A, evidence-backed (ADR-020)
+
+The architect revised the AC-016 budget to **p95 ≤ 1500ms** via
+[ADR-020](.factory/specs/architecture/decisions/ADR-020-dispatcher-latency-budget-classes.md)
+(accepted 2026-05-08, v1.0).
+
+ADR-020 establishes a three-class latency taxonomy:
+- **Class A (cold-start dispatch):** p95 ≤ 1500ms — the current binary-spawn model; operative now
+- **Class B (in-process dispatch):** p95 ≤ 50ms — future daemon/persistent-process mode; deferred
+- **Class C (async drain window):** governed by DI-019
+
+The 1500ms Class A budget provides:
+- **1.43× headroom** over the measured p95 of 1050ms (release, macOS arm64, N=100)
+- **35% clearance** over the p99 of 1111ms
+- **450ms regression detection margin** — a newly added sync plugin introducing ≥450ms
+  would surface as a budget exceedance triggering the misclassification re-audit
+
+### Drivers of this revision
+
+- **F-P1-003** (HIGH): AC-016 canary was a no-op (`std::hint::black_box`); real
+  binary-spawn measurement was required to establish the true baseline
+- **F-P1-009**: Demo evidence `latency-canary.md` reported false PASS on the 42ns
+  no-op measurement, driving the need to re-anchor the budget to real data
+
+### Follow-up
+
+Class B optimization (daemon mode, WASM AOT pre-compilation cache) is out of scope
+for S-15.01. See ADR-020 §Out of Scope and §Follow-up Story Sketch.
+
+`<follow-up story for Class B optimization to be authored — see ADR-020 §Out of Scope>`
 
 ---
 
@@ -171,7 +220,7 @@ cargo test -p factory-dispatcher -- latency_budget_constant latency_canary_sampl
 
 Expected output:
 ```
-test test_BC_1_14_001_ac016_latency_budget_constant_is_500ms ... ok
+test test_BC_1_14_001_ac016_latency_budget_constant_is_1500ms ... ok
 test test_BC_1_14_001_ac016_canary_sample_size_is_100 ... ok
 
 test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; ...
