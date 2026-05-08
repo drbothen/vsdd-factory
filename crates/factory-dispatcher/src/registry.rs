@@ -1073,6 +1073,40 @@ on_error = "block"
         );
     }
 
+    /// F-P6-002 / BC-7.06.001 v1.5 Invariant 7 (F-P3-003 amendment):
+    /// String equality, not regex equivalence — `tool='^Bash$'` and `tool='Bash'` are
+    /// DISTINCT entries because the uniqueness key is the raw string value, not the set of
+    /// tool surfaces the pattern matches. Two entries that happen to match the same tool
+    /// surface via different regex strings are NOT duplicates.
+    #[test]
+    fn test_validate_treats_regex_variants_as_distinct_per_v1_5_amendment() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "regex-test"
+event = "PreToolUse"
+tool = "^Bash$"
+on_error = "continue"
+plugin = "hook-plugins/regex-test.wasm"
+
+[[hooks]]
+name = "regex-test"
+event = "PreToolUse"
+tool = "Bash"
+on_error = "continue"
+plugin = "hook-plugins/regex-test.wasm"
+"#;
+
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "BC-7.06.001 v1.5 Invariant 7: tool='^Bash$' and tool='Bash' MUST be DISTINCT entries \
+(raw-string equality, not regex equivalence). Got: {:?}",
+            result.err()
+        );
+    }
+
     /// Two entries with tool = None (absent) and matching name+event must be rejected.
     #[test]
     fn test_validate_treats_two_none_tools_as_duplicate() {
