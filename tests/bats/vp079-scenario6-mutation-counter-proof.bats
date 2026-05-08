@@ -2,7 +2,7 @@
 #
 # vp079-scenario6-mutation-counter-proof.bats
 #
-# VP-079 v1.13 Property 6: Production-caller mutation counter-proof.
+# VP-079 Property 6: Production-caller mutation counter-proof.
 #
 # For each of the 5 production emit-caller sites in main.rs, comment out the
 # emit call in a temporary worktree checkout, rebuild the dispatcher, and assert
@@ -18,24 +18,24 @@
 # Gate it in CI behind a job triggered only on diffs touching main.rs or
 # host/emit_event.rs (preferred: cargo mutants --filter='emit_'; bash fallback below).
 #
-# SITES (5 production caller sites per VP-079 v1.13 Property 6):
+# SITES (5 production caller sites per VP-079 Property 6):
 #   SITE_1: ~main.rs:133 — emit_dispatcher_schema_mismatch (schema_version != 2)
 #   SITE_2: ~main.rs:143 — emit_dispatcher_registry_invalid (AsyncBlockConflict / E-REG-002)
 #   SITE_3: ~main.rs:423 — emit_plugin_async_block_discarded (async result exit_code=2)
 #   SITE_4: ~main.rs:434 — emit_plugin_timeout_async (async timeout arm)
 #   SITE_5: ~main.rs:167 — emit_dispatcher_registry_invalid (DuplicateEntry / E-REG-003)
 #
-# Line ranges below are operationally required by sed; spec text in VP-079 v1.15
-# uses stable anchors per TD-031. Update ranges here whenever main.rs is refactored.
+# Line ranges below are operationally required by sed; use stable anchors per TD-031.
+# Update ranges here whenever main.rs is refactored.
 #
 # Preferred tool: cargo mutants (call-site suppression via --filter); bash sed-mutation
 # is the fallback for environments where cargo-mutants is unavailable or does not
 # support individual call-site targeting.
 #
 # BC traces:
-#   BC-3.08.001 v1.7 — async-semantics event types, production caller obligation
-#   VP-079 v1.13 Property 6 — production-path emission counter-proof
-#   S-15.01 v1.7 — F5 pass-1 fix (F-P1-002)
+#   BC-3.08.001 Event 3 Postconditions — async-semantics event types, production caller obligation
+#   VP-079 Property 6 — production-path emission counter-proof
+#   S-15.01 AC-018 — F5 pass-1 fix (F-P1-002)
 #   DI-019 — ASYNC_DRAIN_WINDOW_MS (referenced by name; do NOT hardcode 100)
 
 BATS_DIR=""
