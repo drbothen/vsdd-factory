@@ -228,6 +228,116 @@ async fn execute_tier<'a>(
     outcomes
 }
 
+/// Execute a single async-group plugin as an independent tokio task.
+///
+/// Returns a `JoinHandle<PluginOutcome>` so the caller can collect results
+/// via a channel and `tokio::select!` drain timer (BC-1.14.001 PC4 + EC-012).
+///
+/// # Async-group spawn pattern (BC-1.14.001 v1.7 PC4 + Invariant 3)
+///
+/// - Each async-group plugin MUST be spawned via `tokio::spawn` (independent task).
+/// - Results MUST be collected via a channel (not all-or-nothing `execute_tiers`).
+/// - `group_by_priority` MUST NOT be called on async-group plugins.
+/// - The caller uses `tokio::select!` over the channel and a drain timer.
+///
+/// # BC traces
+/// - BC-1.14.001 PC4 — per-plugin tokio::spawn spawn pattern
+/// - BC-1.14.001 Invariant 3 — async group excluded from tier ordering
+/// - EC-012 — partial completions: completed events MUST emit; in-flight MAY be lost
+pub fn spawn_async_plugin(
+    engine: wasmtime::Engine,
+    cache: Arc<crate::plugin_loader::PluginCache>,
+    registry_defaults: crate::registry::RegistryDefaults,
+    entry: RegistryEntry,
+    payload_value: serde_json::Value,
+    base_host_ctx: HostContext,
+    internal_log: Arc<InternalLog>,
+) -> tokio::task::JoinHandle<PluginOutcome> {
+    tokio::spawn(async move {
+        let limits = InvokeLimits {
+            timeout_ms: entry.timeout_ms(&registry_defaults),
+            fuel_cap: entry.fuel_cap(&registry_defaults),
+        };
+        let on_error = entry.on_error(&registry_defaults);
+
+        // Splice this entry's per-plugin config onto the base envelope.
+        let mut per_plugin_value = payload_value;
+        if let Some(map) = per_plugin_value.as_object_mut() {
+            map.insert("plugin_config".to_string(), entry.config_as_json());
+        }
+        let payload = match serde_json::to_vec(&per_plugin_value) {
+            Ok(v) => v,
+            Err(e) => {
+                let result = PluginResult::Crashed {
+                    trap_string: format!("payload serialize: {e}"),
+                    stderr: String::new(),
+                    elapsed_ms: 0,
+                    fuel_consumed: 0,
+                };
+                emit_lifecycle(&internal_log, &base_host_ctx, &entry, &result);
+                return PluginOutcome {
+                    plugin_name: entry.name.clone(),
+                    plugin_version: base_host_ctx.plugin_version.clone(),
+                    on_error,
+                    result,
+                };
+            }
+        };
+
+        let module = match cache.get_or_compile(&entry.plugin) {
+            Ok(m) => m,
+            Err(e) => {
+                let result = PluginResult::Crashed {
+                    trap_string: format!("plugin load failed: {e}"),
+                    stderr: String::new(),
+                    elapsed_ms: 0,
+                    fuel_consumed: 0,
+                };
+                emit_lifecycle(&internal_log, &base_host_ctx, &entry, &result);
+                return PluginOutcome {
+                    plugin_name: entry.name.clone(),
+                    plugin_version: base_host_ctx.plugin_version.clone(),
+                    on_error,
+                    result,
+                };
+            }
+        };
+
+        emit_invoked(&internal_log, &base_host_ctx, &entry);
+        let base_ctx_for_event = base_host_ctx.clone();
+
+        let mut host_ctx = base_host_ctx;
+        host_ctx.plugin_name = entry.name.clone();
+        host_ctx.capabilities = entry.capabilities.clone().unwrap_or_default();
+
+        let result = tokio::task::spawn_blocking(move || {
+            let started = std::time::Instant::now();
+            invoke_plugin(&engine, &module, host_ctx, &payload, limits)
+                .unwrap_or_else(|e| PluginResult::Crashed {
+                    trap_string: format!("invoke setup error: {e}"),
+                    stderr: String::new(),
+                    elapsed_ms: started.elapsed().as_millis() as u64,
+                    fuel_consumed: 0,
+                })
+        })
+        .await
+        .unwrap_or_else(|join_err| PluginResult::Crashed {
+            trap_string: format!("spawn_blocking join error: {join_err}"),
+            stderr: String::new(),
+            elapsed_ms: 0,
+            fuel_consumed: 0,
+        });
+
+        emit_lifecycle(&internal_log, &base_ctx_for_event, &entry, &result);
+        PluginOutcome {
+            plugin_name: entry.name.clone(),
+            plugin_version: base_ctx_for_event.plugin_version.clone(),
+            on_error,
+            result,
+        }
+    })
+}
+
 /// Internal helper: either an already-resolved outcome (load failure
 /// short-circuit) or a pending tokio JoinHandle. Keeps the per-plugin
 /// fan-out loop uniform.

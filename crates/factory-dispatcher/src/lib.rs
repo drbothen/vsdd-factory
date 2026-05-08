@@ -22,7 +22,7 @@ pub mod sinks;
 
 pub use aggregator::{PluginResult as AggregatorPluginResult, aggregate_exit_code};
 pub use engine::{EPOCH_TICK_MS, EngineError, EpochTicker, build_engine};
-pub use executor::{ExecutorInputs, PluginOutcome, TierExecutionSummary, execute_tiers};
+pub use executor::{ExecutorInputs, PluginOutcome, TierExecutionSummary, execute_tiers, spawn_async_plugin};
 pub use host::{HostCallError, HostContext, setup_linker};
 pub use internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_SHUTTING_DOWN, DISPATCHER_STARTED,
