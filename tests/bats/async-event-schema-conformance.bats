@@ -21,7 +21,7 @@
 # convenience (VP-078 v1.8, VP-079 v1.13 annotations).
 #
 # BC traces:
-#   BC-3.08.001 v1.7 — event catalog (4 new event types)
+#   BC-3.08.001 v1.9 — event catalog (4 new event types)
 #   BC-1.14.001 — dispatch partition + drain window (DI-019)
 #   BC-7.06.001 — schema validation (schema_mismatch / registry_invalid triggers)
 #   DI-017 — trace_id on every emitted event
@@ -195,7 +195,15 @@ shell_bypass_acknowledged = "VP-079-S1-test-fixture"
     }
 
     assert_fields_present "$line" \
-        type trace_id plugin_name exit_code timestamp reason
+        type trace_id plugin_name exit_code timestamp reason session_id
+
+    # BC-3.08.001 v1.9 Common Fields: session_id must be present and non-null.
+    local session_id
+    session_id=$(echo "$line" | python3 -c "import sys,json; print(json.load(sys.stdin)['session_id'])")
+    [ -n "$session_id" ] && [ "$session_id" != "null" ] || {
+        echo "FAIL: session_id field MUST be present and non-null per BC-3.08.001 v1.9 Common Fields"
+        return 1
+    }
 
     local reason
     reason=$(echo "$line" | python3 -c \
@@ -248,7 +256,15 @@ script_path = "test-fixtures/exit0.sh"
     }
 
     assert_fields_present "$line" \
-        type trace_id found_version expected_version timestamp error_code
+        type trace_id found_version expected_version timestamp error_code session_id
+
+    # BC-3.08.001 v1.9 Common Fields: session_id must be present and non-null.
+    local session_id
+    session_id=$(echo "$line" | python3 -c "import sys,json; print(json.load(sys.stdin)['session_id'])")
+    [ -n "$session_id" ] && [ "$session_id" != "null" ] || {
+        echo "FAIL: session_id field MUST be present and non-null per BC-3.08.001 v1.9 Common Fields"
+        return 1
+    }
 
     # F-P1-014 fix: assert expected_version is an integer (not a string "2").
     # BC-3.08.001 Event 2 wire format specifies `"expected_version": 2` (integer).
@@ -323,7 +339,15 @@ script_path = "test-fixtures/exit0.sh"
     }
 
     assert_fields_present "$line" \
-        type trace_id offending_plugin violation timestamp error_code
+        type trace_id offending_plugin violation timestamp error_code session_id
+
+    # BC-3.08.001 v1.9 Common Fields: session_id must be present and non-null.
+    local session_id
+    session_id=$(echo "$line" | python3 -c "import sys,json; print(json.load(sys.stdin)['session_id'])")
+    [ -n "$session_id" ] && [ "$session_id" != "null" ] || {
+        echo "FAIL: session_id field MUST be present and non-null per BC-3.08.001 v1.9 Common Fields"
+        return 1
+    }
 
     local offending
     offending=$(echo "$line" | python3 -c \
@@ -427,7 +451,15 @@ shell_bypass_acknowledged = "VP-079-S4-test-fixture"
     }
 
     assert_fields_present "$line" \
-        type trace_id plugin_name execution_group timeout_ms timestamp
+        type trace_id plugin_name execution_group timeout_ms timestamp session_id
+
+    # BC-3.08.001 v1.9 Common Fields: session_id must be present and non-null.
+    local session_id
+    session_id=$(echo "$line" | python3 -c "import sys,json; print(json.load(sys.stdin)['session_id'])")
+    [ -n "$session_id" ] && [ "$session_id" != "null" ] || {
+        echo "FAIL: session_id field MUST be present and non-null per BC-3.08.001 v1.9 Common Fields"
+        return 1
+    }
 
     local exec_group
     exec_group=$(echo "$line" | python3 -c \
@@ -573,7 +605,7 @@ shell_bypass_acknowledged = "VP-079-S7-test-fixture"
 #   1. Exit 2 (fail-closed per ADR-019 §Decision 2).
 #   2. Write "[E-REG-003]" to stderr.
 #   3. Emit dispatcher.registry_invalid with error_code="E-REG-003" and
-#      violation="duplicate_hook_registration" (BC-3.08.001 v1.7 Event 3).
+#      violation="duplicate_hook_registration" (BC-3.08.001 v1.9 Event 3).
 #
 # No WASM plugin is invoked — validation fails before dispatch begins.
 # ---
@@ -646,12 +678,12 @@ script_path = "test-fixtures/exit0.sh"
         return 1
     }
 
-    # Assertion 3 (BC-3.08.001 v1.7 Event 3): dispatcher.registry_invalid must be emitted.
+    # Assertion 3 (BC-3.08.001 v1.9 Event 3): dispatcher.registry_invalid must be emitted.
     local line
     line=$(find_event_line "dispatcher.registry_invalid")
     [ -n "$line" ] || {
         echo "FAIL: dispatcher.registry_invalid event not found in $SINK_FILE"
-        echo "BC-3.08.001 v1.7 Event 3: dispatcher must emit registry_invalid on DuplicateEntry."
+        echo "BC-3.08.001 v1.9 Event 3: dispatcher must emit registry_invalid on DuplicateEntry."
         return 1
     }
 
@@ -695,6 +727,117 @@ script_path = "test-fixtures/exit0.sh"
     [ "$offending_tool" = "Bash" ] || {
         echo "FAIL: offending_tool must be 'Bash' (the duplicate fixture's tool); got: $offending_tool"
         echo "F-P14-001 Path B: emit_dispatcher_registry_invalid must propagate offending_tool to wire payload."
+        return 1
+    }
+}
+
+# ---
+# Scenario 8b: DuplicateEntry with wildcard tool → offending_tool: null (F-P15-002)
+#
+# Trigger: registry has two [[hooks]] entries with identical (name, event) tuple
+# but NO tool filter (wildcard/"all tools" binding).
+# Per BC-3.08.001 v1.9 E-REG-003 schema, offending_tool MUST be emitted as JSON
+# null (not absent) when the duplicating entry has no tool filter.
+#
+# F-P15-002: offending_tool must be present as JSON null for wildcard E-REG-003.
+# ---
+
+@test "VP-079 S8b: BC-3.08.001 v1.9 — DuplicateEntry with wildcard tool emits offending_tool: null (F-P15-002)" {
+    require_dispatcher
+
+    # No test fixtures needed: DuplicateEntry is detected at registry validate()
+    # time, before any plugin is loaded or executed.
+
+    # Registry: TWO entries with identical (name="wildcard-test", event="PreToolUse"),
+    # NO tool filter (wildcard). BC-7.06.001 v1.9 Invariant 7 requires rejection.
+    printf '%s' '
+schema_version = 2
+
+[[hooks]]
+name = "wildcard-test"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = false
+event = "PreToolUse"
+priority = 100
+
+[hooks.config]
+script_path = "test-fixtures/exit0.sh"
+
+[[hooks]]
+name = "wildcard-test"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = false
+event = "PreToolUse"
+priority = 200
+
+[hooks.config]
+script_path = "test-fixtures/exit0.sh"
+' > "$PLUGIN_ROOT/hooks-registry.toml"
+
+    local envelope
+    envelope=$(printf '{"hook_event_name":"PreToolUse","tool_name":"Bash","session_id":"vp079-s8b-test","tool_input":{}}')
+
+    local stderr_file
+    stderr_file="$(mktemp)"
+
+    run sh -c "printf '%s' '$envelope' | \
+        CLAUDE_PLUGIN_ROOT=\"$PLUGIN_ROOT\" \
+        VSDD_SINK_FILE=\"$SINK_FILE\" \
+        CLAUDE_PROJECT_DIR=\"$PLUGIN_ROOT\" \
+        factory-dispatcher 2>\"$stderr_file\""
+
+    rm -f "$stderr_file"
+
+    # Assertion 1: dispatcher must exit 2 (fail-closed, BC-7.06.001 v1.9 Invariant 7).
+    [ "$status" -eq 2 ] || {
+        echo "FAIL: expected exit 2 for wildcard DuplicateEntry; got: $status"
+        echo "BC-7.06.001 v1.9 Invariant 7 requires fail-closed (exit 2) on duplicate (name,event) wildcard tuple."
+        return 1
+    }
+
+    # Assertion 2: dispatcher.registry_invalid must be emitted.
+    local line
+    line=$(find_event_line "dispatcher.registry_invalid")
+    [ -n "$line" ] || {
+        echo "FAIL: dispatcher.registry_invalid event not found in $SINK_FILE"
+        echo "BC-3.08.001 v1.9 Event 3: dispatcher must emit registry_invalid on wildcard DuplicateEntry."
+        return 1
+    }
+
+    # Assertion 3: error_code must be "E-REG-003".
+    local error_code
+    error_code=$(echo "$line" | python3 -c \
+        "import sys,json; print(json.load(sys.stdin)['error_code'])")
+    [ "$error_code" = "E-REG-003" ] || {
+        echo "FAIL: error_code must be 'E-REG-003'; got: $error_code"
+        return 1
+    }
+
+    # Assertion 4: offending_event must be "PreToolUse".
+    local offending_event
+    offending_event=$(echo "$line" | python3 -c \
+        "import sys,json; print(json.load(sys.stdin)['offending_event'])")
+    [ "$offending_event" = "PreToolUse" ] || {
+        echo "FAIL: offending_event must be 'PreToolUse'; got: $offending_event"
+        echo "F-P14-001 Path B: offending_event mandatory for E-REG-003."
+        return 1
+    }
+
+    # Assertion 5 (F-P15-002): offending_tool must be JSON null (not absent, not a string).
+    # BC-3.08.001 v1.9 mandates offending_tool is present with value null for wildcard entries.
+    local offending_tool_raw
+    offending_tool_raw=$(echo "$line" | python3 -c \
+        "import sys,json; d=json.load(sys.stdin); \
+         assert 'offending_tool' in d, 'MISSING: offending_tool key must be present (F-P15-002)'; \
+         v=d['offending_tool']; \
+         assert v is None, 'F-P15-002: offending_tool must be JSON null for wildcard, got: ' + repr(v); \
+         print('null')" 2>&1)
+    local tool_status=$?
+    [ "$tool_status" -eq 0 ] && [ "$offending_tool_raw" = "null" ] || {
+        echo "FAIL: offending_tool assertion failed: $offending_tool_raw"
+        echo "F-P15-002: BC-3.08.001 v1.9 mandates offending_tool is JSON null (not absent) for wildcard E-REG-003."
         return 1
     }
 }

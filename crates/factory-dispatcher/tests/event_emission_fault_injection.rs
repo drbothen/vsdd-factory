@@ -28,7 +28,7 @@
 //!
 //! # BC traces
 //!
-//! - BC-3.08.001 v1.7 — event catalog: four new event types
+//! - BC-3.08.001 v1.9 — event catalog: four new event types
 //! - BC-1.14.001 — dispatch partition contract (async group fire-and-forget)
 //! - BC-7.06.001 — registry validation (schema_mismatch / registry_invalid triggers)
 //! - DI-019 — ASYNC_DRAIN_WINDOW_MS (do NOT hardcode; cite by name)
@@ -236,7 +236,7 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     let ctx = make_test_ctx();
     // Scenario: entry "invalid-blocker" has on_error=block AND async=true.
     // Mandatory fields: type, trace_id, offending_plugin, violation, timestamp, error_code.
-    // BC-3.08.001 v1.7: violation canonical string is "async_block_conflict".
+    // BC-3.08.001 v1.9: violation canonical string is "async_block_conflict".
     emit_dispatcher_registry_invalid(
         &ctx,
         "invalid-blocker",
@@ -276,7 +276,7 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
 fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
     let ctx = make_test_ctx();
     // Verify the emitted event has offending_plugin = "bad-validator".
-    // BC-3.08.001 v1.7: violation canonical string is "async_block_conflict".
+    // BC-3.08.001 v1.9: violation canonical string is "async_block_conflict".
     emit_dispatcher_registry_invalid(
         &ctx,
         "bad-validator",
@@ -359,6 +359,69 @@ fn test_BC_3_08_001_vp079_s8_duplicate_entry_emits_offending_event_and_tool() {
         ev.fields.get("offending_tool").and_then(|v| v.as_str()),
         Some("Bash"),
         "offending_tool must be 'Bash' (F-P14-001 Path B)"
+    );
+}
+
+/// VP-079 S8b: E-REG-003 wildcard — offending_tool must be JSON null (not absent).
+///
+/// F-P15-002: BC-3.08.001 v1.9 mandates offending_tool is present (as JSON null)
+/// when the E-REG-003 duplicating entry has no tool filter (wildcard/"all tools").
+/// Passing tool=None to emit_dispatcher_registry_invalid MUST produce
+/// `"offending_tool": null` on the wire, not a missing field.
+///
+/// The implementer wires this via `ev.with_field("offending_tool", Value::Null)`
+/// in the E-REG-003 branch when tool=None (146d259).
+/// GREEN after T-3e + implementer commit 146d259.
+#[test]
+fn test_BC_3_08_001_v1_9_E_REG_003_wildcard_offending_tool_emits_null() {
+    let ctx = make_test_ctx();
+    // Fixture: duplicate (name="wildcard-plugin", event="PreToolUse"), NO tool filter.
+    // F-P15-002: offending_tool MUST be JSON null (not absent) per BC-3.08.001 v1.9.
+    emit_dispatcher_registry_invalid(
+        &ctx,
+        "wildcard-plugin",
+        "E-REG-003",
+        "duplicate_hook_registration",
+        Some("PreToolUse"),
+        None, // wildcard — no tool filter
+    );
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1, "exactly one event must be emitted");
+    let ev = &events[0];
+    assert_eq!(
+        ev.type_,
+        "dispatcher.registry_invalid",
+        "event type must be dispatcher.registry_invalid"
+    );
+    // F-P15-002: BC-3.08.001 v1.8/v1.9 mandates offending_tool present (null for wildcard).
+    // The field must exist in the map and be Value::Null — not missing.
+    assert!(
+        ev.fields.contains_key("offending_tool"),
+        "F-P15-002: offending_tool key MUST be present in wire payload for E-REG-003 \
+         even when tool filter is None (wildcard)"
+    );
+    assert_eq!(
+        ev.fields.get("offending_tool"),
+        Some(&serde_json::Value::Null),
+        "F-P15-002: offending_tool MUST be null (not absent) when E-REG-003 entry \
+         has no tool filter (BC-3.08.001 v1.8/v1.9 mandatory field semantics)"
+    );
+    // offending_event must be present and equal "PreToolUse" (F-P14-001 Path B).
+    assert_eq!(
+        ev.fields.get("offending_event").and_then(|v| v.as_str()),
+        Some("PreToolUse"),
+        "F-P14-001 Path B: offending_event mandatory for E-REG-003"
+    );
+    // error_code and violation sanity checks.
+    assert_eq!(
+        ev.fields.get("error_code").and_then(|v| v.as_str()),
+        Some("E-REG-003"),
+        "error_code must be E-REG-003 for wildcard DuplicateEntry"
+    );
+    assert_eq!(
+        ev.fields.get("violation").and_then(|v| v.as_str()),
+        Some("duplicate_hook_registration"),
+        "violation must be duplicate_hook_registration (BC-3.08.001 v1.9 canonical)"
     );
 }
 
