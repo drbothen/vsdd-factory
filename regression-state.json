@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-08T20:12:03Z","command":"cargo test -p factory-dispatcher --test event_emission_fault_injection 2>&1"}
+{"status":"pass","timestamp":"2026-05-08T20:55:44Z","command":"cargo test --workspace --exclude sink-http 2>&1 | grep -E \"^test result\" | grep -v \"^test result: ok\""}

@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.40"
+version: "1.41"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-16 (2026-05-08) — BC-3.08.001 v1.10→v1.11 (F-P17-002: §Common Fields corrected — plugin_version claim removed; impl emits zero plugin_version calls). No count change. BC-INDEX v1.40→v1.41. last_amended: 2026-05-08 (F5 fix-burst-16: BC-3.08.001 v1.11; F-P17-002 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-15 (2026-05-08) — BC-3.08.001 v1.9→v1.10 (F-P16-002: stale amendment line cites replaced with stable symbol anchors per TD-031; F-P16-005: §Common Fields contradiction resolved for plugin_name omission in Events 1+4). No count change. BC-INDEX v1.39→v1.40. last_amended: 2026-05-08 (F5 fix-burst-15: BC-3.08.001 v1.10; F-P16-002/F-P16-005 closed)."
   - date: 2026-05-08
@@ -331,7 +333,7 @@ changelog:
 | [BC-3.06.007](ss-03/BC-3.06.007.md) | sink-core::routing_filter_plugin_ids_allow — only events from listed plugins pass; empty list = pass-through | draft | CAP-003 | active |
 | [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
 | [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
-| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) (v1.10: F5 fix-burst-15 — stale amendment line cites replaced with stable symbol anchors per TD-031; §Common Fields contradiction resolved for plugin_name omission in Events 1+4; F-P16-002/F-P16-005 closed) | draft | CAP-003 | S-15.01 |
+| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) (v1.11: F5 fix-burst-16 — §Common Fields corrected: plugin_version claim removed; impl emits zero plugin_version calls; F-P17-002 closed) | draft | CAP-003 | S-15.01 |
 
 ### SS-04 — Plugin Ecosystem (BC-4) — 39 BCs
 

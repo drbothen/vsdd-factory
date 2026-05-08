@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.26"
+version: "1.27"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00Z
@@ -10,7 +10,9 @@ traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
   - date: 2026-05-08
-    change: "F5 fix-burst-16 (2026-05-08) — VP-079 v1.14→v1.15 (F-P16-001/TD-031: all main.rs:NNN line cites in Property 6 + Scenario 6 comment block replaced with stable symbol anchors; F-P16-004: §Scenario 7+8 bats line-range refs replaced with @test-block refs; §Scenario 8b wildcard offending_tool prose added; O-P16-002: §Scenario 8 BC-3.08.001 version cite replaced with stable anchor; O-P16-003: frontmatter inputs extended with BC-7.06.001.md). No VP count change. VP-INDEX v1.25→v1.26. last_amended: 2026-05-08 (F5 fix-burst-16: VP-079 v1.15; F-P16-001/004 + O-P16-002/003 + TD-031 closed)."
+    change: "F5 fix-burst-16 (2026-05-08) — VP-079 v1.15→v1.16 (F-P17-001: SITES array refreshed to reflect live main.rs symbol positions; F-P17-001 CRIT closed). No VP count change. VP-INDEX v1.26→v1.27. last_amended: 2026-05-08 (F5 fix-burst-16: VP-079 v1.16; F-P17-001 closed)."
+  - date: 2026-05-08
+    change: "F5 fix-burst-15 (2026-05-08) — VP-079 v1.14→v1.15 (F-P16-001/TD-031: all main.rs:NNN line cites in Property 6 + Scenario 6 comment block replaced with stable symbol anchors; F-P16-004: §Scenario 7+8 bats line-range refs replaced with @test-block refs; §Scenario 8b wildcard offending_tool prose added; O-P16-002: §Scenario 8 BC-3.08.001 version cite replaced with stable anchor; O-P16-003: frontmatter inputs extended with BC-7.06.001.md). No VP count change. VP-INDEX v1.25→v1.26. last_amended: 2026-05-08 (F5 fix-burst-15: VP-079 v1.15; F-P16-001/004 + O-P16-002/003 + TD-031 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-14 (2026-05-08) — VP-079 v1.13→v1.14 (F-P15-001: mandatory-fields table updated with E-REG-003 enrichment fields offending_event+offending_tool+session_id for all four event types; F-P15-003: frontmatter bcs extended [BC-3.08.001, BC-7.06.001]; F-P15-004: §Scenario 7+8 prose added; F-P15-006: changelog entry for F-P14-001 Path B added). No VP count change. VP-INDEX v1.24→v1.25. last_amended: 2026-05-08 (F5 fix-burst-14: VP-079 v1.14; F-P15-001/003/004/006 closed)."
   - date: 2026-05-08
@@ -179,7 +181,7 @@ changelog:
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.10: F5 fix-burst-4 — 5 stale BC-7.06.001 v1.4 cites updated to v1.5; F-P4-001 cite-propagation gap closed) | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
-| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.15: F5 fix-burst-16 — TD-031 stable anchor migration: main.rs:NNN cites replaced with symbol anchors in Property 6 + Scenario 6 comment; §Scenario 7+8 bats refs updated to @test-block; §Scenario 8b wildcard offending_tool added; BC version cites stabilized; inputs extended with BC-7.06.001.md; F-P16-001/004 + O-P16-002/003 closed) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
+| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.16: F5 fix-burst-16 — SITES array refreshed to reflect live main.rs symbol positions; bats vp079-scenario6 header anchors stabilized per TD-031 (test-writer); F-P17-001 CRIT + F-P17-004 closed) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 

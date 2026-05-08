@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.10"
+version: "1.11"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -48,16 +48,15 @@ All four event types carry the following dispatcher-owned fields on the wire. Th
 |-------|------|-------------|
 | `trace_id` | UUID v4 string | Trace correlation value from the invoking hook envelope (DI-017). Canonical wire-format name; `dispatcher_trace_id` must NOT appear on wire (Invariant 5). |
 | `session_id` | UUID v4 string | Claude Code session identifier from the hook envelope context (`ctx.session_id`). Present on all four event types (O-P15-001). |
-| `plugin_name` | string | Name of the plugin registry entry, injected by the host. |
-| `plugin_version` | string | Version of the plugin registry entry, injected by the host. |
+| `plugin_name` | string | Name of the plugin registry entry, injected by the host. Present on plugin-context events (1 + 4) only; absent from dispatcher-startup events (2 + 3) which have no plugin context. |
 | `ts` | string | Emission timestamp (internal format). |
 | `ts_epoch` | integer | Emission timestamp as Unix epoch milliseconds. |
 | `schema_version` | integer | Registry schema version at emission time. |
 | `type` | string | The event type string (e.g. `"plugin.async_block_discarded"`). |
 
-The §Common Fields appear on the wire for ALL four event types. Wire-format examples in §Postconditions show:
-- **Plugin-context events (1 + 4):** `plugin_name` + `plugin_version` explicitly shown (these are plugin-instance events).
-- **Dispatcher-startup events (2 + 3):** `plugin_name` + `plugin_version` OMITTED from examples (no plugin context at dispatcher startup).
+The §Common Fields appear on the wire for ALL four event types except where noted. Wire-format examples in §Postconditions show:
+- **Plugin-context events (1 + 4):** `plugin_name` explicitly shown (these are plugin-instance events). `plugin_version` is NOT emitted by these events — none of the four BC-3.08.001 emit functions call `with_plugin_version()`.
+- **Dispatcher-startup events (2 + 3):** `plugin_name` OMITTED from examples (no plugin context at dispatcher startup).
 - All four event types: `trace_id` + `session_id` explicitly shown (verified by VP-079 payload conformance).
 - Common fields shown only in summary: `ts`, `ts_epoch`, `schema_version` (always emitted; not in examples for readability).
 
@@ -297,6 +296,32 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-05-08 (v1.10 → v1.11 — F-P17-002: §Common Fields plugin_version removed)
+
+**Driver:** **F-P17-002** — §Common Fields table listed `plugin_version` as a field present on all four event types. This was incorrect. None of the four BC-3.08.001 emit functions (`emit_dispatcher_schema_mismatch`, `emit_dispatcher_registry_invalid`, `emit_plugin_async_block_discarded`, `emit_plugin_timeout_async`) in `crates/factory-dispatcher/src/host/emit_event.rs` call `with_plugin_version()`. Only the generic plugin `emit_event` host function (which handles arbitrary plugin-emitted events) enriches with `plugin_version` — and that function is not used by any of the four structured events catalogued in this BC.
+
+The v1.10 amendment (F-P16-005) introduced this error: it rewrote the §Common Fields closing paragraph to state `plugin_name + plugin_version explicitly shown` for Events 1+4. The actual wire examples for Events 1 and 4 show only `plugin_name`; neither shows `plugin_version`. The bats tests do not assert `plugin_version`. The v1.10 amendment paragraph was therefore internally inconsistent with the wire-format examples it purported to describe.
+
+**POLICY 4 verification:** `grep -n "with_plugin_version" crates/factory-dispatcher/src/host/emit_event.rs` finds only one call site: inside the generic `emit_event` host function registration (line 46). None of the four named emit functions for BC-3.08.001 events call `with_plugin_version`.
+
+**Changes made:**
+
+1. **§Common Fields table** (F-P17-002): `plugin_version` row removed. `plugin_name` row description updated to note it is present on plugin-context events (1 + 4) only; absent from dispatcher-startup events (2 + 3).
+2. **§Common Fields closing paragraph** (F-P17-002): Corrected to state `plugin_name` only (not `plugin_name + plugin_version`) for Events 1+4; added explicit note that `plugin_version` is NOT emitted by any of the four BC-3.08.001 emit functions.
+3. **Frontmatter version:** `"1.10"` → `"1.11"`.
+
+**POLICY 1 verification:** All prior content preserved verbatim except the two §Common Fields changes above. No event IDs renumbered. No wire-format examples changed (they never showed `plugin_version` — this removes the erroneous table row that contradicted them).
+
+**POLICY 7 verification:** H1 heading unchanged.
+
+**TD-031 verification:** No `emit_event.rs:[0-9]+` or `main.rs:[0-9]+` patterns introduced.
+
+**Sync notes for story-writer:** No story task or AC changes required — the wire examples were already correct; only the §Common Fields prose is corrected to match them.
+
+**Sync notes for test-writer:** No bats changes required. Bats tests never asserted `plugin_version` for these events; this amendment aligns the spec with the existing correct test behavior.
+
+---
 
 ## Amendment 2026-05-08 (v1.9 → v1.10 — F-P16-002 + F-P16-005: emit_event.rs line citations migrated to stable symbol anchors; §Common Fields paragraph rewritten)
 
