@@ -302,11 +302,11 @@ TOML
         rm -rf "$plugin_root"
         return 1
     }
+    # Removed `not yet implemented` panic-fallback disjunct (was Red-Gate; production code is now fully implemented; F-P2-005).
     [[ "$output" == *"registry_invalid"* ]] || \
         [[ "$output" == *"on_error"* ]] || \
         [[ "$output" == *"async"* ]] || \
-        [[ "$output" == *"E-REG-002"* ]] || \
-        [[ "$output" == *"not yet implemented"* ]] || {
+        [[ "$output" == *"E-REG-002"* ]] || {
         echo "FAIL: output must name the violation or error code. Got: $output"
         rm -rf "$plugin_root"
         return 1
