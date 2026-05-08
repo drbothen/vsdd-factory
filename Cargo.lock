@@ -3678,7 +3678,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "validate-td031-stable-anchors"
+name = "validate-stable-anchors"
 version = "0.0.1"
 dependencies = [
  "serde",

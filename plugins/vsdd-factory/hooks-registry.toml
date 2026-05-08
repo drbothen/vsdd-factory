@@ -948,19 +948,19 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = [".factory/cycles"]
 
-# ---------- validate-td031-stable-anchors (PreToolUse, Write|Edit) ----------
-# TD-031 (P1 escalated O-P16-001): enforces TD-VSDD-091 stable-anchor
-# convention for .factory/specs/**/*.md files.
+# ---------- validate-stable-anchors (PreToolUse, Write|Edit) ----------
+# TD-VSDD-091 stable-anchor convention enforcement for .factory/specs/**/*.md.
+# Initial driver: TD-031 (P1 escalated O-P16-001).
 # Blocks spec body text containing `*.rs:NNN` volatile line citations.
 # Exempt zones: Amendment/Changelog sections; VP-079 Scenario 6 SITES arrays.
 # F-P16-001 / F-P16-002 / F-P17-001: recurrence-breaking mechanical enforcement.
 # NOT via legacy-bash-adapter (Decision 5 WASM-migration rule).
 
 [[hooks]]
-name = "validate-td031-stable-anchors"
+name = "validate-stable-anchors"
 event = "PreToolUse"
 tool = "Write|Edit"
-plugin = "hook-plugins/validate-td031-stable-anchors.wasm"
+plugin = "hook-plugins/validate-stable-anchors.wasm"
 priority = 155
 timeout_ms = 5000
 on_error = "block"
