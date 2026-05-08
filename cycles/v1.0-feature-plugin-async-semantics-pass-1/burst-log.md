@@ -539,3 +539,36 @@ Applied per pass-5 lesson (close-burst claims must be grep-verified, not visual)
 F2 PASS-7 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-8 next (3 consecutive NITPICK_ONLY required before F3 story decomposition). First pass without HIGH findings — DI-019-canonical-home principle now propagated to all 4 citing artifacts (BC-1.14.001, BC-3.08.001, ADR-019, VP-079).
 
 ---
+
+## Burst 9 — F2 pass-8 close — first NITPICK_ONLY of cycle; clock advances 0→1_of_3
+
+**Date:** 2026-05-07
+**Dispatchers:** orchestrator → state-manager
+
+### Summary
+
+Pass-8 returned NITPICK_ONLY (first such pass for this cycle). ADR-013 clock advances 0→1_of_3. Trajectory: 19→19→7→6→3→5→4→1 (NIT).
+
+### Findings addressed
+
+- **NIT-P8-001** (ARCH-INDEX BC-INDEX version-cite drift): ARCH-INDEX line 120 `per BC-INDEX v1.25` refreshed to `per BC-INDEX v1.26`. Recurring drift — 3rd refresh of this cite (pass-5 v1.22→v1.24; pass-6 v1.24→v1.25; pass-8 v1.25→v1.26). Adversary findings persisted to `adversary-pass-8.md`.
+
+### Decision
+
+ARCH-INDEX BC-INDEX cite refreshed; future close-burst protocol must include ARCH-INDEX cite refresh whenever BC-INDEX version bumps (process enhancement noted in ARCH-INDEX changelog v1.18).
+
+### Files touched
+
+- `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-8.md` — created (pass-8 findings)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v1.17→v1.18 (NIT-P8-001 fix + changelog entry)
+- `.factory/STATE.md` — current_step, last_amended, phase progress, concurrent cycles, session checkpoint, INDEX versions
+
+### Index versions at close
+
+BC-INDEX: v1.26 (no change) | ARCH-INDEX: v1.17→v1.18 | VP-INDEX: v1.14 (no change)
+
+### Status
+
+F2 PASS-8 CLOSED. ADR-013 clock 1_of_3. Pass-9 next. Need 2 more consecutive NITPICK_ONLY for CONVERGENCE_REACHED.
+
+---
