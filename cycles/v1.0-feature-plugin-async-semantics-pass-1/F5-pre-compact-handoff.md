@@ -22,7 +22,7 @@ restore full context.
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 |
 | Phase | F5 ADVERSARIAL — convergence-attempt mode |
 | ADR-013 clock | 0_of_3 (pass-17 was HIGH; pass-18 dispatch pending) |
-| Branch (long-lived) | `fix/S-15.01-F5-convergence` HEAD `bb661eaa` (33 commits ahead of develop) |
+| Branch (long-lived) | `fix/S-15.01-F5-convergence` HEAD `ab25e45d` (35 commits ahead of develop) |
 | Factory-artifacts HEAD | `1e9fa71f` + post-rename close commit (TBD this burst) |
 | PR status | HELD until ADR-013 = 3_of_3 |
 | Trajectory | 17→15→6→5→0→2→5→1→4→2→2→4→4→5→7→5→4 |
@@ -72,21 +72,49 @@ Fix-burst-16 broke the loop by **implementing mechanical enforcement**:
 
 The rename commit is `bb661eaa`. The hook now generalizes beyond TD-031 — it's a stable-anchor convention enforcer for all spec content.
 
-## 4. The 180-Violation Backlog
+### Hook evolution (this session)
 
-The lint-hook activation in fix-burst-16 surfaced **180 pre-existing violations across 60 files** in `.factory/specs/**/*.md`.
+| Commit | Change |
+|--------|--------|
+| `bb661eaa` | Rename: `validate-td031-stable-anchors` → `validate-stable-anchors` (generalize beyond specific TD entry) |
+| `d6dcdd9f` | Generalize regex: Rust-only `.rs:NNN` → any `<word>.<lowercase 1-8>:<digits>` (language-agnostic) |
+| `ab25e45d` | Tighten with source-code allowlist: exclude `.md`/`.html`/`.txt` (markdown cross-doc references are a distinct class) |
 
-### Verification report (just completed)
+**Final detection scope:** `<word>.<ext>:<digits>` where ext ∈ {rs, toml, sh, bash, py, ts, tsx, js, jsx, go, bats, yaml, yml, json, lock, lobster, wasm, c, cpp, h, hpp, rb}.
 
-**Sample size:** 22 stratified samples (VPs, BCs, invariants, stories, ADRs)
-**True-positive rate: 98.9% (178 of 180)**
+**Final WASM artifact:** 168K at `plugins/vsdd-factory/hook-plugins/validate-stable-anchors.wasm`
+
+**Test count:** 58/58 pass.
+
+## 4. The 316-Violation Backlog
+
+The lint-hook activation in fix-burst-16 initially surfaced 180 pre-existing violations (Rust-only `.rs:NNN` scope). After generalization (`d6dcdd9f`) and tightening (`ab25e45d`), the **final tightened scope is 316 violations** across 60+ source-code/config/test files in the spec corpus.
+
+### Violation count progression
+
+| Stage | Count | Scope |
+|-------|-------|-------|
+| Original Rust-only (fix-burst-16, `bb661eaa`) | **180** | `.rs:NNN` patterns in `.factory/specs/**/*.md` body |
+| Generalized (over-broad, `d6dcdd9f`) | **1,229** | All `<word>.<ext>:<digits>` including 938 `.md` cross-doc refs — DIFFERENT class |
+| **Final tightened (`ab25e45d`)** | **316** | Source-code allowlist only; `.md`/`.html`/`.txt` excluded |
+
+The 938 `.md` cross-doc references (e.g., `STATE.md:42`) are a structurally distinct class — they reference document positions, not source-code line citations subject to the same drift problem. Markdown cross-doc cites would require a separate hook design if added later.
+
+### Verification report (applies to final 316 scope)
+
+**Sample size:** 22 stratified samples (VPs, BCs, invariants, stories, ADRs) — originally taken on the 180 `.rs:NNN` subset.
+**True-positive rate: 98.9% (prior analysis on `.rs` cites)**
 **False-positive rate: 1.1% (2 — both in VP-INDEX YAML frontmatter `changelog:` array)**
 
 Root cause of 2 FPs: hook's exempt-zone state machine doesn't recognize YAML frontmatter delimiters.
 
-### Top 5 files (52% of total = 93 violations)
+The additional ~136 violations from `.toml`/`.sh`/`.bats`/`.lobster` and other source extensions are the same structural class as the original 180 — source-file line citations subject to line-number drift. TP rate expected similarly high.
 
-| File | Violations |
+### Top-5 file analysis (historical — `.rs:NNN` era)
+
+The following top-5 breakdown was derived from the original 180-violation Rust-only scope. Post-tightening, the per-file distribution has shifted (new non-Rust violations added, no `.md` violations removed from within spec files). Orchestrator should re-derive top-N concentration after compact.
+
+| File (from original 180-scope analysis) | Violations |
 |------|------------|
 | `.factory/specs/behavioral-contracts/ss-01/BC-1.05.036.md` | 44 |
 | `.factory/specs/behavioral-contracts/ss-01/BC-1.05.035.md` | 23 |
@@ -96,7 +124,7 @@ Root cause of 2 FPs: hook's exempt-zone state machine doesn't recognize YAML fro
 
 ### Recommended next step (USER-APPROVED PATH)
 
-**Mass sweep all 180 violations** — migrate `*.rs:NNN` patterns to stable symbol anchors per TD-VSDD-091. Most cites have stable symbol names (e.g., `RegistryError::Toml`, `HOST_ABI_VERSION`, `partition_plugins`) already in the surrounding sentence; rewrites are mechanical.
+**Mass sweep all 316 violations** — migrate `*.<ext>:NNN` patterns to stable symbol anchors per TD-VSDD-091. The 100 additional violations beyond the original 180 (from `.toml`/`.sh`/`.bats`/`.lobster` and other source extensions) are the same class and should be swept together. Most cites have stable symbol names already in the surrounding sentence; rewrites are mechanical.
 
 **Optional small tune:** extend hook's exempt-zone state machine to skip YAML frontmatter between `^---$` delimiters at line 1. Eliminates the 2 VP-INDEX false positives. Low priority (saves 1 file from sweep).
 
@@ -105,10 +133,10 @@ Root cause of 2 FPs: hook's exempt-zone state machine doesn't recognize YAML fro
 After `/compact`, orchestration should:
 
 1. Read STATE.md
-2. Read this handoff doc + the verification report at `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-verification-180-violations.md` (if persisted separately) OR the §4 sample table above
+2. Read this handoff doc + the §4 violation table above (verification on the original 180 `.rs:NNN` subset; final tightened count is 316)
 3. Decide on mass sweep approach:
-   - **Option (a)** Single mass sweep dispatch (implementer): all 180 across 60 files in one burst — risk of context overflow
-   - **Option (b)** Chunked sweep (recommended): 4-6 sub-bursts of ~10 files each, focused on the top-5 file clusters first
+   - **Option (a)** Single mass sweep dispatch (implementer): all 316 across 60+ files in one burst — risk of context overflow
+   - **Option (b)** Chunked sweep (recommended): 4-6 sub-bursts of ~10 files each, focused on the highest-concentration files first (re-derive top-N after compact from live grep)
 4. Dispatch sweep
 5. After sweep: dispatch pass-18 adversary
 6. If pass-18 NITPICK_ONLY → ADR-013 clock 0→1_of_3 → continue chain (passes 19, 20 for 2_of_3, 3_of_3 = CONVERGED)
