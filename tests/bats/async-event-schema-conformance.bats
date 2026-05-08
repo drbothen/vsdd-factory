@@ -250,9 +250,22 @@ script_path = "test-fixtures/exit0.sh"
     assert_fields_present "$line" \
         type trace_id found_version expected_version timestamp error_code
 
+    # F-P1-014 fix: assert expected_version is an integer (not a string "2").
+    # BC-3.08.001 Event 2 wire format specifies `"expected_version": 2` (integer).
+    # This assertion catches a future serialization regression where the field
+    # is emitted as the JSON string `"2"` instead of the JSON integer `2`.
     local expected_version
     expected_version=$(echo "$line" | python3 -c \
-        "import sys,json; print(json.load(sys.stdin)['expected_version'])")
+        "import json,sys; d=json.load(sys.stdin); \
+         assert isinstance(d['expected_version'], int), \
+             'expected_version must be JSON int, not str; got type=' + type(d['expected_version']).__name__; \
+         print(d['expected_version'])" 2>&1)
+    local ev_status=$?
+    [ "$ev_status" -eq 0 ] || {
+        echo "FAIL: expected_version type assertion failed: $expected_version"
+        echo "      BC-3.08.001 requires expected_version to be a JSON integer, not a string."
+        return 1
+    }
     [ "$expected_version" = "2" ] || {
         echo "FAIL: expected_version must be 2; got: $expected_version"
         return 1
