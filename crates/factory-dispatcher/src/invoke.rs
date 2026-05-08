@@ -392,7 +392,11 @@ fn setup_host_on_store_data(
                     .with_plugin_name(&host.plugin_name)
                     .with_plugin_version(&host.plugin_version);
                 for (k, v) in pairs {
+                    // Reserved fields: plugins cannot override dispatcher-owned identity fields.
+                    // BC-3.08.001 v1.5 Invariant 5: both "trace_id" (canonical wire name) and
+                    // "dispatcher_trace_id" (legacy, defense-in-depth) are reserved.
                     if [
+                        "trace_id",
                         "dispatcher_trace_id",
                         "session_id",
                         "plugin_name",
