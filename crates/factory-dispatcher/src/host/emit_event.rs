@@ -110,6 +110,119 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
     Ok(out)
 }
 
+// ---------------------------------------------------------------------------
+// S-15.01 T-3e — 4 new event type emission stubs (BC-3.08.001 v1.4)
+//
+// These functions emit the four new event types introduced by ADR-019.
+// All bodies are `todo!()` per BC-5.38.001 Red Gate; the implementer
+// fills in the field map and calls `ctx.emit_internal(ev)` in T-3e.
+//
+// ASYNC_DRAIN_WINDOW_MS is defined in DI-019 — cite by reference only;
+// do NOT hardcode the value (Decision 4).
+//
+// Event catalog authority: BC-3.08.001 (SS-03). Emission sites: SS-01
+// (engine.rs, registry.rs). Wire format defined here per BC-3.08.001 v1.4.
+// ---------------------------------------------------------------------------
+
+/// Emit `plugin.async_block_discarded` event (BC-3.08.001 v1.4).
+///
+/// Fired when an async-group plugin returns exit code 2 (block verdict).
+/// The block is discarded because async-group verdicts never reach Claude Code
+/// (BC-1.14.001 Invariant 4; EC-005). The event provides diagnostic visibility
+/// into discarded block signals for operators reviewing events-*.jsonl.
+///
+/// Required fields (BC-3.08.001):
+/// - `plugin_name`: name of the offending async plugin
+/// - `reason`: `"async_plugin_block_verdict_discarded"` (literal string, fixed)
+/// - `exit_code`: the exit code returned by the plugin (expected: "2")
+///
+/// # BC traces
+/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-1.14.001 EC-005 — async plugin exit code 2 behavior
+/// - BC-1.14.001 Error Paths — async plugin returns exit code 2
+pub fn emit_plugin_async_block_discarded(
+    _ctx: &HostContext,
+    _plugin_name: &str,
+    _exit_code: i32,
+) {
+    todo!("T-3e: emit plugin.async_block_discarded event — fields: plugin_name, reason='async_plugin_block_verdict_discarded', exit_code (BC-3.08.001 v1.4)")
+}
+
+/// Emit `dispatcher.schema_mismatch` event (BC-3.08.001 v1.4).
+///
+/// Fired when the registry `schema_version` does not match
+/// `REGISTRY_SCHEMA_VERSION` (currently 2). This is E-REG-001.
+/// The dispatcher exits 2 (fail-closed) after emitting this event
+/// (BC-1.14.001 Error Paths; exception to BC-1.08.001 fail-open).
+///
+/// Required fields (BC-3.08.001):
+/// - `got`: the `schema_version` found in the registry file (as string)
+/// - `expected`: `REGISTRY_SCHEMA_VERSION` value (as string)
+/// - `error_code`: `"E-REG-001"` (literal)
+///
+/// # BC traces
+/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-1.14.001 Error Paths — schema_version mismatch
+/// - BC-1.08.001 amendment — schema-mismatch is the explicit fail-closed exception
+pub fn emit_dispatcher_schema_mismatch(
+    _ctx: &HostContext,
+    _got: u32,
+    _expected: u32,
+) {
+    todo!("T-3e: emit dispatcher.schema_mismatch event — fields: got, expected, error_code='E-REG-001' (BC-3.08.001 v1.4)")
+}
+
+/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.4).
+///
+/// Fired when a registry entry violates the `on_error=block` + `async=true`
+/// coexistence invariant (E-REG-002, BC-7.06.001 Invariant 1).
+/// The dispatcher exits 2 (fail-closed) after emitting this event.
+///
+/// Required fields (BC-3.08.001):
+/// - `plugin_name`: name of the offending registry entry
+/// - `error_code`: `"E-REG-002"` (literal)
+/// - `violation`: `"on_error=block+async=true"` (literal)
+///
+/// # BC traces
+/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-1.14.001 Error Paths — on_error=block AND async=true
+/// - BC-7.06.001 Invariant 1 — load-time invariant enforcement
+pub fn emit_dispatcher_registry_invalid(
+    _ctx: &HostContext,
+    _plugin_name: &str,
+) {
+    todo!("T-3e: emit dispatcher.registry_invalid event — fields: plugin_name, error_code='E-REG-002', violation='on_error=block+async=true' (BC-3.08.001 v1.4)")
+}
+
+/// Emit `plugin.timeout` event for async-path timeouts (BC-3.08.001 v1.4).
+///
+/// NOTE: A `plugin.timeout` event is also emitted for sync-path timeouts
+/// (BC-1.14.001 Error Paths). This stub specifically covers the async-path
+/// variant where the event reaches events-*.jsonl but does NOT influence
+/// the dispatcher exit code.
+///
+/// Required fields (BC-3.08.001):
+/// - `plugin_name`: name of the timed-out plugin
+/// - `timeout_ms`: the configured `timeout_ms` for the entry (as string)
+/// - `path`: async or sync indicator (`"async"` for this variant)
+///
+/// ASYNC_DRAIN_WINDOW_MS for the drain window is defined in DI-019 — cite
+/// by reference only. The drain window and the per-plugin timeout_ms are
+/// independent values; do NOT conflate them.
+///
+/// # BC traces
+/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-1.14.001 Error Paths — async plugin times out
+/// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
+/// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)
+pub fn emit_plugin_timeout_async(
+    _ctx: &HostContext,
+    _plugin_name: &str,
+    _timeout_ms: u32,
+) {
+    todo!("T-3e: emit plugin.timeout event (async path) — fields: plugin_name, timeout_ms, path='async' (BC-3.08.001 v1.4; DI-019 for drain window)")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -12,7 +12,11 @@ use thiserror::Error;
 
 /// Current registry schema version. The loader refuses anything else
 /// so an unreleased schema change can't silently mis-parse.
-pub const REGISTRY_SCHEMA_VERSION: u32 = 1;
+///
+/// S-15.01 (AC-001, BC-7.06.001 postcondition 1): bumped to 2 for per-plugin
+/// `async` field support and partition semantics (ADR-019). A registry with
+/// `schema_version != 2` produces E-REG-001 at load time (fail-closed).
+pub const REGISTRY_SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug, Error)]
 pub enum RegistryError {
@@ -24,7 +28,8 @@ pub enum RegistryError {
     Toml(#[from] toml::de::Error),
     #[error(
         "registry schema_version = {got}, dispatcher expects {expected}. \
-         Regenerate hooks-registry.toml or upgrade the dispatcher."
+         Regenerate hooks-registry.toml or upgrade the dispatcher. \
+         [E-REG-001]"
     )]
     SchemaVersion { got: u32, expected: u32 },
     #[error("registry entry '{name}': invalid tool regex `{pattern}`: {source}")]
@@ -34,6 +39,15 @@ pub enum RegistryError {
         #[source]
         source: regex::Error,
     },
+    /// E-REG-002: entry has `on_error = "block"` AND `async = true`.
+    /// Enforced at registry-load time; dispatcher refuses to start.
+    /// (BC-1.14.001 Invariant 4, BC-7.06.001 Invariant 1)
+    #[error(
+        "registry entry '{name}': on_error = \"block\" combined with async = true is forbidden \
+         (BC-7.06.001 Invariant 1). Classify this plugin async = false or remove on_error = \"block\". \
+         [E-REG-002]"
+    )]
+    AsyncBlockConflict { name: String },
 }
 
 /// Outcome for a plugin that returns `Error` or crashes. `Continue` is
@@ -196,6 +210,25 @@ pub struct RegistryEntry {
     /// [`HookPayload`]: vsdd_hook_sdk::HookPayload
     #[serde(default = "default_config")]
     pub config: toml::Value,
+
+    /// Per-plugin async classification (S-15.01, BC-7.06.001 postcondition 2).
+    ///
+    /// - `async = true`: plugin is fire-and-forget (async_group). Its verdict
+    ///   never affects the dispatcher exit code. Suitable for telemetry-only
+    ///   plugins. MUST NOT be combined with `on_error = "block"` (E-REG-002).
+    /// - `async = false` (default, including absent field): plugin is in the
+    ///   sync_group. The dispatcher awaits its completion; a block verdict gates
+    ///   Claude Code. The serde-default semantics (absent = false) ensure all
+    ///   existing registry entries are treated as sync-group plugins without
+    ///   any TOML file migration (BC-7.06.001 postcondition 3).
+    ///
+    /// Renamed to `async_flag` in Rust source because `async` is a reserved
+    /// keyword. The TOML key remains `async`.
+    ///
+    /// ASYNC_DRAIN_WINDOW_MS for async group tasks is defined in DI-019 —
+    /// cite by reference, do NOT hardcode the value (Decision 4).
+    #[serde(default, rename = "async")]
+    pub async_flag: bool,
 }
 
 fn default_enabled() -> bool {
@@ -323,7 +356,21 @@ impl Registry {
                 })?;
             }
         }
+        // S-15.01 T-3f: check BC-7.06.001 Invariant 1 — on_error=block implies async=false.
+        // Any entry with on_error=block AND async=true is E-REG-002 (fail-closed).
+        self.validate_async_block_invariant()?;
         Ok(())
+    }
+
+    /// Lint invariant (S-15.01 T-3f, BC-7.06.001 Invariant 1, BC-1.14.001 Invariant 4):
+    /// No entry may combine `on_error = "block"` with `async = true`.
+    ///
+    /// This is a hard load-time error (E-REG-002). The dispatcher refuses to start
+    /// if any entry violates this invariant. Emits `dispatcher.registry_invalid`.
+    ///
+    /// ASYNC_DRAIN_WINDOW_MS is defined in DI-019 — cite by reference only.
+    fn validate_async_block_invariant(&self) -> Result<(), RegistryError> {
+        todo!("T-3f: implement on_error=block + async=true detection; return Err(RegistryError::AsyncBlockConflict) for any violating entry (BC-7.06.001 Invariant 1, E-REG-002)")
     }
 }
 

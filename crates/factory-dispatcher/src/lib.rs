@@ -12,6 +12,7 @@ pub mod executor;
 pub mod host;
 pub mod internal_log;
 pub mod invoke;
+pub mod partition;
 pub mod payload;
 pub mod plugin_loader;
 pub mod registry;
@@ -36,6 +37,7 @@ pub use registry::{
     Capabilities, ExecSubprocessCaps, OnError, ReadFileCaps, Registry, RegistryDefaults,
     RegistryEntry, RegistryError,
 };
+pub use partition::{PluginPartition, partition_plugins};
 pub use routing::{PluginResultStub, group_by_priority, match_plugins};
 
 /// ABI version the dispatcher speaks. Kept in lock-step with
