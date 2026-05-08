@@ -1037,3 +1037,23 @@ F3 trajectory: **9 → 3 → 3 → 1 → 0** (5 passes, 4 fix bursts).
 ### Status
 
 F3 CONVERGED. S-15.01 v1.6 status: ready. ADR-013 clock 3_of_3. F4 TDD implementation dispatch pending (stub-architect → test-writer → implementer → demo-recorder → pr-manager). Engine-discipline-pass-1 cycle remains paused at F3-pending; will resume after S-15.01 ships.
+
+---
+
+## Burst 13 — F4-handoff document authored for post-context-compaction dispatch
+
+**Date:** 2026-05-07
+**Dispatcher:** state-manager
+**Phase:** F3 CONVERGED → F4 pre-dispatch
+
+### Outputs
+
+| File | Notes |
+|------|-------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` | Created — comprehensive F4 dispatch reference. Captures cycle status, S-15.01 v1.6 story summary, 5 user-locked decisions (verbatim), full Option A dispatch chain (stub-architect → test-writer → implementer T-3a..T-3i → demo-recorder → pr-manager), 5 lessons, critical path references, WASM precedent (validate-artifact-path). |
+| `.factory/STATE.md` | Session Resume Checkpoint updated: F4-handoff.md reference added; ACTIVE STEP now directs reader to handoff doc; "go F4 Option A" trigger documented. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | This entry appended. |
+
+### Status
+
+F4-handoff.md on disk. User intends to /compact, then issue "go F4 Option A". All dispatch context is now on disk; no live conversation memory required.

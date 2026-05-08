@@ -167,7 +167,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — F3 CONVERGENCE_REACHED close burst complete for v1.0-feature-plugin-async-semantics-pass-1. Pass-5 verdict: NITPICK_ONLY (0H/0M/0L/0NIT). ADR-013 clock advances 2→3_of_3. CONVERGENCE_REACHED. S-15.01 v1.5→v1.6; status flipped draft→ready. STORY-INDEX v2.35→v2.36. F3 trajectory: 9→3→3→1→0; 5 passes + 4 fix bursts. Active cycle: v1.0-feature-plugin-async-semantics-pass-1.
+**Last update:** 2026-05-07 — F4-handoff.md authored for post-context-compaction F4 dispatch. F3 CONVERGED (commit 1227036). S-15.01 v1.6 ready. Awaiting user "go F4 Option A" command.
+
+**ACTIVE STEP: F4 TDD IMPLEMENTATION PENDING. Issue "go F4 Option A" to dispatch. Read `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` for full context (story, decisions, dispatch plan, lessons, precedents).**
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** 15432c6 (S-12.06 PR #105 squash-merge 2026-05-07)
@@ -175,7 +177,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID (validate fails; user must delete: `git push origin :refs/tags/v1.0.0-rc.13`)
 **v1.0.0-rc.12 tag:** 4cf59bc; SHIPPED 2026-05-06
 **v1.0.0-rc.11 tag:** fb3e297; GH prerelease=true; PRs #89/#90/#91 merged 2026-05-04
-**Active worktrees:** main + .factory + B3-fix + B4-fix (B3/B4 fix PRs in flight; B6 state-manager burst executed from B4-fix worktree)
+**Active worktrees:** main + .factory (B3/B4-fix worktrees may be stale; verify before use)
 **Stash on develop:** cleared
 **E-9 current version:** v1.53 (CONVERGENCE_REACHED; ADR-013 clock 3_of_3; D-308)
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
@@ -183,13 +185,16 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
 **BC-INDEX:** v1.30 | **VP-INDEX:** v1.16 | **STORY-INDEX:** v2.36 | **ARCH-INDEX:** v1.19
 
-**ACTIVE STEP: F3 CONVERGED for plugin-async-semantics-pass-1. S-15.01 v1.6 ready. F4 TDD implementation dispatch pending (stub-architect → test-writer → implementer → demo-recorder → pr-manager). Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
+**F4 dispatch chain:** stub-architect → test-writer → implementer (T-3a..T-3i) → demo-recorder (5 demos) → pr-manager. Full detail in F4-handoff.md §4.
+**5 user-locked decisions (non-negotiable):** (1) every hook event sync at envelope, (2) no backwards compat (v1 registry hard-errors), (3) no phased rollout, (4) ASYNC_DRAIN_WINDOW_MS=100ms via DI-019, (5) WASM-only for new plugins. Full text in F4-handoff.md §3.
+**WASM precedent:** `crates/hook-plugins/validate-artifact-path/` (S-13.01). Do NOT use legacy-bash-adapter entries as model.
 
-**F5 pickup (post-amendment):** After F1/F2/F3/F4 amendment cycle completes, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
+**Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
+
+**F5 pickup (post-F4):** After S-15.01 merges, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
 **S-11.00 backlog:** verify-sha-currency.sh Rust port stub (D-297). Full authoring: post-E-10 convergence.
-
 
 > Resume procedures archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
