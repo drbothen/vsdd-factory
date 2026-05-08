@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-06T19:00:00Z
+timestamp: 2026-05-08T08:17:33Z
 phase: post-rc11-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-1 fix-burst Path A complete (ADR-020 + AC-016 budget 500ms→1500ms + S-15.02 follow-up + BC-1.14.001 v1.8 DI-017 citation). Ready for Stage 4 (pr-manager) PR open against develop. Branch: fix/S-15.01-F5-pass-1 (check HEAD with git log). After PR merge, F5 pass-2 adversary dispatch."
+current_step: "F5 pass-1 fix-burst MERGED — PR #107 squash-merged at 6050d24 (2026-05-08). 17 adversary findings addressed: drain refactor (spawn+channel+select!), aggregate_exit_code, trace_id flip, latency canary real measurement, VP-078 H3 tuple fix, bats controls. F5 pass-2 adversary dispatch NEXT."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 FIX-BURST PATH A COMPLETE** | S-15.01 MERGED via PR #106 at 453eee1 (2026-05-08). F5 pass-1: 5H/6M/4L/2NIT. Path A: ADR-020 v1.0; S-15.01 v1.8 (AC-016 1500ms); S-15.02 added draft; BC-1.14.001 v1.8 (DI-017 citation). Stage 4 (pr-manager) ready; PR against develop. F5 pass-2 after merge. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 FIX-BURST MERGED** | S-15.01 MERGED via PR #106 at 453eee1 (2026-05-08). F5 fix-burst MERGED via PR #107 at 6050d24 (2026-05-08). F5 pass-1: 5H/6M/4L/2NIT — all 17 findings addressed. Path A: ADR-020 v1.0; S-15.01 v1.8 (AC-016 1500ms); S-15.02 draft; BC-1.14.001 v1.8. F5 pass-2 adversary dispatch NEXT. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -131,7 +131,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
-| develop | 4cf59bc | v1.0.0-rc.12 released 2026-05-06 |
+| develop | 6050d24 | F5 fix-burst PR #107 squash-merge 2026-05-08 |
 | factory-artifacts | (see git log) | Phase D-4 + rc.12 sealed; D-327 this burst |
 | v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
@@ -143,7 +143,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST PATH A COMPLETE | F4 COMPLETE (PR #106 453eee1 2026-05-08). F5 pass-1 verdict HIGH 5H/6M/4L/2NIT. Stage 1 + Path A committed: ADR-020 v1.0; S-15.01 v1.8 AC-016 1500ms; S-15.02 draft; BC-1.14.001 v1.8 DI-017. Stage 4 (pr-manager) ready. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-1.md` |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST MERGED — F5 pass-2 PENDING | F4 COMPLETE (PR #106 453eee1 2026-05-08). F5 fix-burst MERGED (PR #107 6050d24 2026-05-08). F5 pass-1 verdict HIGH 5H/6M/4L/2NIT — all 17 findings addressed. F5 pass-2 adversary dispatch NEXT. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-1.md` |
 
 ## Decisions Log
 
@@ -167,12 +167,12 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 fix-burst Path A COMPLETE. ADR-020 v1.0 committed; S-15.01 v1.8 (AC-016 1500ms budget); S-15.02 v1.0 added (draft follow-up); BC-1.14.001 v1.8 (DI-017 traceability). Indexes: BC-INDEX v1.32, VP-INDEX v1.17, STORY-INDEX v2.38, ARCH-INDEX v1.20.
+**Last update:** 2026-05-08 — F5 fix-burst PR #107 MERGED at 6050d24. All 17 F5 pass-1 adversary findings addressed: drain refactor (tokio::spawn+mpsc+select!), aggregate_exit_code + Kani H5/H6, trace_id serde rename, latency canary real binary-spawn measurement + 1500ms budget (ADR-020), VP-078 H3 (name,event) tuple fix, bats positive/negative controls, VP-079 Scenario 6 mutation counter-proof. Security: CLEAN. AI review: APPROVE (0 blocking findings). CI: SAST PASS.
 
-**ACTIVE STEP: Stage 4 — pr-manager opens PR on branch fix/S-15.01-F5-pass-1 against develop. After PR merge, F5 pass-2 adversary dispatch. Implementer refactor (Stage 2) scope remains: (1) spawn-based drain per BC-1.14.001 PC4 (F-P1-006); (2) aggregate_exit_code per VP-077 Property 6 (F-P1-001); (3) trace_id flip per DI-017 v1.1 (F-P1-007); (4) latency canary real measurement per POLICY 11 (F-P1-003).**
+**ACTIVE STEP: F5 pass-2 adversary dispatch — adversary runs fresh-context pass against develop @ 6050d24 + spec on factory-artifacts @ a50ba72. Scope: all 17 F-P1 findings + new code paths (aggregator.rs, spawn_async_plugin, drain loop). ADR-013 clock: 0_of_3 (HIGH in pass-1; clock resets; pass-2 starts fresh count).**
 
-**factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
-**develop HEAD:** 453eee1 (S-15.01 PR #106 squash-merge 2026-05-08)
+**factory-artifacts HEAD:** run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm
+**develop HEAD:** 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 **main HEAD:** fb3e297 (rc.11 bot bundle; behind develop)
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID (validate fails; user must delete: `git push origin :refs/tags/v1.0.0-rc.13`)
 **v1.0.0-rc.12 tag:** 4cf59bc; SHIPPED 2026-05-06
@@ -190,7 +190,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 **Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
 
-**F5 status:** Fix-burst Path A COMPLETE — ADR-020 v1.0; S-15.01 v1.8 (AC-016 1500ms, F-P1-003+F-P1-009 closed); S-15.02 added draft; BC-1.14.001 v1.8 (DI-017, Stage-1-deferred). Stage 4 (pr-manager) next. Stage 2 implementer refactor scope: spawn-based drain (F-P1-006), aggregate_exit_code (F-P1-001), trace_id flip (F-P1-007), latency canary real measurement (F-P1-003).
+**F5 status:** Fix-burst MERGED — PR #107 at 6050d24 (2026-05-08). All 17 F5 pass-1 findings closed. develop @ 6050d24. F5 pass-2 adversary dispatch NEXT.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
