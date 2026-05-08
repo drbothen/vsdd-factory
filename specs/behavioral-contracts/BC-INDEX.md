@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.30"
+version: "1.31"
 status: draft
 producer: state-manager
-timestamp: 2026-05-07T00:00:00
-phase: F3
+timestamp: 2026-05-08T00:00:00
+phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst Stage 1 (2026-05-08) — BC-1.14.001 v1.6→v1.7 (F-P1-004: anchor cite partition.rs; PC4 spawn-based drain; F-P1-006: aggregate_exit_code design; F-P1-010: drain truncation EC-012 added). BC-3.08.001 v1.4→v1.5 (F-P1-007: Invariant 5 trace_id canonical wire-field name; RESERVED_FIELDS table added). No count change. BC-INDEX v1.30→v1.31. last_amended: 2026-05-08 (F5 pass-1 fix burst Stage 1: BC-1.14.001 v1.7; BC-3.08.001 v1.5; F-P1-004/006/007/010 closed)."
   - date: 2026-05-07
     change: "WASM-rule retroactive audit fix burst (2026-05-07) — BC-9.01.006 v1.1→v1.2 (Error Paths row 1 + EC-002: 'Pre-commit hook fails' → 'Claude Code PostToolUse Edit|Write hook blocks tool call'; Layer 1 wording aligned with PostToolUse Edit|Write semantics; mirror of BC-7.06.001 v1.3 fix). User directive: 'make sure we keep that rule for everything we have done'. No count change. BC-INDEX v1.29→v1.30. last_amended: 2026-05-07 (WASM-rule audit: BC-9.01.006 v1.2; PostToolUse Edit|Write wording aligned)."
   - date: 2026-05-07

@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.5"
+version: "1.6"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-05-07
+last_amended: 2026-05-08
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -123,11 +123,12 @@ The executor splices the entry's `config` block as `plugin_config` into the payl
 Enforcement owner: SS-01 (executor.rs). BC range: BC-1.
 Justification: DI-016 is a business invariant because configuration leakage between plugin instances (e.g., two `legacy-bash-adapter` entries with different `script_path`) would cause incorrect behavior. Source: pass-2 §BR-per-plugin-config.
 
-**DI-017 — `trace_id` is present on every emitted event**
+**DI-017 — `trace_id` is present on every emitted event; wire-format exclusivity** _(v1.1 — amended 2026-05-08 per F-P1-007)_
 Every `InternalEvent` carries the UUID v4 generated from the stdin envelope. No event is emitted without it, enabling full causal reconstruction of a single hook invocation.
-Enforcement owner: SS-01 (main.rs, executor.rs, emit_event host fn). BC range: BC-1.
+Enforcement owner: SS-01 (main.rs, executor.rs, emit_event host fn). BC range: BC-1, BC-1.14.001, BC-3.08.001 (Invariant 5).
 Justification: DI-017 is a business invariant because the trace ID is the audit correlation key — an event without it cannot be attributed to its invoking tool call. Source: pass-2 §BR-trace_id.
 **Renamed by ADR-015 v1.7 changelog:** `dispatcher_trace_id` → `trace_id` (canonicalized in D-15.2.e). The invariant is identical; only the field name changed. All BCs and code must use `trace_id`. Any reference to `dispatcher_trace_id` in existing code or specs is a drift artifact to be corrected.
+**Wire-format exclusivity (amended per F-P1-007):** On the dispatcher's structured-event wire output (`events-*.jsonl`), the field name is exclusively `trace_id`. The legacy alias `dispatcher_trace_id` MUST NOT appear in serialized output. Host-side reserved-fields filters MUST strip `trace_id` from plugin-emitted fields and MUST also strip `dispatcher_trace_id` (defense-in-depth: even though dispatchers no longer emit it, plugins must not be permitted to spoof it).
 
 > **Note:** DI-018 was proposed in Phase 1d pass-1 to address the concurrent self-modification risk for vsdd-factory's dogfooding (engine and product are the same repo). Pass-2 review (F-018, F-021) flagged that the proposed enforcement claim was aspirational without an actual enforcing BC. The risk is now captured as a known limitation (KL-005) rather than a domain invariant.
 >
@@ -162,6 +163,7 @@ Justification: DI-019 is a domain invariant because the drain-window constant di
 | v1.3 | 2026-05-07 | F2 pass-2 fix burst: DI-014 amendment note added per F-P2-014 — BC-7.06.001 ID-prefix retention clarification (BC-7 prefix preserved for append-only continuity; subsystem is SS-01 post-reanchor). DI-015 added — per-project activation gate invariant. |
 | v1.4 | 2026-05-07 | F2 pass-3 fix burst (BC-1.14.001 v1.3): BC-1.14.001 v1.3 inlined `ASYNC_DRAIN_WINDOW_MS = 100` as a Constant Definitions table. State after pass-3 fix burst; constant was in BC, not yet lifted to DI. |
 | v1.5 | 2026-05-07 | F2 pass-3 user-correction: DI-019 authored — `ASYNC_DRAIN_WINDOW_MS = 100 ms` lifted from BC-1.14.001 Constant Definitions table to a domain invariant. BC-1.14.001 v1.3 → v1.4 refactored to cite DI-019 by reference; constant value removed from BC inline definition. BC-3.08.001 v1.1 → v1.2 updated to cite DI-019 in L2 Domain Invariants. New section "Dispatcher Timing Invariants" added. |
+| v1.6 | 2026-05-08 | Amended 2026-05-08 per F-P1-007 (F5 pass-1 fix-burst): wire-format exclusivity strengthened in DI-017. Added normative paragraph: `trace_id` is the exclusive wire-format field name in `events-*.jsonl`; `dispatcher_trace_id` MUST NOT appear in serialized output; host-side reserved-fields filters MUST strip both names (defense-in-depth). BC range extended to include BC-1.14.001 and BC-3.08.001 (Invariant 5). DI-017 version label bumped to v1.1. |
 
 ## Amendment 2026-05-07 (v1.4 → v1.5 — F2 pass-3 user-correction)
 

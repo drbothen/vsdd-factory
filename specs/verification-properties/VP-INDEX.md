@@ -1,14 +1,16 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.16"
+version: "1.17"
 status: draft
 producer: state-manager
-timestamp: 2026-05-07T00:00:00
-phase: F3
+timestamp: 2026-05-08T00:00:00
+phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst Stage 1 (2026-05-08) — VP-077 v1.5→v1.7 (F-P1-001: anchor partition.rs + aggregator.rs; 6 Kani harnesses fully specified; F-P1-004: aggregate_exit_code design added). VP-079 v1.6→v1.7 (F-P1-002: Property 6 production-path counter-proof added; Scenario 6 harness). Row descriptions updated. No VP count change. VP-INDEX v1.16→v1.17. last_amended: 2026-05-08 (F5 pass-1 fix burst Stage 1: VP-077 v1.7; VP-079 v1.7; F-P1-001/002/004 closed)."
   - date: 2026-05-07
     change: "WASM-rule retroactive audit fix burst (2026-05-07) — VP-078 v1.7→v1.8 (3 wording fixes: line 50-51 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; lines 300+441 pre-commit → PostToolUse Edit|Write; test-fixture annotation added explaining legacy-bash-adapter is transitional test infrastructure). VP-079 v1.5→v1.6 (test-fixture annotation at line 102; Trigger Points §2 PostToolUse alignment). ADR-019 verified clean. No VP count change. VP-INDEX v1.15→v1.16. last_amended: 2026-05-07 (WASM-rule audit: VP-078 v1.8 + VP-079 v1.6; PostToolUse Edit|Write wording; test-fixture annotations)."
   - date: 2026-05-07
@@ -157,9 +159,9 @@ changelog:
 | [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process | safety | integration | SS-04 | — | draft |
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
-| [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name,event) tuple unique per BC-7.06.001 Invariant 7 | invariant | kani-proof | SS-01 | — | draft |
+| [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name,event) tuple unique per BC-7.06.001 Invariant 7 (v1.7: F5 fix-burst — anchor partition.rs + aggregator.rs; 6 Kani harnesses fully specified; aggregate_exit_code design; F-P1-001 + F-P1-004) | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
-| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.6: WASM-rule audit — test-fixture annotation; Trigger Points §2 PostToolUse alignment) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
+| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.7: F5 fix-burst — Property 6 production-path counter-proof added; Scenario 6 harness; F-P1-002) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 

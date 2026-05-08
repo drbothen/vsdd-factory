@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: 2026-05-07 (v1.4 — NIT-P10-001 cleanup; sibling fix to F-P7-004)
+last_amended: 2026-05-08 (v1.5 — F5 pass-1 fix-burst F-P1-007)
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
@@ -126,6 +126,21 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 2. **Events are write-once, no retry**: These are diagnostic events; partial emission is acceptable (emit-then-crash). They are never retried on FileSink write failure.
 3. **Events do not affect dispatcher exit code**: All four are observability-only. `plugin.async_block_discarded` and `plugin.timeout (async)` are logged and forgotten. `dispatcher.schema_mismatch` and `dispatcher.registry_invalid` accompany a hard exit (non-zero) but the event itself does not cause the exit — the validation failure does.
 4. **`plugin.async_block_discarded` reason field is the literal string `"async_plugin_block_verdict_discarded"`**: Not an error code; a diagnostic reason string for human-readable log inspection.
+5. **`trace_id` is the exclusive wire-format field name for the trace correlation value**: The dispatcher's structured-event wire format uses field name `trace_id` exclusively. The legacy field name `dispatcher_trace_id` MUST NOT appear in the serialized wire output. Plugins MUST NOT emit a `trace_id` field via `with_field()` — `trace_id` is reserved for the dispatcher (see §Implementation Notes). Reference: DI-017 (amended per F-P1-007).
+
+## Implementation Notes
+
+### RESERVED_FIELDS and `trace_id` (F-P1-007)
+
+Implementations MUST add `trace_id` to the host-side reserved-fields filter (e.g., `RESERVED_FIELDS` in `crates/factory-dispatcher/src/host/emit_event.rs`). This prevents plugins from spoofing the dispatcher's trace correlation value via `with_field("trace_id", ...)`.
+
+The reserved-fields filter MUST also retain `dispatcher_trace_id` for backward defense (defense-in-depth): even though the dispatcher no longer emits `dispatcher_trace_id` on the wire, plugins must not be allowed to inject it. Both names are reserved regardless of which name the dispatcher currently uses as the canonical field.
+
+Summary of the required `RESERVED_FIELDS` state after this amendment:
+- `trace_id` — added by this amendment; canonical wire field name; dispatcher-owned
+- `dispatcher_trace_id` — already present; legacy field; retained for defense-in-depth
+
+Plugins that attempt to set either field via `with_field()` MUST have the field silently stripped by the host-side filter before serialization.
 
 ## Error Paths
 
@@ -193,7 +208,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |-------|-------|
 | L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
 | Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 — these four event types are observability events that operators and the VSDD engine consume to diagnose async plugin behavior; cataloguing them here fulfills the "stream observability events" promise by defining the wire format and sink-fan-out obligation |
-| L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all four event types must carry `trace_id`; DI-019 — `ASYNC_DRAIN_WINDOW_MS` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
+| L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all four event types must carry `trace_id`; Invariant 5 of this BC enforces DI-017's requirement that `trace_id` be the canonical wire-field name (not `dispatcher_trace_id`); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
 | Architecture Module | SS-03 — `crates/sink-core/` (event routing); SS-01 — `crates/factory-dispatcher/src/engine.rs` (emission sites); SS-01 — `crates/factory-dispatcher/src/registry.rs` (schema_mismatch + registry_invalid emission sites). Note: SS-07 owns `plugins/vsdd-factory/hooks-registry.toml` (the file format) but the emission sites in registry.rs are SS-01 Rust modules per ARCH-INDEX. |
 | ADR | ADR-019 — Async Semantics at Registry Layer; introduces the conditions that trigger these four events |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
@@ -216,6 +231,24 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-05-08 (v1.4 → v1.5 — F5 pass-1 fix-burst F-P1-007)
+
+Addresses adversary F5-pass-1 finding F-P1-007 (trace_id duality on wire).
+
+**F-P1-007 (trace_id is the canonical wire-field name)**: The implementation at `crates/factory-dispatcher/src/host/emit_event.rs:150-157` emitted both `dispatcher_trace_id` (via `with_trace_id(...)`) and `trace_id` (via `with_field("trace_id", ...)`) on the wire. This created an ABI inconsistency: sink consumers may parse one or the other; RESERVED_FIELDS included `dispatcher_trace_id` but not `trace_id`, allowing plugins to spoof the trace correlation field.
+
+User-approved resolution (option b): code emits only `trace_id`; `dispatcher_trace_id` removed from wire output; `trace_id` added to RESERVED_FIELDS.
+
+The wire format examples in §Postconditions (Events 1-4) already showed `trace_id` only — no change needed there. The spec was correct; the implementation deviated.
+
+**Changes made:**
+- Frontmatter `version:` bumped to `"1.5"`; `last_amended:` updated to `2026-05-08`
+- Invariant 5 added: `trace_id` is the exclusive wire-format field name; `dispatcher_trace_id` MUST NOT appear on wire; plugins MUST NOT emit `trace_id` via `with_field()` (it is dispatcher-reserved)
+- `## Implementation Notes` section added with `### RESERVED_FIELDS and trace_id` subsection: explicit guidance that `trace_id` must be added to RESERVED_FIELDS; `dispatcher_trace_id` retained in RESERVED_FIELDS for defense-in-depth; plugins attempting to set either field are silently stripped
+- Traceability L2 Domain Invariants: DI-017 entry expanded to note that Invariant 5 enforces the canonical wire-field-name requirement
+
+**Canonical Test Vectors**: All existing test vectors show `trace_id` only (no `dispatcher_trace_id`); no changes required. Wire format examples in Postconditions §Events 1-4 already compliant.
 
 ## Amendment 2026-05-07 (v1.3 → v1.4 — F2 pass-10 NIT-P10-001 cleanup; sibling fix to F-P7-004)
 

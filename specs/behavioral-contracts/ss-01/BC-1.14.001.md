@@ -1,17 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: 2026-05-07
+last_amended: 2026-05-08
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F1-delta-analysis.md
   - plugins/vsdd-factory/hooks-registry.toml
   - crates/factory-dispatcher/src/registry.rs
-  - crates/factory-dispatcher/src/routing.rs
+  - crates/factory-dispatcher/src/partition.rs
 input-hash: "[to-be-computed-by-state-manager]"
 traces_to: .factory/specs/prd.md
 origin: greenfield
@@ -60,12 +60,14 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
    - Async group verdict never influences the dispatcher exit code under any condition.
 
 4. Async group execution:
-   - Each async group plugin is spawned as a fire-and-forget task (tokio task or equivalent).
+   - **Each async group plugin is spawned via `tokio::spawn` (or equivalent independent task)**. The dispatcher does NOT call `execute_tiers` or any tier-ordered execution path for async group plugins. Each plugin becomes an independent task; partial completion is therefore observable.
+   - **Plugin results MAY be received concurrently**: Async plugin results (terminal events) may be received while `sync_group` is still running OR during the drain window — whichever ordering the tokio scheduler produces. The dispatcher collects completed results via a shared channel or equivalent collection mechanism.
    - The dispatcher does NOT await async group plugin completions beyond the drain window defined below.
    - Async group plugin verdicts (including any exit codes) are logged to `events-*.jsonl` via the standard FileSink path.
    - Async group results never reach Claude Code as a blocking signal.
-   - **Async-task drain window**: After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` (per DI-019) for spawned async tasks to emit terminal events to FileSink. Tasks that complete within the drain window emit cleanly. Tasks that do not complete within the drain window are forcibly terminated; their pending I/O is discarded (best-effort). The drain window is a bounded constant per DI-019 — async tasks DO NOT extend dispatcher latency beyond `max(sync_plugin_durations) + ASYNC_DRAIN_WINDOW_MS`. The drain is purely for terminal-event emission visibility (e.g., `plugin.timeout`, `plugin.async_block_discarded`), not for completing arbitrary async work.
+   - **Async-task drain window**: After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` (per DI-019) for spawned async tasks to emit terminal events to FileSink. Tasks that complete within the drain window emit cleanly. Tasks that do not complete within the drain window are forcibly terminated. The drain is implemented via `tokio::select!` (or equivalent) over the per-task result channels and a drain timer — NOT via `tokio::time::timeout(execute_tiers(...))`, which is an all-or-nothing await that discards completed-task results on truncation. The drain window is a bounded constant per DI-019 — async tasks DO NOT extend dispatcher latency beyond `max(sync_plugin_durations) + ASYNC_DRAIN_WINDOW_MS`. The drain is purely for terminal-event emission visibility (e.g., `plugin.timeout`, `plugin.async_block_discarded`), not for completing arbitrary async work.
    - **Async plugin lifetime is best-effort**: Tasks not done within `ASYNC_DRAIN_WINDOW_MS` (per DI-019) are terminated (truncated telemetry remains an explicit acceptable cost for tasks slower than the drain). Telemetry plugins classified `async = true` (e.g., `capture-commit-activity`) accept this truncation risk.
+   - **Async-group plugins MUST NOT be subject to tier ordering**: Implementations MUST NOT call `group_by_priority` on async-group plugins (see also Invariant 3).
 
 5. The partition function `partition_plugins(matched_plugins, registry)` is pure and deterministic: given identical inputs it always produces identical `(sync_group, async_group)` splits. No side effects occur during partitioning.
 
@@ -76,7 +78,7 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
 
 1. **Partition purity**: No plugin appears in both `sync_group` and `async_group`. The union of the two groups equals the full set of matched plugins.
 2. **Sync group execution is parallel within tier, not sequential**: Within a given priority tier, all sync group plugins run concurrently. Sequential execution within a tier is explicitly forbidden to prevent future performance regressions. The tier ordering (sequential between tiers) is preserved per ADR-008.
-3. **Async group plugins are excluded from the tier ordering model entirely**: The ADR-008 tier model (sequential-between-tier, parallel-within-tier) applies exclusively to the sync group. Async group plugins have no guaranteed ordering relative to each other or to sync group execution.
+3. **Async group plugins are excluded from the tier ordering model entirely**: The ADR-008 tier model (sequential-between-tier, parallel-within-tier) applies exclusively to the sync group. Async group plugins have no guaranteed ordering relative to each other or to sync group execution. **Code-level note**: Implementations MUST NOT call `group_by_priority` on async-group plugins. Passing async-group plugins through tier-sorted execution paths (e.g., `execute_tiers`) is a spec violation regardless of whether the result is wrapped in a timeout. The required spawn pattern is `tokio::spawn` per plugin with result collection via a channel and `tokio::select!` drain timer (see PC4).
 4. **`on_error = "block"` implies `async = false`**: Any registry entry with `on_error = "block"` must have `async` absent or `async = false`. This is a load-time invariant enforced by `registry.rs::validate()`. If this invariant is violated in the registry file, the dispatcher hard-errors at startup with `E-REG-002` before dispatching any plugins. This invariant is also enforced by CI lint (VP-078; see BC-7.06.001).
 5. **No downgrade attempt on schema_version mismatch**: A v1 registry loaded into a v2 dispatcher produces a deterministic error (see Error Paths). The dispatcher never silently accepts a v1 registry, never provides a compatibility shim, and never downgrades to v1 behavior.
 
@@ -113,7 +115,7 @@ The total dispatcher wall-clock latency upper bound is therefore:
 ## Architecture Anchors
 
 - `crates/factory-dispatcher/src/registry.rs` — `RegistryEntry.async` field; `validate()` enforcing Invariant 4; `REGISTRY_SCHEMA_VERSION = 2`
-- `crates/factory-dispatcher/src/routing.rs` — `partition_plugins()` pure function (sync/async split)
+- `crates/factory-dispatcher/src/partition.rs` — `partition_plugins()` pure function (sync/async split); Kani proof harnesses at lines 148-224
 - `crates/factory-dispatcher/src/engine.rs` (or equivalent dispatch loop) — sync group `run_tiers()` + async group `spawn_detached()` calls
 
 ## Story Anchor
@@ -139,6 +141,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | EC-009 | Two plugins at the same priority tier, one sync, one async | Sync plugin enters sync_group and runs in parallel with other same-tier sync plugins; async plugin enters async_group and is spawned separately without tier ordering |
 | EC-010 | Async task emits terminal event during drain window | Event reaches FileSink before dispatcher exit; consumer sees the terminal event (e.g., `plugin.timeout`, `plugin.async_block_discarded`) in `events-*.jsonl` |
 | EC-011 | Async task exceeds `ASYNC_DRAIN_WINDOW_MS` (per DI-019) drain window | Task forcibly terminated; no terminal event emitted; consumer sees absence of the terminal event, interpretable as "task did not complete within the drain window"; truncated telemetry is an accepted cost |
+| EC-012 | Drain truncation with partial completions: drain timer fires while ≥1 async plugins are still executing AND ≥1 async plugins have already completed within the window (e.g., 2 of 3 plugins finished in 50ms; 3rd takes 200ms; drain fires at `ASYNC_DRAIN_WINDOW_MS`) | **Completed plugins' terminal events MUST emit before dispatcher exit**: results already received via the result channel before the drain timer fires MUST be flushed to FileSink. In-flight plugins' events MAY be lost (no guarantee; truncated telemetry accepted). This is the key difference from the all-or-nothing `tokio::time::timeout(execute_tiers(...))` anti-pattern — which discards ALL results on truncation regardless of completion state. Cite: F-P1-010 |
 
 ## Canonical Test Vectors
 
@@ -168,7 +171,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's partitioned invocation model (sync-group gates Claude Code; async-group fires-and-forgets), which is the core mechanism by which sandboxed WASM plugins enforce `on_error = "block"` governance |
 | L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
-| Architecture Module | SS-01 — `crates/factory-dispatcher/src/routing.rs` (`partition_plugins`), `crates/factory-dispatcher/src/engine.rs` (dispatch loop) |
+| Architecture Module | SS-01 — `crates/factory-dispatcher/src/partition.rs` (`partition_plugins`), `crates/factory-dispatcher/src/engine.rs` (dispatch loop) |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
@@ -190,6 +193,31 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-08 (v1.6 → v1.7 — F5 pass-1 fix-burst)
+
+Addresses adversary F5-pass-1 findings F-P1-004, F-P1-006, and F-P1-010.
+
+**F-P1-004 (anchor module fix)**: BC-1.14.001 cited `routing.rs` as the home of `partition_plugins` at three sites (frontmatter `inputs:`, Architecture Anchors, Traceability Architecture Module). The implementation placed `partition_plugins` in `partition.rs` (confirmed at `crates/factory-dispatcher/src/partition.rs:90`). All three cite sites updated to `partition.rs`. Zero `routing.rs` references remain in this file.
+
+**F-P1-006 (drain semantics strengthening — spawn-based pattern)**: PC4 tightened to explicitly require:
+- Each async-group plugin is spawned via `tokio::spawn` (or equivalent independent task).
+- Plugin results MAY be received concurrently while `sync_group` runs OR during the drain window.
+- The drain is implemented via `tokio::select!` over per-task result channels and a drain timer — NOT via `tokio::time::timeout(execute_tiers(...))`.
+- Async-group plugins MUST NOT be subject to tier ordering (restated near PC4 for clarity; see Invariant 3 code-level note).
+
+**F-P1-010 (drain truncation with partial completions — EC-012 added)**: When the drain timer fires while ≥1 async plugins are still executing AND ≥1 async plugins have already completed, completed plugins' terminal events MUST emit before dispatcher exit; in-flight plugins' events MAY be lost. EC-012 documents this partial-completion behavior and distinguishes it from the all-or-nothing `tokio::time::timeout(execute_tiers(...))` anti-pattern.
+
+**Invariant 3 code-level note**: Added explicit prohibition on calling `group_by_priority` on async-group plugins. The code-level note names the required spawn pattern (`tokio::spawn` per plugin, channel collection, `tokio::select!` drain timer) to prevent regression.
+
+**Changes made:**
+- Frontmatter `inputs:` field: `routing.rs` → `partition.rs`
+- Frontmatter `version:` bumped to `"1.7"`; `last_amended:` updated to `2026-05-08`
+- PC4: spawn-based semantics added; three new bullets; anti-pattern sentence naming `tokio::time::timeout(execute_tiers(...))` explicitly called out
+- Invariant 3: code-level note added prohibiting `group_by_priority` on async plugins
+- Architecture Anchors: `routing.rs` bullet → `partition.rs` with Kani harness line reference
+- Traceability Architecture Module: `routing.rs` → `partition.rs`
+- EC-012 added: drain truncation with partial completions (F-P1-010)
 
 ## Amendment 2026-05-07 (v1.5 → v1.6 — F2 pass-7 F-P7-004: redundant parenthetical removed)
 

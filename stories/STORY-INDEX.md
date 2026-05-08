@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.36"
+version: "2.37"
 status: current
 producer: state-manager
-timestamp: 2026-05-07T00:00:00Z
-last_amended: "2026-05-07 (v2.36) — F3 CONVERGENCE_REACHED close burst. S-15.01 v1.5 → v1.6; status draft → ready. Pass-5 NITPICK_ONLY zero findings; ADR-013 clock 3_of_3. F3 trajectory 9→3→3→1→0; 5 passes + 4 fix bursts. WASM-rule conformance verified. Awaiting F4 TDD dispatch."
+timestamp: 2026-05-08T00:00:00Z
+last_amended: "2026-05-08 (v2.37) — F5 fix-burst Stage 1. S-15.01 v1.6 → v1.7: body BC+VP version-label refresh (BC-1.14.001 v1.7, BC-3.08.001 v1.5, VP-077 v1.7, VP-079 v1.7); partition.rs/aggregator.rs paths; AC-015 4→6 harnesses; Tasks T-1b/T-1e/T-2a/T-3b updated per POLICY 8 propagation. S-15.01 frontmatter status remains ready (story is merged — PR #106 at 453eee1; status label per merged-list ledger)."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -46,6 +46,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-263 — STORY-INDEX bumped to reflect D-263 combined implementation-readiness seal-and-fix burst (ninth TD-VSDD-064 application; TD-VSDD-074 codified — TD-VSDD-073 scope extension to BCs cited in amendment landings). Pass-20 SUBSTANTIVE 0H/2M/2L sealed. M-P20-001 closed (OQ-3 pinned `timeout_ms = 30000` + `max_output_bytes = 65536`). M-P20-002 + L-P20-002 closed (BC-1.05.036 ADR-015 awareness clause + error-path reality). BC-1.05.035 + BC-1.05.036 gained `last_amended: 2026-05-05`. L-P20-001 SKIPPED with rationale. E-9 v1.20→v1.21. ADR-013 clock 1→0_of_3 RESET. STORY-INDEX v1.69 → v1.70.
 > Updated 2026-05-05: D-264 — STORY-INDEX bumped to reflect D-264 multi-fix burst (tenth TD-VSDD-064 application; TD-VSDD-075 codified — source-code-verification + dependent-citation-propagation disciplines). Pass-21 SUBSTANTIVE 2H/3M/2L sealed. H-P21-001 BC-1.05.036 error codes -7/-8→-2/-3 (source-code verified). H-P21-002 open-questions.md line citation 325→326. M-P21-001 BC-1.05.035 ADR-015 awareness. M-P21-002 BC-1.05.036 host category corrected. M-P21-003 truncated:bool reserved semantics. 2 LOWs DEFERRED. E-9 v1.21→v1.22. ADR-013 clock 0_of_3. STORY-INDEX v1.70 → v1.71.
 > Updated 2026-05-05: D-270 — STORY-INDEX bumped to reflect D-270 combined silence-audit seal-and-fix burst (fourteenth TD-VSDD-064 application). Pass-27 SUBSTANTIVE 1H/1M/0L sealed (negative-coverage / silence audit angle NEW per TD-VSDD-057). H-P27-001 closed (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; source-truth verified ADR-015 lines 99/130/154). M-P27-001 closed (Postcondition 5 INTERNAL_ERROR (-99) enumeration added; 5 source-code line citations exec_subprocess.rs:252/258/262/267-268/299; const mod.rs:184). E-9 v1.25→v1.26. ADR-013 clock RESET 0_of_3. STORY-INDEX v1.76 → v1.77.
+> Updated 2026-05-08: F5 fix-burst Stage 1 — STORY-INDEX bumped to v2.37. S-15.01 v1.6 → v1.7: POLICY 8 body propagation of VP/BC version-label refresh (BC-1.14.001 v1.7, BC-3.08.001 v1.5, VP-077 v1.7, VP-079 v1.7); partition.rs/aggregator.rs path anchors; AC-015 4→6 harnesses; Tasks T-1b/T-1e/T-2a/T-3b updated. S-15.01 frontmatter status remains ready (MERGED PR #106 at 453eee1; status per ledger unchanged). STORY-INDEX v2.36 → v2.37.
 > Updated 2026-05-07: F3 CONVERGENCE_REACHED close burst — STORY-INDEX bumped to v2.36. S-15.01 v1.5 → v1.6: status flipped draft → ready. Pass-5 NITPICK_ONLY zero findings; ADR-013 clock 3_of_3. Three consecutive NITPICK_ONLY (pass-3 NIT-1, pass-4 NIT-1, pass-5 NIT-0) = CONVERGENCE_REACHED. F3 trajectory 9→3→3→1→0; 5 passes + 4 fix bursts; WASM-rule conformance verified. Awaiting F4 TDD dispatch. STORY-INDEX v2.35 → v2.36.
 > Updated 2026-05-07: F3 pass-4 NITPICK_ONLY close burst — STORY-INDEX bumped to v2.35. S-15.01 v1.4 → v1.5: NIT-P4-001 References table BC labels refreshed (BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2). Sibling completion of pass-3 body BC table fix. ADR-013 clock advances 1→2_of_3. ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED. Pass-5 next. STORY-INDEX v2.34 → v2.35.
 > Updated 2026-05-07: F3 pass-3 NITPICK_ONLY close burst — STORY-INDEX bumped to v2.34. S-15.01 v1.3 → v1.4: 3 stale version labels refreshed (NIT-P3-001: BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2 in body BC table; NIT-P3-002: VP-078 v1.7→v1.8, VP-079 v1.5→v1.6 in References table). ADR-013 clock advances 0→1_of_3. WASM-rule conformance verified; substance CLEAN. Pass-4 next. STORY-INDEX v2.33 → v2.34.
@@ -551,7 +552,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-15.01 | Plugin async semantics — full implementation (schema v2 + dispatcher partition + classification + envelope flip + CI lint) | E-15 | 13 | P1 | [] | [] | ready | [BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001] (17 ACs, 30 files, tdd_mode strict; v1.6 2026-05-07; F3 CONVERGED at pass-5 (3_of_3); 5 passes + 4 fix bursts; WASM-rule conformance verified; awaiting F4 TDD dispatch) |
+| S-15.01 | Plugin async semantics — full implementation (schema v2 + dispatcher partition + classification + envelope flip + CI lint) | E-15 | 13 | P1 | [] | [] | ready | [BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001] (17 ACs, 30 files, tdd_mode strict; v1.7 2026-05-08; MERGED PR #106 at 453eee1; F3 CONVERGED pass-5 (3_of_3); F5 fix-burst Stage 1 body refresh — BC-1.14.001 v1.7, BC-3.08.001 v1.5, VP-077 v1.7, VP-079 v1.7; AC-015 4→6 harnesses; partition.rs/aggregator.rs anchors) |
 
 > **E-15 delivery:** S-15.01 is the single story in this epic per ADR-019 §6 single-shot decision. All 5 implementation tracks consolidated: registry.rs schema v2, dispatcher partition runtime (sync_group / async_group + ASYNC_DRAIN_WINDOW_MS), 9 plugin classifications in production hooks-registry.toml, hooks.json envelope flip (5 platform variants), and CI lint invariant (3 layers: pre-commit + load-time + CI gate). Subsystems: SS-01, SS-04, SS-07, SS-09.
 
