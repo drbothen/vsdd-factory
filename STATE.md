@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F3 CONVERGENCE_REACHED for S-15.01 (v1.5→v1.6 status flip draft→ready). Pass-5 zero findings. Trajectory 9→3→3→1→0 across 5 passes + 4 fix bursts. ADR-013 clock 3_of_3. Awaiting F4 TDD implementation dispatch (stub-architect → test-writer → implementer → demo-recorder → pr-manager). Engine-discipline-pass-1 cycle remains paused at F3-pending; will resume after S-15.01 ships."
+current_step: "F5 pass-1 COMPLETE — verdict HIGH (5H/6M/4L/2NIT). ADR-013 clock 0_of_3. Awaiting fix-burst dispatch and human triage on key decisions: F-P1-006 (refactor vs ratify deviation), F-P1-001 (author missing harnesses vs amend VP-077 scope), F-P1-007 (single trace_id vs amend BC-3.08.001), F-P1-002 (VP-079 v1.7 amendment YES per user instinct)."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F4 TDD COMPLETE — S-15.01 merged to develop at 453eee1; PR #106 squash-merged; F5 adversarial pending) |
-| **Current Phase** | F5 ADVERSARIAL PENDING — v1.0-feature-plugin-async-semantics-pass-1; S-15.01 MERGED; F4 IMPLEMENTATION COMPLETE (PR #106 @ 453eee1; 9 tasks + fix commit 60e1162) |
+| **Last Updated** | 2026-05-08 (F5 pass-1 COMPLETE — verdict HIGH 5H/6M/4L/2NIT; ADR-013 clock 0_of_3; fix-burst dispatch pending) |
+| **Current Phase** | F5 ADVERSARIAL PASS-1 COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; verdict HIGH; ADR-013 clock 0_of_3; fix-burst triage pending |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,17 +76,13 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F4 COMPLETE; F5 PENDING** | S-15.01 MERGED via PR #106 at 453eee1 (2026-05-08). 9 tasks (T-3a..T-3i) + fix commit 60e1162 (BC-3.08.001 event wiring). VP-077 Kani 4/4; VP-078 bats 4/4; VP-079 bats 5/5. F5 adversarial refinement next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 PASS-1 COMPLETE — verdict HIGH** | S-15.01 MERGED via PR #106 at 453eee1 (2026-05-08). F5 pass-1: 5H/6M/4L/2NIT. ADR-013 clock 0_of_3. Key issues: F-P1-001 VP-077 2/6 properties proven; F-P1-002 VP-079 production-path unproven; F-P1-003 latency canary no-op; F-P1-006 drain semantics violate PC4. Fix-burst triage pending. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
 
-Burst logs, session steps passes 13–63 (E-9 v1.7 amendment sweep), and all
-E-10 fix-cycle steps through D-336 have been extracted to cycle files:
-
-- Full burst history (passes 13–63 + D-310..D-336): `cycles/v1.0-brownfield-backfill/burst-log.md`
-- Session checkpoints: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
-- Lessons learned: `cycles/v1.0-brownfield-backfill/lessons.md`
+Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and lessons extracted to:
+- `cycles/v1.0-brownfield-backfill/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 
 ## Current Phase Steps
 
@@ -103,6 +99,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **F3 pass-4 NITPICK_ONLY close burst — S-15.01 v1.4 → v1.5** | state-manager | **COMPLETE** | Pass-4 verdict: NITPICK_ONLY (0H/0M/0L/1NIT). ADR-013 clock advances 1→2_of_3. NIT-P4-001: References table BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2. Sibling completion of pass-3 body BC table fix. STORY-INDEX 2.34→2.35. Pass-5 next (potential convergence pass). ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED. |
 | **F3 CONVERGENCE_REACHED close burst — S-15.01 v1.5 → v1.6** | state-manager | **COMPLETE** | Pass-5 verdict: NITPICK_ONLY (0H/0M/0L/0NIT). ADR-013 clock advances 2→3_of_3. CONVERGENCE_REACHED. Status flipped draft→ready. STORY-INDEX 2.35→2.36. F3 trajectory: 9→3→3→1→0; 5 passes + 4 fix bursts. F4 TDD dispatch next. |
 | **F4 TDD IMPLEMENTATION COMPLETE — S-15.01 MERGED** | pr-manager | **COMPLETE** | PR #106 squash-merged at 453eee1 (2026-05-08). 9 tasks (T-3a..T-3i) + demo evidence + clippy/fmt clean + fix commit 60e1162 (BC-3.08.001 event wiring into dispatch path — 4 emit functions were defined but uncalled; VP-078 H3/H4 and VP-079 S1-S4 now PASS). Review cycle 1: 2 blocking findings (BLOCKING-1 registry exit-0 instead of exit-2; BLOCKING-2 emit functions uncalled) → both fixed. Final: VP-077 Kani 4/4, VP-078 bats 4/4, VP-079 bats 5/5, Rust 0 failures. F5 adversarial refinement NEXT (separate dispatch required). |
+| **F5 pass-1 — adversary review of merged S-15.01** | adversary | **COMPLETE** | Verdict: HIGH (5H/6M/4L/2NIT). ADR-013 clock 0_of_3. Sanity-probe REDO (initial run on stale local tree). Key findings: F-P1-001 VP-077 properties 5/6 unproven; F-P1-002 VP-079 structurally insufficient (USER Q1/Q2/Q3 confirmed); F-P1-003 latency canary measures no-op (POLICY 11); F-P1-004 BC-1.14.001+VP-077 cite routing.rs but impl is partition.rs; F-P1-005 STORY-INDEX status drift post-merge; F-P1-006 T-3c drain semantically violates BC-1.14.001 PC4 + Invariant 3; F-P1-010 drain truncation discards completed events (PC4+EC-010). VP-079 v1.7 amendment recommended. |
 
 ## Identifier Conventions
 
@@ -118,14 +115,14 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 15 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 19 |
 
-## Story Status (91 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14/E-15 registered; E-12 F3-amendment 6 stories added D-366; F4 COMPLETE; E-15/S-15.01 authored F3)
+## Story Status (91 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14/E-15 registered; E-12 F3-amendment 6 stories added D-366; S-15.01 MERGED PR #106 453eee1 2026-05-08)
 
-- **Merged (62):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07) + S-12.06 (PR #105 15432c6 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
+- **Merged (63):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07) + S-12.06 (PR #105 15432c6 2026-05-07) + S-15.01 (PR #106 453eee1 2026-05-08). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
 - **Draft (23):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
-- **Ready (1):** S-15.01 (E-15 plugin async semantics; F3 CONVERGED 2026-05-07; v1.6; awaiting F4 TDD dispatch)
+- **Ready (0):** (none)
 
 ## Active Branches
 
@@ -144,7 +141,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F3 CONVERGED → F4 next | F3: S-15.01 v1.6 (pass-5 NITPICK_ONLY NIT-0; CONVERGENCE_REACHED 3_of_3; status draft→ready 2026-05-07). Trajectory 9→3→3→1→0; 5 passes + 4 fix bursts. F4 TDD dispatch pending. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-1 COMPLETE (HIGH) | F4 COMPLETE (PR #106 453eee1 2026-05-08). F5 pass-1 verdict HIGH 5H/6M/4L/2NIT; ADR-013 clock 0_of_3. Fix-burst triage pending. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-1.md` |
 
 ## Decisions Log
 
@@ -168,12 +165,12 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — F4-handoff.md authored for post-context-compaction F4 dispatch. F3 CONVERGED (commit 1227036). S-15.01 v1.6 ready. Awaiting user "go F4 Option A" command.
+**Last update:** 2026-05-08 — F5 pass-1 adversary review COMPLETE. S-15.01 MERGED via PR #106 at 453eee1. Verdict HIGH (5H/6M/4L/2NIT). ADR-013 clock 0_of_3. Pass report at `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-1.md`.
 
-**ACTIVE STEP: F4 TDD IMPLEMENTATION PENDING. Issue "go F4 Option A" to dispatch. Read `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` for full context (story, decisions, dispatch plan, lessons, precedents).**
+**ACTIVE STEP: F5 fix-burst dispatch pending. Human triage required on 4 key decisions before dispatching fix-burst: F-P1-006 (refactor drain vs ratify deviation in BC-1.14.001), F-P1-001 (author missing Kani harnesses vs amend VP-077 scope), F-P1-007 (single canonical trace_id vs amend BC-3.08.001 wire format), F-P1-002 (VP-079 v1.7 amendment — recommended YES). After decisions, dispatch via `vsdd-factory:fix-pr-delivery`.**
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
-**develop HEAD:** 15432c6 (S-12.06 PR #105 squash-merge 2026-05-07)
+**develop HEAD:** 453eee1 (S-15.01 PR #106 squash-merge 2026-05-08)
 **main HEAD:** fb3e297 (rc.11 bot bundle; behind develop)
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID (validate fails; user must delete: `git push origin :refs/tags/v1.0.0-rc.13`)
 **v1.0.0-rc.12 tag:** 4cf59bc; SHIPPED 2026-05-06
@@ -186,13 +183,12 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
 **BC-INDEX:** v1.30 | **VP-INDEX:** v1.16 | **STORY-INDEX:** v2.36 | **ARCH-INDEX:** v1.19
 
-**F4 dispatch chain:** stub-architect → test-writer → implementer (T-3a..T-3i) → demo-recorder (5 demos) → pr-manager. Full detail in F4-handoff.md §4.
+**F4 dispatch chain:** COMPLETE. PR #106 squash-merged at 453eee1 (2026-05-08). Full detail in F4-handoff.md.
 **5 user-locked decisions (non-negotiable):** (1) every hook event sync at envelope, (2) no backwards compat (v1 registry hard-errors), (3) no phased rollout, (4) ASYNC_DRAIN_WINDOW_MS=100ms via DI-019, (5) WASM-only for new plugins. Full text in F4-handoff.md §3.
-**WASM precedent:** `crates/hook-plugins/validate-artifact-path/` (S-13.01). Do NOT use legacy-bash-adapter entries as model.
 
 **Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
 
-**F5 pickup (post-F4):** After S-15.01 merges, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
+**F5 status:** Pass-1 COMPLETE — verdict HIGH (5H/6M/4L/2NIT). ADR-013 clock 0_of_3. Fix-burst dispatch requires human triage on F-P1-001/002/006/007. Report: `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-1.md`. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
