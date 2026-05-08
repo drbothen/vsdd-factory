@@ -225,7 +225,7 @@ fn test_BC_1_14_001_ac016_latency_budget_constant_is_1500ms() {
     assert_eq!(
         P95_LATENCY_BUDGET_MS, 1500,
         "test_BC_1_14_001_ac016_latency_budget_constant_is_1500ms: \
-         P95 latency budget must be 1500ms per AC-016 (S-15.01 v1.8, ADR-020)"
+         P95 latency budget must be 1500ms per AC-016 (ADR-020 Class A)"
     );
 }
 

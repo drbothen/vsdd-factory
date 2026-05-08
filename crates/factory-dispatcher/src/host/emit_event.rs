@@ -122,7 +122,7 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 }
 
 // ---------------------------------------------------------------------------
-// S-15.01 T-3e — 4 new event type emission stubs (BC-3.08.001 v1.4)
+// S-15.01 T-3e — 4 new event type emission stubs (BC-3.08.001 v1.6)
 //
 // These functions emit the four new event types introduced by ADR-019.
 // All bodies are `todo!()` per BC-5.38.001 Red Gate; the implementer
@@ -132,10 +132,10 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 // do NOT hardcode the value (Decision 4).
 //
 // Event catalog authority: BC-3.08.001 (SS-03). Emission sites: SS-01
-// (engine.rs, registry.rs). Wire format defined here per BC-3.08.001 v1.4.
+// (engine.rs, registry.rs). Wire format defined here per BC-3.08.001 v1.6.
 // ---------------------------------------------------------------------------
 
-/// Emit `plugin.async_block_discarded` event (BC-3.08.001 v1.4).
+/// Emit `plugin.async_block_discarded` event (BC-3.08.001 v1.6).
 ///
 /// Fired when an async-group plugin returns exit code 2 (block verdict).
 /// The block is discarded because async-group verdicts never reach Claude Code
@@ -148,7 +148,7 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 /// - `exit_code`: the exit code returned by the plugin (expected: "2")
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-3.08.001 v1.6 — event catalog
 /// - BC-1.14.001 EC-005 — async plugin exit code 2 behavior
 /// - BC-1.14.001 Error Paths — async plugin returns exit code 2
 pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, exit_code: i32) {
@@ -167,7 +167,7 @@ pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, e
     ctx.emit_internal(ev);
 }
 
-/// Emit `dispatcher.schema_mismatch` event (BC-3.08.001 v1.4).
+/// Emit `dispatcher.schema_mismatch` event (BC-3.08.001 v1.6).
 ///
 /// Fired when the registry `schema_version` does not match
 /// `REGISTRY_SCHEMA_VERSION` (currently 2). This is E-REG-001.
@@ -180,7 +180,7 @@ pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, e
 /// - `error_code`: `"E-REG-001"` (literal)
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-3.08.001 v1.6 — event catalog
 /// - BC-1.14.001 Error Paths — schema_version mismatch
 /// - BC-1.08.001 amendment — schema-mismatch is the explicit fail-closed exception
 pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u32) {
@@ -198,7 +198,7 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
     ctx.emit_internal(ev);
 }
 
-/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.4).
+/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.6).
 ///
 /// Fired when a registry entry violates the `on_error=block` + `async=true`
 /// coexistence invariant (E-REG-002, BC-7.06.001 Invariant 1).
@@ -210,7 +210,7 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
 /// - `violation`: `"on_error_block_with_async_true"` (literal per BC-3.08.001 PC3)
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-3.08.001 v1.6 — event catalog
 /// - BC-1.14.001 Error Paths — on_error=block AND async=true
 /// - BC-7.06.001 Invariant 1 — load-time invariant enforcement
 pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
@@ -228,7 +228,7 @@ pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
     ctx.emit_internal(ev);
 }
 
-/// Emit `plugin.timeout` event for async-path timeouts (BC-3.08.001 v1.4).
+/// Emit `plugin.timeout` event for async-path timeouts (BC-3.08.001 v1.6).
 ///
 /// NOTE: A `plugin.timeout` event is also emitted for sync-path timeouts
 /// (BC-1.14.001 Error Paths). This stub specifically covers the async-path
@@ -245,7 +245,7 @@ pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
 /// independent values; do NOT conflate them.
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-3.08.001 v1.6 — event catalog
 /// - BC-1.14.001 Error Paths — async plugin times out
 /// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)

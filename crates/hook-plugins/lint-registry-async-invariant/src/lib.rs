@@ -11,7 +11,7 @@
 //!
 //! # Behavioral Contracts
 //!
-//! - BC-7.06.001 v1.3: hooks-registry.toml schema_version 2 — per-plugin
+//! - BC-7.06.001 v1.5: hooks-registry.toml schema_version 2 — per-plugin
 //!   `async: bool` field with CI lint invariant `on_error = "block"` implies
 //!   `async = false`. Three-layer lint defense.
 //!

@@ -291,7 +291,7 @@ mod kani_proofs {
     /// VP-077 legacy: determinism proof (kept from original harness set).
     ///
     /// Two calls with identical input always produce identical partition sizes.
-    /// This is an additional property not numbered in VP-077 v1.7 H1-H4 but
+    /// This is an additional property not numbered in VP-077 v1.10 H1-H6 but
     /// retained to prevent regression of the original determinism check.
     #[kani::proof]
     #[kani::unwind(8)]

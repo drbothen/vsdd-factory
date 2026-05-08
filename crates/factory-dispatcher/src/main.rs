@@ -293,7 +293,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
 
     // S-15.01 F5-T-A: async_group dispatch via tokio::spawn per-plugin + tokio::select! drain.
     //
-    // BC-1.14.001 v1.7 PC4 + Invariant 3 (F-P1-006 + F-P1-010):
+    // BC-1.14.001 v1.9 PC4 + Invariant 3 (F-P1-006 + F-P1-010):
     //   - Each async plugin is spawned as an INDEPENDENT tokio task (NOT via execute_tiers).
     //   - group_by_priority MUST NOT be called on async-group plugins (Invariant 3).
     //   - Results are collected via an unbounded channel + tokio::select! drain timer.
@@ -314,7 +314,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         let effective_drain_window = ASYNC_DRAIN_WINDOW_MS;
 
         // Spawn each async plugin as an independent task with a results channel.
-        // BC-1.14.001 v1.7 PC4: tokio::spawn per-plugin, NOT execute_tiers.
+        // BC-1.14.001 v1.9 PC4: tokio::spawn per-plugin, NOT execute_tiers.
         // Invariant 3: MUST NOT call group_by_priority on async-group plugins.
         let (tx, mut rx) = mpsc::unbounded_channel::<PluginOutcome>();
         // For each async plugin: spawn an independent task and wire its result to the channel.
