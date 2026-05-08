@@ -442,6 +442,120 @@ shell_bypass_acknowledged = "VP-079-S4-test-fixture"
 #   max(sync_plugin_durations) + ASYNC_DRAIN_WINDOW_MS (DI-019).
 # ---
 
+# ---
+# Scenario 7 (F-P6-001): EC-012 — partial drain completion (multi-async-plugin)
+#
+# Trigger: drain timer fires while ≥1 async plugins are still executing AND ≥1 async
+# plugins have already completed within the window.
+# Setup: fast-blocker (exit 2, ~ms) + slow-async (sleep 0.2, 200ms); drain at 100ms.
+#
+# Expected per EC-012 (BC-1.14.001 v1.9 PC4):
+#   - Completed plugins' terminal events MUST emit before dispatcher exit.
+#   - In-flight plugins' events MAY be lost (no guarantee; truncated telemetry accepted).
+#
+# This tests the partial-completion distinction from the all-or-nothing anti-pattern
+# (F-P1-010 cite in EC-012): results received via the result channel before the drain
+# timer fires MUST be flushed to FileSink even when other tasks are still in-flight.
+#
+# Uses VSDD_ASYNC_DRAIN_WINDOW_MS=5000 (debug-build override per SEC-003) so that the
+# fast-blocker's WASM cold-start completes well within the window, while slow-async
+# (sleep 0.2 = 200ms) remains in-flight when the drain is scheduled.
+# In production, ASYNC_DRAIN_WINDOW_MS is DI-019 (100ms); the 5000ms value is only
+# used here to avoid WASM cold-start flakiness in CI debug builds.
+# ---
+
+@test "VP-079 S7: EC-012 partial completion — fast async plugin event emits even when slow async plugin still in-flight" {
+    require_dispatcher
+
+    # RED: emit_plugin_async_block_discarded must flush completed results before drain
+    # expiry. After T-3e: fast-blocker's plugin.async_block_discarded MUST appear in
+    # SINK_FILE; slow-async's plugin.timeout MAY OR MAY NOT appear (EC-012 semantics).
+
+    printf '%s\n' "exit 0"   > "$PLUGIN_ROOT/test-fixtures/exit0.sh"
+    printf '%s\n' "exit 2"   > "$PLUGIN_ROOT/test-fixtures/exit2.sh"
+    printf '%s\n' "sleep 0.2; exit 0" > "$PLUGIN_ROOT/test-fixtures/sleep200ms-exit0.sh"
+    chmod +x "$PLUGIN_ROOT/test-fixtures/exit0.sh"
+    chmod +x "$PLUGIN_ROOT/test-fixtures/exit2.sh"
+    chmod +x "$PLUGIN_ROOT/test-fixtures/sleep200ms-exit0.sh"
+
+    # Registry: sync-gate (keeps dispatcher alive) + fast-blocker (async, exit 2, ~ms)
+    # + slow-async (async, sleep 200ms — still in-flight when drain fires).
+    run_dispatcher '
+schema_version = 2
+
+[[hooks]]
+name = "sync-gate-plugin"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "block"
+async = false
+event = "PostToolUse"
+priority = 50
+
+[hooks.config]
+script_path = "test-fixtures/exit0.sh"
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "VP-079-S7-test-fixture"
+
+[[hooks]]
+name = "fast-blocker"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = true
+event = "PostToolUse"
+priority = 100
+
+[hooks.config]
+script_path = "test-fixtures/exit2.sh"
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "VP-079-S7-test-fixture"
+
+[[hooks]]
+name = "slow-async"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = true
+timeout_ms = 1
+event = "PostToolUse"
+priority = 100
+
+[hooks.config]
+script_path = "test-fixtures/sleep200ms-exit0.sh"
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "VP-079-S7-test-fixture"
+' "PostToolUse" "Write" "5000"
+
+    # Assertion 1 (EC-012 MUST): fast-blocker's plugin.async_block_discarded MUST be present.
+    # The event was received via the result channel before the drain timer fired; it MUST
+    # have been flushed to FileSink (partial-completion guarantee).
+    local fast_line
+    fast_line=$(grep '"type":"plugin.async_block_discarded"' "$SINK_FILE" 2>/dev/null \
+        | grep '"plugin_name":"fast-blocker"' | tail -1)
+    [ -n "$fast_line" ] || {
+        echo "FAIL: plugin.async_block_discarded for fast-blocker not found in $SINK_FILE"
+        echo "EC-012: completed plugins' terminal events MUST emit before dispatcher exit."
+        echo "Note: RED until T-3e flushes completed async results before drain expiry."
+        return 1
+    }
+
+    # Assertion 2 (EC-012 MAY): slow-async's plugin.timeout MAY or MAY NOT be present.
+    # No assertion is made — either outcome is valid per BC-1.14.001 v1.9 EC-012.
+    # (Presence would mean the WASM epoch interrupt fired before the drain; absence means
+    #  the task was still in-flight and was forcibly terminated without emitting an event.)
+
+    # Assertion 3: dispatcher exit code must be 0 (sync_group did not block; async block
+    # verdicts from fast-blocker are discarded per Invariant 4 + EC-005).
+    [ "$status" -eq 0 ] || {
+        echo "FAIL: dispatcher exit code must be 0 for async-only block; got: $status"
+        return 1
+    }
+}
+
 @test "VP-079 S5: async task exceeding drain window does NOT emit plugin.timeout (AC-005)" {
     require_dispatcher
 
