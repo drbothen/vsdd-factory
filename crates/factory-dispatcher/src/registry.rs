@@ -49,11 +49,11 @@ pub enum RegistryError {
          [E-REG-002]"
     )]
     AsyncBlockConflict { name: String },
-    /// Duplicate (name, event, tool) tuple across [[hooks]] entries.
+    /// E-REG-003: duplicate (name, event, tool) tuple across [[hooks]] entries.
     /// Enforced at registry-load time; dispatcher refuses to start.
-    /// (BC-7.06.001 Invariant 7)
+    /// (BC-7.06.001 Invariant 7, F-P8-001)
     #[error(
-        "Duplicate hook entry: name={name}, event={event}, tool={tool:?} \
+        "[E-REG-003] Duplicate hook entry: name={name}, event={event}, tool={tool:?} \
          (BC-7.06.001 Invariant 7). Each (name, event, tool) tuple must be unique \
          across all [[hooks]] entries."
     )]

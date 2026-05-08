@@ -200,20 +200,30 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
 
 /// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.6).
 ///
-/// Fired when a registry entry violates the `on_error=block` + `async=true`
-/// coexistence invariant (E-REG-002, BC-7.06.001 Invariant 1).
-/// The dispatcher exits 2 (fail-closed) after emitting this event.
+/// Fired when a registry entry violates a load-time invariant.  The caller
+/// supplies the error code and violation string so this function can serve
+/// multiple invariant violations:
+///
+/// - E-REG-002 / `"async_block_conflict"`: `on_error=block` + `async=true`
+///   coexistence invariant (BC-7.06.001 Invariant 1).
+/// - E-REG-003 / `"duplicate_hook_registration"`: duplicate (name, event, tool)
+///   tuple (BC-7.06.001 Invariant 7, F-P8-001).
 ///
 /// Required fields (BC-3.08.001):
 /// - `plugin_name`: name of the offending registry entry
-/// - `error_code`: `"E-REG-002"` (literal)
-/// - `violation`: `"on_error_block_with_async_true"` (literal per BC-3.08.001 PC3)
+/// - `error_code`: caller-supplied error code string (e.g. `"E-REG-002"`)
+/// - `violation`: caller-supplied violation identifier string
 ///
 /// # BC traces
 /// - BC-3.08.001 v1.6 — event catalog
-/// - BC-1.14.001 Error Paths — on_error=block AND async=true
-/// - BC-7.06.001 Invariant 1 — load-time invariant enforcement
-pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
+/// - BC-1.14.001 Error Paths — registry invariant violations
+/// - BC-7.06.001 Invariants 1 + 7 — load-time invariant enforcement
+pub fn emit_dispatcher_registry_invalid(
+    ctx: &HostContext,
+    plugin_name: &str,
+    error_code: &str,
+    violation: &str,
+) {
     let ev = InternalEvent::now("dispatcher.registry_invalid");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
     // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
@@ -223,8 +233,8 @@ pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
         .with_session_id(&ctx.session_id)
         .with_field("timestamp", ts.as_str())
         .with_field("offending_plugin", plugin_name)
-        .with_field("violation", "on_error_block_with_async_true")
-        .with_field("error_code", "E-REG-002");
+        .with_field("violation", violation)
+        .with_field("error_code", error_code);
     ctx.emit_internal(ev);
 }
 

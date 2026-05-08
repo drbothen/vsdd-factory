@@ -139,9 +139,31 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                 RegistryError::AsyncBlockConflict { name } => {
                     // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
                     // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
-                    emit_dispatcher_registry_invalid(&err_ctx, name);
+                    emit_dispatcher_registry_invalid(
+                        &err_ctx,
+                        name,
+                        "E-REG-002",
+                        "async_block_conflict",
+                    );
                     eprintln!(
                         "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
+                    );
+                    2
+                }
+                RegistryError::DuplicateEntry { name, event, tool } => {
+                    // BC-7.06.001 Invariant 7 + BC-3.08.001 Event 3 (E-REG-003).
+                    // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
+                    // F-P8-001: fail-closed; dispatcher refuses to start on duplicate (name,event,tool) tuple.
+                    eprintln!(
+                        "[E-REG-003] Duplicate hook registration: name={name}, event={event}, tool={tool:?} \
+                         (BC-7.06.001 v1.6 Invariant 7). Each (name, event, tool) tuple must be unique \
+                         across all [[hooks]] entries; dispatcher refuses to start."
+                    );
+                    emit_dispatcher_registry_invalid(
+                        &err_ctx,
+                        name,
+                        "E-REG-003",
+                        "duplicate_hook_registration",
                     );
                     2
                 }
