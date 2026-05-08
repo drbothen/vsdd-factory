@@ -40,11 +40,12 @@ use factory_dispatcher::internal_log::{
     InternalLog,
 };
 use factory_dispatcher::invoke::PluginResult;
+use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::Registry;
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
-use factory_dispatcher::{HOST_ABI_VERSION, new_trace_id};
+use factory_dispatcher::{ASYNC_DRAIN_WINDOW_MS, HOST_ABI_VERSION, new_trace_id};
 
 const ENV_PLUGIN_ROOT: &str = "CLAUDE_PLUGIN_ROOT";
 const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
@@ -103,18 +104,25 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     );
 
     let matched = match_plugins(&registry, &payload);
-    let tiers = group_by_priority(&registry, matched);
+
+    // S-15.01 T-3c: partition matched plugins into sync_group (gates user)
+    // and async_group (fire-and-forget, verdict never reaches Claude Code).
+    // BC-1.14.001 postconditions 1, 5, 6 — partition then await sync, spawn async.
+    let matched_owned: Vec<_> = matched.into_iter().cloned().collect();
+    let partition = partition_plugins(&matched_owned);
+    let sync_tiers = group_by_priority(&registry, partition.sync_group.iter().collect());
 
     eprintln!(
-        "factory-dispatcher trace={} event={} tool={} host_abi={} matched_tiers={}",
+        "factory-dispatcher trace={} event={} tool={} host_abi={} sync_plugins={} async_plugins={}",
         trace_id,
         payload.event_name,
         payload.tool_name,
         HOST_ABI_VERSION,
-        tiers.len(),
+        partition.sync_group.len(),
+        partition.async_group.len(),
     );
 
-    if tiers.is_empty() {
+    if sync_tiers.is_empty() && partition.async_group.is_empty() {
         return Ok(0);
     }
 
@@ -192,16 +200,44 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     #[allow(unused_variables)]
     let event_queue = Arc::clone(&base_host_ctx.events);
 
+    // S-15.01 T-3c: build executor inputs and run sync_group first.
+    // Sync group awaits all completions; verdict gates Claude Code.
+    // BC-1.14.001 postconditions 2-3.
     let inputs = ExecutorInputs {
         engine: &engine,
         cache: &cache,
         registry: &registry,
-        payload_value,
-        base_host_ctx,
+        payload_value: payload_value.clone(),
+        base_host_ctx: base_host_ctx.clone(),
         internal_log: internal_log.clone(),
     };
 
-    let summary = execute_tiers(inputs, tiers).await;
+    let summary = execute_tiers(inputs, sync_tiers).await;
+
+    // S-15.01 T-3c: run async_group with bounded drain window.
+    // Fire-and-forget semantics: async verdicts NEVER influence dispatcher exit code
+    // (BC-1.14.001 postcondition 5). After sync_group completes, run async_group
+    // with a drain window of ASYNC_DRAIN_WINDOW_MS (DI-019). Tasks that do not
+    // complete within the drain window are abandoned when the timeout expires.
+    if !partition.async_group.is_empty() {
+        let async_tiers = group_by_priority(&registry, partition.async_group.iter().collect());
+        let async_inputs = ExecutorInputs {
+            engine: &engine,
+            cache: &cache,
+            registry: &registry,
+            payload_value,
+            base_host_ctx,
+            internal_log: internal_log.clone(),
+        };
+        // Drain: run async plugins, bounded by ASYNC_DRAIN_WINDOW_MS (DI-019).
+        // Verdict is intentionally discarded — async group never gates Claude Code.
+        // BC-1.14.001 postcondition 4: bounded drain window contract.
+        let _ = tokio::time::timeout(
+            ASYNC_DRAIN_WINDOW_MS,
+            execute_tiers(async_inputs, async_tiers),
+        )
+        .await;
+    }
 
     // Relay any non-empty plugin stderr to the dispatcher's process stderr so
     // user-visible hook messages (e.g. WAVE GATE REMINDER from
