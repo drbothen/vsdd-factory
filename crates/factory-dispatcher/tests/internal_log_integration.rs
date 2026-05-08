@@ -100,7 +100,7 @@ fn startup_flow_writes_parseable_jsonl() {
         .collect();
 
     // All lines carry the common envelope fields.
-    // BC-3.08.001 v1.5 Invariant 5: wire format uses "trace_id", not "dispatcher_trace_id".
+    // BC-3.08.001 v1.7 Invariant 5: wire format uses "trace_id", not "dispatcher_trace_id".
     for ev in &events {
         assert_eq!(ev["schema_version"], INTERNAL_EVENT_SCHEMA_VERSION);
         assert!(ev["ts"].is_string());
@@ -108,7 +108,7 @@ fn startup_flow_writes_parseable_jsonl() {
         assert_eq!(ev["trace_id"], trace_id);
         assert!(
             ev["dispatcher_trace_id"].is_null(),
-            "dispatcher_trace_id must not appear in wire output per BC-3.08.001 v1.5 Invariant 5"
+            "dispatcher_trace_id must not appear in wire output per BC-3.08.001 v1.7 Invariant 5"
         );
     }
 

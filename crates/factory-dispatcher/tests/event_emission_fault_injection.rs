@@ -28,7 +28,7 @@
 //!
 //! # BC traces
 //!
-//! - BC-3.08.001 v1.6 — event catalog: four new event types
+//! - BC-3.08.001 v1.7 — event catalog: four new event types
 //! - BC-1.14.001 — dispatch partition contract (async group fire-and-forget)
 //! - BC-7.06.001 — registry validation (schema_mismatch / registry_invalid triggers)
 //! - DI-019 — ASYNC_DRAIN_WINDOW_MS (do NOT hardcode; cite by name)

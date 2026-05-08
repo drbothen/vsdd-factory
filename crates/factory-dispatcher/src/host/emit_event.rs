@@ -8,7 +8,7 @@
 //! consumer.
 //!
 //! Note: the wire-format name for the trace correlation field is `trace_id`
-//! (BC-3.08.001 v1.5 Invariant 5). The internal Rust field in `InternalEvent`
+//! (BC-3.08.001 v1.7 Invariant 5). The internal Rust field in `InternalEvent`
 //! is named `dispatcher_trace_id` but serializes as `"trace_id"` via serde rename.
 
 use serde_json::Value;
@@ -60,10 +60,10 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
 }
 
 const RESERVED_FIELDS: &[&str] = &[
-    // Canonical wire-format name per BC-3.08.001 v1.5 Invariant 5 + DI-017.
+    // Canonical wire-format name per BC-3.08.001 v1.7 Invariant 5 + DI-017.
     // Plugins must not spoof the dispatcher's trace correlation value.
     "trace_id",
-    // Legacy field name — retained for defense-in-depth per BC-3.08.001 v1.5
+    // Legacy field name — retained for defense-in-depth per BC-3.08.001 v1.7
     // Implementation Notes. The dispatcher no longer emits this on the wire
     // (InternalEvent serializes as "trace_id" via serde rename), but plugins
     // must still be prevented from injecting it.
@@ -122,7 +122,7 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 }
 
 // ---------------------------------------------------------------------------
-// S-15.01 T-3e — 4 new event type emission stubs (BC-3.08.001 v1.6)
+// S-15.01 T-3e — 4 new event type emission stubs (BC-3.08.001 v1.7)
 //
 // These functions emit the four new event types introduced by ADR-019.
 // All bodies are `todo!()` per BC-5.38.001 Red Gate; the implementer
@@ -132,10 +132,10 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 // do NOT hardcode the value (Decision 4).
 //
 // Event catalog authority: BC-3.08.001 (SS-03). Emission sites: SS-01
-// (engine.rs, registry.rs). Wire format defined here per BC-3.08.001 v1.6.
+// (engine.rs, registry.rs). Wire format defined here per BC-3.08.001 v1.7.
 // ---------------------------------------------------------------------------
 
-/// Emit `plugin.async_block_discarded` event (BC-3.08.001 v1.6).
+/// Emit `plugin.async_block_discarded` event (BC-3.08.001 v1.7).
 ///
 /// Fired when an async-group plugin returns exit code 2 (block verdict).
 /// The block is discarded because async-group verdicts never reach Claude Code
@@ -148,13 +148,13 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 /// - `exit_code`: the exit code returned by the plugin (expected: "2")
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.6 — event catalog
+/// - BC-3.08.001 v1.7 — event catalog
 /// - BC-1.14.001 EC-005 — async plugin exit code 2 behavior
 /// - BC-1.14.001 Error Paths — async plugin returns exit code 2
 pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, exit_code: i32) {
     let ev = InternalEvent::now("plugin.async_block_discarded");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     // `with_field("timestamp", ...)` adds the BC-required `timestamp` alias for `ts`.
     let ts = ev.ts.clone();
     let ev = ev
@@ -167,7 +167,7 @@ pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, e
     ctx.emit_internal(ev);
 }
 
-/// Emit `dispatcher.schema_mismatch` event (BC-3.08.001 v1.6).
+/// Emit `dispatcher.schema_mismatch` event (BC-3.08.001 v1.7).
 ///
 /// Fired when the registry `schema_version` does not match
 /// `REGISTRY_SCHEMA_VERSION` (currently 2). This is E-REG-001.
@@ -180,13 +180,13 @@ pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, e
 /// - `error_code`: `"E-REG-001"` (literal)
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.6 — event catalog
+/// - BC-3.08.001 v1.7 — event catalog
 /// - BC-1.14.001 Error Paths — schema_version mismatch
 /// - BC-1.08.001 amendment — schema-mismatch is the explicit fail-closed exception
 pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u32) {
     let ev = InternalEvent::now("dispatcher.schema_mismatch");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
@@ -198,7 +198,7 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
     ctx.emit_internal(ev);
 }
 
-/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.6).
+/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.7).
 ///
 /// Fired when a registry entry violates a load-time invariant.  The caller
 /// supplies the error code and violation string so this function can serve
@@ -215,7 +215,7 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
 /// - `violation`: caller-supplied violation identifier string
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.6 — event catalog
+/// - BC-3.08.001 v1.7 — event catalog
 /// - BC-1.14.001 Error Paths — registry invariant violations
 /// - BC-7.06.001 Invariants 1 + 7 — load-time invariant enforcement
 pub fn emit_dispatcher_registry_invalid(
@@ -226,7 +226,7 @@ pub fn emit_dispatcher_registry_invalid(
 ) {
     let ev = InternalEvent::now("dispatcher.registry_invalid");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
@@ -238,7 +238,7 @@ pub fn emit_dispatcher_registry_invalid(
     ctx.emit_internal(ev);
 }
 
-/// Emit `plugin.timeout` event for async-path timeouts (BC-3.08.001 v1.6).
+/// Emit `plugin.timeout` event for async-path timeouts (BC-3.08.001 v1.7).
 ///
 /// NOTE: A `plugin.timeout` event is also emitted for sync-path timeouts
 /// (BC-1.14.001 Error Paths). This stub specifically covers the async-path
@@ -255,14 +255,14 @@ pub fn emit_dispatcher_registry_invalid(
 /// independent values; do NOT conflate them.
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.6 — event catalog
+/// - BC-3.08.001 v1.7 — event catalog
 /// - BC-1.14.001 Error Paths — async plugin times out
 /// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)
 pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_ms: u32) {
     let ev = InternalEvent::now("plugin.timeout");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
@@ -337,21 +337,21 @@ mod tests {
         assert!(!is_reserved_field("file_path"));
     }
 
-    /// BC-3.08.001 v1.5 Invariant 5: `trace_id` is the exclusive wire-format name.
+    /// BC-3.08.001 v1.7 Invariant 5: `trace_id` is the exclusive wire-format name.
     /// Both `trace_id` and `dispatcher_trace_id` must be in RESERVED_FIELDS.
     #[test]
     fn bc3_08_001_invariant5_trace_id_reserved_and_dispatcher_trace_id_reserved() {
         assert!(
             is_reserved_field("trace_id"),
-            "trace_id must be in RESERVED_FIELDS (canonical wire field name per BC-3.08.001 v1.5 Invariant 5)"
+            "trace_id must be in RESERVED_FIELDS (canonical wire field name per BC-3.08.001 v1.7 Invariant 5)"
         );
         assert!(
             is_reserved_field("dispatcher_trace_id"),
-            "dispatcher_trace_id must remain in RESERVED_FIELDS for defense-in-depth per BC-3.08.001 v1.5"
+            "dispatcher_trace_id must remain in RESERVED_FIELDS for defense-in-depth per BC-3.08.001 v1.7"
         );
     }
 
-    /// BC-3.08.001 v1.5 Invariant 5: InternalEvent must serialize as "trace_id" on wire,
+    /// BC-3.08.001 v1.7 Invariant 5: InternalEvent must serialize as "trace_id" on wire,
     /// never as "dispatcher_trace_id". Verifies zero occurrences of the legacy field name.
     #[test]
     fn bc3_08_001_invariant5_wire_output_uses_trace_id_not_dispatcher_trace_id() {
@@ -367,7 +367,7 @@ mod tests {
         assert!(
             !json.contains("\"dispatcher_trace_id\""),
             "serialized event must NOT contain \"dispatcher_trace_id\" in wire output; \
-             BC-3.08.001 v1.5 Invariant 5 violation; got: {json}"
+             BC-3.08.001 v1.7 Invariant 5 violation; got: {json}"
         );
         // Verify exactly one occurrence of trace_id
         let occurrences = json.matches("\"trace_id\"").count();
