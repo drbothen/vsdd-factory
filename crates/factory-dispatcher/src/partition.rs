@@ -267,14 +267,8 @@ mod kani_proofs {
         // Union completeness: every input plugin appears in at least one group.
         // Combined with H2 (disjointness), this guarantees exactly-one membership.
         for entry in &entries {
-            let in_sync = partition
-                .sync_group
-                .iter()
-                .any(|s| s.name == entry.name);
-            let in_async = partition
-                .async_group
-                .iter()
-                .any(|a| a.name == entry.name);
+            let in_sync = partition.sync_group.iter().any(|s| s.name == entry.name);
+            let in_async = partition.async_group.iter().any(|a| a.name == entry.name);
             kani::assert(
                 in_sync || in_async,
                 "VP-077 H4: every matched plugin must appear in exactly one group",

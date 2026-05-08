@@ -165,9 +165,7 @@ fn test_BC_7_06_001_vp078_harness3_telemetry_positive_classification() {
             "test_BC_7_06_001_vp078_harness3_telemetry_positive_classification: \
              BC-7.06.001 Invariant 6 violation — ('{}', '{}') must be async=true (telemetry-only). \
              Current: async_flag={}. T-3h must set async=true in hooks-registry.toml.",
-            plugin_name,
-            event_name,
-            entry.async_flag
+            plugin_name, event_name, entry.async_flag
         );
     }
 }
