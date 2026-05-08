@@ -370,7 +370,15 @@ impl Registry {
     ///
     /// ASYNC_DRAIN_WINDOW_MS is defined in DI-019 — cite by reference only.
     fn validate_async_block_invariant(&self) -> Result<(), RegistryError> {
-        todo!("T-3f: implement on_error=block + async=true detection; return Err(RegistryError::AsyncBlockConflict) for any violating entry (BC-7.06.001 Invariant 1, E-REG-002)")
+        for entry in &self.hooks {
+            let on_error_is_block = entry.on_error == Some(OnError::Block);
+            if on_error_is_block && entry.async_flag {
+                return Err(RegistryError::AsyncBlockConflict {
+                    name: entry.name.clone(),
+                });
+            }
+        }
+        Ok(())
     }
 }
 
@@ -380,7 +388,7 @@ mod tests {
 
     fn minimal_toml() -> &'static str {
         r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "commit"
@@ -393,7 +401,7 @@ plugin = "plugins/commit.wasm"
     #[test]
     fn parses_minimal_registry() {
         let reg = Registry::parse_str(minimal_toml()).unwrap();
-        assert_eq!(reg.schema_version, 1);
+        assert_eq!(reg.schema_version, 2);
         assert_eq!(reg.hooks.len(), 1);
         assert_eq!(reg.hooks[0].name, "commit");
         assert_eq!(reg.hooks[0].event, "PostToolUse");
@@ -416,7 +424,7 @@ plugin = "plugins/commit.wasm"
         // Real-shape registry as the legacy-bash-adapter operator
         // would write — string + nested table.
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "validate-template"
@@ -454,8 +462,9 @@ extra = { key = "value" }
 
     #[test]
     fn rejects_unknown_schema_version() {
+        // schema_version=3 is unknown — dispatcher expects 2 (REGISTRY_SCHEMA_VERSION).
         let toml = r#"
-schema_version = 2
+schema_version = 3
 
 [[hooks]]
 name = "x"
@@ -465,8 +474,8 @@ plugin = "x.wasm"
         let err = Registry::parse_str(toml).unwrap_err();
         match err {
             RegistryError::SchemaVersion { got, expected } => {
-                assert_eq!(got, 2);
-                assert_eq!(expected, 1);
+                assert_eq!(got, 3);
+                assert_eq!(expected, 2);
             }
             other => panic!("expected SchemaVersion, got {other:?}"),
         }
@@ -475,7 +484,7 @@ plugin = "x.wasm"
     #[test]
     fn rejects_invalid_tool_regex() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "bad"
@@ -493,7 +502,7 @@ plugin = "x.wasm"
     #[test]
     fn rejects_unknown_entry_field() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "typo"
@@ -507,7 +516,7 @@ priorty = 100
     #[test]
     fn rejects_unknown_on_error_value() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "x"
@@ -521,7 +530,7 @@ on_error = "shout"
     #[test]
     fn accepts_capabilities_block() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "git"
@@ -549,7 +558,7 @@ path_allow = [".factory/STATE.md"]
     #[test]
     fn overrides_priority_per_entry() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "fast"
@@ -593,7 +602,7 @@ priority = 900
             &reg_path,
             format!(
                 r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "rel"
@@ -622,7 +631,7 @@ plugin = "{abs_str}"
         let abs_str = abs_plugin.to_str().unwrap().replace('\\', "/");
         let mut reg = Registry::parse_str(&format!(
             r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "x"
