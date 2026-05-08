@@ -1,12 +1,12 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
 last_amended: 2026-05-08
-phase: F2
+phase: F8
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.14.001.md
@@ -82,22 +82,44 @@ ADR-019 F2 introduces four new event-type strings as part of the async-semantics
 
 ### Event 3: `dispatcher.registry_invalid`
 
-**Trigger**: Dispatcher's `registry.rs::validate()` finds a registry entry with both `on_error = "block"` AND `async = true`. Dispatcher emits this event and hard-errors with `E-REG-002`.
+**Trigger**: Dispatcher's `registry.rs::validate()` detects a registry invariant violation. Two distinct violation conditions trigger this event, each with its own `error_code`:
 
-**Wire format** (JSON line in `events-*.jsonl`):
+| `error_code` | `violation` | Triggering condition |
+|---|---|---|
+| `E-REG-002` | `async_block_conflict` | A registry entry has both `on_error = "block"` AND `async = true` simultaneously |
+| `E-REG-003` | `duplicate_hook_registration` | Two or more registry entries share the same hook name (duplicate registration) |
+
+Dispatcher emits this event and hard-errors (non-zero exit) for either condition.
+
+**Wire format — E-REG-002 variant** (JSON line in `events-*.jsonl`):
 
 ```json
 {
   "type": "dispatcher.registry_invalid",
   "trace_id": "<uuid-v4>",
   "offending_plugin": "<string — name of the plugin entry that violates the invariant>",
-  "violation": "on_error_block_with_async_true",
+  "violation": "async_block_conflict",
   "timestamp": "<ISO-8601>",
   "error_code": "E-REG-002"
 }
 ```
 
+**Wire format — E-REG-003 variant** (JSON line in `events-*.jsonl`):
+
+```json
+{
+  "type": "dispatcher.registry_invalid",
+  "trace_id": "<uuid-v4>",
+  "offending_plugin": "<string — name of the first duplicate plugin entry>",
+  "violation": "duplicate_hook_registration",
+  "timestamp": "<ISO-8601>",
+  "error_code": "E-REG-003"
+}
+```
+
 **Mandatory fields**: `type`, `trace_id`, `offending_plugin`, `violation`, `timestamp`, `error_code`.
+
+The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` and `"E-REG-003"`. The `violation` field value is determined by the `error_code` per the table above — no other combinations are valid.
 
 ### Event 4: `plugin.timeout` (async path)
 
@@ -181,7 +203,8 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | EC-001 | Async plugin returns exit code 2 (block_intent false by definition — on_error != block) | `plugin.async_block_discarded` emitted with `reason: "async_plugin_block_verdict_discarded"`; dispatcher exit code unchanged |
 | EC-002 | Registry with schema_version = 1 loaded | `dispatcher.schema_mismatch` emitted with `found_version: 1`, `expected_version: 2`, `error_code: "E-REG-001"` |
 | EC-003 | Registry with schema_version = null (malformed TOML) | `dispatcher.schema_mismatch` emitted with `found_version: null`; dispatcher hard-errors |
-| EC-004 | Registry entry has on_error=block AND async=true | `dispatcher.registry_invalid` emitted with `offending_plugin` named; dispatcher refuses to start |
+| EC-004a | Registry entry has on_error=block AND async=true (AsyncBlockConflict) | `dispatcher.registry_invalid` emitted with `error_code: "E-REG-002"`, `violation: "async_block_conflict"`, `offending_plugin` named; dispatcher refuses to start |
+| EC-004b | Two or more registry entries share the same hook name (DuplicateEntry) | `dispatcher.registry_invalid` emitted with `error_code: "E-REG-003"`, `violation: "duplicate_hook_registration"`, `offending_plugin` set to first duplicate entry name; dispatcher refuses to start |
 | EC-005 | Async plugin times out | `plugin.timeout` emitted with `execution_group: "async"`; plugin process terminated; dispatcher exit code unaffected |
 | EC-006 | Multiple async plugins time out in same invocation | One `plugin.timeout` event per timed-out plugin (not a single batch event) |
 
@@ -191,7 +214,8 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |-------|----------------|----------|
 | Async plugin exits 2 | `plugin.async_block_discarded` event in events-*.jsonl; dispatcher exit 0 | async-block-discard |
 | Registry schema_version=1 loaded | `dispatcher.schema_mismatch` event in events-*.jsonl; dispatcher exits non-zero | schema-mismatch |
-| Registry entry on_error=block + async=true | `dispatcher.registry_invalid` event in events-*.jsonl; dispatcher refuses to start | registry-invalid |
+| Registry entry on_error=block + async=true | `dispatcher.registry_invalid` event in events-*.jsonl; `error_code: "E-REG-002"`, `violation: "async_block_conflict"`; dispatcher refuses to start | registry-invalid-E-REG-002 |
+| Registry with duplicate hook name entries | `dispatcher.registry_invalid` event in events-*.jsonl; `error_code: "E-REG-003"`, `violation: "duplicate_hook_registration"`; dispatcher refuses to start | registry-invalid-E-REG-003 |
 | Async plugin times out (timeout_ms exceeded) | `plugin.timeout` with `execution_group: "async"` in events-*.jsonl; no impact on dispatcher exit | async-timeout |
 | All four events emitted; FileSink running | All four appear as JSON lines in events-YYYY-MM-DD.jsonl; `trace_id` present on all | fan-out-happy-path |
 
@@ -231,6 +255,24 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-05-08 (v1.6 → v1.7 — F-P8-001 sibling: Event 3 E-REG-003 added; violation string canonicalized)
+
+**Driver:** F-P8-001 PO sync — BC-7.06.001 v1.6 (amended in the same burst) establishes that `dispatcher.registry_invalid` has two valid error codes: `E-REG-002` (async block conflict) and `E-REG-003` (duplicate hook registration). BC-3.08.001 v1.6 only enumerated E-REG-002 in Event 3, omitting E-REG-003 entirely. Additionally, the canonical violation string for E-REG-002 was normalized in BC-7.06.001 from the legacy value `"on_error_block_with_async_true"` to `"async_block_conflict"`; BC-3.08.001 v1.6 still carried the legacy string.
+
+**Changes made:**
+
+1. **Event 3 wire-format section expanded** — trigger description now states both violation conditions. A two-row enum table lists `E-REG-002 / async_block_conflict` and `E-REG-003 / duplicate_hook_registration` with their triggering conditions. Two wire-format examples are provided (one per error code). The mandatory fields paragraph clarifies that `error_code` is an enum with exactly these two valid values and that `violation` is determined by `error_code`.
+
+2. **Canonical violation string normalized** — `"on_error_block_with_async_true"` replaced by `"async_block_conflict"` throughout Event 3 (wire format example, EC table, test vectors). This matches BC-7.06.001 v1.6 as the canonical authority. **Bats tests for S8 and any test file asserting `"on_error_block_with_async_true"` MUST be updated to `"async_block_conflict"` before delivery.**
+
+3. **Edge Cases table** — EC-004 split into EC-004a (AsyncBlockConflict / E-REG-002) and EC-004b (DuplicateEntry / E-REG-003).
+
+4. **Canonical Test Vectors table** — the single `registry-invalid` row split into `registry-invalid-E-REG-002` and `registry-invalid-E-REG-003` rows.
+
+5. **Frontmatter** — `version:` bumped `"1.6"` → `"1.7"`.
+
+No other postconditions, invariants, or verification properties were modified. POLICY 1 (append-only, no event renumbering) and POLICY 7 (H1 unchanged) observed.
 
 ## Amendment 2026-05-08 (v1.5 → v1.6 — F5 fix-burst-2 F-P2-015: last_amended frontmatter format normalized)
 

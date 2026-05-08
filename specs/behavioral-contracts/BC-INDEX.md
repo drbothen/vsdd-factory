@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.34"
+version: "1.35"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-7 (2026-05-08) — BC-7.06.001 v1.5→v1.6 (F-P8-001: Invariant 7 explicitly classified [fail-closed] with E-REG-003; Fail-Closed Symmetry §Implementation Notes; Error Paths DuplicateEntry row; Canonical Test Vectors updated; E-REG-NNN Error Code Table added). BC-3.08.001 v1.6→v1.7 (F-P8-001 sibling: Event 3 expanded — E-REG-003/duplicate_hook_registration added; violation string canonicalized async_block_conflict; EC-004 split; test vectors split). No count change. BC-INDEX v1.34→v1.35. last_amended: 2026-05-08 (F5 fix-burst-7: BC-7.06.001 v1.6; BC-3.08.001 v1.7; F-P8-001 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-3 Stage 1 (2026-05-08) — BC-7.06.001 v1.4→v1.5 (F-P3-003 string-equality clause added to Inv-7). No count change. BC-INDEX v1.33→v1.34. last_amended: 2026-05-08 (F5 fix-burst-3 Stage 1: BC-7.06.001 v1.5; F-P3-003 closed)."
   - date: 2026-05-08
@@ -226,7 +228,7 @@ changelog:
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
 | [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch | draft | CAP-TBD | TBD |
 | [BC-1.14.001](ss-01/BC-1.14.001.md) | factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget with bounded ASYNC_DRAIN_WINDOW_MS, no verdict gate) | draft | CAP-002 | S-15.01 |
-| [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` (v1.5: F5 fix-burst-3 — Inv-7 string-equality clause added; F-P3-003) | draft | CAP-002 | S-15.01 |
+| [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` (v1.6: F5 fix-burst-7 — Inv-7 [fail-closed] E-REG-003 classification; F-P8-001) | draft | CAP-002 | S-15.01 |
 <!-- BC-7.06.001 filename slug retained in ss-07/ per POLICY 1 append-only; authoritative subsystem is SS-01 per frontmatter (post-F-P1-006 reanchor 2026-05-07). Unified here to match BC-8.29.001/002/003 + BC-8.30.002 authoritative-frontmatter convention (F-P4-001 BC-INDEX listing convention unification). -->
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)
@@ -319,7 +321,7 @@ changelog:
 | [BC-3.06.007](ss-03/BC-3.06.007.md) | sink-core::routing_filter_plugin_ids_allow — only events from listed plugins pass; empty list = pass-through | draft | CAP-003 | active |
 | [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
 | [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
-| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) | draft | CAP-003 | S-15.01 |
+| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) (v1.7: F5 fix-burst-7 — Event 3 E-REG-003/duplicate_hook_registration added; violation string async_block_conflict; F-P8-001 sibling) | draft | CAP-003 | S-15.01 |
 
 ### SS-04 — Plugin Ecosystem (BC-4) — 39 BCs
 

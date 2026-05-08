@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -76,6 +76,8 @@ removal_reason: null
 
 7. **(`name`, `event`, `tool`) tuple is unique across all `[[hooks]]` entries.** Two entries MAY share `name` and `event` if they bind to different `tool` regex values — this permits a single named plugin to enforce against multiple tool surfaces (e.g., `protect-secrets` running on both `Bash` and `Read` PreToolUse events). The `(name, event, tool)` uniqueness is enforced at registry-load time by `registry.rs::validate()`. Violations produce `RegistryError::DuplicateEntry { name, event, tool }` (`dispatcher.registry_invalid` with reason `duplicate_hook_registration`); dispatcher exits non-zero (fail-closed). Note: `tool` in this tuple is the raw regex string value (or `None` for "all tools"); two entries with `tool = None` and the same `name`+`event` are duplicates. **String equality, not regex equivalence:** Comparison of the `tool` field uses raw-string equality (Rust `Option<String>` equality). Two entries with `tool = '^Bash$'` and `tool = 'Bash'` are DISTINCT entries despite matching the same tool surface — the registry does NOT perform regex-equivalence detection. Operators MUST normalize their `tool` regex strings if they intend semantic deduplication.
 
+   **[fail-closed] F-P8-001 — DuplicateEntry is fail-closed with E-REG-003.** Hard-error with `RegistryError::DuplicateEntry { name, event, tool }` on the first violation. Implementation MUST: (a) emit `dispatcher.registry_invalid` structured event with `error_code = "E-REG-003"`, `violation = "duplicate_hook_registration"`, and the offending plugin's `name`/`event`/`tool` fields; (b) write the error to stderr with prefix `[E-REG-003]`; (c) exit with non-zero status (2). The dispatcher MUST NOT silently fall through; this is a fail-closed semantic invariant identical in classification to E-REG-001 (SchemaVersion) and E-REG-002 (AsyncBlockConflict). Error code E-REG-003 is reserved for DuplicateEntry exclusively (see §E-REG-NNN Error Code Table).
+
 ## Implementation Notes
 
 ### (name, event, tool) Tuple Uniqueness Check — validate() Obligation (F-P2-011)
@@ -95,6 +97,16 @@ The existing CI lint plugin (`lint-registry-async-invariant`, VP-078) MAY also e
 
 `registry.rs::validate()` implements the uniqueness check using `HashSet<(String, String, Option<String>)>` with derived `PartialEq`. This is the canonical implementation surface for the equality semantics specified in Invariant 7. Comparison is byte-for-byte string equality on the raw regex string value — the registry does NOT parse, compile, or normalize regex patterns before comparison. Consequently, `tool = '^Bash$'` and `tool = 'Bash'` are treated as distinct keys and will NOT raise a `DuplicateEntry` error even though both patterns match the same tool surface. Operators who intend semantic deduplication MUST normalize their regex strings to a canonical form before authoring registry entries.
 
+### Fail-Closed Symmetry Across E-REG-NNN Error Codes (F-P8-001)
+
+All three E-REG-NNN error codes share the same fail-closed semantic — load failure produces stderr eprintln, structured event emission via host emit, and dispatcher exit 2. Implementations MUST NOT route any `RegistryError` variant through a catch-all that returns exit 0. Specifically:
+
+- `E-REG-001` (`RegistryError::SchemaVersion`) — catch-all `_ => 0` silently exits 0; MUST exit 2.
+- `E-REG-002` (`RegistryError::AsyncBlockConflict`) — exits 2 at lines 143–145 (correct).
+- `E-REG-003` (`RegistryError::DuplicateEntry`) — catch-all `_ => 0` at `main.rs:148–151` silently exits 0; MUST exit 2 (F-P8-001 fix). The implementation MUST match the explicit exit-2 branch pattern used by `AsyncBlockConflict` (lines 143–145), not fall through to the catch-all.
+
+Any future `RegistryError` variant added to `registry.rs` MUST receive an explicit exit-code branch in `main.rs` before the catch-all. The catch-all MAY only remain as a last-resort fallback for truly unexpected variants, and MUST map to a non-zero exit code (e.g., `_ => 1`), never 0.
+
 ## Error Paths
 
 | Condition | Behavior |
@@ -102,6 +114,7 @@ The existing CI lint plugin (`lint-registry-async-invariant`, VP-078) MAY also e
 | Registry `schema_version = 1` (or any non-2 value) | Dispatcher hard-errors at load time; `dispatcher.schema_mismatch` logged; **exit code 2 (fail-closed)** — explicit exception to BC-1.08.001 fail-open; explicit stderr diagnostic emitted; no plugins executed |
 | `async = true` (non-boolean) in a `[[hooks]]` entry | `RegistryError::ParseError` at TOML parse time; dispatcher refuses to start |
 | Entry has `on_error = "block"` AND `async = true` | `E-REG-002` at `validate()` time; `dispatcher.registry_invalid` logged with plugin name; dispatcher refuses to start |
+| Two entries share identical `(name, event, tool)` tuple | **[fail-closed] E-REG-003** — `RegistryError::DuplicateEntry { name, event, tool }` at `validate()` time; `dispatcher.registry_invalid` event emitted with `error_code = "E-REG-003"` and `violation = "duplicate_hook_registration"`; stderr prefixed `[E-REG-003]`; **exit code 2** (F-P8-001 — MUST NOT silently exit 0 via catch-all) |
 | Registry file missing | Existing behavior per BC-1.01.014 (`RegistryError::NotFound`); unchanged |
 
 ## Related BCs
@@ -155,14 +168,40 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | CI lint scan: registry with `on_error = "block"` AND `async = true` | VP-078 bats test fails; CI reports violation with plugin name | ci-lint-failure |
 | CI lint scan: fully valid v2 registry | VP-078 bats test passes; CI continues | ci-lint-pass |
 | Registry v2; entry `(name="protect-secrets", event="PreToolUse", tool="Bash")` AND entry `(name="protect-secrets", event="PreToolUse", tool="Read")` — different `tool` values | Valid: `(name, event, tool)` tuples are distinct; registry loads successfully; both entries dispatched independently per event+tool match | tuple-uniqueness-allowed-multi-tool |
-| Registry v2; two entries with identical `(name="protect-secrets", event="PreToolUse", tool="Bash")` | Invalid: `RegistryError::DuplicateEntry { name: "protect-secrets", event: "PreToolUse", tool: Some("Bash") }`; dispatcher refuses to start | tuple-uniqueness-violation |
-| Registry v2; two entries with `name="x"`, `event="PreToolUse"`, both with `tool = None` (absent) | Invalid: `RegistryError::DuplicateEntry { name: "x", event: "PreToolUse", tool: None }`; dispatcher refuses to start | tuple-uniqueness-violation-no-tool |
+| Registry v2; two entries with identical `(name="protect-secrets", event="PreToolUse", tool="Bash")` | **[fail-closed E-REG-003 per F-P8-001]** `RegistryError::DuplicateEntry { name: "protect-secrets", event: "PreToolUse", tool: Some("Bash") }`; `dispatcher.registry_invalid` event emitted with `error_code = "E-REG-003"` and `violation = "duplicate_hook_registration"`; stderr line prefixed `[E-REG-003]`; **exit code 2** (NOT silent exit 0) | tuple-uniqueness-violation |
+| Registry v2; two entries with `name="x"`, `event="PreToolUse"`, both with `tool = None` (absent) | **[fail-closed E-REG-003 per F-P8-001]** `RegistryError::DuplicateEntry { name: "x", event: "PreToolUse", tool: None }`; `dispatcher.registry_invalid` event emitted with `error_code = "E-REG-003"` and `violation = "duplicate_hook_registration"`; stderr line prefixed `[E-REG-003]`; **exit code 2** (NOT silent exit 0) | tuple-uniqueness-violation-no-tool |
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | VP-078 | No `[[hooks]]` entry in `hooks-registry.toml` has both `on_error = "block"` and `async = true`; scanned at CI time | integration |
+
+## E-REG-NNN Error Code Table
+
+Canonical error codes for all registry-validation failures in `registry.rs::validate()` and dispatcher load path. All three are fail-closed: each produces a structured `dispatcher.registry_invalid` or `dispatcher.schema_mismatch` event, a stderr line with the prefixed code, and dispatcher exit code 2.
+
+| Code | Error Variant | Event Type | Violation / Reason | Fail-Closed | Notes |
+|------|--------------|------------|-------------------|-------------|-------|
+| E-REG-001 | `RegistryError::SchemaVersion { got, expected }` | `dispatcher.schema_mismatch` | `schema_version` mismatch | YES — exit 2 | Existing; Postcondition 1 |
+| E-REG-002 | `RegistryError::AsyncBlockConflict { name }` | `dispatcher.registry_invalid` | `on_error_block_with_async_true` | YES — exit 2 | Existing; Postcondition 5 / Invariant 1 |
+| E-REG-003 | `RegistryError::DuplicateEntry { name, event, tool }` | `dispatcher.registry_invalid` | `duplicate_hook_registration` | YES — exit 2 | **NEW per F-P8-001**; Invariant 7 |
+
+**E-REG-003 event payload** (for `dispatcher.registry_invalid`):
+```json
+{
+  "type": "dispatcher.registry_invalid",
+  "trace_id": "<uuid-v4>",
+  "offending_plugin": "<name>",
+  "offending_event": "<event>",
+  "offending_tool": "<tool regex string or null>",
+  "violation": "duplicate_hook_registration",
+  "timestamp": "<ISO-8601>",
+  "error_code": "E-REG-003"
+}
+```
+
+**Sibling BC-3.08.001 note**: BC-3.08.001 v1.6 Event 3 (`dispatcher.registry_invalid`) currently enumerates only `error_code: "E-REG-002"` with `violation: "on_error_block_with_async_true"`. E-REG-003 (`violation: "duplicate_hook_registration"`) is a new valid value for this event type and MUST be added to BC-3.08.001's Event 3 payload schema. This is a PO sync note for a sibling architect amendment — see §PO Sync Notes below.
 
 ## Traceability
 
@@ -194,6 +233,30 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-08 (v1.5 → v1.6 — F-P8-001: Invariant 7 explicitly classified as [fail-closed] with E-REG-003 reservation)
+
+**Driver:** F-P8-001 — Spec-implementation drift: `main.rs:148–151` catch-all `_ => 0` silently exits 0 for `RegistryError::DuplicateEntry`, whereas `AsyncBlockConflict` correctly exits 2 at lines 143–145. The existing Invariant 7 wording ("dispatcher exits non-zero (fail-closed)") was correct in intent but not explicit enough to prevent asymmetric implementation — "refuses to start" was interpreted differently for DuplicateEntry vs. AsyncBlockConflict.
+
+**Changes made:**
+
+1. **Invariant 7 amended (append-only per POLICY 1):** Appended `[fail-closed] F-P8-001` classification block explicitly naming E-REG-003 as the canonical error code, requiring `dispatcher.registry_invalid` event with `error_code = "E-REG-003"` and `violation = "duplicate_hook_registration"`, stderr prefix `[E-REG-003]`, and exit code 2. States that DuplicateEntry is fail-closed identical in classification to E-REG-001 and E-REG-002.
+
+2. **`## Implementation Notes` extended** with `### Fail-Closed Symmetry Across E-REG-NNN Error Codes (F-P8-001)` subsection: enumerates all three E-REG-NNN variants, names the specific `main.rs` catch-all at lines 148–151 as the implementation defect, and states that any future `RegistryError` variant must receive an explicit exit-code branch (never 0) before the catch-all.
+
+3. **Error Paths table extended** with a new row for `RegistryError::DuplicateEntry` naming E-REG-003, `dispatcher.registry_invalid` event, `[E-REG-003]` stderr prefix, and exit code 2 with explicit F-P8-001 note that it MUST NOT silently exit 0.
+
+4. **Canonical Test Vectors updated** (POLICY 12 — bc_tv_emitter_consistency): both DuplicateEntry test vector rows now specify the full fail-closed semantics — `dispatcher.registry_invalid` event with `error_code = "E-REG-003"`, stderr prefix `[E-REG-003]`, and exit code 2 (NOT silent exit 0).
+
+5. **`## E-REG-NNN Error Code Table` section added:** Defines the authoritative three-row table (E-REG-001, E-REG-002, E-REG-003), their variants, event types, violation strings, and fail-closed status. Includes E-REG-003 wire-format payload example with `offending_plugin`, `offending_event`, `offending_tool`, and `violation` fields.
+
+6. **Frontmatter:** `version: "1.5"` → `"1.6"`; `last_amended:` value unchanged (already `2026-05-08`).
+
+**POLICY 7 verification:** H1 heading unchanged — title remains authoritative as authored in v1.0.
+
+**POLICY 1 verification:** No content removed. All amendments are additive.
+
+**BC-3.08.001 sibling check (PO sync note):** BC-3.08.001 v1.6 Event 3 (`dispatcher.registry_invalid`) enumerates only `error_code: "E-REG-002"` / `violation: "on_error_block_with_async_true"`. E-REG-003 (`violation: "duplicate_hook_registration"`) is not listed as a valid value. A sibling amendment to BC-3.08.001 is required to add E-REG-003 to the Event 3 payload schema enumeration. This is tagged as a follow-up architect amendment.
 
 ## Amendment 2026-05-08 (v1.4 → v1.5 — F-P3-003: Invariant 7 clarified — comparison is raw-string equality, not regex equivalence)
 
