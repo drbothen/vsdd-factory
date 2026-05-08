@@ -125,8 +125,7 @@ fn test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value() {
     const AC016_BUDGET_MS: u64 = 1500;
 
     /// Canonical test command that must appear in the methodology section.
-    const CANONICAL_CMD: &str =
-        "cargo test --release -p factory-dispatcher --test latency_canary";
+    const CANONICAL_CMD: &str = "cargo test --release -p factory-dispatcher --test latency_canary";
 
     let canary_path = evidence_dir().join("latency-canary.md");
 
