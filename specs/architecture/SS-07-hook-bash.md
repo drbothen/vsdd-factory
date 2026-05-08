@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-07-hook-bash"
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -43,7 +43,7 @@ A-side authority for which bash scripts run on which events.
 
 | Module / File | Responsibility |
 |---|---|
-| `plugins/vsdd-factory/hooks-registry.toml` | Routing table; 45 entries; `schema_version = 1`; all entries point to `legacy-bash-adapter.wasm` with `plugin_config.script_path` |
+| `plugins/vsdd-factory/hooks-registry.toml` | Routing table; 45+ entries; `schema_version = 2` (post-ADR-019); all entries point to `legacy-bash-adapter.wasm` with `plugin_config.script_path`; each entry carries `async: bool` (default false) for dispatcher sync/async partition |
 | **PreToolUse gate hooks** | |
 | `plugins/vsdd-factory/hooks/block-ai-attribution.sh` | Block commits with AI co-authored-by lines |
 | `plugins/vsdd-factory/hooks/protect-secrets.sh` | Block Bash + Read tool calls that risk exposing secrets |
@@ -65,9 +65,9 @@ A-side authority for which bash scripts run on which events.
 
 ## Public Interface
 
-**Routing table (`hooks-registry.toml`) schema (version 1):**
+**Routing table (`hooks-registry.toml`) schema (version 2, post-ADR-019):**
 ```toml
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 event = "PreToolUse"
@@ -75,12 +75,18 @@ tool_match = "Bash"
 plugin = "legacy-bash-adapter.wasm"
 priority = 100
 on_error = "block"
+async = false
 [hooks.capabilities]
 binary_allow = ["bash"]
 shell_bypass_acknowledged = true
 [hooks.plugin_config]
 script_path = "hooks/protect-secrets.sh"
 ```
+
+`async = false` (or field absent, defaulting false) is correct for plugins with
+`on_error = "block"`. Telemetry plugins use `async = true` with `on_error = "continue"`.
+The CI lint invariant (VP-078 / BC-7.06.001) enforces that no entry has both
+`on_error = "block"` and `async = true`.
 
 **Block protocol:** A PreToolUse bash script exits 2 to block the tool call.
 It writes a JSON block message to stdout: `{"block": true, "reason": "..."}`.
@@ -189,7 +195,27 @@ body as the authoritative source.
 
 ---
 
-## Amendment 2026-05-07 (v1.0 → v1.1 — async semantics cycle F2 pass-1 fix)
+## CHANGELOG
+
+### Amendment 2026-05-07 (v1.1 → v1.2 — F2 pass-3 fix burst)
+
+Addresses adversary pass-3 finding F-P3-006.
+
+**F-P3-006 (stale body-vs-amendment readability gap):** The body of SS-07 (Modules
+table `schema_version = 1` and Public Interface schema header `schema_version = 1`)
+still showed pre-ADR-019 text, with the correction pushed to the amendment footer.
+This amendment replaces the stale content in-place:
+
+- Modules table `hooks-registry.toml` row: `schema_version = 1` → `schema_version = 2`;
+  added `async: bool` field description per ADR-019.
+- Public Interface section header: `schema (version 1)` → `schema (version 2, post-ADR-019)`;
+  `schema_version = 1` → `schema_version = 2` in code block; added `async = false`
+  field to example entry; added explanatory paragraph for async/sync classification.
+
+The v1.0→v1.1 amendment text below is preserved as historical record. It is now
+superseded in the body sections above.
+
+### Amendment 2026-05-07 (v1.0 → v1.1 — async semantics cycle F2 pass-1 fix)
 
 **Reason:** ADR-019 (accepted 2026-05-07) bumps `hooks-registry.toml` schema from
 version 1 to version 2, adding a per-plugin `async: bool` field. SS-07 was listed

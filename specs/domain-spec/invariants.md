@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.4"
+version: "1.5"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -133,6 +133,25 @@ Justification: DI-017 is a business invariant because the trace ID is the audit 
 >
 > See `.factory/specs/prd.md` §10.4 KL-005 and §11 DRIFT-011 for the current treatment.
 
+## Dispatcher Timing Invariants
+
+**DI-019 — ASYNC_DRAIN_WINDOW_MS = 100 (milliseconds, runtime constant)**
+After `sync_group` plugin execution completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` milliseconds for spawned async-group tasks to emit terminal events to FileSink before forcibly terminating them and exiting. The constant bounds the dispatcher's user-facing latency tail and ensures bounded-but-reliable async telemetry emission.
+
+**Statement:** `ASYNC_DRAIN_WINDOW_MS = 100` ms. This is the canonical default value. The total dispatcher wall-clock latency upper bound is therefore: `max(sync_plugin_durations_within_slowest_tier) + ASYNC_DRAIN_WINDOW_MS + bounded_overhead`.
+
+**Scope:** Applies to all dispatcher invocations across all hook event types (PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart, SessionEnd, WorktreeCreate, WorktreeRemove, PostToolUseFailure, PermissionRequest). Not configurable per event; applies uniformly.
+
+**Configurability:** Future may permit env-var override (e.g., `VSDD_ASYNC_DRAIN_WINDOW_MS`); this is a deferred decision. The value 100 ms is the canonical baseline and the only value with specified behavior.
+
+**Rationale:** 100 ms is long enough for in-flight tokio tasks to complete a sub-millisecond FileSink append; short enough to be imperceptible to a human user after `sync_group` finishes. Async plugins requiring longer drain (e.g., network I/O) must be redesigned — the drain is for terminal-event flush only, not for completing arbitrary async work.
+
+**Enforcement owner:** SS-01 (dispatcher runtime — `crates/factory-dispatcher/src/engine.rs`).
+**BC range:** BC-1.14.001 (PC4 partition contract — async-task drain window), BC-3.08.001 (event-type catalog; events that depend on the drain window being open to emit cleanly).
+**Cited by:** BC-1.14.001 (Traceability L2 Domain Invariants — DI-019), BC-3.08.001 (Traceability L2 Domain Invariants — DI-019), VP-079 (event-emission verification; timing assertions must account for 100 ms drain), ADR-019 (latency-budget rationale; drain window as part of the async-semantics design).
+
+Justification: DI-019 is a domain invariant because the drain-window constant directly bounds user-facing latency for every Claude Code tool call that triggers the dispatcher. Inlining the constant in a single BC file (BC-1.14.001) would make it invisible to sibling BCs (e.g., BC-3.08.001) and VPs (VP-079) that depend on its value for fixture timing. Lifting it to a domain invariant makes the constraint enforceable across all dispatcher subsystems.
+
 ## CHANGELOG
 
 | Version | Date | Change |
@@ -140,3 +159,24 @@ Justification: DI-017 is a business invariant because the trace ID is the audit 
 | v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 17 invariants (DI-001–DI-017). |
 | v1.1 | 2026-05-06 | D-314 F-4 fix: DI-007/008/011/012/013/014/017 amended/refined/superseded per ADR-015. DI-007 amended (debug stream is opt-in). DI-008 reaffirmed (filename pattern unchanged). DI-011 superseded (single-sink eliminates mpsc+try_send). DI-012 superseded (single-sink; per-sink isolation moot). DI-013 refined (warn-and-skip extended to v2 unknown keys per BC-3.05.004). DI-014 updated (schema_version=2 target; hard error on mismatch preserved). DI-017 renamed dispatcher_trace_id → trace_id per ADR-015 v1.7 canonicalization. BC-side L2 citation work (adding DI references to BC-1.12.002/003/004 and BC-3.05.004) deferred to D-315 (PO). |
 | v1.2 | 2026-05-07 | F2 pass-1 fix burst: DI-014 amended — `REGISTRY_SCHEMA_VERSION` updated from 1 to 2 (post-ADR-019); BC range extended to include BC-7 (BC-7.06.001 is the BC-7 enforcement arm). DI-014 prose now explicitly notes the fail-closed (exit 2) exception to BC-1.08.001 fail-open for registry schema mismatch. |
+| v1.3 | 2026-05-07 | F2 pass-2 fix burst: DI-014 amendment note added per F-P2-014 — BC-7.06.001 ID-prefix retention clarification (BC-7 prefix preserved for append-only continuity; subsystem is SS-01 post-reanchor). DI-015 added — per-project activation gate invariant. |
+| v1.4 | 2026-05-07 | F2 pass-3 fix burst (BC-1.14.001 v1.3): BC-1.14.001 v1.3 inlined `ASYNC_DRAIN_WINDOW_MS = 100` as a Constant Definitions table. State after pass-3 fix burst; constant was in BC, not yet lifted to DI. |
+| v1.5 | 2026-05-07 | F2 pass-3 user-correction: DI-019 authored — `ASYNC_DRAIN_WINDOW_MS = 100 ms` lifted from BC-1.14.001 Constant Definitions table to a domain invariant. BC-1.14.001 v1.3 → v1.4 refactored to cite DI-019 by reference; constant value removed from BC inline definition. BC-3.08.001 v1.1 → v1.2 updated to cite DI-019 in L2 Domain Invariants. New section "Dispatcher Timing Invariants" added. |
+
+## Amendment 2026-05-07 (v1.4 → v1.5 — F2 pass-3 user-correction)
+
+**Structural correction requested by user after reviewing BC-1.14.001 v1.3.**
+
+BC-1.14.001 v1.3 (authored in the pass-3 fix burst to resolve adversary findings F-P3-002 and F-P3-007) placed `ASYNC_DRAIN_WINDOW_MS = 100` as an inline constant table inside the BC file. The user identified this placement as architecturally incorrect: constants that bound cross-cutting dispatcher behavior belong in the domain invariants, not inside a single BC's body.
+
+**Changes in this amendment:**
+
+1. **DI-019 authored** (`ASYNC_DRAIN_WINDOW_MS = 100 ms`) — new invariant in the "Dispatcher Timing Invariants" section above. This is the canonical single source of truth for the constant value.
+2. **BC-1.14.001 v1.3 → v1.4** — the "Constant Definitions" section's inline `= 100` value was removed; replaced with a reference to DI-019. PC4 prose now cites DI-019 as canonical with the value in parentheses as a reading aid. DI-019 added to Traceability L2 Domain Invariants alongside DI-014.
+3. **BC-3.08.001 v1.1 → v1.2** — DI-019 added to Traceability L2 Domain Invariants. The async-path event types (`plugin.timeout`, `plugin.async_block_discarded`) are emitted during the drain window governed by DI-019.
+
+**This is a structural correction, not a semantic change.** The value (100 ms), the drain-window mechanism, and all behavioral postconditions are unchanged. Only the placement of the canonical constant definition changed (BC → DI).
+
+**Cross-burst dependencies (architect):**
+- VP-079 must update its timing-assertion anchor to reference DI-019 (not the now-removed BC-1.14.001 constant table).
+- ADR-019 §Consequences should cite DI-019 as the latency-budget invariant for the drain window.

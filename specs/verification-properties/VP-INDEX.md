@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.8"
+version: "1.10"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -9,6 +9,10 @@ phase: F2
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-3 fix burst close + user-correction (2026-05-07) — VP-079 v1.2→v1.3 (DI-NN placeholder resolved to DI-019 in frontmatter domain_invariants, Property 5, all harness scenario comments, False-Positive Scenarios table, Feasibility Assessment, Traceability, and Amendment prose). VP-078 confirmed at v1.5. VP-077 confirmed at v1.4. No VP count change. last_amended: 2026-05-07 (async-semantics F2 pass-3 fix burst close: VP-079 DI-019 placeholder resolved)."
+  - date: 2026-05-07
+    change: "F2 pass-3 fix burst (2026-05-07) — VP-078 v1.4→v1.5 (Harness 3 plugin list six→nine: added track-agent-start, track-agent-stop, session-learning per BC-7.06.001 Invariant 6 v1.2). VP-079 v1.1→v1.2 (drain window Property 5 added; Scenarios 1+4 fixtures fixed with sync plugin; Scenario 5 added for drain-window truncation). VP-INDEX VP-079 type corrected invariant→postcondition (F-P3-004). ADR-019 v1.3→v1.4 (ASYNC_DRAIN_WINDOW_MS latency-budget paragraph added). SS-09 v1.1→v1.2 (stale async/schema_v1 body text replaced in-place). SS-07 v1.1→v1.2 (stale schema_v1 body text replaced in-place). No VP count change."
   - date: 2026-05-07
     change: "F2 pass-2 fix burst close (2026-05-07) — VP-077 v1.3→v1.4 (forward-ref resolved: BC-7.06.001 Invariant 7 cited for (name,event) tuple uniqueness; Harness 1 kani::assume expanded for duplicate-name-different-event semantics). No VP count change. last_amended: 2026-05-07 (async-semantics F2 pass-2 fix burst: VP-077 forward-ref resolution)."
   - date: 2026-05-07
@@ -143,7 +147,7 @@ changelog:
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name,event) tuple unique per BC-7.06.001 Invariant 7 | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml | safety | integration | SS-07, SS-01 | — | draft |
-| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema | invariant | integration | SS-03 | — | draft |
+| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema | postcondition | integration | SS-03 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 

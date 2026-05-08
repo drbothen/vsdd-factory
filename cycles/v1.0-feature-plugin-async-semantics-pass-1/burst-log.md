@@ -269,3 +269,69 @@ F2 PASS-1 FIX BURST CLOSED. Adversary pass-2 next (ADR-013 clock at 0_of_3 — 3
 F2 PASS-2 FIX BURST CLOSED. Adversary pass-3 next (ADR-013 clock at 0_of_3 — 3 consecutive NITPICK_ONLY required before F3 story decomposition).
 
 ---
+
+## Burst: F2 pass-3 fix burst (initial + user-correction) — 7 findings closed (2026-05-07)
+
+| Field | Value |
+|-------|-------|
+| **Burst date** | 2026-05-07 |
+| **Dispatch chain** | orchestrator → adversary → (PO ∥ architect, initial fix burst) → user-review → (PO ∥ architect, user-correction round) → state-manager(close) |
+| **Adversary verdict** | SUBSTANTIVE (4H/3M/0L/0N — 7 findings) |
+| **ADR-013 clock** | RESET to 0_of_3 |
+| **User steering** | "fix it the most correct and right way" — user chose architecturally correct paths over expedient ones on Q2 and Q3 |
+
+### Decisions sealed
+
+| Decision | Outcome |
+|----------|---------|
+| **Q1 user-confirmed: drain window kept** | ASYNC_DRAIN_WINDOW_MS = 100ms drain window retained (Position A). Pass-3 finding that the drain window might cause observable delay was reviewed and accepted as intentional design. |
+| **Q2 user-corrected: ARCH-INDEX BC re-tally** | BC counts in ARCH-INDEX re-tallied to authoritative BC frontmatter `subsystem:` field (not directory location). Obsolete directory-based footnote removed. Net: SS-01 116→117 (+BC-7.06.001), SS-05 648→652 (+BC-8.29.001/002/003 + BC-8.30.002), SS-07 197→196, SS-08 218→214. Total 1,947 unchanged. |
+| **Q3 user-corrected: ASYNC_DRAIN_WINDOW_MS → DI-019** | Constant lifted from BC-1.14.001 inline "Constant Definitions" table to DI-019 domain invariant. Domain layer is the canonical owner. BC-1.14.001 PC4 cites DI-019 by reference; value removed from BC body. |
+| **F-P3-001: VP-078 Harness 3 expansion** | Harness 3 plugin list expanded six→nine plugins: added track-agent-start, track-agent-stop, session-learning per BC-7.06.001 Invariant 6 v1.2. VP-078 v1.4→v1.5. |
+| **F-P3-002 / F-P3-007: VP-079 Scenarios 1+4 fixture fix** | Sync plugin added to Scenarios 1 and 4 to hold dispatcher alive during async drain window. Scenario 5 added (drain-window truncation negative case). VP-079 v1.1→v1.2. BC-1.14.001 PC4 updated with bounded ASYNC_DRAIN_WINDOW_MS. |
+| **F-P3-003: POLICY 7 — 6 BC-INDEX H1 syncs** | BC-1.08.002, BC-1.01.007, BC-1.14.001 titles updated in BC-INDEX to match H1s byte-for-byte. BC-4.04.004/4.05.004/4.07.003/4.08.002 confirmed already matching. |
+| **F-P3-004: VP-079 type drift** | VP-079 type corrected invariant→postcondition in VP-INDEX Full Index table. |
+| **F-P3-005: ARCH-INDEX BC re-tally** | Covered by Q2 user-correction above. |
+| **F-P3-006: SS-09/SS-07 stale text** | SS-09-config-activation.md v1.1→v1.2 (stale async/schema_v1 body text replaced in-place). SS-07-hook-bash.md v1.1→v1.2 (stale schema_v1 body text replaced in-place). |
+
+### Outputs
+
+**New artifacts:**
+
+| File | Producer | Notes |
+|------|----------|-------|
+| `.factory/specs/domain-spec/invariants.md` (DI-019) | PO (user-correction) | DI-019 authored: ASYNC_DRAIN_WINDOW_MS=100ms; SS-01 enforcement; BC range BC-1.14.001 + BC-3.08.001. invariants.md v1.4→v1.5. |
+
+**Amended artifacts:**
+
+| File | Old Version | New Version | Change |
+|------|-------------|-------------|--------|
+| `ss-01/BC-1.14.001.md` | v1.2 | v1.4 | PC4 updated with bounded drain window (v1.3 initial; v1.4 user-correction: cite DI-019, value removed from inline constant table) |
+| `ss-03/BC-3.08.001.md` | v1.1 | v1.2 | DI-019 traceability cite added (plugin.timeout + plugin.async_block_discarded emitted within DI-019 drain window) |
+| `specs/verification-properties/VP-078.md` | v1.4 | v1.5 | Harness 3 list six→nine plugins per BC-7.06.001 Invariant 6 v1.2 |
+| `specs/verification-properties/VP-079.md` | v1.1 | v1.3 | v1.2: Property 5 + Scenarios 1/4/5 + drain-window; v1.3 (user-correction): DI-NN→DI-019 placeholder resolved throughout |
+| `decisions/ADR-019-plugin-async-semantics-at-registry-layer.md` | v1.3 | v1.5 | v1.4: drain window in §Consequences; v1.5: DI-NN→DI-019 placeholder resolved |
+| `specs/architecture/SS-09-config-activation.md` | v1.1 | v1.2 | Stale async/schema_v1 body text replaced in-place (F-P3-006) |
+| `specs/architecture/SS-07-hook-bash.md` | v1.1 | v1.2 | Stale schema_v1 body text replaced in-place (F-P3-006) |
+
+**Index bumps:**
+
+| Index | Old | New | Notes |
+|-------|-----|-----|-------|
+| BC-INDEX | v1.21 | v1.22 | BC-1.14.001 title synced to H1; BC-1.08.002 title synced; BC-1.01.007 title synced; 3 other titles confirmed; changelog entry for pass-3 close |
+| ARCH-INDEX | v1.12 → v1.13 (BC re-tally) | v1.14 (close) | BC counts by authoritative subsystem; ADR-019 v1.5; SS-09 v1.2; SS-07 v1.2 noted |
+| VP-INDEX | v1.9 | v1.10 | VP-079 DI-019 placeholder resolved; VP-078 confirmed v1.5; VP-077 confirmed v1.4 |
+| STATE.md | — | — | current_step, phase, cycle table, burst row, session checkpoint updated |
+
+### Findings summary (7 total)
+
+| Severity | Count | Notable |
+|----------|-------|---------|
+| HIGH | 4 | F-P3-002 (VP-079 Scenarios 1+4 untestable — sync plugin missing), F-P3-003 (POLICY 7 H1 sync missing), F-P3-005 (ARCH-INDEX BC re-tally wrong), F-P3-007 (VP-079 Scenario 4 no sync plugin) |
+| MED | 3 | F-P3-001 (VP-078 Harness 3 incomplete list), F-P3-004 (VP-079 type drift), F-P3-006 (SS-09/SS-07 stale body text) |
+
+### Status
+
+F2 PASS-3 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-4 next (3 consecutive NITPICK_ONLY required before F3 story decomposition).
+
+---

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -29,7 +29,7 @@ removed: null
 removal_reason: null
 ---
 
-# BC-1.14.001: factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget, no verdict gate)
+# BC-1.14.001: factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget with bounded ASYNC_DRAIN_WINDOW_MS, no verdict gate)
 
 ## Description
 
@@ -61,10 +61,11 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
 
 4. Async group execution:
    - Each async group plugin is spawned as a fire-and-forget task (tokio task or equivalent).
-   - The dispatcher does NOT await async group plugin completions.
+   - The dispatcher does NOT await async group plugin completions beyond the drain window defined below.
    - Async group plugin verdicts (including any exit codes) are logged to `events-*.jsonl` via the standard FileSink path.
    - Async group results never reach Claude Code as a blocking signal.
-   - **Async plugin lifetime is best-effort**: Async plugins are spawned as tokio tasks (or runtime-equivalent fire-and-forget primitives). The dispatcher does NOT await async tasks. The dispatcher process exits as soon as `sync_group` completes. If a plugin's I/O does not complete before dispatcher process exit, that plugin's output may be truncated. This is an explicit trade-off accepted to preserve user-facing latency for `sync_group`. Telemetry plugins classified `async = true` (e.g., `capture-commit-activity`) accept this truncation risk.
+   - **Async-task drain window**: After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` (per DI-019, default 100 ms) for spawned async tasks to emit terminal events to FileSink. Tasks that complete within the drain window emit cleanly. Tasks that do not complete within the drain window are forcibly terminated; their pending I/O is discarded (best-effort). The drain window is a bounded constant per DI-019 — async tasks DO NOT extend dispatcher latency beyond `max(sync_plugin_durations) + ASYNC_DRAIN_WINDOW_MS`. The drain is purely for terminal-event emission visibility (e.g., `plugin.timeout`, `plugin.async_block_discarded`), not for completing arbitrary async work.
+   - **Async plugin lifetime is best-effort**: Tasks not done within `ASYNC_DRAIN_WINDOW_MS` (per DI-019) are terminated (truncated telemetry remains an explicit acceptable cost for tasks slower than the drain). Telemetry plugins classified `async = true` (e.g., `capture-commit-activity`) accept this truncation risk.
 
 5. The partition function `partition_plugins(matched_plugins, registry)` is pure and deterministic: given identical inputs it always produces identical `(sync_group, async_group)` splits. No side effects occur during partitioning.
 
@@ -78,6 +79,15 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
 3. **Async group plugins are excluded from the tier ordering model entirely**: The ADR-008 tier model (sequential-between-tier, parallel-within-tier) applies exclusively to the sync group. Async group plugins have no guaranteed ordering relative to each other or to sync group execution.
 4. **`on_error = "block"` implies `async = false`**: Any registry entry with `on_error = "block"` must have `async` absent or `async = false`. This is a load-time invariant enforced by `registry.rs::validate()`. If this invariant is violated in the registry file, the dispatcher hard-errors at startup with `E-REG-002` before dispatching any plugins. This invariant is also enforced by CI lint (VP-078; see BC-7.06.001).
 5. **No downgrade attempt on schema_version mismatch**: A v1 registry loaded into a v2 dispatcher produces a deterministic error (see Error Paths). The dispatcher never silently accepts a v1 registry, never provides a compatibility shim, and never downgrades to v1 behavior.
+
+## Constant Reference
+
+The async-task drain window is `ASYNC_DRAIN_WINDOW_MS` per **DI-019** (`invariants.md` §Dispatcher Timing Invariants). This BC references the DI; the canonical value (100 ms) and its rationale live in the domain spec. Do not inline the constant value here — consult DI-019 for the authoritative value and any future env-var override policy.
+
+The total dispatcher wall-clock latency upper bound is therefore:
+`max(sync_plugin_durations_within_slowest_tier) + ASYNC_DRAIN_WINDOW_MS + bounded_overhead`
+
+(See DI-019 for the `ASYNC_DRAIN_WINDOW_MS` value and configurability notes. VP-079 fixture timing assertions must also anchor to DI-019.)
 
 ## Error Paths
 
@@ -127,6 +137,8 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | EC-007 | `partition_plugins` called with empty matched list | Returns `([], [])`; dispatcher proceeds to exit 0 without executing any plugins |
 | EC-008 | Registry entry has `on_error = "block"` AND `async = true` | Hard error at registry-load time (`E-REG-002`); dispatcher refuses to start; `dispatcher.registry_invalid` logged |
 | EC-009 | Two plugins at the same priority tier, one sync, one async | Sync plugin enters sync_group and runs in parallel with other same-tier sync plugins; async plugin enters async_group and is spawned separately without tier ordering |
+| EC-010 | Async task emits terminal event during drain window | Event reaches FileSink before dispatcher exit; consumer sees the terminal event (e.g., `plugin.timeout`, `plugin.async_block_discarded`) in `events-*.jsonl` |
+| EC-011 | Async task exceeds `ASYNC_DRAIN_WINDOW_MS` (per DI-019) drain window | Task forcibly terminated; no terminal event emitted; consumer sees absence of the terminal event, interpretable as "task did not complete within the drain window"; truncated telemetry is an accepted cost |
 
 ## Canonical Test Vectors
 
@@ -155,7 +167,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |-------|-------|
 | L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's partitioned invocation model (sync-group gates Claude Code; async-group fires-and-forgets), which is the core mechanism by which sandboxed WASM plugins enforce `on_error = "block"` governance |
-| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version) |
+| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-019 — `ASYNC_DRAIN_WINDOW_MS = 100 ms` (PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/routing.rs` (`partition_plugins`), `crates/factory-dispatcher/src/engine.rs` (dispatch loop) |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
@@ -178,6 +190,45 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-07 (v1.3 → v1.4 — F2 pass-3 user-correction: ASYNC_DRAIN_WINDOW_MS lifted to DI-019)
+
+**Structural correction requested by user after reviewing v1.3.**
+
+v1.3 added a "Constant Definitions" section inlining `ASYNC_DRAIN_WINDOW_MS = 100 ms`. The user identified this as architecturally incorrect: constants that bound dispatcher behavior across multiple BCs and VPs belong in domain invariants, not inside a single BC's body.
+
+**Changes made:**
+- "Constant Definitions" section replaced by "Constant Reference" section. The inline `= 100` value and unit columns are removed. The section now states: "The async-task drain window is `ASYNC_DRAIN_WINDOW_MS` per DI-019." The total latency formula is preserved as a reading aid.
+- PC4 prose amended: both occurrences of `ASYNC_DRAIN_WINDOW_MS` now cite "per DI-019" to make the DI reference explicit in the prose.
+- EC-011: "(100 ms)" parenthetical replaced with "(per DI-019)" to avoid re-inlining the value.
+- Traceability L2 Domain Invariants updated: DI-019 added alongside DI-014.
+
+**Semantic invariant:** The constant value (100 ms), the drain-window mechanism, all postconditions, and all test vectors are unchanged. This is a placement-only structural correction.
+
+**Cross-burst dependencies (architect, unchanged from v1.3 obligation):**
+- VP-079 must anchor fixture timing to DI-019 (not the now-removed BC constant table).
+- ADR-019 §Consequences should cite DI-019.
+
+## Amendment 2026-05-07 (v1.2 → v1.3 — F2 pass-3 fix burst)
+
+Addresses adversary pass-3 findings F-P3-002 and F-P3-007.
+
+**F-P3-002 / F-P3-007 (Design conflict: PC4 vs VP-079 Scenarios 1+4)**: The previous PC4 stated the dispatcher "does NOT await async tasks" and "the dispatcher process exits as soon as `sync_group` completes." VP-079 Scenarios 1 and 4 test for terminal events (`plugin.timeout`, `plugin.async_block_discarded`) emitted by async tasks before dispatcher exit — which was impossible under the strict fire-and-forget model. This is a design conflict, not a test configuration issue.
+
+**Resolution: bounded async-task drain window.** After `sync_group` completes, the dispatcher now waits up to `ASYNC_DRAIN_WINDOW_MS` (100 ms) for spawned async tasks to emit terminal events to FileSink. This preserves the core guarantee: user-facing latency is gated exclusively by `sync_group` with only a deterministic, bounded constant added. Async tasks that complete within the drain window emit cleanly. Tasks that exceed the window are forcibly terminated (truncated telemetry accepted).
+
+**Changes made:**
+- H1 updated to mention `ASYNC_DRAIN_WINDOW_MS` drain semantics.
+- Postcondition 4 amended: drain window specified, best-effort wording updated to reference `ASYNC_DRAIN_WINDOW_MS`.
+- New section "Constant Definitions" added: `ASYNC_DRAIN_WINDOW_MS = 100 ms` with VP-079 referenceable anchor.
+- EC-010 added: async task emits terminal event during drain window.
+- EC-011 added: async task exceeds drain window (forcible termination).
+- Total latency upper bound formula updated to include `ASYNC_DRAIN_WINDOW_MS`.
+
+**Architect obligations (not in scope for this burst):**
+- VP-079 must be updated to reference `ASYNC_DRAIN_WINDOW_MS` and anchor its Property to amended PC4.
+- VP-079 fixture timing must be adjusted so async events can emit within the 100 ms drain.
+- ADR-019 §Consequences should note the drain window as part of the latency-budget discussion.
 
 ## Amendment 2026-05-07 (v1.2 — F2 pass-2 fix burst)
 

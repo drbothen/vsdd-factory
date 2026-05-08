@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.21"
+version: "1.22"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-3 fix burst + user-correction (2026-05-07) — BC-1.14.001 v1.2→v1.4 (async-task drain window PC4; cite DI-019). BC-3.08.001 v1.1→v1.2 (DI-019 traceability cite). 6 BC-INDEX H1 syncs (POLICY 7): BC-1.08.002, BC-1.01.007, BC-1.14.001 (3 drifted); BC-4.04.004/4.05.004/4.07.003/4.08.002 confirmed matching. Subsystem column verified post-re-tally (BC-7.06.001 SS-01; BC-8.29.001/002/003 + BC-8.30.002 SS-05). last_amended: 2026-05-07 (async-semantics F2 pass-3 fix burst + user-correction: BC-1.14.001 v1.4, BC-3.08.001 v1.2, 6 H1↔INDEX title syncs, subsystem column verified post-re-tally)."
   - date: 2026-05-07
     change: "F2 pass-2 fix burst close (2026-05-07) — 7 BC amendments + 1 DI amendment. BC-7.06.001 v1.1→v1.2 (Invariant 7: (name,event) tuple uniqueness; Invariant 6 expanded to 9 plugins; Postcondition 3 reworded). BC-1.14.001 v1.1→v1.2 (postconditions renumbered 4,5,6 monotonic; Error Paths row for async exit-2; Precondition 4 BC-7.06.001 pin). BC-4.04.004 v2.0→v2.1 (BC-7.06.001 ref Postcondition 7→Invariant 6). BC-4.05.004 v2.0→v2.1 (same fix). BC-4.07.003 v1.2→v1.3 (Description body: async key absent, not async:true). BC-3.08.001 v1.0→v1.1 (SS-07→SS-01 reanchor). BC-1.08.001 v1.1→v1.2 (Stories field appended). DI-014 in invariants.md v1.3→v1.4 (BC range reworded). No count change. last_amended: 2026-05-07 (async-semantics F2 pass-2 fix burst: 7 BC amendments + 1 DI amendment)."
   - date: 2026-05-07
@@ -90,7 +92,7 @@ changelog:
 | [BC-1.01.004](ss-01/BC-1.01.004.md) | Relative plugin paths resolve against registry file's parent directory | draft | CAP-TBD | TBD |
 | [BC-1.01.005](ss-01/BC-1.01.005.md) | Plugin filter requires event match AND (no tool OR tool regex matches) | draft | CAP-TBD | TBD |
 | [BC-1.01.006](ss-01/BC-1.01.006.md) | Tiers ordered ascending by priority, registry order preserved within tier | draft | CAP-TBD | TBD |
-| [BC-1.01.007](ss-01/BC-1.01.007.md) | factory-dispatcher::registry::parses_minimal_registry — minimum-viable registry parses with one hook entry, schema_version=2 (v2), async=false default; enabled defaults to true | draft | CAP-TBD | TBD |
+| [BC-1.01.007](ss-01/BC-1.01.007.md) | factory-dispatcher::registry::parses_minimal_registry — minimum-viable registry parses with one hook entry, schema_version=2, enabled defaults to true | draft | CAP-TBD | TBD |
 | [BC-1.01.008](ss-01/BC-1.01.008.md) | factory-dispatcher::registry::config_defaults_to_empty_table_when_absent — missing [hooks.config] yields empty table, not None | draft | CAP-TBD | TBD |
 | [BC-1.01.009](ss-01/BC-1.01.009.md) | factory-dispatcher::registry::config_block_parses_into_entry — [hooks.config] supports nested tables and string fields | draft | CAP-TBD | TBD |
 | [BC-1.01.010](ss-01/BC-1.01.010.md) | factory-dispatcher::registry::defaults_applied_when_missing — omitted entry timeouts/fuel/priority/on_error fall through to Registry.defaults | draft | CAP-TBD | TBD |
@@ -176,7 +178,7 @@ changelog:
 | [BC-1.07.005](ss-01/BC-1.07.005.md) | factory-dispatcher::loads_legacy_registry::every_entry_routes_through_legacy_bash_adapter — every entry in the production registry routes through legacy-bash-adapter.wasm | draft | CAP-TBD | TBD |
 | [BC-1.07.006](ss-01/BC-1.07.006.md) | factory-dispatcher::loads_legacy_registry::every_entry_carries_a_script_path — every entry has plugin_config.script_path matching `hooks/<name>.sh` | draft | CAP-TBD | TBD |
 | [BC-1.08.001](ss-01/BC-1.08.001.md) | dispatcher exits 0 on registry/payload/engine errors (non-blocking) | draft | CAP-002 | S-2.07 |
-| [BC-1.08.002](ss-01/BC-1.08.002.md) | dispatcher exit code is 2 iff at least one block_intent recorded | draft | CAP-002 | S-2.07 |
+| [BC-1.08.002](ss-01/BC-1.08.002.md) | dispatcher exit code is 2 iff at least one sync-group plugin recorded a block_intent; async-group verdicts never affect exit code | draft | CAP-002 | S-2.07 |
 | [BC-1.08.003](ss-01/BC-1.08.003.md) | dispatcher uses current_thread tokio runtime (not multi-threaded pool) | draft | CAP-TBD | TBD |
 | [BC-1.08.004](ss-01/BC-1.08.004.md) | dispatcher uses CLAUDE_PROJECT_DIR for cwd, falling back to current_dir | draft | CAP-TBD | TBD |
 | [BC-1.08.005](ss-01/BC-1.08.005.md) | dispatcher injects CLAUDE_PLUGIN_ROOT into base_host_ctx.plugin_root | draft | CAP-TBD | TBD |
@@ -199,7 +201,7 @@ changelog:
 | [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI gate (tool selected D-318: cargo-call-stack; implementation deferred to Wave 5) | draft | CAP-029 | S-10.02, S-10.09 |
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
 | [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch | draft | CAP-TBD | TBD |
-| [BC-1.14.001](ss-01/BC-1.14.001.md) | factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget, no verdict gate) | draft | CAP-002 | TBD |
+| [BC-1.14.001](ss-01/BC-1.14.001.md) | factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget with bounded ASYNC_DRAIN_WINDOW_MS, no verdict gate) | draft | CAP-002 | TBD |
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)
 

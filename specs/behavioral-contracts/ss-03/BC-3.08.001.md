@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: null
+last_amended: 2026-05-07
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
@@ -193,7 +193,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |-------|-------|
 | L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
 | Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 — these four event types are observability events that operators and the VSDD engine consume to diagnose async plugin behavior; cataloguing them here fulfills the "stream observability events" promise by defining the wire format and sink-fan-out obligation |
-| L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all four event types must carry `trace_id` |
+| L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all four event types must carry `trace_id`; DI-019 — `ASYNC_DRAIN_WINDOW_MS = 100 ms` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
 | Architecture Module | SS-03 — `crates/sink-core/` (event routing); SS-01 — `crates/factory-dispatcher/src/engine.rs` (emission sites); SS-01 — `crates/factory-dispatcher/src/registry.rs` (schema_mismatch + registry_invalid emission sites). Note: SS-07 owns `plugins/vsdd-factory/hooks-registry.toml` (the file format) but the emission sites in registry.rs are SS-01 Rust modules per ARCH-INDEX. |
 | ADR | ADR-019 — Async Semantics at Registry Layer; introduces the conditions that trigger these four events |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
@@ -217,7 +217,17 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
 
-## Amendment 2026-05-07 (v1.1 — F2 pass-2 fix burst)
+## Amendment 2026-05-07 (v1.1 → v1.2 — F2 pass-3 user-correction: DI-019 cross-reference added)
+
+**DI-019 traceability cross-reference added** per user-directed structural correction (same burst as BC-1.14.001 v1.3 → v1.4 and invariants.md v1.4 → v1.5).
+
+DI-019 (`ASYNC_DRAIN_WINDOW_MS = 100 ms`) was lifted from BC-1.14.001 v1.3's inline "Constant Definitions" table to a domain invariant. Two of the four event types catalogued in this BC (`plugin.timeout` async path and `plugin.async_block_discarded`) are emitted by async tasks running within the drain window bounded by DI-019. The Traceability L2 Domain Invariants field now cites DI-019 alongside DI-017 to make this dependency explicit.
+
+This is a traceability-only change. No postconditions, wire formats, invariants, or test vectors were modified.
+
+**Architect obligation:** VP-079 fixture timing (which verifies that these events reach FileSink before dispatcher exit) must anchor to DI-019 for the drain window budget. This is unchanged from the VP-079 obligation noted in BC-1.14.001 v1.3.
+
+## Amendment 2026-05-07 (v1.0 → v1.1 — F2 pass-2 fix burst)
 
 Addresses adversary pass-2 finding F-P2-010.
 

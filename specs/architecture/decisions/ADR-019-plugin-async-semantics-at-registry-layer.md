@@ -4,7 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
-version: "1.3"
+version: "1.5"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -194,6 +194,26 @@ reliably before exit. Telemetry-only continue plugins (`track-agent-start`,
 `worktree-hooks`, `tool-failure-hooks`) are classified ASYNC. See BC-7.06.001 Invariant 6
 for the canonical async-required list.
 
+### Async-task drain window
+
+After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS`
+(governed by DI-019; default 100ms) for async tasks to emit terminal events before
+exit. See BC-1.14.001 PC4 for the dispatch-loop partition contract; DI-019 for the
+canonical constant value; VP-079 for the schema-conformance verification. This allows
+`plugin.timeout` and `plugin.async_block_discarded` events to reach FileSink before
+the dispatcher process terminates.
+
+Total dispatcher latency (from event receipt to dispatcher exit) is bounded by:
+
+```
+latency = max(sync_plugin_durations) + min(max(async_plugin_durations), ASYNC_DRAIN_WINDOW_MS)
+```
+
+Async tasks not complete by drain expiry are forcibly terminated and emit no event
+(truncation). The drain window is a best-effort guarantee: it bounds the async-event
+capture window without allowing runaway async plugins to delay the user's tool call
+response beyond `max(sync_plugin_durations) + 100ms`.
+
 ### Schema v2 hard-error on v1 registry — deliberate
 
 No downgrade. No compat shim. See user explicit decision above.
@@ -306,6 +326,40 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
   - §Implementation Pointers line 2: `BC-7.NN.001` → `BC-7.06.001`
 - **Forward reference (RESOLVED by state-manager close-burst 2026-05-07):** PO assigned BC-9.01.006 (SS-09) for the hooks.json.template envelope-sync invariant (F-P1-001). BC-9.01.006 has been added to §Implementation Pointers and §Subsystem Assignments under SS-09. Forward reference closed.
 - **No decision changes:** All §Decision entries are unchanged. This amendment corrects stale text only.
+
+## Amendment 2026-05-07: v1.4 → v1.5 (F2 pass-3 fix burst revision)
+
+- **Amendment date:** 2026-05-07
+- **Reason:** User revised Q3 decision toward most-correct: `ASYNC_DRAIN_WINDOW_MS` lifted to
+  domain invariant DI-019 (PO authoring in `domain-spec/invariants.md`). ADR-019 §Consequences
+  drain window subsection must cite DI-019 as canonical source rather than inlining the
+  constant value via BC-1.14.001 v1.3.
+- **Changes:**
+  - §Consequences "Async-task drain window": sentence "per BC-1.14.001 v1.3" replaced with
+    "governed by DI-019; default 100ms". Added cross-reference triptych:
+    "BC-1.14.001 PC4 for partition contract; DI-019 for canonical constant value; VP-079 for
+    verification."
+- **No decision changes:** All §Decision policy text is unchanged. This amendment elevates
+  the constant's canonical home from an inline BC postcondition to a domain invariant.
+- **Forward reference (open):** DI-019 ID is a placeholder pending PO authoring of the
+  invariant in `domain-spec/invariants.md`. State-manager resolves to actual ID on close.
+
+## Amendment 2026-05-07: v1.3 → v1.4 (F2 pass-3 fix burst)
+
+- **Amendment date:** 2026-05-07
+- **Reason:** PO amended BC-1.14.001 to v1.3, adding a bounded `ASYNC_DRAIN_WINDOW_MS`
+  (default 100ms) to the dispatch loop contract. This resolves adversary findings
+  F-P3-002 and F-P3-007 (VP-079 Scenarios 1+4 structurally untestable under the original
+  "exit immediately after sync_group" PC4 semantics). ADR-019 §Consequences must reflect
+  the updated latency budget.
+- **Changes:**
+  - §Consequences: added "Async-task drain window" subsection documenting
+    `ASYNC_DRAIN_WINDOW_MS = 100ms` (default), the total-latency formula
+    `max(sync) + min(max(async), drain)`, and the truncation behavior for async tasks
+    that exceed the drain window.
+- **No decision changes:** All §Decision policy text is unchanged. The drain window is
+  an addendum to the existing PC4 semantics, not a reversal of the fire-and-forget
+  model for `dispatcher_exit` determination.
 
 ## Amendment 2026-05-07: v1.2 → v1.3 (F2 pass-2 fix burst close)
 
