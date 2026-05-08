@@ -146,8 +146,8 @@ mod kani_proofs {
     /// separately in H2 so that a buggy partition that duplicates entries into both
     /// groups cannot satisfy H1 by accident.
     ///
-    /// Precondition: (name, event) tuple uniqueness is enforced at registry-load
-    /// time by BC-7.06.001 Invariant 7 via registry.rs::validate(). Bounded to
+    /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
+    /// time by BC-7.06.001 v1.4 Invariant 7 via registry.rs::validate(). Bounded to
     /// n<=4 for Kani tractability.
     #[kani::proof]
     #[kani::unwind(8)]
