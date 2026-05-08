@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -170,7 +170,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |-------|-------|
 | L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's partitioned invocation model (sync-group gates Claude Code; async-group fires-and-forgets), which is the core mechanism by which sandboxed WASM plugins enforce `on_error = "block"` governance |
-| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
+| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-017 — Wire-format field exclusivity: `trace_id` is the exclusive wire-format key for trace correlation; no alias fields may appear alongside it (BC-1.14.001 is the primary dispatch-path enforcer of this wire-format exclusivity invariant; DI-017 v1.1 extended BC range to include BC-1.14.001 in its Stage 1 amendment); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/partition.rs` (`partition_plugins`), `crates/factory-dispatcher/src/engine.rs` (dispatch loop) |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
@@ -193,6 +193,16 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-08 (v1.7 → v1.8 — F5 pass-1 path-A: deferred DI-017 reciprocal citation)
+
+**Driver:** F5 pass-1 Stage-1 deferred fix — bidirectional traceability pairing with `invariants.md` DI-017 v1.1. DI-017 v1.1 (Stage 1 amendment) extended its BC range to include BC-1.14.001 as the primary dispatch-path enforcer of wire-format field exclusivity. This amendment adds the reciprocal citation in BC-1.14.001's Traceability §L2 Domain Invariants row so the pairing is complete in both directions.
+
+**Change made:**
+- Traceability §L2 Domain Invariants: DI-017 added between DI-014 and DI-019 entries, with full justification text explaining BC-1.14.001's role as the dispatch-path enforcer of wire-format `trace_id` exclusivity per DI-017 v1.1.
+- Frontmatter `version:` bumped `"1.7"` → `"1.8"`; `last_amended:` unchanged (2026-05-08, same date).
+
+No substantive behavioral changes. This is a traceability-completeness fix only.
 
 ## Amendment 2026-05-08 (v1.6 → v1.7 — F5 pass-1 fix-burst)
 

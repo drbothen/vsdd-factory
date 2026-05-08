@@ -1,13 +1,13 @@
 ---
 document_type: epic
 epic_id: "E-15"
-version: "1.0"
+version: "1.1"
 status: draft
-title: "Plugin Async Semantics — Registry-Layer Partition (single-shot delivery)"
+title: "Plugin Async Semantics — Registry-Layer Partition (single-shot delivery + cold-start follow-up)"
 prd_capabilities: [CAP-002, CAP-003, CAP-008]
 subsystems_affected: [SS-01, SS-07, SS-09]
 target_release: "v1.1"
-story_count: 1
+story_count: 2
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
 phase: F3
@@ -97,9 +97,10 @@ make async-group behavior visible in `events-YYYY-MM-DD.jsonl`.
 
 | Story ID | Title | Points | Depends On | Status |
 |----------|-------|--------|-----------|--------|
-| S-15.01 | Plugin async semantics — full implementation (schema v2 + dispatcher partition + plugin classification + envelope flip + CI lint) | TBD | none | draft |
+| S-15.01 | Plugin async semantics — full implementation (schema v2 + dispatcher partition + plugin classification + envelope flip + CI lint) | 13 | none | merged (PR #106 at 453eee1 2026-05-08) |
+| S-15.02 | Dispatcher cold-start optimization — daemon mode + WASM AOT cache | TBD | S-15.01 | draft |
 
-**Story count: 1** (per ADR-019 §Decision 6 — no phased rollout; single-shot delivery).
+**Story count: 2** (S-15.01: single-shot delivery per ADR-019 §Decision 6; S-15.02: follow-up optimization per ADR-020 §Out of Scope — dispatched when p95 latency exceeds Class A budget).
 
 ## Problem Statement
 
@@ -265,4 +266,5 @@ E-11 (W-17) similarly adds native WASM entries; same non-overlapping analysis ap
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| 1.1 | 2026-05-08 | state-manager | F5 pass-1 path-A follow-up: S-15.02 added (dispatcher cold-start optimization — daemon mode + WASM AOT cache; draft, TBD pts, depends on S-15.01). story_count 1→2. ADR-020 established latency budget classes (Class A current binary-spawn budget 1500ms; Class B daemon-mode target TBD). Epic title amended to reflect follow-up story. S-15.01 status updated to merged (PR #106 at 453eee1). |
 | 1.0 | 2026-05-07 | product-owner | Initial authoring. Single story (S-15.01). Epic ID E-15 (E-12 through E-14 occupied by engine-discipline-pass-1 cycle). CAP anchors: CAP-002 (primary), CAP-008, CAP-003. Subsystems: SS-01, SS-07, SS-09. No dependency on E-9/E-11. ADR-019 v1.8 is the authoritative scope source. |

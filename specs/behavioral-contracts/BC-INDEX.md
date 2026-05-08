@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.31"
+version: "1.32"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst Path A (2026-05-08) — BC-1.14.001 v1.7→v1.8 (deferred DI-017 reciprocal citation in Traceability §L2 Domain Invariants; bidirectional pairing with invariants.md DI-017 v1.1 BC-range extension from Stage 1). No count change. BC-INDEX v1.31→v1.32. last_amended: 2026-05-08 (F5 pass-1 path-A deferred fix: BC-1.14.001 v1.8; DI-017 traceability citation added)."
   - date: 2026-05-08
     change: "F5 fix-burst Stage 1 (2026-05-08) — BC-1.14.001 v1.6→v1.7 (F-P1-004: anchor cite partition.rs; PC4 spawn-based drain; F-P1-006: aggregate_exit_code design; F-P1-010: drain truncation EC-012 added). BC-3.08.001 v1.4→v1.5 (F-P1-007: Invariant 5 trace_id canonical wire-field name; RESERVED_FIELDS table added). No count change. BC-INDEX v1.30→v1.31. last_amended: 2026-05-08 (F5 pass-1 fix burst Stage 1: BC-1.14.001 v1.7; BC-3.08.001 v1.5; F-P1-004/006/007/010 closed)."
   - date: 2026-05-07

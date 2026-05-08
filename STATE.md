@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 fix-burst Stage 1 complete (specs amended). Stage 2 next: implementer refactor (drain to spawn-based; aggregate_exit_code; trace_id flip; latency canary real measurement)."
+current_step: "F5 pass-1 fix-burst Path A complete (ADR-020 + AC-016 budget 500ms→1500ms + S-15.02 follow-up + BC-1.14.001 v1.8 DI-017 citation). Ready for Stage 4 (pr-manager) PR open against develop. Branch: fix/S-15.01-F5-pass-1 (check HEAD with git log). After PR merge, F5 pass-2 adversary dispatch."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 fix-burst Stage 1 complete — VP-077 v1.7, VP-079 v1.7, BC-1.14.001 v1.7, BC-3.08.001 v1.5, DI-017 v1.1, S-15.01 v1.7; indexes bumped) |
-| **Current Phase** | F5 FIX-BURST STAGE 1 COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; spec amendments committed; Stage 2 (implementer refactor) pending |
+| **Last Updated** | 2026-05-08 (F5 fix-burst Path A complete — ADR-020 v1.0; S-15.01 v1.8 AC-016 1500ms; S-15.02 added draft; BC-1.14.001 v1.8 DI-017; STORY-INDEX v2.38; BC-INDEX v1.32; ARCH-INDEX v1.20) |
+| **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 FIX-BURST STAGE 1 COMPLETE** | S-15.01 MERGED via PR #106 at 453eee1 (2026-05-08). F5 pass-1: 5H/6M/4L/2NIT. Stage 1 specs committed: VP-077 v1.7, VP-079 v1.7, BC-1.14.001 v1.7, BC-3.08.001 v1.5, DI-017 v1.1, S-15.01 v1.7. Stage 2 (implementer refactor) pending. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 FIX-BURST PATH A COMPLETE** | S-15.01 MERGED via PR #106 at 453eee1 (2026-05-08). F5 pass-1: 5H/6M/4L/2NIT. Path A: ADR-020 v1.0; S-15.01 v1.8 (AC-016 1500ms); S-15.02 added draft; BC-1.14.001 v1.8 (DI-017 citation). Stage 4 (pr-manager) ready; PR against develop. F5 pass-2 after merge. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -101,6 +101,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F4 TDD IMPLEMENTATION COMPLETE — S-15.01 MERGED** | pr-manager | **COMPLETE** | PR #106 squash-merged at 453eee1 (2026-05-08). 9 tasks (T-3a..T-3i) + demo evidence + clippy/fmt clean + fix commit 60e1162 (BC-3.08.001 event wiring into dispatch path — 4 emit functions were defined but uncalled; VP-078 H3/H4 and VP-079 S1-S4 now PASS). Review cycle 1: 2 blocking findings (BLOCKING-1 registry exit-0 instead of exit-2; BLOCKING-2 emit functions uncalled) → both fixed. Final: VP-077 Kani 4/4, VP-078 bats 4/4, VP-079 bats 5/5, Rust 0 failures. F5 adversarial refinement NEXT (separate dispatch required). |
 | **F5 pass-1 — adversary review of merged S-15.01** | adversary | **COMPLETE** | Verdict: HIGH (5H/6M/4L/2NIT). ADR-013 clock 0_of_3. Sanity-probe REDO (initial run on stale local tree). Key findings: F-P1-001 VP-077 properties 5/6 unproven; F-P1-002 VP-079 structurally insufficient (USER Q1/Q2/Q3 confirmed); F-P1-003 latency canary measures no-op (POLICY 11); F-P1-004 BC-1.14.001+VP-077 cite routing.rs but impl is partition.rs; F-P1-005 STORY-INDEX status drift post-merge; F-P1-006 T-3c drain semantically violates BC-1.14.001 PC4 + Invariant 3; F-P1-010 drain truncation discards completed events (PC4+EC-010). VP-079 v1.7 amendment recommended. |
 | **F5 fix-burst Stage 1 — spec amendments** | architect + product-owner + story-writer + state-manager | **COMPLETE** | VP-077 v1.7 (F-P1-001 + F-P1-004: partition.rs anchor, 6 Kani harnesses, aggregate_exit_code design). VP-079 v1.7 (F-P1-002: Property 6 counter-proof, Scenario 6). BC-1.14.001 v1.7 (F-P1-004 + F-P1-006 + F-P1-010: partition.rs anchor, spawn-based drain, EC-012). BC-3.08.001 v1.5 (F-P1-007: Invariant 5 trace_id, RESERVED_FIELDS). DI-017 v1.1 (F-P1-007: wire-format exclusivity). S-15.01 v1.7 (POLICY 8 body propagation). Indexes: BC-INDEX v1.31, VP-INDEX v1.17, STORY-INDEX v2.37. Stage 2 (implementer refactor) next. |
+| **F5 fix-burst Path A close — ADR-020 + AC-016 + S-15.02 + BC-1.14.001 v1.8** | state-manager | **COMPLETE** | ADR-020 v1.0 (dispatcher latency budget classes; Class A p95≤1500ms; Class B daemon-mode TBD; 299L). S-15.01 v1.7→v1.8 (AC-016 budget 500ms→1500ms; ADR-020 cited in References + Architecture Mapping + T-5 + R-E15-001; F-P1-003 + F-P1-009 closed). S-15.02 v1.0 added (follow-up optimization story; draft; 393L; E-15 story_count 1→2). BC-1.14.001 v1.7→v1.8 (DI-017 reciprocal traceability citation; Stage-1-deferred; F-P1-007 sibling). Indexes: BC-INDEX v1.32; STORY-INDEX v2.38 (story_count 91→92); ARCH-INDEX v1.20 (ADR-020 registered). Stage 4 (pr-manager) next: PR against develop on branch fix/S-15.01-F5-pass-1. |
 
 ## Identifier Conventions
 
@@ -112,15 +113,15 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 18 active (DI-001..DI-017, DI-019; DI-018 deferred) |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 91 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 92 |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 15 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 19 |
 
-## Story Status (91 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14/E-15 registered; E-12 F3-amendment 6 stories added D-366; S-15.01 MERGED PR #106 453eee1 2026-05-08)
+## Story Status (92 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14/E-15 registered; E-12 F3-amendment 6 stories added D-366; S-15.01 MERGED PR #106 453eee1 2026-05-08; S-15.02 added draft 2026-05-08)
 
 - **Merged (63):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07) + S-12.06 (PR #105 15432c6 2026-05-07) + S-15.01 (PR #106 453eee1 2026-05-08). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (23):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359)
+- **Draft (24):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359); S-15.02 (dispatcher cold-start optimization; E-15 follow-up per ADR-020 §Out of Scope; 2026-05-08)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (none)
@@ -142,7 +143,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST STAGE 1 COMPLETE | F4 COMPLETE (PR #106 453eee1 2026-05-08). F5 pass-1 verdict HIGH 5H/6M/4L/2NIT. Stage 1 spec amendments committed. Stage 2 implementer refactor pending. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-1.md` |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST PATH A COMPLETE | F4 COMPLETE (PR #106 453eee1 2026-05-08). F5 pass-1 verdict HIGH 5H/6M/4L/2NIT. Stage 1 + Path A committed: ADR-020 v1.0; S-15.01 v1.8 AC-016 1500ms; S-15.02 draft; BC-1.14.001 v1.8 DI-017. Stage 4 (pr-manager) ready. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-1.md` |
 
 ## Decisions Log
 
@@ -166,9 +167,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 fix-burst Stage 1 COMPLETE. Spec amendments committed to factory-artifacts. VP-077 v1.7, VP-079 v1.7, BC-1.14.001 v1.7, BC-3.08.001 v1.5, DI-017 v1.1, S-15.01 v1.7. Indexes: BC-INDEX v1.31, VP-INDEX v1.17, STORY-INDEX v2.37.
+**Last update:** 2026-05-08 — F5 fix-burst Path A COMPLETE. ADR-020 v1.0 committed; S-15.01 v1.8 (AC-016 1500ms budget); S-15.02 v1.0 added (draft follow-up); BC-1.14.001 v1.8 (DI-017 traceability). Indexes: BC-INDEX v1.32, VP-INDEX v1.17, STORY-INDEX v2.38, ARCH-INDEX v1.20.
 
-**ACTIVE STEP: F5 fix-burst Stage 2 — implementer refactor. Scope: (1) refactor T-3c drain to spawn-based `tokio::select!` per BC-1.14.001 PC4 + Invariant 3 (F-P1-006); (2) implement `aggregate_exit_code` per VP-077 Property 6 / BC-1.14.001 Invariant 4 (F-P1-001); (3) flip `dispatcher_trace_id` → `trace_id` wire field per BC-3.08.001 Invariant 5 / DI-017 v1.1 (F-P1-007); (4) latency canary with real measurement per POLICY 11 (F-P1-003). Dispatch implementer via `vsdd-factory:fix-pr-delivery`.**
+**ACTIVE STEP: Stage 4 — pr-manager opens PR on branch fix/S-15.01-F5-pass-1 against develop. After PR merge, F5 pass-2 adversary dispatch. Implementer refactor (Stage 2) scope remains: (1) spawn-based drain per BC-1.14.001 PC4 (F-P1-006); (2) aggregate_exit_code per VP-077 Property 6 (F-P1-001); (3) trace_id flip per DI-017 v1.1 (F-P1-007); (4) latency canary real measurement per POLICY 11 (F-P1-003).**
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** 453eee1 (S-15.01 PR #106 squash-merge 2026-05-08)
@@ -182,14 +183,14 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.31 | **VP-INDEX:** v1.17 | **STORY-INDEX:** v2.37 | **ARCH-INDEX:** v1.19
+**BC-INDEX:** v1.32 | **VP-INDEX:** v1.17 | **STORY-INDEX:** v2.38 | **ARCH-INDEX:** v1.20
 
 **F4 dispatch chain:** COMPLETE. PR #106 squash-merged at 453eee1 (2026-05-08). Full detail in F4-handoff.md.
 **5 user-locked decisions (non-negotiable):** (1) every hook event sync at envelope, (2) no backwards compat (v1 registry hard-errors), (3) no phased rollout, (4) ASYNC_DRAIN_WINDOW_MS=100ms via DI-019, (5) WASM-only for new plugins. Full text in F4-handoff.md §3.
 
 **Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
 
-**F5 status:** Fix-burst Stage 1 COMPLETE — specs amended (VP-077 v1.7, VP-079 v1.7, BC-1.14.001 v1.7, BC-3.08.001 v1.5, DI-017 v1.1, S-15.01 v1.7). Stage 2 implementer refactor pending: spawn-based drain (F-P1-006), aggregate_exit_code (F-P1-001), trace_id flip (F-P1-007), latency canary real measurement (F-P1-003).
+**F5 status:** Fix-burst Path A COMPLETE — ADR-020 v1.0; S-15.01 v1.8 (AC-016 1500ms, F-P1-003+F-P1-009 closed); S-15.02 added draft; BC-1.14.001 v1.8 (DI-017, Stage-1-deferred). Stage 4 (pr-manager) next. Stage 2 implementer refactor scope: spawn-based drain (F-P1-006), aggregate_exit_code (F-P1-001), trace_id flip (F-P1-007), latency canary real measurement (F-P1-003).
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.
 
 **F-7 + F-8 status:** Deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
