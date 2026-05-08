@@ -141,9 +141,17 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 /// - BC-1.14.001 EC-005 — async plugin exit code 2 behavior
 /// - BC-1.14.001 Error Paths — async plugin returns exit code 2
 pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, exit_code: i32) {
-    let ev = InternalEvent::now("plugin.async_block_discarded")
+    let ev = InternalEvent::now("plugin.async_block_discarded");
+    // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
+    // InternalEvent serializes the trace as `dispatcher_trace_id` and time as `ts`;
+    // wire format requires `trace_id` and `timestamp`. Add both so both naming
+    // conventions are present in the serialized event.
+    let ts = ev.ts.clone();
+    let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
+        .with_field("trace_id", ctx.dispatcher_trace_id.as_str())
+        .with_field("timestamp", ts.as_str())
         .with_plugin_name(plugin_name)
         .with_field("reason", "async_plugin_block_verdict_discarded")
         .with_field("exit_code", exit_code as i64);
@@ -167,9 +175,14 @@ pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, e
 /// - BC-1.14.001 Error Paths — schema_version mismatch
 /// - BC-1.08.001 amendment — schema-mismatch is the explicit fail-closed exception
 pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u32) {
-    let ev = InternalEvent::now("dispatcher.schema_mismatch")
+    let ev = InternalEvent::now("dispatcher.schema_mismatch");
+    // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
+    let ts = ev.ts.clone();
+    let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
+        .with_field("trace_id", ctx.dispatcher_trace_id.as_str())
+        .with_field("timestamp", ts.as_str())
         .with_field("found_version", got as i64)
         .with_field("expected_version", expected as i64)
         .with_field("error_code", "E-REG-001");
@@ -192,9 +205,14 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
 /// - BC-1.14.001 Error Paths — on_error=block AND async=true
 /// - BC-7.06.001 Invariant 1 — load-time invariant enforcement
 pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
-    let ev = InternalEvent::now("dispatcher.registry_invalid")
+    let ev = InternalEvent::now("dispatcher.registry_invalid");
+    // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
+    let ts = ev.ts.clone();
+    let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
+        .with_field("trace_id", ctx.dispatcher_trace_id.as_str())
+        .with_field("timestamp", ts.as_str())
         .with_field("offending_plugin", plugin_name)
         .with_field("violation", "on_error_block_with_async_true")
         .with_field("error_code", "E-REG-002");
@@ -223,9 +241,14 @@ pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
 /// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)
 pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_ms: u32) {
-    let ev = InternalEvent::now("plugin.timeout")
+    let ev = InternalEvent::now("plugin.timeout");
+    // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
+    let ts = ev.ts.clone();
+    let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
+        .with_field("trace_id", ctx.dispatcher_trace_id.as_str())
+        .with_field("timestamp", ts.as_str())
         .with_plugin_name(plugin_name)
         .with_field("execution_group", "async")
         .with_field("timeout_ms", timeout_ms as i64);

@@ -37,6 +37,22 @@ setup() {
     # POSIX-portable mktemp (macOS BSD mktemp does not support --suffix).
     SINK_FILE="$(mktemp).jsonl" && touch "$SINK_FILE"
     mkdir -p "$PLUGIN_ROOT/hook-plugins" "$PLUGIN_ROOT/test-fixtures"
+
+    # Copy legacy-bash-adapter.wasm into the test PLUGIN_ROOT.
+    # Scenarios 1, 4, 5 use it as a test fixture to inject controlled exit codes.
+    # The built WASM is expected at plugins/vsdd-factory/hook-plugins/ relative to
+    # the repo root. If not found, tests that require it will fail with a
+    # "plugin file not found" error from the dispatcher (not a skip).
+    #
+    # REPO_ROOT: walk up from this test file's directory to find the repo root.
+    local repo_root
+    repo_root="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+    local wasm_src="${repo_root}/plugins/vsdd-factory/hook-plugins/legacy-bash-adapter.wasm"
+    if [ -f "$wasm_src" ]; then
+        cp "$wasm_src" "$PLUGIN_ROOT/hook-plugins/legacy-bash-adapter.wasm"
+    fi
+    # Note: if the WASM is missing, the dispatcher will fail with a registry load
+    # error (plugin path not found) and tests will fail with a clear error message.
 }
 
 teardown() {
@@ -71,10 +87,14 @@ assert_fields_present() {
 # $1 = registry toml content
 # $2 = event_name (e.g. "PostToolUse")
 # $3 = tool_name (default: Write)
+# $4 = VSDD_ASYNC_DRAIN_WINDOW_MS override in ms (optional, debug builds only).
+#      Used by S1 and S4 to account for WASM cold-start time in debug builds.
+#      Leave empty for S2/S3/S5 which do not exercise the async drain path.
 run_dispatcher() {
     local registry_content="$1"
     local event_name="$2"
     local tool_name="${3:-Write}"
+    local drain_window_ms="${4:-}"
 
     printf '%s' "$registry_content" > "$PLUGIN_ROOT/hooks-registry.toml"
 
@@ -82,10 +102,19 @@ run_dispatcher() {
     envelope=$(printf '{"hook_event_name":"%s","tool_name":"%s","session_id":"vp079-test","tool_input":{}}' \
         "$event_name" "$tool_name")
 
+    # Optionally pass VSDD_ASYNC_DRAIN_WINDOW_MS inline in the command.
+    # This avoids shell quoting issues with environment variable injection.
+    # The env var is set as a prefix to the factory-dispatcher invocation.
+    local drain_prefix=""
+    if [ -n "$drain_window_ms" ]; then
+        drain_prefix="VSDD_ASYNC_DRAIN_WINDOW_MS=$drain_window_ms"
+    fi
+
     run sh -c "printf '%s' '$envelope' | \
         CLAUDE_PLUGIN_ROOT=\"$PLUGIN_ROOT\" \
         VSDD_SINK_FILE=\"$SINK_FILE\" \
         CLAUDE_PROJECT_DIR=\"$PLUGIN_ROOT\" \
+        $drain_prefix \
         factory-dispatcher 2>/dev/null"
 }
 
@@ -120,6 +149,9 @@ require_dispatcher() {
     chmod +x "$PLUGIN_ROOT/test-fixtures/exit0.sh"
     chmod +x "$PLUGIN_ROOT/test-fixtures/exit2.sh"
 
+    # S1: extend drain window to 5000ms to account for WASM cold-start time in
+    # debug builds (legacy-bash-adapter cold-start ~300ms >> ASYNC_DRAIN_WINDOW_MS 100ms).
+    # VSDD_ASYNC_DRAIN_WINDOW_MS is debug-only (SEC-003); production uses DI-019 value.
     run_dispatcher '
 schema_version = 2
 
@@ -134,6 +166,10 @@ priority = 50
 [hooks.config]
 script_path = "test-fixtures/exit0.sh"
 
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "VP-079-S1-test-fixture"
+
 [[hooks]]
 name = "test-async-blocker"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
@@ -144,7 +180,11 @@ priority = 100
 
 [hooks.config]
 script_path = "test-fixtures/exit2.sh"
-' "PostToolUse"
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "VP-079-S1-test-fixture"
+' "PostToolUse" "Write" "5000"
 
     local line
     line=$(find_event_line "plugin.async_block_discarded")
@@ -303,16 +343,24 @@ script_path = "test-fixtures/exit0.sh"
 @test "VP-079 S4: plugin.timeout (async path) emits all mandatory fields (AC-014)" {
     require_dispatcher
 
-    # RED: emit_plugin_timeout_async is todo!() — SINK_FILE will be empty.
-    # After T-3e: this test passes.
+    # GREEN after T-3e: emit_plugin_timeout_async is wired in the dispatch path.
     #
-    # Invariant (DI-019): ASYNC_DRAIN_WINDOW_MS >= timeout_ms + emit_latency.
-    # timeout_ms = 50 < ASYNC_DRAIN_WINDOW_MS (100ms per DI-019).
-
+    # Timeout mechanism: WASM epoch interrupt. Epoch ticks fire at EPOCH_TICK_MS (10ms)
+    # intervals. timeout_ms = 1 → 1 epoch tick → fires after the first 10ms epoch.
+    #
+    # The subprocess runs `sleep 0.2` (200ms). While bash is sleeping, the WASM is
+    # blocked in the exec_subprocess host call — epoch ticks accumulate but cannot
+    # interrupt a blocked host call. When bash exits (200ms), WASM resumes and
+    # immediately checks the epoch — at that point, ~20 epoch ticks have elapsed
+    # against a budget of 1. The next WASM instruction triggers Trap::Interrupt →
+    # PluginResult::Timeout.
+    #
+    # VSDD_ASYNC_DRAIN_WINDOW_MS=5000 allows the ~WASM-compile + 200ms subprocess
+    # to complete within the extended drain window (debug builds only, SEC-003).
     printf '%s\n' "exit 0" > "$PLUGIN_ROOT/test-fixtures/exit0.sh"
-    printf '%s\n' "sleep 60" > "$PLUGIN_ROOT/test-fixtures/sleep60.sh"
+    printf '%s\n' "sleep 0.2" > "$PLUGIN_ROOT/test-fixtures/sleep200ms.sh"
     chmod +x "$PLUGIN_ROOT/test-fixtures/exit0.sh"
-    chmod +x "$PLUGIN_ROOT/test-fixtures/sleep60.sh"
+    chmod +x "$PLUGIN_ROOT/test-fixtures/sleep200ms.sh"
 
     run_dispatcher '
 schema_version = 2
@@ -328,18 +376,26 @@ priority = 50
 [hooks.config]
 script_path = "test-fixtures/exit0.sh"
 
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "VP-079-S4-test-fixture"
+
 [[hooks]]
 name = "slow-async-plugin"
 plugin = "hook-plugins/legacy-bash-adapter.wasm"
 on_error = "continue"
 async = true
-timeout_ms = 50
+timeout_ms = 1
 event = "PostToolUse"
 priority = 100
 
 [hooks.config]
-script_path = "test-fixtures/sleep60.sh"
-' "PostToolUse"
+script_path = "test-fixtures/sleep200ms.sh"
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "VP-079-S4-test-fixture"
+' "PostToolUse" "Write" "5000"
 
     local line
     line=$(find_event_line "plugin.timeout")
