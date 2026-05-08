@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 fix-burst-9 COMPLETE — F-P10-001 (HIGH) lint plugin canonical violation string fixed (WASM rebuilt) + F-P10-002 (M) VP-079 v1.11 line cite refresh + O-P10-001/002 LOW frontmatter cleanups + TD-030 codification. Branch fix/S-15.01-F5-convergence at f7faad3 (20 commits ahead). PR remains held until ADR-013 = 3_of_3. F5 pass-11 dispatch next; targeting NITPICK_ONLY → 1_of_3."
+current_step: "F5 pass-11 COMPLETE — verdict LOW (0H/0M/2L/0NIT). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2. Both findings are partial-fix sibling propagation gaps (S-7.01 pattern recurrence). Fix-burst-10 dispatching."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 fix-burst-9 COMPLETE — F-P10-001 [H] lint plugin canonical string fixed + WASM rebuilt; F-P10-002 [M] VP-079 v1.11 line cites; O-P10-001/002 [L] BC-3.08.001 phase + VP-079 UTC Z; TD-030 codified; branch @ f7faad3 (20 ahead); F5 pass-11 next) |
+| **Last Updated** | 2026-05-08 (F5 pass-11 COMPLETE — verdict LOW (0H/0M/2L/0NIT); F-P11-001 VP-079 SITE_5 mutation harness gap; F-P11-002 lib.rs:14 BC-7.06.001 v1.6 stale cite; ADR-013 clock 0_of_3; trajectory 17→15→6→5→0→2→5→1→4→2→2; fix-burst-10 dispatching) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -108,6 +108,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-8 — spec amendments + source sweep + bats S3 assertion** | architect + implementer + test-writer + state-manager | **COMPLETE** | F-P9-001 [M] BC-7.06.001 v1.6→v1.7: stale sibling note replaced with cross-ref to BC-3.08.001 v1.7 completed state; E-REG-002 violation string canonicalized in E-REG-NNN table. F-P9-002 [L] bats Scenario 3 violation field-value assertion added (test-writer commit 6e9efcb). F-P9-003 [L] implementer source-tree doc-comment sweep 38 sites / 9 files — BC-7.06.001 v1.5→v1.6→v1.7 (10 sites); BC-3.08.001 v1.5/v1.6→v1.7 (28 sites) — commit 38b652b; cargo checks clean. F-P9-004 [L] VP-079 v1.9→v1.10: Property 6 + Scenario 6 SITES updated to 5 production callers (main.rs:162 DuplicateEntry/E-REG-003). S-15.01 v1.13→v1.14 (body propagation). S-15.02 v1.4→v1.5 (frontmatter). Indexes: BC-INDEX v1.35→v1.36; VP-INDEX v1.20→v1.21; STORY-INDEX v2.43→v2.44. Branch fix/S-15.01-F5-convergence @ 6e9efcb (19 commits ahead). PR held until ADR-013 = 3_of_3. |
 | **F5 pass-10 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (1H/1M/3L/0NIT). ADR-013 clock 0_of_3 (HIGH resets chain). All 4 pass-9 findings CONFIRMED RESOLVED. F-P10-001 [H] WASM lint plugin lib.rs:176 emits LEGACY `on_error_block_with_async_true` instead of canonical `async_block_conflict` (wire-format divergence; live production plugin; F-P9-003 version-label sweep did not cover enum string values — process gap). F-P10-002 [M] VP-079 v1.10 SITE_3/SITE_4 line cites stale by ~22 lines (EC-012 refactor shift; F-P9-004 added SITE_5 but did not re-verify siblings). O-P10-001 [L] BC-3.08.001 frontmatter phase: F8 anomalous (recommend F2). O-P10-002 [L] VP-079 timestamp missing UTC Z suffix. O-P10-003 [process-gap] canonical-string sweeps need separate discipline from version-label sweeps (recommend TD-030). Trajectory: 17→15→6→5→0→2→5→1→4→2. Fix-burst-9 dispatching. See `cycles/…/F5-adversary-pass-10.md`. |
 | **F5 fix-burst-9 — canonical string + VP-079 cite refresh + TD-030** | implementer + architect + state-manager | **COMPLETE** | F-P10-001 [H] lint plugin `lib.rs:176` violation string corrected `on_error_block_with_async_true` → `async_block_conflict` + WASM artifact rebuilt + new unit test (implementer commit f7faad3). F-P10-002 [M] VP-079 v1.10→v1.11: SITE_3 main.rs:394→416, SITE_4 main.rs:405→427 line cite refresh (EC-012 shift). O-P10-001 [L] BC-3.08.001 frontmatter phase F8→F2 (metadata-only; no version bump). O-P10-002 [L] VP-079 frontmatter timestamp UTC Z suffix added. TD-030 codified: canonical-string sweeps need separate checklist from version-label sweeps (O-P10-003). VP-INDEX v1.21→v1.22. factory-artifacts this commit. Branch fix/S-15.01-F5-convergence @ f7faad3 (20 commits ahead). F5 pass-11 dispatch next. |
+| **F5 pass-11 adversary review** | adversary | **COMPLETE** | Verdict: LOW (0H/0M/2L/0NIT). ADR-013 clock 0_of_3 (LOW does not advance chain). All 5 pass-10 findings (F-P10-001/002 + O-P10-001/002/003) CONFIRMED RESOLVED. F-P11-001 [L] VP-079 Scenario 6 bats mutation harness covers 4 sites but Property 6 (v1.11) declares 5; SITE_5 (main.rs:162 DuplicateEntry) not mechanized; bash sed conflates SITE_2+SITE_5; header cites stale (v1.7/v1.5 vs current v1.11/v1.7). F-P11-002 [L] lint plugin lib.rs:14 doc-comment cites BC-7.06.001 v1.6 but BC is v1.7 (v1.7 introduced async_block_conflict canonical string). Trajectory: 17→15→6→5→0→2→5→1→4→2→2. Fix-burst-10 dispatching. See `cycles/…/F5-adversary-pass-11.md`. |
 
 ## Identifier Conventions
 
@@ -149,7 +150,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-9 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..10 + fix-burst-9 complete. F-P10-001 [H] lint plugin canonical string fixed (WASM rebuilt, f7faad3). F-P10-002 [M] VP-079 v1.11. O-P10-001/002 [L] cleanups. TD-030 codified. ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2. PR held until ADR-013 = 3_of_3. F5 pass-11 next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-11 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..11 + fix-bursts 1..9 complete. Pass-11 verdict LOW (0H/0M/2L/0NIT): F-P11-001 VP-079 SITE_5 mutation harness gap; F-P11-002 lib.rs:14 stale BC-7.06.001 v1.6 cite. ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2. Fix-burst-10 dispatching. PR held until ADR-013 = 3_of_3. |
 
 ## Decisions Log
 
@@ -173,9 +174,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 fix-burst-9 COMPLETE. F-P10-001 [H] WASM lint plugin `crates/hook-plugins/lint-registry-async-invariant/src/lib.rs:176` violation string corrected `on_error_block_with_async_true` → `async_block_conflict` + WASM rebuilt + unit test added (implementer f7faad3). F-P10-002 [M] VP-079 v1.10→v1.11: SITE_3 main.rs:394→416, SITE_4 main.rs:405→427 post-EC-012-refactor line cite refresh. O-P10-001 [L] BC-3.08.001 frontmatter phase F8→F2 (metadata-only; no version bump). O-P10-002 [L] VP-079 frontmatter timestamp UTC Z suffix added. TD-030 codified in tech-debt-register: canonical-string sweeps need separate discipline from version-label sweeps (O-P10-003). VP-INDEX v1.21→v1.22. ADR-013 clock 0_of_3 (HIGH resets chain). Trajectory: 17→15→6→5→0→2→5→1→4→2.
+**Last update:** 2026-05-08 — F5 pass-11 COMPLETE. Verdict: LOW (0H/0M/2L/0NIT). All pass-10 findings (F-P10-001/002 + O-P10-001/002/003) CONFIRMED RESOLVED. F-P11-001 [L] VP-079 Scenario 6 bats mutation harness covers 4 of 5 declared sites; SITE_5 (main.rs:162 DuplicateEntry) not mechanized; bash sed pattern conflates SITE_2+SITE_5; bats header cites stale (v1.7/v1.5 vs v1.11/v1.7). F-P11-002 [L] lint plugin lib.rs:14 doc-comment cites BC-7.06.001 v1.6 (current v1.7; v1.7 introduced async_block_conflict canonical string now emitted). ADR-013 clock 0_of_3 — LOW does not advance chain. Trajectory: 17→15→6→5→0→2→5→1→4→2→2.
 
-**ACTIVE STEP: F5 pass-11 dispatch — targeting NITPICK_ONLY to advance ADR-013 → 1_of_3. PR held until ADR-013 = 3_of_3.**
+**ACTIVE STEP: F5 fix-burst-10 dispatching — F-P11-001 (bats SITE_5 arm + header cite refresh) + F-P11-002 (lib.rs:14 v1.6→v1.7). PR held until ADR-013 = 3_of_3.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ f7faad3 — long-lived; 20 commits ahead of develop; no PR until 3_of_3
