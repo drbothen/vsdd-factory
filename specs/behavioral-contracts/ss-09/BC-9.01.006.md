@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -58,7 +58,7 @@ ADR-019 §Decision 1 moves async semantics from the Claude Code hook envelope to
 
 | Condition | Behavior |
 |-----------|----------|
-| `hooks.json.template` contains `"async": true` in any entry | CI lint fails; commit blocked by pre-commit hook; human must remove the `async: true` entry |
+| `hooks.json.template` contains `"async": true` in any entry | CI lint fails; edit blocked by Claude Code PostToolUse Edit|Write hook (returning `block_intent = true`, exit code 2); human must remove the `async: true` entry |
 | Per-platform variant contains `"async": true` | CI lint fails; same block as above |
 | Activate skill writes `"async": true` into rendered `hooks.json` | Bug in activate skill; template compliance check detects on next CI run; validate-template-compliance plugin (which fires on PostToolUse per this BC) will catch at runtime |
 
@@ -88,7 +88,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | All event entries in template have no `async` key (happy path, post-ADR-019 state) | CI lint passes; all platform variants pass |
-| EC-002 | A future engineer adds `"async": true` to a PostToolUse entry in template | Pre-commit hook catches; commit blocked; CI also catches |
+| EC-002 | A future engineer adds `"async": true` to a PostToolUse entry in template | Claude Code PostToolUse Edit|Write hook catches; tool call blocked before edit lands; CI also catches |
 | EC-003 | Template has `"async": false` (explicit false, not absent) | Acceptable; CI lint checks for `async: true` only; false is benign |
 | EC-004 | New event type added to template with `"async": true` | CI lint catches; same block path as EC-002 |
 | EC-005 | Activate skill generates `hooks.json` from template correctly | No `async` key present; Claude Code treats hooks as synchronous |
@@ -138,6 +138,18 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | YES — given same template content, lint result is always the same. |
 | **Thread safety** | YES — lint is a read-only scan. |
 | **Overall classification** | Pure scan with filesystem I/O; lint result is deterministic. |
+
+## Amendment 2026-05-07 (v1.1 → v1.2 — WASM-rule audit follow-up)
+
+PO + architect parallel update aligning Layer 1 wording with the actual enforcement mechanism. Architect's WASM-rule audit (`.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/wasm-rule-audit.md`) found that Error Paths row 1 and EC-002 still described a "pre-commit hook" / "commit blocked" mechanism implying a Git `.git/hooks/pre-commit` file. The actual mechanism is the Claude Code PostToolUse Edit|Write hook (identical to the mechanism codified in BC-7.06.001 v1.3).
+
+**Mirror of BC-7.06.001 v1.3 fix:** BC-7.06.001 v1.3 received this correction in its Postcondition 7 and Invariant 5 Layer 1. BC-9.01.006 did not get the parallel update. This amendment closes that gap.
+
+**ADR-019 verified clean:** ADR-019 §Decision 4 uses "pre-commit hook" as a generic/conceptual label meaning "fires before any commit attempt is finalized." That usage is intentionally generic and does not require Git-native pre-commit hooks. No ADR-019 amendment is needed.
+
+**Conceptual intent preserved:** The intent — "violation is caught before it can land in the working tree or reach CI" — is unchanged. The Claude Code PostToolUse Edit|Write hook fires even earlier than git pre-commit, blocking the edit before git ever sees the file.
+
+**Changes:** Error Paths row 1 rewritten from "commit blocked by pre-commit hook" to "edit blocked by Claude Code PostToolUse Edit|Write hook (returning `block_intent = true`, exit code 2)". EC-002 rewritten from "Pre-commit hook catches; commit blocked" to "Claude Code PostToolUse Edit|Write hook catches; tool call blocked before edit lands".
 
 ## Amendment 2026-05-07 (v1.0 → v1.1 — F2 pass-7 F-P7-002: stale inputs path corrected)
 

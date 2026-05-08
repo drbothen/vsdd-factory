@@ -849,3 +849,47 @@ BC-9.01.006 line 61 has similar pre-commit wording — clarification candidate b
 F3 PASS-2 FIX BURST CLOSED. ADR-013 clock 0_of_3. Awaiting F3 adversary pass-3.
 
 ---
+
+## Burst 4 — WASM-Rule Retroactive Audit Fix Burst (2026-05-07)
+
+**Date:** 2026-05-07
+**Dispatchers:** orchestrator → architect (audit) → state-manager
+**Phase:** F3 ADV CONVERGENCE — inter-pass maintenance
+
+**Trigger:** User directive: "make sure we keep that rule for everything we have done" (WASM-migration rule). Architect conducted retroactive audit of all session work against BC-7.06.001 v1.3 PostToolUse Edit|Write wording. Mirror of BC-7.06.001 v1.3 fix applied session-wide.
+
+**Audit result:** 2 HIGH violations + 1 MEDIUM test-fixture question found.
+- ADR-019 verified clean (its "pre-commit" is generic/conceptual — no fix needed).
+
+### Findings addressed
+
+| Severity | Artifact | Finding | Resolution |
+|----------|----------|---------|------------|
+| HIGH | BC-9.01.006 | Error Paths row 1 + EC-002 still used "Pre-commit hook fails" wording from v1.1; Layer 1 did not reflect PostToolUse Edit|Write semantics | v1.1→v1.2: Error Paths row 1 + EC-002 reworded to "Claude Code PostToolUse Edit|Write hook blocks tool call"; Layer 1 wording aligned |
+| HIGH | VP-078 | Line 50-51 said "bash script or bats test" (should be "native WASM plugin"); lines 300+441 said "pre-commit" (should be "PostToolUse Edit|Write") | v1.7→v1.8: 3 wording fixes applied |
+| MEDIUM | VP-078 + VP-079 | Test harness uses legacy-bash-adapter for fixture purposes — could be misread as WASM-rule violation | Test-fixture annotations added to both VPs explaining legacy-bash-adapter usage is transitional test infrastructure, not a new bash plugin |
+
+### Artifacts touched
+
+| File | Change |
+|------|--------|
+| `.factory/specs/behavioral-contracts/ss-09/BC-9.01.006.md` | v1.1 → v1.2 |
+| `.factory/specs/verification-properties/VP-078.md` | v1.7 → v1.8 |
+| `.factory/specs/verification-properties/VP-079.md` | v1.5 → v1.6 |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v1.29 → v1.30 |
+| `.factory/specs/verification-properties/VP-INDEX.md` | v1.15 → v1.16 |
+| `.factory/STATE.md` | current_step, last_updated, concurrent cycle row, session checkpoint, index versions updated |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | this entry appended |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/wasm-rule-audit.md` | untracked audit report committed |
+
+### Notes
+
+- F2 convergence not impacted — these are informational v-bumps; findings did not exist during F2 passes (wording was introduced in BC-7.06.001 v1.3, which was fixed in Burst 3)
+- ADR-019 "pre-commit" text is generic/conceptual; verified clean, no change
+- F3 adversary pass-3 proceeds with WASM-rule conformance now verified across all session artifacts
+
+### Status
+
+WASM-RULE AUDIT FIX BURST CLOSED. ADR-013 clock 0_of_3. Awaiting F3 adversary pass-3.
+
+---

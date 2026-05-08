@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.29"
+version: "1.30"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "WASM-rule retroactive audit fix burst (2026-05-07) — BC-9.01.006 v1.1→v1.2 (Error Paths row 1 + EC-002: 'Pre-commit hook fails' → 'Claude Code PostToolUse Edit|Write hook blocks tool call'; Layer 1 wording aligned with PostToolUse Edit|Write semantics; mirror of BC-7.06.001 v1.3 fix). User directive: 'make sure we keep that rule for everything we have done'. No count change. BC-INDEX v1.29→v1.30. last_amended: 2026-05-07 (WASM-rule audit: BC-9.01.006 v1.2; PostToolUse Edit|Write wording aligned)."
   - date: 2026-05-07
     change: "F3 pass-2 fix burst close (2026-05-07) — BC-7.06.001 v1.2→v1.3 (PostToolUse Edit|Write wording; Postcondition 7 + Invariant 5 Layer 1 updated: 'Pre-commit hook fails commit' → 'Claude Code PostToolUse Edit|Write hook blocks tool call before edit lands'). ADR-019 verified clean. No count change. BC-INDEX v1.28→v1.29. last_amended: 2026-05-07 (F3 pass-2 fix burst: BC-7.06.001 v1.3; PostToolUse Edit|Write wording; Option A native WASM plugin per user WASM-migration directive)."
   - date: 2026-05-07

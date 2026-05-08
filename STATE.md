@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F3 PASS-2 FIX BURST CLOSED for S-15.01 (after user WASM-migration intervention). 3 findings addressed via Option A native WASM plugin redo. S-15.01 v1.1→v1.3; BC-7.06.001 v1.2→v1.3 (PostToolUse Edit|Write wording). ADR-019 verified clean. Awaiting F3 adversary pass-3."
+current_step: "WASM-RULE AUDIT FIX BURST CLOSED. User directive 'keep that rule for everything we have done' applied. 2 HIGH violations fixed (BC-9.01.006 v1.2 + VP-078 v1.8 wording). 1 MEDIUM test-fixture question resolved with annotation (VP-078/VP-079). F2 convergence not impacted (informational v-bumps only). F3 awaiting adversary pass-3."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (F3 pass-2 fix burst closed — S-15.01 v1.1→v1.3; BC-7.06.001 v1.2→v1.3; Option A native WASM plugin per user WASM-migration directive; ADR-013 clock 0_of_3; awaiting pass-3) |
+| **Last Updated** | 2026-05-07 (WASM-rule audit fix burst closed — BC-9.01.006 v1.2; VP-078 v1.8; VP-079 v1.6; BC-INDEX v1.30; VP-INDEX v1.16; informational v-bumps only; F3 awaiting pass-3) |
 | **Current Phase** | F3 ADVERSARIAL CONVERGENCE IN PROGRESS — v1.0-feature-plugin-async-semantics-pass-1; S-15.01 v1.3; pass-2 fix burst closed; ADR-013 clock 0_of_3 |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F3 ADVERSARIAL CONVERGENCE IN PROGRESS** | F3: S-15.01 v1.3 (pass-2 fix burst closed 2026-05-07; Option A native WASM plugin per user WASM-migration directive; 3 findings addressed). F2 trajectory 19→19→7→6→3→5→4→1→2→1. ADR-013 clock 0_of_3; awaiting pass-3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F3 ADVERSARIAL CONVERGENCE IN PROGRESS** | F3: S-15.01 v1.3 (pass-2 fix burst closed; WASM-rule audit fix burst closed 2026-05-07; BC-9.01.006 v1.2; VP-078 v1.8; VP-079 v1.6). F2 trajectory 19→19→7→6→3→5→4→1→2→1. ADR-013 clock 0_of_3; awaiting pass-3. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -164,7 +164,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — F3 PASS-2 FIX BURST CLOSED for v1.0-feature-plugin-async-semantics-pass-1. S-15.01 v1.1 → v1.3. User WASM-migration directive invalidated Option C; redo with Option A native WASM plugin (Rust crate). 3 findings addressed (F-P2-001 mechanism redo, F-P2-002 file list updated 30 paths, F-P2-003 BC-7.06.001 v1.2→v1.3 PostToolUse Edit|Write wording). ADR-019 verified clean. STORY-INDEX v2.32 → v2.33; BC-INDEX v1.28 → v1.29. ADR-013 clock 0_of_3; awaiting F3 adversary pass-3. Active cycle: v1.0-feature-plugin-async-semantics-pass-1.
+**Last update:** 2026-05-07 — WASM-RULE AUDIT FIX BURST CLOSED for v1.0-feature-plugin-async-semantics-pass-1. User directive "make sure we keep that rule for everything we have done" applied retroactively. Architect audit found 2 HIGH violations + 1 MEDIUM test-fixture question. Fixes: BC-9.01.006 v1.1→v1.2 (Error Paths row 1 + EC-002 aligned with PostToolUse Edit|Write); VP-078 v1.7→v1.8 (3 wording fixes: native WASM plugin citation, PostToolUse x2, test-fixture annotation); VP-079 v1.5→v1.6 (test-fixture annotation; Trigger Points §2). ADR-019 verified clean. BC-INDEX v1.29→v1.30; VP-INDEX v1.15→v1.16. F2 convergence not impacted. ADR-013 clock 0_of_3; awaiting F3 adversary pass-3. Active cycle: v1.0-feature-plugin-async-semantics-pass-1.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** 15432c6 (S-12.06 PR #105 squash-merge 2026-05-07)
@@ -178,7 +178,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.29 | **VP-INDEX:** v1.15 | **STORY-INDEX:** v2.33 | **ARCH-INDEX:** v1.19
+**BC-INDEX:** v1.30 | **VP-INDEX:** v1.16 | **STORY-INDEX:** v2.33 | **ARCH-INDEX:** v1.19
 
 **ACTIVE STEP: F3 ADV CONVERGENCE for plugin-async-semantics-pass-1. S-15.01 v1.3 (pass-2 fix burst closed; Option A native WASM plugin). ADR-013 clock 0_of_3; dispatching F3 adversary pass-3. Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
 

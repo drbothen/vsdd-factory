@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.15"
+version: "1.16"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -9,6 +9,8 @@ phase: F3
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-07
+    change: "WASM-rule retroactive audit fix burst (2026-05-07) — VP-078 v1.7→v1.8 (3 wording fixes: line 50-51 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; lines 300+441 pre-commit → PostToolUse Edit|Write; test-fixture annotation added explaining legacy-bash-adapter is transitional test infrastructure). VP-079 v1.5→v1.6 (test-fixture annotation at line 102; Trigger Points §2 PostToolUse alignment). ADR-019 verified clean. No VP count change. VP-INDEX v1.15→v1.16. last_amended: 2026-05-07 (WASM-rule audit: VP-078 v1.8 + VP-079 v1.6; PostToolUse Edit|Write wording; test-fixture annotations)."
   - date: 2026-05-07
     change: "F3 story decomposition close (2026-05-07) — Story Anchors section updated: VP-077/078/079 anchored to S-15.01 (F3 plugin-async-semantics-pass-1 implementation story; cycle v1.0-feature-plugin-async-semantics-pass-1). No VP count change. VP-INDEX v1.14→v1.15. last_amended: 2026-05-07 (F3 story decomposition: VP-077/078/079 Story Anchors → S-15.01)."
   - date: 2026-05-07
@@ -156,8 +158,8 @@ changelog:
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name,event) tuple unique per BC-7.06.001 Invariant 7 | invariant | kani-proof | SS-01 | — | draft |
-| [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.7: harness defects corrected — 8 events→event sites, 7 script→plugin+config sites, TOML fixture ordering fixed) | safety | integration | SS-07, SS-01 | — | draft |
-| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.5: 9 inline 100ms literals → symbolic ASYNC_DRAIN_WINDOW_MS / DI-019 citations; stale v1.4 cite → BC-1.14.001 PC4) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
+| [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
+| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.6: WASM-rule audit — test-fixture annotation; Trigger Points §2 PostToolUse alignment) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
