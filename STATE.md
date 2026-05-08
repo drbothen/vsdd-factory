@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-16 COMPLETE — verdict HIGH (2H/2M/1L + 3 obs). META-PATTERN: fix-burst-14 (which codified TD-031) introduced 5 fresh TD-031 violations. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4→5→7→5. Fix-burst-15 dispatching all 5 findings. PR remains held."
+current_step: "F5 fix-burst-15 COMPLETE — all 5 pass-16 findings + 3 observations addressed (VP-079 v1.15 stable anchors per TD-031 + §Scenario 8b prose + bats SITES refresh; BC-3.08.001 v1.10 stable anchors; S-15.01 v1.19 4 ACs → 7 mandatory fields; TD-031 escalated P2→P1). Branch fix/S-15.01-F5-convergence at 2d700d94 (30 commits ahead). PR remains held until ADR-013 = 3_of_3. F5 pass-17 dispatch next."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 pass-16 COMPLETE — verdict HIGH 2H/2M/1L+3obs; META: fix-burst-14 introduced 5 TD-031 violations; trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4→5→7→5; fix-burst-15 dispatching) |
-| **Current Phase** | F5 PASS-16 COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; verdict HIGH; 5 findings (VP-079/BC-3.08.001/S-15.01 line-drift + AC propagation gap + §8b prose absent); TD-031 meta-violation; fix-burst-15 next |
+| **Last Updated** | 2026-05-08 (F5 fix-burst-15 COMPLETE — VP-079 v1.15 + BC-3.08.001 v1.10 stable anchors; S-15.01 v1.19 7 mandatory fields; TD-031 P2→P1; branch @ 2d700d94 30 ahead; pass-17 next) |
+| **Current Phase** | F5 FIX-BURST-15 COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; all 5 F-P16 findings + 3 obs addressed; TD-031 escalated P2→P1; ADR-013 clock 0_of_3; pass-17 dispatch next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -94,6 +94,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-15 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (3H/3M/3L + 1 process-gap). F-P15-001/002/003: VP-079 mandatory-fields gap + wildcard impl + bcs frontmatter. F-P15-004/005/006/007: §Scenario 7+8 prose, AC-013, changelog, TD-031 process-gap. Trajectory: →7. See `F5-adversary-pass-15.md`. |
 | **F5 fix-burst-14 — VP-079 v1.14 + BC-3.08.001 v1.9 + S-15.01 v1.18 (AC-018) + impl wildcard + TD-031** | implementer + test-writer + state-manager | **COMPLETE** | F-P15-001/003/004/006: VP-079 v1.14 mandatory-fields+bcs+§Scenario 7+8+changelog. F-P15-002: wildcard offending_tool: null. F-P15-005: AC-018. O-P15-001/003: BC-3.08.001 v1.9 session_id+RESERVED. TD-031 codified. Branch @ 7f2914b6 (29 ahead). |
 | **F5 pass-16 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (2H/2M/1L + 3obs). META: fix-burst-14 introduced 5 TD-031 violations. F-P16-001 [H] VP-079 SITES stale → INFRA-ERROR; F-P16-002 [H] BC-3.08.001 amendment line cites stale; F-P16-003 [M] S-15.01 ACs missing session_id; F-P16-004 [M] triple-doc drift §8b absent; F-P16-005 [L] §Common Fields contradiction. Trajectory: →5. ADR-013: 0_of_3. See `F5-adversary-pass-16.md`. |
+| **F5 fix-burst-15 — VP-079 v1.15 + BC-3.08.001 v1.10 + S-15.01 v1.19 + bats SITES refresh + TD-031 P2→P1** | test-writer + state-manager | **COMPLETE** | F-P16-001/004: VP-079 v1.15 SITES stable anchors + §Scenario 8b prose + bats Scenario 6 SITES line range refresh (143,150+167,174+423+434). F-P16-002/005: BC-3.08.001 v1.10 stable anchors + §Common Fields contradiction resolved. F-P16-003/004: S-15.01 v1.19 ACs 011-014 session_id + 7 mandatory fields. O-P16-001: TD-031 escalated P2→P1. O-P16-002: VP-079 BC cite stabilized. O-P16-003: VP-079 inputs extended. Branch @ 2d700d94 (30 ahead). |
 
 ## Identifier Conventions
 
@@ -135,7 +136,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-16 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..16 + fix-bursts 1..14 complete. Pass-16: verdict HIGH (2H/2M/1L+3obs); META TD-031 self-violation in fix-burst-14; F-P16-001/002 stale SITES+BC line cites; F-P16-003/004 AC propagation+§8b absent; F-P16-005 §Common Fields contradiction. ADR-013 clock 0_of_3. Branch fix/S-15.01-F5-convergence @ 7f2914b6 (29 ahead). PR held until 3_of_3. Fix-burst-15 dispatch next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-15 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..16 + fix-bursts 1..15 complete. Fix-burst-15: VP-079 v1.15 + BC-3.08.001 v1.10 stable anchors (TD-031); S-15.01 v1.19 session_id + 7 mandatory fields; bats SITES refresh; TD-031 escalated P2→P1. ADR-013 clock 0_of_3. Branch fix/S-15.01-F5-convergence @ 2d700d94 (30 ahead). PR held until 3_of_3. Pass-17 dispatch next. |
 
 ## Decisions Log
 
@@ -159,18 +160,18 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 pass-16 COMPLETE. Verdict: HIGH (2H/2M/1L + 3 observations). Trajectory: 17→15→6→5→0→2→5→1→4→2→2→4→4→5→7→5. META-PATTERN: fix-burst-14 (which codified TD-031) itself introduced 5 fresh TD-031 line-drift violations — surface-only codification without enforcement recurs. F-P16-001 [H]: VP-079 v1.14 SITES line cites stale (4 of 5); bats sed mutation ranges off by 1-7 lines → INFRA-ERROR not detection. F-P16-002 [H]: BC-3.08.001 v1.9 amendment cites wrong lines (289→300, 201→359) — drift introduced within fix-burst-14. F-P16-003 [M]: S-15.01 ACs 011-014 missing session_id; "6 mandatory fields" stale (now 7). F-P16-004 [M]: Triple-doc drift §Scenario 7+8 line ranges stale; §Scenario 8b prose absent in VP-079; AC-018 traceability missing. F-P16-005 [L]: BC-3.08.001 §Common Fields contradicts Events 1+4 wire examples on plugin_name omission. O-P16-001: TD-031 escalation to P1 + enforcement (lint-hook/PR template) — decision pending. O-P16-002: VP-079 §Scenario 8 cites BC-3.08.001 v1.8 (current v1.9). O-P16-003: VP-079 frontmatter inputs missing BC-7.06.001.md. ADR-013 clock: 0_of_3 (pass-16 HIGH resets; 3 consecutive NITPICK_ONLY required).
+**Last update:** 2026-05-08 — F5 fix-burst-15 COMPLETE. All 5 pass-16 findings + 3 observations addressed. VP-079 v1.15: SITES stable anchors per TD-031 (F-P16-001); §Scenario 8b wildcard offending_tool prose added (F-P16-004); bats Scenario 6 SITES line ranges refreshed (143,150+167,174+423+434); BC cite stabilized O-P16-002; inputs extended O-P16-003. BC-3.08.001 v1.10: stable symbol anchors replacing stale line cites (F-P16-002); §Common Fields contradiction resolved for Events 1+4 plugin_name omission (F-P16-005). S-15.01 v1.19: ACs 011-014 session_id added; "6 mandatory fields" → "7 mandatory fields" (F-P16-003); AC-018 traceability for §Scenario 7+8 SITES added (F-P16-004). TD-031 escalated P2→P1 per O-P16-001 — recurrence pattern confirmed (fix-burst-14 introduced 5 TD-031 violations); enforcement decision pending architect adjudication. Branch fix/S-15.01-F5-convergence @ 2d700d94 (30 ahead). ADR-013 clock: 0_of_3. Pass-17 dispatch next.
 
-**ACTIVE STEP: F5 fix-burst-15 dispatch. Scope: close F-P16-001..005 + O-P16-001/002/003. Branch fix/S-15.01-F5-convergence @ 7f2914b6 (29 ahead). PR held until ADR-013 = 3_of_3.**
+**ACTIVE STEP: F5 pass-17 adversary dispatch. Branch fix/S-15.01-F5-convergence @ 2d700d94 (30 ahead). PR held until ADR-013 = 3_of_3.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 7f2914b6 — long-lived; 29 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ 2d700d94 — long-lived; 30 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this burst — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.39 | VP-INDEX v1.25 | STORY-INDEX v2.47 | ARCH-INDEX v1.22
-**ADR-013 clock:** **0_of_3** (RESET — pass-15 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.40 | VP-INDEX v1.26 | STORY-INDEX v2.48 | ARCH-INDEX v1.22
+**ADR-013 clock:** **0_of_3** (RESET — pass-16 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931); finding trend 22→11→16→16→12→2→1→4
