@@ -303,9 +303,9 @@ TOML
         return 1
     }
     # Removed `not yet implemented` panic-fallback disjunct (was Red-Gate; production code is now fully implemented; F-P2-005).
+    # F-P3-005: Tightened from 4 disjuncts to 2 — only canonical signals (E-REG-002 error code OR registry_invalid event name).
+    # Broad matchers (`async`, `on_error`) removed to prevent false-PASS on unrelated panics.
     [[ "$output" == *"registry_invalid"* ]] || \
-        [[ "$output" == *"on_error"* ]] || \
-        [[ "$output" == *"async"* ]] || \
         [[ "$output" == *"E-REG-002"* ]] || {
         echo "FAIL: output must name the violation or error code. Got: $output"
         rm -rf "$plugin_root"
