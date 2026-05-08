@@ -7,6 +7,7 @@
 //! v0.79.x hooks.json.
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
@@ -48,6 +49,19 @@ pub enum RegistryError {
          [E-REG-002]"
     )]
     AsyncBlockConflict { name: String },
+    /// Duplicate (name, event, tool) tuple across [[hooks]] entries.
+    /// Enforced at registry-load time; dispatcher refuses to start.
+    /// (BC-7.06.001 Invariant 7)
+    #[error(
+        "Duplicate hook entry: name={name}, event={event}, tool={tool:?} \
+         (BC-7.06.001 Invariant 7). Each (name, event, tool) tuple must be unique \
+         across all [[hooks]] entries."
+    )]
+    DuplicateEntry {
+        name: String,
+        event: String,
+        tool: Option<String>,
+    },
 }
 
 /// Outcome for a plugin that returns `Error` or crashes. `Continue` is
@@ -359,6 +373,9 @@ impl Registry {
         // S-15.01 T-3f: check BC-7.06.001 Invariant 1 — on_error=block implies async=false.
         // Any entry with on_error=block AND async=true is E-REG-002 (fail-closed).
         self.validate_async_block_invariant()?;
+        // F-P2-011: BC-7.06.001 Invariant 7 — (name, event, tool) tuple must be unique.
+        // Two entries MAY share name+event if they bind different tool regex values.
+        self.validate_name_event_tool_uniqueness()?;
         Ok(())
     }
 
@@ -375,6 +392,30 @@ impl Registry {
             if on_error_is_block && entry.async_flag {
                 return Err(RegistryError::AsyncBlockConflict {
                     name: entry.name.clone(),
+                });
+            }
+        }
+        Ok(())
+    }
+
+    /// Uniqueness invariant (F-P2-011, BC-7.06.001 Invariant 7):
+    /// The (name, event, tool) tuple must be unique across all [[hooks]] entries.
+    ///
+    /// Two entries MAY share `name` and `event` if they bind to different `tool`
+    /// regex values — this permits a single named plugin to enforce against multiple
+    /// tool surfaces (e.g. `protect-secrets` on `Bash` and `Read` PreToolUse events).
+    /// Two entries with `tool = None` and the same `name`+`event` are duplicates.
+    ///
+    /// Hard load-time error; dispatcher refuses to start on violation.
+    fn validate_name_event_tool_uniqueness(&self) -> Result<(), RegistryError> {
+        let mut seen: HashSet<(String, String, Option<String>)> = HashSet::new();
+        for entry in &self.hooks {
+            let key = (entry.name.clone(), entry.event.clone(), entry.tool.clone());
+            if !seen.insert(key) {
+                return Err(RegistryError::DuplicateEntry {
+                    name: entry.name.clone(),
+                    event: entry.event.clone(),
+                    tool: entry.tool.clone(),
                 });
             }
         }
@@ -958,5 +999,107 @@ script_path = "bad.sh"
             result.is_err(),
             "test_BC_7_06_001_async_string_value_is_parse_error: async field with string value must produce a parse error (AC-002, BC-7.06.001 PC3)"
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P2-011 — BC-7.06.001 Invariant 7: (name, event, tool) tuple uniqueness
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod f_p2_011_name_event_tool_uniqueness {
+    use super::*;
+
+    /// Identical (name, event, tool) tuples must be rejected with DuplicateEntry.
+    #[test]
+    fn test_validate_rejects_duplicate_name_event_tool_tuple() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "protect-secrets"
+event = "PreToolUse"
+tool = "Bash"
+plugin = "hook-plugins/protect-secrets.wasm"
+on_error = "block"
+
+[[hooks]]
+name = "protect-secrets"
+event = "PreToolUse"
+tool = "Bash"
+plugin = "hook-plugins/protect-secrets.wasm"
+on_error = "block"
+"#;
+        let err = Registry::parse_str(toml).unwrap_err();
+        match err {
+            RegistryError::DuplicateEntry { name, event, tool } => {
+                assert_eq!(name, "protect-secrets");
+                assert_eq!(event, "PreToolUse");
+                assert_eq!(tool.as_deref(), Some("Bash"));
+            }
+            other => panic!(
+                "test_validate_rejects_duplicate_name_event_tool_tuple: expected DuplicateEntry, got {:?}",
+                other
+            ),
+        }
+    }
+
+    /// Same name+event but different tool values must be accepted (BC-7.06.001 Invariant 7).
+    /// This is the protect-secrets pattern: two tool surfaces for one named plugin.
+    #[test]
+    fn test_validate_accepts_same_name_event_different_tool() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "protect-secrets"
+event = "PreToolUse"
+tool = "Bash"
+plugin = "hook-plugins/protect-secrets.wasm"
+on_error = "block"
+
+[[hooks]]
+name = "protect-secrets"
+event = "PreToolUse"
+tool = "Read"
+plugin = "hook-plugins/protect-secrets.wasm"
+on_error = "block"
+"#;
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "test_validate_accepts_same_name_event_different_tool: same name+event with different tool must be accepted: {:?}",
+            result
+        );
+    }
+
+    /// Two entries with tool = None (absent) and matching name+event must be rejected.
+    #[test]
+    fn test_validate_treats_two_none_tools_as_duplicate() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "x"
+event = "PreToolUse"
+plugin = "hook-plugins/x.wasm"
+
+[[hooks]]
+name = "x"
+event = "PreToolUse"
+plugin = "hook-plugins/x.wasm"
+"#;
+        let err = Registry::parse_str(toml).unwrap_err();
+        match err {
+            RegistryError::DuplicateEntry { name, event, tool } => {
+                assert_eq!(name, "x");
+                assert_eq!(event, "PreToolUse");
+                assert!(tool.is_none(), "tool must be None for absent tool field");
+            }
+            other => panic!(
+                "test_validate_treats_two_none_tools_as_duplicate: expected DuplicateEntry, got {:?}",
+                other
+            ),
+        }
     }
 }
