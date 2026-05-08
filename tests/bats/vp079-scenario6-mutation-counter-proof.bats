@@ -70,18 +70,20 @@ require_cargo_build_ok() {
 }
 
 # ---------------------------------------------------------------------------
-# Helper: run VP-079 Scenarios 1-5 from async-event-schema-conformance.bats.
+# Helper: run ALL @test blocks in async-event-schema-conformance.bats
+# (currently S1, S2, S3, S4, S5, S7, S8 = 7 scenarios).
 # Returns 0 if ALL scenarios pass (mutation SURVIVED — bad), non-zero if at
 # least one scenario fails (mutation was CAUGHT — good).
 # ---------------------------------------------------------------------------
-run_scenarios_1_to_5() {
+run_all_conformance_scenarios() {
     local conformance_file="$BATS_DIR/async-event-schema-conformance.bats"
     if [ ! -f "$conformance_file" ]; then
         echo "SKIP: async-event-schema-conformance.bats not found at $conformance_file" >&2
         return 2  # infrastructure error — not a mutation pass/fail
     fi
-    # Run all tests in the conformance suite. If any fail, bats exits non-zero.
-    run bats "$conformance_file" 2>&1
+    # Run all tests in the conformance suite against the locally-built binary.
+    # PATH injection ensures the freshly-mutated target/debug binary is used.
+    PATH="${SRC_ROOT}/target/debug:${PATH}" run bats "$conformance_file" 2>&1
     echo "$output"
     return "$status"
 }
@@ -126,7 +128,7 @@ mutate_and_verify_caught() {
     # The range must cover from the opening call through the closing ");".
     # Without line_range, restrict to lines matching the function call pattern.
     if [ -n "$line_range" ]; then
-        sed -i.tmp "${line_range}{ s|^|// MUTANT-SUPPRESSED: | }" "$main_rs"
+        sed -i.tmp "${line_range} s|^|// MUTANT-SUPPRESSED: |" "$main_rs"
     else
         sed -i.tmp "/${fn_pattern}(/s/^/\/\/ MUTANT-SUPPRESSED: /" "$main_rs"
     fi
@@ -147,8 +149,8 @@ mutate_and_verify_caught() {
         echo "             A suppressed emit-call (void return) should always compile. Skipping this trial." >&2
         caught=2  # infrastructure error — skip, do not count as caught or not-caught
     else
-        # Run Scenarios 1-5 against the mutated binary.
-        run_scenarios_1_to_5
+        # Run all conformance scenarios against the mutated binary.
+        run_all_conformance_scenarios
         local scenarios_status=$?
         if [ "$scenarios_status" -eq 0 ]; then
             # All 5 scenarios passed WITH the mutation in place — not caught.
