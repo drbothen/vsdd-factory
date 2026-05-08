@@ -44,6 +44,29 @@ pub use routing::{PluginResultStub, group_by_priority, match_plugins};
 /// `vsdd_hook_sdk::HOST_ABI_VERSION`; diverging is a breaking change.
 pub const HOST_ABI_VERSION: u32 = 1;
 
+/// Drain window for async-group tasks (S-15.01 T-3d — BC-1.14.001 postcondition 4).
+///
+/// After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS`
+/// for spawned async tasks to emit terminal events to FileSink. Tasks that do not
+/// complete within this window are forcibly terminated; their pending I/O is discarded.
+///
+/// **DI-019 canonical source.** This constant is the authoritative Rust definition.
+/// All other references (BCs, VPs, ADRs, test fixtures) cite DI-019 by name, NOT
+/// by hardcoding the value `100`. Tests MUST use `factory_dispatcher::ASYNC_DRAIN_WINDOW_MS`
+/// rather than `Duration::from_millis(100)` directly.
+///
+/// # BC traces
+///
+/// - DI-019 — `ASYNC_DRAIN_WINDOW_MS = 100ms` (domain invariant, canonical source)
+/// - BC-1.14.001 postcondition 4 — async-group drain window contract
+/// - VP-079 Scenario 5 — drain-window truncation verification
+pub const ASYNC_DRAIN_WINDOW_MS: std::time::Duration = std::time::Duration::from_millis(
+    // DI-019: ASYNC_DRAIN_WINDOW_MS = 100ms (canonical).
+    // Do NOT change this value without a DI-019 amendment.
+    // Do NOT add other inline `100` references — cite this constant instead.
+    100,
+);
+
 /// Generate a fresh v4 UUID to use as the per-invocation
 /// `dispatcher_trace_id`. Extracted so tests can substitute a fixed
 /// value.
