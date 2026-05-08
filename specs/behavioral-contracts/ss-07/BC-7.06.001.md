@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -102,8 +102,8 @@ The existing CI lint plugin (`lint-registry-async-invariant`, VP-078) MAY also e
 All three E-REG-NNN error codes share the same fail-closed semantic — load failure produces stderr eprintln, structured event emission via host emit, and dispatcher exit 2. Implementations MUST NOT route any `RegistryError` variant through a catch-all that returns exit 0. Specifically:
 
 - `E-REG-001` (`RegistryError::SchemaVersion`) — catch-all `_ => 0` silently exits 0; MUST exit 2.
-- `E-REG-002` (`RegistryError::AsyncBlockConflict`) — exits 2 at lines 143–145 (correct).
-- `E-REG-003` (`RegistryError::DuplicateEntry`) — catch-all `_ => 0` at `main.rs:148–151` silently exits 0; MUST exit 2 (F-P8-001 fix). The implementation MUST match the explicit exit-2 branch pattern used by `AsyncBlockConflict` (lines 143–145), not fall through to the catch-all.
+- `E-REG-002` (`RegistryError::AsyncBlockConflict`) — exits 2 via the `RegistryError::AsyncBlockConflict { name }` arm in `factory_dispatcher::main::run` (the arm carrying `eprintln! + 2` above the catch-all in `main.rs::run`); correct.
+- `E-REG-003` (`RegistryError::DuplicateEntry`) — the catch-all `_ => 0` arm in `factory_dispatcher::main::run` (the arm guarding the unmatched `RegistryError::*` variants) silently exits 0; MUST exit 2 (F-P8-001 fix). The implementation MUST match the explicit exit-2 branch pattern used by `RegistryError::AsyncBlockConflict` (which carries the explicit `eprintln! + 2` arm above the catch-all in `main.rs::run`), not fall through to the catch-all. (F-P13-002: migrated from stale line numbers 148–151/143–145 to stable symbol anchors per TD-VSDD-091.)
 
 Any future `RegistryError` variant added to `registry.rs` MUST receive an explicit exit-code branch in `main.rs` before the catch-all. The catch-all MAY only remain as a last-resort fallback for truly unexpected variants, and MUST map to a non-zero exit code (e.g., `_ => 1`), never 0.
 
