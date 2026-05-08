@@ -173,7 +173,7 @@ where
                 "dispatcher.registry_invalid",
                 &[
                     ("offending_plugin", plugin_name.as_str()),
-                    ("violation", "on_error_block_with_async_true"),
+                    ("violation", "async_block_conflict"),
                     ("error_code", E_REG_002),
                 ],
             );

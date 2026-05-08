@@ -20,7 +20,8 @@
 //! will the test for this function pass trivially without any implementer work?"
 //! Answer: YES for every test below — therefore all call into `todo!()` stubs.
 
-use lint_registry_async_invariant::{LintResult, run_lint};
+use lint_registry_async_invariant::{LintResult, LintCallbacks, lint_logic, E_REG_002, run_lint};
+use vsdd_hook_sdk::HookPayload;
 
 // ---------------------------------------------------------------------------
 // VP-078 Harness 1 — lint_invariant
@@ -317,4 +318,82 @@ async = true
 "#;
     let result = run_lint(toml);
     assert_eq!(result, LintResult::Pass);
+}
+
+// ---------------------------------------------------------------------------
+// F-P10-001 — canonical violation string regression guard
+// ---------------------------------------------------------------------------
+
+/// F-P10-001 regression guard: the emit_event payload for an
+/// InvariantViolation MUST use violation = "async_block_conflict"
+/// (BC-3.08.001 v1.7 + BC-7.06.001 v1.7 canonical wire format).
+///
+/// Constructs a violating registry (on_error=block + async=true), drives
+/// `lint_logic` with injected callbacks, and captures the exact emit_event
+/// arguments.  Asserts the violation field equals "async_block_conflict" —
+/// never the legacy "on_error_block_with_async_true" string.
+#[test]
+fn test_emit_event_payload_uses_canonical_violation_string() {
+    // Violating registry TOML: schema_version=2, one entry with on_error=block + async=true.
+    let violating_toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "bad-plugin"
+event = "PreToolUse"
+plugin = "hook-plugins/bad-plugin.wasm"
+on_error = "block"
+async = true
+"#
+    .to_string();
+
+    // Construct a HookPayload where tool_input.file_path ends with hooks-registry.toml
+    // so lint_logic does not skip execution.
+    let payload_json = r#"{
+        "event_name": "PostToolUse",
+        "tool_name": "Edit",
+        "session_id": "test-session",
+        "dispatcher_trace_id": "test-trace",
+        "tool_input": {"file_path": "plugins/vsdd-factory/hooks-registry.toml"}
+    }"#;
+    let payload: HookPayload = serde_json::from_str(payload_json).expect("payload must parse");
+
+    // Capture emit_event calls.
+    let mut captured_event_type = String::new();
+    let mut captured_violation = String::new();
+    let mut captured_error_code = String::new();
+
+    lint_logic(
+        payload,
+        LintCallbacks {
+            // Inject the violating TOML content instead of reading the real file.
+            read_file: |_path| Ok(violating_toml.clone()),
+            emit_event: |event_type, fields| {
+                captured_event_type = event_type.to_string();
+                for (key, value) in fields {
+                    if *key == "violation" {
+                        captured_violation = value.to_string();
+                    }
+                    if *key == "error_code" {
+                        captured_error_code = value.to_string();
+                    }
+                }
+            },
+            log: |_level, _msg| {},
+        },
+    );
+
+    // Assert the canonical wire-format string per BC-3.08.001 v1.7 + BC-7.06.001 v1.7.
+    assert_eq!(
+        captured_event_type, "dispatcher.registry_invalid",
+        "emit_event must use the canonical event type 'dispatcher.registry_invalid'"
+    );
+    assert_eq!(
+        captured_violation, "async_block_conflict",
+        "F-P10-001: violation field MUST be 'async_block_conflict', not 'on_error_block_with_async_true'"
+    );
+    assert_eq!(
+        captured_error_code, E_REG_002,
+        "error_code must be E-REG-002"
+    );
 }
