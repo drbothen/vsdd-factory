@@ -893,3 +893,52 @@ F3 PASS-2 FIX BURST CLOSED. ADR-013 clock 0_of_3. Awaiting F3 adversary pass-3.
 WASM-RULE AUDIT FIX BURST CLOSED. ADR-013 clock 0_of_3. Awaiting F3 adversary pass-3.
 
 ---
+
+## Burst 5 — F3 Pass-3 NITPICK_ONLY Close Burst (2026-05-07)
+
+**Date:** 2026-05-07
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F3 ADV CONVERGENCE — NITPICK_ONLY pass-3 closed
+**Story version:** S-15.01 v1.3 → v1.4
+
+### Summary
+
+Pass-3 returned NITPICK_ONLY (first such pass in F3). ADR-013 clock advances 0→1_of_3. F3 trajectory: 9→3→3(NIT). Two more NITPICK_ONLY = CONVERGENCE_REACHED.
+
+Pass-3 adversary findings persisted at `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F3-S-15.01-adversary-pass-3.md`.
+
+### Findings addressed
+
+| ID | Severity | Finding | Resolution |
+|----|----------|---------|------------|
+| NIT-P3-001 | NIT | Body BC table cites stale versions: BC-7.06.001 v1.2, BC-9.01.006 v1.1 | Updated to v1.3 and v1.2 respectively (reflect WASM-rule audit fix burst versions) |
+| NIT-P3-002 | NIT | References table cites stale VP versions: VP-078 v1.7, VP-079 v1.5 | Updated to v1.8 and v1.6 respectively (reflect WASM-rule audit fix burst versions) |
+| NIT-P3-003 | NIT | Observation: pass-2 fix burst bundled title sync (F-P2-003) but not version sync — sibling-fix gap | Lesson captured (see below); NIT-P3-001 fix closes the gap |
+
+### Lesson captured
+
+**NIT-P3-003:** Version sync should ride alongside title sync in the same fix burst. When a BC title is updated (e.g., F-P2-003 synced BC-7.06.001 title byte-for-byte), the cited version in every story BC table referencing that BC should be refreshed in the same burst. Separating title sync from version sync creates a sibling-fix gap that surfaces as a NIT in the next adversary pass.
+
+### Verification
+
+- `BC-7.06.001 | v1.2` in body BC table: zero hits (replaced with v1.3)
+- `BC-9.01.006 | v1.1` in body BC table: zero hits (replaced with v1.2)
+- `VP-078 v1.7` in References table: zero hits (replaced with v1.8)
+- `VP-079 v1.5` in References table: zero hits (replaced with v1.6)
+- S-15.01 frontmatter version: v1.4 confirmed
+
+### Artifacts touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F3-S-15.01-adversary-pass-3.md` | Created — pass-3 findings persisted (NITPICK_ONLY; clock 1_of_3) |
+| `.factory/stories/S-15.01-plugin-async-semantics.md` | v1.3 → v1.4 (4 version label refreshes + amendment section) |
+| `.factory/stories/STORY-INDEX.md` | v2.33 → v2.34 (S-15.01 row updated to v1.4; clock 1_of_3) |
+| `.factory/STATE.md` | current_step, last_amended, phase progress, concurrent cycles, current phase steps, session checkpoint, index versions updated |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | this entry appended |
+
+### Status
+
+F3 PASS-3 CLOSED. ADR-013 clock 1_of_3. Awaiting F3 adversary pass-4. Two more NITPICK_ONLY = CONVERGENCE_REACHED.
+
+---
