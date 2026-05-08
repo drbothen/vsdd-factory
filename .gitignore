@@ -11,6 +11,11 @@ node_modules/
 # repo, which `git add -A` would otherwise try to stage as a submodule.
 .claude/worktrees/
 
+# Local worktrees checked out at the repo root (e.g. via git worktree add
+# .worktrees/BRANCH-NAME). These are workspace-local only and must never
+# ship in commits.
+/.worktrees/
+
 # factory-obs generated override file (multi-factory compose layer).
 # Regenerated per-machine from ~/.config/vsdd-factory/watched-factories.
 plugins/vsdd-factory/tools/observability/docker-compose.override.yml
