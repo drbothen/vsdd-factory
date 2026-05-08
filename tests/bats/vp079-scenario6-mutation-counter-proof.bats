@@ -2,9 +2,9 @@
 #
 # vp079-scenario6-mutation-counter-proof.bats
 #
-# VP-079 v1.7 Property 6: Production-caller mutation counter-proof.
+# VP-079 v1.11 Property 6: Production-caller mutation counter-proof.
 #
-# For each of the 4 production emit-caller sites in main.rs, comment out the
+# For each of the 5 production emit-caller sites in main.rs, comment out the
 # emit call in a temporary worktree checkout, rebuild the dispatcher, and assert
 # that AT LEAST ONE of VP-079 Scenarios 1-5 FAILS. If all 5 scenarios pass with
 # a production caller removed, VP-079 provides no end-to-end coverage guarantee
@@ -18,19 +18,20 @@
 # Gate it in CI behind a job triggered only on diffs touching main.rs or
 # host/emit_event.rs (preferred: cargo mutants --filter='emit_'; bash fallback below).
 #
-# Production caller sites (F-P1-002 / VP-079 v1.7 Property 6):
-#   SITE_1: main.rs — emit_dispatcher_schema_mismatch call  (schema_version != 2 path)
-#   SITE_2: main.rs — emit_dispatcher_registry_invalid call (async+block invariant)
-#   SITE_3: main.rs — emit_plugin_async_block_discarded call (async result exit_code=2)
-#   SITE_4: main.rs — emit_plugin_timeout_async call         (async timeout arm)
+# SITES (5 production caller sites per VP-079 v1.11 Property 6):
+#   SITE_1: ~main.rs:133 — emit_dispatcher_schema_mismatch (schema_version != 2)
+#   SITE_2: ~main.rs:142 — emit_dispatcher_registry_invalid (AsyncBlockConflict / E-REG-002)
+#   SITE_3: ~main.rs:416 — emit_plugin_async_block_discarded (async result exit_code=2)
+#   SITE_4: ~main.rs:427 — emit_plugin_timeout_async (async timeout arm)
+#   SITE_5: ~main.rs:162 — emit_dispatcher_registry_invalid (DuplicateEntry / E-REG-003)
 #
 # Preferred tool: cargo mutants (call-site suppression via --filter); bash sed-mutation
 # is the fallback for environments where cargo-mutants is unavailable or does not
 # support individual call-site targeting.
 #
 # BC traces:
-#   BC-3.08.001 v1.5 — async-semantics event types, production caller obligation
-#   VP-079 v1.7 Property 6 — production-path emission counter-proof
+#   BC-3.08.001 v1.7 — async-semantics event types, production caller obligation
+#   VP-079 v1.11 Property 6 — production-path emission counter-proof
 #   S-15.01 v1.7 — F5 pass-1 fix (F-P1-002)
 #   DI-019 — ASYNC_DRAIN_WINDOW_MS (referenced by name; do NOT hardcode 100)
 
@@ -86,11 +87,14 @@ run_scenarios_1_to_5() {
 }
 
 # ---------------------------------------------------------------------------
-# Sed-mutation helper: comment out all lines matching a function call pattern
+# Sed-mutation helper: comment out lines matching a function call pattern
 # in main.rs, rebuild, run Scenarios 1-5, restore, rebuild clean.
 #
 # $1 = unique function name pattern (e.g. "emit_dispatcher_schema_mismatch")
 # $2 = human-readable site label for error messages
+# $3 = (optional) line-range address for sed (e.g. "162,162") — use when the
+#      function name appears at multiple call sites and only a specific line
+#      should be mutated. When omitted, the whole-file pattern match is used.
 #
 # Returns:
 #   0 = mutation was CAUGHT (at least one scenario failed — expected behavior)
@@ -100,6 +104,7 @@ run_scenarios_1_to_5() {
 mutate_and_verify_caught() {
     local fn_pattern="$1"
     local site_label="$2"
+    local line_range="${3:-}"  # optional: restrict mutation to a specific line range
     local main_rs="$SRC_ROOT/crates/factory-dispatcher/src/main.rs"
 
     # Confirm the pattern exists in main.rs before attempting mutation.
@@ -117,7 +122,13 @@ mutate_and_verify_caught() {
     cp "$main_rs" "$bak"
     # Comment out only lines that contain a call to the function (lines with the pattern
     # followed by an opening paren, indicating a call expression not a use/import).
-    sed -i.tmp "/${fn_pattern}(/s/^/\/\/ MUTANT-SUPPRESSED: /" "$main_rs"
+    # When line_range is provided, restrict the substitution to that address range so
+    # co-named call sites at other lines are not conflated.
+    if [ -n "$line_range" ]; then
+        sed -i.tmp "${line_range}{ /${fn_pattern}(/s/^/\/\/ MUTANT-SUPPRESSED: / }" "$main_rs"
+    else
+        sed -i.tmp "/${fn_pattern}(/s/^/\/\/ MUTANT-SUPPRESSED: /" "$main_rs"
+    fi
     rm -f "${main_rs}.tmp"
 
     # Rebuild with mutation applied (dev profile for speed).
@@ -189,19 +200,20 @@ mutate_and_verify_caught() {
 # Property 6: removing this call must cause Scenario 3 (registry_invalid) to fail.
 # ---------------------------------------------------------------------------
 
-@test "VP-079 S6/SITE_2: removing emit_dispatcher_registry_invalid causes at least one scenario to fail" {
+@test "VP-079 S6/SITE_2: removing emit_dispatcher_registry_invalid at line 142 (E-REG-002) breaks at least one Scenario" {
     require_scenario6_enabled
     require_dispatcher_source
     require_cargo_build_ok
 
     mutate_and_verify_caught \
         "emit_dispatcher_registry_invalid" \
-        "SITE_2 (async+block invariant violation path, ~main.rs:142)"
+        "SITE_2: AsyncBlockConflict/E-REG-002 path (main.rs:142)" \
+        "142,142"
 
     local result=$?
     [ "$result" -ne 1 ] || {
-        echo "FAIL: emit_dispatcher_registry_invalid removed but all Scenarios 1-5 passed."
-        echo "      VP-079 Scenario 3 must fail when registry_invalid emit is suppressed."
+        echo "FAIL: emit_dispatcher_registry_invalid (line 142) removed but all Scenarios 1-5 passed."
+        echo "      VP-079 Scenario 3 must fail when registry_invalid emit (E-REG-002) is suppressed."
         return 1
     }
 }
@@ -248,6 +260,32 @@ mutate_and_verify_caught() {
     [ "$result" -ne 1 ] || {
         echo "FAIL: emit_plugin_timeout_async removed but all Scenarios 1-5 passed."
         echo "      VP-079 Scenario 4 must fail when plugin_timeout_async emit is suppressed."
+        return 1
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Scenario 6, Site 5: emit_dispatcher_registry_invalid (E-REG-003 / DuplicateEntry)
+#
+# Property 6: removing this call at line 162 must cause at least one Scenario to fail.
+# This site shares the function name with SITE_2 (line 142); the line-range argument
+# disambiguates the mutation so only the DuplicateEntry path is suppressed.
+# ---------------------------------------------------------------------------
+
+@test "VP-079 S6/SITE_5: removing emit_dispatcher_registry_invalid at line 162 (E-REG-003) breaks at least one Scenario" {
+    require_scenario6_enabled
+    require_dispatcher_source
+    require_cargo_build_ok
+
+    mutate_and_verify_caught \
+        "emit_dispatcher_registry_invalid" \
+        "SITE_5: DuplicateEntry/E-REG-003 path (main.rs:162)" \
+        "162,162"
+
+    local result=$?
+    [ "$result" -ne 1 ] || {
+        echo "FAIL: emit_dispatcher_registry_invalid (line 162) removed but all Scenarios 1-5 passed."
+        echo "      VP-079 must fail when registry_invalid emit (E-REG-003 / DuplicateEntry) is suppressed."
         return 1
     }
 }
