@@ -2,15 +2,22 @@
 //!
 //! Enforces TD-VSDD-091 stable-anchor convention for spec files under
 //! `.factory/specs/**/*.md`. Blocks writes whose body text contains volatile
-//! `*.<ext>:NNN` line-cite patterns (e.g., `main.rs:416`, `setup.bats:42`,
-//! `Cargo.toml:17`, `install.sh:99`).
+//! `*.<ext>:NNN` line-cite patterns for SOURCE-CODE and CONFIG files only
+//! (e.g., `main.rs:416`, `setup.bats:42`, `Cargo.toml:17`, `install.sh:99`).
+//!
+//! Markdown cross-document references (`.md:NNN`) are a DISTINCT concern —
+//! they are spec cross-links handled by heading-anchor conventions, NOT in
+//! scope for this hook. Only extensions in `SOURCE_FILE_EXTENSIONS` are flagged.
 //!
 //! # Rationale
 //!
 //! TD-031 (escalated P2→P1, fix-burst-15, O-P16-001) documents a recurrent
 //! convergence loop: the same fix-bursts that codify TD-031 introduce new
 //! TD-031 violations because there was no mechanical enforcement. This hook
-//! breaks the loop by blocking `*.<ext>:NNN` patterns at write time.
+//! breaks the loop by blocking source-code/config/test file `*.<ext>:NNN`
+//! patterns at write time. The allowlist keeps the hook narrowly scoped:
+//! `.md:NNN` cross-document citations, `.html:NNN`, `.txt:NNN`, and other
+//! doc/markup references are excluded — they are a separate governance concern.
 //!
 //! # Exemption zones
 //!
@@ -58,32 +65,72 @@ pub const HOST_ABI_VERSION: u32 = 1;
 
 /// Human-readable description of the source-file line-cite pattern.
 ///
-/// Matches `<word_char>.<1-8 lowercase letters>:<digit>` — any
-/// `*.<ext>:NNN` cite where `<ext>` is a source, config, or test file
-/// extension (rs, sh, py, go, ts, js, md, toml, yaml, yml, bats, json, …).
+/// Matches `<word_char>.<ext>:<digit>` where `<ext>` is a member of the
+/// `SOURCE_FILE_EXTENSIONS` allowlist (rs, toml, sh, py, ts, go, bats, yaml,
+/// lobster, etc.).
 ///
-/// Rationale for broad match (not just `.rs`): TD-VSDD-091 bars ALL volatile
-/// source-file line citations, not only Rust. Known offenders in the spec
-/// corpus include `.bats:NNN-NNN` (F-P17-003), `.toml:NNN`, `.sh:NNN`.
-/// Locking the lint to a single extension would recreate the recurrence gap.
-pub const SOURCE_LINE_CITE_PATTERN: &str =
-    ".<ext>:NNN (word_char before dot; 1-8 lowercase letters; digit after colon; not a URL)";
+/// Markdown cross-document references (`.md:NNN`) are a DISTINCT concern:
+/// they are cross-spec heading-anchor citations handled by a separate convention
+/// and are NOT in scope for this hook. Only source-code, config, and test file
+/// extensions are checked.
+pub const SOURCE_LINE_CITE_PATTERN: &str = ".<ext>:NNN (word_char before dot; ext in SOURCE_FILE_EXTENSIONS allowlist; digit after colon; not a URL)";
 
-/// Check whether `line` contains a volatile source-file line citation starting
-/// at byte position `dot_pos` (the position of the `.` in `.<ext>:`).
+/// Allowlist of source-code, config, and test file extensions that constitute
+/// a volatile line citation when followed by `:<digit>` in spec body text.
+///
+/// This is an explicit allowlist, NOT a pattern match on "any lowercase letters".
+/// Markdown (`.md`), HTML (`.html`), plain text (`.txt`), and other doc/markup
+/// extensions are deliberately excluded: markdown cross-document references
+/// (e.g., `BC-3.08.001.md:123`) are a distinct concern governed by heading-anchor
+/// conventions and are NOT in scope for TD-VSDD-091 enforcement.
+///
+/// To add a new source-code extension, append it here.
+pub const SOURCE_FILE_EXTENSIONS: &[&[u8]] = &[
+    b"rs",      // Rust
+    b"toml",    // TOML config
+    b"sh",      // Shell scripts
+    b"bash",    // Bash scripts
+    b"py",      // Python
+    b"ts",      // TypeScript
+    b"tsx",     // TypeScript JSX
+    b"js",      // JavaScript
+    b"jsx",     // JavaScript JSX
+    b"go",      // Go
+    b"bats",    // Bats test scripts
+    b"yaml",    // YAML config
+    b"yml",     // YAML config (short)
+    b"json",    // JSON config
+    b"lock",    // Cargo.lock
+    b"lobster", // VSDD workflow files
+    b"wasm",    // WASM binaries
+    b"c",       // C source
+    b"cpp",     // C++ source
+    b"h",       // C/C++ header
+    b"hpp",     // C++ header
+    b"rb",      // Ruby
+];
+
+/// Check whether `line` contains a volatile source-code/config/test file line
+/// citation starting at byte position `dot_pos` (the position of the `.` in
+/// `.<ext>:`).
 ///
 /// Returns `true` if the sequence at `line[dot_pos..]` matches:
 ///
 /// ```text
-/// <word_char> . <1-8 lowercase ASCII letters> : <ASCII digit>
+/// <word_char> . <ext> : <ASCII digit>
 /// ```
 ///
-/// where `<word_char>` is the character immediately before the dot, AND the
-/// three bytes before the dot are NOT `://` (URL exclusion guard).
+/// where `<ext>` is a member of `SOURCE_FILE_EXTENSIONS`, `<word_char>` is the
+/// character immediately before the dot, and the URL exclusion guard passes.
+///
+/// Markdown cross-document references (`.md:NNN`) are a DISTINCT class of
+/// citation — they are spec cross-links governed by heading-anchor conventions
+/// and are NOT flagged by this function. Only extensions in
+/// `SOURCE_FILE_EXTENSIONS` are considered volatile source-code line cites.
 ///
 /// This is a pure function: no I/O, no globals.
 pub fn is_source_line_cite(line: &[u8], dot_pos: usize) -> bool {
-    // -- 1. Collect the extension: 1-8 lowercase ASCII letters after the dot --
+    // -- 1. Collect the extension bytes after the dot (up to 8 lowercase ASCII) --
     let after_dot = &line[dot_pos + 1..];
     let ext_len = after_dot
         .iter()
@@ -100,7 +147,15 @@ pub fn is_source_line_cite(line: &[u8], dot_pos: usize) -> bool {
         return false;
     }
 
-    // -- 3. Verify at least one ASCII digit follows ':' --
+    // -- 3. Check the extension against the SOURCE_FILE_EXTENSIONS allowlist --
+    // Markdown (.md), HTML (.html), .txt, and other doc/markup extensions are
+    // NOT in the allowlist and will fall through here, returning false.
+    let ext_bytes = &line[dot_pos + 1..colon_pos];
+    if !SOURCE_FILE_EXTENSIONS.contains(&ext_bytes) {
+        return false;
+    }
+
+    // -- 4. Verify at least one ASCII digit follows ':' --
     let after_colon_pos = colon_pos + 1;
     if !line
         .get(after_colon_pos)
@@ -110,7 +165,7 @@ pub fn is_source_line_cite(line: &[u8], dot_pos: usize) -> bool {
         return false;
     }
 
-    // -- 4. Verify a word character immediately precedes the dot --
+    // -- 5. Verify a word character immediately precedes the dot --
     if dot_pos == 0 {
         return false;
     }
@@ -120,7 +175,7 @@ pub fn is_source_line_cite(line: &[u8], dot_pos: usize) -> bool {
         return false;
     }
 
-    // -- 5. URL exclusion guard: reject if "://" appears anywhere before the dot --
+    // -- 6. URL exclusion guard: reject if "://" appears anywhere before the dot --
     // e.g. `https://example.com:8080` or `http://localhost.dev:3000` — the dot
     // is in a hostname and the scheme indicator "://" appears before it.
     // We scan the entire prefix before dot_pos (bounded by the line start).
@@ -132,10 +187,14 @@ pub fn is_source_line_cite(line: &[u8], dot_pos: usize) -> bool {
     true
 }
 
-/// Scan a single line for `*.<ext>:NNN` volatile source-file line-cite patterns.
+/// Scan a single line for volatile source-code/config/test file line citations.
 ///
-/// Detects any `<word_char>.<1-8 lowercase letters>:<digit>` sequence.
-/// Returns `true` if at least one such pattern is found.
+/// Detects `<word_char>.<ext>:<digit>` sequences where `<ext>` is in the
+/// `SOURCE_FILE_EXTENSIONS` allowlist. Markdown (`.md:NNN`), HTML, plain text,
+/// and other doc/markup extensions are NOT detected — they are out of scope for
+/// TD-VSDD-091 enforcement.
+///
+/// Returns `true` if at least one matching pattern is found.
 /// This is a pure function.
 pub fn scan_line(line: &str) -> bool {
     let bytes = line.as_bytes();
@@ -318,10 +377,18 @@ where
 ///
 /// Graceful degrade: file unreadable → Continue + log_warn (don't block on I/O error).
 ///
+/// # Scope
+///
+/// Only source-code/config/test file line citations are in scope (extensions in
+/// `SOURCE_FILE_EXTENSIONS`). Markdown cross-document references (`.md:NNN`) are
+/// a DISTINCT concern — they use heading-anchor conventions and are NOT blocked
+/// by this hook.
+///
 /// # Error codes
 ///
 /// - `TD_031_STABLE_ANCHOR_VIOLATION`: spec body text contains `*.<ext>:NNN` line cite
-///   (any source, config, or test file extension).
+///   where `<ext>` is in the `SOURCE_FILE_EXTENSIONS` allowlist (rs, toml, sh,
+///   py, ts, go, bats, yaml, lobster, etc.). Markdown `.md:NNN` is excluded.
 pub fn hook_logic<R, E, L>(
     payload: HookPayload,
     mut callbacks: HookCallbacks<R, E, L>,
@@ -412,12 +479,13 @@ where
             return HookResult::block_with_fix(
                 "validate-stable-anchors",
                 format!(
-                    "TD-031 violation in new_string for '{}': `*.<ext>:NNN` volatile line cites found. {}",
+                    "TD-031 violation in new_string for '{}': source-code/config/test file `*.<ext>:NNN` volatile line cites found (ext in allowlist: rs, toml, sh, py, ts, go, bats, yaml, lobster, …). {}",
                     file_path, violation_list
                 ),
                 "Replace `*.<ext>:NNN` line citations with stable symbol anchors per TD-VSDD-091. \
                  Example: instead of `main.rs:416`, use the function name `emit_plugin_async_block_discarded` \
                  or qualified path `factory_dispatcher::main::run`. \
+                 Markdown cross-document references (`.md:NNN`) are out of scope. \
                  Amendment/Changelog sections and VP-079 Scenario 6 SITES arrays are exempt.",
                 "TD_031_STABLE_ANCHOR_VIOLATION",
             );
@@ -479,12 +547,13 @@ where
             return HookResult::block_with_fix(
                 "validate-stable-anchors",
                 format!(
-                    "TD-031 violation in '{}' ({}): `*.<ext>:NNN` volatile line cites found. {}",
+                    "TD-031 violation in '{}' ({}): source-code/config/test file `*.<ext>:NNN` volatile line cites found (ext in allowlist: rs, toml, sh, py, ts, go, bats, yaml, lobster, …). {}",
                     file_path, label, violation_list
                 ),
                 "Replace `*.<ext>:NNN` line citations with stable symbol anchors per TD-VSDD-091. \
                  Example: instead of `main.rs:416`, use the function name `emit_plugin_async_block_discarded` \
                  or qualified path `factory_dispatcher::main::run`. \
+                 Markdown cross-document references (`.md:NNN`) are out of scope. \
                  Amendment/Changelog sections and VP-079 Scenario 6 SITES arrays are exempt.",
                 "TD_031_STABLE_ANCHOR_VIOLATION",
             );

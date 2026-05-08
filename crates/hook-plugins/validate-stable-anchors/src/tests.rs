@@ -5,7 +5,8 @@
 //! applicable. Since TD-031 has no BC yet, tests use test_TD031_xxx naming.
 //!
 //! # Coverage areas
-//! - scan_line: detects `*.<ext>:NNN` patterns, ignores non-matching lines
+//! - scan_line: detects `*.<ext>:NNN` patterns for SOURCE_FILE_EXTENSIONS only
+//! - scan_line: does NOT flag markdown (.md), html, txt (out of scope)
 //! - scan_spec: exemption zones (Amendment, Changelog, SITES fence)
 //! - is_spec_target: only `.factory/specs/**/*.md` targeted
 //! - hook_logic: end-to-end with injectable callbacks
@@ -628,10 +629,39 @@ fn test_TD031_scan_line_detects_sh_colon_nnn() {
 }
 
 #[test]
-fn test_TD031_scan_line_detects_md_colon_nnn() {
+fn test_TD031_scan_line_no_match_for_md_extension() {
+    // Markdown cross-document references (`.md:NNN`) are out of scope for
+    // TD-VSDD-091. They are handled by heading-anchor conventions, not this hook.
     assert!(
-        scan_line("Cross-spec citation: `ARCHITECTURE.md:55`."),
-        "scan_line must detect ARCHITECTURE.md:55 (.md extension)"
+        !scan_line("Cross-spec citation: `BC-3.08.001.md:123` is a heading anchor ref."),
+        "scan_line must NOT flag .md:NNN (markdown cross-doc refs are out of scope)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_no_match_for_html_extension() {
+    // HTML files are doc/markup, not source-code — excluded from allowlist.
+    assert!(
+        !scan_line("See `index.html:42` for the rendered output."),
+        "scan_line must NOT flag .html:NNN (html is not in SOURCE_FILE_EXTENSIONS)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_no_match_for_txt_extension() {
+    // Plain text files are doc, not source-code — excluded from allowlist.
+    assert!(
+        !scan_line("Reference notes.txt:5 for the meeting summary."),
+        "scan_line must NOT flag .txt:NNN (txt is not in SOURCE_FILE_EXTENSIONS)"
+    );
+}
+
+#[test]
+fn test_TD031_scan_line_detects_lobster_colon_nnn() {
+    // .lobster is a VSDD workflow file extension — included in the allowlist.
+    assert!(
+        scan_line("Workflow step at `pipeline.lobster:18` needs updating."),
+        "scan_line must detect .lobster:NNN (.lobster is in SOURCE_FILE_EXTENSIONS)"
     );
 }
 

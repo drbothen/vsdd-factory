@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-description = "WASM hook plugin: enforces TD-VSDD-091 stable-anchor convention — blocks spec body text containing volatile source-file line citations (`*.<ext>:NNN` where ext is any source/config/test file extension). Initial driver: TD-031 (P1)."
+description = "WASM hook plugin: enforces TD-VSDD-091 stable-anchor convention — blocks spec body text containing volatile source-code/config/test file line citations (`*.<ext>:NNN` where ext is in source-file allowlist: rs, toml, sh, py, ts, go, bats, yaml, lobster, etc.). Markdown cross-document references are out of scope. Initial driver: TD-031 (P1)."
 publish = false
 
 # Hook plugins ship as WASI commands (_start entry point) built via
