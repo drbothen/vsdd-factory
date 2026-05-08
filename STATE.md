@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (F3 CONVERGENCE_REACHED close burst — S-15.01 v1.5→v1.6 status draft→ready; pass-5 zero findings; ADR-013 clock 3_of_3; F4 TDD dispatch next) |
-| **Current Phase** | F4 TDD IMPLEMENTATION PENDING — v1.0-feature-plugin-async-semantics-pass-1; S-15.01 v1.6 ready; F3 CONVERGED (5 passes + 4 fix bursts; trajectory 9→3→3→1→0) |
+| **Last Updated** | 2026-05-08 (F4 TDD COMPLETE — S-15.01 merged to develop at 453eee1; PR #106 squash-merged; F5 adversarial pending) |
+| **Current Phase** | F5 ADVERSARIAL PENDING — v1.0-feature-plugin-async-semantics-pass-1; S-15.01 MERGED; F4 IMPLEMENTATION COMPLETE (PR #106 @ 453eee1; 9 tasks + fix commit 60e1162) |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F3 CONVERGED; F4 PENDING** | F3: S-15.01 v1.6 ready (pass-5 NITPICK_ONLY NIT-0; CONVERGENCE_REACHED 3_of_3 2026-05-07). F3 trajectory: 9→3→3→1→0; 5 passes + 4 fix bursts. F2 trajectory 19→19→7→6→3→5→4→1→2→1. F4 TDD dispatch pending. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F4 COMPLETE; F5 PENDING** | S-15.01 MERGED via PR #106 at 453eee1 (2026-05-08). 9 tasks (T-3a..T-3i) + fix commit 60e1162 (BC-3.08.001 event wiring). VP-077 Kani 4/4; VP-078 bats 4/4; VP-079 bats 5/5. F5 adversarial refinement next. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -102,6 +102,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **F3 pass-3 NITPICK_ONLY close burst — S-15.01 v1.3 → v1.4** | state-manager | **COMPLETE** | Pass-3 verdict: NITPICK_ONLY (0H/0M/0L/3NIT). ADR-013 clock advances 0→1_of_3. 3 stale version labels refreshed: NIT-P3-001 body BC table BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2; NIT-P3-002 References table VP-078 v1.7→v1.8, VP-079 v1.5→v1.6. Lesson captured (NIT-P3-003): version sync should ride alongside title sync in same fix burst. STORY-INDEX 2.33→2.34. Pass-4 next; two more NITPICK_ONLY = CONVERGENCE_REACHED. |
 | **F3 pass-4 NITPICK_ONLY close burst — S-15.01 v1.4 → v1.5** | state-manager | **COMPLETE** | Pass-4 verdict: NITPICK_ONLY (0H/0M/0L/1NIT). ADR-013 clock advances 1→2_of_3. NIT-P4-001: References table BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2. Sibling completion of pass-3 body BC table fix. STORY-INDEX 2.34→2.35. Pass-5 next (potential convergence pass). ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED. |
 | **F3 CONVERGENCE_REACHED close burst — S-15.01 v1.5 → v1.6** | state-manager | **COMPLETE** | Pass-5 verdict: NITPICK_ONLY (0H/0M/0L/0NIT). ADR-013 clock advances 2→3_of_3. CONVERGENCE_REACHED. Status flipped draft→ready. STORY-INDEX 2.35→2.36. F3 trajectory: 9→3→3→1→0; 5 passes + 4 fix bursts. F4 TDD dispatch next. |
+| **F4 TDD IMPLEMENTATION COMPLETE — S-15.01 MERGED** | pr-manager | **COMPLETE** | PR #106 squash-merged at 453eee1 (2026-05-08). 9 tasks (T-3a..T-3i) + demo evidence + clippy/fmt clean + fix commit 60e1162 (BC-3.08.001 event wiring into dispatch path — 4 emit functions were defined but uncalled; VP-078 H3/H4 and VP-079 S1-S4 now PASS). Review cycle 1: 2 blocking findings (BLOCKING-1 registry exit-0 instead of exit-2; BLOCKING-2 emit functions uncalled) → both fixed. Final: VP-077 Kani 4/4, VP-078 bats 4/4, VP-079 bats 5/5, Rust 0 failures. F5 adversarial refinement NEXT (separate dispatch required). |
 
 ## Identifier Conventions
 
