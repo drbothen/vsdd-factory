@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-10 COMPLETE — verdict HIGH (1H/1M/3L/0NIT). F-P10-001 reveals LEGACY violation string in WASM lint plugin (live production code). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2. Fix-burst-9 dispatching: lint plugin fix + WASM rebuild + VP-079 line cite refresh + BC-3.08.001 phase fix + TD-030 codification."
+current_step: "F5 fix-burst-9 COMPLETE — F-P10-001 (HIGH) lint plugin canonical violation string fixed (WASM rebuilt) + F-P10-002 (M) VP-079 v1.11 line cite refresh + O-P10-001/002 LOW frontmatter cleanups + TD-030 codification. Branch fix/S-15.01-F5-convergence at f7faad3 (20 commits ahead). PR remains held until ADR-013 = 3_of_3. F5 pass-11 dispatch next; targeting NITPICK_ONLY → 1_of_3."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 pass-10 COMPLETE — verdict HIGH (1H/1M/3L/0NIT); F-P10-001 WASM lint plugin canonical string drift (live production); ADR-013 clock 0_of_3; trajectory 17→15→6→5→0→2→5→1→4→2; fix-burst-9 dispatching) |
+| **Last Updated** | 2026-05-08 (F5 fix-burst-9 COMPLETE — F-P10-001 [H] lint plugin canonical string fixed + WASM rebuilt; F-P10-002 [M] VP-079 v1.11 line cites; O-P10-001/002 [L] BC-3.08.001 phase + VP-079 UTC Z; TD-030 codified; branch @ f7faad3 (20 ahead); F5 pass-11 next) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -107,6 +107,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-9 adversary review** | adversary | **COMPLETE** | Verdict: MEDIUM (0H/1M/3L/0NIT). ADR-013 clock 0_of_3 (MEDIUM resets). F-P8-001 CONFIRMED RESOLVED. F-P9-001 [M] BC-7.06.001 line 204 stale sibling note misstates BC-3.08.001 v1.7 completed state. F-P9-002 [L] bats Scenario 3 asserts field presence only, not violation value. F-P9-003 [L] source-code doc-comment BC version-label staleness 4 files / 13 sites. F-P9-004 [L] VP-079 SITES enumeration missing main.rs:162 (5th DuplicateEntry caller). Trajectory: 17→15→6→5→0→2→5→1→4. See `cycles/…/F5-adversary-pass-9.md`. Fix-burst-8 dispatching all 4 findings. |
 | **F5 fix-burst-8 — spec amendments + source sweep + bats S3 assertion** | architect + implementer + test-writer + state-manager | **COMPLETE** | F-P9-001 [M] BC-7.06.001 v1.6→v1.7: stale sibling note replaced with cross-ref to BC-3.08.001 v1.7 completed state; E-REG-002 violation string canonicalized in E-REG-NNN table. F-P9-002 [L] bats Scenario 3 violation field-value assertion added (test-writer commit 6e9efcb). F-P9-003 [L] implementer source-tree doc-comment sweep 38 sites / 9 files — BC-7.06.001 v1.5→v1.6→v1.7 (10 sites); BC-3.08.001 v1.5/v1.6→v1.7 (28 sites) — commit 38b652b; cargo checks clean. F-P9-004 [L] VP-079 v1.9→v1.10: Property 6 + Scenario 6 SITES updated to 5 production callers (main.rs:162 DuplicateEntry/E-REG-003). S-15.01 v1.13→v1.14 (body propagation). S-15.02 v1.4→v1.5 (frontmatter). Indexes: BC-INDEX v1.35→v1.36; VP-INDEX v1.20→v1.21; STORY-INDEX v2.43→v2.44. Branch fix/S-15.01-F5-convergence @ 6e9efcb (19 commits ahead). PR held until ADR-013 = 3_of_3. |
 | **F5 pass-10 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (1H/1M/3L/0NIT). ADR-013 clock 0_of_3 (HIGH resets chain). All 4 pass-9 findings CONFIRMED RESOLVED. F-P10-001 [H] WASM lint plugin lib.rs:176 emits LEGACY `on_error_block_with_async_true` instead of canonical `async_block_conflict` (wire-format divergence; live production plugin; F-P9-003 version-label sweep did not cover enum string values — process gap). F-P10-002 [M] VP-079 v1.10 SITE_3/SITE_4 line cites stale by ~22 lines (EC-012 refactor shift; F-P9-004 added SITE_5 but did not re-verify siblings). O-P10-001 [L] BC-3.08.001 frontmatter phase: F8 anomalous (recommend F2). O-P10-002 [L] VP-079 timestamp missing UTC Z suffix. O-P10-003 [process-gap] canonical-string sweeps need separate discipline from version-label sweeps (recommend TD-030). Trajectory: 17→15→6→5→0→2→5→1→4→2. Fix-burst-9 dispatching. See `cycles/…/F5-adversary-pass-10.md`. |
+| **F5 fix-burst-9 — canonical string + VP-079 cite refresh + TD-030** | implementer + architect + state-manager | **COMPLETE** | F-P10-001 [H] lint plugin `lib.rs:176` violation string corrected `on_error_block_with_async_true` → `async_block_conflict` + WASM artifact rebuilt + new unit test (implementer commit f7faad3). F-P10-002 [M] VP-079 v1.10→v1.11: SITE_3 main.rs:394→416, SITE_4 main.rs:405→427 line cite refresh (EC-012 shift). O-P10-001 [L] BC-3.08.001 frontmatter phase F8→F2 (metadata-only; no version bump). O-P10-002 [L] VP-079 frontmatter timestamp UTC Z suffix added. TD-030 codified: canonical-string sweeps need separate checklist from version-label sweeps (O-P10-003). VP-INDEX v1.21→v1.22. factory-artifacts this commit. Branch fix/S-15.01-F5-convergence @ f7faad3 (20 commits ahead). F5 pass-11 dispatch next. |
 
 ## Identifier Conventions
 
@@ -148,7 +149,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-10 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..10 complete. Pass-10 verdict: HIGH (1H/1M/3L/0NIT). F-P10-001 [H] WASM lint plugin canonical string drift (live production code). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2. Fix-burst-9 dispatching: lint plugin fix + WASM rebuild + VP-079 cite refresh + BC-3.08.001 phase fix + TD-030. PR held until ADR-013 = 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-9 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..10 + fix-burst-9 complete. F-P10-001 [H] lint plugin canonical string fixed (WASM rebuilt, f7faad3). F-P10-002 [M] VP-079 v1.11. O-P10-001/002 [L] cleanups. TD-030 codified. ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2. PR held until ADR-013 = 3_of_3. F5 pass-11 next. |
 
 ## Decisions Log
 
@@ -172,18 +173,18 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 pass-10 COMPLETE. Verdict: HIGH (1H/1M/3L/0NIT). All 4 pass-9 findings confirmed resolved. F-P10-001 [H] WASM lint plugin crates/hook-plugins/lint-registry-async-invariant/src/lib.rs:176 emits LEGACY violation string `on_error_block_with_async_true` instead of canonical `async_block_conflict` — live production plugin registered at hooks-registry.toml:957-967 (PostToolUse + Edit|Write + on_error=block + priority=160); sink consumers will reject as schema violation per BC-3.08.001 v1.7; F-P9-003 sweep targeted version labels not enum string values (process gap → TD-030). F-P10-002 [M] VP-079 v1.10 SITE_3/SITE_4 line cites stale by ~22 lines (EC-012 refactor shift; F-P9-004 added SITE_5 but did not re-verify siblings). O-P10-001 [L] BC-3.08.001 phase: F8 anomalous (recommend F2). O-P10-002 [L] VP-079 timestamp missing UTC Z. ADR-013 clock 0_of_3 (HIGH resets chain). Trajectory: 17→15→6→5→0→2→5→1→4→2.
+**Last update:** 2026-05-08 — F5 fix-burst-9 COMPLETE. F-P10-001 [H] WASM lint plugin `crates/hook-plugins/lint-registry-async-invariant/src/lib.rs:176` violation string corrected `on_error_block_with_async_true` → `async_block_conflict` + WASM rebuilt + unit test added (implementer f7faad3). F-P10-002 [M] VP-079 v1.10→v1.11: SITE_3 main.rs:394→416, SITE_4 main.rs:405→427 post-EC-012-refactor line cite refresh. O-P10-001 [L] BC-3.08.001 frontmatter phase F8→F2 (metadata-only; no version bump). O-P10-002 [L] VP-079 frontmatter timestamp UTC Z suffix added. TD-030 codified in tech-debt-register: canonical-string sweeps need separate discipline from version-label sweeps (O-P10-003). VP-INDEX v1.21→v1.22. ADR-013 clock 0_of_3 (HIGH resets chain). Trajectory: 17→15→6→5→0→2→5→1→4→2.
 
-**ACTIVE STEP: Fix-burst-9 dispatching — lint plugin fix + WASM rebuild + VP-079 SITE_3/SITE_4 line cite refresh + BC-3.08.001 phase fix + TD-030 codification. PR held until ADR-013 = 3_of_3.**
+**ACTIVE STEP: F5 pass-11 dispatch — targeting NITPICK_ONLY to advance ADR-013 → 1_of_3. PR held until ADR-013 = 3_of_3.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 6e9efcb — long-lived; 19 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ f7faad3 — long-lived; 20 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this burst — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.36 | VP-INDEX v1.21 | STORY-INDEX v2.44 | ARCH-INDEX v1.22
-**ADR-013 clock:** **0_of_3** (RESET — pass-6/7/8/9 each MEDIUM; 3 NITPICK_ONLY required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.36 | VP-INDEX v1.22 | STORY-INDEX v2.44 | ARCH-INDEX v1.22
+**ADR-013 clock:** **0_of_3** (RESET — pass-6/7/8/9/10 each MEDIUM/HIGH; 3 NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931); finding trend 22→11→16→16→12→2→1→4
