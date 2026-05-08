@@ -815,3 +815,37 @@ Byte-for-byte grep verification applied per pass-5/6 cycle lessons (TD-VSDD-058/
 F3 PASS-1 FIX BURST CLOSED. ADR-013 clock 0_of_3. Awaiting F3 adversary pass-2.
 
 ---
+
+## Burst 3 — F3 Pass-2 Fix Burst: Option C → Option A (WASM-migration directive) (2026-05-07)
+
+**Agents:** story-writer + architect (investigation) + state-manager
+**Trigger:** F3 adversary pass-2 returned SUBSTANTIVE; architect investigated F-P2-001 (F-P2-001-mechanism-investigation.md). User intervened: "we are migrating to WASM, any new plugins need to use WASM." Option C (bash via legacy-bash-adapter) invalidated.
+**Story version:** S-15.01 v1.1 → v1.3
+
+### Findings addressed
+
+| ID | Severity | Finding | Resolution |
+|----|----------|---------|------------|
+| F-P2-001 | HIGH | CI lint mechanism underspecified (bash vs WASM unclear) | Option A: native WASM plugin (Rust crate at `crates/hook-plugins/lint-registry-async-invariant/`, `.wasm` artifact, registered in `hooks-registry.toml` with `plugin=` field, NOT `legacy-bash-adapter`). S-15.01 v1.1→v1.2. |
+| F-P2-002 | MED | File list stale after mechanism change | 30-path file list updated in S-15.01 tasks. v1.2→v1.3 (editorial). |
+| F-P2-003 | LOW | BC-7.06.001 PostToolUse Edit|Write wording imprecise | Postcondition 7 + Invariant 5 Layer 1: "Pre-commit hook fails commit" → "Claude Code PostToolUse Edit|Write hook blocks tool call before edit lands". BC-7.06.001 v1.2→v1.3. |
+
+### Artifacts touched
+
+- `.factory/stories/S-15.01-plugin-async-semantics.md` — v1.1 → v1.3
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.06.001.md` — v1.2 → v1.3
+- `.factory/stories/STORY-INDEX.md` — v2.32 → v2.33 (S-15.01 row updated to v1.3)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v1.28 → v1.29 (BC-7.06.001 v1.3 changelog entry)
+- `.factory/STATE.md` — current_step, phase progress, concurrent cycles, session checkpoint updated
+- `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` — this entry appended
+- `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F-P2-001-mechanism-investigation.md` — architect investigation report (untracked → committed)
+
+### Side flag
+
+BC-9.01.006 line 61 has similar pre-commit wording — clarification candidate but not blocking (noted in commit message).
+
+### Status
+
+F3 PASS-2 FIX BURST CLOSED. ADR-013 clock 0_of_3. Awaiting F3 adversary pass-3.
+
+---

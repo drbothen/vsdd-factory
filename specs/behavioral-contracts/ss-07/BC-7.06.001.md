@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -54,11 +54,11 @@ removal_reason: null
 
 6. **Lint invariant (CI)**: VP-078 is a CI integration test that scans `hooks-registry.toml` and asserts no entry has both `on_error = "block"` and `async = true`. CI fails if this invariant is violated. This prevents future regressions where a new plugin is added with conflicting classification.
 
-7. **Lint invariant (pre-commit)**: A pre-commit hook scans `hooks-registry.toml` for the `on_error = "block"` ⇒ `async = false` invariant. Violations fail the commit. This is the first defense layer — it catches violations before they reach CI. Pre-commit, registry-load-time, and CI-PR are the three defense layers per ADR-019 §Decision 4.
+7. **Lint invariant (edit-time)**: A Claude Code PostToolUse Edit|Write hook scans `hooks-registry.toml` for the `on_error = "block"` ⇒ `async = false` invariant. On violation, the hook returns `block_intent = true` and the tool call exits with code 2, blocking the edit before it lands in the working tree. This is the first defense layer — it catches violations at edit time, before any git commit attempt. Edit-time, registry-load-time, and CI-PR are the three defense layers per ADR-019 §Decision 4. Note: ADR-019 §Decision 4 describes this layer as "pre-commit hook" using that term generically (meaning "fires before any commit attempt is finalized"); the actual technical mechanism is the Claude Code PostToolUse Edit|Write hook lifecycle, which enforces the invariant even earlier — at the moment of file edit.
 
 ## Invariants
 
-1. **`on_error = "block"` implies `async = false`**: An entry with `on_error = "block"` and `async = true` simultaneously is structurally invalid. Enforcement is at registry-load time (hard error `E-REG-002`), pre-commit (Invariant 5 layer 1), and CI (VP-078 layer 3). This invariant exists because a blocking plugin that is classified async would have its block verdict silently discarded by the dispatcher's fire-and-forget execution model.
+1. **`on_error = "block"` implies `async = false`**: An entry with `on_error = "block"` and `async = true` simultaneously is structurally invalid. Enforcement is at registry-load time (hard error `E-REG-002`), edit-time PostToolUse hook (Invariant 5 layer 1), and CI (VP-078 layer 3). This invariant exists because a blocking plugin that is classified async would have its block verdict silently discarded by the dispatcher's fire-and-forget execution model.
 
 2. **`async` field absence is equivalent to `async = false`**: The field is optional with a `serde(default)` of `false`. This means all legacy entries (authored before schema v2) are implicitly sync. No registry edit is required for plugins that should remain synchronous.
 
@@ -67,7 +67,7 @@ removal_reason: null
 4. **Per-plugin `async` field does not affect the Claude Code envelope**: The envelope (hooks.json.template and per-platform variants) is uniformly synchronous per ADR-019. The `async` field in the registry is the dispatcher's internal classification; it has no representation in `hooks.json`. The Claude Code harness never sees per-plugin async flags.
 
 5. **Three-layer defense in depth for `on_error=block ⇒ async=false`**: The invariant is enforced at three independent layers:
-   - **Layer 1 (pre-commit)**: Pre-commit hook scans `hooks-registry.toml`; fails commit on violation. Developer learns before CI.
+   - **Layer 1 (edit-time)**: Claude Code PostToolUse Edit|Write hook scans `hooks-registry.toml`; on violation returns `block_intent = true` and exits code 2, blocking the tool call before the edit lands in the working tree. Conceptually "pre-commit" enforcement (per ADR-019 §Decision 4 which uses "pre-commit hook" generically); technically the Claude Code PostToolUse Edit|Write hook lifecycle — fires even earlier than git pre-commit. Developer learns at edit time, before CI.
    - **Layer 2 (registry-load-time)**: `registry.rs::validate()` hard-errors with `E-REG-002` if invariant is violated; dispatcher refuses to start.
    - **Layer 3 (CI-PR)**: VP-078 integration test scans the registry file; CI fails before merge.
    Per ADR-019 §Decision 4. Missing any single layer is a spec violation.
@@ -171,6 +171,22 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-07 (v1.2 → v1.3 — F3 pass-2 fix burst follow-up)
+
+Addresses F3 adversarial pass-2 finding: Postcondition 7 and Invariant 5 Layer 1 described a "pre-commit hook ... fails commit" mechanism that implied a Git `.git/hooks/pre-commit` file. The actual Layer 1 mechanism is a **Claude Code PostToolUse Edit|Write hook** registered in `hooks-registry.toml` that blocks the tool call at edit time (returning `block_intent = true`, exit code 2), before the edit lands in the working tree.
+
+**Original wording implied:** Git pre-commit hook (`.git/hooks/pre-commit` or lefthook) that fails a commit.
+
+**Actual mechanism:** Claude Code PostToolUse Edit|Write hook (same lifecycle as existing block-mode hooks in `hooks-registry.toml`, e.g., `validate-template-compliance`, `validate-factory-path-root`, `brownfield-discipline`). These hooks fire on every Edit or Write tool call and can block the tool call before any file change occurs.
+
+**Conceptual intent preserved:** The intent of "catches violations before they reach CI" is identical — PostToolUse Edit|Write enforcement is even earlier than git pre-commit, blocking edits before they reach git's working tree at all. ADR-019 §Decision 4 uses "pre-commit hook" as a generic term for "fires before any commit attempt is finalized"; Postcondition 7 and Invariant 5 Layer 1 now reflect the correct technical mechanism.
+
+**WASM migration note:** Per user decision 2026-05-07, new plugins must be implemented as native WASM plugins. The lint plugin for this invariant will be implemented as a WASM plugin registered as PostToolUse Edit|Write with `on_error = "block"` — the same registration pattern as legacy bash block-mode hooks, but using native WASM instead of the legacy-bash-adapter.
+
+**Changes:** Postcondition 7 rewritten; Invariant 1 citation updated from "pre-commit" to "edit-time PostToolUse hook"; Invariant 5 Layer 1 bullet rewritten with full mechanism description and ADR-019 terminology note.
+
+**ADR-019 §Decision 4 status:** ADR-019 uses "pre-commit hook" as a generic/conceptual label. The ADR does NOT require Git-native pre-commit hooks — it describes the intent (defense before CI) and defers to the implementation. No ADR-019 amendment is needed; the ADR's conceptual intent is fulfilled by the Claude Code PostToolUse Edit|Write hook mechanism.
 
 ## Amendment 2026-05-07 (v1.2 — F2 pass-2 fix burst)
 

@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.28"
+version: "1.29"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F3 pass-2 fix burst close (2026-05-07) — BC-7.06.001 v1.2→v1.3 (PostToolUse Edit|Write wording; Postcondition 7 + Invariant 5 Layer 1 updated: 'Pre-commit hook fails commit' → 'Claude Code PostToolUse Edit|Write hook blocks tool call before edit lands'). ADR-019 verified clean. No count change. BC-INDEX v1.28→v1.29. last_amended: 2026-05-07 (F3 pass-2 fix burst: BC-7.06.001 v1.3; PostToolUse Edit|Write wording; Option A native WASM plugin per user WASM-migration directive)."
   - date: 2026-05-07
     change: "F3 story decomposition close (2026-05-07) — Stories field updated for 12 BCs to include S-15.01 (5 primary: BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001; 7 secondary: BC-1.01.001, BC-1.01.007, BC-1.08.002, BC-4.04.004, BC-4.05.004, BC-4.07.003, BC-4.08.002). No count change. BC-INDEX v1.27→v1.28. last_amended: 2026-05-07 (F3 plugin-async-semantics-pass-1 story decomposition: 12 BC Stories fields updated to include S-15.01)."
   - date: 2026-05-07

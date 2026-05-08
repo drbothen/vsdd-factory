@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.32"
+version: "2.33"
 status: current
 producer: state-manager
 timestamp: 2026-05-07T00:00:00Z
-last_amended: "2026-05-07 (v2.32) — F3 pass-1 fix burst closed for S-15.01. 9 findings addressed (4 HIGH POLICY 4/6/7/8 violations + 2 MED + 2 LOW + 1 NIT). S-15.01 v1.0 → v1.1. ADR-013 clock 0_of_3; awaiting F3 adversary pass-2."
+last_amended: "2026-05-07 (v2.33) — F3 pass-2 fix burst closed (Option A native WASM plugin per user WASM-migration directive). S-15.01 v1.2 → v1.3 (F-P2-001 redo: native WASM plugin Rust crate; F-P2-002 file list updated 30 paths; F-P2-003 BC titles unchanged). 3 findings addressed. ADR-013 clock 0_of_3; awaiting F3 adversary pass-3."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -548,7 +548,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-15.01 | Plugin async semantics — full implementation (schema v2 + dispatcher partition + classification + envelope flip + CI lint) | E-15 | 13 | P1 | [] | [] | draft | [BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001] (17 ACs, 25 files, tdd_mode strict; F3 pass-1 fix burst closed 2026-05-07 v1.1; 9 findings addressed 4H/2M/2L/1N; ADR-013 clock 0_of_3; awaiting F3 adversary pass-2) |
+| S-15.01 | Plugin async semantics — full implementation (schema v2 + dispatcher partition + classification + envelope flip + CI lint) | E-15 | 13 | P1 | [] | [] | draft | [BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001] (17 ACs, 30 files, tdd_mode strict; F3 pass-2 fix burst closed 2026-05-07 v1.3; 3 findings addressed; Option A native WASM plugin per user WASM-migration directive; ADR-013 clock 0_of_3; awaiting F3 adversary pass-3) |
 
 > **E-15 delivery:** S-15.01 is the single story in this epic per ADR-019 §6 single-shot decision. All 5 implementation tracks consolidated: registry.rs schema v2, dispatcher partition runtime (sync_group / async_group + ASYNC_DRAIN_WINDOW_MS), 9 plugin classifications in production hooks-registry.toml, hooks.json envelope flip (5 platform variants), and CI lint invariant (3 layers: pre-commit + load-time + CI gate). Subsystems: SS-01, SS-04, SS-07, SS-09.
 
