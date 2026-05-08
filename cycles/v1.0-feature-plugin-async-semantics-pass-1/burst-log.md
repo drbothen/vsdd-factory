@@ -540,6 +540,22 @@ F2 PASS-7 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-8 next (3 co
 
 ---
 
+## Burst: STATE.md compaction archive — F2 spec evolution + passes 1–6 fix bursts (archived 2026-05-07 for F3 burst row)
+
+The following step rows were in STATE.md before F3 compaction and are archived here to keep STATE.md under the 200-line budget:
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| **F2 spec evolution — plugin-async-semantics-pass-1** | product-owner + architect + state-manager | **COMPLETE** | ADR-019 accepted (async semantics at registry layer; hard cut, no backcompat). BC-1.14.001 (dispatcher partition contract). BC-7.06.001 (registry schema v2 + CI lint invariant). VP-077 (partition correctness, Kani). VP-078 (CI lint invariant, integration). 7 BCs amended (envelope sync; schema v2 gates). 2 VPs amended (scope to sync group). BC-INDEX 1.18→1.19; ARCH-INDEX 1.9→1.10; VP-INDEX 1.5→1.6. Adversarial convergence next (≥3 NITPICK_ONLY). |
+| **F2 pass-1 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 19 adversary findings addressed across 4 specialist bursts (PO ∥ architect → architect-followup → state-manager-close). New: BC-9.01.006 (SS-09), BC-3.08.001 (SS-03), VP-079. Amended: BC-1.14.001 v1.1, BC-7.06.001 v1.1 (subsystem SS-01), BC-1.08.001 v1.1, DI-014 v1.3, ADR-019 v1.1, SS-09 v1.1, SS-07 v1.1, VP-077 v1.2, VP-078 v1.3. INDEX bumps: BC-INDEX v1.20 (1947 total), ARCH-INDEX v1.11, VP-INDEX v1.7 (79 total). Sealed: schema-mismatch fail-CLOSED; BC-7.06.001 primary SS-01; async lifetime best-effort. Adversary pass-2 next. |
+| **F2 pass-2 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 19 adversary findings addressed (1 SKIP_FIX F-P2-019). PO: BC-7.06.001 v1.2 (Invariant 7 tuple-unique; Invariant 6 → 9 plugins; PC3 reword), BC-1.14.001 v1.2 (PCs renumbered; Error Paths; PC4 pin), BC-4.04.004 v2.1 + BC-4.05.004 v2.1 (PC7→Inv6 ref), BC-4.07.003 v1.3 (body fix), BC-3.08.001 v1.1 (SS-07→SS-01), BC-1.08.001 v1.2 (Stories). DI-014 v1.4 (BC range reword). Architect: ADR-019 v1.3 (§Consequences sync; SYNC/ASYNC rationale). State-manager: VP-077 v1.4 (Invariant 7 forward-ref). INDEX bumps: BC-INDEX v1.21, ARCH-INDEX v1.12, VP-INDEX v1.8. Sealed decisions: F-P2-006 (9 plugins ASYNC; warn-pending-wave-gate/regression-gate SYNC); F-P2-007 (no CLI flags; stdin envelope + env vars); F-P2-011 (VP-077 6 properties canonical). Pass-3 next. |
+| **F2 pass-3 fix burst close + user-correction — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 7 findings + 2 user-correction revisions. New: DI-019 (ASYNC_DRAIN_WINDOW_MS=100ms; SS-01 enforcement). User-correction Q2: ARCH-INDEX BC re-tally to authoritative frontmatter subsystem (SS-01 +1, SS-05 +4, SS-07 −1, SS-08 −4; total 1,947 unchanged). User-correction Q3: ASYNC_DRAIN_WINDOW_MS lifted from BC-1.14.001 inline to DI-019 domain invariant. DI-NN placeholder resolved to DI-019 in VP-079 + ADR-019. BC-1.14.001 v1.4, BC-3.08.001 v1.2, VP-078 v1.5, VP-079 v1.3, ADR-019 v1.5, SS-09 v1.2, SS-07 v1.2. 6 BC-INDEX H1 syncs (POLICY 7). INDEX bumps: BC-INDEX v1.22, ARCH-INDEX v1.14, VP-INDEX v1.10. ADR-013 clock at 0_of_3. Pass-4 next. |
+| **F2 pass-4 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 6 findings closed (F-P4-001 HIGH BC-INDEX re-tally; F-P4-002/003 VP-INDEX propagation; F-P4-004/005 symbolic constants; F-P4-006 documentation note). BC-INDEX re-tallied: SS-01 116→117, SS-05 648→652, SS-07 197→196, SS-08 218→214 (total 1947 unchanged). BC-7.06.001 listing unified SS-07→SS-01 section (authoritative-frontmatter convention; filename slug retained ss-07/ POLICY 1). BC-1.14.001 v1.4→v1.5 (inline 100ms literals removed). ADR-019 v1.5→v1.6 (symbolic ASYNC_DRAIN_WINDOW_MS). VP-077 v1.4→v1.5; VP-078 v1.5→v1.6. VP-INDEX v1.11→v1.12 (DI-019 traceability updated). BC-INDEX v1.22→v1.23; ARCH-INDEX v1.14→v1.15. ADR-013 clock at 0_of_3. Pass-5 next. |
+| **F2 pass-5 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 3 findings closed. F-P5-001 HIGH POLICY 7: 4-BC sibling H1↔BC-INDEX drift (BC-4.04.004/4.05.004/4.07.003/4.08.002). BC-INDEX rows synced to H1s byte-for-byte (`synchronous envelope`; `and synchronous` for two of four). Pass-3 "confirmed matching" claim was incorrect — byte-for-byte grep not performed. F-P5-002 LOW: ARCH-INDEX BC-INDEX version cite v1.22→v1.24. F-P5-003 LOW: ADR-019 §References VP-079 row added; ADR-019 v1.6→v1.7. BC-INDEX v1.23→v1.24; ARCH-INDEX v1.15→v1.16. ADR-013 clock at 0_of_3. Pass-6 next. |
+| **F2 pass-6 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 5 findings closed. F-P6-001 HIGH: 16 events=[...] → event="..." sites (VP-078 8 + VP-079 8). F-P6-002 HIGH: 7 VP-078 Rust unit tests script="X.sh" → plugin=adapter + [hooks.config] script_path. F-P6-003 MED: BC-3.08.001 inline `100 ms` removed; cites DI-019 (v1.2→v1.3). F-P6-004 MED: VP-078 bats Harness 2 TOML reordered. F-P6-005 LOW: ADR-019 §Consequences 100ms parenthetical removed; cites DI-019 (v1.7→v1.8). Byte-for-byte grep verification applied. BC-INDEX v1.25; ARCH-INDEX v1.17; VP-INDEX v1.13. ADR-013 clock at 0_of_3. Pass-7 next. |
+
+---
+
 ## Burst 9 — F2 pass-8 close — first NITPICK_ONLY of cycle; clock advances 0→1_of_3
 
 **Date:** 2026-05-07
@@ -693,5 +709,72 @@ F3 story decomposition (1 consolidated story per ADR-019 §6; covers schema v2 +
 ### Status
 
 F2 CONVERGED. Human approval gate pending. F3 story decomposition queued.
+
+---
+
+## Burst 12 — F3 story decomposition — E-15 epic + S-15.01 story authored (2026-05-07)
+
+**Date:** 2026-05-07
+**Dispatchers:** orchestrator → product-owner (E-15 epic) → story-writer (S-15.01 story) → state-manager (close)
+**Phase:** F3 STORIES AUTHORED → adversarial convergence pending
+
+### Summary
+
+Human approval gate cleared. F3 story decomposition executed per ADR-019 §6 user single-shot decision: 1 consolidated story covering all 5 implementation tracks.
+
+Trajectory to here: F2 CONVERGENCE_REACHED at pass-10 (commit 3568657). ADR-013 clock 3_of_3. F3 now opens adversarial convergence gate (≥3 NITPICK_ONLY per ADR-013 before F4).
+
+### Outputs
+
+| File | Producer | Notes |
+|------|----------|-------|
+| `.factory/stories/epics/E-15-plugin-async-semantics.md` | product-owner | E-15 epic (draft, v1.0, 200L; 1 story per ADR-019 §6 single-shot; E-12/13/14 already taken by engine-discipline cycle; E-15 is next free per POLICY 1 append-only) |
+| `.factory/stories/S-15.01-plugin-async-semantics.md` | story-writer | S-15.01 story (draft, v1.0, 765L; XL/13 points; 17 ACs; tdd_mode: strict) |
+
+### Index updates
+
+| Index | Old | New | Change |
+|-------|-----|-----|--------|
+| STORY-INDEX | v2.30 | v2.31 | E-15 epic row + S-15.01 story row appended; total_stories 90→91 |
+| BC-INDEX | v1.27 | v1.28 | Stories field updated for 12 BCs (5 primary + 7 secondary) to include S-15.01 |
+| VP-INDEX | v1.14 | v1.15 | Story Anchors section: VP-077/078/079 anchored to S-15.01 |
+
+### Story details — S-15.01
+
+| Field | Value |
+|-------|-------|
+| **Story ID** | S-15.01 |
+| **Title** | Plugin async semantics — full implementation (schema v2 + dispatcher partition + classification + envelope flip + CI lint) |
+| **Epic** | E-15 |
+| **Points** | 13 (XL) |
+| **Priority** | P1 |
+| **tdd_mode** | strict |
+| **ACs** | 17 |
+| **Primary BCs** | BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001 |
+| **Secondary BCs** | BC-1.01.001, BC-1.01.007, BC-1.08.002, BC-4.04.004, BC-4.05.004, BC-4.07.003, BC-4.08.002 |
+| **VPs** | VP-077, VP-078, VP-079, VP-001 (amended), VP-002 (amended) |
+| **DIs** | DI-014, DI-019 |
+| **Subsystems** | SS-01, SS-04, SS-07, SS-09 |
+| **File list** | 25 paths (registry.rs schema v2, dispatcher partition, hooks-registry.toml, 5 platform hooks.json variants, pre-commit lint hook, demo evidence dir) |
+
+### Implementation tracks consolidated (per ADR-019 §6)
+
+| Track | Scope |
+|-------|-------|
+| Schema v2 migration | `hooks-registry.toml` schema_version 2; per-plugin `async: bool` field; `REGISTRY_SCHEMA_VERSION` constant |
+| Dispatcher partition runtime | `sync_group` / `async_group` split; `ASYNC_DRAIN_WINDOW_MS` fire-and-forget drain |
+| Plugin classification | 9 telemetry plugins → `async = true`; classify in production `hooks-registry.toml` |
+| hooks.json envelope flip | 5 platform hooks.json variants: `async: true` removed from all event entries |
+| CI lint invariant | 3 enforcement layers: pre-commit hook + load-time validation + CI gate |
+
+### Decisions sealed
+
+- E-15 ID assigned (E-12/13/14 already taken by engine-discipline cycle; E-15 is next free per POLICY 1 append-only)
+- S-15.01 consolidates all 5 implementation tracks per ADR-019 §6 user single-shot decision
+- POLICY 8 BC propagation verified: 5 primary BCs in frontmatter, body BC table, 17 ACs (every AC has at least one BC trace), Token Budget subtable
+
+### Status
+
+F3 STORIES AUTHORED. Awaiting adversarial convergence (≥3 NITPICK_ONLY per ADR-013) before F4 TDD implementation.
 
 ---

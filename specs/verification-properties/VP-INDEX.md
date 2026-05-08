@@ -1,14 +1,16 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.14"
+version: "1.15"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
-phase: F2
+phase: F3
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-07
+    change: "F3 story decomposition close (2026-05-07) — Story Anchors section updated: VP-077/078/079 anchored to S-15.01 (F3 plugin-async-semantics-pass-1 implementation story; cycle v1.0-feature-plugin-async-semantics-pass-1). No VP count change. VP-INDEX v1.14→v1.15. last_amended: 2026-05-07 (F3 story decomposition: VP-077/078/079 Story Anchors → S-15.01)."
   - date: 2026-05-07
     change: "F2 pass-7 fix burst (2026-05-07) — VP-079 v1.4→v1.5 (F-P7-001: 9 inline 100ms literals replaced with symbolic ASYNC_DRAIN_WINDOW_MS / canonical DI-019 citations; F-P7-003: stale v1.4 version-anchored cite at Property 5 changed to BC-1.14.001 PC4 cite). Row description updated. No VP count change. last_amended: 2026-05-07 (async-semantics F2 pass-7 fix burst: VP-079 v1.5; F-P7-001 + F-P7-003 closed)."
   - date: 2026-05-07
@@ -200,6 +202,9 @@ changelog:
 | VP-066 | S-5.02 | Wave 16 | S-5.02 (session-end hook wiring) is the anchor story; VP-066's integration harness lives at crates/hook-plugins/session-end-telemetry/tests/integration_test.rs which S-5.02 creates per File Structure Requirements |
 | VP-067 | S-5.03 | Wave 16 | S-5.03 (WorktreeCreate/WorktreeRemove hook wiring) is the anchor story; VP-067's integration harness lives at crates/hook-plugins/worktree-hooks/tests/integration_test.rs which S-5.03 creates per File Structure Requirements |
 | VP-068 | S-5.04 | Wave 16 | S-5.04 (PostToolUseFailure hook wiring) is the anchor story; VP-068's integration harness lives at crates/hook-plugins/tool-failure-hooks/tests/integration_test.rs which S-5.04 creates per File Structure Requirements |
+| VP-077 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 (plugin async semantics full implementation) is the anchor story; VP-077 Kani proof harness exercises partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, and aggregation correctness (6 properties per BC-7.06.001 Invariant 7 uniqueness precondition) |
+| VP-078 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 is the anchor story; VP-078 bats integration harness validates `on_error = "block"` implies `async = false` CI lint invariant across the production hooks-registry.toml |
+| VP-079 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 is the anchor story; VP-079 integration harness verifies payload schema conformance for all four async-semantics event types (plugin.async_block_discarded, dispatcher.schema_mismatch, dispatcher.registry_invalid, plugin.timeout) per BC-3.08.001 |
 
 ## Traceability
 

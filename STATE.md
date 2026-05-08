@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F2 CONVERGED for v1.0-feature-plugin-async-semantics-pass-1. ADR-013 clock at 3_of_3. Trajectory 19→19→7→6→3→5→4→1→2→1 across 10 passes + 7 fix bursts. Spec package: 5 new BCs (BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001 amendment exception), 1 new ADR (ADR-019), 3 new VPs (VP-077, VP-078, VP-079), 1 new DI (DI-019), 9 amended BCs, 2 amended VPs, 2 amended SS docs. Awaiting human approval gate before F3 story decomposition (F3 scope: 1 story consolidating schema v2 + dispatcher partition + plugin classification + envelope flip + CI lint per user single-shot decision)."
+current_step: "F3 STORIES AUTHORED for v1.0-feature-plugin-async-semantics-pass-1. E-15 epic + S-15.01 story (XL/13 points; 17 ACs; 5 primary + 7 secondary BCs; tdd_mode: strict). Awaiting F3 adversarial convergence (≥3 NITPICK_ONLY passes per ADR-013) before F4 TDD implementation."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (F2 CONVERGED — pass-10 NITPICK_ONLY; ADR-013 clock 3_of_3; NIT-P10-001 cleanup applied; awaiting human approval gate for F3) |
-| **Current Phase** | F2 CONVERGED — v1.0-feature-plugin-async-semantics-pass-1; ADR-013 clock 3_of_3; human approval gate → F3 next |
+| **Last Updated** | 2026-05-07 (F3 STORIES AUTHORED — E-15 epic + S-15.01 story (XL/13 pts; 17 ACs; tdd_mode strict); awaiting F3 adversarial convergence) |
+| **Current Phase** | F3 STORIES AUTHORED — v1.0-feature-plugin-async-semantics-pass-1; E-15/S-15.01 authored; adversarial convergence pending |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F2 CONVERGED → human approval gate → F3 next** | Pass-10: 0H/0M/0L/1N. NIT-P10-001 cleanup applied (BC-3.08.001 v1.3→v1.4). Trajectory 19→19→7→6→3→5→4→1→2→1. ADR-013 clock 3_of_3. CONVERGENCE_REACHED. Awaiting human approval gate before F3 story decomposition (1 consolidated story per ADR-019 §6). |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F3 STORIES AUTHORED → adversarial convergence pending** | F3: E-15 epic (draft, v1.0, 200L, 1 story) + S-15.01 (draft, v1.0, 765L, XL/13 pts, 17 ACs, tdd_mode strict). F2 trajectory 19→19→7→6→3→5→4→1→2→1 (10 passes, 7 fix bursts). ADR-013 clock resets 0_of_3 for F3. Awaiting ≥3 NITPICK_ONLY before F4. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -95,16 +95,8 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | *(earlier steps archived to cycles/v1.0-brownfield-backfill/burst-log.md and cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md)* | | | |
 | **D-366 F3-amendment integration burst** | state-manager | **COMPLETE** | 6 new stories under E-12 (S-12.03..S-12.08; 65 ACs; WASM-plugin Context Resolver platform). E-12 story_count 2→8. STORY-INDEX 2.28→2.29 (90 stories). E-12 epic v1.0→v1.1 (scope widened; +6 BCs +1 ADR +4 VPs). Decision-log D-366..D-369. Next: F4-platform delivery, S-12.06 ships first. |
 | **D-376 S-12.06 merged — Step 9 state update** | state-manager | **COMPLETE** | S-12.06 (HOST_ABI Context Injection Contract) MERGED via PR #105 at 15432c6 (2026-05-07). First E-12 platform story. First in cycle history to complete Step 4.5 per-story adversary convergence (D-375; 6 passes; decay 5→3→2→0→0→0). sprint-state.yaml + STORY-INDEX 2.29→2.30 + decision-log D-376 updated. Next: S-12.03 + S-12.05 in parallel. |
-| **F2 spec evolution — plugin-async-semantics-pass-1** | product-owner + architect + state-manager | **COMPLETE** | ADR-019 accepted (async semantics at registry layer; hard cut, no backcompat). BC-1.14.001 (dispatcher partition contract). BC-7.06.001 (registry schema v2 + CI lint). VP-077 (partition correctness, Kani). VP-078 (CI lint invariant, integration). 7 BCs amended (envelope sync; schema v2 gates). 2 VPs amended (scope to sync group). BC-INDEX 1.18→1.19; ARCH-INDEX 1.9→1.10; VP-INDEX 1.5→1.6. Adversarial convergence next (≥3 NITPICK_ONLY). |
-| **F2 pass-1 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 19 adversary findings addressed across 4 specialist bursts (PO ∥ architect → architect-followup → state-manager-close). New: BC-9.01.006 (SS-09), BC-3.08.001 (SS-03), VP-079. Amended: BC-1.14.001 v1.1, BC-7.06.001 v1.1 (subsystem SS-01), BC-1.08.001 v1.1, DI-014 v1.3, ADR-019 v1.1, SS-09 v1.1, SS-07 v1.1, VP-077 v1.2, VP-078 v1.3. INDEX bumps: BC-INDEX v1.20 (1947 total), ARCH-INDEX v1.11, VP-INDEX v1.7 (79 total). Sealed: schema-mismatch fail-CLOSED; BC-7.06.001 primary SS-01; async lifetime best-effort. Adversary pass-2 next. |
-| **F2 pass-2 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 19 adversary findings addressed (1 SKIP_FIX F-P2-019). PO: BC-7.06.001 v1.2 (Invariant 7 tuple-unique; Invariant 6 → 9 plugins; PC3 reword), BC-1.14.001 v1.2 (PCs renumbered; Error Paths; PC4 pin), BC-4.04.004 v2.1 + BC-4.05.004 v2.1 (PC7→Inv6 ref), BC-4.07.003 v1.3 (body fix), BC-3.08.001 v1.1 (SS-07→SS-01), BC-1.08.001 v1.2 (Stories). DI-014 v1.4 (BC range reword). Architect: ADR-019 v1.3 (§Consequences sync; SYNC/ASYNC rationale). State-manager: VP-077 v1.4 (Invariant 7 forward-ref). INDEX bumps: BC-INDEX v1.21, ARCH-INDEX v1.12, VP-INDEX v1.8. Sealed decisions: F-P2-006 (9 plugins ASYNC; warn-pending-wave-gate/regression-gate SYNC); F-P2-007 (no CLI flags; stdin envelope + env vars); F-P2-011 (VP-077 6 properties canonical). Pass-3 next. |
-| **F2 pass-3 fix burst close + user-correction — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 7 findings + 2 user-correction revisions. New: DI-019 (ASYNC_DRAIN_WINDOW_MS=100ms; SS-01 enforcement). User-correction Q2: ARCH-INDEX BC re-tally to authoritative frontmatter subsystem (SS-01 +1, SS-05 +4, SS-07 −1, SS-08 −4; total 1,947 unchanged). User-correction Q3: ASYNC_DRAIN_WINDOW_MS lifted from BC-1.14.001 inline to DI-019 domain invariant. DI-NN placeholder resolved to DI-019 in VP-079 + ADR-019. BC-1.14.001 v1.4, BC-3.08.001 v1.2, VP-078 v1.5, VP-079 v1.3, ADR-019 v1.5, SS-09 v1.2, SS-07 v1.2. 6 BC-INDEX H1 syncs (POLICY 7). INDEX bumps: BC-INDEX v1.22, ARCH-INDEX v1.14, VP-INDEX v1.10. ADR-013 clock at 0_of_3. Pass-4 next. |
-| **F2 pass-4 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 6 findings closed (F-P4-001 HIGH BC-INDEX re-tally; F-P4-002/003 VP-INDEX propagation; F-P4-004/005 symbolic constants; F-P4-006 documentation note). BC-INDEX re-tallied: SS-01 116→117, SS-05 648→652, SS-07 197→196, SS-08 218→214 (total 1947 unchanged). BC-7.06.001 listing unified SS-07→SS-01 section (authoritative-frontmatter convention; filename slug retained ss-07/ POLICY 1). BC-1.14.001 v1.4→v1.5 (inline 100ms literals removed). ADR-019 v1.5→v1.6 (symbolic ASYNC_DRAIN_WINDOW_MS). VP-077 v1.4→v1.5; VP-078 v1.5→v1.6. VP-INDEX v1.11→v1.12 (DI-019 traceability updated). BC-INDEX v1.22→v1.23; ARCH-INDEX v1.14→v1.15. ADR-013 clock at 0_of_3. Pass-5 next. |
-| **F2 pass-5 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 3 findings closed. F-P5-001 HIGH POLICY 7: 4-BC sibling H1↔BC-INDEX drift (BC-4.04.004/4.05.004/4.07.003/4.08.002). BC-INDEX rows synced to H1s byte-for-byte (`synchronous envelope`; `and synchronous` for two of four). Pass-3 "confirmed matching" claim was incorrect — byte-for-byte grep not performed. F-P5-002 LOW: ARCH-INDEX BC-INDEX version cite v1.22→v1.24. F-P5-003 LOW: ADR-019 §References VP-079 row added; ADR-019 v1.6→v1.7. BC-INDEX v1.23→v1.24; ARCH-INDEX v1.15→v1.16. ADR-013 clock at 0_of_3. Pass-6 next. |
-| **F2 pass-6 fix burst close — plugin-async-semantics-pass-1** | state-manager | **COMPLETE** | 5 findings closed. F-P6-001 HIGH: 16 events=[...] → event="..." sites (VP-078 8 + VP-079 8). F-P6-002 HIGH: 7 VP-078 Rust unit tests script="X.sh" → plugin=adapter + [hooks.config] script_path. F-P6-003 MED: BC-3.08.001 inline `100 ms` removed; cites DI-019 (v1.2→v1.3). F-P6-004 MED: VP-078 bats Harness 2 TOML reordered. F-P6-005 LOW: ADR-019 §Consequences 100ms parenthetical removed; cites DI-019 (v1.7→v1.8). Byte-for-byte grep verification applied. BC-INDEX v1.25; ARCH-INDEX v1.17; VP-INDEX v1.13. ADR-013 clock at 0_of_3. Pass-7 next. |
-| **F2 pass-8 close — first NITPICK_ONLY of cycle; clock advances 0→1_of_3** | state-manager | **COMPLETE** | Pass-8: 0H/0M/0L/1N. NIT-P8-001: ARCH-INDEX BC-INDEX cite refreshed v1.25→v1.26. ARCH-INDEX v1.17→v1.18. Trajectory 19→19→7→6→3→5→4→1. Clock 1_of_3. |
-| **F2 pass-9 close — NITPICK_ONLY; clock advances 1→2_of_3; both NITs SKIP_FIX** | state-manager | **COMPLETE** | Pass-9: 0H/0M/0L/2N. Both SKIP_FIX. Trajectory →2. ADR-013 clock 2_of_3. |
-| **F2 pass-10 — CONVERGENCE_REACHED; clock 3_of_3; NIT-P10-001 cleanup applied** | state-manager | **COMPLETE** | Pass-10: 0H/0M/0L/1N. NIT-P10-001: BC-3.08.001 v1.3→v1.4 (redundant `(per DI-019)` removed; sibling fix to F-P7-004). BC-INDEX v1.26→v1.27; ARCH-INDEX v1.18→v1.19. Trajectory 19→19→7→6→3→5→4→1→2→1. ADR-013 clock 3_of_3. F2 CONVERGED. Human approval gate → F3 next. |
+| **F2 spec evolution + passes 1–10 — CONVERGENCE_REACHED** | product-owner + architect + state-manager | **COMPLETE** | F2: 5 new BCs (BC-1.14.001/7.06.001/9.01.006/3.08.001/1.08.001), 1 ADR (ADR-019), 3 VPs (VP-077/078/079), 1 DI (DI-019). 10 passes, 7 fix bursts. Trajectory 19→19→7→6→3→5→4→1→2→1. ADR-013 clock 3_of_3. BC-INDEX v1.27; ARCH-INDEX v1.19; VP-INDEX v1.14. (Detail: burst-log Bursts 2–11.) |
+| **F3 story decomposition — E-15 epic + S-15.01 story authored** | product-owner + story-writer + state-manager | **COMPLETE** | E-15 epic (draft, v1.0, 200L, 1 story). S-15.01 (draft, v1.0, 765L, XL/13 pts, 17 ACs, tdd_mode strict). Primary BCs: BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001. Secondary: 7 BCs. VPs: VP-077/078/079. STORY-INDEX 2.30→2.31 (91 stories, 15 epics). BC-INDEX v1.27→v1.28. VP-INDEX v1.14→v1.15. Awaiting F3 adversarial convergence (≥3 NITPICK_ONLY per ADR-013) before F4. |
 
 ## Identifier Conventions
 
@@ -116,15 +108,15 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | Capability | CAP-NNN | `specs/domain-spec/capabilities.md` | 30 |
 | Domain Invariant | DI-NNN | `specs/domain-spec/invariants.md` | 18 active (DI-001..DI-017, DI-019; DI-018 deferred) |
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 90 |
-| Epic | E-N | `stories/epics/E-N-<short>.md` | 14 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 91 |
+| Epic | E-N | `stories/epics/E-N-<short>.md` | 15 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 19 |
 
-## Story Status (90 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14 registered; E-12 F3-amendment 6 stories added D-366; F4 COMPLETE)
+## Story Status (91 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14/E-15 registered; E-12 F3-amendment 6 stories added D-366; F4 COMPLETE; E-15/S-15.01 authored F3)
 
 - **Merged (62):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07) + S-12.06 (PR #105 15432c6 2026-05-07). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (23):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359)
+- **Draft (24):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359); S-15.01 (E-15 plugin async semantics; F3 authored 2026-05-07)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (all W-15 stories merged)
@@ -146,7 +138,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F2 CONVERGED | Pass-10: 0H/0M/0L/1N (CONVERGENCE_REACHED). ADR-013 clock 3_of_3. Trajectory 19→19→7→6→3→5→4→1→2→1. NIT-P10-001 cleanup (BC-3.08.001 v1.4). Awaiting human approval → F3 (1 consolidated story per ADR-019 §6). See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F3 STORIES AUTHORED | F3: E-15 epic + S-15.01 (XL/13 pts; 17 ACs; 5 primary BCs; tdd_mode strict). F2 trajectory 19→19→7→6→3→5→4→1→2→1. Awaiting F3 adversarial convergence (≥3 NITPICK_ONLY per ADR-013) before F4. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
 
 ## Decisions Log
 
@@ -170,7 +162,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — F2 CONVERGENCE_REACHED for v1.0-feature-plugin-async-semantics-pass-1. Pass-10: NITPICK_ONLY (1 NIT). NIT-P10-001: BC-3.08.001 line 196 redundant `(per DI-019)` parenthetical removed (v1.3→v1.4; sibling fix to F-P7-004). ADR-013 clock advances 2→3_of_3. Three consecutive NITPICK_ONLY = CONVERGENCE_REACHED per ADR-013. Trajectory: 19→19→7→6→3→5→4→1→2→1 (10 passes, 7 fix bursts). Awaiting human approval gate before F3 story decomposition (1 consolidated story per ADR-019 §6).
+**Last update:** 2026-05-07 — F3 STORIES AUTHORED for v1.0-feature-plugin-async-semantics-pass-1. Human approval gate cleared. E-15 epic (draft, v1.0, 200L) + S-15.01 story (draft, v1.0, 765L, XL/13 pts, 17 ACs, tdd_mode strict) authored. Primary BCs: BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001. Secondary BCs: 7. VPs: VP-077/078/079 anchored to S-15.01. STORY-INDEX 2.30→2.31 (91 stories, 15 epics). BC-INDEX v1.27→v1.28. VP-INDEX v1.14→v1.15. Awaiting F3 adversarial convergence (≥3 NITPICK_ONLY per ADR-013) before F4 TDD implementation.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** 15432c6 (S-12.06 PR #105 squash-merge 2026-05-07)
@@ -184,9 +176,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.27 | **VP-INDEX:** v1.14 | **STORY-INDEX:** v2.30 | **ARCH-INDEX:** v1.19
+**BC-INDEX:** v1.28 | **VP-INDEX:** v1.15 | **STORY-INDEX:** v2.31 | **ARCH-INDEX:** v1.19
 
-**ACTIVE STEP: F2 CONVERGED for plugin-async-semantics-pass-1. ADR-013 clock 3_of_3. CONVERGENCE_REACHED. Awaiting human approval gate before F3 story decomposition. Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
+**ACTIVE STEP: F3 STORIES AUTHORED for plugin-async-semantics-pass-1. E-15/S-15.01 authored. Awaiting F3 adversarial convergence (≥3 NITPICK_ONLY per ADR-013) before F4 TDD implementation. Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
 
 **F5 pickup (post-amendment):** After F1/F2/F3/F4 amendment cycle completes, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.

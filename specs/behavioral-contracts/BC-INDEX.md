@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.27"
+version: "1.28"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
-phase: F2
+phase: F3
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F3 story decomposition close (2026-05-07) — Stories field updated for 12 BCs to include S-15.01 (5 primary: BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001; 7 secondary: BC-1.01.001, BC-1.01.007, BC-1.08.002, BC-4.04.004, BC-4.05.004, BC-4.07.003, BC-4.08.002). No count change. BC-INDEX v1.27→v1.28. last_amended: 2026-05-07 (F3 plugin-async-semantics-pass-1 story decomposition: 12 BC Stories fields updated to include S-15.01)."
   - date: 2026-05-07
     change: "F2 CONVERGENCE close — pass-10 NIT-P10-001 cleanup (2026-05-07) — BC-3.08.001 v1.3→v1.4 (redundant `(per DI-019)` parenthetical removed from Traceability L2 Domain Invariants cell; sibling fix to F-P7-004 applied in BC-1.14.001 v1.5→v1.6). No count change. BC-3.08.001 H1 title unchanged. F2 CONVERGED for v1.0-feature-plugin-async-semantics-pass-1 (ADR-013 clock 3_of_3; 10 passes; trajectory 19→19→7→6→3→5→4→1→2→1)."
   - date: 2026-05-07
@@ -96,13 +98,13 @@ changelog:
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
-| [BC-1.01.001](ss-01/BC-1.01.001.md) | Registry rejects unknown schema version | draft | CAP-TBD | TBD |
+| [BC-1.01.001](ss-01/BC-1.01.001.md) | Registry rejects unknown schema version | draft | CAP-TBD | S-15.01 |
 | [BC-1.01.002](ss-01/BC-1.01.002.md) | Registry rejects invalid tool regex at load time | draft | CAP-TBD | TBD |
 | [BC-1.01.003](ss-01/BC-1.01.003.md) | Registry rejects unknown entry fields (typo guard) | draft | CAP-TBD | TBD |
 | [BC-1.01.004](ss-01/BC-1.01.004.md) | Relative plugin paths resolve against registry file's parent directory | draft | CAP-TBD | TBD |
 | [BC-1.01.005](ss-01/BC-1.01.005.md) | Plugin filter requires event match AND (no tool OR tool regex matches) | draft | CAP-TBD | TBD |
 | [BC-1.01.006](ss-01/BC-1.01.006.md) | Tiers ordered ascending by priority, registry order preserved within tier | draft | CAP-TBD | TBD |
-| [BC-1.01.007](ss-01/BC-1.01.007.md) | factory-dispatcher::registry::parses_minimal_registry — minimum-viable registry parses with one hook entry, schema_version=2, enabled defaults to true | draft | CAP-TBD | TBD |
+| [BC-1.01.007](ss-01/BC-1.01.007.md) | factory-dispatcher::registry::parses_minimal_registry — minimum-viable registry parses with one hook entry, schema_version=2, enabled defaults to true | draft | CAP-TBD | S-15.01 |
 | [BC-1.01.008](ss-01/BC-1.01.008.md) | factory-dispatcher::registry::config_defaults_to_empty_table_when_absent — missing [hooks.config] yields empty table, not None | draft | CAP-TBD | TBD |
 | [BC-1.01.009](ss-01/BC-1.01.009.md) | factory-dispatcher::registry::config_block_parses_into_entry — [hooks.config] supports nested tables and string fields | draft | CAP-TBD | TBD |
 | [BC-1.01.010](ss-01/BC-1.01.010.md) | factory-dispatcher::registry::defaults_applied_when_missing — omitted entry timeouts/fuel/priority/on_error fall through to Registry.defaults | draft | CAP-TBD | TBD |
@@ -187,8 +189,8 @@ changelog:
 | [BC-1.07.004](ss-01/BC-1.07.004.md) | registry-generation script is idempotent | draft | CAP-002 | S-2.02 |
 | [BC-1.07.005](ss-01/BC-1.07.005.md) | factory-dispatcher::loads_legacy_registry::every_entry_routes_through_legacy_bash_adapter — every entry in the production registry routes through legacy-bash-adapter.wasm | draft | CAP-TBD | TBD |
 | [BC-1.07.006](ss-01/BC-1.07.006.md) | factory-dispatcher::loads_legacy_registry::every_entry_carries_a_script_path — every entry has plugin_config.script_path matching `hooks/<name>.sh` | draft | CAP-TBD | TBD |
-| [BC-1.08.001](ss-01/BC-1.08.001.md) | dispatcher exits 0 on registry/payload/engine errors (non-blocking) | draft | CAP-002 | S-2.07 |
-| [BC-1.08.002](ss-01/BC-1.08.002.md) | dispatcher exit code is 2 iff at least one sync-group plugin recorded a block_intent; async-group verdicts never affect exit code | draft | CAP-002 | S-2.07 |
+| [BC-1.08.001](ss-01/BC-1.08.001.md) | dispatcher exits 0 on registry/payload/engine errors (non-blocking) | draft | CAP-002 | S-2.07, S-15.01 |
+| [BC-1.08.002](ss-01/BC-1.08.002.md) | dispatcher exit code is 2 iff at least one sync-group plugin recorded a block_intent; async-group verdicts never affect exit code | draft | CAP-002 | S-2.07, S-15.01 |
 | [BC-1.08.003](ss-01/BC-1.08.003.md) | dispatcher uses current_thread tokio runtime (not multi-threaded pool) | draft | CAP-TBD | TBD |
 | [BC-1.08.004](ss-01/BC-1.08.004.md) | dispatcher uses CLAUDE_PROJECT_DIR for cwd, falling back to current_dir | draft | CAP-TBD | TBD |
 | [BC-1.08.005](ss-01/BC-1.08.005.md) | dispatcher injects CLAUDE_PLUGIN_ROOT into base_host_ctx.plugin_root | draft | CAP-TBD | TBD |
@@ -211,8 +213,8 @@ changelog:
 | [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI gate (tool selected D-318: cargo-call-stack; implementation deferred to Wave 5) | draft | CAP-029 | S-10.02, S-10.09 |
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
 | [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch | draft | CAP-TBD | TBD |
-| [BC-1.14.001](ss-01/BC-1.14.001.md) | factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget with bounded ASYNC_DRAIN_WINDOW_MS, no verdict gate) | draft | CAP-002 | TBD |
-| [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` | draft | CAP-002 | TBD |
+| [BC-1.14.001](ss-01/BC-1.14.001.md) | factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget with bounded ASYNC_DRAIN_WINDOW_MS, no verdict gate) | draft | CAP-002 | S-15.01 |
+| [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` | draft | CAP-002 | S-15.01 |
 <!-- BC-7.06.001 filename slug retained in ss-07/ per POLICY 1 append-only; authoritative subsystem is SS-01 per frontmatter (post-F-P1-006 reanchor 2026-05-07). Unified here to match BC-8.29.001/002/003 + BC-8.30.002 authoritative-frontmatter convention (F-P4-001 BC-INDEX listing convention unification). -->
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)
@@ -305,7 +307,7 @@ changelog:
 | [BC-3.06.007](ss-03/BC-3.06.007.md) | sink-core::routing_filter_plugin_ids_allow — only events from listed plugins pass; empty list = pass-through | draft | CAP-003 | active |
 | [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
 | [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
-| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) | draft | CAP-003 | TBD |
+| [BC-3.08.001](ss-03/BC-3.08.001.md) | dispatcher async-semantics event types are catalogued and emitted via FileSink — `plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout` (async path) | draft | CAP-003 | S-15.01 |
 
 ### SS-04 — Plugin Ecosystem (BC-4) — 39 BCs
 
@@ -327,19 +329,19 @@ changelog:
 | [BC-4.04.001](ss-04/BC-4.04.001.md) | session-start plugin emits session.started event with session telemetry on SessionStart event | draft | CAP-002 | S-5.01 |
 | [BC-4.04.002](ss-04/BC-4.04.002.md) | session-start plugin invokes factory-health subprocess; emits session.started even if check fails | draft | CAP-002 | S-5.01 |
 | [BC-4.04.003](ss-04/BC-4.04.003.md) | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | draft | CAP-002 | S-5.01 |
-| [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.01 |
+| [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.01, S-15.01 |
 | [BC-4.04.005](ss-04/BC-4.04.005.md) | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with read_file + exec_subprocess capability tables and timeout_ms:8000 | draft | CAP-002 | S-5.01 |
 | [BC-4.05.001](ss-04/BC-4.05.001.md) | session-end plugin emits session.ended event with session telemetry on SessionEnd event | draft | CAP-002 | S-5.02 |
 | [BC-4.05.002](ss-04/BC-4.05.002.md) | session-end plugin does not invoke any subprocess; fast-path completion with no exec_subprocess capability | draft | CAP-002 | S-5.02 |
 | [BC-4.05.003](ss-04/BC-4.05.003.md) | session-end plugin is unconditionally stateless; idempotency enforced by Layer 1 once:true directive | draft | CAP-002 | S-5.02 |
-| [BC-4.05.004](ss-04/BC-4.05.004.md) | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.02 |
+| [BC-4.05.004](ss-04/BC-4.05.004.md) | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.02, S-15.01 |
 | [BC-4.05.005](ss-04/BC-4.05.005.md) | hooks-registry.toml registers SessionEnd event routing to hook-plugins/session-end-telemetry.wasm with timeout_ms:5000 | draft | CAP-002 | S-5.02 |
 | [BC-4.07.001](ss-04/BC-4.07.001.md) | worktree-hooks plugin emits worktree.created event with {worktree_path, worktree_name} on WorktreeCreate event | draft | CAP-002 | S-5.03 |
 | [BC-4.07.002](ss-04/BC-4.07.002.md) | worktree-hooks plugin emits worktree.removed event with {worktree_path} on WorktreeRemove event | draft | CAP-002 | S-5.03 |
-| [BC-4.07.003](ss-04/BC-4.07.003.md) | hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); synchronous envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.03 |
+| [BC-4.07.003](ss-04/BC-4.07.003.md) | hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); synchronous envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.03, S-15.01 |
 | [BC-4.07.004](ss-04/BC-4.07.004.md) | hooks-registry.toml registers WorktreeCreate and WorktreeRemove routing to hook-plugins/worktree-hooks.wasm; single crate, two entries; ZERO capability tables; timeout_ms:5000 | draft | CAP-002 | S-5.03 |
 | [BC-4.08.001](ss-04/BC-4.08.001.md) | tool-failure-hooks plugin emits tool.error event with {tool_name, error_message} on PostToolUseFailure event; tool_name="unknown" if absent; error_message truncated to 1000 chars; 10-field wire payload; RESERVED_FIELDS not set by plugin | draft | CAP-002 | S-5.04 |
-| [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); synchronous envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.04 |
+| [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); synchronous envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.04, S-15.01 |
 | [BC-4.08.003](ss-04/BC-4.08.003.md) | hooks-registry.toml registers PostToolUseFailure with name="tool-failure-hooks", event="PostToolUseFailure", plugin="hook-plugins/tool-failure-hooks.wasm", timeout_ms=5000; ZERO capability tables; NO once field | draft | CAP-002 | S-5.04 |
 | [BC-4.09.001](ss-04/BC-4.09.001.md) | hook-plugins::event_naming::wave2_reverse_dns_event_name_migration_with_dual_emit — all native WASM plugins under crates/hook-plugins/ migrate event-name strings from legacy short-form to reverse-DNS .v1 canonical form; dual-emit shim active during Wave 2→Wave 3 window; legacy emission removed post-Wave-3 | draft | CAP-009 | S-10.05 |
 | [BC-4.10.001](ss-04/BC-4.10.001.md) | validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance | draft | CAP-009 | TBD |
@@ -2032,7 +2034,7 @@ changelog:
 | [BC-9.01.003](ss-09/BC-9.01.003.md) | release workflow's bot commit atomically writes binaries + plugin.json + marketplace.json | draft | CAP-028 | S-2.04, S-2.08, S-0.02 |
 | [BC-9.01.004](ss-09/BC-9.01.004.md) | 5-platform CI matrix is the build matrix; drift gated by check-platforms-drift.py | draft | CAP-007 | S-0.03, S-2.03, S-2.08 |
 | [BC-9.01.005](ss-09/BC-9.01.005.md) | hooks.json is gitignored; hooks.json.template + per-platform variants are committed | draft | CAP-007 | S-2.06, S-0.04, S-2.02, S-2.08 |
-| [BC-9.01.006](ss-09/BC-9.01.006.md) | hooks.json.template envelope is uniformly synchronous — every event entry has the `async` key absent (or `async: false`); no entry has `async: true` | draft | CAP-007 | TBD |
+| [BC-9.01.006](ss-09/BC-9.01.006.md) | hooks.json.template envelope is uniformly synchronous — every event entry has the `async` key absent (or `async: false`); no entry has `async: true` | draft | CAP-007 | S-15.01 |
 
 ### SS-10 — CLI Tools and Bin (BC-10)
 
