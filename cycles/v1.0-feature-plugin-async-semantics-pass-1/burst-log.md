@@ -572,3 +572,46 @@ BC-INDEX: v1.26 (no change) | ARCH-INDEX: v1.17→v1.18 | VP-INDEX: v1.14 (no ch
 F2 PASS-8 CLOSED. ADR-013 clock 1_of_3. Pass-9 next. Need 2 more consecutive NITPICK_ONLY for CONVERGENCE_REACHED.
 
 ---
+
+## Burst 10 — F2 pass-9 close — NITPICK_ONLY; clock advances 1→2_of_3; both NITs SKIP_FIX per ADR-013
+
+**Date:** 2026-05-07
+**Dispatchers:** orchestrator → state-manager
+
+### Summary
+
+Pass-9 returned NITPICK_ONLY (second consecutive NITPICK_ONLY pass for this cycle). ADR-013 clock advances 1→2_of_3. Trajectory: 19→19→7→6→3→5→4→1→2 (NIT). One more NITPICK_ONLY = CONVERGENCE_REACHED.
+
+### Findings — both SKIP_FIX per ADR-013
+
+| ID | File | Severity | Decision | Rationale |
+|----|------|----------|----------|-----------|
+| NIT-P9-001 | ADR-019.md line 173 | NIT | SKIP_FIX | "30-100ms" numeric coincidence with DI-019 value (cosmetic; latency estimate range, not the drain constant; no defect) |
+| NIT-P9-002 | VP-079.md line ~421 | NIT | SKIP_FIX | Scenario 5 `timeout_ms=200` implicit DI-019 dependency (cosmetic hardening for future-proofing; no defect today) |
+
+### Files touched
+
+- `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-9.md` — created (pass-9 findings persisted)
+- `.factory/STATE.md` — current_step, last_amended, phase progress row, concurrent cycles row, current phase steps (pass-9 row added, D-362 row archived here), session checkpoint updated
+
+### No spec file modifications
+
+Both NITs are SKIP_FIX. No spec files modified. No index bumps.
+
+### Archived step row (from STATE.md Current Phase Steps)
+
+The following step row was archived from STATE.md to this burst-log to maintain the 200-line budget:
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| **D-362 F2-amendment integration burst** | state-manager | **COMPLETE** | 6 new BCs (BC-1.13.001 SS-01; BC-4.12.001-005 SS-04). ADR-018. 4 new VPs (VP-073-076). PRD 1.1→1.2 (FR-048). F-P2-002 fix (BC-4.10.001 v1.1 + BC-5.39.001 v1.1). BC-INDEX 1.17→1.18 (total_bcs 1937→1943; SS-01 114→115, SS-04 34→39). ARCH-INDEX 1.8→1.9 (ADR-018 added). VP-INDEX 1.4→1.5 (total_vps 72→76). Next: F3-amendment story authoring (S-12.03-S-12.08 under E-12). |
+
+### Convergence status
+
+ADR-013 clock 2_of_3. One more NITPICK_ONLY pass required for CONVERGENCE_REACHED.
+
+### Status
+
+F2 PASS-9 CLOSED. ADR-013 clock 2_of_3. Pass-10 next.
+
+---
