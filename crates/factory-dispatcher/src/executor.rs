@@ -312,13 +312,14 @@ pub fn spawn_async_plugin(
 
         let result = tokio::task::spawn_blocking(move || {
             let started = std::time::Instant::now();
-            invoke_plugin(&engine, &module, host_ctx, &payload, limits)
-                .unwrap_or_else(|e| PluginResult::Crashed {
+            invoke_plugin(&engine, &module, host_ctx, &payload, limits).unwrap_or_else(|e| {
+                PluginResult::Crashed {
                     trap_string: format!("invoke setup error: {e}"),
                     stderr: String::new(),
                     elapsed_ms: started.elapsed().as_millis() as u64,
                     fuel_consumed: 0,
-                })
+                }
+            })
         })
         .await
         .unwrap_or_else(|join_err| PluginResult::Crashed {

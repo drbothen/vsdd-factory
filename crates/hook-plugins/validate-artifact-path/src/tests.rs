@@ -1394,8 +1394,7 @@ fn test_BC_4_11_001_ec007_matches_canonical_1000_calls_under_200ms() {
         // Registry not present (e.g., running in a context without plugin dir).
         // Fall back to the multi-entry fixture — still exercises the algorithm.
         let yaml = multi_entry_registry_yaml();
-        let registry = load_registry(&yaml)
-            .expect("fixture registry must load");
+        let registry = load_registry(&yaml).expect("fixture registry must load");
         let path = ".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
 
         let start = Instant::now();
@@ -1415,11 +1414,15 @@ fn test_BC_4_11_001_ec007_matches_canonical_1000_calls_under_200ms() {
         return;
     }
 
-    let yaml = std::fs::read_to_string(&registry_path)
-        .unwrap_or_else(|e| panic!("failed to read registry at {}: {}", registry_path.display(), e));
+    let yaml = std::fs::read_to_string(&registry_path).unwrap_or_else(|e| {
+        panic!(
+            "failed to read registry at {}: {}",
+            registry_path.display(),
+            e
+        )
+    });
 
-    let registry = load_registry(&yaml)
-        .expect("production registry must load");
+    let registry = load_registry(&yaml).expect("production registry must load");
 
     // Use an unregistered path to exercise the full scan (worst case: no early match).
     let path = ".factory/cycles/v1.0-feature-engine-discipline-pass-1/S-99.99/implementation/red-gate-log.md";
@@ -1462,7 +1465,9 @@ fn test_BC_4_11_001_ec006_missing_file_path_emits_hook_warn_event() {
     let (_hook_result, _log_calls, events) = run_logic(payload, Ok(registry_yaml("block")));
 
     assert!(
-        events.iter().any(|(event_type, _)| event_type == "hook.warn"),
+        events
+            .iter()
+            .any(|(event_type, _)| event_type == "hook.warn"),
         "F-MED-4: BC-4.11.001 EC-006 (missing file_path) MUST emit a hook.warn event \
          via emit_event for observability. Got events: {:?}",
         events

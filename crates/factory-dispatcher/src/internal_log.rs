@@ -397,7 +397,10 @@ mod tests {
             assert_eq!(parsed["schema_version"], INTERNAL_EVENT_SCHEMA_VERSION);
             // BC-3.08.001 v1.5 Invariant 5: wire format uses "trace_id", not "dispatcher_trace_id".
             assert_eq!(parsed["trace_id"], format!("trace-{i}"));
-            assert!(parsed["dispatcher_trace_id"].is_null(), "dispatcher_trace_id must not appear in wire output");
+            assert!(
+                parsed["dispatcher_trace_id"].is_null(),
+                "dispatcher_trace_id must not appear in wire output"
+            );
             assert_eq!(parsed["iteration"], i as i64);
             assert!(parsed["ts"].as_str().unwrap().starts_with("2026-04-24"));
             assert!(parsed["ts_epoch"].is_i64());

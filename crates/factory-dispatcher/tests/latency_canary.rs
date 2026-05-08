@@ -120,9 +120,9 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
     // F-P1-003: "Replace black_box placeholder with actual sync_group dispatch invocation."
     // F-P1-009: real p95 numbers must be recorded in latency-canary.md.
     let dispatcher_bin = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()  // crates/
+        .parent() // crates/
         .expect("crates/")
-        .parent()  // workspace root
+        .parent() // workspace root
         .expect("workspace root")
         .join("target")
         .join("release")

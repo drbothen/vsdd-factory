@@ -55,11 +55,17 @@ pub struct PluginResult {
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window constant; cited as invariant
 ///   source for async-group exclusion semantics)
 pub fn aggregate_exit_code(sync_results: &[PluginResult]) -> u8 {
-    sync_results
+    // Returns 2 iff any sync_group plugin had exit_code==2 AND on_error==Block.
+    // Semantically equivalent to VP-077 Appendix A's `.then_some(2).unwrap_or(0)` form;
+    // rewritten as if-else for clippy::obfuscated_if_else compatibility.
+    if sync_results
         .iter()
         .any(|r| r.exit_code == 2 && r.on_error == OnError::Block)
-        .then_some(2)
-        .unwrap_or(0)
+    {
+        2
+    } else {
+        0
+    }
 }
 
 #[cfg(test)]

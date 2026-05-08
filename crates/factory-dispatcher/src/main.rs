@@ -37,7 +37,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use factory_dispatcher::engine::{EpochTicker, build_engine};
-use factory_dispatcher::executor::{ExecutorInputs, PluginOutcome, execute_tiers, spawn_async_plugin};
+use factory_dispatcher::executor::{
+    ExecutorInputs, PluginOutcome, execute_tiers, spawn_async_plugin,
+};
 use factory_dispatcher::host::HostContext;
 use factory_dispatcher::host::emit_event::{
     emit_dispatcher_registry_invalid, emit_dispatcher_schema_mismatch,
@@ -54,8 +56,8 @@ use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{Registry, RegistryError};
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
 use factory_dispatcher::{ASYNC_DRAIN_WINDOW_MS, HOST_ABI_VERSION, new_trace_id};
-use tokio::sync::mpsc;
 use factory_dispatcher::{AggregatorPluginResult, aggregate_exit_code};
+use tokio::sync::mpsc;
 
 const ENV_PLUGIN_ROOT: &str = "CLAUDE_PLUGIN_ROOT";
 const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
@@ -318,26 +320,32 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         // For each async plugin: spawn an independent task and wire its result to the channel.
         // Each spawn_async_plugin call returns a JoinHandle; we wrap it in a forwarding task
         // so the channel gets the PluginOutcome once the plugin completes.
-        let _async_handles: Vec<_> = partition.async_group.into_iter().map(|entry| {
-            let tx_for_task = tx.clone();
-            let handle = spawn_async_plugin(
-                engine.clone(),
-                cache.clone(),
-                registry.defaults.clone(),
-                entry,
-                payload_value.clone(),
-                base_host_ctx.clone(),
-                internal_log.clone(),
-            );
-            // Forward the JoinHandle result to the drain channel.
-            // EC-012: completed results MUST reach the channel so they can be emitted.
-            tokio::spawn(async move {
-                match handle.await {
-                    Ok(outcome) => { let _ = tx_for_task.send(outcome); }
-                    Err(_join_err) => {} // spawn_blocking panic — lifecycle event already emitted
-                }
+        let _async_handles: Vec<_> = partition
+            .async_group
+            .into_iter()
+            .map(|entry| {
+                let tx_for_task = tx.clone();
+                let handle = spawn_async_plugin(
+                    engine.clone(),
+                    cache.clone(),
+                    registry.defaults.clone(),
+                    entry,
+                    payload_value.clone(),
+                    base_host_ctx.clone(),
+                    internal_log.clone(),
+                );
+                // Forward the JoinHandle result to the drain channel.
+                // EC-012: completed results MUST reach the channel so they can be emitted.
+                tokio::spawn(async move {
+                    match handle.await {
+                        Ok(outcome) => {
+                            let _ = tx_for_task.send(outcome);
+                        }
+                        Err(_join_err) => {} // spawn_blocking panic — lifecycle event already emitted
+                    }
+                })
             })
-        }).collect();
+            .collect();
         // Drop the original sender so rx terminates when all forwarding tasks finish.
         drop(tx);
 
@@ -376,7 +384,9 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         // so block_intent is structurally false — event emitted for diagnostic visibility only.
         for outcome in &partial_outcomes {
             match &outcome.result {
-                PluginResult::Ok { exit_code, stdout, .. } => {
+                PluginResult::Ok {
+                    exit_code, stdout, ..
+                } => {
                     let has_block_json = stdout.contains(r#""outcome":"block""#);
                     let has_exit_2 = *exit_code == 2;
                     if has_block_json || has_exit_2 {
@@ -426,12 +436,19 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                 PluginResult::Ok { exit_code, .. } => *exit_code as u8,
                 _ => 0u8,
             };
-            AggregatorPluginResult { exit_code, on_error: o.on_error }
+            AggregatorPluginResult {
+                exit_code,
+                on_error: o.on_error,
+            }
         })
         .collect();
     let aggregate_code = aggregate_exit_code(&sync_agg_results) as i32;
     // Combine: advisory-block (stdout JSON, summary.exit_code) OR WASI-block (exit_code==2+Block).
-    let final_exit_code = if summary.exit_code == 2 || aggregate_code == 2 { 2 } else { 0 };
+    let final_exit_code = if summary.exit_code == 2 || aggregate_code == 2 {
+        2
+    } else {
+        0
+    };
 
     eprintln!(
         "  plugins_run={} total_ms={} block_intent={} exit_code={}",
