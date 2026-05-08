@@ -87,8 +87,10 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
     // CARGO_MANIFEST_DIR points to crates/factory-dispatcher; walk two levels
     // up to the workspace root (precedent: loads_legacy_registry.rs).
     let registry_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent().expect("crates/")
-        .parent().expect("workspace root")
+        .parent()
+        .expect("crates/")
+        .parent()
+        .expect("workspace root")
         .join("plugins/vsdd-factory/hooks-registry.toml");
     let registry = factory_dispatcher::registry::Registry::load(registry_path.as_path())
         .expect("latency canary: Registry::load failed — ensure hooks-registry.toml exists with schema_version=2");
@@ -134,10 +136,7 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
     // Record evidence to stdout (captured in CI logs).
     println!(
         "latency_canary: N={} iterations, p50={:?}, p95={:?}, p99={:?}",
-        CANARY_ITERATIONS,
-        latencies[49],
-        p95,
-        latencies[98],
+        CANARY_ITERATIONS, latencies[49], p95, latencies[98],
     );
 
     // The primary assertion: p95 ≤ 500ms.
@@ -166,8 +165,7 @@ fn test_BC_1_14_001_ac016_latency_budget_constant_is_500ms() {
     // The 500ms budget covers sync_group execution + ASYNC_DRAIN_WINDOW_MS (DI-019).
     // This is not a tight bound — it is a regression guard for gross misclassification.
     assert_eq!(
-        P95_LATENCY_BUDGET_MS,
-        500,
+        P95_LATENCY_BUDGET_MS, 500,
         "test_BC_1_14_001_ac016_latency_budget_constant_is_500ms: \
          P95 latency budget must be 500ms per AC-016 (S-15.01 v1.6)"
     );

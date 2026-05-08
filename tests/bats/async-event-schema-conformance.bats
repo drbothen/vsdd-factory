@@ -34,7 +34,8 @@ SINK_FILE=""
 
 setup() {
     PLUGIN_ROOT=$(mktemp -d)
-    SINK_FILE=$(mktemp --suffix=.jsonl)
+    # POSIX-portable mktemp (macOS BSD mktemp does not support --suffix).
+    SINK_FILE="$(mktemp).jsonl" && touch "$SINK_FILE"
     mkdir -p "$PLUGIN_ROOT/hook-plugins" "$PLUGIN_ROOT/test-fixtures"
 }
 

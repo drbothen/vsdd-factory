@@ -31,13 +31,13 @@ pub use internal_log::{
     PLUGIN_LOADED, PLUGIN_TIMEOUT,
 };
 pub use invoke::{InvokeError, InvokeLimits, PluginResult, StoreData, TimeoutCause, invoke_plugin};
+pub use partition::{PluginPartition, partition_plugins};
 pub use payload::{HookPayload, PayloadError};
 pub use plugin_loader::{PluginCache, PluginLoadError};
 pub use registry::{
     Capabilities, ExecSubprocessCaps, OnError, ReadFileCaps, Registry, RegistryDefaults,
     RegistryEntry, RegistryError,
 };
-pub use partition::{PluginPartition, partition_plugins};
 pub use routing::{PluginResultStub, group_by_priority, match_plugins};
 
 /// ABI version the dispatcher speaks. Kept in lock-step with
