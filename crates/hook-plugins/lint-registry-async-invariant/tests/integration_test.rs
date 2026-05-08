@@ -20,7 +20,7 @@
 //! will the test for this function pass trivially without any implementer work?"
 //! Answer: YES for every test below — therefore all call into `todo!()` stubs.
 
-use lint_registry_async_invariant::{LintResult, LintCallbacks, lint_logic, E_REG_002, run_lint};
+use lint_registry_async_invariant::{E_REG_002, LintCallbacks, LintResult, lint_logic, run_lint};
 use vsdd_hook_sdk::HookPayload;
 
 // ---------------------------------------------------------------------------
