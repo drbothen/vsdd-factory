@@ -22,6 +22,7 @@
 //! - AC-016: p95 latency measurement must appear in latency-canary.md
 //! - DI-019: ASYNC_DRAIN_WINDOW_MS referenced in async-telemetry-drain.md
 
+use regex::Regex;
 use std::path::PathBuf;
 
 /// The 5 required demo evidence files for S-15.01 (AC-017).
@@ -96,11 +97,37 @@ fn test_BC_3_08_001_ac017_all_required_demo_files_present() {
     );
 }
 
-/// AC-016 + AC-017: latency-canary.md must contain a p95 value (not blank).
+/// AC-016 + AC-017: latency-canary.md must record a parseable p95 value ≤ 1500ms
+/// and name the canonical test command.
+///
+/// # Why numeric parse, not string-contains (F-P2-014 process-gap codification)
+///
+/// The previous guard (`content.contains("p95")`) was structurally weak: a file
+/// containing "p95 = 99999ms — FAIL" would have passed. This version:
+///
+/// 1. Parses the canonical p95 table row via regex and extracts the numeric value
+/// 2. Asserts the parsed value is ≤ 1500ms (AC-016 budget per ADR-020 Class A)
+/// 3. Asserts the methodology section names the canonical test command
+///
+/// The canonical format is a Markdown table row:
+///   `| p95 | 1050ms | <= 1500ms (Class A, ADR-020) | **PASS** |`
+///
+/// The regex matches: `| p95 | <N>ms |` where <N> is the numeric value.
+///
+/// # AC-016 budget per ADR-020 (Class A — cold-start dispatch)
+///
+/// Original 500ms revised after F5 pass-1 finding F-P1-003 + F-P1-009.
 ///
 /// RED until demo-recorder phase produces the measurement file.
 #[test]
 fn test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value() {
+    /// AC-016 Class A budget (ADR-020): p95 ≤ 1500ms.
+    const AC016_BUDGET_MS: u64 = 1500;
+
+    /// Canonical test command that must appear in the methodology section.
+    const CANONICAL_CMD: &str =
+        "cargo test --release -p factory-dispatcher --test latency_canary";
+
     let canary_path = evidence_dir().join("latency-canary.md");
 
     // AC-016 budget per ADR-020 (Class A — cold-start dispatch). Original 500ms revised after F5 pass-1 finding F-P1-003 + F-P1-009.
@@ -114,10 +141,54 @@ fn test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value() {
 
     let content = std::fs::read_to_string(canary_path).expect("latency-canary.md must be readable");
 
+    // --- Guard 1: parse the canonical p95 table row and assert ≤ 1500ms ---
+    //
+    // Matches the canonical Markdown table row:
+    //   | p95 | 1050ms | <= 1500ms (Class A, ADR-020) | **PASS** |
+    //
+    // Regex: `\|\s*[Pp]95\s*\|\s*(\d+)\s*ms` — captures the numeric value.
+    // If multiple p95 rows appear (e.g., debug vs release tables), we assert
+    // the canonical-test value (the first match) is ≤ 1500ms. Debug-mode jitter
+    // is informational and not asserted here (ADR-020 §Class A applies to release).
+    let p95_re = Regex::new(r"\|\s*[Pp]95\s*\|\s*(\d+)\s*ms").expect("p95 regex must compile");
+
+    let p95_ms: u64 = match p95_re.captures(&content) {
+        Some(caps) => caps[1]
+            .parse()
+            .expect("p95 capture group must be a valid integer"),
+        None => panic!(
+            "test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value: \
+             AC-016 FAIL — latency-canary.md does not contain a parseable p95 table row. \
+             Expected format: '| p95 | <N>ms | ...' per the canonical demo-evidence template. \
+             The file must record the p95 sync_group latency (≤ {}ms per ADR-020 §Class A).",
+            AC016_BUDGET_MS
+        ),
+    };
+
     assert!(
-        content.contains("p95") || content.contains("P95"),
+        p95_ms <= AC016_BUDGET_MS,
         "test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value: \
-         AC-016 FAIL — latency-canary.md does not contain a 'p95' measurement. \
-         The file must record the p95 sync_group latency (≤ 1500ms per ADR-020 §Class A)."
+         AC-016 FAIL — latency-canary.md records p95 = {}ms which EXCEEDS the AC-016 Class A budget \
+         of {}ms per ADR-020 §Class A. \
+         The demo-recorder must re-run the canary and update latency-canary.md with a conforming measurement.",
+        p95_ms,
+        AC016_BUDGET_MS
+    );
+
+    // --- Guard 2: methodology section must name the canonical test command ---
+    //
+    // Ensures the demo file documents HOW the measurement was taken, not just the result.
+    // The canonical command is:
+    //   cargo test --release -p factory-dispatcher --test latency_canary -- --ignored
+    //
+    // We check for the prefix (without flags) to allow for minor flag variation
+    // (e.g., --nocapture) without false negatives.
+    assert!(
+        content.contains(CANONICAL_CMD),
+        "test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value: \
+         AC-017 FAIL — latency-canary.md does not reference the canonical test command. \
+         The methodology section must name '{}' so that the measurement is reproducible. \
+         A p95 value without provenance cannot serve as demo evidence (AC-017).",
+        CANONICAL_CMD
     );
 }
