@@ -340,6 +340,14 @@ script_path = "test-fixtures/exit0.sh"
         echo "FAIL: error_code must be 'E-REG-002'; got: $error_code"
         return 1
     }
+
+    local violation
+    violation=$(echo "$line" | python3 -c \
+        "import sys,json; print(json.load(sys.stdin)['violation'])")
+    [ "$violation" = "async_block_conflict" ] || {
+        echo "FAIL: violation must be 'async_block_conflict'; got: $violation"
+        return 1
+    }
 }
 
 # ---
