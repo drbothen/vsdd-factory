@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-12 COMPLETE — verdict HIGH (1H + 1L + 2 obs). F-P12-001 reveals VACUOUS scaffolding from pass-11's F-P11-001 fix (multi-line emit calls cannot be mutated by single-line sed). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4 (regressed). Fix-burst-11 dispatching: bats helper repair + sibling cite sweeps."
+current_step: "F5 fix-burst-11 COMPLETE — F-P12-001 (HIGH; bats line-range now covers multi-line emit calls 142-147 + 162-167) + F-P12-002 (annotations) + O-P12-001/002 (sibling cite sweep across 14+ sites in bats + source files). Branch fix/S-15.01-F5-convergence at e5108a2 (24 commits ahead). PR remains held until ADR-013 = 3_of_3. F5 pass-13 dispatch next; targeting NITPICK_ONLY → 1_of_3."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 pass-12 COMPLETE — verdict HIGH; F-P12-001 vacuous SITE_2/SITE_5 mutation (pass-11 scaffolding defect); ADR-013 clock 0_of_3; trajectory 17→15→6→5→0→2→5→1→4→2→2→4; fix-burst-11 dispatching) |
+| **Last Updated** | 2026-05-08 (F5 fix-burst-11 COMPLETE — bats helper multi-line line-range repair + annotation refresh + sibling cite sweep; branch @ e5108a2 (24 ahead); pass-13 dispatch next) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -94,6 +94,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-11 adversary review** | adversary | **COMPLETE** | Verdict: LOW (0H/0M/2L/0NIT). ADR-013 clock 0_of_3. F-P11-001 [L] SITE_5 not mechanized; F-P11-002 [L] lib.rs:14 cite stale. Trajectory: →2→2. See `F5-adversary-pass-11.md`. |
 | **F5 fix-burst-10 — bats SITE_5 + lib.rs cite** | test-writer + implementer | **COMPLETE** | F-P11-001: SITE_5 arm added + line-range sed (346a5e6). F-P11-002: lib.rs cite v1.6→v1.7 (70652a6). Branch @ 70652a6 (22 ahead). |
 | **F5 pass-12 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (1H/0M/1L/2obs). ADR-013 clock 0_of_3 (HIGH resets). F-P12-001 [H] SITE_2/SITE_5 mutation vacuous — single-line sed on 6-line emit call causes build failure; caught==2 misread as success. F-P12-002 [L] SITE_3/4 per-test annotations stale (394→416, 405→427). O-P12-001/002: sibling bats+source BC version-label staleness (pending intent). Trajectory: →4 (regressed). See `F5-adversary-pass-12.md`. |
+| **F5 fix-burst-11 — bats helper repair + annotation refresh + sibling cite sweep** | test-writer + implementer (2 agents, 3 commits) | **COMPLETE** | 302963c: bats helper line-range covers multi-line emit calls 142-147+162-167; SITE_3/4 annotation refresh; sibling bats cite sweep 14+ sites. 197f8e2: source-tree BC-7.06.001 v1.6→v1.7 (6 sites: main.rs:1, partition.rs:3, registry.rs:2). e5108a2: vp078_harness3.rs (4 sites) + cargo fmt cleanup. All cargo checks clean. Branch @ e5108a2 (24 ahead). |
 
 ## Identifier Conventions
 
@@ -135,7 +136,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-12 COMPLETE — verdict HIGH | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..12 + fix-bursts 1..10 complete. Pass-12 verdict HIGH (1H/0M/1L/2obs): F-P12-001 vacuous SITE_2/SITE_5 mutation (pass-11 scaffolding defect). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4 (regressed). PR held until ADR-013 = 3_of_3. Fix-burst-11 dispatching. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-11 COMPLETE — pass-13 dispatch next | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..12 + fix-bursts 1..11 complete. Fix-burst-11: bats helper multi-line range repair + annotation refresh + sibling cite sweep (e5108a2; 24 ahead). All cargo checks clean. ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4 (regressed; fix-burst-11 awaiting pass-13 verdict). PR held until ADR-013 = 3_of_3. |
 
 ## Decisions Log
 
@@ -159,12 +160,12 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 pass-12 COMPLETE. Verdict HIGH (1H/0M/1L/2obs). F-P12-001 [H]: SITE_2/SITE_5 mutation vacuous — pass-11 fix added line-range sed param but used single-line range on 6-line emit call → build failure → caught==2 (INFRA-ERROR) misread as success. Net coverage delta for SITE_2/SITE_5 = ZERO. F-P12-002 [L]: per-test annotations cite stale line numbers (394→416, 405→427). O-P12-001/002: sibling bats + source BC version-label staleness (user adjudication needed: version-pinning vs drift). ADR-013 clock 0_of_3 (HIGH resets). Trajectory: 17→15→6→5→0→2→5→1→4→2→2→4 (regressed).
+**Last update:** 2026-05-08 — F5 fix-burst-11 COMPLETE. F-P12-001 [H] RESOLVED: bats helper line-range expanded to cover multi-line emit calls at lines 142-147 and 162-167 (SITE_2/SITE_5 now genuinely mechanized). F-P12-002 [L] RESOLVED: SITE_3/4 per-test annotations refreshed to current line numbers. O-P12-001/002 RESOLVED: sibling cite sweep across 14+ sites in bats files and source tree — BC-7.06.001 v1.6→v1.7 at 6 source sites (main.rs:1, partition.rs:3, registry.rs:2) + vp078_harness3.rs 4 sites + cargo fmt cleanup. 3 commits by 2 agents (test-writer + implementer). All cargo checks clean. ADR-013 clock remains 0_of_3.
 
-**ACTIVE STEP: Fix-burst-11 dispatching — bats helper multi-line range repair (F-P12-001) + annotation refresh (F-P12-002) + optional sibling cite sweep (O-P12-001/002). PR held until ADR-013 = 3_of_3.**
+**ACTIVE STEP: F5 pass-13 adversary dispatch next. Targeting NITPICK_ONLY → 1_of_3 toward ADR-013 = 3_of_3. PR held until 3_of_3 achieved.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 70652a6 — long-lived; 22 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ e5108a2 — long-lived; 24 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this burst — see git log)
 - main @ fb3e297 (rc.11; behind develop)
