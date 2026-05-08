@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-14 COMPLETE — verdict HIGH (2H/2M/1L). F-P14-001 SUBSTANTIVE: cross-BC wire-format contradiction (offending_event/offending_tool fields) has existed since fix-burst-7 across 7+ passes. F-P14-002 third post-EC-012 line drift (DI-019). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4→5. STRATEGIC DECISION SURFACED to user — adversary recommends user adjudication on continue / time-box / scope-reduce."
+current_step: "F5 fix-burst-13 COMPLETE — all 5 pass-14 findings addressed (F-P14-001 Path B impl + spec extension; F-P14-002 stable anchors; F-P14-003 mutation target fix; F-P14-004 test-file sweep; F-P14-005 wording). Branch fix/S-15.01-F5-convergence at 1d19d73 (27 commits ahead). PR remains held until ADR-013 = 3_of_3. F5 pass-15 dispatch next."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 pass-14 COMPLETE — verdict HIGH 2H/2M/1L; F-P14-001 cross-BC wire-format contradiction; F-P14-002 3rd post-EC-012 line drift; ADR-013 0_of_3; strategic decision surfaced to user) |
+| **Last Updated** | 2026-05-08 (F5 fix-burst-13 COMPLETE — all 5 pass-14 findings addressed; BC-3.08.001 v1.8 + BC-7.06.001 v1.9 + VP-079 v1.13 + DI-019 v1.10 + impl Path B + tests + story propagation) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -98,6 +98,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-13 adversary review** | adversary | **COMPLETE** | Verdict: HIGH. F-P13-001 [H] VP-079 §Proof Harness Skeleton retains broken sed + only 4 SITES (5 enumerated); F-P13-002 [H] BC-7.06.001 line 106 stale main.rs line cites post-EC-012; F-P13-003 [M] S-15.01 References cites VP-079 v1.10 not v1.11; F-P13-004 [M] bats PATH may make mutations no-op. Trajectory: →4. ADR-013 clock 0_of_3 (HIGH resets). See `F5-adversary-pass-13.md`. |
 | **F5 fix-burst-12 — VP-079 v1.12 + BC-7.06.001 v1.8 + story propagation + bats PATH/rename** | test-writer + architect + PO + story-writer | **COMPLETE** | VP-079 v1.12: §Proof Harness Skeleton rewritten; 5 SITES enumerated; broken sed replaced with fn-name mutation (F-P13-001). BC-7.06.001 v1.8: stable symbol anchors per TD-VSDD-091 (F-P13-002). S-15.01 v1.15: References VP-079 cite refresh (F-P13-003). S-15.02 v1.6: sibling propagation. bats PATH injection + helper rename + sed portability (F-P13-004/005/006). Branch @ 028a596 (25 ahead). |
 | **F5 pass-14 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (2H/2M/1L). F-P14-001 [H] cross-BC wire-format contradiction: BC-7.06.001 v1.8 declares E-REG-003 payload includes offending_event+offending_tool; BC-3.08.001+impl emit only offending_plugin (defect since fix-burst-7, 7+ passes). F-P14-002 [H] DI-019 cites stale main.rs:308-312 (actual :329-334) — 3rd post-EC-012 line drift. F-P14-003 [M] VP-079 mutants target wrong file. F-P14-004 [M] 5-file version-cite propagation gap. F-P14-005 [L] BC-7.06.001:106 wording ambiguous. ADR-013 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4→5. STRATEGIC DECISION surfaced to user. See `F5-adversary-pass-14.md`. |
+| **F5 fix-burst-13 — BC-3.08.001 v1.8 + BC-7.06.001 v1.9 + VP-079 v1.13 + DI-019 v1.10 + impl Path B + tests + story propagation** | PO + architect + implementer + test-writer + story-writer + state-manager | **COMPLETE** | F-P14-001 Path B: BC-3.08.001 v1.8 (E-REG-003 wire schema extended with offending_event+offending_tool); impl emit_dispatcher_registry_invalid DuplicateEntry path extended; bats S8 assertions updated; 5-file version-cite sweep. F-P14-002: DI-019 v1.10 (stable symbol anchors per TD-VSDD-091; stale main.rs:308-312 → effective_drain_window binding symbol). F-P14-003: VP-079 v1.13 (cargo-mutants target corrected to bats production-path harness). F-P14-005: BC-7.06.001 v1.9 (§Fail-Closed Symmetry E-REG-003 rewritten resolved-state framing). Branch fix/S-15.01-F5-convergence @ 1d19d73 (27 ahead). |
 
 ## Identifier Conventions
 
@@ -139,7 +140,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-14 COMPLETE — strategic decision surfaced | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..14 + fix-bursts 1..12 complete. Pass-14: HIGH (2H/2M/1L). F-P14-001 cross-BC wire-format contradiction (BC-7.06.001 vs BC-3.08.001+impl on E-REG-003 payload fields; since fix-burst-7). F-P14-002 3rd post-EC-012 line drift (DI-019). ADR-013 clock 0_of_3. Trajectory 17→15→6→5→0→2→5→1→4→2→2→4→4→5. Branch @ 028a596 (25 ahead). STRATEGIC DECISION pending user adjudication (continue / time-box / scope-reduce). |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 FIX-BURST-13 COMPLETE | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..14 + fix-bursts 1..13 complete. Fix-burst-13: all 5 pass-14 findings addressed. F-P14-001 Path B: BC-3.08.001 v1.8 + impl + tests. F-P14-002: DI-019 v1.10 stable anchors. F-P14-003: VP-079 v1.13 cargo-mutants target fix. F-P14-005: BC-7.06.001 v1.9 wording. ADR-013 clock 0_of_3. Branch fix/S-15.01-F5-convergence @ 1d19d73 (27 ahead). PR held until ADR-013 = 3_of_3. F5 pass-15 dispatch next. |
 
 ## Decisions Log
 
@@ -163,17 +164,17 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 pass-14 COMPLETE. Verdict: HIGH (2H/2M/1L). F-P14-001 [H] cross-BC wire-format contradiction: BC-7.06.001 v1.8 declares E-REG-003 payload includes offending_event+offending_tool; BC-3.08.001 v1.7 + impl (emit_event.rs:221-239) + bats S8 only emit offending_plugin. Defect since fix-burst-7 (BC-7.06.001 v1.6), survived 7+ passes. PO must adjudicate canonical surface. F-P14-002 [H] DI-019 cites stale main.rs:308-312 (actual :329-334 post-EC-012 partial-drain refactor) — 3rd post-EC-012 line drift (F-P10-002, F-P13-002 prior); process-gap codification justified. F-P14-003 [M] VP-079 cargo-mutants target wrong file. F-P14-004 [M] 5-file version-cite propagation gap. F-P14-005 [L] BC-7.06.001:106 wording ambiguous. ADR-013 clock RESET 0_of_3. Trajectory: 17→15→6→5→0→2→5→1→4→2→2→4→4→5. STRATEGIC DECISION SURFACED: adversary recommends user adjudication (A=continue, B=surface, C=time-box).
+**Last update:** 2026-05-08 — F5 fix-burst-13 COMPLETE. All 5 pass-14 findings addressed. F-P14-001 Path B resolved: BC-3.08.001 v1.8 extends E-REG-003 wire schema with offending_event + offending_tool; impl emit_dispatcher_registry_invalid DuplicateEntry arm extended; bats S8 updated; 5-file version-cite sweep done. F-P14-002 resolved: DI-019 v1.10 migrates all 3 stale main.rs:308-312 citations to stable symbol anchor (effective_drain_window binding inside if !partition.async_group.is_empty() block per TD-VSDD-091). F-P14-003 resolved: VP-079 v1.13 corrects cargo-mutants preferred invocation to target bats production-path harness (async-event-schema-conformance.bats) instead of event_emission_fault_injection.rs. F-P14-004 resolved: 5-file version-cite propagation sweep (BC-3.08.001 v1.8, BC-7.06.001 v1.9, VP-079 v1.13, DI-019 v1.10, S-15.01 v1.16, S-15.02 v1.7, all index files). F-P14-005 resolved: BC-7.06.001 v1.9 rewrites E-REG-003 bullet in §Fail-Closed Symmetry to resolved-state framing. ADR-013 clock: 0_of_3 (pass-14 HIGH resets). Trajectory: 17→15→6→5→0→2→5→1→4→2→2→4→4→5→(awaiting pass-15).
 
-**ACTIVE STEP: USER ADJUDICATION REQUIRED — continue / time-box / scope-reduce for F5 pass-15+. Branch @ 028a596 (25 ahead). PR held until ADR-013 = 3_of_3.**
+**ACTIVE STEP: F5 pass-15 adversary dispatch. Branch @ 1d19d73 (27 ahead). PR held until ADR-013 = 3_of_3.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 028a596 — long-lived; 25 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ 1d19d73 — long-lived; 27 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this burst — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.37 | VP-INDEX v1.23 | STORY-INDEX v2.45 | ARCH-INDEX v1.22
+**Index versions:** BC-INDEX v1.38 | VP-INDEX v1.24 | STORY-INDEX v2.46 | ARCH-INDEX v1.22
 **ADR-013 clock:** **0_of_3** (RESET — pass-13 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete

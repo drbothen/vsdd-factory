@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.9"
+version: "1.10"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -136,7 +136,7 @@ Justification: DI-017 is a business invariant because the trace ID is the audit 
 
 ## Dispatcher Timing Invariants
 
-**DI-019 — ASYNC_DRAIN_WINDOW_MS = 100 (milliseconds, runtime constant)** _(v1.4 — amended 2026-05-08 per F-P4-004 + F-P4-005)_
+**DI-019 — ASYNC_DRAIN_WINDOW_MS = 100 (milliseconds, runtime constant)** _(v1.5 — amended 2026-05-08 per F-P14-002)_
 After `sync_group` plugin execution completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` milliseconds for spawned async-group tasks to emit terminal events to FileSink before forcibly terminating them and exiting. The constant bounds the dispatcher's user-facing latency tail and ensures bounded-but-reliable async telemetry emission.
 
 **Statement:** `ASYNC_DRAIN_WINDOW_MS = 100` ms. This is the canonical default value. The total dispatcher wall-clock latency upper bound is therefore: `max(sync_plugin_durations_within_slowest_tier) + ASYNC_DRAIN_WINDOW_MS + bounded_overhead`.
@@ -145,15 +145,15 @@ After `sync_group` plugin execution completes, the dispatcher waits up to `ASYNC
 
 **Configurability:** The canonical production value is 100 ms and is not runtime-configurable in release builds.
 
-**Debug-build env-var override:** In `#[cfg(debug_assertions)]` builds, the constant may be overridden via the environment variable `VSDD_ASYNC_DRAIN_WINDOW_MS`. This is used by VP-079 fixture execution to inject test-controlled drain timings (e.g., 5000 ms for slow-async scenarios). Release builds compile out the override per SEC-003 — production behavior remains the canonical 100 ms. Implementation: `crates/factory-dispatcher/src/main.rs:75-76` defines the env-var name; `:308-312` reads it under `#[cfg(debug_assertions)]`.
+**Debug-build env-var override:** In `#[cfg(debug_assertions)]` builds, the constant may be overridden via the environment variable `VSDD_ASYNC_DRAIN_WINDOW_MS`. This is used by VP-079 fixture execution to inject test-controlled drain timings (e.g., 5000 ms for slow-async scenarios). Release builds compile out the override per SEC-003 — production behavior remains the canonical 100 ms. Implementation: `crates/factory-dispatcher/src/main.rs` defines the env-var name as `ENV_ASYNC_DRAIN_WINDOW_MS` (module-level constant); the `effective_drain_window` binding inside the `if !partition.async_group.is_empty()` block reads it under `#[cfg(debug_assertions)]` (stable symbol anchor per TD-VSDD-091; post-EC-012 line numbers are not cited to avoid recurrent line-drift — F-P14-002).
 
-**Malformed value handling:** When `VSDD_ASYNC_DRAIN_WINDOW_MS` is set but cannot be parsed as a valid `u64` (e.g., empty, non-numeric, overflow), the dispatcher silently falls back to the canonical `ASYNC_DRAIN_WINDOW_MS` value (100ms). No warning is emitted. This is by design: the override is a debug-build convenience for VP-079 fixture execution, not an operator-facing configuration surface; release builds compile out the override entirely. Operators who need fail-loud behavior on malformed overrides should explicitly validate the env-var before invoking the dispatcher. Implementation: `crates/factory-dispatcher/src/main.rs:308-312` uses `.parse::<u64>().ok()` → `.unwrap_or(ASYNC_DRAIN_WINDOW_MS)`.
+**Malformed value handling:** When `VSDD_ASYNC_DRAIN_WINDOW_MS` is set but cannot be parsed as a valid `u64` (e.g., empty, non-numeric, overflow), the dispatcher silently falls back to the canonical `ASYNC_DRAIN_WINDOW_MS` value (100ms). No warning is emitted. This is by design: the override is a debug-build convenience for VP-079 fixture execution, not an operator-facing configuration surface; release builds compile out the override entirely. Operators who need fail-loud behavior on malformed overrides should explicitly validate the env-var before invoking the dispatcher. Implementation: the `effective_drain_window` binding inside the `if !partition.async_group.is_empty()` block in `factory_dispatcher::main::run` uses `.parse::<u64>().ok()` → `.unwrap_or(ASYNC_DRAIN_WINDOW_MS)` (stable symbol anchor per TD-VSDD-091; F-P14-002).
 
 **Pathological but parse-valid values (verbatim, no clamp):** Even values that parse successfully as `u64` are passed through verbatim with NO upper or lower bound clamp. Specifically:
 - `VSDD_ASYNC_DRAIN_WINDOW_MS=0` produces a 0ms drain window — ALL async terminal events are truncated. Use `unset VSDD_ASYNC_DRAIN_WINDOW_MS` to disable the override.
 - `VSDD_ASYNC_DRAIN_WINDOW_MS=99999999999` produces a multi-day drain — debug build will hang waiting for async drain. Operators MUST validate the value before invocation.
 
-By design: the override is a debug-build convenience for VP-079 fixture execution. Operators who need defensive clamping (e.g., min=10ms, max=60000ms) should set the env-var explicitly within those bounds; the dispatcher does NOT enforce a clamp. Implementation: `crates/factory-dispatcher/src/main.rs:308-312`.
+By design: the override is a debug-build convenience for VP-079 fixture execution. Operators who need defensive clamping (e.g., min=10ms, max=60000ms) should set the env-var explicitly within those bounds; the dispatcher does NOT enforce a clamp. Implementation: the `effective_drain_window` binding inside the `if !partition.async_group.is_empty()` block in `factory_dispatcher::main::run` (stable symbol anchor per TD-VSDD-091; F-P14-002).
 
 **Rationale:** 100 ms is long enough for in-flight tokio tasks to complete a sub-millisecond FileSink append; short enough to be imperceptible to a human user after `sync_group` finishes. Async plugins requiring longer drain (e.g., network I/O) must be redesigned — the drain is for terminal-event flush only, not for completing arbitrary async work.
 
@@ -177,6 +177,7 @@ Justification: DI-019 is a domain invariant because the drain-window constant di
 | v1.7 | 2026-05-08 | F-P2-007 (F5 fix-burst-2): DI-019 §Debug-build env-var override clause added. Documents shipped feature `VSDD_ASYNC_DRAIN_WINDOW_MS` (debug-only, compiled out in release per SEC-003). Replaces the prior "deferred decision" placeholder. DI-019 version label bumped to v1.2. |
 | v1.8 | 2026-05-08 | F-P3-004 (F5 fix-burst-3): DI-019 §Debug-build env-var override clause extended with §Malformed value handling paragraph. Documents silent-fallback contract: unparseable `VSDD_ASYNC_DRAIN_WINDOW_MS` values fall back to canonical 100ms with no warning emitted. Cites `main.rs:308-312` `.parse::<u64>().ok()` → `.unwrap_or(ASYNC_DRAIN_WINDOW_MS)`. DI-019 version label bumped to v1.3. |
 | v1.9 | 2026-05-08 | F-P4-004 + F-P4-005 (F5 fix-burst-4): DI-019 §Malformed value handling extended with §Pathological but parse-valid values paragraph. Documents =0 truncation footgun (F-P4-004) and large-value hang risk (F-P4-005). Documentation-only — no behavioral clamp added. DI-019 version label bumped to v1.4. |
+| v1.10 | 2026-05-08 | F-P14-002 (F5 pass-14): DI-019 §Debug-build env-var override + §Malformed value handling + §Pathological but parse-valid values clauses migrated from stale line-number anchors (main.rs:308-312) to stable symbol anchors per TD-VSDD-091. Actual code location post-EC-012 is the `effective_drain_window` binding inside the `if !partition.async_group.is_empty()` block (verified by grep: lines 329-334 at HEAD). Third post-EC-012 line drift in F5 cycle (after F-P10-002 VP-079 SITE_3/4, F-P13-002 BC-7.06.001 §Fail-Closed Symmetry) — recurrent pattern motivates process-gap codification. DI-019 version label bumped to v1.5. |
 
 ## Amendment 2026-05-07 (v1.4 → v1.5 — F2 pass-3 user-correction)
 
@@ -195,3 +196,48 @@ BC-1.14.001 v1.3 (authored in the pass-3 fix burst to resolve adversary findings
 **Cross-burst dependencies (architect):**
 - VP-079 must update its timing-assertion anchor to reference DI-019 (not the now-removed BC-1.14.001 constant table).
 - ADR-019 §Consequences should cite DI-019 as the latency-budget invariant for the drain window.
+
+## Amendment 2026-05-08 (v1.9 → v1.10 — F-P14-002)
+
+Addresses defect **F-P14-002**.
+
+**F-P14-002 (DI-019 cites stale main.rs:308-312 in three clauses):** Three separate prose clauses in DI-019 cited `crates/factory-dispatcher/src/main.rs:308-312` as the implementation location of the `effective_drain_window` env-var override and malformed-value fallback. These line numbers reflect the pre-EC-012 state. The EC-012 partial-drain refactor added approximately 22 lines to `main.rs`, shifting the `effective_drain_window` binding to lines 329-334 at the time of that refactor. This is the third post-EC-012 line-drift defect in the F5 cycle (after F-P10-002 for VP-079 SITE_3/4 and F-P13-002 for BC-7.06.001 §Fail-Closed Symmetry) — a recurrent pattern.
+
+POLICY 4 grep verification at HEAD:
+
+```
+grep -n "ENV_ASYNC_DRAIN_WINDOW_MS\|effective_drain_window\|VSDD_ASYNC_DRAIN_WINDOW_MS\|\.parse::<u64>().ok()" \
+    crates/factory-dispatcher/src/main.rs
+```
+
+Results:
+- Line 70: comment referencing `VSDD_ASYNC_DRAIN_WINDOW_MS`
+- Line 76: `const ENV_ASYNC_DRAIN_WINDOW_MS: &str = "VSDD_ASYNC_DRAIN_WINDOW_MS";` (module-level constant)
+- Line 325–327: comment block introducing the env-var override logic
+- Line 328: `if !partition.async_group.is_empty() {`
+- Line 329: `#[cfg(debug_assertions)]`
+- Line 330: `let effective_drain_window = std::env::var(ENV_ASYNC_DRAIN_WINDOW_MS)`
+- Line 331: `.ok()`
+- Line 332: `.and_then(|s| s.parse::<u64>().ok())`
+- Line 333: `.map(std::time::Duration::from_millis)`
+- Line 334: `.unwrap_or(ASYNC_DRAIN_WINDOW_MS);`
+- Line 335: `#[cfg(not(debug_assertions))]`
+- Line 336: `let effective_drain_window = ASYNC_DRAIN_WINDOW_MS;`
+
+Actual binding location: lines 329–334 (debug_assertions block) and 335–336 (release block) inside the `if !partition.async_group.is_empty()` block.
+
+**Resolution per TD-VSDD-091:** All three clauses are migrated from stale line-number anchors to the stable symbol anchor: `the effective_drain_window binding inside the if !partition.async_group.is_empty() block in factory_dispatcher::main::run`. This anchor is stable across line insertions in `main.rs` because it references the lexical structure of the function, not a line offset.
+
+**Changes in this amendment:**
+
+1. **Frontmatter version:** 1.9 → 1.10.
+
+2. **DI-019 version label:** v1.4 → v1.5.
+
+3. **§Debug-build env-var override clause:** Implementation citation migrated from `crates/factory-dispatcher/src/main.rs:75-76` (for env-var name) + `:308-312` (for read) to: `main.rs` defines the env-var name as the `ENV_ASYNC_DRAIN_WINDOW_MS` module-level constant; the `effective_drain_window` binding inside the `if !partition.async_group.is_empty()` block reads it under `#[cfg(debug_assertions)]`.
+
+4. **§Malformed value handling clause:** Implementation citation migrated from `crates/factory-dispatcher/src/main.rs:308-312` to: `the effective_drain_window binding inside the if !partition.async_group.is_empty() block in factory_dispatcher::main::run`.
+
+5. **§Pathological but parse-valid values clause:** Implementation citation migrated from `crates/factory-dispatcher/src/main.rs:308-312` to the same stable symbol anchor.
+
+No behavioral changes. No changes to DI-001 through DI-018, or to any other DI-019 clauses (Statement, Scope, Configurability, Pathological values semantics, Rationale, Enforcement owner, BC range, Cited by, Justification).

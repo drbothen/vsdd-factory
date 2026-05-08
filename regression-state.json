@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-08T18:31:37Z","command":"git stash && cargo test -p sink-http 2>&1 | tail -10 && git stash pop"}
+{"status":"pass","timestamp":"2026-05-08T19:42:58Z","command":"cargo test --workspace 2>&1 | grep -E \"^test result|FAILED|error\\[\" | head -30"}

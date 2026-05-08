@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -110,14 +110,19 @@ Dispatcher emits this event and hard-errors (non-zero exit) for either condition
 {
   "type": "dispatcher.registry_invalid",
   "trace_id": "<uuid-v4>",
-  "offending_plugin": "<string — name of the first duplicate plugin entry>",
+  "session_id": "<uuid-v4>",
+  "offending_plugin": "<name>",
+  "offending_event": "<event>",
+  "offending_tool": "<tool regex string or null>",
   "violation": "duplicate_hook_registration",
-  "timestamp": "<ISO-8601>",
-  "error_code": "E-REG-003"
+  "error_code": "E-REG-003",
+  "timestamp": "<ISO-8601>"
 }
 ```
 
-**Mandatory fields**: `type`, `trace_id`, `offending_plugin`, `violation`, `timestamp`, `error_code`.
+**Mandatory fields for E-REG-003**: `type`, `trace_id`, `session_id`, `offending_plugin` (string, required), `offending_event` (string, required), `offending_tool` (string or null, required — null when the duplicating entry has no `tool` filter), `violation`, `error_code`, `timestamp`.
+
+**E-REG-002 vs E-REG-003 field asymmetry (F-P14-001):** E-REG-002 (`AsyncBlockConflict`) does NOT include `offending_event` or `offending_tool` in its payload — the violation is intra-entry (a single entry simultaneously has `on_error = "block"` and `async = true`; no second entry is involved). E-REG-003 (`DuplicateEntry`) DOES include `offending_event` and `offending_tool` because the violation is inter-entry: the specific `(name, event, tool)` tuple uniquely identifies which entry is the duplicator. The data is already present in `RegistryError::DuplicateEntry { name, event, tool }` and MUST be propagated to the event payload. Implementations MUST propagate all three tuple fields; omitting `offending_event` or `offending_tool` is a BC violation.
 
 The `error_code` field is an enum with exactly two valid values: `"E-REG-002"` and `"E-REG-003"`. The `violation` field value is determined by the `error_code` per the table above — no other combinations are valid.
 
@@ -204,7 +209,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | EC-002 | Registry with schema_version = 1 loaded | `dispatcher.schema_mismatch` emitted with `found_version: 1`, `expected_version: 2`, `error_code: "E-REG-001"` |
 | EC-003 | Registry with schema_version = null (malformed TOML) | `dispatcher.schema_mismatch` emitted with `found_version: null`; dispatcher hard-errors |
 | EC-004a | Registry entry has on_error=block AND async=true (AsyncBlockConflict) | `dispatcher.registry_invalid` emitted with `error_code: "E-REG-002"`, `violation: "async_block_conflict"`, `offending_plugin` named; dispatcher refuses to start |
-| EC-004b | Two or more registry entries share the same hook name (DuplicateEntry) | `dispatcher.registry_invalid` emitted with `error_code: "E-REG-003"`, `violation: "duplicate_hook_registration"`, `offending_plugin` set to first duplicate entry name; dispatcher refuses to start |
+| EC-004b | Two or more registry entries share the same `(name, event, tool)` tuple (DuplicateEntry) | `dispatcher.registry_invalid` emitted with `error_code: "E-REG-003"`, `violation: "duplicate_hook_registration"`, `offending_plugin`/`offending_event`/`offending_tool` set to the duplicating entry's tuple; dispatcher refuses to start |
 | EC-005 | Async plugin times out | `plugin.timeout` emitted with `execution_group: "async"`; plugin process terminated; dispatcher exit code unaffected |
 | EC-006 | Multiple async plugins time out in same invocation | One `plugin.timeout` event per timed-out plugin (not a single batch event) |
 
@@ -255,6 +260,36 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-05-08 (v1.7 → v1.8 — F-P14-001 Path B: E-REG-003 wire schema extended with offending_event + offending_tool)
+
+**Driver:** F-P14-001 Path B — Cross-BC contradiction since fix-burst-7: BC-7.06.001 v1.8 §E-REG-NNN Error Code Table declares the authoritative E-REG-003 `dispatcher.registry_invalid` payload as including `offending_plugin`, `offending_event`, `offending_tool`, `violation`, `timestamp`, `error_code`. BC-3.08.001 v1.7 Event 3 E-REG-003 wire-format example only enumerated `offending_plugin`, omitting `offending_event` and `offending_tool`. The data already exists in `RegistryError::DuplicateEntry { name, event, tool }` — the divergence was a spec-level omission, not an implementation gap.
+
+**User-decided resolution:** Path B — extend BC-3.08.001 wire schema to match BC-7.06.001's authoritative enrichment. (Path A would have stripped the fields from BC-7.06.001 v1.8; Path B was chosen because the extra fields carry diagnostic value and are already present in the Rust error variant.)
+
+**Changes made:**
+
+1. **Event 3 E-REG-003 wire-format example extended** (F-P14-001): JSON example now includes `session_id`, `offending_event` (string, required), and `offending_tool` (string or null, required). Field ordering normalized to match BC-7.06.001 v1.8 authoritative schema.
+
+2. **Mandatory fields paragraph for E-REG-003 updated**: `offending_event` (string, required) and `offending_tool` (string or null, required) added to the mandatory fields list. `session_id` added. Null semantics for `offending_tool` clarified (null when duplicating entry has no `tool` filter).
+
+3. **E-REG-002 vs E-REG-003 asymmetry note added** (F-P14-001): Explains why E-REG-002 does NOT carry `offending_event`/`offending_tool` (intra-entry violation) while E-REG-003 does (inter-entry violation — the tuple identifies the duplicating entry). Cites implementation anchor: `RegistryError::DuplicateEntry { name, event, tool }`.
+
+4. **EC-004b updated**: "offending_plugin set to first duplicate entry name" replaced with "offending_plugin/offending_event/offending_tool set to the duplicating entry's tuple" (F-P14-001 POLICY 12 TV emitter consistency).
+
+5. **Frontmatter:** `version: "1.7"` → `"1.8"`.
+
+**Sync notes for implementer**: The event emission site for E-REG-003 in `factory_dispatcher::main::run` (or `registry.rs::validate()`) must accept the full `RegistryError::DuplicateEntry { name, event, tool }` destructure and propagate all three fields to the structured event. The emit call signature must accept `event: &str` and `tool: Option<&str>` (already present in the `DuplicateEntry` variant). No new fields are required in `RegistryError` itself — only the event emission path needs updating to include `offending_event` and `offending_tool` alongside the existing `offending_plugin`.
+
+**Sync notes for test-writer**: Bats S8 tests that assert `dispatcher.registry_invalid` for E-REG-003 MUST be updated to assert all three fields: `offending_plugin`, `offending_event`, and `offending_tool`. A test vector that asserts only `offending_plugin` is now insufficient. The `offending_tool` field must be `null` when the duplicating entry has no `tool` filter and a regex string otherwise.
+
+**POLICY 1 verification:** All prior content preserved verbatim. E-REG-002 wire-format example unchanged (asymmetry note explains why it remains field-minimal). No event IDs renumbered.
+
+**POLICY 7 verification:** H1 heading unchanged.
+
+**F-P14-001 cross-reference:** BC-7.06.001 v1.8 §Sibling BC-3.08.001 cross-reference at line 204 referenced "BC-3.08.001 v1.7 lines 107-117" as the SS-03 catalog mirror. That note is now superseded: BC-3.08.001 v1.8 Event 3 (E-REG-003 wire format section) is the updated SS-03 catalog mirror, and the two BCs are now consistent.
+
+---
 
 ## Amendment 2026-05-08 (v1.7 — O-P10-001: phase frontmatter corrected F8 → F2)
 

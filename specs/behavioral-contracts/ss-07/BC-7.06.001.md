@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.8"
+version: "1.9"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -103,7 +103,7 @@ All three E-REG-NNN error codes share the same fail-closed semantic — load fai
 
 - `E-REG-001` (`RegistryError::SchemaVersion`) — catch-all `_ => 0` silently exits 0; MUST exit 2.
 - `E-REG-002` (`RegistryError::AsyncBlockConflict`) — exits 2 via the `RegistryError::AsyncBlockConflict { name }` arm in `factory_dispatcher::main::run` (the arm carrying `eprintln! + 2` above the catch-all in `main.rs::run`); correct.
-- `E-REG-003` (`RegistryError::DuplicateEntry`) — the catch-all `_ => 0` arm in `factory_dispatcher::main::run` (the arm guarding the unmatched `RegistryError::*` variants) silently exits 0; MUST exit 2 (F-P8-001 fix). The implementation MUST match the explicit exit-2 branch pattern used by `RegistryError::AsyncBlockConflict` (which carries the explicit `eprintln! + 2` arm above the catch-all in `main.rs::run`), not fall through to the catch-all. (F-P13-002: migrated from stale line numbers 148–151/143–145 to stable symbol anchors per TD-VSDD-091.)
+- `E-REG-003` (`RegistryError::DuplicateEntry`) — fixed at F-P8-001 by adding the explicit `RegistryError::DuplicateEntry` arm in `factory_dispatcher::main::run` returning exit code 2 with `[E-REG-003]` stderr prefix and `dispatcher.registry_invalid` event emission. This arm precedes the catch-all `_ => 0` arm. Future `RegistryError` variants MUST receive an explicit non-zero exit branch and MUST NOT fall through to the catch-all (per TD-028 process-gap codification). (F-P13-002: migrated from stale line numbers 148–151/143–145 to stable symbol anchors per TD-VSDD-091.)
 
 Any future `RegistryError` variant added to `registry.rs` MUST receive an explicit exit-code branch in `main.rs` before the catch-all. The catch-all MAY only remain as a last-resort fallback for truly unexpected variants, and MUST map to a non-zero exit code (e.g., `_ => 1`), never 0.
 
@@ -201,7 +201,7 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 }
 ```
 
-**Sibling BC-3.08.001 cross-reference**: BC-3.08.001 v1.7 Event 3 (`dispatcher.registry_invalid`) enumerates two valid `error_code` values: `E-REG-002` (`violation: "async_block_conflict"`) and `E-REG-003` (`violation: "duplicate_hook_registration"`). The E-REG-003 wire-format payload defined here is the authoritative schema; BC-3.08.001 v1.7 lines 107-117 are the SS-03 catalog mirror.
+**Sibling BC-3.08.001 cross-reference**: BC-3.08.001 v1.8 Event 3 (`dispatcher.registry_invalid`) enumerates two valid `error_code` values: `E-REG-002` (`violation: "async_block_conflict"`) and `E-REG-003` (`violation: "duplicate_hook_registration"`). The E-REG-003 wire-format payload defined here is the authoritative schema; BC-3.08.001 v1.8 Event 3 E-REG-003 wire-format section is the SS-03 catalog mirror (updated from v1.7 per F-P14-001 Path B to include `offending_event` and `offending_tool`).
 
 ## Traceability
 
@@ -233,6 +233,24 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-08 (v1.8 → v1.9 — F-P14-005: §Fail-Closed Symmetry E-REG-003 wording clarified)
+
+**Driver:** F-P14-005 — §Fail-Closed Symmetry Across E-REG-NNN Error Codes E-REG-003 bullet had grammatically misleading wording. The phrase "silently exits 0; MUST exit 2 (F-P8-001 fix)" was written in present-tense defect language ("silently exits 0") even though the F-P8-001 fix was already in place as of that amendment. A reader encountering the BC post-fix could interpret the bullet as describing the current (broken) state rather than the resolved state.
+
+**Changes made:**
+
+1. **E-REG-003 bullet in §Fail-Closed Symmetry rewritten** (F-P14-005): Defect-framing language ("the catch-all `_ => 0` arm ... silently exits 0; MUST exit 2") replaced with resolved-state framing: "fixed at F-P8-001 by adding the explicit `RegistryError::DuplicateEntry` arm in `factory_dispatcher::main::run` returning exit code 2 with `[E-REG-003]` stderr prefix and `dispatcher.registry_invalid` event emission." Forward obligation added: "Future `RegistryError` variants MUST receive an explicit non-zero exit branch and MUST NOT fall through to the catch-all (per TD-028 process-gap codification)." The F-P13-002 stable-anchor parenthetical is preserved verbatim.
+
+2. **Frontmatter:** `version: "1.8"` → `"1.9"`.
+
+**POLICY 1 verification:** All prior changelog entries preserved verbatim. The v1.5→v1.6 changelog (historical defect description) is untouched — it accurately records what was defective at that time and is a historical record. Only the live Implementation Notes bullet is rewritten.
+
+**POLICY 7 verification:** H1 heading unchanged.
+
+**TD-028 citation:** The forward obligation ("Future `RegistryError` variants MUST receive an explicit non-zero exit branch") cites TD-028 (process-gap codification) as the governing policy that prevents the same catch-all pattern from reappearing with future `RegistryError` additions.
+
+---
 
 ## Amendment 2026-05-08 (v1.7 → v1.8 — F-P13-002: §Fail-Closed Symmetry line citations refreshed post-EC-012 refactor)
 
