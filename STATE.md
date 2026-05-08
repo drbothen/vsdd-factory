@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 fix-burst-16 COMPLETE — pass-17 findings closed (VP-079 v1.16 SITES + BC-3.08.001 v1.11 + S-15.01 v1.20 + bats stable anchors); TD-031 lint-hook NEW (PreToolUse Edit|Write blocking; 180 pre-existing violations across 60 files surfaced). STRATEGIC DECISION PENDING: mass sweep vs downgrade vs false-positive verification. Branch fix/S-15.01-F5-convergence at 0088a40a (32 commits ahead). PR remains held until ADR-013 = 3_of_3."
+current_step: "PRE-COMPACT — fix-burst-16 + rename complete (bb661eaa); 180-violation verification done (98.9% TP); handoff doc written. User has /compact pending. Post-compact: dispatch chunked mass-sweep of 180 violations (top-5 files = 52%); then pass-18. Branch fix/S-15.01-F5-convergence at bb661eaa (33 commits ahead). PR HELD until ADR-013 = 3_of_3."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 fix-burst-16 COMPLETE — VP-079 v1.16 + BC-3.08.001 v1.11 + S-15.01 v1.20 + TD-031 lint-hook NEW; 180 pre-existing violations surfaced; STRATEGIC DECISION PENDING) |
-| **Current Phase** | F5 FIX-BURST-16 COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; TD-031 lint-hook active; ADR-013 clock 0_of_3; strategic decision required before fix-burst-17 |
+| **Last Updated** | 2026-05-08 (PRE-COMPACT — hook rename bb661eaa; 180-violation verification 98.9% TP; handoff doc written; mass-sweep + pass-18 next after /compact) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (renamed bb661eaa); ADR-013 clock 0_of_3; mass-sweep 180 violations pending post-compact |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 FIX-BURST MERGED** | S-15.01 MERGED via PR #106 at 453eee1 (2026-05-08). F5 fix-burst MERGED via PR #107 at 6050d24 (2026-05-08). F5 pass-1: 5H/6M/4L/2NIT — all 17 findings addressed. Path A: ADR-020 v1.0; S-15.01 v1.8 (AC-016 1500ms); S-15.02 draft; BC-1.14.001 v1.8. F5 pass-2 adversary dispatch NEXT. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — PRE-COMPACT** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–17 + fix-bursts 1–16 complete. Fix-burst-16: VP-079 v1.16 + BC-3.08.001 v1.11 + S-15.01 v1.20 + TD-031 lint-hook (renamed validate-stable-anchors bb661eaa; 180 violations verified 98.9% TP). Handoff doc written. POST-COMPACT: chunked mass-sweep 180 violations → pass-18. ADR-013 0_of_3. Branch bb661eaa (33 ahead). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -96,7 +96,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-16 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (2H/2M/1L + 3obs). META: fix-burst-14 introduced 5 TD-031 violations. F-P16-001 [H] VP-079 SITES stale → INFRA-ERROR; F-P16-002 [H] BC-3.08.001 amendment line cites stale; F-P16-003 [M] S-15.01 ACs missing session_id; F-P16-004 [M] triple-doc drift §8b absent; F-P16-005 [L] §Common Fields contradiction. Trajectory: →5. ADR-013: 0_of_3. See `F5-adversary-pass-16.md`. |
 | **F5 fix-burst-15 — VP-079 v1.15 + BC-3.08.001 v1.10 + S-15.01 v1.19 + bats SITES refresh + TD-031 P2→P1** | test-writer + state-manager | **COMPLETE** | F-P16-001/004: VP-079 v1.15 SITES stable anchors + §Scenario 8b prose + bats Scenario 6 SITES line range refresh (143,150+167,174+423+434). F-P16-002/005: BC-3.08.001 v1.10 stable anchors + §Common Fields contradiction resolved. F-P16-003/004: S-15.01 v1.19 ACs 011-014 session_id + 7 mandatory fields. O-P16-001: TD-031 escalated P2→P1. O-P16-002: VP-079 BC cite stabilized. O-P16-003: VP-079 inputs extended. Branch @ 2d700d94 (30 ahead). |
 | **F5 pass-17 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (3H/1M/4 obs). META: TD-031 violations recur within fix-bursts that codify TD-031. F-P17-001 [H/CRIT] VP-079 v1.15 SITES drifted 1/5/7/7 lines vs live main.rs; F-P17-002 [H] BC-3.08.001 §Common Fields claims plugin_version but impl emits zero; F-P17-003 [H] S-15.01 AC-018 stale :581-700 bats range (F-P16-004 sibling gap); F-P17-004 [M] vp079-scenario6.bats header stale-by-2/3. ADR-013: 0_of_3. Trajectory: →4. See `F5-adversary-pass-17.md`. |
-| **F5 fix-burst-16 — VP-079 v1.16 + BC-3.08.001 v1.11 + S-15.01 v1.20 + TD-031 lint-hook NEW** | test-writer + devops-engineer + state-manager | **COMPLETE** | F-P17-001: VP-079 v1.16 SITES array refreshed (live main.rs symbol positions). F-P17-002: BC-3.08.001 v1.11 §Common Fields corrected (plugin_version claim removed). F-P17-003: S-15.01 v1.20 AC-018 stale bats range corrected. F-P17-004: vp079-scenario6.bats header stable anchors per TD-031. O-P17-003: TD-031 enforcement lint-hook NEW (validate-td031-stable-anchors; PreToolUse Edit|Write blocking; registered hooks-registry.toml); 180 pre-existing violations across 60 files surfaced. Branch @ 0088a40a (32 ahead). STRATEGIC DECISION PENDING. |
+| **F5 fix-burst-16 — VP-079 v1.16 + BC-3.08.001 v1.11 + S-15.01 v1.20 + TD-031 lint-hook NEW** | test-writer + devops-engineer + state-manager | **COMPLETE** | F-P17-001: VP-079 v1.16 SITES array refreshed (live main.rs symbol positions). F-P17-002: BC-3.08.001 v1.11 §Common Fields corrected (plugin_version claim removed). F-P17-003: S-15.01 v1.20 AC-018 stale bats range corrected. F-P17-004: vp079-scenario6.bats header stable anchors per TD-031. O-P17-003: TD-031 enforcement lint-hook NEW (validate-td031-stable-anchors; PreToolUse Edit|Write blocking; registered hooks-registry.toml); 180 pre-existing violations across 60 files surfaced. Branch @ 0088a40a (32 ahead). |
+| **Hook rename: validate-td031-stable-anchors → validate-stable-anchors + 180-violation verification** | devops-engineer + state-manager | **COMPLETE** | Rename commit bb661eaa. Hook now generalizes beyond TD-031. Verification: 22 stratified samples; 98.9% TP (178/180 true positives); 2 FPs in VP-INDEX YAML frontmatter (exempt-zone gap, not false enforcement). Branch @ bb661eaa (33 ahead). Handoff doc written at cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-pre-compact-handoff.md. USER: /compact pending. |
+| **POST-COMPACT NEXT: chunked mass-sweep 180 violations → pass-18 adversary** | implementer + adversary | **PENDING** | Chunked approach recommended: 4-6 sub-bursts of ~10 files each; top-5 files = 52% of violations (93 total). After sweep: dispatch pass-18. If NITPICK_ONLY → ADR-013 0→1_of_3. |
 
 ## Identifier Conventions
 
@@ -160,26 +162,20 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 <!-- No open blockers. -->
 
-## Strategic Decision Pending
+## Strategic Decision — RESOLVED
 
-**TD-031 lint-hook surfaced 180 pre-existing violations across 60 files** (validate-td031-stable-anchors; PreToolUse Edit|Write blocking; registered 2026-05-08 fix-burst-16). These are `*.rs:NNN` line-cite patterns in spec body outside exempt zones.
+**TD-031 lint-hook surfaced 180 pre-existing violations across 60 files.** Verification complete (98.9% TP; 2 FPs in VP-INDEX YAML frontmatter). User-approved path: **Option (a) mass sweep** — chunked 4-6 sub-bursts of ~10 files each. Hook renamed `validate-stable-anchors` (bb661eaa; generalizes beyond TD-031).
 
-**Three options — user input required before fix-burst-17:**
-
-| Option | Description | Risk |
-|--------|-------------|------|
-| (a) Mass sweep | Fix all 180 violations across 60 files | Large burst; risk of error introduction |
-| (b) Downgrade | Change hook `on_error = "warn"` instead of `"block"` | TD-031 enforcement weakened |
-| (c) Verify first | Sample violations to assess false-positive rate | Informed decision before large sweep |
+**Post-compact action:** Dispatch chunked sweep (top-5 files first = 52% of violations), then pass-18 adversary review. See `F5-pre-compact-handoff.md` §5 for full resume workflow.
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 fix-burst-16 COMPLETE. All 4 pass-17 findings closed: VP-079 v1.16 SITES refreshed (F-P17-001 CRIT); BC-3.08.001 v1.11 §Common Fields plugin_version claim removed (F-P17-002); S-15.01 v1.20 AC-018 stale bats range corrected (F-P17-003); vp079-scenario6.bats header stable anchors (F-P17-004). TD-031 enforcement lint-hook activated (validate-td031-stable-anchors; PreToolUse Edit|Write blocking; 180 pre-existing violations across 60 files surfaced). STRATEGIC DECISION REQUIRED: (a) mass sweep all 180; (b) downgrade hook to warning; (c) verify for false positives. Branch @ 0088a40a (32 ahead).
+**Last update:** 2026-05-08 — PRE-COMPACT. Hook renamed validate-stable-anchors (bb661eaa; 33 commits ahead). 180-violation verification complete: 98.9% TP (178/180), 2 FPs in VP-INDEX YAML frontmatter (exempt-zone gap). User-approved path: chunked mass-sweep (Option a). Handoff doc written: `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-pre-compact-handoff.md`. User issuing /compact.
 
-**ACTIVE STEP: STRATEGIC DECISION PENDING — TD-031 lint-hook surfaced 180 violations. User input required before fix-burst-17 dispatch.**
+**ACTIVE STEP: POST-COMPACT — dispatch chunked mass-sweep of 180 stable-anchor violations (top-5 files = 52%); then pass-18 adversary. ADR-013 at 0_of_3.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 0088a40a — long-lived; 32 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ bb661eaa — long-lived; 33 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this burst — see git log)
 - main @ fb3e297 (rc.11; behind develop)
