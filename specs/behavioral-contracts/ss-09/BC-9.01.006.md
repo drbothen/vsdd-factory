@@ -1,16 +1,16 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: null
+last_amended: 2026-05-07
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
   - plugins/vsdd-factory/hooks/hooks.json.template
-  - .factory/specs/architecture/ADR-019.md
+  - .factory/specs/architecture/decisions/ADR-019-plugin-async-semantics-at-registry-layer.md
 input-hash: "[to-be-computed-by-state-manager]"
 traces_to: .factory/specs/prd.md
 origin: greenfield
@@ -138,3 +138,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | YES — given same template content, lint result is always the same. |
 | **Thread safety** | YES — lint is a read-only scan. |
 | **Overall classification** | Pure scan with filesystem I/O; lint result is deterministic. |
+
+## Amendment 2026-05-07 (v1.0 → v1.1 — F2 pass-7 F-P7-002: stale inputs path corrected)
+
+The `inputs:` frontmatter listed `.factory/specs/architecture/ADR-019.md` — a path that never existed. The actual file is at `.factory/specs/architecture/decisions/ADR-019-plugin-async-semantics-at-registry-layer.md`. Corrected the path in frontmatter. No substantive content changed.

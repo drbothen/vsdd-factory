@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.25"
+version: "1.26"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-7 fix burst (2026-05-07) — BC-9.01.006 v1.0→v1.1 (F-P7-002: inputs frontmatter ADR-019 path corrected to canonical decisions/ADR-019-plugin-async-semantics-at-registry-layer.md; cosmetic only). BC-1.14.001 v1.5→v1.6 (F-P7-004: redundant `(per DI-019;` parenthetical removed from L2 Domain Invariants DI-019 cell; cosmetic only). No count change. last_amended: 2026-05-07 (async-semantics F2 pass-7 fix burst: BC-9.01.006 v1.1; BC-1.14.001 v1.6; F-P7-002 + F-P7-004 closed)."
   - date: 2026-05-07
     change: "F2 pass-6 fix burst (2026-05-07) — BC-3.08.001 v1.2→v1.3 (F-P6-003: inline `100 ms` literal removed from Traceability section; cites DI-019 by reference). No count change. last_amended: 2026-05-07 (async-semantics F2 pass-6 fix burst: BC-3.08.001 v1.3; F-P6-003 inline literal removed)."
   - date: 2026-05-07

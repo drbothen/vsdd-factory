@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -167,7 +167,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |-------|-------|
 | L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's partitioned invocation model (sync-group gates Claude Code; async-group fires-and-forgets), which is the core mechanism by which sandboxed WASM plugins enforce `on_error = "block"` governance |
-| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (per DI-019; PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
+| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/routing.rs` (`partition_plugins`), `crates/factory-dispatcher/src/engine.rs` (dispatch loop) |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
@@ -190,6 +190,10 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-07 (v1.5 → v1.6 — F2 pass-7 F-P7-004: redundant parenthetical removed)
+
+Removed `(per DI-019;` from the L2 Domain Invariants DI-019 cell. The phrase was redundant with the surrounding `DI-019 —` prefix. No substantive content changed.
 
 ## Amendment 2026-05-07 (v1.4 → v1.5 — F2 pass-4 F-P4-005)
 

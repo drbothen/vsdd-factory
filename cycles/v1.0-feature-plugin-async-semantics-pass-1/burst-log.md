@@ -479,3 +479,63 @@ Applied per pass-5 lesson (close-burst claims must be grep-verified, not visual)
 F2 PASS-6 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-7 next (3 consecutive NITPICK_ONLY required before F3 story decomposition).
 
 ---
+
+## Burst 8 — F2 pass-7 fix burst close
+
+**Date:** 2026-05-07
+**Phase:** F2 PASS-7 FIX BURST CLOSED
+**Agents:** PO fix burst (VP-079 v1.5; BC-9.01.006 v1.1; BC-1.14.001 v1.6) + state-manager close (BC-INDEX v1.26; VP-INDEX v1.14; STATE.md)
+**Verification discipline:** Byte-for-byte grep applied throughout. All site counts verified before and after edits.
+
+**Convergence milestone:** FIRST PASS WITHOUT HIGH FINDINGS. Trajectory: 19→19→7→6→3→5→4.
+
+### Files modified
+
+| File | Old Version | New Version | Change |
+|------|-------------|-------------|--------|
+| `specs/verification-properties/VP-079.md` | v1.4 | v1.5 | PO: F-P7-001 — 9 inline `100ms` literals replaced with symbolic ASYNC_DRAIN_WINDOW_MS / DI-019 citations across Property 5, Scenario 1/4/5 comments, False-Positive table, Feasibility Assessment, Traceability; F-P7-003 — stale "BC-1.14.001 v1.4 traceability" cite at Property 5 → "BC-1.14.001 PC4 traceability" (stable semantic anchor) |
+| `specs/behavioral-contracts/ss-09/BC-9.01.006.md` | v1.0 | v1.1 | PO: F-P7-002 — inputs frontmatter path `.factory/specs/architecture/ADR-019.md` corrected to canonical `.factory/specs/architecture/decisions/ADR-019-plugin-async-semantics-at-registry-layer.md` (stale path never existed); cosmetic only |
+| `specs/behavioral-contracts/ss-01/BC-1.14.001.md` | v1.5 | v1.6 | PO: F-P7-004 — redundant `(per DI-019;` parenthetical removed from L2 Domain Invariants DI-019 cell in Traceability; cosmetic only |
+| `specs/behavioral-contracts/BC-INDEX.md` | v1.25 | v1.26 | State-manager: changelog entry for BC-9.01.006 v1.1 + BC-1.14.001 v1.6 (no count change; H1 titles unchanged — no row text update needed) |
+| `specs/verification-properties/VP-INDEX.md` | v1.13 | v1.14 | State-manager: VP-079 row description updated to v1.5 summary; changelog entry for pass-7 |
+| `STATE.md` | — | — | current_step, Last Updated, Current Phase, Active Cycles table, Phase Progress row, Current Phase Steps (pass-7 row added), Session Checkpoint, ACTIVE STEP, INDEX versions updated |
+
+### Index bumps
+
+| Index | Old | New | Notes |
+|-------|-----|-----|-------|
+| BC-INDEX | v1.25 | v1.26 | BC-9.01.006 v1.1 + BC-1.14.001 v1.6 noted; no count change |
+| ARCH-INDEX | v1.17 | v1.17 | No change — ADR-019 not touched in pass-7 |
+| VP-INDEX | v1.13 | v1.14 | VP-079 v1.5 row updated; changelog entry added |
+
+### Findings summary (4 total — FIRST PASS WITHOUT HIGH)
+
+| Severity | Count | Notable |
+|----------|-------|---------|
+| HIGH | 0 | First pass without HIGH findings — convergence milestone |
+| MED | 2 | F-P7-001 (VP-079 9 inline 100ms literals — DI-019-canonical-home principle not previously applied to VP-079); F-P7-002 (BC-9.01.006 stale ADR-019 inputs path) |
+| LOW | 0 | — |
+| NIT | 2 | F-P7-003 (VP-079 stale v1.4 version-anchored cite → PC4 stable anchor); F-P7-004 (BC-1.14.001 redundant parenthetical — cosmetic) |
+
+### Byte-for-byte verification log
+
+Applied per pass-5 lesson (close-burst claims must be grep-verified, not visual):
+
+- `100ms` in VP-079 live body (excluding CHANGELOG/Amendment sections): zero hits confirmed
+- `ASYNC_DRAIN_WINDOW_MS` present at all 9 former literal sites in VP-079: confirmed
+- `BC-1.14.001 v1.4` version-anchored cite in VP-079 live body: zero hits (replaced with PC4 anchor)
+- `ADR-019.md` stale path in BC-9.01.006 inputs frontmatter: zero hits (corrected to canonical decisions/ path)
+- `decisions/ADR-019-plugin-async-semantics-at-registry-layer.md` file exists at cited path: confirmed
+- `(per DI-019;` redundant pattern in BC-1.14.001 live body: zero hits (removed)
+- BC-9.01.006 version frontmatter: confirmed v1.1 post-amendment
+- BC-1.14.001 version frontmatter: confirmed v1.6 post-amendment
+- VP-079 version frontmatter: confirmed v1.5 post-amendment
+- BC-INDEX v1.26 frontmatter: confirmed
+- VP-INDEX v1.14 frontmatter: confirmed
+- BC-INDEX rows for BC-9.01.006 + BC-1.14.001: H1 titles unchanged (path fix in frontmatter only; parenthetical in body Traceability section only); row texts confirmed matching H1 byte-for-byte
+
+### Status
+
+F2 PASS-7 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-8 next (3 consecutive NITPICK_ONLY required before F3 story decomposition). First pass without HIGH findings — DI-019-canonical-home principle now propagated to all 4 citing artifacts (BC-1.14.001, BC-3.08.001, ADR-019, VP-079).
+
+---
