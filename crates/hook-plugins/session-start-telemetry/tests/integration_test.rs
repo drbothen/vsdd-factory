@@ -663,13 +663,15 @@ mod session_start_integration {
     // BC-4.04.004 tests
     // -----------------------------------------------------------------------
 
-    /// BC-4.04.004: `hooks.json.template` contains `SessionStart` entry with:
+    /// BC-4.04.004 v2.1: `hooks.json.template` contains `SessionStart` entry with:
     ///   - `command` referencing the dispatcher binary (contains "factory-dispatcher")
     ///   - `command` NOT referencing a `.wasm` plugin filename (ADR-011 layer separation)
-    ///   - `once: true` AND `async: true`
+    ///   - `once: true` AND `async` key ABSENT (synchronous envelope per ADR-019 S-15.01)
     ///   - `timeout: 10000` (harness timeout per BC-4.04.004 PC-5 / ADR-011 timeout hierarchy)
     ///
-    /// Structure: `hooks.SessionStart` is an array; `[0]["hooks"][0]` has type/command/once/async.
+    /// S-15.01 T-3g: async:true removed from all event entries per BC-9.01.006 and ADR-019.
+    ///
+    /// Structure: `hooks.SessionStart` is an array; `[0]["hooks"][0]` has type/command/once/timeout.
     #[test]
     fn test_bc_4_04_004_hooks_json_template_has_session_start() {
         let root = workspace_root();
@@ -704,12 +706,17 @@ mod session_start_integration {
             "BC-4.04.004 Invariant 1: command must NOT reference a .wasm plugin filename (ADR-011 layer separation); got: {command:?}"
         );
 
-        // BC-4.04.004 PC-3: once:true AND async:true
+        // BC-4.04.004 PC-3 v2.1: once:true; async key must be ABSENT (S-15.01 T-3g envelope flip).
+        // ADR-019 Decision 1: every Claude Code hook event must be sync at the envelope.
+        // BC-9.01.006: async:true removed from all event entries.
         assert_eq!(
             entry["once"], true,
             "BC-4.04.004 PC-3: once must be true (Layer 1 once-discipline; idempotency guarantee per BC-4.04.003)"
         );
-        assert_eq!(entry["async"], true, "BC-4.04.004 PC-3: async must be true");
+        assert!(
+            entry.get("async").is_none() || entry["async"] != true,
+            "BC-4.04.004 v2.1: async:true must be absent from SessionStart entry (S-15.01 T-3g, ADR-019 Decision 1)"
+        );
 
         // BC-4.04.004 PC-5: timeout must be 10000 (harness timeout; must exceed dispatcher
         // per-call budget 8000ms per ADR-011 timeout hierarchy)

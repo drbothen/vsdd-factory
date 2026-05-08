@@ -12,7 +12,7 @@ use factory_dispatcher::routing::{group_by_priority, match_plugins};
 use std::fs;
 
 const REGISTRY: &str = r#"
-schema_version = 1
+schema_version = 2
 
 [defaults]
 timeout_ms = 3000

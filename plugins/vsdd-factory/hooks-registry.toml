@@ -948,3 +948,20 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = [".factory/cycles"]
 
+# ---------- lint-registry-async-invariant (PostToolUse, Edit|Write) ----------
+# S-15.01 T-3i: native WASM CI lint plugin (BC-7.06.001 Invariant 5 Layer 1).
+# Enforces: schema_version=2 required + on_error=block implies async=false.
+# Fires on any Edit|Write to hooks-registry.toml; no-ops for other paths.
+# NOT via legacy-bash-adapter (Decision 5 WASM-migration rule).
+
+[[hooks]]
+name = "lint-registry-async-invariant"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/lint-registry-async-invariant.wasm"
+priority = 160
+timeout_ms = 5000
+on_error = "block"
+
+[hooks.capabilities.read_file]
+path_allow = ["plugins/vsdd-factory/hooks-registry.toml"]

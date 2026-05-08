@@ -841,7 +841,7 @@ mod worktree_integration {
     ///   - `once` key is COMPLETELY ABSENT (not `once: false`, not `once: true` —
     ///     the key must not exist at all; worktree events can re-fire on reconnect;
     ///     defensive omission protects against future Claude Code parser changes)
-    ///   - `async: true`
+    ///   - `async` key ABSENT (synchronous envelope per ADR-019 S-15.01 T-3g; BC-9.01.006)
     ///   - `timeout: 10000` (harness timeout per BC-4.07.003 PC-6 + ADR-011)
     #[test]
     fn test_bc_4_07_003_hooks_json_template_has_worktree_create_and_remove() {
@@ -890,10 +890,11 @@ mod worktree_integration {
                  the key must not exist at all — not 'once: false', not 'once: true')"
             );
 
-            // BC-4.07.003 PC-3: async:true
-            assert_eq!(
-                entry["async"], true,
-                "BC-4.07.003 PC-3: {event_name} entry must have async:true"
+            // BC-4.07.003 v1.3 PC-3: async key must be ABSENT (S-15.01 T-3g, ADR-019 Decision 1).
+            // BC-9.01.006: async:true removed from all event entries.
+            assert!(
+                entry.get("async").is_none() || entry["async"] != true,
+                "BC-4.07.003 v1.3 PC-3: async:true must be absent from {event_name} entry (S-15.01 T-3g, ADR-019 Decision 1)"
             );
 
             // BC-4.07.003 PC-6: timeout:10000

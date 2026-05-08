@@ -99,15 +99,78 @@ where
 /// - BC-7.06.001 postcondition 2: per-plugin async field with serde-default
 /// - DI-019: ASYNC_DRAIN_WINDOW_MS — cite by reference, do NOT hardcode value
 pub fn lint_logic<R, E, L>(
-    _payload: HookPayload,
-    _callbacks: LintCallbacks<R, E, L>,
+    payload: HookPayload,
+    mut callbacks: LintCallbacks<R, E, L>,
 ) -> HookResult
 where
     R: FnOnce(&str) -> Result<String, String>,
     E: FnMut(&str, &[(&str, &str)]),
     L: FnMut(u8, &str),
 {
-    todo!("T-3i: implement lint invariant checks — read hooks-registry.toml, assert schema_version=2, check on_error=block implies async=false (BC-7.06.001)")
+    // Only lint when the changed file is hooks-registry.toml (PostToolUse Edit/Write).
+    // Edit/Write tool_input uses "file_path" key (not "path").
+    let tool_input = payload.tool_input;
+    let changed_path = tool_input
+        .get("file_path")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+
+    if !changed_path.ends_with("hooks-registry.toml") {
+        (callbacks.log)(0, "lint-registry-async-invariant: skipping — not hooks-registry.toml");
+        return HookResult::Continue;
+    }
+
+    (callbacks.log)(2, "lint-registry-async-invariant: checking hooks-registry.toml");
+
+    // Read the registry file via the host read_file capability.
+    let toml_text = match (callbacks.read_file)(REGISTRY_PATH) {
+        Ok(text) => text,
+        Err(e) => {
+            (callbacks.log)(3, &format!("lint-registry-async-invariant: cannot read {REGISTRY_PATH}: {e}"));
+            // Best-effort: if we can't read the file, don't block (fail-open).
+            return HookResult::Continue;
+        }
+    };
+
+    match run_lint(&toml_text) {
+        LintResult::Pass => {
+            (callbacks.log)(2, "lint-registry-async-invariant: PASS — registry invariants satisfied");
+            HookResult::Continue
+        }
+        LintResult::SchemaMismatch { got } => {
+            let got_str = got.map(|v| v.to_string()).unwrap_or_else(|| "missing".to_string());
+            (callbacks.emit_event)(
+                "dispatcher.schema_mismatch",
+                &[
+                    ("found_version", got_str.as_str()),
+                    ("expected_version", "2"),
+                    ("error_code", E_REG_001),
+                ],
+            );
+            HookResult::block_with_fix(
+                "lint-registry-async-invariant",
+                format!("hooks-registry.toml has schema_version={got_str}, expected 2 (E-REG-001)"),
+                "Update schema_version = 2 in hooks-registry.toml",
+                E_REG_001,
+            )
+        }
+        LintResult::InvariantViolation { plugin_name } => {
+            (callbacks.emit_event)(
+                "dispatcher.registry_invalid",
+                &[
+                    ("offending_plugin", plugin_name.as_str()),
+                    ("violation", "on_error_block_with_async_true"),
+                    ("error_code", E_REG_002),
+                ],
+            );
+            HookResult::block_with_fix(
+                "lint-registry-async-invariant",
+                format!("plugin '{plugin_name}' has on_error=block AND async=true (E-REG-002)"),
+                format!("Remove async=true from '{plugin_name}' or change on_error to 'continue'"),
+                E_REG_002,
+            )
+        }
+    }
 }
 
 /// Parse the hooks-registry TOML and return the raw lint result.
@@ -119,7 +182,54 @@ where
 /// - BC-7.06.001 postcondition 1 + Invariant 1
 /// - VP-078 Harness 1: lint-invariant
 pub fn run_lint(toml_text: &str) -> LintResult {
-    todo!("T-3f/T-3i: parse hooks-registry TOML text, check schema_version=2, check on_error=block implies async=false")
+    // Parse the TOML text into a dynamic value.
+    let table: toml::Table = match toml::from_str(toml_text) {
+        Ok(t) => t,
+        Err(_) => {
+            // Unparseable TOML — treat as schema missing.
+            return LintResult::SchemaMismatch { got: None };
+        }
+    };
+
+    // Check schema_version == 2 (BC-7.06.001 postcondition 1).
+    let schema_version = table
+        .get("schema_version")
+        .and_then(|v| v.as_integer());
+
+    match schema_version {
+        Some(2) => {} // OK
+        Some(v) => return LintResult::SchemaMismatch { got: Some(v as u32) },
+        None => return LintResult::SchemaMismatch { got: None },
+    }
+
+    // Check on_error=block implies async=false for all [[hooks]] entries
+    // (BC-7.06.001 Invariant 1).
+    if let Some(toml::Value::Array(hooks)) = table.get("hooks") {
+        for hook in hooks {
+            if let toml::Value::Table(entry) = hook {
+                let on_error_is_block = entry
+                    .get("on_error")
+                    .and_then(|v| v.as_str())
+                    == Some("block");
+
+                let async_is_true = entry
+                    .get("async")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
+
+                if on_error_is_block && async_is_true {
+                    let name = entry
+                        .get("name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("<unknown>")
+                        .to_string();
+                    return LintResult::InvariantViolation { plugin_name: name };
+                }
+            }
+        }
+    }
+
+    LintResult::Pass
 }
 
 // ---------------------------------------------------------------------------
