@@ -141,11 +141,17 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 /// - BC-1.14.001 EC-005 — async plugin exit code 2 behavior
 /// - BC-1.14.001 Error Paths — async plugin returns exit code 2
 pub fn emit_plugin_async_block_discarded(
-    _ctx: &HostContext,
-    _plugin_name: &str,
-    _exit_code: i32,
+    ctx: &HostContext,
+    plugin_name: &str,
+    exit_code: i32,
 ) {
-    todo!("T-3e: emit plugin.async_block_discarded event — fields: plugin_name, reason='async_plugin_block_verdict_discarded', exit_code (BC-3.08.001 v1.4)")
+    let ev = InternalEvent::now("plugin.async_block_discarded")
+        .with_trace_id(&ctx.dispatcher_trace_id)
+        .with_session_id(&ctx.session_id)
+        .with_plugin_name(plugin_name)
+        .with_field("reason", "async_plugin_block_verdict_discarded")
+        .with_field("exit_code", exit_code as i64);
+    ctx.emit_internal(ev);
 }
 
 /// Emit `dispatcher.schema_mismatch` event (BC-3.08.001 v1.4).
@@ -165,11 +171,17 @@ pub fn emit_plugin_async_block_discarded(
 /// - BC-1.14.001 Error Paths — schema_version mismatch
 /// - BC-1.08.001 amendment — schema-mismatch is the explicit fail-closed exception
 pub fn emit_dispatcher_schema_mismatch(
-    _ctx: &HostContext,
-    _got: u32,
-    _expected: u32,
+    ctx: &HostContext,
+    got: u32,
+    expected: u32,
 ) {
-    todo!("T-3e: emit dispatcher.schema_mismatch event — fields: got, expected, error_code='E-REG-001' (BC-3.08.001 v1.4)")
+    let ev = InternalEvent::now("dispatcher.schema_mismatch")
+        .with_trace_id(&ctx.dispatcher_trace_id)
+        .with_session_id(&ctx.session_id)
+        .with_field("found_version", got as i64)
+        .with_field("expected_version", expected as i64)
+        .with_field("error_code", "E-REG-001");
+    ctx.emit_internal(ev);
 }
 
 /// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.4).
@@ -181,17 +193,23 @@ pub fn emit_dispatcher_schema_mismatch(
 /// Required fields (BC-3.08.001):
 /// - `plugin_name`: name of the offending registry entry
 /// - `error_code`: `"E-REG-002"` (literal)
-/// - `violation`: `"on_error=block+async=true"` (literal)
+/// - `violation`: `"on_error_block_with_async_true"` (literal per BC-3.08.001 PC3)
 ///
 /// # BC traces
 /// - BC-3.08.001 v1.4 — event catalog
 /// - BC-1.14.001 Error Paths — on_error=block AND async=true
 /// - BC-7.06.001 Invariant 1 — load-time invariant enforcement
 pub fn emit_dispatcher_registry_invalid(
-    _ctx: &HostContext,
-    _plugin_name: &str,
+    ctx: &HostContext,
+    plugin_name: &str,
 ) {
-    todo!("T-3e: emit dispatcher.registry_invalid event — fields: plugin_name, error_code='E-REG-002', violation='on_error=block+async=true' (BC-3.08.001 v1.4)")
+    let ev = InternalEvent::now("dispatcher.registry_invalid")
+        .with_trace_id(&ctx.dispatcher_trace_id)
+        .with_session_id(&ctx.session_id)
+        .with_field("offending_plugin", plugin_name)
+        .with_field("violation", "on_error_block_with_async_true")
+        .with_field("error_code", "E-REG-002");
+    ctx.emit_internal(ev);
 }
 
 /// Emit `plugin.timeout` event for async-path timeouts (BC-3.08.001 v1.4).
@@ -204,7 +222,7 @@ pub fn emit_dispatcher_registry_invalid(
 /// Required fields (BC-3.08.001):
 /// - `plugin_name`: name of the timed-out plugin
 /// - `timeout_ms`: the configured `timeout_ms` for the entry (as string)
-/// - `path`: async or sync indicator (`"async"` for this variant)
+/// - `execution_group`: async or sync indicator (`"async"` for this variant)
 ///
 /// ASYNC_DRAIN_WINDOW_MS for the drain window is defined in DI-019 — cite
 /// by reference only. The drain window and the per-plugin timeout_ms are
@@ -216,11 +234,17 @@ pub fn emit_dispatcher_registry_invalid(
 /// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)
 pub fn emit_plugin_timeout_async(
-    _ctx: &HostContext,
-    _plugin_name: &str,
-    _timeout_ms: u32,
+    ctx: &HostContext,
+    plugin_name: &str,
+    timeout_ms: u32,
 ) {
-    todo!("T-3e: emit plugin.timeout event (async path) — fields: plugin_name, timeout_ms, path='async' (BC-3.08.001 v1.4; DI-019 for drain window)")
+    let ev = InternalEvent::now("plugin.timeout")
+        .with_trace_id(&ctx.dispatcher_trace_id)
+        .with_session_id(&ctx.session_id)
+        .with_plugin_name(plugin_name)
+        .with_field("execution_group", "async")
+        .with_field("timeout_ms", timeout_ms as i64);
+    ctx.emit_internal(ev);
 }
 
 #[cfg(test)]

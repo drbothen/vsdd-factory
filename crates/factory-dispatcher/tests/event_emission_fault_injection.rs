@@ -68,34 +68,55 @@ fn make_test_ctx() -> factory_dispatcher::host::HostContext {
 // Dispatcher exit code is unaffected (async verdict discarded).
 // ---------------------------------------------------------------------------
 
-/// VP-079 S1: emit_plugin_async_block_discarded compiles and is callable.
+/// VP-079 S1: emit_plugin_async_block_discarded emits event with mandatory fields.
 ///
-/// RED: emit_plugin_async_block_discarded is todo!() — panics at runtime.
+/// GREEN after T-3e: emit_plugin_async_block_discarded is implemented.
+/// Verifies mandatory fields: type, trace_id, plugin_name, exit_code, reason.
 #[test]
-#[should_panic(expected = "not yet implemented")]
 fn test_BC_3_08_001_vp079_s1_async_block_discarded_stub_panics() {
     let ctx = make_test_ctx();
     // Scenario: async plugin exits 2 (block verdict); the block is discarded.
     // VP-079 S1 mandatory fields: type, trace_id, plugin_name, exit_code, timestamp, reason.
     // reason = "async_plugin_block_verdict_discarded" (literal per BC-3.08.001 PC1).
     emit_plugin_async_block_discarded(&ctx, "test-async-blocker", 2);
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1, "exactly one event must be emitted");
+    let ev = &events[0];
+    assert_eq!(ev.type_, "plugin.async_block_discarded", "event type must match");
+    assert_eq!(ev.plugin_name.as_deref(), Some("test-async-blocker"), "plugin_name field");
+    assert_eq!(
+        ev.fields.get("reason").and_then(|v| v.as_str()),
+        Some("async_plugin_block_verdict_discarded"),
+        "reason must be async_plugin_block_verdict_discarded"
+    );
+    assert_eq!(
+        ev.fields.get("exit_code").and_then(|v| v.as_i64()),
+        Some(2),
+        "exit_code must be 2"
+    );
 }
 
-/// VP-079 S1: verifies that the function signature matches BC-3.08.001 PC1.
-/// This compile-time check ensures the stub exists with the correct parameters.
-/// (No runtime assertion — the prior test covers the panic.)
+/// VP-079 S1: exit_code=2 triggers async_block_discarded with correct reason field.
 ///
-/// RED: compilation succeeds; runtime covered by s1_async_block_discarded_stub_panics.
+/// GREEN after T-3e.
 #[test]
-#[should_panic(expected = "not yet implemented")]
 fn test_BC_3_08_001_vp079_s1_exit_code_2_triggers_discard_event() {
     let ctx = make_test_ctx();
     // AC-011: exit_code must be 2 in the emitted event.
-    // After T-3e: verify the emitted event has exit_code="2" and
-    // reason="async_plugin_block_verdict_discarded".
     emit_plugin_async_block_discarded(&ctx, "capture-commit-activity", 2);
-    // If we reach here, the implementation is present but not verified yet.
-    // The assertion here is that calling with exit_code=2 triggers the event.
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1);
+    let ev = &events[0];
+    assert_eq!(
+        ev.fields.get("reason").and_then(|v| v.as_str()),
+        Some("async_plugin_block_verdict_discarded"),
+        "reason must be async_plugin_block_verdict_discarded (AC-011)"
+    );
+    assert_eq!(
+        ev.fields.get("exit_code").and_then(|v| v.as_i64()),
+        Some(2),
+        "exit_code must be 2 (AC-011)"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -109,17 +130,35 @@ fn test_BC_3_08_001_vp079_s1_exit_code_2_triggers_discard_event() {
 // Emit-then-exit: event must reach FileSink before dispatcher exits.
 // ---------------------------------------------------------------------------
 
-/// VP-079 S2: emit_dispatcher_schema_mismatch compiles and is callable.
+/// VP-079 S2: emit_dispatcher_schema_mismatch emits event with mandatory fields.
 ///
-/// RED: emit_dispatcher_schema_mismatch is todo!() — panics at runtime.
+/// GREEN after T-3e.
 #[test]
-#[should_panic(expected = "not yet implemented")]
 fn test_BC_3_08_001_vp079_s2_schema_mismatch_stub_panics() {
     let ctx = make_test_ctx();
     // Scenario: registry has schema_version = 1 (not 2).
     // Mandatory fields: type, trace_id, found_version, expected_version, timestamp, error_code.
     // error_code = "E-REG-001"; expected_version = REGISTRY_SCHEMA_VERSION.
     emit_dispatcher_schema_mismatch(&ctx, 1, REGISTRY_SCHEMA_VERSION);
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1, "exactly one event must be emitted");
+    let ev = &events[0];
+    assert_eq!(ev.type_, "dispatcher.schema_mismatch", "event type must match");
+    assert_eq!(
+        ev.fields.get("found_version").and_then(|v| v.as_i64()),
+        Some(1),
+        "found_version must be 1"
+    );
+    assert_eq!(
+        ev.fields.get("expected_version").and_then(|v| v.as_i64()),
+        Some(REGISTRY_SCHEMA_VERSION as i64),
+        "expected_version must be REGISTRY_SCHEMA_VERSION"
+    );
+    assert_eq!(
+        ev.fields.get("error_code").and_then(|v| v.as_str()),
+        Some("E-REG-001"),
+        "error_code must be E-REG-001"
+    );
 }
 
 /// VP-079 S2: REGISTRY_SCHEMA_VERSION constant equals 2 (DI-019 / AC-001 cross-check).
@@ -139,17 +178,30 @@ fn test_BC_3_08_001_vp079_s2_expected_version_is_2() {
     );
 }
 
-/// VP-079 S2: verifies emit is called with the v1 found-version and v2 expected-version.
+/// VP-079 S2: v1 registry triggers schema_mismatch with correct field values.
 ///
-/// RED: emit_dispatcher_schema_mismatch is todo!() — panics at runtime.
+/// GREEN after T-3e: verifies found_version=1, expected_version=2, error_code=E-REG-001.
 #[test]
-#[should_panic(expected = "not yet implemented")]
 fn test_BC_3_08_001_vp079_s2_v1_registry_triggers_schema_mismatch() {
     let ctx = make_test_ctx();
     // found_version = 1 (v1 registry), expected_version = REGISTRY_SCHEMA_VERSION (2).
-    // After T-3e: verify emitted event has found_version="1", expected_version="2",
-    // error_code="E-REG-001", all mandatory fields present.
     emit_dispatcher_schema_mismatch(&ctx, 1, REGISTRY_SCHEMA_VERSION);
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1);
+    let ev = &events[0];
+    // All mandatory fields present per BC-3.08.001 PC2.
+    assert!(ev.dispatcher_trace_id.is_some(), "trace_id must be present");
+    assert_eq!(ev.fields.get("found_version").and_then(|v| v.as_i64()), Some(1));
+    assert_eq!(
+        ev.fields.get("expected_version").and_then(|v| v.as_i64()),
+        Some(2),
+        "expected_version must be 2 (REGISTRY_SCHEMA_VERSION)"
+    );
+    assert_eq!(
+        ev.fields.get("error_code").and_then(|v| v.as_str()),
+        Some("E-REG-001"),
+        "error_code must be E-REG-001"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -163,29 +215,57 @@ fn test_BC_3_08_001_vp079_s2_v1_registry_triggers_schema_mismatch() {
 // error_code MUST be "E-REG-002".
 // ---------------------------------------------------------------------------
 
-/// VP-079 S3: emit_dispatcher_registry_invalid compiles and is callable.
+/// VP-079 S3: emit_dispatcher_registry_invalid emits event with mandatory fields.
 ///
-/// RED: emit_dispatcher_registry_invalid is todo!() — panics at runtime.
+/// GREEN after T-3e.
 #[test]
-#[should_panic(expected = "not yet implemented")]
 fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     let ctx = make_test_ctx();
     // Scenario: entry "invalid-blocker" has on_error=block AND async=true.
     // Mandatory fields: type, trace_id, offending_plugin, violation, timestamp, error_code.
-    // error_code = "E-REG-002"; violation = "on_error_block_with_async_true".
     emit_dispatcher_registry_invalid(&ctx, "invalid-blocker");
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1, "exactly one event must be emitted");
+    let ev = &events[0];
+    assert_eq!(ev.type_, "dispatcher.registry_invalid", "event type must match");
+    assert_eq!(
+        ev.fields.get("offending_plugin").and_then(|v| v.as_str()),
+        Some("invalid-blocker"),
+        "offending_plugin must name the violating entry"
+    );
+    assert_eq!(
+        ev.fields.get("violation").and_then(|v| v.as_str()),
+        Some("on_error_block_with_async_true"),
+        "violation must be on_error_block_with_async_true"
+    );
+    assert_eq!(
+        ev.fields.get("error_code").and_then(|v| v.as_str()),
+        Some("E-REG-002"),
+        "error_code must be E-REG-002"
+    );
 }
 
 /// VP-079 S3: offending_plugin name must be passed through to the emitted event.
 ///
-/// RED: emit_dispatcher_registry_invalid is todo!() — panics at runtime.
+/// GREEN after T-3e.
 #[test]
-#[should_panic(expected = "not yet implemented")]
 fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
     let ctx = make_test_ctx();
-    // After T-3e: verify the emitted event has offending_plugin = "bad-validator"
-    // and error_code = "E-REG-002".
+    // Verify the emitted event has offending_plugin = "bad-validator".
     emit_dispatcher_registry_invalid(&ctx, "bad-validator");
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1);
+    let ev = &events[0];
+    assert_eq!(
+        ev.fields.get("offending_plugin").and_then(|v| v.as_str()),
+        Some("bad-validator"),
+        "offending_plugin must be 'bad-validator' (AC-013)"
+    );
+    assert_eq!(
+        ev.fields.get("error_code").and_then(|v| v.as_str()),
+        Some("E-REG-002"),
+        "error_code must be E-REG-002 (AC-013)"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -201,35 +281,50 @@ fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
 // constant name, NOT the literal 100.
 // ---------------------------------------------------------------------------
 
-/// VP-079 S4: emit_plugin_timeout_async compiles and is callable.
+/// VP-079 S4: emit_plugin_timeout_async emits plugin.timeout with mandatory fields.
 ///
-/// RED: emit_plugin_timeout_async is todo!() — panics at runtime.
+/// GREEN after T-3e.
 #[test]
-#[should_panic(expected = "not yet implemented")]
 fn test_BC_3_08_001_vp079_s4_plugin_timeout_async_stub_panics() {
     let ctx = make_test_ctx();
-    // Scenario: async plugin with timeout_ms=50 running sleep(60).
-    // timeout_ms=50 is within ASYNC_DRAIN_WINDOW_MS (DI-019) so the timeout
-    // fires before the drain window closes, and plugin.timeout is emitted.
-    //
-    // DI-019: reference ASYNC_DRAIN_WINDOW_MS by name.
-    // Do NOT hardcode the value. The timeout_ms here (50) is the PLUGIN timeout,
-    // not ASYNC_DRAIN_WINDOW_MS. They are independent.
+    // Scenario: async plugin with timeout_ms=50 within ASYNC_DRAIN_WINDOW_MS (DI-019).
+    // DI-019: reference ASYNC_DRAIN_WINDOW_MS by name. The timeout_ms (50) is the
+    // PLUGIN timeout, not ASYNC_DRAIN_WINDOW_MS. They are independent.
     emit_plugin_timeout_async(&ctx, "slow-async-plugin", 50);
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1, "exactly one event must be emitted");
+    let ev = &events[0];
+    assert_eq!(ev.type_, "plugin.timeout", "event type must be plugin.timeout");
+    assert_eq!(ev.plugin_name.as_deref(), Some("slow-async-plugin"), "plugin_name field");
+    assert_eq!(
+        ev.fields.get("execution_group").and_then(|v| v.as_str()),
+        Some("async"),
+        "execution_group must be 'async' (AC-014)"
+    );
+    assert_eq!(
+        ev.fields.get("timeout_ms").and_then(|v| v.as_i64()),
+        Some(50),
+        "timeout_ms must reflect the configured plugin timeout, not ASYNC_DRAIN_WINDOW_MS (DI-019)"
+    );
 }
 
 /// VP-079 S4: execution_group must be "async" for async-path timeout events.
 ///
-/// RED: emit_plugin_timeout_async is todo!() — panics at runtime.
+/// GREEN after T-3e.
 #[test]
-#[should_panic(expected = "not yet implemented")]
 fn test_BC_3_08_001_vp079_s4_execution_group_is_async() {
     let ctx = make_test_ctx();
-    // After T-3e: verify emitted event has execution_group="async" and
-    // timeout_ms matching the configured value.
     // DI-019: ASYNC_DRAIN_WINDOW_MS is the drain window; plugin timeout_ms
     // is the per-plugin budget. Do NOT conflate.
     emit_plugin_timeout_async(&ctx, "slow-async-plugin", 50);
+    let events = ctx.drain_events();
+    assert_eq!(events.len(), 1);
+    let ev = &events[0];
+    assert_eq!(
+        ev.fields.get("execution_group").and_then(|v| v.as_str()),
+        Some("async"),
+        "execution_group must be 'async' (AC-014, BC-3.08.001 PC4)"
+    );
 }
 
 // ---------------------------------------------------------------------------
