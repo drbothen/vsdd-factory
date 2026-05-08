@@ -127,9 +127,13 @@ mutate_and_verify_caught() {
 
     local caught=0
     if [ "$build_status" -ne 0 ]; then
-        # If the mutation breaks the build, that itself counts as "caught".
-        echo "NOTE: mutation of '${fn_pattern}' caused a build failure — counts as caught." >&2
-        caught=0  # mutation caught (build failure is a valid detection)
+        # Build failure does NOT count as "mutation caught". A void-returning emit-call removal
+        # SHOULD produce a buildable mutated binary (since no value is consumed). If the build
+        # fails, the mutation strategy itself is broken — treat as infrastructure error and skip.
+        # (F-P2-006)
+        echo "INFRA-ERROR: mutation of '${fn_pattern}' caused a build failure — mutation strategy broken, not a counter-proof success." >&2
+        echo "             A suppressed emit-call (void return) should always compile. Skipping this trial." >&2
+        caught=2  # infrastructure error — skip, do not count as caught or not-caught
     else
         # Run Scenarios 1-5 against the mutated binary.
         run_scenarios_1_to_5
