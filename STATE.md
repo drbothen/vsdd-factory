@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F3 PASS-3 NITPICK_ONLY (FIRST). 3 NITs (stale version labels) addressed in close burst. ADR-013 clock advances 0→1_of_3. S-15.01 v1.3→v1.4. Awaiting F3 adversary pass-4. Two more NITPICK_ONLY = CONVERGENCE_REACHED."
+current_step: "F3 PASS-4 NITPICK_ONLY (SECOND). 1 NIT addressed. ADR-013 clock advances 1→2_of_3. ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED. S-15.01 v1.4→v1.5. Awaiting F3 adversary pass-5 (potential convergence pass)."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-07 (F3 pass-3 NITPICK_ONLY close burst — S-15.01 v1.3→v1.4; 3 NIT version labels refreshed; ADR-013 clock 0→1_of_3; pass-4 next) |
-| **Current Phase** | F3 ADVERSARIAL CONVERGENCE IN PROGRESS — v1.0-feature-plugin-async-semantics-pass-1; S-15.01 v1.4; pass-3 NITPICK_ONLY; ADR-013 clock 1_of_3 |
+| **Last Updated** | 2026-05-07 (F3 pass-4 NITPICK_ONLY close burst — S-15.01 v1.4→v1.5; 1 NIT References table BC labels refreshed; ADR-013 clock 1→2_of_3; pass-5 next) |
+| **Current Phase** | F3 ADVERSARIAL CONVERGENCE IN PROGRESS — v1.0-feature-plugin-async-semantics-pass-1; S-15.01 v1.5; pass-4 NITPICK_ONLY; ADR-013 clock 2_of_3 |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F3 ADVERSARIAL CONVERGENCE IN PROGRESS** | F3: S-15.01 v1.4 (pass-3 NITPICK_ONLY; 3 NIT version labels refreshed 2026-05-07). F3 trajectory: 9→3→3(NIT). F2 trajectory 19→19→7→6→3→5→4→1→2→1. ADR-013 clock 1_of_3; awaiting pass-4. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F3 ADVERSARIAL CONVERGENCE IN PROGRESS** | F3: S-15.01 v1.5 (pass-4 NITPICK_ONLY; References table BC labels refreshed 2026-05-07). F3 trajectory: 9→3→3→1(NIT). F2 trajectory 19→19→7→6→3→5→4→1→2→1. ADR-013 clock 2_of_3; awaiting pass-5 (potential convergence pass). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -100,6 +100,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 | **F3 pass-1 fix burst — S-15.01 v1.0 → v1.1** | story-writer + state-manager | **COMPLETE** | 9 adversary findings addressed: F-P1-001 [HIGH] BC body titles byte-for-byte synced; F-P1-002 [HIGH] secondary BC versions corrected; F-P1-003 [HIGH] SS-03 added to subsystems frontmatter; F-P1-004 [HIGH] AC-010 "all 9" + PermissionRequest no-op clarification; F-P1-005 [MED] SS-03/SS-04 anchor justification blocks; F-P1-006 [MED] VP-077 property-to-harness mapping table; F-P1-007 [LOW] event emission corrected to host/emit_event.rs; F-P1-008 [LOW] pre-commit hook mechanism clarified per S-13.01 precedent; F-P1-009 [NIT] Token Budget table VP-001/VP-002 costs. Byte-for-byte grep verification applied. STORY-INDEX 2.31→2.32. ADR-013 clock 0_of_3; pass-2 next. |
 | **F3 pass-2 fix burst — S-15.01 v1.1 → v1.3 (Option A WASM redo)** | story-writer + state-manager | **COMPLETE** | User WASM-migration directive invalidated architect Option C (bash via legacy-bash-adapter). Redo with Option A (native WASM plugin). 3 findings addressed: F-P2-001 mechanism redo (Rust crate at crates/hook-plugins/lint-registry-async-invariant/, .wasm artifact, hooks-registry.toml plugin= field); F-P2-002 file list updated (30 paths); F-P2-003 BC-7.06.001 v1.2→v1.3 (PostToolUse Edit|Write wording). ADR-019 verified clean. STORY-INDEX 2.32→2.33; BC-INDEX 1.28→1.29. ADR-013 clock 0_of_3; pass-3 next. |
 | **F3 pass-3 NITPICK_ONLY close burst — S-15.01 v1.3 → v1.4** | state-manager | **COMPLETE** | Pass-3 verdict: NITPICK_ONLY (0H/0M/0L/3NIT). ADR-013 clock advances 0→1_of_3. 3 stale version labels refreshed: NIT-P3-001 body BC table BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2; NIT-P3-002 References table VP-078 v1.7→v1.8, VP-079 v1.5→v1.6. Lesson captured (NIT-P3-003): version sync should ride alongside title sync in same fix burst. STORY-INDEX 2.33→2.34. Pass-4 next; two more NITPICK_ONLY = CONVERGENCE_REACHED. |
+| **F3 pass-4 NITPICK_ONLY close burst — S-15.01 v1.4 → v1.5** | state-manager | **COMPLETE** | Pass-4 verdict: NITPICK_ONLY (0H/0M/0L/1NIT). ADR-013 clock advances 1→2_of_3. NIT-P4-001: References table BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2. Sibling completion of pass-3 body BC table fix. STORY-INDEX 2.34→2.35. Pass-5 next (potential convergence pass). ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED. |
 
 ## Identifier Conventions
 
@@ -141,7 +142,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F3 ADV CONVERGENCE | F3: S-15.01 v1.3 (pass-2 fix burst closed 2026-05-07; Option A native WASM plugin per user WASM-migration directive; 3 findings addressed). ADR-013 clock 0_of_3; pass-3 next. See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F3 ADV CONVERGENCE | F3: S-15.01 v1.5 (pass-4 NITPICK_ONLY closed 2026-05-07; NIT-P4-001 References BC labels). ADR-013 clock 2_of_3; pass-5 next (potential convergence). See `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
 
 ## Decisions Log
 
@@ -165,7 +166,7 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-07 — F3 PASS-3 NITPICK_ONLY close burst complete for v1.0-feature-plugin-async-semantics-pass-1. Pass-3 verdict: NITPICK_ONLY (0H/0M/0L/3NIT). ADR-013 clock advances 0→1_of_3. 3 stale version labels refreshed: NIT-P3-001 body BC table BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2; NIT-P3-002 References table VP-078 v1.7→v1.8, VP-079 v1.5→v1.6. S-15.01 v1.3→v1.4. Lesson captured (NIT-P3-003): version sync should ride alongside title sync in same fix burst. STORY-INDEX v2.33→v2.34. F3 trajectory: 9→3→3(NIT). Two more NITPICK_ONLY = CONVERGENCE_REACHED. Active cycle: v1.0-feature-plugin-async-semantics-pass-1.
+**Last update:** 2026-05-07 — F3 PASS-4 NITPICK_ONLY close burst complete for v1.0-feature-plugin-async-semantics-pass-1. Pass-4 verdict: NITPICK_ONLY (0H/0M/0L/1NIT). ADR-013 clock advances 1→2_of_3. NIT-P4-001: References table BC-7.06.001 v1.2→v1.3, BC-9.01.006 v1.1→v1.2 (sibling completion of pass-3 body BC table fix). S-15.01 v1.4→v1.5. STORY-INDEX v2.34→v2.35. F3 trajectory: 9→3→3→1(NIT). ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED. Pass-5 is the potential convergence pass. Active cycle: v1.0-feature-plugin-async-semantics-pass-1.
 
 **factory-artifacts HEAD:** run `git -C .factory log -1 --format='%h %s'` to confirm
 **develop HEAD:** 15432c6 (S-12.06 PR #105 squash-merge 2026-05-07)
@@ -179,9 +180,9 @@ E-10 fix-cycle steps through D-336 have been extracted to cycle files:
 **E-10 BC authorship:** COMPLETE (D-313 SEALED; 13 BCs across SS-01/SS-02/SS-03/SS-04; total_bcs 1931)
 **E-10 convergence counter:** 0-of-3 (3 consecutive NITPICK_ONLY required; pass-8 was HIGH)
 **E-10 finding trend:** 22 → 11 → 16 → 16 → 12 → 2 → 1 → 4
-**BC-INDEX:** v1.30 | **VP-INDEX:** v1.16 | **STORY-INDEX:** v2.34 | **ARCH-INDEX:** v1.19
+**BC-INDEX:** v1.30 | **VP-INDEX:** v1.16 | **STORY-INDEX:** v2.35 | **ARCH-INDEX:** v1.19
 
-**ACTIVE STEP: F3 ADV CONVERGENCE for plugin-async-semantics-pass-1. S-15.01 v1.4 (pass-3 NITPICK_ONLY closed). ADR-013 clock 1_of_3; dispatching F3 adversary pass-4. Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
+**ACTIVE STEP: F3 ADV CONVERGENCE for plugin-async-semantics-pass-1. S-15.01 v1.5 (pass-4 NITPICK_ONLY closed). ADR-013 clock 2_of_3; dispatching F3 adversary pass-5 (potential convergence pass). Concurrent: F4-platform delivery for engine-discipline-pass-1 (S-12.03 + S-12.05 in parallel; dependency chain: {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08).**
 
 **F5 pickup (post-amendment):** After F1/F2/F3/F4 amendment cycle completes, F5 resumes: pass-2 fix burst addresses F-P2-001 (via new platform) + remaining 14 pass-2 findings; then pass-3+ until 3 consecutive NITPICK_ONLY. Dispatch via `vsdd-factory:fix-pr-delivery`.
 **E-10 pickup:** E-10 paused (D-343). Adversary pass-9 queued. Resume after feature cycle F5-F7 complete.

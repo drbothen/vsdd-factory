@@ -942,3 +942,45 @@ Pass-3 adversary findings persisted at `.factory/cycles/v1.0-feature-plugin-asyn
 F3 PASS-3 CLOSED. ADR-013 clock 1_of_3. Awaiting F3 adversary pass-4. Two more NITPICK_ONLY = CONVERGENCE_REACHED.
 
 ---
+
+## Burst 7 — F3 pass-4 NITPICK_ONLY close burst
+
+**Date:** 2026-05-07
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F3 ADV CONVERGENCE — NITPICK_ONLY pass-4 closed
+**Story version:** S-15.01 v1.4 → v1.5
+
+### Summary
+
+Pass-4 returned NITPICK_ONLY (second consecutive). ADR-013 clock advances 1→2_of_3. F3 trajectory: 9→3→3→1(NIT). ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED. Pass-5 is the potential convergence pass.
+
+Pass-4 adversary findings persisted at `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F3-S-15.01-adversary-pass-4.md`.
+
+### Findings addressed
+
+| ID | Severity | Finding | Resolution |
+|----|----------|---------|------------|
+| NIT-P4-001 | NIT | References table BC version labels stale: BC-7.06.001 v1.2, BC-9.01.006 v1.1 | Updated to v1.3 and v1.2 respectively. Sibling completion of pass-3 NIT-P3-001 (which fixed body BC table but not References table). |
+
+### Verification
+
+- `BC-7.06.001 v1.2` in References table: zero hits (replaced with v1.3)
+- `BC-9.01.006 v1.1` in References table: zero hits (replaced with v1.2)
+- S-15.01 frontmatter version: v1.5 confirmed
+- ADR-013 clock notation: 2_of_3
+
+### Artifacts touched
+
+| File | Change |
+|------|--------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F3-S-15.01-adversary-pass-4.md` | Created — pass-4 findings persisted (NITPICK_ONLY; clock 2_of_3) |
+| `.factory/stories/S-15.01-plugin-async-semantics.md` | v1.4 → v1.5 (References table BC labels refreshed + changelog row + amendment section) |
+| `.factory/stories/STORY-INDEX.md` | v2.34 → v2.35 (S-15.01 row updated to v1.5; clock 2_of_3) |
+| `.factory/STATE.md` | current_step, last_amended, phase progress, concurrent cycles, current phase steps, session checkpoint, index versions updated |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | this entry appended |
+
+### Status
+
+F3 PASS-4 CLOSED. ADR-013 clock 2_of_3. Awaiting F3 adversary pass-5 (potential convergence pass). ONE MORE NITPICK_ONLY = CONVERGENCE_REACHED.
+
+---
