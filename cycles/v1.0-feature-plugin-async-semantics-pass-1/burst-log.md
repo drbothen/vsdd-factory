@@ -778,3 +778,40 @@ Trajectory to here: F2 CONVERGENCE_REACHED at pass-10 (commit 3568657). ADR-013 
 F3 STORIES AUTHORED. Awaiting adversarial convergence (≥3 NITPICK_ONLY per ADR-013) before F4 TDD implementation.
 
 ---
+
+## Burst 2 — F3 Pass-1 Fix Burst (2026-05-07)
+
+**Agents:** story-writer + state-manager
+**Trigger:** F3 adversary pass-1 returned SUBSTANTIVE on S-15.01 (9 findings: 4 HIGH, 2 MED, 2 LOW, 1 NIT)
+**Story version:** S-15.01 v1.0 → v1.1
+
+### Findings addressed
+
+| ID | Severity | Finding | Resolution |
+|----|----------|---------|------------|
+| F-P1-001 | HIGH | BC body titles not byte-for-byte synced to BC H1s (POLICY 4/6 violation) | BC-4.04/05/07.003 body titles corrected to match H1s exactly: SessionStart, SessionEnd, WorktreeCreate/Remove — not PostToolUse/Stop/SubagentStop |
+| F-P1-002 | HIGH | Secondary BC versions incorrect (POLICY 8 violation) | BC-4.04/05.004 v1.1→v2.1; BC-4.07.003/4.08.002 v1.1→v1.3 |
+| F-P1-003 | HIGH | subsystems frontmatter array missing SS-03 (anchor for BC-3.08.001) | SS-03 added to subsystems array in S-15.01 frontmatter |
+| F-P1-004 | HIGH | AC-010 stated "all 10" but only 9 events; PermissionRequest no-op not clarified (POLICY 7 violation) | AC-010 reworded "all 9"; explicit PermissionRequest no-op clarification added |
+| F-P1-005 | MED | SS-03 and SS-04 anchor justification blocks missing | Anchor justification blocks added for SS-03 (BC-3.08.001) and SS-04 (BC-9.01.006) |
+| F-P1-006 | MED | VP-077 property-to-harness mapping table missing | 6-property × 4-harness mapping table added to VP-077 section |
+| F-P1-007 | LOW | event_catalog.rs listed as NEW instead of host/emit_event.rs amend per ARCH-INDEX | Corrected to host/emit_event.rs amend per ARCH-INDEX authoritative event-emission location |
+| F-P1-008 | LOW | Pre-commit hook described as traditional git hook; S-13.01 precedent (Claude Code PostToolUse) not cited | Clarified as Claude Code PostToolUse mechanism despite "pre-commit" naming; S-13.01 precedent cited |
+| F-P1-009 | NIT | Token Budget table missing VP-001/VP-002 amendment costs | Token Budget table updated with VP-001 and VP-002 amendment costs |
+
+### Verification discipline applied
+
+Byte-for-byte grep verification applied per pass-5/6 cycle lessons (TD-VSDD-058/059 pre-commit checklists). Each BC title correction verified via grep against BC H1 source files. Secondary BC versions verified against BC frontmatter. SS-03 anchor verified in ARCH-INDEX.
+
+### Artifacts touched
+
+- `.factory/stories/S-15.01-plugin-async-semantics.md` — v1.0 → v1.1 (body: BC title corrections, AC-010 reword, SS-03/SS-04 anchors, VP-077 table, host/emit_event.rs correction, pre-commit mechanism clarification, Token Budget table update)
+- `.factory/stories/STORY-INDEX.md` — v2.31 → v2.32 (S-15.01 row updated to v1.1; last_amended updated)
+- `.factory/STATE.md` — current_step, phase progress, concurrent cycles, session checkpoint updated
+- `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` — this entry appended
+
+### Status
+
+F3 PASS-1 FIX BURST CLOSED. ADR-013 clock 0_of_3. Awaiting F3 adversary pass-2.
+
+---
