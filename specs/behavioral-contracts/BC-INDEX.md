@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.24"
+version: "1.25"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-6 fix burst (2026-05-07) — BC-3.08.001 v1.2→v1.3 (F-P6-003: inline `100 ms` literal removed from Traceability section; cites DI-019 by reference). No count change. last_amended: 2026-05-07 (async-semantics F2 pass-6 fix burst: BC-3.08.001 v1.3; F-P6-003 inline literal removed)."
   - date: 2026-05-07
     change: "F2 pass-5 fix burst (2026-05-07) — 4 BC-INDEX H1 syncs (POLICY 7 strict): BC-4.04.004/4.05.004/4.07.003/4.08.002 rows updated to match H1 wording byte-for-byte. Drift: `synchronous at envelope` → `synchronous envelope`; `; synchronous` → `and synchronous` (BC-4.04.004 + BC-4.05.004). Pass-3 close-burst claim `confirmed matching` was incorrect — verification was not byte-for-byte. last_amended: 2026-05-07 (async-semantics F2 pass-5 fix: 4 BC H1↔BC-INDEX title syncs per POLICY 7 — pass-3 verification claim corrected)."
   - date: 2026-05-07

@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.12"
+version: "1.13"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -9,6 +9,8 @@ phase: F2
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-6 fix burst close (2026-05-07) — VP-078 v1.6→v1.7 (F-P6-001: 8 events=[...] → event=\"...\"; F-P6-002: 7 script=\"X.sh\" → plugin=adapter + [hooks.config] script_path; F-P6-004: bats Harness 2 fixture TOML reordered top-level fields before [hooks.config] sub-table). VP-079 v1.3→v1.4 (F-P6-001: 8 events=[...] → event=\"...\" sites). VP-INDEX v1.12→v1.13. No VP count change. last_amended: 2026-05-07 (async-semantics F2 pass-6 fix burst: VP-078 v1.7; VP-079 v1.4)."
   - date: 2026-05-07
     change: "F2 pass-4 fix burst close (2026-05-07) — Traceability summary updated: 17 invariants → 18 active invariants (DI-001..DI-017, DI-019; DI-018 deferred-not-authored). VP-INDEX v1.11→v1.12. No VP count change."
   - date: 2026-05-07
@@ -150,8 +152,8 @@ changelog:
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name,event) tuple unique per BC-7.06.001 Invariant 7 | invariant | kani-proof | SS-01 | — | draft |
-| [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml | safety | integration | SS-07, SS-01 | — | draft |
-| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
+| [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.7: harness defects corrected — 8 events→event sites, 7 script→plugin+config sites, TOML fixture ordering fixed) | safety | integration | SS-07, SS-01 | — | draft |
+| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.4: 8 events→event sites corrected) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 

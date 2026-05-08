@@ -4,7 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
-version: "1.7"
+version: "1.8"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -197,7 +197,7 @@ for the canonical async-required list.
 ### Async-task drain window
 
 After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS`
-(governed by DI-019; default 100ms) for async tasks to emit terminal events before
+(governed by DI-019) for async tasks to emit terminal events before
 exit. See BC-1.14.001 PC4 for the dispatch-loop partition contract; DI-019 for the
 canonical constant value; VP-079 for the schema-conformance verification. This allows
 `plugin.timeout` and `plugin.async_block_discarded` events to reach FileSink before
@@ -327,6 +327,22 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
   - §Implementation Pointers line 2: `BC-7.NN.001` → `BC-7.06.001`
 - **Forward reference (RESOLVED by state-manager close-burst 2026-05-07):** PO assigned BC-9.01.006 (SS-09) for the hooks.json.template envelope-sync invariant (F-P1-001). BC-9.01.006 has been added to §Implementation Pointers and §Subsystem Assignments under SS-09. Forward reference closed.
 - **No decision changes:** All §Decision entries are unchanged. This amendment corrects stale text only.
+
+## Amendment 2026-05-07: v1.7 → v1.8 (F2 pass-6 fix burst)
+
+- **Amendment date:** 2026-05-07
+- **Reason:** Adversary pass-6 finding F-P5-005. §Consequences "Async-task drain window"
+  paragraph retained `(governed by DI-019; default 100ms)` — an inline literal alongside the
+  canonical reference. BC-1.14.001 v1.5 removed this exact pattern for consistency (DI-019 is
+  the single canonical home for the constant value). The parenthetical `default 100ms` in the
+  ADR §Consequences section is referenceable from VP-079 fixtures; a literal that drifts from
+  DI-019 would propagate silently. Enforcing consistency: single canonical home wins.
+- **Changes:**
+  - §Consequences "Async-task drain window" (sentence starting "After `sync_group` completes"):
+    `(governed by DI-019; default 100ms)` → `(governed by DI-019)`. The `default 100ms` detail
+    belongs exclusively in DI-019.
+- **No decision changes:** All §Decision policy text is unchanged. This is a constant-reference
+  consistency correction only.
 
 ## Amendment 2026-05-07: v1.6 → v1.7 (F2 pass-5 fix burst)
 

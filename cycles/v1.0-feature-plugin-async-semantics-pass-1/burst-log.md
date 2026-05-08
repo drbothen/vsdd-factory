@@ -423,3 +423,59 @@ Close-burst verification claims must be byte-for-byte grep, not visual inspectio
 F2 PASS-5 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-6 next (3 consecutive NITPICK_ONLY required before F3 story decomposition).
 
 ---
+
+## Burst: F2 pass-6 fix burst close — 2026-05-07
+
+**Role:** state-manager (closing burst)
+**Pass result:** SUBSTANTIVE (5 findings: 2H/2M/1L/0N; clock 0_of_3)
+**Trajectory:** 19→19→7→6→3→5
+**Agents:** PO fix burst (BC-3.08.001 v1.3; VP-078 v1.7; VP-079 v1.4) + architect fix burst (ADR-019 v1.8) + state-manager close (BC-INDEX v1.25; ARCH-INDEX v1.17; VP-INDEX v1.13; STATE.md)
+**Verification discipline:** Byte-for-byte grep applied throughout (pass-5 lesson). All site counts verified before and after edits.
+
+### Files modified
+
+| File | Old Version | New Version | Change |
+|------|-------------|-------------|--------|
+| `ss-03/BC-3.08.001.md` | v1.2 | v1.3 | PO: inline `100 ms` literal removed from Traceability section; cites DI-019 by reference (F-P6-003 MED; sibling-fix to F-P4-005) |
+| `specs/verification-properties/VP-078.md` | v1.6 | v1.7 | PO: 8 events=[...] → event="..." sites (F-P6-001 HIGH, singular schema-correct); 7 script="X.sh" → plugin=adapter + [hooks.config] script_path in Rust unit tests (F-P6-002 HIGH, pass-2 missed Rust block); bats Harness 2 fixture TOML reordered top-level before [hooks.config] sub-table (F-P6-004 MED) |
+| `specs/verification-properties/VP-079.md` | v1.3 | v1.4 | PO: 8 events=[...] → event="..." sites (F-P6-001 HIGH) |
+| `decisions/ADR-019-plugin-async-semantics-at-registry-layer.md` | v1.7 | v1.8 | Architect: §Consequences inline 100ms parenthetical removed; cites DI-019 by reference (F-P6-005 LOW) |
+| `specs/behavioral-contracts/BC-INDEX.md` | v1.24 | v1.25 | State-manager: changelog entry for BC-3.08.001 v1.3 (no count change; no row text change needed — H1 unchanged) |
+| `specs/architecture/ARCH-INDEX.md` | v1.16 | v1.17 | State-manager: ADR-019 row updated to v1.8; BC-INDEX version cite v1.24→v1.25; changelog entry added |
+| `specs/verification-properties/VP-INDEX.md` | v1.12 | v1.13 | State-manager: VP-078/VP-079 row notes updated; changelog entry for pass-6 |
+| `STATE.md` | — | — | current_step, Last Updated, Current Phase, Active Cycles table, Current Phase Steps (pass-6 row added), Session Checkpoint, ACTIVE STEP, INDEX versions updated |
+
+### Index bumps
+
+| Index | Old | New | Notes |
+|-------|-----|-----|-------|
+| BC-INDEX | v1.24 | v1.25 | BC-3.08.001 v1.3 noted; no count change |
+| ARCH-INDEX | v1.16 | v1.17 | ADR-019 v1.8; BC-INDEX cite v1.25 |
+| VP-INDEX | v1.12 | v1.13 | VP-078 v1.7; VP-079 v1.4 noted |
+
+### Findings summary (5 total)
+
+| Severity | Count | Notable |
+|----------|-------|---------|
+| HIGH | 2 | F-P6-001 (16 events=[...]→event="..." harness defects — partial-fix regression of F-P2-008); F-P6-002 (7 VP-078 Rust unit tests script="X.sh" — pass-2 missed Rust block; now closed) |
+| MED | 2 | F-P6-003 (BC-3.08.001 inline `100 ms` literal in Traceability); F-P6-004 (VP-078 bats Harness 2 TOML scoping — top-level before sub-table) |
+| LOW | 1 | F-P6-005 (ADR-019 §Consequences parenthetical inline 100ms) |
+
+### Byte-for-byte verification log
+
+Applied per pass-5 lesson (close-burst claims must be grep-verified, not visual):
+
+- `events = [` outside CHANGELOG narrative: zero hits in VP-078, VP-079 after fix
+- `script = "` in VP-078 outside CHANGELOG narrative: zero hits after fix
+- `BC-3.08.001` version frontmatter: confirmed v1.3 post-amendment
+- `ADR-019` version frontmatter: confirmed v1.8 post-amendment
+- BC-INDEX v1.25 frontmatter: confirmed
+- ARCH-INDEX v1.17 frontmatter: confirmed
+- VP-INDEX v1.13 frontmatter: confirmed
+- BC-INDEX row for BC-3.08.001: H1 title unchanged (no literal in H1 — literal was in Traceability body section only); row text confirmed matching H1 byte-for-byte
+
+### Status
+
+F2 PASS-6 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-7 next (3 consecutive NITPICK_ONLY required before F3 story decomposition).
+
+---
