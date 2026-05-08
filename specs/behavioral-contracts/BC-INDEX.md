@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.23"
+version: "1.24"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-5 fix burst (2026-05-07) — 4 BC-INDEX H1 syncs (POLICY 7 strict): BC-4.04.004/4.05.004/4.07.003/4.08.002 rows updated to match H1 wording byte-for-byte. Drift: `synchronous at envelope` → `synchronous envelope`; `; synchronous` → `and synchronous` (BC-4.04.004 + BC-4.05.004). Pass-3 close-burst claim `confirmed matching` was incorrect — verification was not byte-for-byte. last_amended: 2026-05-07 (async-semantics F2 pass-5 fix: 4 BC H1↔BC-INDEX title syncs per POLICY 7 — pass-3 verification claim corrected)."
   - date: 2026-05-07
     change: "F2 pass-4 fix burst (2026-05-07) — BC-INDEX re-tally to authoritative subsystem (F-P4-001 HIGH): SS-01 116→117, SS-05 648→652, SS-07 197→196, SS-08 218→214 (total unchanged at 1947). BC-7.06.001 listing moved SS-07 section → SS-01 section to unify with BC-8.29.001/002/003 + BC-8.30.002 convention (authoritative-frontmatter; filename slug retained in ss-07/ per POLICY 1). BC-1.14.001 v1.4→v1.5 (PO inline 100ms literals removed; cites DI-019 by reference only). ADR-019 v1.5→v1.6 (§Consequences drain-window symbolic ASYNC_DRAIN_WINDOW_MS). VP-077 v1.4→v1.5 (domain_invariants note). VP-078 v1.5→v1.6 (scope SS-07→SS-07, SS-01). VP-INDEX v1.11→v1.12 (DI-019 traceability summary). last_amended: 2026-05-07 (async-semantics F2 pass-4 fix burst: BC-INDEX re-tally + BC-7.06.001 listing moved SS-07→SS-01; BC-1.14.001 v1.5; F-P4-001 closed)."
   - date: 2026-05-07
@@ -319,19 +321,19 @@ changelog:
 | [BC-4.04.001](ss-04/BC-4.04.001.md) | session-start plugin emits session.started event with session telemetry on SessionStart event | draft | CAP-002 | S-5.01 |
 | [BC-4.04.002](ss-04/BC-4.04.002.md) | session-start plugin invokes factory-health subprocess; emits session.started even if check fails | draft | CAP-002 | S-5.01 |
 | [BC-4.04.003](ss-04/BC-4.04.003.md) | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | draft | CAP-002 | S-5.01 |
-| [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true; synchronous at envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.01 |
+| [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.01 |
 | [BC-4.04.005](ss-04/BC-4.04.005.md) | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with read_file + exec_subprocess capability tables and timeout_ms:8000 | draft | CAP-002 | S-5.01 |
 | [BC-4.05.001](ss-04/BC-4.05.001.md) | session-end plugin emits session.ended event with session telemetry on SessionEnd event | draft | CAP-002 | S-5.02 |
 | [BC-4.05.002](ss-04/BC-4.05.002.md) | session-end plugin does not invoke any subprocess; fast-path completion with no exec_subprocess capability | draft | CAP-002 | S-5.02 |
 | [BC-4.05.003](ss-04/BC-4.05.003.md) | session-end plugin is unconditionally stateless; idempotency enforced by Layer 1 once:true directive | draft | CAP-002 | S-5.02 |
-| [BC-4.05.004](ss-04/BC-4.05.004.md) | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true; synchronous at envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.02 |
+| [BC-4.05.004](ss-04/BC-4.05.004.md) | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.02 |
 | [BC-4.05.005](ss-04/BC-4.05.005.md) | hooks-registry.toml registers SessionEnd event routing to hook-plugins/session-end-telemetry.wasm with timeout_ms:5000 | draft | CAP-002 | S-5.02 |
 | [BC-4.07.001](ss-04/BC-4.07.001.md) | worktree-hooks plugin emits worktree.created event with {worktree_path, worktree_name} on WorktreeCreate event | draft | CAP-002 | S-5.03 |
 | [BC-4.07.002](ss-04/BC-4.07.002.md) | worktree-hooks plugin emits worktree.removed event with {worktree_path} on WorktreeRemove event | draft | CAP-002 | S-5.03 |
-| [BC-4.07.003](ss-04/BC-4.07.003.md) | hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); synchronous at envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.03 |
+| [BC-4.07.003](ss-04/BC-4.07.003.md) | hooks.json.template registers WorktreeCreate and WorktreeRemove events with `command` field routing to dispatcher binary; once key ABSENT (can re-fire); synchronous envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.03 |
 | [BC-4.07.004](ss-04/BC-4.07.004.md) | hooks-registry.toml registers WorktreeCreate and WorktreeRemove routing to hook-plugins/worktree-hooks.wasm; single crate, two entries; ZERO capability tables; timeout_ms:5000 | draft | CAP-002 | S-5.03 |
 | [BC-4.08.001](ss-04/BC-4.08.001.md) | tool-failure-hooks plugin emits tool.error event with {tool_name, error_message} on PostToolUseFailure event; tool_name="unknown" if absent; error_message truncated to 1000 chars; 10-field wire payload; RESERVED_FIELDS not set by plugin | draft | CAP-002 | S-5.04 |
-| [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); synchronous at envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.04 |
+| [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); synchronous envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.04 |
 | [BC-4.08.003](ss-04/BC-4.08.003.md) | hooks-registry.toml registers PostToolUseFailure with name="tool-failure-hooks", event="PostToolUseFailure", plugin="hook-plugins/tool-failure-hooks.wasm", timeout_ms=5000; ZERO capability tables; NO once field | draft | CAP-002 | S-5.04 |
 | [BC-4.09.001](ss-04/BC-4.09.001.md) | hook-plugins::event_naming::wave2_reverse_dns_event_name_migration_with_dual_emit — all native WASM plugins under crates/hook-plugins/ migrate event-name strings from legacy short-form to reverse-DNS .v1 canonical form; dual-emit shim active during Wave 2→Wave 3 window; legacy emission removed post-Wave-3 | draft | CAP-009 | S-10.05 |
 | [BC-4.10.001](ss-04/BC-4.10.001.md) | validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance | draft | CAP-009 | TBD |

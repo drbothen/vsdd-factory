@@ -4,7 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
-version: "1.6"
+version: "1.7"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -314,6 +314,7 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
 | ADR-011 (dual routing tables) | `decisions/ADR-011-dual-hook-routing-tables.md` |
 | VP-077 | `/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-077.md` |
 | VP-078 | `/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-078.md` |
+| VP-079 | `/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-079.md` |
 
 ---
 
@@ -326,6 +327,17 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
   - §Implementation Pointers line 2: `BC-7.NN.001` → `BC-7.06.001`
 - **Forward reference (RESOLVED by state-manager close-burst 2026-05-07):** PO assigned BC-9.01.006 (SS-09) for the hooks.json.template envelope-sync invariant (F-P1-001). BC-9.01.006 has been added to §Implementation Pointers and §Subsystem Assignments under SS-09. Forward reference closed.
 - **No decision changes:** All §Decision entries are unchanged. This amendment corrects stale text only.
+
+## Amendment 2026-05-07: v1.6 → v1.7 (F2 pass-5 fix burst)
+
+- **Amendment date:** 2026-05-07
+- **Reason:** Adversary pass-5 finding F-P5-003. §References table listed VP-077 and VP-078
+  but omitted VP-079, despite VP-079 being cited in §Implementation Pointers (line 278).
+  Parity gap between §References and §Implementation Pointers.
+- **Changes:**
+  - §References table: added VP-079 row (`/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-079.md`).
+- **No decision changes:** All §Decision policy text is unchanged. This amendment restores
+  §References parity with §Implementation Pointers.
 
 ## Amendment 2026-05-07: v1.5 → v1.6 (F2 pass-4 fix burst)
 

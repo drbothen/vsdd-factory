@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-06T21:36:13Z","command":"cd /Users/jmagady/Dev/vsdd-factory && cargo test --workspace --no-fail-fast 2>&1 | grep -E \"^test result|FAILED|error\\[\" | head -30"}
+{"status":"pass","timestamp":"2026-05-07T21:35:14Z","command":"cd /Users/jmagady/Dev/vsdd-factory/.worktrees/S-12.05 && cargo test 2>&1 | grep -E \"resolver|trybuild|macro\" | head -30"}

@@ -385,3 +385,41 @@ Count-propagation sweep post-re-tally: BC-INDEX Summary table (SS-01 117, SS-05 
 F2 PASS-4 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-5 next (3 consecutive NITPICK_ONLY required before F3 story decomposition).
 
 ---
+
+## Burst: F2 pass-5 fix burst close — 2026-05-07
+
+**Role:** state-manager (closing burst — all 3 findings are index/cross-reference syncs)
+**Pass result:** SUBSTANTIVE (3 findings: 1 HIGH, 0 MED, 2 LOW, 0 NIT; clock 0_of_3)
+**Trajectory:** 19→19→7→6→3 (improving)
+
+### Files modified
+
+| File | Old Version | New Version | Change |
+|------|-------------|-------------|--------|
+| `specs/behavioral-contracts/BC-INDEX.md` | v1.23 | v1.24 | 4 BC-INDEX H1 syncs (POLICY 7 strict): BC-4.04.004/4.05.004 rows `; synchronous at envelope` → `and synchronous envelope`; BC-4.07.003/4.08.002 rows `synchronous at envelope` → `synchronous envelope`. Changelog entry added. |
+| `specs/architecture/ARCH-INDEX.md` | v1.15 | v1.16 | BC-INDEX version cite v1.22→v1.24 (line 116). ADR-019 row updated to v1.7. Changelog entry added. |
+| `specs/architecture/decisions/ADR-019-plugin-async-semantics-at-registry-layer.md` | v1.6 | v1.7 | §References table: VP-079 row added for parity with §Implementation Pointers. Amendment block v1.6→v1.7 appended. |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-5.md` | new | v1.0 | Pass-5 findings persisted. |
+| `STATE.md` | — | — | current_step, phase, cycle table, session checkpoint, index versions updated. |
+
+### Findings summary (3 total)
+
+| Severity | Count | Notable |
+|----------|-------|---------|
+| HIGH | 1 | F-P5-001 (POLICY 7: 4-BC sibling H1↔BC-INDEX title drift — pass-3 claim "confirmed matching" was incorrect) |
+| MED | 0 | — |
+| LOW | 2 | F-P5-002 (ARCH-INDEX stale BC-INDEX version cite v1.22), F-P5-003 (ADR-019 §References missing VP-079) |
+
+### Decisions sealed
+
+None. All 3 findings were unambiguous index/cross-reference syncs with no policy interpretation required.
+
+## Lessons
+
+Close-burst verification claims must be byte-for-byte grep, not visual inspection. F-P5-001 was a 4-BC drift that pass-3 claimed to fix but didn't (the verification was incomplete). The pass-3 changelog entry read `BC-4.04.004/4.05.004/4.07.003/4.08.002 confirmed matching` — this was written without running `grep` to compare H1 strings against BC-INDEX row text. Going forward: any close-burst that claims "N BC H1↔INDEX title syncs confirmed" must include a `grep` verification extracting both strings side-by-side before writing the changelog claim.
+
+### Status
+
+F2 PASS-5 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-6 next (3 consecutive NITPICK_ONLY required before F3 story decomposition).
+
+---

@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.15"
+version: "1.16"
 status: accepted
 producer: architect
 timestamp: 2026-05-07T00:00:00
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-5 fix burst close (2026-05-07): BC-INDEX version cite on line 116 updated v1.22→v1.24 (F-P5-002). ADR-019 row updated to v1.7 (VP-079 §References parity). ARCH-INDEX v1.15→v1.16. last_amended: 2026-05-07 (async-semantics F2 pass-5 fix: BC-INDEX cite refresh; ADR-019 v1.7)."
   - date: 2026-05-07
     change: "F2 pass-4 fix burst close (2026-05-07): ADR-019 v1.5→v1.6 (§Consequences drain-window line 215 symbolic ASYNC_DRAIN_WINDOW_MS; F-P4-004). ARCH-INDEX v1.14→v1.15. last_amended: 2026-05-07 (async-semantics F2 pass-4 fix burst: ADR-019 v1.6; F-P4-001 BC-INDEX re-tally confirmed in ARCH-INDEX)."
   - date: 2026-05-07
@@ -113,7 +115,7 @@ BC counts are shown by **authoritative subsystem** (BC frontmatter `subsystem:` 
 | SS-09 | Configuration and Activation | SS-09-config-activation.md | `plugins/vsdd-factory/hooks/hooks.json*`, `plugins/vsdd-factory/.claude-plugin/plugin.json`, `ci/platforms.yaml`, `scripts/generate-registry-from-hooks-json.sh` | BC-9 | 6 (+1 F2 pass-1 fix burst BC-9.01.006 envelope-sync invariant) | Phase 1 |
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
-**Total BCs: 1,947 (per BC-INDEX v1.22; counts above are by authoritative frontmatter subsystem).** Cross-subsystem file placements (POLICY 1 append-only): BC-7.06.001 in ss-07/ → SS-01 (F-P1-006 reanchor); BC-8.29.001/002/003 + BC-8.30.002 in ss-08/ → SS-05 (historical allocation). The total is invariant under both directory-based and frontmatter-based tallying.
+**Total BCs: 1,947 (per BC-INDEX v1.24; counts above are by authoritative frontmatter subsystem).** Cross-subsystem file placements (POLICY 1 append-only): BC-7.06.001 in ss-07/ → SS-01 (F-P1-006 reanchor); BC-8.29.001/002/003 + BC-8.30.002 in ss-08/ → SS-05 (historical allocation). The total is invariant under both directory-based and frontmatter-based tallying.
 
 **Renumbering history — BC-1.12.008 → BC-3.05.004 (D-311/D-312):** BC-1.12.008 was originally proposed as an SS-01 routing target in D-311; renumbered to BC-3.05.004 (SS-03) in D-312 corrigendum per POLICY 1 ID-collision rule (BC-3.05.001/002/003 already existed as brownfield BCs authored by codebase-analyzer on 2026-04-25; BC-3.05.004 was the next free slot). Consequence: SS-01 has +4 Phase 1a additions (BC-1.12.001–BC-1.12.004) and +4 Phase 1b additions (BC-1.12.005/006/007/009; no BC-1.12.008 ID exists). SS-03 has +1 Phase 1b addition (BC-3.05.004 v2 schema validation per ADR-015 D-15.1). OQ-W16-012 filed-and-resolved in D-312.
 
@@ -197,7 +199,7 @@ graph TD
 | ADR-016 | Artifact path registry as single source of truth for `.factory/` canonical paths — **ACCEPTED 2026-05-07; D-340 F2** | SS-04, SS-06 | decisions/ADR-016-artifact-path-registry-sot.md |
 | ADR-017 | Per-story adversarial convergence gate — three-perimeter model and WASM hook phasing — **ACCEPTED 2026-05-07; D-340 F2** | SS-04, SS-05 | decisions/ADR-017-per-story-adversary-phasing.md |
 | ADR-018 | WASM-plugin Context Resolvers — design and layering for factory-agnostic runtime context injection via sandboxed WASM-plugin resolvers — **ACCEPTED 2026-05-07; D-362 F2-amendment** | SS-01, SS-04 | decisions/ADR-018-wasm-plugin-context-resolvers.md |
-| ADR-019 | Plugin Async Semantics Belong at the Registry Layer — hard cut to registry-layer `async: bool` per-plugin field; envelope uniformly synchronous; dispatcher partition (sync_group/async_group); CI lint `on_error=block ⇒ async=false` — **ACCEPTED 2026-05-07; F2 async-semantics; v1.6 (F2 pass-4 fix burst close: §Consequences drain-window line 215 `+ 100ms` → `+ ASYNC_DRAIN_WINDOW_MS` symbolic constant; F-P4-004 closed)** | SS-01, SS-07, SS-09 | decisions/ADR-019-plugin-async-semantics-at-registry-layer.md |
+| ADR-019 | Plugin Async Semantics Belong at the Registry Layer — hard cut to registry-layer `async: bool` per-plugin field; envelope uniformly synchronous; dispatcher partition (sync_group/async_group); CI lint `on_error=block ⇒ async=false` — **ACCEPTED 2026-05-07; F2 async-semantics; v1.7 (F2 pass-5 fix burst close: §References table VP-079 row added for parity with §Implementation Pointers; F-P5-003 closed)** | SS-01, SS-07, SS-09 | decisions/ADR-019-plugin-async-semantics-at-registry-layer.md |
 
 ## Phase 1.4 BC Renumbering Map
 
