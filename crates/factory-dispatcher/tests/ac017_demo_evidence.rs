@@ -103,11 +103,12 @@ fn test_BC_3_08_001_ac017_all_required_demo_files_present() {
 fn test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value() {
     let canary_path = evidence_dir().join("latency-canary.md");
 
+    // AC-016 budget per ADR-020 (Class A — cold-start dispatch). Original 500ms revised after F5 pass-1 finding F-P1-003 + F-P1-009.
     if !canary_path.exists() {
         panic!(
             "test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value: \
              AC-016/AC-017 FAIL — docs/demo-evidence/S-15.01/latency-canary.md does not exist. \
-             Demo-recorder phase (F4 Step 4) must produce this file with p95 ≤ 500ms."
+             Demo-recorder phase (F4 Step 4) must produce this file with p95 ≤ 1500ms per ADR-020 §Class A."
         );
     }
 
@@ -117,6 +118,6 @@ fn test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value() {
         content.contains("p95") || content.contains("P95"),
         "test_BC_1_14_001_ac016_latency_canary_md_contains_p95_value: \
          AC-016 FAIL — latency-canary.md does not contain a 'p95' measurement. \
-         The file must record the p95 sync_group latency (≤ 500ms per AC-016)."
+         The file must record the p95 sync_group latency (≤ 1500ms per ADR-020 §Class A)."
     );
 }
