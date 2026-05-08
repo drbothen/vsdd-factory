@@ -13,7 +13,7 @@
 #
 # BC traces:
 #   BC-9.01.006 v1.2 — hooks.json.template envelope sync invariant
-#   AC-010 (S-15.01 v1.6)
+#   AC-010 (S-15.01 v1.14)
 #   ADR-019 Decision 1: every Claude Code hook event must be sync at the envelope
 
 HOOKS_DIR="plugins/vsdd-factory/hooks"

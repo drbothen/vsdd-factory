@@ -120,12 +120,13 @@ mutate_and_verify_caught() {
     # Apply sed-based comment-out mutation (in-place; backup to .mutation_bak).
     local bak="${main_rs}.mutation_bak"
     cp "$main_rs" "$bak"
-    # Comment out only lines that contain a call to the function (lines with the pattern
-    # followed by an opening paren, indicating a call expression not a use/import).
-    # When line_range is provided, restrict the substitution to that address range so
-    # co-named call sites at other lines are not conflated.
+    # When line_range is provided, comment out EVERY line in the range — this is
+    # required for multi-line call expressions where commenting only the first line
+    # (the function name) produces a syntax error rather than a suppressed call.
+    # The range must cover from the opening call through the closing ");".
+    # Without line_range, restrict to lines matching the function call pattern.
     if [ -n "$line_range" ]; then
-        sed -i.tmp "${line_range}{ /${fn_pattern}(/s/^/\/\/ MUTANT-SUPPRESSED: / }" "$main_rs"
+        sed -i.tmp "${line_range}{ s|^|// MUTANT-SUPPRESSED: | }" "$main_rs"
     else
         sed -i.tmp "/${fn_pattern}(/s/^/\/\/ MUTANT-SUPPRESSED: /" "$main_rs"
     fi
@@ -208,7 +209,7 @@ mutate_and_verify_caught() {
     mutate_and_verify_caught \
         "emit_dispatcher_registry_invalid" \
         "SITE_2: AsyncBlockConflict/E-REG-002 path (main.rs:142)" \
-        "142,142"
+        "142,147"
 
     local result=$?
     [ "$result" -ne 1 ] || {
@@ -231,7 +232,7 @@ mutate_and_verify_caught() {
 
     mutate_and_verify_caught \
         "emit_plugin_async_block_discarded" \
-        "SITE_3 (async result exit_code=2 path, ~main.rs:394)"
+        "SITE_3 (async result exit_code=2 path, ~main.rs:416)"
 
     local result=$?
     [ "$result" -ne 1 ] || {
@@ -254,7 +255,7 @@ mutate_and_verify_caught() {
 
     mutate_and_verify_caught \
         "emit_plugin_timeout_async" \
-        "SITE_4 (async timeout arm, ~main.rs:405)"
+        "SITE_4 (async timeout arm, ~main.rs:427)"
 
     local result=$?
     [ "$result" -ne 1 ] || {
@@ -280,7 +281,7 @@ mutate_and_verify_caught() {
     mutate_and_verify_caught \
         "emit_dispatcher_registry_invalid" \
         "SITE_5: DuplicateEntry/E-REG-003 path (main.rs:162)" \
-        "162,162"
+        "162,167"
 
     local result=$?
     [ "$result" -ne 1 ] || {

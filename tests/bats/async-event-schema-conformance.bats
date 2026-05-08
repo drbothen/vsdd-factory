@@ -2,7 +2,7 @@
 #
 # async-event-schema-conformance.bats
 #
-# VP-079 v1.6: Async-Semantics Event Types — Payload Schema Conformance.
+# VP-079 v1.11: Async-Semantics Event Types — Payload Schema Conformance.
 # Five scenarios, one per triggering condition.
 #
 # RED: All scenarios require a compiled factory-dispatcher binary with T-3e
@@ -18,16 +18,16 @@
 # infrastructure for controlled exit-code injection. They are NOT the production
 # plugin under test. Per project WASM-migration directive, NEW shipped plugins
 # are native WASM; legacy-bash-adapter in test fixtures is a transitional
-# convenience (VP-078 v1.8, VP-079 v1.6 annotations).
+# convenience (VP-078 v1.8, VP-079 v1.11 annotations).
 #
 # BC traces:
-#   BC-3.08.001 v1.4 — event catalog (4 new event types)
+#   BC-3.08.001 v1.7 — event catalog (4 new event types)
 #   BC-1.14.001 — dispatch partition + drain window (DI-019)
 #   BC-7.06.001 — schema validation (schema_mismatch / registry_invalid triggers)
 #   DI-017 — trace_id on every emitted event
 #   DI-019 — ASYNC_DRAIN_WINDOW_MS (canonical; must not be hardcoded)
-#   VP-079 v1.6 — fault injection verification property
-#   AC-011, AC-012, AC-013, AC-014, AC-005 (S-15.01 v1.6)
+#   VP-079 v1.11 — fault injection verification property
+#   AC-011, AC-012, AC-013, AC-014, AC-005 (S-15.01 v1.14)
 
 PLUGIN_ROOT=""
 SINK_FILE=""
@@ -568,7 +568,7 @@ shell_bypass_acknowledged = "VP-079-S7-test-fixture"
 # Scenario 8: DuplicateEntry → dispatcher.registry_invalid (E-REG-003)
 #
 # Trigger: registry has two [[hooks]] entries with identical (name, event, tool) tuple.
-# Per BC-7.06.001 v1.6 Invariant 7, this MUST be rejected at validate() time.
+# Per BC-7.06.001 v1.7 Invariant 7, this MUST be rejected at validate() time.
 # Per F-P8-001 fix (main.rs), the dispatcher MUST:
 #   1. Exit 2 (fail-closed per ADR-019 §Decision 2).
 #   2. Write "[E-REG-003]" to stderr.
@@ -578,14 +578,14 @@ shell_bypass_acknowledged = "VP-079-S7-test-fixture"
 # No WASM plugin is invoked — validation fails before dispatch begins.
 # ---
 
-@test "VP-079 S8: BC-7.06.001 v1.6 Invariant 7 [fail-closed] — DuplicateEntry → exit 2 + dispatcher.registry_invalid (E-REG-003)" {
+@test "VP-079 S8: BC-7.06.001 v1.7 Invariant 7 [fail-closed] — DuplicateEntry → exit 2 + dispatcher.registry_invalid (E-REG-003)" {
     require_dispatcher
 
     # No test fixtures needed: DuplicateEntry is detected at registry validate()
     # time, before any plugin is loaded or executed.
 
     # Registry: TWO entries with identical (name="duplicate-test", event="PreToolUse",
-    # tool="Bash"). BC-7.06.001 v1.6 Invariant 7 requires rejection at validate().
+    # tool="Bash"). BC-7.06.001 v1.7 Invariant 7 requires rejection at validate().
     printf '%s' '
 schema_version = 2
 
@@ -627,11 +627,11 @@ script_path = "test-fixtures/exit0.sh"
         CLAUDE_PROJECT_DIR=\"$PLUGIN_ROOT\" \
         factory-dispatcher 2>\"$stderr_file\""
 
-    # Assertion 1 (BC-7.06.001 v1.6 Invariant 7 + ADR-019 §Decision 2):
+    # Assertion 1 (BC-7.06.001 v1.7 Invariant 7 + ADR-019 §Decision 2):
     # dispatcher must exit 2 (fail-closed).
     [ "$status" -eq 2 ] || {
         echo "FAIL: expected exit 2 for DuplicateEntry; got: $status"
-        echo "BC-7.06.001 v1.6 Invariant 7 requires fail-closed (exit 2) on duplicate (name,event,tool) tuple."
+        echo "BC-7.06.001 v1.7 Invariant 7 requires fail-closed (exit 2) on duplicate (name,event,tool) tuple."
         rm -f "$stderr_file"
         return 1
     }
