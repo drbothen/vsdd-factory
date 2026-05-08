@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.22"
+version: "1.23"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-4 fix burst (2026-05-07) — BC-INDEX re-tally to authoritative subsystem (F-P4-001 HIGH): SS-01 116→117, SS-05 648→652, SS-07 197→196, SS-08 218→214 (total unchanged at 1947). BC-7.06.001 listing moved SS-07 section → SS-01 section to unify with BC-8.29.001/002/003 + BC-8.30.002 convention (authoritative-frontmatter; filename slug retained in ss-07/ per POLICY 1). BC-1.14.001 v1.4→v1.5 (PO inline 100ms literals removed; cites DI-019 by reference only). ADR-019 v1.5→v1.6 (§Consequences drain-window symbolic ASYNC_DRAIN_WINDOW_MS). VP-077 v1.4→v1.5 (domain_invariants note). VP-078 v1.5→v1.6 (scope SS-07→SS-07, SS-01). VP-INDEX v1.11→v1.12 (DI-019 traceability summary). last_amended: 2026-05-07 (async-semantics F2 pass-4 fix burst: BC-INDEX re-tally + BC-7.06.001 listing moved SS-07→SS-01; BC-1.14.001 v1.5; F-P4-001 closed)."
   - date: 2026-05-07
     change: "F2 pass-3 fix burst + user-correction (2026-05-07) — BC-1.14.001 v1.2→v1.4 (async-task drain window PC4; cite DI-019). BC-3.08.001 v1.1→v1.2 (DI-019 traceability cite). 6 BC-INDEX H1 syncs (POLICY 7): BC-1.08.002, BC-1.01.007, BC-1.14.001 (3 drifted); BC-4.04.004/4.05.004/4.07.003/4.08.002 confirmed matching. Subsystem column verified post-re-tally (BC-7.06.001 SS-01; BC-8.29.001/002/003 + BC-8.30.002 SS-05). last_amended: 2026-05-07 (async-semantics F2 pass-3 fix burst + user-correction: BC-1.14.001 v1.4, BC-3.08.001 v1.2, 6 H1↔INDEX title syncs, subsystem column verified post-re-tally)."
   - date: 2026-05-07
@@ -68,21 +70,21 @@ changelog:
 
 | Subsystem | BC Prefix | Count | Shard Directory |
 |-----------|-----------|-------|----------------|
-| SS-01 Hook Dispatcher Core | BC-1 | 116 (114 active; 2 retired) | ss-01/ |
+| SS-01 Hook Dispatcher Core | BC-1 | 117 (114 active; 2 retired; 1 directory-mismatch from ss-07/) | ss-01/ |
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 26 | ss-02/ |
 | SS-03 Event Emission (OTel-Aligned) | BC-3 | 53 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 39 | ss-04/ |
-| SS-05 Pipeline Orchestration | BC-5 | 648 | ss-05/ |
+| SS-05 Pipeline Orchestration | BC-5 | 652 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 586 | ss-06/ |
-| SS-07 Hook Bash Layer | BC-7 | 197 | ss-07/ |
-| SS-08 Templates and Rules | BC-8 | 218 | ss-08/ |
+| SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
+| SS-08 Templates and Rules | BC-8 | 214 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 6 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
 | **Total** | | **1947** | |
 
 ## Index by subsystem
 
-### SS-01 — Hook Dispatcher Core (BC-1) — 116 BCs (114 active; 2 retired)
+### SS-01 — Hook Dispatcher Core (BC-1) — 117 BCs (114 active; 2 retired; 1 directory-mismatch from ss-07/)
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
@@ -202,6 +204,8 @@ changelog:
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
 | [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch | draft | CAP-TBD | TBD |
 | [BC-1.14.001](ss-01/BC-1.14.001.md) | factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget with bounded ASYNC_DRAIN_WINDOW_MS, no verdict gate) | draft | CAP-002 | TBD |
+| [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` | draft | CAP-002 | TBD |
+<!-- BC-7.06.001 filename slug retained in ss-07/ per POLICY 1 append-only; authoritative subsystem is SS-01 per frontmatter (post-F-P1-006 reanchor 2026-05-07). Unified here to match BC-8.29.001/002/003 + BC-8.30.002 authoritative-frontmatter convention (F-P4-001 BC-INDEX listing convention unification). -->
 
 ### SS-02 — Hook SDK and Plugin ABI (BC-2)
 
@@ -1785,8 +1789,7 @@ changelog:
 | [BC-7.05.002](ss-07/BC-7.05.002.md) | validate-count-propagation.sh runs in under 200ms and is deterministic | draft | CAP-001 | S-7.02 |
 | [BC-7.05.003](ss-07/BC-7.05.003.md) | validate-template-compliance.sh enforces VP multi-BC source_bc convention | draft | CAP-001 | S-7.02 |
 | [BC-7.05.004](ss-07/BC-7.05.004.md) | hooks-registry.toml registers validate-count-propagation.sh as PostToolUse on index file writes | draft | CAP-001 | S-7.02 |
-| [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` | draft | CAP-002 | TBD |
-<!-- BC-7.06.001: authoritative subsystem reanchored SS-07→SS-01 (F-P1-006, F2 pass-1 fix burst 2026-05-07); file remains in ss-07/ per POLICY 1 append-only; artifact frontmatter subsystem=SS-01 is authoritative -->
+<!-- BC-7.06.001 listed under SS-01 above — authoritative subsystem is SS-01 (file remains in ss-07/ per POLICY 1 append-only; frontmatter reanchored F-P1-006 2026-05-07; index listing moved SS-07→SS-01 per F-P4-001 convention unification 2026-05-07) -->
 
 ### SS-08 — Templates and Rules (BC-8)
 

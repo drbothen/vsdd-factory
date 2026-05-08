@@ -335,3 +335,53 @@ F2 PASS-2 FIX BURST CLOSED. Adversary pass-3 next (ADR-013 clock at 0_of_3 — 3
 F2 PASS-3 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-4 next (3 consecutive NITPICK_ONLY required before F3 story decomposition).
 
 ---
+
+## Burst: F2 pass-4 fix burst close — 2026-05-07
+
+**Role:** state-manager (closing burst)
+**Pass result:** SUBSTANTIVE (6 findings; clock 0_of_3)
+**Agents:** PO fix burst (BC-1.14.001 v1.5) + architect fix burst (ADR-019 v1.6; VP-077 v1.5; VP-078 v1.6; VP-INDEX v1.11) + state-manager close (BC-INDEX re-tally; BC-7.06.001 listing unification; VP-INDEX v1.12; ARCH-INDEX v1.15; STATE.md)
+
+### Files modified
+
+| File | Old Version | New Version | Change |
+|------|-------------|-------------|--------|
+| `ss-01/BC-1.14.001.md` | v1.4 | v1.5 | PO: inline 100ms literals removed; PC4/EC-011/Traceability cite DI-019 by reference only (§Constant Reference rule) |
+| `decisions/ADR-019-plugin-async-semantics-at-registry-layer.md` | v1.5 | v1.6 | Architect: §Consequences line 215 `+ 100ms` → `+ ASYNC_DRAIN_WINDOW_MS` symbolic constant (F-P4-004) |
+| `specs/verification-properties/VP-077.md` | v1.4 | v1.5 | Architect: Traceability domain_invariants explanatory note added (F-P4-006) |
+| `specs/verification-properties/VP-078.md` | v1.5 | v1.6 | Architect: frontmatter scope expanded SS-07 → SS-07, SS-01 (F-P4-003) |
+| `specs/verification-properties/VP-INDEX.md` | v1.10 | v1.12 | Architect: VP-079 Domain Invariant column '—'→'DI-017, DI-019' (v1.11; F-P4-002). State-manager: Traceability summary 17→18 active invariants (DI-019; DI-018 deferred) (v1.12) |
+| `specs/behavioral-contracts/BC-INDEX.md` | v1.22 | v1.23 | State-manager: Summary table SS-01 116→117, SS-05 648→652, SS-07 197→196, SS-08 218→214; BC-7.06.001 listing moved SS-07→SS-01 section; SS-01 header count updated; explanatory comment added (F-P4-001 HIGH) |
+| `specs/architecture/ARCH-INDEX.md` | v1.14 | v1.15 | State-manager: ADR-019 row updated to v1.6; changelog entry added |
+
+### Index bumps
+
+| Index | Old | New | Notes |
+|-------|-----|-----|-------|
+| BC-INDEX | v1.22 | v1.23 | Re-tally complete; BC-7.06.001 listing convention unified to authoritative-frontmatter |
+| ARCH-INDEX | v1.14 | v1.15 | ADR-019 v1.6 noted |
+| VP-INDEX | v1.10 | v1.12 | v1.11 (architect): VP-079 DI column; v1.12 (state-manager close): DI-019 traceability summary |
+| STATE.md | — | — | current_step, phase, cycle table, burst row, session checkpoint, index versions updated |
+
+### Findings summary (6 total)
+
+| Severity | Count | Notable |
+|----------|-------|---------|
+| HIGH | 1 | F-P4-001 (BC-INDEX vs ARCH-INDEX subsystem-count divergence; BC-7.06.001 convention mismatch) |
+| MED | 2 | F-P4-002 (VP-INDEX VP-079 Domain Invariant column stale), F-P4-003 (VP-078 scope missing SS-01) |
+| LOW | 2 | F-P4-004 (ADR-019 inline 100ms literal on line 215), F-P4-005 (BC-1.14.001 inline 100ms literals) |
+| NIT | 1 | F-P4-006 (VP-077 domain_invariants traceability note absent) |
+
+### BC-INDEX convention unification note
+
+BC-7.06.001 listing moved from SS-07 section to SS-01 section in BC-INDEX (F-P4-001). This unifies the index to the authoritative-frontmatter convention: BCs whose frontmatter `subsystem:` differs from their directory are listed under their authoritative subsystem. The BC-8.29.001/002/003 + BC-8.30.002 rows (ss-08/ directory, SS-05 authoritative) established this convention; BC-7.06.001 (ss-07/ directory, SS-01 authoritative per F-P1-006 reanchor) now follows the same pattern. Filename slug immutable per POLICY 1.
+
+### Defensive sweep results
+
+Count-propagation sweep post-re-tally: BC-INDEX Summary table (SS-01 117, SS-05 652, SS-07 196, SS-08 214), ARCH-INDEX Subsystem Registry (already updated in pass-3 to authoritative counts), VP-INDEX (no BC counts), STATE.md (no per-subsystem BC count table). No stale counts found in BC-INDEX section headers (SS-07 header has no count annotation; SS-01 header updated from 116 to 117).
+
+### Status
+
+F2 PASS-4 FIX BURST CLOSED. ADR-013 clock at 0_of_3. Adversary pass-5 next (3 consecutive NITPICK_ONLY required before F3 story decomposition).
+
+---

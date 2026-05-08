@@ -4,7 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
-version: "1.5"
+version: "1.6"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -212,7 +212,7 @@ latency = max(sync_plugin_durations) + min(max(async_plugin_durations), ASYNC_DR
 Async tasks not complete by drain expiry are forcibly terminated and emit no event
 (truncation). The drain window is a best-effort guarantee: it bounds the async-event
 capture window without allowing runaway async plugins to delay the user's tool call
-response beyond `max(sync_plugin_durations) + 100ms`.
+response beyond `max(sync_plugin_durations) + ASYNC_DRAIN_WINDOW_MS`.
 
 ### Schema v2 hard-error on v1 registry — deliberate
 
@@ -326,6 +326,21 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
   - §Implementation Pointers line 2: `BC-7.NN.001` → `BC-7.06.001`
 - **Forward reference (RESOLVED by state-manager close-burst 2026-05-07):** PO assigned BC-9.01.006 (SS-09) for the hooks.json.template envelope-sync invariant (F-P1-001). BC-9.01.006 has been added to §Implementation Pointers and §Subsystem Assignments under SS-09. Forward reference closed.
 - **No decision changes:** All §Decision entries are unchanged. This amendment corrects stale text only.
+
+## Amendment 2026-05-07: v1.5 → v1.6 (F2 pass-4 fix burst)
+
+- **Amendment date:** 2026-05-07
+- **Reason:** Adversary pass-4 finding F-P4-004. §Consequences "Async-task drain window"
+  inline bound sentence (final line of the paragraph) inlined the literal `100ms` value
+  despite the DI-019 lift principle (v1.4→v1.5 amendment) which elevated this constant
+  from inline to canonical domain invariant. The earlier total-latency formula on line 209
+  already uses the symbolic `ASYNC_DRAIN_WINDOW_MS` form; line 215 must match.
+- **Changes:**
+  - §Consequences "Async-task drain window" (paragraph closing sentence): replaced
+    `+ 100ms` → `+ ASYNC_DRAIN_WINDOW_MS` to be consistent with the formula on line 209
+    and with the DI-019 symbolic convention.
+- **No decision changes:** All §Decision policy text is unchanged. This is a symbolic
+  consistency correction only — the constant value remains 100ms per DI-019.
 
 ## Amendment 2026-05-07: v1.4 → v1.5 (F2 pass-3 fix burst revision)
 

@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.10"
+version: "1.12"
 status: draft
 producer: state-manager
 timestamp: 2026-05-07T00:00:00
@@ -9,6 +9,10 @@ phase: F2
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-4 fix burst close (2026-05-07) — Traceability summary updated: 17 invariants → 18 active invariants (DI-001..DI-017, DI-019; DI-018 deferred-not-authored). VP-INDEX v1.11→v1.12. No VP count change."
+  - date: 2026-05-07
+    change: "F2 pass-4 fix burst (2026-05-07) — F-P4-002: VP-079 Domain Invariant column updated from '—' to 'DI-017, DI-019' (matching VP-079 frontmatter domain_invariants). F-P4-003: VP-078 frontmatter scope expanded SS-07→SS-07, SS-01 (v1.5→v1.6; matches VP-INDEX and Traceability prose). F-P4-004: ADR-019 §Consequences drain window line replaced inline '100ms' literal with symbolic 'ASYNC_DRAIN_WINDOW_MS' (v1.5→v1.6). F-P4-006: VP-077 added domain_invariants documentation note to Traceability section (v1.4→v1.5). No VP count change."
   - date: 2026-05-07
     change: "F2 pass-3 fix burst close + user-correction (2026-05-07) — VP-079 v1.2→v1.3 (DI-NN placeholder resolved to DI-019 in frontmatter domain_invariants, Property 5, all harness scenario comments, False-Positive Scenarios table, Feasibility Assessment, Traceability, and Amendment prose). VP-078 confirmed at v1.5. VP-077 confirmed at v1.4. No VP count change. last_amended: 2026-05-07 (async-semantics F2 pass-3 fix burst close: VP-079 DI-019 placeholder resolved)."
   - date: 2026-05-07
@@ -147,7 +151,7 @@ changelog:
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name,event) tuple unique per BC-7.06.001 Invariant 7 | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml | safety | integration | SS-07, SS-01 | — | draft |
-| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema | postcondition | integration | SS-03 | — | draft |
+| [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -195,7 +199,7 @@ changelog:
 
 ## Traceability
 
-- All 17 domain invariants (DI-001..DI-017) covered by VP-001..VP-017
+- All 18 active domain invariants (DI-001..DI-017, DI-019; DI-018 deferred-not-authored) covered by the verification suite
 - BCs cross-referenced: 130 BC IDs across 79 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001; +1 F2 pass-1 fix burst: VP-079→BC-3.08.001)
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
 - 26 VPs have TBD test evidence (manual or pending CI automation; +4 VP-073..076 feasible-pending-harness; +2 VP-077..078 feasible-pending-harness; +1 VP-079 feasible-pending-harness)

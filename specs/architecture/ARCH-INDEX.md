@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.14"
+version: "1.15"
 status: accepted
 producer: architect
 timestamp: 2026-05-07T00:00:00
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-07
+    change: "F2 pass-4 fix burst close (2026-05-07): ADR-019 v1.5→v1.6 (§Consequences drain-window line 215 symbolic ASYNC_DRAIN_WINDOW_MS; F-P4-004). ARCH-INDEX v1.14→v1.15. last_amended: 2026-05-07 (async-semantics F2 pass-4 fix burst: ADR-019 v1.6; F-P4-001 BC-INDEX re-tally confirmed in ARCH-INDEX)."
   - date: 2026-05-07
     change: "F2 pass-3 fix burst close + user-correction (2026-05-07): DI-NN placeholder resolved to DI-019 in ADR-019 §Consequences and VP-079 (all references). ADR-019 v1.5 confirmed at close. SS-09-config-activation.md v1.2 (stale text replaced in-place). SS-07-hook-bash.md v1.2 (schema_version 1→2 in-place). last_amended: 2026-05-07 (async-semantics F2 pass-3 fix burst close: DI-019 placeholder resolved; SS-09 v1.2; SS-07 v1.2; ADR-019 v1.5)."
   - date: 2026-05-07
@@ -195,7 +197,7 @@ graph TD
 | ADR-016 | Artifact path registry as single source of truth for `.factory/` canonical paths — **ACCEPTED 2026-05-07; D-340 F2** | SS-04, SS-06 | decisions/ADR-016-artifact-path-registry-sot.md |
 | ADR-017 | Per-story adversarial convergence gate — three-perimeter model and WASM hook phasing — **ACCEPTED 2026-05-07; D-340 F2** | SS-04, SS-05 | decisions/ADR-017-per-story-adversary-phasing.md |
 | ADR-018 | WASM-plugin Context Resolvers — design and layering for factory-agnostic runtime context injection via sandboxed WASM-plugin resolvers — **ACCEPTED 2026-05-07; D-362 F2-amendment** | SS-01, SS-04 | decisions/ADR-018-wasm-plugin-context-resolvers.md |
-| ADR-019 | Plugin Async Semantics Belong at the Registry Layer — hard cut to registry-layer `async: bool` per-plugin field; envelope uniformly synchronous; dispatcher partition (sync_group/async_group); CI lint `on_error=block ⇒ async=false` — **ACCEPTED 2026-05-07; F2 async-semantics; v1.5 (F2 pass-3 fix burst close: §Consequences drain-window subsection cites DI-019 as canonical constant; DI-019 placeholder resolved)** | SS-01, SS-07, SS-09 | decisions/ADR-019-plugin-async-semantics-at-registry-layer.md |
+| ADR-019 | Plugin Async Semantics Belong at the Registry Layer — hard cut to registry-layer `async: bool` per-plugin field; envelope uniformly synchronous; dispatcher partition (sync_group/async_group); CI lint `on_error=block ⇒ async=false` — **ACCEPTED 2026-05-07; F2 async-semantics; v1.6 (F2 pass-4 fix burst close: §Consequences drain-window line 215 `+ 100ms` → `+ ASYNC_DRAIN_WINDOW_MS` symbolic constant; F-P4-004 closed)** | SS-01, SS-07, SS-09 | decisions/ADR-019-plugin-async-semantics-at-registry-layer.md |
 
 ## Phase 1.4 BC Renumbering Map
 

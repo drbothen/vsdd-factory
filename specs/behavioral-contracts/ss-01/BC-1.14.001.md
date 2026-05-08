@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -64,7 +64,7 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
    - The dispatcher does NOT await async group plugin completions beyond the drain window defined below.
    - Async group plugin verdicts (including any exit codes) are logged to `events-*.jsonl` via the standard FileSink path.
    - Async group results never reach Claude Code as a blocking signal.
-   - **Async-task drain window**: After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` (per DI-019, default 100 ms) for spawned async tasks to emit terminal events to FileSink. Tasks that complete within the drain window emit cleanly. Tasks that do not complete within the drain window are forcibly terminated; their pending I/O is discarded (best-effort). The drain window is a bounded constant per DI-019 — async tasks DO NOT extend dispatcher latency beyond `max(sync_plugin_durations) + ASYNC_DRAIN_WINDOW_MS`. The drain is purely for terminal-event emission visibility (e.g., `plugin.timeout`, `plugin.async_block_discarded`), not for completing arbitrary async work.
+   - **Async-task drain window**: After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` (per DI-019) for spawned async tasks to emit terminal events to FileSink. Tasks that complete within the drain window emit cleanly. Tasks that do not complete within the drain window are forcibly terminated; their pending I/O is discarded (best-effort). The drain window is a bounded constant per DI-019 — async tasks DO NOT extend dispatcher latency beyond `max(sync_plugin_durations) + ASYNC_DRAIN_WINDOW_MS`. The drain is purely for terminal-event emission visibility (e.g., `plugin.timeout`, `plugin.async_block_discarded`), not for completing arbitrary async work.
    - **Async plugin lifetime is best-effort**: Tasks not done within `ASYNC_DRAIN_WINDOW_MS` (per DI-019) are terminated (truncated telemetry remains an explicit acceptable cost for tasks slower than the drain). Telemetry plugins classified `async = true` (e.g., `capture-commit-activity`) accept this truncation risk.
 
 5. The partition function `partition_plugins(matched_plugins, registry)` is pure and deterministic: given identical inputs it always produces identical `(sync_group, async_group)` splits. No side effects occur during partitioning.
@@ -82,7 +82,7 @@ When the dispatcher is invoked by Claude Code with a synchronous hook envelope, 
 
 ## Constant Reference
 
-The async-task drain window is `ASYNC_DRAIN_WINDOW_MS` per **DI-019** (`invariants.md` §Dispatcher Timing Invariants). This BC references the DI; the canonical value (100 ms) and its rationale live in the domain spec. Do not inline the constant value here — consult DI-019 for the authoritative value and any future env-var override policy.
+The async-task drain window is `ASYNC_DRAIN_WINDOW_MS` per **DI-019** (`invariants.md` §Dispatcher Timing Invariants). This BC references the DI; the canonical value and its rationale live in the domain spec. Do not inline the constant value here — consult DI-019 for the authoritative value and any future env-var override policy.
 
 The total dispatcher wall-clock latency upper bound is therefore:
 `max(sync_plugin_durations_within_slowest_tier) + ASYNC_DRAIN_WINDOW_MS + bounded_overhead`
@@ -167,7 +167,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 |-------|-------|
 | L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's partitioned invocation model (sync-group gates Claude Code; async-group fires-and-forgets), which is the core mechanism by which sandboxed WASM plugins enforce `on_error = "block"` governance |
-| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-019 — `ASYNC_DRAIN_WINDOW_MS = 100 ms` (PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
+| L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (per DI-019; PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/routing.rs` (`partition_plugins`), `crates/factory-dispatcher/src/engine.rs` (dispatch loop) |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
@@ -190,6 +190,17 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-07 (v1.4 → v1.5 — F2 pass-4 F-P4-005)
+
+Removed residual inline `100 ms` literal values from three live body locations to enforce the §Constant Reference rule and preserve DI-019's canonical ownership of the drain-window value.
+
+**Changes made:**
+- PC4 drain-window bullet: `(per DI-019, default 100 ms)` → `(per DI-019)`.
+- §Constant Reference narrative: `the canonical value (100 ms) and its rationale` → `the canonical value and its rationale` (the parenthetical was redundant given the surrounding DI-019 citation).
+- Traceability §L2 Domain Invariants: `ASYNC_DRAIN_WINDOW_MS = 100 ms` → `ASYNC_DRAIN_WINDOW_MS (per DI-019)`.
+
+**No substantive content changed.** Postconditions, invariants, error paths, test vectors, and EC-011 expected behavior are identical to v1.4. This is a consistency-only correction driven by adversary finding F-P4-005.
 
 ## Amendment 2026-05-07 (v1.3 → v1.4 — F2 pass-3 user-correction: ASYNC_DRAIN_WINDOW_MS lifted to DI-019)
 
