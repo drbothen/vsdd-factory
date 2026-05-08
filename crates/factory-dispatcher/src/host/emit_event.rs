@@ -198,43 +198,63 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
     ctx.emit_internal(ev);
 }
 
-/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.7).
+/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.7 / v1.8).
 ///
 /// Fired when a registry entry violates a load-time invariant.  The caller
 /// supplies the error code and violation string so this function can serve
 /// multiple invariant violations:
 ///
 /// - E-REG-002 / `"async_block_conflict"`: `on_error=block` + `async=true`
-///   coexistence invariant (BC-7.06.001 Invariant 1).
+///   coexistence invariant (BC-7.06.001 Invariant 1). Pass `event=None, tool=None`
+///   because the violation is intra-entry (no offending (event, tool) tuple).
 /// - E-REG-003 / `"duplicate_hook_registration"`: duplicate (name, event, tool)
-///   tuple (BC-7.06.001 Invariant 7, F-P8-001).
+///   tuple (BC-7.06.001 Invariant 7, F-P8-001). Pass `event=Some(event_str)` and
+///   `tool=Some(tool_str)` (or `tool=None` for wildcard/"all tools" entries).
 ///
-/// Required fields (BC-3.08.001):
-/// - `plugin_name`: name of the offending registry entry
+/// Required fields (BC-3.08.001 v1.8, BC-7.06.001 v1.8):
+/// - `offending_plugin`: name of the offending registry entry
 /// - `error_code`: caller-supplied error code string (e.g. `"E-REG-002"`)
 /// - `violation`: caller-supplied violation identifier string
 ///
+/// Optional fields emitted only when `Some(_)` (E-REG-003 path):
+/// - `offending_event`: the hook event that caused the duplicate
+/// - `offending_tool`: the tool filter that caused the duplicate (omitted when `None`,
+///   which represents a wildcard/"all tools" binding — distinct from absent)
+///
 /// # BC traces
-/// - BC-3.08.001 v1.7 — event catalog
+/// - BC-3.08.001 v1.7 / v1.8 — event catalog
 /// - BC-1.14.001 Error Paths — registry invariant violations
-/// - BC-7.06.001 Invariants 1 + 7 — load-time invariant enforcement
+/// - BC-7.06.001 v1.8 Invariants 1 + 7 — load-time invariant enforcement
+/// - F-P14-001 Path B — extend wire payload for E-REG-003
 pub fn emit_dispatcher_registry_invalid(
     ctx: &HostContext,
     plugin_name: &str,
     error_code: &str,
     violation: &str,
+    event: Option<&str>,
+    tool: Option<&str>,
 ) {
     let ev = InternalEvent::now("dispatcher.registry_invalid");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
     // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
-    let ev = ev
+    let mut ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
         .with_field("timestamp", ts.as_str())
         .with_field("offending_plugin", plugin_name)
         .with_field("violation", violation)
         .with_field("error_code", error_code);
+    // E-REG-003 inter-entry fields: emit only when present.
+    // `event` being Some signals an inter-entry violation (E-REG-003).
+    // `tool` being None with E-REG-003 means wildcard ("all tools") and is intentionally omitted
+    // — receivers distinguish "no offending_tool field" (E-REG-002) from E-REG-003 via error_code.
+    if let Some(ev_name) = event {
+        ev = ev.with_field("offending_event", ev_name);
+    }
+    if let Some(tool_name) = tool {
+        ev = ev.with_field("offending_tool", tool_name);
+    }
     ctx.emit_internal(ev);
 }
 

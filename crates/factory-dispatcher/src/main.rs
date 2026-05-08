@@ -139,11 +139,14 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                 RegistryError::AsyncBlockConflict { name } => {
                     // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
                     // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
+                    // E-REG-002 is intra-entry (no offending event/tool tuple); pass None, None.
                     emit_dispatcher_registry_invalid(
                         &err_ctx,
                         name,
                         "E-REG-002",
                         "async_block_conflict",
+                        None, // E-REG-002 is intra-entry; no offending_event
+                        None, // E-REG-002 is intra-entry; no offending_tool
                     );
                     eprintln!(
                         "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
@@ -152,18 +155,22 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                 }
                 RegistryError::DuplicateEntry { name, event, tool } => {
                     // BC-7.06.001 Invariant 7 + BC-3.08.001 Event 3 (E-REG-003).
-                    // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
-                    // F-P8-001: fail-closed; dispatcher refuses to start on duplicate (name,event,tool) tuple.
+                    // Emit dispatcher.registry_invalid with full wire payload per BC-7.06.001 v1.8:
+                    // offending_plugin, violation, error_code, offending_event, offending_tool.
+                    // F-P8-001 / F-P14-001 Path B: fail-closed; dispatcher refuses to start on
+                    // duplicate (name, event, tool) tuple.
                     eprintln!(
                         "[E-REG-003] Duplicate hook registration: name={name}, event={event}, tool={tool:?} \
-                         (BC-7.06.001 v1.7 Invariant 7). Each (name, event, tool) tuple must be unique \
+                         (BC-7.06.001 v1.8 Invariant 7). Each (name, event, tool) tuple must be unique \
                          across all [[hooks]] entries; dispatcher refuses to start."
                     );
                     emit_dispatcher_registry_invalid(
                         &err_ctx,
-                        name,
+                        name.as_str(),
                         "E-REG-003",
                         "duplicate_hook_registration",
+                        Some(event.as_str()), // offending_event — inter-entry violation (F-P14-001 Path B)
+                        tool.as_deref(),      // offending_tool — None means wildcard/"all tools"
                     );
                     2
                 }
