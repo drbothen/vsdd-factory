@@ -147,7 +147,7 @@ mod kani_proofs {
     /// groups cannot satisfy H1 by accident.
     ///
     /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
-    /// time by BC-7.06.001 v1.4 Invariant 7 via registry.rs::validate(). Bounded to
+    /// time by BC-7.06.001 v1.5 Invariant 7 via registry.rs::validate(). Bounded to
     /// n<=4 for Kani tractability.
     #[kani::proof]
     #[kani::unwind(8)]
@@ -176,6 +176,12 @@ mod kani_proofs {
     /// Uses name-based contains() check to verify mutual exclusion, not just
     /// cardinality. Separated from H1 so disjointness cannot be vacuously
     /// satisfied by a partition that duplicates every plugin into both groups.
+    ///
+    /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
+    /// time by BC-7.06.001 v1.5 Invariant 7 via registry.rs::validate(). Bounded to
+    /// n<=4 for Kani tractability; uniqueness ensured by-construction via
+    /// format!("plugin-{}", i) rather than explicit kani::assume guards
+    /// (equivalent semantics).
     ///
     /// Bounded to n<=4 for tractability; add #[kani::unwind(10)] if needed.
     #[kani::proof]
@@ -247,6 +253,12 @@ mod kani_proofs {
     /// Properties: 4 (Union completeness) — every input plugin appears in exactly
     /// one group. Distinct from H1 (cardinality) and H2 (mutual exclusion): H4
     /// asserts positive coverage — no plugin is silently dropped.
+    ///
+    /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
+    /// time by BC-7.06.001 v1.5 Invariant 7 via registry.rs::validate(). Bounded to
+    /// n<=4 for Kani tractability; uniqueness ensured by-construction via
+    /// format!("plugin-{}", i) rather than explicit kani::assume guards
+    /// (equivalent semantics).
     ///
     /// With H1 (totality by cardinality) + H2 (disjointness), union completeness
     /// is logically implied; this harness provides an explicit positive witness.
