@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-5 COMPLETE — verdict NITPICK_ONLY (ZERO findings). ADR-013 clock advanced 0_of_3 → **1_of_3** (FIRST in chain). Trajectory 17 → 15 → 6 → 5 → 0. Pass-6 dispatching in parallel; need 2 more NITPICK_ONLY for CONVERGED. PR remains held."
+current_step: "F5 pass-6 COMPLETE — verdict MEDIUM (0H/2M/0L/0NIT). ADR-013 clock RESET 1_of_3 → 0_of_3 (Angle B fresh-eyes surfaced 2 test-coverage gaps that pass-5's coherence-focused angle didn't target). Trajectory 17 → 15 → 6 → 5 → 0 → 2. Fix-burst-5 dispatching: test-writer 2 test additions. PR remains held."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (F5 pass-5 COMPLETE — NITPICK_ONLY, ZERO findings; ADR-013 clock 0_of_3 → 1_of_3 [FIRST chain advance]; trajectory 17→15→6→5→0; pass-6 dispatch next) |
+| **Last Updated** | 2026-05-08 (F5 pass-6 COMPLETE — MEDIUM, 0H/2M/0L/0NIT; ADR-013 clock RESET 1_of_3 → 0_of_3 [Angle B test-coverage findings]; trajectory 17→15→6→5→0→2; fix-burst-5 dispatching) |
 | **Current Phase** | F5 FIX-BURST PATH A COMPLETE — v1.0-feature-plugin-async-semantics-pass-1; ADR-020 + S-15.01 v1.8 + S-15.02 + BC-1.14.001 v1.8 committed; Stage 4 (pr-manager) next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
@@ -98,6 +98,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-4 adversary review** | adversary | **COMPLETE** | Verdict: MEDIUM (0H/1M/4L/0NIT). ADR-013 clock 0_of_3 (MEDIUM resets). F-P3-002 PARTIALLY RESOLVED. F-P4-001 [M] VP-077 v1.9 has 4 stale BC-7.06.001 v1.4 cites (propagation gap from F-P3-003 BC v1.5 bump). F-P4-002 [L] partition.rs:150 stale v1.4 cite. F-P4-003 [L] H2/H4 doc-comment precondition notes missing. F-P4-004 [L] DI-019 §Malformed missing 0ms edge case. F-P4-005 [L] DI-019 §Malformed missing upper-bound ack. Trajectory: 17→15→6→5. See `cycles/…/F5-adversary-pass-4.md`. |
 | **F5 fix-burst-4 (Stage 1 specs + Stage 2 partition.rs sweep)** | architect + story-writer + implementer + state-manager | **COMPLETE** | VP-077 v1.9→v1.10 (F-P4-001: 5-site BC-7.06.001 v1.4→v1.5 cite sweep). DI-019 v1.3→v1.4 (F-P4-004/005: §Malformed 0ms lower-bound + upper-bound ack). S-15.01 v1.10→v1.11; S-15.02 v1.2→v1.3 (body propagation). partition.rs H2/H4 doc-comments (F-P4-002/003; implementer 3a5eb6e). Indexes: VP-INDEX v1.19→v1.20; STORY-INDEX v2.40→v2.41. ADR-013 clock 0_of_3 (MEDIUM resets). All 5 pass-4 findings resolved. |
 | **F5 pass-5 adversary review** | adversary | **COMPLETE** | Verdict: NITPICK_ONLY (0H/0M/0L/0NIT). ADR-013 clock advanced 0_of_3 → **1_of_3** (FIRST chain advance). All 5 pass-4 findings confirmed resolved. Trajectory: 17→15→6→5→0. ZERO new findings. Fix-burst-4 surfaces all coherent (VP-077 v1.10, partition.rs H2/H4, DI-019 §Pathological, story body, indexes). Pass-6 dispatch next; need 2 more NITPICK_ONLY for CONVERGED. See `cycles/…/F5-adversary-pass-5.md`. |
+| **F5 pass-6 adversary review** | adversary | **COMPLETE** | Verdict: MEDIUM (0H/2M/0L/0NIT). ADR-013 clock RESET 1_of_3 → **0_of_3** (MEDIUM finding resets chain). Trajectory: 17→15→6→5→0→2. Angle B (fresh-context test-coverage scrutiny) surfaced 2 gaps pass-5's coherence-focused angle did not target. F-P6-001 [M]: EC-012 partial-drain multi-plugin scenario has no falsifiable bats test. F-P6-002 [M]: BC-7.06.001 v1.5 Inv-7 regex-variant distinctness has no Rust unit test. Fix-burst-5: test-writer 2 test additions (bats Scenario 7 + Rust unit test). Pass-7 next. See `cycles/…/F5-adversary-pass-6.md`. |
 
 ## Identifier Conventions
 
@@ -139,7 +140,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-5 NITPICK_ONLY | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1 (5H/6M/4L/2NIT) → pass-2 (3H/6M/4L/2NIT) → pass-3 (0H/2M/2L/2NIT) → pass-4 (0H/1M/4L/0NIT) → pass-5 (NITPICK_ONLY; ZERO findings). ADR-013 clock **1_of_3** (FIRST chain advance). Trajectory 17→15→6→5→0. Branch fix/S-15.01-F5-convergence @ 3a5eb6e. PR held until ADR-013 = 3_of_3. Pass-6 dispatch next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 PASS-6 MEDIUM | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1 (5H/6M/4L/2NIT) → pass-2 (3H/6M/4L/2NIT) → pass-3 (0H/2M/2L/2NIT) → pass-4 (0H/1M/4L/0NIT) → pass-5 (NITPICK_ONLY; 1_of_3) → pass-6 (MEDIUM; clock RESET 0_of_3). Trajectory 17→15→6→5→0→2. Branch fix/S-15.01-F5-convergence @ 3a5eb6e. Fix-burst-5 dispatching (2 test additions). PR held until ADR-013 = 3_of_3. |
 
 ## Decisions Log
 
@@ -163,9 +164,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — F5 pass-5 COMPLETE. Verdict: NITPICK_ONLY — ZERO findings. All 5 pass-4 findings confirmed resolved at HEAD 3a5eb6e. ADR-013 clock advanced 0_of_3 → **1_of_3** (FIRST chain advance). Trajectory: 17→15→6→5→0 (F5 passes 1-5). Milestone: monotonically decreasing convergence trajectory has reached zero.
+**Last update:** 2026-05-08 — F5 pass-6 COMPLETE. Verdict: MEDIUM (0H/2M/0L/0NIT). ADR-013 clock RESET 1_of_3 → **0_of_3** (MEDIUM finding resets chain). Trajectory: 17→15→6→5→0→2 (F5 passes 1-6). Angle B fresh-context surfaced 2 test-coverage gaps: F-P6-001 (EC-012 partial-drain multi-plugin bats Scenario 7 missing) and F-P6-002 (BC-7.06.001 v1.5 Inv-7 regex-variant Rust unit test missing). Both localized; fix-burst-5 = test-writer 2 additions.
 
-**ACTIVE STEP: F5 pass-6 dispatch. Branch fix/S-15.01-F5-convergence @ 3a5eb6e. ADR-013 clock 1_of_3; need 2 more NITPICK_ONLY for CONVERGED. PR remains held until 3_of_3.**
+**ACTIVE STEP: Fix-burst-5 dispatch. test-writer: bats Scenario 7 (EC-012) + Rust unit test (Inv-7 v1.5 regex-variants). Branch fix/S-15.01-F5-convergence @ 3a5eb6e. ADR-013 clock 0_of_3; need 3 NITPICK_ONLY for CONVERGED. PR remains held until 3_of_3.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 3a5eb6e — long-lived; 11 commits ahead of develop; no PR until 3_of_3
@@ -174,7 +175,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 - main @ fb3e297 (rc.11; behind develop)
 
 **Index versions:** BC-INDEX v1.34 | VP-INDEX v1.20 | STORY-INDEX v2.41 | ARCH-INDEX v1.22
-**ADR-013 clock:** **1_of_3** (FIRST advance — pass-5 NITPICK_ONLY; 2 more NITPICK_ONLY required to reach 3_of_3 = CONVERGED)
+**ADR-013 clock:** **0_of_3** (RESET — pass-6 MEDIUM; clock at start of chain; 3 NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931); finding trend 22→11→16→16→12→2→1→4
