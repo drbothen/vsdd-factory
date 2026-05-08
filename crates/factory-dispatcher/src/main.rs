@@ -414,6 +414,13 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // warn-pending-wave-gate) reach the terminal. The WASI sandbox captures
     // plugin stderr into MemoryOutputPipe; without this relay the output
     // would only appear in the internal log, invisible to the user.
+    //
+    // NOTE: stderr-relay is deliberately scoped to sync_group only.
+    // Per BC-1.14.001 v1.9 Invariant 4, async-group plugins are telemetry — their stderr is
+    // captured in InternalLog/HostContext events but is NOT relayed to the dispatcher's
+    // stderr. This is intentional: async plugins should never produce user-facing output.
+    // `partial_outcomes` (collected from async tasks via the channel) is iterated for
+    // diagnostic event emission only, not stderr propagation.
     for outcome in &summary.per_plugin_results {
         if let PluginResult::Ok { stderr, .. } = &outcome.result
             && !stderr.is_empty()
