@@ -948,6 +948,26 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = [".factory/cycles"]
 
+# ---------- validate-td031-stable-anchors (PreToolUse, Write|Edit) ----------
+# TD-031 (P1 escalated O-P16-001): enforces TD-VSDD-091 stable-anchor
+# convention for .factory/specs/**/*.md files.
+# Blocks spec body text containing `*.rs:NNN` volatile line citations.
+# Exempt zones: Amendment/Changelog sections; VP-079 Scenario 6 SITES arrays.
+# F-P16-001 / F-P16-002 / F-P17-001: recurrence-breaking mechanical enforcement.
+# NOT via legacy-bash-adapter (Decision 5 WASM-migration rule).
+
+[[hooks]]
+name = "validate-td031-stable-anchors"
+event = "PreToolUse"
+tool = "Write|Edit"
+plugin = "hook-plugins/validate-td031-stable-anchors.wasm"
+priority = 155
+timeout_ms = 5000
+on_error = "block"
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/specs"]
+
 # ---------- lint-registry-async-invariant (PostToolUse, Edit|Write) ----------
 # S-15.01 T-3i: native WASM CI lint plugin (BC-7.06.001 Invariant 5 Layer 1).
 # Enforces: schema_version=2 required + on_error=block implies async=false.
