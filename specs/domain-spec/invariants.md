@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.8"
+version: "1.9"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -136,7 +136,7 @@ Justification: DI-017 is a business invariant because the trace ID is the audit 
 
 ## Dispatcher Timing Invariants
 
-**DI-019 — ASYNC_DRAIN_WINDOW_MS = 100 (milliseconds, runtime constant)** _(v1.3 — amended 2026-05-08 per F-P3-004)_
+**DI-019 — ASYNC_DRAIN_WINDOW_MS = 100 (milliseconds, runtime constant)** _(v1.4 — amended 2026-05-08 per F-P4-004 + F-P4-005)_
 After `sync_group` plugin execution completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` milliseconds for spawned async-group tasks to emit terminal events to FileSink before forcibly terminating them and exiting. The constant bounds the dispatcher's user-facing latency tail and ensures bounded-but-reliable async telemetry emission.
 
 **Statement:** `ASYNC_DRAIN_WINDOW_MS = 100` ms. This is the canonical default value. The total dispatcher wall-clock latency upper bound is therefore: `max(sync_plugin_durations_within_slowest_tier) + ASYNC_DRAIN_WINDOW_MS + bounded_overhead`.
@@ -148,6 +148,12 @@ After `sync_group` plugin execution completes, the dispatcher waits up to `ASYNC
 **Debug-build env-var override:** In `#[cfg(debug_assertions)]` builds, the constant may be overridden via the environment variable `VSDD_ASYNC_DRAIN_WINDOW_MS`. This is used by VP-079 fixture execution to inject test-controlled drain timings (e.g., 5000 ms for slow-async scenarios). Release builds compile out the override per SEC-003 — production behavior remains the canonical 100 ms. Implementation: `crates/factory-dispatcher/src/main.rs:75-76` defines the env-var name; `:308-312` reads it under `#[cfg(debug_assertions)]`.
 
 **Malformed value handling:** When `VSDD_ASYNC_DRAIN_WINDOW_MS` is set but cannot be parsed as a valid `u64` (e.g., empty, non-numeric, overflow), the dispatcher silently falls back to the canonical `ASYNC_DRAIN_WINDOW_MS` value (100ms). No warning is emitted. This is by design: the override is a debug-build convenience for VP-079 fixture execution, not an operator-facing configuration surface; release builds compile out the override entirely. Operators who need fail-loud behavior on malformed overrides should explicitly validate the env-var before invoking the dispatcher. Implementation: `crates/factory-dispatcher/src/main.rs:308-312` uses `.parse::<u64>().ok()` → `.unwrap_or(ASYNC_DRAIN_WINDOW_MS)`.
+
+**Pathological but parse-valid values (verbatim, no clamp):** Even values that parse successfully as `u64` are passed through verbatim with NO upper or lower bound clamp. Specifically:
+- `VSDD_ASYNC_DRAIN_WINDOW_MS=0` produces a 0ms drain window — ALL async terminal events are truncated. Use `unset VSDD_ASYNC_DRAIN_WINDOW_MS` to disable the override.
+- `VSDD_ASYNC_DRAIN_WINDOW_MS=99999999999` produces a multi-day drain — debug build will hang waiting for async drain. Operators MUST validate the value before invocation.
+
+By design: the override is a debug-build convenience for VP-079 fixture execution. Operators who need defensive clamping (e.g., min=10ms, max=60000ms) should set the env-var explicitly within those bounds; the dispatcher does NOT enforce a clamp. Implementation: `crates/factory-dispatcher/src/main.rs:308-312`.
 
 **Rationale:** 100 ms is long enough for in-flight tokio tasks to complete a sub-millisecond FileSink append; short enough to be imperceptible to a human user after `sync_group` finishes. Async plugins requiring longer drain (e.g., network I/O) must be redesigned — the drain is for terminal-event flush only, not for completing arbitrary async work.
 
@@ -170,6 +176,7 @@ Justification: DI-019 is a domain invariant because the drain-window constant di
 | v1.6 | 2026-05-08 | Amended 2026-05-08 per F-P1-007 (F5 pass-1 fix-burst): wire-format exclusivity strengthened in DI-017. Added normative paragraph: `trace_id` is the exclusive wire-format field name in `events-*.jsonl`; `dispatcher_trace_id` MUST NOT appear in serialized output; host-side reserved-fields filters MUST strip both names (defense-in-depth). BC range extended to include BC-1.14.001 and BC-3.08.001 (Invariant 5). DI-017 version label bumped to v1.1. |
 | v1.7 | 2026-05-08 | F-P2-007 (F5 fix-burst-2): DI-019 §Debug-build env-var override clause added. Documents shipped feature `VSDD_ASYNC_DRAIN_WINDOW_MS` (debug-only, compiled out in release per SEC-003). Replaces the prior "deferred decision" placeholder. DI-019 version label bumped to v1.2. |
 | v1.8 | 2026-05-08 | F-P3-004 (F5 fix-burst-3): DI-019 §Debug-build env-var override clause extended with §Malformed value handling paragraph. Documents silent-fallback contract: unparseable `VSDD_ASYNC_DRAIN_WINDOW_MS` values fall back to canonical 100ms with no warning emitted. Cites `main.rs:308-312` `.parse::<u64>().ok()` → `.unwrap_or(ASYNC_DRAIN_WINDOW_MS)`. DI-019 version label bumped to v1.3. |
+| v1.9 | 2026-05-08 | F-P4-004 + F-P4-005 (F5 fix-burst-4): DI-019 §Malformed value handling extended with §Pathological but parse-valid values paragraph. Documents =0 truncation footgun (F-P4-004) and large-value hang risk (F-P4-005). Documentation-only — no behavioral clamp added. DI-019 version label bumped to v1.4. |
 
 ## Amendment 2026-05-07 (v1.4 → v1.5 — F2 pass-3 user-correction)
 
