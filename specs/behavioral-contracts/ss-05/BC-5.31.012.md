@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Step `e2e-tests` (line 151). Type: agent. Agent: e2e-tester. Depends: `[per-story-adversarial-review]`. Condition: `feature_type in ['ui', 'full-stack']`. Source 151-158.
+Step `e2e-tests` (line 151; lobster carve-out: stable anchor is step name `e2e-tests`, not line number). Type: agent. Agent: e2e-tester. Depends: `[per-story-adversarial-review]`. Condition: `feature_type in ['ui', 'full-stack']`. Source 151-158. <!-- F-P22-001: lobster-line-cite deferred per pass-21/22 carve-out; line range preserved as source evidence; lobster files have stable section structure (step `e2e-tests` is the stable anchor); migrate to step-name anchor in future sweep -->
 
 ## Preconditions
 
@@ -119,3 +119,12 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P22-001: §Description lobster line-cite annotated with carve-out deferral)
+
+**Driver:** F-P22-001 pass-22 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited lobster step by line number (`(line 151)`) and source range (`Source 151-158.`). These are lobster-file references and fall under the lobster-line-cite carve-out exception; the stable anchor is the step name `e2e-tests`, not the line number.
+
+**Change made:**
+- §Description: inline annotation added noting lobster carve-out (stable anchor = step name `e2e-tests`); HTML carve-out comment added citing F-P22-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+- Changelog entry added: F-P22-001 corpus-wide sweep, L-P19-001 + L-P20-001 applied with FULL semantic scope.

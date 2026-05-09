@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Step `create-worktree` (line 38). Type: agent. Agent: devops-engineer. Condition: `worktree.not_exists == true`. Source 38-46. Creates the per-story git worktree before any other delivery work.
+Step `create-worktree` (line 38; lobster carve-out: stable anchor is step name `create-worktree`, not line number). Type: agent. Agent: devops-engineer. Condition: `worktree.not_exists == true`. Source 38-46. Creates the per-story git worktree before any other delivery work. <!-- F-P22-001: lobster-line-cite deferred per pass-21/22 carve-out; line range preserved as source evidence; lobster files have stable section structure (step `create-worktree` is the stable anchor); migrate to step-name anchor in future sweep -->
 
 ## Preconditions
 
@@ -120,3 +120,12 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P22-001: §Description lobster line-cite annotated with carve-out deferral)
+
+**Driver:** F-P22-001 pass-22 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited lobster step by line number (`(line 38)`) and source range (`Source 38-46.`). These are lobster-file references and fall under the lobster-line-cite carve-out exception; the stable anchor is the step name `create-worktree`, not the line number.
+
+**Change made:**
+- §Description: inline annotation added noting lobster carve-out (stable anchor = step name `create-worktree`); HTML carve-out comment added citing F-P22-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+- Changelog entry added: F-P22-001 corpus-wide sweep, L-P19-001 + L-P20-001 applied with FULL semantic scope.

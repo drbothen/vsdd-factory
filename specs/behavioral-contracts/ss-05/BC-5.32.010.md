@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Step `customer-feedback-ingestion` (line 96). Type: skill. Skill: `skills/customer-feedback-ingestion/SKILL.md`. Depends: `[state-init]`. Condition: `config.products[*].user_channels is configured`. Source 96-103.
+Step `customer-feedback-ingestion` (line 96; lobster carve-out: stable anchor is step name `customer-feedback-ingestion`, not line number). Type: skill. Skill: `skills/customer-feedback-ingestion/SKILL.md`. Depends: `[state-init]`. Condition: `config.products[*].user_channels is configured`. Source 96-103. <!-- F-P22-001: lobster-line-cite deferred per pass-21/22 carve-out; line range preserved as source evidence; lobster files have stable section structure (step `customer-feedback-ingestion` is the stable anchor); migrate to step-name anchor in future sweep -->
 
 ## Preconditions
 
@@ -117,3 +117,12 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P22-001: §Description lobster line-cite annotated with carve-out deferral)
+
+**Driver:** F-P22-001 pass-22 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited lobster step by line number (`(line 96)`) and source range (`Source 96-103.`). These are lobster-file references and fall under the lobster-line-cite carve-out exception; the stable anchor is the step name `customer-feedback-ingestion`, not the line number.
+
+**Change made:**
+- §Description: inline annotation added noting lobster carve-out (stable anchor = step name `customer-feedback-ingestion`); HTML carve-out comment added citing F-P22-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+- Changelog entry added: F-P22-001 corpus-wide sweep, L-P19-001 + L-P20-001 applied with FULL semantic scope.

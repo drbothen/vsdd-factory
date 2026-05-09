@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Step `state-backup-synthesis` (line 153). Type: agent. Agent: state-manager. Depends: `[intelligence-synthesis]`. Source 153-159.
+Step `state-backup-synthesis` (line 153; lobster carve-out: stable anchor is step name `state-backup-synthesis`, not line number). Type: agent. Agent: state-manager. Depends: `[intelligence-synthesis]`. Source 153-159. <!-- F-P22-001: lobster-line-cite deferred per pass-21/22 carve-out; line range preserved as source evidence; lobster files have stable section structure (step `state-backup-synthesis` is the stable anchor); migrate to step-name anchor in future sweep -->
 
 ## Preconditions
 
@@ -116,3 +116,12 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P22-001: §Description lobster line-cite annotated with carve-out deferral)
+
+**Driver:** F-P22-001 pass-22 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited lobster step by line number (`(line 153)`) and source range (`Source 153-159.`). These are lobster-file references and fall under the lobster-line-cite carve-out exception; the stable anchor is the step name `state-backup-synthesis`, not the line number.
+
+**Change made:**
+- §Description: inline annotation added noting lobster carve-out (stable anchor = step name `state-backup-synthesis`); HTML carve-out comment added citing F-P22-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+- Changelog entry added: F-P22-001 corpus-wide sweep, L-P19-001 + L-P20-001 applied with FULL semantic scope.
