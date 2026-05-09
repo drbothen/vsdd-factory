@@ -768,7 +768,7 @@ fn test_TD031_scan_line_no_match_for_bats_range_notation_no_digit_gap() {
 
 #[test]
 fn test_is_spec_target_absolute_path_matches() {
-    assert!(is_spec_target("/Users/jmagady/Dev/vsdd-factory/.factory/specs/foo.md"));
+    assert!(is_spec_target("/abs/project/.factory/specs/foo.md"));
     assert!(is_spec_target("/home/user/project/.factory/specs/bc/BC-1.01.001.md"));
 }
 

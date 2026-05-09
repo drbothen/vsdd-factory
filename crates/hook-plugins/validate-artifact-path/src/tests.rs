@@ -1473,3 +1473,111 @@ fn test_BC_4_11_001_ec006_missing_file_path_emits_hook_warn_event() {
         events
     );
 }
+
+// -----------------------------------------------------------------------
+// F-P18-001: absolute-path propagation gap
+//
+// Claude Code's hook envelope sends absolute paths (e.g.
+// `/abs/project/.factory/specs/foo.md`) when the user's project is not the
+// cwd at tool invocation time. Both `matches_canonical` and `hook_logic` had
+// early returns guarded by `starts_with(".factory/")` which silently bypassed
+// absolute-path Edit/Write operations.
+//
+// Fix: accept both relative (`.factory/...`) and absolute (`/.../.factory/...`)
+// forms via leading-slash discipline (`contains("/.factory/")` prevents false
+// positives on `prefix.factory/...`).
+//
+// Refs: F-P18-001 [HIGH], TD-031, TD-VSDD-091, cc5a016b (sibling fix in
+// validate-stable-anchors).
+// -----------------------------------------------------------------------
+
+#[test]
+fn test_F_P18_001_matches_canonical_absolute_path_returns_match() {
+    // F-P18-001: matches_canonical must accept absolute paths that contain
+    // `/.factory/` (leading-slash discipline). A known canonical BC path given
+    // as an absolute path must return MatchResult::Block (not NoMatch).
+    let yaml = registry_yaml("block");
+    let registry = require_registry(&yaml, "F_P18_001_matches_canonical_absolute_path");
+    let abs_path = "/abs/project/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let result = matches_canonical(abs_path, &registry);
+    assert_eq!(
+        result,
+        MatchResult::Block,
+        "F-P18-001: matches_canonical must match canonical BC path given as absolute path '{}'. \
+         Got {:?} — absolute-path early-return bug is not yet fixed.",
+        abs_path,
+        result
+    );
+}
+
+#[test]
+fn test_F_P18_001_hook_logic_absolute_path_does_not_bypass() {
+    // F-P18-001: hook_logic must NOT return Continue for an absolute path that
+    // points to an unregistered .factory/ location. Before the fix, the
+    // `!file_path.starts_with(".factory/")` guard caused hook_logic to silently
+    // bypass absolute-path Edit/Write operations (returning Continue unconditionally).
+    //
+    // After the fix: absolute path under .factory/ is treated the same as relative.
+    // An unregistered absolute path MUST be blocked (not silently continued).
+    let unregistered_abs_path = "/abs/project/.factory/feature-deltas/F1-delta.md";
+    let payload = make_payload("Write", Some(unregistered_abs_path));
+    let (hook_result, _, _) = run_logic(payload, Ok(registry_yaml("block")));
+    assert!(
+        matches!(hook_result, HookResult::Block { .. }),
+        "F-P18-001: hook_logic must return HookResult::Block for unregistered absolute .factory/ \
+         path '{}'. Got {:?} — absolute-path bypass bug is not yet fixed.",
+        unregistered_abs_path,
+        hook_result
+    );
+}
+
+#[test]
+fn test_F_P18_001_relative_paths_still_work_after_fix() {
+    // Regression: existing relative-path behavior must be preserved after the fix.
+    // A registered relative path must still return MatchResult::Block, and an
+    // unregistered relative path must still return MatchResult::NoMatch (→ block).
+    let yaml = registry_yaml("block");
+    let registry = require_registry(&yaml, "F_P18_001_relative_paths_regression");
+
+    // Registered relative path → must match Block
+    let registered_rel = ".factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let result_registered = matches_canonical(registered_rel, &registry);
+    assert_eq!(
+        result_registered,
+        MatchResult::Block,
+        "Regression: registered relative path '{}' must still return MatchResult::Block after fix",
+        registered_rel
+    );
+
+    // Unregistered relative path → must return NoMatch
+    let unregistered_rel = ".factory/feature-deltas/F1-delta.md";
+    let result_unregistered = matches_canonical(unregistered_rel, &registry);
+    assert_eq!(
+        result_unregistered,
+        MatchResult::NoMatch,
+        "Regression: unregistered relative path '{}' must still return MatchResult::NoMatch after fix",
+        unregistered_rel
+    );
+}
+
+#[test]
+fn test_F_P18_001_partial_match_rejected_leading_slash_discipline() {
+    // Leading-slash discipline: `prefix.factory/specs/foo.md` must NOT match.
+    // Only paths where `.factory/` is either at position 0 (relative) or
+    // immediately preceded by `/` (absolute) are in scope.
+    // This prevents false positives from filenames like `notfactory/specs/...`.
+    let yaml = registry_yaml("block");
+    let registry = require_registry(&yaml, "F_P18_001_partial_match_rejected");
+
+    let partial_match = "prefix.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let result = matches_canonical(partial_match, &registry);
+    assert_eq!(
+        result,
+        MatchResult::NoMatch,
+        "F-P18-001 leading-slash discipline: 'prefix.factory/...' must NOT match — \
+         only paths where .factory/ starts at position 0 or is preceded by '/' are in scope. \
+         Got {:?} for path '{}'",
+        result,
+        partial_match
+    );
+}

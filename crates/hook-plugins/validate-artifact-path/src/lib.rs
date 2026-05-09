@@ -150,12 +150,23 @@ pub fn load_registry(yaml: &str) -> Result<PathRegistry, RegistryError> {
 pub fn matches_canonical(path: &str, registry: &PathRegistry) -> MatchResult {
     // Non-.factory/ paths are out of scope — return NoMatch so hook_logic
     // can do an early-exit Continue without blocking.
-    if !path.starts_with(".factory/") {
+    // Accept both relative (`.factory/...`) and absolute (`/path/to/.factory/...`) forms.
+    // Leading-slash discipline (`/.factory/`) prevents false positives on `prefix.factory/...`.
+    // F-P18-001: sibling fix propagated from validate-stable-anchors cc5a016b.
+    let normalized: &str = if path.starts_with(".factory/") {
+        // Already relative — use as-is.
+        path
+    } else if let Some(idx) = path.find("/.factory/") {
+        // Absolute path: strip the prefix up to and including the leading slash,
+        // leaving the `.factory/...` relative form for pattern matching.
+        &path[idx + 1..]
+    } else {
+        // Not a .factory/ path — out of scope.
         return MatchResult::NoMatch;
-    }
+    };
 
     for entry in &registry.artifacts {
-        if pattern_matches(path, &entry.canonical_path_pattern) {
+        if pattern_matches(normalized, &entry.canonical_path_pattern) {
             return match entry.enforcement_level.as_str() {
                 "block" => MatchResult::Block,
                 "warn" => MatchResult::Warn {
@@ -395,7 +406,12 @@ where
 
     // BC-4.11.001 PC7 / EC-004: non-.factory/ path → early-exit Continue.
     // No registry lookup performed.
-    if !file_path.starts_with(".factory/") {
+    // Accept both relative (`.factory/...`) and absolute (`/path/to/.factory/...`) forms.
+    // Leading-slash discipline (`/.factory/`) prevents false positives on `prefix.factory/...`.
+    // F-P18-001: sibling fix propagated from validate-stable-anchors cc5a016b.
+    let is_factory_path =
+        file_path.starts_with(".factory/") || file_path.contains("/.factory/");
+    if !is_factory_path {
         return HookResult::Continue;
     }
 
