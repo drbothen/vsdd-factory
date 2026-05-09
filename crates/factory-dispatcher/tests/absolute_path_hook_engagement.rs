@@ -110,16 +110,35 @@ fn pre_fix_artifact_path_wasm() -> PathBuf {
 ///
 /// Built from `8b4f697f`. Carries the leading-slash discipline fix:
 /// `starts_with(".factory/") || contains("/.factory/")`.
+///
+/// Prefers `target/wasm32-wasip1/release/*.wasm` (freshly-built by the
+/// operator during fix verification). Falls back to the committed
+/// `plugins/vsdd-factory/hook-plugins/*.wasm` after the fix lands, since
+/// the committed binary is the post-fix version once shipped. This keeps
+/// the test running in CI (which doesn't `cargo build --target wasm32-wasip1`)
+/// without losing local-fresh-build validation.
 fn post_fix_artifact_path_wasm() -> PathBuf {
-    repo_root().join("target/wasm32-wasip1/release/validate-artifact-path.wasm")
+    let fresh = repo_root().join("target/wasm32-wasip1/release/validate-artifact-path.wasm");
+    if fresh.exists() {
+        fresh
+    } else {
+        repo_root().join("plugins/vsdd-factory/hook-plugins/validate-artifact-path.wasm")
+    }
 }
 
 /// Return the path to the post-fix validate-stable-anchors WASM binary.
 ///
 /// Built from `cc5a016b`. Carries `is_spec_target` fix: accepts absolute
 /// paths via `contains("/.factory/specs/")`.
+///
+/// Same fallback semantics as `post_fix_artifact_path_wasm`.
 fn post_fix_stable_anchors_wasm() -> PathBuf {
-    repo_root().join("target/wasm32-wasip1/release/validate-stable-anchors.wasm")
+    let fresh = repo_root().join("target/wasm32-wasip1/release/validate-stable-anchors.wasm");
+    if fresh.exists() {
+        fresh
+    } else {
+        repo_root().join("plugins/vsdd-factory/hook-plugins/validate-stable-anchors.wasm")
+    }
 }
 
 /// Build a synthetic Claude Code hook envelope (PreToolUse Edit) with:
