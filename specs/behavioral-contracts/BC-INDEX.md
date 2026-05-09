@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.55"
+version: "1.56"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.56 (2026-05-09; fix-burst-40): F-P42-003 — BC-5.39.001 Stories cell add S-14.01 (bidirectional drift; S-14.01 frontmatter cites BC-5.39.001; F-P41-002 fix was E-12-scoped; missed E-14 sibling citer). No count change (total_bcs: 1947). 10th L-P28-001-family META instance (axis-checklist before-sealing protocol). Refs: F-P42-003, L-P28-001, fix-burst-40. last_amended: 2026-05-09 (F5 fix-burst-40: BC-5.39.001 Stories add S-14.01; F-P42-003 closed)."
   - date: 2026-05-09
     change: "v1.55 (2026-05-09; fix-burst-39): F-P41-002 — BC-INDEX Stories cells corpus reconciliation for E-12 resolver-platform BCs. BC-1.13.001 S-12.03,S-12.04→S-12.03,S-12.04,S-12.06,S-12.08. BC-4.12.001 S-12.04→S-12.04,S-12.06,S-12.07. BC-4.12.002 S-12.05,S-12.06→S-12.05,S-12.06,S-12.07. BC-4.12.003 S-12.04,S-12.07→S-12.04,S-12.06,S-12.07. BC-4.12.004 S-12.04→S-12.04,S-12.06,S-12.07. BC-4.12.005 S-12.03→S-12.03,S-12.06,S-12.07,S-12.08. BC-4.10.001 TBD→S-12.02,S-12.08. BC-4.10.002 TBD→S-12.02. BC-5.39.001 TBD→S-12.01. BC-5.39.002 TBD→S-12.01. No count change (total_bcs: 1947). 9th L-P28-001-family META instance (BCs cell axis). Refs: F-P41-002, L-P28-001, fix-burst-39. last_amended: 2026-05-09 (F5 fix-burst-39: BC-INDEX Stories cells corpus reconciliation; F-P41-002 closed)."
   - date: 2026-05-09
@@ -1053,7 +1055,7 @@ changelog:
 | [BC-5.38.004](ss-05/BC-5.38.004.md) | stub-architect must not use pre-implemented sibling crates as stub templates | draft | CAP-016 | S-7.03 |
 | [BC-5.38.005](ss-05/BC-5.38.005.md) | stub-architect applies self-check before committing any non-todo!() function body | draft | CAP-016 | S-7.03 |
 | [BC-5.38.006](ss-05/BC-5.38.006.md) | deliver-story SKILL.md and per-story-delivery.md Step 2 must contain anti-precedent guard text verbatim | draft | CAP-016 | S-7.03 |
-| [BC-5.39.001](ss-05/BC-5.39.001.md) | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | draft | CAP-005 | S-12.01 |
+| [BC-5.39.001](ss-05/BC-5.39.001.md) | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | draft | CAP-005 | S-12.01, S-14.01 |
 | [BC-5.39.002](ss-05/BC-5.39.002.md) | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | draft | CAP-005 | S-12.01 |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |

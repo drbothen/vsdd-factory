@@ -2,7 +2,7 @@
 document_type: lessons
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 producer: state-manager
-version: "1.3"
+version: "1.4"
 last_updated: 2026-05-09
 ---
 
@@ -644,3 +644,16 @@ Canonical verification procedure for BCs axis:
 1. For each story S: `grep '^behavioral_contracts:' .factory/stories/S-*.md` → compare to STORY-INDEX BCs cell
 2. For each BC: grep all story files for the BC ID → compare to BC-INDEX Stories cell
 3. Both directions must match; TBD entries in BC-INDEX are drift (not intentional curation) when source stories cite the BC
+
+**10th META-self-application failure (added fix-burst-40, F-P42-001/002/003 closure):** F-P42-001 found STORY-INDEX Status cells `completed` for 4 stories whose source frontmatter carries `status: merged` (S-13.01, S-12.01, S-12.02, S-12.06). F-P42-002 found S-15.01 source frontmatter `points: "XL"` while STORY-INDEX carried `13` (Fibonacci numeric convention). F-P42-003 found BC-INDEX:1056 BC-5.39.001 Stories missing S-14.01 (S-14.01 frontmatter cites BC-5.39.001; F-P41-002 fix was E-12-scoped and missed the E-14 sibling citer).
+
+**Failure mode (axis-checklist before-sealing):** fix-burst-39 codified 7 STORY-INDEX axes + 4 BC-INDEX axes as REQUIRED sweep axes (9th instance extended discipline). However, the codifying burst only swept the axes that triggered the codification (BCs/Stories cross-index), leaving the Status axis (4 rows), Points axis (1 row), and the Stories cross-index (1 missed-citer in E-14) unswept at the time of sealing. All three new findings trace to failure to run a full corpus-wide sweep across ALL enumerated axes BEFORE sealing the codification.
+
+**Axis-checklist before-sealing protocol (added fix-burst-40, F-P42-001/002/003 closure):** When codifying a new META instance with extended discipline (e.g., 9th instance enumerated REQUIRED axes), the codifying burst MUST run a full corpus-wide sweep across ALL enumerated axes BEFORE sealing the codification. Failure mode (F-P42-001/002/003): fix-burst-39 codified 7 STORY-INDEX axes + 4 BC-INDEX axes as REQUIRED but only swept the BCs/Stories axes that triggered the codification, leaving Status (4 rows) + Points (1 row) + Stories (1 row missed-citer) drift undetected.
+
+**Fix-burst-40 corpus verification (10th instance):**
+- Status axis: STORY-INDEX:500/518/519/523 `completed` → `merged` (4 rows; S-13.01/S-12.01/S-12.02/S-12.06). STORY-INDEX enumeration (line 592) lists `merged` — `completed` was non-canonical.
+- Points axis: S-15.01 source `points: "XL"` → `points: "13"` (1 row; STORY-INDEX:575 = 13; Fibonacci convention).
+- Stories axis (BC-INDEX cross-check): BC-5.39.001 Stories `S-12.01` → `S-12.01, S-14.01` (S-14.01 `behavioral_contracts: ["BC-5.39.001"]` confirmed by grep).
+
+**Extended discipline (10th instance) — axis-checklist before-sealing protocol:** Every future codifying burst that extends the L-P28-001 REQUIRED axes enumeration MUST, in the same burst before commit, run a full CORPUS-WIDE sweep across ALL axes in the updated enumeration. The sealing commit MUST NOT be created until all axes return clean. This protocol supersedes the 9th instance discipline for the sealing step only; the per-instance "sweep the new axis corpus-wide on first application" rule remains in effect for subsequent bursts that don't modify the enumeration.

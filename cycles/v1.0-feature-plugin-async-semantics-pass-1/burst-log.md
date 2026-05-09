@@ -2254,3 +2254,46 @@ Pass-41 next.
 Findings closed: F-P41-001 (LOW), F-P41-002 (LOW)
 ADR-013 clock: 0_of_3 (stays — pass-41 LOW)
 Pass-42 next.
+
+---
+
+## Burst 42 — F5 pass-42 adversary review persisted
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-42.md` | adversary | Pass-42 review: HIGH (1H+2M). F-P42-001 STORY-INDEX Status 4 rows completed→merged; F-P42-002 S-15.01 Points XL vs 13; F-P42-003 BC-5.39.001 missing S-14.01. ADR-013 RESET 0_of_3. 10th L-P28-001 META. |
+
+Verdict: HIGH
+ADR-013 clock: 0_of_3 (RESET — pass-42 HIGH)
+Fix-burst-40 dispatched.
+
+---
+
+## Burst 43 — F5 fix-burst-40: STORY-INDEX Status + S-15.01 Points + BC-INDEX Stories + L-P28-001 10th META
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL — fix-burst-40
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `.factory/stories/STORY-INDEX.md` | state-manager | F-P42-001: lines 500/518/519/523 Status completed→merged (S-13.01/S-12.01/S-12.02/S-12.06). v2.62→v2.63. |
+| `.factory/stories/S-15.01-plugin-async-semantics.md` | state-manager | F-P42-002: frontmatter points XL→13. v1.24→v1.25 + Amendment block + Changelog row. |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | state-manager | F-P42-003: BC-5.39.001 Stories add S-14.01. v1.55→v1.56 + changelog. |
+| `.factory/specs/architecture/ARCH-INDEX.md` | state-manager | L-P20-002 cite refresh v1.55→v1.56. Body total BCs cite updated. v1.35→v1.36 + changelog. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | L-P28-001 10th META + axis-checklist before-sealing protocol appended. v1.3→v1.4. |
+| `.factory/tech-debt-register.md` | state-manager | TD-031 fix-burst-40 closure note appended. |
+| `.factory/STATE.md` | state-manager | current_step → fix-burst-40 closed; pass-43 next. Current Phase Steps: pass-42 DONE + fix-burst-40 DONE + pass-43 NEXT. Index versions BC-INDEX v1.56/STORY-INDEX v2.63/ARCH-INDEX v1.36. Session checkpoint updated. Strategic Decision fix-burst-40 entry added. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Bursts 42+43 appended. |
+
+Findings closed: F-P42-001 (HIGH), F-P42-002 (MEDIUM), F-P42-003 (MEDIUM)
+ADR-013 clock: 0_of_3 (RESET — pass-42 HIGH)
+Pass-43 next.
