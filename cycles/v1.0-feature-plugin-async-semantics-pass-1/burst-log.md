@@ -1926,3 +1926,26 @@ Findings closed: F-P32-001 (MEDIUM)
 Observations addressed: O-P32-001 (STATE.md pass-30→pass-31), O-P32-002 (TD-033 disposition)
 ADR-013 clock: 0_of_3 (RESET — pass-32 MED; pass-31 was last HIGH)
 Pass-33 next.
+
+## Pass-33 Adversary Review (2026-05-09)
+
+Verdict: MED (0H + 1M + 0L). 16th consecutive non-NIT pass. Trajectory stable at 1M (pass-32: 0H+1M; pass-33: 0H+1M). ADR-013 RESETS to 0_of_3.
+
+- F-P33-001 [MEDIUM]: VP-INDEX Full Index VP-074 + VP-076 Domain Invariant cells both `—` (should be DI-002 and DI-004 respectively). Source: VP-074.md:33-34 list-form `- DI-002 (...)`; VP-076.md:32-33 list-form `- DI-004 (...)`. Fix-burst-31 codified per-row sibling-cells sub-rule but did not apply it to VP-074's DI column (3rd META recurrence of L-P28-001). VP-076 caught by corpus-wide audit mandate (L-P26-001).
+
+## Fix-burst-32 State-Manager Close (2026-05-09)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/verification-properties/VP-INDEX.md` | v1.39→v1.40 | F-P33-001: VP-074 DI cell — → DI-002; VP-076 DI cell — → DI-004. Changelog entry added. Corpus-wide 79-row per-row sibling-cell audit: 2 DI drifts fixed; 0 scope drifts. |
+| `.factory/STATE.md` | — | current_step, phase progress, concurrent cycles, index versions (VP-INDEX v1.40), session resume checkpoint updated. |
+| `.factory/tech-debt-register.md` | — | TD-031 fix-burst-32 follow-up appended: F-P33-001 closure + corpus-wide audit results + L-P28-001 META-META-META. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | v1.2→v1.3 | L-P28-001 META-META-META verification block added. 3-burst recurrence pattern documented. Corpus-wide audit results recorded. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-33 + fix-burst-32 entries (this entry). |
+
+Findings closed: F-P33-001 (MEDIUM)
+Corpus sweep: 79 VP-INDEX rows audited (2 DI drifts found+fixed; 0 scope drifts); 10 BC-INDEX sample rows (0 drifts); 11 STORY-INDEX sample rows (0 spec-layer drifts)
+ADR-013 clock: 0_of_3 (RESET — pass-33 MED)
+Pass-34 next.

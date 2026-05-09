@@ -2,7 +2,7 @@
 document_type: lessons
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 producer: state-manager
-version: "1.2"
+version: "1.3"
 last_updated: 2026-05-09
 ---
 
@@ -555,3 +555,21 @@ F-P31-001 closure. Fix-burst-30 (this burst): VP-INDEX Breakdown integration 22�
 Sweep procedure: when patching a cell at row R column C, run for each other column C' of row R: `grep '^<field-for-C\'>:' <source-artifact>` and compare against the index row's C' cell value.
 
 Verified retroactively in fix-burst-31: VP-074 Scope cell SS-04 → SS-01, SS-04 (matches source frontmatter scope: SS-01, SS-04 + body Subsystems: SS-01, SS-04). F-P32-001 closure.
+
+**META-META-META verification (added fix-burst-32, F-P33-001 closure):**
+
+This is the 3rd META-self-application failure of L-P28-001 family:
+1. fix-burst-27: codified L-P28-001 (frontmatter field-value rewrite); missed VP-074 source. Caught pass-29.
+2. fix-burst-30: codified Breakdown-table audit step (L-P28-001 Amendment); fixed Proof Method but missed Scope cell. Caught pass-32.
+3. fix-burst-31: codified per-row sibling-cells sub-rule; fixed Scope cell but missed Domain Invariant cell on the SAME row. Caught pass-33.
+
+Pattern recognition: each codifying burst applies the new rule narrowly to the trigger artifact but fails to apply it corpus-wide. L-P26-001 mandates corpus-wide application but is itself prose-only and not enforced.
+
+Fix-burst-32 verification (this closure):
+- VP-INDEX VP-074 Domain Invariant: `—` → `DI-002` (matches VP-074.md:33-34 source list-form `- DI-002 (...)`).
+- VP-INDEX VP-076 Domain Invariant: `—` → `DI-004` (matches VP-076.md:32-33 source list-form `- DI-004 (...)`).
+- Corpus-wide per-row sibling-cell audit on all 79 VP-INDEX rows: 2 DI drifts found and fixed (VP-074 + VP-076); 0 Scope drifts found; all other rows clean.
+- Sample audit on 10 BC-INDEX rows (BC-1.01.001, BC-1.02.001, BC-1.07.005, BC-1.14.001, BC-3.08.001, BC-4.12.003, BC-4.12.004, BC-7.06.001, BC-2.01.001, BC-5.39.001): 0 status-cell drifts found.
+- Sample audit on 11 STORY-INDEX rows (S-0.01, S-1.02, S-1.03, S-2.06, S-3.03, S-4.09, S-5.01, S-9.00, S-15.01, S-15.02, S-15.03): S-15.01 index status `ready` vs source `merged` noted as pre-existing non-LPP-28-001 drift (column-count variation in row format; different tracking pattern; not patched in this burst).
+
+Mechanical enforcement (S-15.03 hook scope) remains the structurally-convergent path.

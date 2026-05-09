@@ -1,14 +1,16 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.39"
+version: "1.40"
 status: draft
 producer: state-manager
-timestamp: 2026-05-09T00:00:00Z
+timestamp: 2026-05-09T18:00:00Z
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-09
+    change: "v1.40 (2026-05-09; fix-burst-32): F-P33-001 — VP-074 Full Index Domain Invariant cell — → DI-002 (matches VP-074.md:33-34 list-form source); VP-076 Full Index Domain Invariant cell — → DI-004 (matches VP-076.md:32-33 list-form source). Corpus-wide per-row sibling-cell audit on all 79 VP-INDEX rows: DI drift VP-074+VP-076 only; scope drift 0; all other rows clean. L-P28-001 META-META-META verification block added. No VP count change. VP-INDEX v1.39→v1.40. Refs: F-P33-001, L-P28-001, L-P26-001, fix-burst-32."
   - date: 2026-05-09
     change: "v1.39 (2026-05-09; fix-burst-31): F-P32-001 — VP-074 Full Index row Scope SS-04 → SS-01, SS-04 (matches source frontmatter scope: SS-01, SS-04 and body Subsystems: SS-01, SS-04). L-P28-001 sub-rule added (Full Index per-row sibling cells). No VP count change. VP-INDEX v1.38→v1.39. Refs: F-P32-001, L-P28-001 (sub-rule), fix-burst-31."
   - date: 2026-05-09
@@ -200,9 +202,9 @@ changelog:
 | [VP-071](VP-071.md) | validate-per-story-adversary-convergence Block Invariant | safety | kani-proof | SS-04 | — | draft |
 | [VP-072](VP-072.md) | artifact-path-registry.yaml Single Source of Truth — All Writers Resolve Through Registry | invariant | integration | SS-04 | — | draft |
 | [VP-073](VP-073.md) | Resolver-Load Purity — resolver WASM module loading must be pure: same registry file always produces same resolver set, no side effects | invariant | integration | SS-01, SS-04 | — | draft |
-| [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process (v1.1: fix-burst-28 F-P29-001 — frontmatter proof_method kani→kani-proof; L-P28-001 META self-application fix) | safety | kani-proof | SS-01, SS-04 | — | draft |
+| [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process (v1.1: fix-burst-28 F-P29-001 — frontmatter proof_method kani→kani-proof; L-P28-001 META self-application fix) | safety | kani-proof | SS-01, SS-04 | DI-002 | draft |
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
-| [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
+| [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | DI-004 | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.13: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep + F-P26-007 harness skeleton tuple → PluginPartition struct; v1.12: F5 fix-burst-24 — Kani harness assumptions updated to reflect merged partition.rs) | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.9: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep across active-body sites; v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
 | [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.16: F5 fix-burst-16 — SITES array refreshed to reflect live main.rs symbol positions; bats vp079-scenario6 header anchors stabilized per TD-031 (test-writer); F-P17-001 CRIT + F-P17-004 closed) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
