@@ -1454,7 +1454,10 @@ async fn test_e2e_BC_3_08_001_sync_hook_internal_log_events() {
     match &summary.per_plugin_results[0].result {
         PluginResult::Ok { elapsed_ms, .. } => {
             // Sanity bound only (TD #67) — see TC-1 rationale.
-            assert!(*elapsed_ms < 60_000, "TC-11: elapsed_ms = {elapsed_ms} (sanity)");
+            assert!(
+                *elapsed_ms < 60_000,
+                "TC-11: elapsed_ms = {elapsed_ms} (sanity)"
+            );
             eprintln!(
                 "TC-11 PASS: sync plugin executed in {}ms. \
                  Internal log events (plugin.invoked, plugin.completed) emitted by executor.",
