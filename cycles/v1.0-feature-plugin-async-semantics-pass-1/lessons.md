@@ -161,7 +161,7 @@ upgrade (cargo kani 0.67.0 → rustc 1.93.0-nightly < workspace 1.95).
 
 **Verified retroactively in fix-burst-18 + fix-burst-19:**
 - VP-070 (assumption tightened in 026272ae fix-burst-18 sub-burst 1)
-- VP-071 (`crates/hook-plugins/validate-per-story-adversary-convergence/src/lib.rs::kani_proofs` — `kani::assume(passes < 3)` matches production threshold at lib.rs::passes_clean_to_close — audited in pass-20 review, no staleness detected)
+- VP-071 (`crates/hook-plugins/validate-per-story-adversary-convergence/src/lib.rs::kani_proofs` — `kani::assume(passes < 3)` matches production threshold check at `lib.rs::hook_result_for` (line 131: `if s.passes_clean < 3 { ... CONVERGENCE_PASSES_INSUFFICIENT ... }`) — audited in pass-21 review, no staleness detected) <!-- F-P21-002: corrected fabricated symbol `passes_clean_to_close` → real production fn `hook_result_for` per POLICY 4 -->
 - VP-077 (`crates/factory-dispatcher/src/partition.rs::kani_proofs` — `kani::assume(n <= 4)` is a tractability bound, not a behavior assumption; audited in pass-20 review, no staleness detected)
 
 All three active Kani VPs audit-clean as of fix-burst-19.

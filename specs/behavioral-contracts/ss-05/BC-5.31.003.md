@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-`cleanup-worktree` (line 430) is the terminal step of `code-delivery.lobster`. Type: agent, agent: devops-engineer, depends_on: `[merge-pr, delivery-human-approval]`. Source lines 430-437.
+`cleanup-worktree` is the terminal step of `code-delivery.lobster` § terminal-step — line `430`, source range `430-437` cited as point-in-time evidence pending lobster section-stability verification. Type: agent, agent: devops-engineer, depends_on: `[merge-pr, delivery-human-approval]`. <!-- F-P21-001: lobster-line-class deferred per pass-21 retroactive sweep; line refs preserved as source evidence -->
 
 ## Preconditions
 
@@ -119,3 +119,11 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P21-001: §Description lobster line-refs annotated with carve-out deferral)
+
+**Driver:** F-P21-001 pass-21 retroactive sibling sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited `code-delivery.lobster` terminal step by line number (`line 430`, `lines 430-437`). These are lobster-file references and fall under the lobster-line-class carve-out exception pending lobster section-stability verification.
+
+**Change made:**
+- §Description: line refs preserved as point-in-time evidence; `code-delivery.lobster` file name and logical section (terminal-step) made explicit; HTML comment added citing F-P21-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.

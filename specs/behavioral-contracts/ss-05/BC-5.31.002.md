@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-The single entry-point step of `code-delivery.lobster` is `create-worktree` (line 38) with `depends_on: []`, type `agent`, agent `devops-engineer`, condition `worktree.not_exists == true`.
+The single entry-point step of `code-delivery.lobster` § entry-point is `create-worktree` — line `38` cited as point-in-time evidence pending lobster section-stability verification — with `depends_on: []`, type `agent`, agent `devops-engineer`, condition `worktree.not_exists == true`. <!-- F-P21-001: lobster-line-class deferred per pass-21 retroactive sweep; line ref preserved as source evidence -->
 
 ## Preconditions
 
@@ -120,3 +120,11 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P21-001: §Description lobster line-ref annotated with carve-out deferral)
+
+**Driver:** F-P21-001 pass-21 retroactive sibling sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited `code-delivery.lobster` entry-point step by line number (`line 38`). This is a lobster-file reference and falls under the lobster-line-class carve-out exception pending lobster section-stability verification.
+
+**Change made:**
+- §Description: line ref preserved as point-in-time evidence; `code-delivery.lobster` file name and logical section (entry-point) made explicit; HTML comment added citing F-P21-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.

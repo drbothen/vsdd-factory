@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-`multi-repo.lobster` defines 41 acyclic top-level steps on the primary track. Three additional sub-mode trees defined (feature_mode, bugfix_mode, maintenance_mode) at lines 575-731 — alternative entry trees for orchestrator dispatch when `mode=feature/bug-fix/maintenance` and `project_type=multi-repo`. Primary sequence: environment-setup → read-project-manifest → compute-repo-waves + per-repo-mode-detection → per-repo-setup → state-init → configure-workspaces → conditional per-repo-phase-0 (parallel-foreach) → project-level-synthesis → project-phase-0-gate → post-phase-0-routing → market-intelligence → market-intel-review → wave-0-spec (parallel-foreach) → wave-0-spec-approval → wave-0-impl (parallel-foreach) → wave-0-state-commit → contract-change-detection → wave-1-consumers + wave-1-sdk-gen + sdk-regeneration + sdk-validation → wave-1-state-commit → cross-repo-docker-env → 6 parallel cross-repo gates (e2e, holdout, adversary, security, a11y, pr-review) → integration-gate → integration-gate-state-commit → cross-repo-convergence → convergence-human-approval → coordinated-release → state-final → session-review → session-review-approval → process-review-decisions.
+`multi-repo.lobster` defines 41 acyclic top-level steps on the primary track. Three additional sub-mode trees defined (feature_mode, bugfix_mode, maintenance_mode) in `multi-repo.lobster` § sub-mode workflow trees — line range `575-731` cited intentionally as point-in-time evidence pending lobster section-stability verification — alternative entry trees for orchestrator dispatch when `mode=feature/bug-fix/maintenance` and `project_type=multi-repo`. <!-- F-P21-001: lobster-line-class deferred per pass-21 carve-out; sibling of BC-5.34.003 v1.2 fix; line range preserved as source evidence --> Primary sequence: environment-setup → read-project-manifest → compute-repo-waves + per-repo-mode-detection → per-repo-setup → state-init → configure-workspaces → conditional per-repo-phase-0 (parallel-foreach) → project-level-synthesis → project-phase-0-gate → post-phase-0-routing → market-intelligence → market-intel-review → wave-0-spec (parallel-foreach) → wave-0-spec-approval → wave-0-impl (parallel-foreach) → wave-0-state-commit → contract-change-detection → wave-1-consumers + wave-1-sdk-gen + sdk-regeneration + sdk-validation → wave-1-state-commit → cross-repo-docker-env → 6 parallel cross-repo gates (e2e, holdout, adversary, security, a11y, pr-review) → integration-gate → integration-gate-state-commit → cross-repo-convergence → convergence-human-approval → coordinated-release → state-final → session-review → session-review-approval → process-review-decisions.
 
 ## Preconditions
 
@@ -120,3 +120,13 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P21-001: §Description lobster line-range annotated with carve-out deferral)
+
+**Driver:** F-P21-001 pass-21 retroactive sibling sweep — §Description cited `at lines 575-731` referencing `multi-repo.lobster` sub-mode workflow trees. This is a lobster-file reference and falls under the lobster-line-class carve-out exception (separate migration class pending lobster section-stability verification). BC-5.34.003 v1.2 fixed the identical reference in its §Invariants; BC-5.34.004 is the unfixed sibling.
+
+**Change made:**
+- §Description: line range `575-731` preserved as point-in-time evidence; file name `multi-repo.lobster` and logical section description (sub-mode workflow trees: `feature_mode`, `bugfix_mode`, `maintenance_mode`) made explicit for reader navigability; HTML comment added citing F-P21-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+
+**Source-of-truth verification (POLICY 4/5):** `grep -n "feature_mode\|bugfix_mode\|maintenance_mode" plugins/vsdd-factory/workflows/multi-repo.lobster` → lines 575, 654, 696 confirmed (same as BC-5.34.003 v1.2 audit). Line range 575-731 spans all three sub-mode tree definitions.

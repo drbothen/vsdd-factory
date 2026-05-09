@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-`code-delivery.lobster` lines 28-31 declare workflow defaults: on_failure=escalate, retries=2, timeout=1h. `red-gate.fail_action: block` (line 80). Multiple bounded loops: per-story-adversarial-review (max 10, exit on CONVERGENCE_REACHED), storybook-component-tests (max 10, exit on `storybook_tests.all_pass`), pr-review-convergence (max 10, exit on `pr_reviewer.verdict == 'APPROVE'`), wait-for-ci (max 3, exit on `ci.status == 'all_passed'`).
+`code-delivery.lobster` § workflow-defaults — lines `28-31` cited as point-in-time evidence pending lobster section-stability verification — declare workflow defaults: on_failure=escalate, retries=2, timeout=1h. `red-gate.fail_action: block` (line `80`, cited as point-in-time evidence). <!-- F-P21-001: lobster-line-class deferred per pass-21 retroactive sweep; line refs preserved as source evidence --> Multiple bounded loops: per-story-adversarial-review (max 10, exit on CONVERGENCE_REACHED), storybook-component-tests (max 10, exit on `storybook_tests.all_pass`), pr-review-convergence (max 10, exit on `pr_reviewer.verdict == 'APPROVE'`), wait-for-ci (max 3, exit on `ci.status == 'all_passed'`).
 
 ## Preconditions
 
@@ -128,3 +128,11 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P21-001: §Description lobster line-refs annotated with carve-out deferral)
+
+**Driver:** F-P21-001 pass-21 retroactive sibling sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited `code-delivery.lobster` workflow-defaults and red-gate by line numbers (`lines 28-31`, `line 80`). These are lobster-file references and fall under the lobster-line-class carve-out exception pending lobster section-stability verification.
+
+**Change made:**
+- §Description: line refs preserved as point-in-time evidence; `code-delivery.lobster` file name and logical sections (workflow-defaults, red-gate) made explicit; HTML comment added citing F-P21-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.

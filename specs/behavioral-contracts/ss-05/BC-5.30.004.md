@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -31,7 +31,7 @@ removal_reason: null
 
 ## Description
 
-82 steps acyclic. Three branching tracks gate on `delta.scope`/`delta.intent`: - **Quick-dev track** (lines 237-280): all 6 steps conditioned on `delta.scope == 'trivial' and delta.intent != 'bug-fix'`. - **Bug-fix track** (lines 292-442): 11 steps conditioned on `delta.intent == 'bug-fix'`. - **Standard track** (lines 466-1402): F2→F3→F4→F5→F6→F7→release, conditioned on `delta.scope != 'trivial'
+82 steps acyclic. Three branching tracks gate on `delta.scope`/`delta.intent` in `feature.lobster` — line ranges cited as point-in-time evidence pending lobster section-stability verification: <!-- F-P21-001: lobster-line-class deferred per pass-21 retroactive sweep; line ranges preserved as source evidence --> - **Quick-dev track** (lines `237-280`): all 6 steps conditioned on `delta.scope == 'trivial' and delta.intent != 'bug-fix'`. - **Bug-fix track** (lines `292-442`): 11 steps conditioned on `delta.intent == 'bug-fix'`. - **Standard track** (lines `466-1402`): F2→F3→F4→F5→F6→F7→release, conditioned on `delta.scope != 'trivial'
 
 ## Preconditions
 
@@ -141,3 +141,11 @@ All three tracks fan into the post-pipeline session-review chain. Topological so
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P21-001: §Description lobster line-ranges annotated with carve-out deferral)
+
+**Driver:** F-P21-001 pass-21 retroactive sibling sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited `feature.lobster` branch tracks by line range (`lines 237-280`, `lines 292-442`, `lines 466-1402`). These are lobster-file references and fall under the lobster-line-class carve-out exception pending lobster section-stability verification.
+
+**Change made:**
+- §Description: line ranges preserved as point-in-time evidence; `feature.lobster` file name and logical section (branching tracks) made explicit for reader navigability; HTML comment added citing F-P21-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-`planning.lobster` lines 16-19, 53 declare workflow defaults: on_failure=escalate, retries=2, timeout=2h. `environment-gate.fail_action: block`, `routing-gate.fail_action: block`.
+`planning.lobster` § workflow-defaults — lines `16-19`, `53` cited as point-in-time evidence pending lobster section-stability verification — declare workflow defaults: on_failure=escalate, retries=2, timeout=2h. `environment-gate.fail_action: block`, `routing-gate.fail_action: block`. <!-- F-P21-001: lobster-line-class deferred per pass-21 retroactive sweep; line refs preserved as source evidence -->
 
 ## Preconditions
 
@@ -119,3 +119,11 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P21-001: §Description lobster line-refs annotated with carve-out deferral)
+
+**Driver:** F-P21-001 pass-21 retroactive sibling sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited `planning.lobster` workflow-defaults declaration by line numbers (`lines 16-19, 53`). These are lobster-file references and fall under the lobster-line-class carve-out exception pending lobster section-stability verification.
+
+**Change made:**
+- §Description: line refs preserved as point-in-time evidence; `planning.lobster` file name and logical section (workflow-defaults) made explicit; HTML comment added citing F-P21-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.

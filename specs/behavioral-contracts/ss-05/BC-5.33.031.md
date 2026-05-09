@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Step `maintenance-report` (line 285). Type: agent. Agent: orchestrator. Depends: 11 sweep outputs (lines 287-298). Source 285-303. Aggregates findings from all 11 sweeps into a single report.
+Step `maintenance-report` in `maintenance.lobster` § maintenance-report — line `285` cited as point-in-time evidence pending lobster section-stability verification. Type: agent. Agent: orchestrator. Depends: 11 sweep outputs (dependency declarations at lines `287-298` cited as point-in-time evidence). Source range 285-303. Aggregates findings from all 11 sweeps into a single report. <!-- F-P21-001: lobster-line-class deferred per pass-21 retroactive sweep; line refs preserved as source evidence -->
 
 ## Preconditions
 
@@ -117,3 +117,11 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P21-001: §Description lobster line-refs annotated with carve-out deferral)
+
+**Driver:** F-P21-001 pass-21 retroactive sibling sweep (per L-P19-001 / L-P20-001 semantic-pattern-class discipline) — §Description cited `maintenance.lobster` steps by line number (`line 285`, `lines 287-298`). These are lobster-file references and fall under the lobster-line-class carve-out exception pending lobster section-stability verification.
+
+**Change made:**
+- §Description: line refs preserved as point-in-time evidence; `maintenance.lobster` file name and logical section (maintenance-report step) made explicit for reader navigability; HTML comment added citing F-P21-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
