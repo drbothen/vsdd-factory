@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "B-3 RESOLVED — PR #109 MERGED c69b34e9 2026-05-09. split emit_dispatcher_registry_invalid into type-safe E-REG-002/E-REG-003 variants. Drift Items: B-3 closed."
+current_step: "CRITICAL FIX LANDED — PR #110 MERGED 80c282f1 2026-05-09. crashed/timed-out sync gate hooks now fail-closed (exit 2) per ADR-019 Decision 2. TC-8 + TC-12 assert correct semantics. Plugin async semantics validation COMPLETE end-to-end. Ready for rc.13 release-prep PR."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 — B-3 RESOLVED. PR #109 MERGED (squash SHA c69b34e9). split emit_dispatcher_registry_invalid into type-safe E-REG-002/E-REG-003 variants. |
-| **Current Phase** | CYCLE_CLOSED — v1.0-feature-plugin-async-semantics-pass-1 COMPLETE. B-3 deferred item closed via PR #109 c69b34e9. Next: resume engine-discipline or E-10 per user directive. |
+| **Last Updated** | 2026-05-09 — CRITICAL FIX LANDED. PR #110 MERGED (squash SHA 80c282f1). crashed/timed-out sync gate hooks fail-closed (exit 2). TC-8 + TC-12 integration tests assert correct semantics. Plugin async semantics validation COMPLETE. |
+| **Current Phase** | CYCLE_CLOSED — v1.0-feature-plugin-async-semantics-pass-1 COMPLETE. Critical fix (PR #110) closes silent fail-open security gap. Next: rc.13 release-prep PR. |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -141,7 +141,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
-| develop | c69b34e9 | PR #109 B-3 fix squash-merge 2026-05-09 (split emit_dispatcher_registry_invalid) |
+| develop | 80c282f1 | PR #110 critical fix squash-merge 2026-05-09 (crashed/timed-out sync gate hooks fail-closed) |
 | factory-artifacts | (see git log) | fix-burst-27 sub-burst 2 state-manager close — this commit |
 | v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
@@ -212,12 +212,12 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — B-3 RESOLVED. PR #109 MERGED (squash SHA c69b34e9). split emit_dispatcher_registry_invalid into type-safe E-REG-002/E-REG-003 variants (B-3 deferred from PR #108 code review).
+**Last update:** 2026-05-09 — CRITICAL FIX LANDED. PR #110 MERGED (squash SHA 80c282f1). Crashed AND Timeout sync gate hooks with on_error=Block now correctly fail-closed (exit 2) per ADR-019 Decision 2. TC-8 (Crashed+Block) + TC-12 (Timeout+Block) integration tests assert correct semantics. Plugin async semantics validation COMPLETE end-to-end.
 
-**ACTIVE STEP: Drift Items cleared. Next action per user directive — resume engine-discipline (v1.0-feature-engine-discipline-pass-1 F3-amendment: S-12.03..S-12.08) or E-10 brownfield pass-9.**
+**ACTIVE STEP: Plugin async semantics validation COMPLETE. Next: rc.13 release-prep PR.**
 
 **Branches:**
-- develop @ c69b34e9 (PR #109 squash-merge 2026-05-09 — B-3 resolved)
+- develop @ 80c282f1 (PR #110 squash-merge 2026-05-09 — critical fail-closed fix)
 - factory-artifacts @ (see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
