@@ -30,8 +30,8 @@
 //!
 //! # BC traces
 //!
-//! - BC-7.06.001 v1.3 Invariant 6: nine telemetry-only plugins must be async=true
-//! - BC-7.06.001 v1.3 Invariant 7: (name, event) tuple is unique per registry
+//! - BC-7.06.001 v1.7 Invariant 6: nine telemetry-only plugins must be async=true
+//! - BC-7.06.001 v1.7 Invariant 7: (name, event, tool) tuple is unique per registry
 //! - VP-078 v1.8 Harness 3: positive-classification integration test
 //! - AC-009 (S-15.01 v1.6)
 
@@ -55,7 +55,7 @@ fn registry_path() -> PathBuf {
 }
 
 /// The 9 telemetry-only plugins that MUST be classified `async = true`, expressed
-/// as (name, event) tuples per BC-7.06.001 v1.3 Invariant 7.
+/// as (name, event, tool) tuples per BC-7.06.001 v1.7 Invariant 7.
 ///
 /// Using (name, event) tuples — not name alone — ensures that ALL entries for a
 /// given name are individually verified.  `worktree-hooks` appears twice in the
@@ -63,7 +63,7 @@ fn registry_path() -> PathBuf {
 /// returned only the first match, masking misclassification of the second entry
 /// (F-P1-008 fix).
 ///
-/// Canonical list: BC-7.06.001 v1.3 Invariant 6 / VP-078 v1.8 Harness 3.
+/// Canonical list: BC-7.06.001 v1.7 Invariant 6 / VP-078 v1.8 Harness 3.
 /// Do NOT modify this list without a BC amendment.
 ///
 /// Verified against `plugins/vsdd-factory/hooks-registry.toml` as of S-15.01 v1.7.

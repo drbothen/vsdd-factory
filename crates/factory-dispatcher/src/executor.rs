@@ -233,7 +233,7 @@ async fn execute_tier<'a>(
 /// Returns a `JoinHandle<PluginOutcome>` so the caller can collect results
 /// via a channel and `tokio::select!` drain timer (BC-1.14.001 PC4 + EC-012).
 ///
-/// # Async-group spawn pattern (BC-1.14.001 v1.7 PC4 + Invariant 3)
+/// # Async-group spawn pattern (BC-1.14.001 v1.9 PC4 + Invariant 3)
 ///
 /// - Each async-group plugin MUST be spawned via `tokio::spawn` (independent task).
 /// - Results MUST be collected via a channel (not all-or-nothing `execute_tiers`).

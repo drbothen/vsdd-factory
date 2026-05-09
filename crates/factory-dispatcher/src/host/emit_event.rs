@@ -8,7 +8,7 @@
 //! consumer.
 //!
 //! Note: the wire-format name for the trace correlation field is `trace_id`
-//! (BC-3.08.001 v1.5 Invariant 5). The internal Rust field in `InternalEvent`
+//! (BC-3.08.001 v1.7 Invariant 5). The internal Rust field in `InternalEvent`
 //! is named `dispatcher_trace_id` but serializes as `"trace_id"` via serde rename.
 
 use serde_json::Value;
@@ -60,10 +60,10 @@ pub fn register(linker: &mut Linker<HostContext>) -> Result<(), HostCallError> {
 }
 
 const RESERVED_FIELDS: &[&str] = &[
-    // Canonical wire-format name per BC-3.08.001 v1.5 Invariant 5 + DI-017.
+    // Canonical wire-format name per BC-3.08.001 v1.7 Invariant 5 + DI-017.
     // Plugins must not spoof the dispatcher's trace correlation value.
     "trace_id",
-    // Legacy field name — retained for defense-in-depth per BC-3.08.001 v1.5
+    // Legacy field name — retained for defense-in-depth per BC-3.08.001 v1.7
     // Implementation Notes. The dispatcher no longer emits this on the wire
     // (InternalEvent serializes as "trace_id" via serde rename), but plugins
     // must still be prevented from injecting it.
@@ -122,7 +122,7 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 }
 
 // ---------------------------------------------------------------------------
-// S-15.01 T-3e — 4 new event type emission stubs (BC-3.08.001 v1.4)
+// S-15.01 T-3e — 4 new event type emission stubs (BC-3.08.001 v1.7)
 //
 // These functions emit the four new event types introduced by ADR-019.
 // All bodies are `todo!()` per BC-5.38.001 Red Gate; the implementer
@@ -132,10 +132,10 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 // do NOT hardcode the value (Decision 4).
 //
 // Event catalog authority: BC-3.08.001 (SS-03). Emission sites: SS-01
-// (engine.rs, registry.rs). Wire format defined here per BC-3.08.001 v1.4.
+// (engine.rs, registry.rs). Wire format defined here per BC-3.08.001 v1.7.
 // ---------------------------------------------------------------------------
 
-/// Emit `plugin.async_block_discarded` event (BC-3.08.001 v1.4).
+/// Emit `plugin.async_block_discarded` event (BC-3.08.001 v1.7).
 ///
 /// Fired when an async-group plugin returns exit code 2 (block verdict).
 /// The block is discarded because async-group verdicts never reach Claude Code
@@ -148,13 +148,13 @@ pub fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, &'static str
 /// - `exit_code`: the exit code returned by the plugin (expected: "2")
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-3.08.001 v1.7 — event catalog
 /// - BC-1.14.001 EC-005 — async plugin exit code 2 behavior
 /// - BC-1.14.001 Error Paths — async plugin returns exit code 2
 pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, exit_code: i32) {
     let ev = InternalEvent::now("plugin.async_block_discarded");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     // `with_field("timestamp", ...)` adds the BC-required `timestamp` alias for `ts`.
     let ts = ev.ts.clone();
     let ev = ev
@@ -167,7 +167,7 @@ pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, e
     ctx.emit_internal(ev);
 }
 
-/// Emit `dispatcher.schema_mismatch` event (BC-3.08.001 v1.4).
+/// Emit `dispatcher.schema_mismatch` event (BC-3.08.001 v1.7).
 ///
 /// Fired when the registry `schema_version` does not match
 /// `REGISTRY_SCHEMA_VERSION` (currently 2). This is E-REG-001.
@@ -180,13 +180,13 @@ pub fn emit_plugin_async_block_discarded(ctx: &HostContext, plugin_name: &str, e
 /// - `error_code`: `"E-REG-001"` (literal)
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-3.08.001 v1.7 — event catalog
 /// - BC-1.14.001 Error Paths — schema_version mismatch
 /// - BC-1.08.001 amendment — schema-mismatch is the explicit fail-closed exception
 pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u32) {
     let ev = InternalEvent::now("dispatcher.schema_mismatch");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
@@ -198,37 +198,78 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
     ctx.emit_internal(ev);
 }
 
-/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.4).
+/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.7 / v1.8).
 ///
-/// Fired when a registry entry violates the `on_error=block` + `async=true`
-/// coexistence invariant (E-REG-002, BC-7.06.001 Invariant 1).
-/// The dispatcher exits 2 (fail-closed) after emitting this event.
+/// Fired when a registry entry violates a load-time invariant.  The caller
+/// supplies the error code and violation string so this function can serve
+/// multiple invariant violations:
 ///
-/// Required fields (BC-3.08.001):
-/// - `plugin_name`: name of the offending registry entry
-/// - `error_code`: `"E-REG-002"` (literal)
-/// - `violation`: `"on_error_block_with_async_true"` (literal per BC-3.08.001 PC3)
+/// - E-REG-002 / `"async_block_conflict"`: `on_error=block` + `async=true`
+///   coexistence invariant (BC-7.06.001 Invariant 1). Pass `event=None, tool=None`
+///   because the violation is intra-entry (no offending (event, tool) tuple).
+/// - E-REG-003 / `"duplicate_hook_registration"`: duplicate (name, event, tool)
+///   tuple (BC-7.06.001 Invariant 7, F-P8-001). Pass `event=Some(event_str)` and
+///   `tool=Some(tool_str)` (or `tool=None` for wildcard/"all tools" entries).
+///
+/// Required fields (BC-3.08.001 v1.8, BC-7.06.001 v1.8):
+/// - `offending_plugin`: name of the offending registry entry
+/// - `error_code`: caller-supplied error code string (e.g. `"E-REG-002"`)
+/// - `violation`: caller-supplied violation identifier string
+///
+/// Conditional fields for E-REG-003 path (both always emitted when error_code == "E-REG-003"):
+/// - `offending_event`: the hook event that caused the duplicate
+/// - `offending_tool`: the tool filter that caused the duplicate; emitted as JSON `null` when
+///   `tool=None` (wildcard/"all tools" binding) per BC-3.08.001 v1.8 mandatory field semantics
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.4 — event catalog
-/// - BC-1.14.001 Error Paths — on_error=block AND async=true
-/// - BC-7.06.001 Invariant 1 — load-time invariant enforcement
-pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
+/// - BC-3.08.001 v1.7 / v1.8 — event catalog
+/// - BC-1.14.001 Error Paths — registry invariant violations
+/// - BC-7.06.001 v1.8 Invariants 1 + 7 — load-time invariant enforcement
+/// - F-P14-001 Path B — extend wire payload for E-REG-003
+pub fn emit_dispatcher_registry_invalid(
+    ctx: &HostContext,
+    plugin_name: &str,
+    error_code: &str,
+    violation: &str,
+    event: Option<&str>,
+    tool: Option<&str>,
+) {
     let ev = InternalEvent::now("dispatcher.registry_invalid");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
-    let ev = ev
+    let mut ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
         .with_session_id(&ctx.session_id)
         .with_field("timestamp", ts.as_str())
         .with_field("offending_plugin", plugin_name)
-        .with_field("violation", "on_error_block_with_async_true")
-        .with_field("error_code", "E-REG-002");
+        .with_field("violation", violation)
+        .with_field("error_code", error_code);
+    // For E-REG-003 (DuplicateEntry), offending_event and offending_tool are MANDATORY per
+    // BC-3.08.001 v1.8 line 123. offending_tool is JSON null when the duplicating entry has
+    // no tool filter (wildcard "all tools"). For E-REG-002 (AsyncBlockConflict), event and
+    // tool are not applicable (intra-entry); fields are omitted.
+    if error_code == "E-REG-003" {
+        // event MUST be Some for E-REG-003; fall back to empty string only as defense-in-depth.
+        ev = ev.with_field("offending_event", event.unwrap_or(""));
+        // tool MAY be None (wildcard); emit as JSON null per BC-3.08.001 v1.8 mandatory field.
+        ev = match tool {
+            Some(t) => ev.with_field("offending_tool", t),
+            None => ev.with_field("offending_tool", Value::Null),
+        };
+    } else {
+        // E-REG-002 path or other: keep optional emission semantics (fields absent).
+        if let Some(ev_name) = event {
+            ev = ev.with_field("offending_event", ev_name);
+        }
+        if let Some(tool_name) = tool {
+            ev = ev.with_field("offending_tool", tool_name);
+        }
+    }
     ctx.emit_internal(ev);
 }
 
-/// Emit `plugin.timeout` event for async-path timeouts (BC-3.08.001 v1.4).
+/// Emit `plugin.timeout` event for async-path timeouts (BC-3.08.001 v1.7).
 ///
 /// NOTE: A `plugin.timeout` event is also emitted for sync-path timeouts
 /// (BC-1.14.001 Error Paths). This stub specifically covers the async-path
@@ -245,14 +286,14 @@ pub fn emit_dispatcher_registry_invalid(ctx: &HostContext, plugin_name: &str) {
 /// independent values; do NOT conflate them.
 ///
 /// # BC traces
-/// - BC-3.08.001 v1.4 — event catalog
+/// - BC-3.08.001 v1.7 — event catalog
 /// - BC-1.14.001 Error Paths — async plugin times out
 /// - BC-1.14.001 postcondition 4 — async group best-effort lifetime
 /// - DI-019 — ASYNC_DRAIN_WINDOW_MS (drain window, not per-plugin timeout)
 pub fn emit_plugin_timeout_async(ctx: &HostContext, plugin_name: &str, timeout_ms: u32) {
     let ev = InternalEvent::now("plugin.timeout");
     // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.5 Invariant 5).
+    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
     let ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
@@ -327,21 +368,21 @@ mod tests {
         assert!(!is_reserved_field("file_path"));
     }
 
-    /// BC-3.08.001 v1.5 Invariant 5: `trace_id` is the exclusive wire-format name.
+    /// BC-3.08.001 v1.7 Invariant 5: `trace_id` is the exclusive wire-format name.
     /// Both `trace_id` and `dispatcher_trace_id` must be in RESERVED_FIELDS.
     #[test]
     fn bc3_08_001_invariant5_trace_id_reserved_and_dispatcher_trace_id_reserved() {
         assert!(
             is_reserved_field("trace_id"),
-            "trace_id must be in RESERVED_FIELDS (canonical wire field name per BC-3.08.001 v1.5 Invariant 5)"
+            "trace_id must be in RESERVED_FIELDS (canonical wire field name per BC-3.08.001 v1.7 Invariant 5)"
         );
         assert!(
             is_reserved_field("dispatcher_trace_id"),
-            "dispatcher_trace_id must remain in RESERVED_FIELDS for defense-in-depth per BC-3.08.001 v1.5"
+            "dispatcher_trace_id must remain in RESERVED_FIELDS for defense-in-depth per BC-3.08.001 v1.7"
         );
     }
 
-    /// BC-3.08.001 v1.5 Invariant 5: InternalEvent must serialize as "trace_id" on wire,
+    /// BC-3.08.001 v1.7 Invariant 5: InternalEvent must serialize as "trace_id" on wire,
     /// never as "dispatcher_trace_id". Verifies zero occurrences of the legacy field name.
     #[test]
     fn bc3_08_001_invariant5_wire_output_uses_trace_id_not_dispatcher_trace_id() {
@@ -357,7 +398,7 @@ mod tests {
         assert!(
             !json.contains("\"dispatcher_trace_id\""),
             "serialized event must NOT contain \"dispatcher_trace_id\" in wire output; \
-             BC-3.08.001 v1.5 Invariant 5 violation; got: {json}"
+             BC-3.08.001 v1.7 Invariant 5 violation; got: {json}"
         );
         // Verify exactly one occurrence of trace_id
         let occurrences = json.matches("\"trace_id\"").count();

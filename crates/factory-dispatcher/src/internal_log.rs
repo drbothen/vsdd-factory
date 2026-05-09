@@ -110,7 +110,7 @@ pub struct InternalEvent {
     /// Event-schema version; bump when the shape changes.
     pub schema_version: u32,
     /// Dispatcher's per-invocation trace id (v4 UUID), when known.
-    /// Wire format uses `trace_id` per BC-3.08.001 v1.5 Invariant 5 + DI-017.
+    /// Wire format uses `trace_id` per BC-3.08.001 v1.7 Invariant 5 + DI-017.
     /// The Rust field is kept as `dispatcher_trace_id` to minimise call-site churn;
     /// only the JSON key name changes.
     #[serde(rename = "trace_id", skip_serializing_if = "Option::is_none")]
@@ -395,7 +395,7 @@ mod tests {
             let parsed: Value = serde_json::from_str(line).unwrap();
             assert_eq!(parsed["type"], DISPATCHER_STARTED);
             assert_eq!(parsed["schema_version"], INTERNAL_EVENT_SCHEMA_VERSION);
-            // BC-3.08.001 v1.5 Invariant 5: wire format uses "trace_id", not "dispatcher_trace_id".
+            // BC-3.08.001 v1.7 Invariant 5: wire format uses "trace_id", not "dispatcher_trace_id".
             assert_eq!(parsed["trace_id"], format!("trace-{i}"));
             assert!(
                 parsed["dispatcher_trace_id"].is_null(),

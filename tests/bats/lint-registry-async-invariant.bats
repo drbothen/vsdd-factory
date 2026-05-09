@@ -14,9 +14,9 @@
 #         via the dispatcher by simulating a PostToolUse event.
 #
 # BC traces:
-#   BC-7.06.001 v1.3 — per-plugin async field + CI lint invariant
+#   BC-7.06.001 v1.9 — per-plugin async field + CI lint invariant
 #   VP-078 v1.8 Harness 2 — bats integration
-#   AC-007, AC-008 (S-15.01 v1.6)
+#   AC-007, AC-008 (S-15.01 v1.14)
 #   DI-019 — ASYNC_DRAIN_WINDOW_MS (do NOT hardcode)
 
 PLUGIN_ROOT="plugins/vsdd-factory"

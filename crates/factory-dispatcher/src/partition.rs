@@ -146,8 +146,8 @@ mod kani_proofs {
     /// separately in H2 so that a buggy partition that duplicates entries into both
     /// groups cannot satisfy H1 by accident.
     ///
-    /// Precondition: (name, event) tuple uniqueness is enforced at registry-load
-    /// time by BC-7.06.001 Invariant 7 via registry.rs::validate(). Bounded to
+    /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
+    /// time by BC-7.06.001 v1.7 Invariant 7 via registry.rs::validate(). Bounded to
     /// n<=4 for Kani tractability.
     #[kani::proof]
     #[kani::unwind(8)]
@@ -176,6 +176,12 @@ mod kani_proofs {
     /// Uses name-based contains() check to verify mutual exclusion, not just
     /// cardinality. Separated from H1 so disjointness cannot be vacuously
     /// satisfied by a partition that duplicates every plugin into both groups.
+    ///
+    /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
+    /// time by BC-7.06.001 v1.7 Invariant 7 via registry.rs::validate(). Bounded to
+    /// n<=4 for Kani tractability; uniqueness ensured by-construction via
+    /// format!("plugin-{}", i) rather than explicit kani::assume guards
+    /// (equivalent semantics).
     ///
     /// Bounded to n<=4 for tractability; add #[kani::unwind(10)] if needed.
     #[kani::proof]
@@ -248,6 +254,12 @@ mod kani_proofs {
     /// one group. Distinct from H1 (cardinality) and H2 (mutual exclusion): H4
     /// asserts positive coverage — no plugin is silently dropped.
     ///
+    /// Precondition: (name, event, tool) tuple uniqueness is enforced at registry-load
+    /// time by BC-7.06.001 v1.7 Invariant 7 via registry.rs::validate(). Bounded to
+    /// n<=4 for Kani tractability; uniqueness ensured by-construction via
+    /// format!("plugin-{}", i) rather than explicit kani::assume guards
+    /// (equivalent semantics).
+    ///
     /// With H1 (totality by cardinality) + H2 (disjointness), union completeness
     /// is logically implied; this harness provides an explicit positive witness.
     #[kani::proof]
@@ -279,7 +291,7 @@ mod kani_proofs {
     /// VP-077 legacy: determinism proof (kept from original harness set).
     ///
     /// Two calls with identical input always produce identical partition sizes.
-    /// This is an additional property not numbered in VP-077 v1.7 H1-H4 but
+    /// This is an additional property not numbered in VP-077 v1.10 H1-H6 but
     /// retained to prevent regression of the original determinism check.
     #[kani::proof]
     #[kani::unwind(8)]

@@ -17,9 +17,9 @@
 # DI-019: ASYNC_DRAIN_WINDOW_MS — referenced by name; do NOT hardcode 100.
 #
 # BC traces:
-#   BC-7.06.001 v1.3 — schema_version 2 + on_error=block implies async=false
+#   BC-7.06.001 v1.9 — schema_version 2 + on_error=block implies async=false
 #   VP-078 v1.8 Harnesses 1+2
-#   AC-006, AC-008 (S-15.01 v1.6)
+#   AC-006, AC-008 (S-15.01 v1.14)
 
 REGISTRY="plugins/vsdd-factory/hooks-registry.toml"
 
@@ -302,11 +302,11 @@ TOML
         rm -rf "$plugin_root"
         return 1
     }
+    # Removed `not yet implemented` panic-fallback disjunct (was Red-Gate; production code is now fully implemented; F-P2-005).
+    # F-P3-005: Tightened from 4 disjuncts to 2 — only canonical signals (E-REG-002 error code OR registry_invalid event name).
+    # Broad matchers (`async`, `on_error`) removed to prevent false-PASS on unrelated panics.
     [[ "$output" == *"registry_invalid"* ]] || \
-        [[ "$output" == *"on_error"* ]] || \
-        [[ "$output" == *"async"* ]] || \
-        [[ "$output" == *"E-REG-002"* ]] || \
-        [[ "$output" == *"not yet implemented"* ]] || {
+        [[ "$output" == *"E-REG-002"* ]] || {
         echo "FAIL: output must name the violation or error code. Got: $output"
         rm -rf "$plugin_root"
         return 1

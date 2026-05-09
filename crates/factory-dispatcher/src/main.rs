@@ -139,9 +139,38 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                 RegistryError::AsyncBlockConflict { name } => {
                     // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
                     // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
-                    emit_dispatcher_registry_invalid(&err_ctx, name);
+                    // E-REG-002 is intra-entry (no offending event/tool tuple); pass None, None.
+                    emit_dispatcher_registry_invalid(
+                        &err_ctx,
+                        name,
+                        "E-REG-002",
+                        "async_block_conflict",
+                        None, // E-REG-002 is intra-entry; no offending_event
+                        None, // E-REG-002 is intra-entry; no offending_tool
+                    );
                     eprintln!(
                         "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
+                    );
+                    2
+                }
+                RegistryError::DuplicateEntry { name, event, tool } => {
+                    // BC-7.06.001 Invariant 7 + BC-3.08.001 Event 3 (E-REG-003).
+                    // Emit dispatcher.registry_invalid with full wire payload per BC-7.06.001 v1.8:
+                    // offending_plugin, violation, error_code, offending_event, offending_tool.
+                    // F-P8-001 / F-P14-001 Path B: fail-closed; dispatcher refuses to start on
+                    // duplicate (name, event, tool) tuple.
+                    eprintln!(
+                        "[E-REG-003] Duplicate hook registration: name={name}, event={event}, tool={tool:?} \
+                         (BC-7.06.001 v1.8 Invariant 7). Each (name, event, tool) tuple must be unique \
+                         across all [[hooks]] entries; dispatcher refuses to start."
+                    );
+                    emit_dispatcher_registry_invalid(
+                        &err_ctx,
+                        name.as_str(),
+                        "E-REG-003",
+                        "duplicate_hook_registration",
+                        Some(event.as_str()), // offending_event — inter-entry violation (F-P14-001 Path B)
+                        tool.as_deref(),      // offending_tool — None means wildcard/"all tools"
                     );
                     2
                 }
@@ -293,7 +322,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
 
     // S-15.01 F5-T-A: async_group dispatch via tokio::spawn per-plugin + tokio::select! drain.
     //
-    // BC-1.14.001 v1.7 PC4 + Invariant 3 (F-P1-006 + F-P1-010):
+    // BC-1.14.001 v1.9 PC4 + Invariant 3 (F-P1-006 + F-P1-010):
     //   - Each async plugin is spawned as an INDEPENDENT tokio task (NOT via execute_tiers).
     //   - group_by_priority MUST NOT be called on async-group plugins (Invariant 3).
     //   - Results are collected via an unbounded channel + tokio::select! drain timer.
@@ -314,7 +343,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         let effective_drain_window = ASYNC_DRAIN_WINDOW_MS;
 
         // Spawn each async plugin as an independent task with a results channel.
-        // BC-1.14.001 v1.7 PC4: tokio::spawn per-plugin, NOT execute_tiers.
+        // BC-1.14.001 v1.9 PC4: tokio::spawn per-plugin, NOT execute_tiers.
         // Invariant 3: MUST NOT call group_by_priority on async-group plugins.
         let (tx, mut rx) = mpsc::unbounded_channel::<PluginOutcome>();
         // For each async plugin: spawn an independent task and wire its result to the channel.
@@ -414,6 +443,13 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // warn-pending-wave-gate) reach the terminal. The WASI sandbox captures
     // plugin stderr into MemoryOutputPipe; without this relay the output
     // would only appear in the internal log, invisible to the user.
+    //
+    // NOTE: stderr-relay is deliberately scoped to sync_group only.
+    // Per BC-1.14.001 v1.9 Invariant 4, async-group plugins are telemetry — their stderr is
+    // captured in InternalLog/HostContext events but is NOT relayed to the dispatcher's
+    // stderr. This is intentional: async plugins should never produce user-facing output.
+    // `partial_outcomes` (collected from async tasks via the channel) is iterated for
+    // diagnostic event emission only, not stderr propagation.
     for outcome in &summary.per_plugin_results {
         if let PluginResult::Ok { stderr, .. } = &outcome.result
             && !stderr.is_empty()
