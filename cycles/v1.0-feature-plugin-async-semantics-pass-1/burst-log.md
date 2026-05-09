@@ -2791,3 +2791,18 @@ F-P54-001 closed. Full corpus sweep of all 1944 BC-INDEX Title cells against sou
 **Index versions after burst-49:**
 BC-INDEX v1.63 | ARCH-INDEX v1.44
 Pass-55 next. ADR-013 0_of_3 (RESET — pass-54 MED resets).
+
+---
+
+## Burst 63 — F5 pass-55: NITPICK_ONLY; ADR-013 0→1_of_3
+
+**Date:** 2026-05-09
+**Agent:** adversary
+**Pass:** 55
+
+**Summary:**
+NITPICK_ONLY (0H/0M/0L). Fix-burst-49 closure verified for all 6 Title-cell fixes (BC-1.05.010, BC-2.02.011, BC-2.02.012, BC-4.05.002, BC-4.05.003, BC-5.30.001 — all H1↔INDEX byte-match). 5 fresh BCs sampled (BC-1.01.002, BC-5.09.014, BC-5.30.046, BC-6.07.050, BC-7.03.012): all axes clean. 7 additional ad-hoc Title-axis spot-checks across ss-01/ss-04/ss-06/ss-08: all match. Title-cell corpus drift = 0 outside the 6 patched in fix-burst-49. Pre-existing observations noted (E-1/E-2 legacy boundary, CAP-080 brownfield drift, 1949 vs 1947 row count) — all out-of-scope or long-documented.
+
+**ADR-013:** 0_of_3 → **1_of_3**. Pass-55 NITPICK_ONLY advances clock.
+
+**Files touched:** F5-adversary-pass-55.md (created), STATE.md (current_step, Last Updated, Current Phase, Phase Progress, Current Phase Steps pass-55 DONE + pass-56 NEXT, Session Resume Checkpoint, ADR-013 clock), burst-log.md (this entry).
