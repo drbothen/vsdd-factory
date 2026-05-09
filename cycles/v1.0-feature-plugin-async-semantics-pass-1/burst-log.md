@@ -2127,3 +2127,66 @@ Fix-burst-37 next.
 Findings closed: F-P39-001 (LOW)
 ADR-013 clock: 0_of_3 (RESET — pass-39 LOW)
 Pass-40 next.
+
+---
+
+## Burst: pass-40 persist (F5 adversary pass-40) — 2026-05-09
+
+**Date:** 2026-05-09
+**Agent:** adversary
+
+**Verdict:** LOW (0H, 0M, 1L pending intent)
+
+F-P40-001 [LOW pending intent]: STORY-INDEX:522 S-12.06 Points `105` (PR# fat-finger; source points: TBD) + Priority `P1` (source priority: "P0"); STORY-INDEX:499 S-13.01 Priority `P1` (source priority: "P0"). 8th META-self-application failure of L-P28-001 family. Fix-burst-37 corpus Points sweep was source→index only, excluded TBD-source stories; Priority axis not previously in sweep scope.
+
+ADR-013 stays at 0_of_3.
+
+### Files touched
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-40.md` | new | Pass-40 adversary review persisted. |
+
+---
+
+## Burst: fix-burst-38 (F5 F-P40-001 closure) — 2026-05-09
+
+**Date:** 2026-05-09
+**Agent:** state-manager
+
+**Findings closed:** F-P40-001 (LOW)
+
+### Files touched
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/stories/STORY-INDEX.md` | v2.60→v2.61 | F-P40-001: S-12.06 Points 105→TBD + Priority P1→P0; S-13.01 Priority P1→P0. Corpus-wide bidirectional Priority sweep: S-12.03/04/05/06/07/08 + S-13.01 all P1→P0 (7 drifts). TBD-source Points spot-check: only S-12.06 numeric (fixed). last_amended updated. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | — | L-P28-001 8th META-self-application failure recorded (Priority axis + TBD-source Points direction; extended discipline appended). |
+| `.factory/STATE.md` | — | current_step, Last Updated, Current Phase, Phase Progress row, Current Phase Steps (pass-40 + fix-burst-38 rows added), Concurrent Cycles row, Strategic Decision section, Session Resume Checkpoint, Index versions (STORY-INDEX v2.61), ADR-013 0_of_3 (stays). |
+| `.factory/tech-debt-register.md` | — | TD-031 fix-burst-37 + fix-burst-38 follow-up appended. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-40 + fix-burst-38 entries (this entry). |
+
+### Corpus-wide bidirectional Priority sweep result
+
+88 file-resident stories compared (source `priority:` frontmatter vs STORY-INDEX Priority column).
+
+7 drifts found (all source P0, index P1):
+- S-12.03: P1→P0
+- S-12.04: P1→P0
+- S-12.05: P1→P0
+- S-12.06: P1→P0 (+ Points 105→TBD)
+- S-12.07: P1→P0
+- S-12.08: P1→P0
+- S-13.01: P1→P0
+
+All other stories: clean (Priority column matches source).
+
+### TBD-source Points spot-check result
+
+17 stories with source `points: TBD` checked against STORY-INDEX Points column.
+Only S-12.06 carried a numeric value (105) in the index — fixed to TBD.
+All other TBD-source stories show TBD or `—` in index: clean.
+
+Findings closed: F-P40-001 (LOW)
+ADR-013 clock: 0_of_3 (stays — pass-40 LOW)
+Pass-41 next.

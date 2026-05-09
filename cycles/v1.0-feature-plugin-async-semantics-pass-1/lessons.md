@@ -591,3 +591,17 @@ This is the 5th META-self-application failure of the L-P28-001 family. Mechanica
 **Fix-burst-37 corpus-wide Points sweep:** 68 stories with numeric points checked (all stories with non-TBD, non-XL points). Only S-4.05 + S-4.06 drifted. No additional Points cell drift found.
 
 **Extended discipline:** The bidirectional L-P28-001 sweep of STORY-INDEX MUST explicitly include the Points column as a swept cell — not just Status, Epic, and Depends-On. Canonical source: `points:` frontmatter field in each story file. Verification: `grep '^points:' .factory/stories/S-N.MM-*.md` vs STORY-INDEX Points column value for all rows with numeric estimates.
+
+**8th META-self-application failure (added fix-burst-38, F-P40-001 closure):** F-P40-001 found STORY-INDEX S-12.06 Points cell `105` (fat-finger — matches PR#; source `points: TBD`) and S-12.06 + S-13.01 Priority cells `P1` (source `priority: "P0"`). This is a **TBD-source direction** drift — fix-burst-37's corpus-wide Points sweep excluded TBD-source stories (sweep was source→index only), and the Priority axis was not part of the sweep discipline at all.
+
+**Failure mode:** fix-burst-37 applied the bidirectional discipline to the Points column for numeric-estimate stories only. TBD-source stories were implicitly excluded from the sweep (no `grep '^points:'` check against the index for entries where source = TBD). Additionally, the Priority column was not included in any STORY-INDEX bidirectional sweep.
+
+**Fix-burst-38 corpus-wide bidirectional Priority sweep:** all 88 file-resident stories' source `priority:` vs STORY-INDEX Priority column compared. 7 drifts found: S-12.03, S-12.04, S-12.05, S-12.06, S-12.07, S-12.08, S-13.01 — all source `priority: "P0"` vs index `P1`. All 7 corrected.
+
+**Fix-burst-38 TBD-source Points spot-check:** 17 TBD-source stories checked (all stories where `grep '^points:' <file>` returns TBD). Only S-12.06 carried a numeric value (105) in the index. Fixed. All other TBD-source stories show TBD or `—` in the index.
+
+**Extended discipline (8th instance):** The bidirectional L-P28-001 sweep of STORY-INDEX MUST include:
+1. ALL stories (not just numeric-estimate stories) in the TBD-source Points direction check — index MUST NOT show a numeric value when source is TBD.
+2. The Priority column as a fully swept axis — both directions (source→index AND index→source), for ALL stories regardless of source completeness.
+
+Canonical source for Priority: `priority:` frontmatter field in each story file. Verification: `grep -rn '^priority:' .factory/stories/S-*.md` vs STORY-INDEX Priority column for all file-resident story rows.

@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.60"
+version: "2.61"
 status: current
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
-last_amended: "2026-05-09 (v2.60) — F5 fix-burst-37 (F-P39-001): S-4.05 + S-4.06 Points cells 3→5 (matches source frontmatter points: \"5\"; 7th L-P28-001-family bidirectional drift instance). STORY-INDEX v2.59→v2.60."
+last_amended: "2026-05-09 (v2.61) — F5 fix-burst-38 (F-P40-001): S-12.06 Points 105→TBD + Priority P1→P0; S-13.01 Priority P1→P0. Corpus-wide bidirectional Priority sweep: 7 drifts found (S-12.03/04/05/06/07/08 + S-13.01 all P1→P0; source frontmatter carries P0). TBD-source Points spot-check: only S-12.06 drift (fixed). 8th L-P28-001-family META instance. STORY-INDEX v2.60→v2.61."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -496,7 +496,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-13.01 | Path governance bundle (registry SoT + WASM hook + 9 skill updates + relocate-artifact) | E-13 | TBD | P1 | [] | [S-12.01, S-12.02] | completed | [BC-4.11.001, BC-6.22.001] (15 ACs, 24 files, tdd_mode strict; merged 2c97cb0 PR #97 2026-05-07) |
+| S-13.01 | Path governance bundle (registry SoT + WASM hook + 9 skill updates + relocate-artifact) | E-13 | TBD | P0 | [] | [S-12.01, S-12.02] | completed | [BC-4.11.001, BC-6.22.001] (15 ACs, 24 files, tdd_mode strict; merged 2c97cb0 PR #97 2026-05-07) |
 
 > **E-13 delivery:** S-13.01 is the single story in this epic. Ships first in cycle. 24 files in scope.
 > Full list in S-13.01 story file. Subsystems: SS-04 (path registry hook), SS-05 (relocate-artifact skill).
@@ -516,12 +516,12 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-12.01 | Per-story adversary workflow + agent doc updates (per-story-delivery.md + 3 agent docs) | E-12 | TBD | P1 | [S-13.01] | [S-12.02] | completed | [BC-4.10.001, BC-4.10.002, BC-5.39.001, BC-5.39.002] (9 ACs, 4-6 files, tdd_mode strict; merged 2e9b670 PR #98 2026-05-07) |
 | S-12.02 | validate-per-story-adversary-convergence WASM hook (convergence state machine + hook binary) | E-12 | TBD | P1 | [S-12.01, S-13.01] | [] | completed | [BC-4.10.001, BC-4.10.002, BC-4.11.001, BC-5.39.001, BC-5.39.002, BC-6.22.001] (14 ACs, 6 files, tdd_mode strict; merged e2fd3d4 PR #99 2026-05-07; conflict resolution at 7100431) |
-| S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | E-12 | TBD | P1 | [S-12.06] | [S-12.04, S-12.07] | draft | [BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003] (12 ACs, tdd_mode strict) |
-| S-12.04 | WASM resolver loading + lifecycle + error isolation | E-12 | TBD | P1 | [S-12.03] | [S-12.07] | draft | [BC-4.12.001, BC-4.12.003, BC-4.12.004] (13 ACs, tdd_mode strict) |
-| S-12.05 | hook-sdk resolver-authoring extensions | E-12 | TBD | P1 | [S-12.06] | [S-12.07] | draft | [BC-4.12.002, BC-4.12.003] (10 ACs, tdd_mode strict) |
-| S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic) | E-12 | 105 | P1 | [] | [S-12.03, S-12.04, S-12.05] | completed | [BC-1.13.001, BC-4.12.002] (10 ACs; merged 2026-05-07 at 15432c6; Step 4.5 converged D-375; decay 5→3→2→0→0→0) |
-| S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | E-12 | TBD | P1 | [S-12.04, S-12.05] | [S-12.08] | draft | [BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs, tdd_mode strict) |
-| S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | E-12 | TBD | P1 | [S-12.07] | [] | draft | [BC-1.13.001, BC-4.12.005] (10 ACs, tdd_mode strict) |
+| S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | E-12 | TBD | P0 | [S-12.06] | [S-12.04, S-12.07] | draft | [BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003] (12 ACs, tdd_mode strict) |
+| S-12.04 | WASM resolver loading + lifecycle + error isolation | E-12 | TBD | P0 | [S-12.03] | [S-12.07] | draft | [BC-4.12.001, BC-4.12.003, BC-4.12.004] (13 ACs, tdd_mode strict) |
+| S-12.05 | hook-sdk resolver-authoring extensions | E-12 | TBD | P0 | [S-12.06] | [S-12.07] | draft | [BC-4.12.002, BC-4.12.003] (10 ACs, tdd_mode strict) |
+| S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic) | E-12 | TBD | P0 | [] | [S-12.03, S-12.04, S-12.05] | completed | [BC-1.13.001, BC-4.12.002] (10 ACs; merged 2026-05-07 at 15432c6; Step 4.5 converged D-375; decay 5→3→2→0→0→0) |
+| S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | E-12 | TBD | P0 | [S-12.04, S-12.05] | [S-12.08] | draft | [BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs, tdd_mode strict) |
+| S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | E-12 | TBD | P0 | [S-12.07] | [] | draft | [BC-1.13.001, BC-4.12.005] (10 ACs, tdd_mode strict) |
 | S-15.03 | ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification | E-12 | TBD | P2 | [] | [] | draft | [] (F5 pass-20 process-gap; re-anchored E-15→E-12 per F-P21-003 fix-burst-20; SS-01+SS-04; codified-not-enforced recurrence; F-P20-002 + L-P20-002) |
 
 > **E-12 delivery chain:** S-12.01 → S-12.02 (original 2 stories, completed). F3-amendment adds 6 platform stories. S-15.03 re-anchored to E-12 from E-15 per F-P21-003 (fix-burst-20).
