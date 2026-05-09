@@ -2,9 +2,15 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    # Run on PRs targeting main OR develop. Without develop coverage,
+    # the bats run-all.sh suite was silently un-gated on develop pushes
+    # (only the lighter `semgrep` workflow ran), and the same suite
+    # blocked release.yml's `validate` job when those PRs landed —
+    # which kept rc.11/rc.12/rc.13 off the marketplace. Adding develop
+    # closes that gap.
+    branches: [main, develop]
 
 jobs:
   validate:
