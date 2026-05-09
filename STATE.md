@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "fix-burst-22 closed (broadest yet — F-P23-001/002 cross-subsystem sweep + F-P23-003 cycle anchor BC rebrand + L-P23-001/002 codified); pass-24 next; ADR-013 0_of_3"
+current_step: "fix-burst-23 closed (comprehensive corpus audit per user directive); pass-25 next; ADR-013 0_of_3"
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 (fix-burst-22 closed: broadest sweep ever — F-P23-001/002 cross-subsystem lobster sweep [~440 ss-05 + 174 ss-06] + F-P23-003 BC-1.07.005/006 H1+BC-INDEX+VP-043 rebrand + L-P23-001/002 codified; ADR-013 0_of_3; pass-24 next; user override continue-prose-only) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-23 HIGH; fix-burst-22 complete (broadest sweep yet; 440+ ss-05 + 174 ss-06 + cross-subsystem); pass-24 next |
+| **Last Updated** | 2026-05-09 (fix-burst-23 closed: comprehensive corpus audit per user directive — every historical fabricated symbol swept corpus-wide; 11 active-body sites patched; L-P24-001 + L-P24-002 codified; ADR-013 0_of_3; pass-25 next) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-24 HIGH; fix-burst-23 complete (comprehensive corpus audit + 2 new lessons) |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,8 +76,8 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-23 HIGH; fix-burst-22 complete (broadest sweep yet; 440+ ss-05 + 174 ss-06 + cross-subsystem)** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–23 + fix-bursts 1–22 complete. Pass-23: HIGH (F-P23-001..004). Fix-burst-22: 3 sub-bursts — 9ebd5c31 ~440 ss-05 + 174 ss-06 + cross-subsystem broadest sweep; 60072605 BC-1.07.005/006 H1+BC-INDEX+VP-043 rebrand real test fn; this burst indexes+lessons+L-P23-001/002 codified. ADR-013 0_of_3. User chose continue-prose-only (option 2 of 4). Pass-24 next. |
-| **STRATEGIC NOTE** | User chose continue-prose-only at pass-23 strategic decision (option 2 of 4). Fix-burst-22 was the broadest sweep yet; pass-24 verdict will determine whether prose-only path is finally converging or if 7-pass HIGH streak triggers re-escalation. L-P23-001 + L-P23-002 codified to address the latest sibling-class layers. ADR-013 0_of_3 (RESET — pass-23 HIGH). |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-24 HIGH; fix-burst-23 complete (comprehensive corpus audit + 2 new lessons)** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–24 + fix-bursts 1–23 complete. Pass-24: HIGH (F-P24-001..005). Fix-burst-23: 3 sub-bursts — 3576f1a6 comprehensive corpus audit (11 sites, 4 files); 78977e26 VP-043 propagation gap (F-P24-001); this burst indexes+lessons+L-P24-001/002 codified. ADR-013 0_of_3. User chose continue-prose-only (option 2 at pass-24 with explicit corpus-wide grep mandate). Pass-25 next. |
+| **STRATEGIC NOTE** | User chose continue-prose-only at pass-24 with explicit corpus-wide grep mandate. Fix-burst-23 ran the comprehensive sweep — every historical fabricated symbol grepped corpus-wide; 11 active-body sites patched. L-P24-001 (Phase 0 carve-out) + L-P24-002 (comprehensive-corpus-grep discipline) codified. Pass-25 verdict will determine 8th-pass-HIGH risk. ADR-013 0_of_3 (RESET — pass-24 HIGH). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -95,8 +95,10 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-22 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P22-001..005). F-P22-001 88 BCs ss-05 lobster-line-cite sweep; F-P22-002 BC-1.14.001 fabricated symbols; L-P21-001 retroactive 7 additional fabrications. ADR-013: 0_of_3. |
 | **F5 fix-burst-21 — 88 BCs (87dd64aa) + BC-1.14.001+L-P21-001 retroactive (2ea5ee5a) + E-12+L-P21-002 retroactive (56f0b883) + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.46, VP-INDEX v1.30, ARCH-INDEX v1.26, STORY-INDEX v2.52, L-P22-001 codified. Largest fix-burst yet. |
 | **F5 pass-23 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P23-001..004). F-P23-001 27 ss-05 double-backtick variant missed; F-P23-002 cross-subsystem scope gap; F-P23-003 BC-1.07.005/006 3 cite sites still fabricated; F-P23-004 L-P21-001 disposition update. ADR-013: 0_of_3. 6 consecutive HIGH. |
-| **F5 fix-burst-22 — broadest sweep (9ebd5c31) + BC-1.07.005/006 rebrand (60072605) + indexes+lessons (this burst)** | spec-writer + state-manager | **DONE** | BC-INDEX v1.48, VP-INDEX v1.31, ARCH-INDEX v1.28, STORY-INDEX v2.52. L-P23-001 + L-P23-002 codified. User override: continue prose-only. |
-| **F5 pass-24 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 6 consecutive HIGH passes. Pass-24 verdict determines whether 7-pass HIGH streak triggers re-escalation. |
+| **F5 fix-burst-22 — broadest sweep (9ebd5c31) + BC-1.07.005/006 rebrand (60072605) + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.48, VP-INDEX v1.31, ARCH-INDEX v1.28, STORY-INDEX v2.52. L-P23-001 + L-P23-002 codified. User override: continue prose-only. |
+| **F5 pass-24 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P24-001..005). F-P24-001 VP-043 propagation gap; F-P24-002 BC-7.06.001 sibling; F-P24-003 S-15.01 sibling; F-P24-004 E-15 NEW sibling; F-P24-005 bc-id-mapping carve-out. ADR-013: 0_of_3. 7 consecutive HIGH. |
+| **F5 fix-burst-23 — corpus audit (3576f1a6) + VP-043 propagation (78977e26) + indexes+lessons (this burst)** | spec-writer + state-manager | **DONE** | BC-INDEX v1.49, VP-INDEX v1.32, ARCH-INDEX v1.29, STORY-INDEX v2.53. L-P24-001 + L-P24-002 codified. F-P24-005 carve-out. |
+| **F5 pass-25 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 7 consecutive HIGH passes. Pass-25 verdict determines 8th-pass-HIGH risk. |
 
 ## Identifier Conventions
 
@@ -127,7 +129,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
 | develop | 6050d24 | F5 fix-burst PR #107 squash-merge 2026-05-08 |
-| factory-artifacts | (see git log) | fix-burst-22 sub-burst 3 indexes + lessons + L-P23-001/002 committed this burst |
+| factory-artifacts | (see git log) | fix-burst-23 sub-burst 3 indexes + lessons + L-P24-001/002 committed this burst |
 | v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
 | v1.0.0-rc.4..rc.10 (tags) | — | Historical tags; see `cycles/v1.0-brownfield-backfill/release-ladder.md` if present |
@@ -138,7 +140,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–23 + fix-bursts 1–22 complete. Pass-23 HIGH (F-P23-001..004). Fix-burst-22: 3 sub-bursts (9ebd5c31 broadest sweep; 60072605 BC-1.07.005/006 H1+BC-INDEX+VP-043 rebrand; this burst indexes+lessons). Branch fix @ 026272ae (38 ahead). ADR-013 0_of_3. User override continue-prose-only. Pass-24 next. PR held until 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–24 + fix-bursts 1–23 complete. Pass-24 HIGH (F-P24-001..005). Fix-burst-23: 3 sub-bursts (3576f1a6 comprehensive corpus audit; 78977e26 VP-043 propagation gap; this burst indexes+lessons). Branch fix @ 026272ae (38 ahead). ADR-013 0_of_3. User override continue-prose-only w/ corpus-wide grep mandate. Pass-25 next. PR held until 3_of_3. |
 
 ## Decisions Log
 
@@ -168,9 +170,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — fix-burst-22 closed (state-manager sub-burst 3, POLICY 3 run-last). Pass-23 HIGH (F-P23-001..004). Fix-burst-22: broadest lobster-line-cite sweep ever (~440 ss-05 + 174 ss-06 + cross-subsystem; 9ebd5c31 sub-burst 1); BC-1.07.005/006 H1+BC-INDEX rows 226-227+VP-043 §Source Contract rebrand to real test fn `loads_generated_registry_from_disk` (60072605 sub-burst 2); indexes + L-P23-001/002 codified (this burst sub-burst 3). ADR-013 0_of_3 (HIGH resets clock). Pass-24 next. User chose continue-prose-only (option 2 of 4 at pass-23 strategic decision).
+**Last update:** 2026-05-09 — fix-burst-23 closed (state-manager sub-burst 3, POLICY 3 run-last). Pass-24 HIGH (F-P24-001..005). Fix-burst-23: comprehensive corpus audit — every historical fabricated symbol grepped corpus-wide; 11 active-body sites patched (3576f1a6 sub-burst 1); VP-043 v1.2 frontmatter sync + Amendment block propagation gap closed (78977e26 sub-burst 2); indexes + L-P24-001/002 codified (this burst sub-burst 3). ADR-013 0_of_3 (HIGH resets clock). Pass-25 next. User chose continue-prose-only at pass-24 with explicit corpus-wide grep mandate.
 
-**ACTIVE STEP: Pass-24 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 6 consecutive HIGH passes; pass-24 verdict determines re-escalation.**
+**ACTIVE STEP: Pass-25 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 7 consecutive HIGH passes; pass-25 verdict determines 8th-pass-HIGH risk.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 026272ae — long-lived; 38 commits ahead of develop; no PR until 3_of_3
@@ -178,7 +180,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 - factory-artifacts @ (this commit — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.48 | VP-INDEX v1.31 | STORY-INDEX v2.52 | ARCH-INDEX v1.28
+**Index versions:** BC-INDEX v1.49 | VP-INDEX v1.32 | STORY-INDEX v2.53 | ARCH-INDEX v1.29
 **ADR-013 clock:** **0_of_3** (RESET — pass-23 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete

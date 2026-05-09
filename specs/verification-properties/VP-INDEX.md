@@ -1,14 +1,16 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.31"
+version: "1.32"
 status: draft
 producer: state-manager
-timestamp: 2026-05-08T00:00:00Z
+timestamp: 2026-05-09T00:00:00Z
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-09
+    change: "v1.32 (2026-05-09): F-P24-001 propagation gap closed — VP-043 v1.1→v1.2 frontmatter sync + Amendment block (sub-burst 2 of fix-burst-23, commit 78977e26). POLICY 9 anchor propagation gap closed: VP-043 frontmatter now reflects v1.2 changes. No VP count change. VP-INDEX v1.31→v1.32. Refs: F-P24-001, POLICY 9, fix-burst-23 sub-burst 2."
   - date: 2026-05-09
     change: "v1.31 (2026-05-09): F-P23-003 — VP-043 v1.1→v1.2 §Source Contract rebranded to cite real test fn `loads_generated_registry_from_disk` (same burst as BC-1.07.005/006 H1 rebrand + BC-INDEX rows 226-227 per L-P23-001 all-cite-sites discipline). No VP count change. VP-INDEX v1.30→v1.31. Refs: F-P23-003, L-P23-001, fix-burst-22 sub-burst 2 (60072605)."
   - date: 2026-05-08

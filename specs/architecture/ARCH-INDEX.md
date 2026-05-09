@@ -1,10 +1,10 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.28"
+version: "1.29"
 status: accepted
 producer: architect
-timestamp: 2026-05-08T00:00:00
+timestamp: 2026-05-09T00:00:00
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-09
+    change: "v1.29 (2026-05-09; fix-burst-23 sub-burst 3): BC-INDEX body cite refreshed v1.48→v1.49 (BC-7.06.001 v1.11 sibling fix per L-P23-001 + L-P24-002; BC-INDEX bumped v1.48→v1.49 in same burst per L-P20-002 cite-refresh discipline). ARCH-INDEX v1.28→v1.29."
   - date: 2026-05-09
     change: "v1.28 (2026-05-09; fix-burst-22 sub-burst 3): BC-INDEX body cite refreshed v1.47→v1.48 (F-P23-001/002 sub-burst 1 lobster-line-cite broadest sweep; BC-INDEX bumped v1.47→v1.48 in same burst per L-P20-002 cite-refresh discipline). ARCH-INDEX v1.27→v1.28."
   - date: 2026-05-08
@@ -139,7 +141,7 @@ BC counts are shown by **authoritative subsystem** (BC frontmatter `subsystem:` 
 | SS-09 | Configuration and Activation | SS-09-config-activation.md | `plugins/vsdd-factory/hooks/hooks.json*`, `plugins/vsdd-factory/.claude-plugin/plugin.json`, `ci/platforms.yaml`, `scripts/generate-registry-from-hooks-json.sh` | BC-9 | 6 (+1 F2 pass-1 fix burst BC-9.01.006 envelope-sync invariant) | Phase 1 |
 | SS-10 | CLI Tools and Bin | SS-10-cli-tools.md | `plugins/vsdd-factory/bin/` (12 tools), `plugins/vsdd-factory/commands/` (110 files), `scripts/` | BC-10 | 58 | Phase 1 |
 
-**Total BCs: 1,947 (per BC-INDEX v1.48; counts above are by authoritative frontmatter subsystem).** Cross-subsystem file placements (POLICY 1 append-only): BC-7.06.001 in ss-07/ → SS-01 (F-P1-006 reanchor); BC-8.29.001/002/003 + BC-8.30.002 in ss-08/ → SS-05 (historical allocation). The total is invariant under both directory-based and frontmatter-based tallying.
+**Total BCs: 1,947 (per BC-INDEX v1.49; counts above are by authoritative frontmatter subsystem).** Cross-subsystem file placements (POLICY 1 append-only): BC-7.06.001 in ss-07/ → SS-01 (F-P1-006 reanchor); BC-8.29.001/002/003 + BC-8.30.002 in ss-08/ → SS-05 (historical allocation). The total is invariant under both directory-based and frontmatter-based tallying.
 
 **Renumbering history — BC-1.12.008 → BC-3.05.004 (D-311/D-312):** BC-1.12.008 was originally proposed as an SS-01 routing target in D-311; renumbered to BC-3.05.004 (SS-03) in D-312 corrigendum per POLICY 1 ID-collision rule (BC-3.05.001/002/003 already existed as brownfield BCs authored by codebase-analyzer on 2026-04-25; BC-3.05.004 was the next free slot). Consequence: SS-01 has +4 Phase 1a additions (BC-1.12.001–BC-1.12.004) and +4 Phase 1b additions (BC-1.12.005/006/007/009; no BC-1.12.008 ID exists). SS-03 has +1 Phase 1b addition (BC-3.05.004 v2 schema validation per ADR-015 D-15.1). OQ-W16-012 filed-and-resolved in D-312.
 

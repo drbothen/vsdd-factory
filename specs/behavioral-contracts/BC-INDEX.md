@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.48"
+version: "1.49"
 status: draft
 producer: state-manager
-timestamp: 2026-05-08T00:00:00
+timestamp: 2026-05-09T00:00:00
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.49 (2026-05-09): BC-7.06.001 v1.10→v1.11 (F-P24-002 sibling fix — Architecture Anchors line 130 fabricated symbols removed per L-P23-001 + L-P24-002 comprehensive corpus audit; sub-burst 1 of fix-burst-23, commit 3576f1a6). No count change. Refs: F-P24-002, L-P23-001, L-P24-002, fix-burst-23 sub-burst 1."
   - date: 2026-05-09
     change: "v1.48 (2026-05-09): F-P23-001 + F-P23-002 corpus-wide lobster-line-cite sweep with FULL syntactic class + cross-subsystem scope. Sub-burst 1 (9ebd5c31): ~440 ss-05 BCs + 174 ss-06 BCs + ss-03 (BC-3.08.001 v1.12) + ss-04 (BC-4.04.005 v1.2) + ADR-008/009 historical annotations + open-questions.md updates. Largest sweep yet. Refs: F-P23-001, F-P23-002, L-P19-001, L-P20-001, L-P22-001."
   - date: 2026-05-08

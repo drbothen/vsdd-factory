@@ -3,7 +3,7 @@ document_type: burst-log
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 producer: state-manager
 version: "1.0"
-last_updated: 2026-05-07
+last_updated: 2026-05-09
 ---
 
 # Burst Log — v1.0-feature-plugin-async-semantics-pass-1
@@ -1481,3 +1481,70 @@ Three sub-bursts. State-manager ran last per POLICY 3.
 
 - L-P22-001 codified [codified]
 - Fix-burst-21 COMPLETE — largest fix-burst in F5 cycle (91 BC bumps + 7 fabrication corrections + E-12 v1.3)
+
+---
+
+## Pass-24 Adversary Review
+
+**Date:** 2026-05-09
+**Dispatcher:** orchestrator → adversary
+**Phase:** F5 ADVERSARIAL
+
+**Verdict: HIGH** — F-P24-001 (VP-043 v1.2 propagation gap: frontmatter + Amendment block not synced to reflect v1.2 changes per POLICY 9); F-P24-002 (BC-7.06.001 Architecture Anchors line 130 still contained fabricated symbols — sibling cite site missed by fix-burst-23 retroactive sweep); F-P24-003 (S-15.01 lines 494 + 762 contained fabricated symbols from BC-1.14.001 cluster — missed by fix-burst-22 corpus audit); F-P24-004 (E-15 lines 241 + 242 contained fabricated symbols — NEW sibling instance discovered by comprehensive corpus audit); F-P24-005 (bc-id-mapping.md lines 349-350 contain `every_entry_*` — Phase 0 brownfield-ingestion mapping table carve-out adjudication required). ADR-013: 0_of_3 (RESET — HIGH). 7 consecutive HIGH passes (P18-P24).
+
+User chose continue-prose-only (option 2) with EXPLICIT corpus-wide grep mandate: every historical fabricated symbol must be swept in fix-burst-23.
+
+---
+
+## Fix-burst-23 — pass-24 HIGH verdict + sub-bursts 1–3 close
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → spec-writer → state-manager (POLICY 3 run-last)
+**Phase:** F5 ADVERSARIAL — pass-24
+
+### Sub-burst 1: comprehensive corpus audit — every historical fabricated symbol grepped corpus-wide (3576f1a6, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| ADR-019 | v1.9 → v1.10 | 4 fabricated-symbol cite sites removed: line 107 prose, lines 116 + 121 pseudocode, lines 286-287 subsystem assignments |
+| BC-7.06.001 | v1.10 → v1.11 | 1 fabricated-symbol cite site removed: line 130 Architecture Anchors (F-P24-002) |
+| S-15.01 | v1.20 → v1.21 | 2 fabricated-symbol cite sites removed: lines 494 + 762 (F-P24-003) |
+| E-15 | v1.1 → v1.2 | 2 fabricated-symbol cite sites removed: lines 241 + 242 (F-P24-004 — NEW sibling instance) |
+
+- 11 active-body cite sites patched across 4 files
+- Post-sweep grep: 0 active-body matches for all 10 fabricated symbols
+- bc-id-mapping.md lines 349-350 flagged as `every_entry_*` matches — Phase 0 brownfield mapping table (carve-out, adjudicated sub-burst 3 as L-P24-001)
+- F-P24-002, F-P24-003, F-P24-004 closed
+
+### Sub-burst 2: F-P24-001 — VP-043 v1.2 frontmatter sync + Amendment block (78977e26, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| VP-043 | v1.1 → v1.2 | Frontmatter sync + Amendment block added (POLICY 9 propagation gap closed) |
+
+- F-P24-001 closed (VP-043 frontmatter now reflects v1.2 changes)
+
+### Sub-burst 3: F-P24-005 carve-out + indexes + lessons + state (this burst, factory-artifacts)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-INDEX | v1.48 → v1.49 | BC-7.06.001 v1.11 recorded (F-P24-002 sibling fix per L-P23-001 + L-P24-002) |
+| VP-INDEX | v1.31 → v1.32 | VP-043 v1.2 propagation gap closure recorded (F-P24-001) |
+| STORY-INDEX | v2.52 → v2.53 | S-15.01 v1.21 recorded (F-P24-003 sibling fix) |
+| ARCH-INDEX | v1.28 → v1.29 | BC-INDEX cite refreshed v1.48→v1.49 (L-P20-002 same-burst discipline) |
+| tech-debt-register.md | — | TD-031 updated: fix-burst-23 commits recorded (3576f1a6, 78977e26); L-P24-001/002 codified noted |
+| lessons.md | — | L-P24-001 codified: Phase 0 brownfield-ingestion mapping carve-out (F-P24-005 adjudication) |
+| lessons.md | — | L-P24-002 codified: comprehensive-corpus-grep discipline (meta-lesson from 7-pass HIGH streak) |
+| STATE.md | — | fix-burst-23 closed; pass-25 next; corpus-grep-mandate note; ADR-013 0_of_3; index versions updated |
+| burst-log.md | — | fix-burst-23 entries (this entry) |
+
+- F-P24-005 adjudicated as CARVE-OUT (bc-id-mapping.md is Phase 0 brownfield-ingestion artifact per `producer: codebase-analyzer` frontmatter)
+- L-P24-001 codified [codified]
+- L-P24-002 codified [codified]
+- Fix-burst-23 COMPLETE — comprehensive corpus audit per user directive; all 10 fabricated symbols 0 active-body matches

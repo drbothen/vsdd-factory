@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.52"
+version: "2.53"
 status: current
 producer: state-manager
-timestamp: 2026-05-08T00:00:00Z
-last_amended: "2026-05-08 (v2.52) — F5 fix-burst-21. E-12 epic v1.0→v1.3 (F-P22-003/004/005 + L-P21-002 retroactive sweep on 9 stories under E-12; sub-burst 3 56f0b883). story_count unchanged (93). STORY-INDEX v2.51→v2.52."
+timestamp: 2026-05-09T00:00:00Z
+last_amended: "2026-05-09 (v2.53) — F5 fix-burst-23. S-15.01 v1.20→v1.21 (F-P24-003 sibling fix — 2 fabricated-symbol cite sites patched per L-P23-001 + L-P24-002 comprehensive corpus audit; sub-burst 1 of fix-burst-23, commit 3576f1a6). story_count unchanged (93). STORY-INDEX v2.52→v2.53."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md

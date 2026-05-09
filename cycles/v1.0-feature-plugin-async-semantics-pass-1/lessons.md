@@ -325,3 +325,58 @@ epic alignment per POLICY 5.
 > Suggested codification: S-15.03 mechanical hook would parse line-cite intent semantically rather than relying on syntactic patterns.
 
 [codified] — fix-burst-22 sub-burst 3.
+
+---
+
+## F5 pass-24 process-gap findings (2026-05-09)
+
+### L-P24-001 [codified]: Phase 0 brownfield-ingestion mapping artifacts are exempt from L-P21-001 / L-P23-001 fabricated-symbol sweep
+
+**Source:** F-P24-005 — bc-id-mapping.md carve-out adjudication (fix-burst-23 sub-burst 3).
+
+Files with frontmatter `producer: codebase-analyzer` AND `phase: 1.x` (e.g., `bc-id-mapping.md`, `pass-3-deep-*.md`, `pass-4-domain-*.md`) preserve the original Phase 0 ingestion content as historical audit records. The "description" / "extracted_text" / "raw_content" columns of these tables MUST NOT be patched even when they contain fabricated symbols, because:
+
+1. The fabricated symbols ARE the original ingestion output — patching loses the audit-trail evidence of what was extracted vs. what was real.
+2. The MAPPING column (e.g., "Maps to BC-1.07.005") is the integration point; the description column is just the raw ingestion text.
+3. Per the brownfield ingestion methodology (`vsdd-factory:codebase-analyzer` agent), these tables are append-only historical records.
+
+**Carve-out scope:**
+- `.factory/specs/behavioral-contracts/bc-id-mapping.md` (description column)
+- `.factory/phase-0-ingestion/pass-*-deep-*.md` (extracted_text columns)
+- Any other artifact with `producer: codebase-analyzer` frontmatter
+
+**Not carved out:** Active-body content in OTHER fields (e.g., the actual BC IDs, the Status, the Subsystem assignment) remains subject to L-P21-001 / L-P23-001 discipline.
+
+**Trigger (fix-burst-23 sub-burst 1):** corpus-wide grep for every historical fabricated symbol found `every_entry_*` matches in `bc-id-mapping.md:349-350`. Sub-burst 1 reported these as inside the historical Phase 0 audit mapping table. Sub-burst 3 adjudicates as CARVE-OUT per this lesson.
+
+[codified] — fix-burst-23 sub-burst 3.
+
+---
+
+### L-P24-002 [codified]: When a fix-burst codifies a lesson, the SAME burst MUST run a comprehensive corpus-wide grep covering ALL historical instances of the codified pattern class — not just the cluster that triggered the lesson
+
+**Source:** F-P24-002 + F-P24-003 + F-P24-004 — comprehensive corpus audit (fix-burst-23 sub-burst 1).
+
+**Failure mode:** L-P23-001 (all-cite-sites discipline) was codified at fix-burst-22 sub-burst 3 to address the BC-1.07.005/006 cluster. The codifying burst's retroactive sweep covered ONLY the BC-1.07.005/006 + VP-043 cluster (the cluster that triggered the lesson). It did NOT corpus-sweep for previously-fixed fabricated symbols (BC-1.14.001 cluster: `RegistryEntry.async`, `run_tiers`, `spawn_detached`).
+
+Pass-24 then found those previously-fixed fabricated symbols surviving at sibling cite sites (BC-7.06.001, S-15.01, ADR-019, E-15) — exactly the failure mode L-P23-001 was meant to prevent.
+
+**Rule:** when codifying a lesson, the retroactive sweep MUST cover not just the symbol/pattern that triggered the lesson but the COMPLETE HISTORICAL CATALOG of every previously-fixed instance of the same class. Concretely, every fix-burst that codifies a lesson must:
+
+1. Maintain a "historical catalog" of the class members fixed in prior bursts (e.g., the fabricated-symbol set, the prose-form line-cite variants, the index-cite-refresh patterns).
+2. Run corpus-wide grep for EACH catalog entry in the same burst as the codification.
+3. Patch all active-body matches uniformly.
+4. Update the catalog with the codifying instance.
+
+Without this discipline, codification reduces to single-cluster fixes and the recurrence pattern continues at NEW layers (validated empirically across passes P18-P24, 7 consecutive HIGH).
+
+**Suggested codification:** S-15.03 mechanical hook would maintain the historical catalog and enforce the grep at write time.
+
+**Verified retroactively in fix-burst-23 sub-burst 1 (3576f1a6):** comprehensive corpus audit — 11 active-body cite sites of fabricated symbols patched across 4 files:
+- ADR-019 v1.9→v1.10 (4 sites: line 107 prose, 116 + 121 pseudocode, 286-287 subsystem assignments)
+- BC-7.06.001 v1.10→v1.11 (1 site: line 130 Architecture Anchors)
+- S-15.01 v1.20→v1.21 (2 sites: line 494 + 762)
+- E-15 v1.1→v1.2 (2 sites: line 241 + 242 — discovered as NEW sibling instance)
+- Post-sweep grep: 0 active-body matches for all 10 fabricated symbols
+
+[codified] — fix-burst-23 sub-burst 3.
