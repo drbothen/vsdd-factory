@@ -111,7 +111,11 @@ setup() {
   log="$(ls "$WORK/.factory/logs/dispatcher-internal-"*.jsonl 2>/dev/null | head -1)"
   [ -n "$log" ]
   total="$(wc -l < "$log")"
-  with_trace="$(grep -c '"dispatcher_trace_id":"' "$log" || true)"
+  # S-15.01 (T-3a) renamed the per-event field from `dispatcher_trace_id` to
+  # `trace_id` (canonical naming aligned with OTel-style tracing conventions).
+  # Accept either name so this test is robust across the rename — the
+  # specific canonicalization is tracked under TD #66 and S-15.02.
+  with_trace="$(grep -cE '"(dispatcher_)?trace_id":"' "$log" || true)"
   with_session="$(grep -c '"session_id":"trace-test"' "$log" || true)"
   [ "$total" -gt 0 ]
   [ "$with_trace" -eq "$total" ]
