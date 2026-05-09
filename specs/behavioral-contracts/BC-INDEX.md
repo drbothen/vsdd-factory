@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.62"
+version: "1.63"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.63 (2026-05-09; fix-burst-49): F-P54-001 + corpus-wide Title-cell axis sweep (19th L-P28-001 META). F-P54-001: BC-INDEX:404 Title cell propagated to authoritative H1 — 'idempotency enforced by Layer 1 once:true directive' → 'idempotency delegated to Layer 1 once:true'. Full corpus sweep (1944 rows, all H1 sources verified): 6 total drifts found and patched. BC-1.05.010: 'dispatcher_trace_id' → 'trace_id'. BC-2.02.011: long ABI narrative → 'host::write_file: bounded write capability with allowlist enforcement'. BC-2.02.012: long SubagentStop narrative → 'HookPayload SubagentStop fields: top-level envelope schema for agent_type, subagent_name, last_assistant_message, result'. BC-4.05.002: 'does not invoke any subprocess; fast-path completion with no exec_subprocess capability' → 'emits without subprocess invocation; fast-path completion'. BC-4.05.003: 'enforced by Layer 1 once:true directive' → 'delegated to Layer 1 once:true'. BC-5.30.001: 'feature-vsdd: identity' → 'feature.lobster declares 82 steps across 3 routing tracks (quick-dev, fix-pr, full-feature) with no DAG cycles'. Title-cell axis now codified as static axis in L-P28-001 axis-checklist. No count change (total_bcs: 1947). Refs: F-P54-001, L-P28-001, fix-burst-49. last_amended: 2026-05-09 (F5 fix-burst-49: Title-cell corpus sweep 6 drifts patched; F-P54-001 closed)."
   - date: 2026-05-09
     change: "v1.62 (2026-05-09; fix-burst-47): F-P50-001 — count-narrative correction: v1.61 changelog cited E-7=23 BCs and Total=48; actual per-row enumeration: BC-5.36.001-007 (7) + BC-5.37.001-002 (2) + BC-5.38.001-006 (6) + BC-7.05.001-004 (4) + BC-8.28.001-002 (2) + BC-8.29.001-003 (3) + BC-8.30.001-002 (2) + BC-6.21.001-002 (2) = 28 unique BCs (zero overlap). Corrected E-7=28 and Total=53 (E-6:12 + E-7:28 + E-10:13). v1.61 changelog inline updated 23→28 and 48→53 (narrative only; no BC propagation change). 17th L-P28-001 META instance (third recurrence of count-narrative drift class). No count change (total_bcs: 1947). Refs: F-P50-001, L-P28-001, fix-burst-47. last_amended: 2026-05-09 (F5 fix-burst-47: count-narrative E-7=23→28, Total=48→53 corrected; F-P50-001 closed)."
   - date: 2026-05-09
@@ -214,7 +216,7 @@ changelog:
 | [BC-1.05.007](ss-01/BC-1.05.007.md) | env host fn denies env var not on allow-list | draft | CAP-TBD | TBD |
 | [BC-1.05.008](ss-01/BC-1.05.008.md) | env host fn returns 0 when var allowed but unset | draft | CAP-TBD | TBD |
 | [BC-1.05.009](ss-01/BC-1.05.009.md) | read_file at the StoreData-typed linker layer is currently a CAPABILITY_DENIED stub | draft | CAP-TBD | TBD |
-| [BC-1.05.010](ss-01/BC-1.05.010.md) | Context getters (session_id, dispatcher_trace_id, plugin_root, plugin_version, cwd) always return current value | draft | CAP-TBD | TBD |
+| [BC-1.05.010](ss-01/BC-1.05.010.md) | Context getters (session_id, trace_id, plugin_root, plugin_version, cwd) always return current value | draft | CAP-TBD | TBD |
 | [BC-1.05.011](ss-01/BC-1.05.011.md) | log host fn emits `plugin.log` internal event with level mapped to {trace,debug,info,warn,error} | draft | CAP-TBD | TBD |
 | [BC-1.05.012](ss-01/BC-1.05.012.md) | emit_event enriches every emitted event with host-owned identity fields and filters reserved field names from plugin payload | draft | CAP-TBD | S-3.04 |
 | [BC-1.05.013](ss-01/BC-1.05.013.md) | factory-dispatcher::host::emit_event::decode_single_pair — length-prefixed key/value buffer with one pair round-trips through decode_fields | draft | CAP-TBD | S-3.04 |
@@ -303,8 +305,8 @@ changelog:
 | [BC-2.02.008](ss-02/BC-2.02.008.md) | hook-sdk::host::encode_args_round_trip — encode_args matches the same length-prefix shape with no separator | draft | CAP-009 | S-1.03 |
 | [BC-2.02.009](ss-02/BC-2.02.009.md) | hook-sdk::host::decode_subprocess_result_parses_envelope — SubprocessResult envelope `i32 \| u32 \| stdout \| u32 \| stderr` decodes correctly | draft | CAP-009 | S-1.03 |
 | [BC-2.02.010](ss-02/BC-2.02.010.md) | hook-sdk::host::log_levels_are_stable — LogLevel discriminants 0..=4 are pinned (Trace=0, Debug=1, Info=2, Warn=3, Error=4) | draft | CAP-009 | S-1.03 |
-| [BC-2.02.011](ss-02/BC-2.02.011.md) | host::write_file ABI invariants — WriteFileCaps struct constraints, error return codes, max_bytes semantics, FFI pointer protocol | draft | CAP-022 | S-8.10 |
-| [BC-2.02.012](ss-02/BC-2.02.012.md) | HookPayload SubagentStop top-level fields — agent_type, subagent_name, last_assistant_message, result all `#[serde(default)] Option<String>`; null-as-absent via serde Option<T> | draft | CAP-022 | S-8.30, S-8.01, S-8.02, S-8.03, S-8.05 |
+| [BC-2.02.011](ss-02/BC-2.02.011.md) | host::write_file: bounded write capability with allowlist enforcement | draft | CAP-022 | S-8.10 |
+| [BC-2.02.012](ss-02/BC-2.02.012.md) | HookPayload SubagentStop fields: top-level envelope schema for agent_type, subagent_name, last_assistant_message, result | draft | CAP-022 | S-8.30, S-8.01, S-8.02, S-8.03, S-8.05 |
 | ~~[BC-2.02.013](ss-02/BC-2.02.013-host-run-subprocess.md)~~ | ~~host::run_subprocess ABI invariants — SubprocessCaps enforcement, SubprocessResult contract, security boundaries (no-shell, no-traversal, env-strip, output cap, timeout kill)~~ | **withdrawn 2026-05-03** — ADR-014 D-9.2 amendment; exec_subprocess sufficient; extensions relocated to BC-1.05.035 + BC-1.05.036 (SS-01 cluster, NEW 2026-05-03); preserved as audit trail | CAP-022 | ~~SDK-ext (W-16), S-9.07~~ |
 | [BC-2.04.001](ss-02/BC-2.04.001.md) | hook-sdk::payload::pretooluse_payload_deserializes — full envelope parses with tool_input populated, tool_response None | draft | CAP-009 | S-1.03 |
 | [BC-2.04.002](ss-02/BC-2.04.002.md) | hook-sdk::payload::posttooluse_payload_with_response — SDK payload includes typed access to tool_response.exit_code | draft | CAP-009 | S-1.03 |
@@ -400,8 +402,8 @@ changelog:
 | [BC-4.04.004](ss-04/BC-4.04.004.md) | hooks.json.template registers SessionStart event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.01, S-15.01 |
 | [BC-4.04.005](ss-04/BC-4.04.005.md) | hooks-registry.toml registers SessionStart event routing to hook-plugins/session-start-telemetry.wasm with read_file + exec_subprocess capability tables and timeout_ms:8000 | draft | CAP-002 | S-5.01 |
 | [BC-4.05.001](ss-04/BC-4.05.001.md) | session-end plugin emits session.ended event with session telemetry on SessionEnd event | draft | CAP-002 | S-5.02 |
-| [BC-4.05.002](ss-04/BC-4.05.002.md) | session-end plugin does not invoke any subprocess; fast-path completion with no exec_subprocess capability | draft | CAP-002 | S-5.02 |
-| [BC-4.05.003](ss-04/BC-4.05.003.md) | session-end plugin is unconditionally stateless; idempotency enforced by Layer 1 once:true directive | draft | CAP-002 | S-5.02 |
+| [BC-4.05.002](ss-04/BC-4.05.002.md) | session-end plugin emits without subprocess invocation; fast-path completion | draft | CAP-002 | S-5.02 |
+| [BC-4.05.003](ss-04/BC-4.05.003.md) | session-end plugin is unconditionally stateless; idempotency delegated to Layer 1 once:true | draft | CAP-002 | S-5.02 |
 | [BC-4.05.004](ss-04/BC-4.05.004.md) | hooks.json.template registers SessionEnd event with `command` field routing to dispatcher binary; once:true and synchronous envelope (async:true removed per ADR-019) | draft | CAP-002 | S-5.02, S-15.01 |
 | [BC-4.05.005](ss-04/BC-4.05.005.md) | hooks-registry.toml registers SessionEnd event routing to hook-plugins/session-end-telemetry.wasm with timeout_ms:5000 | draft | CAP-002 | S-5.02 |
 | [BC-4.07.001](ss-04/BC-4.07.001.md) | worktree-hooks plugin emits worktree.created event with {worktree_path, worktree_name} on WorktreeCreate event | draft | CAP-002 | S-5.03 |
@@ -850,7 +852,7 @@ changelog:
 | [BC-5.29.029](ss-05/BC-5.29.029.md) | brownfield:session-review | draft | CAP-079 | TBD |
 | [BC-5.29.030](ss-05/BC-5.29.030.md) | brownfield:session-review-approval | draft | CAP-079 | TBD |
 | [BC-5.29.031](ss-05/BC-5.29.031.md) | brownfield:process-review-decisions | draft | CAP-079 | TBD |
-| [BC-5.30.001](ss-05/BC-5.30.001.md) | feature-vsdd: identity | draft | CAP-080 | TBD |
+| [BC-5.30.001](ss-05/BC-5.30.001.md) | feature.lobster declares 82 steps across 3 routing tracks (quick-dev, fix-pr, full-feature) with no DAG cycles | draft | CAP-080 | TBD |
 | [BC-5.30.002](ss-05/BC-5.30.002.md) | feature: entry-point | draft | CAP-080 | TBD |
 | [BC-5.30.003](ss-05/BC-5.30.003.md) | feature: terminal-step | draft | CAP-080 | TBD |
 | [BC-5.30.004](ss-05/BC-5.30.004.md) | feature: DAG integrity | draft | CAP-080 | TBD |

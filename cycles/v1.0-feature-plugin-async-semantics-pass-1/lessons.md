@@ -2,7 +2,7 @@
 document_type: lessons
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 producer: state-manager
-version: "1.6"
+version: "1.7"
 last_updated: 2026-05-09
 ---
 
@@ -757,3 +757,19 @@ Per the complement clause codified in fix-burst-45, applied L-P28-001 retroactiv
 **Mechanical enforcement remains overdue.** S-15.03 hook scope candidate (count-narrative coherence sub-rule + sibling propagation check) would mechanically prevent this class.
 
 **Adjudication note:** The correct-inline-and-annotate interpretation (Interpretation B) is now the established pattern for count-narrative corrections.
+
+---
+
+**19th META-self-application failure (added fix-burst-49, F-P54-001 closure):** Title-cell axis. The L-P28-001 axis-checklist (codified at pass-28; reinforced at 18 prior META instances) enumerates: Status, Points, Stories, BCs, Depends-On, Capability, Subsystem cells. The **Title-cell axis** has NEVER been corpus-wide swept since codification.
+
+**Discovery (F-P54-001):** Pass-54 fresh-context sampling found BC-4.05.003 BC-INDEX title row drifted from authoritative H1. 7+ sibling artifacts (PRD, story, VPs, ADR, code-delivery PR descriptions) all agree with H1; BC-INDEX is sole outlier — pre-existing drift since BC authoring (not fix-burst-induced).
+
+**Pattern lesson:** Axis-checklists must enumerate STATIC cells (Title) as well as DYNAMIC cells (Status, Points). Static cells are assumed correct since authoring but can drift via copy-paste errors during BC-INDEX inserts.
+
+**Fix-burst-49 corpus sweep:** ALL 1944 BC-INDEX Title cells audited against source BC H1. 6 total drifts found and patched: BC-1.05.010 (dispatcher_trace_id → trace_id), BC-2.02.011 (long ABI narrative → bounded-write short form), BC-2.02.012 (long SubagentStop narrative → short form), BC-4.05.002 (no-subprocess narrative → short form), BC-4.05.003 (enforced by directive → delegated to; F-P54-001), BC-5.30.001 (feature-vsdd: identity → feature.lobster DAG declaration). 1938 rows clean.
+
+**Mechanical enforcement (S-15.03 hook scope candidate):** validate-stable-anchors family should add a Title-cell coherence check: parse BC-INDEX row Title cell, parse BC source H1, assert byte-equality (modulo BC-ID prefix).
+
+**Updated axis enumeration (codified fix-burst-49):**
+- Static axes (must verify on every burst): Title, Subsystem, Capability
+- Dynamic axes (subject to fix-burst churn): Status, Points, Priority, Stories, BCs, Depends-On

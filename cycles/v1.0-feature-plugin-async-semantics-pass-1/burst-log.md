@@ -2746,3 +2746,48 @@ Fix-burst-48 closure verified across all artifacts (ARCH-INDEX:22 + burst-log:26
 **Files touched:** F5-adversary-pass-53.md (created), STATE.md (frontmatter, Last Updated, Current Phase, Phase Progress, Current Phase Steps, Concurrent Cycles, Session Resume Checkpoint, ADR-013 clock), burst-log.md (this entry).
 
 Pass-54 next.
+
+---
+
+## Burst 61 — pass-54 adversary review (MED)
+
+**Date:** 2026-05-09
+**Agent:** adversary
+**Verdict:** MED (1M; F-P54-001)
+
+**Summary:**
+Pass-53 closure VERIFIED. Index versions, BC count 1947, VP count 79, arithmetic all clean. 4 of 5 fresh BC samples clean. F-P54-001: BC-4.05.003 BC-INDEX Title cell drifted from authoritative H1 ("idempotency enforced by Layer 1 once:true directive" vs H1 "idempotency delegated to Layer 1 once:true"). 7+ sibling artifacts (PRD, story, VPs, ADR, code-delivery PR descriptions) all agree with H1; BC-INDEX is sole outlier — pre-existing drift since BC authoring. 19th META: Title-cell axis has never been corpus-wide swept since L-P28-001 codification at pass-28.
+
+**ADR-013:** 2_of_3 → **RESET → 0_of_3**. Pass-54 MED resets clock.
+
+**Files touched:** F5-adversary-pass-54.md (created), burst-log.md (this entry).
+
+---
+
+## Burst 62 — fix-burst-49: Title-cell corpus sweep + L-P28-001 19th META
+
+**Date:** 2026-05-09
+**Agent:** state-manager
+**Fix-burst:** 49
+
+**Summary:**
+F-P54-001 closed. Full corpus sweep of all 1944 BC-INDEX Title cells against source BC H1. 6 total drifts found and patched:
+
+1. **BC-1.05.010** (line 217): "Context getters (session_id, **dispatcher_trace_id**, ...)" → "Context getters (session_id, **trace_id**, ...)" — H1 uses trace_id.
+2. **BC-2.02.011** (line 306): Long ABI narrative ("host::write_file ABI invariants — WriteFileCaps struct constraints...") → "host::write_file: bounded write capability with allowlist enforcement" — H1 uses short form.
+3. **BC-2.02.012** (line 307): Long SubagentStop narrative ("HookPayload SubagentStop top-level fields — agent_type...all `#[serde(default)] Option<String>`...") → "HookPayload SubagentStop fields: top-level envelope schema for agent_type, subagent_name, last_assistant_message, result" — H1 uses short form.
+4. **BC-4.05.002** (line 403): "session-end plugin does not invoke any subprocess; fast-path completion with no exec_subprocess capability" → "session-end plugin emits without subprocess invocation; fast-path completion" — H1 is shorter.
+5. **BC-4.05.003** (line 404; F-P54-001): "idempotency **enforced by** Layer 1 once:true **directive**" → "idempotency **delegated to** Layer 1 once:true" — H1 uses delegated-to form.
+6. **BC-5.30.001** (line 853): "feature-vsdd: identity" → "feature.lobster declares 82 steps across 3 routing tracks (quick-dev, fix-pr, full-feature) with no DAG cycles" — severely abbreviated; H1 has full declaration.
+
+1938 rows verified clean.
+
+19th L-P28-001 META: Title-cell axis codified as static axis. Updated axis enumeration:
+- Static axes (must verify on every burst): Title, Subsystem, Capability
+- Dynamic axes (subject to fix-burst churn): Status, Points, Priority, Stories, BCs, Depends-On
+
+**Files touched:** BC-INDEX.md (v1.62→v1.63; 6 Title cells patched; changelog entry added), ARCH-INDEX.md (v1.43→v1.44; cite refresh + body v1.61→v1.63), lessons.md (v1.6→v1.7; 19th META appended), STATE.md (frontmatter current_step, Last Updated, Current Phase, Phase Progress, Current Phase Steps, Strategic Decision, Session Resume Checkpoint, ADR-013 clock, index versions), tech-debt-register.md (TD-031 fix-burst-49 follow-up appended), burst-log.md (this entry).
+
+**Index versions after burst-49:**
+BC-INDEX v1.63 | ARCH-INDEX v1.44
+Pass-55 next. ADR-013 0_of_3 (RESET — pass-54 MED resets).
