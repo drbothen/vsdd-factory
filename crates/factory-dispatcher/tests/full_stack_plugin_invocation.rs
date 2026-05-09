@@ -516,7 +516,16 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_non_factory_path() {
 /// regardless of the async hook's execution time.
 ///
 /// BC-1.14.001 PC4 (drain window), DI-019 (ASYNC_DRAIN_WINDOW_MS=100ms).
+///
+/// FLAKY ON CI (TD #67): asserts dispatcher wait is under a 10s ceiling,
+/// but shared CI runners under load can produce 11+ seconds. The
+/// fire-and-forget contract is also validated by other partition tests
+/// (test_e2e_BC_1_14_001_partition_correctness_real_registry,
+/// test_e2e_BC_1_14_001_async_block_verdict_discarded). Marked `#[ignore]`
+/// until either the bound is loosened or assertions are rewritten to
+/// observe internal-log events rather than wall-clock thresholds.
 #[tokio::test(flavor = "current_thread")]
+#[ignore = "TD #67 — flaky 10s wall-clock bound on CI; run locally with --ignored"]
 async fn test_e2e_BC_1_14_001_async_hook_doesnt_block_dispatcher() {
     let wasm_path = require_wasm("session-start-telemetry.wasm");
 
