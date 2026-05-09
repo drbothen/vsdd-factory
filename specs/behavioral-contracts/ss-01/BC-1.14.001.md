@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.9"
+version: "1.10"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -115,7 +115,7 @@ The total dispatcher wall-clock latency upper bound is therefore:
 ## Architecture Anchors
 
 - `crates/factory-dispatcher/src/registry.rs` — `RegistryEntry.async` field; `validate()` enforcing Invariant 4; `REGISTRY_SCHEMA_VERSION = 2`
-- `crates/factory-dispatcher/src/partition.rs` — `partition_plugins()` pure function (sync/async split); Kani proof harnesses at lines 148-224
+- `crates/factory-dispatcher/src/partition.rs` — `partition_plugins()` pure function (sync/async split); Kani proof harnesses in `partition.rs::kani_proofs` module (`#[cfg(kani)] mod kani_proofs`)
 - `crates/factory-dispatcher/src/engine.rs` (or equivalent dispatch loop) — sync group `run_tiers()` + async group `spawn_detached()` calls
 
 ## Story Anchor
@@ -193,6 +193,16 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-08 (v1.9 → v1.10 — F-P20-001: §Architecture Anchors Kani line-range migrated to module anchor)
+
+**Driver:** F-P20-001 pass-20 extended prose-form sweep — §Architecture Anchors cited `Kani proof harnesses at lines 148-224`, a line-range reference subject to refactor drift. Stable anchor identified: `partition.rs::kani_proofs` module (`#[cfg(kani)] mod kani_proofs` at partition.rs line 112 in HEAD 34a9f5c2). The module name is stable across future additions or reordering of individual proof functions within the module.
+
+**Change made:**
+- §Architecture Anchors second bullet: `Kani proof harnesses at lines 148-224` replaced with `Kani proof harnesses in \`partition.rs::kani_proofs\` module (\`#[cfg(kani)] mod kani_proofs\`)`.
+- Frontmatter `version:` bumped `"1.9"` → `"1.10"`; `last_amended:` unchanged (2026-05-08, same date).
+
+**Source-of-truth verification (POLICY 4/5):** `grep -n "^#\[cfg(kani)\]" crates/factory-dispatcher/src/partition.rs` → line 111; `mod kani_proofs` → line 112. Module contains VP-077 proof harnesses: `proof_vp077_totality`, `proof_vp077_disjointness`, `proof_vp077_async_field_respected`. Module anchor is stable regardless of internal proof function count or reordering.
 
 ## Amendment 2026-05-08 (v1.8 → v1.9 — F5 fix-burst-2 F-P2-004: PC4 concurrent-reception clause corrected)
 

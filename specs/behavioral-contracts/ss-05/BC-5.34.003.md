@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -40,7 +40,7 @@ Terminal step `process-review-decisions` (line 555). Agent: state-manager. Depen
 
 ## Invariants
 
-1. Single terminal node on the primary track. (Three alternative sub-mode trees `feature_mode`, `bugfix_mode`, `maintenance_mode` defined separately at lines 575-731.)
+1. Single terminal node on the primary track. (Three alternative sub-mode trees `feature_mode`, `bugfix_mode`, `maintenance_mode` defined in `multi-repo.lobster` § sub-mode workflow trees — line range `575-731` cited intentionally as point-in-time evidence pending lobster section-stability verification.) <!-- F-P20-001: lobster-line-class deferred per pass-20 carve-out; line range preserved as source evidence -->
 
 ## Edge Cases
 
@@ -116,3 +116,13 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P20-001: §Invariants lobster line-range annotated with carve-out deferral)
+
+**Driver:** F-P20-001 pass-20 extended prose-form sweep — §Invariants cited `lines 575-731` referencing `multi-repo.lobster` sub-mode workflow trees. This is a lobster-file reference and falls under the pass-20 lobster-line-class carve-out exception (separate migration class pending lobster section-stability verification).
+
+**Change made:**
+- §Invariants item 1: line range `575-731` preserved as point-in-time evidence; file name `multi-repo.lobster` and logical section description (sub-mode workflow trees: `feature_mode`, `bugfix_mode`, `maintenance_mode`) added for reader navigability; HTML comment added citing F-P20-001 deferral.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`; `last_amended:` unchanged (2026-04-25, original extraction date — no structural change to behavioral content).
+
+**Source-of-truth verification (POLICY 4/5):** `grep -n "feature_mode\|bugfix_mode\|maintenance_mode" plugins/vsdd-factory/workflows/multi-repo.lobster` → lines 575, 654, 696 confirmed. Line range 575-731 spans all three sub-mode tree definitions.

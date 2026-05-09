@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.9"
+version: "1.10"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -234,6 +234,18 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
 
+## Amendment 2026-05-08 (v1.9 → v1.10 — F-P20-005: §Amendment v1.7→v1.8 grep-verification reworded for clarity)
+
+**Driver:** F-P20-005 — The grep verification line at the end of the §Amendment 2026-05-08 (v1.7→v1.8) block read "Symbol anchors are stable across future refactors," which was ambiguous: a reader could interpret the entire line (including `main.rs:139` and `main.rs:173`) as stable anchors rather than point-in-time evidence. The intent of the original author was that the symbol names are stable, while the line numbers are historical evidence only.
+
+**Change made:**
+- §Amendment 2026-05-08 (v1.7→v1.8) final line: added `"at amendment time"` qualifier and explicit disambiguation — line numbers are point-in-time evidence; symbol names (`RegistryError::AsyncBlockConflict` arm, catch-all `_ => 0` arm in `factory_dispatcher::main::run`) are the stable references.
+- Frontmatter `version:` bumped `"1.9"` → `"1.10"`.
+
+**NOTE:** This edit is inside the §Amendment v1.7→v1.8 block, which is exempt from the validate-stable-anchors hook. The embedded `main.rs:139` and `main.rs:173` cites are intentionally preserved as historical point-in-time evidence. No line numbers were added or removed; only the explanatory framing language was clarified.
+
+**POLICY 1 verification:** No content removed. The line numbers and symbol names are preserved verbatim; only the trailing sentence was reworded to add "at amendment time" and explicit disambiguation.
+
 ## Amendment 2026-05-08 (v1.8 → v1.9 — F-P14-005: §Fail-Closed Symmetry E-REG-003 wording clarified)
 
 **Driver:** F-P14-005 — §Fail-Closed Symmetry Across E-REG-NNN Error Codes E-REG-003 bullet had grammatically misleading wording. The phrase "silently exits 0; MUST exit 2 (F-P8-001 fix)" was written in present-tense defect language ("silently exits 0") even though the F-P8-001 fix was already in place as of that amendment. A reader encountering the BC post-fix could interpret the bullet as describing the current (broken) state rather than the resolved state.
@@ -268,7 +280,7 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 
 **POLICY 7 verification:** H1 heading unchanged.
 
-**grep verification (HEAD e5108a2):** `RegistryError::AsyncBlockConflict` arm at `main.rs:139`; catch-all `_ => 0` at `main.rs:173`. Symbol anchors are stable across future refactors.
+**grep verification (HEAD e5108a2 at amendment time):** `RegistryError::AsyncBlockConflict` arm at `main.rs:139`; catch-all `_ => 0` at `main.rs:173`. The line numbers above are point-in-time evidence captured at amendment time; the stable references for future readers are the symbol anchors (`RegistryError::AsyncBlockConflict` arm and catch-all `_ => 0` arm in `factory_dispatcher::main::run`), not the line numbers.
 
 ## Amendment 2026-05-08 (v1.6 → v1.7 — F-P9-001: stale sibling note cleaned; E-REG-002 violation string canonicalized)
 
