@@ -198,45 +198,65 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
     ctx.emit_internal(ev);
 }
 
-/// Emit `dispatcher.registry_invalid` event (BC-3.08.001 v1.7 / v1.8).
+/// Emit `dispatcher.registry_invalid` event for E-REG-002 (AsyncBlockConflict).
 ///
-/// Fired when a registry entry violates a load-time invariant.  The caller
-/// supplies the error code and violation string so this function can serve
-/// multiple invariant violations:
+/// E-REG-002 is an intra-entry violation (on_error=block AND async=true on the same plugin).
+/// No offending_event/offending_tool tuple applies — those fields are absent from the wire.
 ///
-/// - E-REG-002 / `"async_block_conflict"`: `on_error=block` + `async=true`
-///   coexistence invariant (BC-7.06.001 Invariant 1). Pass `event=None, tool=None`
-///   because the violation is intra-entry (no offending (event, tool) tuple).
-/// - E-REG-003 / `"duplicate_hook_registration"`: duplicate (name, event, tool)
-///   tuple (BC-7.06.001 Invariant 7, F-P8-001). Pass `event=Some(event_str)` and
-///   `tool=Some(tool_str)` (or `tool=None` for wildcard/"all tools" entries).
+/// # Required fields (BC-3.08.001 v1.8)
+/// - `offending_plugin`: name of the violating plugin
+/// - `violation`: human-readable violation kind (e.g. "async_block_conflict")
+/// - `error_code`: "E-REG-002"
 ///
-/// Required fields (BC-3.08.001 v1.8, BC-7.06.001 v1.8):
-/// - `offending_plugin`: name of the offending registry entry
-/// - `error_code`: caller-supplied error code string (e.g. `"E-REG-002"`)
-/// - `violation`: caller-supplied violation identifier string
+/// # BC traces
+/// - BC-3.08.001 v1.7 / v1.8 — event catalog
+/// - BC-1.14.001 Error Paths — registry invariant violations
+/// - BC-1.14.001 EC-008 — AsyncBlockConflict precondition
+/// - BC-7.06.001 v1.8 Invariants 1 + 7 — load-time invariant enforcement
+pub fn emit_registry_invalid_e_reg002(
+    ctx: &HostContext,
+    plugin_name: &str,
+    violation: &str,
+) {
+    let ev = InternalEvent::now("dispatcher.registry_invalid");
+    let ts = ev.ts.clone();
+    let ev = ev
+        .with_trace_id(&ctx.dispatcher_trace_id)
+        .with_session_id(&ctx.session_id)
+        .with_field("timestamp", ts.as_str())
+        .with_field("offending_plugin", plugin_name)
+        .with_field("violation", violation)
+        .with_field("error_code", "E-REG-002");
+    // E-REG-002 is intra-entry; offending_event/offending_tool fields are absent per BC-3.08.001 v1.8.
+    ctx.emit_internal(ev);
+}
+
+/// Emit `dispatcher.registry_invalid` event for E-REG-003 (DuplicateEntry).
 ///
-/// Conditional fields for E-REG-003 path (both always emitted when error_code == "E-REG-003"):
-/// - `offending_event`: the hook event that caused the duplicate
+/// E-REG-003 is an inter-entry violation (duplicate (name, event, tool) tuple). The wire payload
+/// includes the offending event and offending tool per BC-3.08.001 v1.8 mandatory field semantics.
+///
+/// # Required fields (BC-3.08.001 v1.8)
+/// - `offending_plugin`: name of the violating plugin
+/// - `violation`: human-readable violation kind (typically "duplicate_hook_registration")
+/// - `error_code`: "E-REG-003"
+/// - `offending_event`: the hook event that caused the duplicate (MANDATORY for E-REG-003)
 /// - `offending_tool`: the tool filter that caused the duplicate; emitted as JSON `null` when
-///   `tool=None` (wildcard/"all tools" binding) per BC-3.08.001 v1.8 mandatory field semantics
+///   `offending_tool=None` (wildcard/"all tools" binding) per BC-3.08.001 v1.8 mandatory field semantics
 ///
 /// # BC traces
 /// - BC-3.08.001 v1.7 / v1.8 — event catalog
 /// - BC-1.14.001 Error Paths — registry invariant violations
 /// - BC-7.06.001 v1.8 Invariants 1 + 7 — load-time invariant enforcement
 /// - F-P14-001 Path B — extend wire payload for E-REG-003
-pub fn emit_dispatcher_registry_invalid(
+pub fn emit_registry_invalid_e_reg003(
     ctx: &HostContext,
     plugin_name: &str,
-    error_code: &str,
     violation: &str,
-    event: Option<&str>,
-    tool: Option<&str>,
+    offending_event: &str,
+    offending_tool: Option<&str>,
 ) {
     let ev = InternalEvent::now("dispatcher.registry_invalid");
-    // BC-3.08.001 wire format: mandatory `trace_id` and `timestamp` fields (DI-017).
-    // `with_trace_id` now serializes as `"trace_id"` on the wire (BC-3.08.001 v1.7 Invariant 5).
     let ts = ev.ts.clone();
     let mut ev = ev
         .with_trace_id(&ctx.dispatcher_trace_id)
@@ -244,28 +264,13 @@ pub fn emit_dispatcher_registry_invalid(
         .with_field("timestamp", ts.as_str())
         .with_field("offending_plugin", plugin_name)
         .with_field("violation", violation)
-        .with_field("error_code", error_code);
-    // For E-REG-003 (DuplicateEntry), offending_event and offending_tool are MANDATORY per
-    // BC-3.08.001 v1.8 line 123. offending_tool is JSON null when the duplicating entry has
-    // no tool filter (wildcard "all tools"). For E-REG-002 (AsyncBlockConflict), event and
-    // tool are not applicable (intra-entry); fields are omitted.
-    if error_code == "E-REG-003" {
-        // event MUST be Some for E-REG-003; fall back to empty string only as defense-in-depth.
-        ev = ev.with_field("offending_event", event.unwrap_or(""));
-        // tool MAY be None (wildcard); emit as JSON null per BC-3.08.001 v1.8 mandatory field.
-        ev = match tool {
-            Some(t) => ev.with_field("offending_tool", t),
-            None => ev.with_field("offending_tool", Value::Null),
-        };
-    } else {
-        // E-REG-002 path or other: keep optional emission semantics (fields absent).
-        if let Some(ev_name) = event {
-            ev = ev.with_field("offending_event", ev_name);
-        }
-        if let Some(tool_name) = tool {
-            ev = ev.with_field("offending_tool", tool_name);
-        }
-    }
+        .with_field("error_code", "E-REG-003")
+        .with_field("offending_event", offending_event);
+    // offending_tool MAY be None (wildcard); emit as JSON null per BC-3.08.001 v1.8 mandatory field.
+    ev = match offending_tool {
+        Some(t) => ev.with_field("offending_tool", t),
+        None => ev.with_field("offending_tool", Value::Null),
+    };
     ctx.emit_internal(ev);
 }
 

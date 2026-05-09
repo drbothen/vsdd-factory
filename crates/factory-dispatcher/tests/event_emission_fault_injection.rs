@@ -36,8 +36,8 @@
 //! - AC-011, AC-012, AC-013, AC-014, AC-005 (S-15.01 v1.15)
 
 use factory_dispatcher::host::emit_event::{
-    emit_dispatcher_registry_invalid, emit_dispatcher_schema_mismatch,
-    emit_plugin_async_block_discarded, emit_plugin_timeout_async,
+    emit_registry_invalid_e_reg002, emit_registry_invalid_e_reg003,
+    emit_dispatcher_schema_mismatch, emit_plugin_async_block_discarded, emit_plugin_timeout_async,
 };
 use factory_dispatcher::registry::REGISTRY_SCHEMA_VERSION;
 
@@ -237,13 +237,10 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     // Scenario: entry "invalid-blocker" has on_error=block AND async=true.
     // Mandatory fields: type, trace_id, offending_plugin, violation, timestamp, error_code.
     // BC-3.08.001 v1.9: violation canonical string is "async_block_conflict".
-    emit_dispatcher_registry_invalid(
+    emit_registry_invalid_e_reg002(
         &ctx,
         "invalid-blocker",
-        "E-REG-002",
         "async_block_conflict",
-        None,
-        None,
     );
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
@@ -277,13 +274,10 @@ fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
     let ctx = make_test_ctx();
     // Verify the emitted event has offending_plugin = "bad-validator".
     // BC-3.08.001 v1.9: violation canonical string is "async_block_conflict".
-    emit_dispatcher_registry_invalid(
+    emit_registry_invalid_e_reg002(
         &ctx,
         "bad-validator",
-        "E-REG-002",
         "async_block_conflict",
-        None,
-        None,
     );
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1);
@@ -324,12 +318,11 @@ fn test_BC_3_08_001_vp079_s8_duplicate_entry_emits_offending_event_and_tool() {
     let ctx = make_test_ctx();
     // Fixture: duplicate (name="duplicate-test", event="PreToolUse", tool="Bash").
     // F-P14-001 Path B: offending_event = Some("PreToolUse"), offending_tool = Some("Bash").
-    emit_dispatcher_registry_invalid(
+    emit_registry_invalid_e_reg003(
         &ctx,
         "duplicate-test",
-        "E-REG-003",
         "duplicate_hook_registration",
-        Some("PreToolUse"),
+        "PreToolUse",
         Some("Bash"),
     );
     let events = ctx.drain_events();
@@ -377,12 +370,11 @@ fn test_BC_3_08_001_v1_9_E_REG_003_wildcard_offending_tool_emits_null() {
     let ctx = make_test_ctx();
     // Fixture: duplicate (name="wildcard-plugin", event="PreToolUse"), NO tool filter.
     // F-P15-002: offending_tool MUST be JSON null (not absent) per BC-3.08.001 v1.9.
-    emit_dispatcher_registry_invalid(
+    emit_registry_invalid_e_reg003(
         &ctx,
         "wildcard-plugin",
-        "E-REG-003",
         "duplicate_hook_registration",
-        Some("PreToolUse"),
+        "PreToolUse",
         None, // wildcard — no tool filter
     );
     let events = ctx.drain_events();
@@ -435,13 +427,10 @@ fn test_BC_3_08_001_vp079_s3_async_block_conflict_omits_offending_event_tool() {
     let ctx = make_test_ctx();
     // E-REG-002 / AsyncBlockConflict: event and tool are not applicable.
     // Passing None, None — fields must be absent or null in the wire payload.
-    emit_dispatcher_registry_invalid(
+    emit_registry_invalid_e_reg002(
         &ctx,
         "invalid-blocker",
-        "E-REG-002",
         "async_block_conflict",
-        None,
-        None,
     );
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
