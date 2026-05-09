@@ -263,17 +263,26 @@ mod kani_proofs_vp070 {
     }
 
     /// VP-070 Proof 2: Non-.factory/ paths must return MatchResult::NoMatch.
+    /// "Non-.factory/" means neither a relative .factory/ path (starts_with(".factory/"))
+    /// nor an absolute path whose components include .factory/ (contains("/.factory/")).
+    /// After 8b4f697f introduced absolute-path matching, the prior assumption
+    /// `!starts_with(".factory/")` was insufficient — an absolute path like
+    /// `/abs/proj/.factory/specs/foo.md` passed the assume but produced Block, not NoMatch.
+    /// (F-P19-002)
     #[kani::proof]
     #[kani::unwind(16)]
     fn proof_vp070_non_factory_path_always_returns_nomatch() {
         let path: String = kani::any();
         kani::assume(path.len() <= 64);
-        kani::assume(!path.starts_with(".factory/"));
+        kani::assume(
+            !path.starts_with(".factory/")
+                && !path.contains("/.factory/"),
+        );
         let registry = make_single_entry_block_registry();
         let decision = matches_canonical(&path, &registry);
         kani::assert(
             matches!(decision, MatchResult::NoMatch),
-            "VP-070 Proof 2: non-.factory/ path must always return MatchResult::NoMatch \
+            "VP-070 Proof 2: genuinely out-of-scope paths must always return MatchResult::NoMatch \
              (BC-4.11.001 PC7 — hook scoped to .factory/ only)",
         );
     }

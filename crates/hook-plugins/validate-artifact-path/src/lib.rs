@@ -585,12 +585,19 @@ mod kani_proofs {
     }
 
     /// VP-070 Proof 2: Non-.factory/ paths must return MatchResult::NoMatch (never Block).
+    /// "Non-.factory/" means neither a relative .factory/ path nor an absolute path whose
+    /// components include .factory/ (e.g. /abs/proj/.factory/specs/foo.md).
+    /// After 8b4f697f introduced absolute-path matching, starts_with(".factory/") alone
+    /// was insufficient — tighten to also exclude contains("/.factory/").
     #[kani::proof]
     #[kani::unwind(16)]
     fn proof_vp070_non_factory_path_returns_nomatch() {
         let path: String = kani::any();
         kani::assume(path.len() <= 64);
-        kani::assume(!path.starts_with(".factory/"));
+        kani::assume(
+            !path.starts_with(".factory/")
+                && !path.contains("/.factory/"),
+        );
 
         let entry = RegistryEntry {
             artifact_type: "test-artifact".to_string(),
