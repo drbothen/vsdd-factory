@@ -1350,3 +1350,72 @@ Three sub-bursts. State-manager ran last per POLICY 3.
 - L-P21-001 codified [codified]
 - L-P21-002 codified [codified]
 - burst-log retroactive correction for fix-burst-19 sub-burst 2 (ARCH-INDEX v1.24 row was missing)
+
+---
+
+## Fix-burst-21 — pass-22 HIGH verdict + sub-bursts 1–4 close
+
+**Date:** 2026-05-08
+**Dispatchers:** orchestrator → spec-writer → state-manager (POLICY 3 run-last)
+**Phase:** F5 ADVERSARIAL — pass-22
+
+### Pass-22 Verdict
+
+**Verdict: HIGH** — F-P22-001 (corpus-wide lobster-line-cite sweep — 88 BCs in ss-05 missing carve-out; broadest single-class sweep yet, applying L-P19-001 + L-P20-001 at full semantic scope), F-P22-002 (BC-1.14.001 v1.10 fabricated symbols: RegistryEntry.async_flag, executor.rs::execute_tiers, executor.rs::spawn_async_plugin; L-P21-001 retroactive sweep found 7 additional fabrications: BC-1.07.005, BC-1.07.006, edge-cases.md, domain-events.md, VP-016, VP-043). F-P22-003/004/005 E-12 v1.0→v1.3 fixes + L-P21-002 retroactive sweep on 9 stories under E-12. ADR-013 clock: 0_of_3 (RESET — HIGH). Strategic note: 5 consecutive HIGH passes (P18–P22).
+
+### Sub-burst 1: F-P22-001 — 88 BCs ss-05 lobster-line-cite sweep (87dd64aa, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Change |
+|------|--------|
+| 88 BCs in ss-05/ | v1.1 → v1.2 — lobster-line-cite carve-out HTML comment added per L-P19-001+L-P20-001 FULL semantic scope |
+
+- F-P22-001 closed (88 BCs swept — broadest single-burst lobster sweep in F5 cycle)
+
+### Sub-burst 2: F-P22-002 + L-P21-001 retroactive sweep (2ea5ee5a, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-1.14.001 | v1.10 → v1.11 | F-P22-002: fabricated symbols removed (RegistryEntry.async_flag, executor.rs::execute_tiers, executor.rs::spawn_async_plugin) |
+| BC-1.07.005 | v1.0 → v1.1 | L-P21-001 retroactive: fabricated symbol fix |
+| BC-1.07.006 | v1.0 → v1.1 | L-P21-001 retroactive: fabricated symbol fix |
+| edge-cases.md | v? → v? | L-P21-001 retroactive: fabricated symbol fix |
+| domain-events.md | v? → v? | L-P21-001 retroactive: fabricated symbol fix |
+| VP-016 | v1.0 → v1.1 | L-P21-001 retroactive: fabricated symbol fix |
+| VP-043 | v1.0 → v1.1 | L-P21-001 retroactive: fabricated symbol fix |
+
+- F-P22-002 closed (BC-1.14.001 cycle-anchor fabricated symbols corrected)
+- L-P21-001 retroactive: 7 additional fabricated symbols fixed across 7 files
+
+### Sub-burst 3: F-P22-003/004/005 + L-P21-002 retroactive sweep (56f0b883, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| E-12 epic | v1.0 → v1.3 | F-P22-003/004/005: corrections closed; L-P21-002 retroactive sweep on 9 stories under E-12 |
+| 9 stories under E-12 | various | L-P21-002 retroactive: epic anchor + subsystems alignment verified/corrected |
+
+- F-P22-003/004/005 closed (E-12 v1.3)
+- L-P21-002 retroactive sweep on 9 E-12 stories complete
+
+### Sub-burst 4: indexes + lessons + state (this burst, factory-artifacts)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-INDEX | v1.45 → v1.46 | 88 ss-05 BCs + BC-1.14.001 v1.11 + BC-1.07.005/006 v1.1 recorded |
+| VP-INDEX | v1.29 → v1.30 | VP-016 v1.1 + VP-043 v1.1 (L-P21-001 retroactive) |
+| ARCH-INDEX | v1.25 → v1.26 | BC-INDEX cite refreshed v1.45→v1.46 (L-P20-002 same-burst discipline) |
+| STORY-INDEX | v2.51 → v2.52 | E-12 v1.3 amendment recorded |
+| tech-debt-register.md | — | TD-031 updated: fix-burst-21 commits recorded (87dd64aa, 2ea5ee5a, 56f0b883) |
+| lessons.md | — | L-P22-001 codified: 5-pass HIGH streak — prose-only structurally non-convergent; MUST implement S-15.03 |
+| STATE.md | — | fix-burst-21 closed; ADR-013 0_of_3; pass-23 next; HALT-CONSIDERATION strategic note |
+| burst-log.md | — | fix-burst-21 entries (this entry) |
+
+- L-P22-001 codified [codified]
+- Fix-burst-21 COMPLETE — largest fix-burst in F5 cycle (91 BC bumps + 7 fabrication corrections + E-12 v1.3)

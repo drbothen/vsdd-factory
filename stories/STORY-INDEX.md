@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.51"
+version: "2.52"
 status: current
 producer: state-manager
 timestamp: 2026-05-08T00:00:00Z
-last_amended: "2026-05-08 (v2.51) — F5 fix-burst-20. S-15.03 re-anchored E-15 → E-12 per F-P21-003 (governance/discipline scope, not plugin async); subsystems [SS-04] → [SS-01, SS-04]. story_count unchanged (93). STORY-INDEX v2.50→v2.51."
+last_amended: "2026-05-08 (v2.52) — F5 fix-burst-21. E-12 epic v1.0→v1.3 (F-P22-003/004/005 + L-P21-002 retroactive sweep on 9 stories under E-12; sub-burst 3 56f0b883). story_count unchanged (93). STORY-INDEX v2.51→v2.52."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -46,6 +46,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > Updated 2026-05-05: D-263 — STORY-INDEX bumped to reflect D-263 combined implementation-readiness seal-and-fix burst (ninth TD-VSDD-064 application; TD-VSDD-074 codified — TD-VSDD-073 scope extension to BCs cited in amendment landings). Pass-20 SUBSTANTIVE 0H/2M/2L sealed. M-P20-001 closed (OQ-3 pinned `timeout_ms = 30000` + `max_output_bytes = 65536`). M-P20-002 + L-P20-002 closed (BC-1.05.036 ADR-015 awareness clause + error-path reality). BC-1.05.035 + BC-1.05.036 gained `last_amended: 2026-05-05`. L-P20-001 SKIPPED with rationale. E-9 v1.20→v1.21. ADR-013 clock 1→0_of_3 RESET. STORY-INDEX v1.69 → v1.70.
 > Updated 2026-05-05: D-264 — STORY-INDEX bumped to reflect D-264 multi-fix burst (tenth TD-VSDD-064 application; TD-VSDD-075 codified — source-code-verification + dependent-citation-propagation disciplines). Pass-21 SUBSTANTIVE 2H/3M/2L sealed. H-P21-001 BC-1.05.036 error codes -7/-8→-2/-3 (source-code verified). H-P21-002 open-questions.md line citation 325→326. M-P21-001 BC-1.05.035 ADR-015 awareness. M-P21-002 BC-1.05.036 host category corrected. M-P21-003 truncated:bool reserved semantics. 2 LOWs DEFERRED. E-9 v1.21→v1.22. ADR-013 clock 0_of_3. STORY-INDEX v1.70 → v1.71.
 > Updated 2026-05-05: D-270 — STORY-INDEX bumped to reflect D-270 combined silence-audit seal-and-fix burst (fourteenth TD-VSDD-064 application). Pass-27 SUBSTANTIVE 1H/1M/0L sealed (negative-coverage / silence audit angle NEW per TD-VSDD-057). H-P27-001 closed (BC-1.05.036:51 stale "file/datadog/honeycomb per config" multi-sink wording replaced with ADR-015 D-15.1 single-stream FileSink; source-truth verified ADR-015 lines 99/130/154). M-P27-001 closed (Postcondition 5 INTERNAL_ERROR (-99) enumeration added; 5 source-code line citations exec_subprocess.rs:252/258/262/267-268/299; const mod.rs:184). E-9 v1.25→v1.26. ADR-013 clock RESET 0_of_3. STORY-INDEX v1.76 → v1.77.
+> Updated 2026-05-08: F5 fix-burst-21 — STORY-INDEX bumped to v2.52. E-12 epic v1.0→v1.3 (F-P22-003/004/005 closed + L-P21-002 retroactive sweep on 9 stories under E-12 per sub-burst 3 56f0b883). story_count unchanged (93). STORY-INDEX v2.51→v2.52.
 > Updated 2026-05-08: F5 fix-burst-20 — STORY-INDEX bumped to v2.51. S-15.03 re-anchored E-15 → E-12 per F-P21-003 (governance/discipline scope, not plugin async); subsystems [SS-04] → [SS-01, SS-04]. S-15.03 v1.0→v1.1 (§Anchor Justification + §Amendment added). story_count unchanged (93). STORY-INDEX v2.50→v2.51.
 
 > Updated 2026-05-08: F5 fix-burst-19 — STORY-INDEX bumped to v2.50. S-15.03 stub filed (draft, v1.0; ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification; E-15; SS-04; M size; P2; extracted from F5 pass-20 process-gap; ADR-013 chain blockers P18-001/P19-001/P20-002 codified-not-enforced recurrence). story_count 92→93. STORY-INDEX v2.49→v2.50.

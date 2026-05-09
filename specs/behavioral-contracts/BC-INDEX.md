@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.45"
+version: "1.46"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "v1.46 (2026-05-08): F-P22-001 corpus-wide lobster-line-cite sweep (88 BCs in ss-05 v1.1→v1.2; carve-out per L-P19-001+L-P20-001 broadest scope yet); F-P22-002 BC-1.14.001 v1.10→v1.11 cycle-anchor fabricated symbols fix (RegistryEntry.async_flag, executor.rs::execute_tiers, executor.rs::spawn_async_plugin); L-P21-001 retroactive sweep BC-1.07.005/BC-1.07.006 v1.0→v1.1 (additional fabrications). Fix-burst-21 commits: 87dd64aa, 2ea5ee5a, 56f0b883."
   - date: 2026-05-08
     change: "F5 fix-burst-20 indexes (2026-05-08) — BC-5.34.004 v1.1→v1.2 (F-P21-001 primary: lobster carve-out HTML comment added); BC-5.30.004 v?→v1.2 (retroactive lobster-class sweep — carve-out HTML comment added); BC-5.31.002 v?→v1.2 (retroactive lobster-class sweep); BC-5.31.003 v?→v1.2 (retroactive lobster-class sweep); BC-5.31.005 v?→v1.2 (retroactive lobster-class sweep); BC-5.32.005 v?→v1.2 (retroactive lobster-class sweep); BC-5.33.005 v?→v1.2 (retroactive lobster-class sweep); BC-5.33.031 v?→v1.2 (retroactive lobster-class sweep); BC-5.34.005 v?→v1.2 (retroactive lobster-class sweep); BC-5.35.005 v?→v1.2 (retroactive lobster-class sweep). 10 BCs total. No count change. BC-INDEX v1.44→v1.45. Refs: F-P21-001, fix-burst-20 sub-burst 1. last_amended: 2026-05-08 (F5 fix-burst-20: 10 BCs v1.2 lobster carve-out sweep; F-P21-001 closed)."
   - date: 2026-05-08

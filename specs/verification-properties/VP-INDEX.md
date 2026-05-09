@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.29"
+version: "1.30"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00Z
@@ -9,6 +9,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-08
+    change: "v1.30 (2026-05-08): L-P21-001 retroactive sweep — VP-016 v1.0→v1.1 (fabricated symbol fix); VP-043 v1.0→v1.1 (fabricated symbol fix). No VP count change. VP-INDEX v1.29→v1.30. Ref: L-P21-001, fix-burst-21 sub-burst 2 (2ea5ee5a)."
   - date: 2026-05-08
     change: "F5 fix-burst-18 indexes (2026-05-08) — VP-070 v1.1→v1.2 (F-P19-002: Kani Proof 2 assumption tightened to exclude both relative and absolute .factory/ paths in 3 locations — lib.rs:593, kani_path_matching.rs:271, VP-070.md:103). No VP count change. VP-INDEX v1.28→v1.29. Ref: F-P19-002, fix-burst-18 sub-burst 1. last_amended: 2026-05-08 (F5 fix-burst-18: VP-070 v1.2; F-P19-002 closed)."
   - date: 2026-05-08

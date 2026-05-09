@@ -230,6 +230,30 @@ combinable with S-15.03 hook scope.)
 
 ---
 
+## F5 pass-22 process-gap findings (2026-05-08)
+
+### L-P22-001 [codified]: Five-pass HIGH streak — prose-only codification is structurally non-convergent
+
+**Source:** F5 cycle pattern observation — fix-burst-21 sub-burst 4.
+
+The F5 cycle has produced 5 consecutive HIGH passes (P18-001, P19-001, P20-001/002, P21-001, P22-001) all from the same recurrence-of-codified-lesson-applied-too-narrowly pattern:
+
+- fix-burst-17 codified L-P18-002, applied literally → P19-001 sibling
+- fix-burst-18 codified L-P19-001, applied retroactively → P20-001 sibling (singular vs plural)
+- fix-burst-19 codified L-P20-001 + L-P20-002, applied within burst → P21-001 sibling (range vs single-line)
+- fix-burst-20 applied F-P21-001 fix to 10 BCs + codified L-P21-001/002 → P22-001 88 sibling BCs + P22-002 cycle-anchor fabricated symbols
+- fix-burst-21 applied broadest sweep yet (88 BCs + 7 additional fabrications via L-P21-001 retroactive) → pass-23 awaited
+
+Empirical observation: each lesson codifies a slightly broader rule, but the same-burst retroactive application is bounded by the human author's grep query at codification time. The next adversary pass uses a different query class and finds new sibling instances.
+
+**Strategic conclusion:** prose-only codification is structurally insufficient for sibling-class sweep discipline. **MUST implement S-15.03 (mechanical hook enforcement)** to break the recurrence pattern. Continued prose-only iteration has expected value below the cost of the hook implementation.
+
+**Process directive:** if pass-23 also produces HIGH from a sibling-class recurrence, the F5 chain MUST halt and the orchestrator MUST surface the strategic decision (halt-and-implement-S-15.03) to the user before pass-24 dispatch.
+
+[codified] — fix-burst-21 sub-burst 4.
+
+---
+
 ### L-P21-002 [codified]: Story epic anchor must match epic title and subsystems_affected
 
 **Source:** F-P21-003 (process-gap)
