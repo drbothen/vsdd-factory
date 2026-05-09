@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "fix-burst-28 closed (VP-074 + arithmetic + verification blocks); pass-30 next; ADR-013 0_of_3"
+current_step: "fix-burst-29 closed (STATE.md count fixes + L-P28-001 META amendment + S-15.03 deferral); pass-31 next; ADR-013 0_of_3"
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 (fix-burst-28 closed: VP-074 v1.0→v1.1 proof_method fix + STATE.md arithmetic + L-P26-002 verification block + VP-070 last_amended; pass-30 next; ADR-013 0_of_3) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-29 verdict: HIGH (F-P29-001..004); fix-burst-28 complete |
+| **Last Updated** | 2026-05-09 (fix-burst-29 closed: ADR count 19→20 + L-P28-001 META-META amendment + E-10 annotation + TD-032 + STATE.md compact; pass-31 next; ADR-013 0_of_3) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-30 verdict: HIGH (F-P30-001..004); fix-burst-29 complete |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,8 +76,8 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-29 HIGH; fix-burst-28 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–29 + fix-bursts 1–28 complete. Pass-29: HIGH (F-P29-001..004). Fix-burst-28: VP-074 v1.0→v1.1 (proof_method kani→kani-proof; L-P28-001 META self-application fix) + STATE.md arithmetic + L-P26-002 verification block (21 stories) + VP-070 last_amended + VP-INDEX v1.37 + TD-031 updated. ADR-013 0_of_3. Pass-30 next. |
-| **STRATEGIC NOTE** | User directive: continue protocol. 12-pass HIGH streak; fix-burst-28 closed F-P29-001..004. F-P29-001 was META self-application failure of L-P28-001 (VP-074 missed by fix-burst-27 sweep). ADR-013 0_of_3 (RESET — pass-29 HIGH). |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-30 HIGH; fix-burst-29 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–30 + fix-bursts 1–29 complete. Pass-30: HIGH (F-P30-001..004; 1 HIGH only — trajectory bending toward NIT). Fix-burst-29: ADR count 19→20 + L-P28-001 META-META amendment + E-10 annotation + TD-032 (F-P30-004 subsystem drift deferred S-15.03) + STATE.md compact. ADR-013 0_of_3. Pass-31 next. |
+| **STRATEGIC NOTE** | User directive: continue protocol. 13-pass HIGH streak; fix-burst-29 closed F-P30-001..004. Pass-30 had only 1 HIGH (vs 2-3 in prior passes) — severity downgrading. ADR-013 0_of_3 (RESET — pass-30 HIGH). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -89,15 +89,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| *(passes 1–22 + fix-bursts 1–21 archived to cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md)* | | | |
-| **F5 pass-23 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P23-001..004). F-P23-001 27 ss-05 double-backtick variant missed; F-P23-002 cross-subsystem scope gap; F-P23-003 BC-1.07.005/006 3 cite sites still fabricated; F-P23-004 L-P21-001 disposition update. ADR-013: 0_of_3. 6 consecutive HIGH. |
-| **F5 fix-burst-22 — broadest sweep (9ebd5c31) + BC-1.07.005/006 rebrand (60072605) + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.48, VP-INDEX v1.31, ARCH-INDEX v1.28, STORY-INDEX v2.52. L-P23-001 + L-P23-002 codified. |
-| **F5 pass-24 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P24-001..005). F-P24-001 VP-043 propagation gap; F-P24-002 BC-7.06.001 sibling; F-P24-003 S-15.01 sibling; F-P24-004 E-15 NEW sibling; F-P24-005 bc-id-mapping carve-out. ADR-013: 0_of_3. 7 consecutive HIGH. |
-| **F5 fix-burst-23 — corpus audit (3576f1a6) + VP-043 propagation (78977e26) + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.49, VP-INDEX v1.32, ARCH-INDEX v1.29, STORY-INDEX v2.53. L-P24-001 + L-P24-002 codified. F-P24-005 carve-out. |
-| **F5 pass-25 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P25-001..007). ADR-019 v1.11, BC-3.08.001 v1.13, VP-077 v1.12, VP-079 v1.17, S-15.01 post-merge retrofit (O-P25-002), F1-delta carve-out (F-P25-007). ADR-013: 0_of_3. 8 consecutive HIGH. |
-| **F5 fix-burst-24 — F-P25 sweep (609cae4f) + post-merge retrofit + F1 carve-out + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.50, VP-INDEX v1.33, ARCH-INDEX v1.30, STORY-INDEX v2.54. L-P25-001 + L-P25-002 codified. |
-| **F5 pass-26 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P26-001..007). F-P26-001 PluginEntry → RegistryEntry (12 sites); F-P26-007 harness skeleton tuple; F-P26-002/003/004/005 post-merge frontmatter retrofit gaps; F-P26-006 codifying-burst sweep discipline. ADR-013: 0_of_3. 9 consecutive HIGH. |
-| **F5 fix-burst-25 — PluginEntry sweep (4c386236) + post-merge retrofit (a2c390cd) + L-P26-001/002 lessons + indexes+state** | spec-writer + state-manager | **DONE** | VP-INDEX v1.34, STORY-INDEX v2.55. L-P26-001 + L-P26-002 codified. F-P26-001..007 closed. |
+| *(passes 1–26 + fix-bursts 1–25 archived to cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md)* | | | |
 | **F5 pass-27 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P27-001..007). F-P27-001: 56 stories missing frontmatter; F-P27-002: 16 lessons missing verification blocks; F-P27-003: 56 merged stories §Tasks unannotated; F-P27-004: L-P25-002 F1-amendment scope; F-P27-005: VP-INDEX kani vs kani-proof; F-P27-006: L-P26-002 migration clause; F-P27-007: BC-INDEX last_amended backfill. ADR-013: 0_of_3. 10 consecutive HIGH. |
 | **F5 fix-burst-26 sub-burst 1 (4c26e809) — F-P27-001 historic frontmatter retrofit** | state-manager | **DONE** | 56 stories: 18 migrated from legacy `pr: NN`, 38 backfilled missing metadata. F-P27-001 closed. |
 | **F5 fix-burst-26 sub-burst 2 — META-META closure (F-P27-002..007)** | state-manager | **DONE** | 56 stories POST-MERGE annotated; 16 lessons verification blocks; L-P25-002 scope expanded; VP-INDEX v1.35 (kani-proof); L-P26-002 migration clause; BC-INDEX v1.51 (last_amended backfill). ARCH-INDEX v1.31, STORY-INDEX v2.56. F-P27-002..007 closed. |
@@ -105,7 +97,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-27 (bc7ae728 + 7b841eca + this commit)** | spec-writer + state-manager | **DONE** | Sub-burst 1 (bc7ae728): VP-070.md v1.2→v1.3 + VP-071.md v1.2→v1.3 source frontmatter proof_method kani→kani-proof. Sub-burst 2 (this): VP-INDEX v1.36 + L-P28-001 codified + L-P26-002 sentinel + TD-031 recorded + STATE.md. F-P28-001..005 closed. |
 | **F5 pass-29 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P29-001..004). F-P29-001 VP-074 proof_method kani (META); F-P29-002 STATE.md arithmetic; F-P29-003 L-P26-002 verification block; F-P29-004 VP-070 last_amended. ADR-013: 0_of_3. 12 consecutive HIGH. |
 | **F5 fix-burst-28 — VP-074 + arithmetic + L-P26-002 verification block + VP-070 last_amended** | state-manager | **DONE** | VP-074 v1.0→v1.1, VP-070 last_amended added, VP-INDEX v1.37, STATE.md arithmetic reconciled, L-P26-002 verification block (21 stories). TD-031 updated. F-P29-001..004 closed. |
-| **F5 pass-30 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 12 consecutive HIGH passes. |
+| **F5 pass-30 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P30-001..004). F-P30-001 ADR count 19→20; F-P30-002 L-P28-001 stale verification block; F-P30-003 STATE.md historic 1931 annotation; F-P30-004 subsystem format drift (deferred). ADR-013: 0_of_3. 13 consecutive HIGH. Note: 1 HIGH only (vs 2-3 prior passes) — trajectory bending toward NIT. |
+| **F5 fix-burst-29 — STATE.md ADR count + L-P28-001 META amendment + E-10 annotation + TD-032 + compact** | state-manager | **DONE** | F-P30-001..004 closed/deferred. STATE.md compacted (passes 23-26 archived). TD-032 added (subsystem format drift; S-15.03 scope). L-P28-001 META-META closure. |
+| **F5 pass-31 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 13 consecutive HIGH passes. |
 
 ## Identifier Conventions
 
@@ -119,7 +113,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | Domain Event | DE-NNN | `specs/domain-spec/domain-events.md` | 22 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 88 file-resident + 15 unauthored stub IDs |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 15 |
-| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 19 |
+| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 20 |
 
 ## Story Status (88 file-resident + 15 unauthored stub IDs = 103 registered — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14/E-15 registered; E-12 F3-amendment 6 stories added D-366; S-15.01 MERGED PR #106 453eee1 2026-05-08; S-15.02 added draft 2026-05-08; S-15.03 stub filed fix-burst-19 then re-anchored E-15→E-12 fix-burst-20 per F-P21-003)
 
@@ -148,7 +142,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–29 + fix-bursts 1–28 complete. Pass-29 HIGH (F-P29-001..004). Fix-burst-28: VP-074 proof_method + arithmetic + L-P26-002 verification block + VP-070 last_amended + VP-INDEX v1.37. ADR-013 0_of_3. User directive: continue protocol. Pass-30 next. PR held until 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–30 + fix-bursts 1–29 complete. Pass-30 HIGH (F-P30-001..004; 1 HIGH only — bending toward NIT). Fix-burst-29: ADR count + L-P28-001 META-META + E-10 annotation + TD-032 + STATE.md compact. ADR-013 0_of_3. User directive: continue protocol. Pass-31 next. PR held until 3_of_3. |
 
 ## Decisions Log
 
@@ -178,9 +172,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — fix-burst-28 closed (state-manager POLICY 3 run-last). Pass-29 HIGH (F-P29-001..004). Fix-burst-28: F-P29-001 VP-074.md v1.0→v1.1 frontmatter proof_method kani→kani-proof (L-P28-001 META self-application fix — VP-074 was the last remaining kani instance missed by fix-burst-27). F-P29-002 STATE.md story arithmetic reconciled (Partial (2): S-2.05 + S-3.04; Draft 23 file-resident + 15 unauthored stub IDs documented). F-P29-003 L-P26-002 sentinel sub-rule verification block added (21 pre-PR-6 stories confirmed with merged_in: none). F-P29-004 VP-070.md last_amended: 2026-05-09 added (sibling parity with VP-071). VP-INDEX v1.36→v1.37. TD-031 updated. BC-INDEX v1.51, VP-INDEX v1.37, STORY-INDEX v2.56, ARCH-INDEX v1.31. ADR-013 0_of_3 (RESET — pass-29 HIGH). Pass-30 next.
+**Last update:** 2026-05-09 — fix-burst-29 closed (state-manager POLICY 3 run-last). Pass-30 HIGH (F-P30-001..004; 1 HIGH only — severity downgrading, trajectory bending toward NIT). Fix-burst-29: F-P30-001 STATE.md ADR count 19→20 (ADR-020 added 2026-05-08; count not bumped across multiple fix-bursts). F-P30-002 L-P28-001 META-self-application verification block appended (fix-burst-28 META-META acknowledgment; VP-074 closure recorded). F-P30-003 STATE.md historic E-10 line annotated "total_bcs 1931 at D-313 (now 1947)". F-P30-004 deferred → TD-032 (subsystem field format drift; S-15.03 scope). STATE.md compacted: passes 23-26 + fix-bursts 22-25 archived to burst-log. TD-031 updated (13-pass streak). BC-INDEX v1.51, VP-INDEX v1.37, STORY-INDEX v2.56, ARCH-INDEX v1.31. ADR-013 0_of_3 (RESET — pass-30 HIGH). Pass-31 next.
 
-**ACTIVE STEP: Pass-30 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 12 consecutive HIGH passes.**
+**ACTIVE STEP: Pass-31 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 13 consecutive HIGH passes.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 7b841eca — long-lived; 39 commits ahead of develop; no PR until 3_of_3
@@ -192,7 +186,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 **ADR-013 clock:** **0_of_3** (RESET — pass-29 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
-**E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931); finding trend 22→11→16→16→12→2→1→4
+**E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931 at D-313 (now 1947)); finding trend 22→11→16→16→12→2→1→4
 **5 user-locked decisions:** (1) envelope sync, (2) no backwards compat, (3) no phased rollout, (4) ASYNC_DRAIN_WINDOW_MS=100ms, (5) WASM-only. Full text in F4-handoff.md §3.
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID; delete: `git push origin :refs/tags/v1.0.0-rc.13`
 **F-7 + F-8:** deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.

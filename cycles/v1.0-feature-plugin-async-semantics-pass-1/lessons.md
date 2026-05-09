@@ -533,3 +533,10 @@ Each has `merge_sha:` populated with the actual commit SHA. The sentinel rule is
 **Verified retroactively in fix-burst-27 sub-burst 1 (bc7ae728) and sub-burst 2:**
 - VP-070.md:17 + VP-071.md:17 patched in fix-burst-27 sub-burst 1 (commit `bc7ae728`). VP-INDEX rows already correct.
 - Audit of other field-value drift classes — none found in spot-check of `subsystem:`, `status:`, `priority:` fields across BC/VP/Story corpus.
+
+**Verified retroactively in fix-burst-29 sub-burst 2 (META self-application closure):**
+F-P29-001 (pass-29) discovered VP-074.md:19 was a 3rd `proof_method: kani` instance missed by the original fix-burst-27 grep. Fix-burst-28 (df16b237) closed VP-074 (v1.0→v1.1). Post-fix grep `^proof_method: kani$ .factory/specs/verification-properties/` returns 0 active matches.
+
+The original spot-check audit was incomplete — the corpus-wide grep mandated by this lesson's own rule was NOT executed for `proof_method:` itself when the verification block was authored. Pass-29 caught the gap; fix-burst-28 closed it; fix-burst-29 records the META-META acknowledgment.
+
+F-P30-002 closure.

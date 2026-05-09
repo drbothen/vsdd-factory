@@ -1828,3 +1828,54 @@ User directive: continue protocol.
 - F-P29-003 closed (L-P26-002 verification block added; 21 stories confirmed)
 - F-P29-004 closed (VP-070 `last_amended: 2026-05-09` added)
 - Fix-burst-28 COMPLETE — F-P29-001..004 all closed; 12-pass HIGH streak; pass-30 next
+
+---
+
+## Pass-30 adversary review + Fix-burst-29
+
+### Pass-30 adversary review
+
+**Date:** 2026-05-09
+**Agent:** adversary
+**Verdict:** HIGH — 13th consecutive HIGH. ADR-013 RESET to 0_of_3.
+
+Note: First downgrade in pattern severity — only 1 HIGH (vs 2-3 in prior passes). Trajectory bending toward NIT.
+
+| Finding | Severity | Description |
+|---------|----------|-------------|
+| F-P30-001 | HIGH | STATE.md ADR count 19 — actual is 20 (ADR-020 added 2026-05-08; count not bumped across subsequent fix-bursts) |
+| F-P30-002 | MEDIUM | L-P28-001 verification block stale — claims "spot-check ... none found" but VP-074 was missed and discovered in pass-29 |
+| F-P30-003 | MEDIUM | STATE.md E-10 BC authorship line says total_bcs 1931 but actual is 1947 |
+| F-P30-004 | MEDIUM | Subsystem field format drift — 564 BCs use bare `subsystem: SS-NN`; deferred to S-15.03 scope |
+
+### Fix-burst-29
+
+**Date:** 2026-05-09
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| `STATE.md` | — | F-P30-001: ADR count 19→20. F-P30-003: E-10 line annotated "total_bcs 1931 at D-313 (now 1947)". current_step updated. Session Resume Checkpoint updated. Current Phase Steps compacted (passes 23-26 + fix-bursts 22-25 archived to burst-log). |
+| `lessons.md` | — | F-P30-002: L-P28-001 META-self-application verification block appended (fix-burst-28 META-META acknowledgment; VP-074 closure recorded). |
+| `tech-debt-register.md` | — | TD-031: fix-burst-29 follow-up appended (13-pass HIGH streak noted). TD-032 added: subsystem field format drift class (564 BCs; deferred S-15.03 scope). |
+| `burst-log.md` | — | pass-30 + fix-burst-29 entries (this entry). Archived STATE.md Current Phase Steps passes 23-26 + fix-bursts 22-25. |
+
+**Archived Current Phase Steps (passes 23–26 + fix-bursts 22–25):**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| **F5 pass-23 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P23-001..004). F-P23-001 27 ss-05 double-backtick variant missed; F-P23-002 cross-subsystem scope gap; F-P23-003 BC-1.07.005/006 3 cite sites still fabricated; F-P23-004 L-P21-001 disposition update. ADR-013: 0_of_3. 6 consecutive HIGH. |
+| **F5 fix-burst-22 — broadest sweep (9ebd5c31) + BC-1.07.005/006 rebrand (60072605) + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.48, VP-INDEX v1.31, ARCH-INDEX v1.28, STORY-INDEX v2.52. L-P23-001 + L-P23-002 codified. |
+| **F5 pass-24 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P24-001..005). F-P24-001 VP-043 propagation gap; F-P24-002 BC-7.06.001 sibling; F-P24-003 S-15.01 sibling; F-P24-004 E-15 NEW sibling; F-P24-005 bc-id-mapping carve-out. ADR-013: 0_of_3. 7 consecutive HIGH. |
+| **F5 fix-burst-23 — corpus audit (3576f1a6) + VP-043 propagation (78977e26) + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.49, VP-INDEX v1.32, ARCH-INDEX v1.29, STORY-INDEX v2.53. L-P24-001 + L-P24-002 codified. F-P24-005 carve-out. |
+| **F5 pass-25 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P25-001..007). ADR-019 v1.11, BC-3.08.001 v1.13, VP-077 v1.12, VP-079 v1.17, S-15.01 post-merge retrofit (O-P25-002), F1-delta carve-out (F-P25-007). ADR-013: 0_of_3. 8 consecutive HIGH. |
+| **F5 fix-burst-24 — F-P25 sweep (609cae4f) + post-merge retrofit + F1 carve-out + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.50, VP-INDEX v1.33, ARCH-INDEX v1.30, STORY-INDEX v2.54. L-P25-001 + L-P25-002 codified. |
+| **F5 pass-26 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P26-001..007). F-P26-001 PluginEntry → RegistryEntry (12 sites); F-P26-007 harness skeleton tuple; F-P26-002/003/004/005 post-merge frontmatter retrofit gaps; F-P26-006 codifying-burst sweep discipline. ADR-013: 0_of_3. 9 consecutive HIGH. |
+| **F5 fix-burst-25 — PluginEntry sweep (4c386236) + post-merge retrofit (a2c390cd) + L-P26-001/002 lessons + indexes+state** | spec-writer + state-manager | **DONE** | VP-INDEX v1.34, STORY-INDEX v2.55. L-P26-001 + L-P26-002 codified. F-P26-001..007 closed. |
+
+- F-P30-001 closed (STATE.md ADR count 19→20)
+- F-P30-002 closed (L-P28-001 META-self-application verification block appended)
+- F-P30-003 closed (E-10 line annotated "total_bcs 1931 at D-313 (now 1947)")
+- F-P30-004 deferred → TD-032 (subsystem format drift; S-15.03 scope)
+- O-P30-001 addressed (STATE.md compacted; passes 23-26 + fix-bursts 22-25 archived)
+- Fix-burst-29 COMPLETE — F-P30-001..004 addressed; 13-pass HIGH streak; pass-31 next
