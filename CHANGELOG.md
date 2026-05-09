@@ -2,6 +2,90 @@
 
 ## Unreleased
 
+## 1.0.0-rc.13 — Plugin async semantics (S-15.01) + absolute-path bypass fix + F5 convergence (2026-05-09)
+
+The headline delivery for rc.13 is the S-15.01 registry-layer async partition —
+the fix that makes `on_error = "block"` validators actually block.
+Telemetry hooks are classified `async = true` so they never gate the user.
+Two silent-bypass bugs in absolute-path matching are closed. The F5
+adversarial cycle converged at pass-57 (ADR-013 protocol satisfied).
+
+### Added
+
+- **Plugin async semantics** (S-15.01, ADR-019): the registry-layer partition
+  splits matched-event hooks into `sync_group` / `async_group` based on each
+  hook's `async = true|false` declaration in `hooks-registry.toml`. Async hooks
+  fire-and-forget via `executor.rs::spawn_async_plugin`; the dispatcher returns
+  to Claude Code after the sync group completes plus an `ASYNC_DRAIN_WINDOW_MS`
+  (DI-019, 100 ms) drain window. Prior to this change, `async: true` in
+  `hooks.json` silenced every plugin's exit code for a given event, causing all
+  55 block decisions recorded in the 2026-05-07 prism audit to be discarded
+  silently.
+
+- **10 telemetry hooks marked `async = true`** (`feat/async-flag-telemetry-hooks`,
+  commit `31c30a75`): `session-start-telemetry`, `session-end-telemetry`,
+  `capture-commit-activity`, `capture-pr-activity`, `tool-failure-hooks`,
+  `convergence-tracker`, `track-agent-start`, `track-agent-stop`,
+  `session-learning`, `update-wave-state-on-merge`. These hooks emit
+  telemetry / audit / tracking output and no longer block Claude Code's tool
+  flow.
+
+- **HOST_ABI documentation expanded** (`crates/hook-sdk/HOST_ABI.md`, +1,549
+  words / +331 lines, commit `3e034a37` on `docs/host-abi-async-semantics`):
+  five new sections covering Async Hook Semantics, Registry `async` field
+  schema, plugin-author async guidance, async failure modes, and the
+  `dispatcher.registry_invalid` wire-format split (B-3).
+
+- **Type-safe `registry-invalid` emitters** (B-3, PR #109): two dedicated
+  functions replace the prior single emitter. `emit_registry_invalid_e_reg002`
+  takes 3 params (context, plugin name, violation) for intra-entry violations
+  (E-REG-002); `emit_registry_invalid_e_reg003` takes 5 params (context, plugin
+  name, violation, offending event, `offending_tool: Option<&str>`) for
+  inter-entry violations (E-REG-003). Wire format is unchanged; the distinction
+  is now enforced by the type system rather than a documentation-only invariant.
+
+### Fixed
+
+- **Hook silent-bypass on absolute paths** (PR #108): `validate-stable-anchors::is_spec_target`
+  and `validate-artifact-path::matches_canonical` + `hook_logic` now accept
+  both relative (`.factory/...`) and absolute (`/path/to/.factory/...`) forms
+  via leading-slash discipline. Pre-fix, both hooks returned `Continue` for
+  Claude Code's absolute-path envelopes — a silent bypass. Verified by 10/10
+  integration tests in `tests/absolute_path_hook_engagement.rs`
+  (`validation/absolute-path-hook-engagement`, commit `264fa2ee`).
+
+- **VP-070 Kani harness assumption hardened** (commit `cc5a016b`): tightened
+  `kani::assume(!path.starts_with(".factory/") && !path.contains("/.factory/"))`
+  to remain sound against the absolute-path matching introduced by the
+  `validate-artifact-path` fix above.
+
+### Refactored
+
+- `emit_dispatcher_registry_invalid` split into two type-safe variants
+  `emit_registry_invalid_e_reg002` / `emit_registry_invalid_e_reg003` (B-3,
+  PR #109). The documentation-only invariant requiring `(None, None)` for
+  E-REG-002 callers is now enforced by the type system.
+
+### F5 Cycle Convergence
+
+Cycle `v1.0-feature-plugin-async-semantics-pass-1` reached ADR-013 convergence
+criteria at pass-57 (3 consecutive NITPICK_ONLY passes: 55, 56, 57).
+
+- 40 adversary passes (P18–P57); 49 fix-bursts
+- 19 L-P28-001 META-self-application failure instances codified
+- 14+ lessons codified (L-P18-001 through L-P28-001)
+- Spec corpus repairs: 1,000+ edits across BC-INDEX, VP-INDEX, STORY-INDEX,
+  ARCH-INDEX, BC bodies, and lessons.md
+- Final index versions: BC-INDEX v1.63, VP-INDEX v1.40, STORY-INDEX v2.64,
+  ARCH-INDEX v1.44
+
+### Deferred
+
+- S-15.02: dispatcher cold-start optimization (P2)
+- S-15.03: mechanical hook enforcement — `validate-symbol-cite`,
+  `validate-index-cite-refresh`, `validate-lesson-retroactive-sweep` WASM
+  hooks; structurally-convergent path codified by L-P28-001 series (P2)
+
 ## 1.0.0-rc.11 — Single-commit burst protocol + TD-020 sweep + retag-round-2 (2026-05-04)
 
 Three improvements bundled (rc.11 required two retag rounds to ship; root
