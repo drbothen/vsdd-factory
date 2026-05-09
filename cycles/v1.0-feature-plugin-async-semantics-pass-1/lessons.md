@@ -249,5 +249,3 @@ alignment, (b) verify subsystems is a subset of (or expansion-justified extensio
 epic alignment per POLICY 5.
 
 [codified] — fix-burst-20 sub-burst 2.
-
-[codified] — fix-burst-19 sub-burst 2.
