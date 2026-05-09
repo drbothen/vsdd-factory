@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "CYCLE_CLOSED — F5 ADR-013 = 3_of_3. PR #108 MERGED f08e313e 2026-05-09. Cycle v1.0-feature-plugin-async-semantics-pass-1 COMPLETE."
+current_step: "B-3 RESOLVED — PR #109 MERGED c69b34e9 2026-05-09. split emit_dispatcher_registry_invalid into type-safe E-REG-002/E-REG-003 variants. Drift Items: B-3 closed."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 — PR #108 MERGED (squash SHA f08e313e). Cycle v1.0-feature-plugin-async-semantics-pass-1 FULLY CLOSED. |
-| **Current Phase** | CYCLE_CLOSED — v1.0-feature-plugin-async-semantics-pass-1 COMPLETE. PR #108 merged f08e313e 2026-05-09. Branch fix/S-15.01-F5-convergence deleted. Next: resume engine-discipline or E-10 per user directive. |
+| **Last Updated** | 2026-05-09 — B-3 RESOLVED. PR #109 MERGED (squash SHA c69b34e9). split emit_dispatcher_registry_invalid into type-safe E-REG-002/E-REG-003 variants. |
+| **Current Phase** | CYCLE_CLOSED — v1.0-feature-plugin-async-semantics-pass-1 COMPLETE. B-3 deferred item closed via PR #109 c69b34e9. Next: resume engine-discipline or E-10 per user directive. |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -141,7 +141,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
-| develop | f08e313e | PR #108 F5 convergence bundle squash-merge 2026-05-09 |
+| develop | c69b34e9 | PR #109 B-3 fix squash-merge 2026-05-09 (split emit_dispatcher_registry_invalid) |
 | factory-artifacts | (see git log) | fix-burst-27 sub-burst 2 state-manager close — this commit |
 | v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
@@ -191,6 +191,12 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 **fix-burst-49 (2026-05-09):** F-P54-001 + corpus-wide Title-cell axis sweep (19th META). Pass-54 found BC-4.05.003 Title-cell drift from H1. Full corpus sweep: 1944 rows audited; 6 drifts found and patched (BC-1.05.010: dispatcher_trace_id→trace_id; BC-2.02.011/2.02.012: narrative→short-form; BC-4.05.002: long→short; BC-4.05.003: enforced→delegated; BC-5.30.001: feature-vsdd:identity→feature.lobster DAG declaration). Title-cell axis now codified as static axis. BC-INDEX v1.62→v1.63; ARCH-INDEX v1.43→v1.44.
 
+## Drift Items
+
+| Item | Source | Status | Resolution |
+|------|--------|--------|------------|
+| B-3 | PR #108 code-reviewer finding — `emit_dispatcher_registry_invalid` type-unsafety | **RESOLVED** 2026-05-09 | PR #109 c69b34e9 — split into `emit_registry_invalid_e_reg002` / `emit_registry_invalid_e_reg003`; compile-time enforcement replaces documentation-only invariants |
+
 ## Convergence Summary — F5 plugin-async-semantics
 
 **Status:** CYCLE CLOSED — PR #108 MERGED f08e313e 2026-05-09
@@ -206,12 +212,12 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — PR #108 MERGED (squash SHA f08e313e). Cycle v1.0-feature-plugin-async-semantics-pass-1 FULLY CLOSED.
+**Last update:** 2026-05-09 — B-3 RESOLVED. PR #109 MERGED (squash SHA c69b34e9). split emit_dispatcher_registry_invalid into type-safe E-REG-002/E-REG-003 variants (B-3 deferred from PR #108 code review).
 
-**ACTIVE STEP: Cycle closed. Next action per user directive — resume engine-discipline (v1.0-feature-engine-discipline-pass-1 F3-amendment: S-12.03..S-12.08) or E-10 brownfield pass-9.**
+**ACTIVE STEP: Drift Items cleared. Next action per user directive — resume engine-discipline (v1.0-feature-engine-discipline-pass-1 F3-amendment: S-12.03..S-12.08) or E-10 brownfield pass-9.**
 
 **Branches:**
-- develop @ f08e313e (PR #108 squash-merge 2026-05-09)
+- develop @ c69b34e9 (PR #109 squash-merge 2026-05-09 — B-3 resolved)
 - factory-artifacts @ (see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
