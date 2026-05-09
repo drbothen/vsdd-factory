@@ -540,3 +540,12 @@ F-P29-001 (pass-29) discovered VP-074.md:19 was a 3rd `proof_method: kani` insta
 The original spot-check audit was incomplete — the corpus-wide grep mandated by this lesson's own rule was NOT executed for `proof_method:` itself when the verification block was authored. Pass-29 caught the gap; fix-burst-28 closed it; fix-burst-29 records the META-META acknowledgment.
 
 F-P30-002 closure.
+
+**L-P28-001 Amendment (fix-burst-30; F-P31-001):** The rule above covers source frontmatter vs index-row drift. F-P31-001 revealed a third layer missed by both: **VP-INDEX Breakdown summary tables**. VP-074 frontmatter was fixed (v1.0→v1.1; `kani-proof` canonical) and the VP-INDEX Full Index row was already wrong (Proof Method = `integration`), but the Breakdown table counts (integration 22, kani-proof 3) were independent prose artifacts that the prior grep-for-frontmatter-field approach could not detect.
+
+**Extended rule:** when a fix-burst rewrites a frontmatter field value that corresponds to a categorical breakdown table in an index, the corpus-wide sweep MUST additionally audit:
+3. All Breakdown / Summary tables in the authoritative index that group artifacts by that field value (e.g., VP-INDEX `## Proof Method Breakdown`, BC-INDEX status breakdowns, STORY-INDEX `## Status Summary`)
+
+**Validation:** post-fix, count totals in the Breakdown table MUST equal the count of artifacts carrying each value. The Breakdown table counts are prose, not computed, so they drift independently of both source frontmatter and Full Index rows.
+
+F-P31-001 closure. Fix-burst-30 (this burst): VP-INDEX Breakdown integration 22→21, kani-proof 3→4; Full Index VP-074 Proof Method integration→kani-proof.

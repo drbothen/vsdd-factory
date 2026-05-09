@@ -1879,3 +1879,25 @@ Note: First downgrade in pattern severity — only 1 HIGH (vs 2-3 in prior passe
 - F-P30-004 deferred → TD-032 (subsystem format drift; S-15.03 scope)
 - O-P30-001 addressed (STATE.md compacted; passes 23-26 + fix-bursts 22-25 archived)
 - Fix-burst-29 COMPLETE — F-P30-001..004 addressed; 13-pass HIGH streak; pass-31 next
+
+## Pass-31 Adversary Review (2026-05-09)
+
+Verdict: HIGH (2H + 2M). 14th consecutive non-NIT pass. ADR-013 RESETS.
+
+- F-P31-001 [HIGH]: VP-INDEX Breakdown table vs VP-074 source drift — integration count 22 (should be 21), kani-proof count 3 (should be 4). VP-074 source frontmatter kani-proof correct (fix-burst-28 v1.0→v1.1), but VP-INDEX Breakdown and Full Index row still showed integration. L-P28-001 Breakdown-table layer gap exposed.
+- F-P31-002 [HIGH]: STORY-INDEX Status Summary stale — merged 57 (should be 62), draft 28 (should be 23). 30-pass survivor. Total row sum (88) masked per-row drift. Prose said "15 epics" but enumerates 16 (E-0..E-15).
+- F-P31-003 [MEDIUM]: STATE.md Identifier Conventions Epic count 15 (should be 16). Sibling-fix discipline violation — fix-burst-29 only patched ADR row.
+- F-P31-004 [MEDIUM]: STATE.md:186 checkpoint reference said "pass-29 HIGH" but most-recent reset trigger is pass-30. Partial-fix regression of fix-burst-29 sweep.
+
+## Fix-burst-30 State-Manager Close (2026-05-09)
+
+Files changed:
+- `.factory/specs/verification-properties/VP-INDEX.md` v1.37→v1.38 (F-P31-001: Breakdown integration 22→21; kani-proof 3→4 adding VP-074; Full Index VP-074 Proof Method integration→kani-proof)
+- `.factory/stories/STORY-INDEX.md` v2.56→v2.57 (F-P31-002: merged 57→62; draft 28→23; prose "15 epics"→"16 epics")
+- `.factory/STATE.md` (F-P31-003: Epic count 15→16; F-P31-004: checkpoint pass-29→pass-30; current_step, phase progress, session resume checkpoint, index versions updated)
+- `.factory/tech-debt-register.md` (TD-031 fix-burst-30 FOLLOW-UP appended; 14-pass streak)
+- `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` (L-P28-001 amendment: Breakdown-table audit step added; F-P31-001 closure recorded)
+
+Findings closed: F-P31-001 (HIGH), F-P31-002 (HIGH), F-P31-003 (MEDIUM), F-P31-004 (MEDIUM)
+ADR-013 clock: 0_of_3 (RESET — pass-31 HIGH)
+Pass-32 next.
