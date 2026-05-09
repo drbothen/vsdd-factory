@@ -102,6 +102,7 @@ plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 210
 timeout_ms = 10000
 on_error = "continue"
+async = true
 
 [hooks.config]
 script_path = "hooks/convergence-tracker.sh"
@@ -911,6 +912,7 @@ plugin = "hook-plugins/update-wave-state-on-merge.wasm"
 priority = 940
 timeout_ms = 10000
 on_error = "continue"
+async = true
 
 [hooks.capabilities.read_file]
 path_allow = [".factory/wave-state.yaml"]
