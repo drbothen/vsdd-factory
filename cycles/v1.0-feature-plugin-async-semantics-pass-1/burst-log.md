@@ -1989,3 +1989,26 @@ Verdict: MED (0H + 1M + 0L). 17th consecutive non-NIT pass. Trajectory stable at
 Findings closed: F-P34-001 (MEDIUM)
 ADR-013 clock: 0_of_3 (RESET — pass-34 MED)
 Pass-35 next.
+
+## Pass-35 Adversary Review (2026-05-09)
+
+Verdict: MED (0H + 1M + 0L). 18th consecutive non-NIT pass. Trajectory stable at 1M. ADR-013 RESETS to 0_of_3.
+
+- F-P35-001 [MEDIUM]: BC-INDEX resolver-platform rows (BC-1.13.001, BC-4.12.001-005): capability cells CAP-TBD + Stories cells TBD. Source BC frontmatter: BC-1.13.001 CAP-002/S-12.03,S-12.04; BC-4.12.001-005 CAP-009/actuals. Fix-burst-32's BC sample audit explicitly sampled BC-4.12.003/004 but checked only the status cell — 4th META-self-application failure of L-P28-001 family (per-row sibling-cells sub-rule not fully applied to non-Status cells).
+
+## Fix-burst-34 State-Manager Close (2026-05-09)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v1.51→v1.52 | F-P35-001: BC-1.13.001 capability CAP-TBD→CAP-002, Stories TBD→S-12.03,S-12.04. BC-4.12.001 capability CAP-TBD→CAP-009, Stories TBD→S-12.04. BC-4.12.002 capability CAP-TBD→CAP-009, Stories TBD→S-12.05,S-12.06. BC-4.12.003 capability CAP-TBD→CAP-009, Stories TBD→S-12.04,S-12.07. BC-4.12.004 capability CAP-TBD→CAP-009, Stories TBD→S-12.04. BC-4.12.005 capability CAP-TBD→CAP-009, Stories TBD→S-12.03. Values verified against source BC frontmatter + Traceability tables. Changelog entry added. |
+| `.factory/specs/architecture/ARCH-INDEX.md` | v1.31→v1.32 | BC-INDEX body cite refreshed v1.51→v1.52 (L-P20-002 cite-refresh discipline). Changelog entry added. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | — | L-P28-001 sub-rule reinforced: Reinforcement block added (per-cell tabulation mandate; required audit format per-row table specified for BC-INDEX/VP-INDEX/STORY-INDEX). |
+| `.factory/STATE.md` | — | current_step updated; pass-35 + fix-burst-34 rows added to Current Phase Steps; session resume checkpoint updated; index versions (BC-INDEX v1.52, ARCH-INDEX v1.32); cycle row + strategic note updated; concurrent cycles row updated. |
+| `.factory/tech-debt-register.md` | — | TD-031 fix-burst-34 follow-up appended: F-P35-001 closure + L-P28-001 reinforcement. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-35 + fix-burst-34 entries (this entry). |
+
+Findings closed: F-P35-001 (MEDIUM)
+ADR-013 clock: 0_of_3 (RESET — pass-35 MED)
+Pass-36 next.

@@ -575,3 +575,7 @@ Fix-burst-32 verification (this closure):
 **CORRECTION (fix-burst-33, F-P34-001 closure):** The fix-burst-32 audit observed S-15.01 STORY-INDEX Status column drift (`ready` vs source `merged`) but classified as out-of-scope on rationale "column-count variation". This rationale was incorrect — the Status column is a single-token enum (merged/ready/partial/completed/draft) structurally identical across the table. Drift IS within L-P28-001 sibling-cell scope. F-P34-001 closed: STORY-INDEX:574 Status `ready` → `merged`; STORY-INDEX v2.57→v2.58.
 
 Mechanical enforcement (S-15.03 hook scope) remains the structurally-convergent path.
+
+**Reinforcement (added fix-burst-34, F-P35-001 closure):** When applying the per-row sibling-cells audit, the verification block MUST tabulate **EVERY non-link cell per sampled row** — not just one nominated cell. Failure mode (F-P35-001): fix-burst-32's BC sample audit checked only status cell across 10 BCs; BC-4.12.003 + BC-4.12.004 sampled BUT capability + Stories cells were not inspected, leaving 12 cell-level drifts undetected for 3 passes.
+
+Required audit format: per-row table with columns `[ID | Status | Capability | Stories]` for BC-INDEX, `[ID | Scope | Proof_method | Domain_invariants]` for VP-INDEX, `[ID | Status | Epic | Subsystems]` for STORY-INDEX.
