@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.58"
+version: "1.59"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -12,7 +12,9 @@ total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
   - date: 2026-05-09
-    change: "v1.58 (2026-05-09; fix-burst-43): F-P47-001 — 25 BC-INDEX Stories cells propagated for E-8 native-port family (S-8.01..S-8.09): BC-7.03.042-044 TBD→S-8.01; BC-7.03.045-048 TBD→S-8.02; BC-7.03.081-082 TBD→S-8.03; BC-7.03.083-086 TBD→S-8.04; BC-7.04.040-044 TBD→S-8.05; BC-7.03.076-078 TBD→S-8.06; BC-7.03.091-092 TBD→S-8.07; BC-7.03.079-080 TBD→S-8.08; BC-7.03.071-075 TBD→S-8.09. BC body Traceability Stories rows also propagated (25 BCs). Largest L-P28-001-family blast radius observed (13th META instance; 25 BCs, 9 stories). No count change (total_bcs: 1947). Refs: F-P47-001, L-P28-001, fix-burst-43. last_amended: 2026-05-09 (F5 fix-burst-43: 25 BC-INDEX Stories cells + 25 BC body Traceability rows; F-P47-001 closed)."
+    change: "v1.59 (2026-05-09; fix-burst-44): F-P48-001 — count-narrative correction: v1.58 changelog cited '25 BCs' for fix-burst-43 E-8 native-port propagation; actual per-row enumeration sums to 30 (BC-7.03.042-044=3, BC-7.03.045-048=4, BC-7.03.081-082=2, BC-7.03.083-086=4, BC-7.04.040-044=5, BC-7.03.076-078=3, BC-7.03.091-092=2, BC-7.03.079-080=2, BC-7.03.071-075=5). v1.58 changelog updated 25→30 (narrative only; no BC propagation change). 14th L-P28-001 META instance. No count change (total_bcs: 1947). Refs: F-P48-001, L-P28-001, fix-burst-44. last_amended: 2026-05-09 (F5 fix-burst-44: count-narrative 25→30 corrected; F-P48-001 closed)."
+  - date: 2026-05-09
+    change: "v1.58 (2026-05-09; fix-burst-43): F-P47-001 — 30 BC-INDEX Stories cells propagated for E-8 native-port family (S-8.01..S-8.09): BC-7.03.042-044 TBD→S-8.01; BC-7.03.045-048 TBD→S-8.02; BC-7.03.081-082 TBD→S-8.03; BC-7.03.083-086 TBD→S-8.04; BC-7.04.040-044 TBD→S-8.05; BC-7.03.076-078 TBD→S-8.06; BC-7.03.091-092 TBD→S-8.07; BC-7.03.079-080 TBD→S-8.08; BC-7.03.071-075 TBD→S-8.09. BC body Traceability Stories rows also propagated (30 BCs). Largest L-P28-001-family blast radius observed (13th META instance; 30 BCs, 9 stories). No count change (total_bcs: 1947). Refs: F-P47-001, L-P28-001, fix-burst-43. last_amended: 2026-05-09 (F5 fix-burst-43: 30 BC-INDEX Stories cells + 30 BC body Traceability rows; F-P47-001 closed)."
   - date: 2026-05-09
     change: "v1.57 (2026-05-09; fix-burst-42): F-P45-001 — 12 BC body Traceability Stories rows propagated from BC-INDEX (D-340/D-362 cluster; BCs had placeholder or partial values). BC-1.13.001 v1.0→v1.1 (S-12.03,S-12.04 → S-12.03,S-12.04,S-12.06,S-12.08). BC-4.10.001 v1.1→v1.2 (Story B → S-12.02,S-12.08). BC-4.10.002 v1.1→v1.2 (Story B → S-12.02). BC-4.11.001 v1.2→v1.3 (Story C → S-13.01). BC-4.12.001 v1.0→v1.1 (S-12.04 → S-12.04,S-12.06,S-12.07). BC-4.12.002 v1.0→v1.1 (S-12.05,S-12.06 → S-12.05,S-12.06,S-12.07). BC-4.12.003 v1.0→v1.1 (S-12.04,S-12.07 → S-12.04,S-12.06,S-12.07). BC-4.12.004 v1.0→v1.1 (S-12.04 → S-12.04,S-12.06,S-12.07). BC-4.12.005 v1.0→v1.1 (S-12.03 → S-12.03,S-12.06,S-12.07,S-12.08). BC-5.39.001 v1.1→v1.2 (Story A → S-12.01,S-14.01). BC-5.39.002 v1.0→v1.1 (Story A → S-12.01). BC-6.22.001 v1.0→v1.1 (Story C → S-13.01). BC-INDEX bidirectional: BC-4.11.001 TBD→S-13.01; BC-6.22.001 TBD→S-13.01. No count change (total_bcs: 1947). 12th L-P28-001-family META instance. Refs: F-P45-001, L-P28-001, fix-burst-42. last_amended: 2026-05-09 (F5 fix-burst-42: 12 BC body Stories rows + 2 BC-INDEX TBD fixes; F-P45-001 closed)."
   - date: 2026-05-09

@@ -683,7 +683,7 @@ Canonical verification procedure for BCs axis:
 - BC-INDEX TBD bidirectional: BC-4.11.001 TBD→S-13.01; BC-6.22.001 TBD→S-13.01 (S-13.01 behavioral_contracts frontmatter confirmed to cite both).
 - No new axes added to REQUIRED enumeration; existing axes sweep was the action.
 
-**13th META-self-application failure (added fix-burst-43, F-P47-001 closure):** F-P47-001 found that 25 BCs from the E-8 native-port story family (S-8.01..S-8.09) carry TBD in BC-INDEX Stories cells and in body Traceability Stories rows, despite all 9 stories having their `behavioral_contracts:` frontmatter fully populated. This is the LARGEST blast radius observed in any L-P28-001 META instance: 25 BCs across 9 stories, compared to F-P37-001 (3 BCs across 1 story) and F-P41-002 (10 BCs across 7 stories).
+**13th META-self-application failure (added fix-burst-43, F-P47-001 closure):** F-P47-001 found that 30 BCs from the E-8 native-port story family (S-8.01..S-8.09) carry TBD in BC-INDEX Stories cells and in body Traceability Stories rows, despite all 9 stories having their `behavioral_contracts:` frontmatter fully populated. This is the LARGEST blast radius observed in any L-P28-001 META instance: 30 BCs across 9 stories, compared to F-P37-001 (3 BCs across 1 story) and F-P41-002 (10 BCs across 7 stories).
 
 **Root cause:** E-8 native-port stories (S-8.01..S-8.09) were authored and merged during a period when the L-P28-001 bidirectional propagation discipline existed but had not yet been applied to the E-8 epic family. Fix-burst-39 addressed E-12 and fix-burst-42 addressed D-340/D-362 cluster BCs — but neither fix-burst systematically swept all E-8 stories for the same pattern. This is a per-epic systematic verification gap: fixes were applied per-cluster (triggered by adversary findings) rather than per-epic (sweeping the entire E-8 family).
 
@@ -696,10 +696,14 @@ Canonical verification procedure for BCs axis:
 4. For each BC cited in any story: verify BC-INDEX Stories cell AND BC body Traceability Stories row.
 5. Propagate all TBD → actual story IDs before sealing the fix-burst.
 
-**Pattern:** 13 META-self-application failures across passes 27–47. Prose-only codification of L-P28-001 empirically does not converge. Mechanical enforcement (S-15.03 hook scope, which gates on cross-index consistency checks) remains the structurally-convergent path. Prose codification is necessary but not sufficient.
+**Pattern:** 14 META-self-application failures across passes 27–48. Prose-only codification of L-P28-001 empirically does not converge. Mechanical enforcement (S-15.03 hook scope, which gates on cross-index consistency checks) remains the structurally-convergent path. Prose codification is necessary but not sufficient.
 
 **Fix-burst-43 corpus verification (13th instance):**
-- BC body Stories rows: 25 BCs updated to match story frontmatter canonical values (S-8.01..S-8.09 E-8 family).
-- BC-INDEX Stories cells: 25 rows updated TBD→actual story ID (bidirectional confirmation per story frontmatter grep).
-- Per-epic sweep: all S-8.xx story files enumerated; all behavioral_contracts frontmatter entries verified; no additional drifts beyond the 25 identified by F-P47-001.
+- BC body Stories rows: 30 BCs updated to match story frontmatter canonical values (S-8.01..S-8.09 E-8 family).
+- BC-INDEX Stories cells: 30 rows updated TBD→actual story ID (bidirectional confirmation per story frontmatter grep).
+- Per-epic sweep: all S-8.xx story files enumerated; all behavioral_contracts frontmatter entries verified; no additional drifts beyond the 30 identified by F-P47-001.
 - No new axes added to REQUIRED enumeration; existing BCs/Stories cross-index axis sweep applied to entire E-8 epic.
+
+**14th META-self-application failure (added fix-burst-44, F-P48-001 closure):** Count-narrative drift class. Fix-burst-43 propagated 30 BC Stories cells correctly (the actual fix), but the narrative cited "25 BCs" in 4 artifacts (~13 occurrences). The L-P28-001 doctrine "corpus-wide grep MUST include both index file AND every source-of-truth artifact carrying that field" was violated for the field "F-P47-001 propagation count" in the very burst that codified the next clause.
+
+**Recommended mechanical enforcement:** S-15.03 hook scope candidate — extend `validate-stable-anchors` family to include "count-narrative coherence": grep changelog narrative for "N BCs" / "N stories" / "N cells" patterns, sum the per-row enumeration in the same changelog block, assert N_narrative == N_enumeration. Block Edit/Write if mismatch.

@@ -2523,7 +2523,7 @@ Fix-burst-43 dispatched.
 | `specs/behavioral-contracts/ss-07/BC-7.04.042.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.05. Changelog added. |
 | `specs/behavioral-contracts/ss-07/BC-7.04.043.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.05. Changelog added. |
 | `specs/behavioral-contracts/ss-07/BC-7.04.044.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.05. Changelog added. |
-| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.57→v1.58. 25 BC Stories cells TBD→actual. Changelog appended. |
+| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.57→v1.58. 30 BC Stories cells TBD→actual. Changelog appended. |
 | `specs/architecture/ARCH-INDEX.md` | state-manager | v1.37→v1.38. BC-INDEX cite refreshed v1.57→v1.58 (L-P20-002). Changelog appended. |
 | `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | v1.5→v1.6. L-P28-001 13th META appended with per-epic systematic verification clause. |
 | `.factory/STATE.md` | state-manager | current_step → fix-burst-43 closed; ADR-013 0_of_3 (RESET); BC-INDEX v1.58; ARCH-INDEX v1.38. STATE.md compacted (older steps archived). |
@@ -2532,4 +2532,39 @@ Fix-burst-43 dispatched.
 F-P47-001 closed.
 ADR-013 clock: 0_of_3 (RESET)
 BC-INDEX v1.58 | ARCH-INDEX v1.38
+
+---
+
+## Burst 52 — pass-48 adversary review (HIGH)
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → adversary → state-manager
+**Phase:** F5 ADVERSARIAL — pass-48
+
+### Verdict: HIGH (1H)
+
+F-P48-001: count-narrative "25 BCs" vs actual 30 BCs (per-row enumeration in BC-INDEX changelog v1.58 sums to 30). 14th META-self-application of L-P28-001 family — count-arithmetic narrative drift. ADR-013 RESETS 0→0_of_3. Fix-burst-44 dispatched.
+
+---
+
+## Burst 53 — fix-burst-44: F-P48-001 count-narrative 25→30 correction
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL — fix-burst-44
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-48.md` | state-manager | Created. pass-48 verdict HIGH persisted (Part A commit). |
+| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.58→v1.59. v1.58 changelog count corrected 25→30. v1.59 entry added (narrative correction). |
+| `specs/architecture/ARCH-INDEX.md` | state-manager | v1.38→v1.39. BC-INDEX cite refreshed v1.58→v1.59 (L-P20-002). v1.39 entry added. v1.38 entry count corrected 25→30. |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | 13th META text corrected 25→30 (lines 686, 702, 703, 704). Pattern count updated 13→14 failures. 14th META instance appended. |
+| `.factory/STATE.md` | state-manager | current_step → fix-burst-44 closed; Current Phase pass-48→pass-49; Last Updated updated; phase progress row updated; current phase steps updated; concurrent cycles row updated; fix-burst-44 block appended to Strategic Decision; session checkpoint refreshed; index versions BC-INDEX v1.59 / ARCH-INDEX v1.39. |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Burst 51 BC-INDEX row corrected 25→30. Bursts 52+53 appended. |
+
+F-P48-001 closed.
+ADR-013 clock: 0_of_3 (RESET — pass-48 HIGH)
+BC-INDEX v1.59 | ARCH-INDEX v1.39
 Pass-48 dispatched next.

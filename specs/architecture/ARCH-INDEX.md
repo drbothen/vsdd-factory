@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.38"
+version: "1.39"
 status: accepted
 producer: architect
 timestamp: 2026-05-09T00:00:00
@@ -17,7 +17,9 @@ traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
   - date: 2026-05-09
-    change: "v1.38 (2026-05-09; fix-burst-43): BC-INDEX body cite refreshed v1.57→v1.58 (BC-INDEX bumped v1.57→v1.58 in same burst for F-P47-001 25 BC-INDEX Stories cells E-8 native-port propagation; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.37→v1.38."
+    change: "v1.39 (2026-05-09; fix-burst-44): BC-INDEX body cite refreshed v1.58→v1.59 (BC-INDEX bumped v1.58→v1.59 in same burst for F-P48-001 count-narrative correction 25→30 BCs; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.38→v1.39."
+  - date: 2026-05-09
+    change: "v1.38 (2026-05-09; fix-burst-43): BC-INDEX body cite refreshed v1.57→v1.58 (BC-INDEX bumped v1.57→v1.58 in same burst for F-P47-001 30 BC-INDEX Stories cells E-8 native-port propagation; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.37→v1.38."
   - date: 2026-05-09
     change: "v1.37 (2026-05-09; fix-burst-42): BC-INDEX body cite refreshed v1.56→v1.57 (BC-INDEX bumped v1.56→v1.57 in same burst for F-P45-001 12 BC body Stories rows + 2 BC-INDEX TBD fixes; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.36→v1.37."
   - date: 2026-05-09
