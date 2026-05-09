@@ -605,3 +605,42 @@ This is the 5th META-self-application failure of the L-P28-001 family. Mechanica
 2. The Priority column as a fully swept axis — both directions (source→index AND index→source), for ALL stories regardless of source completeness.
 
 Canonical source for Priority: `priority:` frontmatter field in each story file. Verification: `grep -rn '^priority:' .factory/stories/S-*.md` vs STORY-INDEX Priority column for all file-resident story rows.
+
+**9th META-self-application failure (added fix-burst-39, F-P41-001/002 closure):** F-P41-001 found STORY-INDEX BCs cells for 7 E-12 platform stories drifting bidirectionally against source frontmatter `behavioral_contracts:`. F-P41-002 found BC-INDEX Stories cells for BC-1.13.001, BC-4.12.001/002/003/004/005, BC-4.10.001/002, BC-5.39.001/002 drifting against source story frontmatter. This is the **BCs cell axis** — a cross-index axis (STORY-INDEX BCs column ↔ BC-INDEX Stories column ↔ story source frontmatter) not previously enumerated as a REQUIRED sweep axis.
+
+**Failure mode:** fix-burst-38 extended the bidirectional discipline to Points and Priority columns in STORY-INDEX, but did not enumerate the BCs column as a swept axis. The BC-INDEX Stories column was last swept in fix-burst-36 (F-P37-001) for the BC-1.12.xxx/S-10.04 miss, but that sweep did not cover the BC-4.10.xxx, BC-4.12.xxx, and BC-5.39.xxx family added in F2-amendment (D-362) and D-366.
+
+**Fix-burst-39 corpus reconciliation (this closure):** 10 BC-INDEX rows patched (BC-1.13.001, BC-4.12.001-005, BC-4.10.001/002, BC-5.39.001/002). 7 STORY-INDEX BCs cells patched (S-12.01/02/03/04/05/06/08). All values verified against source frontmatter `behavioral_contracts:` fields.
+
+**Extended discipline (9th instance):** The bidirectional L-P28-001 sweep MUST now enumerate ALL of these REQUIRED axes on EVERY corpus-wide sweep:
+
+**STORY-INDEX axes (source frontmatter → index row, AND index row → source frontmatter):**
+- Status (from `status:`)
+- Epic (from `epic:` or epic-anchor field)
+- Subsystems (from `subsystems:`)
+- Points (from `points:` — both numeric AND TBD-source direction)
+- Priority (from `priority:`)
+- **BCs (from `behavioral_contracts:`)** — NEWLY ADDED by this 9th instance
+- Depends-On (from `depends_on:`)
+
+**BC-INDEX axes (source BC frontmatter ↔ BC-INDEX row ↔ story source frontmatter):**
+- Subsystem (from BC frontmatter `subsystem:`)
+- Capability (from BC frontmatter `capability:`)
+- Status (from BC frontmatter `status:`)
+- **Stories (bidirectional: story `behavioral_contracts:` ↔ BC-INDEX Stories cell)** — formally enumerated here
+
+**VP-INDEX axes:**
+- Type (from VP frontmatter `type:`)
+- Proof Method (from VP frontmatter `proof_method:`)
+- Scope (from VP frontmatter `scope:`)
+- Domain Invariant (from VP frontmatter `domain_invariants:`)
+
+**ARCH-INDEX axes:**
+- Subsystem Registry counts (from BC-INDEX total per subsystem)
+
+Each axis MUST be swept bidirectionally on first codification AND corpus-wide on first application. The BCs-cell axis requires a three-way check: story source frontmatter `behavioral_contracts:` → STORY-INDEX BCs cell → BC-INDEX Stories cell (all three must be mutually consistent).
+
+Canonical verification procedure for BCs axis:
+1. For each story S: `grep '^behavioral_contracts:' .factory/stories/S-*.md` → compare to STORY-INDEX BCs cell
+2. For each BC: grep all story files for the BC ID → compare to BC-INDEX Stories cell
+3. Both directions must match; TBD entries in BC-INDEX are drift (not intentional curation) when source stories cite the BC

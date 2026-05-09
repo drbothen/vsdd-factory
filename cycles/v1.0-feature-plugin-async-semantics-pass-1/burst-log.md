@@ -2190,3 +2190,67 @@ All other TBD-source stories show TBD or `—` in index: clean.
 Findings closed: F-P40-001 (LOW)
 ADR-013 clock: 0_of_3 (stays — pass-40 LOW)
 Pass-41 next.
+
+---
+
+## pass-41 adversary review (2026-05-09)
+
+**Verdict:** LOW (0H, 0M, 2L pending intent). ADR-013 stays 0_of_3.
+
+- F-P41-001 [LOW]: STORY-INDEX BCs cells for 7 E-12 stories drift bidirectionally vs source frontmatter `behavioral_contracts:`. 9th L-P28-001-family META instance (BCs cell axis unswept until this pass).
+- F-P41-002 [LOW]: BC-INDEX Stories cells for BC-1.13.001 + BC-4.12.001/002 missing entries (same META-class as F-P37-001 closed in fix-burst-36).
+- Fix-burst-38 closure VERIFIED.
+- Pass-41 persisted to `F5-adversary-pass-41.md`.
+
+---
+
+## fix-burst-39 (2026-05-09)
+
+**Findings closed:** F-P41-001 (LOW), F-P41-002 (LOW)
+
+### Files changed
+
+| File | Version Change | Notes |
+|------|---------------|-------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-41.md` | new | Pass-41 adversary review persisted (Part A commit 984cc3b0). |
+| `.factory/stories/STORY-INDEX.md` | v2.61→v2.62 | F-P41-001: BCs cells reconciled for 7 E-12 stories to source frontmatter. S-12.01: [BC-4.10.001/002,BC-5.39.001/002]→[BC-5.39.001,BC-5.39.002]; S-12.02: 6→[BC-4.10.001,BC-4.10.002]; S-12.03: [BC-1.13.001,BC-4.12.001/002/003]→[BC-1.13.001,BC-4.12.005]; S-12.04: [BC-4.12.001/003/004]→[BC-1.13.001,BC-4.12.001/003/004]; S-12.05: [BC-4.12.002,BC-4.12.003]→[BC-4.12.002]; S-12.06: [BC-1.13.001,BC-4.12.002]→[BC-1.13.001,BC-4.12.001/002/003/004/005]; S-12.08: [BC-1.13.001,BC-4.12.005]→[BC-1.13.001,BC-4.10.001,BC-4.12.005]. last_amended updated. Changelog entry added. |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v1.54→v1.55 | F-P41-002: Stories cells patched for 10 BCs. BC-1.13.001: +S-12.06,S-12.08. BC-4.12.001: +S-12.06,S-12.07. BC-4.12.002: +S-12.07. BC-4.12.003: +S-12.06. BC-4.12.004: +S-12.06,S-12.07. BC-4.12.005: +S-12.06,S-12.07,S-12.08. BC-4.10.001: TBD→S-12.02,S-12.08. BC-4.10.002: TBD→S-12.02. BC-5.39.001: TBD→S-12.01. BC-5.39.002: TBD→S-12.01. Changelog entry added. |
+| `.factory/specs/architecture/ARCH-INDEX.md` | v1.34→v1.35 | L-P20-002 cite-refresh: BC-INDEX body cite v1.54→v1.55. Changelog entry added. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | — | L-P28-001 9th META instance recorded. Extended discipline: BCs cell axis added to REQUIRED STORY-INDEX axes; BC-INDEX Stories axis formally enumerated; three-way BCs consistency check documented. |
+| `.factory/STATE.md` | — | current_step, Last Updated, Current Phase, Phase Progress row, Current Phase Steps (pass-41 + fix-burst-39 rows + pass-42 NEXT), Concurrent Cycles row, Strategic Decision section (TD-031 fix-burst-39 appended), Session Resume Checkpoint, Index versions (BC-INDEX v1.55, STORY-INDEX v2.62, ARCH-INDEX v1.35), ADR-013 0_of_3 (stays). |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-41 + fix-burst-39 entries (this entry). |
+
+### STORY-INDEX BCs cell sweep result (F-P41-001)
+
+7 E-12 stories reconciled (source `behavioral_contracts:` frontmatter vs STORY-INDEX BCs cell):
+
+| Story | Old INDEX BCs | New (Source-authoritative) BCs |
+|-------|--------------|-------------------------------|
+| S-12.01 | BC-4.10.001, BC-4.10.002, BC-5.39.001, BC-5.39.002 | BC-5.39.001, BC-5.39.002 |
+| S-12.02 | BC-4.10.001, BC-4.10.002, BC-4.11.001, BC-5.39.001, BC-5.39.002, BC-6.22.001 | BC-4.10.001, BC-4.10.002 |
+| S-12.03 | BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003 | BC-1.13.001, BC-4.12.005 |
+| S-12.04 | BC-4.12.001, BC-4.12.003, BC-4.12.004 | BC-1.13.001, BC-4.12.001, BC-4.12.003, BC-4.12.004 |
+| S-12.05 | BC-4.12.002, BC-4.12.003 | BC-4.12.002 |
+| S-12.06 | BC-1.13.001, BC-4.12.002 | BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005 |
+| S-12.08 | BC-1.13.001, BC-4.12.005 | BC-1.13.001, BC-4.10.001, BC-4.12.005 |
+
+### BC-INDEX Stories cell sweep result (F-P41-002 + extended sweep)
+
+10 BC-INDEX rows patched (source story frontmatter `behavioral_contracts:` → BC-INDEX Stories cell):
+
+| BC | Old Stories | New Stories |
+|----|------------|-------------|
+| BC-1.13.001 | S-12.03, S-12.04 | S-12.03, S-12.04, S-12.06, S-12.08 |
+| BC-4.12.001 | S-12.04 | S-12.04, S-12.06, S-12.07 |
+| BC-4.12.002 | S-12.05, S-12.06 | S-12.05, S-12.06, S-12.07 |
+| BC-4.12.003 | S-12.04, S-12.07 | S-12.04, S-12.06, S-12.07 |
+| BC-4.12.004 | S-12.04 | S-12.04, S-12.06, S-12.07 |
+| BC-4.12.005 | S-12.03 | S-12.03, S-12.06, S-12.07, S-12.08 |
+| BC-4.10.001 | TBD | S-12.02, S-12.08 |
+| BC-4.10.002 | TBD | S-12.02 |
+| BC-5.39.001 | TBD | S-12.01 |
+| BC-5.39.002 | TBD | S-12.01 |
+
+Findings closed: F-P41-001 (LOW), F-P41-002 (LOW)
+ADR-013 clock: 0_of_3 (stays — pass-41 LOW)
+Pass-42 next.

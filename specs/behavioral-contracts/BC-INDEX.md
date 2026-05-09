@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.54"
+version: "1.55"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.55 (2026-05-09; fix-burst-39): F-P41-002 — BC-INDEX Stories cells corpus reconciliation for E-12 resolver-platform BCs. BC-1.13.001 S-12.03,S-12.04→S-12.03,S-12.04,S-12.06,S-12.08. BC-4.12.001 S-12.04→S-12.04,S-12.06,S-12.07. BC-4.12.002 S-12.05,S-12.06→S-12.05,S-12.06,S-12.07. BC-4.12.003 S-12.04,S-12.07→S-12.04,S-12.06,S-12.07. BC-4.12.004 S-12.04→S-12.04,S-12.06,S-12.07. BC-4.12.005 S-12.03→S-12.03,S-12.06,S-12.07,S-12.08. BC-4.10.001 TBD→S-12.02,S-12.08. BC-4.10.002 TBD→S-12.02. BC-5.39.001 TBD→S-12.01. BC-5.39.002 TBD→S-12.01. No count change (total_bcs: 1947). 9th L-P28-001-family META instance (BCs cell axis). Refs: F-P41-002, L-P28-001, fix-burst-39. last_amended: 2026-05-09 (F5 fix-burst-39: BC-INDEX Stories cells corpus reconciliation; F-P41-002 closed)."
   - date: 2026-05-09
     change: "v1.54 (2026-05-09; fix-burst-36): F-P37-001 — BC-INDEX rows 259/260/261 missing S-10.04 in Stories cell (bidirectional L-P28-001 sweep; 6th META-self-application failure): BC-1.12.003 v1.4→v1.5 (S-10.03 → S-10.03, S-10.04); BC-1.12.004 v1.4→v1.5 (S-10.02, S-10.03 → S-10.02, S-10.03, S-10.04); BC-1.12.005 v1.3→v1.4 (S-10.02, S-10.03 → S-10.02, S-10.03, S-10.04). No count change (total_bcs: 1947). Refs: F-P37-001, L-P28-001 bidirectional clause, fix-burst-36. last_amended: 2026-05-09 (F5 fix-burst-36: 3 BC-INDEX rows S-10.04 added; F-P37-001 closed)."
   - date: 2026-05-09
@@ -264,7 +266,7 @@ changelog:
 | [BC-1.12.006](ss-01/BC-1.12.006.md) | factory-dispatcher::host::block_path_audit — vsdd.block.plugin_blocked.v1 audit event emitted with outcome=blocked, plugin.name, hook.tool_name when plugin returns HookResult::Block (ADR-015 D-15.3) | draft | CAP-029 | S-10.04 |
 | [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI gate (tool selected D-318: cargo-call-stack; implementation deferred to Wave 5) | draft | CAP-029 | S-10.02, S-10.09 |
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |
-| [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch | draft | CAP-002 | S-12.03, S-12.04 |
+| [BC-1.13.001](ss-01/BC-1.13.001.md) | Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch | draft | CAP-002 | S-12.03, S-12.04, S-12.06, S-12.08 |
 | [BC-1.14.001](ss-01/BC-1.14.001.md) | factory-dispatcher::partition::sync_async_dispatch — matched plugins partitioned into sync_group (await-all, verdict gates Claude Code) and async_group (fire-and-forget with bounded ASYNC_DRAIN_WINDOW_MS, no verdict gate) | draft | CAP-002 | S-15.01 |
 | [BC-7.06.001](ss-07/BC-7.06.001.md) | hooks-registry.toml schema_version 2 — per-plugin `async: bool` field with CI lint invariant `on_error = "block"` implies `async = false` | draft | CAP-002 | S-15.01 |
 <!-- BC-7.06.001 filename slug retained in ss-07/ per POLICY 1 append-only; authoritative subsystem is SS-01 per frontmatter (post-F-P1-006 reanchor 2026-05-07). Unified here to match BC-8.29.001/002/003 + BC-8.30.002 authoritative-frontmatter convention (F-P4-001 BC-INDEX listing convention unification). -->
@@ -396,14 +398,14 @@ changelog:
 | [BC-4.08.002](ss-04/BC-4.08.002.md) | hooks.json.template registers PostToolUseFailure with `command` routing to dispatcher binary; once key ABSENT (fires per-failure); synchronous envelope (async:true removed per ADR-019); timeout:10000 | draft | CAP-002 | S-5.04, S-15.01 |
 | [BC-4.08.003](ss-04/BC-4.08.003.md) | hooks-registry.toml registers PostToolUseFailure with name="tool-failure-hooks", event="PostToolUseFailure", plugin="hook-plugins/tool-failure-hooks.wasm", timeout_ms=5000; ZERO capability tables; NO once field | draft | CAP-002 | S-5.04 |
 | [BC-4.09.001](ss-04/BC-4.09.001.md) | hook-plugins::event_naming::wave2_reverse_dns_event_name_migration_with_dual_emit — all native WASM plugins under crates/hook-plugins/ migrate event-name strings from legacy short-form to reverse-DNS .v1 canonical form; dual-emit shim active during Wave 2→Wave 3 window; legacy emission removed post-Wave-3 | draft | CAP-009 | S-10.05 |
-| [BC-4.10.001](ss-04/BC-4.10.001.md) | validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance | draft | CAP-009 | TBD |
-| [BC-4.10.002](ss-04/BC-4.10.002.md) | validate-per-story-adversary-convergence WASM hook MUST gracefully degrade (exit 0) when invoked outside wave-gate context or when cycle directory is absent | draft | CAP-009 | TBD |
+| [BC-4.10.001](ss-04/BC-4.10.001.md) | validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance | draft | CAP-009 | S-12.02, S-12.08 |
+| [BC-4.10.002](ss-04/BC-4.10.002.md) | validate-per-story-adversary-convergence WASM hook MUST gracefully degrade (exit 0) when invoked outside wave-gate context or when cycle directory is absent | draft | CAP-009 | S-12.02 |
 | [BC-4.11.001](ss-04/BC-4.11.001.md) | validate-artifact-path WASM hook MUST consult artifact-path-registry.yaml as single source of truth and block (immediate mode) writes whose paths do not match a registered pattern | draft | CAP-009 | TBD |
-| [BC-4.12.001](ss-04/BC-4.12.001.md) | Resolver WASM modules MUST be loaded once at dispatcher startup and held in-process for the lifetime of the dispatcher session with mtime-based cache invalidation | draft | CAP-009 | S-12.04 |
-| [BC-4.12.002](ss-04/BC-4.12.002.md) | Resolver ABI MUST use distinct `ResolverInput` / `ResolverOutput` types versioned independently as Resolver ABI v1 (NOT reusing `HookPayload` / `HookResult`) | draft | CAP-009 | S-12.05, S-12.06 |
-| [BC-4.12.003](ss-04/BC-4.12.003.md) | Resolver plugins MUST operate within explicitly declared `path_allow` capabilities; capability violations MUST return `CapabilityDenied` and MUST NOT silently succeed | draft | CAP-009 | S-12.04, S-12.07 |
-| [BC-4.12.004](ss-04/BC-4.12.004.md) | Resolver crashes (panic, trap, timeout, ABI violation) MUST NOT propagate to the dispatcher process and MUST produce a `resolver.error` telemetry event with fail-loud semantics for declared resolvers | draft | CAP-009 | S-12.04 |
-| [BC-4.12.005](ss-04/BC-4.12.005.md) | Context-injection merging MUST be additive (resolver output overlays `plugin_config` under its key); two resolvers with the same `context_key` is a registry-load error | draft | CAP-009 | S-12.03 |
+| [BC-4.12.001](ss-04/BC-4.12.001.md) | Resolver WASM modules MUST be loaded once at dispatcher startup and held in-process for the lifetime of the dispatcher session with mtime-based cache invalidation | draft | CAP-009 | S-12.04, S-12.06, S-12.07 |
+| [BC-4.12.002](ss-04/BC-4.12.002.md) | Resolver ABI MUST use distinct `ResolverInput` / `ResolverOutput` types versioned independently as Resolver ABI v1 (NOT reusing `HookPayload` / `HookResult`) | draft | CAP-009 | S-12.05, S-12.06, S-12.07 |
+| [BC-4.12.003](ss-04/BC-4.12.003.md) | Resolver plugins MUST operate within explicitly declared `path_allow` capabilities; capability violations MUST return `CapabilityDenied` and MUST NOT silently succeed | draft | CAP-009 | S-12.04, S-12.06, S-12.07 |
+| [BC-4.12.004](ss-04/BC-4.12.004.md) | Resolver crashes (panic, trap, timeout, ABI violation) MUST NOT propagate to the dispatcher process and MUST produce a `resolver.error` telemetry event with fail-loud semantics for declared resolvers | draft | CAP-009 | S-12.04, S-12.06, S-12.07 |
+| [BC-4.12.005](ss-04/BC-4.12.005.md) | Context-injection merging MUST be additive (resolver output overlays `plugin_config` under its key); two resolvers with the same `context_key` is a registry-load error | draft | CAP-009 | S-12.03, S-12.06, S-12.07, S-12.08 |
 
 ### SS-05 — Pipeline Orchestration (BC-5)
 
@@ -1051,8 +1053,8 @@ changelog:
 | [BC-5.38.004](ss-05/BC-5.38.004.md) | stub-architect must not use pre-implemented sibling crates as stub templates | draft | CAP-016 | S-7.03 |
 | [BC-5.38.005](ss-05/BC-5.38.005.md) | stub-architect applies self-check before committing any non-todo!() function body | draft | CAP-016 | S-7.03 |
 | [BC-5.38.006](ss-05/BC-5.38.006.md) | deliver-story SKILL.md and per-story-delivery.md Step 2 must contain anti-precedent guard text verbatim | draft | CAP-016 | S-7.03 |
-| [BC-5.39.001](ss-05/BC-5.39.001.md) | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | draft | CAP-005 | TBD |
-| [BC-5.39.002](ss-05/BC-5.39.002.md) | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | draft | CAP-005 | TBD |
+| [BC-5.39.001](ss-05/BC-5.39.001.md) | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | draft | CAP-005 | S-12.01 |
+| [BC-5.39.002](ss-05/BC-5.39.002.md) | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | draft | CAP-005 | S-12.01 |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
 | [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |
