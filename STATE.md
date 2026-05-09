@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "fix-burst-40 closed (Status/Points/Stories cells); pass-43 next; ADR-013 0_of_3"
+current_step: "fix-burst-41 closed (E-14 axis drift cells); pass-44 next; ADR-013 0_of_3"
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 (pass-42 HIGH — F-P42-001/002/003 STORY-INDEX Status/Points + BC-INDEX Stories drift (10th L-P28-001 META; axis-checklist before-sealing); fix-burst-40 closed; ADR-013 RESET 0_of_3; pass-43 next) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3 (RESET — pass-42 HIGH); fix-burst-40 closed; pass-43 next |
+| **Last Updated** | 2026-05-09 (pass-43 MED — F-P43-001/002/003 STORY-INDEX E-14 axis drift BCs+Points+Depends-On + O-P43-001 prose (11th L-P28-001 META); fix-burst-41 closed; ADR-013 RESET 0_of_3; pass-44 next) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3 (RESET — pass-43 MED); fix-burst-41 closed; pass-44 next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,8 +76,8 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-42 HIGH; fix-burst-40 closed; ADR-013 0_of_3 (RESET)** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–42 + fix-bursts 1–40 complete. Pass-42: HIGH (F-P42-001/002/003 STORY-INDEX Status/Points + BC-INDEX Stories drift; 10th L-P28-001 META). ADR-013 RESET 0_of_3. BC-INDEX v1.56; ARCH-INDEX v1.36; STORY-INDEX v2.63. Pass-43 next. PR held until 3_of_3. |
-| **STRATEGIC NOTE** | User directive: continue protocol. Pass-42 HIGH RESETS ADR-013 to 0_of_3. Fix-burst-40 closed: STORY-INDEX Status cells completed→merged for S-13.01/S-12.01/S-12.02/S-12.06; S-15.01 source points XL→13; BC-INDEX BC-5.39.001 Stories add S-14.01. 10th L-P28-001 META instance (axis-checklist before-sealing protocol). Pass-43 next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-43 MED; fix-burst-41 closed; ADR-013 0_of_3 (RESET)** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–43 + fix-bursts 1–41 complete. Pass-43: MED (F-P43-001/002/003 STORY-INDEX E-14 axis drift BCs+Points+Depends-On + O-P43-001 prose; 11th L-P28-001 META). ADR-013 RESET 0_of_3. BC-INDEX v1.56; ARCH-INDEX v1.36; STORY-INDEX v2.64. Pass-44 next. PR held until 3_of_3. |
+| **STRATEGIC NOTE** | User directive: continue protocol. Pass-43 MED RESETS ADR-013 to 0_of_3. Fix-burst-41 closed: STORY-INDEX:548 S-14.01 BCs []→[BC-5.39.001]; S-14.01 Points TBD→1; S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]; E-14 delivery prose corrected. 11th L-P28-001 META instance. Pass-44 next. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -103,7 +103,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-39 — STORY-INDEX BCs + BC-INDEX Stories cells corpus reconciliation + L-P28-001 9th META** | state-manager | **DONE** | F-P41-001 closed: 7 STORY-INDEX BCs cells reconciled to source frontmatter (S-12.01/02/03/04/05/06/08). F-P41-002 closed: 10 BC-INDEX Stories cells patched (BC-1.13.001, BC-4.12.001-005, BC-4.10.001/002, BC-5.39.001/002). STORY-INDEX v2.61→v2.62; BC-INDEX v1.54→v1.55; ARCH-INDEX v1.34→v1.35 (L-P20-002 cite refresh). L-P28-001 9th META instance recorded (BCs cell axis + REQUIRED axes enumeration). TD-031 updated. |
 | **F5 pass-42 adversary review** | adversary | **DONE — verdict HIGH** | HIGH (F-P42-001/002/003; 1H+2M). F-P42-001: STORY-INDEX Status completed→merged for 4 rows (S-13.01/S-12.01/S-12.02/S-12.06). F-P42-002: S-15.01 source points XL→13. F-P42-003: BC-INDEX BC-5.39.001 Stories missing S-14.01. 10th L-P28-001 META. ADR-013 RESET 0_of_3. |
 | **F5 fix-burst-40 — STORY-INDEX Status + S-15.01 Points + BC-INDEX Stories + L-P28-001 10th META** | state-manager | **DONE** | F-P42-001 closed: STORY-INDEX:500/518/519/523 completed→merged. F-P42-002 closed: S-15.01 points XL→13 + v1.24→v1.25. F-P42-003 closed: BC-INDEX:1056 BC-5.39.001 Stories add S-14.01. BC-INDEX v1.55→v1.56; STORY-INDEX v2.62→v2.63; ARCH-INDEX v1.35→v1.36 (L-P20-002 cite refresh). L-P28-001 10th META + axis-checklist before-sealing protocol. TD-031 updated. |
-| **F5 pass-43 adversary review** | adversary | **NEXT** | If NITPICK_ONLY: ADR-013 advances 0_of_3 → 1_of_3. |
+| **F5 pass-43 adversary review** | adversary | **DONE — verdict MED** | MED (F-P43-001/002/003 + O-P43-001; 3M+1L). STORY-INDEX E-14 axis drift: S-14.01 BCs/Points, S-14.02/S-14.04 Depends-On, E-14 delivery prose. 11th L-P28-001 META. ADR-013 RESET 0_of_3. |
+| **F5 fix-burst-41 — STORY-INDEX E-14 axis drift cells + prose + L-P28-001 11th META** | state-manager | **DONE** | F-P43-001 closed: STORY-INDEX:548 S-14.01 BCs []→[BC-5.39.001]. F-P43-002 closed: S-14.01 Points TBD→1. F-P43-003 closed: S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]. O-P43-001 closed: E-14 delivery prose corrected. Corpus-wide axis sweep: BCs/Points/Depends-On axes on E-14 all clean post-fix; BC-INDEX/VP-INDEX 5+ rows sampled — no drift. L-P28-001 11th META instance recorded. STORY-INDEX v2.63→v2.64. |
+| **F5 pass-44 adversary review** | adversary | **NEXT** | If NITPICK_ONLY: ADR-013 advances 0_of_3 → 1_of_3. |
 
 ## Identifier Conventions
 
@@ -146,7 +148,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–42 + fix-bursts 1–40 complete. Pass-42: HIGH (F-P42-001/002/003). ADR-013 RESET 0_of_3. BC-INDEX v1.56; ARCH-INDEX v1.36; STORY-INDEX v2.63. Pass-43 next. PR held until 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–43 + fix-bursts 1–41 complete. Pass-43: MED (F-P43-001/002/003 + O-P43-001). ADR-013 RESET 0_of_3. BC-INDEX v1.56; ARCH-INDEX v1.36; STORY-INDEX v2.64. Pass-44 next. PR held until 3_of_3. |
 
 ## Decisions Log
 
@@ -182,11 +184,13 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 **fix-burst-40 (2026-05-09):** F-P42-001/002/003 closed — STORY-INDEX Status cells completed→merged for 4 rows (S-13.01/S-12.01/S-12.02/S-12.06; source `status: merged`). S-15.01 source frontmatter points XL→13 (STORY-INDEX carries 13; Fibonacci convention). BC-INDEX BC-5.39.001 Stories add S-14.01 (S-14.01 frontmatter cites BC-5.39.001; F-P41-002 was E-12-scoped; missed E-14 citer). L-P28-001 10th META instance recorded (axis-checklist before-sealing protocol). STORY-INDEX v2.62→v2.63; BC-INDEX v1.55→v1.56; ARCH-INDEX v1.35→v1.36.
 
+**fix-burst-41 (2026-05-09):** F-P43-001/002/003 + O-P43-001 closed — STORY-INDEX:548 S-14.01 BCs []→[BC-5.39.001]; S-14.01 Points TBD→1; S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]; E-14 delivery prose corrected to reflect dependency chain. Corpus-wide axis sweep: BCs/Points/Depends-On axes on all E-14 stories verified; BC-INDEX 5 rows sampled (BC-1.13.001/BC-4.12.001/BC-5.39.001/BC-4.10.001/BC-5.39.002) — all axes clean; VP-INDEX 3 rows sampled (VP-077/078/079) — all axes clean. L-P28-001 11th META instance recorded. STORY-INDEX v2.63→v2.64.
+
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — pass-42 HIGH (adversary) + fix-burst-40 closed. F-P42-001: STORY-INDEX Status cells completed→merged for 4 rows (S-13.01/S-12.01/S-12.02/S-12.06). F-P42-002: S-15.01 source points XL→13. F-P42-003: BC-INDEX BC-5.39.001 Stories add S-14.01. All 3 findings closed. ADR-013 RESET 0_of_3. 10th L-P28-001 META (axis-checklist before-sealing protocol).
+**Last update:** 2026-05-09 — pass-43 MED (adversary) + fix-burst-41 closed. F-P43-001: STORY-INDEX:548 S-14.01 BCs []→[BC-5.39.001]. F-P43-002: S-14.01 Points TBD→1. F-P43-003: S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]. O-P43-001: E-14 delivery prose corrected. All 4 findings closed. ADR-013 RESET 0_of_3. 11th L-P28-001 META.
 
-**ACTIVE STEP: Pass-43 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 3 consecutive NITPICK_ONLY passes required to reach CONVERGED.**
+**ACTIVE STEP: Pass-44 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 3 consecutive NITPICK_ONLY passes required to reach CONVERGED.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 7b841eca — long-lived; 39 commits ahead of develop; no PR until 3_of_3
@@ -194,8 +198,8 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 - factory-artifacts @ (this commit — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.56 | VP-INDEX v1.40 | STORY-INDEX v2.63 | ARCH-INDEX v1.36
-**ADR-013 clock:** **0_of_3** (RESET — pass-42 HIGH; pass-43 next; 3 consecutive NITPICK_ONLY passes required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.56 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.36
+**ADR-013 clock:** **0_of_3** (RESET — pass-43 MED; pass-44 next; 3 consecutive NITPICK_ONLY passes required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931 at D-313 (now 1947)); finding trend 22→11→16→16→12→2→1→4

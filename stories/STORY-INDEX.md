@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.63"
+version: "2.64"
 status: current
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
-last_amended: "2026-05-09 (v2.63) — F5 fix-burst-40 (F-P42-001): STORY-INDEX Status cells corrected for 4 merged stories (S-13.01/S-12.01/S-12.02/S-12.06: completed→merged). 10th L-P28-001-family META instance (axis-checklist before-sealing protocol). STORY-INDEX v2.62→v2.63."
+last_amended: "2026-05-09 (v2.64) — F5 fix-burst-41 (F-P43-001/002/003 + O-P43-001): S-14.01 BCs []→[BC-5.39.001]; S-14.01 Points TBD→1; S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]; E-14 delivery prose corrected to reflect dependency chain. 11th L-P28-001-family META instance. STORY-INDEX v2.63→v2.64."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -545,16 +545,17 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-14.01 | Bootstrap convergence-state backfill (PG-2 inline + formal spec) | E-14 | TBD | P0 | [] | [] | draft | [] |
-| S-14.02 | F5 dispatch state-manager persist automation (PG-1) | E-14 | TBD | P1 | [] | [] | draft | [] |
+| S-14.01 | Bootstrap convergence-state backfill (PG-2 inline + formal spec) | E-14 | 1 | P0 | [] | [] | draft | [BC-5.39.001] |
+| S-14.02 | F5 dispatch state-manager persist automation (PG-1) | E-14 | TBD | P1 | [S-14.01] | [] | draft | [] |
 | S-14.03 | Pre-F5 artifact lint for placeholder frontmatter (PG-3) | E-14 | TBD | P2 | [] | [] | draft | [] |
-| S-14.04 | Policy-rubric auto-injection for adversary dispatch (PG-4) | E-14 | TBD | P1 | [] | [] | draft | [] |
+| S-14.04 | Policy-rubric auto-injection for adversary dispatch (PG-4) | E-14 | TBD | P1 | [S-14.02] | [] | draft | [] |
 | S-14.05 | pr-manager early-exit codification (PG-6, orchestrator-added) | E-14 | TBD | P1 | [] | [] | draft | [] |
 
-> **E-14 delivery:** All 5 stories are independent process improvements. No blocking dependencies
-> between them. S-14.01 is P0 (inline backfill already executed in D-359; formal story codifies
-> the bootstrap exception protocol for future cycles). S-14.02/S-14.04/S-14.05 are P1.
-> S-14.03 is P2. Delivery order is priority-driven, not sequenced.
+> **E-14 delivery:** All 5 stories are process improvements. Delivery order: S-14.01 → S-14.02 → S-14.04
+> (S-14.02 depends on S-14.01; S-14.04 depends on S-14.02). S-14.03 and S-14.05 are independent
+> (no blocking dependencies). S-14.01 is P0 (inline backfill already executed in D-359; formal story
+> codifies the bootstrap exception protocol for future cycles). S-14.02/S-14.04/S-14.05 are P1.
+> S-14.03 is P2.
 
 ---
 

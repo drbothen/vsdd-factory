@@ -2,7 +2,7 @@
 document_type: lessons
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 producer: state-manager
-version: "1.4"
+version: "1.5"
 last_updated: 2026-05-09
 ---
 
@@ -657,3 +657,17 @@ Canonical verification procedure for BCs axis:
 - Stories axis (BC-INDEX cross-check): BC-5.39.001 Stories `S-12.01` → `S-12.01, S-14.01` (S-14.01 `behavioral_contracts: ["BC-5.39.001"]` confirmed by grep).
 
 **Extended discipline (10th instance) — axis-checklist before-sealing protocol:** Every future codifying burst that extends the L-P28-001 REQUIRED axes enumeration MUST, in the same burst before commit, run a full CORPUS-WIDE sweep across ALL axes in the updated enumeration. The sealing commit MUST NOT be created until all axes return clean. This protocol supersedes the 9th instance discipline for the sealing step only; the per-instance "sweep the new axis corpus-wide on first application" rule remains in effect for subsequent bursts that don't modify the enumeration.
+
+**11th META-self-application failure (added fix-burst-41, F-P43-001/002/003 closure):** The axis-checklist before-sealing protocol codified at fix-burst-40 (10th instance) failed on its own codifying burst. Fix-burst-40 swept Status (4 rows), Points (1 row), Stories (1 row) — but did NOT corpus-wide sweep BCs or Depends-On axes. F-P43-001/002/003 are the leaked drifts on E-14 stories.
+
+- F-P43-001: STORY-INDEX:548 S-14.01 BCs cell `[]` while source `behavioral_contracts: ["BC-5.39.001"]`. The bidirectional fix-burst-40 added S-14.01 to BC-INDEX BC-5.39.001 Stories but omitted the reverse direction (STORY-INDEX BCs cell).
+- F-P43-002: STORY-INDEX:548 S-14.01 Points cell `TBD` while source `points: "1"`. Points axis was swept corpus-wide in fix-burst-37 and fix-burst-40 but E-14 rows were missed.
+- F-P43-003: STORY-INDEX:549/551 S-14.02/S-14.04 Depends-On cells `[]` while source `depends_on: ["S-14.01"]` and `depends_on: ["S-14.02"]` respectively. Depends-On axis was listed as REQUIRED but not swept corpus-wide on E-14 stories at fix-burst-40 sealing.
+
+**Pattern:** 11 META-self-application failures across passes 27–43. Prose-only codification empirically does not converge to corpus-wide application. Mechanical enforcement (S-14.03 pre-F5 lint or S-15.03 hook scope) is the structurally-convergent path.
+
+**Fix-burst-41 corpus verification (11th instance):**
+- BCs axis: STORY-INDEX:548 S-14.01 `[]` → `[BC-5.39.001]`. All other E-14 stories source `behavioral_contracts: []` — INDEX already correct.
+- Points axis: STORY-INDEX:548 S-14.01 `TBD` → `1`. All other E-14 stories source `points: "TBD"` — INDEX already correct.
+- Depends-On axis: STORY-INDEX:549 S-14.02 `[]` → `[S-14.01]`; STORY-INDEX:551 S-14.04 `[]` → `[S-14.02]`. S-14.03/S-14.05 source `depends_on: []` — INDEX already correct.
+- E-14 prose: updated to reflect actual dependency chain (S-14.01 → S-14.02 → S-14.04; S-14.03 and S-14.05 independent).

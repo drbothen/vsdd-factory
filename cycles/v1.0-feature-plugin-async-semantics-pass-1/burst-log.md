@@ -2297,3 +2297,49 @@ Fix-burst-40 dispatched.
 Findings closed: F-P42-001 (HIGH), F-P42-002 (MEDIUM), F-P42-003 (MEDIUM)
 ADR-013 clock: 0_of_3 (RESET — pass-42 HIGH)
 Pass-43 next.
+
+---
+
+## Burst 44 — F5 pass-43 adversary review: MED (3M+1L)
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → adversary
+**Phase:** F5 ADVERSARIAL — pass-43
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-43.md` | adversary | Pass-43 review: MED (3M+1L). F-P43-001 STORY-INDEX:548 S-14.01 BCs []; F-P43-002 S-14.01 Points TBD; F-P43-003 S-14.02/S-14.04 Depends-On []; O-P43-001 E-14 prose contradiction. ADR-013 RESET 0_of_3. 11th L-P28-001 META. |
+
+Verdict: MED
+ADR-013 clock: 0_of_3 (RESET — pass-43 MED)
+Fix-burst-41 dispatched.
+
+---
+
+## Burst 45 — F5 fix-burst-41: STORY-INDEX E-14 axis drift cells + prose + L-P28-001 11th META
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL — fix-burst-41
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `.factory/stories/STORY-INDEX.md` | state-manager | F-P43-001: S-14.01 BCs []→[BC-5.39.001]. F-P43-002: S-14.01 Points TBD→1. F-P43-003: S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]. O-P43-001: E-14 delivery prose corrected. v2.63→v2.64. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | L-P28-001 11th META + fix-burst-41 corpus verification appended. v1.4→v1.5. |
+| `.factory/STATE.md` | state-manager | current_step → fix-burst-41 closed; pass-44 next. Current Phase Steps: pass-43 DONE + fix-burst-41 DONE + pass-44 NEXT. Index versions STORY-INDEX v2.64. Session checkpoint updated. Strategic Decision fix-burst-41 entry added. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Bursts 44+45 appended. |
+
+Corpus sweep results (axis-checklist per L-P28-001 11th instance):
+- STORY-INDEX BCs axis: S-14.01 fixed; all other E-14 stories source behavioral_contracts:[] — INDEX clean.
+- STORY-INDEX Points axis: S-14.01 fixed; all other E-14 stories source points:"TBD" — INDEX clean.
+- STORY-INDEX Depends-On axis: S-14.02/S-14.04 fixed; S-14.03/S-14.05 source depends_on:[] — INDEX clean.
+- BC-INDEX 5 rows sampled (BC-1.13.001/BC-4.12.001/BC-5.39.001/BC-4.10.001/BC-5.39.002): Subsystem/Capability/Status/Stories all clean.
+- VP-INDEX 3 rows sampled (VP-077/078/079): Type/Proof Method/Scope/Domain Invariant all clean.
+
+Findings closed: F-P43-001 (MEDIUM), F-P43-002 (MEDIUM), F-P43-003 (MEDIUM), O-P43-001 (LOW)
+ADR-013 clock: 0_of_3 (RESET — pass-43 MED)
+Pass-44 next.
