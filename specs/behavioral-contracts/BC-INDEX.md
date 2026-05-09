@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.42"
+version: "1.43"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-18 indexes (2026-05-08) — BC-4.11.001 v1.1→v1.2 (F-P19-003: new Invariant 8 — Path Form Invariance; cross-refs in Postconditions 2 and 7); BC-7.03.009 v1.2→v1.3 (F-P19-001: corpus prose-form sweep — stable symbol anchors). No count change. BC-INDEX v1.42→v1.43. Refs: F-P19-001, F-P19-003, fix-burst-18 sub-bursts 2+3. last_amended: 2026-05-08 (F5 fix-burst-18: BC-4.11.001 v1.2; BC-7.03.009 v1.3; F-P19-001/F-P19-003 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-17 indexes (2026-05-08) — TD-VSDD-091 6-chunk stable-anchor mass-sweep + F-P18-002 follow-up — ~50 BCs version-bumped across SS-01/02/03/04/05/07/08 (commits be3f06a6, d84f67b3, 5248c4c1, 93a10457, f7a34858, 0b5d097d, fadafca5). All per-file version bumps recorded in the file-level changelog of each touched BC. BC-INDEX v1.41→v1.42. last_amended: 2026-05-08 (F5 fix-burst-17: TD-VSDD-091 6-chunk sweep + F-P18-002 follow-up)."
   - date: 2026-05-08

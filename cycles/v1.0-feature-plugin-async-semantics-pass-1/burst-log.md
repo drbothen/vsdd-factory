@@ -1168,3 +1168,79 @@ Three sub-bursts. State-manager ran last per POLICY 3.
 - STATE.md: pass-18 + fix-burst-17 progress; current_step updated
 - lessons.md: 4 process-gap lessons codified [F-P18-001..004]
 - F-P18-003 + F-P18-004 closed
+
+---
+
+## F5 pass-19 adversary review — 2026-05-08
+
+**Verdict:** HIGH (F-P19-001..F-P19-005)
+**ADR-013 clock:** 0_of_3 (HIGH resets)
+
+### Findings
+
+| ID | Severity | Summary |
+|----|----------|---------|
+| F-P19-001 | — | Corpus-wide prose-form sweep — 18 grep matches; 6 body refs in 4 files not migrated (BC-7.03.009, open-questions.md, prd.md, ADR-019); L-P18-002 codified but retroactive sweep not run |
+| F-P19-002 | — | Kani Proof 2 assumption stale — `kani::assume(!path.starts_with(".factory/"))` in validate-artifact-path excludes relative paths only; absolute-path payloads bypass assumption; 3 locations (lib.rs:593, kani_path_matching.rs:271, VP-070.md:103) |
+| F-P19-003 | — | BC-4.11.001 missing explicit absolute-path semantics — absolute paths to .factory/ excluded by validate-artifact-path but not formalized in BC; Invariant 8 (Path Form Invariance) needed |
+| F-P19-004 | — | (process-gap) Lesson backfill discipline — codification without retroactive sweep (cf. L-P19-001 codified this burst) |
+| F-P19-005 | — | (process-gap) Kani harness sync policy — non-Kani fix changed behavior without updating assumption (cf. L-P19-002 codified this burst) |
+
+**Trajectory:** →(pass-19 HIGH)
+
+---
+
+## F5 fix-burst-18 — 2026-05-08
+
+Three sub-bursts. State-manager ran last per POLICY 3.
+
+### Sub-burst 1: F-P19-002 Kani harness fix (026272ae fix branch + e23a82ab factory-artifacts)
+
+**Agent:** implementer
+**Branch:** fix/S-15.01-F5-convergence + factory-artifacts
+
+- VP-070 Proof 2 assumption tightened to exclude both relative and absolute .factory/ paths
+- 3 locations updated: lib.rs:593, kani_path_matching.rs:271, VP-070.md:103
+- VP-070 v1.1 → v1.2
+- Kani CLI version mismatch (cargo kani 0.67.0 → rustc 1.93.0-nightly < workspace 1.95) defers actual proof execution to CI
+- F-P19-002 closed
+
+### Sub-burst 2: F-P19-001 corpus-wide prose-form sweep (91bb304c factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-7.03.009 | v1.2 → v1.3 | Prose-form line refs migrated to stable symbol anchors |
+| open-questions.md | v1.1 → v1.2 | Prose-form line refs migrated |
+| prd.md | v1.2 → v1.3 | Prose-form line refs migrated |
+| ADR-019 | v1.8 → v1.9 | Prose-form line refs migrated |
+
+- 18 grep matches total; 6 body refs migrated; 12 historical refs left as record
+- F-P19-001 closed
+
+### Sub-burst 3: F-P19-003 BC-4.11.001 amendment (ce848f24 factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-4.11.001 | v1.1 → v1.2 | New Invariant 8 (Path Form Invariance) + cross-refs in Postconditions 2 and 7 |
+
+- F-P19-003 closed
+
+### Sub-burst 4: indexes + TD register + state + lessons (this burst, factory-artifacts)
+
+**Agent:** state-manager
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v1.42 | v1.43 |
+| VP-INDEX | v1.28 | v1.29 |
+
+- BC-INDEX: BC-4.11.001 v1.2 + BC-7.03.009 v1.3 recorded; F-P19-001/003 refs
+- VP-INDEX: VP-070 v1.2 row description updated; F-P19-002 refs
+- TD-031: 026272ae + 91bb304c + ce848f24 recorded; Kani proof execution pending CI
+- STATE.md: pass-19 + fix-burst-18 progress; current_step updated; ADR-013 0_of_3; pass-20 next
+- lessons.md: 2 process-gap lessons codified [L-P19-001 + L-P19-002]
+- F-P19-004 + F-P19-005 closed

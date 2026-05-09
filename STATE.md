@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-18 + fix-burst-17 closed; ADR-013 0_of_3; pass-19 next."
+current_step: "fix-burst-18 closed; pass-20 next; ADR-013 0_of_3"
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (POST-COMPACT — Chunks 1-6 swept (316→140 raw, 140 in exempt zones); cc5a016b hook bug fix; pass-18 HIGH; fix-burst-17 sibling+prose+indexes; ADR-013 0_of_3; pass-19 next) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 58 tests); ADR-013 clock 0_of_3; mass-sweep 316 violations pending post-compact |
+| **Last Updated** | 2026-05-08 (fix-burst-18 closed: F-P19-001 corpus prose sweep + F-P19-002 Kani harness fix + F-P19-003 BC-4.11.001 v1.2; ADR-013 0_of_3; pass-20 next) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-19 HIGH; fix-burst-18 complete; pass-20 next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-18 HIGH; fix-burst-17 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–18 + fix-bursts 1–17 complete. Pass-18: HIGH (1H/3M/3L; 4 process-gap findings). Fix-burst-17: 3 sub-bursts — 8b4f697f sibling-hook absolute-path fix + fadafca5 prose-form migration + indexes (this burst). ADR-013 0_of_3. Branch @ 8b4f697f (37 ahead). Pass-19 next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-19 HIGH; fix-burst-18 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–19 + fix-bursts 1–18 complete. Pass-19: HIGH (F-P19-001..005). Fix-burst-18: 3 sub-bursts — 026272ae Kani harness fix (VP-070 v1.2) + 91bb304c corpus prose sweep (BC-7.03.009 v1.3 + 3 files) + ce848f24 BC-4.11.001 v1.2 (Invariant 8). ADR-013 0_of_3. Branch @ 026272ae (38 ahead). Pass-20 next. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -88,22 +88,12 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| *(passes 1–14 + fix-bursts 1–13 archived to cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md)* | | | |
-| **F5 pass-14 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (2H/2M/1L). F-P14-001 [H] cross-BC wire-format contradiction; F-P14-002 [H] DI-019 stale line drift; F-P14-003 [M] VP-079 mutants wrong file; F-P14-004 [M] 5-file propagation gap; F-P14-005 [L] BC-7.06.001 wording. Trajectory: →5. See `F5-adversary-pass-14.md`. |
-| **F5 fix-burst-13 — BC-3.08.001 v1.8 + BC-7.06.001 v1.9 + VP-079 v1.13 + DI-019 v1.10 + impl Path B + tests** | PO + architect + implementer + test-writer + story-writer + state-manager | **COMPLETE** | F-P14-001 Path B: E-REG-003 wire schema + offending_event+offending_tool. DI-019 v1.10 stable anchors. VP-079 v1.13 cargo-mutants target corrected. Branch @ 1d19d73 (27 ahead). |
-| **F5 pass-15 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (3H/3M/3L + 1 process-gap). F-P15-001/002/003: VP-079 mandatory-fields gap + wildcard impl + bcs frontmatter. F-P15-004/005/006/007: §Scenario 7+8 prose, AC-013, changelog, TD-031 process-gap. Trajectory: →7. See `F5-adversary-pass-15.md`. |
-| **F5 fix-burst-14 — VP-079 v1.14 + BC-3.08.001 v1.9 + S-15.01 v1.18 (AC-018) + impl wildcard + TD-031** | implementer + test-writer + state-manager | **COMPLETE** | F-P15-001/003/004/006: VP-079 v1.14 mandatory-fields+bcs+§Scenario 7+8+changelog. F-P15-002: wildcard offending_tool: null. F-P15-005: AC-018. O-P15-001/003: BC-3.08.001 v1.9 session_id+RESERVED. TD-031 codified. Branch @ 7f2914b6 (29 ahead). |
-| **F5 pass-16 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (2H/2M/1L + 3obs). META: fix-burst-14 introduced 5 TD-031 violations. F-P16-001 [H] VP-079 SITES stale → INFRA-ERROR; F-P16-002 [H] BC-3.08.001 amendment line cites stale; F-P16-003 [M] S-15.01 ACs missing session_id; F-P16-004 [M] triple-doc drift §8b absent; F-P16-005 [L] §Common Fields contradiction. Trajectory: →5. ADR-013: 0_of_3. See `F5-adversary-pass-16.md`. |
-| **F5 fix-burst-15 — VP-079 v1.15 + BC-3.08.001 v1.10 + S-15.01 v1.19 + bats SITES refresh + TD-031 P2→P1** | test-writer + state-manager | **COMPLETE** | F-P16-001/004: VP-079 v1.15 SITES stable anchors + §Scenario 8b prose + bats Scenario 6 SITES line range refresh (143,150+167,174+423+434). F-P16-002/005: BC-3.08.001 v1.10 stable anchors + §Common Fields contradiction resolved. F-P16-003/004: S-15.01 v1.19 ACs 011-014 session_id + 7 mandatory fields. O-P16-001: TD-031 escalated P2→P1. O-P16-002: VP-079 BC cite stabilized. O-P16-003: VP-079 inputs extended. Branch @ 2d700d94 (30 ahead). |
-| **F5 pass-17 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (3H/1M/4 obs). META: TD-031 violations recur within fix-bursts that codify TD-031. F-P17-001 [H/CRIT] VP-079 v1.15 SITES drifted 1/5/7/7 lines vs live main.rs; F-P17-002 [H] BC-3.08.001 §Common Fields claims plugin_version but impl emits zero; F-P17-003 [H] S-15.01 AC-018 stale :581-700 bats range (F-P16-004 sibling gap); F-P17-004 [M] vp079-scenario6.bats header stale-by-2/3. ADR-013: 0_of_3. Trajectory: →4. See `F5-adversary-pass-17.md`. |
-| **F5 fix-burst-16 — VP-079 v1.16 + BC-3.08.001 v1.11 + S-15.01 v1.20 + TD-031 lint-hook NEW** | test-writer + devops-engineer + state-manager | **COMPLETE** | F-P17-001: VP-079 v1.16 SITES array refreshed (live main.rs symbol positions). F-P17-002: BC-3.08.001 v1.11 §Common Fields corrected (plugin_version claim removed). F-P17-003: S-15.01 v1.20 AC-018 stale bats range corrected. F-P17-004: vp079-scenario6.bats header stable anchors per TD-031. O-P17-003: TD-031 enforcement lint-hook NEW (validate-td031-stable-anchors; PreToolUse Edit|Write blocking; registered hooks-registry.toml); 180 pre-existing violations across 60 files surfaced. Branch @ 0088a40a (32 ahead). |
-| **Hook rename: validate-td031-stable-anchors → validate-stable-anchors + 180-violation verification** | devops-engineer + state-manager | **COMPLETE** | Rename commit bb661eaa. Hook now generalizes beyond TD-031. Verification: 22 stratified samples; 98.9% TP (178/180 true positives); 2 FPs in VP-INDEX YAML frontmatter (exempt-zone gap, not false enforcement). Branch @ bb661eaa (33 ahead). |
-| **Hook generalize + tighten (source-code allowlist)** | devops-engineer + state-manager | **COMPLETE** | d6dcdd9f: generalize regex to all `<word>.<lowercase 1-8>:<digits>` patterns (1,229 total; 938 were .md cross-doc refs — different class). ab25e45d: tighten with source-code allowlist (excludes .md/.html/.txt); final scope 316 violations across 60+ files; 58/58 tests pass. Handoff doc updated. Branch @ ab25e45d (35 ahead). USER: /compact pending. |
-| **POST-COMPACT: chunked mass-sweep 316 violations (6 chunks: be3f06a6, d84f67b3, 5248c4c1, 93a10457, f7a34858, 0b5d097d)** | implementer | **COMPLETE** | 6 sub-bursts across SS-01/02/03/04/05/07/08; ~50 BCs + 5 VPs version-bumped. |
-| **F5 pass-18 adversary review** | adversary | **COMPLETE** | Verdict: HIGH (1H/3M/3L; 4 process-gap findings F-P18-001..004). ADR-013: 0_of_3 (HIGH resets). See `F5-adversary-pass-18.md`. |
-| **F5 fix-burst-17 sub-burst 1 — validate-artifact-path sibling absolute-path fix** | implementer + test-writer | **COMPLETE** | 8b4f697f: absolute-path bug in `matches_canonical` + `hook_logic`; 4 tests added; both WASM rebuilt; 58/58 tests. Branch @ 8b4f697f (37 ahead). F-P18-001 closed. |
-| **F5 fix-burst-17 sub-burst 2 — prose-form migration BC-1.05.035/036 + BC-2.02.011** | spec-writer | **COMPLETE** | fadafca5 on factory-artifacts: BC-1.05.035 → v1.2, BC-1.05.036 → v1.2, BC-2.02.011 → v1.2 (prose "at line NNN" → stable anchors). F-P18-002 closed. |
-| **F5 fix-burst-17 sub-burst 3 — indexes + TD register + state + lessons (this burst)** | state-manager | **COMPLETE** | BC-INDEX v1.41→v1.42, VP-INDEX v1.27→v1.28, VP-077 row v1.11, TD-031 updated, 4 process-gap lessons codified. F-P18-003 + F-P18-004 closed. |
+| *(passes 1–18 + fix-bursts 1–17 archived to cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md)* | | | |
+| **F5 pass-18 adversary review** | adversary | **DONE** | Verdict: HIGH (1H/3M/3L; 4 process-gap findings F-P18-001..004). ADR-013: 0_of_3 (HIGH resets). |
+| **F5 fix-burst-17 — sibling-hook fix (8b4f697f) + prose-form migration (fadafca5) + indexes+TD+lessons** | implementer + spec-writer + state-manager | **DONE** | BC-INDEX v1.42, VP-INDEX v1.28, 4 lessons codified [F-P18-001..004]. |
+| **F5 pass-19 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P19-001..005). F-P19-001 corpus prose sweep; F-P19-002 Kani assumption stale; F-P19-003 BC-4.11.001 missing abs-path invariant. ADR-013: 0_of_3. |
+| **F5 fix-burst-18 — Kani harness fix (026272ae) + corpus sweep (91bb304c) + BC-4.11.001 v1.2 (ce848f24) + indexes+TD+lessons (this burst)** | implementer + spec-writer + state-manager | **DONE** | BC-INDEX v1.43, VP-INDEX v1.29, VP-070 v1.2, 2 lessons codified [L-P19-001 + L-P19-002]. |
+| **F5 pass-20 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. |
 
 ## Identifier Conventions
 
@@ -145,7 +135,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..18 + fix-bursts 1..17 complete. Pass-18 HIGH (1H/3M/3L). Fix-burst-17: 3 sub-bursts (sibling-hook + prose-form + indexes). Branch @ 8b4f697f (37 ahead). ADR-013 0_of_3. Pass-19 next. PR held until 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Pass-1..19 + fix-bursts 1..18 complete. Pass-19 HIGH (F-P19-001..005). Fix-burst-18: 3 sub-bursts (Kani harness + corpus prose sweep + BC-4.11.001 Invariant 8). Branch @ 026272ae (38 ahead). ADR-013 0_of_3. Pass-20 next. PR held until 3_of_3. |
 
 ## Decisions Log
 
@@ -175,18 +165,18 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — fix-burst-17 closed (state-manager sub-burst 3). Pass-18 HIGH (1H/3M/3L; 4 process-gap findings). Fix-burst-17: sibling-hook absolute-path fix (8b4f697f), prose-form migration (fadafca5), indexes+TD+lessons (this burst). ADR-013 0_of_3 (HIGH resets clock). Pass-19 next.
+**Last update:** 2026-05-08 — fix-burst-18 closed (state-manager sub-burst 4, POLICY 3 run-last). Pass-19 HIGH (F-P19-001..005). Fix-burst-18: Kani harness fix VP-070 v1.2 (026272ae), corpus prose-form sweep (91bb304c), BC-4.11.001 v1.2 Invariant 8 (ce848f24), indexes+TD+lessons (this burst). ADR-013 0_of_3 (HIGH resets clock). Pass-20 next.
 
-**ACTIVE STEP: Pass-19 adversary review — dispatch after this commit. ADR-013 at 0_of_3.**
+**ACTIVE STEP: Pass-20 adversary review — dispatch after this commit. ADR-013 at 0_of_3.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 8b4f697f — long-lived; 37 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ 026272ae — long-lived; 38 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
-- factory-artifacts @ (this burst — see git log)
+- factory-artifacts @ ce848f24 (before this commit)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.42 | VP-INDEX v1.28 | STORY-INDEX v2.49 | ARCH-INDEX v1.22
-**ADR-013 clock:** **0_of_3** (RESET — pass-18 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.43 | VP-INDEX v1.29 | STORY-INDEX v2.49 | ARCH-INDEX v1.22
+**ADR-013 clock:** **0_of_3** (RESET — pass-19 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931); finding trend 22→11→16→16→12→2→1→4

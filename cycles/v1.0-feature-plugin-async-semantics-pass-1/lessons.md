@@ -101,3 +101,60 @@ enforcement description match current reality."
 
 **Disposition:** Codified as TD register maintenance policy. Applied retroactively to
 TD-031 in this burst (cc5a016b + 8b4f697f recorded; test counts updated; Kani deferral noted).
+
+---
+
+## F5 pass-19 process-gap findings (2026-05-08)
+
+### L-P19-001 — Lesson backfill discipline [codified]
+
+**Source:** F-P19-001 (process-gap)
+**Finding:** L-P18-002 was codified in fix-burst-17 with tag `[codified]` but no retroactive
+corpus-wide sweep was executed in the same fix-burst to apply the codified rule. The next
+adversary pass (pass-19) found sibling instances of the same pattern (F-P19-001: 18 grep
+matches; 6 body refs across 4 files not migrated).
+
+**Lesson:** When a lesson L-NNN is codified (`[codified]` tag), the SAME fix-burst that
+codifies the lesson MUST also run a corpus-wide retroactive sweep applying the codified rule.
+Codification without retroactive backfill is structurally insufficient — the next adversary
+pass will find sibling instances of the same pattern (cf. L-P18-002 codified pass-18,
+un-applied retroactively, re-found pass-19 as F-P19-001).
+
+**Rule:** Any state-manager fix-burst that adds an entry to lessons.md MUST include in the
+same commit (or in a sub-burst within the same fix-burst) a corpus-wide grep+migration step
+for the codified pattern.
+
+**Trigger:** When the orchestrator signals "lesson codified", the state-manager checklist
+must include: "Run retroactive corpus sweep for codified pattern before declaring fix-burst
+complete."
+
+**Disposition:** Codified as state-manager sub-burst discipline. Applies retroactively: any
+future lessons.md append must be accompanied by a corpus sweep in the same fix-burst.
+
+---
+
+### L-P19-002 — Kani harness sync policy [codified]
+
+**Source:** F-P19-002 (process-gap)
+**Finding:** Implementation code under `#[cfg(kani)]` in validate-artifact-path had stale
+`kani::assume(!path.starts_with(".factory/"))` after the absolute-path fix in fix-burst-17
+(8b4f697f). The Kani assumption no longer matched the new behavior — proof was unsound
+vs absolute-path matching — but this was not detected until the next adversary pass.
+
+**Lesson:** When implementation code under `#[cfg(kani)]` (inline) or `tests/*kani*.rs`
+(external) is changed by a non-Kani fix, the same commit MUST also:
+  (a) update the Kani assumption/assertion to match the new behavior, OR
+  (b) mark the proof as deferred-fix-pending in the spec artifact (e.g.,
+      `lifecycle_status: deferred` in VP frontmatter) AND add a TD entry citing the deferral.
+
+**Failure mode:** Implementation changes ship; Kani assumptions go stale; proof is unsound
+but undetected until the next Kani run (which may be never if CI doesn't gate Kani).
+
+**Suggested codification mechanism:** Future POLICY 13 candidate. In the interim, add to
+the fix-burst checklist: "If any `#[cfg(kani)]` or `kani_*` test file is adjacent to
+changed code, verify Kani assumptions still match the new behavior."
+
+**Disposition:** Codified as implementer discipline. Applied retroactively: fix-burst-18
+sub-burst 1 (026272ae) updated VP-070 Proof 2 assumption to exclude both relative and
+absolute .factory/ paths. Actual proof execution deferred to CI pending rustc version
+upgrade (cargo kani 0.67.0 → rustc 1.93.0-nightly < workspace 1.95).
