@@ -14,8 +14,10 @@
 //! Advisory-block semantics (per Q3 resolution + W-15 gate fix CRIT-PR59-001):
 //! a plugin that writes `{"outcome":"block","reason":"..."}` to stdout
 //! records a dispatcher-level block intent regardless of `on_error` setting.
-//! The `on_error` field continues to govern dispatcher *crash* behavior only
-//! (whether a panicking plugin blocks vs continues). The summary's
+//! The `on_error` field governs fail-closed semantics for crash and timeout:
+//! a sync-group plugin that Crashes or times out with `on_error=Block` triggers
+//! fail-closed exit 2 (ADR-019 §Decision 2). Async hooks never trigger fail-closed
+//! (async block verdicts are advisory-only per ADR-019). The summary's
 //! `exit_code` is 2 iff any block intent was recorded.
 
 use std::sync::Arc;
@@ -87,7 +89,9 @@ pub async fn execute_tiers(
     for tier in tiers {
         let tier_outcomes = execute_tier(&inputs, tier).await;
         for outcome in &tier_outcomes {
-            if plugin_requests_block(&outcome.result) {
+            if plugin_requests_block(&outcome.result)
+                || plugin_fail_closed(&outcome.result, outcome.on_error)
+            {
                 block_intent = true;
             }
         }
@@ -361,6 +365,28 @@ fn plugin_requests_block(result: &PluginResult) -> bool {
     stdout.contains(r#""outcome":"block""#)
 }
 
+/// Fail-closed semantics for sync-group gate hooks (ADR-019 §Decision 2).
+///
+/// Returns `true` when a sync-group plugin Crashed or timed out AND its
+/// registry entry declared `on_error = block`. In this case the dispatcher
+/// must exit 2 even though the crashed plugin never emitted stdout.
+///
+/// **Async hooks MUST NOT call this path.** `execute_tiers` is called only
+/// for sync-group plugins; async hooks go through `spawn_async_plugin` and
+/// are excluded from gate decisions by the structural partition (ADR-019
+/// async semantics — async verdicts are advisory-only).
+///
+/// # BC traces
+/// - ADR-019 §Decision 2 — fail-closed semantics
+/// - BC-1.14.001 Error Paths — Crashed+on_error=Block exits 2
+/// - BC-7.06.001 Invariant 1 — sync gate hooks must not silently fail open
+fn plugin_fail_closed(result: &PluginResult, on_error: OnError) -> bool {
+    if on_error != OnError::Block {
+        return false;
+    }
+    matches!(result, PluginResult::Crashed { .. } | PluginResult::Timeout { .. })
+}
+
 fn emit_invoked(log: &InternalLog, base_ctx: &HostContext, entry: &RegistryEntry) {
     let ev = InternalEvent::now(PLUGIN_INVOKED)
         .with_trace_id(&base_ctx.dispatcher_trace_id)
@@ -558,5 +584,90 @@ mod tests {
             fuel_consumed: 0,
         };
         assert!(!plugin_requests_block(&r));
+    }
+
+    // ── ADR-019 §Decision 2 fail-closed tests: plugin_fail_closed ────────────
+
+    /// Crashed + on_error=Block → fail-closed (exit 2).
+    /// This is the TC-8 root cause: WASI trap doesn't set exit_code; the
+    /// aggregator must detect Crashed+Block independently.
+    ///
+    /// ADR-019 §Decision 2, BC-1.14.001 Error Paths, BC-7.06.001 Invariant 1.
+    #[test]
+    fn fail_closed_crashes_with_on_error_block() {
+        let r = PluginResult::Crashed {
+            trap_string: "unreachable".to_string(),
+            stderr: String::new(),
+            elapsed_ms: 1,
+            fuel_consumed: 0,
+        };
+        assert!(
+            plugin_fail_closed(&r, OnError::Block),
+            "Crashed + on_error=Block must trigger fail-closed"
+        );
+    }
+
+    /// Crashed + on_error=Continue → NOT fail-closed (fail-open, normal advisory path).
+    #[test]
+    fn fail_closed_crash_with_on_error_continue_is_open() {
+        let r = PluginResult::Crashed {
+            trap_string: "unreachable".to_string(),
+            stderr: String::new(),
+            elapsed_ms: 1,
+            fuel_consumed: 0,
+        };
+        assert!(
+            !plugin_fail_closed(&r, OnError::Continue),
+            "Crashed + on_error=Continue must NOT trigger fail-closed"
+        );
+    }
+
+    /// Timeout + on_error=Block → fail-closed (exit 2).
+    /// A timed-out gate hook also cannot emit stdout; fail-closed must apply.
+    ///
+    /// ADR-019 §Decision 2.
+    #[test]
+    fn fail_closed_timeout_with_on_error_block() {
+        let r = PluginResult::Timeout {
+            cause: TimeoutCause::Epoch,
+            stderr: String::new(),
+            elapsed_ms: 5_000,
+            fuel_consumed: 0,
+        };
+        assert!(
+            plugin_fail_closed(&r, OnError::Block),
+            "Timeout + on_error=Block must trigger fail-closed"
+        );
+    }
+
+    /// Timeout + on_error=Continue → NOT fail-closed.
+    #[test]
+    fn fail_closed_timeout_with_on_error_continue_is_open() {
+        let r = PluginResult::Timeout {
+            cause: TimeoutCause::Fuel,
+            stderr: String::new(),
+            elapsed_ms: 5_000,
+            fuel_consumed: 1_000_000_000,
+        };
+        assert!(
+            !plugin_fail_closed(&r, OnError::Continue),
+            "Timeout + on_error=Continue must NOT trigger fail-closed"
+        );
+    }
+
+    /// Ok result + on_error=Block → NOT fail-closed (advisory path handles this).
+    #[test]
+    fn fail_closed_ok_result_is_not_fail_closed() {
+        let r = PluginResult::Ok {
+            exit_code: 0,
+            stdout: r#"{"outcome":"continue"}"#.to_string(),
+            stderr: String::new(),
+            elapsed_ms: 10,
+            fuel_consumed: 100,
+        };
+        assert!(
+            !plugin_fail_closed(&r, OnError::Block),
+            "Ok result + on_error=Block must NOT trigger fail-closed (advisory path handles Ok)"
+        );
     }
 }
