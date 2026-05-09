@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "PASS-56 NITPICK_ONLY — ADR-013 clock 1→2; pass-57 next; if NIT advances 2→3 = CONVERGED"
+current_step: "CONVERGENCE_REACHED — F5 ADR-013 = 3_of_3 at pass-57. PR ready to open."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 (pass-56 NITPICK_ONLY — ADR-013 1→2_of_3; fresh sample sweep clean; pass-57 next — CONVERGENCE IMMINENT) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 2_of_3 (CONVERGENCE IMMINENT); pass-57 next |
+| **Last Updated** | 2026-05-09 — CONVERGENCE_REACHED at pass-57 after 40 adversary passes + 49 fix-bursts. PR `fix/S-15.01-F5-convergence` unblocked for merge. |
+| **Current Phase** | F5 CONVERGED — v1.0-feature-plugin-async-semantics-pass-1; ADR-013 clock 3_of_3 (CONVERGENCE_REACHED 2026-05-09 pass-57). PR `fix/S-15.01-F5-convergence` unblocked for merge. |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,8 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-56 NITPICK_ONLY; ADR-013 2_of_3 (CONVERGENCE IMMINENT)** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–56 + fix-bursts 1–49 complete. Pass-56 NITPICK_ONLY (0H/0M/0L; 5 fresh BCs/VPs/stories clean). BC-INDEX v1.63; ARCH-INDEX v1.44; STORY-INDEX v2.64. ADR-013 2_of_3. Pass-57 next — if NIT, CONVERGED + F5 cycle terminates. PR held until 3_of_3. |
-| **STRATEGIC NOTE** | 2 consecutive NITPICK_ONLY achieved (pass-55 + pass-56). Pass-57 = decision point: NIT → CONVERGED → cycle close. Per user directive: continue protocol. ADR-013 2_of_3 (CONVERGENCE IMMINENT — pass-57 NIT = CONVERGED, F5 cycle terminates). |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 CONVERGED** — pass-57 NITPICK_ONLY — ADR-013 3_of_3 — 2026-05-09. PR unblocked. | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–57 + fix-bursts 1–49 complete. Pass-57 NITPICK_ONLY (0H/0M/0L; 5 fresh BCs/VPs/stories clean). BC-INDEX v1.63; ARCH-INDEX v1.44; STORY-INDEX v2.64. ADR-013 3_of_3 = CONVERGED. PR `fix/S-15.01-F5-convergence` @ 7b841eca UNBLOCKED. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -110,7 +109,8 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-49 — Title-cell corpus sweep + L-P28-001 19th META** | state-manager | **DONE** | F-P54-001 closed. Full corpus sweep: 1944 rows audited, 6 drifts patched (BC-1.05.010/2.02.011/2.02.012/4.05.002/4.05.003/5.30.001). BC-INDEX v1.62→v1.63; ARCH-INDEX v1.43→v1.44. 19th META + Title-cell axis codified as static axis in L-P28-001 axis-checklist. Pass-55 next. |
 | **F5 pass-55 adversary review** | adversary | **DONE — verdict NITPICK_ONLY** | NITPICK_ONLY (0H/0M/0L). Fix-burst-49 closure verified (all 6 Title cells). 5 fresh BCs + 7 spot-checks clean. Title-cell corpus drift = 0 outside fix-burst-49. ADR-013 advances 0_of_3 → **1_of_3**. |
 | **F5 pass-56 adversary review** | adversary | **DONE — verdict NITPICK_ONLY** | NITPICK_ONLY (0H/0M/0L). Pass-55 closure verified. 5 fresh BCs/VPs/stories (disjoint from prior passes 44/46/47/51-55) — all clean. Index versions confirmed. Arithmetic clean (1947 BCs; 79 VPs). POLICY 1-12 PASS. ADR-013 advances **1_of_3 → 2_of_3**. |
-| **F5 pass-57 adversary review** | adversary | **NEXT — CONVERGENCE ATTEMPT** | ADR-013 at 2_of_3. One more NITPICK_ONLY = CONVERGED; F5 cycle terminates. PR unblocked for merge. |
+| **F5 pass-57 adversary review** | adversary | **DONE — verdict NITPICK_ONLY** | NITPICK_ONLY (0H/0M/0L). Pass-56 closure verified. 5 fresh BCs/VPs/stories (disjoint from prior passes) — all clean. Index versions confirmed. Arithmetic clean (1947 BCs; 79 VPs). POLICY 1-12 PASS. ADR-013 advances **2_of_3 → 3_of_3 = CONVERGED**. |
+| **PASS-57 NITPICK_ONLY — ADR-013 3_of_3 = CONVERGED. F5 cycle terminates.** | state-manager | **DONE** | CONVERGENCE_REACHED 2026-05-09. PR `fix/S-15.01-F5-convergence` @ 7b841eca UNBLOCKED for merge. 40 passes (P18-P57); 49 fix-bursts; 19 L-P28-001 META instances. TD-031 RESOLVED. |
 
 ## Identifier Conventions
 
@@ -153,7 +153,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–56 + fix-bursts 1–49 complete. Pass-56 NITPICK_ONLY (0H/0M/0L; 2 consecutive NITs). ADR-013 2_of_3 (CONVERGENCE IMMINENT). BC-INDEX v1.63; ARCH-INDEX v1.44; STORY-INDEX v2.64. Pass-57 next. PR held until 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | **CONVERGED 2026-05-09** | F5 CONVERGENCE_REACHED at pass-57 (ADR-013 3_of_3). 40 passes (P18-P57); 49 fix-bursts; 19 L-P28-001 META instances. PR `fix/S-15.01-F5-convergence` @ 7b841eca UNBLOCKED. |
 
 ## Decisions Log
 
@@ -191,20 +191,33 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 **fix-burst-49 (2026-05-09):** F-P54-001 + corpus-wide Title-cell axis sweep (19th META). Pass-54 found BC-4.05.003 Title-cell drift from H1. Full corpus sweep: 1944 rows audited; 6 drifts found and patched (BC-1.05.010: dispatcher_trace_id→trace_id; BC-2.02.011/2.02.012: narrative→short-form; BC-4.05.002: long→short; BC-4.05.003: enforced→delegated; BC-5.30.001: feature-vsdd:identity→feature.lobster DAG declaration). Title-cell axis now codified as static axis. BC-INDEX v1.62→v1.63; ARCH-INDEX v1.43→v1.44.
 
+## Convergence Summary — F5 plugin-async-semantics
+
+**Status:** CONVERGENCE_REACHED at pass-57 (2026-05-09; ADR-013 3_of_3)
+
+**Final state:**
+- BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
+- Total adversary passes: 40 (passes 18–57); total fix-bursts: 49 (bursts 13–49 + sub-bursts)
+- L-P28-001 META instances codified: 19; Lessons: L-P18-001..L-P28-001 (14+)
+- TD-031: RESOLVED at fix-burst-49 + pass-55/56/57 NIT chain
+- PR `fix/S-15.01-F5-convergence` @ 7b841eca (39 commits ahead): UNBLOCKED for merge
+
+**Final 3-pass NIT chain:** pass-55 (fix-burst-49 Title-cell sweep) → pass-56 → pass-57
+
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — pass-56 NITPICK_ONLY (adversary). Pass-56: 0H/0M/0L. Pass-55 closure verified. 5 fresh BCs/VPs/stories (disjoint from prior passes 44/46/47/51-55) — all clean. Index versions confirmed: BC-INDEX v1.63 / VP-INDEX v1.40 / STORY-INDEX v2.64 / ARCH-INDEX v1.44. Arithmetic clean (1947 BCs; 79 VPs). POLICY 1-12 PASS. ADR-013 advances 1→2_of_3.
+**Last update:** 2026-05-09 — CONVERGENCE_REACHED at pass-57 (ADR-013 3_of_3). F5 cycle v1.0-feature-plugin-async-semantics-pass-1 terminates successfully.
 
-**ACTIVE STEP: Pass-57 adversary review — dispatch next. ADR-013 at 2_of_3. ONE more NITPICK_ONLY = CONVERGED. F5 cycle terminates on 3_of_3.**
+**ACTIVE STEP: Dispatch pr-manager to open PR for `fix/S-15.01-F5-convergence` @ 7b841eca.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 7b841eca — long-lived; 39 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ 7b841eca — UNBLOCKED; 39 commits ahead of develop; ready for PR
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this commit — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
 **Index versions:** BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
-**ADR-013 clock:** **2_of_3** (CONVERGENCE IMMINENT — pass-57 NIT = CONVERGED, F5 cycle terminates)
+**ADR-013 clock:** **3_of_3 = CONVERGED** (2026-05-09 pass-57)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931 at D-313 (now 1947)); finding trend 22→11→16→16→12→2→1→4
