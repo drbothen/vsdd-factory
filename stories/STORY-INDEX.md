@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.55"
+version: "2.56"
 status: current
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
-last_amended: "2026-05-09 (v2.55) — F5 fix-burst-25 sub-bursts 1+2 (commits 4c386236, a2c390cd). S-15.01 v1.23→v1.24 (F-P26-002/003/004/005: post-merge frontmatter retrofit + POST-MERGE-STATE annotations). S-13.01 v1.0→v1.1, S-12.01 v1.0→v1.1, S-12.02 v1.0→v1.1, S-12.06 v1.0→v1.1 (F-P26-004/005: post-merge frontmatter retrofit). S-9.00 v1.6→v1.7 (F-P26: frontmatter status retrofit). story_count unchanged (93). STORY-INDEX v2.54→v2.55."
+last_amended: "2026-05-09 (v2.56) — F5 fix-burst-26 sub-burst 2 (F-P27-003): 56 merged stories (S-0.01 through S-8.30) received POST-MERGE-STATE annotation in §Tasks. All planning-vocabulary checkboxes annotated with pre-merge frozen vocabulary blockquote per L-P25-001. story_count unchanged (93). STORY-INDEX v2.55→v2.56."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md

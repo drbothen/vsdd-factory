@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "fix-burst-25 closed (PluginEntry sweep + post-merge retrofit + 2 new lessons); pass-27 next; ADR-013 0_of_3"
+current_step: "fix-burst-26 closed (historic frontmatter retrofit + POST-MERGE annotations + lesson verification blocks + META-META closure); pass-28 next; ADR-013 0_of_3"
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 (fix-burst-25 closed: PluginEntry sweep + post-merge retrofit + 2 new lessons; L-P26-001 + L-P26-002 codified; ADR-013 0_of_3; pass-27 next) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-26 HIGH; fix-burst-25 complete (PluginEntry sweep + post-merge retrofit + L-P26-001/002 codified) |
+| **Last Updated** | 2026-05-09 (fix-burst-26 closed: 3 sub-bursts — 6d172f8c pass-27 persisted, 4c26e809 historic frontmatter retrofit, sub-burst 2 META-META closure; ADR-013 0_of_3; pass-28 next) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-27 verdict: HIGH (F-P27-001..007); fix-burst-26 complete (3 sub-bursts) |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,8 +76,8 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-26 HIGH; fix-burst-25 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–26 + fix-bursts 1–25 complete. Pass-26: HIGH (F-P26-001..007). Fix-burst-25: 4c386236 PluginEntry sweep (12 sites, 3 files) + a2c390cd post-merge frontmatter retrofit (5 stories) + POST-MERGE-STATE annotations (6 stories) + F1 carve-outs. L-P26-001 + L-P26-002 codified. ADR-013 0_of_3. User directive: continue protocol. Pass-27 next. |
-| **STRATEGIC NOTE** | User directive: continue protocol. 9-pass HIGH streak; fix-burst-25 closed F-P26-001..007. L-P26-001 + L-P26-002 codified addressing codifying-burst-must-corpus-sweep + state-manager-must-update-frontmatter-on-merge. Pass-27 will test whether L-P26-001 retroactive application breaks the recurrence. ADR-013 0_of_3 (RESET — pass-26 HIGH). |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-27 HIGH; fix-burst-26 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–27 + fix-bursts 1–26 complete. Pass-27: HIGH (F-P27-001..007). Fix-burst-26: sub-burst 1 (4c26e809) — 56 stories frontmatter retrofit; sub-burst 2 (this) — POST-MERGE annotations (56 stories) + lesson verification blocks (L-P18..L-P26) + META-META closure (F-P27-002..007). ADR-013 0_of_3. Pass-28 next. |
+| **STRATEGIC NOTE** | User directive: continue protocol. 10-pass HIGH streak; fix-burst-26 closed F-P27-001..007. L-P26-001 self-application (verification blocks appended to all lessons). Pass-28 will test whether corpus-wide verification block compliance breaks the recurrence. ADR-013 0_of_3 (RESET — pass-27 HIGH). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -98,7 +98,10 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-24 — F-P25 sweep (609cae4f) + post-merge retrofit + F1 carve-out + indexes+lessons** | spec-writer + state-manager | **DONE** | BC-INDEX v1.50, VP-INDEX v1.33, ARCH-INDEX v1.30, STORY-INDEX v2.54. L-P25-001 + L-P25-002 codified. |
 | **F5 pass-26 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P26-001..007). F-P26-001 PluginEntry → RegistryEntry (12 sites); F-P26-007 harness skeleton tuple; F-P26-002/003/004/005 post-merge frontmatter retrofit gaps; F-P26-006 codifying-burst sweep discipline. ADR-013: 0_of_3. 9 consecutive HIGH. |
 | **F5 fix-burst-25 — PluginEntry sweep (4c386236) + post-merge retrofit (a2c390cd) + L-P26-001/002 lessons + indexes+state** | spec-writer + state-manager | **DONE** | VP-INDEX v1.34, STORY-INDEX v2.55. L-P26-001 + L-P26-002 codified. F-P26-001..007 closed. |
-| **F5 pass-27 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 9 consecutive HIGH passes. |
+| **F5 pass-27 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P27-001..007). F-P27-001: 56 stories missing frontmatter; F-P27-002: 16 lessons missing verification blocks; F-P27-003: 56 merged stories §Tasks unannotated; F-P27-004: L-P25-002 F1-amendment scope; F-P27-005: VP-INDEX kani vs kani-proof; F-P27-006: L-P26-002 migration clause; F-P27-007: BC-INDEX last_amended backfill. ADR-013: 0_of_3. 10 consecutive HIGH. |
+| **F5 fix-burst-26 sub-burst 1 (4c26e809) — F-P27-001 historic frontmatter retrofit** | state-manager | **DONE** | 56 stories: 18 migrated from legacy `pr: NN`, 38 backfilled missing metadata. F-P27-001 closed. |
+| **F5 fix-burst-26 sub-burst 2 — META-META closure (F-P27-002..007)** | state-manager | **DONE** | 56 stories POST-MERGE annotated; 16 lessons verification blocks; L-P25-002 scope expanded; VP-INDEX v1.35 (kani-proof); L-P26-002 migration clause; BC-INDEX v1.51 (last_amended backfill). ARCH-INDEX v1.31, STORY-INDEX v2.56. F-P27-002..007 closed. |
+| **F5 pass-28 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 10 consecutive HIGH passes. |
 
 ## Identifier Conventions
 
@@ -140,7 +143,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–26 + fix-bursts 1–25 complete. Pass-26 HIGH (F-P26-001..007). Fix-burst-25: 4c386236 PluginEntry sweep + a2c390cd post-merge retrofit + L-P26-001/002 codified. Branch fix @ 026272ae (38 ahead). ADR-013 0_of_3. User directive: continue protocol. Pass-27 next. PR held until 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–27 + fix-bursts 1–26 complete. Pass-27 HIGH (F-P27-001..007). Fix-burst-26: 4c26e809 sub-burst 1 (frontmatter retrofit) + sub-burst 2 (META-META closure). Branch fix @ 026272ae (38 ahead). ADR-013 0_of_3. User directive: continue protocol. Pass-28 next. PR held until 3_of_3. |
 
 ## Decisions Log
 
@@ -170,9 +173,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — fix-burst-25 closed (state-manager POLICY 3 run-last). Pass-26 HIGH (F-P26-001..007). Fix-burst-25: 4c386236 sub-burst 1 — F-P26-001 PluginEntry → RegistryEntry corpus sweep (12 sites across VP-077 v1.13, VP-078 v1.9, S-15.01 v1.23) + F-P26-007 harness PluginPartition struct fix. a2c390cd sub-burst 2 — F-P26-002/003/004/005 post-merge frontmatter retrofit (S-15.01 v1.24, S-13.01 v1.1, S-12.01 v1.1, S-12.02 v1.1, S-12.06 v1.1) + S-9.00 v1.7 + POST-MERGE-STATE §Tasks annotations (6 stories) + F1 carve-outs. Sub-burst 3 (this run): VP-INDEX v1.34, STORY-INDEX v2.55, TD-031 updated, L-P26-001/002 codified. ADR-013 0_of_3 (RESET — pass-26 HIGH). Pass-27 next.
+**Last update:** 2026-05-09 — fix-burst-26 closed (state-manager POLICY 3 run-last). Pass-27 HIGH (F-P27-001..007). Fix-burst-26: 4c26e809 sub-burst 1 — F-P27-001 historic merged-story frontmatter retrofit (56 stories, 18 migrated from legacy `pr: NN`, 38 backfilled). Sub-burst 2 (this run): F-P27-002 lesson verification blocks (16 lessons; L-P18..L-P24 exempt notes; L-P25-001/002 + L-P26-001/002 actual blocks); F-P27-003 POST-MERGE-STATE annotations (56 stories); F-P27-004 L-P25-002 predicate expansion; F-P27-005 VP-INDEX kani→kani-proof (VP-070/VP-071); F-P27-006 L-P26-002 migration clause; F-P27-007 BC-INDEX last_amended backfill (v1.46-v1.50). BC-INDEX v1.51, VP-INDEX v1.35, STORY-INDEX v2.56, ARCH-INDEX v1.31. ADR-013 0_of_3 (RESET — pass-27 HIGH). Pass-28 next.
 
-**ACTIVE STEP: Pass-27 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 9 consecutive HIGH passes.**
+**ACTIVE STEP: Pass-28 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 10 consecutive HIGH passes.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 026272ae — long-lived; 38 commits ahead of develop; no PR until 3_of_3
@@ -180,8 +183,8 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 - factory-artifacts @ (this commit — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.50 | VP-INDEX v1.34 | STORY-INDEX v2.55 | ARCH-INDEX v1.30
-**ADR-013 clock:** **0_of_3** (RESET — pass-26 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.51 | VP-INDEX v1.35 | STORY-INDEX v2.56 | ARCH-INDEX v1.31
+**ADR-013 clock:** **0_of_3** (RESET — pass-27 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931); finding trend 22→11→16→16→12→2→1→4

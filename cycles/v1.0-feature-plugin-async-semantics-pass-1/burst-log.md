@@ -1676,3 +1676,64 @@ User directive: continue protocol.
 - L-P26-001 codified [codified]
 - L-P26-002 codified [codified]
 - Fix-burst-25 COMPLETE — F-P26-001..007 all closed; 9-pass HIGH streak; pass-27 next
+
+---
+
+## Pass-27 + Fix-burst-26
+
+### Pass-27 adversary review (verdict: HIGH)
+
+**Date:** 2026-05-09
+**Verdict:** HIGH — 10th consecutive HIGH pass
+**ADR-013 clock:** RESET → 0_of_3
+
+**Findings:**
+- **F-P27-001 (HIGH):** 56 merged stories missing 4-field frontmatter schema (status: merged + merged_at + merged_in + merge_sha). Retroactive sweep required.
+- **F-P27-002 (MED):** 16 lessons (L-P18-001..L-P26-002) missing `**Verified retroactively in fix-burst-N:**` blocks per L-P26-001 mandate.
+- **F-P27-003 (MED):** 56 merged stories with planning-vocabulary §Tasks missing POST-MERGE-STATE annotation per L-P25-001.
+- **F-P27-004 (LOW):** L-P25-002 predicate `phase: F1` does not cover `phase: F1-amendment` sibling artifacts.
+- **F-P27-005 (LOW):** VP-INDEX VP-070 + VP-071 rows use `kani` proof_method; canonical form per VP-077 is `kani-proof`.
+- **F-P27-006 (LOW):** L-P26-002 codification text does not mention legacy `pr: NN` migration clause.
+- **F-P27-007 (LOW):** BC-INDEX changelog rows v1.46-v1.50 missing `last_amended:` suffix (format present in v1.45 and prior).
+
+### Fix-burst-26
+
+#### Sub-burst 1 (4c26e809): F-P27-001 — historic merged-story frontmatter retrofit
+
+**Agent:** state-manager
+**Date:** 2026-05-09
+**Commit:** 4c26e809
+
+| Action | Count |
+|--------|-------|
+| Stories migrated from legacy `pr: NN` to `merged_in: PR-NN` | 18 |
+| Stories backfilled with missing `merged_at` / `merge_sha` | 38 |
+| Total stories touched | 56 |
+
+- F-P27-001 closed
+
+#### Sub-burst 2 (this commit): META-META closure (F-P27-002..007)
+
+**Agent:** state-manager (POLICY 3 run-last)
+**Date:** 2026-05-09
+
+| File | Version | Change |
+|------|---------|--------|
+| 56 story files (S-0.01..S-8.30) | bumped | POST-MERGE-STATE blockquote added to §Tasks per L-P25-001 option (b) |
+| lessons.md | v1.0 → v1.1 | L-P18-001..L-P24-002: "codified pre-L-P26-001 — exempt" notes added; L-P25-001/002 + L-P26-001/002: actual verification blocks appended |
+| lessons.md | — | L-P25-002 predicate expanded: `phase: F1 OR phase: F1-amendment`; `author: architect` tolerance added |
+| lessons.md | — | L-P26-002 migration clause added: legacy `pr: NN` MUST migrate to `merged_in: PR-NN` |
+| VP-INDEX | v1.34 → v1.35 | VP-070 + VP-071 proof_method `kani` → `kani-proof` |
+| BC-INDEX | v1.50 → v1.51 | changelog rows v1.46-v1.50 `last_amended:` backfilled; v1.51 changelog entry added |
+| STORY-INDEX | v2.55 → v2.56 | 56 stories POST-MERGE annotated; last_amended updated |
+| ARCH-INDEX | v1.30 → v1.31 | BC-INDEX body cite v1.50 → v1.51; VP-INDEX and STORY-INDEX version refresh noted |
+| STATE.md | — | fix-burst-26 closed; pass-28 next; index versions updated; ADR-013 0_of_3 |
+| burst-log.md | — | pass-27 + fix-burst-26 entries (this entry) |
+
+- F-P27-002 closed (L-P26-001 self-application — verification blocks in lessons.md)
+- F-P27-003 closed (56 stories POST-MERGE-STATE annotated)
+- F-P27-004 closed (L-P25-002 predicate expanded to F1-amendment)
+- F-P27-005 closed (VP-070/VP-071 kani-proof harmonized)
+- F-P27-006 closed (L-P26-002 migration clause added)
+- F-P27-007 closed (BC-INDEX last_amended backfilled v1.46-v1.50)
+- Fix-burst-26 COMPLETE — F-P27-001..007 all closed; 10-pass HIGH streak; pass-28 next

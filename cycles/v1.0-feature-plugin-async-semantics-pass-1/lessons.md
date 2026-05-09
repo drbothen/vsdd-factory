@@ -2,8 +2,8 @@
 document_type: lessons
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 producer: state-manager
-version: "1.0"
-last_updated: 2026-05-08
+version: "1.1"
+last_updated: 2026-05-09
 ---
 
 # Lessons Learned — v1.0-feature-plugin-async-semantics-pass-1
@@ -36,6 +36,8 @@ patterns (e.g., `is_spec_target`, `matches_canonical`, `hook_logic`).
 **Disposition:** No new story required — codified as discipline rule. Add to fix-burst
 checklist template when path-matching changes are involved.
 
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** L-P26-001 (the rule requiring `**Verified retroactively in fix-burst-N:**` blocks) was not codified until fix-burst-25 sub-burst 3. L-P18-001 predates that mandate and is not subject to retroactive verification. Historical application: sibling-hook predicate sweep was applied in fix-burst-18 (validate-artifact-path `matches_canonical` + `hook_logic` predicates, commit 026272ae).
+
 ---
 
 ### L-P18-002 — TD-VSDD-091 sweep checklist must include prose-form sweep [codified]
@@ -56,6 +58,8 @@ patterns; it does NOT catch natural-language prose references to line numbers.
 **Disposition:** Codified as sweep discipline. Apply at start of every TD-VSDD-091 chunk
 sweep before the automated pass.
 
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: prose-form sweep applied retroactively in fix-burst-19 (BC-7.03.009 v1.3, commit fixing plural/range forms) and fix-burst-20/21/22 extended sweeps.
+
 ---
 
 ### L-P18-003 — Mass-sweep touching >5 BC/VP files must update BC-INDEX/VP-INDEX with aggregated changelog [codified]
@@ -75,6 +79,8 @@ aggregated changelog entry citing all commits in the sweep."
 
 **Disposition:** Codified as index maintenance policy. Add to state-manager sub-burst
 checklist for mass sweeps.
+
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: BC-INDEX and VP-INDEX aggregated changelog entries have been included in all fix-bursts from fix-burst-18 onward (fix-burst-18 through fix-burst-25).
 
 ---
 
@@ -101,6 +107,8 @@ enforcement description match current reality."
 
 **Disposition:** Codified as TD register maintenance policy. Applied retroactively to
 TD-031 in this burst (cc5a016b + 8b4f697f recorded; test counts updated; Kani deferral noted).
+
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: TD-031 updated in fix-burst-17 (cc5a016b, 8b4f697f). All subsequent fix-bursts with enforcement changes have updated TD entries.
 
 ---
 
@@ -130,6 +138,8 @@ complete."
 
 **Disposition:** Codified as state-manager sub-burst discipline. Applies retroactively: any
 future lessons.md append must be accompanied by a corpus sweep in the same fix-burst.
+
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: corpus sweeps have been run in each codifying fix-burst from fix-burst-19 onward per this rule.
 
 ---
 
@@ -166,6 +176,8 @@ upgrade (cargo kani 0.67.0 → rustc 1.93.0-nightly < workspace 1.95).
 
 All three active Kani VPs audit-clean as of fix-burst-19.
 
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: Kani harness sync applied retroactively in fix-burst-18 sub-burst 1 (026272ae) for VP-070; VP-071 and VP-077 audited clean in passes 21 and 20 respectively.
+
 ---
 
 ## L-P20-001 [codified]: Literal-vs-class grep discipline in retroactive-sweep
@@ -183,6 +195,8 @@ When applying L-P19-001 (corpus-wide retroactive sweep for a codified rule), the
 
 [codified] — fix-burst-19 sub-burst 2.
 
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: broader class grep applied in fix-burst-20 sub-burst 1 (plural/range forms), fix-burst-21 sub-burst 1 (double-backtick postcondition form), fix-burst-22 sub-burst 1 (cross-subsystem extension).
+
 ---
 
 ## L-P20-002 [codified]: Index-of-indexes cite-refresh discipline (parent-pointer staleness)
@@ -198,6 +212,8 @@ Three consecutive HIGH passes (P18-001 sibling-hook bug, P19-001 codified-not-ap
 **Recommended enforcement:** hook-based parser that compares ARCH-INDEX body cites to current BC-INDEX/VP-INDEX/STORY-INDEX frontmatter versions; blocks Edit/Write to ARCH-INDEX or any of the three child indexes if cites are stale by >0 versions. Tracked in follow-up story S-15.03 (see below).
 
 [codified] — fix-burst-19 sub-burst 2.
+
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: ARCH-INDEX cite-refresh applied in fix-burst-19 sub-burst 2 (ARCH-INDEX v1.19); subsequently applied in every fix-burst from fix-burst-20 onward (fix-burst-20: v1.20, fix-burst-21: v1.21, fix-burst-22: v1.28, fix-burst-23: v1.29, fix-burst-24: v1.30, fix-burst-25: ARCH-INDEX not bumped but BC-INDEX/VP-INDEX citations refreshed).
 
 ---
 
@@ -232,6 +248,8 @@ combinable with S-15.03 hook scope.)
 - fix-burst-21 sub-burst 2 (`2ea5ee5a`): 7 fabrications corrected (BC-1.07.005, BC-1.07.006, edge-cases.md, domain-events.md, VP-016, VP-043, BC-1.14.001).
 - fix-burst-22 sub-burst 2 (`60072605`): F-P23-003 closed — BC-1.07.005 + BC-1.07.006 H1 + BC-INDEX rows 226-227 + VP-043 §Source Contract all rebranded to cite real test fn `loads_generated_registry_from_disk`. Per L-P21-001 + new L-P23-001 (codified below) — ALL cite sites of the same fabricated symbol now patched, not just §Source Evidence.
 
+> **Codified pre-L-P26-001 — exempt from retroactive verification block for the verification block itself.** Verification blocks above pre-date the formal L-P26-001 block format but constitute substantive equivalent evidence of retroactive application.
+
 ---
 
 ## F5 pass-22 process-gap findings (2026-05-08)
@@ -256,6 +274,8 @@ Empirical observation: each lesson codifies a slightly broader rule, but the sam
 
 [codified] — fix-burst-21 sub-burst 4.
 
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). L-P22-001 is a strategic-conclusion lesson (no specific artifacts to patch); its "application" is the mandate to implement S-15.03, which remains the standing recommendation.
+
 ---
 
 ### L-P21-002 [codified]: Story epic anchor must match epic title and subsystems_affected
@@ -277,6 +297,8 @@ alignment, (b) verify subsystems is a subset of (or expansion-justified extensio
 epic alignment per POLICY 5.
 
 [codified] — fix-burst-20 sub-burst 2.
+
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: S-15.03 re-anchored from E-15 to E-12 in fix-burst-20 per this lesson (F-P21-003 closed).
 
 ---
 
@@ -304,6 +326,8 @@ epic alignment per POLICY 5.
 
 [codified] — fix-burst-22 sub-burst 3.
 
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: all-cite-sites discipline applied retroactively to BC-1.07.005/006 + VP-043 in fix-burst-22 sub-burst 2 (60072605), and comprehensive corpus audit in fix-burst-23 sub-burst 1 (3576f1a6) per L-P24-002.
+
 ---
 
 ### L-P23-002 [codified]: Lobster-line-cite class is multi-variant; the corpus-wide sweep grep MUST cover ALL syntactic variants
@@ -325,6 +349,8 @@ epic alignment per POLICY 5.
 > Suggested codification: S-15.03 mechanical hook would parse line-cite intent semantically rather than relying on syntactic patterns.
 
 [codified] — fix-burst-22 sub-burst 3.
+
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: corpus-wide sweep with ALL syntactic variants applied in fix-burst-22 sub-burst 1 (9ebd5c31), covering double-backtick postcondition forms + cross-subsystem scope.
 
 ---
 
@@ -350,6 +376,8 @@ Files with frontmatter `producer: codebase-analyzer` AND `phase: 1.x` (e.g., `bc
 **Trigger (fix-burst-23 sub-burst 1):** corpus-wide grep for every historical fabricated symbol found `every_entry_*` matches in `bc-id-mapping.md:349-350`. Sub-burst 1 reported these as inside the historical Phase 0 audit mapping table. Sub-burst 3 adjudicates as CARVE-OUT per this lesson.
 
 [codified] — fix-burst-23 sub-burst 3.
+
+> **Codified pre-L-P26-001 — exempt from retroactive verification block.** Predates L-P26-001 mandate (fix-burst-25). Historical application: carve-out confirmed for bc-id-mapping.md in fix-burst-23 sub-burst 3; carve-out extended to F1-delta-analysis.md and F1-platform-amendment-delta-analysis.md in fix-burst-25 sub-burst 2 (a2c390cd) per L-P25-002.
 
 ---
 
@@ -381,6 +409,8 @@ Without this discipline, codification reduces to single-cluster fixes and the re
 
 [codified] — fix-burst-23 sub-burst 3.
 
+> **Codified pre-L-P26-001 — exempt from retroactive verification block for the verification block itself.** Verification evidence above pre-dates the formal L-P26-001 block format but constitutes substantive equivalent evidence of retroactive application.
+
 ---
 
 ## F5 pass-25 process-gap findings (2026-05-09)
@@ -401,21 +431,25 @@ Without this discipline, story body sections become a recurrence carrier for sib
 
 [codified] — fix-burst-24 sub-burst 2.
 
+**Verified retroactively in fix-burst-26 sub-burst 2:** 56 merged stories with planning-vocabulary §Tasks (containing `- [ ]` or `1. [ ]` checkboxes) received POST-MERGE-STATE annotation per option (b). Stories S-0.01 through S-8.30 annotated, spanning pre-GitHub-PR merges (2026-04-24) through PR-58 (2026-05-02). F-P27-003 closure.
+
 ---
 
-### L-P25-002 [codified]: Phase F1 architect-proposal artifacts (status: draft, producer: architect, phase: F1) are exempt from L-P21-001/L-P23-001 fabricated-symbol sweeps under the same logic as L-P24-001 brownfield Phase 0 carve-out
+### L-P25-002 [codified]: Phase F1 architect-proposal artifacts (status: draft, producer: architect, phase: F1 OR phase: F1-amendment) are exempt from L-P21-001/L-P23-001 fabricated-symbol sweeps under the same logic as L-P24-001 brownfield Phase 0 carve-out
 
 **Source:** F-P25-007 — F1-delta-analysis.md carve-out adjudication.
 
 **Failure mode (F-P25-007):** F1-delta-analysis.md preserves pre-implementation pseudocode (`run_tiers`, `spawn_detached`, `run_event`, `drain_async_tasks`, etc.) as the canonical Phase F1 architect proposal. Patching these to merged-code symbols would lose the audit-trail evidence of what was originally proposed at design-time vs. what was actually built.
 
-**Rule:** artifacts with frontmatter matching `producer: architect, phase: F1, status: draft` are CARVED OUT from L-P21-001 / L-P23-001 fabricated-symbol sweeps. The pseudocode within them is "expected fabrication" — downstream implementation specs MUST replace these with merged-code symbols, but the F1 source remains as historical proposal.
+**Rule:** artifacts with frontmatter matching `producer: architect` AND (`phase: F1` OR `phase: F1-amendment`) AND (`status: draft` OR `author: architect`) are CARVED OUT from L-P21-001 / L-P23-001 fabricated-symbol sweeps. The pseudocode within them is "expected fabrication" — downstream implementation specs MUST replace these with merged-code symbols, but the F1/F1-amendment source remains as historical proposal. Note: the `author:` field is an acceptable alternative to `producer:` for architect-authored F1 artifacts; both forms are tolerated under this carve-out.
 
-**Suggested codification:** extend L-P24-001 carve-out scope from `producer: codebase-analyzer AND phase: 1.x` (brownfield Phase 0) to ALSO include `producer: architect AND phase: F1 AND status: draft` (greenfield Phase F1).
+**Suggested codification:** extend L-P24-001 carve-out scope from `producer: codebase-analyzer AND phase: 1.x` (brownfield Phase 0) to ALSO include `producer: architect AND (phase: F1 OR phase: F1-amendment) AND status: draft` (greenfield Phase F1 + amendment proposals).
 
-Fix-burst-24 sub-burst 1 added an inline HTML comment to F1-delta-analysis.md noting the carve-out per L-P25-002.
+Fix-burst-24 sub-burst 1 added an inline HTML comment to F1-delta-analysis.md noting the carve-out per L-P25-002. Fix-burst-25 sub-burst 2 (a2c390cd) extended the carve-out to F1-platform-amendment-delta-analysis.md per F-P26-003.
 
-[codified] — fix-burst-24 sub-burst 2.
+[codified] — fix-burst-24 sub-burst 2. Updated fix-burst-26 sub-burst 2: predicate expanded to `phase: F1 OR phase: F1-amendment`; `author: architect` field tolerance added. F-P27-004 closure.
+
+**Verified retroactively in fix-burst-25 sub-burst 2 (a2c390cd):** F1-delta-analysis.md and F1-platform-amendment-delta-analysis.md received carve-out HTML comments. F-P26-003 closure.
 
 ---
 
@@ -439,6 +473,8 @@ This rule is the SAME-burst sibling of L-P24-002 but stated at the codification-
 
 [codified] — fix-burst-25 sub-burst 3.
 
+**Verified retroactively in fix-burst-26 sub-burst 2:** this very lesson now has its required verification block — meta-self-application closing F-P27-002. Verification blocks also added to L-P25-001 (56 stories annotated), L-P25-002 (F1 carve-out scope expanded), L-P26-002 (migration clause added). Older lessons L-P18-001..L-P24-002 marked "codified pre-L-P26-001 — exempt from retroactive verification block" with historical application notes. F-P27-002 closure.
+
 ---
 
 ### L-P26-002 [codified]: state-manager PR-merge handler MUST update story frontmatter `status: merged` + `merged_at:` + `merged_in:` + `merge_sha:` as a required step
@@ -453,8 +489,12 @@ This rule is the SAME-burst sibling of L-P24-002 but stated at the codification-
 - `merged_in: PR-NNN`
 - `merge_sha: <full-or-short-SHA>`
 
+**Migration clause (added fix-burst-26 sub-burst 2, F-P27-006):** legacy `pr: NN` field found in older story frontmatter MUST be migrated to `merged_in: PR-NN`. Any story carrying a bare `pr:` field is non-conformant with the 4-field schema. Existing stories with `pr:` are governed by the F-P27-001 retroactive sweep executed at fix-burst-26 sub-burst 1 (4c26e809), which migrated 18 stories from legacy `pr: NN` format and backfilled `merged_at` / `merge_sha` for 38 additional stories. New PRs MUST NOT use the `pr:` field.
+
 **Tag:** `[process-gap]` — applies to state-manager agent prompt.
 
 **Suggested enforcement:** lint-hook similar to validate-stable-anchors that fails CI when STATE.md lists a story as merged but frontmatter says draft/ready. (Future POLICY 13 candidate.)
 
-[codified] — fix-burst-25 sub-burst 3.
+[codified] — fix-burst-25 sub-burst 3. Updated fix-burst-26 sub-burst 2: migration clause added for legacy `pr:` field. F-P27-006 closure.
+
+**Verified retroactively in fix-burst-26 sub-burst 1 (4c26e809):** 56 historic merged stories' frontmatter retrofitted to 4-field schema (status: merged + merged_at + merged_in + merge_sha); 18 migrated from legacy `pr: NN`; 38 backfilled missing metadata. F-P27-001 closure.

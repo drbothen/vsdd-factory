@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.34"
+version: "1.35"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
@@ -9,6 +9,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-09
+    change: "v1.35 (2026-05-09; fix-burst-26 sub-burst 2): F-P27-005 — VP-070 proof_method `kani` → `kani-proof`; VP-071 proof_method `kani` → `kani-proof`. Harmonized to canonical `kani-proof` form per VP-077 amendment narrative. No VP count change. VP-INDEX v1.34→v1.35. Refs: F-P27-005, fix-burst-26 sub-burst 2."
   - date: 2026-05-09
     change: "v1.34 (2026-05-09; fix-burst-25 sub-burst 1, commit 4c386236): VP-077 v1.12→v1.13 (F-P26-001: PluginEntry → RegistryEntry corpus sweep across active-body sites; F-P26-007: harness skeleton tuple → PluginPartition struct); VP-078 v1.8→v1.9 (F-P26-001: PluginEntry → RegistryEntry sweep). No VP count change. VP-INDEX v1.33→v1.34. Refs: F-P26-001, F-P26-007, fix-burst-25 sub-burst 1."
   - date: 2026-05-09
@@ -186,8 +188,8 @@ changelog:
 | [VP-067](VP-067.md) | Worktree Hook Plugin Surface Invariant — All BC-4.07.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
 | [VP-068](VP-068.md) | Tool-Failure Hook Plugin Surface Invariant — All BC-4.08.* Postconditions Hold in Integration Test | invariant | integration | SS-04 | — | draft |
 | [VP-069](VP-069.md) | validate-artifact-path Registry-Load Purity — Parsing Never Panics on Arbitrary Input | safety | proptest | SS-04 | — | draft |
-| [VP-070](VP-070.md) | validate-artifact-path Path-Pattern Matching Is Pure and Deterministic (v1.2: F-P19-002 — Proof 2 assumption tightened: both relative `.factory/` and absolute paths excluded; 3 locations updated — lib.rs, kani_path_matching.rs, VP-070.md; Kani CLI version mismatch defers proof execution to CI) | invariant | kani | SS-04 | — | draft |
-| [VP-071](VP-071.md) | validate-per-story-adversary-convergence Block Invariant | safety | kani | SS-04 | — | draft |
+| [VP-070](VP-070.md) | validate-artifact-path Path-Pattern Matching Is Pure and Deterministic (v1.2: F-P19-002 — Proof 2 assumption tightened: both relative `.factory/` and absolute paths excluded; 3 locations updated — lib.rs, kani_path_matching.rs, VP-070.md; Kani CLI version mismatch defers proof execution to CI) | invariant | kani-proof | SS-04 | — | draft |
+| [VP-071](VP-071.md) | validate-per-story-adversary-convergence Block Invariant | safety | kani-proof | SS-04 | — | draft |
 | [VP-072](VP-072.md) | artifact-path-registry.yaml Single Source of Truth — All Writers Resolve Through Registry | invariant | integration | SS-04 | — | draft |
 | [VP-073](VP-073.md) | Resolver-Load Purity — resolver WASM module loading must be pure: same registry file always produces same resolver set, no side effects | invariant | integration | SS-01, SS-04 | — | draft |
 | [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process | safety | integration | SS-04 | — | draft |

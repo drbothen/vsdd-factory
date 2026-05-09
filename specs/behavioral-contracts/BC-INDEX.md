@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.50"
+version: "1.51"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -12,15 +12,17 @@ total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
   - date: 2026-05-09
-    change: "v1.50 (2026-05-09): F-P25-005 — BC-INDEX rows 259 (BC-7.06.001) and 352 (BC-3.08.001) stale enrichment annotations stripped per STRIP recommendation. Enrichment audit metadata duplicates BC-internal changelog history. BC-3.08.001 v1.12→v1.13 (F-P25-003 emission-site anchors + F-P25-006 duplicate last_amended removed). No count change. Refs: F-P25-003, F-P25-005, F-P25-006."
+    change: "v1.51 (2026-05-09; fix-burst-26 sub-burst 2): F-P27-007 — last_amended backfill for changelog rows v1.46-v1.50 (previously missing). No BC count change. BC-INDEX v1.50→v1.51. Refs: F-P27-007, fix-burst-26 sub-burst 2. last_amended: 2026-05-09 (F5 fix-burst-26 sub-burst 2: changelog rows v1.46-v1.50 last_amended backfilled; F-P27-007 closed)."
   - date: 2026-05-09
-    change: "v1.49 (2026-05-09): BC-7.06.001 v1.10→v1.11 (F-P24-002 sibling fix — Architecture Anchors line 130 fabricated symbols removed per L-P23-001 + L-P24-002 comprehensive corpus audit; sub-burst 1 of fix-burst-23, commit 3576f1a6). No count change. Refs: F-P24-002, L-P23-001, L-P24-002, fix-burst-23 sub-burst 1."
+    change: "v1.50 (2026-05-09): F-P25-005 — BC-INDEX rows 259 (BC-7.06.001) and 352 (BC-3.08.001) stale enrichment annotations stripped per STRIP recommendation. Enrichment audit metadata duplicates BC-internal changelog history. BC-3.08.001 v1.12→v1.13 (F-P25-003 emission-site anchors + F-P25-006 duplicate last_amended removed). No count change. Refs: F-P25-003, F-P25-005, F-P25-006. last_amended: 2026-05-09 (F5 fix-burst-24: BC-3.08.001 v1.13; BC-INDEX row cleanup; F-P25-003/F-P25-005/F-P25-006 closed)."
   - date: 2026-05-09
-    change: "v1.48 (2026-05-09): F-P23-001 + F-P23-002 corpus-wide lobster-line-cite sweep with FULL syntactic class + cross-subsystem scope. Sub-burst 1 (9ebd5c31): ~440 ss-05 BCs + 174 ss-06 BCs + ss-03 (BC-3.08.001 v1.12) + ss-04 (BC-4.04.005 v1.2) + ADR-008/009 historical annotations + open-questions.md updates. Largest sweep yet. Refs: F-P23-001, F-P23-002, L-P19-001, L-P20-001, L-P22-001."
+    change: "v1.49 (2026-05-09): BC-7.06.001 v1.10→v1.11 (F-P24-002 sibling fix — Architecture Anchors line 130 fabricated symbols removed per L-P23-001 + L-P24-002 comprehensive corpus audit; sub-burst 1 of fix-burst-23, commit 3576f1a6). No count change. Refs: F-P24-002, L-P23-001, L-P24-002, fix-burst-23 sub-burst 1. last_amended: 2026-05-09 (F5 fix-burst-23 sub-burst 1: BC-7.06.001 v1.11; F-P24-002 closed)."
+  - date: 2026-05-09
+    change: "v1.48 (2026-05-09): F-P23-001 + F-P23-002 corpus-wide lobster-line-cite sweep with FULL syntactic class + cross-subsystem scope. Sub-burst 1 (9ebd5c31): ~440 ss-05 BCs + 174 ss-06 BCs + ss-03 (BC-3.08.001 v1.12) + ss-04 (BC-4.04.005 v1.2) + ADR-008/009 historical annotations + open-questions.md updates. Largest sweep yet. Refs: F-P23-001, F-P23-002, L-P19-001, L-P20-001, L-P22-001. last_amended: 2026-05-09 (F5 fix-burst-22 sub-burst 1: ~614 BCs lobster-line-cite sweep; F-P23-001/F-P23-002 closed)."
   - date: 2026-05-08
-    change: "v1.47 (2026-05-08): F-P23-003 — BC-1.07.005/BC-1.07.006 v1.1→v1.2 H1 title + body rebrand to cite real production symbols. Fabricated names `every_entry_routes_through_legacy_bash_adapter` and `every_entry_carries_a_script_path` removed from H1 and BC-INDEX rows. Replaced with real test fn `loads_generated_registry_from_disk` with distinct property descriptions per BC. Rows 226-227 re-derived from new H1 titles per POLICY 1. Refs: F-P23-003, POLICY 1, POLICY 4, POLICY 7."
+    change: "v1.47 (2026-05-08): F-P23-003 — BC-1.07.005/BC-1.07.006 v1.1→v1.2 H1 title + body rebrand to cite real production symbols. Fabricated names `every_entry_routes_through_legacy_bash_adapter` and `every_entry_carries_a_script_path` removed from H1 and BC-INDEX rows. Replaced with real test fn `loads_generated_registry_from_disk` with distinct property descriptions per BC. Rows 226-227 re-derived from new H1 titles per POLICY 1. Refs: F-P23-003, POLICY 1, POLICY 4, POLICY 7. last_amended: 2026-05-08 (F5 fix-burst-22 sub-burst 2: BC-1.07.005/BC-1.07.006 v1.2; F-P23-003 closed)."
   - date: 2026-05-08
-    change: "v1.46 (2026-05-08): F-P22-001 corpus-wide lobster-line-cite sweep (88 BCs in ss-05 v1.1→v1.2; carve-out per L-P19-001+L-P20-001 broadest scope yet); F-P22-002 BC-1.14.001 v1.10→v1.11 cycle-anchor fabricated symbols fix (RegistryEntry.async_flag, executor.rs::execute_tiers, executor.rs::spawn_async_plugin); L-P21-001 retroactive sweep BC-1.07.005/BC-1.07.006 v1.0→v1.1 (additional fabrications). Fix-burst-21 commits: 87dd64aa, 2ea5ee5a, 56f0b883."
+    change: "v1.46 (2026-05-08): F-P22-001 corpus-wide lobster-line-cite sweep (88 BCs in ss-05 v1.1→v1.2; carve-out per L-P19-001+L-P20-001 broadest scope yet); F-P22-002 BC-1.14.001 v1.10→v1.11 cycle-anchor fabricated symbols fix (RegistryEntry.async_flag, executor.rs::execute_tiers, executor.rs::spawn_async_plugin); L-P21-001 retroactive sweep BC-1.07.005/BC-1.07.006 v1.0→v1.1 (additional fabrications). Fix-burst-21 commits: 87dd64aa, 2ea5ee5a, 56f0b883. last_amended: 2026-05-08 (F5 fix-burst-21: 88 BCs lobster sweep + BC-1.14.001 v1.11 fabricated symbols; F-P22-001/F-P22-002 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-20 indexes (2026-05-08) — BC-5.34.004 v1.1→v1.2 (F-P21-001 primary: lobster carve-out HTML comment added); BC-5.30.004 v?→v1.2 (retroactive lobster-class sweep — carve-out HTML comment added); BC-5.31.002 v?→v1.2 (retroactive lobster-class sweep); BC-5.31.003 v?→v1.2 (retroactive lobster-class sweep); BC-5.31.005 v?→v1.2 (retroactive lobster-class sweep); BC-5.32.005 v?→v1.2 (retroactive lobster-class sweep); BC-5.33.005 v?→v1.2 (retroactive lobster-class sweep); BC-5.33.031 v?→v1.2 (retroactive lobster-class sweep); BC-5.34.005 v?→v1.2 (retroactive lobster-class sweep); BC-5.35.005 v?→v1.2 (retroactive lobster-class sweep). 10 BCs total. No count change. BC-INDEX v1.44→v1.45. Refs: F-P21-001, fix-burst-20 sub-burst 1. last_amended: 2026-05-08 (F5 fix-burst-20: 10 BCs v1.2 lobster carve-out sweep; F-P21-001 closed)."
   - date: 2026-05-08
