@@ -189,6 +189,337 @@ adversary review.
 
 ---
 
+## Async Hook Semantics (S-15.01)
+
+### Registry-layer partition
+
+When the dispatcher loads `hooks-registry.toml` and receives a Claude Code hook event, it
+calls `partition::partition_plugins` to split the matched entries into two disjoint groups:
+
+| Group | Criterion | Behaviour |
+|-------|-----------|-----------|
+| `sync_group` | `async` field absent or `async = false` | Awaited to completion; block verdicts gate Claude Code |
+| `async_group` | `async = true` | Fire-and-forget tokio tasks; verdicts never gate Claude Code |
+
+Every matched entry appears in exactly one group (disjoint and exhaustive — BC-1.14.001
+Postcondition 1; VP-077 Kani proof).
+
+Source: `crates/factory-dispatcher/src/partition.rs::partition_plugins`
+
+### Sync execution
+
+`executor.rs::execute_tiers(&sync_group)` drives sync-group plugins through the ADR-008
+tier model: plugins within the same priority tier execute concurrently (each wrapped in
+`tokio::task::spawn_blocking` so that wasmtime's synchronous execution does not block the
+async runtime); tiers themselves are sequential (lower priority value fires first).
+
+The dispatcher awaits all sync-group completions before computing a verdict. A `Block`
+outcome from any sync-group plugin sets `block_intent = true` and the dispatcher exits with
+code 2 — Claude Code reads that exit code and enforces the gate.
+
+Source: `crates/factory-dispatcher/src/executor.rs::execute_tiers`
+
+### Async execution
+
+After `sync_group` completes, `executor.rs::spawn_async_plugin` spawns each async-group
+entry as an independent `tokio::spawn` task. Async-group plugins are NOT passed through
+`execute_tiers` and NOT subject to the ADR-008 tier ordering model — they are unordered
+and fire-and-forget relative to each other and to sync-group execution (BC-1.14.001
+Invariant 3).
+
+Source: `crates/factory-dispatcher/src/executor.rs::spawn_async_plugin`
+
+### Drain window
+
+After spawning all async tasks, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS` (defined
+in DI-019) for async tasks to emit terminal events before the dispatcher process exits. The
+drain is implemented via `tokio::select!` over per-task result channels and a drain timer.
+The drain window is a bounded constant — dispatcher latency is bounded by:
+
+```
+max(sync_plugin_durations_in_slowest_tier) + ASYNC_DRAIN_WINDOW_MS
+```
+
+Tasks that complete within the drain window emit their terminal events (`plugin.timeout`,
+`plugin.async_block_discarded`) to the FileSink cleanly. Tasks still executing when the
+drain timer fires are forcibly terminated; their terminal events may be lost (truncated
+telemetry is an accepted cost for async plugins — BC-1.14.001 EC-011).
+
+Refs: DI-019 (canonical value for `ASYNC_DRAIN_WINDOW_MS`); BC-1.14.001 PC4.
+
+### Dispatcher exit semantics
+
+The dispatcher returns to Claude Code only after:
+
+1. All sync-group hooks complete (every tier in priority order).
+2. The drain window expires (or all async tasks finish, whichever comes first).
+
+The dispatcher exit code is determined solely by sync-group results:
+
+- `0` — all sync-group plugins continued (or sync_group is empty).
+- `2` — at least one sync-group plugin emitted `{"outcome":"block","reason":"..."}`.
+
+Async-group block verdicts are structurally discarded and logged as
+`plugin.async_block_discarded` events. They never produce exit code 2.
+
+Ref: ADR-019 §Decision 3
+
+---
+
+## Registry Entry Schema
+
+### `async` field (S-15.01)
+
+Each `[[hooks]]` entry in `hooks-registry.toml` may declare its async classification:
+
+```toml
+[[hooks]]
+name    = "session-start-telemetry"
+event   = "SessionStart"
+plugin  = "hook-plugins/session-start-telemetry.wasm"
+async   = true                     # fire-and-forget; does not gate Claude Code
+
+[[hooks]]
+name    = "validate-stable-anchors"
+event   = "PreToolUse"
+matcher = "Edit|Write"
+plugin  = "hook-plugins/validate-stable-anchors.wasm"
+on_error = "block"                 # async = false (default) — sync gate
+```
+
+**TOML wire field:** `async = true | false`. Absent field is equivalent to `async = false`
+via `#[serde(default)]`.
+
+**Rust field:** `RegistryEntry.async_flag: bool` with `#[serde(default, rename = "async")]`.
+`async` is a Rust reserved keyword; the field is renamed to `async_flag` in the Rust source
+while preserving the `async` key on the TOML wire format.
+
+**Per-hook granularity:** Each entry declares independently. The same plugin binary may be
+registered as both async and sync hooks for different events:
+
+```toml
+[[hooks]]
+name  = "telemetry-post"
+event = "PostToolUse"
+plugin = "hook-plugins/capture-activity.wasm"
+async = true      # observation only
+
+[[hooks]]
+name  = "gate-pre"
+event = "PreToolUse"
+plugin = "hook-plugins/validate-anchors.wasm"
+# async = false (default) — sync gate
+```
+
+**Schema version:** The `async` field was introduced with `schema_version = 2`
+(REGISTRY_SCHEMA_VERSION = 2). Registries with `schema_version != 2` are rejected at load
+time with E-REG-001.
+
+Refs: BC-7.06.001 (registry invariants); ADR-019 §Decision 2.
+
+---
+
+## Plugin Author Async Guidance
+
+Use this decision matrix when classifying a hook plugin:
+
+| Hook category | `async` setting | Rationale |
+|---------------|-----------------|-----------|
+| Telemetry / OTel emission | `true` | Pure side-effect; no decision returned |
+| Audit logging | `true` | Append-only; no gate |
+| Activity tracking | `true` | Observation only |
+| Learning extraction | `true` | Async-friendly; no caller dependency |
+| State updates (post-merge etc.) | `true` if not blocking | Caller does not depend on completion |
+| Validation gates | `false` | Block decision must reach Claude Code |
+| Security / secrets / artifact-path checks | `false` | Block decision must enforce |
+| Anti-fabrication / discipline guards | `false` | Block decision required |
+| Worktree / filesystem mutations Claude Code depends on | `false` | Side-effect must complete before Claude Code proceeds |
+
+**Warning: async plugins cannot block.** Async hooks return `HookResult` from the plugin's
+perspective, but the dispatcher does NOT propagate a `Block` verdict to Claude Code's gate —
+the `async_group` spawn is fire-and-forget and the block decision arrives after the gate
+window has already closed. An async plugin that emits `{"outcome":"block","reason":"..."}`:
+
+- Records a `plugin.async_block_discarded` event in `events-*.jsonl` for observability.
+- Does NOT prevent the tool call from proceeding.
+- Does NOT produce dispatcher exit code 2.
+
+Treat `Block` from an async plugin as advisory-only diagnostic output. If enforcement is
+required, the plugin MUST be `async = false`.
+
+Additionally, combining `on_error = "block"` with `async = true` is a **hard registry
+error** (E-REG-002) — the dispatcher refuses to start. See §Async Failure Modes below.
+
+---
+
+## Async Failure Modes
+
+### `plugin.timeout` (async path)
+
+When an async-group plugin exceeds its configured `timeout_ms`, the dispatcher emits:
+
+```
+host::emit_event::emit_plugin_timeout_async(ctx, plugin_name, timeout_ms)
+```
+
+Wire schema (JSON line in `events-*.jsonl`):
+
+```json
+{
+  "type": "plugin.timeout",
+  "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
+  "plugin_name": "<registry entry name>",
+  "execution_group": "async",
+  "timeout_ms": <integer>,
+  "timestamp": "<ISO-8601>"
+}
+```
+
+Mandatory fields: `type`, `trace_id`, `session_id`, `plugin_name`, `execution_group`,
+`timeout_ms`, `timestamp`.
+
+Note: `plugin.timeout` is also emitted for sync-path timeouts (governed by BC-1.14.001).
+The `execution_group: "async"` field distinguishes the async-path variant. The dispatcher
+exit code is NOT affected by an async-path timeout.
+
+Note: `timeout_ms` is the per-plugin budget from the registry entry, not the drain window.
+The drain window is `ASYNC_DRAIN_WINDOW_MS` (DI-019) — a separate, independent constant.
+
+Source: `crates/factory-dispatcher/src/host/emit_event.rs::emit_plugin_timeout_async`
+
+Ref: BC-3.08.001 Event 4; DI-019.
+
+### E-REG-002 AsyncBlockConflict
+
+A registry entry that declares both `on_error = "block"` and `async = true`
+simultaneously is an E-REG-002 violation. This combination is contradictory: a hook whose
+crash policy is "block Claude Code" structurally cannot be async (the async execution path
+discards block verdicts). The dispatcher enforces this at registry-load time:
+
+- `registry.rs::Registry::load` calls `validate_async_block_invariant()` during parsing.
+- On violation: `RegistryError::AsyncBlockConflict { name }` is returned.
+- Dispatcher emits `dispatcher.registry_invalid` (E-REG-002) and exits with code 2
+  (fail-closed per ADR-019 §Decision 2; explicit exception to BC-1.08.001 fail-open).
+
+The error message names the offending plugin entry.
+
+To resolve: either remove `on_error = "block"` (if the plugin should be async) or remove
+`async = true` (if the plugin must enforce a block gate).
+
+Source: `crates/factory-dispatcher/src/registry.rs::RegistryEntry` (field validation),
+`crates/factory-dispatcher/src/registry.rs::Registry::load`
+
+Refs: BC-7.06.001 Invariant 1; BC-1.14.001 Invariant 4; ADR-019 §Decision 4.
+
+---
+
+## `dispatcher.registry_invalid` Wire Format (B-3)
+
+The `dispatcher.registry_invalid` event is emitted when a registry entry violates a
+load-time invariant. Two error codes trigger this event, each with a distinct wire schema.
+The dispatcher provides separate type-safe emit functions for each — compile-time
+enforcement replaces documentation-only invariants (PR #109, B-3).
+
+### E-REG-002 variant (`emit_registry_invalid_e_reg002`)
+
+```rust
+host::emit_event::emit_registry_invalid_e_reg002(ctx, plugin_name, violation)
+```
+
+E-REG-002 is an **intra-entry violation**: a single entry simultaneously has
+`on_error = "block"` and `async = true`. No second entry is involved, so no
+`offending_event` or `offending_tool` fields apply.
+
+Wire schema:
+
+```json
+{
+  "type": "dispatcher.registry_invalid",
+  "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
+  "offending_plugin": "<registry entry name>",
+  "violation": "async_block_conflict",
+  "error_code": "E-REG-002",
+  "timestamp": "<ISO-8601>"
+}
+```
+
+Fields `offending_event` and `offending_tool` are **absent** from E-REG-002 payloads. This
+is intentional — the intra-entry nature of the violation means no event/tool tuple applies.
+
+### E-REG-003 variant (`emit_registry_invalid_e_reg003`)
+
+```rust
+host::emit_event::emit_registry_invalid_e_reg003(
+    ctx,
+    plugin_name,
+    violation,
+    offending_event,       // &str — mandatory
+    offending_tool,        // Option<&str> — None for wildcard ("all tools") binding
+)
+```
+
+E-REG-003 is an **inter-entry violation**: two registry entries share the same
+`(name, event, tool)` tuple (DuplicateEntry). The specific tuple is propagated to the event
+payload because it uniquely identifies which entry is the duplicator.
+
+Wire schema with wildcard tool binding (`offending_tool = None` → JSON `null`):
+
+```json
+{
+  "type": "dispatcher.registry_invalid",
+  "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
+  "offending_plugin": "<duplicate entry name>",
+  "offending_event": "PreToolUse",
+  "offending_tool": null,
+  "violation": "duplicate_hook_registration",
+  "error_code": "E-REG-003",
+  "timestamp": "<ISO-8601>"
+}
+```
+
+Wire schema with explicit tool binding (`offending_tool = Some("Bash")` → JSON string):
+
+```json
+{
+  "type": "dispatcher.registry_invalid",
+  "trace_id": "<uuid-v4>",
+  "session_id": "<uuid-v4>",
+  "offending_plugin": "protect-secrets",
+  "offending_event": "PreToolUse",
+  "offending_tool": "Bash",
+  "violation": "duplicate_hook_registration",
+  "error_code": "E-REG-003",
+  "timestamp": "<ISO-8601>"
+}
+```
+
+`offending_tool: null` means the duplicating entry matched all tools (no `tool` filter
+declared). `offending_tool: "<regex>"` means it matched a specific tool pattern.
+
+Implementations MUST propagate all three tuple fields (`offending_plugin`,
+`offending_event`, `offending_tool`) for E-REG-003. Omitting `offending_event` or
+`offending_tool` is a BC violation (BC-3.08.001 Invariant per F-P14-001 Path B).
+
+### Field asymmetry summary
+
+| Field | E-REG-002 | E-REG-003 |
+|-------|-----------|-----------|
+| `offending_plugin` | present | present |
+| `offending_event` | **absent** | present (mandatory) |
+| `offending_tool` | **absent** | present (null or string) |
+| `violation` | `"async_block_conflict"` | `"duplicate_hook_registration"` |
+| `error_code` | `"E-REG-002"` | `"E-REG-003"` |
+
+Source: `crates/factory-dispatcher/src/host/emit_event.rs::emit_registry_invalid_e_reg002`,
+`crates/factory-dispatcher/src/host/emit_event.rs::emit_registry_invalid_e_reg003`
+
+Refs: BC-3.08.001 v1.8 (Event 3); BC-7.06.001 Invariants 1, 7; F-P14-001 Path B.
+
+---
+
 ## Filesystem Access Model
 
 ### WASI preopened directories
