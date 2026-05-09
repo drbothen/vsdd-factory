@@ -228,6 +228,10 @@ combinable with S-15.03 hook scope.)
 
 [codified] — fix-burst-20 sub-burst 2.
 
+**Verified retroactively in fix-burst-21 + fix-burst-22:**
+- fix-burst-21 sub-burst 2 (`2ea5ee5a`): 7 fabrications corrected (BC-1.07.005, BC-1.07.006, edge-cases.md, domain-events.md, VP-016, VP-043, BC-1.14.001).
+- fix-burst-22 sub-burst 2 (`60072605`): F-P23-003 closed — BC-1.07.005 + BC-1.07.006 H1 + BC-INDEX rows 226-227 + VP-043 §Source Contract all rebranded to cite real test fn `loads_generated_registry_from_disk`. Per L-P21-001 + new L-P23-001 (codified below) — ALL cite sites of the same fabricated symbol now patched, not just §Source Evidence.
+
 ---
 
 ## F5 pass-22 process-gap findings (2026-05-08)
@@ -273,3 +277,51 @@ alignment, (b) verify subsystems is a subset of (or expansion-justified extensio
 epic alignment per POLICY 5.
 
 [codified] — fix-burst-20 sub-burst 2.
+
+---
+
+## F5 pass-23 process-gap findings (2026-05-09)
+
+### L-P23-001 [codified]: All-cite-sites discipline — when fixing a fabricated symbol, ALL cite sites of that symbol within the spec corpus MUST be updated in the SAME fix-burst
+
+**Source:** F-P23-003 (process-gap)
+
+> Failure mode (F-P23-003): fix-burst-21 sub-burst 2 corrected the fabricated symbol `every_entry_routes_through_legacy_bash_adapter` in the §Source Evidence cell of BC-1.07.005, but the SAME fabricated symbol remained in the H1 title of BC-1.07.005 AND in BC-INDEX row 226 AND in VP-043 §Source Contract. Three out of four cite sites stayed fabricated.
+>
+> The fix-burst's grep query was scoped to §Source Evidence patterns; it missed H1 titles, BC-INDEX rows, and cross-spec cites.
+>
+> Rule: when a fix-burst patches ONE cite site of a fabricated symbol, the same burst MUST run a corpus-wide grep for ALL OTHER cite sites of that same fabricated symbol and patch them uniformly. Pattern:
+>
+> ```
+> grep -rn '<old-fabricated-symbol>' .factory/specs/ .factory/stories/
+> ```
+>
+> All matches in active body (H1 / table cells / cross-spec cites) must be patched in the same commit. Changelog/Amendment historical mentions are exempt (append-only record).
+>
+> This rule extends L-P21-001 ("every cited symbol must grep-verify") with the corollary: when fixing a fabricated cite, the fix MUST be applied to every cite site, not just the one that triggered the discovery.
+>
+> Suggested codification mechanism: future POLICY 13 / S-15.03 hook scope.
+
+[codified] — fix-burst-22 sub-burst 3.
+
+---
+
+### L-P23-002 [codified]: Lobster-line-cite class is multi-variant; the corpus-wide sweep grep MUST cover ALL syntactic variants
+
+**Source:** F-P23-001 + F-P23-002 (process-gap)
+
+> Failure mode (F-P23-001): fix-burst-21 sub-burst 1 swept 88 ss-05 BCs with the description-form `Step \`X\` (line N). ... Source M-K.` pattern. 27 sibling ss-05 BCs used the postcondition-form `Step \`\`<step>\` (line N) — ...` (double-backtick wrapping) and were missed. Fix-burst-22 sub-burst 1 swept 27+ additional with the broader pattern.
+>
+> Failure mode (F-P23-002): fix-burst-21 was scoped to `ss-05/`. BC-6.04.027 (ss-06) had `red-flag table (line 27)` in active §Description and §Invariants — same drift class, different subsystem. Fix-burst-22 sub-burst 1 extended scope cross-subsystem.
+>
+> Currently-known syntactic variants of the lobster-line-cite class:
+> (a) `lines N-K` range form (swept fix-burst-19/20)
+> (b) `Step \`X\` (line N). ... Source N-K.` description form, single-backtick (swept fix-burst-21 sub-burst 1)
+> (c) `Step \`\`<step>\` (line N) — ... \`` postcondition form, double-backtick (swept fix-burst-22 sub-burst 1)
+> (d) `<table-name> (line N)` cross-subsystem reference (swept fix-burst-22 sub-burst 1)
+>
+> Rule: when sweeping a class, the grep MUST include ALL known syntactic variants AND extend to ALL subsystem directories. The sweep must be CORPUS-WIDE, not directory-scoped.
+>
+> Suggested codification: S-15.03 mechanical hook would parse line-cite intent semantically rather than relying on syntactic patterns.
+
+[codified] — fix-burst-22 sub-burst 3.

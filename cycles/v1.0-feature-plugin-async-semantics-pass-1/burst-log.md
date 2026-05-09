@@ -1417,5 +1417,67 @@ Three sub-bursts. State-manager ran last per POLICY 3.
 | STATE.md | — | fix-burst-21 closed; ADR-013 0_of_3; pass-23 next; HALT-CONSIDERATION strategic note |
 | burst-log.md | — | fix-burst-21 entries (this entry) |
 
+---
+
+## Fix-burst-22 — pass-23 HIGH verdict + sub-bursts 1–3 close
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → spec-writer → state-manager (POLICY 3 run-last)
+**Phase:** F5 ADVERSARIAL — pass-23
+
+### Pass-23 Verdict
+
+**Verdict: HIGH** — F-P23-001 (27 ss-05 BCs using postcondition-form double-backtick lobster-line-cite — missed by fix-burst-21's single-backtick description-form sweep); F-P23-002 (cross-subsystem scope gap — BC-6.04.027 in ss-06 used same lobster-line-cite class; fix-burst-21 was scoped to ss-05 only); F-P23-003 (BC-1.07.005 + BC-1.07.006 H1 titles + BC-INDEX rows 226-227 + VP-043 §Source Contract still cited fabricated symbol `every_entry_routes_through_legacy_bash_adapter` — fix-burst-21 sub-burst 2 corrected §Source Evidence only; three other cite sites remained fabricated); F-P23-004 (L-P21-001 disposition needed retroactive verification update). ADR-013 clock: 0_of_3 (RESET — HIGH). Strategic note: 6 consecutive HIGH passes (P18–P23). User chose continue-prose-only (option 2 of 4 strategic decision). Fix-burst-22 is the broadest sweep ever.
+
+### Sub-burst 1: F-P23-001 + F-P23-002 — broadest sweep ever (9ebd5c31, factory-artifacts)
+
+**Agent:** spec-writer
+
+| Scope | Change |
+|-------|--------|
+| ~440 ss-05 BCs | postcondition-form double-backtick lobster-line-cite carve-out applied |
+| 174 ss-06 BCs | cross-subsystem lobster-line-cite carve-out (F-P23-002) |
+| BC-3.08.001 | v1.11 → v1.12 (ss-03 lobster-line-cite carve-out) |
+| BC-4.04.005 | v1.1 → v1.2 (ss-04 lobster-line-cite carve-out) |
+| ADR-008, ADR-009 | historical annotations updated |
+| open-questions.md | updates for sweep completeness |
+
+- F-P23-001 closed (~440 ss-05 BCs — postcondition-form double-backtick variant swept)
+- F-P23-002 closed (174 ss-06 BCs + cross-subsystem scope extended to all directories)
+
+### Sub-burst 2: F-P23-003 — BC-1.07.005/006 H1 + BC-INDEX rows + VP-043 rebrand (60072605, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-1.07.005 | v1.1 → v1.2 | H1 title rebranded from fabricated name to real test fn `loads_generated_registry_from_disk` (distinct: parse+schema-match assertion) |
+| BC-1.07.006 | v1.1 → v1.2 | H1 title rebranded from fabricated name to real test fn `loads_generated_registry_from_disk` (distinct: count bounds assertion) |
+| BC-INDEX rows 226-227 | v1.46 → v1.47 | Rows re-derived from new H1 titles per POLICY 1 |
+| VP-043 | v1.1 → v1.2 | §Source Contract rebranded to cite real test fn per L-P23-001 all-cite-sites discipline |
+| ARCH-INDEX | v1.26 → v1.27 | BC-INDEX cite refreshed v1.46→v1.47 (L-P20-002 same-burst) |
+
+- F-P23-003 closed (ALL four cite sites of fabricated symbol patched in same burst per L-P23-001)
+
+### Sub-burst 3: F-P23-004 + indexes + lessons + state (this burst, factory-artifacts)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-INDEX | v1.47 → v1.48 | Additional changelog entry for sub-burst 1 (~440 ss-05 + 174 ss-06 + cross-subsystem) |
+| ARCH-INDEX | v1.27 → v1.28 | BC-INDEX cite refreshed v1.47→v1.48 (L-P20-002 same-burst discipline) |
+| VP-INDEX | v1.30 → v1.31 | VP-043 §Source Contract sync recorded (F-P23-003) |
+| tech-debt-register.md | — | TD-031 updated: fix-burst-22 commits recorded (9ebd5c31, 60072605); user override noted |
+| lessons.md | — | L-P21-001 disposition: retroactive verification block appended (fix-burst-21 + fix-burst-22 confirmed) |
+| lessons.md | — | L-P23-001 codified: all-cite-sites discipline |
+| lessons.md | — | L-P23-002 codified: lobster-line-cite multi-variant + cross-subsystem class |
+| STATE.md | — | fix-burst-22 closed; pass-24 next; user-override note; ADR-013 0_of_3; index versions updated |
+| burst-log.md | — | fix-burst-22 entries (this entry) |
+
+- F-P23-004 closed (L-P21-001 disposition updated with retroactive verification for fix-burst-21 + fix-burst-22)
+- L-P23-001 codified [codified]
+- L-P23-002 codified [codified]
+
 - L-P22-001 codified [codified]
 - Fix-burst-21 COMPLETE — largest fix-burst in F5 cycle (91 BC bumps + 7 fabrication corrections + E-12 v1.3)

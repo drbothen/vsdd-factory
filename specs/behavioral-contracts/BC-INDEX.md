@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.47"
+version: "1.48"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.48 (2026-05-09): F-P23-001 + F-P23-002 corpus-wide lobster-line-cite sweep with FULL syntactic class + cross-subsystem scope. Sub-burst 1 (9ebd5c31): ~440 ss-05 BCs + 174 ss-06 BCs + ss-03 (BC-3.08.001 v1.12) + ss-04 (BC-4.04.005 v1.2) + ADR-008/009 historical annotations + open-questions.md updates. Largest sweep yet. Refs: F-P23-001, F-P23-002, L-P19-001, L-P20-001, L-P22-001."
   - date: 2026-05-08
     change: "v1.47 (2026-05-08): F-P23-003 — BC-1.07.005/BC-1.07.006 v1.1→v1.2 H1 title + body rebrand to cite real production symbols. Fabricated names `every_entry_routes_through_legacy_bash_adapter` and `every_entry_carries_a_script_path` removed from H1 and BC-INDEX rows. Replaced with real test fn `loads_generated_registry_from_disk` with distinct property descriptions per BC. Rows 226-227 re-derived from new H1 titles per POLICY 1. Refs: F-P23-003, POLICY 1, POLICY 4, POLICY 7."
   - date: 2026-05-08
