@@ -1244,3 +1244,54 @@ Three sub-bursts. State-manager ran last per POLICY 3.
 - STATE.md: pass-19 + fix-burst-18 progress; current_step updated; ADR-013 0_of_3; pass-20 next
 - lessons.md: 2 process-gap lessons codified [L-P19-001 + L-P19-002]
 - F-P19-004 + F-P19-005 closed
+
+---
+
+## Fix-burst-19 — pass-20 HIGH verdict + sub-burst 1 + sub-burst 2 close
+
+**Date:** 2026-05-08
+**Dispatchers:** orchestrator → spec-writer → state-manager (POLICY 3 run-last)
+**Phase:** F5 ADVERSARIAL — pass-20
+
+### Pass-20 Verdict
+
+**Verdict: HIGH** — F-P20-001 (extended prose-form line-ref sweep across 4 files), F-P20-002 (ARCH-INDEX BC-INDEX cite stale 10 versions; v1.33 vs current v1.43), F-P20-003 (L-P19-002 Kani VP audit disposition incomplete), F-P20-004 (lobster file line-ref class undocumented), F-P20-005 (BC-7.06.001 v1.9 §Fail-Closed Symmetry wording ambiguous). ADR-013 clock: 0_of_3 (RESET — HIGH).
+
+### Sub-burst 1: F-P20-001/002/005 close (98864e19 factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| ARCH-INDEX | v1.22 → v1.23 | BC-INDEX cite refreshed v1.33 → v1.43 (F-P20-002); extended prose-form sweep |
+| BC-1.14.001 | v1.9 → v1.10 | Extended prose sweep: plural/range line-ref forms migrated |
+| BC-5.34.003 | v1.1 → v1.2 | Extended prose sweep: lobster carve-out documented inline (F-P20-001) |
+| BC-6.11.026 | v1.1 → v1.2 | Extended prose sweep: plural/range line-ref forms migrated |
+| BC-7.06.001 | v1.9 → v1.10 | §Fail-Closed Symmetry reword (F-P20-005) |
+
+- F-P20-001 closed (extended prose sweep across 4 files; lobster carve-out documented inline)
+- F-P20-002 closed (ARCH-INDEX BC-INDEX cite refreshed v1.33 → v1.43; ARCH-INDEX v1.22 → v1.23)
+- F-P20-005 closed (BC-7.06.001 v1.9 → v1.10 §Fail-Closed Symmetry reword)
+
+**Lobster-line-class deferral documented:** ~20 BC files contain `(lines NNN-MMM)` style refs to `.lobster` workflow files (e.g., BC-5.32.032:98 to `discovery.lobster (lines 47-57)`, BC-5.34.003:43 to `multi-repo.lobster (lines 575-731)`, etc.). These are deferred as a separate class from BC-source-code line refs because lobster files have stable section structure (each `step:` block has stable `name:` field that could serve as anchor). Drift risk LOW. Future sweep would migrate to `<file>::<step-name>` form. No TD entry required at this time.
+
+### Sub-burst 2: F-P20-003/004 close + lessons + indexes + state (this burst, factory-artifacts)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Change |
+|------|--------|
+| lessons.md | L-P19-002 disposition amended with VP-071/VP-077 audit results (F-P20-003) |
+| lessons.md | L-P20-001 codified: literal-vs-class grep discipline in retroactive-sweep |
+| lessons.md | L-P20-002 codified: index-of-indexes cite-refresh discipline |
+| burst-log.md | F-P20-004 lobster deferral documented (this note) |
+| BC-INDEX | v1.43 → v1.44 (BC-1.14.001 v1.10 + BC-5.34.003 v1.2 + BC-6.11.026 v1.2 + BC-7.06.001 v1.10) |
+| STORY-INDEX | v2.49 → v2.50 (S-15.03 stub filed) |
+| S-15.03 | New story stub filed (draft; hook-based enforcement for index cite-refresh + lesson sweep) |
+| STATE.md | fix-burst-19 closed; ADR-013 0_of_3; pass-21 next |
+
+- F-P20-003 closed (L-P19-002 disposition amended — all 3 active Kani VPs audited clean)
+- F-P20-004 closed (lobster deferral documented above and in lessons)
+- L-P20-001 codified [codified]
+- L-P20-002 codified [codified]
+- S-15.03 stub filed (follow-up story for hook-based enforcement)

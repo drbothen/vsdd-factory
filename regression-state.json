@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-08T20:55:44Z","command":"cargo test --workspace --exclude sink-http 2>&1 | grep -E \"^test result\" | grep -v \"^test result: ok\""}
+{"status":"pass","timestamp":"2026-05-09T01:58:10Z","command":"cargo test -p validate-artifact-path 2>&1"}

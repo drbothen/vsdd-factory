@@ -158,3 +158,43 @@ changed code, verify Kani assumptions still match the new behavior."
 sub-burst 1 (026272ae) updated VP-070 Proof 2 assumption to exclude both relative and
 absolute .factory/ paths. Actual proof execution deferred to CI pending rustc version
 upgrade (cargo kani 0.67.0 → rustc 1.93.0-nightly < workspace 1.95).
+
+**Verified retroactively in fix-burst-18 + fix-burst-19:**
+- VP-070 (assumption tightened in 026272ae fix-burst-18 sub-burst 1)
+- VP-071 (`crates/hook-plugins/validate-per-story-adversary-convergence/src/lib.rs::kani_proofs` — `kani::assume(passes < 3)` matches production threshold at lib.rs::passes_clean_to_close — audited in pass-20 review, no staleness detected)
+- VP-077 (`crates/factory-dispatcher/src/partition.rs::kani_proofs` — `kani::assume(n <= 4)` is a tractability bound, not a behavior assumption; audited in pass-20 review, no staleness detected)
+
+All three active Kani VPs audit-clean as of fix-burst-19.
+
+---
+
+## L-P20-001 [codified]: Literal-vs-class grep discipline in retroactive-sweep
+
+**Source:** pass-20 review / fix-burst-19 sub-burst 2 — F-P20-001 extended prose sweep gap.
+
+When applying L-P19-001 (corpus-wide retroactive sweep for a codified rule), the grep MUST use the SEMANTIC pattern CLASS, not the LITERAL string that triggered the rule.
+
+**Failure mode:** codifying lesson is triggered by a specific syntactic instance (e.g., L-P18-002 caught `at line 152`, singular form). Subsequent retroactive sweep uses the literal grep `at line [0-9]+` and misses sibling pattern instances (`at lines 148-224`, `between lines 575-731`, plural/range forms).
+
+**Rule:** when codifying a lesson, the lesson author MUST document the PATTERN CLASS (e.g., "any prose-form line citation including singular/plural/range forms") in addition to the LITERAL grep. State-managers applying L-P19-001 MUST use the broader class grep.
+
+**Example refined grep for prose-form line citations:**
+`\bat lines? [0-9]+(-[0-9]+)?\b|\bbetween lines? [0-9]+ and [0-9]+\b|\b(lines?|line) [0-9]+(-[0-9]+)?\b`
+
+[codified] — fix-burst-19 sub-burst 2.
+
+---
+
+## L-P20-002 [codified]: Index-of-indexes cite-refresh discipline (parent-pointer staleness)
+
+**Source:** pass-20 review / fix-burst-19 sub-burst 2 — F-P20-002 ARCH-INDEX cite stale 10 versions.
+
+ARCH-INDEX body cites the BC-INDEX/VP-INDEX/STORY-INDEX versions explicitly (e.g., "Total BCs: 1947 (per BC-INDEX v1.33)"). When a child index is version-bumped, the parent index cite MUST be refreshed in the same burst.
+
+ARCH-INDEX self-codified this rule at v1.18 (2026-05-07) and reinforced at v1.19. The rule was systematically ignored across 15 consecutive fix-bursts (4 through 18); pass-20 found ARCH-INDEX cite was 10 versions stale (BC-INDEX v1.33 vs current v1.43).
+
+Three consecutive HIGH passes (P18-001 sibling-hook bug, P19-001 codified-not-applied, P20-002 cite-stale-15-fix-bursts) demonstrate that prose codification of cite-refresh discipline is structurally insufficient.
+
+**Recommended enforcement:** hook-based parser that compares ARCH-INDEX body cites to current BC-INDEX/VP-INDEX/STORY-INDEX frontmatter versions; blocks Edit/Write to ARCH-INDEX or any of the three child indexes if cites are stale by >0 versions. Tracked in follow-up story S-15.03 (see below).
+
+[codified] — fix-burst-19 sub-burst 2.

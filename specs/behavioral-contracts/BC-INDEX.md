@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.43"
+version: "1.44"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-19 indexes (2026-05-08) — BC-1.14.001 v1.9→v1.10 (F-P20-001: extended prose-form sweep — plural/range line-ref forms migrated); BC-5.34.003 v1.1→v1.2 (F-P20-001: extended prose sweep + lobster carve-out documented inline); BC-6.11.026 v1.1→v1.2 (F-P20-001: extended prose-form sweep); BC-7.06.001 v1.9→v1.10 (F-P20-005: §Fail-Closed Symmetry reword). No count change. BC-INDEX v1.43→v1.44. Refs: F-P20-001, F-P20-005, fix-burst-19 sub-burst 1. last_amended: 2026-05-08 (F5 fix-burst-19: BC-1.14.001 v1.10; BC-5.34.003 v1.2; BC-6.11.026 v1.2; BC-7.06.001 v1.10; F-P20-001/F-P20-005 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-18 indexes (2026-05-08) — BC-4.11.001 v1.1→v1.2 (F-P19-003: new Invariant 8 — Path Form Invariance; cross-refs in Postconditions 2 and 7); BC-7.03.009 v1.2→v1.3 (F-P19-001: corpus prose-form sweep — stable symbol anchors). No count change. BC-INDEX v1.42→v1.43. Refs: F-P19-001, F-P19-003, fix-burst-18 sub-bursts 2+3. last_amended: 2026-05-08 (F5 fix-burst-18: BC-4.11.001 v1.2; BC-7.03.009 v1.3; F-P19-001/F-P19-003 closed)."
   - date: 2026-05-08
