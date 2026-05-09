@@ -2635,14 +2635,40 @@ Pass-50 dispatched next.
 
 **Sweep results:**
 - E-6: 12 BCs verified (BC-6.20.001-012) — CLEAN
-- E-7: 23 BCs verified (BC-5.36.001-007, BC-5.37.001-002, BC-5.38.001-006, BC-7.05.001-004, BC-8.28.001-002, BC-8.29.001-003, BC-8.30.001-002, BC-6.21.001-002) — CLEAN
+- E-7: 28 BCs verified (BC-5.36.001-007, BC-5.37.001-002, BC-5.38.001-006, BC-7.05.001-004, BC-8.28.001-002, BC-8.29.001-003, BC-8.30.001-002, BC-6.21.001-002) — CLEAN
 - E-9: S-9.00 behavioral_contracts: [] — SKIPPED (Spec-First Gate exemption)
 - E-10: 13 BCs verified (BC-1.11.001-003, BC-1.12.001-007/009, BC-2.06.001, BC-4.09.001) — CLEAN
 - E-11: S-11.00 STUB — SKIPPED
 - Ghost BCs: none flagged
-- Total verified: 48 BCs; 0 drift found
+- Total verified: 53 BCs; 0 drift found
 
 16th L-P28-001 META instance (pre-emptive; first entirely clean result).
 Corpus-wide retroactive sweep across all v1.0 epics COMPLETE.
 BC-INDEX v1.61 | ARCH-INDEX v1.41
 Pass-50 next.
+
+---
+
+## Burst 56 — fix-burst-47 (F-P50-001 count-narrative correction; 17th L-P28-001 META)
+
+**Date:** 2026-05-09
+**Agent:** state-manager
+**Finding:** F-P50-001 (pass-50 HIGH) — fix-burst-46 narrative cited E-7=23 BCs and Total=48; actual E-7=28 and Total=53.
+
+**Files touched:**
+
+| File | Agent | Change |
+|------|-------|--------|
+| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.61→v1.62. v1.61 changelog inline corrected 23→28 BCs (E-7) and 48→53 (Total). v1.62 changelog entry added noting count correction. |
+| `specs/architecture/ARCH-INDEX.md` | state-manager | v1.41→v1.42. BC-INDEX body cite refreshed v1.61→v1.62 (L-P20-002 discipline). |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Fix-burst-46 sweep results corrected: E-7=23→28 BCs; Total=48→53 BCs. |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | Line 739 self-contradicting rationale replaced; 17th META appended. |
+| `.factory/STATE.md` | state-manager | current_step, Current Phase Steps row, fix-burst-46 block, session checkpoint updated. BC-INDEX v1.62 / ARCH-INDEX v1.42. |
+
+**Corrected count arithmetic:**
+- E-7 BCs: BC-5.36.001-007 (7) + BC-5.37.001-002 (2) + BC-5.38.001-006 (6) + BC-7.05.001-004 (4) + BC-8.28.001-002 (2) + BC-8.29.001-003 (3) + BC-8.30.001-002 (2) + BC-6.21.001-002 (2) = **28** (zero overlap; all belong to exactly one of S-7.01/7.02/7.03)
+- Total: E-6 (12) + E-7 (28) + E-10 (13) = **53**
+
+17th L-P28-001 META instance: third recurrence of count-narrative drift class.
+BC-INDEX v1.62 | ARCH-INDEX v1.42
+Pass-51 next. ADR-013 0_of_3 (RESET — pass-50 HIGH).

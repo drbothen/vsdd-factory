@@ -728,7 +728,7 @@ Canonical verification procedure for BCs axis:
 
 Per the complement clause codified in fix-burst-45, applied L-P28-001 retroactive sweep to ALL remaining unswept epics: E-6, E-7, E-9, E-10, E-11. Combined with E-3+E-4+E-5 swept in fix-burst-43+45, this completes the corpus-wide retroactive sweep across all v1.0 epics.
 
-**Verified retroactively in fix-burst-46 (this burst):** all merged + draft stories' frontmatter `behavioral_contracts:` arrays cross-checked against BC-INDEX Stories cells bidirectionally. Sweep results: E-6 (12 BCs, CLEAN); E-7 (23 BCs, CLEAN); E-9 (S-9.00 empty behavioral_contracts, SKIPPED); E-10 (13 BCs, CLEAN); E-11 (S-11.00 STUB, SKIPPED). Total verified: 48 BCs across 3 epics (E-6, E-7, E-10) — zero drift found. BC-INDEX Stories cells and BC body Traceability rows are fully bidirectionally consistent for all in-scope BCs.
+**Verified retroactively in fix-burst-46 (this burst):** all merged + draft stories' frontmatter `behavioral_contracts:` arrays cross-checked against BC-INDEX Stories cells bidirectionally. Sweep results: E-6 (12 BCs, CLEAN); E-7 (28 BCs, CLEAN); E-9 (S-9.00 empty behavioral_contracts, SKIPPED); E-10 (13 BCs, CLEAN); E-11 (S-11.00 STUB, SKIPPED). Total verified: 53 BCs across 3 epics (E-6, E-7, E-10) — zero drift found. BC-INDEX Stories cells and BC body Traceability rows are fully bidirectionally consistent for all in-scope BCs.
 
 **L-P28-001 family retrospective:** 16 META-self-application failures across passes 27-50. Prose codification empirically did not converge for sibling-class sweeps. Mechanical enforcement (S-15.03 hook scope) remains the structurally-convergent path for future drift.
 
@@ -736,8 +736,16 @@ Per the complement clause codified in fix-burst-45, applied L-P28-001 retroactiv
 
 **Fix-burst-46 corpus verification (16th instance):**
 - E-6 (S-6.01): BC-6.20.001-012 (12 BCs) — BC-INDEX Stories cells: `S-6.01` (all 12). BC body Traceability rows: `S-6.01` (all 12). CLEAN.
-- E-7 (S-7.01/7.02/7.03): BC-5.36.001-007 → S-7.01 (7 BCs); BC-5.37.001-002 → S-7.02 (2 BCs); BC-5.38.001-006 → S-7.03 (6 BCs); BC-7.05.001-004 → S-7.02 (4 BCs); BC-8.28.001-002 → S-7.02 (2 BCs); BC-8.29.001-003 → S-7.03 (3 BCs); BC-8.30.001-002 → S-7.03 (2 BCs); BC-6.21.001-002 → S-7.03 (2 BCs). Total 28 BC-story links verified. CLEAN. (Note: story frontmatter count is 23 BCs; 28 links because S-7.02 + S-7.03 share some subsystem BCs.)
+- E-7 (S-7.01/7.02/7.03): BC-5.36.001-007 → S-7.01 (7 BCs); BC-5.37.001-002 → S-7.02 (2 BCs); BC-5.38.001-006 → S-7.03 (6 BCs); BC-7.05.001-004 → S-7.02 (4 BCs); BC-8.28.001-002 → S-7.02 (2 BCs); BC-8.29.001-003 → S-7.03 (3 BCs); BC-8.30.001-002 → S-7.03 (2 BCs); BC-6.21.001-002 → S-7.03 (2 BCs). Total 28 unique BCs verified. CLEAN. Per-story BC counts: S-7.01=7, S-7.02=8, S-7.03=13. Sum: 28 unique BCs (zero overlap).
 - E-9 (S-9.00): behavioral_contracts: [] (Spec-First Gate exemption; same rationale as S-8.00). SKIPPED per skip rules.
 - E-10 (S-10.01-S-10.09): BC-1.11.001-003, BC-1.12.001-007/009, BC-2.06.001, BC-4.09.001 (13 BCs) — BC-INDEX Stories cells and BC body Traceability rows fully populated and bidirectionally consistent. S-10.01/06/07/08: behavioral_contracts: [] pending PO authorship. CLEAN.
 - E-11 (S-11.00): STUB — no behavioral_contracts frontmatter field; full authoring deferred. SKIPPED per skip rules.
 - No ghost BCs flagged in E-6/7/9/10/11 sweep.
+
+**17th META-self-application failure (added fix-burst-47, F-P50-001 closure):** Count-narrative drift class — THIRD recurrence after F-P47-001 (source) and F-P48-001 (closure failure). Fix-burst-46 narrative cited E-7=23 BCs and Total=48; actual E-7=28 and Total=53.
+
+**Pattern:** Each L-P28-001 fix-burst that contains numerical narratives (counts of BCs/cells/files) has emitted a count-arithmetic error in 3 of 4 attempts (fix-burst-43, fix-burst-46; fix-burst-45 was correct). The codifying-burst itself contains the very class of error its rule is designed to prevent.
+
+**Mechanical enforcement is overdue:** lessons.md:709 + fix-burst-44 + fix-burst-46 + fix-burst-47 (this) all reference the S-15.03 hook scope candidate (count-narrative coherence sub-rule). The 17th META instance reaffirms this is the structurally-convergent path. Prose codification has demonstrably failed at the count-narrative axis.
+
+**Recommended:** prioritize S-15.03 implementation over additional prose codification. The validate-stable-anchors hook family should extend to count-narrative arithmetic validation.

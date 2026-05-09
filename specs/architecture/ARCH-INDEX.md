@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.41"
+version: "1.42"
 status: accepted
 producer: architect
 timestamp: 2026-05-09T00:00:00
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-09
+    change: "v1.42 (2026-05-09; fix-burst-47): BC-INDEX body cite refreshed v1.61→v1.62 (BC-INDEX bumped v1.61→v1.62 in same burst for F-P50-001 count-narrative correction E-7=23→28, Total=48→53; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.41→v1.42."
   - date: 2026-05-09
     change: "v1.41 (2026-05-09; fix-burst-46): BC-INDEX body cite refreshed v1.60→v1.61 (BC-INDEX bumped v1.60→v1.61 in same burst for corpus-wide retroactive sweep E-6/7/9/10/11 — 48 BCs verified clean; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.40→v1.41."
   - date: 2026-05-09
