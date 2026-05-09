@@ -1,12 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.12"
-last_amended: 2026-05-08
+version: "1.13"
+last_amended: 2026-05-09
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: 2026-05-08
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
@@ -221,7 +220,7 @@ For canonical HOST_ABI documentation of which fields the dispatcher enriches aut
 
 ## Architecture Anchors
 
-- `crates/factory-dispatcher/src/engine.rs` — async block discard path; timeout termination path
+- `crates/factory-dispatcher/src/main.rs` (call sites) + `crates/factory-dispatcher/src/host/emit_event.rs` (emit fns) — async block discard path; timeout termination path
 - `crates/factory-dispatcher/src/registry.rs` — schema_mismatch and registry_invalid emission sites
 - `crates/sink-core/src/` — FileSink fan-out path for all four event types
 - VP-028 — sink fan-out invariant verification
@@ -275,7 +274,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | L2 Capability | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 |
 | Capability Anchor Justification | CAP-003 ("Stream observability events to multiple configurable sinks") per capabilities.md §CAP-003 — these four event types are observability events that operators and the VSDD engine consume to diagnose async plugin behavior; cataloguing them here fulfills the "stream observability events" promise by defining the wire format and sink-fan-out obligation |
 | L2 Domain Invariants | DI-017 — `trace_id` present on every emitted event; all four event types must carry `trace_id`; Invariant 5 of this BC enforces DI-017's requirement that `trace_id` be the canonical wire-field name (not `dispatcher_trace_id`); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (the `plugin.timeout` async path and `plugin.async_block_discarded` events are emitted by tasks running within the drain window bounded by DI-019; VP-079 fixture timing for these events must account for the DI-019 drain window value) |
-| Architecture Module | SS-03 — `crates/sink-core/` (event routing); SS-01 — `crates/factory-dispatcher/src/engine.rs` (emission sites); SS-01 — `crates/factory-dispatcher/src/registry.rs` (schema_mismatch + registry_invalid emission sites). Note: SS-07 owns `plugins/vsdd-factory/hooks-registry.toml` (the file format) but the emission sites in registry.rs are SS-01 Rust modules per ARCH-INDEX. |
+| Architecture Module | SS-03 — `crates/sink-core/` (event routing); SS-01 — `crates/factory-dispatcher/src/main.rs` + `crates/factory-dispatcher/src/host/emit_event.rs` (emission sites); SS-01 — `crates/factory-dispatcher/src/registry.rs` (schema_mismatch + registry_invalid emission sites). Note: SS-07 owns `plugins/vsdd-factory/hooks-registry.toml` (the file format) but the emission sites in registry.rs are SS-01 Rust modules per ARCH-INDEX. |
 | ADR | ADR-019 — Async Semantics at Registry Layer; introduces the conditions that trigger these four events |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
@@ -297,6 +296,23 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | Event content is deterministic given same inputs; file timestamps vary. |
 | **Thread safety** | FileSink is designed for concurrent writes (per BC-3.x contracts). |
 | **Overall classification** | Effectful (filesystem I/O); emission is fire-and-once (no retry). |
+
+## Amendment 2026-05-09 (v1.12 → v1.13 — F-P25-003: emission-site anchors corrected; F-P25-006: duplicate last_amended removed)
+
+**Drivers:**
+- **F-P25-003** — §Architecture Anchors bullet 1 cited `engine.rs` as the async block discard path / timeout termination path. Post-merge, the call sites are in `main.rs` (lines 46/423/550) and the emit function registrations are in `host/emit_event.rs`. The §Traceability Architecture Module row similarly cited `engine.rs (emission sites)`. Both corrected to `main.rs + host/emit_event.rs (emission sites)`.
+- **F-P25-006** — Frontmatter contained duplicate `last_amended:` fields (lines 5 and 9 both had `last_amended: 2026-05-08`). The duplicate (line 9) was removed; only line 5 retained.
+
+**Changes made:**
+1. **§Architecture Anchors bullet 1** (F-P25-003): `crates/factory-dispatcher/src/engine.rs` → `crates/factory-dispatcher/src/main.rs (call sites) + crates/factory-dispatcher/src/host/emit_event.rs (emit fns)`
+2. **§Traceability Architecture Module row** (F-P25-003): `SS-01 — crates/factory-dispatcher/src/engine.rs (emission sites)` → `SS-01 — crates/factory-dispatcher/src/main.rs + crates/factory-dispatcher/src/host/emit_event.rs (emission sites)`
+3. **Frontmatter** (F-P25-006): duplicate `last_amended:` field removed; `version: "1.12"` → `"1.13"`, `last_amended:` updated to 2026-05-09.
+
+**POLICY 1 verification:** All prior content preserved verbatim.
+**POLICY 7 verification:** H1 heading unchanged.
+**TD-031 verification:** No line-number citations introduced.
+
+---
 
 ## Amendment 2026-05-08 (v1.10 → v1.11 — F-P17-002: §Common Fields plugin_version removed)
 
@@ -509,4 +525,5 @@ Addresses adversary pass-2 finding F-P2-010.
 
 **Changelog:**
 
+| v1.13 | 2026-05-09 | implementer | F-P25-003: §Architecture Anchors bullet 1 corrected to main.rs + host/emit_event.rs (emission sites); §Traceability Architecture Module row corrected. F-P25-006: duplicate last_amended frontmatter field removed. |
 | v1.12 | 2026-05-08 | state-manager | F-P23-002 cross-subsystem sweep: HOST_ABI.md line cite migrated to stable §`emit_event` section anchor per TD-VSDD-091. |

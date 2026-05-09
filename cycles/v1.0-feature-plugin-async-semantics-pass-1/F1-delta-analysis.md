@@ -20,6 +20,8 @@ inputs:
 input-hash: "[to-be-computed-by-state-manager]"
 ---
 
+<!-- F-P25-007 / L-P25-002 carve-out: This is a Phase F1 architect proposal preserved as historical audit record. The pseudocode symbols (run_tiers, spawn_detached, run_event, drain_async_tasks, etc.) are PRE-MERGE PLANNING VOCABULARY. Downstream specs MUST replace these with merged-code symbols per L-P24-002 + L-P21-001. This file itself is exempt from L-P21-001 / L-P23-001 fabricated-symbol sweeps under the Phase F1 architect-proposal carve-out (extending L-P24-001 brownfield Phase 0 carve-out to greenfield F1 architect proposals). See L-P25-002 codification at lessons.md. -->
+
 # F1 Delta Analysis — Plugin Async Semantics (Pass 1)
 
 ## 1. Trigger / Motivation

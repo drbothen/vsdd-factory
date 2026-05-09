@@ -4,7 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
-version: "1.10"
+version: "1.11"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -104,7 +104,7 @@ the new field and the new schema version.
 
 ### 3. Dispatcher partitions matched plugins into sync and async groups
 
-In the dispatch loop (`executor.rs` / `run_event`):
+In the dispatch loop (inlined in `main.rs::main` calling `executor.rs::execute_tiers`):
 
 ```
 matched = match_plugins(registry, payload)
@@ -317,6 +317,14 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
 | VP-079 | `/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-079.md` |
 
 ---
+
+## Amendment 2026-05-09: v1.10 → v1.11 (F-P25-001: §3 dispatch-loop prose corrected to post-merge inline implementation)
+
+- **Amendment date:** 2026-05-09
+- **Reason:** F-P25-001 pass-25 sweep. §3 "Dispatcher partitions matched plugins into sync and async groups" prose cited `executor.rs / run_event` as the dispatch-loop host. Post-merge, the dispatch loop is inlined in `main.rs::main` (no separate `run_event` function); it calls `executor.rs::execute_tiers` for tier orchestration. Per L-P24-002, all active-body fabricated-symbol sites must be corrected in the same burst.
+- **Changes:**
+  - §3 dispatch loop prose (line 107): `In the dispatch loop (\`executor.rs\` / \`run_event\`):` → `In the dispatch loop (inlined in \`main.rs::main\` calling \`executor.rs::execute_tiers\`):`
+- **No decision changes:** All §Decision policy text is unchanged. This is a post-merge vocabulary correction.
 
 ## Amendment 2026-05-09: v1.9 → v1.10 (F-P24-002/003/004 comprehensive fabricated-symbol sweep)
 

@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-15"
-version: "1.2"
+version: "1.3"
 status: draft
 title: "Plugin Async Semantics — Registry-Layer Partition (single-shot delivery + cold-start follow-up)"
 prd_capabilities: [CAP-002, CAP-003, CAP-008]
@@ -237,9 +237,9 @@ References: ADR-019 §Subsystem Assignments.
 
 | Component | Subsystem | Module |
 |-----------|-----------|--------|
-| `registry.rs` — `REGISTRY_SCHEMA_VERSION` bump to 2; `async` field on `RegistryEntry`; `validate()` rejects schema != 2 | SS-01 | `crates/factory-dispatcher/src/registry.rs` |
+| `registry.rs` — `REGISTRY_SCHEMA_VERSION` bump to 2; `async_flag` field on `RegistryEntry` (with `#[serde(default, rename = "async")]` preserving wire-format compatibility); `validate()` rejects schema != 2 | SS-01 | `crates/factory-dispatcher/src/registry.rs` |
 | `partition.rs` — `partition_plugins(matched, registry)` pure function | SS-01 | `crates/factory-dispatcher/src/partition.rs` |
-| Dispatch loop (`run_event`) — sync_group await-all via `execute_tiers`; async_group `spawn_async_plugin`; drain window | SS-01 | `crates/factory-dispatcher/src/executor.rs` |
+| Dispatch loop (inlined in `main.rs::main`) — sync_group await-all via `execute_tiers`; async_group `spawn_async_plugin`; drain window | SS-01 | `crates/factory-dispatcher/src/main.rs` + `crates/factory-dispatcher/src/executor.rs` |
 | `hooks-registry.toml` — `schema_version = 2`; `async = true` for telemetry plugin set per BC-7.06.001 Invariant 6 | SS-07 | `plugins/vsdd-factory/hooks-registry.toml` |
 | CI lint bats test / pre-commit hook — `on_error = "block"` implies `async = false` | SS-07 | `plugins/vsdd-factory/hooks/*.sh` or CI pipeline |
 | `hooks.json.template` + 5 platform variants — remove `async: true` from all entries | SS-09 | `plugins/vsdd-factory/hooks/hooks.json*` |
@@ -266,9 +266,23 @@ E-11 (W-17) similarly adds native WASM entries; same non-overlapping analysis ap
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| 1.3 | 2026-05-09 | implementer (F-P25-001 + F-P25-004: dispatch loop row run_event removed; async_flag serde rename) | F-P25-001: §Architecture Components row 3 dispatch loop component updated: `run_event` reference removed; now cites inlined dispatch in `main.rs::main` calling `executor.rs::execute_tiers`. Module column updated to `main.rs` + `executor.rs`. F-P25-004: §Architecture Components row 1: `async` field on `RegistryEntry` → `async_flag` field on `RegistryEntry` (with `#[serde(default, rename = "async")]` preserving wire-format compatibility). |
 | 1.2 | 2026-05-09 | implementer (F-P24-002/003/004 comprehensive fabricated-symbol sweep) | F-P24-002/003/004: §Architecture Components table line 241: `routing.rs or engine.rs` (fabricated anchor) → `partition.rs`; dispatch loop row: `engine.rs` → `executor.rs`; `execute_tiers` and `spawn_async_plugin` cited explicitly. Module column corrected to match production paths. |
 | 1.1 | 2026-05-08 | state-manager | F5 pass-1 path-A follow-up: S-15.02 added (dispatcher cold-start optimization — daemon mode + WASM AOT cache; draft, TBD pts, depends on S-15.01). story_count 1→2. ADR-020 established latency budget classes (Class A current binary-spawn budget 1500ms; Class B daemon-mode target TBD). Epic title amended to reflect follow-up story. S-15.01 status updated to merged (PR #106 at 453eee1). |
 | 1.0 | 2026-05-07 | product-owner | Initial authoring. Single story (S-15.01). Epic ID E-15 (E-12 through E-14 occupied by engine-discipline-pass-1 cycle). CAP anchors: CAP-002 (primary), CAP-008, CAP-003. Subsystems: SS-01, SS-07, SS-09. No dependency on E-9/E-11. ADR-019 v1.8 is the authoritative scope source. |
+
+## Amendment 2026-05-09 (v1.2 → v1.3 — F-P25-001/004: dispatch loop + async_flag serde rename corrected to post-merge symbols)
+
+**Drivers:**
+- **F-P25-001** — §Architecture Components row 3 cited `Dispatch loop (run_event)` which is pre-merge planning vocabulary. Post-merge, the dispatch loop is inlined in `main.rs::main` (no separate `run_event` function). Module column also expanded to reflect both `main.rs` and `executor.rs`.
+- **F-P25-004** — §Architecture Components row 1 cited `async` field on `RegistryEntry`. Post-implementation, the field is named `async_flag` (Rust keyword constraint) with `#[serde(default, rename = "async")]` preserving TOML wire-format compatibility (`async = true` in TOML still deserializes correctly).
+
+**Changes:**
+- §Architecture Components row 1 component: `async` field on `RegistryEntry` → `async_flag` field on `RegistryEntry` (with `#[serde(default, rename = "async")]` preserving wire-format compatibility)
+- §Architecture Components row 3 component: `Dispatch loop (\`run_event\`)` → `Dispatch loop (inlined in \`main.rs::main\`)`
+- §Architecture Components row 3 module: `crates/factory-dispatcher/src/executor.rs` → `crates/factory-dispatcher/src/main.rs` + `crates/factory-dispatcher/src/executor.rs`
+
+**POLICY 1 verification:** No content removed. Pre-merge planning vocabulary corrected to merged-code symbols per L-P24-002.
 
 ## Amendment 2026-05-09 (v1.1 → v1.2 — F-P24-002/003/004 comprehensive fabricated-symbol sweep)
 
