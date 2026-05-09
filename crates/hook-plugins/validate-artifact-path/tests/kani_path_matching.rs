@@ -274,10 +274,7 @@ mod kani_proofs_vp070 {
     fn proof_vp070_non_factory_path_always_returns_nomatch() {
         let path: String = kani::any();
         kani::assume(path.len() <= 64);
-        kani::assume(
-            !path.starts_with(".factory/")
-                && !path.contains("/.factory/"),
-        );
+        kani::assume(!path.starts_with(".factory/") && !path.contains("/.factory/"));
         let registry = make_single_entry_block_registry();
         let decision = matches_canonical(&path, &registry);
         kani::assert(

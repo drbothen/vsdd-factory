@@ -203,8 +203,8 @@ fn setup_temp_registry() -> (tempfile::TempDir, PathBuf) {
 /// and include the registry prefix — an empty list means "deny all".
 fn invoke_hook(wasm_path: &PathBuf, cwd: &PathBuf, payload_json: &[u8]) -> PluginResult {
     let engine = build_engine().expect("wasmtime engine must build");
-    let wasm_bytes =
-        std::fs::read(wasm_path).unwrap_or_else(|e| panic!("WASM read failed for {:?}: {}", wasm_path, e));
+    let wasm_bytes = std::fs::read(wasm_path)
+        .unwrap_or_else(|e| panic!("WASM read failed for {:?}: {}", wasm_path, e));
     let module = Module::from_binary(&engine, &wasm_bytes)
         .unwrap_or_else(|e| panic!("WASM compile failed for {:?}: {}", wasm_path, e));
 
@@ -239,7 +239,9 @@ fn invoke_hook(wasm_path: &PathBuf, cwd: &PathBuf, payload_json: &[u8]) -> Plugi
 /// stdout containing `"outcome":"block"`).
 fn assert_blocks(result: &PluginResult, context: &str) {
     match result {
-        PluginResult::Ok { exit_code, stdout, .. } => {
+        PluginResult::Ok {
+            exit_code, stdout, ..
+        } => {
             assert_eq!(
                 *exit_code, 2,
                 "{}: expected exit_code=2 (block), got exit_code={} — \
@@ -265,7 +267,9 @@ fn assert_blocks(result: &PluginResult, context: &str) {
 /// Assert that a PluginResult carries a continue (exit_code 0, no block).
 fn assert_continues(result: &PluginResult, context: &str) {
     match result {
-        PluginResult::Ok { exit_code, stdout, .. } => {
+        PluginResult::Ok {
+            exit_code, stdout, ..
+        } => {
             assert_eq!(
                 *exit_code, 0,
                 "{}: expected exit_code=0 (continue), got exit_code={} — \
@@ -312,9 +316,7 @@ fn test_e2e_BC_4_11_001_prefixbug_absolute_path_bypasses_prefixwasm() {
         return;
     }
 
-    let wasm_size = std::fs::metadata(&wasm_path)
-        .expect("wasm metadata")
-        .len();
+    let wasm_size = std::fs::metadata(&wasm_path).expect("wasm metadata").len();
 
     // The pre-fix binary is 303672 bytes. The post-fix is 305333 bytes.
     // If the file is the post-fix size, the fix is already deployed and
@@ -502,7 +504,8 @@ fn test_e2e_TD_031_postfix_absolute_spec_path_with_cite_blocks() {
 
     // Absolute path to a spec file under .factory/specs/ — is_spec_target must
     // accept this after cc5a016b.
-    let abs_spec_path = "/Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let abs_spec_path =
+        "/Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
 
     // new_string containing a volatile cite: `lib.rs:42` — TD-031 violation.
     let violating_new_string = "See `lib.rs:42` for the implementation details.";
@@ -536,7 +539,8 @@ fn test_e2e_TD_031_postfix_absolute_spec_path_without_cite_continues() {
     let tmp = tempfile::tempdir().expect("tempdir");
     let cwd = tmp.path().to_path_buf();
 
-    let abs_spec_path = "/Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let abs_spec_path =
+        "/Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
     // Clean new_string — references functions by name, no line numbers.
     let clean_new_string =
         "See `emit_plugin_async_block_discarded` in `factory_dispatcher::main` for details.";
@@ -609,8 +613,7 @@ fn test_e2e_BC_4_11_001_postfix_false_positive_prefix_factory_does_not_block() {
 
     // Leading-slash discipline: `.factory/` preceded by something other than
     // `/` or start-of-string is NOT in scope. The hook must not match this.
-    let false_positive_path =
-        "notfactory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let false_positive_path = "notfactory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
     let payload = make_write_payload(false_positive_path);
     let result = invoke_hook(&wasm_path, &cwd, &payload);
 
@@ -636,8 +639,7 @@ fn test_e2e_TD_031_postfix_false_positive_prefix_factory_does_not_block() {
     let cwd = tmp.path().to_path_buf();
 
     // Same leading-slash discipline check for validate-stable-anchors.
-    let false_positive_path =
-        "notfactory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let false_positive_path = "notfactory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
     let violating_new_string = "See `lib.rs:42` — but this path is not a spec file.";
 
     let payload = make_edit_payload(false_positive_path, Some(violating_new_string));

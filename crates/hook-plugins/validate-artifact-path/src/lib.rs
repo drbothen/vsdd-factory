@@ -409,8 +409,7 @@ where
     // Accept both relative (`.factory/...`) and absolute (`/path/to/.factory/...`) forms.
     // Leading-slash discipline (`/.factory/`) prevents false positives on `prefix.factory/...`.
     // F-P18-001: sibling fix propagated from validate-stable-anchors cc5a016b.
-    let is_factory_path =
-        file_path.starts_with(".factory/") || file_path.contains("/.factory/");
+    let is_factory_path = file_path.starts_with(".factory/") || file_path.contains("/.factory/");
     if !is_factory_path {
         return HookResult::Continue;
     }
@@ -594,10 +593,7 @@ mod kani_proofs {
     fn proof_vp070_non_factory_path_returns_nomatch() {
         let path: String = kani::any();
         kani::assume(path.len() <= 64);
-        kani::assume(
-            !path.starts_with(".factory/")
-                && !path.contains("/.factory/"),
-        );
+        kani::assume(!path.starts_with(".factory/") && !path.contains("/.factory/"));
 
         let entry = RegistryEntry {
             artifact_type: "test-artifact".to_string(),

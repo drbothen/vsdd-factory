@@ -98,7 +98,9 @@ fn sync_registry_entry(plugin_path: PathBuf, name: &str, event: &str) -> Registr
         on_error: None, // defaults to Continue
         capabilities: Some(Capabilities {
             read_file: Some(ReadFileCaps {
-                path_allow: vec!["plugins/vsdd-factory/config/artifact-path-registry.yaml".to_string()],
+                path_allow: vec![
+                    "plugins/vsdd-factory/config/artifact-path-registry.yaml".to_string(),
+                ],
             }),
             ..Default::default()
         }),
@@ -199,7 +201,10 @@ async fn test_e2e_BC_4_11_001_sync_hook_blocks_unauthorized_factory_path() {
     // Build a registry with validate-artifact-path as a sync hook for Write tool.
     let entry = sync_registry_entry(wasm_path, "validate-artifact-path", "PreToolUse");
     // Add tool filter matching Write|Edit
-    let entry = RegistryEntry { tool: Some("Write|Edit".to_string()), ..entry };
+    let entry = RegistryEntry {
+        tool: Some("Write|Edit".to_string()),
+        ..entry
+    };
     let registry = registry_from(vec![entry]);
 
     // Synthetic envelope: Write to an unregistered .factory/ path
@@ -267,7 +272,12 @@ async fn test_e2e_BC_4_11_001_sync_hook_blocks_unauthorized_factory_path() {
 
     // Verify the real WASM executed (not crashed, not timed out)
     match &outcome.result {
-        PluginResult::Ok { stdout, exit_code, elapsed_ms, .. } => {
+        PluginResult::Ok {
+            stdout,
+            exit_code,
+            elapsed_ms,
+            ..
+        } => {
             // Block verdict: stdout contains {"outcome":"block",...}
             assert!(
                 stdout.contains(r#""outcome":"block""#),
@@ -372,7 +382,12 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_authorized_factory_path() {
     let outcome = &summary.per_plugin_results[0];
 
     match &outcome.result {
-        PluginResult::Ok { stdout, exit_code, elapsed_ms, .. } => {
+        PluginResult::Ok {
+            stdout,
+            exit_code,
+            elapsed_ms,
+            ..
+        } => {
             assert!(
                 stdout.contains(r#""outcome":"continue""#) || stdout.is_empty(),
                 "TC-2 FAIL: validate-artifact-path must Continue for registered path. \
@@ -397,7 +412,10 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_authorized_factory_path() {
         summary.exit_code, 0,
         "TC-2 FAIL: dispatcher must exit 0 for authorized path (no block intent)"
     );
-    assert!(!summary.block_intent, "TC-2 FAIL: block_intent must be false");
+    assert!(
+        !summary.block_intent,
+        "TC-2 FAIL: block_intent must be false"
+    );
 }
 
 /// TC-3: Sync hook continues immediately for non-.factory/ paths (early exit).
@@ -459,7 +477,10 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_non_factory_path() {
         summary.exit_code, 0,
         "TC-3 FAIL: non-.factory/ path must never cause exit 2"
     );
-    assert!(!summary.block_intent, "TC-3 FAIL: no block intent for non-.factory/ path");
+    assert!(
+        !summary.block_intent,
+        "TC-3 FAIL: no block intent for non-.factory/ path"
+    );
 
     for outcome in &summary.per_plugin_results {
         match &outcome.result {
@@ -478,7 +499,10 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_non_factory_path() {
             }
         }
     }
-    eprintln!("TC-3 PASS: no block, exit=0, {} plugins ran", summary.per_plugin_results.len());
+    eprintln!(
+        "TC-3 PASS: no block, exit=0, {} plugins ran",
+        summary.per_plugin_results.len()
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -611,7 +635,9 @@ async fn test_e2e_BC_1_14_001_async_hook_output_reaches_sink_when_fast() {
 
     // Assert the real WASM executed (not crashed, not timed out)
     match &outcome.result {
-        PluginResult::Ok { elapsed_ms, stdout, .. } => {
+        PluginResult::Ok {
+            elapsed_ms, stdout, ..
+        } => {
             assert!(
                 *elapsed_ms > 0,
                 "TC-5 FAIL: elapsed_ms must be >0 — real WASM executed"
@@ -621,7 +647,11 @@ async fn test_e2e_BC_1_14_001_async_hook_output_reaches_sink_when_fast() {
                 elapsed_ms
             );
         }
-        PluginResult::Crashed { trap_string, stderr, .. } => {
+        PluginResult::Crashed {
+            trap_string,
+            stderr,
+            ..
+        } => {
             // session-start-telemetry may crash if exec_subprocess (factory-health) is
             // not on PATH. That's an environment issue, not a dispatcher bug.
             // Crash = real WASM ran (not a stub), which is what we validate.
@@ -697,7 +727,9 @@ async fn test_e2e_BC_1_14_001_async_block_verdict_discarded() {
         on_error: Some(OnError::Continue), // REQUIRED: async cannot be block
         capabilities: Some(Capabilities {
             read_file: Some(ReadFileCaps {
-                path_allow: vec!["plugins/vsdd-factory/config/artifact-path-registry.yaml".to_string()],
+                path_allow: vec![
+                    "plugins/vsdd-factory/config/artifact-path-registry.yaml".to_string(),
+                ],
             }),
             ..Default::default()
         }),
@@ -769,7 +801,9 @@ async fn test_e2e_BC_1_14_001_async_block_verdict_discarded() {
         on_error: Some(OnError::Continue),
         capabilities: Some(Capabilities {
             read_file: Some(ReadFileCaps {
-                path_allow: vec!["plugins/vsdd-factory/config/artifact-path-registry.yaml".to_string()],
+                path_allow: vec![
+                    "plugins/vsdd-factory/config/artifact-path-registry.yaml".to_string(),
+                ],
             }),
             ..Default::default()
         }),
@@ -848,7 +882,9 @@ async fn test_e2e_BC_1_14_001_mixed_sync_async_partition_timing() {
         on_error: None,
         capabilities: Some(Capabilities {
             read_file: Some(ReadFileCaps {
-                path_allow: vec!["plugins/vsdd-factory/config/artifact-path-registry.yaml".to_string()],
+                path_allow: vec![
+                    "plugins/vsdd-factory/config/artifact-path-registry.yaml".to_string(),
+                ],
             }),
             ..Default::default()
         }),
@@ -1173,14 +1209,18 @@ async fn test_e2e_BC_1_14_001_async_timeout_emits_plugin_timeout_event() {
         .expect("JoinHandle ok");
 
     match &outcome.result {
-        PluginResult::Timeout { cause, elapsed_ms, .. } => {
+        PluginResult::Timeout {
+            cause, elapsed_ms, ..
+        } => {
             eprintln!(
                 "TC-9 PASS: async hang plugin timed out in {}ms (cause={:?}). \
                  Timeout event emitted to internal log.",
                 elapsed_ms, cause
             );
         }
-        PluginResult::Ok { exit_code, stdout, .. } => {
+        PluginResult::Ok {
+            exit_code, stdout, ..
+        } => {
             panic!(
                 "TC-9 FAIL: expected Timeout but got Ok{{exit_code={exit_code}, stdout={stdout:?}}}. \
                  The hang plugin must not succeed."
@@ -1229,7 +1269,12 @@ async fn test_e2e_BC_1_14_001_partition_correctness_real_registry() {
     let registry = Registry::load(&registry_path)
         .expect("TC-10 FAIL: production hooks-registry.toml must load without error");
 
-    let all_entries: Vec<RegistryEntry> = registry.hooks.iter().filter(|e| e.enabled).cloned().collect();
+    let all_entries: Vec<RegistryEntry> = registry
+        .hooks
+        .iter()
+        .filter(|e| e.enabled)
+        .cloned()
+        .collect();
     let partition = partition_plugins(&all_entries);
 
     let total = all_entries.len();
@@ -1249,7 +1294,11 @@ async fn test_e2e_BC_1_14_001_partition_correctness_real_registry() {
     );
 
     // Verify async entries are flagged correctly in the registry
-    let async_names: Vec<&str> = partition.async_group.iter().map(|e| e.name.as_str()).collect();
+    let async_names: Vec<&str> = partition
+        .async_group
+        .iter()
+        .map(|e| e.name.as_str())
+        .collect();
     eprintln!("TC-10: async_group plugins: {:?}", async_names);
 
     // Known async plugins from S-15.01 T-3b (at least these must be async):
@@ -1279,7 +1328,8 @@ async fn test_e2e_BC_1_14_001_partition_correctness_real_registry() {
     for entry in &partition.async_group {
         let on_error = entry.on_error;
         assert_ne!(
-            on_error, Some(OnError::Block),
+            on_error,
+            Some(OnError::Block),
             "TC-10 FAIL: async plugin '{}' has on_error=block (E-REG-002 violation). \
              Registry load should have rejected this.",
             entry.name

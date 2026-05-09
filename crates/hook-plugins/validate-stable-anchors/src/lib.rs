@@ -576,8 +576,8 @@ where
 /// Accepts both relative paths (`.factory/specs/foo.md`) and absolute paths
 /// (`/Users/jmagady/Dev/vsdd-factory/.factory/specs/foo.md`).
 pub fn is_spec_target(file_path: &str) -> bool {
-    let matches_specs_path = file_path.starts_with(".factory/specs/")
-        || file_path.contains("/.factory/specs/");
+    let matches_specs_path =
+        file_path.starts_with(".factory/specs/") || file_path.contains("/.factory/specs/");
     matches_specs_path && file_path.ends_with(".md")
 }
 

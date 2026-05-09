@@ -213,11 +213,7 @@ pub fn emit_dispatcher_schema_mismatch(ctx: &HostContext, got: u32, expected: u3
 /// - BC-1.14.001 Error Paths — registry invariant violations
 /// - BC-1.14.001 EC-008 — AsyncBlockConflict precondition
 /// - BC-7.06.001 v1.8 Invariants 1 + 7 — load-time invariant enforcement
-pub fn emit_registry_invalid_e_reg002(
-    ctx: &HostContext,
-    plugin_name: &str,
-    violation: &str,
-) {
+pub fn emit_registry_invalid_e_reg002(ctx: &HostContext, plugin_name: &str, violation: &str) {
     let ev = InternalEvent::now("dispatcher.registry_invalid");
     let ts = ev.ts.clone();
     let ev = ev
