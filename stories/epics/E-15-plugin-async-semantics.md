@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-15"
-version: "1.1"
+version: "1.2"
 status: draft
 title: "Plugin Async Semantics — Registry-Layer Partition (single-shot delivery + cold-start follow-up)"
 prd_capabilities: [CAP-002, CAP-003, CAP-008]
@@ -238,8 +238,8 @@ References: ADR-019 §Subsystem Assignments.
 | Component | Subsystem | Module |
 |-----------|-----------|--------|
 | `registry.rs` — `REGISTRY_SCHEMA_VERSION` bump to 2; `async` field on `RegistryEntry`; `validate()` rejects schema != 2 | SS-01 | `crates/factory-dispatcher/src/registry.rs` |
-| `routing.rs` or `engine.rs` — `partition_plugins(matched, registry)` pure function | SS-01 | `crates/factory-dispatcher/src/{routing,engine}.rs` |
-| Dispatch loop (`run_event`) — sync_group await-all; async_group spawn-detached; drain window | SS-01 | `crates/factory-dispatcher/src/engine.rs` |
+| `partition.rs` — `partition_plugins(matched, registry)` pure function | SS-01 | `crates/factory-dispatcher/src/partition.rs` |
+| Dispatch loop (`run_event`) — sync_group await-all via `execute_tiers`; async_group `spawn_async_plugin`; drain window | SS-01 | `crates/factory-dispatcher/src/executor.rs` |
 | `hooks-registry.toml` — `schema_version = 2`; `async = true` for telemetry plugin set per BC-7.06.001 Invariant 6 | SS-07 | `plugins/vsdd-factory/hooks-registry.toml` |
 | CI lint bats test / pre-commit hook — `on_error = "block"` implies `async = false` | SS-07 | `plugins/vsdd-factory/hooks/*.sh` or CI pipeline |
 | `hooks.json.template` + 5 platform variants — remove `async: true` from all entries | SS-09 | `plugins/vsdd-factory/hooks/hooks.json*` |
@@ -266,5 +266,18 @@ E-11 (W-17) similarly adds native WASM entries; same non-overlapping analysis ap
 
 | Version | Date | Author | Summary |
 |---------|------|--------|---------|
+| 1.2 | 2026-05-09 | implementer (F-P24-002/003/004 comprehensive fabricated-symbol sweep) | F-P24-002/003/004: §Architecture Components table line 241: `routing.rs or engine.rs` (fabricated anchor) → `partition.rs`; dispatch loop row: `engine.rs` → `executor.rs`; `execute_tiers` and `spawn_async_plugin` cited explicitly. Module column corrected to match production paths. |
 | 1.1 | 2026-05-08 | state-manager | F5 pass-1 path-A follow-up: S-15.02 added (dispatcher cold-start optimization — daemon mode + WASM AOT cache; draft, TBD pts, depends on S-15.01). story_count 1→2. ADR-020 established latency budget classes (Class A current binary-spawn budget 1500ms; Class B daemon-mode target TBD). Epic title amended to reflect follow-up story. S-15.01 status updated to merged (PR #106 at 453eee1). |
 | 1.0 | 2026-05-07 | product-owner | Initial authoring. Single story (S-15.01). Epic ID E-15 (E-12 through E-14 occupied by engine-discipline-pass-1 cycle). CAP anchors: CAP-002 (primary), CAP-008, CAP-003. Subsystems: SS-01, SS-07, SS-09. No dependency on E-9/E-11. ADR-019 v1.8 is the authoritative scope source. |
+
+## Amendment 2026-05-09 (v1.1 → v1.2 — F-P24-002/003/004 comprehensive fabricated-symbol sweep)
+
+**Driver:** F-P24-002/003/004 corpus-wide sweep for all historical fabricated symbols. The §Architecture Components table cited `routing.rs or engine.rs` for the partition function module (a pre-implementation placeholder that survived as a fabricated anchor) and `engine.rs` for the dispatch loop (engine.rs builds the wasmtime Engine; dispatch loop lives in `executor.rs`).
+
+**Changes:**
+- §Architecture Components row 2 component: `routing.rs or engine.rs — partition_plugins(matched, registry) pure function` → `partition.rs — partition_plugins(matched, registry) pure function`
+- §Architecture Components row 2 module: `crates/factory-dispatcher/src/{routing,engine}.rs` → `crates/factory-dispatcher/src/partition.rs`
+- §Architecture Components row 3 component: dispatch loop `engine.rs` → `executor.rs`; `execute_tiers` and `spawn_async_plugin` cited explicitly instead of `run_event` pseudocode
+- §Architecture Components row 3 module: `crates/factory-dispatcher/src/engine.rs` → `crates/factory-dispatcher/src/executor.rs`
+
+**POLICY 1 verification:** No content removed. Fabricated pre-implementation anchors replaced with verified production module paths per F5 cycle symbol table.

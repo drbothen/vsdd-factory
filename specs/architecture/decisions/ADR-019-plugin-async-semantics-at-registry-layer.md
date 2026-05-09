@@ -4,7 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
-version: "1.9"
+version: "1.10"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -104,7 +104,7 @@ the new field and the new schema version.
 
 ### 3. Dispatcher partitions matched plugins into sync and async groups
 
-In the dispatch loop (`engine.rs` / `run_event`):
+In the dispatch loop (`executor.rs` / `run_event`):
 
 ```
 matched = match_plugins(registry, payload)
@@ -113,12 +113,12 @@ sync_group  = [p for p in matched if !p.async]   // async=false or unset
 async_group = [p for p in matched if  p.async]   // async=true
 
 // Sync group: run tiers per ADR-008, await all, aggregate exit code
-sync_results = run_tiers(sync_group)
+sync_results = execute_tiers(sync_group)
 dispatcher_exit = if any_block_intent(sync_results) { 2 } else { 0 }
 
 // Async group: spawn detached tasks, fire-and-forget
 // Exit codes NEVER influence dispatcher_exit
-for p in async_group { spawn_detached(p) }
+for p in async_group { spawn_async_plugin(p) }
 
 return dispatcher_exit   // Claude Code reads this
 ```
@@ -283,8 +283,8 @@ Verification properties produced alongside this ADR:
 ## Subsystem Assignments
 
 **SS-01 (Hook Dispatcher Core):** Referencing SS-01 because the partition logic lives
-in `crates/factory-dispatcher/src/` — `registry.rs` (schema bump), `routing.rs` or
-`engine.rs` (partition implementation), and the dispatch loop. The `dispatcher_exit`
+in `crates/factory-dispatcher/src/` — `registry.rs` (schema bump), `partition.rs`
+(partition implementation via `partition_plugins`), `executor.rs` (`execute_tiers` and `spawn_async_plugin`), and the dispatch loop. The `dispatcher_exit`
 aggregation invariant is an SS-01 behavioral contract.
 
 **SS-07 (Hook Bash Layer):** Referencing SS-07 because `hooks-registry.toml` is the
@@ -317,6 +317,17 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
 | VP-079 | `/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-079.md` |
 
 ---
+
+## Amendment 2026-05-09: v1.9 → v1.10 (F-P24-002/003/004 comprehensive fabricated-symbol sweep)
+
+- **Amendment date:** 2026-05-09
+- **Reason:** F-P24-002/003/004 corpus-wide sweep for all historical fabricated symbols. Four active-body cite sites found in ADR-019: `engine.rs` as dispatch-loop host (§3 prose), `run_tiers` (§3 pseudocode line 116), `spawn_detached` (§3 pseudocode line 121), and `routing.rs or engine.rs (partition implementation)` in §Subsystem Assignments. Per L-P23-001 all-cite-sites must be patched in same burst.
+- **Changes:**
+  - §3 dispatch loop prose (line 107): `engine.rs` → `executor.rs` (real dispatch-loop home; `engine.rs` builds the wasmtime Engine but does not host `run_event`)
+  - §3 pseudocode (line 116): `run_tiers(sync_group)` → `execute_tiers(sync_group)` (real fn at `executor.rs:79`)
+  - §3 pseudocode (line 121): `spawn_detached(p)` → `spawn_async_plugin(p)` (real fn at `executor.rs:247`)
+  - §Subsystem Assignments (lines 286-287): `routing.rs or engine.rs (partition implementation)` → `partition.rs (partition_plugins)`, `executor.rs (execute_tiers and spawn_async_plugin)`
+- **No decision changes:** All §Decision policy text is unchanged. Pseudocode pseudosymbols corrected to match production symbol names.
 
 ## Amendment 2026-05-08: v1.8 → v1.9 (F-P19-001 corpus-wide L-P18-002 sweep)
 

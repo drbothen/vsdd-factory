@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.10"
+version: "1.11"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -127,7 +127,7 @@ Any future `RegistryError` variant added to `registry.rs` MUST receive an explic
 ## Architecture Anchors
 
 - `plugins/vsdd-factory/hooks-registry.toml` — schema_version bumped to 2; `async = true` added for telemetry plugins; all block-capable validators remain `async = false`
-- `crates/factory-dispatcher/src/registry.rs` — `RegistryEntry.async: bool` field with `#[serde(default)]`; `REGISTRY_SCHEMA_VERSION = 2`; `validate()` enforcing Invariant 1
+- `crates/factory-dispatcher/src/registry.rs` — `RegistryEntry.async_flag: bool` field with `#[serde(rename = "async", default)]`; `REGISTRY_SCHEMA_VERSION = 2`; `validate()` enforcing Invariant 1
 - CI lint hook / bats test — VP-078 harness scanning hooks-registry.toml for `on_error=block ⇒ async=false`
 
 ## Story Anchor
@@ -233,6 +233,18 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-09 (v1.10 → v1.11 — F-P24-002/003/004: RegistryEntry.async → RegistryEntry.async_flag in §Architecture Anchors)
+
+**Driver:** F-P24-002/003/004 corpus-wide sweep for all historical fabricated symbols. The §Architecture Anchors second bullet cited `RegistryEntry.async: bool` — the fabricated field name. The real Rust field name is `async_flag` (because `async` is a reserved keyword in Rust); it is serialized as `"async"` in TOML/JSON via `#[serde(rename = "async", default)]`.
+
+**Change made:**
+- §Architecture Anchors second bullet: `RegistryEntry.async: bool` → `RegistryEntry.async_flag: bool` with `#[serde(rename = "async", default)]` noted inline.
+- Frontmatter `version:` bumped `"1.10"` → `"1.11"`.
+
+**Verification:** `grep -n "async_flag" crates/factory-dispatcher/src/registry.rs` confirms field name at `registry.rs:245` per the F5 cycle verified symbol table.
+
+**POLICY 1 verification:** No content removed. Fabricated field name corrected to real Rust field name; serde rename annotation added for TOML/JSON round-trip clarity.
 
 ## Amendment 2026-05-08 (v1.9 → v1.10 — F-P20-005: §Amendment v1.7→v1.8 grep-verification reworded for clarity)
 
