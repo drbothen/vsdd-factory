@@ -1606,3 +1606,73 @@ User directive: continue protocol without escalation.
 - L-P25-001 codified [codified]
 - L-P25-002 codified [codified]
 - Fix-burst-24 COMPLETE — F-P25-001..F-P25-007 all closed; 8-pass HIGH streak; pass-26 next
+
+---
+
+## Pass-26 — verdict HIGH (9th consecutive)
+
+**Date:** 2026-05-09
+**Agent:** adversary
+**Phase:** F5 ADVERSARIAL
+
+**Verdict: HIGH** — F-P26-001 (PluginEntry → RegistryEntry: 12 active-body sites across VP-077, VP-078, S-15.01 using pre-registry-layer fabricated struct name); F-P26-007 (VP-077 harness skeleton tuple → PluginPartition struct destructuring mismatch); F-P26-002 (S-15.01 + 5 merged stories frontmatter status: draft/ready instead of merged — state-manager PR-merge handler gap); F-P26-003 (sibling F1 architect proposals not covered by L-P25-002 carve-out propagation); F-P26-004/005 (merged story frontmatter retrofit missing merged_at/merged_in/merge_sha fields); F-P26-006 (L-P25-001 + L-P25-002 codifying burst did not run L-P24-002 corpus-sweep at codification time — meta-level recurrence). ADR-013: 0_of_3 (RESET — HIGH). 9 consecutive HIGH passes (P18-P26).
+
+User directive: continue protocol.
+
+---
+
+## Fix-burst-25 — pass-26 HIGH verdict + sub-bursts 1–3 close
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → spec-writer → state-manager (POLICY 3 run-last)
+**Phase:** F5 ADVERSARIAL — pass-26
+
+### Sub-burst 1: F-P26-001 PluginEntry sweep + F-P26-007 harness fix (4c386236, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| VP-077 | v1.12 → v1.13 | F-P26-001: PluginEntry → RegistryEntry across 12 active-body sites; F-P26-007: harness skeleton tuple → PluginPartition struct destructuring |
+| VP-078 | v1.8 → v1.9 | F-P26-001: PluginEntry → RegistryEntry across active-body sites |
+| S-15.01 | v1.22 → v1.23 | F-P26-001: PluginEntry → RegistryEntry across active-body sites |
+
+- 12 active-body sites patched across 3 files
+- F-P26-001 closed (PluginEntry corpus sweep)
+- F-P26-007 closed (VP-077 harness PluginPartition struct)
+
+### Sub-burst 2: post-merge frontmatter retrofit + POST-MERGE-STATE annotations + F1 carve-outs (a2c390cd, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| S-15.01 | v1.23 → v1.24 | F-P26-002/003/004/005: post-merge frontmatter retrofit (status: merged, merged_at, merged_in, merge_sha) + POST-MERGE-STATE §Tasks annotations |
+| S-13.01 | v1.0 → v1.1 | F-P26-004/005: post-merge frontmatter retrofit per L-P26-002 |
+| S-12.01 | v1.0 → v1.1 | F-P26-004/005: post-merge frontmatter retrofit per L-P26-002 |
+| S-12.02 | v1.0 → v1.1 | F-P26-004/005: post-merge frontmatter retrofit per L-P26-002 |
+| S-12.06 | v1.0 → v1.1 | F-P26-004/005: post-merge frontmatter retrofit per L-P26-002 |
+| S-9.00 | v1.6 → v1.7 | Frontmatter status retrofit |
+| F1-delta-analysis.md (engine-discipline) | — | F1 carve-out annotation per L-P25-002 |
+| F1-platform-amendment-delta-analysis.md | — | F1 carve-out annotation per L-P25-002 |
+
+- F-P26-002/003/004/005 closed (post-merge frontmatter retrofit)
+- F-P26-006 partially addressed (L-P24-002 corpus-sweep applied to L-P25-001/002 retroactively)
+
+### Sub-burst 3: indexes + lessons + state (this burst, factory-artifacts)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| VP-INDEX | v1.33 → v1.34 | VP-077 v1.13, VP-078 v1.9 changes from sub-burst 1 recorded |
+| STORY-INDEX | v2.54 → v2.55 | S-15.01 v1.24, S-13.01 v1.1, S-12.01 v1.1, S-12.02 v1.1, S-12.06 v1.1, S-9.00 v1.7 changes recorded |
+| tech-debt-register.md | — | TD-031 updated: fix-burst-25 commits 4c386236 + a2c390cd recorded; 9-pass HIGH streak noted |
+| lessons.md | — | L-P26-001 codified: codifying-burst MUST run L-P24-002 corpus-sweep on new lesson |
+| lessons.md | — | L-P26-002 codified: state-manager PR-merge handler MUST update story frontmatter atomically |
+| STATE.md | — | fix-burst-25 closed; pass-27 next; index versions updated; ADR-013 0_of_3 |
+| burst-log.md | — | pass-26 + fix-burst-25 entries (this entry) |
+
+- L-P26-001 codified [codified]
+- L-P26-002 codified [codified]
+- Fix-burst-25 COMPLETE — F-P26-001..007 all closed; 9-pass HIGH streak; pass-27 next

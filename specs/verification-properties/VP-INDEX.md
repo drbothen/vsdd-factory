@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.33"
+version: "1.34"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
@@ -9,6 +9,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-09
+    change: "v1.34 (2026-05-09; fix-burst-25 sub-burst 1, commit 4c386236): VP-077 v1.12→v1.13 (F-P26-001: PluginEntry → RegistryEntry corpus sweep across active-body sites; F-P26-007: harness skeleton tuple → PluginPartition struct); VP-078 v1.8→v1.9 (F-P26-001: PluginEntry → RegistryEntry sweep). No VP count change. VP-INDEX v1.33→v1.34. Refs: F-P26-001, F-P26-007, fix-burst-25 sub-burst 1."
   - date: 2026-05-09
     change: "v1.33 (2026-05-09; fix-burst-24 sub-burst 1, commit 609cae4f): VP-077 v1.11→v1.12 (F-P25-003: Kani harness assumptions updated to reflect merged partition.rs implementation); VP-079 v1.16→v1.17 (F-P25-004: scenario harness CLI surface updated to match merged dispatcher binary). No VP count change. VP-INDEX v1.32→v1.33. Refs: F-P25-003, F-P25-004, fix-burst-24 sub-burst 1."
   - date: 2026-05-09
@@ -191,8 +193,8 @@ changelog:
 | [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process | safety | integration | SS-04 | — | draft |
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
-| [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.11: F5 TD-VSDD-091 Chunk 3 sweep — stable-anchor migration; v1.10: F5 fix-burst-4 — 5 stale BC-7.06.001 v1.4 cites updated to v1.5; F-P4-001 cite-propagation gap closed) | invariant | kani-proof | SS-01 | — | draft |
-| [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
+| [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.13: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep + F-P26-007 harness skeleton tuple → PluginPartition struct; v1.12: F5 fix-burst-24 — Kani harness assumptions updated to reflect merged partition.rs) | invariant | kani-proof | SS-01 | — | draft |
+| [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.9: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep across active-body sites; v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
 | [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.16: F5 fix-burst-16 — SITES array refreshed to reflect live main.rs symbol positions; bats vp079-scenario6 header anchors stabilized per TD-031 (test-writer); F-P17-001 CRIT + F-P17-004 closed) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)

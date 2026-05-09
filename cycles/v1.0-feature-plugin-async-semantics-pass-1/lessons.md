@@ -416,3 +416,45 @@ Without this discipline, story body sections become a recurrence carrier for sib
 Fix-burst-24 sub-burst 1 added an inline HTML comment to F1-delta-analysis.md noting the carve-out per L-P25-002.
 
 [codified] — fix-burst-24 sub-burst 2.
+
+---
+
+## F5 pass-26 process-gap findings (2026-05-09)
+
+### L-P26-001 [codified]: Every codifying burst MUST run L-P24-002 corpus-sweep on the new lesson at codification time, with explicit verification block in lessons.md
+
+**Source:** F-P26-002, F-P26-003, F-P26-006 (process-gap)
+
+**Failure mode (F-P26-002, F-P26-003, F-P26-006):** Fix-burst-24 sub-burst 2 codified L-P25-001 + L-P25-002 but applied each lesson narrowly to ONE trigger artifact (S-15.01 for L-P25-001; F1-delta-analysis for L-P25-002). Six+ merged stories (F-P26-002) and 2 sibling F1 architect proposals (F-P26-003) were skipped.
+
+**Rule:** when a fix-burst codifies a NEW lesson L-NNN, the SAME burst MUST:
+1. Read the lesson's codification text to extract the corpus-sweep query (the predicate that defines the lesson's pattern class).
+2. Run the query corpus-wide.
+3. Apply the lesson's prescribed action to ALL matches.
+4. Append a `**Verified retroactively in fix-burst-N:**` block to the lesson body listing all artifacts patched.
+
+This rule is the SAME-burst sibling of L-P24-002 but stated at the codification-event level rather than at the trigger-cluster level. Without this discipline, codifying bursts produce trigger-only fixes and the recurrence pattern continues at NEW layers.
+
+**Suggested codification mechanism:** state-manager codifying-burst protocol template MUST include "L-P26-001 verification block" as a required step before commit. S-15.03's `validate-lesson-retroactive-sweep` hook would enforce this mechanically.
+
+[codified] — fix-burst-25 sub-burst 3.
+
+---
+
+### L-P26-002 [codified]: state-manager PR-merge handler MUST update story frontmatter `status: merged` + `merged_at:` + `merged_in:` + `merge_sha:` as a required step
+
+**Source:** F-P26-004, F-P26-005, O-P26-006 (process-gap)
+
+**Failure mode (F-P26-004, F-P26-005, O-P26-006):** When a PR merges, STATE.md "Merged" bucket is updated but story frontmatter `status:` is left at `draft` or `ready`. Cross-cycle pattern across 5+ stories (S-15.01, S-13.01, S-12.01, S-12.02, S-12.06).
+
+**Rule:** state-manager's PR-merge handler MUST update the story's frontmatter atomically with the STATE.md update:
+- `status: merged`
+- `merged_at: YYYY-MM-DD`
+- `merged_in: PR-NNN`
+- `merge_sha: <full-or-short-SHA>`
+
+**Tag:** `[process-gap]` — applies to state-manager agent prompt.
+
+**Suggested enforcement:** lint-hook similar to validate-stable-anchors that fails CI when STATE.md lists a story as merged but frontmatter says draft/ready. (Future POLICY 13 candidate.)
+
+[codified] — fix-burst-25 sub-burst 3.
