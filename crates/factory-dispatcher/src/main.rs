@@ -139,7 +139,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                 RegistryError::AsyncBlockConflict { name } => {
                     // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
                     // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
-                    // E-REG-002 is intra-entry (no offending event/tool tuple); pass None, None.
+                    // E-REG-002 is intra-entry; offending_event/tool absence is enforced by type system.
                     emit_registry_invalid_e_reg002(
                         &err_ctx,
                         name,
