@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
+last_amended: 2026-05-08
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
 input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
-extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:266
+extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-109"
 subsystem: SS-05
 capability: CAP-TBD
 lifecycle_status: active
@@ -60,9 +61,9 @@ override them. Observed values: `on_failure: escalate`, `max_retries: 2`,
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `greenfield.lobster:26-29` | `on_failure: escalate, max_retries: 2, timeout: "2h"` | happy-path |
-| `brownfield.lobster:19-22` | Same shape | happy-path |
-| `code-delivery.lobster:28-31` | Same shape | happy-path |
+| `greenfield.lobster::defaults` | `on_failure: escalate, max_retries: 2, timeout: "2h"` | happy-path |
+| `brownfield.lobster::defaults` | Same shape | happy-path |
+| `code-delivery.lobster::defaults` | Same shape | happy-path |
 
 ## Verification Properties
 
@@ -104,7 +105,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:26-29`; `brownfield.lobster:19-22`; `code-delivery.lobster:28-31` |
+| **Path** | `greenfield.lobster::defaults`; `brownfield.lobster::defaults`; `code-delivery.lobster::defaults` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -125,3 +126,7 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed — schema-level data invariant.
+
+## Changelog
+
+- v1.2 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 4 cites migrated. `extracted_from` line cite and 3 `.lobster:NNN` cites (Canonical Test Vectors + Source Evidence) replaced with stable symbol anchors (`pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-109"`; `greenfield.lobster::defaults`; `brownfield.lobster::defaults`; `code-delivery.lobster::defaults`).

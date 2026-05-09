@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
+last_amended: 2026-05-08
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
 input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
-extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:320
+extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-115"
 subsystem: SS-05
 capability: CAP-TBD
 lifecycle_status: active
@@ -63,10 +64,10 @@ within the timeout.
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `greenfield.lobster:181-191` (design-system-approval) | Pause, await operator | happy-path |
-| `greenfield.lobster:336-355` (phase-1-human-approval, 24h, 12 artifacts) | Pause with 12-file review list | happy-path |
-| `greenfield.lobster:1311-1322` (phase-6-human-approval, 48h timeout) | Pause for 48h | happy-path |
-| `brownfield.lobster:170-188` (phase-0-human-approval, 24h, 9 artifacts) | Pause for ingestion approval | happy-path |
+| `greenfield.lobster::phase-1-design-system-approval` (design-system-approval) | Pause, await operator | happy-path |
+| `greenfield.lobster::phase-1-human-approval` (phase-1-human-approval, 24h, 12 artifacts) | Pause with 12-file review list | happy-path |
+| `greenfield.lobster::phase-6-human-approval` (phase-6-human-approval, 48h timeout) | Pause for 48h | happy-path |
+| `brownfield.lobster::phase-0-human-approval` (phase-0-human-approval, 24h, 9 artifacts) | Pause for ingestion approval | happy-path |
 
 ## Verification Properties
 
@@ -108,7 +109,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:181-191, 201-211, 336-355, 1311-1322`; `brownfield.lobster:170-188` |
+| **Path** | `greenfield.lobster::phase-1-design-system-approval`, `greenfield.lobster::phase-1-multi-variant-approval`, `greenfield.lobster::phase-1-human-approval`, `greenfield.lobster::phase-6-human-approval`; `brownfield.lobster::phase-0-human-approval` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -129,3 +130,7 @@ TBD
 #### Refactoring Notes
 
 The schema is pure data; the pause/resume mechanism is effectful and lives in the orchestrator shell.
+
+## Changelog
+
+- v1.2 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 5 cites migrated. `extracted_from` line cite and `.lobster:NNN` cites in Canonical Test Vectors and Source Evidence replaced with stable step-name anchors (`§ "BC-AUDIT-115"`; 5 human-approval step-name anchors across greenfield.lobster and brownfield.lobster).

@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
+last_amended: 2026-05-08
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
 input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
-extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:306
+extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-113"
 subsystem: SS-05
 capability: CAP-TBD
 lifecycle_status: active
@@ -62,9 +63,9 @@ fails (bubble to operator). Steps may override per-step. Gate-type steps use
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `greenfield.lobster:27` (`on_failure: escalate`) | Workflow default | happy-path |
-| `greenfield.lobster:75` (`optional: true`) | Failure non-blocking | happy-path |
-| `greenfield.lobster:257, 495, 614` (gate: `fail_action: block`) | Workflow halts on criteria miss | happy-path |
+| `greenfield.lobster::defaults` (`on_failure: escalate`) | Workflow default | happy-path |
+| `greenfield.lobster::scaffold-claude-md` (`optional: true`) | Failure non-blocking | happy-path |
+| `greenfield.lobster::phase-1-gate`, `greenfield.lobster::phase-2-gate`, `greenfield.lobster::pre-phase-4-dtu-gate` (gate: `fail_action: block`) | Workflow halts on criteria miss | happy-path |
 
 ## Verification Properties
 
@@ -107,7 +108,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:27, 75, 257, 495, 614` |
+| **Path** | `greenfield.lobster::defaults`, `greenfield.lobster::scaffold-claude-md`, `greenfield.lobster::phase-1-gate`, `greenfield.lobster::phase-2-gate`, `greenfield.lobster::pre-phase-4-dtu-gate` |
 | **Confidence** | HIGH for `escalate` + `block` + `optional: true`; MEDIUM for the universe of values |
 | **Extraction Date** | 2026-04-25 |
 
@@ -128,3 +129,7 @@ TBD
 #### Refactoring Notes
 
 Sample broadening recommended — read the 13 unread workflows to confirm the failure-action universe.
+
+## Changelog
+
+- v1.2 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 4 cites migrated. `extracted_from` line cite and 3 `.lobster:NNN` cites (Canonical Test Vectors + Source Evidence) replaced with stable step-name anchors (`§ "BC-AUDIT-113"`; `greenfield.lobster::defaults`; `greenfield.lobster::scaffold-claude-md`; gate steps `phase-1-gate`, `phase-2-gate`, `pre-phase-4-dtu-gate`).

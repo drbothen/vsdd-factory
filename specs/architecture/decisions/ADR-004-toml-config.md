@@ -61,7 +61,7 @@ whereas YAML requires careful indentation and JSON requires verbose bracket nest
 
 Third, the Rust ecosystem is at home with TOML. The `toml` crate (`toml::de::Error`)
 provides structured deserialization errors that the dispatcher surfaces verbatim — see
-`RegistryError::Toml` in `crates/factory-dispatcher/src/registry.rs:26`. This means
+`RegistryError::Toml` in `crates/factory-dispatcher/src/registry.rs::RegistryError::Toml`. This means
 parse failures produce actionable messages rather than opaque offsets.
 
 The `schema_version` field was added to both configuration schemas as a future-proofing
@@ -94,7 +94,7 @@ or upgrade the dispatcher.
 ### Status as of v1.0.0-beta.5
 
 IN-EFFECT. `hooks-registry.toml` ships as TOML with `schema_version = 1`
-(`REGISTRY_SCHEMA_VERSION: u32 = 1` enforced in `crates/factory-dispatcher/src/registry.rs:16`).
+(`REGISTRY_SCHEMA_VERSION: u32 = 1` enforced in `crates/factory-dispatcher/src/registry.rs::REGISTRY_SCHEMA_VERSION`).
 `observability-config.toml` ships as TOML with `schema_version = 2` (amended by ADR-015 D-15.1;
 v1 hard-errors with migration hint per BC-3.05.004 PC4).
 
@@ -113,7 +113,11 @@ v1 hard-errors with migration hint per BC-3.05.004 PC4).
 - **Master design doc:** `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md`
   lines 448–456 (ADR-004: TOML for configuration) and lines 226–233
   (hooks-registry.toml schema_version declaration).
-- **Code as-built:** `crates/factory-dispatcher/src/registry.rs:16` (`REGISTRY_SCHEMA_VERSION: u32 = 1`),
-  `crates/factory-dispatcher/src/registry.rs:26` (`RegistryError::Toml`).
+- **Code as-built:** `crates/factory-dispatcher/src/registry.rs::REGISTRY_SCHEMA_VERSION` (`REGISTRY_SCHEMA_VERSION: u32 = 1`),
+  `crates/factory-dispatcher/src/registry.rs::RegistryError::Toml` (`RegistryError::Toml`).
 - **Config file examples:** `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md`
   lines 225–284 (`hooks-registry.toml` example) and lines 288–359 (`observability-config.toml` example).
+
+## Changelog
+
+- v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 4 cites migrated. `registry.rs:16` → `registry.rs::REGISTRY_SCHEMA_VERSION`; `registry.rs:26` → `registry.rs::RegistryError::Toml` (2 sites each in §Rationale and §Source / Origin).

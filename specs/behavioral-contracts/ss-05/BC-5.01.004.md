@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
+last_amended: 2026-05-08
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
 input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
-extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:288
+extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-111"
 subsystem: SS-05
 capability: CAP-TBD
 lifecycle_status: active
@@ -60,9 +61,9 @@ roots and run first; steps that share no transitive dependency MAY run in parall
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `greenfield.lobster:40-41` (root: `repo-initialization` with `depends_on: []`) | Runs first | happy-path |
-| `greenfield.lobster:55` (`factory-worktree-health depends_on: [repo-initialization]`) | Runs after `repo-initialization` | happy-path |
-| `greenfield.lobster:233-235` (gate depends on multiple parallel siblings) | Gate runs after all siblings | happy-path |
+| `greenfield.lobster::repo-initialization` (root: `repo-initialization` with `depends_on: []`) | Runs first | happy-path |
+| `greenfield.lobster::factory-worktree-health` (`factory-worktree-health depends_on: [repo-initialization]`) | Runs after `repo-initialization` | happy-path |
+| `greenfield.lobster::phase-1-gate` (gate depends on multiple parallel siblings) | Gate runs after all siblings | happy-path |
 
 ## Verification Properties
 
@@ -104,7 +105,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:40-41, 55, 233-235` |
+| **Path** | `greenfield.lobster::repo-initialization`, `greenfield.lobster::factory-worktree-health`, `greenfield.lobster::phase-1-gate` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -125,3 +126,7 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed — topological sort is a pure algorithm.
+
+## Changelog
+
+- v1.2 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 4 cites migrated. `extracted_from` line cite and 3 `.lobster:NNN` cites (Canonical Test Vectors + Source Evidence) replaced with stable step-name anchors (`§ "BC-AUDIT-111"`; `greenfield.lobster::repo-initialization`; `greenfield.lobster::factory-worktree-health`; `greenfield.lobster::phase-1-gate`).

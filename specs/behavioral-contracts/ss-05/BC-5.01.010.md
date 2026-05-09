@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
+last_amended: 2026-05-08
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
 input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
-extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:334
+extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-117"
 subsystem: SS-05
 capability: CAP-TBD
 lifecycle_status: active
@@ -63,10 +64,10 @@ holdout-evaluator cannot see source).
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `greenfield.lobster:276-289` (adversary excludes `.factory/holdout-scenarios/**`) | Adversary cannot read holdout scenarios | happy-path |
-| `greenfield.lobster:716-720` (PR reviewer excludes `.factory/**`) | PR reviewer cannot read .factory artifacts | happy-path |
-| `greenfield.lobster:840-843` (wave adversary excludes prior reviews) | Adversary cannot read prior pass findings | happy-path |
-| `greenfield.lobster:1086-1095` (phase-5 adversary excludes implementer notes, prior reviews, semport) | Adversary cannot read inherited reasoning | happy-path |
+| `greenfield.lobster::spawn-adversary-spec-review` (adversary excludes `.factory/holdout-scenarios/**`) | Adversary cannot read holdout scenarios | happy-path |
+| `greenfield.lobster::ai-pr-review` (PR reviewer excludes `.factory/**`) | PR reviewer cannot read .factory artifacts | happy-path |
+| `greenfield.lobster::spawn-wave-adversary` (wave adversary excludes prior reviews) | Adversary cannot read prior pass findings | happy-path |
+| `greenfield.lobster::adversary-code-review` (phase-5 adversary excludes implementer notes, prior reviews, semport) | Adversary cannot read inherited reasoning | happy-path |
 
 ## Verification Properties
 
@@ -110,7 +111,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:276-289, 716-720, 840-843, 1086-1095, 1128-1130` |
+| **Path** | `greenfield.lobster::spawn-adversary-spec-review`, `greenfield.lobster::ai-pr-review`, `greenfield.lobster::spawn-wave-adversary`, `greenfield.lobster::adversary-code-review`, `greenfield.lobster::phase-5-gemini-review` |
 | **Confidence** | high (load-bearing pattern, used 12+ times in greenfield alone) |
 | **Extraction Date** | 2026-04-25 |
 
@@ -132,3 +133,7 @@ TBD
 #### Refactoring Notes
 
 The schema is pure data; the enforcement layer that denies Reads is effectful and lives in the dispatcher.
+
+## Changelog
+
+- v1.2 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 5 cites migrated. `extracted_from` line cite and `.lobster:NNN` cites in Canonical Test Vectors and Source Evidence replaced with stable step-name anchors (`§ "BC-AUDIT-117"`; 5 context-wall step-name anchors in greenfield.lobster: `spawn-adversary-spec-review`, `ai-pr-review`, `spawn-wave-adversary`, `adversary-code-review`, `phase-5-gemini-review`).

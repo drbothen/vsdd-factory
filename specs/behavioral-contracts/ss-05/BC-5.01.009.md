@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
+last_amended: 2026-05-08
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
 input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
-extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:327
+extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-116"
 subsystem: SS-05
 capability: CAP-TBD
 lifecycle_status: active
@@ -58,9 +59,9 @@ e.g., Gemini 3.1 Pro for secondary review).
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `greenfield.lobster:269` (`model_tier: adversary`) | Adversary dispatch on adversary-tier model | happy-path |
-| `greenfield.lobster:1113` (`model_tier: review`) | code-reviewer dispatch on review-tier model | happy-path |
-| `greenfield.lobster:1289` (visual-reviewer review tier) | visual-reviewer dispatch on review-tier model | happy-path |
+| `greenfield.lobster::spawn-adversary-spec-review` (`model_tier: adversary`) | Adversary dispatch on adversary-tier model | happy-path |
+| `greenfield.lobster::phase-5-gemini-review` (`model_tier: review`) | code-reviewer dispatch on review-tier model | happy-path |
+| `greenfield.lobster::phase-6-visual-review` (visual-reviewer review tier) | visual-reviewer dispatch on review-tier model | happy-path |
 
 ## Verification Properties
 
@@ -102,7 +103,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:269, 435, 822, 1070, 1113, 1289` |
+| **Path** | `greenfield.lobster::spawn-adversary-spec-review`, `greenfield.lobster::phase-2-adversarial-review`, `greenfield.lobster::spawn-wave-adversary`, `greenfield.lobster::adversary-code-review`, `greenfield.lobster::phase-5-gemini-review`, `greenfield.lobster::phase-6-visual-review` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -123,3 +124,7 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+## Changelog
+
+- v1.2 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 4 cites migrated. `extracted_from` line cite and `.lobster:NNN` cites in Canonical Test Vectors and Source Evidence replaced with stable step-name anchors (`§ "BC-AUDIT-116"`; 6 model_tier step-name anchors in greenfield.lobster).

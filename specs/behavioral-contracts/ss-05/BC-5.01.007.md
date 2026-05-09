@@ -1,16 +1,17 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
+last_amended: 2026-05-08
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
 input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
-extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:313
+extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "BC-AUDIT-114"
 subsystem: SS-05
 capability: CAP-TBD
 lifecycle_status: active
@@ -65,9 +66,9 @@ reached. Infinite loops are forbidden.
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `greenfield.lobster:262-266` (`max_iterations: 10, exit_condition: "adversary.verdict == 'CONVERGENCE_REACHED'"`) | Bounded adversary loop | happy-path |
-| `greenfield.lobster:301-303` (spec_reviewer convergence) | Bounded review loop | happy-path |
-| `greenfield.lobster:738-741` (pr_reviewer) | Bounded PR review loop | happy-path |
+| `greenfield.lobster::phase-1d-adversarial-spec-review` (`max_iterations: 10, exit_condition: "adversary.verdict == 'CONVERGENCE_REACHED'"`) | Bounded adversary loop | happy-path |
+| `greenfield.lobster::phase-1d-spec-review-gemini` (spec_reviewer convergence) | Bounded review loop | happy-path |
+| `greenfield.lobster::pr-review-convergence` (pr_reviewer) | Bounded PR review loop | happy-path |
 | Loop with no exit and `max_iterations: 10` | Terminates at iteration 10 | edge-case |
 
 ## Verification Properties
@@ -110,7 +111,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:262-266, 301-303, 738-741, 815-817, 895-897, 1063-1066`; `code-delivery.lobster:104-106` |
+| **Path** | `greenfield.lobster::phase-1d-adversarial-spec-review`, `greenfield.lobster::phase-1d-spec-review-gemini`, `greenfield.lobster::pr-review-convergence`, `greenfield.lobster::wave-adversarial-review`, `greenfield.lobster::wave-integration-fix`, `greenfield.lobster::phase-5-adversarial-refinement`; `code-delivery.lobster::per-story-adversarial-review` |
 | **Confidence** | high (consistent shape across 7 distinct loop sites) |
 | **Extraction Date** | 2026-04-25 |
 
@@ -131,3 +132,7 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed — schema-level invariant.
+
+## Changelog
+
+- v1.2 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 4 cites migrated. `extracted_from` line cite and `.lobster:NNN` cites in Canonical Test Vectors and Source Evidence replaced with stable step-name anchors (`§ "BC-AUDIT-114"`; 7 step-name anchors across greenfield.lobster and code-delivery.lobster).
