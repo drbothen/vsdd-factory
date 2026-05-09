@@ -284,9 +284,14 @@ async fn test_e2e_BC_4_11_001_sync_hook_blocks_unauthorized_factory_path() {
                 "TC-1 FAIL: validate-artifact-path must emit block for unregistered .factory/ path. \
                  stdout={stdout:?}, exit_code={exit_code}"
             );
+            // Sanity bound only — real WASM execution is already proven by the
+            // stdout block-outcome assertion above. Earlier `elapsed_ms > 0`
+            // failed flakily on CI when WASM ran sub-millisecond and rounded to
+            // zero (TD #67). The catch-runaway intent is preserved by the
+            // 60s upper bound.
             assert!(
-                *elapsed_ms > 0,
-                "elapsed_ms must be >0 — real WASM executed"
+                *elapsed_ms < 60_000,
+                "elapsed_ms = {elapsed_ms} (sanity: under 60s)"
             );
             eprintln!(
                 "TC-1 PASS: validate-artifact-path blocked unregistered path in {}ms. \
@@ -393,7 +398,8 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_authorized_factory_path() {
                 "TC-2 FAIL: validate-artifact-path must Continue for registered path. \
                  stdout={stdout:?}, exit_code={exit_code}"
             );
-            assert!(*elapsed_ms > 0, "real WASM must have executed");
+            // Sanity bound only (TD #67) — see TC-1 rationale.
+            assert!(*elapsed_ms < 60_000, "elapsed_ms = {elapsed_ms} (sanity)");
             eprintln!(
                 "TC-2 PASS: validate-artifact-path continued for registered path in {}ms. \
                  stdout={stdout:?}",
@@ -1447,7 +1453,8 @@ async fn test_e2e_BC_3_08_001_sync_hook_internal_log_events() {
     // summary reflects the execution outcome.
     match &summary.per_plugin_results[0].result {
         PluginResult::Ok { elapsed_ms, .. } => {
-            assert!(*elapsed_ms > 0, "TC-11: real plugin executed (elapsed > 0)");
+            // Sanity bound only (TD #67) — see TC-1 rationale.
+            assert!(*elapsed_ms < 60_000, "TC-11: elapsed_ms = {elapsed_ms} (sanity)");
             eprintln!(
                 "TC-11 PASS: sync plugin executed in {}ms. \
                  Internal log events (plugin.invoked, plugin.completed) emitted by executor.",
