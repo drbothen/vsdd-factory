@@ -2091,3 +2091,39 @@ Fix-burst-36 closure verification: all PASS. L-P28-001 bidirectional corpus swee
 
 ADR-013 clock: 1_of_3 (ADVANCING)
 Pass-39 next.
+
+## Pass-39 Adversary Review (2026-05-09)
+
+**Agent:** adversary (F5-adversary-pass-39.md)
+
+Verdict: LOW (0H + 0M + 1L). ADR-013 clock RESETS 1→0_of_3.
+
+**F-P39-001 [LOW]:** STORY-INDEX:264+265 Points cells S-4.05 + S-4.06 = `3` while source frontmatter `points: "5"`. 7th L-P28-001-family bidirectional drift instance (Points cell axis).
+
+Pass-38 closures verified. 6 fresh BCs sampled bidirectional: all clean. 4 fresh VPs sampled: all clean. 4 fresh stories sampled (beyond S-4.05/06): all clean.
+
+ADR-013 clock: 0_of_3 (RESET — pass-39 LOW)
+Fix-burst-37 next.
+
+## Fix-Burst-37 (2026-05-09)
+
+**Agent:** state-manager
+
+**Findings closed:** F-P39-001 (LOW)
+
+### Files touched
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/stories/STORY-INDEX.md` | v2.59→v2.60 | F-P39-001: S-4.05 Points 3→5; S-4.06 Points 3→5. last_amended updated. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | — | L-P28-001 7th META-self-application failure recorded (Points cell axis; corpus-wide Points sweep discipline extended). |
+| `.factory/STATE.md` | — | current_step updated; pass-39 + fix-burst-37 rows added to Current Phase Steps; index versions (STORY-INDEX v2.60); cycle row + strategic note updated; ADR-013 0_of_3 (RESET); Last Updated + Current Phase updated. TD-031 fix-burst-37 follow-up appended. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-39 + fix-burst-37 entries (this entry). |
+
+### Corpus-wide Points sweep result
+
+68 stories with numeric points checked. Only S-4.05 + S-4.06 drifted. All other stories: clean.
+
+Findings closed: F-P39-001 (LOW)
+ADR-013 clock: 0_of_3 (RESET — pass-39 LOW)
+Pass-40 next.

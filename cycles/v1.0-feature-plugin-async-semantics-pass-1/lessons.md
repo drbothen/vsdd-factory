@@ -585,3 +585,9 @@ Required audit format: per-row table with columns `[ID | Status | Capability | S
 This is the 5th META-self-application failure of the L-P28-001 family. Mechanical enforcement (S-15.03 hook scope) remains the structurally-convergent path.
 
 **Bidirectional clause (added fix-burst-36, F-P37-001 closure):** The corpus-wide audit MUST be BIDIRECTIONAL — both index→body (index has values, body has TBD) AND body→index (body has values, index missing entries) drift directions. Failure mode (F-P37-001): fix-burst-35 corpus-wide swept body→index direction but missed BC-INDEX rows that were stale relative to source bodies. 6th META-self-application failure of the L-P28-001 family.
+
+**7th META-self-application failure (added fix-burst-37, F-P39-001 closure):** F-P39-001 found STORY-INDEX:264+265 Points cells `3` for S-4.05 + S-4.06 while source frontmatter carries `points: "5"`. This is a **Points cell axis** drift — a column not previously covered by the bidirectional sweep's sampled story checks. Failure mode: pass-38 bidirectional corpus sweep (5 stories sampled) did not include S-4.05 or S-4.06 in its sample.
+
+**Fix-burst-37 corpus-wide Points sweep:** 68 stories with numeric points checked (all stories with non-TBD, non-XL points). Only S-4.05 + S-4.06 drifted. No additional Points cell drift found.
+
+**Extended discipline:** The bidirectional L-P28-001 sweep of STORY-INDEX MUST explicitly include the Points column as a swept cell — not just Status, Epic, and Depends-On. Canonical source: `points:` frontmatter field in each story file. Verification: `grep '^points:' .factory/stories/S-N.MM-*.md` vs STORY-INDEX Points column value for all rows with numeric estimates.

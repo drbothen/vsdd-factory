@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.59"
+version: "2.60"
 status: current
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
-last_amended: "2026-05-09 (v2.59) — F5 fix-burst-36 (F-P37-002): S-3.03 row Depends-On S-2.08, S-3.04 → S-1.03, S-2.08, S-3.04 (matches S-3.03-port-block-ai-attribution.md depends_on frontmatter; drift adjudicated as DRIFT not intentional convention). STORY-INDEX v2.58→v2.59."
+last_amended: "2026-05-09 (v2.60) — F5 fix-burst-37 (F-P39-001): S-4.05 + S-4.06 Points cells 3→5 (matches source frontmatter points: \"5\"; 7th L-P28-001-family bidirectional drift instance). STORY-INDEX v2.59→v2.60."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -261,8 +261,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-4.02 | sink-datadog driver | E-4 | 5 | P1 | S-1.08, S-4.01 | merged [deprecated by ADR-015 — Datadog egress deferred to OTel collector] | 2 (+ 2 deferred LOW findings F-1/F-2 from PR #18; v1.3) |
 | S-4.03 | sink-honeycomb driver | E-4 | 3 | P1 | S-1.08, S-4.01 | merged [deprecated by ADR-015 — Honeycomb egress deferred to OTel collector] | 2 |
 | S-4.04 | Per-sink retry + circuit breaker | E-4 | 8 | P1 | S-1.08, S-4.01 | merged [deprecated by ADR-015 — per-sink resilience retired with sink ecosystem] | 1 (v1.1 BC creation dep note) |
-| S-4.05 | Dead letter queue implementation | E-4 | 3 | P1 | S-4.04 | merged | 2 (+ v1.1 candidates; CONVERGENCE_REACHED pass-48; v1.45; commit ac22a3d; PR #29 merged a84a5f5 on develop 2026-04-28) |
-| S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 3 | P1 | S-1.08 | merged [deprecated by ADR-015 — Router/RoutingFilter retired] | 6 (BC-3.04.003, BC-3.04.004, BC-3.06.007 added; 5 lifecycle updated; PR #30 merged 6ef564c on develop 2026-04-28) |
+| S-4.05 | Dead letter queue implementation | E-4 | 5 | P1 | S-4.04 | merged | 2 (+ v1.1 candidates; CONVERGENCE_REACHED pass-48; v1.45; commit ac22a3d; PR #29 merged a84a5f5 on develop 2026-04-28) |
+| S-4.06 | Per-sink routing filters + tag enrichment | E-4 | 5 | P1 | S-1.08 | merged [deprecated by ADR-015 — Router/RoutingFilter retired] | 6 (BC-3.04.003, BC-3.04.004, BC-3.06.007 added; 5 lifecycle updated; PR #30 merged 6ef564c on develop 2026-04-28) |
 | S-4.07 | End-to-end observability integration tests | E-4 | 13 | P1 | S-3.01..S-3.04, S-4.01..S-4.06, S-4.10 | merged [deprecated by ADR-015 — DLQ-via-Router + multi-sink E2E retired] | 16 (PR #31 merged 1d4edb7 on develop 2026-04-28; spec v1.11 4c0050c; 8 adversarial passes; 40/40 tests in 5.09s) |
 | S-4.08 | 1.0.0-rc.1 release gate | E-4 | 5 | P0 | S-0.01, S-0.02, S-3.01..S-3.04, S-4.01..S-4.07, S-4.09, S-4.10, S-5.05 + 2-week shakedown | merged | 5 (PR #32 merged d7eae89 on develop 2026-04-28; spec v1.16 62f7297; 17-pass spec convergence; 6 testable-now ACs RED→GREEN; 11 deferred-to-shakedown; D-133) |
 | S-4.09 | sink-http retry backoff with jitter | E-4 | 3 | P1 | S-4.01 | merged [deprecated by ADR-015 — sink-http retired; backoff moves to OTel collector] | 1 |
