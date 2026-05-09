@@ -2,7 +2,7 @@
 document_type: lessons
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 producer: state-manager
-version: "1.1"
+version: "1.2"
 last_updated: 2026-05-09
 ---
 
@@ -495,6 +495,34 @@ This rule is the SAME-burst sibling of L-P24-002 but stated at the codification-
 
 **Suggested enforcement:** lint-hook similar to validate-stable-anchors that fails CI when STATE.md lists a story as merged but frontmatter says draft/ready. (Future POLICY 13 candidate.)
 
-[codified] — fix-burst-25 sub-burst 3. Updated fix-burst-26 sub-burst 2: migration clause added for legacy `pr:` field. F-P27-006 closure.
+**Pre-GitHub-PR sentinel (added fix-burst-27 sub-burst 2, F-P28-002):** For stories merged before GitHub PR tracking began (pre-PR-6 era; approximately 21 historic stories from S-0.x/S-1.x/S-2.x series), the canonical placeholder is `merged_in: none` and `merge_sha:` MUST hold the actual squash/merge commit SHA. Lint enforcement MUST treat `none` as a valid sentinel value for `merged_in:` and fall back to `merge_sha:` presence as the truth condition for merge-status verification. New PRs MUST NOT use `merged_in: none` — this sentinel is exclusively for pre-PR-6 historic stories.
+
+[codified] — fix-burst-25 sub-burst 3. Updated fix-burst-26 sub-burst 2: migration clause added for legacy `pr:` field. F-P27-006 closure. Updated fix-burst-27 sub-burst 2: `merged_in: none` sentinel added for pre-GitHub-PR historic stories. F-P28-002 closure.
 
 **Verified retroactively in fix-burst-26 sub-burst 1 (4c26e809):** 56 historic merged stories' frontmatter retrofitted to 4-field schema (status: merged + merged_at + merged_in + merge_sha); 18 migrated from legacy `pr: NN`; 38 backfilled missing metadata. F-P27-001 closure.
+
+---
+
+## F5 pass-28 process-gap findings (2026-05-09)
+
+### L-P28-001 [codified]: When a fix-burst rewrites a frontmatter field value, the corpus-wide grep MUST include both index file AND every source-of-truth artifact carrying that field
+
+**Source:** F-P28-001 (HIGH)
+
+**Failure mode (F-P28-001):** F-P27-005 closure ("VP-070/VP-071 proof_method `kani` → `kani-proof`") was applied to VP-INDEX rows only. VP-070.md and VP-071.md source frontmatter still carried `proof_method: kani`. The codifying burst's grep was scoped to the index file, missing the source-of-truth files.
+
+**Rule:** when a fix-burst rewrites a frontmatter field value (e.g., `proof_method`, `subsystem`, `capability`, `status`, `priority`), the corpus-wide grep MUST include:
+1. The authoritative index file row (BC-INDEX, VP-INDEX, STORY-INDEX, ARCH-INDEX)
+2. Every source-of-truth artifact whose frontmatter carries that field
+
+**Validation:** post-fix `grep -rn '^<field>: <old-value>' .factory/specs/<artifact-class>/` MUST return 0 active matches.
+
+**Sweep query:** for `proof_method` rewrites, source-of-truth = `.factory/specs/verification-properties/VP-*.md`. For `subsystem`, source-of-truth = `.factory/specs/behavioral-contracts/ss-*/BC-*.md`. For `status`, source-of-truth = `.factory/stories/S-*.md`.
+
+**Suggested codification:** extend L-P26-001 corpus-sweep mandate to explicitly enumerate "field-value rewrites" as a class. S-15.03's `validate-index-source-coherence` hook would enforce mechanically.
+
+[codified] — fix-burst-27 sub-burst 2.
+
+**Verified retroactively in fix-burst-27 sub-burst 1 (bc7ae728) and sub-burst 2:**
+- VP-070.md:17 + VP-071.md:17 patched in fix-burst-27 sub-burst 1 (commit `bc7ae728`). VP-INDEX rows already correct.
+- Audit of other field-value drift classes — none found in spot-check of `subsystem:`, `status:`, `priority:` fields across BC/VP/Story corpus.

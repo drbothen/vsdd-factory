@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.35"
+version: "1.36"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
@@ -9,6 +9,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-09
+    change: "v1.36 (2026-05-09; fix-burst-27 sub-burst 2): F-P28-001 — VP-070 v1.3 + VP-071 v1.3 source frontmatter proof_method synced kani→kani-proof (fix-burst-27 sub-burst 1 commit bc7ae728; closes F-P27-005 partial closure). No VP count change. VP-INDEX v1.35→v1.36. Refs: F-P28-001, fix-burst-27 sub-burst 1 (bc7ae728)."
   - date: 2026-05-09
     change: "v1.35 (2026-05-09; fix-burst-26 sub-burst 2): F-P27-005 — VP-070 proof_method `kani` → `kani-proof`; VP-071 proof_method `kani` → `kani-proof`. Harmonized to canonical `kani-proof` form per VP-077 amendment narrative. No VP count change. VP-INDEX v1.34→v1.35. Refs: F-P27-005, fix-burst-26 sub-burst 2."
   - date: 2026-05-09

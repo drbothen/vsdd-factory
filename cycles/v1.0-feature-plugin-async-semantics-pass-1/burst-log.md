@@ -1737,3 +1737,56 @@ User directive: continue protocol.
 - F-P27-006 closed (L-P26-002 migration clause added)
 - F-P27-007 closed (BC-INDEX last_amended backfilled v1.46-v1.50)
 - Fix-burst-26 COMPLETE — F-P27-001..007 all closed; 10-pass HIGH streak; pass-28 next
+
+---
+
+## Pass-28 + Fix-burst-27
+
+### Pass-28 adversary review (verdict: HIGH)
+
+**Date:** 2026-05-09
+**Verdict:** HIGH — 11th consecutive HIGH pass
+**ADR-013 clock:** RESET → 0_of_3
+
+**Findings:**
+- **F-P28-001 (HIGH):** VP-070.md + VP-071.md source frontmatter `proof_method: kani` — VP-INDEX rows were corrected in fix-burst-26 sub-burst 2 but source-of-truth files were not updated. Field-value drift between index and source files.
+- **F-P28-002 (MED):** L-P26-002 migration rule does not mention `merged_in: none` sentinel for pre-GitHub-PR-6 historic stories (~21 stories from S-0.x/S-1.x/S-2.x).
+- **F-P28-003 (LOW):** VP-INDEX missing changelog entry for the VP-070/VP-071 source frontmatter fix (sub-burst 1 of fix-burst-27).
+- **F-P28-004 (LOW):** TD-031 tech-debt register missing fix-burst-27 commit references (bc7ae728 + 7b841eca).
+- **F-P28-005 (LOW):** STATE.md current_step / Phase Progress / Session Checkpoint still reflect pass-27 / fix-burst-26 state.
+
+### Fix-burst-27
+
+#### Sub-burst 1 (bc7ae728 factory-artifacts + 7b841eca fix branch): F-P28-001 — VP source frontmatter fix
+
+**Agent:** spec-writer
+**Date:** 2026-05-09
+**Commits:** bc7ae728 (factory-artifacts) + 7b841eca (fix branch)
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/verification-properties/VP-070.md` | v1.2 → v1.3 | `proof_method: kani` → `proof_method: kani-proof` in frontmatter |
+| `.factory/specs/verification-properties/VP-071.md` | v1.2 → v1.3 | `proof_method: kani` → `proof_method: kani-proof` in frontmatter |
+| STATE.md | — | count fix + POLICY 8 alias (see bc7ae728 commit) |
+
+- F-P28-001 closed (source-of-truth VP files now match VP-INDEX rows)
+- F-P28-003/004/005 deferred to sub-burst 2 (state-manager POLICY 3 run-last)
+
+#### Sub-burst 2 (this commit): indexes + lessons + state
+
+**Agent:** state-manager (POLICY 3 run-last)
+**Date:** 2026-05-09
+
+| File | Version | Change |
+|------|---------|--------|
+| `VP-INDEX.md` | v1.35 → v1.36 | v1.36 changelog entry: F-P28-001 VP-070/VP-071 source frontmatter sync recorded |
+| `lessons.md` | v1.1 → v1.2 | L-P26-002: `merged_in: none` sentinel sub-rule added (F-P28-002). L-P28-001 codified: field-value drift class — codifying burst grep MUST include index AND source-of-truth artifact frontmatter. |
+| `tech-debt-register.md` | — | TD-031: fix-burst-27 commits (bc7ae728 + 7b841eca) recorded; 11-pass HIGH streak noted. |
+| `STATE.md` | — | current_step, Last Updated, Phase Progress, Current Phase Steps (pass-28 DONE, fix-burst-27 DONE, pass-29 NEXT), Concurrent Cycles, Active Branches, Session Resume Checkpoint all updated. Index versions: VP-INDEX v1.36. |
+| `burst-log.md` | — | pass-28 + fix-burst-27 entries (this entry). |
+
+- F-P28-002 closed (L-P26-002 `merged_in: none` sentinel codified)
+- F-P28-003 closed (VP-INDEX v1.36 changelog entry added)
+- F-P28-004 closed (TD-031 fix-burst-27 commits recorded)
+- F-P28-005 closed (STATE.md fully updated)
+- Fix-burst-27 COMPLETE — F-P28-001..005 all closed; 11-pass HIGH streak; pass-29 next
