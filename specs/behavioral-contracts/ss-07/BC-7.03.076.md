@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -33,7 +33,7 @@ session-learning: identity & registry binding. Append-only marker for `/session-
 **Source category:** Routing hooks (PreToolUse, PostToolUse, lifecycle).
 **Audit ID:** `BC-AUDIT-1075` (extracted from `pass-3-deep-hooks.md` line 851).
 **Hook script:** ``plugins/vsdd-factory/hooks/session-learning.sh``.
-**Registry entry:** `hooks-registry.toml:780-797` (Stop, no tool filter, priority=910, timeout_ms=5000, on_error=continue)..
+**Registry entry:** `hooks-registry.toml::session-learning` (Stop, no tool filter, priority=910, timeout_ms=5000, on_error=continue)..
 
 ## Preconditions
 
@@ -133,3 +133,10 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:780-797` → `hooks-registry.toml::session-learning`. |

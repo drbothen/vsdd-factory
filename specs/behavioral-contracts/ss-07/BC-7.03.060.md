@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -33,7 +33,7 @@ protect-vp: identity & registry binding. Twin of protect-bc, but for `.factory/s
 **Source category:** Routing hooks (PreToolUse, PostToolUse, lifecycle).
 **Audit ID:** `BC-AUDIT-1059` (extracted from `pass-3-deep-hooks.md` line 678).
 **Hook script:** ``plugins/vsdd-factory/hooks/protect-vp.sh``.
-**Registry entry:** `hooks-registry.toml:658-676` (PreToolUse, tool=`Edit|Write`, priority=90, timeout_ms=5000, on_error=block)..
+**Registry entry:** `hooks-registry.toml::protect-vp` (PreToolUse, tool=`Edit|Write`, priority=90, timeout_ms=5000, on_error=block)..
 
 ## Preconditions
 
@@ -131,3 +131,10 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:658-676` → `hooks-registry.toml::protect-vp`. |

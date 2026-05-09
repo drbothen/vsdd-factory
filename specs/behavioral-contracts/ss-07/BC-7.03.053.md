@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -33,7 +33,7 @@ protect-secrets: identity & dual registry binding. Distinct tool dispatch in scr
 **Source category:** Routing hooks (PreToolUse, PostToolUse, lifecycle).
 **Audit ID:** `BC-AUDIT-1052` (extracted from `pass-3-deep-hooks.md` line 605).
 **Hook script:** ``plugins/vsdd-factory/hooks/protect-secrets.sh``.
-**Registry entry:** `hooks-registry.toml:618-636` (PreToolUse Bash, priority=80, on_error=block) **AND** `hooks-registry.toml:638-656` (PreToolUse Read, priority=80, on_error=block) — duplicated for two distinct tools..
+**Registry entry:** `hooks-registry.toml::protect-secrets` (PreToolUse Bash, priority=80, on_error=block) **AND** `hooks-registry.toml::protect-secrets` (PreToolUse Read, priority=80, on_error=block) — duplicated for two distinct tools..
 
 ## Preconditions
 
@@ -131,4 +131,11 @@ TBD — story will be assigned during story-writer phase.
 #### Refactoring Notes
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:618-636` and `hooks-registry.toml:638-656` → `hooks-registry.toml::protect-secrets` (×2, Bash and Read tool entries). |
 

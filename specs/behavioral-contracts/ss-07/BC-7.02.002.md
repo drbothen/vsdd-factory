@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -126,7 +126,14 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated 4 line citations: `validate-novelty-assessment.sh:84-96` → `§ "--- Report ---"`; `validate-state-size.sh:1-12` → `§ "Deterministic, <100ms, no LLM"`; `protect-bc.sh:35-46` → `§ "Emits a PreToolUse JSON envelope"`; `pr-manager-completion-guard.sh:12-15` → `hooks-registry.toml::pr-manager-completion-guard` (WASM port). |
+
 #### Original Source Evidence Quote
 
-> `validate-novelty-assessment.sh:84-96` (exit 2 with `echo "NOVELTY ASSESSMENT VIOLATION:" >&2`); `validate-state-size.sh:1-12` (header docstring asserts exit 2 on bloat); `protect-bc.sh:35-46` (`emit_deny` writes JSON `permissionDecision: "deny"` on stdout for PreToolUse PermissionDecision shape); `pr-manager-completion-guard.sh:12-15`.
+> `validate-novelty-assessment.sh § "--- Report ---"` (exit 2 with `echo "NOVELTY ASSESSMENT VIOLATION:" >&2`); `validate-state-size.sh § "Deterministic, <100ms, no LLM"` (header docstring asserts exit 2 on bloat); `protect-bc.sh § "Emits a PreToolUse JSON envelope with permissionDecision"` (`block_pre_json` writes PermissionDecision deny on stdout for PreToolUse PermissionDecision shape); `hooks-registry.toml::pr-manager-completion-guard` (WASM port; original .sh retired).
 

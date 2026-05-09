@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -126,7 +126,14 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated 6 line citations to stable section/function anchors: validate-novelty-assessment.sh lines 23-28 and 86-87; protect-secrets.sh lines 31-36 and 44; protect-bc.sh lines 23-28 and 38. |
+
 #### Original Source Evidence Quote
 
-> `validate-novelty-assessment.sh:23-28` and `:86-87` (exact `_emit type=hook.block hook=validate-novelty-assessment matcher=PostToolUse reason=novelty_assessment_incomplete`); `protect-secrets.sh:31-36` and `:44`; `protect-bc.sh:23-28` and `:38`.
+> `validate-novelty-assessment.sh § "Deterministic, <100ms, no LLM"` and `§ "--- Report ---"` (exact `_emit type=hook.block hook=validate-novelty-assessment matcher=PostToolUse reason=novelty_assessment_incomplete`, now via `block_pre` in `lib/block.sh`); `protect-secrets.sh § "Deterministic, <50ms, no LLM"` and `::is_secret_env_filename`; `protect-bc.sh § "Emits a PreToolUse JSON envelope with permissionDecision"` and `::emit_allow`.
 

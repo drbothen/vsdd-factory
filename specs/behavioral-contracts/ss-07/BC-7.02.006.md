@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -126,7 +126,14 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:19-36` → `hooks-registry.toml::capture-commit-activity`. |
+
 #### Original Source Evidence Quote
 
-> `hooks-registry.toml:19-36` (capture-commit-activity entry: priority 110, on_error continue, exec_subprocess capability with `binary_allow = ["bash", "git", "gh", "jq"]`); broader stanza-count + on_error distribution from independent `grep | sort | uniq -c` (18 block / 27 continue).
+> `hooks-registry.toml::capture-commit-activity` (capture-commit-activity entry: priority 110, on_error continue, exec_subprocess capability with `binary_allow = ["bash", "git", "gh", "jq"]`); broader stanza-count + on_error distribution from independent `grep | sort | uniq -c` (18 block / 27 continue).
 

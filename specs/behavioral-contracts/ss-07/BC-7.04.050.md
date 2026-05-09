@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -33,7 +33,7 @@ validate-state-size: identity & registry binding
 **Source category:** Validator hook scripts (validate-* and verify-*).
 **Audit ID:** `BC-AUDIT-1141` (extracted from `pass-3-deep-hooks.md` line 1539).
 **Hook script:** ``plugins/vsdd-factory/hooks/validate-state-size.sh``.
-**Registry entry:** `hooks-registry.toml:356-374` (PostToolUse, tool=`Edit|Write`, priority=360, timeout_ms=5000, on_error=continue). binary_allow includes git for HEAD comparison..
+**Registry entry:** `hooks-registry.toml::validate-state-size` (PostToolUse, tool=`Edit|Write`, priority=360, timeout_ms=5000, on_error=continue). binary_allow includes git for HEAD comparison..
 
 ## Preconditions
 
@@ -129,3 +129,10 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:356-374` → `hooks-registry.toml::validate-state-size`. |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -126,7 +126,14 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated 3 line citations to stable section anchors: validate-novelty-assessment.sh lines 34-49; validate-bc-title.sh lines 34-43; validate-state-size.sh lines 33-37. |
+
 #### Original Source Evidence Quote
 
-> `validate-novelty-assessment.sh:34-49` (target glob `*pass-[0-9]*.md`, `adversarial-*review*.md`, then exclude `INDEX/FINDINGS/ADV-*`); `validate-bc-title.sh:34-43`; `validate-state-size.sh:33-37`.
+> `validate-novelty-assessment.sh § "Only trigger for adversarial review pass files in .factory/"` (target glob `*pass-[0-9]*.md`, `adversarial-*review*.md`, then exclude `INDEX/FINDINGS/ADV-*`); `validate-bc-title.sh § "Only trigger for BC files (not BC-INDEX itself)"`; `validate-state-size.sh § "Only trigger for STATE.md files in .factory/"`.
 

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -126,7 +126,14 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated 5 line citations to stable section anchors: validate-novelty-assessment.sh lines 11-12; validate-bc-title.sh lines 11-12; validate-state-size.sh lines 10-11; pr-manager-completion-guard.sh lines 14-15 (WASM port); protect-secrets.sh lines 19-20. |
+
 #### Original Source Evidence Quote
 
-> `validate-novelty-assessment.sh:11-12` ("Deterministic, <100ms, no LLM"); `validate-bc-title.sh:11-12`; `validate-state-size.sh:10-11`; `pr-manager-completion-guard.sh:14-15`; `protect-secrets.sh:19-20` ("Deterministic, <50ms, no LLM").
+> `validate-novelty-assessment.sh § "Deterministic, <100ms, no LLM"` ("Deterministic, <100ms, no LLM"); `validate-bc-title.sh § "Deterministic, <100ms, no LLM"`; `validate-state-size.sh § "Deterministic, <100ms, no LLM"`; `hooks-registry.toml::pr-manager-completion-guard` (WASM port; original .sh retired); `protect-secrets.sh § "Deterministic, <50ms, no LLM"` ("Deterministic, <50ms, no LLM").
 

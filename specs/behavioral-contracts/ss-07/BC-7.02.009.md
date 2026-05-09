@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -127,7 +127,14 @@ TBD — story will be assigned during story-writer phase.
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
 
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hook-sdk-macros/src/lib.rs:38-95` → `crates/hook-sdk-macros/src/lib.rs::validate_signature`; `hook-sdk-macros/src/lib.rs:47-55` → `crates/hook-sdk-macros/src/lib.rs::hook`. |
+
 #### Original Source Evidence Quote
 
-> `hook-sdk-macros/src/lib.rs:38-95` (validate_signature enforces async/unsafe/arg-count/return-type); `hook-sdk-macros/src/lib.rs:47-55` (generates `fn main() { run(user_fn) }`); pass-6 DRIFT/story-coverage map confirms no native hook in production registry as of beta.4.
+> `crates/hook-sdk-macros/src/lib.rs::validate_signature` (enforces async/unsafe/arg-count/return-type); `crates/hook-sdk-macros/src/lib.rs::hook` (generates `fn main() { run(user_fn) }`); pass-6 DRIFT/story-coverage map confirms no native hook in production registry as of beta.4.
 
