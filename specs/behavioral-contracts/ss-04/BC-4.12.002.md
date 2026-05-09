@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -161,7 +161,7 @@ independently from `HOST_ABI_VERSION`.
 | Capability Anchor Justification | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 — this BC defines the resolver authoring ABI, which is an extension of the SDK's plugin authoring surface. Resolver plugins use the `vsdd-hook-sdk`'s `resolver-authoring` feature flag, the `#[resolver]` proc-macro from `hook-sdk-macros`, and the `ResolverInput`/`ResolverOutput` types. CAP-009 defines the SDK as the interface through which first-party plugin authors implement hook behavior; this BC specifies the distinct resolver sub-surface of that SDK interface. |
 | L2 Domain Invariants | none |
 | Architecture Module | `crates/hook-sdk/src/resolver.rs` (ResolverInput, ResolverOutput, RESOLVER_ABI_VERSION); `crates/hook-sdk-macros/src/resolver_macro.rs` (#[resolver] macro); `crates/hook-sdk/HOST_ABI.md` (§Context Injection Contract section) |
-| Stories | S-12.05 (hook-sdk resolver-authoring extensions), S-12.06 (HOST_ABI.md context-injection contract section) |
+| Stories | S-12.05, S-12.06, S-12.07 |
 | FR | FR-RESOLVER-001 (factory-agnostic runtime context injection for hooks via sandboxed WASM-plugin resolvers) |
 | ADR Reference | ADR-018 (WASM-plugin Context Resolvers — OD-3: distinct ResolverInput/ResolverOutput types, versioned independently as Resolver ABI v1) |
 
@@ -193,3 +193,4 @@ S-12.05 (hook-sdk resolver-authoring extensions) and S-12.06 (HOST_ABI.md contex
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes OD-3 (distinct ResolverInput/ResolverOutput types, versioned independently as Resolver ABI v1). Resolver ABI explicitly does NOT reuse HookPayload/HookResult per user-authorized architectural decision D-361. |
+| 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.05, S-12.06 → S-12.05, S-12.06, S-12.07. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.07; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |

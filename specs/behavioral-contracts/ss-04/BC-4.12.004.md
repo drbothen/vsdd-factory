@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -152,7 +152,7 @@ required for correctness — the dispatcher does not make this judgment on the h
 | Capability Anchor Justification | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 — this BC governs the error-isolation semantics of WASM resolver plugins. Resolvers are WASM plugins compiled with the `vsdd-hook-sdk`'s `resolver-authoring` feature; this BC specifies how the dispatcher handles the full range of resolver failure modes within the wasmtime WASM sandbox. CAP-009 defines the SDK and sandbox model; error isolation is a property of that sandbox boundary (the `invoke_resolver` return type `Result<ResolverOutput, ResolverError>` and the `classify_resolver_trap` function). |
 | L2 Domain Invariants | none |
 | Architecture Module | `crates/factory-dispatcher/src/resolver.rs` (invoke_resolver function; ResolverError enum); `crates/factory-dispatcher/src/resolver_classify_trap.rs` (pure classify_resolver_trap function; kani proof target); `crates/factory-dispatcher/src/executor.rs` (error handling in dispatch loop) |
-| Stories | S-12.04 (WASM resolver loading + lifecycle + error isolation) |
+| Stories | S-12.04, S-12.06, S-12.07 |
 | FR | FR-RESOLVER-001 (resolver crash or error MUST NOT prevent hook dispatch) |
 | ADR Reference | ADR-018 (WASM-plugin Context Resolvers — crash isolation; same trap-classification pattern as hooks) |
 
@@ -184,3 +184,4 @@ S-12.04 — WASM resolver loading + lifecycle + error isolation (v1.0-feature-en
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Error isolation semantics modeled on hook `invoke.rs` trap-classification pattern. Fail-loud for declared resolvers: absent key is visible to hook; dispatcher does not inject default value. |
+| 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.04 → S-12.04, S-12.06, S-12.07. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.07; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |

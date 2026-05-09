@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -122,7 +122,7 @@ wave-gate or Phase-5 review. Deferred findings MUST NOT block per-story converge
 | Capability Anchor Justification | CAP-005 ("Run adversarial review with information asymmetry") per capabilities.md §CAP-005 — this BC operationalizes the "information asymmetry" aspect of CAP-005: the adversary's bounded scope (diff + spec + anchored BCs only) is the mechanism that ensures the adversary operates with asymmetric context relative to the implementer. Without scope bounding, the adversary would accumulate the same context as the implementer, defeating the information asymmetry guarantee. |
 | L2 Domain Invariants | none |
 | Architecture Module | agents/adversary.md (scope constraints); .factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json (deferred_findings schema) |
-| Stories | Story A (v1.0-feature-engine-discipline-pass-1 F3 decomposition) |
+| Stories | S-12.01 |
 | FR | FR-047 (per-story adversarial convergence + artifact path discipline — to be added in PRD delta) |
 
 ## Related BCs
@@ -151,3 +151,4 @@ Story A — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ6 resolution applied: adversary agent owns convergence assessment. |
+| 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: "Story A" placeholder → S-12.01. BC-INDEX was updated in fix-burst-39 (v1.55) to replace TBD; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |

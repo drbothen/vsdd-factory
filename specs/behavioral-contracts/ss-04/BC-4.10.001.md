@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.10.001
 section: "4.10"
-last_amended: 2026-05-07
+last_amended: 2026-05-09
 ---
 
 # BC-4.10.001: validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance
@@ -140,7 +140,7 @@ with `HOST_ABI_VERSION = 1`.
 | Secondary Capability Reference | CAP-005 ("Run adversarial review with information asymmetry") per capabilities.md §CAP-005 — the gate enforced by this hook is the mechanical lock on CAP-005's per-story adversary workflow. CAP-005 is a secondary reference because this BC governs the WASM implementation (CAP-009 surface), not the adversary workflow contract (BC-5.39.001). |
 | L2 Domain Invariants | none |
 | Architecture Module | crates/hook-plugins/validate-per-story-adversary-convergence/ (Rust crate); plugins/vsdd-factory/hook-plugins/validate-per-story-adversary-convergence.wasm (build output); hooks-registry.toml (registration) |
-| Stories | Story B (v1.0-feature-engine-discipline-pass-1 F3 decomposition) |
+| Stories | S-12.02, S-12.08 |
 | FR | FR-047 (per-story adversarial convergence + artifact path discipline — to be added in PRD delta) |
 
 ## Related BCs
@@ -171,3 +171,4 @@ Story B — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). D-337 constraint applied: WASM-only (no Bash hook). HOST_ABI_VERSION = 1 confirmed by F1 architect. |
 | 1.1 | 2026-05-07 | VP-071 traceability row amended (product-owner; F-P2-002, F2-amendment): stale "advisory-block output always emitted on non-cleared gate" description replaced with canonical "Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2)". Fixes bidirectional drift with VP-071 v1.2 ("Block Invariant" canonical form). Proof method column corrected to "kani" (was "kani (pure logic branch coverage)"). |
+| 1.2 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: "Story B" placeholder → S-12.02, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to replace TBD; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |

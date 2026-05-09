@@ -2363,3 +2363,56 @@ Verdict: NITPICK_ONLY
 ADR-013 clock: 1_of_3 (advancing — pass-44 NITPICK_ONLY breaks 12-pass non-NIT streak)
 Pass-45 dispatched next.
 Pass-44 next.
+
+---
+
+## Burst 47 — F5 pass-45 adversary review: MED
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → adversary
+**Phase:** F5 ADVERSARIAL — pass-45
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-45.md` | adversary | Pass-45 review: MED (1M; F-P45-001). 12 BC body Traceability Stories rows stale vs BC-INDEX; 2 BC-INDEX TBD bidirectional drift. 12th L-P28-001 META. ADR-013 RESETS 1→0_of_3. |
+
+Verdict: MED
+ADR-013 clock: 0_of_3 (RESET — pass-45 MED)
+Fix-burst-42 dispatched to close F-P45-001.
+
+---
+
+## Burst 48 — F5 fix-burst-42: 12 BC body Stories rows + BC-INDEX TBD fixes + L-P28-001 12th META
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL — fix-burst-42
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `specs/behavioral-contracts/ss-01/BC-1.13.001.md` | state-manager | v1.0→v1.1. Stories: S-12.03,S-12.04 → S-12.03,S-12.04,S-12.06,S-12.08. Changelog appended. |
+| `specs/behavioral-contracts/ss-04/BC-4.10.001.md` | state-manager | v1.1→v1.2. Stories: "Story B" → S-12.02,S-12.08. Changelog appended. |
+| `specs/behavioral-contracts/ss-04/BC-4.10.002.md` | state-manager | v1.1→v1.2. Stories: "Story B" → S-12.02. Changelog appended. |
+| `specs/behavioral-contracts/ss-04/BC-4.11.001.md` | state-manager | v1.2→v1.3. Stories: "Story C" → S-13.01. Changelog appended. |
+| `specs/behavioral-contracts/ss-04/BC-4.12.001.md` | state-manager | v1.0→v1.1. Stories: S-12.04 → S-12.04,S-12.06,S-12.07. Changelog appended. |
+| `specs/behavioral-contracts/ss-04/BC-4.12.002.md` | state-manager | v1.0→v1.1. Stories: S-12.05,S-12.06 → S-12.05,S-12.06,S-12.07. Changelog appended. |
+| `specs/behavioral-contracts/ss-04/BC-4.12.003.md` | state-manager | v1.0→v1.1. Stories: S-12.04,S-12.07 → S-12.04,S-12.06,S-12.07. Changelog appended. |
+| `specs/behavioral-contracts/ss-04/BC-4.12.004.md` | state-manager | v1.0→v1.1. Stories: S-12.04 → S-12.04,S-12.06,S-12.07. Changelog appended. |
+| `specs/behavioral-contracts/ss-04/BC-4.12.005.md` | state-manager | v1.0→v1.1. Stories: S-12.03 → S-12.03,S-12.06,S-12.07,S-12.08. Changelog appended. |
+| `specs/behavioral-contracts/ss-05/BC-5.39.001.md` | state-manager | v1.1→v1.2. Stories: "Story A" → S-12.01,S-14.01. Changelog appended. |
+| `specs/behavioral-contracts/ss-05/BC-5.39.002.md` | state-manager | v1.0→v1.1. Stories: "Story A" → S-12.01. Changelog appended. |
+| `specs/behavioral-contracts/ss-06/BC-6.22.001.md` | state-manager | v1.0→v1.1. Stories: "Story C" → S-13.01. Changelog appended. |
+| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.56→v1.57. BC-4.11.001 TBD→S-13.01; BC-6.22.001 TBD→S-13.01. Changelog appended. |
+| `specs/architecture/ARCH-INDEX.md` | state-manager | v1.36→v1.37. Body cite v1.56→v1.57 (L-P20-002 cite-refresh). Changelog appended. |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | L-P28-001 12th META appended. |
+| `.factory/STATE.md` | state-manager | current_step → fix-burst-42 closed; ADR-013 0_of_3; BC-INDEX v1.57; ARCH-INDEX v1.37. Current Phase Steps: pass-45 DONE + fix-burst-42 DONE + pass-46 NEXT. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Bursts 47+48 appended. |
+
+F-P45-001 closed.
+ADR-013 clock: 0_of_3 (RESET)
+BC-INDEX v1.57 | ARCH-INDEX v1.37
+Pass-46 dispatched next.

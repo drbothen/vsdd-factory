@@ -671,3 +671,14 @@ Canonical verification procedure for BCs axis:
 - Points axis: STORY-INDEX:548 S-14.01 `TBD` → `1`. All other E-14 stories source `points: "TBD"` — INDEX already correct.
 - Depends-On axis: STORY-INDEX:549 S-14.02 `[]` → `[S-14.01]`; STORY-INDEX:551 S-14.04 `[]` → `[S-14.02]`. S-14.03/S-14.05 source `depends_on: []` — INDEX already correct.
 - E-14 prose: updated to reflect actual dependency chain (S-14.01 → S-14.02 → S-14.04; S-14.03 and S-14.05 independent).
+
+**12th META-self-application failure (added fix-burst-42, F-P45-001 closure):** F-P45-001 found that 12 BCs from the D-340/D-362 introduction cluster still carry stale or placeholder Stories rows in their body Traceability tables, despite fix-burst-39 (v1.55) and fix-burst-40 (v1.56) having updated the corresponding BC-INDEX Stories cells. Two BCs (BC-4.11.001 and BC-6.22.001) additionally had TBD in BC-INDEX despite S-13.01 citing them in behavioral_contracts frontmatter.
+
+**Root cause:** The fix-burst-39 (F-P41-002) closed the BC-INDEX direction of the Stories drift — BC-INDEX cells were updated — but did NOT propagate the corrected values back into the BC body Traceability tables. Similarly, fix-burst-40 addressed S-14.01 in BC-INDEX but not the source BC body. The body→INDEX direction (BC-INDEX as authoritative) was fixed; the INDEX→body direction (BC bodies must reflect what BC-INDEX says) was not.
+
+**Pattern (12th instance):** Prose-only codification of L-P28-001 empirically does not converge for corpus-wide axis sweeps. Eleven prior instances generated progressively more detailed prose rules and "before-sealing" protocols; each was violated in the following burst. Mechanical enforcement (S-15.03 hook scope, which gates on cross-index consistency checks) remains the structurally-convergent path. Prose codification is necessary but not sufficient.
+
+**Fix-burst-42 corpus verification (12th instance):**
+- BC body Stories rows: 12 BCs updated to match BC-INDEX canonical values.
+- BC-INDEX TBD bidirectional: BC-4.11.001 TBD→S-13.01; BC-6.22.001 TBD→S-13.01 (S-13.01 behavioral_contracts frontmatter confirmed to cite both).
+- No new axes added to REQUIRED enumeration; existing axes sweep was the action.

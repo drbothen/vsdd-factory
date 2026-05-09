@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -131,7 +131,7 @@ recompiled on the next invocation that needs it.
 | Capability Anchor Justification | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 — this BC governs the lifecycle of WASM resolver plugins within the dispatcher runtime. Resolver plugins are a class of WASM artifacts authored using the `vsdd-hook-sdk`'s `resolver-authoring` feature (via the `#[resolver]` macro and `ResolverInput`/`ResolverOutput` types defined in `hook-sdk/src/resolver.rs`). CAP-009 defines the SDK as the interface through which plugin authors implement resolver behavior; this BC specifies how those compiled artifacts are loaded, cached, and managed by the dispatcher across invocations. |
 | L2 Domain Invariants | none |
 | Architecture Module | `crates/factory-dispatcher/src/resolver_loader.rs` (WASM module loading + mtime-cache); `crates/factory-dispatcher/src/resolver.rs` (ResolverRegistry, per-dispatch Store creation) |
-| Stories | S-12.04 (WASM resolver loading + lifecycle + error isolation) |
+| Stories | S-12.04, S-12.06, S-12.07 |
 | FR | FR-RESOLVER-001 (factory-agnostic runtime context injection for hooks via sandboxed WASM-plugin resolvers) |
 | ADR Reference | ADR-018 (WASM-plugin Context Resolvers — OD-1: load at startup with mtime-based invalidation) |
 
@@ -162,3 +162,4 @@ S-12.04 — WASM resolver loading + lifecycle + error isolation (v1.0-feature-en
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes OD-1 (load-at-startup with mtime-based invalidation). Mtime-cache pattern sourced from `plugin_loader.rs` per F1-amendment delta analysis. No output caching (OD-4). |
+| 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.04 → S-12.04, S-12.06, S-12.07. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.07; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |

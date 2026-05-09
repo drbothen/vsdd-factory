@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -151,7 +151,7 @@ sequencing is a hard delivery prerequisite per OQ5.
 | Secondary Capability Reference | CAP-001 ("Run a self-orchestrating LLM-driven SDLC pipeline") per capabilities.md §CAP-001 — the skill is invoked by the orchestrator as part of the Story C delivery sequence, making it part of the pipeline orchestration surface. CAP-018 is the primary anchor because path consistency is the core capability being served. |
 | L2 Domain Invariants | none |
 | Architecture Module | plugins/vsdd-factory/skills/relocate-artifact/SKILL.md (new skill); plugins/vsdd-factory/config/artifact-path-registry.yaml (registry read source) |
-| Stories | Story C (v1.0-feature-engine-discipline-pass-1 F3 decomposition) |
+| Stories | S-13.01 |
 | FR | FR-047 (per-story adversarial convergence + artifact path discipline — to be added in PRD delta) |
 
 ## Related BCs
@@ -178,3 +178,4 @@ Story C — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ5 resolution applied: immediate block mode confirmed; relocate-artifact must run before hook registration (hard sequencing prerequisite). detect-then-apply mode specified. |
+| 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated: "Story C" placeholder → S-13.01. S-13.01 merged PR #97 cites BC-6.22.001 in behavioral_contracts frontmatter; BC-INDEX carried TBD (fixed bidirectionally in this burst). Refs: F-P45-001, fix-burst-42. |

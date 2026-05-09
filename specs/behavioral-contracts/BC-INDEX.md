@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.56"
+version: "1.57"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.57 (2026-05-09; fix-burst-42): F-P45-001 — 12 BC body Traceability Stories rows propagated from BC-INDEX (D-340/D-362 cluster; BCs had placeholder or partial values). BC-1.13.001 v1.0→v1.1 (S-12.03,S-12.04 → S-12.03,S-12.04,S-12.06,S-12.08). BC-4.10.001 v1.1→v1.2 (Story B → S-12.02,S-12.08). BC-4.10.002 v1.1→v1.2 (Story B → S-12.02). BC-4.11.001 v1.2→v1.3 (Story C → S-13.01). BC-4.12.001 v1.0→v1.1 (S-12.04 → S-12.04,S-12.06,S-12.07). BC-4.12.002 v1.0→v1.1 (S-12.05,S-12.06 → S-12.05,S-12.06,S-12.07). BC-4.12.003 v1.0→v1.1 (S-12.04,S-12.07 → S-12.04,S-12.06,S-12.07). BC-4.12.004 v1.0→v1.1 (S-12.04 → S-12.04,S-12.06,S-12.07). BC-4.12.005 v1.0→v1.1 (S-12.03 → S-12.03,S-12.06,S-12.07,S-12.08). BC-5.39.001 v1.1→v1.2 (Story A → S-12.01,S-14.01). BC-5.39.002 v1.0→v1.1 (Story A → S-12.01). BC-6.22.001 v1.0→v1.1 (Story C → S-13.01). BC-INDEX bidirectional: BC-4.11.001 TBD→S-13.01; BC-6.22.001 TBD→S-13.01. No count change (total_bcs: 1947). 12th L-P28-001-family META instance. Refs: F-P45-001, L-P28-001, fix-burst-42. last_amended: 2026-05-09 (F5 fix-burst-42: 12 BC body Stories rows + 2 BC-INDEX TBD fixes; F-P45-001 closed)."
   - date: 2026-05-09
     change: "v1.56 (2026-05-09; fix-burst-40): F-P42-003 — BC-5.39.001 Stories cell add S-14.01 (bidirectional drift; S-14.01 frontmatter cites BC-5.39.001; F-P41-002 fix was E-12-scoped; missed E-14 sibling citer). No count change (total_bcs: 1947). 10th L-P28-001-family META instance (axis-checklist before-sealing protocol). Refs: F-P42-003, L-P28-001, fix-burst-40. last_amended: 2026-05-09 (F5 fix-burst-40: BC-5.39.001 Stories add S-14.01; F-P42-003 closed)."
   - date: 2026-05-09
@@ -402,7 +404,7 @@ changelog:
 | [BC-4.09.001](ss-04/BC-4.09.001.md) | hook-plugins::event_naming::wave2_reverse_dns_event_name_migration_with_dual_emit — all native WASM plugins under crates/hook-plugins/ migrate event-name strings from legacy short-form to reverse-DNS .v1 canonical form; dual-emit shim active during Wave 2→Wave 3 window; legacy emission removed post-Wave-3 | draft | CAP-009 | S-10.05 |
 | [BC-4.10.001](ss-04/BC-4.10.001.md) | validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance | draft | CAP-009 | S-12.02, S-12.08 |
 | [BC-4.10.002](ss-04/BC-4.10.002.md) | validate-per-story-adversary-convergence WASM hook MUST gracefully degrade (exit 0) when invoked outside wave-gate context or when cycle directory is absent | draft | CAP-009 | S-12.02 |
-| [BC-4.11.001](ss-04/BC-4.11.001.md) | validate-artifact-path WASM hook MUST consult artifact-path-registry.yaml as single source of truth and block (immediate mode) writes whose paths do not match a registered pattern | draft | CAP-009 | TBD |
+| [BC-4.11.001](ss-04/BC-4.11.001.md) | validate-artifact-path WASM hook MUST consult artifact-path-registry.yaml as single source of truth and block (immediate mode) writes whose paths do not match a registered pattern | draft | CAP-009 | S-13.01 |
 | [BC-4.12.001](ss-04/BC-4.12.001.md) | Resolver WASM modules MUST be loaded once at dispatcher startup and held in-process for the lifetime of the dispatcher session with mtime-based cache invalidation | draft | CAP-009 | S-12.04, S-12.06, S-12.07 |
 | [BC-4.12.002](ss-04/BC-4.12.002.md) | Resolver ABI MUST use distinct `ResolverInput` / `ResolverOutput` types versioned independently as Resolver ABI v1 (NOT reusing `HookPayload` / `HookResult`) | draft | CAP-009 | S-12.05, S-12.06, S-12.07 |
 | [BC-4.12.003](ss-04/BC-4.12.003.md) | Resolver plugins MUST operate within explicitly declared `path_allow` capabilities; capability violations MUST return `CapabilityDenied` and MUST NOT silently succeed | draft | CAP-009 | S-12.04, S-12.06, S-12.07 |
@@ -1653,7 +1655,7 @@ changelog:
 | [BC-6.20.012](ss-06/BC-6.20.012.md) | create-adr is atomic — any partial-state failure rolls back all side-effects | draft | CAP-017 | S-6.01 |
 | [BC-6.21.001](ss-06/BC-6.21.001.md) | wave-gate skill must run cargo mutants for every story with tdd_mode=facade in the wave | draft | CAP-016 | S-7.03 |
 | [BC-6.21.002](ss-06/BC-6.21.002.md) | mutation kill rate floor is 80%; surviving mutants must be addressed via test, dead-code confirmation, or explicit waiver | draft | CAP-016 | S-7.03 |
-| [BC-6.22.001](ss-06/BC-6.22.001.md) | relocate-artifact skill MUST scan .factory/ for registry violations, propose canonical destinations, perform git mv, and update cross-references; MUST run to zero violations before validate-artifact-path hook is registered | draft | CAP-018 | TBD |
+| [BC-6.22.001](ss-06/BC-6.22.001.md) | relocate-artifact skill MUST scan .factory/ for registry violations, propose canonical destinations, perform git mv, and update cross-references; MUST run to zero violations before validate-artifact-path hook is registered | draft | CAP-018 | S-13.01 |
 
 ### SS-07 — Hook Bash Layer (BC-7)
 

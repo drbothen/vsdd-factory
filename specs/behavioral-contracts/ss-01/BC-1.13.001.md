@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-1.13.001
 section: "1.13"
-last_amended: 2026-05-07
+last_amended: 2026-05-09
 ---
 
 # BC-1.13.001: Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch
@@ -177,7 +177,7 @@ be unaffected.
 | Secondary Capability Reference | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 — resolver plugins are authored using the SDK's `resolver-authoring` feature flag (BC-4.12.002); CAP-009 governs the SDK surface used by resolver authors. |
 | L2 Domain Invariants | none |
 | Architecture Module | `crates/factory-dispatcher/src/resolver.rs` (ContextResolver trait, ResolverRegistry); `crates/factory-dispatcher/src/resolver_loader.rs` (WASM module loading + mtime-cache); `crates/factory-dispatcher/src/executor.rs` (pre-dispatch resolver invocation); `crates/factory-dispatcher/src/main.rs` (resolvers-registry.toml load at startup); `crates/factory-dispatcher/src/registry.rs` (RegistryEntry.needs_context field) |
-| Stories | S-12.03 (ContextResolver trait + ResolverRegistry in-memory), S-12.04 (WASM resolver loading + lifecycle) |
+| Stories | S-12.03, S-12.04, S-12.06, S-12.08 |
 | FR | FR-RESOLVER-001 (factory-agnostic runtime context injection for hooks via sandboxed WASM-plugin resolvers) |
 | ADR Reference | ADR-018 (WASM-plugin Context Resolvers — Design and Layering) — codifies the separate registry, factory-agnostic dispatcher, and explicit-registration decisions (OD-1 through OD-6) that this BC encodes as behavioral contracts. |
 
@@ -214,3 +214,4 @@ S-12.03 (ContextResolver trait + ResolverRegistry in-memory) and S-12.04 (WASM r
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes architectural decisions OD-1 through OD-6 (user-authorized per D-361). PC1 Critical Constraint explicitly states "absent resolvers-registry.toml = zero resolvers, NOT a startup error" per orchestrator directive and F1-amendment R-PLAT-005 regression risk mitigation. Factory-agnostic dispatcher invariant encodes D-361 generality requirement. |
+| 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.03, S-12.04 → S-12.03, S-12.04, S-12.06, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.08; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |

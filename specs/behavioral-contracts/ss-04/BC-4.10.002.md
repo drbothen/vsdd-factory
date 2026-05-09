@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -117,7 +117,7 @@ lines 64–70 and the `regression-gate` BC-7.03.074 precedent.
 | Capability Anchor Justification | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 — this BC governs the graceful-degrade behavior of the `validate-per-story-adversary-convergence` WASM plugin. It specifies the `HookResult::Continue` return path in the plugin's pure `fn hook_logic(...)` function, which is authored using the `vsdd-hook-sdk` crate's `HookResult` type. This is a first-party WASM plugin contract (CAP-009 surface), not a workflow-level contract. |
 | L2 Domain Invariants | none |
 | Architecture Module | crates/hook-plugins/validate-per-story-adversary-convergence/src/lib.rs — graceful-degrade branch in `fn hook_logic(...)` |
-| Stories | Story B (v1.0-feature-engine-discipline-pass-1 F3 decomposition) |
+| Stories | S-12.02 |
 | FR | FR-047 (per-story adversarial convergence + artifact path discipline — to be added in PRD delta) |
 
 ## Related BCs
@@ -145,3 +145,4 @@ Story B — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). Pattern follows validate-wave-gate-prerequisite.sh lines 64–70 and regression-gate BC-7.03.074 as specified in the F2 dispatch. |
 | 1.1 | 2026-05-07 | PC3 amendment (architect; F-HIGH-4, F5 pass-1 fix burst B2): `host::log_debug` changed to `host::log_info`. HOST_ABI v1 does not expose a `log_debug` endpoint; the implementation correctly maps `log_debug` → `host::log_info` (the lowest-severity level available). Spec amended to match implementation. |
+| 1.2 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: "Story B" placeholder → S-12.02. BC-INDEX was updated in fix-burst-39 (v1.55) to replace TBD; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |

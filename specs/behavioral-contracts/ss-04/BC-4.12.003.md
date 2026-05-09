@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -143,7 +143,7 @@ of the dispatcher session.
 | Capability Anchor Justification | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 — this BC governs the capability-enforcement model for resolver plugins, which are WASM plugins authored with the `vsdd-hook-sdk`'s `resolver-authoring` feature. The capability model for resolvers uses the same deny-by-default infrastructure (DI-004) as hook plugins, extended with a read-only restriction specific to resolvers. CAP-009 defines the SDK and sandbox model that both hooks and resolvers use; this BC specifies the resolver-specific restrictions within that sandbox. |
 | L2 Domain Invariants | DI-004 (capability deny-by-default — the dispatcher's host function layer enforces capability declarations for all plugin types, including resolvers) |
 | Architecture Module | `crates/factory-dispatcher/src/host/mod.rs` (resolver linker configuration — excludes write_file, exec_subprocess, emit_event); `crates/factory-dispatcher/src/host/read_file.rs` (path-prefix capability check); `plugins/vsdd-factory/resolvers-registry.toml` (path_allow declarations per resolver) |
-| Stories | S-12.04 (WASM resolver loading + lifecycle — initializes per-resolver HostContext with path_allow), S-12.07 (vsdd-context-resolvers crate — WaveContextResolver path_allow = [".factory/"]) |
+| Stories | S-12.04, S-12.06, S-12.07 |
 | FR | FR-RESOLVER-001 (factory-agnostic runtime context injection; resolvers MUST run with capability-restricted filesystem access) |
 | ADR Reference | ADR-018 (WASM-plugin Context Resolvers — resolver capability model; read-only by design; path_allow declarations in resolvers-registry.toml) |
 
@@ -174,3 +174,4 @@ S-12.04 (WASM resolver loading + lifecycle) and S-12.07 (vsdd-context-resolvers 
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Read-only resolver model: write_file/exec_subprocess/emit_event excluded from resolver linker. path_allow-based capability enforcement uses same DI-004 deny-by-default as hooks. |
+| 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.04, S-12.07 → S-12.04, S-12.06, S-12.07. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |

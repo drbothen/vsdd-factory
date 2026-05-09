@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -130,7 +130,7 @@ separate convergence-checker agent is introduced. This gate is inserted between 
 | Capability Anchor Justification | CAP-005 ("Run adversarial review with information asymmetry") per capabilities.md §CAP-005 — this BC formalizes the per-story adversary review gate that CAP-005 defines: the adversary agent uses a different model family and fresh context window (no prior conversation) to review story artifacts, and convergence (3 clean passes) is the quantifiable threshold that operationalizes "information asymmetry until clean." |
 | L2 Domain Invariants | none |
 | Architecture Module | plugins/vsdd-factory/workflows/phases/per-story-delivery.md (Step 4.5); agents/adversary.md; .factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json |
-| Stories | Story A (v1.0-feature-engine-discipline-pass-1 F3 decomposition) |
+| Stories | S-12.01, S-14.01 |
 | FR | FR-047 (per-story adversarial convergence + artifact path discipline — to be added in PRD delta) |
 
 ## Related BCs
@@ -161,3 +161,4 @@ Story A — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ3 resolution applied: per-story state file schema and convergence criterion codified. |
 | 1.1 | 2026-05-07 | VP-071 traceability row amended (product-owner; F-P2-002, F2-amendment): stale "advisory-block output always emitted when per-story gate has not been cleared" description replaced with canonical "Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2)". Proof method column corrected to "kani" (was "kani / adversarial review"). Fixes sibling-file regression of F-CRIT-3 — BC-5.39.001 was the second sibling BC missed in the B1 pass-1 fix. |
+| 1.2 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: "Story A" placeholder → S-12.01, S-14.01. BC-INDEX was updated in fix-burst-39 (v1.55) for S-12.01 and fix-burst-40 (v1.56) for S-14.01; body was not updated in those bursts. Refs: F-P45-001, fix-burst-42. |

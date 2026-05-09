@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-08T00:00:00Z
@@ -176,7 +176,7 @@ The hook uses `HOST_ABI_VERSION = 1` and the canonical Why/Fix/Code block-messag
 | Secondary Capability Reference | CAP-008 ("Gate tool calls with pre-execution behavioral checks (PreToolUse hooks)") per capabilities.md §CAP-008 — the hook fires on `PreToolUse` events, which is CAP-008's mechanism for gating tool calls before execution. The primary anchor is CAP-009 (plugin authoring) because this BC specifies the WASM implementation contract; CAP-008 describes the lifecycle event this plugin hooks into. |
 | L2 Domain Invariants | none |
 | Architecture Module | crates/hook-plugins/validate-artifact-path/ (Rust crate); plugins/vsdd-factory/hook-plugins/validate-artifact-path.wasm (build output); plugins/vsdd-factory/config/artifact-path-registry.yaml (single source of truth); hooks-registry.toml (registration) |
-| Stories | Story C (v1.0-feature-engine-discipline-pass-1 F3 decomposition) |
+| Stories | S-13.01 |
 | FR | FR-047 (per-story adversarial convergence + artifact path discipline — to be added in PRD delta) |
 
 ## Related BCs
@@ -210,3 +210,4 @@ Story C — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ5 resolution applied: immediate `block` mode from registration — no phased warn-then-block rollout for the hook itself. Enforcement_level field in registry governs per-entry behavior (block/warn/advisory), not a global rollout phase. D-337 constraint applied: WASM-only. |
 | 1.1 | 2026-05-07 | Invariant 6 amendment (architect; NC-1, F5 pass-1 fix burst): `{placeholder}` semantics tightened from "any non-empty path segment or sequence of segments" to "single path segment (no `/`)". This is Option A per Appendix A of F5-pass-1-fix-plan.md and matches the implemented behavior in `validate-artifact-path/src/lib.rs`. Input-hash recomputed from `[pending-recompute]` to `40a6fb6`. |
 | 1.2 | 2026-05-08 | F-P19-003 — explicit absolute-path semantics + leading-slash discipline (8b4f697f introduced behavior; spec was silent). Added Invariant 8 (Path Form Invariance) with full leading-slash discipline sourced from `crates/hook-plugins/validate-artifact-path/src/lib.rs` (`matches_canonical` and `hook_logic`). Amended Postconditions 2 and 7 to cross-reference Invariant 8. A re-implementer reading v1.1 spec alone could produce a relative-only hook and re-introduce the F-P18-001 bug. Refs: F-P19-003, F-P18-001. |
+| 1.3 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated: "Story C" placeholder → S-13.01. S-13.01 merged PR #97 cites BC-4.11.001 in behavioral_contracts frontmatter; BC-INDEX carried TBD (fixed bidirectionally in this burst). Refs: F-P45-001, fix-burst-42. |

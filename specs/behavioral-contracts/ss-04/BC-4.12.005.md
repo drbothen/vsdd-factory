@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -162,7 +162,7 @@ wholesale.
 | Capability Anchor Justification | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 — this BC governs the context-injection merge semantics for WASM resolver plugins. The merge algorithm operates at the dispatcher layer (`executor.rs`) and determines how resolver plugin outputs are combined with the static `plugin_config` before hook dispatch. CAP-009 defines the SDK and dispatch pipeline; the merge contract is the final step in the pre-dispatch resolver invocation sequence before the hook plugin (also a CAP-009 artifact) is called with the enriched payload. |
 | L2 Domain Invariants | none |
 | Architecture Module | `crates/factory-dispatcher/src/executor.rs` (merge step between resolver invocation and invoke_plugin); `crates/factory-dispatcher/src/resolver.rs` (merge_resolver_outputs pure function) |
-| Stories | S-12.03 (ContextResolver trait + ResolverRegistry in-memory — merge is validated in this story's unit tests) |
+| Stories | S-12.03, S-12.06, S-12.07, S-12.08 |
 | FR | FR-RESOLVER-001 (factory-agnostic runtime context injection — resolver outputs merged into plugin_config) |
 | ADR Reference | ADR-018 (WASM-plugin Context Resolvers — merge semantics: additive overlay; whole-value replacement; first-declared-wins on collision at dispatch; fail-loud on duplicate context_key at registry load) |
 
@@ -192,3 +192,4 @@ S-12.03 (ContextResolver trait + ResolverRegistry in-memory) — v1.0-feature-en
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Additive overlay semantics; whole-value replacement (no deep merge); duplicate context_key is a registry-load error (fail-loud); None output leaves key absent. OD-5 (no inter-resolver dependencies) encoded in Invariant 4 and PC8. |
+| 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.03 → S-12.03, S-12.06, S-12.07, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.07 + S-12.08; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
