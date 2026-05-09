@@ -549,3 +549,9 @@ F-P30-002 closure.
 **Validation:** post-fix, count totals in the Breakdown table MUST equal the count of artifacts carrying each value. The Breakdown table counts are prose, not computed, so they drift independently of both source frontmatter and Full Index rows.
 
 F-P31-001 closure. Fix-burst-30 (this burst): VP-INDEX Breakdown integration 22→21, kani-proof 3→4; Full Index VP-074 Proof Method integration→kani-proof.
+
+**Sub-rule (added fix-burst-31, F-P32-001 closure):** Full Index per-row sibling cells. When a fix-burst patches one cell of a multi-cell index row (e.g., VP-INDEX Full Index row's Proof Method column), the SAME burst MUST audit ALL OTHER cells of the same row (Scope, Capability, Status, etc.) against the source-of-truth artifact. Failure mode (F-P32-001): fix-burst-30 corrected VP-074 row's Proof Method column but left the adjacent Scope cell stale.
+
+Sweep procedure: when patching a cell at row R column C, run for each other column C' of row R: `grep '^<field-for-C\'>:' <source-artifact>` and compare against the index row's C' cell value.
+
+Verified retroactively in fix-burst-31: VP-074 Scope cell SS-04 → SS-01, SS-04 (matches source frontmatter scope: SS-01, SS-04 + body Subsystems: SS-01, SS-04). F-P32-001 closure.

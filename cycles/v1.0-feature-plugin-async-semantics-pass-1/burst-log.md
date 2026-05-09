@@ -1901,3 +1901,28 @@ Files changed:
 Findings closed: F-P31-001 (HIGH), F-P31-002 (HIGH), F-P31-003 (MEDIUM), F-P31-004 (MEDIUM)
 ADR-013 clock: 0_of_3 (RESET — pass-31 HIGH)
 Pass-32 next.
+
+## Pass-32 Adversary Review (2026-05-09)
+
+Verdict: MED (0H + 1M + 2L). 15th consecutive non-NIT pass. Trajectory bending toward NIT (pass-31: 2H+2M; pass-32: 0H+1M). ADR-013 RESETS to 0_of_3.
+
+- F-P32-001 [MEDIUM]: VP-INDEX Full Index VP-074 Scope cell SS-04 (should be SS-01, SS-04). Source: VP-074.md frontmatter + body both say SS-01, SS-04. Fix-burst-30 fixed Proof Method column but missed adjacent Scope column. L-P28-001 sibling-cell layer exposed.
+- O-P32-001 [LOW]: STATE.md:188 "pass-30 HIGH resets" stale; siblings attribute 0_of_3 to pass-31. Addressed: pass-30→pass-31.
+- O-P32-002 [LOW]: ARCH-INDEX SS-10 row `commands/` dir + bin count drift (12 documented vs 13 on disk). Pre-existing 31-pass survivor. Adjudicated: TD-033 (architecture-vs-current-repo intentional separation; POLICY 4 semantic anchoring).
+
+## Fix-burst-31 State-Manager Close (2026-05-09)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/verification-properties/VP-INDEX.md` | v1.38→v1.39 | F-P32-001: VP-074 Full Index Scope SS-04→SS-01, SS-04. Changelog entry added. |
+| `.factory/STATE.md` | — | O-P32-001: line 188 pass-30→pass-31. current_step, phase progress, concurrent cycles, index versions, session resume checkpoint updated. |
+| `.factory/tech-debt-register.md` | — | TD-033 added: SS-10 architecture-vs-current-repo separation (O-P32-002 disposition). |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | — | L-P28-001 sub-rule added: Full Index per-row sibling cells sweep. F-P32-001 closure recorded. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-32 + fix-burst-31 entries (this entry). |
+
+Findings closed: F-P32-001 (MEDIUM)
+Observations addressed: O-P32-001 (STATE.md pass-30→pass-31), O-P32-002 (TD-033 disposition)
+ADR-013 clock: 0_of_3 (RESET — pass-32 MED; pass-31 was last HIGH)
+Pass-33 next.

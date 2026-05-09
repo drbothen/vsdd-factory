@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.38"
+version: "1.39"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
@@ -9,6 +9,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-09
+    change: "v1.39 (2026-05-09; fix-burst-31): F-P32-001 — VP-074 Full Index row Scope SS-04 → SS-01, SS-04 (matches source frontmatter scope: SS-01, SS-04 and body Subsystems: SS-01, SS-04). L-P28-001 sub-rule added (Full Index per-row sibling cells). No VP count change. VP-INDEX v1.38→v1.39. Refs: F-P32-001, L-P28-001 (sub-rule), fix-burst-31."
   - date: 2026-05-09
     change: "v1.38 (2026-05-09; fix-burst-30): F-P31-001 — VP-074 Breakdown table reconciled with source frontmatter (kani-proof). Breakdown integration count 22→21 (VP-074 removed); kani-proof count 3→4 (VP-074 added: now VP-070, VP-071, VP-074, VP-077). Full Index VP-074 row Proof Method integration→kani-proof. No VP count change. VP-INDEX v1.37→v1.38. Refs: F-P31-001, L-P28-001 (Breakdown-table audit extension), fix-burst-30."
   - date: 2026-05-09
@@ -198,7 +200,7 @@ changelog:
 | [VP-071](VP-071.md) | validate-per-story-adversary-convergence Block Invariant | safety | kani-proof | SS-04 | — | draft |
 | [VP-072](VP-072.md) | artifact-path-registry.yaml Single Source of Truth — All Writers Resolve Through Registry | invariant | integration | SS-04 | — | draft |
 | [VP-073](VP-073.md) | Resolver-Load Purity — resolver WASM module loading must be pure: same registry file always produces same resolver set, no side effects | invariant | integration | SS-01, SS-04 | — | draft |
-| [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process (v1.1: fix-burst-28 F-P29-001 — frontmatter proof_method kani→kani-proof; L-P28-001 META self-application fix) | safety | kani-proof | SS-04 | — | draft |
+| [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process (v1.1: fix-burst-28 F-P29-001 — frontmatter proof_method kani→kani-proof; L-P28-001 META self-application fix) | safety | kani-proof | SS-01, SS-04 | — | draft |
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.13: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep + F-P26-007 harness skeleton tuple → PluginPartition struct; v1.12: F5 fix-burst-24 — Kani harness assumptions updated to reflect merged partition.rs) | invariant | kani-proof | SS-01 | — | draft |

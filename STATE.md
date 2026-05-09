@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "fix-burst-30 closed (VP-074 breakdown reconciliation + STORY-INDEX summary + STATE.md identifier audit); pass-32 next; ADR-013 0_of_3"
+current_step: "fix-burst-31 closed (F-P32-001 VP-INDEX VP-074 scope + O-P32-001 STATE.md + O-P32-002 TD-033 disposition); pass-33 next; ADR-013 0_of_3"
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 (fix-burst-30 closed: VP-074 breakdown reconciliation + STORY-INDEX summary + STATE.md Epic count 15→16 + Session Checkpoint pass-29→pass-30; pass-32 next; ADR-013 0_of_3) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-31 verdict: HIGH (F-P31-001..004); fix-burst-30 complete |
+| **Last Updated** | 2026-05-09 (fix-burst-31 closed: F-P32-001 VP-INDEX VP-074 Scope SS-04→SS-01,SS-04 + O-P32-001 STATE.md pass-30→pass-31 + O-P32-002 TD-033 disposition; pass-33 next; ADR-013 0_of_3) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-32 verdict: MED (F-P32-001+2L); fix-burst-31 complete |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,8 +76,8 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-31 HIGH; fix-burst-30 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–31 + fix-bursts 1–30 complete. Pass-31: HIGH (F-P31-001..004; 2H+2M; 14th consecutive non-NIT). Fix-burst-30: VP-074 Breakdown reconciliation (integration→kani-proof; counts 22→21 + 3→4) + STORY-INDEX Status Summary (merged 57→62, draft 28→23) + STATE.md Epic count 15→16 + pass-29→pass-30 checkpoint. ADR-013 0_of_3. Pass-32 next. |
-| **STRATEGIC NOTE** | User directive: continue protocol. 14-pass HIGH streak; fix-burst-30 closed F-P31-001..004. ADR-013 0_of_3 (RESET — pass-31 HIGH). |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-32 MED; fix-burst-31 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–32 + fix-bursts 1–31 complete. Pass-32: MED (F-P32-001+2L; 0H+1M; 15th consecutive non-NIT; trajectory bending). Fix-burst-31: VP-INDEX VP-074 Scope SS-04→SS-01,SS-04 (F-P32-001) + STATE.md pass-30→pass-31 (O-P32-001) + TD-033 SS-10 disposition (O-P32-002). ADR-013 0_of_3. Pass-33 next. |
+| **STRATEGIC NOTE** | User directive: continue protocol. 15-pass non-NIT streak (first 0-HIGH pass since P17); trajectory bending. Fix-burst-31 closed findings cleanly. Pass-33 high probability of NIT. ADR-013 0_of_3 (RESET — pass-31 HIGH). |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -101,7 +101,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-29 — STATE.md ADR count + L-P28-001 META amendment + E-10 annotation + TD-032 + compact** | state-manager | **DONE** | F-P30-001..004 closed/deferred. STATE.md compacted (passes 23-26 archived). TD-032 added (subsystem format drift; S-15.03 scope). L-P28-001 META-META closure. |
 | **F5 pass-31 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P31-001..004). F-P31-001 VP-074 Breakdown table drift; F-P31-002 STORY-INDEX status summary stale; F-P31-003 STATE.md Epic count 15→16; F-P31-004 STATE.md session checkpoint pass-29→pass-30. ADR-013: 0_of_3. 14th consecutive HIGH. |
 | **F5 fix-burst-30 — VP-074 breakdown + STORY-INDEX summary + STATE identifier audit** | state-manager | **DONE** | F-P31-001..004 closed. VP-INDEX v1.37→v1.38 (Breakdown: integration 22→21, kani-proof 3→4; Full Index VP-074 row integration→kani-proof). STORY-INDEX v2.56→v2.57 (merged 57→62, draft 28→23, prose 15→16 epics). STATE.md Epic 15→16, checkpoint pass-29→pass-30. L-P28-001 amended (Breakdown-table audit step). TD-031 updated. |
-| **F5 pass-32 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 14 consecutive HIGH passes. |
+| **F5 pass-32 adversary review** | adversary | **DONE — verdict MED** | Verdict: MED (F-P32-001+2L; 0H+1M). 15th consecutive non-NIT. F-P32-001 VP-INDEX VP-074 Scope cell SS-04 (should be SS-01, SS-04). O-P32-001 STATE.md:188 pass-30 stale (→pass-31). O-P32-002 ARCH-INDEX SS-10 commands/ drift (disposition: TD-033). ADR-013: 0_of_3 (RESET). |
+| **F5 fix-burst-31 — VP-INDEX scope drift + STATE checkpoint + SS-10 disposition** | state-manager | **DONE** | F-P32-001 closed: VP-INDEX VP-074 Scope SS-04→SS-01,SS-04; VP-INDEX v1.38→v1.39; L-P28-001 sub-rule (sibling cells). O-P32-001: STATE.md:188 pass-30→pass-31. O-P32-002: TD-033 added (SS-10 architecture-vs-current-repo separation). |
+| **F5 pass-33 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 15 consecutive non-NIT passes. High probability of NIT. |
 
 ## Identifier Conventions
 
@@ -144,7 +146,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–31 + fix-bursts 1–30 complete. Pass-31 HIGH (F-P31-001..004; 2H+2M; 14th consecutive non-NIT). Fix-burst-30: VP-074 Breakdown + STORY-INDEX summary + STATE Epic count + checkpoint pass ref. ADR-013 0_of_3. User directive: continue protocol. Pass-32 next. PR held until 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–32 + fix-bursts 1–31 complete. Pass-32 MED (F-P32-001+2L; 0H+1M; 15th non-NIT; trajectory bending). Fix-burst-31: VP-INDEX VP-074 Scope + STATE.md + TD-033. ADR-013 0_of_3. User directive: continue protocol. Pass-33 next. PR held until 3_of_3. |
 
 ## Decisions Log
 
@@ -174,9 +176,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — fix-burst-30 closed (state-manager POLICY 3 run-last). Pass-31 HIGH (F-P31-001..004; 2H+2M; 14th consecutive non-NIT). Fix-burst-30: F-P31-001 VP-INDEX Breakdown table reconciled with VP-074 source (kani-proof canonical; integration 22→21, kani-proof 3→4; Full Index VP-074 row integration→kani-proof). VP-INDEX v1.37→v1.38. F-P31-002 STORY-INDEX Status Summary corrected (merged 57→62, draft 28→23, prose epic count 15→16 epics). STORY-INDEX v2.56→v2.57. F-P31-003 STATE.md Identifier Conventions Epic count 15→16 (all rows audited; Subsystem 10, BC 1947, VP 79, CAP 30, DI 18 active, DE 22, Story 88+15, ADR 20 all verified correct). F-P31-004 STATE.md:186 checkpoint pass-29→pass-30. L-P28-001 amended: Breakdown-table audit step added. TD-031 updated (14-pass streak). ADR-013 0_of_3 (RESET — pass-31 HIGH). Pass-32 next.
+**Last update:** 2026-05-09 — fix-burst-31 closed (state-manager POLICY 3 run-last). Pass-32 MED (F-P32-001+2L; 0H+1M; 15th consecutive non-NIT; trajectory bending toward NIT). Fix-burst-31: F-P32-001 VP-INDEX VP-074 Full Index Scope cell SS-04→SS-01,SS-04 (matches source frontmatter + body). VP-INDEX v1.38→v1.39. L-P28-001 sub-rule added (Full Index per-row sibling cells). O-P32-001 STATE.md:188 pass-30→pass-31 (sibling-paragraph consistency). O-P32-002 TD-033 added (SS-10 architecture-vs-current-repo separation; POLICY 4 semantic anchoring; no spec edit). ADR-013 0_of_3 (RESET — pass-31 HIGH). Pass-33 next.
 
-**ACTIVE STEP: Pass-32 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 14 consecutive HIGH passes.**
+**ACTIVE STEP: Pass-33 adversary review — dispatch after this commit. ADR-013 at 0_of_3. 15 consecutive non-NIT passes (first 0-HIGH pass since P17). High probability of NIT.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 7b841eca — long-lived; 39 commits ahead of develop; no PR until 3_of_3
@@ -184,8 +186,8 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 - factory-artifacts @ (this commit — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.51 | VP-INDEX v1.38 | STORY-INDEX v2.57 | ARCH-INDEX v1.31
-**ADR-013 clock:** **0_of_3** (RESET — pass-30 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.51 | VP-INDEX v1.39 | STORY-INDEX v2.57 | ARCH-INDEX v1.31
+**ADR-013 clock:** **0_of_3** (RESET — pass-31 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931 at D-313 (now 1947)); finding trend 22→11→16→16→12→2→1→4
