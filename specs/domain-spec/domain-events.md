@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: domain-events
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -39,7 +39,7 @@ traces_to: L2-INDEX.md
 | DE-006 | `plugin.completed` | SS-01 `executor::emit_lifecycle` | SS-03 | Shipped | `exit_code`, `elapsed_ms`, `fuel_consumed`, `stderr` (if non-empty) |
 | DE-007 | `plugin.timeout` | SS-01 `executor::emit_lifecycle` | SS-03 | Shipped | `cause` (epoch\|fuel), `elapsed_ms`, `fuel_consumed`, `stderr` |
 | DE-008 | `plugin.crashed` | SS-01 `executor::emit_lifecycle` | SS-03 | Shipped | `trap`, `elapsed_ms`, `fuel_consumed`, `stderr` |
-| DE-009 | `plugin.log` | SS-01 `host::log` + `invoke.rs::log` shim | SS-03, operator consoles | Shipped | `level` (trace\|debug\|info\|warn\|error), `message` |
+| DE-009 | `plugin.log` | SS-01 `host/log.rs::register` (host-call registration) | SS-03, operator consoles | Shipped | `level` (trace\|debug\|info\|warn\|error), `message` |
 
 ## Internal Audit Events (SS-01)
 
@@ -88,3 +88,13 @@ The native path is correctly typed and carries `dispatcher_trace_id`. The bash p
 ## Schema Note
 
 All events carry `InternalEvent` base fields: `type_`, `ts` (ISO-8601), `ts_epoch` (i64), `schema_version = 1`. Additional fields are flattened into the `fields` map. Reserved field names (`type`, `ts`, `ts_epoch`, `schema_version`) are filtered out if a plugin attempts to overwrite them via `emit_event`.
+
+## Amendment 2026-05-08 (v1.0 → v1.1 — L-P21-001 retroactive sweep: DE-009 fabricated symbol corrected)
+
+**Driver:** L-P21-001 retroactive corpus sweep. DE-009 Producer cited `invoke.rs::log` — a function that does not exist in `invoke.rs` or anywhere in the crate. The actual host-call registration for plugin log events is in `host/log.rs::register` (the host function that handles `vsdd_log` calls from WASM plugins).
+
+**Verification:** `grep -rn "fn log\b" crates/factory-dispatcher/src/` → no matches. `grep -n "pub fn register" crates/factory-dispatcher/src/host/log.rs` → line 17.
+
+**Change made:**
+- DE-009 Producer: `host::log` + `invoke.rs::log` shim → `host/log.rs::register` (host-call registration).
+- Frontmatter `version:` bumped `"1.0"` → `"1.1"`.

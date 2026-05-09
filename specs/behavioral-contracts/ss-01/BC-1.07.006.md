@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -76,7 +76,7 @@ Integration test: For each entry in the production registry, `entry.config_as_js
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/factory-dispatcher/tests/loads_legacy_registry.rs::every_entry_carries_a_script_path` (lines 78–105) |
+| **Path** | `crates/factory-dispatcher/tests/loads_legacy_registry.rs::loads_generated_registry_from_disk` (lines 34–60) — **Note (L-P21-001):** `every_entry_carries_a_script_path` was fabricated at Phase 0 ingestion; function was never committed. The current test verifies parse + count only; dedicated per-entry script_path assertion is pending. |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-deep-rust-tests.md` line `596` |
@@ -98,3 +98,13 @@ Integration test: For each entry in the production registry, `entry.config_as_js
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Amendment 2026-05-08 (v1.0 → v1.1 — L-P21-001 retroactive sweep: Source Evidence fabricated function corrected)
+
+**Driver:** L-P21-001 retroactive corpus sweep. §Source Evidence Path cited `loads_legacy_registry.rs::every_entry_carries_a_script_path` — this function does not exist. It was cited from Phase 0 ingestion (pass-3-deep-rust-tests.md line 596) and was never committed to the test file.
+
+**Verification:** `grep -n "fn every_entry_carries_a_script_path" crates/factory-dispatcher/tests/loads_legacy_registry.rs` → no matches. Actual test: `loads_generated_registry_from_disk` (line 34).
+
+**Changes made:**
+- §Source Evidence Path: fabricated function replaced with `loads_generated_registry_from_disk` (lines 34-60) with L-P21-001 note.
+- Frontmatter `version:` bumped `"1.0"` → `"1.1"`.

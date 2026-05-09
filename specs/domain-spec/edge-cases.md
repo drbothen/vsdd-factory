@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: edge-cases
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -41,7 +41,7 @@ Enforcement: SS-01 (`plugin_loader.rs`). Grounded in: DI-002; DRIFT-008.
 **DEC-004 — Plugin exceeds fuel cap**
 A plugin consumes more than `fuel_cap` (default 10,000,000) wasmtime fuel units.
 Expected behavior: `PluginResult::Timeout { cause: Fuel }` with `plugin.timeout` event. Plugin is terminated; does not block.
-Enforcement: SS-01 (`invoke.rs::FUEL`). Grounded in: pass-8 §NFR-PERF.
+Enforcement: SS-01 (`invoke.rs::InvokeLimits` — `fuel_cap` field; `store.set_fuel(limits.fuel_cap)` call in `invoke_plugin`). Grounded in: pass-8 §NFR-PERF.
 
 **DEC-005 — Plugin exceeds epoch deadline**
 A plugin runs longer than `timeout_ms` (default 5,000ms) as measured by the epoch ticker (10ms resolution).
@@ -118,3 +118,13 @@ Enforcement: SS-05 (crash recovery path). Grounded in: CAP-012; pass-8 §NFR-REL
 The adversary's context window references an older commit SHA than `HEAD` because it was spawned before recent commits.
 Expected behavior: `verify-sha-currency.sh` (opt-in, must be installed by operator) blocks the adversary until context is refreshed.
 Enforcement: SS-06 (adversary skill + verify-sha-currency.sh template). Grounded in: DRIFT-009; pass-8 §ADR-013.
+
+## Amendment 2026-05-08 (v1.0 → v1.1 — L-P21-001 retroactive sweep: DEC-004 fabricated symbol corrected)
+
+**Driver:** L-P21-001 retroactive corpus sweep (same-burst discipline, L-P19-001). DEC-004 Enforcement cited `invoke.rs::FUEL` — a constant that does not exist anywhere in the crate. The actual fuel enforcement mechanism is `InvokeLimits.fuel_cap` (struct field) with `store.set_fuel(limits.fuel_cap)` in `invoke_plugin`.
+
+**Verification:** `grep -rn "pub const FUEL\|const FUEL\b" crates/` → no matches. `grep -n "fuel_cap\|InvokeLimits" crates/factory-dispatcher/src/invoke.rs` → `pub struct InvokeLimits { pub fuel_cap: u64, ... }` at line 86; `store.set_fuel(limits.fuel_cap)` at line 176.
+
+**Change made:**
+- DEC-004 Enforcement: `invoke.rs::FUEL` → `invoke.rs::InvokeLimits` (with `fuel_cap` field and `store.set_fuel` call site documented inline).
+- Frontmatter `version:` bumped `"1.0"` → `"1.1"`.

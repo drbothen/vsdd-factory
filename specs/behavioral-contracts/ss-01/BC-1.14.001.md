@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.10"
+version: "1.11"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -114,9 +114,9 @@ The total dispatcher wall-clock latency upper bound is therefore:
 
 ## Architecture Anchors
 
-- `crates/factory-dispatcher/src/registry.rs` — `RegistryEntry.async` field; `validate()` enforcing Invariant 4; `REGISTRY_SCHEMA_VERSION = 2`
+- `crates/factory-dispatcher/src/registry.rs` — `RegistryEntry.async_flag` field; `validate()` enforcing Invariant 4; `REGISTRY_SCHEMA_VERSION = 2`
 - `crates/factory-dispatcher/src/partition.rs` — `partition_plugins()` pure function (sync/async split); Kani proof harnesses in `partition.rs::kani_proofs` module (`#[cfg(kani)] mod kani_proofs`)
-- `crates/factory-dispatcher/src/engine.rs` (or equivalent dispatch loop) — sync group `run_tiers()` + async group `spawn_detached()` calls
+- `crates/factory-dispatcher/src/executor.rs` — sync group `execute_tiers()` + async group `spawn_async_plugin()` calls
 
 ## Story Anchor
 
@@ -171,7 +171,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | L2 Capability | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's partitioned invocation model (sync-group gates Claude Code; async-group fires-and-forgets), which is the core mechanism by which sandboxed WASM plugins enforce `on_error = "block"` governance |
 | L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-017 — Wire-format field exclusivity: `trace_id` is the exclusive wire-format key for trace correlation; no alias fields may appear alongside it (BC-1.14.001 is the primary dispatch-path enforcer of this wire-format exclusivity invariant; DI-017 v1.1 extended BC range to include BC-1.14.001 in its Stage 1 amendment); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
-| Architecture Module | SS-01 — `crates/factory-dispatcher/src/partition.rs` (`partition_plugins`), `crates/factory-dispatcher/src/engine.rs` (dispatch loop) |
+| Architecture Module | SS-01 — `crates/factory-dispatcher/src/partition.rs` (`partition_plugins`), `crates/factory-dispatcher/src/executor.rs` (dispatch loop) |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
 | Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
@@ -193,6 +193,32 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-08 (v1.10 → v1.11 — F-P22-002 + L-P21-001: §Architecture Anchors fabricated symbols corrected)
+
+**Driver:** Pass-22 finding F-P22-002 — §Architecture Anchors contained three fabricated production symbols that could not be grep-verified against the codebase. L-P21-001 (codified at fix-burst-20) prescribes that every cited production symbol MUST be grep-verifiable; this amendment is the same-burst retroactive fix mandated by L-P19-001.
+
+**Fabricated symbols corrected (each verified via grep before replacement):**
+
+1. `RegistryEntry.async field` → `RegistryEntry.async_flag field`
+   - Verification: `grep -n "async_flag" crates/factory-dispatcher/src/registry.rs` → line 245 (`pub async_flag: bool`). The original `async` name is a reserved keyword in Rust and was never the actual field name. Confirmed: `registry.rs` line 239 documents the rename rationale.
+
+2. `crates/factory-dispatcher/src/engine.rs (or equivalent dispatch loop)` → `crates/factory-dispatcher/src/executor.rs`
+   - Verification: `engine.rs` exists but contains no dispatch-loop functions (`execute_tiers`, `spawn_async_plugin`, `run_tiers`, `spawn_detached`). The actual dispatch loop lives in `executor.rs`. The "(or equivalent dispatch loop)" qualifier was masking a fabricated file reference.
+
+3. `run_tiers()` → `execute_tiers()`
+   - Verification: `grep -n "fn execute_tiers" crates/factory-dispatcher/src/executor.rs` → line 79. `run_tiers` does not exist anywhere in the crate.
+
+4. `spawn_detached()` → `spawn_async_plugin()`
+   - Verification: `grep -n "fn spawn_async_plugin" crates/factory-dispatcher/src/executor.rs` → line 247. `spawn_detached` does not exist anywhere in the crate.
+
+**Changes made:**
+- §Architecture Anchors first bullet: `RegistryEntry.async` → `RegistryEntry.async_flag`.
+- §Architecture Anchors third bullet: all four fabricated symbols replaced with verified symbols; file reference changed from `engine.rs` to `executor.rs`; `run_tiers()` → `execute_tiers()`; `spawn_detached()` → `spawn_async_plugin()`.
+- §Traceability Architecture Module row: `engine.rs` → `executor.rs` (same fabricated file reference present in body table).
+- Frontmatter `version:` bumped `"1.10"` → `"1.11"`; `last_amended:` unchanged (2026-05-08).
+
+**No behavioral semantics changed.** Postconditions, invariants, error paths, test vectors, and edge cases are identical to v1.10. This is a symbol-accuracy correction only.
 
 ## Amendment 2026-05-08 (v1.9 → v1.10 — F-P20-001: §Architecture Anchors Kani line-range migrated to module anchor)
 
