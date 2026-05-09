@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -16,7 +16,7 @@ capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: [v1.1-async-semantics-F2-2026-05-07]
-last_amended: "2026-05-07 (v1.0-feature-plugin-async-semantics-pass-1 cycle F2; see ADR-019)"
+last_amended: "2026-05-09 (v1.2 — F5 fix-burst-35: F-P36-001 Traceability Stories S-2.07; TBD→S-2.07; S-15.01)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -79,7 +79,7 @@ removal_reason: null
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's exit code protocol (0=allow, 2=block), which is the fundamental signaling contract for Claude Code WASM hook gating |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/executor.rs` |
-| Stories | S-2.07 (Wave 9 SS-01 straggler re-anchor) |
+| Stories | S-2.07 (Wave 9 SS-01 straggler re-anchor); S-15.01 (single story per ADR-019 §6) |
 
 ### Source Evidence
 
@@ -107,6 +107,10 @@ removal_reason: null
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Amendment 2026-05-09 (v1.1 → v1.2 — F5 fix-burst-35 F-P36-001: Traceability Stories drift fixed)
+
+**F-P36-001 (BC body vs BC-INDEX Stories drift):** Traceability `Stories` row updated: `S-2.07 (Wave 9 SS-01 straggler re-anchor)` extended to `S-2.07 (Wave 9 SS-01 straggler re-anchor); S-15.01 (single story per ADR-019 §6)`. BC-INDEX row (v1.28) already listed S-2.07, S-15.01; source body was missing S-15.01 (pre-F3). F3 story decomposition (PR #106 merged 2026-05-07) is canonical.
 
 ## Amendment 2026-05-07
 

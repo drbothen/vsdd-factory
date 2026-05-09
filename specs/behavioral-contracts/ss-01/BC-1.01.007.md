@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -16,7 +16,7 @@ capability: "CAP-TBD"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: [v1.1-async-semantics-F2-2026-05-07]
-last_amended: "2026-05-07 (v1.0-feature-plugin-async-semantics-pass-1 cycle F2; see ADR-019)"
+last_amended: "2026-05-09 (v1.2 — F5 fix-burst-35: F-P36-001 Traceability Stories TBD→S-15.01)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -75,7 +75,7 @@ A minimum-viable registry TOML (`schema_version = 2`, single `[[hooks]]` entry w
 | L2 Capability | TBD (anchor in Phase 1.5) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/registry.rs` |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-15.01 (single story per ADR-019 §6) |
 
 ### Source Evidence
 
@@ -103,6 +103,10 @@ A minimum-viable registry TOML (`schema_version = 2`, single `[[hooks]]` entry w
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Amendment 2026-05-09 (v1.1 → v1.2 — F5 fix-burst-35 F-P36-001: Traceability Stories TBD→S-15.01)
+
+**F-P36-001 (BC body vs BC-INDEX Stories drift):** Traceability `Stories` row updated from `TBD (re-anchor in Phase 1.8 from S-N.MM stories)` to `S-15.01 (single story per ADR-019 §6)`. BC-INDEX row (v1.28) already listed S-15.01; source body was pre-F3. F3 story decomposition (PR #106 merged 2026-05-07) is canonical.
 
 ## Amendment 2026-05-07
 

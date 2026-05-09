@@ -2012,3 +2012,40 @@ Verdict: MED (0H + 1M + 0L). 18th consecutive non-NIT pass. Trajectory stable at
 Findings closed: F-P35-001 (MEDIUM)
 ADR-013 clock: 0_of_3 (RESET — pass-35 MED)
 Pass-36 next.
+
+## Pass-36 Adversary Review (2026-05-09)
+
+**Agent:** adversary (F5-adversary-pass-36.md)
+
+Verdict: MED (0H + 1M + 0L). 19th consecutive non-NIT pass. Trajectory stable at 1M. ADR-013 RESETS to 0_of_3.
+
+- F-P36-001 [MEDIUM]: 12 BCs have BC-INDEX rows including S-15.01 (post-F3) but source body Traceability Stories rows still show TBD (pre-F3). Bidirectional sibling-cell drift; 5th META-self-application failure of L-P28-001 family. Fix-burst-34's per-cell tabulation reinforcement was applied only to the 6 in-scope resolver-platform rows — a corpus-wide application would have detected this drift in the same burst.
+
+## Fix-burst-35 State-Manager Close (2026-05-09)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.01.001.md` | v1.1→v1.2 | F-P36-001: Stories TBD→S-15.01 (single story per ADR-019 §6). Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.01.007.md` | v1.1→v1.2 | F-P36-001: Stories TBD→S-15.01. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.08.001.md` | v1.2→v1.3 | F-P36-001: Stories TBD→S-15.01; S-2.07 retained. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.08.002.md` | v1.1→v1.2 | F-P36-001: Stories S-2.07→S-2.07; S-15.01. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.14.001.md` | v1.11→v1.12 | F-P36-001: Stories TBD→S-15.01. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-07/BC-7.06.001.md` | v1.11→v1.12 | F-P36-001: Stories TBD→S-15.01. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-09/BC-9.01.006.md` | v1.2→v1.3 | F-P36-001: Stories TBD→S-15.01. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-03/BC-3.08.001.md` | v1.13→v1.14 | F-P36-001: Stories TBD→S-15.01. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.04.004.md` | v2.1→v2.2 | F-P36-001: Stories S-5.01→S-5.01, S-15.01. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.05.004.md` | v2.1→v2.2 | F-P36-001: Stories S-5.02→S-5.02, S-15.01. Amendment section added. |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.07.003.md` | v1.3→v1.4 | F-P36-001: Stories S-5.03→S-5.03, S-15.01. Changelog row added. |
+| `.factory/specs/behavioral-contracts/ss-04/BC-4.08.002.md` | v1.3→v1.4 | F-P36-001: Stories S-5.04→S-5.04, S-15.01. Changelog row added. |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v1.52→v1.53 | 12 BC version bumps recorded in changelog. No count change (total_bcs: 1947). |
+| `.factory/specs/architecture/ARCH-INDEX.md` | v1.32→v1.33 | BC-INDEX body cite refreshed v1.52→v1.53 (L-P20-002 cite-refresh discipline). Changelog entry added. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | — | L-P28-001 scope clause added (corpus-wide-on-first-application mandate; 5th META-self-application failure recorded). |
+| `.factory/STATE.md` | — | current_step updated; pass-36 + fix-burst-35 rows added to Current Phase Steps; index versions (BC-INDEX v1.53, ARCH-INDEX v1.33); cycle row + strategic note updated; ADR-013 0_of_3; Last Updated + Current Phase updated. |
+| `.factory/tech-debt-register.md` | — | TD-031 fix-burst-35 follow-up appended: F-P36-001 closure + L-P28-001 scope clause. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-36 + fix-burst-35 entries (this entry). |
+
+Findings closed: F-P36-001 (MEDIUM)
+ADR-013 clock: 0_of_3 (RESET — pass-36 MED)
+Pass-37 next.

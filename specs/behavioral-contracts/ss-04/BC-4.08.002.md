@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -18,7 +18,7 @@ capability: "CAP-002"
 lifecycle_status: draft
 introduced: v1.0.0-rc.1
 modified: [v1.1-adv-s5.04-p01, v1.2-adv-s5.04-p02, v1.3-async-semantics-F2-2026-05-07]
-last_amended: "2026-05-07 (v1.0-feature-plugin-async-semantics-pass-1 cycle F2; see ADR-019)"
+last_amended: "2026-05-09 (v1.4 — F5 fix-burst-35: F-P36-001 Traceability Stories S-5.04→S-5.04, S-15.01)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -110,13 +110,14 @@ VP-068
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002. Failure-path is part of the lifecycle hooks family (CAP-002 widened to include lifecycle events including failure path per S-5.01 arch-decision). Consistent with sibling BCs BC-4.07.001–004 (CAP-002) per PRD FR-046. |
 | L2 Domain Invariants | DI-015 (per-project activation required — hooks.json.template is the activation surface that must be present for dispatcher invocation; PostToolUseFailure entry must be present) |
 | Architecture Module | SS-07 — `plugins/vsdd-factory/hooks/hooks.json.template` (harness wiring); SS-04 contracts PostToolUseFailure routing semantics within this file |
-| Stories | S-5.04 |
+| Stories | S-5.04, S-15.01 |
 | Functional Requirement | FR-046 |
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-05-09 | state-manager | F5 fix-burst-35 (F-P36-001): Traceability Stories S-5.04→S-5.04, S-15.01 |
 | v1.3 | 2026-05-07 | product-owner | Async-semantics cycle F2 (ADR-019): `async: true` removed from PostToolUseFailure entry; envelope is now synchronous; `async` key MUST BE ABSENT; H1 title updated; Postcondition 4 updated; Canonical Test Vector updated |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (HIGH-P01-001) CAP-013 → CAP-002; failure-path is part of the lifecycle hooks family per S-5.01 arch-decision; consistent with sibling BCs BC-4.07.001–004. + state-manager pre-commit cleanup: Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -15,7 +15,8 @@ subsystem: "SS-01"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
-modified: []
+modified: [v1.3-fix-burst-35-2026-05-09]
+last_amended: "2026-05-09 (v1.3 — F5 fix-burst-35: F-P36-001 Traceability Stories TBD→S-15.01; S-2.07 retained)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -73,7 +74,7 @@ For any startup-side error (registry, payload, or engine), the dispatcher emits 
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 — this BC contracts the dispatcher's fail-safe non-blocking behavior on startup errors, which is a core invariant for the WASM dispatcher to never block Claude Code on its own internal failures |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs` |
-| Stories | S-2.07 (Wave 9 SS-01 straggler re-anchor); TBD — single story per ADR-019 §6 (cycle v1.0-feature-plugin-async-semantics-pass-1) |
+| Stories | S-2.07 (Wave 9 SS-01 straggler re-anchor); S-15.01 (single story per ADR-019 §6) |
 
 ### Source Evidence
 
@@ -101,6 +102,10 @@ For any startup-side error (registry, payload, or engine), the dispatcher emits 
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Amendment 2026-05-09 (v1.2 → v1.3 — F5 fix-burst-35 F-P36-001: Traceability Stories TBD→S-15.01)
+
+**F-P36-001 (BC body vs BC-INDEX Stories drift):** Traceability `Stories` row updated: replaced `TBD — single story per ADR-019 §6 (cycle v1.0-feature-plugin-async-semantics-pass-1)` with `S-15.01 (single story per ADR-019 §6)`; S-2.07 (Wave 9 SS-01 straggler re-anchor) retained. BC-INDEX row (v1.28) already listed S-2.07, S-15.01; source body TBD was pre-F3. F3 story decomposition (PR #106 merged 2026-05-07) is canonical.
 
 ## Amendment 2026-05-07 (v1.2 — F2 pass-2 fix burst)
 

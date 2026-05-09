@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "2.1"
+version: "2.2"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -18,7 +18,7 @@ capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
 modified: [v1.0-pass-1, v1.0-pass-2, v2.0-async-semantics-F2-2026-05-07]
-last_amended: "2026-05-07 (v1.0-feature-plugin-async-semantics-pass-1 cycle F2; see ADR-019)"
+last_amended: "2026-05-09 (v2.2 — F5 fix-burst-35: F-P36-001 Traceability Stories S-5.02→S-5.02, S-15.01)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -105,8 +105,12 @@ VP-066
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | L2 Domain Invariants | DI-015 (per-project activation required — hooks.json.template is the activation surface that must be present for dispatcher invocation) |
 | Architecture Module | SS-07 — `plugins/vsdd-factory/hooks/hooks.json.template` (harness wiring); SS-04 contracts SessionEnd routing semantics within this file |
-| Stories | S-5.02 |
+| Stories | S-5.02, S-15.01 |
 | Functional Requirement | FR-046 |
+
+## Amendment 2026-05-09 (v2.1 → v2.2 — F5 fix-burst-35 F-P36-001: Traceability Stories S-5.02→S-5.02, S-15.01)
+
+**F-P36-001 (BC body vs BC-INDEX Stories drift):** Traceability `Stories` row updated from `S-5.02` to `S-5.02, S-15.01`. BC-INDEX row (v1.28) already listed S-5.02, S-15.01; source body was missing S-15.01 (pre-F3). F3 story decomposition (PR #106 merged 2026-05-07) is canonical.
 
 ## Amendment 2026-05-07 (v2.1 — F2 pass-2 fix burst)
 

@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.11"
+version: "1.12"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: 2026-05-08
+last_amended: 2026-05-09
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F1-delta-analysis.md
@@ -173,7 +173,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement in this BC is the BC-1 enforcement arm of DI-014; the fail-closed behavior was amended per ADR-019 to extend to registry schema_version); DI-017 — Wire-format field exclusivity: `trace_id` is the exclusive wire-format key for trace correlation; no alias fields may appear alongside it (BC-1.14.001 is the primary dispatch-path enforcer of this wire-format exclusivity invariant; DI-017 v1.1 extended BC range to include BC-1.14.001 in its Stage 1 amendment); DI-019 — `ASYNC_DRAIN_WINDOW_MS` (PC4 async-task drain window is bounded by DI-019; the canonical constant value lives in invariants.md §DI-019, not in this BC) |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/partition.rs` (`partition_plugins`), `crates/factory-dispatcher/src/executor.rs` (dispatch loop) |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
-| Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
+| Stories | S-15.01 (single story per ADR-019 §6) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
 
 ### Source Evidence
@@ -193,6 +193,10 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | `partition_plugins` is fully deterministic. Dispatch outcomes depend on plugin runtime behavior. |
 | **Thread safety** | `partition_plugins` is thread-safe (pure fn, no shared state). Async group spawn uses tokio task model. |
 | **Overall classification** | `partition_plugins`: pure deterministic fn suitable for Kani proof. Dispatch loop: effectful with bounded I/O. |
+
+## Amendment 2026-05-09 (v1.11 → v1.12 — F5 fix-burst-35 F-P36-001: Traceability Stories TBD→S-15.01)
+
+**F-P36-001 (BC body vs BC-INDEX Stories drift):** Traceability `Stories` row updated from `TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07)` to `S-15.01 (single story per ADR-019 §6)`. BC-INDEX row (v1.28) already listed S-15.01; source body was pre-F3. F3 story decomposition (PR #106 merged 2026-05-07) is canonical.
 
 ## Amendment 2026-05-08 (v1.10 → v1.11 — F-P22-002 + L-P21-001: §Architecture Anchors fabricated symbols corrected)
 

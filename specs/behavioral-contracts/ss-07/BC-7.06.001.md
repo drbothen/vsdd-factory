@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.11"
+version: "1.12"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: 2026-05-08
+last_amended: 2026-05-09
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F1-delta-analysis.md
@@ -212,7 +212,7 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 | L2 Domain Invariants | DI-014 — Schema version mismatch is a hard load error (the fail-closed schema_version=2 enforcement here is the BC-7 enforcement arm of DI-014, complementing the BC-1 arm in BC-1.14.001; DI-014 enforcement-owner now extends to BC-7) |
 | Architecture Module | SS-01 (primary — runtime enforcement via `crates/factory-dispatcher/src/registry.rs::validate()`) + SS-07 (registry file shape — `plugins/vsdd-factory/hooks-registry.toml`). Frontmatter `subsystem` is SS-01 per F-P1-006 resolution: the runtime enforcement is the failure-loud mechanism and is housed in SS-01. |
 | ADR | ADR-019 — Async Semantics at Registry Layer, Not Envelope Layer |
-| Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
+| Stories | S-15.01 (single story per ADR-019 §6) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
 | VP-077 Harness 1 Amendment Obligation | VP-077 Harness 1 `kani::assume` precondition for entry uniqueness must be updated from `(name, event)` to `(name, event, tool)` tuple uniqueness to remain consistent with Invariant 7 v1.4. **Architect handles VP-077 v1.8** — this row is a PO sync note for handoff. If VP-077 v1.8 has not already addressed this, architect must amend the `kani::assume` precondition in the Harness 1 fixture to reflect `(name, event, tool)` tuple uniqueness. |
 
@@ -233,6 +233,10 @@ Canonical error codes for all registry-validation failures in `registry.rs::vali
 | **Deterministic** | YES — given same registry content, always produces same validation result. |
 | **Thread safety** | YES — `validate()` is a pure check on an immutable parsed struct. |
 | **Overall classification** | Deterministic with filesystem I/O at load time only; `validate()` is a pure fn. |
+
+## Amendment 2026-05-09 (v1.11 → v1.12 — F5 fix-burst-35 F-P36-001: Traceability Stories TBD→S-15.01)
+
+**F-P36-001 (BC body vs BC-INDEX Stories drift):** Traceability `Stories` row updated from `TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07)` to `S-15.01 (single story per ADR-019 §6)`. BC-INDEX row (v1.28) already listed S-15.01; source body was pre-F3. F3 story decomposition (PR #106 merged 2026-05-07) is canonical.
 
 ## Amendment 2026-05-09 (v1.10 → v1.11 — F-P24-002/003/004: RegistryEntry.async → RegistryEntry.async_flag in §Architecture Anchors)
 

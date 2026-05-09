@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -18,7 +18,7 @@ capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
 modified: [v1.1-adv-s5.03-p01, v1.2-async-semantics-F2-2026-05-07]
-last_amended: "2026-05-07 (v1.0-feature-plugin-async-semantics-pass-1 cycle F2; see ADR-019)"
+last_amended: "2026-05-09 (v1.4 — F5 fix-burst-35: F-P36-001 Traceability Stories S-5.03→S-5.03, S-15.01)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -112,13 +112,14 @@ VP-067
 | Capability Anchor Justification | CAP-002 ("Hook Claude Code tool calls with sandboxed WASM plugins") per capabilities.md §CAP-002 |
 | L2 Domain Invariants | DI-015 (per-project activation required — hooks.json.template is the activation surface that must be present for dispatcher invocation; both WorktreeCreate and WorktreeRemove entries must be present) |
 | Architecture Module | SS-07 — `plugins/vsdd-factory/hooks/hooks.json.template` (harness wiring); SS-04 contracts WorktreeCreate/WorktreeRemove routing semantics within this file |
-| Stories | S-5.03 |
+| Stories | S-5.03, S-15.01 |
 | Functional Requirement | FR-046 |
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-05-09 | state-manager | F5 fix-burst-35 (F-P36-001): Traceability Stories S-5.03→S-5.03, S-15.01 |
 | v1.3 | 2026-05-07 | product-owner | F2 pass-2 fix (F-P2-004): Description body corrected — replaced "Both entries have `async: true` and `timeout: 10000`" with "Both entries have `timeout: 10000` (the `async` key is absent per ADR-019)" to match Postcondition 5 |
 | v1.2 | 2026-05-07 | product-owner | Async-semantics cycle F2 (ADR-019): `async: true` removed from WorktreeCreate and WorktreeRemove entries; envelope is now synchronous; `async` key MUST BE ABSENT; H1 title updated; Postcondition 5 updated; Canonical Test Vectors updated |
 | v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (HIGH-002) `once` key absence pinned — "once key MUST be absent" replaces "omitting once is equivalent to once:false"; H1 title updated to reflect "once key ABSENT"; test vectors and invariants clarified; once:false references in prose replaced with unambiguous "once key must not exist" language |

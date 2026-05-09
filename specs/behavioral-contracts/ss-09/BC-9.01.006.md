@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
-last_amended: 2026-05-07
+last_amended: 2026-05-09
 phase: F2
 inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
@@ -118,7 +118,7 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | L2 Domain Invariants | DI-015 — Per-project activation is required before the dispatcher can run; the template is the source artifact for activation |
 | Architecture Module | SS-09 — `plugins/vsdd-factory/hooks/hooks.json.template`; per-platform variants |
 | ADR | ADR-019 §Decision 1 — Async Semantics at Registry Layer, Not Envelope Layer; eliminates `async: true` from all envelope entries |
-| Stories | TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07) |
+| Stories | S-15.01 (single story per ADR-019 §6) |
 | Cycle | v1.0-feature-plugin-async-semantics-pass-1 (F2) |
 
 ### Source Evidence
@@ -138,6 +138,10 @@ TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-0
 | **Deterministic** | YES — given same template content, lint result is always the same. |
 | **Thread safety** | YES — lint is a read-only scan. |
 | **Overall classification** | Pure scan with filesystem I/O; lint result is deterministic. |
+
+## Amendment 2026-05-09 (v1.2 → v1.3 — F5 fix-burst-35 F-P36-001: Traceability Stories TBD→S-15.01)
+
+**F-P36-001 (BC body vs BC-INDEX Stories drift):** Traceability `Stories` row updated from `TBD — single story per ADR-019 §6 (no phased rollout, user decision 2026-05-07)` to `S-15.01 (single story per ADR-019 §6)`. BC-INDEX row (v1.28) already listed S-15.01; source body was pre-F3. F3 story decomposition (PR #106 merged 2026-05-07) is canonical.
 
 ## Amendment 2026-05-07 (v1.1 → v1.2 — WASM-rule audit follow-up)
 

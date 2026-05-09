@@ -579,3 +579,7 @@ Mechanical enforcement (S-15.03 hook scope) remains the structurally-convergent 
 **Reinforcement (added fix-burst-34, F-P35-001 closure):** When applying the per-row sibling-cells audit, the verification block MUST tabulate **EVERY non-link cell per sampled row** — not just one nominated cell. Failure mode (F-P35-001): fix-burst-32's BC sample audit checked only status cell across 10 BCs; BC-4.12.003 + BC-4.12.004 sampled BUT capability + Stories cells were not inspected, leaving 12 cell-level drifts undetected for 3 passes.
 
 Required audit format: per-row table with columns `[ID | Status | Capability | Stories]` for BC-INDEX, `[ID | Scope | Proof_method | Domain_invariants]` for VP-INDEX, `[ID | Status | Epic | Subsystems]` for STORY-INDEX.
+
+**Scope clause (added fix-burst-35, F-P36-001 closure):** When this reinforcement is first added or substantively amended, the FIRST application MUST be CORPUS-WIDE, not scope-narrow. Failure mode (F-P36-001): the per-cell tabulation reinforcement was added at fix-burst-34 sub-burst 2 but applied only to the 6 in-scope resolver-platform rows. A corpus-wide application would have detected the 12 BC body-vs-index Stories drift in the same burst.
+
+This is the 5th META-self-application failure of the L-P28-001 family. Mechanical enforcement (S-15.03 hook scope) remains the structurally-convergent path.

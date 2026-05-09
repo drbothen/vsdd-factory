@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.52"
+version: "1.53"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.53 (2026-05-09; fix-burst-35): F-P36-001 — 12 BC source body Traceability Stories rows updated to include S-15.01 (F3 story decomposition propagation): BC-1.01.001 v1.1→v1.2; BC-1.01.007 v1.1→v1.2; BC-1.08.001 v1.2→v1.3; BC-1.08.002 v1.1→v1.2; BC-1.14.001 v1.11→v1.12; BC-7.06.001 v1.11→v1.12; BC-9.01.006 v1.2→v1.3; BC-3.08.001 v1.13→v1.14; BC-4.04.004 v2.1→v2.2; BC-4.05.004 v2.1→v2.2; BC-4.07.003 v1.3→v1.4; BC-4.08.002 v1.3→v1.4. No count change (total_bcs: 1947). Refs: F-P36-001, L-P28-001, fix-burst-35. last_amended: 2026-05-09 (F5 fix-burst-35: 12 BC body Stories rows propagated S-15.01; F-P36-001 closed)."
   - date: 2026-05-09
     change: "v1.52 (2026-05-09; fix-burst-34): F-P35-001 — 6 BC-INDEX resolver-platform rows patched: BC-1.13.001 capability CAP-TBD→CAP-002; Stories TBD→S-12.03,S-12.04. BC-4.12.001 capability CAP-TBD→CAP-009; Stories TBD→S-12.04. BC-4.12.002 capability CAP-TBD→CAP-009; Stories TBD→S-12.05,S-12.06. BC-4.12.003 capability CAP-TBD→CAP-009; Stories TBD→S-12.04,S-12.07. BC-4.12.004 capability CAP-TBD→CAP-009; Stories TBD→S-12.04. BC-4.12.005 capability CAP-TBD→CAP-009; Stories TBD→S-12.03. Values verified against source BC frontmatter + Traceability tables. No count change (total_bcs: 1947). Refs: F-P35-001, L-P28-001, fix-burst-34. last_amended: 2026-05-09 (F5 fix-burst-34: resolver-platform BC rows reconciled; F-P35-001 closed)."
   - date: 2026-05-09
