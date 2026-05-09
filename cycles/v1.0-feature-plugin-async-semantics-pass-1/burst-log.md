@@ -2628,7 +2628,7 @@ Pass-50 dispatched next.
 
 | File | Agent | Change |
 |------|-------|--------|
-| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.60→v1.61. Corpus-wide retroactive sweep E-6/7/9/10/11 changelog entry added. 48 BCs verified clean — no TBD drift found. |
+| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.60→v1.61. Corpus-wide retroactive sweep E-6/7/9/10/11 changelog entry added. 53 BCs verified clean — no TBD drift found. [Count corrected 48→53 in fix-burst-48 per F-P52-001 sibling-propagation.] |
 | `specs/architecture/ARCH-INDEX.md` | state-manager | v1.40→v1.41. BC-INDEX body cite refreshed v1.60→v1.61 (L-P20-002 discipline). |
 | `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | L-P28-001 16th META + corpus-wide retroactive sweep complete — appended. Fix-burst-46 corpus verification block (per-epic results) appended. |
 | `.factory/STATE.md` | state-manager | current_step, Last Updated, Current Phase Steps, fix-burst-46 block, session checkpoint all updated. BC-INDEX v1.61 / ARCH-INDEX v1.41. |
@@ -2689,3 +2689,43 @@ Fix-burst-47 closure verified across 5 artifacts (BC-INDEX v1.62, ARCH-INDEX v1.
 **Files touched:** STATE.md (frontmatter, Phase Progress, Current Phase Steps, Session Resume Checkpoint), F5-adversary-pass-51.md (created), burst-log.md (this entry).
 
 Pass-52 next.
+
+---
+
+## Burst 58 — pass-52 adversary review (LOW)
+
+**Date:** 2026-05-09
+**Agent:** adversary
+**Verdict:** LOW (1L; F-P52-001)
+
+**Summary:**
+Pass-51 closure verified for the 5 artifacts pass-51 explicitly checked. 5 fresh BCs / 5 fresh VPs / 5 fresh stories sampled (none overlapping passes 44/46/47/51): all clean except sibling-not-updated count narrative. F-P52-001 [LOW pending intent]: fix-burst-47 (F-P50-001 closure) inline-edited BC-INDEX/lessons.md/STATE.md to correct "48 BCs"→"53 BCs" but did NOT update ARCH-INDEX:22 + burst-log:2631 sibling artifacts. Adjudication: Interpretation B (correct-inline + annotate). Index versions confirmed. Arithmetic verified (E-7=28, Total=53, BC count 1947, VP count 79). BC-7.02.007 H1 truncation noted (pre-cycle latent defect; not novel).
+
+**ADR-013:** RESETS 1_of_3 → **0_of_3** (LOW finding resets clock).
+
+**Files touched:** F5-adversary-pass-52.md (created), burst-log.md (this entry).
+
+Fix-burst-48 next.
+
+---
+
+## Burst 59 — fix-burst-48 (F-P52-001 sibling propagation + 18th META)
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL — fix-burst-48
+
+**Trigger:** F-P52-001 — ARCH-INDEX:22 + burst-log:2631 cited "48 BCs" after fix-burst-47 corrected BC-INDEX/lessons.md/STATE.md to "53 BCs". Sibling-not-updated gap. Interpretation B (correct-inline + annotate).
+
+**Files touched:**
+
+| File | Agent | Change |
+|------|-------|--------|
+| `specs/architecture/ARCH-INDEX.md` | state-manager | v1.42→v1.43. v1.41 changelog corrected "48 BCs"→"53 BCs". v1.43 entry added (F-P52-001 sibling-propagation annotation). |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Line 2631 corrected "48 BCs"→"53 BCs" with annotation. Fix-burst-48 entries (bursts 58+59) appended. |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | 18th META appended (4th count-narrative drift class; sibling-propagation gap; Interpretation B established pattern). |
+| `.factory/STATE.md` | state-manager | current_step, Last Updated, Current Phase Steps, Concurrent Cycles, Strategic Decision block, Session Resume Checkpoint, Index versions, ADR-013 clock all updated. ARCH-INDEX v1.43. ADR-013 0_of_3. |
+
+18th L-P28-001 META instance: 4th count-narrative drift class recurrence.
+BC-INDEX v1.62 | ARCH-INDEX v1.43
+Pass-53 next. ADR-013 0_of_3 (RESET — pass-52 LOW resets).

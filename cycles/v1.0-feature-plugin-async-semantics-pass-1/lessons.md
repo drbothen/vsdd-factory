@@ -749,3 +749,11 @@ Per the complement clause codified in fix-burst-45, applied L-P28-001 retroactiv
 **Mechanical enforcement is overdue:** lessons.md:709 + fix-burst-44 + fix-burst-46 + fix-burst-47 (this) all reference the S-15.03 hook scope candidate (count-narrative coherence sub-rule). The 17th META instance reaffirms this is the structurally-convergent path. Prose codification has demonstrably failed at the count-narrative axis.
 
 **Recommended:** prioritize S-15.03 implementation over additional prose codification. The validate-stable-anchors hook family should extend to count-narrative arithmetic validation.
+
+**18th META-self-application failure (added fix-burst-48, F-P52-001 closure):** Sibling-not-updated count narrative drift. Fix-burst-47 inline-edited BC-INDEX, STATE.md, lessons.md to correct "48 BCs" → "53 BCs" but did NOT update ARCH-INDEX:22 + burst-log:2631 sibling artifacts.
+
+**Pattern:** This is the 4th occurrence of count-narrative drift class within the 18-instance L-P28-001 META series. Each fix-burst that addresses count-narrative emits a sibling-propagation gap.
+
+**Mechanical enforcement remains overdue.** S-15.03 hook scope candidate (count-narrative coherence sub-rule + sibling propagation check) would mechanically prevent this class.
+
+**Adjudication note:** The correct-inline-and-annotate interpretation (Interpretation B) is now the established pattern for count-narrative corrections.

@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.42"
+version: "1.43"
 status: accepted
 producer: architect
 timestamp: 2026-05-09T00:00:00
@@ -17,9 +17,11 @@ traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
   - date: 2026-05-09
+    change: "v1.43 (2026-05-09; fix-burst-48): F-P52-001 sibling-artifact propagation — v1.41 changelog narrative corrected: '48 BCs verified clean' → '53 BCs verified clean' (fix-burst-47 inline-corrected BC-INDEX/lessons.md/STATE.md but not ARCH-INDEX; sibling-not-updated gap per Interpretation B adjudication). ARCH-INDEX v1.42→v1.43."
+  - date: 2026-05-09
     change: "v1.42 (2026-05-09; fix-burst-47): BC-INDEX body cite refreshed v1.61→v1.62 (BC-INDEX bumped v1.61→v1.62 in same burst for F-P50-001 count-narrative correction E-7=23→28, Total=48→53; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.41→v1.42."
   - date: 2026-05-09
-    change: "v1.41 (2026-05-09; fix-burst-46): BC-INDEX body cite refreshed v1.60→v1.61 (BC-INDEX bumped v1.60→v1.61 in same burst for corpus-wide retroactive sweep E-6/7/9/10/11 — 48 BCs verified clean; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.40→v1.41."
+    change: "v1.41 (2026-05-09; fix-burst-46): BC-INDEX body cite refreshed v1.60→v1.61 (BC-INDEX bumped v1.60→v1.61 in same burst for corpus-wide retroactive sweep E-6/7/9/10/11 — 53 BCs verified clean; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.40→v1.41. [Count corrected 48→53 in fix-burst-48 per F-P52-001 sibling-propagation.]"
   - date: 2026-05-09
     change: "v1.40 (2026-05-09; fix-burst-45): BC-INDEX body cite refreshed v1.59→v1.60 (BC-INDEX bumped v1.59→v1.60 in same burst for F-P49-001 E-3+E-4 retroactive Stories propagation 20 BCs; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.39→v1.40."
   - date: 2026-05-09
