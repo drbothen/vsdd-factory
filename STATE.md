@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "CONVERGENCE_REACHED — F5 ADR-013 = 3_of_3 at pass-57. PR ready to open."
+current_step: "CYCLE_CLOSED — F5 ADR-013 = 3_of_3. PR #108 MERGED f08e313e 2026-05-09. Cycle v1.0-feature-plugin-async-semantics-pass-1 COMPLETE."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 — CONVERGENCE_REACHED at pass-57 after 40 adversary passes + 49 fix-bursts. PR `fix/S-15.01-F5-convergence` unblocked for merge. |
-| **Current Phase** | F5 CONVERGED — v1.0-feature-plugin-async-semantics-pass-1; ADR-013 clock 3_of_3 (CONVERGENCE_REACHED 2026-05-09 pass-57). PR `fix/S-15.01-F5-convergence` unblocked for merge. |
+| **Last Updated** | 2026-05-09 — PR #108 MERGED (squash SHA f08e313e). Cycle v1.0-feature-plugin-async-semantics-pass-1 FULLY CLOSED. |
+| **Current Phase** | CYCLE_CLOSED — v1.0-feature-plugin-async-semantics-pass-1 COMPLETE. PR #108 merged f08e313e 2026-05-09. Branch fix/S-15.01-F5-convergence deleted. Next: resume engine-discipline or E-10 per user directive. |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,7 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 CONVERGED** — pass-57 NITPICK_ONLY — ADR-013 3_of_3 — 2026-05-09. PR unblocked. | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–57 + fix-bursts 1–49 complete. Pass-57 NITPICK_ONLY (0H/0M/0L; 5 fresh BCs/VPs/stories clean). BC-INDEX v1.63; ARCH-INDEX v1.44; STORY-INDEX v2.64. ADR-013 3_of_3 = CONVERGED. PR `fix/S-15.01-F5-convergence` @ 7b841eca UNBLOCKED. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **CYCLE CLOSED** — PR #108 MERGED f08e313e 2026-05-09. | S-15.01 MERGED PR #106; fix-burst PR #107 merged; F5 convergence bundle PR #108 squash-merged f08e313e 2026-05-09. Branch fix/S-15.01-F5-convergence deleted. ADR-013 3_of_3 CONVERGED pass-57. Total: 40 adversary passes, 49 fix-bursts, 19 L-P28-001 META. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -141,7 +141,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
-| develop | 6050d24 | F5 fix-burst PR #107 squash-merge 2026-05-08 |
+| develop | f08e313e | PR #108 F5 convergence bundle squash-merge 2026-05-09 |
 | factory-artifacts | (see git log) | fix-burst-27 sub-burst 2 state-manager close — this commit |
 | v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
@@ -193,27 +193,26 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Convergence Summary — F5 plugin-async-semantics
 
-**Status:** CONVERGENCE_REACHED at pass-57 (2026-05-09; ADR-013 3_of_3)
+**Status:** CYCLE CLOSED — PR #108 MERGED f08e313e 2026-05-09
 
 **Final state:**
 - BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
 - Total adversary passes: 40 (passes 18–57); total fix-bursts: 49 (bursts 13–49 + sub-bursts)
 - L-P28-001 META instances codified: 19; Lessons: L-P18-001..L-P28-001 (14+)
 - TD-031: RESOLVED at fix-burst-49 + pass-55/56/57 NIT chain
-- PR `fix/S-15.01-F5-convergence` @ 7b841eca (39 commits ahead): UNBLOCKED for merge
+- PR #108 `fix/S-15.01-F5-convergence`: squash-merged f08e313e 2026-05-09; branch deleted
 
 **Final 3-pass NIT chain:** pass-55 (fix-burst-49 Title-cell sweep) → pass-56 → pass-57
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — CONVERGENCE_REACHED at pass-57 (ADR-013 3_of_3). F5 cycle v1.0-feature-plugin-async-semantics-pass-1 terminates successfully.
+**Last update:** 2026-05-09 — PR #108 MERGED (squash SHA f08e313e). Cycle v1.0-feature-plugin-async-semantics-pass-1 FULLY CLOSED.
 
-**ACTIVE STEP: Dispatch pr-manager to open PR for `fix/S-15.01-F5-convergence` @ 7b841eca.**
+**ACTIVE STEP: Cycle closed. Next action per user directive — resume engine-discipline (v1.0-feature-engine-discipline-pass-1 F3-amendment: S-12.03..S-12.08) or E-10 brownfield pass-9.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 7b841eca — UNBLOCKED; 39 commits ahead of develop; ready for PR
-- develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
-- factory-artifacts @ (this commit — see git log)
+- develop @ f08e313e (PR #108 squash-merge 2026-05-09)
+- factory-artifacts @ (see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
 **Index versions:** BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
