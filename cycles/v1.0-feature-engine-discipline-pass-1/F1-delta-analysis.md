@@ -7,6 +7,8 @@ created: 2026-05-06
 author: architect
 ---
 
+<!-- L-P25-002 carve-out: This is a Phase F1 (architect-proposal) artifact preserved as historical audit record. Pseudocode symbols within are PRE-MERGE PLANNING VOCABULARY. Downstream specs MUST replace with merged-code symbols per L-P21-001 + L-P24-002. This file itself is exempt from fabricated-symbol sweeps under the L-P25-002 F1-architect-proposal carve-out (extends L-P24-001 brownfield Phase 0 carve-out). Codified at lessons.md L-P25-002. -->
+
 # F1 Delta Analysis — Engine Discipline Pass 1
 
 ## 1. Scope Summary
