@@ -2342,4 +2342,24 @@ Corpus sweep results (axis-checklist per L-P28-001 11th instance):
 
 Findings closed: F-P43-001 (MEDIUM), F-P43-002 (MEDIUM), F-P43-003 (MEDIUM), O-P43-001 (LOW)
 ADR-013 clock: 0_of_3 (RESET — pass-43 MED)
+
+---
+
+## Burst 46 — F5 pass-44 adversary review: NITPICK_ONLY
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → adversary
+**Phase:** F5 ADVERSARIAL — pass-44
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-44.md` | adversary | Pass-44 review: NITPICK_ONLY (0H/0M/0L). Fix-burst-41 closures verified (all CONFIRMED). 5 NEW BCs + 5 NEW VPs + 6 NEW stories sample audit all clean. BC-INDEX arithmetic confirmed. ADR-013 advances 0→1_of_3. FIRST ADVANCEMENT after 12 consecutive non-NIT passes. |
+| `.factory/STATE.md` | state-manager | current_step → PASS-44 NITPICK_ONLY; ADR-013 clock 1_of_3. Current Phase Steps: pass-44 DONE + pass-45 NEXT. Phase Progress + Concurrent Cycles + Strategic Note + Session Checkpoint updated. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Burst 46 appended. |
+
+Verdict: NITPICK_ONLY
+ADR-013 clock: 1_of_3 (advancing — pass-44 NITPICK_ONLY breaks 12-pass non-NIT streak)
+Pass-45 dispatched next.
 Pass-44 next.
