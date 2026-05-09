@@ -2672,3 +2672,20 @@ Pass-50 next.
 17th L-P28-001 META instance: third recurrence of count-narrative drift class.
 BC-INDEX v1.62 | ARCH-INDEX v1.42
 Pass-51 next. ADR-013 0_of_3 (RESET — pass-50 HIGH).
+
+---
+
+## Burst 57 — pass-51 adversary review (NITPICK_ONLY)
+
+**Date:** 2026-05-09
+**Agent:** adversary
+**Verdict:** NITPICK_ONLY (0H/0M/0L)
+
+**Summary:**
+Fix-burst-47 closure verified across 5 artifacts (BC-INDEX v1.62, ARCH-INDEX v1.42, count narratives E-7=28/Total=53, lessons.md:739 corrected, 17th META present). Arithmetic independently re-verified: E-7=28 (S-7.01=7 + S-7.02=8 + S-7.03=13; zero overlap), cross-epic total=53 (12+28+13), VP total=79. Fresh sample sweep (5 BCs, 5 VPs, 5 stories) all clean. POLICY 1-12 PASS. Process-gap observation (non-blocking): S-15.03 mechanical enforcement unimplemented despite 17 META instances.
+
+**ADR-013:** 0_of_3 → **1_of_3**. Two more clean passes required to reach CONVERGED.
+
+**Files touched:** STATE.md (frontmatter, Phase Progress, Current Phase Steps, Session Resume Checkpoint), F5-adversary-pass-51.md (created), burst-log.md (this entry).
+
+Pass-52 next.
