@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -24,23 +24,25 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.07.005: factory-dispatcher::loads_legacy_registry::every_entry_routes_through_legacy_bash_adapter — every entry in the production registry routes through legacy-bash-adapter.wasm
+# Behavioral Contract BC-1.07.005: factory-dispatcher::loads_generated_registry_from_disk — production registry parses cleanly and schema version matches
 
 ## Description
 
-Integration test: For `plugins/vsdd-factory/hooks-registry.toml` (45 entries today), every entry's plugin file basename resolves to `legacy-bash-adapter.wasm`. No native plugin has been smuggled into the production registry.
+Integration test: `plugins/vsdd-factory/hooks-registry.toml` is loaded through the production `Registry::load` codepath. The registry must parse without error and the parsed `schema_version` field must equal the compile-time constant `REGISTRY_SCHEMA_VERSION`. This is the primary parse-and-schema-version assertion in `loads_generated_registry_from_disk` (line 43).
 
 ## Preconditions
 
-1. Production registry `plugins/vsdd-factory/hooks-registry.toml` is loaded.
+1. `plugins/vsdd-factory/hooks-registry.toml` exists at the path derived from `CARGO_MANIFEST_DIR`.
+2. `Registry::load` is callable with the computed path.
 
 ## Postconditions
 
-1. All 45 plugins resolve to `legacy-bash-adapter.wasm`.
+1. `Registry::load` returns `Ok(registry)` — the file parses without error.
+2. `registry.schema_version == REGISTRY_SCHEMA_VERSION`.
 
 ## Invariants
 
-1. Until S-3.1+ (native plugin swap-out), every registry entry routes through the legacy adapter.
+1. The production registry's `schema_version` field must always satisfy the compile-time constant; any mismatch is a build-time error caught by CI.
 
 ## Edge Cases
 
@@ -52,7 +54,7 @@ Integration test: For `plugins/vsdd-factory/hooks-registry.toml` (45 entries tod
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Production registry | All 45 entries resolve to legacy-bash-adapter.wasm | happy-path |
+| `plugins/vsdd-factory/hooks-registry.toml` (current production file) | `Registry::load` returns `Ok`; `schema_version == REGISTRY_SCHEMA_VERSION` | happy-path |
 | TBD | TBD | edge-case |
 | TBD | TBD | error |
 
@@ -97,6 +99,20 @@ Integration test: For `plugins/vsdd-factory/hooks-registry.toml` (45 entries tod
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P23-003: H1 title + body rebrand to cite real production symbols)
+
+**Driver:** F-P23-003 (pass-23 finding). H1 title cited `every_entry_routes_through_legacy_bash_adapter` — a fabricated symbol (0 grep matches). Fix-burst-21 sub-burst 2 only patched §Source Evidence; H1 and BC-INDEX row still carried the fabricated name. The actual test fn `loads_generated_registry_from_disk` asserts parse-success + schema-version equality (line 43), not per-entry adapter routing.
+
+**H1 before:** `factory-dispatcher::loads_legacy_registry::every_entry_routes_through_legacy_bash_adapter — every entry in the production registry routes through legacy-bash-adapter.wasm`
+
+**H1 after:** `factory-dispatcher::loads_generated_registry_from_disk — production registry parses cleanly and schema version matches`
+
+**Body changes:** Description, Preconditions, Postconditions, and Invariants rewritten to reflect the actual test assertions (parse + schema-version equality). Canonical test vector updated to match real inputs/outputs.
+
+**Verification:** `grep -rn "every_entry_routes_through_legacy_bash_adapter" /Users/jmagady/Dev/vsdd-factory/.factory/specs/` returns only Amendment/Changelog historical mentions, not active body or H1.
+
+**Refs:** F-P23-003, L-P21-001, POLICY 1 (BC-INDEX title sync), POLICY 4 (anchors must be grep-verifiable), POLICY 7 (H1 is title source of truth).
 
 ## Amendment 2026-05-08 (v1.0 → v1.1 — L-P21-001 retroactive sweep: Source Evidence fabricated function corrected)
 

@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.46"
+version: "1.47"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "v1.47 (2026-05-08): F-P23-003 — BC-1.07.005/BC-1.07.006 v1.1→v1.2 H1 title + body rebrand to cite real production symbols. Fabricated names `every_entry_routes_through_legacy_bash_adapter` and `every_entry_carries_a_script_path` removed from H1 and BC-INDEX rows. Replaced with real test fn `loads_generated_registry_from_disk` with distinct property descriptions per BC. Rows 226-227 re-derived from new H1 titles per POLICY 1. Refs: F-P23-003, POLICY 1, POLICY 4, POLICY 7."
   - date: 2026-05-08
     change: "v1.46 (2026-05-08): F-P22-001 corpus-wide lobster-line-cite sweep (88 BCs in ss-05 v1.1→v1.2; carve-out per L-P19-001+L-P20-001 broadest scope yet); F-P22-002 BC-1.14.001 v1.10→v1.11 cycle-anchor fabricated symbols fix (RegistryEntry.async_flag, executor.rs::execute_tiers, executor.rs::spawn_async_plugin); L-P21-001 retroactive sweep BC-1.07.005/BC-1.07.006 v1.0→v1.1 (additional fabrications). Fix-burst-21 commits: 87dd64aa, 2ea5ee5a, 56f0b883."
   - date: 2026-05-08
@@ -223,8 +225,8 @@ changelog:
 | [BC-1.07.002](ss-01/BC-1.07.002.md) | `commit.made` events fire reliably on real Claude Code git commit | draft | CAP-002 | S-2.07 |
 | [BC-1.07.003](ss-01/BC-1.07.003.md) | Generated hooks-registry.toml round-trips through Registry::load | draft | CAP-002 | S-2.02 |
 | [BC-1.07.004](ss-01/BC-1.07.004.md) | registry-generation script is idempotent | draft | CAP-002 | S-2.02 |
-| [BC-1.07.005](ss-01/BC-1.07.005.md) | factory-dispatcher::loads_legacy_registry::every_entry_routes_through_legacy_bash_adapter — every entry in the production registry routes through legacy-bash-adapter.wasm | draft | CAP-TBD | TBD |
-| [BC-1.07.006](ss-01/BC-1.07.006.md) | factory-dispatcher::loads_legacy_registry::every_entry_carries_a_script_path — every entry has plugin_config.script_path matching `hooks/<name>.sh` | draft | CAP-TBD | TBD |
+| [BC-1.07.005](ss-01/BC-1.07.005.md) | factory-dispatcher::loads_generated_registry_from_disk — production registry parses cleanly and schema version matches | draft | CAP-TBD | TBD |
+| [BC-1.07.006](ss-01/BC-1.07.006.md) | factory-dispatcher::loads_generated_registry_from_disk — hook count is within sanity bounds (>20 and <100) | draft | CAP-TBD | TBD |
 | [BC-1.08.001](ss-01/BC-1.08.001.md) | dispatcher exits 0 on registry/payload/engine errors (non-blocking) | draft | CAP-002 | S-2.07, S-15.01 |
 | [BC-1.08.002](ss-01/BC-1.08.002.md) | dispatcher exit code is 2 iff at least one sync-group plugin recorded a block_intent; async-group verdicts never affect exit code | draft | CAP-002 | S-2.07, S-15.01 |
 | [BC-1.08.003](ss-01/BC-1.08.003.md) | dispatcher uses current_thread tokio runtime (not multi-threaded pool) | draft | CAP-TBD | TBD |

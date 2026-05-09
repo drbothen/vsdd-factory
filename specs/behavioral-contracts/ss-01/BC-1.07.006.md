@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -24,24 +24,25 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-1.07.006: factory-dispatcher::loads_legacy_registry::every_entry_carries_a_script_path — every entry has plugin_config.script_path matching `hooks/<name>.sh`
+# Behavioral Contract BC-1.07.006: factory-dispatcher::loads_generated_registry_from_disk — hook count is within sanity bounds (>20 and <100)
 
 ## Description
 
-Integration test: For each entry in the production registry, `entry.config_as_json().get("script_path")` returns a non-empty string matching `hooks/*.sh`. Catches generator drift — if `generate-registry-from-hooks-json.sh` ever drops `script_path`, the dispatcher refuses the payload at runtime (per BC-4.01.001).
+Integration test: After `plugins/vsdd-factory/hooks-registry.toml` is loaded through the production `Registry::load` codepath, the number of parsed hook entries is verified to be within a sanity range. The lower bound (>20) guards against silent elision of the v0.79.x inventory; the upper bound (<100) guards against duplicated-emit bugs in the generator. Both bounds are asserted in `loads_generated_registry_from_disk` (lines 49–59).
 
 ## Preconditions
 
-1. Production registry is loaded.
+1. `plugins/vsdd-factory/hooks-registry.toml` exists and parses successfully (BC-1.07.005 satisfied).
+2. `registry.hooks` is populated.
 
 ## Postconditions
 
-1. Each entry's `config_as_json().get("script_path")` returns a non-empty string.
-2. The string matches `hooks/*.sh` shape.
+1. `registry.hooks.len() > 20` — the full v0.79.x hook inventory is present.
+2. `registry.hooks.len() < 100` — no duplicated-emit anomaly has inflated the count.
 
 ## Invariants
 
-1. Schema-time invariant for legacy-bash-adapter routing is CI-enforced.
+1. The hook count sanity bounds are CI-enforced; any registry that falls outside the [21, 99] range is a build-time error.
 
 ## Edge Cases
 
@@ -53,7 +54,7 @@ Integration test: For each entry in the production registry, `entry.config_as_js
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Production registry | Every entry has `plugin_config.script_path = hooks/<name>.sh` | happy-path |
+| `plugins/vsdd-factory/hooks-registry.toml` (current production file, ~30 hooks) | `registry.hooks.len()` is in range [21, 99] | happy-path |
 | TBD | TBD | edge-case |
 | TBD | TBD | error |
 
@@ -98,6 +99,20 @@ Integration test: For each entry in the production registry, `entry.config_as_js
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P23-003: H1 title + body rebrand to cite real production symbols)
+
+**Driver:** F-P23-003 (pass-23 finding). H1 title cited `every_entry_carries_a_script_path` — a fabricated symbol (0 grep matches). Fix-burst-21 sub-burst 2 only patched §Source Evidence; H1 and BC-INDEX row still carried the fabricated name. The actual test fn `loads_generated_registry_from_disk` asserts hook count sanity bounds (lines 49–59), not per-entry `script_path` values.
+
+**H1 before:** `factory-dispatcher::loads_legacy_registry::every_entry_carries_a_script_path — every entry has plugin_config.script_path matching \`hooks/<name>.sh\``
+
+**H1 after:** `factory-dispatcher::loads_generated_registry_from_disk — hook count is within sanity bounds (>20 and <100)`
+
+**Body changes:** Description, Preconditions, Postconditions, and Invariants rewritten to reflect the actual test assertions (count lower bound >20, count upper bound <100). Canonical test vector updated to match real inputs/outputs.
+
+**Verification:** `grep -rn "every_entry_carries_a_script_path" /Users/jmagady/Dev/vsdd-factory/.factory/specs/` returns only Amendment/Changelog historical mentions, not active body or H1.
+
+**Refs:** F-P23-003, L-P21-001, POLICY 1 (BC-INDEX title sync), POLICY 4 (anchors must be grep-verifiable), POLICY 7 (H1 is title source of truth).
 
 ## Amendment 2026-05-08 (v1.0 → v1.1 — L-P21-001 retroactive sweep: Source Evidence fabricated function corrected)
 
