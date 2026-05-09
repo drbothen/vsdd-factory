@@ -49,8 +49,7 @@
 //! 2. Post-fix correctness — validate-artifact-path:
 //!    a. Unregistered absolute path → block (exit_code 2, block_intent).
 //!    b. Registered absolute path → continue (exit_code 0, no block).
-//!    c. Relative path regression: unregistered relative → block; registered
-//!       relative → continue.
+//!    c. Relative path regression: unregistered → block; registered → continue.
 //!
 //! 3. Post-fix correctness — validate-stable-anchors:
 //!    a. Absolute spec path + new_string containing `foo.rs:42` → block.
@@ -72,7 +71,7 @@
 //! The pre-fix code path is validated by unit tests in
 //! `validate-stable-anchors/src/tests.rs` which read the pre-fix source directly.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use factory_dispatcher::engine::build_engine;
 use factory_dispatcher::host::HostContext;
@@ -201,7 +200,7 @@ fn setup_temp_registry() -> (tempfile::TempDir, PathBuf) {
 /// The read_file capability is granted for `plugins/vsdd-factory/config`
 /// (where the registry YAML lives). The `path_allow` list must be non-empty
 /// and include the registry prefix — an empty list means "deny all".
-fn invoke_hook(wasm_path: &PathBuf, cwd: &PathBuf, payload_json: &[u8]) -> PluginResult {
+fn invoke_hook(wasm_path: &Path, cwd: &Path, payload_json: &[u8]) -> PluginResult {
     let engine = build_engine().expect("wasmtime engine must build");
     let wasm_bytes = std::fs::read(wasm_path)
         .unwrap_or_else(|e| panic!("WASM read failed for {:?}: {}", wasm_path, e));
@@ -214,7 +213,7 @@ fn invoke_hook(wasm_path: &PathBuf, cwd: &PathBuf, payload_json: &[u8]) -> Plugi
         "test-session",
         "test-trace",
     );
-    host_ctx.cwd = cwd.clone();
+    host_ctx.cwd = cwd.to_path_buf();
     // Grant read_file capability for the registry directory.
     // path_allow is relative to cwd — the registry lives at
     // `plugins/vsdd-factory/config/artifact-path-registry.yaml` under cwd.

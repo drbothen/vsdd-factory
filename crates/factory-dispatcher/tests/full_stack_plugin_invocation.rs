@@ -1082,7 +1082,7 @@ async fn test_e2e_BC_7_06_001_sync_hook_crash_fail_closed_on_error_block() {
     };
     let registry = registry_from(vec![crash_entry.clone()]);
 
-    let tiers = vec![vec![registry.hooks.iter().next().unwrap()]];
+    let tiers = vec![vec![registry.hooks.first().unwrap()]];
 
     let base_ctx = workspace_host_ctx(&internal_log);
     let inputs = ExecutorInputs {
@@ -1393,7 +1393,7 @@ async fn test_e2e_BC_3_08_001_sync_hook_internal_log_events() {
         "dispatcher_trace_id": "e2e-trace-id"
     });
 
-    let tiers = vec![vec![registry.hooks.iter().next().unwrap()]];
+    let tiers = vec![vec![registry.hooks.first().unwrap()]];
     let base_ctx = workspace_host_ctx(&internal_log);
     let inputs = ExecutorInputs {
         engine: &engine,
@@ -1501,7 +1501,7 @@ async fn test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block() {
     };
     let registry = registry_from(vec![hang_entry.clone()]);
 
-    let tiers = vec![vec![registry.hooks.iter().next().unwrap()]];
+    let tiers = vec![vec![registry.hooks.first().unwrap()]];
 
     let base_ctx = workspace_host_ctx(&internal_log);
     let inputs = ExecutorInputs {
