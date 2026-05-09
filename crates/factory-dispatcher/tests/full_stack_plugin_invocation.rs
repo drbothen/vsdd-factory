@@ -19,6 +19,7 @@
 //! | 9 | test_e2e_BC_1_14_001_async_timeout_emits_plugin_timeout_event | async hook timeout emits plugin.timeout event | BC-3.08.001 Event 4, DI-019 |
 //! | 10| test_e2e_BC_1_14_001_partition_correctness_real_registry | real hooks-registry.toml partitions correctly | BC-7.06.001 PC2, BC-1.14.001 |
 //! | 11| test_e2e_BC_3_08_001_sync_hook_internal_log_events | sync execution emits plugin.invoked + plugin.completed | BC-3.08.001 |
+//! | 12| test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block | sync hook timeout with on_error=block exits 2 | ADR-019 Decision 2, BC-1.14.001 Error Paths, BC-7.06.001 Invariant 1 |
 //!
 //! ## WASM binaries used
 //!
@@ -1391,4 +1392,127 @@ async fn test_e2e_BC_3_08_001_sync_hook_internal_log_events() {
         summary.per_plugin_results.len(),
         summary.exit_code
     );
+}
+
+/// TC-12: Sync hook timeout with on_error=block → dispatcher exit 2 (fail-closed).
+///
+/// Mirror of TC-8 (Crashed+Block) for the Timeout outcome. A sync plugin that
+/// hangs indefinitely with a short `timeout_ms` and `on_error=block` triggers
+/// fail-closed semantics via `plugin_fail_closed`. Exit code must be 2 and
+/// `block_intent` must be true.
+///
+/// ADR-019 §Decision 2 fail-closed, BC-1.14.001 Error Paths,
+/// BC-7.06.001 Invariant 1 (Timeout+on_error=Block must not fail open).
+///
+/// The hang WAT runs `(loop (br 0))` — an unconditional infinite branch-back
+/// that hits the epoch checkpoint on every iteration. The epoch ticker fires
+/// after `timeout_ms` (100ms), producing `PluginResult::Timeout{Epoch}`.
+/// With `on_error=Block`, `plugin_fail_closed` returns true → exit_code=2.
+#[tokio::test(flavor = "current_thread")]
+async fn test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block() {
+    use factory_dispatcher::registry::OnError;
+
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    // EpochTicker MUST be started so the engine's epoch counter advances.
+    // Without it, the epoch deadline never fires and the plugin hangs forever.
+    let _ticker = EpochTicker::start(engine.clone());
+    let cache = PluginCache::new(engine.clone());
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+
+    // Infinite-loop WAT: `(loop (br 0))` branches back unconditionally.
+    // Each `br 0` is a backward edge — Wasmtime checks the epoch counter here,
+    // so the epoch interrupt fires reliably within timeout_ms milliseconds.
+    let hang_wat = r#"
+        (module
+          (memory (export "memory") 1)
+          (func (export "_start") (loop (br 0))))
+    "#;
+    let hang_bytes = wat::parse_str(hang_wat).expect("WAT parse");
+    let hang_path = dir.path().join("hang-plugin.wasm");
+    std::fs::write(&hang_path, &hang_bytes).unwrap();
+
+    // Sync entry with on_error=block and a short timeout.
+    // 100ms is short enough to keep the test fast and long enough to be
+    // deterministic on slow CI runners (EpochTicker ticks every ~10ms by default).
+    let hang_entry = RegistryEntry {
+        name: "sync-hang-block-plugin".to_string(),
+        event: "PreToolUse".to_string(),
+        tool: None,
+        plugin: hang_path,
+        priority: Some(100),
+        enabled: true,
+        timeout_ms: Some(100), // short wall-clock budget → epoch interrupt fires
+        fuel_cap: Some(u64::MAX), // unlimited fuel so timeout, not fuel cap, fires first
+        on_error: Some(OnError::Block), // fail-closed on timeout
+        capabilities: Some(Capabilities::default()),
+        config: toml::Value::Table(toml::Table::new()),
+        async_flag: false, // SYNC — verdict propagates to gate
+    };
+    let registry = registry_from(vec![hang_entry.clone()]);
+
+    let tiers = vec![vec![registry.hooks.iter().next().unwrap()]];
+
+    let base_ctx = workspace_host_ctx(&internal_log);
+    let inputs = ExecutorInputs {
+        engine: &engine,
+        cache: &cache,
+        registry: &registry,
+        payload_value: serde_json::json!({
+            "event_name": "PreToolUse",
+            "tool_name": "Write",
+            "session_id": "e2e-test-session",
+            "dispatcher_trace_id": "e2e-trace-id"
+        }),
+        base_host_ctx: base_ctx,
+        internal_log: internal_log.clone(),
+    };
+
+    let summary = execute_tiers(inputs, tiers).await;
+
+    assert_eq!(
+        summary.per_plugin_results.len(),
+        1,
+        "TC-12: exactly one plugin outcome"
+    );
+
+    let outcome = &summary.per_plugin_results[0];
+
+    // The hang plugin must have timed out (epoch interrupt).
+    // Some environments may surface the epoch interrupt as a Crash trap — accept
+    // both as "timed out" semantically (per TC-9 precedent).
+    let timed_out_or_crashed = matches!(
+        outcome.result,
+        PluginResult::Timeout { .. } | PluginResult::Crashed { .. }
+    );
+    assert!(
+        timed_out_or_crashed,
+        "TC-12 FAIL: hang plugin must Timeout (or Crash via epoch interrupt). \
+         Got: {:?}",
+        std::mem::discriminant(&outcome.result)
+    );
+
+    eprintln!(
+        "TC-12: hang plugin outcome={:?}, summary.exit_code={}, block_intent={}",
+        std::mem::discriminant(&outcome.result),
+        summary.exit_code,
+        summary.block_intent,
+    );
+
+    // Fail-closed: on_error=Block + Timeout → exit 2 (ADR-019 §Decision 2).
+    // This is the integration-level mirror of the unit test
+    // `fail_closed_timeout_with_on_error_block` in executor.rs::tests.
+    assert_eq!(
+        summary.exit_code, 2,
+        "TC-12 FAIL: dispatcher exit_code must be 2 for Timeout+on_error=Block plugin \
+         (ADR-019 §Decision 2 fail-closed semantics). \
+         Got {}. A timed-out gate hook with on_error=block must not fail open.",
+        summary.exit_code
+    );
+    assert!(
+        summary.block_intent,
+        "TC-12 FAIL: block_intent must be true for Timeout+on_error=Block plugin"
+    );
+
+    eprintln!("TC-12 PASS: timed-out sync gate hook with on_error=block exits 2 (fail-closed)");
 }
