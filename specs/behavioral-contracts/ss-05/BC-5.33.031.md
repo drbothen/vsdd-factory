@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
+last_amended: 2026-05-08
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -96,7 +97,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/vsdd-factory/workflows/maintenance.lobster` (lines 285-303) |
+| **Path** | `plugins/vsdd-factory/workflows/maintenance.lobster` (lines 285-303; lobster path carve-out: line range unstable as lobster files evolve) |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -125,3 +126,18 @@ No refactoring needed.
 **Change made:**
 - §Description: line refs preserved as point-in-time evidence; `maintenance.lobster` file name and logical section (maintenance-report step) made explicit for reader navigability; HTML comment added citing F-P21-001 deferral.
 - Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite corpus-wide sweep)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — additional lobster-file line cites annotated with carve-out.
+
+**Changes made:** Inline lobster/source-doc carve-out annotations added. Frontmatter version incremented.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 additional sweep: remaining lobster-line-cite patterns annotated with carve-out. |

@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
+last_amended: 2026-05-08
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -102,7 +103,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/vsdd-factory/workflows/code-delivery.lobster` (lines 101-145) |
+| **Path** | `plugins/vsdd-factory/workflows/code-delivery.lobster` (lines 101-145; lobster path carve-out: line range is unstable as lobster files evolve) |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -133,3 +134,20 @@ No refactoring needed.
 - §Description: inline annotation added noting lobster carve-out (stable anchor = step name `per-story-adversarial-review`); HTML carve-out comment added citing F-P22-001 deferral.
 - Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
 - Changelog entry added: F-P22-001 corpus-wide sweep, L-P19-001 + L-P20-001 applied with FULL semantic scope.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — lobster path lines 101-145
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |

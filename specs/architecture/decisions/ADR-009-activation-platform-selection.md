@@ -73,7 +73,7 @@ per-machine artifact, analogous to a build output. The source of truth is
 and what the template would generate, preventing hand-edits to the generated files.
 
 The tradeoff accepted is that marketplace auto-install no longer makes the plugin
-immediately functional. The design doc (line 824) states this explicitly: "Documented
+immediately functional. The design doc (line 824; frozen legacy doc — line stable) states this explicitly: "Documented
 loud-and-clear in the getting-started guide. This is the only path without either a
 Python runtime dep or a Claude Code feature that doesn't exist."
 

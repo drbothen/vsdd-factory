@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.1"
+version: "v1.2"
+last_amended: 2026-05-08
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -126,8 +127,8 @@ claims are at different abstraction layers and are mutually consistent. No renum
 entry in `hooks-registry.toml` MUST include a `timeout_ms` override of `8000` (NOT `epoch_budget_ms`).
 
 Pass-3 code verification finding: `RegistryEntry` struct in `crates/factory-dispatcher/src/registry.rs`
-declares `timeout_ms: Option<u32>` as the per-call wall-clock budget field (line 149). The struct
-carries `#[serde(deny_unknown_fields)]` (line 120), so any entry containing `epoch_budget_ms` will
+declares `timeout_ms: Option<u32>` as the per-call wall-clock budget field (`RegistryEntry::timeout_ms` field; source-line carve-out per TD-VSDD-091: line 149 is unstable, stable anchor is field name). The struct
+carries `#[serde(deny_unknown_fields)]` (`RegistryEntry` struct attribute; source-line carve-out per TD-VSDD-091: line 120 is unstable, stable anchor is struct attribute), so any entry containing `epoch_budget_ms` will
 cause `BC-1.01.003` typo-guard rejection and kill the entire registry load. The field name
 `epoch_budget_ms` does not exist anywhere in the `RegistryEntry`, `RegistryDefaults`, or
 `Capabilities` structs.
@@ -173,9 +174,22 @@ VP-065
 | Functional Requirement | FR-046 |
 | Process Gap (F-11, v1.1 candidate) | The class invariant that `timeout_ms` must exceed the longest expected subprocess wait (Invariant 5) is not enforced by the dispatcher schema at registry-load time; EC-004 documents what happens when `timeout_ms` is absent, but there is no runtime check that `timeout_ms > subprocess_timeout`. A registry-load validation rule asserting `timeout_ms > 5000` for entries declaring `exec_subprocess` capability would codify this invariant in code. Deferred to v1.1. |
 
+---
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P23-002: cross-subsystem source-code line cites migrated to stable symbol anchors)
+
+**Driver:** F-P23-002 pass-23 cross-subsystem corpus sweep (per L-P20-001 / L-P22-001 broadest scope mandate) — §F-13 Architectural Notes paragraph cited Rust source code lines `(line 149)` and `(line 120)` in `crates/factory-dispatcher/src/registry.rs`. Per TD-VSDD-091, source-code line cites must migrate to stable symbol anchors because line numbers drift as code evolves.
+
+**Changes made:**
+- §F-13 Architectural Notes: `declares \`timeout_ms: Option<u32>\` as the per-call wall-clock budget field (line 149)` → replaced `(line 149)` with `(\`RegistryEntry::timeout_ms\` field; source-line carve-out per TD-VSDD-091)`.
+- §F-13 Architectural Notes: `carries \`#[serde(deny_unknown_fields)]\` (line 120)` → replaced `(line 120)` with `(\`RegistryEntry\` struct attribute; source-line carve-out per TD-VSDD-091)`.
+- Frontmatter `version:` bumped `"v1.1"` → `"v1.2"`.
+- Changelog entry added.
+
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-05-08 | state-manager | F-P23-002 cross-subsystem sweep: §F-13 Architectural Notes source-code line cites migrated to stable symbol anchors per TD-VSDD-091: `(line 149)` → `RegistryEntry::timeout_ms` field; `(line 120)` → `RegistryEntry` struct attribute. |
 | v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 internal_log.rs scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.01 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.04.005 is registry routing, not field-grouping; HIGH-003 was reverted in S-5.03 P02). |
 | v1.0 | 2026-04-27 | product-owner | Final state after S-5.01 convergence passes (v1.0-pass-1 through v1.0-pass-9) |

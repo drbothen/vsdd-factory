@@ -19,18 +19,18 @@ d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendu
 
 ## OQ-W16-001 — Resolve `vsdd.host.*` registry-prefix decision before E-10 Wave 1 ships
 
-**Source:** gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" — see also gap-analysis line 326 ("Resolution tracked in **OQ-W16-001**") for the bidirectional anchor.
+**Source:** gap-analysis-w16-subprocess.md §"How ADR-015 affects the telemetry gap" — see also gap-analysis §"Resolution tracked in OQ-W16-001" (source-line carve-out per TD-VSDD-091: line 326 is unstable, stable anchor is §"Resolution tracked" text) for the bidirectional anchor.
 **Status:** OPEN
 **Owner:** SS-01 implementer or E-10 Wave 1 architect
 **Filed:** 2026-05-05
 
-**Question:** ADR-015 D-15.2 registry table (lines 317-332) does not include `vsdd.host.*`. The gap analysis of `host::exec_subprocess` (gap-analysis-w16-subprocess.md §5) proposes `vsdd.host.exec_subprocess.completed.v1` as the event name for the host-emit-fix story, with fallback `vsdd.dispatcher.subprocess_completed.v1`.
+**Question:** ADR-015 D-15.2 registry table (§D-15.2 prefix-to-category registry table; source-line carve-out per TD-VSDD-091: lines 317-332 are unstable, stable anchor is §D-15.2 section) does not include `vsdd.host.*`. The gap analysis of `host::exec_subprocess` (gap-analysis-w16-subprocess.md §5) proposes `vsdd.host.exec_subprocess.completed.v1` as the event name for the host-emit-fix story, with fallback `vsdd.dispatcher.subprocess_completed.v1`.
 
 **Acceptance criterion (binary):**
 - (a) ADR-015 D-15.2 registry amended to include `vsdd.host.* | <category>` AND the canonical event.name for the host-emit-fix is `vsdd.host.exec_subprocess.completed.v1` (mapped to that prefix's category) BEFORE E-10 Wave 1 host-emit-fix story merges, OR
 - (b) the event.name uses `vsdd.dispatcher.subprocess_completed.v1` exactly (NOT a different unregistered prefix; NOT `vsdd.unknown.foo.bar.v1` or other variants).
 
-**Why this matters:** unregistered event prefixes resolve to `event.category = "unknown"` per D-15.2.b; ADR-015 Wave 3 acceptance criterion 2 (line 634) installs an `unknown_category_events` Grafana alert that would actively fire.
+**Why this matters:** unregistered event prefixes resolve to `event.category = "unknown"` per D-15.2.b; ADR-015 Wave 3 acceptance criterion 2 (§Wave 3 acceptance criterion 2; source-line carve-out per TD-VSDD-091: line 634 is unstable, stable anchor is §Wave 3 AC-2) installs an `unknown_category_events` Grafana alert that would actively fire.
 
 **Resolution path:** PR amending ADR-015 to add `vsdd.host.* | lifecycle` (or another category as appropriate) OR explicit choice (b) noted in E-10 Wave 1 story acceptance criteria with rationale.
 

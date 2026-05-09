@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -109,7 +110,7 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/feature.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 1042) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 1042; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1583` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
@@ -118,9 +119,9 @@ TBD
 
 - **Source line(s) in workflow YAML:** 86-1490 (approx)
 - **Behavior:** 82 steps acyclic. Three branching tracks gate on `delta.scope`/`delta.intent`:
-- **Quick-dev track** (lines 237-280): all 6 steps conditioned on `delta.scope == 'trivial' and delta.intent != 'bug-fix'`.
-- **Bug-fix track** (lines 292-442): 11 steps conditioned on `delta.intent == 'bug-fix'`.
-- **Standard track** (lines 466-1402): F2→F3→F4→F5→F6→F7→release, conditioned on `delta.scope != 'trivial' and delta.intent != 'bug-fix'`.
+- **Quick-dev track** (lines 237-280; lobster path carve-out: track name is stable anchor, not line range): all 6 steps conditioned on `delta.scope == 'trivial' and delta.intent != 'bug-fix'`.
+- **Bug-fix track** (lines 292-442; lobster path carve-out: track name is stable anchor, not line range): 11 steps conditioned on `delta.intent == 'bug-fix'`.
+- **Standard track** (lines 466-1402; lobster path carve-out: track name is stable anchor, not line range): F2→F3→F4→F5→F6→F7→release, conditioned on `delta.scope != 'trivial' and delta.intent != 'bug-fix'`.
 All three tracks fan into the post-pipeline session-review chain. Topological sort succeeds because each branch's downstream depends only on prior steps within that branch + shared `phase-f1-human-approval`.
 
 #### Evidence Types Used
@@ -149,3 +150,20 @@ Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pur
 **Change made:**
 - §Description: line ranges preserved as point-in-time evidence; `feature.lobster` file name and logical section (branching tracks) made explicit for reader navigability; HTML comment added citing F-P21-001 deferral.
 - Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — source-doc line 1042
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |

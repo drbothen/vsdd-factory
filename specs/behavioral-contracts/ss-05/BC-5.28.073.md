@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -39,7 +40,8 @@ Workflow contract: greenfield:release.
 
 ## Postconditions
 
-1. Step `release (line 1327)` has run to completion and emitted any declared artifacts.
+1. Step `release (line 1327; lobster carve-out: stable anchor is step name `release`, not line number)` has run to completion and emitted any declared artifacts.
+<!-- F-P23-001: lobster-line-cite annotated per pass-23 carve-out; stable anchor is step name `release`; line number is unstable as lobster files evolve -->
 
 ## Invariants
 
@@ -67,7 +69,7 @@ Workflow contract: greenfield:release.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `release (line 1327)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `release (line 1327; lobster carve-out: stable anchor is step name `release`, not line number)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `release (line 1327)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `release (line 1327; lobster carve-out: stable anchor is step name `release`, not line number)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---
@@ -108,14 +110,14 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/greenfield.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 896) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 896; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1532` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
 **Extracted Fields:**
 
-- **Step:** release (line 1327)
+- **Step:** release (line 1327; lobster carve-out: stable anchor is step name `release`, not line number)
 - **Type:** agent
 - **Agent:** devops-engineer
 - **Depends on:** `[phase-6-human-approval]`
@@ -138,3 +140,21 @@ TBD
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — lobster step cited by line number (`release (line 1327)`). Stable anchor is step name `release`.
+
+**Changes made:**
+- §Postconditions/§VP/§Step: inline lobster carve-out annotation added.
+- §Source Document: source-doc line carve-out annotation added.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out. Stable anchor is step name `release`. |

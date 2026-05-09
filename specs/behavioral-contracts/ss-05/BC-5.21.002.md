@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.4"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -68,7 +69,7 @@ Sole entry point.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``create-brief` (line 18) — `depends_on: []`` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``create-brief` (line 18; lobster carve-out: stable anchor is step name `create-brief`, not line number) — `depends_on: []`` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``create-brief` (line 18) — `depends_on: []``
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``create-brief` (line 18; lobster carve-out: stable anchor is step name `create-brief`, not line number) — `depends_on: []``
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---
@@ -109,14 +110,14 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/phases/phase-1-spec-crystallization.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 206) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 206; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1321` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
 **Extracted Fields:**
 
-- **Step:** `create-brief` (line 18) — `depends_on: []`
+- **Step:** `create-brief` (line 18; lobster carve-out: stable anchor is step name `create-brief`, not line number) — `depends_on: []`
 - **Source line(s) in workflow YAML:** 18-21
 - **Behavior:** Sole entry point.
 
@@ -138,3 +139,43 @@ TBD
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — lobster step cited by line number (`create-brief (line 18)`). Stable anchor is step name `create-brief`.
+
+**Changes made:**
+- §Postconditions/§VP/§Step: inline lobster carve-out annotation added.
+- §Source Document: source-doc line carve-out annotation added.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — **Step:** bt form: step `create-brief` (line 18)
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite corpus-wide sweep)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — additional lobster-file line cites annotated with carve-out.
+
+**Changes made:** Inline lobster/source-doc carve-out annotations added. Frontmatter version incremented.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.4 | 2026-05-08 | state-manager | F-P23-001 additional sweep: remaining lobster-line-cite patterns annotated with carve-out. |
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out. Stable anchor is step name `create-brief`. |

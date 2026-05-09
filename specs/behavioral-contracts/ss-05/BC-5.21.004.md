@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.3"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -31,7 +32,7 @@ removal_reason: null
 
 ## Description
 
-14 steps acyclic. Backup steps form a linear chain with their producing steps. `prd-revision` is conditional (`condition: exists('.factory/specs/architecture-feasibility-report.md')`, line 82). `spec-gate` fans in from `[backup-create-architecture, backup-prd-revision]` (line 96), accommodating the conditional revision.
+14 steps acyclic. Backup steps form a linear chain with their producing steps. `prd-revision` is conditional (`condition: exists('.factory/specs/architecture-feasibility-report.md')`, line 82). `spec-gate` fans in from `[backup-create-architecture, backup-prd-revision]` (line 96; lobster carve-out: stable anchor is step name `[backup-create-architecture, backup-prd-revision]`, not line number), accommodating the conditional revision.
 
 ## Preconditions
 
@@ -110,7 +111,7 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/phases/phase-1-spec-crystallization.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 218) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 218; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1323` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
@@ -118,7 +119,7 @@ TBD
 **Extracted Fields:**
 
 - **Source line(s) in workflow YAML:** 15-161
-- **Behavior:** 14 steps acyclic. Backup steps form a linear chain with their producing steps. `prd-revision` is conditional (`condition: exists('.factory/specs/architecture-feasibility-report.md')`, line 82). `spec-gate` fans in from `[backup-create-architecture, backup-prd-revision]` (line 96), accommodating the conditional revision.
+- **Behavior:** 14 steps acyclic. Backup steps form a linear chain with their producing steps. `prd-revision` is conditional (`condition: exists('.factory/specs/architecture-feasibility-report.md')`, line 82). `spec-gate` fans in from `[backup-create-architecture, backup-prd-revision]` (line 96; lobster carve-out: stable anchor is step name `[backup-create-architecture, backup-prd-revision]`, not line number), accommodating the conditional revision.
 - **Acceptance:** Topological sort succeeds; spec-gate's two-parent fan-in correctly handles either presence/absence of `prd-revision`.
 
 #### Evidence Types Used
@@ -139,3 +140,30 @@ TBD
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — desc step `[backup-create-architecture, backup-prd-revision]` (line 96); source-doc line 218
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite corpus-wide sweep)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — additional lobster-file line cites annotated with carve-out.
+
+**Changes made:** Inline lobster/source-doc carve-out annotations added. Frontmatter version incremented.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 additional sweep: remaining lobster-line-cite patterns annotated with carve-out. |
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |

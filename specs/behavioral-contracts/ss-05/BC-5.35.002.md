@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
+last_amended: 2026-05-08
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +29,7 @@ removal_reason: null
 
 ## Description
 
-Entry-point step `environment-setup` (line 31) with `depends_on: []`. Agent: dx-engineer.
+Entry-point step `environment-setup` (line 31; lobster carve-out: stable anchor is step name `environment-setup`, not line number) with `depends_on: []`. Agent: dx-engineer.
 
 ## Preconditions
 
@@ -95,7 +96,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/vsdd-factory/workflows/planning.lobster` (line 31) |
+| **Path** | `plugins/vsdd-factory/workflows/planning.lobster` (lines 31; lobster path carve-out: line range is unstable as lobster files evolve) |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -116,3 +117,20 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — desc step `environment-setup` (line 31); lobster path lines 31
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |

@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -39,7 +40,8 @@ Workflow contract: phase-7: terminal-step.
 
 ## Postconditions
 
-1. Step ``human-approval` (line 164) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.` has run to completion and emitted any declared artifacts.
+1. Step ``human-approval` (line 164; lobster carve-out: stable anchor is step name `human-approval`, not line number) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.` has run to completion and emitted any declared artifacts.
+<!-- F-P23-001: lobster-line-cite annotated per pass-23 carve-out; stable anchor is step name `human-approval`; line number is unstable as lobster files evolve -->
 
 ## Invariants
 
@@ -67,7 +69,7 @@ Workflow contract: phase-7: terminal-step.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``human-approval` (line 164) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``human-approval` (line 164; lobster carve-out: stable anchor is step name `human-approval`, not line number) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -94,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``human-approval` (line 164) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``human-approval` (line 164; lobster carve-out: stable anchor is step name `human-approval`, not line number) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---
@@ -108,14 +110,14 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/phases/phase-7-convergence.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 596) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 596; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1432` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
 **Extracted Fields:**
 
-- **Step:** `human-approval` (line 164) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.
+- **Step:** `human-approval` (line 164; lobster carve-out: stable anchor is step name `human-approval`, not line number) — depends `[convergence-gate, visual-review]`. 48h timeout. Reviews convergence-report.md, traceability-matrix.md, visual-review.md.
 
 #### Evidence Types Used
 
@@ -135,3 +137,25 @@ TBD
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+
+---
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P23-001: postcondition-form lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001 semantic-pattern-class discipline with FULL syntactic variant scope) — §Postconditions cited lobster step by line number using double-backtick form (`` ``human-approval` (line 164)` ``). This is a lobster-file reference and falls under the lobster-line-cite carve-out exception; the stable anchor is the step name `human-approval`, not the line number. Pass-23 adversary identified this as the sibling-class variant missed by F-P22-001's single-backtick-description-form sweep.
+
+**Changes made:**
+- §Postconditions: inline annotation added noting lobster carve-out (stable anchor = step name `human-approval`); HTML carve-out comment added citing F-P23-001 deferral.
+- §Verification Properties: inline annotation added to VP table property cell.
+- §VP Anchors: inline annotation added to VP anchor list item.
+- §Source Evidence `**Step:**` field: inline annotation added noting lobster carve-out.
+- §Source Evidence `**Source Document**` field: inline annotation added noting source-doc line carve-out (ingestion-doc line, not lobster step line).
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+- Changelog entry added: F-P23-001 corpus-wide sweep, L-P19-001 + L-P20-001 + L-P22-001 applied with FULL syntactic variant and cross-subsystem scope.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: postcondition-form lobster-line-cite (double-backtick variant) annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. Stable anchor is step name `human-approval`. |

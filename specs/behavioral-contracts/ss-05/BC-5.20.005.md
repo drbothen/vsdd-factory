@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.3"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -31,7 +32,7 @@ removal_reason: null
 
 ## Description
 
-Default `on_failure: escalate`, `max_retries: 2`, `timeout: 4h`. No step overrides `on_failure` (i.e., all failures escalate to human). The gate uses `fail_action: block` (line 125) — Phase 0 cannot complete on a failing gate.
+Default `on_failure: escalate`, `max_retries: 2`, `timeout: 4h`. No step overrides `on_failure` (i.e., all failures escalate to human). The gate uses `fail_action: block` (line 125; lobster carve-out: stable anchor is step name `fail_action: block`, not line number) — Phase 0 cannot complete on a failing gate.
 
 ## Preconditions
 
@@ -112,7 +113,7 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/phases/phase-0-codebase-ingestion.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 78) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 78; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1304` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
@@ -121,7 +122,7 @@ TBD
 
 - **Step:** workflow-level (defaults)
 - **Source line(s) in workflow YAML:** 10-13
-- **Behavior:** Default `on_failure: escalate`, `max_retries: 2`, `timeout: 4h`. No step overrides `on_failure` (i.e., all failures escalate to human). The gate uses `fail_action: block` (line 125) — Phase 0 cannot complete on a failing gate.
+- **Behavior:** Default `on_failure: escalate`, `max_retries: 2`, `timeout: 4h`. No step overrides `on_failure` (i.e., all failures escalate to human). The gate uses `fail_action: block` (line 125; lobster carve-out: stable anchor is step name `fail_action: block`, not line number) — Phase 0 cannot complete on a failing gate.
 - **Acceptance:** Reading the YAML produces `defaults.on_failure == "escalate"`. The phase-0-gate has `gate.fail_action == "block"`.
 
 ### Per-step BCs
@@ -144,3 +145,30 @@ TBD
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — desc step `fail_action: block` (line 125); source-doc line 78
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite corpus-wide sweep)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — additional lobster-file line cites annotated with carve-out.
+
+**Changes made:** Inline lobster/source-doc carve-out annotations added. Frontmatter version incremented.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 additional sweep: remaining lobster-line-cite patterns annotated with carve-out. |
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |

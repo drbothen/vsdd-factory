@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.11"
+version: "1.12"
+last_amended: 2026-05-08
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -203,7 +204,7 @@ The reserved-fields filter MUST also retain `dispatcher_trace_id` for backward d
 
 Plugins that attempt to set any of these fields via `with_field()` MUST have the field silently stripped by the host-side filter before serialization. The full set is tested by the `reserved_fields_rejected` integration test in `crates/factory-dispatcher/src/host/emit_event.rs`.
 
-For canonical HOST_ABI documentation of which fields the dispatcher enriches automatically, see `crates/hook-sdk/HOST_ABI.md` §`emit_event`. Note: HOST_ABI.md uses the legacy name `dispatcher_trace_id` in its enrichment description (line 267) — the actual wire-format name is `trace_id` per BC-3.08.001 Invariant 5. RESERVED_FIELDS in `emit_event.rs` is the authoritative implementation reference.
+For canonical HOST_ABI documentation of which fields the dispatcher enriches automatically, see `crates/hook-sdk/HOST_ABI.md` §`emit_event`. Note: HOST_ABI.md uses the legacy name `dispatcher_trace_id` in its enrichment description (§`emit_event` enrichment description; source-line carve-out per TD-VSDD-091: line 267 is unstable, stable anchor is §`emit_event` section) — the actual wire-format name is `trace_id` per BC-3.08.001 Invariant 5. RESERVED_FIELDS in `emit_event.rs` is the authoritative implementation reference.
 
 ## Error Paths
 
@@ -497,3 +498,15 @@ This is a traceability-only change. No postconditions, wire formats, invariants,
 Addresses adversary pass-2 finding F-P2-010.
 
 **F-P2-010 (Architecture Module misclassification)**: Traceability Architecture Module field previously listed "SS-07 — `crates/factory-dispatcher/src/registry.rs`" for the schema_mismatch + registry_invalid emission sites. Per ARCH-INDEX, `crates/factory-dispatcher/src/registry.rs` is owned by SS-01 (the SS-01 row in ARCH-INDEX explicitly lists `{main,registry,routing,executor,invoke,engine,plugin_loader,payload}.rs`). SS-07 owns `plugins/vsdd-factory/hooks/*.sh` and `hooks-registry.toml` (the file format) — not `registry.rs` (the Rust module that reads it). Updated to "SS-01 — `crates/factory-dispatcher/src/registry.rs`" with a clarifying note that SS-07 still owns the TOML file format. This is a POLICY 6 (architecture_is_subsystem_name_source_of_truth) HIGH severity fix.
+
+## Amendment 2026-05-08 (v1.11 → v1.12 — F-P23-002: cross-subsystem source-line-cite migrated to stable symbol anchor)
+
+**Driver:** F-P23-002 pass-23 cross-subsystem corpus sweep (per L-P20-001 / L-P22-001 broadest scope mandate) — §Implementation Notes §RESERVED_FIELDS note cited `HOST_ABI.md (line 267)`. This references a line number in `crates/hook-sdk/HOST_ABI.md` which drifts as the doc evolves. Per TD-VSDD-091, source-file line cites must migrate to stable symbol anchors. The §`emit_event` section is the stable anchor.
+
+**Changes made:**
+- §Implementation Notes §RESERVED_FIELDS cross-reference note: `(line 267)` → `(§\`emit_event\` enrichment description; source-line carve-out per TD-VSDD-091: line 267 is unstable, stable anchor is §\`emit_event\` section)`.
+- Frontmatter `version:` bumped `"1.11"` → `"1.12"`.
+
+**Changelog:**
+
+| v1.12 | 2026-05-08 | state-manager | F-P23-002 cross-subsystem sweep: HOST_ABI.md line cite migrated to stable §`emit_event` section anchor per TD-VSDD-091. |

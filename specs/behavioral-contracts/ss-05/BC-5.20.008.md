@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.3"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -69,7 +70,7 @@ Runs the 7-pass broad sweep (Pass 0 through 6) against the acquired source, prod
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``broad-sweep` (line 33)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``broad-sweep` (line 33; lobster carve-out: stable anchor is step name `broad-sweep`, not line number)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -96,7 +97,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``broad-sweep` (line 33)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``broad-sweep` (line 33; lobster carve-out: stable anchor is step name `broad-sweep`, not line number)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---
@@ -110,14 +111,14 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/phases/phase-0-codebase-ingestion.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 107) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 107; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1307` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
 **Extracted Fields:**
 
-- **Step:** `broad-sweep` (line 33)
+- **Step:** `broad-sweep` (line 33; lobster carve-out: stable anchor is step name `broad-sweep`, not line number)
 - **Type:** skill
 - **Skill:** `step-b-broad-sweep.md`
 - **Depends on:** `[backup-source-acquisition]`
@@ -143,3 +144,33 @@ TBD
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — lobster step cited by line number (`broad-sweep (line 33)`). Stable anchor is step name `broad-sweep`.
+
+**Changes made:**
+- §Postconditions/§VP/§Step: inline lobster carve-out annotation added.
+- §Source Document: source-doc line carve-out annotation added.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — double-backtick VP/anchor: step `broad-sweep` (line 33); double-backtick VP/anchor: step `broad-sweep` (line 33); **Step:** bt form: step `broad-sweep` (line 33)
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out. Stable anchor is step name `broad-sweep`. |

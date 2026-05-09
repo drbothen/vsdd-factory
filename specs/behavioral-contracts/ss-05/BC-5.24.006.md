@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -68,7 +69,7 @@ Randomly selects 80% of holdout scenarios per pipeline run; writes selected IDs 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `scenario-rotation (line 14)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for `scenario-rotation (line 14; lobster carve-out: stable anchor is step name `scenario-rotation`, not line number)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `scenario-rotation (line 14)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for `scenario-rotation (line 14; lobster carve-out: stable anchor is step name `scenario-rotation`, not line number)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---
@@ -109,14 +110,14 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/phases/phase-4-holdout-evaluation.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 488) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 488; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1395` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
 **Extracted Fields:**
 
-- **Step:** scenario-rotation (line 14)
+- **Step:** scenario-rotation (line 14; lobster carve-out: stable anchor is step name `scenario-rotation`, not line number)
 - **Type:** agent
 - **Agent:** orchestrator
 - **Depends on:** `[]`
@@ -141,3 +142,21 @@ TBD
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — lobster step cited by line number (`scenario-rotation (line 14)`). Stable anchor is step name `scenario-rotation`.
+
+**Changes made:**
+- §Postconditions/§VP/§Step: inline lobster carve-out annotation added.
+- §Source Document: source-doc line carve-out annotation added.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out. Stable anchor is step name `scenario-rotation`. |

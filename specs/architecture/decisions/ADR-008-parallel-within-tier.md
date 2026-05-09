@@ -114,7 +114,7 @@ function produces the ordered tier vec consumed by the executor.
 
 - **Sequential execution:** Run plugins in priority order, one at a time. Rejected:
   wall-clock cost is additive; `sum(timeouts)` is pathological for events with
-  multiple hooks. The design doc (line 765) notes this explicitly.
+  multiple hooks. The design doc (line 765; frozen legacy doc — line stable) notes this explicitly.
 - **Fully parallel (ignore priority):** Run all plugins concurrently regardless of
   priority. Rejected: provides no mechanism for a plugin to express that it must
   run after another; ordering dependencies cannot be configured.

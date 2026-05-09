@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
+last_amended: 2026-05-08
 status: draft
 producer: phase-1-4b-agent-5
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +29,7 @@ removal_reason: null
 
 ## Description
 
-Terminal step `process-review-decisions` (line 555). Agent: state-manager. Depends `[session-review-approval]` on the primary track.
+Terminal step `process-review-decisions` (line 555; lobster carve-out: stable anchor is step name `process-review-decisions`, not line number). Agent: state-manager. Depends `[session-review-approval]` on the primary track.
 
 ## Preconditions
 
@@ -95,7 +96,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/vsdd-factory/workflows/multi-repo.lobster` (line 555) |
+| **Path** | `plugins/vsdd-factory/workflows/multi-repo.lobster` (lines 555; lobster path carve-out: line range is unstable as lobster files evolve) |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -126,3 +127,20 @@ No refactoring needed.
 - Frontmatter `version:` bumped `"1.1"` → `"1.2"`; `last_amended:` unchanged (2026-04-25, original extraction date — no structural change to behavioral content).
 
 **Source-of-truth verification (POLICY 4/5):** `grep -n "feature_mode\|bugfix_mode\|maintenance_mode" plugins/vsdd-factory/workflows/multi-repo.lobster` → lines 575, 654, 696 confirmed. Line range 575-731 spans all three sub-mode tree definitions.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — desc step `process-review-decisions` (line 555); lobster path lines 555
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |

@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-agent-8"
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +29,7 @@ removal_reason: null
 
 ## Description
 
-ui-completeness-check: state coverage (D4) — 4 async states + per-component-type required states. Confidence: HIGH. Extracted from `plugins/vsdd-factory/skills/ui-completeness-check/SKILL.md` (lines 130-148).
+ui-completeness-check: state coverage (D4) — 4 async states + per-component-type required states. Confidence: HIGH. Extracted from `plugins/vsdd-factory/skills/ui-completeness-check/SKILL.md` (lines 130-148; source-range carve-out: SKILL.md line ranges are unstable; stable anchor is section content).
 
 ## Preconditions
 
@@ -119,3 +120,13 @@ TBD
 #### Refactoring Notes
 
 This contract codifies a SKILL.md-driven behavior. The skill body is the canonical specification; this BC extracts the procedural contract for downstream verification. No code refactor implied — refinement of the SKILL.md or its templates would be the corrective surface.
+
+## Amendment 2026-05-08 (v→ F-P23-002: SKILL.md source-range annotated)
+
+**Driver:** F-P23-002 cross-subsystem sweep — §Description extraction cite annotated with source-range carve-out.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.2 | 2026-05-08 | state-manager | F-P23-002 sweep: SKILL.md source-range annotated with carve-out per TD-VSDD-091. |

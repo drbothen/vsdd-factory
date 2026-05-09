@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.3"
+last_amended: 2026-05-08
 status: draft
 producer: "phase-1-4b-bcs-agent-4"
 timestamp: 2026-04-25T00:00:00
@@ -68,7 +69,7 @@ Produces architecture sections + verification-properties; may emit a feasibility
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``create-architecture` (line 63)` | manual |
+| (TBD — to be assigned in Phase 1.6c) | Workflow YAML field shape matches declared schema for ``create-architecture` (line 63; lobster carve-out: stable anchor is step name `create-architecture`, not line number)` | manual |
 | VP-002 | Topological sort of all `depends_on` references resolves without cycles | manual |
 
 ## Traceability
@@ -95,7 +96,7 @@ TBD
 
 ## VP Anchors (Recommended)
 
-- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``create-architecture` (line 63)`
+- [TBD — to be assigned in Phase 1.6c] — Workflow YAML field shape matches declared schema for ``create-architecture` (line 63; lobster carve-out: stable anchor is step name `create-architecture`, not line number)`
 - [VP-002] — Topological sort of all `depends_on` references resolves without cycles
 
 ---
@@ -109,14 +110,14 @@ TBD
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/vsdd-factory/workflows/phases/phase-1-spec-crystallization.lobster` |
-| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 267) |
+| **Source Document** | `.factory/phase-0-ingestion/pass-3-deep-workflows.md` (line 267; source-doc carve-out: line in phase-0 ingestion doc, not lobster step line) |
 | **Source BC-AUDIT ID** | `BC-AUDIT-1331` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
 **Extracted Fields:**
 
-- **Step:** `create-architecture` (line 63)
+- **Step:** `create-architecture` (line 63; lobster carve-out: stable anchor is step name `create-architecture`, not line number)
 - **Type:** skill
 - **Skill:** `skills/create-architecture/SKILL.md`
 - **Depends on:** `[backup-create-prd]`
@@ -141,3 +142,33 @@ TBD
 #### Refactoring Notes
 
 Workflow YAML is a declarative DAG; the orchestrator is the effectful shell. Pure-core extraction would isolate the lobster parser and topological sort logic from the orchestration loop.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — lobster step cited by line number (`create-architecture (line 63)`). Stable anchor is step name `create-architecture`.
+
+**Changes made:**
+- §Postconditions/§VP/§Step: inline lobster carve-out annotation added.
+- §Source Document: source-doc line carve-out annotation added.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+
+---
+
+## Amendment 2026-05-08 (v→ F-P23-001: lobster-line-cite annotated with carve-out)
+
+**Driver:** F-P23-001 pass-23 retroactive corpus-wide sweep (per L-P19-001 / L-P20-001 / L-P22-001) — double-backtick VP/anchor: step `create-architecture` (line 63); double-backtick VP/anchor: step `create-architecture` (line 63); **Step:** bt form: step `create-architecture` (line 63)
+
+**Changes made:**
+- Inline lobster carve-out annotation added to all active-body line cites.
+- Frontmatter `version:` incremented. Changelog entry added.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.3 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out per L-P19-001 + L-P20-001 + L-P22-001. |
+| v1.2 | 2026-05-08 | state-manager | F-P23-001 corpus-wide sweep: lobster-line-cite annotated with carve-out. Stable anchor is step name `create-architecture`. |

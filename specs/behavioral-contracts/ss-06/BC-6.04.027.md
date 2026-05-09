@@ -1,7 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
+last_amended: 2026-05-08
 status: draft
 producer: "codebase-analyzer"
 timestamp: 2026-04-25T00:00:00
@@ -33,7 +34,8 @@ skill: "holdout-eval"
 
 ## Description
 
-PASS = mean satisfaction ≥ 0.85, every critical scenario ≥ 0.60. FAIL = below thresholds → stories need remediation before next wave. Acceptance: 0.85 / 0.60 thresholds; explicit "0.84 fails. No rounding." in red-flag table (line 27).
+PASS = mean satisfaction ≥ 0.85, every critical scenario ≥ 0.60. FAIL = below thresholds → stories need remediation before next wave. Acceptance: 0.85 / 0.60 thresholds; explicit "0.84 fails. No rounding." in red-flag table (§ "Red Flag Indicators"; lobster carve-out: table name is the stable anchor, not line number).
+<!-- F-P23-002: cross-subsystem lobster-line-cite annotated per pass-23 carve-out; `red-flag table` is the stable anchor; line 27 is unstable as SKILL.md evolves -->
 
 ## Preconditions
 
@@ -45,7 +47,7 @@ PASS = mean satisfaction ≥ 0.85, every critical scenario ≥ 0.60. FAIL = belo
 
 ## Invariants
 
-1. 0.85 / 0.60 thresholds; explicit "0.84 fails. No rounding." in red-flag table (line 27).
+1. 0.85 / 0.60 thresholds; explicit "0.84 fails. No rounding." in red-flag table (§ "Red Flag Indicators"; source-line carve-out: table name is stable anchor, not line 27).
 
 ## Edge Cases
 
@@ -127,3 +129,20 @@ This BC describes a skill-level workflow contract. The acceptance criteria
 encode the Quality Gate checks performed by the skill; these can be lifted
 into automated assertions where the skill's underlying procedure is
 deterministic. Adversarial and human-gated steps are explicitly opaque.
+
+---
+
+## Amendment 2026-05-08 (v1.1 → v1.2 — F-P23-002: cross-subsystem source-line-cite migrated to stable section anchor)
+
+**Driver:** F-P23-002 pass-23 cross-subsystem corpus sweep — §Description and §Invariants cited `red-flag table (line 27)`. This references a line in `plugins/vsdd-factory/skills/holdout-eval/SKILL.md` which drifts as the SKILL.md evolves. Per TD-VSDD-091, source-file line cites must migrate to stable symbol anchors. The `red-flag table` (§ "Red Flag Indicators") is the stable anchor.
+
+**Changes made:**
+- §Description: `red-flag table (line 27)` → `red-flag table (§ "Red Flag Indicators"; lobster carve-out: table name is the stable anchor, not line number)`. HTML carve-out comment added.
+- §Invariants §1: same `(line 27)` replaced with stable section anchor.
+- Frontmatter `version:` bumped `"1.1"` → `"1.2"`.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.2 | 2026-05-08 | state-manager | F-P23-002 cross-subsystem sweep: `red-flag table (line 27)` cite migrated to stable section anchor `§ "Red Flag Indicators"` per TD-VSDD-091. |
