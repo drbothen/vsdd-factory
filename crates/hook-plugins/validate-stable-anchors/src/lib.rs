@@ -573,8 +573,12 @@ where
 /// Returns true if `file_path` is a spec file that should be linted.
 ///
 /// Target: `.factory/specs/**/*.md` (any Markdown file anywhere under the specs directory).
+/// Accepts both relative paths (`.factory/specs/foo.md`) and absolute paths
+/// (`/Users/jmagady/Dev/vsdd-factory/.factory/specs/foo.md`).
 pub fn is_spec_target(file_path: &str) -> bool {
-    file_path.starts_with(".factory/specs/") && file_path.ends_with(".md")
+    let matches_specs_path = file_path.starts_with(".factory/specs/")
+        || file_path.contains("/.factory/specs/");
+    matches_specs_path && file_path.ends_with(".md")
 }
 
 /// Format a list of violations into a compact human-readable string.

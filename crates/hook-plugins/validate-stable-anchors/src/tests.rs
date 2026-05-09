@@ -765,3 +765,31 @@ fn test_TD031_scan_line_no_match_for_bats_range_notation_no_digit_gap() {
         "scan_line must detect .bats:133-142 (first char after colon is a digit)"
     );
 }
+
+#[test]
+fn test_is_spec_target_absolute_path_matches() {
+    assert!(is_spec_target("/Users/jmagady/Dev/vsdd-factory/.factory/specs/foo.md"));
+    assert!(is_spec_target("/home/user/project/.factory/specs/bc/BC-1.01.001.md"));
+}
+
+#[test]
+fn test_is_spec_target_relative_path_matches() {
+    assert!(is_spec_target(".factory/specs/foo.md"));
+    assert!(is_spec_target(".factory/specs/architecture/SS-01.md"));
+}
+
+#[test]
+fn test_is_spec_target_rejects_non_spec_paths() {
+    assert!(!is_spec_target("crates/foo/src/lib.rs"));
+    assert!(!is_spec_target("/path/to/.factory/cycles/foo.md")); // cycles != specs
+    assert!(!is_spec_target("/path/to/.factory/specs/foo.txt")); // wrong extension
+    assert!(!is_spec_target(".factory/storiesfoo.md")); // missing /
+}
+
+#[test]
+fn test_is_spec_target_rejects_partial_matches() {
+    // Should NOT match a file named ".factory/specs.md" (no trailing /)
+    assert!(!is_spec_target(".factory/specs.md"));
+    // Should NOT match prefix.factory/specs/foo.md (no leading slash before .factory)
+    assert!(!is_spec_target("prefix.factory/specs/foo.md"));
+}
