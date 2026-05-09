@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-09T17:05:00Z
-phase: post-rc13-prep-merged
+timestamp: 2026-05-09T17:14:00Z
+phase: post-rc13-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "RC.13 RELEASE-PREP MERGED — PR #111 SQUASH-MERGED e3af1a16 2026-05-09. HOST_ABI +5 async sections, hooks-registry 2 async flips, CHANGELOG rc.13 entry, 33 new integration tests (10+23). All upstream PRs #106-110 merged. Ready for v1.0.0-rc.13 tag cut."
+current_step: "v1.0.0-rc.13 SHIPPED 2026-05-09 at e3af1a16 (prerelease=true; GitHub release created). Ready for engine-discipline F4 platform delivery (S-12.06 first per dependency)."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 — RC.13 RELEASE-PREP MERGED. PR #111 SQUASH-MERGED (SHA e3af1a16). HOST_ABI +5 async sections; hooks-registry 2 async flips; CHANGELOG rc.13 entry; 33 new integration tests (10 abs-path + 23 async-partition). Branch release/v1.0.0-rc.13-prep deleted. |
-| **Current Phase** | RC.13 PREP COMPLETE — all consolidation landed. 6 source branches can be deleted (sandbox-blocked). Next: v1.0.0-rc.13 tag cut. TC-5 flake follow-up tracked as S-15.02 pre-work. |
+| **Last Updated** | 2026-05-09 — v1.0.0-rc.13 SHIPPED at e3af1a16. Invalid rc.13 tag at 2d3a3326 deleted; new annotated tag at e3af1a16; GitHub prerelease created. Release ladder: rc.11 (fb3e297) → rc.12 (4cf59bc) → rc.13 (e3af1a16). |
+| **Current Phase** | v1.0.0-rc.13 SHIPPED — engine-discipline F4 platform delivery next (S-12.06 first per dependency). |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -142,7 +142,8 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
 | develop | e3af1a16 | PR #111 rc.13 release-prep squash-merge 2026-05-09 (HOST_ABI + async flips + CHANGELOG + 33 integration tests) |
-| factory-artifacts | (see git log) | fix-burst-27 sub-burst 2 state-manager close — this commit |
+| factory-artifacts | (see git log) | STATE.md updated for rc.13 ship |
+| v1.0.0-rc.13 (tag) | e3af1a16 | SHIPPED 2026-05-09; GH prerelease=true; PRs #106-111; invalid prior tag at 2d3a3326 deleted |
 | v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
 | v1.0.0-rc.4..rc.10 (tags) | — | Historical tags; see `cycles/v1.0-brownfield-backfill/release-ladder.md` if present |
