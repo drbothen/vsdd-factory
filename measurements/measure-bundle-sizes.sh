@@ -207,13 +207,15 @@ p95_idx = max(0, int(math.ceil(0.95 * n)) - 1)
 print(round(times_ms[p95_idx], 1))
 " 2>/dev/null || echo 0)
     fi
-  else
-    echo "WARNING: hyperfine not found; cold-start measurement skipped" >&2
-    echo "Install hyperfine: cargo install hyperfine" >&2
   fi
-else
-  echo "WARNING: Skipping cold-start measurement (missing dispatcher or fixture)" >&2
+  # Silently skip cold-start measurement when hyperfine is missing.
+  # Earlier versions emitted "WARNING: hyperfine not found ..." to stderr,
+  # which polluted bats `run` output (bats >= 1.5.0 captures stderr into
+  # $output by default) and broke jq parsing in perf-baseline.bats. The
+  # script's CONTRACT is to emit JSON only; advisories belong elsewhere.
+  # Operators can verify hyperfine presence directly via `command -v`.
 fi
+# Silently skip when dispatcher binary or fixture are missing — same rationale.
 
 # ---------------------------------------------------------------------------
 # Provenance fields
