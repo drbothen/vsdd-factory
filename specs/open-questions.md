@@ -1,7 +1,7 @@
 ---
 document_type: open-questions-register
 level: ops
-version: "1.1"
+version: "1.2"
 status: active
 producer: state-manager
 timestamp: 2026-05-05T00:00:00Z
@@ -110,7 +110,7 @@ d312_note: "BC-3.05.001/002/003 marked superseded_by ADR-015 in D-312 corrigendu
 
 **Acceptance criterion (binary):**
 - (a) v1 retains current behavior — directory cmd reaches `Command::new` in `execute_bounded` and spawn fails returning INTERNAL_ERROR (-99) with no emit_denial; documented as known-limitation in BC-1.05.035 EC-009. OR
-- (b) v2 adds a pre-spawn `Path::is_file()` check at line 152.5 (after canonicalize success, before allow-check) emitting `emit_denial(ctx, cmd, "binary_not_executable", details)` for directory or non-file paths.
+- (b) v2 adds a pre-spawn `Path::is_file()` check between the `binary_allowed` guard and the `execute_bounded` call in `exec_subprocess.rs::run` (after allow-check, before spawn) emitting `emit_denial(ctx, cmd, "binary_not_executable", details)` for directory or non-file paths.
 
 **Why this matters:** v1 option (a) masks broken-capability-config — if the allow-list contains a directory name (e.g., `bin`), the dispatcher silently returns INTERNAL_ERROR (-99) with no observability event, rather than CAPABILITY_DENIED with a `binary_canonicalize_failed` or `binary_not_executable` emit. Security observability gap: no Grafana alert can detect this misconfiguration.
 
@@ -344,3 +344,4 @@ BC-3.05.001, BC-3.05.002, BC-3.05.003 from `draft` to `retired`.
 ## Changelog
 
 - v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 2) — 13 body cites migrated from file.ext:NNN line anchors to stable symbol anchors across OQ-W16-002 through OQ-W16-010.
+- v1.2 (2026-05-08): F-P19-001 corpus-wide L-P18-002 sweep — 1 prose-form line ref (`at line 152.5` in OQ-W16-005 option (b)) replaced with stable symbol anchor: `exec_subprocess.rs::run` between `binary_allowed` guard and `execute_bounded` call.

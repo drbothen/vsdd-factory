@@ -4,7 +4,7 @@ adr_id: ADR-019
 status: accepted
 accepted_date: 2026-05-07
 date: 2026-05-07
-version: "1.8"
+version: "1.9"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -318,6 +318,18 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
 
 ---
 
+## Amendment 2026-05-08: v1.8 → v1.9 (F-P19-001 corpus-wide L-P18-002 sweep)
+
+- **Amendment date:** 2026-05-08
+- **Reason:** F-P19-001 corpus-wide L-P18-002 prose-form sweep identified 2 surviving prose-form
+  line references in the `v1.5 → v1.6` amendment body (refs to "line 209" and "line 209"
+  again for the total-latency formula and the closing sentence respectively).
+- **Changes:**
+  - `v1.5 → v1.6` amendment body: both `on line 209` references replaced with stable section
+    anchors identifying the `§Consequences` "Total dispatcher latency" code block and the
+    "Async-task drain window" paragraph closing sentence.
+- **No decision changes:** All §Decision policy text is unchanged. Amendment narrative only.
+
 ## Amendment 2026-05-07: v1.0 → v1.1 (F2 pass-1 fix burst)
 
 - **Amendment date:** 2026-05-07
@@ -361,12 +373,14 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
 - **Reason:** Adversary pass-4 finding F-P4-004. §Consequences "Async-task drain window"
   inline bound sentence (final line of the paragraph) inlined the literal `100ms` value
   despite the DI-019 lift principle (v1.4→v1.5 amendment) which elevated this constant
-  from inline to canonical domain invariant. The earlier total-latency formula on line 209
-  already uses the symbolic `ASYNC_DRAIN_WINDOW_MS` form; line 215 must match.
+  from inline to canonical domain invariant. The earlier total-latency formula in the
+  `§Consequences` "Total dispatcher latency" code block already uses the symbolic
+  `ASYNC_DRAIN_WINDOW_MS` form; the closing sentence of the "Async-task drain window"
+  paragraph must match.
 - **Changes:**
   - §Consequences "Async-task drain window" (paragraph closing sentence): replaced
-    `+ 100ms` → `+ ASYNC_DRAIN_WINDOW_MS` to be consistent with the formula on line 209
-    and with the DI-019 symbolic convention.
+    `+ 100ms` → `+ ASYNC_DRAIN_WINDOW_MS` to be consistent with the "Total dispatcher
+    latency" formula in `§Consequences` and with the DI-019 symbolic convention.
 - **No decision changes:** All §Decision policy text is unchanged. This is a symbolic
   consistency correction only — the constant value remains 100ms per DI-019.
 

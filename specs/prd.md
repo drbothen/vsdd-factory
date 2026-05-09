@@ -1,7 +1,7 @@
 ---
 document_type: prd
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -1466,8 +1466,8 @@ linter in v1.1. No blocker for v1.0.
 
 ### KL-006 — NFR catalog not lifted to L3 spec tree
 
-The 76 NFRs are summarized in PRD §4 and stored in `prd-supplements/nfr-catalog.md`
-(see line 768). Individual VPs (e.g., VP-005, VP-021, VP-044) reference specific
+The 76 NFRs are summarized in PRD §4 ("Non-Functional Requirements") and stored in `prd-supplements/nfr-catalog.md`.
+Individual VPs (e.g., VP-005, VP-021, VP-044) reference specific
 NFR-SEC-NNN and NFR-PERF-NNN identifiers, but no addressable L3 document enumerates
 those IDs. A reader cannot look up "NFR-SEC-001" in the L3 spec tree.
 **Plan:** Lift NFR catalog to `specs/nfr-catalog.md` with addressable NFR-NNN IDs in v1.1.
@@ -1582,7 +1582,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | FRs defined | 48 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
-| PRD version | 1.2 (2026-05-07 — FR-048 delta: WASM-plugin context resolver platform; +6 BCs BC-1.13.001 + BC-4.12.001–005; +4 VPs VP-073–076; ADR-018; SS-01 BC count 114→115, SS-04 BC count 34→39, total BCs 1937→1943) |
+| PRD version | 1.3 (2026-05-08 — F-P19-001 corpus-wide L-P18-002 sweep: 1 prose-form line ref (`see line 768` in KL-006) replaced with stable section anchor (PRD §4 "Non-Functional Requirements"). No functional content changed.) |
 
 This PRD should be updated when:
 - A Tier E/F/G story ships and its FR status changes from `pending` to `shipped`

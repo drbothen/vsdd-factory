@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-capture-commit-activity: identity & registry binding. Telemetry-only hook for `commit.made` event. Never blocks (set +e at line 33; on_error=continue in registry).
+capture-commit-activity: identity & registry binding. Telemetry-only hook for `commit.made` event. Never blocks (non-blocking by registry policy `on_error=continue` and by implementation — all code paths in `commit_hook_logic` return `HookResult::Continue`).
 
 **Source category:** Routing hooks (PreToolUse, PostToolUse, lifecycle).
 **Audit ID:** `BC-AUDIT-1008` (extracted from `pass-3-deep-hooks.md` line 132).
@@ -42,7 +42,7 @@ capture-commit-activity: identity & registry binding. Telemetry-only hook for `c
 
 ## Postconditions
 
-1. Behavior: Telemetry-only hook for `commit.made` event. Never blocks (set +e at line 33; on_error=continue in registry).
+1. Behavior: Telemetry-only hook for `commit.made` event. Never blocks (non-blocking by registry policy `on_error=continue` and by implementation — all code paths in `commit_hook_logic` return `HookResult::Continue`).
 2. Exit codes: Always 0.
 3. Error policy: continue (advisory).
 
@@ -139,4 +139,5 @@ Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, o
 |---------|------|--------|--------|
 | v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
 | v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:19-36` → `hooks-registry.toml::capture-commit-activity`. |
+| v1.3 | 2026-05-08 | implementer | F-P19-001 corpus-wide L-P18-002 sweep — 2 prose-form line refs (`set +e at line 33` x2 in §Description + PC1) replaced with stable symbol anchor: `commit_hook_logic` returns `HookResult::Continue` on all paths. Note: plugin is now a WASM Rust binary; the original bash script reference is stale. |
 
