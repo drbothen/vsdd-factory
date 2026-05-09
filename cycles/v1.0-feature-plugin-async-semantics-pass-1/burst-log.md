@@ -2080,3 +2080,14 @@ Pass-37 next.
 Findings closed: F-P37-001 (MEDIUM), F-P37-002 (LOW)
 ADR-013 clock: 0_of_3 (RESET — pass-37 MED)
 Pass-38 next.
+
+## Pass-38 Adversary Review (2026-05-09)
+
+**Agent:** adversary (F5-adversary-pass-38.md)
+
+Verdict: NITPICK_ONLY (0H + 0M + 0L). FIRST ADVANCEMENT after 20 consecutive resets (passes 18-37). ADR-013 clock advances 0_of_3 → 1_of_3.
+
+Fix-burst-36 closure verification: all PASS. L-P28-001 bidirectional corpus sweep (17 BCs + 5 VPs + 5 stories sampled): all clean. Standard convergence checks passed (BC: 1947, VP: 79, POLICY 7/1/8 all satisfied). 6 BC-INDEX rows with `Stories: TBD` (BC-4.10.001/002, BC-4.11.001, BC-5.39.001/002, BC-6.22.001) noted as pre-existing placeholder convention — not a finding.
+
+ADR-013 clock: 1_of_3 (ADVANCING)
+Pass-39 next.
