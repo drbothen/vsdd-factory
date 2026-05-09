@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.58"
+version: "2.59"
 status: current
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
-last_amended: "2026-05-09 (v2.58) — F5 fix-burst-33 (F-P34-001): S-15.01 row Status column ready → merged (matches S-15.01.md:8 frontmatter status: merged, merged_in: PR-106, merge_sha: 453eee1). Fix-burst-32 observed drift but incorrectly classified as out-of-scope; corrected by F-P34-001. STORY-INDEX v2.57→v2.58."
+last_amended: "2026-05-09 (v2.59) — F5 fix-burst-36 (F-P37-002): S-3.03 row Depends-On S-2.08, S-3.04 → S-1.03, S-2.08, S-3.04 (matches S-3.03-port-block-ai-attribution.md depends_on frontmatter; drift adjudicated as DRIFT not intentional convention). STORY-INDEX v2.58→v2.59."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -251,7 +251,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-3.04 | emit_event as host function refactor | E-3 | 3 | P0 | S-1.04 | partial [AC-001 unwired in main.rs; superseded by ADR-015; LESSON-2026-05-04-001] | 8 |
 | S-3.01 | Port capture-commit-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | merged | -- |
 | S-3.02 | Port capture-pr-activity to WASM | E-3 | 5 | P1 | S-2.08, S-3.04 | merged | -- |
-| S-3.03 | Port block-ai-attribution to WASM | E-3 | 3 | P1 | S-2.08, S-3.04 | merged | -- |
+| S-3.03 | Port block-ai-attribution to WASM | E-3 | 3 | P1 | S-1.03, S-2.08, S-3.04 | merged | -- |
 
 ## Epic E-4 — Observability Sinks and RC Release (Tier E + F — draft/partial)
 

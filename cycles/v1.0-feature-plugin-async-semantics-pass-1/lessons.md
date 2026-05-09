@@ -583,3 +583,5 @@ Required audit format: per-row table with columns `[ID | Status | Capability | S
 **Scope clause (added fix-burst-35, F-P36-001 closure):** When this reinforcement is first added or substantively amended, the FIRST application MUST be CORPUS-WIDE, not scope-narrow. Failure mode (F-P36-001): the per-cell tabulation reinforcement was added at fix-burst-34 sub-burst 2 but applied only to the 6 in-scope resolver-platform rows. A corpus-wide application would have detected the 12 BC body-vs-index Stories drift in the same burst.
 
 This is the 5th META-self-application failure of the L-P28-001 family. Mechanical enforcement (S-15.03 hook scope) remains the structurally-convergent path.
+
+**Bidirectional clause (added fix-burst-36, F-P37-001 closure):** The corpus-wide audit MUST be BIDIRECTIONAL — both index→body (index has values, body has TBD) AND body→index (body has values, index missing entries) drift directions. Failure mode (F-P37-001): fix-burst-35 corpus-wide swept body→index direction but missed BC-INDEX rows that were stale relative to source bodies. 6th META-self-application failure of the L-P28-001 family.

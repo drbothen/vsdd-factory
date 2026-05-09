@@ -2049,3 +2049,34 @@ Verdict: MED (0H + 1M + 0L). 19th consecutive non-NIT pass. Trajectory stable at
 Findings closed: F-P36-001 (MEDIUM)
 ADR-013 clock: 0_of_3 (RESET — pass-36 MED)
 Pass-37 next.
+
+## Pass-37 Adversary Review (2026-05-09)
+
+**Agent:** adversary
+**Verdict:** MED (1M + 1L)
+
+20th consecutive non-NIT. 6th META-self-application failure of L-P28-001 family (reverse-direction: index→body). ADR-013 RESETS to 0_of_3.
+
+- F-P37-001 [MEDIUM]: BC-INDEX rows 259/260/261 (BC-1.12.003/004/005) missing S-10.04 in Stories cells. Source bodies list S-10.04; index rows stale. Reverse-direction L-P28-001 failure — fix-burst-35 swept body→index only.
+- F-P37-002 [LOW]: STORY-INDEX S-3.03 Depends-On `S-2.08, S-3.04` missing S-1.03 (source frontmatter: `["S-1.03", "S-2.08", "S-3.04"]`). Adjudicated DRIFT (not intentional convention).
+
+## Fix-burst-36 State-Manager Close (2026-05-09)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.12.003.md` | v1.4→v1.5 | F-P37-001: BC-INDEX row Stories cell S-10.03→S-10.03, S-10.04. Changelog row added. |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.12.004.md` | v1.4→v1.5 | F-P37-001: BC-INDEX row Stories cell S-10.02, S-10.03→S-10.02, S-10.03, S-10.04. Changelog row added. |
+| `.factory/specs/behavioral-contracts/ss-01/BC-1.12.005.md` | v1.3→v1.4 | F-P37-001: BC-INDEX row Stories cell S-10.02, S-10.03→S-10.02, S-10.03, S-10.04. Changelog row added. |
+| `.factory/specs/behavioral-contracts/BC-INDEX.md` | v1.53→v1.54 | 3 BC-INDEX rows S-10.04 added (rows 259/260/261). Changelog entry added. |
+| `.factory/specs/architecture/ARCH-INDEX.md` | v1.33→v1.34 | BC-INDEX body cite refreshed v1.53→v1.54 (L-P20-002 cite-refresh discipline). Changelog entry added. |
+| `.factory/stories/STORY-INDEX.md` | v2.58→v2.59 | F-P37-002: S-3.03 Depends-On S-2.08, S-3.04→S-1.03, S-2.08, S-3.04. last_amended updated. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | — | L-P28-001 bidirectional clause added (corpus-wide audit MUST be BIDIRECTIONAL; 6th META-self-application failure recorded). |
+| `.factory/STATE.md` | — | current_step updated; pass-37 + fix-burst-36 rows added to Current Phase Steps; index versions (BC-INDEX v1.54, STORY-INDEX v2.59, ARCH-INDEX v1.34); cycle row + strategic note updated; ADR-013 0_of_3; Last Updated + Current Phase updated. |
+| `.factory/tech-debt-register.md` | — | TD-031 fix-burst-36 follow-up appended: F-P37-001/002 closure + L-P28-001 bidirectional clause. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-37 + fix-burst-36 entries (this entry). |
+
+Findings closed: F-P37-001 (MEDIUM), F-P37-002 (LOW)
+ADR-013 clock: 0_of_3 (RESET — pass-37 MED)
+Pass-38 next.

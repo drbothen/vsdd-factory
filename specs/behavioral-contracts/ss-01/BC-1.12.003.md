@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -269,3 +269,4 @@ Source-walk for silent-discard patterns in the Resource attribute computation:
 | v1.2 | 2026-05-06 | D-318 — F-1 CAP-030 errata: capability re-anchored to CAP-030. |
 | v1.3 | 2026-05-06 | D-319 — F-3 fix: Story Anchor + Stories cell extended with S-10.04 (POLICY 8 reverse-direction drift from D-316 closed). |
 | v1.4 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-030`. F-14 sweep: Architecture Anchors reviewed; references are to module paths and ADR decision sections — no code symbol refs with line numbers; no stable-anchor disclaimer needed. |
+| v1.5 | 2026-05-09 | fix-burst-36 (F-P37-001): BC-INDEX row Stories cell S-10.03 → S-10.03, S-10.04. Bidirectional L-P28-001 sweep: source body already listed S-10.04 (Story Anchor + Stories row); index row was missing S-10.04. |

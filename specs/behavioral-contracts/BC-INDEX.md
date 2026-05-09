@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.53"
+version: "1.54"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.54 (2026-05-09; fix-burst-36): F-P37-001 — BC-INDEX rows 259/260/261 missing S-10.04 in Stories cell (bidirectional L-P28-001 sweep; 6th META-self-application failure): BC-1.12.003 v1.4→v1.5 (S-10.03 → S-10.03, S-10.04); BC-1.12.004 v1.4→v1.5 (S-10.02, S-10.03 → S-10.02, S-10.03, S-10.04); BC-1.12.005 v1.3→v1.4 (S-10.02, S-10.03 → S-10.02, S-10.03, S-10.04). No count change (total_bcs: 1947). Refs: F-P37-001, L-P28-001 bidirectional clause, fix-burst-36. last_amended: 2026-05-09 (F5 fix-burst-36: 3 BC-INDEX rows S-10.04 added; F-P37-001 closed)."
   - date: 2026-05-09
     change: "v1.53 (2026-05-09; fix-burst-35): F-P36-001 — 12 BC source body Traceability Stories rows updated to include S-15.01 (F3 story decomposition propagation): BC-1.01.001 v1.1→v1.2; BC-1.01.007 v1.1→v1.2; BC-1.08.001 v1.2→v1.3; BC-1.08.002 v1.1→v1.2; BC-1.14.001 v1.11→v1.12; BC-7.06.001 v1.11→v1.12; BC-9.01.006 v1.2→v1.3; BC-3.08.001 v1.13→v1.14; BC-4.04.004 v2.1→v2.2; BC-4.05.004 v2.1→v2.2; BC-4.07.003 v1.3→v1.4; BC-4.08.002 v1.3→v1.4. No count change (total_bcs: 1947). Refs: F-P36-001, L-P28-001, fix-burst-35. last_amended: 2026-05-09 (F5 fix-burst-35: 12 BC body Stories rows propagated S-15.01; F-P36-001 closed)."
   - date: 2026-05-09
@@ -256,9 +258,9 @@ changelog:
 | [BC-1.11.003](ss-01/BC-1.11.003.md) | factory-dispatcher::host::emit_pair — atomic dual-emit host helper for Wave 2 migration window | draft | CAP-009 | S-10.05 |
 | [BC-1.12.001](ss-01/BC-1.12.001.md) | factory-dispatcher::host::emit_event::single_stream_filesink_routing — host::emit_event writes all events exclusively to events-YYYY-MM-DD.jsonl via FileSink; Router/SinkRegistry/DlqWriter retired from production path | draft | CAP-029 | S-10.02 |
 | [BC-1.12.002](ss-01/BC-1.12.002.md) | factory-dispatcher::debug_stream::vsdd_debug_log_gate — dispatcher-internal-YYYY-MM-DD.jsonl writes gated by two-key debug-stream gate (VSDD_DEBUG_LOG=1 env var dominates when present; debug_log_enabled config key governs when env var absent); off by default in release builds; ADR-007 always-on guarantee amended | draft | CAP-010 | S-10.02 |
-| [BC-1.12.003](ss-01/BC-1.12.003.md) | factory-dispatcher::resource_attributes::startup_stamping — all 15 OTel Resource attributes stamped at dispatcher startup with deterministic fallback cascade; no Resource field absent or null | draft | CAP-030 | S-10.03 |
-| [BC-1.12.004](ss-01/BC-1.12.004.md) | factory-dispatcher::emit_event::per_event_host_stamping_and_internal_bifurcation — per-event OTel fields stamped at emit time; emit_internal Some/None bifurcation post-FileSink-rewire; event.category derived from compile-time registry | draft | CAP-029 | S-10.02, S-10.03 |
-| [BC-1.12.005](ss-01/BC-1.12.005.md) | factory-dispatcher::host::emit_event::host_field_override_visibility — event.host_overrides field stamped on domain events + vsdd.internal.host_field_override.v1 lifecycle event emitted when host overrides plugin-supplied host-owned fields (ADR-015 D-15.3) | draft | CAP-029 | S-10.02, S-10.03 |
+| [BC-1.12.003](ss-01/BC-1.12.003.md) | factory-dispatcher::resource_attributes::startup_stamping — all 15 OTel Resource attributes stamped at dispatcher startup with deterministic fallback cascade; no Resource field absent or null | draft | CAP-030 | S-10.03, S-10.04 |
+| [BC-1.12.004](ss-01/BC-1.12.004.md) | factory-dispatcher::emit_event::per_event_host_stamping_and_internal_bifurcation — per-event OTel fields stamped at emit time; emit_internal Some/None bifurcation post-FileSink-rewire; event.category derived from compile-time registry | draft | CAP-029 | S-10.02, S-10.03, S-10.04 |
+| [BC-1.12.005](ss-01/BC-1.12.005.md) | factory-dispatcher::host::emit_event::host_field_override_visibility — event.host_overrides field stamped on domain events + vsdd.internal.host_field_override.v1 lifecycle event emitted when host overrides plugin-supplied host-owned fields (ADR-015 D-15.3) | draft | CAP-029 | S-10.02, S-10.03, S-10.04 |
 | [BC-1.12.006](ss-01/BC-1.12.006.md) | factory-dispatcher::host::block_path_audit — vsdd.block.plugin_blocked.v1 audit event emitted with outcome=blocked, plugin.name, hook.tool_name when plugin returns HookResult::Block (ADR-015 D-15.3) | draft | CAP-029 | S-10.04 |
 | [BC-1.12.007](ss-01/BC-1.12.007.md) | factory-dispatcher::deprecation_lifecycle::wave1_call_graph_invariant — Router, SinkRegistry, DlqWriter, and sink-otel-grpc NOT called from any production code path after Wave 1; deprecated crates excluded from default-members; TD-015-a CI gate (tool selected D-318: cargo-call-stack; implementation deferred to Wave 5) | draft | CAP-029 | S-10.02, S-10.09 |
 | [BC-1.12.009](ss-01/BC-1.12.009.md) | factory-dispatcher::dual_emit::pair_identity_contract — event.correlation_id / event.deprecated_by / event.replaces_deprecated_alias field semantics; five-state event classification (paired-current / paired-deprecated / orphaned-deprecated-half / orphaned-current-half / non-paired); malformed → orphaned-half downgrade rule; consumer degradation rule for orphaned halves (ADR-015 D-15.2.e v1.5) | draft | CAP-029 | S-10.05 |

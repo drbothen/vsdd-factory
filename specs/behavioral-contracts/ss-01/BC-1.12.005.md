@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -224,3 +224,4 @@ Per-emit override detection source-walk:
 | v1.1 | 2026-05-06 | D-315/D-316 amendments — cap-anchor justification, edge case clarifications. |
 | v1.2 | 2026-05-06 | D-319 — F-3 fix: Story Anchor + Stories cell extended with S-10.04 (POLICY 8 reverse-direction drift from D-316 closed). F-8 fix: EC-008 prose rewritten — unambiguously states the lifecycle event IS rate-limited per Postcondition 6 with no separate meta-rate-limit; the prior contradicting "NOT rate-limited against itself" phrase removed. |
 | v1.3 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: stable-anchor disclaimer added to `crates/factory-dispatcher/src/host/emit_event.rs` Architecture Anchor. |
+| v1.4 | 2026-05-09 | fix-burst-36 (F-P37-001): BC-INDEX row Stories cell S-10.02, S-10.03 → S-10.02, S-10.03, S-10.04. Bidirectional L-P28-001 sweep: source body already listed S-10.04 (Story Anchor + Stories row); index row was missing S-10.04. |
