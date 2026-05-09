@@ -1548,3 +1548,61 @@ User chose continue-prose-only (option 2) with EXPLICIT corpus-wide grep mandate
 - L-P24-001 codified [codified]
 - L-P24-002 codified [codified]
 - Fix-burst-23 COMPLETE — comprehensive corpus audit per user directive; all 10 fabricated symbols 0 active-body matches
+
+---
+
+## Pass-25 Adversary Review
+
+**Date:** 2026-05-09
+**Dispatcher:** orchestrator → adversary
+**Phase:** F5 ADVERSARIAL
+
+**Verdict: HIGH** — F-P25-001 (ADR-019 §Implementation Modules + §Consequences: pre-merge pseudocode symbols surviving post-609cae4f sweep); F-P25-002 (BC-3.08.001 version-label drift: body cites stale version); F-P25-003 (VP-077 Kani harness assumptions mismatch merged partition.rs); F-P25-004 (VP-079 scenario harness CLI surface stale vs merged dispatcher binary); F-P25-005 (BC-INDEX row version labels stale for BC-3.08.001 + ADR-019); F-P25-006 (S-15.01 §Implementation Modules + §Tasks: 10 active-body fabricated-symbol cite sites surviving — pre-merge planning vocabulary frozen at PR #106 merge — recurrence carrier O-P25-002); F-P25-007 (F1-delta-analysis.md: pseudocode symbols (`run_tiers`, `spawn_detached`, `run_event`, `drain_async_tasks`) — Phase F1 architect-proposal artifact, carve-out adjudication required). ADR-013: 0_of_3 (RESET — HIGH). 8 consecutive HIGH passes (P18-P25).
+
+User directive: continue protocol without escalation.
+
+---
+
+## Fix-burst-24 — pass-25 HIGH verdict + sub-bursts 1–2 close
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → spec-writer → state-manager (POLICY 3 run-last)
+**Phase:** F5 ADVERSARIAL — pass-25
+
+### Sub-burst 1: F-P25 sweep — 8 files, 14 cite sites (609cae4f, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| ADR-019 | v1.10 → v1.11 | F-P25-001: post-merge pseudocode symbols removed from §Implementation Modules + §Consequences; stable anchors substituted |
+| BC-3.08.001 | v1.12 → v1.13 | F-P25-002: version-label drift corrected; body sync to current BC chain |
+| BC-INDEX | v1.49 → v1.50 | F-P25-005: row version labels updated for BC-3.08.001 v1.13 + ADR-019 v1.11 |
+| VP-077 | v1.11 → v1.12 | F-P25-003: Kani harness assumptions updated to reflect merged partition.rs implementation |
+| VP-079 | v1.16 → v1.17 | F-P25-004: scenario harness CLI surface updated to match merged dispatcher binary |
+| S-15.01 | v1.21 → v1.22 | F-P25-006: §Post-Merge Status block added to §Implementation Modules + §Tasks per L-P25-001 (O-P25-002 retrofit) |
+| E-15 | v1.2 → v1.3 | Version-label sibling sync for ADR-019 v1.11 + BC-3.08.001 v1.13 propagation |
+| F1-delta-analysis.md | — | F-P25-007: inline HTML carve-out comment added noting L-P25-002 exemption (`producer: architect, phase: F1, status: draft`) |
+
+- 14 cite sites patched across 8 files
+- F-P25-001..F-P25-007 closed
+- F-P25-007 adjudicated as CARVE-OUT per L-P25-002 (F1 architect-proposal artifact)
+
+### Sub-burst 2: indexes + lessons + state (this burst, factory-artifacts)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| VP-INDEX | v1.32 → v1.33 | VP-077 v1.12, VP-079 v1.17 changes from sub-burst 1 recorded |
+| STORY-INDEX | v2.53 → v2.54 | S-15.01 v1.22 + E-15 v1.3 changes recorded |
+| ARCH-INDEX | v1.29 → v1.30 | BC-INDEX cite refreshed v1.49→v1.50 per L-P20-002 |
+| tech-debt-register.md | — | TD-031 updated: fix-burst-24 commit 609cae4f recorded; L-P25-001/002 codified noted |
+| lessons.md | — | L-P25-001 codified: post-merge story-body retrofit discipline |
+| lessons.md | — | L-P25-002 codified: F1 architect-proposal carve-out (extends L-P24-001 to greenfield Phase F1) |
+| STATE.md | — | fix-burst-24 closed; pass-26 next; index versions updated; ADR-013 0_of_3 |
+| burst-log.md | — | pass-25 + fix-burst-24 entries (this entry) |
+
+- L-P25-001 codified [codified]
+- L-P25-002 codified [codified]
+- Fix-burst-24 COMPLETE — F-P25-001..F-P25-007 all closed; 8-pass HIGH streak; pass-26 next

@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.32"
+version: "1.33"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
@@ -9,6 +9,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-09
+    change: "v1.33 (2026-05-09; fix-burst-24 sub-burst 1, commit 609cae4f): VP-077 v1.11→v1.12 (F-P25-003: Kani harness assumptions updated to reflect merged partition.rs implementation); VP-079 v1.16→v1.17 (F-P25-004: scenario harness CLI surface updated to match merged dispatcher binary). No VP count change. VP-INDEX v1.32→v1.33. Refs: F-P25-003, F-P25-004, fix-burst-24 sub-burst 1."
   - date: 2026-05-09
     change: "v1.32 (2026-05-09): F-P24-001 propagation gap closed — VP-043 v1.1→v1.2 frontmatter sync + Amendment block (sub-burst 2 of fix-burst-23, commit 78977e26). POLICY 9 anchor propagation gap closed: VP-043 frontmatter now reflects v1.2 changes. No VP count change. VP-INDEX v1.31→v1.32. Refs: F-P24-001, POLICY 9, fix-burst-23 sub-burst 2."
   - date: 2026-05-09

@@ -380,3 +380,39 @@ Without this discipline, codification reduces to single-cluster fixes and the re
 - Post-sweep grep: 0 active-body matches for all 10 fabricated symbols
 
 [codified] — fix-burst-23 sub-burst 3.
+
+---
+
+## F5 pass-25 process-gap findings (2026-05-09)
+
+### L-P25-001 [codified]: When a story moves to Merged, the story body must be retrofitted (or annotated as superseded-by-implementation) to reflect actual merged code
+
+**Source:** O-P25-002 — S-15.01 post-merge body drift.
+
+**Failure mode (O-P25-002):** S-15.01 was MERGED via PR #106 but frontmatter still says `status: ready` and §Implementation Modules + §Tasks describe pre-merge pseudocode (T-1c modifies `engine.rs::run_event`, T-3d wires `drain_async_tasks()`, etc.) that does NOT match merged code. Every adversary pass after merge finds "fabricated symbols" that are actually frozen pre-merge planning vocabulary.
+
+**Rule:** when a story moves to Merged status, state-manager (or a post-merge story-writer agent) MUST either:
+(a) Rewrite §Implementation Modules + §Tasks to reflect the merged code shape, OR
+(b) Add a §Post-Merge Status block at the top of these sections noting "POST-MERGE STATE: this section's task descriptions reflect pre-merge planning vocabulary frozen at PR #N merge. Actual merged implementation is at HEAD; symbol references below describe planning intent rather than current code."
+
+Without this discipline, story body sections become a recurrence carrier for sibling-class fabricated-symbol findings. Pass-25 demonstrated 10 active-body fabricated-symbol cite sites surviving in S-15.01 §Implementation Modules + §Tasks tables.
+
+**Suggested codification mechanism:** post-merge hook in S-15.03 scope (e.g., `validate-post-merge-story-retrofit`) that blocks status: merged transitions until the §Post-Merge Status block is added.
+
+[codified] — fix-burst-24 sub-burst 2.
+
+---
+
+### L-P25-002 [codified]: Phase F1 architect-proposal artifacts (status: draft, producer: architect, phase: F1) are exempt from L-P21-001/L-P23-001 fabricated-symbol sweeps under the same logic as L-P24-001 brownfield Phase 0 carve-out
+
+**Source:** F-P25-007 — F1-delta-analysis.md carve-out adjudication.
+
+**Failure mode (F-P25-007):** F1-delta-analysis.md preserves pre-implementation pseudocode (`run_tiers`, `spawn_detached`, `run_event`, `drain_async_tasks`, etc.) as the canonical Phase F1 architect proposal. Patching these to merged-code symbols would lose the audit-trail evidence of what was originally proposed at design-time vs. what was actually built.
+
+**Rule:** artifacts with frontmatter matching `producer: architect, phase: F1, status: draft` are CARVED OUT from L-P21-001 / L-P23-001 fabricated-symbol sweeps. The pseudocode within them is "expected fabrication" — downstream implementation specs MUST replace these with merged-code symbols, but the F1 source remains as historical proposal.
+
+**Suggested codification:** extend L-P24-001 carve-out scope from `producer: codebase-analyzer AND phase: 1.x` (brownfield Phase 0) to ALSO include `producer: architect AND phase: F1 AND status: draft` (greenfield Phase F1).
+
+Fix-burst-24 sub-burst 1 added an inline HTML comment to F1-delta-analysis.md noting the carve-out per L-P25-002.
+
+[codified] — fix-burst-24 sub-burst 2.
