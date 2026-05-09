@@ -1,8 +1,8 @@
 ---
 document_type: epic
 epic_id: "E-12"
-version: "1.0"
-title: "Engine Governance — Per-Story Adversarial Convergence Discipline"
+version: "1.3"
+title: "Engine Governance — Per-Story Adversarial Convergence Discipline + WASM-Plugin Context Resolver Platform"
 status: draft
 prd_capabilities: [CAP-008, CAP-016, CAP-026]
 prd_frs: []
@@ -16,7 +16,7 @@ timestamp: 2026-05-06T00:00:00Z
 phase: 2
 traces_to: .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
 depends_on: ["E-7"]
-last_amended: "2026-05-08 (v1.2 — F-P21-003: S-15.03 re-anchored from E-15; story_count 8→9)"
+last_amended: "2026-05-08 (v1.3 — F-P22-003/004/005: subsystem swap fixed, frontmatter synced; L-P21-002 retroactive sweep on all 9 stories)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
   - .factory/specs/architecture/ARCH-INDEX.md
@@ -101,8 +101,8 @@ SS-05 artifacts (`plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows
 |-------|-------------|------|-----------|------------|--------|
 | S-12.01 | Workflow + agent doc updates (per-story-delivery.md Step 4.5, adversary.md scope contract, wave-gate Gate 3 narrowing, orchestrator MANDATORY STEPS reconciliation) | M | SS-05 | — | completed |
 | S-12.02 | `validate-per-story-adversary-convergence` WASM hook (Rust crate, hooks-registry.toml registration, bats tests + cargo tests) | M | SS-04 | S-12.01 | completed |
-| S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic; ships first in Phase 2) | S | SS-01 | — | draft |
-| S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | M | SS-04 | S-12.06 | draft |
+| S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic; ships first in Phase 2) | S | SS-04 | — | draft |
+| S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | M | SS-01 | S-12.06 | draft |
 | S-12.05 | hook-sdk resolver-authoring extensions | M | SS-04 | S-12.06 | draft |
 | S-12.04 | WASM resolver loading + lifecycle + error isolation | M | SS-04 | S-12.03 | draft |
 | S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | M | SS-04 | S-12.04, S-12.05 | draft |
@@ -192,3 +192,16 @@ The pattern is identical; the discipline gap is distinct.
 | v1.0 | 2026-05-06 | Initial authoring for cycle v1.0-feature-engine-discipline-pass-1 as F3 prerequisite. Two stories: S-12.01 (workflow + agent docs, SS-05) + S-12.02 (WASM hook, SS-04). Anchored BCs: BC-5.39.001/002 (SS-05), BC-4.10.001/002 (SS-04). ADR: ADR-017. VP: VP-071. |
 | v1.1 | 2026-05-07 | F3-amendment (D-366): scope widened from 'per-story adversary workflow' to 'engine governance platform'. 6 new stories added (S-12.03..S-12.08; WASM-plugin Context Resolver platform). story_count 2→8. New BCs: BC-1.13.001 (SS-01) + BC-4.12.001-005 (SS-04). New ADR: ADR-018. New VPs: VP-073-076. subsystems_affected expanded to include SS-01. Dependency graph established: S-12.06 → {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08. Bootstrap pattern flipping right-side-up: S-12.03..S-12.08 are first stories in cycle history subject to Step 4.5 per-story adversary convergence. |
 | v1.2 | 2026-05-08 | F-P21-003 (fix-burst-20): S-15.03 re-anchored from E-15 (Plugin Async Semantics — incorrect) to E-12 (Engine Governance — correct per governance/discipline scope alignment). S-15.03 subsystems [SS-04] → [SS-01, SS-04]. story_count 8→9. No change to subsystems_affected (SS-01 already present from v1.1). Refs: F-P21-003, L-P21-002. |
+| v1.3 | 2026-05-08 | F-P22-003/004/005 + L-P21-002 retroactive sweep: Stories Planned table subsystem swap corrected for S-12.03 (SS-04→SS-01) and S-12.06 (SS-01→SS-04). Frontmatter `version:` bumped 1.0→1.3 (was stale; body already at 1.2 in fix-burst-20). Frontmatter `title:` synced to match H1 (added "+ WASM-Plugin Context Resolver Platform" suffix from v1.1 F3-amendment). L-P21-002 retroactive sweep on all 9 stories: S-12.01/02/04/05/06/07/08/S-15.03 verified clean; S-12.03 SS drift was the sole finding (covered by F-P22-003 fix above). Refs: F-P22-003, F-P22-004, F-P22-005, L-P21-002, L-P19-001. |
+
+## Amendment 2026-05-08 (v1.2 → v1.3)
+
+**Driver:** F-P22-003/004/005 + L-P21-002 retroactive sweep.
+
+**Changes:**
+1. Stories Planned table: swap subsystems for S-12.03 (SS-04→SS-01) and S-12.06 (SS-01→SS-04) per F-P22-003 and L-P21-002 retroactive sweep.
+2. Frontmatter `version:` synced 1.0 → 1.3 (was stale; body already at 1.2 in fix-burst-20).
+3. Frontmatter `title:` synced to match H1 (added "+ WASM-Plugin Context Resolver Platform" suffix from v1.1 F3-amendment).
+4. L-P21-002 retroactive sweep on all 9 stories under E-12 — verified epic anchor + subsystems coherence.
+
+**Refs:** F-P22-003, F-P22-004, F-P22-005, L-P21-002, L-P19-001 (same-burst retroactive sweep).
