@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -76,7 +76,7 @@ validate-pr-review-posted: scopes to pr-reviewer / pr-review-triage
 | L2 Capability | TBD |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-07 (Hook Bash Layer) |
-| Stories | TBD (filled by story-writer) |
+| Stories | S-8.05 |
 
 ## Related BCs (Recommended)
 
@@ -126,4 +126,11 @@ TBD — story will be assigned during story-writer phase.
 #### Refactoring Notes
 
 Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-09 | state-manager | F-P47-001 fix-burst-43: Traceability Stories TBD→S-8.05 (S-8.05 behavioral_contracts frontmatter cites this BC; bidirectional L-P28-001 propagation). |
 

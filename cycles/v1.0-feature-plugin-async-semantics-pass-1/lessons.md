@@ -2,7 +2,7 @@
 document_type: lessons
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 producer: state-manager
-version: "1.5"
+version: "1.6"
 last_updated: 2026-05-09
 ---
 
@@ -682,3 +682,24 @@ Canonical verification procedure for BCs axis:
 - BC body Stories rows: 12 BCs updated to match BC-INDEX canonical values.
 - BC-INDEX TBD bidirectional: BC-4.11.001 TBD→S-13.01; BC-6.22.001 TBD→S-13.01 (S-13.01 behavioral_contracts frontmatter confirmed to cite both).
 - No new axes added to REQUIRED enumeration; existing axes sweep was the action.
+
+**13th META-self-application failure (added fix-burst-43, F-P47-001 closure):** F-P47-001 found that 25 BCs from the E-8 native-port story family (S-8.01..S-8.09) carry TBD in BC-INDEX Stories cells and in body Traceability Stories rows, despite all 9 stories having their `behavioral_contracts:` frontmatter fully populated. This is the LARGEST blast radius observed in any L-P28-001 META instance: 25 BCs across 9 stories, compared to F-P37-001 (3 BCs across 1 story) and F-P41-002 (10 BCs across 7 stories).
+
+**Root cause:** E-8 native-port stories (S-8.01..S-8.09) were authored and merged during a period when the L-P28-001 bidirectional propagation discipline existed but had not yet been applied to the E-8 epic family. Fix-burst-39 addressed E-12 and fix-burst-42 addressed D-340/D-362 cluster BCs — but neither fix-burst systematically swept all E-8 stories for the same pattern. This is a per-epic systematic verification gap: fixes were applied per-cluster (triggered by adversary findings) rather than per-epic (sweeping the entire E-8 family).
+
+**Per-epic systematic verification clause (new, added fix-burst-43):** L-P28-001 retroactive sweeps MUST include per-epic systematic verification — not just per-story or per-cluster. When applying the L-P28-001 bidirectional sweep to any epic family, the sweep MUST cover ALL stories in that epic before declaring the fix complete. A cluster-triggered fix that does not sweep the remaining stories in the same epic leaves the remainder as latent drift.
+
+**Procedure for per-epic sweep:**
+1. Identify the epic from the finding's story ID (e.g., F-P47-001 → S-8.01 → E-8).
+2. List ALL story files in the epic: `find .factory/stories -name 'S-8.*.md' | sort`.
+3. For each story, extract `behavioral_contracts:` frontmatter.
+4. For each BC cited in any story: verify BC-INDEX Stories cell AND BC body Traceability Stories row.
+5. Propagate all TBD → actual story IDs before sealing the fix-burst.
+
+**Pattern:** 13 META-self-application failures across passes 27–47. Prose-only codification of L-P28-001 empirically does not converge. Mechanical enforcement (S-15.03 hook scope, which gates on cross-index consistency checks) remains the structurally-convergent path. Prose codification is necessary but not sufficient.
+
+**Fix-burst-43 corpus verification (13th instance):**
+- BC body Stories rows: 25 BCs updated to match story frontmatter canonical values (S-8.01..S-8.09 E-8 family).
+- BC-INDEX Stories cells: 25 rows updated TBD→actual story ID (bidirectional confirmation per story frontmatter grep).
+- Per-epic sweep: all S-8.xx story files enumerated; all behavioral_contracts frontmatter entries verified; no additional drifts beyond the 25 identified by F-P47-001.
+- No new axes added to REQUIRED enumeration; existing BCs/Stories cross-index axis sweep applied to entire E-8 epic.

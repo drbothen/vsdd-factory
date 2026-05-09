@@ -2435,3 +2435,101 @@ Pass-46 dispatched next.
 
 ADR-013 clock: 0_of_3 → **1_of_3** (1 advance after fix-burst-42 closure).
 Pass-47 dispatched next.
+
+---
+
+## STATE.md Current Phase Steps archived rows (passes 36-43 + fix-bursts 35-41)
+
+> Extracted from STATE.md during STATE.md compaction in fix-burst-43 (pass-47 LOW, F-P47-001 closure).
+> STATE.md budget exceeded 200 lines; older rows extracted here per content routing rules.
+
+| Step | Agent | Status | Summary |
+|------|-------|--------|---------|
+| F5 pass-36 | adversary | DONE — MED | F-P36-001: 12 BC body Stories TBD vs BC-INDEX S-15.01 (5th L-P28-001 META). ADR-013 RESET 0_of_3. |
+| F5 fix-burst-35 | state-manager | DONE | F-P36-001 closed: 12 BCs body updated S-15.01. BC-INDEX v1.52→v1.53; ARCH-INDEX v1.32→v1.33. L-P28-001 scope clause added. |
+| F5 pass-37 | adversary | DONE — MED | F-P37-001: BC-INDEX rows 259/260/261 missing S-10.04 (6th L-P28-001 META). F-P37-002: STORY-INDEX S-3.03 Depends-On. ADR-013 RESET. |
+| F5 fix-burst-36 | state-manager | DONE | F-P37-001/002 closed. BC-1.12.003/004/005 updated; BC-INDEX v1.53→v1.54; ARCH-INDEX v1.33→v1.34. STORY-INDEX v2.58→v2.59. L-P28-001 bidirectional clause added. |
+| F5 pass-38 | adversary | DONE — NITPICK_ONLY | FIRST ADVANCEMENT after 20 consecutive resets. ADR-013: 0_of_3 → 1_of_3. |
+| F5 pass-39 | adversary | DONE — LOW | F-P39-001: STORY-INDEX Points S-4.05+S-4.06 = 3 vs source 5 (7th L-P28-001 META). ADR-013 RESET 1→0_of_3. |
+| F5 fix-burst-37 | state-manager | DONE | F-P39-001 closed: STORY-INDEX S-4.05/S-4.06 Points 3→5. STORY-INDEX v2.59→v2.60. L-P28-001 7th META (Points axis). |
+| F5 pass-40 | adversary | DONE — LOW | F-P40-001: S-12.06 Points 105 + Priority P1; S-13.01 Priority P1 (8th L-P28-001 META). ADR-013 0_of_3. |
+| F5 fix-burst-38 | state-manager | DONE | F-P40-001 closed: 7 Priority drifts + S-12.06 Points fixed. STORY-INDEX v2.60→v2.61. L-P28-001 8th META (Priority axis). |
+| F5 pass-41 | adversary | DONE — LOW | F-P41-001/002: STORY-INDEX BCs 7 E-12 stories + BC-INDEX Stories 10 BCs (9th L-P28-001 META). ADR-013 0_of_3. |
+| F5 fix-burst-39 | state-manager | DONE | F-P41-001/002 closed: 7 STORY-INDEX BCs cells + 10 BC-INDEX Stories cells. STORY-INDEX v2.61→v2.62; BC-INDEX v1.54→v1.55; ARCH-INDEX v1.34→v1.35. L-P28-001 9th META. |
+| F5 pass-42 | adversary | DONE — HIGH | F-P42-001/002/003: STORY-INDEX Status completed→merged (4 rows); S-15.01 points XL→13; BC-5.39.001 Stories missing S-14.01. 10th L-P28-001 META. ADR-013 RESET. |
+| F5 fix-burst-40 | state-manager | DONE | F-P42-001/002/003 closed. STORY-INDEX v2.62→v2.63; BC-INDEX v1.55→v1.56; ARCH-INDEX v1.35→v1.36. L-P28-001 10th META + axis-checklist protocol. |
+| F5 pass-43 | adversary | DONE — MED | F-P43-001/002/003: STORY-INDEX E-14 axis drift (BCs/Points/Depends-On). 11th L-P28-001 META. ADR-013 RESET. |
+| F5 fix-burst-41 | state-manager | DONE | F-P43-001/002/003 + O-P43-001 closed. STORY-INDEX v2.63→v2.64. L-P28-001 11th META. |
+| F5 pass-44 | adversary | DONE — NITPICK_ONLY | FIRST ADVANCEMENT after 12 consecutive non-NIT. ADR-013: 0_of_3 → 1_of_3. |
+
+---
+
+## Burst 50 — F5 pass-47 adversary review (LOW)
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → adversary → state-manager
+**Phase:** F5 ADVERSARIAL — pass-47
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-47.md` | adversary | Pass-47 review: LOW (0H/0M/1L). F-P47-001: E-8 native-port BC family 25 BCs/9 stories Stories cell drift — largest L-P28-001 blast radius observed. ADR-013 RESETS 1→0_of_3. |
+| `.factory/STATE.md` | state-manager | Burst 50 + 51 entries reflected; STATE.md compacted (passes 36-43 + fix-bursts 35-41 extracted here). |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Archived rows + Burst 50 + 51 appended. |
+
+ADR-013 clock: **RESET 1→0_of_3** (pass-47 LOW).
+Fix-burst-43 dispatched.
+
+---
+
+## Burst 51 — fix-burst-43: F-P47-001 E-8 native-port BC Stories propagation
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL — fix-burst-43
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `specs/behavioral-contracts/ss-07/BC-7.03.042.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.01. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.043.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.01. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.044.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.01. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.045.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.02. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.046.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.02. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.047.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.02. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.048.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.02. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.071.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.09. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.072.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.09. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.073.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.09. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.074.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.09. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.075.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.09. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.076.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.06. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.077.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.06. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.078.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.06. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.079.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.08. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.080.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.08. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.081.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.03. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.082.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.03. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.083.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.04. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.084.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.04. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.085.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.04. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.086.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.04. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.091.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.07. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.03.092.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.07. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.04.040.md` | state-manager | v1.2→v1.3. Stories TBD→S-8.05. Changelog appended. |
+| `specs/behavioral-contracts/ss-07/BC-7.04.041.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.05. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.04.042.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.05. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.04.043.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.05. Changelog added. |
+| `specs/behavioral-contracts/ss-07/BC-7.04.044.md` | state-manager | v1.1→v1.2. Stories TBD→S-8.05. Changelog added. |
+| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.57→v1.58. 25 BC Stories cells TBD→actual. Changelog appended. |
+| `specs/architecture/ARCH-INDEX.md` | state-manager | v1.37→v1.38. BC-INDEX cite refreshed v1.57→v1.58 (L-P20-002). Changelog appended. |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | v1.5→v1.6. L-P28-001 13th META appended with per-epic systematic verification clause. |
+| `.factory/STATE.md` | state-manager | current_step → fix-burst-43 closed; ADR-013 0_of_3 (RESET); BC-INDEX v1.58; ARCH-INDEX v1.38. STATE.md compacted (older steps archived). |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | STATE.md compaction archive + Bursts 50+51 appended. |
+
+F-P47-001 closed.
+ADR-013 clock: 0_of_3 (RESET)
+BC-INDEX v1.58 | ARCH-INDEX v1.38
+Pass-48 dispatched next.

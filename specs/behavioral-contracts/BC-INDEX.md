@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.57"
+version: "1.58"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.58 (2026-05-09; fix-burst-43): F-P47-001 — 25 BC-INDEX Stories cells propagated for E-8 native-port family (S-8.01..S-8.09): BC-7.03.042-044 TBD→S-8.01; BC-7.03.045-048 TBD→S-8.02; BC-7.03.081-082 TBD→S-8.03; BC-7.03.083-086 TBD→S-8.04; BC-7.04.040-044 TBD→S-8.05; BC-7.03.076-078 TBD→S-8.06; BC-7.03.091-092 TBD→S-8.07; BC-7.03.079-080 TBD→S-8.08; BC-7.03.071-075 TBD→S-8.09. BC body Traceability Stories rows also propagated (25 BCs). Largest L-P28-001-family blast radius observed (13th META instance; 25 BCs, 9 stories). No count change (total_bcs: 1947). Refs: F-P47-001, L-P28-001, fix-burst-43. last_amended: 2026-05-09 (F5 fix-burst-43: 25 BC-INDEX Stories cells + 25 BC body Traceability rows; F-P47-001 closed)."
   - date: 2026-05-09
     change: "v1.57 (2026-05-09; fix-burst-42): F-P45-001 — 12 BC body Traceability Stories rows propagated from BC-INDEX (D-340/D-362 cluster; BCs had placeholder or partial values). BC-1.13.001 v1.0→v1.1 (S-12.03,S-12.04 → S-12.03,S-12.04,S-12.06,S-12.08). BC-4.10.001 v1.1→v1.2 (Story B → S-12.02,S-12.08). BC-4.10.002 v1.1→v1.2 (Story B → S-12.02). BC-4.11.001 v1.2→v1.3 (Story C → S-13.01). BC-4.12.001 v1.0→v1.1 (S-12.04 → S-12.04,S-12.06,S-12.07). BC-4.12.002 v1.0→v1.1 (S-12.05,S-12.06 → S-12.05,S-12.06,S-12.07). BC-4.12.003 v1.0→v1.1 (S-12.04,S-12.07 → S-12.04,S-12.06,S-12.07). BC-4.12.004 v1.0→v1.1 (S-12.04 → S-12.04,S-12.06,S-12.07). BC-4.12.005 v1.0→v1.1 (S-12.03 → S-12.03,S-12.06,S-12.07,S-12.08). BC-5.39.001 v1.1→v1.2 (Story A → S-12.01,S-14.01). BC-5.39.002 v1.0→v1.1 (Story A → S-12.01). BC-6.22.001 v1.0→v1.1 (Story C → S-13.01). BC-INDEX bidirectional: BC-4.11.001 TBD→S-13.01; BC-6.22.001 TBD→S-13.01. No count change (total_bcs: 1947). 12th L-P28-001-family META instance. Refs: F-P45-001, L-P28-001, fix-burst-42. last_amended: 2026-05-09 (F5 fix-burst-42: 12 BC body Stories rows + 2 BC-INDEX TBD fixes; F-P45-001 closed)."
   - date: 2026-05-09
@@ -1718,13 +1720,13 @@ changelog:
 | [BC-7.03.039](ss-07/BC-7.03.039.md) | factory-branch-guard: blocks if .factory/ is not a worktree | draft | TBD | TBD |
 | [BC-7.03.040](ss-07/BC-7.03.040.md) | factory-branch-guard: blocks if worktree on wrong branch | draft | TBD | TBD |
 | [BC-7.03.041](ss-07/BC-7.03.041.md) | factory-branch-guard: skips paths outside .factory tree | draft | TBD | TBD |
-| [BC-7.03.042](ss-07/BC-7.03.042.md) | handoff-validator: identity & registry binding | draft | TBD | TBD |
-| [BC-7.03.043](ss-07/BC-7.03.043.md) | handoff-validator: warns on empty subagent result | draft | TBD | TBD |
-| [BC-7.03.044](ss-07/BC-7.03.044.md) | handoff-validator: warns on suspiciously short result (<40 chars) | draft | TBD | TBD |
-| [BC-7.03.045](ss-07/BC-7.03.045.md) | pr-manager-completion-guard: identity & registry binding | draft | TBD | TBD |
-| [BC-7.03.046](ss-07/BC-7.03.046.md) | pr-manager-completion-guard: counts STEP_COMPLETE emissions; passes if ≥8 | draft | TBD | TBD |
-| [BC-7.03.047](ss-07/BC-7.03.047.md) | pr-manager-completion-guard: BLOCKED status is legitimate early exit | draft | TBD | TBD |
-| [BC-7.03.048](ss-07/BC-7.03.048.md) | pr-manager-completion-guard: blocks with step-specific continuation hint | draft | TBD | TBD |
+| [BC-7.03.042](ss-07/BC-7.03.042.md) | handoff-validator: identity & registry binding | draft | TBD | S-8.01 |
+| [BC-7.03.043](ss-07/BC-7.03.043.md) | handoff-validator: warns on empty subagent result | draft | TBD | S-8.01 |
+| [BC-7.03.044](ss-07/BC-7.03.044.md) | handoff-validator: warns on suspiciously short result (<40 chars) | draft | TBD | S-8.01 |
+| [BC-7.03.045](ss-07/BC-7.03.045.md) | pr-manager-completion-guard: identity & registry binding | draft | TBD | S-8.02 |
+| [BC-7.03.046](ss-07/BC-7.03.046.md) | pr-manager-completion-guard: counts STEP_COMPLETE emissions; passes if ≥8 | draft | TBD | S-8.02 |
+| [BC-7.03.047](ss-07/BC-7.03.047.md) | pr-manager-completion-guard: BLOCKED status is legitimate early exit | draft | TBD | S-8.02 |
+| [BC-7.03.048](ss-07/BC-7.03.048.md) | pr-manager-completion-guard: blocks with step-specific continuation hint | draft | TBD | S-8.02 |
 | [BC-7.03.049](ss-07/BC-7.03.049.md) | protect-bc: identity & registry binding | draft | TBD | TBD |
 | [BC-7.03.050](ss-07/BC-7.03.050.md) | protect-bc: denies edits to green BCs at .factory/specs/behavioral-contracts/BC-*.md | draft | TBD | TBD |
 | [BC-7.03.051](ss-07/BC-7.03.051.md) | protect-bc: jq-missing fail-closed (exit 1) | draft | TBD | TBD |
@@ -1747,28 +1749,28 @@ changelog:
 | [BC-7.03.068](ss-07/BC-7.03.068.md) | red-gate: state file absent → skip | draft | TBD | TBD |
 | [BC-7.03.069](ss-07/BC-7.03.069.md) | red-gate: blocks edits to files not in `red[]` (path normalization 4-way) | draft | TBD | TBD |
 | [BC-7.03.070](ss-07/BC-7.03.070.md) | red-gate: jq parse error → fail-closed exit 1 | draft | TBD | TBD |
-| [BC-7.03.071](ss-07/BC-7.03.071.md) | regression-gate: identity & registry binding | draft | TBD | TBD |
-| [BC-7.03.072](ss-07/BC-7.03.072.md) | regression-gate: matches 9 test runners | draft | TBD | TBD |
-| [BC-7.03.073](ss-07/BC-7.03.073.md) | regression-gate: pass/fail derivation prefers exit_code; falls back to interrupted | draft | TBD | TBD |
-| [BC-7.03.074](ss-07/BC-7.03.074.md) | regression-gate: writes state file with status, timestamp, command | draft | TBD | TBD |
-| [BC-7.03.075](ss-07/BC-7.03.075.md) | regression-gate: warns on pass→fail transition | draft | TBD | TBD |
-| [BC-7.03.076](ss-07/BC-7.03.076.md) | session-learning: identity & registry binding | draft | TBD | TBD |
-| [BC-7.03.077](ss-07/BC-7.03.077.md) | session-learning: appends timestamped marker to .factory/sidecar-learning.md | draft | TBD | TBD |
-| [BC-7.03.078](ss-07/BC-7.03.078.md) | session-learning: skips when .factory/ absent | draft | TBD | TBD |
-| [BC-7.03.079](ss-07/BC-7.03.079.md) | track-agent-start: identity & registry binding | draft | TBD | TBD |
-| [BC-7.03.080](ss-07/BC-7.03.080.md) | track-agent-start: emits agent.start with subagent + best-effort story_id | draft | TBD | TBD |
-| [BC-7.03.081](ss-07/BC-7.03.081.md) | track-agent-stop: identity & registry binding | draft | TBD | TBD |
-| [BC-7.03.082](ss-07/BC-7.03.082.md) | track-agent-stop: classifies result as ok\ | draft | TBD | TBD |
-| [BC-7.03.083](ss-07/BC-7.03.083.md) | update-wave-state-on-merge: identity & registry binding | draft | TBD | TBD |
-| [BC-7.03.084](ss-07/BC-7.03.084.md) | update-wave-state-on-merge: scopes to pr-manager + successful merge signal | draft | TBD | TBD |
-| [BC-7.03.085](ss-07/BC-7.03.085.md) | update-wave-state-on-merge: appends story to wave_data.stories_merged via python YAML | draft | TBD | TBD |
-| [BC-7.03.086](ss-07/BC-7.03.086.md) | update-wave-state-on-merge: flips gate_status to pending when wave fully merged | draft | TBD | TBD |
+| [BC-7.03.071](ss-07/BC-7.03.071.md) | regression-gate: identity & registry binding | draft | TBD | S-8.09 |
+| [BC-7.03.072](ss-07/BC-7.03.072.md) | regression-gate: matches 9 test runners | draft | TBD | S-8.09 |
+| [BC-7.03.073](ss-07/BC-7.03.073.md) | regression-gate: pass/fail derivation prefers exit_code; falls back to interrupted | draft | TBD | S-8.09 |
+| [BC-7.03.074](ss-07/BC-7.03.074.md) | regression-gate: writes state file with status, timestamp, command | draft | TBD | S-8.09 |
+| [BC-7.03.075](ss-07/BC-7.03.075.md) | regression-gate: warns on pass→fail transition | draft | TBD | S-8.09 |
+| [BC-7.03.076](ss-07/BC-7.03.076.md) | session-learning: identity & registry binding | draft | TBD | S-8.06 |
+| [BC-7.03.077](ss-07/BC-7.03.077.md) | session-learning: appends timestamped marker to .factory/sidecar-learning.md | draft | TBD | S-8.06 |
+| [BC-7.03.078](ss-07/BC-7.03.078.md) | session-learning: skips when .factory/ absent | draft | TBD | S-8.06 |
+| [BC-7.03.079](ss-07/BC-7.03.079.md) | track-agent-start: identity & registry binding | draft | TBD | S-8.08 |
+| [BC-7.03.080](ss-07/BC-7.03.080.md) | track-agent-start: emits agent.start with subagent + best-effort story_id | draft | TBD | S-8.08 |
+| [BC-7.03.081](ss-07/BC-7.03.081.md) | track-agent-stop: identity & registry binding | draft | TBD | S-8.03 |
+| [BC-7.03.082](ss-07/BC-7.03.082.md) | track-agent-stop: classifies result as ok\ | draft | TBD | S-8.03 |
+| [BC-7.03.083](ss-07/BC-7.03.083.md) | update-wave-state-on-merge: identity & registry binding | draft | TBD | S-8.04 |
+| [BC-7.03.084](ss-07/BC-7.03.084.md) | update-wave-state-on-merge: scopes to pr-manager + successful merge signal | draft | TBD | S-8.04 |
+| [BC-7.03.085](ss-07/BC-7.03.085.md) | update-wave-state-on-merge: appends story to wave_data.stories_merged via python YAML | draft | TBD | S-8.04 |
+| [BC-7.03.086](ss-07/BC-7.03.086.md) | update-wave-state-on-merge: flips gate_status to pending when wave fully merged | draft | TBD | S-8.04 |
 | [BC-7.03.087](ss-07/BC-7.03.087.md) | verify-git-push: identity & registry binding | draft | TBD | TBD |
 | [BC-7.03.088](ss-07/BC-7.03.088.md) | verify-git-push: blocks --force / -f, allows --force-with-lease | draft | TBD | TBD |
 | [BC-7.03.089](ss-07/BC-7.03.089.md) | verify-git-push: blocks pushes to main\ | draft | TBD | TBD |
 | [BC-7.03.090](ss-07/BC-7.03.090.md) | verify-git-push: emits additionalContext on allowed pushes | draft | TBD | TBD |
-| [BC-7.03.091](ss-07/BC-7.03.091.md) | warn-pending-wave-gate: identity & registry binding | draft | TBD | TBD |
-| [BC-7.03.092](ss-07/BC-7.03.092.md) | warn-pending-wave-gate: stderr warning when any wave has gate_status: pending | draft | TBD | TBD |
+| [BC-7.03.091](ss-07/BC-7.03.091.md) | warn-pending-wave-gate: identity & registry binding | draft | TBD | S-8.07 |
+| [BC-7.03.092](ss-07/BC-7.03.092.md) | warn-pending-wave-gate: stderr warning when any wave has gate_status: pending | draft | TBD | S-8.07 |
 | [BC-7.03.093](ss-07/BC-7.03.093.md) | verify-git-push: identity confirmation (already covered in BC-1086 routing section) | draft | TBD | TBD |
 | [BC-7.04.001](ss-07/BC-7.04.001.md) | validate-anchor-capabilities-union: identity & registry binding | draft | TBD | TBD |
 | [BC-7.04.002](ss-07/BC-7.04.002.md) | validate-anchor-capabilities-union: scopes to .factory/stories/S-*.md or STORY-*.md | draft | TBD | TBD |
@@ -1809,11 +1811,11 @@ changelog:
 | [BC-7.04.037](ss-07/BC-7.04.037.md) | validate-pr-merge-prerequisites: scopes to github-ops merge dispatches | draft | TBD | TBD |
 | [BC-7.04.038](ss-07/BC-7.04.038.md) | validate-pr-merge-prerequisites: blocks when 3 evidence files missing | draft | TBD | TBD |
 | [BC-7.04.039](ss-07/BC-7.04.039.md) | validate-pr-merge-prerequisites: missing delivery dir is warn-only (graceful early pipeline) | draft | TBD | TBD |
-| [BC-7.04.040](ss-07/BC-7.04.040.md) | validate-pr-review-posted: identity & registry binding | draft | TBD | TBD |
-| [BC-7.04.041](ss-07/BC-7.04.041.md) | validate-pr-review-posted: scopes to pr-reviewer / pr-review-triage | draft | TBD | TBD |
-| [BC-7.04.042](ss-07/BC-7.04.042.md) | validate-pr-review-posted: blocks when pr-review.md not written | draft | TBD | TBD |
-| [BC-7.04.043](ss-07/BC-7.04.043.md) | validate-pr-review-posted: blocks `gh pr comment` fallback (not a review verdict) | draft | TBD | TBD |
-| [BC-7.04.044](ss-07/BC-7.04.044.md) | validate-pr-review-posted: blocks when no formal review posted | draft | TBD | TBD |
+| [BC-7.04.040](ss-07/BC-7.04.040.md) | validate-pr-review-posted: identity & registry binding | draft | TBD | S-8.05 |
+| [BC-7.04.041](ss-07/BC-7.04.041.md) | validate-pr-review-posted: scopes to pr-reviewer / pr-review-triage | draft | TBD | S-8.05 |
+| [BC-7.04.042](ss-07/BC-7.04.042.md) | validate-pr-review-posted: blocks when pr-review.md not written | draft | TBD | S-8.05 |
+| [BC-7.04.043](ss-07/BC-7.04.043.md) | validate-pr-review-posted: blocks `gh pr comment` fallback (not a review verdict) | draft | TBD | S-8.05 |
+| [BC-7.04.044](ss-07/BC-7.04.044.md) | validate-pr-review-posted: blocks when no formal review posted | draft | TBD | S-8.05 |
 | [BC-7.04.045](ss-07/BC-7.04.045.md) | validate-state-index-status-coherence: identity & registry binding | draft | TBD | TBD |
 | [BC-7.04.046](ss-07/BC-7.04.046.md) | validate-state-index-status-coherence: scopes to STATE.md or cycles/*/INDEX.md | draft | TBD | TBD |
 | [BC-7.04.047](ss-07/BC-7.04.047.md) | validate-state-index-status-coherence: WARNS (exit 1) when STATE.convergence_status drifts from c... | draft | TBD | TBD |
