@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
-timestamp: 2026-04-25T00:00:00
+timestamp: 2026-05-08T00:00:00
 phase: 1.4b
 inputs: [bc-id-mapping.md, pass-3-behavioral-contracts.md]
 input-hash: "[pending-recompute]"
@@ -69,14 +69,14 @@ At dispatcher startup, `base_host_ctx.plugin_root` is set to `${CLAUDE_PLUGIN_RO
 |-------|-------|
 | L2 Capability | TBD (anchor in Phase 1.5) |
 | L2 Domain Invariants | TBD |
-| Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs:143-145` |
+| Architecture Module | SS-01 — `crates/factory-dispatcher/src/main.rs::run` |
 | Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
 
 ### Source Evidence
 
 | Property | Value |
 |----------|-------|
-| **Path** | `main.rs:143–145` |
+| **Path** | `main.rs::run` |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts.md` line `560` |
@@ -98,3 +98,10 @@ At dispatcher startup, `base_host_ctx.plugin_root` is set to `${CLAUDE_PLUGIN_RO
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 2 `main.rs:143-145` / `main.rs:143–145` line citations to `main.rs::run`. |

@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.4"
+version: "v1.5"
 status: draft
 producer: product-owner
-timestamp: 2026-04-28T00:00:00
+timestamp: 2026-05-08T00:00:00
 phase: 1a
 inputs:
   - .factory/stories/S-5.03-worktree-hooks.md
@@ -55,14 +55,14 @@ When the dispatcher routes a `WorktreeCreate` event to the `worktree-hooks.wasm`
 2. The emitted payload contains all required fields. Fields are categorized by who sets them:
 
    **Plugin-set fields (2 fields — the plugin sets these via `emit_event` key/value pairs):**
-   - `worktree_path` (string): absolute path to the newly created worktree, sourced from the envelope's `worktree_path` field. If absent from the envelope, `worktree_path = ""` (empty string default per PC-3). Value is always a string on the wire (per `emit_event.rs:49` string coercion).
+   - `worktree_path` (string): absolute path to the newly created worktree, sourced from the envelope's `worktree_path` field. If absent from the envelope, `worktree_path = ""` (empty string default per PC-3). Value is always a string on the wire (per `emit_event.rs::register` string coercion).
    - `worktree_name` (string): human-readable identifier for the worktree, sourced from the envelope's `worktree_name` field. If absent from the envelope, `worktree_name = ""` (empty string default). Value is always a string on the wire.
 
    **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and are silently dropped if the plugin attempts to set them. Each is a non-empty string per BC-1.05.012 unconditional enrichment.
 
    **Construction-time fields (4 fields — set by the dispatcher between plugin `emit_event` call and final wire format, NOT by the plugin):** `ts`, `ts_epoch`, `schema_version`, `type`. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped. `type` MUST equal `"worktree.created"`.
 
-   **Wire format note:** All plugin-set field values are strings on the wire (`emit_event.rs:49` coerces all plugin-supplied values to `Value::String`). Downstream consumers MUST parse string values back to their semantic types.
+   **Wire format note:** All plugin-set field values are strings on the wire (`emit_event.rs::register` coerces all plugin-supplied values to `Value::String`). Downstream consumers MUST parse string values back to their semantic types.
 
    **Total wire fields: 10** (2 plugin-set + 4 host-enriched + 4 construction-time). This is the minimum payload for a worktree lifecycle event. SessionStart emits 14 (6+4+4); SessionEnd emits 11 (3+4+4); WorktreeCreate emits 10 (2+4+4); WorktreeRemove emits 9 (1+4+4).
 
@@ -147,6 +147,7 @@ VP-067
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.5 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 2 `emit_event.rs:49` line citations to `emit_event.rs::register`. |
 | v1.4 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields, Option C zero-capability host fns list), Canonical Test Vectors, Related BCs, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.3 | 2026-04-28 | product-owner | Sibling-sweep from S-5.04 ADV-P01 HIGH-P01-002: EC-005 simplified — drop BC-1.02.005 mis-citation for session_id sentinel; BC-1.02.005 only contracts tool_name="" default, not session_id. EC-005 now reads: session_id is RESERVED_FIELDS host-enriched; host fn handles absent value; plugin does not set it. Same fix applied to EC-005 test vector row. Related BCs: BC-1.02.005 citation narrowed to envelope-field parsing (tool_name); BC-1.05.012 added as the correct anchor for session_id host-enrichment. |
 | v1.2 | 2026-04-28 | product-owner | Pass-2 reversal ADV-S5.03-P02: (CRIT-P02-001/003 + HIGH-P02-005) HIGH-003 4+3+1 split reverted to 4+4 grouping for sibling consistency with BC-4.04.001 + BC-4.05.001. The implementation-detail 4-vs-3 distinction (HostContext-enriched vs. InternalEvent::now()) is not surfaced in HOST_ABI.md and added complexity without spec value — HOST_ABI.md lumps all 8 RESERVED_FIELDS together. Restored: "Wire payload: 10 fields (2 plugin-set + 4 host-enriched + 4 construction-time)". HOST_ABI.md authoritative-for-4-vs-3-split claim dropped entirely. (CRIT-P02-002) EC-001 once-key-absence pinned: "`once` key absent" replaces "`once: false` (or absent)" — matches BC-4.07.003 PC-4 exactly; same fix applied to test vector row 4. |

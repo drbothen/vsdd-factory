@@ -133,5 +133,11 @@ at dispatcher startup.
   (Q6 resolution summary), lines 833–858 (full Q6 Open Question resolution with
   Option B rationale).
 - **Code as-built:** `crates/factory-dispatcher/src/internal_log.rs:1–27` (module
-  doc with contract statement), `internal_log.rs:42` (`DEFAULT_RETENTION_DAYS: u32 = 30`),
-  `internal_log.rs:48` (`INTERNAL_EVENT_SCHEMA_VERSION: u32 = 1`).
+  doc with contract statement), `internal_log.rs::DEFAULT_RETENTION_DAYS` (`DEFAULT_RETENTION_DAYS: u32 = 30`),
+  `internal_log.rs::INTERNAL_EVENT_SCHEMA_VERSION` (`INTERNAL_EVENT_SCHEMA_VERSION: u32 = 1`).
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 2 line citations to stable symbol anchors: `internal_log.rs:42` → `internal_log.rs::DEFAULT_RETENTION_DAYS`; `internal_log.rs:48` → `internal_log.rs::INTERNAL_EVENT_SCHEMA_VERSION`. |

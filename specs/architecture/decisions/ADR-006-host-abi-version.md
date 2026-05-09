@@ -35,7 +35,7 @@ under-specify the ABI contract (SDK minor bumps could silently break loaded plug
 ## Decision
 
 A separate constant `HOST_ABI_VERSION: u32 = 1` is declared in both the
-`vsdd-hook-sdk` crate (`crates/hook-sdk/src/lib.rs:58`) and must be matched by the
+`vsdd-hook-sdk` crate (`crates/hook-sdk/src/lib.rs::HOST_ABI_VERSION`) and must be matched by the
 dispatcher at plugin load time. The SDK exports this constant from its WASM module;
 the dispatcher reads it before invoking any plugin function. A mismatch causes the
 plugin to be refused with a loud error event rather than silently executing against
@@ -90,7 +90,7 @@ constant makes that freeze explicit and testable.
 
 ### Status as of v1.0.0-beta.5
 
-IN-EFFECT. `HOST_ABI_VERSION: u32 = 1` is declared in `crates/hook-sdk/src/lib.rs:58`.
+IN-EFFECT. `HOST_ABI_VERSION: u32 = 1` is declared in `crates/hook-sdk/src/lib.rs::HOST_ABI_VERSION`.
 The dispatcher plugin loader (`crates/factory-dispatcher/src/plugin_loader.rs`) reads
 the compiled module's exported `HOST_ABI_VERSION` symbol before invoking any plugin
 entry point. ABI version mismatch surfaces as a `plugin.load_failed` internal event.
@@ -115,7 +115,13 @@ entry point. ABI version mismatch surfaces as a `plugin.load_failed` internal ev
   lines 217–221 (HOST_ABI_VERSION declaration and compatibility policy), lines 733–742
   (Open Question Q2 resolution — hook-sdk versioning and ABI version tracking),
   line 698 (semver commitment doc + host ABI version freeze as 1.0.0 gate criterion).
-- **Code as-built:** `crates/hook-sdk/src/lib.rs:49–58` (`HOST_ABI_VERSION: u32 = 1`
+- **Code as-built:** `crates/hook-sdk/src/lib.rs::HOST_ABI_VERSION` (`HOST_ABI_VERSION: u32 = 1`
   with module-level doc comment distinguishing it from `VERSION`).
 - **Code as-built:** `crates/factory-dispatcher/src/plugin_loader.rs` (ABI version
   check at module compile/cache time).
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `lib.rs:58` (×2) and `lib.rs:49–58` → `lib.rs::HOST_ABI_VERSION`. |

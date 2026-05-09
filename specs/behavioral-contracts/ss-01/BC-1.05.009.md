@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
-timestamp: 2026-04-25T00:00:00
+timestamp: 2026-05-08T00:00:00
 phase: 1.4b
 inputs: [bc-id-mapping.md, pass-3-behavioral-contracts.md]
 input-hash: "[pending-recompute]"
@@ -69,14 +69,14 @@ When a plugin calls `vsdd::read_file` through the per-invocation StoreData-typed
 |-------|-------|
 | L2 Capability | TBD (anchor in Phase 1.5) |
 | L2 Domain Invariants | TBD |
-| Architecture Module | SS-01 — `crates/factory-dispatcher/src/invoke.rs:447–474` (stub); `host/read_file.rs` (full impl, not yet wired) |
+| Architecture Module | SS-01 — `crates/factory-dispatcher/src/invoke.rs::setup_host_on_store_data` (stub); `host/read_file.rs` (full impl, not yet wired) |
 | Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
 
 ### Source Evidence
 
 | Property | Value |
 |----------|-------|
-| **Path** | `invoke.rs:447–474` (registers stub returning CAPABILITY_DENIED) |
+| **Path** | `invoke.rs::setup_host_on_store_data` (registers stub returning CAPABILITY_DENIED) |
 | **Confidence** | HIGH (drift flag — see Pass 6) |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts.md` line `216` |
@@ -98,3 +98,10 @@ When a plugin calls `vsdd::read_file` through the per-invocation StoreData-typed
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 2 `invoke.rs:447–474` line citations to `invoke.rs::setup_host_on_store_data`. |

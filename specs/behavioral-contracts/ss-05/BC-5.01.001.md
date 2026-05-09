@@ -1,16 +1,16 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
-timestamp: 2026-04-25T00:00:00
+timestamp: 2026-05-08T00:00:00
 phase: 1.4b
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
 input-hash: "a022087"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 origin: brownfield
-extracted_from: .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md:259
+extracted_from: '.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md § "GAP-C findings — Workflow .lobster protocol contracts"'
 subsystem: SS-05
 capability: CAP-TBD
 lifecycle_status: active
@@ -109,7 +109,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/vsdd-factory/workflows/greenfield.lobster:1-30`; `brownfield.lobster:1-23`; `code-delivery.lobster:1-32`; `bin/lobster-parse:39-51` |
+| **Path** | `plugins/vsdd-factory/workflows/greenfield.lobster:1-30`; `brownfield.lobster:1-23`; `code-delivery.lobster:1-32`; `bin/lobster-parse::yq_stderr` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -131,3 +131,10 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed — `.lobster` files are pure data; verification is schema-level.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 2 line citations to stable anchors: `pass-3-behavioral-contracts-deep-r1.md:259` → `§ "GAP-C findings"` section anchor; `bin/lobster-parse:39-51` → `bin/lobster-parse::yq_stderr`. |

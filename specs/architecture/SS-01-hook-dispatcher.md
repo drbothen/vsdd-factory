@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-01-hook-dispatcher"
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -172,14 +172,20 @@ FileSink partial-write recovery, atomic dual-emit host helper).
 ## Drift / Known Issues
 
 - **DRIFT-001 (P1 — medium):** `read_file` host fn at the StoreData-typed linker
-  (`invoke.rs:447-474`) is a CAPABILITY_DENIED stub. The full impl in
+  (`invoke.rs::setup_host_on_store_data`) is a CAPABILITY_DENIED stub. The full impl in
   `host/read_file.rs` is registered against `Linker<HostContext>` but not wired
   through the invoke path. Must-fix before rc.1.
 - **DRIFT-002 (P1 — medium):** `internal.sink_*` event constants declared in
-  `internal_log.rs:67-70` but never emitted. SinkFailure accumulated in mutex
+  `internal_log.rs::INTERNAL_SINK_DLQ_WRITE` but never emitted. SinkFailure accumulated in mutex
   but never converted to events. Must-fix before rc.1 (S-4.4).
 - **DRIFT-007 (P3 — cosmetic):** `dispatcher.shutting_down` constant defined at
-  `internal_log.rs:58` but no emit in any exit path. Acceptable for a short-lived
+  `internal_log.rs::DISPATCHER_SHUTTING_DOWN` but no emit in any exit path. Acceptable for a short-lived
   process; remove or wire before 1.0.
 - **DRIFT-008 (P3 — cosmetic):** `plugin.loaded` / `plugin.load_failed` constants
   declared but never emitted from `plugin_loader.rs`. 1-line fix.
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `invoke.rs:447-474` → `invoke.rs::setup_host_on_store_data`; `internal_log.rs:67-70` → `internal_log.rs::INTERNAL_SINK_DLQ_WRITE`; `internal_log.rs:58` → `internal_log.rs::DISPATCHER_SHUTTING_DOWN`. |

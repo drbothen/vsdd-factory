@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.4"
 status: draft
 producer: product-owner
-timestamp: 2026-04-28T00:00:00
+timestamp: 2026-05-08T00:00:00
 phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
@@ -63,9 +63,9 @@ When the dispatcher routes a `SessionStart` event to the `session-start-telemetr
 
    **`trace_id` (formerly `dispatcher_trace_id` per DI-017 / ADR-015 v1.7) and `session_id` auto-enrichment (F-P6-01, F-P7-02):** Both fields are NOT set by the plugin. They are automatically injected by the `emit_event` host fn from `HostContext`. The plugin's required-fields list does not include either — they are dispatcher-owned identity fields in `RESERVED_FIELDS` and would be silently dropped if the plugin attempted to set them.
 
-   **`read_file` `timeout_ms` is advisory in v1.0 (F-P6-02):** The `timeout_ms = 1000` argument passed to `read_file` is accepted by the ABI for stability but is currently discarded (`read_file.rs:36 — let _ = timeout_ms;`). The effective timeout for the file read is bounded by the dispatcher's epoch budget (8000ms per BC-4.04.005 Postcondition 5) rather than the per-call `timeout_ms`. Load-time `timeout_ms` enforcement via epoch interruption is a v1.1 candidate per S-1.5 epoch-interruption refinement (noted in the host fn source comment).
+   **`read_file` `timeout_ms` is advisory in v1.0 (F-P6-02):** The `timeout_ms = 1000` argument passed to `read_file` is accepted by the ABI for stability but is currently discarded (`read_file.rs::register — let _ = timeout_ms;`). The effective timeout for the file read is bounded by the dispatcher's epoch budget (8000ms per BC-4.04.005 Postcondition 5) rather than the per-call `timeout_ms`. Load-time `timeout_ms` enforcement via epoch interruption is a v1.1 candidate per S-1.5 epoch-interruption refinement (noted in the host fn source comment).
 
-   **Wire format — all field values are strings (F-P6-05):** The `emit_event` host fn coerces all field values to `JSON strings` on the wire (`emit_event.rs:49 — ev = ev.with_field(&k, Value::String(v))`). The semantic types listed above (`plugin_count` as integer, `tool_deps` as object) describe the INTENDED schema; on the wire all values are JSON strings (e.g., `plugin_count` arrives as `"12"`, `tool_deps` as `'{"git":"2.42.0"}'`). Downstream consumers (file sink readers, observability dashboards) MUST parse string values back to their semantic types. A typed `emit_event_typed` ABI is a v1.1 candidate.
+   **Wire format — all field values are strings (F-P6-05):** The `emit_event` host fn coerces all field values to `JSON strings` on the wire (`emit_event.rs::register — ev = ev.with_field(&k, Value::String(v))`). The semantic types listed above (`plugin_count` as integer, `tool_deps` as object) describe the INTENDED schema; on the wire all values are JSON strings (e.g., `plugin_count` arrives as `"12"`, `tool_deps` as `'{"git":"2.42.0"}'`). Downstream consumers (file sink readers, observability dashboards) MUST parse string values back to their semantic types. A typed `emit_event_typed` ABI is a v1.1 candidate.
 3. `session_id` in the emitted event matches the `session_id` that BC-1.02.005 lifecycle-tolerant envelope parsing populated into `HostContext.session_id` from the incoming `SessionStart` envelope — auto-enriched by the `emit_event` host fn, not set by the plugin.
 4. The plugin returns `HookResult::Ok` (exit code 0) to the dispatcher.
 
@@ -136,6 +136,7 @@ VP-065
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 2 line citations: `read_file.rs:36` → `read_file.rs::register`; `emit_event.rs:49` → `emit_event.rs::register`. |
 | v1.3 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields, auto-enrichment note), Canonical Test Vectors, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.03-P04 sibling-sweep MED-P04-006 — abstract construction-time framing propagated from VP-067 v1.2 (MED-P03-001 closure). "set by `InternalEvent::now()`" concrete attribution replaced with "set by the dispatcher between the plugin's `emit_event` call and the final wire format; the plugin must NOT set them — implementation provenance is opaque from the spec layer" in Postconditions §2 Construction-time fields description. Third retroactive edit to S-5.01 BCs in S-5.03 cycle. |
 | v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 internal_log.rs scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.01 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.04.001 already uses 4+4 grouping which is canonical; HIGH-003 in S-5.03 P02 reverted BC-4.07.001/.002 back to 4+4 — siblings were never changed). |

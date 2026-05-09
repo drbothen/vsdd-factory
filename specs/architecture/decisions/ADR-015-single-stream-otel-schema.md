@@ -71,7 +71,7 @@ Audit of current emitted fields revealed the following gaps:
 
 **Identity fields present but wrong:**
 - `plugin_version` is always the dispatcher's version (`env!("CARGO_PKG_VERSION")`
-  at `main.rs:143`), not the plugin's actual version. Dashboard slicing by
+  at `main.rs::run`), not the plugin's actual version. Dashboard slicing by
   plugin_version is meaningless.
 
 **Causal chain fields absent:**
@@ -907,7 +907,7 @@ the authoritative version signal. Schema versioning section updated to match.
 
 - **Integration gap:** `crates/factory-dispatcher/src/sinks/mod.rs` lines 11–15
   (open TODO confirming Router::submit never wired from main.rs).
-- **Plugin version bug:** `crates/factory-dispatcher/src/main.rs:143`
+- **Plugin version bug:** `crates/factory-dispatcher/src/main.rs::run`
   (`plugin_version = env!("CARGO_PKG_VERSION")` stamps dispatcher version).
 - **Commit exposing the gap:** 818fb95 (2026-05-03) — deleted bash `bin/emit-event`
   bash duplicates; WASM events exclusively in dispatcher-internal-*.jsonl thereafter.
@@ -932,3 +932,4 @@ the authoritative version signal. Schema versioning section updated to match.
 | v1.7 | 2026-05-04 | ADR ACCEPTED (2026-05-04). Final polish: trace_id naming canonicalized — `dispatcher_trace_id` → `trace_id` in D-15.2.e orphan-half detection prose (Polish-1); OQ-3 strikethrough text aligned with D-15.4 actual decision — dispatcher-side mandatory injection, not env_allowlist (Polish-2); D-15.4 line 426 reworded from "env-allowlist" to "dispatcher-injected invariants" to eliminate same ambiguity (Polish-2); OQ-2 stub semantics clarified — stubbing means terminal cascade default, literal TODO markers MUST NOT appear in Resource field values (Polish-3). 9 adversary passes complete; convergence achieved. |
 | v1.8 | 2026-05-04 | OQ-2 and OQ-5 resolved by user adjudication 2026-05-04. OQ-2: Wave 1 ships full Windows `host.id` registry-lookup cascade (winreg crate, target-OS-gated); no stub-to-default; implementation in S-10.03. OQ-5: Grafana dashboards are versioned-as-code in `plugins/vsdd-factory/tools/observability/grafana-dashboards/`; migration bundled with S-10.06. Active OQs reduced from 6 to 4 (OQ-1, OQ-7, OQ-8, OQ-9 remain open). |
 | v1.9 | 2026-05-04 | SS-XX spec rewrites (parallel with E-10 implementation per user adjudication). OQ-1 resolved in SS-03-event-emission.md: v2 `observability-config.toml` schema defined (events_file, retention_days, debug_log_enabled, sync_on_write; no OTel Collector endpoint in dispatcher config). OQ-7 resolved in BC-1.11.002: boundary-marker partial-write strategy chosen; atomic-rename rejected (OTel Collector inode checkpoint breakage). OQ-8 resolved in BC-1.11.003: `vsdd_hook_sdk::host::emit_pair` specified for atomic dual-emit; full OS crash atomicity deferred. OQ-9 deferred to v1.1 in SS-03-event-emission.md: `deprecations.jsonl` sidecar backlog item. SS-03 spec superseded: SS-03-observability-sinks.md → SS-03-event-emission.md. BC-1.11.001 (VSDD_TRACE_ID injection impl contract), BC-1.11.002, BC-1.11.003 authored. All 4 active OQs now resolved or formally deferred. |
+| v1.10 | 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 2 line citations to stable symbol anchors: `main.rs:143` (×2) → `main.rs::run`. |

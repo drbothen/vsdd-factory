@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.4"
 status: draft
 producer: product-owner
-timestamp: 2026-04-28T00:00:00
+timestamp: 2026-05-08T00:00:00
 phase: 1a
 inputs:
   - .factory/stories/S-5.04-post-tool-use-failure.md
@@ -55,14 +55,14 @@ When the dispatcher routes a `PostToolUseFailure` event to the `tool-failure-hoo
 2. The emitted payload contains all required fields. Fields are categorized by who sets them:
 
    **Plugin-set fields (2 fields — the plugin sets these via `emit_event` key/value pairs):**
-   - `tool_name` (string): name of the failing tool, sourced from the envelope's `tool_name` field. If absent from the envelope, `tool_name = "unknown"` (fallback sentinel per EC-002). Value is always a string on the wire (per `emit_event.rs:49` string coercion).
+   - `tool_name` (string): name of the failing tool, sourced from the envelope's `tool_name` field. If absent from the envelope, `tool_name = "unknown"` (fallback sentinel per EC-002). Value is always a string on the wire (per `emit_event.rs::register` string coercion).
    - `error_message` (string): description of the failure, sourced from the envelope's `error_message` field. If the envelope value exceeds 1000 characters, it is truncated to exactly 1000 characters before being set (EC-001). If absent from the envelope, `error_message = ""` (empty string default per EC-003). Value is always a string on the wire.
 
    **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. These are part of `RESERVED_FIELDS` and are silently dropped if the plugin attempts to set them. Each is a non-empty string per BC-1.05.012 unconditional enrichment. The plugin MUST NOT set `session_id` — it is RESERVED_FIELDS host-enriched (per BC-1.05.012).
 
    **Construction-time fields (4 fields — set by the dispatcher between plugin `emit_event` call and final wire format, NOT by the plugin):** `ts`, `ts_epoch`, `schema_version`, `type`. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped. `type` MUST equal `"tool.error"`. Implementation provenance for these 4 fields is opaque from the spec layer.
 
-   **Wire format note:** All plugin-set field values are strings on the wire (`emit_event.rs:49` coerces all plugin-supplied values to `Value::String`). Downstream consumers MUST parse string values back to their semantic types.
+   **Wire format note:** All plugin-set field values are strings on the wire (`emit_event.rs::register` coerces all plugin-supplied values to `Value::String`). Downstream consumers MUST parse string values back to their semantic types.
 
    **Total wire fields: 10** (2 plugin-set + 4 host-enriched + 4 construction-time). PostToolUseFailure emits 10 fields — same count as WorktreeCreate (2+4+4); one more than WorktreeRemove (1+4+4); fewer than SessionStart (6+4+4) or SessionEnd (3+4+4).
 
@@ -147,6 +147,7 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 2 `emit_event.rs:49` line citations to `emit_event.rs::register`. |
 | v1.3 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields), Canonical Test Vectors, Related BCs, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; BC-4.07.001-004 and BC-4.05.001-005 all draft; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (CRIT-P01-001) Strip phantom legacy-story citation — Description, Invariant 8, Related BCs reframed as positive statements; no "authoritative correction" framing. (CRIT-P01-002) Add v1.1 candidates BC-4.08.005 and BC-4.08.006 with justification. (CRIT-P01-003) Revert error_message truncation limit from 2000 → 1000 chars (match legacy intent; avoid sink stream bloat). (HIGH-P01-001) CAP-013 → CAP-002 with sibling-consistency justification. (HIGH-P01-002) EC-006 mis-citation of BC-1.02.005 for session_id sentinel removed; simplified to "session_id is host-enriched; host fn handles absent value". + state-manager pre-commit cleanup: residual "2000 characters" in Description body fixed to 1000; Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |

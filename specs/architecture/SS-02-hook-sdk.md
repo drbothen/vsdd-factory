@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-02-hook-sdk"
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -212,12 +212,12 @@ chains:
 
 | Field | Type | Bash fallback chain | Source |
 |-------|------|---------------------|--------|
-| `agent_type` | `Option<String>` | `.agent_type \|\| .subagent_name \|\| "unknown"` | handoff-validator.sh:27, pr-manager-completion-guard.sh:25, validate-pr-review-posted.sh:21, track-agent-stop.sh:22 |
+| `agent_type` | `Option<String>` | `.agent_type \|\| .subagent_name \|\| "unknown"` | `crates/hook-plugins/handoff-validator/src/lib.rs::handoff_validator_logic`, `crates/hook-plugins/pr-manager-completion-guard/src/lib.rs::pr_manager_guard_logic`, `crates/hook-plugins/validate-pr-review-posted/src/lib.rs::validate_pr_review_logic`, `crates/hook-plugins/track-agent-stop/src/lib.rs::track_agent_stop_logic` |
 | `subagent_name` | `Option<String>` | second fallback for agent identity when `agent_type` absent | same hooks |
-| `last_assistant_message` | `Option<String>` | `.last_assistant_message \|\| .result \|\| ...` | handoff-validator.sh:28, pr-manager-completion-guard.sh:26, validate-pr-review-posted.sh:22, track-agent-stop.sh:23 |
+| `last_assistant_message` | `Option<String>` | `.last_assistant_message \|\| .result \|\| ...` | `crates/hook-plugins/handoff-validator/src/lib.rs::handoff_validator_logic`, `crates/hook-plugins/pr-manager-completion-guard/src/lib.rs::pr_manager_guard_logic`, `crates/hook-plugins/validate-pr-review-posted/src/lib.rs::validate_pr_review_logic`, `crates/hook-plugins/track-agent-stop/src/lib.rs::track_agent_stop_logic` |
 | `result` | `Option<String>` | second fallback for message content | same hooks |
 
-**Note on `output`:** `handoff-validator.sh:28` uses a third fallback `.output` —
+**Note on `output`:** `crates/hook-plugins/handoff-validator/src/lib.rs::handoff_validator_logic` uses a third fallback `.output` —
 this is story-specific (S-8.01) to handle historical format variations. It is NOT
 part of the canonical SubagentStop envelope. The WASM port (BC-2.02.012) does not
 need to model `output` as a separate field; hook-level logic handles the third
@@ -470,5 +470,6 @@ enforcement, arg allow-list enforcement, env stripping, timeout enforcement,
 
 | Date | Change |
 |------|--------|
+| 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 bash-script line citations in SubagentStop field table and note to stable Rust plugin symbol anchors (`::handoff_validator_logic`, `::pr_manager_guard_logic`, `::validate_pr_review_logic`, `::track_agent_stop_logic`). |
 | 2026-05-03 | ADR-014 D-9.2: added `host::run_subprocess` function signature, `SubprocessSpec`, `SubprocessResult`, `SubprocessCaps` schema (6 fields), security boundaries, module entry, BC-2.02.013 anchor, and Schema Evolution table row. HOST_ABI_VERSION stays at 1. |
 | 2026-05-01 | F-S830-P1-004 fix: fallback-chain example aligned with BC-2.02.012 canonical (`as_deref()` borrowing chain returning `&str`); architecture doc no longer diverges from BC. Both agent identity and assistant-message chains updated. Prose translation pattern updated from consuming to borrowing form. |

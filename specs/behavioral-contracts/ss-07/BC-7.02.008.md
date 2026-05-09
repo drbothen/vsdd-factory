@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -28,7 +28,7 @@ removal_reason: null
 
 ## Description
 
-Hook capability model: every legacy-routed hook declares `[hooks.capabilities.exec_subprocess]` with `binary_allow` + `shell_bypass_acknowledged`. Stanza declares `binary_allow = ["bash", …]` (always includes "bash" since the adapter shells out to bash); `shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"` (verbatim string, matches `legacy-bash-adapter/src/lib.rs:20`); `env_allow` includes `["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]` baseline.
+Hook capability model: every legacy-routed hook declares `[hooks.capabilities.exec_subprocess]` with `binary_allow` + `shell_bypass_acknowledged`. Stanza declares `binary_allow = ["bash", …]` (always includes "bash" since the adapter shells out to bash); `shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"` (verbatim string, matches `crates/hook-plugins/legacy-bash-adapter/src/lib.rs § "shell_bypass_acknowledged"`); `env_allow` includes `["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]` baseline.
 
 **Source category:** Validator hook class contracts.
 **Audit ID:** `BC-AUDIT-106` (extracted from `pass-3-behavioral-contracts-deep-r1.md` line 241).
@@ -39,7 +39,7 @@ Hook capability model: every legacy-routed hook declares `[hooks.capabilities.ex
 
 ## Postconditions
 
-1. Stanza declares `binary_allow = ["bash", …]` (always includes "bash" since the adapter shells out to bash); `shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"` (verbatim string, matches `legacy-bash-adapter/src/lib.rs:20`); `env_allow` includes `["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]` baseline.
+1. Stanza declares `binary_allow = ["bash", …]` (always includes "bash" since the adapter shells out to bash); `shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"` (verbatim string, matches `crates/hook-plugins/legacy-bash-adapter/src/lib.rs § "shell_bypass_acknowledged"`); `env_allow` includes `["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]` baseline.
 
 ## Invariants
 
@@ -128,5 +128,12 @@ Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, o
 
 #### Original Source Evidence Quote
 
-> `hooks-registry.toml:30-36` (capture-commit-activity capabilities); `legacy-bash-adapter/src/lib.rs:20` (the verbatim shell_bypass acknowledgement string); pass-3 BC-AUDIT-025 already confirms shell-bypass enforcement in the dispatcher.
+> `hooks-registry.toml::capture-commit-activity` (capture-commit-activity capabilities); `crates/hook-plugins/legacy-bash-adapter/src/lib.rs § "shell_bypass_acknowledged"` (the verbatim shell_bypass acknowledgement string); pass-3 BC-AUDIT-025 already confirms shell-bypass enforcement in the dispatcher.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `legacy-bash-adapter/src/lib.rs:20` (×3) → `crates/hook-plugins/legacy-bash-adapter/src/lib.rs § "shell_bypass_acknowledged"`; `hooks-registry.toml:30-36` → `hooks-registry.toml::capture-commit-activity`. |
 

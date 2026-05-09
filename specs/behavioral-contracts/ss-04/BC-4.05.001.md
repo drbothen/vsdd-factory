@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.4"
 status: draft
 producer: product-owner
-timestamp: 2026-04-28T00:00:00
+timestamp: 2026-05-08T00:00:00
 phase: 1a
 inputs:
   - .factory/stories/S-5.02-session-end-hook.md
@@ -44,7 +44,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 2. The emitted payload contains all required fields. Fields are categorized by who sets them:
 
    **Plugin-set fields (3 fields — the plugin sets these via `emit_event` key/value pairs):**
-   - `duration_ms` (string per wire format, per `emit_event.rs:49` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). `duration_ms = "0"` when: (a) `session_start_ts` is absent from the envelope; OR (b) `session_start_ts` is in the future relative to `now_ms` (clock-skew clamp — a future timestamp yields a negative elapsed duration, which the plugin clamps to `"0"` rather than emitting a negative value); OR (c) `session_start_ts` is present as a JSON string but does not parse as ISO-8601 (treat-as-absent default; non-string-type envelope values are out of scope for this BC and deferred to BC-1.02.005 v1.1 envelope-value type validation extension). Value is always a non-negative integer represented as a decimal string.
+   - `duration_ms` (string per wire format, per `emit_event.rs::register` coercion): integer milliseconds since the SessionStart that opened this session, computed from the envelope's `session_start_ts` field. Specifically: `duration_ms = now_ms - session_start_ts_ms` where `now_ms` is the plugin's emission instant (the same instant as the `timestamp` field). `duration_ms = "0"` when: (a) `session_start_ts` is absent from the envelope; OR (b) `session_start_ts` is in the future relative to `now_ms` (clock-skew clamp — a future timestamp yields a negative elapsed duration, which the plugin clamps to `"0"` rather than emitting a negative value); OR (c) `session_start_ts` is present as a JSON string but does not parse as ISO-8601 (treat-as-absent default; non-string-type envelope values are out of scope for this BC and deferred to BC-1.02.005 v1.1 envelope-value type validation extension). Value is always a non-negative integer represented as a decimal string.
    - `tool_call_count` (string per wire format): integer count of tool invocations during the session, sourced from the envelope's `tool_call_count` field. If `tool_call_count` is absent from the envelope, `tool_call_count = "0"`. Value is always a non-negative integer represented as a decimal string.
    - `timestamp` (ISO-8601 UTC with millisecond precision and `Z` suffix; regex: `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; example: `2026-04-28T12:34:56.789Z`) — the plugin's own emission timestamp, not the session-end time from the envelope.
 
@@ -63,7 +63,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
    4 construction-time (set by the dispatcher between the plugin's `emit_event` call and the final wire format; implementation provenance is opaque from the spec layer): `ts`, `ts_epoch`, `schema_version`, `type`.
    Any plugin attempt to set a RESERVED_FIELD is silently dropped by `emit_event.rs`.
 
-   **Wire format — all plugin-set field values are strings (same as F-P6-05 for SessionStart):** The `emit_event` host fn coerces all plugin-supplied values to JSON strings on the wire (`emit_event.rs:49`). `duration_ms` and `tool_call_count` are integer semantics but arrive as decimal strings. Downstream consumers MUST parse string values back to their semantic types.
+   **Wire format — all plugin-set field values are strings (same as F-P6-05 for SessionStart):** The `emit_event` host fn coerces all plugin-supplied values to JSON strings on the wire (`emit_event.rs::register`). `duration_ms` and `tool_call_count` are integer semantics but arrive as decimal strings. Downstream consumers MUST parse string values back to their semantic types.
 
    **SessionEnd vs. SessionStart payload size:** SessionStart emits 14 fields (6 plugin-set + 4 host-enriched + 4 construction-time). SessionEnd emits 11 fields (3 plugin-set + 4 host-enriched + 4 construction-time). The reduced count reflects the absence of `factory_version`, `plugin_count`, `activated_platform`, `factory_health`, and `tool_deps` fields — SessionEnd is intentionally lightweight.
 
@@ -93,7 +93,7 @@ When the dispatcher routes a `SessionEnd` event to the `session-end-telemetry.wa
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| `SessionEnd` envelope with `session_id = "sess-abc-123"`, `session_start_ts = "2026-04-28T12:00:00.000Z"`, `tool_call_count = 42`, dispatcher routes to session-end-telemetry.wasm | `session.ended` emitted once; `duration_ms` is a non-negative decimal string representing elapsed ms since session_start_ts; `tool_call_count = "42"` (string on wire per emit_event.rs:49); `timestamp` matches regex `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; host-enriched fields present: `session_id = "sess-abc-123"`, `trace_id` non-empty string (renamed from `dispatcher_trace_id` per DI-017), `plugin_name` non-empty string, `plugin_version` non-empty string | happy-path |
+| `SessionEnd` envelope with `session_id = "sess-abc-123"`, `session_start_ts = "2026-04-28T12:00:00.000Z"`, `tool_call_count = 42`, dispatcher routes to session-end-telemetry.wasm | `session.ended` emitted once; `duration_ms` is a non-negative decimal string representing elapsed ms since session_start_ts; `tool_call_count = "42"` (string on wire per emit_event.rs::register); `timestamp` matches regex `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$`; host-enriched fields present: `session_id = "sess-abc-123"`, `trace_id` non-empty string (renamed from `dispatcher_trace_id` per DI-017), `plugin_name` non-empty string, `plugin_version` non-empty string | happy-path |
 | `SessionEnd` envelope with `session_id = "sess-def-456"`, `session_start_ts` absent, `tool_call_count` absent | `session.ended` emitted once; `duration_ms = "0"`, `tool_call_count = "0"`, `timestamp` present with correct format; `session_id = "sess-def-456"` (host-enriched) | edge-case (both absent) |
 | `SessionEnd` envelope with `session_id = ""` (empty string) | `session.ended` emitted once; `session_id = "unknown"` (BC-1.02.005 sets "unknown" sentinel; emit_event auto-enriches); `duration_ms = "0"` if session_start_ts absent; plugin does not abort | edge-case (missing session_id) |
 | `SessionEnd` envelope with `session_start_ts` set to a timestamp 60 seconds in the future relative to dispatch time | `session.ended` emitted once; `duration_ms = "0"` (clock-skew safeguard: negative elapsed time clamped to zero per EC-001b); all other fields emitted normally | edge-case (future session_start_ts / clock skew) |
@@ -148,6 +148,7 @@ VP-066
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 3 `emit_event.rs:49` line citations to `emit_event.rs::register`. |
 | v1.3 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields, RESERVED_FIELDS inline), Canonical Test Vectors, Related BCs, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.03-P04 sibling-sweep MED-P04-006 — abstract construction-time framing propagated from VP-067 v1.2 (MED-P03-001 closure). "set by `InternalEvent::now()`" concrete attribution replaced with "set by the dispatcher between the plugin's `emit_event` call and the final wire format; the plugin must NOT set them — implementation provenance is opaque from the spec layer" in Postconditions §2 Construction-time fields description (line 57) and RESERVED_FIELDS inline note (line 63). Third retroactive edit to S-5.02 BCs in S-5.03 cycle. |
 | v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.02 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.05.001 already uses 4+4 grouping per "Field provenance — 4+4+3 split"; HIGH-003 was reverted in S-5.03 P02 confirming 4+4 is canonical). |

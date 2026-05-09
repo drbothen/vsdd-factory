@@ -210,7 +210,7 @@ adds a new lifecycle plugin, so they are recorded here for discoverability.
 
 ### emit_event String Coercion
 
-The `emit_event` host fn (`crates/factory-dispatcher/src/host/emit_event.rs:49`) coerces **all**
+The `emit_event` host fn (`crates/factory-dispatcher/src/host/emit_event.rs::register`) coerces **all**
 plugin-supplied field values to `JSON strings` before storing them in the event:
 
 ```rust
@@ -243,7 +243,7 @@ The `emit_event` host fn automatically injects four fields onto every emitted ev
 
 These values are populated by the dispatcher's routing layer before the plugin is invoked.
 The plugin has no responsibility to set any of these four fields. All four are listed in
-`RESERVED_FIELDS` (`emit_event.rs:58-67`); any attempt by a plugin to set them is **silently
+`RESERVED_FIELDS` (`emit_event.rs::RESERVED_FIELDS`); any attempt by a plugin to set them is **silently
 dropped** by the filter half of BC-1.05.012.
 
 `session_id` specifically: its value originates from the incoming envelope parsed by
@@ -282,7 +282,7 @@ from `HostContext`. The `type` field is special: it is derived from the plugin's
 argument (e.g., `"session.started"`), but the plugin cannot use the literal key name `"type"`
 in its payload key/value pairs — the RESERVED_FIELDS filter drops it.
 
-All four are listed in `RESERVED_FIELDS` (`emit_event.rs:58-67`); plugin attempts to set
+All four are listed in `RESERVED_FIELDS` (`emit_event.rs::RESERVED_FIELDS`); plugin attempts to set
 them are silently dropped. Both mechanisms together — HostContext enrichment (4 fields) and
 `InternalEvent::now` construction (4 fields) — account for all 8 RESERVED_FIELDS. The
 prohibition against plugins setting RESERVED_FIELDS applies uniformly to all 8, but the
@@ -300,3 +300,9 @@ VALUE source differs: HostContext per-invocation values vs. construction-time va
   source of truth), `plugins/vsdd-factory/hooks-registry.toml` (dispatcher routing).
 - **Skill documentation:** `plugins/vsdd-factory/skills/activate/SKILL.md` step 6
   (activation writes `hooks.json` from `.platform` variant, never touches `hooks-registry.toml`).
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `emit_event.rs:49` → `emit_event.rs::register`; `emit_event.rs:58-67` (×2) → `emit_event.rs::RESERVED_FIELDS`. |

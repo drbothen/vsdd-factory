@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
-timestamp: 2026-05-06T00:00:00Z
+timestamp: 2026-05-08T00:00:00Z
 phase: 1a
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
@@ -169,7 +169,7 @@ All Canonical Test Vectors are future-implementation witnesses.
 
 4. **`plugin.version` fix (content-defect bug per ADR-015 Context):** After Wave 1, the
    host stamps `plugin.version` with the plugin's OWN Cargo package version, NOT with
-   `env!("CARGO_PKG_VERSION")` (the dispatcher's version). The bug at `main.rs:143` is
+   `env!("CARGO_PKG_VERSION")` (the dispatcher's version). The bug at `main.rs::run` is
    fixed in S-10.02. A plugin compiled as version `0.3.1` must have `plugin.version = "0.3.1"`
    in its emitted events, not the dispatcher's version.
 
@@ -237,7 +237,7 @@ S-10.04 (Wave 1: Trace propagation + lifecycle event types — registry entries 
 | EC-005 | Plugin supplies `plugin.version = "1.0.0"` (potentially wrong if it matches dispatcher version) | After Wave 1 fix, host stamps correct plugin version from `plugin.manifest` or registry; plugin-supplied value for `plugin.version` is treated as a plugin domain field and subject to override if it conflicts with host-stamped value. **Note:** if the plugin legitimately knows its own version, the host stamped value should match. Mismatch signals a legacy plugin. |
 | EC-006 | `VSDD_TRACE_ID` is set in environment at dispatcher startup | `trace_id` = inherited value; same `trace_id` on all events in this invocation; propagated to `exec_subprocess` environments per BC-1.11.001 |
 | EC-007 | `VSDD_TRACE_ID` is NOT set | `trace_id` = fresh UUIDv4 generated at dispatcher startup; used for all events in this invocation |
-| EC-008 | Plugin emits event in test context (`HostContext::new` with `internal_log: None`); no FileSink injected | Event pushed to in-memory `events` queue via `events.lock().push(event)` at `host/mod.rs:113-115`; no file written; observable via `drain_events()`. FileSink NOT involved (test context has no FileSink). Pre-Wave-1 and post-Wave-1 test behavior is identical for this path. |
+| EC-008 | Plugin emits event in test context (`HostContext::new` with `internal_log: None`); no FileSink injected | Event pushed to in-memory `events` queue via `events.lock().push(event)` at `host/mod.rs::HostContext::emit_internal`; no file written; observable via `drain_events()`. FileSink NOT involved (test context has no FileSink). Pre-Wave-1 and post-Wave-1 test behavior is identical for this path. |
 | EC-009 | `event.name` format does not include `.vN` suffix (e.g., `"pr.created"` old-style name) | Event is written with the supplied `event.name`; `event.category` is derived from prefix match. `"pr.created"` prefix `"pr"` is NOT in the registry → `event.category = "unknown"`. Plugins using old-style names without `vsdd.` prefix will appear in `unknown` category. Migration to Wave 2 reverse-DNS names is expected. |
 | EC-010 | Multiple events emitted in same `emit_event` call (hypothetical batch) | Each event gets its own fresh `event.id` UUIDv4. Two events with the same `event.id` is a postcondition violation. |
 | EC-011 | **`plugin.version` fix sentinel:** plugin at `crates/hook-plugins/capture-pr-activity/` compiled as version `0.2.0`; pre-Wave-1 dispatcher stamps `plugin_version = dispatcher_version` | Post-Wave-1: `plugin.version = "0.2.0"` (actual plugin Cargo version); NOT the dispatcher's version. **Future-implementation witness:** assert `plugin.version != dispatcher.service.version` for any plugin that has a different semver than the dispatcher (which is the normal case). If a misimplementation still stamps dispatcher version, `plugin.version = "0.2.0"` test assertion fails. |
@@ -320,4 +320,5 @@ Source-walk for silent-discard patterns in per-event stamping and `emit_internal
 | v1.0 | 2026-05-06 | Initial authoring (D-315). Per-event host stamping, emit_internal Some/None bifurcation, event.category compile-time registry per ADR-015 D-15.2/D-15.2.a/D-15.2.b. |
 | v1.1 | 2026-05-06 | D-315/D-316 amendments — cap-anchor justification, edge case sharpening. |
 | v1.2 | 2026-05-06 | D-319 — F-3 fix: Story Anchor + Stories cell extended with S-10.04 (POLICY 8 reverse-direction drift from D-316 closed). |
+| v1.4 | 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 2 line citations to stable symbol anchors: `main.rs:143` → `main.rs::run`; `host/mod.rs:113-115` → `host/mod.rs::HostContext::emit_internal`. |
 | v1.3 | 2026-05-06 | D-325 — F-7 sweep: L2 Capability cell paraphrase removed — cell now just `CAP-029`. F-14 sweep: Architecture Anchors already carry `Stable anchor per TD-VSDD-091` on code symbol references (`HostContext::emit_internal`, `factory-dispatcher::main::plugin_version_stamp_call_site`); stable-anchor discipline confirmed applied. |

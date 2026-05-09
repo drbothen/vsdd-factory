@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.4"
 status: draft
 producer: product-owner
-timestamp: 2026-04-28T00:00:00
+timestamp: 2026-05-08T00:00:00
 phase: 1a
 inputs:
   - .factory/stories/S-5.03-worktree-hooks.md
@@ -45,13 +45,13 @@ When the dispatcher routes a `WorktreeRemove` event to the `worktree-hooks.wasm`
 2. The emitted payload contains all required fields. Fields are categorized by who sets them:
 
    **Plugin-set fields (1 field — the plugin sets this via `emit_event` key/value pair):**
-   - `worktree_path` (string): absolute path to the removed worktree, sourced from the envelope's `worktree_path` field. If absent from the envelope, `worktree_path = ""` (empty string default). Value is always a string on the wire (per `emit_event.rs:49` string coercion).
+   - `worktree_path` (string): absolute path to the removed worktree, sourced from the envelope's `worktree_path` field. If absent from the envelope, `worktree_path = ""` (empty string default). Value is always a string on the wire (per `emit_event.rs::register` string coercion).
 
    **Host-enriched fields (4 fields — set by `emit_event` host fn from `HostContext`, NOT by the plugin):** `trace_id` (renamed from `dispatcher_trace_id` per DI-017 / ADR-015 v1.7), `session_id`, `plugin_name`, `plugin_version`. Each is a non-empty string per BC-1.05.012 unconditional enrichment. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped.
 
    **Construction-time fields (4 fields — set by the dispatcher between plugin `emit_event` call and final wire format, NOT by the plugin):** `ts`, `ts_epoch`, `schema_version`, `type`. Part of `RESERVED_FIELDS`; plugin attempts to set them are silently dropped. `type` MUST equal `"worktree.removed"`.
 
-   **Wire format note:** All plugin-set field values are strings on the wire (`emit_event.rs:49` coercion). Downstream consumers MUST parse string values back to their semantic types.
+   **Wire format note:** All plugin-set field values are strings on the wire (`emit_event.rs::register` coercion). Downstream consumers MUST parse string values back to their semantic types.
 
    **Total wire fields: 9** (1 plugin-set + 4 host-enriched + 4 construction-time). WorktreeRemove is the smallest lifecycle event payload in the Tier F family (one less field than WorktreeCreate, which has both `worktree_path` and `worktree_name`).
 
@@ -136,6 +136,7 @@ VP-067
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 2 `emit_event.rs:49` line citations to `emit_event.rs::register`. |
 | v1.3 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description, Postconditions (host-enriched fields), Canonical Test Vectors, and L2 Domain Invariants per DI-017 / ADR-015 v1.7 canonicalization. |
 | v1.2 | 2026-04-28 | product-owner | Pass-2 reversal ADV-S5.03-P02: (CRIT-P02-001/003 + HIGH-P02-005) HIGH-003 4+3+1 split reverted to 4+4 grouping for sibling consistency with BC-4.04.001 + BC-4.05.001. The implementation-detail 4-vs-3 distinction is not surfaced in HOST_ABI.md; HOST_ABI.md lumps all 8 RESERVED_FIELDS together. Restored: "Wire payload: 9 fields (1 plugin-set + 4 host-enriched + 4 construction-time)". HOST_ABI.md authoritative-for-4-vs-3-split claim dropped entirely. (CRIT-P02-002) EC-001 once-key-absence pinned: "`once` key ABSENT" replaces "`once: false` (or absent)" — matches BC-4.07.003 PC-4 exactly. |
 | v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (HIGH-003) RESERVED_FIELDS split corrected from 4-vs-4 to 4-vs-3-vs-1 per HOST_ABI.md §emit_event; (HIGH-004) DI-007 removed — DI-007 is dispatcher self-telemetry scope (SS-03), not plugin event emission; replaced with "no current DI; v1.1 candidate" annotation |
