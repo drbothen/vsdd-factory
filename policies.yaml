@@ -126,10 +126,10 @@ policies:
     scope: [story, bc]
     lint_hook: null
     verification_steps:
-      - "Sample 5+ stories — for each BC in bcs: frontmatter, verify it appears in body BC table"
-      - "For each BC in bcs: frontmatter, verify at least one AC traces to it"
-      - "For each BC in body BC table or AC traces, verify it appears in bcs: frontmatter"
-      - "Verify Token Budget BC count matches len(bcs)"
+      - "Sample 5+ stories — for each BC in behavioral_contracts: frontmatter (canonical field; alias: bcs: for S-15.03 only), verify it appears in body BC table"
+      - "For each BC in behavioral_contracts: frontmatter, verify at least one AC traces to it"
+      - "For each BC in body BC table or AC traces, verify it appears in behavioral_contracts: frontmatter"
+      - "Verify Token Budget BC count matches len(behavioral_contracts)"
 
   - id: 9
     name: vp_index_is_vp_catalog_source_of_truth
