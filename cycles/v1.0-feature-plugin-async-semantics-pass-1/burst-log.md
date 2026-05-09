@@ -2416,3 +2416,22 @@ F-P45-001 closed.
 ADR-013 clock: 0_of_3 (RESET)
 BC-INDEX v1.57 | ARCH-INDEX v1.37
 Pass-46 dispatched next.
+
+---
+
+## Burst 49 — F5 pass-46 adversary review (NITPICK_ONLY)
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → adversary → state-manager
+**Phase:** F5 ADVERSARIAL — pass-46
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-46.md` | adversary | Pass-46 review: NITPICK_ONLY (0H/0M/0L). Fix-burst-42 closure verified (all 12 BC body Stories rows, sampled 6/12). D-340/D-362 churn zone + adjacent BCs/VPs/stories all clean. Arithmetic confirmed: total_bcs=1947, total_vps=79. POLICY 1-12 PASS. |
+| `.factory/STATE.md` | state-manager | current_step → PASS-46 NITPICK_ONLY; ADR-013 1_of_3; Phase Progress updated; Current Phase Steps: pass-46 DONE + pass-47 NEXT; Session Checkpoint updated. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | state-manager | Burst 49 appended. |
+
+ADR-013 clock: 0_of_3 → **1_of_3** (1 advance after fix-burst-42 closure).
+Pass-47 dispatched next.
