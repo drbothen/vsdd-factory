@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.59"
+version: "1.60"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.60 (2026-05-09; fix-burst-45): F-P49-001 — E-3+E-4+E-5 L-P28-001 retroactive Stories propagation. E-3 (9 BCs): BC-1.05.012-019 TBD→S-3.04 (8 BCs); BC-4.03.001 TBD→S-3.01,S-3.02 (1 BC; also normalized non-canonical S-3.1→S-3.01 hygiene). E-4 (11 BCs): BC-3.01.001 TBD→S-4.01,S-4.02,S-4.03,S-4.07; BC-3.01.002 TBD→S-4.01,S-4.07; BC-3.01.003 TBD→S-4.01; BC-3.01.004 TBD→S-4.06,S-4.07; BC-3.02.015 TBD→S-4.07; BC-3.03.001 TBD→S-4.07; BC-3.03.002 TBD→S-4.04; BC-3.03.007 TBD→S-4.07; BC-3.06.001 TBD→S-4.06; BC-3.06.005 TBD→S-4.01,S-4.02,S-4.03; BC-3.06.006 TBD→S-4.06. E-5 (0 BCs): all Stories cells already propagated — no TBD drift found. SKIPPED (ghost BCs not in BC-INDEX): BC-3.07.003, BC-3.07.004, BC-1.06.011 (cited in story frontmatter but missing from BC-INDEX/ss-03). SKIPPED (already non-TBD): BC-3.02.009-011 (DEPRECATED→BC-3.04.004), BC-3.04.003, BC-3.04.004, BC-3.04.001, BC-3.05.001-003 (retired ADR-015), BC-3.06.007 (active), BC-9.01.001-006. BC body Traceability Stories rows also propagated (20 BCs). 15th L-P28-001 META instance. retroactive-sweep complement clause codified. No count change (total_bcs: 1947). Refs: F-P49-001, L-P28-001, fix-burst-45. last_amended: 2026-05-09 (F5 fix-burst-45: E-3+E-4 retroactive sweep; F-P49-001 closed)."
   - date: 2026-05-09
     change: "v1.59 (2026-05-09; fix-burst-44): F-P48-001 — count-narrative correction: v1.58 changelog cited '25 BCs' for fix-burst-43 E-8 native-port propagation; actual per-row enumeration sums to 30 (BC-7.03.042-044=3, BC-7.03.045-048=4, BC-7.03.081-082=2, BC-7.03.083-086=4, BC-7.04.040-044=5, BC-7.03.076-078=3, BC-7.03.091-092=2, BC-7.03.079-080=2, BC-7.03.071-075=5). v1.58 changelog updated 25→30 (narrative only; no BC propagation change). 14th L-P28-001 META instance. No count change (total_bcs: 1947). Refs: F-P48-001, L-P28-001, fix-burst-44. last_amended: 2026-05-09 (F5 fix-burst-44: count-narrative 25→30 corrected; F-P48-001 closed)."
   - date: 2026-05-09
@@ -210,14 +212,14 @@ changelog:
 | [BC-1.05.009](ss-01/BC-1.05.009.md) | read_file at the StoreData-typed linker layer is currently a CAPABILITY_DENIED stub | draft | CAP-TBD | TBD |
 | [BC-1.05.010](ss-01/BC-1.05.010.md) | Context getters (session_id, dispatcher_trace_id, plugin_root, plugin_version, cwd) always return current value | draft | CAP-TBD | TBD |
 | [BC-1.05.011](ss-01/BC-1.05.011.md) | log host fn emits `plugin.log` internal event with level mapped to {trace,debug,info,warn,error} | draft | CAP-TBD | TBD |
-| [BC-1.05.012](ss-01/BC-1.05.012.md) | emit_event enriches every emitted event with host-owned identity fields and filters reserved field names from plugin payload | draft | CAP-TBD | TBD |
-| [BC-1.05.013](ss-01/BC-1.05.013.md) | factory-dispatcher::host::emit_event::decode_single_pair — length-prefixed key/value buffer with one pair round-trips through decode_fields | draft | CAP-TBD | TBD |
-| [BC-1.05.014](ss-01/BC-1.05.014.md) | factory-dispatcher::host::emit_event::decode_multiple_pairs — 3-pair buffer round-trips with order preserved | draft | CAP-TBD | TBD |
-| [BC-1.05.015](ss-01/BC-1.05.015.md) | factory-dispatcher::host::emit_event::decode_empty_buffer_yields_empty_vec — empty input → empty result, no error | draft | CAP-TBD | TBD |
-| [BC-1.05.016](ss-01/BC-1.05.016.md) | factory-dispatcher::host::emit_event::decode_rejects_truncated_key_length — <4-byte buffer triggers Err | draft | CAP-TBD | TBD |
-| [BC-1.05.017](ss-01/BC-1.05.017.md) | factory-dispatcher::host::emit_event::decode_rejects_truncated_key_bytes — declared key_len exceeds remaining buffer → Err | draft | CAP-TBD | TBD |
-| [BC-1.05.018](ss-01/BC-1.05.018.md) | factory-dispatcher::host::emit_event::reserved_fields_rejected — every name in RESERVED_FIELDS is recognized by is_reserved_field | draft | CAP-TBD | TBD |
-| [BC-1.05.019](ss-01/BC-1.05.019.md) | factory-dispatcher::host::emit_event::non_reserved_field_accepted — non-reserved keys (commit_sha, file_path) pass | draft | CAP-TBD | TBD |
+| [BC-1.05.012](ss-01/BC-1.05.012.md) | emit_event enriches every emitted event with host-owned identity fields and filters reserved field names from plugin payload | draft | CAP-TBD | S-3.04 |
+| [BC-1.05.013](ss-01/BC-1.05.013.md) | factory-dispatcher::host::emit_event::decode_single_pair — length-prefixed key/value buffer with one pair round-trips through decode_fields | draft | CAP-TBD | S-3.04 |
+| [BC-1.05.014](ss-01/BC-1.05.014.md) | factory-dispatcher::host::emit_event::decode_multiple_pairs — 3-pair buffer round-trips with order preserved | draft | CAP-TBD | S-3.04 |
+| [BC-1.05.015](ss-01/BC-1.05.015.md) | factory-dispatcher::host::emit_event::decode_empty_buffer_yields_empty_vec — empty input → empty result, no error | draft | CAP-TBD | S-3.04 |
+| [BC-1.05.016](ss-01/BC-1.05.016.md) | factory-dispatcher::host::emit_event::decode_rejects_truncated_key_length — <4-byte buffer triggers Err | draft | CAP-TBD | S-3.04 |
+| [BC-1.05.017](ss-01/BC-1.05.017.md) | factory-dispatcher::host::emit_event::decode_rejects_truncated_key_bytes — declared key_len exceeds remaining buffer → Err | draft | CAP-TBD | S-3.04 |
+| [BC-1.05.018](ss-01/BC-1.05.018.md) | factory-dispatcher::host::emit_event::reserved_fields_rejected — every name in RESERVED_FIELDS is recognized by is_reserved_field | draft | CAP-TBD | S-3.04 |
+| [BC-1.05.019](ss-01/BC-1.05.019.md) | factory-dispatcher::host::emit_event::non_reserved_field_accepted — non-reserved keys (commit_sha, file_path) pass | draft | CAP-TBD | S-3.04 |
 | [BC-1.05.020](ss-01/BC-1.05.020.md) | factory-dispatcher::host::log::level_mapping_matches_sdk — level u32 0..=4 maps to {trace,debug,info,warn,error} | draft | CAP-TBD | TBD |
 | [BC-1.05.021](ss-01/BC-1.05.021.md) | factory-dispatcher::host::read_file::denies_when_no_capability_block — no Capabilities.read_file block → CAPABILITY_DENIED | draft | CAP-TBD | TBD |
 | [BC-1.05.022](ss-01/BC-1.05.022.md) | factory-dispatcher::host::read_file::reads_allowed_file — file under path_allow with size <= max_bytes returns its contents | draft | CAP-TBD | TBD |
@@ -314,10 +316,10 @@ changelog:
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
-| [BC-3.01.001](ss-03/BC-3.01.001.md) | Empty SinkRegistry submit/flush/shutdown is no-op | draft | TBD | TBD |
-| [BC-3.01.002](ss-03/BC-3.01.002.md) | Unknown sink type warns to stderr but does not fail config load | draft | TBD | TBD |
-| [BC-3.01.003](ss-03/BC-3.01.003.md) | Sink schema_version != 1 is a hard error | draft | TBD | TBD |
-| [BC-3.01.004](ss-03/BC-3.01.004.md) | RoutingFilter empty = pass-through, allow non-empty = whitelist, deny applied after allow | draft | TBD | TBD |
+| [BC-3.01.001](ss-03/BC-3.01.001.md) | Empty SinkRegistry submit/flush/shutdown is no-op | draft | TBD | S-4.01, S-4.02, S-4.03, S-4.07 |
+| [BC-3.01.002](ss-03/BC-3.01.002.md) | Unknown sink type warns to stderr but does not fail config load | draft | TBD | S-4.01, S-4.07 |
+| [BC-3.01.003](ss-03/BC-3.01.003.md) | Sink schema_version != 1 is a hard error | draft | TBD | S-4.01 |
+| [BC-3.01.004](ss-03/BC-3.01.004.md) | RoutingFilter empty = pass-through, allow non-empty = whitelist, deny applied after allow | draft | TBD | S-4.06, S-4.07 |
 | [BC-3.01.005](ss-03/BC-3.01.005.md) | SinkEvent serializes flat (transparent over Map) | draft | TBD | TBD |
 | [BC-3.01.006](ss-03/BC-3.01.006.md) | file sink path template substitutes `{date}`, `{name}`, `{project}` and rejects unknown placeholders | draft | TBD | TBD |
 | [BC-3.01.007](ss-03/BC-3.01.007.md) | file sink mpsc bounded at default 1000; submit is non-blocking via try_send | draft | TBD | TBD |
@@ -337,15 +339,15 @@ changelog:
 | [BC-3.02.012](ss-03/BC-3.02.012.md) | sink-file::disabled_sink_drops_every_event: enabled=false → no file written, no events accepted | draft | TBD | TBD |
 | [BC-3.02.013](ss-03/BC-3.02.013.md) | sink-file::read_only_path_records_failure_without_panic: read-only target dir → SinkFailure rec | draft | TBD | TBD |
 | [BC-3.02.014](ss-03/BC-3.02.014.md) | sink-file::backpressure_fills_queue_and_increments_counter: queue_depth=2 + 500 submitted events | draft | TBD | TBD |
-| [BC-3.02.015](ss-03/BC-3.02.015.md) | sink-file::shutdown_drains_queued_events: shutdown() drains pending events; post-shutdown submit | draft | TBD | TBD |
+| [BC-3.02.015](ss-03/BC-3.02.015.md) | sink-file::shutdown_drains_queued_events: shutdown() drains pending events; post-shutdown submit | draft | TBD | S-4.07 |
 | [BC-3.02.016](ss-03/BC-3.02.016.md) | sink-file::config_deserializes_from_toml: minimal TOML config parses with queue_depth defaulting | draft | TBD | TBD |
-| [BC-3.03.001](ss-03/BC-3.03.001.md) | Batch trigger thresholds are independent — `size` (default 100) AND `interval_ms` (default 5000ms) — either trigger fires a flush | draft | TBD | TBD |
-| [BC-3.03.002](ss-03/BC-3.03.002.md) | Send failure protocol — drop the gRPC client on error; rebuild on next batch (self-healing tran | draft | TBD | TBD |
+| [BC-3.03.001](ss-03/BC-3.03.001.md) | Batch trigger thresholds are independent — `size` (default 100) AND `interval_ms` (default 5000ms) — either trigger fires a flush | draft | TBD | S-4.07 |
+| [BC-3.03.002](ss-03/BC-3.03.002.md) | Send failure protocol — drop the gRPC client on error; rebuild on next batch (self-healing tran | draft | TBD | S-4.04 |
 | [BC-3.03.003](ss-03/BC-3.03.003.md) | Connection lifecycle — endpoint validated EAGERLY at constructor; channel built LAZILY in worke | draft | TBD | TBD |
 | [BC-3.03.004](ss-03/BC-3.03.004.md) | Worker thread owns its own current_thread tokio runtime on a dedicated OS thread | draft | TBD | TBD |
 | [BC-3.03.005](ss-03/BC-3.03.005.md) | Producer-side `submit` is fully non-blocking via `try_send`; overflow increments `queue_full_coun | draft | TBD | TBD |
 | [BC-3.03.006](ss-03/BC-3.03.006.md) | `flush()` is a synchronous oneshot round-trip; producer blocks on `rx.blocking_recv()` until the | draft | TBD | TBD |
-| [BC-3.03.007](ss-03/BC-3.03.007.md) | Shutdown drains and joins the worker thread; idempotent post-`accepts` rejection | draft | TBD | TBD |
+| [BC-3.03.007](ss-03/BC-3.03.007.md) | Shutdown drains and joins the worker thread; idempotent post-`accepts` rejection | draft | TBD | S-4.07 |
 | [BC-3.03.008](ss-03/BC-3.03.008.md) | sink-otel-grpc::event_to_log_record_maps_reserved_fields: SinkEvent → LogRecord lifts type→bo | draft | TBD | TBD |
 | [BC-3.03.009](ss-03/BC-3.03.009.md) | sink-otel-grpc::event_attributes_flatten_non_reserved_fields: non-reserved fields flatten to OTLP | draft | TBD | TBD |
 | [BC-3.03.010](ss-03/BC-3.03.010.md) | sink-otel-grpc::event_to_log_record_nested_value_serialized_to_string: nested JSON values are str | draft | TBD | TBD |
@@ -360,12 +362,12 @@ changelog:
 | [BC-3.05.002](ss-03/BC-3.05.002.md) | factory-dispatcher::sinks_file_integration::registry_fans_events_to_file_sinks_with_filter_and_ta | retired | TBD | superseded_by: ADR-015 |
 | [BC-3.05.003](ss-03/BC-3.05.003.md) | factory-dispatcher::sinks_otel_grpc (integration)::ten_events_arrive_with_correct_attribute_mappi | retired | TBD | superseded_by: ADR-015 |
 | [BC-3.05.004](ss-03/BC-3.05.004.md) | factory-dispatcher::observability_config::v2_schema_validation — observability-config.toml v2 schema validated at load time; schema_version=1 hard-errors with migration hint; two-key debug-stream gate (VSDD_DEBUG_LOG=1 env var dominates; debug_log_enabled config key governs when env var absent) | draft | CAP-029 | S-10.02 |
-| [BC-3.06.001](ss-03/BC-3.06.001.md) | sink-core::routing_filter_default_accepts_everything: empty allow + empty deny → every event pa | draft | TBD | TBD |
+| [BC-3.06.001](ss-03/BC-3.06.001.md) | sink-core::routing_filter_default_accepts_everything: empty allow + empty deny → every event pa | draft | TBD | S-4.06 |
 | [BC-3.06.002](ss-03/BC-3.06.002.md) | sink-core::sink_event_event_type_accessor_reads_type_field: SinkEvent.event_type() returns the "t | draft | TBD | TBD |
 | [BC-3.06.003](ss-03/BC-3.06.003.md) | sink-core::sink_event_event_type_missing_returns_none: no "type" field → event_type() returns None | draft | TBD | TBD |
 | [BC-3.06.004](ss-03/BC-3.06.004.md) | sink-core::sink_event_event_type_non_string_returns_none: "type" set to non-string Value → even | draft | TBD | TBD |
-| [BC-3.06.005](ss-03/BC-3.06.005.md) | sink-core::sink_config_common_defaults_enabled_true: minimal SinkConfigCommon TOML defaults enabl | draft | TBD | TBD |
-| [BC-3.06.006](ss-03/BC-3.06.006.md) | sink-core::routing_filter_allow_case_sensitive: allow-list compares case-sensitively (Commit.Made | draft | TBD | TBD |
+| [BC-3.06.005](ss-03/BC-3.06.005.md) | sink-core::sink_config_common_defaults_enabled_true: minimal SinkConfigCommon TOML defaults enabl | draft | TBD | S-4.01, S-4.02, S-4.03 |
+| [BC-3.06.006](ss-03/BC-3.06.006.md) | sink-core::routing_filter_allow_case_sensitive: allow-list compares case-sensitively (Commit.Made | draft | TBD | S-4.06 |
 | [BC-3.06.007](ss-03/BC-3.06.007.md) | sink-core::routing_filter_plugin_ids_allow — only events from listed plugins pass; empty list = pass-through | draft | CAP-003 | active |
 | [BC-3.07.001](ss-03/BC-3.07.001.md) | sink-http exponential backoff with jitter between 5xx retries | draft | CAP-024 | S-4.09 |
 | [BC-3.07.002](ss-03/BC-3.07.002.md) | sink driver emits `internal.sink_error` event on each recorded failure | draft | CAP-003 | S-4.10 |
@@ -387,7 +389,7 @@ changelog:
 | [BC-4.02.004](ss-04/BC-4.02.004.md) | Adapter strips plugin_config to Null before piping to bash — bash hooks predate the field | draft | CAP-TBD | TBD |
 | [BC-4.02.005](ss-04/BC-4.02.005.md) | Adapter resolves relative `script_path` under `${CLAUDE_PLUGIN_ROOT}`; absolute paths bypass the join | draft | CAP-TBD | TBD |
 | [BC-4.02.006](ss-04/BC-4.02.006.md) | Adapter's wall-clock cap (BASH_TIMEOUT_MS = 60_000) is a backstop; real per-call deadline = dispatcher's epoch-interruption (default 5_000ms) | draft | CAP-TBD | TBD |
-| [BC-4.03.001](ss-04/BC-4.03.001.md) | hook-plugins::capture-commit-activity::on_hook_returns_zero_in_stub — stub on_hook returns 0 (pre-S-3.1 placeholder) | draft | CAP-TBD | TBD |
+| [BC-4.03.001](ss-04/BC-4.03.001.md) | hook-plugins::capture-commit-activity::on_hook_returns_zero_in_stub — stub on_hook returns 0 (pre-S-3.1 placeholder) | draft | CAP-TBD | S-3.01, S-3.02 |
 | [BC-4.04.001](ss-04/BC-4.04.001.md) | session-start plugin emits session.started event with session telemetry on SessionStart event | draft | CAP-002 | S-5.01 |
 | [BC-4.04.002](ss-04/BC-4.04.002.md) | session-start plugin invokes factory-health subprocess; emits session.started even if check fails | draft | CAP-002 | S-5.01 |
 | [BC-4.04.003](ss-04/BC-4.04.003.md) | session-start plugin is idempotent on duplicate SessionStart events within the same session_id | draft | CAP-002 | S-5.01 |

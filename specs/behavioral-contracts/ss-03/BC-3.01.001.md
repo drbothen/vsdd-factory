@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -76,7 +76,7 @@ All operations succeed without side effects.
 | L2 Capability | TBD (subsystem L2 spec pending) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-03 (Sink registry and base contracts) |
-| Stories | TBD (Phase 2 story-writer pass) |
+| Stories | S-4.01, S-4.02, S-4.03, S-4.07 |
 
 ## Related BCs (Recommended)
 
@@ -125,3 +125,10 @@ All operations succeed without side effects.
 
 TBD — Phase 1.6b will produce refactoring guidance.
 
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-09 | state-manager | fix-burst-45 F-P49-001: Stories TBD → propagated from story frontmatter (L-P28-001 retroactive sweep). |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

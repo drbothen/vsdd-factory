@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -69,7 +69,7 @@ Every name in the `RESERVED_FIELDS` slice (8 names: `trace_id`, `session_id`, `p
 | L2 Capability | TBD (anchor in Phase 1.5) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/emit_event.rs` |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-3.04 |
 
 ### Source Evidence
 
@@ -103,5 +103,6 @@ Every name in the `RESERVED_FIELDS` slice (8 names: `trace_id`, `session_id`, `p
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.2 | 2026-05-09 | state-manager | fix-burst-45 F-P49-001: Stories TBD → S-3.04 (L-P28-001 retroactive sweep). |
 | 1.1 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` in Description RESERVED_FIELDS list per DI-017 / ADR-015 v1.7 canonicalization. |
 | 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

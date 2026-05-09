@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -83,7 +83,7 @@ Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS alw
 | L2 Capability | TBD (anchor in Phase 1.5) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/invoke.rs` (emit_event arm + reserved-name list) |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-3.04 |
 
 ### Source Evidence
 
@@ -116,6 +116,7 @@ Together, the enrichment and filter guarantee that all eight RESERVED_FIELDS alw
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.4 | 2026-05-09 | state-manager | fix-burst-45 F-P49-001: Stories TBD → S-3.04 (L-P28-001 retroactive sweep). |
 | 1.3 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `emit_event.rs:38-42` → `crates/factory-dispatcher/src/host/emit_event.rs::register` in Invariant 3. |
 | 1.2 | 2026-05-06 | product-owner | D-336 — Pass-8 DI-017 sweep: renamed `dispatcher_trace_id` → `trace_id` throughout Description, Postconditions, Invariants, and Test Vectors per DI-017 / ADR-015 v1.7 canonicalization. Parenthetical "renamed from" annotations added for reader traceability. |
 | 1.1 | 2026-04-28 | product-owner | Sibling-sweep from S-5.04 ADV-P01 HIGH-P01-002: Invariant 3 simplified — removed BC-1.02.005 citation for session_id non-empty guarantee. BC-1.02.005 only contracts tool_name="" default for lifecycle events, not session_id sentinel behavior. Invariant 3 now reads: host fn handles any absent session_id value from the envelope; specific sentinel is a host fn implementation detail (v1.1 candidate BC-1.02.NNN-session-id-unknown-fallback). |

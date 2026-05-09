@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -76,7 +76,7 @@ removal_reason: null
 | L2 Capability | TBD (subsystem L2 spec pending) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-03 (OTLP gRPC sink batching and lifecycle) |
-| Stories | TBD (Phase 2 story-writer pass) |
+| Stories | S-4.07 |
 
 ## Related BCs (Recommended)
 
@@ -133,3 +133,4 @@ TBD — Phase 1.6b will produce refactoring guidance.
 |---------|------|--------|--------|
 | v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
 | v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sink-otel-grpc/src/lib.rs:440-461` + `:392-403` + `:406-419` → `::OtelGrpcSink::shutdown`, `::OtelGrpcSink::drop`, `::OtelGrpcSink::accepts`, `::OtelGrpcSink::submit`. |
+| 1.2 | 2026-05-09 | state-manager | fix-burst-45 F-P49-001: Stories TBD → S-4.07 (L-P28-001 retroactive sweep). |

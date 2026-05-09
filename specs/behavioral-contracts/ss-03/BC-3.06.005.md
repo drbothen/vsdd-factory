@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -76,7 +76,7 @@ Given TOML `name = "local-events"` (only). When Parsed via `toml::from_str::<Sin
 | L2 Capability | TBD (subsystem L2 spec pending) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-03 (sink-core base traits and submit/flush) |
-| Stories | TBD (Phase 2 story-writer pass) |
+| Stories | S-4.01, S-4.02, S-4.03 |
 
 ## Related BCs (Recommended)
 
@@ -123,3 +123,10 @@ Given TOML `name = "local-events"` (only). When Parsed via `toml::from_str::<Sin
 
 TBD — Phase 1.6b will produce refactoring guidance.
 
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-09 | state-manager | fix-burst-45 F-P49-001: Stories TBD → propagated from story frontmatter (L-P28-001 retroactive sweep). |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

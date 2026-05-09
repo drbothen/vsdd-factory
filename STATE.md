@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "fix-burst-44 closed (count-narrative 25→30 across 4 artifacts); pass-49 next; ADR-013 0_of_3"
+current_step: "fix-burst-45 closed (E-3/E-4/E-5 retroactive sweep + L-P28-001 retroactive-sweep complement); pass-50 next; ADR-013 0_of_3"
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 (fix-burst-44 DONE — F-P48-001 closed; count-narrative 25→30 BCs corrected across 4 artifacts; 14th L-P28-001 META; BC-INDEX v1.59; ARCH-INDEX v1.39; ADR-013 0_of_3 RESET; pass-49 next) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3 (RESET pass-48 HIGH); pass-49 next |
+| **Last Updated** | 2026-05-09 (fix-burst-45 DONE — F-P49-001 closed; E-3 9 BCs + E-4 11 BCs retroactive Stories sweep; E-5 0 BCs (already clean); 15th L-P28-001 META + retroactive-sweep complement clause; BC-INDEX v1.60; ARCH-INDEX v1.40; ADR-013 0_of_3; pass-50 next) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3 (RESET pass-49 LOW); pass-50 next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,8 +76,8 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-48 HIGH; ADR-013 0_of_3 (RESET)** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–48 + fix-bursts 1–44 complete. Pass-48: HIGH (F-P48-001; count-narrative 25→30 BCs drift; 14th L-P28-001 META). Fix-burst-44 DONE. BC-INDEX v1.59; ARCH-INDEX v1.39; STORY-INDEX v2.64. Pass-49 next. PR held until 3_of_3. |
-| **STRATEGIC NOTE** | User directive: continue protocol. ADR-013 RESET 1→0_of_3 (pass-47 LOW). Fix-burst-43 closed. Pass-48 next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-49 LOW; ADR-013 0_of_3 (RESET)** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–49 + fix-bursts 1–45 complete. Pass-49: LOW (F-P49-001; E-3+E-4 BC Stories drift; 15th L-P28-001 META). Fix-burst-45 DONE. BC-INDEX v1.60; ARCH-INDEX v1.40; STORY-INDEX v2.64. Pass-50 next. PR held until 3_of_3. |
+| **STRATEGIC NOTE** | User directive: continue protocol. ADR-013 RESET per pass-49 LOW. Fix-burst-45 closed. Pass-50 next. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -97,7 +97,9 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 fix-burst-43 — E-8 native-port 30 BCs Stories propagation + L-P28-001 13th META** | state-manager | **DONE** | F-P47-001 closed: 30 BC body Stories rows + 30 BC-INDEX Stories cells propagated (S-8.01..S-8.09). BC-INDEX v1.57→v1.58; ARCH-INDEX v1.37→v1.38. L-P28-001 13th META + per-epic sweep clause added. STATE.md compacted. |
 | **F5 pass-48 adversary review** | adversary | **DONE — verdict HIGH** | HIGH (F-P48-001; 1H). Count-narrative drift: 30 BCs propagated in fix-burst-43 but narrative cited "25 BCs" in 4 artifacts (~13 occurrences). 14th L-P28-001 META. ADR-013 RESETS 0→0_of_3. |
 | **F5 fix-burst-44 — count-narrative 25→30 across 4 artifacts + L-P28-001 14th META** | state-manager | **DONE** | F-P48-001 closed: BC-INDEX v1.58→v1.59; ARCH-INDEX v1.38→v1.39; lessons.md 14th META appended; STATE.md updated. |
-| **F5 pass-49 adversary review** | adversary | **NEXT** | If NITPICK_ONLY: ADR-013 advances 0_of_3 → 1_of_3. |
+| **F5 pass-49 adversary review** | adversary | **DONE — verdict LOW** | LOW (F-P49-001; 0H/0M/1L). E-3+E-4 BC families untouched L-P28-001 drift. 15th META. ADR-013 RESETS 0_of_3. |
+| **F5 fix-burst-45 — E-3/E-4/E-5 retroactive sweep + L-P28-001 retroactive-sweep complement** | state-manager | **DONE** | F-P49-001 closed: E-3 9 BCs + E-4 11 BCs + E-5 0 BCs (clean). BC-INDEX v1.59→v1.60; ARCH-INDEX v1.39→v1.40. 15th META + complement clause. Pass-50 next. |
+| **F5 pass-50 adversary review** | adversary | **NEXT** | If NITPICK_ONLY: ADR-013 advances 0_of_3 → 1_of_3. |
 
 ## Identifier Conventions
 
@@ -140,7 +142,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–48 + fix-bursts 1–44 complete. Pass-48: HIGH (F-P48-001; count-narrative 25→30 BCs drift; 14th L-P28-001 META). Fix-burst-44 DONE. ADR-013 0_of_3 (RESET). BC-INDEX v1.59; ARCH-INDEX v1.39; STORY-INDEX v2.64. Pass-49 next. PR held until 3_of_3. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | F5 ADVERSARIAL | F4 COMPLETE (PR #106 453eee1). F5 fix-burst MERGED (PR #107 6050d24). Passes 1–49 + fix-bursts 1–45 complete. Pass-49: LOW (F-P49-001; E-3+E-4 BC Stories drift; 15th L-P28-001 META). Fix-burst-45 DONE. ADR-013 0_of_3 (RESET). BC-INDEX v1.60; ARCH-INDEX v1.40; STORY-INDEX v2.64. Pass-50 next. PR held until 3_of_3. |
 
 ## Decisions Log
 
@@ -174,11 +176,13 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 **fix-burst-44 (2026-05-09):** F-P48-001 closed — count-narrative 25→30 corrected across 4 artifacts: BC-INDEX v1.58 changelog (line 15); ARCH-INDEX v1.38 changelog (line 20); lessons.md (13th META text + corpus-verification rows); STATE.md (current_step, Last Updated, phase progress, current phase steps, concurrent cycles, session checkpoint). 14th L-P28-001 META instance codified; S-15.03 hook scope candidate (count-narrative coherence). BC-INDEX v1.58→v1.59; ARCH-INDEX v1.38→v1.39.
 
+**fix-burst-45 (2026-05-09):** F-P49-001 closed — E-3+E-4+E-5 L-P28-001 retroactive Stories propagation. E-3: 9 BCs (BC-1.05.012-019 TBD→S-3.04 + BC-4.03.001 TBD→S-3.01,S-3.02; also normalized S-3.1→S-3.01 hygiene). E-4: 11 BCs (BC-3.01.001-004, BC-3.02.015, BC-3.03.001-002, BC-3.03.007, BC-3.06.001, BC-3.06.005-006). E-5: 0 BCs (all already propagated). Skipped ghost BCs (BC-3.07.003, BC-3.07.004, BC-1.06.011; not in BC-INDEX). BC-INDEX v1.59→v1.60; ARCH-INDEX v1.39→v1.40. L-P28-001 15th META + retroactive-sweep complement clause codified. BC bodies: 20 BCs amended (Traceability Stories rows + version bumps + changelog entries).
+
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — fix-burst-44 DONE (state-manager). F-P48-001 closed: count-narrative 25→30 corrected across 4 artifacts (BC-INDEX v1.58 changelog, ARCH-INDEX v1.38 changelog, lessons.md lines 686/702/703, STATE.md). 14th L-P28-001 META instance codified. BC-INDEX v1.58→v1.59; ARCH-INDEX v1.38→v1.39. ADR-013 0_of_3 (RESET — pass-48 HIGH).
+**Last update:** 2026-05-09 — fix-burst-45 DONE (state-manager). F-P49-001 closed: E-3 9 BCs + E-4 11 BCs + E-5 0 BCs retroactive L-P28-001 Stories propagation. BC-4.03.001 hygiene: S-3.1→S-3.01 canonical form. 15th L-P28-001 META instance + retroactive-sweep complement clause codified. BC-INDEX v1.59→v1.60; ARCH-INDEX v1.39→v1.40. ADR-013 0_of_3 (RESET — pass-49 LOW).
 
-**ACTIVE STEP: Pass-49 adversary review — dispatch next. ADR-013 RESET to 0_of_3 (pass-48 HIGH). Three NITPICK_ONLY passes required to reach CONVERGED from here.**
+**ACTIVE STEP: Pass-50 adversary review — dispatch next. ADR-013 RESET to 0_of_3 (pass-49 LOW). Three NITPICK_ONLY passes required to reach CONVERGED from here.**
 
 **Branches:**
 - fix/S-15.01-F5-convergence @ 7b841eca — long-lived; 39 commits ahead of develop; no PR until 3_of_3
@@ -186,13 +190,15 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 - factory-artifacts @ (this commit — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.59 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.39
-**ADR-013 clock:** **0_of_3** (RESET — pass-48 HIGH resets; pass-49 next; 3 NITPICK_ONLY passes required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.60 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.40
+**ADR-013 clock:** **0_of_3** (RESET — pass-49 LOW resets; pass-50 next; 3 NITPICK_ONLY passes required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931 at D-313 (now 1947)); finding trend 22→11→16→16→12→2→1→4
 **5 user-locked decisions:** (1) envelope sync, (2) no backwards compat, (3) no phased rollout, (4) ASYNC_DRAIN_WINDOW_MS=100ms, (5) WASM-only. Full text in F4-handoff.md §3.
 **v1.0.0-rc.13 tag (remote):** PINNED at ba63c9f — INVALID; delete: `git push origin :refs/tags/v1.0.0-rc.13`
 **F-7 + F-8:** deferred to cleanup stories #115/#116. Do NOT re-include in adversary scope.
+**Retroactive sweep pending:** E-6, E-7, E-9, E-10, E-11 — L-P28-001 retroactive-sweep complement clause requires one-time sweep per epic. Flag for future fix-burst.
+**Ghost BCs flagged:** BC-3.07.003, BC-3.07.004, BC-1.06.011 — cited in story frontmatter but missing from BC-INDEX and ss-03/. Investigate in future fix-burst.
 
 > Previous checkpoint archived to: `cycles/v1.0-feature-plugin-async-semantics-pass-1/session-checkpoints.md`

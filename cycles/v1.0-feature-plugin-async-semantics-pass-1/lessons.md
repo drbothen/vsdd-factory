@@ -707,3 +707,19 @@ Canonical verification procedure for BCs axis:
 **14th META-self-application failure (added fix-burst-44, F-P48-001 closure):** Count-narrative drift class. Fix-burst-43 propagated 30 BC Stories cells correctly (the actual fix), but the narrative cited "25 BCs" in 4 artifacts (~13 occurrences). The L-P28-001 doctrine "corpus-wide grep MUST include both index file AND every source-of-truth artifact carrying that field" was violated for the field "F-P47-001 propagation count" in the very burst that codified the next clause.
 
 **Recommended mechanical enforcement:** S-15.03 hook scope candidate — extend `validate-stable-anchors` family to include "count-narrative coherence": grep changelog narrative for "N BCs" / "N stories" / "N cells" patterns, sum the per-row enumeration in the same changelog block, assert N_narrative == N_enumeration. Block Edit/Write if mismatch.
+
+**L-P28-001 retroactive-sweep complement clause (added fix-burst-45, F-P49-001 closure):** The per-epic systematic verification clause (codified fix-burst-43, above) is forward-looking. It does NOT require retroactive sweep on epics that pre-date the clause's codification. Without this complement, latent L-P28-001 drift in pre-clause epics persists indefinitely.
+
+**Complement rule:** Epics that pre-date the per-epic clause's codification MUST receive a one-time retroactive sweep. Specifically, when discovering an unswept-epic drift via fresh-context audit, the same fix-burst MUST sweep the entire epic family bidirectionally (BC-INDEX ↔ BC body ↔ story frontmatter), not just the rows the adversary enumerated.
+
+**Verified retroactively in fix-burst-45 (this burst):** E-3 (9 BCs) + E-4 (11 BCs) swept. E-5 (0 BCs): all Stories cells already propagated — no TBD drift found; E-5 was self-consistent. SKIPPED (ghost BCs not in BC-INDEX/ss-03): BC-3.07.003, BC-3.07.004, BC-1.06.011 — these appear in story frontmatter but have no BC-INDEX row or body file. Untouched epics still pending retroactive sweep: E-6, E-7, E-9, E-10, E-11 — flagged for future fix-burst.
+
+**15th META-self-application failure:** The per-epic clause itself was incomplete; required this 15th instance to identify the gap. Prose-only codification continues to fail at this scale; S-15.03 mechanical enforcement is the convergent path.
+
+**Fix-burst-45 corpus verification (15th instance):**
+- BC body Stories rows: 20 BCs updated (E-3: BC-1.05.012-019 → S-3.04 (8 BCs), BC-4.03.001 → S-3.01,S-3.02 (1 BC); E-4: 11 BCs updated).
+- BC-INDEX Stories cells: 20 rows updated TBD→actual story IDs (bidirectional confirmation per story frontmatter).
+- BC-4.03.001 hygiene: non-canonical "S-3.1" normalized to "S-3.01, S-3.02".
+- E-5 epic: all behavioral_contracts frontmatter entries verified; all BC-INDEX Stories cells already propagated; 0 TBD drifts.
+- Ghost BCs (BC-3.07.003, BC-3.07.004, BC-1.06.011) documented as missing from BC-INDEX — no action possible; flagged for investigation.
+- No new axes added to REQUIRED enumeration; existing BCs/Stories cross-index axis sweep applied to E-3, E-4, E-5.

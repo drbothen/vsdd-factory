@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -69,7 +69,7 @@ A buffer encoding `("k", "v")` as `[1u32_LE, 'k', 1u32_LE, 'v']` decodes via `de
 | L2 Capability | TBD (anchor in Phase 1.5) |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-01 — `crates/factory-dispatcher/src/host/emit_event.rs` |
-| Stories | TBD (re-anchor in Phase 1.8 from S-N.MM stories) |
+| Stories | S-3.04 |
 
 ### Source Evidence
 
@@ -97,3 +97,10 @@ A buffer encoding `("k", "v")` as `[1u32_LE, 'k', 1u32_LE, 'v']` decodes via `de
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| 1.1 | 2026-05-09 | state-manager | fix-burst-45 F-P49-001: Stories TBD → S-3.04 (L-P28-001 retroactive sweep). |
+| 1.0 | 2026-04-25 | codebase-analyzer | Initial brownfield extraction. |

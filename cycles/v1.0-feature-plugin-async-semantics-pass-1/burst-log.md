@@ -2568,3 +2568,48 @@ F-P48-001 closed.
 ADR-013 clock: 0_of_3 (RESET — pass-48 HIGH)
 BC-INDEX v1.59 | ARCH-INDEX v1.39
 Pass-48 dispatched next.
+
+---
+
+## Burst 54 — pass-49 persist + fix-burst-45 (E-3/E-4/E-5 retroactive sweep + 15th META)
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL — pass-49 + fix-burst-45
+
+### Outputs
+
+| File | Author | Notes |
+|------|--------|-------|
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/F5-adversary-pass-49.md` | state-manager | Created. pass-49 verdict LOW persisted (Part A commit d9049d2f). |
+| `specs/behavioral-contracts/ss-01/BC-1.05.012.md` | state-manager | v1.3→v1.4. Stories TBD→S-3.04. Changelog entry added. |
+| `specs/behavioral-contracts/ss-01/BC-1.05.013.md` | state-manager | v1.0→v1.1. Stories TBD→S-3.04. Changelog section added. |
+| `specs/behavioral-contracts/ss-01/BC-1.05.014.md` | state-manager | v1.0→v1.1. Stories TBD→S-3.04. Changelog section added. |
+| `specs/behavioral-contracts/ss-01/BC-1.05.015.md` | state-manager | v1.0→v1.1. Stories TBD→S-3.04. Changelog section added. |
+| `specs/behavioral-contracts/ss-01/BC-1.05.016.md` | state-manager | v1.0→v1.1. Stories TBD→S-3.04. Changelog section added. |
+| `specs/behavioral-contracts/ss-01/BC-1.05.017.md` | state-manager | v1.0→v1.1. Stories TBD→S-3.04. Changelog section added. |
+| `specs/behavioral-contracts/ss-01/BC-1.05.018.md` | state-manager | v1.1→v1.2. Stories TBD→S-3.04. Changelog entry added. |
+| `specs/behavioral-contracts/ss-01/BC-1.05.019.md` | state-manager | v1.0→v1.1. Stories TBD→S-3.04. Changelog section added. |
+| `specs/behavioral-contracts/ss-04/BC-4.03.001.md` | state-manager | v1.0→v1.1. Stories "S-3.1; re-anchor" → "S-3.01, S-3.02" (canonical + hygiene fix). Changelog section added. |
+| `specs/behavioral-contracts/ss-03/BC-3.01.001.md` | state-manager | v1.0→v1.1. Stories TBD→S-4.01,S-4.02,S-4.03,S-4.07. Changelog added. |
+| `specs/behavioral-contracts/ss-03/BC-3.01.002.md` | state-manager | v1.0→v1.1. Stories TBD→S-4.01,S-4.07. Changelog added. |
+| `specs/behavioral-contracts/ss-03/BC-3.01.003.md` | state-manager | v1.0→v1.1. Stories TBD→S-4.01. Changelog added. |
+| `specs/behavioral-contracts/ss-03/BC-3.01.004.md` | state-manager | v1.0→v1.1. Stories TBD→S-4.06,S-4.07. Changelog added. |
+| `specs/behavioral-contracts/ss-03/BC-3.02.015.md` | state-manager | v1.0→v1.1. Stories TBD→S-4.07. Changelog added. |
+| `specs/behavioral-contracts/ss-03/BC-3.03.001.md` | state-manager | v1.1→v1.2. Stories TBD→S-4.07. Changelog entry added. |
+| `specs/behavioral-contracts/ss-03/BC-3.03.002.md` | state-manager | v1.1→v1.2. Stories TBD→S-4.04. Changelog entry added. |
+| `specs/behavioral-contracts/ss-03/BC-3.03.007.md` | state-manager | v1.1→v1.2. Stories TBD→S-4.07. Changelog entry added. |
+| `specs/behavioral-contracts/ss-03/BC-3.06.001.md` | state-manager | v1.0→v1.1. Stories TBD→S-4.06. Changelog added. |
+| `specs/behavioral-contracts/ss-03/BC-3.06.005.md` | state-manager | v1.0→v1.1. Stories TBD→S-4.01,S-4.02,S-4.03. Changelog added. |
+| `specs/behavioral-contracts/ss-03/BC-3.06.006.md` | state-manager | v1.0→v1.1. Stories TBD→S-4.06. Changelog added. |
+| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.59→v1.60. 20 Stories cells propagated (E-3: 9 BCs; E-4: 11 BCs). v1.60 changelog entry added. |
+| `specs/architecture/ARCH-INDEX.md` | state-manager | v1.39→v1.40. BC-INDEX cite refreshed v1.59→v1.60 (body + changelog). |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | L-P28-001 retroactive-sweep complement clause + 15th META + fix-burst-45 corpus verification appended. |
+| `.factory/STATE.md` | state-manager | current_step, Last Updated, Current Phase, phase progress, current phase steps, concurrent cycles, fix-burst-45 block, session checkpoint all updated. Index versions BC-INDEX v1.60 / ARCH-INDEX v1.40. |
+
+SKIPPED (ghost BCs not in BC-INDEX): BC-3.07.003, BC-3.07.004, BC-1.06.011.
+SKIPPED (E-5): all Stories cells already propagated.
+F-P49-001 closed.
+ADR-013 clock: 0_of_3 (RESET — pass-49 LOW)
+BC-INDEX v1.60 | ARCH-INDEX v1.40
+Pass-50 dispatched next.
