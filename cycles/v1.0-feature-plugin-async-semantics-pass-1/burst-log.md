@@ -1104,3 +1104,67 @@ F4-handoff.md on disk. User intends to /compact, then issue "go F4 Option A". Al
 Stage 1 complete. All spec amendments committed to factory-artifacts.
 Stage 2 next: code/test/demo on branch fix/S-15.01-F5-convergence (long-lived; no PR until ADR-013 clock = 3_of_3).
 F-P2-001 [H] (ac017_demo_evidence.rs still cites 500ms) and F-P2-003 [H] (latency-canary.md re-record) are Stage 2 scope — code/test/demo files, not touched in Stage 1.
+
+---
+
+## F5 pass-18 adversary review — 2026-05-08
+
+**Verdict:** HIGH (1H/3M/3L; 4 process-gap findings)
+**ADR-013 clock:** 0_of_3 (HIGH resets)
+
+### Findings
+
+| ID | Severity | Summary |
+|----|----------|---------|
+| F-P18-001 | H | Sibling-hook propagation gap — validate-artifact-path had identical absolute-path bug as cc5a016b in validate-stable-anchors |
+| F-P18-002 | M | Prose-form line references in BC-1.05.035/036 + BC-2.02.011 not migrated by sweep |
+| F-P18-003 | M | BC-INDEX + VP-INDEX missing aggregated changelog entry for 6-chunk mass sweep |
+| F-P18-004 | M | TD-031 register not updated with cc5a016b fix or test count change |
+| (process-gap) | L×3 | Sibling-hook discipline, prose-form sweep discipline, index aggregation discipline, TD register currency discipline |
+
+**Trajectory:** →(pass-18 HIGH)
+
+---
+
+## F5 fix-burst-17 — 2026-05-08
+
+Three sub-bursts. State-manager ran last per POLICY 3.
+
+### Sub-burst 1: validate-artifact-path sibling absolute-path fix (8b4f697f)
+
+**Agent:** implementer + test-writer
+**Branch:** fix/S-15.01-F5-convergence
+
+- `is_spec_target` in validate-artifact-path had identical absolute-path false-negative as cc5a016b in validate-stable-anchors
+- Fixed `matches_canonical` + `hook_logic` for absolute-path payloads
+- 4 absolute-path tests added to validate-artifact-path; 54/54 → 58/58
+- Both WASM artifacts rebuilt
+- F-P18-001 closed
+
+### Sub-burst 2: prose-form stable-anchor migration (fadafca5, factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-1.05.035 | v1.1 → v1.2 | Prose "at line NNN" → stable symbol anchors |
+| BC-1.05.036 | v1.1 → v1.2 | Prose "at line NNN" → stable symbol anchors |
+| BC-2.02.011 | v1.1 → v1.2 | Prose "at line NNN" → stable symbol anchors |
+
+- F-P18-002 closed
+
+### Sub-burst 3: indexes + TD register + state + lessons (this burst, factory-artifacts)
+
+**Agent:** state-manager
+
+| Index | Before | After |
+|-------|--------|-------|
+| BC-INDEX | v1.41 | v1.42 |
+| VP-INDEX | v1.27 | v1.28 |
+
+- BC-INDEX: aggregated changelog entry for 6-chunk TD-VSDD-091 sweep + F-P18-002 follow-up
+- VP-INDEX: aggregated changelog entry; VP-077 row updated to v1.11
+- TD-031: cc5a016b + 8b4f697f recorded; test counts 58→62 (validate-stable-anchors) + 54→58 (validate-artifact-path); Kani harness deferral noted
+- STATE.md: pass-18 + fix-burst-17 progress; current_step updated
+- lessons.md: 4 process-gap lessons codified [F-P18-001..004]
+- F-P18-003 + F-P18-004 closed

@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.41"
+version: "1.42"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-17 indexes (2026-05-08) — TD-VSDD-091 6-chunk stable-anchor mass-sweep + F-P18-002 follow-up — ~50 BCs version-bumped across SS-01/02/03/04/05/07/08 (commits be3f06a6, d84f67b3, 5248c4c1, 93a10457, f7a34858, 0b5d097d, fadafca5). All per-file version bumps recorded in the file-level changelog of each touched BC. BC-INDEX v1.41→v1.42. last_amended: 2026-05-08 (F5 fix-burst-17: TD-VSDD-091 6-chunk sweep + F-P18-002 follow-up)."
   - date: 2026-05-08
     change: "F5 fix-burst-16 (2026-05-08) — BC-3.08.001 v1.10→v1.11 (F-P17-002: §Common Fields corrected — plugin_version claim removed; impl emits zero plugin_version calls). No count change. BC-INDEX v1.40→v1.41. last_amended: 2026-05-08 (F5 fix-burst-16: BC-3.08.001 v1.11; F-P17-002 closed)."
   - date: 2026-05-08

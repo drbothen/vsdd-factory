@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.27"
+version: "1.28"
 status: draft
 producer: state-manager
 timestamp: 2026-05-08T00:00:00Z
@@ -9,6 +9,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-08
+    change: "F5 fix-burst-17 indexes (2026-05-08) — TD-VSDD-091 stable-anchor sweep — VP-065 → v1.3, VP-066 → v1.2, VP-067 → v1.4, VP-068 → v1.5, VP-077 → v1.11 (commit 5248c4c1). No VP count change. VP-INDEX v1.27→v1.28. last_amended: 2026-05-08 (F5 fix-burst-17: TD-VSDD-091 Chunk 3 sweep VP version bumps)."
   - date: 2026-05-08
     change: "F5 fix-burst-16 (2026-05-08) — VP-079 v1.15→v1.16 (F-P17-001: SITES array refreshed to reflect live main.rs symbol positions; F-P17-001 CRIT closed). No VP count change. VP-INDEX v1.26→v1.27. last_amended: 2026-05-08 (F5 fix-burst-16: VP-079 v1.16; F-P17-001 closed)."
   - date: 2026-05-08
@@ -179,7 +181,7 @@ changelog:
 | [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process | safety | integration | SS-04 | — | draft |
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
-| [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.10: F5 fix-burst-4 — 5 stale BC-7.06.001 v1.4 cites updated to v1.5; F-P4-001 cite-propagation gap closed) | invariant | kani-proof | SS-01 | — | draft |
+| [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.11: F5 TD-VSDD-091 Chunk 3 sweep — stable-anchor migration; v1.10: F5 fix-burst-4 — 5 stale BC-7.06.001 v1.4 cites updated to v1.5; F-P4-001 cite-propagation gap closed) | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
 | [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.16: F5 fix-burst-16 — SITES array refreshed to reflect live main.rs symbol positions; bats vp079-scenario6 header anchors stabilized per TD-031 (test-writer); F-P17-001 CRIT + F-P17-004 closed) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
 
