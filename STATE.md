@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "fix-burst-19 closed; pass-21 next; ADR-013 0_of_3"
+current_step: "fix-burst-20 closed; pass-22 next; ADR-013 0_of_3"
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-08 (fix-burst-19 closed: F-P20-001 extended prose sweep + F-P20-002 ARCH-INDEX cite refresh + F-P20-005 reword + L-P20-001/002 codified + S-15.03 stub filed; ADR-013 0_of_3; pass-21 next) |
-| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-20 HIGH; fix-burst-19 complete; pass-21 next |
+| **Last Updated** | 2026-05-08 (fix-burst-20 closed: F-P21-001 BC-5.34.004 sibling + 9-BC retroactive lobster sweep + F-P21-002 lessons fabricated symbol + F-P21-003 S-15.03 E-12 re-anchor + L-P21-001/002 codified; ADR-013 0_of_3; pass-22 next) |
+| **Current Phase** | F5 ADVERSARIAL — v1.0-feature-plugin-async-semantics-pass-1; validate-stable-anchors hook active (language-agnostic, source-code allowlist, 62 tests); ADR-013 clock 0_of_3; pass-21 HIGH; fix-burst-20 complete; pass-22 next |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -76,7 +76,8 @@ dtu_services: []
 | Phase C — rc.11 burn-in → v1.0 GA | **IN PROGRESS** | ~7 days from 2026-05-04; GA target ~2026-05-11 |
 | D-236 — E-10 elevation + E-9 v1.7 amendment | **PAUSED at pass-9 (D-343)** | Pass-8 sealed D-337; NITPICK_ONLY counter: 0; trend: 22→11→16→16→12→2→1→4. Pass-9 queued; E-10 paused by user (D-343) to run engine-discipline cycle. |
 | v1.0-feature-engine-discipline-pass-1 | **PAUSED** (F2 sealed D-362; F3-amendment pending after plugin-async-semantics) | All 3 original stories merged. F5 pass-2 CRITICAL (15 findings). Mid-cycle F2-amendment complete (D-362). F3-amendment (S-12.03..S-12.08) deferred; paused while plugin-async-semantics cycle runs. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-20 HIGH; fix-burst-19 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–20 + fix-bursts 1–19 complete. Pass-20: HIGH (F-P20-001..005). Fix-burst-19: 2 sub-bursts — 98864e19 extended prose sweep + ARCH-INDEX cite refresh + BC-7.06.001 reword (sub-burst 1); this burst indexes+lessons+S-15.03 (sub-burst 2). ADR-013 0_of_3. Branch @ 98864e19 (38 ahead). Pass-21 next. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **F5 ADVERSARIAL — pass-21 HIGH; fix-burst-20 complete** | S-15.01 MERGED PR #106; fix-burst PR #107 merged. Passes 1–21 + fix-bursts 1–20 complete. Pass-21: HIGH (F-P21-001..003). Fix-burst-20: 2 sub-bursts — 823468ce BC-5.34.004 + 9 retroactive BC lobster carve-outs + lessons.md fabricated symbol fix (sub-burst 1); this burst indexes+lessons+S-15.03 re-anchor (sub-burst 2). ADR-013 0_of_3. Branch @ 823468ce (38 ahead). Pass-22 next. |
+| **STRATEGIC NOTE** | F5 cycle has 4 consecutive HIGH passes (P18/P19/P20/P21). Pass-21 adversary recommends halt-and-implement S-15.03 mechanical enforcement before pass-22. Strategic decision pending user input. Continuing prose-only fix-bursts per standing user directive "continue with A until we fix everything" — to be revisited if pass-22 also HIGH. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** (unblocked after engine-discipline cycle or user directive) | Pre-Burst-2 architect amendment queued (D-236) |
 
 ## Historical Content
@@ -94,8 +95,10 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | **F5 pass-19 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P19-001..005). F-P19-001 corpus prose sweep; F-P19-002 Kani assumption stale; F-P19-003 BC-4.11.001 missing abs-path invariant. ADR-013: 0_of_3. |
 | **F5 fix-burst-18 — Kani harness fix (026272ae) + corpus sweep (91bb304c) + BC-4.11.001 v1.2 (ce848f24) + indexes+TD+lessons** | implementer + spec-writer + state-manager | **DONE** | BC-INDEX v1.43, VP-INDEX v1.29, VP-070 v1.2, 2 lessons codified [L-P19-001 + L-P19-002]. |
 | **F5 pass-20 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P20-001..005). Extended prose sweep (4 files); ARCH-INDEX cite 10 versions stale; L-P19-002 Kani VP audit incomplete; lobster class undocumented; BC-7.06.001 reword. ADR-013: 0_of_3. |
-| **F5 fix-burst-19 — extended prose sweep (98864e19) + ARCH-INDEX v1.24 + indexes+lessons+S-15.03 (this burst)** | spec-writer + state-manager | **DONE** | BC-INDEX v1.44, STORY-INDEX v2.50, ARCH-INDEX v1.24, 2 lessons codified [L-P20-001 + L-P20-002], S-15.03 stub filed. |
-| **F5 pass-21 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. |
+| **F5 fix-burst-19 — extended prose sweep (98864e19) + ARCH-INDEX v1.24 + indexes+lessons+S-15.03 (sub-burst 2 retroactive: ARCH-INDEX row added)** | spec-writer + state-manager | **DONE** | BC-INDEX v1.44, STORY-INDEX v2.50, ARCH-INDEX v1.24, 2 lessons codified [L-P20-001 + L-P20-002], S-15.03 stub filed. |
+| **F5 pass-21 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P21-001..003). F-P21-001 BC-5.34.004 lobster carve-out missing + 9-BC retroactive sweep; F-P21-002 fabricated symbol in L-P19-002; F-P21-003 S-15.03 epic anchor E-15→E-12. ADR-013: 0_of_3. |
+| **F5 fix-burst-20 — BC-5.34.004 + 9 retroactive (823468ce) + S-15.03 re-anchor + indexes + lessons (this burst)** | spec-writer + state-manager | **DONE** | BC-INDEX v1.45, ARCH-INDEX v1.25, STORY-INDEX v2.51, S-15.03 v1.1 (E-12), 2 lessons codified [L-P21-001 + L-P21-002]. |
+| **F5 pass-22 adversary review** | adversary | **NEXT** | Dispatch after this commit. ADR-013 at 0_of_3. 4 consecutive HIGH passes. |
 
 ## Identifier Conventions
 
@@ -111,11 +114,11 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 15 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 19 |
 
-## Story Status (93 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14/E-15 registered; E-12 F3-amendment 6 stories added D-366; S-15.01 MERGED PR #106 453eee1 2026-05-08; S-15.02 added draft 2026-05-08; S-15.03 stub filed fix-burst-19 2026-05-08)
+## Story Status (93 total — W-15 CONVERGED; W-16 spec in progress; S-11.00 stub filed; E-11/E-12/E-13/E-14/E-15 registered; E-12 F3-amendment 6 stories added D-366; S-15.01 MERGED PR #106 453eee1 2026-05-08; S-15.02 added draft 2026-05-08; S-15.03 stub filed fix-burst-19 then re-anchored E-15→E-12 fix-burst-20 per F-P21-003)
 
 - **Merged (63):** 57 stories + S-9.00 (PR #91 5706f27 2026-05-04) + S-13.01 (PR #97 2c97cb0 2026-05-07) + S-12.01 (PR #98 2e9b670 2026-05-07) + S-12.02 (PR #99 e2fd3d4 2026-05-07) + S-12.06 (PR #105 15432c6 2026-05-07) + S-15.01 (PR #106 453eee1 2026-05-08). Full list: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 - **Partial (1):** S-2.05 (cargo publish dry-run)
-- **Draft (25):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359); S-15.02 (dispatcher cold-start optimization; E-15 follow-up per ADR-020 §Out of Scope; 2026-05-08); S-15.03 (ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification; E-15; fix-burst-19 2026-05-08)
+- **Draft (25):** S-5.07 (Tier H; calendar-gated); S-9.01..S-9.07 (W-16 stubs; Burst 2+3 authoring pending); S-11.00 (verify-sha-currency.sh Rust port stub; full authoring deferred post-E-9); S-11.01..S-11.08 (E-11 W-17 Tier 3 stubs; story-writer authorship pending spec convergence); S-12.03..S-12.08 (E-12 F3-amendment platform stories; D-366); S-14.01..S-14.05 (E-14 process-gap follow-ups; D-359); S-15.02 (dispatcher cold-start optimization; E-15 follow-up per ADR-020 §Out of Scope; 2026-05-08); S-15.03 (ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification; **E-12** re-anchored fix-burst-20 per F-P21-003; [SS-01, SS-04]; 2026-05-08)
 - **Converged (0):** S-9.00 moved to Merged via PR #91.
 - **Withdrawn (1):** S-9.30 (W-16 SDK ext — superseded by (d) Hybrid; audit trail preserved 711L)
 - **Ready (0):** (none)
@@ -126,7 +129,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
 | develop | 6050d24 | F5 fix-burst PR #107 squash-merge 2026-05-08 |
-| factory-artifacts | (see git log) | fix-burst-19 indexes + lessons + S-15.03 committed this burst |
+| factory-artifacts | (see git log) | fix-burst-20 indexes + lessons + S-15.03 re-anchor committed this burst |
 | v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
 | v1.0.0-rc.4..rc.10 (tags) | — | Historical tags; see `cycles/v1.0-brownfield-backfill/release-ladder.md` if present |
@@ -167,18 +170,18 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-08 — fix-burst-19 closed (state-manager sub-burst 2, POLICY 3 run-last). Pass-20 HIGH (F-P20-001..005). Fix-burst-19: extended prose sweep + ARCH-INDEX v1.23 cite refresh + BC-7.06.001 v1.10 reword (98864e19 sub-burst 1); indexes+lessons+S-15.03+ARCH-INDEX v1.24 cite-refresh (this burst sub-burst 2). ADR-013 0_of_3 (HIGH resets clock). Pass-21 next.
+**Last update:** 2026-05-08 — fix-burst-20 closed (state-manager sub-burst 2, POLICY 3 run-last). Pass-21 HIGH (F-P21-001..003). Fix-burst-20: BC-5.34.004 + 9 retroactive lobster carve-out sweep + lessons.md fabricated symbol fix (823468ce sub-burst 1); S-15.03 re-anchor E-15→E-12 + indexes + 2 lessons codified (this burst sub-burst 2). ADR-013 0_of_3 (HIGH resets clock). Pass-22 next. Strategic note: 4 consecutive HIGH passes (P18/P19/P20/P21) — halt-and-implement S-15.03 consideration pending user input.
 
-**ACTIVE STEP: Pass-21 adversary review — dispatch after this commit. ADR-013 at 0_of_3.**
+**ACTIVE STEP: Pass-22 adversary review — dispatch after this commit. ADR-013 at 0_of_3.**
 
 **Branches:**
-- fix/S-15.01-F5-convergence @ 98864e19 — long-lived; 38 commits ahead of develop; no PR until 3_of_3
+- fix/S-15.01-F5-convergence @ 026272ae — long-lived; 38 commits ahead of develop; no PR until 3_of_3
 - develop @ 6050d24 (F5 fix-burst PR #107 squash-merge 2026-05-08)
 - factory-artifacts @ (this commit — see git log)
 - main @ fb3e297 (rc.11; behind develop)
 
-**Index versions:** BC-INDEX v1.44 | VP-INDEX v1.29 | STORY-INDEX v2.50 | ARCH-INDEX v1.24
-**ADR-013 clock:** **0_of_3** (RESET — pass-20 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
+**Index versions:** BC-INDEX v1.45 | VP-INDEX v1.29 | STORY-INDEX v2.51 | ARCH-INDEX v1.25
+**ADR-013 clock:** **0_of_3** (RESET — pass-21 HIGH resets; 3 consecutive NITPICK_ONLY required to reach CONVERGED)
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308; ADR-013 clock 3_of_3)
 **E-10:** paused (D-343); adversary pass-9 queued; resume after plugin-async-semantics F5-F7 complete
 **E-10 BC authorship:** COMPLETE (D-313; 13 BCs; total_bcs 1931); finding trend 22→11→16→16→12→2→1→4

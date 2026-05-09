@@ -198,3 +198,56 @@ Three consecutive HIGH passes (P18-001 sibling-hook bug, P19-001 codified-not-ap
 **Recommended enforcement:** hook-based parser that compares ARCH-INDEX body cites to current BC-INDEX/VP-INDEX/STORY-INDEX frontmatter versions; blocks Edit/Write to ARCH-INDEX or any of the three child indexes if cites are stale by >0 versions. Tracked in follow-up story S-15.03 (see below).
 
 [codified] — fix-burst-19 sub-burst 2.
+
+---
+
+## F5 pass-21 process-gap findings (2026-05-08)
+
+### L-P21-001 [codified]: POLICY 4 audit-trail integrity — every cited production symbol MUST be grep-verifiable in the codebase
+
+**Source:** F-P21-002 (process-gap)
+
+When a lesson, audit-trail, or burst-log entry cites a production code symbol (function, struct,
+method, constant), the symbol name MUST exist in the codebase at the time of writing. Audit
+claims that name fabricated symbols are unauditable post-facto and erode the audit trail's value
+as a verification artifact.
+
+**Failure mode (F-P21-002):** L-P19-002 disposition cited `lib.rs::passes_clean_to_close` to
+claim VP-071 audit-clean status. Subsequent grep across entire codebase returned 0 matches. The
+actual production fn is `hook_result_for`. Future auditor following the citation would (a)
+abandon the audit, or (b) propagate the fabrication.
+
+**Rule:** any lesson author or auditor citing a production symbol MUST run
+`grep -rn "<symbol_name>" /Users/jmagady/Dev/vsdd-factory/` and confirm at least one match before
+commit. The grep MUST be cited inline in the lesson narrative if the symbol is non-obvious, OR
+the symbol must be cross-linked to its file:line via a stable anchor (per TD-VSDD-091).
+
+**Suggested codification mechanism:** a `validate-symbol-cite` lint hook could grep for cited
+`<file>::<symbol>` patterns and assert the symbol resolves. (Future POLICY 13 candidate;
+combinable with S-15.03 hook scope.)
+
+[codified] — fix-burst-20 sub-burst 2.
+
+---
+
+### L-P21-002 [codified]: Story epic anchor must match epic title and subsystems_affected
+
+**Source:** F-P21-003 (process-gap)
+
+When filing a new story, the `epic:` and `subsystems:` frontmatter MUST be cross-checked against
+the epic file's title and `subsystems_affected:` list. The story's scope must align with the
+epic's stated purpose.
+
+**Failure mode (F-P21-003):** S-15.03 (index-cite-refresh-hook + lessons retroactive-sweep
+verification) was filed under E-15 (Plugin Async Semantics — Registry-Layer Partition). Story
+scope and epic scope are unrelated. Subsystems `[SS-04]` was not consistent with E-15's
+`subsystems_affected: [SS-01, SS-07, SS-09]`.
+
+**Rule:** state-manager filing a story MUST: (a) read the parent epic file to confirm scope
+alignment, (b) verify subsystems is a subset of (or expansion-justified extension of) the epic's
+`subsystems_affected:`, (c) write a §Anchor Justification section in the story body citing the
+epic alignment per POLICY 5.
+
+[codified] — fix-burst-20 sub-burst 2.
+
+[codified] — fix-burst-19 sub-burst 2.

@@ -1286,6 +1286,7 @@ Three sub-bursts. State-manager ran last per POLICY 3.
 | lessons.md | L-P20-002 codified: index-of-indexes cite-refresh discipline |
 | burst-log.md | F-P20-004 lobster deferral documented (this note) |
 | BC-INDEX | v1.43 → v1.44 (BC-1.14.001 v1.10 + BC-5.34.003 v1.2 + BC-6.11.026 v1.2 + BC-7.06.001 v1.10) |
+| ARCH-INDEX | v1.23 → v1.24 (BC-INDEX cite refreshed v1.43→v1.44; L-P20-002 same-burst discipline) | <!-- retroactive correction: O-P21-002 — row was missing from original burst-log entry -->
 | STORY-INDEX | v2.49 → v2.50 (S-15.03 stub filed) |
 | S-15.03 | New story stub filed (draft; hook-based enforcement for index cite-refresh + lesson sweep) |
 | STATE.md | fix-burst-19 closed; ADR-013 0_of_3; pass-21 next |
@@ -1295,3 +1296,57 @@ Three sub-bursts. State-manager ran last per POLICY 3.
 - L-P20-001 codified [codified]
 - L-P20-002 codified [codified]
 - S-15.03 stub filed (follow-up story for hook-based enforcement)
+
+---
+
+## Fix-burst-20 — pass-21 HIGH verdict + sub-burst 1 + sub-burst 2 close
+
+**Date:** 2026-05-08
+**Dispatchers:** orchestrator → spec-writer → state-manager (POLICY 3 run-last)
+**Phase:** F5 ADVERSARIAL — pass-21
+
+### Pass-21 Verdict
+
+**Verdict: HIGH** — F-P21-001 (BC-5.34.004 lobster carve-out missing — sibling to BC-5.34.003 fix in fix-burst-19 sub-burst 1), F-P21-002 (L-P19-002 disposition fabricated symbol `passes_clean_to_close` — actual fn is `hook_result_for`), F-P21-003 (S-15.03 epic anchor wrong — E-15 Plugin Async Semantics is unrelated; correct anchor E-12 Engine Governance). ADR-013 clock: 0_of_3 (RESET — HIGH).
+
+### Sub-burst 1: F-P21-001 + F-P21-002 close (823468ce factory-artifacts)
+
+**Agent:** spec-writer
+
+| File | Version | Change |
+|------|---------|--------|
+| BC-5.34.004 | v1.1 → v1.2 | F-P21-001 primary: lobster carve-out HTML comment added |
+| BC-5.30.004 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| BC-5.31.002 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| BC-5.31.003 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| BC-5.31.005 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| BC-5.32.005 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| BC-5.33.005 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| BC-5.33.031 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| BC-5.34.005 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| BC-5.35.005 | v? → v1.2 | Retroactive lobster-class sweep: carve-out HTML comment added |
+| lessons.md | — | L-P19-002 disposition corrected: fabricated symbol `passes_clean_to_close` → real production fn `hook_result_for` (F-P21-002) |
+
+- F-P21-001 closed (BC-5.34.004 + 9 siblings retroactive lobster carve-out sweep; 10 BCs total)
+- F-P21-002 closed (L-P19-002 disposition fabricated symbol corrected to `hook_result_for`)
+
+### Sub-burst 2: F-P21-003 + indexes + lessons + state (this burst, factory-artifacts)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| S-15.03 | v1.0 → v1.1 | Re-anchored E-15 → E-12; subsystems [SS-04] → [SS-01, SS-04]; §Anchor Justification + §Amendment added (F-P21-003) |
+| E-12 epic | v1.1 → v1.2 | S-15.03 row added; story_count 8→9 |
+| BC-INDEX | v1.44 → v1.45 | 10 BC bumps from sub-burst 1 recorded |
+| ARCH-INDEX | v1.24 → v1.25 | BC-INDEX cite refreshed v1.44→v1.45 (L-P20-002 same-burst discipline) |
+| STORY-INDEX | v2.50 → v2.51 | S-15.03 moved E-15 table → E-12 table |
+| lessons.md | — | L-P21-001 codified (POLICY 4 audit-trail integrity — symbols must be grep-verifiable) |
+| lessons.md | — | L-P21-002 codified (story epic anchor must match epic title and subsystems_affected) |
+| burst-log.md | — | fix-burst-19 sub-burst 2 retroactive correction (ARCH-INDEX v1.24 row added; O-P21-002) |
+| STATE.md | — | fix-burst-20 closed; ADR-013 0_of_3; pass-22 next; strategic note added |
+
+- F-P21-003 closed (S-15.03 re-anchored E-15 → E-12; §Anchor Justification + §Amendment per POLICY 5)
+- L-P21-001 codified [codified]
+- L-P21-002 codified [codified]
+- burst-log retroactive correction for fix-burst-19 sub-burst 2 (ARCH-INDEX v1.24 row was missing)

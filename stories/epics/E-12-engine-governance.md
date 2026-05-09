@@ -9,14 +9,14 @@ prd_frs: []
 anchor_strategy: greenfield-discipline-gap-codification
 priority: P1
 target_release: "v1.0-feature-engine-discipline-pass-1"
-story_count: 8
+story_count: 9
 subsystems_affected: [SS-01, SS-04, SS-05]
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
 phase: 2
 traces_to: .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
 depends_on: ["E-7"]
-last_amended: "2026-05-07 (v1.1 — F3-amendment: 6 new platform stories S-12.03..S-12.08; scope widened to engine governance platform; story_count 2→8)"
+last_amended: "2026-05-08 (v1.2 — F-P21-003: S-15.03 re-anchored from E-15; story_count 8→9)"
 inputs:
   - .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
   - .factory/specs/architecture/ARCH-INDEX.md
@@ -107,6 +107,7 @@ SS-05 artifacts (`plugins/vsdd-factory/agents/`, `plugins/vsdd-factory/workflows
 | S-12.04 | WASM resolver loading + lifecycle + error isolation | M | SS-04 | S-12.03 | draft |
 | S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | M | SS-04 | S-12.04, S-12.05 | draft |
 | S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | M | SS-04 | S-12.07 | draft |
+| S-15.03 | ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification (validate-index-cite-refresh hook; validate-lesson-retroactive-sweep hook) | M | SS-01, SS-04 | — | draft |
 
 ## Dependency Topology (Intra-epic)
 
@@ -190,3 +191,4 @@ The pattern is identical; the discipline gap is distinct.
 |---------|------|--------|
 | v1.0 | 2026-05-06 | Initial authoring for cycle v1.0-feature-engine-discipline-pass-1 as F3 prerequisite. Two stories: S-12.01 (workflow + agent docs, SS-05) + S-12.02 (WASM hook, SS-04). Anchored BCs: BC-5.39.001/002 (SS-05), BC-4.10.001/002 (SS-04). ADR: ADR-017. VP: VP-071. |
 | v1.1 | 2026-05-07 | F3-amendment (D-366): scope widened from 'per-story adversary workflow' to 'engine governance platform'. 6 new stories added (S-12.03..S-12.08; WASM-plugin Context Resolver platform). story_count 2→8. New BCs: BC-1.13.001 (SS-01) + BC-4.12.001-005 (SS-04). New ADR: ADR-018. New VPs: VP-073-076. subsystems_affected expanded to include SS-01. Dependency graph established: S-12.06 → {S-12.03, S-12.05} → S-12.04 → S-12.07 → S-12.08. Bootstrap pattern flipping right-side-up: S-12.03..S-12.08 are first stories in cycle history subject to Step 4.5 per-story adversary convergence. |
+| v1.2 | 2026-05-08 | F-P21-003 (fix-burst-20): S-15.03 re-anchored from E-15 (Plugin Async Semantics — incorrect) to E-12 (Engine Governance — correct per governance/discipline scope alignment). S-15.03 subsystems [SS-04] → [SS-01, SS-04]. story_count 8→9. No change to subsystems_affected (SS-01 already present from v1.1). Refs: F-P21-003, L-P21-002. |
