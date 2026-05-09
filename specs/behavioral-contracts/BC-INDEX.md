@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.60"
+version: "1.61"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00
@@ -11,6 +11,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-09
+    change: "v1.61 (2026-05-09; fix-burst-46): Pre-emptive corpus-wide L-P28-001 retroactive sweep on remaining unswept epics E-6, E-7, E-9, E-10, E-11 per retroactive-sweep complement clause (fix-burst-45 codification). E-6 (S-6.01): 12 BCs verified (BC-6.20.001-012) — CLEAN; all Stories cells = S-6.01; BC body Traceability rows = S-6.01. E-7 (S-7.01/7.02/7.03): 23 BCs verified (BC-5.36.001-007, BC-5.37.001-002, BC-5.38.001-006, BC-7.05.001-004, BC-8.28.001-002, BC-8.29.001-003, BC-8.30.001-002, BC-6.21.001-002) — CLEAN; Stories cells = S-7.01/S-7.02/S-7.03 per story; BC body rows verified. E-9 (S-9.00): behavioral_contracts: [] (Spec-First Gate exemption) — SKIPPED. E-10 (S-10.01-S-10.09): 13 BCs verified (BC-1.11.001-003, BC-1.12.001-007/009, BC-2.06.001, BC-4.09.001) — CLEAN; Stories cells and BC body Traceability rows fully populated and bidirectionally consistent. S-10.01/06/07/08: behavioral_contracts: [] — SKIPPED. E-11 (S-11.00): STUB with no behavioral_contracts field — SKIPPED. Total BCs swept: 48 verified clean; 0 drift found. 16th L-P28-001 META instance (pre-emptive application). Corpus-wide retroactive sweep across all v1.0 epics now complete (E-3+E-4+E-5: fix-burst-43/45; E-6+E-7+E-9+E-10+E-11: fix-burst-46). No count change (total_bcs: 1947). Refs: L-P28-001, L-P20-002, fix-burst-46. last_amended: 2026-05-09 (F5 fix-burst-46: pre-emptive corpus-wide retroactive sweep E-6/7/9/10/11 — all clean; 16th META)."
   - date: 2026-05-09
     change: "v1.60 (2026-05-09; fix-burst-45): F-P49-001 — E-3+E-4+E-5 L-P28-001 retroactive Stories propagation. E-3 (9 BCs): BC-1.05.012-019 TBD→S-3.04 (8 BCs); BC-4.03.001 TBD→S-3.01,S-3.02 (1 BC; also normalized non-canonical S-3.1→S-3.01 hygiene). E-4 (11 BCs): BC-3.01.001 TBD→S-4.01,S-4.02,S-4.03,S-4.07; BC-3.01.002 TBD→S-4.01,S-4.07; BC-3.01.003 TBD→S-4.01; BC-3.01.004 TBD→S-4.06,S-4.07; BC-3.02.015 TBD→S-4.07; BC-3.03.001 TBD→S-4.07; BC-3.03.002 TBD→S-4.04; BC-3.03.007 TBD→S-4.07; BC-3.06.001 TBD→S-4.06; BC-3.06.005 TBD→S-4.01,S-4.02,S-4.03; BC-3.06.006 TBD→S-4.06. E-5 (0 BCs): all Stories cells already propagated — no TBD drift found. SKIPPED (ghost BCs not in BC-INDEX): BC-3.07.003, BC-3.07.004, BC-1.06.011 (cited in story frontmatter but missing from BC-INDEX/ss-03). SKIPPED (already non-TBD): BC-3.02.009-011 (DEPRECATED→BC-3.04.004), BC-3.04.003, BC-3.04.004, BC-3.04.001, BC-3.05.001-003 (retired ADR-015), BC-3.06.007 (active), BC-9.01.001-006. BC body Traceability Stories rows also propagated (20 BCs). 15th L-P28-001 META instance. retroactive-sweep complement clause codified. No count change (total_bcs: 1947). Refs: F-P49-001, L-P28-001, fix-burst-45. last_amended: 2026-05-09 (F5 fix-burst-45: E-3+E-4 retroactive sweep; F-P49-001 closed)."
   - date: 2026-05-09

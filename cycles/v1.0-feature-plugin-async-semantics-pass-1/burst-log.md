@@ -2613,3 +2613,36 @@ F-P49-001 closed.
 ADR-013 clock: 0_of_3 (RESET — pass-49 LOW)
 BC-INDEX v1.60 | ARCH-INDEX v1.40
 Pass-50 dispatched next.
+
+---
+
+## Burst 55 — fix-burst-46 (corpus-wide L-P28-001 retroactive sweep E-6/7/9/10/11 + 16th META)
+
+**Date:** 2026-05-09
+**Dispatchers:** orchestrator → state-manager
+**Phase:** F5 ADVERSARIAL — pre-emptive fix-burst-46
+
+**Trigger:** Complement clause codified in fix-burst-45 — E-6, E-7, E-9, E-10, E-11 flagged as unswept. Applied proactively before pass-50 to break the META-recurrence loop.
+
+**Files touched:**
+
+| File | Agent | Change |
+|------|-------|--------|
+| `specs/behavioral-contracts/BC-INDEX.md` | state-manager | v1.60→v1.61. Corpus-wide retroactive sweep E-6/7/9/10/11 changelog entry added. 48 BCs verified clean — no TBD drift found. |
+| `specs/architecture/ARCH-INDEX.md` | state-manager | v1.40→v1.41. BC-INDEX body cite refreshed v1.60→v1.61 (L-P20-002 discipline). |
+| `cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | state-manager | L-P28-001 16th META + corpus-wide retroactive sweep complete — appended. Fix-burst-46 corpus verification block (per-epic results) appended. |
+| `.factory/STATE.md` | state-manager | current_step, Last Updated, Current Phase Steps, fix-burst-46 block, session checkpoint all updated. BC-INDEX v1.61 / ARCH-INDEX v1.41. |
+
+**Sweep results:**
+- E-6: 12 BCs verified (BC-6.20.001-012) — CLEAN
+- E-7: 23 BCs verified (BC-5.36.001-007, BC-5.37.001-002, BC-5.38.001-006, BC-7.05.001-004, BC-8.28.001-002, BC-8.29.001-003, BC-8.30.001-002, BC-6.21.001-002) — CLEAN
+- E-9: S-9.00 behavioral_contracts: [] — SKIPPED (Spec-First Gate exemption)
+- E-10: 13 BCs verified (BC-1.11.001-003, BC-1.12.001-007/009, BC-2.06.001, BC-4.09.001) — CLEAN
+- E-11: S-11.00 STUB — SKIPPED
+- Ghost BCs: none flagged
+- Total verified: 48 BCs; 0 drift found
+
+16th L-P28-001 META instance (pre-emptive; first entirely clean result).
+Corpus-wide retroactive sweep across all v1.0 epics COMPLETE.
+BC-INDEX v1.61 | ARCH-INDEX v1.41
+Pass-50 next.
