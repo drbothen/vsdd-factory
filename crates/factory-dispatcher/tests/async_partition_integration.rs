@@ -5,36 +5,27 @@
 //! ## Test inventory
 //!
 //! ### Group A — Partition correctness (partition_plugins)
-//! These tests exercise `partition_plugins` directly. All are marked
-//! `#[should_panic]` because `partition_plugins` is currently `todo!()`
-//! (T-3b Red Gate). When T-3b is implemented the `should_panic` annotations
-//! MUST be removed and the assertions re-enabled.
+//! Exercises `partition_plugins` directly. Implementations are present in
+//! partition.rs:90-104; the historical todo!(T-3b) stubs have been removed.
 //!
 //! ### Group B — RegistryEntry async_flag field
-//! These tests verify that the `async_flag` TOML field round-trips correctly
-//! without calling `Registry::parse_str` (which panics via T-3f's
-//! `validate_async_block_invariant` todo!()). They construct `RegistryEntry`
-//! directly.
+//! Verifies that the `async_flag` TOML field round-trips correctly via direct
+//! RegistryEntry construction and raw toml deserialization.
 //!
 //! ### Group C — Execution layer (execute_tiers) with async_flag entries
-//! These tests verify that `execute_tiers` handles registry entries that
-//! happen to have `async_flag=true` without crashing — the executor does not
-//! inspect `async_flag`; partitioning is the caller's responsibility
-//! (main.rs / T-3c). This exercises real WASM execution paths with the
-//! async_flag field present.
+//! Verifies that `execute_tiers` handles registry entries with `async_flag=true`
+//! without crashing — the executor does not inspect `async_flag`; partitioning
+//! is the caller's responsibility (main.rs / T-3c).
 //!
 //! ### Group D — Drain window timing
-//! These tests verify that the drain window concept is bounded. Since
-//! `spawn_async_plugin` (T-3c) does not yet exist, we simulate the pattern
-//! with raw tokio tasks and assert timing properties.
+//! Verifies that the drain window concept is bounded (DI-019: 100ms).
+//! Simulates the pattern with raw tokio tasks and asserts timing properties.
 //!
 //! ### Group E — Registry invariant (E-REG-002)
-//! Tests for the `on_error=block` + `async=true` conflict. These hit
-//! `validate_async_block_invariant` which is also `todo!()` (T-3f), so
-//! they are marked `#[should_panic]`.
-//!
-//! ## Bug findings
-//! See bottom of file for BLOCKING_FINDING annotations.
+//! Asserts that `Registry::parse_str` with `on_error=block + async=true`
+//! returns `Err(RegistryError::AsyncBlockConflict { name })`. Implementation
+//! is present in registry.rs:389-410; the historical todo!(T-3f) stubs have
+//! been removed.
 
 #![allow(clippy::bool_assert_comparison)]
 
@@ -56,7 +47,6 @@ use factory_dispatcher::routing::group_by_priority;
 // ---------------------------------------------------------------------------
 
 /// Construct a minimal RegistryEntry with explicit async_flag.
-/// Does NOT go through Registry::parse_str (which panics via T-3f).
 fn make_entry(name: &str, async_flag: bool) -> RegistryEntry {
     RegistryEntry {
         name: name.to_string(),
@@ -135,13 +125,8 @@ fn make_executor_inputs<'a>(
 // ===========================================================================
 // Group A — Partition correctness
 //
-// BLOCKING FINDING: partition_plugins is todo!() (T-3b).
-// All Group A tests are #[should_panic] to document the contract while
-// the Red Gate is active. When T-3b is implemented:
-//   1. Remove every #[should_panic] annotation in this group.
-//   2. Re-enable the assertions below the `partition_plugins(...)` call.
-//   3. Re-run `cargo test --test async_partition_integration` to confirm
-//      all Group A tests pass.
+// partition_plugins is fully implemented (partition.rs:90-104).
+// Tests exercise the real implementation and assert postconditions.
 // ===========================================================================
 
 /// test_e2e_BC_1_14_001_partition_separates_sync_async
@@ -150,10 +135,7 @@ fn make_executor_inputs<'a>(
 /// (sync_group ∩ async_group = ∅, sync_group ∪ async_group = matched).
 /// BC-1.14.001 postcondition 2 / BC-7.06.001 postcondition 2:
 /// async_flag=true → async_group; async_flag=false → sync_group.
-///
-/// BLOCKED: todo!(T-3b) — will panic until partition_plugins implemented.
 #[test]
-#[should_panic(expected = "T-3b")]
 fn test_e2e_BC_1_14_001_partition_separates_sync_async() {
     let entries = vec![
         make_entry("test-sync-blocker", false),
@@ -190,10 +172,7 @@ fn test_e2e_BC_1_14_001_partition_separates_sync_async() {
 /// test_e2e_BC_1_14_001_partition_handles_empty_input
 ///
 /// BC-1.14.001 EC-007: empty matched list → both groups empty.
-///
-/// BLOCKED: todo!(T-3b) — will panic until partition_plugins implemented.
 #[test]
-#[should_panic(expected = "T-3b")]
 fn test_e2e_BC_1_14_001_partition_handles_empty_input() {
     let partition = partition_plugins(&[]);
     assert!(
@@ -209,10 +188,7 @@ fn test_e2e_BC_1_14_001_partition_handles_empty_input() {
 /// test_e2e_BC_1_14_001_partition_all_sync_empty_async_group
 ///
 /// All entries have async_flag=false → async_group must be empty.
-///
-/// BLOCKED: todo!(T-3b) — will panic until partition_plugins implemented.
 #[test]
-#[should_panic(expected = "T-3b")]
 fn test_e2e_BC_1_14_001_partition_all_sync_empty_async_group() {
     let entries = vec![
         make_entry("s1", false),
@@ -227,10 +203,7 @@ fn test_e2e_BC_1_14_001_partition_all_sync_empty_async_group() {
 /// test_e2e_BC_1_14_001_partition_all_async_empty_sync_group
 ///
 /// All entries have async_flag=true → sync_group must be empty.
-///
-/// BLOCKED: todo!(T-3b) — will panic until partition_plugins implemented.
 #[test]
-#[should_panic(expected = "T-3b")]
 fn test_e2e_BC_1_14_001_partition_all_async_empty_sync_group() {
     let entries = vec![
         make_entry("a1", true),
@@ -245,10 +218,7 @@ fn test_e2e_BC_1_14_001_partition_all_async_empty_sync_group() {
 ///
 /// BC-1.14.001 postcondition 5: relative order of entries within each
 /// group must match the order in the input slice.
-///
-/// BLOCKED: todo!(T-3b) — will panic until partition_plugins implemented.
 #[test]
-#[should_panic(expected = "T-3b")]
 fn test_e2e_BC_1_14_001_partition_preserves_order_within_groups() {
     // Interleaved sync/async pattern: S A S A S
     let entries = vec![
@@ -273,10 +243,7 @@ fn test_e2e_BC_1_14_001_partition_preserves_order_within_groups() {
 /// test_e2e_BC_1_14_001_partition_single_sync_entry
 ///
 /// Single async_flag=false entry → sync_group=[entry], async_group=[].
-///
-/// BLOCKED: todo!(T-3b) — will panic until partition_plugins implemented.
 #[test]
-#[should_panic(expected = "T-3b")]
 fn test_e2e_BC_1_14_001_partition_single_sync_entry() {
     let entry = make_entry("only-sync", false);
     let partition = partition_plugins(std::slice::from_ref(&entry));
@@ -288,10 +255,7 @@ fn test_e2e_BC_1_14_001_partition_single_sync_entry() {
 /// test_e2e_BC_1_14_001_partition_single_async_entry
 ///
 /// Single async_flag=true entry → sync_group=[], async_group=[entry].
-///
-/// BLOCKED: todo!(T-3b) — will panic until partition_plugins implemented.
 #[test]
-#[should_panic(expected = "T-3b")]
 fn test_e2e_BC_1_14_001_partition_single_async_entry() {
     let entry = make_entry("only-async", true);
     let partition = partition_plugins(std::slice::from_ref(&entry));
@@ -303,10 +267,7 @@ fn test_e2e_BC_1_14_001_partition_single_async_entry() {
 /// test_e2e_BC_1_14_001_partition_totality_invariant
 ///
 /// VP-077 Harness 1: sync.len() + async.len() == matched.len() for any N.
-///
-/// BLOCKED: todo!(T-3b) — will panic until partition_plugins implemented.
 #[test]
-#[should_panic(expected = "T-3b")]
 fn test_e2e_BC_1_14_001_partition_totality_invariant() {
     // Test totality for sizes 0..=8
     for n in 0usize..=8 {
@@ -325,8 +286,7 @@ fn test_e2e_BC_1_14_001_partition_totality_invariant() {
 // ===========================================================================
 // Group B — RegistryEntry async_flag field round-trip
 //
-// These tests are PASSING — they exercise only the RegistryEntry struct
-// directly (no Registry::parse_str which would hit T-3f's todo!()).
+// These tests exercise only the RegistryEntry struct directly.
 // ===========================================================================
 
 /// test_e2e_BC_7_06_001_async_flag_defaults_to_false
@@ -413,13 +373,13 @@ plugin = "plugins/legacy.wasm"
 
 /// test_e2e_BC_7_06_001_on_error_block_async_flag_invariant_entry_shape
 ///
-/// Verify the field combination that should be rejected by E-REG-002 is
+/// Verify the field combination that is rejected by E-REG-002 is
 /// representable at the RegistryEntry level (the lint is at Registry
 /// validate() level, not the struct level).
 #[test]
 fn test_e2e_BC_7_06_001_on_error_block_async_flag_invariant_entry_shape() {
     // The conflicting combination can be constructed directly;
-    // Registry::validate() (T-3f) is what enforces E-REG-002.
+    // Registry::validate() is what enforces E-REG-002 at load time.
     let entry = make_entry_with_on_error("bad-combo", true, OnError::Block);
     assert!(entry.async_flag, "async_flag=true present");
     assert_eq!(
@@ -434,10 +394,9 @@ fn test_e2e_BC_7_06_001_on_error_block_async_flag_invariant_entry_shape() {
 // ===========================================================================
 // Group C — execute_tiers with async_flag entries
 //
-// These tests are PASSING — they verify that execute_tiers does not crash
-// when given entries with async_flag=true. The executor does not inspect
-// async_flag; partitioning is the caller's responsibility (T-3c / main.rs).
-// The sync-path execution behavior is identical regardless of async_flag.
+// These tests verify that execute_tiers does not crash when given entries
+// with async_flag=true. The executor does not inspect async_flag;
+// partitioning is the caller's responsibility (T-3c / main.rs).
 // ===========================================================================
 
 /// test_e2e_BC_1_14_001_execute_tiers_ignores_async_flag_field
@@ -556,13 +515,9 @@ async fn test_e2e_BC_1_14_001_sync_only_entries_produce_zero_exit() {
 // ===========================================================================
 // Group D — Drain window timing
 //
-// Since spawn_async_plugin (T-3c) does not yet exist as a public function,
-// we simulate the pattern with raw tokio tasks and assert the bounded-wait
-// contract documented in DI-019: the caller must not wait more than
-// ASYNC_DRAIN_WINDOW_MS (100ms) for async tasks to complete.
-//
-// These tests verify the TIMING PROPERTY of the drain window abstraction,
-// independent of the implementation of T-3c.
+// Simulates the drain window timing contract documented in DI-019:
+// the caller must not wait more than ASYNC_DRAIN_WINDOW_MS (100ms) for
+// async tasks to complete.
 // ===========================================================================
 
 /// ASYNC_DRAIN_WINDOW_MS as documented in DI-019.
@@ -717,27 +672,17 @@ async fn test_e2e_DI_019_spawn_async_returns_immediately() {
 // ===========================================================================
 // Group E — Registry invariant E-REG-002 (on_error=block + async=true)
 //
-// BLOCKING FINDING: validate_async_block_invariant is todo!() (T-3f).
-// All Group E tests are #[should_panic] to document the contract while
-// the Red Gate is active. When T-3f is implemented:
-//   1. Remove every #[should_panic] annotation in this group.
-//   2. The registry::tests::rejects_unknown_schema_version test will also
-//      need updating — it currently expects schema_version=2 to FAIL, but
-//      REGISTRY_SCHEMA_VERSION IS NOW 2, so the test assertion is inverted.
-//   3. All registry::tests that use schema_version=1 will need updating to
-//      schema_version=2 (pre-existing failures, separate from T-3f).
+// validate_async_block_invariant is fully implemented (registry.rs:389-410).
+// Tests assert that Registry::parse_str returns Err(AsyncBlockConflict),
+// not panic.
 // ===========================================================================
 
 /// test_e2e_BC_7_06_001_registry_rejects_on_error_block_with_async_true
 ///
 /// BC-7.06.001 Invariant 1: on_error=block + async=true → E-REG-002.
 /// Registry::parse_str must return Err(RegistryError::AsyncBlockConflict).
-///
-/// BLOCKED: todo!(T-3f) in validate_async_block_invariant — will panic.
 #[test]
-#[should_panic(expected = "T-3f")]
 fn test_e2e_BC_7_06_001_registry_rejects_on_error_block_with_async_true() {
-    // schema_version=2 is now correct (REGISTRY_SCHEMA_VERSION=2)
     let toml = r#"
 schema_version = 2
 
@@ -762,10 +707,7 @@ on_error = "block"
 /// test_e2e_BC_7_06_001_registry_accepts_on_error_block_with_async_false
 ///
 /// BC-7.06.001 Invariant 1: on_error=block + async=false (explicit) is valid.
-///
-/// BLOCKED: todo!(T-3f) in validate_async_block_invariant — will panic.
 #[test]
-#[should_panic(expected = "T-3f")]
 fn test_e2e_BC_7_06_001_registry_accepts_on_error_block_with_async_false() {
     let toml = r#"
 schema_version = 2
@@ -787,10 +729,7 @@ on_error = "block"
 /// test_e2e_BC_7_06_001_registry_accepts_async_true_without_on_error_block
 ///
 /// BC-7.06.001 Invariant 1: async=true without on_error=block is valid.
-///
-/// BLOCKED: todo!(T-3f) in validate_async_block_invariant — will panic.
 #[test]
-#[should_panic(expected = "T-3f")]
 fn test_e2e_BC_7_06_001_registry_accepts_async_true_without_on_error_block() {
     let toml = r#"
 schema_version = 2
@@ -808,54 +747,3 @@ on_error = "continue"
         "async=true + on_error=continue must be accepted; got: {result:?}"
     );
 }
-
-// ===========================================================================
-// BLOCKING FINDINGS SUMMARY
-//
-// The following are blocking findings for the S-15.01 convergence gate.
-// They represent unimplemented production code discovered during validation.
-//
-// FINDING-1 (BLOCKING): partition_plugins is todo!() — T-3b not implemented.
-//   Location: crates/factory-dispatcher/src/partition.rs:91
-//   Impact: All Group A tests (#7 tests) blocked. No production partition
-//           routing is possible. The entire S-15.01 async partition feature
-//           is non-functional end-to-end.
-//   Required: Implement partition_plugins before any async hook can be routed
-//             to the async_group path.
-//
-// FINDING-2 (BLOCKING): validate_async_block_invariant is todo!() — T-3f not
-//   implemented.
-//   Location: crates/factory-dispatcher/src/registry.rs:373
-//   Impact: All Group E tests (#3 tests) blocked. Also, ALL existing
-//           registry::tests that call Registry::parse_str are CURRENTLY
-//           FAILING (18+ tests) because validate_async_block_invariant panics
-//           on every registry load. This is a pre-existing regression
-//           introduced by the T-3f Red Gate stub.
-//   Required: Implement validate_async_block_invariant before the registry
-//             can be loaded at all in test or production.
-//
-// FINDING-3 (BLOCKING): REGISTRY_SCHEMA_VERSION mismatch with existing tests.
-//   Location: crates/factory-dispatcher/src/registry.rs:19
-//   Current value: REGISTRY_SCHEMA_VERSION = 2
-//   All existing registry tests use schema_version = 1
-//   Impact: registry::tests::rejects_unknown_schema_version expects schema=2
-//           to FAIL but schema=2 is now the VALID version — test assertion
-//           is inverted. All other registry tests would also fail once T-3f
-//           is fixed, because they use schema_version=1 which will trigger
-//           E-REG-001.
-//   Required: After T-3f is implemented, all existing registry tests must be
-//             updated to use schema_version = 2.
-//
-// FINDING-4 (INFO): emit_plugin_async_block_discarded, emit_plugin_timeout_async,
-//   emit_dispatcher_schema_mismatch, emit_dispatcher_registry_invalid are all
-//   todo!() — T-3e not implemented.
-//   Location: crates/factory-dispatcher/src/host/emit_event.rs:143,172,190,218
-//   Impact: Wire-format event emission for async error paths unavailable.
-//           Group A/E tests do not exercise these (they fail earlier at T-3b/T-3f).
-//           No additional test coverage required until T-3b and T-3f are done.
-//
-// FINDING-5 (INFO): spawn_async_plugin (T-3c) does not yet exist as a public
-//   function. Group D tests simulate the drain window timing contract using
-//   raw tokio::spawn. When T-3c is implemented, Group D tests should be
-//   updated to call spawn_async_plugin directly.
-// ===========================================================================

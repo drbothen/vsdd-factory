@@ -370,7 +370,15 @@ impl Registry {
     ///
     /// ASYNC_DRAIN_WINDOW_MS is defined in DI-019 — cite by reference only.
     fn validate_async_block_invariant(&self) -> Result<(), RegistryError> {
-        todo!("T-3f: implement on_error=block + async=true detection; return Err(RegistryError::AsyncBlockConflict) for any violating entry (BC-7.06.001 Invariant 1, E-REG-002)")
+        for entry in &self.hooks {
+            let on_error_is_block = entry.on_error == Some(OnError::Block);
+            if on_error_is_block && entry.async_flag {
+                return Err(RegistryError::AsyncBlockConflict {
+                    name: entry.name.clone(),
+                });
+            }
+        }
+        Ok(())
     }
 }
 

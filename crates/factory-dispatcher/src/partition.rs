@@ -88,7 +88,19 @@ pub struct PluginPartition {
 /// - BC-7.06.001 postcondition 2 (async_flag field drives partition)
 /// - VP-077 (Kani proof: purity + correctness of this function)
 pub fn partition_plugins(matched: &[RegistryEntry]) -> PluginPartition {
-    todo!("T-3b: implement pure partition — split matched entries into sync_group (async_flag=false) and async_group (async_flag=true); result must be disjoint and exhaustive (BC-1.14.001 postcondition 1)")
+    let mut sync_group = Vec::new();
+    let mut async_group = Vec::new();
+    for entry in matched {
+        if entry.async_flag {
+            async_group.push(entry.clone());
+        } else {
+            sync_group.push(entry.clone());
+        }
+    }
+    PluginPartition {
+        sync_group,
+        async_group,
+    }
 }
 
 // ---------------------------------------------------------------------------
