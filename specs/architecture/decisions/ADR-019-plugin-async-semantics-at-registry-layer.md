@@ -1,10 +1,12 @@
 ---
 document_type: adr
 adr_id: ADR-019
-status: accepted
+status: implemented-verified
 accepted_date: 2026-05-07
+implemented_date: 2026-05-08
+verified_date: 2026-05-09
 date: 2026-05-07
-version: "1.11"
+version: "1.12"
 cycle: v1.0-feature-plugin-async-semantics-pass-1
 subsystems_affected: [SS-01, SS-07, SS-09]
 supersedes: null
@@ -12,6 +14,33 @@ superseded_by: null
 ---
 
 # ADR-019: Plugin Async Semantics Belong at the Registry Layer, Not the Envelope Layer
+
+## Implementation Status
+
+**Status:** implemented-verified (accepted 2026-05-07; implemented 2026-05-08; verified 2026-05-09)
+
+| Milestone | PR / Commit | Date |
+|-----------|-------------|------|
+| Initial S-15.01 merge | PR #106 (`453eee1`) | 2026-05-08 |
+| F5 convergence hardening (validate-stable-anchors + validate-artifact-path absolute-path fixes; VP-070 Kani harness) | PR #108 (`f08e313e`) | 2026-05-09 |
+| B-3 type-safe registry-invalid split | PR #109 (`c69b34e9`) | 2026-05-09 |
+| Production exercise: 10 telemetry hooks flagged `async = true` | commit `31c30a75` (`feat/async-flag-telemetry-hooks`) | 2026-05-09 |
+
+**Validation results:**
+
+- *Absolute-path engagement* — 10/10 integration tests pass
+  (`tests/absolute_path_hook_engagement.rs`; pre-fix bug reproduction confirmed;
+  post-fix engagement verified at WASM level)
+- *Async partition + drain* — 23/23 integration tests pass with real assertions
+  across five groups: Group A (partition correctness), Group B (async_flag
+  round-trip), Group C (`execute_tiers` behavior), Group D (drain window timing),
+  Group E (E-REG-002 fail-closed)
+
+**Documentation:** `crates/hook-sdk/HOST_ABI.md` expanded with 5 new sections
+covering async semantics and B-3 wire format (+1,549 words / +331 lines, commit
+`3e034a37` on `docs/host-abi-async-semantics`).
+
+---
 
 ## Context
 
@@ -317,6 +346,21 @@ entry with `async: true` is a hard violation caught by CI lint and VP-079.
 | VP-079 | `/Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-079.md` |
 
 ---
+
+## Amendment 2026-05-09: v1.11 → v1.12 (status implemented-verified; Implementation Status section added)
+
+- **Amendment date:** 2026-05-09
+- **Reason:** rc.13 release. S-15.01 fully implemented and verified through F5 cycle convergence
+  at pass-57. Status promoted from `accepted` to `implemented-verified`. Implementation and
+  verification dates recorded. Implementation Status section added above §Context documenting
+  the four delivery milestones (PR #106 initial merge, PR #108 F5 hardening, PR #109 B-3
+  refactor, commit `31c30a75` production async exercise) and validation results (33 integration
+  tests across absolute-path engagement and async-partition suites).
+- **Changes:**
+  - Frontmatter: `status: accepted` → `status: implemented-verified`; `implemented_date:
+    2026-05-08` and `verified_date: 2026-05-09` added; `version: "1.11"` → `"1.12"`
+  - Body: §Implementation Status section inserted between document title and §Context
+- **No decision changes:** All §Decision policy text is unchanged.
 
 ## Amendment 2026-05-09: v1.10 → v1.11 (F-P25-001: §3 dispatch-loop prose corrected to post-merge inline implementation)
 
