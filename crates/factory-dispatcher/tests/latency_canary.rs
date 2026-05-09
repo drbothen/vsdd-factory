@@ -174,13 +174,14 @@ fn test_BC_1_14_001_ac016_sync_group_p95_latency() {
         latencies.push(elapsed);
 
         // Best-effort: log any unexpected non-zero exit (not exit 2 which is a valid block).
-        if let Ok(ref out) = output {
-            if !out.status.success() && out.status.code() != Some(2) {
-                eprintln!(
-                    "latency_canary: unexpected exit code {:?} on iteration",
-                    out.status.code()
-                );
-            }
+        if let Ok(ref out) = output
+            && !out.status.success()
+            && out.status.code() != Some(2)
+        {
+            eprintln!(
+                "latency_canary: unexpected exit code {:?} on iteration",
+                out.status.code()
+            );
         }
     }
 

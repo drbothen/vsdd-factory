@@ -24,7 +24,11 @@
 #
 
 setup() {
-    REPO_ROOT="/Users/jmagady/Dev/vsdd-factory/.worktrees/S-12.06"
+    # Resolve REPO_ROOT portably from the test file's location so the test
+    # works in CI checkouts, operator clones, and feature worktrees.
+    # Earlier versions hard-coded /Users/jmagady/.../worktrees/S-12.06 which
+    # broke release CI and silently kept rc.11+ off the marketplace.
+    REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
     HOST_ABI="$REPO_ROOT/crates/hook-sdk/HOST_ABI.md"
 }
 

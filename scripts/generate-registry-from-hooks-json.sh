@@ -344,7 +344,7 @@ done <<< "$EVENTS"
 # entries one-by-one; legacy entries can coexist with native ones in
 # this same file.
 
-schema_version = 1
+schema_version = 2
 
 HEADER
 

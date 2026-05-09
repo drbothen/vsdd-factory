@@ -49,8 +49,7 @@
 //! 2. Post-fix correctness — validate-artifact-path:
 //!    a. Unregistered absolute path → block (exit_code 2, block_intent).
 //!    b. Registered absolute path → continue (exit_code 0, no block).
-//!    c. Relative path regression: unregistered relative → block; registered
-//!       relative → continue.
+//!    c. Relative path regression: unregistered → block; registered → continue.
 //!
 //! 3. Post-fix correctness — validate-stable-anchors:
 //!    a. Absolute spec path + new_string containing `foo.rs:42` → block.
@@ -72,7 +71,7 @@
 //! The pre-fix code path is validated by unit tests in
 //! `validate-stable-anchors/src/tests.rs` which read the pre-fix source directly.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use factory_dispatcher::engine::build_engine;
 use factory_dispatcher::host::HostContext;
@@ -111,16 +110,35 @@ fn pre_fix_artifact_path_wasm() -> PathBuf {
 ///
 /// Built from `8b4f697f`. Carries the leading-slash discipline fix:
 /// `starts_with(".factory/") || contains("/.factory/")`.
+///
+/// Prefers `target/wasm32-wasip1/release/*.wasm` (freshly-built by the
+/// operator during fix verification). Falls back to the committed
+/// `plugins/vsdd-factory/hook-plugins/*.wasm` after the fix lands, since
+/// the committed binary is the post-fix version once shipped. This keeps
+/// the test running in CI (which doesn't `cargo build --target wasm32-wasip1`)
+/// without losing local-fresh-build validation.
 fn post_fix_artifact_path_wasm() -> PathBuf {
-    repo_root().join("target/wasm32-wasip1/release/validate-artifact-path.wasm")
+    let fresh = repo_root().join("target/wasm32-wasip1/release/validate-artifact-path.wasm");
+    if fresh.exists() {
+        fresh
+    } else {
+        repo_root().join("plugins/vsdd-factory/hook-plugins/validate-artifact-path.wasm")
+    }
 }
 
 /// Return the path to the post-fix validate-stable-anchors WASM binary.
 ///
 /// Built from `cc5a016b`. Carries `is_spec_target` fix: accepts absolute
 /// paths via `contains("/.factory/specs/")`.
+///
+/// Same fallback semantics as `post_fix_artifact_path_wasm`.
 fn post_fix_stable_anchors_wasm() -> PathBuf {
-    repo_root().join("target/wasm32-wasip1/release/validate-stable-anchors.wasm")
+    let fresh = repo_root().join("target/wasm32-wasip1/release/validate-stable-anchors.wasm");
+    if fresh.exists() {
+        fresh
+    } else {
+        repo_root().join("plugins/vsdd-factory/hook-plugins/validate-stable-anchors.wasm")
+    }
 }
 
 /// Build a synthetic Claude Code hook envelope (PreToolUse Edit) with:
@@ -201,10 +219,10 @@ fn setup_temp_registry() -> (tempfile::TempDir, PathBuf) {
 /// The read_file capability is granted for `plugins/vsdd-factory/config`
 /// (where the registry YAML lives). The `path_allow` list must be non-empty
 /// and include the registry prefix — an empty list means "deny all".
-fn invoke_hook(wasm_path: &PathBuf, cwd: &PathBuf, payload_json: &[u8]) -> PluginResult {
+fn invoke_hook(wasm_path: &Path, cwd: &Path, payload_json: &[u8]) -> PluginResult {
     let engine = build_engine().expect("wasmtime engine must build");
-    let wasm_bytes =
-        std::fs::read(wasm_path).unwrap_or_else(|e| panic!("WASM read failed for {:?}: {}", wasm_path, e));
+    let wasm_bytes = std::fs::read(wasm_path)
+        .unwrap_or_else(|e| panic!("WASM read failed for {:?}: {}", wasm_path, e));
     let module = Module::from_binary(&engine, &wasm_bytes)
         .unwrap_or_else(|e| panic!("WASM compile failed for {:?}: {}", wasm_path, e));
 
@@ -214,7 +232,7 @@ fn invoke_hook(wasm_path: &PathBuf, cwd: &PathBuf, payload_json: &[u8]) -> Plugi
         "test-session",
         "test-trace",
     );
-    host_ctx.cwd = cwd.clone();
+    host_ctx.cwd = cwd.to_path_buf();
     // Grant read_file capability for the registry directory.
     // path_allow is relative to cwd — the registry lives at
     // `plugins/vsdd-factory/config/artifact-path-registry.yaml` under cwd.
@@ -239,7 +257,9 @@ fn invoke_hook(wasm_path: &PathBuf, cwd: &PathBuf, payload_json: &[u8]) -> Plugi
 /// stdout containing `"outcome":"block"`).
 fn assert_blocks(result: &PluginResult, context: &str) {
     match result {
-        PluginResult::Ok { exit_code, stdout, .. } => {
+        PluginResult::Ok {
+            exit_code, stdout, ..
+        } => {
             assert_eq!(
                 *exit_code, 2,
                 "{}: expected exit_code=2 (block), got exit_code={} — \
@@ -265,7 +285,9 @@ fn assert_blocks(result: &PluginResult, context: &str) {
 /// Assert that a PluginResult carries a continue (exit_code 0, no block).
 fn assert_continues(result: &PluginResult, context: &str) {
     match result {
-        PluginResult::Ok { exit_code, stdout, .. } => {
+        PluginResult::Ok {
+            exit_code, stdout, ..
+        } => {
             assert_eq!(
                 *exit_code, 0,
                 "{}: expected exit_code=0 (continue), got exit_code={} — \
@@ -312,9 +334,7 @@ fn test_e2e_BC_4_11_001_prefixbug_absolute_path_bypasses_prefixwasm() {
         return;
     }
 
-    let wasm_size = std::fs::metadata(&wasm_path)
-        .expect("wasm metadata")
-        .len();
+    let wasm_size = std::fs::metadata(&wasm_path).expect("wasm metadata").len();
 
     // The pre-fix binary is 303672 bytes. The post-fix is 305333 bytes.
     // If the file is the post-fix size, the fix is already deployed and
@@ -502,7 +522,8 @@ fn test_e2e_TD_031_postfix_absolute_spec_path_with_cite_blocks() {
 
     // Absolute path to a spec file under .factory/specs/ — is_spec_target must
     // accept this after cc5a016b.
-    let abs_spec_path = "/Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let abs_spec_path =
+        "/Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
 
     // new_string containing a volatile cite: `lib.rs:42` — TD-031 violation.
     let violating_new_string = "See `lib.rs:42` for the implementation details.";
@@ -536,7 +557,8 @@ fn test_e2e_TD_031_postfix_absolute_spec_path_without_cite_continues() {
     let tmp = tempfile::tempdir().expect("tempdir");
     let cwd = tmp.path().to_path_buf();
 
-    let abs_spec_path = "/Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let abs_spec_path =
+        "/Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
     // Clean new_string — references functions by name, no line numbers.
     let clean_new_string =
         "See `emit_plugin_async_block_discarded` in `factory_dispatcher::main` for details.";
@@ -609,8 +631,7 @@ fn test_e2e_BC_4_11_001_postfix_false_positive_prefix_factory_does_not_block() {
 
     // Leading-slash discipline: `.factory/` preceded by something other than
     // `/` or start-of-string is NOT in scope. The hook must not match this.
-    let false_positive_path =
-        "notfactory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let false_positive_path = "notfactory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
     let payload = make_write_payload(false_positive_path);
     let result = invoke_hook(&wasm_path, &cwd, &payload);
 
@@ -636,8 +657,7 @@ fn test_e2e_TD_031_postfix_false_positive_prefix_factory_does_not_block() {
     let cwd = tmp.path().to_path_buf();
 
     // Same leading-slash discipline check for validate-stable-anchors.
-    let false_positive_path =
-        "notfactory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
+    let false_positive_path = "notfactory/specs/behavioral-contracts/ss-04/BC-4.11.001.md";
     let violating_new_string = "See `lib.rs:42` — but this path is not a spec file.";
 
     let payload = make_edit_payload(false_positive_path, Some(violating_new_string));

@@ -384,7 +384,10 @@ fn plugin_fail_closed(result: &PluginResult, on_error: OnError) -> bool {
     if on_error != OnError::Block {
         return false;
     }
-    matches!(result, PluginResult::Crashed { .. } | PluginResult::Timeout { .. })
+    matches!(
+        result,
+        PluginResult::Crashed { .. } | PluginResult::Timeout { .. }
+    )
 }
 
 fn emit_invoked(log: &InternalLog, base_ctx: &HostContext, entry: &RegistryEntry) {

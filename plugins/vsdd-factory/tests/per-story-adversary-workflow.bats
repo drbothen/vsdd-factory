@@ -27,7 +27,11 @@
 #
 
 setup() {
-    REPO_ROOT="/Users/jmagady/Dev/vsdd-factory/.worktrees/S-12.01"
+    # Resolve REPO_ROOT portably from the test file's location so the test
+    # works in CI checkouts, operator clones, and feature worktrees.
+    # Earlier versions hard-coded /Users/jmagady/.../worktrees/S-12.01 which
+    # broke release CI and silently kept rc.11+ off the marketplace.
+    REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
     PER_STORY_DELIVERY="$REPO_ROOT/plugins/vsdd-factory/workflows/phases/per-story-delivery.md"
     PHASE_3_LOBSTER="$REPO_ROOT/plugins/vsdd-factory/workflows/phases/phase-3-tdd-implementation.lobster"
     ADVERSARY_AGENT="$REPO_ROOT/plugins/vsdd-factory/agents/adversary.md"

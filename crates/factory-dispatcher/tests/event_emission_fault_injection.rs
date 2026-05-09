@@ -36,8 +36,8 @@
 //! - AC-011, AC-012, AC-013, AC-014, AC-005 (S-15.01 v1.15)
 
 use factory_dispatcher::host::emit_event::{
-    emit_registry_invalid_e_reg002, emit_registry_invalid_e_reg003,
     emit_dispatcher_schema_mismatch, emit_plugin_async_block_discarded, emit_plugin_timeout_async,
+    emit_registry_invalid_e_reg002, emit_registry_invalid_e_reg003,
 };
 use factory_dispatcher::registry::REGISTRY_SCHEMA_VERSION;
 
@@ -237,11 +237,7 @@ fn test_BC_3_08_001_vp079_s3_registry_invalid_stub_panics() {
     // Scenario: entry "invalid-blocker" has on_error=block AND async=true.
     // Mandatory fields: type, trace_id, offending_plugin, violation, timestamp, error_code.
     // BC-3.08.001 v1.9: violation canonical string is "async_block_conflict".
-    emit_registry_invalid_e_reg002(
-        &ctx,
-        "invalid-blocker",
-        "async_block_conflict",
-    );
+    emit_registry_invalid_e_reg002(&ctx, "invalid-blocker", "async_block_conflict");
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];
@@ -274,11 +270,7 @@ fn test_BC_3_08_001_vp079_s3_offending_plugin_name_in_event() {
     let ctx = make_test_ctx();
     // Verify the emitted event has offending_plugin = "bad-validator".
     // BC-3.08.001 v1.9: violation canonical string is "async_block_conflict".
-    emit_registry_invalid_e_reg002(
-        &ctx,
-        "bad-validator",
-        "async_block_conflict",
-    );
+    emit_registry_invalid_e_reg002(&ctx, "bad-validator", "async_block_conflict");
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1);
     let ev = &events[0];
@@ -381,8 +373,7 @@ fn test_BC_3_08_001_v1_9_E_REG_003_wildcard_offending_tool_emits_null() {
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];
     assert_eq!(
-        ev.type_,
-        "dispatcher.registry_invalid",
+        ev.type_, "dispatcher.registry_invalid",
         "event type must be dispatcher.registry_invalid"
     );
     // F-P15-002: BC-3.08.001 v1.8/v1.9 mandates offending_tool present (null for wildcard).
@@ -427,11 +418,7 @@ fn test_BC_3_08_001_vp079_s3_async_block_conflict_omits_offending_event_tool() {
     let ctx = make_test_ctx();
     // E-REG-002 / AsyncBlockConflict: event and tool are not applicable.
     // Passing None, None — fields must be absent or null in the wire payload.
-    emit_registry_invalid_e_reg002(
-        &ctx,
-        "invalid-blocker",
-        "async_block_conflict",
-    );
+    emit_registry_invalid_e_reg002(&ctx, "invalid-blocker", "async_block_conflict");
     let events = ctx.drain_events();
     assert_eq!(events.len(), 1, "exactly one event must be emitted");
     let ev = &events[0];

@@ -157,10 +157,16 @@ fn test_e2e_BC_1_14_001_partition_separates_sync_async() {
     assert_eq!(partition.async_group.len(), 1, "one async entry expected");
 
     for e in &partition.sync_group {
-        assert!(!e.async_flag, "sync_group must contain only async_flag=false entries");
+        assert!(
+            !e.async_flag,
+            "sync_group must contain only async_flag=false entries"
+        );
     }
     for e in &partition.async_group {
-        assert!(e.async_flag, "async_group must contain only async_flag=true entries");
+        assert!(
+            e.async_flag,
+            "async_group must contain only async_flag=true entries"
+        );
     }
 
     // Order preserved within groups (BC-1.14.001 postcondition 5)
@@ -197,7 +203,10 @@ fn test_e2e_BC_1_14_001_partition_all_sync_empty_async_group() {
     ];
     let partition = partition_plugins(&entries);
     assert_eq!(partition.sync_group.len(), 3);
-    assert!(partition.async_group.is_empty(), "all sync_flag=false → async_group must be empty");
+    assert!(
+        partition.async_group.is_empty(),
+        "all sync_flag=false → async_group must be empty"
+    );
 }
 
 /// test_e2e_BC_1_14_001_partition_all_async_empty_sync_group
@@ -205,12 +214,12 @@ fn test_e2e_BC_1_14_001_partition_all_sync_empty_async_group() {
 /// All entries have async_flag=true → sync_group must be empty.
 #[test]
 fn test_e2e_BC_1_14_001_partition_all_async_empty_sync_group() {
-    let entries = vec![
-        make_entry("a1", true),
-        make_entry("a2", true),
-    ];
+    let entries = vec![make_entry("a1", true), make_entry("a2", true)];
     let partition = partition_plugins(&entries);
-    assert!(partition.sync_group.is_empty(), "all async_flag=true → sync_group must be empty");
+    assert!(
+        partition.sync_group.is_empty(),
+        "all async_flag=true → sync_group must be empty"
+    );
     assert_eq!(partition.async_group.len(), 2);
 }
 
@@ -426,8 +435,11 @@ async fn test_e2e_BC_1_14_001_execute_tiers_ignores_async_flag_field() {
     let tiers = group_by_priority(&registry, matched);
 
     let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
-    let summary =
-        execute_tiers(make_executor_inputs(&engine, &cache, &registry, &internal_log), tiers).await;
+    let summary = execute_tiers(
+        make_executor_inputs(&engine, &cache, &registry, &internal_log),
+        tiers,
+    )
+    .await;
 
     assert_eq!(
         summary.per_plugin_results.len(),
@@ -474,8 +486,11 @@ async fn test_e2e_BC_1_14_001_execute_tiers_awaits_all_sync_results() {
     let tiers = group_by_priority(&registry, matched);
 
     let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
-    let summary =
-        execute_tiers(make_executor_inputs(&engine, &cache, &registry, &internal_log), tiers).await;
+    let summary = execute_tiers(
+        make_executor_inputs(&engine, &cache, &registry, &internal_log),
+        tiers,
+    )
+    .await;
 
     // All 4 results present: execute_tiers awaited all
     assert_eq!(summary.per_plugin_results.len(), 4);
@@ -504,8 +519,11 @@ async fn test_e2e_BC_1_14_001_sync_only_entries_produce_zero_exit() {
     let tiers = group_by_priority(&registry, matched);
 
     let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
-    let summary =
-        execute_tiers(make_executor_inputs(&engine, &cache, &registry, &internal_log), tiers).await;
+    let summary = execute_tiers(
+        make_executor_inputs(&engine, &cache, &registry, &internal_log),
+        tiers,
+    )
+    .await;
 
     assert_eq!(summary.per_plugin_results.len(), 2);
     assert_eq!(summary.exit_code, 0, "sync-only, non-blocking → exit 0");
@@ -549,8 +567,7 @@ async fn test_e2e_DI_019_drain_window_bounded_at_100ms() {
 
     // Simulate the drain window: wait up to ASYNC_DRAIN_WINDOW_MS
     let drain_start = Instant::now();
-    let drain_deadline =
-        tokio::time::sleep(Duration::from_millis(ASYNC_DRAIN_WINDOW_MS));
+    let drain_deadline = tokio::time::sleep(Duration::from_millis(ASYNC_DRAIN_WINDOW_MS));
     tokio::pin!(drain_deadline);
 
     // The drain implementation selects between tasks completing and the deadline.

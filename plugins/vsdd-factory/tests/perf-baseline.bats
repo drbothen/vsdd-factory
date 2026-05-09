@@ -17,10 +17,23 @@
 
 REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
 # .factory/ lives in the main repo root, not the worktree working tree.
-# Resolve it relative to the worktree's git common dir.
+# Resolve it relative to the worktree's git common dir, then canonicalize
+# to an absolute path (older git versions return a CWD-relative output
+# from rev-parse --git-common-dir, which broke when run-all.sh runs bats
+# from $PLUGIN_ROOT — silently kept rc.11+ off the marketplace).
 # If mount fails, emit a clear error so operators know to run:
 #   git worktree add .factory origin/factory-artifacts
-MAIN_REPO="$(git -C "$BATS_TEST_DIRNAME" rev-parse --git-common-dir 2>/dev/null | sed 's|/\.git$||' || echo "$REPO_ROOT")"
+_GIT_COMMON_DIR="$(git -C "$BATS_TEST_DIRNAME" rev-parse --git-common-dir 2>/dev/null | sed 's|/\.git$||')"
+# `git rev-parse --git-common-dir` returns a path RELATIVE to the -C target
+# (BATS_TEST_DIRNAME), not relative to the current working directory.
+# So we must cd into BATS_TEST_DIRNAME first, then resolve. Without this
+# extra cd, MAIN_REPO landed at the parent of the repo when run-all.sh
+# invoked bats from $PLUGIN_ROOT.
+if [ -n "$_GIT_COMMON_DIR" ] && _RESOLVED="$(cd "$BATS_TEST_DIRNAME" && cd "$_GIT_COMMON_DIR" 2>/dev/null && pwd)" && [ -n "$_RESOLVED" ]; then
+    MAIN_REPO="$_RESOLVED"
+else
+    MAIN_REPO="$REPO_ROOT"
+fi
 FACTORY_DIR="$MAIN_REPO/.factory"
 [ -d "$FACTORY_DIR" ] || { echo "FACTORY_DIR=$FACTORY_DIR doesn't exist; mount factory-artifacts via 'git worktree add .factory origin/factory-artifacts'" >&2; exit 1; }
 BUNDLE_DIR="$REPO_ROOT/plugins/vsdd-factory/hook-plugins"

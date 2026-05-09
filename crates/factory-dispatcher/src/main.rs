@@ -42,8 +42,8 @@ use factory_dispatcher::executor::{
 };
 use factory_dispatcher::host::HostContext;
 use factory_dispatcher::host::emit_event::{
-    emit_registry_invalid_e_reg002, emit_registry_invalid_e_reg003,
     emit_dispatcher_schema_mismatch, emit_plugin_async_block_discarded, emit_plugin_timeout_async,
+    emit_registry_invalid_e_reg002, emit_registry_invalid_e_reg003,
 };
 use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
@@ -140,11 +140,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                     // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
                     // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
                     // E-REG-002 is intra-entry; offending_event/tool absence is enforced by type system.
-                    emit_registry_invalid_e_reg002(
-                        &err_ctx,
-                        name,
-                        "async_block_conflict",
-                    );
+                    emit_registry_invalid_e_reg002(&err_ctx, name, "async_block_conflict");
                     eprintln!(
                         "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
                     );
@@ -165,8 +161,8 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                         &err_ctx,
                         name.as_str(),
                         "duplicate_hook_registration",
-                        event.as_str(),       // offending_event — required for E-REG-003
-                        tool.as_deref(),      // offending_tool — None means wildcard/"all tools"
+                        event.as_str(),  // offending_event — required for E-REG-003
+                        tool.as_deref(), // offending_tool — None means wildcard/"all tools"
                     );
                     2
                 }
