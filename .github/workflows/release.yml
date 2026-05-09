@@ -385,9 +385,28 @@ jobs:
           if ! git merge --no-ff main \
                  -m "merge: sync main → develop after $GITHUB_REF_NAME bundle" \
                  -m "Inline back-merge from the commit-binaries job. See .github/workflows/release.yml."; then
-            echo "::warning::Inline merge produced conflicts; sync-develop job will retry."
-            git merge --abort || true
-            exit 0
+            # Mirror the auto-resolve path from the sync-develop job (TD #68).
+            # If every unmerged path is a known-binary artifact, take main's
+            # version and continue. Otherwise abort and let sync-develop
+            # retry / open a PR.
+            UNMERGED="$(git diff --name-only --diff-filter=U)"
+            BINARY_PATHS_REGEX='^plugins/vsdd-factory/(hook-plugins/.*\.wasm|hooks/dispatcher/bin/.*)$'
+            NON_BINARY="$(echo "$UNMERGED" | grep -vE "$BINARY_PATHS_REGEX" || true)"
+            if [ -n "$UNMERGED" ] && [ -z "$NON_BINARY" ]; then
+              echo "Inline auto-resolving binary-only conflicts (TD #68):"
+              echo "$UNMERGED" | sed 's/^/  /'
+              echo "$UNMERGED" | xargs -r git checkout main --
+              git add -- $UNMERGED
+              git -c commit.gpgsign=false commit --no-edit || {
+                echo "::warning::Inline commit after auto-resolve failed; sync-develop job will retry."
+                git merge --abort || true
+                exit 0
+              }
+            else
+              echo "::warning::Inline merge produced conflicts; sync-develop job will retry."
+              git merge --abort || true
+              exit 0
+            fi
           fi
 
           # Best-effort push. Sync-develop catches any failure.
@@ -640,9 +659,45 @@ jobs:
           if ! git merge --no-ff origin/main \
                  -m "merge: sync main → develop after $GITHUB_REF_NAME bundle" \
                  -m "Automated back-merge of the post-tag binary-bundle commit so the GitHub default branch (develop) reflects the latest released plugin.json version and bundled binaries. See sync-develop job in .github/workflows/release.yml."; then
-            echo "::warning::Merge produced conflicts — opening PR for manual resolution."
-            git merge --abort || true
-            exit 1
+            # Auto-resolve add/add and content conflicts on bundled binary
+            # artifacts (TD #68 — discovered during v1.0.0-rc.14 ship,
+            # PR #114 captured the manual resolution). The pattern recurs
+            # on every release where develop has merged new WASM source
+            # files since the previous release: main's commit-binaries
+            # job rebuilds those .wasm/dispatcher binaries on the release
+            # commit, while develop already has independently-merged
+            # versions from feature PRs. Git sees these as "add/add" or
+            # content conflicts even though main's bundle is canonical.
+            #
+            # Strategy: if EVERY unmerged path is a binary artifact under
+            # one of the known canonical bundle directories, take main's
+            # version (`git checkout origin/main -- <path>`) and continue.
+            # If any non-binary or unexpected-path conflict exists, fall
+            # through to the manual-resolution PR path below.
+            UNMERGED="$(git diff --name-only --diff-filter=U)"
+            BINARY_PATHS_REGEX='^plugins/vsdd-factory/(hook-plugins/.*\.wasm|hooks/dispatcher/bin/.*)$'
+            NON_BINARY="$(echo "$UNMERGED" | grep -vE "$BINARY_PATHS_REGEX" || true)"
+            if [ -n "$UNMERGED" ] && [ -z "$NON_BINARY" ]; then
+              echo "::notice::Auto-resolving binary-only conflicts (TD #68) — taking main's versions:"
+              echo "$UNMERGED" | sed 's/^/  /'
+              echo "$UNMERGED" | xargs -r git checkout origin/main --
+              git add -- $UNMERGED
+              if git -c commit.gpgsign=false commit --no-edit; then
+                echo "Auto-resolved binary conflicts; continuing to push."
+              else
+                echo "::warning::Commit after auto-resolve failed — opening PR."
+                git merge --abort || true
+                exit 1
+              fi
+            else
+              if [ -n "$NON_BINARY" ]; then
+                echo "::warning::Non-binary conflict(s) require manual resolution:"
+                echo "$NON_BINARY" | sed 's/^/  /'
+              fi
+              echo "::warning::Merge produced conflicts — opening PR for manual resolution."
+              git merge --abort || true
+              exit 1
+            fi
           fi
 
           # Try direct push first. If branch protection on develop blocks
