@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-03-observability-sinks"
-version: "1.0"
+version: "1.1"
 status: superseded
 superseded_by: SS-03-event-emission.md
 superseded_date: 2026-05-04
@@ -167,7 +167,7 @@ and graceful degradation (BC-3.021–BC-3.030), `sink-file` queue and rotation
 
 - **DRIFT-002 (P1 — medium):** `internal.sink_*` event constants (`SINK_ERROR`,
   `SINK_QUEUE_FULL`, `SINK_CIRCUIT_OPENED`, `SINK_CIRCUIT_CLOSED`) declared in
-  `internal_log.rs:67-70` but never emitted. `SinkFailure` is recorded per-sink
+  `crates/factory-dispatcher/src/internal_log.rs::INTERNAL_SINK_ERROR` / `INTERNAL_SINK_QUEUE_FULL` / `INTERNAL_SINK_CIRCUIT_OPENED` / `INTERNAL_SINK_CIRCUIT_CLOSED` but never emitted. `SinkFailure` is recorded per-sink
   but never converted to events. Operators have no audit trail of sink degradation.
   Must-fix before rc.1 (S-4.4).
 - **DRIFT-003 (P2 — low):** `sink-file` and `sink-otel-grpc` each own a dedicated
@@ -180,3 +180,10 @@ and graceful degradation (BC-3.021–BC-3.030), `sink-file` queue and rotation
   logic absent. Pending Tier E.
 - **S-4.5 NOT SHIPPED:** Dead-letter queue. Design has `[sinks.*.dead_letter]`
   block; no implementation.
+
+## Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| 1.0 | 2026-04-25 | Initial version. |
+| 1.1 | 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `internal_log.rs:67-70` → `internal_log.rs::INTERNAL_SINK_ERROR` / `INTERNAL_SINK_QUEUE_FULL` / `INTERNAL_SINK_CIRCUIT_OPENED` / `INTERNAL_SINK_CIRCUIT_CLOSED` in §Drift / Known Issues DRIFT-002 entry. |

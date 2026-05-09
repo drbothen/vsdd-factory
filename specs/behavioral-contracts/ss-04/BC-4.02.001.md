@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -77,7 +77,7 @@ After the bash subprocess completes, the legacy-bash-adapter forwards captured s
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs:151-158` |
+| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs::run_bash_via_host` |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `442` |
@@ -99,3 +99,10 @@ After the bash subprocess completes, the legacy-bash-adapter forwards captured s
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `legacy-bash-adapter/src/lib.rs:151-158` → `legacy-bash-adapter/src/lib.rs::run_bash_via_host`. |

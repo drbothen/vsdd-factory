@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -76,7 +76,7 @@ The SDK exposes plugin-author APIs only via `vsdd_hook_sdk::host::*` (re-exports
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-sdk/src/lib.rs:37-47` (mod ffi; pub mod host;); `crates/hook-sdk/src/host.rs:1-10` (docstring) |
+| **Path** | `crates/hook-sdk/src/lib.rs` (mod ffi; pub mod host; re-exports); `crates/hook-sdk/src/host.rs § "module doc"` (docstring) |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `398` |
@@ -99,3 +99,11 @@ The SDK exposes plugin-author APIs only via `vsdd_hook_sdk::host::*` (re-exports
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `hook-sdk/src/lib.rs:37-47` → `hook-sdk/src/lib.rs` (module re-exports); `hook-sdk/src/host.rs:1-10` → `hook-sdk/src/host.rs § "module doc"`. |

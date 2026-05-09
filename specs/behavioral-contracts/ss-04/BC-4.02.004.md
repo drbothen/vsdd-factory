@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -77,7 +77,7 @@ After resolving `script_path`, the adapter clones the payload, sets `bash_payloa
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs:81-90` (clone + null + serialize); :298-331 (test) |
+| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs::adapter_logic` (clone + null + serialize); `legacy-bash-adapter/src/lib.rs::tests::maps_exit_zero_to_continue` (test) |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `466` |
@@ -99,3 +99,10 @@ After resolving `script_path`, the adapter clones the payload, sets `bash_payloa
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `legacy-bash-adapter/src/lib.rs:81-90` + test `:298-331` → `legacy-bash-adapter/src/lib.rs::adapter_logic` + `::tests::maps_exit_zero_to_continue`. |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -105,7 +105,7 @@ removal_reason: null
 
 **Evidence (from pass-3):**
 
-> `sink-otel-grpc/src/lib.rs:440-461` (shutdown impl + Drop); `:392-403` (accepts checks shutdown flag); `:406-419` (submit checks accepts via early return).
+> `crates/sink-otel-grpc/src/lib.rs::OtelGrpcSink::shutdown` (shutdown impl); `crates/sink-otel-grpc/src/lib.rs::OtelGrpcSink::drop` (Drop); `crates/sink-otel-grpc/src/lib.rs::OtelGrpcSink::accepts` (accepts checks shutdown flag); `crates/sink-otel-grpc/src/lib.rs::OtelGrpcSink::submit` (submit checks accepts via early return).
 
 #### Evidence Types Used
 
@@ -125,3 +125,11 @@ removal_reason: null
 
 TBD — Phase 1.6b will produce refactoring guidance.
 
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sink-otel-grpc/src/lib.rs:440-461` + `:392-403` + `:406-419` → `::OtelGrpcSink::shutdown`, `::OtelGrpcSink::drop`, `::OtelGrpcSink::accepts`, `::OtelGrpcSink::submit`. |

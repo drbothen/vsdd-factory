@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -105,7 +105,7 @@ Producer creates `(tx, rx)` oneshot; sends `Message::Flush(tx)` to the worker; `
 
 **Evidence (from pass-3):**
 
-> `sink-otel-grpc/src/lib.rs:421-438` (flush impl); `:536-547` (worker_loop's Flush arm: drains buffer then `signal.send(())`).
+> `crates/sink-otel-grpc/src/lib.rs::OtelGrpcSink::flush` (flush impl); `crates/sink-otel-grpc/src/lib.rs::worker_loop` (Flush arm: drains buffer then `signal.send(())`).
 
 #### Evidence Types Used
 
@@ -125,3 +125,11 @@ Producer creates `(tx, rx)` oneshot; sends `Message::Flush(tx)` to the worker; `
 
 TBD — Phase 1.6b will produce refactoring guidance.
 
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sink-otel-grpc/src/lib.rs:421-438` + `:536-547` → `::OtelGrpcSink::flush`, `::worker_loop`. |

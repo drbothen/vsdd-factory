@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -78,7 +78,7 @@ removal_reason: null
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugin_loader.rs:43-91` (only `get_or_compile`); tests `compiles_on_first_use_and_caches`, `invalidates_on_mtime_change` |
+| **Path** | `crates/factory-dispatcher/src/plugin_loader.rs::PluginCache::get_or_compile`; tests `plugin_loader.rs::tests::compiles_on_first_use_and_caches`, `plugin_loader.rs::tests::invalidates_on_mtime_change` |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `364` |
@@ -100,3 +100,11 @@ removal_reason: null
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `plugin_loader.rs:43-91` → `plugin_loader.rs::PluginCache::get_or_compile`; tests `plugin_loader.rs::tests::compiles_on_first_use_and_caches`, `plugin_loader.rs::tests::invalidates_on_mtime_change`. |

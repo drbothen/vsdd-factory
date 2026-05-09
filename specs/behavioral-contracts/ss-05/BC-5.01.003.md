@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -117,7 +117,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:51, 74, 81-82, 110, 117, 132, 174, 234, 261, 296, 336, 411, 437, 466, 568, 638, 645, 651-655, 711-720, 736, 798-799, 891-892, 1001, 1062, 1192, 1280`; `code-delivery.lobster:38-40, 65-71, 73-80, 102-106, 144-145`; `brownfield.lobster:144-150` |
+| **Path** | `plugins/vsdd-factory/workflows/greenfield.lobster` (step `condition:` fields throughout workflow — see `::factory-worktree-health`, `::scaffold-claude-md`, `::state-initialization`, `::adaptive-planning`, `::phase-1-spec-crystallization`, `::architect-feasibility-review`, `::phase-1-design-system-bootstrap`, `::phase-1d-adversarial-spec-review`, `::phase-1-human-approval`, `::multi-repo-transition`, `::phase-2-story-decomposition`, and others); `plugins/vsdd-factory/workflows/code-delivery.lobster` (see `::create-worktree`, `::red-gate`, `::implement`, `::per-story-adversarial-review`, `::phase-0-artifact-backup`); `plugins/vsdd-factory/workflows/brownfield.lobster::phase-0-artifact-backup` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -138,3 +138,10 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed — schema-level enum invariant.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: multi-site `greenfield.lobster:NNN` list → stable step-name anchors (`::factory-worktree-health`, `::scaffold-claude-md`, etc.); `code-delivery.lobster:NNN` → step-name anchors; `brownfield.lobster:144-150` → `::phase-0-artifact-backup`. |

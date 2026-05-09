@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -107,7 +107,7 @@ Two independent triggers:
 
 **Evidence (from pass-3):**
 
-> `sink-otel-grpc/src/lib.rs:486-549` (worker_loop with `tokio::select! { msg = recv_fut => …, _ = sleep_until(deadline) => flush_buffer; continue }`); `:519-534` (size-trigger after push). DEFAULT_BATCH_SIZE = 100 / DEFAULT_BATCH_INTERVAL_MS = 5000 declared at `:78-83`.
+> `crates/sink-otel-grpc/src/lib.rs::worker_loop` (worker_loop with `tokio::select! { msg = recv_fut => …, _ = sleep_until(deadline) => flush_buffer; continue }`; size-trigger after push). `crates/sink-otel-grpc/src/lib.rs::DEFAULT_BATCH_SIZE` = 100 / `crates/sink-otel-grpc/src/lib.rs::DEFAULT_BATCH_INTERVAL_MS` = 5000.
 
 #### Evidence Types Used
 
@@ -127,3 +127,11 @@ Two independent triggers:
 
 TBD — Phase 1.6b will produce refactoring guidance.
 
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sink-otel-grpc/src/lib.rs:486-549` + `:519-534` + `:78-83` → `sink-otel-grpc/src/lib.rs::worker_loop`, `::DEFAULT_BATCH_SIZE`, `::DEFAULT_BATCH_INTERVAL_MS`. |

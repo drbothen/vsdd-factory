@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -77,7 +77,7 @@ When the host writes more bytes than the SDK's `out_cap`, the host returns the r
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-sdk/src/host.rs:108-125` (read_string helper) |
+| **Path** | `crates/hook-sdk/src/host.rs::read_string` (read_string helper) |
 | **Confidence** | HIGH (logic explicit; test coverage indirect) |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `426` |
@@ -100,3 +100,11 @@ When the host writes more bytes than the SDK's `out_cap`, the host returns the r
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `hook-sdk/src/host.rs:108-125` → `hook-sdk/src/host.rs::read_string`. |

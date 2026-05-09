@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -77,7 +77,7 @@ On `wasm32-wasip1` (production), `ffi.rs` declares an `unsafe extern "C"` block 
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-sdk/src/ffi.rs:13-58` (wasm32 imports), :62-127 (non-wasm host_stubs) |
+| **Path** | `crates/hook-sdk/src/ffi.rs § "wasm32 extern block"` (wasm32 imports), `crates/hook-sdk/src/ffi.rs::host_stubs` (non-wasm host_stubs) |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `433` |
@@ -100,3 +100,11 @@ On `wasm32-wasip1` (production), `ffi.rs` declares an `unsafe extern "C"` block 
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `hook-sdk/src/ffi.rs:13-58` → `ffi.rs § "wasm32 extern block"`; `:62-127` → `ffi.rs::host_stubs`. |

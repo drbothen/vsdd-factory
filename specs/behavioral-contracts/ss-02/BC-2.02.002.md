@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -77,7 +77,7 @@ removal_reason: null
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-sdk/src/host.rs:184-205` (read_file), :215-256 (exec_subprocess), :1-10 (docstring) |
+| **Path** | `crates/hook-sdk/src/host.rs::read_file`, `crates/hook-sdk/src/host.rs::exec_subprocess`, `crates/hook-sdk/src/host.rs § "module doc"` |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `405` |
@@ -100,3 +100,11 @@ removal_reason: null
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `hook-sdk/src/host.rs:184-205` / `:215-256` / `:1-10` → `host.rs::read_file`, `host.rs::exec_subprocess`, `host.rs § "module doc"`. |

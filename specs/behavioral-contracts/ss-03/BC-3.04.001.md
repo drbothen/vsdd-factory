@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -105,7 +105,7 @@ removal_reason: null
 
 **Evidence (from pass-3):**
 
-> `sinks/router.rs:1-9` (docstring); `:33-47` (Router::new, submit, flush, shutdown — each is one-line delegation); `sinks/mod.rs:11-21` (the matching `TODO(integration)` saying main.rs hasn't been wired yet).
+> `crates/factory-dispatcher/src/sinks/router.rs § "module doc"` (docstring); `crates/factory-dispatcher/src/sinks/router.rs::Router` (Router::new, submit, flush, shutdown — each is one-line delegation); `crates/factory-dispatcher/src/sinks/mod.rs § "Integration Status"` (TODO(integration) note: main.rs wiring tracked separately).
 
 #### Evidence Types Used
 
@@ -125,3 +125,11 @@ removal_reason: null
 
 TBD — Phase 1.6b will produce refactoring guidance.
 
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sinks/router.rs:1-9` + `:33-47` + `sinks/mod.rs:11-21` → `sinks/router.rs § 'module doc'`, `sinks/router.rs::Router`, `sinks/mod.rs § 'Integration Status'`. |

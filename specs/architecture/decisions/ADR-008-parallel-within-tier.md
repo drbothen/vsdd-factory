@@ -129,7 +129,13 @@ function produces the ordered tier vec consumed by the executor.
   lines 143–149 (control flow diagram showing parallel tokio tasks per tier),
   lines 478–483 (parallel-within-tier captured as Q3 ADR decision),
   lines 743–790 (full Q3 resolution with alternatives and rationale for non-abort).
-- **Code as-built:** `crates/factory-dispatcher/src/executor.rs:1–18` (module doc
-  with explicit parallel-within-tier contract statement).
+- **Code as-built:** `crates/factory-dispatcher/src/executor.rs § "module doc"`
+  (module doc with explicit parallel-within-tier contract statement).
 - **Code as-built:** `crates/factory-dispatcher/src/routing.rs` (`group_by_priority`
   function producing ordered tier vec).
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 line citation: `executor.rs:1–18` (module doc) → `executor.rs § "module doc"`. |

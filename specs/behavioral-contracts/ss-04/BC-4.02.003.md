@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -79,7 +79,7 @@ The first action of `adapter_logic` is to inspect `payload.plugin_config.get("sc
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs:62-77` (validation), :218-247 (3 tests with `panic!("must not run")`) |
+| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs::adapter_logic` (validation), `legacy-bash-adapter/src/lib.rs::tests::errors_when_plugin_config_missing_script_path` (3 tests with `panic!("must not run")`) |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `459` |
@@ -102,3 +102,10 @@ The first action of `adapter_logic` is to inspect `payload.plugin_config.get("sc
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `legacy-bash-adapter/src/lib.rs:62-77` + test `:218-247` → `legacy-bash-adapter/src/lib.rs::adapter_logic` + `::tests::errors_when_plugin_config_missing_script_path`. |

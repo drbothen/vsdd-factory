@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-04-plugin-ecosystem"
-version: "1.1"
+version: "1.3"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -154,7 +154,7 @@ BC-1.10.001 ("vsdd::activated_platform() host fn") was created in pass-2 and ret
 pass-4 as over-engineering: the production `read_file` host fn
 (`crates/factory-dispatcher/src/host/read_file.rs`) with `ReadFileCaps.path_allow`
 enforcement already provides controlled sandboxed file access via the established
-`[hooks.capabilities.read_file]` TOML table pattern (see `hooks-registry.toml:470`).
+`[hooks.capabilities.read_file]` TOML table pattern (see `plugins/vsdd-factory/hooks-registry.toml::[hooks.capabilities.read_file]`).
 
 Once-per-session discipline for the `SessionStart` entry is enforced at Layer 1 by
 Claude Code's `once: true` directive in `hooks.json.template` (BC-4.04.004 invariant 1).
@@ -243,6 +243,7 @@ per-story-delivery cycle: test-writer RED gate + implementer GREEN + demo-record
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.3 | 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `hooks-registry.toml:470` → `plugins/vsdd-factory/hooks-registry.toml::[hooks.capabilities.read_file]`. |
 | 1.2 | 2026-05-03 | ADR-014: added E-9 epic positioning section — Tier 2 native WASM migration, ~9 stories, bundle ceiling, migration sequence, per-story delivery pattern. |
 | 1.1 | 2026-04-29 | ADV-S5.04-P06 HIGH-P06-001: crate name sync to canonical `tool-failure-hooks` (matches ARCH-INDEX line 77, S-5.04 target_module, BC-4.08.001/003, VP-068, PRD line 455). Three references updated: Purpose prose, Modules table row, Decision A comment. |
 | 1.0 | 2026-04-25 | Initial version |

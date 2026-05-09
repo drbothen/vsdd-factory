@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -105,7 +105,7 @@ The Router module documents the intended extension surface: "Stable extension po
 
 **Evidence (from pass-3):**
 
-> `sinks/router.rs:1-9, 17-22` (docstring + struct-level comment). Pass-6 DRIFT-002 / DRIFT-005 / story-coverage S-4.4..S-4.6 corroborate.
+> `crates/factory-dispatcher/src/sinks/router.rs § "module doc"` (docstring); `crates/factory-dispatcher/src/sinks/router.rs::Router` (struct-level comment). Pass-6 DRIFT-002 / DRIFT-005 / story-coverage S-4.4..S-4.6 corroborate.
 
 #### Evidence Types Used
 
@@ -125,3 +125,11 @@ The Router module documents the intended extension surface: "Stable extension po
 
 TBD — Phase 1.6b will produce refactoring guidance.
 
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sinks/router.rs:1-9, 17-22` → `sinks/router.rs § 'module doc'` + `sinks/router.rs::Router`. |

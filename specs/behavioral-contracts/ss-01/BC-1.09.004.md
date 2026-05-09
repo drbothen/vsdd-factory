@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -77,7 +77,7 @@ removal_reason: null
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugin_loader.rs:18-34` (PluginLoadError variants); :71-79 (Io/Compile arms); :93-106 (probe NotFound); :128-135 + :174-181 (tests) |
+| **Path** | `crates/factory-dispatcher/src/plugin_loader.rs::PluginLoadError` (variants); `crates/factory-dispatcher/src/plugin_loader.rs::PluginCache::get_or_compile` (Io/Compile arms); `crates/factory-dispatcher/src/plugin_loader.rs::probe` (NotFound); `plugin_loader.rs::tests::not_found_error_for_missing_path`; `plugin_loader.rs::tests::corrupt_bytes_produce_compile_error` (tests) |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `373` |
@@ -100,3 +100,11 @@ removal_reason: null
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `plugin_loader.rs:18-34` / `:71-79` / `:93-106` + tests `:128-135/:174-181` → `plugin_loader.rs::PluginLoadError`, `::PluginCache::get_or_compile`, `::probe`, `::tests::not_found_error_for_missing_path`, `::tests::corrupt_bytes_produce_compile_error`. |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -79,7 +79,7 @@ The SDK's `HostError::from_code(code)` converts a negative i32 returned from a h
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-sdk/src/host.rs:81-106` (HostError + from_code), :339-345 (test) |
+| **Path** | `crates/hook-sdk/src/host.rs::HostError` (HostError + from_code), `crates/hook-sdk/src/host.rs::tests::decode_subprocess_result_parses_envelope` (test) |
 | **Confidence** | HIGH (compile-time-stable constants tested both sides) |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `412` |
@@ -102,3 +102,11 @@ The SDK's `HostError::from_code(code)` converts a negative i32 returned from a h
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `hook-sdk/src/host.rs:81-106` / `:339-345` → `host.rs::HostError`, `host.rs::tests::decode_subprocess_result_parses_envelope`. |

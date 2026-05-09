@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -78,7 +78,7 @@ removal_reason: null
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugin_loader.rs:43-46` (Mutex<HashMap>); :62-69 (lock-on-hit); :81-83 (insert) |
+| **Path** | `crates/factory-dispatcher/src/plugin_loader.rs::PluginCache` (Mutex<HashMap>); `crates/factory-dispatcher/src/plugin_loader.rs::PluginCache::get_or_compile` (lock-on-hit; insert) |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `357` |
@@ -101,3 +101,11 @@ removal_reason: null
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `plugin_loader.rs:43-46` / `:62-69` / `:81-83` → `plugin_loader.rs::PluginCache` (Mutex<HashMap>); `plugin_loader.rs::PluginCache::get_or_compile` (lock-on-hit; insert). |

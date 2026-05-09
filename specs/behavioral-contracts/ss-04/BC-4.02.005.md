@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -81,7 +81,7 @@ removal_reason: null
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs:135-186`; tests at :347-376 |
+| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs::BashOutcome`; `crates/hook-plugins/legacy-bash-adapter/src/lib.rs::run_bash_via_host`; tests at `legacy-bash-adapter/src/lib.rs::tests::maps_other_nonzero_to_error_with_stderr` |
 | **Confidence** | HIGH (5 unit tests pin Unix root, Windows drive, separator insertion, trailing separator, empty root) |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `473` |
@@ -103,3 +103,10 @@ removal_reason: null
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `legacy-bash-adapter/src/lib.rs:135-186` + test `:347-376` → `legacy-bash-adapter/src/lib.rs::BashOutcome`, `::run_bash_via_host`, `::tests::maps_other_nonzero_to_error_with_stderr`. |

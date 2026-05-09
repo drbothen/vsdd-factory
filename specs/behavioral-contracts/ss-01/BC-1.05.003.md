@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -78,7 +78,7 @@ When the cmd basename is one of the SHELL_NAMES set (`bash`, `sh`, `zsh`, `pwsh`
 
 | Property | Value |
 |----------|-------|
-| **Path** | `host/exec_subprocess.rs::run` shell check; SHELL_NAMES constant; `legacy-bash-adapter/src/lib.rs:20` |
+| **Path** | `host/exec_subprocess.rs::run` shell check; SHELL_NAMES constant; `crates/hook-plugins/legacy-bash-adapter/src/lib.rs § "module doc"` |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts.md` line `180` |
@@ -101,3 +101,10 @@ When the cmd basename is one of the SHELL_NAMES set (`bash`, `sh`, `zsh`, `pwsh`
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `legacy-bash-adapter/src/lib.rs:20` → `crates/hook-plugins/legacy-bash-adapter/src/lib.rs § "module doc"`. |

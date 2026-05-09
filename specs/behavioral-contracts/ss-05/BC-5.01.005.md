@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -107,7 +107,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `greenfield.lobster:74` (`!file_exists`); `:128` (`architect.verdict ==`); `:176` (`feature_type in [...]`); `:393` (`human_approved_multi_repo == true`); `:421` (compound expression) |
+| **Path** | `plugins/vsdd-factory/workflows/greenfield.lobster::scaffold-claude-md` (`!file_exists` condition); `greenfield.lobster::prd-revision` (`architect.verdict ==` condition); `greenfield.lobster::phase-1-design-system-bootstrap` (`feature_type in [...]` condition); `greenfield.lobster::multi-repo-transition` (`human_approved_multi_repo == true` condition); `greenfield.lobster::phase-2-story-decomposition` (compound expression condition) |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -128,3 +128,10 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed — condition evaluator is pure given scoped context.
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `greenfield.lobster:74/:128/:176/:393/:421` multi-site line references → stable step-name anchors (`::scaffold-claude-md`, `::prd-revision`, `::phase-1-design-system-bootstrap`, `::multi-repo-transition`, `::phase-2-story-decomposition`). |

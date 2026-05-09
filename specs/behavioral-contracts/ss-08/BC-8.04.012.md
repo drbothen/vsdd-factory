@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: phase-1-4-b-bcs-agent-10
 timestamp: 2026-04-25T00:00:00
@@ -110,7 +110,7 @@ TBD
 
 **Source metadata:** `plugins/vsdd-factory/templates/adversary-prompt-templates/phase-1d-spec-review.md` | **Type:** template | **Confidence:** HIGH | **Source line(s):** phase-1d:26–30
 
-**Used by:** Adversary dispatch logic in workflows (greenfield.lobster:269 model_tier dispatch)
+**Used by:** Adversary dispatch logic in workflows (`plugins/vsdd-factory/workflows/greenfield.lobster::spawn-adversary-spec-review` model_tier dispatch)
 
 #### Evidence Types Used
 
@@ -130,4 +130,11 @@ TBD
 #### Refactoring Notes
 
 No refactoring needed — template is a passive schema. Verification can be promoted from "document parses" to "all structural fields type-checked."
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `greenfield.lobster:269` → `plugins/vsdd-factory/workflows/greenfield.lobster::spawn-adversary-spec-review`. |
 

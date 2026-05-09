@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -105,7 +105,7 @@ Constructor validates `tonic::transport::Endpoint::from_shared(endpoint)` SHAPE 
 
 **Evidence (from pass-3):**
 
-> `sink-otel-grpc/src/lib.rs:285-291` (constructor validates endpoint shape via Endpoint::from_shared); `:607-619` (build_client with 5s connect, 10s call timeout); `:583-590` (lazy build in flush_buffer).
+> `crates/sink-otel-grpc/src/lib.rs::OtelGrpcSink::new` (constructor validates endpoint shape via Endpoint::from_shared); `crates/sink-otel-grpc/src/lib.rs::build_client` (with 5s connect, 10s call timeout); `crates/sink-otel-grpc/src/lib.rs::flush_buffer` (lazy build).
 
 #### Evidence Types Used
 
@@ -125,3 +125,11 @@ Constructor validates `tonic::transport::Endpoint::from_shared(endpoint)` SHAPE 
 
 TBD — Phase 1.6b will produce refactoring guidance.
 
+
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sink-otel-grpc/src/lib.rs:285-291` + `:607-619` + `:583-590` → `::OtelGrpcSink::new`, `::build_client`, `::flush_buffer`. |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -76,7 +76,7 @@ The adapter's 60-second wall-clock cap is intentionally MUCH larger than the dis
 
 | Property | Value |
 |----------|-------|
-| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs:48-54` |
+| **Path** | `crates/hook-plugins/legacy-bash-adapter/src/lib.rs::BASH_TIMEOUT_MS` |
 | **Confidence** | HIGH |
 | **Extraction Date** | 2026-04-25 |
 | **Extracted from** | `.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md` line `480` |
@@ -99,3 +99,10 @@ The adapter's 60-second wall-clock cap is intentionally MUCH larger than the dis
 #### Refactoring Notes
 
 (TBD — to be assessed in Phase 1.6b verification properties pass)
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `legacy-bash-adapter/src/lib.rs:48-54` → `legacy-bash-adapter/src/lib.rs::BASH_TIMEOUT_MS`. |

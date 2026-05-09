@@ -133,7 +133,13 @@ the 26 unported hooks as a planned future work item.
   lines 59–63 (legacy-bash-adapter decision), lines 251–283 (hooks-registry.toml
   example showing adapter capability block with `shell_bypass_acknowledged`),
   lines 545–554 (Phase 2 deliverables for legacy-bash-adapter).
-- **Code as-built:** `crates/hook-plugins/legacy-bash-adapter/src/lib.rs:1–50`
+- **Code as-built:** `crates/hook-plugins/legacy-bash-adapter/src/lib.rs § "module doc"`
   (module doc with flow description and `adapter_logic<F>` testability rationale).
 - **State tracking:** `.factory/STATE.md` line 125 (DRIFT-010 — "26 unported bash
   hooks block Windows native | MEDIUM | Tier E").
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 line citation: `legacy-bash-adapter/src/lib.rs:1–50` (module doc) → `legacy-bash-adapter/src/lib.rs § "module doc"`. |

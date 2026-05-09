@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-05-08T00:00:00
@@ -66,7 +66,7 @@ or `workflows/phases/` and are pure data parsed via `bin/lobster-parse` using
 | Input | Expected Output | Category |
 |-------|----------------|----------|
 | `greenfield.lobster` (1,409 LOC) | Parses successfully; `workflow.name`, `version: "2.1.0"`, `cost_monitoring`, `defaults` all present | happy-path |
-| `brownfield.lobster:1-23` | Parses successfully; `workflow.name`, `version: "3.0.0"` | happy-path |
+| `plugins/vsdd-factory/workflows/brownfield.lobster::workflow` | Parses successfully; `workflow.name`, `version: "3.0.0"` | happy-path |
 | File with two top-level keys | Rejected | error |
 
 ## Verification Properties
@@ -109,7 +109,7 @@ TBD
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/vsdd-factory/workflows/greenfield.lobster:1-30`; `brownfield.lobster:1-23`; `code-delivery.lobster:1-32`; `bin/lobster-parse::yq_stderr` |
+| **Path** | `plugins/vsdd-factory/workflows/greenfield.lobster::workflow`; `plugins/vsdd-factory/workflows/brownfield.lobster::workflow`; `plugins/vsdd-factory/workflows/code-delivery.lobster::workflow`; `bin/lobster-parse::yq_stderr` |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 
@@ -138,3 +138,4 @@ No refactoring needed — `.lobster` files are pure data; verification is schema
 |---------|------|--------|--------|
 | v1.1 | 2026-04-25 | codebase-analyzer | Initial authoring. |
 | v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 4 — migrated 2 line citations to stable anchors: `pass-3-behavioral-contracts-deep-r1.md:259` → `§ "GAP-C findings"` section anchor; `bin/lobster-parse:39-51` → `bin/lobster-parse::yq_stderr`. |
+| v1.3 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 2 body cites: `brownfield.lobster:1-23` → `brownfield.lobster::workflow` (test vector table and Source Evidence Path). `greenfield.lobster:1-30`, `code-delivery.lobster:1-32` → `::workflow` anchors. |
