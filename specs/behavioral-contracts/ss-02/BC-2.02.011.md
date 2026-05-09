@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: ready
 producer: product-owner
 timestamp: 2026-05-01T00:00:00Z
@@ -97,7 +97,7 @@ removal_reason: null
 
 ## Architecture Anchors
 
-- `crates/hook-sdk/src/host.rs` (new `pub fn write_file` after line 187, SDK wrapper)
+- `crates/hook-sdk/src/host.rs` (new `pub fn write_file` after the existing `pub fn read_file` declaration in `host.rs`, SDK wrapper)
 - `crates/hook-sdk/src/ffi.rs` (new `write_file` extern in `#[cfg(target_arch = "wasm32")]` block + `host_stubs`)
 - `crates/factory-dispatcher/src/host/write_file.rs` (new file, dispatcher binding, input-pointer protocol)
 - `crates/factory-dispatcher/src/host/mod.rs` (registration call in `setup_linker`, `allow_write` test helper)
@@ -153,4 +153,5 @@ S-8.10 — "SDK extension: host::write_file (D-6 Option A unblocker)" resolves O
 
 ## Changelog
 
+- v1.2 (2026-05-08): F-P18-002 prose-form line reference migration — 1 prose ref (`after line 187` in §Architecture Anchors) replaced with stable symbol anchor (after `pub fn read_file` declaration in `host.rs`).
 - v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 2) — 6 body cites migrated. `read_file.rs:92/101-107/73-77/36` and `lib.rs:58/43` and `host.rs:187` replaced with stable function/struct symbol anchors. Refactoring Notes cite also migrated.

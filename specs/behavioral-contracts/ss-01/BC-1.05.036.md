@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-03T00:00:00Z
@@ -63,7 +63,7 @@ On successful subprocess completion (any exit code, including non-zero), the dis
 - BC-1.05.001 — exec_subprocess capability check (depends on: this event fires only after the capability check passes)
 - BC-1.05.032 — timeout enforcement (sibling: timeout path returns `Err(TIMEOUT -2)` and emits NO event in v1; future error-path emit is out-of-scope per BC-1.05.036 Postcondition 5)
 - BC-1.05.005 — OUTPUT_TOO_LARGE path (sibling: output-too-large path returns `Err(OUTPUT_TOO_LARGE -3)` and emits NO event in v1; aligns with BC-1.05.036 Postcondition 5; NOTE: two distinct OUTPUT_TOO_LARGE paths exist — EC-005A subprocess-output-overflow at `exec_subprocess.rs::execute_bounded` (truncated check) and EC-005B result_buf_cap-overflow at `exec_subprocess.rs::register` (envelope-length check))
-- BC-1.05.035 — path canonicalization guard (sibling extension from same gap analysis). NOTE: BC-1.05.035 adds canonicalization for TOCTOU prevention. Symlink-resolved targets that fall outside `binary_allow` reach the existing CAPABILITY_DENIED path via emit_denial('binary_not_on_allow_list'). No novel error-code pairing introduced. All denial paths (including symlink-miss) return CAPABILITY_DENIED (-1), consistent with the 4 existing denial paths. Cross-dependency: BC-1.05.036's success-path event payload `binary` field (per Postcondition 2: `binary: String /* canonicalized full path */`) depends on BC-1.05.035 Postcondition 1 propagating the canonical path through to `Command::new(...)` at line 230. (NOTE: EC-006 lists field types but does not carry the 'canonicalized full path' annotation; Postcondition 2 is the canonical schema source-of-truth for that semantic.) If BC-1.05.035 Postcondition 1 is misimplemented (canonical at allow-check only, raw at spawn), BC-1.05.036's `binary` field will be the raw cmd — a contract violation in BC-1.05.036.
+- BC-1.05.035 — path canonicalization guard (sibling extension from same gap analysis). NOTE: BC-1.05.035 adds canonicalization for TOCTOU prevention. Symlink-resolved targets that fall outside `binary_allow` reach the existing CAPABILITY_DENIED path via emit_denial('binary_not_on_allow_list'). No novel error-code pairing introduced. All denial paths (including symlink-miss) return CAPABILITY_DENIED (-1), consistent with the 4 existing denial paths. Cross-dependency: BC-1.05.036's success-path event payload `binary` field (per Postcondition 2: `binary: String /* canonicalized full path */`) depends on BC-1.05.035 Postcondition 1 propagating the canonical path through to the `Command::new(canonical_path)` call in `exec_subprocess.rs::execute_bounded`. (NOTE: EC-006 lists field types but does not carry the 'canonicalized full path' annotation; Postcondition 2 is the canonical schema source-of-truth for that semantic.) If BC-1.05.035 Postcondition 1 is misimplemented (canonical at allow-check only, raw at spawn), BC-1.05.036's `binary` field will be the raw cmd — a contract violation in BC-1.05.036.
 
 ## Architecture Anchors
 
@@ -178,4 +178,5 @@ S-9.07 (validate-wave-gate-prerequisite WASM port) — implementation task
 
 ## Changelog
 
+- v1.2 (2026-05-08): F-P18-002 prose-form line reference migration — 1 prose ref (`at line 230` in §Related BCs) replaced with stable symbol anchor (`exec_subprocess.rs::execute_bounded` Command::new call).
 - v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 1) — 44 cites migrated from `file.ext:NNN` line-number form to stable symbol anchors (`::function`, `::method`, `::constant`).
