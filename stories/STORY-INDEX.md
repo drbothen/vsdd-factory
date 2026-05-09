@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.57"
+version: "2.58"
 status: current
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
-last_amended: "2026-05-09 (v2.57) — F5 fix-burst-30 (F-P31-002): Status Summary corrected — merged 57→62, draft 28→23 (post-W-15 merges: S-9.00, S-13.01, S-12.01, S-12.02, S-12.06, S-15.01; plus S-3.04 reclassification). Prose epic count 15→16 (F-P31-002). story_count unchanged (93). STORY-INDEX v2.56→v2.57."
+last_amended: "2026-05-09 (v2.58) — F5 fix-burst-33 (F-P34-001): S-15.01 row Status column ready → merged (matches S-15.01.md:8 frontmatter status: merged, merged_in: PR-106, merge_sha: 453eee1). Fix-burst-32 observed drift but incorrectly classified as out-of-scope; corrected by F-P34-001. STORY-INDEX v2.57→v2.58."
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -571,7 +571,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 | Story ID | Title | Epic | Points | Priority | Depends On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
-| S-15.01 | Plugin async semantics — full implementation (schema v2 + dispatcher partition + classification + envelope flip + CI lint) | E-15 | 13 | P1 | [] | [] | ready | [BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001] (18 ACs, 30 files, tdd_mode strict; v1.20 2026-05-08; MERGED PR #106 at 453eee1; F3 CONVERGED pass-5 (3_of_3); F5 fix-burst-16: VP-079 v1.16 + BC-3.08.001 v1.11; AC-018 stale bats range corrected (F-P17-003 sibling gap closed)) |
+| S-15.01 | Plugin async semantics — full implementation (schema v2 + dispatcher partition + classification + envelope flip + CI lint) | E-15 | 13 | P1 | [] | [] | merged | [BC-1.14.001, BC-7.06.001, BC-9.01.006, BC-3.08.001, BC-1.08.001] (18 ACs, 30 files, tdd_mode strict; v1.20 2026-05-08; MERGED PR #106 at 453eee1; F3 CONVERGED pass-5 (3_of_3); F5 fix-burst-16: VP-079 v1.16 + BC-3.08.001 v1.11; AC-018 stale bats range corrected (F-P17-003 sibling gap closed)) |
 | S-15.02 | Dispatcher cold-start optimization — daemon mode + WASM AOT cache | E-15 | TBD | P2 | [S-15.01] | [] | draft | [] (F5 pass-1 path-A follow-up per ADR-020 §Out of Scope; v1.8 2026-05-08; version-label propagation fix-burst-14; BC authorship deferred to elaboration phase) |
 <!-- S-15.03 moved to E-12 table per F-P21-003 (fix-burst-20): epic E-15 → E-12; subsystems [SS-04] → [SS-01, SS-04] -->
 

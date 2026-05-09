@@ -570,6 +570,8 @@ Fix-burst-32 verification (this closure):
 - VP-INDEX VP-076 Domain Invariant: `—` → `DI-004` (matches VP-076.md:32-33 source list-form `- DI-004 (...)`).
 - Corpus-wide per-row sibling-cell audit on all 79 VP-INDEX rows: 2 DI drifts found and fixed (VP-074 + VP-076); 0 Scope drifts found; all other rows clean.
 - Sample audit on 10 BC-INDEX rows (BC-1.01.001, BC-1.02.001, BC-1.07.005, BC-1.14.001, BC-3.08.001, BC-4.12.003, BC-4.12.004, BC-7.06.001, BC-2.01.001, BC-5.39.001): 0 status-cell drifts found.
-- Sample audit on 11 STORY-INDEX rows (S-0.01, S-1.02, S-1.03, S-2.06, S-3.03, S-4.09, S-5.01, S-9.00, S-15.01, S-15.02, S-15.03): S-15.01 index status `ready` vs source `merged` noted as pre-existing non-LPP-28-001 drift (column-count variation in row format; different tracking pattern; not patched in this burst).
+- Sample audit on 11 STORY-INDEX rows (S-0.01, S-1.02, S-1.03, S-2.06, S-3.03, S-4.09, S-5.01, S-9.00, S-15.01, S-15.02, S-15.03): S-15.01 index status `ready` vs source `merged` noted and classified as out-of-scope with rationale "column-count variation in row format; different tracking pattern; not patched in this burst".
+
+**CORRECTION (fix-burst-33, F-P34-001 closure):** The fix-burst-32 audit observed S-15.01 STORY-INDEX Status column drift (`ready` vs source `merged`) but classified as out-of-scope on rationale "column-count variation". This rationale was incorrect — the Status column is a single-token enum (merged/ready/partial/completed/draft) structurally identical across the table. Drift IS within L-P28-001 sibling-cell scope. F-P34-001 closed: STORY-INDEX:574 Status `ready` → `merged`; STORY-INDEX v2.57→v2.58.
 
 Mechanical enforcement (S-15.03 hook scope) remains the structurally-convergent path.

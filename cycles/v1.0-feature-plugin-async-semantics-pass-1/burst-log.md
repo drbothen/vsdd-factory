@@ -1949,3 +1949,43 @@ Findings closed: F-P33-001 (MEDIUM)
 Corpus sweep: 79 VP-INDEX rows audited (2 DI drifts found+fixed; 0 scope drifts); 10 BC-INDEX sample rows (0 drifts); 11 STORY-INDEX sample rows (0 spec-layer drifts)
 ADR-013 clock: 0_of_3 (RESET — pass-33 MED)
 Pass-34 next.
+
+---
+
+*(Archived from STATE.md Current Phase Steps during fix-burst-33 compaction — passes 27–31 + fix-bursts 26–30)*
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| **F5 pass-27 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P27-001..007). F-P27-001: 56 stories missing frontmatter; F-P27-002: 16 lessons missing verification blocks; F-P27-003: 56 merged stories §Tasks unannotated; F-P27-004: L-P25-002 F1-amendment scope; F-P27-005: VP-INDEX kani vs kani-proof; F-P27-006: L-P26-002 migration clause; F-P27-007: BC-INDEX last_amended backfill. ADR-013: 0_of_3. 10 consecutive HIGH. |
+| **F5 fix-burst-26 sub-burst 1 (4c26e809) — F-P27-001 historic frontmatter retrofit** | state-manager | **DONE** | 56 stories: 18 migrated from legacy `pr: NN`, 38 backfilled missing metadata. F-P27-001 closed. |
+| **F5 fix-burst-26 sub-burst 2 — META-META closure (F-P27-002..007)** | state-manager | **DONE** | 56 stories POST-MERGE annotated; 16 lessons verification blocks; L-P25-002 scope expanded; VP-INDEX v1.35 (kani-proof); L-P26-002 migration clause; BC-INDEX v1.51 (last_amended backfill). ARCH-INDEX v1.31, STORY-INDEX v2.56. F-P27-002..007 closed. |
+| **F5 pass-28 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P28-001..005). F-P28-001 VP-070/071 source frontmatter proof_method drift; F-P28-002 L-P26-002 missing none sentinel; F-P28-003 VP-INDEX changelog entry; F-P28-004 TD-031 commit record; F-P28-005 STATE.md. ADR-013: 0_of_3. 11 consecutive HIGH. |
+| **F5 fix-burst-27 (bc7ae728 + 7b841eca + this commit)** | spec-writer + state-manager | **DONE** | Sub-burst 1 (bc7ae728): VP-070.md v1.2→v1.3 + VP-071.md v1.2→v1.3 source frontmatter proof_method kani→kani-proof. Sub-burst 2 (this): VP-INDEX v1.36 + L-P28-001 codified + L-P26-002 sentinel + TD-031 recorded + STATE.md. F-P28-001..005 closed. |
+| **F5 pass-29 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P29-001..004). F-P29-001 VP-074 proof_method kani (META); F-P29-002 STATE.md arithmetic; F-P29-003 L-P26-002 verification block; F-P29-004 VP-070 last_amended. ADR-013: 0_of_3. 12 consecutive HIGH. |
+| **F5 fix-burst-28 — VP-074 + arithmetic + L-P26-002 verification block + VP-070 last_amended** | state-manager | **DONE** | VP-074 v1.0→v1.1, VP-070 last_amended added, VP-INDEX v1.37, STATE.md arithmetic reconciled, L-P26-002 verification block (21 stories). TD-031 updated. F-P29-001..004 closed. |
+| **F5 pass-30 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P30-001..004). F-P30-001 ADR count 19→20; F-P30-002 L-P28-001 stale verification block; F-P30-003 STATE.md historic 1931 annotation; F-P30-004 subsystem format drift (deferred). ADR-013: 0_of_3. 13 consecutive HIGH. Note: 1 HIGH only (vs 2-3 prior passes) — trajectory bending toward NIT. |
+| **F5 fix-burst-29 — STATE.md ADR count + L-P28-001 META amendment + E-10 annotation + TD-032 + compact** | state-manager | **DONE** | F-P30-001..004 closed/deferred. STATE.md compacted (passes 23-26 archived). TD-032 added (subsystem format drift; S-15.03 scope). L-P28-001 META-META closure. |
+| **F5 pass-31 adversary review** | adversary | **DONE — verdict HIGH** | Verdict: HIGH (F-P31-001..004). F-P31-001 VP-074 Breakdown table drift; F-P31-002 STORY-INDEX status summary stale; F-P31-003 STATE.md Epic count 15→16; F-P31-004 STATE.md session checkpoint pass-29→pass-30. ADR-013: 0_of_3. 14th consecutive HIGH. |
+| **F5 fix-burst-30 — VP-074 breakdown + STORY-INDEX summary + STATE identifier audit** | state-manager | **DONE** | F-P31-001..004 closed. VP-INDEX v1.37→v1.38 (Breakdown: integration 22→21, kani-proof 3→4; Full Index VP-074 row integration→kani-proof). STORY-INDEX v2.56→v2.57 (merged 57→62, draft 28→23, prose 15→16 epics). STATE.md Epic 15→16, checkpoint pass-29→pass-30. L-P28-001 amended (Breakdown-table audit step). TD-031 updated. |
+
+## Pass-34 Adversary Review (2026-05-09)
+
+Verdict: MED (0H + 1M + 0L). 17th consecutive non-NIT pass. Trajectory stable at 1M. ADR-013 RESETS to 0_of_3.
+
+- F-P34-001 [MEDIUM]: STORY-INDEX S-15.01 row Status column `ready` (should be `merged`). Source S-15.01.md:8 frontmatter: `status: merged`, `merged_at: 2026-05-08`, `merged_in: PR-106`, `merge_sha: 453eee1`. Fix-burst-32 explicitly observed this drift but classified as "out-of-scope" with rationale "column-count variation" — rationale incorrect; Status column is single-token enum identical across all rows.
+
+## Fix-burst-33 State-Manager Close (2026-05-09)
+
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/stories/STORY-INDEX.md` | v2.57→v2.58 | F-P34-001: S-15.01 row Status column `ready` → `merged`. Frontmatter version + last_amended bumped. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/lessons.md` | — | L-P28-001 META-META-META block: fix-burst-32 incorrect "column-count variation" carve-out corrected. CORRECTION block added. |
+| `.factory/STATE.md` | — | current_step updated; Current Phase Steps compacted (passes 27-31 + fix-bursts 26-30 archived to burst-log); pass-34 row updated to DONE; fix-burst-33 row added; session resume checkpoint updated; index versions (STORY-INDEX v2.58). |
+| `.factory/tech-debt-register.md` | — | TD-031 fix-burst-33 follow-up appended: F-P34-001 closure + lessons.md correction. |
+| `.factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | — | pass-34 + fix-burst-33 entries (this entry). |
+
+Findings closed: F-P34-001 (MEDIUM)
+ADR-013 clock: 0_of_3 (RESET — pass-34 MED)
+Pass-35 next.
