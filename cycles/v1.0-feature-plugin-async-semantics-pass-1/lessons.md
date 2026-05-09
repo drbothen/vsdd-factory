@@ -497,7 +497,14 @@ This rule is the SAME-burst sibling of L-P24-002 but stated at the codification-
 
 **Pre-GitHub-PR sentinel (added fix-burst-27 sub-burst 2, F-P28-002):** For stories merged before GitHub PR tracking began (pre-PR-6 era; approximately 21 historic stories from S-0.x/S-1.x/S-2.x series), the canonical placeholder is `merged_in: none` and `merge_sha:` MUST hold the actual squash/merge commit SHA. Lint enforcement MUST treat `none` as a valid sentinel value for `merged_in:` and fall back to `merge_sha:` presence as the truth condition for merge-status verification. New PRs MUST NOT use `merged_in: none` — this sentinel is exclusively for pre-PR-6 historic stories.
 
-[codified] — fix-burst-25 sub-burst 3. Updated fix-burst-26 sub-burst 2: migration clause added for legacy `pr:` field. F-P27-006 closure. Updated fix-burst-27 sub-burst 2: `merged_in: none` sentinel added for pre-GitHub-PR historic stories. F-P28-002 closure.
+[codified] — fix-burst-25 sub-burst 3. Updated fix-burst-26 sub-burst 2: migration clause added for legacy `pr:` field. F-P27-006 closure. Updated fix-burst-27 sub-burst 2: `merged_in: none` sentinel added for pre-GitHub-PR historic stories. F-P28-002 closure. Updated fix-burst-28: verification block added per L-P26-001 mandate. F-P29-003 closure.
+
+**Verified retroactively in fix-burst-28 (this burst):** 21 historic stories carry `merged_in: none` per the sentinel rule:
+- S-0.01, S-0.02, S-0.03, S-0.04, S-0.05
+- S-1.01, S-1.02, S-1.03, S-1.04, S-1.05, S-1.06, S-1.07, S-1.08, S-1.09
+- S-2.01, S-2.02, S-2.03, S-2.04, S-2.06, S-2.07, S-2.08
+
+Each has `merge_sha:` populated with the actual commit SHA. The sentinel rule is correctly applied across the historic-merged-story corpus (`grep -rln '^merged_in: none' .factory/stories/` returns exactly 21 files). F-P29-003 closure.
 
 **Verified retroactively in fix-burst-26 sub-burst 1 (4c26e809):** 56 historic merged stories' frontmatter retrofitted to 4-field schema (status: merged + merged_at + merged_in + merge_sha); 18 migrated from legacy `pr: NN`; 38 backfilled missing metadata. F-P27-001 closure.
 

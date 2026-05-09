@@ -1790,3 +1790,41 @@ User directive: continue protocol.
 - F-P28-004 closed (TD-031 fix-burst-27 commits recorded)
 - F-P28-005 closed (STATE.md fully updated)
 - Fix-burst-27 COMPLETE — F-P28-001..005 all closed; 11-pass HIGH streak; pass-29 next
+
+---
+
+## Pass-29 adversary review + Fix-burst-28
+
+### Pass-29 adversary review
+
+**Date:** 2026-05-09
+**Agent:** adversary
+**Verdict:** HIGH — 12th consecutive HIGH. ADR-013 RESET to 0_of_3.
+
+| Finding | Severity | Description |
+|---------|----------|-------------|
+| F-P29-001 | HIGH | VP-074.md frontmatter `proof_method: kani` — L-P28-001 META self-application failure (VP-074 missed by fix-burst-27 sweep) |
+| F-P29-002 | HIGH | STATE.md Story Status arithmetic doesn't balance: total claims 93 but bucket sum = 89; Partial (1) undercounts (S-3.04 also partial); Draft (25) overcounts (includes 15 unauthored stub IDs) |
+| F-P29-003 | MEDIUM | L-P26-002 sentinel sub-rule amendment lacks verification block per L-P26-001 |
+| F-P29-004 | MEDIUM | VP-070 missing `last_amended` while sibling VP-071 has it (asymmetric treatment from same fix-burst) |
+
+### Fix-burst-28
+
+**Date:** 2026-05-09
+**Agent:** state-manager (POLICY 3 run-last)
+
+| File | Version | Change |
+|------|---------|--------|
+| `.factory/specs/verification-properties/VP-074.md` | v1.0 → v1.1 | Frontmatter `proof_method: kani` → `kani-proof`; `last_amended: 2026-05-09` added; Changelog section added with v1.0 + v1.1 rows. L-P28-001 META self-application fix. |
+| `.factory/specs/verification-properties/VP-070.md` | v1.3 (no bump) | `last_amended: 2026-05-09` added to frontmatter (F-P29-004 sibling-discipline parity with VP-071). |
+| `VP-INDEX.md` | v1.36 → v1.37 | v1.37 changelog entry: VP-074 v1.0→v1.1 source frontmatter proof_method sync; VP-070 last_amended field add. VP-074 table row description updated to note v1.1. |
+| `STATE.md` | — | Story Status arithmetic reconciled: Partial (2) S-2.05 + S-3.04; Draft (23 file-resident); 15 unauthored stub IDs documented separately. current_step, Last Updated, Phase Progress (pass-29 DONE, fix-burst-28 DONE, pass-30 NEXT), Concurrent Cycles, Session Resume Checkpoint updated. Index versions: VP-INDEX v1.37. |
+| `lessons.md` | — | L-P26-002 sentinel sub-rule: verification block added listing 21 pre-PR-6 stories with `merged_in: none`. F-P29-003 closure. Codification note updated. |
+| `tech-debt-register.md` | — | TD-031: fix-burst-28 follow-up appended (VP-074 META fix + arithmetic + L-P26-002 verification block + VP-070 last_amended; 12-pass HIGH streak noted). |
+| `burst-log.md` | — | pass-29 + fix-burst-28 entries (this entry). |
+
+- F-P29-001 closed (VP-074 proof_method kani→kani-proof; `grep -rn '^proof_method: kani$' .factory/specs/verification-properties/` returns 0 matches)
+- F-P29-002 closed (STATE.md story arithmetic reconciled)
+- F-P29-003 closed (L-P26-002 verification block added; 21 stories confirmed)
+- F-P29-004 closed (VP-070 `last_amended: 2026-05-09` added)
+- Fix-burst-28 COMPLETE — F-P29-001..004 all closed; 12-pass HIGH streak; pass-30 next

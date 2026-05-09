@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.36"
+version: "1.37"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
@@ -9,6 +9,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-09
+    change: "v1.37 (2026-05-09; fix-burst-28): F-P29-001 — VP-074 v1.0→v1.1 frontmatter proof_method kani→kani-proof (L-P28-001 META self-application fix; last instance of bare kani value). VP-070 last_amended field added (F-P29-004 sibling-discipline parity with VP-071). No VP count change. VP-INDEX v1.36→v1.37. Refs: F-P29-001, F-P29-004, fix-burst-28."
   - date: 2026-05-09
     change: "v1.36 (2026-05-09; fix-burst-27 sub-burst 2): F-P28-001 — VP-070 v1.3 + VP-071 v1.3 source frontmatter proof_method synced kani→kani-proof (fix-burst-27 sub-burst 1 commit bc7ae728; closes F-P27-005 partial closure). No VP count change. VP-INDEX v1.35→v1.36. Refs: F-P28-001, fix-burst-27 sub-burst 1 (bc7ae728)."
   - date: 2026-05-09
@@ -194,7 +196,7 @@ changelog:
 | [VP-071](VP-071.md) | validate-per-story-adversary-convergence Block Invariant | safety | kani-proof | SS-04 | — | draft |
 | [VP-072](VP-072.md) | artifact-path-registry.yaml Single Source of Truth — All Writers Resolve Through Registry | invariant | integration | SS-04 | — | draft |
 | [VP-073](VP-073.md) | Resolver-Load Purity — resolver WASM module loading must be pure: same registry file always produces same resolver set, no side effects | invariant | integration | SS-01, SS-04 | — | draft |
-| [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process | safety | integration | SS-04 | — | draft |
+| [VP-074](VP-074.md) | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher process (v1.1: fix-burst-28 F-P29-001 — frontmatter proof_method kani→kani-proof; L-P28-001 META self-application fix) | safety | integration | SS-04 | — | draft |
 | [VP-075](VP-075.md) | Context-Injection Determinism — same resolver input always produces same output; merging is order-independent when keys are disjoint | invariant | proptest | SS-01, SS-04 | — | draft |
 | [VP-076](VP-076.md) | Resolver-Capability Confinement — resolver cannot access paths outside declared `path_allow` list | safety | integration | SS-04 | — | draft |
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.13: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep + F-P26-007 harness skeleton tuple → PluginPartition struct; v1.12: F5 fix-burst-24 — Kani harness assumptions updated to reflect merged partition.rs) | invariant | kani-proof | SS-01 | — | draft |
