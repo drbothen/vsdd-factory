@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-08T00:00:00Z
-phase: post-rc11-shipped
+timestamp: 2026-05-09T17:05:00Z
+phase: post-rc13-prep-merged
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "CRITICAL FIX LANDED — PR #110 MERGED 80c282f1 2026-05-09. crashed/timed-out sync gate hooks now fail-closed (exit 2) per ADR-019 Decision 2. TC-8 + TC-12 assert correct semantics. Plugin async semantics validation COMPLETE end-to-end. Ready for rc.13 release-prep PR."
+current_step: "RC.13 RELEASE-PREP MERGED — PR #111 SQUASH-MERGED e3af1a16 2026-05-09. HOST_ABI +5 async sections, hooks-registry 2 async flips, CHANGELOG rc.13 entry, 33 new integration tests (10+23). All upstream PRs #106-110 merged. Ready for v1.0.0-rc.13 tag cut."
 current_cycle: v1.0-feature-plugin-async-semantics-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 — CRITICAL FIX LANDED. PR #110 MERGED (squash SHA 80c282f1). crashed/timed-out sync gate hooks fail-closed (exit 2). TC-8 + TC-12 integration tests assert correct semantics. Plugin async semantics validation COMPLETE. |
-| **Current Phase** | CYCLE_CLOSED — v1.0-feature-plugin-async-semantics-pass-1 COMPLETE. Critical fix (PR #110) closes silent fail-open security gap. Next: rc.13 release-prep PR. |
+| **Last Updated** | 2026-05-09 — RC.13 RELEASE-PREP MERGED. PR #111 SQUASH-MERGED (SHA e3af1a16). HOST_ABI +5 async sections; hooks-registry 2 async flips; CHANGELOG rc.13 entry; 33 new integration tests (10 abs-path + 23 async-partition). Branch release/v1.0.0-rc.13-prep deleted. |
+| **Current Phase** | RC.13 PREP COMPLETE — all consolidation landed. 6 source branches can be deleted (sandbox-blocked). Next: v1.0.0-rc.13 tag cut. TC-5 flake follow-up tracked as S-15.02 pre-work. |
 | **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
 
 ## Convergence Summary — E-9 v1.7 Amendment Sweep
@@ -141,7 +141,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | fb3e297 | rc.11 bot bundle commit; latest release |
-| develop | 80c282f1 | PR #110 critical fix squash-merge 2026-05-09 (crashed/timed-out sync gate hooks fail-closed) |
+| develop | e3af1a16 | PR #111 rc.13 release-prep squash-merge 2026-05-09 (HOST_ABI + async flips + CHANGELOG + 33 integration tests) |
 | factory-artifacts | (see git log) | fix-burst-27 sub-burst 2 state-manager close — this commit |
 | v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06; spec corpus now aligned |
 | v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
@@ -153,7 +153,7 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused by user to work on engine-discipline cycle; see D-343 |
 | v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first). See `cycles/v1.0-feature-engine-discipline-pass-1/` |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | **CONVERGED 2026-05-09** | F5 CONVERGENCE_REACHED at pass-57 (ADR-013 3_of_3). 40 passes (P18-P57); 49 fix-bursts; 19 L-P28-001 META instances. PR `fix/S-15.01-F5-convergence` @ 7b841eca UNBLOCKED. |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | **CLOSED — ALL PRs MERGED** | F5 CONVERGENCE_REACHED at pass-57 (ADR-013 3_of_3). PRs #106-#111 all merged to develop. RC.13 prep complete. Tag cut next. |
 
 ## Decisions Log
 
