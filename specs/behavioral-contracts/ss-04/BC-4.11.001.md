@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
-timestamp: 2026-05-06T00:00:00Z
+timestamp: 2026-05-08T00:00:00Z
 phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
@@ -56,7 +56,9 @@ The hook uses `HOST_ABI_VERSION = 1` and the canonical Why/Fix/Code block-messag
 
 1. The hook reads `plugins/vsdd-factory/config/artifact-path-registry.yaml` via `host::read_file`
    on each invocation. The registry is never embedded as literals in the hook source.
-2. For each `Write`/`Edit` call where `tool_input.file_path` targets `.factory/`:
+2. For each `Write`/`Edit` call where `tool_input.file_path` targets `.factory/` — in
+   either relative form (e.g., `.factory/specs/foo.md`) or absolute form (e.g.,
+   `/abs/proj/.factory/specs/foo.md`); see Invariant 8 for path-form recognition discipline:
    a. The hook extracts the file path from the payload.
    b. The hook attempts to match the path against each registered pattern in the registry.
    c. Each registry entry has an `enforcement_level` field: `block | warn | advisory`.
@@ -79,7 +81,9 @@ The hook uses `HOST_ABI_VERSION = 1` and the canonical Why/Fix/Code block-messag
      - `code`: `"ARTIFACT_PATH_UNREGISTERED"`
    - The write is BLOCKED.
 7. **Path is outside `.factory/`:** Hook returns `HookResult::Continue` immediately. No
-   registry lookup. (The hook is scoped to `.factory/` paths only.)
+   registry lookup. (The hook is scoped to `.factory/` paths only — for both relative AND
+   absolute path forms; see Invariant 8. A path like `prefix.factory/foo.md` does NOT
+   qualify as a `.factory/` path under the leading-slash discipline.)
 8. The 9 creation skills (`create-adr`, `create-architecture`, `create-brief`,
    `create-domain-spec`, `create-excalidraw`, `create-prd`, `create-story`,
    `register-artifact`, `conform-to-template`) MUST read the registry via `Read` tool at
@@ -110,6 +114,22 @@ The hook uses `HOST_ABI_VERSION = 1` and the canonical Why/Fix/Code block-messag
 7. The relocate-artifact delivery prerequisite (Postcondition 5) is a hard sequencing
    constraint. Registering the hook before `relocate-artifact --apply` produces zero
    violations is a delivery error.
+8. **I-4.11.001-8 (Path Form Invariance):** The hook MUST accept `tool_input.file_path`
+   in both relative form (e.g., `.factory/specs/foo.md`) and absolute form (e.g.,
+   `/abs/proj/.factory/specs/foo.md`). Recognition of `.factory/` is by leading-slash
+   discipline implemented in `crates/hook-plugins/validate-artifact-path/src/lib.rs`:
+   - **Relative form:** `path.starts_with(".factory/")` — used as-is for registry matching.
+   - **Absolute form:** `path.find("/.factory/")` — the prefix up to and including the
+     leading slash is stripped, yielding the `.factory/…` relative form for registry matching.
+   - **False-positive prevention:** A path like `prefix.factory/foo.md` contains no `/`
+     immediately before `.factory/`, so it does NOT satisfy either condition and is treated
+     as outside `.factory/` scope (early-exit `Continue`). The leading slash is the
+     discriminator.
+   This invariant was introduced by commit 8b4f697f (which propagated the sibling fix from
+   `validate-stable-anchors` cc5a016b) and applies identically in both `matches_canonical`
+   (the pure matching function) and `hook_logic` (the entry-point dispatcher) in `lib.rs`.
+   A re-implementation that only accepts relative paths silently bypasses absolute-path
+   `Write`/`Edit` calls, re-introducing the F-P18-001 class of bug.
 
 ## Edge Cases
 
@@ -189,3 +209,4 @@ Story C — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 |---------|------|-------------|
 | 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ5 resolution applied: immediate `block` mode from registration — no phased warn-then-block rollout for the hook itself. Enforcement_level field in registry governs per-entry behavior (block/warn/advisory), not a global rollout phase. D-337 constraint applied: WASM-only. |
 | 1.1 | 2026-05-07 | Invariant 6 amendment (architect; NC-1, F5 pass-1 fix burst): `{placeholder}` semantics tightened from "any non-empty path segment or sequence of segments" to "single path segment (no `/`)". This is Option A per Appendix A of F5-pass-1-fix-plan.md and matches the implemented behavior in `validate-artifact-path/src/lib.rs`. Input-hash recomputed from `[pending-recompute]` to `40a6fb6`. |
+| 1.2 | 2026-05-08 | F-P19-003 — explicit absolute-path semantics + leading-slash discipline (8b4f697f introduced behavior; spec was silent). Added Invariant 8 (Path Form Invariance) with full leading-slash discipline sourced from `crates/hook-plugins/validate-artifact-path/src/lib.rs` (`matches_canonical` and `hook_logic`). Amended Postconditions 2 and 7 to cross-reference Invariant 8. A re-implementer reading v1.1 spec alone could produce a relative-only hook and re-introduce the F-P18-001 bug. Refs: F-P19-003, F-P18-001. |
