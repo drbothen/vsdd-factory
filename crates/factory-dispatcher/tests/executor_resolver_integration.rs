@@ -393,6 +393,25 @@ async fn ac005_resolver_not_found_event_appears_in_internal_log() {
         "F-P3-003: 'resolver.not_found' event must carry the correct hook_name. \
          Log content: {all_log_content:?}"
     );
+
+    // F-S12.04-P7-003: positive-coverage for trace_id + session_id provenance triplet.
+    // Catches silent regression of with_trace_id() / with_session_id() in the resolver.not_found
+    // event constructor. Mirrors the f_p2_007_resolver_error_test pattern (POL-11).
+    // make_executor_inputs sets: session_id = "sess-resolver-test", trace_id = "trace-resolver-test"
+    assert!(
+        all_log_content.contains("resolver-test-trace")
+            || all_log_content.contains("trace-resolver-test"),
+        "F-P7-003: resolver.not_found event must include trace_id literal. Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("sess-resolver-test"),
+        "F-P7-003: resolver.not_found event must include session_id literal. Log content: {all_log_content:?}"
+    );
+    // plugin_name positive-coverage (entry.name)
+    assert!(
+        all_log_content.contains("not-found-hook"),
+        "F-P7-003: resolver.not_found event must include hook plugin_name (entry.name). Log content: {all_log_content:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
