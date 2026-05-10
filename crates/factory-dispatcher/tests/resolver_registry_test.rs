@@ -4,10 +4,11 @@
 //! Each test traces to an AC from S-12.03 and to the relevant clause of
 //! BC-1.13.001 or BC-4.12.005.
 //!
-//! **Red Gate rule:** All tests below call production code that is currently
-//! `todo!()` stubs.  They must FAIL with a `todo!()` panic caught via
-//! `std::panic::catch_unwind` — not with assertion failures in the test body
-//! itself.  Once the implementer fills in the stubs the tests will turn GREEN.
+//! All tests below call production code that is fully implemented (per S-12.03 GREEN gate).
+//! The `std::panic::catch_unwind` wrappers in the test bodies are historical Red Gate
+//! scaffolding that survived through the GREEN gate; they remain harmless and serve as
+//! defense-in-depth against any future regression where production logic might re-introduce
+//! a panic.
 //!
 //! BC: BC-1.13.001, BC-4.12.005
 //! Story: S-12.03
@@ -844,10 +845,13 @@ fn test_BC_4_12_005_ac012_duplicate_name_registration_returns_error() {
          register returns Err, not panics)"
     );
     let dup_outcome = dup_result.unwrap();
-    assert!(
-        dup_outcome.is_err(),
-        "register('foo') a second time must return Err \
-         (AC-012 / BC-4.12.005 PC6 — duplicate context_key is registry-load error)"
+    let err = dup_outcome.unwrap_err();
+    assert_eq!(
+        err,
+        ResolverError::DuplicateName {
+            name: "foo".to_string()
+        },
+        "AC-012 / BC-4.12.005 PC6 — duplicate must produce DuplicateName, not any other ResolverError variant (variant identity per F-P2-003 PartialEq derives)"
     );
 
     // Registry must still contain exactly one "foo" resolver (first preserved).
