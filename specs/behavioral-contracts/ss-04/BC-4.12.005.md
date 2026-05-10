@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -77,7 +77,8 @@ wholesale.
 5. **Static config key collision:** If a resolver outputs a key that already exists in the
    static hooks-registry `plugin_config`, the resolver output wins (resolver output overlays
    static config). A `resolver.merge_collision` telemetry event is emitted with the key name,
-   static value, and resolver value. This collision is not an error — it is an expected
+   static value, resolver value, and `resolver_name` (the registry name of the resolver whose
+   output produced the collision). This collision is not an error — it is an expected
    override pattern (e.g., a resolver enriching a static key with dynamic data).
 6. **Duplicate `context_key` at registry-load time (fail-loud):** If `resolvers-registry.toml`
    declares two resolver entries with the same `name` (i.e., two entries that would produce
@@ -193,3 +194,4 @@ S-12.03 (ContextResolver trait + ResolverRegistry in-memory) — v1.0-feature-en
 |---------|------|-------------|
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Additive overlay semantics; whole-value replacement (no deep merge); duplicate context_key is a registry-load error (fail-loud); None output leaves key absent. OD-5 (no inter-resolver dependencies) encoded in Invariant 4 and PC8. |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.03 → S-12.03, S-12.06, S-12.07, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.07 + S-12.08; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
+| 1.2 | 2026-05-10 | F-P6-003 — PC5 updated to include `resolver_name` in `resolver.merge_collision` event field description; HOST_ABI resolver.merge_collision field table added with `resolver_name` column. Refs: F-P6-003, adversary-pass-6. |
