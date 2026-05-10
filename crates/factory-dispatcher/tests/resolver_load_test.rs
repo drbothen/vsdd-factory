@@ -511,6 +511,10 @@ path_allow = ["{}"]
 ///
 /// F-P2-001: set_epoch_deadline must be called on the Store BEFORE instantiation;
 /// this test is the regression guard.
+///
+/// F-P3-002: Trap::Interrupt now classifies to ResolverError::Timeout (not Trap).
+/// This test asserts ONLY Timeout — if epoch interruption mis-classifies to Trap,
+/// the test fails and catches the regression.
 #[test]
 fn test_F_P2_001_epoch_deadline_fires_resolver_timeout() {
     use factory_dispatcher::resolver::ResolverInput;
@@ -574,6 +578,8 @@ context_key = "long_running_ctx"
         elapsed.as_millis()
     );
 
+    // F-P3-002: Trap::Interrupt now classifies to ResolverError::Timeout via classify_resolver_trap.
+    // This arm is the regression guard: if epoch interruption mis-classifies to Trap, this fails.
     match result {
         Err(factory_dispatcher::resolver::ResolverError::Timeout { name }) => {
             assert_eq!(
@@ -581,20 +587,11 @@ context_key = "long_running_ctx"
                 "F-P2-001: Timeout.name must equal the registered resolver name"
             );
         }
-        Err(factory_dispatcher::resolver::ResolverError::Trap { name, detail }) => {
-            // Epoch interruption surfaces as a Trap in some wasmtime versions.
-            // This is also acceptable — the key invariant is the resolver did not hang.
-            assert_eq!(
-                name, "long-running-resolver",
-                "F-P2-001: Trap.name must equal the registered resolver name"
-            );
-            // detail must mention interruption or epoch
-            let _ = detail; // non-empty confirmed by assert_eq above succeeding
-        }
         other => {
             panic!(
-                "F-P2-001: expected ResolverError::Timeout (or Trap from epoch interruption) \
-                 from long_running_resolver.wasm but got {:?} in {}ms",
+                "F-P2-001 / F-P3-002: expected ONLY ResolverError::Timeout from \
+                 long_running_resolver.wasm — epoch interruption must classify to Timeout \
+                 (not Trap) per F-P3-002. Got {:?} in {}ms",
                 other,
                 elapsed.as_millis()
             );

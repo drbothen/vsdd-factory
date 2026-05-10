@@ -1,8 +1,13 @@
-//! `classify_resolver_trap` — maps wasmtime `Trap` to `ResolverError::Trap`.
+//! `classify_resolver_trap` — maps wasmtime `Trap` to `ResolverError`.
 //!
 //! When a WASM resolver module traps during execution, the host linker
 //! catches the `wasmtime::Trap` and calls this function to produce a
 //! structured `ResolverError` carrying the trap detail string.
+//!
+//! F-P3-002: `Trap::Interrupt` (which is what epoch deadline produces) maps to
+//! `ResolverError::Timeout` — not `ResolverError::Trap`. Per HOST_ABI semantics,
+//! "timeout" is a distinct error_kind from "trap". All other trap variants map
+//! to `ResolverError::Trap`.
 //!
 //! Architecture anchors:
 //! - BC-4.12.004 — resolver crash isolation contract
@@ -29,18 +34,25 @@ use crate::resolver::ResolverError;
 /// `ResolverError::Trap` with the resolver name and a human-readable
 /// detail string derived from the trap.
 pub fn classify_resolver_trap(resolver_name: &str, trap: wasmtime::Trap) -> ResolverError {
-    // All wasmtime Trap variants are mapped to ResolverError::Trap.
+    // F-P3-002: Trap::Interrupt is produced by epoch deadline interruption.
+    // Per HOST_ABI semantics, timeout is a distinct error_kind ("timeout") from
+    // a WASM execution trap ("trap"). Mapping Interrupt → Timeout preserves
+    // the semantic distinction so callers can distinguish deadline from fault.
+    //
+    // All other Trap variants map to ResolverError::Trap.
     //
     // VP-074 / BC-4.12.004 INV1 totality requirement: this function must
-    // return ResolverError::Trap for every possible TrapCode input without
-    // panicking. The test harness verifies this by iterating all valid
-    // byte values from Trap::from_u8 and asserting the Trap variant.
-    //
-    // The detail field carries the human-readable description from
-    // wasmtime::Trap's Display impl, which is always non-empty.
-    ResolverError::Trap {
-        name: resolver_name.to_string(),
-        detail: format!("{trap}"),
+    // return a ResolverError for every possible TrapCode input without panicking.
+    // The Kani harness proof_classify_trap_never_returns_not_found still holds:
+    // neither Timeout nor Trap is NotFound.
+    match trap {
+        wasmtime::Trap::Interrupt => ResolverError::Timeout {
+            name: resolver_name.to_string(),
+        },
+        _ => ResolverError::Trap {
+            name: resolver_name.to_string(),
+            detail: format!("{trap}"),
+        },
     }
 }
 
@@ -137,27 +149,36 @@ mod kani_harnesses {
         );
     }
 
-    /// proof_classify_trap_always_returns_trap_variant (VP-074 property 3)
+    /// proof_classify_trap_never_returns_trap_for_interrupt (VP-074 property 3, F-P3-002)
     ///
-    /// Symbolic verification: for any valid `wasmtime::Trap`, the returned
-    /// `ResolverError` is always `ResolverError::Trap`. The current
-    /// implementation maps ALL trap codes to Trap{} — this harness proves
-    /// that invariant holds for every reachable TrapCode.
+    /// Symbolic verification: for `Trap::Interrupt` (the epoch deadline trap),
+    /// the returned `ResolverError` is NEVER `ResolverError::Trap`. Per HOST_ABI
+    /// semantics, epoch interruption is a timeout condition, not a WASM fault.
     ///
-    /// If the implementation is ever extended to map specific trap codes to
-    /// Timeout or AbiViolation, this harness must be updated to reflect the
-    /// new mapping. Until then, Trap-always is the verifiable property.
+    /// F-P3-002: Trap::Interrupt maps to ResolverError::Timeout. This harness
+    /// proves that invariant: Interrupt → Timeout, not Trap.
+    ///
+    /// For non-Interrupt traps, the mapping remains Trap → Trap (proven by
+    /// proof_classify_trap_is_total which accepts Trap variants without assertion).
     #[kani::proof]
-    fn proof_classify_trap_always_returns_trap_variant() {
+    fn proof_classify_trap_interrupt_returns_timeout() {
+        // Trap::Interrupt has a stable byte code; use kani::assume to select only it.
         let byte: u8 = kani::any();
         let Some(trap) = wasmtime::Trap::from_u8(byte) else {
             return;
         };
+        // Focus only on the Interrupt variant (the epoch-deadline case).
+        kani::assume(matches!(trap, wasmtime::Trap::Interrupt));
         let result = classify_resolver_trap("any-resolver", trap);
         kani::assert(
-            matches!(result, ResolverError::Trap { .. }),
-            "VP-074: classify_resolver_trap must return ResolverError::Trap for every TrapCode \
-             (current implementation maps all codes to Trap{})",
+            matches!(result, ResolverError::Timeout { .. }),
+            "VP-074 F-P3-002: classify_resolver_trap must return ResolverError::Timeout \
+             for Trap::Interrupt — epoch interruption is a timeout, not a WASM fault",
+        );
+        kani::assert(
+            !matches!(result, ResolverError::Trap { .. }),
+            "VP-074 F-P3-002: classify_resolver_trap must NOT return ResolverError::Trap \
+             for Trap::Interrupt — epoch deadline must classify as Timeout",
         );
     }
 }
@@ -177,14 +198,14 @@ mod kani_harnesses {
 mod tests {
     use super::*;
 
-    /// test_classify_resolver_trap_total_byte_iter (F-P1-011)
+    /// test_classify_resolver_trap_total_byte_iter (F-P1-011, F-P3-002)
     ///
     /// Calls `classify_resolver_trap` with every known `wasmtime::Trap` variant
     /// constructible via `Trap::from_u8`. Asserts:
-    /// 1. The function returns `ResolverError::Trap` for every input
-    ///    (not `NotFound` — BC-4.12.004 INV1).
-    /// 2. The `detail` field is non-empty for every variant.
-    /// 3. The function does NOT panic for any variant (totality — VP-074).
+    /// 1. The function NEVER returns `ResolverError::NotFound` (BC-4.12.004 INV1).
+    /// 2. `Trap::Interrupt` (epoch deadline) maps to `ResolverError::Timeout` (F-P3-002).
+    /// 3. Non-Interrupt traps map to `ResolverError::Trap` with non-empty `detail`.
+    /// 4. The function does NOT panic for any variant (totality — VP-074).
     ///
     /// `wasmtime::Trap` in version 44 is a C-like enum with variants accessible
     /// via `Trap::from_u8(byte)`. We iterate byte values 0..=255 and test every
@@ -208,9 +229,31 @@ mod tests {
             // classify_resolver_trap must not panic (totality — VP-074).
             let result = classify_resolver_trap(resolver_name, trap);
 
-            // Result must always be the Trap variant (BC-4.12.004 INV1).
+            // Result must never be NotFound (BC-4.12.004 INV1).
+            // F-P3-002: Interrupt maps to Timeout; all others map to Trap.
             match &result {
+                ResolverError::Timeout { name } => {
+                    // F-P3-002: Interrupt → Timeout is the only valid Timeout mapping.
+                    assert_eq!(
+                        trap,
+                        wasmtime::Trap::Interrupt,
+                        "AC-012 / F-P3-002: Timeout must only be returned for Trap::Interrupt, \
+                         not for byte={byte} trap={trap:?}"
+                    );
+                    assert_eq!(
+                        name.as_str(),
+                        resolver_name,
+                        "AC-012 / F-P3-002: Timeout.name must preserve resolver_name (byte={byte})"
+                    );
+                }
                 ResolverError::Trap { name, detail } => {
+                    // Non-Interrupt traps → ResolverError::Trap.
+                    assert_ne!(
+                        trap,
+                        wasmtime::Trap::Interrupt,
+                        "AC-012 / F-P3-002: Trap::Interrupt must map to Timeout, not Trap \
+                         (byte={byte})"
+                    );
                     assert_eq!(
                         name.as_str(),
                         resolver_name,
@@ -231,9 +274,8 @@ mod tests {
                 }
                 other => {
                     panic!(
-                        "AC-012 / VP-074: classify_resolver_trap must return \
-                         ResolverError::Trap for every TrapCode (byte={byte}), \
-                         got {:?}",
+                        "AC-012 / VP-074 / F-P3-002: classify_resolver_trap returned \
+                         unexpected variant for byte={byte}: {:?}",
                         other
                     );
                 }
@@ -253,12 +295,17 @@ mod tests {
     /// is non-empty and carries a human-readable description of the trap.
     /// Uses `wasmtime::Trap::StackOverflow` as a concrete, stable variant.
     ///
-    /// Red Gate: fails because `classify_resolver_trap` is `todo!()`.
+    /// F-P3-002: StackOverflow is NOT Interrupt, so it still maps to Trap.
     #[test]
     fn test_BC_4_12_004_classify_resolver_trap_detail_carries_trap_description() {
         // StackOverflow is byte 0 and is always a valid TrapCode.
         let trap = wasmtime::Trap::from_u8(0)
             .expect("StackOverflow (byte 0) must be a valid wasmtime::Trap");
+        assert_ne!(
+            trap,
+            wasmtime::Trap::Interrupt,
+            "test assumption: byte 0 must not be Interrupt (Interrupt must map to Timeout per F-P3-002)"
+        );
 
         let result = classify_resolver_trap("my-resolver", trap);
 
@@ -272,7 +319,41 @@ mod tests {
             }
             other => {
                 panic!(
-                    "AC-012: expected ResolverError::Trap for StackOverflow, \
+                    "AC-012: expected ResolverError::Trap for StackOverflow (non-Interrupt), \
+                     got {:?}",
+                    other
+                );
+            }
+        }
+    }
+
+    /// test_F_P3_002_interrupt_trap_classifies_to_timeout
+    ///
+    /// Verifies that `Trap::Interrupt` (the epoch deadline trap) maps to
+    /// `ResolverError::Timeout`, NOT `ResolverError::Trap`.
+    ///
+    /// F-P3-002 regression guard: if this test fails, epoch interruption is
+    /// being mis-classified as a WASM execution fault.
+    #[test]
+    fn test_F_P3_002_interrupt_trap_classifies_to_timeout() {
+        let result = classify_resolver_trap("epoch-resolver", wasmtime::Trap::Interrupt);
+
+        match result {
+            ResolverError::Timeout { name } => {
+                assert_eq!(
+                    name, "epoch-resolver",
+                    "F-P3-002: Timeout.name must equal resolver_name"
+                );
+            }
+            ResolverError::Trap { .. } => {
+                panic!(
+                    "F-P3-002: Trap::Interrupt must map to ResolverError::Timeout, \
+                     not ResolverError::Trap — epoch deadline is a timeout, not a WASM fault"
+                );
+            }
+            other => {
+                panic!(
+                    "F-P3-002: Trap::Interrupt must map to ResolverError::Timeout, \
                      got {:?}",
                     other
                 );

@@ -512,8 +512,9 @@ impl ContextResolver for CompiledWasmResolver {
             })?;
 
         // Call the resolve function. Trap isolation: errors here are either
-        // wasmtime::Trap (WASM execution trap) or other anyhow errors.
-        // BC-4.12.004: traps MUST NOT propagate; classify and return ResolverError::Trap.
+        // wasmtime::Trap (WASM execution trap / epoch interrupt) or other anyhow errors.
+        // BC-4.12.004: traps MUST NOT propagate; classify_resolver_trap maps them to
+        // ResolverError::Trap (fault) or ResolverError::Timeout (Interrupt / F-P3-002).
         let packed_result = resolve_fn
             .call(&mut store, (input_ptr, input_len))
             .map_err(|e| {
