@@ -58,6 +58,23 @@ pub use routing::{PluginResultStub, group_by_priority, match_plugins};
 /// `vsdd_hook_sdk::HOST_ABI_VERSION`; diverging is a breaking change.
 pub const HOST_ABI_VERSION: u32 = 1;
 
+/// Test-only wrapper: calls `host::read_file::prepare` for unit testing
+/// capability denial without a live WASM instance.
+///
+/// F-P2-005: AC-011 path-escape WAT fixture is deferred to S-12.07.
+/// This function allows integration tests in `tests/` to exercise
+/// the host-function capability gate without a full WASM invocation.
+///
+/// `#[doc(hidden)]` — not part of the public API; only for test use.
+#[doc(hidden)]
+pub fn read_file_prepare_for_test(
+    ctx: &HostContext,
+    path: &str,
+    max_bytes: u32,
+) -> Result<(Vec<u8>, u32), i32> {
+    host::read_file::prepare(ctx, path, max_bytes)
+}
+
 /// Drain window for async-group tasks (S-15.01 T-3d — BC-1.14.001 postcondition 4).
 ///
 /// After `sync_group` completes, the dispatcher waits up to `ASYNC_DRAIN_WINDOW_MS`

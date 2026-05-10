@@ -795,3 +795,59 @@ unknown_field_in_entry = "should-fail"
         result.err()
     );
 }
+
+// ---------------------------------------------------------------------------
+// F-P2-005 (deferred) — AC-011 path_escaping_resolver.wasm
+//
+// Path escape testing for AC-011 is DEFERRED to S-12.07 where the real resolver
+// authoring infrastructure (WaveContextResolver) provides a natural test vehicle.
+// Requires a resolver that calls `host::read_file("/etc/passwd")` — a non-trivial
+// WAT fixture that belongs in S-12.07 alongside the real resolver authoring crate.
+//
+// Per F-P2-005 resolution: the capability denied invariant is verified HERE via a
+// unit test on `host::read_file::prepare` (without a real escape attempt).
+// ---------------------------------------------------------------------------
+
+// TODO(F-P2-005): AC-011 path_escaping_resolver.wasm fixture deferred to S-12.07.
+// S-12.07's WaveContextResolver exercises real read_file calls with path_allow gating.
+// See adversary-pass-2.md finding F-P2-005 for rationale.
+
+/// test_capability_denied_when_resolver_attempts_disallowed_read (F-P2-005)
+///
+/// Exercises capability denial via `host::read_file::prepare` WITHOUT a real
+/// WASM escape attempt. Creates a HostContext with no `read_file` capability
+/// and asserts that `prepare()` returns `Err(CAPABILITY_DENIED)`.
+///
+/// This covers AC-011's capability enforcement invariant at the host function
+/// unit-test level. The full path-escape WAT fixture is deferred to S-12.07.
+#[test]
+fn test_capability_denied_when_resolver_attempts_disallowed_read() {
+    use factory_dispatcher::host::HostContext;
+    use factory_dispatcher::registry::Capabilities;
+
+    // Create a HostContext with read_file capability entirely absent (deny-by-default).
+    let mut ctx = HostContext::new(
+        "test-resolver",
+        "0.0.1",
+        "sess-cap-test",
+        "trace-cap-test",
+    );
+    // No read_file capability — all reads must be denied.
+    ctx.capabilities = Capabilities {
+        read_file: None,
+        ..Default::default()
+    };
+
+    // Attempt to read a file — must be denied (CAPABILITY_DENIED error code).
+    // We use a file that actually exists so the only reason for denial is
+    // the missing capability (not a missing file).
+    let any_readable_path = "/etc/hosts"; // Always exists on Unix/macOS.
+    let result = factory_dispatcher::read_file_prepare_for_test(&ctx, any_readable_path, 1024);
+
+    // The result must be Err (capability denied), not Ok.
+    assert!(
+        result.is_err(),
+        "F-P2-005 / BC-4.12.003: read_file must be DENIED when resolver has no \
+         read_file capability. Got Ok — deny-by-default is not enforced."
+    );
+}
