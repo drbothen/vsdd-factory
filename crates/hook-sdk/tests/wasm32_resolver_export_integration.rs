@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration test: verify that the `#[resolver]` macro generates a `resolve`
 //! WASM export when `wasm-resolver-export` is compiled for `wasm32-wasip1`.
 //!

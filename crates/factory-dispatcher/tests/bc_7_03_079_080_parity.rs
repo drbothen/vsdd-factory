@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-7.03.079 / BC-7.03.080 behavioral-parity tests for the native-WASM port
 //! of track-agent-start (S-8.08).
 //!
@@ -100,7 +102,10 @@ fn extract_stanza(raw: &str, hook_name: &str) -> Option<String> {
     }
 
     if in_target {
-        Some(stanza_lines.join("\n"))
+        Some(stanza_lines.join(
+            "
+",
+        ))
     } else {
         None
     }
@@ -131,7 +136,8 @@ fn test_BC_7_03_079_ac001_registry_entry_points_to_native_wasm() {
             .plugin
             .ends_with("hook-plugins/track-agent-start.wasm"),
         "track-agent-start registry entry must use the native WASM binary \
-         (not legacy-bash-adapter) — AC-001 / BC-7.03.079 postcondition 1\n\
+         (not legacy-bash-adapter) — AC-001 / BC-7.03.079 postcondition 1
+\
          plugin path: {}",
         entry.plugin.display()
     );
@@ -194,8 +200,10 @@ fn test_BC_7_03_079_ac001_registry_entry_does_not_reference_legacy_bash_adapter(
     assert!(
         !stanza.contains("legacy-bash-adapter"),
         "track-agent-start registry stanza must not reference legacy-bash-adapter \
-         after migration (AC-001 / BC-7.03.079 postcondition 1).\n\
-         Stanza:\n{stanza}"
+         after migration (AC-001 / BC-7.03.079 postcondition 1).
+\
+         Stanza:
+{stanza}"
     );
 }
 
@@ -213,8 +221,10 @@ fn test_BC_7_03_079_ac001_registry_entry_has_no_script_path() {
     assert!(
         !stanza.contains("script_path"),
         "track-agent-start registry stanza must not contain script_path after migration \
-         (AC-001 — script_path is only for legacy-bash-adapter).\n\
-         Stanza:\n{stanza}"
+         (AC-001 — script_path is only for legacy-bash-adapter).
+\
+         Stanza:
+{stanza}"
     );
 }
 
@@ -233,8 +243,10 @@ fn test_BC_7_03_079_ac001_registry_entry_has_no_exec_subprocess_block() {
         !stanza.contains("exec_subprocess"),
         "track-agent-start registry stanza must not contain exec_subprocess after \
          migration — native crate replaces jq with serde_json, no subprocess needed \
-         (AC-001 / E-8 architecture compliance rule).\n\
-         Stanza:\n{stanza}"
+         (AC-001 / E-8 architecture compliance rule).
+\
+         Stanza:
+{stanza}"
     );
 }
 
@@ -252,8 +264,10 @@ fn test_BC_7_03_079_ac002a_registry_entry_has_no_shell_bypass_acknowledged() {
     assert!(
         !stanza.contains("shell_bypass_acknowledged"),
         "track-agent-start registry stanza must not contain shell_bypass_acknowledged \
-         after native migration (AC-002a — legacy-bash-adapter artifact).\n\
-         Stanza:\n{stanza}"
+         after native migration (AC-002a — legacy-bash-adapter artifact).
+\
+         Stanza:
+{stanza}"
     );
 }
 

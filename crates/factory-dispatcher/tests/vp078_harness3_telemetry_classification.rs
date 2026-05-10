@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! VP-078 Harness 3 — Positive telemetry-plugin classification.
 //!
 //! BC-7.06.001 Invariant 6: the 9 named telemetry-only plugins MUST be

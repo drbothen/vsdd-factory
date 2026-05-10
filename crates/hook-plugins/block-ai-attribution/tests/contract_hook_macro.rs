@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests verifying the #[hook] / on_hook_logic signature contract.
 //!
 //! BC-2.01.002: HookResult exit codes Continue=0 / Block=2 / Error=1.

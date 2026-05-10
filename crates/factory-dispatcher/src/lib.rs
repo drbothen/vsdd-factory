@@ -7,6 +7,12 @@
 //! decisions. Execution (wasmtime instantiation, tokio scheduling,
 //! fuel enforcement) is filled in by S-1.4–S-1.6.
 
+// Allow: factory-dispatcher is a pre-existing crate with intentional usage of
+// .expect() on mutex locks (poison guard), static-regex compilation, and tokio
+// runtime initialization — all infallible in well-behaved programs. The
+// workspace-level warn/deny targets new resolver crates (vsdd-context-resolvers).
+// Filed for future cleanup as part of broader dispatcher hardening.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 // F-P2-002: deny unsafe code in factory-dispatcher — regression guard.
 // The crate operates in a security-critical dispatch path; unsafe is
 // never warranted here (InternalLog is Clone; closures use by-value capture).

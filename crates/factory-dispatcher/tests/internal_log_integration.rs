@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! End-to-end internal-log test: construct an `InternalLog` in a
 //! tempdir, write a dispatcher-startup-style flow (`dispatcher.started`
 //! plus a handful of companion events), read each file back, parse

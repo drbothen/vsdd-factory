@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-3.07.002 — AC-010: cross-sink integration test for consistent schema.
 //!
 //! Verifies that all three sink drivers (sink-http, sink-otel-grpc, sink-file)

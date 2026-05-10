@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-3.06.005 — X-Honeycomb-Team auth header is sent on every POST.
 //!
 //! AC: Auth via `X-Honeycomb-Team` header from config.

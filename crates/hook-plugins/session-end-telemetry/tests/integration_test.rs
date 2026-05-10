@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration tests for session-end-telemetry — VP-066 harness (RED gate).
 //!
 //! # Scope

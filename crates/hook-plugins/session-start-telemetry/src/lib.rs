@@ -1,4 +1,7 @@
 //! session-start-telemetry — SessionStart WASM hook plugin.
+// Allow: uses .expect() on static regex compilation and env! lookups.
+// Pre-existing code; not covered by S-12.07 AC-010 scope.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //!
 //! Emits `session.started` with 6 plugin-set fields per BC-4.04.001:
 //!   - `factory_version` — compile-time `env!("CARGO_PKG_VERSION")`

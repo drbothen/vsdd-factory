@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration test: `setup_linker` registers every host import against a
 //! real wasmtime [`Engine`] without error, and a minimal WAT module that
 //! imports a couple of those functions instantiates cleanly.

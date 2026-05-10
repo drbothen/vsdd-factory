@@ -92,6 +92,18 @@ wasmparser = "0.248"
 # having to scatter #![allow(non_snake_case)] across 50+ test files.
 non_snake_case = "allow"
 
+[workspace.lints.clippy]
+# AC-010 / BC-4.12.004 INV1: panic-free guarantee for WASM resolver production
+# code. Set to WARN workspace-wide so violations are visible in CI without
+# breaking the build (pre-existing crates have intentional expect/unwrap usages
+# such as static-regex compilation, mutex poison guards, and test helpers).
+# vsdd-context-resolvers (the first resolver crate) enforces DENY at the crate
+# level via [lints.clippy] in its Cargo.toml.
+# Future work: migrate pre-existing crates to match resolver-grade discipline.
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+
 [workspace.lints.rust.unexpected_cfgs]
 # S-15.01 T-3b/AC-015: Kani proof harnesses use `#[cfg(kani)]` for the
 # VP-077 partition-correctness harnesses. Kani sets this cfg at proof time;

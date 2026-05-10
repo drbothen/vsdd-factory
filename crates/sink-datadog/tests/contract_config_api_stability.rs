@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! F-2 (PR #18 deferred): HttpSinkConfig must expose a builder API or non-pub fields
 //! with accessors so wrappers don't pin to a specific field set.
 //!

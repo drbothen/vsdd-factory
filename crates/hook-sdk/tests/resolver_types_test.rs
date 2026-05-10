@@ -1,3 +1,7 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting — standard
+// Rust test idiom. The workspace deny does not apply to test code per intent;
+// these allows are the per-file carve-out.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! S-12.05 GREEN — Resolver-Authoring Type & Macro Tests
 //!
 //! Covers AC-001..AC-010 for BC-4.12.002 (resolver-authoring SDK feature).

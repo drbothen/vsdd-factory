@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-017: Demo evidence completeness check.
 //!
 //! Verifies that `docs/demo-evidence/S-15.01/` contains all 5 required

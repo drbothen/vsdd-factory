@@ -1,4 +1,7 @@
 //! OTLP/gRPC sink driver (S-1.9).
+// Allow: pre-existing production code uses .expect()/.unwrap() for
+// tokio runtime build, channel operations, and serialization.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //!
 //! Forwards [`SinkEvent`]s to an OTel collector over OTLP/gRPC as
 //! `LogRecord`s. This is the second sink type in v1.0-beta.1 scope and

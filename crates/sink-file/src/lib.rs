@@ -1,4 +1,7 @@
 //! File sink driver (S-1.8).
+// Allow: pre-existing production code uses .expect()/.unwrap() for I/O
+// operations and mutex locks. Not covered by S-12.07 scope.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //!
 //! JSONL-append sink that preserves the existing
 //! `.factory/logs/events-*.jsonl` shape every downstream consumer (OTel

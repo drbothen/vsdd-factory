@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Unit tests for validate-artifact-path.
 //!
 //! Exercises the production functions in `lib.rs` via injectable callbacks.

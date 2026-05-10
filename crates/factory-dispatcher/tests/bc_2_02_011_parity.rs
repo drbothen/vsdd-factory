@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-2.02.011 behavioral-parity tests: invariants and edge cases NOT covered
 //! by the stub-architect's unit tests in `host/write_file.rs`.
 //!

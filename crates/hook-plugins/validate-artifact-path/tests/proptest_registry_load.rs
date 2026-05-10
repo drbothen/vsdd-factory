@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! VP-069 proptest harness — registry-load purity.
 //!
 //! Verifies that `load_registry` never panics on arbitrary input and that

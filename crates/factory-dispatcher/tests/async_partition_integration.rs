@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration test suite: S-15.01 async plugin partition semantics.
 //!
 //! BC traces: BC-1.14.001, BC-7.06.001, DI-019.

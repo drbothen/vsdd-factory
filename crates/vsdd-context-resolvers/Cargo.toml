@@ -27,5 +27,15 @@ serde_yaml = { workspace = true }
 [dev-dependencies]
 proptest = { workspace = true }
 
-[lints]
-workspace = true
+# vsdd-context-resolvers enforces DENY for panic-inducing patterns at the crate level.
+# AC-010 / BC-4.12.004 INV1: WASM resolver panics are traps — there is no recovery path.
+# workspace = true cannot be combined with local clippy overrides; we specify all
+# relevant workspace lints explicitly here.
+[lints.rust]
+non_snake_case = "allow"
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Full-stack end-to-end plugin invocation tests — S-15.01 sync/async partition.
 //!
 //! These tests validate the COMPLETE dispatcher flow from registry-load through

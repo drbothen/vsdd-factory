@@ -1,3 +1,5 @@
+// Allow: pre-existing code. Not covered by S-12.07 scope.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! regression-gate — PostToolUse WASM hook plugin.
 //!
 //! Records test-run pass/fail state to `.factory/regression-state.json`.

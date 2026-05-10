@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests for per-sink RetryPolicy + CircuitBreaker configuration (S-4.04).
 //!
 //! AC: "Per-sink configurable"

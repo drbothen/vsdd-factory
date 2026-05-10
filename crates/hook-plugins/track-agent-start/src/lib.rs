@@ -1,4 +1,9 @@
 //! track-agent-start — PreToolUse:Agent WASM hook plugin.
+// Allow: static regex compilation uses .expect() on infallible patterns.
+// These regexes are string literals validated at build time; a failure would
+// be a compile-time programming error, not a runtime condition. Pre-existing
+// code (not covered by S-12.07 AC-010). Filed as scope for future cleanup.
+#![allow(clippy::expect_used)]
 //!
 //! Emits `agent.start` telemetry on every Agent subagent dispatch per BC-7.03.080.
 //!

@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! S-8.01 Red Gate — failing integration tests for handoff-validator port.
 //!
 //! Every test in this file MUST FAIL before implementation begins.

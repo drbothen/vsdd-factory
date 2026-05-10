@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-3 (api_key required), schema_version, type validation.
 //!
 //! BC-3.06.005 postcondition 1: SinkConfigCommon defaults govern config parsing.
