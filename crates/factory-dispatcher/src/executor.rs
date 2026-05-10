@@ -415,6 +415,13 @@ enum JoinWrap {
 ///
 /// The returned `Value` is always a JSON Object ready to be inserted at
 /// the `"plugin_config"` key of the per-plugin envelope.
+// CONVENTION (P-005, S-12.04 lesson): When adding a new resolver-tier event type here,
+// you MUST: (1) add a HOST_ABI.md field table with ALL emitted fields including the
+// provenance triplet (trace_id, session_id, plugin_name); (2) update the owning BC with
+// the field list; (3) add positive-coverage assertions in the integration test for EVERY
+// provenance field (POL-11); (4) audit sibling resolver events (resolver.not_found,
+// resolver.error, resolver.merge_collision, resolver.load_warning, resolver.load_error)
+// for the same gaps. Sibling-propagation regression cost S-12.04 ~3 passes (P5/P6/P7).
 fn build_plugin_config(
     entry: &RegistryEntry,
     payload_value: &serde_json::Value,
