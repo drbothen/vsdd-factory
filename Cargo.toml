@@ -25,6 +25,7 @@ members = [
     "crates/hook-plugins/validate-artifact-path",
     "crates/hook-plugins/lint-registry-async-invariant",
     "crates/hook-plugins/validate-per-story-adversary-convergence",
+    "crates/vsdd-context-resolvers",
     "crates/hook-plugins/validate-stable-anchors",
     "crates/sink-core",
     "crates/sink-file",

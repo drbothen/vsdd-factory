@@ -1,0 +1,31 @@
+[package]
+name = "vsdd-context-resolvers"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "Per-factory WASM context resolvers: WaveContextResolver reads .factory/ state to inject wave_context into plugin_config."
+publish = false
+
+# Resolver plugins ship as cdylib (WASM) for runtime dispatch, plus rlib for
+# unit-testing the pure logic layer on the host. The `#[resolver]` macro
+# generates a `fn main(){}` no-op (required for some WASM toolchain paths) and
+# the `resolve()` WASM export gated to `#[cfg(target_arch = "wasm32")]`.
+# The extra `fn main(){}` is harmless in a lib crate — it is not an entry point.
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../hook-sdk", features = ["resolver-authoring"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+
+[lints]
+workspace = true
