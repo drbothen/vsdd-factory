@@ -1,0 +1,20 @@
+## AC-001: RegistryEntry.needs_context defaults to empty via #[serde(default)]
+
+Traces to: BC-1.13.001 invariant 3
+Tests: test_BC_1_13_001_ac001_needs_context_defaults_to_empty_when_absent
+       test_BC_1_13_001_ac001_needs_context_round_trips_through_toml
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_1_13_001_ac001 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 2 tests
+test test_BC_1_13_001_ac001_needs_context_defaults_to_empty_when_absent ... ok
+test test_BC_1_13_001_ac001_needs_context_round_trips_through_toml ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.01s
+
+RESULT: PASS

@@ -1,0 +1,20 @@
+## AC-003: Resolver invocation + plugin_config merge
+
+Traces to: BC-1.13.001 postcondition 4
+Test: test_BC_1_13_001_ac003_declared_resolver_is_invoked_and_output_returned
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_1_13_001_ac003 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 1 test
+test test_BC_1_13_001_ac003_declared_resolver_is_invoked_and_output_returned ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertion verified: mock ContextResolver returning ResolverOutput { key: "foo", value: Some(json!({"answer": 42})) }
+dispatched with needs_context: ["foo"]; plugin_config["foo"]["answer"] == 42 in payload passed to invoke_plugin.

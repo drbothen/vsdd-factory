@@ -1,0 +1,39 @@
+## AC-008: Pure merge determinism (VP-075 proptest, 200 trials)
+
+Traces to: BC-4.12.005 invariant 1 + VP-075
+Tests: prop_merge_is_deterministic
+       prop_merge_preserves_base_config_fields
+       prop_resolver_output_with_none_leaves_key_absent
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_determinism_proptest -- --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+     Running tests/resolver_determinism_proptest.rs (target/debug/deps/resolver_determinism_proptest-58ca8326b4c70b87)
+
+running 3 tests
+
+running 1 test
+proptest: FileFailurePersistence::SourceParallel set, but failed to find lib.rs or main.rs
+proptest: FileFailurePersistence::SourceParallel set, but failed to find lib.rs or main.rs
+
+running 1 test
+proptest: FileFailurePersistence::SourceParallel set, but failed to find lib.rs or main.rs
+proptest: FileFailurePersistence::SourceParallel set, but failed to find lib.rs or main.rs
+test prop_merge_preserves_base_config_fields ... ok
+
+running 1 test
+proptest: FileFailurePersistence::SourceParallel set, but failed to find lib.rs or main.rs
+proptest: FileFailurePersistence::SourceParallel set, but failed to find lib.rs or main.rs
+test prop_resolver_output_with_none_leaves_key_absent ... ok
+test prop_merge_is_deterministic ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+RESULT: PASS
+All 200 trials per proptest passed within 5s timeout.
+merge_resolver_outputs(same_input, same_input) produces identical outputs across calls.
+The "FileFailurePersistence::SourceParallel" messages are a benign proptest warning
+about the regression file location when running from an integration test directory;
+they do not indicate a test failure.

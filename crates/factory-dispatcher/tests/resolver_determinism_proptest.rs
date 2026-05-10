@@ -65,7 +65,13 @@ fn arb_non_null_json_value() -> impl Strategy<Value = Value> {
 fn arb_resolver_output_with_value() -> impl Strategy<Value = (String, ResolverOutput)> {
     ("resolver_[a-z]{1,16}", arb_non_null_json_value()).prop_map(|(key, value)| {
         let resolver_name = format!("{}_r", key); // distinct from key
-        (resolver_name, ResolverOutput { key, value: Some(value) })
+        (
+            resolver_name,
+            ResolverOutput {
+                key,
+                value: Some(value),
+            },
+        )
     })
 }
 
