@@ -328,6 +328,77 @@ impl ContextResolver for ErroringResolver {
     }
 }
 
+// ---------------------------------------------------------------------------
+// F-P3-003: resolver.not_found event written to InternalLog when resolver missing
+// ---------------------------------------------------------------------------
+
+/// F-P3-003 / BC-4.12.005 PC4 / SOUL #4:
+/// When a hook declares `needs_context: ["unknown"]` and NO resolver named
+/// "unknown" is registered, `execute_tiers` must:
+/// 1. Complete without panicking (dispatch continues — BC-4.12.005 INV3).
+/// 2. Write a `resolver.not_found` event to InternalLog, with `resolver_name`
+///    equal to "unknown" and the correct hook name.
+#[tokio::test(flavor = "current_thread")]
+async fn ac005_resolver_not_found_event_appears_in_internal_log() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+    let log_dir = dir.path().join("logs");
+    let internal_log = Arc::new(InternalLog::new(log_dir.clone()));
+
+    let wasm = compile_wasm(dir.path(), "ok_not_found");
+    // Hook declares needs_context: ["unknown"] — no resolver named "unknown" exists.
+    let entry = make_entry(&wasm, "not-found-hook", vec!["unknown".to_string()]);
+    let registry = make_registry(vec![entry]);
+    let matched: Vec<&factory_dispatcher::registry::RegistryEntry> =
+        registry.hooks.iter().collect();
+    let tiers = factory_dispatcher::routing::group_by_priority(&registry, matched);
+
+    // Register zero resolvers — "unknown" will not be found.
+    let resolver_registry = Arc::new(ResolverRegistry::new());
+
+    let inputs = make_executor_inputs(&engine, &cache, &registry, &internal_log, resolver_registry);
+    // execute_tiers must NOT panic — dispatch continues even with missing resolver.
+    let summary = execute_tiers(inputs, tiers).await;
+
+    assert_eq!(
+        summary.per_plugin_results.len(),
+        1,
+        "F-P3-003: exactly one plugin must have run despite missing resolver"
+    );
+
+    // Flush InternalLog and verify resolver.not_found event is present.
+    drop(internal_log);
+
+    let all_log_content: String = std::fs::read_dir(&log_dir)
+        .expect("log dir must exist after dispatch")
+        .filter_map(|e| e.ok())
+        .filter_map(|e| std::fs::read_to_string(e.path()).ok())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    assert!(
+        all_log_content.contains("resolver.not_found"),
+        "F-P3-003 / SOUL #4: InternalLog must contain a 'resolver.not_found' event \
+         when needs_context names a resolver that is not registered. \
+         Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("unknown"),
+        "F-P3-003: 'resolver.not_found' event must carry resolver_name == 'unknown'. \
+         Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("not-found-hook"),
+        "F-P3-003: 'resolver.not_found' event must carry the correct hook_name. \
+         Log content: {all_log_content:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// F-P2-007 (test 3): ErroringResolver causes resolver.error event in InternalLog
+// ---------------------------------------------------------------------------
+
 /// F-P2-007 (integration test) / SOUL #4:
 /// When a hook declares `needs_context: ["boom"]` and the resolver "boom"
 /// returns `Err(ResolverError::Crashed)`, `execute_tiers` must:
