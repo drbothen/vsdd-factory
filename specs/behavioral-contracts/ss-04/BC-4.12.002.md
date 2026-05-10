@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -12,6 +12,7 @@ inputs:
 input-hash: "[pending-recompute]"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-platform-amendment-delta-analysis.md
 origin: greenfield
+extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-009"
 lifecycle_status: active
@@ -25,7 +26,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.12.002
 section: "4.12"
-last_amended: 2026-05-07
+last_amended: 2026-05-10
 ---
 
 # BC-4.12.002: Resolver ABI MUST use distinct `ResolverInput` / `ResolverOutput` types versioned independently as Resolver ABI v1 (NOT reusing `HookPayload` / `HookResult`)
@@ -175,7 +176,7 @@ independently from `HOST_ABI_VERSION`.
 
 ## Architecture Anchors
 
-- `/Users/jmagady/Dev/vsdd-factory/crates/hook-sdk/src/resolver.rs` — ResolverInput, ResolverOutput, RESOLVER_ABI_VERSION, Resolver trait
+- `/Users/jmagady/Dev/vsdd-factory/crates/hook-sdk/src/resolver.rs` — ResolverInput, ResolverOutput, RESOLVER_ABI_VERSION (no Resolver trait — deleted in S-12.05 pass-2 per architect Path B; authoring primitive is the `#[resolver]` proc-macro on a free fn `resolve_impl`)
 - `/Users/jmagady/Dev/vsdd-factory/crates/hook-sdk-macros/src/resolver_macro.rs` — `#[resolver]` macro implementation
 - `/Users/jmagady/Dev/vsdd-factory/crates/hook-sdk/HOST_ABI.md` — §Context Injection Contract section (to be authored in S-12.06)
 - `/Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/decisions/ADR-018-wasm-plugin-context-resolvers.md` — OD-3 ABI decision
@@ -192,5 +193,6 @@ S-12.05 (hook-sdk resolver-authoring extensions) and S-12.06 (HOST_ABI.md contex
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes OD-3 (distinct ResolverInput/ResolverOutput types, versioned independently as Resolver ABI v1). Resolver ABI explicitly does NOT reuse HookPayload/HookResult per user-authorized architectural decision D-361. |
+| 1.2 | 2026-05-10 | F-P3-004 burst: Architecture Anchors updated — removed `Resolver` trait from hook-sdk/src/resolver.rs anchor (trait deleted in S-12.05 pass-2 per architect Path B; authoring primitive is the `#[resolver]` proc-macro on a free fn `resolve_impl`). Propagates pass-2 implementation decision to BC body. |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.05, S-12.06 → S-12.05, S-12.06, S-12.07. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.07; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
+| 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes OD-3 (distinct ResolverInput/ResolverOutput types, versioned independently as Resolver ABI v1). Resolver ABI explicitly does NOT reuse HookPayload/HookResult per user-authorized architectural decision D-361. |
