@@ -324,34 +324,59 @@ mod tests {
     /// in separate source locations (resolver.rs vs lib.rs) and evolve
     /// independently. A bump to one does NOT require a bump to the other.
     ///
-    /// This test verifies both constants exist, are independently accessible,
-    /// and are defined in separate module paths.
+    /// This test verifies:
+    /// 1. Both constants are accessible from their public paths.
+    /// 2. `RESOLVER_ABI_VERSION` is declared in `resolver.rs` (not lib.rs).
+    /// 3. `HOST_ABI_VERSION` is declared in `lib.rs` (not resolver.rs).
+    ///
+    /// The structural source-location check enforces the INV2 independence
+    /// without pinning either constant's value — a future bump to either
+    /// version will not break this test.
     ///
     /// Traces: AC-008, BC-4.12.002 invariant 2.
     #[test]
     fn test_BC_4_12_002_abi_versions_are_independently_defined() {
-        // RESOLVER_ABI_VERSION is defined in crates/hook-sdk/src/resolver.rs
-        let resolver_version: u32 = vsdd_hook_sdk::RESOLVER_ABI_VERSION;
-        // HOST_ABI_VERSION is defined in crates/hook-sdk/src/lib.rs
-        let host_version: u32 = vsdd_hook_sdk::HOST_ABI_VERSION;
+        // Both constants must be accessible (BC-4.12.002 INV2).
+        // We do NOT assert their values: both are currently 1, but INV2 explicitly
+        // states that bumps to one version do NOT require bumps to the other.
+        // Pinning values would reintroduce the coupling INV2 forbids.
+        let _resolver_version: u32 = vsdd_hook_sdk::RESOLVER_ABI_VERSION;
+        let _host_version: u32 = vsdd_hook_sdk::HOST_ABI_VERSION;
 
-        // Both exist and are independently accessible (BC-4.12.002 INV2)
-        assert_eq!(
-            resolver_version, 1u32,
-            "RESOLVER_ABI_VERSION must be 1 (AC-008)"
+        // RESOLVER_ABI_VERSION must also be reachable via the module path.
+        let _from_module: u32 = vsdd_hook_sdk::resolver::RESOLVER_ABI_VERSION;
+
+        // Structural source-location check (BC-4.12.002 INV2 authoritative check):
+        // RESOLVER_ABI_VERSION must be declared in resolver.rs, NOT lib.rs.
+        // HOST_ABI_VERSION must be declared in lib.rs, NOT resolver.rs.
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .expect("CARGO_MANIFEST_DIR must be set during cargo test");
+        let src = std::path::Path::new(&manifest_dir).join("src");
+
+        let resolver_rs = std::fs::read_to_string(src.join("resolver.rs"))
+            .unwrap_or_else(|e| panic!("failed to read resolver.rs: {}", e));
+        let lib_rs = std::fs::read_to_string(src.join("lib.rs"))
+            .unwrap_or_else(|e| panic!("failed to read lib.rs: {}", e));
+
+        // Check that RESOLVER_ABI_VERSION is *declared* (as a const) in resolver.rs.
+        assert!(
+            resolver_rs.contains("pub const RESOLVER_ABI_VERSION"),
+            "RESOLVER_ABI_VERSION must be declared (pub const) in resolver.rs (BC-4.12.002 INV2, AC-008)"
         );
-        assert_eq!(host_version, 1u32, "HOST_ABI_VERSION must be 1 (AC-008)");
-
-        // They happen to be equal now, but they are NOT aliases.
-        // Verify they are independently re-exported from separate paths:
-        // resolver::RESOLVER_ABI_VERSION (from resolver.rs)
-        // vs HOST_ABI_VERSION (from lib.rs top-level)
-        // Both paths must be independently addressable.
-        let from_module: u32 = vsdd_hook_sdk::resolver::RESOLVER_ABI_VERSION;
-        let from_root: u32 = vsdd_hook_sdk::RESOLVER_ABI_VERSION;
-        assert_eq!(
-            from_module, from_root,
-            "RESOLVER_ABI_VERSION must be accessible via both module path and re-export (AC-008)"
+        // Check that HOST_ABI_VERSION is *not declared* in resolver.rs (may appear in doc-comments).
+        assert!(
+            !resolver_rs.contains("pub const HOST_ABI_VERSION"),
+            "HOST_ABI_VERSION must NOT be declared in resolver.rs — it belongs in lib.rs (AC-008)"
+        );
+        // Check that HOST_ABI_VERSION is *declared* (as a const) in lib.rs.
+        assert!(
+            lib_rs.contains("pub const HOST_ABI_VERSION"),
+            "HOST_ABI_VERSION must be declared (pub const) in lib.rs (BC-4.12.002 INV2, AC-008)"
+        );
+        // Check that RESOLVER_ABI_VERSION is *not declared* in lib.rs (it's re-exported via pub use resolver::*).
+        assert!(
+            !lib_rs.contains("pub const RESOLVER_ABI_VERSION"),
+            "RESOLVER_ABI_VERSION must NOT be declared in lib.rs — declare it in resolver.rs only (AC-008)"
         );
     }
 
