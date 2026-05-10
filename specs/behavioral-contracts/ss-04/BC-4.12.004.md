@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.12.004
 section: "4.12"
-last_amended: 2026-05-07
+last_amended: 2026-05-10
 ---
 
 # BC-4.12.004: Resolver crashes (panic, trap, timeout, ABI violation) MUST NOT propagate to the dispatcher process and MUST produce a `resolver.error` telemetry event with fail-loud semantics for declared resolvers
@@ -64,12 +64,15 @@ required for correctness — the dispatcher does not make this judgment on the h
    continues executing normally after handling the error.
 2. **`resolver.error` telemetry event:** The dispatcher MUST emit a structured telemetry
    event with:
-   - `event_type`: `"resolver.error"`
+   - `type`: `"resolver.error"` (InternalEvent envelope discriminator)
    - `resolver_name`: the name of the failed resolver (from the registry)
    - `error_kind`: one of `"trap"`, `"timeout"`, `"abi_violation"`, `"capability_denied"`,
      `"not_found"`, `"load_error"`
    - `error_detail`: a human-readable string describing the specific error
-   - `hook_event_name`: the name of the hook dispatch context that triggered this resolver
+   - `event_type`: the Claude Code envelope event type that triggered this resolver (e.g., `"PreToolUse"`)
+   - `trace_id`: trace identifier for the dispatch event
+   - `plugin_name`: the plugin that declared this resolver in `needs_context`
+   - `session_id`: the Claude Code session identifier (added by F-P4-001)
 3. **Failed resolver output NOT merged:** The dispatcher MUST NOT write any data into
    `plugin_config` for a failed resolver. No partial output, no null value, no default value
    — the key is simply absent from `plugin_config` after a resolver failure.
@@ -185,3 +188,4 @@ S-12.04 — WASM resolver loading + lifecycle + error isolation (v1.0-feature-en
 |---------|------|-------------|
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Error isolation semantics modeled on hook `invoke.rs` trap-classification pattern. Fail-loud for declared resolvers: absent key is visible to hook; dispatcher does not inject default value. |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.04 → S-12.04, S-12.06, S-12.07. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.07; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
+| 1.2 | 2026-05-10 | F-S12.04-P5-001 burst: PC2 wire-field rename `hook_event_name` → `event_type` (matches HOST_ABI § resolver.error and executor.rs implementation; rename was propagated to HOST_ABI + tests in pass-2 but missed the BC body — S-7.01 partial-fix regression). Added `session_id` to PC2 field list (F-P4-001 pass-4 burst added wiring; BC was not updated). Renamed top-level `event_type: "resolver.error"` literal to `type: "resolver.error"` to match InternalEvent envelope semantics; the wire format already uses `type` not `event_type` for envelope identity. Added `trace_id` and `plugin_name` fields to PC2 (present in HOST_ABI §resolver.error lines 1107-1112; missing from BC body). |
