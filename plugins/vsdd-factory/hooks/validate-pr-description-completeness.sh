@@ -13,19 +13,19 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -63,14 +63,11 @@ if [[ -n "$PLACEHOLDERS" ]]; then
 fi
 
 if [[ -n "$ERRORS" ]]; then
-  _emit type=hook.block hook=validate-pr-description-completeness matcher=PostToolUse \
-        reason=pr_description_incomplete file_path="$FILE_PATH"
-  echo "PR DESCRIPTION INCOMPLETE in $(basename "$(dirname "$FILE_PATH")")/pr-description.md:" >&2
-  echo -e "$ERRORS" | while IFS= read -r line; do
-    echo "  - $line" >&2
-  done
-  echo "  Populate all sections from templates/pr-description-template.md before creating the PR." >&2
-  exit 2
+  _ERRORS_SUMMARY=$(echo -e "$ERRORS" | tr '\n' '; ' | sed 's/; $//')
+  block_pre "validate-pr-description-completeness" \
+    "Required PR sections missing: $_ERRORS_SUMMARY" \
+    "Populate all sections from templates/pr-description-template.md" \
+    "pr_description_incomplete"
 fi
 
 exit 0

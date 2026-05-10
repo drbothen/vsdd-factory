@@ -13,37 +13,21 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre_json).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 # Read PreToolUse JSON from stdin
 INPUT=$(cat)
 
 # Extract file_path (Edit and Write both put it in tool_input.file_path)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "Edit|Write"')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 emit_allow() {
   printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}\n'
-  exit 0
-}
-
-emit_deny() {
-  local reason="$1"
-  local code="${2:-unknown}"
-  _emit type=hook.block hook=protect-vp matcher="$TOOL_NAME" reason="$code" file_path="$FILE_PATH"
-  # Escape quotes in reason for JSON safety via jq
-  jq -nc --arg reason "$reason" '{
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason: $reason
-    }
-  }'
   exit 0
 }
 
@@ -59,7 +43,10 @@ if [[ ! -f "$FILE_PATH" ]]; then
 fi
 
 if grep -q "^Status: green" "$FILE_PATH"; then
-  emit_deny "Blocked: $FILE_PATH has Status: green and is immutable per SOUL.md #4. To change a green VP, create a new VP that supersedes it (see .claude/rules/spec-format.md). The old VP stays on disk unchanged; reference it from the new VP's 'Supersedes:' field." "vp_green_immutable"
+  block_pre_json "protect-vp" \
+    "$FILE_PATH has Status: green and is immutable per SOUL.md #4 and spec-format rules" \
+    "Create a new VP that supersedes it; cite the old VP via the new VP's 'Supersedes:' field" \
+    "vp_green_immutable"
 fi
 
 # VP file exists but is not green — allow the edit.

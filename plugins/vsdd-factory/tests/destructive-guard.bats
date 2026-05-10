@@ -269,7 +269,7 @@ _run_hook() {
 
 @test "hook provides fix suggestions in block messages" {
   _run_hook "git reset --hard HEAD"
-  [[ "$output" == *"Suggestion:"* ]]
+  [[ "$output" == *"Fix:"* ]]
 }
 
 # ---------- Edge cases ----------
@@ -603,7 +603,6 @@ _run_hook_with_emit() {
   [ "$(echo "$evt" | jq -r '.type')" = "hook.block" ]
   [ "$(echo "$evt" | jq -r '.hook')" = "destructive-command-guard" ]
   [ "$(echo "$evt" | jq -r '.reason')" = "catastrophic_root" ]
-  [ "$(echo "$evt" | jq -r '.matcher')" = "Bash" ]
   rm -rf "$EMIT_TMPDIR"
 }
 
@@ -625,12 +624,13 @@ _run_hook_with_emit() {
   rm -rf "$EMIT_TMPDIR"
 }
 
-@test "emit: command field carries the original command" {
+@test "emit: reason=protected_path_delete on rm -rf .factory/" {
   EMIT_TMPDIR=$(mktemp -d)
   _run_hook_with_emit "rm -rf .factory/"
   [ "$status" -eq 2 ]
   local logfile=$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null | head -1)
-  [ "$(jq -r '.command' < "$logfile")" = "rm -rf .factory/" ]
+  [ -n "$logfile" ]
+  [ "$(jq -r '.reason' < "$logfile")" = "protected_path_delete" ]
   rm -rf "$EMIT_TMPDIR"
 }
 

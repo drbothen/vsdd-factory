@@ -5,6 +5,15 @@ description: Create a PRD with behavioral contracts from the product brief and d
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
+## Path Resolution (Mandatory)
+
+Before writing any artifact, resolve the canonical path via
+`plugins/vsdd-factory/config/artifact-path-registry.yaml`. Do not invent paths.
+
+Read the registry at the start of this skill's procedure and verify the target path
+matches a registered pattern before calling `Write`. If the artifact type is not in
+the registry, use `/vsdd-factory:register-artifact` to add it first.
+
 ## Hard Gate
 
 Do NOT skip to architecture design or story decomposition. Every behavioral contract MUST be defined with testable preconditions and postconditions before proceeding.
@@ -123,16 +132,12 @@ Criticality determines review depth, test coverage requirements, and holdout sce
 <Things that need resolution>
 ```
 
-### Individual BCs (`.factory/specs/behavioral-contracts/ss-NN/BC-S.SS.NNN.md`)
+### Behavioral Contracts
 
-One file per contract, sharded into per-subsystem `ss-NN/` directories,
-following `spec-format.md` format. Shard directory name is the bare
-`SS-NN` identifier (lowercased) — descriptive subsystem names live in
-ARCH-INDEX Subsystem Registry, not in the directory name.
-
-### BC Index (`.factory/specs/behavioral-contracts/BC-INDEX.md`)
-
-Table of all contracts with status tracking.
+Files are stored in `.factory/specs/behavioral-contracts/` — one file per contract
+sharded into per-subsystem `ss-NN/` directories (e.g. `ss-NN/BC-S.SS.NNN.md`).
+The BC-INDEX.md in that directory lists all contracts with status tracking.
+Shard directory name is the bare `SS-NN` identifier (lowercased).
 
 ## Self-Review (before adversarial review)
 

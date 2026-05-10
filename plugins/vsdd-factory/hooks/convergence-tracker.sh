@@ -18,19 +18,19 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -176,15 +176,11 @@ if [[ -n "$WARNINGS" ]]; then
 fi
 
 if [[ -n "$ERRORS" ]]; then
-  _emit type=hook.block hook=convergence-tracker matcher=PostToolUse \
-        reason=convergence_rule_violation file_path="$FILE_PATH" \
-        verdict="${VERDICT:-}" novelty_score="${NOVELTY_SCORE:-}"
-  echo "CONVERGENCE RULE VIOLATION — BLOCKED:" >&2
-  echo -e "$ERRORS" | while IFS= read -r line; do
-    echo "  ✗ $line" >&2
-  done
-  echo "  See CONVERGENCE.md for the full quantitative criteria." >&2
-  exit 2
+  _ERRORS_SUMMARY=$(echo -e "$ERRORS" | head -1)
+  block_pre "convergence-tracker" \
+    "Convergence rule violated: $_ERRORS_SUMMARY" \
+    "See CONVERGENCE.md for the full quantitative criteria" \
+    "convergence_rule_violation"
 fi
 
 exit 0

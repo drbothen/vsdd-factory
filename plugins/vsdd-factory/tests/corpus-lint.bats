@@ -231,7 +231,7 @@ version: "1.3"
 EOF
   _run_hook validate-changelog-monotonicity.sh "$WORK/.factory/specs/behavioral-contracts/BC-test.md"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"Frontmatter version"* ]]
+  [[ "$output" == *"CHANGELOG MONOTONICITY"* ]]
 }
 
 @test "changelog-monotonicity: allows same-day entries" {
@@ -833,7 +833,7 @@ anchor_capabilities: [CAP-005]
 EOF
   _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-004-test.md"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"UNION VIOLATION"* ]]
+  [[ "$output" == *"BLOCKED"* ]]
   [[ "$output" == *"CAP-006"* ]]
 }
 
@@ -857,7 +857,7 @@ anchor_capabilities: [CAP-005]
 EOF
   _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-005-test.md"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"UNION VIOLATION"* ]]
+  [[ "$output" == *"BLOCKED"* ]]
   [[ "$output" == *"CAP-006"* ]]
 }
 
@@ -876,7 +876,7 @@ anchor_capabilities: [CAP-004, CAP-005]
 EOF
   _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-006-test.md"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"UNION VIOLATION"* ]]
+  [[ "$output" == *"BLOCKED"* ]]
 }
 
 @test "anchor-caps-union: skips story with no anchor_bcs" {
@@ -962,7 +962,7 @@ anchor_capabilities: [CAP-005]
 EOF
   _run_hook validate-anchor-capabilities-union.sh "$WORK/.factory/stories/S-010-test.md"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"BC-2.04.001:CAP-006"* ]]
+  [[ "$output" == *"CAP-006"* ]]
 }
 
 @test "anchor-caps-union: hooks.json wires the hook" {
@@ -1040,8 +1040,8 @@ EOF
 @test "factory-path-root: blocks write to .worktrees/STORY-NNN/.factory/" {
   _run_hook validate-factory-path-root.sh "/home/user/project/.worktrees/STORY-001/.factory/STATE.md"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"FACTORY PATH ERROR"* ]]
-  [[ "$output" == *"worktree instead of project root"* ]]
+  [[ "$output" == *"BLOCKED"* ]]
+  [[ "$output" == *".worktrees/STORY-001"* ]]
 }
 
 @test "factory-path-root: blocks worktree .factory/ with nested path" {

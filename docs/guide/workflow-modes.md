@@ -8,7 +8,7 @@ The VSDD factory supports 8 workflow modes. Each mode strings together a differe
 
 | Mode | When to Use | Phases Run | Steps |
 |------|-------------|-----------|-------|
-| **Greenfield** | New project, no existing code | 0-7 (skip 0) | 68 |
+| **Greenfield** | New project, no existing code | 0-7 (skip 0) | 72 |
 | **Brownfield** | Existing codebase to extend or rebuild | 0-7 (all) | 24 + greenfield |
 | **Feature** | Adding to a VSDD-managed project | F1-F7 (delta phases) | 82 |
 | **Maintenance** | Scheduled quality sweeps | Per-sweep | 34 |

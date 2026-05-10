@@ -1,6 +1,6 @@
 # Commands Reference
 
-The vsdd-factory plugin ships 103 slash commands. Each command dispatches to a corresponding skill. Run any command by typing its name in Claude Code.
+The vsdd-factory plugin ships 120 slash commands. Each command dispatches to a corresponding skill. Run any command by typing its name in Claude Code.
 
 All commands are prefixed with `/` when invoked. If you have multiple plugins installed, use the fully qualified form `/vsdd-factory:<command-name>` to avoid ambiguity.
 

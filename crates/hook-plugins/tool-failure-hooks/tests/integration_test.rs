@@ -615,12 +615,12 @@ mod tool_failure_integration {
     // Test 7: BC-4.08.002 — hooks.json.template PostToolUseFailure entry
     // -----------------------------------------------------------------------
 
-    /// BC-4.08.002: `hooks.json.template` contains `PostToolUseFailure` entry with:
+    /// BC-4.08.002 v1.3: `hooks.json.template` contains `PostToolUseFailure` entry with:
     ///   - `command` referencing the dispatcher binary (contains "factory-dispatcher")
     ///   - `command` NOT referencing a `.wasm` plugin filename (ADR-011 layer separation)
     ///   - `once` key COMPLETELY ABSENT (fires per-failure; defensive omission;
     ///     mirrors S-5.03 worktree pattern — key must not exist at all)
-    ///   - `async: true`
+    ///   - `async` key ABSENT (synchronous envelope per ADR-019 S-15.01 T-3g)
     ///   - `timeout: 10000` (harness timeout per BC-4.08.002 + ADR-011)
     #[test]
     fn test_bc_4_08_002_hooks_json_template_post_tool_use_failure_entry() {
@@ -667,10 +667,11 @@ mod tool_failure_integration {
              not 'once: false', not 'once: true')"
         );
 
-        // BC-4.08.002 PC-4: async:true
-        assert_eq!(
-            entry["async"], true,
-            "BC-4.08.002 PC-4: PostToolUseFailure entry must have async:true"
+        // BC-4.08.002 v1.3 PC-4: async key must be ABSENT (S-15.01 T-3g, ADR-019 Decision 1).
+        // BC-9.01.006: async:true removed from all event entries.
+        assert!(
+            entry.get("async").is_none() || entry["async"] != true,
+            "BC-4.08.002 v1.3 PC-4: async:true must be absent from PostToolUseFailure entry (S-15.01 T-3g, ADR-019 Decision 1)"
         );
 
         // BC-4.08.002 PC-5: timeout:10000

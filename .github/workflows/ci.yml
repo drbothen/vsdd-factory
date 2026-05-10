@@ -2,9 +2,15 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    # Run on PRs targeting main OR develop. Without develop coverage,
+    # the bats run-all.sh suite was silently un-gated on develop pushes
+    # (only the lighter `semgrep` workflow ran), and the same suite
+    # blocked release.yml's `validate` job when those PRs landed —
+    # which kept rc.11/rc.12/rc.13 off the marketplace. Adding develop
+    # closes that gap.
+    branches: [main, develop]
 
 jobs:
   validate:
@@ -14,7 +20,8 @@ jobs:
 
       - name: Mount factory artifacts
         run: |
-          git fetch origin factory-artifacts
+          git fetch origin factory-artifacts:refs/remotes/origin/factory-artifacts
+          git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing — check fetch step" >&2; exit 1)
           git worktree add .factory origin/factory-artifacts
 
       - name: Install tools
@@ -34,6 +41,9 @@ jobs:
 
       - name: Run hook tests
         run: bats plugins/vsdd-factory/tests/hooks.bats
+
+      - name: Run block-helper tests
+        run: bats tests/integration/hooks/block-helper.bats
 
       - name: Run bin tests
         run: bats plugins/vsdd-factory/tests/bin.bats
@@ -168,6 +178,26 @@ jobs:
             exit 1
           fi
           echo "Built $count wasm files."
+
+      - name: Mount factory artifacts (for perf-baseline bats)
+        # perf-baseline.bats needs .factory/ (script + fixture + baseline doc).
+        # Must run in cargo-host (not validate) because setup_file() calls
+        # `cargo build --release -p factory-dispatcher` when the binary is absent,
+        # and the validate job has no Rust toolchain.
+        run: |
+          git fetch origin factory-artifacts:refs/remotes/origin/factory-artifacts
+          git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing" >&2; exit 1)
+          git worktree add .factory origin/factory-artifacts
+
+      - name: Run S-9.00 perf-baseline tests
+        # Requires: Rust toolchain (for setup_file cargo build), jq, and .factory/
+        # mounted above. hyperfine is not installed; cold-start test skips gracefully.
+        # The factory-dispatcher binary was built in the cargo-host build steps above,
+        # so setup_file() will skip the build and proceed directly to tests.
+        shell: bash
+        run: |
+          sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
+          bats plugins/vsdd-factory/tests/perf-baseline.bats
 
   platforms-drift:
     # Single source of truth: ci/platforms.yaml. The build-dispatcher

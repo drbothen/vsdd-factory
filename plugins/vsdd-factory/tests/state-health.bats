@@ -86,7 +86,7 @@ _generate_lines() {
   _generate_lines 550 "$WORK/.factory/STATE.md"
   _run_hook_status "$WORK/.factory/STATE.md"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"BLOAT"* ]]
+  [[ "$output" == *"BLOCKED"* ]]
   [[ "$output" == *"compact-state"* ]]
 }
 

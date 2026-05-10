@@ -19,6 +19,11 @@ Reference file for the orchestrator. Load during Phase 3 implementation.
    a. Spawn test-writer: "Create stubs in .worktrees/STORY-NNN/"
    b. Spawn test-writer: "Write failing tests in .worktrees/STORY-NNN/"
    c. Spawn implementer: "Implement via TDD in .worktrees/STORY-NNN/"
+   c2. Run Step 4.5 adversary convergence loop (BC-5.39.001, ADR-017):
+      - Dispatch adversary against the story diff + spec + anchored BCs only (BC-5.39.002 scope)
+      - Loop until passes_clean >= 3 AND last_classification == "NITPICK_ONLY"
+      - State file: .factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json
+      - Step 5 MUST NOT begin while convergence criterion is not met
    d. Spawn demo-recorder: "Record per-AC demos in .worktrees/STORY-NNN/.
       Output to docs/demo-evidence/<STORY-ID>/ (committed to feature branch).
       The <STORY-ID> subfolder prevents evidence-report.md and AC-*.md collisions across stories.

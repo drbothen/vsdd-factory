@@ -103,13 +103,24 @@ where
     match outcome.exit_code {
         0 => HookResult::Continue,
         2 => {
-            let reason = outcome
-                .stderr
-                .lines()
-                .next()
-                .filter(|l| !l.is_empty())
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| format!("legacy bash hook {script_path} blocked"));
+            // Capture the full stderr (up to 4 KiB), trimmed. Bash hooks now emit
+            // a single canonical line via lib/block.sh, but if a hook emits
+            // multi-line stderr we surface all of it rather than dropping
+            // everything after the first line. The 4 KiB cap keeps
+            // `permissionDecisionReason` reasonable for Claude Code consumption.
+            //
+            // Safety: use floor_char_boundary (stable since Rust 1.65) so the
+            // byte-slice never lands in the middle of a multi-byte UTF-8 sequence,
+            // which would panic. Hook stderr may contain Unicode file paths.
+            let raw = outcome.stderr.trim();
+            let reason = if raw.is_empty() {
+                format!("legacy bash hook {script_path} blocked (no stderr)")
+            } else if raw.len() > 4096 {
+                let safe = raw.floor_char_boundary(4096);
+                format!("{}…[truncated]", &raw[..safe])
+            } else {
+                raw.to_string()
+            };
             HookResult::block(reason)
         }
         code => HookResult::error(format!(
@@ -258,15 +269,63 @@ mod tests {
     }
 
     #[test]
-    fn maps_exit_two_to_block_with_first_stderr_line() {
+    fn maps_exit_two_to_block_with_stderr() {
+        // After the truncation fix, single-line stderr is preserved as-is.
         let p = payload_with_config(serde_json::json!({"script_path": "validate.sh"}));
-        let r = adapter_logic(
-            p,
-            always_ok(2, "policy violation: imports unsafe\nstack trace..."),
-        );
+        let r = adapter_logic(p, always_ok(2, "policy violation: imports unsafe"));
         match r {
             HookResult::Block { reason } => {
-                assert_eq!(reason, "policy violation: imports unsafe");
+                assert!(reason.contains("policy violation: imports unsafe"));
+            }
+            other => panic!("expected Block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn maps_exit_two_to_block_with_full_stderr() {
+        // After the truncation fix, multi-line stderr is preserved (joined as-is).
+        let p = payload_with_config(serde_json::json!({"script_path": "/x/v.sh"}));
+        let r = adapter_logic(p, always_ok(2, "first line\nsecond line\nthird line"));
+        match r {
+            HookResult::Block { reason } => {
+                assert!(reason.contains("first line"));
+                assert!(reason.contains("second line"));
+                assert!(reason.contains("third line"));
+            }
+            other => panic!("expected Block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn truncates_oversized_stderr_to_4kb() {
+        let big = "x".repeat(8000);
+        let p = payload_with_config(serde_json::json!({"script_path": "/x/v.sh"}));
+        let r = adapter_logic(p, always_ok(2, &big));
+        match r {
+            HookResult::Block { reason } => {
+                assert!(reason.len() <= 4096 + 20); // 4 KiB + truncation marker
+                assert!(reason.contains("[truncated]"));
+            }
+            other => panic!("expected Block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn truncates_at_utf8_char_boundary_not_mid_char() {
+        // Build a string where a 3-byte UTF-8 character (€ = U+20AC) straddles
+        // the 4096-byte boundary: 4095 ASCII bytes + '€' (bytes 4095..4098).
+        // Without floor_char_boundary, &raw[..4096] would panic.
+        let mut s = "a".repeat(4095);
+        s.push('€'); // 3 bytes: E2 82 AC — byte positions 4095, 4096, 4097
+        s.push_str(&"b".repeat(100));
+        let p = payload_with_config(serde_json::json!({"script_path": "/x/v.sh"}));
+        let r = adapter_logic(p, always_ok(2, &s));
+        match r {
+            HookResult::Block { reason } => {
+                // Must not panic and must contain [truncated]
+                assert!(reason.contains("[truncated]"));
+                // The slice boundary must be at 4095 (before '€'), not 4096
+                assert!(reason.is_char_boundary(reason.len()));
             }
             other => panic!("expected Block, got {other:?}"),
         }

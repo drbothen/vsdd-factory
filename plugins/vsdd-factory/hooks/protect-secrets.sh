@@ -21,34 +21,19 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
-
-block() {
-  local reason="$1"
-  local suggestion="${2:-}"
-  local code="${3:-unknown}"
-  # Note: command/file_path may contain variable *references* like $TOKEN, but
-  # at PreToolUse time they are pre-expansion literals — safe to log.
-  _emit type=hook.block hook=protect-secrets matcher="${TOOL:-?}" reason="$code" command="${COMMAND:-${FILE_PATH:-}}"
-  echo "BLOCKED by protect-secrets:" >&2
-  echo "  $reason" >&2
-  if [[ -n "$suggestion" ]]; then
-    echo "  Suggestion: $suggestion" >&2
-  fi
-  exit 2
-}
 
 # Pattern for a .env-like filename. Matches: .env, .env.local, .env.production,
 # .envrc. Does NOT match: .env.example, .env.sample, .env.template (safe templates).
@@ -69,9 +54,9 @@ is_secret_env_filename() {
 if [[ "$TOOL" == "Read" ]]; then
   FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
   if [[ -n "$FILE_PATH" ]] && is_secret_env_filename "$FILE_PATH"; then
-    block \
-      "Reading '$FILE_PATH' is blocked — .env files typically contain secrets that would land in the transcript." \
-      "If a specific non-secret value is needed, ask the user to paste it directly. For templates, use .env.example." \
+    block_pre "protect-secrets" \
+      "Reading '$FILE_PATH' is blocked — .env files typically contain secrets that would land in the transcript" \
+      "If a specific non-secret value is needed, ask the user to paste it directly. For templates, use .env.example" \
       "env_file_read_direct"
   fi
   exit 0
@@ -117,9 +102,9 @@ command_references_secret_env() {
 if echo "$COMMAND" | grep -qE '\b(cat|less|more|head|tail|bat|xxd|od|strings|grep|awk|sed)\b'; then
   if echo "$COMMAND" | grep -qE "$ENV_TOKEN_RE"; then
     if command_references_secret_env; then
-      block \
-        "Reading .env file contents via shell is blocked — contents would leak into the transcript." \
-        "Use 'ls .env*' to check existence. Ask the user to paste specific values if needed." \
+      block_pre "protect-secrets" \
+        "Reading .env file contents via shell is blocked — contents would leak into the transcript" \
+        "Use 'ls .env*' to check existence. Ask the user to paste specific values if needed" \
         "env_file_read_shell"
     fi
   fi
@@ -145,15 +130,15 @@ if echo "$COMMAND" | grep -qE '\b(cp|mv|rsync|scp)\b'; then
     case "$base" in
       .env.example|.env.sample|.env.template) : ;;
       .env|.envrc)
-        block \
-          "Copying/moving '$source_arg' is blocked — real .env files contain secrets." \
-          "If you need a template, create .env.example. To restore a .env, have the user do it." \
+        block_pre "protect-secrets" \
+          "Copying/moving '$source_arg' is blocked — real .env files contain secrets" \
+          "If you need a template, create .env.example. To restore a .env, have the user do it" \
           "env_file_copy"
         ;;
       .env.*)
-        block \
-          "Copying/moving '$source_arg' is blocked — .env.* files typically contain secrets." \
-          "If you need a template, use .env.example. To restore a .env, have the user do it." \
+        block_pre "protect-secrets" \
+          "Copying/moving '$source_arg' is blocked — .env.* files typically contain secrets" \
+          "If you need a template, use .env.example. To restore a .env, have the user do it" \
           "env_file_copy"
         ;;
     esac
@@ -163,9 +148,9 @@ fi
 # Block tar/zip that include a real .env as an input.
 if echo "$COMMAND" | grep -qE '\b(tar|zip)\b'; then
   if command_references_secret_env; then
-    block \
-      "Archiving .env files is blocked — potential secret exfiltration." \
-      "Exclude .env from archives, or handle it outside this session." \
+    block_pre "protect-secrets" \
+      "Archiving .env files is blocked — potential secret exfiltration" \
+      "Exclude .env from archives, or handle it outside this session" \
       "env_file_archive"
   fi
 fi
@@ -176,9 +161,9 @@ fi
 # ---------------------------------------------------------------------------
 SECRET_NAME_RE='(TOKEN|SECRET|PASSWORD|PASSWD|API[_-]?KEY|PRIVATE[_-]?KEY|ACCESS[_-]?KEY|CREDENTIAL|AUTH)'
 if echo "$COMMAND" | grep -qiE "\b(echo|printf)\b[^|&;]*\\\$\{?[A-Za-z0-9_]*${SECRET_NAME_RE}[A-Za-z0-9_]*\}?"; then
-  block \
-    "Echoing a secret-shaped environment variable is blocked — it would land in the transcript." \
-    "Use the variable directly in the command that needs it, without printing it." \
+  block_pre "protect-secrets" \
+    "Echoing a secret-shaped environment variable is blocked — it would land in the transcript" \
+    "Use the variable directly in the command that needs it, without printing it" \
     "secret_var_echo"
 fi
 
@@ -186,9 +171,9 @@ fi
 # Block env | grep for secret-shaped names
 # ---------------------------------------------------------------------------
 if echo "$COMMAND" | grep -qiE '\b(env|printenv|set)\b[^|]*\|[^|]*\bgrep\b[^|]*(token|secret|password|passwd|api[_-]?key|private[_-]?key|access[_-]?key|credential|auth)'; then
-  block \
-    "Grepping the environment for secret-shaped names is blocked." \
-    "If a specific value is needed, ask the user or use the variable directly in the downstream command." \
+  block_pre "protect-secrets" \
+    "Grepping the environment for secret-shaped names is blocked" \
+    "If a specific value is needed, ask the user or use the variable directly in the downstream command" \
     "secret_var_grep"
 fi
 

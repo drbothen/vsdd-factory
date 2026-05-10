@@ -101,7 +101,7 @@ Findings are written to `.factory/cycles/<current>/vsdd-factory:adversarial-revi
 
 | Finding Severity | Action |
 |-----------------|--------|
-| **CRITICAL** | Create a fix PR immediately via `/fix-pr-delivery`. Blocks Phase 5. |
+| **CRITICAL** | Create a fix PR immediately via `/vsdd-factory:fix-pr-delivery`. Blocks Phase 5. |
 | **HIGH** | Fix now or log to tech debt register with `/vsdd-factory:track-debt add`. |
 | **MEDIUM** | Fix if effort is low, otherwise log to tech debt. |
 | **LOW** | Document in the review findings. No action required. |
@@ -119,7 +119,7 @@ Findings route to different phases depending on their nature:
 - **Implementation flaws** -- create fix PRs targeting develop
 - **New edge cases** -- add to the edge case catalog, write failing tests, implement
 
-The fix delivery flow uses `/fix-pr-delivery`, which is a streamlined version of the standard story delivery. It skips stubs, Red Gate enforcement, and wave gates since those apply to new feature work, not remediation.
+The fix delivery flow uses `/vsdd-factory:fix-pr-delivery`, which is a streamlined version of the standard story delivery. It skips stubs, Red Gate enforcement, and wave gates since those apply to new feature work, not remediation.
 
 ## Multi-Model Adversary
 

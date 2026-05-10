@@ -16,6 +16,13 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   echo "red-gate.sh: jq is required but not found" >&2
   exit 1
@@ -23,14 +30,6 @@ fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "Edit|Write"')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 # No file path → allow
 [[ -z "$FILE_PATH" ]] && exit 0
@@ -100,8 +99,7 @@ if [[ "$FILE_PATH" == /* ]]; then
   fi
 fi
 
-_emit type=hook.block hook=red-gate matcher="$TOOL_NAME" reason=red_gate_strict_violation file_path="$FILE_PATH"
-echo "Blocked: red-gate is in strict mode and $FILE_PATH is not in the red list." >&2
-echo "Write a failing test for this code first, then add the path to .factory/red-gate-state.json under .red[]." >&2
-echo "To disable strict mode for this session, set .mode to \"off\" in $STATE_FILE." >&2
-exit 2
+block_pre "red-gate" \
+  "Strict TDD mode: $FILE_PATH is not in the red list" \
+  "Write a failing test first; OR add path to .factory/red-gate-state.json:.red[]; OR set .mode: \"off\" in that file" \
+  "red_gate_strict"

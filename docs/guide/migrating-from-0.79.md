@@ -254,43 +254,50 @@ If v1.0 misbehaves on your factory and you need to revert:
   If the binary is absent, open an issue with your OS/arch so the release
   can be patched.
 
-## Regenerating `hooks-registry.toml`
+## Regenerating `hooks-registry.toml` (historical, retired at 1.0.0 GA)
+
+> **Status (1.0.0 GA):** The generator described below was **retired
+> at 1.0.0 GA**. `plugins/vsdd-factory/hooks-registry.toml` is now the
+> human-edited source of truth and the canonical place to add, remove,
+> or rewire hooks. This section is preserved as historical migration
+> guidance for operators reconstructing the v0.79.x → v1.0 path; it
+> does not describe an active workflow.
 
 The v1.0 dispatcher reads `plugins/vsdd-factory/hooks-registry.toml`
 to decide which hooks fire on which events. During the v0.79.x → v1.0
-migration the file is produced by a generator that reads the historical
+migration the file was produced by a generator that read the historical
 bash-hook inventory at `git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json`
-and emits one `[[hooks]]` entry per bash hook, all routed through
+and emitted one `[[hooks]]` entry per bash hook, all routed through
 `legacy-bash-adapter.wasm`.
 
-Run the generator from the repo root:
+The generator was invoked from the repo root:
 
 ```bash
 scripts/generate-registry-from-hooks-json.sh
 ```
 
-The script is idempotent — re-running it on an unchanged input
-produces byte-identical output. CI re-runs it on every push and fails
-the build if `git diff plugins/vsdd-factory/hooks-registry.toml` is
+The script was idempotent — re-running it on an unchanged input
+produced byte-identical output. CI re-ran it on every push and failed
+the build if `git diff plugins/vsdd-factory/hooks-registry.toml` was
 non-empty.
 
-**When to re-run:**
+**When it was used:**
 
-- During this migration, almost never. The bash hook inventory is
-  frozen at the historical commit; ongoing maintenance edits the
-  generated TOML directly. The generator exists so the *initial*
-  conversion is auditable, not so it runs continuously.
-- If a bash hook is added or removed (rare during migration), update
-  `git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json` to match
-  reality (or pass an explicit hooks.json path argument), then
-  re-run the generator and review the diff.
-- After 1.0.0 ships, the generator is retired entirely;
-  `hooks-registry.toml` becomes the human-edited source of truth for
+- During the migration window, rarely. The bash hook inventory was
+  frozen at the historical commit; ongoing maintenance edited the
+  generated TOML directly. The generator existed so the *initial*
+  conversion was auditable, not so it would run continuously.
+- If a bash hook was added or removed (rare during migration),
+  `git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json` was
+  updated to match reality (or an explicit hooks.json path was passed
+  as argument), then the generator was re-run and the diff reviewed.
+- After 1.0.0 shipped, the generator was retired entirely;
+  `hooks-registry.toml` became the human-edited source of truth for
   every native-WASM port (S-2.5+).
 
-**What it can't fix:** entries whose underlying bash script no longer
-exists. The generator hard-fails on script-without-entry or
-entry-without-script — those are operator-resolved drift, not
+**What it couldn't fix:** entries whose underlying bash script no
+longer existed. The generator hard-failed on script-without-entry or
+entry-without-script — those were operator-resolved drift, not
 generator-resolved.
 
 ## Known regressions (v1.0.0-beta.1)

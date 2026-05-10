@@ -65,11 +65,11 @@ Integer-precise form (avoids float rounding): `RED_TESTS * 2 >= (TOTAL_NEW_TESTS
 
 ### Full-Exception Path (denominator = 0)
 
-When all effective tests (after excluding GREEN-BY-DESIGN + WIRING-EXEMPT) are themselves exempt (denominator = 0), the gate does NOT vacuously pass. The orchestrator must explicitly acknowledge this in the red-gate-log file (`.factory/logs/red-gate-log-<story-id>.md`) with `full_exception_path: true`. This documents intent and prevents silent bypass.
+When all effective tests (after excluding GREEN-BY-DESIGN + WIRING-EXEMPT) are themselves exempt (denominator = 0), the gate does NOT vacuously pass. The orchestrator must explicitly acknowledge this in the red-gate-log file (`.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md`) with `full_exception_path: true`. This documents intent and prevents silent bypass.
 
 ### Red Gate Log Format
 
-Write to `.factory/logs/red-gate-log-<story-id>.md` BEFORE any exception-path invocation. Required fields:
+Write to `.factory/cycles/<cycle-id>/<story-id>/implementation/red-gate-log.md` BEFORE any exception-path invocation. Required fields:
 
 ```yaml
 red_ratio: <computed value>
@@ -104,7 +104,73 @@ Dispatch `implementer` with task: "Implement in `.worktrees/S-N.MM/` via TDD. Fo
 
 **Exit condition:** all tests green, clippy clean, `cargo +nightly fmt --all --check` clean, zero `todo!()` / `unimplemented!()` in production code.
 
+## Step 4.5 — Per-Story Adversary Convergence Loop (adversary + implementer)
+
+**Behavioral contracts:** BC-5.39.001 (loop mechanics), BC-5.39.002 (scope constraints). **Decision record:** ADR-017.
+
+This step MUST execute between Step 4 (Implement) and Step 5 (Record demos). Demos record the final converged state — recording before convergence would require re-recording after adversary-driven fixes.
+
+### Scope (BC-5.39.002 PC1)
+
+The adversary's per-story scope is bounded to exactly three information sources:
+
+1. The story worktree diff against `develop` (computed via `git diff develop...HEAD` in the story worktree)
+2. The story spec file
+3. The BCs anchored to the story via the story's `bcs:` frontmatter array
+
+The adversary MUST NOT load: full codebase context, other stories' specs, PRD sections not referenced in the story spec, or architecture documents not directly cited by the anchored BCs.
+
+### Convergence criterion (BC-5.39.001 PC5)
+
+Convergence is reached when: `passes_clean >= 3 AND last_classification == "NITPICK_ONLY"`.
+
+The `passes_clean` counter increments by 1 for each pass where `last_classification == "NITPICK_ONLY"`. It RESETS to 0 if any pass produces a finding classified above NITPICK_ONLY. Minimum 3 clean passes required — no exceptions.
+
+### Deferred findings (BC-5.39.002 PC4)
+
+Findings that are cross-story, integration-level, system-level, or architectural in scope MUST be tagged as deferred and written to the `deferred_findings` array in the convergence state file. They do NOT block per-story convergence and do NOT reset `passes_clean`.
+
+The four deferred categories are:
+- `cross-story` — requires context from another story's scope → target: `wave-gate`
+- `integration` — requires knowledge of how multiple stories or subsystems interact → target: `wave-gate`
+- `system-level` — concerns system-wide behavior not representable in a single story diff → target: `phase-5`
+- `architectural` — concerns design decisions spanning the architectural boundary → target: `phase-5`
+
+### Convergence state file (BC-5.39.001 PC2)
+
+Path: `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`
+
+Schema:
+```json
+{
+  "passes_clean": <int>,
+  "last_finding_count": <int>,
+  "last_classification": "CRITICAL"|"HIGH"|"MEDIUM"|"LOW"|"NITPICK_ONLY",
+  "last_timestamp": "<ISO-8601 UTC>",
+  "deferred_findings": [
+    {
+      "finding_id": "<string>",
+      "category": "cross-story"|"integration"|"system-level"|"architectural",
+      "target": "wave-gate"|"phase-5",
+      "note": "<string>"
+    }
+  ]
+}
+```
+
+### Loop procedure
+
+1. Dispatch `adversary` agent against the story worktree diff, story spec, and anchored BCs only.
+2. Adversary classifies each finding as CRITICAL, HIGH, MEDIUM, LOW, or NITPICK_ONLY. Out-of-scope findings are tagged as deferred (see above) and written to `deferred_findings[]`. They do NOT block convergence.
+3. Adversary writes updated convergence state JSON to the per-story state file.
+4. If `passes_clean < 3` or `last_classification != "NITPICK_ONLY"`: dispatch `implementer` to fix within-story findings. Repeat from step 1.
+5. If convergence criterion is met (`passes_clean >= 3 AND last_classification == "NITPICK_ONLY"`): proceed to Step 5.
+
+**Exit condition:** `passes_clean >= 3 AND last_classification == "NITPICK_ONLY"` in `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`.
+
 ## Step 5 — Record demos (demo-recorder)
+
+**MUST NOT execute** while `passes_clean < 3` or `last_classification != "NITPICK_ONLY"` in the per-story convergence state file (BC-5.39.001 PC6). Step 4.5 MUST complete successfully before this step begins.
 
 Dispatch `demo-recorder` with task: "Record per-AC demos in `.worktrees/S-N.MM/docs/demo-evidence/<STORY-ID>/`. Use VHS for CLI or Playwright for web. Capture both success and error paths. Generate `docs/demo-evidence/<STORY-ID>/evidence-report.md`."
 

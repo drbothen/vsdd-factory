@@ -19,19 +19,19 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -177,23 +177,18 @@ done <<< "$TEMPLATE_SECTIONS"
 
 # --- Step 9: Report ---
 if [[ -n "$MISSING_KEYS" || -n "$MISSING_SECTIONS" ]]; then
-  _emit type=hook.block hook=validate-template-compliance matcher=PostToolUse \
-        reason=template_noncompliant file_path="$FILE_PATH" \
-        template="$TEMPLATE_NAME" missing_keys="$MISSING_KEYS"
-  echo "TEMPLATE COMPLIANCE WARNING ($(basename "$FILE_PATH") → $TEMPLATE_NAME):" >&2
+  _DETAIL=""
   if [[ -n "$MISSING_KEYS" ]]; then
-    TOTAL_TMPL=$(echo "$TEMPLATE_KEYS" | wc -w | tr -d ' ')
-    TOTAL_FILE=$(echo "$FILE_KEYS" | wc -w | tr -d ' ')
-    echo "  Frontmatter: $TOTAL_FILE/$TOTAL_TMPL fields present. Missing: $MISSING_KEYS" >&2
+    _DETAIL="${_DETAIL:+$_DETAIL; }missing frontmatter keys: $MISSING_KEYS"
   fi
   if [[ -n "$MISSING_SECTIONS" ]]; then
-    echo "  Sections missing:" >&2
-    echo "$MISSING_SECTIONS" | tr '||' '\n' | while IFS= read -r s; do
-      [[ -n "$s" ]] && echo "    - ## $s" >&2
-    done
+    _MISSING_SECS=$(echo "$MISSING_SECTIONS" | tr '||' ',' | sed 's/^,//;s/,$//')
+    _DETAIL="${_DETAIL:+$_DETAIL; }missing sections: $_MISSING_SECS"
   fi
-  echo "  Fix: run /vsdd-factory:conform-to-template $(basename "$FILE_PATH") to add missing structure." >&2
-  exit 2
+  block_pre "validate-template-compliance" \
+    "Frontmatter or sections missing in $(basename "$FILE_PATH") (template: $TEMPLATE_NAME): $_DETAIL" \
+    "Run /vsdd-factory:conform-to-template $(basename "$FILE_PATH") to add missing structure" \
+    "template_drift"
 fi
 
 exit 0

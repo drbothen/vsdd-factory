@@ -58,6 +58,10 @@ fn entry_at(path: &std::path::Path, name: &str, priority: u32) -> RegistryEntry 
         on_error: None,
         capabilities: Some(Capabilities::default()),
         config: toml::Value::Table(toml::Table::new()),
+        // S-15.01 stub: async_flag defaults to false (sync_group) per BC-7.06.001
+        // postcondition 3 (serde-default semantics). Test fixture updated for
+        // compilation; the implementer updates schema_version to 2 in T-3a.
+        async_flag: false,
     }
 }
 

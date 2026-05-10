@@ -14,6 +14,13 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
@@ -32,13 +39,6 @@ fi
 
 SUBAGENT=$(echo "$INPUT" | jq -r '.tool_input.subagent_type // ""')
 PROMPT=$(echo "$INPUT" | jq -r '.tool_input.prompt // ""')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 # Scope split: adversary dispatches go through SHA-currency hygiene
 # (state-manager burst integrity check). Worker-agent dispatches go
@@ -68,35 +68,16 @@ case "$SUBAGENT" in
       exit 0
     fi
 
-    if HOOK_OUTPUT=$(bash "$SHA_HOOK" --project-root "$SHA_PROJECT_ROOT" 2>&1); then
+    if bash "$SHA_HOOK" --project-root "$SHA_PROJECT_ROOT" 2>&1; then
       # Hook returned 0 (PASS or PASS-with-WARN). Allow the dispatch.
       exit 0
     fi
 
     # Hook returned non-zero — block the dispatch with diagnostic.
-    _emit type=hook.block hook=validate-wave-gate-prerequisite \
-          matcher=Agent reason=sha_currency_failed subagent="$SUBAGENT"
-    {
-      echo ""
-      echo "wave-gate-prerequisite: BLOCKED — SHA currency check failed."
-      echo ""
-      echo "An adversary pass cannot run while the prior remediation burst's"
-      echo "factory-artifacts hygiene is dirty (stale SHA cites, multi-commit"
-      echo "chains, in-progress narrative, or cross-record drift)."
-      echo ""
-      echo "Hook output:"
-      # shellcheck disable=SC2001  # sed is the right tool for line-prefix indentation
-      echo "$HOOK_OUTPUT" | sed 's/^/  /'
-      echo ""
-      echo "Resolve before re-dispatching:"
-      echo "  bash $SHA_HOOK"
-      echo ""
-      echo "If the issue is a multi-commit chain, recover with:"
-      echo "  git -C .factory reset --soft HEAD~N   # collapse extra commits"
-      echo "  # then redo Stage 1 + Stage 2 of the burst protocol"
-      echo "  # (see vsdd-factory:state-burst skill)"
-    } >&2
-    exit 2
+    block_pre "validate-wave-gate-prerequisite" \
+      "SHA currency check failed — factory-artifacts hygiene is dirty (stale SHA cites, multi-commit chains, in-progress narrative, or cross-record drift)" \
+      "Resolve with: bash $SHA_HOOK; if multi-commit chain use: git -C .factory reset --soft HEAD~N then redo Stage 1+2 of burst protocol" \
+      "wave_gate_blocking"
     ;;
   *test-writer*|*implementer*|*demo-recorder*|*pr-manager*|*devops-engineer*) ;;
   *) exit 0 ;;
@@ -173,32 +154,10 @@ for name, data in state['waves'].items():
         print(name); break
 " 2>/dev/null || true)
 
-  _emit type=hook.block hook=validate-wave-gate-prerequisite matcher=Agent \
-        reason=wave_gate_prerequisite_not_passed \
-        subagent="$SUBAGENT" story_id="$STORY_ID" target_wave="$TARGET_WAVE" \
-        blocking_wave="$BLOCKING_WAVE" blocking_status="$BLOCKING_STATUS"
-  echo "" >&2
-  echo "wave-gate-prerequisite: BLOCKED." >&2
-  echo "" >&2
-  echo "You are dispatching $SUBAGENT for $STORY_ID (wave=$TARGET_WAVE)," >&2
-  echo "but an earlier wave has not passed its integration gate:" >&2
-  echo "" >&2
-  echo "  $BLOCKING_WAVE: gate_status=$BLOCKING_STATUS" >&2
-  echo "" >&2
-  echo "Before dispatching $TARGET_WAVE work, do ONE of:" >&2
-  echo "" >&2
-  echo "1. Run the wave integration gate for $BLOCKING_WAVE:" >&2
-  echo "   Invoke /vsdd-factory:wave-gate OR spawn the reviewer agents" >&2
-  echo "   against the wave's merged commits. Fix any blocking findings." >&2
-  echo "   Then update .factory/wave-state.yaml gate_status: passed." >&2
-  echo "" >&2
-  echo "2. If the wave has no new behavioral surface (e.g., pure docs)," >&2
-  echo "   set gate_status: deferred with a rationale field." >&2
-  echo "" >&2
-  echo "Do NOT silently skip. Do NOT manually edit wave-state.yaml" >&2
-  echo "without running the checks." >&2
-
-  exit 2
+  block_pre "validate-wave-gate-prerequisite" \
+    "Earlier wave's gate has not passed: $BLOCKING_WAVE (gate_status=$BLOCKING_STATUS) must pass before dispatching $STORY_ID ($TARGET_WAVE)" \
+    "Resolve $BLOCKING_WAVE integration gate first: invoke /vsdd-factory:wave-gate, fix blocking findings, then update wave-state.yaml gate_status: passed" \
+    "wave_gate_blocking"
 fi
 
 exit 0

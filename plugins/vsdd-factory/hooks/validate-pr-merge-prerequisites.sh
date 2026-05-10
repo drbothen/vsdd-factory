@@ -29,12 +29,12 @@ fi
 SUBAGENT=$(echo "$INPUT" | jq -r '.tool_input.subagent_type // ""')
 PROMPT=$(echo "$INPUT" | jq -r '.tool_input.prompt // ""')
 
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
 
 # Scope: only github-ops dispatches that contain "merge"
 case "$SUBAGENT" in
@@ -105,19 +105,11 @@ if [[ ! -f "$DELIVERY_DIR/security-review.md" ]]; then
 fi
 
 if [[ -n "$ERRORS" ]]; then
-  _emit type=hook.block hook=validate-pr-merge-prerequisites matcher=Agent \
-        reason=pr_merge_evidence_missing \
-        story_id="$STORY_ID" delivery_dir="$DELIVERY_DIR" missing="$MISSING_FILES"
-  echo "" >&2
-  echo "PR MERGE PREREQUISITES NOT MET for $STORY_ID:" >&2
-  echo -e "$ERRORS" | while IFS= read -r line; do
-    echo "  - $line" >&2
-  done
-  echo "" >&2
-  echo "  Complete the pr-manager 9-step lifecycle before merging." >&2
-  echo "  Steps 1 (description), 4 (security), and 5 (review) must produce" >&2
-  echo "  their evidence files before step 8 (merge) can proceed." >&2
-  exit 2
+  _MISSING_SUMMARY=$(echo -e "$ERRORS" | tr '\n' '; ' | sed 's/; $//')
+  block_pre "validate-pr-merge-prerequisites" \
+    "pr-manager 9-step lifecycle incomplete for $STORY_ID: missing $_MISSING_SUMMARY" \
+    "Complete the 9 steps; verify .factory/code-delivery/$STORY_ID/ exists with pr-description.md, pr-review.md, security-review.md" \
+    "pr_merge_evidence_missing"
 fi
 
 exit 0
