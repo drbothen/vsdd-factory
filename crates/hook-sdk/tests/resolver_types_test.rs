@@ -1,4 +1,17 @@
-//! Resolver SDK type and macro tests — S-12.05 Step 3 (Red Gate).
+//! S-12.05 GREEN — Resolver-Authoring Type & Macro Tests
+//!
+//! Covers AC-001..AC-010 for BC-4.12.002 (resolver-authoring SDK feature).
+//!
+//! Contents:
+//! - Type-level structural tests (ResolverInput/ResolverOutput distinct, serde round-trip)
+//! - Macro acceptance tests (trybuild compile-pass + compile-fail fixtures)
+//! - Async/unsafe rejection tests (trybuild for #[resolver] async fn / unsafe fn)
+//!
+//! Test ↔ AC mapping:
+//! - AC-001 .. AC-010 → see resolver_types_test.rs::test_BC_4_12_002_* functions
+//! - AC-005 (compile-pass valid_resolver.rs) — verifies macro acceptance on host;
+//!   wasm32 export verification deferred to tests/wasm32_resolver_export_integration.rs
+//! - AC-006 (compile-fail wrong_sig.rs / async_resolver.rs) — trybuild rejections
 //!
 //! All tests require `--features resolver-authoring`.
 //!
@@ -11,8 +24,8 @@
 //!             test_BC_4_12_002_resolver_output_value_some_serializes_correctly
 //!   AC-004 → test_BC_4_12_002_resolver_input_is_not_hook_payload (structural)
 //!             test_BC_4_12_002_type_mismatch_compile_error (trybuild)
-//!   AC-005 → test_BC_4_12_002_resolver_macro_generates_resolve_export (trybuild — FAILS in Red Gate)
-//!   AC-006 → test_BC_4_12_002_resolver_macro_rejects_wrong_signature (trybuild — FAILS in Red Gate)
+//!   AC-005 → test_BC_4_12_002_resolver_macro_generates_resolve_export (trybuild compile-pass)
+//!   AC-006 → test_BC_4_12_002_resolver_macro_rejects_wrong_signature (trybuild compile-fail)
 //!   AC-007 → test_BC_4_12_002_resolver_authoring_feature_gates_types (structural: lib.rs source scan)
 //!             Note: trybuild negative-compile for feature-gating is unreliable because trybuild
 //!             inherits the parent crate's feature flags. The authoritative check is the Cargo.toml
@@ -21,10 +34,6 @@
 //!   AC-009 → test_BC_4_12_002_hook_payload_and_hook_result_surfaces_unchanged
 //!   AC-010 → prop_BC_4_12_002_resolver_serde_roundtrip_deterministic
 //!             (VP-075)
-//!
-//! Red Gate state: AC-005 and AC-006 trybuild tests FAIL because the
-//! #[resolver] macro body is `todo!()` — compilation of crates using
-//! the macro panics instead of generating the `resolve()` export.
 
 #[cfg(feature = "resolver-authoring")]
 mod tests {
@@ -253,21 +262,17 @@ mod tests {
         t.compile_fail("tests/ui/type_mismatch.rs");
     }
 
-    // ── AC-005 and AC-006: #[resolver] macro (trybuild — FAILS in Red Gate) ───
+    // ── AC-005 and AC-006: #[resolver] macro (trybuild) ─────────────────────
 
     /// BC-4.12.002 PC5: #[resolver] macro generates a valid `resolve()` export
     /// when applied to `fn resolve_impl(input: ResolverInput) -> ResolverOutput`.
-    ///
-    /// RED GATE: This test FAILS because the macro body is `todo!()`.
-    /// The trybuild compilation panics instead of generating the export.
-    /// The test will pass GREEN once the implementer completes the macro.
     ///
     /// Traces: AC-005, BC-4.12.002 postcondition 5.
     #[test]
     fn test_BC_4_12_002_resolver_macro_generates_resolve_export() {
         let t = trybuild::TestCases::new();
         // This .rs file applies #[resolver] to a valid resolve_impl signature.
-        // Must compile successfully — fails RED because macro is todo!().
+        // Must compile successfully.
         t.pass("tests/ui/valid_resolver.rs");
     }
 
