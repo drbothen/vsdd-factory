@@ -4,10 +4,10 @@
   "cycle": "v1.0-feature-engine-discipline-pass-1",
   "convergence_reached": false,
   "passes_clean": 0,
-  "passes_total": 1,
+  "passes_total": 2,
   "last_classification": "CRITICAL",
-  "last_pass_at": "2026-05-10T07:10:32Z",
-  "branch_sha": "9fbdb680",
+  "last_pass_at": "2026-05-10T00:00:00Z",
+  "branch_sha": "fa8babed",
   "passes": [
     {
       "pass": 1,
@@ -17,6 +17,15 @@
       "review_path": ".factory/cycles/v1.0-feature-engine-discipline-pass-1/S-12.03/adversary-pass-1.md",
       "recommendation": "PROCEED_TO_FIX",
       "branch_sha_at_pass": "9fbdb680"
+    },
+    {
+      "pass": 2,
+      "classification": "CRITICAL",
+      "within_story_findings": 7,
+      "severity_floor": "CRITICAL",
+      "review_path": ".factory/cycles/v1.0-feature-engine-discipline-pass-1/S-12.03/adversary-pass-2.md",
+      "recommendation": "PROCEED_TO_FIX",
+      "branch_sha_at_pass": "fa8babed"
     }
   ]
 }
