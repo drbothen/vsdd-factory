@@ -708,6 +708,28 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         "F-P3-001: 'key' in merge_collision event must equal 'collision-key' \
          (the context_key = merge key). Log content: {all_log_content:?}"
     );
+    // F-P8-002: provenance-triplet positive-coverage for resolver.merge_collision.
+    // make_executor_inputs sets trace_id = "trace-resolver-test", session_id = "sess-resolver-test".
+    // entry.name = "collision-hook" (plugin_name in the event).
+    // Matches the pattern established by F-P7-003 for resolver.not_found.
+    assert!(
+        all_log_content.contains("trace-resolver-test"),
+        "F-P8-002: resolver.merge_collision event must include trace_id literal \
+         ('trace-resolver-test'). Positive coverage check — ensures with_trace_id() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("sess-resolver-test"),
+        "F-P8-002: resolver.merge_collision event must include session_id literal \
+         ('sess-resolver-test'). Positive coverage check — ensures with_session_id() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("collision-hook"),
+        "F-P8-002: resolver.merge_collision event must include plugin_name ('collision-hook', \
+         from entry.name). Positive coverage check — ensures with_plugin_name() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
