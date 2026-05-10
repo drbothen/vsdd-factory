@@ -428,6 +428,11 @@ fn build_plugin_config(
         return entry.config_as_json();
     }
 
+    // Hoist single config_as_json() call — avoids three separate allocations below.
+    // Placed inside the non-empty branch so the zero-overhead short-circuit at the
+    // top of this function (needs_context.is_empty() → return early) is preserved.
+    let static_json = entry.config_as_json();
+
     // Build the ResolverInput from the current dispatch context.
     let event_type = payload_value
         .get("event_name")
@@ -450,7 +455,7 @@ fn build_plugin_config(
         hook_event_name: entry.name.clone(),
         agent_type,
         project_dir,
-        plugin_config: entry.config_as_json(),
+        plugin_config: static_json.clone(),
     };
 
     // Coerce the static config into a Map for merge_resolver_outputs (F-006).
@@ -461,11 +466,11 @@ fn build_plugin_config(
     // The non-Object arm is therefore unreachable in production. The debug_assert
     // documents this invariant; any violation is a programming error, not a runtime fault.
     debug_assert!(
-        matches!(entry.config_as_json(), serde_json::Value::Object(_)),
+        matches!(static_json, serde_json::Value::Object(_)),
         "plugin_config must be a JSON object after Registry::parse_str — TOML table \
          semantics guarantee this; a non-Object value indicates a bypass of parse_str"
     );
-    let static_map = match entry.config_as_json() {
+    let static_map = match static_json {
         serde_json::Value::Object(m) => m,
         _ => serde_json::Map::new(),
     };
