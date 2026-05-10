@@ -4,19 +4,22 @@
 //! inputs always produce identical outputs.  Also verifies additive-overlay
 //! preservation: base config fields survive the merge.
 //!
-//! Four property tests:
+//! Three property tests:
 //!   - `prop_merge_is_deterministic`                        (200 trials, VP-075-B)
 //!   - `prop_merge_preserves_base_config_fields`            (100 trials, VP-075-C / AC-006)
 //!   - `prop_resolver_output_with_none_leaves_key_absent`   (100 trials, AC-004)
-//!   - `prop_resolve_is_deterministic`                      (100 trials, VP-075-A / AC-008)
+//!
+//! VP-075-A (resolver-level determinism) is deferred to S-12.07 when the first
+//! real `ContextResolver` implementation exists. The previous `prop_resolve_is_deterministic`
+//! was a tautology: `FixedDeterministicResolver::resolve` ignored its input and
+//! returned a stored clone — testing that `Option::clone()` is deterministic, not
+//! that the registry path or any real resolver is. See VP-INDEX VP-075 entry.
 //!
 //! BC: BC-4.12.005 INV1, BC-1.13.001 PC5
 //! Story: S-12.03
 //! VP: VP-075
 
-use factory_dispatcher::resolver::{
-    ContextResolver, ResolverError, ResolverInput, ResolverOutput, merge_resolver_outputs,
-};
+use factory_dispatcher::resolver::{ResolverOutput, merge_resolver_outputs};
 use proptest::prelude::*;
 use serde_json::{Map, Value};
 
@@ -233,83 +236,9 @@ proptest! {
     }
 }
 
-// ---------------------------------------------------------------------------
-// VP-075-A: resolve determinism
-// ---------------------------------------------------------------------------
-
-// VP-075-A / AC-008 / BC-4.12.005 INV1:
-// Calling a `ContextResolver::resolve()` twice with identical inputs produces
-// identical `ResolverOutput`.
-//
-// Uses a `FixedResolver` that returns the same output on every call —
-// this exercises the trait surface defined in S-12.03 (the pure computation
-// function from S-12.05 extends coverage in that story).
-//
-// 100 trials.
-
-/// A trivial resolver for proptest use: returns a fixed `ResolverOutput` on every call.
-struct FixedDeterministicResolver {
-    output: ResolverOutput,
-}
-
-impl ContextResolver for FixedDeterministicResolver {
-    fn name(&self) -> &str {
-        "proptest_fixed"
-    }
-
-    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
-        Ok(Some(self.output.clone()))
-    }
-}
-
-/// Strategy: an arbitrary `ResolverInput` for proptest use.
-fn arb_resolver_input() -> impl Strategy<Value = ResolverInput> {
-    (
-        prop_oneof![
-            Just("PreToolUse".to_string()),
-            Just("PostToolUse".to_string()),
-        ],
-        "[a-z]{1,16}",
-        prop_oneof![Just(None::<String>), "[a-z]{1,8}".prop_map(Some),],
-    )
-        .prop_map(|(event_type, hook_name, agent_type)| ResolverInput {
-            event_type,
-            hook_event_name: hook_name,
-            agent_type,
-            project_dir: "/tmp/proptest-project".to_string(),
-            plugin_config: serde_json::Value::Object(Map::new()),
-        })
-}
-
-proptest! {
-    #![proptest_config(proptest::test_runner::Config {
-        cases: 100,
-        timeout: 5_000,
-        ..Default::default()
-    })]
-
-    #[test]
-    fn prop_resolve_is_deterministic(
-        key in "[a-z]{1,16}",
-        value in arb_non_null_json_value(),
-        input in arb_resolver_input(),
-    ) {
-        let output = ResolverOutput {
-            key: key.clone(),
-            value: Some(value),
-        };
-        let resolver = FixedDeterministicResolver { output };
-
-        let result_a = resolver.resolve(&input)
-            .expect("FixedDeterministicResolver must not error (VP-075-A)");
-        let result_b = resolver.resolve(&input)
-            .expect("FixedDeterministicResolver second call must not error (VP-075-A)");
-
-        prop_assert_eq!(
-            result_a,
-            result_b,
-            "ContextResolver::resolve must be deterministic: identical inputs produce \
-             identical ResolverOutput (VP-075-A / AC-008 / BC-4.12.005 INV1)"
-        );
-    }
-}
+// VP-075-A: deferred to S-12.07.
+// The previous prop_resolve_is_deterministic was a tautology (POLICY 11 violation):
+// FixedDeterministicResolver::resolve ignored its input and returned a stored clone,
+// exercising only Option::clone() — not the registry path or any real resolver.
+// Real VP-075-A coverage requires a non-trivial ContextResolver implementation,
+// which lands in S-12.07. See VP-INDEX entry for VP-075.
