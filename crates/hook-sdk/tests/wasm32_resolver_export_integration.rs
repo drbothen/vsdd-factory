@@ -124,7 +124,7 @@ mod wasm_export_tests {
     #[ignore = "WASM-export verification — requires wasm32-wasip1 toolchain. \
                 Install: rustup target add wasm32-wasip1. \
                 Run: cargo test --features resolver-authoring -p vsdd-hook-sdk \
-                --test wasm32_resolver_export_integration -- --include-ignored"]
+                --test wasm32_resolver_export_integration -- --ignored"]
     fn test_BC_4_12_002_resolver_macro_generates_wasm_export() {
         let wasm_path = build_wasm_cdylib().unwrap_or_else(|e| panic!("{e}"));
 
