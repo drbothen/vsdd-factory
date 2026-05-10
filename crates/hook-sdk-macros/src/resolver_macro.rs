@@ -121,6 +121,23 @@ fn validate_resolver_signature(f: &ItemFn, call_site_args: TokenStream2) -> Resu
             .unwrap_or_else(Span::call_site)
     };
 
+    // Validate: async not supported (mirrors #[hook] validate_signature)
+    if f.sig.asyncness.is_some() {
+        return Err(syn::Error::new_spanned(
+            &f.sig,
+            "#[resolver] does not support async fns; the WASM resolver entrypoint \
+             is synchronous. Use synchronous host calls inside resolve_impl.",
+        ));
+    }
+
+    // Validate: unsafe not supported (mirrors #[hook] validate_signature)
+    if f.sig.unsafety.is_some() {
+        return Err(syn::Error::new_spanned(
+            &f.sig,
+            "#[resolver] cannot annotate `unsafe fn`; the resolver entry point must be safe.",
+        ));
+    }
+
     // Validate: exactly one argument
     if f.sig.inputs.len() != 1 {
         return Err(syn::Error::new(attr_span, SIGNATURE_HELP));

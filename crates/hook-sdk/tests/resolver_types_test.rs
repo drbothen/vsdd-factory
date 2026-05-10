@@ -273,18 +273,26 @@ mod tests {
     /// message containing "resolve_impl" and "ResolverOutput" when applied to
     /// a function with the wrong signature.
     ///
-    /// RED GATE: This test FAILS because the actual error is the `todo!()` panic
-    /// ("not yet implemented: S-12.05 Step 4 implementer...") rather than the
-    /// expected signature validation diagnostic.
-    ///
     /// Traces: AC-006, BC-4.12.002 postcondition 5.
     #[test]
     fn test_BC_4_12_002_resolver_macro_rejects_wrong_signature() {
         let t = trybuild::TestCases::new();
         // This .rs file applies #[resolver] to a wrong signature (fn() -> String).
         // Must fail with a message referencing the expected signature.
-        // Fails RED because todo!() produces the wrong error message.
         t.compile_fail("tests/ui/wrong_sig.rs");
+    }
+
+    /// BC-4.12.002 PC5 + F-P2-006: #[resolver] must reject async fn with a
+    /// clear diagnostic. The WASM resolver entrypoint is synchronous; async
+    /// is not supported (mirrors #[hook] asyncness check).
+    ///
+    /// Traces: BC-4.12.002 PC5, F-P2-006.
+    #[test]
+    fn test_BC_4_12_002_resolver_macro_rejects_async_fn() {
+        let t = trybuild::TestCases::new();
+        // Applies #[resolver] to `async fn resolve_impl(...)`.
+        // Must fail with a message about async not being supported.
+        t.compile_fail("tests/ui/async_resolver.rs");
     }
 
     // ── AC-007: resolver-authoring feature flag (structural + Cargo.toml check) ─
