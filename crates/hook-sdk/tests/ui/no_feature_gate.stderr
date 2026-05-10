@@ -1,4 +1,0 @@
-error[E0603]: module `resolver` is private
-  --> tests/ui/no_feature_gate.rs:22:35
-   |
-$DIR/no_feature_gate.rs:22:35 | error: module `resolver` not found

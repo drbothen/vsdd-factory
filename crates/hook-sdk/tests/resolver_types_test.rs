@@ -13,7 +13,10 @@
 //!             test_BC_4_12_002_type_mismatch_compile_error (trybuild)
 //!   AC-005 → test_BC_4_12_002_resolver_macro_generates_resolve_export (trybuild — FAILS in Red Gate)
 //!   AC-006 → test_BC_4_12_002_resolver_macro_rejects_wrong_signature (trybuild — FAILS in Red Gate)
-//!   AC-007 → test_BC_4_12_002_resolver_authoring_feature_gates_types (trybuild)
+//!   AC-007 → test_BC_4_12_002_resolver_authoring_feature_gates_types (structural: lib.rs source scan)
+//!             Note: trybuild negative-compile for feature-gating is unreliable because trybuild
+//!             inherits the parent crate's feature flags. The authoritative check is the Cargo.toml
+//!             feature definition + lib.rs cfg gate verified by source scan in this test.
 //!   AC-008 → test_BC_4_12_002_abi_versions_are_independently_defined
 //!   AC-009 → test_BC_4_12_002_hook_payload_and_hook_result_surfaces_unchanged
 //!   AC-010 → prop_BC_4_12_002_resolver_serde_roundtrip_deterministic
