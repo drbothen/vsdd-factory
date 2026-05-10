@@ -534,19 +534,25 @@ impl ContextResolver for CompiledWasmResolver {
                 }
             })?;
 
-        // Unpack packed i64 → (output_ptr: i32, output_len: i32).
+        // Unpack packed i64 → (output_ptr: usize, output_len: usize).
         // HOST_ABI.md: `((ptr as i64) << 32) | (len as i64)`.
-        let output_ptr = ((packed_result >> 32) & 0xFFFF_FFFF) as i32;
-        let output_len = (packed_result & 0xFFFF_FFFF) as i32;
+        //
+        // F-P2-007: cast via u32 first (not i32) to eliminate sign-extension.
+        // A `ptr` with bit 31 set would be misinterpreted as a large negative
+        // i32 (e.g., 0x8000_0000 → -2147483648) when cast directly i64→i32.
+        // Via u32 the value is correctly a large positive usize for >2GB memories.
+        let output_ptr = ((packed_result >> 32) & 0xFFFF_FFFF) as u32 as usize;
+        let output_len = (packed_result & 0xFFFF_FFFF) as u32 as usize;
 
         // A zero-length response means the resolver produced no output (Ok(None)).
+        // F-P2-008: (0, 0) packed return convention — Ok(None) shortcut.
         if output_len == 0 {
             return Ok(None);
         }
 
         // Bounds-check the output region.
-        let out_start = output_ptr as usize;
-        let out_end = out_start.checked_add(output_len as usize).ok_or_else(|| {
+        let out_start = output_ptr;
+        let out_end = out_start.checked_add(output_len).ok_or_else(|| {
             ResolverError::AbiViolation {
                 name: self.name.clone(),
                 detail: format!("output ptr+len overflow: ptr={output_ptr} len={output_len}"),
