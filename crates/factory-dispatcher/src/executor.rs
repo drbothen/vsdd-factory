@@ -492,11 +492,9 @@ fn build_plugin_config(
     // AC-005: emit resolver.not_found when a named resolver is absent.
     // Clone InternalLog (PathBuf wrapper) so the closure captures by value — no unsafe needed.
     //
-    // Note: resolver.not_found event field table not yet documented in HOST_ABI.
-    // Wire format (per implementation): { "resolver_name": String, "trace_id": String,
-    // "plugin_name": String }. Documentation symmetry with resolver.error and
-    // resolver.merge_collision field tables is deferred to a S-12.06 follow-up
-    // HOST_ABI maintenance burst (per-story F-P7-002 deferral).
+    // Note: resolver.not_found event field table now documented in HOST_ABI
+    // (F-P7-002 burst). Wire format (per implementation): { resolver_name, trace_id,
+    // session_id, plugin_name }. F-P7-002 closes the prior deferral.
     let emit_not_found = {
         let log = internal_log.clone();
         move |missing_name: &str| {
