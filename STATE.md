@@ -142,6 +142,7 @@ dtu_services: []
 | **TD #69** release-branch guardrail | RESOLVED PRs #116/#117 | Live-tested PR #118 |
 | **TD #70** cargo cache reuse (Swatinem/rust-cache@v2) | FILED; BLOCKED by E-10 resume | — |
 | **TD #71** dispatcher stderr omits blocking_plugins + block_reason | FILED 2026-05-10 | Surgical executor.rs::execute_tiers fix needed |
+| **TD #72** serde_yaml 0.9.34 deprecated | FILED 2026-05-10 | Migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge, warn-pending-wave-gate, vsdd-context-resolvers |
 | Ghost BCs: BC-3.07.003/004, BC-1.06.011 | DEFERRED | Missing from BC-INDEX; investigate in future fix-burst |
 
 ## Historical Content
