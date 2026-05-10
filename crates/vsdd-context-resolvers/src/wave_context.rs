@@ -8,7 +8,7 @@
 //!   - All fields `Option<T>` to tolerate schema evolution (EC-004 / AC-004)
 //!   - A single `pub fn parse_wave_state(yaml: &str) -> Result<WaveState, serde_yaml::Error>`
 //!     entry point; callers own error handling
-//!   - No `unwrap()` or `expect()` (AC-010 / BC-4.12.004 INV1)
+//!   - AC-010 / BC-4.12.004 INV1: no fallible unwrap or panic-on-error calls
 //!
 //! # Schema note
 //! `WaveState` uses `Option<T>` on every field because `.factory/wave-state.yaml`
@@ -56,7 +56,7 @@ pub struct WaveContext {
 ///
 /// Returns `Err(serde_yaml::Error)` on malformed YAML; callers map errors to
 /// `ResolverOutput { value: None }` (AC-002, EC-003). Does NOT panic.
-/// BC-4.12.004 INV1: no `unwrap()` or `expect()`.
-pub fn parse_wave_state(_yaml: &str) -> Result<WaveState, serde_yaml::Error> {
-    todo!()
+/// BC-4.12.004 INV1: no fallible unwrap or panic-on-error calls.
+pub fn parse_wave_state(yaml: &str) -> Result<WaveState, serde_yaml::Error> {
+    serde_yaml::from_str(yaml)
 }

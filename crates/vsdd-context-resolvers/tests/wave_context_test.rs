@@ -11,10 +11,10 @@
 //           Actual mapping: missing/unreadable file => `HostError::Other(-99)` or `CapabilityDenied`.
 //           Tests model the graceful "value: None" contract regardless of the specific error variant.
 
-use vsdd_context_resolvers::wave_context::{parse_wave_state, WaveState};
-use vsdd_context_resolvers::resolve_wave_context_pure;
-use vsdd_hook_sdk::resolver::{ResolverInput, ResolverOutput};
 use serde_json::Value;
+use vsdd_context_resolvers::resolve_wave_context_pure;
+use vsdd_context_resolvers::wave_context::{WaveState, parse_wave_state};
+use vsdd_hook_sdk::resolver::{ResolverInput, ResolverOutput};
 
 // ─── Test helpers ────────────────────────────────────────────────────────────
 
@@ -52,9 +52,14 @@ fn test_BC_4_12_002_wave_context_output_shape() {
 
     let output: ResolverOutput = resolve_wave_context_pure(&input, &wave_state);
 
-    assert_eq!(output.key, "wave-context", "key must be exactly 'wave-context'");
+    assert_eq!(
+        output.key, "wave-context",
+        "key must be exactly 'wave-context'"
+    );
 
-    let value = output.value.expect("AC-001: value must be Some when WaveState is fully populated");
+    let value = output
+        .value
+        .expect("AC-001: value must be Some when WaveState is fully populated");
 
     assert!(
         value["stories"].is_array(),
@@ -131,7 +136,10 @@ fn test_BC_4_12_004_resolve_pure_with_default_wavestate_yields_none() {
 
     let output = resolve_wave_context_pure(&input, &wave_state);
 
-    assert_eq!(output.key, "wave-context", "key must always be 'wave-context'");
+    assert_eq!(
+        output.key, "wave-context",
+        "key must always be 'wave-context'"
+    );
     assert!(
         output.value.is_none(),
         "AC-002b: value must be None when WaveState is all-None (post-error path); got: {:?}",
@@ -308,16 +316,17 @@ fn test_BC_4_12_001_wasm_artifact_registered_in_registry() {
     // The test binary for an integration test lives in target/debug/deps/;
     // we walk up to find the workspace root by looking for the registry file.
     let registry_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()  // crates/
+        .parent() // crates/
         .and_then(|p| p.parent()) // workspace root
         .map(|root| root.join("plugins/vsdd-factory/resolvers-registry.toml"))
         .expect("workspace root must exist");
 
-    let contents = std::fs::read_to_string(&registry_path)
-        .unwrap_or_else(|e| panic!(
+    let contents = std::fs::read_to_string(&registry_path).unwrap_or_else(|e| {
+        panic!(
             "AC-009: resolvers-registry.toml must exist at {}: {e}",
             registry_path.display()
-        ));
+        )
+    });
 
     assert!(
         contents.contains(r#"name = "wave-context""#),
@@ -348,10 +357,7 @@ fn test_BC_4_12_004_no_unwrap_or_expect_in_lib() {
     for relative_path in &src_files {
         let path = manifest_dir.join(relative_path);
         let contents = std::fs::read_to_string(&path)
-            .unwrap_or_else(|e| panic!(
-                "AC-010: cannot read {}: {e}",
-                path.display()
-            ));
+            .unwrap_or_else(|e| panic!("AC-010: cannot read {}: {e}", path.display()));
 
         // Strip doc comments and inline comments to avoid false positives from
         // documentation examples. We check for call-site usage only.
