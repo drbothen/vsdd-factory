@@ -487,7 +487,7 @@ impl ContextResolver for CompiledWasmResolver {
         //
         // For real resolver modules that use the SDK macro, the macro-generated
         // shim manages its own memory; the dispatcher writes input at offset 0
-        // per HOST_ABI.md §Resolver Memory Protocol.
+        // per BC-4.12.002 PC1 packed-i64 ABI (see HOST_ABI.md §Resolver ABI Types).
         let input_ptr: i32 = 0;
         let input_len = input_bytes.len() as i32;
 

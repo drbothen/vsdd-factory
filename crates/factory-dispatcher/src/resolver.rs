@@ -311,7 +311,13 @@ impl ResolverRegistry {
     ///
     /// Returns `Err(ResolverError::NotFound)` when no resolver named `name`
     /// is registered.
-    pub fn invoke_resolver_wasm(
+    ///
+    /// F-P2-009: renamed from `invoke_resolver_wasm` to `invoke_resolver_wasm_for_testing`
+    /// to make the test-only intent clear. This is NOT part of the production dispatch path
+    /// (production uses `resolve_context_for_entry`). The `_for_testing` suffix signals
+    /// to future maintainers that this function exists for testing the wasmtime integration
+    /// boundary, not for production use.
+    pub fn invoke_resolver_wasm_for_testing(
         &self,
         name: &str,
         input: &ResolverInput,

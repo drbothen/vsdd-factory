@@ -534,7 +534,7 @@ context_key = "trap_context"
 
     // Invoke via invoke_resolver_wasm — the trapping resolver executes
     // `unreachable` and the trap must be caught and returned as ResolverError::Trap.
-    let result = registry.invoke_resolver_wasm("trap-wasm-resolver", &input);
+    let result = registry.invoke_resolver_wasm_for_testing("trap-wasm-resolver", &input);
 
     match result {
         Err(factory_dispatcher::resolver::ResolverError::Trap { name, detail }) => {

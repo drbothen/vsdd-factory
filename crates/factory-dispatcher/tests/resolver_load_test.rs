@@ -475,7 +475,7 @@ path_allow = ["{}"]
     // This proves the HostContext was constructed (not panicked during construction)
     // with the project_dir as cwd. Path-allow enforcement itself is tested by
     // the read_file host function unit tests (rejects_path_outside_allow_list).
-    let result = registry.invoke_resolver_wasm("path-allow-resolver", &input);
+    let result = registry.invoke_resolver_wasm_for_testing("path-allow-resolver", &input);
 
     // The trap must be returned, not a panic — proving the HostContext was
     // successfully built with path_allow wired in (BC-4.12.003 INV4).
@@ -563,7 +563,7 @@ context_key = "long_running_ctx"
     let t0 = std::time::Instant::now();
 
     // Invoke — must return Err(ResolverError::Timeout) when epoch deadline fires.
-    let result = registry.invoke_resolver_wasm("long-running-resolver", &input);
+    let result = registry.invoke_resolver_wasm_for_testing("long-running-resolver", &input);
 
     let elapsed = t0.elapsed();
 
