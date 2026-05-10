@@ -301,6 +301,30 @@ async fn test_BC_4_12_004_trapping_resolver_emits_resolver_error_event() {
          'error_detail' (non-empty trap context string). \
          Log content: {all_log_content:?}"
     );
+
+    // F-S12.04-P9-001: provenance-triplet positive-coverage parallel to F-P7-003 + F-P8-002.
+    // Catches silent regression of with_trace_id() / with_session_id() / with_plugin_name()
+    // in the resolver.error event constructor at executor.rs:553-560.
+    // make_executor_inputs (line 146) sets: session_id = "sess-trap-test", trace_id = "trace-trap-test".
+    // entry.name = "trap-event-hook" (set at line 250-253).
+    assert!(
+        all_log_content.contains("trace-trap-test"),
+        "F-P9-001: resolver.error event must include trace_id literal \
+         ('trace-trap-test'). Positive coverage check — ensures with_trace_id() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("sess-trap-test"),
+        "F-P9-001: resolver.error event must include session_id literal \
+         ('sess-trap-test'). Positive coverage check — ensures with_session_id() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("trap-event-hook"),
+        "F-P9-001: resolver.error event must include plugin_name ('trap-event-hook', \
+         from entry.name). Positive coverage check — ensures with_plugin_name() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
