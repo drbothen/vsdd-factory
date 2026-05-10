@@ -100,6 +100,15 @@ pub enum ResolverError {
     /// I/O error during resolver invocation (e.g. reading a .wasm file).
     #[error("I/O error during resolver invocation: {0}")]
     Io(#[from] std::io::Error),
+
+    /// A resolver with the same `name()` has already been registered.
+    /// Emits `resolver.load_error` event (BC-4.12.005 PC6 / EC-005 —
+    /// fail-loud at registry-load time). The first registration is preserved.
+    #[error(
+        "duplicate resolver name '{name}' — each resolver name must be unique \
+             (BC-4.12.005 PC6 / EC-005); first registration preserved"
+    )]
+    DuplicateName { name: String },
 }
 
 // ---------------------------------------------------------------------------
@@ -152,24 +161,16 @@ impl ResolverRegistry {
         }
     }
 
-    /// Register a resolver. Panics (fail-loud) if a resolver with the same
-    /// `name()` has already been registered (BC-4.12.005 PC6 / EC-005).
+    /// Register a resolver. Returns `Err(ResolverError::DuplicateName { name })`
+    /// if a resolver with the same `name()` has already been registered
+    /// (BC-4.12.005 PC6 / EC-005 — fail-loud at registry-load time).
     ///
-    /// Returns `Err` (does NOT panic) when a duplicate is detected so the
-    /// caller can propagate the registry-load error cleanly. The registry
-    /// state is unchanged after a failed registration (first registration
-    /// preserved — EC-005 expected behavior).
+    /// Does NOT panic. The registry state is unchanged after a failed
+    /// registration (first registration preserved — EC-005 expected behavior).
     pub fn register(&mut self, resolver: Box<dyn ContextResolver>) -> Result<(), ResolverError> {
         let name = resolver.name().to_string();
         if self.resolvers.iter().any(|r| r.name() == name) {
-            return Err(ResolverError::Crashed {
-                name: name.clone(),
-                detail: format!(
-                    "duplicate context_key '{}' — each resolver name must be unique \
-                     (BC-4.12.005 PC6 / EC-005); first registration preserved",
-                    name
-                ),
-            });
+            return Err(ResolverError::DuplicateName { name });
         }
         self.resolvers.push(resolver);
         Ok(())
@@ -211,6 +212,9 @@ impl ResolverRegistry {
     /// For each name in `requested_names` (in order — BC-1.13.001 PC7):
     /// - If registered: invokes resolver and returns its output.
     /// - If not registered: calls `emit_not_found` for telemetry; skips.
+    /// - If resolver returns `Err(...)`: calls `emit_resolver_error` so the
+    ///   caller can emit the `resolver.error` telemetry event non-blockingly
+    ///   (BC-1.13.001 PC2 / BC-4.12.005 INV3 — failed resolver is observable).
     ///
     /// Returns a `HashMap<String, Value>` of successfully-resolved outputs
     /// (key → value). Resolvers returning `Ok(None)` contribute no entry
@@ -223,6 +227,7 @@ impl ResolverRegistry {
         requested_names: &[String],
         input: &ResolverInput,
         emit_not_found: impl Fn(&str),
+        emit_resolver_error: impl Fn(&str, &ResolverError),
     ) -> HashMap<String, Value> {
         let mut map = HashMap::new();
         for name in requested_names {
@@ -230,8 +235,11 @@ impl ResolverRegistry {
                 None => {
                     // Not found — emit_not_found already called; skip this key.
                 }
-                Some(Err(_err)) => {
-                    // Resolver errored — skip this key; dispatch continues.
+                Some(Err(err)) => {
+                    // Resolver errored — call the error callback so the caller
+                    // can emit telemetry (SOUL #4: no silent failures).
+                    // Dispatch continues; this key contributes nothing.
+                    emit_resolver_error(name, &err);
                 }
                 Some(Ok(output)) => {
                     if let Some(value) = output.value {
@@ -270,6 +278,12 @@ impl Default for ResolverRegistry {
 /// This is a **pure function**: given identical inputs it produces identical
 /// output. No I/O, no side effects, no global state. VP-075 proptest target.
 ///
+/// The `static_config` parameter is typed as `serde_json::Map<String, Value>`
+/// (not the broader `Value` enum) so that non-object inputs are unrepresentable
+/// at the type level — types are cheaper than runtime discipline (F-006).
+/// The production invariant that `plugin_config` is always a JSON Object is
+/// enforced at the call-site coercion step (see `executor.rs`).
+///
 /// Merge semantics (BC-4.12.005):
 /// - `static_config` fields are preserved.
 /// - Each `ResolverOutput` with `value: Some(v)` sets `plugin_config[key] = v`
@@ -285,17 +299,11 @@ impl Default for ResolverRegistry {
 /// existing entry in `static_config`, allowing the caller to emit the
 /// `resolver.merge_collision` telemetry event non-blockingly.
 pub fn merge_resolver_outputs(
-    static_config: Value,
+    static_config: serde_json::Map<String, Value>,
     resolver_outputs: &[ResolverOutput],
     on_collision: impl Fn(&str, &Value, &Value),
-) -> Value {
-    // Start from the static config — must be a JSON object (plugin_config shape).
-    let mut map = match static_config {
-        Value::Object(m) => m,
-        // If static_config is not an object (should not happen in practice),
-        // treat it as an empty object — resolver outputs still apply.
-        _ => serde_json::Map::new(),
-    };
+) -> serde_json::Map<String, Value> {
+    let mut map = static_config;
 
     // Apply resolver outputs in order (BC-4.12.005 PC4).
     for output in resolver_outputs {
@@ -310,5 +318,5 @@ pub fn merge_resolver_outputs(
         }
     }
 
-    Value::Object(map)
+    map
 }
