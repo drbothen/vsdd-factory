@@ -1139,6 +1139,17 @@ the static `plugin_config`, the dispatcher emits a `resolver.merge_collision` te
 event with the key name, static value, and resolver value. The resolver's output wins.
 This is not an error; it is an expected enrichment pattern.
 
+**`resolver.merge_collision` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `key` | string | The colliding output key. |
+| `static_value` | any (JSON) | The static-config value being overwritten. |
+| `resolver_value` | any (JSON) | The resolver-output value overwriting the static. |
+| `resolver_name` | string | The registry name of the resolver whose output produced the collision. |
+| `plugin_name` | string | The hook plugin name being dispatched. |
+| `trace_id` | string | Dispatch trace ID. |
+
 **`needs_context` is the merge scope:** Only resolvers named in the `needs_context` field
 of the hooks-registry entry contribute to the merge for that dispatch. Other registered
 resolvers (in `resolvers-registry.toml` but not in `needs_context`) are NOT invoked and do
