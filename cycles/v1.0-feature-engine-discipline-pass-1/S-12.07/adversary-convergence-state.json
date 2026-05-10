@@ -3,3 +3,4 @@
 {"story_id": "S-12.07", "pass": 3, "verdict": "MEDIUM", "findings_count": {"critical": 0, "high": 0, "medium": 3, "low": 4, "nitpick": 2}, "convergence_reached": false, "timestamp": "2026-05-10T23:00:00Z"}
 {"story_id": "S-12.07", "pass": 4, "verdict": "LOW", "findings_count": {"critical": 0, "high": 0, "medium": 0, "low": 3, "nitpick": 3}, "deferred_count": 3, "convergence_reached": false, "timestamp": "2026-05-10T23:30:00Z"}
 {"story_id": "S-12.07", "pass": 5, "verdict": "LOW", "findings_count": {"critical": 0, "high": 0, "medium": 0, "low": 1, "nitpick": 3}, "deferred_count": 0, "convergence_reached": false, "timestamp": "2026-05-10T23:59:00Z"}
+{"story_id": "S-12.07", "pass": 6, "verdict": "NITPICK_ONLY", "findings_count": {"critical": 0, "high": 0, "medium": 0, "low": 0, "nitpick": 2}, "nitpick_only_streak": 1, "deferred_count": 0, "convergence_reached": false, "timestamp": "2026-05-11T00:00:00Z"}
