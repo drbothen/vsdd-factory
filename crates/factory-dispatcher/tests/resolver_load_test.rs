@@ -17,6 +17,7 @@
 use std::sync::Arc;
 
 use factory_dispatcher::engine::EpochTicker;
+use factory_dispatcher::internal_log::{InternalEvent, InternalLog};
 use factory_dispatcher::resolver_loader::{ResolverLoadError, ResolverLoader};
 
 // ---------------------------------------------------------------------------
@@ -943,4 +944,182 @@ context_key = "empty_dir_ctx"
             );
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// F-P4-003 — reject empty resolver name / context_key at registry load
+//
+// An empty 'name' would produce an unresolvable needs_context key.
+// An empty 'context_key' would write to an anonymous plugin_config slot.
+// Both must be rejected as ParseError at load_registry time.
+// ---------------------------------------------------------------------------
+
+/// test_F_P4_003_empty_name_returns_parse_error
+///
+/// Calls `load_registry` with a TOML entry where `name = ""`.
+/// Asserts `Err(ResolverLoadError::ParseError)` is returned.
+#[test]
+fn test_F_P4_003_empty_name_returns_parse_error() {
+    let fixture = trapping_resolver_wasm();
+    assert!(
+        fixture.exists(),
+        "F-P4-003: trapping_resolver.wasm must exist at {:?}",
+        fixture
+    );
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P4-003: build_engine must succeed");
+    let dir = tempfile::tempdir().expect("tempdir");
+
+    // TOML entry with name = "" — must be rejected before compilation.
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = ""
+plugin = "{}"
+context_key = "some_ctx"
+"#,
+        fixture.display()
+    );
+    let registry_path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&registry_path, toml_content).expect("write registry TOML");
+
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&registry_path);
+
+    assert!(
+        matches!(result, Err(ResolverLoadError::ParseError { .. })),
+        "F-P4-003: empty resolver 'name' field must produce ParseError. Got: {:?}",
+        result.err()
+    );
+}
+
+/// test_F_P4_003_empty_context_key_returns_parse_error
+///
+/// Calls `load_registry` with a TOML entry where `context_key = ""`.
+/// Asserts `Err(ResolverLoadError::ParseError)` is returned.
+#[test]
+fn test_F_P4_003_empty_context_key_returns_parse_error() {
+    let fixture = trapping_resolver_wasm();
+    assert!(
+        fixture.exists(),
+        "F-P4-003: trapping_resolver.wasm must exist at {:?}",
+        fixture
+    );
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P4-003: build_engine must succeed");
+    let dir = tempfile::tempdir().expect("tempdir");
+
+    // TOML entry with context_key = "" — must be rejected before compilation.
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "my-resolver"
+plugin = "{}"
+context_key = ""
+"#,
+        fixture.display()
+    );
+    let registry_path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&registry_path, toml_content).expect("write registry TOML");
+
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&registry_path);
+
+    assert!(
+        matches!(result, Err(ResolverLoadError::ParseError { .. })),
+        "F-P4-003: empty resolver 'context_key' field must produce ParseError. Got: {:?}",
+        result.err()
+    );
+}
+
+// ---------------------------------------------------------------------------
+// F-P4-004 — integration test for resolver.load_warning structured InternalLog event
+//
+// When a resolver entry has fail_closed = false and its .wasm fails to load,
+// load_registry returns a LoadWarning. The caller (main.rs) emits it as a
+// structured "resolver.load_warning" InternalLog event. This test mirrors that
+// pattern to assert the structured event lands in the NDJSON log.
+// ---------------------------------------------------------------------------
+
+/// test_F_P4_004_resolver_load_warning_event_appears_in_internal_log
+///
+/// Sets up a registry with one fail_closed=false entry pointing at a
+/// non-existent .wasm path. Calls load_registry, obtains the LoadWarning,
+/// emits it to an InternalLog (mirroring main.rs), drops the log, reads
+/// the NDJSON file, and asserts that a "resolver.load_warning" event
+/// is present with the correct resolver_name and detail fields.
+#[test]
+fn test_F_P4_004_resolver_load_warning_event_appears_in_internal_log() {
+    let dir = tempfile::tempdir().expect("F-P4-004: tempdir");
+    let log_dir = dir.path().join("logs");
+
+    // Set up registry TOML pointing to a non-existent wasm file with fail_closed = false.
+    let nonexistent_wasm = dir.path().join("does-not-exist.wasm");
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "warn-resolver"
+plugin = "{}"
+context_key = "warn_ctx"
+fail_closed = false
+"#,
+        nonexistent_wasm.display()
+    );
+    let registry_path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&registry_path, toml_content).expect("write registry TOML");
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P4-004: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let (_registry, warnings) = loader
+        .load_registry(&registry_path)
+        .expect("F-P4-004: load_registry must succeed (fail_closed=false skips bad entry)");
+
+    assert_eq!(
+        warnings.len(),
+        1,
+        "F-P4-004: exactly one LoadWarning expected for the skipped fail_closed=false entry"
+    );
+
+    // Mirror main.rs: emit each warning as a structured InternalLog event.
+    let internal_log = InternalLog::new(log_dir.clone());
+    for w in warnings {
+        let ev = InternalEvent::now("resolver.load_warning")
+            .with_trace_id("test-trace-fp4-004")
+            .with_session_id("test-session-fp4-004")
+            .with_field("resolver_name", serde_json::Value::String(w.resolver_name))
+            .with_field("detail", serde_json::Value::String(w.detail));
+        internal_log.write(&ev);
+    }
+    // Drop to flush (InternalLog writes on each call, but drop ensures no buffered data).
+    drop(internal_log);
+
+    // Read all log files in log_dir and check for the resolver.load_warning event.
+    let all_log_content: String = std::fs::read_dir(&log_dir)
+        .expect("F-P4-004: log dir must exist after write")
+        .filter_map(|e| e.ok())
+        .filter_map(|e| std::fs::read_to_string(e.path()).ok())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    assert!(
+        all_log_content.contains("resolver.load_warning"),
+        "F-P4-004: InternalLog must contain a 'resolver.load_warning' event. \
+         Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("warn-resolver"),
+        "F-P4-004: resolver.load_warning event must include the resolver_name field \
+         ('warn-resolver'). Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("detail"),
+        "F-P4-004: resolver.load_warning event must include the 'detail' field. \
+         Log content: {all_log_content:?}"
+    );
 }
