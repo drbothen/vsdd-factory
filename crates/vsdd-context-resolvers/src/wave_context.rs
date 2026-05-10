@@ -25,7 +25,7 @@ use serde::Deserialize;
 /// Matches the canonical schema produced by `update-wave-state-on-merge`.
 /// All list fields use `#[serde(default)]` to tolerate partial YAML entries.
 /// `gate_status` uses `Option<String>` with `#[serde(default)]` to handle the
-/// AC-005 four-case truth table:
+/// gate_status four-case truth table (per S-8.04 producer semantics):
 ///   Case 1: key absent → None (serde default) → wave is NOT terminal
 ///   Case 2: key present, YAML null/~ → None → wave is NOT terminal
 ///   Case 3: key present, "not_started" / "pending" → Some("...") → NOT terminal
@@ -131,9 +131,9 @@ pub fn parse_cycle_id_from_state_md(state_md: &str) -> Option<String> {
     //   ...
     //   ---
     //
-    // MED-004 (pass-2): normalize CRLF → LF before parsing to handle Windows
-    // line endings in STATE.md (e.g., files edited on Windows or cloned with
-    // `core.autocrlf = true`). The `find("\n---")` closing-marker search and
+    // Normalize CRLF → LF before frontmatter splitting on `\n---` to handle
+    // STATE.md files edited on Windows or cloned with core.autocrlf = true.
+    // The `find("\n---")` closing-marker search and
     // `trim_start_matches(['\n', '\r'])` would otherwise miss CRLF frontmatter.
     let normalized;
     let state_md = if state_md.contains('\r') {

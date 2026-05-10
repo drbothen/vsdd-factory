@@ -459,7 +459,7 @@ proptest! {
 
 /// MED-003a: YAML `gate_status: ~` (null) parses to `None`; wave is treated as active.
 ///
-/// Case 2 of the AC-005 four-case truth table: YAML null → `Option<String>::None` →
+/// Case 2 of the gate_status four-case truth table: YAML null → `Option<String>::None` →
 /// wave is NOT in a terminal state → wave is active.
 #[test]
 fn test_gate_status_yaml_null() {
@@ -480,7 +480,7 @@ waves:
 
 /// MED-003b: YAML omits `gate_status:` key entirely; serde default → `None`; wave is active.
 ///
-/// Case 1 of the AC-005 four-case truth table: key absent → `Option<String>::None` →
+/// Case 1 of the gate_status four-case truth table: key absent → `Option<String>::None` →
 /// wave is NOT in a terminal state → wave is active.
 #[test]
 fn test_gate_status_yaml_key_absent() {
@@ -499,7 +499,7 @@ waves:
 
 /// MED-003c: Explicit `gate_status: "completed"` marks wave as terminal (not active).
 ///
-/// Case 4 of the AC-005 four-case truth table: `"completed"` is a terminal state.
+/// Case 4 of the gate_status four-case truth table: `"completed"` is a terminal state.
 #[test]
 fn test_gate_status_yaml_completed() {
     let yaml = r#"
@@ -518,7 +518,7 @@ waves:
 
 /// MED-003d: Explicit `gate_status: "in_progress"` (non-terminal) → wave is active.
 ///
-/// Case 3 of the AC-005 four-case truth table: any non-terminal status string →
+/// Case 3 of the gate_status four-case truth table: any non-terminal status string →
 /// `Some("in_progress")` → wave is NOT in TERMINAL_STATES → wave is active.
 #[test]
 fn test_gate_status_yaml_other_value() {

@@ -31,7 +31,7 @@ pub use wave_context::{WaveEntry, WaveState};
 /// Maximum bytes read from `.factory/wave-state.yaml` or `.factory/STATE.md`.
 ///
 /// 1 MiB is generous for both files. The host `read_file` call is capped at this
-/// budget to bound memory use inside the WASM linear memory (MED-005).
+/// budget to bound memory use inside the WASM linear memory.
 const MAX_STATE_FILE_BYTES: u32 = 1024 * 1024; // 1 MiB
 
 /// Read timeout in milliseconds for `host::read_file` calls.
@@ -77,9 +77,9 @@ pub fn resolve_impl(input: ResolverInput) -> ResolverOutput {
     let state_md_path = format!("{}/.factory/STATE.md", input.project_dir);
 
     // Read wave-state.yaml. Missing/unreadable → value: None (AC-002, AC-005).
-    // MED-005: log unexpected read errors (non-Other variants) to aid diagnosis.
+    // Log unexpected read errors at warn level to aid operator diagnosis.
     // HostError::Other(-N) codes include file-not-found; those are expected and
-    // are logged at info level. CapabilityDenied / Timeout get a warn-level log.
+    // produce no log output. CapabilityDenied / Timeout get a warn-level log.
     let wave_bytes = match vsdd_hook_sdk::host::read_file(
         &wave_state_path,
         MAX_STATE_FILE_BYTES,
@@ -117,7 +117,18 @@ pub fn resolve_impl(input: ResolverInput) -> ResolverOutput {
     };
 
     // Malformed YAML → WaveState::default() (empty waves) → pure fn returns value: None.
-    let wave_state = wave_context::parse_wave_state(wave_yaml).unwrap_or_default();
+    // Symmetric with read_file error observability above — log at warn level so operators
+    // can diagnose malformed wave-state.yaml without having to reproduce the failure.
+    let wave_state = match wave_context::parse_wave_state(wave_yaml) {
+        Ok(ws) => ws,
+        Err(e) => {
+            vsdd_hook_sdk::host::log_warn(&format!(
+                "vsdd-context-resolvers: parse_wave_state failed: {} — falling back to empty waves",
+                e
+            ));
+            wave_context::WaveState::default()
+        }
+    };
 
     // Read STATE.md for cycle_id. Missing/unreadable → None cycle_id.
     // If cycle_id is None the pure fn returns value: None (required field for output).
