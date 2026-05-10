@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-description = "Per-factory WASM context resolvers: WaveContextResolver reads .factory/ state to inject wave_context into plugin_config."
+description = "WASM context resolver crate for vsdd-factory: reads .factory/wave-state.yaml and .factory/STATE.md to inject wave_context (cycle_id, wave_id, stories) into plugin_config at dispatch time."
 publish = false
 
 # Resolver plugins ship as cdylib (WASM) for runtime dispatch, plus rlib for
@@ -33,7 +33,8 @@ proptest = { workspace = true }
 # relevant workspace lints explicitly here.
 [lints.rust]
 non_snake_case = "allow"
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
+# unexpected_cfgs for cfg(kani) is declared at workspace level (root Cargo.toml lines 107-112).
+# MED-006 (pass-2): removed redundant crate-level declaration to avoid duplicate lint override.
 
 [lints.clippy]
 unwrap_used = "deny"

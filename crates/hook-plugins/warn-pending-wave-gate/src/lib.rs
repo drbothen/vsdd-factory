@@ -1,3 +1,10 @@
+// TD #73: This crate reads wave-state.yaml as a YAML MAPPING (waves: { W-15: { ... } }),
+// but the canonical producer (update-wave-state-on-merge) writes a SEQUENCE
+// (waves: [{ wave: "W-15", ... }]). These schemas are incompatible. Migration to
+// the sequence form is tracked in TD #73 (STATE.md). For now, this crate operates
+// on legacy test fixtures that match the mapping form — production wave-state.yaml
+// may not exist yet (no .factory/wave-state.yaml in the repo as of pass-2).
+
 //! warn-pending-wave-gate — Stop lifecycle WASM hook plugin.
 //!
 //! At session end, reads `.factory/wave-state.yaml` via `host::read_file`,

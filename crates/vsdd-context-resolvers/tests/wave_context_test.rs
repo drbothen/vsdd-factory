@@ -16,7 +16,7 @@
 use serde_json::Value;
 use vsdd_context_resolvers::resolve_wave_context_pure;
 use vsdd_context_resolvers::wave_context::{
-    WaveEntry, WaveState, parse_cycle_id_from_state_md, parse_wave_state,
+    WaveEntry, WaveState, find_active_wave, parse_cycle_id_from_state_md, parse_wave_state,
 };
 use vsdd_hook_sdk::resolver::{ResolverInput, ResolverOutput};
 
@@ -449,6 +449,141 @@ proptest! {
             "VP-075 violation: resolve_wave_context_pure is not deterministic"
         );
     }
+}
+
+// ─── MED-003: gate_status four-case YAML truth table (pass-2 addition) ──────
+
+/// MED-003a: YAML `gate_status: ~` (null) parses to `None`; wave is treated as active.
+///
+/// Case 2 of the AC-005 four-case truth table: YAML null → `Option<String>::None` →
+/// wave is NOT in a terminal state → wave is active.
+#[test]
+fn test_gate_status_yaml_null() {
+    let yaml = r#"
+waves:
+  - wave: "F5"
+    stories: ["S-13.01"]
+    gate_status: ~
+"#;
+    let state = parse_wave_state(yaml).expect("valid YAML must parse");
+    let active = find_active_wave(&state);
+    assert!(
+        active.is_some(),
+        "gate_status: ~ (null) must produce None → wave is active; got None"
+    );
+    assert_eq!(active.unwrap().wave, "F5", "active wave must be F5");
+}
+
+/// MED-003b: YAML omits `gate_status:` key entirely; serde default → `None`; wave is active.
+///
+/// Case 1 of the AC-005 four-case truth table: key absent → `Option<String>::None` →
+/// wave is NOT in a terminal state → wave is active.
+#[test]
+fn test_gate_status_yaml_key_absent() {
+    let yaml = r#"
+waves:
+  - wave: "F5"
+    stories: ["S-13.01"]
+"#;
+    let state = parse_wave_state(yaml).expect("valid YAML must parse");
+    let active = find_active_wave(&state);
+    assert!(
+        active.is_some(),
+        "absent gate_status key must produce None → wave is active"
+    );
+}
+
+/// MED-003c: Explicit `gate_status: "completed"` marks wave as terminal (not active).
+///
+/// Case 4 of the AC-005 four-case truth table: `"completed"` is a terminal state.
+#[test]
+fn test_gate_status_yaml_completed() {
+    let yaml = r#"
+waves:
+  - wave: "F4"
+    stories: ["S-12.07"]
+    gate_status: "completed"
+"#;
+    let state = parse_wave_state(yaml).expect("valid YAML must parse");
+    let active = find_active_wave(&state);
+    assert!(
+        active.is_none(),
+        "gate_status: completed must be terminal → no active wave; got Some"
+    );
+}
+
+/// MED-003d: Explicit `gate_status: "in_progress"` (non-terminal) → wave is active.
+///
+/// Case 3 of the AC-005 four-case truth table: any non-terminal status string →
+/// `Some("in_progress")` → wave is NOT in TERMINAL_STATES → wave is active.
+#[test]
+fn test_gate_status_yaml_other_value() {
+    let yaml = r#"
+waves:
+  - wave: "F5"
+    stories: ["S-13.01"]
+    gate_status: "in_progress"
+"#;
+    let state = parse_wave_state(yaml).expect("valid YAML must parse");
+    let active = find_active_wave(&state);
+    assert!(
+        active.is_some(),
+        "gate_status: in_progress (non-terminal) must → wave is active"
+    );
+}
+
+/// MED-003e: `gate_status: "passed"` is terminal (deferred to S-12.08 producer; new
+/// in pass-2 TERMINAL_STATES). All-passed waves → no active wave.
+#[test]
+fn test_gate_status_yaml_passed_is_terminal() {
+    let yaml = r#"
+waves:
+  - wave: "F3"
+    stories: ["S-12.05"]
+    gate_status: "passed"
+"#;
+    let state = parse_wave_state(yaml).expect("valid YAML must parse");
+    let active = find_active_wave(&state);
+    assert!(
+        active.is_none(),
+        "gate_status: passed must be terminal → no active wave (MED-001 TERMINAL_STATES)"
+    );
+}
+
+/// MED-003f: `gate_status: "deferred"` is terminal (new in pass-2 TERMINAL_STATES).
+#[test]
+fn test_gate_status_yaml_deferred_is_terminal() {
+    let yaml = r#"
+waves:
+  - wave: "F3"
+    stories: ["S-12.05"]
+    gate_status: "deferred"
+"#;
+    let state = parse_wave_state(yaml).expect("valid YAML must parse");
+    let active = find_active_wave(&state);
+    assert!(
+        active.is_none(),
+        "gate_status: deferred must be terminal → no active wave (MED-001 TERMINAL_STATES)"
+    );
+}
+
+// ─── MED-004: CRLF line ending support ──────────────────────────────────────
+
+/// MED-004: parse_cycle_id_from_state_md normalizes CRLF line endings.
+///
+/// STATE.md files checked out on Windows or with `core.autocrlf = true` may
+/// contain `\r\n` line endings. The parser must handle them correctly.
+#[test]
+fn test_parse_cycle_id_handles_crlf_line_endings() {
+    // STATE.md with CRLF line endings (\r\n everywhere).
+    let state_md_crlf = "---\r\ndocument_type: pipeline-state\r\ncurrent_cycle: v1.0-feature-engine-discipline-crlf\r\nstatus: draft\r\n---\r\n\r\n# Pipeline State\r\n";
+
+    let cycle = parse_cycle_id_from_state_md(state_md_crlf);
+    assert_eq!(
+        cycle.as_deref(),
+        Some("v1.0-feature-engine-discipline-crlf"),
+        "must extract current_cycle from STATE.md with CRLF line endings (MED-004)"
+    );
 }
 
 // ─── AC-009 ──────────────────────────────────────────────────────────────────

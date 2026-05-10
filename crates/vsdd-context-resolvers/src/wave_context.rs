@@ -92,17 +92,29 @@ pub fn parse_wave_state(yaml: &str) -> Result<WaveState, serde_yaml::Error> {
     serde_yaml::from_str(yaml)
 }
 
+/// Terminal gate-status values that mark a wave as no longer active.
+///
+/// - `"completed"` — gate approved; wave is done.
+/// - `"passed"` — alias used in some producer versions (same semantic as completed).
+/// - `"deferred"` — wave explicitly skipped; not the active wave.
+///
+/// Any other value (including `None`, `"not_started"`, `"pending"`, `"in_progress"`)
+/// means the wave is still active.
+const TERMINAL_STATES: &[&str] = &["completed", "passed", "deferred"];
+
 /// Determine the active wave from a `WaveState`.
 ///
 /// The active wave is the LAST entry in `waves` whose `gate_status` is NOT
-/// `Some("completed")`. Returns `None` if `waves` is empty or all waves
-/// are completed.
+/// one of the terminal states (`"completed"`, `"passed"`, `"deferred"`).
+/// Returns `None` if `waves` is empty or all waves are in terminal states.
+///
+/// Terminal states are defined in `TERMINAL_STATES`. A `None` gate_status
+/// (key absent or YAML null) is treated as non-terminal (wave is active).
 pub fn find_active_wave(wave_state: &WaveState) -> Option<&WaveEntry> {
-    wave_state
-        .waves
-        .iter()
-        .rev()
-        .find(|w| w.gate_status.as_deref() != Some("completed"))
+    wave_state.waves.iter().rev().find(|w| {
+        let status = w.gate_status.as_deref().unwrap_or("");
+        !TERMINAL_STATES.contains(&status)
+    })
 }
 
 /// Parse the `current_cycle:` value from `.factory/STATE.md` YAML frontmatter.
@@ -122,6 +134,18 @@ pub fn parse_cycle_id_from_state_md(state_md: &str) -> Option<String> {
     //   current_cycle: v1.0-feature-engine-discipline-pass-1
     //   ...
     //   ---
+    //
+    // MED-004 (pass-2): normalize CRLF → LF before parsing to handle Windows
+    // line endings in STATE.md (e.g., files edited on Windows or cloned with
+    // `core.autocrlf = true`). The `find("\n---")` closing-marker search and
+    // `trim_start_matches(['\n', '\r'])` would otherwise miss CRLF frontmatter.
+    let normalized;
+    let state_md = if state_md.contains('\r') {
+        normalized = state_md.replace("\r\n", "\n");
+        normalized.as_str()
+    } else {
+        state_md
+    };
     let trimmed = state_md.trim_start();
     if !trimmed.starts_with("---") {
         return None;

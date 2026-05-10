@@ -29,6 +29,19 @@ pub mod wave_context;
 
 pub use wave_context::{WaveContext, WaveEntry, WaveState};
 
+/// Maximum bytes read from `.factory/wave-state.yaml` or `.factory/STATE.md`.
+///
+/// 1 MiB is generous for both files. The host `read_file` call is capped at this
+/// budget to bound memory use inside the WASM linear memory (MED-005).
+const MAX_STATE_FILE_BYTES: u32 = 1024 * 1024; // 1 MiB
+
+/// Read timeout in milliseconds for `host::read_file` calls.
+///
+/// 1 000 ms is the wall-clock budget per file read. If the host takes longer
+/// it returns a timeout error, which is handled identically to `FileNotFound`
+/// (resolver returns `value: None`).
+const READ_TIMEOUT_MS: u32 = 1000;
+
 // Dual import: `resolver_macro` is the TYPE path used by `#[resolver_macro]`
 // attribute syntax; `resolver` is the MODULE path for ResolverInput/ResolverOutput
 // types. The macro crate and the type module share the `vsdd_hook_sdk::resolver`
@@ -65,9 +78,28 @@ pub fn resolve_impl(input: ResolverInput) -> ResolverOutput {
     let state_md_path = format!("{}/.factory/STATE.md", input.project_dir);
 
     // Read wave-state.yaml. Missing/unreadable → value: None (AC-002, AC-005).
-    let wave_bytes = match vsdd_hook_sdk::host::read_file(&wave_state_path, 64 * 1024, 1000) {
+    // MED-005: log unexpected read errors (non-Other variants) to aid diagnosis.
+    // HostError::Other(-N) codes include file-not-found; those are expected and
+    // are logged at info level. CapabilityDenied / Timeout get a warn-level log.
+    let wave_bytes = match vsdd_hook_sdk::host::read_file(
+        &wave_state_path,
+        MAX_STATE_FILE_BYTES,
+        READ_TIMEOUT_MS,
+    ) {
         Ok(b) => b,
-        Err(_) => {
+        Err(e) => {
+            match &e {
+                vsdd_hook_sdk::host::HostError::Other(_) => {
+                    // Likely file-not-found — expected on fresh projects.
+                    // No log output for this case.
+                }
+                _ => {
+                    vsdd_hook_sdk::host::log_warn(&format!(
+                        "vsdd-context-resolvers: read_file {} failed: {:?}",
+                        wave_state_path, e
+                    ));
+                }
+            }
             return ResolverOutput {
                 key: "wave_context".to_string(),
                 value: None,
@@ -90,10 +122,11 @@ pub fn resolve_impl(input: ResolverInput) -> ResolverOutput {
 
     // Read STATE.md for cycle_id. Missing/unreadable → None cycle_id.
     // If cycle_id is None the pure fn returns value: None (required field for output).
-    let cycle_id: Option<String> = vsdd_hook_sdk::host::read_file(&state_md_path, 64 * 1024, 1000)
-        .ok()
-        .and_then(|bytes| String::from_utf8(bytes).ok())
-        .and_then(|text| wave_context::parse_cycle_id_from_state_md(&text));
+    let cycle_id: Option<String> =
+        vsdd_hook_sdk::host::read_file(&state_md_path, MAX_STATE_FILE_BYTES, READ_TIMEOUT_MS)
+            .ok()
+            .and_then(|bytes| String::from_utf8(bytes).ok())
+            .and_then(|text| wave_context::parse_cycle_id_from_state_md(&text));
 
     resolve_wave_context_pure(&input, &wave_state, cycle_id.as_deref())
 }
