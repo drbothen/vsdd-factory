@@ -26,8 +26,8 @@ use vsdd_hook_sdk::{ResolverInput, ResolverOutput, resolver};
 // (Test Plan note: AC-005 coverage is split — host trybuild verifies macro
 // acceptance only; named-export verification lives in
 // tests/wasm32_resolver_export_integration.rs (#[ignore] by default).
-// Story spec Test Plan row for AC-005 will be updated in a follow-up story-writer
-// burst to document this split. See F-P5-002 in adversary-pass-5.md.)
+// Per BC-4.12.002 PC1 (packed-i64 ABI), wasm32 export presence is the
+// authoritative AC-005 verification target.)
 #[resolver]
 fn resolve_impl(input: ResolverInput) -> ResolverOutput {
     ResolverOutput {
