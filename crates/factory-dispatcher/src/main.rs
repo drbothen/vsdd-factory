@@ -302,11 +302,14 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // S-12.04: Load the resolver registry from disk.
     // BC-1.13.001 INV2: absent resolvers-registry.toml → empty registry, not an error.
     // BC-4.12.001: modules are compiled once at startup and cached by mtime.
+    // F-P1-005/006: ResolverLoader holds the executor's engine (BC-4.12.001 INV3);
+    // load_registry is an instance method so the mtime cache survives.
     let resolvers_registry_path = std::env::var(ENV_PLUGIN_ROOT)
         .map(PathBuf::from)
         .unwrap_or_default()
         .join("resolvers-registry.toml");
-    let resolver_registry = match ResolverLoader::load_registry(&resolvers_registry_path) {
+    let resolver_loader = ResolverLoader::new(engine.clone());
+    let resolver_registry = match resolver_loader.load_registry(&resolvers_registry_path) {
         Ok(reg) => {
             // AC-012: log compiled module count at startup (BC-1.13.001 PC1).
             if !reg.is_empty() {

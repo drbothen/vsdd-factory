@@ -63,7 +63,10 @@ fn test_BC_1_13_001_absent_registry_yields_empty_no_error() {
     // Deliberately do NOT create any file at this path.
     let missing = dir.path().join("resolvers-registry.toml");
 
-    let result = ResolverLoader::load_registry(&missing);
+    let engine = factory_dispatcher::engine::build_engine()
+        .expect("AC-001: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&missing);
 
     let registry = result.expect(
         "AC-001: load_registry on an absent resolvers-registry.toml must return Ok, \
@@ -101,7 +104,10 @@ fn test_BC_1_13_001_malformed_toml_returns_parse_error() {
         b"[[resolvers]\nname = 1",
     );
 
-    let result = ResolverLoader::load_registry(&path);
+    let engine = factory_dispatcher::engine::build_engine()
+        .expect("AC-002: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&path);
 
     match result {
         Err(ResolverLoadError::ParseError { detail }) => {
@@ -150,12 +156,14 @@ fn test_BC_4_12_001_failed_compile_returns_compile_error() {
     let dir = tempfile::tempdir().expect("tempdir");
 
     // TOML with a resolver entry pointing to a .wasm file that does not exist.
+    // Uses `plugin` field (F-P1-003 rename from `path`) and `context_key` (F-P1-004).
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "missing-wasm"
-path = "{}/nonexistent.wasm"
+plugin = "{}/nonexistent.wasm"
+context_key = "missing_wasm"
 "#,
         dir.path().display()
     );
@@ -165,7 +173,10 @@ path = "{}/nonexistent.wasm"
         toml_content.as_bytes(),
     );
 
-    let result = ResolverLoader::load_registry(&path);
+    let engine = factory_dispatcher::engine::build_engine()
+        .expect("AC-013: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&path);
 
     match result {
         Err(ResolverLoadError::CompileError { detail }) => {
@@ -234,8 +245,8 @@ fn test_BC_4_12_001_load_is_deterministic() {
     let engine = factory_dispatcher::engine::build_engine()
         .expect("AC-005: build_engine must succeed for determinism test");
 
-    let loader_a = ResolverLoader::new();
-    let loader_b = ResolverLoader::new();
+    let loader_a = ResolverLoader::new(engine.clone());
+    let loader_b = ResolverLoader::new(engine.clone());
 
     let module_a = loader_a
         .get_or_compile(&wasm_path)
@@ -291,7 +302,9 @@ fn test_BC_4_12_001_load_does_not_invoke_resolve() {
         wasm_path
     );
 
-    let loader = ResolverLoader::new();
+    let engine = factory_dispatcher::engine::build_engine()
+        .expect("AC-006: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
 
     // If get_or_compile accidentally invoked resolve(), the `unreachable`
     // instruction would fire and this call would return Err (or panic).
@@ -338,7 +351,9 @@ fn test_BC_4_12_001_mtime_change_triggers_recompilation() {
     .expect("WAT parse for mtime test");
     let wasm_path = write_file(dir.path(), "resolver.wasm", &wasm_bytes);
 
-    let loader = ResolverLoader::new();
+    let engine = factory_dispatcher::engine::build_engine()
+        .expect("AC-004: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
 
     // First compilation — populates the cache keyed by (path, mtime_t1).
     let module_a: Arc<wasmtime::Module> = loader

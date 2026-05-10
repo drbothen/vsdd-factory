@@ -137,8 +137,19 @@ pub enum ResolverError {
 pub trait ContextResolver: Send + Sync {
     /// Unique name for this resolver. Must match the `name` field in
     /// `resolvers-registry.toml` and the `needs_context` declaration in
-    /// `hooks-registry.toml`. The key under which output lands in `plugin_config`.
+    /// `hooks-registry.toml`.
     fn name(&self) -> &str;
+
+    /// The `plugin_config` key under which this resolver's output is written.
+    ///
+    /// For TOML-loaded resolvers this is the `context_key` field from
+    /// `resolvers-registry.toml`. For test/in-process resolvers this
+    /// defaults to `self.name()` if not overridden.
+    ///
+    /// BC-4.12.005 PC6: uniqueness across all entries validated at load time.
+    fn context_key(&self) -> &str {
+        self.name()
+    }
 
     /// Invoke the resolver for one dispatch.
     ///
@@ -279,18 +290,30 @@ impl ResolverRegistry {
     /// Invoke a WASM-backed resolver module by name, passing `input` through
     /// the host linker and returning its output.
     ///
-    /// Non-trivial: performs wasmtime instantiation, host-linker wiring, and
-    /// WASM execution with fuel enforcement. S-12.04 Step 3 implementation.
+    /// Delegates to the `ContextResolver::resolve()` implementation on the
+    /// registered resolver. For `CompiledWasmResolver` entries (loaded via
+    /// `ResolverLoader::load_registry`), this performs real wasmtime
+    /// instantiation with per-dispatch Store isolation (BC-4.12.001 PC2),
+    /// path_allow capability enforcement (BC-4.12.003), and trap isolation
+    /// (BC-4.12.004).
     ///
     /// Returns `Ok(Some(output))` on success, `Ok(None)` when the resolver
-    /// produces no context for this event, or `Err(ResolverError)` on trap or
-    /// ABI violation.
+    /// produces no context for this event, or `Err(ResolverError)` on trap,
+    /// ABI violation, fuel exhaustion (Timeout), or capability denial.
+    ///
+    /// Returns `Err(ResolverError::NotFound)` when no resolver named `name`
+    /// is registered.
     pub fn invoke_resolver_wasm(
         &self,
-        _name: &str,
-        _input: &ResolverInput,
+        name: &str,
+        input: &ResolverInput,
     ) -> Result<Option<ResolverOutput>, ResolverError> {
-        todo!("S-12.04 Step 3 implementation")
+        match self.resolvers.iter().find(|r| r.name() == name) {
+            None => Err(ResolverError::NotFound {
+                name: name.to_string(),
+            }),
+            Some(resolver) => resolver.resolve(input),
+        }
     }
 
     /// Number of registered resolvers (for startup log: "Loaded N context resolvers").

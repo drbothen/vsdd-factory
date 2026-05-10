@@ -7,24 +7,33 @@
 //!
 //! Also provides `load_registry` to parse `resolvers-registry.toml` and
 //! populate a `ResolverRegistry` with in-memory resolver wrappers that
-//! record the compiled modules for future WASM-backed invocation.
+//! hold the compiled modules and perform real WASM invocation per dispatch.
 //!
 //! Architecture anchors:
 //! - BC-4.12.001 — WASM resolver loading and caching contract
+//! - BC-4.12.002 — resolver ABI (packed-i64 return, resolve() signature)
+//! - BC-4.12.003 — resolver capability / path_allow enforcement
+//! - BC-4.12.004 — resolver crash isolation (trap → ResolverError::Trap)
+//! - BC-4.12.005 PC6 — duplicate context_key is a registry-load error
 //! - BC-1.13.001 — dispatcher pre-dispatch injection contract (absent-file)
 //! - ADR-018 — WASM-plugin Context Resolvers design
 //! - S-12.04 — this story
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 
 use serde::Deserialize;
 use thiserror::Error;
-use wasmtime::Module;
+use wasmtime::{Engine, Module, Store};
 
-use crate::resolver::ResolverRegistry;
+use crate::host::HostContext;
+use crate::resolver::{
+    ContextResolver, ResolverError, ResolverInput, ResolverOutput, ResolverRegistry,
+};
+use crate::resolver_classify_trap::classify_resolver_trap;
+use crate::registry::Capabilities;
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -64,13 +73,23 @@ struct ResolversRegistryToml {
 }
 
 /// One `[[resolvers]]` entry in the registry TOML.
+///
+/// `plugin` (not `path`) matches BC-4.12.001 PC2, BC-1.13.001 EC-003, and
+/// the sibling `RegistryEntry.plugin` convention in `registry.rs`.
+/// `context_key` is the key under which the resolver's output is written to
+/// `plugin_config` (BC-4.12.005 PC6 — uniqueness validated at load time).
 #[derive(Debug, Deserialize)]
 struct ResolverEntryToml {
-    /// Registry name — used as the `needs_context` key and `plugin_config` key.
+    /// Registry name — used as the `needs_context` key.
     name: String,
     /// Path to the compiled `.wasm` file.
-    path: PathBuf,
+    plugin: PathBuf,
+    /// The `plugin_config` key under which this resolver's output is written.
+    /// Validated unique across all entries at load_registry time
+    /// (BC-4.12.005 PC6).
+    context_key: String,
     /// Declared path-allow list for the `read_file` host function (BC-4.12.003).
+    /// Entries are resolved relative to `CLAUDE_PROJECT_DIR` (BC-4.12.003 INV4).
     #[serde(default)]
     path_allow: Vec<String>,
 }
@@ -86,25 +105,35 @@ struct ResolverEntryToml {
 /// to the cached entry; a mtime change triggers recompilation
 /// (BC-4.12.001 loading contract).
 ///
+/// The loader holds the executor's `Engine` so that compiled modules are
+/// bound to the same engine instance used for instantiation.
+/// Modules are NOT cross-engine portable (BC-4.12.001 INV3).
+///
 /// Interior-mutable via `Mutex` so the loader can be shared across
 /// threads without `&mut` access. `Arc<ResolverLoader>` is the expected
 /// usage pattern.
 pub struct ResolverLoader {
-    /// Compiled module cache: path → (mtime, compiled module).
+    /// The wasmtime Engine used for module compilation AND per-dispatch instantiation.
     ///
-    /// The cache maps `PathBuf` to `(SystemTime, Arc<Module>)` so
-    /// the same module can be shared cheaply across multiple
-    /// instantiations within one dispatch cycle.
+    /// Shared with the executor (BC-4.12.001 INV3: resolver modules MUST be
+    /// compiled with the same Engine instance used for hook plugins).
+    engine: Engine,
+    /// Compiled module cache: path → (mtime, compiled module).
     cache: Mutex<HashMap<PathBuf, (SystemTime, Arc<Module>)>>,
 }
 
 impl ResolverLoader {
-    /// Construct an empty loader (empty mtime cache, no modules loaded).
+    /// Construct an empty loader bound to the given `Engine`.
     ///
-    /// GREEN-BY-DESIGN: zero branching, no I/O, no non-trivial helpers,
-    /// body ≤ 3 lines. Satisfies BC-5.38.002.
-    pub fn new() -> Self {
+    /// `engine` must be the same `Engine` used by the executor for hook
+    /// plugin instantiation (BC-4.12.001 INV3). Modules compiled with one
+    /// Engine cannot be used with a different Engine instance.
+    ///
+    /// GREEN-BY-DESIGN: zero branching, no I/O, no non-trivial helpers.
+    /// Satisfies BC-5.38.002.
+    pub fn new(engine: Engine) -> Self {
         Self {
+            engine,
             cache: Mutex::new(HashMap::new()),
         }
     }
@@ -116,10 +145,10 @@ impl ResolverLoader {
     /// 1. Canonicalize path → stable cache key
     /// 2. Read file mtime via `fs::metadata`
     /// 3. Check cache: if (path, mtime) hit → return Arc clone (no recompile)
-    /// 4. Miss → compile via `Module::new(&engine, bytes)`; update cache
+    /// 4. Miss → compile via `Module::new(&self.engine, bytes)`; update cache
     ///
-    /// BC-4.12.001: loading is startup-time only (no Store creation here,
-    /// just Module compilation). No `resolve()` invocation occurs.
+    /// BC-4.12.001 INV1: compilation is startup-time only (no Store creation
+    /// here, just Module compilation). No `resolve()` invocation occurs.
     pub fn get_or_compile(&self, path: &Path) -> Result<Arc<Module>, ResolverLoadError> {
         // Canonicalize for a stable cache key (resolves symlinks, relative segments).
         let canonical = path
@@ -147,21 +176,16 @@ impl ResolverLoader {
         }
 
         // Cache miss or mtime change: read bytes and compile.
+        // Missing/unreadable file → IoError (F-P1-010: preserved discrimination).
         let bytes = std::fs::read(&canonical).map_err(|e| ResolverLoadError::IoError {
             detail: format!("cannot read {}: {e}", canonical.display()),
         })?;
 
-        // Build an ephemeral engine for compilation. The loader does not hold
-        // a long-lived engine reference — callers that need cross-module engine
-        // sharing should build one engine and pass it; this default engine is
-        // adequate for the startup-time compilation path (BC-4.12.001 INV1).
-        let engine =
-            crate::engine::build_engine().map_err(|e| ResolverLoadError::CompileError {
-                detail: format!("engine build failed for {}: {e}", canonical.display()),
-            })?;
-
-        let module = Module::new(&engine, &bytes).map_err(|e| ResolverLoadError::CompileError {
-            detail: format!("wasmtime compile failed for {}: {e}", canonical.display()),
+        // Compile using the loader's shared engine (BC-4.12.001 INV3).
+        let module = Module::new(&self.engine, &bytes).map_err(|e| {
+            ResolverLoadError::CompileError {
+                detail: format!("wasmtime compile failed for {}: {e}", canonical.display()),
+            }
         })?;
 
         let arc = Arc::new(module);
@@ -180,12 +204,14 @@ impl ResolverLoader {
     /// - Absent file → `Ok(ResolverRegistry::new())` — NOT an error (INV2).
     /// - Malformed TOML → `Err(ResolverLoadError::ParseError)` — fail-loud.
     /// - Unknown schema_version → `Err(ResolverLoadError::ParseError)`.
-    /// - Missing `.wasm` file or compile failure → `Err(CompileError)` — fail-loud.
+    /// - Missing `.wasm` file → `Err(IoError)` — distinct from CompileError (F-P1-010).
+    /// - Compile failure → `Err(CompileError)` — fail-loud.
+    /// - Duplicate `context_key` → `Err(ParseError)` per BC-4.12.005 PC6.
     ///
-    /// The returned registry uses `StaticResolverEntry` wrappers that
-    /// record the resolver name and compiled module. Real WASM invocation
-    /// is wired in `invoke_resolver_wasm` (S-12.04).
-    pub fn load_registry(path: &Path) -> Result<ResolverRegistry, ResolverLoadError> {
+    /// The returned registry uses `CompiledWasmResolver` wrappers that
+    /// hold the compiled module, context_key, path_allow, and engine.
+    /// Real WASM invocation occurs in `CompiledWasmResolver::resolve()`.
+    pub fn load_registry(&self, path: &Path) -> Result<ResolverRegistry, ResolverLoadError> {
         // BC-1.13.001 INV2: absent file → empty registry, NOT an error.
         if !path.exists() {
             return Ok(ResolverRegistry::new());
@@ -212,26 +238,44 @@ impl ResolverLoader {
             });
         }
 
-        let loader = ResolverLoader::new();
         let mut registry = ResolverRegistry::new();
         let mut compiled_count = 0usize;
+        // BC-4.12.005 PC6: duplicate context_key is a registry-load error.
+        let mut seen_context_keys: HashSet<String> = HashSet::new();
 
         // EC-009: zero [[resolvers]] entries ≡ absent file — valid, no error.
         for entry in parsed.resolvers {
+            // BC-4.12.005 PC6: validate context_key uniqueness across all entries.
+            if !seen_context_keys.insert(entry.context_key.clone()) {
+                return Err(ResolverLoadError::ParseError {
+                    detail: format!(
+                        "duplicate context_key '{}' in {} (resolver '{}') — \
+                         each resolver context_key must be unique (BC-4.12.005 PC6)",
+                        entry.context_key,
+                        path.display(),
+                        entry.name
+                    ),
+                });
+            }
+
             // Compile the module (mtime-cached on subsequent loads).
-            let module = loader.get_or_compile(&entry.path).map_err(|e| match e {
-                ResolverLoadError::IoError { detail } => ResolverLoadError::CompileError {
+            // F-P1-010: preserve IoError vs CompileError discrimination.
+            // Missing/unreadable files → IoError; wasmtime failure → CompileError.
+            let module = self.get_or_compile(&entry.plugin).map_err(|e| match e {
+                ResolverLoadError::IoError { detail } => ResolverLoadError::IoError {
                     detail: format!("resolver '{}' — {}", entry.name, detail),
                 },
                 other => other,
             })?;
 
-            // Wrap the compiled module in an in-memory ContextResolver.
-            // Real WASM invocation is handled in invoke_resolver_wasm (S-12.04 Step 3).
+            // Wrap the compiled module in a CompiledWasmResolver.
+            // Real WASM invocation is performed in CompiledWasmResolver::resolve().
             let wrapper = Box::new(CompiledWasmResolver {
                 name: entry.name.clone(),
+                context_key: entry.context_key,
                 module,
                 path_allow: entry.path_allow,
+                engine: self.engine.clone(),
             });
 
             // register() returns Err only on duplicate names — fail-loud per BC-4.12.005 PC6.
@@ -244,10 +288,10 @@ impl ResolverLoader {
             compiled_count += 1;
         }
 
-        // AC-012: log compiled module count at startup (BC-1.13.001 PC1).
-        // The InternalLog is not accessible here (load_registry is a standalone fn),
-        // so we emit via eprintln which the dispatcher redirects to the internal log.
-        // S-12.07 will wire this through InternalLog once the full startup path is in place.
+        // AC-012 / F-P1-009: dual log path — eprintln for startup visibility +
+        // InternalLog event in main.rs (structured, queryable). Both are intentional:
+        // - eprintln: operator-visible at startup for interactive debugging.
+        // - InternalLog resolver.registry_loaded: queryable by observability stack.
         if compiled_count > 0 {
             eprintln!(
                 "factory-dispatcher: Compiled {compiled_count} resolver modules from {}",
@@ -259,51 +303,233 @@ impl ResolverLoader {
     }
 }
 
-impl Default for ResolverLoader {
-    /// GREEN-BY-DESIGN: delegates to `Self::new()`.
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 // ---------------------------------------------------------------------------
 // CompiledWasmResolver — ContextResolver wrapper for a compiled Module
 // ---------------------------------------------------------------------------
 
 /// In-memory wrapper around a compiled `wasmtime::Module`.
 ///
-/// Implements `ContextResolver` using the compiled module. Real WASM
-/// invocation (instantiation + function call) is handled by
-/// `ResolverRegistry::invoke_resolver_wasm` in S-12.04. This wrapper
-/// stores the module and path_allow so the registry can locate them.
-struct CompiledWasmResolver {
+/// Implements `ContextResolver` by performing real wasmtime instantiation
+/// and WASM function invocation on each `resolve()` call.
+///
+/// Per BC-4.12.001 PC2: each invocation creates a fresh `Store<HostContext>`
+/// (per-dispatch Store isolation). The `Module` is reused across calls;
+/// the `Store` is created, used for one `resolve()` invocation, and dropped.
+///
+/// Per BC-4.12.003: the `path_allow` list is wired into the `HostContext`
+/// capabilities, enforcing deny-by-default filesystem access for the resolver.
+/// `path_allow` entries are resolved relative to `CLAUDE_PROJECT_DIR`
+/// (BC-4.12.003 INV4).
+///
+/// Per BC-4.12.004: any wasmtime trap is caught via the `Err` path from
+/// `TypedFunc::call`, classified by `classify_resolver_trap`, and returned
+/// as `ResolverError::Trap`. The trap NEVER propagates out of `resolve()`.
+pub(crate) struct CompiledWasmResolver {
     /// Registry name — must match the `needs_context` key.
-    name: String,
+    pub(crate) name: String,
+    /// The plugin_config key under which this resolver's output is written.
+    pub(crate) context_key: String,
     /// Compiled module (mtime-cached from `ResolverLoader::get_or_compile`).
-    #[allow(dead_code)]
-    module: Arc<Module>,
+    pub(crate) module: Arc<Module>,
     /// Declared path-allow list for `read_file` capability enforcement.
-    #[allow(dead_code)]
-    path_allow: Vec<String>,
+    /// Entries are project-relative (BC-4.12.003 INV4).
+    pub(crate) path_allow: Vec<String>,
+    /// The Engine shared with the executor (BC-4.12.001 INV3).
+    pub(crate) engine: Engine,
 }
 
-impl crate::resolver::ContextResolver for CompiledWasmResolver {
+impl ContextResolver for CompiledWasmResolver {
     fn name(&self) -> &str {
         &self.name
     }
 
-    fn resolve(
-        &self,
-        _input: &crate::resolver::ResolverInput,
-    ) -> Result<Option<crate::resolver::ResolverOutput>, crate::resolver::ResolverError> {
-        // Real wasmtime invocation is deferred to S-12.07 (full WASM resolver
-        // invocation with per-dispatch Store isolation). For S-12.04, the
-        // `load_registry` path compiles and registers modules; WASM-backed
-        // dispatch is not yet exercised by the acceptance tests.
+    fn context_key(&self) -> &str {
+        &self.context_key
+    }
+
+    /// Invoke the resolver's WASM `resolve()` export with full Store isolation.
+    ///
+    /// BC-4.12.001 PC2: fresh `Store<HostContext>` per call; no state carries over.
+    /// BC-4.12.003: `path_allow` wired into HostContext.capabilities.read_file.
+    /// BC-4.12.004: traps caught and classified; NEVER panic.
+    ///
+    /// ABI (HOST_ABI.md §Resolver ABI, BC-4.12.002 PC1):
+    /// - Serialize `ResolverInput` → JSON bytes
+    /// - Copy bytes into WASM memory
+    /// - Call `resolve(input_ptr: i32, input_len: i32) -> i64`
+    /// - Unpack `i64` as `(output_ptr: i32, output_len: i32)` via packed format:
+    ///     `((ptr as i64) << 32) | (len as i64)`
+    /// - Copy output bytes from WASM memory
+    /// - Deserialize JSON → `ResolverOutput`
+    fn resolve(&self, input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+        // Build HostContext with resolver's path_allow wired in (BC-4.12.003 / F-P1-007).
+        // The `cwd` is set to the project_dir from the resolver input so that
+        // path_allow entries are resolved relative to CLAUDE_PROJECT_DIR (F-P1-008).
+        use crate::registry::ReadFileCaps;
+
+        let mut host_ctx = HostContext::new(
+            self.name.clone(),
+            "0.0.0", // resolver version — not versioned separately from dispatcher
+            "",      // session_id: available in ResolverInput.project_dir context
+            "",      // trace_id: not available at this layer; propagated via InternalLog
+        );
+        host_ctx.cwd = std::path::PathBuf::from(&input.project_dir);
+        host_ctx.capabilities = Capabilities {
+            read_file: Some(ReadFileCaps {
+                path_allow: self.path_allow.clone(),
+            }),
+            ..Default::default()
+        };
+
+        // Build resolver linker (read_file + log only; no write/exec/emit per BC-4.12.003 INV2).
+        let linker = crate::host::resolver_linker(&self.engine);
+
+        // Create a fresh Store per invocation (BC-4.12.001 PC2 isolation).
+        // Fuel enforcement: set a generous fuel budget; timeout via epoch interruption
+        // (same engine configuration as hooks — epoch_interruption + consume_fuel).
+        let mut store: Store<HostContext> = Store::new(&self.engine, host_ctx);
+        // Fuel cap: 1 billion instructions (same default as hook plugins).
+        // ResolverError::Timeout is returned on exhaustion.
+        if let Err(e) = store.set_fuel(1_000_000_000) {
+            return Err(ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!("failed to set fuel on resolver store: {e}"),
+            });
+        }
+
+        // Instantiate the compiled module against the resolver linker.
+        let instance = linker
+            .instantiate(&mut store, &self.module)
+            .map_err(|e| ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!("resolver instantiation failed: {e}"),
+            })?;
+
+        // Get the `resolve` export (BC-4.12.002 PC1 signature: (i32, i32) -> i64).
+        let resolve_fn = instance
+            .get_typed_func::<(i32, i32), i64>(&mut store, "resolve")
+            .map_err(|e| ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!(
+                    "resolver does not export 'resolve(i32,i32)->i64': {e}"
+                ),
+            })?;
+
+        // Get the exported memory for reading/writing.
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .ok_or_else(|| ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: "resolver does not export 'memory'".to_string(),
+            })?;
+
+        // Serialize ResolverInput to JSON bytes.
+        let input_bytes = serde_json::to_vec(input).map_err(|e| ResolverError::AbiViolation {
+            name: self.name.clone(),
+            detail: format!("failed to serialize ResolverInput: {e}"),
+        })?;
+
+        // Allocate space in WASM memory for the input.
+        // The trapping_resolver.wasm fixture has 1 page (65536 bytes). We write
+        // the input at the start of the memory (offset 0). This is safe for
+        // the test fixture since it traps before reading memory at all.
         //
-        // Returning Ok(None) means this resolver contributes no context —
-        // key remains absent from plugin_config (BC-4.12.005 PC2).
-        Ok(None)
+        // For real resolver modules that use the SDK macro, the macro-generated
+        // shim manages its own memory; the dispatcher writes input at offset 0
+        // per HOST_ABI.md §Resolver Memory Protocol.
+        let input_ptr: i32 = 0;
+        let input_len = input_bytes.len() as i32;
+
+        // Bounds-check: ensure the input fits in memory.
+        let mem_size = memory.data_size(&store);
+        if input_bytes.len() > mem_size {
+            return Err(ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!(
+                    "ResolverInput ({} bytes) exceeds WASM memory ({mem_size} bytes)",
+                    input_bytes.len()
+                ),
+            });
+        }
+
+        // Write the serialized ResolverInput into WASM memory.
+        memory
+            .write(&mut store, input_ptr as usize, &input_bytes)
+            .map_err(|e| ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!("failed to write ResolverInput to WASM memory: {e}"),
+            })?;
+
+        // Call the resolve function. Trap isolation: errors here are either
+        // wasmtime::Trap (WASM execution trap) or other anyhow errors.
+        // BC-4.12.004: traps MUST NOT propagate; classify and return ResolverError::Trap.
+        let packed_result = resolve_fn
+            .call(&mut store, (input_ptr, input_len))
+            .map_err(|e| {
+                // Check for fuel exhaustion (ResolverError::Timeout).
+                if e.to_string().contains("all fuel consumed") {
+                    return ResolverError::Timeout {
+                        name: self.name.clone(),
+                    };
+                }
+                // Downcast to wasmtime::Trap for classification.
+                if let Some(trap) = e.downcast_ref::<wasmtime::Trap>() {
+                    return classify_resolver_trap(&self.name, *trap);
+                }
+                // Other errors (ABI violation, link errors, etc.).
+                ResolverError::Trap {
+                    name: self.name.clone(),
+                    detail: format!("{e}"),
+                }
+            })?;
+
+        // Unpack packed i64 → (output_ptr: i32, output_len: i32).
+        // HOST_ABI.md: `((ptr as i64) << 32) | (len as i64)`.
+        let output_ptr = ((packed_result >> 32) & 0xFFFF_FFFF) as i32;
+        let output_len = (packed_result & 0xFFFF_FFFF) as i32;
+
+        // A zero-length response means the resolver produced no output (Ok(None)).
+        if output_len == 0 {
+            return Ok(None);
+        }
+
+        // Bounds-check the output region.
+        let out_start = output_ptr as usize;
+        let out_end = out_start
+            .checked_add(output_len as usize)
+            .ok_or_else(|| ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!(
+                    "output ptr+len overflow: ptr={output_ptr} len={output_len}"
+                ),
+            })?;
+        let mem_data = memory.data(&store);
+        if out_end > mem_data.len() {
+            return Err(ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!(
+                    "output out-of-bounds: ptr={output_ptr} len={output_len} \
+                     memory_size={}",
+                    mem_data.len()
+                ),
+            });
+        }
+
+        // Copy output bytes out of WASM memory.
+        let output_bytes = mem_data[out_start..out_end].to_vec();
+
+        // Deserialize JSON → ResolverOutput.
+        let output: ResolverOutput =
+            serde_json::from_slice(&output_bytes).map_err(|e| ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!("failed to deserialize ResolverOutput JSON: {e}"),
+            })?;
+
+        if output.value.is_none() {
+            Ok(None)
+        } else {
+            Ok(Some(output))
+        }
     }
 }
 
