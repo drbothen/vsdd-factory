@@ -110,9 +110,11 @@ fn test_BC_2_02_011_sdk_error_enum_covers_all_write_file_outcomes() {
 /// Traces: S-8.10 AC-7.
 #[test]
 fn test_BC_2_02_011_sdk_version_bumped_to_0_2_0() {
+    // Updated to 0.3.0 by S-12.05 (resolver-authoring feature adds new public API).
+    // Each minor-version addition bumps this; the version pin tracks the current value.
     assert_eq!(
         vsdd_hook_sdk::VERSION,
-        "0.2.0",
-        "vsdd-hook-sdk crate version must be 0.2.0 after adding host::write_file (AC-7)"
+        "0.3.0",
+        "vsdd-hook-sdk crate version must be 0.3.0 after resolver-authoring additions (S-12.05 F-006)"
     );
 }

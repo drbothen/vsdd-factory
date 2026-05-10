@@ -1,0 +1,58 @@
+## Demo: AC-005 — #[resolver] macro generates correct WASM export
+
+### Part A: trybuild positive compile test (valid_resolver.rs compiles successfully)
+
+Command:
+  cargo test --features resolver-authoring -p vsdd-hook-sdk \
+    tests::test_BC_4_12_002_resolver_macro_generates_resolve_export -- --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running tests/resolver_types_test.rs (target/debug/deps/resolver_types_test-be50133badb33efb)
+
+running 1 test
+   Compiling vsdd-hook-sdk-tests v0.0.0 (/Users/jmagady/Dev/vsdd-factory/.worktrees/S-12.05/target/tests/trybuild/vsdd-hook-sdk)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.39s
+
+
+test tests/ui/valid_resolver.rs ... ok
+
+WARNINGS:
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+warning: unused variable: `input`
+  --> tests/ui/valid_resolver.rs:32:17
+   |
+32 | fn resolve_impl(input: ResolverInput) -> ResolverOutput {
+   |                 ^^^^^ help: if this is intentional, prefix it with an underscore: `_input`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests::test_BC_4_12_002_resolver_macro_generates_resolve_export ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 1.12s
+
+### Part B: WASM export presence verification (wasmparser integration test)
+
+Command:
+  cargo test --features resolver-authoring -p vsdd-hook-sdk \
+    --test wasm32_resolver_export_integration -- --ignored --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/wasm32_resolver_export_integration.rs (target/debug/deps/wasm32_resolver_export_integration-717e14bb6b656f84)
+
+running 1 test
+test wasm_export_tests::test_BC_4_12_002_resolver_macro_generates_wasm_export ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.19s
+
+Installed toolchain (wasm32-wasip1 present):
+  wasm32-wasip1
+
+RESULT: PASS
+AC-005 covered: #[resolver] macro on fn resolve_impl(input: ResolverInput) -> ResolverOutput
+generates a valid WASM export named `resolve` with signature
+  resolve(input_ptr: i32, input_len: i32) -> i64
+The wasmparser integration test verifies the `resolve` export is present in the compiled WASM binary.
+Packed i64 encoding: upper 32 bits = ptr, lower 32 bits = len (BC-4.12.002 PC1 / EC-005).

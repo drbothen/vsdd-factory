@@ -1100,9 +1100,10 @@ In addition to the telemetry event, the dispatcher writes an error-level log ent
 
 **Isolation guarantees:**
 
-- A resolver crash does NOT propagate to the dispatcher; `invoke_resolver` returns
-  `Result<ResolverOutput, ResolverError>` in all cases. The dispatcher continues executing
-  normally after handling the error.
+- A resolver crash does NOT propagate to the dispatcher; `invoke_resolver` (host-side,
+  implemented in factory-dispatcher — not exported from hook-sdk) returns a Result in all
+  cases. `ResolverError` is a host-side type; it is NOT part of the hook-sdk public API.
+  The dispatcher continues executing normally after handling the error.
 - The failed resolver's key is NOT written to `plugin_config`. No partial output, no null
   value, no default value — the key is simply absent.
 - Dispatch proceeds without the missing context: the hook receives a `plugin_config` that
