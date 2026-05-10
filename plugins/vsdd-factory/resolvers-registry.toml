@@ -1,0 +1,5 @@
+# resolvers-registry.toml — populated in S-12.07
+# Schema: each [[resolvers]] entry declares one WASM-backed context resolver.
+# Absent file = zero resolvers (BC-1.13.001 INV2 — not an error).
+schema_version = 1
+# [[resolvers]]  # placeholder — entries added in S-12.07
