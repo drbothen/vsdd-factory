@@ -1168,6 +1168,7 @@ This is not an error; it is an expected enrichment pattern.
 | `resolver_name` | string | The registry name of the resolver whose output produced the collision. |
 | `plugin_name` | string | The hook plugin name being dispatched. |
 | `trace_id` | string | Dispatch trace ID. |
+| `session_id` | string | Claude Code session identifier. |
 
 **`needs_context` is the merge scope:** Only resolvers named in the `needs_context` field
 of the hooks-registry entry contribute to the merge for that dispatch. Other registered
