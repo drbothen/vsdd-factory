@@ -489,3 +489,110 @@ async fn test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config() {
         config_obj.get("good-key")
     );
 }
+
+// ---------------------------------------------------------------------------
+// F-P1-001 (CRITICAL) — end-to-end test: real WASM trap fixture via
+// ResolverLoader → invoke_resolver_wasm → ResolverError::Trap
+//
+// BC-4.12.004 postconditions 1–4 / VP-074:
+// Loading trapping_resolver.wasm via ResolverLoader::load_registry and
+// then invoking it via ResolverRegistry::invoke_resolver_wasm must:
+// 1. Return Err(ResolverError::Trap) — the wasmtime Unreachable trap
+//    is classified and returned, not propagated.
+// 2. NOT panic.
+// 3. Carry the resolver name and a non-empty detail string.
+// ---------------------------------------------------------------------------
+
+/// test_F_P1_001_invoke_resolver_wasm_real_wasm_fixture_surfaces_trap
+///
+/// Loads `trapping_resolver.wasm` via `ResolverLoader::load_registry` using
+/// an in-memory TOML, then calls `ResolverRegistry::invoke_resolver_wasm`
+/// with the resolver name and asserts:
+/// 1. The call returns `Err(ResolverError::Trap)` — the wasmtime trap
+///    from `unreachable` is caught, classified, and returned.
+/// 2. The function does NOT panic (trap isolation — BC-4.12.004 INV1).
+/// 3. The `Trap.name` field equals the registered resolver name.
+/// 4. The `Trap.detail` field is non-empty (VP-074: observable trap context).
+///
+/// This is the end-to-end proof that `invoke_resolver_wasm` exercises the
+/// real wasmtime boundary and surfaces `ResolverError::Trap`.
+#[test]
+fn test_F_P1_001_invoke_resolver_wasm_real_wasm_fixture_surfaces_trap() {
+    use factory_dispatcher::resolver::ResolverInput;
+    use factory_dispatcher::resolver_loader::ResolverLoader;
+
+    let fixture = trapping_resolver_wasm();
+    assert!(
+        fixture.exists(),
+        "F-P1-001: trapping_resolver.wasm must exist at {:?}",
+        fixture
+    );
+
+    let engine = build_engine().expect("F-P1-001: build_engine must succeed");
+
+    // Write a minimal resolvers-registry.toml pointing at the fixture.
+    let dir = tempfile::tempdir().expect("tempdir");
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "trap-wasm-resolver"
+plugin = "{}"
+context_key = "trap_context"
+"#,
+        fixture.display()
+    );
+    let registry_path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&registry_path, toml_content).expect("write registry TOML");
+
+    // Load the registry — this compiles trapping_resolver.wasm.
+    let loader = ResolverLoader::new(engine);
+    let registry = loader
+        .load_registry(&registry_path)
+        .expect("F-P1-001: load_registry must succeed (load does not invoke resolve)");
+
+    assert_eq!(
+        registry.len(),
+        1,
+        "F-P1-001: registry must have exactly 1 resolver after loading trapping_resolver.wasm"
+    );
+
+    // Build a minimal ResolverInput.
+    let input = ResolverInput {
+        event_type: "PreToolUse".to_string(),
+        hook_event_name: "test-hook".to_string(),
+        agent_type: None,
+        project_dir: dir.path().to_str().unwrap_or("").to_string(),
+        plugin_config: serde_json::json!({}),
+    };
+
+    // Invoke via invoke_resolver_wasm — the trapping resolver executes
+    // `unreachable` and the trap must be caught and returned as ResolverError::Trap.
+    let result = registry.invoke_resolver_wasm("trap-wasm-resolver", &input);
+
+    match result {
+        Err(factory_dispatcher::resolver::ResolverError::Trap { name, detail }) => {
+            assert_eq!(
+                name, "trap-wasm-resolver",
+                "F-P1-001 / VP-074: Trap.name must equal the registered resolver name"
+            );
+            assert!(
+                !detail.is_empty(),
+                "F-P1-001 / VP-074: Trap.detail must be non-empty — carry wasmtime trap context"
+            );
+        }
+        Err(other) => {
+            panic!(
+                "F-P1-001 / BC-4.12.004: expected ResolverError::Trap from trapping_resolver.wasm \
+                 but got {:?} — trap must be caught and classified, not returned as a different error",
+                other
+            );
+        }
+        Ok(_) => {
+            panic!(
+                "F-P1-001 / BC-4.12.004: invoke_resolver_wasm on trapping_resolver.wasm must \
+                 return Err(ResolverError::Trap), not Ok — the WASM executes `unreachable`"
+            );
+        }
+    }
+}
