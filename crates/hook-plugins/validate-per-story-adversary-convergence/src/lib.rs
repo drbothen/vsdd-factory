@@ -230,6 +230,89 @@ pub fn graceful_degrade_outside_wave_gate(payload: &HookPayload) -> bool {
 }
 
 // ---------------------------------------------------------------------------
+// Block codes for wave_context path (S-12.08 — AC-002, AC-003)
+// ---------------------------------------------------------------------------
+
+/// Block code returned when `plugin_config["wave_context"]` is absent or null.
+///
+/// Indicates that `WaveContextResolver` was not wired or failed to inject context.
+/// Hook MUST NOT gracefully degrade on this condition (AC-002, AC-010).
+///
+/// # BC traces
+/// - BC-4.10.001 postcondition 2 (absent wave_context → block, not degrade)
+/// - S-12.08 AC-002
+pub const BLOCK_CODE_WAVE_CONTEXT_MISSING: &str = "WAVE_CONTEXT_MISSING";
+
+/// Block code returned when `plugin_config["wave_context"]["stories"]` is present
+/// but is not a JSON array (wrong type — e.g., string, object, or null).
+///
+/// # BC traces
+/// - BC-4.10.001 postcondition 2 (schema error → block)
+/// - S-12.08 AC-003
+pub const BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR: &str = "WAVE_CONTEXT_SCHEMA_ERROR";
+
+// ---------------------------------------------------------------------------
+// WaveContextError (S-12.08 — typed error for wave_context extraction path)
+// ---------------------------------------------------------------------------
+
+/// Typed error for the `extract_stories_from_wave_context` function.
+///
+/// Distinct from `IoError` (which covers filesystem-level errors) — this error
+/// represents a contract violation: the wave_context key that WaveContextResolver
+/// MUST inject was absent, null, or had the wrong schema.
+///
+/// # BC traces
+/// - BC-4.10.001 postcondition 2 (block when wave_context absent or malformed)
+/// - S-12.08 AC-002 (`Missing` variant), AC-003 (`SchemaError` variant)
+#[derive(Debug)]
+pub enum WaveContextError {
+    /// `plugin_config["wave_context"]` was absent or JSON null.
+    /// Maps to block code `WAVE_CONTEXT_MISSING`.
+    Missing,
+    /// `plugin_config["wave_context"]["stories"]` was present but not a JSON array,
+    /// or an element of the array was not a string.
+    /// Carries a human-readable description of the schema violation.
+    /// Maps to block code `WAVE_CONTEXT_SCHEMA_ERROR`.
+    SchemaError(String),
+}
+
+// ---------------------------------------------------------------------------
+// wave_context.stories extraction (S-12.08 — successor to extract_stories_from_config)
+// ---------------------------------------------------------------------------
+
+/// Extract story IDs from `plugin_config["wave_context"]["stories"]`.
+///
+/// This function is the S-12.08 replacement path for the old
+/// `extract_stories_from_config` (which read from the top-level `stories` key).
+/// After S-12.08 implementation (Step 3), `RealCallbacks::list_stories` in
+/// `main.rs` will call this function instead of `extract_stories_from_config`.
+///
+/// Returns `Ok(Vec<String>)` when `wave_context.stories` is a non-null JSON array
+/// of strings. Returns `Err(WaveContextError::Missing)` when the `wave_context`
+/// key is absent or null. Returns `Err(WaveContextError::SchemaError(_))` when
+/// `wave_context.stories` is present but has the wrong type.
+///
+/// The hook MUST NOT gracefully degrade on `WaveContextError` — this is a
+/// hard block condition (AC-002, AC-010). The old fallback path
+/// (`extract_stories_from_config` with graceful Err→Continue degrade) is removed
+/// as part of S-12.08 Step 3.
+///
+/// # BC traces
+/// - BC-4.10.001 PC1 (hook must enumerate stories from the current wave)
+/// - BC-4.12.005 PC1 (resolver output injected at `plugin_config["wave_context"]`)
+/// - S-12.08 AC-001 (reads from `wave_context.stories` not top-level `stories`)
+/// - S-12.08 AC-002 (absent wave_context → `Missing` error → Block)
+/// - S-12.08 AC-003 (wrong type → `SchemaError` → Block)
+/// - S-12.08 AC-010 (old fallback path removed — no graceful Continue on missing)
+pub fn extract_stories_from_wave_context(
+    plugin_config: &serde_json::Value,
+) -> Result<Vec<String>, WaveContextError> {
+    // S-12.08 Step 3 (implementer): read plugin_config["wave_context"]["stories"].
+    // Step 1 (stub-architect): todo!() body — implementer writes real logic in Step 3.
+    todo!()
+}
+
+// ---------------------------------------------------------------------------
 // plugin_config.stories extraction (F-HIGH-3 fix helper)
 // ---------------------------------------------------------------------------
 

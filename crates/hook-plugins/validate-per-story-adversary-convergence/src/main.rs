@@ -101,6 +101,13 @@ fn on_hook(payload: HookPayload) -> HookResult {
         }
     }
 
+    // TODO(S-12.08 Step 3): rewire to extract_stories_from_wave_context.
+    // Replace the call below with:
+    //   let stories = extract_stories_from_wave_context(&payload.plugin_config);
+    // and update RealCallbacks.stories type to Result<Vec<String>, WaveContextError>.
+    // The new path must NOT gracefully degrade on WaveContextError::Missing —
+    // it must emit HookResult::Block with code WAVE_CONTEXT_MISSING (AC-002, AC-010).
+    //
     // Extract story list from plugin_config.stories before constructing callbacks.
     // If absent, RealCallbacks.stories holds Err → graceful degrade (F-HIGH-3 fix).
     let stories = extract_stories_from_config(&payload.plugin_config);
