@@ -35,8 +35,18 @@ jobs:
     steps:
       - name: Reject when base_ref != main
         if: github.base_ref != 'main'
+        # github.head_ref / base_ref / pull_request.number come from PR
+        # metadata, which Semgrep's run-shell-injection rule treats as
+        # untrusted (e.g., a branch name containing backticks could
+        # inject). Channel them through env: so the shell sees plain
+        # variables, not template-interpolated text. Quote every
+        # expansion ("$VAR") to neutralize any embedded whitespace.
+        env:
+          PR_HEAD: ${{ github.head_ref }}
+          PR_BASE: ${{ github.base_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          echo "::error title=Release branch must target main::PR head '${{ github.head_ref }}' targets '${{ github.base_ref }}' but release/* branches MUST target 'main'. Re-target to main or rename the branch."
+          echo "::error title=Release branch must target main::PR head '${PR_HEAD}' targets '${PR_BASE}' but release/* branches MUST target 'main'. Re-target to main or rename the branch."
           echo ""
           echo "Why this matters:"
           echo "  release/v1.0.0-rc.X → main is the canonical sync point that"
@@ -53,7 +63,7 @@ jobs:
           echo "  https://github.com/drbothen/vsdd-factory/blob/main/RELEASING.md"
           echo ""
           echo "Fix: re-target this PR to main:"
-          echo "  gh pr edit ${{ github.event.pull_request.number }} --base main"
+          echo "  gh pr edit ${PR_NUMBER} --base main"
           exit 1
 
       - name: Acknowledge correct target
