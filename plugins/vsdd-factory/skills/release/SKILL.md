@@ -15,9 +15,60 @@ When the user wants to cut a release, bootstrap release config for a new repo,
 or preview what a release would do. Works with any project type — Claude Code
 plugins, Rust crates, Node.js packages, Python packages, Go modules.
 
+## Defer to RELEASING.md when present (project canonical procedure)
+
+If a `RELEASING.md` exists at the project root, **read it first** and use it
+as the authoritative procedure for this project. This skill provides the
+generic invokable shell; `RELEASING.md` provides the project-specific details
+(branch conventions, merge strategy, marketplace publish, recovery procedures).
+
+Procedure:
+
+1. Check for `RELEASING.md` at the project root.
+2. **If it exists**:
+   - Announce: `**Release Pipeline** — RELEASING.md found at project root. Deferring to its canonical procedure.`
+   - Read RELEASING.md in full before any action.
+   - Honor every "Mandatory invariants" entry. Violating them is what
+     historically broke vsdd-factory's marketplace publish.
+   - Follow the "Step-by-step: cutting a release" section literally; the
+     shell snippets are tested.
+   - Return RELEASING.md's recovery procedures verbatim if you encounter
+     a known failure mode. STOP and surface to the human if you encounter
+     anything not in RELEASING.md's recovery section.
+   - Skip the rest of this SKILL.md unless RELEASING.md explicitly defers
+     a step back to the generic skill.
+
+3. **If `RELEASING.md` does NOT exist**:
+   - Announce: `**Release Pipeline** — no RELEASING.md found at project root. The canonical release procedure should be documented before cutting a release.`
+   - Prompt the human:
+
+     > This project doesn't have a `RELEASING.md` at the root, which is
+     > the documented source of truth for how releases are cut. Without
+     > one, this skill will fall back to a generic config-driven release
+     > flow which may not match your project's actual release conventions
+     > (branch naming, merge strategy, marketplace publish, etc.).
+     >
+     > **Recommended:** create RELEASING.md before cutting this release.
+     > Use the example at
+     > [vsdd-factory/RELEASING.md](https://github.com/drbothen/vsdd-factory/blob/main/RELEASING.md)
+     > as a starting template and adapt to your project's conventions.
+     >
+     > **Choose:**
+     > 1. Pause and create RELEASING.md now (recommended for first-time releases or any project with a non-trivial release flow).
+     > 2. Proceed with the generic config-driven flow (use only if you've already validated the generic flow works for this project).
+
+   - If the human chooses (1), help them draft RELEASING.md by reading
+     `.github/workflows/release.yml`, `.factory/release-config.yaml`,
+     and `CHANGELOG.md` to extract the project's actual release behavior,
+     then write a draft for human review.
+   - If the human chooses (2), proceed with the generic flow below and
+     consider it operating without a safety net — prepare to halt if
+     anything looks wrong.
+
 ## Announce at Start
 
-Before any other action, say verbatim:
+After the RELEASING.md check above, if you're proceeding with the generic flow,
+say verbatim:
 
 > **Release Pipeline** — reading release config from `.factory/release-config.yaml`.
 

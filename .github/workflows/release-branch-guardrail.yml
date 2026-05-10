@@ -52,6 +52,9 @@ jobs:
           echo "  fail-closed bug. See CHANGELOG.md v1.0.0-rc.15 + TD #69 for the"
           echo "  full root-cause writeup."
           echo ""
+          echo "Canonical release procedure: RELEASING.md (project root)."
+          echo "  https://github.com/drbothen/vsdd-factory/blob/main/RELEASING.md"
+          echo ""
           echo "Fix: re-target this PR to main:"
           echo "  gh pr edit ${{ github.event.pull_request.number }} --base main"
           exit 1
