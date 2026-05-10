@@ -177,7 +177,7 @@ mod kani_harnesses {
 mod tests {
     use super::*;
 
-    /// test_BC_4_12_004_classify_resolver_trap_is_total
+    /// test_classify_resolver_trap_total_byte_iter (F-P1-011)
     ///
     /// Calls `classify_resolver_trap` with every known `wasmtime::Trap` variant
     /// constructible via `Trap::from_u8`. Asserts:
@@ -190,10 +190,10 @@ mod tests {
     /// via `Trap::from_u8(byte)`. We iterate byte values 0..=255 and test every
     /// `Some(trap)` that `from_u8` returns.
     ///
-    /// Red Gate: fails because `classify_resolver_trap` is `todo!()` in
-    /// the Step 3 stub — any call panics before implementation.
+    /// Note: The `proof_` prefix is reserved for Kani harnesses (in kani_harnesses
+    /// module). Rust unit tests use `test_` prefix to avoid confusion (F-P1-011).
     #[test]
-    fn test_BC_4_12_004_classify_resolver_trap_is_total() {
+    fn test_classify_resolver_trap_total_byte_iter() {
         let resolver_name = "test-resolver";
         let mut tested_count = 0usize;
 

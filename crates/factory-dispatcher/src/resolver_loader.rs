@@ -29,11 +29,11 @@ use thiserror::Error;
 use wasmtime::{Engine, Module, Store};
 
 use crate::host::HostContext;
+use crate::registry::Capabilities;
 use crate::resolver::{
     ContextResolver, ResolverError, ResolverInput, ResolverOutput, ResolverRegistry,
 };
 use crate::resolver_classify_trap::classify_resolver_trap;
-use crate::registry::Capabilities;
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -182,11 +182,10 @@ impl ResolverLoader {
         })?;
 
         // Compile using the loader's shared engine (BC-4.12.001 INV3).
-        let module = Module::new(&self.engine, &bytes).map_err(|e| {
-            ResolverLoadError::CompileError {
+        let module =
+            Module::new(&self.engine, &bytes).map_err(|e| ResolverLoadError::CompileError {
                 detail: format!("wasmtime compile failed for {}: {e}", canonical.display()),
-            }
-        })?;
+            })?;
 
         let arc = Arc::new(module);
 
@@ -358,7 +357,7 @@ impl ContextResolver for CompiledWasmResolver {
     /// - Copy bytes into WASM memory
     /// - Call `resolve(input_ptr: i32, input_len: i32) -> i64`
     /// - Unpack `i64` as `(output_ptr: i32, output_len: i32)` via packed format:
-    ///     `((ptr as i64) << 32) | (len as i64)`
+    ///   `((ptr as i64) << 32) | (len as i64)`
     /// - Copy output bytes from WASM memory
     /// - Deserialize JSON → `ResolverOutput`
     fn resolve(&self, input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
@@ -382,7 +381,13 @@ impl ContextResolver for CompiledWasmResolver {
         };
 
         // Build resolver linker (read_file + log only; no write/exec/emit per BC-4.12.003 INV2).
-        let linker = crate::host::resolver_linker(&self.engine);
+        // F-P1-012: resolver_linker returns Result; propagate registration errors via map_err.
+        let linker = crate::host::resolver_linker(&self.engine).map_err(|e| {
+            ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: format!("resolver linker construction failed: {e}"),
+            }
+        })?;
 
         // Create a fresh Store per invocation (BC-4.12.001 PC2 isolation).
         // Fuel enforcement: set a generous fuel budget; timeout via epoch interruption
@@ -398,30 +403,28 @@ impl ContextResolver for CompiledWasmResolver {
         }
 
         // Instantiate the compiled module against the resolver linker.
-        let instance = linker
-            .instantiate(&mut store, &self.module)
-            .map_err(|e| ResolverError::AbiViolation {
+        let instance = linker.instantiate(&mut store, &self.module).map_err(|e| {
+            ResolverError::AbiViolation {
                 name: self.name.clone(),
                 detail: format!("resolver instantiation failed: {e}"),
-            })?;
+            }
+        })?;
 
         // Get the `resolve` export (BC-4.12.002 PC1 signature: (i32, i32) -> i64).
         let resolve_fn = instance
             .get_typed_func::<(i32, i32), i64>(&mut store, "resolve")
             .map_err(|e| ResolverError::AbiViolation {
                 name: self.name.clone(),
-                detail: format!(
-                    "resolver does not export 'resolve(i32,i32)->i64': {e}"
-                ),
+                detail: format!("resolver does not export 'resolve(i32,i32)->i64': {e}"),
             })?;
 
         // Get the exported memory for reading/writing.
-        let memory = instance
-            .get_memory(&mut store, "memory")
-            .ok_or_else(|| ResolverError::AbiViolation {
+        let memory = instance.get_memory(&mut store, "memory").ok_or_else(|| {
+            ResolverError::AbiViolation {
                 name: self.name.clone(),
                 detail: "resolver does not export 'memory'".to_string(),
-            })?;
+            }
+        })?;
 
         // Serialize ResolverInput to JSON bytes.
         let input_bytes = serde_json::to_vec(input).map_err(|e| ResolverError::AbiViolation {
@@ -495,14 +498,12 @@ impl ContextResolver for CompiledWasmResolver {
 
         // Bounds-check the output region.
         let out_start = output_ptr as usize;
-        let out_end = out_start
-            .checked_add(output_len as usize)
-            .ok_or_else(|| ResolverError::AbiViolation {
+        let out_end = out_start.checked_add(output_len as usize).ok_or_else(|| {
+            ResolverError::AbiViolation {
                 name: self.name.clone(),
-                detail: format!(
-                    "output ptr+len overflow: ptr={output_ptr} len={output_len}"
-                ),
-            })?;
+                detail: format!("output ptr+len overflow: ptr={output_ptr} len={output_len}"),
+            }
+        })?;
         let mem_data = memory.data(&store);
         if out_end > mem_data.len() {
             return Err(ResolverError::AbiViolation {
