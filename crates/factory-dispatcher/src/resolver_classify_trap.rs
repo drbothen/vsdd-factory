@@ -46,9 +46,25 @@ pub fn classify_resolver_trap(resolver_name: &str, trap: wasmtime::Trap) -> Reso
     // The Kani harness proof_classify_trap_never_returns_not_found still holds:
     // neither Timeout nor Trap is NotFound.
     match trap {
-        wasmtime::Trap::Interrupt => ResolverError::Timeout {
-            name: resolver_name.to_string(),
-        },
+        wasmtime::Trap::Interrupt => {
+            // Epoch deadline interruption → Timeout (F-P3-002).
+            // This is the canonical "timeout" trap produced by set_epoch_deadline.
+            ResolverError::Timeout {
+                name: resolver_name.to_string(),
+            }
+        }
+        wasmtime::Trap::OutOfFuel => {
+            // Fuel exhaustion → Timeout.
+            // Fuel-based execution limits are a form of wall-clock timeout —
+            // the resolver exceeded its instruction budget. Both epoch and fuel
+            // limits represent "took too long", so both map to Timeout.
+            // The "all fuel consumed" string check in resolver_loader.rs is an
+            // additional guard for anyhow error wrapping edge cases; this match
+            // arm is the definitive classification path.
+            ResolverError::Timeout {
+                name: resolver_name.to_string(),
+            }
+        }
         _ => ResolverError::Trap {
             name: resolver_name.to_string(),
             detail: format!("{trap}"),
@@ -149,36 +165,36 @@ mod kani_harnesses {
         );
     }
 
-    /// proof_classify_trap_never_returns_trap_for_interrupt (VP-074 property 3, F-P3-002)
+    /// proof_classify_trap_timeout_traps_return_timeout (VP-074 property 3, F-P3-002)
     ///
-    /// Symbolic verification: for `Trap::Interrupt` (the epoch deadline trap),
-    /// the returned `ResolverError` is NEVER `ResolverError::Trap`. Per HOST_ABI
-    /// semantics, epoch interruption is a timeout condition, not a WASM fault.
+    /// Symbolic verification: for `Trap::Interrupt` (epoch deadline) and
+    /// `Trap::OutOfFuel` (fuel exhaustion), the returned `ResolverError` is
+    /// NEVER `ResolverError::Trap`. Per HOST_ABI semantics, both are timeout
+    /// conditions, not WASM faults.
     ///
-    /// F-P3-002: Trap::Interrupt maps to ResolverError::Timeout. This harness
-    /// proves that invariant: Interrupt → Timeout, not Trap.
-    ///
-    /// For non-Interrupt traps, the mapping remains Trap → Trap (proven by
-    /// proof_classify_trap_is_total which accepts Trap variants without assertion).
+    /// F-P3-002: Interrupt and OutOfFuel map to ResolverError::Timeout.
+    /// For all other trap codes, the mapping is Trap → Trap.
     #[kani::proof]
-    fn proof_classify_trap_interrupt_returns_timeout() {
-        // Trap::Interrupt has a stable byte code; use kani::assume to select only it.
+    fn proof_classify_trap_timeout_traps_return_timeout() {
         let byte: u8 = kani::any();
         let Some(trap) = wasmtime::Trap::from_u8(byte) else {
             return;
         };
-        // Focus only on the Interrupt variant (the epoch-deadline case).
-        kani::assume(matches!(trap, wasmtime::Trap::Interrupt));
+        // Focus only on the timeout-classified variants.
+        kani::assume(matches!(
+            trap,
+            wasmtime::Trap::Interrupt | wasmtime::Trap::OutOfFuel
+        ));
         let result = classify_resolver_trap("any-resolver", trap);
         kani::assert(
             matches!(result, ResolverError::Timeout { .. }),
             "VP-074 F-P3-002: classify_resolver_trap must return ResolverError::Timeout \
-             for Trap::Interrupt — epoch interruption is a timeout, not a WASM fault",
+             for Trap::Interrupt and Trap::OutOfFuel — both are timeout conditions",
         );
         kani::assert(
             !matches!(result, ResolverError::Trap { .. }),
             "VP-074 F-P3-002: classify_resolver_trap must NOT return ResolverError::Trap \
-             for Trap::Interrupt — epoch deadline must classify as Timeout",
+             for Interrupt/OutOfFuel — these are timeouts, not WASM faults",
         );
     }
 }
@@ -233,12 +249,13 @@ mod tests {
             // F-P3-002: Interrupt maps to Timeout; all others map to Trap.
             match &result {
                 ResolverError::Timeout { name } => {
-                    // F-P3-002: Interrupt → Timeout is the only valid Timeout mapping.
-                    assert_eq!(
-                        trap,
-                        wasmtime::Trap::Interrupt,
-                        "AC-012 / F-P3-002: Timeout must only be returned for Trap::Interrupt, \
-                         not for byte={byte} trap={trap:?}"
+                    // F-P3-002: Interrupt and OutOfFuel → Timeout.
+                    let is_timeout_trap =
+                        matches!(trap, wasmtime::Trap::Interrupt | wasmtime::Trap::OutOfFuel);
+                    assert!(
+                        is_timeout_trap,
+                        "AC-012 / F-P3-002: Timeout must only be returned for \
+                         Trap::Interrupt or Trap::OutOfFuel, not for byte={byte} trap={trap:?}"
                     );
                     assert_eq!(
                         name.as_str(),
@@ -247,12 +264,11 @@ mod tests {
                     );
                 }
                 ResolverError::Trap { name, detail } => {
-                    // Non-Interrupt traps → ResolverError::Trap.
-                    assert_ne!(
-                        trap,
-                        wasmtime::Trap::Interrupt,
-                        "AC-012 / F-P3-002: Trap::Interrupt must map to Timeout, not Trap \
-                         (byte={byte})"
+                    // Non-Interrupt, non-OutOfFuel traps → ResolverError::Trap.
+                    assert!(
+                        !matches!(trap, wasmtime::Trap::Interrupt | wasmtime::Trap::OutOfFuel),
+                        "AC-012 / F-P3-002: Trap::Interrupt and Trap::OutOfFuel must map to \
+                         Timeout, not Trap (byte={byte})"
                     );
                     assert_eq!(
                         name.as_str(),

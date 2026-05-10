@@ -20,8 +20,8 @@
 //! VP: VP-075 (proptest harness lives in resolver_determinism_proptest.rs)
 
 use factory_dispatcher::resolver::{
-    ContextResolver, ResolvedContext, ResolverError, ResolverInput, ResolverOutput, ResolverRegistry,
-    merge_resolver_outputs,
+    ContextResolver, ResolvedContext, ResolverError, ResolverInput, ResolverOutput,
+    ResolverRegistry, merge_resolver_outputs,
 };
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
@@ -355,7 +355,7 @@ fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() 
     let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
     // F-P2-002 / F-P3-001: use ResolvedContext with context_key (merge key) and resolver_name.
     let outputs = vec![ResolvedContext {
-        context_key: "foo".to_string(), // merge key (F-P2-002)
+        context_key: "foo".to_string(),            // merge key (F-P2-002)
         resolver_name: "foo_resolver".to_string(), // registry name (F-P3-001)
         output: ResolverOutput {
             key: "foo_internal".to_string(), // output.key is informational only (F-P2-002)
@@ -470,7 +470,7 @@ fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
     let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
     // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
     let outputs = vec![ResolvedContext {
-        context_key: "extra".to_string(), // merge key (F-P2-002)
+        context_key: "extra".to_string(),            // merge key (F-P2-002)
         resolver_name: "extra_resolver".to_string(), // registry name (F-P3-001)
         output: ResolverOutput {
             key: "extra_internal".to_string(), // informational only (F-P2-002)
@@ -511,7 +511,7 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
     let static_config = json!({"foo": "old"}).as_object().unwrap().clone();
     // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
     let outputs = vec![ResolvedContext {
-        context_key: "foo".to_string(), // merge key (F-P2-002)
+        context_key: "foo".to_string(),            // merge key (F-P2-002)
         resolver_name: "foo_resolver".to_string(), // registry name (F-P3-001)
         output: ResolverOutput {
             key: "foo_internal".to_string(), // informational only (F-P2-002)
@@ -996,7 +996,7 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
     // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
     let outputs = vec![
         ResolvedContext {
-            context_key: "a".to_string(), // merge key (F-P2-002)
+            context_key: "a".to_string(),            // merge key (F-P2-002)
             resolver_name: "resolver_a".to_string(), // registry name (F-P3-001)
             output: ResolverOutput {
                 key: "a_internal".to_string(), // informational only (F-P2-002)
@@ -1004,7 +1004,7 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
             },
         },
         ResolvedContext {
-            context_key: "b".to_string(), // merge key (F-P2-002)
+            context_key: "b".to_string(),            // merge key (F-P2-002)
             resolver_name: "resolver_b".to_string(), // registry name (F-P3-001)
             output: ResolverOutput {
                 key: "b_internal".to_string(), // informational only (F-P2-002)
@@ -1301,5 +1301,117 @@ fn test_F_P2_002_context_key_wins_over_output_key_in_merge() {
         "F-P2-002: merged config must NOT contain 'ignored_key' (resolver's output.key is ignored). \
          output.key must not affect merge destination. Got: {:?}",
         merged.keys().collect::<Vec<_>>()
+    );
+}
+
+// ===========================================================================
+// F-P3-001 — CollisionInfo.resolver_name is registry NAME, not context_key
+// ===========================================================================
+
+/// Resolver where name ≠ context_key to test F-P3-001 regression guard.
+struct SplitNameResolver {
+    /// Registry name (returned by `name()`).
+    registry_name: String,
+    /// context_key (returned by `context_key()`), distinct from registry_name.
+    key: String,
+    value: serde_json::Value,
+}
+
+impl ContextResolver for SplitNameResolver {
+    fn name(&self) -> &str {
+        &self.registry_name
+    }
+
+    fn context_key(&self) -> &str {
+        &self.key
+    }
+
+    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+        Ok(Some(ResolverOutput {
+            key: self.key.clone(),
+            value: Some(self.value.clone()),
+        }))
+    }
+}
+
+/// F-P3-001 regression test: CollisionInfo.resolver_name must be the registry NAME
+/// (from `ContextResolver::name()`), NOT the context_key.
+///
+/// Registers a resolver with name="foo_resolver" and context_key="foo_key".
+/// Configures static config with "foo_key" already set so a collision occurs.
+/// Asserts CollisionInfo.resolver_name == "foo_resolver" (not "foo_key").
+///
+/// This is the canonical regression guard for F-P3-001: if the implementation
+/// reverts to using context_key as resolver_name, this test fails.
+#[test]
+fn test_F_P3_001_collision_info_resolver_name_is_registry_name_not_context_key() {
+    use factory_dispatcher::resolver::CollisionInfo;
+
+    let mut registry = ResolverRegistry::new();
+    let resolver = SplitNameResolver {
+        registry_name: "foo_resolver".to_string(), // registry NAME
+        key: "foo_key".to_string(),                // context_key (distinct from name)
+        value: serde_json::json!("new_value"),
+    };
+    registry
+        .register(Box::new(resolver))
+        .expect("F-P3-001: first registration must succeed");
+
+    // Invoke the resolver to get a ResolvedContext.
+    let resolver_outputs = registry.resolve_context_for_entry(
+        &["foo_resolver".to_string()],
+        &test_input(),
+        noop_emit,
+        noop_error,
+    );
+
+    assert_eq!(
+        resolver_outputs.len(),
+        1,
+        "F-P3-001: resolve_context_for_entry must return exactly one output"
+    );
+
+    // Verify the ResolvedContext carries BOTH the registry name AND the context_key.
+    let ctx = &resolver_outputs[0];
+    assert_eq!(
+        ctx.context_key, "foo_key",
+        "F-P3-001: ResolvedContext.context_key must be the registry-declared context_key 'foo_key'"
+    );
+    assert_eq!(
+        ctx.resolver_name, "foo_resolver",
+        "F-P3-001: ResolvedContext.resolver_name must be the registry NAME 'foo_resolver'"
+    );
+
+    // Trigger a collision by setting "foo_key" in static config.
+    let static_config = serde_json::json!({"foo_key": "old_value"})
+        .as_object()
+        .unwrap()
+        .clone();
+    let (merged, collisions) = merge_resolver_outputs(static_config, &resolver_outputs);
+
+    // Resolver wins on collision.
+    assert_eq!(
+        merged["foo_key"],
+        serde_json::json!("new_value"),
+        "F-P3-001: resolver must win on collision (BC-4.12.005 PC5)"
+    );
+
+    // The critical assertion: CollisionInfo.resolver_name must be "foo_resolver" (registry NAME),
+    // NOT "foo_key" (context_key). Before F-P3-001 this was "foo_key".
+    assert_eq!(
+        collisions.len(),
+        1,
+        "F-P3-001: must have exactly one collision"
+    );
+    assert_eq!(
+        collisions[0],
+        CollisionInfo {
+            key: "foo_key".to_string(),
+            resolver_name: "foo_resolver".to_string(), // registry NAME — not "foo_key"
+            old_value: serde_json::json!("old_value"),
+            new_value: serde_json::json!("new_value"),
+        },
+        "F-P3-001: CollisionInfo.resolver_name must be 'foo_resolver' (registry name), \
+         NOT 'foo_key' (context_key). Before F-P3-001 this was set to context_key."
     );
 }

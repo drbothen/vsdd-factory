@@ -331,10 +331,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                 let ev = InternalEvent::now("resolver.load_warning")
                     .with_trace_id(trace_id.clone())
                     .with_session_id(payload.session_id.clone())
-                    .with_field(
-                        "resolver_name",
-                        serde_json::Value::String(w.resolver_name),
-                    )
+                    .with_field("resolver_name", serde_json::Value::String(w.resolver_name))
                     .with_field("detail", serde_json::Value::String(w.detail));
                 internal_log.write(&ev);
             }

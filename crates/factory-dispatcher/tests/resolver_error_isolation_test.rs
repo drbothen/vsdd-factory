@@ -145,6 +145,9 @@ fn make_executor_inputs<'a>(
 ) -> ExecutorInputs<'a> {
     let mut base = HostContext::new("", "0.0.1", "sess-trap-test", "trace-trap-test");
     base.internal_log = Some(internal_log.clone());
+    // F-P3-004: project_dir must not be empty (BC-4.12.003 INV4).
+    // Use /tmp as the test project dir — a real path that always exists.
+    base.cwd = std::path::PathBuf::from("/tmp");
     ExecutorInputs {
         engine,
         cache,
