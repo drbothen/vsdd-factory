@@ -163,8 +163,19 @@ pub enum HostCallError {
 ///
 /// Non-trivial: registers host functions, applies capability restrictions,
 /// and returns the configured linker. S-12.04 Step 3 implementation.
-pub fn resolver_linker(_engine: &Engine) -> Linker<HostContext> {
-    todo!("S-12.04 Step 3")
+pub fn resolver_linker(engine: &Engine) -> Linker<HostContext> {
+    // Build a resolver-scoped linker that includes ONLY read_file and log.
+    // write_file, exec_subprocess, and emit_event are intentionally excluded
+    // per BC-4.12.003 INV2 (resolver sandbox: no write, exec, or emit).
+    let mut linker: Linker<HostContext> = Linker::new(engine);
+
+    // Register only the two permitted host functions.
+    // Errors from registration are programming errors (duplicate names or
+    // type mismatches) and should never occur in a correctly-built binary.
+    log::register(&mut linker).expect("resolver_linker: log registration must succeed");
+    read_file::register(&mut linker).expect("resolver_linker: read_file registration must succeed");
+
+    linker
 }
 
 /// Register every `vsdd::*` host import with a fresh linker.

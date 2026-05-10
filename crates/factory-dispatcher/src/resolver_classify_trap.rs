@@ -28,8 +28,20 @@ use crate::resolver::ResolverError;
 ///
 /// `ResolverError::Trap` with the resolver name and a human-readable
 /// detail string derived from the trap.
-pub fn classify_resolver_trap(_resolver_name: &str, _trap: wasmtime::Trap) -> ResolverError {
-    todo!("S-12.04 Step 3 implementation")
+pub fn classify_resolver_trap(resolver_name: &str, trap: wasmtime::Trap) -> ResolverError {
+    // All wasmtime Trap variants are mapped to ResolverError::Trap.
+    //
+    // VP-074 / BC-4.12.004 INV1 totality requirement: this function must
+    // return ResolverError::Trap for every possible TrapCode input without
+    // panicking. The test harness verifies this by iterating all valid
+    // byte values from Trap::from_u8 and asserting the Trap variant.
+    //
+    // The detail field carries the human-readable description from
+    // wasmtime::Trap's Display impl, which is always non-empty.
+    ResolverError::Trap {
+        name: resolver_name.to_string(),
+        detail: format!("{trap}"),
+    }
 }
 
 // ---------------------------------------------------------------------------

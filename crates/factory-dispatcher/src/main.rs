@@ -54,7 +54,7 @@ use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{Registry, RegistryError};
-use factory_dispatcher::resolver::ResolverRegistry;
+use factory_dispatcher::resolver_loader::ResolverLoader;
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
 use factory_dispatcher::{ASYNC_DRAIN_WINDOW_MS, HOST_ABI_VERSION, new_trace_id};
 use factory_dispatcher::{AggregatorPluginResult, aggregate_exit_code};
@@ -299,17 +299,42 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     #[allow(unused_variables)]
     let event_queue = Arc::clone(&base_host_ctx.events);
 
-    // S-12.03: Build the resolver registry. Currently zero resolvers are
-    // registered (WASM-backed resolvers are wired in S-12.04). The empty
-    // registry is valid — hooks with empty needs_context skip it with zero
-    // overhead (BC-1.13.001 PC3 / AC-002).
-    //
-    // TODO(S-12.04 Step 3): replace `ResolverRegistry::new()` with
-    // `ResolverLoader::load_registry(&resolvers_registry_path)` once the
-    // loader is implemented. The path resolves to
-    // `${CLAUDE_PLUGIN_ROOT}/resolvers-registry.toml`; absent file remains
-    // a non-error (BC-1.13.001 INV2 — zero resolvers, not a failure).
-    let resolver_registry = Arc::new(ResolverRegistry::new());
+    // S-12.04: Load the resolver registry from disk.
+    // BC-1.13.001 INV2: absent resolvers-registry.toml → empty registry, not an error.
+    // BC-4.12.001: modules are compiled once at startup and cached by mtime.
+    let resolvers_registry_path = std::env::var(ENV_PLUGIN_ROOT)
+        .map(PathBuf::from)
+        .unwrap_or_default()
+        .join("resolvers-registry.toml");
+    let resolver_registry = match ResolverLoader::load_registry(&resolvers_registry_path) {
+        Ok(reg) => {
+            // AC-012: log compiled module count at startup (BC-1.13.001 PC1).
+            if !reg.is_empty() {
+                internal_log.write(
+                    &InternalEvent::now("resolver.registry_loaded")
+                        .with_trace_id(trace_id.clone())
+                        .with_session_id(payload.session_id.clone())
+                        .with_field("resolver_count", reg.len() as i64)
+                        .with_field(
+                            "registry_path",
+                            resolvers_registry_path.display().to_string(),
+                        ),
+                );
+            }
+            Arc::new(reg)
+        }
+        Err(e) => {
+            // AC-002: emit resolver.load_error event for parse/compile failures.
+            // Fail-loud: dispatcher does NOT start with a partial resolver set.
+            internal_log.write(
+                &InternalEvent::now("resolver.load_error")
+                    .with_trace_id(trace_id.clone())
+                    .with_session_id(payload.session_id.clone())
+                    .with_field("error", format!("{e:?}")),
+            );
+            return Err(e.into());
+        }
+    };
 
     // S-15.01 T-3c: build executor inputs and run sync_group first.
     // Sync group awaits all completions; verdict gates Claude Code.
