@@ -13,6 +13,11 @@
 
 use vsdd_hook_sdk::{ResolverInput, ResolverOutput, resolver};
 
+// Note: trybuild compiles this on the HOST target. The macro's #[cfg(target_arch="wasm32")]
+// gate elides the `extern "C" fn resolve` body on host, so this t.pass() test only
+// verifies macro acceptance — NOT export presence. The named-export verification lives
+// in tests/wasm32_resolver_export_integration.rs (currently #[ignore]'d; workspace
+// WASM build covers the compile path).
 #[resolver]
 fn resolve_impl(input: ResolverInput) -> ResolverOutput {
     ResolverOutput {
