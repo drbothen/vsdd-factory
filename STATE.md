@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-10T20:30:00Z
-phase: engine-discipline-F4-S-12.07-next-after-S-12.04-merge
+timestamp: 2026-05-10T21:00:00Z
+phase: engine-discipline-F4-S-12.07-next
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "S-12.04 CONVERGED 11 passes — PR in flight via async pr-manager ad6eff6bba4fc7a33. S-12.03 MERGED PR #120. S-12.05 MERGED PR #119. rc.15 + rc.16 SHIPPED. Next: confirm S-12.04 PR merged, clean .worktrees/S-12.04, dispatch S-12.07."
+current_step: "Engine-discipline F4 — S-12.07 next (vsdd-context-resolvers crate + WaveContextResolver). Depends on S-12.04 ✓ + S-12.05 ✓ — all clear."
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-10 — S-12.05 MERGED (PR #119), S-12.03 MERGED (PR #120), S-12.04 CONVERGED (11 passes), rc.15 + rc.16 SHIPPED, BCs BC-4.12.002/004/005 amended to v1.2, TD #71 filed. |
-| **Current Phase** | Engine-discipline F4 — S-12.07 next after S-12.04 PR merge |
+| **Last Updated** | 2026-05-10 — S-12.04 MERGED (PR #121 10fe412e), worktree + branch cleaned up. S-12.03/S-12.04/S-12.05 all merged. F4 platform 4/6 done. |
+| **Current Phase** | Engine-discipline F4 — S-12.07 next |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -56,8 +56,8 @@ dtu_services: []
 | S-12.06 HOST_ABI Context Injection | **MERGED** PR #105 (pre-session) | — |
 | S-12.05 hook-sdk Resolver-Authoring Extensions | **MERGED** PR #119 2026-05-10 | 7 adversary passes; CRITICAL->HIGH->LOW->MEDIUM->NITPICK x3; convergence_reached=true |
 | S-12.03 ContextResolver trait + ResolverRegistry | **MERGED** PR #120 2026-05-10 | 9 adversary passes; CRITICAL x2->MEDIUM->LOW->HIGH->MEDIUM->NITPICK x3; v1.1 |
-| S-12.04 WASM Resolver Loading + Lifecycle | **CONVERGED — PR IN FLIGHT** | 11 passes; CRITICAL->HIGH->HIGH->NITPICK->MED->HIGH->MED->MED->NITPICK x3; async pr-manager ad6eff6bba4fc7a33 |
-| S-12.07 HOST_ABI context injection consumer side | **UNBLOCKED** on S-12.04 merge | Depends S-12.03 MERGED + S-12.04 (imminent) + S-12.05 MERGED |
+| S-12.04 WASM Resolver Loading + Lifecycle | **MERGED** PR #121 2026-05-10 10fe412e | 11 passes; CRITICAL->HIGH->HIGH->NITPICK->MED->HIGH->MED->MED->NITPICK x3 |
+| S-12.07 HOST_ABI context injection consumer side | **READY** — all deps merged | Depends S-12.03 ✓ + S-12.04 ✓ + S-12.05 ✓ |
 | S-12.08 convergence hook (CRITICAL PATH TERMINUS) | **BLOCKED** | Depends S-12.07; closes F-P2-001 |
 | F5 pass-2 fix burst | **BLOCKED** | 15 CRITICAL findings; unblocked when S-12.08 merges |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
@@ -66,11 +66,11 @@ dtu_services: []
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-12.05 adversary convergence + merge | adversary/devops | DONE 2026-05-10 | PR #119 squash-merged e20c7d2f; 7 passes NITPICK x3 |
 | S-12.03 adversary convergence + merge | adversary/devops | DONE 2026-05-10 | PR #120 squash-merged 4ac02a8e; 9 passes NITPICK x3 |
 | F5 pass-2 architect decisions | architect | DONE 2026-05-10 | D-1: BC-4.12.005 -> Path B; D-2: Resolver trait -> DELETE |
 | BC amendments BC-4.12.002/004/005 v1.2 | spec-writer | DONE 2026-05-10 | All bumped v1.1->v1.2 |
-| S-12.04 adversary convergence (11 passes) | adversary | DONE 2026-05-10 | CONVERGED; pr-manager async ad6eff6bba4fc7a33 dispatched |
+| S-12.04 adversary convergence (11 passes) | adversary | DONE 2026-05-10 | CONVERGED; pr-manager async ad6eff6bba4fc7a33 |
+| S-12.04 PR #121 merge + cleanup | pr-manager/devops | DONE 2026-05-10 | Squash-merged 10fe412e; .worktrees/S-12.04 + branch deleted |
 
 ## Identifier Conventions
 
@@ -87,8 +87,8 @@ dtu_services: []
 
 88 file-resident + 15 unauthored stub IDs = 103 registered.
 
-- **Merged (65):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
-- **In-Flight (1):** S-12.04 — CONVERGED, PR creation async
+- **Merged (66):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
+- **In-Flight (0):** —
 - **Draft (20 file-resident):** S-5.07; S-11.00; S-12.07..S-12.08 (E-12); S-14.01..S-14.05 (E-14); S-15.02..S-15.03
 - **Unauthored stub IDs (15):** S-9.01..S-9.07 (W-16); S-11.01..S-11.08 (E-11 W-17 Tier 3)
 - **Withdrawn (1):** S-9.30
@@ -98,9 +98,8 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
-| develop | 4ac02a8e | S-12.03 squash-merge (PR #120) |
+| develop | 10fe412e | S-12.04 squash-merge (PR #121) |
 | factory-artifacts | (see git log) | this STATE.md commit |
-| feature/S-12.04-wasm-resolver-loading | 10df5ba4 | pushed to origin; worktree at .worktrees/S-12.04 — LIVE until PR merges |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -109,7 +108,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F4-IN-PROGRESS | S-12.07 next after S-12.04 merge |
+| v1.0-feature-engine-discipline-pass-1 | feature | F4-IN-PROGRESS | S-12.03/S-12.04/S-12.05/S-12.06 MERGED; remaining: S-12.07 + S-12.08 |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -153,21 +152,19 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-10 — pre-compact comprehensive refresh. S-12.05 (PR #119) + S-12.03 (PR #120) MERGED this session. S-12.04 CONVERGED after 11 adversary passes; pr-manager agent ad6eff6bba4fc7a33 dispatched async for PR creation + AI review + CI + merge. rc.15 + rc.16 SHIPPED. BCs BC-4.12.002/004/005 amended to v1.2. TD #71 filed. Lesson P-005 codified: sibling-coverage convention at executor.rs::build_plugin_config breaks 4-iteration regression pattern.
+**Last update:** 2026-05-10 — S-12.04 MERGED PR #121 at 10fe412e. async pr-manager agent ad6eff6bba4fc7a33 completed successfully. .worktrees/S-12.04 cleaned up; feature/S-12.04-wasm-resolver-loading branch deleted. F4 platform delivery: S-12.03 + S-12.04 + S-12.05 + S-12.06 all MERGED (4/6). Remaining: S-12.07 + S-12.08.
 
 **Next session start — ordered checklist:**
 
-1. Check S-12.04 PR status: `gh pr list --state open` or `gh pr view 121` (likely PR #121).
-2. **If S-12.04 merged:** `git worktree remove .worktrees/S-12.04 --force` then `git branch -d feature/S-12.04-wasm-resolver-loading`. Dispatch S-12.07.
-3. **If S-12.04 NOT merged:** diagnose block (CI failure? review comments?). Complete lifecycle before S-12.07.
-4. S-12.07 — dispatch Step 4 implementation + Step 4.5 adversary convergence (NITPICK x3 target).
-5. S-12.08 — dispatch after S-12.07 merges. CRITICAL PATH TERMINUS; closes F-P2-001.
-6. After S-12.08 merges: F5 pass-2 fix burst (15 CRITICAL findings from F5-pass-2-architect-decisions.md).
-7. Then F6 formal hardening -> F7 convergence.
-8. E-10 brownfield pass-9 paused; resume when user directs.
+1. **Dispatch S-12.07** — vsdd-context-resolvers crate + WaveContextResolver. All deps cleared (S-12.03 ✓ + S-12.04 ✓ + S-12.05 ✓).
+2. S-12.07 Step 4 implementation + Step 4.5 adversary convergence (NITPICK x3 target).
+3. S-12.08 — dispatch after S-12.07 merges. CRITICAL PATH TERMINUS; closes F-P2-001.
+4. After S-12.08 merges: F5 pass-2 fix burst (15 CRITICAL findings from F5-pass-2-architect-decisions.md).
+5. Then F6 formal hardening -> F7 convergence.
+6. E-10 brownfield pass-9 paused; resume when user directs.
 
 **Branches:**
-- main @ feb894a2 | develop @ 4ac02a8e | feature/S-12.04 @ 10df5ba4 (worktree .worktrees/S-12.04)
+- main @ feb894a2 | develop @ 10fe412e | factory-artifacts @ (see git log)
 
 **Index versions:** BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
