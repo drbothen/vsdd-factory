@@ -28,6 +28,7 @@ use serde::Deserialize;
 use thiserror::Error;
 use wasmtime::{Engine, Module, Store};
 
+use crate::engine::timeout_ms_to_epochs;
 use crate::host::HostContext;
 use crate::registry::Capabilities;
 use crate::resolver::{
@@ -393,6 +394,10 @@ impl ContextResolver for CompiledWasmResolver {
         // Fuel enforcement: set a generous fuel budget; timeout via epoch interruption
         // (same engine configuration as hooks — epoch_interruption + consume_fuel).
         let mut store: Store<HostContext> = Store::new(&self.engine, host_ctx);
+        // Epoch deadline: 25% of the 6000ms hook budget (1500ms per F1-amendment §S-12.04 sketch).
+        // Enforced by the shared EpochTicker (same pattern as invoke.rs:174).
+        const RESOLVER_TIMEOUT_MS: u64 = 1500;
+        store.set_epoch_deadline(timeout_ms_to_epochs(RESOLVER_TIMEOUT_MS));
         // Fuel cap: 1 billion instructions (same default as hook plugins).
         // ResolverError::Timeout is returned on exhaustion.
         if let Err(e) = store.set_fuel(1_000_000_000) {
