@@ -1,0 +1,5 @@
+error: #[resolver] does not support async fns; the WASM resolver entrypoint is synchronous. Use synchronous host calls inside resolve_impl.
+  --> tests/ui/async_resolver.rs:14:1
+   |
+14 | async fn resolve_impl(input: ResolverInput) -> ResolverOutput {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -7,6 +7,22 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{ItemFn, ReturnType, Type, parse_macro_input};
 
+mod resolver_macro;
+
+/// Mark a function as a vsdd-factory resolver entry point.
+///
+/// The annotated function MUST be named `resolve_impl` and MUST have the exact
+/// signature `fn resolve_impl(input: ResolverInput) -> ResolverOutput`.
+///
+/// Generates a `pub extern "C" fn resolve(input_ptr: i32, input_len: i32) -> i64`
+/// WASM export per BC-4.12.002 PC5.
+///
+/// See `resolver_macro::resolver_impl` for implementation details.
+#[proc_macro_attribute]
+pub fn resolver(args: TokenStream, input: TokenStream) -> TokenStream {
+    resolver_macro::resolver_impl(args, input)
+}
+
 /// Mark a function as a vsdd-factory hook entry point.
 ///
 /// The annotated function must have the signature

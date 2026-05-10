@@ -1,0 +1,37 @@
+## Demo: AC-008 — RESOLVER_ABI_VERSION versioned independently from HOST_ABI_VERSION
+
+### Structural independence verification (grep shows distinct declaration sites)
+
+RESOLVER_ABI_VERSION declaration:
+  crates/hook-sdk/src/resolver.rs:9:  /// Resolver ABI version. Distinct from HOST_ABI_VERSION; both currently at 1.
+  crates/hook-sdk/src/resolver.rs:11: pub const RESOLVER_ABI_VERSION: u32 = 1;
+
+HOST_ABI_VERSION declaration:
+  crates/hook-sdk/src/lib.rs:65: pub const HOST_ABI_VERSION: u32 = 1;
+
+The two constants are in separate source files:
+  - RESOLVER_ABI_VERSION: crates/hook-sdk/src/resolver.rs (gated by resolver-authoring feature)
+  - HOST_ABI_VERSION: crates/hook-sdk/src/lib.rs (always-on, always exported)
+
+No alias, no re-export coupling, no shared definition.
+
+### Unit test confirming independence
+
+Command:
+  cargo test --features resolver-authoring -p vsdd-hook-sdk \
+    tests::test_BC_4_12_002_abi_versions_are_independently_defined -- --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s
+     Running tests/resolver_types_test.rs (target/debug/deps/resolver_types_test-be50133badb33efb)
+
+running 1 test
+test tests::test_BC_4_12_002_abi_versions_are_independently_defined ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+RESULT: PASS
+AC-008 covered: RESOLVER_ABI_VERSION (resolver.rs:11) and HOST_ABI_VERSION (lib.rs:65) are
+independently declared in separate source files. Changing one does not require changing the
+other. The test asserts structural independence (distinct definition sites), not mere value
+inequality — which would be fragile if both happened to be 1.
