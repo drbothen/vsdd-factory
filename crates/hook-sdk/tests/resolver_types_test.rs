@@ -234,6 +234,20 @@ mod tests {
         let _ = hook_payload;
     }
 
+    /// BC-4.12.002 INV1: The Rust compiler rejects assigning a `HookPayload` where
+    /// a `ResolverInput` is expected — no implicit conversion exists between them.
+    ///
+    /// This trybuild compile-fail test is the authoritative falsifiable witness for
+    /// INV1's "no implicit conversions" guarantee. A future `From<HookPayload> for
+    /// ResolverInput` impl would be caught here at compile time.
+    ///
+    /// Traces: AC-004, BC-4.12.002 invariant 1.
+    #[test]
+    fn test_BC_4_12_002_type_mismatch_compile_error() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/ui/type_mismatch.rs");
+    }
+
     // ── AC-005 and AC-006: #[resolver] macro (trybuild — FAILS in Red Gate) ───
 
     /// BC-4.12.002 PC5: #[resolver] macro generates a valid `resolve()` export
