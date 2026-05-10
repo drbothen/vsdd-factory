@@ -2006,4 +2006,460 @@ mod tests {
             r
         );
     }
+
+    // =======================================================================
+    // S-12.08 TESTS — RED GATE (Step 2)
+    //
+    // All tests below exercise extract_stories_from_wave_context (which is
+    // todo!() until Step 3) or assert the absence of the old function (which
+    // still exists at Step 2). They MUST FAIL at Step 2 and turn GREEN when
+    // Step 3 implements the production code.
+    // =======================================================================
+
+    // -----------------------------------------------------------------------
+    // GREEN-BY-DESIGN: block-code constants non-empty sanity check
+    // (S-12.08 AC-002 / AC-003 — constants added in Step 1)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_wave_context_block_codes_are_non_empty() {
+        // S-12.08 Step 1 added BLOCK_CODE_WAVE_CONTEXT_MISSING and
+        // BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR as public constants. This test
+        // asserts they are non-empty — a structural GREEN-BY-DESIGN sanity check.
+        // No production function is called; the constants are defined at compile time.
+        assert!(
+            !BLOCK_CODE_WAVE_CONTEXT_MISSING.is_empty(),
+            "S-12.08 AC-002: BLOCK_CODE_WAVE_CONTEXT_MISSING must be a non-empty string"
+        );
+        assert!(
+            !BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR.is_empty(),
+            "S-12.08 AC-003: BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR must be a non-empty string"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-001 — extract_stories_from_wave_context reads nested array
+    // S-12.08 AC-001 (traces to BC-4.10.001 PC1)
+    // RED at Step 2: todo!() body panics.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    #[should_panic]
+    fn test_extract_stories_from_wave_context_reads_nested_array() {
+        // S-12.08 AC-001 traces to BC-4.10.001 PC1: the new extraction function
+        // reads plugin_config["wave_context"]["stories"]. When called with a
+        // well-formed payload the function must return Ok(vec!["S-12.03", "S-12.04"]).
+        //
+        // RED at Step 2: extract_stories_from_wave_context is todo!() — panics.
+        // GREEN at Step 3: implementer writes the real body; result is
+        //   Ok(vec!["S-12.03".to_string(), "S-12.04".to_string()]).
+        let plugin_config = json!({
+            "wave_context": {
+                "stories": ["S-12.03", "S-12.04"]
+            }
+        });
+        let result = extract_stories_from_wave_context(&plugin_config);
+        assert!(
+            result.is_ok(),
+            "S-12.08 AC-001: valid wave_context.stories must return Ok, got: {:?}",
+            result
+        );
+        assert_eq!(
+            result.unwrap(),
+            vec!["S-12.03".to_string(), "S-12.04".to_string()],
+            "S-12.08 AC-001: extracted stories must match wave_context.stories array"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-002a — absent wave_context key → WaveContextError::Missing
+    // RED at Step 2: todo!() panics.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    #[should_panic]
+    fn test_absent_wave_context_returns_missing_error() {
+        // S-12.08 AC-002a: plugin_config = {} (no wave_context key at all).
+        // Must return Err(WaveContextError::Missing).
+        // RED at Step 2: todo!() panics.
+        let plugin_config = json!({});
+        let result = extract_stories_from_wave_context(&plugin_config);
+        assert!(
+            matches!(result, Err(WaveContextError::Missing)),
+            "S-12.08 AC-002a: absent wave_context must return Err(WaveContextError::Missing), \
+             got: {:?}",
+            result
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-002b — null wave_context value → WaveContextError::Missing
+    // RED at Step 2: todo!() panics.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    #[should_panic]
+    fn test_null_wave_context_returns_missing_error() {
+        // S-12.08 AC-002b: plugin_config = {"wave_context": null}.
+        // JSON null is treated as absent — must return Err(WaveContextError::Missing).
+        // RED at Step 2: todo!() panics.
+        let plugin_config = json!({ "wave_context": null });
+        let result = extract_stories_from_wave_context(&plugin_config);
+        assert!(
+            matches!(result, Err(WaveContextError::Missing)),
+            "S-12.08 AC-002b: null wave_context must return Err(WaveContextError::Missing), \
+             got: {:?}",
+            result
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-002c — wave_context present but no stories key → WaveContextError::Missing
+    // RED at Step 2: todo!() panics.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    #[should_panic]
+    fn test_absent_stories_key_in_wave_context_returns_missing() {
+        // S-12.08 AC-002c: plugin_config = {"wave_context": {}} (wave_context
+        // present but stories key missing). Must return Err(WaveContextError::Missing).
+        // RED at Step 2: todo!() panics.
+        let plugin_config = json!({ "wave_context": {} });
+        let result = extract_stories_from_wave_context(&plugin_config);
+        assert!(
+            matches!(result, Err(WaveContextError::Missing)),
+            "S-12.08 AC-002c: wave_context without stories key must return \
+             Err(WaveContextError::Missing), got: {:?}",
+            result
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-003 — wrong type for stories → WaveContextError::SchemaError
+    // Four variants: string, number, object, array-with-non-string element.
+    // RED at Step 2: todo!() panics.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    #[should_panic]
+    fn test_wrong_type_stories_returns_schema_error() {
+        // S-12.08 AC-003: multiple wrong-type variants for wave_context.stories.
+        // All must return Err(WaveContextError::SchemaError(_)).
+        // RED at Step 2: todo!() panics on the first call.
+
+        // Variant 1: stories is a string (not an array)
+        let cfg_string = json!({ "wave_context": { "stories": "not-an-array" } });
+        let r1 = extract_stories_from_wave_context(&cfg_string);
+        assert!(
+            matches!(r1, Err(WaveContextError::SchemaError(_))),
+            "S-12.08 AC-003: string stories must return SchemaError, got: {:?}",
+            r1
+        );
+
+        // Variant 2: stories is a number
+        let cfg_number = json!({ "wave_context": { "stories": 42 } });
+        let r2 = extract_stories_from_wave_context(&cfg_number);
+        assert!(
+            matches!(r2, Err(WaveContextError::SchemaError(_))),
+            "S-12.08 AC-003: number stories must return SchemaError, got: {:?}",
+            r2
+        );
+
+        // Variant 3: stories is an object
+        let cfg_object = json!({ "wave_context": { "stories": {"key": "val"} } });
+        let r3 = extract_stories_from_wave_context(&cfg_object);
+        assert!(
+            matches!(r3, Err(WaveContextError::SchemaError(_))),
+            "S-12.08 AC-003: object stories must return SchemaError, got: {:?}",
+            r3
+        );
+
+        // Variant 4: stories array contains a non-string element
+        // (matches existing extract_stories_from_config behavior pattern)
+        let cfg_non_string_elem = json!({ "wave_context": { "stories": ["S-1", 99, "S-3"] } });
+        let r4 = extract_stories_from_wave_context(&cfg_non_string_elem);
+        assert!(
+            matches!(r4, Err(WaveContextError::SchemaError(_))),
+            "S-12.08 AC-003: array with non-string element must return SchemaError, \
+             got: {:?}",
+            r4
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-006 — static plugin_config keys preserved alongside wave_context
+    // S-12.08 AC-006 (traces to BC-1.13.001 PC3 + BC-4.12.005 PC1)
+    // RED at Step 2: todo!() panics.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    #[should_panic]
+    fn test_static_config_preserved_after_wave_context_injection() {
+        // S-12.08 AC-006: resolver output is additive (BC-4.12.005 PC1). The
+        // wave_context key is ADDED to the existing plugin_config; it does not
+        // replace it. This test verifies that extract_stories_from_wave_context
+        // reads from wave_context.stories while the existing_key remains accessible
+        // in the same plugin_config Value.
+        //
+        // Note: extract_stories_from_wave_context takes &Value (not Value), so the
+        // caller retains full ownership of plugin_config including existing_key.
+        //
+        // RED at Step 2: todo!() panics on the extract call.
+        let plugin_config = json!({
+            "existing_key": "value",
+            "wave_context": {
+                "stories": ["S-1"]
+            }
+        });
+
+        let result = extract_stories_from_wave_context(&plugin_config);
+        assert!(
+            result.is_ok(),
+            "S-12.08 AC-006: wave_context.stories extraction must succeed, got: {:?}",
+            result
+        );
+        assert_eq!(
+            result.unwrap(),
+            vec!["S-1".to_string()],
+            "S-12.08 AC-006: extracted story must be S-1"
+        );
+
+        // The caller can still access existing_key — the function took &Value, not Value.
+        assert_eq!(
+            plugin_config["existing_key"].as_str(),
+            Some("value"),
+            "S-12.08 AC-006: existing_key must remain accessible in plugin_config \
+             after extract_stories_from_wave_context call (additive overlay, not replacement)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-007 — FakeCallbacks with wave_context payload drives hook_logic correctly
+    // S-12.08 AC-007 (traces to BC-4.12.005 PC5)
+    //
+    // This test constructs a plugin_config in the new wave_context form and
+    // calls hook_logic end-to-end using FakeCallbacks. The FakeCallbacks
+    // directly provides the story list (bypassing list_stories / RealCallbacks).
+    // The test verifies that the FakeCallbacks construction with a wave_context-
+    // shaped payload still drives the correct block-decision logic.
+    //
+    // This test is GREEN-BY-DESIGN at Step 2 because:
+    //   - FakeCallbacks.list_stories() ignores plugin_config entirely — it uses
+    //     self.stories directly. The wave_context payload shape is irrelevant
+    //     to FakeCallbacks.
+    //   - hook_logic's block-decision path (hook_result_for) is already implemented.
+    //   - The test does NOT call extract_stories_from_wave_context.
+    // It will verify that after Step 3's refactor, FakeCallbacks payloads using
+    // wave_context form continue to drive correct decisions.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_fake_callbacks_inject_wave_context_payload() {
+        // S-12.08 AC-007: FakeCallbacks with wave_context-shaped payload drives
+        // hook_logic correctly. This test is GREEN-BY-DESIGN at Step 2 because
+        // FakeCallbacks ignores plugin_config and uses self.stories directly.
+        // After Step 3, RealCallbacks will read wave_context.stories from
+        // plugin_config — but FakeCallbacks in tests will still construct
+        // plugin_config in the new wave_context form.
+
+        // Case A: FakeCallbacks returns unconverged state → hook_logic must Block.
+        let mut payload_a = make_payload(Some("wave-gate-dispatch"));
+        payload_a.plugin_config = json!({
+            "wave_context": {
+                "stories": ["S-FAKE-001"],
+                "wave_id": "w1",
+                "cycle_id": "test-cycle"
+            }
+        });
+        let callbacks_a = FakeCallbacks::new_with_story(
+            Some(insufficient_passes_json(1)),
+            vec!["S-FAKE-001".to_string()],
+        );
+        let result_a = hook_logic(&payload_a, &callbacks_a);
+        assert!(
+            matches!(result_a, HookResult::Block { .. }),
+            "S-12.08 AC-007: FakeCallbacks with unconverged state + wave_context payload \
+             must produce HookResult::Block, got {:?}",
+            result_a
+        );
+
+        // Case B: FakeCallbacks returns converged state → hook_logic must Continue.
+        let mut payload_b = make_payload(Some("wave-gate-dispatch"));
+        payload_b.plugin_config = json!({
+            "wave_context": {
+                "stories": ["S-FAKE-002"],
+                "wave_id": "w1",
+                "cycle_id": "test-cycle"
+            }
+        });
+        let callbacks_b = FakeCallbacks::new_with_story(
+            Some(cleared_state_json()),
+            vec!["S-FAKE-002".to_string()],
+        );
+        let result_b = hook_logic(&payload_b, &callbacks_b);
+        assert!(
+            matches!(result_b, HookResult::Continue),
+            "S-12.08 AC-007: FakeCallbacks with converged state + wave_context payload \
+             must produce HookResult::Continue, got {:?}",
+            result_b
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-002-int — hook_logic blocks when wave_context absent
+    // Integration test at hook_logic level for AC-002.
+    // RED at Step 2: hook_logic still uses the old extract_stories_from_config
+    // path which gracefully degrades (returns Continue) instead of blocking.
+    // GREEN at Step 3: implementer rewires hook_logic to call
+    // extract_stories_from_wave_context and block on WaveContextError::Missing.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_hook_logic_blocks_when_wave_context_absent() {
+        // S-12.08 AC-002 integration: hook_logic called with plugin_config = {}
+        // (no wave_context key) must return HookResult::Block with
+        // BLOCK_CODE_WAVE_CONTEXT_MISSING in the reason.
+        //
+        // RED at Step 2: current hook_logic uses extract_stories_from_config
+        // (old path) which returns Err → graceful degrade → Continue. This test
+        // will FAIL because Continue != Block.
+        // GREEN at Step 3: hook_logic uses extract_stories_from_wave_context
+        // which returns WaveContextError::Missing → Block with WAVE_CONTEXT_MISSING.
+        let mut payload = make_payload(Some("wave-gate-dispatch"));
+        payload.plugin_config = json!({});
+        // FakeCallbacks cycle-dir-absent path: list_stories returns Err.
+        // After Step 3, hook_logic checks wave_context BEFORE calling list_stories,
+        // so FakeCallbacks will not even be asked for stories.
+        let callbacks = FakeCallbacks::new_no_context();
+
+        let result = hook_logic(&payload, &callbacks);
+
+        match &result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains(BLOCK_CODE_WAVE_CONTEXT_MISSING),
+                    "S-12.08 AC-002-int: block reason must contain '{}', got: {}",
+                    BLOCK_CODE_WAVE_CONTEXT_MISSING,
+                    reason
+                );
+            }
+            other => panic!(
+                "S-12.08 AC-002-int: hook_logic with absent wave_context must return \
+                 HookResult::Block, got {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-003-int — hook_logic blocks when stories has wrong type
+    // Integration test at hook_logic level for AC-003.
+    // RED at Step 2: old path gracefully degrades instead of blocking.
+    // GREEN at Step 3: hook_logic uses extract_stories_from_wave_context.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_hook_logic_blocks_when_stories_wrong_type() {
+        // S-12.08 AC-003 integration: hook_logic called with
+        // plugin_config = {"wave_context": {"stories": "bogus"}} (stories is a
+        // string, not an array) must return HookResult::Block with
+        // BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR in the reason.
+        //
+        // RED at Step 2: current hook_logic uses old path → graceful degrade →
+        // Continue. Test will FAIL because Continue != Block.
+        // GREEN at Step 3: hook_logic uses extract_stories_from_wave_context
+        // which returns WaveContextError::SchemaError → Block with WAVE_CONTEXT_SCHEMA_ERROR.
+        let mut payload = make_payload(Some("wave-gate-dispatch"));
+        payload.plugin_config = json!({ "wave_context": { "stories": "bogus" } });
+        let callbacks = FakeCallbacks::new_no_context();
+
+        let result = hook_logic(&payload, &callbacks);
+
+        match &result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains(BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR),
+                    "S-12.08 AC-003-int: block reason must contain '{}', got: {}",
+                    BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR,
+                    reason
+                );
+            }
+            other => panic!(
+                "S-12.08 AC-003-int: hook_logic with wrong-type stories must return \
+                 HookResult::Block, got {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-005 — hooks-registry.toml has needs_context for convergence hook
+    // S-12.08 AC-005 (traces to BC-1.13.001 PC4)
+    // GREEN-BY-DESIGN: needs_context was added in Step 1.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_hooks_registry_has_needs_context_for_convergence_hook() {
+        // S-12.08 AC-005 traces to BC-1.13.001 PC4: the validate-per-story-
+        // adversary-convergence entry in hooks-registry.toml must declare
+        // needs_context = ["wave_context"].
+        //
+        // GREEN-BY-DESIGN: Step 1 added this field to hooks-registry.toml.
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .expect("CARGO_MANIFEST_DIR must be set during cargo test");
+        // hooks-registry.toml is in plugins/vsdd-factory/ — 3 levels up from
+        // crates/hook-plugins/validate-per-story-adversary-convergence/
+        // (validate-per-story-adversary-convergence → hook-plugins → crates → worktree-root)
+        let registry_path = std::path::Path::new(&manifest_dir)
+            .join("../../../plugins/vsdd-factory/hooks-registry.toml");
+        let registry_src = std::fs::read_to_string(&registry_path)
+            .unwrap_or_else(|e| panic!("failed to read hooks-registry.toml at {:?}: {e}", registry_path));
+
+        // Assert needs_context = ["wave_context"] appears in the file.
+        // Step 1 added this field to the validate-per-story-adversary-convergence entry.
+        assert!(
+            registry_src.contains(r#"needs_context = ["wave_context"]"#),
+            "S-12.08 AC-005: hooks-registry.toml must contain \
+             `needs_context = [\"wave_context\"]` for the convergence hook. \
+             BC-1.13.001 PC4. Registry contents:\n{}",
+            &registry_src[..registry_src.len().min(500)]
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-010 — old extract_stories_from_config function removed
+    // S-12.08 AC-010 (traces to BC-4.10.001 + F-P2-001 + F-P2-008)
+    //
+    // RED at Step 2: extract_stories_from_config still exists (Step 1 left
+    // it in place). The source grep will find "pub fn extract_stories_from_config"
+    // and the test will FAIL.
+    // GREEN at Step 3: implementer removes the function; grep returns no match.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_old_extract_stories_from_config_removed() {
+        // S-12.08 AC-010: the old extract_stories_from_config function that read
+        // from the top-level plugin_config.stories key (the root cause of F-P2-001)
+        // must be REMOVED in Step 3. This test verifies removal by reading the
+        // source file and asserting the function signature is absent.
+        //
+        // RED at Step 2: function still exists; grep finds it; test FAILS.
+        // GREEN at Step 3: function removed; grep returns empty; test PASSES.
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .expect("CARGO_MANIFEST_DIR must be set during cargo test");
+        let lib_path = std::path::Path::new(&manifest_dir).join("src/lib.rs");
+        let lib_src = std::fs::read_to_string(&lib_path)
+            .unwrap_or_else(|e| panic!("failed to read src/lib.rs: {e}"));
+
+        // The old function signature — must NOT be present after Step 3.
+        // Constructed at runtime to avoid this test source matching itself.
+        let old_fn_sig = format!("pub fn {}(", "extract_stories_from_config");
+        assert!(
+            !lib_src.contains(&old_fn_sig),
+            "S-12.08 AC-010: src/lib.rs MUST NOT contain '{}' after the Step 3 \
+             refactor. The old static-config fallback path that caused F-P2-001 \
+             must be removed and replaced by extract_stories_from_wave_context.",
+            old_fn_sig
+        );
+    }
 }
