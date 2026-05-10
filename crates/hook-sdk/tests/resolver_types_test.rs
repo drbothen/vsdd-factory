@@ -288,23 +288,6 @@ mod tests {
     /// Traces: AC-007, BC-4.12.002 postcondition 8.
     #[test]
     fn test_BC_4_12_002_resolver_authoring_feature_gates_types() {
-        // Verify this test is only reachable because the feature is active.
-        // If the feature were absent, this entire module (#[cfg(feature = ...)])
-        // would not compile, and this test would not exist.
-        // Allow: cfg! expands to a constant; the assertion is intentional
-        // self-documentation, not a logic guard. The constant-value lint
-        // fires because cfg!(feature = "...") is always true inside a
-        // #[cfg(feature = "...")] block, which is exactly the invariant
-        // we are documenting. (AC-007, BC-4.12.002 PC8)
-        #[allow(clippy::assertions_on_constants)]
-        {
-            assert!(
-                cfg!(feature = "resolver-authoring"),
-                "test_BC_4_12_002_resolver_authoring_feature_gates_types must only run \
-                 when the resolver-authoring feature is enabled (AC-007)"
-            );
-        }
-
         // Verify the resolver module is accessible via the feature-gated path.
         // This import succeeds only because the outer #[cfg(feature)] is active.
         let version: u32 = vsdd_hook_sdk::resolver::RESOLVER_ABI_VERSION;
