@@ -66,7 +66,11 @@ pub enum ResolverLoadError {
 // ---------------------------------------------------------------------------
 
 /// Top-level shape of `resolvers-registry.toml`.
+///
+/// `deny_unknown_fields` (F-P2-006): unknown TOML keys are a parse error, not
+/// silently ignored. This prevents typos in field names from going undetected.
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ResolversRegistryToml {
     schema_version: u32,
     #[serde(default)]
@@ -79,7 +83,11 @@ struct ResolversRegistryToml {
 /// the sibling `RegistryEntry.plugin` convention in `registry.rs`.
 /// `context_key` is the key under which the resolver's output is written to
 /// `plugin_config` (BC-4.12.005 PC6 — uniqueness validated at load time).
+///
+/// `deny_unknown_fields` (F-P2-006): coordinate with `fail_closed` — both added
+/// together so the new field is never treated as unknown.
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ResolverEntryToml {
     /// Registry name — used as the `needs_context` key.
     name: String,
@@ -93,6 +101,16 @@ struct ResolverEntryToml {
     /// Entries are resolved relative to `CLAUDE_PROJECT_DIR` (BC-4.12.003 INV4).
     #[serde(default)]
     path_allow: Vec<String>,
+    /// Controls fail behavior when the resolver's `.wasm` fails to load/compile.
+    ///
+    /// `None` (field absent in TOML) → treated as `true` (fail-loud, default).
+    /// `Some(true)` → fail-loud: abort registry load with `Err(ParseError)`.
+    /// `Some(false)` → fail-open: skip this entry, emit a `resolver.load_warning`
+    ///   to eprintln, and continue loading other entries.
+    ///
+    /// Document in HOST_ABI.md §Resolver Registry Schema. (F-P2-003)
+    #[serde(default)]
+    fail_closed: Option<bool>,
 }
 
 // ---------------------------------------------------------------------------
@@ -261,12 +279,37 @@ impl ResolverLoader {
             // Compile the module (mtime-cached on subsequent loads).
             // F-P1-010: preserve IoError vs CompileError discrimination.
             // Missing/unreadable files → IoError; wasmtime failure → CompileError.
-            let module = self.get_or_compile(&entry.plugin).map_err(|e| match e {
-                ResolverLoadError::IoError { detail } => ResolverLoadError::IoError {
-                    detail: format!("resolver '{}' — {}", entry.name, detail),
-                },
-                other => other,
-            })?;
+            // F-P2-003: branch on fail_closed to decide whether load failure is
+            // fail-loud (default, true) or fail-open (false = skip + warn).
+            let fail_closed = entry.fail_closed.unwrap_or(true);
+            let module = match self.get_or_compile(&entry.plugin) {
+                Ok(m) => m,
+                Err(e) => {
+                    let detail = match &e {
+                        ResolverLoadError::IoError { detail } => {
+                            format!("resolver '{}' — {}", entry.name, detail)
+                        }
+                        _ => format!("resolver '{}' — {}", entry.name, e),
+                    };
+                    if fail_closed {
+                        // Fail-loud: abort registry load (default behavior).
+                        return Err(match e {
+                            ResolverLoadError::IoError { .. } => {
+                                ResolverLoadError::IoError { detail }
+                            }
+                            other => other,
+                        });
+                    } else {
+                        // Fail-open: skip entry, emit a resolver.load_warning and continue.
+                        eprintln!(
+                            "factory-dispatcher: resolver.load_warning: skipping resolver '{}' \
+                             (fail_closed=false) — {detail}",
+                            entry.name
+                        );
+                        continue;
+                    }
+                }
+            };
 
             // Wrap the compiled module in a CompiledWasmResolver.
             // Real WASM invocation is performed in CompiledWasmResolver::resolve().

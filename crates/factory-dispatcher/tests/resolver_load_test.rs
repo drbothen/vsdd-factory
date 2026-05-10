@@ -602,3 +602,196 @@ context_key = "long_running_ctx"
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// F-P2-003 (HIGH) — fail_closed field: fail-open skip vs fail-loud abort
+//
+// BC-4.12.001 PC6 (amended by F-P2-003):
+// - fail_closed: absent or true → abort registry load on compile failure.
+// - fail_closed: false → skip the entry, emit resolver.load_warning, continue.
+// ---------------------------------------------------------------------------
+
+/// test_F_P2_003_fail_closed_true_aborts_registry_load
+///
+/// Registry entry with a missing .wasm file and `fail_closed = true` (explicit).
+/// Asserts `load_registry` returns `Err` — fail-loud semantics.
+#[test]
+fn test_F_P2_003_fail_closed_true_aborts_registry_load() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "strict-resolver"
+plugin = "{}/nonexistent.wasm"
+context_key = "strict_ctx"
+fail_closed = true
+"#,
+        dir.path().display()
+    );
+    let path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&path, toml_content).expect("write registry TOML");
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P2-003: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&path);
+
+    assert!(
+        result.is_err(),
+        "F-P2-003: fail_closed=true with missing .wasm must return Err (fail-loud). \
+         Got: Ok (registry loaded when it should have failed)"
+    );
+}
+
+/// test_F_P2_003_fail_closed_default_aborts_registry_load
+///
+/// Registry entry with a missing .wasm file and no `fail_closed` field.
+/// Absent field defaults to true (fail-loud). Asserts `load_registry` returns `Err`.
+#[test]
+fn test_F_P2_003_fail_closed_default_aborts_registry_load() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "default-fail-resolver"
+plugin = "{}/nonexistent.wasm"
+context_key = "default_ctx"
+"#,
+        dir.path().display()
+    );
+    let path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&path, toml_content).expect("write registry TOML");
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P2-003: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&path);
+
+    assert!(
+        result.is_err(),
+        "F-P2-003: absent fail_closed (default=true) with missing .wasm must return Err. \
+         Got: Ok (should have failed loudly)"
+    );
+}
+
+/// test_F_P2_003_fail_closed_false_skips_entry_and_loads_remainder
+///
+/// Registry with two entries: one with `fail_closed = false` pointing to a missing
+/// .wasm, and one pointing to a valid fixture. Asserts:
+/// 1. `load_registry` returns `Ok` (not an error).
+/// 2. The registry contains exactly 1 resolver (the valid one).
+/// 3. The skipped resolver is absent.
+#[test]
+fn test_F_P2_003_fail_closed_false_skips_entry_and_loads_remainder() {
+    let manifest = env!("CARGO_MANIFEST_DIR");
+    let valid_fixture =
+        std::path::Path::new(manifest).join("tests/fixtures/trapping_resolver.wasm");
+    assert!(
+        valid_fixture.exists(),
+        "F-P2-003: trapping_resolver.wasm must exist"
+    );
+
+    let dir = tempfile::tempdir().expect("tempdir");
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "optional-resolver"
+plugin = "{}/nonexistent.wasm"
+context_key = "optional_ctx"
+fail_closed = false
+
+[[resolvers]]
+name = "valid-resolver"
+plugin = "{}"
+context_key = "valid_ctx"
+"#,
+        dir.path().display(),
+        valid_fixture.display()
+    );
+    let path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&path, toml_content).expect("write registry TOML");
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P2-003: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&path);
+
+    let registry = result.expect(
+        "F-P2-003: fail_closed=false with missing .wasm must return Ok \
+         (fail-open: skip entry and continue with remaining resolvers)"
+    );
+
+    assert_eq!(
+        registry.len(),
+        1,
+        "F-P2-003: registry must contain exactly 1 resolver after skipping the \
+         fail_closed=false entry. Expected 'valid-resolver' only."
+    );
+}
+
+// ---------------------------------------------------------------------------
+// F-P2-006 (MEDIUM) — deny_unknown_fields on ResolversRegistryToml and
+// ResolverEntryToml: unknown TOML keys are a ParseError.
+// ---------------------------------------------------------------------------
+
+/// test_F_P2_006_unknown_top_level_field_is_parse_error
+///
+/// Registry TOML with an unknown top-level field. Asserts ParseError.
+#[test]
+fn test_F_P2_006_unknown_top_level_field_is_parse_error() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let toml_content = r#"schema_version = 1
+unknown_top_level_key = "should-fail"
+"#;
+    let path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&path, toml_content).expect("write registry TOML");
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P2-006: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&path);
+
+    assert!(
+        matches!(result, Err(ResolverLoadError::ParseError { .. })),
+        "F-P2-006: unknown top-level TOML field must be a ParseError \
+         (deny_unknown_fields on ResolversRegistryToml). Got Err: {:?}",
+        result.err()
+    );
+}
+
+/// test_F_P2_006_unknown_resolver_entry_field_is_parse_error
+///
+/// Registry TOML with a valid resolver entry that has an unknown field.
+/// Asserts ParseError (deny_unknown_fields on ResolverEntryToml).
+#[test]
+fn test_F_P2_006_unknown_resolver_entry_field_is_parse_error() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "test-resolver"
+plugin = "{}/placeholder.wasm"
+context_key = "test_ctx"
+unknown_field_in_entry = "should-fail"
+"#,
+        dir.path().display()
+    );
+    let path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&path, toml_content).expect("write registry TOML");
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P2-006: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&path);
+
+    assert!(
+        matches!(result, Err(ResolverLoadError::ParseError { .. })),
+        "F-P2-006: unknown resolver entry field must be a ParseError \
+         (deny_unknown_fields on ResolverEntryToml). Got Err: {:?}",
+        result.err()
+    );
+}
