@@ -2,6 +2,88 @@
 
 ## Unreleased
 
+## 1.0.0-rc.16 — RELEASING.md procedural infrastructure + TD #69 guardrail (2026-05-10)
+
+The headline of rc.16 is procedural infrastructure: it ships
+`RELEASING.md` (the canonical release procedure that will govern every
+future rc.X release), a CI guardrail enforcing the
+`release/v1.0.0-rc.X → main` branch convention, and a release-skill
+update that defers to RELEASING.md (and prompts the human to create
+one when missing). This release is the first to be cut by following
+RELEASING.md step-by-step — dogfooding the very procedure it ships.
+
+Combined with rc.15's source-sync fix, rc.16 closes both halves of
+the "rc.14 marketplace E-REG-001" root cause: rc.15 fixed the content
+drift, rc.16 fixes the procedural drift that allowed the content
+drift to accumulate.
+
+### Added
+
+- **`RELEASING.md`** (project root, ~250 lines) — single source of
+  truth for the release procedure. Captures the two-branch model
+  rationale, mandatory invariants table (8 invariants with violation
+  consequences), step-by-step procedure (Step 0 preflight → Step 9
+  operator install verification), recovery procedures for 5 known
+  failure modes, what-gets-automated breakdown, and explicit rules
+  for AI agents executing a release.
+
+- **`.github/workflows/release-branch-guardrail.yml`** — PR-trigger
+  GitHub Actions workflow that fails any PR with a `release/*` head
+  branch targeting anything other than `main`. Runs on every PR
+  event; skips when head doesn't match `release/*`. Failure
+  annotation includes a one-line `gh pr edit` fix command and links
+  to RELEASING.md.
+
+- **`CLAUDE.md`** (project root) — minimal project conventions
+  auto-loaded by Claude Code at session start. References
+  RELEASING.md, the branching model, commit-message rules, testing
+  commands, and the self-referential nature of this repo (engine
+  and product are the same).
+
+### Changed
+
+- **`plugins/vsdd-factory/skills/release/SKILL.md`** — the release
+  skill now reads `RELEASING.md` first when present and uses it as
+  authoritative. If `RELEASING.md` is missing, the skill prompts the
+  human to either (1) create one before cutting the release
+  (recommended), or (2) proceed with the generic config-driven flow.
+  Generic fallback preserved for projects that explicitly opt in.
+
+### Fixed
+
+- **`release-branch-guardrail.yml` YAML parse error** (PR #117): the
+  initial workflow used bash backslash line continuations inside
+  YAML's literal block scalar, which broke YAML parsing. Every push
+  to develop produced a misleading "failed" run with empty job list.
+  Fixed by collapsing the multi-line bash echo to one line.
+
+- **`release-branch-guardrail.yml` shell-injection hardening**
+  (PR #117): Semgrep flagged direct `${{ github.head_ref }}` /
+  `${{ github.base_ref }}` interpolations inside the `run:` block as
+  a run-shell-injection risk. Channeled through `env:` per the
+  standard GitHub Actions security pattern; no behavior change.
+
+### Operational
+
+- This release is the **live exercise** of the new RELEASING.md
+  procedure. The release branch (`release/v1.0.0-rc.16`) was created
+  from develop, the PR targets `main` (enforced by the guardrail
+  itself, which fires on this very PR), and the merge will use
+  `--merge` (not `--squash`) to preserve develop's commits as
+  ancestors of main.
+
+- Future release branches must follow RELEASING.md or fail the
+  guardrail's check. Operators no longer need to remember the
+  convention from session memory.
+
+### Deferred
+
+- TD #66 — `trace_id` / `dispatcher_trace_id` field-name canonicalization.
+- TD #67 — 4 timing-flaky e2e tests in `full_stack_plugin_invocation.rs`.
+- TD #68 — sync-develop binary auto-resolve (already fixed but watch
+  for any edge cases on the next release where develop has merged
+  new WASM source files since rc.16).
+
 ## 1.0.0-rc.15 — Marketplace source-sync fix (main backfill) (2026-05-10)
 
 The headline of rc.15 is operational: it restores the rc.X release-branch
