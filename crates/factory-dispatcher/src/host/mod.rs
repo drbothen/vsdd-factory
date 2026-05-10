@@ -200,6 +200,99 @@ pub mod codes {
 /// readable.
 pub type HostCaller<'a> = Caller<'a, HostContext>;
 
+// ---------------------------------------------------------------------------
+// AC-008 / AC-009 unit tests — resolver linker capability enforcement
+//
+// BC-4.12.003 postconditions 1–3:
+// The resolver-specific Linker<HostContext> must NOT expose write_file,
+// exec_subprocess, or emit_event host imports. A resolver WASM that references
+// any of these must fail at instantiation (linker error), not at runtime.
+//
+// BC-4.12.003 postcondition 2: the resolver linker MUST expose read_file
+// (with path_allow enforcement) and log.
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod linker_capability_tests {
+    use super::*;
+    use crate::engine::build_engine;
+
+    /// Helper: check whether `linker` has a definition for `(module_name, fn_name)`.
+    ///
+    /// Uses a `Store<HostContext>` so `linker.get(store, ...)` compiles.
+    /// Returns `true` if defined, `false` if missing.
+    fn linker_has_fn(
+        linker: &Linker<HostContext>,
+        engine: &Engine,
+        module_name: &str,
+        fn_name: &str,
+    ) -> bool {
+        let mut store: wasmtime::Store<HostContext> =
+            wasmtime::Store::new(engine, HostContext::new("test", "0.0.0", "s", "t"));
+        linker.get(&mut store, module_name, fn_name).is_ok()
+    }
+
+    /// test_BC_4_12_003_resolver_linker_excludes_write_file_exec_emit
+    ///
+    /// Constructs the resolver linker via `resolver_linker(engine)` and asserts
+    /// that the following host imports are NOT defined:
+    /// - "vsdd::write_file"
+    /// - "vsdd::exec_subprocess"
+    /// - "vsdd::emit_event"
+    ///
+    /// These functions are in the full hook linker (setup_linker) but must be
+    /// absent from the resolver linker (BC-4.12.003 INV2: resolver sandbox
+    /// excludes write, exec, and emit capabilities).
+    ///
+    /// Also asserts that the following ARE defined:
+    /// - "vsdd::read_file"
+    /// - "vsdd::log"
+    ///
+    /// Red Gate: fails because `resolver_linker` is `todo!("S-12.04 Step 3")`.
+    #[test]
+    fn test_BC_4_12_003_resolver_linker_excludes_write_file_exec_emit() {
+        let engine = build_engine()
+            .expect("AC-008: build_engine must succeed for resolver linker capability test");
+
+        // This call panics at todo!() before Step 3 — Red Gate.
+        let linker = resolver_linker(&engine);
+
+        // Functions that must be ABSENT from the resolver linker.
+        assert!(
+            !linker_has_fn(&linker, &engine, "vsdd", "write_file"),
+            "AC-008 / BC-4.12.003 INV2: resolver linker must NOT expose 'write_file' — \
+             resolvers have no write capability"
+        );
+
+        assert!(
+            !linker_has_fn(&linker, &engine, "vsdd", "exec_subprocess"),
+            "AC-008 / BC-4.12.003 INV2: resolver linker must NOT expose 'exec_subprocess' — \
+             resolvers have no exec capability"
+        );
+
+        assert!(
+            !linker_has_fn(&linker, &engine, "vsdd", "emit_event"),
+            "AC-008 / BC-4.12.003 INV2: resolver linker must NOT expose 'emit_event' — \
+             resolvers must not emit side-channel events"
+        );
+
+        // Functions that must be PRESENT in the resolver linker.
+        // read_file (with path_allow enforcement) and log are the only allowed imports.
+        assert!(
+            linker_has_fn(&linker, &engine, "vsdd", "read_file"),
+            "AC-009 / BC-4.12.003 PC2: resolver linker MUST expose 'read_file' \
+             (subject to path_allow enforcement) — resolvers need read access \
+             for their declared capabilities"
+        );
+
+        assert!(
+            linker_has_fn(&linker, &engine, "vsdd", "log"),
+            "AC-009 / BC-4.12.003 PC2: resolver linker MUST expose 'log' — \
+             resolvers must be able to emit diagnostic log entries"
+        );
+    }
+}
+
 /// Test helpers shared across host-function unit tests.
 #[cfg(test)]
 pub(crate) mod test_support {
