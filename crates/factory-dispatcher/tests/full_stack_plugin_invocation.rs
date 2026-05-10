@@ -53,6 +53,7 @@ use factory_dispatcher::invoke::PluginResult;
 use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{Capabilities, OnError, ReadFileCaps, Registry, RegistryEntry};
+use factory_dispatcher::resolver::ResolverRegistry;
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
 // ASYNC_DRAIN_WINDOW_MS (DI-019) is referenced in comments below for documentation;
 // the actual Duration::from_secs(10) bound accounts for debug-build WASM cold-start overhead.
@@ -258,6 +259,7 @@ async fn test_e2e_BC_4_11_001_sync_hook_blocks_unauthorized_factory_path() {
         payload_value: payload,
         base_host_ctx: base_ctx,
         internal_log: internal_log.clone(),
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     };
 
     let summary = execute_tiers(inputs, sync_tiers).await;
@@ -381,6 +383,7 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_authorized_factory_path() {
         payload_value: payload,
         base_host_ctx: base_ctx,
         internal_log: internal_log.clone(),
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     };
 
     let summary = execute_tiers(inputs, sync_tiers).await;
@@ -476,6 +479,7 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_non_factory_path() {
         payload_value: payload,
         base_host_ctx: base_ctx,
         internal_log: internal_log.clone(),
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     };
 
     let summary = execute_tiers(inputs, sync_tiers).await;
@@ -567,6 +571,7 @@ async fn test_e2e_BC_1_14_001_async_hook_doesnt_block_dispatcher() {
         payload,
         base_ctx,
         internal_log.clone(),
+        Arc::new(ResolverRegistry::new()),
     );
 
     // Drain timer: bound the wait at a test-generous window.
@@ -648,6 +653,7 @@ async fn test_e2e_BC_1_14_001_async_hook_output_reaches_sink_when_fast() {
         payload,
         base_ctx,
         internal_log.clone(),
+        Arc::new(ResolverRegistry::new()),
     );
 
     // Wait for it to complete with a generous timeout (for debug WASM cold-start)
@@ -781,6 +787,7 @@ async fn test_e2e_BC_1_14_001_async_block_verdict_discarded() {
         payload,
         base_ctx,
         internal_log.clone(),
+        Arc::new(ResolverRegistry::new()),
     );
 
     let outcome = tokio::time::timeout(Duration::from_secs(15), handle)
@@ -848,6 +855,7 @@ async fn test_e2e_BC_1_14_001_async_block_verdict_discarded() {
         payload_value: serde_json::json!({}),
         base_host_ctx: base_ctx2,
         internal_log: internal_log.clone(),
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     };
     let sync_summary = execute_tiers(inputs, empty_tiers).await;
     assert_eq!(
@@ -985,6 +993,7 @@ async fn test_e2e_BC_1_14_001_mixed_sync_async_partition_timing() {
         payload_value: payload.clone(),
         base_host_ctx: base_ctx.clone(),
         internal_log: internal_log.clone(),
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     };
     let summary = execute_tiers(inputs, sync_tiers).await;
     let sync_elapsed = sync_start.elapsed();
@@ -1009,6 +1018,7 @@ async fn test_e2e_BC_1_14_001_mixed_sync_async_partition_timing() {
         payload,
         base_ctx,
         internal_log.clone(),
+        Arc::new(ResolverRegistry::new()),
     );
 
     // Drain window: wait up to 4× production drain window (generous for debug builds)
@@ -1133,6 +1143,7 @@ async fn test_e2e_BC_7_06_001_sync_hook_crash_fail_closed_on_error_block() {
         }),
         base_host_ctx: base_ctx,
         internal_log: internal_log.clone(),
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     };
 
     let summary = execute_tiers(inputs, tiers).await;
@@ -1247,6 +1258,7 @@ async fn test_e2e_BC_1_14_001_async_timeout_emits_plugin_timeout_event() {
         payload,
         base_ctx,
         internal_log.clone(),
+        Arc::new(ResolverRegistry::new()),
     );
 
     // Wait for the plugin to timeout (up to 4x the timeout budget)
@@ -1449,6 +1461,7 @@ async fn test_e2e_BC_3_08_001_sync_hook_internal_log_events() {
         payload_value: payload,
         base_host_ctx: base_ctx,
         internal_log: internal_log.clone(),
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     };
 
     let summary = execute_tiers(inputs, tiers).await;
@@ -1568,6 +1581,7 @@ async fn test_e2e_BC_7_06_001_sync_hook_timeout_fail_closed_on_error_block() {
         }),
         base_host_ctx: base_ctx,
         internal_log: internal_log.clone(),
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     };
 
     let summary = execute_tiers(inputs, tiers).await;

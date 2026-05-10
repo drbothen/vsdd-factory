@@ -54,6 +54,7 @@ use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{Registry, RegistryError};
+use factory_dispatcher::resolver::ResolverRegistry;
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
 use factory_dispatcher::{ASYNC_DRAIN_WINDOW_MS, HOST_ABI_VERSION, new_trace_id};
 use factory_dispatcher::{AggregatorPluginResult, aggregate_exit_code};
@@ -298,6 +299,12 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     #[allow(unused_variables)]
     let event_queue = Arc::clone(&base_host_ctx.events);
 
+    // S-12.03: Build the resolver registry. Currently zero resolvers are
+    // registered (WASM-backed resolvers are wired in S-12.04). The empty
+    // registry is valid — hooks with empty needs_context skip it with zero
+    // overhead (BC-1.13.001 PC3 / AC-002).
+    let resolver_registry = Arc::new(ResolverRegistry::new());
+
     // S-15.01 T-3c: build executor inputs and run sync_group first.
     // Sync group awaits all completions; verdict gates Claude Code.
     // BC-1.14.001 postconditions 2-3.
@@ -308,6 +315,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         payload_value: payload_value.clone(),
         base_host_ctx: base_host_ctx.clone(),
         internal_log: internal_log.clone(),
+        resolver_registry: resolver_registry.clone(),
     };
 
     let summary = execute_tiers(inputs, sync_tiers).await;
@@ -354,6 +362,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                     payload_value.clone(),
                     base_host_ctx.clone(),
                     internal_log.clone(),
+                    resolver_registry.clone(),
                 );
                 // Forward the JoinHandle result to the drain channel.
                 // EC-012: completed results MUST reach the channel so they can be emitted.

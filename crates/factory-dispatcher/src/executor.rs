@@ -32,6 +32,7 @@ use crate::internal_log::{
 use crate::invoke::{InvokeLimits, PluginResult, TimeoutCause, invoke_plugin};
 use crate::plugin_loader::PluginCache;
 use crate::registry::{OnError, Registry, RegistryEntry};
+use crate::resolver::{ResolverInput, ResolverRegistry, merge_resolver_outputs};
 
 /// Owned per-plugin outcome with a name attached so callers don't have
 /// to zip with the original tier vec. `RegistryEntry` is cloned here —
@@ -65,6 +66,13 @@ pub struct TierExecutionSummary {
 /// plugins in the same tier never see each other's config — exactly
 /// what the legacy-bash-adapter (S-2.1) needs to multiplex over a
 /// single shared adapter wasm.
+///
+/// `resolver_registry` is the in-process context-resolver registry built
+/// from `resolvers-registry.toml`. It is consulted for each hook entry's
+/// `needs_context` list before `plugin_config` is spliced in.
+/// An empty registry (no resolvers registered) is valid and produces
+/// zero overhead via the `needs_context.is_empty()` short-circuit
+/// (BC-1.13.001 PC3 / AC-002).
 pub struct ExecutorInputs<'a> {
     pub engine: &'a Engine,
     pub cache: &'a PluginCache,
@@ -75,6 +83,11 @@ pub struct ExecutorInputs<'a> {
     /// lifecycle events. Held in an `Arc` so per-plugin tasks can
     /// reach it without cloning the whole log.
     pub internal_log: Arc<InternalLog>,
+    /// In-process context-resolver registry. Queried per hook entry
+    /// for each name in `entry.needs_context`. Pass
+    /// `Arc::new(ResolverRegistry::new())` when no resolvers are
+    /// configured (BC-1.13.001 INV2).
+    pub resolver_registry: Arc<ResolverRegistry>,
 }
 
 /// Run every tier and return the aggregated summary.
@@ -121,6 +134,25 @@ async fn execute_tier<'a>(
             fuel_cap: entry_clone.fuel_cap(&inputs.registry.defaults),
         };
         let on_error = entry_clone.on_error(&inputs.registry.defaults);
+
+        // Build the merged plugin_config from static config + resolver outputs.
+        // AC-002: zero-overhead short-circuit when needs_context is empty.
+        // AC-003: invoke resolver and merge outputs when needs_context is non-empty.
+        let trace_id = inputs
+            .payload_value
+            .get("dispatcher_trace_id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let plugin_config = build_plugin_config(
+            &entry_clone,
+            &inputs.payload_value,
+            &inputs.base_host_ctx,
+            &inputs.resolver_registry,
+            &inputs.internal_log,
+            &trace_id,
+        );
+
         // Splice this entry's per-plugin config onto the base envelope.
         // Cheap clone since `payload_value` is a small JSON tree, and
         // doing it per-plugin guarantees one entry never sees another's
@@ -128,7 +160,7 @@ async fn execute_tier<'a>(
         // (e.g. multiple legacy-bash-adapter registrations).
         let mut per_plugin_value = inputs.payload_value.clone();
         if let Some(map) = per_plugin_value.as_object_mut() {
-            map.insert("plugin_config".to_string(), entry_clone.config_as_json());
+            map.insert("plugin_config".to_string(), plugin_config);
         }
         let payload = match serde_json::to_vec(&per_plugin_value) {
             Ok(v) => v,
@@ -248,6 +280,8 @@ async fn execute_tier<'a>(
 /// - BC-1.14.001 PC4 — per-plugin tokio::spawn spawn pattern
 /// - BC-1.14.001 Invariant 3 — async group excluded from tier ordering
 /// - EC-012 — partial completions: completed events MUST emit; in-flight MAY be lost
+/// - BC-1.13.001 PC3/PC4/PC5 — resolver step mirrors execute_tier behavior
+#[allow(clippy::too_many_arguments)]
 pub fn spawn_async_plugin(
     engine: wasmtime::Engine,
     cache: Arc<crate::plugin_loader::PluginCache>,
@@ -256,6 +290,7 @@ pub fn spawn_async_plugin(
     payload_value: serde_json::Value,
     base_host_ctx: HostContext,
     internal_log: Arc<InternalLog>,
+    resolver_registry: Arc<ResolverRegistry>,
 ) -> tokio::task::JoinHandle<PluginOutcome> {
     tokio::spawn(async move {
         let limits = InvokeLimits {
@@ -264,10 +299,26 @@ pub fn spawn_async_plugin(
         };
         let on_error = entry.on_error(&registry_defaults);
 
+        // Build the merged plugin_config from static config + resolver outputs.
+        // AC-002: zero-overhead short-circuit when needs_context is empty.
+        let trace_id = payload_value
+            .get("dispatcher_trace_id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let plugin_config = build_plugin_config(
+            &entry,
+            &payload_value,
+            &base_host_ctx,
+            &resolver_registry,
+            &internal_log,
+            &trace_id,
+        );
+
         // Splice this entry's per-plugin config onto the base envelope.
         let mut per_plugin_value = payload_value;
         if let Some(map) = per_plugin_value.as_object_mut() {
-            map.insert("plugin_config".to_string(), entry.config_as_json());
+            map.insert("plugin_config".to_string(), plugin_config);
         }
         let payload = match serde_json::to_vec(&per_plugin_value) {
             Ok(v) => v,
@@ -349,6 +400,148 @@ pub fn spawn_async_plugin(
 enum JoinWrap {
     Ready(PluginOutcome),
     Pending(tokio::task::JoinHandle<PluginOutcome>),
+}
+
+/// Build the merged `plugin_config` for one hook entry.
+///
+/// AC-002: if `entry.needs_context` is empty, returns the static config
+/// unchanged with zero resolver invocations.
+///
+/// AC-003: if `entry.needs_context` is non-empty, invokes each resolver
+/// via `resolver_registry` and merges outputs onto the static config
+/// using `merge_resolver_outputs`. Emits `resolver.not_found` and
+/// `resolver.error` via `internal_log` for observability (BC-1.13.001
+/// PC6 / SOUL #4 — no silent failures).
+///
+/// The returned `Value` is always a JSON Object ready to be inserted at
+/// the `"plugin_config"` key of the per-plugin envelope.
+fn build_plugin_config(
+    entry: &RegistryEntry,
+    payload_value: &serde_json::Value,
+    base_host_ctx: &HostContext,
+    resolver_registry: &ResolverRegistry,
+    internal_log: &InternalLog,
+    trace_id: &str,
+) -> serde_json::Value {
+    // AC-002: zero-overhead short-circuit (BC-1.13.001 PC3).
+    if entry.needs_context.is_empty() {
+        return entry.config_as_json();
+    }
+
+    // Build the ResolverInput from the current dispatch context.
+    let event_type = payload_value
+        .get("event_name")
+        .or_else(|| payload_value.get("hook_event_name"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let agent_type = payload_value
+        .get("agent_type")
+        .and_then(|v| v.as_str())
+        .map(str::to_string);
+    let project_dir = base_host_ctx.cwd.to_str().unwrap_or("").to_string();
+
+    let resolver_input = ResolverInput {
+        event_type,
+        hook_event_name: entry.name.clone(),
+        agent_type,
+        project_dir,
+        plugin_config: entry.config_as_json(),
+    };
+
+    // Coerce the static config into a Map for merge_resolver_outputs (F-006).
+    let static_map = match entry.config_as_json() {
+        serde_json::Value::Object(m) => m,
+        _ => {
+            // Non-object plugin_config is a misconfiguration; log and fall through
+            // with an empty map so resolver outputs still apply.
+            let ev = InternalEvent::now("plugin_config.non_object")
+                .with_trace_id(trace_id)
+                .with_plugin_name(&entry.name)
+                .with_field(
+                    "warning",
+                    serde_json::Value::String(
+                        "plugin_config is not a JSON object; using empty map".to_string(),
+                    ),
+                );
+            internal_log.write(&ev);
+            serde_json::Map::new()
+        }
+    };
+
+    let hook_name = entry.name.clone();
+    let hook_name_nf = hook_name.clone();
+    let hook_name_err = hook_name.clone();
+    let trace_id_nf = trace_id.to_string();
+    let trace_id_err = trace_id.to_string();
+
+    // AC-005: emit resolver.not_found when a named resolver is absent.
+    let emit_not_found = {
+        let internal_log_ref: *const InternalLog = internal_log;
+        move |missing_name: &str| {
+            let ev = InternalEvent::now("resolver.not_found")
+                .with_trace_id(&trace_id_nf)
+                .with_plugin_name(&hook_name_nf)
+                .with_field(
+                    "resolver_name",
+                    serde_json::Value::String(missing_name.to_string()),
+                );
+            // SAFETY: internal_log outlives this closure (called within build_plugin_config
+            // which holds &InternalLog for its entire duration).
+            unsafe { &*internal_log_ref }.write(&ev);
+        }
+    };
+
+    // AC-007 / SOUL #4: emit resolver.error when a resolver returns Err.
+    let emit_resolver_error = {
+        let internal_log_ref: *const InternalLog = internal_log;
+        move |err_name: &str, err: &crate::resolver::ResolverError| {
+            let ev = InternalEvent::now("resolver.error")
+                .with_trace_id(&trace_id_err)
+                .with_plugin_name(&hook_name_err)
+                .with_field(
+                    "resolver_name",
+                    serde_json::Value::String(err_name.to_string()),
+                )
+                .with_field("error", serde_json::Value::String(format!("{err:?}")));
+            // SAFETY: same as emit_not_found above.
+            unsafe { &*internal_log_ref }.write(&ev);
+        }
+    };
+
+    let resolver_outputs_map = resolver_registry.resolve_context_for_entry(
+        &entry.needs_context,
+        &resolver_input,
+        emit_not_found,
+        emit_resolver_error,
+    );
+
+    // Convert the HashMap<String, Value> from resolve_context_for_entry
+    // into a Vec<ResolverOutput> for merge_resolver_outputs.
+    let resolver_outputs: Vec<crate::resolver::ResolverOutput> = resolver_outputs_map
+        .into_iter()
+        .map(|(k, v)| crate::resolver::ResolverOutput {
+            key: k,
+            value: Some(v),
+        })
+        .collect();
+
+    let hook_name_coll = hook_name.clone();
+    let trace_id_coll = trace_id.to_string();
+    let internal_log_ref: *const InternalLog = internal_log;
+
+    // AC-007: emit resolver.merge_collision on key collision.
+    let on_collision = move |key: &str, _old: &serde_json::Value, _new: &serde_json::Value| {
+        let ev = InternalEvent::now("resolver.merge_collision")
+            .with_trace_id(&trace_id_coll)
+            .with_plugin_name(&hook_name_coll)
+            .with_field("key", serde_json::Value::String(key.to_string()));
+        // SAFETY: same as emit_not_found above.
+        unsafe { &*internal_log_ref }.write(&ev);
+    };
+
+    let merged_map = merge_resolver_outputs(static_map, &resolver_outputs, on_collision);
+    serde_json::Value::Object(merged_map)
 }
 
 fn plugin_requests_block(result: &PluginResult) -> bool {

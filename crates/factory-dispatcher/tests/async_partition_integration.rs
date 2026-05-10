@@ -40,6 +40,7 @@ use factory_dispatcher::internal_log::InternalLog;
 use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{OnError, Registry, RegistryDefaults, RegistryEntry};
+use factory_dispatcher::resolver::ResolverRegistry;
 use factory_dispatcher::routing::group_by_priority;
 
 // ---------------------------------------------------------------------------
@@ -121,6 +122,8 @@ fn make_executor_inputs<'a>(
         payload_value: serde_json::json!({}),
         base_host_ctx: base,
         internal_log: internal_log.clone(),
+        // S-12.03: empty registry — tests don't exercise resolver path
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     }
 }
 

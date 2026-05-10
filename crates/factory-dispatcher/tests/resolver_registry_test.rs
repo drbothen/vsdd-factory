@@ -98,6 +98,9 @@ fn test_input() -> ResolverInput {
 /// Noop `not_found` callback — used when tests don't need to capture events.
 fn noop_emit(_name: &str) {}
 
+/// Noop `resolver_error` callback — used when tests don't need to capture resolver errors.
+fn noop_error(_name: &str, _err: &factory_dispatcher::resolver::ResolverError) {}
+
 // ===========================================================================
 // AC-001 — traces to BC-1.13.001 INV3
 // `RegistryEntry.needs_context` defaults to [] when absent from TOML.
@@ -190,7 +193,7 @@ fn test_BC_1_13_001_ac002_empty_needs_context_skips_resolver_invocation() {
 
     // Call with empty requested_names — must produce empty map, zero resolver calls.
     let resolved = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        registry.resolve_context_for_entry(&[], &test_input(), noop_emit)
+        registry.resolve_context_for_entry(&[], &test_input(), noop_emit, noop_error)
     }));
     assert!(
         resolved.is_ok(),
@@ -240,7 +243,12 @@ fn test_BC_1_13_001_ac003_declared_resolver_is_invoked_and_output_returned() {
     );
 
     let resolved = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        registry.resolve_context_for_entry(&["foo".to_string()], &test_input(), noop_emit)
+        registry.resolve_context_for_entry(
+            &["foo".to_string()],
+            &test_input(),
+            noop_emit,
+            noop_error,
+        )
     }));
     assert!(
         resolved.is_ok(),
@@ -294,7 +302,12 @@ fn test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map() {
     );
 
     let resolved = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        registry.resolve_context_for_entry(&["foo".to_string()], &test_input(), noop_emit)
+        registry.resolve_context_for_entry(
+            &["foo".to_string()],
+            &test_input(),
+            noop_emit,
+            noop_error,
+        )
     }));
     assert!(
         resolved.is_ok(),
@@ -314,7 +327,7 @@ fn test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map() {
 /// insert the key (absence, not null).
 #[test]
 fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() {
-    let static_config = json!({"existing": "value"});
+    let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
     let outputs = vec![ResolverOutput {
         key: "foo".to_string(),
         value: None,
@@ -329,10 +342,7 @@ fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() 
          (AC-004 / BC-4.12.005 PC2)"
     );
 
-    let result = merged.unwrap();
-    let obj = result
-        .as_object()
-        .expect("merged result must be a JSON object");
+    let obj = merged.unwrap();
     assert!(
         !obj.contains_key("foo"),
         "key 'foo' must be absent (not null) in merged plugin_config \
@@ -366,6 +376,7 @@ fn test_BC_1_13_001_ac005_unknown_resolver_triggers_not_found_callback() {
             move |name: &str| {
                 not_found_names_clone.lock().unwrap().push(name.to_string());
             },
+            |_name, _err| {},
         )
     }));
     assert!(
@@ -426,7 +437,7 @@ fn test_BC_1_13_001_ac005_invoke_resolver_returns_none_for_missing_resolver() {
 /// from the static config and add the resolver's key additively.
 #[test]
 fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
-    let static_config = json!({"existing": "value"});
+    let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
     let outputs = vec![ResolverOutput {
         key: "extra".to_string(),
         value: Some(json!({"data": 1})),
@@ -441,9 +452,9 @@ fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
          (AC-006 / BC-4.12.005 PC1)"
     );
 
-    let result = merged.unwrap();
+    let obj = merged.unwrap();
     assert_eq!(
-        result,
+        Value::Object(obj),
         json!({"existing": "value", "extra": {"data": 1}}),
         "merged config must be the union of static config and resolver output \
          (AC-006 / BC-4.12.005 PC1 canonical test vector)"
@@ -459,7 +470,7 @@ fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
 /// on_collision callback is called.
 #[test]
 fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
-    let static_config = json!({"foo": "old"});
+    let static_config = json!({"foo": "old"}).as_object().unwrap().clone();
     let outputs = vec![ResolverOutput {
         key: "foo".to_string(),
         value: Some(json!("new")),
@@ -487,10 +498,7 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
          (AC-007 / BC-4.12.005 PC5)"
     );
 
-    let result = merged.unwrap();
-    let obj = result
-        .as_object()
-        .expect("merged result must be a JSON object");
+    let obj = merged.unwrap();
     assert_eq!(
         obj["foo"],
         json!("new"),
@@ -517,7 +525,10 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
 /// the ENTIRE static object at that key is replaced, not deep-merged.
 #[test]
 fn test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_merge() {
-    let static_config = json!({"wave_context": {"old": 1, "preserved_field": "should_be_gone"}});
+    let static_config = json!({"wave_context": {"old": 1, "preserved_field": "should_be_gone"}})
+        .as_object()
+        .unwrap()
+        .clone();
     let outputs = vec![ResolverOutput {
         key: "wave_context".to_string(),
         value: Some(json!({"new": 2})),
@@ -532,10 +543,7 @@ fn test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_mer
          (AC-007 / BC-4.12.005 PC7)"
     );
 
-    let result = merged.unwrap();
-    let obj = result
-        .as_object()
-        .expect("merged result must be a JSON object");
+    let obj = merged.unwrap();
     assert_eq!(
         obj["wave_context"],
         json!({"new": 2}),
@@ -598,6 +606,7 @@ fn test_BC_1_13_001_ac009_declaration_order_is_invocation_order() {
             &["a".to_string(), "b".to_string()],
             &test_input(),
             noop_emit,
+            noop_error,
         )
     }));
     assert!(
@@ -659,6 +668,7 @@ fn test_BC_1_13_001_ac010_resolved_context_is_fully_populated_before_return() {
             &["key_a".to_string(), "key_b".to_string()],
             &test_input(),
             noop_emit,
+            noop_error,
         )
     }));
     assert!(
@@ -677,7 +687,10 @@ fn test_BC_1_13_001_ac010_resolved_context_is_fully_populated_before_return() {
         "key_b must be present in returned map (AC-010 / BC-1.13.001 INV5)"
     );
     // Simulate what executor.rs will do: apply map to static config before invoke_plugin.
-    let static_config = json!({"static_key": "static_val"});
+    let static_config = json!({"static_key": "static_val"})
+        .as_object()
+        .unwrap()
+        .clone();
     let outputs: Vec<ResolverOutput> = map
         .into_iter()
         .map(|(k, v)| ResolverOutput {
@@ -694,7 +707,7 @@ fn test_BC_1_13_001_ac010_resolved_context_is_fully_populated_before_return() {
     );
     let final_config = merge_result.unwrap();
     assert!(
-        final_config.as_object().unwrap().contains_key("static_key"),
+        final_config.contains_key("static_key"),
         "static_key preserved after merge (AC-010 / BC-1.13.001 INV5 — injection before invoke_plugin)"
     );
 }
@@ -729,6 +742,7 @@ fn test_BC_1_13_001_ac011_empty_registry_emits_not_found_and_does_not_panic() {
             move |name: &str| {
                 not_found_clone.lock().unwrap().push(name.to_string());
             },
+            |_name, _err| {},
         )
     }));
     assert!(
@@ -857,7 +871,12 @@ fn test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails() {
 
     // Invoke: must use the FIRST resolver (source == "first"), not the duplicate.
     let resolved = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        registry.resolve_context_for_entry(&["bar".to_string()], &test_input(), noop_emit)
+        registry.resolve_context_for_entry(
+            &["bar".to_string()],
+            &test_input(),
+            noop_emit,
+            noop_error,
+        )
     }));
     assert!(
         resolved.is_ok(),
@@ -892,7 +911,7 @@ fn test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails() {
 /// → {"foo": "bar", "wave_context": {"stories": ["S-1"]}}
 #[test]
 fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
-    let static_config = json!({"foo": "bar"});
+    let static_config = json!({"foo": "bar"}).as_object().unwrap().clone();
     let outputs = vec![ResolverOutput {
         key: "wave_context".to_string(),
         value: Some(json!({"stories": ["S-1"]})),
@@ -904,7 +923,7 @@ fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
     assert!(merged.is_ok(), "canonical vector 1 merge must not panic");
 
     assert_eq!(
-        merged.unwrap(),
+        Value::Object(merged.unwrap()),
         json!({"foo": "bar", "wave_context": {"stories": ["S-1"]}}),
         "BC-4.12.005 canonical vector 1: additive merge must produce union"
     );
@@ -914,7 +933,7 @@ fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
 /// static: {}, resolvers: key="a",value=1 and key="b",value=2 → {"a":1,"b":2}
 #[test]
 fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
-    let static_config = json!({});
+    let static_config = json!({}).as_object().unwrap().clone();
     let outputs = vec![
         ResolverOutput {
             key: "a".to_string(),
@@ -931,8 +950,7 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
     }));
     assert!(merged.is_ok(), "canonical vector 4 merge must not panic");
 
-    let result = merged.unwrap();
-    let obj = result.as_object().expect("result must be an object");
+    let obj = merged.unwrap();
     assert_eq!(
         obj.get("a").and_then(|v| v.as_i64()),
         Some(1),
@@ -949,7 +967,7 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
 /// key must be present with empty object value (not absent).
 #[test]
 fn test_BC_4_12_005_ec002_empty_object_value_produces_present_key_with_empty_object() {
-    let static_config = json!({});
+    let static_config = json!({}).as_object().unwrap().clone();
     let outputs = vec![ResolverOutput {
         key: "resolver_key".to_string(),
         value: Some(json!({})),
@@ -960,8 +978,7 @@ fn test_BC_4_12_005_ec002_empty_object_value_produces_present_key_with_empty_obj
     }));
     assert!(merged.is_ok(), "EC-002 empty object value must not panic");
 
-    let result = merged.unwrap();
-    let obj = result.as_object().expect("result must be an object");
+    let obj = merged.unwrap();
     assert!(
         obj.contains_key("resolver_key"),
         "key must be present when resolver returns Some({{}}) — EC-002"
