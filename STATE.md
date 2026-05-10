@@ -69,7 +69,7 @@ dtu_services: []
 | rc.16 release (PR #118 → main) | devops-engineer | DONE 2026-05-10 | First RELEASING.md live exercise; TD #69 guardrail accepted. |
 | TD #69 guardrail (PRs #116/#117) | devops-engineer | DONE 2026-05-10 | RELEASING.md canonical; release-branch-guardrail CI enforces release/* → main. |
 | Plugin activation rc.16 darwin-arm64 | operator | DONE 2026-05-10 | settings.local.json updated; hooks-registry schema_version=2 confirmed. |
-| Engine-discipline F4 — worktree prep | devops-engineer | PENDING | `git worktree prune` + recreate S-12.03/S-12.05; rebase onto develop@9465b5b9; then Step 4.5. |
+| Engine-discipline F4 — Step 4.5 adversary pass 1 | adversary | DONE 2026-05-10 | S-12.03: CRITICAL (7 findings, F-001 executor wiring absent). S-12.05: HIGH (7 findings, 3 trybuild gaps). Both NOT converged — fix burst pending. |
 
 ## Identifier Conventions
 
