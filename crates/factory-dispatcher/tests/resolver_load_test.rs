@@ -1045,15 +1045,22 @@ context_key = ""
 // pattern to assert the structured event lands in the NDJSON log.
 // ---------------------------------------------------------------------------
 
-/// test_F_P4_004_resolver_load_warning_event_appears_in_internal_log
+/// test_F_P4_004_resolver_load_warning_wire_format_is_writable
 ///
 /// Sets up a registry with one fail_closed=false entry pointing at a
 /// non-existent .wasm path. Calls load_registry, obtains the LoadWarning,
 /// emits it to an InternalLog (mirroring main.rs), drops the log, reads
 /// the NDJSON file, and asserts that a "resolver.load_warning" event
 /// is present with the correct resolver_name and detail fields.
+///
+/// [deferred-integration] This test verifies the wire format of resolver.load_warning
+/// events is correctly writable to InternalLog by mirroring main.rs's emission logic.
+/// It does NOT exercise the production path (main.rs:327-337). End-to-end coverage
+/// of the production path (deletion-regression detector) is deferred to a future
+/// integration test that boots factory-dispatcher with a fail_closed=false fixture
+/// and asserts the event appears in the resulting events-*.jsonl. Tracking: F-P5-003.
 #[test]
-fn test_F_P4_004_resolver_load_warning_event_appears_in_internal_log() {
+fn test_F_P4_004_resolver_load_warning_wire_format_is_writable() {
     let dir = tempfile::tempdir().expect("F-P4-004: tempdir");
     let log_dir = dir.path().join("logs");
 
