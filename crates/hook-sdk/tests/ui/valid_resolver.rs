@@ -11,8 +11,7 @@
 //
 // Traces: AC-005, BC-4.12.002 postcondition 5.
 
-use vsdd_hook_sdk::{ResolverInput, ResolverOutput};
-use vsdd_hook_sdk_macros::resolver;
+use vsdd_hook_sdk::{ResolverInput, ResolverOutput, resolver};
 
 #[resolver]
 fn resolve_impl(input: ResolverInput) -> ResolverOutput {
