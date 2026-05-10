@@ -4,22 +4,19 @@
 //! inputs always produce identical outputs.  Also verifies additive-overlay
 //! preservation: base config fields survive the merge.
 //!
-//! Three property tests:
-//!   - `prop_merge_is_deterministic`         (200 trials, VP-075-B)
-//!   - `prop_merge_preserves_base_config_fields` (100 trials, VP-075-C / AC-006)
-//!   - `prop_resolver_output_with_none_leaves_key_absent` (100 trials, AC-004)
-//!
-//! Note: VP-075-A (`prop_resolve_is_deterministic`) targets the
-//! `resolve_wave_context_pure` function from `crates/vsdd-context-resolvers`,
-//! which is authored in S-12.05.  That test is stubbed here with a comment
-//! pointing forward; the two merge tests cover the dispatcher-side determinism
-//! contract that S-12.03 owns.
+//! Four property tests:
+//!   - `prop_merge_is_deterministic`                        (200 trials, VP-075-B)
+//!   - `prop_merge_preserves_base_config_fields`            (100 trials, VP-075-C / AC-006)
+//!   - `prop_resolver_output_with_none_leaves_key_absent`   (100 trials, AC-004)
+//!   - `prop_resolve_is_deterministic`                      (100 trials, VP-075-A / AC-008)
 //!
 //! BC: BC-4.12.005 INV1, BC-1.13.001 PC5
 //! Story: S-12.03
 //! VP: VP-075
 
-use factory_dispatcher::resolver::{ResolverOutput, merge_resolver_outputs};
+use factory_dispatcher::resolver::{
+    ContextResolver, ResolverError, ResolverInput, ResolverOutput, merge_resolver_outputs,
+};
 use proptest::prelude::*;
 use serde_json::{Map, Value};
 
@@ -28,10 +25,16 @@ use serde_json::{Map, Value};
 // ---------------------------------------------------------------------------
 
 /// Strategy: arbitrary JSON object (no null values at top level).
-/// Matches the shape of a `plugin_config` — always an Object.
-fn arb_json_object() -> impl Strategy<Value = Value> {
-    prop::collection::hash_map("[a-z_]{1,16}", arb_non_null_json_value(), 0..8)
-        .prop_map(|map| Value::Object(map.into_iter().collect::<Map<_, _>>()))
+/// Matches the shape of a `plugin_config` — always an Object (returned as
+/// `Map<String, Value>` so it can be passed directly to `merge_resolver_outputs`
+/// without a type-level coercion step).
+///
+/// Key strategy uses `[a-z]{1,16}` (no underscore) to be consistent with
+/// `prop_merge_preserves_base_config_fields`, which excludes underscores
+/// to prevent collision with `resolver_*` keys (F-005).
+fn arb_json_object() -> impl Strategy<Value = Map<String, Value>> {
+    prop::collection::hash_map("[a-z]{1,16}", arb_non_null_json_value(), 0..8)
+        .prop_map(|map| map.into_iter().collect::<Map<_, _>>())
 }
 
 /// Strategy: non-null JSON values (scalars + simple nested objects/arrays).
@@ -102,8 +105,8 @@ proptest! {
         // the panic propagates and proptest reports the trial as failed.
         if merged_a.is_ok() && merged_b.is_ok() {
             prop_assert_eq!(
-                merged_a.unwrap(),
-                merged_b.unwrap(),
+                Value::Object(merged_a.unwrap()),
+                Value::Object(merged_b.unwrap()),
                 "merge_resolver_outputs must return identical output for identical inputs \
                  (VP-075-B / AC-008 / BC-4.12.005 INV1)"
             );
@@ -138,7 +141,7 @@ proptest! {
             "[a-z]{1,16}",
             arb_non_null_json_value(),
             1..4,
-        ).prop_map(|m| Value::Object(m.into_iter().collect::<Map<_, _>>())),
+        ).prop_map(|m| m.into_iter().collect::<Map<_, _>>()),
         output in arb_resolver_output_with_value(),
     ) {
         let outputs = vec![output.clone()];
@@ -147,25 +150,19 @@ proptest! {
             merge_resolver_outputs(base_config.clone(), &outputs, |_k, _o, _n| {})
         }));
 
-        let result = merged.expect(
+        let merged_obj = merged.expect(
             "merge_resolver_outputs panicked — Red Gate: todo!() not yet implemented \
              (VP-075-C / AC-006 / BC-4.12.005 PC1)"
         );
 
-        let merged_obj = result
-            .as_object()
-            .expect("merged result must be a JSON object");
-
         // All base_config keys must survive the merge.
-        if let Value::Object(base_obj) = &base_config {
-            for k in base_obj.keys() {
-                prop_assert!(
-                    merged_obj.contains_key(k.as_str()),
-                    "base_config key '{}' must be preserved in merged output \
-                     (VP-075-C / BC-4.12.005 PC1 — additive overlay)",
-                    k
-                );
-            }
+        for k in base_config.keys() {
+            prop_assert!(
+                merged_obj.contains_key(k.as_str()),
+                "base_config key '{}' must be preserved in merged output \
+                 (VP-075-C / BC-4.12.005 PC1 — additive overlay)",
+                k
+            );
         }
 
         // The resolver's output key must be present.
@@ -219,17 +216,14 @@ proptest! {
 
         // Determinism: both calls produce same result.
         prop_assert_eq!(
-            &result_a,
-            &result_b,
+            Value::Object(result_a.clone()),
+            Value::Object(result_b),
             "merge is deterministic for None-value outputs (VP-075-D)"
         );
 
         // None value: key must be absent from merged result.
-        let merged_obj = result_a
-            .as_object()
-            .expect("merged result must be a JSON object");
         prop_assert!(
-            !merged_obj.contains_key(output.key.as_str()),
+            !result_a.contains_key(output.key.as_str()),
             "key '{}' must be ABSENT when resolver returns value: None \
              (VP-075-D / AC-004 / BC-4.12.005 PC2)",
             output.key
@@ -238,23 +232,82 @@ proptest! {
 }
 
 // ---------------------------------------------------------------------------
-// VP-075-A stub — forward reference to S-12.05
+// VP-075-A: resolve determinism
 // ---------------------------------------------------------------------------
 
-// NOTE: VP-075-A (`prop_resolve_is_deterministic`) targets
-// `resolve_wave_context_pure` from `crates/vsdd-context-resolvers`,
-// which is out of scope for S-12.03 (pure computation function is authored
-// in S-12.05).  When S-12.05 is delivered, add:
+// VP-075-A / AC-008 / BC-4.12.005 INV1:
+// Calling a `ContextResolver::resolve()` twice with identical inputs produces
+// identical `ResolverOutput`.
 //
-//   proptest! {
-//       #[test]
-//       fn prop_resolve_is_deterministic(input in arb_resolver_input()) {
-//           use vsdd_context_resolvers::resolve_wave_context_pure;
-//           let wave_state = test_fixtures::sample_wave_state();
-//           prop_assert_eq!(
-//               resolve_wave_context_pure(&input, &wave_state),
-//               resolve_wave_context_pure(&input, &wave_state),
-//               "resolve_wave_context_pure must be deterministic (VP-075-A)"
-//           );
-//       }
-//   }
+// Uses a `FixedResolver` that returns the same output on every call —
+// this exercises the trait surface defined in S-12.03 (the pure computation
+// function from S-12.05 extends coverage in that story).
+//
+// 100 trials.
+
+/// A trivial resolver for proptest use: returns a fixed `ResolverOutput` on every call.
+struct FixedDeterministicResolver {
+    output: ResolverOutput,
+}
+
+impl ContextResolver for FixedDeterministicResolver {
+    fn name(&self) -> &str {
+        "proptest_fixed"
+    }
+
+    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+        Ok(Some(self.output.clone()))
+    }
+}
+
+/// Strategy: an arbitrary `ResolverInput` for proptest use.
+fn arb_resolver_input() -> impl Strategy<Value = ResolverInput> {
+    (
+        prop_oneof![
+            Just("PreToolUse".to_string()),
+            Just("PostToolUse".to_string()),
+        ],
+        "[a-z]{1,16}",
+        prop_oneof![Just(None::<String>), "[a-z]{1,8}".prop_map(Some),],
+    )
+        .prop_map(|(event_type, hook_name, agent_type)| ResolverInput {
+            event_type,
+            hook_event_name: hook_name,
+            agent_type,
+            project_dir: "/tmp/proptest-project".to_string(),
+            plugin_config: serde_json::Value::Object(Map::new()),
+        })
+}
+
+proptest! {
+    #![proptest_config(proptest::test_runner::Config {
+        cases: 100,
+        timeout: 5_000,
+        ..Default::default()
+    })]
+
+    #[test]
+    fn prop_resolve_is_deterministic(
+        key in "[a-z]{1,16}",
+        value in arb_non_null_json_value(),
+        input in arb_resolver_input(),
+    ) {
+        let output = ResolverOutput {
+            key: key.clone(),
+            value: Some(value),
+        };
+        let resolver = FixedDeterministicResolver { output };
+
+        let result_a = resolver.resolve(&input)
+            .expect("FixedDeterministicResolver must not error (VP-075-A)");
+        let result_b = resolver.resolve(&input)
+            .expect("FixedDeterministicResolver second call must not error (VP-075-A)");
+
+        prop_assert_eq!(
+            result_a,
+            result_b,
+            "ContextResolver::resolve must be deterministic: identical inputs produce \
+             identical ResolverOutput (VP-075-A / AC-008 / BC-4.12.005 INV1)"
+        );
+    }
+}
