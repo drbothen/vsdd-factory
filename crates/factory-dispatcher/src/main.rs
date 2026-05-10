@@ -310,7 +310,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         .join("resolvers-registry.toml");
     let resolver_loader = ResolverLoader::new(engine.clone());
     let resolver_registry = match resolver_loader.load_registry(&resolvers_registry_path) {
-        Ok(reg) => {
+        Ok((reg, warnings)) => {
             // AC-012: log compiled module count at startup (BC-1.13.001 PC1).
             if !reg.is_empty() {
                 internal_log.write(
@@ -323,6 +323,20 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                             resolvers_registry_path.display().to_string(),
                         ),
                 );
+            }
+            // F-P3-003: emit structured resolver.load_warning event for each fail-open skip.
+            // Dual-emission: eprintln (startup visibility) already happened in load_registry;
+            // here we add the queryable InternalLog event for the observability stack.
+            for w in warnings {
+                let ev = InternalEvent::now("resolver.load_warning")
+                    .with_trace_id(trace_id.clone())
+                    .with_session_id(payload.session_id.clone())
+                    .with_field(
+                        "resolver_name",
+                        serde_json::Value::String(w.resolver_name),
+                    )
+                    .with_field("detail", serde_json::Value::String(w.detail));
+                internal_log.write(&ev);
             }
             Arc::new(reg)
         }

@@ -37,8 +37,27 @@ use crate::resolver::{
 use crate::resolver_classify_trap::classify_resolver_trap;
 
 // ---------------------------------------------------------------------------
-// Error type
+// Error type and warning type
 // ---------------------------------------------------------------------------
+
+/// A non-fatal warning emitted by `load_registry` when a resolver entry is
+/// skipped due to `fail_closed = false` (F-P3-003).
+///
+/// Returned as part of the `(ResolverRegistry, Vec<LoadWarning>)` tuple so
+/// the caller can emit structured telemetry events without coupling
+/// `load_registry` to I/O or an InternalLog reference.
+///
+/// Dual-emission pattern (F-P3-003):
+/// - The `eprintln!` in `load_registry` provides startup-visible operator feedback.
+/// - The caller emits a structured `resolver.load_warning` InternalLog event
+///   (queryable by the observability stack).
+#[derive(Debug, Clone)]
+pub struct LoadWarning {
+    /// The registry name of the skipped resolver.
+    pub resolver_name: String,
+    /// Human-readable description of why the entry was skipped.
+    pub detail: String,
+}
 
 /// Errors produced during resolver loading, parsing, or compilation.
 ///
@@ -216,23 +235,29 @@ impl ResolverLoader {
     }
 
     /// Parse `resolvers-registry.toml` at `path` and return a populated
-    /// `ResolverRegistry`.
+    /// `ResolverRegistry` plus any non-fatal `LoadWarning` entries.
     ///
     /// Rules (BC-1.13.001 + BC-4.12.001):
-    /// - Absent file → `Ok(ResolverRegistry::new())` — NOT an error (INV2).
+    /// - Absent file → `Ok((ResolverRegistry::new(), vec![]))` — NOT an error (INV2).
     /// - Malformed TOML → `Err(ResolverLoadError::ParseError)` — fail-loud.
     /// - Unknown schema_version → `Err(ResolverLoadError::ParseError)`.
     /// - Missing `.wasm` file → `Err(IoError)` — distinct from CompileError (F-P1-010).
     /// - Compile failure → `Err(CompileError)` — fail-loud.
     /// - Duplicate `context_key` → `Err(ParseError)` per BC-4.12.005 PC6.
+    /// - `fail_closed = false` entry that fails to load → skipped; a `LoadWarning`
+    ///   is appended to the warnings vec AND an `eprintln!` is emitted for
+    ///   startup-visible operator feedback (F-P3-003 dual-emission pattern).
     ///
     /// The returned registry uses `CompiledWasmResolver` wrappers that
     /// hold the compiled module, context_key, path_allow, and engine.
     /// Real WASM invocation occurs in `CompiledWasmResolver::resolve()`.
-    pub fn load_registry(&self, path: &Path) -> Result<ResolverRegistry, ResolverLoadError> {
+    pub fn load_registry(
+        &self,
+        path: &Path,
+    ) -> Result<(ResolverRegistry, Vec<LoadWarning>), ResolverLoadError> {
         // BC-1.13.001 INV2: absent file → empty registry, NOT an error.
         if !path.exists() {
-            return Ok(ResolverRegistry::new());
+            return Ok((ResolverRegistry::new(), vec![]));
         }
 
         // Read and parse the TOML.
@@ -258,6 +283,7 @@ impl ResolverLoader {
 
         let mut registry = ResolverRegistry::new();
         let mut compiled_count = 0usize;
+        let mut warnings: Vec<LoadWarning> = Vec::new();
         // BC-4.12.005 PC6: duplicate context_key is a registry-load error.
         let mut seen_context_keys: HashSet<String> = HashSet::new();
 
@@ -301,11 +327,18 @@ impl ResolverLoader {
                         });
                     } else {
                         // Fail-open: skip entry, emit a resolver.load_warning and continue.
+                        // F-P3-003 dual-emission pattern:
+                        // 1. eprintln for startup-visible operator feedback (always emitted).
+                        // 2. Append LoadWarning for caller to emit a structured InternalLog event.
                         eprintln!(
                             "factory-dispatcher: resolver.load_warning: skipping resolver '{}' \
                              (fail_closed=false) — {detail}",
                             entry.name
                         );
+                        warnings.push(LoadWarning {
+                            resolver_name: entry.name,
+                            detail,
+                        });
                         continue;
                     }
                 }
@@ -342,7 +375,7 @@ impl ResolverLoader {
             );
         }
 
-        Ok(registry)
+        Ok((registry, warnings))
     }
 }
 

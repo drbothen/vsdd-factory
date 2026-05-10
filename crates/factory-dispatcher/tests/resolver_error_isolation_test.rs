@@ -93,7 +93,7 @@ context_key = "trap-output"
     std::fs::write(&registry_path, &toml_content).expect("write trapping resolver registry TOML");
 
     let loader = ResolverLoader::new(engine.clone());
-    let registry = loader
+    let (registry, _warnings) = loader
         .load_registry(&registry_path)
         .expect("F-P2-004: load_registry must succeed (loading does not invoke resolve)");
     Arc::new(registry)
@@ -395,7 +395,7 @@ context_key = "trap-output"
     let registry_path = dir.path().join("combined-resolvers-registry.toml");
     std::fs::write(&registry_path, &toml_content).expect("write registry TOML");
     let loader = ResolverLoader::new(engine.clone());
-    let mut resolver_registry = loader
+    let (mut resolver_registry, _warnings) = loader
         .load_registry(&registry_path)
         .expect("F-P2-004: load_registry must succeed");
     resolver_registry
@@ -513,7 +513,7 @@ context_key = "trap_context"
 
     // Load the registry — this compiles trapping_resolver.wasm.
     let loader = ResolverLoader::new(engine);
-    let registry = loader
+    let (registry, _warnings) = loader
         .load_registry(&registry_path)
         .expect("F-P1-001: load_registry must succeed (load does not invoke resolve)");
 

@@ -55,7 +55,7 @@ fn write_file(dir: &std::path::Path, name: &str, contents: &[u8]) -> std::path::
 /// test_BC_1_13_001_absent_registry_yields_empty_no_error
 ///
 /// Calls `ResolverLoader::load_registry` with a path that does not exist.
-/// Asserts `Ok(registry)` is returned and the registry is empty.
+/// Asserts `Ok((registry, warnings))` is returned, registry is empty, warnings empty.
 ///
 /// Red Gate: fails because `load_registry` is `todo!()` in Step 3 stubs.
 #[test]
@@ -69,7 +69,7 @@ fn test_BC_1_13_001_absent_registry_yields_empty_no_error() {
     let loader = ResolverLoader::new(engine);
     let result = loader.load_registry(&missing);
 
-    let registry = result.expect(
+    let (registry, warnings) = result.expect(
         "AC-001: load_registry on an absent resolvers-registry.toml must return Ok, \
          not Err — absent file = zero resolvers (BC-1.13.001 INV2)",
     );
@@ -77,6 +77,10 @@ fn test_BC_1_13_001_absent_registry_yields_empty_no_error() {
         registry.is_empty(),
         "AC-001: registry returned for an absent file must be empty (zero resolvers), \
          not partially populated"
+    );
+    assert!(
+        warnings.is_empty(),
+        "AC-001: absent file must produce no LoadWarnings"
     );
 }
 
@@ -457,7 +461,7 @@ path_allow = ["{}"]
     std::fs::write(&registry_path, toml_content).expect("write registry TOML");
 
     let loader = ResolverLoader::new(engine);
-    let registry = loader
+    let (registry, _warnings) = loader
         .load_registry(&registry_path)
         .expect("F-P1-008: load_registry must succeed");
 
@@ -550,7 +554,7 @@ context_key = "long_running_ctx"
     std::fs::write(&registry_path, toml_content).expect("write registry TOML");
 
     let loader = ResolverLoader::new(engine);
-    let registry = loader
+    let (registry, _warnings) = loader
         .load_registry(&registry_path)
         .expect("F-P2-001: load_registry must succeed (loading does not invoke resolve)");
 
@@ -715,7 +719,7 @@ context_key = "valid_ctx"
     let loader = ResolverLoader::new(engine);
     let result = loader.load_registry(&path);
 
-    let registry = result.expect(
+    let (registry, warnings) = result.expect(
         "F-P2-003: fail_closed=false with missing .wasm must return Ok \
          (fail-open: skip entry and continue with remaining resolvers)",
     );
@@ -725,6 +729,23 @@ context_key = "valid_ctx"
         1,
         "F-P2-003: registry must contain exactly 1 resolver after skipping the \
          fail_closed=false entry. Expected 'valid-resolver' only."
+    );
+
+    // F-P3-003: warnings vec must contain the skipped entry.
+    assert_eq!(
+        warnings.len(),
+        1,
+        "F-P3-003: load_registry must return exactly 1 LoadWarning for the fail_closed=false \
+         skipped entry ('optional-resolver'). Got {} warnings.",
+        warnings.len()
+    );
+    assert_eq!(
+        warnings[0].resolver_name, "optional-resolver",
+        "F-P3-003: LoadWarning.resolver_name must equal the skipped resolver name 'optional-resolver'"
+    );
+    assert!(
+        !warnings[0].detail.is_empty(),
+        "F-P3-003: LoadWarning.detail must be non-empty (carry error context)"
     );
 }
 
