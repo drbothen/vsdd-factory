@@ -332,7 +332,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                     .with_trace_id(trace_id.clone())
                     .with_session_id(payload.session_id.clone())
                     .with_field("resolver_name", serde_json::Value::String(w.resolver_name))
-                    .with_field("detail", serde_json::Value::String(w.detail));
+                    .with_field("error_detail", serde_json::Value::String(w.detail));
                 internal_log.write(&ev);
             }
             Arc::new(reg)
@@ -344,7 +344,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                 &InternalEvent::now("resolver.load_error")
                     .with_trace_id(trace_id.clone())
                     .with_session_id(payload.session_id.clone())
-                    .with_field("error", format!("{e:?}")),
+                    .with_field("error_detail", format!("{e:?}")),
             );
             return Err(e.into());
         }

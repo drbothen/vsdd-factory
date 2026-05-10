@@ -1100,7 +1100,7 @@ fail_closed = false
             .with_trace_id("test-trace-fp4-004")
             .with_session_id("test-session-fp4-004")
             .with_field("resolver_name", serde_json::Value::String(w.resolver_name))
-            .with_field("detail", serde_json::Value::String(w.detail));
+            .with_field("error_detail", serde_json::Value::String(w.detail));
         internal_log.write(&ev);
     }
     // Drop to flush (InternalLog writes on each call, but drop ensures no buffered data).
@@ -1125,8 +1125,8 @@ fail_closed = false
          ('warn-resolver'). Log content: {all_log_content:?}"
     );
     assert!(
-        all_log_content.contains("detail"),
-        "F-P4-004: resolver.load_warning event must include the 'detail' field. \
+        all_log_content.contains("error_detail"),
+        "F-P4-004: resolver.load_warning event must include the 'error_detail' field. \
          Log content: {all_log_content:?}"
     );
 }
