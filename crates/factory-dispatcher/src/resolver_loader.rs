@@ -26,7 +26,9 @@ use std::time::SystemTime;
 
 use serde::Deserialize;
 use thiserror::Error;
-use wasmtime::{Engine, Module, Store};
+use wasmtime::{Engine, Linker, Module, Store};
+use wasmtime_wasi::WasiCtxBuilder;
+use wasmtime_wasi::p1::{self, WasiP1Ctx};
 
 use crate::engine::timeout_ms_to_epochs;
 use crate::host::HostContext;
@@ -35,6 +37,31 @@ use crate::resolver::{
     ContextResolver, ResolverError, ResolverInput, ResolverOutput, ResolverRegistry,
 };
 use crate::resolver_classify_trap::classify_resolver_trap;
+
+// ---------------------------------------------------------------------------
+// ResolverStoreData — per-invocation store data for WASM resolver modules
+// ---------------------------------------------------------------------------
+
+/// Per-invocation store data for resolver WASM instantiation.
+///
+/// Resolver modules compiled for `wasm32-wasip1` import WASI snapshot
+/// preview 1 syscalls from Rust's standard library bootstrap
+/// (`environ_get`, `fd_write`, etc.). Without a `WasiP1Ctx` in the store
+/// and `p1::add_to_linker_sync` on the linker, instantiation fails with
+/// "unknown import wasi_snapshot_preview1::environ_get".
+///
+/// The WASI context is deliberately restricted:
+/// - No filesystem preopens (resolver must use vsdd::read_file for bounded access)
+/// - Stdin: empty (resolvers read via host function, not WASI stdin)
+/// - Stdout/stderr: sink (resolvers must use vsdd::log, not WASI print)
+/// - Environment variables: empty (resolvers use vsdd::read_file, not env)
+///
+/// This mirrors the pattern in `invoke.rs::StoreData` but with maximum
+/// restriction rather than project-directory preopen (BC-4.12.003 INV2).
+struct ResolverStoreData {
+    host: HostContext,
+    wasi: WasiP1Ctx,
+}
 
 // ---------------------------------------------------------------------------
 // Error type and warning type
@@ -501,19 +528,41 @@ impl ContextResolver for CompiledWasmResolver {
             ..Default::default()
         };
 
-        // Build resolver linker (read_file + log only; no write/exec/emit per BC-4.12.003 INV2).
-        // F-P1-012: resolver_linker returns Result; propagate registration errors via map_err.
-        let linker = crate::host::resolver_linker(&self.engine).map_err(|e| {
+        // Build resolver linker against ResolverStoreData.
+        //
+        // WASI p1 fix (S-12.08 Step 3b): Rust binaries compiled for wasm32-wasip1
+        // always import wasi_snapshot_preview1 syscalls (environ_get, fd_write, etc.)
+        // from the std bootstrap. Without p1::add_to_linker_sync, instantiation fails
+        // with "unknown import wasi_snapshot_preview1::environ_get".
+        //
+        // We register:
+        //   1. vsdd::log + vsdd::read_file (resolver-scoped host functions, BC-4.12.003 INV2).
+        //      These are re-registered directly against ResolverStoreData (accessing
+        //      store_data.host) — same pattern as invoke.rs::setup_host_on_store_data.
+        //   2. wasi_snapshot_preview1 (p1::add_to_linker_sync) so std bootstrap resolves.
+        //      The WasiP1Ctx is restricted: no preopens, no stdio — resolvers must use
+        //      vsdd::read_file for all I/O (BC-4.12.003 INV2).
+        let linker = build_resolver_wasi_linker(&self.engine, &self.name).map_err(|e| {
             ResolverError::AbiViolation {
                 name: self.name.clone(),
                 detail: format!("resolver linker construction failed: {e}"),
             }
         })?;
 
+        // Restricted WASI context: no preopens, no stdin, stdout/stderr sink.
+        // Resolvers must not access the filesystem directly — vsdd::read_file is the
+        // bounded mechanism (BC-4.12.003 INV2). Env vars are empty for the same reason.
+        let wasi_ctx = WasiCtxBuilder::new().build_p1();
+
+        let store_data = ResolverStoreData {
+            host: host_ctx,
+            wasi: wasi_ctx,
+        };
+
         // Create a fresh Store per invocation (BC-4.12.001 PC2 isolation).
         // Fuel enforcement: set a generous fuel budget; timeout via epoch interruption
         // (same engine configuration as hooks — epoch_interruption + consume_fuel).
-        let mut store: Store<HostContext> = Store::new(&self.engine, host_ctx);
+        let mut store: Store<ResolverStoreData> = Store::new(&self.engine, store_data);
         // Epoch deadline: 25% of the 6000ms hook budget (1500ms per F1-amendment §S-12.04 sketch).
         // Enforced by the shared EpochTicker (same pattern as invoke.rs:174).
         const RESOLVER_TIMEOUT_MS: u64 = 1500;
@@ -668,6 +717,239 @@ impl ContextResolver for CompiledWasmResolver {
 }
 
 // ---------------------------------------------------------------------------
+// Resolver WASI linker helper
+// ---------------------------------------------------------------------------
+
+/// Build a `Linker<ResolverStoreData>` that wires both the resolver-scoped
+/// vsdd host functions AND WASI snapshot preview 1 syscalls.
+///
+/// Host functions registered:
+/// - `vsdd::log`     — diagnostic logging (BC-4.12.003 PC2)
+/// - `vsdd::read_file` — bounded file access (BC-4.12.003 PC2)
+///
+/// Intentionally excluded (BC-4.12.003 INV2 — resolver sandbox):
+/// - `vsdd::write_file`, `vsdd::exec_subprocess`, `vsdd::emit_event`
+///
+/// WASI p1 syscalls are required because Rust binaries compiled for
+/// `wasm32-wasip1` always import `wasi_snapshot_preview1` during std
+/// bootstrap (environ_get, fd_write, clock_time_get, etc.).
+/// Without this, resolver instantiation fails with
+/// "unknown import wasi_snapshot_preview1::environ_get".
+///
+/// The WasiCtx supplied to the store is restricted (no preopens, no stdio)
+/// so WASI calls succeed at the linker level but produce no side effects
+/// (BC-4.12.003 INV2: resolver must use vsdd::read_file for all I/O).
+fn build_resolver_wasi_linker(
+    engine: &Engine,
+    resolver_name: &str,
+) -> Result<Linker<ResolverStoreData>, String> {
+    use crate::host::codes;
+    use crate::internal_log::InternalEvent;
+    use serde_json::Value;
+    use wasmtime::Caller;
+
+    let _ = resolver_name; // available for future diagnostic use
+
+    let mut linker: Linker<ResolverStoreData> = Linker::new(engine);
+
+    // vsdd::log — proxy through store_data.host
+    linker
+        .func_wrap(
+            "vsdd",
+            "log",
+            |mut caller: Caller<'_, ResolverStoreData>, level: u32, msg_ptr: u32, msg_len: u32| {
+                // Read the message string from WASM memory.
+                let msg = match read_wasm_str_rsd(&mut caller, msg_ptr, msg_len) {
+                    Ok(s) => s,
+                    Err(_) => return,
+                };
+                let level_str = match level {
+                    0 => "trace",
+                    1 => "debug",
+                    2 => "info",
+                    3 => "warn",
+                    4 => "error",
+                    _ => "info",
+                };
+                let host = &caller.data().host;
+                let ev = InternalEvent::now("plugin.log")
+                    .with_trace_id(&host.dispatcher_trace_id)
+                    .with_session_id(&host.session_id)
+                    .with_plugin_name(&host.plugin_name)
+                    .with_plugin_version(&host.plugin_version)
+                    .with_field("level", Value::String(level_str.to_string()))
+                    .with_field("message", Value::String(msg));
+                host.emit_internal(ev);
+            },
+        )
+        .map_err(|e| e.to_string())?;
+
+    // vsdd::read_file — mirrors the memory-growth protocol from invoke.rs::setup_host_on_store_data.
+    //
+    // The SDK's `read_file` wrapper initializes `out_ptr = 0` and passes &mut out_ptr
+    // to the host. The host must:
+    //   1. Read and capability-check the file (prepare())
+    //   2. Grow WASM linear memory to hold the bytes
+    //   3. Write the file bytes at the newly allocated address (current_bytes)
+    //   4. Write (write_offset, len) back into the guest-provided out_ptr_out / out_len_out
+    //
+    // Writing bytes at address 0 (the old host/read_file.rs pattern) doesn't work because
+    // read_owned_bytes(0, len) → Vec::new() in the SDK (ptr == 0 guard).
+    // The memory-growth pattern (used by invoke.rs) is the correct implementation.
+    linker
+        .func_wrap(
+            "vsdd",
+            "read_file",
+            |mut caller: Caller<'_, ResolverStoreData>,
+             path_ptr: u32,
+             path_len: u32,
+             max_bytes: u32,
+             _timeout_ms: u32,
+             out_ptr_out: u32,
+             out_len_out: u32|
+             -> i32 {
+                let path = match read_wasm_str_rsd(&mut caller, path_ptr, path_len) {
+                    Ok(s) => s,
+                    Err(_) => return codes::INVALID_ARGUMENT,
+                };
+
+                // Capability check + file read (host-side logic, no WASM memory).
+                let body = {
+                    let ctx = caller.data().host.clone();
+                    match crate::host::read_file::prepare(&ctx, &path, max_bytes) {
+                        Ok((bytes, _)) => bytes,
+                        Err(code) => return code,
+                    }
+                };
+
+                if body.is_empty() {
+                    // Empty file: write ptr=0, len=0.
+                    let _ = write_wasm_u32_rsd(&mut caller, out_ptr_out, 0);
+                    let _ = write_wasm_u32_rsd(&mut caller, out_len_out, 0);
+                    return codes::OK;
+                }
+
+                // Grow WASM memory to hold the file bytes and write at the new end.
+                // This matches invoke.rs's read_file pattern (memory-growth protocol).
+                let memory = match get_memory_rsd(&mut caller) {
+                    Ok(m) => m,
+                    Err(_) => return codes::INTERNAL_ERROR,
+                };
+                let current_bytes = memory.data_size(&caller);
+                let pages_needed = body.len().div_ceil(65536) as u64;
+                if memory.grow(&mut caller, pages_needed).is_err() {
+                    return codes::INTERNAL_ERROR;
+                }
+
+                let write_offset = current_bytes as u32;
+
+                if write_wasm_bytes_rsd(&mut caller, write_offset, body.len() as u32, &body)
+                    .is_err()
+                {
+                    return codes::INTERNAL_ERROR;
+                }
+
+                // Return (ptr, len) to the guest via the out-params.
+                if write_wasm_u32_rsd(&mut caller, out_ptr_out, write_offset).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                if write_wasm_u32_rsd(&mut caller, out_len_out, body.len() as u32).is_err() {
+                    return codes::INVALID_ARGUMENT;
+                }
+                codes::OK
+            },
+        )
+        .map_err(|e| e.to_string())?;
+
+    // WASI snapshot preview 1 — required by Rust std bootstrap on wasm32-wasip1.
+    // The accessor extracts &mut WasiP1Ctx from ResolverStoreData.
+    // The WasiCtx is restricted (built with WasiCtxBuilder::new().build_p1() —
+    // no preopens, no env, no stdio) so WASI calls succeed without side effects.
+    p1::add_to_linker_sync(&mut linker, |d: &mut ResolverStoreData| &mut d.wasi)
+        .map_err(|e| e.to_string())?;
+
+    Ok(linker)
+}
+
+// ---------------------------------------------------------------------------
+// ResolverStoreData memory helpers
+// ---------------------------------------------------------------------------
+
+fn get_memory_rsd(
+    caller: &mut wasmtime::Caller<'_, ResolverStoreData>,
+) -> Result<wasmtime::Memory, crate::host::HostCallError> {
+    caller
+        .get_export("memory")
+        .and_then(|e| e.into_memory())
+        .ok_or(crate::host::HostCallError::MissingMemory)
+}
+
+fn read_wasm_str_rsd(
+    caller: &mut wasmtime::Caller<'_, ResolverStoreData>,
+    ptr: u32,
+    len: u32,
+) -> Result<String, crate::host::HostCallError> {
+    let memory = get_memory_rsd(caller)?;
+    let data = memory.data(caller);
+    let start = ptr as usize;
+    let end = start
+        .checked_add(len as usize)
+        .ok_or(crate::host::HostCallError::MemoryOverflow)?;
+    if end > data.len() {
+        return Err(crate::host::HostCallError::OutOfBounds {
+            ptr,
+            len,
+            memory_size: data.len(),
+        });
+    }
+    String::from_utf8(data[start..end].to_vec())
+        .map_err(|_| crate::host::HostCallError::InvalidUtf8)
+}
+
+fn write_wasm_bytes_rsd(
+    caller: &mut wasmtime::Caller<'_, ResolverStoreData>,
+    out_ptr: u32,
+    out_cap: u32,
+    bytes: &[u8],
+) -> Result<u32, crate::host::HostCallError> {
+    let needed = bytes.len() as u32;
+    if needed > out_cap {
+        return Ok(needed);
+    }
+    let memory = get_memory_rsd(caller)?;
+    let start = out_ptr as usize;
+    let end = start
+        .checked_add(bytes.len())
+        .ok_or(crate::host::HostCallError::MemoryOverflow)?;
+    let data_len = memory.data(&mut *caller).len();
+    if end > data_len {
+        return Err(crate::host::HostCallError::OutOfBounds {
+            ptr: out_ptr,
+            len: needed,
+            memory_size: data_len,
+        });
+    }
+    memory
+        .write(caller, start, bytes)
+        .map_err(|_| crate::host::HostCallError::OutOfBounds {
+            ptr: out_ptr,
+            len: needed,
+            memory_size: data_len,
+        })?;
+    Ok(needed)
+}
+
+fn write_wasm_u32_rsd(
+    caller: &mut wasmtime::Caller<'_, ResolverStoreData>,
+    out_ptr: u32,
+    value: u32,
+) -> Result<(), crate::host::HostCallError> {
+    let bytes = value.to_le_bytes();
+    write_wasm_bytes_rsd(caller, out_ptr, bytes.len() as u32, &bytes)?;
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
 // Standalone constructor
 // ---------------------------------------------------------------------------
 
@@ -680,4 +962,139 @@ impl ContextResolver for CompiledWasmResolver {
 /// branching, no I/O, no non-trivial helpers, 1 line. Satisfies BC-5.38.002.
 pub fn empty() -> ResolverRegistry {
     ResolverRegistry::new()
+}
+
+// ---------------------------------------------------------------------------
+// Integration tests — resolver WASI linker + WaveContextResolver
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod wasi_integration_tests {
+    use super::*;
+    use crate::engine::build_engine;
+    use crate::resolver::ResolverInput;
+    use tempfile::TempDir;
+
+    /// Helper: set up a factory directory with test fixtures.
+    fn make_factory_root(passes_clean_s001: u32, passes_clean_s002: u32) -> TempDir {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let factory = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory).unwrap();
+
+        // STATE.md
+        std::fs::write(
+            factory.join("STATE.md"),
+            "---\ncurrent_cycle: test-cycle-001\n---\n",
+        )
+        .unwrap();
+
+        // wave-state.yaml
+        std::fs::write(
+            factory.join("wave-state.yaml"),
+            "waves:\n  - wave: test-wave-001\n    stories:\n      - S-FAKE-001\n      - S-FAKE-002\n",
+        )
+        .unwrap();
+
+        // Convergence states
+        let cycles = factory.join("cycles/test-cycle-001");
+        for (story, passes) in &[
+            ("S-FAKE-001", passes_clean_s001),
+            ("S-FAKE-002", passes_clean_s002),
+        ] {
+            let story_dir = cycles.join(story);
+            std::fs::create_dir_all(&story_dir).unwrap();
+            let state = format!(
+                r#"{{"passes_clean":{passes},"last_classification":"NITPICK_ONLY","last_finding_count":0,"last_timestamp":"2026-05-10T00:00:00Z","deferred_findings":[]}}"#
+            );
+            std::fs::write(story_dir.join("adversary-convergence-state.json"), &state).unwrap();
+        }
+
+        dir
+    }
+
+    /// Test that CompiledWasmResolver::resolve() with the production
+    /// vsdd-context-resolvers.wasm correctly injects wave_context when the
+    /// factory root has wave-state.yaml and STATE.md.
+    ///
+    /// This test validates the full resolver pipeline:
+    ///   1. WASI linker construction (build_resolver_wasi_linker)
+    ///   2. WASM module instantiation with ResolverStoreData
+    ///   3. read_file host function with memory-growth protocol
+    ///   4. WaveContextResolver logic (wave_state.yaml + STATE.md parsing)
+    ///   5. Packed-i64 return → Ok(Some(ResolverOutput))
+    ///
+    /// If this test passes, the bats integration tests should also pass.
+    #[test]
+    fn test_wave_context_resolver_wasm_injects_context() {
+        // Path to the production WASM artifact (built by cargo build).
+        // We resolve relative to CARGO_MANIFEST_DIR.
+        let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent() // crates/
+            .unwrap()
+            .parent() // workspace root
+            .unwrap();
+        let wasm_path =
+            workspace_root.join("plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm");
+
+        if !wasm_path.exists() {
+            eprintln!(
+                "SKIP: vsdd-context-resolvers.wasm not found at {}",
+                wasm_path.display()
+            );
+            return; // Skip if WASM not built yet
+        }
+
+        let factory_root = make_factory_root(1, 3);
+        let project_dir = factory_root.path().to_str().unwrap().to_string();
+
+        let engine = build_engine().expect("build_engine");
+        let loader = ResolverLoader::new(engine.clone());
+        let module = loader
+            .get_or_compile(&wasm_path)
+            .expect("should compile vsdd-context-resolvers.wasm");
+
+        let resolver = CompiledWasmResolver {
+            name: "wave_context".to_string(),
+            context_key: "wave_context".to_string(),
+            module,
+            path_allow: vec![".factory/".to_string()],
+            engine,
+        };
+
+        let input = ResolverInput {
+            event_type: "SubagentStop".to_string(),
+            hook_event_name: "validate-per-story-adversary-convergence".to_string(),
+            agent_type: Some("wave-gate-dispatch".to_string()),
+            project_dir: project_dir.clone(),
+            plugin_config: serde_json::Value::Object(serde_json::Map::new()),
+        };
+
+        let result = resolver.resolve(&input);
+
+        match result {
+            Ok(Some(output)) => {
+                eprintln!("Output value: {:?}", output.value);
+                assert!(
+                    output.value.is_some(),
+                    "resolver should inject wave_context"
+                );
+                let value = output.value.unwrap();
+                assert!(
+                    value.get("stories").is_some(),
+                    "wave_context should have 'stories' key"
+                );
+            }
+            Ok(None) => {
+                panic!(
+                    "resolver returned Ok(None) — WASM ran but produced no output. \
+                     Check read_file host function and path_allow enforcement. \
+                     project_dir={}",
+                    project_dir
+                );
+            }
+            Err(e) => {
+                panic!("resolver returned error: {:?}", e);
+            }
+        }
+    }
 }

@@ -13,18 +13,14 @@
 # - Unit tests: 48/48 passing (cargo test -p validate-per-story-adversary-convergence)
 # - hook_logic: rewired to use extract_stories_from_wave_context (AC-001 through AC-010)
 # - WASM artifact: rebuilt with correct wave_context path
-# - Integration test status: INFRASTRUCTURE BLOCKER (see skip messages below)
+# - Integration test status: GREEN (S-12.08 Step 3b — resolver linker WASI fix)
 #
-# BLOCKER: WaveContextResolver WASM uses wasm32-wasip1 target (Rust standard library)
-# which imports wasi_snapshot_preview1::environ_get and related syscalls. The
-# resolver linker in resolver_loader.rs only wires vsdd::log and vsdd::read_file —
-# it does NOT include p1::add_to_linker_sync (WASI snapshot preview 1). This causes
-# an ABI violation on resolver instantiation: "unknown import wasi_snapshot_preview1"
-# The fix requires adding WASI support to the resolver linker — a dispatcher-level
-# platform change scoped to a future story (TD to be filed).
-#
-# Evidence: internal log shows "resolver 'wave_context' ABI violation: resolver
-# instantiation failed: unknown import wasi_snapshot_preview1::environ_get".
+# Fix (S-12.08 Step 3b): WaveContextResolver WASM uses wasm32-wasip1 target (Rust
+# standard library) which imports wasi_snapshot_preview1::environ_get and related
+# syscalls. resolver_loader.rs::CompiledWasmResolver::resolve now uses ResolverStoreData
+# (host: HostContext + wasi: WasiP1Ctx) and calls p1::add_to_linker_sync to wire
+# WASI p1 syscalls. The WasiCtx is restricted (no preopens, no stdio) to maintain
+# the resolver sandbox (BC-4.12.003 INV2). Mirrors the pattern in invoke.rs::StoreData.
 #
 # BC traces:
 #   BC-1.13.001 postcondition 4 — needs_context = ["wave_context"] triggers
@@ -125,42 +121,43 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "F-P2-001 closure: unconverged story → dispatcher exits 2 (Block)" {
-    skip "INFRASTRUCTURE BLOCKER (S-12.08): WaveContextResolver WASM fails to load in the
-resolver linker due to missing WASI snapshot preview 1 support. The resolver linker
-(resolver_loader.rs) only wires vsdd::log and vsdd::read_file but does NOT call
-p1::add_to_linker_sync — required by Rust WASM binaries that import wasi_snapshot_preview1.
-Internal log evidence: 'resolver wave_context ABI violation: resolver instantiation
-failed: unknown import wasi_snapshot_preview1::environ_get'.
-
-Fix required: add p1::add_to_linker_sync to CompiledWasmResolver::resolve() linker
-construction (analogous to invoke.rs:187). Scoped to a future dispatcher story.
-
-Unit test coverage: 48/48 passing — extract_stories_from_wave_context, hook_logic
-rewiring, and all convergence-gate behavioral contracts verified at the Rust level.
-The end-to-end pipeline correctness is verified conceptually: when the resolver
-linker is fixed, wave_context will be injected and CONVERGENCE_PASSES_INSUFFICIENT
-will be the block code for an unconverged story."
-
     # Seed: S-FAKE-001 unconverged (passes_clean=1), S-FAKE-002 converged (passes_clean=3)
     seed_factory_root 1 3
 
     # Assert dispatcher binary exists
     [[ -x "${DISPATCHER}" ]] || skip "factory-dispatcher binary not found at ${DISPATCHER}"
 
+    # VSDD_SINK_FILE: capture internal events to verify block code.
+    # The dispatcher emits hook.block events (with the CONVERGENCE_PASSES_INSUFFICIENT code)
+    # to the internal log. VSDD_SINK_FILE (debug-only) flushes them to a JSONL file.
+    local sink_file
+    sink_file="$(mktemp "${BATS_TMPDIR}/resolver-sink-XXXXXX.jsonl")"
+
     # Run dispatcher with synthetic SubagentStop event via stdin.
     # CWD = PLUGIN_ROOT so resolver WASM path resolves correctly.
-    local payload='{"event_name":"SubagentStop","session_id":"bats-test-session","dispatcher_trace_id":"bats-test-trace","agent_type":"wave-gate-dispatch"}'
-    run bash -c "cd '${PLUGIN_ROOT}' && printf '%s' '${payload}' | CLAUDE_PLUGIN_ROOT='${PLUGIN_ROOT}' CLAUDE_PROJECT_DIR='${FACTORY_TMP}' '${DISPATCHER}'"
+    #
+    # last_assistant_message (>= 40 non-whitespace chars) satisfies the
+    # handoff-validator so it does NOT block — the convergence hook is the
+    # intended blocking path for this test (priority 960 > handoff-validator 910).
+    local payload='{"event_name":"SubagentStop","session_id":"bats-test-session","dispatcher_trace_id":"bats-test-trace","agent_type":"wave-gate-dispatch","last_assistant_message":"Wave gate adversary pass completed for this iteration of the story review cycle."}'
+    run bash -c "cd '${PLUGIN_ROOT}' && printf '%s' '${payload}' | VSDD_SINK_FILE='${sink_file}' CLAUDE_PLUGIN_ROOT='${PLUGIN_ROOT}' CLAUDE_PROJECT_DIR='${FACTORY_TMP}' '${DISPATCHER}'"
 
     # AC-008: exit code 2 = Block (dispatcher convention: 0=Continue, 2=Block)
     [ "${status}" -eq 2 ]
 
-    # Block reason must reference the CONVERGENCE_PASSES_INSUFFICIENT code
+    # Verify CONVERGENCE_PASSES_INSUFFICIENT in internal events (VSDD_SINK_FILE).
+    # The hook.block event carries code="per_story_adversary_unconverged_CONVERGENCE_PASSES_INSUFFICIENT"
+    # and story="S-FAKE-001". Both must appear in the sink JSONL.
     # (S-FAKE-001 has passes_clean=1 < 3).
-    [[ "${output}" == *"CONVERGENCE_PASSES_INSUFFICIENT"* ]]
+    [[ -s "${sink_file}" ]] || {
+        echo "SINK FILE EMPTY: ${sink_file}"
+        echo "dispatcher output: ${output}"
+        false
+    }
+    grep -q "CONVERGENCE_PASSES_INSUFFICIENT" "${sink_file}"
+    grep -q "S-FAKE-001" "${sink_file}"
 
-    # Block reason must identify the failing story
-    [[ "${output}" == *"S-FAKE-001"* ]]
+    rm -f "${sink_file}"
 }
 
 # ---------------------------------------------------------------------------
@@ -168,11 +165,6 @@ will be the block code for an unconverged story."
 # ---------------------------------------------------------------------------
 
 @test "F-P2-001 closure: all converged → dispatcher exits 0 (Continue)" {
-    skip "INFRASTRUCTURE BLOCKER (S-12.08): same as AC-008 — WaveContextResolver WASM
-fails to instantiate in resolver linker due to missing wasi_snapshot_preview1 support.
-When the resolver linker is fixed, this test verifies that all-converged waves produce
-exit code 0 (Continue) with no BLOCK or WAVE_CONTEXT in output."
-
     # Seed: ALL stories converged (passes_clean=3)
     seed_factory_root 3 3
 
@@ -180,13 +172,28 @@ exit code 0 (Continue) with no BLOCK or WAVE_CONTEXT in output."
     [[ -x "${DISPATCHER}" ]] || skip "factory-dispatcher binary not found at ${DISPATCHER}"
 
     # Run dispatcher with synthetic SubagentStop event via stdin.
-    local payload='{"event_name":"SubagentStop","session_id":"bats-test-session","dispatcher_trace_id":"bats-test-trace","agent_type":"wave-gate-dispatch"}'
-    run bash -c "cd '${PLUGIN_ROOT}' && printf '%s' '${payload}' | CLAUDE_PLUGIN_ROOT='${PLUGIN_ROOT}' CLAUDE_PROJECT_DIR='${FACTORY_TMP}' '${DISPATCHER}'"
+    # last_assistant_message satisfies the handoff-validator (>= 40 non-whitespace chars).
+    local sink_file
+    sink_file="$(mktemp "${BATS_TMPDIR}/resolver-sink-XXXXXX.jsonl")"
+
+    local payload='{"event_name":"SubagentStop","session_id":"bats-test-session","dispatcher_trace_id":"bats-test-trace","agent_type":"wave-gate-dispatch","last_assistant_message":"Wave gate adversary pass completed for this iteration of the story review cycle."}'
+    run bash -c "cd '${PLUGIN_ROOT}' && printf '%s' '${payload}' | VSDD_SINK_FILE='${sink_file}' CLAUDE_PLUGIN_ROOT='${PLUGIN_ROOT}' CLAUDE_PROJECT_DIR='${FACTORY_TMP}' '${DISPATCHER}'"
 
     # AC-009: exit code 0 = Continue (all stories converged)
     [ "${status}" -eq 0 ]
 
-    # No block output
-    [[ "${output}" != *"BLOCK"* ]]
-    [[ "${output}" != *"WAVE_CONTEXT"* ]]
+    # No convergence block code in sink events.
+    # When all stories are converged, hook.block must NOT appear for the convergence hook.
+    ! grep -q "CONVERGENCE_PASSES_INSUFFICIENT" "${sink_file}" 2>/dev/null || {
+        echo "UNEXPECTED CONVERGENCE BLOCK in sink: $(grep 'CONVERGENCE_PASSES_INSUFFICIENT' "${sink_file}")"
+        false
+    }
+
+    # No WAVE_CONTEXT_MISSING block — confirms resolver injected context successfully.
+    ! grep -q "WAVE_CONTEXT_MISSING" "${sink_file}" 2>/dev/null || {
+        echo "UNEXPECTED WAVE_CONTEXT_MISSING in sink: $(grep 'WAVE_CONTEXT_MISSING' "${sink_file}")"
+        false
+    }
+
+    rm -f "${sink_file}"
 }
