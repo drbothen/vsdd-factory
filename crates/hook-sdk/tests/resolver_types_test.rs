@@ -501,13 +501,18 @@ mod proptest_tests {
     // Arbitrary strategy for ResolverOutput
     //
     // AC-010 spec-gap resolution (Option A): `Some(Value::Null)` is excluded from
-    // the strategy. Per BC-4.12.002 EC-001: "value: null means key is absent" — the
-    // dispatcher treats `ResolverOutput { value: None }` and `{ value: Some(Null) }`
-    // identically (neither writes the key to plugin_config). Standard serde Option
-    // semantics serialize both as `"value":null` and deserialize the JSON null back
-    // to `None`, so `Some(Null)` is a degenerate input that does not survive a
-    // serde round-trip unchanged. Filtering it avoids a false negative while
-    // preserving full coverage of all semantically-distinct ResolverOutput values.
+    // the strategy. Authoritative anchor: BC-4.12.002 EC-001.
+    //
+    // EC-001 states: "`value: null` (i.e. JSON null in the output envelope) means
+    // 'no context for this dispatch — do not write the key to plugin_config'."
+    // The dispatcher treats `ResolverOutput { value: None }` and
+    // `{ value: Some(Value::Null) }` semantically identically — neither writes the
+    // context key. Standard serde serializes both as `"value":null` in JSON, and
+    // deserializes `null` back to `None` (not `Some(Null)`), so `Some(Null)` does
+    // not survive a round-trip unchanged. This is not a bug — it reflects the
+    // EC-001 semantic equivalence. Filtering `Some(Null)` from the proptest input
+    // avoids a false-negative failure while preserving full coverage of all
+    // semantically-distinct ResolverOutput values per BC-4.12.002 EC-001.
     fn arb_resolver_output() -> impl Strategy<Value = ResolverOutput> {
         (
             ".*",
