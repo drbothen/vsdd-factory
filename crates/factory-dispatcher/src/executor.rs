@@ -415,13 +415,31 @@ enum JoinWrap {
 ///
 /// The returned `Value` is always a JSON Object ready to be inserted at
 /// the `"plugin_config"` key of the per-plugin envelope.
-// CONVENTION (P-005, S-12.04 lesson): When adding a new resolver-tier event type here,
-// you MUST: (1) add a HOST_ABI.md field table with ALL emitted fields including the
-// provenance triplet (trace_id, session_id, plugin_name); (2) update the owning BC with
-// the field list; (3) add positive-coverage assertions in the integration test for EVERY
-// provenance field (POL-11); (4) audit sibling resolver events (resolver.not_found,
-// resolver.error, resolver.merge_collision, resolver.load_warning, resolver.load_error)
-// for the same gaps. Sibling-propagation regression cost S-12.04 ~3 passes (P5/P6/P7).
+// CONVENTION (P-005 / S-7.01 Sibling-Coverage):
+//
+// When adding a new resolver-tier event type to the dispatcher
+// (whether emitted from executor.rs::build_plugin_config OR from
+// main.rs startup OR from any other dispatcher code path):
+//
+// 1. Add a field table to HOST_ABI.md listing ALL emitted fields,
+//    INCLUDING the provenance triplet (trace_id, session_id, plugin_name)
+//    when applicable.
+// 2. Update the BC that owns the event with the corresponding PC field
+//    list (BC-1.13.001 / BC-4.12.004 / etc).
+// 3. Add positive-coverage assertions in the integration test for EVERY
+//    provenance field (POL-11).
+// 4. Audit ALL sibling resolver-tier events for the same gaps. The current
+//    enumerated list (NOT exhaustive — verify by `grep -rn 'InternalEvent::now("resolver\.'`):
+//      - resolver.not_found      (executor.rs)
+//      - resolver.error          (executor.rs)
+//      - resolver.merge_collision (executor.rs)
+//      - resolver.registry_loaded (main.rs)
+//      - resolver.load_warning   (main.rs)
+//      - resolver.load_error     (main.rs)
+//
+// This pattern was hard-learned across 4+ adversarial passes; codified
+// to prevent recurrence. The S-7.01 sibling-blast-radius rule applies
+// across SOURCE FILES not just within a single function.
 fn build_plugin_config(
     entry: &RegistryEntry,
     payload_value: &serde_json::Value,
