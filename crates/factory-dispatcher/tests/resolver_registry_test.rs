@@ -348,10 +348,13 @@ fn test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map() {
 #[test]
 fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() {
     let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
-    let outputs = vec![("foo_resolver".to_string(), ResolverOutput {
-        key: "foo".to_string(),
-        value: None,
-    })];
+    let outputs = vec![(
+        "foo_resolver".to_string(),
+        ResolverOutput {
+            key: "foo".to_string(),
+            value: None,
+        },
+    )];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -458,10 +461,13 @@ fn test_BC_1_13_001_ac005_invoke_resolver_returns_none_for_missing_resolver() {
 #[test]
 fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
     let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
-    let outputs = vec![("extra_resolver".to_string(), ResolverOutput {
-        key: "extra".to_string(),
-        value: Some(json!({"data": 1})),
-    })];
+    let outputs = vec![(
+        "extra_resolver".to_string(),
+        ResolverOutput {
+            key: "extra".to_string(),
+            value: Some(json!({"data": 1})),
+        },
+    )];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -495,10 +501,13 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
 
     let static_config = json!({"foo": "old"}).as_object().unwrap().clone();
     // F-P5-003: resolver_name ("foo_resolver") is distinct from the output key ("foo").
-    let outputs = vec![("foo_resolver".to_string(), ResolverOutput {
-        key: "foo".to_string(),
-        value: Some(json!("new")),
-    })];
+    let outputs = vec![(
+        "foo_resolver".to_string(),
+        ResolverOutput {
+            key: "foo".to_string(),
+            value: Some(json!("new")),
+        },
+    )];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -546,10 +555,13 @@ fn test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_mer
         .as_object()
         .unwrap()
         .clone();
-    let outputs = vec![("wave_resolver".to_string(), ResolverOutput {
-        key: "wave_context".to_string(),
-        value: Some(json!({"new": 2})),
-    })];
+    let outputs = vec![(
+        "wave_resolver".to_string(),
+        ResolverOutput {
+            key: "wave_context".to_string(),
+            value: Some(json!({"new": 2})),
+        },
+    )];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -941,10 +953,13 @@ fn test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails() {
 #[test]
 fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
     let static_config = json!({"foo": "bar"}).as_object().unwrap().clone();
-    let outputs = vec![("wave_resolver".to_string(), ResolverOutput {
-        key: "wave_context".to_string(),
-        value: Some(json!({"stories": ["S-1"]})),
-    })];
+    let outputs = vec![(
+        "wave_resolver".to_string(),
+        ResolverOutput {
+            key: "wave_context".to_string(),
+            value: Some(json!({"stories": ["S-1"]})),
+        },
+    )];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -965,14 +980,20 @@ fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
 fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
     let static_config = json!({}).as_object().unwrap().clone();
     let outputs = vec![
-        ("resolver_a".to_string(), ResolverOutput {
-            key: "a".to_string(),
-            value: Some(json!(1)),
-        }),
-        ("resolver_b".to_string(), ResolverOutput {
-            key: "b".to_string(),
-            value: Some(json!(2)),
-        }),
+        (
+            "resolver_a".to_string(),
+            ResolverOutput {
+                key: "a".to_string(),
+                value: Some(json!(1)),
+            },
+        ),
+        (
+            "resolver_b".to_string(),
+            ResolverOutput {
+                key: "b".to_string(),
+                value: Some(json!(2)),
+            },
+        ),
     ];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -998,10 +1019,13 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
 #[test]
 fn test_BC_4_12_005_ec002_empty_object_value_produces_present_key_with_empty_object() {
     let static_config = json!({}).as_object().unwrap().clone();
-    let outputs = vec![("key_resolver".to_string(), ResolverOutput {
-        key: "resolver_key".to_string(),
-        value: Some(json!({})),
-    })];
+    let outputs = vec![(
+        "key_resolver".to_string(),
+        ResolverOutput {
+            key: "resolver_key".to_string(),
+            value: Some(json!({})),
+        },
+    )];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -1024,7 +1048,7 @@ fn test_BC_4_12_005_ec002_empty_object_value_produces_present_key_with_empty_obj
 // F-P2-007 — resolver-error callback coverage (SOUL #4: no silent failures)
 // ===========================================================================
 
-/// A resolver that always returns Err(ResolverError::Crashed).
+/// A resolver that always returns Err(ResolverError::Trap).
 struct ErroringResolver {
     resolver_name: String,
     detail: String,
@@ -1053,7 +1077,7 @@ impl ContextResolver for ErroringResolver {
 }
 
 /// F-P2-007 (test 1): `emit_resolver_error` callback fires exactly once when a
-/// registered resolver returns `Err(ResolverError::Crashed)`.
+/// registered resolver returns `Err(ResolverError::Trap)`.
 ///
 /// Verifies SOUL #4 (no silent failures): the caller observes the resolver
 /// failure so it can emit a `resolver.error` telemetry event.

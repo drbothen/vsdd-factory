@@ -401,7 +401,7 @@ async fn ac005_resolver_not_found_event_appears_in_internal_log() {
 
 /// F-P2-007 (integration test) / SOUL #4:
 /// When a hook declares `needs_context: ["boom"]` and the resolver "boom"
-/// returns `Err(ResolverError::Crashed)`, `execute_tiers` must:
+/// returns `Err(ResolverError::Trap)`, `execute_tiers` must:
 /// 1. Complete without panicking (dispatch continues — BC-4.12.005 INV3).
 /// 2. Write a `resolver.error` event to InternalLog (no silent failures).
 ///
@@ -497,11 +497,13 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
         "F-P5-002: 'resolver.error' event must contain 'error_detail' field (singular). \
          Log content: {all_log_content:?}"
     );
-    // F-P5-002: hook_event_name must be present per HOST_ABI.md line 1097.
+    // F-P6-002: event_type (Claude Code envelope event type) must be present per HOST_ABI.md line 1097.
+    // Renamed from hook_event_name (Path A: eliminates dual-semantics with ResolverInput.hook_event_name).
     assert!(
-        all_log_content.contains("hook_event_name"),
-        "F-P5-002: 'resolver.error' event must contain 'hook_event_name' field \
-         per HOST_ABI.md line 1097. Log content: {all_log_content:?}"
+        all_log_content.contains("event_type"),
+        "F-P6-002: 'resolver.error' event must contain 'event_type' field (the Claude Code \
+         envelope event type, e.g. 'PreToolUse') per HOST_ABI.md line 1097. \
+         Log content: {all_log_content:?}"
     );
 }
 
