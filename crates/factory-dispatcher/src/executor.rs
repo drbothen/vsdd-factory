@@ -435,6 +435,10 @@ fn build_plugin_config(
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string();
+    // agent_type is reserved for future Claude Code envelope evolution per BC-4.12.002.
+    // Standard PreToolUse/PostToolUse envelopes do not carry this field today; the
+    // extraction defaults to None for resolver inputs. Forward-compat with potential
+    // `subagent_type` or `agent_type` envelope additions.
     let agent_type = payload_value
         .get("agent_type")
         .and_then(|v| v.as_str())
@@ -492,9 +496,20 @@ fn build_plugin_config(
     };
 
     // AC-007 / SOUL #4: emit resolver.error when a resolver returns Err.
+    // F-P4-001A: use serde_json::to_value to produce structured wire format.
+    // ResolverError carries #[serde(tag = "kind")] so to_value yields
+    // {"kind": "Crashed", "name": "...", "detail": "..."} — forward-compatible
+    // with BC-4.12.004 wire format (S-12.04 WASM boundary).
     let emit_resolver_error = {
         let log = internal_log.clone();
         move |err_name: &str, err: &crate::resolver::ResolverError| {
+            let err_json = serde_json::to_value(err)
+                .unwrap_or_else(|_| serde_json::json!({"kind": "unknown"}));
+            let error_kind = err_json
+                .get("kind")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown")
+                .to_string();
             let ev = InternalEvent::now("resolver.error")
                 .with_trace_id(&trace_id_err)
                 .with_plugin_name(&hook_name_err)
@@ -502,7 +517,8 @@ fn build_plugin_config(
                     "resolver_name",
                     serde_json::Value::String(err_name.to_string()),
                 )
-                .with_field("error", serde_json::Value::String(format!("{err:?}")));
+                .with_field("error_kind", serde_json::Value::String(error_kind))
+                .with_field("error_details", err_json);
             log.write(&ev);
         }
     };
@@ -527,11 +543,17 @@ fn build_plugin_config(
     // Collisions are returned as Vec<CollisionInfo>; caller emits telemetry for each.
     let (merged_map, collisions) = merge_resolver_outputs(static_map, &resolver_outputs);
 
+    // F-P4-001B: emit resolver_name in each merge_collision event for per-resolver
+    // traceability (BC-4.12.004 wire format).
     for collision in collisions {
         let ev = InternalEvent::now("resolver.merge_collision")
             .with_trace_id(trace_id)
             .with_plugin_name(&hook_name)
             .with_field("key", serde_json::Value::String(collision.key))
+            .with_field(
+                "resolver_name",
+                serde_json::Value::String(collision.resolver_name),
+            )
             .with_field("static_value", collision.old_value)
             .with_field("resolver_value", collision.new_value);
         internal_log.write(&ev);

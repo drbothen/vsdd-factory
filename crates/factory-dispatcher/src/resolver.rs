@@ -287,10 +287,17 @@ impl Default for ResolverRegistry {
 /// `Vec<CollisionInfo>` and emits `resolver.merge_collision` telemetry events
 /// for each — keeping the pure merge function free of I/O side effects
 /// (BC-4.12.005 INV1; architect Path B decision, ADR pass-2).
+///
+/// F-P4-001B: `resolver_name` added to enable per-resolver traceability in
+/// `resolver.merge_collision` telemetry events (BC-4.12.004 wire format).
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollisionInfo {
     /// The config key that collided.
     pub key: String,
+    /// The resolver whose output caused the collision.
+    /// Populated from `ResolverOutput::key` (which equals `ContextResolver::name()`
+    /// by the convention that each resolver writes under its own name).
+    pub resolver_name: String,
     /// The value that was in `static_config` before the merge.
     pub old_value: Value,
     /// The resolver value that replaced it.
@@ -334,8 +341,11 @@ pub fn merge_resolver_outputs(
             if let Some(old_val) = map.get(&output.key) {
                 // Key collision: record for caller to emit telemetry.
                 // Resolver wins (BC-4.12.005 PC5 — whole-value replacement).
+                // F-P4-001B: resolver_name from output.key (equals ContextResolver::name()
+                // by convention — each resolver writes under its own name).
                 collisions.push(CollisionInfo {
                     key: output.key.clone(),
+                    resolver_name: output.key.clone(),
                     old_value: old_val.clone(),
                     new_value: new_val.clone(),
                 });

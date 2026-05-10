@@ -10,6 +10,11 @@
 //! defense-in-depth against any future regression where production logic might re-introduce
 //! a panic.
 //!
+//! TD (F-P4-002): the `std::panic::catch_unwind` scaffolding is acknowledged dead code per
+//! the module doc above. Removal is deferred to a dedicated maintenance burst — the wrappers
+//! are not harmful but should be cleaned up when a cleanup pass is scheduled.
+//! Reference: adversary-pass-4.md finding F-P4-002.
+//!
 //! BC: BC-1.13.001, BC-4.12.005
 //! Story: S-12.03
 //! VP: VP-075 (proptest harness lives in resolver_determinism_proptest.rs)
@@ -518,11 +523,13 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
         collisions[0],
         CollisionInfo {
             key: "foo".to_string(),
+            // F-P4-001B: resolver_name equals the output key (ContextResolver::name() convention).
+            resolver_name: "foo".to_string(),
             old_value: json!("old"),
             new_value: json!("new"),
         },
-        "CollisionInfo must contain key='foo', old='old', new='new' \
-         (AC-007 / BC-4.12.005 PC5)"
+        "CollisionInfo must contain key='foo', resolver_name='foo', old='old', new='new' \
+         (AC-007 / BC-4.12.005 PC5 + F-P4-001B resolver_name wire format)"
     );
 }
 

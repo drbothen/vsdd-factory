@@ -478,4 +478,15 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
          when a registered resolver returns Err — no silent failures. \
          Log content: {all_log_content:?}"
     );
+    // F-P4-001A: structured error_kind field must be present with the variant tag.
+    assert!(
+        all_log_content.contains("error_kind"),
+        "F-P4-001A: 'resolver.error' event must contain structured 'error_kind' field \
+         (serde tag from ResolverError). Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("Crashed"),
+        "F-P4-001A: 'resolver.error' event 'error_kind' must equal 'Crashed' \
+         for a ResolverError::Crashed variant. Log content: {all_log_content:?}"
+    );
 }
