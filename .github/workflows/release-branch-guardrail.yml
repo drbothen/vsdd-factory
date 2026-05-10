@@ -36,10 +36,7 @@ jobs:
       - name: Reject when base_ref != main
         if: github.base_ref != 'main'
         run: |
-          echo "::error title=Release branch must target main::"\
-"PR head '${{ github.head_ref }}' targets '${{ github.base_ref }}', "\
-"but release/* branches MUST target 'main'. Re-target this PR to main "\
-"or rename the branch if it isn't actually a release-prep PR."
+          echo "::error title=Release branch must target main::PR head '${{ github.head_ref }}' targets '${{ github.base_ref }}' but release/* branches MUST target 'main'. Re-target to main or rename the branch."
           echo ""
           echo "Why this matters:"
           echo "  release/v1.0.0-rc.X → main is the canonical sync point that"
