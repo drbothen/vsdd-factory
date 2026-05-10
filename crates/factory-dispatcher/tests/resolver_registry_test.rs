@@ -20,7 +20,7 @@
 //! VP: VP-075 (proptest harness lives in resolver_determinism_proptest.rs)
 
 use factory_dispatcher::resolver::{
-    ContextResolver, ResolverError, ResolverInput, ResolverOutput, ResolverRegistry,
+    ContextResolver, ResolvedContext, ResolverError, ResolverInput, ResolverOutput, ResolverRegistry,
     merge_resolver_outputs,
 };
 use serde_json::{Value, json};
@@ -107,23 +107,23 @@ fn noop_emit(_name: &str) {}
 /// Noop `resolver_error` callback — used when tests don't need to capture resolver errors.
 fn noop_error(_name: &str, _err: &factory_dispatcher::resolver::ResolverError) {}
 
-/// Helper: check if a `Vec<(String, ResolverOutput)>` from `resolve_context_for_entry`
-/// contains an entry whose **context_key** (tuple first element) equals `key`.
+/// Helper: check if a `Vec<ResolvedContext>` from `resolve_context_for_entry`
+/// contains an entry whose **context_key** equals `key`.
 ///
-/// F-P2-002: the tuple's first String is the registry-declared `context_key`,
-/// not `output.key`. Use this helper for post-F-P2-002 assertions.
-fn vec_contains_key(v: &[(String, ResolverOutput)], key: &str) -> bool {
-    v.iter().any(|(context_key, _)| context_key == key)
+/// F-P2-002 / F-P3-001: `ResolvedContext.context_key` is the registry-declared
+/// merge key; `ResolvedContext.resolver_name` is the registry name (may differ).
+fn vec_contains_key(v: &[ResolvedContext], key: &str) -> bool {
+    v.iter().any(|ctx| ctx.context_key == key)
 }
 
-/// Helper: look up the value by **context_key** in the `Vec<(String, ResolverOutput)>` returned by
+/// Helper: look up the value by **context_key** in the `Vec<ResolvedContext>` returned by
 /// `resolve_context_for_entry`. Returns `None` when absent.
 ///
-/// F-P2-002: the tuple's first String is the registry-declared `context_key`.
-fn vec_get<'a>(v: &'a [(String, ResolverOutput)], key: &str) -> Option<&'a Value> {
+/// F-P2-002: `ResolvedContext.context_key` is the registry-declared merge key.
+fn vec_get<'a>(v: &'a [ResolvedContext], key: &str) -> Option<&'a Value> {
     v.iter()
-        .find(|(context_key, _)| context_key == key)
-        .and_then(|(_, output)| output.value.as_ref())
+        .find(|ctx| ctx.context_key == key)
+        .and_then(|ctx| ctx.output.value.as_ref())
 }
 
 // ===========================================================================
@@ -353,14 +353,15 @@ fn test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map() {
 #[test]
 fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() {
     let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
-    // F-P2-002: tuple first element is context_key (the merge key), not resolver name.
-    let outputs = vec![(
-        "foo".to_string(), // context_key — this is what merge_resolver_outputs inserts under
-        ResolverOutput {
+    // F-P2-002 / F-P3-001: use ResolvedContext with context_key (merge key) and resolver_name.
+    let outputs = vec![ResolvedContext {
+        context_key: "foo".to_string(), // merge key (F-P2-002)
+        resolver_name: "foo_resolver".to_string(), // registry name (F-P3-001)
+        output: ResolverOutput {
             key: "foo_internal".to_string(), // output.key is informational only (F-P2-002)
             value: None,
         },
-    )];
+    }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -467,14 +468,15 @@ fn test_BC_1_13_001_ac005_invoke_resolver_returns_none_for_missing_resolver() {
 #[test]
 fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
     let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
-    // F-P2-002: tuple first element is context_key; merge inserts under "extra".
-    let outputs = vec![(
-        "extra".to_string(), // context_key = merge key (F-P2-002)
-        ResolverOutput {
+    // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
+    let outputs = vec![ResolvedContext {
+        context_key: "extra".to_string(), // merge key (F-P2-002)
+        resolver_name: "extra_resolver".to_string(), // registry name (F-P3-001)
+        output: ResolverOutput {
             key: "extra_internal".to_string(), // informational only (F-P2-002)
             value: Some(json!({"data": 1})),
         },
-    )];
+    }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -507,15 +509,15 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
     use factory_dispatcher::resolver::CollisionInfo;
 
     let static_config = json!({"foo": "old"}).as_object().unwrap().clone();
-    // F-P2-002: tuple first element is context_key; merge inserts under "foo".
-    // output.key is informational only (not used for merge).
-    let outputs = vec![(
-        "foo".to_string(), // context_key = merge key (F-P2-002)
-        ResolverOutput {
+    // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
+    let outputs = vec![ResolvedContext {
+        context_key: "foo".to_string(), // merge key (F-P2-002)
+        resolver_name: "foo_resolver".to_string(), // registry name (F-P3-001)
+        output: ResolverOutput {
             key: "foo_internal".to_string(), // informational only (F-P2-002)
             value: Some(json!("new")),
         },
-    )];
+    }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -544,13 +546,13 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
         collisions[0],
         CollisionInfo {
             key: "foo".to_string(),
-            // F-P2-002: resolver_name = context_key threaded from (context_key, output) pair.
-            resolver_name: "foo".to_string(),
+            // F-P3-001: resolver_name is registry NAME, not context_key.
+            resolver_name: "foo_resolver".to_string(),
             old_value: json!("old"),
             new_value: json!("new"),
         },
-        "CollisionInfo must contain key='foo', resolver_name='foo' (=context_key), old='old', new='new' \
-         (AC-007 / BC-4.12.005 PC5 + F-P2-002 context_key threaded through merge)"
+        "CollisionInfo must contain key='foo', resolver_name='foo_resolver' (registry name, F-P3-001), \
+         old='old', new='new' (AC-007 / BC-4.12.005 PC5)"
     );
 }
 
@@ -563,14 +565,15 @@ fn test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_mer
         .as_object()
         .unwrap()
         .clone();
-    // F-P2-002: tuple first element is context_key = merge key.
-    let outputs = vec![(
-        "wave_context".to_string(), // context_key = merge key (F-P2-002)
-        ResolverOutput {
+    // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
+    let outputs = vec![ResolvedContext {
+        context_key: "wave_context".to_string(), // merge key (F-P2-002)
+        resolver_name: "wave_context_resolver".to_string(), // registry name (F-P3-001)
+        output: ResolverOutput {
             key: "wave_context_internal".to_string(), // informational only (F-P2-002)
             value: Some(json!({"new": 2})),
         },
-    )];
+    }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -664,7 +667,7 @@ fn test_BC_1_13_001_ac009_declaration_order_is_invocation_order() {
     );
 
     // Verify declaration order is preserved in the output Vec (BC-1.13.001 PC7).
-    let output_order: Vec<&str> = vec.iter().map(|(k, _)| k.as_str()).collect();
+    let output_order: Vec<&str> = vec.iter().map(|ctx| ctx.context_key.as_str()).collect();
     assert_eq!(
         output_order,
         vec!["a", "b"],
@@ -962,14 +965,15 @@ fn test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails() {
 #[test]
 fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
     let static_config = json!({"foo": "bar"}).as_object().unwrap().clone();
-    // F-P2-002: tuple first element is context_key = merge key.
-    let outputs = vec![(
-        "wave_context".to_string(), // context_key = merge key (F-P2-002)
-        ResolverOutput {
+    // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
+    let outputs = vec![ResolvedContext {
+        context_key: "wave_context".to_string(), // merge key (F-P2-002)
+        resolver_name: "wave_context_resolver".to_string(), // registry name (F-P3-001)
+        output: ResolverOutput {
             key: "wave_context_internal".to_string(), // informational only (F-P2-002)
             value: Some(json!({"stories": ["S-1"]})),
         },
-    )];
+    }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -989,22 +993,24 @@ fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
 #[test]
 fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
     let static_config = json!({}).as_object().unwrap().clone();
-    // F-P2-002: tuple first element is context_key = merge key.
+    // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
     let outputs = vec![
-        (
-            "a".to_string(), // context_key = merge key (F-P2-002)
-            ResolverOutput {
+        ResolvedContext {
+            context_key: "a".to_string(), // merge key (F-P2-002)
+            resolver_name: "resolver_a".to_string(), // registry name (F-P3-001)
+            output: ResolverOutput {
                 key: "a_internal".to_string(), // informational only (F-P2-002)
                 value: Some(json!(1)),
             },
-        ),
-        (
-            "b".to_string(), // context_key = merge key (F-P2-002)
-            ResolverOutput {
+        },
+        ResolvedContext {
+            context_key: "b".to_string(), // merge key (F-P2-002)
+            resolver_name: "resolver_b".to_string(), // registry name (F-P3-001)
+            output: ResolverOutput {
                 key: "b_internal".to_string(), // informational only (F-P2-002)
                 value: Some(json!(2)),
             },
-        ),
+        },
     ];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -1030,14 +1036,15 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
 #[test]
 fn test_BC_4_12_005_ec002_empty_object_value_produces_present_key_with_empty_object() {
     let static_config = json!({}).as_object().unwrap().clone();
-    // F-P2-002: tuple first element is context_key = merge key.
-    let outputs = vec![(
-        "resolver_key".to_string(), // context_key = merge key (F-P2-002)
-        ResolverOutput {
+    // F-P2-002 / F-P3-001: use ResolvedContext with context_key and resolver_name.
+    let outputs = vec![ResolvedContext {
+        context_key: "resolver_key".to_string(), // merge key (F-P2-002)
+        resolver_name: "resolver_key_resolver".to_string(), // registry name (F-P3-001)
+        output: ResolverOutput {
             key: "resolver_key_internal".to_string(), // informational only (F-P2-002)
             value: Some(json!({})),
         },
-    )];
+    }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -1248,7 +1255,7 @@ fn test_F_P2_002_context_key_wins_over_output_key_in_merge() {
         .register(Box::new(resolver))
         .expect("first registration must succeed");
 
-    // resolve_context_for_entry uses context_key() = "declared_key" as the tuple string.
+    // resolve_context_for_entry returns Vec<ResolvedContext> with context_key = "declared_key".
     let resolver_outputs = registry.resolve_context_for_entry(
         &["my-resolver".to_string()],
         &test_input(),
@@ -1262,15 +1269,20 @@ fn test_F_P2_002_context_key_wins_over_output_key_in_merge() {
         "F-P2-002: resolve_context_for_entry must return exactly one output"
     );
 
-    // The tuple's first String must be the declared context_key, not output.key.
-    let (context_key, output) = &resolver_outputs[0];
+    // ResolvedContext.context_key must be the declared context_key, not output.key.
+    // ResolvedContext.resolver_name must be the registry name.
+    let ctx = &resolver_outputs[0];
     assert_eq!(
-        context_key, "declared_key",
-        "F-P2-002: tuple first element must be the registry-declared context_key 'declared_key', \
-         not the resolver's output.key 'ignored_key'"
+        ctx.context_key, "declared_key",
+        "F-P2-002: ResolvedContext.context_key must be the registry-declared context_key \
+         'declared_key', not the resolver's output.key 'ignored_key'"
     );
     assert_eq!(
-        output.key, "ignored_key",
+        ctx.resolver_name, "my-resolver",
+        "F-P3-001: ResolvedContext.resolver_name must be the registry name 'my-resolver'"
+    );
+    assert_eq!(
+        ctx.output.key, "ignored_key",
         "F-P2-002: output.key is informational — must still carry 'ignored_key'"
     );
 

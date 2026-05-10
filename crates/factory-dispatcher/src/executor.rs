@@ -538,9 +538,10 @@ fn build_plugin_config(
         }
     };
 
-    // resolve_context_for_entry returns Vec<(context_key, ResolverOutput)> in
-    // declaration order (BC-1.13.001 PC7 / F-P5-003 Option A / F-P2-002).
-    // The context_key is the registry-declared key; output.key is informational.
+    // resolve_context_for_entry returns Vec<ResolvedContext> in declaration order
+    // (BC-1.13.001 PC7 / F-P5-003 Option A / F-P2-002 / F-P3-001).
+    // Each ResolvedContext carries context_key (merge key), resolver_name
+    // (registry name for telemetry), and output.
     let resolver_outputs = resolver_registry.resolve_context_for_entry(
         &entry.needs_context,
         &resolver_input,
@@ -550,12 +551,13 @@ fn build_plugin_config(
 
     // AC-007: merge_resolver_outputs is pure (BC-4.12.005 INV1, architect Path B).
     // Collisions are returned as Vec<CollisionInfo>; caller emits telemetry for each.
-    // F-P5-003 / F-P2-002: (context_key, ResolverOutput) pairs thread the registry-declared
-    // context_key through so merge always uses context_key, not output.key.
+    // F-P5-003 / F-P2-002 / F-P3-001: ResolvedContext carries both context_key (merge key)
+    // and resolver_name (registry name) so CollisionInfo.resolver_name is the registry NAME,
+    // not the context_key.
     let (merged_map, collisions) = merge_resolver_outputs(static_map, &resolver_outputs);
 
-    // F-P4-001B / F-P2-002: emit resolver_name (= context_key) in each merge_collision
-    // event for per-resolver traceability (BC-4.12.004 wire format).
+    // F-P4-001B / F-P2-002 / F-P3-001: emit resolver_name (registry NAME, not context_key)
+    // in each merge_collision event for per-resolver traceability (BC-4.12.004 wire format).
     for collision in collisions {
         let ev = InternalEvent::now("resolver.merge_collision")
             .with_trace_id(trace_id)
