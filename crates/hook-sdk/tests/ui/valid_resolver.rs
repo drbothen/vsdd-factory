@@ -22,6 +22,12 @@ use vsdd_hook_sdk::{ResolverInput, ResolverOutput, resolver};
 // verifies macro acceptance — NOT export presence. The named-export verification lives
 // in tests/wasm32_resolver_export_integration.rs (currently #[ignore]'d; workspace
 // WASM build covers the compile path).
+//
+// (Test Plan note: AC-005 coverage is split — host trybuild verifies macro
+// acceptance only; named-export verification lives in
+// tests/wasm32_resolver_export_integration.rs (#[ignore] by default).
+// Story spec Test Plan row for AC-005 will be updated in a follow-up story-writer
+// burst to document this split. See F-P5-002 in adversary-pass-5.md.)
 #[resolver]
 fn resolve_impl(input: ResolverInput) -> ResolverOutput {
     ResolverOutput {
