@@ -505,6 +505,17 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
          envelope event type, e.g. 'PreToolUse') per HOST_ABI.md line 1097. \
          Log content: {all_log_content:?}"
     );
+    // F-P4-005: trace_id positive-coverage assertion. The dispatch context in
+    // make_executor_inputs sets dispatcher_trace_id = "resolver-test-trace" (line 119).
+    // The resolver.error event MUST include this value — if with_trace_id() is ever
+    // accidentally removed, this assertion catches the regression (POL-11 tautology gap).
+    assert!(
+        all_log_content.contains("resolver-test-trace"),
+        "F-P4-005: resolver.error event must include the dispatch trace_id \
+         ('resolver-test-trace'). Positive coverage check — ensures with_trace_id() \
+         wiring isn't dropped silently in a regression. \
+         Log content: {all_log_content:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
