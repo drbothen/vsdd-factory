@@ -490,3 +490,93 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
          for a ResolverError::Crashed variant. Log content: {all_log_content:?}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// F-P4-001B: resolver.merge_collision event carries resolver_name
+// ---------------------------------------------------------------------------
+
+/// F-P4-001B (integration test):
+/// When a resolver output key collides with a static config key,
+/// `execute_tiers` must emit a `resolver.merge_collision` event that
+/// carries the `resolver_name` field so each collision is traceable
+/// (BC-4.12.004 wire format).
+///
+/// Setup: static config has `{"collision-key": "static"}` and a
+/// `CountingResolver` named "collision-key" returns `{"collision-key": "resolved"}`.
+#[tokio::test(flavor = "current_thread")]
+async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+    let log_dir = dir.path().join("logs");
+    let internal_log = Arc::new(InternalLog::new(log_dir.clone()));
+
+    let wasm = compile_wasm(dir.path(), "ok_collision");
+    // Build entry with static config key "collision-key" so the resolver output collides.
+    let mut toml_map = toml::Table::new();
+    toml_map.insert(
+        "collision-key".to_string(),
+        toml::Value::String("static".to_string()),
+    );
+    let entry = RegistryEntry {
+        name: "collision-hook".to_string(),
+        event: "PreToolUse".to_string(),
+        tool: None,
+        plugin: wasm,
+        priority: Some(100),
+        enabled: true,
+        timeout_ms: Some(2_000),
+        fuel_cap: Some(1_000_000_000),
+        on_error: None,
+        capabilities: Some(Capabilities::default()),
+        config: toml::Value::Table(toml_map),
+        async_flag: false,
+        needs_context: vec!["collision-key".to_string()],
+    };
+    let registry = make_registry(vec![entry]);
+    let matched: Vec<&factory_dispatcher::registry::RegistryEntry> =
+        registry.hooks.iter().collect();
+    let tiers = factory_dispatcher::routing::group_by_priority(&registry, matched);
+
+    // Resolver "collision-key" returns a value for key "collision-key" — causes collision.
+    let (resolver, _call_count) = CountingResolver::new("collision-key");
+    let mut resolver_registry = ResolverRegistry::new();
+    resolver_registry
+        .register(Box::new(resolver))
+        .expect("registration must succeed");
+    let resolver_registry = Arc::new(resolver_registry);
+
+    let inputs = make_executor_inputs(&engine, &cache, &registry, &internal_log, resolver_registry);
+    let summary = execute_tiers(inputs, tiers).await;
+
+    assert_eq!(
+        summary.per_plugin_results.len(),
+        1,
+        "F-P4-001B: one plugin must have run"
+    );
+
+    drop(internal_log);
+
+    let all_log_content: String = std::fs::read_dir(&log_dir)
+        .expect("log dir must exist after dispatch")
+        .filter_map(|e| e.ok())
+        .filter_map(|e| std::fs::read_to_string(e.path()).ok())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    assert!(
+        all_log_content.contains("resolver.merge_collision"),
+        "F-P4-001B: InternalLog must contain a 'resolver.merge_collision' event. \
+         Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("resolver_name"),
+        "F-P4-001B: 'resolver.merge_collision' event must carry 'resolver_name' field \
+         (BC-4.12.004 wire format). Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("collision-key"),
+        "F-P4-001B: 'resolver_name' in merge_collision event must equal 'collision-key'. \
+         Log content: {all_log_content:?}"
+    );
+}
