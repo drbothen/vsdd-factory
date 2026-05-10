@@ -163,15 +163,17 @@ fn test_BC_4_12_001_failed_compile_returns_compile_error() {
 
     // TOML with a resolver entry pointing to a .wasm file that does not exist.
     // Uses `plugin` field (F-P1-003 rename from `path`) and `context_key` (F-P1-004).
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let dir_toml = dir.path().to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "missing-wasm"
-plugin = "{}/nonexistent.wasm"
+plugin = "{dir_toml}/nonexistent.wasm"
 context_key = "missing_wasm"
-"#,
-        dir.path().display()
+"#
     );
     let path = write_file(
         dir.path(),
@@ -445,17 +447,18 @@ fn test_resolver_path_allow_is_project_dir_relative() {
     std::fs::create_dir_all(&allowed_subdir).expect("create allowed subdir");
     let allowed_rel = "allowed"; // relative to project_dir
 
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let fixture_toml = fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "path-allow-resolver"
-plugin = "{}"
+plugin = "{fixture_toml}"
 context_key = "path_ctx"
-path_allow = ["{}"]
-"#,
-        fixture.display(),
-        allowed_rel
+path_allow = ["{allowed_rel}"]
+"#
     );
     let registry_dir = tempfile::tempdir().expect("registry tempdir");
     let registry_path = registry_dir.path().join("resolvers-registry.toml");
@@ -541,15 +544,17 @@ fn test_F_P2_001_epoch_deadline_fires_resolver_timeout() {
     let _ticker = EpochTicker::start(engine.clone());
 
     let dir = tempfile::tempdir().expect("tempdir");
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let fixture_toml = fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "long-running-resolver"
-plugin = "{}"
+plugin = "{fixture_toml}"
 context_key = "long_running_ctx"
-"#,
-        fixture.display()
+"#
     );
     let registry_path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&registry_path, toml_content).expect("write registry TOML");
@@ -619,16 +624,18 @@ context_key = "long_running_ctx"
 #[test]
 fn test_F_P2_003_fail_closed_true_aborts_registry_load() {
     let dir = tempfile::tempdir().expect("tempdir");
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let dir_toml = dir.path().to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "strict-resolver"
-plugin = "{}/nonexistent.wasm"
+plugin = "{dir_toml}/nonexistent.wasm"
 context_key = "strict_ctx"
 fail_closed = true
-"#,
-        dir.path().display()
+"#
     );
     let path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&path, toml_content).expect("write registry TOML");
@@ -652,15 +659,17 @@ fail_closed = true
 #[test]
 fn test_F_P2_003_fail_closed_default_aborts_registry_load() {
     let dir = tempfile::tempdir().expect("tempdir");
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let dir_toml = dir.path().to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "default-fail-resolver"
-plugin = "{}/nonexistent.wasm"
+plugin = "{dir_toml}/nonexistent.wasm"
 context_key = "default_ctx"
-"#,
-        dir.path().display()
+"#
     );
     let path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&path, toml_content).expect("write registry TOML");
@@ -695,22 +704,24 @@ fn test_F_P2_003_fail_closed_false_skips_entry_and_loads_remainder() {
     );
 
     let dir = tempfile::tempdir().expect("tempdir");
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let dir_toml = dir.path().to_string_lossy().replace('\\', "/");
+    let valid_fixture_toml = valid_fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "optional-resolver"
-plugin = "{}/nonexistent.wasm"
+plugin = "{dir_toml}/nonexistent.wasm"
 context_key = "optional_ctx"
 fail_closed = false
 
 [[resolvers]]
 name = "valid-resolver"
-plugin = "{}"
+plugin = "{valid_fixture_toml}"
 context_key = "valid_ctx"
-"#,
-        dir.path().display(),
-        valid_fixture.display()
+"#
     );
     let path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&path, toml_content).expect("write registry TOML");
@@ -787,16 +798,18 @@ unknown_top_level_key = "should-fail"
 #[test]
 fn test_F_P2_006_unknown_resolver_entry_field_is_parse_error() {
     let dir = tempfile::tempdir().expect("tempdir");
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let dir_toml = dir.path().to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "test-resolver"
-plugin = "{}/placeholder.wasm"
+plugin = "{dir_toml}/placeholder.wasm"
 context_key = "test_ctx"
 unknown_field_in_entry = "should-fail"
-"#,
-        dir.path().display()
+"#
     );
     let path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&path, toml_content).expect("write registry TOML");
@@ -896,15 +909,17 @@ fn test_F_P3_004_empty_project_dir_returns_abi_violation() {
         factory_dispatcher::engine::build_engine().expect("F-P3-004: build_engine must succeed");
     let dir = tempfile::tempdir().expect("tempdir");
 
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let fixture_toml = fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "empty-dir-resolver"
-plugin = "{}"
+plugin = "{fixture_toml}"
 context_key = "empty_dir_ctx"
-"#,
-        fixture.display()
+"#
     );
     let registry_path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&registry_path, toml_content).expect("write registry TOML");
@@ -972,15 +987,17 @@ fn test_F_P4_003_empty_name_returns_parse_error() {
     let dir = tempfile::tempdir().expect("tempdir");
 
     // TOML entry with name = "" — must be rejected before compilation.
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let fixture_toml = fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = ""
-plugin = "{}"
+plugin = "{fixture_toml}"
 context_key = "some_ctx"
-"#,
-        fixture.display()
+"#
     );
     let registry_path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&registry_path, toml_content).expect("write registry TOML");
@@ -1013,15 +1030,17 @@ fn test_F_P4_003_empty_context_key_returns_parse_error() {
     let dir = tempfile::tempdir().expect("tempdir");
 
     // TOML entry with context_key = "" — must be rejected before compilation.
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let fixture_toml = fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "my-resolver"
-plugin = "{}"
+plugin = "{fixture_toml}"
 context_key = ""
-"#,
-        fixture.display()
+"#
     );
     let registry_path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&registry_path, toml_content).expect("write registry TOML");
@@ -1066,16 +1085,18 @@ fn test_F_P4_004_resolver_load_warning_wire_format_is_writable() {
 
     // Set up registry TOML pointing to a non-existent wasm file with fail_closed = false.
     let nonexistent_wasm = dir.path().join("does-not-exist.wasm");
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let nonexistent_wasm_toml = nonexistent_wasm.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "warn-resolver"
-plugin = "{}"
+plugin = "{nonexistent_wasm_toml}"
 context_key = "warn_ctx"
 fail_closed = false
-"#,
-        nonexistent_wasm.display()
+"#
     );
     let registry_path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&registry_path, toml_content).expect("write registry TOML");
