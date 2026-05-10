@@ -438,6 +438,19 @@ impl ContextResolver for CompiledWasmResolver {
     /// - Copy output bytes from WASM memory
     /// - Deserialize JSON → `ResolverOutput`
     fn resolve(&self, input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+        // F-P3-004: Defensively validate project_dir non-empty before constructing
+        // HostContext. BC-4.12.003 INV4 requires project-relative path resolution;
+        // an empty project_dir would silently root all path_allow entries at "/"
+        // which violates the capability model.
+        if input.project_dir.is_empty() {
+            return Err(ResolverError::AbiViolation {
+                name: self.name.clone(),
+                detail: "ResolverInput.project_dir must not be empty \
+                         (BC-4.12.003 INV4 requires project-relative path resolution)"
+                    .to_string(),
+            });
+        }
+
         // Build HostContext with resolver's path_allow wired in (BC-4.12.003 / F-P1-007).
         // The `cwd` is set to the project_dir from the resolver input so that
         // path_allow entries are resolved relative to CLAUDE_PROJECT_DIR (F-P1-008).

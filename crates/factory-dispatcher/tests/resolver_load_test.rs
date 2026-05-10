@@ -863,3 +863,84 @@ fn test_capability_denied_when_resolver_attempts_disallowed_read() {
          read_file capability. Got Ok — deny-by-default is not enforced."
     );
 }
+
+// ---------------------------------------------------------------------------
+// F-P3-004 — reject empty project_dir as AbiViolation in CompiledWasmResolver::resolve
+//
+// BC-4.12.003 INV4: path_allow entries are resolved relative to project_dir.
+// An empty project_dir would silently root all paths at "/" which violates
+// the capability model. Reject early with AbiViolation.
+// ---------------------------------------------------------------------------
+
+/// test_F_P3_004_empty_project_dir_returns_abi_violation
+///
+/// Invokes a real WASM resolver with `project_dir = ""` and asserts that
+/// `invoke_resolver_wasm_for_testing` returns `Err(ResolverError::AbiViolation)`.
+///
+/// The check must fire BEFORE any WASM instantiation — a trapping resolver
+/// should NOT trap first; the AbiViolation guard is the first code path
+/// exercised in `CompiledWasmResolver::resolve`.
+#[test]
+fn test_F_P3_004_empty_project_dir_returns_abi_violation() {
+    use factory_dispatcher::resolver::{ResolverError, ResolverInput};
+
+    let fixture = trapping_resolver_wasm();
+    assert!(
+        fixture.exists(),
+        "F-P3-004: trapping_resolver.wasm must exist at {:?}",
+        fixture
+    );
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-P3-004: build_engine must succeed");
+    let dir = tempfile::tempdir().expect("tempdir");
+
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "empty-dir-resolver"
+plugin = "{}"
+context_key = "empty_dir_ctx"
+"#,
+        fixture.display()
+    );
+    let registry_path = dir.path().join("resolvers-registry.toml");
+    std::fs::write(&registry_path, toml_content).expect("write registry TOML");
+
+    let loader = factory_dispatcher::resolver_loader::ResolverLoader::new(engine);
+    let (registry, _warnings) = loader
+        .load_registry(&registry_path)
+        .expect("F-P3-004: load_registry must succeed");
+
+    // Invoke with project_dir = "" — must be rejected as AbiViolation BEFORE instantiation.
+    let input = ResolverInput {
+        event_type: "PreToolUse".to_string(),
+        hook_event_name: "test-hook".to_string(),
+        agent_type: None,
+        project_dir: "".to_string(), // Empty — must be rejected
+        plugin_config: serde_json::json!({}),
+    };
+
+    let result = registry.invoke_resolver_wasm_for_testing("empty-dir-resolver", &input);
+
+    match result {
+        Err(ResolverError::AbiViolation { name, detail }) => {
+            assert_eq!(
+                name, "empty-dir-resolver",
+                "F-P3-004: AbiViolation.name must equal the resolver name"
+            );
+            assert!(
+                detail.contains("project_dir"),
+                "F-P3-004: AbiViolation.detail must mention 'project_dir'. Got: {detail}"
+            );
+        }
+        other => {
+            panic!(
+                "F-P3-004: empty project_dir must produce ResolverError::AbiViolation, \
+                 got {:?} — the validation guard in CompiledWasmResolver::resolve is not firing",
+                other
+            );
+        }
+    }
+}
