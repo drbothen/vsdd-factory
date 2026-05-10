@@ -4,7 +4,6 @@
 
 ### Added (gated behind `resolver-authoring` feature)
 - `ResolverInput` and `ResolverOutput` types per BC-4.12.002
-- `Resolver` trait per BC-4.12.001
 - `RESOLVER_ABI_VERSION` constant (currently `1`)
 - `#[resolver]` proc-macro re-export from `hook-sdk-macros`
 

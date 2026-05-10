@@ -37,14 +37,3 @@ pub struct ResolverOutput {
     pub value: Option<Value>,
 }
 
-/// Resolver trait — optional architectural companion to the `Hook` trait.
-///
-/// Implement this trait and use the `#[resolver]` macro to produce a WASM resolver plugin.
-/// Parallel to the existing `Hook` trait for hook plugins.
-pub trait Resolver {
-    /// Returns the resolver's context key (the `plugin_config` key under which output is written).
-    fn context_key(&self) -> &str;
-
-    /// Resolve context for a given dispatch.
-    fn resolve(&self, input: ResolverInput) -> ResolverOutput;
-}
