@@ -65,8 +65,18 @@ pub struct ResolverOutput {
 /// Errors produced during resolver invocation or registry operations.
 ///
 /// Covers the error categories documented in the story's Dev Notes and
-/// BC-4.12.004 (crash isolation). S-12.04 adds WASM-specific sources.
-#[derive(Debug, Error)]
+/// BC-4.12.004 (crash isolation). S-12.04 adds WASM-specific variants.
+///
+/// `#[non_exhaustive]` allows adding fields to existing variants and new
+/// variants in S-12.04+ without a breaking ABI change (F-P2-006).
+///
+/// `#[serde(tag = "kind")]` emits `{"kind": "NotFound", "name": "..."}` —
+/// forward-compatible wire format for the WASM boundary S-12.04 introduces
+/// (F-P2-003). `Io` variant dropped: resolver.rs is in-memory only per
+/// Forbidden Dependencies; I/O errors land in `ResolverLoadError` (S-12.04).
+#[non_exhaustive]
+#[derive(Debug, Error, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(tag = "kind")]
 pub enum ResolverError {
     /// Resolver named `name` is not registered in the registry.
     /// Emits `resolver.not_found` event (BC-1.13.001 PC6).
@@ -95,10 +105,6 @@ pub enum ResolverError {
     /// Malformed source data discovered during resolver invocation.
     #[error("malformed source data for resolver '{resolver}': {detail}")]
     Malformed { resolver: String, detail: String },
-
-    /// I/O error during resolver invocation (e.g. reading a .wasm file).
-    #[error("I/O error during resolver invocation: {0}")]
-    Io(#[from] std::io::Error),
 
     /// A resolver with the same `name()` has already been registered.
     /// Emits `resolver.load_error` event (BC-4.12.005 PC6 / EC-005 —
