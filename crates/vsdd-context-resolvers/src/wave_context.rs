@@ -26,10 +26,11 @@ use serde::Deserialize;
 /// All list fields use `#[serde(default)]` to tolerate partial YAML entries.
 /// `gate_status` uses `Option<String>` with `#[serde(default)]` to handle the
 /// AC-005 four-case truth table:
-///   Case 1: key absent → None (serde default) → wave NOT completed
-///   Case 2: key present, YAML null/~ → None → wave NOT completed
-///   Case 3: key present, "not_started" / "pending" → Some("...") → NOT completed
-///   Case 4: key present, "completed" → Some("completed") → wave is done
+///   Case 1: key absent → None (serde default) → wave is NOT terminal
+///   Case 2: key present, YAML null/~ → None → wave is NOT terminal
+///   Case 3: key present, "not_started" / "pending" → Some("...") → NOT terminal
+///   Case 4: key present, terminal value
+///           ("passed" | "deferred" | "failed" | "completed") → wave is terminal
 #[derive(Debug, Clone, Deserialize)]
 pub struct WaveEntry {
     /// Wave identifier (e.g., "F4", "wave-3").
@@ -40,7 +41,7 @@ pub struct WaveEntry {
     /// Story IDs already merged in this wave.
     #[serde(default)]
     pub stories_merged: Vec<String>,
-    /// Gate status — None means not yet set (wave is not completed).
+    /// Gate status — None means not yet set (wave is not in a terminal state per BC-8.14.009).
     #[serde(default)]
     pub gate_status: Option<String>,
     /// Optional extra field from producer (round-tripped to preserve unknown data).
@@ -54,8 +55,8 @@ pub struct WaveEntry {
 /// Top-level `.factory/wave-state.yaml` structure.
 ///
 /// Mirrors the canonical schema from `update-wave-state-on-merge/src/lib.rs`.
-/// `Default` yields an empty waves list — used as the all-None post-parse-failure
-/// path in `resolve_impl`.
+/// `Default` yields an empty waves list — used as the empty-waves fallback
+/// when YAML parse fails in `resolve_impl`.
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct WaveState {
     /// All waves in the pipeline, in order from earliest to latest.

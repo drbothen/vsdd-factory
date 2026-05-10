@@ -29,8 +29,9 @@ proptest = { workspace = true }
 
 # vsdd-context-resolvers enforces DENY for panic-inducing patterns at the crate level.
 # AC-010 / BC-4.12.004 INV1: WASM resolver panics are traps — there is no recovery path.
-# workspace = true cannot be combined with local clippy overrides; we specify all
-# relevant workspace lints explicitly here.
+# Crate-level strictness overrides: panic-class lints elevated from workspace 'warn' to 'deny'
+# per BC-4.12.004 INV1 (no unwrap/expect/panic in production resolver code). Other workspace
+# lints apply at their default level.
 [lints.rust]
 non_snake_case = "allow"
 # unexpected_cfgs for cfg(kani) is declared at workspace level (root Cargo.toml lines 107-112).

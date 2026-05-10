@@ -137,7 +137,8 @@ pub fn resolve_impl(input: ResolverInput) -> ResolverOutput {
 /// `cycle_id` extracted from STATE.md frontmatter.
 ///
 /// Returns `ResolverOutput { key: "wave_context", value: Some({...}) }` when:
-/// - An active wave exists (last wave with `gate_status != "completed"`)
+/// - An active wave exists (last wave with `gate_status` not in TERMINAL_STATES
+///   per BC-8.14.009: "passed" | "deferred" | "failed" | "completed")
 /// - That wave has at least one story in its `stories` list
 /// - `cycle_id` is `Some`
 ///
@@ -165,7 +166,8 @@ pub fn resolve_wave_context_pure(
         }
     };
 
-    // Find active wave: last entry with gate_status != Some("completed").
+    // Find active wave: last entry with gate_status not in TERMINAL_STATES
+    // (per BC-8.14.009: "passed" | "deferred" | "failed" | "completed").
     let active = match wave_context::find_active_wave(wave_state) {
         Some(w) => w,
         None => {

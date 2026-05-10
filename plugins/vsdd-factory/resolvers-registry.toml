@@ -7,9 +7,9 @@ schema_version = 1
 # declare `needs_context = ["wave_context"]`. Reads .factory/wave-state.yaml
 # and .factory/STATE.md (both within path_allow). (BC-4.12.003 INV1, AC-005, AC-009)
 #
-# Pass-1 fix (F-001): added required context_key field (was missing, caused ParseError).
-# Pass-1 fix (F-002): renamed name "wave-context" → "wave_context" (underscore)
-#   per BC-4.12.005 PC7 canonical key.
+# Canonical key "wave_context" (underscore) per BC-4.12.005 PC7.
+# Both 'name' and 'context_key' use the same form to keep needs_context entries
+# (in hooks-registry.toml) and the merged plugin_config key aligned.
 [[resolvers]]
 name = "wave_context"
 plugin = "hook-plugins/vsdd-context-resolvers.wasm"
