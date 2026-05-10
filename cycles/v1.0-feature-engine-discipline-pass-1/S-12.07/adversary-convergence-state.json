@@ -1,0 +1,1 @@
+{"story_id": "S-12.07", "pass": 1, "verdict": "CRITICAL", "findings_count": {"critical": 3, "high": 4, "medium": 4, "low": 3, "nitpick": 1, "process_gap": 2}, "convergence_reached": false, "timestamp": "2026-05-10T00:00:00Z"}
