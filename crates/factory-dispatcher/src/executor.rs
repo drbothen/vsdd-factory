@@ -476,8 +476,9 @@ fn build_plugin_config(
     let trace_id_err = trace_id.to_string();
 
     // AC-005: emit resolver.not_found when a named resolver is absent.
+    // Clone InternalLog (PathBuf wrapper) so the closure captures by value — no unsafe needed.
     let emit_not_found = {
-        let internal_log_ref: *const InternalLog = internal_log;
+        let log = internal_log.clone();
         move |missing_name: &str| {
             let ev = InternalEvent::now("resolver.not_found")
                 .with_trace_id(&trace_id_nf)
@@ -486,15 +487,13 @@ fn build_plugin_config(
                     "resolver_name",
                     serde_json::Value::String(missing_name.to_string()),
                 );
-            // SAFETY: internal_log outlives this closure (called within build_plugin_config
-            // which holds &InternalLog for its entire duration).
-            unsafe { &*internal_log_ref }.write(&ev);
+            log.write(&ev);
         }
     };
 
     // AC-007 / SOUL #4: emit resolver.error when a resolver returns Err.
     let emit_resolver_error = {
-        let internal_log_ref: *const InternalLog = internal_log;
+        let log = internal_log.clone();
         move |err_name: &str, err: &crate::resolver::ResolverError| {
             let ev = InternalEvent::now("resolver.error")
                 .with_trace_id(&trace_id_err)
@@ -504,8 +503,7 @@ fn build_plugin_config(
                     serde_json::Value::String(err_name.to_string()),
                 )
                 .with_field("error", serde_json::Value::String(format!("{err:?}")));
-            // SAFETY: same as emit_not_found above.
-            unsafe { &*internal_log_ref }.write(&ev);
+            log.write(&ev);
         }
     };
 
