@@ -193,8 +193,11 @@ mod tests {
     /// There is no From/Into/Deref relationship between them.
     ///
     /// This structural test verifies they are not type aliases and have
-    /// independent field sets. The negative compile test (type mismatch)
-    /// is in tests/ui/type_mismatch.rs via trybuild.
+    /// independent field sets. The authoritative AC-004 falsifiable witness is
+    /// the trybuild compile-fail test `tests/ui/type_mismatch.rs`, which asserts
+    /// that the Rust compiler rejects assigning a `HookPayload` where a
+    /// `ResolverInput` is expected (no implicit conversion). A future
+    /// `From<HookPayload> for ResolverInput` impl would be caught there.
     ///
     /// Traces: AC-004, BC-4.12.002 invariant 1.
     #[test]
@@ -226,11 +229,10 @@ mod tests {
 
         // HookPayload has event_name; ResolverInput has event_type — distinct fields.
         // The types are structurally independent per BC-4.12.002 INV1.
-        assert_ne!(
-            std::mem::size_of::<ResolverInput>(),
-            std::mem::size_of::<HookPayload>(),
-            "ResolverInput and HookPayload must not be the same type (AC-004)"
-        );
+        // Authoritative AC-004 coverage: tests/ui/type_mismatch.rs (trybuild compile-fail).
+        // (size_of comparison removed — it was a tautology: the types have different
+        //  field sets so size_of always differs, and a future same-size struct would
+        //  produce a false negative. trybuild is the authoritative check.)
 
         // Verify the distinct module paths are stable
         let _ = resolver_input;
