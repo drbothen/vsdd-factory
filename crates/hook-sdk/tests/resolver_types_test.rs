@@ -476,6 +476,10 @@ mod proptest_tests {
         prop_oneof![Just(None), ".*".prop_map(Some),]
     }
 
+    // Note: agent_type: Option<String> does NOT need the Some(Null) prop_filter
+    // that arb_resolver_output uses for Option<Value>. Option<String> serializes
+    // JSON null → None and Some("null") → Some("null") (a string), with no
+    // degenerate path. Only Option<Value> has the BC-4.12.002 EC-001 ambiguity.
     // Arbitrary strategy for ResolverInput
     fn arb_resolver_input() -> impl Strategy<Value = ResolverInput> {
         (
