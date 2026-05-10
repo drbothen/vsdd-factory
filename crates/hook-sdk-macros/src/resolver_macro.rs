@@ -18,6 +18,18 @@ const SIGNATURE_HELP: &str = "#[resolver] expects exactly one argument of type `
 /// The annotated function MUST be named `resolve_impl` and MUST have the exact
 /// signature `fn resolve_impl(input: ResolverInput) -> ResolverOutput`.
 ///
+/// # Crate-type compatibility
+///
+/// The `#[resolver]` macro emits `fn main() {}` along with the WASM `resolve()`
+/// export. This is intentional for `cdylib` and `[[bin]]` crates being compiled to
+/// WASM (which need a main symbol in some toolchain configurations) but means
+/// that crates using `#[resolver]` must NOT also define their own `fn main()`.
+/// Doing so produces E0428 (duplicate definition).
+///
+/// **Recommended:** Use `#[resolver]` in a `[lib] crate-type = ["cdylib"]` crate
+/// (matching the `wasm-resolver-export` example pattern) where there is no user-
+/// defined main.
+///
 /// The macro generates a `pub extern "C" fn resolve(input_ptr: i32, input_len: i32) -> i64`
 /// WASM export that:
 ///
