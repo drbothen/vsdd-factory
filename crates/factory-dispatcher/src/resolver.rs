@@ -276,6 +276,23 @@ impl ResolverRegistry {
         outputs
     }
 
+    /// Invoke a WASM-backed resolver module by name, passing `input` through
+    /// the host linker and returning its output.
+    ///
+    /// Non-trivial: performs wasmtime instantiation, host-linker wiring, and
+    /// WASM execution with fuel enforcement. S-12.04 Step 3 implementation.
+    ///
+    /// Returns `Ok(Some(output))` on success, `Ok(None)` when the resolver
+    /// produces no context for this event, or `Err(ResolverError)` on trap or
+    /// ABI violation.
+    pub fn invoke_resolver_wasm(
+        &self,
+        _name: &str,
+        _input: &ResolverInput,
+    ) -> Result<Option<ResolverOutput>, ResolverError> {
+        todo!("S-12.04 Step 3 implementation")
+    }
+
     /// Number of registered resolvers (for startup log: "Loaded N context resolvers").
     pub fn len(&self) -> usize {
         self.resolvers.len()

@@ -303,6 +303,12 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // registered (WASM-backed resolvers are wired in S-12.04). The empty
     // registry is valid — hooks with empty needs_context skip it with zero
     // overhead (BC-1.13.001 PC3 / AC-002).
+    //
+    // TODO(S-12.04 Step 3): replace `ResolverRegistry::new()` with
+    // `ResolverLoader::load_registry(&resolvers_registry_path)` once the
+    // loader is implemented. The path resolves to
+    // `${CLAUDE_PLUGIN_ROOT}/resolvers-registry.toml`; absent file remains
+    // a non-error (BC-1.13.001 INV2 — zero resolvers, not a failure).
     let resolver_registry = Arc::new(ResolverRegistry::new());
 
     // S-15.01 T-3c: build executor inputs and run sync_group first.

@@ -24,6 +24,9 @@ pub mod plugin_loader;
 pub mod registry;
 pub mod resolver;
 pub use resolver::CollisionInfo;
+pub mod resolver_classify_trap;
+pub mod resolver_loader;
+pub use resolver_loader::{ResolverLoadError, ResolverLoader};
 pub mod routing;
 pub mod sinks;
 

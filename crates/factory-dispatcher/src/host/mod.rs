@@ -155,6 +155,18 @@ pub enum HostCallError {
     Linker(String),
 }
 
+/// Build a `Linker<HostContext>` configured for WASM resolver modules.
+///
+/// Resolver modules use a subset of the full plugin host ABI: they may
+/// not exec subprocesses or write files. This linker wires only the
+/// context-injection imports declared by `HOST_ABI.md §Resolver ABI`.
+///
+/// Non-trivial: registers host functions, applies capability restrictions,
+/// and returns the configured linker. S-12.04 Step 3 implementation.
+pub fn resolver_linker(_engine: &Engine) -> Linker<HostContext> {
+    todo!("S-12.04 Step 3")
+}
+
 /// Register every `vsdd::*` host import with a fresh linker.
 ///
 /// Call once per wasmtime [`Engine`] during dispatcher startup; reuse
