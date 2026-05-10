@@ -512,19 +512,30 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
 // ---------------------------------------------------------------------------
 
 /// A resolver whose registry name is distinct from the output key it produces.
-/// Used by F-P4-001B / F-P5-003 to verify that `resolver_name` in the
-/// `resolver.merge_collision` event reflects the registry identity, not just
-/// the output key.
+/// Used by F-P4-001B / F-P5-003 / F-P2-002 to verify that `resolver_name` in the
+/// `resolver.merge_collision` event reflects the declared context_key (merge key).
+///
+/// F-P2-002: merge uses context_key(), not output.key. This struct overrides
+/// context_key() to enable testing a resolver whose declared merge key ("collision-key")
+/// differs from its registry name ("test_resolver_alpha") — proving that output.key
+/// is informational only.
 struct NamedKeyResolver {
     /// Registry name of this resolver (what `name()` returns).
     registry_name: String,
-    /// The output key this resolver produces (may differ from registry_name).
+    /// The registry-declared context_key (what `context_key()` returns — the MERGE key).
+    /// F-P2-002: this is what determines where output is stored in plugin_config.
+    declared_context_key: String,
+    /// The output key this resolver produces (informational only per F-P2-002).
     output_key: String,
 }
 
 impl ContextResolver for NamedKeyResolver {
     fn name(&self) -> &str {
         &self.registry_name
+    }
+
+    fn context_key(&self) -> &str {
+        &self.declared_context_key
     }
 
     fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
@@ -542,13 +553,14 @@ impl ContextResolver for NamedKeyResolver {
 /// resolver (not the output key) — proving F-P5-003 resolver identity
 /// threading works end-to-end (BC-4.12.004 wire format).
 ///
-/// Setup (de-masked per F-P5-003):
-/// - Resolver registry name: "test_resolver_alpha"
-/// - Resolver output key:    "collision-key"  (distinct from registry name)
-/// - Static config key:      "collision-key"  (causes collision)
+/// Setup (de-masked per F-P5-003 / F-P2-002):
+/// - Resolver registry name:          "test_resolver_alpha"
+/// - Resolver declared context_key:   "collision-key" (the merge key per F-P2-002)
+/// - Resolver output.key:             "collision-key-output" (informational only)
+/// - Static config key:               "collision-key" (causes collision with context_key)
 ///
-/// The assertion checks `resolver_name == "test_resolver_alpha"` (field value),
-/// not just that "collision-key" appears somewhere in the log.
+/// The assertion checks `resolver_name == "collision-key"` (= context_key = merge key).
+/// F-P2-002: resolver_name in collision event = declared context_key, not registry name.
 #[tokio::test(flavor = "current_thread")]
 async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
     let dir = tempfile::tempdir().unwrap();
@@ -585,11 +597,13 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         registry.hooks.iter().collect();
     let tiers = factory_dispatcher::routing::group_by_priority(&registry, matched);
 
-    // F-P5-003: resolver registry name "test_resolver_alpha" produces output key
-    // "collision-key" — DISTINCT registry name and output key.
+    // F-P5-003 / F-P2-002: resolver registry name "test_resolver_alpha", declared
+    // context_key "collision-key" (the merge key), output_key "collision-key" (informational).
+    // The declared context_key determines the merge key; output.key is informational.
     let resolver = NamedKeyResolver {
         registry_name: "test_resolver_alpha".to_string(),
-        output_key: "collision-key".to_string(),
+        declared_context_key: "collision-key".to_string(), // merge key = context_key (F-P2-002)
+        output_key: "collision-key-output".to_string(),   // informational only (F-P2-002)
     };
     let mut resolver_registry = ResolverRegistry::new();
     resolver_registry
@@ -625,13 +639,13 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         "F-P4-001B: 'resolver.merge_collision' event must carry 'resolver_name' field \
          (BC-4.12.004 wire format). Log content: {all_log_content:?}"
     );
-    // F-P5-003: assert resolver_name VALUE is "test_resolver_alpha" (not just "collision-key").
-    // This proves resolver identity is threaded from the registry name, not derived from
-    // the output key.
+    // F-P2-002 / F-P5-003: assert resolver_name VALUE is "collision-key" (the declared context_key).
+    // With F-P2-002, resolver_name in the collision event = context_key (the merge key).
+    // The merge key is the registry-declared context_key, not the registry name.
     assert!(
-        all_log_content.contains("\"resolver_name\":\"test_resolver_alpha\""),
-        "F-P5-003: 'resolver_name' in merge_collision event must equal \
-         'test_resolver_alpha' (the registry name), NOT 'collision-key' (the output key). \
+        all_log_content.contains("\"resolver_name\":\"collision-key\""),
+        "F-P2-002 / F-P5-003: 'resolver_name' in merge_collision event must equal \
+         'collision-key' (the declared context_key = merge key per F-P2-002). \
          Log content: {all_log_content:?}"
     );
 }

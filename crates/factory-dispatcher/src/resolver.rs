@@ -240,13 +240,15 @@ impl ResolverRegistry {
     ///   caller can emit the `resolver.error` telemetry event non-blockingly
     ///   (BC-1.13.001 PC2 / BC-4.12.005 INV3 — failed resolver is observable).
     ///
-    /// # Return type (F-P5-003 — Option A)
+    /// # Return type (F-P5-003 — Option A, amended by F-P2-002)
     ///
     /// Returns `Vec<(String, ResolverOutput)>` where the first `String` is the
-    /// **registry name** of the resolver (`ContextResolver::name()`).  This
-    /// threads resolver identity through to `merge_resolver_outputs` so
-    /// `CollisionInfo.resolver_name` is populated from the actual registry name,
-    /// not derived from `output.key`.
+    /// **registry-declared `context_key`** of the resolver (`ContextResolver::context_key()`).
+    /// This is the key under which the resolver's output is merged into `plugin_config`.
+    ///
+    /// F-P2-002: the merge key is determined by the registry-declared `context_key`,
+    /// NOT by `ResolverOutput.key`. Resolver's `output.key` is informational only
+    /// and does not affect where the output is stored in `plugin_config`.
     ///
     /// Entries are in **declaration order** (BC-1.13.001 PC7).
     /// Resolvers returning `Ok(None)` contribute no entry (BC-4.12.005 PC2).
@@ -263,24 +265,30 @@ impl ResolverRegistry {
     ) -> Vec<(String, ResolverOutput)> {
         let mut outputs = Vec::new();
         for name in requested_names {
-            match self.invoke_resolver(name, input, &emit_not_found) {
+            match self.resolvers.iter().find(|r| r.name() == name) {
                 None => {
-                    // Not found — emit_not_found already called; skip this key.
+                    emit_not_found(name);
                 }
-                Some(Err(err)) => {
-                    // Resolver errored — call the error callback so the caller
-                    // can emit telemetry (SOUL #4: no silent failures).
-                    // Dispatch continues; this key contributes nothing.
-                    emit_resolver_error(name, &err);
-                }
-                Some(Ok(output)) if output.value.is_some() => {
-                    // F-P5-003: thread resolver identity (name) with the output.
-                    // Declaration order preserved (BC-1.13.001 PC7).
-                    // value: None branch handled by non-matching arm → key absent (BC-4.12.005 PC2).
-                    outputs.push((name.clone(), output));
-                }
-                Some(Ok(_)) => {
-                    // value: None → key absent (BC-4.12.005 PC2); do nothing.
+                Some(resolver) => {
+                    // F-P2-002: capture the registry-declared context_key BEFORE invoking.
+                    // This is the merge key regardless of what `output.key` contains.
+                    let context_key = resolver.context_key().to_string();
+                    match resolver.resolve(input) {
+                        Ok(Some(output)) if output.value.is_some() => {
+                            // F-P2-002: thread registry-declared context_key, NOT output.key.
+                            // Declaration order preserved (BC-1.13.001 PC7).
+                            outputs.push((context_key, output));
+                        }
+                        Ok(_) => {
+                            // value: None → key absent (BC-4.12.005 PC2); do nothing.
+                        }
+                        Err(err) => {
+                            // Resolver errored — call the error callback so the caller
+                            // can emit telemetry (SOUL #4: no silent failures).
+                            // Dispatch continues; this key contributes nothing.
+                            emit_resolver_error(name, &err);
+                        }
+                    }
                 }
             }
         }
@@ -344,17 +352,19 @@ impl Default for ResolverRegistry {
 /// for each — keeping the pure merge function free of I/O side effects
 /// (BC-4.12.005 INV1; architect Path B decision, ADR pass-2).
 ///
-/// F-P4-001B / F-P5-003: `resolver_name` is the registry name of the resolver
-/// that produced the colliding output, threaded explicitly through the
-/// `(resolver_name, ResolverOutput)` pair in `merge_resolver_outputs`.
+/// F-P4-001B / F-P5-003 / F-P2-002: `resolver_name` is the registry-declared
+/// `context_key` of the resolver that produced the colliding output, threaded
+/// explicitly through the `(context_key, ResolverOutput)` pair in
+/// `merge_resolver_outputs`. For most resolvers this equals the registry name
+/// (since `context_key()` defaults to `name()`); for `CompiledWasmResolver`
+/// entries they may differ.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollisionInfo {
-    /// The config key that collided.
+    /// The config key that collided (equals the registry-declared `context_key`).
     pub key: String,
-    /// The registry name of the resolver whose output caused the collision.
-    /// F-P5-003: threaded from the `(resolver_name, output)` pair — NOT
-    /// derived from `output.key` so distinct resolver names and output keys
-    /// are handled correctly.
+    /// The registry-declared `context_key` of the resolver whose output caused
+    /// the collision. F-P2-002: threaded from the `(context_key, output)` pair
+    /// — NOT derived from `output.key`.
     pub resolver_name: String,
     /// The value that was in `static_config` before the merge.
     pub old_value: Value,
@@ -374,17 +384,20 @@ pub struct CollisionInfo {
 /// The production invariant that `plugin_config` is always a JSON Object is
 /// enforced at the call-site coercion step (see `executor.rs`).
 ///
-/// # Signature (F-P5-003 — Option A)
+/// # Signature (F-P5-003 — Option A, amended by F-P2-002)
 ///
-/// `resolver_outputs` is a slice of `(resolver_name, ResolverOutput)` pairs.
-/// The `resolver_name` is the `ContextResolver::name()` of the resolver that
-/// produced the output — threaded through from `resolve_context_for_entry` so
-/// `CollisionInfo.resolver_name` carries the actual registry identity, not a
-/// derived copy of the output key.
+/// `resolver_outputs` is a slice of `(context_key, ResolverOutput)` pairs.
+/// The `context_key` is the **registry-declared** `ContextResolver::context_key()`
+/// of the resolver that produced the output — threaded through from
+/// `resolve_context_for_entry`. This is the key used for merging.
+///
+/// F-P2-002: The merge key is determined by the registry-declared `context_key`,
+/// NOT by `ResolverOutput.key`. `output.key` is informational only; it does not
+/// affect where the value is stored in `plugin_config`.
 ///
 /// Merge semantics (BC-4.12.005):
 /// - `static_config` fields are preserved.
-/// - Each `ResolverOutput` with `value: Some(v)` sets `plugin_config[key] = v`
+/// - Each `ResolverOutput` with `value: Some(v)` sets `plugin_config[context_key] = v`
 ///   (whole-value replacement — no deep merge).
 /// - Each `ResolverOutput` with `value: None` writes nothing (key absent).
 /// - Resolver output wins on collision with static config (PC5).
@@ -401,21 +414,23 @@ pub fn merge_resolver_outputs(
     let mut collisions = Vec::new();
 
     // Apply resolver outputs in order (BC-4.12.005 PC4).
-    for (resolver_name, output) in resolver_outputs {
+    for (context_key, output) in resolver_outputs {
         // value: None → do not write the key (BC-4.12.005 PC2).
         if let Some(new_val) = &output.value {
-            if let Some(old_val) = map.get(&output.key) {
+            // F-P2-002: merge under the registry-declared context_key (tuple element),
+            // NOT under output.key. output.key is informational only.
+            if let Some(old_val) = map.get(context_key) {
                 // Key collision: record for caller to emit telemetry.
                 // Resolver wins (BC-4.12.005 PC5 — whole-value replacement).
-                // F-P5-003: resolver_name threaded from the (name, output) pair.
+                // F-P2-002: context_key threaded from the (context_key, output) pair.
                 collisions.push(CollisionInfo {
-                    key: output.key.clone(),
-                    resolver_name: resolver_name.clone(),
+                    key: context_key.clone(),
+                    resolver_name: context_key.clone(),
                     old_value: old_val.clone(),
                     new_value: new_val.clone(),
                 });
             }
-            map.insert(output.key.clone(), new_val.clone());
+            map.insert(context_key.clone(), new_val.clone());
         }
     }
 

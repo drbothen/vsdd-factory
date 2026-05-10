@@ -159,8 +159,9 @@ proptest! {
         ).prop_map(|m| m.into_iter().collect::<Map<_, _>>()),
         output in arb_resolver_output_with_value(),
     ) {
-        // F-P5-003: output is (resolver_name, ResolverOutput)
-        let output_key = output.1.key.clone();
+        // F-P2-002: output is (context_key, ResolverOutput); merge uses context_key as merge key.
+        // output.1.key is informational only and does NOT determine the merge destination.
+        let merge_key = output.0.clone(); // context_key = the actual merge key (F-P2-002)
         let outputs = vec![output];
 
         let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -182,12 +183,13 @@ proptest! {
             );
         }
 
-        // The resolver's output key must be present.
+        // The registry-declared context_key (merge_key) must be present in the merged result.
+        // F-P2-002: the merge key is the tuple's first String, not output.key.
         prop_assert!(
-            merged_obj.contains_key(output_key.as_str()),
-            "resolver output key '{}' must be present in merged result \
-             (VP-075-C / BC-4.12.005 PC3)",
-            output_key
+            merged_obj.contains_key(merge_key.as_str()),
+            "context_key '{}' must be present in merged result \
+             (VP-075-C / BC-4.12.005 PC3 / F-P2-002 — context_key is the merge key)",
+            merge_key
         );
     }
 }
@@ -213,8 +215,9 @@ proptest! {
         base_config in arb_json_object(),
         output in arb_resolver_output_none(),
     ) {
-        // F-P5-003: output is (resolver_name, ResolverOutput)
-        let output_key = output.1.key.clone();
+        // F-P2-002: output is (context_key, ResolverOutput) where value is None.
+        // With value: None, nothing is inserted — neither context_key nor output.key appears.
+        let context_key = output.0.clone(); // F-P2-002: this would be the merge key if value were Some
         let outputs = vec![output];
 
         let merged_a = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -240,12 +243,13 @@ proptest! {
             "merge is deterministic for None-value outputs (VP-075-D)"
         );
 
-        // None value: key must be absent from merged result.
+        // None value: context_key must be absent from merged result (nothing inserted).
+        // F-P2-002: with value: None, neither context_key nor output.key is inserted.
         prop_assert!(
-            !result_a.contains_key(output_key.as_str()),
-            "key '{}' must be ABSENT when resolver returns value: None \
-             (VP-075-D / AC-004 / BC-4.12.005 PC2)",
-            output_key
+            !result_a.contains_key(context_key.as_str()),
+            "context_key '{}' must be ABSENT when resolver returns value: None \
+             (VP-075-D / AC-004 / BC-4.12.005 PC2 / F-P2-002)",
+            context_key
         );
     }
 }

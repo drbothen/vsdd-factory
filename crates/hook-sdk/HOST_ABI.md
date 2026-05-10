@@ -972,8 +972,23 @@ The `i64` return value encodes a packed `(ptr: i32, len: i32)` pair:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `key` | `String` | The context key under which the value is merged into `plugin_config`. |
+| `key` | `String` | Informational self-documentation for the resolver author. **Does NOT determine where the value is merged into `plugin_config`.** |
 | `value` | `Option<Value>` | The context payload; `null` means the key is absent (not written to `plugin_config`). |
+
+**Merge key convention (F-P2-002):** The merge key — i.e. the key under which this resolver's
+`value` is stored in `plugin_config` — is determined by the **registry-declared `context_key`**
+in `resolvers-registry.toml`, NOT by `ResolverOutput.key`. Resolvers MAY include `key` in their
+output for self-documentation (e.g., for logging or debugging), but it does not affect merging.
+This decouples the resolver's internal naming from the registry schema.
+
+#### Zero-Length Result Convention
+
+A packed return value of `(0, 0)` — i.e. the `i64` result equals `0` — indicates the resolver
+intends `Ok(None)`: it has no context to contribute for this dispatch. Resolvers SHOULD return
+`ResolverOutput { value: None }` explicitly when a structured return is desired (allows the
+dispatcher to log the output key for diagnostics). The `(0, 0)` shortcut is for resolvers that
+have no allocation to return and wish to signal absence without writing any bytes. The dispatcher
+treats both forms identically: neither writes to `plugin_config`. (F-P2-008)
 
 Resolvers do NOT return block/continue decisions. They return data only. A resolver cannot
 block a hook dispatch.
