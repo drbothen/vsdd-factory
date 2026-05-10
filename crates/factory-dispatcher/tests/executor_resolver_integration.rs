@@ -603,7 +603,7 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
     let resolver = NamedKeyResolver {
         registry_name: "test_resolver_alpha".to_string(),
         declared_context_key: "collision-key".to_string(), // merge key = context_key (F-P2-002)
-        output_key: "collision-key-output".to_string(),   // informational only (F-P2-002)
+        output_key: "collision-key-output".to_string(),    // informational only (F-P2-002)
     };
     let mut resolver_registry = ResolverRegistry::new();
     resolver_registry

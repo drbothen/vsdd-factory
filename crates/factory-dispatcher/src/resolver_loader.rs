@@ -552,12 +552,13 @@ impl ContextResolver for CompiledWasmResolver {
 
         // Bounds-check the output region.
         let out_start = output_ptr;
-        let out_end = out_start.checked_add(output_len).ok_or_else(|| {
-            ResolverError::AbiViolation {
-                name: self.name.clone(),
-                detail: format!("output ptr+len overflow: ptr={output_ptr} len={output_len}"),
-            }
-        })?;
+        let out_end =
+            out_start
+                .checked_add(output_len)
+                .ok_or_else(|| ResolverError::AbiViolation {
+                    name: self.name.clone(),
+                    detail: format!("output ptr+len overflow: ptr={output_ptr} len={output_len}"),
+                })?;
         let mem_data = memory.data(&store);
         if out_end > mem_data.len() {
             return Err(ResolverError::AbiViolation {

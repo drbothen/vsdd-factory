@@ -516,8 +516,7 @@ fn test_F_P2_001_epoch_deadline_fires_resolver_timeout() {
     use factory_dispatcher::resolver::ResolverInput;
 
     let manifest = env!("CARGO_MANIFEST_DIR");
-    let fixture =
-        std::path::Path::new(manifest).join("tests/fixtures/long_running_resolver.wasm");
+    let fixture = std::path::Path::new(manifest).join("tests/fixtures/long_running_resolver.wasm");
     assert!(
         fixture.exists(),
         "F-P2-001: long_running_resolver.wasm must exist at {:?}. \
@@ -721,7 +720,7 @@ context_key = "valid_ctx"
 
     let registry = result.expect(
         "F-P2-003: fail_closed=false with missing .wasm must return Ok \
-         (fail-open: skip entry and continue with remaining resolvers)"
+         (fail-open: skip entry and continue with remaining resolvers)",
     );
 
     assert_eq!(
@@ -826,12 +825,7 @@ fn test_capability_denied_when_resolver_attempts_disallowed_read() {
     use factory_dispatcher::registry::Capabilities;
 
     // Create a HostContext with read_file capability entirely absent (deny-by-default).
-    let mut ctx = HostContext::new(
-        "test-resolver",
-        "0.0.1",
-        "sess-cap-test",
-        "trace-cap-test",
-    );
+    let mut ctx = HostContext::new("test-resolver", "0.0.1", "sess-cap-test", "trace-cap-test");
     // No read_file capability — all reads must be denied.
     ctx.capabilities = Capabilities {
         read_file: None,
