@@ -1110,6 +1110,9 @@ fields:
 | `error_kind` | One of: `"trap"`, `"timeout"`, `"abi_violation"`, `"capability_denied"`, `"not_found"`, `"load_error"`. |
 | `error_detail` | Human-readable description of the specific error. |
 | `event_type` | The Claude Code envelope event type (e.g., `'PreToolUse'`, `'PostToolUse'`) that triggered this resolver dispatch. |
+| `trace_id`     | Dispatcher trace ID for the dispatch event. |
+| `session_id`   | Claude Code session identifier. |
+| `plugin_name`  | The hook plugin name that declared this resolver in `needs_context`. |
 
 In addition to the telemetry event, the dispatcher writes an error-level log entry at the configured log path with the same fields (BC-4.12.004 PC7).
 
