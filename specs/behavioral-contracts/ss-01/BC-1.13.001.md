@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -12,6 +12,7 @@ inputs:
 input-hash: "[pending-recompute]"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-platform-amendment-delta-analysis.md
 origin: greenfield
+extracted_from: null
 subsystem: "SS-01"
 capability: "CAP-002"
 lifecycle_status: active
@@ -135,7 +136,7 @@ be unaffected.
 | EC-001 | `resolvers-registry.toml` absent at startup | Zero resolvers configured. Dispatcher starts normally. No error, no warning. All existing hooks function identically to pre-resolver behavior. |
 | EC-002 | `resolvers-registry.toml` present but TOML parse error | Fail-loud: emit `resolver.load_error` with parse error detail. Dispatcher startup fails. Do not silently proceed with zero resolvers. |
 | EC-003 | `resolvers-registry.toml` present; a `plugin` path does not exist on disk | Fail-loud: emit `resolver.load_error` with the missing path. Startup fails for that resolver entry. |
-| EC-004 | Hook entry has `needs_context = ["wave-context"]` but `wave-context` is not in the resolver registry | Emit `resolver.not_found` event at dispatch time. Dispatch proceeds without context injection. Hook sees absent key in `plugin_config`. |
+| EC-004 | Hook entry has `needs_context = ["wave_context"]` but `wave_context` is not in the resolver registry | Emit `resolver.not_found` event at dispatch time. Dispatch proceeds without context injection. Hook sees absent key in `plugin_config`. |
 | EC-005 | Hook entry has `needs_context = []` (or field absent) | Resolver invocation skipped entirely. Zero overhead on the dispatch hot path. |
 | EC-006 | Resolver WASM mtime changes while dispatcher is running | Mtime-based cache invalidation triggers reload of the changed resolver module on next dispatch that needs it (same pattern as `plugin_loader.rs`). |
 | EC-007 | Two hooks in the same dispatch share the same `needs_context` resolver | Each hook's dispatch independently invokes the resolver (no cross-hook caching per OD-4). Each invocation creates a fresh `Store`. |
@@ -147,11 +148,11 @@ be unaffected.
 | Scenario | Registry State | `needs_context` | Expected Behavior |
 |----------|---------------|-----------------|-------------------|
 | Registry absent | File not found | any | Zero resolvers; dispatcher starts. Hooks dispatch normally. |
-| Registry present; no resolvers | `[[resolvers]]` empty | `["wave-context"]` | `resolver.not_found` event; hook proceeds with unmodified `plugin_config`. |
-| Registry present; resolver loaded | `wave-context` registered | `["wave-context"]` | Resolver invoked; output merged into `plugin_config["wave_context"]`; hook sees merged config. |
-| Registry present; resolver loaded | `wave-context` registered | `[]` | Resolver NOT invoked; hook sees unmodified `plugin_config`. Zero overhead. |
-| Resolver returns `None` | `wave-context` registered | `["wave-context"]` | `plugin_config["wave_context"]` key is absent (not null, not empty). |
-| Resolver returns value | `wave-context` registered; returns `{stories: [...]}` | `["wave-context"]` | `plugin_config["wave_context"] = {stories: [...]}`. |
+| Registry present; no resolvers | `[[resolvers]]` empty | `["wave_context"]` | `resolver.not_found` event; hook proceeds with unmodified `plugin_config`. |
+| Registry present; resolver loaded | `wave_context` registered | `["wave_context"]` | Resolver invoked; output merged into `plugin_config["wave_context"]`; hook sees merged config. |
+| Registry present; resolver loaded | `wave_context` registered | `[]` | Resolver NOT invoked; hook sees unmodified `plugin_config`. Zero overhead. |
+| Resolver returns `None` | `wave_context` registered | `["wave_context"]` | `plugin_config["wave_context"]` key is absent (not null, not empty). |
+| Resolver returns value | `wave_context` registered; returns `{stories: [...]}` | `["wave_context"]` | `plugin_config["wave_context"] = {stories: [...]}`. |
 | TOML parse error | Malformed TOML | — | Startup fails; `resolver.load_error` emitted. |
 | Unknown resolver name | `foo` not registered | `["foo"]` | `resolver.not_found`; dispatch proceeds without context. |
 
@@ -213,5 +214,6 @@ S-12.03 (ContextResolver trait + ResolverRegistry in-memory) and S-12.04 (WASM r
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes architectural decisions OD-1 through OD-6 (user-authorized per D-361). PC1 Critical Constraint explicitly states "absent resolvers-registry.toml = zero resolvers, NOT a startup error" per orchestrator directive and F1-amendment R-PLAT-005 regression risk mitigation. Factory-agnostic dispatcher invariant encodes D-361 generality requirement. |
+| 1.2 | 2026-05-10 | Pass-4 fix-burst: canonical key wave-context → wave_context per BC-4.12.005 PC7 / S-12.07 v1.2 / ADR-018. EC-004 and Canonical Test Vectors truth table (rows 150-154) updated to use underscore form throughout. Added missing `extracted_from: null` frontmatter field (greenfield artifact). |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.03, S-12.04 → S-12.03, S-12.04, S-12.06, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.08; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
+| 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes architectural decisions OD-1 through OD-6 (user-authorized per D-361). PC1 Critical Constraint explicitly states "absent resolvers-registry.toml = zero resolvers, NOT a startup error" per orchestrator directive and F1-amendment R-PLAT-005 regression risk mitigation. Factory-agnostic dispatcher invariant encodes D-361 generality requirement. |
