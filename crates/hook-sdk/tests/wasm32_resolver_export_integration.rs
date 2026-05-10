@@ -1,16 +1,17 @@
 //! Integration test: verify that the `#[resolver]` macro generates a `resolve`
 //! WASM export when `wasm-resolver-export` is compiled for `wasm32-wasip1`.
 //!
-//! # Setup required to run (remove `#[ignore]`)
+//! # Setup required to run
 //!
-//! 1. Install wasm32-wasip1 toolchain:
-//!    `rustup target add wasm32-wasip1`
+//! This test cross-compiles a fixture crate to wasm32-wasip1 and verifies
+//! the `resolve` symbol appears in the exports. Setup:
 //!
-//! 2. Build the example crate:
+//! 1. Install the wasm32-wasip1 target: `rustup target add wasm32-wasip1`
+//! 2. Pre-build the fixture crate to avoid recursive cargo lock contention:
 //!    `cargo build --target wasm32-wasip1 -p wasm-resolver-export --release`
-//!
-//! 3. Run this test without `--ignored`:
-//!    `cargo test --features resolver-authoring -p vsdd-hook-sdk --test wasm32_resolver_export_integration`
+//! 3. Run with --ignored:
+//!    `cargo test -p vsdd-hook-sdk --features resolver-authoring \
+//!     --test wasm32_resolver_export_integration -- --ignored`
 //!
 //! ## Running this test
 //!
