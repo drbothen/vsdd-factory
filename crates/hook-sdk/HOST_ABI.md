@@ -1094,7 +1094,7 @@ fields:
 | `resolver_name` | The registry name of the failed resolver. |
 | `error_kind` | One of: `"trap"`, `"timeout"`, `"abi_violation"`, `"capability_denied"`, `"not_found"`, `"load_error"`. |
 | `error_detail` | Human-readable description of the specific error. |
-| `hook_event_name` | The hook dispatch context that triggered this resolver. |
+| `event_type` | The Claude Code envelope event type (e.g., `'PreToolUse'`, `'PostToolUse'`) that triggered this resolver dispatch. |
 
 In addition to the telemetry event, the dispatcher writes an error-level log entry at the configured log path with the same fields (BC-4.12.004 PC7).
 

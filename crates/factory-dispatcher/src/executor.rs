@@ -478,8 +478,8 @@ fn build_plugin_config(
     let hook_name_err = hook_name.clone();
     let trace_id_nf = trace_id.to_string();
     let trace_id_err = trace_id.to_string();
-    // event_type is the Claude Code envelope event (e.g. "PreToolUse") used as
-    // hook_event_name in resolver.error events (HOST_ABI.md line 1097).
+    // event_type is the Claude Code envelope event (e.g. "PreToolUse") emitted as
+    // the event_type field in resolver.error events (HOST_ABI.md line 1097).
     let event_type_for_log = event_type.clone();
 
     // AC-005: emit resolver.not_found when a named resolver is absent.
@@ -501,7 +501,8 @@ fn build_plugin_config(
     // AC-007 / SOUL #4: emit resolver.error when a resolver returns Err.
     // F-P4-001A / F-P5-001: error_kind uses snake_case serde tag (HOST_ABI line 1095).
     // F-P5-002: error_detail (singular) is the Display string (HOST_ABI line 1096).
-    //           hook_event_name carries the Claude Code event type (HOST_ABI line 1097).
+    //           event_type carries the Claude Code envelope event type (HOST_ABI line 1097).
+    //           This is distinct from ResolverInput.hook_event_name (registry entry name).
     let emit_resolver_error = {
         let log = internal_log.clone();
         move |err_name: &str, err: &crate::resolver::ResolverError| {
@@ -520,12 +521,9 @@ fn build_plugin_config(
                     serde_json::Value::String(err_name.to_string()),
                 )
                 .with_field("error_kind", serde_json::Value::String(error_kind))
+                .with_field("error_detail", serde_json::Value::String(format!("{err}")))
                 .with_field(
-                    "error_detail",
-                    serde_json::Value::String(format!("{err}")),
-                )
-                .with_field(
-                    "hook_event_name",
+                    "event_type",
                     serde_json::Value::String(event_type_for_log.clone()),
                 );
             log.write(&ev);
