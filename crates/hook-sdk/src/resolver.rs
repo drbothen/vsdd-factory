@@ -37,15 +37,6 @@ pub struct ResolverOutput {
     pub value: Option<Value>,
 }
 
-/// Error type for resolver operations.
-///
-/// Reserved for future resolver SDK error handling; currently a placeholder
-/// to satisfy story file-list requirements.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResolverError {
-    pub message: String,
-}
-
 /// Resolver trait — optional architectural companion to the `Hook` trait.
 ///
 /// Implement this trait and use the `#[resolver]` macro to produce a WASM resolver plugin.

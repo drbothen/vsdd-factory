@@ -19,7 +19,8 @@ path = "src/lib.rs"
 
 [features]
 ## Opt-in feature for resolver plugin authoring.
-## Gates ResolverInput, ResolverOutput, ResolverError, RESOLVER_ABI_VERSION, and the Resolver trait.
+## Gates ResolverInput, ResolverOutput, RESOLVER_ABI_VERSION, and the Resolver trait.
+## ResolverError is host-side only (factory-dispatcher); it is NOT exported from hook-sdk.
 ## Hook crates that are NOT resolvers MUST NOT enable this feature. (BC-4.12.002 PC8)
 resolver-authoring = []
 
