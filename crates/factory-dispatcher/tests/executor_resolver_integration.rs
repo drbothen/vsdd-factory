@@ -305,3 +305,106 @@ async fn ac002_spawn_async_plugin_zero_overhead_when_needs_context_empty() {
          when needs_context is empty on the async dispatch path"
     );
 }
+
+// ---------------------------------------------------------------------------
+// F-P2-007 (test 3): ErroringResolver causes resolver.error event in InternalLog
+// ---------------------------------------------------------------------------
+
+/// An in-process resolver that always returns `Err(ResolverError::Crashed)`.
+struct ErroringResolver {
+    key: String,
+}
+
+impl ContextResolver for ErroringResolver {
+    fn name(&self) -> &str {
+        &self.key
+    }
+
+    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+        Err(ResolverError::Crashed {
+            name: self.key.clone(),
+            detail: "injected test failure".to_string(),
+        })
+    }
+}
+
+/// F-P2-007 (integration test) / SOUL #4:
+/// When a hook declares `needs_context: ["boom"]` and the resolver "boom"
+/// returns `Err(ResolverError::Crashed)`, `execute_tiers` must:
+/// 1. Complete without panicking (dispatch continues — BC-4.12.005 INV3).
+/// 2. Write a `resolver.error` event to InternalLog (no silent failures).
+///
+/// Verifies that executor.rs wires the error callback correctly in production.
+#[tokio::test(flavor = "current_thread")]
+async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+    let log_dir = dir.path().join("logs");
+    let internal_log = Arc::new(InternalLog::new(log_dir.clone()));
+
+    let wasm = compile_wasm(dir.path(), "ok_boom");
+    // Hook declares needs_context: ["boom"] — resolver "boom" will error.
+    let entry = make_entry(&wasm, "boom-hook", vec!["boom".to_string()]);
+    let registry = make_registry(vec![entry]);
+    let matched: Vec<&factory_dispatcher::registry::RegistryEntry> =
+        registry.hooks.iter().collect();
+    let tiers = factory_dispatcher::routing::group_by_priority(&registry, matched);
+
+    let mut resolver_registry = ResolverRegistry::new();
+    resolver_registry
+        .register(Box::new(ErroringResolver {
+            key: "boom".to_string(),
+        }))
+        .expect("first registration must succeed");
+    let resolver_registry = Arc::new(resolver_registry);
+
+    let inputs = make_executor_inputs(&engine, &cache, &registry, &internal_log, resolver_registry);
+    // execute_tiers must NOT panic — dispatch continues even with erroring resolver.
+    let summary = execute_tiers(inputs, tiers).await;
+
+    assert_eq!(
+        summary.per_plugin_results.len(),
+        1,
+        "F-P2-007: exactly one plugin must have run despite erroring resolver"
+    );
+
+    // Flush InternalLog and verify resolver.error event is present.
+    drop(internal_log);
+
+    // Read the NDJSON log file and look for a resolver.error event.
+    let log_entries: Vec<String> = std::fs::read_dir(&log_dir)
+        .expect("log dir must exist")
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.path()
+                .extension()
+                .and_then(|x| x.to_str())
+                .map(|x| x == "ndjson" || x == "jsonl" || x == "log")
+                .unwrap_or(false)
+        })
+        .flat_map(|e| {
+            std::fs::read_to_string(e.path())
+                .unwrap_or_default()
+                .lines()
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    // Also check any file in log_dir (InternalLog may use different extension).
+    let all_log_content: String = std::fs::read_dir(&log_dir)
+        .expect("log dir must exist after dispatch")
+        .filter_map(|e| e.ok())
+        .filter_map(|e| std::fs::read_to_string(e.path()).ok())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let _ = log_entries; // checked via all_log_content below
+    assert!(
+        all_log_content.contains("resolver.error"),
+        "F-P2-007 / SOUL #4: InternalLog must contain a 'resolver.error' event \
+         when a registered resolver returns Err — no silent failures. \
+         Log content: {all_log_content:?}"
+    );
+}

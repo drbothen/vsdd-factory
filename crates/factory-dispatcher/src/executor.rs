@@ -531,10 +531,7 @@ fn build_plugin_config(
         let ev = InternalEvent::now("resolver.merge_collision")
             .with_trace_id(trace_id)
             .with_plugin_name(&hook_name)
-            .with_field(
-                "key",
-                serde_json::Value::String(collision.key),
-            );
+            .with_field("key", serde_json::Value::String(collision.key));
         internal_log.write(&ev);
     }
 

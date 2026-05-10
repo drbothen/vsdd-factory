@@ -1010,3 +1010,145 @@ fn test_BC_4_12_005_ec002_empty_object_value_produces_present_key_with_empty_obj
         "key value must be empty object when resolver returns Some({{}}) — EC-002"
     );
 }
+
+// ===========================================================================
+// F-P2-007 — resolver-error callback coverage (SOUL #4: no silent failures)
+// ===========================================================================
+
+/// A resolver that always returns Err(ResolverError::Crashed).
+struct ErroringResolver {
+    resolver_name: String,
+    detail: String,
+}
+
+impl ErroringResolver {
+    fn new(name: &str, detail: &str) -> Self {
+        Self {
+            resolver_name: name.to_string(),
+            detail: detail.to_string(),
+        }
+    }
+}
+
+impl ContextResolver for ErroringResolver {
+    fn name(&self) -> &str {
+        &self.resolver_name
+    }
+
+    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+        Err(ResolverError::Crashed {
+            name: self.resolver_name.clone(),
+            detail: self.detail.clone(),
+        })
+    }
+}
+
+/// F-P2-007 (test 1): `emit_resolver_error` callback fires exactly once when a
+/// registered resolver returns `Err(ResolverError::Crashed)`.
+///
+/// Verifies SOUL #4 (no silent failures): the caller observes the resolver
+/// failure so it can emit a `resolver.error` telemetry event.
+#[test]
+fn test_resolver_error_callback_fires_on_resolver_returning_err() {
+    let mut registry = ResolverRegistry::new();
+    registry
+        .register(Box::new(ErroringResolver::new("foo", "test")))
+        .expect("first registration must succeed");
+
+    let captured_errors: Arc<Mutex<Vec<(String, ResolverError)>>> =
+        Arc::new(Mutex::new(Vec::new()));
+    let captured_clone = captured_errors.clone();
+
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        registry.resolve_context_for_entry(
+            &["foo".to_string()],
+            &test_input(),
+            |_name| {},
+            move |name: &str, err: &ResolverError| {
+                captured_clone
+                    .lock()
+                    .unwrap()
+                    .push((name.to_string(), err.clone()));
+            },
+        )
+    }));
+    assert!(
+        result.is_ok(),
+        "resolve_context_for_entry must not panic when resolver returns Err \
+         (F-P2-007 / SOUL #4 — dispatch continues; error is observable)"
+    );
+
+    let vec = result.unwrap();
+    // Failed resolver contributes no entry (BC-4.12.005 INV3).
+    assert!(
+        vec.is_empty(),
+        "failed resolver must contribute no entry to the resolved vec \
+         (F-P2-007 / BC-4.12.005 INV3)"
+    );
+
+    let errors = captured_errors.lock().unwrap().clone();
+    assert_eq!(
+        errors.len(),
+        1,
+        "emit_resolver_error must be called exactly once for one erroring resolver \
+         (F-P2-007 / SOUL #4 — resolver.error telemetry event)"
+    );
+    assert_eq!(
+        errors[0].0, "foo",
+        "emit_resolver_error must receive the resolver name 'foo' \
+         (F-P2-007 / SOUL #4)"
+    );
+    assert_eq!(
+        errors[0].1,
+        ResolverError::Crashed {
+            name: "foo".to_string(),
+            detail: "test".to_string()
+        },
+        "emit_resolver_error must receive the exact ResolverError variant \
+         (F-P2-007 / SOUL #4 — ResolverError now derives PartialEq per F-P2-003)"
+    );
+}
+
+/// F-P2-007 (test 2): `emit_not_found` is NOT called when a resolver IS registered.
+///
+/// Complements AC-005: not_found fires for missing resolvers, not for
+/// registered ones — even when they produce no output.
+#[test]
+fn test_emit_not_found_not_called_when_resolver_registered() {
+    let mut registry = ResolverRegistry::new();
+    registry
+        .register(Box::new(FixedResolver::new(
+            "foo",
+            Some(ResolverOutput {
+                key: "foo".to_string(),
+                value: Some(json!(42)),
+            }),
+        )))
+        .expect("first registration must succeed");
+
+    let not_found_capture: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let not_found_clone = not_found_capture.clone();
+
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        registry.resolve_context_for_entry(
+            &["foo".to_string()],
+            &test_input(),
+            move |name: &str| {
+                not_found_clone.lock().unwrap().push(name.to_string());
+            },
+            |_name, _err| {},
+        )
+    }));
+    assert!(
+        result.is_ok(),
+        "resolve_context_for_entry must not panic when resolver is registered \
+         (F-P2-007 test 2)"
+    );
+
+    let not_found = not_found_capture.lock().unwrap().clone();
+    assert!(
+        not_found.is_empty(),
+        "emit_not_found must NOT be called when resolver 'foo' is registered \
+         (F-P2-007 test 2 / AC-005 complement)"
+    );
+}
