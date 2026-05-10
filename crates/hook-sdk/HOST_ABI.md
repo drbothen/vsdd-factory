@@ -909,6 +909,45 @@ Emitted when a hook entry's `needs_context` list references a resolver name not 
 in `resolvers-registry.toml`. The dispatcher continues dispatch (the missing resolver
 contributes no key to `plugin_config`); see BC-1.13.001 PC6.
 
+**`resolver.registry_loaded` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `resolver_count` | integer | Number of resolver modules successfully compiled at startup. |
+| `registry_path` | string | Path to the `resolvers-registry.toml` file that was loaded. |
+| `trace_id` | string | Dispatcher trace ID for the startup event. |
+| `session_id` | string | Claude Code session identifier. |
+
+Emitted at dispatcher startup after `ResolverLoader::load_registry` succeeds and at least
+one resolver compiled successfully. Not emitted when the registry is absent (zero-resolver
+case is not an error — see BC-1.13.001 PC1).
+
+**`resolver.load_warning` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `resolver_name` | string | Name of the resolver entry that was skipped (`fail_closed = false`). |
+| `error_detail` | string | Reason the resolver was skipped (compile error, missing file, etc.). |
+| `trace_id` | string | Dispatcher trace ID for the startup event. |
+| `session_id` | string | Claude Code session identifier. |
+
+Emitted at registry-load time when a resolver entry has `fail_closed = false` and fails to
+compile or load. The dispatcher continues startup with the remaining resolvers (fail-open
+semantics). One event is emitted per skipped resolver entry. (BC-4.12.001 PC6)
+
+**`resolver.load_error` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `error_detail` | string | Description of the registry-load failure (TOML parse error, fail-closed compile failure, duplicate name, schema violation). |
+| `trace_id` | string | Dispatcher trace ID for the startup event. |
+| `session_id` | string | Claude Code session identifier. |
+
+Emitted when `ResolverLoader::load_registry` returns `Err` — i.e. when a fail-closed
+resolver fails to compile, the registry TOML is malformed, or a duplicate `name` entry is
+detected. The dispatcher does NOT start with a partial resolver set; startup is aborted
+after emitting this event. (BC-4.12.001 PC6, BC-4.12.005 PC6)
+
 ---
 
 ### Resolver Lifecycle (BC-4.12.001)
