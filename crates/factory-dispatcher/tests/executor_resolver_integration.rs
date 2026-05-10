@@ -529,6 +529,16 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
          with_session_id() wiring isn't dropped silently in a regression. \
          Log content: {all_log_content:?}"
     );
+    // F-S12.04-P6-002: plugin_name positive-coverage assertion. The hook entry name
+    // (set from entry.name and emitted via with_plugin_name()) MUST appear in the
+    // resolver.error event. Catches silent regression of .with_plugin_name() being
+    // dropped (POL-11 tautology gap).
+    let expected_hook_name = "boom-hook";
+    assert!(
+        all_log_content.contains(expected_hook_name),
+        "F-S12.04-P6-002: resolver.error event must include the hook plugin_name (from entry.name). \
+         Log content: {all_log_content:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
